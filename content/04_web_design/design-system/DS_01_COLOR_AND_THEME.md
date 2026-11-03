@@ -2,7 +2,7 @@
 title: "设计系统 · 第一编 色彩与主题"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-31
+last_updated: 2026-11-01
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RESPONSIVE.md, ../../../docs/src/styles.css, CASES.md]
 ---
@@ -475,6 +475,12 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RES
 1. **整圈红边**：卡片 / 会议卡用整圈彩色边框表示「重要」——同时像主题色、错误色和选中态，用户无法判断语义；改用章节头计数、左侧 2px 单色规则或状态徽章。
 2. **功能色主按钮**：用 `--functional-success` / `--functional-error` 做实底主按钮——功能色只表状态，主行动归主题色。
 3. **主题色状态徽章**：用 `--app-accent-*` 做「在任 / 待召开 / 已留存」等状态——身份色与状态色混层，状态一律走 `--functional-*`。
+
+**指标与状态用功能色；动作 / 导航 / 选中态用主题色（2026-11-01 批次 524 立）**
+
+- **指标与状态**（带语义的计数：`待答复` / `待赋权` / `待归档` / `待补课` / `待汇报` / `组员汇报` / `逾期`）一律取**功能色文字档**——`--status-info-text` / `--status-warning-text`；纯计数（无状态语义，如「待办」总数）取 `--neutral-800`。
+- **动作**（按钮 / 可点入口）、**导航**（链接 / 页签 / 返回）与**选中态**才用**主题色**。主题色是「正常」的默认色，用它渲染「待…」指标会把状态差异抹平，功能色反而失去注意力引导作用。
+- 单一源：`docs/src/components/governance/work-overview.js::METRIC_TONE`；待答复直达条同口径（`overview-dispatch-bar.js`）。守卫：`ui-color-semantics` C6–C8。
 
 ### 2.11 主题色板：7 主题 × 亮/暗 × 8 显式 token（2026-10-23 批次 506 立 · **取代 §2.7 / §2.9.1 的三件套公式**）
 

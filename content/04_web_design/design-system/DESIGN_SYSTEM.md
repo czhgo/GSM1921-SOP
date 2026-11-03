@@ -2,18 +2,18 @@
 title: "设计系统（父索引）"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-30
+last_updated: 2026-11-01
 status: active
-related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RESPONSIVE.md, DS_05_MAP_AND_REFERENCE.md, CASES.md, ../../../docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data/DATA_MODEL.md]
+related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RESPONSIVE.md, DS_05_MAP_AND_REFERENCE.md, DS_06_LAYOUT_AND_DENSITY.md, CASES.md, ../../../docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data/DATA_MODEL.md]
 ---
 
 # 设计系统（父索引）
 
-> **回答什么问题**：我要找的那条设计规则在哪一编。本页只做编目与导航，条文一律在五编里，不在此重复。
-> **不回答什么**：具体条文（色板值、字号档、组件结构、点击落点表）→ 五编各自成文，见「编目索引 · 五编分工」；判例（为什么这样定、什么条件下不适用）→ [CASES.md](CASES.md)；设计论证 → [DESIGN_METHODOLOGY.md](../evolution/DESIGN_METHODOLOGY.md)。
+> **回答什么问题**：我要找的那条设计规则在哪一编。本页只做编目与导航，条文一律在六编里，不在此重复。
+> **不回答什么**：具体条文（色板值、字号档、组件结构、点击落点表）→ 六编各自成文，见「编目索引 · 六编分工」；判例（为什么这样定、什么条件下不适用）→ [CASES.md](CASES.md)；设计论证 → [DESIGN_METHODOLOGY.md](../evolution/DESIGN_METHODOLOGY.md)。
 > **谁什么时候读**：[工程师]+[AI]；每次改界面前先读本页定位编目，再读对应编；不确定「这条该写进哪一编」时也读本页。
 
-> **分编总述**：设计系统拆为五编，一编只回答一个问题——① [DS_01 色彩与主题](DS_01_COLOR_AND_THEME.md)：颜色怎么选、主题与暗色怎么定；② [DS_02 排版与尺寸](DS_02_TYPE_AND_SIZE.md)：字号、行高、页面多宽、列数多少；③ [DS_03 组件](DS_03_COMPONENTS.md)：某类组件长什么样、有哪些强制结构；④ [DS_04 交互与响应式](DS_04_INTERACTION_AND_RESPONSIVE.md)：悬停/按下/聚焦怎么表现、窄屏怎么变；⑤ [DS_05 地图与速查](DS_05_MAP_AND_REFERENCE.md)：点哪里去哪、速查、边界。设计哲学（§一）留在本页，作为五编共同的裁决标准。
+> **分编总述**：设计系统拆为六编，一编只回答一个问题——① [DS_01 色彩与主题](DS_01_COLOR_AND_THEME.md)：颜色怎么选、主题与暗色怎么定；② [DS_02 排版与尺寸](DS_02_TYPE_AND_SIZE.md)：字号、行高、页面多宽、列数多少；③ [DS_03 组件](DS_03_COMPONENTS.md)：某类组件长什么样、有哪些强制结构；④ [DS_04 交互与响应式](DS_04_INTERACTION_AND_RESPONSIVE.md)：悬停/按下/聚焦怎么表现、窄屏怎么变；⑤ [DS_05 地图与速查](DS_05_MAP_AND_REFERENCE.md)：点哪里去哪、速查、边界；⑥ [DS_06 布局与密度](DS_06_LAYOUT_AND_DENSITY.md)：一页几块、筛选条几行、建议输入有无系统装饰。设计哲学（§一）留在本页，作为六编共同的裁决标准。
 > 🔴 **强制自检声明**：本规范各原则的「可验证条件」，以及 DS_01 §7.3 深色自查 9 条，是**修改 UI/工作台/数据流/组件/颜色时的强制自检项**（CLAUDE.md H40 检查清单第 12 项）——AI 改动相关代码时必须对照自检，不得以"设计文档只供参考"为由跳过；违反即违规。
 
 ## 零、读本文件指南（外包工程师入口）
@@ -40,6 +40,7 @@ related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONEN
 > 4. **组件**（[DS_03_COMPONENTS.md](DS_03_COMPONENTS.md)）——组件交互态与硬性规则 + 组件层执行口径（SD 编号）
 > 5. **交互与响应式**（[DS_04_INTERACTION_AND_RESPONSIVE.md](DS_04_INTERACTION_AND_RESPONSIVE.md)）——动效/反馈/焦点/断点/窄屏
 > 6. **地图与速查**（[DS_05_MAP_AND_REFERENCE.md](DS_05_MAP_AND_REFERENCE.md)）——资产清单/快速参考/点击落点/边界
+> 7. **布局与密度**（[DS_06_LAYOUT_AND_DENSITY.md](DS_06_LAYOUT_AND_DENSITY.md)）——一页几块/筛选条两行/建议输入无系统装饰（SD-57…SD-59）
 >
 > **关键术语速查**（色系三色定义的权威详表见 §2.1，下表为入口级速查）：
 > | 术语 | 含义 |
@@ -108,7 +109,7 @@ related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONEN
 
 ## 编目索引
 
-### 一、五编分工
+### 一、六编分工
 
 | 编 | 文件 | 收哪些章节 | 回答什么问题 |
 |---|---|---|---|
@@ -118,6 +119,7 @@ related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONEN
 | 第三编 | [DS_03_COMPONENTS.md](DS_03_COMPONENTS.md) | §四 组件规范（含 §4.29 / §4.30）＋ §十二 组件层执行口径 | 某类组件长什么样、有哪些强制结构 |
 | 第四编 | [DS_04_INTERACTION_AND_RESPONSIVE.md](DS_04_INTERACTION_AND_RESPONSIVE.md) | §五 交互反馈规范（含 §5.8）＋ §六 响应式设计规则 | 悬停、按下、聚焦怎么表现；窄屏怎么变 |
 | 第五编 | [DS_05_MAP_AND_REFERENCE.md](DS_05_MAP_AND_REFERENCE.md) | §八 设计资产清单 ＋ §九 快速参考 ＋ §十 点击落点映射 ＋ §十一 边界与引用 | 点哪里去哪、速查、边界 |
+| 第六编 | [DS_06_LAYOUT_AND_DENSITY.md](DS_06_LAYOUT_AND_DENSITY.md) | §一 设计原则（十条）＋ §二 规范 SD-57 页签密度 / SD-58 筛选条两行 / SD-59 建议输入无系统图标 ＋ §三 判定流程 ＋ §四 边界 | 一页几块、筛选条几行、输入框有无系统装饰 |
 | 判例 | [CASES.md](CASES.md) | CASE-DESIGN-* / CASE-DATA-* ＋ 三份迁移登记 | 这条为什么这样定、什么条件下不适用 |
 
 > **编号未改**：拆编只换文件，不改章节号。搜索「§4.20」在任何一编里仍是同一个编号；跨编引用写「文件 ＋ 编号」，如 `DS_03_COMPONENTS.md §4.21`。
@@ -134,6 +136,7 @@ related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONEN
 | 字号层级、字重、行高、文本档位映射 | DS_02 | §3.2–§3.3 |
 | 页面多宽、列数多少（容器五档与卡片栅格） | DS_02 | §3.4 |
 | 间距五档与组件采用矩阵 | DS_03 | §4.21 |
+| 数字卡的卡高 / 行数（≤80px、两行、无记录「—」） | DS_03 | §4.21.2 / §4.2 |
 | 按钮有哪几族、尺寸与外围内围 | DS_03 | §4.1 / §12.2 |
 | 卡片样式、卡片边界判据 | DS_03 | §4.2 |
 | 输入框 / 下拉 / 表单字段外壳（静置、悬停、活动、禁用、只读） | DS_03 | §4.3 / §12.1 / §12.12 |
@@ -148,7 +151,10 @@ related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONEN
 | 点哪里去哪、可点击性规范、承载面唯一性 | DS_05 | §10.1–§10.7 |
 | 首屏浏览顺序（主对象优先、说明后置） | DS_05 | §10.5 |
 | 帮助注释与界面文案规范 | DS_03 | §4.24 / §4.18 |
-| 组件层执行口径 SD-1…SD-54 | DS_03 | §12.1–§12.16 |
+| 组件层执行口径 SD-1…SD-59（SD-57…59 见 DS_06） | DS_03 / DS_06 | §12.1–§12.16 / §二 |
+| 页签密度（单页顶层区块 ≤4、超限登记） | DS_06 | §二 SD-57 |
+| 筛选条两行结构、清除不独占一行 | DS_06 | §二 SD-58 |
+| 建议输入（自建下拉、无原生三角 / datalist） | DS_06 | §二 SD-59 |
 | 快速参考、资产清单、本文不展开的权威源 | DS_05 | §9 / §8 / §11 |
 | 这条为什么这么定、边界在哪 | CASES.md | CASE-DESIGN-001…031、CASE-DATA-001 |
 | 沿革「哪一批做了什么」 | 不在本系统内 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` |

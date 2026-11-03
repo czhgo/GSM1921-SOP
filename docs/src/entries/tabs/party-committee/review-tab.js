@@ -8,17 +8,17 @@
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261031a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261031a';
-import { getPersonName } from '../../../services/member/person.js?v=20261031a';
-import { getBranchById } from '../../../services/branch/branch.js?v=20261031a';
-import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261031a';
-import { showToast, escHtml as esc, fmtDt, smoothScroll } from '../../../core/base/utils.js?v=20261031a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261102b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261102b';
+import { getPersonName } from '../../../services/member/person.js?v=20261102b';
+import { getBranchById } from '../../../services/branch/branch.js?v=20261102b';
+import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261102b';
+import { showToast, escHtml as esc, fmtDt, smoothScroll } from '../../../core/base/utils.js?v=20261102b';
 // 统一检索引擎（2026-09-14 批次 37）：待批复 / 已处理两区各接一个实例（关键词 + 类型/状态分面 + 分页）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261031a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261102b';
 // 支部筛选共用件（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）——三页复用同一件，不各写一份
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261031a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261102b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261102b';
 
 /** 本页支部筛选的 stateKey（选择随模块自持，页内重绘不丢） */
 const BRANCH_FILTER_STATE = 'pc-review';
@@ -75,7 +75,7 @@ export function renderContent(ctx = {}) {
     ${renderTabHeader({ title: '支部上报', description: '党委逐项批复，决定和意见会回传提交支部。' })}
     <div class="page-section-stack">
       <!-- 2026-10-27 Task 5：卡头不再复述页签名——页签「支部上报」已是本页唯一 H2。 -->
-      <section class="card p-5" aria-label="支部上报处理">
+      <div class="card p-5">
       <div id="pc-review-hl-hint" class="mt-4" role="status" aria-live="polite"></div>
       <div id="pc-review-branch-filter" class="mb-4 mt-4"></div>
       <div class="subtabs" role="tablist" aria-label="上报状态">
@@ -84,7 +84,7 @@ export function renderContent(ctx = {}) {
       </div>
       <section id="pc-review-pending-section" role="tabpanel" aria-labelledby="pc-review-tab-pending" tabindex="0" ${reviewMode !== 'pending' ? 'hidden' : ''} aria-label="待批复上报"><div id="pc-review-pending-host"></div></section>
       <section id="pc-review-done-section" role="tabpanel" aria-labelledby="pc-review-tab-done" tabindex="0" ${reviewMode !== 'done' ? 'hidden' : ''} aria-label="已处理上报"><div id="pc-review-done-host"></div></section>
-      </section>
+      </div>
     </div>
   `;
 

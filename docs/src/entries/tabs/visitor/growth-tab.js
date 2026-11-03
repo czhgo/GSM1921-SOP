@@ -8,8 +8,8 @@
 // 深链：`?tab=growth&section=thought|inspection|review` 直接展开对应子区（旧 `?tab=thought-report|inspection|review`
 //   由工作台壳的 `_legacyTabAliases` 重定向到这里）。
 
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
-import { smoothScroll } from '../../../core/base/utils.js?v=20261031a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261102b';
+import { smoothScroll } from '../../../core/base/utils.js?v=20261102b';
 
 const SECTIONS = [
   {
@@ -17,21 +17,21 @@ const SECTIONS = [
     aliases: ['thought-report', 'thought'],
     title: '思想汇报',
     meta: '按期次提交与回看；提交即入库归档。',
-    load: () => import('./thought-report-tab.js?v=20261031a'),
+    load: () => import('./thought-report-tab.js?v=20261102b'),
   },
   {
     key: 'inspection',
     aliases: ['inspection'],
     title: '我的考察',
     meta: '本人历次活动参与考察记录与申诉入口。',
-    load: () => import('./inspection-tab.js?v=20261031a'),
+    load: () => import('./inspection-tab.js?v=20261102b'),
   },
   {
     key: 'review',
     aliases: ['review'],
     title: '我的复盘',
     meta: '组织者 / 深度参与者提交复盘 → 纪检批注确认。',
-    load: () => import('./review-tab.js?v=20261031a'),
+    load: () => import('./review-tab.js?v=20261102b'),
   },
 ];
 

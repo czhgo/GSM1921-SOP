@@ -15,8 +15,8 @@
  */
 
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../ui/pager.js?v=20261031a';
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
+import { pagerHtml } from '../ui/pager.js?v=20261102b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
 
 /** 属性/文本转义（子类下拉选项由配置派生，仍统一转义） */
 function _esc(s) {

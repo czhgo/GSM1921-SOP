@@ -19,7 +19,7 @@
 //  本组件仅处理展示与跳转；计数语义由调用方（外壳）按角色注入。
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore } from '../../services/governance/issues.js?v=20261031a'; // 计数依赖（U3 前置计数须显式引用；勿裸依赖全局）
+import { IssueStore } from '../../services/governance/issues.js?v=20261102b'; // 计数依赖（U3 前置计数须显式引用；勿裸依赖全局）
 
 /** 等高骨架卡（内容容器为空/仍为壳骨架时的兜底占位；min-height 防 0 高弹跳） */
 export function overviewSkeletonHtml(text = '工作概况加载中…') {
@@ -89,9 +89,8 @@ export async function countOwnPendingReports(personId) {
  * @param {number} opts.count       — 待处理数（>0 才挂载）
  * @param {string} opts.prefix      — 工作台前缀（org/leader/disc/prop/visitor）
  * @param {string} opts.jumpTab     — 处理位 tab id（my-dispatch / members）
- * @param {string} [opts.accent]    — 主题强调色（hex）
  */
-export function mountOverviewDispatchBar(el, { count, prefix, jumpTab, accent = '#B91C1C' }) {
+export function mountOverviewDispatchBar(el, { count, prefix, jumpTab }) {
   if (!el || !el.isConnected) return;
   const slot = el.previousElementSibling;
   if (!(slot && slot.classList.contains('overview-dispatch-slot'))) return; // 无槽：未经 beginOverviewShell，跳过
@@ -105,9 +104,11 @@ export function mountOverviewDispatchBar(el, { count, prefix, jumpTab, accent = 
     return;
   }
   slot.style.minHeight = '';
+  // 2026-11-01 批次 524 支书裁定：待答复条是「待处理状态」指标，用功能色 info（不是角色主题色）；
+  //   动作 / 导航仍走主题色。底色 / 描边沿用 .state-badge--info 同一派生比例（12% / 28%）。
   slot.innerHTML = `
     <button type="button" class="btn-outline overview-dispatch-bar w-full flex items-center justify-between gap-3 px-4 py-2.5 mb-3"
-      style="background:${accent}1A;border:1px solid ${accent}40;color:${accent};cursor:pointer;transition:background-color var(--motion-feedback) var(--ease-standard);"
+      style="background:color-mix(in srgb, var(--status-info-text) 12%, transparent);border:1px solid color-mix(in srgb, var(--status-info-text) 28%, transparent);color:var(--status-info-text);cursor:pointer;transition:background-color var(--motion-feedback) var(--ease-standard);"
       aria-label="待答复 ${count} 条，去处理">
       <span class="text-xs font-medium">待答复 <b class="tabular-nums">${count}</b></span><span class="text-xs font-semibold">去处理 →</span>
     </button>`;

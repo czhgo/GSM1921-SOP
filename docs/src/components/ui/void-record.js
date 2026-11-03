@@ -13,11 +13,11 @@
 //    沿用其既有 id（`makeup-void-modal` / `#makeup-void-reason` / `[data-makeup-void-ok]`），
 //    以免动到已在册的真机流 `disc-makeup-void-reason` 的选择器。
 // ════════════════════════════════════════════════════════════════
-import * as SoftVoid from '../../services/governance/soft-void.js?v=20261031a';
-import { BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { openModal, closeModal, setModalBusy } from './modal.js?v=20261031a';
-import { showToast, escHtml, describeWriteError } from '../../core/base/utils.js?v=20261031a';
+import * as SoftVoid from '../../services/governance/soft-void.js?v=20261102b';
+import { BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { openModal, closeModal, setModalBusy } from './modal.js?v=20261102b';
+import { showToast, escHtml, describeWriteError } from '../../core/base/utils.js?v=20261102b';
 
 /**
  * 打开「作废（软）」弹窗（原因必填 → 支委直接作废 / 其余人报支委会）。

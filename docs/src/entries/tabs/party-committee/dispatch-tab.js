@@ -1,11 +1,11 @@
 // Party dispatch reuses the notice domain; this page separates composing from sent history.
-import { mockDB } from '../../../core/domain/domain.js?v=20261031a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261031a';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261031a';
-import { textField, textareaField } from '../../../components/ui/forms.js?v=20261031a';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261031a';
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261031a';
-import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261102b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261102b';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261102b';
+import { textField, textareaField } from '../../../components/ui/forms.js?v=20261102b';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261102b';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261102b';
+import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261102b';
 
 const BRANCH_FILTER_STATE = 'pc-dispatch';
 // 2026-10-24 批次 508：`view` 是**工作台壳的既有协议参数**（`view=activities` 一类旧导航落点），
@@ -99,7 +99,7 @@ function composeHtml(state) {
   const branches = mockDB.branches || [];
   const selected = new Set(state.branchIds || []);
   return `
-    <section aria-labelledby="dispatch-compose-title" class="card page-section page-section--form p-5">
+    <div class="card page-section page-section--form p-5">
       ${renderSectionHeader({ titleId: 'dispatch-compose-title', title: '撰写一条党委通知', description: '通知送达所选支部的支委层；收件人在通知铃铛中查看。', level: 3 })}
       <fieldset id="dispatch-branches" class="mt-4">
         <legend class="text-sm font-medium text-gray-800">目标支部 <span class="text-red-700">*</span></legend>
@@ -123,7 +123,7 @@ function composeHtml(state) {
       <div class="mt-5 flex justify-end border-t border-gray-200 pt-4">
         <button id="dispatch-submit" type="button" class="btn-accent px-4 py-2 text-sm font-medium">下发通知</button>
       </div>
-    </section>`;
+    </div>`;
 }
 
 function bindComposer(host) {

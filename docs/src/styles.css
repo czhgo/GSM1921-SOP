@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261031a');
+@import url('components/person-picker.css?v=20261102b');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -401,13 +401,19 @@ details[open] > summary::before {
 }
 
 /* 2026-10-23 Task 7：披露条此前完全没有状态。
-   桌面 hover 只加深一档中性底；触屏用 :active；键盘用 focus-visible 焦点环。 */
+   桌面 hover 只加深一档中性底；触屏用 :active；键盘用 focus-visible 焦点环。
+   2026-11-01 支书补充（折叠头）：`.disclosure__summary` 是覆盖整行的**空壳热区**，
+   给它铺底色会把同列标题整块盖成不透明灰 ⇒ 底色反馈只给「有可见文字的披露条」，
+   空壳热区只让 chevron（::before，currentColor）加深。 */
 @media (hover: hover) {
-  summary:hover {
+  summary:not(.disclosure__summary):hover {
     background-color: var(--surface-hover);
   }
+  .disclosure__summary:hover {
+    color: var(--neutral-800);
+  }
 }
-summary:active {
+summary:not(.disclosure__summary):active {
   background-color: var(--surface-active);
 }
 /* summary 的焦点环并入文件后段「ACCESSIBILITY — Focus Visible」的全局唯一规则。 */
@@ -424,12 +430,16 @@ summary:active {
   align-items: center;
   gap: var(--space-2);
   /* 2026-10-31 支书补充：折叠头整行可点——标题行高 ≥44，与下方 summary 的覆盖区对齐；
-     标题与计数（同字级）按同一基线居中。 */
+     标题与计数按同一基线居中。
+     2026-11-01 支书补充（折叠头单一语法）：标题统一 16/600/24（--text-md ＋ 标题字族），
+     不再由调用点用 Tailwind `text-sm` / `.font-title-cn` 各自覆盖。 */
   min-height: 44px;
   margin: 0 0 var(--space-1);
   padding-right: calc(var(--row-summary) + var(--space-2));
-  font-size: var(--text-sm);
+  font-family: var(--font-display);
+  font-size: var(--text-md);
   font-weight: 600;
+  line-height: 24px;
   color: var(--neutral-800);
 }
 .disclosure__meta {
@@ -448,6 +458,8 @@ summary:active {
   height: var(--row-summary);
   color: var(--neutral-500);
   border-radius: var(--radius-sm);
+  /* 2026-11-01：空壳热区 hover 只加深 chevron（currentColor）——只过渡颜色，不铺背景。 */
+  transition: color var(--transition-press);
 }
 /* 2026-10-31 支书补充（折叠头）：summary 内容为空（只有右侧 chevron）时**覆盖整行**——
    宽度 100%、高度 44（≥ 指压最小 44），点击区不再只限右上 40×40 小块；
@@ -1919,34 +1931,85 @@ a.text-accent {
    ── 高度算式（显式声明，勿靠 UA / CDN 工具类给行高）──
       单档 = 8（上内边距） + 8（下内边距） + 22（显式 line-height） + 2（边框） = 40px
    ═══════════════════════════════════════════════════════════════ */
-/* ── P3 筛选四段（2026-10-29 · 结构单一源）──
+/* ── P3 筛选四段（2026-10-29 · 结构单一源；2026-11-01 批次 525 · #2 改折行布局）──
    `.lf-bar` 之下**只允许** `.lf-bar__row`；每行以 `data-seg` 标段位，固定顺序：
      scope（范围）→ search（检索）→ facet（分面）→ reset（重置）。
-   空段不输出（不产生空行）；段间分行，同段控件左边缘对齐。
-   `.lf-bar` 自身不承载控件——直接子元素只能是行。 */
+   空段不输出（不产生空行）。
+   批次 525：原 `flex-direction: column` 让每段独占一行（实测活动日历 4 行 ≈184px）。
+   现改为**可折行行内布局**：`.lf-bar__row` 用 `display: contents` 不生成盒子，
+   段内控件直接成为 `.lf-bar` 的折行项 ⇒ 段与段同排、段内控件也同排，整条最多 2 行。 */
 .lf-bar {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  flex-wrap: wrap;
+  align-items: center;
   gap: var(--space-2);
   width: 100%;
   max-width: 100%;
   min-width: 0;
 }
-.lf-bar__row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-  min-width: 0;
+.lf-bar__row { display: contents; }
+/* 指定「从下一行起排」（仅四页定版用；不是让某个控件独占整行的 `flex-basis:100%`）：
+   `display:contents` 的段不生成盒子，但它的 ::before 仍会成为 `.lf-bar` 的折行项。
+   负 margin 抵消折行项自身引入的一档纵向 gap，两行之间仍只隔一个 --space-2。 */
+.lf-bar__row[data-break-before="1"]::before {
+  content: '';
+  flex: 0 0 100%;
+  height: 0;
+  margin-block: calc(-1 * var(--space-2));
 }
 /* 同段对齐：段内从行首左边缘起排，不因段位不同而缩进 */
 .lf-bar__row > :first-child { margin-left: 0; }
 .lf-bar__row > * { min-width: 0; }
-/* 关键词输入：占满剩余宽度，窄屏最小 160px */
+/* 关键词输入（批次 524 · #9 搜索框收窄；批次 525 占剩余宽）：
+   `flex: 1 1 240px` 让搜索框吃掉余量，`max-width: 320px` 防止独占一行时拉满整卡
+   （支书实报「搜索框太长」）。 */
 .lf-kw {
-  flex: 1 1 160px;
+  flex: 1 1 240px;
   min-width: 160px;
+  max-width: 320px;
+}
+/* 建议输入（批次 525 · #4）：外层承担布局宽度，建议列表绝对定位不占位。 */
+.suggest {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 240px;
+  min-width: 0;
+  max-width: 320px;
+}
+/* 输入框在列向 flex 容器里不得继承 `.lf-kw` 的 `flex: 1 1 240px`（那会把高度撑到 240px）；
+   宽度撑满外层，高度由 .input-flat 档位决定。 */
+.suggest__input { width: 100%; flex: 0 0 auto; }
+.suggest__list {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  right: 0;
+  z-index: 60;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: var(--space-1) 0;
+  background: var(--surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-dropdown);
+}
+.suggest__list[hidden] { display: none; }
+.suggest__option {
+  padding: var(--space-1) var(--space-2);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  color: var(--neutral-700);
+  cursor: pointer;
+}
+.suggest__option.is-active {
+  background: var(--app-accent-soft-bg);
+  color: var(--app-accent-soft-text);
+}
+@media (hover: hover) {
+  .suggest__option:hover {
+    background: var(--surface-hover);
+  }
 }
 /* 分面下拉：内容宽自适应，避免各表另写 min-w-* 散值 */
 .lf-select {
@@ -1963,23 +2026,15 @@ a.text-accent {
   min-width: 0;
 }
 .lf-range > input { flex: 1 1 9rem; min-width: 0; }
-/* ≤640：同一行内控件整行折行、铺满宽度——通用规则，不再设页面级特例。
-   直接子元素里的表单元件 / 控件组一律占满一行，避免 2 列挤压与横向溢出。 */
+/* ≤640：自然折行（允许 2–3 行），**不再**把每个控件都撑满整行——
+   原「一律 flex-basis:100%」是「一控件一行」的机械堆叠，批次 525 撤除。
+   只让关键词框吃满剩余宽；日期区间自身可折行，其余控件按内容宽换行。 */
 @media (max-width: 640px) {
-  .lf-bar__row > input,
-  .lf-bar__row > select,
-  .lf-bar__row > button,
-  .lf-bar__row > label,
-  .lf-bar__row > .lf-kw,
-  .lf-bar__row > .lf-select,
-  .lf-bar__row > .cs-select,
-  .lf-bar__row > .lf-facet-chips,
-  .lf-bar__row > .lf-range,
-  .lf-bar__row > #cal-view-switcher {
-    flex: 1 1 100%;
-    width: 100%;
-    min-width: 0;
-  }
+  /* 折行判定用 flex-basis（不再是 240px），否则窄屏下搜索框必然被挤到下一行；
+     160px 可与月份/范围下拉同排，同时保留「占剩余宽」的弹性。 */
+  .lf-kw,
+  .suggest { flex: 1 1 160px; max-width: 100%; min-width: 0; }
+  .lf-range > input { flex: 1 1 8rem; }
   .lf-bar__row > .cs-select .cs-trigger { width: 100%; }
 }
 /* 分面胶囊组（2026-10-01 批次 319 · 支书裁定「推翻筛选行禁 chip」后新增的 chip 形态）：
@@ -2068,11 +2123,12 @@ a.text-accent {
   border-bottom: 1px solid var(--neutral-200);
 }
 .data-table th {
+  /* 2026-11-01 表头去灰：不再写背景色 ⇒ 表头白底透出，与 tbody 的 th[scope="row"] 同色；
+     分隔只由 1px 下边框承担（padding / 字重 / 颜色不动）。 */
   padding: 8px 12px;
   text-align: left;
   font-weight: 500;
   color: var(--neutral-500);
-  background-color: var(--neutral-0);
 }
 /* 数字列（2026-10-19）：右对齐 + 等宽数字；表头与单元格共用同一标记。 */
 .data-table .is-numeric {
@@ -3185,9 +3241,9 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   align-items: center;
   gap: var(--space-3);
   min-width: 0;
-  /* 2026-10-31 支书补充：数字卡上下内边距收一档（16 → 12），高度由内容决定；
-     四张等高仍交给栅格 stretch，卡片自身不设固定高度。 */
-  padding-block: var(--space-3);
+  /* 2026-11-01（回线上口径）：内边距只由调用点 `p-4`（16px）统一给出，
+     组件自身不再写上下内边距（与 p-4 叠加会把卡撑高到 96px）；
+     高度由内容决定，四张等高仍交给栅格 stretch。 */
 }
 .stat-card__body {
   display: flex;
@@ -3966,8 +4022,9 @@ summary:focus-visible,
     background-color: var(--surface-hover);
   }
 }
-/* 概览「待答复」带（overview-dispatch-bar）：内联底色是角色主题色 10% 叠加，
-   hover 只加深到 12%（同色相），不用 opacity / filter。 */
+/* 概览「待答复」带（overview-dispatch-bar）：内联底色是功能色 info 12% 叠加（2026-11-01 批次 524：
+   待答复＝状态指标，改用 --status-info-text；动作 / 导航才用主题色），hover 只加深到 12%（同色相），
+   不用 opacity / filter。 */
 @media (hover: hover) {
   .overview-dispatch-bar:hover {
     background-color: color-mix(in srgb, currentColor 12%, transparent) !important;
@@ -5742,7 +5799,10 @@ html.theme-dark .agg-count-badge {
    ── 边框：行本身不画完整边框；父容器 .list-group 在行间出 1px hairline。
    ── 间距：行内边距 8/12；标题 / 次级 / 描述间距 8；文本上下留白 ≥8。
    ── 行高（语义行型）：单行 48、双行 56、紧凑 44（--row-* 单一源）。
-   ── 字号：标题 14px/500（--text-base）、次级与描述 12px（--text-sm）。 */
+   ── 字号：标题 14px/500（--text-base）、次级与描述 12px（--text-sm）。
+   ── 状态（2026-11-01 支书 #6 新裁定）：行圆角 8px（--radius-sm）；可点行 hover 用主题 10% 淡底
+      （--app-accent-tint），灰底只留静态分隔；左条改为 ::before 伪元素承担 opacity 过渡；
+      焦点环压在行内（outline-offset: -2px）随圆角走。 */
 .list-group {
   display: flex;
   flex-direction: column;
@@ -5752,13 +5812,14 @@ html.theme-dark .agg-count-badge {
 }
 .list-row {
   display: flex;
+  position: relative;
   align-items: center;
   gap: var(--space-3);
   width: 100%;
   min-height: var(--row-standard);
   padding: var(--space-2) var(--space-3);
   border: 0;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: inherit;
   text-align: left;
@@ -5766,14 +5827,36 @@ html.theme-dark .agg-count-badge {
 }
 .list-row[data-interactive="true"] {
   cursor: pointer;
-  transition: background-color var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+}
+/* 左条（2026-11-01）：hover / 选中共用一条 3px 主题左条；改由伪元素承担 opacity 过渡，
+   不再用 background-image 渐变（渐变无法过渡 ⇒ 左条瞬现）。行是 flex 容器、伪元素绝对定位不占位；
+   3px 条画在行内边界（inset-block: 0 / left: 0），不会被父级 overflow 裁掉。 */
+.list-row[data-interactive="true"]::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 3px;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  background: var(--app-accent);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  pointer-events: none;
+}
+/* 选中态不依赖设备能力，故写在门控外。 */
+.list-row[data-selected="true"]::before {
+  opacity: 1;
 }
 @media (hover: hover) {
   .list-row[data-interactive="true"]:hover {
-    /* 2026-10-26 Task 5.3：可点行 hover 不只换底——同时出 3px 主题左条（非颜色线索）。
-       底取 --surface-hover（对白卡 ≥1.2:1），左条用渐变绘制，不改布局、不引 box-shadow。 */
-    background-color: var(--surface-hover);
-    background-image: linear-gradient(to right, var(--app-accent) 0 3px, transparent 3px);
+    /* 2026-11-01 新裁定：可点行 hover 用主题 10% 淡底，灰底只留静态分隔。
+       （原 2026-10-26 的 --surface-hover（neutral-200）退场；左条见上方 ::before，不再画渐变。） */
+    background-color: var(--app-accent-tint);
+  }
+  /* 左条淡入（非颜色线索）随行底一起出现；行本身只过渡背景 / 文字 / 阴影。 */
+  .list-row[data-interactive="true"]:hover::before {
+    opacity: 1;
   }
   /* 选中态仍走主题 soft 三件套：hover 只允许把底拉回 soft-bg，不覆盖选中左条与文字色。 */
   .list-row[data-interactive="true"][data-selected="true"]:hover {
@@ -5781,10 +5864,13 @@ html.theme-dark .agg-count-badge {
   }
 }
 .list-row[data-interactive="true"]:active {
-  background: var(--surface-active);
+  background: var(--app-accent-active-bg);
 }
-/* 行焦点环：2026-10-29 合并到全站唯一来源（`[data-interactive="true"]:focus-visible`），
-   此处不再重复声明。 */
+/* 行焦点环：环本身仍由全站唯一来源 `[data-interactive="true"]:focus-visible` 画（不新增第二条环）；
+   2026-11-01 只把偏移压进行内（-2px），让 2px 环随 8px 圆角走、不溢出到相邻行。 */
+.list-row:focus-visible {
+  outline-offset: -2px;
+}
 /* 可交互行用 <button> 时挂 btn-ghost 语义族；此处按行载体覆盖该族的紧凑尺寸。
    覆盖率高于 .btn-ghost 的 !important 档，只作用于本行。 */
 .list-row.btn-ghost {
@@ -5793,7 +5879,7 @@ html.theme-dark .agg-count-badge {
   min-height: var(--row-standard) !important;
   padding: var(--space-2) var(--space-3) !important;
   border: 0;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: inherit;
   white-space: normal;
@@ -5829,10 +5915,12 @@ html.theme-dark .agg-count-badge {
   margin-left: auto;
 }
 .list-row[data-selected="true"] {
-  /* 2026-10-24 批次 508：行选中改主题 soft 三件套；左侧 3px 主题条表示选中，不用灰底。 */
+  /* 2026-10-24 批次 508：行选中改主题 soft 三件套；左侧 3px 主题条表示选中，不用灰底。
+     2026-11-01：补 border-radius，选中底与 hover 底同走 8px 圆角（左条由 ::before 承担）。 */
   background: var(--app-accent-soft-bg);
   color: var(--app-accent-soft-text);
   box-shadow: inset 3px 0 0 var(--app-accent);
+  border-radius: var(--radius-sm);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -6027,12 +6115,13 @@ html.theme-dark .agg-count-badge {
 }
 
 /* ── 数据表视觉档（覆盖关系：以下选择器写在既有 .data-table 段之后；
-      `.data-table thead th`（0,1,2）覆盖上方 `.data-table th`（0,1,1）的底色 / 字号 / 字重；
+      `.data-table thead th`（0,1,2）覆盖上方 `.data-table th`（0,1,1）的字号 / 字重；
       `.data-table tbody td:first-child`（0,2,2）覆盖 `.data-table td`（0,1,1）的字号字重。
       既有 hover / 空结果 / sticky 规则不动。
-      字号档（2026-10-19 支书裁定回退）：表头与首列同为 13px 单档；字重 / 颜色承担强调，不再改字号。 ── */
+      字号档（2026-10-19 支书裁定回退）：表头与首列同为 13px 单档；字重 / 颜色承担强调，不再改字号。
+      2026-11-01 表头去灰（支书 #2）：删 `background: var(--neutral-50)`——同页 `<thead>` 表头
+      与 tbody 的 `<th scope="row">` 必须同色，脏灰只留 1px 下边框。 ── */
 .data-table thead th {
-  background: var(--neutral-50);
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--neutral-600);
@@ -6338,8 +6427,8 @@ html.theme-dark .state-badge--neutral {
     background: transparent;
   }
 }
-/* 行焦点环：2026-10-29 合并到全站唯一来源（`[data-interactive="true"]:focus-visible`），
-   此处不再重复声明。 */
+/* 行焦点环：环本身仍由全站唯一来源（`[data-interactive="true"]:focus-visible`）画；
+   2026-11-01 的行内偏移 `outline-offset: -2px` 见上方 `.list-row:focus-visible`。 */
 
 /* ═══════════════════════════════════════════════════════════════
    首页工作组进展（2026-10-18 · Spec Task 7）
@@ -6378,6 +6467,9 @@ html.theme-dark .state-badge--neutral {
     max-width: 100%;
   }
   .data-table[data-responsive="cards"] tr {
+    /* 2026-11-01 批次 525：卡片行内容是多行（标签 + 值），须清掉桌面表格行的固定 40px，
+       否则多行单元格溢出到下一张卡（党小组活动台账实测）。 */
+    height: auto;
     border: 1px solid var(--neutral-200);
     border-radius: var(--radius-md);
     padding: var(--space-2) var(--space-3);

@@ -8,12 +8,12 @@
 
 
 
-import { icon } from '../../core/base/icons.js?v=20261031a';
-import { showToast, smoothScroll } from '../../core/base/utils.js?v=20261031a';
+import { icon } from '../../core/base/icons.js?v=20261102b';
+import { showToast, smoothScroll } from '../../core/base/utils.js?v=20261102b';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261031a';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261102b';
 
 
 
@@ -101,13 +101,20 @@ export function tabContentSkeletonHtml(text = '正在加载…') {
 
 }
 
+/** 2026-11-01：页签模块加载失败的文案（说明「为什么 + 怎么办」；不暴露模块文件名 / 版本戳，也不用「请刷新」）。
+ *  组件只有一行正文，故说明句并入主文案第二句。 */
+export const TAB_MODULE_FAILURE_COPY = '这个页签没打开，页面可能刚更新过。数据没有丢失，重新载入一下就好';
+
+/** reload 分支按钮文案（与自动自愈动作同一句话） */
+export const TAB_RELOAD_LABEL = '重新载入';
+
 /** R3-U03：页签加载 / 刷新失败统一错误卡（**单一源**：tab-bar 切页签失败 与 workspace-shell
  *  数据刷新失败 渲染同一张卡；重试按钮标记 `data-ws-tab-retry`，绑定由各自调用方负责）。 */
 export function tabErrorCardHtml(message = '这个页签暂时没加载出来', { action = 'retry' } = {}) {
   return `
       <div class="card rounded-xl p-6 text-center" data-ws-tab-error role="alert">
         <p class="text-sm text-gray-600">${message}</p>
-        ${action === 'reload' ? '<button type="button" class="btn-outline text-xs px-3 py-1.5 mt-3" data-ws-tab-reload>刷新页面</button>' : '<button type="button" class="btn-outline text-xs px-3 py-1.5 mt-3" data-ws-tab-retry>重试</button>'}
+        ${action === 'reload' ? `<button type="button" class="btn-outline text-xs px-3 py-1.5 mt-3" data-ws-tab-reload>${TAB_RELOAD_LABEL}</button>` : '<button type="button" class="btn-outline text-xs px-3 py-1.5 mt-3" data-ws-tab-retry>重试</button>'}
       </div>`;
 }
 
@@ -159,7 +166,7 @@ const FALLBACK_ACCENT = {
 /** 离开当前文档前的淡出时长（与 TAB_CONTENT_FADE_OUT_MS 同档） */
 export const ROUTE_LEAVE_MS = 120;
 
-const TAB_LOADING_CSS_URL = new URL('./tab-loading.css?v=20261031a', import.meta.url).href;
+const TAB_LOADING_CSS_URL = new URL('./tab-loading.css?v=20261102b', import.meta.url).href;
 
 const ROUTE_PROGRESS_ID = 'ws-route-progress';
 
@@ -413,7 +420,9 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
     //   页头 tab **自带选中态强调色**（`.tab-btn-active` ＋ 内联 `--tab-accent`）⇒ **不并入通用族**，
     //   回到迁移前 markup。此处把 `${btnClass}` **内联成字面**（DOM 输出不变），
     //   使 `button-system-guard::B4` 的字面扫描能认出这是「组件自有类」并豁免（见该守卫 COMPONENT_STATE_EXEMPT）。
-    return `${sepHtml}<button type="button" id="${prefix}-tab-${id}" role="tab" aria-selected="${isActive ? 'true' : 'false'}" aria-controls="${contentId}" tabindex="${isActive ? 0 : -1}" class="${prefix}-tab-btn tab-btn${activeClass} shrink-0 min-h-9 px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}"${activeStyle}>${label}</button>`;
+    // 2026-11-01 批次 524（#7）：追加通用导航属性 `data-ws-tab-btn`——待办跳转改由
+    //   core/session/workspace-nav.js 统一按此属性点击，各台不再复制 `.<role>-tab-btn[data-…]` 选择器。
+    return `${sepHtml}<button type="button" id="${prefix}-tab-${id}" role="tab" aria-selected="${isActive ? 'true' : 'false'}" aria-controls="${contentId}" tabindex="${isActive ? 0 : -1}" class="${prefix}-tab-btn tab-btn${activeClass} shrink-0 min-h-9 px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}" data-ws-tab-btn="${id}"${activeStyle}>${label}</button>`;
 
   }).join('\n');
 
@@ -673,18 +682,41 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
     if (el && typeof _lastGoodSnapshot === 'string') el.innerHTML = _lastGoodSnapshot;
   }
 
+  /** 2026-11-01：页签模块失败的「同会话自愈一次」标记（sessionStorage，键含 tab.id）。
+   *  存储不可用时按「已用过」处理 —— 宁可出错误卡，也不做一次可能无限循环的 reload。 */
+  const TAB_SELFHEAL_KEY_PREFIX = 'gsm1921-tab-selfheal-';
+  function _tabSelfHealKey(tabId) { return `${TAB_SELFHEAL_KEY_PREFIX}${tabId}`; }
+  function _hasSelfHealed(tabId) {
+    try { return window.sessionStorage.getItem(_tabSelfHealKey(tabId)) === '1'; } catch (_) { return true; }
+  }
+  function _markSelfHealed(tabId) {
+    try { window.sessionStorage.setItem(_tabSelfHealKey(tabId), '1'); return true; } catch (_) { return false; }
+  }
+  function _clearSelfHealed(tabId) {
+    try { window.sessionStorage.removeItem(_tabSelfHealKey(tabId)); } catch (_) { /* 存储不可用：无需清理 */ }
+  }
+
   /** R3-U03：页签模块 import / 渲染失败 → 容器内统一错误卡（保留页签栏，不整页遮罩）。 */
   function _renderTabError(tab, err) {
     const el = _tabContentEl();
     if (!el) return;
     _endTabLoading();
-    // 模块加载/解析失败：同一模块图不会自愈（重试必然再失败）⇒ 只给「刷新页面」。
-    // 判据来自能力表 loadTabModule 挂上的 __moduleSpec，不由渲染期异常冒充。
+    // 模块加载/解析失败：同一模块图不会自愈（重试必然再失败）。
+    // 2026-11-01：本会话第一次失败先自动重新载入一次（多半是页面刚更新、浏览器还留着旧文件）；
+    //   已置位（第二次仍失败）才出错误卡，避免 reload 死循环。标记在本页签渲染成功后清除。
+    //   判据来自能力表 loadTabModule 挂上的 __moduleSpec，不由渲染期异常冒充。
     const spec = err && typeof err === 'object' ? err.__moduleSpec : null;
     if (spec) {
-      const moduleName = String(spec).split('?')[0].split('/').pop() || '未知模块';
+      if (!_hasSelfHealed(tab.id) && _markSelfHealed(tab.id)) {
+        try {
+          window.location.reload();
+          return;
+        } catch (e) {
+          console.error('[tab-bar] 自动重新载入失败', e);
+        }
+      }
       mountTabFailure(el, {
-        message: `这个页签的模块没能加载（${moduleName}），请刷新页面后再试`,
+        message: TAB_MODULE_FAILURE_COPY,
         action: 'reload',
       });
       return;
@@ -762,6 +794,8 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
     Promise.resolve(rendered).then(() => {
       if (seq === _renderSeq && currentTab === tab.id) {
         _endTabLoading();
+        // 2026-11-01：本页签真的渲染成功 ⇒ 清掉一次性自愈标记，下一次真故障仍可自愈一次。
+        _clearSelfHealed(tab.id);
         const cur = _tabContentEl();
         if (cur) _lastGoodSnapshot = cur.innerHTML;
       } else {

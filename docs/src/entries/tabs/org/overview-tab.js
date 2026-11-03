@@ -9,11 +9,11 @@
 //   履职卡映射改在 workforce-duty-card.js 的 DUTY_TAB 单一源，条线缺口由 work-overview 的
 //   结构化 `gapTab` 直接渲染入口；文案或 DOM 结构再变也不会静默失效。
 
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261031a';
-import { currentUserId } from '../../../services/core/auth.js?v=20261031a';
-import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261031a';
-import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261031a';
-import { renderCalendarView } from './activity-calendar-tab.js?v=20261031a';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261102b';
+import { currentUserId } from '../../../services/core/auth.js?v=20261102b';
+import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261102b';
+import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261102b';
+import { renderCalendarView } from './activity-calendar-tab.js?v=20261102b';
 
 export async function renderContent(ctx) {
   const el = document.getElementById('org-tab-content');

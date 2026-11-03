@@ -5,14 +5,14 @@
 //  职责单一：统计卡渲染 + 考勤明细弹窗（点击统计卡查看本月考勤）。
 // ════════════════════════════════════════════════════════════════
 
-import { NoticeStore } from '../../services/governance/notice.js?v=20261031a';
-import { _fmtDate } from '../../core/base/utils.js?v=20261031a';
-import { icon } from '../../core/base/icons.js?v=20261031a';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261102b';
+import { _fmtDate } from '../../core/base/utils.js?v=20261102b';
+import { icon } from '../../core/base/icons.js?v=20261102b';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261031a';
-import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261031a';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261102b';
+import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261102b';
 // R2-47：出勤率语义单一源——首页「个人考勤」按应到人次（不是按已录记录），未录显示「待录入」
-import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261031a';
+import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261102b';
 
 // 出勤率档位 → 既有语义色 token（服务层只给档位，颜色映射留在展示层）
 const ATTENDANCE_TONE_COLOR = {
@@ -30,7 +30,7 @@ const ATTENDANCE_VALUE_COLOR = {
   good: 'var(--neutral-800)',
 };
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
 const ATTENDANCE_STATUS_DOT = {
   present:  { text: '出勤', cls: 'text-green-700', dot: 'var(--status-success)' },
   absent:   { text: '缺勤', cls: 'text-red-600',  dot: 'var(--status-error)' },
@@ -53,7 +53,7 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   if (isLoading) {
     const skeletonItems = ['本月活动', '活跃专班', '未读通知', '个人考勤'];
     container.innerHTML = skeletonItems.map(label => `
-      <div class="card rounded-xl px-4 py-3 stat-card">
+      <div class="card rounded-xl p-4 stat-card">
         <span class="stat-icon-tint" style="--tint:var(--neutral-300);" aria-hidden="true">
           <span class="h-5 w-5 rounded bg-gray-100 animate-pulse"></span>
         </span>
@@ -96,7 +96,8 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   // 改为：仅在**确有活跃/招募中专班**时出现（规范类统计「本月活动」不受影响，始终保留）。
   // 2026-10-29 P2（支书：「一个 p 一行…摊大饼」）：数字组统一为「图标在左、数值/标签在右两行」；
   //   卡片不再写 `min-height`——四张等高由 #dashboard-stats 的栅格 `align-items: stretch` 保证。
-  //   标签仍取短标签（4 字），状态说明降为 `.stat-card__note`。
+  //   2026-11-01（回线上口径）：卡片内边距统一 `p-4`（16px），标签仍取短标签（4 字）；
+  //   卡内只保留「数值 / 标签」两行——空态由数值位「—」表达，不再追加第三行说明。
   // 颜色 = 既有语义 token：活动信息蓝 / 专班琥珀文字档 / 未读错误红（0 条回落中性）/ 考勤按档位。
   const stats = [
     { label: '本月活动', value: monthActivities.length, unit: '场', color: 'var(--status-info)', icon: 'calendarHero', interactive: false },
@@ -105,26 +106,24 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
       : []),
     { label: '未读通知', value: unreadNotices, unit: '条',
       color: unreadNotices > 0 ? 'var(--status-error)' : 'var(--neutral-500)', icon: 'bellHero', interactive: false },
-    // 空态（P2-5）：没有记录不是「数据坏了」，而是「本月无记录」这一事实。
-    // R2-47：有应到场次但一条都没录 → 「待录入」，不再把未录当成 0%。
+    // 空态（P2-5）：没有记录不是「数据坏了」，而是本月应到场次为 0 这一事实——数值位显示「—」。
+    // R2-47：有应到场次但一条都没录 → 同样显示「—」（未录不当成 0%）。
     { label: '个人考勤',
       value: myTotal > 0 && myRate !== null ? `${myPresent}/${myTotal}` : '—',
       unit: '', color: ATTENDANCE_TONE_COLOR[myTone], valueColor: ATTENDANCE_VALUE_COLOR[myTone],
       icon: 'clipboard', interactive: true,
-      note: myTotal === 0 ? '本月无记录' : (myRate === null ? '待录入' : ''),
       title: '分母＝本月应到场次（应到人次口径；未录场次单列「待录入」）' },
   ];
 
   // T-304 Q2 点击热区：不可点卡（前三张）不给 hover / 手型（纯展示卡不加 hover 伪装，DESIGN_SYSTEM §4.3）；
   // 仅可点卡（个人考勤）挂 .card--interactive，hover = 主题色边框 ＋ 10% 淡底，不阴影、不上浮。
   container.innerHTML = stats.map(s => `
-    <div class="card rounded-xl px-4 py-3 stat-card ${s.interactive ? 'card--interactive cursor-pointer' : ''}"
+    <div class="card rounded-xl p-4 stat-card ${s.interactive ? 'card--interactive cursor-pointer' : ''}"
          ${s.interactive ? 'role="button" tabindex="0" data-attendance-popover="1"' : ''} ${s.title ? `title="${s.title}"` : ''}>
       <span class="stat-icon-tint" style="--tint:${s.color};" aria-hidden="true">${icon(s.icon, { strokeWidth: 1.8, className: 'w-5 h-5' })}</span>
       <div class="stat-card__body">
         <p class="stat-card__value" style="color:${s.valueColor || s.color};">${s.value}${s.unit ? `<span class="stat-card__unit">${s.unit}</span>` : ''}</p>
         <p class="stat-card__label">${s.label}</p>
-        ${s.note ? `<p class="text-xs stat-card__note" style="color:var(--neutral-500);">${s.note}</p>` : ''}
       </div>
     </div>
   `).join('');

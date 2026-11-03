@@ -1,4 +1,4 @@
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261031a';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261102b';
 export const MOCK_NOTICES = [
   // ── 历史通知（多数已过期；有效期由 expireDate 决定，不以注释断言「当前有效」）──────
   // R10（2026-10-23）：种子不再写旧的全局 `read` 布尔——读侧只用逐人 `reads[]`；
@@ -175,7 +175,12 @@ for (const notice of MOCK_NOTICES) {
   //   archivedBy 为逐人归档状态（初始为空）；与 API 投影 / 历史规范化同形，保证两形态读数一致。
   notice.kind = notice.kind ?? 'announcement';
   if (!Array.isArray(notice.archivedBy)) notice.archivedBy = [];
+  // 2026-11-02 批次 527（数据契约 Wave 2）：`reads` 是契约必填（逐人已读 personId 数组），
+  // 原种子从不补 ⇒ 文档必填写、种子从不填。此处统一补空数组（读侧 `read` 布尔仍按当前人投影）。
+  if (!Array.isArray(notice.reads)) notice.reads = [];
   if (notice.audience === undefined && !Array.isArray(notice.audiencePersons)) {
     Object.assign(notice, NOTICE_AUDIENCE_SEED[notice.id] || { audience: ['all'] });
   }
+  // audience 统一数组：旧库/旧语料若写成裸字符串（如 'committee'），读时收成单元素数组。
+  if (!Array.isArray(notice.audience)) notice.audience = notice.audience ? [notice.audience] : [];
 }

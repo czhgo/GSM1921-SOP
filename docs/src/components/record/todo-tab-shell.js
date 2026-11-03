@@ -19,31 +19,31 @@
 // 视觉沿用 card/rounded 既有体系（四档列表渲染在 components/record/todo-list.js renderUrgencyTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261031a';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261102b';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261031a';
-import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261031a';
-import { badgeHtml } from '../ui/badges.js?v=20261031a';
-import { icon } from '../../core/base/icons.js?v=20261031a';
-import { showToast, escHtml, todayLocal, flashHighlight, getBasePath, smoothScroll } from '../../core/base/utils.js?v=20261031a';
-import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261031a';
-import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { mockDB } from '../../core/domain/domain.js?v=20261031a';
-import { tokenOf } from '../../core/base/version-token.js?v=20261031a'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261031a';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261031a'; // P2 渲染守卫（spec §四.1）
-import { renderTabHeader } from '../shell/page-frame.js?v=20261031a'; // 页题单一源（H2）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261102b';
+import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261102b';
+import { badgeHtml } from '../ui/badges.js?v=20261102b';
+import { icon } from '../../core/base/icons.js?v=20261102b';
+import { showToast, escHtml, todayLocal, flashHighlight, getBasePath, smoothScroll } from '../../core/base/utils.js?v=20261102b';
+import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261102b';
+import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { mockDB } from '../../core/domain/domain.js?v=20261102b';
+import { tokenOf } from '../../core/base/version-token.js?v=20261102b'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261102b';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261102b'; // P2 渲染守卫（spec §四.1）
+import { renderTabHeader } from '../shell/page-frame.js?v=20261102b'; // 页题单一源（H2）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261031a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261102b';
 
 // ── 「我经办的反馈」区（2026-10-25 IA 62→45 · spec Task 5）──────────────
 // 五台原「我的处置」页签已删（与待办同属「我的待处理」，只是对象为反馈）⇒ 并入本页成一段。
 // 实现单一源＝`components/feedback/issue-dispatch-view.js`（embedded 形态：不渲染第二张页头 H2，
 // 列表 / 详情 / 评论 / 提交处置结果一字未改，不复制第二套）。
 // 旧深链 `?tab=my-dispatch` 由工作台壳落 `todo&filter=dispatch`（本区据此滚到视野）。
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
 const DISPATCH_SECTION_BY_ROLE = {
   'org-commissioner': { roleKey: 'org-commissioner', opts: {} },
   'prop-commissioner': { roleKey: 'prop-commissioner', opts: {} },
@@ -275,7 +275,7 @@ function _mountDispatchSection(container, role, ctx) {
     host.innerHTML = emptyStateHtml({ variant: 'panel', text: '请先登录后使用', actionHtml: `<a class="btn-outline" href="${getBasePath()}login.html">去登录</a>` });
     return;
   }
-  import('../feedback/issue-dispatch-view.js?v=20261031a').then((m) => {
+  import('../feedback/issue-dispatch-view.js?v=20261102b').then((m) => {
     if (!host.isConnected) return;
     host.innerHTML = m.renderMyDispatchTab(cfg.roleKey, uid, { ...cfg.opts, embedded: true });
     m.bindMyDispatchEvents(host, cfg.roleKey, uid, cfg.opts);
@@ -462,9 +462,12 @@ export function createTodoTab(opts) {
     if (!extraHtml && !unreadHtml) return '';
     return `
       <div class="disclosure-host card rounded-xl mb-4 card--static">
-        <!-- 2026-10-31 支书补充（折叠头）：标题与计数同字级（14px）、同基线；标题行走 .disclosure__title
-             （min-height 44），summary 空内容覆盖整行 ⇒ 整行任意位置可点，展开 / 收起看右侧 chevron。 -->
-        <h3 class="disclosure__title font-title-cn text-sm px-4" id="todo-strip-title">
+        <!-- 2026-10-31 支书补充（折叠头）：标题与计数同基线；标题行走 .disclosure__title
+             （min-height 44），summary 空内容覆盖整行 ⇒ 整行任意位置可点，展开 / 收起看右侧 chevron。
+             2026-11-01（折叠头单一语法）：标题字号/字重/字族由 .disclosure__title 统一给出
+             （16/600/24 ＋ 标题字族），调用点只留内边距，不再用 font-title-cn / text-sm 覆盖；
+             计数是附注（14px 常规字重）。 -->
+        <h3 class="disclosure__title text-base px-4" id="todo-strip-title">
           待答复与未读通知
           ${count > 0 ? `<span class="text-sm font-normal text-gray-500 tabular-nums">${count}</span>` : ''}
         </h3>

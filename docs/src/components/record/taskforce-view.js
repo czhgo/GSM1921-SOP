@@ -4,22 +4,26 @@
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据支书第五轮裁定「新建专班查看组件（列表+详情）」。
 // 支书设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261031a';
-import { getPersonName } from '../../services/member/person.js?v=20261031a';
-import { mockDB } from '../../core/domain/domain.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261031a';
-import { badgeHtml } from '../ui/badges.js?v=20261031a';
-import { dotDarkVars } from '../../core/domain/constants.js?v=20261031a';
-import { flashHighlight, showToast, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261031a';
-import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261031a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261102b';
+import { getPersonName } from '../../services/member/person.js?v=20261102b';
+import { mockDB } from '../../core/domain/domain.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261102b';
+import { badgeHtml } from '../ui/badges.js?v=20261102b';
+import { dotDarkVars } from '../../core/domain/constants.js?v=20261102b';
+import { flashHighlight, showToast, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261102b';
+import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261102b';
+// 批次 524（D）：只读由权限派生，不再写死「· 只读」字符串
+import { readonlyMeta } from '../../core/domain/view-capability.js?v=20261102b';
 // 统一检索引擎（2026-09-14 裁定）：只读详情「成员贡献」（第一列是人 → 配姓名关键词）与
 // 「中间进度」（时间线 → 只给分页：keyword null + facets []）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261031a';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261102b';
 // Task 6：专班的完整详情页出口（同页预览 + 「打开完整页」）；入口已在工作台内 ⇒ locate。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261031a';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261102b';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
+// 批次 525（#4）：搜索建议走自建 suggestInput（原生 datalist 会在输入框内画 UA picker 三角）。
+import { suggestInput } from '../ui/forms.js?v=20261102b';
 // 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
 const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };
 // 专班状态 → 固定语义 tone（不随主题）
@@ -44,25 +48,43 @@ function statusText(t) {
  * @param {Object} [opts]
  * @param {Array}  [opts.taskforces] — 专班数据（缺省回退 TaskForceRecordStore）
  * @param {string} [opts.highlightId] — URL 携带的 taskforceId（定位+高亮该专班）
+ * @param {boolean} [opts.embedded] — 嵌入形态（批次 524 · C：不套外层卡与卡头，只出检索行 / 列表 / 详情）
  */
 export function renderTaskforceView(container, opts = {}) {
   if (!container) return;
   const taskforces = opts.taskforces || TaskForceRecordStore.getAll() || [];
   const highlightId = opts.highlightId || null;
+  // 只读约束由当前角色现算（可写不显示、不可写才显示「只读」）
+  const user = AuthStore.getCurrentUser() || null;
+  const scopeMeta = esc(['全支部', readonlyMeta('taskforce', user)].filter(Boolean).join(' · '));
+  // 建议项 = 当前专班名（去重、上限 50）；骨架只建一次，故每次渲染把最新清单写回建议容器。
+  const nameItems = [...new Set(taskforces.map((t) => t.name).filter(Boolean))].slice(0, 50);
 
   // 骨架（首次渲染，tab 重渲染时保留容器）
   if (container.dataset.tfvInited !== '1') {
     container.dataset.tfvInited = '1';
-    container.innerHTML = `
+    // 嵌入形态：外层卡与卡头由「知情查看」卡持有，此处只出检索 / 列表 / 详情（无 .card）
+    const embeddedHtml = `
+        <div class="lf-bar mb-3">
+          <div class="lf-bar__row" data-seg="search">
+            ${suggestInput({ id: 'tfv-search', placeholder: '搜索专班名称或任务…', ariaLabel: '搜索专班名称或任务', suggestions: nameItems, className: 'lf-kw' })}
+          </div>
+          <div class="lf-bar__row" data-seg="reset">
+            <button type="button" id="tfv-search-clear" class="btn-tab lf-btn">清除</button>
+          </div>
+        </div>
+        <div id="tfv-list"></div>
+        <div id="tfv-detail" class="hidden mt-4"></div>`;
+    container.innerHTML = opts.embedded === true ? embeddedHtml : `
       <div class="card rounded-xl p-5">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">专班查看</h3>
-          <span class="text-xs text-gray-500">全支部 · 只读</span>
+          <span class="text-xs text-gray-500">${scopeMeta}</span>
         </div>
         <!-- P3 四段：本面只有检索；重置随检索提供（清除关键词后恢复全量） -->
         <div class="lf-bar mb-3">
           <div class="lf-bar__row" data-seg="search">
-            <input type="text" id="tfv-search" class="input-flat text-xs lf-kw" placeholder="搜索专班名称或任务...">
+            ${suggestInput({ id: 'tfv-search', placeholder: '搜索专班名称或任务…', ariaLabel: '搜索专班名称或任务', suggestions: nameItems, className: 'lf-kw' })}
           </div>
           <div class="lf-bar__row" data-seg="reset">
             <button type="button" id="tfv-search-clear" class="btn-tab lf-btn">清除</button>
@@ -72,6 +94,11 @@ export function renderTaskforceView(container, opts = {}) {
         <div id="tfv-detail" class="hidden card rounded-xl p-5 mt-4"></div>
       </div>`;
   }
+
+  // 自建建议列表（批次 525 · #4）：骨架只建一次 ⇒ 每次渲染把最新建议项写回（无原生 datalist）。
+  const suggestInputEl = container.querySelector('#tfv-search');
+  const suggestWrap = suggestInputEl && suggestInputEl.closest('[data-suggest]');
+  if (suggestWrap) suggestWrap.setAttribute('data-suggest-items', JSON.stringify(nameItems));
 
   // 搜索过滤
   const searchEl = container.querySelector('#tfv-search');

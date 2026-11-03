@@ -5,17 +5,17 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261031a';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone } from '../../core/domain/constants.js?v=20261031a';
-import { _fmtDate, _currentYearMonth, showToast } from '../../core/base/utils.js?v=20261031a';
+import { getAppState, setState } from '../../core/base/state.js?v=20261102b';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone } from '../../core/domain/constants.js?v=20261102b';
+import { _fmtDate, _currentYearMonth, showToast } from '../../core/base/utils.js?v=20261102b';
 // 2026-10-25 Task 1.3：节点缺失 / 页内失败统一走「错误卡 + 重试」单一源（tab-bar 同款）。
-import { mountTabFailure } from '../shell/tab-bar.js?v=20261031a';
-import { tokenOf } from '../../core/base/version-token.js?v=20261031a'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261031a';
+import { mountTabFailure } from '../shell/tab-bar.js?v=20261102b';
+import { tokenOf } from '../../core/base/version-token.js?v=20261102b'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261102b';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261031a';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261102b';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
 // ── 固定语义色 tone（不随主题）──
 // 2026-10-24 批次 508：活动类别色改由单一源 activityTypeTone 判定——
 //   主题党日（scenarioId=theme-party）→ gold；其余类别（三会一课等）→ party-red；无 type → neutral。
@@ -186,7 +186,8 @@ export function renderCalendarByActivities(state, targetMonth) {
       onRetry: () => renderCalendarByActivities(getAppState() || {}, targetMonth),
     });
     if (!shown) showToast('error', '日历加载失败，请重试');
-    console.error('[calendar] 缺少日历容器 #cal-main-grid');
+    // 2026-11-02 批次 526：无日历宿主是「本页未挂载日历」，不是异常；不再写 console.error
+    //   （活动动态等复用页因此产生 F8 P1 噪声）。
     return;
   }
   const { empty } = _ensureCalendarSlots(grid);

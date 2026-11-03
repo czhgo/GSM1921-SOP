@@ -7,12 +7,15 @@
 // 文案由 components/record/todo-list.js actionLabels 收敛为「去考勤管理/去考察管理」（跳管理页队列，
 // 确认唯一位=考勤管理/考察管理页），补课回执交接行=「去补课制度」跳转——本文件无逻辑改动。
 
-import { showToast, getBasePath } from '../../../core/base/utils.js?v=20261031a';
-import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/governance/todo.js?v=20261031a';
-import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261031a';
-import { loadActiveAttendanceRecords, isAttendancePendingConfirm } from '../../../services/activity/attendance.js?v=20261031a';
-import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261031a';
-import { getPersonName } from '../../../services/member/person.js?v=20261031a';
+import { showToast } from '../../../core/base/utils.js?v=20261102b';
+import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/governance/todo.js?v=20261102b';
+import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261102b';
+// 2026-11-01 批次 524（#7）：主行动落点由动作表声明，页签切换走统一导航（删写死 workspace URL）
+import { resolveTodoAction } from '../../../core/domain/todo-actions.js?v=20261102b';
+import { goToWorkspaceTab } from '../../../core/session/workspace-nav.js?v=20261102b';
+import { loadActiveAttendanceRecords, isAttendancePendingConfirm } from '../../../services/activity/attendance.js?v=20261102b';
+import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261102b';
+import { getPersonName } from '../../../services/member/person.js?v=20261102b';
 
 // ── 纪检实时聚合组（2026-08-07 闭环化） ────────────────────────
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降，
@@ -63,48 +66,27 @@ function _buildDiscRealtimeGroups() {
 }
 
 function _handleTodoAction(todo) {
-  // 2026-08-07 闭环化：聚合对象优先按 actionKey 跳转（区分同 actionType 的业务域），普通明细按 actionType 兜底
-  // 无生产者残留键清理（IA-C1 Task5 登记 2026-09-06）：review-submit/review-confirm/submit/confirm 旧键
-  // 均无派生器移除（纪检台现派生=实时考勤/考察待确认组 + handoff-material-shortage 补课回执，
-  // 均带 actionKey；actionType 兜底仅余 review 供 signup-review 未直跳等边界）——未知键落 else「请处理」。
-  // 2026-09-15：补课并入「考勤管理」（原「制度与文本」tab 已废止）——补课回执落「考勤管理」的「补课」分段。
-  const jump = {
-    'attendance-confirm': { tab: 'attendance', label: '考勤管理' },
-    'inspection-confirm': { tab: 'inspection', label: '考察管理' },
-    'handoff-material-shortage': { tab: 'attendance', label: '考勤管理', segment: 'makeup' },
-    review:   { tab: 'review', label: '复盘' },
-  };
-  const target = jump[todo.actionKey] || jump[todo.actionType];
-  if (target) {
-    // 考勤 / 考察待确认：带目标 id 直达（focusActivityId / focusRecordId），目标页过滤或高亮该行；
-    // 未命中才由目标页 toast，源页不再先报「已跳转」。
-    if (todo.actionKey === 'attendance-confirm' || todo.actionKey === 'inspection-confirm') {
-      const first = Array.isArray(todo.items) ? todo.items[0] : null;
-      const qs = new URLSearchParams({ tab: target.tab });
-      const activityId = first?.activityId || first?.sourceId || '';
-      if (activityId) qs.set('focusActivityId', activityId);
-      if (first?.id) qs.set('focusRecordId', first.id);
-      // 静态拼接（不做模板插值）：L2 只校验 `location.href` 直接字面量/插值片段，
-      //   拼成变量再赋值可避免把 workspace 子路径误判为根目录页面。
-      const discWorkspace = 'workspace/disc.html';
-      window.location.href = getBasePath() + discWorkspace + '?' + qs.toString();
-      return;
-    }
-    const go = () => {
-      const btn = document.querySelector(`.disc-tab-btn[data-disc-tab="${target.tab}"]`);
-      if (btn) btn.click();
-      showToast('info', `已跳转到${target.label}，请处理：${todo.title}`);
-    };
-    if (target.segment) {
-      // 先置一级分段再切 tab（分段由 attendance-tab 模块级记忆，见其 focusSegment 导出）
-      import('../../../entries/tabs/disc/attendance-tab.js?v=20261031a')
-        .then(m => { m.focusSegment(target.segment); go(); })
-        .catch(go);
-    } else {
-      go();
-    }
-  } else {
+  // 2026-08-07 闭环化：聚合对象优先按 actionKey 跳转（区分同 actionType 的业务域），普通明细按 actionType 兜底。
+  // 2026-11-01 批次 524（#7）：落点表迁到 core/domain/todo-actions.js；考勤/考察待确认改为
+  //   同页切页签 + PendingTarget 深链（不再写死 workspace/disc.html?tab=… 整页跳转）。
+  const action = resolveTodoAction(todo, 'disc-commissioner');
+  if (!action || !action.tab) {
     showToast('info', `请处理：${todo.title}`);
+    return;
+  }
+  const first = Array.isArray(todo.items) ? todo.items[0] : null;
+  const targetId = (first && (first.id || first.activityId)) || todo.id || null;
+  const go = () => {
+    const ok = goToWorkspaceTab(action.tab, { kind: action.kind, id: targetId });
+    showToast('info', ok ? `已跳转，请处理：${todo.title}` : `请处理：${todo.title}`);
+  };
+  if (action.segment) {
+    // 先置一级分段再切 tab（分段由 attendance-tab 模块级记忆，见其 focusSegment 导出）
+    import('../../../entries/tabs/disc/attendance-tab.js?v=20261102b')
+      .then(m => { m.focusSegment(action.segment); go(); })
+      .catch(go);
+  } else {
+    go();
   }
 }
 

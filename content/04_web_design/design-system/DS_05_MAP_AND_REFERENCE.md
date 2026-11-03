@@ -2,7 +2,7 @@
 title: "设计系统 · 第五编 地图与速查"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-31
+last_updated: 2026-11-01
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RESPONSIVE.md, CASES.md]
 ---
@@ -149,6 +149,7 @@ related_files: [DESIGN_SYSTEM.md, DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.
 | H-2 | **党徽 48px** | `.dashboard-hero__emblem` 为 48×48；不得出现 24px 降级 |
 | H-3 | **禁止左对齐降级** | 全站不得再写 `#dashboard-hero[data-hero="muted"]` 的 `text-align: start` / 24px / `--text-xl` 规则；`main-entry.js` 不得写 `data-hero="muted"` |
 | H-4 | **白名单边界** | 仅首页这一处可复制「居中 hero」；其它页面 / 卡片不得以本特例为由新增居中大标题 |
+| H-5 | **数字卡不进白名单** | 首页四张数字卡（`.stat-card`）不因本节获得居中 / 大标题待遇；hero 只含党徽 ＋ 标题，数字卡与结论带不得并入 `#dashboard-hero`（卡高与行数见 `DS_03_COMPONENTS.md` §4.21.2） |
 
 守卫：`server/test/card-summary-hero-guard.test.mjs` 的 hero-center-whitelist 组（反例：改回左对齐即判红）。
 

@@ -6,10 +6,10 @@
 // 顶部直达条属重复动作 ⇒ 外壳不再挂条，只保留骨架占位。
 // U3（2026-09-07）：先 beginOverviewShell 骨架/槽位占位 → 原地渲染概况（不推挤正文）。
 
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261031a';
-import { currentUserId } from '../../../services/core/auth.js?v=20261031a';
-import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261031a';
-import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261031a';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261102b';
+import { currentUserId } from '../../../services/core/auth.js?v=20261102b';
+import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261102b';
+import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261102b';
 
 /**
  * 条线缺口行补真实动作（2026-10-18 繁专项 Task 15）。

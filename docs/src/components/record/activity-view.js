@@ -4,19 +4,21 @@
 // 日历视图（复用 calendar.js 渲染引擎）+ 只读活动详情（点击日历条目）。
 // 形态依据支书第四轮裁定：「支书的日历视图只要删去写入活动等功能，就可以提供很好的活动详情」。
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261031a';
-import { renderCalendarByActivities } from './calendar.js?v=20261031a';
-import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261031a';
-import { badgeHtml } from '../ui/badges.js?v=20261031a';
-import { ROLE_COLORS, dotDarkVars, isActivityArchived, activityTypeBadgeVariant } from '../../core/domain/constants.js?v=20261031a';
-import { activityLifecycleBadgeHtml } from './inspector.js?v=20261031a';
-import { getPersonById } from '../../services/member/person.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261031a';
+import { getAppState, setState } from '../../core/base/state.js?v=20261102b';
+import { renderCalendarByActivities } from './calendar.js?v=20261102b';
+import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261102b';
+import { badgeHtml } from '../ui/badges.js?v=20261102b';
+import { ROLE_COLORS, dotDarkVars, isActivityArchived, activityTypeBadgeVariant } from '../../core/domain/constants.js?v=20261102b';
+import { activityLifecycleBadgeHtml } from './inspector.js?v=20261102b';
+import { getPersonById } from '../../services/member/person.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+// 批次 524（D）：只读由权限派生，不再写死「· 只读」字符串
+import { readonlyMeta } from '../../core/domain/view-capability.js?v=20261102b';
+import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261102b';
 // 表决组件（AV4.5 公共端：复用 activity.html 同款 renderVoteWidget，授权按 voterIds 判定）
-import { renderVoteWidget } from '../governance/vote-widget.js?v=20261031a';
+import { renderVoteWidget } from '../governance/vote-widget.js?v=20261102b';
 // Task 6：本组件常驻「工作概况」页内预览 ⇒ locate：保留预览 + 「打开完整页」。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261031a';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261102b';
 
 // 任务状态元数据（状态点 + 文案，轻量自包含，避免依赖 status-badge 全家桶）
 const _TASK_STATUS_META = {
@@ -46,12 +48,13 @@ export function renderActivityView(container, opts = {}) {
   // 骨架（首次渲染，tab 重渲染时保留容器）
   if (container.dataset.avInited !== '1') {
     container.dataset.avInited = '1';
+    const scopeMeta = ['全支部', readonlyMeta('activity', AuthStore.getCurrentUser())].filter(Boolean).join(' · ');
     container.innerHTML = `
       <div class="card rounded-xl p-5">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">活动查看</h3>
           <div class="flex items-center gap-3">
-            <span class="text-xs text-gray-500">全支部 · 只读</span>
+            <span class="text-xs text-gray-500">${scopeMeta}</span>
             <button class="btn-outline av-export-btn h-8 px-3.5 inline-flex items-center gap-1.5 text-xs font-medium">导出 CSV</button>
           </div>
         </div>
@@ -104,7 +107,11 @@ export function renderActivityView(container, opts = {}) {
   }
 
   // ── 日历（复用 calendar.js 渲染引擎；点击活动条目 → setState → 本组件重渲染详情）──
-  renderCalendarByActivities({ ...state, activities }, displayMonth);
+  // 2026-11-02 批次 526：本组件也被「活动动态」页复用，该页没有日历容器；
+  //   无容器时跳过，避免 console.error 噪声（F8 P1）。
+  if (document.getElementById('cal-main-grid')) {
+    renderCalendarByActivities({ ...state, activities }, displayMonth);
+  }
 
   // ── 详情面板：URL 携带 activityId 时优先展示（兜底 state.selectedActivityId）──
   _renderDetail(state, activities, tasks, highlightId, !!opts.readonly);

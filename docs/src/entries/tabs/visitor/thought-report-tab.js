@@ -10,17 +10,17 @@
 //  · 提交表单新增期次（period）手填下拉（缺省 = 当前期次）；
 //  · 「我的汇报」按期次分组，逐篇点击跳**独立阅读页** docs/thought-report.html——
 //    只读正文与「修改重交」均收敛到该页，本 tab 不再行内展开/就地编辑。
-import { AuthStore } from '../../../services/core/auth.js?v=20261031a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261102b';
 import {
   addThoughtReport, listThoughtReportsByPersonGrouped,
   wordCountHint, wordHint, wordSoftMin, periodOf, periodOptions,
-} from '../../../services/governance/thought-report.js?v=20261031a';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261031a';
+} from '../../../services/governance/thought-report.js?v=20261102b';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261102b';
 // 统一检索引擎（支书 2026-09-14 裁定）：按期次分组子列表复用其分页（无 keyword/facets → 不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261031a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261102b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261102b';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261102b';
 // ── 状态徽标（与服务层 _effective 同语义：无状态 / 状态非法 / 旧 'pending' → 已入库）──
 const STATUS_META = {
   needs_revision: { label: '已打回·待补充', cls: 'bg-red-100 text-red-700' },

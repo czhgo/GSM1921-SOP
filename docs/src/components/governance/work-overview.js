@@ -18,32 +18,32 @@
 //  本页除「四数卡的图标块」外不再使用 SVG 图标（支书 2026-08-10 裁定），类别仍用色点 + 文字区分。
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight, todayLocal, docAnchorHref, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261031a';
-import { icon } from '../../core/base/icons.js?v=20261031a';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261031a';
-import { tableHeadHtml } from '../ui/data-table.js?v=20261031a';
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
-import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261031a';
+import { showToast, flashHighlight, todayLocal, docAnchorHref, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261102b';
+import { icon } from '../../core/base/icons.js?v=20261102b';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261102b';
+import { tableHeadHtml } from '../ui/data-table.js?v=20261102b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
+import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261102b';
 import {
   TodoStore, seedTodos, isTodoExpired, WORK_DOMAIN, WORK_DOMAIN_LABELS, TodoStatus,
-} from '../../services/governance/todo.js?v=20261031a';
-import { IssueStore } from '../../services/governance/issues.js?v=20261031a';
+} from '../../services/governance/todo.js?v=20261102b';
+import { IssueStore } from '../../services/governance/issues.js?v=20261102b';
 import {
   isActivityEnded, isActivityArchived, isActivityInProgress, ROLE_LABELS, PARTY_GROUP_LEADER_ROLES,
-} from '../../core/domain/constants.js?v=20261031a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261031a';
-import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261031a';
-import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261031a';
-import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261031a';
-import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261031a';
-import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261031a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261031a';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261031a';
-import { getPersonName } from '../../services/member/person.js?v=20261031a';
-import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261031a';
-import { AttendanceStatus, ReviewStatus, mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261031a';
-import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261031a';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261031a';
+} from '../../core/domain/constants.js?v=20261102b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261102b';
+import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261102b';
+import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261102b';
+import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261102b';
+import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261102b';
+import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261102b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261102b';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261102b';
+import { getPersonName } from '../../services/member/person.js?v=20261102b';
+import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261102b';
+import { AttendanceStatus, ReviewStatus, mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261102b';
+import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261102b';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261102b';
 
 // 在办下钻详情目标（支书 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -53,6 +53,14 @@ let _metricRole = null;
 
 const _MAX_INLINE = 3;
 const _DONE_LIMIT = 5;
+/** 结论带指标色单一源（2026-11-01 批次 524 支书裁定）：指标与状态用功能色，动作 / 导航 / 选中态仍用主题色。
+ *  pending = 待处理状态（待答复 / 待赋权 / 待归档 / 待补课 / 待汇报 / 组员汇报）；
+ *  overdue = 逾期（warning 文字档）；normal = 纯计数（待办总数，不是状态）。 */
+const METRIC_TONE = {
+  pending: 'var(--status-info-text)',
+  overdue: 'var(--status-warning-text)',
+  normal: 'var(--neutral-800)',
+};
 /** 「待我处理」分区标题（结论带上的第二枚指标改称「待办」，避免同一屏出现两遍「待我处理」）。 */
 const ACTIONS_TITLE = '待我处理';
 const LINE_COLUMNS = [
@@ -133,12 +141,12 @@ function _daysOverdue(deadline, today) {
  *  2026-10-20 R3-07：筛选类（逾期 / 待办）与滚动类（在办 / 第四项）在渲染上分成两种控件——
  *  筛选是 chip 按钮（有 aria-pressed），滚动是页内链接（原生锚点），不再让同款按钮干两种事。 */
 function _metrics(fourth) {
-  // 图标颜色只用既有语义 token：逾期 = warning 文字档，动作类数 = 主题 soft 文字（点缀），
-  // 在办 = 中性（过程量不争重心）；图标不是唯一信息载体，标签仍在。
+  // 图标颜色只用既有语义 token：状态与计数取功能色（METRIC_TONE），在办 = 中性（过程量不争重心）；
+  // 图标不是唯一信息载体，标签仍在。
   return [
-    { key: 'overdue', kind: 'filter', label: '逾期', icon: 'warning', color: 'var(--status-warning-text)', value: (totals) => totals.overdue, warning: true, ariaLabel: '筛选逾期待办' },
+    { key: 'overdue', kind: 'filter', label: '逾期', icon: 'warning', color: METRIC_TONE.overdue, value: (totals) => totals.overdue, warning: true, ariaLabel: '筛选逾期待办' },
     // 「待办」只跳分区，不做第二套筛选：实际可筛的只有「逾期」一类（R3-07）。
-    { key: 'actions', kind: 'scroll', href: '#wo-actions', label: '待办', icon: 'list', color: 'var(--app-accent-soft-text)', value: (totals) => totals.actions, ariaLabel: '查看待办事项' },
+    { key: 'actions', kind: 'scroll', href: '#wo-actions', label: '待办', icon: 'list', color: METRIC_TONE.normal, value: (totals) => totals.actions, ariaLabel: '查看待办事项' },
     { key: 'active', label: '在办', kind: 'scroll', href: '#wo-lines', icon: 'flag', color: 'var(--neutral-500)', value: (totals) => totals.active, ariaLabel: '查看工作分工表' },
     { ...fourth, key: 'fourth', kind: 'scroll', href: '#wo-lines', ariaLabel: `查看${fourth.label}分工` },
   ];
@@ -150,7 +158,7 @@ function _metrics(fourth) {
  */
 const ROLE_OVERVIEW_CONFIG = {
   secretary: {
-    metrics: _metrics({ label: '待答复', icon: 'message', color: 'var(--app-accent-soft-text)', value: (totals) => totals.answer }),
+    metrics: _metrics({ label: '待答复', icon: 'message', color: METRIC_TONE.pending, value: (totals) => totals.answer }),
     lines: [
       {
         key: 'org', label: '组织', ownerRole: 'org-commissioner', tab: 'calendar', actionLabel: '活动管理',
@@ -213,7 +221,7 @@ const ROLE_OVERVIEW_CONFIG = {
   },
 
   'org-commissioner': {
-    metrics: _metrics({ label: '待赋权', icon: 'shield', color: 'var(--app-accent-soft-text)', value: (totals) => totals.pendingAuth }),
+    metrics: _metrics({ label: '待赋权', icon: 'shield', color: METRIC_TONE.pending, value: (totals) => totals.pendingAuth }),
     lines: [
       {
         key: 'tf', label: '专班', ownerRole: 'org-commissioner', module: 'taskforce',
@@ -253,7 +261,7 @@ const ROLE_OVERVIEW_CONFIG = {
   },
 
   'prop-commissioner': {
-    metrics: _metrics({ label: '待归档', icon: 'archive', color: 'var(--app-accent-soft-text)', value: (totals) => totals.pendingArchive }),
+    metrics: _metrics({ label: '待归档', icon: 'archive', color: METRIC_TONE.pending, value: (totals) => totals.pendingArchive }),
     lines: [
       {
         key: 'tasks', label: '宣传任务', ownerRole: 'prop-commissioner', tab: 'tasks', actionLabel: '宣传任务',
@@ -279,7 +287,7 @@ const ROLE_OVERVIEW_CONFIG = {
   },
 
   'disc-commissioner': {
-    metrics: _metrics({ label: '待补课', icon: 'book', color: 'var(--app-accent-soft-text)', value: (totals) => totals.makeupPending }),
+    metrics: _metrics({ label: '待补课', icon: 'book', color: METRIC_TONE.pending, value: (totals) => totals.makeupPending }),
     lines: [
       {
         key: 'attendance', label: '考勤', ownerRole: 'disc-commissioner', module: 'attendance-inspection',
@@ -317,7 +325,7 @@ const ROLE_OVERVIEW_CONFIG = {
   },
 
   leader: {
-    metrics: _metrics({ label: '组员汇报', icon: 'usersGroup', color: 'var(--app-accent-soft-text)', value: (totals) => totals.memberAnswer }),
+    metrics: _metrics({ label: '组员汇报', icon: 'usersGroup', color: METRIC_TONE.pending, value: (totals) => totals.memberAnswer }),
     lines: [
       {
         key: 'activity', label: '本组活动', ownerRole: 'leader', tab: 'write', actionLabel: '本组活动',
@@ -349,7 +357,7 @@ const ROLE_OVERVIEW_CONFIG = {
   },
 
   visitor: {
-    metrics: _metrics({ label: '待汇报', icon: 'message', color: 'var(--app-accent-soft-text)', value: (totals) => totals.reportPending }),
+    metrics: _metrics({ label: '待汇报', icon: 'message', color: METRIC_TONE.pending, value: (totals) => totals.reportPending }),
     lines: [
       {
         key: 'activity', label: '我的活动', ownerRole: 'visitor', tab: 'activities', actionLabel: '活动动态',
@@ -594,7 +602,7 @@ async function _buildContext(role, personId, today, config) {
 
   // 支书：概况维度 + 实时派生组（与待办页同源）
   if (role === 'secretary') {
-    const secretary = await import('../../services/governance/secretary-overview.js?v=20261031a');
+    const secretary = await import('../../services/governance/secretary-overview.js?v=20261102b');
     const realtime = secretary.SecretaryTodoDeriver.computeAggregates();
     const seen = new Set(ctx.todoGroups.map((group) => group.groupKey));
     ctx.todoGroups = [...ctx.todoGroups, ...realtime.filter((group) => !seen.has(group.groupKey))];
@@ -962,7 +970,7 @@ function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
       const tab = btn.dataset.woGotoTab;
       if (btn.dataset.woSegment === 'makeup') {
         try {
-          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261031a');
+          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261102b');
           module.focusSegment?.('makeup');
         } catch (_) { /* 分段记忆失败时仍进考勤页 */ }
       }
@@ -1019,10 +1027,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('../record/activity-view.js?v=20261031a');
+    const { renderActivityView } = await import('../record/activity-view.js?v=20261102b');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261031a');
+    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261102b');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

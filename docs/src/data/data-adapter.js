@@ -21,16 +21,16 @@
 // 本文件避免静态引入业务服务以防环依赖；静态依赖仅限零依赖叶子模块：
 //   · pending-writes：persist() 排程时必须同步登记写入，不能等 await（批次 49）。
 //   · page-url：纯 URL 解析，无数据或业务依赖，不形成反向依赖。
-import { trackWrite } from '../core/session/pending-writes.js?v=20261031a';
-import { recordOutboxFailure, clearOutbox, listOutbox, registerOutboxRetry } from '../core/session/pending-writes.js?v=20261031a';
-import { resolveDocumentUrl } from '../core/base/page-url.js?v=20261031a';
+import { trackWrite } from '../core/session/pending-writes.js?v=20261102b';
+import { recordOutboxFailure, clearOutbox, listOutbox, registerOutboxRetry } from '../core/session/pending-writes.js?v=20261102b';
+import { resolveDocumentUrl } from '../core/base/page-url.js?v=20261102b';
 // 角色集单一源（constants.js 只引零依赖叶子 date.js ⇒ 不形成业务环依赖）。
-import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../core/domain/constants.js?v=20261031a';
+import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../core/domain/constants.js?v=20261102b';
 // 工作组「在办」判据单一源（禁止裸状态数组回潮）
 // D10：首页工作组预载必须与 components/dashboard/taskforce-list.js 完全同口径 → 用其 active/recruiting 判据
-import { isTaskforceActiveStatus } from '../core/domain/domain.js?v=20261031a';
+import { isTaskforceActiveStatus } from '../core/domain/domain.js?v=20261102b';
 // @deprecated 旧 p* 人员 id 映射：仅迁移路径（本文件 + mock-adapter）可引用，业务代码禁止直接 import。
-import { isLegacyPersonId, mapPersonId } from './legacy-person-ids.js?v=20261031a';
+import { isLegacyPersonId, mapPersonId } from './legacy-person-ids.js?v=20261102b';
 
 /**
  * 旧 p* 人员 id → 学号/工号（迁移期兼容；已是学号原样返回，未知旧 id 返回 null）。
@@ -235,7 +235,7 @@ export async function init() {
       ]);
 
       // 填充 mockDB 缓存（供服务层同步读取）
-      const { mockDB } = await import('../core/domain/domain.js?v=20261031a');
+      const { mockDB } = await import('../core/domain/domain.js?v=20261102b');
       // 缓存引用：pagehide 同步冲刷时不能再 await 动态 import（文档卸载中挂起），
       // 必须直接同步读取（见 _flushSnapshotSync）
       _cachedMockDB = mockDB;
@@ -327,7 +327,7 @@ export async function init() {
       } catch (e) {
         console.warn('[DataAdapter] init: niche/新域集合拉取失败，回退本地备份：', e);
         try {
-          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20261031a');
+          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20261102b');
           if (!restoreNicheCollections({ expectedVersions: _versions })) await _refreshCollections(NICHE_COLLECTION_NAMES, mockDB); // Task 2.3：缺版本/过期/版本不一致 ⇒ 改从服务端重拉
         } catch (e2) {
           console.warn('[DataAdapter] init: 本地 niche 备份恢复失败：', e2);
@@ -628,7 +628,7 @@ function _notifyLocalOnly(collections) {
     kind: 'local-only',
   });
   if (typeof document === 'undefined' || typeof document.body === 'undefined') return;
-  import('../core/base/utils.js?v=20261031a')
+  import('../core/base/utils.js?v=20261102b')
     .then(({ showToast }) => showToast('info', `本机未同步：${collections.join('、')}只保存在这台设备`))
     .catch(() => {});
 }
@@ -721,9 +721,9 @@ async function _flushSnapshot() {
   if (DATA_SOURCE !== 'api') { deferred?.resolve(); _settleFlushWaiters(waiters); return; }
   // 党委账号未选支部：本轮没有支部写范围，快照必被服务端 403 ⇒ 不发（不把成功提示反转为失败）
   if (_isPartyStaffWithoutBranch()) { deferred?.resolve(); _settleFlushWaiters(waiters); return; }
-  let dirtyKeys = [];
+  let dirtyKeys = [], outboxPayload = null; // Wave 3：失败时把「集合 + 行数据 + _versions」放进 outbox，刷新后仍可重发
   try {
-    const { mockDB } = await import('../core/domain/domain.js?v=20261031a');
+    const { mockDB } = await import('../core/domain/domain.js?v=20261102b');
     _cachedMockDB = mockDB;
     const dirty = _collectDirty(mockDB);
     if (!dirty) { deferred?.resolve(); _settleFlushWaiters(waiters); return; } // 无脏集合：跳过上传（2026-09-02 增量快照）
@@ -751,6 +751,7 @@ async function _flushSnapshot() {
       for (const k of snapshotKeys) snapshotDirty[k] = dirty[k];
       // P0-1：随 payload 带 `_versions`（各脏集合的基线版本）→ 服务端逐集合乐观锁比对
       const { keys, payload } = _withVersions(snapshotDirty);
+      outboxPayload = { collections: keys, rows: snapshotDirty, _versions: payload._versions };
       const resp = await getAdapter().snapshot(payload);
       _commitVersions(keys, resp);          // 服务端回传的新版本 → 推进本地基线版本
       _commitBase(mockDB, keys);            // 上传成功 → 数据基线推进
@@ -782,6 +783,7 @@ async function _flushSnapshot() {
           message: (e && e.message) || '写入未确认',
           status,
           kind: (e && e.type === 'UnsyncedCollectionError') ? 'unsupported' : 'snapshot',
+          payload: outboxPayload,
         });
       } catch (_) { /* outbox 写失败不得覆盖原始写失败 */ }
     }
@@ -834,7 +836,7 @@ export async function adoptCollectionFromServer(name, opts = {}) {
   const adapter = getAdapter();
   const group = adapter[name];
   if (!group || typeof group.list !== 'function') return false;
-  const { mockDB } = await import('../core/domain/domain.js?v=20261031a');
+  const { mockDB } = await import('../core/domain/domain.js?v=20261102b');
   let versionResp = null;
   try { versionResp = await adapter.versions(); } catch (e) {
     console.warn(`[DataAdapter] 采用 ${name}：版本基线重取失败（保持旧值，下次快照会再拒一次）：`, e);
@@ -963,10 +965,8 @@ if (typeof window !== 'undefined' && typeof window.addEventListener === 'functio
 // ── 失败 outbox 的重试接线（Task 3）──────────────────────────────
 // `retryOutbox()`（pending-writes）调用这里注册的钩子：重新 flush **仍脏** 的集合。
 // `online` 事件只做自动重试一次——成功则条目被 clearOutbox 清掉，失败则保留（不冒充成功）。
-registerOutboxRetry(async () => {
-  if (DATA_SOURCE !== 'api') throw new Error('当前为浏览模式，无法同步到服务器');
-  await flushSnapshot();
-});
+// Wave 3（2026-11-02 批次 527）：重试钩子的实现置**文件末尾**（带 payload 的条目直接重发），
+// 以保持 `data-adapter.js:1362/1381/1425/1499` 等 README-server.md 取证行号不漂移。
 if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
   window.addEventListener('online', () => {
     if (!listOutbox().filter((e) => e && e.kind !== 'local-only').length) return;
@@ -1040,11 +1040,11 @@ async function _recoverFromConflict(e) {
     console.warn('[DataAdapter] 409 冲突但未给出冲突集合清单，无法定向刷新');
     return;
   }
-  const { mockDB } = await import('../core/domain/domain.js?v=20261031a');
+  const { mockDB } = await import('../core/domain/domain.js?v=20261102b');
   await _refreshCollections(names, mockDB);
   // 业务语言提示（既有告警通道 + 支书要求的可读文案）
   try {
-    const { showToast } = await import('../core/base/utils.js?v=20261031a');
+    const { showToast } = await import('../core/base/utils.js?v=20261102b');
     showToast('info', '数据已被他人更新，已为你刷新');
   } catch (err) {
     console.warn('[DataAdapter] 冲突提示渲染失败：', err);
@@ -1066,11 +1066,11 @@ async function _recoverFromMissingVersions(e) {
   }
   const covered = names.filter((n) => SNAPSHOT_COVERED_COLLECTIONS.includes(n));
   if (covered.length) {
-    const { mockDB } = await import('../core/domain/domain.js?v=20261031a');
+    const { mockDB } = await import('../core/domain/domain.js?v=20261102b');
     await _refreshCollections(covered, mockDB);
   }
   try {
-    const { showToast } = await import('../core/base/utils.js?v=20261031a');
+    const { showToast } = await import('../core/base/utils.js?v=20261102b');
     showToast('error', '页面版本过旧：本次改动未同步，已重拉最新数据，请刷新后重试');
   } catch (err) {
     console.warn('[DataAdapter] 缺版本提示渲染失败：', err);
@@ -1251,12 +1251,12 @@ export async function hydrateDataSource({ apiAdapter, loadMock } = {}) {
 
 // 部署形态常量（`getRuntimeMode().stage` 的取值来源）：server=同源后端（Node 动态注入）/ static=静态托管。
 // ⚠ 同本文件既有纪律：**置尾**以保上文行号（README-server.md 的 `文件:行号` 取证引用）；import 声明被提升，置尾不影响语义。
-import { DEPLOY_MODE, DEMO_READONLY } from '../config/deploy.js?v=20261031a';
+import { DEPLOY_MODE, DEMO_READONLY } from '../config/deploy.js?v=20261102b';
 // `SEED_FALLBACK`（空域 seed 回退开关）**用命名空间导入**：Node 托管形态下 `/src/config/deploy.js`
 //   由 `server/app.js` 注入，**已带上该常量**（值由 env `SEED_FALLBACK=0` 决定，缺省 `true`）。仍保持
 //   命名空间导入（不用命名导入）：托管形态不止一种，命名导入遇上缺导出的宿主会 **SyntaxError**
 //   ⇒ 取不到即按**默认 `true`**（＝既有行为）。完整语义见 `config/deploy.js` 与本文件 `_deployConfig`。
-import * as _deployConfig from '../config/deploy.js?v=20261031a';
+import * as _deployConfig from '../config/deploy.js?v=20261102b';
 const SEED_FALLBACK = _deployConfig.SEED_FALLBACK !== undefined ? _deployConfig.SEED_FALLBACK : true;
 
 // ════════════════════════════════════════════════════════════════
@@ -1626,7 +1626,7 @@ export function demoReadOnlyMessage() {
 export async function refreshRemoteCollections(names, opts = {}) {
   if (DATA_SOURCE !== 'api') throw new Error('[DataAdapter] refreshRemoteCollections 仅用于 API 数据源');
   const uniqueNames = [...new Set((Array.isArray(names) ? names : []).filter((name) => typeof name === 'string'))];
-  const { mockDB } = await import('../core/domain/domain.js?v=20261031a');
+  const { mockDB } = await import('../core/domain/domain.js?v=20261102b');
   return _refreshCollections(uniqueNames, mockDB, opts);
 }
 
@@ -1724,4 +1724,17 @@ import {
   SNAPSHOT_COVERED_COLLECTIONS,
   SEMANTIC_SYNC_COLLECTIONS,
   LOCAL_ONLY_COLLECTIONS,
-} from './cache-registry.js?v=20261031a';
+} from './cache-registry.js?v=20261102b';
+
+// Wave 3（2026-11-02 批次 527）：失败 outbox 的重试钩子（置尾以保上文取证行号）。
+// 带 payload 的条目直接重发；旧条目（无 payload）仍走 flushSnapshot。
+registerOutboxRetry(async (entries = []) => {
+  if (DATA_SOURCE !== 'api') throw new Error('当前为浏览模式，无法同步到服务器');
+  for (const entry of Array.isArray(entries) ? entries : []) {
+    const rows = entry && entry.payload && entry.payload.rows;
+    if (!rows || typeof rows !== 'object' || !Object.keys(rows).length) continue;
+    await getAdapter().snapshot({ ...rows, _versions: (entry.payload && entry.payload._versions) || {} });
+    clearOutbox(entry.collections);
+  }
+  await flushSnapshot();
+});

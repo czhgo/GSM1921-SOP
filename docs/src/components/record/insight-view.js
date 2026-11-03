@@ -21,7 +21,10 @@
 //   `opts.embedded` 供「工作概况」页内卡复用（不重复页头 H2）。
 
 // 分段当前值（'workgroup' | 'taskforce'）；模块级记忆，同台内切换后保留（参照既有 tab 的 _view 模式）
-import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261031a';
+import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261102b';
+// 批次 524（D）：只读由权限派生；知情查看的 kind 不在写角色表 ⇒ 恒只读，将来可写只改 registry 一处
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { readonlyMeta } from '../../core/domain/view-capability.js?v=20261102b';
 
 let _view = null;
 // 已消费的深链定位目标：同一目标只强制分段一次，之后不覆盖用户手动的分段选择
@@ -86,6 +89,7 @@ export function renderInsightView(container, opts = {}) {
   // 另：分段钮集合与 ALLOWED 不一致时（如深链并入后）也要重建，否则切不回去。
   const _segBtns = [...container.querySelectorAll('.insight-view-btn')];
   const _segSame = _segBtns.length === ALLOWED.length && _segBtns.every((b) => ALLOWED.includes(b.dataset.iview));
+  const user = AuthStore.getCurrentUser() || null;
   if (!container.querySelector('#insight-seg-body') || !_segSame) {
     // 2026-10-25 Task 4（同屏纵向一致）：分段钮只保留 `.btn-tab`（32px / 13px，选中 `.active`）；
     //   独立区卡头与其它分区头同走 renderCardHeader；说明一律后置到内容之后。
@@ -95,8 +99,8 @@ export function renderInsightView(container, opts = {}) {
         ${ALLOWED.map((v) => `<button type="button" class="btn-tab insight-view-btn" data-iview="${v}">${SEG_LABEL[v]}</button>`).join('')}
       </div>
       <div id="insight-seg-body"></div>
-      ${opts.groupSection ? `<div class="card rounded-xl p-4 mt-4" id="insight-group-section">
-        ${renderCardHeader({ title: '其他党小组 · 只读' })}
+      ${opts.groupSection ? `<div class="mt-4 pt-4 border-t border-[var(--color-border-subtle)]" id="insight-group-section">
+        ${renderCardHeader({ title: '其他党小组', meta: readonlyMeta('insight', user) })}
         <div id="insight-group-body"></div>
       </div>` : ''}
       <p class="text-xs text-gray-500 mt-3">${opts.embedded ? '活动工作组在活动详情可办事。' : '本页只读；活动工作组在活动详情可办事。'}</p>`;
@@ -118,15 +122,18 @@ export function renderInsightView(container, opts = {}) {
 
   let done;
   if (view === 'taskforce') {
-    done = import('./taskforce-view.js?v=20261031a').then(m => m.renderTaskforceView(body, {
+    done = import('./taskforce-view.js?v=20261102b').then(m => m.renderTaskforceView(body, {
       highlightId: opts.highlightTfId || null,
       taskforces: opts.taskforces,
+      // 批次 524（C/#3 #8）：外层卡与卡头由本组件（及调用方的 card）持有，内层不再套卡
+      embedded: true,
       onLocated: opts.onLocated,
     }));
   } else {
-    done = import('./workgroup-view.js?v=20261031a').then(m => m.renderWorkgroupView(body, {
+    done = import('./workgroup-view.js?v=20261102b').then(m => m.renderWorkgroupView(body, {
       highlightWorkgroupId: opts.highlightWorkgroupId || null,
       highlightActId: opts.highlightActId || null,
+      embedded: true,
       onLocated: opts.onLocated,
     }));
   }
@@ -137,7 +144,7 @@ export function renderInsightView(container, opts = {}) {
     const groupBody = document.createElement('div');
     groupBody.id = 'insight-group-body';
     container.querySelector('#insight-group-body')?.replaceWith(groupBody);
-    groupDone = import('./other-groups-view.js?v=20261031a')
+    groupDone = import('./other-groups-view.js?v=20261102b')
       .then(m => m.renderOtherGroupsView(groupBody));
   }
   return Promise.all([done, groupDone]);

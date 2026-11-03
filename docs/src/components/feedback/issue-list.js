@@ -1,17 +1,17 @@
 // role: [工程师]+[AI]
 // issue-list.js — 反馈列表渲染
 
-import { IssueStore } from '../../services/governance/issues.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { icon } from '../../core/base/icons.js?v=20261031a';
-import { getPersonName } from '../../services/member/person.js?v=20261031a';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261031a';
-import { badgeHtml } from '../ui/badges.js?v=20261031a';
+import { IssueStore } from '../../services/governance/issues.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { icon } from '../../core/base/icons.js?v=20261102b';
+import { getPersonName } from '../../services/member/person.js?v=20261102b';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261102b';
+import { badgeHtml } from '../ui/badges.js?v=20261102b';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../ui/pager.js?v=20261031a';
+import { pagerHtml } from '../ui/pager.js?v=20261102b';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
-const SCOPE_LABELS = {
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
+export const SCOPE_LABELS = {
   permanent: '底层架构',
   global: '全局通用',
   role: '权责调整',
@@ -81,6 +81,7 @@ export function renderIssueList() {
       </div>
 
       <!-- 筛选行（P3 四段：范围 → 检索 → 分面 → 重置；载体 styles.css::.lf-bar/.lf-bar__row；
+           批次 525 · #2 定版两行：第 1 行＝范围＋搜索，第 2 行＝分面＋清除；
            分面一律下拉，禁 chip；控件统一单档 40px / 13px 字） -->
       <div class="lf-bar mb-3">
         <div class="lf-bar__row" data-seg="scope">
@@ -92,7 +93,7 @@ export function renderIssueList() {
         <div class="lf-bar__row" data-seg="search">
           <input type="text" id="filter-keyword" placeholder="搜索标题/正文..." value="${_filterState.keyword}" class="input-flat text-xs lf-kw">
         </div>
-        <div class="lf-bar__row" data-seg="facet">
+        <div class="lf-bar__row" data-seg="facet" data-break-before="1">
           <select id="filter-status" class="input-flat text-xs lf-select" aria-label="状态筛选">
             <option value="all" ${_filterState.status === 'all' ? 'selected' : ''}>状态：全部 (${counts.total})</option>
             <option value="open" ${_filterState.status === 'open' ? 'selected' : ''}>开放中 (${counts.open})</option>

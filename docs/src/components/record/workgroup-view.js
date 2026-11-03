@@ -13,18 +13,20 @@
 //   · 只读：**不渲染任何写入口**（无增删成员 / 授权 / 编辑控件），办事一律回活动详情；
 //   · 行结构＝`components/ui/list-row.js::listRowHtml`（nav 行，整行可点）；检索 / 翻页＝`ui/list-filter.js`；
 //     空态＝`ui/empty-state.js`（一句话 + 一个下一步）；状态＝`.state-badge` 既有族。
-import { mockDB } from '../../core/domain/domain.js?v=20261031a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261031a';
-import { getPersonName } from '../../services/member/person.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261031a';
-import { listRowHtml } from '../ui/list-row.js?v=20261031a';
-import { renderFilteredList } from '../ui/list-filter.js?v=20261031a';
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
-import { renderCardHeader } from '../shell/page-frame.js?v=20261031a';
-import { flashHighlight, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261031a';
+import { mockDB } from '../../core/domain/domain.js?v=20261102b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261102b';
+import { getPersonName } from '../../services/member/person.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261102b';
+import { listRowHtml } from '../ui/list-row.js?v=20261102b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261102b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
+import { renderCardHeader } from '../shell/page-frame.js?v=20261102b';
+import { flashHighlight, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261102b';
+// 批次 524（D）：只读由权限派生，不再写死「· 只读」字符串
+import { readonlyMeta } from '../../core/domain/view-capability.js?v=20261102b';
 // Task 6：工作组行 → 所属活动完整详情页（direct）；缺 id 时不给 href。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261031a';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261102b';
 
 // 工作组状态 → 文案 / 色调（活动工作组只会出现 active / archived，其余键沿用统一状态词）
 const STATUS_META = {
@@ -123,11 +125,13 @@ function _rowHtml(row) {
  * @param {Object} [opts]
  * @param {string} [opts.highlightWorkgroupId] — 深链工作组 id（定位 + 高亮）
  * @param {string} [opts.highlightActId] — 旧深链活动 id（映射到所属活动的工作组）
+ * @param {boolean} [opts.embedded] — 嵌入形态（批次 524 · C：不再套内层卡与卡头，只出行 / 空态）
  * @param {Function} [opts.onLocated] — 定位完成后回调
  */
 export function renderWorkgroupView(container, opts = {}) {
   if (!container) return;
-  const me = AuthStore.getCurrentUser() || {};
+  const user = AuthStore.getCurrentUser() || null;
+  const me = user || {};
   const branchId = me.branchId || getBranchIdOfPerson(me.personId);
   const allRows = _loadActivityWorkgroups(branchId);
   const target = _resolveTarget(allRows, opts);
@@ -135,9 +139,16 @@ export function renderWorkgroupView(container, opts = {}) {
   // 深链目标置顶（否则分页后定位目标可能不在当前页）
   const rows = target ? [target, ...allRows.filter((r) => r.id !== target.id)] : allRows;
 
-  container.innerHTML = `
+  // 批次 524（C/#3 #8）：嵌入形态由调用方（知情查看卡）持有外层卡与卡头 ⇒ 此处不再套第二层卡；
+  //   独立形态仍保留卡 + 卡头，权限约束由角色现算（可写不显示、不可写才显示「只读」）。
+  const scopeMeta = ['本支部', readonlyMeta('workgroup', user)].filter(Boolean).join(' · ');
+  const embeddedHtml = `${locateFailed
+    ? '<p class="mt-2 text-xs text-amber-700" role="status">未找到对应的活动工作组（可能已归档或不属于本支部）。</p>'
+    : ''}
+      <div id="wgv-list" class="mt-3"></div>`;
+  container.innerHTML = opts.embedded === true ? embeddedHtml : `
     <div class="card rounded-xl p-5">
-      ${renderCardHeader({ title: '活动工作组', meta: '本支部 · 只读' })}
+      ${renderCardHeader({ title: '活动工作组', meta: scopeMeta })}
       ${locateFailed
         ? '<p class="mt-2 text-xs text-amber-700" role="status">未找到对应的活动工作组（可能已归档或不属于本支部）。</p>'
         : ''}
@@ -156,7 +167,8 @@ export function renderWorkgroupView(container, opts = {}) {
   renderFilteredList(listEl, {
     stateKey: 'insight-workgroup-list',
     rows,
-    keyword: { keys: ['name'], placeholder: '搜索工作组名称…' },
+    // 原生自动补全（批次 524 · #9）：建议项 = 当前工作组名（去重在引擎内做）
+    keyword: { keys: ['name'], placeholder: '搜索工作组名称…', suggestions: rows.map((r) => r.name) },
     facets: [],
     countUnit: '个',
     // 深链目标在场时不分页，保证定位可落；日常浏览按引擎缺省 10 条分页

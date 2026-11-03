@@ -15,7 +15,7 @@
 //
 //  ⚠ 组织关系（谁是组织者 / 谁是组长）**不在此处 import 数据层**：由调用方以参数注入解析回调，
 //    本文件只留纯判据；前端 `_visibleIssues` 与服务端 GET /issues 各自提供同口径回调。
-import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES } from './constants.js?v=20261031a';
+import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES } from './constants.js?v=20261102b';
 
 /** 汇报所挂工作组 id：显式父键优先，其次按 sourceType/sourceId 还原稳定工作组 id */
 function _workgroupIdOf(row) {

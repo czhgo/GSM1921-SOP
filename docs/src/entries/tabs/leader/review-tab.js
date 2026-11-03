@@ -6,22 +6,22 @@
 //   本区块并入「组员进展」页（leader/members-tab.js 挂载）——模块改为可嵌入区块导出：
 //   reviewStatusSectionHtml(ctx) → 整卡 HTML 字符串；bindReviewStatusSection(container, rerender) → 绑定展开。
 
-import { loadActivities } from '../../../services/activity/activity.js?v=20261031a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261102b';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：组长台为非支委层 ⇒ 待批活动不进本页复盘桶
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261031a';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20261031a';
-import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261031a';
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261031a';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261102b';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20261102b';
+import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261102b';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261102b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { currentLeaderGroup } from './_shared.js?v=20261031a';
+import { currentLeaderGroup } from './_shared.js?v=20261102b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261031a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261102b';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 status!=='cancelled' && !archived
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261031a';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261102b';
 // Task 6：复盘收件是跨对象列表 ⇒ 活动行直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261031a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261102b';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;
@@ -127,16 +127,10 @@ function renderCompletedCard(item) {
  *  mock 种子中组长组织活动均带 assignments organizer 赋权行（如 act-4/9/16/17/21/23/26/29），
  *  故其活动会出现在该组长「我的复盘」；运行时新建活动如缺 organizer 赋权行则需赋权补齐后才会出现。
  */
-export function reviewStatusSectionHtml(ctx) {
+export function reviewStatusSectionHtml(ctx, opts = {}) {
   const { pending, completed } = _reviewBuckets();
-
-  return `
-    <div class="card rounded-xl p-4">
-      <div class="flex items-center justify-between mb-3">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">本组活动复盘状态</h4>
-        <span class="text-xs text-gray-500">待复盘 ${pending.length} · 已复盘 ${completed.length}</span>
-      </div>
-      <p class="help-note mb-3 -mt-1.5"><a href="./help.html#card-copy-review-submit" class="help-note__link">见帮助 · 活动复盘</a></p>
+  const body = `
+      <p class="help-note mb-3"><a href="./help.html#card-copy-review-submit" class="help-note__link">见帮助 · 活动复盘</a></p>
 
       <!-- 待复盘 -->
       <div class="mb-3">
@@ -148,9 +142,26 @@ export function reviewStatusSectionHtml(ctx) {
       <div class="pt-2.5 border-t border-gray-100">
         <div class="text-xs font-bold text-gray-600 mb-1.5">已复盘 <span class="text-gray-500 font-normal">(${completed.length})</span></div>
         <div id="leader-review-completed"></div>
+      </div>`;
+
+  // 2026-11-01 Task 7：宿主页改为折叠区 ⇒ bare 模式只给正文，避免「卡中卡」。
+  if (opts.bare) return body;
+
+  return `
+    <div class="card rounded-xl p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="font-title-cn text-sm font-bold text-gray-700">本组活动复盘状态</h4>
+        <span class="text-xs text-gray-500">待复盘 ${pending.length} · 已复盘 ${completed.length}</span>
       </div>
+      ${body}
     </div>
   `;
+}
+
+/** 复盘分桶计数（供宿主页折叠头显示，不重复进列表） */
+export function reviewStatusCounts() {
+  const { pending, completed } = _reviewBuckets();
+  return { pending: pending.length, completed: completed.length };
 }
 
 /** 绑定已复盘卡片展开/收起（只读；待复盘行无交互）。rerender = 宿主页整页重渲染回调（展开态模块级保持） */
@@ -190,7 +201,13 @@ export function bindReviewStatusSection(container, rerender) {
     completedHost.addEventListener('toggle', (e) => {
       const item = e.target;
       if (!item?.matches?.('details.leader-review-item')) return;
-      _reviewExpandedId = item.open ? item.dataset.actId : (_reviewExpandedId === item.dataset.actId ? null : _reviewExpandedId);
+      const id = item.dataset.actId;
+      // 2026-11-01 Task 7：`renderCompletedCard` 用 open 属性回填展开态；Chromium 对**插入即 open**
+      // 的 details 也会派发一次 toggle（事件不冒泡，但被本宿主捕获）⇒ 若照旧 rerender 会无限重渲染。
+      // 判据：open 与模块态一致 = 由渲染回填而来，直接跳过。
+      const wasOpen = _reviewExpandedId === id;
+      if (item.open === wasOpen) return;
+      _reviewExpandedId = item.open ? id : null;
       if (typeof rerender === 'function') rerender();
     }, true);
   }

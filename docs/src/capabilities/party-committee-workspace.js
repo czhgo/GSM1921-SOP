@@ -4,9 +4,9 @@
 // 党委（party-staff）为组织级角色——监控全院各支部、管理支部实例（不参与任一支部内部闭环）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md
 
-import { registerCapability } from '../core/boot/registry.js?v=20261031a';
-import { rolesForPage } from '../core/domain/constants.js?v=20261031a';
-import { loadTabModule } from '../core/boot/tab-loader.js?v=20261031a';
+import { registerCapability } from '../core/boot/registry.js?v=20261102b';
+import { rolesForPage } from '../core/domain/constants.js?v=20261102b';
+import { loadTabModule } from '../core/boot/tab-loader.js?v=20261102b';
 
 registerCapability({
   id: 'party-committee-workspace',
@@ -23,13 +23,13 @@ registerCapability({
     //   旧 `?tab=monitor` / `?tab=governance-overview` 由 workspace-shell 的 `_legacyTabAliases` 承接。
     // 三个页签属于同一治理区；统一分组，避免导航中“首页 / 全院治理”重复插标。
     // 下发通知为党委高频动作（2026-10-18 工作台提质）：置首。
-    { id: 'dispatch', label: '下发通知', groupLabel: '党委治理', render: (ctx) => loadTabModule('../entries/tabs/party-committee/dispatch-tab.js?v=20261031a').then(m => m.renderContent(ctx)) },
+    { id: 'dispatch', label: '下发通知', groupLabel: '党委治理', render: (ctx) => loadTabModule('../entries/tabs/party-committee/dispatch-tab.js?v=20261102b').then(m => m.renderContent(ctx)) },
     // P3 党委后台（2026-09-02）：支部上报接收与批复（发展节点/活动报备逐项批驳，结论回传支部）
     // D8 裁决批二（2026-09-08）：上报审批为党委高频待批复队列 → 前移至支部管理之前（表 C 党委台调序裁定）
     // **2026-10-04 批次 374（支书 `#10` 单一轴 · 支书圈丙）**：页签名「上报审批」→「**支部上报**」——
     //   党委侧**不上报、只接收 + 回复支部** ⇒ 名按对象（**支部上报事项台账**）、批/驳为页内动作。
-    { id: 'review', label: '支部上报', groupLabel: '党委治理', render: (ctx) => loadTabModule('../entries/tabs/party-committee/review-tab.js?v=20261031a').then(m => m.renderContent(ctx)) },
-    { id: 'branches', label: '支部管理', groupLabel: '党委治理', render: (ctx) => loadTabModule('../entries/tabs/party-committee/branches-tab.js?v=20261031a').then(m => m.renderContent(ctx)) },
+    { id: 'review', label: '支部上报', groupLabel: '党委治理', render: (ctx) => loadTabModule('../entries/tabs/party-committee/review-tab.js?v=20261102b').then(m => m.renderContent(ctx)) },
+    { id: 'branches', label: '支部管理', groupLabel: '党委治理', render: (ctx) => loadTabModule('../entries/tabs/party-committee/branches-tab.js?v=20261102b').then(m => m.renderContent(ctx)) },
     // D-824（2026-10-16）：党委不参与支部匿名反馈闭环；旧反馈核查入口已移除。
     // 支部能力配置通过“支部设置”独立页与可选的 wizard 模式承载，不另占党委治理页签。
   ],

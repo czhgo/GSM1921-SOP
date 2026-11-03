@@ -2,11 +2,11 @@
 
 ## 读什么（最多 3 条）
 1. `content/04_web_design/README.md`（五子目录分职与权威源速查）。
-2. `design-system/DESIGN_SYSTEM.md`（父索引：哲学 ＋ 编目；条文在 `DS_01`…`DS_05`，§12 组件层执行口径在 `DS_03`）。
+2. `design-system/DESIGN_SYSTEM.md`（父索引：哲学 ＋ 编目；条文在 `DS_01`…`DS_06`，§12 组件层执行口径在 `DS_03`）。
 3. `design-system/CASES.md`（判例：为什么这样定、边界在哪）。
 
 ## 改什么
-- 规范条文（必须 / 不得 / SD 编号）→ 只进 `design-system/DS_01`…`DS_05` 对应编（父索引 `DESIGN_SYSTEM.md` 只放哲学与编目）。
+- 规范条文（必须 / 不得 / SD 编号）→ 只进 `design-system/DS_01`…`DS_06` 对应编（父索引 `DESIGN_SYSTEM.md` 只放哲学与编目）。
 - 判例（场景 → 结论 → 边界 → SD 编号）→ `design-system/CASES.md`。
 - 数据模型 / 数据流 → `data/DATA_MODEL.md`。
 - 部署与对外对接 → `deploy/DEPLOYMENT_GUIDE.md`。

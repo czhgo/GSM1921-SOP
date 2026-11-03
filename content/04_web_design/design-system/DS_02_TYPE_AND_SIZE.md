@@ -2,7 +2,7 @@
 title: "设计系统 · 第二编 排版与尺寸"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-31
+last_updated: 2026-11-01
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.css, ../../../server/test/type-scale-guard.test.mjs, ../../../server/test/spacing-scale-guard.test.mjs]
 ---
@@ -156,6 +156,12 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.
 
 **档位表（新代码只许用这些值）**：`11 / 12 / 13 / 14 / 15 / 16 / 18 / 20 / 22 / 24`（px）。
 表外值一律按 `(文件, 值)` 进基线、**只减不增**；新增表外值由 `type-scale-guard::Q1` 判红。
+
+**折叠头标题的字级（2026-11-01 批次 523 立 · 只取 16px 档）**：分区折叠头的标题
+（`.disclosure__title`）固定 **16px / 字重 600 / 行高 24px / 字族 `--font-display`**——即本表 `16px` 档，
+调用点不得再用 `text-sm`（14px）或 `.font-title-cn` 各自覆盖；`<summary class="disclosure__summary">`
+只作**整行热区**（≥44 高、覆盖整行），**不承载标题文字与字级**（行内披露条不受此限）。
+守卫：`type-scale-guard::Q1` ＋ `card-summary-hero-guard::G2`。
 
 **两套 `sm` 的处置（本节要回答的核心歧义）**：
 

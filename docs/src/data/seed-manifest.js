@@ -509,6 +509,63 @@ export const SEED_MANIFEST = [
     ],
     runtimeFields: ['permissionKeys', 'status'],
   },
+
+  // ── 2026-11-02 批次 527（数据契约 Wave 2）：契约有、种子无的 4 张表 ──
+  {
+    collection: 'imageRecords',
+    table: 'image_records',
+    seedModule: 'docs/src/data/mock/auxiliary.js',
+    seedExport: 'SEED_IMAGE_RECORDS',
+    idPattern: '^img-seed-\\d+$',
+    lifecycleClass: 'business',
+    initTier: 'clear',
+    seedOwnedFields: [
+      'id', 'date', 'title', 'subject', 'activityId', 'fileName', 'base64', 'uploadedBy', 'uploadedAt',
+    ],
+    runtimeFields: ['filePath', 'voided', 'voidPending'],
+  },
+  {
+    collection: 'memberChangeRequests',
+    table: 'member_change_requests',
+    seedModule: 'docs/src/data/mock/auxiliary.js',
+    seedExport: 'SEED_MEMBER_CHANGE_REQUESTS',
+    idPattern: '^mcr-seed-[a-z]+$',
+    lifecycleClass: 'business',
+    initTier: 'clear',
+    seedOwnedFields: [
+      'id', 'branchId', 'personId', 'activityId', 'agendaItemId', 'fromStage', 'toStage', 'action',
+      'status', 'meetingResult', 'createdBy', 'createdAt',
+    ],
+    runtimeFields: ['approvedBy', 'approvedAt', 'confirmedBy', 'confirmedAt', 'decidedBy', 'decidedAt',
+      'cancelledAt', 'transferredOutAt', 'rejectNote'],
+  },
+  {
+    collection: 'workgroupTasks',
+    table: 'workgroup_tasks',
+    seedModule: 'docs/src/data/mock/auxiliary.js',
+    seedExport: 'SEED_WORKGROUP_TASKS',
+    idPattern: '^wgt-seed-.+$',
+    lifecycleClass: 'business',
+    initTier: 'clear',
+    seedOwnedFields: [
+      'id', 'branchId', 'workgroupId', 'title', 'status', 'createdBy', 'createdAt',
+    ],
+    runtimeFields: ['activityId', 'capabilityPackageId', 'isPurpose', 'assigneeId', 'dueDate', 'migratedFrom'],
+  },
+  {
+    collection: 'workgroupOutputs',
+    table: 'workgroup_outputs',
+    seedModule: 'docs/src/data/mock/auxiliary.js',
+    seedExport: 'SEED_WORKGROUP_OUTPUTS',
+    idPattern: '^wgo-seed-.+$',
+    lifecycleClass: 'business',
+    initTier: 'clear',
+    seedOwnedFields: [
+      'id', 'branchId', 'workgroupId', 'taskId', 'activityId', 'capabilityPackageId', 'title',
+      'description', 'personId', 'kind', 'contributionId', 'submittedBy', 'submittedAt', 'status',
+    ],
+    runtimeFields: ['acceptedBy', 'acceptedAt', 'archivedAt'],
+  },
 ];
 
 /** 按 table 索引（只读；server / mock 共用同一份清单） */
@@ -535,12 +592,8 @@ export const NON_SEED_COLLECTIONS = Object.freeze([
   { collection: 'tfSubRecords', table: 'tf_sub_records', dataClass: 'runtime' },
   { collection: 'fileSpaceRecords', table: 'file_space_records', dataClass: 'runtime' },
   { collection: 'experienceDeposits', table: 'experience_deposits', dataClass: 'runtime' },
-  { collection: 'workgroupTasks', table: 'workgroup_tasks', dataClass: 'runtime' },
-  { collection: 'workgroupOutputs', table: 'workgroup_outputs', dataClass: 'runtime' },
   { collection: 'attendanceRosters', table: 'attendance_rosters', dataClass: 'runtime' },
-  { collection: 'imageRecords', table: 'image_records', dataClass: 'runtime' },
   { collection: 'branchDocs', table: 'branch_docs', dataClass: 'runtime' },
-  { collection: 'memberChangeRequests', table: 'member_change_requests', dataClass: 'runtime' },
   { collection: 'committeeBroadcasts', table: 'committee_broadcasts', dataClass: 'runtime' },
   { collection: 'agendaVotes', table: 'agenda_votes', dataClass: 'runtime' },
   { collection: 'memberFlows', table: 'member_flows', dataClass: 'runtime' },
@@ -552,8 +605,7 @@ export const NON_SEED_COLLECTIONS = Object.freeze([
 /** 无种子源的物理表（含内部表）；与 NON_SEED_COLLECTIONS 共同覆盖 db.js 的全部建表。 */
 export const NON_SEED_TABLES = Object.freeze([
   'act_sub_records', 'tf_sub_records', 'file_space_records', 'experience_deposits',
-  'workgroup_tasks', 'workgroup_outputs', 'attendance_rosters', 'image_records',
-  'branch_docs', 'member_change_requests', 'committee_broadcasts', 'agenda_votes',
+  'attendance_rosters', 'branch_docs', 'committee_broadcasts', 'agenda_votes',
   'member_flows', 'issue_reveals',
   'sessions', 'attachments', 'collection_versions', 'seed_meta',
 ]);

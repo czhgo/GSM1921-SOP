@@ -1,22 +1,22 @@
 // Party committee branch directory: create and select; maintenance is in branch-config.html.
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261031a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261102b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）；
 // 每次渲染现读（members 覆盖层即时吃到），不缓存在模块顶层
-import { PersonStore } from '../../../services/member/person.js?v=20261031a';
-import { createBranch } from '../../../services/branch/branch.js?v=20261031a';
-import { getRosterStats } from '../../../services/member/roster.js?v=20261031a';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261031a';
-import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261031a';
-import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
-import { DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261031a';
-import { getAdapter, getDataSource } from '../../../data/data-adapter.js?v=20261031a';
+import { PersonStore } from '../../../services/member/person.js?v=20261102b';
+import { createBranch } from '../../../services/branch/branch.js?v=20261102b';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261102b';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261102b';
+import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261102b';
+import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261102b';
+import { DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261102b';
+import { getAdapter, getDataSource } from '../../../data/data-adapter.js?v=20261102b';
 // A05（2026-10-20 IA 修复批次）：「支部动态」撤页后，其「待批复数量列 + 支部筛选」并入本页。
 //   数据与筛选件一律复用既有单一源（review-request 服务 + branch-filter 共用件），不另写一份。
-import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261031a';
-import { renderBranchFilter, getBranchFilter } from '../../../components/governance/branch-filter.js?v=20261031a';
+import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261102b';
+import { renderBranchFilter, getBranchFilter } from '../../../components/governance/branch-filter.js?v=20261102b';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261102b';
 const BRANCH_FILTER_STATE = 'pc-branches';
 
 const rosterLoadAttempts = new Set();
@@ -128,13 +128,13 @@ export async function renderContent() {
         level: 3,
       })}
       <div id="pc-branches-branch-filter" class="mb-4 mt-4"></div>
-      <section id="branch-form-wrap" class="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4" aria-label="新建支部" hidden>
+      <div id="branch-form-wrap" role="group" class="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4" aria-label="新建支部" hidden>
         <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
           <div><label class="mb-1 block text-xs text-gray-600" for="branch-name-input">支部名称</label><input id="branch-name-input" type="text" class="input-flat w-full" placeholder="支部全称" /></div>
           <div><label class="mb-1 block text-xs text-gray-600" for="branch-type-input">类型（可选）</label><input id="branch-type-input" type="text" class="input-flat w-full" placeholder="如本科生、硕士生" /></div>
         </div>
         <div class="mt-3 flex justify-end gap-2"><button id="branch-form-cancel" type="button" class="btn-outline px-3 py-2 text-sm">取消</button><button id="branch-form-submit" type="button" class="btn-accent px-3 py-2 text-sm font-medium">创建支部</button></div>
-      </section>
+      </div>
       ${branches.length ? `<div class="pc-table-scroll pc-table-scroll--branches mt-4"><table class="data-table data-table--compare" data-responsive="cards">
         <caption class="visually-hidden">支部目录：按支部比较运行状态、在册人数和维护入口</caption>
         <thead><tr><th scope="col">支部</th><th scope="col">状态</th><th scope="col">成员</th><th scope="col">在册党员</th><th scope="col">活动</th><th scope="col">专班</th><th scope="col">通知</th><th scope="col">待批复</th><th scope="col">组织提醒</th><th scope="col">操作</th></tr></thead><tbody>

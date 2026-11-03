@@ -6,27 +6,27 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261031a';
-import { persist, getDataSource } from '../../data/data-adapter.js?v=20261031a';
-import { generateId } from '../../core/base/id.js?v=20261031a';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261031a';
+import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261102b';
+import { persist, getDataSource } from '../../data/data-adapter.js?v=20261102b';
+import { generateId } from '../../core/base/id.js?v=20261102b';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261102b';
 // 待批活动状态值单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：待批活动**不是**「待参与」的活动
 // ——它还没获批（与 `draft` 同待遇），不为它派生「参与活动」待办（也免得从待办标题把没批的活动漏出去）。
-import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261031a';
-import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261031a';
-import { DEFAULT_BRANCH_ID, isActivityEnded } from '../../core/domain/constants.js?v=20261031a';
-import { AuthStore } from '../core/auth.js?v=20261031a';
+import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261102b';
+import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261102b';
+import { DEFAULT_BRANCH_ID, isActivityEnded } from '../../core/domain/constants.js?v=20261102b';
+import { AuthStore } from '../core/auth.js?v=20261102b';
 // 周期键（月/季/半年/年）与「模块周期」单一源（2026-10-06 批次 423 · `R-29⑤` · `D-804`）——
 //   周期任务的**来源**＝`work-map.js::WORK_MAP_MODULES[].cycle`（不另立第二份映射，`D-803②`）。
-import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261031a';
-import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261031a';
+import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261102b';
+import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261102b';
 // R10-B03：种子待办截止 = 活动日 + 制度复盘/归档时限（单一源），不存死日期字面量。
-import { ACTIVITIES } from '../../data/mock/activities.js?v=20261031a';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261031a';
+import { ACTIVITIES } from '../../data/mock/activities.js?v=20261102b';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261102b';
 // 「待归档」是否可生成 = 活动关闭条件是否已齐（单一源 `services/activity/close-conditions.js`）。
 // 2026-10-25 批次 510：hydrate 原按「活动已结束」逐条生成，实测 34 条（多数产出未齐、归档面并不需要）；
 // 改为 canClose 才生成。该函数只在服务层此处消费，不复制分类型判据（避免第二套关闭标准）。
-import { checkActivityCloseConditions } from '../activity/close-conditions.js?v=20261031a';
+import { checkActivityCloseConditions } from '../activity/close-conditions.js?v=20261102b';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -1730,6 +1730,45 @@ export const SEED_TODOS = [
   // R2-33（2026-10-20）：删除「设置第三党小组组长」种子——p4 已是第三党小组组长（people.js role:'leader'），
   //   这条待办点「去赋权」只会看到「已设置」，且每次 seed 补齐都会把它加回来 ⇒ 永远无法正确销项的假待办。
   //   不另造「第四组待任命」：本支部只有三个党小组（party-groups.js），伪造第四组同样是假数据。
+  // 2026-11-02 批次 527（数据契约 Wave 2）：原种子只有 pending 一种状态 ⇒ 「进行中 / 已过期」无样本。
+  //   补两条真实业务待办（进行中＝组织委员在办；已过期＝支书漏办后进入逾期口径），
+  //   状态枚举来自 TodoStatus 单一源；deadline / createdAt 均落在演示窗口（2026-08~11）。
+  {
+    id: 'todo_seed_8',
+    branchId: DEFAULT_BRANCH_ID,
+    title: '整理 10 月党小组会考勤',
+    description: '汇总 10 月各党小组会考勤并提交纪检委员确认。',
+    role: 'org-commissioner',
+    category: TodoCategory.SUBMIT,
+    priority: 'normal',
+    status: TodoStatus.IN_PROGRESS,
+    deadline: '2026-11-15',
+    createdAt: '2026-10-20T08:00:00',
+    sourceType: TodoSourceType.ACTIVITY,
+    sourceId: 'act-17',
+    actionKey: 'attendance-upload',
+    actionType: TodoActionType.SUBMIT,
+    actionData: { activityId: 'act-17' },
+    flow: '考勤汇总 → 纪检确认 → 考勤总表',
+  },
+  {
+    id: 'todo_seed_9',
+    branchId: DEFAULT_BRANCH_ID,
+    title: '审核 9 月支部党员大会考察记录',
+    description: '9 月支部党员大会考察记录待支书审核（演示逾期口径）。',
+    role: 'secretary',
+    category: TodoCategory.REVIEW,
+    priority: 'urgent',
+    status: TodoStatus.EXPIRED,
+    deadline: '2026-10-10',
+    createdAt: '2026-10-01T08:00:00',
+    sourceType: TodoSourceType.ACTIVITY,
+    sourceId: 'act-8',
+    actionKey: 'inspection-review',
+    actionType: TodoActionType.REVIEW,
+    actionData: { activityId: 'act-8' },
+    flow: '考察记录 → 纪检确认 → 支书审核',
+  },
 ];
 
 /** 已废弃种子（T232 闭环化移除：虚假/过期且来源与销项动作不匹配，改由业务数据动态派生） */

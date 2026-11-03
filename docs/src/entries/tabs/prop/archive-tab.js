@@ -2,42 +2,44 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/base/icons.js?v=20261031a';
-import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261031a';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261031a';
+import { icon } from '../../../core/base/icons.js?v=20261102b';
+import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261102b';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261102b';
 // 活动类型胶囊（批次 301）：类别色走单一源（三会一课＝brand 红 / 主题党日＝gold 金），渲染唯一源 badge.js
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261031a'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261031a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261102b'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261102b';
 // 2026-10-21 批次 497：本 tab 四个浮层（上传材料 / 文件外发 / 上传照片 / 标注照片）全部改走 `openModal`，
 //   不再自建 overlay（统一 dialog 语义、sticky footer 与取消语义）。
-import { openModal, closeModal, confirmDanger } from '../../../components/ui/modal.js?v=20261031a';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261031a';
-import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261031a';
-import { mockDB } from '../../../core/domain/domain.js?v=20261031a';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261031a'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261031a';
-import { isApiMode } from '../../../services/core/runtime.js?v=20261031a';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261031a';
-import { getPersonName } from '../../../services/member/person.js?v=20261031a';
+import { openModal, closeModal, confirmDanger } from '../../../components/ui/modal.js?v=20261102b';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261102b';
+import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261102b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261102b';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261102b'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261102b';
+import { isApiMode } from '../../../services/core/runtime.js?v=20261102b';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261102b';
+import { getPersonName } from '../../../services/member/person.js?v=20261102b';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：照片记录「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261031a';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261031a';
-import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261031a';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261102b';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261102b';
+import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261102b';
 // R2-40：归档材料写口（mock/api 同源）——api 落 archive_records、mock 落 localStorage
-import { ArchiveStore } from '../../../services/activity/archive.js?v=20261031a';
+import { ArchiveStore } from '../../../services/activity/archive.js?v=20261102b';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261031a';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261102b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261031a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261102b';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261102b';
+// 批次 524（F · 输入单一源）：布局中立的控件积木（只出控件本体，不套 label / 外边距）
+import { textInput, selectInput } from '../../../components/ui/forms.js?v=20261102b';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261031a';
-import { renderDisclosure, bindDisclosures } from '../../../components/ui/disclosure.js?v=20261031a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261102b';
+import { renderDisclosure, bindDisclosures } from '../../../components/ui/disclosure.js?v=20261102b';
 // Task 6：档案行位于跨对象聚合面（非活动所属工作台）⇒ direct 完整详情页；缺 id 退回纯文本行。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261031a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261102b';
 
 /** 活动行链接单一出口（Task 6.6：原生 a 即键盘可达；hover 下划线 + 箭头作为可点线索）。 */
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261102b';
 function _activityLinkHtml(activityId, className, innerHtml, title) {
   const href = objectDetailHref('activity', activityId, { entry: 'archive-row' });
   if (!href) return `<div class="${className}">${innerHtml}</div>`;
@@ -79,6 +81,19 @@ const ARCHIVE_TEMPLATES = [
   { id: 'tpl3', name: '视频元数据表模板', category: '视频', format: 'Excel' },
 ];
 
+// ── 归档待办分段（2026-11-01 · Task 5 页签收敛 ≤4）──────────────────────────
+//   「待归档活动 / 宣传初稿 / 归档缺口」原是三张并列卡（同一批「活动+归档状态」的三种展示面），
+//   合并为一张「归档待办」卡内三段互斥切换；分段态随模块自持（照 disc/attendance-tab 一级分段笔法）。
+let _todoSegment = 'ended';
+const TODO_SEGMENTS = [
+  { key: 'ended', label: '待归档' },
+  { key: 'draft', label: '初稿' },
+  { key: 'gap', label: '缺口' },
+];
+/** 分段钮激活态类（本台沿用考勤台分段笔法：主题浅底 + 主题色字/边框，不新增 CSS 类族） */
+const SEG_ON_CLASSES = ['bg-[var(--app-accent-soft-bg)]', 'border-[var(--app-accent)]', '[color:var(--app-accent-soft-text)]'];
+const SEG_OFF_CLASSES = ['bg-white', 'border-neutral-200', 'text-gray-600'];
+
 export function renderContent(ctx) {
   const container = document.getElementById('prop-tab-content');
   if (!container) return;
@@ -86,71 +101,23 @@ export function renderContent(ctx) {
   const pendingArchives = getArchiveGapActivities().filter(isActivityArchived);
   // B4（2026-09-12）：宣传概况「待归档活动 N 个」判据 = 已结束未归档活动 → 归档页同判据列明细并可直接归档；2026-10-18 繁专项 Task 15：活动归档判据统一走 isActivityArchived（不再用活动状态判断已归档）。
   const endedUnarchived = getEndedUnarchivedActivities().filter(a => !isActivityArchived(a));
-  // B07（2026-10-20）：首屏只留「动作面」——待归档活动 / 宣传初稿 / 待补材料按处理先后前置；
-  //   归档记录 / 活动风采 / 照片墙属「已归档展示」，同屏会与动作面争首屏 ⇒ 合并进一张折叠区；
-  //   模板与材料标准说明是低频查阅 ⇒ 页尾折叠并给 help.html 深链（不占首屏）。
+  // 2026-11-01 批次 525（Task 5 · 页签收敛 ≤4）：本页原 8 个顶层块（周报折叠 / 上传材料动作条 /
+  //   待归档活动 / 宣传初稿 / 归档缺口 / 已归档展示折叠 / 归档模板折叠，加页头）。收敛为四块：
+  //   ① 归档待办（三张动作面合卡分段；「上传材料」并入卡头）
+  //   ② 归档记录（唯一筛选条）
+  //   ③ 回看（活动风采 ＋ 照片墙）
+  //   ④ 低频查阅（周期归档报送 ＋ 归档模板与材料标准，两个折叠项）。
   const archivedRecordCount = _loadArchiveRecords().length;
-  const galleryCount = listGalleryCandidates().length;
-  const photoCount = _loadImageRecords().length;
   const publicityDrafts = listPublicityDrafts();
-  // 2026-10-24 批次 508：三块动作面（待归档活动 / 宣传初稿 / 归档缺口）全空时，页面原只剩标题 +
-  //   一个静默空壳（用户以为没加载出来）。改为在**主体位置**给一张空态卡，并把「已归档记录在下方
-  //   折叠区」这句去向写出来；「上传材料」按钮仍在上方可见（不藏入口，空态也能直接补材料）。
+  // 2026-10-24 批次 508：三段动作面全空时在主体位置给空态说明（去向：已归档记录在下方折叠区）；
+  //   「上传材料」恒在卡头可见（不藏入口，空态也能直接补材料）。
   const actionFacesEmpty = endedUnarchived.length === 0 && publicityDrafts.length === 0 && pendingArchives.length === 0;
   container.innerHTML = `
     ${renderTabHeader({ title: '档案归档', description: '待归档活动、宣传初稿与待补材料；归档后即可回看。' })}
-    ${_renderWeeklySlot()}
-
-    <div class="mb-4 flex flex-col sm:flex-row gap-3 items-center justify-end">
-      <button id="archive-upload-btn" class="btn-accent-soft flex-shrink-0 flex items-center justify-center gap-1.5" >
-        ${icon('upload', { className: 'w-3.5 h-3.5' })}
-        <span>上传材料</span>
-      </button>
-    </div>
-
-    ${actionFacesEmpty ? _renderEmptyStateCard() : ''}
-
-    ${_renderEndedUnarchivedSection(endedUnarchived)}
-
-    ${_renderPublicityDraftSection(publicityDrafts)}
-
-    ${_renderPendingArchiveSection(pendingArchives)}
-
-    <details class="card rounded-xl p-4 mb-6" id="archive-display-fold">
-      <summary class="font-title-cn text-sm font-bold text-gray-700 cursor-pointer select-none">
-        已归档展示
-        <span class="text-xs font-normal text-gray-500 ml-1.5">归档记录 ${archivedRecordCount} · 活动风采 ${galleryCount} · 照片 ${photoCount}</span>
-      </summary>
-      <div class="mt-4 space-y-6">
-        <div>
-          <div class="flex items-center gap-2 mb-2">
-            <h4 class="text-sm font-bold text-gray-700">归档记录</h4>
-          </div>
-          <div id="archive-list"></div>
-        </div>
-        ${_renderGallerySection()}
-        ${_renderPhotoWallSection(ctx)}
-      </div>
-    </details>
-
-    <details class="card rounded-xl p-4" id="archive-template-fold">
-      <summary class="font-title-cn text-sm font-bold text-gray-700 cursor-pointer select-none">
-        归档模板与材料标准
-        <span class="text-xs font-normal text-gray-500 ml-1.5">下载</span>
-      </summary>
-      <div class="mt-3 space-y-2">
-        ${ARCHIVE_TEMPLATES.map(t => `
-          <div class="flex items-center justify-between p-2.5 rounded-lg bg-gray-50">
-            <div>
-              <span class="text-xs font-medium text-gray-700">${t.name}</span>
-              <span class="text-xs px-1.5 py-0.5 rounded-full ${ARCHIVE_CATEGORY_STYLE[t.category]} ml-1.5">${t.category}</span>
-            </div>
-            <button class="btn-outline archive-tpl-btn text-xs px-3 py-1.5" data-tpl-name="${t.name}">下载</button>
-          </div>
-        `).join('')}
-        <p class="help-note pt-1"><a href="./help.html#card-dom38-archive" class="help-note__link">见帮助 · 档案归档</a></p>
-      </div>
-    </details>
+    ${_renderTodoCard({ endedUnarchived, publicityDrafts, pendingArchives, actionFacesEmpty })}
+    ${_renderRecordsFold(archivedRecordCount)}
+    ${_renderReviewCard(ctx)}
+    ${_renderLowFreqCard()}
   `;
 
   // 周报（归档特例）折叠区：懒挂 `weekly-tab.js`（实现单一源，本页只提供宿主容器）
@@ -168,14 +135,14 @@ export function renderContent(ctx) {
     });
   }
 
-  // 活动风采收录列表（**统一检索引擎**：行数达门槛即出检索条并分页——见 `page-sweep` P11；
-  // 写口单一源 = services/activity/activity.js::setGalleryFeatured）
+  // 活动风采收录列表（**分页仍走统一检索引擎**：本页只留「归档记录」一条检索条 ⇒ 此处不传
+  //   keyword / facets，引擎按「只要分页」模式隐藏检索条，行数达门槛仍分页——见 `page-sweep` P11；
+  //  写口单一源 = services/activity/activity.js::setGalleryFeatured）
   const gHost = container.querySelector('#prop-gallery-list');
   if (gHost) {
     renderFilteredList(gHost, {
       stateKey: 'prop-gallery-candidates',
       rows: listGalleryCandidates(),
-      keyword: { keys: ['title', 'date'], placeholder: '搜索活动名称…' },
       countUnit: '个',
       listClass: 'space-y-2',
       emptyMessage: '无可收录的活动',
@@ -227,21 +194,28 @@ export function renderContent(ctx) {
   // B4：待归档活动区只读（2026-10-21 批次 498 支书裁定）——
   //   「归档活动」是活动生命周期动作，归支书 / 本场组织者在活动详情办理；宣传台只归档材料。
   //   此处保留只读清单（哪些活动材料仍未归档）作为提示，不给第二个写口。
-  // 待归档活动：接统一检索引擎（批次 47-H / Q-23-40）——行数达门槛即出检索条并分页；
-  // 空数据时 _renderEndedUnarchivedSection 返回 ''，故须判宿主存在再挂。
+  // 待归档活动：分页仍走统一检索引擎（批次 47-H / Q-23-40）——不传 keyword / facets ⇒ 不出检索条
+  //   （本页只留「归档记录」一条），行数达门槛仍分页；空段由 _renderTodoPanel 给空态说明。
   const endedHost = container.querySelector('#archive-ended-list');
   if (endedHost) {
     renderFilteredList(endedHost, {
       stateKey: 'archive-ended-unarchived',
       rows: endedUnarchived,
-      keyword: { keys: ['title', 'type', 'date'], placeholder: '搜索活动名称 / 类型…' },
-      facets: [{ key: 'type', label: '类型', format: (v) => v || '未标类型' }],
       countUnit: '个',
       listClass: 'space-y-2',
       emptyMessage: '无待归档活动',
       rowHtml: _endedUnarchivedCardHtml,
     });
   }
+
+  // 归档待办分段（待归档 / 初稿 / 缺口）：切段重绘本页（分段态随模块自持）
+  container.querySelectorAll('.archive-seg-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.seg === _todoSegment) return;
+      _todoSegment = btn.dataset.seg;
+      renderContent(ctx);
+    });
+  });
 
   // ── SOP-B-38 宣传初稿审核位（2026-09-19 批次 94）：定稿 / 退回修改 ──
   // 状态位与写口单一源 = services/activity/activity.js::setPublicityDraftStatus（勿在此另写状态名）。
@@ -415,6 +389,73 @@ function _renderGallerySection() {
     </div>`;
 }
 
+/** 归档记录折叠块（2026-11-01 Task 5）：本页**唯一检索条**挂在这里；id 保留 `archive-display-fold`
+ *  （材料页 focusActivityId 深链按该 id 展开，见下方深链分支与 archive-deeplink-guard）。 */
+function _renderRecordsFold(count) {
+  return `
+    <details class="card rounded-xl p-4 mb-6" id="archive-display-fold">
+      <summary class="font-title-cn text-sm font-bold text-gray-700 cursor-pointer select-none">
+        归档记录
+        <span class="text-xs font-normal text-gray-500 ml-1.5">${count} 条</span>
+      </summary>
+      <div class="mt-4"><div id="archive-list"></div></div>
+    </details>`;
+}
+
+/** 回看卡（2026-11-01 Task 5）：活动风采 ＋ 照片墙合并为一块（纵向两段）；
+ *  收录 / 置顶、照片上传 / 标注 / 作废等写口原样保留。 */
+function _renderReviewCard(ctx) {
+  const galleryCount = listGalleryCandidates().length;
+  const photoCount = _loadImageRecords().length;
+  return `
+    <section class="card rounded-xl p-4 mb-6" id="archive-review-card" aria-labelledby="archive-review-title">
+      ${renderCardHeader({
+        title: '回看',
+        titleId: 'archive-review-title',
+        meta: `活动风采 ${galleryCount} · 照片 ${photoCount}`,
+      })}
+      <div class="space-y-6">
+        ${_renderGallerySection()}
+        ${_renderPhotoWallSection(ctx)}
+      </div>
+    </section>`;
+}
+
+/** 低频查阅卡（2026-11-01 Task 5）：周报折叠 ＋ 模板与材料标准折叠合并为一块（两个折叠项）。 */
+function _renderLowFreqCard() {
+  return `
+    <section class="card rounded-xl p-4" id="archive-lowfreq-card" aria-labelledby="archive-lowfreq-title">
+      ${renderCardHeader({ title: '低频查阅', titleId: 'archive-lowfreq-title', meta: '周报 · 模板与材料标准' })}
+      <div class="space-y-2">
+        ${_renderWeeklySlot()}
+        ${_renderTemplateFold()}
+      </div>
+    </section>`;
+}
+
+/** 归档模板与材料标准折叠项（原独立折叠卡；2026-11-01 Task 5 并入低频查阅卡） */
+function _renderTemplateFold() {
+  return renderDisclosure({
+    id: 'archive-template-fold',
+    title: '归档模板与材料标准',
+    meta: '下载',
+    level: 4,
+    bodyHtml: `
+      <div class="space-y-2 pt-1">
+        ${ARCHIVE_TEMPLATES.map(t => `
+          <div class="flex items-center justify-between p-2.5 rounded-lg bg-gray-50">
+            <div>
+              <span class="text-xs font-medium text-gray-700">${t.name}</span>
+              <span class="text-xs px-1.5 py-0.5 rounded-full ${ARCHIVE_CATEGORY_STYLE[t.category]} ml-1.5">${t.category}</span>
+            </div>
+            <button class="btn-outline archive-tpl-btn text-xs px-3 py-1.5" data-tpl-name="${t.name}">下载</button>
+          </div>
+        `).join('')}
+        <p class="help-note pt-1"><a href="./help.html#card-dom38-archive" class="help-note__link">见帮助 · 档案归档</a></p>
+      </div>`,
+  });
+}
+
 /** 收录行（收 / 撤一枚开关；判据单源见 _renderGallerySection）
  *  ⚠ 2026-09-29 批次 295：**减文案**（贴合 §4.18 C4 每屏文案/控件比）——去掉类型 chip、
  *  「活动日期：」前缀、以及「已收录」徽标（**按钮已说**：是「撤下」就说明已收录 ⇒ UI 自明）。 */
@@ -445,53 +486,74 @@ function _galleryRowHtml(a) {
 /** 懒挂周报内容到宿主容器（`weekly-tab.js` 的 `renderContent(ctx, host)` 已支持传入宿主） */
 function _mountWeekly(host, ctx) {
   host.dataset.weeklyMounted = '1';
-  import('./weekly-tab.js?v=20261031a').then(m => {
+  import('./weekly-tab.js?v=20261102b').then(m => {
     if (host.isConnected) m.renderContent(ctx, host);
   });
 }
 
-/** 折叠区骨架（默认收起；标题聚焦周期归档，周期来自支部制度参数）。
+/** 折叠项骨架（默认收起；标题聚焦周期归档，周期来自支部制度参数）。
+ *  2026-11-01 Task 5：并入「低频查阅」卡（与模板标准同卡两个折叠项），不再自带外框。
  *  原「归档兜底不自伤」短路已撤（D-807④ 2026-10-06）：支书/副支书不再进入本台
  *  （代归档在支书台本台浮窗直执）⇒ 本页只有宣传委员可达，周报折叠区恒呈现。 */
 function _renderWeeklySlot() {
+  return renderDisclosure({
+    id: 'archive-weekly',
+    title: '周期归档报送',
+    meta: `当前按${POLICY_DEFAULTS.archive.periodic.unit === 'month' ? '月' : '周'}`,
+    open: false,
+    level: 4,
+    bodyHtml: '<div id="archive-weekly-host" class="pt-2"></div>',
+  });
+}
+
+/** 归档待办卡（2026-11-01 Task 5）：原「待归档活动 / 宣传初稿 / 归档缺口」三张并列卡合一，
+ *  段内互斥切换（三段计数恒可见）；「上传材料」并入卡头右侧（入口不藏，空态也能直接补材料）。 */
+function _renderTodoCard({ endedUnarchived, publicityDrafts, pendingArchives, actionFacesEmpty }) {
+  const counts = { ended: endedUnarchived.length, draft: publicityDrafts.length, gap: pendingArchives.length };
+  const segBtn = ({ key, label }) => {
+    const on = _todoSegment === key;
+    const cls = on ? SEG_ON_CLASSES.join(' ') : `${SEG_OFF_CLASSES.join(' ')} hover:bg-[var(--surface-hover)]`;
+    return `<button type="button" class="btn-tab archive-seg-btn px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200 ${cls}"
+      data-seg="${key}" aria-pressed="${on ? 'true' : 'false'}">${label} <span class="tabular-nums">${counts[key]}</span></button>`;
+  };
   return `
-    <div class="mb-4 rounded-xl border border-gray-100 bg-white p-4 disclosure-host">
-      ${renderDisclosure({
-        id: 'archive-weekly',
-        title: '周期归档报送',
-        meta: `当前按${POLICY_DEFAULTS.archive.periodic.unit === 'month' ? '月' : '周'}`,
-        open: false,
-        level: 3,
-        bodyHtml: '<div id="archive-weekly-host" class="pt-2"></div>',
+    <section class="card rounded-xl p-4 mb-6" id="archive-todo-card" aria-labelledby="archive-todo-title">
+      ${renderCardHeader({
+        title: '归档待办',
+        titleId: 'archive-todo-title',
+        meta: `待归档 ${counts.ended} · 初稿 ${counts.draft} · 缺口 ${counts.gap}`,
+        actions: `<button id="archive-upload-btn" class="btn-accent-soft flex-shrink-0 flex items-center justify-center gap-1.5">
+          ${icon('upload', { className: 'w-3.5 h-3.5' })}<span>上传材料</span>
+        </button>`,
       })}
-    </div>`;
-}
-
-/** 动作面全空时的主体空态卡（2026-10-24 批次 508）：
- *  原实现在三块全空时主体一片空白（只剩标题），用户读不出「是没有待办，还是没加载出来」。
- *  这里只补一句事实 + 一句去向（已归档记录在下方折叠区），不放动作按钮——「上传材料」在页头恒在。 */
-function _renderEmptyStateCard() {
-  return `<div class="card rounded-xl p-6 mb-6" data-archive-empty role="status">
-    ${emptyStateHtml({ text: '暂无可归档内容 · 已归档记录在下方折叠区', variant: 'panel' })}
-  </div>`;
-}
-
-/** 待归档活动区（B4 2026-09-12；2026-10-21 批次 498 改为只读）：
- *  判据单一源 getEndedUnarchivedActivities（已结束未归档）。本区只提示「哪些活动材料还没归档」，
- *  **不提供归档活动写口**——活动归档归支书 / 本场组织者在活动详情办理（宣传委员归档材料，母本口径）。 */
-function _renderEndedUnarchivedSection(activities) {
-  if (!activities || activities.length === 0) return '';
-  // 批次 47-H（支书 2026-09-15 裁定「Q-23-40 现在就接分页」）：本区原为纯 `.map()` 卡片列表——22 条时既不分页
-  // 也搜不得，真机 P11 命中。现**接统一检索引擎**（行由 `_endedUnarchivedCardHtml` 渲染）。
-  return `
-    <div class="mb-6">
-      <div class="flex items-center gap-2 mb-1">
-        <h4 class="text-sm font-bold text-gray-700">待归档活动</h4>
-        <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">${activities.length} 个活动已结束未归档</span>
+      <div class="flex items-center gap-2 mb-3" role="group" aria-label="归档待办分段">
+        ${TODO_SEGMENTS.map(segBtn).join('')}
       </div>
-      <p class="text-xs text-gray-500 mb-2">活动归档由支书或本场组织者办理；此处只提示材料是否已补齐。</p>
-      <div id="archive-ended-list"></div>
+      ${_renderTodoPanel({ endedUnarchived, publicityDrafts, pendingArchives, actionFacesEmpty })}
+    </section>
+`;
+}
+
+/** 归档待办分段内容（2026-10-24 批次 508 的全局空态并入本卡）：
+ *  某段为 0 时仍给该段空态说明；三段全空给全局空态（去向＝已归档记录在下方折叠区）。 */
+function _renderTodoPanel({ endedUnarchived, publicityDrafts, pendingArchives, actionFacesEmpty }) {
+  if (actionFacesEmpty) {
+    return `<div data-archive-empty role="status">
+      ${emptyStateHtml({ text: '暂无可归档内容 · 已归档记录在下方折叠区', variant: 'panel' })}
     </div>`;
+  }
+  if (_todoSegment === 'draft') {
+    if (!publicityDrafts.length) return emptyStateHtml({ text: '暂无待审核的宣传初稿', variant: 'inline', className: 'py-3' });
+    return `<p class="text-xs text-gray-500 mb-2">退回时可写一句修改说明。</p>
+      <div class="space-y-2" id="prop-publicity-draft-list">${publicityDrafts.map(_publicityDraftRowHtml).join('')}</div>`;
+  }
+  if (_todoSegment === 'gap') {
+    if (!pendingArchives.length) return emptyStateHtml({ text: '暂无归档缺口（已归档活动均已补齐宣传材料）', variant: 'inline', className: 'py-3' });
+    return `<div class="space-y-2" id="archive-pending-list">${pendingArchives.filter(isActivityArchived).map(_pendingArchiveRowHtml).join('')}</div>`;
+  }
+  if (!endedUnarchived.length) return emptyStateHtml({ text: '暂无待归档活动', variant: 'inline', className: 'py-3' });
+  return `<p class="text-xs text-gray-500 mb-2">活动归档由支书或本场组织者办理；此处只提示材料是否已补齐。</p>
+    <div id="archive-ended-list"></div>`;
 }
 
 /** 引擎行渲染器（批次 47-H）：待归档活动一卡 */
@@ -508,12 +570,11 @@ function _endedUnarchivedCardHtml(a) {
       </div>`;
 }
 
-/** SOP-B-38 宣传初稿（待审核）：被分工者交上来的初稿在这里审核 → 定稿 / 退回修改。
+/** SOP-B-38 宣传初稿（待审核）单行：被分工者交上来的初稿在这里审核 → 定稿 / 退回修改。
  *  判据与状态标签单一源 = services/activity/activity.js（listPublicityDrafts 缺省只列待审核）。
  *  定稿后的去向＝既有宣传材料归档链（OutputType.PUBLICITY），本区块不新开落点。 */
-function _renderPublicityDraftSection(rows) {
-  if (!rows || rows.length === 0) return '';
-  const items = rows.map(r => `
+function _publicityDraftRowHtml(r) {
+  return `
       <div class="p-3 rounded-xl bg-white flex items-center justify-between gap-3">
         ${_activityLinkHtml(r.activity.id, 'flex-1 min-w-0', `
           <div class="flex items-center gap-2 mb-0.5">
@@ -525,26 +586,15 @@ function _renderPublicityDraftSection(rows) {
           <button type="button" class="btn-accent-soft pdraft-finalize text-xs px-3 py-1.5" data-activity-id="${escHtml(r.activity.id)}" data-idx="${r.index}" style="cursor:pointer;">定稿</button>
           <button type="button" class="btn-outline pdraft-return text-xs px-3 py-1.5" data-activity-id="${escHtml(r.activity.id)}" data-idx="${r.index}" style="cursor:pointer;">退回修改</button>
         </div>
-      </div>`).join('');
-  return `
-    <div class="mb-6">
-      <div class="flex items-center gap-2 mb-1.5">
-        <h4 class="text-sm font-bold text-gray-700">宣传初稿（待审核）</h4>
-        <span class="text-xs px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">${rows.length} 条待审核</span>
-      </div>
-      <p class="text-xs text-gray-500 mb-2">退回时可写一句修改说明。</p>
-      <div class="space-y-2" id="prop-publicity-draft-list">${items}</div>
-    </div>`;
+      </div>`;
 }
 
-/** 待归档区（A② 2026-09-10）：归档缺口活动（已归档但宣传材料未提交），带 data-archive-id 锚点。
- *  与下方「归档记录」列表区分：此处是「缺材料」的活动，记录列表是已建的材料条目。 */
-function _renderPendingArchiveSection(activities) {
-  if (!activities || activities.length === 0) return '';
-  const items = activities.filter(isActivityArchived).map(a => {
-    const dateLabel = a.archivedAt || a.date || '—';
-    const typeLabel = a.type ? badgeHtml(escHtml(a.type), activityTypeBadgeVariant(a.type)) : '';
-    return `
+/** 归档缺口单行（A② 2026-09-10）：已归档但宣传材料未提交的活动，带 data-archive-id 锚点。
+ *  与「归档记录」列表区分：此处是「缺材料」的活动，记录列表是已建的材料条目。 */
+function _pendingArchiveRowHtml(a) {
+  const dateLabel = a.archivedAt || a.date || '—';
+  const typeLabel = a.type ? badgeHtml(escHtml(a.type), activityTypeBadgeVariant(a.type)) : '';
+  return `
       <div class="p-3 rounded-xl bg-amber-50/60 border border-dashed border-amber-200 flex items-center justify-between gap-3" data-archive-id="${escHtml(a.id)}">
         ${_activityLinkHtml(a.id, 'flex-1 min-w-0', `
           <div class="flex items-center gap-2 mb-0.5">
@@ -554,15 +604,6 @@ function _renderPendingArchiveSection(activities) {
           </div>
           <span class="text-xs text-gray-500">活动日期：${escHtml(dateLabel)} · 宣传材料未提交（归档缺口） <span class="text-accent" aria-hidden="true">→</span></span>`, '查看活动详情')}
       </div>`;
-  }).join('');
-  return `
-    <div class="mb-6">
-      <div class="flex items-center gap-2 mb-1.5">
-        <h4 class="text-sm font-bold text-gray-700">待归档</h4>
-        <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">${activities.length} 个活动待补材料</span>
-      </div>
-      <div class="space-y-2" id="archive-pending-list">${items}</div>
-    </div>`;
 }
 
 /** 单条归档记录行（第一列 = 活动名；行内操作按钮经 #archive-list 容器委托绑定，筛选重渲染后仍有效） */
@@ -848,11 +889,10 @@ function _showArchiveUploadModal(ctx) {
 
   // T223 排序统一：关联活动下拉按 date 降序（新者在前），与全站一致
   const sortedActivities = [...activities].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  const activityOptions = sortedActivities.length === 0
-    ? '<option value="">（暂无活动，请先创建）</option>'
-    : `<option value="">请选择关联活动</option>` + sortedActivities.map(a =>
-        `<option value="${a.id}">${escHtml(a.title)}（${escHtml(a.date || '未定日期')}）</option>`
-      ).join('');
+  const activityOptions = [
+    { value: '', label: sortedActivities.length === 0 ? '（暂无活动，请先创建）' : '请选择关联活动' },
+    ...sortedActivities.map(a => ({ value: a.id, label: `${a.title}（${a.date || '未定日期'}）` })),
+  ];
 
   let selectedFiles = [];
   let previewUrls = [];
@@ -870,13 +910,11 @@ function _showArchiveUploadModal(ctx) {
       <div class="space-y-3.5">
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">关联活动 <span class="text-red-600">*</span></label>
-          <select id="upload-activity" class="input-flat w-full">${activityOptions}</select>
+          ${selectInput({ id: 'upload-activity', options: activityOptions, className: 'w-full' })}
         </div>
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="upload-category">材料类别</label>
-          <select id="upload-category" class="input-flat w-full">
-            ${MATERIAL_STANDARDS.map(s => `<option value="${s.category}">${s.category}</option>`).join('')}
-          </select>
+          ${selectInput({ id: 'upload-category', options: MATERIAL_STANDARDS.map(s => ({ value: s.category, label: s.category })), className: 'w-full' })}
         </div>
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="upload-file">选择文件（可多选）</label>
@@ -998,13 +1036,11 @@ function _promptExternalDispatch(activityId, activityName, ctx, onSent) {
         </div>
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="ed-receiver">接收方</label>
-          <select id="ed-receiver" class="input-flat w-full">
-            ${receiverOptions.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
-          </select>
+          ${selectInput({ id: 'ed-receiver', options: receiverOptions, className: 'w-full' })}
         </div>
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="ed-note">备注（可选）</label>
-          <input id="ed-note" type="text" class="input-flat w-full" placeholder="如：新闻稿终稿，请审核…" />
+          ${textInput({ id: 'ed-note', placeholder: '如：新闻稿终稿，请审核…', className: 'w-full' })}
         </div>
       </div>`,
     footerHtml: `
@@ -1176,9 +1212,9 @@ function _renderPhotoWallSection(ctx) {
         ${uploadBtn}
       </div>
       <p class="text-xs text-gray-500 mb-2">${hint}</p>
-      <section id="photo-wall-groups" class="space-y-3">${groups.length
+      <div id="photo-wall-groups" class="space-y-3">${groups.length
         ? groups.map(g => _photoGroupHtml(g)).join('')
-        : emptyStateHtml({ text: '暂无照片', variant: 'inline', className: 'py-3' })}</section>
+        : emptyStateHtml({ text: '暂无照片', variant: 'inline', className: 'py-3' })}</div>
     </div>`;
 }
 
@@ -1251,8 +1287,10 @@ function _showPhotoUploadModal(ctx) {
   const MODAL_ID = 'photo-upload';
   const activities = [...loadActivities()].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const today = todayLocal();
-  const activityOptions = `<option value="">（不关联活动）</option>` + activities.map(a =>
-    `<option value="${a.id}">${escHtml(a.title)}（${escHtml(a.date || '未定日期')}）</option>`).join('');
+  const activityOptions = [
+    { value: '', label: '（不关联活动）' },
+    ...activities.map(a => ({ value: a.id, label: `${a.title}（${a.date || '未定日期'}）` })),
+  ];
 
   let selectedFiles = [];
   let previewUrls = [];
@@ -1269,19 +1307,19 @@ function _showPhotoUploadModal(ctx) {
       <div class="space-y-3.5">
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-activity">关联活动（可不选）</label>
-          <select id="photo-upload-activity" class="input-flat w-full">${activityOptions}</select>
+          ${selectInput({ id: 'photo-upload-activity', options: activityOptions, className: 'w-full' })}
         </div>
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-date">拍摄日期</label>
-          <input id="photo-upload-date" type="date" class="input-flat w-full" value="${today}" />
+          ${textInput({ id: 'photo-upload-date', type: 'date', value: today, className: 'w-full' })}
         </div>
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-title">标题</label>
-          <input id="photo-upload-title" type="text" class="input-flat w-full" placeholder="如：主题党日合影（留空取文件名）" />
+          ${textInput({ id: 'photo-upload-title', placeholder: '如：主题党日合影（留空取文件名）', className: 'w-full' })}
         </div>
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-subject">拍摄主体</label>
-          <input id="photo-upload-subject" type="text" class="input-flat w-full" placeholder="如：全体党员 / 主讲人 / 会场全景" />
+          ${textInput({ id: 'photo-upload-subject', placeholder: '如：全体党员 / 主讲人 / 会场全景', className: 'w-full' })}
         </div>
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-file">选择图片（可多选）</label>
@@ -1403,8 +1441,10 @@ async function _handlePhotoUpload(files, meta) {
 function _showPhotoAnnotateModal(record, ctx) {
   const MODAL_ID = 'photo-annotate';
   const activities = [...loadActivities()].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  const activityOptions = `<option value="">（不关联活动）</option>` + activities.map(a =>
-    `<option value="${a.id}"${a.id === record.activityId ? ' selected' : ''}>${escHtml(a.title)}（${escHtml(a.date || '未定日期')}）</option>`).join('');
+  const activityOptions = [
+    { value: '', label: '（不关联活动）' },
+    ...activities.map(a => ({ value: a.id, label: `${a.title}（${a.date || '未定日期'}）` })),
+  ];
 
   openModal({
     id: MODAL_ID,
@@ -1415,19 +1455,19 @@ function _showPhotoAnnotateModal(record, ctx) {
         <p class="text-xs text-gray-500">${escHtml(record.fileName || '照片')}</p>
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-annotate-date">拍摄日期</label>
-          <input id="photo-annotate-date" type="date" class="input-flat w-full" value="${escHtml(record.date || '')}" />
+          ${textInput({ id: 'photo-annotate-date', type: 'date', value: record.date || '', className: 'w-full' })}
         </div>
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-annotate-title">标题</label>
-          <input id="photo-annotate-title" type="text" class="input-flat w-full" value="${escHtml(record.title || '')}" />
+          ${textInput({ id: 'photo-annotate-title', value: record.title || '', className: 'w-full' })}
         </div>
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-annotate-subject">拍摄主体</label>
-          <input id="photo-annotate-subject" type="text" class="input-flat w-full" value="${escHtml(record.subject || '')}" />
+          ${textInput({ id: 'photo-annotate-subject', value: record.subject || '', className: 'w-full' })}
         </div>
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-annotate-activity">关联活动（可不选）</label>
-          <select id="photo-annotate-activity" class="input-flat w-full">${activityOptions}</select>
+          ${selectInput({ id: 'photo-annotate-activity', options: activityOptions, value: record.activityId || '', className: 'w-full' })}
         </div>
       </div>`,
     footerHtml: `

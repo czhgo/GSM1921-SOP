@@ -1,14 +1,14 @@
 // role: [工程师]+[AI]
 // help-entry.js — 帮助页入口（系统说明书）
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261031a';
-import { renderHeader } from '../../components/shell/header.js?v=20261031a';
-import { HELP_TOC_CHAPTERS } from '../../components/sections/help-navigation.js?v=20261031a';
-import { BranchService } from '../../services/core/runtime.js?v=20261031a';
-import { getBranchOrg } from '../../services/branch/branch.js?v=20261031a';
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261031a';
-import { DEPLOY_MODE } from '../../config/deploy.js?v=20261031a';
-import { smoothScroll } from '../../core/base/utils.js?v=20261031a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261102b';
+import { renderHeader } from '../../components/shell/header.js?v=20261102b';
+import { HELP_TOC_CHAPTERS } from '../../components/sections/help-navigation.js?v=20261102b';
+import { BranchService } from '../../services/core/runtime.js?v=20261102b';
+import { getBranchOrg } from '../../services/branch/branch.js?v=20261102b';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261102b';
+import { DEPLOY_MODE } from '../../config/deploy.js?v=20261102b';
+import { smoothScroll } from '../../core/base/utils.js?v=20261102b';
 
 // 静态壳模式（2026-08-12）：help 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），
 // 仅渲染共享侧边栏/顶栏壳；通知铃首次点击时才按需加载通知模块。
@@ -59,7 +59,7 @@ if (DEPLOY_MODE === 'static') {
 // E-5（2026-09-09）首屏优化：catalog 链（help-catalog → function-catalog/mermaid-sources
 // 约 30KB 模块）改 DOMContentLoaded 后动态加载——0–7 章为 help.html 静态正文，首屏不等待
 // 该模块图；目录/搜索/卡片在 DCL 后数毫秒内补齐，交互与功能不变。
-import('../../components/sections/help-catalog.js?v=20261031a')
+import('../../components/sections/help-catalog.js?v=20261102b')
   .then(({ renderHelpCatalog }) => {
     renderHelpCatalog(document.getElementById('help-toc-slot'));
   })

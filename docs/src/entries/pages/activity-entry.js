@@ -2,75 +2,75 @@
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261031a';
-import { renderHeader } from '../../components/shell/header.js?v=20261031a';
-import { BranchService } from '../../services/core/runtime.js?v=20261031a';
-import { mockDB, isTaskforceTerminalStatus, SourceType, PARTICIPATION_LEVEL_LABELS } from '../../core/domain/domain.js?v=20261031a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261102b';
+import { renderHeader } from '../../components/shell/header.js?v=20261102b';
+import { BranchService } from '../../services/core/runtime.js?v=20261102b';
+import { mockDB, isTaskforceTerminalStatus, SourceType, PARTICIPATION_LEVEL_LABELS } from '../../core/domain/domain.js?v=20261102b';
 // A02：正式会议应到名单读取口径——冻结快照优先，未冻结按 roster 现算（不再读 act.assignments）
-import { loadAttendanceRosterSnapshots } from '../../services/activity/attendance.js?v=20261031a';
-import { getMeetingRosterIds } from '../../services/member/roster.js?v=20261031a';
+import { loadAttendanceRosterSnapshots } from '../../services/activity/attendance.js?v=20261102b';
+import { getMeetingRosterIds } from '../../services/member/roster.js?v=20261102b';
 // A04：专班「工作考察」按稳定父键 workgroupId 读 inspection 记录（不再按名称匹配复盘）
-import { getRecordsBySource } from '../../services/activity/inspection.js?v=20261031a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261031a';
-import { legacyParticipantAssignmentRows, workgroupMembers } from '../../services/activity/workgroup-members.js?v=20261031a';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261031a';
-import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../../services/activity/signup.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { getPersonById } from '../../services/member/person.js?v=20261031a';
+import { getRecordsBySource } from '../../services/activity/inspection.js?v=20261102b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261102b';
+import { legacyParticipantAssignmentRows, workgroupMembers } from '../../services/activity/workgroup-members.js?v=20261102b';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261102b';
+import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../../services/activity/signup.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { getPersonById } from '../../services/member/person.js?v=20261102b';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：
 // 判据与写口单一源 = services/activity/activity.js；本页**不再有「点一下即认定」**（提案 / 撤回 / 取消认定三种动作）。
-import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../../services/activity/activity.js?v=20261031a';
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../../services/activity/activity.js?v=20261102b';
 // 转交组织者（SOP-G-2-② · 2026-10-01 批次 327 · 支书裁「乙：直接转交 ＋ 留痕」）：
 //   母本《常见工作场景快速指南》`:125`「组织者退出需经支委会确定好接手的组织者并负责地完成工作交接
 //   后方可退出」；可发起＝支书 / 副支书 / 组织委员 / **该场现任组织者本人**。判据与写口单一源＝
 //   `components/governance/organizer-transfer.js`（本页只挂入口）。
-import { canTransferOrganizer, openOrganizerTransfer, organizerOf } from '../../components/governance/organizer-transfer.js?v=20261031a';
+import { canTransferOrganizer, openOrganizerTransfer, organizerOf } from '../../components/governance/organizer-transfer.js?v=20261102b';
 // 追加复盘要求（2026-09-21 批次 135 · 裁定二「按推荐档落」）：支委会可额外要求本场组织者完成复盘；
 // 判据与写口单一源 = services/activity/activity.js；另有「交回状态」须读该场复盘记录（services/governance/review.js）。
-import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../../services/activity/activity.js?v=20261031a';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261031a';
-import { getBasePath, escHtml as esc, showToast, describeWriteError, smoothScroll } from '../../core/base/utils.js?v=20261031a';
-import { getActivityTypeColors, usesFormalMeetingRoster, SECRETARY_AND_DEPUTY_ROLES, isPartyGroupLeaderRole, isActivityLive } from '../../core/domain/constants.js?v=20261031a';
-import { getAppState } from '../../core/base/state.js?v=20261031a';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261031a';
+import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../../services/activity/activity.js?v=20261102b';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261102b';
+import { getBasePath, escHtml as esc, showToast, describeWriteError, smoothScroll } from '../../core/base/utils.js?v=20261102b';
+import { getActivityTypeColors, usesFormalMeetingRoster, SECRETARY_AND_DEPUTY_ROLES, isPartyGroupLeaderRole, isActivityLive } from '../../core/domain/constants.js?v=20261102b';
+import { getAppState } from '../../core/base/state.js?v=20261102b';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261102b';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：详情页**直按 id 打开**也要守同一判据
 // （列表里不出现、但链接/历史记录可直达 ⇒ 只靠列表过滤不够）。
-import { isActivityVisibleTo, canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261031a';
+import { isActivityVisibleTo, canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261102b';
 // 活动生命周期展示态单一源（2026-09-13 收敛）：徽章/文案不得本地另写一套中文状态映射
-import { activityLifecycleBadgeHtml } from '../../components/record/inspector.js?v=20261031a';
-import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261031a';
-import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../../components/governance/signup-panel.js?v=20261031a';
+import { activityLifecycleBadgeHtml } from '../../components/record/inspector.js?v=20261102b';
+import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261102b';
+import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../../components/governance/signup-panel.js?v=20261102b';
 // 工作分工（`assignments` 表 · 2026-10-03 批次 359 · `D-750` 续答「全 CRUD」）：落点＝**活动详情页新增一块**；
 //   ⚠ 与活动内联的「参与人员」（`act.assignments`＝**项目角色数组**）**不是同一份数据**；术语用「项目分工 / 事上见」，
 //   **不得**称「常备性分工」（支书明令禁用）。判据与写口单一源＝`services/activity/work-assignment.js`。
-import { canManageWorkAssignments, listWorkAssignments, createWorkAssignment, updateWorkAssignment, removeWorkAssignment, WORK_ASSIGNMENT_STATUS, WORK_ASSIGNMENT_STATUS_LABELS } from '../../services/activity/work-assignment.js?v=20261031a';
+import { canManageWorkAssignments, listWorkAssignments, createWorkAssignment, updateWorkAssignment, removeWorkAssignment, WORK_ASSIGNMENT_STATUS, WORK_ASSIGNMENT_STATUS_LABELS } from '../../services/activity/work-assignment.js?v=20261102b';
 // 选人载体单一源（`DESIGN_SYSTEM §4.13` · `filter-row::S9`）：**「选名单成员」一律 PersonPicker**，
 //   **不得**用自建 `<select>` 罗列人名（`S9` 只放行「任命 / 指派到人」四处例外、且明禁新代码长出第 5 处）——
 //   本块「负责人」属「选名单成员」⇒ 走 PersonPicker（唯一出口 `components/governance/pickers.js`）。
-import { PersonPicker } from '../../components/governance/pickers.js?v=20261031a';
-import { renderShareButtonHtml, bindShareButton } from '../../components/shell/share-button.js?v=20261031a';
-import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261031a';
-import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261031a';
+import { PersonPicker } from '../../components/governance/pickers.js?v=20261102b';
+import { renderShareButtonHtml, bindShareButton } from '../../components/shell/share-button.js?v=20261102b';
+import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261102b';
+import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261102b';
 // 表态权判据单一源（2026-09-30 批次 304）：本页此前**内联**判过一遍 `voterIds.includes(me)`，
 //   与 inspector.js 的 `isCommittee` 角色门形成两种口径；现统一消费 `isVoterOf`（角色无关）。
-import { isVoterOf } from '../../services/activity/vote-config.js?v=20261031a';
+import { isVoterOf } from '../../services/activity/vote-config.js?v=20261102b';
 // SOP-B-2（批次 83）：本页必须先 hydrate API 数据源再渲染——见 _hydrateData 注释
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261031a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261102b';
 // Task 6：详情页门（跨支部拒绝）+ 已归档只读。判定单一源 = core/domain/object-route.js。
-import { canViewObjectDetail } from '../../core/domain/object-route.js?v=20261031a';
-import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261031a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261031a';
+import { canViewObjectDetail } from '../../core/domain/object-route.js?v=20261102b';
+import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261102b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261102b';
 // 批次 123：「关闭报名」后按批次 49「存好了才报成功」同一口径——先结算在途落库再刷新；
 // R11 P0-03：关闭报名用**动作作用域**结算，只等本动作自己的写
-import { beginWriteScope, endWriteScope } from '../../core/session/pending-writes.js?v=20261031a';
-import { getAdapter } from '../../data/data-adapter.js?v=20261031a';
-import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../components/governance/workgroup-member-editor.js?v=20261031a';
-import { openModal, closeModal, confirmDanger } from '../../components/ui/modal.js?v=20261031a';
+import { beginWriteScope, endWriteScope } from '../../core/session/pending-writes.js?v=20261102b';
+import { getAdapter } from '../../data/data-adapter.js?v=20261102b';
+import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../components/governance/workgroup-member-editor.js?v=20261102b';
+import { openModal, closeModal, confirmDanger } from '../../components/ui/modal.js?v=20261102b';
 // 汇报汇总（批次 500 · B-499-2）：活动 / 专班上下文按工作组汇总；渲染复用汇报收件箱，不另造第二套。
-import { IssueStore } from '../../services/governance/issues.js?v=20261031a';
-import { renderReportInboxHtml, bindReportInbox, filterReportsByScope } from '../../components/record/reporting.js?v=20261031a';
+import { IssueStore } from '../../services/governance/issues.js?v=20261102b';
+import { renderReportInboxHtml, bindReportInbox, filterReportsByScope } from '../../components/record/reporting.js?v=20261102b';
 
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261102b';
 renderSidebar('dashboard');
 renderHeader('dashboard');
 
