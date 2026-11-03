@@ -8,12 +8,12 @@
 
 
 
-import { icon } from '../../core/base/icons.js?v=20261102b';
-import { showToast, smoothScroll } from '../../core/base/utils.js?v=20261102b';
+import { icon } from '../../core/base/icons.js?v=20261103b';
+import { showToast, smoothScroll } from '../../core/base/utils.js?v=20261103b';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261102b';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261103b';
 
 
 
@@ -75,9 +75,13 @@ export const TAB_LOADING_SKELETON_MAX_MS = 1000;
 
 
 
-/** 内容区加载骨架 HTML（首帧 / import 完成前注入；3 条卡形 + 「正在加载…」，固定 min-height 防弹跳） */
+/** 内容区加载骨架 HTML（首帧 / import 完成前注入；3 条卡形 + 「正在加载…」，固定 min-height 防弹跳）
+ *  2026-11-03 批次 531（F-15）：骨架形态跟页签载体走——`_paintSkeleton` 按上一帧内容选
+ *  `list` / `table`，缺省（首帧 / 壳期 / 非列表页）仍是 3 条卡形，不动既有输出。 */
 
 export function tabContentSkeletonHtml(text = '正在加载…') {
+
+  const shape = _skeletonShapeHtml();
 
   return `
 
@@ -91,14 +95,45 @@ export function tabContentSkeletonHtml(text = '正在加载…') {
 
       </div>
 
+      ${shape}
+
+    </div>`;
+
+}
+
+/** 当前页签首帧骨架形态（缺省 `card`；由 `_paintSkeleton` 按上一帧内容临时改写后复位） */
+let _skeletonVariant = 'card';
+
+/** 骨架占位形态：list＝行式明细 / table＝表格 / card＝既有 3 条卡形 */
+function _skeletonShapeHtml() {
+  if (_skeletonVariant === 'list' || _skeletonVariant === 'table') {
+    const cellW = _skeletonVariant === 'table';
+    const row = () => (cellW
+      ? `<div class="flex items-center gap-3">${'<div class="skeleton-line h-4 flex-1 animate-pulse"></div>'.repeat(4)}</div>`
+      : `<div class="flex items-center gap-3">
+          <div class="skeleton-line h-4 w-8 animate-pulse"></div>
+          <div class="skeleton-line h-4 flex-1 animate-pulse"></div>
+          <div class="skeleton-line h-4 w-16 animate-pulse"></div>
+        </div>`);
+    return `<div class="flex flex-col gap-2" aria-hidden="true">${Array.from({ length: 5 }, row).join('')}</div>`;
+  }
+  return `
       <div class="ws-tab-skeleton-row ws-tab-skeleton-row--tall" aria-hidden="true"></div>
 
       <div class="ws-tab-skeleton-row" aria-hidden="true"></div>
 
       <div class="ws-tab-skeleton-row" aria-hidden="true"></div>
+`;
+}
 
-    </div>`;
-
+/** 按页签上一帧的真实载体判定骨架形态（无旧内容 ⇒ card，保持原样） */
+function _skeletonVariantFor(el) {
+  try {
+    if (!el || typeof el.querySelector !== 'function') return 'card';
+    if (el.querySelector('table')) return 'table';
+    if (el.querySelector('.list-row')) return 'list';
+  } catch (_) { /* 非浏览器环境忽略 */ }
+  return 'card';
 }
 
 /** 2026-11-01：页签模块加载失败的文案（说明「为什么 + 怎么办」；不暴露模块文件名 / 版本戳，也不用「请刷新」）。
@@ -166,7 +201,7 @@ const FALLBACK_ACCENT = {
 /** 离开当前文档前的淡出时长（与 TAB_CONTENT_FADE_OUT_MS 同档） */
 export const ROUTE_LEAVE_MS = 120;
 
-const TAB_LOADING_CSS_URL = new URL('./tab-loading.css?v=20261102b', import.meta.url).href;
+const TAB_LOADING_CSS_URL = new URL('./tab-loading.css?v=20261103b', import.meta.url).href;
 
 const ROUTE_PROGRESS_ID = 'ws-route-progress';
 
@@ -367,9 +402,23 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
   }
 
-  const activeTab = resolveInitialTab(tabs, { defaultTab, savedTab, priorityTab });
+  // 2026-11-04 批次 533（R5A-17）：页签状态写入 URL（`?tab=<id>`），可分享 / 可回退；
+  //   首次渲染优先读 URL，其次 priority / 记忆 / default（隐藏页签仍由 resolveInitialTab 回退可见项）。
+  const readUrlTab = () => {
+    try { return new URL(location.href).searchParams.get('tab'); } catch (_) { return null; }
+  };
+  const syncTabToUrl = (tabId) => {
+    try {
+      const url = new URL(location.href);
+      if (url.searchParams.get('tab') === tabId) return;
+      url.searchParams.set('tab', tabId);
+      history.replaceState(null, '', url.toString());
+    } catch (_) { /* file:// 或历史 API 不可用时静默降级 */ }
+  };
+  const activeTab = resolveInitialTab(tabs, { defaultTab, savedTab, priorityTab: priorityTab || readUrlTab() });
 
   let currentTab = activeTab;
+  syncTabToUrl(activeTab);
 
 
 
@@ -536,7 +585,10 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
    *  P10：不再把内容区整块 `pointer-events:none`——骨架自身在 tab-loading.css 内局部禁用，
    *  内容容器保持可命中（骨架期读数 `pointerEvents=auto`），局部禁用 + 「正在加载…」为明确指示。 */
   function _paintSkeleton(el) {
+    // F-15：骨架与即将替换掉的页签形态同构（表格页给表格格、明细页给行式；无旧内容仍为卡形）
+    _skeletonVariant = _skeletonVariantFor(el);
     el.innerHTML = tabContentSkeletonHtml();
+    _skeletonVariant = 'card';
     el.dataset.wsTabSkeleton = '1';
     // 骨架期直接回到不透明（不承接旧内容淡出的 opacity 过渡），见 tab-loading.css::.is-skeleton
     if (el.classList && typeof el.classList.add === 'function') el.classList.add('is-skeleton');
@@ -933,6 +985,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
         }
         const tab = tabs.find(t => t.id === tabId);
         currentTab = tabId;
+        syncTabToUrl(tabId);
         if (typeof onTabChange === 'function') onTabChange(tabId, tab);
         // 懒加载支持：render 可能返回 Promise（动态 import），统一去重兜底（T-304）。
         // 2026-10-25 Task 1.1：不传 ctx ⇒ 每次点击按 renderCtx() 取**最新 state**（切月 → 切走 → 切回）。
@@ -1000,6 +1053,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
     if (!tabId) return Promise.resolve(false); // 无可渲染 tab（理论不发生：核心组固定保证至少一个可见）
 
     currentTab = tabId;
+    syncTabToUrl(tabId);
 
     // 记忆到 localStorage（与点击切换一致，重渲染时保持目标 tab）
 

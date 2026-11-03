@@ -76,8 +76,11 @@ export const filesByFixtureClass = (fixtureClass) => TEST_TIERS
  *  2026-10-31 P0/P13–P15：新增 nested-interaction-guard / card-summary-hero-guard（均纯 node）⇒ 231 → 233。
  *  2026-11-03 任务 4（写入口权限矩阵缺口 + 会话 TTL）：新增 write-policy-matrix（4）/ write-policy-gaps（4）/
  *    session-ttl（2）三件，纯 node + `:memory:` ⇒ 文件预算 236 → 239，断言预算 1744 → 1754。
- *  2026-11-03 任务 7（安全红队）：新增 security-redteam（5，纯 node + `:memory:`）⇒ 文件预算 239 → 240。 */
-export const DAILY_FILE_BUDGET = 240;
+ *  2026-11-03 任务 7（安全红队）：新增 security-redteam（5，纯 node + `:memory:`）⇒ 文件预算 239 → 240。
+ *  2026-11-03 批次 533（B-500-7 最小 Plan B）：新增 todo-groups-api（5，纯 node + `:memory:`，
+ *    服务端只读派生视图的 401 / 跨人跨角色 / 形状 / 去重 / unsupported）⇒ 文件预算 240 → 241，
+ *    断言预算 1767 → 1772。 */
+export const DAILY_FILE_BUDGET = 241;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
@@ -329,7 +332,7 @@ export const DAILY_FILE_BUDGET = 240;
 /** 2026-11-03 批次 530（CLAUDE 分层与 UI 清单）：`ctx-hygiene-guard` 新增 ⑩（H20.3 next_prompt 六要素 + commit 模板，1 条）；
  *  `ui-preflight-context` 由「热层 10 问同源」改为「热层指针 + 温层 8 组」，断言数 4 → 4（不变）
  *  ⇒ 实测 1765，按 1767 登记（留 2 条余量，不作「9999 式」放宽）。未新增测试文件，文件预算维持 240。 */
-export const DAILY_TEST_BUDGET = 1767;
+export const DAILY_TEST_BUDGET = 1772;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -377,6 +380,8 @@ export const TEST_TIERS = [
     'write-policy-gaps.test.mjs',
     // 2026-11-03 任务 4：会话 TTL（默认 7 天，非法值回落；过期即删，/auth/me 与写口 401，纯 node + :memory:）
     'session-ttl.test.mjs',
+    // 2026-11-03 批次 533（B-500-7 最小 Plan B）：待办实时派生只读端点（纯 node + :memory:）
+    'todo-groups-api.test.mjs',
     // 2026-11-03 任务 7：安全红队 P0 回归（快照整表写穿不得清空聚合子记录；组织者不误伤，纯 node + :memory:）
     'security-redteam.test.mjs',
   ]),

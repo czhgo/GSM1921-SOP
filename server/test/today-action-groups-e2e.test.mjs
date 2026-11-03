@@ -19,9 +19,9 @@ import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 // `D-787`（2026-10-05 · 9 → 6 合并）：业务域识别色的单一源 —— 非空转断言用它（现行**恰一键 `project`**）
-import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261102b';
+import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261103b';
 // `D-787`：6 类域值（色键须落其中）
-import { DOMAIN_ORDER } from '../../docs/src/services/governance/todo.js?v=20261102b';
+import { DOMAIN_ORDER } from '../../docs/src/services/governance/todo.js?v=20261103b';
 
 let server, base, browser;
 
@@ -60,14 +60,14 @@ test('S12 今天页左卡＝动作性质分组（七类）；旧「本岗待办�
     // 登录默认落点即「今天」页；等本卡渲染完成
     await page.waitForFunction(() => {
       const w = document.querySelector('[data-ws-memo="today"]');
-      return !!w && w.textContent.includes('今天要办');
+      return !!w && w.textContent.includes('要办');
     }, null, { timeout: 15000 });
 
     const probe = await page.evaluate(([labels, domainLabels]) => {
       // 2026-10-25 批次 512：后台 render 可能在 waitForFunction 与 evaluate 之间替换节点；
       //   wrap 缺失时退回 document 作用域，避免 `undefined.querySelectorAll` 的假红。
       const wrap = document.querySelector('[data-ws-memo="today"]') || document;
-      const card = [...wrap.querySelectorAll('section')].find((s) => s.textContent.includes('今天要办')) || wrap;
+      const card = [...wrap.querySelectorAll('section')].find((s) => s.textContent.includes('要办')) || wrap;
       const headRow = card?.querySelector(':scope > div');
       const headBtn = headRow?.querySelector('button[data-today-all="todo"]');
       const rows = [...wrap.querySelectorAll('.today-go[data-go="todo"]')];

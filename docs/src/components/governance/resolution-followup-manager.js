@@ -8,14 +8,14 @@
 //  责任人候选 = 支委角色 + 具体成员（与 workforce-panel 发起分工的负责人下拉同口径）。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, showToast } from '../../core/base/utils.js?v=20261102b';
-import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../core/domain/constants.js?v=20261102b';
-import { PersonStore } from '../../services/member/person.js?v=20261102b';
-import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { escHtml as esc, showToast } from '../../core/base/utils.js?v=20261103b';
+import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../core/domain/constants.js?v=20261103b';
+import { PersonStore } from '../../services/member/person.js?v=20261103b';
+import { AuthStore } from '../../services/core/auth.js?v=20261103b';
 import {
   saveFollowups, completeFollowup, reopenFollowup,
   FOLLOWUP_STATUS, ownerLabelOf,
-} from '../../services/governance/resolution-followup.js?v=20261102b';
+} from '../../services/governance/resolution-followup.js?v=20261103b';
 
 /** 责任人下拉选项（value 编码 type:id，与 workforce-panel 同口径） */
 function _ownerOptionsHtml() {
@@ -64,7 +64,7 @@ function _cardHtml(activity, item, { canManage }) {
         <input type="date" class="fu-new-deadline input-flat text-xs" title="落实时限" />
         <button type="button" class="btn-danger-solid fu-add px-2.5 py-1.5 text-xs font-medium">添加待落实</button>
       </div>
-      <p class="text-xs text-gray-500">保存即生成责任人跟进待办：到期当天可见（催办），逾期自动进支书工作台待办督办。</p>
+      <p class="text-body-sm text-gray-500">保存即生成责任人跟进待办：到期当天可见（催办），逾期自动进支书工作台待办督办。</p>
     </div>` : '';
   return `
     <div class="fu-card rounded-xl border border-gray-200 bg-white p-3.5 mt-3" data-activity-id="${esc(activity.id)}" data-item-id="${esc(item.id)}">

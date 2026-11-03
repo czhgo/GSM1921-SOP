@@ -1,10 +1,10 @@
-import { PersonPicker } from './pickers.js?v=20261102b';
-import { getAdapter } from '../../data/data-adapter.js?v=20261102b';
-import { getPersonById } from '../../services/member/person.js?v=20261102b';
-import { describeWriteError } from '../../core/base/utils.js?v=20261102b';
-import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261102b';
+import { PersonPicker } from './pickers.js?v=20261103b';
+import { getAdapter } from '../../data/data-adapter.js?v=20261103b';
+import { getPersonById } from '../../services/member/person.js?v=20261103b';
+import { describeWriteError } from '../../core/base/utils.js?v=20261103b';
+import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261103b';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261103b';
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const permissionName = (key) => WORKGROUP_PERMISSION_LABELS[key] || key;
 
@@ -95,18 +95,18 @@ export function renderWorkgroupMemberEditor({
     <div class="flex flex-wrap items-end justify-between gap-2 border-b border-gray-100 pb-2">
       <div><h3 id="wg-editor-title-${esc(workgroupId)}" class="text-sm font-semibold text-gray-800">${title}（${activeMembers.length}）</h3></div>
     </div>
-    ${activity && crossMembers.length ? `<p class="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">跨党小组深度参与者 ${crossMembers.length} 人：${crossMembers.map((row) => esc(row.name || getPersonById(row.personId)?.name || row.personId)).join('、')}。须由组织委员协调；协调进度见组织台「跨组招募待协调」。</p>` : ''}
+    ${activity && crossMembers.length ? `<p class="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-body-sm text-amber-900">跨党小组深度参与者 ${crossMembers.length} 人：${crossMembers.map((row) => esc(row.name || getPersonById(row.personId)?.name || row.personId)).join('、')}。须由组织委员协调；协调进度见组织台「跨组招募待协调」。</p>` : ''}
     <div class="mt-3 space-y-2" data-wg-member-list>
       ${activeMembers.length
         ? activeMembers.map((row) => renderMemberRow(row, activeGrants.get(String(row.personId)), activity ? 'activity' : 'taskforce', canEdit)).join('')
         : emptyStateHtml({ text: '暂无工作组成员', variant: 'inline' })}
       ${legacyRows.length ? `<details class="rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-2">
         <summary class="cursor-pointer text-xs font-medium text-amber-900 focus-ring">历史普通参与记录待核（${legacyRows.length}）</summary>
-        <p class="mt-1 text-xs text-amber-900">${activity ? '旧成员镜像保留查看，核实后再纳入活动名单。' : '专班不设一般参与者；旧记录保留待核，不计入工作组成员。'}</p>
+        <p class="mt-1 text-body-sm text-amber-900">${activity ? '旧成员镜像保留查看，核实后再纳入活动名单。' : '专班不设一般参与者；旧记录保留待核，不计入工作组成员。'}</p>
         <ul class="mt-1 text-xs text-gray-700">${legacyRows.map((row) => `<li>${esc(row.name || getPersonById(row.personId)?.name || row.personId)}</li>`).join('')}</ul>
       </details>` : ''}
     </div>
-    ${activity ? renderParticipantList(participants) : '<p class="mt-4 border-t border-gray-100 pt-3 text-xs text-gray-500">专班不设一般参与者报名、应到名单或考勤；组织者/深度参与者入组申请由组织台受理，工作执行按登记任务与产出记录。</p>'}
+    ${activity ? renderParticipantList(participants) : '<p class="mt-4 border-t border-gray-100 pt-3 text-body-sm text-gray-500">专班不设一般参与者报名、应到名单或考勤；组织者/深度参与者入组申请由组织台受理，工作执行按登记任务与产出记录。</p>'}
     ${canEdit ? `<div class="mt-4 border-t border-gray-100 pt-4">
       <h4 class="text-xs font-semibold text-gray-800">加入成员</h4>
       <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">

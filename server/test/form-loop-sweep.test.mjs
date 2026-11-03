@@ -151,7 +151,7 @@ async function createSession(studentId, pageName) {
 
 /** P0-2 形态断言：本文件真机用例必须在 API 形态下跑（单一源 = data/data-adapter.js::getRuntimeMode） */
 async function assertApiMode(page) {
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261102b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261103b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 
 /** 等「上一态已清、本态已到」的**可判定条件**（替代原来的固定 `waitForTimeout(1500)`）。
@@ -165,7 +165,7 @@ async function assertApiMode(page) {
 async function waitShellSettled(page) {
   await page.waitForFunction(async () => {
     if (document.querySelectorAll('button[role="tab"]').length === 0) return false;
-    const { getAppState, STATE } = await import('/src/core/base/state.js?v=20261102b');
+    const { getAppState, STATE } = await import('/src/core/base/state.js?v=20261103b');
     const st = getAppState();
     // ⚠ 只判 `status === IDLE` **不够**：`status` 的初值就是 IDLE，而工作台壳层的 tab 条
     //   可能在 `loadWorkspaceData` 之前就已渲染 ⇒ 会「假就位」，此时切 tab 会被随后的
@@ -493,14 +493,30 @@ const TOAST_PENDING_MARK = '保存中…';
  *  其它载体（面板内状态区，如 `#ref-modal-status`）整块文本就是它的全部内容 ⇒ 按一条返回。 */
 async function readToastTexts(page, sel) {
   return page.evaluate((s) => {
-    const host = document.querySelector(s);
-    if (!host) return [];
     const norm = (t) => (t || '').replace(/\s+/g, ' ').trim();
-    if (host.id === 'toast-container' && host.children.length) {
-      return [...host.children].map((el) => norm(el.textContent)).filter(Boolean);
+    const out = [];
+    const host = document.querySelector(s);
+    if (host) {
+      if (host.id === 'toast-container' && host.children.length) {
+        out.push(...[...host.children].map((el) => norm(el.textContent)).filter(Boolean));
+      } else {
+        const whole = norm(host.textContent);
+        if (whole) out.push(whole);
+      }
     }
-    const whole = norm(host.textContent);
-    return whole ? [whole] : [];
+    // 2026-11-04 批次 533（R5A-11）：新增字段级错误后，校验提示不再只走 toast——
+    //   `[role="alert"]` / `[data-field-error]` 的就地可见错误同样是「可见校验提示」，不得判成静默失败。
+    const visible = (el) => {
+      if (el.hidden || el.getAttribute('aria-hidden') === 'true') return false;
+      const r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0;
+    };
+    for (const el of document.querySelectorAll('[role="alert"], [data-field-error]')) {
+      if (!visible(el)) continue;
+      const t = norm(el.textContent);
+      if (t) out.push(t);
+    }
+    return out;
   }, sel);
 }
 

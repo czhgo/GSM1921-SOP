@@ -5,14 +5,14 @@
 //  职责单一：统计卡渲染 + 考勤明细弹窗（点击统计卡查看本月考勤）。
 // ════════════════════════════════════════════════════════════════
 
-import { NoticeStore } from '../../services/governance/notice.js?v=20261102b';
-import { _fmtDate } from '../../core/base/utils.js?v=20261102b';
-import { icon } from '../../core/base/icons.js?v=20261102b';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261103b';
+import { _fmtDate, animateNumber } from '../../core/base/utils.js?v=20261103b';
+import { icon } from '../../core/base/icons.js?v=20261103b';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261102b';
-import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261102b';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261103b';
+import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261103b';
 // R2-47：出勤率语义单一源——首页「个人考勤」按应到人次（不是按已录记录），未录显示「待录入」
-import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261102b';
+import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261103b';
 
 // 出勤率档位 → 既有语义色 token（服务层只给档位，颜色映射留在展示层）
 const ATTENDANCE_TONE_COLOR = {
@@ -30,7 +30,7 @@ const ATTENDANCE_VALUE_COLOR = {
   good: 'var(--neutral-800)',
 };
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261103b';
 const ATTENDANCE_STATUS_DOT = {
   present:  { text: '出勤', cls: 'text-green-700', dot: 'var(--status-success)' },
   absent:   { text: '缺勤', cls: 'text-red-600',  dot: 'var(--status-error)' },
@@ -100,11 +100,11 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   //   卡内只保留「数值 / 标签」两行——空态由数值位「—」表达，不再追加第三行说明。
   // 颜色 = 既有语义 token：活动信息蓝 / 专班琥珀文字档 / 未读错误红（0 条回落中性）/ 考勤按档位。
   const stats = [
-    { label: '本月活动', value: monthActivities.length, unit: '场', color: 'var(--status-info)', icon: 'calendarHero', interactive: false },
+    { label: '本月活动', value: monthActivities.length, count: monthActivities.length, unit: '场', color: 'var(--status-info)', icon: 'calendarHero', interactive: false },
     ...(activeTFs.length > 0
-      ? [{ label: '活跃专班', value: activeTFs.length, unit: '个', color: 'var(--status-warning-text)', icon: 'usersGroup', interactive: false }]
+      ? [{ label: '活跃专班', value: activeTFs.length, count: activeTFs.length, unit: '个', color: 'var(--status-warning-text)', icon: 'usersGroup', interactive: false }]
       : []),
-    { label: '未读通知', value: unreadNotices, unit: '条',
+    { label: '未读通知', value: unreadNotices, count: unreadNotices, unit: '条',
       color: unreadNotices > 0 ? 'var(--status-error)' : 'var(--neutral-500)', icon: 'bellHero', interactive: false },
     // 空态（P2-5）：没有记录不是「数据坏了」，而是本月应到场次为 0 这一事实——数值位显示「—」。
     // R2-47：有应到场次但一条都没录 → 同样显示「—」（未录不当成 0%）。
@@ -122,11 +122,19 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
          ${s.interactive ? 'role="button" tabindex="0" data-attendance-popover="1"' : ''} ${s.title ? `title="${s.title}"` : ''}>
       <span class="stat-icon-tint" style="--tint:${s.color};" aria-hidden="true">${icon(s.icon, { strokeWidth: 1.8, className: 'w-5 h-5' })}</span>
       <div class="stat-card__body">
-        <p class="stat-card__value" style="color:${s.valueColor || s.color};">${s.value}${s.unit ? `<span class="stat-card__unit">${s.unit}</span>` : ''}</p>
+        <p class="stat-card__value" style="color:${s.valueColor || s.color};">${s.count == null ? s.value : `<span data-count-to="${s.count}">${s.value}</span>`}${s.unit ? `<span class="stat-card__unit">${s.unit}</span>` : ''}</p>
         <p class="stat-card__label">${s.label}</p>
       </div>
     </div>
   `).join('');
+
+  // F-14（2026-11-03 批次 531）：计数跟手——数值从 0 数到目标值（rAF；减少动效时直接落值，
+  //   读屏只播报终值一次）。只作用于纯计数卡，「个人考勤」是比值串不参与。
+  container.querySelectorAll('[data-count-to]').forEach((node) => {
+    const to = Number(node.dataset.countTo);
+    if (!Number.isFinite(to)) return;
+    animateNumber(node, 0, to);
+  });
 
   if (userPersonId) {
     _bindAttendancePopover(activities, attendanceRecords, thisMonth, user);

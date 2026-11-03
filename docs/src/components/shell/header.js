@@ -3,16 +3,16 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261102b';
-import { getBasePath } from '../../core/base/utils.js?v=20261102b';
-import { icon } from '../../core/base/icons.js?v=20261102b';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261102b';
-import { badgeHtml } from '../ui/badges.js?v=20261102b';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261102b';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261103b';
+import { getBasePath } from '../../core/base/utils.js?v=20261103b';
+import { icon } from '../../core/base/icons.js?v=20261103b';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261103b';
+import { badgeHtml } from '../ui/badges.js?v=20261103b';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261103b';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261102b';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261103b';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261103b';
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
 // （auth→runtime→mock→domain 全量约 50 模块），通知铃首次点击或 app 模式渲染后按需加载。
@@ -20,18 +20,18 @@ import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261102b');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261103b');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261102b');
+  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261103b');
   return _noticeModule;
 }
 // 2026-09-30 批次 297-2：跨台通用动作「一键汇报」收进顶栏唯一固定位 ⇒ 顶栏按需加载其入口模块
 // （与 auth / notice 同一策略：静态壳页不加载，app 模式渲染后加载，模块缓存后即时）
 let _reportEntryModule = null;
 function loadReportEntry() {
-  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261102b');
+  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261103b');
   return _reportEntryModule;
 }
 
@@ -182,10 +182,13 @@ async function _refreshHeaderTitle() {
   const shortEl = titleEl.querySelector('.header-title-short');
   if (fullEl && shortEl) {
     if (fullEl.textContent !== title) fullEl.textContent = title;
-    const short = title.includes('党支部') && title.length > 6 ? `${title.slice(0, 2)}党支部` : title;
-    if (shortEl.textContent !== short) shortEl.textContent = short;
+    // C-14：390px 顶栏不再截成「前两字 + 党支部」——显示完整支部名，放不下由 h1 的 ellipsis 截断，
+    //   完整名仍可从 title 提示读到（不改变支部名语义）。
+    if (shortEl.textContent !== title) shortEl.textContent = title;
+    titleEl.setAttribute('title', title);
   } else if (titleEl.textContent !== title) {
     titleEl.textContent = title;
+    titleEl.setAttribute('title', title);
   }
   _applyDocumentTitle(title);
 }
@@ -248,10 +251,9 @@ export async function renderHeader(activeModule, opts = {}) {
   //   分支数据尚未加载（时序）→ 静态兜底名（getHeaderTitle 内处理），数据到达后由 _refreshHeaderTitle 归还真实支部名；
   //   未登录静态壳（personId 缺省）→ 中性占位「示例组织（未登录）」。
   const headerTitle = getHeaderTitle(personId || undefined, { role });
-  // 390px 顶栏只留可读短名：取前两字 + 「党支部」，避免被压成「光…」。
-  const shortHeaderTitle = headerTitle.includes('党支部') && headerTitle.length > 6
-    ? `${headerTitle.slice(0, 2)}党支部`
-    : headerTitle;
+  // C-14：390px 顶栏显示完整支部名（不再取前两字拼「党支部」）；放不下由 h1 的 ellipsis 截断，
+  //   title 属性保留全名，语义不因窄屏改变。
+  const shortHeaderTitle = headerTitle;
   // 2026-09-23：浏览器标签页标题同源刷新（渲染路径；未登录/登出后重绘即回到「示例组织（未登录）」）
   _applyDocumentTitle(headerTitle);
 
@@ -265,7 +267,7 @@ export async function renderHeader(activeModule, opts = {}) {
       </div>
       <div class="header-title">
         <!-- h1 无归属态即显示「未绑定支部」中性占位（getHeaderTitle 收敛）；不加点击引导（二期候选 b 登记：可考虑引导去党委确认归属） -->
-        <h1 class="font-title-cn"><span class="header-title-full">${headerTitle}</span><span class="header-title-short">${shortHeaderTitle}</span></h1>
+        <h1 class="font-title-cn" title="${headerTitle}"><span class="header-title-full">${headerTitle}</span><span class="header-title-short">${shortHeaderTitle}</span></h1>
       </div>
       <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
         ${role ? _roleLabelHTML(role) : _loginEntryHTML()}
@@ -480,11 +482,12 @@ function _bindNotificationBell(header) {
     }
   });
 
-  // ESC 关闭下拉
+  // ESC 关闭下拉（R5A-24：关闭后把焦点还给触发铃铛，不让焦点留在被隐藏节点里）
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
       dropdown.classList.add('hidden');
       btn.setAttribute('aria-expanded', 'false');
+      btn.focus();
     }
   });
 }

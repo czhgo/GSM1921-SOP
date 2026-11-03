@@ -2,7 +2,7 @@
 title: "2026年11月决策日志"
 type: decision_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-03
+last_updated: 2026-11-04
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-DECISION_LOG.md, content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md, content/04_web_design/design-system/DS_03_COMPONENTS.md, content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md]
 ---
@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-854`，共 28 条**；下一条自 **`D-855`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-855`，共 29 条**；下一条自 **`D-856`**。
 
 ## 本月目录（2026-11）
 
@@ -48,6 +48,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | `.ctx` 三层：active 投影 + reference + provenance；规则进 content，ACTIVE_RULINGS 只留索引 | `D-852` | 2026-11-03 | 已落（批次 529） |
 | CLAUDE 宪法化：规则写正文、历史进 logs、细则进 content；乙部只留 ≤12 行真任务 | `D-853` | 2026-11-03 | 已落（批次 530） |
 | 丙部四项：旧 token 失效 / 成功色档已存在 / SD 留 CASES / 低密度卡先收拢 | `D-854` | 2026-11-03 | 已落（批次 531） |
+| 乙部余项合并批：最小 Plan B + 全量对账 + 9 条 e2e + 长期棘轮 | `D-855` | 2026-11-04 | 已落（批次 533） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -187,4 +188,13 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > - **B-521-1 SD 判据表**：维持 `CASES` 迁移登记，不回迁 `DS_03 §12`；`DS_03 §12.6` 已是指针，避免双源。
 > - **B-522-1 低密度卡**：先收拢「今天 / 归档」重复卡与空白区，不先补内容；用 `density-audit.json` 复测；排入批次 532。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-854`**（共 **28** 条）。
+## D-855 2026-11-04 — 乙部余项合并批与长期项收口
+
+> **评议 → 裁定 → 落点**（支书 grill-me 四问后裁定，本批合并为批次 533）：
+> - **B-500-7 待办派生服务端化**：先做**最小 Plan B**（服务端只读派生端点 + 客户端切读 + 兼容降级）；**完整 Plan B 的阶段门槛必须登记在乙部**（`B-500-7b`：七类 unsupported 组服务端化 → 纯函数抽零依赖叶子件 → 客户端本地派生摘除 → 读面前置解耦 → 缓存/性能）。落 `server/routes/todo-groups.js`、`docs/src/data/api-adapter.js`、`docs/src/components/record/todo-tab-shell.js`、`CLAUDE.md 乙部`。
+> - **B-500-1 第五轮 P2/P3**：**全量对账**——逐条对现行代码机检，仍命中的修掉，已消失的留证据；本批关账。
+> - **B-515-6 真缺陷与 e2e**：**9 条 precommit e2e 必须全部跑通**，不得留到发布前；4 条真缺陷中 2 条经探针证伪（写链已改资源 API / 权限判据已含 `deputy-leader`），向导校验与待批复种子补齐。
+> - **B-515-5 / B-522-2 长期棘轮**：各迁一批（`text-xs` 23 处 · help.html 532 → 167 处），同批建 / 收紧守卫棘轮（`TEXT_XS_BASELINE`、help.html 从 `allowNew` 改 `false`），两条转持续任务 `C-5` 并移出乙部。
+> - 判据 / 落点：`CLAUDE.md 乙部`、`server/test/type-scale-guard.test.mjs::Q6`、`server/test/hex-hardcode-guard.test.mjs::H7`、`content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md §3.2.2`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-855`**（共 **29** 条）。

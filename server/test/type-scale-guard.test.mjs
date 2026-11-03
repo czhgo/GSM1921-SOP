@@ -625,6 +625,7 @@ await (async () => {
   const { fileURLToPath } = await import('node:url');
   const {
     TYPE_TIER_ALLOWED, TYPE_TIER_BASELINE, TYPE_TIER_TOTAL_BASELINE, TYPE_TIER_FILE_BASELINE,
+    TEXT_XS_BASELINE,
   } = await import('./style-baseline.mjs');
 
   const HERE = dirname(fileURLToPath(import.meta.url));
@@ -844,6 +845,25 @@ await (async () => {
       '反例失效：旧调用点类未被识别');
     assert.deepEqual(titleClassProblems('<h3 class="disclosure__title text-base px-4">'), [],
       '正例失效：现行调用点类被误判');
+  });
+
+  // ── Q6 text-xs 存量棘轮（2026-11-03 批次 533 · B-515-5）──────────────
+  // 口径：`docs/src` 下全部 `.js` / `.mjs` 中 `text-xs` 出现次数（CSS 定义 / about.css / 静态页 HTML 不计）。
+  // 判据：正文段上迁 13px（`.text-body-sm`），标签 / meta / 计数保持 12px；总量只减不增。
+  test('Q6 text-xs 存量只减不增：处数 / 文件数不得高于基线', () => {
+    let total = 0, files = 0;
+    for (const f of walk(SRC).filter((x) => /\.(js|mjs)$/.test(x))) {
+      const n = (readFileSync(f, 'utf8').match(/\btext-xs\b/g) || []).length;
+      if (n) { total += n; files += 1; }
+    }
+    assert.ok(total <= TEXT_XS_BASELINE.total,
+      `text-xs 存量 ${total} 处 > 基线 ${TEXT_XS_BASELINE.total} 处：新增须落档（正文取 .text-body-sm / 标签取 11px），`
+      + '迁出正文段后同批下调 style-baseline::TEXT_XS_BASELINE');
+    assert.ok(files <= TEXT_XS_BASELINE.files,
+      `text-xs 文件数 ${files} > 基线 ${TEXT_XS_BASELINE.files}：不得向新文件扩散`);
+    // 非空转：正例命中 2 次；相似但不同的类不得命中
+    assert.equal(('class="text-xs" text-xs').match(/\btext-xs\b/g).length, 2, '抽取口径失效');
+    assert.equal(('class="text-body-sm" text-xsx').match(/\btext-xs\b/g), null, '抽取口径过宽');
   });
 
 })();

@@ -16,7 +16,7 @@
  *   nav → w-[18px] h-[18px]  侧边栏导航
  *
  * @param {string} name - 图标语义名
- * @param {{ size?: number, width?: number, height?: number, strokeWidth?: number, stroke?: string, fill?: string, viewBox?: string, className?: string, extra?: string }} [opts]
+ * @param {{ size?: number, width?: number, height?: number, strokeWidth?: number, stroke?: string, fill?: string, viewBox?: string, className?: string, extra?: string, ariaHidden?: boolean }} [opts]
  * @returns {string} 完整 <svg>...</svg> HTML 字符串
  */
 export function icon(name, opts = {}) {
@@ -30,6 +30,7 @@ export function icon(name, opts = {}) {
     viewBox = '0 0 24 24',
     className = 'icon-base', // 默认基础类（1em 尺寸 + vertical-align）
     extra = '',
+    ariaHidden = true,
   } = opts;
   const inner = ICONS[name];
   if (!inner) return '';
@@ -37,7 +38,12 @@ export function icon(name, opts = {}) {
   const h = height !== undefined ? height : size;
   const wh = w ? ` width="${w}" height="${h}"` : ''; // 仅在明确传入 size 时输出
   const cls = className ? ` class="${className}"` : '';
-  return `<svg${wh}${cls} viewBox="${viewBox}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"${extra}>${inner}</svg>`;
+  // R5A-32：装饰性 SVG 默认 aria-hidden；调用方显式给 aria-hidden / aria-label 时不重复覆盖
+  // （带 aria-label 的图标是有名字的图形，不能同时 hidden）。
+  const hidden = ariaHidden && !/aria-hidden=/.test(extra) && !/aria-label=/.test(extra)
+    ? ' aria-hidden="true"'
+    : '';
+  return `<svg${wh}${cls} viewBox="${viewBox}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"${hidden}${extra}>${inner}</svg>`;
 }
 
 export const ICONS = {

@@ -300,7 +300,8 @@ const RESOURCE_CONTRACT = [
     required: ['id', 'branchId', 'type', 'title', 'content', 'status', 'submittedBy', 'createdAt'],
     optional: ['decidedBy', 'decidedAt', 'decisionNote'],
     enums: { type: REVIEW_REQUEST_TYPES, status: REVIEW_REQUEST_STATUSES },
-    seedCount: 1, aliases: [],
+    // 2026-11-04 批次 533（B-515-6 ④）：种子补到 2 条 pending（真机驳回流程需稳定前置），契约同批改准。
+    seedCount: 2, aliases: [],
   },
   {
     entity: 'issues', table: 'issues', mockCollection: 'issues',

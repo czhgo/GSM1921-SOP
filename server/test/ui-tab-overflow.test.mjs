@@ -41,12 +41,13 @@ test('T2 滚动行为：240px 平滑滚动 + scroll/resize 重算', () => {
   assert.match(TAB_BAR, /right\.hidden = !canScroll \|\| atEnd/, '右箭头可见性未随滚动位置更新');
 });
 
-test('T3 样式：定位壳 / 箭头 / 右侧渐隐', () => {
+test('T3 样式：页签行流式箭头 / 右侧渐隐', () => {
+  // 2026-11-04 批次 533（R5A-23）：箭头从「绝对定位覆盖层」改为「页签行内流式元素」，
+  //   页签内容不得再被圆形按钮压住；滚动行为不变。
   assert.match(CSS, /\.ws-tab-shell\s*\{[^}]*position:\s*relative/, '.ws-tab-shell 缺少 position:relative');
-  assert.match(CSS, /\.ws-tab-arrow\s*\{[^}]*position:\s*absolute[^}]*top:\s*50%[^}]*transform:\s*translateY\(-50%\)/,
-    '.ws-tab-arrow 缺少绝对定位与垂直居中');
-  assert.match(CSS, /\.ws-tab-arrow--left\s*\{\s*left:\s*0/, '缺少左箭头定位');
-  assert.match(CSS, /\.ws-tab-arrow--right\s*\{\s*right:\s*0/, '缺少右箭头定位');
+  assert.match(CSS, /\.ws-tab-arrow\s*\{[^}]*position:\s*relative/, '.ws-tab-arrow 须为流式元素');
+  assert.match(CSS, /\.ws-tab-arrow\s*\{[^}]*flex-shrink:\s*0/, '箭头不得被页签挤扁');
+  assert.doesNotMatch(CSS, /\.ws-tab-arrow\s*\{[^}]*position:\s*absolute/, '箭头不得回到覆盖层（会压住页签内容）');
   assert.match(CSS, /\.ws-tab-arrow\[hidden\]\s*\{\s*display:\s*none/, '箭头 hidden 时应隐藏');
   assert.match(CSS, /\.ws-tab-shell::after\s*\{/, '缺少右侧渐隐伪元素');
   assert.match(CSS, /data-scrollable[^{]*data-scroll-end[^{]*::after|data-scrollable\]:not\(\[data-scroll-end\]\)::after/,
@@ -110,8 +111,8 @@ test('T7 分层样式（2026-10-27 Task 6.2）：组名行与页签行分列、1
   assert.match(CSS, /\.ws-tab-row\s*\{[^}]*display:\s*flex[^}]*position:\s*relative/,
     '.ws-tab-row 须为定位 flex 行（箭头以它为定位基准）');
   assert.match(CSS, /\.ws-tab-row\s*\{[^}]*flex:\s*1 0 100%/, '.ws-tab-row 须独占一行');
-  assert.match(CSS, /@media \(min-width: 1281px\) \{[\s\S]*?\.ws-tab-scroll \{ padding-right: 0; \}/,
-    '1440 须放开到容器可用宽度（不再给覆盖式箭头留 40px）');
+  // 2026-11-04 批次 533：箭头已流式化，滚动区不再需要为覆盖式箭头预留内边距 ⇒ 断言改为「无预留」。
+  assert.match(CSS, /\.ws-tab-scroll\s*\{[^}]*padding:\s*0/, '.ws-tab-scroll 不得再为覆盖式箭头预留内边距');
   // 组名全宽可见：任何断点都不得用 display:none / visibility:hidden 隐藏组名。
   assert.doesNotMatch(CSS, /\.tab-group-label[^{}]*\{[^}]*display:\s*none/, '组名不得用 display:none 隐藏');
   assert.doesNotMatch(CSS, /\.tab-group-label[^{}]*\{[^}]*visibility:\s*hidden/, '组名不得用 visibility:hidden 隐藏');

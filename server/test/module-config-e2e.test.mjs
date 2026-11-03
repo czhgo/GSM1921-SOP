@@ -47,7 +47,7 @@ async function login(page, sid, urlPart) {
     page.click('button[type="submit"]'),
   ]);
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261102b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261103b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 async function clickTab(page, sel, text) {
   await page.waitForFunction(({ s, t }) => {
@@ -149,9 +149,12 @@ test('党委「支部配置」向导：停用业务模块 → 支书台消失（
     assert.equal((await chipState(party, 'module', 'calendar'))?.dimmed, true, '重进配置页：活动管理仍停用（持久化）');
 
     // ⑤ 恢复默认（全开）→ 支书台刷新「活动管理」回归
-    party.once('dialog', (d) => d.accept());
+    // 2026-11-04 批次 533：恢复默认已从原生 confirm 改为 `confirmDanger` 确认面（SD-53），
+    //   不再触发浏览器 dialog 事件；改为点确认面主按钮。
     const resetResp = configPatchPromise(party);
     await party.click('[data-wz-act="reset-modules"]');
+    await party.waitForSelector('[data-nudge-confirm]', { timeout: 8000 });
+    await party.click('[data-nudge-confirm]');
     await resetResp;
     await party.waitForFunction(() => {
       const b = document.querySelector('[data-wz-chip="module"][data-id="calendar"]');

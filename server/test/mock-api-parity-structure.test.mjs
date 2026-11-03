@@ -36,32 +36,32 @@ import {
 } from '../seed.js';
 import {
   SEED_MANIFEST, SEED_MANIFEST_BY_TABLE, SEED_LIFECYCLE_CLASSES, SEED_INIT_TIERS,
-} from '../../docs/src/data/seed-manifest.js?v=20261102b';
+} from '../../docs/src/data/seed-manifest.js?v=20261103b';
 import {
   normalizeSeedActivitySeedRows, ensureLegacySourceWorkgroups, ensureDemoWorkgroupGrants,
   ensureInspectionWorkgroupMembers,
-} from '../../docs/src/data/workgroup-seed-sync.js?v=20261102b';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261102b';
-import { BRANCHES } from '../../docs/src/data/mock/branches.js?v=20261102b';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261102b';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261102b';
-import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261102b';
+} from '../../docs/src/data/workgroup-seed-sync.js?v=20261103b';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261103b';
+import { BRANCHES } from '../../docs/src/data/mock/branches.js?v=20261103b';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261103b';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261103b';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261103b';
 import {
   SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS,
   SEED_REVIEW_REQUESTS, SEED_MAKEUP_TASKS,
-} from '../../docs/src/data/mock/seed.js?v=20261102b';
-import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261102b';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261102b';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261102b';
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20261102b';
-import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20261102b';
-import { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261102b';
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261102b';
+} from '../../docs/src/data/mock/seed.js?v=20261103b';
+import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261103b';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261103b';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261103b';
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20261103b';
+import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20261103b';
+import { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261103b';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261103b';
 import {
   SEED_IMAGE_RECORDS, SEED_MEMBER_CHANGE_REQUESTS,
   SEED_WORKGROUP_TASKS, SEED_WORKGROUP_OUTPUTS,
-} from '../../docs/src/data/mock/auxiliary.js?v=20261102b';
-import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261102b';
+} from '../../docs/src/data/mock/auxiliary.js?v=20261103b';
+import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261103b';
 import {
   DOMAIN_CONTRACT, RESOURCE_TABLES, SEMANTIC_TABLES, WORKGROUP_TABLES,
   validateEntityRows,
@@ -528,6 +528,9 @@ const ADAPTER_SURFACE = {
     inspectionAppeals: '考察申诉在 mock 端自管 localStorage',
     issueUnread: '问题未读在 mock 端自管 localStorage',
     authAudit: '授权审计仅在 mockDB 备份快照中恢复，无资源组',
+    // 2026-11-03 批次 533（B-500-7 最小 Plan B）：服务端只读派生视图；mock 形态继续走客户端派生，
+    // 无对应资源组。客户端在 mock 数据源下不调用该组（兼容期判据见 todo-tab-shell.js）。
+    todoGroups: '待办实时派生只读视图（GET /todo-groups）；mock 形态由客户端派生，无资源组',
   },
   /** 同名但方法面不同（apiOnly / mockOnly 两个方向都要写全） */
   methodDiff: {
@@ -555,8 +558,8 @@ test('S4 适配器接口面：两个适配器的资源组 / 方法集合双向�
   }
   if (!globalThis.sessionStorage) globalThis.sessionStorage = globalThis.localStorage;
 
-  const { ApiAdapter } = await import('../../docs/src/data/api-adapter.js?v=20261102b');
-  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261102b');
+  const { ApiAdapter } = await import('../../docs/src/data/api-adapter.js?v=20261103b');
+  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261103b');
 
   const surface = (obj) => Object.fromEntries(
     Object.entries(obj)

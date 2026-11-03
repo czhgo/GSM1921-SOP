@@ -3,9 +3,9 @@ title: "Active Context — 当前判断入口"
 type: active_context
 role: "[AI]"
 layer: active
-last_updated: "2026-11-03"
-last_verified: "2026-11-03"
-latest_decision: "D-854"
+last_updated: "2026-11-04"
+last_verified: "2026-11-04"
+latest_decision: "D-855"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -28,9 +28,9 @@ status: active
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
 - **审计**：45 页签 **P0 0 / P1 0 / P2 2 / exception 44**；F1–F8 全绿；M1–M3 在位。
   - source：`.ctx/evidence/2026-11-03/tab-audit/summary.md`。
-- **测试**：`npm run test:daily` **1768 / 1768**（约 368s）；docs / ctx 守卫 88 / 88。
-  - source：`.ctx/logs/2026-11-EXECUTION_LOG.md §批次 531`、`.ctx/ENGINEERING_ASSESSMENT.md §二 2.5`。
-- **版本戳**：`20261102b`，0 处陈旧。
+- **测试**：`npm run test:daily` **1775 / 1775**（约 325s）；9 条 precommit e2e 全绿；docs / ctx 守卫 117 / 117。
+  - source：`.ctx/logs/2026-11-EXECUTION_LOG.md §批次 533`、`.ctx/ENGINEERING_ASSESSMENT.md §二 2.5`。
+- **版本戳**：`20261103b`，0 处陈旧。
   - source：`docs/scripts/bump-version.mjs --check`。
 - **换轨**：副本 **48 表 / 577 行** export → dry-run → apply 一致；生产空库 `preflight-cutover --strict` exit 0 / 警告 0。
   - source：`deploy/CUTOVER_RUNBOOK.md`、`.ctx/evidence/2026-11-03/security/summary.md`。
@@ -51,6 +51,7 @@ status: active
 - **会话 3 小时过期**；production 多支部拒绝启动；review 档使用独立演示库。（`D-848`）→ `server/routes/auth.js`、`server/run-mode.js`。
 - **多支部同实例只到设计稿**：Phase 1–2 完成前不得打开 `ALLOW_MULTI_BRANCH`；上线坚持一实例一支部。（`D-849`）→ `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §十`。
 - **规则与判例先进 content，再进 .ctx 索引**；`.ctx` 不再承担规则正文。（`D-850` · `D-852`）→ `.ctx/README.md`、`content/05_ai_coding/CONTEXT_MANAGEMENT.md`。
+- **乙部余项合并批**：待办派生先上最小 Plan B（服务端只读端点 + 客户端切读 + 降级），完整版阶段门槛登记为 `B-500-7b`；R5 旧账全量对账；9 条 precommit e2e 全绿；`text-xs` / help.html 色转守卫棘轮。（`D-855`）→ `server/routes/todo-groups.js`、`CLAUDE.md 乙部`、`type-scale-guard::Q6`。
 
 ## §3 当前风险与下一步
 

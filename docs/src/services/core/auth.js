@@ -10,20 +10,20 @@
 //   - party 页面已移除，organizer/deep 内容落在成员工作台（workspace/visitor.html）——
 //     首页并无"我的角色"区块（2026-09-17 批次 64 dogfood 实测）
 
-import { DEFAULT_BRANCH_ID, ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261102b';
-import { PEOPLE } from '../../data/mock/index.js?v=20261102b';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261103b';
+import { PEOPLE } from '../../data/mock/index.js?v=20261103b';
 // 账号登录校验（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
 // 2026-09-14 批次 25：改为「可持久化账号层 ∪ 静态种子表」校验（成员流入自动建号 / 流出停用；
 //   见 services/core/accounts.js），支撑「账号与成员档案同源」口径。
-import { verifyLogin } from './accounts.js?v=20261102b';
-import { getPersonById, getPersonName } from '../member/person.js?v=20261102b';
-import { mockDB, WORKGROUP_WRITABLE_STATUSES } from '../../core/domain/domain.js?v=20261102b';
-import { NoticeStore } from '../governance/notice.js?v=20261102b';
-import { getAdapter, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261102b';
-import { enableApiMode } from './runtime.js?v=20261102b';
-import { generateId } from '../../core/base/id.js?v=20261102b';
-import { todayLocal } from '../../core/base/utils.js?v=20261102b';
-import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../../core/domain/workgroup-policy.js?v=20261102b';
+import { verifyLogin } from './accounts.js?v=20261103b';
+import { getPersonById, getPersonName } from '../member/person.js?v=20261103b';
+import { mockDB, WORKGROUP_WRITABLE_STATUSES } from '../../core/domain/domain.js?v=20261103b';
+import { NoticeStore } from '../governance/notice.js?v=20261103b';
+import { getAdapter, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261103b';
+import { enableApiMode } from './runtime.js?v=20261103b';
+import { generateId } from '../../core/base/id.js?v=20261103b';
+import { todayLocal } from '../../core/base/utils.js?v=20261103b';
+import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../../core/domain/workgroup-policy.js?v=20261103b';
 
 // 迁移期（2026-10-20）：旧 p* 仅作登录别名 / 历史 localStorage 兼容，会话一律存学号。
 // 映射表经 data-adapter 的迁移入口转出，业务层不直接引用 deprecated 映射文件。
@@ -419,9 +419,18 @@ export const AuthStore = {
    */
   devLogin(role) {
     // 找到该角色的第一个 mock 用户
-    const person = PEOPLE.find(p => p.role === role);
-    const personId = person ? person.id : (PEOPLE[0]?.id || null);
-    _writeLogin({ personId, role });
+    let person = PEOPLE.find(p => p.role === role);
+    // R7-31：`deputy-leader`（党小组副组长）与组长同工作台、但 mock 无该角色成员——
+    //   优先取同工作台的 `leader` 成员落地（角色仍记为 deputy-leader）；其它角色找不到成员时
+    //   **不得拿第一个成员冒充**：不写登录态并给出可见提示（返回 false 供调用方中止跳转）。
+    if (!person && role === 'deputy-leader') {
+      person = PEOPLE.find(p => p.role === 'leader');
+    }
+    if (!person) {
+      console.warn(`[AuthStore] 开发身份 ${role} 暂无对应成员档案，未写入登录态`);
+      return false;
+    }
+    _writeLogin({ personId: person.id, role });
     // 修复（2026-08-05）：开发模式是纯 mock 路径，必须清除残留 API token，
     // 否则 bootstrap 检测到 sessionStorage['gsm1921-api-token'] 会把开发模式劫持为 API 模式
     // （复现：账号登录后切开发模式卡片 → 28 个 /api/v1 请求）。
@@ -909,7 +918,7 @@ function _syncAuthAuditToServer(records) {
   const fresh = rows.filter((r) => r && r.id && !_auditSyncedIds.has(r.id));
   if (!fresh.length) return;
   fresh.forEach((r) => _auditSyncedIds.add(r.id));
-  const sync = import('../../data/data-adapter.js?v=20261102b').then(async ({ getDataSource, getAdapter }) => {
+  const sync = import('../../data/data-adapter.js?v=20261103b').then(async ({ getDataSource, getAdapter }) => {
     if (getDataSource() !== 'api') return; // mock 形态：不发（本机键即权威）
     const a = getAdapter();
     if (!a.authAudit || typeof a.authAudit.create !== 'function') return;
@@ -926,7 +935,7 @@ function _syncAuthAuditToServer(records) {
 }
 
 // R3-P1（F-09）：授权审计语义端点登记 pending-writes（置尾 import，避免上文 README 取证行号漂移）
-import { trackWrite } from '../../core/session/pending-writes.js?v=20261102b';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261103b';
 
 // ════════════════════════════════════════════════════════════════
 //  服务端优先登录（2026-10-26 Task 2.1）
@@ -939,7 +948,7 @@ import { trackWrite } from '../../core/session/pending-writes.js?v=20261102b';
 // IAAA 路径不经本函数（`startIaaaSession` 保持原样）。
 // ⚠ 置尾覆盖：本文件上文的行号是 README-server.md 的取证靶点，`login()` 原位改写会整体漂移；
 //   故与 `deputy-leader` / 审计同步同法——**集中置尾**重绑 `AuthStore.login`，语义不变、上方行号不动。
-import { DEPLOY_MODE } from '../../config/deploy.js?v=20261102b';
+import { DEPLOY_MODE } from '../../config/deploy.js?v=20261103b';
 
 const LOGIN_ENDPOINT = '/api/v1/auth/login';
 

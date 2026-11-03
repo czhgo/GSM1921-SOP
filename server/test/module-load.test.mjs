@@ -15,7 +15,7 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { MOCK_ACCOUNTS } from '../../docs/src/data/mock/accounts.js?v=20261102b';
+import { MOCK_ACCOUNTS } from '../../docs/src/data/mock/accounts.js?v=20261103b';
 import { parseFiles } from './lib/esm-parse.mjs';
 
 let server;
@@ -68,7 +68,7 @@ test('E1 编辑完整性：docs/src 全部模块可加载（无语法/重复声�
       let done = 0;
       for (const rel of mods) {
         try {
-          await import(`/src/${rel}?v=20261102b`);
+          await import(`/src/${rel}?v=20261103b`);
         } catch (e) {
           failures.push(`${rel} :: ${String(e).slice(0, 140)}`);
         }

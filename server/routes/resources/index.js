@@ -36,7 +36,7 @@ import { RESOURCE_TABLES, ID_PREFIX, listTable, getRow, writeRow } from './store
 import { RESOURCE_WRITE_GATE, COMMISSIONER_WRITE_RESOURCES, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE, _assertActivityBlockEnabled, _assertWorkflowBlockEnabled, _assertCapabilityPackageEnabled, activityBlockDisabledMsg, workflowBlockDisabledMsg, _snapshotNoticeMessageGateDeny, _snapshotResourceWriteGateDeny, _retainUngatedSnapshotRows, _inspectionDecisionDeny, _inspectionSourceKeyDeny, _inspectionImmutableKeyDeny, _inspectionPersonMembershipDeny, aggregateSubRecordWriteDeny } from './gates.js';
 import { _activityApprovalGateDeny, _snapshotActivityApprovalGateDeny, _activityCreateGatePatch } from './approval-gates.js';
 import { _snapshotBaseVersions, _snapshotWrites, _snapshotMissingVersions, _allCollectionVersions, _snapshotVersionConflicts, _normalizeSnapshotAliases, recordSnapshotConflicts } from './snapshot-versions.js';
-import { registerExtraSemanticRoutes } from './semantic-routes.js';
+import { registerExtraSemanticRoutes } from './semantic-routes.js'; import { registerTodoGroupRoutes } from '../todo-groups.js'; // 批次 532·B-500-7：待办实时派生的服务端只读端点（同行接入，保下文行号零位移）
 import { activityCreationDeny, activityOrganizerExceptionDeny, activityOperationAllowed, activityWorkgroupSyncUpdates, activityWorkgroupUpdate, approvedTaskforceDissolutionWorkgroups, attendanceWriteDeny, attendanceConfirmDeny, isAttendanceConfirmOnlyChange, createActivityWorkgroup, createTaskforceWorkgroup, snapshotScopeDeny, syncActivityWorkgroup, taskforceStatusWorkgroups } from './workgroup-routes.js';
 import { actorBranchId, aggregateWriteDeny, branchForNewResource, branchSelectionError, createTableReader, mergeAggregateBody, mergeScopedSnapshotWrites, recordBranchWriteDeny, requireAssignedBranch, resourceRowsForActor, resourceBranchId, scopedSnapshotWriteDeny } from './branch-scope.js';
 import { normalizeSignupCreate, normalizeSignupPatch, signupCreateDeny, signupSnapshotDeny } from './signup-write-guard.js';
@@ -1603,7 +1603,7 @@ export function createResourcesRouter(db) {
   router.get('/snapshot/versions', requireAuth(db), (req, res) => {
     const versions = _allCollectionVersions(db);
     res.json({ versions: { ...versions, weeklyReports: versions.periodicArchives } });
-  }); registerExtraSemanticRoutes(router, db); // P0-1 集合版本基线查询（前端 init() 取基线；返回全集，未出现过的集合＝0）；2026-09-24 批次 169 追加申诉/未读/审计三组语义端点（函数体置文件末，保上文行号）
+  }); registerExtraSemanticRoutes(router, db); registerTodoGroupRoutes(router, db); // P0-1 集合版本基线查询（前端 init() 取基线；返回全集，未出现过的集合＝0）；2026-09-24 批次 169 追加申诉/未读/审计三组语义端点（函数体置文件末，保上文行号）
   return router;
 }
 

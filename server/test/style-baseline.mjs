@@ -113,16 +113,14 @@
 //   · 处数 1545 → 1419、distinct 168 → 287、文件 74 → 51（全部按实况重算；H1/H2 仍逐文件判红）。
 // 收基线纪律不变：不得为变绿补条目；新增游离值仍由 H1/H2 判红。
 export const HEX_BASELINE = {
-  'docs/help.html': { c: 555, v: [
-      '#0369a1', '#047857', '#059669', '#06b6d4', '#0891b2', '#10b981', '#111827',
-      '#15803d', '#1d4ed8', '#1f2937', '#2563eb', '#374151', '#3b82f6', '#4b5563',
-      '#4d7c0f', '#65a30d', '#6b7280', '#7a0010', '#7c3aed', '#7c5a14', '#86efac',
-      '#8b5cf6', '#92400e', '#93c5fd', '#991b1b', '#9a3412', '#9ca3af', '#a7f3d0',
-      '#b45309', '#b91c1c', '#bae6fd', '#ce1126', '#d1d5db', '#d97706', '#e5e7eb',
-      '#ecfdf5', '#edeef0', '#eeeff2', '#f0dfa8', '#f1f2f4', '#f3f4f6', '#f6d1d1',
-      '#f8f9fa', '#fafaf5', '#fafaf9', '#fca5a5', '#fcfcfb', '#fdba74', '#fde68a',
-      '#fdf2f2', '#fdfbf4', '#fecaca', '#fef2f2', '#ffd700', '#fff', '#fffbeb',
-      '#fffbfb', '#ffffff',
+  // 2026-11-03 批次 533（B-522-2）：help.html 一轮令牌化 532 → 167 处（#4B5563 等 365 处改 var(--*)），
+  //   保留 167 处不可令牌化色（徽标三联/二联、文档页暖纸色、角色色、3 处渐变）。同批把该文件从
+  //   `allowNew` 例外改为**只减不增**棘轮（见 hex-hardcode-guard EXCEPTIONS 理由）。
+  'docs/help.html': { c: 167, v: [
+      '#0891b2', '#7c3aed', '#7c5a14', '#86efac', '#93c5fd', '#a7f3d0', '#b45309',
+      '#b91c1c', '#bae6fd', '#ce1126', '#d97706', '#e5e7eb', '#ecfdf5', '#edeef0',
+      '#eeeff2', '#f0dfa8', '#f1f2f4', '#f6d1d1', '#fafaf9', '#fcfcfb', '#fdba74',
+      '#fdf2f2', '#fdfbf4', '#fff', '#fffbeb', '#fffbfb',
   ] },
   'docs/login.html': { c: 3, v: [
       '#7a0010', '#9b0000', '#e5e7eb',
@@ -494,6 +492,14 @@ export const CTRL_SMALL_FILE_BASELINE = 0;
 export const SMALL_TEXT_TOTAL_BASELINE = 346;
 export const SMALL_TEXT_FILE_BASELINE = 54;
 export const SMALL_TEXT_BY_VALUE_BASELINE = {"text-[11px]":338,"text-[10px]":0};
+
+/** `text-xs`（12px Caption 档）存量棘轮（2026-11-03 批次 533 · B-515-5）
+ *  口径：`docs/src` 下全部 `.js` / `.mjs` 中 `text-xs` 的出现次数；CSS 令牌定义、`about.css`（冻结件）、
+ *  静态页 `docs/*.html` 不计入。
+ *  判据：**正文段**上迁 13px（`.text-body-sm`）；标签 / meta / 计数 / 一行说明保持 12px。
+ *  批次 533 实测 1771 处 / 116 文件（上批迁 18 + 本批迁 23 处正文段；同批新增表单错误等 20 处小字）。
+ *  后续批次迁出正文段后**同批下调**本基线；不得为变绿上调。 */
+export const TEXT_XS_BASELINE = { total: 1771, files: 116 };
 
 /** 「段落/导语档」基线（2026-09-27 文本档位统一批，给 `text-tier-guard.test.mjs` 消费）
  *  `文件 → { c: 处数, v: 出现档位（px） }`

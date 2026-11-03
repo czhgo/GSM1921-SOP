@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url';
 import {
   HEX_BASELINE, HEX_TOTAL_BASELINE, HEX_FILE_BASELINE, HEX_VALUE_BASELINE, HEX_MOVE_LEDGER,
 } from './style-baseline.mjs';
-import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261102b';
+import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261103b';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -48,8 +48,8 @@ const HEX_RE = /(?<!&)#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-
 const EXCEPTIONS = [
   {
     file: 'docs/help.html',
-    allowNew: true,
-    reason: '帮助页＝文档页（DESIGN_SYSTEM §4.18.1 明确 help.html/about.html 是文档页、不受界面规范约束），页内自带 `<style>` 文档样式体系（doc-card / help-card / help-toc）+ 大量内联 style 文档标注；其硬编码 hex 属该文件自带的文档调色板（深色态由 `styles.css` 的 `html.theme-dark .doc-*` 段显式覆盖），非工作台界面配色。故该文件只计进度、不因新增判红。⚠ 订正（2026-09-26 末批实读）：本文件**不含** `@media print`（全站打印样式在 `docs/src/styles.css:4313`，且该段用的是 `white` 关键字与 `var(--neutral-200)`，**无需**显式 hex）——旧理由里的「含 @media print 打印样式」与实况不符，此处据实改写。',
+    allowNew: false,
+    reason: '帮助页＝文档页（DESIGN_SYSTEM §4.18.1 明确 help.html/about.html 是文档页），页内自带 `<style>` 文档样式体系与内联 style。2026-11-03 批次 533（B-522-2）已把可令牌化的 365 处改为 `var(--*)`（532 → 167 处）；剩余 167 处为徽标三联/二联、文档页暖纸色、角色色与 3 处渐变，**无全局同名令牌**，不得新造色。故本文件从「只计进度」改为**只减不增**：新增值由 H1 判红、处数上涨由 H2 判红，收基线时同批下调 `style-baseline.mjs::HEX_BASELINE` 的 `c` 与 `v`。',
   },
   {
     file: 'docs/src/about.css',
@@ -73,11 +73,16 @@ function scanFiles() {
   return out.sort();
 }
 
-/** 逐文件抽取 hex（小写） */
+/** `<meta name="theme-color">` 的值必须是字面量（浏览器不解析 `var()`），单列由 H6 校验；
+ *   它不是「界面配色硬编码」，故在 H1/H2 口径里先剥离，避免把同一语义色按页面数重复计数。 */
+const THEME_COLOR_META_RE = /<meta\s+name=["']theme-color["'][^>]*>/gi;
+const stripThemeColorMeta = (text) => text.replace(THEME_COLOR_META_RE, '');
+
+/** 逐文件抽取 hex（小写；theme-color 元信息先剥离） */
 function scan() {
   return scanFiles().map((file) => ({
     file,
-    hits: readFileSync(join(ROOT, file), 'utf8').match(HEX_RE) || [],
+    hits: stripThemeColorMeta(readFileSync(join(ROOT, file), 'utf8')).match(HEX_RE) || [],
   }));
 }
 
@@ -346,4 +351,26 @@ test('H6 主题色板例外：除 #FFFFFF 外，色板值只允许出现在 cons
     }
   }
   assert.deepEqual(leaks, [], `主题色板值出现在色板定义文件之外（组件不得直写主题色 hex）：\n  ${leaks.join('\n  ')}`);
+});
+
+// ── H7 主题栏元信息（2026-11-03 批次 533 · R5A-34）──────────────────────
+// 病灶：全站页面缺 `<meta name="theme-color">`，移动端浏览器地址栏不随主题；补时又不能各写各的色值。
+// 判据：除冻结件 `docs/about.html` 外，每个 `docs/**/*.html` 必须恰好一条 theme-color，且值为
+//   `styles.css :root` 的 `--party-red`（品牌统一层，不随支部主题变）。theme-color 必须写字面量，
+//   H1/H2 已把该元信息剥离，不重复计为界面硬编码。
+test('H7 theme-color：每页恰一条，且等于 --party-red（about.html 冻结件除外）', () => {
+  const css = readFileSync(join(ROOT, 'docs/src/styles.css'), 'utf8');
+  const partyRed = /--party-red:\s*(#[0-9a-fA-F]{3,8})/.exec(css)?.[1]?.toLowerCase();
+  assert.ok(partyRed, 'styles.css 缺 --party-red（无法校验 theme-color 单一源）');
+
+  const problems = [];
+  for (const file of scanFiles().filter((f) => f.endsWith('.html'))) {
+    if (file === 'docs/about.html') continue; // About 冻结件：原样保留
+    const tags = readFileSync(join(ROOT, file), 'utf8').match(THEME_COLOR_META_RE) || [];
+    if (tags.length !== 1) { problems.push(`${file} → theme-color ${tags.length} 条（须恰 1 条）`); continue; }
+    const value = /content=["']([^"']+)["']/i.exec(tags[0])?.[1]?.toLowerCase();
+    if (value !== partyRed) problems.push(`${file} → ${value} ≠ ${partyRed}`);
+  }
+  assert.deepEqual(problems, [],
+    `theme-color 缺失 / 重复 / 与 --party-red 不一致：\n  ${problems.join('\n  ')}`);
 });

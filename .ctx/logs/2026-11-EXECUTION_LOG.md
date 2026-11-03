@@ -170,3 +170,29 @@ status: active
 
 - 全量 daily：**1768 / 1768**（333s），0 fail。
 - commit：见 `git log --grep="批次 530"`。
+
+## 批次 533（2026-11-04）· 乙部余项合并批
+
+### 为什么
+
+乙部 531 / 532 两组（R5 旧账、四条真缺陷、9 条 e2e、待办派生、今天/归档、help 色、text-xs）必须一次收口，否则上线前仍挂着「存量红」；支书 grill-me 四问已定范围与收口口径（`D-855`）。
+
+### 拿不准 / 取舍
+
+- **B-515-5 目标档**：仓库无成文「正文段上迁」判据，`DS_02 §3.2.2` 现行口径把说明段定为 12px。处理：在 `DS_02 §3.2.2` 补「正文段 / 说明句」边界，只迁正文段，标签 / meta / 计数保持 12px；不新造档。
+- **B-515-6 缺陷 1/2**：探针复现不到（活动创建已走资源 API、冻结判据已含 `deputy-leader`）⇒ 按「无法复现」登记，未为改而改；缺陷 3/4 在真机前置层修复。
+- **B-500-7 最小 Plan B**：服务端只算 3 类确定性实时组，其余 7 类标 `unsupported` 并由客户端降级；不删客户端派生。
+- **R5A-31 剩余 6 处 `text-gray-400`**：判定为装饰图标 / 深色映射，不改；只改承载信息的 3 处。
+
+### 边界
+
+- 新增 `GET /api/v1/todo-groups`（只读）＋ `server/test/todo-groups-api.test.mjs`；写口与权限矩阵未动。
+- 新增棘轮：`TEXT_XS_BASELINE = 1771 / 116`；`docs/help.html` 从 `allowNew` 改 `false`（167 处 / 26 值）；`hex-hardcode-guard::H7` 校验 theme-color 单一源。
+- 未改 `?v=` 以外的构建参数；`bump-version` 统一刷到 `20261103a`。
+
+### 读数
+
+- 方向守卫：hex / type-scale / test-tier / doc-consistency / docs-governance / mock-api-parity / todo-groups / about-freeze / workforce **117 / 117 pass**。
+- 9 条 precommit e2e：全部通过（a11y-tree / block-config / agenda-closure / b3-1 / module-config / multi-tab-sync 两判据 / form-loop 两流程）。
+- 全量 daily：**1775 / 1775**（325s），0 fail。
+- commit：见 `git log --grep="批次 533"`。

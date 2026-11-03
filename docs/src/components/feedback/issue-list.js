@@ -1,16 +1,16 @@
 // role: [工程师]+[AI]
 // issue-list.js — 反馈列表渲染
 
-import { IssueStore } from '../../services/governance/issues.js?v=20261102b';
-import { AuthStore } from '../../services/core/auth.js?v=20261102b';
-import { icon } from '../../core/base/icons.js?v=20261102b';
-import { getPersonName } from '../../services/member/person.js?v=20261102b';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261102b';
-import { badgeHtml } from '../ui/badges.js?v=20261102b';
+import { IssueStore } from '../../services/governance/issues.js?v=20261103b';
+import { AuthStore } from '../../services/core/auth.js?v=20261103b';
+import { icon } from '../../core/base/icons.js?v=20261103b';
+import { getPersonName } from '../../services/member/person.js?v=20261103b';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261103b';
+import { badgeHtml } from '../ui/badges.js?v=20261103b';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../ui/pager.js?v=20261102b';
+import { pagerHtml } from '../ui/pager.js?v=20261103b';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261103b';
 export const SCOPE_LABELS = {
   permanent: '底层架构',
   global: '全局通用',
@@ -91,7 +91,7 @@ export function renderIssueList() {
           </select>
         </div>
         <div class="lf-bar__row" data-seg="search">
-          <input type="text" id="filter-keyword" placeholder="搜索标题/正文..." value="${_filterState.keyword}" class="input-flat text-xs lf-kw">
+          <input type="text" id="filter-keyword" placeholder="搜索标题/正文" value="${_filterState.keyword}" class="input-flat text-xs lf-kw">
         </div>
         <div class="lf-bar__row" data-seg="facet" data-break-before="1">
           <select id="filter-status" class="input-flat text-xs lf-select" aria-label="状态筛选">

@@ -18,34 +18,34 @@
 //  本页除「四数卡的图标块」外不再使用 SVG 图标（支书 2026-08-10 裁定），类别仍用色点 + 文字区分。
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight, todayLocal, docAnchorHref, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261102b';
-import { icon } from '../../core/base/icons.js?v=20261102b';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261102b';
-import { tableHeadHtml } from '../ui/data-table.js?v=20261102b';
-import { emptyStateHtml, renderSkeleton } from '../ui/empty-state.js?v=20261102b';
-import { badgeHtml } from '../ui/badges.js?v=20261102b';
-import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261102b';
+import { showToast, flashHighlight, todayLocal, docAnchorHref, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261103b';
+import { icon } from '../../core/base/icons.js?v=20261103b';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261103b';
+import { tableHeadHtml } from '../ui/data-table.js?v=20261103b';
+import { emptyStateHtml, renderSkeleton } from '../ui/empty-state.js?v=20261103b';
+import { badgeHtml } from '../ui/badges.js?v=20261103b';
+import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261103b';
 import {
   TodoStore, seedTodos, isTodoExpired, WORK_DOMAIN, WORK_DOMAIN_LABELS, TodoStatus,
-} from '../../services/governance/todo.js?v=20261102b';
-import { IssueStore } from '../../services/governance/issues.js?v=20261102b';
+} from '../../services/governance/todo.js?v=20261103b';
+import { IssueStore } from '../../services/governance/issues.js?v=20261103b';
 import {
   isActivityEnded, isActivityArchived, isActivityInProgress, ROLE_LABELS, PARTY_GROUP_LEADER_ROLES,
   DASHBOARD_LIMITS,
-} from '../../core/domain/constants.js?v=20261102b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261102b';
-import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261102b';
-import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261102b';
-import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261102b';
-import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261102b';
-import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261102b';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261102b';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261102b';
-import { getPersonName } from '../../services/member/person.js?v=20261102b';
-import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261102b';
-import { AttendanceStatus, ReviewStatus, mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261102b';
-import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261102b';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261102b';
+} from '../../core/domain/constants.js?v=20261103b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261103b';
+import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261103b';
+import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261103b';
+import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261103b';
+import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261103b';
+import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261103b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261103b';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261103b';
+import { getPersonName } from '../../services/member/person.js?v=20261103b';
+import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261103b';
+import { AttendanceStatus, ReviewStatus, mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261103b';
+import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261103b';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261103b';
 
 // 在办下钻详情目标（支书 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -477,12 +477,14 @@ async function _renderOverviewContent(container, { role, personId, accent = '#B9
         <p class="stat-card__value${modifier}" style="color:${color};">${esc(String(value))}</p>
         <p class="stat-card__label">${esc(metric.label)}</p>
       </div>`;
+    // R5A-25：aria-label 必须带上可见数值——只写动作会把「多少条」从可访问名里删掉。
+    const valueLabel = `${metric.ariaLabel}，${value} 条`;
     // R3-07：筛选类＝可切换卡（aria-pressed）；滚动类＝页内链接（原生锚点，不再假装按钮）。
     if (metric.kind === 'filter') {
-      return `<button type="button" class="card card--interactive stat-card metric-band__item metric-band__item--filter${active ? ' is-active' : ''}" data-metric="${esc(metric.key)}" data-metric-kind="filter" aria-pressed="${active ? 'true' : 'false'}" aria-label="${esc(metric.ariaLabel)}">${body}</button>`;
+      return `<button type="button" class="card card--interactive stat-card metric-band__item metric-band__item--filter${active ? ' is-active' : ''}" data-metric="${esc(metric.key)}" data-metric-kind="filter" aria-pressed="${active ? 'true' : 'false'}" aria-label="${esc(valueLabel)}">${body}</button>`;
     }
     // R5A-01：概况页页内锚点不得以裸 '#' 输出——`<base href="../">` 会把它解析到 docs 根。
-    return `<a class="card card--interactive stat-card metric-band__item metric-band__item--link" href="${esc(docAnchorHref(metric.href || '#wo-lines'))}" data-metric="${esc(metric.key)}" data-metric-kind="scroll" aria-label="${esc(metric.ariaLabel)}">${body}<span class="metric-band__jump" aria-hidden="true">›</span></a>`;
+    return `<a class="card card--interactive stat-card metric-band__item metric-band__item--link" href="${esc(docAnchorHref(metric.href || '#wo-lines'))}" data-metric="${esc(metric.key)}" data-metric-kind="scroll" aria-label="${esc(valueLabel)}">${body}<span class="metric-band__jump" aria-hidden="true">›</span></a>`;
   }).join('');
 
   const tableRows = lineRows.map((row) => {
@@ -562,7 +564,7 @@ async function _renderOverviewContent(container, { role, personId, accent = '#B9
         ${actionRows.length ? listGroupHtml(actionRows) : emptyStateHtml(_metricFilter === 'overdue' ? '暂无逾期待办' : '暂无待我处理事项')}
       </div>
 
-      <div class="card rounded-xl card-standard stack-section card--static disclosure-host" data-wo-layer="done">
+      ${doneItems.length ? `<div class="card rounded-xl card-standard stack-section card--static disclosure-host" data-wo-layer="done">
         ${renderCardHeader({ title: '我已处理', titleId: 'wo-done-title', meta: `共 ${doneItems.length} 条` })}
         <details class="disclosure" id="wo-done">
           <summary class="disclosure__summary" id="wo-done-toggle" aria-labelledby="wo-done-title"></summary>
@@ -570,7 +572,7 @@ async function _renderOverviewContent(container, { role, personId, accent = '#B9
             ${doneRows.length ? listGroupHtml(doneRows) : emptyStateHtml('暂无已处理事项')}
           </div>
         </details>
-      </div>
+      </div>` : ''}
 
       ${extraSections.map((section) => section?.html || '').join('')}
     </div>`;
@@ -605,7 +607,7 @@ async function _buildContext(role, personId, today, config) {
 
   // 支书：概况维度 + 实时派生组（与待办页同源）
   if (role === 'secretary') {
-    const secretary = await import('../../services/governance/secretary-overview.js?v=20261102b');
+    const secretary = await import('../../services/governance/secretary-overview.js?v=20261103b');
     const realtime = secretary.SecretaryTodoDeriver.computeAggregates();
     const seen = new Set(ctx.todoGroups.map((group) => group.groupKey));
     ctx.todoGroups = [...ctx.todoGroups, ...realtime.filter((group) => !seen.has(group.groupKey))];
@@ -973,7 +975,7 @@ function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
       const tab = btn.dataset.woGotoTab;
       if (btn.dataset.woSegment === 'makeup') {
         try {
-          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261102b');
+          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261103b');
           module.focusSegment?.('makeup');
         } catch (_) { /* 分段记忆失败时仍进考勤页 */ }
       }
@@ -1030,10 +1032,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('../record/activity-view.js?v=20261102b');
+    const { renderActivityView } = await import('../record/activity-view.js?v=20261103b');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261102b');
+    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261103b');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

@@ -29,21 +29,21 @@
 //      并标「随在册状态变更填写」——不留「可输入却存不进」的死入口（R7-02）。
 // ════════════════════════════════════════════════════════════════
 
-import { openModal, closeModal, setModalBusy } from '../ui/modal.js?v=20261102b';
+import { openModal, closeModal, setModalBusy } from '../ui/modal.js?v=20261103b';
 // 批次 524（F · 输入单一源）：布局中立的控件积木（只出控件本体，不套 label / 外边距）
-import { textInput, selectInput } from '../ui/forms.js?v=20261102b';
-import { PersonStore } from '../../services/member/person.js?v=20261102b';
-import { getBranchById } from '../../services/branch/branch.js?v=20261102b';
+import { textInput, selectInput } from '../ui/forms.js?v=20261103b';
+import { PersonStore } from '../../services/member/person.js?v=20261103b';
+import { getBranchById } from '../../services/branch/branch.js?v=20261103b';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/domain/constants.js?v=20261102b';
-import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20261102b';
-import { AuthStore } from '../../services/core/auth.js?v=20261102b';
-import { showToast, escHtml as esc, getBasePath, todayLocal, describeWriteError } from '../../core/base/utils.js?v=20261102b';
+import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/domain/constants.js?v=20261103b';
+import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20261103b';
+import { AuthStore } from '../../services/core/auth.js?v=20261103b';
+import { showToast, escHtml as esc, getBasePath, todayLocal, describeWriteError } from '../../core/base/utils.js?v=20261103b';
 // `D-788`（2026-10-05 · `V-10b`）：成员「自我描述」字段模型（**零依赖叶子**）——表单控件由它逐字段生成（单一源）
 import {
   SELF_PROFILE_FIELDS, sanitizeSelfProfile,
   selfProfileListToText, selfProfileListFromText,
-} from '../../core/domain/self-profile.js?v=20261102b';
+} from '../../core/domain/self-profile.js?v=20261103b';
 
 /** 模态 id（openModal / closeModal 定位键） */
 const MODAL_ID = 'person-edit-modal';
@@ -123,13 +123,26 @@ function groupBox({ title, desc, rows }) {
     </fieldset>`;
 }
 
-/** 可改字段行（标签 + input-flat 控件 + 右侧写路径小标）；≤640px 由 .modal-form-row 折行 */
-function formRow(label, controlHtml, { required = false, tag = '' } = {}) {
+/** 可改字段行（标签 + input-flat 控件 + 右侧写路径小标）；≤640px 由 .modal-form-row 折行
+ *  `errId` 给定时在控件下方留一处字段级错误位（R5A-11：错误文本 + aria-invalid + aria-describedby）。 */
+function formRow(label, controlHtml, { required = false, tag = '', errId = '' } = {}) {
   return `<div class="modal-form-row">
-      <label class="text-xs text-gray-500 w-24 flex-shrink-0 pt-2">${esc(label)}${required ? ' <span class="text-gray-400">*</span>' : ''}</label>
-      <div class="flex-1 min-w-0">${controlHtml}</div>
+      <label class="text-xs text-gray-500 w-24 flex-shrink-0 pt-2">${esc(label)}${required ? ' <span class="text-gray-500">*</span>' : ''}</label>
+      <div class="flex-1 min-w-0">${controlHtml}${errId ? `<p id="${errId}" data-field-error hidden class="mt-1 text-xs text-red-600" role="alert"></p>` : ''}</div>
       <div class="flex-shrink-0 pt-1.5">${tag}</div>
     </div>`;
+}
+
+/** 字段级错误（就地）：错误文本 + aria-invalid + aria-describedby（同 org-setup-wizard 口径） */
+function _showPersonEditError(input, errId, msg) {
+  const errEl = errId ? document.getElementById(errId) : null;
+  if (errEl) { errEl.textContent = msg; errEl.hidden = false; }
+  if (input) {
+    input.setAttribute('aria-invalid', 'true');
+    if (errId) input.setAttribute('aria-describedby', errId);
+    if (typeof input.focus === 'function') input.focus();
+  }
+  return false;
 }
 
 /** 今日日期键 'YYYY-MM-DD'（阶段推进「进入当前阶段日期」默认值；submitMemberChange 缺省亦为今日） */
@@ -276,7 +289,7 @@ export function openPersonEditModal(opts = {}) {
       ${selfOnly ? '' : groupBox({
         title: '档案资料 · 立即生效',
         rows: [
-          formRow('姓名', textInput({ value: member.name || '', placeholder: '成员姓名', className: 'w-full', attrs: 'data-field="name"' }), { required: true, tag: TAG_INSTANT }),
+          formRow('姓名', textInput({ value: member.name || '', placeholder: '成员姓名', className: 'w-full', attrs: 'data-field="name" aria-describedby="pe-name-err"' }), { required: true, tag: TAG_INSTANT, errId: 'pe-name-err' }),
           formRow('届别', textInput({ value: member.enrollYear || '', placeholder: '入学年份 / 届别（如 2026，可空）', className: 'w-full', attrs: 'data-field="enrollYear"' }), { tag: TAG_INSTANT }),
           formRow('党小组', textInput({ value: member.partyGroup || '', placeholder: '党小组归属（可空）', className: 'w-full', attrs: 'data-field="partyGroup"' }), { tag: TAG_INSTANT }),
         ].join(''),
@@ -287,7 +300,7 @@ export function openPersonEditModal(opts = {}) {
         rows: [
           formRow('发展阶段', stageSelect(member.developStage), { tag: TAG_CONFIRM }),
           formRow('在册状态', residenceSelect(member.residenceStatus), { tag: TAG_CONFIRM }),
-          formRow('在册备注', `<textarea data-field="residenceNote" rows="3" class="input-flat text-xs w-full" disabled placeholder="随在册状态变更填写；状态变更时必填说明">${esc(member.residenceNote || '')}</textarea><p class="mt-1 text-[11px] text-gray-500" data-note-hint>随在册状态变更填写</p>`, { tag: TAG_CONFIRM }),
+          formRow('在册备注', `<textarea data-field="residenceNote" rows="3" class="input-flat text-xs w-full" disabled placeholder="随在册状态变更填写；状态变更时必填说明" aria-describedby="pe-note-err">${esc(member.residenceNote || '')}</textarea><p class="mt-1 text-[11px] text-gray-500" data-note-hint>随在册状态变更填写</p><p id="pe-note-err" data-field-error hidden class="mt-1 text-xs text-red-600" role="alert"></p>`, { tag: TAG_CONFIRM }),
         ].join(''),
       })}
     </form>`;
@@ -368,8 +381,7 @@ export function openPersonEditModal(opts = {}) {
       residenceNote: String(read('residenceNote')).trim(),
     };
     if (next && !next.name) {
-      showToast('error', '成员姓名不能为空');
-      return;
+      return _showPersonEditError(panelEl?.querySelector('[data-field="name"]'), 'pe-name-err', '成员姓名不能为空');
     }
 
     // 与档案真值逐字段比对 → 只提交有变更的字段（在册状态缺失 ≡ 在校，避免伪变更）
@@ -385,8 +397,7 @@ export function openPersonEditModal(opts = {}) {
     if (JSON.stringify(nextSp) !== JSON.stringify(spCurrent)) patch.selfProfile = nextSp;
     // R7-02：在册状态变更必须随附说明（备注不再是「可空且单独可存」的字段）
     if (next && 'residenceStatus' in patch && !next.residenceNote) {
-      showToast('error', '在册状态变更须填写备注说明');
-      return;
+      return _showPersonEditError(panelEl?.querySelector('[data-field="residenceNote"]'), 'pe-note-err', '在册状态变更须填写备注说明');
     }
     if (Object.keys(patch).length === 0) {
       showToast('info', '没有需要保存的变更');

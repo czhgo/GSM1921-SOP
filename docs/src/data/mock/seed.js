@@ -8,8 +8,8 @@
 //  并钳制于 [活动日前 1 天, 活动日]；signups（su-001~007）日期均在演示窗口内，保持不变。
 
 // ── 任务种子（关联活动，时间随活动重排） ────────────────────
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261102b';
-import { _fmtDate, todayLocal } from '../../core/base/date.js?v=20261102b';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261103b';
+import { _fmtDate, todayLocal } from '../../core/base/date.js?v=20261103b';
 export const SEED_TASKS = [
   { id: 'tsk-001', activityId: 'act-1', title: '预定会议室并通知参会人员', status: 'completed', createdAt: '2026-08-07T08:00:00Z' },
   { id: 'tsk-002', activityId: 'act-1', title: '整理会议记录并归档', status: 'completed', createdAt: '2026-08-07T08:00:00Z' },
@@ -77,7 +77,10 @@ export const SEED_SIGNUPS = [
 //     `server/seed.js::seedDatabase()`（api 态）**都从这里播种**，两形态一致；
 //   · 形态与 `submitReviewRequest` 写入的行同构（id/branchId/type/title/content/submittedBy/status/createdAt），
 //     故党委台渲染、批准/驳回、回传通知三条链路都不需要特判；
-//   · 只种 **pending 一条**：approved/rejected 的终态行由演示过程自然产生，不预置（避免伪造「已批复」历史）；
+//   · 只种 **pending 两条**（2026-11-03 批次 531 · B-515-6 由一条改两条）：approved/rejected 的终态行
+//     由演示过程自然产生，不预置（避免伪造「已批复」历史）；两条的理由是「已有一条被驳/批后仍剩一条待批复」
+//     —— 党委台「支部上报」的 `[data-rq-act="reject"]` 只在 pending 行渲染，只剩一条时任何一次批复
+//     都会把该动作入口清零（真机流 `pc-review-reject-note` 在既有库上因此失去稳定前置）。
 //   · id 用 `rq-seed-` 前缀，与运行时 `generateId('rq')` 生成的 id 不冲突（实体 id 唯一单一源不变）。
 export const SEED_REVIEW_REQUESTS = [
   {
@@ -89,6 +92,16 @@ export const SEED_REVIEW_REQUESTS = [
     submittedBy: '2400012345',
     status: 'pending',
     createdAt: '2026-08-06T09:00:00.000Z',
+  },
+  {
+    id: 'rq-seed-2',
+    branchId: DEFAULT_BRANCH_ID,
+    type: 'develop-node',
+    title: '关于李文博同志列为发展对象的报告',
+    content: '李文博同志自列为入党积极分子以来培养考察满一年，政治表现与学业成绩符合发展条件，支委会已讨论通过，报请党委预审。',
+    submittedBy: '2400012355',
+    status: 'pending',
+    createdAt: '2026-08-08T10:30:00.000Z',
   },
 ];
 

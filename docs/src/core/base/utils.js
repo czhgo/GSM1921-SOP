@@ -3,13 +3,13 @@
 //  utils.js — 格式化工具、动画辅助、Toast 组件
 // ════════════════════════════════════════════════════════════════
 
-import { hasPendingWrites, settleScope, settleWrites } from '../session/pending-writes.js?v=20261102b';
+import { hasPendingWrites, settleScope, settleWrites } from '../session/pending-writes.js?v=20261103b';
 
 // ── 日期格式化 ─────────────────────────────────────────────────
 // R-26③（2026-10-05 批次 388）：日期口径单一源下沉到**零依赖叶子** `core/base/date.js`
 //   （`core/domain/constants.js` 这类「被全站 import 且要求双端可载」的件只能引零依赖件；
 //   而 `utils.js` 牵 `core/session/pending-writes.js`）⇒ 此处**转出**，既有 `from '…/utils.js'` 调用点不变。
-export { _fmtDate, todayLocal } from './date.js?v=20261102b';
+export { _fmtDate, todayLocal } from './date.js?v=20261103b';
 
 export function _fmtChinese(d) {
   const DN = ['日','一','二','三','四','五','六'];
@@ -308,6 +308,56 @@ export function prefersReducedMotion() {
   } catch (_) { return false; }
 }
 const _prefersReducedMotion = prefersReducedMotion;
+
+/**
+ * 数值跟手过渡（2026-11-03 批次 531 · F-14）：把 `el` 的文本从 `from` 数到 `to`。
+ * · 只用 `requestAnimationFrame`，不引第三方库；
+ * · `prefersReducedMotion()` 或无 rAF 环境 ⇒ 直接落终值（不做逐帧）；
+ * · 播报只做一次：动画期视觉数字 `aria-hidden`，终值由相邻 `.visually-hidden[role=status]`
+ *   承担（逐帧改文本不会触发读屏重复播报）；`announce:false` 时不给该状态节点、终值仍可读。
+ * @param {HTMLElement} el 承载数字的元素（其 `textContent` 会被本函数接管）
+ * @param {number} from 起始值
+ * @param {number} to 终值
+ * @param {{ duration?: number, format?: (v:number)=>string, announce?: boolean }} [opts]
+ *   `duration` 缺省 320ms（与 `--motion-emphasis` 同档，仅一次性提示）；`format` 缺省取整。
+ * @returns {void}
+ */
+export function animateNumber(el, from, to, opts = {}) {
+  if (!el || typeof el !== 'object') return;
+  const format = typeof opts.format === 'function' ? opts.format : (v) => String(Math.round(v));
+  const start = Number(from);
+  const end = Number(to);
+  const finalText = format(Number.isFinite(end) ? end : 0);
+  const duration = Number(opts.duration) > 0 ? Number(opts.duration) : 320;
+  const done = () => { el.textContent = finalText; };
+  if (!Number.isFinite(start) || !Number.isFinite(end) || prefersReducedMotion()
+    || typeof requestAnimationFrame !== 'function' || duration <= 0) {
+    done();
+    return;
+  }
+  // 逐帧数字对读屏不友好：视觉数字隐藏，终值交 role=status 播报一次。
+  let status = null;
+  if (opts.announce !== false) {
+    status = document.createElement('span');
+    status.className = 'visually-hidden';
+    status.setAttribute('role', 'status');
+    el.insertAdjacentElement('afterend', status);
+  }
+  el.setAttribute('aria-hidden', 'true');
+  const now = () => ((typeof performance !== 'undefined' && typeof performance.now === 'function')
+    ? performance.now() : Date.now());
+  const t0 = now();
+  const step = (t) => {
+    const p = Math.min(1, Math.max(0, (t - t0) / duration));
+    // easeOutCubic：收尾慢、起步快，读数不「跳」
+    el.textContent = format(start + (end - start) * (1 - Math.pow(1 - p, 3)));
+    if (p < 1) { requestAnimationFrame(step); return; }
+    done();
+    if (status) status.textContent = finalText;
+    else el.removeAttribute('aria-hidden');
+  };
+  requestAnimationFrame(step);
+}
 
 /** 取走过渡态（最终结果出现时替换掉它，不叠加） */
 function _dismissToast(key) {

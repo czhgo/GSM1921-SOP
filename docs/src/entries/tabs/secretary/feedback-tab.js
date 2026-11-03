@@ -3,27 +3,27 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261102b';
-import { showToast, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261102b';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261102b';
+import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261103b';
+import { showToast, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261103b';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261103b';
 // 2026-11-01 批次 524（#7）：待办深链消费（只认本页签；非本页目标不清除）
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261102b';
-import { icon } from '../../../core/base/icons.js?v=20261102b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261102b';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261102b';
-import { getPersonName } from '../../../services/member/person.js?v=20261102b';
-import { PersonStore } from '../../../services/member/person.js?v=20261102b';
-import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261102b';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261103b';
+import { icon } from '../../../core/base/icons.js?v=20261103b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261103b';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261103b';
+import { getPersonName } from '../../../services/member/person.js?v=20261103b';
+import { PersonStore } from '../../../services/member/person.js?v=20261103b';
+import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261103b';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261102b';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261102b';
-import { openFormModal, confirmDanger } from '../../../components/ui/modal.js?v=20261102b';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261103b';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261103b';
+import { openFormModal, confirmDanger } from '../../../components/ui/modal.js?v=20261103b';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261102b';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261103b';
 // 范围标签单一源（批次 525 · #2：反馈页与意见反馈页同一口径，不另抄一份）
-import { SCOPE_LABELS } from '../../../components/feedback/issue-list.js?v=20261102b';
+import { SCOPE_LABELS } from '../../../components/feedback/issue-list.js?v=20261103b';
 // 布局中立下拉（批次 524 F 输入单一源；新控件不得手写 input-flat 裸标签）
-import { selectInput } from '../../../components/ui/forms.js?v=20261102b';
+import { selectInput } from '../../../components/ui/forms.js?v=20261103b';
 const FEEDBACK_TAB_HTML = `
   ${renderTabHeader({ title: '意见反馈' })}
   <!-- 列表面板 -->
@@ -57,7 +57,7 @@ const FEEDBACK_TAB_HTML = `
         })}
       </div>
       <div class="lf-bar__row" data-seg="search">
-        <input type="text" id="issue-filter-keyword" class="input-flat text-xs lf-kw" placeholder="搜索标题或正文...">
+        <input type="text" id="issue-filter-keyword" class="input-flat text-xs lf-kw" placeholder="搜索标题或正文">
       </div>
       <div class="lf-bar__row" data-seg="facet" data-break-before="1">
         <select id="issue-filter-status" class="input-flat text-xs lf-select" aria-label="状态筛选">
@@ -148,9 +148,12 @@ function renderIssueManagement() {
   // ── 草稿审核 ──
   const draftsEl = document.getElementById('issue-drafts-list');
   const draftsCountEl = document.getElementById('issue-drafts-count');
+  const draftsDetailsEl = document.getElementById('issue-drafts-details');
   if (draftsEl) {
     const drafts = IssueStore.getDrafts().filter(d => d.status === 'pending');
     if (draftsCountEl) draftsCountEl.textContent = drafts.length;
+    // C-22：计数为 0 时不显示这条告警条（不渲染只剩标题的空卡）
+    if (draftsDetailsEl) draftsDetailsEl.hidden = drafts.length === 0;
     if (drafts.length === 0) {
       draftsEl.innerHTML = emptyStateHtml({ text: "暂无待审核草稿", variant: 'inline' });
     } else {
@@ -215,7 +218,7 @@ function renderIssueManagement() {
         const isReviewUnread = IssueNotify.getSecretaryReviewUnread().includes(i.id);
         const submitterTip = _submitterTip(i.submittedBy);
         return `
-          <div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 active:bg-[var(--surface-active)] cursor-pointer transition-colors" role="button" tabindex="0" data-issue-action="open-detail" data-issue-id="${i.id}">
+          <div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 active:bg-[var(--surface-active)] cursor-pointer transition-colors" role="button" tabindex="0" data-issue-action="open-detail" data-issue-id="${i.id}" data-nested-actions="true">
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs text-gray-500 font-mono">#${i.number}</span>
               <div class="flex items-center gap-1.5">
@@ -226,7 +229,7 @@ function renderIssueManagement() {
             </div>
             <p class="text-sm text-gray-800 font-medium">${i.title}</p>
             <div class="text-xs text-gray-500 mt-1">${submitterTip
-              ? `<span class="tip-trigger" data-tip="${submitterTip}">${getPersonName(i.submittedBy)}</span>`
+              ? `<button type="button" class="btn-action tip-trigger" data-tip="${submitterTip}" aria-describedby="submitter-tip-${i.id}">${getPersonName(i.submittedBy)}</button><span id="submitter-tip-${i.id}" class="visually-hidden">${submitterTip}</span>`
               : (getPersonName(i.submittedBy) || '匿名')} · ${i.commentCount || 0} 评论 · ${i.submittedAt}</div>
           </div>
       `;
@@ -235,7 +238,9 @@ function renderIssueManagement() {
 
       // 绑定点击事件 → 打开详情面板
       listEl.querySelectorAll('[data-issue-action="open-detail"]').forEach(el => {
-        el.addEventListener('click', () => {
+        el.addEventListener('click', (ev) => {
+          // 行内 tip 按钮（提交人）是独立动作：不得连带打开详情。
+          if (ev.target.closest('[data-tip]')) return;
           openIssueDetail(el.dataset.issueId);
         });
       });

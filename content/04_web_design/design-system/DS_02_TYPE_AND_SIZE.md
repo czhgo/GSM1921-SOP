@@ -2,7 +2,7 @@
 title: "设计系统 · 第二编 排版与尺寸"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-03"
+last_updated: "2026-11-04"
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.css, ../../../server/test/type-scale-guard.test.mjs, ../../../server/test/spacing-scale-guard.test.mjs]
 ---
@@ -102,6 +102,13 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.
 `11=Overline` · `12=Caption` · `13=Body-S`（§4.3 单档裁定，不动）· `14=Body`（§3.2 Body 档；实测承担
 「内嵌面板标题 / 列表项标题 / 人名」）· `16=Body-L`＋§3.3.1 卡片面板标题（h3）· `18/20/24=H3/H2/H1`。
 **没有新档入表**（`11.2px` 是浏览器 UA 默认，出自外壳页脚链接，**不在档位表内**，登记为待收敛离群项）。
+
+**「正文段」与「说明句」的边界（2026-11-04 批次 533 · `B-515-5`）**：
+
+- **正文段**＝承载多条内容叙述、需要连续阅读的 `<p>`（活动说明 / 汇报正文 / 处理意见 / 分工与跨组协调说明）⇒ 取 **13px** `.text-body-sm`。
+- **说明句**＝给相邻内容加一句注脚、只读一行（附注 / meta / 计数 / 徽标 / 空态 / 提示条）⇒ 保持 **12px** `text-xs`，不得上迁。
+- 判据：把该段单独抽出来读——「删掉后信息丢失且需要连续阅读」＝正文段；「只是给旁边内容加注脚」＝说明句。
+- 存量由 `server/test/style-baseline.mjs::TEXT_XS_BASELINE` 棘轮锁定（只减不增）；守卫 `type-scale-guard::Q6`。
 
 **行高规则（「行距宽窄」的根因与判据）**：
 

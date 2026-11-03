@@ -2,7 +2,7 @@
 title: "SOP 目录索引——各委员与党小组组长的操作规程"
 type: index
 role: "[用户]+[AI]"
-last_updated: 2026-11-03
+last_updated: "2026-11-04"
 status: active
 ---
 

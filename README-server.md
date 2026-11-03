@@ -536,7 +536,7 @@
 
 > **`deepWorkMode` 补充说明**：该字段有母本依据（《常见工作场景快速指南》:120）；**已列入 `DATA_MODEL.md` §2.1 字段表**（同属来源 A）。**依据**：`docs/src/services/activity/activity.js`（`DEEP_WORK_MODE` / `DEEP_WORK_MODE_LABEL` / `deepWorkModeOf` 单一源）、`docs/src/services/activity/decision-tree.js`（`DecisionTreeState.deepItems` 项清单）、`docs/src/entries/tabs/leader/write-tab.js` 的勾选排、`docs/src/entries/tabs/visitor/projects-tab.js` 的「我的任务」完成方式位。
 
-> **来源 C · 原字段表尾行补充**：本节**原字段表**最后 7 行（`organizer`→`voteConfig`）与 `isOutdoor` 同属「代码确实写入 / 读取」的字段，**现均已列入 `DATA_MODEL.md` §2.1**（同属来源 A）；其代码出处保留如下，后端建模不得漏。**依据**：`docs/src/data/mock/activities.js:12-14,61-66`（`organizer` / `direction` / `hostGroup` / `assignments` 的实存形态）、`docs/src/services/activity/decision-tree.js:366`（`organizer` 写入）、`docs/src/services/core/auth.js:239-243`（`assignments` 写读）、`docs/src/entries/tabs/leader/write-tab.js:1180-1184`（`signupEnabled` / `requireMakeup` 写入）、`docs/src/entries/tabs/secretary/calendar-tab.js:1706`（`voteConfig` 写入）、`docs/src/services/activity/vote-config.js:41,44`（`voteConfig` 取值）、`docs/src/services/activity/attendance.js:150-166`（`hostGroup` 判据）、`server/routes/resources/gates.js:98-104`、`server/routes/resources/index.js:686-688`（`voteConfig` 写侧校验）。
+> **来源 C · 原字段表尾行补充**：本节**原字段表**最后 7 行（`organizer`→`voteConfig`）与 `isOutdoor` 同属「代码确实写入 / 读取」的字段，**现均已列入 `DATA_MODEL.md` §2.1**（同属来源 A）；其代码出处保留如下，后端建模不得漏。**依据**：`docs/src/data/mock/activities.js:12-14,61-66`（`organizer` / `direction` / `hostGroup` / `assignments` 的实存形态）、`docs/src/services/activity/decision-tree.js:366`（`organizer` 写入）、`docs/src/services/core/auth.js:239-243`（`assignments` 写读）、`docs/src/entries/tabs/leader/write-tab.js:1180-1184`（`signupEnabled` / `requireMakeup` 写入）、`docs/src/entries/tabs/secretary/calendar-tab.js:1626-1731`（`voteConfig` 写入）、`docs/src/services/activity/vote-config.js:41,44`（`voteConfig` 取值）、`docs/src/services/activity/attendance.js:150-166`（`hostGroup` 判据）、`server/routes/resources/gates.js:98-104`、`server/routes/resources/index.js:686-688`（`voteConfig` 写侧校验）。
 
 **活动存储状态取值**：`draft` 草稿 / `pending-approval` 待批（**仅活动批准门开启时出现**，默认关不写入） / `published` 已发布 / `ongoing` 进行中 / `completed` 已结束 / `cancelled` 已取消。
 **活动生命周期展示态（派生，不落库）**：`draft` / `pending_approval`（待批） / `published` / `ongoing` / `pending_archive`（待归档，悬停显示缺项）/ `executed`（已执行）/ `archived` / `cancelled`。
@@ -1280,7 +1280,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 ## §6 接口一览
 
 > **基础路径**：`/api/v1`（认证路由挂在 `/api/v1/auth`）。**认证方式**：`Authorization: Bearer <token>`（token 由登录接口签发）。
-> **数量口径（展开后总路由数）**：显式声明的路由 91 条＝91 ＋ 115 ＝ 206 条；`router.*` 声明 **93 条**，其中 **4 条在通用资源循环里**（29 个资源名，见 §6.2），循环展开 115 条；`server/app.js` 的 2 条公开辅助路由（不含 Express 中间件）。
+> **数量口径（展开后总路由数）**：显式声明的路由 92 条＝92 ＋ 115 ＝ 207 条；`router.*` 声明 **94 条**，其中 **4 条在通用资源循环里**（29 个资源名，见 §6.2），循环展开 115 条；`server/app.js` 的 2 条公开辅助路由（不含 Express 中间件）。
 > **未登录可读的最小公开口**：`GET /api/v1/public/branch-name`（`server/routes/public-info.js`）——只返回支部显示名一个字段（`config.headerTitle` 优先，回退 `name`，读不到回「本支部」），供登录页抬头与帮助页在登录前显示本实例支部名；响应 `Cache-Control: no-store`，不返回 id / 成员 / 配置等任何其它字段。
 
 ### 6.1 认证（`server/routes/auth.js`）

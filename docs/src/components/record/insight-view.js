@@ -21,10 +21,10 @@
 //   `opts.embedded` 供「工作概况」页内卡复用（不重复页头 H2）。
 
 // 分段当前值（'workgroup' | 'taskforce'）；模块级记忆，同台内切换后保留（参照既有 tab 的 _view 模式）
-import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261102b';
+import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261103b';
 // 批次 524（D）：只读由权限派生；知情查看的 kind 不在写角色表 ⇒ 恒只读，将来可写只改 registry 一处
-import { AuthStore } from '../../services/core/auth.js?v=20261102b';
-import { readonlyMeta } from '../../core/domain/view-capability.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261103b';
+import { readonlyMeta } from '../../core/domain/view-capability.js?v=20261103b';
 
 let _view = null;
 // 已消费的深链定位目标：同一目标只强制分段一次，之后不覆盖用户手动的分段选择
@@ -103,7 +103,7 @@ export function renderInsightView(container, opts = {}) {
         ${renderCardHeader({ title: '其他党小组', meta: readonlyMeta('insight', user) })}
         <div id="insight-group-body"></div>
       </div>` : ''}
-      <p class="text-xs text-gray-500 mt-3">${opts.embedded ? '活动工作组在活动详情可办事。' : '本页只读；活动工作组在活动详情可办事。'}</p>`;
+      <p class="text-body-sm text-gray-500 mt-3">${opts.embedded ? '活动工作组在活动详情可办事。' : '本页只读；活动工作组在活动详情可办事。'}</p>`;
     container.querySelectorAll('.insight-view-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         if (btn.dataset.iview === _view) return;
@@ -122,7 +122,7 @@ export function renderInsightView(container, opts = {}) {
 
   let done;
   if (view === 'taskforce') {
-    done = import('./taskforce-view.js?v=20261102b').then(m => m.renderTaskforceView(body, {
+    done = import('./taskforce-view.js?v=20261103b').then(m => m.renderTaskforceView(body, {
       highlightId: opts.highlightTfId || null,
       taskforces: opts.taskforces,
       // 批次 524（C/#3 #8）：外层卡与卡头由本组件（及调用方的 card）持有，内层不再套卡
@@ -130,7 +130,7 @@ export function renderInsightView(container, opts = {}) {
       onLocated: opts.onLocated,
     }));
   } else {
-    done = import('./workgroup-view.js?v=20261102b').then(m => m.renderWorkgroupView(body, {
+    done = import('./workgroup-view.js?v=20261103b').then(m => m.renderWorkgroupView(body, {
       highlightWorkgroupId: opts.highlightWorkgroupId || null,
       highlightActId: opts.highlightActId || null,
       embedded: true,
@@ -144,7 +144,7 @@ export function renderInsightView(container, opts = {}) {
     const groupBody = document.createElement('div');
     groupBody.id = 'insight-group-body';
     container.querySelector('#insight-group-body')?.replaceWith(groupBody);
-    groupDone = import('./other-groups-view.js?v=20261102b')
+    groupDone = import('./other-groups-view.js?v=20261103b')
       .then(m => m.renderOtherGroupsView(groupBody));
   }
   return Promise.all([done, groupDone]);

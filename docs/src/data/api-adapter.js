@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken, advanceVersionBaselineAfterWrite } from './data-adapter.js?v=20261102b';
+import { getApiBaseUrl, getAuthToken, advanceVersionBaselineAfterWrite } from './data-adapter.js?v=20261103b';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -994,6 +994,21 @@ export const ApiAdapter = {
       return _request(`/api/v1/activities/${encodeURIComponent(activityId)}/expected-roster`, {
         method: 'PUT', body: JSON.stringify({ personIds, frozen: true }),
       });
+    },
+  },
+
+  // 待办「实时派生组」服务端只读端点（批次 532 · B-500-7 最小 Plan B）：
+  //   服务端实现 = `server/routes/todo-groups.js`；只读 GET，读权限门与 `GET /todos` 同口径
+  //   （本人 / 本角色；跨人 / 跨角色一律 403）。
+  //   兼容期：客户端仍在本地派生同样的组（`components/record/todo-tab-shell.js`），
+  //   本口失败 / mock 数据源 / 返回空 ⇒ 回落客户端派生（可见结果不变）。
+  todoGroups: {
+    get({ role, personId } = {}) {
+      const params = new URLSearchParams();
+      if (role) params.set('role', role);
+      if (personId) params.set('personId', personId);
+      const query = params.toString();
+      return _get(`/api/v1/todo-groups${query ? '?' + query : ''}`);
     },
   },
 

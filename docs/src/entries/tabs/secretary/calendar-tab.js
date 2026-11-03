@@ -3,50 +3,50 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 活动查询。
 // D4 裁决批二（2026-09-08）：「考勤概况」独立卡移除 → 考勤作为活动字段入「活动查询」行内只读摘要。
 
-import { getAppState, setState } from '../../../core/base/state.js?v=20261102b';
-import { showToast, escHtml as esc, todayLocal, describeWriteError } from '../../../core/base/utils.js?v=20261102b';
-import { renderDisclosure } from '../../../components/ui/disclosure.js?v=20261102b';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261102b';
-import { renderInspectorFromState, _draftMaterialCount } from '../../../components/record/inspector.js?v=20261102b';
+import { getAppState, setState } from '../../../core/base/state.js?v=20261103b';
+import { showToast, escHtml as esc, todayLocal, describeWriteError } from '../../../core/base/utils.js?v=20261103b';
+import { renderDisclosure } from '../../../components/ui/disclosure.js?v=20261103b';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261103b';
+import { renderInspectorFromState, _draftMaterialCount } from '../../../components/record/inspector.js?v=20261103b';
 // 2026-11-01 批次 524（#7）：待办深链消费（PendingTarget）+ 复用既有活动锚点定位
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261102b';
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261102b';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261103b';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261103b';
 // Task 6：支书「活动管理」内的条目走 locate——同页 inspector 预览 + 「打开完整页」。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261102b';
-import { computeSecretaryStats } from '../../../services/core/roles.js?v=20261102b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261102b';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261102b';
-import { openModal, closeModal, confirmNudge, confirmWriteWithoutGrant } from '../../../components/ui/modal.js?v=20261102b';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261103b';
+import { computeSecretaryStats } from '../../../services/core/roles.js?v=20261103b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261103b';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261103b';
+import { openModal, closeModal, confirmNudge, confirmWriteWithoutGrant } from '../../../components/ui/modal.js?v=20261103b';
 // 批次 524（F · 输入单一源）：布局中立的控件积木（只出控件本体，不套 label / 外边距）
-import { textInput, selectInput } from '../../../components/ui/forms.js?v=20261102b';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/activity/decision-tree.js?v=20261102b';
-import { loadActivities, listBrandProposals } from '../../../services/activity/activity.js?v=20261102b';
-import { icon } from '../../../core/base/icons.js?v=20261102b';
-import { liveMembers, PersonStore, getPersonName } from '../../../services/member/person.js?v=20261102b';
+import { textInput, selectInput } from '../../../components/ui/forms.js?v=20261103b';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/activity/decision-tree.js?v=20261103b';
+import { loadActivities, listBrandProposals } from '../../../services/activity/activity.js?v=20261103b';
+import { icon } from '../../../core/base/icons.js?v=20261103b';
+import { liveMembers, PersonStore, getPersonName } from '../../../services/member/person.js?v=20261103b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261102b';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261103b';
 const PEOPLE = liveMembers();
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261102b';
-import { BranchService } from '../../../services/core/runtime.js?v=20261102b';
-import { DEFAULT_BRANCH_ID, ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS, ROLE_LABELS, PROJECT_ROLES, ACTIVITY_SCOPES, isBranchLevelScenario } from '../../../core/domain/constants.js?v=20261102b';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261103b';
+import { BranchService } from '../../../services/core/runtime.js?v=20261103b';
+import { DEFAULT_BRANCH_ID, ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS, ROLE_LABELS, PROJECT_ROLES, ACTIVITY_SCOPES, isBranchLevelScenario } from '../../../core/domain/constants.js?v=20261103b';
 // 责任党小组清单唯一来源（2026-10-21 批次 499：活动必须落到唯一责任党小组）
-import { loadPartyGroups } from '../../../services/member/party-group.js?v=20261102b';
+import { loadPartyGroups } from '../../../services/member/party-group.js?v=20261103b';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261102b';
-import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20261102b';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, resolveParticipantIds, isAnonymousForced } from '../../../services/activity/vote-config.js?v=20261102b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261102b';
-import { getBranchIdOfPerson, getBranchById, getBranchOutputBlocks, applyWorkflowBlockPolicy, getWorkflowBlockFieldPolicy, getWorkflowBlockParticipantPolicy } from '../../../services/branch/branch.js?v=20261102b';
-import { generateId } from '../../../core/base/id.js?v=20261102b';
-import { validateAgendaStructure } from '../../../services/activity/agenda-relations.js?v=20261102b';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261103b';
+import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20261103b';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, resolveParticipantIds, isAnonymousForced } from '../../../services/activity/vote-config.js?v=20261103b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261103b';
+import { getBranchIdOfPerson, getBranchById, getBranchOutputBlocks, applyWorkflowBlockPolicy, getWorkflowBlockFieldPolicy, getWorkflowBlockParticipantPolicy } from '../../../services/branch/branch.js?v=20261103b';
+import { generateId } from '../../../core/base/id.js?v=20261103b';
+import { validateAgendaStructure } from '../../../services/activity/agenda-relations.js?v=20261103b';
 // 支部文件读侧收敛点（2026-09-10）：会前草案下拉经 branch-doc 服务读取（按归属支部过滤，跨支部不可见）
-import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch/branch-doc.js?v=20261102b';
+import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch/branch-doc.js?v=20261103b';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
-import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST, THREE_MEETINGS_MANIFESTS } from '../../../workflow/blocks/manifests.js?v=20261102b';
+import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST, THREE_MEETINGS_MANIFESTS } from '../../../workflow/blocks/manifests.js?v=20261103b';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261102b';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261102b';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261103b';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261103b';
 // 2026-10-25 IA 62→45：本页**只承担活动生命周期**——原「活动查询」折叠区（`renderQueryView`）与
 //   「党小组活动」独立卡已删：关键词 / 类别 / 品牌 / 党小组活动统一为日历工具栏的筛选控件（同一屏、一次点击）；
 //   项目赋权整卡（`mountActivityProjectAuth`）已移出——专班赋权回组织台「专班管理」，活动赋权在活动详情
@@ -264,7 +264,7 @@ function _agendaRowHTML({ id = '', item = '', host = '', kinds = [], branchDocId
       </div>
       <div class="wp-agenda-doc-slot${docVisible}">
         ${selectInput({ options: [{ value: '', label: '加载会前草案…' }], className: 'wp-agenda-doc w-full' })}
-        ${emptyStateHtml({ text: '暂无会前草案', variant: 'inline', className: 'wp-agenda-doc-hint mt-1 hidden', actionHtml: '<a href="search.html" target="_blank" class="text-accent">去资料查询写入 →</a>' })}
+        ${emptyStateHtml({ text: '暂无会前草案', variant: 'inline', className: 'wp-agenda-doc-hint mt-1 hidden', actionHtml: '<a href="search.html" target="_blank" rel="noopener noreferrer" class="text-accent">去资料查询写入 →</a>' })}
       </div>
       <div class="wp-agenda-member-slot flex items-center gap-2${memberVisible}">
         ${selectInput({ options: targetOptions, value: toStage || '', className: 'wp-agenda-to w-32 shrink-0' })}
@@ -288,6 +288,8 @@ const CALENDAR_TAB_HTML = `
   })}
   <!-- 统计条（紧凑文本概览） -->
   <div id="secretary-stats" class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500 mb-4 py-2 border-b border-gray-100"></div>
+  <!-- F-18：取数失败不再只落 console——页面内可见错误条（role=status，复用既有提示样式） -->
+  <div id="cal-data-error" role="status" hidden></div>
   <!-- 活动日历（2026-08-05：「写入活动」并入日历卡片头部，删除原独立活动写入卡片） -->
   <div class="card rounded-xl p-5 mb-4">
     <!-- 2026-10-01 批次 317（支书 V-3「功能钮提台顶栏全局固定位」）：原在本行的「写入活动」按钮
@@ -345,10 +347,33 @@ const CALENDAR_TAB_HTML = `
 `;
 
 /** 渲染活动管理 tab：统计条 + 筛选工具栏 + 日历 + 写入浮窗（增量刷新，写入面板防重渲染） */
+// F-18：本页取数失败的可见汇总（页面内错误条 + 保留 console 诊断）
+const _calendarDataErrors = [];
+function _reportCalendarDataError(message, error) {
+  console.warn(message, error);
+  const detail = String(message || '').replace(/^\[[^\]]+\]\s*/, '');
+  if (detail && !_calendarDataErrors.includes(detail)) _calendarDataErrors.push(detail);
+  _renderCalendarDataError();
+}
+function _renderCalendarDataError() {
+  const host = document.getElementById('cal-data-error');
+  if (!host) return;
+  if (!_calendarDataErrors.length) {
+    host.hidden = true;
+    host.innerHTML = '';
+    return;
+  }
+  host.hidden = false;
+  host.innerHTML = `<p class="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">部分数据暂未读取：${_calendarDataErrors.map(esc).join('；')}。其余内容仍可查看，可稍后重试。</p>`;
+}
+
 export function renderContent(state) {
   const tc = document.getElementById('secretary-tab-content');
   // 2026-10-25 Task 1.3：容器缺失不再静默 return——抛出后由 tab-bar 的渲染生命周期落可见错误卡（含重试）。
   if (!tc) throw new Error('[calendar-tab] 缺少内容容器 #secretary-tab-content');
+  // F-18：每次完整渲染重置错误汇总（数据重新读取的失败会再次写入）
+  _calendarDataErrors.length = 0;
+  _renderCalendarDataError();
   if (tc.dataset.currentTab !== 'calendar') {
     tc.innerHTML = CALENDAR_TAB_HTML;
     tc.dataset.currentTab = 'calendar';
@@ -1210,7 +1235,7 @@ async function _hydrateDraftDocs(row) {
       + drafts.map(d => `<option value="${d.id}"${d.id === row.dataset.docId ? ' selected' : ''}>${d.title || d.fileName || '未命名草案'}</option>`).join('');
     if (hint) hint.classList.toggle('hidden', drafts.length > 0);
   } catch (e) {
-    console.warn('[calendar] 会前草案加载失败：', e);
+    _reportCalendarDataError('[calendar] 会前草案加载失败', e);
     select.innerHTML = '<option value="">草案加载失败</option>';
   }
 }
@@ -1755,7 +1780,7 @@ async function handleSubmitActivity() {
     } catch (_) { /* 列表刷新失败不影响写入结果*/ }
     try {
       renderContent(getAppState());
-    } catch (e) { console.warn('[T283] 创建后兜底渲染失败', e); }
+    } catch (e) { _reportCalendarDataError('[calendar] 创建后页面刷新失败', e); }
 
     // 9. 成功后关闭悬浮（T-217 §3 全悬浮化）
     closeModal(WRITE_MODAL_ID);
@@ -1801,7 +1826,7 @@ async function _syncAgendaDocMaterial(select) {
     el.textContent = `已附材料 ${_draftMaterialCount(doc)} 件`;
     el.classList.remove('hidden');
   } catch (e) {
-    console.warn('[calendar] 已附材料提示计算失败：', e);
+    _reportCalendarDataError('[calendar] 已附材料数量计算失败', e);
     el.classList.add('hidden');
   }
 }
@@ -1825,26 +1850,26 @@ document.addEventListener('click', (e) => { if (e.target?.closest?.('#wp-agenda-
 async function _loadAgendaCandidateSources() {
   const out = { taskforceProposals: [], issues: [], draftDocs: [], members: [], stageEntries: {} };
   const [{ TaskForceRecordStore }, { IssueStore }, { loadStageEntryDates }] = await Promise.all([
-    import('../../../services/activity/taskforce.js?v=20261102b'),
-    import('../../../services/governance/issues.js?v=20261102b'),
-    import('../../../services/member/member-confirmation.js?v=20261102b'),
+    import('../../../services/activity/taskforce.js?v=20261103b'),
+    import('../../../services/governance/issues.js?v=20261103b'),
+    import('../../../services/member/member-confirmation.js?v=20261103b'),
   ]);
   try { out.taskforceProposals = TaskForceRecordStore.listCommitteeRequests(); }
-  catch (e) { console.warn('[calendar] 专班待议加载失败：', e); }
+  catch (e) { _reportCalendarDataError('[calendar] 专班待议加载失败', e); }
   try {
     await IssueStore.loadAll();
     out.issues = IssueStore.getAll().filter(i => i.status === 'open' && !i.hidden && !i.mergedInto);
-  } catch (e) { console.warn('[calendar] 意见反馈加载失败：', e); }
+  } catch (e) { _reportCalendarDataError('[calendar] 意见反馈加载失败', e); }
   try {
     const docs = await listBranchDocs();
     out.draftDocs = docs.filter(isAgendaDraftDoc); // 同一判据（含制度草案 / 待党员大会表决，2026-09-21 批次 129）
-  } catch (e) { console.warn('[calendar] 制度草案加载失败：', e); }
+  } catch (e) { _reportCalendarDataError('[calendar] 制度草案加载失败', e); }
   try { out.members = PersonStore.getMembers(); }
-  catch (e) { console.warn('[calendar] 成员档案读取失败：', e); }
+  catch (e) { _reportCalendarDataError('[calendar] 成员档案读取失败', e); }
   try { out.stageEntries = loadStageEntryDates(); }
-  catch (e) { console.warn('[calendar] 发展推进档案读取失败：', e); }
+  catch (e) { _reportCalendarDataError('[calendar] 发展推进档案读取失败', e); }
   try { out.brandProposals = listBrandProposals().map(bp => ({ ...bp, proposal: { ...bp.proposal, proposedByName: bp.proposal && bp.proposal.by ? (PersonStore.getById(bp.proposal.by)?.name || '') : '' } })); }
-  catch (e) { console.warn('[calendar] 品牌认定提案加载失败：', e); }
+  catch (e) { _reportCalendarDataError('[calendar] 品牌认定提案加载失败', e); }
   return out;
 }
 

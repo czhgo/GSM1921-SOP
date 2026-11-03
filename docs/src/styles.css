@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261102b');
+@import url('components/person-picker.css?v=20261103b');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -1829,11 +1829,18 @@ a.text-accent {
   outline-offset: 1px;
   box-shadow: none;
 }
-/* 轻量 hover 卡片（data-tip 文本，CSS 实现零 JS） */
+/* 轻量 hover 卡片（data-tip 文本，CSS 实现零 JS）
+   2026-11-03 R5A-22：触发器改为可聚焦 <button>，故补足按钮复位（不留原生底/边/内边距）；
+   显示条件由 hover-only 扩到 `:focus`（点按 / 键盘聚焦后移开指针仍可读）。 */
 .tip-trigger {
   position: relative;
   cursor: help;
+  background: none;
+  border: 0;
   border-bottom: 1px dashed var(--neutral-300);
+  padding: 0 !important;
+  font: inherit;
+  color: inherit;
 }
 .tip-trigger::after {
   content: attr(data-tip);
@@ -1865,7 +1872,8 @@ a.text-accent {
   outline-offset: 1px;
   box-shadow: none;
 }
-.tip-trigger:focus-visible::after { visibility: visible; }
+.tip-trigger:focus-visible::after,
+.tip-trigger:focus::after { visibility: visible; }
 /* 内嵌搜索（选项数超阈值自动出现，支书指令 2026-08-06） */
 .cs-search {
   position: sticky;
@@ -3099,18 +3107,13 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
    只在可滚时出现；不改变 tab 尺寸 / 选中态 / 顺序 / 分组。 */
 .ws-tab-scroll {
   position: relative;
-  /* R5-C01：右侧箭头为绝对定位覆盖层 ⇒ 给滚动区预留 40px 内边距，
-     末枚页签不再被箭头压住（桌面 1440 下 secretary / visitor 末签可见）。
-     2026-10-27 Task 6.2：≥1281px 放开到容器可用宽度（箭头已挂页签行、按需显示），
-     窄屏仍留 40px 给覆盖式箭头。 */
-  padding-right: 40px;
+  /* 2026-11-03 R5A-23：箭头已改为页签行内的流式元素（见 .ws-tab-arrow），
+     不再需要在滚动区里预留覆盖式箭头的内边距。 */
+  padding: 0;
   scroll-behavior: smooth;
   scrollbar-width: none;            /* Firefox */
   -ms-overflow-style: none;         /* IE/旧 Edge */
   -webkit-overflow-scrolling: touch;/* iOS 惯性滚动 */
-}
-@media (min-width: 1281px) {
-  .ws-tab-scroll { padding-right: 0; }
 }
 .ws-tab-scroll::-webkit-scrollbar {
   display: none;                    /* Chrome/Safari */
@@ -3159,15 +3162,16 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   flex-wrap: wrap;
 }
 .ws-tab-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  /* 2026-11-03 R5A-23：箭头由绝对定位覆盖层改为页签行内的流式元素——
+     左右各占 32px，页签内容不再被圆形按钮压住；滚动行为不变（仍点箭头滚 240px）。 */
+  position: relative;
+  flex-shrink: 0;
   z-index: 2;
   border-radius: 9999px;
   box-shadow: var(--shadow-dropdown);
 }
-.ws-tab-arrow--left { left: 0; }
-.ws-tab-arrow--right { right: 0; }
+.ws-tab-arrow--left { left: auto; }
+.ws-tab-arrow--right { right: auto; }
 .ws-tab-arrow[hidden] { display: none !important; }
 /* 右侧渐隐只压在页签行（组名行在它上方，不参与渐隐）。 */
 .ws-tab-shell::after {
@@ -4514,7 +4518,9 @@ html.theme-dark .ref-doc-action-danger {
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
-  --help-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  /* 2026-11-03 批次 531（F-12）：不再自造曲线，并入全站既有 `--ease-standard`
+     （令牌单一源；help 页两条 240ms 过渡的消费方仍读本名，不改调用点）。 */
+  --help-ease: var(--ease-standard);
   --help-party-red: #CE1126;
   --help-text: #1F2937;
 }

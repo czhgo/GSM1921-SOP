@@ -18,7 +18,7 @@
 //   · 数据表空态：list-filter 的 table 模式与 relation-matrix 一律调 `variant: 'table'`，不再手写空行。
 //   · 页签切换骨架（3 条卡形 + spinner）仍以 components/shell/tab-bar.js::tabContentSkeletonHtml 为准，
 //     本件只承担「页 / 页签首帧的线条占位」。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261102b';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261103b';
 
 /**
  * 生成空态 HTML。
@@ -72,6 +72,27 @@ export function renderEmptyState(container, messageOrOptions, opts = {}) {
 /** 骨架行宽循环（自上而下收窄，读起来像「正在排版的正文」） */
 const SKELETON_WIDTHS = ['w-full', 'w-5/6', 'w-2/3'];
 
+/** 骨架形态清单（F-15）：`card` 为既有默认；`list` / `table` 让占位与真实载体同构。 */
+export const SKELETON_VARIANTS = ['card', 'list', 'table'];
+
+/** 行式骨架：左短条（序号 / 头像位）＋ 主条 ＋ 右短条（动作位） */
+function _listRowsHtml(count, lineClass) {
+  const row = `<div class="flex items-center gap-3">
+      <div class="skeleton-line ${lineClass} w-8 animate-pulse"></div>
+      <div class="skeleton-line ${lineClass} flex-1 animate-pulse"></div>
+      <div class="skeleton-line ${lineClass} w-16 animate-pulse"></div>
+    </div>`;
+  return Array.from({ length: count }, () => row).join('');
+}
+
+/** 表格式骨架：一行表头（短格）＋ N 行等宽格 */
+function _tableRowsHtml(count, lineClass) {
+  const cell = `<div class="skeleton-line ${lineClass} flex-1 animate-pulse"></div>`;
+  const headCell = `<div class="skeleton-line ${lineClass} w-16 animate-pulse"></div>`;
+  return `<div class="flex items-center gap-3">${headCell.repeat(4)}</div>`
+    + Array.from({ length: count }, () => `<div class="flex items-center gap-3">${cell.repeat(4)}</div>`).join('');
+}
+
 /**
  * 生成加载骨架 HTML（`.skeleton-block` ＋ N 条 `.skeleton-line`）。
  * 骨架整块 `aria-hidden`（只占位、不承载信息），加载文案由相邻 `.visually-hidden[role=status]` 承担：
@@ -79,7 +100,9 @@ const SKELETON_WIDTHS = ['w-full', 'w-5/6', 'w-2/3'];
  * @param {number} [lines] 行数（≥1，缺省 3）
  * @param {Object} [opts]
  * @param {string} [opts.lineClass] 行尺寸类（如 `h-9` / `h-6 w-40`；缺省 `h-4`）
- * @param {string[]} [opts.widths] 行宽类循环（缺省 full / 5-6 / 2-3）
+ * @param {string[]} [opts.widths] 行宽类循环（缺省 full / 5-6 / 2-3；`card` 形态生效）
+ * @param {'card'|'list'|'table'} [opts.variant] 形态：缺省 `card`＝既有线条占位；
+ *   `list`＝列表行（左短条 / 主条 / 右短条）；`table`＝表头 ＋ N 行等宽格
  * @param {string} [opts.className] 骨架块附加类（如 `space-y-6` 之外的布局修饰）
  * @param {string} [opts.ariaText] 加载文案（缺省「正在加载…」；传 `''` 表示由外层已有 role=status 承担）
  * @returns {string}
@@ -89,8 +112,13 @@ export function skeletonHtml(lines = 3, opts = {}) {
   const lineClass = opts.lineClass || 'h-4';
   const widths = Array.isArray(opts.widths) && opts.widths.length ? opts.widths : SKELETON_WIDTHS;
   const className = opts.className ? ' ' + esc(opts.className) : '';
-  const rows = Array.from({ length: count }, (_, i) =>
-    `<div class="skeleton-line ${lineClass} ${widths[i % widths.length]} animate-pulse"></div>`).join('');
+  const variant = SKELETON_VARIANTS.includes(opts.variant) ? opts.variant : 'card';
+  const rows = variant === 'list'
+    ? `<div class="flex flex-col gap-2">${_listRowsHtml(count, lineClass)}</div>`
+    : (variant === 'table'
+      ? `<div class="flex flex-col gap-2">${_tableRowsHtml(count, lineClass)}</div>`
+      : Array.from({ length: count }, (_, i) =>
+        `<div class="skeleton-line ${lineClass} ${widths[i % widths.length]} animate-pulse"></div>`).join(''));
   const status = opts.ariaText === ''
     ? ''
     : `<p class="visually-hidden" role="status">${esc(opts.ariaText || '正在加载…')}</p>`;

@@ -47,7 +47,7 @@ async function loginParty(page) {
     page.click('button[type="submit"]'),
   ]);
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261102b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261103b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 async function clickTab(page, sel, text) {
   await page.waitForFunction(({ s, t }) => {
@@ -129,9 +129,12 @@ test('S3 工作流块配置区：manifest 目录呈现 → 停用保存 → 重�
     assert.equal(chips.find(c => c.id === 'taskforce')?.dimmed, false, '专班块保持启用');
 
     // ④ 恢复默认（全开）→ reload 重进回归
-    party.once('dialog', (d) => d.accept());
+    // 2026-11-04 批次 533：恢复默认已从原生 confirm 改为 `confirmDanger` 确认面（SD-53），
+    //   不再触发浏览器 dialog 事件；改为点确认面主按钮。
     const resetResp = configPatchPromise(party);
     await party.click('[data-wz-act="reset-modules"]');
+    await party.waitForSelector('[data-nudge-confirm]', { timeout: 8000 });
+    await party.click('[data-nudge-confirm]');
     await resetResp;
     await party.reload({ waitUntil: 'domcontentloaded' });
     await gotoWizardStep2(party);

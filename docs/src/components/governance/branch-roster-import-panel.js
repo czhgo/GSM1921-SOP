@@ -1,9 +1,9 @@
-import { mockDB } from '../../core/domain/domain.js?v=20261102b';
-import { PersonStore } from '../../services/member/person.js?v=20261102b';
-import { getRosterStats } from '../../services/member/roster.js?v=20261102b';
-import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../services/member/branch-roster-import.js?v=20261102b';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261102b';
-import { icon } from '../../core/base/icons.js?v=20261102b';
+import { mockDB } from '../../core/domain/domain.js?v=20261103b';
+import { PersonStore } from '../../services/member/person.js?v=20261103b';
+import { getRosterStats } from '../../services/member/roster.js?v=20261103b';
+import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../services/member/branch-roster-import.js?v=20261103b';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261103b';
+import { icon } from '../../core/base/icons.js?v=20261103b';
 
 const drafts = new Map();
 
@@ -44,7 +44,7 @@ function draftHtml(branchId) {
       ${stat({ icon: 'usersGroup', tint: 'var(--app-accent-soft-text)', value: s.expected, unit: '人', label: '支部党员大会应到', note: `党员 ${s.partyTotal} − 滞留 ${s.detained}` })}
       ${stat({ icon: 'list', tint: 'var(--neutral-500)', value: groupCount, unit: '组', label: '各党小组会应到', note: groups || '—' })}
     </div>
-    <div class="mt-3 flex flex-wrap items-center justify-between gap-2"><p class="max-w-2xl text-xs text-gray-600">确认后整表写入本支部；导入前不会修改名册。</p><div class="flex gap-2"><button type="button" class="btn-outline px-3 py-1.5 text-xs" data-roster-action="discard">放弃</button><button type="button" class="btn-accent px-3 py-1.5 text-xs font-medium" data-roster-action="confirm">确认导入保存</button></div></div>
+    <div class="mt-3 flex flex-wrap items-center justify-between gap-2"><p class="max-w-2xl text-body-sm text-gray-600">确认后整表写入本支部；导入前不会修改名册。</p><div class="flex gap-2"><button type="button" class="btn-outline px-3 py-1.5 text-xs" data-roster-action="discard">放弃</button><button type="button" class="btn-accent px-3 py-1.5 text-xs font-medium" data-roster-action="confirm">确认导入保存</button></div></div>
   </div>`;
 }
 

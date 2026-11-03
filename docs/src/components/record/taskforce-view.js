@@ -4,26 +4,26 @@
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据支书第五轮裁定「新建专班查看组件（列表+详情）」。
 // 支书设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261102b';
-import { getPersonName } from '../../services/member/person.js?v=20261102b';
-import { mockDB } from '../../core/domain/domain.js?v=20261102b';
-import { AuthStore } from '../../services/core/auth.js?v=20261102b';
-import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261102b';
-import { badgeHtml } from '../ui/badges.js?v=20261102b';
-import { dotDarkVars } from '../../core/domain/constants.js?v=20261102b';
-import { flashHighlight, showToast, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261102b';
-import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261102b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261103b';
+import { getPersonName } from '../../services/member/person.js?v=20261103b';
+import { mockDB } from '../../core/domain/domain.js?v=20261103b';
+import { AuthStore } from '../../services/core/auth.js?v=20261103b';
+import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261103b';
+import { badgeHtml } from '../ui/badges.js?v=20261103b';
+import { dotDarkVars } from '../../core/domain/constants.js?v=20261103b';
+import { flashHighlight, showToast, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261103b';
+import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261103b';
 // 批次 524（D）：只读由权限派生，不再写死「· 只读」字符串
-import { readonlyMeta } from '../../core/domain/view-capability.js?v=20261102b';
+import { readonlyMeta } from '../../core/domain/view-capability.js?v=20261103b';
 // 统一检索引擎（2026-09-14 裁定）：只读详情「成员贡献」（第一列是人 → 配姓名关键词）与
 // 「中间进度」（时间线 → 只给分页：keyword null + facets []）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261102b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261103b';
 // Task 6：专班的完整详情页出口（同页预览 + 「打开完整页」）；入口已在工作台内 ⇒ locate。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261102b';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261103b';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261103b';
 // 批次 525（#4）：搜索建议走自建 suggestInput（原生 datalist 会在输入框内画 UA picker 三角）。
-import { suggestInput } from '../ui/forms.js?v=20261102b';
+import { suggestInput } from '../ui/forms.js?v=20261103b';
 // 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
 const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };
 // 专班状态 → 固定语义 tone（不随主题）
@@ -198,7 +198,7 @@ function _renderTfCard(t) {
         <span class="text-sm font-semibold text-gray-800 leading-snug">${esc(t.name)}</span>
         <span class="tint-pill" data-tone="${statusTone(t.status)}">${statusText(t.status)}</span>
       </div>
-      ${t.task ? `<p class="text-xs text-gray-500 mb-2 line-clamp-2">${esc(t.task)}</p>` : ''}
+      ${t.task ? `<p class="text-body-sm text-gray-500 mb-2 line-clamp-2">${esc(t.task)}</p>` : ''}
       <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
         <span>${filled}/${t.capacity || 0} 人</span>
         ${t.deadline ? `<span>截止 ${esc(t.deadline)}</span>` : ''}
@@ -252,7 +252,7 @@ async function _renderTfDetail(container, tf, highlightId) {
     ? emptyStateHtml({ text: "暂无成员", variant: 'inline' })
     : canRevealNames
       ? '<div id="tfv-member-host"></div>'
-      : `<p class="text-xs text-gray-600">工作组成员：组织者 ${filled.filter((member) => member.role === 'organizer').length} 人、深度参与者 ${filled.filter((member) => member.role === 'deep').length} 人。登录并进入所属支部后可查看姓名。</p>`;
+      : `<p class="text-body-sm text-gray-600">工作组成员：组织者 ${filled.filter((member) => member.role === 'organizer').length} 人、深度参与者 ${filled.filter((member) => member.role === 'deep').length} 人。登录并进入所属支部后可查看姓名。</p>`;
 
   // ── 立项③阶段a：专班中间进度只读时间线（有记录才渲染，减少噪音） ──
   // 谁可看：本组件承载纪检/组长/全员只读专班查看，凡可展开详情者即可见，无额外权限过滤
@@ -291,7 +291,7 @@ async function _renderTfDetail(container, tf, highlightId) {
         <li class="rounded-lg bg-gray-50 px-3 py-2">
           <div class="flex flex-wrap items-center gap-2"><span class="text-xs font-medium text-gray-800">${esc(output.title || '未命名产出')}</span><span class="rounded-full bg-white px-2 py-0.5 text-xs text-gray-600">${esc(outputStatus[output.status] || '已登记')}</span></div>
           ${output.taskId ? `<p class="mt-1 text-xs text-gray-500">任务：${esc(tasks.find((task) => task.id === output.taskId)?.title || output.taskId)}</p>` : ''}
-          ${output.description ? `<p class="mt-1 whitespace-pre-wrap text-xs text-gray-600">${esc(output.description)}</p>` : ''}
+          ${output.description ? `<p class="mt-1 whitespace-pre-wrap text-body-sm text-gray-600">${esc(output.description)}</p>` : ''}
         </li>`).join('')}</ul>` : emptyStateHtml({ text: '暂无工作产出', variant: 'inline' })}
     </div>`;
 
@@ -313,7 +313,7 @@ async function _renderTfDetail(container, tf, highlightId) {
     ${myFillHtml}
     <div class="pt-3 border-t border-gray-100">
       <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-1">历史分工记录</h5>
-      <p class="mb-2 text-xs leading-5 text-gray-500">历史分工记录仅供查阅。${canRevealNames ? '' : '登录并进入所属支部后可查看历史分工明细。'}</p>
+      <p class="mb-2 text-body-sm leading-5 text-gray-500">历史分工记录仅供查阅。${canRevealNames ? '' : '登录并进入所属支部后可查看历史分工明细。'}</p>
       ${memberRows}
     </div>
     ${outputHtml}
@@ -376,7 +376,7 @@ async function _renderTfDetail(container, tf, highlightId) {
                 <span class="text-xs text-gray-500">${esc((p.at || '').slice(0, 16).replace('T', ' '))}</span>
                 <span class="text-xs text-gray-500">${p.by ? (canRevealNames ? esc(getPersonName(p.by)) : '成员') : ''}</span>
               </div>
-              <p class="text-xs text-gray-600 leading-relaxed mt-0.5">${esc(p.note || '')}</p>
+              <p class="text-body-sm text-gray-600 leading-relaxed mt-0.5">${esc(p.note || '')}</p>
             </div>
           </div>`,
     });

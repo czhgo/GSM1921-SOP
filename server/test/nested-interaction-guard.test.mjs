@@ -57,6 +57,13 @@ const NESTED_WHITELIST = new Map([
     defectSet: false,
     reason: '成员任务卡 + 「勾掉」按钮；按钮 stopPropagation，卡 keydown 要求 e.target === card',
   }],
+  // 2026-11-04 批次 533（R5A-22）：反馈行整卡可点 + 提交人信息展示按钮（原 span 提示改为可聚焦 button）；
+  //   行点击对 `[data-tip]` 提前返回，不连带打开详情。
+  ['docs/src/entries/tabs/secretary/feedback-tab.js', {
+    runtimeHits: 1,
+    defectSet: false,
+    reason: '反馈行整卡可点 + 提交人 tip 按钮；行点击见到 [data-tip] 即返回，按钮键盘可达',
+  }],
 ]);
 
 const EXPECTED_DEFECT_HITS = 14;

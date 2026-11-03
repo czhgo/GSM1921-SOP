@@ -12,16 +12,16 @@
 //   也绕过了支书台归档前的材料 / 考勤闸门。本次不新增第二套归档写口（归档仍走活动详情的材料闸门），
 //   文案与提示只说「标记完成」，不再声称「完成即归档」。
 
-import { BranchService } from '../../services/core/runtime.js?v=20261102b';
-import { persist } from '../../data/data-adapter.js?v=20261102b';
-import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261102b';
-import { isActivityEnded } from '../../core/domain/constants.js?v=20261102b';
+import { BranchService } from '../../services/core/runtime.js?v=20261103b';
+import { persist } from '../../data/data-adapter.js?v=20261103b';
+import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261103b';
+import { isActivityEnded } from '../../core/domain/constants.js?v=20261103b';
 // A03：组织者判据与活动详情同源——工作组主源优先，项目角色行次之，`organizer` 仅兜底。
-import { mockDB } from '../../core/domain/domain.js?v=20261102b';
-import { confirmDanger } from '../ui/modal.js?v=20261102b';
-import { getPersonName } from '../../services/member/person.js?v=20261102b';
-import { badgeHtml } from '../ui/badges.js?v=20261102b';
-import { renderQueryView } from './query-view.js?v=20261102b';
+import { mockDB } from '../../core/domain/domain.js?v=20261103b';
+import { confirmDanger } from '../ui/modal.js?v=20261103b';
+import { getPersonName } from '../../services/member/person.js?v=20261103b';
+import { badgeHtml } from '../ui/badges.js?v=20261103b';
+import { renderQueryView } from './query-view.js?v=20261103b';
 
 /**
  * 渲染活动进展分段（全部活动查询 + 材料出口 + 标记完成）。
@@ -40,7 +40,7 @@ export function renderActivityProgress(host, { activities = [], accent, onChange
         <span class="font-title-cn text-base font-semibold text-gray-800">活动进展</span>
         <span class="text-xs text-gray-500 tabular-nums">${activities.length} 项</span>
       </summary>
-      <p class="text-xs text-gray-500 mt-3 mb-3">按承办范围查看活动；归档仍在活动详情按材料 / 考勤闸门办理。</p>
+      <p class="text-body-sm text-gray-500 mt-3 mb-3">按承办范围查看活动；归档仍在活动详情按材料 / 考勤闸门办理。</p>
       <div id="org-activity-query"></div>
     </details>
   `;

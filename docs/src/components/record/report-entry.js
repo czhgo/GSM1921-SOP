@@ -19,15 +19,15 @@
 //    **不落 hex**。
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261102b';
-import { AuthStore } from '../../services/core/auth.js?v=20261102b';
-import { showToast, getBasePath } from '../../core/base/utils.js?v=20261102b';
-import { getPersonName } from '../../services/member/person.js?v=20261102b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261102b';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261102b';
-import { SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261102b';
-import { isTaskforceTerminalStatus } from '../../core/domain/domain.js?v=20261102b';
-import { openModal, closeModal } from '../ui/modal.js?v=20261102b';
+import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261103b';
+import { AuthStore } from '../../services/core/auth.js?v=20261103b';
+import { showToast, getBasePath } from '../../core/base/utils.js?v=20261103b';
+import { getPersonName } from '../../services/member/person.js?v=20261103b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261103b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261103b';
+import { SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261103b';
+import { isTaskforceTerminalStatus } from '../../core/domain/domain.js?v=20261103b';
+import { openModal, closeModal } from '../ui/modal.js?v=20261103b';
 
 /** 当前用户未读汇报数（「支书请我汇报」＋「支书答复发回」） */
 function _unreadCount() {
@@ -127,7 +127,7 @@ async function openReportModal() {
 
   // 浮层统一体例（DESIGN_SYSTEM §4.27）：header 纯文本标题 / 动作固定在 footer / 取消走 onCancel
   const bodyHtml = `
-    <p class="text-xs text-gray-500 mb-3">汇报将发往支书，答复后发回给你。请选择分类并填写内容。</p>
+    <p class="text-body-sm text-gray-500 mb-3">汇报将发往支书，答复后发回给你。请选择分类并填写内容。</p>
     <div class="mb-3">
       <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="report-modal-target">关联事项（可选）</label>
       <select id="report-modal-target" class="input-flat w-full">${optionsHtml}</select>
@@ -139,7 +139,7 @@ async function openReportModal() {
       `).join('')}
     </div>
     <textarea id="report-modal-body" class="input-flat w-full h-24 resize-none" placeholder="填写汇报内容（进度 / 难点卡点 / 请示事项）…"></textarea>
-    ${canReportUp ? `<p class="text-xs text-gray-500 mt-3">需向党委上报（发展节点 / 活动报备）？<a style="color:var(--app-accent-soft-text);font-weight:600;" href="${getBasePath()}workspace/secretary.html?tab=report-up">去上报党委</a></p>` : ''}
+    ${canReportUp ? `<p class="text-body-sm text-gray-500 mt-3">需向党委上报（发展节点 / 活动报备）？<a style="color:var(--app-accent-soft-text);font-weight:600;" href="${getBasePath()}workspace/secretary.html?tab=report-up">去上报党委</a></p>` : ''}
   `;
 
   openModal({

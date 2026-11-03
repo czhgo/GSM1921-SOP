@@ -19,31 +19,34 @@
 // 视觉沿用 card/rounded 既有体系（四档列表渲染在 components/record/todo-list.js renderUrgencyTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261102b';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261103b';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261102b';
-import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261102b';
-import { badgeHtml } from '../ui/badges.js?v=20261102b';
-import { icon } from '../../core/base/icons.js?v=20261102b';
-import { showToast, escHtml, todayLocal, flashHighlight, getBasePath, smoothScroll } from '../../core/base/utils.js?v=20261102b';
-import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261102b';
-import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261102b';
-import { AuthStore } from '../../services/core/auth.js?v=20261102b';
-import { mockDB } from '../../core/domain/domain.js?v=20261102b';
-import { tokenOf } from '../../core/base/version-token.js?v=20261102b'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261102b';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261102b'; // P2 渲染守卫（spec §四.1）
-import { renderTabHeader } from '../shell/page-frame.js?v=20261102b'; // 页题单一源（H2）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261103b';
+import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261103b';
+import { badgeHtml } from '../ui/badges.js?v=20261103b';
+import { icon } from '../../core/base/icons.js?v=20261103b';
+import { showToast, escHtml, todayLocal, flashHighlight, getBasePath, smoothScroll } from '../../core/base/utils.js?v=20261103b';
+import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261103b';
+import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261103b';
+import { AuthStore } from '../../services/core/auth.js?v=20261103b';
+import { mockDB } from '../../core/domain/domain.js?v=20261103b';
+import { tokenOf } from '../../core/base/version-token.js?v=20261103b'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261103b';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261103b'; // P2 渲染守卫（spec §四.1）
+import { renderTabHeader } from '../shell/page-frame.js?v=20261103b'; // 页题单一源（H2）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261102b';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261103b';
+// 待办「实时派生组」服务端只读端点（批次 532 · B-500-7 最小 Plan B）：api 形态先取服务端派生，
+//   mock 形态 / 取不到 ⇒ 原客户端派生（兼容期零行为变化；见下方 _collectRealtimeGroups）。
+import { getAdapter, getDataSource } from '../../data/data-adapter.js?v=20261103b';
 
 // ── 「我经办的反馈」区（2026-10-25 IA 62→45 · spec Task 5）──────────────
 // 五台原「我的处置」页签已删（与待办同属「我的待处理」，只是对象为反馈）⇒ 并入本页成一段。
 // 实现单一源＝`components/feedback/issue-dispatch-view.js`（embedded 形态：不渲染第二张页头 H2，
 // 列表 / 详情 / 评论 / 提交处置结果一字未改，不复制第二套）。
 // 旧深链 `?tab=my-dispatch` 由工作台壳落 `todo&filter=dispatch`（本区据此滚到视野）。
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261103b';
 const DISPATCH_SECTION_BY_ROLE = {
   'org-commissioner': { roleKey: 'org-commissioner', opts: {} },
   'prop-commissioner': { roleKey: 'prop-commissioner', opts: {} },
@@ -119,6 +122,9 @@ function _moduleCycleGroupsFor(role) {
 // ≥lg = 现有双栏（列表 2/3 + 详情 1/3）。只用于「是否自动选中 / 是否渲染详情列」，
 // 不改数据与查询链。
 const TODO_DESKTOP_QUERY = '(min-width: 1024px)';
+/** 服务端实时组取用告警（每页只 warn 一次；失败后回落客户端派生，不把页面打空） */
+let _serverRealtimeGroupsWarned = false;
+
 function _isTodoDesktopLayout() {
   try {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return true;
@@ -275,7 +281,7 @@ function _mountDispatchSection(container, role, ctx) {
     host.innerHTML = emptyStateHtml({ variant: 'panel', text: '请先登录后使用', actionHtml: `<a class="btn-outline" href="${getBasePath()}login.html">去登录</a>` });
     return;
   }
-  import('../feedback/issue-dispatch-view.js?v=20261102b').then((m) => {
+  import('../feedback/issue-dispatch-view.js?v=20261103b').then((m) => {
     if (!host.isConnected) return;
     host.innerHTML = m.renderMyDispatchTab(cfg.roleKey, uid, { ...cfg.opts, embedded: true });
     m.bindMyDispatchEvents(host, cfg.roleKey, uid, cfg.opts);
@@ -486,6 +492,58 @@ export function createTodoTab(opts) {
     smoothScroll(document.getElementById(containerId)?.querySelector('[data-ws-todo-detail]'), { block: 'start' });
   }
 
+  /**
+   * 服务端实时派生组（批次 532 · B-500-7 最小 Plan B · 兼容期只读旁路）。
+   * 取用条件：**api 数据源** ＋ 有登录人 ＋ 适配器提供 `todoGroups.get`；
+   * 返回 `[]` 的三种情形（mock / 无适配器 / 请求失败）一律回落客户端派生，不改变可见结果。
+   * 失败只 `console.warn` 一次（每页），不抛错、不把页面打空。
+   * @returns {Promise<Array<Object>>} 服务端组（无 groupKey 的条目丢弃）
+   */
+  async function _fetchServerRealtimeGroups() {
+    if (getDataSource() !== 'api') return [];
+    const me = AuthStore.getCurrentUser && AuthStore.getCurrentUser();
+    const personId = me && (me.personId || me.id);
+    if (!personId) return [];
+    let adapter = null;
+    try { adapter = getAdapter(); } catch (_) { return []; }
+    const api = adapter && adapter.todoGroups;
+    if (!api || typeof api.get !== 'function') return [];
+    try {
+      const payload = await api.get({ role, personId });
+      const groups = payload && Array.isArray(payload.groups) ? payload.groups : [];
+      return groups.filter((g) => g && g.groupKey);
+    } catch (e) {
+      if (!_serverRealtimeGroupsWarned) {
+        _serverRealtimeGroupsWarned = true;
+        console.warn('[todo-tab] 服务端实时组读取失败，已回落客户端派生：', (e && e.message) || e);
+      }
+      return [];
+    }
+  }
+
+  /**
+   * 实时组收集：客户端派生（原路径，不删）＋ 服务端派生（api 形态优先）。
+   * 合并规则：**同 groupKey 只留一条**（服务端在前 ⇒ 成功时以服务端为准），防同组双卡 / 重复计数。
+   */
+  async function _collectRealtimeGroups(ctx) {
+    const clientGroups = buildRealtimeGroups ? (buildRealtimeGroups(ctx) || []) : [];
+    // 模块周期提醒（`R-29⑤` · `D-804`）：**各台通用**（不逐台接线）——按本台主体集取「有周期模块本期未开展」
+    clientGroups.push(..._moduleCycleGroupsFor(role));
+    const serverGroups = await _fetchServerRealtimeGroups();
+    if (!serverGroups.length) return clientGroups;
+    const seen = new Set();
+    const merged = [];
+    for (const g of [...serverGroups, ...clientGroups]) {
+      if (!g || typeof g !== 'object') continue;
+      if (g.groupKey) {
+        if (seen.has(g.groupKey)) continue;
+        seen.add(g.groupKey);
+      }
+      merged.push(g);
+    }
+    return merged;
+  }
+
   async function renderContent(ctx) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -512,9 +570,9 @@ export function createTodoTab(opts) {
     if (comboKey === _lastComboKey && _lastCombo) {
       combo = _lastCombo;
     } else {
-      const rtGroups = buildRealtimeGroups ? (buildRealtimeGroups(ctx) || []) : [];
-      // 模块周期提醒（`R-29⑤` · `D-804`）：**各台通用**（不逐台接线）——按本台主体集取「有周期模块本期未开展」
-      rtGroups.push(..._moduleCycleGroupsFor(role));
+      // 批次 532（B-500-7）：实时组先取服务端只读派生（api 形态），取不到 / mock 形态 → 原客户端派生；
+      //   两路按 groupKey 去重合并（服务端在前），不重复计数（见 `_collectRealtimeGroups`）。
+      const rtGroups = await _collectRealtimeGroups(ctx);
       // 「到人」定向（批次 428 · `R-29⑤` 余项收口）：把「本人 personId」传进读链 ⇒ `personId` 非空的待办只给本人看
       const meNow = AuthStore.getCurrentUser && AuthStore.getCurrentUser();
       const domains = TodoStore.mergeRealtimeDomains(role, rtGroups, { personId: meNow && (meNow.personId || meNow.id) });
