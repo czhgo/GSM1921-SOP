@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-852`，共 26 条**；下一条自 **`D-853`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-853`，共 27 条**；下一条自 **`D-854`**。
 
 ## 本月目录（2026-11）
 
@@ -46,6 +46,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 上线残项单一台账 L-01…L-21；launch-blocker 6 条已关 / 1 条降级 | `D-850` | 2026-11-03 | 已落（上线专项） |
 | 六维重评：安全 52→66 · 测试 80→83 · 架构 74→76 · 部署 68→73 · 数据 78→79；三成本维持 68 | `D-851` | 2026-11-03 | 已落（上线专项） |
 | `.ctx` 三层：active 投影 + reference + provenance；规则进 content，ACTIVE_RULINGS 只留索引 | `D-852` | 2026-11-03 | 已落（批次 529） |
+| CLAUDE 宪法化：规则写正文、历史进 logs、细则进 content；乙部只留 ≤12 行真任务 | `D-853` | 2026-11-03 | 已落（批次 530） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -173,4 +174,8 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 
 > **评议 → 裁定 → 落点**：支书批「`.ctx` 内容多、权责边界不清、更新频率不一致，容易污染上下文；但也有很多可复用资产」→ 裁定 **`.ctx` 是仓库、不是 active context**：新增 `.ctx/ACTIVE_CONTEXT.md` 作为唯一热投影（≤300 行 / 30KB）；规则 / 判例 / 方法正文先进 `content/01–05`，`.ctx/ACTIVE_RULINGS.md` 只留跨域摘要 + 16 领域索引；`SNAPSHOT` 删除批次小结、改由 `EXECUTION_LOG_INDEX` 承接；`ENGINEERING_ASSESSMENT` / `REVIEW_QUEUE` 标 `reference`；`ACTIVE_RULINGS` / `SNAPSHOT` 路径不移动（分别约 44 / 93 处引用）→ `.ctx/ACTIVE_CONTEXT.md`、`.ctx/README.md`、`.ctx/AGENTS.md`、`CLAUDE.md H26.4`、`content/05_ai_coding/{CONTEXT_MANAGEMENT,DOCUMENT_GOVERNANCE}.md`；守卫 `ctx-hygiene-guard::⑤–⑦`、`docs-governance-guard::G6`、`doc-consistency::S14/S15`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-852`**（共 **26** 条）。
+## D-853 2026-11-03 — CLAUDE 宪法化与乙部清账
+
+> **评议 → 裁定 → 落点**：支书批「乙部膨胀；甲部引用框太多、大多是沿革；CLAUDE 形成于 AI 不强的时期，应按最前沿 prompt / context engineering 重做」→ 裁定 **CLAUDE＝宪法 + 路由**：规则写正文祈使句；历史进 logs；细则进 content/05；甲部引用框 ≤15（只留「原话即规则」与守卫锚点）；乙部只留 ≤12 行真任务（假任务 / 冻结件 / 已完成删除，真任务排 530–532）；丙部只留 4 条真待裁；目标 ≤600 行 / 85KB（实际 197 行 / 17.5KB，10 个引用框）。不删除 H 编号与守卫锚点（H21/H21.3/H40.2/H20.2/H20.3/评议待办节头/批次 521 五编句）→ `CLAUDE.md`、`content/05_ai_coding/{CONTEXT_MANAGEMENT,DOCUMENT_GOVERNANCE,PARALLEL_SKILL_AUDIT,REVIEW_AND_EXPRESSION}.md`；守卫 `ctx-hygiene-guard::⑧–⑨`、`doc-consistency` R 表、`claude-parallel-audit`、`ia-critical-guard`、`ui-preflight-context`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-853`**（共 **27** 条）。

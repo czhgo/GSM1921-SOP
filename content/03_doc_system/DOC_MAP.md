@@ -194,7 +194,7 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | `docs/src/*` | [工程师] | 代码实现（workflow/services/entries/core/components/styles） | ARCHITECTURE.md |
 | `docs/help.html` | [用户] | 系统帮助与操作说明；章节阅读、全文搜索、按角色/任务进入 | Help 章节正文、FUNCTION_CATALOG、docs/src/components/sections/help-navigation.js |
 
-> **归档规则（`.ctx` 顶层准入）**：`.ctx` 顶层只列白名单 7 项——`logs/`、`evidence/`、`TIMESTAMPS.md`、`SNAPSHOT.md`、`REVIEW_QUEUE.md`、`ACTIVE_RULINGS.md`、`ENGINEERING_ASSESSMENT.md`。一次性审计报告 / 脚本生成产物在结论沉淀后移入 `.ctx/logs/archive/YYYY-MM/`，不得在顶层新增；准入与三去向见 `CLAUDE.md H26.3`。
+> **归档规则（`.ctx` 顶层准入）**：`.ctx` 顶层只列白名单 **10 项**——`logs/`、`evidence/`、`TIMESTAMPS.md`、`SNAPSHOT.md`、`REVIEW_QUEUE.md`、`ACTIVE_RULINGS.md`、`ENGINEERING_ASSESSMENT.md`、`ACTIVE_CONTEXT.md`、`README.md`、`AGENTS.md`。一次性审计报告 / 脚本生成产物在结论沉淀后移入 `.ctx/logs/archive/YYYY-MM/`，不得在顶层新增；准入与三去向见 `CLAUDE.md H26.3`。
 
 ---
 

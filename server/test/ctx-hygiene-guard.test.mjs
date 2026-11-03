@@ -138,3 +138,41 @@ test('⑦ SNAPSHOT：≤250 行且不再承载批次小结', () => {
   const batchSections = (src.match(/^## 批次 \d+ 小结/mg) || []).length;
   assert.equal(batchSections, 0, `SNAPSHOT 仍有 ${batchSections} 段批次小结：已改由 EXECUTION_LOG_INDEX 承接`);
 });
+
+test('⑧ CLAUDE.md：≤600 行 / ≤85KB；甲部引用框 ≤15 且不写历史', () => {
+  const p = join(ROOT, 'CLAUDE.md');
+  const src = readFileSync(p, 'utf8');
+  const lines = src.split(/\r?\n/).length;
+  const bytes = Buffer.byteLength(src, 'utf8');
+  assert.ok(lines <= 600, `CLAUDE 行数 ${lines} > 600：先降级细则到 content，再删历史`);
+  assert.ok(bytes <= 85 * 1024, `CLAUDE 字节 ${bytes} > 85KB：先降级细则到 content，再删历史`);
+
+  const jiaStart = src.indexOf('# 甲部');
+  const yiStart = src.indexOf('# 乙部');
+  assert.ok(jiaStart >= 0 && yiStart > jiaStart, 'CLAUDE 缺 `# 甲部` / `# 乙部` 分界');
+  const jia = src.slice(jiaStart, yiStart);
+  const quotes = jia.split(/\r?\n/).filter((l) => /^\s*>/.test(l));
+  assert.ok(quotes.length <= 15, `甲部引用框 ${quotes.length} 处 > 15：规则应写正文，不写引用框`);
+  const historical = quotes.filter((l) => /批次\s*\d+|已废止|沿革|支书原话/.test(l) && !l.includes('批次 521'));
+  assert.deepEqual(historical, [],
+    `甲部引用框仍含历史叙述（应删 / 迁 logs，只留「原话即规则」）：\n  ${historical.join('\n  ')}`);
+});
+
+test('⑨ CLAUDE.md：乙部 ≤12 行且状态合法；丙部 ≤4 条且无已裁', () => {
+  const src = readFileSync(join(ROOT, 'CLAUDE.md'), 'utf8');
+  const yiStart = src.indexOf('# 乙部');
+  const bingStart = src.indexOf('# 丙部');
+  assert.ok(yiStart >= 0 && bingStart > yiStart, 'CLAUDE 缺 `# 乙部` / `# 丙部` 分界');
+  const yi = src.slice(yiStart, bingStart);
+  const yiRows = yi.split(/\r?\n/).filter((l) => /^\|/.test(l) && !/^\|\s*[-:]+\s*\|/.test(l) && !/^\|\s*(ID|目标批次)\s*\|/.test(l));
+  assert.ok(yiRows.length <= 12, `乙部表行 ${yiRows.length} 行 > 12：真任务应排期，假任务应删除`);
+  const allowed = new Set(['在办', '待启动', '待裁']);
+  const bad = yiRows.map((l) => l.split('|').map((s) => s.trim()).filter(Boolean)).filter((cells) => !allowed.has(cells[cells.length - 1]));
+  assert.deepEqual(bad.map((c) => c.join(' | ')), [],
+    `乙部出现非法状态（只允许 在办 / 待启动 / 待裁；已完成 / 已闭环 / 冻结件应删除）`);
+
+  const bing = src.slice(bingStart);
+  const bingRows = bing.split(/\r?\n/).filter((l) => /^\|/.test(l) && !/^\|\s*[-:]+\s*\|/.test(l) && !/^\|\s*ID\s*\|/.test(l));
+  assert.ok(bingRows.length <= 4, `丙部表行 ${bingRows.length} 行 > 4：只留真待裁`);
+  assert.doesNotMatch(bing, /已裁|已结项/, '丙部出现已裁 / 已结项：裁定后应删除');
+});

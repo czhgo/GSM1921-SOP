@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: "2026-11-03"
 last_verified: "2026-11-03"
-latest_decision: "D-852"
+latest_decision: "D-853"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -28,8 +28,8 @@ status: active
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
 - **审计**：45 页签 **P0 0 / P1 0 / P2 2 / exception 44**；F1–F8 全绿；M1–M3 在位。
   - source：`.ctx/evidence/2026-11-03/tab-audit/summary.md`。
-- **测试**：`npm run test:daily` **1765 / 1765**（约 341s）；docs / ctx 守卫 65 / 65。
-  - source：`.ctx/logs/2026-11-EXECUTION_LOG.md §五`、`.ctx/ENGINEERING_ASSESSMENT.md §二 2.5`。
+- **测试**：`npm run test:daily` **1767 / 1767**（约 301s）；docs / ctx 守卫 83 / 83。
+  - source：`.ctx/logs/2026-11-EXECUTION_LOG.md §批次 530`、`.ctx/ENGINEERING_ASSESSMENT.md §二 2.5`。
 - **版本戳**：`20261102b`，0 处陈旧。
   - source：`docs/scripts/bump-version.mjs --check`。
 - **换轨**：副本 **48 表 / 577 行** export → dry-run → apply 一致；生产空库 `preflight-cutover --strict` exit 0 / 警告 0。
