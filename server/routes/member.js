@@ -350,7 +350,8 @@ export function createMemberRouter(db) {
       const user = readUser(from);
       const nextData = { ...renamePersonRefs(user, from, to), id: to, studentId: to };
       db.prepare('UPDATE users SET id = ?, data = ? WHERE id = ?').run(to, JSON.stringify(nextData), from);
-      db.prepare('UPDATE sessions SET person_id = ? WHERE person_id = ?').run(to, from);
+      // 支书 2026-11-03 裁定：账号改名后不保留旧会话（无别名表，避免旧 token 继续可用）。
+      db.prepare('DELETE FROM sessions WHERE person_id = ?').run(from);
       // 附件上传人同属人员引用列（旧 v7 迁移同口径）；表可能不存在于最小测试库。
       if (db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'attachments'").get()) {
         db.prepare('UPDATE attachments SET uploaded_by = ? WHERE uploaded_by = ?').run(to, from);
@@ -365,10 +366,10 @@ export function createMemberRouter(db) {
         }
       }
       // 留痕形状：what/from/to/by/at（账号改名不是授权授予，故不复用 grant/revoke 语义）
-      const audit = { id: auditId, what: 'account-renamed', from, to, by: req.actor.id, at };
+      const audit = { id: auditId, what: 'account-renamed', from, to, by: req.actor.id, at, sessionsInvalidated: true };
       db.prepare('INSERT OR REPLACE INTO auth_audit (id, data) VALUES (?, ?)').run(audit.id, JSON.stringify(audit));
     })();
-    res.json({ ok: true, from, to });
+    res.json({ ok: true, from, to, sessionsInvalidated: true });
   });
 
   // ① 在册状态镜像：成员变更确认链支书/副支书确认生效 → 写 residenceStatus/Note/History（副书同权 + 同支部）

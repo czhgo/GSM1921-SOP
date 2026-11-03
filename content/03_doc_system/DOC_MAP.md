@@ -161,6 +161,7 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` | [工程师]+[AI] | 数据同源一致性校验手册（工程质检流程，按数据类别逐步检查；机器检查+人工检查分工；2026-09-04 自 04 evolution 迁入，AI 方法论归 05） | DATA_MODEL.md、ARCHITECTURE.md |
 | `content/05_ai_coding/GUARD_INVENTORY.md` | [工程师]+[AI] | 守卫清单与断言台账（按域分组；新增 / 合并 / 归并候选的唯一登记处） | `server/test/**`、`server/package.json` |
 | `content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md` | [工程师]+[AI] | 页签审计手册（五维检查表 / P0–P2 / 例外口径 / 怎么跑 / 怎么加检查与页签 / 报告字段） | `server/scripts/audit-tabs.mjs`、`server/scripts/audit/*`、DS_06 §五 |
+| `content/05_ai_coding/UI_REVIEW_CHECKLIST.md` | [工程师]+[AI] | 温层 UI 审查清单（按 8 组任务组织；每条带判据 + DS 节 / SD 编号 + 何时读；read_strategy: on-demand） | CLAUDE.md H40.2、DS_03 / DS_06 |
 | `content/05_ai_coding/REVIEW_QUESTION_SET.md` | [工程师]+[AI] | 审查问题集（Q-01…Q-22 布尔判据与审查方法，每轮开工逐条回答） | `QUESTION_HIT_MATRIX.md` |
 | `content/05_ai_coding/QUESTION_HIT_MATRIX.md` | [工程师]+[AI] | 问题集命中矩阵（spec × 问题的命中记录，派生不承担规范） | `REVIEW_QUESTION_SET.md` |
 | `content/05_ai_coding/CASES.md` | [工程师]+[AI] | AI 协作域判例（不产生规范效力，规范回五个分篇） | 五个分篇 |

@@ -51,46 +51,28 @@ status: active
 
 ### H20.3 收尾（每批必做）
 
-1. 执行日志写「为什么 / 拿不准 / 边界 / 读数」（`H26.1`）。
-2. 决策日志追加新 `D-xxx`（如有裁定）。
-3. 刷新 `.ctx/ACTIVE_CONTEXT.md`（状态 / 风险 / 下一步 / `latest_decision`）。
-4. 更新 `.ctx/SNAPSHOT.md`（仅结构变化时）与 `.ctx/TIMESTAMPS.md`（改过的文件）。
-5. 跑定向测试；发布前跑 `npm run test:daily` 与 `node scripts/audit-tabs.mjs --all`（P0/P1=0）。
+1. **commit 主记录**：本批至少一个 commit，message 按模板 `批次号｜为什么｜改动面｜验证读数｜D/任务号`；改动事实以 `git show <hash>` 为准（`H26.1`）。
+2. **执行日志**：只写「为什么 / 拿不准 / 边界 / 读数 / commit hash」，不复述逐文件 diff / 改动清单。
+3. **决策日志**：追加新 `D-xxx`（如有裁定）。
+4. **刷新投影**：`.ctx/ACTIVE_CONTEXT.md`（状态 / 风险 / 下一步 / `latest_decision`）；`.ctx/SNAPSHOT.md` 仅结构变化时更新；`.ctx/TIMESTAMPS.md` 登记改过的文件。
+5. **当场验证**：定向测试；发布前跑 `npm run test:daily` 与 `node scripts/audit-tabs.mjs --all`（P0/P1=0）。
+6. **输出 `next_prompt`（六要素，缺一即未完成）**：
+   1. **未完成项**及 ID（乙部无则写「乙部当前无未完成项」）；
+   2. **恢复上下文**要点（下轮先读哪两个文件、当前判断与风险）；
+   3. **执行顺序**（先做什么、再做什么）；
+   4. **Skill 提醒**（涉及可调用 Skill 的场景必须标注 skill 名）；
+   5. **专项台账快照**（`ENGINEERING_ASSESSMENT §四` 的现行专项、状态、下轮建议）；
+   6. **本批 commit hash**（无 commit 须说明原因）。
 
-## H20.4 支书指示分级
+   丙部有未决必须逐条列出；**未输出 next_prompt 视为工作未完成**，不得回报「已完成」。
+
+### H20.4 支书指示分级
 
 | 档 | 触发 | 处理 |
 |---|---|---|
 | **探索性** | 「看看 / 想想 / 有没有可能」 | 先给方案与证据，不直接改代码；可先做只读探查。 |
 | **命令性** | 「做 / 改 / 落地」 | 直接执行；遇边界写清，不反复请示。 |
 | **禁止性** | 「不要 / 不得 / 别」 | 视为硬约束；同族场景一并检查，不只改字面一处。 |
-
-## H25. 测试系统（AI 必知）
-
-- **三层**：`test:daily`（纯 node / HTTP，日常）、`test:precommit`（daily + 真机 e2e）、`test:full`（发布前全量）。档位登记单一源＝`server/test-tier-registry.mjs`。
-- **验证顺序**：先定向跑改到的文件 → 再跑同域守卫 → 收尾跑 daily；发布前跑 full。
-- **不以 GetDiagnostics 代替测试**；不以「模块能 import」代替行为验证。
-- **红项分类**：环境 / 陈旧断言 / 真回归；不得把红改成 `skip` 或删断言。
-
-## H26. 上下文与台账纪律
-
-**H26 总则**：`.ctx` 是仓库，不是 active context；active context ＝ 本文件 + `.ctx/ACTIVE_CONTEXT.md`。规则 / 判例 / 方法正文进 `content/01–05`；`.ctx` 只留当前投影、索引与证据。
-
-**H26.1 日志精简。** git 能记的过程流水不复述；日志只留「裁定原话与理由 / 未做与边界 / 坑与教训 / 量测读数」。
-
-**H26.2 一文件一问答。** 每个台账只答一个问题；完成即删，沿革归 git。`ACTIVE_RULINGS` 只做索引，不存规则正文。
-
-**H26.3 `.ctx` 准入。** 顶层白名单 **10 项**：`logs/`、`evidence/`、`TIMESTAMPS.md`、`SNAPSHOT.md`、`REVIEW_QUEUE.md`、`ACTIVE_RULINGS.md`、`ENGINEERING_ASSESSMENT.md`、`ACTIVE_CONTEXT.md`、`README.md`、`AGENTS.md`。新增文件未命中即先沉淀到 content，再归档。
-
-> 历史锚点（守卫 `docs-governance::G12` 依赖）：批次 521 将设计系统分编为父索引 ＋ 五编；该句只作历史事实保留，不构成现行规则。
-
-**H26.4 Active Context 预算与冲突。** `.ctx/ACTIVE_CONTEXT.md` ≤300 行 / ≤30KB；`latest_decision` 必须 ≥ 当月决策日志末条；冲突顺序＝当月 `DECISION_LOG` ＞ `ACTIVE_CONTEXT` ＞ `content` 权威 ＞ `SNAPSHOT` ＞ `ENGINEERING_ASSESSMENT` ＞ `logs` / `evidence`。
-
-## H27. AI 逃逸捕捉
-
-**定义**：本应 rule-based（确定性执行）却写成 AI 可自行取舍的软性表述＝逃逸点。
-
-**五维扫描**：`E1` 规则软化 · `E2` 判据缺位 · `E3` 边界模糊 · `E4` 例外无闸 · `E5` 验证无闭环。详细流程并入 `H60.5` 第⑦行，不另设长节。
 
 ## H21. 多代理独立审查协议
 
@@ -128,7 +110,32 @@ status: active
 - 决策记录必须含未选方案与不选理由，不得静默丢弃。
 - 可复用偏差写回 `content/05_ai_coding/TEST_AND_VERIFICATION.md` 判例节。
 
+## H25. 测试系统（AI 必知）
 
+- **三层**：`test:daily`（纯 node / HTTP，日常）、`test:precommit`（daily + 真机 e2e）、`test:full`（发布前全量）。档位登记单一源＝`server/test-tier-registry.mjs`。
+- **验证顺序**：先定向跑改到的文件 → 再跑同域守卫 → 收尾跑 daily；发布前跑 full。
+- **不以 GetDiagnostics 代替测试**；不以「模块能 import」代替行为验证。
+- **红项分类**：环境 / 陈旧断言 / 真回归；不得把红改成 `skip` 或删断言。
+
+## H26. 上下文与台账纪律
+
+**H26 总则**：`.ctx` 是仓库，不是 active context；active context ＝ 本文件 + `.ctx/ACTIVE_CONTEXT.md`。规则 / 判例 / 方法正文进 `content/01–05`；`.ctx` 只留当前投影、索引与证据。
+
+**H26.1 日志分层。** **git commit message 是第一主记录**；`EXECUTION_LOG` 只写「为什么 / 拿不准 / 边界 / 读数 / commit hash」，不得复述逐文件 diff / 改动清单。改动事实用 `git show <hash>` / `git log --grep` 取回；message 模板见 `H20.3`。
+
+**H26.2 一文件一问答。** 每个台账只答一个问题；完成即删，沿革归 git。`ACTIVE_RULINGS` 只做索引，不存规则正文。
+
+**H26.3 `.ctx` 准入。** 顶层白名单 **10 项**：`logs/`、`evidence/`、`TIMESTAMPS.md`、`SNAPSHOT.md`、`REVIEW_QUEUE.md`、`ACTIVE_RULINGS.md`、`ENGINEERING_ASSESSMENT.md`、`ACTIVE_CONTEXT.md`、`README.md`、`AGENTS.md`。新增文件未命中即先沉淀到 content，再归档。
+
+> 历史锚点（守卫 `docs-governance::G12` 依赖）：批次 521 将设计系统分编为父索引 ＋ 五编；该句只作历史事实保留，不构成现行规则。
+
+**H26.4 Active Context 预算与冲突。** `.ctx/ACTIVE_CONTEXT.md` ≤300 行 / ≤30KB；`latest_decision` 必须 ≥ 当月决策日志末条；冲突顺序＝当月 `DECISION_LOG` ＞ `ACTIVE_CONTEXT` ＞ `content` 权威 ＞ `SNAPSHOT` ＞ `ENGINEERING_ASSESSMENT` ＞ `logs` / `evidence`。
+
+## H27. AI 逃逸捕捉
+
+**定义**：本应 rule-based（确定性执行）却写成 AI 可自行取舍的软性表述＝逃逸点。
+
+**五维扫描**：`E1` 规则软化 · `E2` 判据缺位 · `E3` 边界模糊 · `E4` 例外无闸 · `E5` 验证无闭环。详细流程并入 `H60.5` 第⑦行，不另设长节。
 
 ## H30. 一改具改原则与母本子本关系
 
@@ -151,23 +158,6 @@ status: active
 
 ## H40. 文件修改检查清单
 
-### H40.2 UI 变更前置卡
-
-改界面前逐条回答 10 问；**答不出第 1/2/4 问不得动笔**：
-
-1. 第一眼看到什么？
-2. 唯一主动作是什么？
-3. 这一屏是行动 / 状态 / 身份 / 结构哪一类？
-4. 主按钮用实底还是淡底？
-5. 颜色分工是导航 / 动作 / 选择 / 展示 / 主从哪一档？
-6. 焦点可见吗？
-7. 一屏是否 1 主 + 1 次？
-8. 字号是否落在规定字号档？
-9. 空态、加载、错误三态齐吗？
-10. 1440 与 390 都看过吗？删掉一半装饰还成立吗？
-
-> 同源卡：`content/04_web_design/design-system/DESIGN_SYSTEM.md §0`；两处必须文字同源。
-
 ### H40.1 通用检查
 
 1. 改前读 `DATA_CONSISTENCY_CHECKLIST §0.2` 相关规则；
@@ -175,6 +165,12 @@ status: active
 3. 改后更新守卫 / 基线 / README 清单；
 4. 交付报告第一屏给提交命令与未提交规模；
 5. 定向测试为主，交付前才跑全量。
+
+### H40.2 UI 变更前置卡
+
+- **何时读**：任务涉及 UI / 布局 / 交互改动时。
+- **去哪读**：先读 `content/05_ai_coding/UI_REVIEW_CHECKLIST.md` 对应任务组，再读 `content/04_web_design/design-system/DS_03_COMPONENTS.md` / `DS_06_LAYOUT_AND_DENSITY.md` 对应条文（设计哲学与外包入口见 `content/04_web_design/design-system/DESIGN_SYSTEM.md §0`）。
+- **答不出怎么办**：先补证据（真机 / 读数 / 现有判据），证据补齐前不动笔；不得凭手感加色块 / 加边框。
 
 ### H40.3 常驻界面约束（批次 524 收口）
 
@@ -253,6 +249,8 @@ status: active
 | 架构 / 单一事实源 | `content/03_doc_system/ARCHITECTURE.md` |
 | 文档导航 / 术语 | `content/03_doc_system/DOC_MAP.md`、`TERMINOLOGY.md` |
 | 设计 / 数据 / 部署 | `content/04_web_design/design-system/*`、`data/DATA_MODEL.md`、`deploy/DEPLOYMENT_GUIDE.md` |
+| UI 审查（改界面时） | `content/05_ai_coding/UI_REVIEW_CHECKLIST.md`、`content/04_web_design/design-system/DS_03_COMPONENTS.md` / `DS_06_LAYOUT_AND_DENSITY.md` |
+| 页签审计 | `content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md`、`content/05_ai_coding/AUDIT_CANON.md` |
 | AI 方法 / 判例 | `content/05_ai_coding/*` |
 | 当前状态 | `.ctx/ACTIVE_CONTEXT.md` |
 | 历史 / 证据 | `.ctx/logs/`、`.ctx/evidence/` |
@@ -281,11 +279,11 @@ status: active
 
 | 目标批次 | 条目 | 一句话 | 判据 / 出处 | 状态 |
 |---|---|---|---|---|
-| 530 | B-500-6 / B-520-2…5 / B-518-1…3 / B-515-3 / B-515-5 | 低风险收口：任命 CRUD 写门、常量层、状态胶囊、加载态、动效偏好、help 色系分步 | `server/routes/resources/*`、`DS_03`、`GUARD_INVENTORY` | 待启动 |
+| 530 | B-520-3 / B-520-5 / B-518-1 / B-518-2 / B-515-3 / B-515-5 | 低风险收口（分片）：常量层、旧色名、状态胶囊两族、加载态骨架、content 重复表达、text-xs/form-loop 口径 | `DS_03`、`GUARD_INVENTORY`、`DOC_MAP §七` | 在办 |
 | 531 | B-500-1 / B-515-6 / B-516-1 | 审查存量清欠：R5 P2/P3、真缺陷 4 + 复跑 1 + e2e 9、12 条人工核 | `.ctx/logs/archive/2026-10/AUDIT_R5_*.md`、两份 tasks.md | 待启动 |
-| 532 | B-500-7 / B-522-2 | 结构性：待办派生服务端化；help.html 532 处硬编码色分步棘轮 | `todo.js`、`color-audit.json` | 待启动 |
+| 532 | B-500-7 / B-522-1 / B-522-2 | 结构性：待办派生服务端化；「今天 / 归档」先收拢卡片；help.html 532 处硬编码色分步棘轮 | `todo.js`、`density-audit.json`、`color-audit.json` | 待启动 |
 
-> **已清出**：批次 524 七条规则已并入 `H40.3` 与 `DS_06`；`B-518-4` 并入 `B-522-2`；`V-10b`（支书本人上传）移出；About 冻结件 `B-520-1` / `B-521-3` / `B-522-3` 删除；`B-521-2` 作为 `H26.1` 备注保留。
+> **已清出**：批次 524 七条规则已并入 `H40.3` 与 `DS_06`；`B-518-4` 并入 `B-522-2`；`V-10b`（支书本人上传）移出；About 冻结件 `B-520-1` / `B-521-3` / `B-522-3` 删除；`B-521-2` 作为 `H26.1` 备注保留。**批次 530 已核实完成**：`B-500-6`（`branches` / `appointmentRecords` 已是 `party-staff` 写门）、`B-520-2`（`.btn-md` 五个调用点已改类名驱动）、`B-518-3`（全站仅 About 冻结件保留 `scrollIntoView smooth`）。
 
 # 丙部：待决策事项
 
@@ -293,7 +291,3 @@ status: active
 
 | ID | 问题 | 选项 | 推荐 | 影响 |
 |---|---|---|---|---|
-| B-502-5 | 账号重命名后的旧 token / 旧链接是否做兼容跳转？ | ① 兼容跳转 ② 只提示重新登录 ③ 不处理 | ② | 影响旧收藏外链与已登录设备 |
-| B-519-3 | 是否新增 `--status-success-text` 文字档？ | ① 新增 ② 维持中性灰 ③ 用现有 success 填充档 | ① | 影响彩色数值的可读性与对比守卫 |
-| B-521-1 | SD 判据表是否从 `CASES` 回迁 `DS_03 §12`？ | ① 回迁 ② 留在 CASES ③ 两处指针 | ① | 影响规范可发现性 |
-| B-522-1 | 「今天 / 归档」低密度卡是否补内容与 IA 调整？ | ① 补内容 ② 收拢卡片 ③ 维持 | ①+② | 影响首屏信息密度与最小三成本评分 |

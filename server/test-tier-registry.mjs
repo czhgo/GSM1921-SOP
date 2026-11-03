@@ -326,7 +326,10 @@ export const DAILY_FILE_BUDGET = 240;
  *    组织者不误伤、考勤与通知门防回归，纯 node + `:memory:`）⇒ 文件预算 239 → 240，
  *    断言预算 1754 → 1759。 */
 /** 2026-11-03 批次 529：`ctx-hygiene-guard` 新增 ⑤–⑦ 三条（active 预算 / ACTIVE_RULINGS 索引 / SNAPSHOT 去批次小结）⇒ 实测 1762，按 1764 登记（留 2 条余量，不作「9999 式」放宽）。 */
-export const DAILY_TEST_BUDGET = 1764;
+/** 2026-11-03 批次 530（CLAUDE 分层与 UI 清单）：`ctx-hygiene-guard` 新增 ⑩（H20.3 next_prompt 六要素 + commit 模板，1 条）；
+ *  `ui-preflight-context` 由「热层 10 问同源」改为「热层指针 + 温层 8 组」，断言数 4 → 4（不变）
+ *  ⇒ 实测 1765，按 1767 登记（留 2 条余量，不作「9999 式」放宽）。未新增测试文件，文件预算维持 240。 */
+export const DAILY_TEST_BUDGET = 1767;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 

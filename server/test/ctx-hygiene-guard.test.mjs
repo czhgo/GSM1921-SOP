@@ -176,3 +176,28 @@ test('⑨ CLAUDE.md：乙部 ≤12 行且状态合法；丙部 ≤4 条且无已
   assert.ok(bingRows.length <= 4, `丙部表行 ${bingRows.length} 行 > 4：只留真待裁`);
   assert.doesNotMatch(bing, /已裁|已结项/, '丙部出现已裁 / 已结项：裁定后应删除');
 });
+
+test('⑩ CLAUDE.md H20.3 收尾：next_prompt 六要素与 commit 模板齐备（防收尾漏报）', () => {
+  const src = readFileSync(join(ROOT, 'CLAUDE.md'), 'utf8');
+  const start = src.indexOf('### H20.3');
+  const end = src.indexOf('### H20.4');
+  assert.ok(start >= 0, 'CLAUDE 缺 `### H20.3`（收尾流程被删或改号）');
+  assert.ok(end > start, 'CLAUDE 缺 `### H20.4`（无法界定 H20.3 段落范围）');
+  const section = src.slice(start, end);
+  assert.ok(section.length > 300, `H20.3 正文只有 ${section.length} 字（下限 300）：收尾要素很可能被删成空壳`);
+
+  const required = [
+    ['未完成项', 'next_prompt ①：未完成项及 ID'],
+    ['恢复上下文', 'next_prompt ②：恢复上下文要点'],
+    ['执行顺序', 'next_prompt ③：执行顺序'],
+    ['Skill 提醒', 'next_prompt ④：Skill 提醒'],
+    ['专项台账快照', 'next_prompt ⑤：专项台账快照'],
+    ['commit hash', 'next_prompt ⑥：本批 commit hash'],
+    ['未输出 next_prompt 视为工作未完成', '缺「未输出 next_prompt 视为工作未完成」硬约束'],
+    ['丙部有未决', '缺「丙部有未决必须逐条列出」'],
+    ['批次号｜为什么｜改动面｜验证读数', '缺 commit message 模板（批次号｜为什么｜改动面｜验证读数｜D/任务号）'],
+  ];
+  for (const [needle, desc] of required) {
+    assert.ok(section.includes(needle), `H20.3 缺 ${desc}（关键词「${needle}」）`);
+  }
+});

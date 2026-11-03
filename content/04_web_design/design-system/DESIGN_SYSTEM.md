@@ -18,9 +18,9 @@ related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONEN
 
 ## 零、读本文件指南（外包工程师入口）
 
-> **UI 变更前置卡（10 问 · 2026-10-18 立 · 改界面前必答）**
+> **UI 变更前置卡（10 问 · 2026-10-18 立 · 2026-11-03 改准）**
 > 任何改界面的任务，动笔前逐条回答；**答不出第 1/2/4 问不得动笔；实现后在回复中给出答案**。
-> 同源文字：CLAUDE.md H40.2（热层版）；本文档路径 content/04_web_design/design-system/DESIGN_SYSTEM.md §0 即本节。缺一由 `server/test/ui-preflight-context.test.mjs` 判红。
+> 热层入口：CLAUDE.md H40.2（只留「何时读 / 去哪读 / 答不出怎么办」）；按任务组的分组检查见 `content/05_ai_coding/UI_REVIEW_CHECKLIST.md`；本文 §0 保留外包工程师入口的完整 10 问。缺一由 `server/test/ui-preflight-context.test.mjs` 判红。
 >
 > 1. 这一屏第一眼看到什么？唯一主动作是什么？
 > 2. 每个颜色属于哪一层：行动 / 状态 / 身份 / 结构？

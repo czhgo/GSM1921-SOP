@@ -37,6 +37,7 @@ status: active
 | [CASES.md](CASES.md) | AI 协作域判例：场景、结论、边界、对应规范编号与证据指针 | 否——判例不产生规范效力 | on-demand |
 | [GUARD_INVENTORY.md](GUARD_INVENTORY.md) | 守卫清单与断言台账：按域分组、新增 / 合并 / 归并候选的登记处 | 指针——判据在各守卫源码与对应规范 | on-demand |
 | [TAB_AUDIT_PLAYBOOK.md](TAB_AUDIT_PLAYBOOK.md) | 页签审计手册：45 页签五维检查怎么跑、怎么判、怎么加检查与加页签 | 指针——判据在 DS_06 / `audit/severity.mjs` | on-demand |
+| [UI_REVIEW_CHECKLIST.md](UI_REVIEW_CHECKLIST.md) | 温层 UI 审查清单：按 8 组任务（版式 / 排版 / 颜色 / 交互 / 文案 / 响应式 / 动效 / 数据展示）逐条过，每条带判据 + DS 节 / SD 编号 + 何时读 | 指针——`CLAUDE.md H40.2` 的详版 | on-demand |
 | [AUDIT_CANON.md](AUDIT_CANON.md) | 审计口径唯一表：F2 / F4 / F7-D2 / C1 / F1 的唯一判据与 daily / precommit / audit 分工 | 指针——规范在 DS_06，实现见 `server/scripts/audit/*` | on-demand |
 | [AGENTS.md](AGENTS.md) | 本目录协作说明：分层裁决（不写规范判据）、验证命令与常见坑 | 指针 → 本 README 与五个分篇 | on-demand |
 | `README.md` | 本层索引（分篇入口、边界与维护规则） | 指针 → 上述分篇 | active |

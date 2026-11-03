@@ -118,3 +118,31 @@ status: active
 - `ctx-hygiene` 新增 ⑧（CLAUDE ≤600 行 / 85KB；甲部引用框 ≤15 且不写历史）与 ⑨（乙部 ≤12 行且状态合法；丙部 ≤4 条且无已裁）。
 - 未新增 guard 文件；H21 / H21.3 / H40.2 / H20.2 / H20.3 / 评议待办节头 / 批次 521「五编」锚点全部保留。
 - 全量 daily：**1767 / 1767**（301s），0 fail；`bump-version --check` 零陈旧。
+
+## 批次 531（2026-11-03）· CLAUDE 分层修复与乙/丙部推进
+
+### 一、甲部修复
+
+- **编号重排**：H10 → H20（H20.1–H20.4）→ H21 → H25 → H26 → H27 → H30 → H31 → H32 → H40（H40.1→H40.2→H40.3）→ H50 → H60 → H70 → H80 → H90 → H100。
+- **next_prompt 恢复**：H20.3 六要素（未完成项 / 恢复上下文 / 执行顺序 / Skill 提醒 / 专项台账快照 / commit hash）；未输出视为未完成。
+- **commit 主日志**：H26.1 明确 git commit message 是第一主记录；EXECUTION_LOG 只写为什么 / 边界 / 读数 / commit hash。
+- **H40.2 去拟合**：热层只留 3 行触发；37 条 UI 检查迁温层 `content/05_ai_coding/UI_REVIEW_CHECKLIST.md`（8 组，全部引用 DS 节 / SD 编号）。
+
+### 二、乙部批次 530 推进
+
+- **已核实完成并从 530 行移出**：B-500-6（`branches` / `appointmentRecords` 已是 `party-staff` 写门）、B-520-2（`.btn-md` 五个调用点已改类名驱动）、B-518-3（全站仅 About 冻结件保留 `scrollIntoView smooth`）。
+- **仍在办（分片）**：B-520-3 / B-520-5 / B-518-1 / B-518-2 / B-515-3 / B-515-5。
+- **本批未新增代码**：其余六项需跨多文件收口，保留在乙部批次 530，按 `DS_03` / `GUARD_INVENTORY` / `DOC_MAP §七` 分片推进。
+
+### 三、丙部裁定（D-854）
+
+- **B-502-5**：旧 token 失效；账号改名同事务删除 `sessions`，旧书签 404 并提示重登；代码 `server/routes/member.js`，测试 `account-rename` 4/4。
+- **B-519-3**：`--status-success-text` 已存在，关闭。
+- **B-521-1**：SD 判据表维持 `CASES` 迁移登记，不回迁。
+- **B-522-1**：先收拢「今天 / 归档」卡片，排入批次 532。
+
+### 四、读数
+
+- 定向守卫 **88 / 88**（含 `account-rename`）。
+- 全量 daily：**1768 / 1768**（368s），0 fail。
+- `CLAUDE.md`：约 205 行 / 19KB；引用框 10；乙部 5 行数据、丙部 0 行待裁。
