@@ -2,7 +2,7 @@
 title: "设计域判例库"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-10-30"
+last_updated: "2026-11-04"
 status: active
 related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -48,7 +48,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 
 - **编号**：CASE-DESIGN-004
 - **场景（真实发生）**：选中态一度以 `--surface-hover` / `--surface-active` 的灰底表达，同屏出现「我在这里」（持续选中）与「我正按着」（瞬时按压）同色，读者分不清两者的时间性；侧边栏与内容区选中样式也各不相同。
-- **结论**：选中态用主题 soft 三件套（`--app-accent-soft-bg` ＋ `--app-accent-soft-text` ＋ 左条 `inset 3px 0 0 var(--app-accent)`）；侧边栏是唯一浅灰豁免。
+- **结论**：选中态用主题 soft 底（`--app-accent-soft-bg`）＋ soft 字（`--app-accent-soft-text`）＋ 字重；侧边栏是唯一浅灰豁免。（2026-11-04 起「左条」一条由 CASE-DESIGN-033 取代，其余不变）
 - **边界**：侧边栏 `.module-tab.active` 保留浅灰是因为需要纵深，内容区不适用此豁免；列表行、日历格、子页签、下拉选项等一律主题 soft。
 - **对应规范编号**：SD-25
 - **证据指针**：`DS_03_COMPONENTS.md §12.11` 状态语言表；`server/test/hover-state-guard.test.mjs`（三态守卫）；执行日志批次 508。
@@ -212,10 +212,10 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **样本（真实发生）**：全仓 **79 处** `btn-ghost` 在当动作按钮用——今天页「写入活动 / 看日历 / 全部」、工作概况的筛选 chip 与「去待办」行、`list-row` 动作行等；无描边、无底色，`cursor:pointer` 是唯一线索；hover 与白卡色差仅 **1.06–1.11:1**。`btn-ghost` 此前已被判「无边框不可辨识」，但旧类名继续沿用。
 - **AI 假设**：沿用旧类名最省事；hover 有变化就算可点；`btn-ghost` 属于既有动作族，不必换档。
 - **人类意图**：控件与内容必须可区分——动作至少要有一种**静态**线索（描边 / 底色 / 下划线 / 箭头 / 可见 hover），不能靠光标形状。
-- **泛化规则**：按钮三档——动作按钮必有描边或底色；纯文字动作挂 `.btn-text`（静态下划线 ＋ 尾随箭头，箭头不得 `neutral-400`）；图标按钮视觉 32×32 ＋ 命中 ≥44×44。`btn-ghost` 只保留给**非动作行载体**（6 处白名单，逐条写明 hover 底或 3px 左条），新增即红。
+- **泛化规则**：按钮三档——动作按钮必有描边或底色；纯文字动作挂 `.btn-text`（静态下划线 ＋ 尾随箭头，箭头不得 `neutral-400`）；图标按钮视觉 32×32 ＋ 命中 ≥44×44。`btn-ghost` 只保留给**非动作行载体**（6 处白名单，逐条写明 hover 底或可见边），新增即红。
 - **守卫**：`ui-control-system-guard::V4–V7` ＋ `frontend-foundations-guard::F8`。
 - **对应规范编号**：SD-43
-- **边界**：整行导航 / 行内定位载体可继续用 `btn-ghost`，但必须有可见 hover（底 / 边 / 左条，对白卡 ≥1.2:1）；白名单只许逐条收窄，不许当垃圾桶。
+- **边界**：整行导航 / 行内定位载体可继续用 `btn-ghost`，但必须有可见 hover（底 / 边，对白卡 ≥1.2:1）；白名单只许逐条收窄，不许当垃圾桶。
 - **证据指针**：`server/test/ui-control-system-guard.test.mjs`（V4 白名单 / V5 btn-text / V6 图标 / V7 hover 对比）；本批迁移 67 处、保留 6 处；执行日志批次 512。
 
 ## CASE-DESIGN-022 表格末列吃掉余量
@@ -248,7 +248,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **样本（真实发生）**：全仓颜色引用抽样（中性 : 强调 : 状态 : 类别）≈ **4.9 : 2.4 : 0.8 : 1.0**；同屏只剩一个主题色相，中性占比 **54–76%**；状态与类别只出现在大面积渐变卡头与彩色按压里，徽章 / 圆点 / 左条等小面积功能位反而无色；暗色 `party-red` 与 `danger` 逐值相同。
 - **AI 假设**：统一成一个主题色＝一致；功能色是「装饰彩」，少用更稳；要解决单调就得重做主题色盘。
 - **人类意图**：不是否定现有主题色盘，而是让**功能色获得与主题色同等的规则层**——主题色只承担主行动 / 选中 / 链接 / 身份标签；状态 / 类别 / 身份只在小面积功能位出现，两层并列。
-- **泛化规则**：主题色层（7×2×9）值不改；功能色层 `--status-*` / `--color-category-*` / `--color-identity-*` 各有独立 token 与暗色值；两层不互相借用；功能色只在徽章 / 圆点 / 左条 / 图例 / 提示条；暗色类别红 / 金 ≠ danger / warning；身份色单一源；零消费者 token 删除。
+- **泛化规则**：主题色层（7×2×9）值不改；功能色层 `--status-*` / `--color-category-*` / `--color-identity-*` 各有独立 token 与暗色值；两层不互相借用；功能色只在徽章 / 圆点 / 图例 / 提示条（2026-11-04 起不再作左条）；暗色类别红 / 金 ≠ danger / warning；身份色单一源；零消费者 token 删除。
 - **守卫**：`theme-palette-guard::T1/T2/T5/T8/T9` ＋ `link-color-guard::L3/L6–L8` ＋ `ui-contrast-guard`。
 - **对应规范编号**：SD-46
 - **边界**：党建红 `#CE1126` 与党徽金是**固定品牌层**，不随主题切换；类别色也不随主题切换。功能色恢复的是小面积语义位，不恢复渐变卡头与彩色按压。
@@ -296,7 +296,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **场景（真实发生）**：`docs/help.html` 的 `.help-chapter > summary:focus-visible` 曾用党徽金 `#FFD700` 画 2px 焦点环，而折叠条落在白卡 `#FFFFFF` 上——实测 **1.40:1**。鼠标用户看不出问题，键盘用户 Tab 到章标题时**看不到焦点在哪**：环是在的，只是与底色同亮。当时先改走深金文字档 `--status-warning-text`（`#92400E`，7.09:1）；2026-10-28 全站焦点统一后改用主题色 `--app-accent`（金主题对白卡 3.83:1）。
 - **结论**：焦点环的验收标准是**环对底的对比度**，不是「有没有 `outline`」。固定党徽金 `#FFD700` 对白卡只有 1.40:1，已退出焦点用途；焦点色统一取主题色 `base` 档（对白卡最低为金 3.83:1）。
 - **泛化规则**：焦点可见由三件构成：① 有环（输入族 `:focus`、按钮 / 链接族 `:focus-visible`）＋ ② 环对**实际所在底色** ≥3:1（图形判据）＋ ③ 不在同一控件上重复出第二道答案（SD-27 / §5.7）。判据必须按**环落的那块底**逐处实测，不得只在 token 层看色值。
-- **守卫**：`ui-contrast-guard::K6`（`--status-warning-text` 亮 / 暗逐底 ≥4.5:1，填充色 `--status-warning` 只作圆点 / 左条）＋ `ui-focus-ring`（七主题亮 / 暗的 `--app-accent` 焦点环逐底 ≥3:1；顶栏白环 ≥3:1）。
+- **守卫**：`ui-contrast-guard::K6`（`--status-warning-text` 亮 / 暗逐底 ≥4.5:1，填充色 `--status-warning` 只作圆点 / 徽章底；2026-11-04 起不再作左条）＋ `ui-focus-ring`（七主题亮 / 暗的 `--app-accent` 焦点环逐底 ≥3:1；顶栏白环 ≥3:1）。
 - **对应规范编号**：SD-27（焦点环必须有可见环且只答一次）；对比度判据同族见 SD-46（状态色文字档）与 `ui-contrast-guard::K6`。
 - **边界**：顶栏深红底是唯一不用主题色的例外，现改用白色令牌 `--app-accent-strong-ink-light`（11.44:1，见 §5.7）；本条只判浅底上的焦点环。装饰性金点描边不属焦点环判据（见 §2.3.1）。
 - **证据指针**：`docs/help.html:58`（`outline:2px solid var(--app-accent)`）；`docs/src/styles.css` 的 `--app-accent-base-light` 七色表；`server/test/ui-contrast-guard.test.mjs`（K6）；`server/test/ui-focus-ring.test.mjs`（F1 / F4 / F6）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 美学专项 Task 7。
@@ -348,6 +348,17 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **对应规范编号**：SD-27（P1 焦点单环）；P2–P7 的落点见 `DS_03_COMPONENTS.md §12.9` 与 `DS_04_INTERACTION_AND_RESPONSIVE.md §5.7`。
 - **边界**：本条只讲「分支修不完时如何收敛原则」，不替代各条规范的具体判据；About 冻结件、顶栏深红底白环等已登记例外仍按各自条目执行。
 - **证据指针**：`.ctx/evidence/2026-10-29/m3-selfcheck.json`（P1–P4 换场景读数 78/78）；`.ctx/evidence/2026-10-29/p5-injection.log`（ESM / module-load 注入判红）；`.ctx/evidence/2026-10-29/p6-injection.log`（About 副本反例）；`server/test/esm-parse-guard.test.mjs`；`server/test/ui-control-system-guard.test.mjs`；`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 518–520。
+
+## CASE-DESIGN-033 左条退出界面信号
+
+- **编号**：CASE-DESIGN-033
+- **场景（真实发生）**：支书看待办列表时指出 hover / 选中时的左侧色条「很丑」，要求全局清理。盘点发现同一条 3px 左条被四种语义共用：hover 提示、选中、当前项、身份 / 品牌；焦点环压在左条上时又叠成一圈边，行看起来脏。
+- **支书原话**：「待办里 hover / 选中时的左侧色条很丑，要求全局清理」。
+- **结论**：状态型与装饰型左条全部退役。选中态：主题 soft 底 ＋ soft 字 ＋ 字重（按组件可选状态圆点）；hover：只改底色；身份：圆点或角色徽章；品牌：徽章或角标；引述块：全框或浅底。容器只保留 1px 结构边（嵌套 / 时间线 / 缩进）。焦点仍为现行单环，几何与颜色不变（SD-27 / `DS_04_INTERACTION_AND_RESPONSIVE.md §5.7`）。
+- **边界**：① 本判例只废「左条」，不重开焦点单环；焦点环仍 2px 实线、仅键盘触发、`box-shadow: none`，不得新增第二环 / 光晕。② 1px 结构边保留，用于层级嵌套与时间线，不承担状态。③ About 冻结件内容不动。
+- **对应规范编号**：SD-25（关联 SD-46 功能色使用面、§4.2 边线语义）；交互条文见 `DS_04_INTERACTION_AND_RESPONSIVE.md §5.2`。
+- **守卫**：`hover-state-guard::H11`（可点行不得定义状态左条）＋ `ui-control-system-guard::V7`（不得存在状态左条，选中靠 soft 底）＋ `ui-contrast-guard::K6`（`.section-accent-left` 不得再用左条；若选择器仍在，必须另有背景 / 文字承载状态）。三条均带「把 3px 左条加回来必须判红」的反例。
+- **证据指针**：`content/04_web_design/design-system/DS_03_COMPONENTS.md` §4.2 / §12.11；`content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md` §5.2；`server/test/hover-state-guard.test.mjs`；`server/test/ui-control-system-guard.test.mjs`；`server/test/ui-contrast-guard.test.mjs`。
 
 ---
 

@@ -20,16 +20,16 @@
 //     预载后经缓存读取（签名未变秒回、变才 await 拉取）——todo-tab-shell _comboKeyOf 已并入
 //     该 token+长度指纹 → 确认/审批后渲染守卫键变化 → 重建而非命中跳过。
 
-import { getAdapter } from '../../data/data-adapter.js?v=20261103b';
-import { mockDB } from '../../core/domain/domain.js?v=20261103b';
-import { bumpToken } from '../../core/base/version-token.js?v=20261103b';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261103b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261103b';
-import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261103b';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261103b';
-import { currentUserId } from '../../services/core/auth.js?v=20261103b';
+import { getAdapter } from '../../data/data-adapter.js?v=20261104a';
+import { mockDB } from '../../core/domain/domain.js?v=20261104a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261104a';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261104a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261104a';
+import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261104a';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261104a';
+import { currentUserId } from '../../services/core/auth.js?v=20261104a';
 // roster=名册报送确认链（组织委员发起 → 支书确认/退回；bulk 行仅确认，退回留在详情逐项）
-import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../../services/member/member-confirmation.js?v=20261103b';
+import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../../services/member/member-confirmation.js?v=20261104a';
 
 const _pendingStatusOf = (mode) => (mode === 'org-approve' ? 'pending-org-approval' : 'pending-secretary');
 
@@ -122,7 +122,7 @@ export function renderMcBulkRowsHtml(rows, { mode = 'secretary-confirm', accent 
     : '<span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 flex-shrink-0">名册</span>');
   const rowsHtml = list.map(r => `
     <label class="flex items-center gap-2 px-1 py-1.5 rounded-lg hover:bg-white transition-colors cursor-pointer" data-mcb-row data-mc-request-id="${esc(r.id)}">
-      <input type="checkbox" class="mcb-check shrink-0" style="cursor:pointer;" data-mcb-source="${r.source}" data-mcb-id="${esc(r.id)}" />
+      <input type="checkbox" class="mcb-check checkbox-accent shrink-0" data-mcb-source="${r.source}" data-mcb-id="${esc(r.id)}" />
       <span class="flex flex-col items-start gap-0.5 min-w-0 flex-1">
         <span class="flex items-center gap-1.5 min-w-0 w-full">
           ${sourceBadge(r.source)}
@@ -138,7 +138,7 @@ export function renderMcBulkRowsHtml(rows, { mode = 'secretary-confirm', accent 
     <div class="px-2.5 py-2 space-y-0.5" data-mcb-panel="${mode}">
       <div class="flex items-center justify-between pb-1 border-b border-gray-100 mb-1">
         <label class="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer select-none">
-          <input type="checkbox" class="mcb-all shrink-0" style="cursor:pointer;" />
+          <input type="checkbox" class="mcb-all checkbox-accent shrink-0" />
           全选（${list.length} 条）
         </label>
         <span class="text-xs text-gray-500">勾选后批量${verb}，逐项处理见详情</span>

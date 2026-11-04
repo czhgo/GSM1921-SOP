@@ -8,12 +8,12 @@
 
 
 
-import { icon } from '../../core/base/icons.js?v=20261103b';
-import { showToast, smoothScroll } from '../../core/base/utils.js?v=20261103b';
+import { icon } from '../../core/base/icons.js?v=20261104a';
+import { showToast, smoothScroll } from '../../core/base/utils.js?v=20261104a';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261103b';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261104a';
 
 
 
@@ -183,11 +183,12 @@ const FALLBACK_ACCENT = {
 
   accent: '#B91C1C',                  // 党建红（默认兜底，与支书主题色同源）
 
-  accentRgba: 'rgba(185, 28, 28, 0.1)',
-
-  accentBorder: 'rgba(185, 28, 28, 0.3)',
-
 };
+
+// 2026-11-04 批次 534（Task 5.4）：渲染层彩色 rgba 清零，改 color-mix（值逐字等价）；
+// 色值只在上面写一次，避免同一 hex 在本文件重复。
+FALLBACK_ACCENT.accentRgba = `color-mix(in srgb, ${FALLBACK_ACCENT.accent} 10%, transparent)`;
+FALLBACK_ACCENT.accentBorder = `color-mix(in srgb, ${FALLBACK_ACCENT.accent} 30%, transparent)`;
 
 
 
@@ -201,7 +202,7 @@ const FALLBACK_ACCENT = {
 /** 离开当前文档前的淡出时长（与 TAB_CONTENT_FADE_OUT_MS 同档） */
 export const ROUTE_LEAVE_MS = 120;
 
-const TAB_LOADING_CSS_URL = new URL('./tab-loading.css?v=20261103b', import.meta.url).href;
+const TAB_LOADING_CSS_URL = new URL('./tab-loading.css?v=20261104a', import.meta.url).href;
 
 const ROUTE_PROGRESS_ID = 'ws-route-progress';
 
@@ -404,15 +405,20 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
   // 2026-11-04 批次 533（R5A-17）：页签状态写入 URL（`?tab=<id>`），可分享 / 可回退；
   //   首次渲染优先读 URL，其次 priority / 记忆 / default（隐藏页签仍由 resolveInitialTab 回退可见项）。
+  // `history.state.tabSync`：区分「用户点页签写入的当前态」与「外部深链带入的 ?tab=」——
+  //   前者不再被 workspace-shell 当成导航目标反复消费（否则每次 setState 都被导航抑制）。
   const readUrlTab = () => {
-    try { return new URL(location.href).searchParams.get('tab'); } catch (_) { return null; }
+    try {
+      if (history.state && history.state.tabSync) return null;
+      return new URL(location.href).searchParams.get('tab');
+    } catch (_) { return null; }
   };
   const syncTabToUrl = (tabId) => {
     try {
       const url = new URL(location.href);
-      if (url.searchParams.get('tab') === tabId) return;
+      if (url.searchParams.get('tab') === tabId && history.state && history.state.tabSync) return;
       url.searchParams.set('tab', tabId);
-      history.replaceState(null, '', url.toString());
+      history.replaceState({ ...(history.state || {}), tabSync: true }, '', url.toString());
     } catch (_) { /* file:// 或历史 API 不可用时静默降级 */ }
   };
   const activeTab = resolveInitialTab(tabs, { defaultTab, savedTab, priorityTab: priorityTab || readUrlTab() });

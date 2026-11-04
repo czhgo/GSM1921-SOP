@@ -2,7 +2,7 @@
 title: "设计系统 · 第四编 交互与响应式"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-03"
+last_updated: "2026-11-04"
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.css, CASES.md]
 ---
@@ -41,9 +41,9 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.
 | 按钮 / 链接聚焦 | 只出一圈 2px 主题色实线、间隙 1px、不改底色（实底主题色控件取反为白 / 深墨并压在控件内侧）；只在 `:focus-visible` | `:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; box-shadow: none }` |
 | 输入框聚焦 | 只把边框变主题色（不出外环、不出阴影；鼠标与键盘一致） | `:focus { border-color: var(--app-accent); outline: none; box-shadow: none }` |
 | 卡片悬停 | 仅交互卡：描边变主题色 ＋ 10% 主题淡底（`.card--interactive`；展示卡无 hover） | `:hover { border-color: var(--app-accent); background-color: var(--app-accent-tint) }` |
-| 列表项 / 可点行悬停 | **主题 10% 淡底**（`--app-accent-tint`，与交互卡同源）＋ 3px 主题左条淡入；灰底只承担静态分隔，不作 hover（2026-11-01 批次 524 新裁定，替代 2026-10-26 的 neutral-200 灰底） | `:hover { background-color: var(--app-accent-tint) }`；左条由 `::before` 承担 |
+| 列表项 / 可点行悬停 | **主题 10% 淡底**（`--app-accent-tint`，与交互卡同源）；灰底只承担静态分隔，不作 hover；**不出现左条**（2026-11-04 批次 534 改准） | `:hover { background-color: var(--app-accent-tint) }` |
 | 整行命中热区（折叠头 `summary`，≥44 高、覆盖整行） | 不出底色变化，只加深右侧指示器（箭头 / 图标） | `:hover { color: var(--neutral-800) }`（`currentColor` 传给 chevron）；过渡 `color var(--transition-press)` |
-| 选中态 | 主题 soft 三件套：浅主题底 ＋ 主题字 ＋ 3px 主题左条（侧边栏是唯一浅灰豁免） | `.active { background: var(--app-accent-soft-bg); color: var(--app-accent-soft-text); box-shadow: inset 3px 0 0 var(--app-accent) }` |
+| 选中态 | 主题 soft 底 ＋ 主题字 ＋ 字重 600（按组件可选状态圆点）；侧边栏是唯一浅灰豁免；**不用左条** | `.active { background: var(--app-accent-soft-bg); color: var(--app-accent-soft-text); font-weight: 600 }` |
 | 加载态 | 骨架屏（灰色占位块） | 脉冲透明度动画 |
 | 空状态 | SVG 图标 + 中性色提示文字 | SVG + `--neutral-400` 文字 |
 
@@ -61,20 +61,20 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.
    **行内披露条**（`.row-more > summary` / `.modal-fieldset__summary` / 通知归并条）有可见文字，
    仍保留灰底按压反馈。守卫：`card-summary-hero-guard::G2`。
 
-**可点行状态（2026-11-01 批次 524 新裁定 · 替代 2026-10-26 的 neutral-200 灰底）**
+**可点行状态（2026-11-04 批次 534 改准 · 左条退出界面信号）**
 
 1. **行圆角**：`.list-row` 用 `--radius-sm`（8px）；hover 与焦点环都随圆角走。
 2. **hover 底**：可点行 `background-color: var(--app-accent-tint)`（主题 10% 淡底，与交互卡同源）；
    **灰底只承担静态分隔**（`.list-group` 行间 1px hairline），不再作 hover 反馈——灰底会让可点行与静态行看起来一样。
-3. **3px 主题左条**：由 `::before` 伪元素承担，静态 `opacity: 0`，hover / 选中 `opacity: 1`，
-   过渡 `opacity var(--transition-fast)`；不得再用 `background-image` 渐变（渐变无法过渡 ⇒ 左条瞬现）。
+3. **不得用左条**：hover / 选中一律不出左条——`::before` 色条、`border-left`、`inset 3px` 计数为 0；
+   行反馈只靠底色与文字色（2026-11-04 起取代 2026-11-01 的 3px `::before` 方案）。
 4. **按压**：`background: var(--app-accent-active-bg)`。
 5. **焦点环**：仍只有全站唯一那条 2px 主题环，但行内取 `outline-offset: -2px`，
    把环压在行内、随 8px 圆角走，不溢出到相邻行。
-6. **选中态**：仍走主题 soft 三件套（soft-bg / soft-text / 3px 左条）；选中行 hover 只把底拉回
-   `--app-accent-soft-bg`，不覆盖选中左条与文字色。
-7. **守卫**：`hover-state-guard::H11`（`H2` 同步放行「装饰伪元素 `::before` / `::after` 的 `opacity`」；
-   元素级 `opacity` 与 `filter` / `transform` / `box-shadow` 仍判红）。
+6. **选中态**：主题 soft 底 ＋ soft 字 ＋ 字重 600（可选状态圆点）；选中行 hover 只把底拉回
+   `--app-accent-soft-bg`，不覆盖文字色。
+7. **守卫**：`hover-state-guard::H11`（左条计数为 0；`H2` 同步只放行「装饰伪元素 `::before` / `::after` 的 `opacity`」，
+   元素级 `opacity` 与 `filter` / `transform` / `box-shadow` 仍判红）＋ `ui-control-system-guard::V7`。
 
 ### 5.3 禁止的动效效果
 

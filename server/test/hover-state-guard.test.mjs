@@ -448,12 +448,12 @@ test('H10 空壳折叠热区不铺底色：.disclosure__summary（含 hover / ac
     `空壳折叠热区被铺了背景（悬停时整块不透明灰盖住同列标题）：\n  ${offenders.join('\n  ')}`);
 });
 
-// ── H11 可点行状态柔和化（2026-11-01 支书 #6）──────────────────────────────
-// 病灶：`.list-row` 方角（`border-radius: 0`）＋ hover 用中性灰 `--surface-hover`（灰显脏）；
-//   左条是 `background-image` 渐变（渐变无法过渡 ⇒ 左条瞬现）；选中态无圆角（方底套 8px 圆角卡）。
-// 裁定：行 8px 圆角（--radius-sm）；可点行 hover 用主题 10% 淡底（--app-accent-tint），
-//   灰底只留静态分隔；左条改 `::before` 3px ＋ `opacity` 过渡（--transition-fast）；
-//   焦点环 `outline-offset: -2px` 压进行内、随圆角走（环仍只有全站唯一那一条）。
+// ── H11 可点行状态（2026-11-04 批次 534 改准：左条退出）────────────────────────
+// 病灶：`.list-row` 方角（`border-radius: 0`）＋ hover 用中性灰（灰显脏）；
+//   状态 / 选中 / 当前 / 身份共用同一条 3px 左侧色条，焦点环压在左条上又叠一圈。
+// 裁定：行 8px 圆角；hover 只用主题 10% 淡底；选中用 soft 底 ＋ soft 字 ＋ 字重；
+//   **状态左条计数为 0**（border-left / inset 3px / ::before 色条）；
+//   焦点环 `outline-offset: -2px` 压进行内，环仍只有全站唯一那一条（SD-27，不重开）。
 /** 纯判据：返回可点行状态口径的违规项（正反例复用同一口径，避免「反例另写一套」） */
 function listRowStateProblems(css) {
   const rules = parseRules(css);
@@ -479,18 +479,25 @@ function listRowStateProblems(css) {
     }
   }
 
-  const bar = find('.list-row[data-interactive="true"]::before');
-  if (!bar.length) problems.push('缺 .list-row[data-interactive="true"]::before 左条');
-  else {
-    const body = bar[0].body;
-    if (!/width:\s*3px/.test(body)) problems.push('左条宽度应为 3px');
-    if (!/opacity:\s*0(?:[;\s]|$)/.test(body)) problems.push('左条静态应为 opacity: 0');
-    if (!/transition:\s*opacity var\(--transition-fast\)/.test(body)) {
-      problems.push('左条须有 opacity 过渡（--transition-fast），不得瞬现');
+  const selected = find('.list-row[data-selected="true"]');
+  if (!selected.length) problems.push('缺 .list-row[data-selected="true"] 选中规则');
+  else if (!selected.some((r) => /(?:^|[;\s])background(?:-color)?\s*:\s*var\(--app-accent-soft-bg\)/.test(r.body))) {
+    problems.push('选中态必须用 --app-accent-soft-bg（不得用左条表达选中）');
+  }
+
+  // 左条禁令：状态型 / 装饰型左条一律不得出现在 .list-row 家族
+  for (const r of rules) {
+    if (!/\.list-row/.test(r.pre)) continue;
+    if (/border-left/.test(r.body)) {
+      problems.push(`可点行不得用 border-left 画状态左条：${r.pre}`);
+    }
+    if (/inset\s+[1-9]\d*px\s+0\s+0/.test(r.body)) {
+      problems.push(`可点行不得用 inset 内阴影画左条：${r.pre}`);
+    }
+    if (/(?:^|[;\s])(?:width|inline-size)\s*:\s*3px/.test(r.body)) {
+      problems.push(`可点行不得用伪元素画 3px 状态左条：${r.pre}`);
     }
   }
-  const shown = rules.some((r) => /::before/.test(r.pre) && /opacity:\s*1/.test(r.body));
-  if (!shown) problems.push('缺 ::before 的 opacity: 1 显示态（hover / 选中）');
 
   return problems;
 }
@@ -498,17 +505,10 @@ function listRowStateProblems(css) {
 const H11_OK = `
 .list-row { border-radius: var(--radius-sm); }
 .list-row[data-interactive="true"]:hover { background-color: var(--app-accent-tint); }
-.list-row[data-interactive="true"]::before {
-  content: ''; width: 3px; opacity: 0; transition: opacity var(--transition-fast);
-}
-@media (hover: hover) {
-  .list-row[data-interactive="true"]:hover::before { opacity: 1; }
-}
-.list-row[data-selected="true"] { border-radius: var(--radius-sm); background: var(--app-accent-soft-bg); }
-.list-row[data-selected="true"]::before { opacity: 1; }
+.list-row[data-selected="true"] { border-radius: var(--radius-sm); background: var(--app-accent-soft-bg); font-weight: 600; }
 `;
 
-test('H11 可点行：8px 圆角 + 主题 10% 淡底 + ::before 左条带 opacity 过渡（含 3 条反例）', () => {
+test('H11 可点行：8px 圆角 + 主题 10% 淡底 + 选中 soft 底（状态左条计数为 0，含 4 条反例）', () => {
   // ① 正例：合规样本不得误红（含媒体查询内的 hover 规则）
   assert.deepEqual(listRowStateProblems(H11_OK), [], '正例被判红：合规的可点行状态口径不得误判');
 
@@ -524,18 +524,26 @@ test('H11 可点行：8px 圆角 + 主题 10% 淡底 + ::before 左条带 opacit
   assert.ok(listRowStateProblems(badHover).some((p) => p.includes('--surface-hover')),
     '反例未被判红：可点行 hover 用灰底必须命中');
 
-  // ④ 反例 3：删掉 ::before 左条 ⇒ 必须判红
-  const badBar = H11_OK.replace(/\.list-row\[data-interactive="true"\]::before \{[^}]*\}/, '');
-  assert.ok(listRowStateProblems(badBar).some((p) => p.includes('::before')),
-    '反例未被判红：缺 ::before 左条必须命中');
-  // 反向：只留着 ::before 但去掉 opacity 过渡（瞬现）也须判红
-  const badTransition = H11_OK.replace('transition: opacity var(--transition-fast);', '');
-  assert.ok(listRowStateProblems(badTransition).some((p) => p.includes('opacity 过渡')),
-    '反例未被判红：左条无 opacity 过渡（瞬现）必须命中');
+  // ④ 反例 3：把 3px 伪元素状态左条加回来 ⇒ 必须判红
+  const badBar = `${H11_OK}\n.list-row[data-interactive="true"]::before { content: ''; width: 3px; background: var(--app-accent); }`;
+  assert.ok(listRowStateProblems(badBar).some((p) => p.includes('3px 状态左条')),
+    '反例未被判红：3px 伪元素左条加回来必须命中');
 
-  // ⑤ 实况
+  // ⑤ 反例 4：用 border-left 画状态左条 ⇒ 必须判红
+  const badBorder = H11_OK.replace(
+    '.list-row[data-interactive="true"]:hover { background-color: var(--app-accent-tint); }',
+    '.list-row[data-interactive="true"]:hover { background-color: var(--app-accent-tint); border-left: 3px solid var(--app-accent); }');
+  assert.ok(listRowStateProblems(badBorder).some((p) => p.includes('border-left')),
+    '反例未被判红：border-left 左条必须命中');
+
+  // ⑥ 反例 5：选中只留左条、去掉 soft 底 ⇒ 必须判红
+  const badSelected = H11_OK.replace('background: var(--app-accent-soft-bg); ', '');
+  assert.ok(listRowStateProblems(badSelected).some((p) => p.includes('--app-accent-soft-bg')),
+    '反例未被判红：选中态缺 soft 底必须命中');
+
+  // ⑦ 实况
   const problems = listRowStateProblems(read('docs/src/styles.css'));
-  assert.deepEqual(problems, [], `可点行状态口径不合新裁定：\n  ${problems.join('\n  ')}`);
+  assert.deepEqual(problems, [], `可点行状态口径不合新裁定（左条应已退出）：\n  ${problems.join('\n  ')}`);
   // 非空转：判据必须真解析到 .list-row 家族（而不是空串恒绿）
   const rules = parseRules(read('docs/src/styles.css'));
   const rows = rules.filter((r) => /\.list-row/.test(r.pre)).length;

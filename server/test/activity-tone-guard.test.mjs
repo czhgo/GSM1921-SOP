@@ -24,7 +24,7 @@ import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   activityTypeTone, activityTypeBadgeVariant, activityTypeClassification,
-} from '../../docs/src/core/domain/constants.js?v=20261103b';
+} from '../../docs/src/core/domain/constants.js?v=20261104a';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -290,8 +290,11 @@ test('A4 党建红：.badge--brand 与 [data-tone="party-red"] 用功能红 #CE1
 
   const brand = ruleBody(css, '.badge--brand');
   assert.ok(brand, 'styles.css 缺少 .badge--brand 规则');
-  assert.match(brand, /var\(--color-functional-red\)|var\(--party-red\)|#CE1126/i,
-    '.badge--brand 必须使用功能红 / 党建红 #CE1126');
+  // 2026-11-04 批次 534（Task 4.1）：徽标三连令牌化——规则体只读令牌，色义核在令牌定义处。
+  assert.match(brand, /var\(--badge-brand-text\)/,
+    '.badge--brand 字色应读 --badge-brand-text（令牌须落到功能红 / 党建红）');
+  assert.match(css, /--badge-brand-text:\s*var\(--color-functional-red\)\s*;/,
+    '--badge-brand-text 必须引功能红 / 党建红 var(--color-functional-red)（#CE1126）');
   assert.doesNotMatch(brand, /#B91C1C|var\(--functional-error\)|var\(--status-error\)/i,
     '.badge--brand 不得用错误红 #B91C1C / --functional-error / --status-error');
 
@@ -328,10 +331,11 @@ test('A5 暗色分离：类别红/金与 danger/warning 逐值不同，badge--br
     '暗色主题党日金应读 --color-functional-gold-dark（#FCD34D）');
   assert.doesNotMatch(darkGold, /#FBBF24/i, '暗色主题党日金不得用 warning 的 #FBBF24');
 
-  const darkBrand = ruleBody(css, 'html.theme-dark .badge--brand');
-  assert.ok(darkBrand, '缺少暗色 .badge--brand 规则');
-  assert.doesNotMatch(darkBrand, /--functional-error|--status-error|#F87171/i,
+  // 2026-11-04 批次 534（Task 4.1）：暗色徽标不再逐条覆写，改由 `html.theme-dark` 段的令牌承担。
+  const darkBrandToken = /html\.theme-dark\s*\{[\s\S]*?--badge-brand-text:\s*([^;]+);/.exec(css);
+  assert.ok(darkBrandToken, '缺少暗色 --badge-brand-text 令牌');
+  assert.doesNotMatch(darkBrandToken[1], /--functional-error|--status-error|#F87171/i,
     '暗色 .badge--brand 不得借状态错误色');
-  assert.match(darkBrand, /--color-functional-red-dark|--color-category-three-meetings-dark/i,
+  assert.match(darkBrandToken[1], /--color-functional-red-dark|--color-category-three-meetings-dark/,
     '暗色 .badge--brand 应读功能红 / 类别红暗色 token');
 });

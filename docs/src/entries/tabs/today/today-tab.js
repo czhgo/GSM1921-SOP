@@ -32,47 +32,47 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261103b';
-import { icon } from '../../../core/base/icons.js?v=20261103b';
-import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261103b';
+import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261104a';
+import { icon } from '../../../core/base/icons.js?v=20261104a';
+import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261104a';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
 // api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
-import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261103b';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261103b';
-import { mockDB } from '../../../core/domain/domain.js?v=20261103b';
-import { tokenOf } from '../../../core/base/version-token.js?v=20261103b'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261103b'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261103b'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261103b'; // P2 渲染守卫（spec §四.1）
+import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261104a';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261104a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261104a';
+import { tokenOf } from '../../../core/base/version-token.js?v=20261104a'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261104a'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261104a'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261104a'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261103b';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261104a';
 // 批次 299「待我处理」两源——**单一源复用**，不另立取数口径：
 //   · 未读通知 ＝ 顶栏铃铛同一取数（NoticeStore.list retention:'visible'）＋ 统一落消息详情（notice.html?id=）
 //   · 待处理汇报 ＝ 顶栏「一键汇报」角标同一集合（IssueNotify.getUnread(我)）
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261103b';
-import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261103b';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261104a';
+import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261104a';
 // 批次 304「待我表态」三件——**判据与读口皆单一源**，不在本文件重写投票规则：
 //   · 我是否应到表决人 ＝ `vote-config.js::isVoterOf`（角色无关，只看固化名单）
 //   · 我是否已对某议程项表态 ＝ `committee-vote.js::hasVoted`
 //   · 当前登录人 ＝ `AuthStore.getCurrentUser()`
-import { AuthStore } from '../../../services/core/auth.js?v=20261103b';
-import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261103b';
-import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261103b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261104a';
+import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261104a';
+import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261104a';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**本文件不手写类型色值**。
-import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS, SEMESTER_REMIND_OPEN_MONTHS, SEMESTER_REMIND_FIRST_WEEK_LAST_DAY } from '../../../core/domain/constants.js?v=20261103b';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261103b';
+import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS, SEMESTER_REMIND_OPEN_MONTHS, SEMESTER_REMIND_FIRST_WEEK_LAST_DAY } from '../../../core/domain/constants.js?v=20261104a';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261104a';
 // 徽章扎口出口（2026-09-30 批次 304 改准）：`components/ui/badges.js` 是**唯一调用口**
 //   （其文件头明写「调用方一律 import badges.js；内部实现文件 badge.js / status-badge.js 可各自演进」）；
 //   批次 301 我直连了实现文件 `badge.js` ⇒ 本批收回归口，**零行为变化**。
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261103b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261104a';
 // 2026-10-18 繁专项 Task 7：汇报类行统一落到待办「待答复」收件箱（PendingTarget 一次性定位）。
 // 提交入口只在「我的处置」；今天页只读、不重复提供提交位。
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261103b';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261104a';
 // Task 6：「今天」是跨对象日程摘要，不属活动工作台 ⇒ direct；缺 id 不跳转。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261103b';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261104a';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261103b';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261104a';
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';
 const ACCENT_BG = 'var(--app-accent-soft-bg)';
@@ -148,12 +148,13 @@ function _count(n) {
   return n > 0 ? `<span class="text-[13px] font-medium ml-2 tabular-nums" style="color:var(--app-accent-soft-text);">${n}</span>` : '';
 }
 
-/** 清单行（行式载体）：左 3px 竖色条＝状态自陈；`bar`＝色条色，`inner`＝行内其余内容 */
+/** 清单行（行式载体）：行首 6px 状态圆点（`bar`＝圆点色）。
+ *  2026-11-04 批次 534：左侧 3px 竖色条退出界面信号，状态改由圆点 ＋ 行内文字表达。 */
 function _row(bar, inner, attrs = '') {
   return `
     <button type="button" class="btn-ghost today-go w-full flex items-center gap-2 text-left"
       ${attrs}>
-      <span class="w-[3px] self-stretch rounded-full flex-shrink-0" style="background:${bar};"></span>
+      <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${bar};" aria-hidden="true"></span>
       ${inner}
     </button>`;
 }
@@ -191,14 +192,26 @@ function _todoEntry(it, today) {
     : dueToday ? 'var(--status-warning)' : 'var(--neutral-400)';
   const titleCls = overdue ? 'text-amber-700 font-medium' : 'text-gray-800';
   const metaCls = overdue ? 'text-amber-700 font-medium' : 'text-gray-500';
+  // 2026-11-04 Task 3.7：早于今天的件必须标「逾期」，与「今日到期」的日期同屏时可区分——
+  //   日期本身保留完整 ISO（行内 tabular-nums 不变，真机件按它核对截止 ≤ 今天），
+  //   逾期 / 今日只在日期前加状态标签（不靠颜色单独承载信息）。
+  const dueLabel = overdue
+    ? badgeHtml('逾期', 'danger', { extraClass: 'flex-shrink-0' })
+    : dueToday ? badgeHtml('今天', 'warning', { extraClass: 'flex-shrink-0' }) : '';
   return {
     key: it.deadline || '9999-12-31',
     bar,
     inner: `<span class="text-[13px] flex-1 min-w-0 truncate ${titleCls}">${esc(it.title || '未命名待办')}</span>
        ${_domainChip(it.domain, it.domainLabel)}
+       ${dueLabel}
        <span class="text-xs tabular-nums flex-shrink-0 ${metaCls}">${esc(it.deadline || '')}</span>`,
     attrs: `data-go="todo" title="${esc(it.title || '')}"`,
   };
+}
+
+/** 行尾「可点」暗示（参与类 / 审核类共用同一枚标记，2026-11-04 Task 3.7） */
+function _chevron() {
+  return '<span class="text-xs text-gray-500 flex-shrink-0" aria-hidden="true">›</span>';
 }
 
 /** 今日分工 → 参与类行（角色走胶囊；点击进活动详情）。无截止 ⇒ 紧迫度＝灰（随时）。 */
@@ -208,7 +221,7 @@ function _dutyEntry(d) {
     bar: 'var(--neutral-400)',
     inner: `<span class="text-[13px] text-gray-800 flex-1 min-w-0 truncate">${esc(d.activityTitle || '未命名活动')}</span>
        ${_chip(d.role)}
-       <span class="text-xs text-gray-500 flex-shrink-0">›</span>`,
+       ${_chevron()}`,
     attrs: `data-go="activity" data-act-id="${esc(d.activityId)}" title="${esc(d.activityTitle || '')}"`,
   };
 }
@@ -219,8 +232,8 @@ function _voteEntry(a) {
     key: '9999-12-31',
     bar: 'var(--neutral-400)',
     inner: `<span class="text-[13px] text-gray-800 flex-1 min-w-0 truncate">${esc(a.title || '未命名活动')}</span>
-       <span class="text-xs text-gray-500 flex-shrink-0">›</span>`,
-    attrs: `data-go="activity" data-act-id="${esc(a.id)}"`,
+       ${_chevron()}`,
+    attrs: `data-go="activity" data-act-id="${esc(a.id)}" title="${esc(a.title || '')}"`,
   };
 }
 
@@ -241,8 +254,8 @@ function _reportEntry(i) {
     key: '9999-12-31',
     bar: 'var(--neutral-400)',
     inner: `<span class="text-[13px] text-gray-800 flex-1 min-w-0 truncate">${esc(i.title || i.body || '待处理汇报')}</span>
-       <span class="text-xs text-gray-500 flex-shrink-0">›</span>`,
-    attrs: `data-go="todo" data-report-id="${esc(i.id)}"`,
+       ${_chevron()}`,
+    attrs: `data-go="todo" data-report-id="${esc(i.id)}" title="${esc(i.title || '')}"`,
   };
 }
 
@@ -489,9 +502,9 @@ function _leaderSemesterRemindHtml(personId) {
   const key = _lsrMarkKey(personId);
   if (!key || _lsrGet(key)) return ''; // 本学年同窗已提醒过
   return `
-    <div class="card rounded-xl p-4 border-l-4" style="border-left-color:${ACCENT};" data-leader-sem-remind="1">
+    <div class="card rounded-xl p-4" style="background:${ACCENT_BG};" data-leader-sem-remind="1">
       <div class="flex items-start gap-3">
-        <span class="flex-none w-8 h-8 rounded-lg flex items-center justify-center" style="background:${ACCENT_BG};color:var(--app-accent-soft-text);">${icon('bell', { className: 'icon-base w-4 h-4' })}</span>
+        <span class="flex-none w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--surface-card);color:var(--app-accent-soft-text);">${icon('bell', { className: 'icon-base w-4 h-4' })}</span>
         <div class="flex-1 min-w-0">
           <p class="font-title-cn text-sm font-semibold text-gray-800">本学期组员进展</p>
           <p class="text-xs text-gray-700 mt-2" data-lsr-facts>正在汇总…</p>

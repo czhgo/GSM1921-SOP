@@ -29,7 +29,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261103b';
+import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261104a';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -1169,13 +1169,13 @@ const GHOST_ROW_WHITELIST = [
     max: 2,
     marker: 'data-row-type',
     reason: '导航行 / 选择行的原生 <button> 整行载体（data-row-type + data-interactive）；'
-      + 'hover 底与 3px 主题左条见 .list-row[data-interactive="true"]:hover',
+      + 'hover 底与选中 soft 底见 .list-row[data-interactive="true"]:hover（左条已退出）',
   },
   {
     rel: 'docs/src/entries/tabs/today/today-tab.js',
     max: 1,
     marker: 'w-full',
-    reason: '今天页清单行（w-full + text-left）整行点击跳转；行左 3px 状态条 + hover 底',
+    reason: '今天页清单行（w-full + text-left）整行点击跳转；hover 底（左条已退出）',
   },
   {
     rel: 'docs/src/entries/tabs/disc/overview-tab.js',
@@ -1390,7 +1390,7 @@ function contrast(a, b) {
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
 }
 
-test('V7 可点行 hover：主题 10% 淡底 + 3px 左条（2026-11-01 新裁定，灰底只留静态分隔）', () => {
+test('V7 可点行 hover：主题 10% 淡底；状态左条计数为 0，选中靠 soft 底（2026-11-04 改准）', () => {
   const root = cssVarBlock(CSS_BARE, ':root');
   const dark = cssVarBlock(CSS_BARE, 'html.theme-dark');
   assert.ok(root && dark, 'styles.css 缺少 :root / html.theme-dark 变量块');
@@ -1421,8 +1421,8 @@ test('V7 可点行 hover：主题 10% 淡底 + 3px 左条（2026-11-01 新裁定
     assert.ok(cPage >= 1.15, `${label}：--surface-hover 对页面底仅 ${cPage.toFixed(2)}:1（要求 ≥1.15）`);
   }
 
-  // 可点行 hover（2026-11-01 新裁定）：底取主题 10% 淡底，不再用灰底 --surface-hover；
-  //   左条改由 ::before 承担 opacity 过渡（渐变无法过渡 ⇒ 左条瞬现）。
+  // 可点行 hover（2026-11-01 裁定保留）：底取主题 10% 淡底，不用灰底 --surface-hover；
+  //   2026-11-04 批次 534 改准：状态 / 装饰左条全部退出，选中靠 soft 底 ＋ soft 字 ＋ 字重。
   assert.match(CSS, /--app-accent-tint:\s*rgb\(from var\(--app-accent\) r g b \/ 10%\)/,
     'styles.css 应定义 --app-accent-tint（当前主题色 10% 淡底）');
   const rowHover = /\.list-row\[data-interactive="true"\]:hover\s*\{([^}]*)\}/.exec(CSS_BARE);
@@ -1430,14 +1430,18 @@ test('V7 可点行 hover：主题 10% 淡底 + 3px 左条（2026-11-01 新裁定
   assert.match(rowHover[1], /background-color:\s*var\(--app-accent-tint\)/,
     '可点行 hover 底必须是主题 10% 淡底（--app-accent-tint）');
   assert.doesNotMatch(rowHover[1], /--surface-hover/,
-    '可点行 hover 不得再回灰底 --surface-hover（2026-11-01 新裁定：灰底只留静态分隔）');
+    '可点行 hover 不得再回灰底 --surface-hover（灰底只留静态分隔）');
   assert.doesNotMatch(rowHover[1], /background-image/,
     '可点行 hover 不得再用 background-image 画左条（渐变无法过渡）');
-  const rowBar = /\.list-row\[data-interactive="true"\]::before\s*\{([^}]*)\}/.exec(CSS_BARE);
-  assert.ok(rowBar, 'styles.css 缺 .list-row[data-interactive="true"]::before 左条');
-  assert.match(rowBar[1], /width:\s*3px/, '可点行左条宽应为 3px');
-  assert.match(rowBar[1], /transition:\s*opacity var\(--transition-fast\)/,
-    '可点行左条须有 opacity 过渡（--transition-fast），不得瞬现');
+  // 左条禁令（2026-11-04）：把 3px 左条加回来必须判红——伪元素 / border-left / inset 内阴影三路都查。
+  assert.doesNotMatch(CSS_BARE, /\.list-row[^,{]*::before\s*\{[^}]*width:\s*3px/,
+    '可点行不得再用伪元素画 3px 状态左条（左条已退出界面信号）');
+  assert.doesNotMatch(CSS_BARE, /\.list-row[^,{]*\{[^}]*border-left/,
+    '可点行不得用 border-left 画状态左条');
+  assert.doesNotMatch(CSS_BARE, /\.list-row[^,{]*\{[^}]*box-shadow:\s*inset\s+3px/,
+    '可点行不得用 inset 3px 内阴影画左条');
+  assert.match(CSS_BARE, /\.list-row\[data-selected="true"\]\s*\{[^}]*background(?:-color)?:\s*var\(--app-accent-soft-bg\)/,
+    '选中态必须用 --app-accent-soft-bg（不得靠左条表达选中）');
   assert.match(CSS_BARE, /\.list-row\[data-interactive="true"\]\[data-selected="true"\]:hover\s*\{[^}]*background-color:\s*var\(--app-accent-soft-bg\)/,
     '选中行 hover 必须保持主题 soft-bg（不得被 hover 淡底覆盖）');
 

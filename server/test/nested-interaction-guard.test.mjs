@@ -42,11 +42,8 @@ const NESTED_WHITELIST = new Map([
     defectSet: false,
     reason: '顶栏通知浮层行 + 「已读」按钮；已读按钮 stopPropagation，行 keydown 跳过内层控件',
   }],
-  ['docs/src/entries/tabs/disc/attendance-tab.js', {
-    runtimeHits: 1,
-    defectSet: false,
-    reason: '考勤队列行 + 勾选框/档案链接；行点击跳过 a/button/input/label',
-  }],
+  // 2026-11-04 批次 534（Task 3.1）：考勤队列行已去掉 `role="button"` 外壳，整行只作鼠标
+  //   点按热区，键盘落点＝行内原生复选框 / 链接 ⇒ 不再属于嵌套交互，白名单登记随之撤除。
   ['docs/src/entries/tabs/leader/write-tab.js', {
     runtimeHits: 1,
     defectSet: false,

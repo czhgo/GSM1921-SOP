@@ -16,13 +16,17 @@ window.tailwind.config = {
   },
   theme: {
     extend: {
+      // 2026-11-04 批次 534（Task 5.2）：颜色**不再写字面量**，一律映射到 `styles.css :root` 令牌。
+      //   Tailwind 只是工具类出口，值由 CSS 令牌决定 ⇒ 换主题 / 改色只改 styles.css 一处；
+      //   逐值相等由 `server/test/theme-palette-guard.test.mjs::T12` 机检（漂移即红）。
+      //   同批删除零消费的 accent.amber / blue / emerald / violet（Tailwind 默认色残留，全站无消费者）。
       colors: {
-        party: { DEFAULT:'#CE1126', red:'#CE1126', gold:'#FFD700', 'gold-light':'#FDE68A', 50:'#FEF2F2', 100:'#FEE2E2', 200:'#FECACA', 300:'#FCA5A5', 400:'#F87171', 500:'#EF4444', 600:'#DC2626', 700:'#CE1126', 800:'#9B0000', 900:'#7A0010', 950:'#4A000A' },
-        primary: { 50:'#FEF2F2', 100:'#FEE2E2', 200:'#FECACA', 300:'#FCA5A5', 400:'#F87171', 500:'#EF4444', 600:'#DC2626', 700:'#CE1126', 800:'#9B0000', 900:'#7A0010', 950:'#4A000A' },
+        party: { DEFAULT:'var(--party-red)', red:'var(--party-red)', gold:'var(--party-gold)', 'gold-light':'var(--party-gold-light)', 50:'var(--primary-50)', 100:'var(--primary-100)', 200:'var(--primary-200)', 300:'var(--primary-300)', 400:'var(--primary-400)', 500:'var(--primary-500)', 600:'var(--primary-600)', 700:'var(--primary-700)', 800:'var(--primary-800)', 900:'var(--primary-900)', 950:'var(--primary-950)' },
+        primary: { 50:'var(--primary-50)', 100:'var(--primary-100)', 200:'var(--primary-200)', 300:'var(--primary-300)', 400:'var(--primary-400)', 500:'var(--primary-500)', 600:'var(--primary-600)', 700:'var(--primary-700)', 800:'var(--primary-800)', 900:'var(--primary-900)', 950:'var(--primary-950)' },
         // accent.DEFAULT 只用于链接的 `hover:text-accent`，映射到浅底深字 token（随主题/日夜切换）。
-        accent: { DEFAULT:'var(--app-accent-soft-text)', gold:'#FFD700', 'gold-light':'#FDE68A', amber:'#D97706', blue:'#3B82F6', emerald:'#10B981', violet:'#8B5CF6' },
-        neutral: { 0:'#FFFFFF', 50:'#F8F9FA', 100:'#F3F4F6', 200:'#E5E7EB', 300:'#D1D5DB', 400:'#9CA3AF', 500:'#6B7280', 600:'#4B5563', 700:'#374151', 800:'#1F2937', 900:'#111827' },
-        surface: { page:'#F8F9FA', card:'#FFFFFF', elevated:'#FFFFFF', header:'#7A0010', sidebar:'#FFFFFF', hover:'var(--surface-hover)', active:'var(--surface-active)' },
+        accent: { DEFAULT:'var(--app-accent-soft-text)', gold:'var(--party-gold)', 'gold-light':'var(--party-gold-light)' },
+        neutral: { 0:'var(--neutral-0)', 50:'var(--neutral-50)', 100:'var(--neutral-100)', 200:'var(--neutral-200)', 300:'var(--neutral-300)', 400:'var(--neutral-400)', 500:'var(--neutral-500)', 600:'var(--neutral-600)', 700:'var(--neutral-700)', 800:'var(--neutral-800)', 900:'var(--neutral-900)' },
+        surface: { page:'var(--surface-page)', card:'var(--surface-card)', elevated:'var(--surface-elevated)', header:'var(--surface-header)', sidebar:'var(--surface-sidebar)', hover:'var(--surface-hover)', active:'var(--surface-active)' },
       },
       fontFamily: { sans:['Noto Sans SC','-apple-system','PingFang SC','Microsoft YaHei','sans-serif'], serif:['Noto Serif SC','STKaiti','KaiTi','serif'], title:['STZhongsong','华文中宋','Noto Serif SC','STSong','SimSun','serif'], 'title-en':['Times New Roman','Georgia','serif'] },
       // 2026-10-31 P10：时长统一走 styles.css 三档令牌（不再写裸 0.4s / 0.2s / 2s）。

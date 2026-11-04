@@ -6,27 +6,29 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261103b';
-import { persist, getDataSource } from '../../data/data-adapter.js?v=20261103b';
-import { generateId } from '../../core/base/id.js?v=20261103b';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261103b';
+import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261104a';
+import { persist, getDataSource } from '../../data/data-adapter.js?v=20261104a';
+import { generateId } from '../../core/base/id.js?v=20261104a';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261104a';
 // 待批活动状态值单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：待批活动**不是**「待参与」的活动
 // ——它还没获批（与 `draft` 同待遇），不为它派生「参与活动」待办（也免得从待办标题把没批的活动漏出去）。
-import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261103b';
-import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261103b';
-import { DEFAULT_BRANCH_ID, isActivityEnded } from '../../core/domain/constants.js?v=20261103b';
-import { AuthStore } from '../core/auth.js?v=20261103b';
+import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261104a';
+import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261104a';
+import { DEFAULT_BRANCH_ID, isActivityEnded } from '../../core/domain/constants.js?v=20261104a';
+import { AuthStore } from '../core/auth.js?v=20261104a';
 // 周期键（月/季/半年/年）与「模块周期」单一源（2026-10-06 批次 423 · `R-29⑤` · `D-804`）——
 //   周期任务的**来源**＝`work-map.js::WORK_MAP_MODULES[].cycle`（不另立第二份映射，`D-803②`）。
-import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261103b';
-import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261103b';
+import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261104a';
+import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261104a';
+// 7 键实时组域键单一源（零依赖叶子件；服务端 Task 8 同源消费）
+import { DERIVE_GROUP_DOMAIN } from '../../core/domain/todo-derive.js?v=20261104a';
 // R10-B03：种子待办截止 = 活动日 + 制度复盘/归档时限（单一源），不存死日期字面量。
-import { ACTIVITIES } from '../../data/mock/activities.js?v=20261103b';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261103b';
+import { ACTIVITIES } from '../../data/mock/activities.js?v=20261104a';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261104a';
 // 「待归档」是否可生成 = 活动关闭条件是否已齐（单一源 `services/activity/close-conditions.js`）。
 // 2026-10-25 批次 510：hydrate 原按「活动已结束」逐条生成，实测 34 条（多数产出未齐、归档面并不需要）；
 // 改为 canClose 才生成。该函数只在服务层此处消费，不复制分类型判据（避免第二套关闭标准）。
-import { checkActivityCloseConditions } from '../activity/close-conditions.js?v=20261103b';
+import { checkActivityCloseConditions } from '../activity/close-conditions.js?v=20261104a';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -188,17 +190,15 @@ export function _effDomain(todo) {
  * 复盘相关（review-remind/confirm）归「项目」域——`D-787` 合并后活动/会务/专班同域（spec 三节：复盘在原活动域）。
  */
 export const REALTIME_GROUP_DOMAIN = {
-  'attendance-remind': WORK_DOMAIN.ATTENDANCE,
+  // 7 类可服务端复算的实时组：域键单一源＝`core/domain/todo-derive.js::DERIVE_GROUP_DOMAIN`
+  //   （2026-11-04 批次 534 · B-500-7b-1 Task 7：原此处逐条字面量与叶子件重复，改为展开引用）
+  ...DERIVE_GROUP_DOMAIN,
   'attendance-confirm': WORK_DOMAIN.ATTENDANCE,
-  'inspection-remind': WORK_DOMAIN.INSPECTION,
   'inspection-confirm': WORK_DOMAIN.INSPECTION,
   'review-remind': WORK_DOMAIN.PROJECT,    // 活动复盘待提交（`D-787`：活动 → 项目）
   'review-confirm': WORK_DOMAIN.PROJECT,   // 活动复盘待复核（`D-787`：活动 → 项目）
   'archive-remind': WORK_DOMAIN.ARCHIVE,
   'archive-confirm': WORK_DOMAIN.ARCHIVE,
-  'resolution-followup-remind': WORK_DOMAIN.REPORT_UP, // `D-787`：决议上报 → 上报与汇报
-  'member-confirm': WORK_DOMAIN.MEMBER_DEV,
-  'semester-detained-remind': WORK_DOMAIN.MEMBER_DEV,
   'develop-node-remind': WORK_DOMAIN.MEMBER_DEV, // 发展节点期满提醒（组织委员流程指南附录A）
   'half-year-inspection-remind': WORK_DOMAIN.MEMBER_DEV, // 半年考察提醒（SOP-B-39 · D-295）
   // 模块周期提醒（`R-29⑤` · `D-804`）：三会一课 / 主题党日类**会议与活动形态** ⇒ 归「项目」域（`D-787` 同域）。

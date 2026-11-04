@@ -18,34 +18,34 @@
 //  本页除「四数卡的图标块」外不再使用 SVG 图标（支书 2026-08-10 裁定），类别仍用色点 + 文字区分。
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight, todayLocal, docAnchorHref, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261103b';
-import { icon } from '../../core/base/icons.js?v=20261103b';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261103b';
-import { tableHeadHtml } from '../ui/data-table.js?v=20261103b';
-import { emptyStateHtml, renderSkeleton } from '../ui/empty-state.js?v=20261103b';
-import { badgeHtml } from '../ui/badges.js?v=20261103b';
-import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261103b';
+import { showToast, flashHighlight, todayLocal, docAnchorHref, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261104a';
+import { icon } from '../../core/base/icons.js?v=20261104a';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261104a';
+import { tableHeadHtml } from '../ui/data-table.js?v=20261104a';
+import { emptyStateHtml, renderSkeleton } from '../ui/empty-state.js?v=20261104a';
+import { badgeHtml } from '../ui/badges.js?v=20261104a';
+import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261104a';
 import {
   TodoStore, seedTodos, isTodoExpired, WORK_DOMAIN, WORK_DOMAIN_LABELS, TodoStatus,
-} from '../../services/governance/todo.js?v=20261103b';
-import { IssueStore } from '../../services/governance/issues.js?v=20261103b';
+} from '../../services/governance/todo.js?v=20261104a';
+import { IssueStore } from '../../services/governance/issues.js?v=20261104a';
 import {
   isActivityEnded, isActivityArchived, isActivityInProgress, ROLE_LABELS, PARTY_GROUP_LEADER_ROLES,
   DASHBOARD_LIMITS,
-} from '../../core/domain/constants.js?v=20261103b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261103b';
-import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261103b';
-import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261103b';
-import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261103b';
-import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261103b';
-import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261103b';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261103b';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261103b';
-import { getPersonName } from '../../services/member/person.js?v=20261103b';
-import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261103b';
-import { AttendanceStatus, ReviewStatus, mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261103b';
-import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261103b';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261103b';
+} from '../../core/domain/constants.js?v=20261104a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261104a';
+import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261104a';
+import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261104a';
+import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261104a';
+import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261104a';
+import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261104a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261104a';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261104a';
+import { getPersonName } from '../../services/member/person.js?v=20261104a';
+import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261104a';
+import { AttendanceStatus, ReviewStatus, mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261104a';
+import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261104a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261104a';
 
 // 在办下钻详情目标（支书 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -607,7 +607,7 @@ async function _buildContext(role, personId, today, config) {
 
   // 支书：概况维度 + 实时派生组（与待办页同源）
   if (role === 'secretary') {
-    const secretary = await import('../../services/governance/secretary-overview.js?v=20261103b');
+    const secretary = await import('../../services/governance/secretary-overview.js?v=20261104a');
     const realtime = secretary.SecretaryTodoDeriver.computeAggregates();
     const seen = new Set(ctx.todoGroups.map((group) => group.groupKey));
     ctx.todoGroups = [...ctx.todoGroups, ...realtime.filter((group) => !seen.has(group.groupKey))];
@@ -975,7 +975,7 @@ function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
       const tab = btn.dataset.woGotoTab;
       if (btn.dataset.woSegment === 'makeup') {
         try {
-          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261103b');
+          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261104a');
           module.focusSegment?.('makeup');
         } catch (_) { /* 分段记忆失败时仍进考勤页 */ }
       }
@@ -1032,10 +1032,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('../record/activity-view.js?v=20261103b');
+    const { renderActivityView } = await import('../record/activity-view.js?v=20261104a');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261103b');
+    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261104a');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

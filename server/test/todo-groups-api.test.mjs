@@ -3,9 +3,9 @@
 // 覆盖（端点 = `GET /api/v1/todo-groups`，实现 `server/routes/todo-groups.js`）：
 //   ① 未登录 401（读口一律要登录，与 `GET /todos` 同门）；
 //   ② 跨人 / 跨角色读取被过滤（到人视图只给本人、角色视图只给本角色，403）；
-//   ③ 返回形状稳定（顶层 5 键、组内 11 键、类型固定）；
+//   ③ 返回形状稳定（顶层 5 键、组内 11 键、类型固定）；`count` 按组口径（member-confirm 另含议程批次行）；
 //   ④ 同 groupKey 不重复（防同组双卡 / 重复计数）；
-//   ⑤ 本期不支持的实时组逐键标注在 `unsupported`，且与已算组键不重叠。
+//   ⑤ 7 类实时组已服务端化 ⇒ `unsupported` 清空，已算组不再标不支持。
 //
 // 自包含：createApp(:memory:) + seedDatabase（不连 3000）；需 `DISABLE_PASSWORD_CHECK=1`。
 // ⚠ 本文件由主代理统一登记 `test-tier-registry.mjs`（本批未登记，`test-tier-guard` 待主代理同批改准）。
@@ -20,10 +20,11 @@ const SECRETARY_ID = '2300010001';        // 储子禾（支书，br-b1）
 const FIXTURE_MEMBER_ID = 'test-dev-1';   // 期满的预备党员（造发展节点提醒用）
 
 const GROUP_KEYS = ['groupKey', 'domain', 'actionKey', 'title', 'category', 'actionType', 'actionData', 'deadline', 'flow', 'count', 'items'];
-const UNSUPPORTED_EXPECTED = [
-  'attendance-remind', 'inspection-remind', 'resolution-followup-remind',
-  'member-confirm', 'member-approve', 'semester-detained-remind', 'taskforce-authorize',
-];
+// 7 类实时组落地后无「不支持」清单（字段与形状保留）
+const UNSUPPORTED_EXPECTED = [];
+// count 口径例外：member-confirm = 名册待确认行（items）+ 议程派生批次行（Task 7 已钉住；
+//   本测试库种子 `mcr-seed-roster` 为唯一 pending-secretary 行）
+const AGENDA_COUNT_EXTRA = { 'member-confirm': 1 };
 
 let app, server, base;
 
@@ -115,8 +116,18 @@ test('③ 返回形状稳定（顶层 5 键 / 组内 11 键 / 类型固定）', 
     assert.equal(typeof g.domain, 'string');
     assert.ok(Array.isArray(g.items), `${g.groupKey}.items 为数组`);
     assert.equal(typeof g.count, 'number');
-    assert.equal(g.count, g.items.length, `${g.groupKey}.count 与 items 长度一致`);
+    // count 按组口径：member-confirm 另含议程派生批次行（不新增响应字段），其余组＝items 长度
+    assert.equal(g.count, g.items.length + (AGENDA_COUNT_EXTRA[g.actionKey] || 0), `${g.groupKey}.count 与组口径一致`);
   }
+
+  // 支书视图覆盖 count 例外组：member-confirm = 名册待确认行 + 议程派生批次行
+  const { token: secretaryToken } = await login(SECRETARY_ID);
+  const secretary = await fetchGroups(secretaryToken, `?role=secretary`);
+  assert.equal(secretary.status, 200);
+  const memberConfirm = secretary.body.groups.find((g) => g.actionKey === 'member-confirm');
+  assert.ok(memberConfirm, '支书视图应产出成员变更待确认组');
+  assert.equal(memberConfirm.count, memberConfirm.items.length + AGENDA_COUNT_EXTRA['member-confirm'],
+    'member-confirm.count = 名册待确认行数 + 议程派生批次行数');
 
   // 形态抽查：发展节点提醒（域＝成员发展；条目 id 形态 dev-<personId>）
   const dev = body.groups.find((g) => g.groupKey === 'org-commissioner:develop-node-remind');
@@ -132,15 +143,22 @@ test('④ 同 groupKey 不重复（合并不重复计数）', async () => {
   const keys = body.groups.map((g) => g.groupKey);
   assert.equal(new Set(keys).size, keys.length, `groups 出现重复 groupKey：${keys.join(',')}`);
   const total = body.groups.reduce((sum, g) => sum + g.count, 0);
-  assert.equal(total, body.groups.reduce((sum, g) => sum + g.items.length, 0), '汇总计数＝各组合计，无重复累加');
+  // 按组口径汇总：count = items.length，例外组另加议程派生批次行（无重复累加）
+  const expected = body.groups.reduce(
+    (sum, g) => sum + g.items.length + (AGENDA_COUNT_EXTRA[g.actionKey] || 0), 0,
+  );
+  assert.equal(total, expected, '汇总计数＝各组合计（member-confirm 另含议程派生批次行），无重复累加');
 });
 
-test('⑤ 不支持的实时组逐键标注在 unsupported，且与已算组不重叠', async () => {
+test('⑤ 7 类实时组已服务端化：unsupported 清空，已算组不再标不支持', async () => {
   const { token } = await login(ORG_COMMISSIONER_ID);
   const { body } = await fetchGroups(token);
-  assert.deepEqual(body.unsupported, UNSUPPORTED_EXPECTED, 'unsupported 为本期能力边界的静态清单');
+  assert.deepEqual(body.unsupported, UNSUPPORTED_EXPECTED, '7 类实时组落地后 unsupported 为空清单');
   const computed = new Set(body.groups.map((g) => g.actionKey).filter(Boolean));
   for (const key of body.unsupported) {
     assert.ok(!computed.has(key), `${key} 已在服务端算，不得再标不支持`);
   }
+  // 反空转：组织委员台的两类实时组必须真的产出（否则「清空 unsupported」可被空集蒙混）
+  assert.ok(computed.has('inspection-remind'), '组织委员台应产出考察超期未确认组');
+  assert.ok(computed.has('member-approve'), '组织委员台应产出成员变更待审批组');
 });

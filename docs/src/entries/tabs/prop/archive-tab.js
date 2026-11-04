@@ -2,44 +2,44 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/base/icons.js?v=20261103b';
-import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261103b';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261103b';
+import { icon } from '../../../core/base/icons.js?v=20261104a';
+import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261104a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261104a';
 // 活动类型胶囊（批次 301）：类别色走单一源（三会一课＝brand 红 / 主题党日＝gold 金），渲染唯一源 badge.js
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261103b'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261103b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261104a'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261104a';
 // 2026-10-21 批次 497：本 tab 四个浮层（上传材料 / 文件外发 / 上传照片 / 标注照片）全部改走 `openModal`，
 //   不再自建 overlay（统一 dialog 语义、sticky footer 与取消语义）。
-import { openModal, closeModal, confirmDanger } from '../../../components/ui/modal.js?v=20261103b';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261103b';
-import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261103b';
-import { mockDB } from '../../../core/domain/domain.js?v=20261103b';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261103b'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261103b';
-import { isApiMode } from '../../../services/core/runtime.js?v=20261103b';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261103b';
-import { getPersonName } from '../../../services/member/person.js?v=20261103b';
+import { openModal, closeModal, confirmDanger } from '../../../components/ui/modal.js?v=20261104a';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261104a';
+import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261104a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261104a';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261104a'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261104a';
+import { isApiMode } from '../../../services/core/runtime.js?v=20261104a';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261104a';
+import { getPersonName } from '../../../services/member/person.js?v=20261104a';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：照片记录「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261103b';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261103b';
-import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261103b';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261104a';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261104a';
+import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261104a';
 // R2-40：归档材料写口（mock/api 同源）——api 落 archive_records、mock 落 localStorage
-import { ArchiveStore } from '../../../services/activity/archive.js?v=20261103b';
+import { ArchiveStore } from '../../../services/activity/archive.js?v=20261104a';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261103b';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261104a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261103b';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261103b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261104a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261104a';
 // 批次 524（F · 输入单一源）：布局中立的控件积木（只出控件本体，不套 label / 外边距）
-import { textInput, selectInput } from '../../../components/ui/forms.js?v=20261103b';
+import { textInput, selectInput } from '../../../components/ui/forms.js?v=20261104a';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261103b';
-import { renderDisclosure, bindDisclosures } from '../../../components/ui/disclosure.js?v=20261103b';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261104a';
+import { renderDisclosure, bindDisclosures } from '../../../components/ui/disclosure.js?v=20261104a';
 // Task 6：档案行位于跨对象聚合面（非活动所属工作台）⇒ direct 完整详情页；缺 id 退回纯文本行。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261103b';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261104a';
 
 /** 活动行链接单一出口（Task 6.6：原生 a 即键盘可达；hover 下划线 + 箭头作为可点线索）。 */
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261103b';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261104a';
 function _activityLinkHtml(activityId, className, innerHtml, title) {
   const href = objectDetailHref('activity', activityId, { entry: 'archive-row' });
   if (!href) return `<div class="${className}">${innerHtml}</div>`;
@@ -486,7 +486,7 @@ function _galleryRowHtml(a) {
 /** 懒挂周报内容到宿主容器（`weekly-tab.js` 的 `renderContent(ctx, host)` 已支持传入宿主） */
 function _mountWeekly(host, ctx) {
   host.dataset.weeklyMounted = '1';
-  import('./weekly-tab.js?v=20261103b').then(m => {
+  import('./weekly-tab.js?v=20261104a').then(m => {
     if (host.isConnected) m.renderContent(ctx, host);
   });
 }

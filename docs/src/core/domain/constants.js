@@ -5,7 +5,7 @@
 // R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
 //   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
 
-import { todayLocal } from '../base/date.js?v=20261103b';
+import { todayLocal } from '../base/date.js?v=20261104a';
 
 // ════════════════════════════════════════════════════════════════
 //  缺省支部 id（单一源，R2-17，2026-10-20）
@@ -32,7 +32,7 @@ const _C = {
   cyan400: '#22D3EE', blue600: '#2563EB', emerald400: '#34D399', sky400: '#38BDF8', blue500: '#3b82f6',
   green400: '#4ADE80', gray600: '#4B5563', indigo600: '#4F46E5', blue400: '#60A5FA', gray500: '#6B7280',
   violet600: '#7C3AED', sky300: '#7DD3FC', amber800: '#92400E', slate400: '#94A3B8', red800: '#991B1B',
-  redBrandDeep: '#9B0000', yellow700: '#A16207', indigo300: '#A5B4FC', violet400: '#A78BFA', partyRed: '#B91C1C',
+  redBrandDeep: '#9B0000', gray400: '#9CA3AF', yellow700: '#A16207', indigo300: '#A5B4FC', violet400: '#A78BFA', partyRed: '#B91C1C',
   orange700: '#C2410C', violet300: '#C4B5FD', slate300: '#CBD5E1', partyRedBrand: '#CE1126', amber600: '#d97706',
   red600: '#DC2626', red400: '#F87171', orange400: '#FB923C', amber400: '#FBBF24', red50: '#FEF2F2',
   yellow50: '#FEFCE8', partyGold: '#FFD700', white: '#fff',
@@ -108,6 +108,16 @@ export const ROLE_COLORS = _applyDark({
   initiator:           { bg: 'rgba(79, 70, 229, 0.10)', text: _C.indigo600,  border: 'rgba(79, 70, 229, 0.30)' },  // 靛蓝#4F46E5（indigo-600，发起人）
   all:                 { bg: 'rgba(14, 116, 144, 0.08)',  text: _C.cyan700,  border: 'rgba(14, 116, 144, 0.20)' },
   secretary:           { bg: 'rgba(185, 28, 28, 0.10)',   text: _C.partyRed,  border: 'rgba(185, 28, 28, 0.30)' },  // 党建红（不动）
+});
+
+// ── 任务三态展示色（2026-11-04 批次 534 · Task 6.4）────────────────
+// 病灶：待处理 / 进行中的色点三元组在 activity-view / inspector / taskforce-view / report-inbox /
+//   leader/write-tab 各写一份，改一处就出现同屏两色。收敛到本表，消费方只引用、不再写 hex。
+// 值逐字取自改造前字面量（对应 _C.gray400 / _C.amber600 / _C.green600）⇒ 零观感变化；颜色源仍是 `_C`。
+export const TASK_STATUS_TONE = Object.freeze({
+  pending:     { label: '待处理', color: _C.gray400 },
+  in_progress: { label: '进行中', color: _C.amber600 },
+  completed:   { label: '已完成', color: _C.green600 },
 });
 
 // ── 活动类别颜色（两大类：三会一课=党建红 / 主题党日=党建金）──

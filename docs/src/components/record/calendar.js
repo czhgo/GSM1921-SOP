@@ -5,17 +5,17 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261103b';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261103b';
-import { _fmtDate, _currentYearMonth, showToast } from '../../core/base/utils.js?v=20261103b';
+import { getAppState, setState } from '../../core/base/state.js?v=20261104a';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261104a';
+import { _fmtDate, _currentYearMonth, showToast } from '../../core/base/utils.js?v=20261104a';
 // 2026-10-25 Task 1.3：节点缺失 / 页内失败统一走「错误卡 + 重试」单一源（tab-bar 同款）。
-import { mountTabFailure } from '../shell/tab-bar.js?v=20261103b';
-import { tokenOf } from '../../core/base/version-token.js?v=20261103b'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261103b';
+import { mountTabFailure } from '../shell/tab-bar.js?v=20261104a';
+import { tokenOf } from '../../core/base/version-token.js?v=20261104a'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261104a';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261103b';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261104a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261103b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261104a';
 // 月视图格子条数上限（批次 530 · B-520-3）：条数单一源＝core/domain/constants.js::DASHBOARD_LIMITS
 const MAX_DAY_ACTIVITIES = DASHBOARD_LIMITS.calendarDayActivities;
 const MAX_DAY_TASKS = DASHBOARD_LIMITS.calendarDayTasks;
@@ -840,7 +840,7 @@ function _showMobileDayDetail(dateKey, activeActivities, tasks, state) {
       html += `<div class="cal-mobile-detail-section"><div class="text-xs font-bold text-gray-500 mb-2">活动 (${dayActivities.length})</div>`;
       dayActivities.forEach(act => {
         const color = getActivityColor(act);
-        html += `<div class="cal-mobile-detail-card" style="border-left:3px solid ${color.text};">`;
+        html += `<div class="cal-mobile-detail-card">`;
         html += `<div class="text-sm font-medium" style="color:${color.text};">${act.title || '未命名'}</div>`;
         html += `<div class="text-xs text-gray-500 mt-1">${act.type || ''} ${act.location ? '· ' + act.location : ''}</div>`;
         html += `</div>`;
@@ -851,8 +851,7 @@ function _showMobileDayDetail(dateKey, activeActivities, tasks, state) {
     if (filteredTasks.length > 0) {
       html += `<div class="cal-mobile-detail-section"><div class="text-xs font-bold text-gray-500 mb-2">任务 (${filteredTasks.length})</div>`;
       filteredTasks.forEach(t => {
-        const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
-        html += `<div class="cal-mobile-detail-card" style="border-left:3px solid ${c.text};">`;
+        html += `<div class="cal-mobile-detail-card">`;
         html += `<div class="text-sm font-medium tint-text" data-tone="${_roleTone(t.executor)}">${t.title}</div>`;
         if (t.desc) html += `<div class="text-xs text-gray-500 mt-1">${t.desc}</div>`;
         html += `</div>`;

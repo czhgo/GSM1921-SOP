@@ -6,22 +6,24 @@
 //     （org-commissioner:member-approve，议程派生审批=通过）+ 「考察」域交接行「确认接收」；
 //   · org 无队列顶卡：仅保留页顶补课发起小操作条（非队列卡，发起闭环不丢）。
 
-import { showToast, flashHighlight, getBasePath, smoothScroll } from '../../../core/base/utils.js?v=20261103b';
-import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261103b';
-import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261103b';
+import { showToast, flashHighlight, getBasePath, smoothScroll } from '../../../core/base/utils.js?v=20261104a';
+import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261104a';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261104a';
 // 2026-11-01 批次 524（#7）：主行动落点由动作表声明，页签切换走统一导航
-import { resolveTodoAction } from '../../../core/domain/todo-actions.js?v=20261103b';
-import { goToWorkspaceTab } from '../../../core/session/workspace-nav.js?v=20261103b';
-import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup, buildHalfYearInspectionRemindGroup } from '../../../services/governance/todo.js?v=20261103b';
-import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20261103b';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261103b';
-import { PersonStore } from '../../../services/member/person.js?v=20261103b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261103b';
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261103b';
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261103b';
+import { resolveTodoAction } from '../../../core/domain/todo-actions.js?v=20261104a';
+import { goToWorkspaceTab } from '../../../core/session/workspace-nav.js?v=20261104a';
+import { buildDevelopNodeRemindGroup, buildHalfYearInspectionRemindGroup } from '../../../services/governance/todo.js?v=20261104a';
+// 待办派生单一源（零依赖叶子件；服务端 Task 8 同源消费）
+import { deriveMemberApproveGroup } from '../../../core/domain/todo-derive.js?v=20261104a';
+import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20261104a';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261104a';
+import { PersonStore } from '../../../services/member/person.js?v=20261104a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261104a';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261104a';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261104a';
 // 发展推进「进入当前阶段日期」读口：单一源＝成员档案字段 `developStageSince`（2026-09-28 服务端化，
 // 原为本机键 gsm1921-dev-stage-overrides；读口形状不变）
-import { loadStageEntryDates } from '../../../services/member/member-confirmation.js?v=20261103b';
+import { loadStageEntryDates } from '../../../services/member/member-confirmation.js?v=20261104a';
 
 // ── 逐条催办（SOP-B-29 / D-391 · 2026-09-18 批次 88）────────────────────────
 // **主位在组织委员**：材料催缴与审核督办归组织委员（母本《常见工作场景快速指南》:369），
@@ -121,45 +123,51 @@ function _handleTodoAction(todo, ctx) {
 /** 2026-09-08 裁决批一（D1/D3）：成员变更审批实时组（议程派生 pending-org-approval）——
  * 组带 bulkHtml（域内批量审批块，来源徽标=议程）；组行点行进详情，批量勾选「通过 N 项」。
  * 2026-09-10 增补：发展节点提醒实时组（组织委员流程指南附录A：培养考察期满/预备期满），
- * 由 buildDevelopNodeRemindGroup 纯派生（成员 developStage + entryDate），域=成员发展。 */
-function _buildOrgRealtimeGroups(ctx) {
+ * 由 buildDevelopNodeRemindGroup 纯派生（成员 developStage + entryDate），域=成员发展。
+ * 2026-11-04 批次 534（B-500-7b-1 Task 9）：服务端成功时壳传入 `opts.skipActionKeys`
+ * （服务端已接管的键集合）——这些键**不再在客户端派生**；mock / 失败兜底时不传 ⇒ 全量派生。 */
+function _buildOrgRealtimeGroups(ctx, opts) {
+  const skip = opts && opts.skipActionKeys instanceof Set ? opts.skipActionKeys : null;
+  const skipKey = (k) => !!(skip && skip.has(k));
   const groups = [];
-  const pending = (getCachedMemberChangeRequests() || []).filter(r => r.status === 'pending-org-approval');
-  if (pending.length) {
-    const rows = buildMcBulkRows('org-approve');
-    groups.push({
-      groupKey: 'org-commissioner:member-approve',
-      actionKey: 'member-approve',
-      // IA-C1 Task2：实时组标注业务域（成员发展；member-confirm 同域键复用）
-      domain: REALTIME_GROUP_DOMAIN['member-confirm'],
-      title: '成员变更待审批',
-      flow: '议程记录通过 → 组织委员审批（批量/逐项）→ 广播全体支委 → 支书确认更新阶段',
-      count: rows.length,
-      items: pending,
-      hideActionBtn: true,
-      bulkHtml: renderMcBulkRowsHtml(rows, { mode: 'org-approve', accent: ctx?.accent }),
-    });
+  // 2026-11-04 批次 534（B-500-7b-1 Task 7）：筛选 + 组装配单一源＝`todo-derive.js::deriveMemberApproveGroup`
+  //   （服务端 Task 8 同源消费）；本台只补批量块 HTML。
+  if (!skipKey('member-approve')) {
+    const approveGroup = deriveMemberApproveGroup({ memberChangeRequests: getCachedMemberChangeRequests() || [] });
+    if (approveGroup) {
+      const rows = buildMcBulkRows('org-approve');
+      groups.push({
+        ...approveGroup,
+        bulkHtml: renderMcBulkRowsHtml(rows, { mode: 'org-approve', accent: ctx?.accent }),
+      });
+    }
   }
-  const devGroup = buildDevelopNodeRemindGroup({
-    members: PersonStore.getMembers(),
-    overrides: loadStageEntryDates(),
-  });
-  if (devGroup) groups.push(devGroup);
+  if (!skipKey('develop-node-remind')) {
+    const devGroup = buildDevelopNodeRemindGroup({
+      members: PersonStore.getMembers(),
+      overrides: loadStageEntryDates(),
+    });
+    if (devGroup) groups.push(devGroup);
+  }
 
   // 半年考察提醒（SOP-B-39；`D-295`：考察意见＝**半年一次 · 制度固定 · 非可调**）——
   // 覆盖培养考察期内的成员（积极分子 / 预备党员），本自然半年内无考察记录 → 提醒组织委员建档核对。
   // 提醒只作「可见」，不派任务、不改数据；考察记录的督办位仍在纪检台（`D-470` 督办清单）。
-  const halfYearGroup = buildHalfYearInspectionRemindGroup({
-    members: PersonStore.getMembers(),
-    records: loadInspectionRecords(),
-    overrides: loadStageEntryDates(),
-  });
-  if (halfYearGroup) groups.push(halfYearGroup);
+  if (!skipKey('half-year-inspection-remind')) {
+    const halfYearGroup = buildHalfYearInspectionRemindGroup({
+      members: PersonStore.getMembers(),
+      records: loadInspectionRecords(),
+      overrides: loadStageEntryDates(),
+    });
+    if (halfYearGroup) groups.push(halfYearGroup);
+  }
 
   // 材料催缴与审核督办（SOP-B-29 / `D-391`）——**考察线缺口**（纪检已录入未确认 / 超期）。
   // 判据与支书台**同一源**（`SecretaryTodoDeriver` → `getOverdueRecords`），不另立标准；只换本台的主位：
   // 组织委员在此**催**纪检委员（催办责任人解析仍走 `urgeRolesOf`，未改）。其余材料走线下（`D-444`），系统无落点。
-  const inspectionGap = SecretaryTodoDeriver.computeAggregates().find(g => g.actionKey === 'inspection-remind');
+  const inspectionGap = skipKey('inspection-remind')
+    ? null
+    : SecretaryTodoDeriver.computeAggregates({ skipActionKeys: skip }).find(g => g.actionKey === 'inspection-remind');
   if (inspectionGap) {
     groups.push({
       ...inspectionGap,
@@ -170,6 +178,23 @@ function _buildOrgRealtimeGroups(ctx) {
     });
   }
   return groups;
+}
+
+/** 服务端组的**展示补充**（Task 9）：审批批量块 + 考察线缺口的真实落点。
+ *  只补展示字段（bulkHtml / detailAction），**不改 groupKey / count / items**——业务事实以服务端为准。 */
+function _decorateOrgServerGroups(ctx, groups) {
+  return groups.map((g) => {
+    if (g.actionKey === 'member-approve') {
+      return {
+        ...g,
+        bulkHtml: renderMcBulkRowsHtml(buildMcBulkRows('org-approve'), { mode: 'org-approve', accent: ctx?.accent }),
+      };
+    }
+    if (g.actionKey === 'inspection-remind') {
+      return { ...g, detailAction: { label: '去录入考察', run: () => _gotoTalentInspection() } };
+    }
+    return g;
+  });
 }
 
 export const { renderContent } = createTodoTab({
@@ -183,6 +208,8 @@ export const { renderContent } = createTodoTab({
   onUrgeTodo: _urge.onUrgeTodo,
   // 2026-09-08 裁决批一（D1/D3）：成员变更审批并入「成员发展」域实时组
   buildRealtimeGroups: _buildOrgRealtimeGroups,
+  // Task 9：服务端组的展示补充（审批批量块 / 考察缺口真实落点；不改业务事实）
+  decorateServerGroups: _decorateOrgServerGroups,
   // 2026-09-08 裁决批一：成员变更审批请求预载（缓存 → 批量组同步产物；签名未变秒回、变才 await 拉取）
   onBeforeRender: async () => {
     await preloadMemberChangeRequests();

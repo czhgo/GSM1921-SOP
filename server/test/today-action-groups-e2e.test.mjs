@@ -19,9 +19,9 @@ import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 // `D-787`（2026-10-05 · 9 → 6 合并）：业务域识别色的单一源 —— 非空转断言用它（现行**恰一键 `project`**）
-import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261103b';
+import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261104a';
 // `D-787`：6 类域值（色键须落其中）
-import { DOMAIN_ORDER } from '../../docs/src/services/governance/todo.js?v=20261103b';
+import { DOMAIN_ORDER } from '../../docs/src/services/governance/todo.js?v=20261104a';
 
 let server, base, browser;
 
@@ -74,7 +74,10 @@ test('S12 今天页左卡＝动作性质分组（七类）；旧「本岗待办�
       // 组标题＝h4（_segHead）；取其文本与七类比对
       const h4s = [...card.querySelectorAll('h4')].map((h) => (h.textContent || '').replace(/\d+$/, '').trim());
       const groupLabels = h4s.filter((t) => labels.includes(t));
-      const withDomainChip = rows.filter((r) => !!r.querySelector('span.rounded-full')).length;
+      // 2026-11-04 批次 534：行首状态改用 6px 圆点（同样是 span.rounded-full），
+      //   故此处只认**带文字**的胶囊，避免圆点把判据刷成恒真。
+      const withDomainChip = rows.filter((r) => [...r.querySelectorAll('span.rounded-full')]
+        .some((el) => (el.textContent || '').trim().length > 0)).length;
       // `D-787`（9 → 6 合并）后 `WORK_DOMAIN_COLORS` 暂空 ⇒ 现行**各域胶囊一律中性**（无 `data-domain`、
       //   无内联底色）；本探针仍按「有 `data-domain` 才要求底色」取数，供支书定色后同批复用。
       const domainChips = [...wrap.querySelectorAll('span[data-domain]')];

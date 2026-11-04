@@ -10,23 +10,23 @@
 //  收录权与排序不变（`galleryFeatured` / `galleryPinned` 单一源仍来自 activity.js）。
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState } from '../../core/base/state.js?v=20261103b';
-import { _fmtDate, escHtml, getBasePath } from '../../core/base/utils.js?v=20261103b';
-import { AuthStore } from '../../services/core/auth.js?v=20261103b';
-import { getPersonName } from '../../services/member/person.js?v=20261103b';
-import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261103b';
-import { icon } from '../../core/base/icons.js?v=20261103b';
-import { mockDB, isActivityClosed } from '../../core/domain/domain.js?v=20261103b';
-import { getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261103b';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261103b';
+import { getAppState } from '../../core/base/state.js?v=20261104a';
+import { _fmtDate, escHtml, getBasePath } from '../../core/base/utils.js?v=20261104a';
+import { AuthStore } from '../../services/core/auth.js?v=20261104a';
+import { getPersonName } from '../../services/member/person.js?v=20261104a';
+import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261104a';
+import { icon } from '../../core/base/icons.js?v=20261104a';
+import { mockDB, isActivityClosed } from '../../core/domain/domain.js?v=20261104a';
+import { getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261104a';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261104a';
 // 2026-09-29 批次 294（支书裁：收录权归宣传委员）：本页收录改**人工**——判据单一源 = 活动主源 `galleryFeatured`。
-import { isGalleryFeatured, isGalleryPinned } from '../../services/activity/activity.js?v=20261103b';
-import { badgeHtml } from '../ui/badges.js?v=20261103b';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261103b';
+import { isGalleryFeatured, isGalleryPinned } from '../../services/activity/activity.js?v=20261104a';
+import { badgeHtml } from '../ui/badges.js?v=20261104a';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261104a';
 // Task 6：首页风采标题 → 活动完整详情页（direct）；缺 id 时渲染纯文本，不生成空链接。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261103b';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261104a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261103b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261104a';
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });
 
 // 同活动只取最新一张未作废照片；无照片的活动不造图。
@@ -150,8 +150,7 @@ export function renderGallery(activities) {
       const detailHref = objectDetailHref('activity', a.id, { entry: 'home' });
 
       return `
-        <div class="card card--static gallery-card"
-             style="border-left:2px solid ${color.dot};">
+        <div class="card card--static gallery-card">
           <div class="gallery-card__cover">
             ${rec ? `<img data-gallery-img="${escHtml(a.id)}" data-gallery-activity-id="${escHtml(a.id)}" alt="${escHtml(a.title || '活动照片')}" hidden />` : ''}
             <div class="gallery-card__placeholder"${rec ? ' hidden' : ''}>

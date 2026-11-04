@@ -4,8 +4,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { resolveInitialTab, resolveTargetTab } from '../../docs/src/core/boot/tab-nav.js?v=20261103b';
-import { TODO_ACTIONS, resolveTodoAction } from '../../docs/src/core/domain/todo-actions.js?v=20261103b';
+import { resolveInitialTab, resolveTargetTab } from '../../docs/src/core/boot/tab-nav.js?v=20261104a';
+import { TODO_ACTIONS, resolveTodoAction } from '../../docs/src/core/domain/todo-actions.js?v=20261104a';
 
 const shellSrc = readFileSync(new URL('../../docs/src/components/shell/workspace-shell.js', import.meta.url), 'utf8');
 const branchFilterSrc = readFileSync(new URL('../../docs/src/components/governance/branch-filter.js', import.meta.url), 'utf8');

@@ -13,20 +13,20 @@
 import {
   listPartyGroups, countOpenReportsByGroup, groupReportRowsOf, reportRowStateOf,
   groupActivitiesOf, reviewBucketOf,
-} from '../../services/member/group-view.js?v=20261103b';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261103b';
-import { AuthStore } from '../../services/core/auth.js?v=20261103b';
-import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261103b';
-import { IssueStore } from '../../services/governance/issues.js?v=20261103b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261103b';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261103b';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261103b';
-import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261103b';
-import { getMeetingRosterIds } from '../../services/member/roster.js?v=20261103b';
-import { AttendanceStatus } from '../../core/domain/domain.js?v=20261103b';
-import { escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261103b';
+} from '../../services/member/group-view.js?v=20261104a';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261104a';
+import { AuthStore } from '../../services/core/auth.js?v=20261104a';
+import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261104a';
+import { IssueStore } from '../../services/governance/issues.js?v=20261104a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261104a';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261104a';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261104a';
+import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261104a';
+import { getMeetingRosterIds } from '../../services/member/roster.js?v=20261104a';
+import { AttendanceStatus } from '../../core/domain/domain.js?v=20261104a';
+import { escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261104a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261103b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261104a';
 /**
  * 渲染「其他组」只读一览（本支部内除「我所属组」外的所有组，逐组一卡）。
  * @param {HTMLElement} container — `insight-view` 的 `#insight-seg-body`（每次换新节点）

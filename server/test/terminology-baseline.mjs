@@ -40,6 +40,9 @@ export const STRUCTURAL_LABEL_BASELINE = [
   { label: '补课方式', reason: '表头字段：补课方式列' },
   { label: '截止日期', reason: '表头字段：补课截止列' },
   { label: '确认状态', reason: '表头字段：确认状态列' },
+  // 2026-11-04 批次 534（P1 名册语义表格）：名册新增两列，均为人员属性字段名。
+  { label: '在册状态', reason: '表头字段：成员在册 / 滞留状态列' },
+  { label: '滞留备注', reason: '表头字段：滞留原因备注列' },
   { label: '考察内容', reason: '表头字段：考察内容列' },
   { label: '在办 / 超期', reason: '表头字段：组员进展统计列' },
   { label: '考勤', reason: '表头字段：组员进展考勤列' },

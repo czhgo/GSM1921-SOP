@@ -12,13 +12,14 @@
 //      （2026-10-27 Task 9：去 neutral-400 边框、底色由 soft-bg 降为 10% tint——用户裁定回到 8–9 月原样）
 //   K4 逾期统一 warning：今天页「逾期」附近不得出现 --functional-error；
 //   K5 二级分段 `.btn-tab.active` 跟随主题色（soft 三件套：soft-bg / soft-text / soft-border），不再固定红；
-//   K6 逾期文字档：--status-warning-text（亮/暗）≥4.5:1，--status-warning 只作圆点 / 左条 / 填充
-//      （2026-10-27 Task 11.1：原填充色直接当文字，白底仅 2.15:1）。
+//   K6 逾期文字档：--status-warning-text（亮/暗）≥4.5:1，--status-warning 只作圆点 / 填充
+//      （2026-10-27 Task 11.1：原填充色直接当文字，白底仅 2.15:1）；
+//      2026-11-04 批次 534：状态左条退出界面信号，`.section-accent-left` 不得再用 border-left。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261103b';
+import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261104a';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
@@ -53,14 +54,21 @@ const PAGE = rgb('#FAFAF5');
 const WHITE = rgb('#FFFFFF');
 const BLACK = rgb('#000000');
 
-test('K1 .badge--gold 深琥珀字 on #FEF9C3 ≥ 4.5:1', () => {
+test('K1 .badge--gold 深琥珀字 on #FEF9C3 ≥ 4.5:1（读 --badge-gold-* 令牌）', () => {
   // 批次 505：金色徽章底色由 #FDE68A 调为更浅的 #FEF9C3，字色固定深琥珀 #A16207
   // （固定语义色，不随主题变化）。2026-10-27 Task 11.4：字色改引功能金 token（同值）。
-  const m = /\.badge--gold\s*\{[^}]*background:\s*#FEF9C3;[^}]*color:\s*var\(--color-functional-gold\)/.exec(CSS);
-  assert.ok(m, '.badge--gold 应为 #FEF9C3 底 + var(--color-functional-gold) 功能金字');
+  // 2026-11-04 批次 534（Task 4.1）：徽标三连令牌化——`.badge--*` 只读 `--badge-*`，
+  //   故本判据改从令牌定义取值，仍核「功能金字 vs 金色底 ≥ 4.5:1」。
+  const body = (/\.badge--gold\s*\{([^}]*)\}/.exec(CSS.replace(/\/\*[\s\S]*?\*\//g, ''))?.[1] || '');
+  assert.match(body, /background:\s*var\(--badge-gold-bg\)/, '.badge--gold 底应读 --badge-gold-bg');
+  assert.match(body, /color:\s*var\(--badge-gold-text\)/, '.badge--gold 字应读 --badge-gold-text');
+  const bg = /--badge-gold-bg:\s*(#[0-9A-Fa-f]{6})\s*;/.exec(CSS)?.[1];
+  assert.equal(String(bg).toUpperCase(), '#FEF9C3', '金色徽章底令牌应为 #FEF9C3');
+  assert.match(CSS, /--badge-gold-text:\s*var\(--color-functional-gold\)\s*;/,
+    '金色徽章字令牌应引功能金 var(--color-functional-gold)');
   const gold = /--color-functional-gold:\s*(#[0-9A-Fa-f]{6})/.exec(CSS)?.[1];
   assert.equal(gold.toUpperCase(), '#A16207', '功能金亮色应为 #A16207');
-  const ratio = contrast(rgb(gold), rgb('#FEF9C3'));
+  const ratio = contrast(rgb(gold), rgb(bg));
   assert.ok(ratio >= 4.5, `badge--gold 对比度 ${ratio.toFixed(2)}:1 低于 4.5`);
 });
 
@@ -190,12 +198,21 @@ test('K6 逾期文字档：--status-warning-text 亮/暗 ≥4.5:1，warning 只�
   ]) {
     const body = (new RegExp(`${selector.replace(/\./g, '\\.')}\\s*\\{([^}]*)\\}`).exec(
       CSS.replace(/\/\*[\s\S]*?\*\//g, ''))?.[1] || '');
-    assert.match(body, /color:\s*var\(--status-warning-text\)/,
-      `${why}（${selector}）应使用 --status-warning-text，不得用填充色 --status-warning 当文字`);
+    assert.match(body, /color:\s*var\(--(?:badge-warning-text|status-warning-text)\)/,
+      `${why}（${selector}）应使用 warning 文字档令牌，不得用填充色 --status-warning 当文字`);
   }
-  // 填充语义保留：圆点与左条仍取 --status-warning。
+  // 填充语义保留：圆点仍取 --status-warning。
   assert.match(CSS, /\.todo-urgency-header__dot--warning\s*\{[^}]*background:\s*var\(--status-warning\)/,
     'warning 圆点应继续使用 --status-warning');
-  assert.match(CSS, /\.section-accent-left\s*\{[^}]*border-left:\s*2px solid var\(--status-warning\)/,
-    'warning 左条应继续使用 --status-warning');
+  // 2026-11-04 批次 534：状态左条退出界面信号。`.section-accent-left` 若仍存在，
+  //   不得再用 border-left 承载状态；仍带 status 色时须另有背景 / 文字，不得只靠一条线。
+  const accentBody = (/\.section-accent-left\s*\{([^}]*)\}/.exec(CSS.replace(/\/\*[\s\S]*?\*\//g, ''))?.[1] || '');
+  if (accentBody) {
+    assert.doesNotMatch(accentBody, /border-left/,
+      '.section-accent-left 不得再用左条表达状态（改为背景 / 圆点 / 文字）');
+    if (/--status-/.test(accentBody)) {
+      assert.match(accentBody, /(?:^|[;\s])(?:background(?:-color)?|color|font-weight)\s*:/,
+        '.section-accent-left 仍承担状态时，必须另有背景 / 文字，不得只靠一条线');
+    }
+  }
 });

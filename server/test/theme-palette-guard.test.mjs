@@ -21,6 +21,12 @@
 //       T6 strongHover（批次 508 第 9 token）：与 strongBg 同色相且不同值、与 strongInk ≥4.5:1、
 //          不得等于 activeBg（否则 hover 与选中态无法区分）
 //       T7 strongHover 非空转：7 主题 × 亮/暗都真实存在（不是 undefined），且注入 / 别名链齐备
+//       T12 颜色单一权威：`tailwind-config.js` 的 party / primary / neutral / surface 与
+//           `styles.css :root` 同名令牌**逐值相等**（`var()` 按解析后比较）；键集固定，防「删键蒙混」
+//       T13 颜色单一权威：`constants.js` 的 ACCENT_COLORS 默认主题（gold）亮 / 暗 × 9 token
+//           与 ROLE_COLORS.text / textDark **逐值等于** `styles.css` 对应令牌
+//           （非默认 6 主题由 `theme.js` 运行时注入，CSS 无同名令牌可对照 ⇒ 由 T1/T2 管色值合法性）
+//     T12/T13 均带反例：改一个镜像值必须判红（防正则 / 解析写坏导致恒真）。
 //   · 非空转：每类断言都先核「命中数 >0」，避免正则/解析写坏导致恒真。
 // 运行：node --test server/test/theme-palette-guard.test.mjs
 import { test } from 'node:test';
@@ -31,7 +37,7 @@ import { fileURLToPath } from 'node:url';
 import {
   ACCENT_COLORS, ACCENT_PALETTE, ACCENT_KEY_ALIASES, normalizeAccentKey, getAccentColors,
   accentButtonColors, ROLE_COLORS,
-} from '../../docs/src/core/domain/constants.js?v=20261103b';
+} from '../../docs/src/core/domain/constants.js?v=20261104a';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -762,4 +768,166 @@ test('G5 浅底深字：不得直接用裸 var(--app-accent)；焦点环只用 -
     '整卡不可聚焦 ⇒ 不得再有 .gallery-card:focus-visible（焦点环由 .gallery-card__open 承担）');
   assert.doesNotMatch(ruleBody(STYLES, '.gallery-card'), /cursor:\s*pointer/,
     '.gallery-card 整卡不可点 ⇒ 不得有 cursor: pointer（看着能点其实点不动的假反馈）');
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// T12–T13：颜色单一权威（2026-11-04 批次 534 · spec unify-ui-signals Task 5.1）
+//   权威＝`docs/src/styles.css`；`tailwind-config.js` 与 `constants.js` 只是**受守卫的镜像**。
+//   病灶：tailwind 里 `surface.page '#F8F9FA'` 与 `--surface-page #FAFAF5` 早已漂移；
+//     没有任何守卫核对镜像值 ⇒ 「改一处颜色」实际要改三处，忘一处就出现同屏两种色。
+//   判据：① 逐值相等（`var()` 解析到底色后比较，大小写归一）；
+//         ② 键集固定（删键 / 改名不得让守卫少核）；
+//         ③ 反例：改一个镜像值必须判红（防解析写坏恒真）。
+// ═════════════════════════════════════════════════════════════════════════════
+
+const TAILWIND_SRC = read('docs/src/tailwind-config.js');
+const norm = (v) => String(v == null ? '' : v).replace(/\s+/g, '').toLowerCase();
+
+/** 权威令牌（styles.css）解析到底色；解析不到返回空串（⇒ 必然判红，不会静默放行） */
+const tokenValue = (css, name) => {
+  const raw = rootVar(css, name);
+  return raw ? resolveVarChain(css, raw) : '';
+};
+
+/** tailwind 颜色组 → styles.css 令牌（键集是判据的一部分：删键也红） */
+const TW_EXPECTED = {
+  party: {
+    DEFAULT: '--party-red', red: '--party-red', gold: '--party-gold', 'gold-light': '--party-gold-light',
+    50: '--primary-50', 100: '--primary-100', 200: '--primary-200', 300: '--primary-300',
+    400: '--primary-400', 500: '--primary-500', 600: '--primary-600', 700: '--primary-700',
+    800: '--primary-800', 900: '--primary-900', 950: '--primary-950',
+  },
+  primary: {
+    50: '--primary-50', 100: '--primary-100', 200: '--primary-200', 300: '--primary-300',
+    400: '--primary-400', 500: '--primary-500', 600: '--primary-600', 700: '--primary-700',
+    800: '--primary-800', 900: '--primary-900', 950: '--primary-950',
+  },
+  neutral: {
+    0: '--neutral-0', 50: '--neutral-50', 100: '--neutral-100', 200: '--neutral-200',
+    300: '--neutral-300', 400: '--neutral-400', 500: '--neutral-500', 600: '--neutral-600',
+    700: '--neutral-700', 800: '--neutral-800', 900: '--neutral-900',
+  },
+  surface: {
+    page: '--surface-page', card: '--surface-card', elevated: '--surface-elevated',
+    header: '--surface-header', sidebar: '--surface-sidebar', hover: '--surface-hover', active: '--surface-active',
+  },
+};
+
+/** ACCENT_COLORS 的 JS 键 → styles.css `--app-accent-*` 后缀 */
+const ACCENT_TOKEN_SUFFIX = {
+  base: 'base', softBg: 'soft-bg', softBorder: 'soft-border', softText: 'soft-text',
+  strongBg: 'strong-bg', strongInk: 'strong-ink', strongHover: 'strong-hover',
+  hoverBg: 'hover-bg', activeBg: 'active-bg',
+};
+
+/**
+ * 在隔离的 `window` 上执行 tailwind 配置脚本，取回 colors 表。
+ * 为什么不用 import：配置文件是 `window.tailwind.config = …` 形态，且要做「改源文本再解析」的反例。
+ * @param {string} src — tailwind-config.js 源码
+ * @returns {Object} colors 表
+ */
+export function parseTailwindColors(src) {
+  const fn = new Function('window', `${src}\n;return window.tailwind.config.theme.extend.colors;`);
+  return fn({});
+}
+
+/**
+ * 纯判据：逐对比较镜像值与权威值。
+ * @param {Array<{label:string, actual:string, expected:string}>} pairs
+ * @returns {string[]} 漂移项（空＝镜像与权威一致）
+ */
+export function mirrorDrift(pairs) {
+  return pairs
+    .filter((p) => norm(p.actual) !== norm(p.expected))
+    .map((p) => `${p.label}：镜像 ${p.actual || '（缺）'} ≠ 权威 ${p.expected || '（缺）'}`);
+}
+
+/** tailwind mirror 对（actual 先按 styles.css 解 var() 链，再与权威逐值比较） */
+export function tailwindMirrorPairs(colors, css) {
+  const pairs = [];
+  for (const [group, expectedMap] of Object.entries(TW_EXPECTED)) {
+    for (const [key, token] of Object.entries(expectedMap)) {
+      const raw = colors?.[group]?.[key];
+      pairs.push({
+        label: `tailwind ${group}.${key}`,
+        actual: raw ? resolveVarChain(css, raw) : '',
+        expected: tokenValue(css, token),
+      });
+    }
+  }
+  return pairs;
+}
+
+/** constants.js mirror 对（ACCENT_COLORS 默认主题 9 token ＋ ROLE_COLORS text / textDark）
+ *  为什么只核对默认主题：`styles.css :root` 只定义默认 gold 的 18 个原始变量；其余 6 主题由
+ *  `theme.js::applyAccentThemeTokens` 在运行时注入，CSS 里没有同名令牌可对照（其色值合法性由 T1/T2 管）。 */
+export function constantsMirrorPairs(colors = ACCENT_COLORS, roles = ROLE_COLORS, css = STYLES, theme = 'gold') {
+  const pairs = [];
+  const entry = colors[theme];
+  for (const mode of ['light', 'dark']) {
+    for (const [key, suffix] of Object.entries(ACCENT_TOKEN_SUFFIX)) {
+      pairs.push({
+        label: `ACCENT_COLORS.${theme}.${mode}.${key}`,
+        actual: entry?.[mode]?.[key],
+        expected: tokenValue(css, `--app-accent-${suffix}-${mode}`),
+      });
+    }
+  }
+  for (const [role, roleEntry] of Object.entries(roles)) {
+    pairs.push({ label: `ROLE_COLORS.${role}.text`, actual: roleEntry.text, expected: tokenValue(css, `--color-identity-${role}`) });
+    pairs.push({ label: `ROLE_COLORS.${role}.textDark`, actual: roleEntry.textDark, expected: tokenValue(css, `--color-identity-${role}-dark`) });
+  }
+  return pairs;
+}
+
+test('T12 tailwind 镜像 = styles.css 权威：party / primary / neutral / surface 逐值相等（含反例）', () => {
+  const colors = parseTailwindColors(TAILWIND_SRC);
+  // 键集固定：删键 / 改名不得让守卫少核
+  for (const [group, expectedMap] of Object.entries(TW_EXPECTED)) {
+    assert.ok(colors[group], `tailwind-config.js 缺少颜色组 ${group}`);
+    assert.deepEqual(Object.keys(colors[group]).sort(), Object.keys(expectedMap).sort(),
+      `tailwind ${group} 的键集与权威映射不一致（删键 / 改名 / 新增都要同批登记）`);
+  }
+
+  const pairs = tailwindMirrorPairs(colors, STYLES);
+  const expectedCount = Object.values(TW_EXPECTED).reduce((n, m) => n + Object.keys(m).length, 0);
+  assert.equal(pairs.length, expectedCount, `应核 ${expectedCount} 对，实际 ${pairs.length}：非空转`);
+  // 权威侧必须解析到真 hex（否则 token 名写错也会「两边都空」而恒绿）
+  const unresolved = pairs.filter((p) => !/^#[0-9a-f]{6}$/.test(norm(p.expected)));
+  assert.deepEqual(unresolved.map((p) => p.label), [], `权威令牌解析不到 hex：${unresolved.map((p) => p.label).join(' ')}`);
+  assert.deepEqual(mirrorDrift(pairs), [], `tailwind 镜像与 styles.css 漂移：\n  ${mirrorDrift(pairs).join('\n  ')}`);
+
+  // 反例①：内存里改一个镜像值 ⇒ 必须判红
+  const badColors = JSON.parse(JSON.stringify(colors));
+  badColors.party.red = '#CE1127';
+  assert.equal(mirrorDrift(tailwindMirrorPairs(badColors, STYLES)).length, 1,
+    '反例未命中：改 party.red 后应恰好报 1 条漂移');
+  // 反例②：改**源文本**再解析 ⇒ 必须判红（证明整条「解析 → 比较」链路有效，不只是比较函数有效）
+  const tampered = TAILWIND_SRC.replace("party: { DEFAULT:'var(--party-red)'", "party: { DEFAULT:'#CE1127'");
+  assert.notEqual(tampered, TAILWIND_SRC, '反例构造失败：源文本替换未生效（tailwind 结构变了要同步改本守卫）');
+  assert.ok(mirrorDrift(tailwindMirrorPairs(parseTailwindColors(tampered), STYLES))
+    .some((p) => p.startsWith('tailwind party.DEFAULT')),
+  '反例未命中：源文本把 party.DEFAULT 改成 #CE1127 应判红');
+  console.log('[theme-palette] T12 tailwind 镜像核对：'
+    + `${pairs.length} 对一致（party 15 / primary 11 / neutral 11 / surface 7）`);
+});
+
+test('T13 constants.js 镜像 = styles.css 权威：ACCENT_COLORS(gold) 全 token ＋ ROLE_COLORS 文字色（含反例）', () => {
+  const pairs = constantsMirrorPairs();
+  assert.ok(pairs.length >= 2 * 9 + 20, `应核 ≥${2 * 9 + 20} 对，实际 ${pairs.length}：非空转`);
+  const unresolved = pairs.filter((p) => !/^#[0-9a-f]{6}$/.test(norm(p.expected)));
+  assert.deepEqual(unresolved.map((p) => p.label), [], `权威令牌解析不到 hex：${unresolved.map((p) => p.label).join(' ')}`);
+  assert.deepEqual(mirrorDrift(pairs), [], `constants.js 镜像与 styles.css 漂移：\n  ${mirrorDrift(pairs).join('\n  ')}`);
+
+  // 反例：改一个镜像值 ⇒ 必须判红
+  const badColors = JSON.parse(JSON.stringify(ACCENT_COLORS));
+  badColors.gold.light.base = '#000000';
+  const bad = mirrorDrift(constantsMirrorPairs(badColors));
+  assert.equal(bad.length, 1, `反例未命中：改 ACCENT_COLORS.gold.light.base 后应恰好报 1 条漂移（实为 ${bad.length}）`);
+  assert.ok(bad[0].startsWith('ACCENT_COLORS.gold.light.base'), '反例报错项定位不对');
+  const badge = JSON.parse(JSON.stringify(ROLE_COLORS));
+  badge.leader.text = '#000000';
+  assert.ok(mirrorDrift(constantsMirrorPairs(ACCENT_COLORS, badge)).some((p) => p.startsWith('ROLE_COLORS.leader.text')),
+    '反例未命中：改 ROLE_COLORS.leader.text 应判红');
+  console.log(`[theme-palette] T13 constants 镜像核对：${pairs.length} 对一致（ACCENT gold 18 + ROLE ${pairs.length - 18}）`);
 });

@@ -7,19 +7,19 @@
 //      已通过=可采纳；未达出席门槛/有反对=采纳禁用（去表决再议）。
 // 表决 UI 复用既有 agenda-votes 资产；本面板不重复实现投票。
 
-import { escHtml as esc, showToast, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261103b';
-import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/domain/work-map.js?v=20261103b';
-import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261103b';
-import { PersonStore } from '../../../services/member/person.js?v=20261103b';
+import { escHtml as esc, showToast, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261104a';
+import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/domain/work-map.js?v=20261104a';
+import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261104a';
+import { PersonStore } from '../../../services/member/person.js?v=20261104a';
 import {
   createWorkforceProposalActivity, listWorkforceProposals, adoptWorkforceProposal,
   getWorkforceVoteOutcome, ownerDisplay,
-} from '../../../services/branch/workforce.js?v=20261103b';
-import { getBranchWorkforce } from '../../../services/branch/branch.js?v=20261103b';
-import { confirmDanger } from '../../../components/ui/modal.js?v=20261103b';
+} from '../../../services/branch/workforce.js?v=20261104a';
+import { getBranchWorkforce } from '../../../services/branch/branch.js?v=20261104a';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261104a';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261103b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261103b';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261104a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261104a';
 const DRAFT_KEY = 'gsm1921-workforce-draft'; // 本机草稿（**仅本机·不上服务端**：未提交的拟定分工，属该设备上未完成的工作；白名单见 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md）
 
 function _today() {

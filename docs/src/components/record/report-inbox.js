@@ -8,16 +8,16 @@
 //  本组件禁用 SVG 图标（支书 2026-08-10 裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261103b';
-import { AuthStore } from '../../services/core/auth.js?v=20261103b';
-import { showToast, escHtml } from '../../core/base/utils.js?v=20261103b';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261103b';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261103b';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261104a';
+import { AuthStore } from '../../services/core/auth.js?v=20261104a';
+import { showToast, escHtml } from '../../core/base/utils.js?v=20261104a';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261104a';
+import { solidAccentStyle, TASK_STATUS_TONE } from '../../core/domain/constants.js?v=20261104a';
 // 统一检索引擎（2026-09-14 批次 37）：待答复汇报列表接入（关键词 事项/汇报人 + 引擎内置分页）
-import { renderFilteredList } from '../ui/list-filter.js?v=20261103b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261104a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261103b';
-import { badgeHtml } from '../ui/badges.js?v=20261103b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261104a';
+import { badgeHtml } from '../ui/badges.js?v=20261104a';
 // ── E-3（2026-09-09 · H60.7 面板保态复查③）：列表瞬态草稿互扰兜底 ──────
 // 某行正式答复成功 → onAnswered → 调用方整块重渲染（支书待办/组长组员汇报），
 // 原实现清掉其它已展开行的草稿与展开态。修法取「渲染前收集、渲染后回填」：
@@ -249,8 +249,9 @@ export function bindReportInbox(container, { role = 'secretary', scope = null, o
       emptyMessage: '无匹配汇报',
       rowHtml: (r) => {
         const cat = REPORT_CATEGORIES[r.reportCategory] || '进度';
+        // 2026-11-04 批次 534（Task 6.4）：绿档改为引用三态色表（同一「正常 / 完成」色调，值逐字不变）。
         const catColor = r.reportCategory === 'blocked' ? '#EF4444'
-          : r.reportCategory === 'ask' ? '#F59E0B' : '#16A34A';
+          : r.reportCategory === 'ask' ? '#F59E0B' : TASK_STATUS_TONE.completed.color;
         const ds = deriveIssueDisplayState(r);
         const badgeVariant = STATE_BADGE_VARIANT[ds.key] || 'neutral';
         const metaParts = [

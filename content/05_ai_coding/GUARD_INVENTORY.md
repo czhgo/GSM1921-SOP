@@ -2,7 +2,7 @@
 title: "守卫清点与合并台账（72 → 77 → 66 件）"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-11-03"
+last_updated: "2026-11-04"
 status: active
 ---
 
@@ -349,7 +349,7 @@ status: active
 | 守卫 | 本批新增 / 改准 | 断言数（现行） | 近 3 批是否命中 |
 |---|---|---:|---|
 | `ui-control-system-guard` | **V9** 表头去灰：`.data-table th` / `.data-table thead th` 规则体内 `background` / `background-color` 计数为 0（2 条反例 ＋ 2 条正例；两条规则本体仍在位，不得用「删规则」换绿） | 32 | 是 |
-| `hover-state-guard` | **H11** 可点行状态：`.list-row` 8px 圆角 / hover `--app-accent-tint` / `::before` 3px 左条带 `opacity var(--transition-fast)`（3 条反例 ＋ 无过渡反例）；**H2** 同步只放行「装饰伪元素 `::before` / `::after` 的 opacity」，元素级 opacity 与 filter / transform / box-shadow 仍判红 | 11 | 是 |
+| `hover-state-guard` | **H11** 可点行状态：`.list-row` 8px 圆角 / hover `--app-accent-tint` / 选中 `--app-accent-soft-bg`；**状态左条计数为 0**（伪元素 3px / `border-left` / `inset 3px` 三路反例，加回来即红）；**H2** 同步只放行「装饰伪元素 `::before` / `::after` 的 opacity」，元素级 opacity 与 filter / transform / box-shadow 仍判红 | 11 | 是 |
 | `card-summary-hero-guard` | **G4** 嵌入形态：`workgroup-view` / `taskforce-view` 的 `embeddedHtml` 不得含 `class="card`，`insight-view` 必须给两者传 `embedded: true`（含合成反例） | 4 | 是 |
 | `a11y-tree`（`a11y-tree.test.mjs`） | **A10** `section` 语义：现有页面清单真机遍历，全部有可访问名称且不嵌套（合成 DOM 反例自检） | 9 | 是 |
 | `frontend-foundations-guard` | **F12** 只读由权限派生：`canWriteResource` / `readonlyMeta` 角色矩阵 ＋ 写角色键 ∈ `ROLE_KEYS` ＋ 4 处硬编码「· 只读」清零 | 12 | 是 |

@@ -1,0 +1,103 @@
+{
+  "note": "Plan B 标准答案（客户端纯派生结果）；日期敏感键仅作记录，对账时按运行时 today 重算。",
+  "branch": "br-b1",
+  "today": "2026-11-04",
+  "dateSensitiveKeys": [
+    "attendance-remind",
+    "inspection-remind",
+    "resolution-followup-remind",
+    "semester-detained-remind"
+  ],
+  "roles": {
+    "secretary": {
+      "attendance-remind": {
+        "groupKey": "secretary:attendance-remind",
+        "count": 17,
+        "itemIds": [
+          "act-7",
+          "act-12",
+          "act-18",
+          "act-13",
+          "act-14",
+          "act-15",
+          "act-16",
+          "act-17",
+          "act-25",
+          "act-23",
+          "act-21",
+          "act-22",
+          "act-32",
+          "act-33",
+          "act-30",
+          "act-36",
+          "act-37"
+        ]
+      },
+      "inspection-remind": {
+        "groupKey": "secretary:inspection-remind",
+        "count": 17,
+        "itemIds": [
+          "insp-1",
+          "insp-5",
+          "insp-6",
+          "insp-10",
+          "insp-11",
+          "insp-15",
+          "insp-16",
+          "insp-21",
+          "insp-22",
+          "insp-26",
+          "insp-27",
+          "insp-31",
+          "insp-32",
+          "insp-36",
+          "insp-37",
+          "insp-41",
+          "insp-42"
+        ]
+      },
+      "resolution-followup-remind": null,
+      "member-confirm": {
+        "groupKey": "secretary:member-confirm",
+        "count": 2,
+        "itemIds": [
+          "mc-seed-1"
+        ]
+      },
+      "semester-detained-remind": null
+    },
+    "org-commissioner": {
+      "inspection-remind": {
+        "groupKey": "org-commissioner:inspection-remind",
+        "count": 17,
+        "itemIds": [
+          "insp-1",
+          "insp-5",
+          "insp-6",
+          "insp-10",
+          "insp-11",
+          "insp-15",
+          "insp-16",
+          "insp-21",
+          "insp-22",
+          "insp-26",
+          "insp-27",
+          "insp-31",
+          "insp-32",
+          "insp-36",
+          "insp-37",
+          "insp-41",
+          "insp-42"
+        ]
+      },
+      "member-approve": {
+        "groupKey": "org-commissioner:member-approve",
+        "count": 1,
+        "itemIds": [
+          "mcr-seed-transfer"
+        ]
+      },
+      "taskforce-authorize": null
+    }
+  }
+}

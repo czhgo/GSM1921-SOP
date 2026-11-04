@@ -116,7 +116,9 @@ export const HEX_BASELINE = {
   // 2026-11-03 批次 533（B-522-2）：help.html 一轮令牌化 532 → 167 处（#4B5563 等 365 处改 var(--*)），
   //   保留 167 处不可令牌化色（徽标三联/二联、文档页暖纸色、角色色、3 处渐变）。同批把该文件从
   //   `allowNew` 例外改为**只减不增**棘轮（见 hex-hardcode-guard EXCEPTIONS 理由）。
-  'docs/help.html': { c: 167, v: [
+  // 2026-11-04 批次 534（Task 6.1）：内联徽标两族 84 处改 `.doc-tag--ok` / `.doc-tag--warn` 类
+  //   （色值收敛到页内 <style> 与既有令牌）⇒ 167 → **48** 处；值集不变（#ECFDF5 / #A7F3D0 仍在类定义里）。
+  'docs/help.html': { c: 48, v: [
       '#0891b2', '#7c3aed', '#7c5a14', '#86efac', '#93c5fd', '#a7f3d0', '#b45309',
       '#b91c1c', '#bae6fd', '#ce1126', '#d97706', '#e5e7eb', '#ecfdf5', '#edeef0',
       '#eeeff2', '#f0dfa8', '#f1f2f4', '#f6d1d1', '#fafaf9', '#fcfcfb', '#fdba74',
@@ -162,20 +164,17 @@ export const HEX_BASELINE = {
   'docs/src/components/person-picker.css': { c: 2, v: [
       '#92400e', '#fef3c7',
   ] },
-  'docs/src/components/record/activity-view.js': { c: 4, v: [
-      '#16a34a', '#9ca3af', '#d97706',
+  'docs/src/components/record/inspector.js': { c: 1, v: [
+      '#ce1126',
   ] },
-  'docs/src/components/record/inspector.js': { c: 4, v: [
-      '#16a34a', '#9ca3af', '#ce1126', '#d97706',
+  'docs/src/components/record/report-inbox.js': { c: 3, v: [
+      '#b91c1c', '#ef4444', '#f59e0b',
   ] },
-  'docs/src/components/record/report-inbox.js': { c: 4, v: [
-      '#16a34a', '#b91c1c', '#ef4444', '#f59e0b',
+  'docs/src/components/record/taskforce-view.js': { c: 5, v: [
+      '#0d9488', '#10b981', '#10b98115', '#3b82f6', '#6366f1',
   ] },
-  'docs/src/components/record/taskforce-view.js': { c: 7, v: [
-      '#0d9488', '#10b981', '#10b98115', '#3b82f6', '#6366f1', '#6b7280', '#d97706',
-  ] },
-  'docs/src/components/sections/references.js': { c: 16, v: [
-      '#047857', '#1d4ed8', '#b45309', '#d1fae5', '#dbeafe', '#ecfdf5', '#fef3c7',
+  'docs/src/components/sections/references.js': { c: 14, v: [
+      '#047857', '#1d4ed8', '#b45309', '#d1fae5', '#ecfdf5', '#fef3c7',
   ] },
   'docs/src/components/shell/header.js': { c: 2, v: [
       '#fff', '#ffffff',
@@ -196,7 +195,8 @@ export const HEX_BASELINE = {
       '#16a34a', '#1f2937', '#3b82f6', '#ef4444', '#eff6ff', '#f0fdf4', '#fef2f2',
       '#fff',
   ] },
-  'docs/src/core/domain/constants.js': { c: 194, v: [
+  // 2026-11-04 批次 534（Task 6.4）：_C 新增 gray400（#9CA3AF，任务三态「待处理」档，原为各组件字面量）⇒ 194 → 195。
+  'docs/src/core/domain/constants.js': { c: 195, v: [
       '#000', '#0b5e6b', '#278b9d', '#285f45', '#324287', '#49936f', '#5f4873', '#6275cb',
       '#8971a8', '#91650d', '#932920', '#a04b27', '#bd9231', '#be643a', '#ca564b',
       '#0369a1', '#04161a', '#047857', '#059669', '#07130e', '#0a0e1c',
@@ -211,7 +211,7 @@ export const HEX_BASELINE = {
       '#573827', '#5c332e', '#60a5fa', '#63b8c7', '#654c7a', '#667ad4', '#6b7280',
       '#6d5382', '#6e4e08', '#7a201b', '#7a3a16', '#7c3aed', '#7cc4a0', '#7dd3fc',
       '#8e75ae', '#8f9edb', '#8fcbd6', '#92400e', '#94a3b8', '#991b1b', '#9a6b0f',
-      '#9b0000', '#9b2c22', '#9fd3b6', '#a16207', '#a32b24', '#a5b4fc', '#a78bfa',
+      '#9b0000', '#9b2c22', '#9ca3af', '#9fd3b6', '#a16207', '#a32b24', '#a5b4fc', '#a78bfa',
       '#a9502a', '#a97a12', '#a9b6e0', '#b45b33', '#b79fcb', '#b91c1c', '#b9dce2',
       '#c1663b', '#c2410c', '#c3b0d6', '#c4b5fd', '#c4dcd0', '#c89a34', '#c8cee9',
       '#cbd5e1', '#ce1126', '#d25a4e', '#d3e7eb', '#d4af37', '#d8cce2', '#d8e9e0',
@@ -222,14 +222,17 @@ export const HEX_BASELINE = {
       '#fb923c', '#fbbf24', '#fbeeec', '#fbf0e9', '#fbf3dc', '#fee2e2', '#fef2f2',
       '#fefce8', '#ffd700', '#fff', '#ffffff',
   ] },
-  'docs/src/data/data-adapter.js': { c: 7, v: [
-      '#111827', '#374151', '#6b7280', '#9ca3af', '#d1d5db', '#f9fafb', '#fff',
+  // 2026-11-04 批次 534（Task 6.5）：弹窗内联色改令牌（--surface-card / --neutral-900/700/500/400/300），
+  //   仅剩无同名令牌的 #F9FAFB ⇒ 7 → **2** 处（1 处在注释里说明为什么不换）。
+  'docs/src/data/data-adapter.js': { c: 2, v: [
+      '#f9fafb',
   ] },
   'docs/src/entries/pages/about-entry.js': { c: 18, v: [
       '#0e7490', '#0ea5e9', '#15803d', '#2563eb', '#64748b', '#6b7280', '#900',
       '#b91c1c', '#c2410c', '#ce1126', '#fee', '#ffd700',
   ] },
-  'docs/src/entries/pages/activity-entry.js': { c: 5, v: [
+  // 2026-11-04 批次 534（Task 6.5）：类别色兜底改 var(--neutral-500)（仅用于 tone 判定）⇒ 5 → 4 处。
+  'docs/src/entries/pages/activity-entry.js': { c: 4, v: [
       '#6b7280', '#a16207', '#ce1126', '#ffd700',
   ] },
   'docs/src/entries/pages/archive-entry.js': { c: 1, v: [
@@ -244,9 +247,9 @@ export const HEX_BASELINE = {
   'docs/src/entries/tabs/disc/inspection-tab.js': { c: 1, v: [
       '#94a3b8',
   ] },
-  'docs/src/entries/tabs/leader/write-tab.js': { c: 11, v: [
+  'docs/src/entries/tabs/leader/write-tab.js': { c: 9, v: [
       '#0e7490', '#10b981', '#3b82f6', '#475569', '#6b7280', '#ce1126', '#d1d5db',
-      '#d97706', '#e5e7eb',
+      '#e5e7eb',
   ] },
   'docs/src/entries/tabs/org/taskforce-tab.js': { c: 2, v: [
       '#0d9488', '#10b98115',
@@ -290,8 +293,11 @@ export const HEX_BASELINE = {
   // 2026-11-03 批次 530（B-518-1 状态胶囊收口）：`.badge--warning` 的字色 `#92400E` 改取
   //   `var(--status-warning-text)`（该令牌亮色值即 #92400E，零观感变化）⇒ 按实况收基线 389 → **387**
   //   （另一处为历史批次已清未随注）。只减不增，未放宽任何判红面。
-  'docs/src/styles.css': { c: 387, v: [
-      '#047857',
+  // 2026-11-04 批次 534（Task 6.2 / 6.5 复核）：先按实况收基线 387 → 381；
+  //   同批 Task 6.3 把 toast 的 #16a34a / #eff6ff 从 utils.js 搬入 --toast-* 令牌定义（见 HEX_MOVE_LEDGER），
+  //   故 styles.css 处数 381 → **388**（+7：搬入 2 值 + 既有值在令牌定义中的新增引用；搬移合法性由 H5 逐值校验）。
+  'docs/src/styles.css': { c: 388, v: [
+      '#047857', '#16a34a', '#eff6ff',
       '#000', '#91650d', '#bd9231', '#0284c7', '#0369a1', '#059669', '#0b1220', '#0e7490', '#0ea5e9', '#0f172a',
       '#102a32', '#10b981', '#111827', '#12291f', '#141d2f', '#15803d', '#16233a',
       '#1a2438', '#1b1e24', '#1d4ed8', '#1d5a69', '#1e1503', '#1e293b', '#1e5c44',
@@ -314,19 +320,18 @@ export const HEX_BASELINE = {
       '#fef3c7', '#fef9c3', '#ffd700', '#ffedd5', '#fff', '#fff7ed', '#fffbeb',
       '#ffffff',
   ] },
-  'docs/src/tailwind-config.js': { c: 48, v: [
-      '#10b981', '#111827', '#1f2937', '#374151', '#3b82f6', '#4a000a', '#4b5563',
-      '#6b7280', '#7a0010', '#8b5cf6', '#9b0000', '#9ca3af', '#ce1126', '#d1d5db',
-      '#d97706', '#dc2626', '#e5e7eb', '#ef4444', '#f3f4f6', '#f87171', '#f8f9fa',
-      '#fca5a5', '#fde68a', '#fecaca', '#fee2e2', '#fef2f2', '#ffd700', '#ffffff',
-  ] },
+  // 2026-11-04 批次 534（Task 5.2）：`tailwind-config.js` 的 party / primary / neutral / surface
+  //   全部改为 `var(--*)` 映射（色值只留 styles.css 一处）⇒ 该文件 hex 清零，按收基线纪律删条目。
 };
 
 /** 硬编码 hex 规模下限（守卫的非空转判据：低于此值说明抽取口径失效或台账被删减） */
-// 2026-10-23 批次 505：存量按实况重设为 **1419 处**（原 2025 为 2026-09-24 起点；
-// 中间各批已降到 1545，本批因色板 112 个手选 hex 与 23 个文件清零相抵后为 1419）。
-// H4 仍只报不判；真正的棘轮是 H1（新增值）/ H2（处数上涨）/ H3（僵尸登记）。
-export const HEX_TOTAL_BASELINE = 1433;
+// ⚠ 2026-11-04 批次 534（spec unify-ui-signals Task 5.5）：本批按**实况**重设三档基数——
+//   处数 812 / 值 291 / 文件 45（tailwind-config hex 清零、activity-view 清零、help 徽标族收敛）。
+//   `HEX_TOTAL_BASELINE` 由「存量起点」改为「当前实况」：本批起它随收基线同步下沉，
+//   H4 的缩减读数以「上一批基线」为参照，不再固定盯 2025 起点。
+//   H3 的防呆下限随实况下沉（文件 47→45、处数 1400→800）；**不是放宽**——真正的判红项是
+//   H1（新增值）/ H2（处数上涨）/ 僵尸登记，本下限只防「台账被悄悄删空」。
+export const HEX_TOTAL_BASELINE = 812;
 // 93 → 92（2026-09-25）：`docs/settings.html` 整体重做后其硬编码 hex 清零 ⇒ 该条目按收基线纪律删除，
 //   条目数随之 −1（H3 要求「基线条目数 ＝ 声明文件数」，两处必须同步动）。
 //   `HEX_TOTAL_BASELINE` **有意保持 2025**：它是「存量起点」，H4 会据此显示 ↓15 的缩减进度（该文件真少了 15 处）。
@@ -408,8 +413,11 @@ export const HEX_TOTAL_BASELINE = 1433;
 // ⚠ 2026-11-01 批次 524（E 功能色分工）：`overview-dispatch-bar.js` 待答复条由角色主题色 hex
 //   （`accent = '#B91C1C'` + `1A/40` 透明后缀）改为 `--status-info-text` 功能色（状态指标不跟主题走）
 //   ⇒ 该文件 hex 清零，按收基线纪律删条目，文件数 48 → **47**（与实况同值；H3 防呆下限同步下沉）。
-export const HEX_FILE_BASELINE = 47;
-export const HEX_VALUE_BASELINE = 300;
+// ⚠ 2026-11-04 批次 534（Task 5.2 / 6.4）：`tailwind-config.js` 与 `activity-view.js` hex 清零
+//   ⇒ 删两条目，文件数 47 → **45**（与实况同值；H3 防呆下限同步下沉到 45）。
+//   同批值数 300 → **291**（tailwind 的 Tailwind 默认色残留退场）。
+export const HEX_FILE_BASELINE = 45;
+export const HEX_VALUE_BASELINE = 291;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。
  *
@@ -434,6 +442,16 @@ export const HEX_VALUE_BASELINE = 300;
  *  收尾：搬移批次结束、基线按新文件重设后，台账条目**保留**（它是「这次搬移合法」的凭据；删掉它，
  *   历史搬移就无从复核）。 */
 export const HEX_MOVE_LEDGER = [
+  {
+    id: 'utils.js toast → styles.css（Task 6.3：toast 状态色收口到唯一权威）',
+    from: 'docs/src/core/base/utils.js',
+    to: ['docs/src/styles.css'],
+    values: ['#16a34a', '#eff6ff'],
+    fromValues: ['#16a34a', '#eff6ff'],
+    reason: '2026-11-04 批次 534 · Task 6.3：toast 的 success / info 两档色值从 utils.js 的内联色'
+      + '搬入 styles.css 的 --toast-* 令牌定义（唯一权威），utils 改为读 var(--toast-*)。'
+      + '值逐字不变、观感零变化；同批把 #16a34a / #eff6ff 从 utils 移除，故按搬移例外登记。',
+  },
   {
     id: 'notice.js → notice-view.js（G1 第③项：服务层不产 UI，通知视图层整块搬出）',
     from: 'docs/src/services/governance/notice.js',

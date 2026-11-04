@@ -4,28 +4,25 @@
 // 日历视图（复用 calendar.js 渲染引擎）+ 只读活动详情（点击日历条目）。
 // 形态依据支书第四轮裁定：「支书的日历视图只要删去写入活动等功能，就可以提供很好的活动详情」。
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261103b';
-import { renderCalendarByActivities } from './calendar.js?v=20261103b';
-import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261103b';
-import { badgeHtml } from '../ui/badges.js?v=20261103b';
-import { ROLE_COLORS, dotDarkVars, isActivityArchived, activityTypeBadgeVariant } from '../../core/domain/constants.js?v=20261103b';
-import { activityLifecycleBadgeHtml } from './inspector.js?v=20261103b';
-import { getPersonById } from '../../services/member/person.js?v=20261103b';
-import { AuthStore } from '../../services/core/auth.js?v=20261103b';
+import { getAppState, setState } from '../../core/base/state.js?v=20261104a';
+import { renderCalendarByActivities } from './calendar.js?v=20261104a';
+import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261104a';
+import { badgeHtml } from '../ui/badges.js?v=20261104a';
+import { ROLE_COLORS, dotDarkVars, isActivityArchived, activityTypeBadgeVariant, TASK_STATUS_TONE } from '../../core/domain/constants.js?v=20261104a';
+import { activityLifecycleBadgeHtml } from './inspector.js?v=20261104a';
+import { getPersonById } from '../../services/member/person.js?v=20261104a';
+import { AuthStore } from '../../services/core/auth.js?v=20261104a';
 // 批次 524（D）：只读由权限派生，不再写死「· 只读」字符串
-import { readonlyMeta } from '../../core/domain/view-capability.js?v=20261103b';
-import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261103b';
+import { readonlyMeta } from '../../core/domain/view-capability.js?v=20261104a';
+import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261104a';
 // 表决组件（AV4.5 公共端：复用 activity.html 同款 renderVoteWidget，授权按 voterIds 判定）
-import { renderVoteWidget } from '../governance/vote-widget.js?v=20261103b';
+import { renderVoteWidget } from '../governance/vote-widget.js?v=20261104a';
 // Task 6：本组件常驻「工作概况」页内预览 ⇒ locate：保留预览 + 「打开完整页」。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261103b';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261104a';
 
 // 任务状态元数据（状态点 + 文案，轻量自包含，避免依赖 status-badge 全家桶）
-const _TASK_STATUS_META = {
-  pending:     { label: '待处理', color: '#9CA3AF' },
-  in_progress: { label: '进行中', color: '#D97706' },
-  completed:   { label: '已完成', color: '#16A34A' },
-};
+// 2026-11-04 批次 534（Task 6.4）：三态色单一源＝constants.js::TASK_STATUS_TONE（值逐字不变）。
+const _TASK_STATUS_META = TASK_STATUS_TONE;
 
 /**
  * 渲染只读活动查看视图
@@ -213,7 +210,7 @@ function _renderDetail(state, activities, tasks, highlightId, readonly = false) 
       ${actTasks.length === 0 ? emptyStateHtml({ text: '暂无任务节点', variant: 'inline' }) : `
         <ul class="space-y-1.5">
           ${actTasks.map(t => {
-            const st = _TASK_STATUS_META[t.status] || { label: t.status || '待处理', color: '#9CA3AF' };
+            const st = _TASK_STATUS_META[t.status] || { label: t.status || '待处理', color: TASK_STATUS_TONE.pending.color };
             const rc = ROLE_COLORS[t.executor] || {};
             return `<li class="flex items-center gap-2 text-xs">
               <span class="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0" style="${dotDarkVars(st.color)}background:${st.color};"></span>

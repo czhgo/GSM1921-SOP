@@ -8,60 +8,62 @@
 //   buildRealtimeGroups 一次 merge 进对应域（考勤纪律/考察/活动项目/归档宣传/成员发展/决议上报）；
 //   种子行动类（设党小组组长）由壳按域聚合；自定义详情/专班待议/待答复收件箱/成员变更面板照旧挂载。
 
-import { showToast, escHtml as esc, flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261103b';
+import { showToast, escHtml as esc, flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261104a';
 // D2 裁决批二（2026-09-08）：概况汇报区只读摘要「去待办处理」→ 定位消费（展开该答复详情并滚动到视口）
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261103b';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261104a';
 // 2026-11-01 批次 524（#7）：待办主行动声明式动作表 + 统一页签导航（删本台 tabMap 与选择器直点）
-import { resolveTodoAction } from '../../../core/domain/todo-actions.js?v=20261103b';
-import { goToWorkspaceTab } from '../../../core/session/workspace-nav.js?v=20261103b';
-import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261103b';
+import { resolveTodoAction } from '../../../core/domain/todo-actions.js?v=20261104a';
+import { goToWorkspaceTab } from '../../../core/session/workspace-nav.js?v=20261104a';
+import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261104a';
 // 本位 nudge 单一源（2026-09-27：材料催办 → 组织委员为本位；支书 / 副支书催办属例外代办）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261103b';
-import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/governance/todo.js?v=20261103b';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261104a';
+import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/governance/todo.js?v=20261104a';
 // `#1`/`D-742`：作废裁决后的**站内知会**（知会「相关委员管理上可优化」）——走系统派生通知单一源
 // （`addSystem` → 服务端按 `todo-void-decided` kind 复算授权与受众；mock 模式本地同模板镜像）。
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261103b';
-import { SecretaryTodoDeriver, getEndedUnarchivedActivities, getArchiveGapActivities } from '../../../services/governance/secretary-overview.js?v=20261103b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261103b';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261103b';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261104a';
+import { SecretaryTodoDeriver, getEndedUnarchivedActivities, getArchiveGapActivities } from '../../../services/governance/secretary-overview.js?v=20261104a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261104a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261104a';
 
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261103b';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261103b';
-import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20261103b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261103b';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261104a';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261104a';
+import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20261104a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261104a';
 // 批次 346（`D-744`②）：业务记录「作废（软）」统一写口——待确认申请并入**同一个**「作废待确认」组
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261103b';
-import { mockDB } from '../../../core/domain/domain.js?v=20261103b';
-import { persist } from '../../../data/data-adapter.js?v=20261103b';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261103b'; // P0 域缓存失效（spec §二.3）
-import { getPersonById, getPersonName, PersonStore } from '../../../services/member/person.js?v=20261103b';
-import { solidAccentStyle, ROLE_LABELS, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261103b';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261104a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261104a';
+import { persist } from '../../../data/data-adapter.js?v=20261104a';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261104a'; // P0 域缓存失效（spec §二.3）
+import { getPersonById, getPersonName, PersonStore } from '../../../services/member/person.js?v=20261104a';
+import { solidAccentStyle, ROLE_LABELS, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261104a';
 // 代归档写口（D-807④）：与宣传台归档面同一写口（软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/core/runtime.js?v=20261103b';
+import { BranchService } from '../../../services/core/runtime.js?v=20261104a';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261103b';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261103b';
-import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/activity/taskforce.js?v=20261103b';
-import { fetchVotes } from '../../../services/activity/committee-vote.js?v=20261103b';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261103b';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/record/reporting.js?v=20261103b';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261104a';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261104a';
+import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/activity/taskforce.js?v=20261104a';
+import { fetchVotes } from '../../../services/activity/committee-vote.js?v=20261104a';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261104a';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/record/reporting.js?v=20261104a';
 // Task 6：待办对象卡/跳转属跨工作台动作 ⇒ direct 完整详情页；缺 id 不渲染可点链接。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261103b';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261104a';
 // 2026-09-08 裁决批一（D1/D3）：成员变更=域内确认+批量去顶卡——顶卡面板移除，
 // 确认位唯一化 = 「成员发展」域实时组内批量块（buildMcBulkRows/renderMcBulkRowsHtml/bindMcBulk）。
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261103b';
-import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261103b';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261103b';
-import { buildOverdueRemindGroupNow } from '../../../services/governance/resolution-followup.js?v=20261103b';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261104a';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261104a';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261104a';
+import { buildOverdueRemindGroupNow } from '../../../services/governance/resolution-followup.js?v=20261104a';
 // C 批 附录⑩ S4：名册成员变更确认复核（组织委员发起 → 支书确认/退回）+ 学期末滞留集中复核提醒
 // 批4（2026-09-09）：窗口判定与窗口文案单一源 = policy（memberConfirmation.semesterDetainedWindows）
-import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member/member-confirmation.js?v=20261103b';
-import { getDetainedMembers, getResidenceOf } from '../../../services/member/roster.js?v=20261103b';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261103b';
+import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../../../services/member/member-confirmation.js?v=20261104a';
+import { getDetainedMembers } from '../../../services/member/roster.js?v=20261104a';
+// 待办派生单一源（零依赖叶子件；服务端 Task 8 同源消费）
+import { deriveMemberConfirmGroup, deriveSemesterDetainedRemindGroup } from '../../../core/domain/todo-derive.js?v=20261104a';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261104a';
 // 逐条催办（2026-09-10 支书裁定；2026-09-18 批次 88 抽到共享壳 createUrgeController，
 // 与组织委员台共用同一实现；判据仍在 services/governance/todo.js::urgeRolesOf，未改）
-import { setState } from '../../../core/base/state.js?v=20261103b';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261103b';
+import { setState } from '../../../core/base/state.js?v=20261104a';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261104a';
 
 // 生效强调色三件套（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -79,12 +81,20 @@ let _pendingReports = [];
 /** 实时聚合组（不落库）：SecretaryTodoDeriver 8 组 + 决议逾期 + 成员变更确认 + 学期末滞留复核。
  *  壳 mergeRealtimeDomains 按组 domain 并入对应业务域折组；实时组无「行尾直接动作」
  *  （动作承载于详情内一键确认/去活动管理）→ hideActionBtn 只留点行进详情。
- *  种子行动类（设党小组组长等）为持久化待办，由壳 getDomainsWithGroups 域内聚合，无需在此给出。 */
-function _buildRealtimeGroups() {
-  const computedAggs = SecretaryTodoDeriver.computeAggregates().map(g => ({ ...g, hideActionBtn: true }));
-  const followupOverdueAgg = buildOverdueRemindGroupNow();
-  const mcConfirmAgg = _mcConfirmAgg();
-  const semesterAgg = _semesterRemindAgg();
+ *  种子行动类（设党小组组长等）为持久化待办，由壳 getDomainsWithGroups 域内聚合，无需在此给出。
+ *
+ *  2026-11-04 批次 534（B-500-7b-1 Task 9）：服务端成功时壳传入 `opts.skipActionKeys`
+ *  （服务端已接管的键集合）——这些键**不再在客户端派生**；本函数只返回服务端不产出的展示组
+ *  （复盘 / 归档提醒与复核、专班待议、待办作废待确认）。mock / 失败兜底时不传 ⇒ 全量派生（原路径不删）。 */
+function _buildRealtimeGroups(ctx, opts) {
+  const skip = opts && opts.skipActionKeys instanceof Set ? opts.skipActionKeys : null;
+  const skipKey = (k) => !!(skip && skip.has(k));
+  const computedAggs = SecretaryTodoDeriver.computeAggregates({ skipActionKeys: skip })
+    .filter(g => !skipKey(g.actionKey))
+    .map(g => ({ ...g, hideActionBtn: true }));
+  const followupOverdueAgg = skipKey('resolution-followup-remind') ? null : buildOverdueRemindGroupNow();
+  const mcConfirmAgg = skipKey('member-confirm') ? null : _mcConfirmAgg();
+  const semesterAgg = skipKey('semester-detained-remind') ? null : _semesterRemindAgg();
   const committeeTfAgg = _committeeTfAgg();
   const voidConfirmAgg = _voidConfirmAgg();
   return [
@@ -95,6 +105,21 @@ function _buildRealtimeGroups() {
     ...(mcConfirmAgg ? [{ ...mcConfirmAgg, hideActionBtn: true }] : []),
     ...(semesterAgg ? [{ ...semesterAgg, hideActionBtn: true }] : []),
   ];
+}
+
+/** 服务端组的**展示补充**（Task 9）：成员变更待确认组的批量块 + 议程链引导文案。
+ *  只补展示字段（bulkHtml / agendaCount），**不改 groupKey / count / items**——业务事实以服务端为准。 */
+function _decorateServerGroups(ctx, groups) {
+  return groups.map((g) => {
+    if (g.actionKey !== 'member-confirm') return g;
+    const rows = buildMcBulkRows('secretary-confirm');
+    const agendaCount = (getCachedMemberChangeRequests() || []).filter(r => r && r.status === 'pending-secretary').length;
+    return {
+      ...g,
+      agendaCount,
+      bulkHtml: renderMcBulkRowsHtml(rows, { mode: 'secretary-confirm', accent: _accentColors().accent }),
+    };
+  });
 }
 
 /** 顶部自定义区：待答复收件箱（2026-09-13 支书裁定：原「专班待议（支委会）」独立顶卡撤销——
@@ -367,6 +392,8 @@ const _tab = createTodoTab({
   onUrgeTodo: _urgeWithNudge.onUrgeTodo,
   // IA-C1 Task4：实时组（支书派生/决议逾期/成员变更等）并入对应域折组
   buildRealtimeGroups: _buildRealtimeGroups,
+  // Task 9：服务端组的展示补充（成员变更批量块 / 议程链引导；不改业务事实）
+  decorateServerGroups: _decorateServerGroups,
   // 自定义详情（confirm/remind/成员变更确认逐项面板；种子行动类走内置概要）
   renderDetail: renderTodoDetail,
   detailTitle: '待办详情',
@@ -591,25 +618,17 @@ function _requireSecActor() {
  * pending-secretary）+ roster=名册报送成员变更确认（member-confirmation pending，来源徽标区分）；
  * count=批量行总数（行尾角标与批量块一致）；items 保留 roster 供详情逐项确认/退回。 */
 function _mcConfirmAgg() {
-  const rosterItems = listPendingConfirmations();
-  const agendaPending = (getCachedMemberChangeRequests() || []).filter(r => r.status === 'pending-secretary');
-  if (!rosterItems.length && !agendaPending.length) return null;
+  // 2026-11-04 批次 534（B-500-7b-1 Task 7）：两链筛选 + 计数单一源＝`todo-derive.js`
+  //   （`count` = 名册 pending ＋ 议程 pending-secretary，与 `buildMcBulkRows` 同长）；本台只补批量块 HTML。
+  const group = deriveMemberConfirmGroup({
+    memberConfirmations: listPendingConfirmations(),
+    memberChangeRequests: getCachedMemberChangeRequests() || [],
+  });
+  if (!group) return null;
   const rows = buildMcBulkRows('secretary-confirm');
-  const bulkHtml = renderMcBulkRowsHtml(rows, { mode: 'secretary-confirm', accent: _accentColors().accent });
   return {
-    groupKey: 'secretary:member-confirm',
-    actionKey: 'member-confirm',
-    // IA-C1 Task2：实时组标注业务域（成员发展；供 T4 域折组）
-    domain: REALTIME_GROUP_DOMAIN['member-confirm'],
-    title: '成员变更待确认',
-    category: TodoCategory.REVIEW,
-    flow: '确认位唯一化（域内批量）：名册报送=支书确认生效/退回；议程派生（议程）审批通过项=支书确认更新阶段',
-    kind: 'confirm',
-    count: rows.length,
-    items: rosterItems,
-    agendaCount: agendaPending.length,
-    hideActionBtn: true,
-    bulkHtml,
+    ...group,
+    bulkHtml: renderMcBulkRowsHtml(rows, { mode: 'secretary-confirm', accent: _accentColors().accent }),
   };
 }
 
@@ -696,25 +715,9 @@ function renderVoidConfirmDetail(group) {
 
 /** 学期末滞留集中复核提醒组（窗口内且有滞留成员时出现；kind=remind 复用「去处理→详情面板」） */
 function _semesterRemindAgg() {
-  if (!shouldShowSemesterDetainedRemind()) return null;
-  const detained = getDetainedMembers();
-  if (!detained.length) return null;
-  return {
-    groupKey: 'secretary:semester-detained-remind',
-    actionKey: 'semester-detained-remind',
-    // IA-C1 Task2：实时组标注业务域（成员发展；供 T4 域折组）
-    domain: REALTIME_GROUP_DOMAIN['semester-detained-remind'],
-    title: '学期末滞留集中复核',
-    category: TodoCategory.REVIEW,
-    // 批4：窗口文案由 policy 单一源派生（semesterDetainedWindowsLabel；含组织域覆盖后的动态窗口）
-    flow: `学期末窗口提醒（${semesterDetainedWindowsLabel()}）：请集中复核在册滞留名单`,
-    kind: 'remind',
-    count: detained.length,
-    items: detained.map(p => {
-      const rs = getResidenceOf(p);
-      return { id: p.id, name: p.name, note: rs.residenceNote || '', date: '' };
-    }),
-  };
+  // 2026-11-04 批次 534（Task 7）：窗口判定 + 滞留名单 + 文案单一源＝`todo-derive.js`
+  //   （窗口 `policy.memberConfirmation.semesterDetainedWindows`；`getDetainedMembers` 已套用居住覆盖）。
+  return deriveSemesterDetainedRemindGroup({ members: getDetainedMembers() });
 }
 
 /** 成员变更确认详情：逐项展示（kind 徽标 / 姓名 / from→to / 发起人 / 时间 / 备注 / 移出保持摘要）。
@@ -1142,7 +1145,7 @@ function expandAssignPanelForTodo(todo) {
   const sourceId = todo.actionData?.sourceId || '';
   if (scope === 'leader') {
     // 组长 / 副组长赋权：置模块态后由 group-progress 挂载时补渲（tab 异步渲染也能落到位）
-    import('./assign-tab.js?v=20261103b').then(m => m.openLeaderAssignPanel({}));
+    import('./assign-tab.js?v=20261104a').then(m => m.openLeaderAssignPanel({}));
   } else if (scope === 'taskforce') {
     // 2026-10-25 IA 62→45：走统一页面解析（避免在 tab 模块里裸拼工作台相对路径——L2 导航守卫会误判）。
     window.location.href = resolveDocumentUrl('workspace/org.html', {

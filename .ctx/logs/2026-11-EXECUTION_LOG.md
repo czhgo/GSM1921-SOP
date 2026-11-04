@@ -196,3 +196,33 @@ status: active
 - 9 条 precommit e2e：全部通过（a11y-tree / block-config / agenda-closure / b3-1 / module-config / multi-tab-sync 两判据 / form-loop 两流程）。
 - 全量 daily：**1775 / 1775**（325s），0 fail。
 - commit：见 `git log --grep="批次 533"`。
+
+## 批次 534（2026-11-04）· 界面信号统一、颜色权威与完整 Plan B 一期
+
+### 为什么
+
+支书四路审查后裁定：① 待办 hover / 选中左条「很丑」，全局清理；② 颜色要一个权威、一改具改；③ 完整 Plan B 不等上线，先把测试做好；④ 输入族悬浮 / 焦点保持现状，2px 不加宽、不收窄，双层环不得回潮。
+
+### 拿不准 / 取舍
+
+- **左条**：删除状态型 / 装饰型左条（含 `.list-row`、工作地图、身份横幅、品牌卡、引述块、toast、gallery、calendar、review-tab、today 提醒卡）；身份 / 品牌改圆点 / 徽章，引述改全框。与 SD-25 / DS_04 §5.2 / 三条守卫同批改判据。
+- **焦点**：不新增双层环；沿用 SD-27 单环 2px；输入族 `.input-flat` / `select` / 搜索框「只变边框」原样保留。选中与焦点改为不同通道（soft 底 / 字重 vs 单环）。
+- **颜色**：`styles.css` 唯一权威；`constants.js` / `tailwind-config.js` 做镜像（T12/T13 逐值相等）；`about.css` 只改 `allowNew:false`、内容不动；渲染层彩色 `rgba()` 清零。
+- **6.2 / 6.3 原阻断**：`--badge-*-bg` / `--color-text-primary` 暗色会翻转，直接换令牌会造成「深底 + 深字」⇒ 改用专用 `--btn-action-*` / `--toast-*` 令牌（暗色不覆写），亮暗均保持浅底深字，零观感变化。
+- **URL 页签回归**：批次 533 的 `?tab=` 同步被 workspace-shell 当成外部导航目标反复消费，导致 `setState` 后当前 tab 不重渲染（agenda-closure e2e 抓出）。修法：`history.state.tabSync` 区分「页签自身写入」与「外部深链」；已复跑 e2e 全绿。
+
+### 边界
+
+- 7 类实时组全部服务端化；客户端默认切服务端，仅保留「分档 / 排序 / 格式化 / 筛选 / 折叠」与失败兜底；兜底只用同一份已拉取数据，不生成新业务事实。
+- 顶栏「写入活动」实底 CTA 按 V-3 保持；今天页留白 / 12–13px 正文 / 卡片无阴影等口味项未动。
+- About 三件套内容未改；help 只改徽标类与结构，颜色值未变。
+- `taskforce-authorize` 在 br-b1 种子无持久化行，标准答案为 null；已用注入探针验证非空路径，未保留 `unsupported`。
+
+### 读数
+
+- 全量 daily：**1788 / 1788**（约 430s），0 fail。
+- 9 条 precommit e2e：**20 / 20** 全绿（含 agenda-closure 回归复跑）。
+- Plan B 对账：7 类 **8/8 按角色全绿**；双支部夹具双向零泄漏。
+- 硬编码：**808 处 / 291 值 / 45 文件**（基线 812 / 291 / 45；styles.css 388、constants.js 195、about.css 50、help.html 48）。
+- 颜色镜像：T12（tailwind↔styles 44 对）/ T13（constants↔styles 44 对）全绿，含反例。
+- commit：见 `git log --grep="批次 534"`。

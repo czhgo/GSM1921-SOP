@@ -1,30 +1,30 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../../core/base/icons.js?v=20261103b';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20261103b';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261103b';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261103b';
-import { AuthStore } from '../../services/core/auth.js?v=20261103b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261103b';
-import { PEOPLE } from '../../data/mock/people.js?v=20261103b';
+import { icon } from '../../core/base/icons.js?v=20261104a';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20261104a';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261104a';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261104a';
+import { AuthStore } from '../../services/core/auth.js?v=20261104a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261104a';
+import { PEOPLE } from '../../data/mock/people.js?v=20261104a';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 // 2026-09-21 批次 129：制度链（草案 → 支委会审议 → 现行版 / 退回修改）——草案态与修改口同源于该服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   updateInstitutionDraft, INSTITUTION_DRAFT, INSTITUTION_PENDING_PARTY_MEETING,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../../services/branch/branch-doc.js?v=20261103b';
+} from '../../services/branch/branch-doc.js?v=20261104a';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261103b';
-import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261103b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261104a';
+import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261104a';
 // 制度内容（领域）→ 对应【主体】：判据单一源（2026-10-05 批次 378 · `SOP-B-25` 第 ② 项「按草案落地」）
 import {
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_LABELS, institutionSubjectOfDomain, ORG_SUBJECT_LABELS,
-} from '../../core/domain/work-map.js?v=20261103b';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261103b';
+} from '../../core/domain/work-map.js?v=20261104a';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261104a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261103b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261104a';
 /** 主体引用 → 显示名（角色键 → 角色名；组织型主体 id → 组织名，如「支委会」） */
 function _subjectLabelOf(subjectId) {
   if (!subjectId) return '';
@@ -196,7 +196,8 @@ function _institutionStatusOf(d) {
       ? { label: '已退回', bg: '#FEF3C7', fg: '#B45309' }
       : { label: '草案', bg: '#FEF3C7', fg: '#B45309' };
   }
-  if (d.status === INSTITUTION_PENDING_PARTY_MEETING) return { label: '待党员大会表决', bg: '#DBEAFE', fg: '#1D4ED8' };
+  // 2026-11-04 批次 534（Task 6.5）：待表决态底/字改语义令牌（亮色值逐字相同，暗色随令牌成对翻转）。
+  if (d.status === INSTITUTION_PENDING_PARTY_MEETING) return { label: '待党员大会表决', bg: 'var(--badge-info-bg)', fg: 'var(--badge-info-text)' };
   return { label: '停用', bg: 'var(--neutral-100)', fg: 'var(--neutral-500)' };
 }
 

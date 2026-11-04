@@ -11,15 +11,17 @@
 //      （`branch-scope.js` 的 `actorBranchId` / `branchSelectionError`），本文件不新增任何写口。
 //    · 读权限门 = **与 `routes/resources/index.js::_canReadTodoRow` 同口径**（见下方 `canReadTodoRow`
 //      注释：该口径单一源在 index.js，本文件复刻同判据；口径变更必须两处同改）。
-//    · 本期只算三类「确定性复算」实时组：发展节点提醒 / 半年考察提醒 / 模块周期提醒；
-//      其余实时组（考勤·考察队列、决议逾期、成员变更确认、学期末滞留、支委专班）不在服务端算，
-//      在 `unsupported` 里逐键标注（客户端派生照旧补位）。
+//    · 本端点算 10 类实时组：既有三类「确定性复算」组（发展节点 / 半年考察 / 模块周期），
+//      加批次 534（B-500-7b-1 Task 8）落地的 7 类实时组（考勤·考察队列、决议逾期、成员变更确认 /
+//      审批、学期末滞留、支委专班赋权）⇒ `unsupported` 清空（客户端派生在兼容期仍可补位）。
 //
-//  ⚠ 派生口径的**单一源**：`docs/src/services/governance/todo.js`
-//    `buildDevelopNodeRemindGroup`(:303) / `buildHalfYearInspectionRemindGroup`(:366) /
-//    `buildModuleCycleRemindGroup`(:430)。该模块顶层依赖 `mockDB` / `data-adapter` / `AuthStore`，
-//    **不得整模块 import 到服务端** ⇒ 本文件按同口径复刻（组键 / 标题 / flow / 条目 id 逐字一致）。
-//    改任一条派生规则时，客户端单一源与本文件必须同批同改（判定：本批 `todo-groups-api` 测试）。
+//  ⚠ 派生口径的**单一源**：
+//    · 7 类实时组 = `docs/src/core/domain/todo-derive.js` 的纯函数（零依赖叶子件，双端同源 import）；
+//    · 既有三类 = `docs/src/services/governance/todo.js`
+//      `buildDevelopNodeRemindGroup`(:303) / `buildHalfYearInspectionRemindGroup`(:366) /
+//      `buildModuleCycleRemindGroup`(:430)。该模块顶层依赖 `mockDB` / `data-adapter` / `AuthStore`，
+//      **不得整模块 import 到服务端** ⇒ 本文件按同口径复刻（组键 / 标题 / flow / 条目 id 逐字一致）。
+//    改任一条派生规则时，客户端单一源与本文件必须同批同改（判定：`todo-derive-parity` + `todo-groups-api`）。
 // ════════════════════════════════════════════════════════════════
 
 import { requireAuth } from './auth.js';
@@ -29,6 +31,17 @@ import { actorBranchId, branchSelectionError } from './resources/branch-scope.js
 import { WORK_MAP_MODULES, expandWorkforce, moduleIdOfActivity, ownerOfModule } from '../../docs/src/core/domain/work-map.js';
 import { cyclePeriodLabel, cyclePeriodOf } from '../../docs/src/core/base/period.js';
 import { DEFAULT_BRANCH_ID } from '../../docs/src/core/domain/constants.js';
+// 7 类实时组的纯派生单一源（Task 7 叶子件；零业务依赖，浏览器与 node 同源 import）
+import {
+  DERIVE_GROUP_DOMAIN,
+  deriveAttendanceRemindGroup,
+  deriveInspectionRemindGroup,
+  deriveResolutionFollowupRemindGroup,
+  deriveMemberConfirmGroup,
+  deriveMemberApproveGroup,
+  deriveSemesterDetainedRemindGroup,
+  deriveTaskforceAuthorizeGroup,
+} from '../../docs/src/core/domain/todo-derive.js';
 import { today } from '../services/reporting.js';
 
 // ── 业务域键（**单一源** = `docs/src/services/governance/todo.js::WORK_DOMAIN`）──────────────
@@ -47,8 +60,9 @@ const _LEGACY_DOMAIN = {
   meeting: 'project', activity: 'project', taskforce: 'project',
   resolution: 'report-up', report: 'report-up',
 };
-/** 实时组 actionKey → 业务域（单一源 = todo.js::REALTIME_GROUP_DOMAIN，只保留本端点涉及的键） */
+/** 实时组 actionKey → 业务域（单一源 = todo.js::REALTIME_GROUP_DOMAIN；7 类键直接展开叶子件映射） */
 const REALTIME_GROUP_DOMAIN = {
+  ...DERIVE_GROUP_DOMAIN,
   'develop-node-remind': WORK_DOMAIN.MEMBER_DEV,
   'half-year-inspection-remind': WORK_DOMAIN.MEMBER_DEV,
   'module-cycle-remind': WORK_DOMAIN.PROJECT,
@@ -264,7 +278,7 @@ function _belongsTo(row, branchId) {
  * 「本人 / 本角色」待办读面（**与 `GET /todos` 同口径**：支部作用域 → `canReadTodoRow`）。
  * 用途：成员发展类派生含他人姓名与阶段，只对**本角色确有待办读面**的调用者计算；
  *   读面为空 ⇒ 本节派生返回空，客户端回落自身派生（兼容期可见结果不变）。
- * 本端点**不消费**待办行做派生（三类派生只吃 users / inspections / activities / branches）。
+ * Task 8 起，本读面同时供 `taskforce-authorize` 实时组装配（只筛选已持久化行，不新造待办）。
  */
 function _visibleTodos(db, actor, branchId) {
   return listTable(db, 'todos')
@@ -295,16 +309,22 @@ function _workforceOfBranch(db, branchId) {
 
 // ── 组装配 ────────────────────────────────────────────────────────────────────
 
-/** 本期不在服务端算的实时组（客户端单一源见各派生点；逐键在 `unsupported` 标注） */
-const UNSUPPORTED_GROUP_KEYS = [
-  'attendance-remind',            // 考勤待录入 / 待确认队列（secretary-overview.js::SecretaryTodoDeriver）
-  'inspection-remind',            // 考察待确认 / 超期队列（同上）
-  'resolution-followup-remind',   // 决议逾期（services/governance/resolution-followup.js）
-  'member-confirm',               // 成员变更确认（components/governance/member-change-panel.js）
-  'member-approve',               // 成员变更待审批（entries/tabs/org/todo-tab.js）
-  'semester-detained-remind',     // 学期末滞留维护（todo.js::LifecycleTodoDeriver）
-  'taskforce-authorize',          // 支委专班赋权（todo.js::LifecycleTodoDeriver）
-];
+/**
+ * 7 类实时组的角色消费面（与 Task 7 对账口径同源：支书台 5 键 / 组织委员台 3 键，inspection 两台上都出现）。
+ * 读权限前置已由路由按 `canReadTodoRow` 锁死「只能读本角色视图」⇒ 本表只做组归位，不放宽任何读面。
+ */
+const REALTIME_GROUP_ROLES = {
+  'attendance-remind': ['secretary'],
+  'inspection-remind': ['secretary', 'org-commissioner'],
+  'resolution-followup-remind': ['secretary'],
+  'member-confirm': ['secretary'],
+  'member-approve': ['org-commissioner'],
+  'semester-detained-remind': ['secretary'],
+  'taskforce-authorize': ['org-commissioner'],
+};
+
+/** 本期不在服务端算的实时组：7 类已全部落地 ⇒ 空清单（保留字段与形状，客户端无需区分阶段） */
+const UNSUPPORTED_GROUP_KEYS = [];
 
 /** 组 → 响应载荷（字段名与 `components/record/todo-tab-shell.js` / `todo-list.js` 的消费字段一致） */
 function _groupPayload(group) {
@@ -338,6 +358,80 @@ function _dedupeByGroupKey(groups) {
 }
 
 /**
+ * 7 类实时组（Task 8）：服务端只做「读 SQLite → 组装入参 → 按角色/人过滤」，
+ * 派生判据全部走 `core/domain/todo-derive.js` 的同名纯函数（与客户端 / 对账测试同一份口径）。
+ * @param {import('better-sqlite3').Database} db
+ * @param {{actor:Object, role:string, personId:string, branchId:string}} scope
+ * @returns {Array} 原始组对象（未转响应载荷）
+ */
+function _deriveRealtimeGroups(db, { actor, role, personId, branchId }) {
+  const day = today();
+  const groups = [];
+  const keys = Object.keys(REALTIME_GROUP_ROLES).filter((key) => REALTIME_GROUP_ROLES[key].includes(role));
+  if (!keys.length) return groups;
+  const has = (key) => keys.includes(key);
+  const rowsOf = (table) => listTable(db, table).filter((row) => _belongsTo(row, branchId));
+
+  if (has('attendance-remind')) {
+    const group = deriveAttendanceRemindGroup({
+      activities: rowsOf('activities'),
+      attendanceRecords: rowsOf('attendances'),
+      today: day,
+    });
+    if (group) groups.push(group);
+  }
+
+  if (has('inspection-remind')) {
+    const group = deriveInspectionRemindGroup({
+      inspectionRecords: rowsOf('inspections'),
+      persons: _membersOfBranch(db, branchId),
+      today: day,
+      groupKeyPrefix: role === 'org-commissioner' ? 'org-commissioner' : 'secretary',
+    });
+    if (group) groups.push(group);
+  }
+
+  if (has('resolution-followup-remind')) {
+    const group = deriveResolutionFollowupRemindGroup({ activities: rowsOf('activities'), today: day });
+    if (group) groups.push(group);
+  }
+
+  if (has('member-confirm')) {
+    const group = deriveMemberConfirmGroup({
+      memberConfirmations: rowsOf('member_confirmations'),
+      memberChangeRequests: rowsOf('member_change_requests'),
+    });
+    if (group) groups.push(group);
+  }
+
+  if (has('member-approve')) {
+    const group = deriveMemberApproveGroup({ memberChangeRequests: rowsOf('member_change_requests') });
+    if (group) groups.push(group);
+  }
+
+  if (has('semester-detained-remind')) {
+    const group = deriveSemesterDetainedRemindGroup({
+      members: _membersOfBranch(db, branchId),
+      today: day,
+    });
+    if (group) groups.push(group);
+  }
+
+  if (has('taskforce-authorize')) {
+    // 持久化待办行装配（不新造事件派生）：读面与 `GET /todos` 同口径（支部作用域 + canReadTodoRow）
+    const group = deriveTaskforceAuthorizeGroup({
+      todos: _visibleTodos(db, actor, branchId),
+      role,
+      personId,
+      groupKeyPrefix: role === 'org-commissioner' ? 'org-commissioner' : role,
+    });
+    if (group) groups.push(group);
+  }
+
+  return groups;
+}
+
+/**
  * 三类确定性复算实时组（顺序＝客户端同台顺序：发展节点 → 半年考察 → 模块周期）。
  * @param {import('better-sqlite3').Database} db
  * @param {{actor:Object, role:string, personId:string, branchId:string}} scope
@@ -363,6 +457,8 @@ function _deriveGroups(db, { actor, role, personId, branchId }) {
     day,
   });
   if (cycle) groups.push(cycle);
+  // ④ 7 类实时组（Task 8）：按角色归位，读面沿用支部作用域（详见 `_deriveRealtimeGroups`）
+  groups.push(..._deriveRealtimeGroups(db, { actor, role, personId, branchId }));
   return groups.map(_groupPayload);
 }
 

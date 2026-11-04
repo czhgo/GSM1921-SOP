@@ -174,27 +174,29 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 
 **适用范围**：卡片/区块级元素（容器）。**列表项（行级元素）仍遵循"列表项白底原则"不加边线**——行内区分靠圆点，容器级区分靠边线，两层不混用。
 
-**五档语义表**：
+**现行两档**（2026-11-04 批次 534 改准 · 原「五档」中的状态 / 身份 / 品牌 / 引述左条全部退役）：
 
 | 档位 | 样式 | 语义 | 典型场景 |
 |------|------|------|---------|
 | 0. 中性 | 纯白卡，无边线 | 常规内容容器 | `card rounded-xl p-5` 默认态（圆角 `--radius-md` 12px / 内边距标准档 20px） |
-| 1. 可交互高亮主卡 | 白卡 + `border-left: 4px` **品牌金** | 可点击进详情/当前聚焦项，**必须有 hover 反馈** | `.inspector-card`（inspector.js 活动卡，品牌活动卡 `var(--party-gold)` 金边框；实现内联 `#EAB308` 为历史存量，见下方用色来源注） |
-| 2. 角色职责核心卡 | 白卡 + `border-l-4` 角色主题色 | 该角色职责范围内的核心卡/详情面板（角色识别，保留主题色） | 考勤概况（支书红）、专班详情（组织委员）、纪检面板（橙）、访客金色 |
-| 3. 引述/要点块 | 浅底色 + `border-left: 3px` 主题色 | 引述、对立观点、要点提示 | help 页 `--help-party-red` 引述块、about 模块说明卡 |
-| 4. 嵌套/时间线 | `border-left: 1-2px` 灰色（`--neutral-200`） | 层级嵌套、时间线、子项缩进 | issue-detail 嵌套、专班列表子项 |
+| 1. 结构边 | `border-left: 1px solid var(--neutral-200)` | 层级嵌套 / 时间线 / 子项缩进（结构关系，不表状态） | issue-detail 嵌套、专班列表子项、支委子视图容器 |
 
-**用色来源**：
-- 可交互强调卡（档位 1）：**品牌金** `var(--party-gold)`（品牌统一层，色值权威见 §2.3.1）
-- 角色职责核心卡（档位 2）：`--color-identity-<role>`（主色 / 左条 / 圆点；与 `ROLE_COLORS` 同值）——属身份色层，**只作小面积**，不替代主题色
-- 品牌/活动色：党徽金 `var(--party-gold)`（inspector 品牌卡边框；实现中 inspector.js 内联 `#EAB308` 不入权威色板，待收敛至 `var(--party-gold)`）
-- 嵌套灰色：`--neutral-200`
+**已退役（不得再新增，存量按 Task 2 清除）**：
+
+| 原档位 | 原样式 | 替代 |
+|---|---|---|
+| 可交互高亮主卡 | `border-left: 4px` 品牌金 | 卡片 hover 描边变主题色 ＋ 品牌徽章 |
+| 角色职责核心卡 | `border-left: 4px` 角色色 | 身份圆点 / 角色徽章（`--color-identity-*`） |
+| 引述 / 要点块 | `border-left: 3px` 主题色 | 全框（1px 描边）或浅底色 |
+| 状态 / 提示条 | `border-left: 2–3px` 状态色 | 状态圆点 ＋ 文字（SD-46） |
+
+- **判据（Boolean）**：`border-left` 宽度 >1px 的规则计数为 0；用左条表达 selected / hover / 当前 / 身份 / 品牌的规则计数为 0。守卫：`hover-state-guard::H11` / `ui-control-system-guard::V7` / `ui-contrast-guard::K6`。判例：CASE-DESIGN-033。
 
 **硬性规则**：
-1. **每条边线必须有语义**：可交互/强调/角色归属/引述/嵌套，五者之外不得加边线
-2. **可交互必 hover**：档位 1 的卡片必须有 hover 加深反馈（`border-color` 加深或背景偏移），符合 web-design-guidelines "Interactive states increase contrast"
-3. **宽度层级**：强调 4px > 引述 3px > 嵌套 1-2px，不可倒挂
-4. **纯展示卡不加 hover 伪装**：档位 2/3 的卡不可点击，也不要加"看似可点"的 hover 效果
+1. **每条边线必须有语义**：只允许结构关系（嵌套 / 时间线 / 缩进）；状态 / 身份 / 品牌 / 引述 / 装饰一律不得用边线表达
+2. **可交互必 hover**：可交互卡必须有 hover 加深反馈（`border-color` 加深或背景偏移），符合 web-design-guidelines "Interactive states increase contrast"
+3. **宽度唯一**：结构边 1px；2 / 3 / 4px 左条计数为 0
+4. **纯展示卡不加 hover 伪装**：不可点击的卡不要加"看似可点"的 hover 效果
 
 #### 卡片边界判据（2026-10-19 立 · P2-7 修订）
 
@@ -401,9 +403,9 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 
 ### 4.7 角色按钮/卡片（Role Button / Card）
 
-保留左侧 4px 色条作为角色识别元素。
+角色识别用身份圆点或角色徽章（`--color-identity-*`）；不得用左侧色条（SD-25 / CASE-DESIGN-033）。
 
-> CSS 实现见 `docs/src/styles.css` 的 `.role-card` 和 `.role-card::before` 选择器——**已废止（2026-09-28 死码清理批）**：该族（`.role-card` / `.role-card-left` / `.role-card-content` / `.role-card-title` / `.role-card-desc` / `.role-cards-container` / `.role-icon` / `.participant-card` / `.leader-card` / `.commissioner-card` / `.organizer-card` / `.deep-card` / `.archived-card`）为**零引用死码**，已全部删除，**无现役落点**；角色识别色条仍按 §4.2「边线语义」用 4px 宽（具体承载类由各页按现行实现选）。
+> CSS 实现见 `docs/src/styles.css` 的 `.role-card` 和 `.role-card::before` 选择器——**已废止（2026-09-28 死码清理批）**：该族（`.role-card` / `.role-card-left` / `.role-card-content` / `.role-card-title` / `.role-card-desc` / `.role-cards-container` / `.role-icon` / `.participant-card` / `.leader-card` / `.commissioner-card` / `.organizer-card` / `.deep-card` / `.archived-card`）为**零引用死码**，已全部删除，**无现役落点**；身份标记按 §4.2「边线语义」只保留 1px 结构边，身份色走圆点 / 徽章。
 
 ### 4.8 支委嵌套子视图（Commissioner Nested View）
 
@@ -419,7 +421,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 
 | 属性 | 值 |
 |------|-----|
-| 子视图容器 | `padding-left: 20px; margin-left: 20px; border-left: 2px solid --neutral-200` |
+| 子视图容器 | `padding-left: 20px; margin-left: 20px; border-left: 1px solid var(--neutral-200)` |
 | 子视图展开 | `max-height: 300px; opacity: 1; transition: 0.3s ease-out` |
 | 子视图收起 | `max-height: 0; opacity: 0; overflow: hidden` |
 | 子项卡片 | `padding: 10px 14px; border: 1px solid transparent; background: transparent` |
@@ -806,7 +808,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
    §4.2 硬性规则 4 明写「纯展示卡不加 hover 伪装」⇒ 平地卡片不得用 `box-shadow` 做 hover 反馈；
    `.card--interactive:hover` 按 §4.2 规范表只改 `border-color`（不移位、不加阴影）；默认 `.card:hover` 不变色。
 4. **边框层级**：容器卡 1px 中性边框；**行级元素（列表项 / 卡片内行块）不加边线**（§4.2「列表项白底原则」）；
-   强调/角色/引述边线仍按 §4.2「边线语义」五档表（宽度 4 / 3 / 1-2px 不可倒挂）。
+   边缘只按 §4.2「边线语义」保留 1px 结构边；状态 / 身份 / 品牌 / 引述改用底色、圆点、徽章或全框。
 
 > **关联**：§4.2 卡片（本表的权威行）· §4.3 输入框单档 · §4.10 数据展示与分页控件 · §5.3 禁止动效 ·
 > 研判见 [DESIGN_METHODOLOGY.md](../evolution/DESIGN_METHODOLOGY.md)
@@ -1342,7 +1344,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 | SD-22 | IF 页面内跳转链接 THEN 类为 `.link` / `.text-accent`（色 `--app-accent-soft-text`）；`<a>` 上 `text-blue/sky/indigo` 计数为 0（带 `bg-*` 的信息态按钮型链接除外） |
 | SD-23 | IF 中性控件 `:active` THEN 背景 `--surface-active` = `var(--neutral-200)`（不得出现红色）；主题色控件用 `--app-accent-active-bg` |
 | SD-24 | IF 按压反馈 THEN 唯一源 `--press-shadow`（1px 内阴影）＋ `--transition-press` 180ms；`transform/scale/translate` 计数为 0 |
-| SD-25 | IF 选中态 THEN 主题 soft 三件套（底/字/左条）；侧边栏是唯一浅灰豁免；`--surface-hover/active` 不得表达 selected |
+| SD-25 | IF 选中态 THEN 主题 soft 底 ＋ soft 字 ＋ 字重（圆点按组件）；状态 / 装饰左条计数为 0；侧边栏是唯一浅灰豁免；`--surface-hover/active` 不得表达 selected |
 | SD-26 | IF 实底按钮 hover THEN `--app-accent-strong-hover`（同色相加深）；底色落中性灰计数为 0 |
 | SD-27 | IF 输入类控件 THEN 走字段外壳：静态 1px 中性边；`:focus` 只把边框切主题色，`outline` 与 `box-shadow` 均为 none（鼠标点击与键盘聚焦表现一致）；按钮 / 链接族另按 §5.7 与 DS_04 §5.8，只在 `:focus-visible` 出唯一一条 2px 环 |
 | SD-28 | IF 控件禁用/只读 THEN 两态可辨（禁用灰底灰字、只读透明边浅底）；`opacity` 混作两态计数为 0 |
@@ -1371,7 +1373,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 | 信息态（徽章 / 状态字 / 带 `bg-*` 的按钮型链接） | 既有 `.badge--info` / `tint-*` | 固定 info 蓝或语义色 | 按各自组件规则 |
 
 - **全站单一链接色**：`--color-link`（2026-10-26 Task 4 立）。帮助链接、速查链接、角色色链接、
-  about/help 内联蓝链一律并入；角色色**只能**留在边框 / 左条 / 圆点，不得当链接文字色。
+  about/help 内联蓝链一律并入；角色色**只能**留在圆点 / 徽章 / 边框，不得当链接文字色。
 - 蓝色**不再承担链接**；`text-blue-*` 只允许出现在信息态徽章、状态色 map、表单控件修饰上。
 - 禁止在 `<a>` 上写 `text-blue-600 hover:text-blue-800` 这类 Tailwind 组合。
 - 链接必须有**箭头 / 图标 / 底色 hover** 等非颜色线索；可点箭头不得用 `neutral-400`（≥`neutral-600` 或 `--color-link`）。
@@ -1398,7 +1400,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 
 | 问题 | 态 | 载体 | 禁止 |
 |---|---|---|---|
-| 我现在在这里吗 | **selected**（持续） | 主题 soft 三件套：`--app-accent-soft-bg` + `--app-accent-soft-text` + 左条 `inset 3px 0 0 var(--app-accent)` | 用 `--surface-hover/--surface-active` 表达选中 |
+| 我现在在这里吗 | **selected**（持续） | 主题 soft 底 `--app-accent-soft-bg` ＋ soft 字 `--app-accent-soft-text` ＋ 字重（可选状态圆点，按组件） | 用 `--surface-hover/--surface-active` 表达选中；用左条表达选中或悬停 |
 | 我正按着吗 | **active**（瞬时） | 中性灰 / 主题 `activeBg` / 党建红 `--party-red-active` | 与 selected 共用令牌 |
 | 我能点吗 | **hover** | `--surface-hover` 或主题 `hoverBg`，仅颜色 | 位移 / 阴影 / 缩放 |
 | 我填对了吗 | **invalid** | 红边 + toast 文案（不新增内联错误行） | 仅靠颜色不配文案 |
@@ -1407,7 +1409,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 - **侧边栏是唯一豁免**：`.module-tab.active` 保留浅灰；其余选中一律主题 soft。
 - 实例：`.list-row[data-selected]`、`.cal-cell-large.selected`（桌面/移动同源）、`.subtab[aria-selected]`、`.cs-option:focus-visible`、`.status-badge-option.is-active`、支委会步骤条当前步。
 - 实底按钮 hover＝第 9 个主题 token `--app-accent-strong-hover`（同色相加深），**不得落灰**。
-- 守卫：`hover-state-guard` / `theme-palette-guard` · 判例：CASE-DESIGN-004（SD-25）/ CASE-DESIGN-005（SD-26）
+- 守卫：`hover-state-guard::H11` / `ui-control-system-guard::V7` / `theme-palette-guard` · 判例：CASE-DESIGN-004（SD-25 初版，左条部分已被 CASE-DESIGN-033 取代）/ CASE-DESIGN-005（SD-26）/ CASE-DESIGN-033（左条退出，现行口径）
 
 ### 12.12 字段外壳（批次 508）
 
@@ -1456,7 +1458,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 | 未登记 | `neutral` | `badge--neutral` | `#6B7280` | `#CBD5E1` |
 
 - 类别 token：`--color-category-three-meetings` / `--color-category-theme-day` / `--color-category-other`
-  （及 `-dark` / `-dot`）；只允许徽章 / 圆点 / 左条 / 图例。
+  （及 `-dark` / `-dot`）；只允许徽章 / 圆点 / 图例。
 - 唯一判据：`constants.js::activityTypeTone(type)`；组件不得自己写类别色，也不得用 `info` 兜底。
 - **状态色不借类别色**：进行中＝warning、完成＝success、打回＝warning、计数＝neutral。
 - **暗色类别不借状态色**：`[data-tone="party-red"]` 暗色文字 `#FCA5A5` ≠ danger `#F87171`；
@@ -1478,16 +1480,16 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 | SD-40 | 页签注册表与页内落点 | 一个功能恰 **1 个页签位**：同一台内不得重复注册同一页签；跨台同一功能要么同名同组件（通用面），要么只留一个本位页签、其余降级为页内区 / 折叠卡并配深链重定向与 help 新落点；已降级页签名不得以独立页签回潮 | `catalog-sync::T6`（IA 地图 ≡ 注册表 · 45 条 · 旧名不得重注册）＋ `doc-consistency::S1/S2` | CASE-DESIGN-019 |
 | SD-41 | `.card` / `.metric-band` / `.list-row` 等容器与行载体 | 同一视觉类只承担一种语义：可交互摘要＝`button`/`a` ＋ `--interactive` 档，只读摘要＝`span`/`div` ＋ `--static` 档；`section` 必带 `aria-label` 或 `aria-labelledby`（无名的 `section.card` 计数为 0）；`metric-band` 只有 `--static` / `--interactive` 两档（未分档计数为 0）；`.list-row` 四种载体由 `data-row-type="display\|nav\|action\|master"` 区分且不混用 | `ui-control-system-guard::V1` ＋ `frontend-foundations-guard::F8` ＋人工检查点（读屏 `group` / `region` 与视觉一致） | —（本批无独立判例；交互语义边界见 CASE-DESIGN-018） |
 | SD-42 | 页签分组胶囊（含首组） | 所有受支持宽度（390 / 768 / 1024 / 1280 / 1440）组名胶囊均可见：`display:none` / `visibility:hidden` 计数为 0；高度 ≥24px；`flex-shrink:0`；≤1280px 只缩内边距（1px 6px），字号保持 12px，页签条横向滚动。**形状对比判据自批次 514 起改由 SD-50 承担**（10% 淡底 ＋ 3px 直角、无边框），不再要求描边 ≥1.5:1 | `ui-control-system-guard::V2` ＋ `ui-contrast-guard::K3` ＋ `page-sweep`（390px `groupLabelsVisible` > 0） | CASE-DESIGN-020 / 026 |
-| SD-43 | 全部可点元素（动作按钮 / 纯文字动作 / 图标按钮 / 行载体） | 动作按钮必有 1px 描边或底色；`btn-ghost` 只允许非动作行载体（白名单 6 处、逐条写明可见线索）；纯文字动作挂 `.btn-text`（600 字重 ＋ 尾随箭头 ＋ 10% 主题淡底 hover；文本下划线已由 SD-49 清零）或 `.link`；图标按钮视觉 32×32、命中区 ≥44×44、必有 `aria-label`；行载体有可见 hover（底 / 边 / 3px 左条，色差 ≥1.2:1；**2026-11-01 起灰底不作 hover**：可点行 hover 底＝`--app-accent-tint`（主题 10% 淡底），3px 主题左条改 `::before` ＋ `opacity` 过渡（`--transition-fast`），灰底只承担静态分隔）；`cursor:pointer` 不算线索 | `ui-control-system-guard::V4–V7` ＋ `frontend-foundations-guard::F8` ＋人工检查点（键盘序列） | CASE-DESIGN-021 |
+| SD-43 | 全部可点元素（动作按钮 / 纯文字动作 / 图标按钮 / 行载体） | 动作按钮必有 1px 描边或底色；`btn-ghost` 只允许非动作行载体（白名单 6 处、逐条写明可见线索）；纯文字动作挂 `.btn-text`（600 字重 ＋ 尾随箭头 ＋ 10% 主题淡底 hover；文本下划线已由 SD-49 清零）或 `.link`；图标按钮视觉 32×32、命中区 ≥44×44、必有 `aria-label`；行载体有可见 hover（底 / 边，色差 ≥1.2:1；**2026-11-01 起灰底不作 hover**：可点行 hover 底取 `--app-accent-tint`（主题 10% 淡底），灰底只承担静态分隔；**2026-11-04 起左条退出**：选中用 soft 底 ＋ soft 字 ＋ 字重，左条计数为 0）；`cursor:pointer` 不算线索 | `ui-control-system-guard::V4–V7` ＋ `frontend-foundations-guard::F8` ＋人工检查点（键盘序列） | CASE-DESIGN-021 |
 | SD-44 | 工作概况等工作表（`.wo-lines-table` / `.data-table--fixed`） | 关键宽表 `table-layout: fixed` ＋ 显式列宽模板：工作分工 5 列为 18% / 16% / 9% / 9% / 48%（`colgroup` 列类齐备）；末列 `text-align:end` ＋ 16px 尾部内边距；首列 `nowrap` 同时给 `max-width`；≤640 卡片化时动作列 `justify-content:flex-start` | `ui-control-system-guard::V3` ＋人工检查点（1440 / 1280 末列贴列尾） | CASE-DESIGN-022 |
 | SD-45 | 活动 / 专班的全部详情入口 | 每个入口在 `OBJECT_ROUTE_ENTRIES` 只声明一种 mode（`direct` / `locate`）并写理由，未知入口 → `none`；缺 id / 跨支部普通角色 → `none`（不渲染可点入口），党委 / 组织员放行；已归档活动与专班终态可点但 `readOnly`，详情页写口全关并显示「已归档，只读保留」；`locate` 入口同页预览 ＋「打开完整页」，同一页只有一个完整详情落点；详情 href 只经 `objectDetailHref` / `resolveObjectRoute`（裸 `activity.html?id=` / `taskforce.html?id=` 生成点计数为 0）；可点卡片 / 行具备 `role` ＋ `tabindex="0"` ＋ Enter/Space 或原生 `a`/`button` | `object-route-guard::R1–R8` ＋ `frontend-foundations-guard::F8` ＋人工检查点（深链失败提示） | CASE-DESIGN-023 |
-| SD-46 | 主题色层与功能色层的全部消费者 | 主题色层沿用 7 主题 × 亮/暗 × 9 token，色盘值不改，只承担主行动 / 选中 / 链接 / 身份标签四类；功能色层 `--status-*` / `--color-category-*` / `--color-identity-*` 各有亮暗值；**填充档只进徽章 / 圆点 / 左条 / 图例，文字一律走 `-text` 档**（`--status-*-text`，填充色出现在 `color:` 即红，守卫 `status-color-guard`）；两层不互借：状态 / 类别 / 身份不写主题 token，主题色不进大面积背景与正文；`--functional-*` 只作别名；暗色类别红 / 金 ≠ danger / warning；12 个零消费者 token 计数为 0；CSS 身份色与 `ROLE_COLORS` 逐值相等（功能红 / 金细则见 SD-52） | `theme-palette-guard::T1/T2/T5/T8/T9` ＋ `link-color-guard::L3/L6–L8` ＋ `ui-contrast-guard` ＋人工检查点（关键配对对比度实测） | CASE-DESIGN-024 |
+| SD-46 | 主题色层与功能色层的全部消费者 | 主题色层沿用 7 主题 × 亮/暗 × 9 token，色盘值不改，只承担主行动 / 选中 / 链接 / 身份标签四类；功能色层 `--status-*` / `--color-category-*` / `--color-identity-*` 各有亮暗值；**填充档只进徽章 / 圆点 / 图例，文字一律走 `-text` 档**（`--status-*-text`，填充色出现在 `color:` 即红，守卫 `status-color-guard`）；两层不互借：状态 / 类别 / 身份不写主题 token，主题色不进大面积背景与正文；`--functional-*` 只作别名；暗色类别红 / 金 ≠ danger / warning；12 个零消费者 token 计数为 0；CSS 身份色与 `ROLE_COLORS` 逐值相等（功能红 / 金细则见 SD-52） | `theme-palette-guard::T1/T2/T5/T8/T9` ＋ `link-color-guard::L3/L6–L8` ＋ `ui-contrast-guard` ＋人工检查点（关键配对对比度实测） | CASE-DESIGN-024 |
 | SD-47 | `.tab-group-label`（分组胶囊，含首组） | 视觉构成＝`border-radius:3px` ＋ `font-weight:600` ＋ `letter-spacing:0.5px` ＋ `font-size:12px` ＋ `min-height:24px` ＋ `flex-shrink:0`（**底色与描边两条自批次 514 起由 SD-50 取代**：主题 10% 淡底、无边框）；亮 / 暗 softText vs tint 底 ≥4.5:1（实测 6.88 / 9.18 对 soft-bg，tint 底更高）；`.tab-group-label` 是 SD-3「胶囊 999px」的**唯一登记例外**，且不改变 SD-36 的非按钮语义与 SD-42 的全宽可见判据 | `ui-contrast-guard::K3` ＋ `ui-control-system-guard::V2` ＋人工检查点（390 / 768 / 1024 / 1280 / 1440 五档） | CASE-DESIGN-025 / 026 |
 | SD-48 | 浏览器缓存 / 业务写入 / 演示数据窗口 / 测试残留 | ① 长期存储只允纯展示偏好（`cache-registry` 的 visual 类）；业务读缓存必带 `_versions` ＋ `savedAt`，缺版本 / 过期 / 版本不一致不得当权威；② 业务写成功必须可证：服务端行存在 / 快照请求被观察到 / 语义端点 2xx 三选一；`api` 形态禁止 mock 回退，禁止本地 `persist()` 即成功，失败进 outbox 并显示「未同步」；③ 演示业务日期只在 `DEMO_WINDOW`（2026-08-01–2026-11-30）内，白名单例外逐条写理由；④ 测试数据面分 `memory / tmp / external-read / external-write` 四类，外部写必用临时库或 `finally` 清理；运行库残留由 `test:clean --test-residue` 清，**不删测试套件** | `localstorage-key-guard::L4–L10` ＋ `write-truth-guard::A1–A4/B1–B5` ＋ `seed-contract-guard::C1–C10` ＋ `demo-window-guard::W1–W5` ＋ `test-isolation-guard::I1–I4` | CASE-DATA-001 |
 | SD-49 | `docs/**` 全部文本装饰（链接 / 纯文字动作 / help / login / about 存量） | `text-decoration: underline`、`text-underline-offset`、Tailwind `underline` / `hover:underline` / `underline-offset-*` 计数为 0；链接与非颜色线索改用「`--color-link` ＋ 600 字重 ＋ 箭头 / 图标 / 10% 主题淡底 hover」；`border-*`（表格分隔线 / 卡边 / 选中态边线）不属文本装饰，不判。**取代** SD-22 / SD-43 与 §12.10 中「静态下划线」写法，不改变链接单色与角色色边界 | `no-underline-guard::N1–N4` ＋ `link-color-guard::L3/L6` ＋人工检查点（1440 / 390 链接可辨） | CASE-DESIGN-026 |
 | SD-50 | `.tab-group-label` 与选中页签 `.tab-btn-active` | 组名＝`--app-accent-tint`（主题色 10% 淡底，`rgb(from var(--app-accent) r g b / 10%)` 派生）＋ 无边框 ＋ 3px ＋ 12px/600/0.5px ＋ ≥24px；选中页签＝`--app-accent-soft-bg` solid ＋ `--app-accent` 1px 描边 ＋ 700；两者同屏一眼可分（淡底 vs solid、无边框 vs 主题描边）；`color-mix()` / `rgba(主题色)` / 硬编码 hex 派生计数为 0。**取代** SD-47 的底色 / 描边两条与 SD-42 的描边对比判据；SD-3 的 3px 例外、SD-36 的非按钮语义、SD-42 的全宽可见仍有效 | `ui-contrast-guard::K3` ＋ `ui-control-system-guard::V2/V5` ＋ `link-color-guard::L3` ＋人工检查点（五档宽度 + 暗色） | CASE-DESIGN-026（源起 020 / 025） |
 | SD-51 | 页签切换 / 页面跳转的加载态 | 已有内容切页签：>120ms 才铺 skeleton（「正在加载…」＋ 3 条卡形行 ＋ spinner ＋ `role=status` / `aria-live=polite`）；旧内容淡出 `var(--motion-exit)`、新内容淡入 `var(--motion-enter)`（160–240 区间，8px 位移）；淡出 / 入场期不得「不透明度 <1 且可点」；动效编排预算 ≤1000ms；**禁止**整块 `opacity` 压暗、插入加载文本行、同步硬替换；页面跳转＝顶部 2px 主题色进度条 ＋ 120ms 离开淡出 ＋ 落地复用同一骨架；`prefers-reduced-motion` 只淡入反馈档、无位移，骨架 / 文案保留；骨架期内容容器不得整块 `pointer-events:none`（局部禁用 + 明确加载指示） | `loading-experience-guard::L1–L7`（含故障注入） | CASE-DESIGN-027 |
-| SD-52 | 功能红 / 金与主题 / 状态色的消费者 | `--color-functional-red` / `--color-functional-gold`（亮 / 暗各一）与 `--status-error` / `--status-warning` / 主题 accent **逐值不同**；三会一课＝功能红、主题党日＝功能金（经 `--color-category-*` 引用）；只用于徽章 / 圆点 / 左条 / 图例 / 提示条等小面积，不作大面积背景或正文；文字对底 ≥4.5:1；功能色不承担状态（进行中 / 完成 / 打回仍走 `--status-*`）。**只细化** SD-46 的功能色层与 SD-31 的类别 tone，不改主题色盘 | `theme-palette-guard::T10` ＋ `activity-tone-guard` ＋ `ui-contrast-guard::K6` | CASE-DESIGN-024（类别层） |
+| SD-52 | 功能红 / 金与主题 / 状态色的消费者 | `--color-functional-red` / `--color-functional-gold`（亮 / 暗各一）与 `--status-error` / `--status-warning` / 主题 accent **逐值不同**；三会一课＝功能红、主题党日＝功能金（经 `--color-category-*` 引用）；只用于徽章 / 圆点 / 图例 / 提示条等小面积，不作大面积背景或正文；文字对底 ≥4.5:1；功能色不承担状态（进行中 / 完成 / 打回仍走 `--status-*`）。**只细化** SD-46 的功能色层与 SD-31 的类别 tone，不改主题色盘 | `theme-palette-guard::T10` ＋ `activity-tone-guard` ＋ `ui-contrast-guard::K6` | CASE-DESIGN-024（类别层） |
 | SD-54 | 卡头副题（`renderCardHeader` 的 `meta` 与手写卡头副题 span） | 副题只写「范围 + 约束」（如「本支部 · 只读」「在册 N · 待办 N」）；操作指令计数为 0——`点击…查看` / `点上方` / `点右上角` / `下一步：` 不得出现在副题；第二行是信息位，不承担「怎么点」的说明 | `copy-guard::S1/S2`（本轮范围：`docs/src/components/record/{activity-view,workgroup-view,taskforce-view,inspector}.js` ＋ `docs/src/entries/tabs/**`；实测 25 条副题）＋人工检查点（1440 / 390 副题可读） | CASE-DESIGN-029 |
 | SD-55 | `section` / `div` / `article` / `aside` 语义标签 | `section`＝页面级独立区块：开标签必须带可访问名称（`aria-label`，或 `aria-labelledby` 指向**存在**的 id）；同页 `section` 内不得再出现 `section`；不得作纯样式容器（仅为了内边距 / 背景而写 `<section>` 判红）。`div`＝布局 / 分组的默认载体，不承载地标语义。`article`＝可独立成篇的记录（活动 / 人物 / 通知，现有 7 处）。`aside`＝次要信息（帮助、说明）。**现状说明**：全站 `<section>` 59 处 / 23 文件、`<article>` 7 处（2026-11-01 实测）；本轮只收「无名 / 嵌套」两条硬判据，不改既有分区切分 | `a11y-tree.test.mjs`（A10：现有页面清单真机遍历 ＋ 合成 DOM 反例）＋人工检查点（读屏 `region` 与视觉分区一致） | —（本批无独立判例） |
 | SD-56 | 输入控件（`input-flat` / 搜索框 / 关键词自动补全） | 唯一出口＝`components/ui/forms.js`（其下 `form-field.js` 提供布局中立 `textInput` / `selectInput`）：新代码**不得**直接写裸 `<input class="input-flat">` / `<select class="input-flat">` / `<textarea class="input-flat">`；行内筛选等无 label 场景用 `textInput` / `selectInput`（不带外壳、布局类由调用方追加），表单场景用 `textField` / `selectField` / `dateField`；存量裸输入按 `server/test/style-baseline.mjs::RAW_INPUT_BASELINE` **逐文件只减不增**（现行全站 192 处 / 57 文件；未登记文件出现即红）；搜索框 `.lf-kw` 独占一行时 **≤320px**（`--lf-kw-max` 可逐处覆盖），≤640px 满宽；关键词自动补全只用原生 `<datalist>`（`list-filter.js` 的 `keyword.suggestions`，数组或 `(rows) => string[]`，去重截断 50 条），**不引第三方库**（补全承载方式由 SD-59 取代） | `field-shell-guard::R1–R3` ＋人工检查点（390 / 1440 搜索框宽度、`datalist` 键盘可选用） | —（本批无独立判例） |

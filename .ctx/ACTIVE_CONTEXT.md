@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: "2026-11-04"
 last_verified: "2026-11-04"
-latest_decision: "D-855"
+latest_decision: "D-856"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -28,9 +28,9 @@ status: active
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
 - **审计**：45 页签 **P0 0 / P1 0 / P2 2 / exception 44**；F1–F8 全绿；M1–M3 在位。
   - source：`.ctx/evidence/2026-11-03/tab-audit/summary.md`。
-- **测试**：`npm run test:daily` **1775 / 1775**（约 325s）；9 条 precommit e2e 全绿；docs / ctx 守卫 117 / 117。
-  - source：`.ctx/logs/2026-11-EXECUTION_LOG.md §批次 533`、`.ctx/ENGINEERING_ASSESSMENT.md §二 2.5`。
-- **版本戳**：`20261103b`，0 处陈旧。
+- **测试**：`npm run test:daily` **1788 / 1788**（约 430s）；9 条 precommit e2e **20 / 20** 全绿；Plan B 对账 7 类 8/8。
+  - source：`.ctx/logs/2026-11-EXECUTION_LOG.md §批次 534`、`.ctx/ENGINEERING_ASSESSMENT.md §二 2.5`。
+- **版本戳**：`20261104a`，0 处陈旧。
   - source：`docs/scripts/bump-version.mjs --check`。
 - **换轨**：副本 **48 表 / 577 行** export → dry-run → apply 一致；生产空库 `preflight-cutover --strict` exit 0 / 警告 0。
   - source：`deploy/CUTOVER_RUNBOOK.md`、`.ctx/evidence/2026-11-03/security/summary.md`。
@@ -52,6 +52,7 @@ status: active
 - **多支部同实例只到设计稿**：Phase 1–2 完成前不得打开 `ALLOW_MULTI_BRANCH`；上线坚持一实例一支部。（`D-849`）→ `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §十`。
 - **规则与判例先进 content，再进 .ctx 索引**；`.ctx` 不再承担规则正文。（`D-850` · `D-852`）→ `.ctx/README.md`、`content/05_ai_coding/CONTEXT_MANAGEMENT.md`。
 - **乙部余项合并批**：待办派生先上最小 Plan B（服务端只读端点 + 客户端切读 + 降级），完整版阶段门槛登记为 `B-500-7b`；R5 旧账全量对账；9 条 precommit e2e 全绿；`text-xs` / help.html 色转守卫棘轮。（`D-855`）→ `server/routes/todo-groups.js`、`CLAUDE.md 乙部`、`type-scale-guard::Q6`。
+- **界面信号与颜色权威**：状态 / 装饰左条退出（CASE-DESIGN-033）；焦点沿用 SD-27 单环、2px 不加宽、双层环不得回潮；`styles.css` 为唯一颜色权威，`constants.js` / `tailwind-config.js` 受守卫镜像；7 类待办组全部服务端化且测试先行；数据分层写入 `H32`。（`D-856`）→ `DS_03 SD-25`、`theme-palette-guard::T12/T13`、`server/test/todo-derive-parity.test.mjs`。
 
 ## §3 当前风险与下一步
 
@@ -80,8 +81,8 @@ status: active
 ### 下一批最该做的 3 件事
 
 1. **首次部署前验证**：在 Linux 测试机跑 `install/update` + `preflight-cutover --strict`，把 `L-02` 关掉。
-2. **多支部 Phase 1**：读口统一接入 `resourceRowsForActor`，双支部夹具证明 A 读不到 B；完成前不打开 `ALLOW_MULTI_BRANCH`。
-3. **收口 `issue-unread`**：补 `assignee === issue.assignee` 或改为服务端派生未读，关 `L-09`。
+2. **完整 Plan B 二期（`B-500-7b-2`）**：删客户端业务派生的默认路径 + 读面前置解耦 + 缓存 / 性能；前置（7 类对账 8/8、双支部夹具、daily 1788）已达，不以上线为前提。
+3. **多支部 Phase 1**：读口统一接入 `resourceRowsForActor`，双支部夹具证明 A 读不到 B；完成前不打开 `ALLOW_MULTI_BRANCH`。
 
 ## §4 文件地图（读什么 / 不读什么）
 

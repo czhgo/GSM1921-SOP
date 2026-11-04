@@ -4,26 +4,26 @@
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据支书第五轮裁定「新建专班查看组件（列表+详情）」。
 // 支书设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261103b';
-import { getPersonName } from '../../services/member/person.js?v=20261103b';
-import { mockDB } from '../../core/domain/domain.js?v=20261103b';
-import { AuthStore } from '../../services/core/auth.js?v=20261103b';
-import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261103b';
-import { badgeHtml } from '../ui/badges.js?v=20261103b';
-import { dotDarkVars } from '../../core/domain/constants.js?v=20261103b';
-import { flashHighlight, showToast, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261103b';
-import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261103b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261104a';
+import { getPersonName } from '../../services/member/person.js?v=20261104a';
+import { mockDB } from '../../core/domain/domain.js?v=20261104a';
+import { AuthStore } from '../../services/core/auth.js?v=20261104a';
+import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261104a';
+import { badgeHtml } from '../ui/badges.js?v=20261104a';
+import { dotDarkVars, TASK_STATUS_TONE } from '../../core/domain/constants.js?v=20261104a';
+import { flashHighlight, showToast, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261104a';
+import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261104a';
 // 批次 524（D）：只读由权限派生，不再写死「· 只读」字符串
-import { readonlyMeta } from '../../core/domain/view-capability.js?v=20261103b';
+import { readonlyMeta } from '../../core/domain/view-capability.js?v=20261104a';
 // 统一检索引擎（2026-09-14 裁定）：只读详情「成员贡献」（第一列是人 → 配姓名关键词）与
 // 「中间进度」（时间线 → 只给分页：keyword null + facets []）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261103b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261104a';
 // Task 6：专班的完整详情页出口（同页预览 + 「打开完整页」）；入口已在工作台内 ⇒ locate。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261103b';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261104a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261103b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261104a';
 // 批次 525（#4）：搜索建议走自建 suggestInput（原生 datalist 会在输入框内画 UA picker 三角）。
-import { suggestInput } from '../ui/forms.js?v=20261103b';
+import { suggestInput } from '../ui/forms.js?v=20261104a';
 // 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
 const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };
 // 专班状态 → 固定语义 tone（不随主题）
@@ -113,7 +113,8 @@ export function renderTaskforceView(container, opts = {}) {
   // 状态分组（与组织委员专班管理一致的组序：待支委会表决/招募中/运行中/已完结；dissolved 归已完结桶）
   const groups = [
     { key: 'pending_review', label: '待支委会表决', color: '#6366F1', list: sortTfByNew(filtered.filter(t => t.status === 'pending_review' || t.status === 'draft')) },
-    { key: 'recruiting',     label: '招募中', color: '#D97706', list: sortTfByNew(filtered.filter(t => t.status === 'recruiting')) },
+    // 2026-11-04 批次 534（Task 6.4）：招募中沿用三态色的「进行中」琥珀档（值逐字不变，不再写 hex）。
+    { key: 'recruiting',     label: '招募中', color: TASK_STATUS_TONE.in_progress.color, list: sortTfByNew(filtered.filter(t => t.status === 'recruiting')) },
     { key: 'active',         label: '运行中', color: '#10B981', list: sortTfByNew(filtered.filter(t => t.status === 'active')) },
     { key: 'completed',      label: '已完结', color: '#3B82F6', list: sortTfByNew(filtered.filter(t => t.status === 'completed' || t.status === 'archived' || t.status === 'dissolved')) },
   ];

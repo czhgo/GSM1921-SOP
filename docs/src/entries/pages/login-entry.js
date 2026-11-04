@@ -2,15 +2,15 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../../services/core/auth.js?v=20261103b';
-import { BranchService } from '../../services/core/runtime.js?v=20261103b';
-import { getBranchOrg } from '../../services/branch/branch.js?v=20261103b';
-import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser, DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261103b';
-import { escHtml } from '../../core/base/utils.js?v=20261103b';
+import { AuthStore } from '../../services/core/auth.js?v=20261104a';
+import { BranchService } from '../../services/core/runtime.js?v=20261104a';
+import { getBranchOrg } from '../../services/branch/branch.js?v=20261104a';
+import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser, DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261104a';
+import { escHtml } from '../../core/base/utils.js?v=20261104a';
 // Task 2.1（2026-10-26）：服务端优先登录——静态托管 / 显式开发模式才走本地账号层。
-import { DEPLOY_MODE } from '../../config/deploy.js?v=20261103b';
+import { DEPLOY_MODE } from '../../config/deploy.js?v=20261104a';
 
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261103b';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261104a';
 // C09（2026-10-20）：登录链接可带 `next`（目标页 URL）——登录成功后按 next 回跳，
 // 「未登录点活动 / 专班」不再只进工作台、丢掉原对象。只接受**同源** URL（防开放重定向），
 // 且 next 不得又指回登录页本身（防自循环）。
@@ -209,12 +209,16 @@ if (loginForm) {
     _fields.forEach(_clearField);
     if (errorEl) { errorEl.textContent = ''; errorEl.classList.add('hidden'); }
   };
-  /** 错误贴到字段：文本在字段下方（#login-error），同时产出 aria-invalid + aria-describedby */
+  /** 错误贴到字段：文本在字段下方（#login-error），同时产出 aria-invalid + aria-describedby
+   *  2026-11-04 Task 3.5：`#login-error` 仍是唯一 live region（aria-describedby 目标不变），
+   *    但**移到出错字段的下面**——只错学号时不再挂在密码框下方；两字段都错时贴在最后一个字段下。 */
   const _showError = (msg, fields) => {
     const targets = Array.isArray(fields) && fields.length ? fields.filter(Boolean) : _fields;
     if (!errorEl) return;
     errorEl.textContent = msg;
     errorEl.classList.remove('hidden');
+    const anchorWrap = targets[targets.length - 1]?.parentElement;
+    if (anchorWrap && anchorWrap.parentElement === loginForm) anchorWrap.after(errorEl);
     targets.forEach((el) => {
       el.setAttribute('aria-invalid', 'true');
       if (_errId) el.setAttribute('aria-describedby', _errId);

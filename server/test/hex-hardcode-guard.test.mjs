@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url';
 import {
   HEX_BASELINE, HEX_TOTAL_BASELINE, HEX_FILE_BASELINE, HEX_VALUE_BASELINE, HEX_MOVE_LEDGER,
 } from './style-baseline.mjs';
-import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261103b';
+import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261104a';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -53,8 +53,8 @@ const EXCEPTIONS = [
   },
   {
     file: 'docs/src/about.css',
-    allowNew: true,
-    reason: '关于页＝文档页（DESIGN_SYSTEM §4.18.1 同条豁免）。该文件自带**作用域隔离**的 `--ab-*` 暖纸印刷色板（`.ab-about{--ab-paper-0:#FAF8F4;…--ab-red:#CE1126;--ab-gold:#C9A227}`，明注「不影响全局/help 页」）——其中与全局 `:root` 等值的少数几处（如 `#CE1126`）**正是它自己的令牌定义**，其余 46 处为暖纸 / 墨色专有色与深色态字面量，**无全局同名令牌**（§2.8 口径「不许新造色」⇒ 不可清）。故整文件进例外，只计进度、不因新增判红。',
+    allowNew: false,
+    reason: '关于页＝文档页（DESIGN_SYSTEM §4.18.1 同条豁免）。该文件自带**作用域隔离**的 `--ab-*` 暖纸印刷色板（`.ab-about{--ab-paper-0:#FAF8F4;…--ab-red:#CE1126;--ab-gold:#C9A227}`，明注「不影响全局/help 页」）——其中与全局 `:root` 等值的少数几处（如 `#CE1126`）**正是它自己的令牌定义**，其余为暖纸 / 墨色专有色与深色态字面量，**无全局同名令牌**（§2.8 口径「不许新造色」⇒ 不可清）。2026-11-04 批次 534（spec unify-ui-signals Task 5.3）：About 是冻结件（`about-freeze-guard` 整文件哈希锁定），内容一字不改；本文件从「只计进度」改为**只减不增**——新增值由 H1 判红、处数上涨由 H2 判红，收基线时同批下调 `style-baseline.mjs::HEX_BASELINE` 的 `c` 与 `v`。',
   },
 ];
 
@@ -221,8 +221,12 @@ test('H3 非空转：抽取口径可用 + 基线规模达标 + 无僵尸登记',
   //   ⇒ 再删一条目、声明 49 → 48，本下限随实况同步下沉到 48（同上，不是放宽）。
   // ⚠ 2026-11-01 批次 524：`overview-dispatch-bar.js` 待答复条改功能色后 hex 清零 ⇒ 删条目、
   //   声明 48 → 47，本下限随实况同步下沉到 47（同上，不是放宽）。
-  assert.ok(HEX_FILE_BASELINE >= 47 && files.length >= 47, `hex 基线文件数过少（实测 ${files.length} / 声明 ${HEX_FILE_BASELINE}，下限 47）`);
-  assert.ok(HEX_TOTAL_BASELINE >= 1400, `hex 基线处数过少（声明 ${HEX_TOTAL_BASELINE}，下限 1400）`);
+  // ⚠ 2026-11-04 批次 534：`tailwind-config.js`（改全 var() 映射）与 `activity-view.js`（三态色收敛）
+  //   hex 清零 ⇒ 文件数 47 → **45**、处数 1433 → **818**（HEX_TOTAL_BASELINE 改为随实况同步）；
+  //   防呆下限随实况下沉（47→45 / 1400→800）。**不是放宽**：判红项仍是 H1（新增值）/ H2（处数上涨）/
+  //   下方僵尸登记——下限只防「台账被悄悄删空」。
+  assert.ok(HEX_FILE_BASELINE >= 45 && files.length >= 45, `hex 基线文件数过少（实测 ${files.length} / 声明 ${HEX_FILE_BASELINE}，下限 45）`);
+  assert.ok(HEX_TOTAL_BASELINE >= 800, `hex 基线处数过少（声明 ${HEX_TOTAL_BASELINE}，下限 800）`);
   assert.ok(HEX_VALUE_BASELINE >= 280, `hex 基线值数过少（声明 ${HEX_VALUE_BASELINE}，下限 280）`);
   assert.equal(files.length, HEX_FILE_BASELINE, '基线条目数与声明的文件数不一致（台账被改动须同步声明值）');
   // ③ 僵尸登记：基线文件必须真实存在，且该文件仍应有 hex 命中

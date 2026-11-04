@@ -3,13 +3,13 @@
 //  utils.js — 格式化工具、动画辅助、Toast 组件
 // ════════════════════════════════════════════════════════════════
 
-import { hasPendingWrites, settleScope, settleWrites } from '../session/pending-writes.js?v=20261103b';
+import { hasPendingWrites, settleScope, settleWrites } from '../session/pending-writes.js?v=20261104a';
 
 // ── 日期格式化 ─────────────────────────────────────────────────
 // R-26③（2026-10-05 批次 388）：日期口径单一源下沉到**零依赖叶子** `core/base/date.js`
 //   （`core/domain/constants.js` 这类「被全站 import 且要求双端可载」的件只能引零依赖件；
 //   而 `utils.js` 牵 `core/session/pending-writes.js`）⇒ 此处**转出**，既有 `from '…/utils.js'` 调用点不变。
-export { _fmtDate, todayLocal } from './date.js?v=20261103b';
+export { _fmtDate, todayLocal } from './date.js?v=20261104a';
 
 export function _fmtChinese(d) {
   const DN = ['日','一','二','三','四','五','六'];
@@ -184,12 +184,13 @@ function _renderToast(type, message, options = {}) {
     return { ok: type !== 'error', type, message };
   }
 
-  // 状态色点缀（DESIGN_SYSTEM 状态色统一：完成绿 #16A34A / 告警红 #EF4444 / 信息蓝 #3B82F6）
-  // 主色收敛原则：Toast 为状态指示，用状态色而非角色主题色；白色实底 + 深色文字保证高对比度
+  // 状态色点缀（DESIGN_SYSTEM 状态色统一）：色值单一源＝styles.css 的 --toast-* 令牌。
+  // 主色收敛原则：Toast 为状态指示，用状态色而非角色主题色；浅底 + 深字保证高对比度。
+  // 2026-11-04 批次 534（Task 6.3）：令牌在 :root 定义、暗色不覆写 ⇒ 明暗都保持浅底深字。
   const COLORS = {
-    success: { accent: '#16A34A', bg: '#F0FDF4', icon: '✓' },
-    error:   { accent: '#EF4444', bg: '#FEF2F2', icon: '!' },
-    info:    { accent: '#3B82F6', bg: '#EFF6FF', icon: 'i' },
+    success: { accent: 'var(--toast-success-accent)', bg: 'var(--toast-success-bg)', icon: '✓' },
+    error:   { accent: 'var(--toast-error-accent)', bg: 'var(--toast-error-bg)', icon: '!' },
+    info:    { accent: 'var(--toast-info-accent)', bg: 'var(--toast-info-bg)', icon: 'i' },
   };
   const { accent, bg, icon } = COLORS[type] || COLORS.info;
 
@@ -199,10 +200,10 @@ function _renderToast(type, message, options = {}) {
   toast.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
   toast.style.cssText = [
     `background:${bg}`,
-    `border:1px solid ${accent}`, `border-left:4px solid ${accent}`,
+    `border:1px solid ${accent}`,
     'border-radius:var(--radius-md)',
     'padding:0.625rem 1rem', 'display:flex', 'align-items:center',
-    'gap:0.625rem', 'font-size:0.875rem', 'color:#1F2937',
+    'gap:0.625rem', 'font-size:0.875rem', 'color:var(--toast-text)',
     'box-shadow:0 4px 24px rgba(0,0,0,0.12)',
     'opacity:0', 'transform:translateY(0.5rem)',
     'transition:opacity var(--motion-exit) var(--ease-standard),transform var(--motion-exit) var(--ease-standard)',
@@ -220,7 +221,7 @@ function _renderToast(type, message, options = {}) {
   ].join(';');
   iconEl.textContent = icon;
   const msgEl = document.createElement('span');
-  msgEl.style.cssText = 'color:#1F2937;flex:1;';
+  msgEl.style.cssText = 'color:var(--toast-text);flex:1;';
   msgEl.textContent = message;
   const closeEl = document.createElement('button');
   closeEl.type = 'button';

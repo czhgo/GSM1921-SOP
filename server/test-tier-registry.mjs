@@ -80,7 +80,17 @@ export const filesByFixtureClass = (fixtureClass) => TEST_TIERS
  *  2026-11-03 批次 533（B-500-7 最小 Plan B）：新增 todo-groups-api（5，纯 node + `:memory:`，
  *    服务端只读派生视图的 401 / 跨人跨角色 / 形状 / 去重 / unsupported）⇒ 文件预算 240 → 241，
  *    断言预算 1767 → 1772。 */
-export const DAILY_FILE_BUDGET = 241;
+/** 2026-11-04 批次 534（B-500-7b-1 Task 7 · Plan B 测试门）：新增 `todo-derive-parity` 4 条
+ *  （① 标准答案 fixtures 与纯函数重算一致 · ② 客户端标准答案 vs 服务端 7 类组逐字段对账并打印
+ *   已绿/仍红清单 · ③ 双支部夹具隔离 · ④ 门非空转：篡改 id/count 必须判红），
+ *  纯 node + `:memory:`（自托管 listen(0)，不连 :3000）⇒ daily；文件预算 241 → 242，
+ *  断言预算按实测 1772 + 4 = 1776。 */
+/** 2026-11-04 批次 534（B-500-7b-1 Task 9 · 客户端切默认与兜底）：新增 `todo-realtime-source` 7 条
+ *  （① 服务端成功只用服务端业务组 · ② 展示补充不改业务事实 · ③ 失败兜底不新造事实且回可见提示 ·
+ *   ④ mock=正常路径不冒充失败 · ⑤ 服务端空组不得被客户端猜回 · ⑥ 默认路径不派生已接管键 ·
+ *   ⑦ 接线守卫），纯 node（注入 fetch / builder，不起浏览器）⇒ daily；文件预算 242 → 243，
+ *  断言预算按实测 1776 + 7 = 1783，登记 1785（留 2 条余量，不作「9999 式」放宽）。 */
+export const DAILY_FILE_BUDGET = 243;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
@@ -332,7 +342,9 @@ export const DAILY_FILE_BUDGET = 241;
 /** 2026-11-03 批次 530（CLAUDE 分层与 UI 清单）：`ctx-hygiene-guard` 新增 ⑩（H20.3 next_prompt 六要素 + commit 模板，1 条）；
  *  `ui-preflight-context` 由「热层 10 问同源」改为「热层指针 + 温层 8 组」，断言数 4 → 4（不变）
  *  ⇒ 实测 1765，按 1767 登记（留 2 条余量，不作「9999 式」放宽）。未新增测试文件，文件预算维持 240。 */
-export const DAILY_TEST_BUDGET = 1772;
+/** 2026-11-04 批次 534（B-500-7b-1 Task 9）：新增 `todo-realtime-source` 7 条 ⇒ 实测 1783，按 1785 登记
+ *  （留 2 条余量，不作「9999 式」放宽）。 */
+export const DAILY_TEST_BUDGET = 1785;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -382,6 +394,12 @@ export const TEST_TIERS = [
     'session-ttl.test.mjs',
     // 2026-11-03 批次 533（B-500-7 最小 Plan B）：待办实时派生只读端点（纯 node + :memory:）
     'todo-groups-api.test.mjs',
+    // 2026-11-04 批次 534（B-500-7b-1 Task 7）：Plan B 测试门（标准答案 fixtures / 7 键对账 /
+    //   双支部隔离 / 门非空转；纯 node + :memory:，服务端未实现的键逐键打印为红）
+    'todo-derive-parity.test.mjs',
+    // 2026-11-04 批次 534（B-500-7b-1 Task 9）：客户端切「服务端默认 + 仅失败兜底」（三态 / 不新造事实 /
+    //   展示补充不改业务事实 / 默认路径不派生已接管键；纯 node）
+    'todo-realtime-source.test.mjs',
     // 2026-11-03 任务 7：安全红队 P0 回归（快照整表写穿不得清空聚合子记录；组织者不误伤，纯 node + :memory:）
     'security-redteam.test.mjs',
   ]),

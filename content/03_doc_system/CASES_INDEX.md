@@ -2,7 +2,7 @@
 title: "判例库总索引"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-10-30"
+last_updated: "2026-11-04"
 status: active
 related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-system/CASES.md, content/02_institution/CASES.md, content/05_ai_coding/CASES.md]
 ---
@@ -56,6 +56,7 @@ related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-sy
 | CASE-DESIGN-030 | 把「卡片数字」执行成去图标，属过度解读原则 4；点缀色单列不计主色 | design | [CASES.md](../04_web_design/design-system/CASES.md) | §一 原则 4（关联 SD-46） | 2026-10-28（Task 3） |
 | CASE-DESIGN-031 | 焦点修两轮才查出四套颜色 ＋ 全局 6px 光晕；先穷尽来源再动手 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-27（关联 SD-21 / §5.7） | 2026-10-28（批次 520） |
 | CASE-DESIGN-032 | 判例修不完，原则才收敛；同类分支第三次就停手盘点，原则要能机检并带反例 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-27（P1）；关联 P2–P7 | 2026-10-29（M3 自检） |
+| CASE-DESIGN-033 | 左条退出界面信号：选中用 soft 底 ＋ 字重，状态 / 装饰左条清零 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-25（关联 SD-46 / §4.2） | 2026-11-04（批次 534） |
 | CASE-DATA-001 | api 形态不得回退 mock；本地 resolve 不算写成功 | data | [CASES.md](../04_web_design/design-system/CASES.md) | SD-48 | 批次 513 |
 | CASE-INST-001 | 匿名反馈改裁为支部内闭环、无系统揭名入口 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9j`（SR 待编号） | 2026-10-16（D-824） |
 | CASE-INST-002 | 意见处置与品牌认定归支委会，支书主持 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9j`（SR 待编号） | 2026-09-18 |
