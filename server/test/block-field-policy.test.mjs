@@ -46,7 +46,7 @@ async function patchConfig(token, body) {
   });
 }
 
-const V = '?v=20261018h';
+const V = '?v=20261102b';
 const BLOCK = 'theme-party-day';
 
 test('② 净化 + 读侧：cleanFieldPolicies 正/反样例（去重/丢非串/只收布尔/空壳不保留）', async () => {
@@ -100,8 +100,8 @@ test('② 对齐清单：carrier 过滤 + 隐藏 + 必填覆盖（且不原地�
 });
 
 test('② HTTP：fieldPolicies 写回（净化形状）/ 非法丢弃 / blocks=null 恢复默认', async () => {
-  const { token: sec } = await login('p13');    // 现任支书
-  const { token: staff } = await login('p_pc'); // 党委组织员
+  const { token: sec } = await login('2300010001');    // 现任支书
+  const { token: staff } = await login('9000000001'); // 党委组织员
 
   // ① 写入（含脏值）→ 200，读回为净化后的形状
   const r1 = await patchConfig(sec, {
@@ -126,12 +126,20 @@ test('② HTTP：fieldPolicies 写回（净化形状）/ 非法丢弃 / blocks=n
   assert.deepEqual(b1.blockOrder, [], '同段 blockOrder 同写不丢');
 
   // ② 未带 fieldPolicies 时，既有 workflowBlocks 写回不引入该段（向后兼容、零 diff）
-  const r2 = await patchConfig(staff, { config: { blocks: { workflowBlocks: { hiddenBlockIds: ['taskforce'] } } } });
+  const r2 = await patchConfig(sec, { config: { blocks: { workflowBlocks: { hiddenBlockIds: ['taskforce'] } } } });
   assert.equal(r2.status, 200, '仅 workflowBlocks 合法');
   assert.equal((await r2.json()).config.blocks.workflowBlocks.fieldPolicies, undefined, '未写则不引入 fieldPolicies 段');
 
   // ③ 恢复默认：blocks=null → 全清（含 fieldPolicies）
-  const r3 = await patchConfig(staff, { config: { blocks: null } });
+  const r3 = await patchConfig(sec, { config: { blocks: null } });
   assert.equal(r3.status, 200, 'blocks=null 恢复默认');
   assert.equal((await r3.json()).config.blocks, null, 'blocks 全清');
+
+  // ④ 2026-10-21 批次 501（D-825，推翻批次 448）：党委可代支部写 config.blocks（含 null 恢复默认），
+  //   留痕行带 `byRole='party-staff'`。
+  const r4 = await patchConfig(staff, { config: { blocks: { workflowBlocks: { hiddenBlockIds: [] } } } });
+  assert.equal(r4.status, 200, '党委可代支部写 config.blocks（D-825）');
+  assert.equal((await r4.json()).config.configChangeHistory.at(-1).byRole, 'party-staff', '留痕标明党委代配置');
+  const r4b = await patchConfig(staff, { config: { blocks: null } });
+  assert.equal(r4b.status, 200, '党委可经 blocks=null 恢复支部默认（D-825）');
 });

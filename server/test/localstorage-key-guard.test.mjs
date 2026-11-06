@@ -29,6 +29,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+// Task 2.2（2026-10-26）：浏览器存储键的四类单一源（visual / auth / read-cache / temp）。
+import {
+  CACHE_KEYS, CACHE_KEY_PREFIXES, CACHE_CATEGORIES, classifyCacheKey,
+  validateBackupPayload, BACKUP_META, NICHE_COLLECTION_NAMES,
+} from '../../docs/src/data/cache-registry.js?v=20261102b';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 
@@ -89,6 +94,7 @@ const LOCAL_ONLY = {
   'gsm1921-dev-stage-overrides': '**2026-09-28 已服务端化**：事实改挂成员档案字段 `developStageSince`（服务端权威、跨设备可读）；本键降级为**遗留键**——代码中仅剩「init 档移除清单 / 清一次存储残留」引用，不再有业务读写',
   'gsm1921-issue-submitter-token': '设计如此·本机令牌：随机不可反查人的防刷令牌（仅判重/限频用），按设计只在本设备（services/governance/issues.js）',
   'gsm1921-init-state': '本机·初始化态闸门：本标签页「正在初始化」的内存语义落盘位，非业务数据（services/core/init-reset.js）',
+  'gsm1921-pending-writes-outbox': '本机临时·失败待同步队列：只存集合名/错误码/时间（不存业务数据），用于「未同步」可见提示与重试/放弃；真相始终在服务端（core/session/pending-writes.js，Task 3 2026-10-26）',
 };
 
 /** C 档：UI 偏好与会话 */
@@ -112,6 +118,9 @@ const SERVER_AUTHORITATIVE_PREFIXES = {
 };
 const LOCAL_ONLY_PREFIXES = {
   'wizard-draft-': '本机临时·草稿：换组织向导未走完的草稿，按支部一份（components/governance/org-setup-wizard.js）',
+  // 2026-11-01 批次 523：页签模块失败「同会话自愈一次」标记（键含 tab.id；成功渲染即删）。
+  //   只表达「本会话试过一次重载」，不属于任何业务事实 ⇒ 不上服务端。
+  'gsm1921-tab-selfheal-': '本机临时·页签失败自愈一次性标记（sessionStorage；成功后清除；components/shell/tab-bar.js）',
 };
 const UI_PREF_SESSION_PREFIXES = {
   'gsm1921-pref-': 'UI 偏好·个人偏好键空间（theme.js / preferences.js）',
@@ -255,4 +264,147 @@ test('L3 抽取口径有基线（防正则失效 → 一个键都抽不到 → �
   assert.ok(FILES.length >= 40, `只扫到 ${FILES.length} 个文件（基线 40）：扫描面被改坏，L1 会变成恒真`);
   assert.ok(callKeys.size >= 8, `存储调用字面量只抽到 ${callKeys.size} 个键（基线 8）：ⓐ 口径失效`);
   assert.ok(constKeys.size >= 15, `键名常量字面量只抽到 ${constKeys.size} 个键（基线 15）：ⓑ 口径失效`);
+});
+
+// ════════════════════════════════════════════════════════════════
+//  Task 2.2 / 2.5（2026-10-26）：缓存键四类清单 ＋ 缓存边界断言
+// ════════════════════════════════════════════════════════════════
+//  口径（spec「浏览器缓存边界」）：只允许纯展示偏好长期留在浏览器；业务读缓存必须带集合版本；
+//  auth 键不得承载业务数据。四类单一源＝`docs/src/data/cache-registry.js`。
+
+const readSource = (rel) => readFileSync(join(ROOT, rel), 'utf8');
+
+/** 归类一个键集合中的未登记项（供 L4 与故障注入共用） */
+const unregisteredOf = (keys) => keys.filter((k) => classifyCacheKey(k) === CACHE_CATEGORIES.UNKNOWN);
+
+test('L4 全仓存储键必须落入四类清单（未登记 ⇒ unknown ⇒ 红）', () => {
+  const unregistered = unregisteredOf(ALL_KEYS);
+  assert.deepEqual(
+    unregistered.map((k) => `${k}（出现处：${[...(callKeys.get(k) || []), ...(constKeys.get(k) || [])].join(' / ')}）`), [],
+    '发现**未登记到 cache-registry 的浏览器存储键**——请先在 `docs/src/data/cache-registry.js` 的 '
+    + '`CACHE_KEYS` / `CACHE_KEY_PREFIXES` 登记类别与理由（visual / auth / read-cache / temp），'
+    + '模板键（如 `gsm1921-pref-<id>-theme`）用前缀规则登记，不得用宽泛正则放过。',
+  );
+  // 非空转：四类都必须真实存在，否则「登记」会退化成全塞一类
+  const seen = new Set(ALL_KEYS.map((k) => classifyCacheKey(k)));
+  for (const c of [CACHE_CATEGORIES.VISUAL, CACHE_CATEGORIES.AUTH, CACHE_CATEGORIES.READ_CACHE, CACHE_CATEGORIES.TEMP]) {
+    assert.ok(seen.has(c), `四类清单里的 ${c} 一个键都没命中：分类已失效`);
+  }
+});
+
+test('L5 registry 不得有僵尸登记（精确键须真在代码出现；前缀须至少命中一个键）', () => {
+  const all = new Set(ALL_KEYS);
+  const zombie = Object.keys(CACHE_KEYS).filter((k) => !all.has(k));
+  assert.deepEqual(zombie, [], `cache-registry 的以下精确键已不在代码中出现（僵尸登记，请删除）：\n  ${zombie.join('\n  ')}`);
+  const zombiePrefix = CACHE_KEY_PREFIXES.filter((rule) => !ALL_KEYS.some((k) => k.startsWith(rule.prefix)));
+  assert.deepEqual(zombiePrefix.map((r) => r.prefix), [], `cache-registry 的以下前缀已无任何键命中（僵尸登记）：\n  ${zombiePrefix.map((r) => r.prefix).join('\n  ')}`);
+});
+
+test('L6 visual 键白名单：只允许主题 / 字号 / 强调色 / 页签顺序 / UI 偏好开关', () => {
+  const EXPECTED_VISUAL = [
+    'gsm1921-remote-probe', // 探测开关（UI 偏好，默认开）
+    'workflowos_accent_role',
+    'workflowos_font_size',
+    'workflowos_theme',
+  ];
+  const visual = Object.keys(CACHE_KEYS).filter((k) => CACHE_KEYS[k].category === CACHE_CATEGORIES.VISUAL);
+  assert.deepEqual(visual.sort(), EXPECTED_VISUAL.sort(),
+    'visual 类只允许纯展示 / UI 偏好键——业务键不得混入 visual（否则「清缓存后业务仍在」会被本地缓存冒充）');
+  // 模板键：逐人外观偏好与页签记忆必须走前缀规则（不是正则放过）
+  for (const k of ['gsm1921-pref-2400012349-theme', 'gsm1921-pref-2400012349-tab-order-secretary', 'workflowos_tab_secretary']) {
+    assert.equal(classifyCacheKey(k), CACHE_CATEGORIES.VISUAL, `${k} 应归入 visual（前缀规则）`);
+  }
+  assert.equal(classifyCacheKey('gsm1921-unregistered-visual-probe'), CACHE_CATEGORIES.UNKNOWN,
+    '未登记键必须返回 unknown（visual 白名单不得靠前缀误收）');
+});
+
+test('L7 业务读缓存备份必须带 `_versions` + `savedAt`，缺版本 / 过期 / 版本不一致 ⇒ 不得当权威', () => {
+  const mockSrc = readSource('docs/src/data/mock-adapter.js');
+  assert.equal(BACKUP_META.VERSIONS, '_versions', '备份版本字段名必须与服务端集合版本协议同名（`_versions`）');
+  assert.equal(BACKUP_META.SAVED_AT, 'savedAt', '备份落盘时间字段名必须为 `savedAt`');
+  assert.match(mockSrc, /\[BACKUP_META\.VERSIONS\]/, '`_saveToStorage` 必须写入 `_versions`（业务读缓存备份的版本）');
+  assert.match(mockSrc, /\[BACKUP_META\.SAVED_AT\]/, '`_saveToStorage` 必须写入 `savedAt`（业务读缓存备份的落盘时间）');
+  assert.match(mockSrc, /validateBackupPayload\(/, '读取本地备份时必须校验版本/时效（restoreNicheCollections）');
+  assert.equal(classifyCacheKey('workflowos_branch_db_v1'), CACHE_CATEGORIES.READ_CACHE,
+    '整库本地备份属于 read-cache，不得混入 visual');
+
+  const now = Date.parse('2026-10-26T00:00:00Z');
+  const expectedVersions = { activities: 3, notices: 7 };
+  const ok = validateBackupPayload(
+    { _versions: { activities: 3, notices: 7 }, savedAt: '2026-10-25T23:59:00Z', activities: [] },
+    { expectedVersions, now },
+  );
+  assert.equal(ok.ok, true, `版本一致且未过期的备份应可用（实测 ${JSON.stringify(ok)}）`);
+  const missing = validateBackupPayload({ activities: [], savedAt: '2026-10-25T23:59:00Z' }, { expectedVersions, now });
+  assert.equal(missing.ok, false, '**删掉 `_versions` 必须判红**——旧备份不得当权威');
+  assert.equal(missing.reason, 'missing-versions');
+  const stale = validateBackupPayload(
+    { _versions: { activities: 2, notices: 7 }, savedAt: '2026-10-25T23:59:00Z' },
+    { expectedVersions, now },
+  );
+  assert.equal(stale.ok, false, '集合版本落后于服务端时必须判红（须从服务端重拉）');
+  assert.match(stale.reason || '', /^stale:/);
+  const expired = validateBackupPayload(
+    { _versions: { activities: 3, notices: 7 }, savedAt: '2026-10-24T00:00:00Z' },
+    { expectedVersions, now },
+  );
+  assert.equal(expired.ok, false, '超过有效期的备份必须判红（不得把陈年备份当权威）');
+  assert.equal(expired.reason, 'expired');
+});
+
+test('L8 auth 键不得承载业务数据（token 只进 sessionStorage；auth 键与业务集合不相交）', () => {
+  const authKeys = Object.keys(CACHE_KEYS).filter((k) => CACHE_KEYS[k].category === CACHE_CATEGORIES.AUTH);
+  const businessNames = new Set([
+    ...NICHE_COLLECTION_NAMES,
+    'activities', 'tasks', 'attendances', 'inspections', 'taskforces',
+    'notices', 'todos', 'assignments', 'makeupTasks', 'users',
+  ]);
+  const overlap = authKeys.filter((k) => businessNames.has(k));
+  assert.deepEqual(overlap, [], `auth 键不得是业务集合键：${overlap.join(', ')}`);
+  // API token 只允许写 sessionStorage（硬约束：不得写 localStorage）
+  const localTokenWrites = FILES.filter((f) => /localStorage\.setItem\(\s*'gsm1921-api-token'/.test(readFileSync(f, 'utf8')));
+  assert.deepEqual(localTokenWrites.map((f) => f.slice(ROOT.length + 1).replace(/\\/g, '/')), [],
+    'API token 不得写入 localStorage（只允许 sessionStorage）');
+  assert.equal(classifyCacheKey('gsm1921-api-token'), CACHE_CATEGORIES.AUTH);
+  assert.equal(classifyCacheKey('gsm1921-login-user'), CACHE_CATEGORIES.AUTH);
+});
+
+test('L9 故障注入：新增未登记键 / 删掉备份版本，都必须红', () => {
+  // ① 模拟「有人在 docs/src 新增了一个字面键但没登记」⇒ 分类为 unknown
+  assert.deepEqual(unregisteredOf(['gsm1921-login-user', 'gsm1921-fault-injected-store']),
+    ['gsm1921-fault-injected-store'], '新增未登记键必须被判为 unknown');
+  // ② 模拟「备份写入时删掉 `_versions`」⇒ 校验失败
+  const verdict = validateBackupPayload(
+    { savedAt: new Date().toISOString(), activities: [] },
+    { expectedVersions: { activities: 1 } },
+  );
+  assert.equal(verdict.ok, false, '删掉 `_versions` 的备份必须判红');
+  assert.equal(verdict.reason, 'missing-versions');
+});
+
+test('L10 读口拒收缺版本 / 过期备份（restoreNicheCollections 返回 false，由调用方重拉）', async () => {
+  const prev = globalThis.localStorage;
+  const store = new Map();
+  globalThis.localStorage = {
+    getItem: (k) => (store.has(String(k)) ? store.get(String(k)) : null),
+    setItem: (k, v) => store.set(String(k), String(v)),
+    removeItem: (k) => { store.delete(String(k)); },
+    clear: () => { store.clear(); },
+    key: (i) => [...store.keys()][i] ?? null,
+    get length() { return store.size; },
+  };
+  try {
+    const { restoreNicheCollections } = await import('../../docs/src/data/mock-adapter.js?v=20261102b');
+    store.set('workflowos_branch_db_v1', JSON.stringify({ activities: [{ id: 'stale' }] }));
+    assert.equal(restoreNicheCollections({ expectedVersions: { activities: 1 } }), false,
+      '缺 `_versions` 的本地备份不得被采用（否则旧备份会被当成服务端权威）');
+    store.set('workflowos_branch_db_v1', JSON.stringify({
+      _versions: { activities: 1 }, savedAt: new Date().toISOString(), experienceDeposits: [{ id: 'ed-1' }],
+    }));
+    assert.equal(restoreNicheCollections({ expectedVersions: { activities: 1 } }), true,
+      '版本一致且未过期的备份应可作临时镜像');
+  } finally {
+    if (prev === undefined) delete globalThis.localStorage;
+    else globalThis.localStorage = prev;
+  }
 });

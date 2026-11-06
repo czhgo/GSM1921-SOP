@@ -98,8 +98,9 @@ echo "  已 enable --now：${SVC_NAME}"
 
 say "⑥ 每日备份（cron）"
 cat > "/etc/cron.d/${SVC_NAME}-backup" <<EOF
-# 每日 03:30 备份（库走 SQLite 在线快照 db.backup()，含 WAL；含 uploads/）；保留最近 14 份
-30 3 * * * ${APP_USER} cd ${APP_DIR}/server && /usr/bin/env node scripts/backup.mjs --out ${APP_DIR}/server/backups >> ${APP_DIR}/server/backups/backup.log 2>&1
+# 每日 03:30 备份（库走 SQLite 在线快照 db.backup()，含 WAL；含 uploads/；写 backup.json 清单）；
+# 备份后执行 cleanup（默认 dry-run，本 cron 显式 --apply）：清孤儿附件 / 悬空附件行 / 旧备份，保留最近 14 份。
+30 3 * * * ${APP_USER} cd ${APP_DIR}/server && /usr/bin/env node scripts/backup.mjs --out ${APP_DIR}/server/backups >> ${APP_DIR}/server/backups/backup.log 2>&1 && /usr/bin/env node scripts/cleanup.mjs --keep 14 --apply >> ${APP_DIR}/server/backups/backup.log 2>&1
 EOF
 chmod 644 "/etc/cron.d/${SVC_NAME}-backup"
 echo "  已装 /etc/cron.d/${SVC_NAME}-backup（⚠ 记得核对日志轮转与磁盘）"

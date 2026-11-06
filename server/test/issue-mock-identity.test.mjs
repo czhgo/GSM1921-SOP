@@ -23,21 +23,21 @@ test('mock 缓存与草稿迁除旧匿名身份，新增草稿也不持久化真
     localStorage.setItem('gsm1921-issue-cache-version', '4');
     localStorage.setItem('gsm1921-issue-cache-v3', JSON.stringify([{
       id: 'legacy-anonymous', number: 9001, branchId: 'br-b1', title: '旧匿名反馈', body: '旧正文',
-      submittedBy: '匿名', anonymous: true, _realPersonId: 'p5', nested: { realPersonId: 'p5' },
+      submittedBy: '匿名', anonymous: true, _realPersonId: '2400012349', nested: { realPersonId: '2400012349' },
     }]));
     localStorage.setItem('gsm1921-issue-drafts', JSON.stringify([{
       draftId: 'legacy-draft', type: 'new-issue', author: '匿名',
-      payload: { title: '旧匿名草稿', submittedBy: '匿名', anonymous: true, _realPersonId: 'p5' },
+      payload: { title: '旧匿名草稿', submittedBy: '匿名', anonymous: true, _realPersonId: '2400012349' },
     }]));
-    localStorage.setItem('gsm1921-login-user', JSON.stringify({ personId: 'p5', role: 'participant' }));
+    localStorage.setItem('gsm1921-login-user', JSON.stringify({ personId: '2400012349', role: 'participant' }));
 
-    const { IssueStore } = await import('../../docs/src/services/governance/issues.js?v=20261018h');
+    const { IssueStore } = await import('../../docs/src/services/governance/issues.js?v=20261102b');
     await IssueStore.loadAll();
     IssueStore.addDraft({
       type: 'new-issue',
       payload: {
         title: '新匿名草稿', submittedBy: '匿名', anonymous: true,
-        _realPersonId: 'p5', nested: { submitterId: 'p5' },
+        _realPersonId: '2400012349', nested: { submitterId: '2400012349' },
       },
     }, '匿名');
 

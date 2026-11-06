@@ -1,17 +1,17 @@
 // role: [工程师]+[AI]
 // reactions.js — Issue 表态聚合组件
 
-import { IssueStore } from '../../services/governance/issues.js?v=20261018h';
-import { AuthStore } from '../../services/core/auth.js?v=20261018h';
-import { showToast } from '../../core/base/utils.js?v=20261018h';
-import { icon } from '../../core/base/icons.js?v=20261018h';
-import { accDarkParts } from '../../core/domain/constants.js?v=20261018h';
+import { IssueStore } from '../../services/governance/issues.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { showToast } from '../../core/base/utils.js?v=20261102b';
+import { icon } from '../../core/base/icons.js?v=20261102b';
 
+// 固定语义色（不随主题）：赞同=成功 / 反对=危险 / 关注=信息 / 庆祝=提醒
 const REACTIONS = [
-  { key: 'thumbsUp', icon: 'thumbsUp', label: '赞同', activeColor: '#059669' },
-  { key: 'thumbsDown', icon: 'thumbsDown', label: '反对', activeColor: '#DC2626' },
-  { key: 'eyes', icon: 'eyes', label: '关注', activeColor: '#3B82F6' },
-  { key: 'hooray', icon: 'hooray', label: '庆祝', activeColor: '#D97706' },
+  { key: 'thumbsUp', icon: 'thumbsUp', label: '赞同', tone: 'success' },
+  { key: 'thumbsDown', icon: 'thumbsDown', label: '反对', tone: 'danger' },
+  { key: 'eyes', icon: 'eyes', label: '关注', tone: 'info' },
+  { key: 'hooray', icon: 'hooray', label: '庆祝', tone: 'warning' },
 ];
 
 /** 获取当前登录用户 personId（plan 中为 AuthStore.getCurrentPersonId，修正为实际 API） */
@@ -27,14 +27,9 @@ export function renderReactions(issue) {
       ${REACTIONS.map(r => {
         const list = issue.reactions?.[r.key] || [];
         const isActive = list.includes(currentUserId);
-        // 深色双套色：选中 = 提亮底/亮字；未选中 = 深灰底/亮灰字（配合 styles.css --acc-*-dark 规则）
-        const dk = isActive ? accDarkParts(r.activeColor) : null;
-        const style = isActive
-          ? `--acc-bg-dark:${dk.bg};--acc-text-dark:${dk.text};--acc-border-dark:${dk.border};background:${r.activeColor}20;color:color-mix(in srgb, ${r.activeColor} 60%, #000);border:1px solid ${r.activeColor}40;`
-          : `--acc-bg-dark:#1E293B;--acc-text-dark:#CBD5E1;--acc-border-dark:#334155;background:#F3F4F6;color:#6B7280;border:1px solid transparent;`;
         return `
-          <button class="btn-ghost reaction-btn px-2 py-0.5 rounded-full text-xs flex items-center gap-1"
-                  style="${style}"
+          <button class="btn-outline btn-sm reaction-btn tint-pill px-2 py-0.5 rounded-full text-xs flex items-center gap-1"
+                  data-tone="${isActive ? r.tone : 'neutral'}"
                   data-issue-id="${issue.id}"
                   data-reaction="${r.key}"
                   title="${r.label}">

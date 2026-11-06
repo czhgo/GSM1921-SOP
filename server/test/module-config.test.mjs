@@ -1,6 +1,7 @@
 // server/test/module-config.test.mjs — L2 支部工作流模块配置（2026-09-03）
-// 支书裁定：支部自治/支书操作/核心固定——PATCH /branches/:id/config 仅本支部现任支书、
-// 本副支书（副书同权，2026-09-09 支书批）或 party-staff；其它支委/普通成员/外支部 403；
+// 支书裁定：支部自治/支书操作/核心固定——PATCH /branches/:id/config 本支部现任支书、
+// 本副支书（副书同权，2026-09-09 支书批）可写；2026-10-21 批次 501（D-825）起**党委亦可代支部配置**
+// （留痕 byRole='party-staff'），推翻批次 448 的 403 写门；
 // 白名单仅收 config.modules（治理字段 name 不受 body 影响）；modules=null 恢复默认。HTTP 直连（无浏览器）。
 
 import { test, before, after } from 'node:test';
@@ -40,12 +41,12 @@ async function patchConfig(token, body) {
   });
 }
 
-test('L2 config：现任支书/本副支书可写，其它支委/普通成员 403，党委可写；治理字段不受 body 影响', async () => {
-  const { token: sec } = await login('p13');    // 现任支书（br-b1）
-  const { token: dep } = await login('p14');    // 本副支书（deputy-secretary，br-b1；副书同权 2026-09-09）
-  const { token: orgc } = await login('p11');   // 组织委员（支委但非支书/副）
-  const { token: mem } = await login('p5');     // 普通成员
-  const { token: staff } = await login('p_pc'); // 党委组织员
+test('L2 config：现任支书/本副支书/党委（D-825 代配置）可写，其它支委/普通成员 403；治理字段不受 body 影响', async () => {
+  const { token: sec } = await login('2300010001');    // 现任支书（br-b1）
+  const { token: dep } = await login('2300010002');    // 本副支书（deputy-secretary，br-b1；副书同权 2026-09-09）
+  const { token: orgc } = await login('2400012355');   // 组织委员（支委但非支书/副）
+  const { token: mem } = await login('2400012349');     // 普通成员
+  const { token: staff } = await login('9000000001'); // 党委组织员
 
   // ① 现任支书写 → 200，modules 落库
   const r1 = await patchConfig(sec, { config: { modules: { hiddenTabIds: ['calendar', 'feedback'], tabOrder: ['report-up'] }, name: '越权改名' } });
@@ -54,7 +55,7 @@ test('L2 config：现任支书/本副支书可写，其它支委/普通成员 40
   assert.deepEqual(b1.config.modules.hiddenTabIds, ['calendar', 'feedback'], 'hidden 写回');
   assert.deepEqual(b1.config.modules.tabOrder, ['report-up'], 'tabOrder 写回');
   assert.equal(b1.name, '光华管理学院本科生党支部', '治理字段 name 不被 body 影响（白名单）');
-  assert.equal(b1.secretaryId, 'p13', 'secretaryId 不变');
+  assert.equal(b1.secretaryId, '2300010001', 'secretaryId 不变');
 
   // ② 本副支书 → 200（副书同权：config 写权同现任支书）
   const r2 = await patchConfig(dep, { config: { modules: { hiddenTabIds: ['calendar'], tabOrder: ['report-up', 'notification'] } } });
@@ -70,9 +71,13 @@ test('L2 config：现任支书/本副支书可写，其它支委/普通成员 40
   // ④ 普通成员 → 403
   assert.equal((await patchConfig(mem, { config: { modules: { hiddenTabIds: [] } } })).status, 403, '普通成员不可写');
 
-  // ⑤ 党委组织员 → 200（超管保留）
-  const r5 = await patchConfig(staff, { config: { modules: null } });
-  assert.equal(r5.status, 200, '党委组织员可配置');
+  // ⑤ 党委组织员可代支部写 modules（2026-10-21 批次 501 · D-825 推翻批次 448），留痕带 byRole
+  const rStaff = await patchConfig(staff, { config: { modules: null } });
+  assert.equal(rStaff.status, 200, '党委可代支部写 config.modules（D-825）');
+  assert.equal((await rStaff.json()).config.configChangeHistory.at(-1).byRole, 'party-staff', '留痕标明党委代配置');
+  // 支书恢复默认（null=恢复默认）→ 200
+  const r5 = await patchConfig(sec, { config: { modules: null } });
+  assert.equal(r5.status, 200, '支书可恢复 modules 默认');
   assert.equal((await r5.json()).config.modules, null, 'null=恢复默认');
 
   // ⑥ 非法 payload → 400
@@ -80,24 +85,24 @@ test('L2 config：现任支书/本副支书可写，其它支委/普通成员 40
 });
 
 test('L2 config 门控：外副支书 403（副书同权仅限本支部）', async () => {
-  const { token: dep } = await login('p14');
-  const row = db.prepare('SELECT data FROM users WHERE id = ?').get('p14');
+  const { token: dep } = await login('2300010002');
+  const row = db.prepare('SELECT data FROM users WHERE id = ?').get('2300010002');
   const user = JSON.parse(row.data);
-  // 把 p14 归属临时改为另一支部 → 对 br-b1 的 config 写应 403
-  db.prepare('UPDATE users SET data = ? WHERE id = ?').run(JSON.stringify({ ...user, branchId: 'br-other' }), 'p14');
+  // 把 2300010002 归属临时改为另一支部 → 对 br-b1 的 config 写应 403
+  db.prepare('UPDATE users SET data = ? WHERE id = ?').run(JSON.stringify({ ...user, branchId: 'br-other' }), '2300010002');
   try {
     const r = await patchConfig(dep, { config: { modules: { tabOrder: ['report-up'] } } });
     assert.equal(r.status, 403, '外副支书不可写本支部 config');
   } finally {
-    db.prepare('UPDATE users SET data = ? WHERE id = ?').run(JSON.stringify({ ...user, branchId: user.branchId || 'br-b1' }), 'p14');
+    db.prepare('UPDATE users SET data = ? WHERE id = ?').run(JSON.stringify({ ...user, branchId: user.branchId || 'br-b1' }), '2300010002');
   }
   // 恢复本支部归属后副支书可写（还原无残留）
   assert.equal((await patchConfig(dep, { config: { modules: null } })).status, 200, '恢复本支部归属后副支书可写');
 });
 
 test('L2 config.blocks：产出块写回/单独写 blocks/恢复默认/结构校验', async () => {
-  const { token: sec } = await login('p13');
-  const { token: staff } = await login('p_pc');
+  const { token: sec } = await login('2300010001');
+  const { token: staff } = await login('9000000001');
 
   // ① 单独写 blocks（modules 缺省保留现值）
   const r1 = await patchConfig(sec, { config: { blocks: { outputBlocks: { hiddenBlockIds: ['publicity'], blockOrder: ['materials', 'attendance'] } } } });
@@ -112,8 +117,11 @@ test('L2 config.blocks：产出块写回/单独写 blocks/恢复默认/结构校
   // ③ 全空 config → 400
   assert.equal((await patchConfig(sec, { config: {} })).status, 400, '无 modules/blocks → 400');
 
-  // ④ 党委可恢复默认（blocks=null）
-  const r4 = await patchConfig(staff, { config: { blocks: null } });
-  assert.equal(r4.status, 200, '党委可恢复 blocks 默认');
+  // ④ 党委可代支部写 blocks（含恢复默认，D-825）；支书同样可恢复默认
+  const r4Staff = await patchConfig(staff, { config: { blocks: null } });
+  assert.equal(r4Staff.status, 200, '党委可代支部写 config.blocks（D-825）');
+  assert.equal((await r4Staff.json()).config.configChangeHistory.at(-1).byRole, 'party-staff', '留痕标明党委代配置');
+  const r4 = await patchConfig(sec, { config: { blocks: null } });
+  assert.equal(r4.status, 200, '支书可恢复 blocks 默认');
   assert.equal((await r4.json()).config.blocks, null, 'blocks=null 恢复默认');
 });

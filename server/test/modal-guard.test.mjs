@@ -1,0 +1,735 @@
+// role: [工程师]+[AI]
+// modal-guard.test.mjs — 守卫归并件（2026-10-27 批次 516 · B-515-2）
+// 归并来源：modal-contract.test.mjs · modal-escape-guard.test.mjs · ui-modal-form-guard.test.mjs
+// 纪律：只减文件数、不减断言数。每个源件包在独立 async 块作用域里（imports 转动态导入），
+//   同名 helper / 常量互不冲突；失败信息仍保留各源件的横幅与断言名，便于定位。
+// 运行：node --test server/test/modal-guard.test.mjs
+
+// ═══ 源件 1：modal-contract.test.mjs ═══
+await (async () => {
+  const { test } = await import('node:test');
+  const assert = (await import('node:assert/strict')).default;
+  const { readFileSync } = await import('node:fs');
+  const { join, dirname } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+
+  // role: [工程师]+[AI]
+  // modal-contract.test.mjs — 弹窗交互闭环契约守卫（2026-10-23 · Task 8 / R11 P0-05 · P1-11 · P1-12）
+  //
+  // 为什么是静态断言：`docs/src/components/ui/modal.js` 依赖浏览器 DOM，且所有跨模块 import 都带
+  //   `?v=` 版本查询串（浏览器缓存用），Node 无法直接解析。故本守卫读取源码做「存在性 / 否定性」断言，
+  //   不启动浏览器、不引入 Playwright。
+  // 覆盖：
+  //   M1 提交中 `_requestCancel` 早退（Esc / 遮罩 / × / [data-modal-cancel] 四路统一挂起）
+  //   M2 `setModalBusy` 写 `aria-busy`，且 openFormModal 的 setBusy 调用它
+  //   M3 错误区 / 字段错误行带 `role="alert"`
+  //   M4 `onSubmit` 只有显式 true / {ok:true} 才关窗（undefined 不关）
+  //   M5 三处原生 prompt / confirm 已移除
+  // 运行：node --test server/test/modal-contract.test.mjs
+
+
+
+
+
+
+  const HERE = dirname(fileURLToPath(import.meta.url));
+  const ROOT = join(HERE, '..', '..');
+  const MODAL = readFileSync(join(ROOT, 'docs/src/components/ui/modal.js'), 'utf8');
+
+  /** 截取 `function name` / `async function name` / `export function name` 到下一个顶层 export */
+  function fnSource(src, name) {
+    const start = src.search(new RegExp(`(?:export\\s+)?(?:async\\s+)?function\\s+${name}\\s*\\(`));
+    assert.notEqual(start, -1, `找不到函数 ${name}`);
+    const next = src.indexOf('\nexport ', start + 1);
+    return src.slice(start, next === -1 ? src.length : next);
+  }
+
+  test('M1 _requestCancel 在提交中早退（四条关闭路径统一挂起）', () => {
+    const src = fnSource(MODAL, '_requestCancel');
+    assert.match(src, /_busyIds\.has\(id\)\)\s*return;/, '提交中必须直接 return，不得进入 onCancel/closeModal');
+    // 早退必须发生在执行 onCancel 与 closeModal 之前
+    const busyIdx = src.indexOf('_busyIds.has(id)');
+    const cancelIdx = src.indexOf('_cancelHandlers.get(id)');
+    const closeIdx = src.indexOf('closeModal(id)');
+    assert.ok(busyIdx !== -1 && cancelIdx !== -1 && closeIdx !== -1, '_requestCancel 结构缺失');
+    assert.ok(busyIdx < cancelIdx && busyIdx < closeIdx, '忙态早退必须先于 onCancel / closeModal');
+  });
+
+  test('M2 setModalBusy 设置 aria-busy，openFormModal 提交态调用它', () => {
+    const src = fnSource(MODAL, 'setModalBusy');
+    assert.match(src, /aria-busy/, 'setModalBusy 应设置 aria-busy');
+    assert.match(src, /panel\.setAttribute\('aria-busy'/, '面板应标 aria-busy');
+    const form = fnSource(MODAL, 'openFormModal');
+    assert.match(form, /setModalBusy\(id,\s*busy\)/, 'openFormModal 的提交态应统一走 setModalBusy');
+  });
+
+  test('M3 错误区与字段错误行使用 role="alert"', () => {
+    assert.match(MODAL, /class="modal-form-error"\s+data-modal-error\s+role="alert"/,
+      '通用错误区应带 role="alert"');
+    assert.match(MODAL, /data-field-error="\$\{escHtml\(key\)\}"\s+role="alert"/,
+      '字段错误行应带 role="alert"');
+  });
+
+  test('M4 onSubmit 契约：仅显式 true / {ok:true} 关窗，undefined 不关', () => {
+    const helper = fnSource(MODAL, 'shouldCloseOnResult');
+    assert.match(helper, /return\s+result\s*===\s*true\s*\|\|\s*\(!!result\s*&&\s*result\.ok\s*===\s*true\);/,
+      'shouldCloseOnResult 必须只认 true / {ok:true}');
+    const form = fnSource(MODAL, 'openFormModal');
+    assert.match(form, /shouldCloseOnResult\(result\)/, 'openFormModal 必须以 shouldCloseOnResult 判定关窗');
+    assert.match(form, /result\s*===\s*undefined/, 'undefined 必须走「保留浮窗」分支');
+    assert.doesNotMatch(form, /if\s*\(result\s*===\s*false\)\s*\{\s*setBusy\(false\);\s*return;\s*\}[\s\S]{0,200}closeModal\(id\)/,
+      '不得再把 false / undefined 当成功关窗');
+  });
+
+  test('M5 三处原生 prompt / confirm 已移除并改用统一浮窗', () => {
+    const issueDetail = readFileSync(join(ROOT, 'docs/src/components/feedback/issue-detail.js'), 'utf8');
+    const feedbackTab = readFileSync(join(ROOT, 'docs/src/entries/tabs/secretary/feedback-tab.js'), 'utf8');
+    const reviewTab = readFileSync(join(ROOT, 'docs/src/entries/tabs/disc/review-tab.js'), 'utf8');
+
+    assert.doesNotMatch(issueDetail, /(?<![.\w])prompt\s*\(/, 'issue-detail.js 不得再调用原生 prompt');
+    assert.match(issueDetail, /openFormModal\(/, 'issue-detail.js 应改用 openFormModal');
+    assert.doesNotMatch(feedbackTab, /(?<![.\w])prompt\s*\(/, 'feedback-tab.js 不得再调用原生 prompt');
+    assert.match(feedbackTab, /openFormModal\(/, 'feedback-tab.js 应改用 openFormModal');
+    assert.doesNotMatch(reviewTab, /window\.(?:confirm|prompt)\s*\(/, 'review-tab.js 不得再调用原生 confirm/prompt');
+    assert.match(reviewTab, /openModal\(/, 'review-tab.js 的二次确认应改用 openModal');
+  });
+
+})();
+
+// ═══ 源件 2：modal-escape-guard.test.mjs ═══
+await (async () => {
+  const { test } = await import('node:test');
+  const assert = (await import('node:assert/strict')).default;
+  const { readFileSync } = await import('node:fs');
+  const { join, dirname } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+
+  // role: [工程师]+[AI]
+  // modal-escape-guard.test.mjs — 通用浮窗（modal.js）插值转义守卫（R4-F01，2026-10-19）
+  //
+  // 背景：openModal 的 title、openFormModal 的 label / placeholder / value / option / 错误文本
+  //   都可能来自用户输入或服务端数据。任何一处直接拼进 innerHTML 都是存储型 XSS 的入口。
+  // 判据：上述「用户数据」插值必须逐项经过 escHtml；内部结构变量（bodyHtml / closeBtnHTML / titleId 等）
+  //   属受控模板，不在此列。
+  // 非空转：正 / 负样本自检（escHtml(...) 通过；裸 f.label / o.value 必须被识别）。
+  // 运行：node --test server/test/modal-escape-guard.test.mjs
+
+
+
+
+
+
+  const HERE = dirname(fileURLToPath(import.meta.url));
+  const ROOT = join(HERE, '..', '..');
+  const MODAL = readFileSync(join(ROOT, 'docs/src/components/ui/modal.js'), 'utf8');
+
+  /** 截取某个导出函数的源码（到下一个顶层 export 为止） */
+  function exportSource(name) {
+    const start = MODAL.indexOf(`export function ${name}`);
+    assert.notEqual(start, -1, `modal.js 中找不到 export function ${name}`);
+    const next = MODAL.indexOf('\nexport ', start + 1);
+    return MODAL.slice(start, next === -1 ? MODAL.length : next);
+  }
+
+  /** 用户数据插值（只认「整段就是一个用户数据引用」的 ${…}，不含表达式 / 函数调用） */
+  const USER_EXPR = /^(?:title|f\.label|f\.placeholder|f\.key|o\.label|o\.value|val|submitLabel)$/;
+
+  /**
+   * 扫描未转义的用户数据插值。
+   * `escHtml(f.label)` 的表达式整体是函数调用，不会命中 USER_EXPR ⇒ 视为已转义。
+   */
+  function unescapedUserInterpolations(src) {
+    const out = [];
+    for (const m of src.matchAll(/\$\{([^{}]*)\}/g)) {
+      const expr = m[1].trim();
+      if (USER_EXPR.test(expr)) out.push(expr);
+    }
+    return out;
+  }
+
+  test('M1 非空转自检：escHtml(...) 通过，裸用户数据必须被识别', () => {
+    const positive = '<label>${escHtml(f.label)}</label><option value="${escHtml(o.value)}">${escHtml(o.label)}</option>';
+    const negative = '<label>${f.label}</label><input value="${val}" placeholder="${f.placeholder}">';
+    assert.deepEqual(unescapedUserInterpolations(positive), [],
+      '正值样本（全部 escHtml）不应被判为未转义');
+    assert.deepEqual(unescapedUserInterpolations(negative), ['f.label', 'val', 'f.placeholder'],
+      '负值样本（裸用户数据）应被逐项识别');
+  });
+
+  test('M2 openModal：title 以纯文本写入，不解释 HTML', () => {
+    const src = exportSource('openModal');
+    // 2026-10-20 R3-01：标题改走 textContent（调用方误传 HTML 也只显示原文），不再拼进 innerHTML
+    assert.match(src, /titleEl\.textContent\s*=/, 'openModal 标题应以 textContent 写入');
+    assert.doesNotMatch(src, /\$\{safeTitle\}/, '标题不得再以 HTML 插值方式渲染');
+    assert.deepEqual(unescapedUserInterpolations(src), [],
+      `openModal 存在未转义的用户数据插值：${unescapedUserInterpolations(src).join(', ')}`);
+  });
+
+  test('M3 openFormModal：label / placeholder / value / option / 错误文本全部过 escHtml', () => {
+    const src = exportSource('openFormModal');
+    for (const expr of ['f.label', 'f.placeholder', 'f.key', 'o.label', 'o.value', 'val', 'submitLabel']) {
+      assert.match(src, new RegExp(`escHtml\\(${expr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`),
+        `${expr} 应经 escHtml 转义`);
+    }
+    assert.match(src, /escHtml\(msg\)/, '字段错误文本应经 escHtml 转义');
+    assert.deepEqual(unescapedUserInterpolations(src), [],
+      `openFormModal 存在未转义的用户数据插值：${unescapedUserInterpolations(src).join(', ')}`);
+  });
+
+})();
+
+// ═══ 源件 3：ui-modal-form-guard.test.mjs ═══
+await (async () => {
+  const { test } = await import('node:test');
+  const assert = (await import('node:assert/strict')).default;
+  const { readFileSync, readdirSync, statSync } = await import('node:fs');
+  const { join, dirname, relative } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+
+  // role: [工程师]+[AI]
+  // ui-modal-form-guard.test.mjs — 浮窗表单统一体例守卫（2026-10-20 · R3-01/02/09/10）
+  //
+  // 背景（`.ctx/logs/archive/2026-10/UI_AUDIT_R3.md` 判例②）：
+  //   浮窗的问题不在字段多少，而在「动作位置 / 关闭语义 / 移动端」三处——
+  //   · R3-01 成员档案标题拼 HTML，被 escHtml 后逐字显示；
+  //   · R3-02 取消写入不 reset，`pendingAuth` 残留到下一次写入；
+  //   · R3-10 提交按钮写在 `.modal-body` 文末，长表单滚出视口；390px 两列挤压。
+  // 判据（本守卫）：
+  //   1. modal.js 必须提供 sticky footer / dvh / safe-area / onCancel，标题只走 textContent；
+  //   2. 全站 openModal 调用不得在 footerHtml 之外放提交按钮（白名单需写理由）；
+  //   3. person-edit-modal 的标题必须是纯文本（链接在 body 内）；
+  //   4. 写入活动的取消 / Esc / 遮罩必须清 `wp.pendingAuth`。
+  // 非空转：先跑「提取调用 / 判定提交按钮」的自检，防止解析写坏后恒绿。
+  // 运行：node --test server/test/ui-modal-form-guard.test.mjs
+
+
+
+
+
+
+  const HERE = dirname(fileURLToPath(import.meta.url));
+  const ROOT = join(HERE, '..', '..');
+  const SRC = join(ROOT, 'docs', 'src');
+  const MODAL = readFileSync(join(SRC, 'components/ui/modal.js'), 'utf8');
+  const CSS = readFileSync(join(SRC, 'styles.css'), 'utf8');
+
+  const read = (rel) => readFileSync(join(SRC, rel), 'utf8');
+
+  /** 递归列出 docs/src 下全部 .js（跳过生成物 / 第三方） */
+  function walk(dir, out = []) {
+    for (const name of readdirSync(dir)) {
+      const p = join(dir, name);
+      if (statSync(p).isDirectory()) walk(p, out);
+      else if (name.endsWith('.js')) out.push(p);
+    }
+    return out;
+  }
+
+  /**
+   * 从 `openModal(` 起点截取完整调用（括号配平；跳过字符串 / 模板串）。
+   * 为什么要自己配平：bodyHtml 里全是模板串与花括号，正则截不准。
+   */
+  function extractCall(src, startIdx) {
+    const open = src.indexOf('(', startIdx);
+    if (open === -1) return '';
+    let depth = 0;
+    let quote = null;
+    for (let i = open; i < src.length; i += 1) {
+      const c = src[i];
+      if (quote) {
+        if (c === '\\') { i += 1; continue; }
+        if (c === quote) quote = null;
+        continue;
+      }
+      if (c === '"' || c === "'" || c === '`') { quote = c; continue; }
+      if (c === '(') depth += 1;
+      else if (c === ')') {
+        depth -= 1;
+        if (depth === 0) return src.slice(startIdx, i + 1);
+      }
+    }
+    return src.slice(startIdx);
+  }
+
+  /** 提交类按钮的标记（openFormModal 的 footer 用 data-modal-submit；写入活动用 data-action） */
+  const SUBMIT_MARK = /type="submit"|data-action="wp-submit"|data-modal-submit=/;
+
+  /** 判定一个 openModal 调用是否把提交按钮写在了 footer 之外 */
+  function submitOutsideFooter(callText) {
+    const submitIdx = callText.search(SUBMIT_MARK);
+    if (submitIdx === -1) return false;
+    const footerIdx = callText.indexOf('footerHtml');
+    return footerIdx === -1 || submitIdx < footerIdx;
+  }
+
+  // 白名单：{ 文件相对路径: 理由 }。当前无例外——新增例外必须在这里写明「为什么不能进 footer」。
+  const SUBMIT_OUTSIDE_FOOTER_WHITELIST = {};
+
+  /**
+   * 非对话框固定层白名单（G6）：仅限「全屏但不承载表单 / 不是对话框」的层，每条必须写理由。
+   * 对话框（表单、确认、详情）一律不得自建 —— 自建即绕开 role/aria-modal/inert/焦点回还/关闭语义。
+   */
+  const FIXED_LAYER_WHITELIST = {
+    'data/data-adapter.js': '连接失败 / 会话失效的全屏拦截层（role=alert，非表单、单动作）；data 层不反向依赖组件层',
+  };
+
+  /** 该源码是否自建了「全屏固定层」（`position:fixed` 与 `inset:0` 同现，或 Tailwind `fixed inset-0`） */
+  function hasFixedOverlay(src) {
+    if (/['"`]fixed inset-0/.test(src)) return true;
+    let idx = src.indexOf('position:fixed');
+    while (idx !== -1) {
+      const win = src.slice(Math.max(0, idx - 200), idx + 300);
+      if (/inset:\s*0/.test(win)) return true;
+      idx = src.indexOf('position:fixed', idx + 1);
+    }
+    return false;
+  }
+
+
+  test('G1 非空转自检：能截取调用，且能识别 body 内 / footer 内的提交按钮', () => {
+    const src = [
+      'openModal({ id: "a", bodyHtml: `<button type="submit">保存</button>` });',
+      'openModal({ id: "b", bodyHtml: `<p>x</p>`, footerHtml: `<button type="submit">保存</button>` });',
+    ].join('\n');
+    const a = extractCall(src, src.indexOf('openModal'));
+    const b = extractCall(src, src.indexOf('openModal', src.indexOf('openModal') + 1));
+    assert.match(a, /bodyHtml/);
+    assert.equal(submitOutsideFooter(a), true, 'body 内的提交按钮应被判为违规');
+    assert.equal(submitOutsideFooter(b), false, 'footer 内的提交按钮不应被判为违规');
+  });
+
+  test('G2 modal.js：header 纯文本 / sticky footer / dvh / safe-area / onCancel 齐备', () => {
+    assert.match(MODAL, /export function openModal\(/, 'openModal 应保留统一入口');
+    assert.match(MODAL, /footerHtml = ''/, 'openModal 应提供 footerHtml');
+    assert.match(MODAL, /footerSticky = true/, '页脚应默认 sticky（调用方不必重复写）');
+    assert.match(MODAL, /onCancel = null/, 'openModal 应提供 onCancel');
+    assert.match(MODAL, /_requestCancel\(id\)/, 'Esc / 遮罩 / × 应走统一取消入口');
+    assert.match(MODAL, /class="modal-footer\$?\{?/, '页脚应由统一类名渲染');
+    assert.match(MODAL, /titleEl\.textContent\s*=/, '标题必须用 textContent 写入（禁止 HTML）');
+    assert.doesNotMatch(MODAL, /<h3[^>]*>\$\{/, '标题不得直接以 HTML 插值');
+
+    // CSS：高度 dvh（软键盘不遮底）、footer sticky、safe-area、≤640px 单列
+    const panelRule = CSS.match(/\.modal-panel\s*\{[\s\S]*?\}/)?.[0] || '';
+    assert.match(panelRule, /max-height:\s*min\(92dvh/, '浮窗高度应用 min(92dvh, …)');
+    const footerRule = CSS.match(/\.modal-footer--sticky\s*\{[\s\S]*?\}/)?.[0] || '';
+    assert.match(footerRule, /position:\s*sticky/, 'footer 必须 sticky');
+    assert.match(footerRule, /env\(safe-area-inset-bottom/, 'footer 必须支持 safe-area');
+    const mobile = CSS.slice(CSS.indexOf('@media (max-width: 640px)'));
+    assert.match(mobile, /\.modal-form-grid\s*\{[\s\S]*?grid-template-columns:\s*1fr/, '≤640px 表单应单列');
+  });
+
+  test('G3 全站 openModal：提交按钮不得在 footerHtml 之外（白名单须写理由）', () => {
+    const violations = [];
+    let calls = 0;
+    let footerCalls = 0;
+    for (const file of walk(SRC)) {
+      const src = readFileSync(file, 'utf8');
+      let idx = src.indexOf('openModal(');
+      while (idx !== -1) {
+        // 跳过定义处 `export function openModal(`
+        if (!/function\s+$/.test(src.slice(Math.max(0, idx - 24), idx))) {
+          calls += 1;
+          const call = extractCall(src, idx);
+          if (call.includes('footerHtml')) footerCalls += 1;
+          if (submitOutsideFooter(call)) {
+            const rel = relative(ROOT, file).replace(/\\/g, '/');
+            if (!SUBMIT_OUTSIDE_FOOTER_WHITELIST[rel]) violations.push(rel);
+          }
+        }
+        idx = src.indexOf('openModal(', idx + 1);
+      }
+    }
+    assert.ok(calls >= 20, `openModal 调用盘点面不足（${calls}），解析可能写坏`);
+    assert.ok(footerCalls >= 15, `采用统一 footer 的调用面不足（${footerCalls}），体例未铺开`);
+    assert.deepEqual([...new Set(violations)], [],
+      `以下 openModal 调用把提交按钮放在 footer 之外：${[...new Set(violations)].join(', ')}`);
+  });
+
+  test('G4 成员档案浮窗：标题纯文本，完整档案入口在 body 内', () => {
+    const src = read('components/governance/person-edit-modal.js');
+    const title = src.match(/title:\s*`([^`]*)`/)?.[1] ?? '';
+    assert.ok(title, 'person-edit-modal 应有 title');
+    assert.doesNotMatch(title, /<[a-z/]/i, 'R3-01：标题不得拼 HTML 标签');
+    assert.match(src, /data-person-archive-link/, '「查看完整档案」应作为 body 内按钮');
+    assert.match(src, /data-modal-submit="\$\{MODAL_ID\}"/, '保存按钮应在统一 footer');
+    // 只读区去重：非 selfOnly 时只保留不可改的 3 项（角色 / 支部 / 留痕）
+    assert.match(src, /selfOnly \? readonlyAll : \[/, '只读区应按 selfOnly 分流');
+  });
+
+  test('G5 写入活动：取消 / Esc / 遮罩都清 pendingAuth', () => {
+    const cal = read('entries/tabs/secretary/calendar-tab.js');
+    const dt = read('services/activity/decision-tree.js');
+    assert.match(cal, /onCancel:\s*_resetWriteState/, 'openModal 应挂 onCancel');
+    assert.match(cal, /function _resetWriteState\(\)\s*\{[\s\S]*?wp\.reset\(\)/, '_resetWriteState 应调用 wp.reset()');
+    assert.match(cal, /case 'wp-cancel'[\s\S]*?_resetWriteState\(\)/, '取消按钮应清临时状态');
+    const resetBody = dt.match(/reset\(\)\s*\{[\s\S]*?\n\s*\}/)?.[0] || '';
+    assert.match(resetBody, /this\.pendingAuth\s*=\s*\[\]/, 'DecisionTreeState.reset 应清 pendingAuth');
+  });
+
+  test('G6 非空转：hasFixedOverlay 能识别自建全屏层，且不误报普通 fixed 定位', () => {
+    assert.equal(hasFixedOverlay("el.style.cssText='position:fixed;inset:0;z-index:9';"), true);
+    assert.equal(hasFixedOverlay("['position:fixed', 'inset:0'].join(';')"), true);
+    assert.equal(hasFixedOverlay('<div class="fixed inset-0 bg-black/40"></div>'), true);
+    assert.equal(hasFixedOverlay("el.style.cssText='position:fixed;z-index:10;bottom:1rem';"), false);
+  });
+
+  test('G7 浮层唯一实现：对话框不得自建全屏固定层（白名单须写理由）', () => {
+    const violations = [];
+    for (const file of walk(SRC)) {
+      const rel = relative(SRC, file).replace(/\\/g, '/');
+      if (rel === 'components/ui/modal.js') continue; // 唯一实现本体
+      const src = readFileSync(file, 'utf8');
+      if (hasFixedOverlay(src) && !FIXED_LAYER_WHITELIST[rel]) violations.push(rel);
+    }
+    assert.deepEqual(violations, [],
+      `以下文件自建了全屏浮层（绕开 role/aria-modal/inert/焦点回还），应改走 openModal：${violations.join(', ')}`);
+  });
+
+  test('G8 R3-25 · B-500-2：浮窗不再渲染「制度参数 →」深链（能力与六处调用一并移除）', () => {
+    // 原 6 个调用点（R3-25 清单同源）：设置深链与浮窗体例（DESIGN_SYSTEM §4.27：页脚只放取消 / 提交）
+    // 冲突，2026-10-28 批次 518 整套移除 ⇒ 本条改为**移除守卫**：能力不得回潮，调用方不得再传。
+    const callers = [
+      'entries/tabs/leader/write-tab.js',
+      'entries/tabs/disc/review-tab.js',
+      'entries/tabs/org/member-flow-tab.js',
+      'entries/tabs/visitor/attendance-tab.js',
+      'entries/tabs/prop/archive-tab.js',
+      'entries/tabs/secretary/calendar-tab.js',
+    ];
+    for (const file of callers) {
+      assert.doesNotMatch(read(file), /settingsLink/, `${file} 不得再向浮窗传「设置」深链`);
+    }
+    // 组件层：选项、短文案归一与渲染函数都不得回潮。
+    assert.doesNotMatch(MODAL, /settingsLink/, 'modal.js 不得再保留「设置」深链选项');
+    assert.doesNotMatch(MODAL, /modal-settings-link/, 'modal.js 不得再渲染页脚深链标记');
+    assert.doesNotMatch(MODAL, /相关设置：/, '页脚不得再带「相关设置：」前缀');
+  });
+
+  // ════════════════════════════════════════════════════════════════
+  //  R5A-07/08（2026-10-21）：删除确认与归档推进都走统一浮窗
+  // ════════════════════════════════════════════════════════════════
+  test('G9 通知删除：先 openModal 二次确认，确认后才 NoticeStore.remove（并说明联动删除待办）', () => {
+    const src = read('entries/tabs/secretary/notification-tab.js');
+    assert.match(src, /function _confirmDeleteNotice\(noticeId\)/, '缺删除确认入口');
+    assert.match(src, /_confirmDeleteNotice[\s\S]{0,800}openModal\(\{/, '删除确认须复用统一浮窗 openModal');
+    assert.match(src, /openModal\(\{[\s\S]{0,1500}NoticeStore\.remove\(noticeId,\s*'secretary'\)/,
+      'NoticeStore.remove 只应在确认浮窗的确认回调里执行');
+    assert.doesNotMatch(src, /const delBtn[\s\S]{0,240}NoticeStore\.remove/,
+      '列表点击处理不得直接删除——必须先弹确认');
+    assert.match(src, /同步删除该通知关联的待办/, '确认文案须说明会联动删除待办');
+    assert.match(src, /data-modal-cancel="notice-delete-confirm"/, '取消按钮须走统一取消语义');
+  });
+
+  test('G10 归档推进：不再自建 position:fixed / 380px 浮层，改走 openModal', () => {
+    const src = read('entries/tabs/prop/archive-tab.js');
+    assert.doesNotMatch(src, /archive-advance-popover/, '不得再保留自建浮层 id');
+    assert.doesNotMatch(src, /position:\s*fixed/, '归档推进不得自建 fixed 浮层（绕开 dialog 语义与焦点接管）');
+    assert.doesNotMatch(src, /width:\s*380px/, '不得再固定 380px（390px 视口仅剩 2px 边距）');
+    assert.match(src, /openModal\(\{\s*id:\s*'archive-advance'/, '归档推进须迁到 openModal');
+    assert.match(src, /data-modal-cancel="archive-advance"/, '取消须走统一取消语义（Esc / 遮罩 / × 同源）');
+    assert.doesNotMatch(src, /document\.addEventListener\('keydown',\s*escHandler\)/,
+      '迁到 openModal 后不得再自挂 Esc 监听（关闭清理由 modal 统一负责）');
+  });
+
+
+})();
+
+// ═══ 源件 4：危险动作确认面（SD-53 · 2026-10-28 美学专项 Task 7）═══
+await (async () => {
+  const { test } = await import('node:test');
+  const assert = (await import('node:assert/strict')).default;
+  const { readFileSync, readdirSync, statSync } = await import('node:fs');
+  const { join, relative, dirname } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+
+  // role: [工程师]+[AI]
+  // 危险动作确认面守卫（2026-10-28 美学专项 Task 7 · SD-53）
+  //
+  // 判据原文（DESIGN_SYSTEM §4.27.1）：危险动作必须离开正文流、进入确认面；确认面须含
+  //   「做什么 / 影响范围 / 可否恢复」三段；统一入口 `modal.js::confirmDanger`。
+  //
+  // 判红 / 判据：
+  //   D1 原生对话框清零：`docs/src/**` 里 `window.confirm(` 与裸 `confirm(` 计数为 0
+  //      （`.confirm(id)` 业务方法名与方法定义 `confirm(id) {` 不属对话框，不在其列）。
+  //   D2 三段式入口存在：`modal.js` 导出 `confirmDanger`，且其声明文本（JSDoc ＋ 函数体）
+  //      同时含「影响」「恢复」两个词。
+  // 非空转：D1 带反例（`confirm('x')` 必须被判命中）与负例（`.confirm(id)` / `confirm(id) {` 不命中）；
+  //   D2 带反例（删掉「恢复」的构造文本必须判不合格）；D1 另设扫描文件数下限，防扫描面被改坏后恒真。
+  // 运行：node --test server/test/modal-guard.test.mjs
+
+  const HERE = dirname(fileURLToPath(import.meta.url));
+  const ROOT = join(HERE, '..', '..');
+  const SRC = join(ROOT, 'docs', 'src');
+  const MODAL = readFileSync(join(SRC, 'components/ui/modal.js'), 'utf8');
+
+  /** 扫描文件数下限（实测 docs/src 下 .js 远多于 100；低于此值说明扫描面被改坏） */
+  const FILE_FLOOR = 100;
+
+  /** 剥注释（行注释 / 块注释）——注释里写 `confirm(` 不算调用 */
+  function stripComments(src) {
+    let s = String(src).replace(/\r\n?/g, '\n');
+    s = s.replace(/\/\*[\s\S]*?\*\//g, ' ');
+    return s.split('\n').map((line) => line.replace(/\/\/.*$/, '')).join('\n');
+  }
+
+  /** 方法定义 `confirm(id) {`（业务方法名，不是浏览器对话框） */
+  const METHOD_DEF_RE = /^\s*(?:async\s+)?confirm\s*\([^)]*\)\s*\{/;
+
+  /** 源码里的原生 confirm 调用（返回 `行号: 该行`；`.confirm(` 方法名 / 方法定义不判） */
+  function nativeConfirms(raw) {
+    const src = stripComments(raw);
+    const out = [];
+    for (const m of src.matchAll(/confirm\s*\(/g)) {
+      const before = src.slice(Math.max(0, m.index - 8), m.index);
+      const lineStart = src.lastIndexOf('\n', m.index) + 1;
+      const lineEnd = src.indexOf('\n', m.index);
+      const line = src.slice(lineStart, lineEnd === -1 ? src.length : lineEnd).trim();
+      if (/window\.$/.test(before)) { out.push(line); continue; }   // window.confirm(
+      if (/\.$/.test(before)) continue;                              // x.confirm(...) / 方法名
+      if (METHOD_DEF_RE.test(line)) continue;                        // confirm(id) { ... }
+      out.push(line);
+    }
+    return out;
+  }
+
+  /** `confirmDanger` 的声明文本（JSDoc ＋ 函数体） */
+  function dangerEntryText(src) {
+    const idx = src.indexOf('export function confirmDanger');
+    if (idx === -1) return '';
+    const docStart = src.lastIndexOf('/**', idx);
+    const next = src.indexOf('\nexport ', idx + 1);
+    return src.slice(docStart === -1 ? idx : docStart, next === -1 ? src.length : next);
+  }
+
+  /** 三段式入口判据：导出 ＋ 影响 ＋ 恢复 */
+  const dangerEntryOk = (src) => {
+    const text = dangerEntryText(src);
+    return !!text && text.includes('影响') && text.includes('恢复');
+  };
+
+  function walkJs(dir, out = []) {
+    for (const name of readdirSync(dir)) {
+      const p = join(dir, name);
+      if (statSync(p).isDirectory()) walkJs(p, out);
+      else if (name.endsWith('.js')) out.push(p);
+    }
+    return out;
+  }
+
+  test('D1 原生 confirm 清零：docs/src 不得再出现 window.confirm( / 裸 confirm(', () => {
+    // 反例：原生调用必须被判命中
+    assert.deepEqual(nativeConfirms("if (!ok) { const r = confirm('x'); }"), ["if (!ok) { const r = confirm('x'); }"],
+      '反例未命中：`confirm(\'x\')` 必须被判为原生对话框（匹配器坏了）');
+    assert.deepEqual(nativeConfirms("const r = window.confirm('删除？');"), ["const r = window.confirm('删除？');"],
+      '反例未命中：`window.confirm(` 必须被判为原生对话框');
+    // 负例：业务方法名与方法定义不判
+    assert.deepEqual(nativeConfirms('await getAdapter().memberChangeRequests.confirm(id);'), [],
+      '负例误伤：`.confirm(id)` 是业务方法名，不是浏览器对话框');
+    assert.deepEqual(nativeConfirms('confirm(id) {\n  return true;\n}'), [],
+      '负例误伤：`confirm(id) {` 是业务方法定义，不是浏览器对话框');
+    // 负例：注释里的写法不判
+    assert.deepEqual(nativeConfirms('// 已不再使用 confirm( 原生对话框'), [],
+      '负例误伤：注释里的写法不判');
+
+    const files = walkJs(SRC);
+    assert.ok(files.length >= FILE_FLOOR, `只扫到 ${files.length} 个 .js（下限 ${FILE_FLOOR}）：扫描面被改坏`);
+    const offenders = files.flatMap((f) => nativeConfirms(readFileSync(f, 'utf8'))
+      .map((line) => `${relative(ROOT, f).replace(/\\/g, '/')} → ${line}`));
+    assert.deepEqual(offenders, [],
+      `docs/src 仍有原生 confirm（SD-53：危险动作必须进确认面，改走 modal.js::confirmDanger）：\n  ${offenders.join('\n  ')}`);
+  });
+
+  test('D2 三段式入口：modal.js 导出 confirmDanger，声明文本含「影响」「恢复」', () => {
+    // 反例：删掉「恢复」的构造文本必须判不合格
+    const planted = [
+      '/** 危险动作确认面：① 做什么 ② 影响范围（哪些行 / 人 / 记录会变） */',
+      'export function confirmDanger({ id, title, bodyHtml }) {',
+      '  return _mustPressConfirm({ id: `danger-${id}`, title, bodyHtml, danger: true });',
+      '}',
+    ].join('\n');
+    assert.equal(dangerEntryOk(planted), false, '反例未判红：缺「恢复」的确认面不得算三段式入口');
+    assert.equal(dangerEntryOk('/** 影响 恢复 */ export function confirmDanger() {}'), true,
+      '正例未通过：含「影响」「恢复」的声明应判合格（判据本身写坏了）');
+
+    assert.match(MODAL, /export function confirmDanger\(/, 'modal.js 必须导出 confirmDanger（危险动作唯一入口）');
+    const text = dangerEntryText(MODAL);
+    assert.ok(text.includes('影响'), 'confirmDanger 的声明文本缺「影响范围」（三段式第 2 段）');
+    assert.ok(text.includes('恢复'), 'confirmDanger 的声明文本缺「可否恢复」（三段式第 3 段）');
+    assert.ok(dangerEntryOk(MODAL), 'confirmDanger 未满足三段式入口判据');
+  });
+
+})();
+
+// ═══ 源件 5：表单字段类型透传（2026-10-28 前端设计审查 P1）═══
+await (async () => {
+  const { test } = await import('node:test');
+  const assert = (await import('node:assert/strict')).default;
+  const { readFileSync } = await import('node:fs');
+  const { join, dirname } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+
+  // role: [工程师]+[AI]
+  // 判据：openFormModal 的字段类型必须「已知类型原样透传、未知类型开发期报错 / 生产期回退 text」。
+  // 病灶（2026-10-28 审查 P1）：原判据 `if (!t || known.includes(t)) return 'text'` 把 email / tel /
+  //   url / number / date / time 一并渲染成文本框 ⇒ 移动端不弹对应键盘、日期也不出选择器。
+  // 为什么执行源码而非只做文本断言：判据是「生成的 type 值」，静态匹配只能证明写了 includes，
+  //   证明不了返回值；故抽出 `inputType` 在沙箱里按生产 / 开发两种环境各跑一遍，并带反例。
+
+  const HERE = dirname(fileURLToPath(import.meta.url));
+  const ROOT = join(HERE, '..', '..');
+  const MODAL = readFileSync(join(ROOT, 'docs/src/components/ui/modal.js'), 'utf8');
+
+  const KNOWN = ['text', 'number', 'date', 'time', 'email', 'tel', 'url', 'password'];
+
+  /** 抽出 `const inputType = (t) => { … };`，注入 `_isDevEnv` / `console` / `id` 三项外部依赖 */
+  function buildInputType(src, { dev }) {
+    const start = src.indexOf('const inputType = (t) => {');
+    assert.notEqual(start, -1, 'modal.js 中找不到 inputType 判据');
+    const end = src.indexOf('\n  };', start);
+    assert.notEqual(end, -1, 'inputType 判据的收尾（\\n  };）缺失');
+    const body = src.slice(start, end + 5);
+    const stub = { error() {}, warn() {} };
+    return new Function('_isDevEnv', 'console', 'id', `${body}; return inputType;`)(() => dev, stub, 'guard');
+  }
+
+  /** 「8 个已知类型全部原样透传」的唯一判据（正 / 反例共用，防判据本身写坏） */
+  const allKnownPassThrough = (fn) => KNOWN.every((t) => fn(t) === t);
+
+  test('T1 字段类型：8 个已知类型原样透传，未知类型生产期回退 text（含反例）', () => {
+    // 反例：旧实现（已知类型一律 return text）必须被判不合格
+    const OLD = [
+      'function wrapper() {',
+      '  const inputType = (t) => {',
+      "    const known = ['text', 'number', 'date', 'time', 'email', 'tel', 'url', 'password'];",
+      "    if (!t || known.includes(t)) return 'text';",
+      "    return 'text';",
+      '  };',
+      '}',
+    ].join('\n');
+    assert.equal(allKnownPassThrough(buildInputType(OLD, { dev: false })), false,
+      '反例未判红：已知类型一律返回 text 的旧实现必须被判不合格');
+
+    const prod = buildInputType(MODAL, { dev: false });
+    for (const t of KNOWN) assert.equal(prod(t), t, `生产期 type="${t}" 必须原样透传（不得回退 text）`);
+    assert.equal(prod(''), 'text', '未给类型时应回退 text');
+    assert.equal(prod(undefined), 'text', '未给类型时应回退 text');
+    assert.equal(prod('nonsense'), 'text', '未知类型生产期应回退 text（不得抛错）');
+
+    const dev = buildInputType(MODAL, { dev: true });
+    assert.throws(() => dev('nonsense'), /未知字段类型/, '未知类型开发期应直接报错（不静默降级）');
+
+    // 渲染侧：type 属性由 inputType(f.type) 生成（否则判据再好也到不了 DOM）
+    assert.match(MODAL, /type="\$\{escHtml\(inputType\(f\.type\)\)\}"/,
+      'openFormModal 的 <input> 应把 inputType(f.type) 写进 type 属性');
+  });
+
+})();
+
+// ═══ 源件 6：确认类浮窗 Esc 取消 ＋ 焦点回归 ＋ 表单错误成对产出（2026-10-31 · P9）═══
+await (async () => {
+  const { test } = await import('node:test');
+  const assert = (await import('node:assert/strict')).default;
+  const { readFileSync } = await import('node:fs');
+  const { join, dirname } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+
+  // 判据（P9）：
+  //   E1 确认类浮窗（confirmDanger / confirmNudge 共用的 _mustPressConfirm）必须 Esc 可取消：
+  //      `escCancel: true` ＋ `onCancel: () => finish(false)`（Esc = 取消，不执行原动作）。
+  //   E2 关闭后焦点回到触发元素：openModal 记录 opener，closeModal 走 _releaseInert 还焦点；
+  //      同时焦点陷阱（Tab 困在面板内）必须仍在（已实现即核验）。
+  //   E3 表单错误渲染必须**同时**产出 aria-invalid 与 aria-describedby（登录页 / 设置向导 / 表单浮窗）。
+  // 非空转：E1 / E3 各带反例（缺字段的构造文本必须判不合格）。
+
+  const HERE = dirname(fileURLToPath(import.meta.url));
+  const ROOT = join(HERE, '..', '..');
+  const SRC = join(ROOT, 'docs', 'src');
+  const MODAL = readFileSync(join(SRC, 'components/ui/modal.js'), 'utf8');
+  const LOGIN = readFileSync(join(SRC, 'entries/pages/login-entry.js'), 'utf8');
+  const WIZARD = readFileSync(join(SRC, 'components/governance/org-setup-wizard.js'), 'utf8');
+
+  /** 截取函数源码（到下一个顶层 export 为止） */
+  function fnSource(src, name) {
+    const start = src.search(new RegExp(`(?:export\\s+)?(?:async\\s+)?function\\s+${name}\\s*\\(`));
+    assert.notEqual(start, -1, `找不到函数 ${name}`);
+    const next = src.indexOf('\nexport ', start + 1);
+    return src.slice(start, next === -1 ? src.length : next);
+  }
+
+  /** 确认类浮窗是否具备 Esc 取消（正 / 反例共用；缺任一即判不合格） */
+  const confirmEscReady = (src) => /escCancel:\s*true/.test(src)
+    && /onCancel:\s*\(\)\s*=>\s*finish\(false\)/.test(src);
+
+  /** 错误渲染是否同时产出两个属性（正 / 反例共用） */
+  const hasAriaErrorPair = (src) => /aria-invalid/.test(src) && /aria-describedby/.test(src);
+
+  test('E1 确认类浮窗 Esc 可取消：escCancel 开启且 Esc = finish(false)（含反例）', () => {
+    // 反例：只有 dismissable:false 的旧实现必须判不合格
+    const old = [
+      'const panel = openModal({ id, dismissable: false, bodyHtml,',
+      "  footerHtml: `${cancelBtnHtml}${confirmBtnHtml}`,",
+      '  onMount: (p) => {} });',
+    ].join('\n');
+    assert.equal(confirmEscReady(old), false, '反例未判红：缺 escCancel / 取消回落的旧实现必须不合格');
+    assert.equal(confirmEscReady('openModal({ escCancel: true, onCancel: () => finish(false) })'), true,
+      '正例未通过：escCancel + finish(false) 应判合格（判据本身写坏了）');
+
+    const confirm = fnSource(MODAL, '_mustPressConfirm');
+    assert.match(confirm, /dismissable:\s*false/, '确认类浮窗不得点遮罩关闭');
+    assert.ok(confirmEscReady(confirm), '_mustPressConfirm 必须开启 escCancel 并把 Esc 落成 finish(false)');
+
+    // openModal 侧：escCancel 选项、Esc 挂载条件、blocking 自身可取消
+    assert.match(MODAL, /escCancel\s*=\s*dismissable/, 'openModal 应提供 escCancel（缺省跟随 dismissable）');
+    assert.match(MODAL, /if\s*\(dismissable\s*\|\|\s*escCancel\)\s*\{/, 'Esc 监听应在 dismissable 或 escCancel 时挂载');
+    assert.match(MODAL, /_blockingModalIds\.size\s*>\s*0\s*&&\s*!_blockingModalIds\.has\(id\)/,
+      'blocking 浮窗自身必须仍可被 Esc 取消，只有底下浮窗让位');
+  });
+
+  test('E2 关闭后焦点回到触发元素；Tab 焦点仍困在浮窗内', () => {
+    // 打开时记录 opener
+    assert.match(MODAL, /const opener\s*=\s*document\.activeElement/, 'openModal 应记录打开前的 activeElement');
+    assert.match(MODAL, /_openers\.set\(id,\s*opener\)/, 'opener 应按浮窗 id 登记');
+    // 关闭时还焦点
+    const release = fnSource(MODAL, '_releaseInert');
+    assert.match(release, /opener\.focus\(\)/, '关闭时应把焦点还给打开它的元素');
+    assert.match(MODAL, /_releaseInert\(id\);/, 'closeModal 必须调用 _releaseInert（全关闭路径统一）');
+    // 焦点陷阱仍在
+    const trap = fnSource(MODAL, '_applyFocusTrap');
+    assert.match(trap, /e\.key\s*!==\s*'Tab'/, '应处理 Tab');
+    assert.match(trap, /first\.focus\(\)/, 'Tab 到末尾应回到首个可聚焦元素');
+    assert.match(trap, /last\.focus\(\)/, 'Shift+Tab 到首个应回到末个可聚焦元素');
+  });
+
+  test('E3 表单错误必须同时产出 aria-invalid 与 aria-describedby（含反例）', () => {
+    // 反例：只有 aria-invalid 的旧实现必须判不合格
+    assert.equal(hasAriaErrorPair('el.setAttribute("aria-invalid", "true");'), false,
+      '反例未判红：只有 aria-invalid、没有 aria-describedby 的渲染必须不合格');
+    assert.equal(hasAriaErrorPair('el.setAttribute("aria-invalid", "true"); el.setAttribute("aria-describedby", id);'), true,
+      '正例未通过：两个属性齐备应判合格（判据本身写坏了）');
+
+    // 表单浮窗：showErrors 同时写两个属性
+    const showErrors = fnSource(MODAL, 'openFormModal');
+    assert.match(showErrors, /control\.setAttribute\('aria-invalid',\s*'true'\)/, 'openFormModal 字段错误应标 aria-invalid');
+    assert.match(showErrors, /control\.setAttribute\('aria-describedby',\s*errEl\.id\)/, 'openFormModal 字段错误应指向错误文本');
+
+    // 登录页：_showError 同时写两个属性
+    assert.match(LOGIN, /const _showError\s*=/, '登录页应有统一的错误呈现入口 _showError');
+    const loginShow = LOGIN.slice(LOGIN.indexOf('const _showError'));
+    assert.ok(loginShow.includes("setAttribute('aria-invalid', 'true')"), '登录页错误应标 aria-invalid');
+    assert.ok(loginShow.includes("setAttribute('aria-describedby', _errId)"), '登录页错误应指向 #login-error');
+    // 三条错误路径（空字段 / 本地口令错误 / 服务端失败）都走 _showError
+    assert.ok((LOGIN.match(/_showError\(/g) || []).length >= 3, '登录页空字段 / 口令错误 / 服务端失败三条路径都应走 _showError');
+
+    // 设置向导：_showWizError 同时写两个属性，且页眉 / 源支部 / 首任支书三处调用
+    assert.match(WIZARD, /function _showWizError\(/, '设置向导应有字段级错误入口 _showWizError');
+    const wizShow = WIZARD.slice(WIZARD.indexOf('function _showWizError'), WIZARD.indexOf('function _clearWizError'));
+    assert.ok(wizShow.includes("setAttribute('aria-invalid', 'true')"), '设置向导字段错误应标 aria-invalid');
+    assert.ok(wizShow.includes("setAttribute('aria-describedby', errEl.id)"), '设置向导字段错误应指向就地错误文本');
+    assert.ok((WIZARD.match(/_showWizError\(/g) || []).length >= 3, '页眉显示名 / 源支部 / 首任支书三处错误都应就地渲染');
+    // 就地错误节点必须带 id（aria-describedby 才有落点）
+    for (const id of ['wz-org-header-err', 'wz-create-source-err', 'wz-create-appoint-secretary-err']) {
+      assert.match(WIZARD, new RegExp(`id="${id}"`), `缺少就地错误节点 #${id}`);
+    }
+  });
+
+})();

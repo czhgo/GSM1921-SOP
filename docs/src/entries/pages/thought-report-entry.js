@@ -13,25 +13,26 @@
 //  （2026-09-21 批次 124：支书 2026-09-20 定案「只给提交人本人」——支委层读他人的汇报时看不到该标记，
 //   组织侧不经手篇幅）；**一律不影响提交与归档**。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018h';
-import { renderHeader } from '../../components/shell/header.js?v=20261018h';
-import { BranchService } from '../../services/core/runtime.js?v=20261018h';
-import { AuthStore } from '../../services/core/auth.js?v=20261018h';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261102b';
+import { renderHeader } from '../../components/shell/header.js?v=20261102b';
+import { BranchService } from '../../services/core/runtime.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
 // D-484（批次 87）：本页必须先 hydrate API 数据源再取数——与 activity / notice 独立页同款标准形。
 // 此前本页只调 BranchService.loadDB()，而该函数在 API 模式直接 return（数据由 data-adapter.init()
 // 从服务器填充）⇒ 本页从未切数据源 / init ⇒ api 形态下退回本地 mock 读（种子打得开、新提交报「不存在」）。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261018h';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261018h';
-import { getPersonName } from '../../services/member/person.js?v=20261018h';
-import { getBasePath, showToast, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261018h';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261018h';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261102b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261102b';
+import { getPersonName } from '../../services/member/person.js?v=20261102b';
+import { getBasePath, showToast, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261102b';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261102b';
 import {
   loadThoughtReports, listThoughtReportsByPerson, listThoughtReportsByPersonGrouped,
   canReadThoughtReport, canReviewThoughtReport,
   rejectThoughtReport, resubmitThoughtReport,
   wordCountHint, periodLabel, comparePeriodDesc, THOUGHT_REVIEW_STATUS,
-} from '../../services/governance/thought-report.js?v=20261018h';
+} from '../../services/governance/thought-report.js?v=20261102b';
 
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261102b';
 renderSidebar('dashboard');
 renderHeader('dashboard');
 
@@ -94,7 +95,7 @@ const pidParam = params.get('personId') || '';
 (async () => {
   await _hydrateData();
   if (!viewer) {
-    renderMessage(`请先登录后查看思想汇报 · <a class="text-sky-600 hover:underline" href="${getBasePath()}login.html">去登录</a>`);
+    if (cardEl) cardEl.innerHTML = emptyStateHtml({ variant: 'panel', text: '请先登录后使用', actionHtml: `<a class="btn-outline" href="${getBasePath()}login.html">去登录</a>` });
   } else if (idParam) {
     renderSingle(idParam);
   } else if (pidParam) {
@@ -107,7 +108,7 @@ const pidParam = params.get('personId') || '';
 // ── 无参数：提示未指定对象（2026-09-18 批次 86：原「组织委员待初阅队列」已随初阅门取消撤除）──
 function renderDefault() {
   if (!cardEl) return;
-  renderMessage(`未指定对象 · <a class="text-sky-600 hover:underline" href="${getBasePath()}workspace/visitor.html">去我的工作台查看/提交思想汇报</a>`);
+  renderMessage(`未指定对象 · <a class="text-accent" href="${getBasePath()}workspace/visitor.html">去我的工作台查看/提交思想汇报</a>`);
   return;
 }
 
@@ -157,7 +158,7 @@ function renderSingleView(rec) {
   //   该标记**只在提交人本人（isSelf）看自己的汇报时**出现——支委层（含组织委员 / 支书）在此页
   //   读他人的汇报时**看不到任何「篇幅不足」标记**（组织侧不经手篇幅这件事）。
   const shortMarkHtml = (isSelf && wc.level === 'short')
-    ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200" title="${esc(wc.hint)}">篇幅不足 ${wc.count} 字 · 触发警告审阅</span>`
+    ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200" title="${esc(wc.hint)}">篇幅不足 ${wc.count} 字 · 触发警告审阅</span>`
     : '';
 
   // 操作区（按权限显隐，均调用服务层函数）
@@ -167,8 +168,8 @@ function renderSingleView(rec) {
   if (isReviewer && status !== THOUGHT_REVIEW_STATUS.NEEDS_REVISION) {
     actionHtml = `
       <div class="mt-8 pt-6 border-t border-gray-100">
-        <button type="button" id="tr-reject-toggle" class="btn-accent-soft text-sm px-4 py-2 rounded-lg">打回（要求本人补充）</button>
-        <div id="tr-reject-box" class="hidden mt-3">
+        <button type="button" id="tr-reject-toggle" class="btn-accent-soft text-sm px-4 py-2 rounded-lg" aria-expanded="false" aria-controls="tr-reject-box">打回（要求本人补充）</button>
+        <div id="tr-reject-box" class="mt-3" hidden>
           <textarea id="tr-reject-note" rows="3" class="input-flat w-full resize-none" placeholder="打回意见（必填，提交者可见并可修改重交）"></textarea>
           <div class="flex justify-end mt-2">
             <button type="button" id="tr-reject-confirm" class="btn-accent-soft text-sm px-4 py-2 rounded-lg">确认打回</button>
@@ -178,11 +179,11 @@ function renderSingleView(rec) {
   } else if (isSelf && status === THOUGHT_REVIEW_STATUS.NEEDS_REVISION) {
     actionHtml = `
       <div class="mt-8 pt-6 border-t border-gray-100">
-        <button type="button" id="tr-resubmit-toggle" class="btn-accent-soft text-sm px-4 py-2 rounded-lg">修改并重新提交</button>
-        <div id="tr-resubmit-box" class="hidden mt-3">
+        <button type="button" id="tr-resubmit-toggle" class="btn-accent-soft text-sm px-4 py-2 rounded-lg" aria-expanded="false" aria-controls="tr-resubmit-box">修改并重新提交</button>
+        <div id="tr-resubmit-box" class="mt-3" hidden>
           <textarea id="tr-resubmit-content" rows="8" class="input-flat w-full resize-none" placeholder="请根据退回意见补充完善后重新提交">${esc(rec.content || '')}</textarea>
           <div class="flex items-center justify-between gap-2 mt-2">
-            <span id="tr-resubmit-hint" class="text-[11px] text-gray-500"></span>
+            <span id="tr-resubmit-hint" class="text-xs text-gray-500"></span>
             <button type="button" id="tr-resubmit-confirm" class="btn-accent text-sm px-4 py-2 rounded-lg flex-shrink-0">重新提交</button>
           </div>
         </div>
@@ -209,9 +210,9 @@ function renderSingleView(rec) {
           <p class="text-xs text-gray-500 mb-1">${esc(g.label)} · ${g.items.length} 篇</p>
           <div class="space-y-1.5">
             ${g.items.map(r => `
-              <a href="thought-report.html?id=${r.id}" class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+              <a href="thought-report.html?id=${r.id}" class="flex items-center gap-2 p-2 rounded-lg hover:bg-surface-hover transition-colors">
                 <span class="text-xs font-medium text-gray-700 truncate flex-1">${esc(r.title || '思想汇报')}</span>
-                <span class="text-[11px] text-gray-500 flex-shrink-0">${esc(fmtDt(r.submittedAt))}</span>
+                <span class="text-xs text-gray-500 flex-shrink-0">${esc(fmtDt(r.submittedAt))}</span>
                 ${statusBadge(statusOf(r))}
               </a>`).join('')}
           </div>
@@ -222,12 +223,12 @@ function renderSingleView(rec) {
     <div class="flex items-center gap-2 flex-wrap mb-3">
       <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">${esc(periodLabel(rec.period))}</span>
       ${statusBadge(status)}
-      <span class="text-[11px] text-gray-400 tabular-nums">${wc.count} 字</span>
+      <span class="text-xs text-gray-500 tabular-nums">${wc.count} 字</span>
       ${shortMarkHtml}
     </div>
 
     <h2 class="text-xl font-semibold text-gray-900 leading-snug">${esc(rec.title || '思想汇报')}</h2>
-    <p class="text-sm text-gray-500 mt-2"><a href="${getBasePath()}person.html?id=${encodeURIComponent(rec.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(rec.personId) || rec.personId)}</a> · ${esc(fmtDt(rec.submittedAt))} · ${esc(periodLabel(rec.period))}</p>
+    <p class="text-sm text-gray-500 mt-2"><a href="${getBasePath()}person.html?id=${encodeURIComponent(rec.personId)}" class="hover:text-accent transition-colors" title="查看完整档案">${esc(getPersonName(rec.personId) || rec.personId)}</a> · ${esc(fmtDt(rec.submittedAt))} · ${esc(periodLabel(rec.period))}</p>
 
     <div class="mt-6 text-base leading-relaxed whitespace-pre-wrap text-gray-800">${esc(rec.content || '（无正文）')}</div>
 
@@ -252,9 +253,13 @@ function bindActions(rec) {
   const id = rec.id;
 
   // 组织委员 · 打回（先展开必填意见）——事后反馈，不是提交的门
-  cardEl.querySelector('#tr-reject-toggle')?.addEventListener('click', () => {
+  // 2026-10-25 Task 3：展开态由 `aria-expanded` + `hidden` 属性表达（不再用 `.hidden` 类）。
+  cardEl.querySelector('#tr-reject-toggle')?.addEventListener('click', (e) => {
     const box = cardEl.querySelector('#tr-reject-box');
-    box?.classList.toggle('hidden');
+    if (!box) return;
+    const willOpen = box.hidden;
+    box.hidden = !willOpen;
+    e.currentTarget.setAttribute('aria-expanded', String(willOpen));
   });
   cardEl.querySelector('#tr-reject-confirm')?.addEventListener('click', () => {
     const note = (cardEl.querySelector('#tr-reject-note')?.value || '').trim();
@@ -266,9 +271,11 @@ function bindActions(rec) {
   });
 
   // 本人 · 被打回：修改并重新提交（实时提示，不作拦截；重交即入库归档）
-  cardEl.querySelector('#tr-resubmit-toggle')?.addEventListener('click', () => {
+  cardEl.querySelector('#tr-resubmit-toggle')?.addEventListener('click', (e) => {
     const box = cardEl.querySelector('#tr-resubmit-box');
-    box?.classList.remove('hidden');
+    if (!box) return;
+    box.hidden = false;
+    e.currentTarget.setAttribute('aria-expanded', 'true');
     syncResubmitHint();
   });
   const syncResubmitHint = () => {
@@ -276,7 +283,7 @@ function bindActions(rec) {
     if (!el) return;
     const h = wordCountHint(cardEl.querySelector('#tr-resubmit-content')?.value || '');
     el.textContent = `当前 ${h.count} 字 · ${h.hint}`;
-    el.className = `text-[11px] ${h.level === 'short' ? 'text-amber-600' : 'text-gray-500'}`;
+    el.className = `text-xs ${h.level === 'short' ? 'text-amber-600' : 'text-gray-500'}`;
   };
   cardEl.querySelector('#tr-resubmit-content')?.addEventListener('input', syncResubmitHint);
   cardEl.querySelector('#tr-resubmit-confirm')?.addEventListener('click', () => {
@@ -302,7 +309,7 @@ function renderPerson(pid) {
   const groups = listThoughtReportsByPersonGrouped(pid);
   const total = groups.reduce((n, g) => n + g.items.length, 0);
   if (total === 0) {
-    renderMessage('该成员暂无思想汇报记录');
+    if (cardEl) cardEl.innerHTML = emptyStateHtml({ variant: 'panel', text: '该成员暂无思想汇报记录' });
     return;
   }
 
@@ -315,14 +322,14 @@ function renderPerson(pid) {
       <div class="mb-5 last:mb-0">
         <div class="flex items-center gap-2 mb-2">
           <span class="text-sm font-semibold text-gray-700">${esc(g.label)}</span>
-          <span class="text-[11px] text-gray-500">${g.items.length} 篇</span>
+          <span class="text-xs text-gray-500">${g.items.length} 篇</span>
         </div>
         <div class="space-y-1.5">
           ${g.items.map(r => `
-            <a href="thought-report.html?id=${r.id}" class="flex items-center gap-2.5 p-3 rounded-xl bg-white border border-gray-50 hover:bg-gray-50 transition-colors">
+            <a href="thought-report.html?id=${r.id}" class="flex items-center gap-2.5 p-3 rounded-xl bg-white border border-gray-50 hover:bg-surface-hover transition-colors">
               <span class="text-sm font-medium text-gray-700 truncate flex-1">${esc(r.title || '思想汇报')}</span>
-              <span class="text-[11px] text-gray-500 flex-shrink-0">${esc(fmtDt(r.submittedAt))}</span>
-              <span class="text-[11px] text-gray-400 tabular-nums flex-shrink-0">${wordCountHint(r.content).count} 字</span>
+              <span class="text-xs text-gray-500 flex-shrink-0">${esc(fmtDt(r.submittedAt))}</span>
+              <span class="text-xs text-gray-500 tabular-nums flex-shrink-0">${wordCountHint(r.content).count} 字</span>
               ${statusBadge(statusOf(r))}
             </a>`).join('')}
         </div>

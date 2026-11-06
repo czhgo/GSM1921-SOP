@@ -17,7 +17,7 @@ import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 
 const { resolveResetTier, collectResetKeys, handleResetIfRequested } =
-  await import('../../docs/src/data/mock-adapter.js?v=20261018h');
+  await import('../../docs/src/data/mock-adapter.js?v=20261102b');
 
 // ── 内存桩 ─────────────────────────────────────────────────────
 function makeStorage(seed = {}) {
@@ -57,7 +57,7 @@ afterEach(() => {
 /** 典型现场：演示 DB + 登录缓存 + 审计 + 预览 + 向导草稿（多支部）+ 遗留键 + 无关键 */
 const PRESENT = {
   workflowos_branch_db_v1: '{"_schema":1}',
-  'gsm1921-login-user': '{"personId":"p1"}',
+  'gsm1921-login-user': '{"personId":"2400012345"}',
   sop_org_os_audit_v1: '[]',
   'gsm1921-base-data-preview': '{"people":[]}',
   'wizard-draft-br-b1': '{"step":3}',

@@ -5,14 +5,16 @@
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261018h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018h';
-import { getPersonName } from '../../../services/member/person.js?v=20261018h';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261018h';
-import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261018h';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261018h';
+import { mockDB } from '../../../core/domain/domain.js?v=20261102b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261102b';
+import { getPersonName } from '../../../services/member/person.js?v=20261102b';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261102b';
+import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261102b';
+import { showToast, escHtml as esc, fmtDt, describeWriteError } from '../../../core/base/utils.js?v=20261102b';
 // 统一检索引擎（2026-09-14 批次 37）：上报记录列表接入关键词 + 状态分面 + 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261018h';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261102b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261102b';
+import { icon } from '../../../core/base/icons.js?v=20261102b';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点', desc: '发展党员关键节点（确定积极分子/发展对象、接收预备党员、按期转正等）' },
@@ -28,55 +30,62 @@ const STATUS_META = {
 
 export function renderContent() {
   const tc = document.getElementById('secretary-tab-content');
-  if (!tc) return;
+  if (!tc) throw new Error('[report-up-tab] 缺少内容容器 #secretary-tab-content');
   const me = AuthStore.getCurrentUser();
   if (!me) return;
   const branchId = getBranchIdOfPerson(me.personId);
 
   if (tc.dataset.currentTab !== 'report-up') {
     tc.innerHTML = `
+      ${renderTabHeader({ title: '上报党委', description: '一次性地向院党委发起上报，并在此跟批复回执。' })}
       <div class="space-y-4">
-        <!-- 统计条（页首内联一行：待批复/已批准/已驳回；沿用活动管理内联统计条样式） -->
-        <div id="rq-stats" class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500 py-2 border-b border-gray-100"></div>
-        <div class="rounded-lg border border-gray-200 bg-white p-4">
+        <!-- 统计（数字组单一语法 2026-10-29 P2：图标在左、数值/标签在右；三项三列） -->
+        <div id="rq-stats" class="stat-grid stat-grid--3"></div>
+        <div class="rounded-lg border border-gray-200 bg-white p-4 disclosure-host">
           <div class="flex items-center justify-between gap-3">
             <div class="min-w-0 flex items-center gap-2">
-              <p class="font-title-cn text-base font-bold text-gray-800">上报党委</p>
+              <p class="font-title-cn text-base font-bold text-gray-800" id="rq-submit-title">上报党委</p>
               <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">动作</span>
             </div>
-            <button id="rq-submit-toggle" class="btn-accent text-xs px-3 py-1.5 font-medium shrink-0">+ 发起上报</button>
           </div>
           <p class="text-xs text-gray-500 mt-1">本页是<strong>动作</strong>页：一次性地向院党委发起上报（发展节点 / 活动报备），并在此跟批复回执；不承载对象台账。</p>
+          <details class="disclosure" id="rq-submit">
+            <summary class="disclosure__summary" id="rq-submit-toggle" aria-label="发起上报"></summary>
+            <div id="rq-form-wrap" class="disclosure__body"></div>
+          </details>
         </div>
-        <div id="rq-form-wrap" class="hidden rounded-lg border border-gray-200 bg-white p-4"></div>
         <div id="rq-list" class="space-y-3"></div>
       </div>`;
     tc.dataset.currentTab = 'report-up';
-    tc.querySelector('#rq-submit-toggle')?.addEventListener('click', () => {
-      tc.querySelector('#rq-form-wrap')?.classList.toggle('hidden');
-      if (!tc.querySelector('#rq-form-wrap').classList.contains('hidden')) renderForm(branchId, me, tc);
-    });
+    // 2026-10-25 Task 3：折叠改原生 details（summary 只用 aria-labelledby 关联标题，展开态在 `open`）
+    const rqDetails = tc.querySelector('#rq-submit');
+    const ensureForm = () => { if (rqDetails?.open) renderForm(branchId, me, tc); };
+    rqDetails?.addEventListener('toggle', ensureForm);
+    ensureForm();
   }
   refreshStats(tc, branchId);
   renderList(tc, branchId);
 }
 
-/** 统计条（页首内联一行）：待党委批复/已批准/已驳回 */
+/** 统计（数字组单一语法 2026-10-29 P2）：图标块在左、数值/标签在右；
+ *  三项三列（≤1024 两列）。颜色只取既有语义 token，不再内联 hex。 */
 function refreshStats(tc, branchId) {
   const rows = listReviewRequests({ branchId });
   const n = s => rows.filter(r => r.status === s).length;
   const stats = tc.querySelector('#rq-stats');
   if (!stats) return;
   stats.innerHTML = [
-    { v: n('pending'), l: '待党委批复', c: '#D97706' },
-    { v: n('approved'), l: '已批准', c: '#16A34A' },
-    { v: n('rejected'), l: '已驳回', c: '#6B7280' },
+    { v: n('pending'), l: '待党委批复', icon: 'clock', tint: 'var(--status-warning-text)' },
+    { v: n('approved'), l: '已批准', icon: 'check', tint: 'var(--status-success)' },
+    { v: n('rejected'), l: '已驳回', icon: 'close', tint: 'var(--status-error)' },
   ].map(x => `
-    <span class="inline-flex items-center gap-1.5">
-      <span class="inline-block w-1.5 h-1.5 rounded-full" style="background:${x.c};"></span>
-      <span class="font-semibold text-gray-700 tabular-nums">${x.v}</span>
-      <span>${x.l}</span>
-    </span>`).join('');
+    <div class="card rounded-xl p-3 stat-card">
+      <span class="stat-icon-tint" style="--tint:${x.tint};" aria-hidden="true">${icon(x.icon, { strokeWidth: 1.8, className: 'w-5 h-5' })}</span>
+      <div class="stat-card__body">
+        <p class="stat-card__value">${x.v}</p>
+        <p class="stat-card__label">${x.l}</p>
+      </div>
+    </div>`).join('');
 }
 
 /** 发起上报表单（toggle 展开时构建，重绘不覆盖正在填写的表单） */
@@ -124,7 +133,27 @@ function renderForm(branchId, me, tc) {
     const title = wrap.querySelector('#rq-title')?.value.trim();
     const content = wrap.querySelector('#rq-content')?.value.trim();
     if (!type || !title || !content) { showToast('error', '请填写事项类型、标题与说明'); return; }
-    await submitReviewRequest({ branchId, type, title, content, submittedBy: me.personId });
+    // 2026-10-22 第九轮 9B-5.2：提交中禁用（防重复提交）＋ 失败保留已填内容并原位给原因。
+    //   原实现直接 `await submitReviewRequest(...)` 后无条件报成功 —— 写口抛错时按钮仍可连点，
+    //   用户也拿不到「这次没发出去」的可恢复提示。
+    const btn = wrap.querySelector('#rq-form-submit');
+    const label = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '提交中…';
+    wrap.querySelector('[data-rq-error]')?.remove();
+    try {
+      await submitReviewRequest({ branchId, type, title, content, submittedBy: me.personId });
+    } catch (error) {
+      console.warn('[report-up-tab] 上报失败', error);
+      btn.disabled = false;
+      btn.textContent = label;
+      wrap.insertAdjacentHTML('beforeend', `<p data-rq-error role="alert" class="mt-3 flex flex-wrap items-center gap-2 text-xs text-red-700">
+          <span>上报未成功：${esc(describeWriteError(error))}。已填内容已保留，可重试。</span>
+          <button type="button" data-rq-retry class="btn-outline">重试</button>
+        </p>`);
+      wrap.querySelector('[data-rq-retry]')?.addEventListener('click', () => btn.click());
+      return;
+    }
     showToast('success', `已提交：${TYPE_META[type].label}——等待党委批复`);
     wrap.classList.add('hidden');
     delete wrap.dataset.built;

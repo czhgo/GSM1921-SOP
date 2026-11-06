@@ -42,33 +42,36 @@
 //    支书确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261018h';
-import { getRosterStats, getResidenceOf } from '../../../services/member/roster.js?v=20261018h';
-import { listPendingConfirmations } from '../../../services/member/member-confirmation.js?v=20261018h';
-import { DEVELOP_STAGE_OPTIONS } from '../../../services/branch/org-base-data-preview.js?v=20261018h';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261102b';
+import { getRosterStats, getResidenceOf } from '../../../services/member/roster.js?v=20261102b';
+import { listPendingConfirmations } from '../../../services/member/member-confirmation.js?v=20261102b';
+import { DEVELOP_STAGE_OPTIONS } from '../../../services/branch/org-base-data-preview.js?v=20261102b';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）
-import { groupOptions } from '../../../services/member/party-group.js?v=20261018h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018h';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261102b';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261102b';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../../core/domain/constants.js?v=20261018h';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018h';
-import { openModal, closeModal, openFormModal } from '../../../components/ui/modal.js?v=20261018h';
+import { ROLE_LABELS, RESIDENCE } from '../../../core/domain/constants.js?v=20261102b';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261102b';
+import { openModal, closeModal, openFormModal } from '../../../components/ui/modal.js?v=20261102b';
 // 统一成员档案编辑模态（成员名册行内「编辑」入口；模态内按字段分流：档案属性立即生效 / 制度变更报支书确认）
-import { openPersonEditModal } from '../../../components/governance/pickers.js?v=20261018h';
+import { openPersonEditModal } from '../../../components/governance/pickers.js?v=20261102b';
 // 纯逻辑（可单测）：新增表单校验
-import { validateMemberForm } from '../../../services/member/roster-ui-logic.js?v=20261018h';
+import { validateMemberForm } from '../../../services/member/roster-ui-logic.js?v=20261102b';
 // `D-788` / `V-10b` 第三批（2026-10-05 · 支书圈「甲：粘贴/CSV ＋ 预览」）：自我描述批量导入服务
 //   （纯函数：解析 → 表头关键词映射 → 净化 → 与名册匹配 → 预览；本模块不落库，确认由本 tab 逐行走 saveMember）
-import { buildSelfProfileImport } from '../../../services/member/self-profile-import.js?v=20261018h';
+import { buildSelfProfileImport } from '../../../services/member/self-profile-import.js?v=20261102b';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：名册列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018h';
+// 2026-10-20 第三轮 IA 判例⑤：名册是核对表而非标签墙 ⇒ 4 组 chip（约 20 枚）收回
+//   「搜索 + 党小组 / 发展阶段 / 在册状态 三个下拉」；角色是低频维度、不进主行（改在个人档案看）。
+import { renderFilteredList, personKeyword, personFacets } from '../../../components/ui/list-filter.js?v=20261102b';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261102b';
 // 成员流出登记（行内「移出」＝登记即生效）：2026-09-28 批次 220 · R10 拆分后，本 tab 只留「移出」这一
 //   行操作；「成员流动」面板（登记流入 / 登记流出 / 对账行 / 台账表 / 撤销）已拆到独立 tab（org/member-flow-tab.js）。
-import { registerOutflow } from '../../../services/member/member-flow.js?v=20261018h';
+import { registerOutflow } from '../../../services/member/member-flow.js?v=20261102b';
 // 支部归属解析（当前操作人 → 支部 id）：台账/对账/登记同支部口径
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261018h';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261102b';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261018h';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261102b';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -80,14 +83,41 @@ let _spDraft = null;
 /** 发展阶段展示排序（仅排序用，值仍出自 DEVELOP_STAGE_OPTIONS，不新增枚举） */
 const STAGE_ORDER = ['正式党员', '预备党员', '发展对象', '积极分子'];
 
-/** 支部层成员（党委组织员 p_pc 组织级角色不属于支部，不参与名册管理） */
+/** 名册主行只保留三个下拉维度（角色降级为档案字段，不进筛选行）——判例⑤的控件清单单一源。 */
+const ROSTER_FACET_KEYS = ['partyGroup', 'developStage', 'residenceStatus'];
+
+/** 名册分面（在册状态用固定枚举 + 读取 `getResidenceOf`）：
+ *  自动派生会因「全部在校」而把该维度判成空值隐藏，且忽略留痕覆盖层；
+ *  固定两项既保证三个下拉恒在，也与行内显示（getResidenceOf）同源。 */
+const ROSTER_FACETS = personFacets()
+  .filter((facet) => ROSTER_FACET_KEYS.includes(facet.key))
+  .map((facet) => (facet.key === 'residenceStatus'
+    ? {
+      ...facet,
+      label: '在册状态',
+      options: [
+        { value: RESIDENCE.CAMPUS, label: '在校' },
+        { value: RESIDENCE.DETAINED, label: '滞留' },
+      ],
+      get: (person) => getResidenceOf(person).residenceStatus || RESIDENCE.CAMPUS,
+    }
+    : facet));
+
+/** 支部层成员（党委组织员（组织级角色）不属于支部，不参与名册管理） */
 function _branchMembers() {
   return PersonStore.getMembers().filter(p => p.branchId !== null && p.branchId !== undefined);
 }
 
-/** 操作人（审计/留痕 updatedBy；组织委员位兜底 p11，同 talent-tab 口径） */
+/** 操作人（审计/留痕 updatedBy；P1-11：失效会话 → null，禁止回落到组织委员 p11） */
 function _actorId() {
-  return AuthStore.getCurrentUser()?.personId || 'p11';
+  return currentUserId();
+}
+
+/** 写口取操作人：无登录人 → 提示重新登录并拒绝写入（宁可不写，也不记到别人名下） */
+function _requireActor() {
+  const id = _actorId();
+  if (!id) showToast('error', '登录态已失效，请重新登录');
+  return id;
 }
 
 /** 操作人角色（成员流动登记权限门 canRegisterFlow 入参） */
@@ -134,58 +164,54 @@ export function renderContent(ctx) {
   if (pend.res.size) pendParts.push(`在册状态 ×${pend.res.size}`);
   if (pend.out.size) pendParts.push(`移出 ×${pend.out.size}`);
 
+  // B12（2026-10-20）：原顶部独立统计卡与名册列表卡分离 ⇒ 统计并入列表卡头，只留一行摘要
+  //   （在册 / 党员 / 待办），名册列表首屏可见；应到与分组明细收进卡头折叠区，低频查阅不占首屏。
+  //   导入入口（_spImportHtml）仍在卡尾、默认收起，不进入首屏。
   container.innerHTML = `
+    ${renderTabHeader({ title: '成员名册', description: '支部在册成员、党小组与在册状态维护。' })}
     <div class="space-y-4">
-      <div class="card rounded-xl p-5">
-        <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
-          <div class="flex items-center gap-3">
-            <h3 class="font-title-cn text-base font-semibold text-gray-800">成员名册</h3>
-            <span class="text-xs text-gray-500" title="统计范围：本支部在册成员（branchId 非空），不含党委组织员等非本支部人员">${members.length} 人 · 本支部在册</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <button id="roster-add-btn" type="button" class="btn-accent-soft text-xs px-3 py-1.5 whitespace-nowrap" style="cursor:pointer;">＋ 新增成员</button>
-          </div>
-        </div>
-        <p class="text-xs text-gray-500 mb-3">成员名册逐人「新增 / 编辑 / 移出」：点行内「编辑」打开档案编辑模态——姓名 / 学号 / 党小组立即生效，发展阶段 / 在册状态变更报支书确认后生效。</p>
-        <div class="flex items-center gap-x-4 gap-y-1 flex-wrap text-xs">
-          <span class="px-2 py-1 rounded-full bg-gray-50 border border-gray-100"><span class="font-medium text-gray-700">支部应到 ${stats.expected} 人</span><span class="text-gray-500">＝在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}</span></span>
-          ${groupStats.map(x => `<span class="text-gray-500">${esc(x.g)}应到 <span class="text-gray-700 font-medium">${x.s.expected}</span><span class="text-gray-500">/${x.s.partyTotal}</span></span>`).join('')}
-          <span class="text-gray-500">未分组 <span class="text-gray-700 font-medium">${ungroupedCount}</span> 人</span>
-          <!-- 就近深链（2026-09-17 支书已裁）：滞留的学期末集中复核窗口就是本域可调参数，就地给去设置该分区的入口 -->
-          <a href="${getBasePath()}settings.html#domain-org" class="text-gray-500 hover:text-gray-700 underline transition-colors">滞留集中复核窗口 → 组织职责参数（设置）</a>
-        </div>
-        ${pendParts.length ? `
-        <div class="flex items-center gap-1.5 flex-wrap mt-2">
-          <span class="text-[11px] text-gray-500">待支书确认：</span>
-          ${pendParts.map(t => `<span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">${t}</span>`).join('')}
-          <span class="text-[11px] text-gray-500">确认或退回在支书「待办」页处理</span>
-        </div>` : ''}
-      </div>
-
       <div class="card rounded-xl p-4 overflow-x-auto" id="roster-list-card">
+        ${renderCardHeader({
+          title: '在册成员',
+          meta: `在册 ${members.length} · 党员 ${stats.partyTotal} · 待办 ${pend.list.length}`,
+          actions: '<button id="roster-add-btn" type="button" class="btn-accent-soft text-xs px-3 py-1.5 whitespace-nowrap" style="cursor:pointer;">＋ 新增成员</button>',
+        })}
+        <details class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 px-3 py-2">
+          <summary class="text-xs text-gray-600 cursor-pointer select-none">应到与待确认明细</summary>
+          <div class="mt-2 flex items-center gap-x-4 gap-y-1 flex-wrap text-xs">
+            <span class="px-2 py-1 rounded-full bg-white border border-gray-100"><span class="font-medium text-gray-700">支部应到 ${stats.expected} 人</span></span>
+            ${groupStats.map(x => `<span class="text-gray-500">${esc(x.g)}应到 <span class="text-gray-700 font-medium">${x.s.expected}</span><span class="text-gray-500">/${x.s.partyTotal}</span></span>`).join('')}
+            <span class="text-gray-500">未分组 <span class="text-gray-700 font-medium">${ungroupedCount}</span> 人</span>
+            <a href="${getBasePath()}settings.html#domain-org" class="text-gray-500 hover:text-gray-700 transition-colors">滞留集中复核窗口 → 组织职责参数（设置）</a>
+          </div>
+          ${pendParts.length ? `
+          <div class="flex items-center gap-1.5 flex-wrap mt-2">
+            <span class="text-xs text-gray-500">待支书确认：</span>
+            ${pendParts.map(t => `<span class="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">${t}</span>`).join('')}
+          </div>` : ''}
+        </details>
         ${_listHeaderHtml()}
         <div id="roster-list-host"></div>
       </div>
-      <p class="text-[11px] text-gray-500 px-1">移出即登记流出：名册移出、账号停用，原考勤与考察历史保留；流出台账与撤销见「成员流动」（2026-09-28 拆出的独立 tab）。</p>
 
       ${_spImportHtml()}
     </div>
   `;
 
   container.querySelector('#roster-add-btn')?.addEventListener('click', _openAddForm);
-  // 统一检索引擎：关键词（姓名/学号）+ 分面（党小组/发展阶段/角色/在册）
-  // ⚠ 2026-10-01 批次 319（支书 V-12 取「丁：先改最重的两处」）：本页为**首批迁移页之一** ⇒
-  //   分面改 `chip` 形态（**搜索框 ＋ span 小胶囊**）；胶囊走引擎单一源、选中态随主题色。
+  // 统一检索引擎：关键词（姓名/学号）+ 三个下拉（党小组 / 发展阶段 / 在册状态）。
+  // 2026-10-20 第三轮 IA 判例⑤：原 4 组 chip（约 20 枚按钮）把名册推下首屏；改回引擎默认的
+  //   dropdown 形态（`.lf-select`，由全局 enhanceSelects 增强为圆角下拉）。少一次「值已在屏上」
+  //   的便利，换来首屏约 60px（桌面）/ 120px（390px）与更低的误点率。
   const host = container.querySelector('#roster-list-host');
   renderFilteredList(host, {
     stateKey: 'org-roster-table',
     rows: members,
     keyword: personKeyword(),
-    facets: personFacets({ roleLabel: roleLabelOf }),
-    facetStyle: 'chip',
+    facets: ROSTER_FACETS,
     countUnit: '人',
     listClass: 'divide-y divide-gray-100',
-    emptyMessage: members.length ? '无匹配成员' : '名册暂无成员，点右上角「新增成员」录入',
+    emptyMessage: members.length ? '无匹配成员' : '暂无成员',
     rowHtml: (p) => _rowHtml(p, _pendingMap()),
   });
   _bindList(host);
@@ -194,18 +220,20 @@ export function renderContent(ctx) {
   enhanceSelects(container);
 }
 
-/** 名单列头（行内容由统一检索引擎渲染；窄屏 <768px 列头隐藏、行内 6 列 grid 退化为单列卡片） */
+/** 名单列头（行内容由统一检索引擎渲染；<1024px 列头隐藏、行内 6 列 grid 退化为单列卡片）
+ *  2026-10-31 P0：原 768 即切六列，行内最小宽 828px > 卡宽 670px，右侧三个操作被裁。
+ *  六列表格态推迟到 lg（≥1024），768 平板落卡片态（单列），操作按钮完整可见。 */
 function _listHeaderHtml() {
   const COL = 'minmax(120px,1.6fr) 132px 132px 96px minmax(140px,2fr) 168px';
   return `
-    <div class="hidden md:grid text-[11px] text-gray-500 pb-2 border-b border-gray-100" style="grid-template-columns:${COL};gap:8px;align-items:center;">
+    <div class="hidden lg:grid text-xs text-gray-500 pb-2 border-b border-gray-100" style="grid-template-columns:${COL};gap:8px;align-items:center;">
       <span>姓名</span><span>党小组</span><span>发展阶段</span><span>在册状态</span><span>滞留备注</span><span class="text-right">操作</span>
     </div>`;
 }
 
 /** 「待确认」小标（阶段/在册 pending 时显示；行内对应格下方） */
 function _pendingPill(text, title) {
-  return `<span class="inline-flex text-[11px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100 whitespace-nowrap" title="${esc(title)}">${text}</span>`;
+  return `<span class="inline-flex text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100 whitespace-nowrap" title="${esc(title)}">${text}</span>`;
 }
 
 /** 名单行（只读展示；编辑统一走成员档案模态，pending 显示「待确认」小标） */
@@ -217,22 +245,22 @@ function _rowHtml(p, pend) {
   const resPend = pend.res.has(p.id);
   const outPend = pend.out.has(p.id);
   return `
-    <div class="roster-row grid grid-cols-1 gap-1.5 py-2 md:gap-2 md:items-center md:[grid-template-columns:minmax(120px,1.6fr)_132px_132px_96px_minmax(140px,2fr)_168px]" data-person-id="${esc(p.id)}">
+    <div class="roster-row grid grid-cols-1 gap-1.5 py-2 lg:gap-2 lg:items-center lg:[grid-template-columns:minmax(120px,1.6fr)_132px_132px_96px_minmax(140px,2fr)_168px]" data-person-id="${esc(p.id)}">
       <div class="min-w-0">
         <div class="text-sm font-medium text-gray-800 flex items-center gap-1.5 min-w-0">
           <span class="truncate">${esc(getPersonName(p.id))}</span>
-          ${detained ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100 flex-shrink-0" title="${esc(rs.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">滞留</span>` : ''}
+          ${detained ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100 flex-shrink-0" title="${esc(rs.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">滞留</span>` : ''}
         </div>
-        ${roleLabel ? `<div class="text-[11px] text-gray-500 truncate">${esc(roleLabel)}</div>` : ''}
+        ${roleLabel ? `<div class="text-xs text-gray-500 truncate">${esc(roleLabel)}</div>` : ''}
       </div>
-      <div class="text-xs text-gray-800 truncate">${p.partyGroup ? esc(p.partyGroup) : '<span class="text-gray-400">未分组</span>'}</div>
+      <div class="text-xs text-gray-800 truncate">${p.partyGroup ? esc(p.partyGroup) : '<span class="text-gray-500">未分组</span>'}</div>
       <div class="flex flex-col gap-0.5 min-w-0">
-        <span class="text-xs text-gray-800 truncate">${esc(p.developStage || '待定')}</span>
-        ${stagePend ? _pendingPill('阶段变更·待确认', '已报送支书确认，生效前保持现值；在支书「待办」页确认或退回') : ''}
+        <span class="text-xs text-gray-800 truncate">${esc(p.developStage || '未登记（组织委员可在名册补）')}</span>
+        ${stagePend ? _pendingPill('阶段变更·待确认', '待支书确认') : ''}
       </div>
       <div class="flex flex-col gap-0.5 min-w-0">
         <span class="text-xs truncate ${detained ? 'text-amber-700' : 'text-gray-800'}">${esc(rs.residenceStatus)}</span>
-        ${resPend ? _pendingPill('在册状态·待确认', '已报送支书确认，生效前保持现值；在支书「待办」页确认或退回') : ''}
+        ${resPend ? _pendingPill('在册状态·待确认', '待支书确认') : ''}
       </div>
       <div class="text-xs text-gray-600 truncate" title="${esc(rs.residenceNote || '')}">${esc(rs.residenceNote || '—')}</div>
       <div class="flex items-center justify-end gap-1.5">
@@ -264,13 +292,14 @@ function _bindList(root) {
 
 /**
  * 行内「编辑」→ 统一成员档案编辑模态（防张冠李戴：模态按 personId 现取档案真相）。
- * 模态内按字段分流：姓名 / 学号 / 党小组立即生效；发展阶段 / 在册状态 / 在册备注报支书确认。
+ * 模态内按字段分流：姓名 / 届别 / 党小组立即生效（学号即人员主键，只读，改名走党委受控入口）；
+ * 发展阶段 / 在册状态 / 在册备注报支书确认。
  * onSaved 重新渲染本表（回现值 + 刷新「待确认」小标）。
  */
 function _openEdit(personId) {
   openPersonEditModal({
     personId,
-    focusFields: ['name', 'studentId', 'enrollYear', 'partyGroup', 'developStage', 'residenceStatus', 'residenceNote'],
+    focusFields: ['name', 'enrollYear', 'partyGroup', 'developStage', 'residenceStatus', 'residenceNote'],
     sourceLabel: '成员名册',
     onSaved: () => renderContent(_ctx),
   });
@@ -293,28 +322,27 @@ const SP_STATUS = {
   ambiguous: { text: '重名', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
 };
 
-/** 导入区 HTML（折叠面板；默认收起，避免名册主视图被批量工具挤占） */
+/** 导入区 HTML（阅读型折叠 · 原生 details；默认收起，避免名册主视图被批量工具挤占）
+ *  2026-10-25 Task 3：标题在 summary 外（兄弟 H3），summary 只用 aria-labelledby 关联；
+ *  折叠态在 `open` 属性上，不再用 `.hidden`。 */
 function _spImportHtml() {
   return `
-    <div class="card rounded-xl p-4" id="roster-sp-import-card">
-      <div class="flex items-center justify-between flex-wrap gap-2">
-        <div class="flex items-center gap-2 min-w-0">
-          <h3 class="font-title-cn text-sm font-semibold text-gray-800">导入自我描述（粘贴 / CSV）</h3>
-          <span class="text-xs text-gray-500">问卷批量回收 · 预览后逐人落库</span>
+    <div class="card rounded-xl p-4 disclosure-host" id="roster-sp-import-card">
+      <h3 class="disclosure__title" id="roster-sp-title">导入自我描述（粘贴 / CSV）<span class="disclosure__meta">问卷批量回收 · 预览后逐人落库</span></h3>
+      <details class="disclosure" id="roster-sp">
+        <summary class="disclosure__summary" id="roster-sp-toggle" aria-labelledby="roster-sp-title"></summary>
+        <div id="roster-sp-panel" class="disclosure__body space-y-2">
+          <p class="text-xs text-gray-500">从问卷后台「导出」表格后，整块复制（含表头行）粘贴到此框（另存为 CSV 后复制亦可）；首行须为列名，且含「姓名」或「学号」列用于匹配。</p>
+          <p class="text-xs text-gray-500">解析后先核对预览，只导入「可导入」行；未匹配 / 重名 / 无内容的行会标出原因，可补全后重试。</p>
+          <textarea id="roster-sp-text" class="input-flat w-full text-xs" rows="5" placeholder="在此粘贴问卷表格（含表头行；Excel 复制为制表符分隔，CSV 为逗号分隔）…"></textarea>
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="roster-sp-parse" type="button" class="btn-accent-soft text-xs px-3 py-1.5" style="cursor:pointer;">解析预览</button>
+            <button id="roster-sp-clear" type="button" class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">清空</button>
+            <span id="roster-sp-status" class="text-xs text-gray-500"></span>
+          </div>
+          <div id="roster-sp-preview"></div>
         </div>
-        <button id="roster-sp-toggle" type="button" class="btn-outline text-xs px-2.5 py-1 whitespace-nowrap" style="cursor:pointer;">展开 / 收起</button>
-      </div>
-      <div id="roster-sp-panel" class="mt-3 space-y-2 hidden">
-        <p class="text-xs text-gray-500">从问卷后台「导出」表格后，整块复制（含表头行）粘贴到此框（另存为 CSV 后复制亦可）；首行须为列名，且含「姓名」或「学号」列用于匹配。</p>
-        <p class="text-xs text-gray-500">解析后先核对预览，只导入「可导入」行；未匹配 / 重名 / 无内容的行会标出原因，可补全后重试。</p>
-        <textarea id="roster-sp-text" class="input-flat w-full text-xs" rows="5" placeholder="在此粘贴问卷表格（含表头行；Excel 复制为制表符分隔，CSV 为逗号分隔）…"></textarea>
-        <div class="flex flex-wrap items-center gap-2">
-          <button id="roster-sp-parse" type="button" class="btn-accent-soft text-xs px-3 py-1.5" style="cursor:pointer;">解析预览</button>
-          <button id="roster-sp-clear" type="button" class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">清空</button>
-          <span id="roster-sp-status" class="text-xs text-gray-500"></span>
-        </div>
-        <div id="roster-sp-preview"></div>
-      </div>
+      </details>
     </div>`;
 }
 
@@ -325,13 +353,13 @@ function _spPreviewHtml(r) {
     const meta = SP_STATUS[row.status] || SP_STATUS.unmatched;
     const who = row.name || row.studentId || '—';
     const problems = (row.problems || []).length
-      ? `<span class="text-[11px] text-amber-700">${esc(row.problems.join('；'))}</span>`
-      : '<span class="text-[11px] text-gray-400">—</span>';
+      ? `<span class="text-xs text-amber-700">${esc(row.problems.join('；'))}</span>`
+      : '<span class="text-xs text-gray-400">—</span>';
     return `
       <div class="grid grid-cols-1 gap-1 md:gap-2 py-1.5 border-b border-gray-50 last:border-b-0 md:items-center md:[grid-template-columns:minmax(96px,1.2fr)_1fr_72px_72px_2fr]">
         <span class="text-xs text-gray-800 truncate">${esc(who)}</span>
         <span class="text-xs text-gray-500 truncate">${esc(row.studentId || '—')}</span>
-        <span class="text-[11px] px-1.5 py-0.5 rounded-full border ${meta.cls} justify-self-start whitespace-nowrap">${meta.text}</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full border ${meta.cls} justify-self-start whitespace-nowrap">${meta.text}</span>
         <span class="text-xs text-gray-600">${row.status === 'matched' ? `${row.fields} 项` : '—'}</span>
         ${problems}
       </div>`;
@@ -343,7 +371,7 @@ function _spPreviewHtml(r) {
         <p class="text-xs font-semibold text-gray-700">导入预览</p>
         <span class="text-xs text-gray-500">共 ${c.total} 行 · 可导入 <b class="text-green-700">${n}</b> · 未匹配 ${c.unmatched} · 重名 ${c.ambiguous} · 无内容 ${c.empty}</span>
       </div>
-      <div class="hidden md:grid text-[11px] text-gray-500 pb-1 border-b border-gray-100" style="grid-template-columns:minmax(96px,1.2fr) 1fr 72px 72px 2fr;gap:8px;">
+      <div class="hidden md:grid text-xs text-gray-500 pb-1 border-b border-gray-100" style="grid-template-columns:minmax(96px,1.2fr) 1fr 72px 72px 2fr;gap:8px;">
         <span>姓名</span><span>学号</span><span>匹配</span><span>变更字段</span><span>问题</span>
       </div>
       <div class="max-h-72 overflow-y-auto">${rows}</div>
@@ -354,15 +382,14 @@ function _spPreviewHtml(r) {
     </div>`;
 }
 
-/** 绑定导入区（就地改 DOM，不触发整页重渲染 ⇒ textarea 内容与草稿天然保态） */
+/** 绑定导入区（就地改 DOM，不触发整页重渲染 ⇒ textarea 内容与草稿天然保态）
+ *  2026-10-25 Task 3：折叠由原生 details 承担，这里不再绑 toggle 点击。 */
 function _bindSpImport(container) {
-  const toggle = container.querySelector('#roster-sp-toggle');
   const panel = container.querySelector('#roster-sp-panel');
   const ta = container.querySelector('#roster-sp-text');
   const status = container.querySelector('#roster-sp-status');
   const host = container.querySelector('#roster-sp-preview');
-  if (!toggle || !panel) return;
-  toggle.addEventListener('click', () => panel.classList.toggle('hidden'));
+  if (!panel) return;
   container.querySelector('#roster-sp-clear')?.addEventListener('click', () => {
     if (ta) ta.value = '';
     if (host) host.innerHTML = '';
@@ -400,7 +427,8 @@ async function _confirmSpImport() {
   if (!r || !r.rows) return;
   const importable = r.rows.filter((row) => row.status === 'matched' && row.personId);
   if (!importable.length) { showToast('error', '没有可导入的行（请检查匹配列与内容）'); return; }
-  const by = _actorId();
+  const by = _requireActor();
+  if (!by) return;
   let okN = 0;
   const fails = [];
   for (const row of importable) {
@@ -408,8 +436,12 @@ async function _confirmSpImport() {
     if (res && res.ok) okN += 1;
     else fails.push(`${row.name || row.studentId}：${(res && res.reason) || '写入失败'}`);
   }
-  if (okN) showToast('success', `已导入 ${okN} 名成员的自我描述${fails.length ? `（${fails.length} 条失败）` : ''}`);
-  if (fails.length) showToast('error', `未写入：${fails.join('；')}`);
+  // 一条汇总：有失败就报 error（列出成功数与失败项），不得同时报「成功（N 条失败）」和 error
+  if (fails.length) {
+    showToast('error', `已导入 ${okN} 名成员；${fails.length} 条未写入：${fails.join('；')}`);
+  } else if (okN) {
+    showToast('success', `已导入 ${okN} 名成员的自我描述`);
+  }
   _spDraft = null;
   renderContent(_ctx); // 落库后整页刷新（草稿已清；导入区回到收起态）
 }
@@ -422,25 +454,30 @@ function _openAddForm() {
   openFormModal({
     id: 'roster-add-member',
     title: '新增成员',
-    accentColor: _ctx?.accent || 'var(--accent-blue)',
+    accentColor: _ctx?.accent || 'var(--app-accent)',
     fields: [
       { key: 'name', label: '姓名', type: 'text', required: true, placeholder: '成员姓名（必填）' },
-      { key: 'studentId', label: '学号', type: 'text', placeholder: '学号（推荐填写；全站唯一，不可与既有成员重复）' },
-      { key: 'enrollYear', label: '届别', type: 'text', placeholder: '入学年份 / 届别（如 2026，推荐填写）' },
+      { key: 'studentId', label: '学号', type: 'text', required: true, placeholder: '如 2400012345' },
+      { key: 'enrollYear', label: '届别', type: 'text', placeholder: '如 2026' },
       { key: 'partyGroup', label: '党小组', type: 'select',
         options: [emptyOpt, ...groupOptions().map(g => ({ value: g, label: g }))] },
-      { key: 'developStage', label: '发展阶段', type: 'select',
-        options: [emptyOpt, ..._orderedStages().map(s => ({ value: s, label: s }))] },
+      { key: 'developStage', label: '发展阶段', type: 'select', required: true,
+        options: [{ value: '', label: '请选择发展阶段' }, ..._orderedStages().map(s => ({ value: s, label: s }))] },
       { key: 'residenceStatus', label: '在册状态', type: 'select',
         options: [{ value: RESIDENCE.CAMPUS, label: '在校' }, { value: RESIDENCE.DETAINED, label: '滞留' }] },
-      { key: 'residenceNote', label: '滞留备注', type: 'textarea', placeholder: '仅「滞留」时填写：原因 / 起止（如 2026-09 起赴外校交换一学期）' },
+      { key: 'residenceNote', label: '滞留备注', type: 'textarea', placeholder: '如：本学期起赴外校交换一学期' },
     ],
     submitLabel: '新增并加入名册',
     onSubmit: (values) => {
       // 学号唯一性：传入既有成员学号清单（非空学号与既有重复 → 拒绝）
       const existingStudentIds = _branchMembers().map(p => p.studentId).filter(Boolean);
       const v = validateMemberForm(values, { existingStudentIds });
-      if (!v.ok) { showToast('error', v.message); return false; } // 校验失败：浮窗保持打开
+      // 6.8：字段级错误（aria-invalid ＋ 聚焦首错）由 openFormModal 的 {ok:false, errors} 契约承接；
+      //   另给一条全局提示，保证「点提交 → 有可见反馈」在任何视口/读屏下都成立（不是用 toast 代替字段错误）。
+      if (!v.ok) {
+        showToast('error', v.message);
+        return { ok: false, errors: { [v.field || 'name']: v.message } };
+      }
       _addMember(v.value);
       return true;
     },
@@ -448,7 +485,8 @@ function _openAddForm() {
 }
 
 async function _addMember(val) {
-  const actorId = _actorId();
+  const actorId = _requireActor();
+  if (!actorId) return;
   const payload = {
     name: val.name,
     studentId: val.studentId,
@@ -483,14 +521,13 @@ function _askRemove(personId) {
   openModal({
     id: 'roster-del-confirm',
     title: '登记流出（移出名册）',
-    accentColor: 'var(--functional-error)',
+    accentColor: 'var(--status-error)',
     bodyHtml: `
       <p class="text-sm text-gray-700 mb-2">确认将「${esc(name)}」移出成员名册？</p>
-      <p class="text-xs text-gray-500 mb-4">登记即生效：该成员移出名册、账号停用，不再出现在成员名单与应到统计中。原考勤与考察历史保留（不删不匿名），可在「成员流动」台账中查看并撤销纠正。</p>
-      <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button type="button" data-roster-del-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
-        <button type="button" data-roster-del-ok class="btn-danger-solid text-xs px-3 py-1.5">确认登记流出</button>
-      </div>`,
+      <p class="text-xs text-gray-500 mb-4">登记即生效：移出名册、账号停用，原考勤与考察历史保留；可在「成员流动」撤销纠正。</p>`,
+    footerHtml: `
+      <button type="button" data-roster-del-cancel class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
+      <button type="button" data-roster-del-ok class="btn-danger-solid text-sm px-4 py-1.5">确认登记流出</button>`,
     onMount: (panel) => {
       panel.querySelector('[data-roster-del-cancel]')?.addEventListener('click', () => closeModal('roster-del-confirm'));
       panel.querySelector('[data-roster-del-ok]')?.addEventListener('click', () => {
@@ -502,9 +539,11 @@ function _askRemove(personId) {
 }
 
 async function _doRemove(personId, name) {
+  const by = _requireActor();
+  if (!by) return;
   const r = await registerOutflow({
     personIds: [personId],
-    by: _actorId(),
+    by,
     role: _actorRole(),
     branchId: _branchId(),
   });

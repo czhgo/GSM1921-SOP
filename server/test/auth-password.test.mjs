@@ -30,26 +30,26 @@ before(async () => {
 after(() => { server.close(); delete process.env.DISABLE_PASSWORD_CHECK; });
 
 test('默认开：仅凭 personId（无口令）登录被拒', async () => {
-  const r = await tryLogin({ personId: 'p13' });
+  const r = await tryLogin({ personId: '2300010001' });
   assert.equal(r.status, 401);
   assert.equal(r.data.error, '口令错误');
 });
 
 test('默认开：错误口令被拒', async () => {
-  const r = await tryLogin({ personId: 'p13', password: 'wrong-pwd' });
+  const r = await tryLogin({ personId: '2300010001', password: 'wrong-pwd' });
   assert.equal(r.status, 401);
 });
 
 test('默认开：正确口令（123456）放行并返回 token', async () => {
-  const r = await tryLogin({ personId: 'p13', password: '123456' });
+  const r = await tryLogin({ personId: '2300010001', password: '123456' });
   assert.equal(r.status, 200);
   assert.ok(r.data.token, '应返回会话 token');
-  assert.equal(r.data.user.id || r.data.user.personId, 'p13');
+  assert.equal(r.data.user.id || r.data.user.personId, '2300010001');
 });
 
 test('逃逸门：DISABLE_PASSWORD_CHECK=1 恢复仅凭 personId 登录', async () => {
   process.env.DISABLE_PASSWORD_CHECK = '1';
-  const r = await tryLogin({ personId: 'p13' });
+  const r = await tryLogin({ personId: '2300010001' });
   assert.equal(r.status, 200);
   assert.ok(r.data.token);
   delete process.env.DISABLE_PASSWORD_CHECK;
@@ -58,9 +58,9 @@ test('逃逸门：DISABLE_PASSWORD_CHECK=1 恢复仅凭 personId 登录', async 
 test('env LOGIN_PASSWORD 可更换口令：更换后旧口令拒绝、新口令放行', async () => {
   process.env.LOGIN_PASSWORD = 'gsm1921-secret';
   try {
-    const bad = await tryLogin({ personId: 'p13', password: '123456' });
+    const bad = await tryLogin({ personId: '2300010001', password: '123456' });
     assert.equal(bad.status, 401);
-    const ok = await tryLogin({ personId: 'p13', password: 'gsm1921-secret' });
+    const ok = await tryLogin({ personId: '2300010001', password: 'gsm1921-secret' });
     assert.equal(ok.status, 200);
   } finally {
     delete process.env.LOGIN_PASSWORD;

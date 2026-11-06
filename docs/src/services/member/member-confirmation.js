@@ -27,22 +27,23 @@
 // 单测：server/test/member-confirmation.test.mjs
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261018h';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261018h';
+import { mockDB } from '../../core/domain/domain.js?v=20261102b';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261102b';
 // 全站唯一实体 id 源（2026-09-13 Q-21-2 收敛：禁止再写「前缀 + Date.now()」）
-import { generateId } from '../../core/base/id.js?v=20261018h';
-import { bumpToken } from '../../core/base/version-token.js?v=20261018h'; // P0 域缓存失效（spec §二.3）
+import { generateId } from '../../core/base/id.js?v=20261102b';
+import { bumpToken } from '../../core/base/version-token.js?v=20261102b'; // P0 域缓存失效（spec §二.3）
 // 批4（2026-09-09 支书批「域参数」）：滞留复核窗口单一源 = policy memberConfirmation.semesterDetainedWindows
 // （原本文件 :533 硬编码 615/715/1215 迁出；组织委员可经设置中心覆盖，判定随窗口变化）
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261018h';
-import { PersonStore, findRemovedRecord, liveMembers } from './person.js?v=20261018h';
-import { getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20261018h';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261102b';
+import { PersonStore, findRemovedRecord, liveMembers } from './person.js?v=20261102b';
+import { getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20261102b';
 // 发展阶段枚举单一源（静态种子派生，禁造新枚举）
-import { DEVELOP_STAGE_OPTIONS } from '../branch/org-base-data-preview.js?v=20261018h';
+import { DEVELOP_STAGE_OPTIONS } from '../branch/org-base-data-preview.js?v=20261102b';
 // 活动「未开始」口径单一源（2026-09-13 收敛）：替代本文件手写 archived || status==='completed'
 // 在册状态枚举 RESIDENCE 同源（2026-09-13 Q-21-3 收敛：原经 roster.js 转出，现直取单一源）
-import { isActivityNotStarted, RESIDENCE } from '../../core/domain/constants.js?v=20261018h';
-import { todayLocal } from '../../core/base/utils.js?v=20261018h';
+import { isActivityNotStarted, RESIDENCE } from '../../core/domain/constants.js?v=20261102b';
+import { todayLocal } from '../../core/base/utils.js?v=20261102b';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261102b';
 
 /** 成员变更确认请求队列的 localStorage 键（gsm1921- 前缀 → ?reset=demo 自动清理） */
 export const MEMBER_CONFIRM_KEY = 'gsm1921-member-confirmations';
@@ -144,17 +145,18 @@ function _isApi() {
   try { return getDataSource() === 'api'; } catch (_) { return false; }
 }
 
-/** api 形态：把一次写同步到服务端（失败仅告警——本地乐观已记，next init 以服务端为准） */
+/** api 形态：把一次写同步到服务端（本地乐观已记；R3-P1（F-09）登记 pending-writes，失败让调用方感知） */
 function _syncToServer(fn, what) {
   if (!_isApi()) return;
   try {
     const adapter = getAdapter();
     const call = fn(adapter);
-    if (call && typeof call.catch === 'function') {
-      call.catch((e) => console.warn(`[MemberConfirmation] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e));
+    if (call && typeof call.then === 'function') {
+      trackWrite(call).catch((e) => console.warn(`[MemberConfirmation] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e));
     }
   } catch (e) {
     console.warn(`[MemberConfirmation] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e);
+    trackWrite(Promise.reject(e));
   }
 }
 
@@ -414,6 +416,10 @@ export async function submitTransferOut({ personId, by, note } = {}) {
   _executeTransferOut(personId, at);
   const r = await PersonStore.removeMember(personId, { by: by || null, guardRefs: false, transferOut: true });
   if (!r.ok) return { ok: false, reason: r.reason || '移出执行失败' };
+  // Task 3（2026-10-26）：把本机标注（agendaVotes / memberChangeRequests）送进统一写链——
+  // api 形态由 `data-adapter._flushSemanticCollections` 逐行调用语义端点落库；
+  // 失败时进入 outbox 并显示「未同步」，不得只活在本机（清缓存重登后仍在）。
+  persist();
   return { ok: true, direct: true, clearedSafe: safe.length, annotatedKeep: keep.length };
 }
 
@@ -574,7 +580,7 @@ function _annotateTransferredOut(personId, at) {
       if (m && m.personId === personId) {
         changed = true;
         if (m.role === 'organizer') {
-          members.push({ ...m, transferredOutAt: at, note: '专班负责人，转出前须先移交' });
+          members.push({ ...m, transferredOutAt: at, note: '专班组织者，转出前须先移交' });
         }
         // 非负责人 → 不保留（退出专班）
       } else {

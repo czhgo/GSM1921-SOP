@@ -92,8 +92,8 @@ async function preparePage(page, origin, path = '/index.html') {
   await page.evaluate(async () => {
     const t0 = Date.now();
     for (;;) {
-      const { getRuntimeMode } = await import('/src/data/data-adapter.js?v=20261018h');
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261018h');
+      const { getRuntimeMode } = await import('/src/data/data-adapter.js?v=20261102b');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261102b');
       if (getRuntimeMode().source === 'api' && mockDB._loaded === true && mockDB.milestones !== undefined) return;
       if (Date.now() - t0 > 20000) throw new Error('[P1-1] 页面数据层未在 20s 内就绪');
       await new Promise((r) => setTimeout(r, 50));
@@ -125,7 +125,7 @@ const settle = (page, ms = 1800) => page.waitForTimeout(ms);
 
 /** 本机读写同一实例的探测入口（返回探测结果，供断言 skipped / changed） */
 const probe = (page) => page.evaluate(async () => {
-  const { probeRemoteChanges } = await import('/src/data/data-adapter.js?v=20261018h');
+  const { probeRemoteChanges } = await import('/src/data/data-adapter.js?v=20261102b');
   return probeRemoteChanges();
 });
 
@@ -141,8 +141,8 @@ async function waitIdle(page, tries = 20) {
 
 /** 以正式写路径（mockDB 变更 → persist → 防抖快照写穿）写入若干集合 */
 const pushAndPersist = (page, rowsByCollection) => page.evaluate(async (map) => {
-  const { mockDB } = await import('/src/core/domain/domain.js?v=20261018h');
-  const { persist } = await import('/src/data/data-adapter.js?v=20261018h');
+  const { mockDB } = await import('/src/core/domain/domain.js?v=20261102b');
+  const { persist } = await import('/src/data/data-adapter.js?v=20261102b');
   for (const [collection, row] of Object.entries(map)) mockDB[collection].push(row);
   persist();
 }, rowsByCollection);
@@ -154,40 +154,42 @@ const idsIn = (table, prefix) => app.locals.db.prepare(`SELECT id FROM ${table} 
 //  判据 A（跨标签）
 // ════════════════════════════════════════════════════════════════
 test('判据A 跨标签：A 写 flush 后，B 不整页重载即可见（① visibilitychange 骨架 ② 低频定时器）', async () => {
-  const a = await openApiPage(base, 'p10');
-  const b = await openApiPage(base, 'p11');
+  // A 用**宣传委员**（2400012356）：在 `NOTICE_PUBLISH_ROLES` 内；纪检(2400012354)不可发布通知，
+  // 用它写 notices 会整批 snapshot 403，前置永远落不了库（批次 501 改准）。
+  const a = await openApiPage(base, '2400012356');
+  const b = await openApiPage(base, '2400012355');
   try {
     assert.equal(await b.page.evaluate(() => document.visibilityState), 'visible',
       '前置：真机页须为可见态（隐藏态按设计不探测）');
     await waitIdle(b.page); // B 静置到无在途写（消除页面初始化期间的本地写干扰）
 
     // ① 既有 visibilitychange 骨架触发
-    await pushAndPersist(a.page, { notices: noticeRow('p11-tab-A1') });
+    await pushAndPersist(a.page, { notices: noticeRow('2400012355-tab-A1') });
     await settle(a.page);
-    assert.ok(idsIn('notices', 'p11-tab-A1').includes('p11-tab-A1'), '前置：A 的写入应已落服务端');
+    assert.ok(idsIn('notices', '2400012355-tab-A1').includes('2400012355-tab-A1'), '前置：A 的写入应已落服务端');
     assert.equal(await b.page.evaluate(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261018h');
-      return (mockDB.notices || []).some((n) => n.id === 'p11-tab-A1');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261102b');
+      return (mockDB.notices || []).some((n) => n.id === '2400012355-tab-A1');
     }), false, 'B 未探测前不应看到 A 的记录（证明「不重载就看不见」的病灶真实存在）');
     await b.page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
     await b.page.waitForFunction(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261018h');
-      return (mockDB.notices || []).some((n) => n.id === 'p11-tab-A1');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261102b');
+      return (mockDB.notices || []).some((n) => n.id === '2400012355-tab-A1');
     }, null, { timeout: 15000 });
     console.log('[判据A-①] B 经 visibilitychange 探测看到 A 的记录（未重载）');
 
     // ② 低频定时器触发（本文件把周期调短以可测；生产缺省 60s）
-    await pushAndPersist(a.page, { notices: noticeRow('p11-tab-A2') });
+    await pushAndPersist(a.page, { notices: noticeRow('2400012355-tab-A2') });
     await settle(a.page);
     const armed = await b.page.evaluate(async () => {
-      const m = await import('/src/data/data-adapter.js?v=20261018h');
+      const m = await import('/src/data/data-adapter.js?v=20261102b');
       m.stopRemoteChangeProbe();
       return m.startRemoteChangeProbe(400);
     });
     assert.equal(armed, true, '判据A-②：应能挂上探测定时器');
     await b.page.waitForFunction(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261018h');
-      return (mockDB.notices || []).some((n) => n.id === 'p11-tab-A2');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261102b');
+      return (mockDB.notices || []).some((n) => n.id === '2400012355-tab-A2');
     }, null, { timeout: 15000 });
     console.log('[判据A-②] B 经低频定时器探测看到 A 的第二条记录（未重载）');
   } finally {
@@ -201,8 +203,8 @@ test('判据A 跨标签：A 写 flush 后，B 不整页重载即可见（① vis
 //   不跨 context（上面两个用例用的就是隔离 context＝「另一台设备」）⇒ 广播那条路只能在这里测。
 // 关键：本用例**不派发** visibilitychange、也**不调短**定时器周期（缺省 60s）⇒ 20s 内拿到新记录只可能来自广播。
 test('判据A-③ 同源多标签：A 标签写成功后，B 标签由 BroadcastChannel 唤醒（不依赖轮询周期）', async () => {
-  const tokenA = await loginAt(base, 'p10');
-  const tokenB = await loginAt(base, 'p11');
+  const tokenA = await loginAt(base, '2400012354');
+  const tokenB = await loginAt(base, '2400012355');
   const ctx = await browser.newContext();
   try {
     const pageA = await ctx.newPage();
@@ -214,11 +216,11 @@ test('判据A-③ 同源多标签：A 标签写成功后，B 标签由 Broadcast
     await pageB.bringToFront(); // B 前置：只有「可见」标签才响应广播（隐藏标签按设计不探测）
     await waitIdle(pageB);
     const vis = await pageB.evaluate(() => document.visibilityState);
-    await pushAndPersist(pageA, { notices: noticeRow('p11-tab-BC1') });
+    await pushAndPersist(pageA, { notices: noticeRow('2400012355-tab-BC1') });
     const t0 = Date.now();
     await pageB.waitForFunction(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261018h');
-      return (mockDB.notices || []).some((n) => n.id === 'p11-tab-BC1');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261102b');
+      return (mockDB.notices || []).some((n) => n.id === '2400012355-tab-BC1');
     }, null, { timeout: 20000 });
     const ms = Date.now() - t0;
     assert.ok(ms < 20000, `应在一个轮询周期（60s）之内看到（实测 ${ms}ms）`);
@@ -232,9 +234,9 @@ test('判据A-③ 同源多标签：A 标签写成功后，B 标签由 Broadcast
 //  判据 B（跨设备）
 // ════════════════════════════════════════════════════════════════
 test('判据B 跨设备：设备A写 → 设备B重进可见，且该集合版本严格 +1', async () => {
-  const tokenA = await loginAt(base, 'p10');
+  const tokenA = await loginAt(base, '2400012354');
   const v0 = await versions(base, tokenA);
-  const a = await openApiPage(base, 'p10');
+  const a = await openApiPage(base, '2400012354');
   let bToken, v1, seen;
   try {
     // ⓪ 写入 + **等产品自己的「落库已结算」承诺**（`core/session/pending-writes.js::settleWrites`）。
@@ -249,33 +251,33 @@ test('判据B 跨设备：设备A写 → 设备B重进可见，且该集合版�
     //   加预算在构造上无效。现改为**有界结算等待**：结算完成仍查不到 = **真丢写**，立刻报红；
     //   15s 上界只用于把「迟迟不结算」变成明确失败，**不给慢留余地**。**判据语义一字未变**。
     const settleRes = await a.page.evaluate(async (row) => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261018h');
-      const { persist } = await import('/src/data/data-adapter.js?v=20261018h');
-      const { settleWrites } = await import('/src/core/session/pending-writes.js?v=20261018h');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261102b');
+      const { persist } = await import('/src/data/data-adapter.js?v=20261102b');
+      const { settleWrites } = await import('/src/core/session/pending-writes.js?v=20261102b');
       mockDB.archiveRecords.push(row);
       persist();
       const t0 = Date.now();
       const settled = settleWrites().then(() => 'ok', (e) => `error:${(e && e.message) || e}`);
       const expired = new Promise((r) => setTimeout(() => r('timeout'), 15000));
       return { status: await Promise.race([settled, expired]), ms: Date.now() - t0 };
-    }, { id: 'p11-dev-A1', title: 'P1-1 跨设备', archivedAt: '2026-09-24' });
+    }, { id: '2400012355-dev-A1', title: 'P1-1 跨设备', archivedAt: '2026-09-24' });
     assert.equal(settleRes.status, 'ok',
       `设备 A 的写入未在 15s 内结算（settleWrites=${settleRes.status}，耗时 ${settleRes.ms}ms）——「防抖快照没跑」与「跑了却判无脏集合」是两件事，须先查清再放行`);
     // 服务端库为权威（表名＝资源名的 snake_case：archiveRecords → archive_records）。
     // 结算即 POST 已返回（且服务端 handler 全同步）⇒ 此刻的读就是权威值，**无需再轮询**。
-    const landed = idsIn('archive_records', 'p11-dev-A1').includes('p11-dev-A1');
+    const landed = idsIn('archive_records', '2400012355-dev-A1').includes('2400012355-dev-A1');
     assert.ok(landed, '前置：设备 A 的写入应已落服务端（结算已完成却查不到 ⇒ 快照并未真正落库）');
     v1 = await versions(base, tokenA);
   } finally {
     await a.ctx.close();
   }
   // 设备 B：**全新 context**（sessionStorage/localStorage 全空）⇒ 等价于「换一台机器重进页面」
-  const b = await openApiPage(base, 'p11');
+  const b = await openApiPage(base, '2400012355');
   try {
     bToken = b.token;
     seen = await b.page.evaluate(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261018h');
-      return (mockDB.archiveRecords || []).some((r) => r.id === 'p11-dev-A1');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261102b');
+      return (mockDB.archiveRecords || []).some((r) => r.id === '2400012355-dev-A1');
     });
   } finally {
     await b.ctx.close();
@@ -291,58 +293,77 @@ test('判据B 跨设备：设备A写 → 设备B重进可见，且该集合版�
 //  判据 C（不许回滚本机未提交写）
 // ════════════════════════════════════════════════════════════════
 test('判据C-① 防抖窗口内探测整次跳过，本机改动不被吞、随后仍正常落库', async () => {
-  const b = await openApiPage(base, 'p11');
+  const b = await openApiPage(base, '2400012355');
   try {
     await waitIdle(b.page);
     const r = await b.page.evaluate(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261018h');
-      const { persist, probeRemoteChanges } = await import('/src/data/data-adapter.js?v=20261018h');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261102b');
+      const { persist, probeRemoteChanges } = await import('/src/data/data-adapter.js?v=20261102b');
       mockDB.notices.push({
-        id: 'p11-c1-local', title: 'p11-c1-local', content: 'x', priority: 'normal',
+        id: '2400012355-c1-local', title: '2400012355-c1-local', content: 'x', priority: 'normal',
         publishDate: '2026-09-24', expireDate: '2026-10-01', read: false,
       });
       persist();                                  // ⇒ 防抖 800ms 窗口内
       const p = await probeRemoteChanges();       // 立刻探测（最容易做错的一条）
-      return { p, stillLocal: (mockDB.notices || []).some((n) => n.id === 'p11-c1-local') };
+      return { p, stillLocal: (mockDB.notices || []).some((n) => n.id === '2400012355-c1-local') };
     });
     assert.equal(r.p.skipped, 'pending-write', `防抖窗口内探测必须整次跳过（实测 ${JSON.stringify(r.p)}）`);
     assert.equal(r.stillLocal, true, '本机刚写、尚未上传的改动不得被探测回滚');
     await settle(b.page);
-    assert.ok(idsIn('notices', 'p11-c1-local').includes('p11-c1-local'), '跳过探测后，本机改动应照常落库（未被吞）');
+    assert.ok(idsIn('notices', '2400012355-c1-local').includes('2400012355-c1-local'), '跳过探测后，本机改动应照常落库（未被吞）');
     const stillLocal = await b.page.evaluate(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261018h');
-      return (mockDB.notices || []).some((n) => n.id === 'p11-c1-local');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261102b');
+      return (mockDB.notices || []).some((n) => n.id === '2400012355-c1-local');
     });
     assert.equal(stillLocal, true, '落库后本机记录仍在');
-    console.log(`[判据C-①] skipped=${r.p.skipped}；本机改动保留=${r.stillLocal}；落库=${idsIn('notices', 'p11-c1-local').join(',')}`);
+    console.log(`[判据C-①] skipped=${r.p.skipped}；本机改动保留=${r.stillLocal}；落库=${idsIn('notices', '2400012355-c1-local').join(',')}`);
   } finally {
     await b.ctx.close();
   }
 });
 
 test('判据C-② 本机未 persist 的脏集合不重拉（其它集合照常刷新）', async () => {
-  const a = await openApiPage(base, 'p10');
-  const b = await openApiPage(base, 'p11');
+  const a = await openApiPage(base, '2400012354');
+  const b = await openApiPage(base, '2400012355');
   try {
+    // 2026-10-23 批次 506：A 侧也要等 `init()` 收尾再推写——只等 B 时，A 的首次快照加载
+    //   可能晚于本用例的 `mockDB.push`，把刚推的两行整份覆盖掉（表现为「两笔写永远不落服务端」，
+    //   实测整文件跑红 / 单跑绿）。`waitIdle` 以 `skipped: not-ready → 可探测` 为就绪判据，语义不变。
+    await waitIdle(a.page);
     await waitIdle(b.page);
     // B 本机：periodicArchives 上有**未 persist** 的本地改动（`_collectDirty` 认为脏、但无在途写）
     await b.page.evaluate(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261018h');
-      mockDB.periodicArchives.push({ id: 'p11-c2-local', periodLabel: 'P-local', content: 'x' });
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261102b');
+      mockDB.periodicArchives.push({ id: '2400012355-c2-local', periodLabel: 'P-local', content: 'x' });
     });
     // A 写两个集合：一个与 B 的脏集合同名（periodicArchives），一个是干净集合（archiveRecords）
     await pushAndPersist(a.page, {
-      periodicArchives: { id: 'p11-c2-server', periodLabel: 'P-server', content: 'y' },
-      archiveRecords: { id: 'p11-c2-arch', title: 'P1-1 C2', archivedAt: '2026-09-24' },
+      periodicArchives: { id: '2400012355-c2-server', periodLabel: 'P-server', content: 'y' },
+      archiveRecords: { id: '2400012355-c2-arch', title: 'P1-1 C2', archivedAt: '2026-09-24' },
     });
     await settle(a.page);
+    // 前置：A 的两笔写必须**已落服务端**（与判据A-①/B 同口径）。
+    // 2026-10-22 批次 503 实测：满载并行跑全量时，固定 1800ms 在个别轮次不够 ⇒ 探测得体但
+    // 「干净集合没东西可刷」⇒ 报成 C-② 红。改为有界轮询服务端真值：超 15s 直接红，不给慢留余地；
+    // **判据语义一字未变**（仍是「脏集合不回滚、干净集合照常刷新」）。
+    {
+      const deadline = Date.now() + 15000;
+      let landed = false;
+      while (Date.now() < deadline) {
+        landed = idsIn('periodic_archive_submissions', '2400012355-c2-server').includes('2400012355-c2-server')
+          && idsIn('archive_records', '2400012355-c2-arch').includes('2400012355-c2-arch');
+        if (landed) break;
+        await new Promise((r) => setTimeout(r, 250));
+      }
+      assert.ok(landed, '前置：A 的两笔写应已落服务端（满载时 1800ms 可能不够；此断言只查前置，不改 C-② 判据）');
+    }
     const r = await probe(b.page);
     const local = await b.page.evaluate(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261018h');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261102b');
       return {
-        keepLocal: (mockDB.periodicArchives || []).some((w) => w.id === 'p11-c2-local'),
-        gotOther: (mockDB.archiveRecords || []).some((x) => x.id === 'p11-c2-arch'),
-        tookServerForDirty: (mockDB.periodicArchives || []).some((w) => w.id === 'p11-c2-server'),
+        keepLocal: (mockDB.periodicArchives || []).some((w) => w.id === '2400012355-c2-local'),
+        gotOther: (mockDB.archiveRecords || []).some((x) => x.id === '2400012355-c2-arch'),
+        tookServerForDirty: (mockDB.periodicArchives || []).some((w) => w.id === '2400012355-c2-server'),
       };
     });
     assert.equal(local.keepLocal, true, '本机未提交的脏集合不得被远端数据覆盖（否则即「回滚本机未提交的写」）');
@@ -367,18 +388,24 @@ test('判据D 断服后探测静默：无错误浮层 / 无 pageerror / 页面�
   const srv2 = app2.listen(0);
   const base2 = `http://127.0.0.1:${srv2.address().port}`;
   const page = await (async () => {
-    const p = await openApiPage(base2, 'p11');
+    const p = await openApiPage(base2, '2400012355');
     return p;
   })();
   const errors = [];
   page.page.on('pageerror', (e) => errors.push(String(e)));
   try {
+    // 批次 501：先等「登录后 init 的在途写」落定，否则探测会先返回 pending-write，
+    //   走不到本用例要验的 unreachable（测试自污染，不是产品行为）。
+    // 首次 idle 时的 refresh 可能又排了一次本机快照写 ⇒ 再放一个防抖窗口并复核一次。
+    await waitIdle(page.page);
+    await settle(page.page);
+    await waitIdle(page.page);
     await new Promise((r) => { srv2.closeAllConnections?.(); srv2.close(r); }); // ⇒ 服务断开
     const r = await probe(page.page);
     assert.equal(r.skipped, 'unreachable', `断服时探测须静默降级为 unreachable（实测 ${JSON.stringify(r)}）`);
     const ui = await page.page.evaluate(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261018h');
-      const { getRuntimeMode } = await import('/src/data/data-adapter.js?v=20261018h');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261102b');
+      const { getRuntimeMode } = await import('/src/data/data-adapter.js?v=20261102b');
       return {
         hasErrorOverlay: Boolean(document.getElementById('data-source-error')),
         stillUsable: Array.isArray(mockDB.notices) && mockDB.notices.length > 0,

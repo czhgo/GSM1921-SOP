@@ -1,6 +1,9 @@
 // server/seed.js — 从前端 mock 纯数据模块导入种子
+import { DEFAULT_BRANCH_ID } from '../docs/src/core/domain/constants.js';
 import { readFileSync } from 'node:fs';
 import { replaceCollection } from './db.js';
+// Task 1（2026-10-25）：种子只写事实；派生字段统一由 mock/derive.js 补回，API 与 mock 同源。
+import { applyDerivedFacts } from '../docs/src/data/mock/derive.js';
 
 /**
  * 反馈域基线种子（R-24，2026-09-13 支书裁定「分形态各接各的源」）：
@@ -16,7 +19,7 @@ import { replaceCollection } from './db.js';
  *   · 支部归属 branchId（每个组织独立 issue 空间，2026-09-15 支书裁定）：取 issues.json 所载；
  *     存量缺省按部署默认支部 'br-b1'（与前端 services/governance/issues.js 写入口径 getBranchIdOfPerson 同源）。
  */
-function seedIssues() {
+export function seedIssues() {
   let raw;
   try {
     raw = JSON.parse(readFileSync(new URL('../docs/data/issues.json', import.meta.url), 'utf8'));
@@ -32,9 +35,9 @@ function seedIssues() {
     //   支书台「汇报收件箱」与成员台「我发起的汇报」全靠这些字段成立。
     //   若照旧一律脱敏，api 形态会把这些字段抹掉 ⇒ 两形态不一致（mock 直读原文件带名、api 全匿名）
     //   ⇒ 守卫绿而支书在真实演示里看不到汇报（典型的假绿）。故按 kind 分流。
-    if (r.kind === 'report') return { ...r, branchId: r.branchId || 'br-b1' };
+    if (r.kind === 'report') return { ...r, branchId: r.branchId || DEFAULT_BRANCH_ID };
     const { tokenHash: _t, participants: _p, submittedBy: _s, ...rest } = r;
-    return { ...rest, branchId: r.branchId || 'br-b1', submittedBy: '匿名', anonymous: true, participants: [] };
+    return { ...rest, branchId: r.branchId || DEFAULT_BRANCH_ID, submittedBy: '匿名', anonymous: true, participants: [] };
   });
 }
 
@@ -47,7 +50,7 @@ function seedIssues() {
  *   `GET /api/v1/milestones` ⇒ 两形态同内容。
  * ⚠ 只读域：本表只由播种写入，前端无写口（里程碑的维护仍走静态文件 + 重新部署）。
  */
-function seedMilestones() {
+export function seedMilestones() {
   let raw;
   try {
     raw = JSON.parse(readFileSync(new URL('../docs/data/milestones.json', import.meta.url), 'utf8'));
@@ -73,10 +76,14 @@ export async function seedDatabase(db) {
   // 原迁移 v3 在 seed 之前执行（新库此时活动/专班为空）⇒ 播种后工作组缺失；
   // 这里用同一迁移函数（单一源）补齐，并追加演示成员产出授权种子。
   const workgroupSeed = {
-    activities: activitiesMod.ACTIVITIES.map((row) => ({ ...row })),
+    // 2026-10-21 批次 499：种子活动补齐组织落点 + 模型必填装载默认（单一源 workgroup-seed-sync.js），
+    // 使 API 首启数据与真实写入结构一致；mock 形态走同一函数。
+    activities: workgroupSyncMod.normalizeSeedActivitySeedRows(activitiesMod.ACTIVITIES),
     taskforces: taskforcesMod.MOCK_TASKFORCES.map((row) => ({ ...row })),
     workgroups: [], workgroupMembers: [], workgroupGrants: [],
   };
+  // Task 1：专班状态是派生态；先补回 canonical 状态，工作组镜像才能按同一枚举建组。
+  applyDerivedFacts(workgroupSeed, { people: peopleMod.PEOPLE });
   workgroupSyncMod.ensureLegacySourceWorkgroups(workgroupSeed);
   workgroupSyncMod.ensureDemoWorkgroupGrants(workgroupSeed);
   const replaceWorkgroupTable = (table, rows) => {
@@ -113,7 +120,7 @@ export async function seedDatabase(db) {
   // 与 mock 态**同源**（`docs/src/data/mock/seed.js::SEED_MAKEUP_TASKS`，经 mock-adapter._seedInitialData 注入）
   // ⇒ 两形态一致；补它的直接动因：成员台「考勤概况 · 去补课」入口只在「本人 pending 补课任务」存在时渲染，
   //   而该表原无种子（`data-adapter.js` 原注「由纪检操作生成，空属合理」）⇒ api 形态下该入口恒不存在。
-  //   本条任务＝`att900`（p5 · act-31 · 缺勤 · 已确认）的派生结果（详见该常量注释；
+  //   本条任务＝`att900`（2400012349 · act-31 · 缺勤 · 已确认）的派生结果（详见该常量注释；
   //   `attendanceRecordId` 原误写 `att-sep-1`，2026-09-26 已按真实 id 改准为 `att900`）。
   replaceCollection(db, 'makeup_tasks', seedMod.SEED_MAKEUP_TASKS);
   // 2026-09-14 批次 25：党小组一等实体种子（br-b1 现有三组；组长由成员档案派生不落本表）
@@ -154,6 +161,11 @@ export async function seedDatabase(db) {
   replaceCollection(db, 'attendances', attendanceMod.ATTENDANCE_RECORDS);
   // 考察（内容单一源 = `data/mock/inspection.js::INSPECTION_RECORDS`）
   replaceCollection(db, 'inspections', inspectionMod.INSPECTION_RECORDS);
+  // v12：考察对象必须是父工作组成员。用考察事实补工作组成员（不新增人员/活动），
+  //   与 `seed-rows.js` 的派生种子同源；补完只需重写成员表（授权表未变）。
+  if (workgroupSyncMod.ensureInspectionWorkgroupMembers(workgroupSeed, inspectionMod.INSPECTION_RECORDS)) {
+    replaceWorkgroupTable('workgroup_members', workgroupSeed.workgroupMembers);
+  }
   // 活动复盘 / 专班复盘（内容单一源 = `data/mock/review.js` 的两个具名导出）
   replaceCollection(db, 'activity_reviews', reviewMod.REVIEW_RECORDS);
   replaceCollection(db, 'taskforce_reviews', reviewMod.TASKFORCE_REVIEW_RECORDS);
@@ -164,24 +176,36 @@ export async function seedDatabase(db) {
   //   ⇒ 两份字面量、须人工同步（该复刻块的原注释即写明「如后续把该常量导出，请改为 import 同源（勿留两份）」）。
   //   现该常量已收进单一源模块：UI 侧（`prop/weekly-tab.js` / `prop/tasks-tab.js`）与本节**同源 import 同一份**——
   //   UI 侧作 mockDB 空表兜底注入，本节作 api 形态首启播种 ⇒ 两形态同内容、且再无第二份可漂移。
-  const { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } = await import('../docs/src/data/mock/prop.js');
+  const [{ PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED }, auxSeed] = await Promise.all([import('../docs/src/data/mock/prop.js'), import('../docs/src/data/mock/auxiliary.js')]);
   replaceCollection(db, 'periodic_archive_submissions', PERIODIC_ARCHIVES_SEED);
   replaceCollection(db, 'prop_tasks', PROP_TASKS_SEED);
   // 文件流外发确认（形状 = `services/activity/external-dispatch.js::addExternalDispatch`；1 条待确认 + 1 条已确认）
-  replaceCollection(db, 'external_dispatches', SEED_EXTERNAL_DISPATCHES);
+  replaceCollection(db, 'external_dispatches', auxSeed.SEED_EXTERNAL_DISPATCHES);
   // 三委数据交接（形状 = `routes/resources.js` 的 `POST /handoffs`；from/to 由 type 经 HANDOFF_TYPES 派生）
-  replaceCollection(db, 'handoffs', SEED_HANDOFFS);
+  replaceCollection(db, 'handoffs', auxSeed.SEED_HANDOFFS);
   // 名册成员变更确认队列（形状 = `POST /member-confirmations`；待支书确认 1 条）
-  replaceCollection(db, 'member_confirmations', SEED_MEMBER_CONFIRMATIONS);
+  replaceCollection(db, 'member_confirmations', auxSeed.SEED_MEMBER_CONFIRMATIONS);
   // 出勤 / 考察申诉队列（形状 = `POST /attendance-appeals` / `POST /inspection-appeals`；各 1 条 pending）
-  replaceCollection(db, 'attendance_appeals', SEED_ATTENDANCE_APPEALS);
-  replaceCollection(db, 'inspection_appeals', SEED_INSPECTION_APPEALS);
+  replaceCollection(db, 'attendance_appeals', auxSeed.SEED_ATTENDANCE_APPEALS);
+  replaceCollection(db, 'inspection_appeals', auxSeed.SEED_INSPECTION_APPEALS);
   // 意见反馈「逐人未读标记」（形状 = `POST /issue-unread`：id = `${assigneeId}:${issueId}`）
-  replaceCollection(db, 'issue_unread', SEED_ISSUE_UNREAD);
+  replaceCollection(db, 'issue_unread', auxSeed.SEED_ISSUE_UNREAD);
   // 授权审计留痕（形状 = `POST /auth-audit`；记 br-b1 首任支书的任命，与 branches.secretaryId 自洽）
-  replaceCollection(db, 'auth_audit', SEED_AUTH_AUDIT);
+  replaceCollection(db, 'auth_audit', auxSeed.SEED_AUTH_AUDIT);
   // 支书任期记录（形状 = `appointmentRecords` 通用 CRUD；现任一条、`to: null`，与 branches.secretaryId 自洽）
-  replaceCollection(db, 'appointment_records', SEED_APPOINTMENT_RECORDS);
+  replaceCollection(db, 'appointment_records', auxSeed.SEED_APPOINTMENT_RECORDS);
+
+  // ════════════════════════════════════════════════════════════════
+  //  2026-11-02 批次 527（数据契约 Wave 2）：补「契约有、种子无」的 4 张表
+  // ════════════════════════════════════════════════════════════════
+  //  · image_records：2 条绑定既有已收录活动 ⇒ 首页「活动风采」不再恒空；
+  //  · member_change_requests：roster / transfer 各 1 条 ⇒ 成员确认页不再恒空；
+  //  · workgroup_tasks / workgroup_outputs：tf-002 工作组 2 任务 1 产出 ⇒ 首页/专班页有真实读数。
+  // 全部与 mock 形态同源（`docs/src/data/mock/auxiliary.js`），不另造第二份清单。
+  replaceCollection(db, 'image_records', auxSeed.SEED_IMAGE_RECORDS);
+  replaceCollection(db, 'member_change_requests', auxSeed.SEED_MEMBER_CHANGE_REQUESTS);
+  replaceWorkgroupTable('workgroup_tasks', auxSeed.SEED_WORKGROUP_TASKS);
+  replaceWorkgroupTable('workgroup_outputs', auxSeed.SEED_WORKGROUP_OUTPUTS);
 
   // ════════════════════════════════════════════════════════════════
   //  批次 195+（2026-09-26）：待办（todos）基线种子（**补已知缺口**）
@@ -190,10 +214,10 @@ export async function seedDatabase(db) {
   //   `routes/leader-progress.js` 的 todos 读口径）：`todos` 在本系统里**两种性质并存**，故按纪律①播种——
   //   · **运行时派生**是常态：通知（`NoticeTodoDeriver`）/ 活动·专班生命周期（`LifecycleTodoDeriver`）/
   //     成员台参与（`VisitorTodoDeriver`）都在业务动作**发生时**派生待办——这些**不落种子**，由演示过程自然产生；
-  //   · 但另有一小批**独立台账型种子**：`docs/src/services/governance/todo.js::SEED_TODOS`（2 条：宣传委员「提交七一活动
-  //     新闻稿」·支书「设置第三党小组组长」；`sourceType:'manual'`、`sourceId:null`，**不引用任何活动/任务/
-  //     人员实体** ⇒ 零孤立引用）——由前端 `seedTodos()`（各工作台入口调用）与 `data-adapter.js::init()` 的
-  //     `SEED_FALLBACK` 空表回退**两处**注入，属既有演示基线。
+  //   · 但另有一小批**独立台账型种子**：`docs/src/services/governance/todo.js::SEED_TODOS`（1 条：宣传委员
+  //     「提交红色徒步·香山行新闻稿」；R2-33 已删除「设置第三党小组组长」假待办——2400012348 早已是第三组组长；
+  //     该条已挂 `sourceId: act-37`，活动归档可自动销项）——由前端 `seedTodos()`（各工作台入口调用）与
+  //     `data-adapter.js::init()` 的 `SEED_FALLBACK` 空表回退**两处**注入，属既有演示基线。
   // 处方：**从 `SEED_TODOS` 同源播种**（与 mock 形态逐值一致；前端 seedTodos() 读的正是同一常量），
   //   **不在服务端另造第二份清单**（与 `seedIssues()`／`seedMilestones()` 同一纪律）。
   // 直接动因：本文件原先**未播种 `todos`** ⇒ api 形态首启「待办」恒空，全靠前端空表回退兜底；
@@ -202,7 +226,38 @@ export async function seedDatabase(db) {
   //   三条开关语义**一字未改**）。
   // 幂等：`replaceCollection` = `DELETE FROM todos` + 整表 `INSERT` ⇒ 重复播种只覆盖、不叠加。
   const { SEED_TODOS } = await import('../docs/src/services/governance/todo.js?v=20260924a');
-  replaceCollection(db, 'todos', SEED_TODOS);
+  // v11（批次 504）：`todos.branch_id` 是普通列，`replaceCollection` 只写 id/data ⇒ 种子也须显式归属，
+  //   否则 API 形态按支部读待办会空。缺省归属沿用部署默认支部（与消息/活动种子同口径）。
+  // v12：`todos.branch_id` 已是生成列（json_extract(data,'$.branchId')），只写 data 即可。
+  replaceCollection(db, 'todos', SEED_TODOS.map((row) => ({ ...row, branchId: row.branchId || DEFAULT_BRANCH_ID })));
+
+  // ════════════════════════════════════════════════════════════════
+  //  Task 1（2026-10-25）：事实 → 派生（与 mock hydrate 同一个 applyDerivedFacts）
+  // ════════════════════════════════════════════════════════════════
+  // 种子文件只写事实（日期 / 确认动作 / 归档指向 / 参会 / 报名）；下列派生字段在落库后统一补回，
+  // 保证 API 形态与 mock 形态读到的形状一致：
+  //   activities.status · activityReviews.progress/overdue · inspections.status ·
+  //   taskforces.status · archiveRecords.activityName/status · notices.expireDate ·
+  //   attendances.studentId/developStage/partyGroup
+  const DERIVED_TABLES = [
+    ['activities', 'activities'],
+    ['activity_reviews', 'activityReviews'],
+    ['inspections', 'inspections'],
+    ['taskforces', 'taskforces'],
+    ['archive_records', 'archiveRecords'],
+    ['notices', 'notices'],
+    ['attendances', 'attendances'],
+  ];
+  const derivedRows = {};
+  for (const [table, key] of DERIVED_TABLES) {
+    derivedRows[key] = db.prepare(`SELECT data FROM ${table}`).all().map((row) => JSON.parse(row.data));
+  }
+  if (applyDerivedFacts(derivedRows, { people: peopleMod.PEOPLE })) {
+    for (const [table, key] of DERIVED_TABLES) {
+      const update = db.prepare(`UPDATE ${table} SET data = ? WHERE id = ?`);
+      for (const row of derivedRows[key]) update.run(JSON.stringify(row), row.id);
+    }
+  }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -213,122 +268,11 @@ export async function seedDatabase(db) {
 // 2026-09-28 批次 234：原在此的两个「逐字复刻」常量（宣传周报 `SEED_WEEKLY_REPORTS` / 宣传任务 `SEED_PROP_TASKS`）
 //   **已删** —— 二者与 `docs/src/data/mock/prop.js` 字面量完全重复，现改由该单一源同源 import（见 `seedDatabase()` 内）。
 
-/**
- * 文件流外发确认（形状 = `services/activity/external-dispatch.js::addExternalDispatch` 的落库对象）。
- * `senderId`/`senderName` 取自 `people.js` 档案（p3 何晓峰 / p10 董建军）；`receiverRole` = 接收方角色键。
- * 一条待确认（`confirmedAt: null` ⇒ 接收方工作台「待确认外发」有行）、一条已确认（闭环留痕）。
- */
-const SEED_EXTERNAL_DISPATCHES = [
-  {
-    id: 'ed-seed-1', refType: 'publicity', refLabel: '7月主题党日「学习两会精神」新闻稿',
-    senderId: 'p3', senderName: '何晓峰', receiverRole: 'secretary',
-    note: '新闻稿已微信发给支书审核', sentAt: '2026-07-04T10:00:00.000Z', confirmedAt: null,
-  },
-  {
-    id: 'ed-seed-2', refType: 'inspection', refLabel: '7月党小组会考勤统计',
-    senderId: 'p10', senderName: '董建军', receiverRole: 'org-commissioner',
-    note: '考勤统计已外发组织委员归档', sentAt: '2026-07-13T18:00:00.000Z', confirmedAt: '2026-07-14T09:00:00.000Z',
-  },
-];
-
-/**
- * 三委数据交接（形状 = `routes/resources.js` 的 `POST /handoffs`；`from`/`to` **由 type 经
- * `services/governance/handoff.js::HANDOFF_TYPES` 派生**，此处逐字对齐该常量，不另写类型表）。
- * 引用：`refType:'activity'` + `refId` 取真实活动 id（act-8 支部党员大会 / act-10 主题党日，
- * 两场均有考勤与考察记录 ⇒ 与「考勤统计 / 考察记录提交」的语义自洽）。
- * 一条 pending（纪检→组织，待接收方确认；接收方台账有行）+ 一条 done（已确认闭环留痕）。
- */
-const SEED_HANDOFFS = [
-  {
-    id: 'ho-seed-1', type: 'attendance-archival', from: 'disc-commissioner', to: 'org-commissioner',
-    refType: 'activity', refLabel: '7月支部党员大会考勤统计', refId: 'act-8',
-    note: '7月考勤已核对完毕，转组织委员归档', status: 'pending',
-    createdAt: '2026-07-13T09:00:00.000Z', confirmedAt: null, confirmedBy: null,
-  },
-  {
-    id: 'ho-seed-2', type: 'inspection-report', from: 'disc-commissioner', to: 'org-commissioner',
-    refType: 'activity', refLabel: '7月主题党日考察记录提交', refId: 'act-10',
-    note: '考察记录已提交', status: 'done',
-    createdAt: '2026-07-14T09:00:00.000Z', confirmedAt: '2026-07-14T15:00:00.000Z', confirmedBy: 'org-commissioner',
-  },
-];
-
-/**
- * 名册成员变更确认队列（形状 = `POST /member-confirmations`；`action` 取值见
- * `services/member/member-confirmation.js::MC_ACTION_LABEL`（developStage / residence / transferOut），
- * 状态机 = `POST /member-confirmations/:id/decide`）。
- * 造 1 条**待确认**（`status:'pending'`）：p6 苏明哲（档案 `developStage:'发展对象'`）→ 预备党员，
- * 由组织委员发起、待支书确认 ⇒ 支书台「待确认」队列首启即有真行（终态行由演示过程自然产生，**不预置**，
- * 与 `SEED_REVIEW_REQUESTS` 同一口径）。
- */
-const SEED_MEMBER_CONFIRMATIONS = [
-  {
-    id: 'mc-seed-1', kind: 'change', personId: 'p6', action: 'developStage',
-    from: '发展对象', to: '预备党员', note: '支部党员大会通过接收苏明哲同志为预备党员，报请支书确认生效',
-    by: 'p11', status: 'pending', decidedBy: null, decidedAt: null, rejectNote: '',
-    createdAt: '2026-09-12T10:00:00.000Z',
-  },
-];
-
-/**
- * 出勤申诉队列（形状 = `POST /attendance-appeals`）。
- * 引用自洽：p5 宋佳宁在 `act-11`（7月支委会）有一条**缺勤**考勤（`att38`，已由 p10 确认）
- * ⇒ 「本人已请假、考勤记为缺勤，申请更正」这条申诉针对的正是那条真实考勤行。
- * （**故意不挂 act-31 的那条缺勤**：`att900` 已派生补课任务 `mk-seed-1`，两事并存会语义打架。）
- */
-const SEED_ATTENDANCE_APPEALS = [
-  {
-    id: 'appeal-seed-1', branchId: 'br-b1', personId: 'p5', activityId: 'act-11',
-    note: '7月支委会本人课前已向组织委员请假，考勤记录为缺勤，申请更正为请假',
-    status: 'pending', createdAt: '2026-09-12T09:00:00.000Z',
-  },
-];
-
-/**
- * 考察申诉队列（形状 = `POST /inspection-appeals`）。
- * 引用自洽：p26 朱欣怡在 `act-22`（7月积极分子座谈会）有一条真实考察记录（`insp-16`，深度参与）
- * ⇒ 申诉针对的正是该活动下已存在的考察行，诉求为「工作量未完整反映」。
- */
-const SEED_INSPECTION_APPEALS = [
-  {
-    id: 'inspAppeal-seed-1', branchId: 'br-b1', personId: 'p26', activityId: 'act-22',
-    note: '本人除发言准备外另承担了签到统计，考察记录未完整反映工作量，申请补充',
-    status: 'pending', createdAt: '2026-09-12T09:30:00.000Z',
-  },
-];
-
-/**
- * 意见反馈「逐人未读标记」（形状 = `POST /issue-unread`；id 恒为 `${assigneeId}:${issueId}`）。
- * 引用自洽：`issue-002` 的 `assignee` = p11、`issue-003` 的 `assignee` = p1（见 `docs/data/issues.json`，
- * 由 `seedIssues()` 播进 issues 表）⇒ 未读标记只挂在**确有指派**的条目上（不凭空造）。
- */
-const SEED_ISSUE_UNREAD = [
-  { id: 'p11:issue-002', assigneeId: 'p11', issueId: 'issue-002', unread: true, at: '2026-07-23T10:00:00.000Z' },
-  { id: 'p1:issue-003', assigneeId: 'p1', issueId: 'issue-003', unread: true, at: '2026-07-26T10:00:00.000Z' },
-];
-
-/**
- * 授权审计留痕（形状 = `POST /auth-audit`；字段白名单 id/targetPersonId/role/scopeRef/authorizedBy/
- * authorizedAt/action）。记 `br-b1` 首任支书的任命（被授权人 p13 储子禾、授权人 p_pc 党委组织员、
- * 日期与 `data/mock/branches.js::BRANCHES[0].createdAt`（2026-09-01）一致）⇒ 与 `branches.secretaryId`
- * 及下方 `SEED_APPOINTMENT_RECORDS` **三处自洽**（同一个人、同一天、同一个支部）。
- */
-const SEED_AUTH_AUDIT = [
-  {
-    id: 'auth-seed-1', targetPersonId: 'p13', role: 'secretary', scopeRef: 'br-b1',
-    authorizedBy: 'p_pc', authorizedAt: '2026-09-01', action: 'grant',
-  },
-];
-
-/**
- * 支书任期记录（形状 = `appointmentRecords` 通用 CRUD / `services/branch/appointment.js::listAppointments`
- * 的排序键 `from`）。一条**现任**记录（`to: null`）：`branchId` = br-b1、`secretaryId` = p13
- * ⇒ 与 `branches.br-b1.secretaryId`（`data/mock/branches.js`）一致；后续换届由 `appointSecretary()`
- * 自行「封口现任 + 新建」⇒ 本行是**真实链路的起点**，不是终态伪造。
- */
-const SEED_APPOINTMENT_RECORDS = [
-  {
-    id: 'appt-seed-1', branchId: 'br-b1', secretaryId: 'p13', note: '党委任命首任支书',
-    from: '2026-09-01T00:00:00.000Z', to: null,
-  },
-];
+// ── R10（2026-10-23，C14）：8 个「仅服务端种子」常量已迁至内容单一源
+//    `docs/src/data/mock/auxiliary.js`；此处再导出，保持既有 import（`server/seed-rows.js` 与测试）不变。
+//    播种取值见 `seedDatabase()` 内的 `auxSeed` 动态 import。──
+export {
+  SEED_EXTERNAL_DISPATCHES, SEED_HANDOFFS, SEED_MEMBER_CONFIRMATIONS,
+  SEED_ATTENDANCE_APPEALS, SEED_INSPECTION_APPEALS, SEED_ISSUE_UNREAD,
+  SEED_AUTH_AUDIT, SEED_APPOINTMENT_RECORDS,
+} from '../docs/src/data/mock/auxiliary.js';

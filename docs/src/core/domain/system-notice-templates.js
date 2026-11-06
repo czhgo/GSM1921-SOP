@@ -10,10 +10,20 @@
 //  约定：每个模板入参 vars = { sourceId, ...动态展示值 }；落点（targetUrl/targetType/targetId）
 //  一律由 sourceId 派生，客户端同名传入字段会被服务端 build 覆盖（不可伪造）。
 //  返回通知对象（不含 id/publishDate，由写入侧补齐）。
+//
+//  落点优先级（F06 · 2026-10-20 IA 修复）：通知同时带 `targetType+targetId` 与 `targetUrl` 时，
+//  **一律 targetType+targetId 优先**（能直达详情页）；`targetUrl` 仅在无类型/该类型无详情页时兜底。
+//  消费端：所有消息入口先落 `notice.html?id=`（唯一全貌），对象跳转由详情页内的唯一动作按
+//  `targetType+targetId` 承担；`resolveNoticeUrl` 的页面级兜底与 direct 直跳已于 2026-10-25 批次 510 删除。
+//
+//  跨台落点（F12 · 同一批）：落点必须按**接收人角色**生成；对当前角色不可达的目标（如支书→prop.html）
+//  改本位落点或纯文本，不得让点开即被身份门弹回。
 // ════════════════════════════════════════════════════════════════
 
 // 期次标签单一源（core/base/period.js）——勿在本文件另写季度格式化
-import { periodLabel } from '../base/period.js?v=20261018h';
+import { periodLabel } from '../base/period.js?v=20261102b';
+// 角色 → 工作台页单一源（F05/F12：按接收人角色生成落点，勿在本文件另写一张角色页表）
+import { ROLE_PAGE_MAP, SECRETARY_AND_DEPUTY_ROLES } from './constants.js?v=20261102b';
 
 /** 组装返回对象（跳过 undefined，保持通知结构精简；与原前端 add() 落库形态一致） */
 function pick(obj) {
@@ -24,11 +34,24 @@ function pick(obj) {
   return out;
 }
 
+/**
+ * 角色 → 本位工作台页（F05/F12）。
+ * 单一源 = `constants.js::ROLE_PAGE_MAP.workspace`；待办侧另有角色键 `visitor`（成员台待办派生的 role），
+ * 故仅补这一条映射，不复制整张表。未知角色返回 null（调用方自行兜底）。
+ */
+const ROLE_WORKSPACE_PAGE = { ...ROLE_PAGE_MAP.workspace, visitor: 'visitor.html' };
+function workspacePageOf(role) {
+  const page = role ? ROLE_WORKSPACE_PAGE[role] : null;
+  return page ? `workspace/${page}` : null;
+}
+
 const buildPeriodicArchiveSubmitted = ({ sourceId, periodLabel, periodRange, week, weekRange, submitterName }) => pick({
   title: '周期归档待审核',
   content: `${submitterName || '提交人'} 已提交周期归档${periodLabel || week ? `「${periodLabel || week}」` : ''}${periodRange || weekRange ? `（${periodRange || weekRange}）` : ''}，请审核（通过 / 退回）。`,
   priority: 'normal',
   audience: ['secretary', 'deputy-secretary'],
+  targetType: 'periodicArchive',
+  targetId: sourceId,
   targetUrl: `workspace/secretary.html?tab=overview&highlight=${sourceId}`,
 });
 
@@ -44,7 +67,12 @@ const TEMPLATES = {
     content: `${personName} 已提交${period ? `（${periodLabel(period)}）` : ''}思想汇报，系统已自动归档归集至其个人档案，可前往「思想汇报」台账查看调用。`,
     priority: 'normal',
     audience: ['org-commissioner'],
-    targetUrl: `workspace/org.html?tab=thought-review&highlight=${sourceId}`,
+    targetType: 'thoughtReport',
+    targetId: sourceId,
+    // F02（IA-F02）：思想汇报的单一承载面是独立详情页 `thought-report.html?id=<trId>`——
+    //   原 `tab=thought-review&highlight` 在壳清参后无人消费、台账也无对应锚点，深链等于失效。
+    //   `canReadThoughtReport` 对支委层放行（组织委员在内）⇒ 该接收角色可达。
+    targetUrl: `thought-report.html?id=${sourceId}`,
   }),
 
   // ── 周期归档提交后待支书审核（旧 kind 保持模板别名）──
@@ -74,6 +102,15 @@ const TEMPLATES = {
     title: '成员变更已审批通过',
     content: `${personName}：${fromStage}→${toStage} 已通过组织委员审批（${activityTitle}），待支书确认后更新发展阶段。`,
     priority: 'normal',
+    // F04（IA-F04）：仅支书/副支书收到——原无受众 ⇒ 全站广播，普通成员也会看到别人的阶段变更。
+    //   不设 `actionable`（确认动作在支书台「成员变更待确认」组，不另派生阅读待办）。
+    audience: SECRETARY_AND_DEPUTY_ROLES,
+    actionRoles: SECRETARY_AND_DEPUTY_ROLES,
+    // F03（IA-F03）：highlight 传**待确认申请 id**（与 member-change-panel 批量行
+    //   `data-mc-request-id` 同源）；todo-tab-shell 消费 `ctx.navTarget.hl` 真正定位到那一条，
+    //   不再只落 tab（壳会先清掉 URL 参数，tab 内读 location.search 恒为空）。
+    targetType: 'memberChange',
+    targetId: sourceId,
     targetUrl: `workspace/secretary.html?tab=todo&highlight=${sourceId}`,
   }),
 
@@ -103,7 +140,8 @@ const TEMPLATES = {
     actionRoles,
     actionable,
     actionTask,
-    targetUrl: 'workspace/secretary.html?tab=work-map',
+    // F06：本条已有 targetType+targetId（活动详情优先），原 `targetUrl: workspace/secretary.html?tab=work-map`
+    //   永远不会生效；且受众是全体支委，固定支书台也会把其他委员弹回 ⇒ 删除死链，按类型直达活动页。
   }),
 
   // ── 线上支委会表态更新（committee-vote.js 迁移；计数由服务端复算） ──
@@ -111,6 +149,8 @@ const TEMPLATES = {
     title: '线上支委会表态更新',
     content: `「线上支委会」已有 ${voted}/${total} 位委员表态`,
     priority: 'normal',
+    targetType: 'activity',
+    targetId: sourceId,
     targetUrl: `workspace/secretary.html?activityId=${sourceId}`,
     actionRoles: ['secretary'],
   }),
@@ -120,24 +160,34 @@ const TEMPLATES = {
     title: '线上支委会表决截止',
     content: '支委会议程已截止，请记录决议',
     priority: 'normal',
+    targetType: 'activity',
+    targetId: sourceId,
     targetUrl: `workspace/secretary.html?activityId=${sourceId}`,
     actionRoles: ['secretary'],
   }),
 
   // ── 赋权通知（auth.js 迁移） ────────────────────────────────────
-  'project-auth-granted': ({ targetPage, authorizerName, projectName, roleLabel }) => pick({
+  'project-auth-granted': ({ sourceId, targetPage, authorizerName, projectName, roleLabel, targetType }) => pick({
     title: '赋权通知',
     content: `${authorizerName} 已将您赋权为「${projectName}」的${roleLabel}。点击前往工作台。`,
     priority: 'normal',
+    targetType: targetType || (String(sourceId || '').startsWith('tf-') ? 'taskforce' : 'activity'),
+    targetId: sourceId,
     targetUrl: targetPage,
   }),
 
   // ── 材料外发待确认（external-dispatch.js 迁移） ───────────────────
-  'external-dispatch-created': ({ senderName, refLabel, receiverRole }) => pick({
+  'external-dispatch-created': ({ sourceId, senderName, refLabel, receiverRole }) => pick({
     title: '材料外发待确认',
     content: `${senderName} 已标记通过微信外发「${refLabel}」${receiverRole ? '给' + receiverRole : ''}。请前往微信群完成交接，收到后回系统确认。`,
     priority: 'normal',
-    targetUrl: 'workspace/visitor.html',
+    targetType: 'externalDispatch',
+    targetId: sourceId,
+    // F12（IA-F12）：落点按**接收人角色**生成本位工作台（确认位在各自工作概况里）——
+    //   原固定 `workspace/visitor.html` 会让支书/纪检/组织接收人被身份门弹回；
+    //   受众同时收窄到该接收角色（本通知就是发给「选定的接收方」的）。
+    audience: receiverRole ? [receiverRole] : undefined,
+    targetUrl: receiverRole ? workspacePageOf(receiverRole) : undefined,
   }),
 
   // ── 支部上报待批复（review-request.js 迁移） ──────────────────────
@@ -145,9 +195,13 @@ const TEMPLATES = {
     title: '支部上报待批复',
     content: `${branchLabel} 提交${subject}，由 ${submitterName} 发起，请党委审批。`,
     priority: 'normal',
+    targetType: 'reviewRequest',
+    targetId: sourceId,
+    // 党委跨支部通知：`branch-scope` 对未选支部的 party-staff 只放行 source='committee'
+    // （2026-10-18 规则）⇒ 支部上报必须显式标为党委级来源，否则党委读不到待批复通知。
+    source: 'committee',
     targetUrl: `workspace/party-committee.html?tab=review&highlight=${sourceId}`,
     actionRoles: ['party-staff'],
-    read: false,
   }),
 
   // ── 上报审批结论（review-request.js 迁移） ────────────────────────
@@ -155,9 +209,12 @@ const TEMPLATES = {
     title: approved ? '上报已获党委批准' : '上报被党委驳回',
     content: `${branchLabel} 的${subject}已${approved ? '批准' : '驳回'}${approved ? '' : '，请按党委意见整改后重新上报'}${decisionNote ? '。党委意见：' + decisionNote : '。'}`,
     priority: 'normal',
+    targetType: 'reviewRequest',
+    targetId: sourceId,
+    // 与提交通知同口径：党委未选支部时只读 source='committee'，结论通知须显式标为党委级来源。
+    source: 'committee',
     targetUrl: `workspace/secretary.html?tab=report-up&highlight=${sourceId}`,
     actionRoles: ['secretary', 'deputy-secretary'],
-    read: false,
   }),
 
   // ── 活动已创建请建核心群（decision-tree.js 迁移） ──────────────────
@@ -167,7 +224,7 @@ const TEMPLATES = {
     priority: 'normal',
     targetType: 'activity',
     targetId: sourceId,
-    targetUrl: 'workspace/leader.html',
+    // F06：`targetType+targetId` 优先 ⇒ 原 `targetUrl: workspace/leader.html` 永不生效（死链），删除。
   }),
 
   // ── 专班议案排入线上支委会待表态（taskforce.js 迁移） ──────────────
@@ -183,7 +240,6 @@ const TEMPLATES = {
     actionable: true,
     actionRoles,
     actionTask: '线上支委会表决待表态（专班议案）',
-    read: false,
   }),
 
   // ── 活动流程超时提醒（disc/review-tab.js 迁移） ────────────────────
@@ -197,7 +253,6 @@ const TEMPLATES = {
     actionable: true,
     actionRoles,
     actionTask: '活动流程超时提醒',
-    read: false,
   }),
 
   // ── 复盘超期提醒（disc/review-tab.js 迁移） ───────────────────────
@@ -211,7 +266,6 @@ const TEMPLATES = {
     actionable: true,
     actionRoles,
     actionTask: '复盘超期提醒',
-    read: false,
   }),
 
   // ── 活动预拟通知（secretary/calendar-tab.js 迁移；标题/正文由发布人填写） ──
@@ -223,7 +277,6 @@ const TEMPLATES = {
     targetModule: 'activity',
     targetType: 'activity',
     targetId: sourceId,
-    read: false,
   }),
 
   // ── 专班预拟通知（org/taskforce-tab.js 迁移；标题/正文由发布人填写） ──
@@ -235,7 +288,6 @@ const TEMPLATES = {
     targetModule: 'workspace',
     targetType: 'taskforce',
     targetId: sourceId,
-    read: false,
   }),
 
   // ── 补课材料催办（V-7 · 2026-10-01 批次 324；纪检委员催当事人） ──────
@@ -245,17 +297,21 @@ const TEMPLATES = {
   //   · **不设** `actionable`/`actionRoles`：待办派生是按**角色**建的（`NoticeTodoDeriver`），
   //     当事人是普通成员、无对应角色；当事人侧的「补课待办」走 `VisitorTodoDeriver` 的**通知阅读**待办
   //     （故**刻意不设** `targetModule: 'attendance'`——该值在 `deriveFromNotices` 里被显式跳过）。
-  //   · 落点＝成员台「考勤概况」（当事人提交补课材料处）。
-  'makeup-remind': ({ sourceId, personId, personName, activityName, deadline }) => pick({
-    title: '补课材料待补齐',
-    content: `你缺席的「${activityName}」须于 ${deadline} 前完成补课（自学＋心得），请尽快补交材料；纪检委员确认后该次缺勤才闭环。`,
-    priority: 'urgent',
-    audiencePersons: personId ? [personId] : undefined,
-    targetType: 'makeup',
-    targetId: sourceId,
-    targetUrl: 'workspace/visitor.html?tab=attendance',
-    read: false,
-  }),
+  //   · 落点＝当事人**本位**工作台（成员台落「考勤概况」＝提交补课材料处；其他角色落本台——F12）。
+  'makeup-remind': ({ sourceId, personId, personName, activityName, deadline, role }) => {
+    // F12（IA-F12）：补课落点按**当事人角色**本位生成——成员台落「考勤概况」（提交补课材料处），
+    //   其他角色落自己的工作台；原固定 visitor.html 对支委层会被身份门弹回。
+    const home = workspacePageOf(role) || 'workspace/visitor.html';
+    return pick({
+      title: '补课材料待补齐',
+      content: `你缺席的「${activityName}」须于 ${deadline} 前完成补课（自学＋心得），请尽快补交材料；纪检委员确认后该次缺勤才闭环。`,
+      priority: 'urgent',
+      audiencePersons: personId ? [personId] : undefined,
+      targetType: 'makeup',
+      targetId: sourceId,
+      targetUrl: home === 'workspace/visitor.html' ? `${home}?tab=attendance` : home,
+    });
+  },
 
   // ── 党委下发（party-committee/dispatch-tab.js 迁移；党委组织员人工下发） ──
   'committee-dispatch': ({ sourceId, title, content, priority, branchName }) => pick({
@@ -267,7 +323,8 @@ const TEMPLATES = {
     content,
     priority,
     targetModule: '',
-    read: false,
+    targetType: 'branch',
+    targetId: sourceId,
     publisher: '院党委（组织员）',
     recipients: '支部委员会（支委层）',
   }),
@@ -284,8 +341,8 @@ const TEMPLATES = {
     audiencePersons: removedPersonId ? [removedPersonId] : undefined,
     targetType,
     targetId: sourceId,
-    targetUrl: 'workspace/visitor.html',
-    read: false,
+    // F06：`targetType+targetId` 优先（活动/专班详情页）；原固定 `workspace/visitor.html`
+    //   对非成员角色会被身份门弹回且永不生效，删除死链。
   }),
 
   // ── 待办作废已裁决（`#1`/`D-742`；2026-10-02 批次 340 · 支书裁「支书如果不认为能取消 /
@@ -294,16 +351,23 @@ const TEMPLATES = {
   // 受众＝该待办**原属角色**（服务端按 `todos` 行复算，不信客户端自述）——归口委员得知「该事项
   //   作废了 / 被驳回仍须办结」，据此判断管理环节是否可优化。
   // **非行动性**（不设 `actionable`/`actionRoles`）⇒ 不派生待办，纯站内知会。
-  'todo-void-decided': ({ sourceId, todoTitle, decision, reason, audience }) => pick({
-    title: decision === 'rejected' ? '待办作废被驳回' : '待办作废已确认',
-    content: decision === 'rejected'
-      ? `「${todoTitle}」的作废申请已被驳回：该事项仍须办结，请予跟进${reason ? `（驳回意见：${reason}）` : ''}。`
-      : `「${todoTitle}」的作废申请已获支委会确认，该待办已出列（原因：${reason || '未填'}）。若这是流程本身可优化的信号，请留意相应环节。`,
-    priority: 'normal',
-    audience,
-    targetUrl: 'workspace/secretary.html?tab=todo',
-    read: false,
-  }),
+  'todo-void-decided': ({ sourceId, todoTitle, decision, reason, audience, role }) => {
+    // F05（IA-F05）：受众是「该待办原属角色」（可能是组织/宣传/纪检/组长），原固定落支书台
+    //   会被身份门弹回 ⇒ 按接收人角色生成本位工作台的待办页；无角色信息时才兜底支书台。
+    const targetRole = role || (Array.isArray(audience) ? audience[0] : (typeof audience === 'string' ? audience : ''));
+    const page = workspacePageOf(targetRole) || 'workspace/secretary.html';
+    return pick({
+      title: decision === 'rejected' ? '待办作废被驳回' : '待办作废已确认',
+      content: decision === 'rejected'
+        ? `「${todoTitle}」的作废申请已被驳回：该事项仍须办结，请予跟进${reason ? `（驳回意见：${reason}）` : ''}。`
+        : `「${todoTitle}」的作废申请已获支委会确认，该待办已出列（原因：${reason || '未填'}）。若这是流程本身可优化的信号，请留意相应环节。`,
+      priority: 'normal',
+      audience,
+      targetType: 'todo',
+      targetId: sourceId,
+      targetUrl: `${page}?tab=todo`,
+    });
+  },
 
   // ── 业务记录作废已裁决（`CRUD-4`/`CRUD-6` · 补录#1；2026-10-05 批次 407 · 支书圈「新建通知 kind」）──
   // 场景：责任人 `requestVoid` → 支委层在支书台**确认**或**驳回**该**业务记录**作废申请后的**到人知会**。
@@ -317,7 +381,8 @@ const TEMPLATES = {
       : `「${label || '该记录'}」的作废申请已获支委会确认，该记录已出列（原因：${reason || '未填'}）。`,
     priority: 'normal',
     audiencePersons,
-    read: false,
+    targetType: 'record',
+    targetId: sourceId,
   }),
 };
 
@@ -330,7 +395,9 @@ const TEMPLATES = {
 export function buildSystemNotice(kind, vars = {}) {
   const t = TEMPLATES[kind];
   if (!t) throw new Error(`未知的系统通知类型：${kind}`);
-  return t(vars);
+  // Task 3（2026-10-25）：系统派生通知统一带 kind='system'（消息对象模型单一身份）；
+  // 个别模板可显式覆盖（如纯公告型），未带坐标的历史模板由写入侧 / 历史规范化降级为 announcement。
+  return { kind: 'system', ...t(vars) };
 }
 
 /** 全部 kind 名（供守卫/调试） */

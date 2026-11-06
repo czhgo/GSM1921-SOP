@@ -1,0 +1,78 @@
+{
+  "generatedAt": "2026-11-02T11:35:48.212Z",
+  "keyCount": 45,
+  "baselineKeyCount": 45,
+  "missing": [],
+  "extra": [],
+  "pilotKey": "secretary.group-progress",
+  "readCount": 7,
+  "writeCount": 6,
+  "countRules": 1,
+  "destructive": [
+    {
+      "flow": "group-dissolve",
+      "reason": "解散为软删除（status=dissolved）且会批量清空成员 partyGroup；审计仅创建/删除自带试点组，不碰既有组"
+    }
+  ],
+  "pilotMap": {
+    "read": [
+      "GET /api/v1/partyGroups",
+      "GET /api/v1/users",
+      "GET /api/v1/activities",
+      "GET /api/v1/activityReviews",
+      "GET /api/v1/attendances",
+      "GET /api/v1/issues",
+      "GET /api/v1/todos"
+    ],
+    "write": [
+      {
+        "method": "POST",
+        "path": "/api/v1/partyGroups",
+        "gate": "secretary",
+        "flow": "group-create"
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/v1/partyGroups/:id",
+        "gate": "secretary",
+        "flow": "group-rename"
+      },
+      {
+        "method": "DELETE",
+        "path": "/api/v1/partyGroups/:id",
+        "gate": "secretary",
+        "flow": "group-dissolve",
+        "destructive": true,
+        "reason": "解散为软删除（status=dissolved）且会批量清空成员 partyGroup；审计仅创建/删除自带试点组，不碰既有组"
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/issues",
+        "gate": "requireAuth",
+        "flow": "group-ask-leader",
+        "selfService": true
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/todos",
+        "gate": "todo-row",
+        "flow": "todo-create"
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/issue-unread",
+        "gate": "requireAuth",
+        "flow": "issue-unread",
+        "selfService": true
+      }
+    ],
+    "count": [
+      {
+        "ui": ".gp-group-row",
+        "collection": "partyGroups",
+        "endpoint": "GET /api/v1/partyGroups",
+        "filter": "row.status === 'active'"
+      }
+    ]
+  }
+}

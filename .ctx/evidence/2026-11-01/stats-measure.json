@@ -1,0 +1,218 @@
+{
+  "desktop": {
+    "grid": {
+      "gap": "16px",
+      "columns": "276px 276px 276px 276px",
+      "rows": "96px",
+      "height": 96
+    },
+    "heroToStats": 24,
+    "statsToNotice": 16,
+    "cards": [
+      {
+        "cls": "card rounded-xl px-4 py-3 stat-card ",
+        "height": 96,
+        "width": 276,
+        "padding": "12px 16px",
+        "gap": "12px",
+        "icon": {
+          "w": 40,
+          "h": 40
+        },
+        "value": {
+          "h": 24,
+          "font": "24px",
+          "lh": "24px",
+          "weight": "600"
+        },
+        "label": {
+          "h": 18,
+          "font": "12px",
+          "lh": "18px"
+        },
+        "note": null,
+        "text": "3场 本月活动"
+      },
+      {
+        "cls": "card rounded-xl px-4 py-3 stat-card ",
+        "height": 96,
+        "width": 276,
+        "padding": "12px 16px",
+        "gap": "12px",
+        "icon": {
+          "w": 40,
+          "h": 40
+        },
+        "value": {
+          "h": 24,
+          "font": "24px",
+          "lh": "24px",
+          "weight": "600"
+        },
+        "label": {
+          "h": 18,
+          "font": "12px",
+          "lh": "18px"
+        },
+        "note": null,
+        "text": "1个 活跃专班"
+      },
+      {
+        "cls": "card rounded-xl px-4 py-3 stat-card ",
+        "height": 96,
+        "width": 276,
+        "padding": "12px 16px",
+        "gap": "12px",
+        "icon": {
+          "w": 40,
+          "h": 40
+        },
+        "value": {
+          "h": 24,
+          "font": "24px",
+          "lh": "24px",
+          "weight": "600"
+        },
+        "label": {
+          "h": 18,
+          "font": "12px",
+          "lh": "18px"
+        },
+        "note": null,
+        "text": "1条 未读通知"
+      },
+      {
+        "cls": "card rounded-xl px-4 py-3 stat-card card--interactive cursor-pointer",
+        "height": 96,
+        "width": 276,
+        "padding": "12px 16px",
+        "gap": "12px",
+        "icon": {
+          "w": 40,
+          "h": 40
+        },
+        "value": {
+          "h": 24,
+          "font": "24px",
+          "lh": "24px",
+          "weight": "600"
+        },
+        "label": {
+          "h": 18,
+          "font": "12px",
+          "lh": "18px"
+        },
+        "note": "本月无记录",
+        "text": "— 个人考勤 本月无记录"
+      }
+    ]
+  },
+  "mobile": {
+    "grid": {
+      "gap": "16px",
+      "columns": "171px 171px",
+      "rows": "96px 96px",
+      "height": 208
+    },
+    "heroToStats": 24,
+    "statsToNotice": 16,
+    "cards": [
+      {
+        "cls": "card rounded-xl px-4 py-3 stat-card ",
+        "height": 96,
+        "width": 171,
+        "padding": "12px 16px",
+        "gap": "12px",
+        "icon": {
+          "w": 40,
+          "h": 40
+        },
+        "value": {
+          "h": 24,
+          "font": "24px",
+          "lh": "24px",
+          "weight": "600"
+        },
+        "label": {
+          "h": 18,
+          "font": "12px",
+          "lh": "18px"
+        },
+        "note": null,
+        "text": "3场 本月活动"
+      },
+      {
+        "cls": "card rounded-xl px-4 py-3 stat-card ",
+        "height": 96,
+        "width": 171,
+        "padding": "12px 16px",
+        "gap": "12px",
+        "icon": {
+          "w": 40,
+          "h": 40
+        },
+        "value": {
+          "h": 24,
+          "font": "24px",
+          "lh": "24px",
+          "weight": "600"
+        },
+        "label": {
+          "h": 18,
+          "font": "12px",
+          "lh": "18px"
+        },
+        "note": null,
+        "text": "1个 活跃专班"
+      },
+      {
+        "cls": "card rounded-xl px-4 py-3 stat-card ",
+        "height": 96,
+        "width": 171,
+        "padding": "12px 16px",
+        "gap": "12px",
+        "icon": {
+          "w": 40,
+          "h": 40
+        },
+        "value": {
+          "h": 24,
+          "font": "24px",
+          "lh": "24px",
+          "weight": "600"
+        },
+        "label": {
+          "h": 18,
+          "font": "12px",
+          "lh": "18px"
+        },
+        "note": null,
+        "text": "1条 未读通知"
+      },
+      {
+        "cls": "card rounded-xl px-4 py-3 stat-card card--interactive cursor-pointer",
+        "height": 96,
+        "width": 171,
+        "padding": "12px 16px",
+        "gap": "12px",
+        "icon": {
+          "w": 40,
+          "h": 40
+        },
+        "value": {
+          "h": 24,
+          "font": "24px",
+          "lh": "24px",
+          "weight": "600"
+        },
+        "label": {
+          "h": 18,
+          "font": "12px",
+          "lh": "18px"
+        },
+        "note": "本月无记录",
+        "text": "— 个人考勤 本月无记录"
+      }
+    ]
+  }
+}

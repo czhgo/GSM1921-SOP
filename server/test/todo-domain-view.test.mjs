@@ -17,17 +17,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018h';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261102b';
 import {
   MockAdapter,
-} from '../../docs/src/data/mock-adapter.js?v=20261018h';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018h';
+} from '../../docs/src/data/mock-adapter.js?v=20261102b';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261102b';
 import {
   WORK_DOMAIN, WORK_DOMAIN_LABELS, DOMAIN_ORDER,
   TodoStore, TodoCategory, TodoStatus,
   realtimeGroupDomainOf,
   urgeRolesOf,
-} from '../../docs/src/services/governance/todo.js?v=20261018h';
+} from '../../docs/src/services/governance/todo.js?v=20261102b';
 // A① 通知对象级深链守卫（2026-09-10）：静态扫描 docs/src 全部通知生产点（纯 fs，无需浏览器）
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -222,7 +222,7 @@ test('④ getUnreadNotices：NONE 通知类未完成按 deadline/created 倒序�
 test('⑤ mergeRealtimeDomains：实时组并入对应域（新增域/域内追加/同 groupKey 去重/缺 domain 推断/domain=NONE 不入）', () => {
   beginMockCase();
   // 持久化 1 条考勤纪律域待办（secretary）
-  mk({ id: 'dv-p1', domain: WORK_DOMAIN.ATTENDANCE, actionKey: 'attendance-confirm', title: '考勤待复核', deadline: '2099-09-01' });
+  mk({ id: 'dv-2400012345', domain: WORK_DOMAIN.ATTENDANCE, actionKey: 'attendance-confirm', title: '考勤待复核', deadline: '2099-09-01' });
 
   const realtime = [
     // member-dev 实时组（域内无持久化 → 应新增该域）
@@ -328,23 +328,23 @@ test('⑦ urgeRolesOf：持久化待办按 role；实时组静态映射/决议 o
 
   // ③ 决议跟进：逐条 owner（role → 角色键；person → 成员角色；participant 跳过；去重）
   const people = [
-    { id: 'p10', role: 'org-commissioner' },
-    { id: 'p3', role: 'participant' },
-    { id: 'p11', role: 'prop-commissioner' },
+    { id: '2400012354', role: 'org-commissioner' },
+    { id: '2400012347', role: 'participant' },
+    { id: '2400012355', role: 'prop-commissioner' },
   ];
   const resRoles = urgeRolesOf({
     actionKey: 'resolution-followup-remind',
     items: [
       { ownerType: 'role', ownerId: 'disc-commissioner' },
-      { ownerType: 'person', ownerId: 'p10' },
-      { ownerType: 'person', ownerId: 'p3' }, // 普通参与者无角色通知位 → 跳过
+      { ownerType: 'person', ownerId: '2400012354' },
+      { ownerType: 'person', ownerId: '2400012347' }, // 普通参与者无角色通知位 → 跳过
       { ownerType: 'role', ownerId: 'disc-commissioner' }, // 去重
     ],
   }, { people });
   assert.deepEqual(resRoles.sort(), ['disc-commissioner', 'org-commissioner']);
 
   // ④ 复盘待提交：责任人为活动组织者（角色由成员数据解析；无对应成员跳过）
-  const activities = [{ id: 'act-1', organizer: 'p11' }, { id: 'act-2', organizer: 'pX' }];
+  const activities = [{ id: 'act-1', organizer: '2400012355' }, { id: 'act-2', organizer: 'pX' }];
   assert.deepEqual(
     urgeRolesOf({ actionKey: 'review-remind', items: [{ activityId: 'act-1' }, { activityId: 'act-2' }] }, { activities, people }),
     ['prop-commissioner'], '组织者 pX 无对应成员 → 跳过');
@@ -358,7 +358,7 @@ test('⑦ urgeRolesOf：持久化待办按 role；实时组静态映射/决议 o
 // ═══════════════ ⑧ A① 通知对象级深链守卫（2026-09-10 支书裁定） ═══════════════
 // 口径：凡 actionable:true 的通知生产点，其 NoticeStore.add 调用内必须携带对象级锚点——
 //   · targetUrl 对象级深链（如 workspace/x.html?tab=<tab>&highlight=<对象id>、activity.html?id=），或
-//   · targetType + targetId（resolveNoticeUrl 优先级 0 → 直达 activity.html?id=/taskforce.html?id=）。
+//   · targetType + targetId（消息详情页对象卡的唯一动作 → activity.html?id=/taskforce.html?id=）。
 // 防回归：若某生产点漏锚点，本测试即红。白名单仅接受「按角色自适应落点 / 无单一对象 id」的显式豁免。
 const NOTICE_ANCHOR_EXEMPT = [
   // 目前所有 actionable 生产点均已对象级锚定（review-tab 活动复盘→targetType/targetId；

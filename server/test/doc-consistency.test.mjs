@@ -10,7 +10,7 @@
 // 本守卫把「说明文件里的口径」变成**测试常驻断言**（判据一律以代码实测为准，不引用文档自述）：
 //   S1 各台 tab 数与代码注册数组长度一致（help.html 两处：§0.1 表与 §2.x 标题）
 //   S2 各台 tab 名称齐备且已删 tab 名不得复现（帮助页 §2.x 区块内逐名核对）
-//   S3 分组名只有一套轴：支部角色台＝工作台/我的职责/知情查看/制度与答复；党委台＝首页/全院治理/支部治理
+//   S3 分组名只有一套轴：支部角色台＝总览/我的职责/协作与知情/制度与答复；党委台＝党委治理
 //   S4 旧界面名黑名单零命中（考勤总表 / 按人浏览 / 公邮）——防「文档又写回旧名」
 //   S5 数据五数（mockDB / mock-adapter / db.js / 资源名 / 快照键）文档声明与代码实测一致
 //   S6 页面数（根页 + 工作台）文档声明与 `docs/` 实况一致
@@ -138,6 +138,14 @@ test('S2 各台 tab 名称齐备；已删 / 已改名 tab 名不得在帮助页�
     { name: '活动监督复盘', why: '已改名「复盘」（批次 368）' },
     { name: '周报报送', why: '已并入「档案归档」页内区（批次 367）' },
     { name: '赋权管理', why: '页签已撤（批次 190；赋权按对象归位）' },
+    // 2026-10-25 IA 62→45（spec Task 5）：被删/降的页签名不得再以表格行出现（新落点见 PRODUCT_IA 附录）。
+    { name: '活动日历', why: '页签已撤（四台降为工作概况页内折叠卡）' },
+    { name: '我的处置', why: '页签已撤（五台并入待办「我经办的反馈」区）' },
+    { name: '知情查看', why: '页签已撤（支书→概况页内卡；组长→组员进展独立区）' },
+    { name: '宣传任务', why: '页签已撤（并入项目看板泳道）' },
+    { name: '我的考察', why: '页签已撤（并入成员台「我的成长」子区）' },
+    { name: '我的复盘', why: '页签已撤（并入成员台「我的成长」子区）' },
+    { name: '专班动态', why: '页签已撤（并入项目分工「专班」区）' },
   ];
   for (const { name, why } of RENAMED_TABS) {
     assert.ok(!help.includes(`<td>${name}</td>`),
@@ -146,7 +154,10 @@ test('S2 各台 tab 名称齐备；已删 / 已改名 tab 名不得在帮助页�
 });
 
 test('S3 分组名只有一套轴：支部角色台四组、党委台统一治理组（且「党建 / 反馈」组名不得回潮）', () => {
-  const BRANCH_GROUPS = new Set(['工作台', '我的职责', '知情查看', '制度与答复']);
+  // 2026-10-24 Task 4.1：分组轴重裁定为「总览 / 我的职责 / 协作与知情 / 制度与答复」——
+  //   「工作台」→「总览」（与党委台「党委治理」区分）、「知情查看」→「协作与知情」
+  //   （消除支书台组名与组内页签名逐字相同）。本处只改期望值，断言结构一字未动。
+  const BRANCH_GROUPS = new Set(['总览', '我的职责', '协作与知情', '制度与答复']);
   // 2026-10-17：党委五个任务页签属于同一治理区，只保留一个分组标签，避免“首页 / 全院治理”在导航中散落。
   const PC_GROUPS = new Set(['党委治理']);
   const problems = [];
@@ -468,7 +479,7 @@ test('S12 授权声明必须同行带可核验日期（防「注释伪造支书�
 const TIMESTAMPS = join(ROOT, '.ctx', 'TIMESTAMPS.md');
 /** 白名单：**有 frontmatter 但无 `last_updated` 字段**的历史归档件（不静默放过；新增须逐条给理由，上限 2） */
 const TIMESTAMPS_SKIP_WHITELIST = [
-  '.ctx/snapshots/SNAPSHOT_v3_20260502.md', // 快照件用 date / archived_at 表达时点，无 last_updated 字段
+  '.ctx/logs/archive/2026-10/snapshots/SNAPSHOT_v3_20260502.md', // 快照件用 date / archived_at 表达时点，无 last_updated 字段
   '.ctx/logs/archive/2026-05-early-EXECUTION_LOG.md', // 归档件用 archived_date 表达时点，无 last_updated 字段
 ];
 /** **无 frontmatter 的 markdown 登记行**：不能靠扩展名混过（`.md` 与「代码 / 样式」不同），须逐条登记理由（上限 12） */
@@ -480,6 +491,7 @@ const TIMESTAMPS_NO_FM_MD_OK = [
   '.ctx/ACTIVE_RULINGS.md',                           // 审计台账（`.ctx` 底座）：按 `.ctx` 体例不带 YAML 头
   '.ctx/logs/DECISION_LOG.md',                        // 决策日志月度索引：日志件、非文档
   '.ctx/logs/archive/2026-05-DECISION_LOG.md',        // 归档决策日志：同上
+  'content/05_ai_coding/AGENTS.md',                   // 05 目录协作说明：按 AGENTS 体例不带 YAML 头（2026-11-01 批次 525 补登）
 ];
 /** 无 frontmatter 时可按**扩展名**机械跳过的非文档类文件（代码 / 样式 / 数据 / 资源；无扩展名串为空） */
 const TIMESTAMPS_NO_FM_EXT_OK = new Set([
@@ -646,9 +658,9 @@ function enumCount(line) {
 
 test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代码 / 数据的实然值', async () => {
   const problems = [];
-  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261018h');
-  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261018h');
-  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261018h');
+  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261102b');
+  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261102b');
+  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261102b');
   const { SYSTEM_NOTICE_KIND_NAMES } = await import('../system-notice-kinds.js');
 
   /** 对账一条：`got` 为文档里抽出的数（null＝抽不出，判红并提示是判据失效而非「文档错」） */
@@ -712,7 +724,7 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
     for (const g of l.matchAll(/'([A-Za-z]+)'/g)) agendaGroups.add(g[1]);
   }
   const agendaReal = agendaGroups.size;
-  eq('「拟上会」清单类数', 'ACTIVE_RULINGS.md 的 `D-411` 行「共 N 类」', cn(m(lineWith(read(RULINGS), /^- .*一键导入议程/), /共\s*([\d一二两三四五六七八九十]+)\s*类/)), agendaReal,
+  eq('「拟上会」清单类数', 'ACTIVE_RULINGS.md §A「拟上会清单共 N 类」', cn(m(lineWith(read(RULINGS), /^- .*「拟上会」清单共/), /共\s*([\d一二两三四五六七八九十]+)\s*类/)), agendaReal,
     `系统 group 取值＝${[...agendaGroups].sort().join(' / ')}`);
   eq('「拟上会」清单类数', 'docs/help.html §3.1 括注列举', enumCount(lineWith(help, /「拟上会」清单<\/strong>里勾/)), agendaReal);
   eq('「拟上会」清单类数', 'REVIEW_QUEUE.md `SOP-B-33`「现为 N 类」', cn(m(lineWith(read(QUEUE), /^> \*\*已闭环\*\*：裁定 `D-552`/), /现为\s*([\d一二两三四五六七八九十]+)\s*类/)), agendaReal);
@@ -866,16 +878,16 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
 //   （给上限）。⚠ 弱清单**不是空壳**：每条都断言「它还认得那个写法」或「编号自洽」。
 // ─────────────────────────────────────────────────────────────────────────────
 test('S15 弱清单：有正当沿革 / 取值定义不清的枚举数字只登记（带基线，防僵尸与变松）', () => {
-  // ① ACTIVE_RULINGS：**只收「现行有效」口径**。**逐批增量句 ＝ 历史包袱，按 `H26.1`/`H26.2`（2026-10-06 批次 413）
-  //    已一律删**（实读 480 → 224 行；口径行 153）。
-  //    本判据两条：① 文首须写明收录口径（防读者把沿革当现况）；② **不得再出现「逐批增量句」**（防回潮）；
-  //    非空转：口径行规模须达下限（防解析失效 / 口径行被误删）。
+  // ① ACTIVE_RULINGS：**只收「现行有效」的索引**。规则正文已迁 `content/01–05`；本文件只留跨域摘要 + 分域索引。
+  //    判据三条：① 文首写明「只收现行有效」；② 不得出现「逐批增量句」；③ **必须有分域索引且 ≥16 行**（防解析失效）。
   const ar = read(RULINGS);
   assert.match(ar, /只收「现行有效」/, 'ACTIVE_RULINGS 文首未写明收录口径（只收现行有效）——读者会把沿革当现况');
   const histSent = (ar.match(/增量（实测|增量（补登|实做 \d+ 行新立/g) || []).length;
   assert.equal(histSent, 0, `ACTIVE_RULINGS 出现「逐批增量句」（历史包袱，H26.2 已禁）：${histSent} 处`);
   const arRules = (ar.match(/^- /gm) || []).length;
-  assert.ok(arRules >= 100, `ACTIVE_RULINGS 只解析到 ${arRules} 条口径行（下限 100）：解析失效或口径行被误删`);
+  assert.ok(arRules >= 8, `ACTIVE_RULINGS 只解析到 ${arRules} 条跨域摘要（下限 8）：摘要被误删或解析失效`);
+  const arIndexRows = ar.split(/\r?\n/).filter((l) => /^\| [一二三四五六七八九十]+、/.test(l)).length;
+  assert.ok(arIndexRows >= 16, `ACTIVE_RULINGS 分域索引只解析到 ${arIndexRows} 行（下限 16）：分域表被写坏或漏项`);
 
   // ② CLAUDE.md 的「评议待办 · 执行型」表（`R-NN`）：**只留在办项**——`H50.1 §3`＝完成即**整行删除**（禁仅标 ✅）。
   //   2026-10-01 批次 314 按此把 **60 行已闭环 / 已立**删去（**69 → 9 行**）；**全文不丢** ⇒ 迁出附节
@@ -969,8 +981,8 @@ test('S17 真机流 tab 名必须命中该台注册页签（漏改即红；带 p
   // 非空转：受检 flow 数与页签总量都要有规模（解析写坏 ⇒ 判据恒真 ⇒ 漏改也绿）
   const labelTotal = [...labelsOf.values()].reduce((n, s) => n + s.size, 0);
   // 2026-10-18 支委会行内改派退役一条表单 flow（59→58），受检面带减 1；下限随实然值下调，其余下限不变
-  assert.ok(checked >= 44 && exempt >= 10 && labelTotal >= 60,
-    `解析面不足（受检 ${checked} / 豁免 ${exempt} / 页签总量 ${labelTotal}，下限 44 / 10 / 60）：台账或注册解析被写坏`);
+  assert.ok(checked >= 44 && exempt >= 10 && labelTotal >= 44,
+    `解析面不足（受检 ${checked} / 豁免 ${exempt} / 页签总量 ${labelTotal}，下限 44 / 10 / 44）：台账或注册解析被写坏`);
   assert.deepEqual(problems, [],
     '真机流 `tab` 名与该台注册页签不一致（**改页签名必须同批改 `flow.tab`**，否则该 flow 切 tab 超时或静默归零）：\n'
     + `  ${problems.join('\n  ')}`);
@@ -1009,7 +1021,7 @@ test('S18 help.html §2.x 表行序必须等于台注册序（V-3 页签序；�
       .filter(Boolean);
     if (diff.length) problems.push(`${w.sec}（${w.name}）行序与注册序不一致：${diff.join('；')}`);
   }
-  assert.ok(checked >= 60, `解析面不足（累计表行 ${checked}，下限 60）：判据或解析被写坏`);
+  assert.ok(checked >= 44, `解析面不足（累计表行 ${checked}，下限 44）：判据或解析被写坏`);
   assert.deepEqual(problems, [],
     `help.html §2.x 表行**序**与台注册**序**不一致（V-3 页签序；**改注册序必须同批排本表**）：\n  ${problems.join('\n  ')}`);
 });
@@ -1076,7 +1088,7 @@ test('S19 工作组概念口径：四个核心术语齐备、§G 开篇先讲载
 //   且覆盖「通知可见性 / 铃铛 / 待办派生 / 概况 / 考勤」五个主题词。
 // ─────────────────────────────────────────────────────────────────────────────
 test('S20 设计权威文档：表格四类术语齐备；信息计算口径文件存在且五关键词齐全', () => {
-  const design = read(join(ROOT, 'content', '04_web_design', 'design-system', 'DESIGN_SYSTEM.md'));
+  const design = read(join(ROOT, 'content', '04_web_design', 'design-system', 'DS_03_COMPONENTS.md'));
   for (const term of ['数据表', '关系矩阵', '台账', '卡片列表']) {
     assert.ok(design.includes(term), `DESIGN_SYSTEM.md 缺表格/列表四类载体术语「${term}」`);
   }

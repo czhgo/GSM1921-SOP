@@ -4,14 +4,15 @@
 // 读取本能力，tab 声明（含懒加载 render）不再硬编码在入口。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §四/§六
 
-import { registerCapability } from '../core/boot/registry.js?v=20261018h';
-import { rolesForPage } from '../core/domain/constants.js?v=20261018h';
-import { AuthStore } from '../services/core/auth.js?v=20261018h';
+import { registerCapability } from '../core/boot/registry.js?v=20261102b';
+import { rolesForPage } from '../core/domain/constants.js?v=20261102b';
+import { AuthStore } from '../services/core/auth.js?v=20261102b';
+import { loadTabModule } from '../core/boot/tab-loader.js?v=20261102b';
 
-// 9 个 tab 清单：render 为懒加载动态 import（相对本模块解析到 entries/tabs/prop/）
-// ⚠ 2026-10-04 批次 367（`#10` 单一轴 · 支书裁「周报作为 归档的一个 特例即可」）：**已摘除
-//   `weekly`（周报报送）页签**（10 → 9）——降为「档案归档」页内折叠区（实现单一源仍在
-//   `entries/tabs/prop/weekly-tab.js`；此处**不得**再注册回来）。
+// 5 个 tab 清单：render 为懒加载动态 import（相对本模块解析到 entries/tabs/prop/）
+// ⚠ `weekly`（周报报送）**不得再注册**：它已降为「档案归档」页内折叠区（实现在 `entries/tabs/prop/weekly-tab.js`）。
+// ⚠ 2026-10-25 IA 62→45（8 → 5）：`calendar`（→ 工作概况页内折叠卡）、`my-dispatch`（→ 待办「我经办的反馈」）、
+//   `tasks`（→ 项目看板「宣传任务」泳道）**三个页签已删，不得再注册回来**；旧深链由壳 `_legacyTabAliases` 承接。
 // tab 私有状态随模块自持；共享只读配置（accent/activities/propTf）经 ctx 传入。
 registerCapability({
   id: 'prop-workspace',
@@ -21,54 +22,50 @@ registerCapability({
   requiredRoles: rolesForPage('prop.html'), // T-2026-09-011 R2：由 constants ROLE_PAGE_MAP 派生
   tabs: () => {
     const allTabs = [
-    // R6-3「今天」置首 + 登录落点（2026-09-07 方案 B）：共享渲染只读速览，数据同源派生；
-    // 到期/逾期行 → onNav('todo')（todo tab 六台同 id）；会议/分工行在 today-tab 内直跳 activity.html；
-    // 会议「全部」→ onNav('activities')，下方映射到本台活动承载 tab（宣传台=活动日历 calendar；
-    //   2026-10-18 繁专项 Top 10：原落项目看板 kanban，改为落活动日历）
-    { id: 'today', label: '今天', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../entries/tabs/today/today-tab.js?v=20261018h').then(m => {
+    // 「今天」置首；到期/逾期行 → onNav('todo')（todo tab 六台同 id）；会议/分工行在 today-tab 内直跳
+    // activity.html；会议「全部」→ onNav('activities')，下方映射到本台活动日历 calendar。
+    { id: 'today', label: '今天', groupLabel: '总览', coreTab: true, render: (ctx) => loadTabModule('../entries/tabs/today/today-tab.js?v=20261102b').then(m => {
       const el = document.getElementById('prop-tab-content');
       if (el) m.renderTodayTab(el, {
         personId: ctx?.personId || AuthStore.getCurrentUser()?.personId,
         role: 'prop-commissioner', // 待办键对齐本台待办 tab
         onNav: (tabId) => {
-          const target = tabId === 'activities' ? 'calendar' : tabId;
+          // 2026-10-25 IA 62→45：活动日历页签已降为工作概况页内卡 ⇒
+          //   会议「全部」（activities）与「看日历」（calendar）都落 overview + 展开日历卡。
+          const opensCalendar = tabId === 'activities' || tabId === 'calendar';
+          const target = opensCalendar ? 'overview' : tabId;
           const btn = document.querySelector(`.prop-tab-btn[data-prop-tab="${target}"]`);
           if (btn) btn.click();
+          // 卡在「工作概况」异步渲染完成后才挂载 ⇒ 轮询到卡出现再派发展开事件（最长约 1.2s）。
+          const revealCalendarCard = (tries = 0) => {
+            const card = document.querySelector('details[id$="calendar-card"]');
+            if (card) {
+              if (!card.open) document.dispatchEvent(new CustomEvent('ws:open-calendar'));
+              return;
+            }
+            if (tries < 12) setTimeout(() => revealCalendarCard(tries + 1), 100);
+          };
+          if (opensCalendar) revealCalendarCard();
         },
       });
     }) },
-    { id: 'todo', label: '待办', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../entries/tabs/prop/todo-tab.js?v=20261018h').then(m => m.renderContent(ctx)) },
+    { id: 'todo', label: '待办', groupLabel: '总览', coreTab: true, render: (ctx) => loadTabModule('../entries/tabs/prop/todo-tab.js?v=20261102b').then(m => m.renderContent(ctx)) },
     // 工作概况（支书 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
-    { id: 'overview', label: '工作概况', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../entries/tabs/prop/overview-tab.js?v=20261018h').then(m => m.renderContent(ctx)) },
-    // 活动日历（2026-09-30 批次 310 支书裁定「每个人应该都有这样的活动日历界面」）：与其余五台同用
-    //   **只读共享页签**（entries/tabs/shared/activity-calendar-tab.js）。
-    // 2026-10-04 批次 367（`#10` 单一轴）：它是**人人有的通用面**（与「今天 / 待办 / 工作概况」同类）
-    //   ⇒ **组归属由「知情查看」改为「工作台」**（组名与组数一律不变，只改 groupLabel）；
-    //   ⚠ **注册序也必须落进「工作台」段内**（页签条按注册序分段渲染 ⇒ 留在原处会多出一个「工作台」分节）。
-    { id: 'calendar', label: '活动日历', groupLabel: '工作台', render: () => import('../entries/tabs/shared/activity-calendar-tab.js?v=20261018h').then(m => m.renderContent(document.getElementById('prop-tab-content'))) },
-    // 本轮（2026-09-15）五台统一：原「反馈」组并入「制度与答复」（与支书台同名），组内以「我的处置」为成员；
-    //   2026-10-18 繁专项 Top 2：制度与答复整组前移到「工作台」之后、「我的职责」之前。
-    { id: 'my-dispatch', label: '我的处置', groupLabel: '制度与答复', render: (ctx) => import('../entries/tabs/prop/my-dispatch-tab.js?v=20261018h').then(m => m.renderContent(ctx)) },
-    // 分组「我的职责」= 2026-09-14 裁定按行为性质四组之一；本轮（2026-09-15）五台统一：原「党建」组改名「我的职责」
-    { id: 'tasks', label: '宣传任务', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/prop/tasks-tab.js?v=20261018h').then(m => m.renderContent(ctx)) },
-    { id: 'kanban', label: '项目看板', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/prop/kanban-tab.js?v=20261018h').then(m => m.renderContent(ctx)) },
-    // 档案归档（含「周报」折叠区）。2026-10-04 批次 367（`#10` 单一轴）：支书逐字裁
-    //   「**周报作为 归档的一个 特例即可！！**」⇒ **原独立「周报报送」页签降为本页页内折叠区**
-    //   （页签 **10 → 9**）；实现单一源仍是 `entries/tabs/prop/weekly-tab.js`（挂进本页
-    //   `#archive-weekly-host`，**不复制表单**）。同批台账：`help.html §0.1/§2.2`、
-    //   `README-server.md §3.2.2`、`form-loop-registry.mjs`（四条 `prop-weekly*` 流程 `tab` 改本页）、
-    //   `page-sweep` 门槛、`function-catalog.js`。
-    { id: 'archive', label: '档案归档', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/prop/archive-tab.js?v=20261018h').then(m => m.renderContent(ctx)) },
-    // 知情查看（本轮 2026-09-15 新增，支书裁定）：宣传台原无只读知情视图，补一个「知情查看」tab
-    //   （只读）——与其余台同名同义，组件单一源 = components/record/insight-view.js；
-    //   分组序 工作台→我的职责→知情查看→制度与答复。
-    // 2026-10-04 批次 367（`#10` 单一轴 · 支书圈甲档）：**分段集合改由「赋权下游」派生**——宣传委员
-    //   名下 `work-map` 无模块 ⇒ 派生为空集 ⇒ 按支书甲档口径**回退只出「活动」段**（「活动」＝全支部
-    //   通用知情面；「专班」只给有专班下游的台，如组织台）。判据单一源见 `entries/tabs/prop/tf-view-tab.js`。
-    { id: 'tf-view', label: '知情查看', groupLabel: '知情查看', render: (ctx) => import('../entries/tabs/prop/tf-view-tab.js?v=20261018h').then(m => m.renderContent(ctx)) },
+    { id: 'overview', label: '工作概况', groupLabel: '总览', coreTab: true, render: (ctx) => loadTabModule('../entries/tabs/prop/overview-tab.js?v=20261102b').then(m => m.renderContent(ctx)) },
+    // 活动日历（2026-10-25 IA 62→45）：页签已删——共享只读日历降为「工作概况」页内折叠卡
+    //   （`prop/overview-tab.js` 挂 shared/activity-calendar-tab 的卡形态）；旧 `?tab=calendar` → `overview&section=calendar`。
+    // 我的处置（2026-10-25 IA 62→45）：页签已删——并入「待办」页「我经办的反馈」；旧 `?tab=my-dispatch` → `todo&filter=dispatch`。
+    // 分组「我的职责」＝按行为性质四组之一
+    // 宣传任务（2026-10-25 IA 62→45）：页签已删——并入「项目看板」页「宣传任务」泳道
+    //   （复用 `prop/tasks-tab.js::renderBoard`，不复制列表）；旧 `?tab=tasks` → `kanban&lane=tasks`。
+    { id: 'kanban', label: '项目看板', groupLabel: '我的职责', render: (ctx) => loadTabModule('../entries/tabs/prop/kanban-tab.js?v=20261102b').then(m => m.renderContent(ctx)) },
+    // 档案归档（含「周报」折叠区）：周报降为本页页内折叠区，实现单一源仍是
+    //   `entries/tabs/prop/weekly-tab.js`（挂进 `#archive-weekly-host`，**不复制表单**）。
+    { id: 'archive', label: '档案归档', groupLabel: '我的职责', render: (ctx) => loadTabModule('../entries/tabs/prop/archive-tab.js?v=20261102b').then(m => m.renderContent(ctx)) },
+    // 本台不保留「知情查看」页签（宣传关心的专班/项目进展由「项目看板」承载）；
+    //   旧深链 `?tab=tf-view` 由壳别名落 `kanban`（别名在 workspace-shell.js，单点维护）。
     ];
-    // 归档兜底 tab 收窄已撤（D-807④ 2026-10-06）：支书/副支书不再进入宣传台（bootstrap 放行门同批撤除），
-    // 代归档由支书台待办「代归档」按钮本台浮窗直执 ⇒ 本台页签恒为全量（仅宣传委员可达）。
+    // 本台页签恒为全量（仅宣传委员可达；代归档由支书台待办浮窗直执）。
     return allTabs;
   },
 });

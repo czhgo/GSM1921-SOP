@@ -7,16 +7,18 @@
 //      已通过=可采纳；未达出席门槛/有反对=采纳禁用（去表决再议）。
 // 表决 UI 复用既有 agenda-votes 资产；本面板不重复实现投票。
 
-import { escHtml as esc, showToast, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261018h';
-import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/domain/work-map.js?v=20261018h';
-import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261018h';
-import { PersonStore } from '../../../services/member/person.js?v=20261018h';
+import { escHtml as esc, showToast, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261102b';
+import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/domain/work-map.js?v=20261102b';
+import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261102b';
+import { PersonStore } from '../../../services/member/person.js?v=20261102b';
 import {
   createWorkforceProposalActivity, listWorkforceProposals, adoptWorkforceProposal,
   getWorkforceVoteOutcome, ownerDisplay,
-} from '../../../services/branch/workforce.js?v=20261018h';
-import { getBranchWorkforce } from '../../../services/branch/branch.js?v=20261018h';
+} from '../../../services/branch/workforce.js?v=20261102b';
+import { getBranchWorkforce } from '../../../services/branch/branch.js?v=20261102b';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261102b';
 
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261102b';
 const DRAFT_KEY = 'gsm1921-workforce-draft'; // 本机草稿（**仅本机·不上服务端**：未提交的拟定分工，属该设备上未完成的工作；白名单见 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md）
 
 function _today() {
@@ -75,7 +77,7 @@ function _rowHtml(branchId, workforce, moduleId, ownerVal) {
     <div class="wf-row flex items-center gap-2">
       <select class="wf-module input-flat text-xs min-w-[200px]">${moduleOpts}</select>
       <select class="wf-owner input-flat text-xs min-w-[160px]"><option value="">新负责人…</option>${_ownerOptionsHtml()}</select>
-      <button type="button" class="btn-ghost wf-row-del px-2 py-1 text-xs" title="删除此行">删除</button>
+      <button type="button" class="btn-outline btn-sm wf-row-del" title="删除此行">删除</button>
     </div>`;
 }
 // ownerVal 回填：在 _fillRow 中以 JS 赋值（避免模板注入）
@@ -106,21 +108,21 @@ function _outcomeHtml(outcome) {
   const { status, tally, needed } = outcome;
   const sum = `${tally.voted}/${needed} 表态 · 应到 ${tally.total} · 异议 ${tally.object}`;
   if (status === 'passed') {
-    return `<span class="text-[11px] px-2 py-0.5 rounded-full bg-green-100 text-green-700">已通过·可采纳</span>
-      <p class="text-[11px] text-gray-500 mt-1" title="应到＝有表决权党员（预备党员无表决权）">${sum}</p>`;
+    return `<span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">已通过·可采纳</span>
+      <p class="text-xs text-gray-500 mt-1">${sum}</p>`;
   }
   if (status === 'failed') {
-    return `<span class="text-[11px] px-2 py-0.5 rounded-full bg-red-100 text-red-700">未通过·有异议</span>
-      <p class="text-[11px] text-gray-500 mt-1" title="应到＝有表决权党员（预备党员无表决权）">${sum}</p>`;
+    return `<span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">未通过·有异议</span>
+      <p class="text-xs text-gray-500 mt-1">${sum}</p>`;
   }
-  return `<span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">待足额（差 ${needed - tally.voted} 票）</span>
-    <p class="text-[11px] text-gray-500 mt-1">${sum}</p>`;
+  return `<span class="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">待足额（差 ${needed - tally.voted} 票）</span>
+    <p class="text-xs text-gray-500 mt-1">${sum}</p>`;
 }
 
 /** 议题列表卡（adoptable=通过判定实时；已生效=只读） */
 function _proposalCards(proposals, outcomesByAct) {
   if (!proposals.length) {
-    return `<p class="text-xs text-gray-500">暂无分工调整议题——发起后将在此跟踪表决与采纳。</p>`;
+    return emptyStateHtml({ text: "暂无分工调整议题——发起后将在此跟踪表决与采纳。", variant: 'inline' });
   }
   return proposals.map((a) => {
     const adopted = !!a.extras.adoptedAt;
@@ -130,12 +132,12 @@ function _proposalCards(proposals, outcomesByAct) {
       const m = WORK_MAP_MODULES.find((x) => x.id === c.moduleId);
       // 负责人到人 → 姓名可点进成员档案页（角色类负责人无可链接的人 id，保持纯文本）
       const ownerHtml = c.to && c.to.ownerType === 'person'
-        ? `<a href="${getBasePath()}person.html?id=${encodeURIComponent(c.to.ownerId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(ownerDisplay(c.to))}</a>`
+        ? `<a href="${getBasePath()}person.html?id=${encodeURIComponent(c.to.ownerId)}" class="hover:text-accent transition-colors" title="查看完整档案">${esc(ownerDisplay(c.to))}</a>`
         : esc(ownerDisplay(c.to));
       return `<span class="text-xs px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">${esc(m ? m.name : c.moduleId)} → ${ownerHtml}</span>`;
     });
     const statusChip = adopted
-      ? '<span class="shrink-0 text-[11px] px-2 py-0.5 rounded-full bg-green-100 text-green-700">已生效</span>'
+      ? '<span class="shrink-0 text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">已生效</span>'
       : _outcomeHtml(outcome);
     // 「去表决」落点（2026-09-28 修）：表决入口＝本次支委会活动的线上表态页（支委会会议页，读 ?id=<活动id>）。
     //   原写 ./workspace/secretary.html?activityId= ⇒ 命中支书台壳的活动定位深链
@@ -148,11 +150,11 @@ function _proposalCards(proposals, outcomesByAct) {
             <p class="font-title-cn text-sm font-bold text-gray-800 truncate">${esc(a.title)}</p>
             ${statusChip}
           </div>
-          <p class="text-[11px] text-gray-500 mt-0.5">${esc(a.date || '')} · 表决入口：本次支委会活动（交流式表态）</p>
+          <p class="text-xs text-gray-500 mt-0.5">${esc(a.date || '')} · 表决入口：本次支委会活动（交流式表态）</p>
           <div class="flex flex-wrap gap-1.5 mt-1.5">${lines.join('')}</div>
         </div>
         <div class="shrink-0 flex flex-col gap-1.5 items-end">
-          <a href="./party-committee-meeting.html?id=${a.id}" class="px-2.5 py-1 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50">去表决</a>
+          <a href="./party-committee-meeting.html?id=${a.id}" class="px-2.5 py-1 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-surface-hover">去表决</a>
           ${!adopted ? (adoptable
             ? `<button type="button" class="btn-danger-solid wf-adopt px-2.5 py-1 text-xs font-medium" data-id="${a.id}">采纳生效</button>`
             : `<button type="button" class="btn-outline wf-adopt-disabled px-2.5 py-1 text-xs" data-id="${a.id}" title="票决通过（应到超过 2/3 出席且无反对）后方可采纳">采纳生效</button>`) : ''}
@@ -171,7 +173,7 @@ export async function mountWorkforcePanel(branchId, hostEl) {
   header.className = 'flex items-center gap-2 mb-2 mt-4';
   header.innerHTML = `
     <p class="font-title-cn text-sm font-bold text-gray-800">分工调整（走支委会议题）</p>
-    <button type="button" id="wf-open" class="btn-danger-solid ml-auto px-3 py-1 text-xs font-medium">＋ 发起调整</button>`;
+    <button type="button" id="wf-open" class="btn-danger-solid ml-auto px-3 py-1 text-xs font-medium" aria-expanded="false" aria-controls="wf-form-zone">＋ 发起调整</button>`;
   const body = document.createElement('div');
   body.id = 'workforce-panel-body';
   // 发起表单区独立于议题列表容器：renderBody 重建列表时不触碰表单 DOM——
@@ -194,15 +196,15 @@ export async function mountWorkforcePanel(branchId, hostEl) {
       <div class="rounded-xl border border-dashed border-red-200 bg-red-50/40 p-3.5 flex flex-col gap-2.5">
         <div class="flex items-center gap-2">
           <p class="font-title-cn text-sm font-bold text-gray-800">发起支部分工调整</p>
-          <span class="text-[11px] px-2 py-0.5 rounded-full bg-red-100 text-red-700">需经支委会议题表决后生效</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">需经支委会议题表决后生效</span>
         </div>
-        ${draft ? `<div class="flex items-center gap-2 text-[11px] text-gray-500 bg-white/70 rounded-lg px-2.5 py-1.5">
+        ${draft ? `<div class="flex items-center gap-2 text-xs text-gray-500 bg-white/70 rounded-lg px-2.5 py-1.5">
             <span>有草稿（${new Date(draft.updatedAt || Date.now()).toLocaleString('zh-CN', { hour12: false }).slice(0, 16)} 保存）：</span>
             <button type="button" id="wf-load-draft" class="btn-outline px-2 py-0.5">载入编辑</button>
-            <button type="button" id="wf-del-draft" class="btn-ghost px-2 py-0.5">删除草稿</button>
+            <button type="button" id="wf-del-draft" class="btn-outline btn-sm">删除草稿</button>
           </div>` : ''}
         <div id="wf-rows" class="flex flex-col gap-2">
-          ${draftRows.length ? '' : '<div class="wf-empty-note text-[11px] text-gray-500">至少一行（模块 → 新负责人）</div>'}
+          ${draftRows.length ? '' : '<div class="wf-empty-note text-xs text-gray-500">至少一行（模块 → 新负责人）</div>'}
         </div>
         <button type="button" id="wf-add-row" class="btn-outline self-start px-2.5 py-1">＋ 加一行</button>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
@@ -215,7 +217,7 @@ export async function mountWorkforcePanel(branchId, hostEl) {
         </div>
         <div class="flex justify-end gap-2">
           <button type="button" id="wf-save-draft" class="btn-outline px-3 py-1.5 text-xs">存草稿</button>
-          <button type="button" id="wf-cancel" class="btn-ghost px-3 py-1.5 text-xs">收起</button>
+          <button type="button" id="wf-cancel" class="btn-outline btn-sm">收起</button>
           <button type="button" id="wf-submit" class="btn-danger-solid px-3 py-1.5 text-xs font-medium">直接发起支委会议题</button>
         </div>
       </div>`;
@@ -262,6 +264,8 @@ export async function mountWorkforcePanel(branchId, hostEl) {
         showToast('success', '已发起支委会议题，等待表决');
         removeDraft(branchId);
         formZone.innerHTML = ''; // 发起成功后重置表单（下次展开为全新表单）
+        formZone.hidden = true;
+        header.querySelector('#wf-open')?.setAttribute('aria-expanded', 'false');
         renderBody();
       } catch (e) {
         console.error('[workforce] 发起失败', e);
@@ -286,7 +290,7 @@ export async function mountWorkforcePanel(branchId, hostEl) {
     // 采纳（仅通过态按钮带 wf-adopt 类）——列表重建不影响已展开的表单区（formZone 独立）
     body.querySelectorAll('.wf-adopt').forEach((btn) => {
       btn.addEventListener('click', async () => {
-        if (!window.confirm('确认按支委会表决结果采纳该分工调整？')) return;
+        if (!await confirmDanger({ id: 'workforce-adopt', title: '采纳分工调整', bodyHtml: '<p class="text-sm text-gray-700">按支委会表决结果采纳本议题的分工调整。<br>影响：各模块负责人即刻改为新配置，相关台位的可见范围随之变化。<br>可恢复：可在「支部分工」再次发起调整；每次变更记入留痕。</p>', confirmLabel: '采纳' })) return;
         try {
           await adoptWorkforceProposal(branchId, btn.dataset.id);
           showToast('success', '分工已生效');
@@ -299,9 +303,18 @@ export async function mountWorkforcePanel(branchId, hostEl) {
     });
   }
   // 「＋ 发起调整」：表单区为空则首次渲染（含草稿回填）；否则仅展开/收起已存在表单（保态）
-  header.querySelector('#wf-open').addEventListener('click', () => {
-    if (!formZone.innerHTML.trim()) { renderForm(formZone); return; }
-    formZone.classList.toggle('hidden');
+  // 2026-10-25 Task 3：展开态由 `aria-expanded` + `hidden` 属性表达（不再用 `.hidden` 类）。
+  header.querySelector('#wf-open').addEventListener('click', (e) => {
+    const btn = e.currentTarget;
+    if (!formZone.innerHTML.trim()) {
+      renderForm(formZone);
+      formZone.hidden = false;
+      btn.setAttribute('aria-expanded', 'true');
+      return;
+    }
+    const willOpen = formZone.hidden;
+    formZone.hidden = !willOpen;
+    btn.setAttribute('aria-expanded', String(willOpen));
   });
 
   await renderBody();

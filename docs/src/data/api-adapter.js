@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261018h';
+import { getApiBaseUrl, getAuthToken, advanceVersionBaselineAfterWrite } from './data-adapter.js?v=20261102b';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -82,15 +82,20 @@ async function _request(path, options = {}) {
   }
 
   if (!response.ok) {
-    const error = new Error(`API 请求失败: ${response.status} ${response.statusText}`);
+    // P0-1（2026-09-23）：409 版本冲突需读**结构化 body**（conflicts 清单）——调用方据它决定「重拉哪些集合」。
+    // 读不出 JSON（非本仓服务端/无 body）时不吞错：error.body 留 null，仅凭 status 判。
+    let body = null;
+    try { body = await response.json(); } catch { body = null; }
+    // B05 / B08：服务端给了业务原因（body.error）就优先用它作 message，
+    // 调用方（describeWriteError）据此给出「发生了什么」；status / type / body 一并保留。
+    const serverError = body && typeof body.error === 'string' ? body.error.trim() : '';
+    const error = new Error(serverError || `API 请求失败: ${response.status} ${response.statusText}`);
     error.status = response.status;
     error.type = response.status === 404 ? 'NotFoundError' :
                  response.status === 403 ? 'PermissionError' :
                  response.status === 409 ? 'ConflictError' :
                  response.status === 401 ? 'AuthError' : 'ApiError';
-    // P0-1（2026-09-23）：409 版本冲突需读**结构化 body**（conflicts 清单）——调用方据它决定「重拉哪些集合」。
-    // 读不出 JSON（非本仓服务端/无 body）时不吞错：error.body 留 null，仅凭 status 判。
-    try { error.body = await response.json(); } catch { error.body = null; }
+    error.body = body;
     throw error;
   }
   if (response.status === 204) return null;
@@ -127,17 +132,52 @@ function _get(path) {
 
 /** POST 请求 */
 function _post(path, data) {
-  return _request(path, { method: 'POST', body: JSON.stringify(data) });
+  return _writeRequest(path, 'POST', data);
 }
 
 /** PATCH 请求 */
 function _patch(path, data) {
-  return _request(path, { method: 'PATCH', body: JSON.stringify(data) });
+  return _writeRequest(path, 'PATCH', data);
+}
+
+/** PUT 请求（语义整表替换，如支部名册导入） */
+function _put(path, data) {
+  return _request(path, { method: 'PUT', ...(data !== undefined ? { body: JSON.stringify(data) } : {}) });
 }
 
 /** DELETE 请求 */
 function _delete(path) {
-  return _request(path, { method: 'DELETE' });
+  return _writeRequest(path, 'DELETE');
+}
+
+/**
+ * 直连写口 → 快照集合名（批次 504 · R10-D02）。
+ *
+ * 服务端自本批起让语义写口也推进集合版本；直连写完一行后，页面防抖快照仍会整表上传同一集合
+ * ⇒ 不推进本地基线就会「被自己刚写的那一版挡住」（409）。这里把 URL 资源段映射成快照键
+ * （绝大多数同名；`system-notices` 落 `notices`），其余（auth / 语义域）返回空串＝不处理。
+ * 只有「服务端版本＝基线＋1」时才推进（见 `advanceVersionBaselineAfterWrite`）。
+ */
+const WRITE_COLLECTION_ALIAS = { 'system-notices': 'notices' };
+function _writeCollectionName(path) {
+  const m = /^\/api\/v1\/([A-Za-z][A-Za-z-]*)/.exec(String(path || ''));
+  if (!m || m[1] === 'auth' || m[1] === 'snapshot') return '';
+  return WRITE_COLLECTION_ALIAS[m[1]] || m[1];
+}
+
+/** 写请求统一入口：成功后再推进该集合的本地版本基线（失败不推进，保持「宁可下次再拒」） */
+async function _writeRequest(path, method, data) {
+  const out = await _request(path, {
+    method,
+    ...(data !== undefined ? { body: JSON.stringify(data) } : {}),
+  });
+  const name = _writeCollectionName(path);
+  if (name) {
+    try { await advanceVersionBaselineAfterWrite(name); } catch (e) {
+      console.warn(`[ApiAdapter] 直连写后推进 ${name} 版本基线失败（下次快照会走冲突恢复）：`, e);
+    }
+  }
+  return out;
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -561,6 +601,11 @@ export const ApiAdapter = {
     update(id, patch) {
       return _patch(`/api/v1/archiveRecords/${id}`, patch);
     },
+
+    // R2-40：归档材料删除同步服务端行（原只有 create/update ⇒ 前端删除后刷新又回来）。
+    delete(id) {
+      return _delete(`/api/v1/archiveRecords/${id}`);
+    },
   },
 
   externalDispatches: {
@@ -647,8 +692,9 @@ export const ApiAdapter = {
   },
 
   users: {
-    list() {
-      return _get('/api/v1/users');
+    // `includeTransferredOut`：治理侧读「历史行」（移出成员）时显式请求；默认在册名册不含移出行（F-08）。
+    list(params = {}) {
+      return _get(`/api/v1/users${params && params.includeTransferredOut ? '?includeTransferredOut=1' : ''}`);
     },
     // 2026-09-06 立项⑥ A波：users 双形态写口补齐（server RESOURCE_TABLES 通用 CRUD 已存在：
     // POST /api/v1/users / PATCH /users/:id / DELETE /users/:id，party-staff 门）
@@ -713,6 +759,12 @@ export const ApiAdapter = {
     undoTransferOut(id) {
       return _post(`/api/v1/members/${id}/undo-transfer-out`, {});
     },
+
+    // R7-01（2026-10-22）：人员主键重命名（学号即 id）。服务端仅党委组织员可调用，
+    // 一个事务内同步 users.id / sessions / 各业务表 JSON 引用并写 auth_audit。
+    renameAccount(id, newPersonId) {
+      return _post(`/api/v1/members/${encodeURIComponent(id)}/account-rename`, { newPersonId });
+    },
   },
 
   // P1 党委后台（2026-09-02）：支部实例 API 通路（server branches 表已在 RESOURCE_TABLES 白名单）
@@ -724,6 +776,12 @@ export const ApiAdapter = {
 
     create(data) {
       return _post('/api/v1/branches', data);
+    },
+
+    // Task 7.5（2026-10-26）：名册整表导入 —— 单事务替换（服务端 PUT /branches/:id/roster）。
+    // 只调一次；失败时服务端整体回滚，前端旧名册不变。
+    replaceRoster(id, members) {
+      return _put(`/api/v1/branches/${encodeURIComponent(id)}/roster`, { members });
     },
 
     update(id, patch) {
@@ -747,6 +805,21 @@ export const ApiAdapter = {
 
     delete(id) {
       return _delete(`/api/v1/branches/${id}`);
+    },
+  },
+
+  // B-499-9：任命与支委身份配置的语义写口（服务端同一事务落 branch/users/任期记录或 users/auth_audit）
+  appointments: {
+    apply(data = {}) {
+      const { branchId, ...body } = data;
+      return _post(`/api/v1/branches/${encodeURIComponent(branchId)}/appointments`, body);
+    },
+  },
+
+  branchCommissioners: {
+    apply(data = {}) {
+      const { branchId, ...body } = data;
+      return _post(`/api/v1/branches/${encodeURIComponent(branchId)}/branch-commissioners`, body);
     },
   },
 
@@ -846,6 +919,11 @@ export const ApiAdapter = {
     confirm(id) {
       return _post(`/api/v1/member-change-requests/${id}/confirm`);
     },
+
+    // Task 3（2026-10-26）：转移/取消标注（行级语义端点；白名单 status/cancelledAt/transferredOutAt）
+    annotate(id, patch) {
+      return _post(`/api/v1/member-change-requests/${id}/annotate`, patch || {});
+    },
   },
 
   committeeBroadcasts: {
@@ -865,6 +943,11 @@ export const ApiAdapter = {
     create(data) {
       return _post('/api/v1/agenda-votes', data);
     },
+
+    // Task 3（2026-10-26）：转移标注（行级语义端点；白名单仅 transferredOutAt）
+    annotate(id, patch) {
+      return _post(`/api/v1/agenda-votes/${id}/annotate`, patch || {});
+    },
   },
 
   // 工作组成员、授权、任务、产出与应到名单均走语义 API，不进入全量快照。
@@ -882,6 +965,8 @@ export const ApiAdapter = {
       add(id, data) { return _post(`/api/v1/workgroups/${encodeURIComponent(id)}/members`, data); },
       remove(id, personId) { return _delete(`/api/v1/workgroups/${encodeURIComponent(id)}/members/${encodeURIComponent(personId)}`); },
     },
+    // 2026-10-21 批次 499：跨组招募协调标记（组织委员不因此获得活动写权）
+    coordinate(id, data) { return _post(`/api/v1/workgroups/${encodeURIComponent(id)}/coordinate`, data || {}); },
     grants: {
       list(id) { return _get(`/api/v1/workgroups/${encodeURIComponent(id)}/grants`); },
       listMine() { return _get('/api/v1/workgroup-grants'); },

@@ -3,22 +3,26 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261018h';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261018h';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261018h';
-import { generateId } from '../../core/base/id.js?v=20261018h';
-import { bumpToken } from '../../core/base/version-token.js?v=20261018h'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261018h';
-import { isInitStateActive } from '../core/init-reset.js?v=20261018h'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261018h';
-import { getRosterStats } from '../member/roster.js?v=20261018h';
-import { getMeetingRosterIds } from '../member/roster.js?v=20261018h';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20261018h';
-import { SignupStore } from './signup.js?v=20261018h';
-import { deriveExpectedRosterIds } from './attendance-roster.js?v=20261018h';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261102b';
+import { POLICY_DEFAULTS, isAttendanceOverdue } from '../../core/domain/policy-defaults.js?v=20261102b';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261102b';
+import { generateId } from '../../core/base/id.js?v=20261102b';
+import { bumpToken } from '../../core/base/version-token.js?v=20261102b'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261102b';
+import { isInitStateActive } from '../core/init-reset.js?v=20261102b'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261102b';
+import { getRosterStats } from '../member/roster.js?v=20261102b';
+import { getMeetingRosterIds } from '../member/roster.js?v=20261102b';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20261102b';
+import { SignupStore } from './signup.js?v=20261102b';
+import { deriveExpectedRosterIds } from './attendance-roster.js?v=20261102b';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261102b';
+import { isPartyGroupLeaderRole } from '../../core/domain/constants.js?v=20261102b';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];
+  // Task 3（2026-10-26）：api 形态禁止 mock 回退——空库显示空态，不返回演示种子。
+  if (getDataSource() === 'api') return [];
   // C2 修复（2026-09-08）：init 态下 mockDB 空 = 合法空支部态，不回退演示种子（同 loadActivities）。
   return isInitStateActive() ? [] : [...ATTENDANCE_RECORDS];
 }
@@ -43,6 +47,74 @@ export function saveAttendanceRecords(records) {
   mockDB.attendances = [...records];
   bumpToken('attendance'); // P0：考勤写口统一 bump（纪检确认/组织者上传/纪检录入等均经本函数落库）
   persist();
+}
+
+/** 出勤/已补的「源头审校」确认人标记（R10-D08）：出勤与已补不改写 `confirmedBy`，由本标记表达自动确认。 */
+export const AUTO_ATTENDANCE_CONFIRMER = 'auto';
+/** 自动确认的展示文案（页面与导出共用，勿各写一份） */
+export const AUTO_ATTENDANCE_CONFIRMER_LABEL = '自动确认';
+
+/**
+ * 考勤确认人（单一源，R10-D08）：**只有 `confirmedBy` 才算确认**；`recordedBy` 仅是上传人留痕，不参与判定。
+ * 出勤 / 已补 = 源头审校自动确认，返回 `AUTO_ATTENDANCE_CONFIRMER`；其余未确认返回 null。
+ */
+export function attendanceConfirmerId(record) {
+  if (!record) return null;
+  if (record.confirmedBy) return record.confirmedBy;
+  if (record.status === AttendanceStatus.PRESENT || record.status === AttendanceStatus.MADE_UP) return AUTO_ATTENDANCE_CONFIRMER;
+  return null;
+}
+
+/** 考勤是否已确认（显式 confirmedBy 或 出勤/已补的自动确认，同一判据） */
+export function isAttendanceConfirmed(record) {
+  return !!attendanceConfirmerId(record);
+}
+
+/** 是否「出勤/已补」的源头审校自动确认（页面文案与统计共用同一判据） */
+export function isAutoConfirmedAttendance(record) {
+  return attendanceConfirmerId(record) === AUTO_ATTENDANCE_CONFIRMER;
+}
+
+/**
+ * 考勤「待确认」判据（D06 单一源）：待纪检确认＝**尚未落确认人**、非出勤/已补、且不在打回回退态。
+ * 会议考勤（党课/党员大会）走 `upsertMeetingAttendance` 时 `recordedBy` 即录入人本人 ⇒
+ * 「录入即确认」，**不会**进入本判据/待确认队列；组织者经 `appendAttendanceRecords` 上传的记录
+ * `recordedBy: null` ⇒ 才进队列等纪检确认。页面与单测同读本函数，勿各写一份条件。
+ */
+export function isAttendancePendingConfirm(record) {
+  if (!record) return false;
+  if (isAttendanceConfirmed(record)) return false;   // 已有确认人（含会议考勤录入即确认）
+  if (record.returnedBy) return false;               // 打回回退态交上传方，不在纪检待确认
+  return record.status !== AttendanceStatus.PRESENT && record.status !== AttendanceStatus.MADE_UP;
+}
+
+/**
+ * 纪检 / 支书 / 副支书确认考勤：只写确认字段，**不改 recordedBy**（上传人留痕不可改写）。
+ * 说明：服务端快照门只放行「确认字段变更 + 确认权」，上传位（canUploadAttendance）不参与确认判定。
+ * @param {string[]} recordIds
+ * @param {{confirmerId?:string, at?:string}} [opts]
+ * @returns {number} 实际确认条数
+ */
+export function confirmAttendanceRecords(recordIds, { confirmerId, at = new Date().toISOString() } = {}) {
+  if (!confirmerId || !Array.isArray(recordIds) || recordIds.length === 0) return 0;
+  const ids = new Set(recordIds);
+  const records = loadAttendanceRecords();
+  let n = 0;
+  for (const rec of records) {
+    if (!ids.has(rec.id) || isAttendanceConfirmed(rec)) continue;
+    rec.confirmed = true;
+    rec.confirmedBy = confirmerId;
+    rec.confirmedAt = at;
+    n += 1;
+  }
+  if (n > 0) saveAttendanceRecords(records);
+  return n;
+}
+
+/** 列出待确认考勤（缺省＝活跃记录；D06 待确认队列数据源） */
+export function listPendingAttendanceConfirm(records) {
+  const src = records || loadActiveAttendanceRecords();
+  return src.filter(isAttendancePendingConfirm);
 }
 
 /** 冻结一场活动创建时适用的「原应到名单」；实际到场名单在汇总时与其去重并集。 */
@@ -78,11 +150,10 @@ export async function freezeExpectedRosterForActivity(activityId) {
  */
 export const MEETING_ATTENDANCE_TYPES = [...POLICY_DEFAULTS.attendance.meetingTypes];
 
-/** 考勤记录是否已闭环锁定（不可由上传侧覆盖）：出勤/已补 = 源头审校已确认；recordedBy 非空 = 纪检已复核 */
+/** 考勤记录是否已闭环锁定（不可由上传侧覆盖）：出勤/已补 = 源头审校已确认；确认人非空 = 纪检已复核 */
 function isAttendanceLocked(r) {
   if (!r) return true;
-  if (r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP) return true;
-  return !!r.recordedBy;
+  return isAttendanceConfirmed(r);
 }
 
 /**
@@ -122,7 +193,7 @@ export function canUploadAttendance(personId, activityId) {
     // dogfood 权限专项 2026-09-13：此前仅判类型 → 任一组长可代录他组小组会考勤（实测下拉出现
     //   别组小组会且可提交成功），与制度「本组」口径不符。
     const myGroup = (getPersonById(personId) || {}).partyGroup;
-    if (role === 'leader' && !!myGroup && _activityPartyGroup(activity) === myGroup) return true;
+    if (isPartyGroupLeaderRole(role) && !!myGroup && _activityPartyGroup(activity) === myGroup) return true;
     // 该场会议的组织者（2026-09-21 批次 132 · 支书口径一「党小组会 那就是 会议组织者」）
     return isActivityOrganizer(personId, activityId);
   }
@@ -137,7 +208,11 @@ export function canUploadAttendance(personId, activityId) {
 }
 
 /**
- * 会议考勤录入（**上传位即确认**，recordedBy=上传者本人；CF §C.1a 会议考勤）
+ * 会议考勤录入（**录入即确认**，recordedBy=录入人本人；CF §C.1a 会议考勤）
+ * D06 明确口径（2026-10-20，取方案 b）：本入口的录入人同时就是确认人——不另设「另一名支委确认」，
+ * 也不把自己刚录的记录再扔回「待确认队列」（判据见 `isAttendancePendingConfirm`）。
+ * 因此本函数落 `recordedBy: actorId` 是**语义本身**（不是自确认漏洞）：待确认队列只服务
+ * 组织者上传的异常记录（`appendAttendanceRecords` 落 `recordedBy: null`）。
  * 上传主体（2026-09-21 批次 132 · 支书口径一，**修正批次 124 · `D-548` 的「一刀切」**）＝**按会议类型分**：
  *   **党课 / 支部党员大会＝纪检委员**（支书 / 副支书照例可代上传）· **党小组会＝该场会议的组织者**·
  *   组织生活会 / 主题党日 / 其余＝该场组织者 · **支委会不考勤**——门禁一律走 `canUploadAttendance`。
@@ -192,7 +267,16 @@ export function upsertMeetingAttendance({ actorId, records = [] }, opts = {}) {
       }
       return;
     }
-    all.push({ ...r, submittedBy: actorId, recordedBy: actorId, overdue: false });
+    // R10-D08：`recordedBy` 只作上传人留痕；会议考勤的「录入即确认」改由 `confirmedBy` 表达
+    //   （出勤/已补仍走统一判据的 auto，不重复写确认人）。
+    const isRegularStatus = r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP;
+    all.push({
+      ...r,
+      submittedBy: actorId,
+      recordedBy: actorId,
+      overdue: false,
+      ...(isRegularStatus ? {} : { confirmed: true, confirmedBy: actorId, confirmedAt: new Date().toISOString() }),
+    });
     res.added += 1;
   });
   if (res.added > 0 || res.updated > 0) saveAttendanceRecords(all);
@@ -287,16 +371,17 @@ function _isApiForm() {
   try { return getDataSource() === 'api'; } catch (_) { return false; }
 }
 
-/** api 形态：把一次申诉写同步到服务端（失败仅告警——本地乐观已记，next init 以服务端为准） */
+/** api 形态：把一次申诉写同步到服务端（R3-P1（F-09）：登记 pending-writes，失败让调用方感知） */
 function _syncAppealToServer(fn, what) {
   if (!_isApiForm()) return;
   try {
     const call = fn(getAdapter());
-    if (call && typeof call.catch === 'function') {
-      call.catch((e) => console.warn(`[AttendanceAppeal] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e));
+    if (call && typeof call.then === 'function') {
+      trackWrite(call).catch((e) => console.warn(`[AttendanceAppeal] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e));
     }
   } catch (e) {
     console.warn(`[AttendanceAppeal] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e);
+    trackWrite(Promise.reject(e));
   }
 }
 
@@ -388,6 +473,9 @@ export function returnAttendanceAppeal(appealId, { by, note } = {}) {
     rec.returnReason = it.returnNote || '出勤申诉核实';
     delete rec.recordedBy;
     delete rec.recordedAt;
+    delete rec.confirmed;
+    delete rec.confirmedBy;
+    delete rec.confirmedAt;
     saveAttendanceRecords(records);
   }
   return { ok: true, hadRecord: !!rec };
@@ -406,6 +494,9 @@ export function returnAttendanceRecord(recordId, { by, note } = {}) {
   rec.returnReason = String(note || '').trim() || '纪检打回';
   delete rec.recordedBy;
   delete rec.recordedAt;
+  delete rec.confirmed;
+  delete rec.confirmedBy;
+  delete rec.confirmedAt;
   saveAttendanceRecords(records);
   return { ok: true };
 }
@@ -425,6 +516,9 @@ function _applyOrganizerReconfirmation(rec, records, { actorId, status, absenceR
   rec.submittedBy = actorId || rec.submittedBy;
   delete rec.recordedBy;
   delete rec.recordedAt;
+  delete rec.confirmed;
+  delete rec.confirmedBy;
+  delete rec.confirmedAt;
   saveAttendanceRecords(records);
   return { ok: true };
 }
@@ -484,6 +578,7 @@ const _personName = (id) => getPersonName(id);
 // ACTIVITIES 中，此前台账只显示 act-xxxx 原始 id（人会看不懂是哪场活动）
 const _activityTitle = (id) => loadActivities().find(a => a.id === id)?.title || id;
 const _activityType = (id) => loadActivities().find(a => a.id === id)?.type || '未知';
+const _activityDate = (id) => loadActivities().find(a => a.id === id)?.date || '';
 
 /** 考勤记录展示长格式（记录 → 姓名/学号/发展阶段/所属党小组/活动/类别/状态/确认人） */
 export function attendanceToLong(records) {
@@ -509,8 +604,9 @@ export function attendanceToLong(records) {
       // 线上参会（D-293 / SOP-B-5）：线上参会不计入出席（记「请假」）、只免补课——
       // 单列字段供各展示点标注「· 线上参会」，勿把它并进 status 中文标签（状态筛选按 statusKey 判）。
       onlineAttend: r.onlineAttend === true,
-      confirmer: r.recordedBy ? _personName(r.recordedBy) : '—',
-      overdue: r.overdue,
+      confirmer: isAutoConfirmedAttendance(r) ? AUTO_ATTENDANCE_CONFIRMER_LABEL : (attendanceConfirmerId(r) ? _personName(attendanceConfirmerId(r)) : '—'),
+      // R7-33：超期按「活动日 + 补课时限」现算（存储字段 overdue 仅作历史兼容，不再直读）
+      overdue: isAttendanceOverdue({ ...r, date: r.date || _activityDate(r.activityId) }),
     };
   });
 }
@@ -570,20 +666,35 @@ export function listActivityParticipationByPerson(records) {
 export function summarizeAttendanceByActivity({ month, records, rosterSnapshots } = {}) {
   const src = records || loadActiveAttendanceRecords();
   const snapshots = rosterSnapshots || mockDB.attendanceRosters || [];
+  const signups = SignupStore.getAll();
   const rows = [];
   for (const a of loadActivities()) {
     if (month && !(a.date || '').startsWith(month)) continue;
+    // 支委会等「不考勤」类型不进入出勤率分母（policy 单一源）
+    if (POLICY_DEFAULTS.attendance.noAttendanceTypes.includes(a.type)) continue;
     const recordByPerson = new Map();
     for (const record of src) {
       if (record.activityId === a.id && record.personId) recordByPerson.set(record.personId, record);
     }
     const snapshot = snapshots.find((row) => row.activityId === a.id && row.frozen === true);
-    const expectedIds = new Set(Array.isArray(snapshot?.personIds) ? snapshot.personIds.map(String) : []);
+    let expectedIds;
+    let rosterFrozen = !!snapshot;
+    if (snapshot) {
+      expectedIds = new Set(Array.isArray(snapshot.personIds) ? snapshot.personIds.map(String) : []);
+    } else {
+      // R2-46：未冻结名单的活动也不能把「实际到场」当分母（会恒等于 100%）。
+      // 回退到支部在册应到名单（党小组会按本组），再叠加主题党日报名口径——与 freeze 时同源。
+      const groupId = a.type === '党小组会'
+        ? (a.hostGroup || getPersonById(a.organizer)?.partyGroup || '')
+        : undefined;
+      const original = getMeetingRosterIds({ type: a.type, groupId, branchId: a.branchId || undefined });
+      expectedIds = new Set(deriveExpectedRosterIds({ activity: a, originalPersonIds: original, signups }).map(String));
+    }
     const actualIds = new Set([...recordByPerson.values()]
       .filter((record) => record.status === AttendanceStatus.PRESENT || record.status === AttendanceStatus.MADE_UP)
       .map((record) => String(record.personId)));
     const rosterIds = new Set([...expectedIds, ...actualIds]);
-    if (rosterIds.size === 0) continue; // 尚无冻结名单且没有记录的活动不占位
+    if (rosterIds.size === 0) continue; // 尚无应到名单且没有记录的活动不占位
     const counted = [...rosterIds].map((personId) => recordByPerson.get(personId)).filter(Boolean);
     const present = counted.filter(r => r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP).length;
     const leave = counted.filter(r => r.status === AttendanceStatus.LEAVE).length;
@@ -593,7 +704,7 @@ export function summarizeAttendanceByActivity({ month, records, rosterSnapshots 
     rows.push({
       activityId: a.id, activity: a.title, date: a.date || '', type: a.type || '',
       total: rosterIds.size, present, leave, absent, unrecorded, coverage,
-      rosterFrozen: !!snapshot, estimate: !snapshot,
+      rosterFrozen, estimate: !rosterFrozen,
       rate: Math.round((present / rosterIds.size) * 100),
     });
   }
@@ -634,6 +745,80 @@ export function summarizePersonAttendance({ personId, month } = {}) {
 }
 
 /**
+ * 出勤率配色分档（R2-14 / R2-47，2026-10-20）：全站唯一阈值源。
+ * 为什么需要：首页 90/70、成员台 90/提示线、单场 90/70 三套色阶会让同一人同一月一绿一黄。
+ * 口径：良好线固定 90（展示口径）；偏低线 = 制度参数 `attendance.lowRateHint`（默认 80，支部可调）。
+ * 仅返回语义档位，具体颜色由各展示层映射（颜色不进服务层）。
+ * @param {number|null} rate 0–100；null/undefined = 未录（待录入）
+ * @returns {'good'|'watch'|'low'|'pending'}
+ */
+export function attendanceRateTone(rate) {
+  if (rate === null || rate === undefined || !Number.isFinite(Number(rate))) return 'pending';
+  if (Number(rate) >= 90) return 'good';
+  if (Number(rate) >= POLICY_DEFAULTS.attendance.lowRateHint) return 'watch';
+  return 'low';
+}
+
+/**
+ * 按「应到人次」统计**某一个人**的出勤（R2-47，2026-10-20）。
+ * 与 `summarizePersonAttendance` 的区别（两者都必须显式标注分母）：
+ *   · 本函数：分母 = 该人**应到**的场次（冻结 roster / 在册应到名单，与场次级同一口径）；
+ *     未录场次计入 `unrecorded`，`rate` 仍以应到为分母，`coverage` 暴露录入完整度；
+ *   · `summarizePersonAttendance`：分母 = 该人**已录**场次（当事人视角的历史兼容口径）。
+ * 页面禁止自行相除，二选一并标注用的是哪一个。
+ * @param {{personId:string, month?:string}} [params]
+ * @returns {{total:number, recorded:number, present:number, leave:number, absent:number,
+ *   unrecorded:number, coverage:number, rate:number|null}}
+ */
+export function summarizePersonAttendanceByRoster({ personId, month } = {}) {
+  const empty = { total: 0, recorded: 0, present: 0, leave: 0, absent: 0, unrecorded: 0, coverage: 0, rate: null };
+  if (!personId) return empty;
+  const src = loadActiveAttendanceRecords();
+  const snapshots = mockDB.attendanceRosters || [];
+  const signups = SignupStore.getAll();
+  let total = 0, recorded = 0, present = 0, leave = 0, absent = 0;
+  for (const a of loadActivities()) {
+    if (month && !(a.date || '').startsWith(month)) continue;
+    // 支委会等「不考勤」类型不进入分母（与场次级汇总同源）
+    if (POLICY_DEFAULTS.attendance.noAttendanceTypes.includes(a.type)) continue;
+    const snapshot = snapshots.find((row) => row.activityId === a.id && row.frozen === true);
+    let expectedIds;
+    if (snapshot) {
+      expectedIds = new Set(Array.isArray(snapshot.personIds) ? snapshot.personIds.map(String) : []);
+    } else {
+      const groupId = a.type === '党小组会'
+        ? (a.hostGroup || getPersonById(a.organizer)?.partyGroup || '')
+        : undefined;
+      const original = getMeetingRosterIds({ type: a.type, groupId, branchId: a.branchId || undefined });
+      expectedIds = new Set(deriveExpectedRosterIds({ activity: a, originalPersonIds: original, signups }).map(String));
+    }
+    if (!expectedIds.has(String(personId))) continue;
+    total += 1;
+    const record = src.find((r) => r.activityId === a.id && r.personId === personId);
+    if (!record) continue;
+    recorded += 1;
+    if (record.status === AttendanceStatus.PRESENT || record.status === AttendanceStatus.MADE_UP) present += 1;
+    else if (record.status === AttendanceStatus.LEAVE) leave += 1;
+    else if (record.status === AttendanceStatus.ABSENT) absent += 1;
+  }
+  const unrecorded = total - recorded;
+  return {
+    total, recorded, present, leave, absent, unrecorded,
+    coverage: total > 0 ? Math.round((recorded / total) * 100) : 0,
+    // 未录（coverage=0）不得显示 0%/100% ⇒ null，由展示层写「待录入」
+    rate: total > 0 && recorded > 0 ? Math.round((present / total) * 100) : null,
+  };
+}
+
+/**
+ * 两个出勤率语义的**显式命名出口**（R2-47）：页面必须从二者选一并标注分母，禁止自己相除。
+ * · `attendanceRateByRoster`：按场次 / 应到人次（服务层唯一实现 = summarizeAttendanceByActivity）；
+ * · `attendanceRateByRecorded`：按人 / 已录场次（历史兼容口径 = summarizePersonAttendance）。
+ */
+export const attendanceRateByRoster = summarizeAttendanceByActivity;
+export const attendanceRateByRecorded = summarizePersonAttendance;
+
+/**
  * 出勤率偏低提示（SOP-B-15 / `SOP-B-7`，2026-09-18 批次 85）：**只作提示、不触发任何动作**
  * （不生成补课 / 不影响评优 / 不生成任何处置）。
  * 判据 = **提示线**（可调参数 `POLICY_DEFAULTS.attendance.lowRateHint`）——**提示线 ≠ 制度门槛**：
@@ -644,7 +829,7 @@ export function summarizePersonAttendance({ personId, month } = {}) {
 export function listLowAttendanceSessions({ month, hint } = {}) {
   const line = Number.isFinite(hint) ? hint : POLICY_DEFAULTS.attendance.lowRateHint;
   const sum = summarizeAttendanceByActivity({ month });
-  return { hint: line, month: sum.month, rows: sum.rows.filter(r => r.rate < line) };
+  return { hint: line, month: sum.month, rows: sum.rows.filter(r => r.coverage > 0 && r.rate < line) };
 }
 
 // ════════════════════════════════════════════════════════════════

@@ -2,7 +2,7 @@
 title: "文件时间戳注册表"
 type: audit_report
 role: "[工程师]+[AI]"
-last_updated: "2026-10-18"
+last_updated: "2026-11-03"
 status: active
 dynamic_role:
   maintenance: "[工程师]+[AI]"
@@ -12,7 +12,7 @@ dynamic_role:
 # File Timestamp Registry
 
 > 全项目文件最后更新时间注册表
-> last_updated: "2026-10-17" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
+> last_updated: "2026-11-03" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
 >
 > **迁出去向说明（2026-09-17 立）**：本文件原有两条 ⚠ 登记（自身时间戳两处不一的更正经过 / 表刷新已漏做一次），其**更正与登记经过**已于 2026-09-17 **逐字迁出**至 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md` 的「**附：稳定文档迁出的逐批沿革（2026-09-17 批次 58）**」节。**为什么迁**：本表职能＝「哪些文件在什么时候被谁动过、周期性任务何时到期」（见头下职能声明），「本次怎么改的」是沿革。**现在要查**：① 沿革去上述日志附节；② **补刷已做（2026-09-17 批次 59）**——自身时间戳三值统一为 2026-09-17、表行按「文件最后实质改动日」补刷、僵尸行已修准或标记；**未消残留**（工作树「已改未提交」而在库无改动日记载者）逐行清单见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md` 批次 59「二」节；③ 逐版沿革见同日志「附：SNAPSHOT 版本沿革」节。
 
@@ -37,10 +37,10 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| README.md | 2026-10-17 | — | [用户]+[AI] | 全站门面（定位 / 快速开始〔2026-10-07 批次 437 新增：三命令跑起来＋演示账号＋局域网免域名直连＋真实数据空库起步〕 / 页面与页签清单 / 支部分工覆盖面 / 测试与发版清单）；会议表决规则改为按场景说明，概况入口说明统一待处理队列；页签总数校准为 67。**边界**：逐枚页面与逐枚页签的权威源是 `README-server.md` §3.1–§3.2 与 `docs/help.html` §0 / §2，本件只给概览与入口。守卫清单列在此处是 `doc-consistency::S10` 的硬要求。沿革已迁出（git 可溯）。 |
+| README.md | 2026-10-29 | — | [用户]+[AI] | 全站门面（定位 / 快速开始〔2026-10-07 批次 437 新增：三命令跑起来＋演示账号＋局域网免域名直连＋真实数据空库起步〕 / 页面与页签清单 / 支部分工覆盖面 / 测试与发版清单）；会议表决规则改为按场景说明，概况入口说明统一待处理队列；页签总数校准为 67。**边界**：逐枚页面与逐枚页签的权威源是 `README-server.md` §3.1–§3.2 与 `docs/help.html` §0 / §2，本件只给概览与入口。守卫清单列在此处是 `doc-consistency::S10` 的硬要求。沿革已迁出（git 可溯）。 |
 | README-members.md | 2026-10-16 | — | [用户]+[AI] | 支部成员版说明；匿名反馈为登录后的支部内闭环，处置权不含揭名权（`D-824`）。 |
-| README-server.md | 2026-10-17 | — | [用户]+[AI] | 面向**外部后端对接团队**的对接说明书（背景 / 角色 / 板块 / 字段〔**指针**〕/ 部署 / 接口 / 已知限制）。**边界**：**字段级清单的唯一权威源＝母本 `content/04_web_design/data/DATA_MODEL.md`**——§4 只留「**指针 ＋ 后端增量**」（服务端专有表 ＋ 来源 C 字段 ＋ 行为口径），**不再逐表复刻**。正文 **≥370 处 `文件:行号` 引用**由 `doc-line-ref` 守卫常驻核对（行号随代码位移须**同批改签**）。本批同步工作组、考勤、逐支部上报与服务端授权审计说明，并改签引用。沿革见 `.ctx/logs/`。 |
-| CLAUDE.md | 2026-10-18 | — | [工程师]+[AI] | AI 协作总纲：甲部（通用流程 / 指导思想，`H10`–`H100`）＋ 乙部（具体执行事项）＋ 丙部（待决策事项）。**边界**：过程 / 沿革 / 决议**各有其位**（`H26.2` 分工表）；乙部只留在办事项索引。**为什么**：本文件是最高治理文件，只承载规矩与在办项。 |
+| README-server.md | 2026-11-01 | — | [用户]+[AI] | 面向**外部后端对接团队**的对接说明书（背景 / 角色 / 板块 / 字段〔**指针**〕/ 部署 / 接口 / 已知限制）。**边界**：**字段级清单的唯一权威源＝母本 `content/04_web_design/data/DATA_MODEL.md`**——§4 只留「**指针 ＋ 后端增量**」（服务端专有表 ＋ 来源 C 字段 ＋ 行为口径），**不再逐表复刻**。正文 **≥370 处 `文件:行号` 引用**由 `doc-line-ref` 守卫常驻核对（行号随代码位移须**同批改签**）。本批同步工作组、考勤、逐支部上报与服务端授权审计说明，并改签引用。沿革见 `.ctx/logs/`。 |
+| CLAUDE.md | 2026-11-03 | — | [工程师]+[AI] | 宪法 + 路由：甲部（H10–H100）＋ 乙部（在办）＋ 丙部（待裁）。乙部只留在办；历史进 logs；细则进 content。 |
 | CHECKLIST.md | — | — | — | 🗑️ 已删除（迁移至 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md） |
 | LICENSE | 2026-05-18 | — | [用户] | 开源许可 |
 | .gitignore | 2026-09-10 | — | [工具] | Git 忽略 |
@@ -52,15 +52,21 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| .ctx/TIMESTAMPS.md | 2026-10-18 | — | [工程师]+[AI] | **（本批：4 格加短注）** **（本批：7 格加短注）** **（本批：7 格加短注 ＋ `data-adapter.js` 日期 +2 日；沿革入 `.ctx/logs/`；备注列总字数仍在守卫预算内）** **（本批：无表行新增；⚠ 覆盖缺口如实登记＝`docs/src/workflow/blocks/orchestration.js`（新）· `server/test/block-orchestration.test.mjs`（新）· `docs/src/core/base/module-compose.js`（本批修缺陷）本表原无其行，沿用「只登记不补行」）** **（本批：无表行新增；连带刷卡＝`REVIEW_QUEUE.md`（新增代码健康评审节、日期刷今日）与 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`（新增两节日志））** **（批次 236：备注列**二轮收敛**（再迁 5 格 ⇒ 合计 157,952 → 71,888 字、最长单格 34,434 → 5,729，预算上限 95,000 → 75,000）；⚠ 覆盖缺口如实登记＝`CHANGELOG.md` · `docs/scripts/release.mjs` · `docs/scripts/version-next.mjs` · `CONTRIBUTING.md` · `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 本表原无其行，沿用「只登记不补行」）** **（批次 235：本表备注列**预算化**——新立 `timestamps-note-guard.test.mjs::N1–N7`（纪律 `CLAUDE.md R-89`）；本行沿革（34,434 字）已整段迁出，见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」A 节；本列自本批起只写**现状 / 边界 / 为什么**，判据＝`CLAUDE.md R-89` ＋ `timestamps-note-guard.test.mjs::N1–N7`）** |
-| .ctx/SNAPSHOT.md | 2026-10-18 | — | [AI] | 全仓目录树、版本和 SQLite 当前表结构快照；schema v4 将历史周报迁入通用周期归档表。目录与版本以仓库实况为准，沿革见执行日志。 |
-| .ctx/ACTIVE_RULINGS.md | 2026-10-14 | — | [工程师]+[AI] | 现行有效裁定速查（**只答「现在该怎么判」**；**只收现行有效口径、不记逐批增量句 / 沿革**——`H26.2`）。**边界**：**权威源＝当月决策日志**（口径冲突以它为准）；本表只作投影、每行带 `D-xxx`。**为什么**：决策日志留全文、本表留速查。 |
-| .ctx/ENGINEERING_ASSESSMENT.md | 2026-10-14 | — | [工程师]+[AI] | 工程评估与改造行动线：六维评分、七个月复盘、阻断风险与当前行动；不设综合均分。沿革见月度执行日志。 |
-| .ctx/REVIEW_QUEUE.md | 2026-10-06 | — | [工程师]+[AI] | 支书评议队列（**只答「要评议什么 ＋ 评议怎么做」**）：(a) 各专项机制与支书复用检查项；(b) **未闭环**命题（`H26.2`）。**边界**：过程 / 进度 / 落地细节 / **已闭环**一律不留（**连同指针一并删**——`git` 即沿革）。**为什么**：队列只装待议上下文，装过程即膨胀（判例：曾积到约 1000 行）。 |
-| .ctx/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
-| .ctx/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
-| .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-10-02 | — | [工程师]+[AI] | 日志索引（2026-09-19 补 2026年08月 / 09月 T 条目表） |
-| .ctx/logs/DECISION_LOG.md | 2026-10-16 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3828 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
+| .ctx/TIMESTAMPS.md | 2026-11-03 | — | [工程师]+[AI] | 文件时间戳注册表；备注列只写**现状 / 边界 / 指针**（`R-89`），逐批沿革见 `.ctx/logs/**`。 |
+| .ctx/SNAPSHOT.md | 2026-11-03 | — | [AI] | 系统现状基线（reference）：只答「系统现在长什么样」；批次 509–528 小结已迁 `logs/EXECUTION_LOG_INDEX.md` 的批次索引表。 |
+| .ctx/ACTIVE_RULINGS.md | 2026-11-03 | — | [工程师]+[AI] | 现行有效裁定**索引**（reference）：只答「到哪找某条现行口径」；跨域摘要 + 16 领域索引，规则正文在 `content/01–05`。 |
+| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-03 | — | [工程师]+[AI] | 工程评估与改造行动线：六维评分、七个月复盘、阻断风险、当前行动与专项台账；§四 另设「上线残项」单一台账；不设综合均分。 |
+| .ctx/REVIEW_QUEUE.md | 2026-11-03 | — | [工程师]+[AI] | 支书评议队列（reference）：只答「要评议什么 ＋ 评议怎么做」；过程 / 已闭环不留。 |
+| .ctx/logs/archive/2026-10/AUDIT_ROUND1_WORKBENCH_STRUCTURE.md | 2026-10-19 | — | [工程师]+[AI] | Round 1 工作台结构审计报告（53 条 triage + 三路审查 + 共识/分歧/裁定 + 证据门）；修复 spec 落盘后可归档或删除。 |
+| .ctx/logs/archive/2026-10/AUDIT_ROUND2_MINIMUM_THREE_COSTS.md | 2026-10-19 | — | [工程师]+[AI] | Round 2 最小三成本审查报告（better-layout / better-accessibility / better-writing 三路独立审查 + 共识/分歧/归属）。本批修项见 `.trae/specs/audit-round2-minimum-three-costs`。 |
+| .ctx/logs/archive/2026-10/AUDIT_ROUND3_4_COMBINED.md | 2026-10-19 | — | [工程师]+[AI] | Round 3+4 合并审查报告（六路 lens + 共识/分歧/待裁定 + batch 1/2A/2B/2C 归属）。修复入口 `.trae/specs/restore-homepage-brand-and-gold`。 |
+| .ctx/logs/archive/2026-10/AUDIT_IA_CRITICAL.md | 2026-10-19 | — | [工程师]+[AI] | 信息架构批判性专项报告（tab 必要性 / 卡片顺序 / 链接真值 / 跨角色交接 / 最小三成本 / 路由真值）；含 sample-diff 五样本与 frontier 裁定。 |
+| .ctx/logs/archive/2026-10/IA_LINK_TRUTH.md | 2026-10-19 | — | [工程师]+[AI] | IA 链接真值审计（角色 + 对象 + 步骤）；材料闭环逐角色落点表 + 真机读数（组长点考勤被弹回 leader.html）。 |
+| .ctx/logs/archive/2026-10/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
+| .ctx/logs/archive/2026-10/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
+| .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-11-03 | — | [工程师]+[AI] | 日志索引 + 批次索引（509–529，替代 SNAPSHOT 5 行小结）。 |
+| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-03 | — | [工程师]+[AI] | 11 月执行日志（批次 529：`.ctx` 知识分层与 active context）。 |
+| .ctx/logs/DECISION_LOG.md | 2026-11-01 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3828 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-03-EXECUTION_LOG.md | 2026-03-02 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-04-EXECUTION_LOG.md | 2026-04-01 | 2026-07-31 | [工程师]+[AI] | 已归档 |
@@ -74,8 +80,12 @@ dynamic_role:
 | .ctx/PLAN_网页逻辑梳理.md | — | — | [工程师]+[AI] | 已删除（2026-08-24 T-280 B1~B6 全部完成，规划已归档至 8月执行日志） |
 | .ctx/logs/archive/2026-08-DECISION_LOG.md | 2026-08-31 | 2026-10-06 | [工程师]+[AI] | 8月决策日志（D-270~D-272 丙部退出归档） |
 | .ctx/logs/archive/2026-09-EXECUTION_LOG.md | 2026-10-06 | 2026-10-06 | [工程师]+[AI] | 9 月执行日志（**已归档**）。**边界**：过程流水归 `git`；本文件**另承载「台账迁出附节」**——`R-` 表（`R-23`…`R-93` 全量纪律正文，**乙部表闭环即迁入此处**）＋ `TIMESTAMPS` 备注列历轮迁出的逐批沿革。**为什么**：`R-84`/`R-86`/`R-89` 的「各有其位」需要一个**稳定、不随月滚动**的落点。 |
-| .ctx/logs/2026-10-EXECUTION_LOG.md | 2026-10-18 | — | [工程师]+[AI] | 10 月执行日志（**当月活跃**；2026-10-02 批次 336 换月建，自 9 月文件迁入批次 323、325–335）。**边界**：只留「为什么 / 拿不准 / 边界 / 读数」（`H26.1`）；过程流水归 `git`，本文件不复述。**立律日（2026-10-04）之前的 48 个旧节已按 `H26.1` 压成「判据 / 边界 / 读数」三类各一句**（本压缩批 · 支书圈「激进」）。 |
-| .ctx/logs/2026-10-DECISION_LOG.md | 2026-10-16 | — | [工程师]+[AI] | 10 月决策日志（**当月活跃 · 决议权威源**；2026-10-02 批次 336 换月建，自 9 月文件逐字迁入 `D-729`~`D-739`）。**边界**：每条裁定全文（追加、不改写）；过程归执行日志（`R-84`）。 |
+| .ctx/logs/2026-10-EXECUTION_LOG.md | 2026-10-27 | — | [工程师]+[AI] | 10 月执行日志（当月活跃；批次 336 换月建）。**边界**：只留「为什么 / 拿不准 / 边界 / 读数」（`H26.1`）；过程流水归 `git`，本文件不复述。 |
+| .ctx/logs/2026-10-DECISION_LOG.md | 2026-10-22 | — | [工程师]+[AI] | 10 月决策日志（**当月活跃 · 决议权威源**；2026-10-02 批次 336 换月建，自 9 月文件逐字迁入 `D-729`~`D-739`）。**边界**：每条裁定全文（追加、不改写）；过程归执行日志（`R-84`）。 |
+| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-03 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；自 `D-827` 起，批次 524–529 记 `D-827`…`D-852`。 |
+| .ctx/logs/archive/2026-10/2026-10-AUDIT_R10_DATA_LIFECYCLE.md | 2026-10-23 | — | [工程师]+[AI] | 第十轮数据生命周期审查（75 条；R10 四批的依据）。 |
+| .ctx/logs/archive/2026-10/2026-10-AUDIT_UI_R11.md | 2026-10-23 | — | [工程师]+[AI] | 第十一轮前端脏乱繁审查（P0/P1/P2 与 SD-1…SD-11）。 |
+| .ctx/logs/archive/2026-10/2026-10-R10_P3_CLOSURE.md | 2026-10-23 | — | [工程师]+[AI] | R10 P3 收口对账（R6 21 / R7 18 / 帮助注释 9）。 |
 | .ctx/logs/archive/2026-09-DECISION_LOG.md | 2026-10-02 | 2026-10-06 | [工程师]+[AI] | **（批次 235：沿革已整段迁出**——本行的逐批沿革（6427 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」D 节；本列自本批起只写**现状 / 边界 / 为什么**，判据＝`CLAUDE.md R-89` ＋ `timestamps-note-guard.test.mjs::N1–N7`）** |
 | .ctx/logs/archive/2026-05-early-EXECUTION_LOG.md | 2026-05-21 | 2026-05-21 | [工程师]+[AI] | 5月早期条目归档 |
 | .ctx/logs/archive/2026-07-early-entries.md | 2026-07-31 | 2026-07-18 | [工程师]+[AI] | T22-T90 早期条目归档（母本：2026-07-EXECUTION_LOG.md） |
@@ -85,8 +95,8 @@ dynamic_role:
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
 | content/01_strategy/DEVELOPMENT_PATH.md | 2026-10-18 | — | [用户]+[AI] | **（2026-09-26 批次 201：`D-660` 引用改准〔`FLAT_ORGANIZATION_DESIGN.md` →《支部组织与委员体系》，`文件:行号` 形态只存在于 `.ctx/**`〕；只改引用、未改口径；由「另一路」落地，本表行日期按 `S13` 口径不刷）**  发展路径（原 MANAGE_SERVE.md→strategy/DEVELOPMENT_PATH.md，文档逻辑顺序重组后迁至01_strategy/；P.10 清理「不是…而是」句式 10 处）；**2026-09-22 批次 154**：`:12` 分工声明里「（不是「党建与党务的统一主语」——该表述为错误概括，2026-08-15 支书裁决清理）」降级（与 `SECRETARY_DIRECTIVES.md:38` 同句副本；行数守恒、`docs/src` 两处行号引用零位移），`D-597` |
-| content/01_strategy/SECRETARY_DIRECTIVES.md | 2026-10-16 | — | [用户]+[AI] | **（2026-09-26 批次 202：03《运行与协作规范》合并后引用改准〔`USAGE_POLICY.md §1` 术语表 → `OPERATIONS_GUIDE.md §19`〕；只改引用、`last_updated` 未刷〔`R-83` 债务〕；由同一批「另一路」落地）** **（2026-09-26 批次 201：`D-660` 引用改准〔`FLAT_ORGANIZATION_DESIGN.md` →《支部组织与委员体系》，`文件:行号` 形态只存在于 `.ctx/**`〕；只改引用、未改口径；由「另一路」落地，本表行日期按 `S13` 口径不刷）**  支书论断（项目顶级战略文档；**2026-09-22 批次 153 母本降级**：移去正文沿革注记 10 处——头部体例注释 7 处「（…日期…裁决/确立/补充）」· `:38`「（不是「党建与党务的统一主语」，该表述为错误概括已清理）」· `:300`「（2026-08-09 支书确认**升正文**）」→「（2026-08-09 支书确认）」· 附录·论断编号索引末尾的「历史重构操作记录…已归档至执行日志」（该行整行移出），frontmatter 同步；附录三块（论断编号索引 / 修正记录表 / 原话附注）与各「出处：…」单行元数据、各条原话日期**保留未动**；`D-595`） |
-| content/01_strategy/README.md | 2026-09-26 | — | [用户]+[AI] | 01_strategy 目录索引（2026-08-24 补充 references 子目录性质划分）；**2026-09-22 批次 154**：references/ 划分说明里「（2026-08-24 规范化）」降级（关键词未命中的同族，人工通读抓出），`D-597` |
+| content/01_strategy/SECRETARY_DIRECTIVES.md | 2026-10-22 | — | [用户]+[AI] | P-018/19**（2026-09-26 批次 202：03《运行与协作规范》合并后引用改准〔`USAGE_POLICY.md §1` 术语表 → `OPERATIONS_GUIDE.md §19`〕；只改引用、`last_updated` 未刷〔`R-83` 债务〕；由同一批「另一路」落地）** **（2026-09-26 批次 201：`D-660` 引用改准〔`FLAT_ORGANIZATION_DESIGN.md` →《支部组织与委员体系》，`文件:行号` 形态只存在于 `.ctx/**`〕；只改引用、未改口径；由「另一路」落地，本表行日期按 `S13` 口径不刷）**  支书论断（项目顶级战略文档；**2026-09-22 批次 153 母本降级**：移去正文沿革注记 10 处——头部体例注释 7 处「（…日期…裁决/确立/补充）」· `:38`「（不是「党建与党务的统一主语」，该表述为错误概括已清理）」· `:300`「（2026-08-09 支书确认**升正文**）」→「（2026-08-09 支书确认）」· 附录·论断编号索引末尾的「历史重构操作记录…已归档至执行日志」（该行整行移出），frontmatter 同步；附录三块（论断编号索引 / 修正记录表 / 原话附注）与各「出处：…」单行元数据、各条原话日期**保留未动**；`D-595`） |
+| content/01_strategy/README.md | 2026-10-24 | — | [用户]+[AI] | 01_strategy 目录索引（2026-08-24 补充 references 子目录性质划分）；**2026-09-22 批次 154**：references/ 划分说明里「（2026-08-24 规范化）」降级（关键词未命中的同族，人工通读抓出），`D-597` |
 | content/01_strategy/references/历史会议材料/ | 2026-08-27 | — | [用户] | 只读（2026-08-24 党支部工作记录.docx 归位于此） |
 | content/01_strategy/references/合规文件/ | 2026-07-21 | — | [用户] | 只读 |
 | content/01_strategy/references/建设探索/ | 2026-08-03 | — | [用户] | 只读 |
@@ -95,89 +105,106 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md | 2026-10-18 | — | [用户]+[AI] | 支部组织与委员体系（组织层级 / 委员职责矩阵 / 赋权三情景 / 上传与闭环分工）。**边界**：赋权入口与系统的对应关系以 `docs/src/core/domain/work-map.js` 与 `docs/src/entries/tabs/**` 实读为准；本件是母本，系统侧不得先于母本改。沿革已迁出（git 可溯）。 |
+| content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md | 2026-11-03 | — | [用户]+[AI] | 支部组织与委员体系（组织层级 / 委员职责矩阵 / 赋权三情景 / 上传与闭环分工）。**边界**：赋权入口与系统的对应关系以 `docs/src/core/domain/work-map.js` 与 `docs/src/entries/tabs/**` 实读为准；本件是母本，系统侧不得先于母本改。沿革已迁出（git 可溯）。 |
 | content/02_institution/FLAT_ORGANIZATION_DESIGN.md | 2026-09-22 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-26 批次 201**：正文**整体并入** `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` 的 **§G 组织者与深度参与者的扁平化设计**〔原一~八 → **G.1~G.8 逐字**；该文件**标题改《支部组织与委员体系》**〕⇒ **两份 → 一份**；`D-660`）（原：扁平化设计（**2026-09-22 批次 153 母本降级**：移去沿革注记 3 处——`:23`「（支书 2026-09-17 裁定）」· `:37`「（支书 2026-08-09 裁决：…）」→「（支书原话：…）」· 末尾「反论处置记录」整块 2 行移出；frontmatter 同步；`D-595`） |
 | content/02_institution/ROLE_CLASSIFICATION.md | 2026-09-05 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-26 批次 202**：**自 `02_institution` 迁入 `03_doc_system`**——正文**整体并入** `content/03_doc_system/OPERATIONS_GUIDE.md`《运行与协作规范》的 **§24–§31**〔原 §一 三分类定义 → §24 · §二 复合标记规则 → §25 · §三 目录到角色映射 → §26 · §四 协作方式 → §27 · §五 存储与读取机制 → §28 · §六 与现有文档的一致性 → §29 · §七 可扩展性评估 → §30 · §八 变更历史 → §31〕⇒ **该文件为「迁类 ＋ 并入」双动作**）（原：文件角色分类（2026-09-05 §九 系统角色权限矩阵拆出，本文档回归纯文件角色分类）） |
-| content/02_institution/SYSTEM_ROLE_PERMISSION.md | 2026-10-18 | — | [工程师]+[AI] | 角色 × 权限母本；含工作组事务保存/撤权边界与本人+本支部支委档案读取策略。**边界**：可调制度项登记 `POLICY_OVERRIDABLE`；其余权限以本文件和服务端校验为准。 |
-| content/02_institution/README.md | 2026-10-18 | — | [用户]+[AI] | **（2026-09-26 批次 202：03《运行与协作规范》合并后引用 / 枚举改准〔「二、角色分类」表改「迁出登记」行 ＋ `ROLE_CLASSIFICATION.md` → `OPERATIONS_GUIDE.md §24–§31`〕；只改引用、`last_updated` 未刷〔`R-83` 债务〕；由同一批「另一路」落地）** **（2026-09-26 批次 201：`D-660` 引用改准〔`FLAT_ORGANIZATION_DESIGN.md` →《支部组织与委员体系》，`文件:行号` 形态只存在于 `.ctx/**`〕；只改引用、未改口径；由「另一路」落地，本表行日期按 `S13` 口径不刷）**  02_institution 目录索引（2026-09-05 拆述角色分类与系统角色权限矩阵）；**2026-09-22 批次 154**：SYSTEM_ROLE_PERMISSION 行的「（…；2026-09-05 自 ROLE_CLASSIFICATION.md §九 迁出）」降级（关键词未命中的同族，按受众分再扫抓出），`D-597` |
-| content/02_institution/sop/INDEX.md | 2026-10-18 | — | [用户]+[AI] | SOP 导航（术语段已删「党建 / 党务」二分；常用场景行用途栏用「组织生活会以三会形式召开」写法）。沿革见 `.ctx/logs/`。 |
-| content/02_institution/sop/常见工作场景快速指南.md | 2026-10-18 | — | [用户]+[AI] | 常见工作场景快速指南（母本）：三会一课按同一套 9 环节；党课通知提前量**不设固定值**、由组织者把握；「组织生活会以三会形式召开」用从属写法。沿革见 `.ctx/logs/`。 |
+| content/02_institution/SYSTEM_ROLE_PERMISSION.md | 2026-11-03 | — | [工程师]+[AI] | 角色 × 权限母本；含工作组事务保存/撤权边界与本人+本支部支委档案读取策略。**边界**：可调制度项登记 `POLICY_OVERRIDABLE`；其余权限以本文件和服务端校验为准。 |
+| content/02_institution/README.md | 2026-10-24 | — | [用户]+[AI] | **（2026-09-26 批次 202：03《运行与协作规范》合并后引用 / 枚举改准〔「二、角色分类」表改「迁出登记」行 ＋ `ROLE_CLASSIFICATION.md` → `OPERATIONS_GUIDE.md §24–§31`〕；只改引用、`last_updated` 未刷〔`R-83` 债务〕；由同一批「另一路」落地）** **（2026-09-26 批次 201：`D-660` 引用改准〔`FLAT_ORGANIZATION_DESIGN.md` →《支部组织与委员体系》，`文件:行号` 形态只存在于 `.ctx/**`〕；只改引用、未改口径；由「另一路」落地，本表行日期按 `S13` 口径不刷）**  02_institution 目录索引（2026-09-05 拆述角色分类与系统角色权限矩阵）；**2026-09-22 批次 154**：SYSTEM_ROLE_PERMISSION 行的「（…；2026-09-05 自 ROLE_CLASSIFICATION.md §九 迁出）」降级（关键词未命中的同族，按受众分再扫抓出），`D-597` |
+| content/02_institution/sop/INDEX.md | 2026-10-25 | — | [用户]+[AI] | SOP 导航（术语段只留 `TERMINOLOGY.md` 指针；常用场景行用途栏用「组织生活会以三会形式召开」写法）。沿革见 `.ctx/logs/`。 |
+| content/02_institution/sop/常见工作场景快速指南.md | 2026-10-22 | — | [用户]+[AI] | 常见工作场景快速指南（母本）：三会一课按同一套 9 环节；党课通知提前量**不设固定值**、由组织者把握；「组织生活会以三会形式召开」用从属写法。沿革见 `.ctx/logs/`。 |
 | content/02_institution/sop/支委与党小组定人定责定岗说明.md | 2026-10-18 | — | [用户]+[AI] | 定人定责定岗说明（母本）：第三党小组组长标注为「代组长」；§5.3 定岗表「制度建设」主导者＝支委会（可指定对应委员起草 / 修改）；条块交叉表复盘列用「宣传材料归档」。沿革见 `.ctx/logs/`。 |
-| content/02_institution/sop/宣传委员工作流程指南.md | 2026-10-18 | — | [用户]+[AI] | 宣传委员工作流程指南（母本）：照片墙 / 图片管理 / 周报自动生成与通知支书均**已实现**（反向过时说明已改准）；「最佳展示 / 档案备份分级」「拖拽至宣传子任务」由「未实现」改准为**设计方向**；周报步与项目看板步的留痕按钮名＝「标记已上报党建平台」（与归档页「标记已发送（微信 / 对外）」分开记）。沿革见 `.ctx/logs/`。 |
+| content/02_institution/sop/宣传委员工作流程指南.md | 2026-10-25 | — | [用户]+[AI] | 宣传委员工作流程指南（母本）：引用改准至 `DATA_MODEL.md §2.9 消息`；照片墙 / 图片管理 / 周报自动生成与通知支书均**已实现**（反向过时说明已改准）；「最佳展示 / 档案备份分级」「拖拽至宣传子任务」由「未实现」改准为**设计方向**；周报步与项目看板步的留痕按钮名＝「标记已上报党建平台」（与归档页「标记已发送（微信 / 对外）」分开记）。沿革见 `.ctx/logs/`。 |
 | content/02_institution/sop/纪检委员工作流程指南.md | 2026-10-18 | — | [用户]+[AI] | 纪检委员工作流程指南（母本）：出勤率汇总 → **交支委会（不公示、不对外）**；考察同流程含**同款打回**（含申诉先核实）；会议考勤上传＝该场组织者，纪检管打包确认 / 总表 / 统计核对。沿革见 `.ctx/logs/`。 |
-| content/02_institution/sop/组织委员工作流程指南.md | 2026-10-18 | — | [用户]+[AI] | 组织委员工作流程指南（母本）：发展对象公示期＝**不少于五个工作日**（引上级《发展党员工作细则》第十三条）；「培养联系人考察记录」以纸质材料撰写、**系统内不设该栏**。沿革见 `.ctx/logs/`。 |
-| content/02_institution/sop/党小组组长工作手册.md | 2026-10-18 | — | [用户]+[AI] | 2026-09-22 批次 140 母本降级：移去沿革注记 3 处（`:172`「2026-08-30 支书裁决·混合模式」· `:239`「（D-2 决断）」· `:298`「2026-08-30 支书强调」），frontmatter 同步；`D-572`；**2026-09-22 批次 145**：§6.3 通知注意事项 5「三会一课 / **组织生活会**类会议通知至少提前 5 天」→「**三会一课类**会议通知至少提前 5 天」——按 `D-290` **去并列**（组织生活会随所承接的三会形式走，故并入「三会一课类」），`D-577`（本行日期当日已为 2026-09-22、未变） |
+| content/02_institution/sop/组织委员工作流程指南.md | 2026-10-22 | — | [用户]+[AI] | 组织委员工作流程指南（母本）：发展对象公示期＝**不少于五个工作日**（引上级《发展党员工作细则》第十三条）；「培养联系人考察记录」以纸质材料撰写、**系统内不设该栏**。沿革见 `.ctx/logs/`。 |
+| content/02_institution/sop/党小组组长工作手册.md | 2026-10-22 | — | [用户]+[AI] | 跨组口径。2026-09-22 批次 140 母本降级：移去沿革注记 3 处（`:172`「2026-08-30 支书裁决·混合模式」· `:239`「（D-2 决断）」· `:298`「2026-08-30 支书强调」），frontmatter 同步；`D-572`；**2026-09-22 批次 145**：§6.3 通知注意事项 5「三会一课 / **组织生活会**类会议通知至少提前 5 天」→「**三会一课类**会议通知至少提前 5 天」——按 `D-290` **去并列**（组织生活会随所承接的三会形式走，故并入「三会一课类」），`D-577`（本行日期当日已为 2026-09-22、未变） |
 
 ## content/03_doc_system/ (系统治理层)
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| content/03_doc_system/OPERATIONS_GUIDE.md | 2026-10-18 | — | [工程师]+[AI] | 运行与协作规范（含 §23 **内部代号词典**、§24–§31 角色分类迁入节）。**边界**：**节号是被全仓引用的面** ⇒ 改号须同批全仓改签（`doc-line-ref` 会逐条核）；正文不承载权限判据（那在 `SYSTEM_ROLE_PERMISSION.md`）。**为什么**：运行口径**单一母本**，不拆散。**§5.1 指针纪律已按 `CLAUDE.md H26.2` 改准为「迁走即直接删、不留去向指针」**。沿革见执行日志「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 322）」。 |
+| content/03_doc_system/OPERATIONS_GUIDE.md | 2026-11-03 | — | [工程师]+[AI] | 运行与协作规范（含 §23 **内部代号词典**、§24–§31 角色分类迁入节；§19 术语定义已改为 `TERMINOLOGY.md` 指针）。**边界**：**节号是被全仓引用的面** ⇒ 改号须同批全仓改签（`doc-line-ref` 会逐条核）；正文不承载权限判据（那在 `SYSTEM_ROLE_PERMISSION.md`）。**为什么**：运行口径**单一母本**，不拆散。**§5.1 指针纪律已按 `CLAUDE.md H26.2` 改准为「迁走即直接删、不留去向指针」**。沿革见执行日志「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 322）」。 |
 | content/03_doc_system/PROCESS_GUIDE.md | 2026-09-13 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/03_doc_system/OPERATIONS_GUIDE.md`《运行与协作规范》的 **§15–§18**〔编号一字未改〕⇒ **四份 → 一份**。（原：运行标准·流程机制 §15 甲部修改 / §16 吸收外部输入 / §17 周期性任务含 W4 五专项 / §18 支书评议细节。）沿革见 `.ctx/logs/`。 |
 | content/03_doc_system/USAGE_POLICY.md | 2026-09-15 | — | [工程师]+[AI] | 🗑️ 已删除（正文并入 `OPERATIONS_GUIDE.md`《运行与协作规范》**§19–§23**）。沿革见 `.ctx/logs/`。 |
-| content/03_doc_system/INFORMATION_COMPUTATION.md | 2026-10-18 | — | [工程师]+[AI] | 信息计算与呈现口径：通知可见性 / 铃铛 / 待办派生 / 概况 / 考勤五项；未统一项与待裁定分列。 |
-| content/03_doc_system/ARCHITECTURE.md | 2026-10-18 | — | [工程师]+[AI] | **（2026-09-26 批次 202：03《运行与协作规范》合并后引用 / 枚举改准〔分层树与结构树里 `PROCESS_GUIDE` / `USAGE_POLICY` / `ROLE_CLASSIFICATION` → `OPERATIONS_GUIDE.md`；`role` 取文件自身 YAML `[工程师]+[AI]`〕；只改引用、`last_updated` 未刷〔`R-83` 债务〕；由同一批「另一路」落地）** **（2026-09-26 批次 201：`D-660` 引用改准〔`FLAT_ORGANIZATION_DESIGN.md` →《支部组织与委员体系》，`文件:行号` 形态只存在于 `.ctx/**`〕；只改引用、未改口径；由「另一路」落地，本表行日期按 `S13` 口径不刷）**  核心架构说明（2026-09-03 删除党建/党务分类节）；**2026-09-25 批次 179（`P.16` 第三批）三份合一**：`SSOT_INDEX.md` / `SERVICE_CATALOG.md` 两份**并入本文件**（标题改《**架构与单一事实源**》⇒ 原 `ARCHITECTURE` 主体作 **§一–§九**〔**编号一字未改**，含 §五 仓库结构 / §八 SSOT 双向变更流水线〕、原 `SSOT_INDEX` 作 **§十**〔`10.1–10.6`〕、原 `SERVICE_CATALOG` 作 **§十一**〔`11.1–11.3`〕、新增 **§十二 边界与引用**；`D-644`）⇒ **本文件自此同时承载架构说明 ＋ 单一事实源注册表 ＋ 统一服务目录**；⚠ **本行日期仍 `2026-09-15`**——**本文件 frontmatter 的 `last_updated` 实读亦即 `2026-09-15`、与表行同值 ⇒ `S13` 绿**；其 frontmatter **未随本批改动刷新**，属 `R-83`「提交后必刷」纪律范畴、**授权面外只登记** |
-| content/03_doc_system/DOC_MAP.md | 2026-10-18 | — | [工程师]+[AI] | 全局文档导航：标注知识文件职责与受众；更新工程评估六维口径、insights 学习入口及 Help 职责。 |
+| content/03_doc_system/INFORMATION_COMPUTATION.md | 2026-10-30 | — | [工程师]+[AI] | 信息计算与呈现口径：通知可见性 / 铃铛 / 待办派生 / 概况 / 考勤五项；未统一项与待裁定分列。 |
+| content/03_doc_system/ARCHITECTURE.md | 2026-11-03 | — | [工程师]+[AI] | 核心架构说明；2026-09-25 批次 179 三份合一（`SSOT_INDEX` / `SERVICE_CATALOG` 并入，§一–§九 编号未改、§十 SSOT 注册表、§十一 服务目录、§十二 边界与引用）。沿革见 `.ctx/logs/`。 |
+| content/03_doc_system/DOC_MAP.md | 2026-11-03 | — | [工程师]+[AI] | 全局文档导航：知识类型文件职责与受众、目录作用表、四类载体索引；§七 重复主题的权威句位置；设计系统按六编登记；05 段含页签审计手册。 |
+| content/03_doc_system/TERMINOLOGY.md | 2026-11-03 | — | [工程师]+[AI] | 术语表（全仓唯一术语定义源）：20 条 × 9 字段；`OPERATIONS_GUIDE §19` 与 `sop/INDEX.md` 只留指针。 |
 | content/03_doc_system/SSOT_INDEX.md | 2026-09-15 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-25 批次 179（`P.16` 第三批）**：正文**整体并入** `content/03_doc_system/ARCHITECTURE.md` 的 **§十 单一事实源注册表与权威源治理**〔编号 **`10.1–10.6` 一字未改**〕⇒ **三份 → 一份**；顺带清旧债＝**本文件里 10 处 `DATA_FLOW.md`** 分两类处置〔**现行 SSOT 关系行 6 处**（`:46`/`:48`/`:57`/`:62`/`:63`/`:64`）**改准**为 `DATA_MODEL.md` 的 `§第二部分（数据流）` / `§3（参与者数据流设计）` / `§3.4（登录态说明）` · **带日期的迁移台账行 4 处**（`:166`/`:174`/`:175`/`:176`）**随整节「已迁移文件索引」按沿革删**〕＋ **同一文件内自相矛盾**（原 `:108` 一句并列两种 tab 组名）**收敛为现行四组**；`D-644`）（原：母本子本注册表；「已迁移文件索引」表 **30 行** ＋ Agent/Skill 配置（已迁出）节 **3 行** ＋ 审查顺序迁出注 **1 行** 随本次合并删去） |
 | content/03_doc_system/SERVICE_CATALOG.md | 2026-09-20 | — | [工程师]+[AI] | 🗑️ 已删除（正文并入 `ARCHITECTURE.md` **§十一 统一服务目录与角色-服务权限矩阵**）。沿革见 `.ctx/logs/`。 |
-| content/03_doc_system/README.md | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-26 批次 202：03《运行与协作规范》合并后引用改准〔`PROCESS_GUIDE` / `USAGE_POLICY` → `OPERATIONS_GUIDE.md`〕；只改引用、`last_updated` 未刷〔`R-83` 债务〕；由同一批「另一路」落地）** 03_doc_system 目录索引 |
+| content/03_doc_system/README.md | 2026-10-27 | — | [工程师]+[AI] | 03_doc_system 目录索引（文件清单含 `INFORMATION_COMPUTATION.md`，权威源与派生同步）。 |
 | content/03_doc_system/工作模板/经验沉淀辅助提示词.md | 2026-09-26 | — | [工程师]+[AI] | 沉淀辅助 |
 
 ## content/04_web_design/ (设计理念层)
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-10-18 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（4192 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
+| content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-11-03 | — | [工程师]+[AI] | 父索引：§一 设计哲学 ＋ 编目（六编 `DS_01`…`DS_06`）；条文在各编，判例在 `CASES.md`。 |
+| content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md | 2026-11-03 | — | [工程师]+[AI] | 第一编 色彩与主题。 |
+| content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md | 2026-11-03 | — | [工程师]+[AI] | 第二编 排版与尺寸。 |
+| content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-11-03 | — | [工程师]+[AI] | 第三编 组件；SD-1…SD-59（SD-57…59 正文见 DS_06）。 |
+| content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md | 2026-11-03 | — | [工程师]+[AI] | 第四编 交互与响应式（P10 三档动效令牌）。 |
+| content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md | 2026-11-03 | — | [工程师]+[AI] | 第五编 地图与速查。 |
+| content/04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md | 2026-11-03 | — | [工程师]+[AI] | 第六编 布局与密度：十条原则 ＋ SD-57 页签密度 / SD-58 筛选条两行 / SD-59 建议输入无系统图标；§五 审计映射表（检查项 → SD 编号 → 守卫）。 |
+| content/04_web_design/design-system/README.md | 2026-11-03 | — | [工程师]+[AI] | 设计系统目录索引；文件清单含 DS_06，权威源指向 DESIGN_SYSTEM.md。 |
+| content/04_web_design/design-system/CASES.md | 2026-10-30 | — | [工程师]+[AI] | 设计＋数据域判例库：CASE-DESIGN-020…031、CASE-DATA-001。 |
 | content/04_web_design/design-system/COLOR_SYSTEM.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的 **§二 色彩系统**〔编号 2.1–2.8 一字未改〕⇒ **四份 → 一份**。（原：自 DESIGN_SYSTEM 拆分的 §二：色盘 / 主色 / 辅助色 / 中性色 / 功能色 / 表面色 / 配色规则。）沿革见 `.ctx/logs/`。 |
 | content/04_web_design/design-system/COMPONENT_SPEC.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-24 批次 172**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的 **§四 组件规范**〔编号 **4.1–4.17 一字未改**〕；`D-638`）（原：组件规范——自 DESIGN_SYSTEM 拆分 §四：按钮 / 卡片 / 输入 / 侧边栏 / 导航 / 日历图例 / 数据展示 / 图标 / 选人 / 状态徽章；2026-09-20 批次 110 改准「待初阅队列」现状句） |
 | content/04_web_design/module/ABOUT_PAGE_DESIGN.md | 2026-10-05 | — | [工程师]+[AI] | About 页面设计系统（超参数设定原则 / 防风格疲劳 / 无竖线红线；无人称文体）。**边界**：入口路径以 `docs/src/entries/pages/about-entry.js` 为准。沿革见 `.ctx/logs/`。 |
 | content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md | 2026-09-20 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§六 北大党校对接**〔内部 §一–§十一 → 6.1–6.11〕⇒ **四份 → 一份**。（原：北大党校与智慧党建对接设计：党校单向爬取 ＋ 智慧党建双向同步 ＋ 数据映射 ＋ 小程序归位 ＋ 待确认清单；对接授权＝党委组织部支持。）沿革见 `.ctx/logs/`。 |
-| content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md | 2026-10-18 | — | [工程师]+[AI] | 架构演进（组件化落地评估 ＋ 轻量插件化「能力注册表」设计 ＋ 迭代机制 ＋ 实施路径；无人称文体）。**边界**：「操作位收口」细节以 `PARTY_COMMITTEE_DESIGN.md` §2.5/§2.6 为准（本件只留一行指针）。沿革见 `.ctx/logs/`。 |
-| content/04_web_design/evolution/BRANCH_WORK_MAP.md | 2026-10-16 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行——历批按「覆盖缺口如实登记、**不补行**」处置，本批改为**补行**；日期＝该文件 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿；`git log -1 --format=%ad --date=short` 亦为 2026-09-26**）** 支部工作地图设计稿（平铺模块 ＋ 按人双视图） |
-| content/04_web_design/evolution/DESIGN_METHODOLOGY.md | 2026-10-18 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 设计理念与方法论承接（设计论证与方法档案） |
-| content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md | 2026-10-18 | — | [工程师]+[AI] | 院系党委后台——支部多实例两级治理设计定案（§2.5 远期形态只留指针指 `ARCHITECTURE_EVOLUTION.md §八`；§2.6 ⑤ 域参数白名单已扩表并留放行登记）。沿革见 `.ctx/logs/`。 |
+| content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md | 2026-11-03 | — | [工程师]+[AI] | 架构演进（组件化评估、轻量插件化设计、迭代机制、§八 画布愿景、§九 性能与交付形态方案 ＋ §9.3 版本戳成本收益、§十 多支部同实例设计稿）。**边界**：「操作位收口」以 `PARTY_COMMITTEE_DESIGN.md` 为准。 |
+| content/04_web_design/evolution/BRANCH_WORK_MAP.md | 2026-10-28 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行——历批按「覆盖缺口如实登记、**不补行**」处置，本批改为**补行**；日期＝该文件 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿；`git log -1 --format=%ad --date=short` 亦为 2026-09-26**）** 支部工作地图设计稿（平铺模块 ＋ 按人双视图）；2026-10-28 刷 frontmatter（页签命名改准「意见反馈」）。 |
+| content/04_web_design/evolution/DESIGN_METHODOLOGY.md | 2026-10-30 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 设计理念与方法论承接（设计论证与方法档案） |
+| content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md | 2026-10-30 | — | [工程师]+[AI] | 院系党委后台——支部多实例两级治理设计定案（§2.5 远期形态只留指针指 `ARCHITECTURE_EVOLUTION.md §八`；§2.6 ⑤ 域参数白名单已扩表并留放行登记）。沿革见 `.ctx/logs/`。 |
 | content/04_web_design/evolution/ROLE_PERMISSION_DESIGN.md | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 权限功能合一收敛设计 |
 | content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md | 2026-10-05 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 工作流块封装契约 |
 | content/04_web_design/deploy/WECHAT_INTEGRATION.md | 2026-09-05 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§五 微信协同与小程序设计**〔内部 §一–§八 → 5.1–5.8〕⇒ **四份 → 一份**。（原：微信协同与小程序设计方案；§八 新增北大对接数据展示；小程序独立问题归位本文档。）沿革见 `.ctx/logs/`。 |
-| content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md | 2026-10-18 | — | [用户]+[AI] | **（现状）** 数据一致性检查清单（`§0` 真机 ↔ 文档逐项对账）。**边界**：本件只承载清单本体与判据，沿革入 `.ctx/logs/`。**为什么**：本列只写现状 / 边界 / 指针（`R-89`）。沿革已迁出（git 可溯）。 |
-| content/04_web_design/data/DATA_MODEL.md | 2026-10-18 | — | [工程师]+[AI] | 数据模型与数据流；明确活动/专班工作组成员、报名来源、主题党日线下应到快照、考勤口径及支部内姓名可见范围。**边界**：字段和派生以代码为准；本件为对内模型，`README-server.md` §4 为对外接口说明。 |
+| content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md | 2026-11-03 | — | [用户]+[AI] | **（现状）** 数据一致性检查清单（`§0` 真机 ↔ 文档逐项对账）。**边界**：本件只承载清单本体与判据，沿革入 `.ctx/logs/`。**为什么**：本列只写现状 / 边界 / 指针（`R-89`）。沿革已迁出（git 可溯）。 |
+| content/04_web_design/data/DATA_MODEL.md | 2026-11-03 | — | [工程师]+[AI] | 数据模型与数据流（静态 §2.x / 动态 §1·§3·§4）；§2.9 消息对象（`kind` / `targetType+targetId` / `reads[]` / `archivedBy[]`）；附录 A 记 schema v12（2026-10-26：四组唯一索引 / `todos.branch_id` 生成列 / `contributions` 对象）；§1.2.2 数据保留期口径（业务数据永不自动删除）；字段 / 必填 / 枚举机读单一源以 `DATA_CONTRACT.md` 为准，种子口径以 `DATA_SEED_CONTRACT.md` 为唯一权威。**边界**：字段级唯一权威；README-server 以行号引用本文件。 |
+| content/04_web_design/data/DATA_CONTRACT.md | 2026-11-03 | — | [工程师]+[AI] | 领域数据契约（47 表：34 资源 + 7 语义 + 6 工作组）的人读版；机读单一源 `server/data/domain-contract.mjs`；字段 / 必填 / 枚举 / 种子计数 / 读时别名。守卫 `server/test/data-contract.test.mjs`。 |
+| content/04_web_design/data/DATA_SEED_CONTRACT.md | 2026-10-27 | — | [工程师]+[AI] | 数据种子契约（四类口径 / 逐表必填 / v12 强约束）；守卫 `server/test/seed-contract-guard.test.mjs`。 |
 | content/04_web_design/data/DATA_FLOW.md | 2026-09-23 | — | [工程师]+[AI] | 🗑️ 已删除（正文并入 `DATA_MODEL.md`《数据模型与数据流》）。沿革见 `.ctx/logs/`。 |
 | content/04_web_design/data/DATA_ARCHITECTURE.md | 2026-09-03 | — | [工程师]+[AI] | 🗑️ 已删除（正文已拆分至 DATA_MODEL / DATA_FLOW） |
-| content/04_web_design/module/MODULE_UI_DESIGN.md | 2026-10-06 | — | [工程师]+[AI] | 模块界面设计（§一 总览 / §二 党建 Tab / §三 日历 / §四 全站 Tab 总方案＝2026-09-27 规划稿）。**边界**：§四.2 已升为 `DESIGN_SYSTEM.md §4.10.1` 正式条文（单一源）；§四 的逐台 tab 清单是**当日快照**，活口径以 `docs/src/capabilities/*-workspace.js` 为单一源（门控对账在 `doc-consistency::S1`）。沿革已迁出（git 可溯）。 |
-| content/04_web_design/module/SOP_WEBSITE_GUIDE.md | 2026-09-26 | — | [工程师]+[AI] | SOP-系统联动方法（无人称文体）。**边界**：相关引用指向 `content/03_doc_system/OPERATIONS_GUIDE.md`。沿革见 `.ctx/logs/`。 |
+| content/04_web_design/PRODUCT_IA.md | 2026-11-03 | — | [工程师]+[AI] | 产品 IA 派生索引（45 页签 ＋ 62→45 重定向 ＋ 详情路由矩阵）；块数口径指向 DS_06 SD-57；由 `capabilities/*` / `object-route.js` 派生，**不承担规范、禁止手改**。 |
+| content/04_web_design/module/MODULE_UI_DESIGN.md | 2026-10-30 | — | [工程师]+[AI] | 模块界面设计（§一 总览 / §二 党建 Tab / §三 日历 / §四 全站 Tab 总方案＝2026-09-27 规划稿）；四组页签名改准为「总览 / 我的职责 / 协作与知情 / 制度与答复」。**边界**：§四.2 已升为 `DESIGN_SYSTEM.md §4.10.1` 正式条文（单一源）；§四 的逐台 tab 清单是**当日快照**，活口径以 `docs/src/capabilities/*-workspace.js` 为单一源（门控对账在 `doc-consistency::S1`）。沿革已迁出（git 可溯）。 |
+| content/04_web_design/module/SOP_WEBSITE_GUIDE.md | 2026-10-30 | — | [工程师]+[AI] | SOP-系统联动方法（无人称文体）。**边界**：相关引用指向 `content/03_doc_system/OPERATIONS_GUIDE.md`。沿革见 `.ctx/logs/`。 |
 | content/04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 会议议程与资料查询设计 |
-| content/04_web_design/deploy/DEPLOYMENT_GUIDE.md | 2026-10-17 | — | [工程师]+[AI] | **部署**手册（环境 / 起服务 / 发版 / 回滚）；报告推送按支部独立配置接收端。**边界**：只讲部署，**不含**权限模型（那在 `AUTHENTICATION_MODEL.md`）与运行协作（`OPERATIONS_GUIDE.md`）；**为什么**：三件分工不重叠，避免同一件事两处写法漂移。沿革见执行日志「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 322）」。 |
+| content/04_web_design/deploy/DEPLOYMENT_GUIDE.md | 2026-11-03 | — | [工程师]+[AI] | **部署**手册（环境 / 起服务 / 发版 / 回滚）；报告推送按支部独立配置接收端。**边界**：只讲部署，**不含**权限模型（那在 `AUTHENTICATION_MODEL.md`）与运行协作（`OPERATIONS_GUIDE.md`）；**为什么**：三件分工不重叠，避免同一件事两处写法漂移。沿革见执行日志「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 322）」。 |
 | content/04_web_design/deploy/SERVER_DEPLOY_MANUAL.md | 2026-10-07 | — | [支书]+[运维执行人] | **服务器逐键部署手册**（支书版，2026-10-07 批次 439 新建）：名词卡片（堡垒机/sudo/防火墙/systemd/SFTP/冒烟）＋六步操作（探机 → 防火墙申请填单模板 → SFTP 上传 → 有/无 sudo 双路线安装 → 设口令启动体检 → 空库换壳起步）＋日常三招与出错对照表＋安全两件事。**边界**：只管「做」；「为什么/总览/回滚深度」在 `DEPLOYMENT_GUIDE.md`（姊妹篇互指）。
 | content/04_web_design/deploy/AUTHENTICATION_MODEL.md | 2026-09-05 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§四 认证与登录门控**〔内部 §一–§八 → 4.1–4.8〕⇒ **四份 → 一份**。（原：部署与认证场景模型：5 场景两轴正交 ＋ 侧边栏统一 ＋ 登录门控四层。）沿革见 `.ctx/logs/`。 |
 | content/04_web_design/SCHOOL_IT_DEPLOYMENT.md | 2026-08-27 | — | [工程师]+[AI] | 🗑️ 已删除（计算中心对接全案已并入 DEPLOYMENT_GUIDE §三） |
-| content/04_web_design/README.md | 2026-10-17 | — | [工程师]+[AI] | 04_web_design 目录索引（2026-08-24 部署类重组更新） |
+| content/04_web_design/README.md | 2026-11-03 | — | [工程师]+[AI] | 04_web_design 目录索引；六编 `DS_01`…`DS_06` 与 `PRODUCT_IA.md`（派生索引，不承担规范）。 |
 
 ## content/05_ai_coding/ (AI 编码层)
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
 | content/05_ai_coding/KNOWN_PITFALLS.md | 2026-09-04 | — | [工程师]+[AI] | 🗑️ 已删除（拆为 05_ai_coding 六篇纪律件） |
-| content/05_ai_coding/README.md | 2026-09-26 | — | [工程师]+[AI] | 05_ai_coding 目录索引 |
-| content/05_ai_coding/CONTEXT_MANAGEMENT.md | 2026-09-26 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。**2026-09-26 已清偿 `R-83` 债**：frontmatter 与表行同刷为该文件最后一次提交日 `2026-09-26`） 上下文管理与防失忆 |
-| content/05_ai_coding/DOCUMENT_GOVERNANCE.md | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 文档治理与一改具改 |
-| content/05_ai_coding/FILE_OPERATION_RULES.md | 2026-09-29 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。**2026-09-26 已清偿 `R-83` 债**：frontmatter 与表行同刷为该文件最后一次提交日 `2026-09-26`） 文件操作纪律 |
-| content/05_ai_coding/REVIEW_AND_EXPRESSION.md | 2026-09-26 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。**2026-09-26 已清偿 `R-83` 债**：frontmatter 与表行同刷为该文件最后一次提交日 `2026-09-26`） 评议与表达纪律 |
-| content/05_ai_coding/TEST_AND_VERIFICATION.md | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 测试验证纪律 |
+| content/05_ai_coding/README.md | 2026-11-03 | — | [工程师]+[AI] | 05_ai_coding 目录索引（含 `TAB_AUDIT_PLAYBOOK.md` 行）。 |
+| content/05_ai_coding/AGENTS.md | 2026-11-01 | — | [工程师]+[AI] | 05 目录协作说明：Q 范围 Q-01…Q-22、分层裁决与验证命令。 |
+| content/05_ai_coding/PARALLEL_SKILL_AUDIT.md | 2026-11-03 | — | [工程师]+[AI] | 多代理独立审查操作手册（H21 详版）：问题集 Q-01…Q-22 → 分 lens → 汇总 → 裁定；§11 IA 审查、§14 SKILL 路由。 |
+| content/05_ai_coding/CONTEXT_MANAGEMENT.md | 2026-11-03 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。**2026-09-26 已清偿 `R-83` 债**：frontmatter 与表行同刷为该文件最后一次提交日 `2026-09-26`） 上下文管理与防失忆 |
+| content/05_ai_coding/DOCUMENT_GOVERNANCE.md | 2026-11-03 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 文档治理与一改具改 |
+| content/05_ai_coding/FILE_OPERATION_RULES.md | 2026-11-03 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。**2026-09-26 已清偿 `R-83` 债**：frontmatter 与表行同刷为该文件最后一次提交日 `2026-09-26`） 文件操作纪律 |
+| content/05_ai_coding/REVIEW_AND_EXPRESSION.md | 2026-10-24 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。**2026-09-26 已清偿 `R-83` 债**：frontmatter 与表行同刷为该文件最后一次提交日 `2026-09-26`） 评议与表达纪律 |
+| content/05_ai_coding/TEST_AND_VERIFICATION.md | 2026-11-03 | — | [工程师]+[AI] | 测试三层（daily/precommit/weekly）；2026-11-03 增两条判例（权限矩阵单一源 / 「保留+改进」反馈必须给出改动或证据）。 |
+| content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md | 2026-11-03 | — | [工程师]+[AI] | 页签审计手册（2026-11-02 建）：五维检查表、P0–P2、例外口径、怎么跑、怎么加检查与页签、报告字段；判据回链 DS_06 §五与 `audit/severity.mjs`。 |
+| content/05_ai_coding/UI_REVIEW_CHECKLIST.md | 2026-11-03 | — | [工程师]+[AI] | 温层 UI 审查清单（2026-11-03 建）：按 8 组任务组织（版式密度 / 排版字号 / 颜色对比 / 交互无障碍 / 文案空态 / 响应式 / 动效 / 数据展示），每条带判据 + DS 节 / SD 编号 + 何时读；入口 `CLAUDE.md H40.2`。 |
+| content/05_ai_coding/AUDIT_CANON.md | 2026-11-03 | — | [工程师]+[AI] | 审计口径唯一表（2026-11-02 建）：四口径裁定（F2 控件行数 / F4 H2 恰 1 / F7 `hasPager()` / C1 `requireAuth` 例外）与 daily / precommit / audit 三档分工；判据回链 `audit/checks-*.mjs` 与 `TAB_AUDIT_PLAYBOOK.md`。 |
 
 ## content/insights/ (经验沉淀)
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| content/insights/README.md | 2026-10-14 | — | [用户]+[工程师] | 工程与组织经验学习入口；串联前后端、数据库、权限、测试、部署、架构和 AI 协作方法，并链接权威规范。 |
-| content/insights/工程与AI协作的全栈实践.md | 2026-10-16 | — | [用户]+[工程师] | 面向人的全栈工程方法与 AI 协作指南；补入工作台复核中的语义轴拆分例子，规范权威源仍在 03/04/05。 |
-| content/insights/党支部管理与实务经验沉淀.md | 2026-10-16 | — | [用户]+[AI] | **（2026-09-26 批次 201：`D-660` 引用改准〔`FLAT_ORGANIZATION_DESIGN.md` →《支部组织与委员体系》，`文件:行号` 形态只存在于 `.ctx/**`〕；只改引用、未改口径；由「另一路」落地，本表行日期按 `S13` 口径不刷）**  组织性/条块二元/专班等经验贡献（2026-09-21 批次 124 纪律段「会议考勤」表「上传/修改权限」由「纪检委员」改准为「会议组织者（上传）」，依支书 2026-09-20 定案「会议考勤上传收归组织者」，`D-548`） |
+| content/insights/README.md | 2026-10-24 | — | [用户]+[工程师] | 工程与组织经验学习入口；串联前后端、数据库、权限、测试、部署、架构和 AI 协作方法，并链接权威规范。 |
+| content/insights/工程与AI协作的全栈实践.md | 2026-10-22 | — | [用户]+[工程师] | 面向人的全栈工程方法与 AI 协作指南；补入工作台复核中的语义轴拆分例子，规范权威源仍在 03/04/05。 |
+| content/insights/党支部管理与实务经验沉淀.md | 2026-10-22 | — | [用户]+[AI] | **（2026-09-26 批次 201：`D-660` 引用改准〔`FLAT_ORGANIZATION_DESIGN.md` →《支部组织与委员体系》，`文件:行号` 形态只存在于 `.ctx/**`〕；只改引用、未改口径；由「另一路」落地，本表行日期按 `S13` 口径不刷）**  组织性/条块二元/专班等经验贡献（2026-09-21 批次 124 纪律段「会议考勤」表「上传/修改权限」由「纪检委员」改准为「会议组织者（上传）」，依支书 2026-09-20 定案「会议考勤上传收归组织者」，`D-548`） |
 | content/insights/工程演进与设计方法论.md | 2026-09-04 | — | [用户]+[AI] | 🗑️ 已删除（拆流入 insights 其他文） |
 
 ## content/README.md
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| content/README.md | 2026-09-29 | — | [用户]+[AI] | content 目录总索引 |
+| content/README.md | 2026-10-24 | — | [用户]+[AI] | content 目录总索引 |
 
 ## server/ (后端服务)
 
@@ -185,20 +212,20 @@ dynamic_role:
 |---------|-------------|--------|------|------|
 | server/server.js | 2026-09-02 | — | [工程师]+[AI] | 启动入口（node server.js，默认端口 3000） |
 | server/app.js | 2026-09-28 | — | [工程师]+[AI] | createApp 工厂 + JSON 错误中间件（**2026-09-28 批次 234：随资源路由切分，`createResourcesRouter` 的 import 路径改签为 `./routes/resources/index.js`**——只改一行 import、零行为变化） |
-| server/db.js | 2026-10-16 | — | [工程师]+[AI] | 当前 schema v4：通用周期归档提交表；旧周报记录迁移并保留 ID、状态和历史字段；v3 工作组与应到名单迁移及冻结 v1 基线规则见代码与执行日志。 |
-| server/seed.js | 2026-09-28 | — | [工程师]+[AI] | **（2026-09-28 批次 234 去冗余：删去本文件内两个「逐字复刻」常量 `SEED_WEEKLY_REPORTS` / `SEED_PROP_TASKS`，改为从**内容单一源** `docs/src/data/mock/prop.js` 同源 import〔UI 侧 `prop/weekly-tab.js` / `prop/tasks-tab.js` 亦改读同一份〕；**播种表与条数一字未变**）** 复用前端 mock 导入种子（**2026-09-25 批次 192：DB 空表补演示种子**——**播种 15 张**〔`attendances` 154 · `inspections` 42 · `activity_reviews` 11 · `taskforce_reviews` 2 · `thought_reports` 5 · `weekly_reports` 4 · `prop_tasks` 8 · `external_dispatches` 2 · `handoffs` 2 · `member_confirmations` 1 · `attendance_appeals` 1 · `inspection_appeals` 1 · `issue_unread` 2 · `auth_audit` 1 · `appointment_records` 1〕；**不播 11 / 跳过 3 见 `D-653`**；空表 **30 → 14** · 全库 **322 → 559** · 幂等 `idempotent: true` · 引用自洽 `problems: []`；**未新增 `MIGRATIONS`**）；**2026-09-25 批次 198（`D-658`）：`seedDatabase()` 末尾补 `todos` 播种段**（从 `docs/src/services/governance/todo.js::SEED_TODOS` **同源**播种 **2 条**；幂等＝`DELETE` ＋ 整表 `INSERT`、开关语义一字未改；**由「另一路」落地，本表行改注**（日期仍 `2026-09-25`）） |
+| server/db.js | 2026-10-23 | — | [工程师]+[AI] | 当前 schema v12：v12 删 `issue_reveals`、contributions 规范化、四组唯一索引、`todos.branch_id` 生成列；v3 工作组与应到名单迁移及冻结 v1 基线规则见代码与执行日志。 |
+| server/seed.js | 2026-10-23 | — | [工程师]+[AI] | **（2026-09-28 批次 234 去冗余：删去本文件内两个「逐字复刻」常量 `SEED_WEEKLY_REPORTS` / `SEED_PROP_TASKS`，改为从**内容单一源** `docs/src/data/mock/prop.js` 同源 import〔UI 侧 `prop/weekly-tab.js` / `prop/tasks-tab.js` 亦改读同一份〕；**播种表与条数一字未变**）** 复用前端 mock 导入种子（**2026-09-25 批次 192：DB 空表补演示种子**——**播种 15 张**〔`attendances` 154 · `inspections` 42 · `activity_reviews` 11 · `taskforce_reviews` 2 · `thought_reports` 5 · `weekly_reports` 4 · `prop_tasks` 8 · `external_dispatches` 2 · `handoffs` 2 · `member_confirmations` 1 · `attendance_appeals` 1 · `inspection_appeals` 1 · `issue_unread` 2 · `auth_audit` 1 · `appointment_records` 1〕；**不播 11 / 跳过 3 见 `D-653`**；空表 **30 → 14** · 全库 **322 → 559** · 幂等 `idempotent: true` · 引用自洽 `problems: []`；**未新增 `MIGRATIONS`**）；**2026-09-25 批次 198（`D-658`）：`seedDatabase()` 末尾补 `todos` 播种段**（从 `docs/src/services/governance/todo.js::SEED_TODOS` **同源**播种 **2 条**；幂等＝`DELETE` ＋ 整表 `INSERT`、开关语义一字未改；**由「另一路」落地，本表行改注**（日期仍 `2026-09-25`）） |
 | server/routes/auth.js | 2026-09-14 | — | [工程师]+[AI] | 登录/token/me |
-| server/routes/member.js | 2026-10-17 | — | [工程师]+[AI] | 成员与个人档案语义接口；档案只读端点按本人/本支部支委策略投影。 |
+| server/routes/member.js | 2026-10-22 | — | [工程师]+[AI] | 成员与个人档案语义接口；档案只读端点按本人/本支部支委策略投影。 |
 | server/routes/committee.js | 2026-10-14 | — | [工程师]+[AI] | 议题投票写口；匿名参与记录与 tally 原子提交、重复提交事务内幂等。 |
-| server/routes/resources/index.js | 2026-10-17 | — | [工程师]+[AI] | 资源路由装配；活动物理删除事务清理投票、补充记录及关联业务数据，并返回集合版本。 |
+| server/routes/resources/index.js | 2026-10-23 | — | [工程师]+[AI] | 资源路由装配；活动物理删除事务清理投票、补充记录及关联业务数据，并返回集合版本。 |
 | server/routes/resources/branch-scope.js | 2026-10-16 | — | [工程师]+[AI] | 通用资源、关联记录、分支查询与快照写入的服务端支部范围判定；局部快照保留其他支部数据。 |
-| server/routes/resources/workgroup-routes.js | 2026-10-17 | — | [工程师]+[AI] | 工作组语义 API；成员与权限全量替换在单事务内校验、写入并更新集合版本；正式名单与工作组成员分开，撤员撤权留痕。 |
+| server/routes/resources/workgroup-routes.js | 2026-10-23 | — | [工程师]+[AI] | 工作组语义 API；成员与权限全量替换在单事务内校验、写入并更新集合版本；正式名单与工作组成员分开，撤员撤权留痕。 |
 | server/routes/resources/signup-write-guard.js | 2026-10-17 | — | [工程师]+[AI] | 报名创建/状态转换/快照统一校验；主题党日线下选择、普通参与默认线下，正式会议使用名单不开放报名。 |
 | server/routes/resources.js | 2026-09-28 | — | [工程师]+[AI] | 🗑️ **已拆分**（2026-09-28 批次 234）：原 1301 行单文件按内聚拆为 `server/routes/resources/` **六件**——装配在 `index.js`，写门在 `gates.js` / `approval-gates.js`，其余按域。**边界**：本行留**删除抄录**，不再指向活文件（`S13` 认此写法）。 |
 | server/routes/uploads.js | 2026-08-24 | — | [工程师]+[AI] | 附件上传（jpg/png/pdf/docx/xlsx，≤10MB） |
 | server/services/reporting.js | 2026-10-14 | — | [工程师]+[AI] | 报表活动人数：分配成员与已通过、未作废报名按 `personId` 去重并集；每日 webhook 按支部配置与投递。 |
 | server/test/*.test.js | 2026-08-03 | — | [工程师]+[AI] | 单元测试套件（auth/db/resources/seed/skeleton/snapshot/uploads/report/e2e-login） |
-| server/test/*.test.mjs | 2026-09-29 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（5729 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」；**2026-09-29 批次 253 二次迁出**：本会话各批新增的 5 条短注一并迁入同节（`R-89` 只降不升）；本列只写**现状 / 边界 / 为什么**）** |
+| server/test/*.test.mjs | 2026-10-22 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（5729 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」；**2026-09-29 批次 253 二次迁出**：本会话各批新增的 5 条短注一并迁入同节（`R-89` 只降不升）；本列只写**现状 / 边界 / 为什么**）** |
 | server/test/attendance-roster-union.test.mjs | 2026-10-16 | — | [工程师]+[AI] | 应到名单快照与实际到场成员并集、覆盖率与到场率口径。 |
 | server/test/signup-onsite-roster.test.mjs | 2026-10-17 | — | [工程师]+[AI] | 主题党日报名线下意向、有效报名名单并集、正式会议名单路径与 SQLite 完整性。 |
 | server/test/workgroup-member-semantics.test.mjs | 2026-10-17 | — | [工程师]+[AI] | 工作组仅含组织者/深度参与者；普通报名与历史行隔离，正式会议名单单独保留。 |
@@ -220,13 +247,38 @@ dynamic_role:
 | server/test/workgroup-api.test.mjs | 2026-10-17 | — | [工程师]+[AI] | 工作组 API 支部/角色边界及成员授权原子批量保存、失败回滚、历史留痕。 |
 | server/test/workgroup-member-editor.test.mjs | 2026-10-17 | — | [工程师]+[AI] | 共享编辑器角色边界、历史种子同步、Mock save-all 语义与旧关联冲突保护。 |
 | server/test/workgroup-batch-adapter.test.mjs | 2026-10-17 | — | [工程师]+[AI] | ApiAdapter 工作组事务式保存请求的 HTTP 方法、编码路径、认证头与请求体回归。 |
-| server/test/b3-1-makeup-writeback.test.mjs | 2026-09-24 | — | [工程师]+[AI] | B3-1 补课完成→考勤回写验证（5 项断言；含 CDN `route.abort` 拦截）。沿革见 `.ctx/logs/`。 |
+| server/test/b3-1-makeup-writeback.test.mjs | 2026-10-23 | — | [工程师]+[AI] | B3-1 补课回写验证（5 项断言）。批次 504：超期改现算。沿革见 `.ctx/logs/`。 |
 | server/test/style-baseline.mjs | 2026-09-28 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3832 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
-| server/test/form-loop-registry.mjs | 2026-10-16 | — | [工程师]+[AI] | 表单闭环台账；宣传台登记改用通用周期归档字段与校验文案，更新当前代码行锚点。真机覆盖见 `form-loop-sweep.test.mjs`。 |
+| server/test/form-loop-registry.mjs | 2026-10-23 | — | [工程师]+[AI] | 表单闭环台账；批次 504/505 改签行号。真机见 `form-loop-sweep.test.mjs`。 |
+| server/test/todo-branch-attribution.test.mjs | 2026-10-23 | — | [工程师]+[AI] | Todo 归属 fail-closed：无支部 400、历史 NULL 兼容、到期隐藏。 |
+| server/test/feedback-integrity.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 反馈可信：作用域写等待、失败分级。 |
+| server/test/schema-split-gate.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 拆表闸门。 |
+| server/test/ui-control-system-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 组件层守卫。 |
+| server/test/theme-palette-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 主题色板 7×2×8 守卫。 |
+| server/test/density-spacing-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 密度间距守卫。 |
+| server/test/hover-state-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 交互三态守卫。 |
+| content/05_ai_coding/REVIEW_QUESTION_SET.md | 2026-11-03 | — | [工程师]+[AI] | 审查问题集：Q-01…Q-22（Q-22 为页签密度与信息经济的审查方法，执行工具指向 `TAB_AUDIT_PLAYBOOK.md`）。 |
+| content/05_ai_coding/QUESTION_HIT_MATRIX.md | 2026-11-03 | — | [工程师]+[AI] | 历史命中矩阵；Q-22 列新立，36 行历史记 `—`。 |
+| content/05_ai_coding/GUARD_INVENTORY.md | 2026-11-03 | — | [工程师]+[AI] | 守卫台账；现行 66 件；§十五 记 `workbench-audit-coverage` 新 45 页签口径（W1–W5）与页签审计资产。 |
+| content/03_doc_system/CASES_INDEX.md | 2026-10-30 | — | [工程师]+[AI] | 判例总索引（design 30 / data 1 / ai 6）。 |
+| server/test/docs-governance-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 文档治理守卫。 |
+| .ctx/README.md | 2026-11-03 | — | [工程师]+[AI] | 三层分职（active / reference / provenance）、准入判据、读取顺序、预算、冲突顺序与可复用资产索引。 |
+| .ctx/ACTIVE_CONTEXT.md | 2026-11-03 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则。 |
+| server/test/link-color-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 链接色守卫。 |
+| server/test/activity-tone-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 活动类别守卫。 |
+| server/test/field-shell-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 字段外壳守卫。 |
+| server/test/motion-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 动效令守卫。 |
+| server/test/archive-deeplink-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 归档深链守卫。 |
+| server/test/schema-split-shadow.test.mjs | 2026-10-23 | — | [工程师]+[AI] | v11 影子表双写比对与回滚；构造 mismatch 必须 `NOT_READY`。 |
+| server/scripts/schema-split-readiness.mjs | 2026-10-23 | — | [工程师]+[AI] | 拆表切源判据脚本（五项布尔＋结论），只读不切源。 |
 | server/run-suite.mjs | 2026-10-03 | — | [工程师]+[AI] | 测试分片启动器：按 `SWEEP_SHARD` 选片（非 e2e 每片全跑 ＋ 本片 e2e），透传退出码。 |
 | server/test/sweep-shard.mjs | 2026-10-03 | — | [工程师]+[AI] | 测试分片单源（片数 / 各片工作台 / 各片 e2e 文件）；四片并集 ≡ 全量由 `suite-shard` 守卫钉死。 |
 | server/test/probe*.mjs | — | — | — | 🗑️ 已删除（T-280 B1 临时探针，定位完成清理） |
-| server/README.md | 2026-10-16 | — | [工程师]+[AI] | 后端安装 / 启动 / 测试 / 部署对接说明，并承载**测试耗时台账**与**前端 DOM 结构基线（div 普查）**两张实测表。**边界**：对外接口与字段以 `README-server.md` 为准，本件只管「怎么跑、跑多久」。沿革已迁出（git 可溯）。 |
+| server/README.md | 2026-10-16 | — | [工程师]+[AI] | 后端安装 / 启动 / 测试 / 部署对接说明，含测试耗时台账与 DOM 基线两张实测表；对外接口以 `README-server.md` 为准。 |
+| server/test/perf-guard.test.mjs | 2026-10-27 | — | [工程师]+[AI] | 性能守卫归并件（渲染预算 / 待办聚合缓存 / 版本令牌 / 索引等价，22 条）。 |
+| server/test/copy-guard.test.mjs | 2026-10-28 | — | [工程师]+[AI] | 文案守卫归并件（折叠 / 长度 / 母本 / 自明性 / 卡头副题，16 条）。 |
+| server/test/type-scale-guard.test.mjs | 2026-10-27 | — | [工程师]+[AI] | 字号守卫归并件（小字 / 段落档 / 表格字号 / 控件字号，15 条）。 |
+| server/test/modal-guard.test.mjs | 2026-10-28 | — | [工程师]+[AI] | 弹层守卫归并件（契约 / ESC / 表单体例 / 危险确认面，20 条）。 |
 | server/package.json | 2026-10-18 | — | [工程师]+[AI] | 依赖 better-sqlite3 ^12.0.0 · express ^4.19.0 · multer ^1.4.5-lts.1 · nodemailer ^9.0.6 · playwright 1.60.0。**测试档位**：`test`＝分片·`test:full`／`test:precommit`＝全量·`test:daily`＝S 类日常档（含工作台标杆结构、档案、工作组、考勤/报名、周期归档、议题、授权审计、上报隔离与姓名隐私回归）·`test:fast`／`test:core`＝快速子集。**边界**：脚本为 Windows 专有语法（`set X=1&&`）。 |
 | server/package-lock.json | 2026-08-30 | — | [工具] | 依赖锁文件 |
 | server/.gitignore | 2026-09-01 | — | [工具] | 忽略 data.db/uploads 等运行时产物 |
@@ -239,12 +291,12 @@ dynamic_role:
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
 | docs/index.html | 2026-09-30 | — | [用户]+[AI] | 首页入口（含日历）；**2026-09-24**：批次 171 skip link ＋ `id="main-content"`（同一工作树），**批次 177** 卡片内边距 `p-6` → `p-5`（`.card` 收敛，`D-643`） |
-| docs/login.html | 2026-09-28 | — | [用户]+[AI] | **（2026-09-28 批次 227：CSS 收尾——删页内**第二套 focus 死声明**〔被 `styles.css:2809` 的同名更高特异性恒压、从未生效〕；`D-675`）** 登录页 |
+| docs/login.html | 2026-10-22 | — | [用户]+[AI] | **（2026-09-28 批次 227：CSS 收尾——删页内**第二套 focus 死声明**〔被 `styles.css:2809` 的同名更高特异性恒压、从未生效〕；`D-675`）** 登录页 |
 | docs/about.html | 2026-08-12 | — | [用户]+[AI] | 关于页（支部的故事；静态壳模式 + about.css 独立引用） |
 | docs/archive.html | 2026-09-24 | — | [用户]+[AI] | 归档页；**2026-09-24**：批次 171 skip link，**批次 177** 卡片内边距 `p-6` → `p-5`（`.card` 收敛，`D-643`） |
 | docs/branch-config.html | 2026-10-18 | — | [工程师]+[AI] | 党委所选支部配置页；分区导航一次呈现一个设置面板，并保留引导向导入口。 |
 | docs/feedback.html | 2026-07-31 | — | [用户]+[AI] | 反馈页 |
-| docs/help.html | 2026-10-17 | — | [用户]+[AI] | 全站帮助页：保留章节阅读，新增章节正文搜索、摘要直达、角色筛选和任务入口；同步书记统一待处理队列与异常/督办分层，口径仍以代码与裁定为准。 |
+| docs/help.html | 2026-10-28 | — | [用户]+[AI] | 全站帮助页：保留章节阅读，新增章节正文搜索、摘要直达、角色筛选和任务入口；同步书记统一待处理队列与异常/督办分层，口径仍以代码与裁定为准。四组页签名改准为「总览 / 我的职责 / 协作与知情 / 制度与答复」；2026-10-28 支书台页签改称「意见反馈」。 |
 | docs/notice.html | 2026-09-24 | — | [用户]+[AI] | 通知页；**2026-09-24**：批次 171 skip link，**批次 177** 卡片内边距 `p-8` → `p-5`（`.card` 收敛，`D-643`） |
 | docs/messages.html | 2026-10-03 | — | [工程师]+[AI] | 「我的私信」独立页（收件＋发件一屏 · 方向徽标 · 筛选胶囊 · 未读计数 · 展开即已读 · 就地回复成线 · 写私信按发送权显隐 —— 批次 353）。 |
 | docs/search.html | 2026-07-31 | — | [用户]+[AI] | 搜索页 |
@@ -263,22 +315,22 @@ dynamic_role:
 |---------|-------------|--------|------|------|
 | docs/src/core/boot/bootstrap.js | 2026-09-29 | — | [工程师]+[AI] | 引导启动（主题色 resolveAccentRole；header/sidebar 版本引用；**2026-09-21 批次 139：`DEV_ROLE_WHITELIST` 加 `deputy-leader`**——本地 `?dev=` 可直入副组长身份，`D-571`） |
 | docs/src/core/boot/registry.js | 2026-09-29 | — | [工程师]+[AI] | 能力注册表三原语（`registerCapability` / `getCapabilities` / `getCapability` / `mountCapability`）。沿革见 `.ctx/logs/`。 |
-| docs/src/core/domain/constants.js | 2026-10-17 | — | [工程师]+[AI] | 静态常量；新增正式会议名单单一判据 `usesFormalMeetingRoster()`，覆盖三会一课与组织生活会。既有色彩单一源与行号引用约束保持。 |
+| docs/src/core/domain/constants.js | 2026-10-22 | — | [工程师]+[AI] | 静态常量；新增正式会议名单单一判据 `usesFormalMeetingRoster()`，覆盖三会一课与组织生活会。既有色彩单一源与行号引用约束保持。 |
 | docs/src/core/session/cross-page-state.js | 2026-09-29 | — | [工程师]+[AI] | 跨页状态（版本化 `CODE_VERSION`；`docs/scripts/bump-version.mjs` 每次 bump 自增，**勿手改**）。沿革见 `.ctx/logs/`。 |
 | docs/src/data/data-loader.js | 2026-09-29 | — | [工程师]+[AI] | 数据加载 |
-| docs/src/data/data-adapter.js | 2026-09-29 | — | [工程师]+[AI] | **（现状）** 数据源切换与装配（mock / api 双形态同一契约）。**边界**：装配标记 / 回退块的口径以源码注释为准，本列不复述。**为什么**：沿革入 `.ctx/logs/`（`R-89`）。沿革已迁出（git 可溯）。 |
+| docs/src/data/data-adapter.js | 2026-10-23 | — | [工程师]+[AI] | **（现状）** 数据源切换与装配（mock / api 双形态同一契约）。**边界**：装配标记 / 回退块的口径以源码注释为准，本列不复述。**为什么**：沿革入 `.ctx/logs/`（`R-89`）。沿革已迁出（git 可溯）。 |
 | docs/src/core/session/login-snapshot.js | 2026-09-29 | — | [工程师]+[AI] | 登录快照轻量读取（零依赖，静态页登录态感知壳用） |
-| docs/src/data/api-adapter.js | 2026-10-17 | — | [工程师]+[AI] | API REST 适配器；工作组成员支持事务式全量保存，授权审计传入支部选择上下文。 |
-| docs/src/data/mock-adapter.js | 2026-10-17 | — | [工程师]+[AI] | Mock 模式适配器；旧活动/专班种子幂等建立工作组映射，成员和授权批量保存与 API 对齐。 |
-| docs/src/data/workgroup-seed-sync.js | 2026-10-17 | — | [工程师]+[AI] | 旧 mock 活动/专班工作组兼容映射；冲突关联不猜测，清除错误链接并待核。 |
-| docs/src/core/domain/domain.js | 2026-10-16 | — | [工程师]+[AI] | 领域模型（2026-09-21 批次 120：`ImageRecord` typedef 按现状改准——文件存上传接口 `filePath` 或旧形态 `base64`，**行数守恒**） |
+| docs/src/data/api-adapter.js | 2026-10-23 | — | [工程师]+[AI] | API REST 适配器；批次 504 直连写后推进版本基线。 |
+| docs/src/data/mock-adapter.js | 2026-10-23 | — | [工程师]+[AI] | Mock 模式适配器；旧活动/专班种子幂等建立工作组映射，成员和授权批量保存与 API 对齐。 |
+| docs/src/data/workgroup-seed-sync.js | 2026-10-23 | — | [工程师]+[AI] | 旧 mock 活动/专班工作组兼容映射；冲突关联不猜测，清除错误链接并待核。 |
+| docs/src/core/domain/domain.js | 2026-10-23 | — | [工程师]+[AI] | 领域模型（2026-09-21 批次 120：`ImageRecord` typedef 按现状改准——文件存上传接口 `filePath` 或旧形态 `base64`，**行数守恒**） |
 | docs/src/core/domain/capability-packages.js | 2026-10-16 | — | [工程师]+[AI] | 业务能力包目录：制度依据、适用范围、配置权与依赖元数据。 |
 | docs/src/core/domain/party-overview.js | 2026-10-18 | — | [工程师]+[AI] | 党委概况待处理队列与异常计数的纯领域投影。 |
 | docs/src/core/domain/workgroup-policy.js | 2026-10-17 | — | [工程师]+[AI] | 工作组角色集合与活动/专班权限建议模板的共享策略单一源。 |
 | docs/src/core/base/icons.js | 2026-09-29 | — | [工程师]+[AI] | 图标系统（含 upload 上传图标） |
 | docs/src/core/base/id.js | 2026-09-29 | — | [工程师]+[AI] | UUID 发生器 |
 | docs/src/core/base/page-url.js | 2026-10-15 | — | [工程师]+[AI] | 站内页面 URL 单一解析：按 `document.baseURI` 保留工作台 `<base>` 与部署子路径，并安全设置查询参数。 |
-| docs/src/core/domain/policy-defaults.js | 2026-10-17 | — | [工程师]+[AI] | **（本批：G3-2 收口——新增 `POLICY_FIXED` 台账（12 条不可覆盖项：kind ＋ why ＋ src），消灭「未登记」第三态；26 叶键 ＝ 白名单 14 ＋ 固定台账 12，判据 `policy-config.test.mjs::R1–R3`）** **（2026-09-27 批次 211–212：路二 setting 可调性真缺陷修复——`POLICY_OVERRIDABLE` 白名单 **4 → 12 条**（新增 `attendance×3` / `review×2` / `makeup×3` / `thoughtReport×2`）；**域归属按母本**（时限类 / 补课范围与时限 → 纪检域、篇幅字数 → 组织域））** 业务默认值集中单一源（**2026-09-21 批次 132 补登**——本表原先无此行；本批 `attendance` 块：**新增 `noAttendanceTypes = ['支委会']`**、`meetingTypes` 去掉支委会、`recorderByType` 改准为「只列非组织者位类型」——**考勤上传位按会议类型分**，`D-558`） |
+| docs/src/core/domain/policy-defaults.js | 2026-10-22 | — | [工程师]+[AI] | **（本批：G3-2 收口——新增 `POLICY_FIXED` 台账（12 条不可覆盖项：kind ＋ why ＋ src），消灭「未登记」第三态；26 叶键 ＝ 白名单 14 ＋ 固定台账 12，判据 `policy-config.test.mjs::R1–R3`）** **（2026-09-27 批次 211–212：路二 setting 可调性真缺陷修复——`POLICY_OVERRIDABLE` 白名单 **4 → 12 条**（新增 `attendance×3` / `review×2` / `makeup×3` / `thoughtReport×2`）；**域归属按母本**（时限类 / 补课范围与时限 → 纪检域、篇幅字数 → 组织域））** 业务默认值集中单一源（**2026-09-21 批次 132 补登**——本表原先无此行；本批 `attendance` 块：**新增 `noAttendanceTypes = ['支委会']`**、`meetingTypes` 去掉支委会、`recorderByType` 改准为「只列非组织者位类型」——**考勤上传位按会议类型分**，`D-558`） |
 | docs/src/core/base/state.js | 2026-09-29 | — | [工程师]+[AI] | 全局状态 |
 | docs/src/core/base/utils.js | 2026-10-05 | — | [工程师]+[AI] | 通用工具 |
 | docs/src/core/domain/work-map.js | 2026-10-06 | — | [工程师]+[AI] | 支部工作地图的**代码单一源**：`WORK_MAP_MODULES`（**14 个模块**）＋ 组织型主体注册表（`ORG_SUBJECTS`）。**模块 `cycle` 取值**：先按母本填（党小组会 / 主题党日）、后按支书裁「**先不做周期提醒**」撤去（机制在位、一行即启；沿革见执行日志）。**边界**：**模块数的现状声明点在 `BRANCH_WORK_MAP.md`**（`doc-consistency::S14` 第 4 读的锚点，2026-10-01 批次 314 由乙部行改锚至此）；本文件**只出数据、不出声明**。**为什么**：模块目录是「支部有哪些必办」的单一源。沿革见执行日志「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 322）」。 |
@@ -290,13 +342,13 @@ dynamic_role:
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
 | docs/src/components/shell/header.js | 2026-10-18 | — | [工程师]+[AI] | 页头组件（未读角标 / 主题色标签；数据层按需加载 ＋ staticShell；党委台铃铛按 party-staff 传 scope）。沿革见 `.ctx/logs/`。 |
-| docs/src/components/governance/org-setup-wizard.js | 2026-10-18 | — | [工程师]+[AI] | 换组织向导的嵌入配置模式使用分区导航、单一活动面板和窄屏切换。沿革见 `.ctx/logs/`。 |
+| docs/src/components/governance/org-setup-wizard.js | 2026-10-22 | — | [工程师]+[AI] | 换组织向导的嵌入配置模式使用分区导航、单一活动面板和窄屏切换。沿革见 `.ctx/logs/`。 |
 | docs/src/components/governance/branch-roster-import-panel.js | 2026-10-18 | — | [工程师]+[AI] | 支部配置中的名册导入与校验面板。 |
 | docs/src/components/shell/sidebar.js | 2026-10-03 | — | [工程师]+[AI] | 侧边栏组件（字号+主题色设置；AuthStore 按需加载 + staticShell） |
 | docs/src/components/record/calendar.js | 2026-09-30 | — | [工程师]+[AI] | **（2026-09-28 批次 225：存量色彩清理——`var(--tok, <硬编码>)` → `var(--tok)`〔该令牌已在 `:root`/`html.theme-dark` 有正式默认值、逐字等值 ⇒ 观感零变化〕；`D-674`）**  日历组件 |
 | docs/src/components/record/inspector.js | 2026-10-03 | — | [工程师]+[AI] | 检查器组件（产出物区 / 分类型关闭条件；待批块按档位分流、表态面板通行证＝本场应到名单）。沿革见 `.ctx/logs/2026-10-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 356）」。 |
-| docs/src/components/ui/modal.js | 2026-09-28 | — | [工程师]+[AI] | 模态框组件（可选 `settingsLink` ＋ 导出 `settingsLinkHTML()`——浮窗页脚「相关设置」深链的**单一源**；`NUDGE_TEXTS` 含 `todo-urge` / `assign-leader` / `assign-activity` / `assign-taskforce` 四键）。沿革见 `.ctx/logs/`。 |
-| docs/src/components/shell/tab-bar.js | 2026-10-05 | — | [工程师]+[AI] | 标签栏组件（tab 声明 / 懒加载渲染 / **陈旧渲染纠正**）。**边界**：跨 tab 共享容器约定 `dataset.currentTab` 由本件在发起渲染前清空；状态变化重渲染走 `workspace-shell`。沿革见 `.ctx/logs/`。 |
+| docs/src/components/ui/modal.js | 2026-10-28 | — | [工程师]+[AI] | 模态框组件（`NUDGE_TEXTS` 含 `todo-urge` / `assign-leader` / `assign-activity` / `assign-taskforce` 四键；浮窗页脚设置深链已整套移除 · B-500-2）。沿革见 `.ctx/logs/`。 |
+| docs/src/components/shell/tab-bar.js | 2026-10-22 | — | [工程师]+[AI] | 标签栏组件（tab 声明 / 懒加载渲染 / **陈旧渲染纠正**）。**边界**：跨 tab 共享容器约定 `dataset.currentTab` 由本件在发起渲染前清空；状态变化重渲染走 `workspace-shell`。沿革见 `.ctx/logs/`。 |
 | docs/src/components/record/todo-list.js | 2026-10-05 | — | [工程师]+[AI] | 待办列表组件（E2 flow 内嵌小字） |
 | docs/src/components/governance/signup-panel.js | 2026-10-17 | — | [工程师]+[AI] | 活动/专班共用报名面板；主题党日组织者/深度参与者需明确线下意向，正式会议不开放报名。 |
 | docs/src/components/governance/work-overview.js | 2026-10-05 | — | [工程师]+[AI] | **（2026-09-26 批次 205–207：本表原无其行，本批补行；日期＝该批次落点日。hex 4 处清 ＋ 控件 11px 1 处（`:118`）→ `text-[13px]`、padding 一字未动；收基线 `c` 16→12）** 工作台首页「概况 / 今天」卡组件 |
@@ -304,8 +356,8 @@ dynamic_role:
 | docs/src/components/feedback/issue-detail.js | 2026-09-28 | — | [工程师]+[AI] | **（2026-09-28 批次 225：存量色彩清理——`var(--tok, <硬编码>)` → `var(--tok)`〔该令牌已在 `:root`/`html.theme-dark` 有正式默认值、逐字等值 ⇒ 观感零变化；基线 c 13→12〕；`D-674`）** 事项详情组件（**2026-09-23 批次 155**：事项领域块补一行「**反馈时间**」——消费 `issueDomainReplyHint`，逐条照母本 `常见工作场景快速指南.md:439-444` 第 3 列，`D-598`） |
 | docs/src/components/feedback/issue-form.js | 2026-09-24 | — | [工程师]+[AI] | 事项表单组件（提交按钮主 CTA 档）（**2026-09-23 批次 155**：事项领域实时提示由「建议归口」扩为「**建议归口 ＋ 反馈时间**」，消费 `issueDomainReplyHint`，`D-598`） |
 | docs/src/components/governance/workgroup-permissions.js | 2026-10-17 | — | [工程师]+[AI] | 活动/专班分类型组织者和深度参与者授权模板选择、展示和批量编辑。 |
-| docs/src/components/governance/workgroup-member-editor.js | 2026-10-17 | — | [工程师]+[AI] | 活动与专班共享成员/授权编辑器；按类型区分角色，单次事务保存；主题党日一般报名与专班组织者/深度参与者申请均保持独立。 |
-| docs/src/components/governance/person-profile-sections.js | 2026-10-17 | — | [工程师]+[AI] | 个人自我描述字段的安全展示、结构化列表和转义组件。 |
+| docs/src/components/governance/workgroup-member-editor.js | 2026-10-22 | — | [工程师]+[AI] | 活动与专班共享成员/授权编辑器；按类型区分角色，单次事务保存；主题党日一般报名与专班组织者/深度参与者申请均保持独立。 |
+| docs/src/components/governance/person-profile-sections.js | 2026-10-28 | — | [工程师]+[AI] | 个人自我描述字段的安全展示、结构化列表和转义组件（子表 ≤640px 走 `data-responsive="cards"` 卡式行 · B-500-5）。 |
 | docs/src/components/feedback/issue-list.js | 2026-09-25 | — | [工程师]+[AI] | 事项列表组件（**2026-09-25 批次 199（`D-659`）：hex 清 1 处**（15→14；只清 `style=` 内与 `:root` 令牌值逐字相等者）；**由「另一路」落地，本表行刷为 `2026-09-25`**） |
 | docs/src/components/ui/void-record.js | 2026-10-03 | — | [工程师]+[AI] | 作废（软）通用弹窗（2026-10-03 批次 352 新建） |
 | docs/src/components/ui/custom-select.js | 2026-09-14 | — | [工程师]+[AI] | 自定义下拉组件（阈值内嵌搜索+智能定位翻转） |
@@ -321,15 +373,15 @@ dynamic_role:
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
 | docs/src/entries/pages/main-entry.js | 2026-10-04 | — | [工程师]+[AI] | 首页入口（含日历+通知待办） |
-| docs/src/entries/pages/login-entry.js | 2026-09-21 | — | [工程师]+[AI] | 登录页入口（按钮主 CTA 档；**2026-09-21 批次 139：开发身份卡加「党小组副组长」**——同一套组长工作台、任务优先给组长，`D-571`） |
+| docs/src/entries/pages/login-entry.js | 2026-10-22 | — | [工程师]+[AI] | 登录页入口（按钮主 CTA 档；**2026-09-21 批次 139：开发身份卡加「党小组副组长」**——同一套组长工作台、任务优先给组长，`D-571`） |
 | docs/src/entries/pages/about-entry.js | 2026-08-19 | — | [工程师]+[AI] | 关于页入口（支部的故事；静态壳）。沿革见 `.ctx/logs/`。 |
-| docs/src/entries/pages/archive-entry.js | 2026-10-05 | — | [工程师]+[AI] | 归档页入口 |
+| docs/src/entries/pages/archive-entry.js | 2026-10-22 | — | [工程师]+[AI] | 归档页入口 |
 | docs/src/entries/pages/branch-config-entry.js | 2026-10-18 | — | [工程师]+[AI] | 党委支部配置入口；支书任命使用支部范围内可搜索的共享 `PersonPicker`。 |
 | docs/src/entries/pages/branch-readonly-entry.js | 2026-10-18 | — | [工程师]+[AI] | 党委支部只读下钻；名册按本支部过滤、搜索与分页。 |
-| docs/src/entries/pages/activity-entry.js | 2026-10-17 | — | [工程师]+[AI] | 活动/专班详情入口；正式会议名单与工作组/普通报名分开，分享页按登录和支部范围遮蔽姓名，专班历史 participant 标为待核。沿革见 `.ctx/logs/`。 |
+| docs/src/entries/pages/activity-entry.js | 2026-10-22 | — | [工程师]+[AI] | 活动/专班详情入口；正式会议名单与工作组/普通报名分开，分享页按登录和支部范围遮蔽姓名，专班历史 participant 标为待核。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/pages/taskforce-entry.js | 2026-10-17 | — | [工程师]+[AI] | 专班详情页；成员数只含组织者/深度参与者，旧 participant 行只读待核展示。 |
-| docs/src/entries/pages/settings-entry.js | 2026-10-17 | — | [工程师]+[AI] | 设置页入口（外观 / 我的工作台 / 支部治理三档；制度参数只读卡含个人档案查阅范围）。沿革见 `.ctx/logs/2026-10-EXECUTION_LOG.md`。 |
-| docs/src/entries/pages/person-entry.js | 2026-10-17 | — | [工程师]+[AI] | 个人档案本人/组织字段分层、语义读取与授权编辑入口。 |
+| docs/src/entries/pages/settings-entry.js | 2026-10-22 | — | [工程师]+[AI] | 设置页入口（外观 / 我的工作台 / 支部治理三档；制度参数只读卡含个人档案查阅范围）。沿革见 `.ctx/logs/2026-10-EXECUTION_LOG.md`。 |
+| docs/src/entries/pages/person-entry.js | 2026-10-22 | — | [工程师]+[AI] | 个人档案本人/组织字段分层、语义读取与授权编辑入口。 |
 | docs/src/entries/pages/feedback-entry.js | 2026-07-31 | — | [工程师]+[AI] | 反馈页入口 |
 | docs/src/entries/pages/help-entry.js | 2026-10-14 | — | [工程师]+[AI] | 帮助页入口；章节目录、角色与任务入口共用导航元数据。 |
 | docs/src/entries/pages/notice-entry.js | 2026-09-28 | — | [工程师]+[AI] | 通知页入口（党委下发党务标签用主题令牌 `var(--party-red)`；本件无硬编码 hex）。沿革见 `.ctx/logs/`。 |
@@ -351,7 +403,7 @@ dynamic_role:
 | docs/src/entries/tabs/leader/_shared.js | 2026-08-22 | — | [工程师]+[AI] | 组长工作台共享上下文（纯函数 `currentLeaderGroup` / `filterByRole`）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/leader/todo-tab.js | 2026-08-22 | — | [工程师]+[AI] | 组长「待办」tab。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/leader/overview-tab.js | 2026-08-22 | — | [工程师]+[AI] | 组长「工作概况」tab。沿革见 `.ctx/logs/`。 |
-| docs/src/entries/tabs/leader/write-tab.js | 2026-10-16 | — | [工程师]+[AI] | 组长活动管理 tab（含决策树引导式写入；活动信息区顶部有「先报备、报备通过后方才写入」提示，**不设门槛**）。沿革见 `.ctx/logs/`。 |
+| docs/src/entries/tabs/leader/write-tab.js | 2026-10-22 | — | [工程师]+[AI] | 组长活动管理 tab（含决策树引导式写入；活动信息区顶部有「先报备、报备通过后方才写入」提示，**不设门槛**）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/leader/attendance-tab.js | 2026-10-04 | — | [工程师]+[AI] | 组长「考勤上传」tab（党课 / 党员大会上传位在纪检；支委会不考勤）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/leader/inspection-tab.js | 2026-10-04 | — | [工程师]+[AI] | 组长「考察上传」tab（只收本组活动考察）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/leader/review-tab.js | 2026-09-25 | — | [工程师]+[AI] | 组长「复盘提交」tab（本区仅展示状态；提交说明见 `help.html#card-copy-review-submit`）。沿革见 `.ctx/logs/`。 |
@@ -362,7 +414,7 @@ dynamic_role:
 | docs/src/entries/tabs/secretary/work-map-tab.js | 2026-09-28 | — | [工程师]+[AI] | 支书工作台·支部分工（工作地图）三视图（写侧默认折叠；`_ownerLabel` 含 `org` 分支、按人矩阵收 `org` 入人维；模块目录 **14 项**）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/secretary/calendar-tab.js | 2026-10-05 | — | [工程师]+[AI] | 支书工作台·日历 tab（活动的**写入主线**：全支部日历 ＋ 写入 ＋ 查询；草案判据单一源 `isAgendaDraftDoc`；写入浮窗表单步有「先报备」提示、页脚有「相关设置」深链）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/secretary/overview-tab.js | 2026-10-17 | — | [工程师]+[AI] | 书记统一待处理队列；待决定/确认与异常/督办分列，责任线/指标/趋势下沉按需展开；计数覆盖待办、汇报、文件确认和周期归档审核。沿革见执行日志。 |
-| docs/src/entries/tabs/secretary/notification-tab.js | 2026-10-05 | — | [工程师]+[AI] | 通知发布 tab（全支部通知 / 指定人私发；私信 fan-out 走服务层单一写口 —— 批次 353）。 |
+| docs/src/entries/tabs/secretary/notification-tab.js | 2026-10-22 | — | [工程师]+[AI] | 通知发布 tab（全支部通知 / 指定人私发；私信 fan-out 走服务层单一写口 —— 批次 353）。 |
 | docs/src/entries/tabs/secretary/workforce-panel.js | 2026-10-14 | — | [工程师]+[AI] | 支书台分工提案结果；查询按议程项核算，避免跨议题票据混算。 |
 | docs/src/entries/tabs/secretary/todo-tab.js | 2026-10-14 | — | [工程师]+[AI] | 支书待办专班提案结果传递完整票据行，保留匿名汇总 tally 参与判定。 |
 
@@ -378,6 +430,7 @@ dynamic_role:
 | docs/src/entries/tabs/org/taskforce-tab.js | 2026-10-17 | — | [工程师]+[AI] | 组织委员工作组管理；名额和授权主体只计组织者/深度参与者，旧 participant 行留在历史/产出查看。 |
 | docs/src/entries/tabs/org/talent-tab.js | 2026-10-04 | — | [工程师]+[AI] | 组织委员「人才库」tab（含「活动参与汇总」卡）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/org/development-tab.js | 2026-10-01 | — | [工程师]+[AI] | 🗑️ 已删除（整页并入「人才库」；发展阶段变更写入位改 `person.html`）。沿革见 `.ctx/logs/`。 |
+| docs/src/entries/tabs/org/tf-view-tab.js | 2026-10-20 | — | [工程师]+[AI] | 🗑️ 已删除（2026-10-20 IA-A04：并入「专班管理」的「只看我参与的」筛选）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/org/my-dispatch-tab.js | 2026-08-23 | — | [工程师]+[AI] | 组织委员「我的处置」tab。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/org/roster-tab.js | 2026-09-28 | — | [工程师]+[AI] | **（2026-09-28 批次 227：R10「成员流动」拆 tab——删流动面板与其函数 / 导入〔**保留**行内「移出」〕；名册 **119 → 107 div**；`style-baseline` 删本文件 hex 条 ＋ `HEX_MOVE_LEDGER` 1 条〔→ `member-flow-tab.js`，`#cbd5e1`〕；`D-675`）** **2026-09-25 批次 196：hex 清 13 处（15 → 2）**（同一「等价令牌」选面原则）；组织委员成员名册 tab（**2026-09-21 批次 138 补登**——本表原先无此行；本批「登记流入」浮窗页脚加一条设置入口，`settingsLink` 单一源 → 组织职责参数） |
 
@@ -392,19 +445,20 @@ dynamic_role:
 | docs/src/entries/tabs/prop/weekly-tab.js | 2026-10-16 | — | [工程师]+[AI] | 通用周期归档填写、审核与历史展示实现。**边界**：文件名和选择器保留兼容；已非独立页签，由「档案归档」页内折叠区挂载。 |
 | docs/src/entries/tabs/prop/archive-tab.js | 2026-10-05 | — | [工程师]+[AI] | 档案归档 tab（含**照片墙**：上传 / 标注 / 按拍摄日期分组；周报报送作为**归档特例**落在页内折叠区；归档行两枚留痕位「标记已发送（微信 / 对外）」与「标记已上报党建平台」分开记）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/prop/my-dispatch-tab.js | 2026-08-23 | — | [工程师]+[AI] | 宣传委员「我的处置」tab。沿革见 `.ctx/logs/`。 |
+| docs/src/entries/tabs/prop/tf-view-tab.js | 2026-10-20 | — | [工程师]+[AI] | 🗑️ 已删除（2026-10-20 IA-A02：并入「项目看板」）。沿革见 `.ctx/logs/`。 |
 
 ### docs/src/entries/tabs/disc/ (纪检委员工作台 Tab 模块层)
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
 | docs/src/entries/tabs/disc/_shared.js | 2026-08-23 | — | [工程师]+[AI] | 纪检委员共享上下文（`DISC_COMMISSIONER_ID`）。沿革见 `.ctx/logs/`。 |
-| docs/src/entries/tabs/disc/todo-tab.js | 2026-08-23 | — | [工程师]+[AI] | 纪检委员「待办」tab。沿革见 `.ctx/logs/`。 |
+| docs/src/entries/tabs/disc/todo-tab.js | 2026-10-22 | — | [工程师]+[AI] | 纪检委员「待办」tab。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/disc/overview-tab.js | 2026-08-23 | — | [工程师]+[AI] | 纪检委员「工作概况」tab。沿革见 `.ctx/logs/`。 |
-| docs/src/entries/tabs/disc/attendance-tab.js | 2026-10-16 | — | [工程师]+[AI] | 考勤管理 tab；冻结名单补出应到未录状态，矩阵区分非应到与未冻结；党小组会只读列表仍并入总表筛选。 |
+| docs/src/entries/tabs/disc/attendance-tab.js | 2026-10-22 | — | [工程师]+[AI] | 考勤管理 tab；冻结名单补出应到未录状态，矩阵区分非应到与未冻结；党小组会只读列表仍并入总表筛选。 |
 | docs/src/entries/tabs/disc/review-tab.js | 2026-10-04 | — | [工程师]+[AI] | 「复盘」tab（由「活动监督复盘」改名）。沿革见 `.ctx/logs/`。 |
-| docs/src/entries/tabs/disc/inspection-tab.js | 2026-09-28 | — | [工程师]+[AI] | 考察管理 tab。沿革见 `.ctx/logs/`。 |
+| docs/src/entries/tabs/disc/inspection-tab.js | 2026-10-22 | — | [工程师]+[AI] | 考察管理 tab。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/disc/makeup-tab.js | 2026-10-03 | — | [工程师]+[AI] | 补课制度 tab（范围段与归档段走折叠摘要）。沿革见 `.ctx/logs/`。 |
-| docs/src/entries/tabs/disc/tf-view-tab.js | 2026-10-04 | — | [工程师]+[AI] | 纪检委员「知情查看」tab（只出「活动」段）。沿革见 `.ctx/logs/`。 |
+| docs/src/entries/tabs/disc/tf-view-tab.js | 2026-10-20 | — | [工程师]+[AI] | 🗑️ 已删除（2026-10-20 IA-A01：专班改 `taskforce.html?id=`，活动改「活动日历」）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/disc/my-dispatch-tab.js | 2026-08-23 | — | [工程师]+[AI] | 纪检委员「我的处置」tab。沿革见 `.ctx/logs/`。 |
 
 ### docs/src/entries/tabs/visitor/ (成员工作台 Tab 模块层)
@@ -419,6 +473,13 @@ dynamic_role:
 | docs/src/entries/tabs/visitor/inspection-tab.js | 2026-09-28 | — | [工程师]+[AI] | 「我的考察」tab。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/visitor/review-tab.js | 2026-09-21 | — | [工程师]+[AI] | 成员台「我的复盘」tab（卡片带「支委会要求」来源标记；**不开**「交回后自行更新」入口）。沿革见 `.ctx/logs/`。 |
 
+### docs/src/entries/tabs/party-committee/ (党委工作台 Tab 模块层)
+
+| 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
+|---------|-------------|--------|------|------|
+| docs/src/entries/tabs/party-committee/monitor-tab.js | 2026-10-20 | — | [工程师]+[AI] | 🗑️ 已删除（2026-10-20 IA-A05：待批复列 / 筛选并入「支部管理」）。沿革见 `.ctx/logs/`。 |
+| docs/src/entries/tabs/party-committee/governance-overview-tab.js | 2026-10-20 | — | [工程师]+[AI] | 🗑️ 已删除（2026-10-20 IA-A06：并入「支部管理」组织提醒，登录落点改「支部上报」）。沿革见 `.ctx/logs/`。 |
+
 ### docs/src/services/ (服务层)
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
@@ -429,7 +490,8 @@ dynamic_role:
 | docs/src/services/core/branch-readonly-nav.js | 2026-10-18 | — | [工程师]+[AI] | 党委支部只读下钻导航，显式携带已选支部范围。 |
 | docs/src/services/activity/external-dispatch.js | 2026-10-03 | — | [工程师]+[AI] | 外发确认闭环服务（批次 352b 补登） |
 | docs/src/services/activity/activity.js | 2026-10-16 | — | [工程师]+[AI] | 活动服务（品牌认定段 / 追加复盘要求段 / 「勾掉即关闭」写口 `completeMyProjectTask` / 活动批准门·支委会档段）。沿革见 `.ctx/logs/2026-10-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 356）」。 |
-| docs/src/services/activity/attendance.js | 2026-10-17 | — | [工程师]+[AI] | 考勤服务；冻结名单先合并主题党日报名规则，其他正式会议保持既有名单路径。`canUploadAttendance` 按会议类型判定。 |
+| docs/src/services/activity/attendance.js | 2026-10-22 | — | [工程师]+[AI] | 考勤服务；冻结名单先合并主题党日报名规则，其他正式会议保持既有名单路径。`canUploadAttendance` 按会议类型判定。 |
+| docs/src/services/activity/close-conditions.js | 2026-10-25 | — | [工程师]+[AI] | 活动关闭条件唯一判据（自 inspector 迁出）。 |
 | docs/src/services/activity/attendance-roster.js | 2026-10-17 | — | [工程师]+[AI] | 前后端共享的主题党日冻结应到名单派生；合并原名单与有效线下报名并去重。 |
 | docs/src/services/activity/workgroup-members.js | 2026-10-17 | — | [工程师]+[AI] | 工作组成员角色单一判据与旧 participant 行过滤/保留规则；浏览器和服务端共用。 |
 | docs/src/services/activity/attendance-matrix.js | 2026-10-16 | — | [工程师]+[AI] | 由冻结应到快照和考勤事实构建人员×活动矩阵的纯规则服务。 |
@@ -439,11 +501,11 @@ dynamic_role:
 | docs/src/services/image.js | 2026-07-31 | — | [工程师]+[AI] | 🗑️ 已删除（2026-08 P0 死模块清理，图片记录由 data/data-adapter.js imageRecords 承接） |
 | docs/src/services/activity/inspection.js | 2026-07-31 | — | [工程师]+[AI] | 纪检服务 |
 | docs/src/services/governance/issues.js | 2026-10-05 | — | [工程师]+[AI] | **（2026-09-28 批次 225：存量色彩清理——`var(--tok, <硬编码>)` → `var(--tok)`〔该令牌已在 `:root`/`html.theme-dark` 有正式默认值、逐字等值 ⇒ 观感零变化〕；两处 `#b91c1c` 全在兜底里、删后清零 ⇒ **按纪律删基线条目**；`D-674`）** 事项服务（**2026-09-23 批次 155**：`ISSUE_DOMAINS` 四条各补 `replyHint` ＋ 新纯函数 `issueDomainReplyHint`——母本 `常见工作场景快速指南.md:439-444` 表第 3 列「反馈时间」的系统落点；口径本表早已收〔`D-399` / `D-428`〕，本批补呈现位，`D-598`） |
-| docs/src/services/activity/makeup.js | 2026-09-27 | — | [工程师]+[AI] | **（2026-09-27 批次 211–212：路二——「补课范围」由**编译期常量**（`MAKEUP_DEFAULT_ACTIVITY_TYPES` 模块级字面量 ＋ `+7` 硬编码）改为 call-time 读 `POLICY_DEFAULTS`（`makeupDefaultActivityTypes()` / `makeupDeadlineDays()`）；真机纪检改 6 项后 `makeupDefaultActivityTypes()=['支部党员大会']` / `isMakeupRequired({type:'党课'})=false` / `makeupDeadlineDays()=14`）** 补课服务 |
+| docs/src/services/activity/makeup.js | 2026-10-22 | — | [工程师]+[AI] | **（2026-09-27 批次 211–212：路二——「补课范围」由**编译期常量**（`MAKEUP_DEFAULT_ACTIVITY_TYPES` 模块级字面量 ＋ `+7` 硬编码）改为 call-time 读 `POLICY_DEFAULTS`（`makeupDefaultActivityTypes()` / `makeupDeadlineDays()`）；真机纪检改 6 项后 `makeupDefaultActivityTypes()=['支部党员大会']` / `isMakeupRequired({type:'党课'})=false` / `makeupDeadlineDays()=14`）** 补课服务 |
 | docs/src/services/governance/milestones.js | 2026-08-11 | — | [工程师]+[AI] | 里程碑服务 |
 | docs/src/services/governance/periodic-archive.js | 2026-10-16 | — | [工程师]+[AI] | 周/月周期归档期次与历史策略快照的纯规则服务。 |
-| docs/src/services/governance/notice.js | 2026-10-18 | — | [工程师]+[AI] | 通知服务（含通知 → 待办派生；党委台 scope=committee 收窄）。沿革见 `.ctx/logs/`。 |
-| docs/src/services/member/person.js | 2026-10-05 | — | [工程师]+[AI] | 人员数据抽象服务（PersonStore）。沿革见 `.ctx/logs/`。 |
+| docs/src/services/governance/notice.js | 2026-10-23 | — | [工程师]+[AI] | 通知服务；批次 504 系统通知落库后采用服务端真值。沿革见 `.ctx/logs/`。 |
+| docs/src/services/member/person.js | 2026-10-22 | — | [工程师]+[AI] | 人员数据抽象服务（PersonStore）。沿革见 `.ctx/logs/`。 |
 | docs/src/services/member/profile.js | 2026-10-17 | — | [工程师]+[AI] | Mock/API 共用个人档案权限校验与语义读取适配；API 拒绝时不回退缓存。 |
 | docs/src/core/domain/self-profile.js | 2026-10-05 | — | [工程师]+[AI] | 成员「自我描述」字段模型（15 字段 · 四类形态 text/bool/multi/list；**零依赖叶子**——前端表单 / 导入链与服务端写口净化**同引一处**，`D-788` / `V-10b`）。沿革见 `.ctx/logs/`。 |
 | docs/src/core/domain/profile-access.js | 2026-10-17 | — | [工程师]+[AI] | 个人档案读取策略、组织字段编辑判据与名册/档案字段投影的共享纯函数。 |
@@ -453,9 +515,9 @@ dynamic_role:
 | docs/src/services/core/roles.js | 2026-07-31 | — | [工程师]+[AI] | 角色服务 |
 | docs/src/services/core/runtime.js | 2026-07-31 | — | [工程师]+[AI] | 运行时插槽 |
 | docs/src/services/activity/signup.js | 2026-10-17 | — | [工程师]+[AI] | 活动/专班报名服务；组织者/深度参与者同步工作组成员，普通参与只留报名事实，取消时不移除他人角色；专班名额排除旧 participant。 |
-| docs/src/services/activity/taskforce.js | 2026-10-16 | — | [工程师]+[AI] | 专班服务（含专班→待办派生；与分工提案共用票决计算器，按议程项传入完整票据行；写口动态引 `branch.js` 传分工快照，批次 425） |
+| docs/src/services/activity/taskforce.js | 2026-10-22 | — | [工程师]+[AI] | 专班服务（含专班→待办派生；与分工提案共用票决计算器，按议程项传入完整票据行；写口动态引 `branch.js` 传分工快照，批次 425） |
 | docs/src/services/activity/work-assignment.js | 2026-10-03 | — | [工程师]+[AI] | 活动「工作分工」（服务端表 assignments）统一读写口；全 CRUD。 |
-| docs/src/services/governance/today-summary.js | 2026-10-05 | — | [工程师]+[AI] | 「今天」页今日聚合服务（纯逻辑可测；今日活动参与判定）。 |
+| docs/src/services/governance/today-summary.js | 2026-10-22 | — | [工程师]+[AI] | 「今天」页今日聚合服务（纯逻辑可测；今日活动参与判定）。 |
 | docs/src/services/governance/todo.js | 2026-10-06 | — | [工程师]+[AI] | 待办服务（TodoStore+NoticeTodoDeriver+LifecycleTodoDeriver，E2 flow 标注；含 **`buildModuleCycleRemindGroup` 模块周期实时组**（批次 423）与 **`getByRole` 可选 `personId`「到人只给本人看」读链**（批次 428）） |
 | docs/src/services/branch/branch-doc.js | 2026-10-05 | — | [工程师]+[AI] | 支部文件服务（2026-09-21 批次 129 **补登**——本表原先无此行；本批新增「制度链」段：草案 / 待党员大会表决两态 ＋ 支委会审议结果应用 ＋ 草案修改，`saveDoc` 增 `asDraft`） |
 | docs/src/services/activity/agenda-follow-up.js | 2026-09-21 | — | [工程师]+[AI] | 议程跟办服务（2026-09-21 批次 129 **补登**——本表原先无此行；本批「讨论文件」分支按 `purpose:'institution'` 分流到制度链，`recordAgendaResult` 增 `reportToPartyMeeting`，非制度文件仍走原归档；**批次 132 再加 `brand-designation` 分流**⇒ 品牌认定「通过才置 `isBrand`」，`D-559`） |
@@ -467,14 +529,15 @@ dynamic_role:
 |---------|-------------|--------|------|------|
 | docs/src/data/mock/index.js | 2026-09-29 | — | [工程师]+[AI] | Mock 数据桶文件 |
 | docs/src/data/mock/accounts.js | 2026-09-29 | — | [工程师]+[AI] | 账户数据 |
-| docs/src/data/mock/activities.js | 2026-09-29 | — | [工程师]+[AI] | 活动数据 |
-| docs/src/data/mock/attendance.js | 2026-09-29 | — | [工程师]+[AI] | 考勤数据（**2026-09-25 批次 198（`D-658`）：`_ALL_PERSON_IDS` 加支部归属过滤**——`PEOPLE.filter((p) => p.branchId).map((p) => p.id)` ⇒ 剔除党委组织员 `p_pc`（`branchId:null`）、`attendances` **154 → 152**；**由「另一路」落地，本表行刷为 `2026-09-25`**） |
-| docs/src/data/mock/inspection.js | 2026-09-29 | — | [工程师]+[AI] | 纪检数据 |
-| docs/src/data/mock/notices.js | 2026-09-29 | — | [工程师]+[AI] | 通知数据 |
+| docs/src/data/mock/activities.js | 2026-10-23 | — | [工程师]+[AI] | 活动数据（批次 504：act-37 收口 completed）。 |
+| docs/src/data/mock/attendance.js | 2026-10-23 | — | [工程师]+[AI] | 考勤数据（批次 504：删支委会考勤、补确认痕迹、停存 `overdue`）。 |
+| docs/src/data/mock/inspection.js | 2026-10-23 | — | [工程师]+[AI] | 纪检数据（批次 504：补确认人）。 |
+| docs/src/data/mock/notices.js | 2026-10-23 | — | [工程师]+[AI] | 通知数据（批次 504：10 月窗口平移）。 |
 | docs/src/data/mock/people.js | 2026-09-29 | — | [工程师]+[AI] | 人员数据 |
 | docs/src/data/mock/review.js | 2026-09-29 | — | [工程师]+[AI] | 审查数据 |
-| docs/src/data/mock/seed.js | 2026-09-29 | — | [工程师]+[AI] | 种子数据（**2026-09-25 批次 198（`D-658`）：`SEED_MAKEUP_TASKS` 的 `attendanceRecordId` 由孤儿引用 `'att-sep-1'` 改准为真实 id `'att900'`**——原值对不上任何考勤行 ⇒ 纪检台「确认完成 → 回写考勤 `made_up`」会 `find` 落空 ⇒ **B3-1 回写静默失效**；**由「另一路」落地，本表行刷为 `2026-09-25`**） |
-| docs/src/data/mock/taskforces.js | 2026-09-29 | — | [工程师]+[AI] | 专班数据 |
+| docs/src/data/mock/seed.js | 2026-10-23 | — | [工程师]+[AI] | 种子数据（批次 504：报名改挂运行中专班、补课用相对日期）。 |
+| docs/src/data/mock/taskforces.js | 2026-10-23 | — | [工程师]+[AI] | 专班数据（批次 504：补 `branchId`/`activityId`）。 |
+| docs/src/data/mock/auxiliary.js | 2026-10-23 | — | [工程师]+[AI] | 8 个仅服务端集合的演示种子同源。 |
 
 ### docs/src/capabilities/ (能力声明层) · docs/src/components/sections/ (页级板块)
 
@@ -484,8 +547,8 @@ dynamic_role:
 | docs/src/capabilities/secretary-workspace.js | 2026-10-03 | — | [工程师]+[AI] | 支书工作台能力声明（tab 清单自注册，scope='workspace:secretary'；本行 2026-10-03 批次 351 **补登**——本表原先无此行） |
 | docs/src/capabilities/leader-workspace.js | 2026-10-05 | — | [工程师]+[AI] | 组长工作台能力声明（tab 清单自注册，scope='workspace:leader'）。沿革见 `.ctx/logs/`。 |
 | docs/src/capabilities/org-workspace.js | 2026-10-05 | — | [工程师]+[AI] | 组织委员工作台能力声明（tab 清单自注册，scope='workspace:org'）。**边界**：含 `{ id:'member-flow', label:'成员流动' }`（在 `roster` 之后注册）。沿革见 `.ctx/logs/`。 |
-| docs/src/capabilities/prop-workspace.js | 2026-10-04 | — | [工程师]+[AI] | 宣传委员工作台能力声明（tab 清单自注册，scope='workspace:prop'）。**边界**：tab 数 9；改 tab 结构须同批改 `help.html §0.1/§2.3` 与 `README-server.md §3.2.3`。沿革见 `.ctx/logs/`。 |
-| docs/src/capabilities/disc-workspace.js | 2026-10-05 | — | [工程师]+[AI] | 纪检委员工作台能力声明（tab 清单自注册，`scope='workspace:disc'`；tab 数 9）。沿革见 `.ctx/logs/`。 |
+| docs/src/capabilities/prop-workspace.js | 2026-10-04 | — | [工程师]+[AI] | 宣传委员工作台能力声明。**边界**：tab 数 8（IA-A02 撤「知情查看」）；改 tab 须同批改 `help.html` 与 `README-server.md §3.2.3`。 |
+| docs/src/capabilities/disc-workspace.js | 2026-10-05 | — | [工程师]+[AI] | 纪检委员工作台能力声明（tab 数 8——IA-A01 撤「知情查看」）。 |
 | docs/src/capabilities/visitor-workspace.js | 2026-10-04 | — | [工程师]+[AI] | 成员工作台能力声明（tab 清单自注册，scope='workspace:visitor'）。沿革见 `.ctx/logs/`。 |
 | docs/src/capabilities/taskforce.js | 2026-09-29 | — | [工程师]+[AI] | 专班运行能力声明（自注册；**2026-09-29 批次 268：解析 `REVIEW_QUEUE H-10` 推荐档 ①——把 `taskforce` 落成真能力 ⇒ 契约 §二「blockId 与 capability / scenario id 一一对应」恢复唯一口径，`block-manifest::S5` 的例外台账**清零**） |
 | docs/src/components/sections/help-catalog.js | 2026-10-14 | — | [工程师]+[AI] | Help 全文搜索索引、摘要、角色筛选与常见任务入口。 |
@@ -507,7 +570,7 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| docs/src/styles.css | 2026-10-18 | — | [工程师]+[AI] | 全局样式单一源；新增治理/宽表/表单流动版心、党委页面层级、表格内滚动及配置/只读窄屏规则。 |
+| docs/src/styles.css | 2026-10-28 | — | [工程师]+[AI] | 全局样式单一源；批次 505 收敛控件/按钮/页签/指标带/summary 组件层（见 DESIGN_SYSTEM §十二）；2026-10-28 空态三形态补 `.empty-state--inline`。 |
 | docs/src/about.css | 2026-09-28 | — | [工程师]+[AI] | 关于页独立样式表（ab-* 内容区 ＋ 南西油墨宋 @font-face ＋ Tailwind 最小兜底，about.html 独占引用）。沿革见 `.ctx/logs/`。 |
 
 ### docs/scripts/
@@ -530,20 +593,20 @@ dynamic_role:
 
 | 编号 | 任务 | 最后执行 | 下次到期 | 状态 |
 |------|------|---------|---------|------|
-| W1 | 执行日志扫描 | 2026-07-31 | 2026-08-07 | OK |
-| W2 | Emoji 合规扫描 | 2026-07-31 | 2026-08-07 | OK |
-| W3 | 支书内容评议 | 2026-07-31 | 2026-08-07 | 待支书触发 |
-| W4 | 专项评议循环 | 2026-08-10 | 2026-08-17 | OK（T-209 建立；反论 T-116/理论复用 T-117/黑话审查 T-195/原话复核 T-200 四专项承接） |
-| M1 | CLAUDE.md 清理 | 2026-07-31 | 2026-08-31 | OK |
-| M2 | SNAPSHOT 更新 | 2026-08-10 | 2026-08-31 | OK（v16 升版） |
-| M3 | 全仓断链扫描 | 2026-07-31 | 2026-08-31 | OK |
-| M4 | Insights 经验蒸馏 | 2026-07-31 | 2026-08-31 | OK |
-| M5 | DOCUMENTATION_MAP 审查 | 2026-07-31 | 2026-08-31 | OK |
-| M6 | README 审查 | 2026-08-10 | 2026-08-31 | OK（门面重构） |
-| Q1 | ARCHITECTURE 审查 | — | — | 待初始化 |
-| Q2 | 角色体系健康度 | — | — | 待初始化 |
-| Q3 | SOP 文本审查 | — | — | 待初始化 |
-| Y1 | 年度系统审计 | — | — | 待初始化 |
+| W1 | 执行日志扫描 | 2026-10-27 | 待重定 | **已停摆**（自 2026-08 起未按期执行；2026-10-27 批次 515 复核，频率待支书重定） |
+| W2 | Emoji 合规扫描 | 2026-10-27 | 待重定 | 同上 |
+| W3 | 支书内容评议 | — | — | 待支书触发（非周期） |
+| W4 | 专项评议循环 | 2026-10-27 | 按需 | 机制持续（见 `REVIEW_QUEUE` 附录①–⑪） |
+| M1 | CLAUDE.md 清理 | 2026-10-27 | 待重定 | 批次 515 已执行；频率待重定 |
+| M2 | SNAPSHOT 更新 | 2026-10-27 | 待重定 | 批次 515 已升至 v62；原月度节奏已停摆 |
+| M3 | 全仓断链扫描 | 2026-10-27 | 待重定 | 已由 `link-integrity` 守卫常态化承接 |
+| M4 | Insights 经验蒸馏 | — | — | 未启用（无排期） |
+| M5 | DOCUMENTATION_MAP 审查 | 2026-10-27 | 待重定 | 已由 `docs-governance-guard` 常态化承接 |
+| M6 | README 审查 | 2026-10-27 | 待重定 | 已由 `docs-governance-guard` G4 常态化承接 |
+| Q1 | ARCHITECTURE 审查 | — | — | 未启用（无排期） |
+| Q2 | 角色体系健康度 | — | — | 未启用（无排期） |
+| Q3 | SOP 文本审查 | — | — | 未启用（无排期） |
+| Y1 | 年度系统审计 | — | — | 未启用（无排期） |
 
 ---
 

@@ -3,35 +3,54 @@
 // 背景：6 个工作台 todo-tab 骨架逐字重复（选中首条 / renderTodoList / 两栏 HTML / 删除 / 详情按钮绑定），
 //       支书 2026-08-30：「模块化只见代码增多少见代码减少」→ 共性抽壳。
 // 设计：createTodoTab(opts) 工厂，每个角色一个实例（状态自持，与原模块级私有状态等价）。
-// 2026-10-18 工作台密度重组 Task 5（四档紧迫度；spec .trae/specs/rebuild-workbench-density-and-composition）：
-//   输出区 = ① 页顶「未读通知 N 条」轻量条（getUnreadNotices；点击展开阅读列表，点读即消）
-//          ② 四数摘要带「逾期 / 今日 / 本周 / 待处理」——与列表共用 buildUrgencySections
-//            的同一批分组数据，不另算口径；
-//          ③ 四档列表「逾期 / 今日 / 本周 / 以后」（domains 展平为组后按截止日/状态归类；
-//            业务域降为行内标签；实时组经 mergeRealtimeDomains 照旧并入）；
-//          ④ 各角色自定义渲染区（extraTopHtml/bindExtras）照旧挂载
+// 2026-10-19 最小三成本 Task 5 / harden-mobile-and-primary-actions Task 3（首屏与去重）：
+//   输出区 = ① 页顶「待答复与未读通知」折叠条（原生 details，**默认展开**；
+//             展开后待答复只露前 2 条，其余经「查看全部待答复」展开；
+//             未读通知为二级折叠，默认收起，摘要「未读通知 N」）
+//          ② 我的待办卡：四数摘要「逾期 / 今日 / 本周 / 待处理」——与列表共用
+//             buildUrgencySections 的同一批分组数据，不另算口径；
+//             下方四档列表「逾期 / 今日 / 本周 / 以后」（domains 展平为组后按截止日/状态归类；
+//             业务域降为行内标签；实时组经 mergeRealtimeDomains 照旧并入）；
+//             组头只留组名 + 状态点，计数只在摘要出现；
+//          ③ 右栏详情（各角色自定义 renderDetail/extraTopHtml/bindExtras 照旧挂载）
 //   角色差异经参数注入：containerId/prefix/role/onAction/buildRealtimeGroups/renderDetail/
 //       onBeforeRender/onAfterRender/extraTopHtml/bindExtras/emptyHint/detailTitle/
 //       detailBtnClass/detailBtnStyle/onDeleteTodo。
 // 视觉沿用 card/rounded 既有体系（四档列表渲染在 components/record/todo-list.js renderUrgencyTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261018h';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261102b';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261018h';
-import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261018h';
-import { badgeHtml } from '../ui/badges.js?v=20261018h';
-import { showToast, escHtml, todayLocal } from '../../core/base/utils.js?v=20261018h';
-import { solidAccentStyle, ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261018h';
-import { openModal, closeModal } from '../ui/modal.js?v=20261018h';
-import { AuthStore } from '../../services/core/auth.js?v=20261018h';
-import { mockDB } from '../../core/domain/domain.js?v=20261018h';
-import { tokenOf } from '../../core/base/version-token.js?v=20261018h'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261018h';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261018h'; // P2 渲染守卫（spec §四.1）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261102b';
+import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261102b';
+import { badgeHtml } from '../ui/badges.js?v=20261102b';
+import { icon } from '../../core/base/icons.js?v=20261102b';
+import { showToast, escHtml, todayLocal, flashHighlight, getBasePath, smoothScroll } from '../../core/base/utils.js?v=20261102b';
+import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261102b';
+import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { mockDB } from '../../core/domain/domain.js?v=20261102b';
+import { tokenOf } from '../../core/base/version-token.js?v=20261102b'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261102b';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261102b'; // P2 渲染守卫（spec §四.1）
+import { renderTabHeader } from '../shell/page-frame.js?v=20261102b'; // 页题单一源（H2）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261018h';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261102b';
+
+// ── 「我经办的反馈」区（2026-10-25 IA 62→45 · spec Task 5）──────────────
+// 五台原「我的处置」页签已删（与待办同属「我的待处理」，只是对象为反馈）⇒ 并入本页成一段。
+// 实现单一源＝`components/feedback/issue-dispatch-view.js`（embedded 形态：不渲染第二张页头 H2，
+// 列表 / 详情 / 评论 / 提交处置结果一字未改，不复制第二套）。
+// 旧深链 `?tab=my-dispatch` 由工作台壳落 `todo&filter=dispatch`（本区据此滚到视野）。
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
+const DISPATCH_SECTION_BY_ROLE = {
+  'org-commissioner': { roleKey: 'org-commissioner', opts: {} },
+  'prop-commissioner': { roleKey: 'prop-commissioner', opts: {} },
+  'disc-commissioner': { roleKey: 'disc-commissioner', opts: {} },
+  leader: { roleKey: 'leader', opts: { myIssuesFirst: true } },
+  visitor: { roleKey: 'participant', opts: { myIssuesFirst: true } },
+};
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
@@ -95,6 +114,20 @@ function _moduleCycleGroupsFor(role) {
   return group ? [group] : [];
 }
 
+// ── 窄屏布局判据（spec 阶段一 Task 1：390 待办列表优先）──────────────
+// 与 Tailwind `lg` 断点同值（1024px）：<lg = 单列「列表在前、详情在后」；
+// ≥lg = 现有双栏（列表 2/3 + 详情 1/3）。只用于「是否自动选中 / 是否渲染详情列」，
+// 不改数据与查询链。
+const TODO_DESKTOP_QUERY = '(min-width: 1024px)';
+function _isTodoDesktopLayout() {
+  try {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return true;
+    return window.matchMedia(TODO_DESKTOP_QUERY).matches;
+  } catch (_) {
+    return true;
+  }
+}
+
 /** 把域视图展平为待办组（业务域标签随组带出，供行内 12px 次级标签使用） */
 function _flattenDomainGroups(domains) {
   const groups = [];
@@ -107,22 +140,75 @@ function _flattenDomainGroups(domains) {
 }
 
 /**
- * 顶部四数摘要带（逾期 / 今日 / 本周 / 待处理）——一条横向带，不拆四张 KPI 卡。
+ * 通知深链 highlight 读取（F03/F07 · 2026-10-20 IA 修复）。
+ * 工作台壳在首个渲染前已把 `?highlight=` 读进 `ctx.navTarget` 并清掉 URL 参数 ——
+ * tab 内再读 `location.search` 恒为空。故优先 `ctx.navTarget.hl`，URL 仅作未经壳时的兜底。
+ */
+function _resolveNavHighlightId(ctx) {
+  let fromUrl = '';
+  try { fromUrl = new URLSearchParams(window.location.search).get('highlight') || ''; } catch (_) { /* 非浏览器环境忽略 */ }
+  return fromUrl || ctx?.navTarget?.hl || '';
+}
+
+/**
+ * 深链定位执行（F03/F07）：按 groupKey / 成员变更申请 id 找 DOM 锚点。
+ * 命中 → 滚动 + 闪烁；未命中 → 页内可见提示（不得静默落默认列表）。
+ * @param {HTMLElement} container 待办容器
+ * @param {string} id 深链 highlight 值
+ * @param {Object|null} matchedGroup 数据侧匹配到的聚合组（用于更准确的失败文案）
+ */
+function _applyNavHighlight(container, id, matchedGroup) {
+  const selectors = [
+    `[data-group-key="${id}"]`,
+    `[data-mc-request-id="${id}"]`,
+    `[data-mc-card="${id}"]`,
+    `[data-id="${id}"]`,
+  ];
+  let target = null;
+  for (const sel of selectors) {
+    try { target = container.querySelector(sel); } catch (_) { target = null; }
+    if (target) break;
+  }
+  if (target) {
+    const row = target.closest('[data-group-key]') || target;
+    smoothScroll(row, { block: 'center' });
+    flashHighlight(target);
+    return;
+  }
+  const hint = document.createElement('div');
+  hint.dataset.navHighlightMissing = '1';
+  hint.setAttribute('role', 'status');
+  hint.className = 'card rounded-xl p-3 mb-4 text-xs text-amber-800 bg-amber-50 border border-amber-200';
+  hint.textContent = matchedGroup
+    ? `已定位到「${matchedGroup.title}」，但该条明细已处理或已移出列表。`
+    : '未找到该待办（可能已处理）。';
+  container.prepend(hint);
+}
+
+/**
+ * 顶部四数摘要（逾期 / 今日 / 本周 / 待处理）——数字组单一语法（2026-10-29 P2）：
+ * 图标块在左 ＋ 数值/标签在右两行，四列栅格（≤1024 两列）。
  * 数值由 buildUrgencySections 与列表共用同一批分组数据算出，不另立口径。
- * 视觉：.metric-band（数字 26px/600 + 标签 12px + 细竖线）；逾期 warning、待处理 accent。
+ * 只读卡：不挂 role=button / tabindex / card--interactive；
+ * **仅逾期件数 > 0 时**加 `stat-card__value--warning`，0 件时保持中性
+ * （颜色只表状态，不得恒加警示类）。
  */
 function _urgencySummaryHtml(summary) {
-  const item = (label, value, tone) => `
-    <span class="metric-band__item">
-      <span class="metric-band__value${tone ? ` metric-band__value--${tone}` : ''}">${value || 0}</span>
-      <span class="metric-band__label">${label}</span>
-    </span>`;
+  const item = (iconName, tint, label, value, tone) => `
+    <div class="card rounded-xl p-4 stat-card">
+      <span class="stat-icon-tint" style="--tint:${tint};" aria-hidden="true">${icon(iconName, { strokeWidth: 1.8, className: 'w-5 h-5' })}</span>
+      <div class="stat-card__body">
+        <p class="stat-card__value${tone ? ` stat-card__value--${tone}` : ''}">${value || 0}</p>
+        <p class="stat-card__label">${label}</p>
+      </div>
+    </div>`;
+  const overdueTone = (Number(summary.overdue) || 0) > 0 ? 'warning' : '';
   return `
-    <div class="metric-band mb-4" role="group" aria-label="待办摘要">
-      ${item('逾期', summary.overdue, 'warning')}
-      ${item('今日', summary.today, '')}
-      ${item('本周', summary.week, '')}
-      ${item('待处理', summary.pending, 'accent')}
+    <div class="stat-grid mb-4" role="group" aria-label="待办摘要">
+      ${item('warning', 'var(--status-warning-text)', '逾期', summary.overdue, overdueTone)}
+      ${item('clock', 'var(--status-info)', '今日', summary.today, '')}
+      ${item('calendar', 'var(--app-accent-soft-text)', '本周', summary.week, '')}
+      ${item('list', 'var(--neutral-500)', '待处理', summary.pending, '')}
     </div>`;
 }
 
@@ -141,17 +227,18 @@ function _urgencySummaryHtml(summary) {
  *        写口均须 bumpToken 对应域（memberChangeRequests/memberConfirmation 等）使
  *        _comboKeyOf 复合键变化 → 批量块内容随重建刷新。
  * @param {(todo:Object, ctx:Object)=>string} [opts.renderDetail] 自定义详情渲染
- *        （支书按 kind/groupKey 分发；缺省=壳内置概要「去处理」）
+ *        （支书按 kind/groupKey 分发；缺省=壳内置概要，主行动只留在行尾，详情不重复）
  * @param {async (ctx:Object)=>void} [opts.onBeforeRender] 渲染前钩子（seedTodos/异步预载；await）
  * @param {async (container:Element, ctx:Object, api:Object)=>void} [opts.onAfterRender] 渲染后钩子
  *        （异步面板挂载，如支书成员变更确认面板；api={renderContent,clearSelection,selectedTodo}）
- * @param {string|(ctx:Object)=>string} [opts.extraTopHtml] 列表上方额外区块 HTML（数据交接/收件箱/专班区等）
+ * @param {string|(ctx:Object)=>string} [opts.extraTopHtml] 折叠条展开后的额外区块 HTML（数据交接/收件箱/专班区等）
+ * @param {number|(ctx:Object)=>number} [opts.extraTopCount] 折叠条摘要计数（缺省 0；与未读通知数相加）
  * @param {(container:Element, ctx:Object, api:Object)=>void} [opts.bindExtras] 额外绑定
  *        （handoff/成员变更/详情自定义按钮等；api 见 onAfterRender）
  * @param {string} [opts.emptyHint]         空态提示文案（缺省=通用）
  * @param {string} [opts.detailTitle]       右侧详情卡标题（缺省='详情'）
  * @param {string} [opts.detailBtnClass]    内置详情按钮 class（缺省=prefix-todo-detail-action）
- * @param {string} [opts.detailBtnStyle]    内置详情按钮内联样式（缺省=solidAccentStyle 主题色）
+ * @param {string} [opts.detailBtnStyle]    内置详情按钮内联强调样式（缺省不注入；按钮走 .btn-accent-soft .btn-sm）
  * @param {null|(todo:Object, ctx:Object)=>void} [opts.onDeleteTodo] null=不渲染删除键（支书等实时组台）；
  *        函数=自定义；缺省=**仅支委层**内置硬删（`#1`/`D-742`：硬删只留支委层；非支委层不再渲染硬删）
  * @param {null|(todo:Object, ctx:Object)=>void} [opts.onVoidTodo] 作废入口（`#1`/`D-742`）；
@@ -162,6 +249,48 @@ function _urgencySummaryHtml(summary) {
  *        null=该条无催办入口（无责任人或责任人即本人）
  * @param {(group:Object, ctx:Object)=>void} [opts.onUrgeTodo] 催办按钮回调（需与 urgeStateOf 同传）
  */
+/**
+ * 「我经办的反馈」区骨架（2026-10-25 IA 62→45）：仅五台有（支书台用「反馈管理」承载反馈）。
+ * 标题是兄弟节点（不进 `<summary>`/按钮），区内容由 `issue-dispatch-view.js` 渲染。
+ */
+function _dispatchSectionHtml(role) {
+  if (!DISPATCH_SECTION_BY_ROLE[role]) return '';
+  return `<div class="card rounded-xl p-5 mt-4 card--static" id="ws-dispatch-section"
+    data-todo-dispatch="1">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="font-title-cn text-base font-semibold text-gray-800">我经办的反馈</h3>
+    </div>
+    <p class="text-xs text-gray-500 mb-3">支部派发的汇报与反馈在此处理；处理结果可回看。</p>
+    <div id="ws-dispatch-host"></div>
+  </div>`;
+}
+
+/** 挂载「我经办的反馈」区（实现单一源＝issue-dispatch-view；embedded 不重复页头） */
+function _mountDispatchSection(container, role, ctx) {
+  const cfg = DISPATCH_SECTION_BY_ROLE[role];
+  const host = container?.querySelector('#ws-dispatch-host');
+  if (!cfg || !host) return;
+  const uid = AuthStore.getCurrentUser()?.personId;
+  if (!uid) {
+    host.innerHTML = emptyStateHtml({ variant: 'panel', text: '请先登录后使用', actionHtml: `<a class="btn-outline" href="${getBasePath()}login.html">去登录</a>` });
+    return;
+  }
+  import('../feedback/issue-dispatch-view.js?v=20261102b').then((m) => {
+    if (!host.isConnected) return;
+    host.innerHTML = m.renderMyDispatchTab(cfg.roleKey, uid, { ...cfg.opts, embedded: true });
+    m.bindMyDispatchEvents(host, cfg.roleKey, uid, cfg.opts);
+  });
+  // 深链 `?filter=dispatch`（旧 `?tab=my-dispatch`）：滚到本区并闪烁。
+  let filter = ctx?.navTarget?.filter || '';
+  if (!filter) {
+    try { filter = new URLSearchParams(window.location.search).get('filter') || ''; } catch (_) { /* 非浏览器环境 */ }
+  }
+  if (filter === 'dispatch') {
+    smoothScroll(container.querySelector('#ws-dispatch-section'), { block: 'start' });
+    flashHighlight(container.querySelector('#ws-dispatch-section'));
+  }
+}
+
 export function createTodoTab(opts) {
   const {
     containerId,
@@ -173,15 +302,17 @@ export function createTodoTab(opts) {
     onBeforeRender,
     onAfterRender,
     extraTopHtml = '',
+    extraTopCount = 0,
     bindExtras,
     urgeStateOf,
     onUrgeTodo,
-    emptyHint = '或直接点击"去赋权/去审核"等按钮处理',
+    emptyHint = '暂无待办',
     detailTitle = '详情',
     detailBtnClass = `${prefix}-todo-detail-action`,
     detailBtnStyle,
     onDeleteTodo,
     onVoidTodo,
+    pageTitle = '待办',
   } = opts;
 
   // 是否支委层（支书 / 副支书 / 组织 / 宣传 / 纪检）——决定「作废」是直接生效还是走审批门，
@@ -193,15 +324,18 @@ export function createTodoTab(opts) {
   // P0 组合点记忆化（每实例自持：复合键未变 → 复用上次组合数据对象；只读契约，见 _comboKeyOf 注释）
   let _lastComboKey = null;
   let _lastCombo = null; // { domains, allGroups, unreadNotices }
+  let _stripOpen = true; // 页顶折叠条展开态（默认展开；重渲染后保留用户折叠）
+  let _navHighlightDone = false; // 深链 highlight 一次性消费（重渲染不再重复定位/提示）
 
-  /** U3（2026-09-07）待办两栏等高骨架（await onBeforeRender/数据聚合期间占位；styles.css 禁改不碰） */
+  /** U3（2026-09-07）待办两栏等高骨架（await onBeforeRender/数据聚合期间占位；styles.css 禁改不碰）
+   *  阶段一 Task 1：源码顺序＝列表 → 详情，窄屏骨架同样先列表（不再 order-first 把详情提到首屏）。 */
   function _todoShellSkeletonHtml() {
     const row = '<div class="h-9 rounded-lg bg-gray-100 animate-pulse"></div>';
     return `
       <div data-ws-todo-skeleton class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div class="lg:col-span-2 card rounded-xl p-5" style="min-height:340px;">
           <div class="h-4 w-20 rounded bg-gray-100 animate-pulse mb-4"></div>
-          <div class="space-y-2.5">${row}${row}${row}${row}${row}</div>
+          <div class="space-y-2">${row}${row}${row}${row}${row}</div>
         </div>
         <div class="lg:col-span-1 card rounded-xl p-5" style="min-height:220px;">
           <div class="h-4 w-12 rounded bg-gray-100 animate-pulse mb-4"></div>
@@ -215,22 +349,21 @@ export function createTodoTab(opts) {
    * 角色自定义详情经 opts.renderDetail 覆盖（如支书 confirm/remind/成员变更确认逐项面板）。
    */
   function _renderTodoDetail(todo, ctx) {
-    const btnStyle = detailBtnStyle || solidAccentStyle(ctx.accent, ctx.accentBorder);
+    // 2026-10-19 Task 5：右栏主行动改用紧凑档（四类按钮 + 两档尺寸）；
+    // 角色自定义强调样式（如成员端金色）仍经 detailBtnStyle 内联生效，不再默认注入实底样式。
+    const btnStyleAttr = detailBtnStyle ? ` style="${detailBtnStyle}"` : '';
     if (todo.groupKey) {
-      // 组详情动作按组真实下一步渲染（2026-10-18 繁专项 Task 14）：
+      // 组详情只渲染**区别于行尾主行动**的下一步（2026-10-18 繁专项 Task 14；2026-10-27 Task 5）：
       //   · group.detailAction → 渲染真实落点（如「去录入考察」跳人才库并展开考察位）；
-      //   · hideActionBtn 且无 detailAction → **不渲染按钮**（行尾都没有的动作，详情不得空转）；
-      //   · 其余 → 与行尾同源调用 onAction（既有行为）。
+      //   · 无 detailAction → **不渲染按钮**——行尾已有唯一主行动，详情再放「去处理」是同义并排。
       const action = todo.detailAction;
-      const actionLabel = action && action.label ? action.label : (todo.hideActionBtn ? '' : '去处理');
+      const actionLabel = action && action.label ? action.label : '';
       const actionBtn = actionLabel
-        ? `<button type="button" class="btn-accent-soft ${detailBtnClass} text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${btnStyle}" aria-label="${escHtml(actionLabel)}：${escHtml(todo.title || '')}">${escHtml(actionLabel)}</button>`
+        ? `<button type="button" class="btn-accent-soft btn-sm ${detailBtnClass}"${btnStyleAttr} aria-label="${escHtml(actionLabel)}：${escHtml(todo.title || '')}">${escHtml(actionLabel)}</button>`
         : '';
       return `
         <div class="space-y-3">
-          <div class="flex items-center gap-2">
-            ${todo.priority === 'urgent' ? badgeHtml('紧急', 'warning') : ''}
-          </div>
+          ${todo.priority === 'urgent' ? `<div class="flex items-center gap-2">${badgeHtml('紧急', 'warning')}</div>` : ''}
           <p class="font-title-cn text-base font-semibold text-gray-800">${todo.title}</p>
           <dl class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
             <div>
@@ -284,16 +417,15 @@ export function createTodoTab(opts) {
         </dl>
         ${todo.description ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.description}</p>` : ''}
         <div class="pt-3 border-t border-gray-100 flex gap-2">
-          ${todo.actionType ? `<button type="button" class="btn-accent-soft ${detailBtnClass}">处理</button>` : ''}
+          ${todo.actionType ? `<button type="button" class="btn-accent-soft btn-sm ${detailBtnClass}">处理</button>` : ''}
         </div>
       </div>
     `;
   }
 
-  /** 页顶「未读通知 N 条」轻量条（IA-C1：通知移出待办主列；无未读整条隐藏）
-   *  2026-10-18：与首页通知列表共用 `.notice-row` 视觉语言（标题/摘要/动作同字号与间距）；
-   *  去掉「标记已读」第二动作——阅读详情即已读，同一决定不再给两个按钮。 */
-  function _unreadBarHtml(notices) {
+  /** 未读通知行（2026-10-19 Task 5 / Task 3：作为页顶折叠条的二级折叠，默认收起）。
+   *  与首页通知列表共用 `.notice-row` 视觉语言；每行一个主行动「阅读」，阅读详情即已读。 */
+  function _unreadRowsHtml(notices) {
     const rows = notices.map(n => {
       const timeText = n.deadline
         ? `截止 ${n.deadline}`
@@ -309,26 +441,49 @@ export function createTodoTab(opts) {
             <span class="notice-row__meta block">${timeText}</span>
           </span>
           <div class="notice-row__actions">
-            <button type="button" class="btn-outline ${prefix}-unread-open-btn" data-notice-id="${n.id}">阅读</button>
+            <button type="button" class="btn-accent-soft btn-sm ${prefix}-unread-open-btn" data-notice-id="${n.id}">阅读</button>
           </div>
         </div>`;
     }).join('');
     return `
-      <div class="card rounded-xl px-4 py-2.5 mb-4">
-        <button type="button" class="btn-ghost ${prefix}-unread-toggle w-full flex items-center justify-between text-left px-0 py-1 rounded-lg hover:bg-gray-50 transition-colors">
-          <span class="flex items-center gap-2">
-            <svg class="${prefix}-unread-arrow w-3 h-3 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
-            </svg>
-            <span class="font-title-cn text-sm font-bold text-gray-800">未读通知</span>
-            <span class="badge badge--danger tabular-nums">${notices.length}</span>
-          </span>
-        </button>
-        <div class="${prefix}-unread-items hidden divide-y divide-gray-100">
-          ${rows}
-        </div>
-      </div>
-    `;
+      <details class="todo-strip__section todo-strip__section--unread mt-1">
+        <summary class="cursor-pointer select-none py-2">
+          <span class="text-xs font-medium text-gray-500">未读通知 <span class="tabular-nums">${notices.length}</span></span>
+        </summary>
+        <div class="divide-y divide-gray-100">${rows}</div>
+      </details>`;
+  }
+
+  /** 页顶折叠条：默认展开——首屏直接露出前 2 条待答复；未读通知在条内做二级折叠。
+   *  主对象「我的待办」紧随其后，不被全部未读撑高。
+   *  Task 3（2026-10-25）：分区标题移出 `summary`（标题不得进入交互元素），
+   *  summary 只用 `aria-labelledby` 关联兄弟 H3；折叠态仍在 `open` 属性上。 */
+  function _todoStripHtml(extraHtml, unreadHtml, count) {
+    if (!extraHtml && !unreadHtml) return '';
+    return `
+      <div class="disclosure-host card rounded-xl mb-4 card--static">
+        <!-- 2026-10-31 支书补充（折叠头）：标题与计数同基线；标题行走 .disclosure__title
+             （min-height 44），summary 空内容覆盖整行 ⇒ 整行任意位置可点，展开 / 收起看右侧 chevron。
+             2026-11-01（折叠头单一语法）：标题字号/字重/字族由 .disclosure__title 统一给出
+             （16/600/24 ＋ 标题字族），调用点只留内边距，不再用 font-title-cn / text-sm 覆盖；
+             计数是附注（14px 常规字重）。 -->
+        <h3 class="disclosure__title text-base px-4" id="todo-strip-title">
+          待答复与未读通知
+          ${count > 0 ? `<span class="text-sm font-normal text-gray-500 tabular-nums">${count}</span>` : ''}
+        </h3>
+        <details class="todo-strip" id="todo-strip"${_stripOpen ? ' open' : ''}>
+          <summary class="disclosure__summary" id="todo-strip-toggle" aria-labelledby="todo-strip-title"></summary>
+          <div class="px-4 pb-3">
+            ${extraHtml}
+            ${unreadHtml}
+          </div>
+        </details>
+      </div>`;
+  }
+
+  /** 窄屏选中待办后把详情卡滚入视野（详情卡渲染在列表之后，选中才出现） */
+  function _scrollDetailIntoView() {
+    smoothScroll(document.getElementById(containerId)?.querySelector('[data-ws-todo-detail]'), { block: 'start' });
   }
 
   async function renderContent(ctx) {
@@ -375,13 +530,29 @@ export function createTodoTab(opts) {
     }
     const { domains, allGroups, unreadNotices } = combo;
 
+    // F03/F07：通知深链 ?highlight=<groupKey|条目 id> —— 壳已清 URL，只能从 ctx.navTarget.hl 读。
+    // 先按数据侧命中（groupKey 或组内条目 id），把目标组置于选中态；DOM 命中在重建后执行。
+    const navHlId = _navHighlightDone ? '' : _resolveNavHighlightId(ctx);
+    let navMatchedGroup = null;
+    if (navHlId) {
+      navMatchedGroup = allGroups.find(g => g.groupKey === navHlId)
+        || allGroups.find(g => Array.isArray(g.items) && g.items.some(it => it && (it.id === navHlId || it.groupKey === navHlId)))
+        // 批量块（成员变更等）的行 id 只存在于 bulkHtml 字符串里，也据此选中其所属组
+        || allGroups.find(g => typeof g.bulkHtml === 'string' && g.bulkHtml.includes(navHlId))
+        || null;
+      if (navMatchedGroup) _selectedTodoId = navMatchedGroup.groupKey;
+    }
+
     // 四档分组单一源：域视图展平 → buildUrgencySections；摘要与列表共用此结果
     const urgencyGroups = _flattenDomainGroups(domains);
     const urgency = buildUrgencySections(urgencyGroups);
 
-    // 自动选中首条（支书 2026-08-10 裁定推广）：进入待办即见首屏第一条，减一次点击
+    // 自动选中首条（支书 2026-08-10 裁定推广）：桌面双栏下进入待办即见首屏第一条，减一次点击。
+    // 阶段一 Task 1（spec「移动端待办列表优先」）：<lg 不自动选中——390 首屏先列表，
+    //   用户点选后才在列表下方渲染详情。
+    const isDesktopLayout = _isTodoDesktopLayout();
     const firstVisible = urgency.sections.find(s => s.groups.length > 0)?.groups[0];
-    if (!_selectedTodoId && firstVisible) {
+    if (!_selectedTodoId && firstVisible && isDesktopLayout) {
       _selectedTodoId = firstVisible.groupKey;
     }
     const selectedTodo = _selectedTodoId
@@ -397,6 +568,10 @@ export function createTodoTab(opts) {
     //     其写口 bumpToken('issue') 见 services/governance/issues.js——保证 extraTopHtml 内容随键覆盖；
     //     命中跳过时 bindExtras/onAfterRender/extraTopHtml 不再重跑，内容仍正确）。
     const renderKey = `${comboKey}|sel=${_selectedTodoId || ''}|issue=${tokenOf('issue')}`;
+
+    // 折叠条摘要计数（待答复等额外区块 + 未读通知）；额外区块数量由角色注入，缺省只看未读
+    const extraCount = typeof extraTopCount === 'function' ? extraTopCount(ctx) : extraTopCount;
+    const stripCount = (Number(extraCount) || 0) + unreadNotices.length;
 
     const api = {
       renderContent: () => renderContent(ctx),
@@ -414,10 +589,10 @@ export function createTodoTab(opts) {
       } else if (typeof onDeleteTodo === 'function') {
         deleteHandler = (todo) => onDeleteTodo(todo, ctx);
       } else if (isCommittee) {
-        deleteHandler = (todo) => {
+        deleteHandler = async (todo) => {
           const items = todo.items && todo.items.length ? todo.items : [todo];
           const label = items.length === 1 ? items[0].title : `${items[0].title} 等 ${items.length} 条`;
-          if (!window.confirm(`确认删除待办「${label}」？删除后不可恢复。`)) return;
+          if (!await confirmDanger({ id: 'todo-delete', title: `删除待办「${label}」`, bodyHtml: `<p class="text-sm text-gray-700">删除${items.length === 1 ? '这条待办' : `这 ${items.length} 条待办`}。<br>影响：相关人员的待办清单各少一条，源头的活动 / 通知不变。<br><b>不可恢复</b>。</p>`, confirmLabel: '删除' })) return;
           items.forEach(t => TodoStore.delete(t.id));
           showToast('success', '待办已删除');
           renderContent(ctx);
@@ -440,7 +615,7 @@ export function createTodoTab(opts) {
         selectedTodoId: _selectedTodoId,
         onSelectTodo: (todo) => {
           _selectedTodoId = todo.groupKey || todo.id;
-          renderContent(ctx);
+          renderContent(ctx).then(_scrollDetailIntoView);
         },
         onActionTodo: (todo) => {
           onAction(todo, ctx);
@@ -452,51 +627,72 @@ export function createTodoTab(opts) {
         emptyHint,
       });
 
-      // 未读通知条（无未读 → 整条隐藏；数据来自 P0 组合点记忆化结果，见上）
-      const unreadHtml = unreadNotices.length > 0 ? _unreadBarHtml(unreadNotices) : '';
+      // 页顶折叠条：待答复收件箱（默认露 2 条）+ 未读通知二级折叠（数据来自 P0 组合点记忆化结果）
+      const extraHtml = typeof extraTopHtml === 'function' ? extraTopHtml(ctx) : extraTopHtml;
+      const unreadHtml = unreadNotices.length > 0 ? _unreadRowsHtml(unreadNotices) : '';
+      const stripHtml = _todoStripHtml(extraHtml, unreadHtml, stripCount);
 
       const detailHtml = selectedTodo
         ? (renderDetail ? renderDetail(selectedTodo, ctx) : _renderTodoDetail(selectedTodo, ctx))
         : `
           <div class="text-center py-12 text-gray-500">
-            <p class="text-sm">点击左侧待办查看详情</p>
-            <p class="text-xs mt-1">${emptyHint}</p>
+            <p class="text-sm">选择一条待办查看详情</p>
           </div>
         `;
 
+      // 首屏顺序（todo-urgency ⑧ / ui-first-screen-order F4）：页头与页顶折叠条先于「我的待办」。
+      const headerAndStripHtml = `${renderTabHeader({ title: pageTitle })}
+        ${stripHtml}`;
+
+      const listCardHtml = `
+        <div class="card rounded-xl p-5 card--static">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
+          </div>
+          ${_urgencySummaryHtml(urgency.summary)}
+          ${listHtml}
+        </div>`;
+
+      const detailCardHtml = `
+        <div class="card rounded-xl p-5 lg:sticky lg:top-20 card--static" data-ws-todo-detail aria-live="polite">
+          <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">${detailTitle}</h3>
+          ${detailHtml}
+        </div>`;
+
+      // 详情列渲染条件（阶段一 Task 1 · 首屏单一重心）：
+      //   · 窄屏只在「已选中」时渲染——未选中不出现「选择一条待办查看详情」占位，列表独占首屏；
+      //   · 桌面双栏保留「列表存在但未选中」时的选择提示；列表为空则不出详情列（空态只留一处）。
+      const hasAnyGroup = urgency.sections.some(s => s.groups.length > 0);
+      const showDetail = !!selectedTodo || (hasAnyGroup && isDesktopLayout);
+
+      // 列顺序：源码恒为「列表 → 详情」，两种宽度都按源码顺序落位（窄屏单列 ⇒ 列表在前）。
+      // `order-last` / `order-first` 是既有结构守卫（structural-round3 S1）锁定的历史类名；
+      // 实际排序以 inline `order:0` 中和，避免窄屏被 order-first 拉到列表之前。
+      const listColHtml = showDetail
+        ? `<div class="lg:col-span-2 order-last lg:order-none" style="order:0">${listCardHtml}</div>`
+        : `<div class="lg:col-span-3">${listCardHtml}</div>`;
+      const detailColHtml = showDetail
+        ? `<div class="lg:col-span-1 order-first lg:order-none" style="order:0">${detailCardHtml}</div>`
+        : '';
+
       container.innerHTML = `
-        ${typeof extraTopHtml === 'function' ? extraTopHtml(ctx) : extraTopHtml}
-        ${unreadHtml}
+        ${headerAndStripHtml}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4" data-ws-memo="todo-shell">
-          <div class="lg:col-span-2">
-            <div class="card rounded-xl p-5 card--static">
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
-              </div>
-              ${_urgencySummaryHtml(urgency.summary)}
-              ${listHtml}
-            </div>
-          </div>
-          <div class="lg:col-span-1">
-            <div class="card rounded-xl p-5 sticky top-20 card--static">
-              <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">${detailTitle}</h3>
-              ${detailHtml}
-            </div>
-          </div>
+          ${listColHtml}
+          ${detailColHtml}
         </div>
+        ${_dispatchSectionHtml(role)}
       `;
 
       // 域折组折叠 / 组行选中 / 行动按钮 / 删除
       bindEvents(container);
 
-      // 未读条：阅读即已读（第二动作「标记已读」已撤，同一决定不再给两个按钮）
-      container.querySelector(`.${prefix}-unread-toggle`)?.addEventListener('click', () => {
-        const items = container.querySelector(`.${prefix}-unread-items`);
-        const arrow = container.querySelector(`.${prefix}-unread-arrow`);
-        if (!items) return;
-        items.classList.toggle('hidden');
-        if (arrow) arrow.style.transform = items.classList.contains('hidden') ? 'rotate(-90deg)' : 'rotate(0deg)';
+      // 页顶折叠条：记住折叠态（默认展开；数据变化重建后保留用户折叠）
+      container.querySelector('.todo-strip')?.addEventListener('toggle', (e) => {
+        _stripOpen = !!e.target.open;
       });
+
+      // 未读通知行：阅读即已读（折叠由外层 <details> 统一承担，不再有第二套展开按钮）
       container.querySelectorAll(`.${prefix}-unread-open-btn`).forEach(btn => {
         btn.addEventListener('click', () => {
           const notice = unreadNotices.find(x => x.id === btn.dataset.noticeId);
@@ -526,13 +722,19 @@ export function createTodoTab(opts) {
 
       // 角色扩展（handoff / 成员变更面板 / 自定义详情按钮如一键确认·逐项确认/退回 等）
       bindExtras?.(container, ctx, api);
+
+      // 「我经办的反馈」区（2026-10-25 IA 62→45）：五台统一，本页内一段；实现单一源见上。
+      _mountDispatchSection(container, role, ctx);
     };
 
     // 命中（返回 false）→ 整卡保留、异步面板不再重跑（其内容随 renderKey 未变而正确）
     if (!memoizeRender(container, renderKey, rebuild, { marker: '[data-ws-memo="todo-shell"]' })) {
+      if (navHlId) { _navHighlightDone = true; _applyNavHighlight(container, navHlId, navMatchedGroup); }
       return;
     }
     if (onAfterRender) await onAfterRender(container, ctx, api);
+    // F03/F07：重建后定位（失败给页内可见提示；一次性消费，换 tab/重渲染不再重复）
+    if (navHlId) { _navHighlightDone = true; _applyNavHighlight(container, navHlId, navMatchedGroup); }
   }
 
   return { renderContent };
@@ -558,15 +760,15 @@ function _openVoidModal(group, { isCommittee, onDone } = {}) {
   openModal({
     id: 'todo-void-modal',
     title: isCommittee ? '作废待办' : '申请作废（报支委会）',
-    accentColor: 'var(--functional-error)',
+    accentColor: 'var(--status-error)',
     bodyHtml: `
       <p class="text-sm text-gray-700 mb-1">${isCommittee
         ? `确认作废「${escHtml(label)}」？作废＝不办了（留痕、可追溯），与「完成」不同。`
         : `申请作废「${escHtml(label)}」？须填写原因；提交后报支委会确认，确认前该待办仍在。`}</p>
       <textarea id="todo-void-reason" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="作废原因（必填）">${escHtml(prefill)}</textarea>
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
-        <button type="button" data-todo-void-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
-        <button type="button" data-todo-void-ok class="btn-neutral text-xs px-3 py-1.5">${isCommittee ? '确认作废' : '提交申请'}</button>
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:16px;">
+        <button type="button" data-todo-void-cancel class="btn-outline" style="cursor:pointer;">取消</button>
+        <button type="button" data-todo-void-ok class="btn-neutral">${isCommittee ? '确认作废' : '提交申请'}</button>
       </div>`,
     onMount: (panel) => {
       panel.querySelector('[data-todo-void-cancel]')?.addEventListener('click', () => closeModal('todo-void-modal'));
@@ -581,7 +783,7 @@ function _openVoidModal(group, { isCommittee, onDone } = {}) {
             : TodoStore.requestVoid(t.id, { reason, byPersonId: me.personId });
           if (r) ok++;
         }
-        if (ok) showToast('success', isCommittee ? '已作废（留痕、已出列）' : '已提交作废申请，报支委会确认');
+        if (ok) showToast('success', isCommittee ? '已作废（已归档留痕）' : '已提交作废申请，报支委会确认');
         else showToast('error', isCommittee ? '作废失败：请填写原因' : '提交失败：原因必填');
         if (typeof onDone === 'function') onDone();
       });
@@ -617,7 +819,7 @@ function _urgeDueText(group) {
   return `${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-/** 催办通知跳转目标模块（按责任域；目标角色经 resolveNoticeUrl 站内角色感知映射落地） */
+/** 催办通知跳转目标模块（按责任域；目标角色经 `NOTICE_MODULE_ROLE_PAGES` 角色感知映射落地） */
 function _urgeTargetModule(group) {
   const d = realtimeGroupDomainOf(group);
   if (d === WORK_DOMAIN.ATTENDANCE) return 'attendance';
@@ -700,8 +902,16 @@ export function createUrgeController({ selfRoles = [], context, onDone, titleSuf
         content: `关于「${_urgeSubject(group)}」，请及时跟进${_urgeDueText(group) ? `（截止 ${_urgeDueText(group)}）` : '（无明确时限）'}。`,
         priority: 'urgent',
         targetModule,
-        targetUrl: (page && hlId) ? `${page}?tab=todo&highlight=${encodeURIComponent(hlId)}` : undefined,
-        actionable: true,
+        // F07（IA-F07）：只有 `workspace/*.html` 消费 `?tab=`；`index.html`（映射 `'*'`）不消费，
+        //   拼上 `?tab=todo` 只会制造假深链（highlight 也无人消费）⇒ 非工作台页只给裸页面。
+        targetUrl: page
+          ? (page.startsWith('workspace/')
+            ? `${page}?tab=todo${hlId ? `&highlight=${encodeURIComponent(hlId)}` : ''}`
+            : page)
+          : undefined,
+        // 催办只增通知、不派生新待办（Task 2.4）：被催办人本来就持有该聚合组待办，
+        //   再按每条催办通知派生「阅读通知」会让连续催办无限叠加待办。
+        actionable: false,
         actionRoles: [role],
         actionTask: group.title,
         publishedBy: ROLE_LABELS[_actorRole] || '支书',

@@ -26,7 +26,7 @@ export const HELP_BROWSE_ROLES = [
 ];
 
 export const HELP_QUICK_TASKS = [
-  { label: '创建会议活动', href: '#card-dom31-meeting-create' },
+  { label: '创建会议', href: '#card-dom31-meeting-create' },
   { label: '编排议程与记录决议', href: '#card-dom31-agenda' },
   { label: '查看线上表决', href: '#card-dom31-vote' },
   { label: '上传会议考勤', href: '#card-dom31-att-upload' },

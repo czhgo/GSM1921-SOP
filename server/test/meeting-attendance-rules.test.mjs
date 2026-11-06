@@ -9,8 +9,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018h';
-import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20261018h';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261102b';
+import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20261102b';
 import {
   upsertMeetingAttendance,
   loadAttendanceRecords,
@@ -22,20 +22,20 @@ import {
   absenceReasonNote,
   countExpectedWithMakeup,
   listGroupMeetingAttendance,
-} from '../../docs/src/services/activity/attendance.js?v=20261018h';
+} from '../../docs/src/services/activity/attendance.js?v=20261102b';
 import {
   getRosterStats,
   getMeetingRosterIds,
   getMeetingRosterCandidates,
-} from '../../docs/src/services/member/roster.js?v=20261018h';
+} from '../../docs/src/services/member/roster.js?v=20261102b';
 
 // ── 测试身份（demo 单源）────────────────────────────────────
-// 纪检委员 = 'p10'（role 'disc-commissioner'；DISC_COMMISSIONER_ID 单源在
-//   docs/src/entries/tabs/disc/_shared.js = 'p10'，该文件依赖浏览器组件不可直导 → 字面量 + 锚定出处）。
-const DISC = 'p10';
-// 示范滞留党员（docs/src/data/mock/people.js）：p5（第二党小组）、p9（第一党小组），均正式党员
-const DETAINED_P5 = 'p5';
-// 组长 = 记录人锚点：第一党小组组长 p1（罗文杰）、第二党小组组长 p2（郭子睿）——role 'leader'
+// 纪检委员 = '2400012354'（role 'disc-commissioner'；DISC_COMMISSIONER_ID 单源在
+//   docs/src/entries/tabs/disc/_shared.js = '2400012354'，该文件依赖浏览器组件不可直导 → 字面量 + 锚定出处）。
+const DISC = '2400012354';
+// 示范滞留党员（docs/src/data/mock/people.js）：2400012349（第二党小组）、2400012353（第一党小组），均正式党员
+const DETAINED_P5 = '2400012349';
+// 组长 = 记录人锚点：第一党小组组长 2400012345（罗文杰）、第二党小组组长 2400012346（郭子睿）——role 'leader'
 
 let seq = 0;
 
@@ -44,7 +44,7 @@ let seq = 0;
 function freshMeeting(type) {
   seq += 1;
   const activityId = `act-s1-${seq}`;
-  mockDB.activities = [{ id: activityId, title: `S1 测试会 ${seq}`, date: '2026-09-10', type, archived: false, organizer: 'p10' }];
+  mockDB.activities = [{ id: activityId, title: `S1 测试会 ${seq}`, date: '2026-09-10', type, archived: false, organizer: '2400012354' }];
   mockDB.attendances = [];
   return {
     activityId,
@@ -116,7 +116,7 @@ test('滞留到场补录：纪检录入落行 present+detainedMakeup；K→L→K
     const res = upsertMeetingAttendance({
       actorId: DISC,
       records: [
-        { personId: 'p1', activityId, status: 'present' },
+        { personId: '2400012345', activityId, status: 'present' },
         { personId: DETAINED_P5, activityId, status: 'present', detainedMakeup: true }, // 滞留线下到场补录
       ],
     });
@@ -130,7 +130,7 @@ test('滞留到场补录：纪检录入落行 present+detainedMakeup；K→L→K
     assert.equal(rec.recordedBy, DISC);
     assert.equal(rec.overdue, false);
 
-    const normal = loadAttendanceRecords().find(r => r.personId === 'p1' && r.activityId === activityId);
+    const normal = loadAttendanceRecords().find(r => r.personId === '2400012345' && r.activityId === activityId);
     assert.equal(normal.detainedMakeup, undefined, '普通在场行不携带补录标记');
 
     // 展示格式化兼容：补录行按「出勤」展示（既有读取不破坏）
@@ -168,42 +168,42 @@ test('标因落行：缺勤/请假携 absenceReason；纪检更正换因/转出�
     // 新增：请假 + 标因「事假」（SOP-B-16⑤ 两档之一）
     let res = upsertMeetingAttendance({
       actorId: DISC,
-      records: [{ personId: 'p2', activityId, status: 'leave', absenceReason: 'leave_personal' }],
+      records: [{ personId: '2400012346', activityId, status: 'leave', absenceReason: 'leave_personal' }],
     });
     assert.deepEqual(res, { added: 1, updated: 0, skipped: 0 });
-    let rec = loadAttendanceRecords().find(r => r.personId === 'p2' && r.activityId === activityId);
+    let rec = loadAttendanceRecords().find(r => r.personId === '2400012346' && r.activityId === activityId);
     assert.equal(rec.status, 'leave');
     assert.equal(rec.absenceReason, 'leave_personal');
     assert.equal(absenceReasonLabel(rec.absenceReason), '事假');
 
     // 纪检更正：请假档改「病假」
     res = upsertMeetingAttendance(
-      { actorId: DISC, records: [{ personId: 'p2', activityId, status: 'leave', absenceReason: 'leave_sick' }] },
+      { actorId: DISC, records: [{ personId: '2400012346', activityId, status: 'leave', absenceReason: 'leave_sick' }] },
       { overwrite: true },
     );
     assert.deepEqual(res, { added: 0, updated: 1, skipped: 0 });
-    rec = loadAttendanceRecords().find(r => r.personId === 'p2' && r.activityId === activityId);
+    rec = loadAttendanceRecords().find(r => r.personId === '2400012346' && r.activityId === activityId);
     assert.equal(rec.absenceReason, 'leave_sick', '两档之间可更正');
     assert.equal(absenceReasonLabel(rec.absenceReason), '病假');
     assert.equal(absenceReasonNote(rec.absenceReason), '可事后补');
 
     // 纪检更正：缺勤 + 标因无故（overwrite）
     res = upsertMeetingAttendance(
-      { actorId: DISC, records: [{ personId: 'p2', activityId, status: 'absent', absenceReason: 'unexcused' }] },
+      { actorId: DISC, records: [{ personId: '2400012346', activityId, status: 'absent', absenceReason: 'unexcused' }] },
       { overwrite: true },
     );
     assert.deepEqual(res, { added: 0, updated: 1, skipped: 0 });
-    rec = loadAttendanceRecords().find(r => r.personId === 'p2' && r.activityId === activityId);
+    rec = loadAttendanceRecords().find(r => r.personId === '2400012346' && r.activityId === activityId);
     assert.equal(rec.status, 'absent');
     assert.equal(rec.absenceReason, 'unexcused');
 
     // 更正转出勤（不携标因）→ 清除旧标因
     res = upsertMeetingAttendance(
-      { actorId: DISC, records: [{ personId: 'p2', activityId, status: 'present' }] },
+      { actorId: DISC, records: [{ personId: '2400012346', activityId, status: 'present' }] },
       { overwrite: true },
     );
     assert.deepEqual(res, { added: 0, updated: 1, skipped: 0 });
-    rec = loadAttendanceRecords().find(r => r.personId === 'p2' && r.activityId === activityId);
+    rec = loadAttendanceRecords().find(r => r.personId === '2400012346' && r.activityId === activityId);
     assert.equal(rec.status, 'present');
     assert.equal(rec.absenceReason, undefined, '出勤记录不带标因');
   } finally {
@@ -214,13 +214,13 @@ test('标因落行：缺勤/请假携 absenceReason；纪检更正换因/转出�
 // ── e) 只读视图数据辅助（裁定④）：组长小组会列表归属 ──────────
 test('只读视图：党小组会考勤按组聚合归属组长（组长=记录人 submittedBy 可辨）；无记录不占位', () => {
   mockDB.activities = [
-    { id: 'act-s1-gm1', title: '第一党小组 9 月会', date: '2026-09-05', type: '党小组会', organizer: 'p1', archived: false },
-    { id: 'act-s1-gm2', title: '第二党小组 9 月会', date: '2026-09-04', type: '党小组会', organizer: 'p2', archived: false },
+    { id: 'act-s1-gm1', title: '第一党小组 9 月会', date: '2026-09-05', type: '党小组会', organizer: '2400012345', archived: false },
+    { id: 'act-s1-gm2', title: '第二党小组 9 月会', date: '2026-09-04', type: '党小组会', organizer: '2400012346', archived: false },
   ];
   mockDB.attendances = [
-    { id: 's1gm1a', personId: 'p1', activityId: 'act-s1-gm1', status: 'present', submittedBy: 'p1', recordedBy: 'p10', recordedAt: '2026-09-05T10:00:00.000Z' },
-    { id: 's1gm1b', personId: 'p3', activityId: 'act-s1-gm1', status: 'leave', submittedBy: 'p1', recordedBy: null, recordedAt: '2026-09-05T10:00:00.000Z', absenceReason: 'other' },
-    { id: 's1gm2a', personId: 'p2', activityId: 'act-s1-gm2', status: 'present', submittedBy: 'p2', recordedBy: 'p10', recordedAt: '2026-09-04T10:00:00.000Z' },
+    { id: 's1gm1a', personId: '2400012345', activityId: 'act-s1-gm1', status: 'present', submittedBy: '2400012345', recordedBy: '2400012354', recordedAt: '2026-09-05T10:00:00.000Z' },
+    { id: 's1gm1b', personId: '2400012347', activityId: 'act-s1-gm1', status: 'leave', submittedBy: '2400012345', recordedBy: null, recordedAt: '2026-09-05T10:00:00.000Z', absenceReason: 'other' },
+    { id: 's1gm2a', personId: '2400012346', activityId: 'act-s1-gm2', status: 'present', submittedBy: '2400012346', recordedBy: '2400012354', recordedAt: '2026-09-04T10:00:00.000Z' },
   ];
   try {
     const view = listGroupMeetingAttendance();
@@ -230,23 +230,23 @@ test('只读视图：党小组会考勤按组聚合归属组长（组长=记录�
 
     const gm1 = view.find(v => v.activityId === 'act-s1-gm1');
     assert.equal(gm1.groupName, '第一党小组', '组别由活动 organizer 所属党小组推导');
-    assert.equal(gm1.leaderId, 'p1', '组长=记录人语义锚点');
-    assert.equal(gm1.uploaderId, 'p1', '上传人=组长本人（submittedBy 可辨）');
+    assert.equal(gm1.leaderId, '2400012345', '组长=记录人语义锚点');
+    assert.equal(gm1.uploaderId, '2400012345', '上传人=组长本人（submittedBy 可辨）');
     assert.equal(gm1.leaderName, gm1.uploaderName);
     assert.equal(gm1.total, 2);
     assert.equal(gm1.present, 1);
-    const leaveRow = gm1.rows.find(r => r.personId === 'p3');
+    const leaveRow = gm1.rows.find(r => r.personId === '2400012347');
     assert.equal(leaveRow.status, 'leave');
     assert.equal(leaveRow.absenceReasonLabel, '其它', '标因中文标签透出');
     assert.equal(leaveRow.absenceReason, 'other');
 
     const gm2 = view.find(v => v.activityId === 'act-s1-gm2');
     assert.equal(gm2.groupName, '第二党小组');
-    assert.equal(gm2.leaderId, 'p2');
-    assert.equal(gm2.uploaderId, 'p2');
+    assert.equal(gm2.leaderId, '2400012346');
+    assert.equal(gm2.uploaderId, '2400012346');
 
     // 无考勤记录的小组会不占位（组长未上传 → 纪检台不显示空块）
-    mockDB.activities.push({ id: 'act-s1-gm3', title: '第三党小组空会', date: '2026-09-03', type: '党小组会', organizer: 'p4', archived: false });
+    mockDB.activities.push({ id: 'act-s1-gm3', title: '第三党小组空会', date: '2026-09-03', type: '党小组会', organizer: '2400012348', archived: false });
     assert.equal(listGroupMeetingAttendance().length, 2, '无记录的小组会不占位');
     mockDB.activities.pop();
   } finally {
@@ -259,9 +259,9 @@ test('只读视图：党小组会考勤按组聚合归属组长（组长=记录�
 test('回归：滞留者仍在候选（灰态可见）但不在应到/全选范围；纪律与 roster 定义一致', () => {
   const { candidates, disabledIds } = getMeetingRosterCandidates({ type: '支部党员大会' });
   const disabled = new Set(disabledIds);
-  assert.ok(candidates.some(p => p.id === DETAINED_P5), '滞留者 p5 在候选可见（灰态禁选，供纪检看到原因）');
-  assert.ok(disabled.has(DETAINED_P5) && disabled.has('p9'), '示范滞留 p5/p9 均禁选');
+  assert.ok(candidates.some(p => p.id === DETAINED_P5), '滞留者 2400012349 在候选可见（灰态禁选，供纪检看到原因）');
+  assert.ok(disabled.has(DETAINED_P5) && disabled.has('2400012353'), '示范滞留 2400012349/2400012353 均禁选');
   const rosterIds = getMeetingRosterIds({ type: '支部党员大会' });
-  assert.ok(!rosterIds.includes(DETAINED_P5) && !rosterIds.includes('p9'), '滞留者不在应到');
+  assert.ok(!rosterIds.includes(DETAINED_P5) && !rosterIds.includes('2400012353'), '滞留者不在应到');
   assert.equal(rosterIds.some(id => disabled.has(id)), false, '应到与禁用集合不相交（全选应到不含滞留）');
 });

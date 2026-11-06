@@ -6,20 +6,22 @@
 //   本区块并入「组员进展」页（leader/members-tab.js 挂载）——模块改为可嵌入区块导出：
 //   reviewStatusSectionHtml(ctx) → 整卡 HTML 字符串；bindReviewStatusSection(container, rerender) → 绑定展开。
 
-import { loadActivities } from '../../../services/activity/activity.js?v=20261018h';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261102b';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：组长台为非支委层 ⇒ 待批活动不进本页复盘桶
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261018h';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20261018h';
-import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261018h';
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261018h';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261102b';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20261102b';
+import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261102b';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261102b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { currentLeaderGroup } from './_shared.js?v=20261018h';
+import { currentLeaderGroup } from './_shared.js?v=20261102b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261018h';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261102b';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 status!=='cancelled' && !archived
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261018h';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261102b';
+// Task 6：复盘收件是跨对象列表 ⇒ 活动行直达完整详情页（direct）。
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261102b';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;
@@ -75,11 +77,11 @@ function renderPendingCard(item) {
   const statusLabel = rev ? REVIEW_STATUS_LABELS[rev.reviewStatus] : '未提交';
   const statusColor = REVIEW_STATUS_COLOR[rev?.reviewStatus || ReviewStatus.NOT_SUBMITTED] || 'bg-gray-100 text-gray-600';
   return `
-    <div class="leader-review-item p-3 rounded-xl bg-white ${rev?.reviewStatus === ReviewStatus.REJECTED ? 'border border-red-100' : 'border border-gray-50'}" title="复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）">
+    <div class="leader-review-item p-3 rounded-xl bg-white ${rev?.reviewStatus === ReviewStatus.REJECTED ? 'border border-red-100' : 'border border-gray-50'}" data-act-id="${act.id}">
       <div class="flex items-center justify-between">
         <div class="flex-1 min-w-0">
-          <a href="./activity.html?id=${encodeURIComponent(act.id || '')}" class="block" style="text-decoration:none;color:inherit;" title="查看活动详情">
-            <div class="text-sm font-medium text-gray-800">${act.title || '未命名'}</div>
+          <a href="./${objectDetailHref('activity', act.id, { entry: 'workspace-aggregate' })}" class="block hover:bg-[var(--surface-hover)] transition-colors" title="查看活动详情">
+            <div class="text-sm font-medium text-gray-800">${act.title || '未命名'} →</div>
             <div class="text-xs text-gray-500 mt-0.5">${act.date || ''} ${act.type ? '· ' + act.type : ''}</div>
           </a>
         </div>
@@ -91,25 +93,29 @@ function renderPendingCard(item) {
     </div>`;
 }
 
-/** 已复盘行（只读；可展开查看复盘详情/批注） */
+/** 已复盘行（只读；可展开查看复盘详情/批注）
+ *  2026-10-25 Task 3：折叠改原生 `<details>`，行是 `<summary>`（可 Tab 到），
+ *  状态由 `open` 属性静态回读，不再用 `div.review-toggle`。 */
 function renderCompletedCard(item) {
   const { act, rev } = item;
   const statusLabel = REVIEW_STATUS_LABELS[rev?.reviewStatus];
   const statusColor = REVIEW_STATUS_COLOR[rev?.reviewStatus] || 'bg-gray-100 text-gray-600';
   const isExpanded = _reviewExpandedId === act.id;
   return `
-    <div class="leader-review-item p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors cursor-pointer review-toggle" data-act-id="${act.id}">
-      <div class="flex items-center justify-between">
-        <div class="flex-1 min-w-0">
-          <div class="text-sm font-medium text-gray-800">${act.title || '未命名'}</div>
-          <div class="text-xs text-gray-500 mt-0.5">${act.date || ''} ${act.type ? '· ' + act.type : ''}</div>
-        </div>
-        <div class="flex items-center gap-2 ml-4">
-          <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
-        </div>
-      </div>
+    <details class="leader-review-item p-3 rounded-xl bg-white transition-colors" data-act-id="${act.id}"${isExpanded ? ' open' : ''}>
+      <summary class="review-toggle">
+        <span class="flex items-center justify-between">
+          <span class="flex-1 min-w-0">
+            <span class="block text-sm font-medium text-gray-800">${act.title || '未命名'}</span>
+            <span class="block text-xs text-gray-500 mt-0.5">${act.date || ''} ${act.type ? '· ' + act.type : ''}</span>
+          </span>
+          <span class="flex items-center gap-2 ml-4">
+            <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
+          </span>
+        </span>
+      </summary>
       ${isExpanded && rev ? _renderReviewDetail(rev) : ''}
-    </div>`;
+    </details>`;
 }
 
 /**
@@ -121,16 +127,10 @@ function renderCompletedCard(item) {
  *  mock 种子中组长组织活动均带 assignments organizer 赋权行（如 act-4/9/16/17/21/23/26/29），
  *  故其活动会出现在该组长「我的复盘」；运行时新建活动如缺 organizer 赋权行则需赋权补齐后才会出现。
  */
-export function reviewStatusSectionHtml(ctx) {
+export function reviewStatusSectionHtml(ctx, opts = {}) {
   const { pending, completed } = _reviewBuckets();
-
-  return `
-    <div class="card rounded-xl p-4">
-      <div class="flex items-center justify-between mb-3">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">本组活动复盘状态</h4>
-        <span class="text-xs text-gray-500">待复盘 ${pending.length} · 已复盘 ${completed.length}</span>
-      </div>
-      <p class="text-[11px] text-gray-500 mb-3 -mt-1.5">复盘由活动组织者 / 深度参与者提交（入口：成员端「我的复盘」）；本区只读。<a href="./help.html#card-copy-review-submit" class="text-sky-600 hover:underline" title="见帮助：活动复盘提交位（谁提交 / 哪里只读 / 待复盘与打回口径）">见帮助 · 活动复盘</a></p>
+  const body = `
+      <p class="help-note mb-3"><a href="./help.html#card-copy-review-submit" class="help-note__link">见帮助 · 活动复盘</a></p>
 
       <!-- 待复盘 -->
       <div class="mb-3">
@@ -142,9 +142,26 @@ export function reviewStatusSectionHtml(ctx) {
       <div class="pt-2.5 border-t border-gray-100">
         <div class="text-xs font-bold text-gray-600 mb-1.5">已复盘 <span class="text-gray-500 font-normal">(${completed.length})</span></div>
         <div id="leader-review-completed"></div>
+      </div>`;
+
+  // 2026-11-01 Task 7：宿主页改为折叠区 ⇒ bare 模式只给正文，避免「卡中卡」。
+  if (opts.bare) return body;
+
+  return `
+    <div class="card rounded-xl p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="font-title-cn text-sm font-bold text-gray-700">本组活动复盘状态</h4>
+        <span class="text-xs text-gray-500">待复盘 ${pending.length} · 已复盘 ${completed.length}</span>
       </div>
+      ${body}
     </div>
   `;
+}
+
+/** 复盘分桶计数（供宿主页折叠头显示，不重复进列表） */
+export function reviewStatusCounts() {
+  const { pending, completed } = _reviewBuckets();
+  return { pending: pending.length, completed: completed.length };
 }
 
 /** 绑定已复盘卡片展开/收起（只读；待复盘行无交互）。rerender = 宿主页整页重渲染回调（展开态模块级保持） */
@@ -181,13 +198,18 @@ export function bindReviewStatusSection(container, rerender) {
       emptyMessage: '无匹配已复盘活动',
       rowHtml: (r) => renderCompletedCard({ act: r, rev: r.rev }),
     });
-    completedHost.addEventListener('click', (e) => {
-      const toggle = e.target.closest('.review-toggle');
-      if (!toggle) return;
-      const actId = toggle.closest('.leader-review-item')?.dataset.actId;
-      _reviewExpandedId = _reviewExpandedId === actId ? null : actId;
+    completedHost.addEventListener('toggle', (e) => {
+      const item = e.target;
+      if (!item?.matches?.('details.leader-review-item')) return;
+      const id = item.dataset.actId;
+      // 2026-11-01 Task 7：`renderCompletedCard` 用 open 属性回填展开态；Chromium 对**插入即 open**
+      // 的 details 也会派发一次 toggle（事件不冒泡，但被本宿主捕获）⇒ 若照旧 rerender 会无限重渲染。
+      // 判据：open 与模块态一致 = 由渲染回填而来，直接跳过。
+      const wasOpen = _reviewExpandedId === id;
+      if (item.open === wasOpen) return;
+      _reviewExpandedId = item.open ? id : null;
       if (typeof rerender === 'function') rerender();
-    });
+    }, true);
   }
 }
 
@@ -198,8 +220,8 @@ function _renderReviewDetail(rev) {
     <div class="mt-3 pt-3 border-t border-gray-100">
       <div class="text-xs text-gray-600 p-2 bg-gray-50 rounded-lg border border-gray-100">${rev.reviewContent || ''}</div>
       ${issues.length ? `<div class="mt-2 p-2 rounded-lg border border-amber-100 bg-amber-50">
-        <div class="text-[11px] text-amber-700 font-bold mb-1">提出的真问题（${issues.length}）</div>
-        <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-800" style="--acc-text-dark:#FBBF24;">· ${i}</li>`).join('')}</ul>
+        <div class="text-xs text-amber-700 font-bold mb-1">提出的真问题（${issues.length}）</div>
+        <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-700">· ${i}</li>`).join('')}</ul>
       </div>` : ''}
       ${rev.submittedAt ? `<div class="text-xs text-gray-500 mt-1">提交时间：${rev.submittedAt.slice(0, 16).replace('T', ' ')}</div>` : ''}
       ${rev.annotation ? `

@@ -5,12 +5,25 @@
 // R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
 //   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
 
-import { todayLocal } from '../base/date.js?v=20261018h';
+import { todayLocal } from '../base/date.js?v=20261102b';
 
-// ── 内联标签深色适配：深色三件套自动生成 ──────────────────────────
-// 深色模式下内联样式（background/color/border 浅底深字）不随主题反转，按「同色系提亮一档」为每个颜色条目
-// 补 bgDark/textDark/borderDark（映射来自 _TEXT_DARK_MAP），由 JS 模板写入 --acc-bg-dark/--acc-text-dark/
-// --acc-border-dark，CSS html.theme-dark [style*="--acc-bg-dark"] 规则完成覆盖（与 badge--* 深色语义平行）。
+// ════════════════════════════════════════════════════════════════
+//  缺省支部 id（单一源，R2-17，2026-10-20）
+// ════════════════════════════════════════════════════════════════
+//  原 5 个同名常量和多处内联 `|| 'br-b1'` 散落在服务层/页面里，换默认支部或多支部部署要逐处改，
+//  漏一处就产生跨支部归属。服务层的「缺失回落」统一引用本常量；
+//  ⚠ `branchId: null` 是**显式无支部**（IAAA 待归属），不得用本常量兜底（见 profile-access.js）。
+export const DEFAULT_BRANCH_ID = 'br-b1';
+
+/** 缺失（undefined / ''）时回落缺省支部；null 原样保留（显式无支部语义） */
+export function resolveBranchId(value) {
+  return value === undefined || value === '' ? DEFAULT_BRANCH_ID : value;
+}
+
+// ── 深色三件套（固定语义色历史辅助）────────────────────────────────
+// 按「同色系提亮一档」为每个颜色条目补 bgDark/textDark/borderDark（映射来自 _TEXT_DARK_MAP）。
+// 批次 507 起：固定语义标签统一走 styles.css `[data-tone]` 表；本表仅保留 `textDark`
+// 供实色圆点（--acc-dot-dark）提亮复用，不再由模板写 --acc-bg/text/border-dark。
 // _C ＝ 本文件**唯一硬编码色值源**（DESIGN_SYSTEM §2.8）：其余颜色一律引用此处、不再写裸 hex；表项名＝语义名/色阶名。
 // ⚠ 大小写即语义：amber600 / blue500 / emerald500 写小写（沿用 _TEXT_DARK_MAP 原有键的字符形态）——accDarkParts 按串精确查表、不做归一化，改大写即查不到而回落 slate300。
 const _C = {
@@ -29,7 +42,7 @@ const _TEXT_DARK_MAP = {
   [_C.red800]: _C.red400, [_C.yellow700]: _C.amber400, [_C.gray600]: _C.slate400, [_C.partyRed]: _C.red400, [_C.orange700]: _C.orange400,
   [_C.sky700]: _C.sky400, [_C.violet600]: _C.violet400, [_C.gray500]: _C.slate400, [_C.cyan700]: _C.cyan400, [_C.indigo600]: _C.indigo300,
   [_C.green500]: _C.green400, [_C.sky500]: _C.sky400, [_C.blue600]: _C.blue400, [_C.blue700]: _C.blue400, [_C.emerald700]: _C.emerald400,
-  [_C.amber800]: _C.amber400, [_C.amber600]: _C.amber400, [_C.blue500]: _C.blue400, [_C.emerald500]: _C.emerald400, [_C.redBrandDeep]: _C.red400,
+  [_C.amber800]: _C.amber400, [_C.amber600]: _C.amber400, [_C.blue500]: _C.blue400, [_C.emerald500]: _C.emerald400, [_C.redBrandDeep]: _C.red400, [_C.partyRedBrand]: _C.red400,
   [_C.green600]: _C.green400, [_C.emerald600]: _C.emerald400, [_C.red600]: _C.red400, [_C.sky300]: _C.sky300, [_C.violet400]: _C.violet300,
 };
 function _hexToRgbStr(hex) {
@@ -46,23 +59,12 @@ function _applyDark(map) {
 }
 
 /**
- * 为颜色对象映射表补深色三件套（bgDark/textDark/borderDark）——供组件内联标签使用，与 CSS
- * `html.theme-dark [style*="--acc-bg-dark"]` 覆盖规则配套。
+ * 为颜色对象映射表补深色三件套（bgDark/textDark/borderDark）——现行仅 `textDark` 供实色圆点提亮复用。
  * @param {Object<string,{bg:string,text:string,border:string}>} map
  * @returns 深色三件套增强版映射表
  */
 export function applyDark(map) {
   return _applyDark(map);
-}
-
-/**
- * accent hex → 深色三件套内联变量串（标签/按钮统一深色方案：16% 透明提亮底 + 提亮字 + 35% 提亮边框）。
- * @param {string} hex — 日间文字色（如 '#B91C1C'）
- * @returns {string} — '--acc-bg-dark:...;--acc-text-dark:...;--acc-border-dark:...;'
- */
-export function accDarkVars(hex) {
-  const p = accDarkParts(hex);
-  return `--acc-bg-dark:${p.bg};--acc-text-dark:${p.text};--acc-border-dark:${p.border};`;
 }
 
 /**
@@ -110,13 +112,15 @@ export const ROLE_COLORS = _applyDark({
 
 // ── 活动类别颜色（两大类：三会一课=党建红 / 主题党日=党建金）──
 // 支书 2026-07-31 指示：活动顶层分类为两大类，三会一课固定分类，主题党日使用正交维度
-
+// 2026-10-23 批次 505：**固定语义色，只消费本文件的品牌常量**（党建红 #CE1126 / 党徽金 #FFD700 /
+//   金黄字 #A16207），**不读任何主题 token**——用户把主题从红切到蓝，三会一课徽章仍是党建红、
+//   主题党日仍是亮金（spec SD-19）。只用于徽章 / 圆点 / 左条等小面积标记，不得整卡铺色。
 const ACTIVITY_CAT_COLOR = _applyDark({
-  // ── 三会一课系（党建红 #CE1126）──
-  'branch-party-meeting': { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.red800, border: 'rgba(206, 17, 38, 0.25)' },  // 支部党员大会
-  'branch-committee':      { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.red800, border: 'rgba(206, 17, 38, 0.25)' },  // 支委会
-  'party-group-meeting':   { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.red800, border: 'rgba(206, 17, 38, 0.25)' },  // 党小组会
-  'party-lecture':         { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.red800, border: 'rgba(206, 17, 38, 0.25)' },  // 党课
+  // ── 三会一课系（党建红 #CE1126：text / bg / border 三件套统一到同一党建红，不再用 #991B1B 深红）──
+  'branch-party-meeting': { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.partyRedBrand, border: 'rgba(206, 17, 38, 0.25)' },  // 支部党员大会
+  'branch-committee':      { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.partyRedBrand, border: 'rgba(206, 17, 38, 0.25)' },  // 支委会
+  'party-group-meeting':   { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.partyRedBrand, border: 'rgba(206, 17, 38, 0.25)' },  // 党小组会
+  'party-lecture':         { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.partyRedBrand, border: 'rgba(206, 17, 38, 0.25)' },  // 党课
   // ── 主题党日系（党徽金 #FFD700，2026-08-01 支书要求"再亮一些"，原 #D4AF37 偏灰/脏）──
   'theme-party':           { bg: 'rgba(255, 215, 0, 0.12)', text: _C.yellow700, border: 'rgba(255, 215, 0, 0.35)' },  // 主题党日
   // ── 默认 ──
@@ -198,7 +202,7 @@ export const ROLE_LEGACY_KEYS = ['commissioner', 'initiator']; // 遗留键：�
 // ── 授权语义角色集（2026-09-03 P2c 收敛：server 鉴权与前端 AuthStore 共用单一源，勿各自手写）──
 // 注意与上方「条条委员 COMMISSIONER_ROLES（业务语义：三委员，不含支书/副支书）」区分——
 // 授权语义含支书/副支书（写活动/发任务等全局授权门），是 server requireRole 与前端 isCommissioner 的依据。
-// 名单与 SYSTEM_ROLE_PERMISSION.md §9a0 角色键全表一致；成员名单 COMMITTEE_IDS 对应演示支部支委（p10~p14）。
+// 名单与 SYSTEM_ROLE_PERMISSION.md §9a0 角色键全表一致；具体成员名单由 getCommitteeIds(users) 按角色派生，不再维护 id 快照。
 export const BRANCH_COMMISSION_ROLES = [
   'secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner',
 ]; // 授权支委（含支书/副支书）
@@ -207,7 +211,41 @@ export const SECRETARY_ROLES = ['secretary']; // 支书专属（副支书/委员
 // 与上一行的关系收口（2026-09-21 批次 126 · D-550）：品牌认定、意见处置已由「支书专属」移出、归支委会 ⇒ 落在支委层（BRANCH_COMMISSION_ROLES，本位副支书在内），两集之争到此为止；「仍专属支书」的清单见上一行。server requireRole 与前端共用单一源。
 export const SECRETARY_AND_DEPUTY_ROLES = ['secretary', 'deputy-secretary'];
 export const PARTY_STAFF_ROLE = ['party-staff']; // 党委组织员（组织级，不属于支部）
-export const COMMITTEE_IDS = ['p10', 'p11', 'p12', 'p13', 'p14']; // 演示支部支委名单（与 mock people 对齐）
+
+// ── 支委名单派生（数据生命周期 P1-09，2026-10-20）────────────────────
+// 为什么删除 COMMITTEE_IDS 常量：支委改选 / 人员 id 迁移后，写死的旧 id 名单会把广播与
+//   旧活动表决名单继续发给「上一届」；名单属工作流事实，必须随 users.role 现算。
+// 顺序 = 支书 → 副支书 → 组织 → 宣传 → 纪检（与历史支委顺序同序，
+//   使考勤种子、表决名单的下标语义保持稳定）。
+// 无数据时返回空数组（调用方必须显式失败或显示 —，不得静默用假人）。
+export function getCommitteeIds(people) {
+  const rows = Array.isArray(people) ? people : [];
+  const ids = [];
+  for (const role of BRANCH_COMMISSION_ROLES) {
+    for (const person of rows) {
+      if (!person || !person.id) continue;
+      if (String(person.id).startsWith('u_')) continue; // 系统账号不是成员档案
+      if (person.role !== role) continue;
+      const id = String(person.id);
+      if (!ids.includes(id)) ids.push(id);
+    }
+  }
+  return ids;
+}
+
+/**
+ * 支委名单解析（带明确错误）：供写口在「无支委角色」时 fail-closed。
+ * @param {Array<{id:string, role?:string}>} people
+ * @returns {{ids:string[], error:string|null}}
+ */
+export function resolveCommitteeIds(people) {
+  const ids = getCommitteeIds(people);
+  if (ids.length > 0) return { ids, error: null };
+  return {
+    ids: [],
+    error: '支委名单不可用：当前成员档案中没有 secretary / deputy-secretary / org-commissioner / prop-commissioner / disc-commissioner 角色的用户，请先维护成员角色',
+  };
+}
 
 // ── 组织委员职能位（单一源，2026-09-14）────────────────────────────
 // 「组织委员」专属写链（名册档案维护/名册新增/成员流入登记等）的角色判定单一源。
@@ -219,6 +257,13 @@ export const ORG_COMMISSIONER_ROLES = ['org-commissioner'];
 // 由既有角色集派生（勿另写角色名单数组——roles-sync 守卫拦「5 支委授权列表」副本）。
 // 消费方：server/routes/resources.js 写门（memberFlows）与前端 services/member/member-flow.js::canRegisterFlow 同源。
 export const MEMBER_FLOW_ROLES = [...SECRETARY_AND_DEPUTY_ROLES, ...ORG_COMMISSIONER_ROLES];
+
+// ── 考察写角色 / 确认角色（D01/D08 单一源，前端 services/activity/inspection.js 与 server gates.js 同读）──
+// D08：写＝支委层（含组织委员，正式纳入「建档代录」；recordedBy 一律落操作人本人）。
+// D01：确认/打回＝纪检委员 + 支书/副支书；**禁止自确认**（actorId === recordedBy 一律拒绝）——
+//   白名单与自确认禁令在服务层与写门两侧都复算，不采信前端按钮是否渲染。
+export const INSPECTION_WRITE_ROLES = [...BRANCH_COMMISSION_ROLES];
+export const INSPECTION_CONFIRM_ROLES = ['disc-commissioner', ...SECRETARY_AND_DEPUTY_ROLES];
 
 // ── 名单检索条出现门槛（单一源，2026-09-13 支书裁定）──────────────────
 // 语义：第一列是人/活动的表格，**当前视图行数 > 本阈值**才渲染「关键词 + 分面 chips」检索条；
@@ -386,151 +431,187 @@ export const ROLE_THEME_CLASS = {
   secretary:           'role-theme-secretary',
 };
 
-// ── 角色强调色（accent 三件套统一来源）──────────────────────────
-// 每个角色对应一个主色 hex，bg/border 由 hexToRgba 派生
-
-/**
- * hex 转 rgba 字符串
- * @param {string} hex — 如 '#CE1126' 或 '#3B82F6'
- * @param {number} alpha — 0~1
- * @returns {string} — 如 'rgba(206,17,38,0.1)'
- */
-function hexToRgba(hex, alpha) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
-
+// ── 主题色板（7 主题 × 亮/暗 × 9 显式 token）────────────────────
+// 2026-10-23 批次 505（spec `redesign-theme-palette-and-density` Task 1/2）：
+//   · 主题由 10 个削减为 7 个：金 / 红 / 橙 / 绿 / 青 / 蓝 / 紫；天蓝、雾紫、亮蓝退场（紫只留一个、蓝只留一个）。
+//   · 每主题的每一部分都是**手选 hex**：浅底 / 边框 / 深字 / 实底 / 实底字 / hover / active 各自独立设计，
+//     **不许**再用 `color-mix` / `rgba(主题色)` / `filter: brightness` 运行时派生——旧「一条公式十色共用」
+//     把橙压成褐、绿压成灰绿、亮蓝压成钢蓝，是「灰度太高、太脏」的根因。
+//   · 气质「沉稳但是鲜活」：softBg 低彩度（与白/深底 1.08–1.35）、softText 同色相压深、strongBg 中等彩度；
+//     高饱和只允许出现在小面积语义标记与实底按钮。
+//   · 验收（逐项实测见 DESIGN_SYSTEM.md §2.11）：softText vs softBg ≥4.5:1 且 ≤12:1；
+//     strongInk vs strongBg ≥4.5:1；strongBg vs 卡片/页面底 ≥3:1；softBg vs 白/深底 1.08–1.35；
+//     strongBg HSL 饱和度 ≤85%（固定语义色除外）。
+//   · **固定语义色不入本表、不随主题切换**：党徽金 `#FFD700`、三会一课党建红 `#CE1126`、
+//     主题党日亮金 + 金黄字 `#A16207` 仍走 `_C.partyGold` / `_C.partyRedBrand` / `_C.yellow700`；
+//     主题金是另一档更沉稳的琥珀金，两者不要求同值（支书口径「党徽金 ≠ 主题金」）。
 export const ACCENT_COLORS = {
-  secretary:           { hex: _C.partyRed },  // 党建红（不动）
-  'deputy-secretary':  { hex: _C.partyRed },  // 党建红（同支书）
-  leader:              { hex: _C.green500 },  // 翠绿
-  'org-commissioner':  { hex: _C.sky500 },  // 天蓝
-  'prop-commissioner': { hex: _C.blue600 },  // 海蓝
-  'disc-commissioner': { hex: _C.orange700 },  // 深橙
-  commissioner:        { hex: _C.orange700 },  // 同纪检（遗留键）
-  organizer:           { hex: _C.sky300 },  // 亮天蓝 = 语义色 #0369A1（sky-700）同色系提亮（sky-300），同源（S6）
-  deep:                { hex: _C.violet400 },  // 雾紫 = 语义色 #7C3AED（violet-600）同色系提亮（violet-400），同源（S6）
-  participant:         { hex: _C.yellow700, bg: 'rgba(255,215,0,0.12)', border: 'rgba(255,215,0,0.35)' },  // 金（主题党日胶囊三件套：亮金底+深金字+亮金边框，2026-08-08 四审改，与主题活动色同源）
-  all:                 { hex: _C.cyan700 },  // 深青
-  purple:              { hex: _C.violet600 },  // 紫罗兰 = deep 语义色本身；色板专用别名键（非角色键，S8），供主题色选色板取用
+  gold: {
+    key: 'gold', label: '金',
+    light: { base: '#A97A12', softBg: '#FBF3DC', softBorder: '#E8D5A3', softText: '#6E4E08', strongBg: '#9A6B0F', strongInk: '#FFFFFF', strongHover: '#91650D', hoverBg: '#F6EAC6', activeBg: '#F0DFAC' },
+    dark:  { base: '#E0B24C', softBg: '#2F2717', softBorder: '#54441E', softText: '#E8C97A', strongBg: '#C89A34', strongInk: '#1E1503', strongHover: '#BD9231', hoverBg: '#38301C', activeBg: '#423821' },
+  },
+  red: {
+    key: 'red', label: '红',
+    light: { base: '#A32B24', softBg: '#FBEEEC', softBorder: '#EFC8C2', softText: '#7A201B', strongBg: '#9B2C22', strongInk: '#FFFFFF', strongHover: '#932920', hoverBg: '#F7E2DE', activeBg: '#F2D3CE' },
+    dark:  { base: '#E0796F', softBg: '#372220', softBorder: '#5C332E', softText: '#F0B5AC', strongBg: '#D25A4E', strongInk: '#1C0A08', strongHover: '#CA564B', hoverBg: '#402925', activeBg: '#49302C' },
+  },
+  orange: {
+    key: 'orange', label: '橙',
+    light: { base: '#B45B33', softBg: '#FBF0E9', softBorder: '#EDCDB9', softText: '#7A3A16', strongBg: '#A9502A', strongInk: '#FFFFFF', strongHover: '#A04B27', hoverBg: '#F7E4D8', activeBg: '#F2D8C7' },
+    dark:  { base: '#E39B6F', softBg: '#33241A', softBorder: '#573827', softText: '#EDBA96', strongBg: '#C1663B', strongInk: '#1E0F07', strongHover: '#BE643A', hoverBg: '#3C2B1F', activeBg: '#453225' },
+  },
+  green: {
+    key: 'green', label: '绿',
+    light: { base: '#2F6B4F', softBg: '#EDF5F0', softBorder: '#C4DCD0', softText: '#1F5238', strongBg: '#2B6449', strongInk: '#FFFFFF', strongHover: '#285F45', hoverBg: '#E3F0E9', activeBg: '#D8E9E0' },
+    dark:  { base: '#7CC4A0', softBg: '#1A2C24', softBorder: '#2F4E3E', softText: '#9FD3B6', strongBg: '#4E9B76', strongInk: '#07130E', strongHover: '#49936F', hoverBg: '#21342B', activeBg: '#273C32' },
+  },
+  cyan: {
+    key: 'cyan', label: '青',
+    light: { base: '#0F6D7B', softBg: '#E9F4F6', softBorder: '#B9DCE2', softText: '#0B4F5A', strongBg: '#0C6371', strongInk: '#FFFFFF', strongHover: '#0B5E6B', hoverBg: '#DFEFF2', activeBg: '#D3E7EB' },
+    dark:  { base: '#63B8C7', softBg: '#162A30', softBorder: '#254A52', softText: '#8FCBD6', strongBg: '#2A93A6', strongInk: '#04161A', strongHover: '#278B9D', hoverBg: '#1D333A', activeBg: '#243C44' },
+  },
+  blue: {
+    key: 'blue', label: '蓝',
+    light: { base: '#3D4E9C', softBg: '#EEF0F9', softBorder: '#C8CEE9', softText: '#2B3A78', strongBg: '#36468F', strongInk: '#FFFFFF', strongHover: '#324287', hoverBg: '#E4E8F5', activeBg: '#DAE0F0' },
+    dark:  { base: '#8F9EDB', softBg: '#1D2645', softBorder: '#303C5E', softText: '#A9B6E0', strongBg: '#667AD4', strongInk: '#0A0E1C', strongHover: '#6275CB', hoverBg: '#242F52', activeBg: '#2B375E' },
+  },
+  purple: {
+    key: 'purple', label: '紫',
+    light: { base: '#6D5382', softBg: '#F4F0F7', softBorder: '#D8CCE2', softText: '#523C66', strongBg: '#654C7A', strongInk: '#FFFFFF', strongHover: '#5F4873', hoverBg: '#ECE4F1', activeBg: '#E4DBEC' },
+    dark:  { base: '#B79FCB', softBg: '#2B2439', softBorder: '#443654', softText: '#C3B0D6', strongBg: '#8E75AE', strongInk: '#140E1B', strongHover: '#8971A8', hoverBg: '#332B43', activeBg: '#3B324D' },
+  },
 };
 
-// ── 主题色个性化（支书指令 2026-08-06：侧边栏设置，所有角色均可选）──
-// 语义色（ROLE_COLORS：日历任务色点/考察等级/参与者标识/活动类别色）全站固定，不受此设置影响；
-// 强调色（ACCENT_COLORS：按钮/标签/卡片强调）可通过侧边栏「主题色」选择器个性化。
+/**
+ * 旧键 → 主题键回落映射（批次 505）。
+ * 两类键并表：① 已删除的重复色相（天蓝 / 亮蓝 → blue，雾紫 / deep → purple）；
+ * ② 历史 localStorage 与调用方仍在用的**角色键 / 色板旧键**（无覆盖时默认 gold）。
+ * 角色 → 主题收敛为 7 项（与 spec 建议一致）：
+ *   默认 / 普通成员 → gold；支书 / 副支书 / 党委组织员 → red；纪检（含遗留 commissioner）→ orange；
+ *   组长 / 副组长 → green；组织委员 / 组织者 → cyan；宣传委员 / 发起人 → blue；深度参与者 → purple。
+ * 色板旧键：participant（金）→ gold；all（旧色板「青」档）→ cyan。
+ */
+export const ACCENT_KEY_ALIASES = {
+  sky: 'blue',
+  'light-blue': 'blue',
+  secretary: 'red',
+  'deputy-secretary': 'red',
+  'party-staff': 'red',
+  'disc-commissioner': 'orange',
+  commissioner: 'orange',
+  leader: 'green',
+  'deputy-leader': 'green',
+  'org-commissioner': 'cyan',
+  organizer: 'cyan',
+  'prop-commissioner': 'blue',
+  initiator: 'blue',
+  deep: 'purple',
+  participant: 'gold',
+  all: 'cyan', // 遗留色板键「全体相关」在旧色板里是「青」档 ⇒ 保留青的观感
+};
 
 /**
- * 侧边栏「主题色」选色板的可选色（支书指令 2026-08-06：颜色就是颜色，不与人挂钩）
- * 按色相规律排列，2 行 × 5 个；key = 色板键（映射 ACCENT_COLORS 取衍生色），label = 颜色名
- * S8 键集对齐：色板键集 ⊂ ACCENT_COLORS——deputy-secretary（同支书红）、commissioner（遗留键）
- * 不入色板；participant 金为专用胶囊三件套；purple 为 deep 语义色别名（紫罗兰）。色板键若
- * 被 resolveAccentRole 读取后写入 ACCENT_COLORS，须保证二者键集一致。
+ * 任意主题键 / 角色键 / 已删除旧键 → 7 主题键之一（无法识别 → 'gold'）。
+ * @param {string} key
+ * @returns {'gold'|'red'|'orange'|'green'|'cyan'|'blue'|'purple'}
+ */
+export function normalizeAccentKey(key) {
+  const k = typeof key === 'string' ? key.trim() : '';
+  if (ACCENT_COLORS[k]) return k;
+  return ACCENT_KEY_ALIASES[k] || 'gold';
+}
+
+/** 主题键 / 角色键 / 主题表内 hex → 主题条目（hex 查表供 solidAccentStyle 等按旧入参取色；未知 → gold） */
+function _accentEntry(value) {
+  const raw = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  for (const entry of Object.values(ACCENT_COLORS)) {
+    if (entry.light.base.toLowerCase() === raw || entry.dark.base.toLowerCase() === raw) return entry;
+  }
+  return ACCENT_COLORS[normalizeAccentKey(raw)];
+}
+
+/** 主题条目的 9 个 token（按亮/暗取一套；未知 mode 按亮色） */
+function _accentTokens(role, mode) {
+  const entry = _accentEntry(role);
+  return mode === 'dark' ? entry.dark : entry.light;
+}
+
+// ── 主题色个性化（支书指令 2026-08-06：侧边栏设置，所有角色均可选）──
+// 语义色（ROLE_COLORS：日历任务色点/考察等级/参与者标识）与活动类别色（ACTIVITY_CAT_COLOR）全站固定，
+// 不受此设置影响；主题色（按钮/标签/选中态/交互强调）可通过「主题选择」个性化。
+
+/**
+ * 「主题色」选色板（批次 505：10 → 7 项，紫只一个、蓝只一个）
+ * key = 主题键（查 ACCENT_COLORS），label = 颜色名，hex = 该主题亮色 base（色块预览用）。
+ * 主题键与角色键解耦：角色经 ACCENT_KEY_ALIASES 收敛到本表 7 项。
  */
 export const ACCENT_PALETTE = [
-  { key: 'secretary',          hex: ACCENT_COLORS.secretary.hex,            label: '红' },
-  { key: 'disc-commissioner',  hex: ACCENT_COLORS['disc-commissioner'].hex, label: '橙' },
-  { key: 'participant',        hex: ACCENT_COLORS.participant.hex, label: '金（默认）' },
-  { key: 'leader',             hex: ACCENT_COLORS.leader.hex,               label: '绿' },
-  { key: 'all',                hex: ACCENT_COLORS.all.hex,                  label: '青' },
-  { key: 'org-commissioner',   hex: ACCENT_COLORS['org-commissioner'].hex,  label: '天蓝' },
-  { key: 'prop-commissioner',  hex: ACCENT_COLORS['prop-commissioner'].hex, label: '海蓝' },
-  { key: 'purple',             hex: ACCENT_COLORS.purple.hex,               label: '紫' },
-  { key: 'deep',               hex: ACCENT_COLORS.deep.hex,                 label: '雾紫' },
-  { key: 'organizer',          hex: ACCENT_COLORS.organizer.hex,            label: '亮蓝' },
+  { key: 'gold',   hex: ACCENT_COLORS.gold.light.base,   label: '金（默认）' },
+  { key: 'red',    hex: ACCENT_COLORS.red.light.base,    label: '红' },
+  { key: 'orange', hex: ACCENT_COLORS.orange.light.base, label: '橙' },
+  { key: 'green',  hex: ACCENT_COLORS.green.light.base,  label: '绿' },
+  { key: 'cyan',   hex: ACCENT_COLORS.cyan.light.base,   label: '青' },
+  { key: 'blue',   hex: ACCENT_COLORS.blue.light.base,   label: '蓝' },
+  { key: 'purple', hex: ACCENT_COLORS.purple.light.base, label: '紫' },
 ];
 
 /**
- * 解析当前生效的强调色角色键（主题色个性化覆盖）
- * 优先读取 localStorage workflowos_accent_role（侧边栏「主题色」写入），
- * 未设置或键无效时回退到默认金色（participant 键）。
+ * 解析当前生效的主题键（冻结读取点：只读全局键，服务访客与首帧兜底）
+ * 优先读取 localStorage workflowos_accent_role，未设置 / 非法 / 已删除旧键 → 归一后回落 gold。
  * @param {string} preferredRole — 页面默认角色键（保留以兼容调用方；默认值不再取角色色）
- * @returns {string} 生效的角色键
+ * @returns {string} 生效的主题键（7 项之一）
  */
 export function resolveAccentRole(preferredRole) {
   const stored = localStorage.getItem('workflowos_accent_role');
-  if (stored && ACCENT_COLORS[stored]) return stored;
-  // 2026-10-18：无有效全局键 → 默认金色（participant 键），不再按角色固有色回退。
-  return 'participant';
+  return normalizeAccentKey(stored || '');
 }
 
 /**
- * 获取角色的 accent 三件套
- * @param {string} role — 角色键名
- * @param {number} [bgAlpha=0.1] — 背景色透明度（entry 自带 bg 覆盖时忽略）
- * @param {number} [borderAlpha=0.3] — 边框色透明度（entry 自带 border 覆盖时忽略）
- * @returns {{ accent: string, accentRgba: string, accentBorder: string }}
+ * 获取主题的 9 个 token（平面对象 + 兼容别名）
+ * 平面 token：base / softBg / softBorder / softText / strongBg / strongInk / strongHover / hoverBg / activeBg
+ * strongHover 只服务「实底按钮 hover 同色相加深」，与 hoverBg（浅底 hover）语义不同，勿混用。
+ * 兼容别名（指向新 token，供旧消费方逐步迁移）：bg / border / text / strong / ink / hover / active；
+ * accentRgba / accentBorder 为历史命名，同样指向 softBg / softBorder。
+ * @param {string} role — 主题键 / 角色键 / 旧键（经 normalizeAccentKey 归一）
+ * @param {'light'|'dark'} [mode='light']
+ * @returns {{ accent:string, base:string, softBg:string, softBorder:string, softText:string,
+ *   strongBg:string, strongInk:string, strongHover:string, hoverBg:string, activeBg:string,
+ *   bg:string, border:string, text:string, strong:string, ink:string, hover:string, active:string,
+ *   accentRgba:string, accentBorder:string }}
  */
-export function getAccentColors(role, bgAlpha = 0.1, borderAlpha = 0.3) {
-  // 2026-10-18：无匹配 → 默认金色（participant 主题），不再回退 all 青。
-  const entry = ACCENT_COLORS[role] || ACCENT_COLORS.participant;
+export function getAccentColors(role, mode = 'light') {
+  const t = _accentTokens(role, mode);
   return {
-    accent: entry.hex,
-    // 覆盖字段优先：participant「金」主题色 = 主题党日胶囊（亮金底 + 深金字 + 亮金边框，
-    // 支书 2026-08-08 四审定稿——金色就该和主题党日胶囊一致）
-    accentRgba: entry.bg || hexToRgba(entry.hex, bgAlpha),
-    accentBorder: entry.border || hexToRgba(entry.hex, borderAlpha),
+    accent: t.base,
+    base: t.base,
+    softBg: t.softBg,
+    softBorder: t.softBorder,
+    softText: t.softText,
+    strongBg: t.strongBg,
+    strongInk: t.strongInk,
+    strongHover: t.strongHover,
+    hoverBg: t.hoverBg,
+    activeBg: t.activeBg,
+    // 兼容别名（批次 505；批次 506 消费方迁移后删）
+    bg: t.softBg,
+    border: t.softBorder,
+    text: t.softText,
+    strong: t.strongBg,
+    ink: t.strongInk,
+    hover: t.hoverBg,
+    active: t.activeBg,
+    accentRgba: t.softBg,
+    accentBorder: t.softBorder,
   };
 }
 
-// ── 功能色「统一 tab 风格」规则（支书 2026-08-11 二审裁定 + 四审纠正）────────────────
-// 支书：亮色和暗色的处理逻辑我不太理解——因为金色和亮蓝我认为都很亮。
-// 二审：统一都变成 tab 风格的「浅底深字」；浅色才应该浅底深字，之前想反了。
-// 三审（深色模式反馈）：夜间「提亮字」在深色页面上看不清——淡底深字应像 span 状态徽章
-// （bg-cyan-100+text-cyan-700）一样保持「淡底 + 深字」，否则看不见。
-// 四审（2026-08-11 深夜反馈）：「近不透明淡底 + 边框」视觉臃肿——夜间改「完全不透明浅底深字」
-// （span 徽章风格，无边框）；header 身份显示例外：主题色实底 + 白字（见 header.js _roleLabelHTML）。
-// 即：所有 accent（不分深浅）一律「同色系高亮浅底 + 深色字」；夜间 = 完全不透明浅底 + 同款深字。
-// 与 tab 激活态（wp-dim-on）同源：浅底 + accent 色字；深字由 accent 亮度自适应——
-//   · 深色 accent（感知亮度 < 0.25，如金/红/橙/海蓝/深青/紫）：深字 = accent 本身（已够深）
-//   · 浅色 accent（感知亮度 ≥ 0.25，如天蓝/翠绿/亮蓝/灰）：深字 = accent 调暗至 30% 明度（保证可读对比度）
-// 日/夜两套由元素内联 CSS 变量驱动：--acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark（夜），
-// 夜间切换由 styles.css `html.theme-dark [style*="--acc-bg-dark"]` 规则完成（!important 覆盖内联）。
-// 背景：2026-08-08 支书裁定金色浅底深字；2026-08-10 曾改为实底白字；
-// 2026-08-11 上午 T-218 二审为「深浅分流（深色浅底深字/浅色实底白字）」；
-// 2026-08-11 下午支书再判「想反了——浅色才应该浅底深字」→ 统一浅底深字，废除实底白字分支；
-// 2026-08-11 三审「夜间提亮字看不清」→ 夜间近不透明淡底+边框；四审「边框臃肿」→ 去掉边框，改完全不透明浅底。
-
-// 品牌亮色映射：金色日/夜淡底统一用亮金底 #FFD700（主题党日胶囊同源，支书 2026-08-08 四审定稿）
-const DEEP_ACCENT_RULES = {
-  [_C.yellow700]: { light: _C.partyGold },
-};
-
-/** hex → [h, s, l]（h:0-360, s:0-1, l:0-1） */
-function _hexToHsl(hex) {
-  const r = parseInt(hex.slice(1, 3), 16) / 255;
-  const g = parseInt(hex.slice(3, 5), 16) / 255;
-  const b = parseInt(hex.slice(5, 7), 16) / 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  const l = (max + min) / 2;
-  let h = 0, s = 0;
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) * 60;
-    else if (max === g) h = ((b - r) / d + 2) * 60;
-    else h = ((r - g) / d + 4) * 60;
-  }
-  return [h, s, l];
-}
-
-/** [h, s, l] → hex（#RRGGBB） */
-function _hslToHex(h, s, l) {
-  const c = (1 - Math.abs(2 * l - 1)) * s;
-  const hp = h / 60;
-  const x = c * (1 - Math.abs((hp % 2) - 1));
-  let r = 0, g = 0, b = 0;
-  if (hp < 1) { r = c; g = x; }
-  else if (hp < 2) { r = x; g = c; }
-  else if (hp < 3) { g = c; b = x; }
-  else if (hp < 4) { g = x; b = c; }
-  else if (hp < 5) { r = x; b = c; }
-  else { r = c; b = x; }
-  const m = l - c / 2;
-  const toHex = (v) => Math.round((v + m) * 255).toString(16).padStart(2, '0');
-  return '#' + toHex(r) + toHex(g) + toHex(b);
-}
+// ── 主题色消费口径（批次 505 改写）────────────────────────────────
+// 旧「按 accent 感知亮度分流」的推导（深色浅底深字 / 浅色压深字 / 夜间 color-mix 提亮 / 金色特例
+// DEEP_ACCENT_RULES）全部退场——每主题浅底深字已在 ACCENT_COLORS 表里手选，消费方只读 token。
+// 批次 507：内联主题色样式改读 --app-accent-soft-* 别名（亮/暗由 styles.css 选边），
+// 不再写元素级 --acc-*-dark 变量；固定语义色标记统一走 styles.css 的 [data-tone] 表。
+// header 身份标签例外：主题色实底 + 白字（见 header.js _roleLabelHTML）。
 
 /** 感知亮度（WCAG relative luminance 近似），用于「深浅」判定 */
 function _relativeLuminance(hex) {
@@ -544,56 +625,26 @@ function _relativeLuminance(hex) {
 /** 感知亮度对外出口（header 身份标签等需按 accent 明暗分流白字对比的消费点复用，勿各自手写） */
 export const relativeLuminance = _relativeLuminance;
 
-/** 调亮：HSL 明度提到 targetL（0-100，饱和度不变） */
-function _lighten(hex, targetL) {
-  const [h, s] = _hexToHsl(hex);
-  return _hslToHex(h, s, targetL / 100);
-}
-
-/** 调暗：HSL 明度压到 targetL（0-100，饱和度不变） */
-function _darken(hex, targetL) {
-  const [h, s] = _hexToHsl(hex);
-  return _hslToHex(h, s, targetL / 100);
-}
-
-/** hex → rgba(…, alpha) */
-function _rgba(hex, alpha) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
+/**
+ * 实底按钮取色（查表）：底 = 该主题 `strongBg`，字 = `strongInk`。
+ * 批次 505 起**无亮度分流**：亮金底深字与深色底白字都由主题表逐项手选，不再用感知亮度阈值判定。
+ * @param {string} role — 主题键 / 角色键 / 主题表内 hex（兼容四处旧注入点传 accent hex）
+ * @param {'light'|'dark'} [mode='light']
+ * @returns {{ bg:string, text:string, strong:string, ink:string, strongHover:string }}（strong / ink 为旧字段别名）
+ */
+export function accentButtonColors(role, mode = 'light') {
+  const t = _accentTokens(role, mode);
+  return { bg: t.strongBg, text: t.strongInk, strong: t.strongBg, ink: t.strongInk, strongHover: t.strongHover };
 }
 
 /**
- * 功能色「统一 tab 风格」规则（支书 2026-08-11 二审裁定 + 四审纠正）
- * 所有 accent（不分深浅）一律「同色系高亮浅底 + 深色字」；夜间改为「完全不透明浅底深字」——
- * span 状态徽章风格（如 bg-cyan-100+text-cyan-700），深色页面清晰可见、无边框不臃肿
- * （支书：「淡底深字应该变成 span 类似这样的淡底深字」；「你的做法让视觉非常臃肿」→ 去边框）：
- *   · 底（日）：accent 调亮至 84% 明度 @12% 透明（tab 风格浅底）
- *   · 字（日/夜一致）：深色 accent 用 accent 本身；浅色 accent 调暗至 30% 明度（保证可读）
- *   · 底（夜）：accent 调亮至 86% 明度完全不透明（span 徽章实底，叠深背景仍为淡底 chip）
- * 日/夜两套内联 --acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark（夜），
- * 夜间切换由 styles.css `html.theme-dark [style*="--acc-bg-dark"]` 规则完成（!important 覆盖内联）。
- * @param {string} accent — 当前生效强调色 hex
- * @returns {string} 内联样式串（background / color，含深浅两套变量）
+ * 主题色「浅底深字」内联样式（批次 507：只消费注入别名，不再写元素级日/夜内联变量）。
+ * `--app-accent-soft-bg` / `--app-accent-soft-text` 在 styles.css 已按亮/暗选边，
+ * 切换主题或日夜均自动跟随（旧 `--acc-*` 内联变量退场）。
+ * @returns {string} 内联样式串（background / color）
  */
-export function solidAccentStyle(accent, border) {
-  // 兜底：bootstrap 首帧渲染时 accent 可能为 undefined（瞬态，随后 setState 重渲染），
-  // 此时返回党建红实底白字（系统默认色），避免 _relativeLuminance 对非 hex 输入崩溃。
-  if (!accent || typeof accent !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(accent)) {
-    return `background:${_C.partyRed};color:${_C.white}`;
-  }
-  const branded = DEEP_ACCENT_RULES[accent];
-  // 深字（日/夜一致）：深色 accent（感知亮度 < 0.25）用本身；浅色 accent 调暗至 30% 明度（淡底可读）
-  const text = branded ? accent : (_relativeLuminance(accent) < 0.25 ? accent : _darken(accent, 30));
-  // 夜间深字（R-9 ⑥ 2026-09-11 对比度收口）：夜间底色为不透明浅底，浅底上原深字对比仅 3.3–4.8，
-  // 统一再压深一档（65% 原字 + 35% 黑）——浅底仍为同色系淡底深字，全 accent ≥ 4.5（实测 5.99–9.79）。
-  const textDark = `color-mix(in srgb, ${text} 65%, ${_C.black})`;
-  // 淡底（日）：accent 调亮至 84% 明度 @12% 透明
-  const bg = _rgba(branded ? branded.light : _lighten(accent, 84), 0.12);
-  // 淡底（夜）：accent 调亮至 86% 明度完全不透明——span 状态徽章风格（如 bg-cyan-100），叠深背景仍清晰可见
-  const bgDark = branded ? branded.light : _lighten(accent, 86);
-  return `--acc-bg:${bg};--acc-text:${text};--acc-bg-dark:${bgDark};--acc-text-dark:${textDark};background:var(--acc-bg);color:var(--acc-text,${_C.white})`;
+export function solidAccentStyle() {
+  return 'background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text)';
 }
 
 // ── 活动类型颜色（中文标签版，用于卡片/列表视图）──────────────────
@@ -648,12 +699,50 @@ export const SCENARIO_LABELS = {
   'theme-party': ACTIVITY_CLASSIFICATION['theme-party'].label,
 };
 
-/** type → 大类（three-meetings | theme-party） */
+// ── 活动组织落点（2026-10-21 批次 499/502 · 支书补充口径）──────────────
+// 支书原话：「跨组活动同样落实承办党小组；组织者一般来自承办组，深度参与者可以跨组招募，
+//   由组织委员协调。」⇒ 组织落点只有两档：支部级法定会议 'branch'；其余全部 'party-group'。
+// 支部级法定会议（支委会 / 支部党员大会 / 党课）不硬塞党小组，单列 'branch'。
+export const ACTIVITY_SCOPES = {
+  PARTY_GROUP: 'party-group',
+  BRANCH: 'branch',
+  // 读取别名（2026-10-21 批次 502）：已退出生产写入，仅用于旧数据 / 旧客户端入参兼容；
+  // 一律经 normalizeOrganizingScope() 归一为 'party-group'。新代码不得产出该值。
+  CROSS_GROUP: 'cross-group',
+};
+// 招募范围（R10-B16 单一源）：与组织落点正交——跨组只表达「向其他党小组招募」，
+// 活动/专班仍有唯一承办组；落点一律取 ACTIVITY_SCOPES，不得把 cross-group 当第三种落点。
+export const RECRUITMENT_SCOPES = Object.freeze({
+  GROUP: 'group',
+  CROSS_GROUP: 'cross-group',
+});
+export const BRANCH_LEVEL_SCENARIOS = ['branch-committee', 'branch-party-meeting', 'party-lecture'];
+// 旧客户端可能只传 type、不传 scenarioId ⇒ 判支部级会议必须同时认两类入参（服务端与迁移共用）。
+export const BRANCH_LEVEL_ACTIVITY_TYPES = ['支委会', '支部党员大会', '党课'];
+export function isBranchLevelScenario(scenarioId) {
+  return BRANCH_LEVEL_SCENARIOS.includes(scenarioId);
+}
+export function isBranchLevelActivity(activity) {
+  return isBranchLevelScenario(activity?.scenarioId) || BRANCH_LEVEL_ACTIVITY_TYPES.includes(activity?.type);
+}
+
+/**
+ * 组织落点归一（前端写口 / 服务端写门 / 迁移 / 种子共用的单一函数）。
+ * @param {string|undefined|null} value 原始 organizingScope（可能来自旧数据或旧客户端）
+ * @param {object|null} [activity] 活动行；支部级法定会议一律归一为 branch
+ * @returns {'branch'|'party-group'}
+ */
+export function normalizeOrganizingScope(value, activity = null) {
+  if (activity && isBranchLevelActivity(activity)) return ACTIVITY_SCOPES.BRANCH;
+  return value === ACTIVITY_SCOPES.BRANCH ? ACTIVITY_SCOPES.BRANCH : ACTIVITY_SCOPES.PARTY_GROUP;
+}
+
+/** type → 权威分类键（three-meetings | theme-party | other）；判据唯一实现在 activityTypeClassification */
 export function classifyActivityType(type) {
-  if (!type) return null;
-  if (_THREE_MEETINGS_SUBTYPES.includes(type)) return 'three-meetings';
-  if (type === '组织生活会') return 'three-meetings'; // 内容维度：以三会形式召开，大类仍属三会一课
-  return 'theme-party'; // 主题党日 及未知类型兜底归主题党日系
+  // 兜底收敛：未登记类型返回 'other'（与 activityTypeTone 的 'neutral' 对应），不再归主题党日系；
+  // 判据唯一实现在 activityTypeClassification（勿在此另写一份）。
+  if (!type) return 'other';
+  return activityTypeClassification(type);
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -673,6 +762,17 @@ export function classifyActivityType(type) {
 //      DATA_CONSISTENCY_CHECKLIST「活动生命周期展示态」条）。徽章/文案一律用那一套，
 //      **不要**在别处另写一套中文标签（本节曾短暂加过 ACTIVITY_LIFECYCLE_LABELS，属重复源，已撤除）。
 
+// ════════════════════════════════════════════════════════════════
+//  首页展示截断上限（单一源，R2-24，2026-10-20）
+// ════════════════════════════════════════════════════════════════
+//  原先通知铃铛 10 / 活动风采 6 / 首页活动列表 10 三处各写死，调上限要改三处且容易漏。
+//  这里只收敛「数字」，排序/溢出提示仍由各组件按自身语义处理（通知按紧急/未读优先）。
+export const DASHBOARD_LIMITS = Object.freeze({
+  notices: 10,
+  gallery: 6,
+  activities: 10,
+});
+
 /** 活动是否已结束（单一源）：status==='completed' 或 archived 标记 */
 export function isActivityEnded(activity) {
   const a = activity || {};
@@ -688,6 +788,19 @@ export function isActivityArchived(activity) {
 export function isActivityLive(activity) {
   const a = activity || {};
   return a.archived !== true && a.status !== 'cancelled';
+}
+
+/**
+ * 活动是否「在办」（统计口径单一源，R2-48）：
+ *   在办 = 未结束（非 completed/archived）且非 draft、非 cancelled。
+ * 为什么与 isActivityLive 分开：isActivityLive 是「可展示清单」谓词（保留草稿与待审批，供编辑）；
+ *   支书概况/党委台账的「在办活动数」是**进度统计**，草稿尚未立项、取消已终止，二者都不应虚增在办数。
+ * `executed` 为历史状态别名（服务端旧数据仍可能出现），按终态处理，避免旧行被算成在办。
+ */
+export function isActivityInProgress(activity) {
+  const a = activity || {};
+  if (isActivityEnded(a)) return false;
+  return !['draft', 'cancelled', 'executed'].includes(a.status);
 }
 
 /** 活动是否未开始（单一源）：未结束，且无日期或不早于今天（member-confirmation 既有裁定字面一致） */
@@ -769,9 +882,9 @@ export function getActivityTypeColors({ withLabel = false, useGradient = false }
  * @returns {'brand'|'gold'|'neutral'}
  */
 export function activityTypeBadgeVariant(type) {
-  const base = _ACTIVITY_TYPE_BASE[normalizeActivityType(type)];
-  if (!base) return 'neutral';
-  return base.dot === _C.partyRedBrand ? 'brand' : 'gold';
+  const tone = activityTypeTone(type);
+  // 固定语义 tone → 徽章变体（判据只剩 activityTypeTone 一处，本函数不再查 _ACTIVITY_TYPE_BASE）
+  return tone === 'party-red' ? 'brand' : tone === 'gold' ? 'gold' : 'neutral';
 }
 
 /** 将 #FEF2F2 这种浅色再加深一档，用于渐变终点（RGB 各通道 -16，与 HSL 版 _darken 区分） */
@@ -838,6 +951,8 @@ export const OUTPUT_BLOCK_DEFS = [
 // broadcast=true → 全员可见（含无登录会话）；roles/developStages → 命中其一即可见。
 export const NOTICE_AUDIENCE_SENTINELS = {
   all: { label: '全体党员', broadcast: true },
+  // 支委层（R10-B11）：本支部支委层受众；党委下发通道另有 source/scope 语义（见 notice.js），勿混为一谈。
+  committee: { label: '支委层', roles: [...BRANCH_COMMISSION_ROLES] },
   leaders: { label: '党小组组长', roles: ['leader'] },
   activists: { label: '入党积极分子', developStages: ['积极分子'] },
   candidates: { label: '发展对象', developStages: ['发展对象'] },
@@ -867,7 +982,8 @@ ROLE_KEYS.push('deputy-leader');
 ROLE_LABELS['deputy-leader'] = '党小组副组长';
 ROLE_PAGE_MAP.workspace['deputy-leader'] = 'leader.html'; // 同组长一套工作台（同页同台）
 ROLE_COLORS['deputy-leader'] = { ...ROLE_COLORS.leader };
-ACCENT_COLORS['deputy-leader'] = { ...ACCENT_COLORS.leader };
+// 2026-10-23 批次 505：ACCENT_COLORS 已收敛为 7 个主题键（批次 505），不再按角色键扩表——
+//   副组长经 ACCENT_KEY_ALIASES['deputy-leader'] → green 取主题色。
 ROLE_THEME_CLASS['deputy-leader'] = ROLE_THEME_CLASS.leader;
 
 // ════════════════════════════════════════════════════════════════
@@ -906,7 +1022,7 @@ export const BRANCH_COMMISSIONER_FALLBACK_ROLE = 'participant';
  */
 export function branchCommissionerWriteDeny(p) {
   const s = p || {};
-  const branchOf = (b) => b || 'br-b1';
+  const branchOf = (b) => b || DEFAULT_BRANCH_ID;
   if (s.actorRole === 'party-staff') return null; // 党委侧 users 写门原样（本次只放宽、不收窄）
   // 一把手层同权（2026-09-23 支书追裁「副支书也可配」）：本支部现任支书 ∨ 本支部现任副支书
   const isBranchSecretary = !!s.secretaryId && s.actorId === s.secretaryId;
@@ -948,3 +1064,82 @@ const WORK_DOMAIN_COLOR = _applyDark({
   project: { bg: 'rgba(206, 17, 38, 0.08)', text: _C.red800, border: 'rgba(206, 17, 38, 0.25)' }, // 项目（会务·活动·专班）
 });
 export const WORK_DOMAIN_COLORS = WORK_DOMAIN_COLOR;
+
+// ════════════════════════════════════════════════════════════════
+//  「党小组组长 / 副组长」同权角色集（2026-10-22 第七轮 P2 · `D-540` / `D-571`）
+// ════════════════════════════════════════════════════════════════
+// 裁定口径：「副组长共用组长工作台，权限集与赋权链与组长同一份」⇒ 一切**权限门**判「党小组组长」
+//   都必须同时认 `deputy-leader`，否则副组长在本组活动创建 / 编辑 / 考勤记录位被 403。
+// ⚠ 两类判据不要混：**权限门**用本集（两个角色同权）；**「任务优先打给组长」的锚点**
+//   （履职待办派生 / 会议记录人 / 产出块负责人 / 本组组长位）仍只解析 `leader`（见本文件 988 行注）。
+// 消费方（单一源，勿各自手写第二份）：server 路由写门与前端能力判定同引本文件。
+export const PARTY_GROUP_LEADER_ROLES = Object.freeze(['leader', 'deputy-leader']);
+/** 是否「党小组组长 / 副组长」（权限门判据，勿用于任务派发锚点） */
+export function isPartyGroupLeaderRole(role) {
+  return PARTY_GROUP_LEADER_ROLES.includes(role);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  组长可创建的活动类型（R7-19 单一源，2026-10-22）
+// ════════════════════════════════════════════════════════════════
+// 病灶：服务端 `routes/resources/gates.js`（活动写门）与 `system-notice-kinds.js`
+//   （活动创建通知受众）各写一份 `Set(['党小组会','主题党日'])` ⇒ 调整时可出现
+//   「活动写门放行、通知受众不放行」（或反之）。本集为两处**唯一**判据源。
+// 口径：对齐 SYSTEM_ROLE_PERMISSION §9a 与组长手册（组长限办本组党小组会 / 主题党日）。
+export const LEADER_CREATABLE_ACTIVITY_TYPES = Object.freeze(['党小组会', '主题党日']);
+
+// ── 空值词表（R7-05 单一源；追加在文件末，避免上方行号引用漂移）────────
+// 缺失 / 未填 ⇒ EMPTY_TEXT；角色或条件不涉及 ⇒ EMPTY_NOT_APPLICABLE（不适用）。
+// 档案页、人才库、考勤总表等读侧共用本词表，勿各写一套（旧词「未填写」已并入 EMPTY_TEXT）。
+export const EMPTY_TEXT = '—';
+export const EMPTY_NOT_APPLICABLE = '不适用';
+
+// ════════════════════════════════════════════════════════════════
+//  活动类别语义 tone（单一判据，2026-10-24 批次 508 · 追加在文件末避免行号漂移）
+// ════════════════════════════════════════════════════════════════
+// 病灶：三会一课 / 主题党日的红金判据此前分散在 `_ACTIVITY_TYPE_BASE`（按 dot 色再查一次）、
+//   `activityTypeBadgeVariant`（自己查表）与 `classifyActivityType`（未知兜底归主题党日）三处，
+//   新增载体（理论学习等）时容易只改一处。现收敛为一条链（每层只判一件事）：
+//     activityTypeClassification（大类：three-meetings / theme-party / other）
+//       → activityTypeTone（固定语义 tone：party-red / gold / neutral）
+//       → activityTypeBadgeVariant（组件变体：brand / gold / neutral，只做映射）。
+// 判据来源仍是既有 `_ACTIVITY_TYPE_BASE`（已登记的 7 类）+ `ACTIVITY_CLASSIFICATION`（子类 / 载体）+
+//   `normalizeActivityType`（'大类·子类' 归一），**不新造第二张类别表**。
+
+/** 主题党日载体（复用 ACTIVITY_CLASSIFICATION.carriers；'其他' 是泛化兜底载体，不参与固定语义配色） */
+const _THEME_PARTY_CARRIERS = ACTIVITY_CLASSIFICATION['theme-party'].carriers.filter((c) => c !== '其他');
+
+/**
+ * 活动类型 → 权威分类键（单一判据；未登记 / 空值 → 'other'，不再兜底 'theme-party'）。
+ * · 三会一课族（四个子类 / 组织生活会 / 大类名「三会一课」）→ 'three-meetings'
+ * · 主题党日及载体（主题党日 / 理论学习 / 实践参访 / 交流座谈 / 共建 / 参访 / 座谈）→ 'theme-party'
+ * · 其余（未登记）→ 'other'
+ * 与 activityTypeTone 的关系：本函数判「大类」，tone 把大类映射为固定语义色，二者同源、不得各写一份。
+ * @param {string} type
+ * @returns {'three-meetings'|'theme-party'|'other'}
+ */
+export function activityTypeClassification(type) {
+  const t = normalizeActivityType(type);
+  if (!t) return 'other';
+  if (t === ACTIVITY_CLASSIFICATION['three-meetings'].label) return 'three-meetings';
+  if (t === '组织生活会') return 'three-meetings'; // 内容维度：以三会形式召开，大类仍属三会一课
+  if (t === ACTIVITY_CLASSIFICATION['theme-party'].label) return 'theme-party';
+  if (_ACTIVITY_TYPE_BASE[t]) return _ACTIVITY_TYPE_BASE[t].dot === _C.partyRedBrand ? 'three-meetings' : 'theme-party';
+  if (_THEME_PARTY_CARRIERS.includes(t)) return 'theme-party';
+  return 'other';
+}
+
+/**
+ * 活动类别 → 固定语义 tone（唯一判据；不随主题变化）。
+ * · 三会一课族（支部党员大会 / 支委会 / 党小组会 / 党课 / 组织生活会 / 大类名「三会一课」）→ 'party-red'
+ * · 主题党日及载体（理论学习 / 实践参访 / 交流座谈 / 共建 / 参访 / 座谈）→ 'gold'
+ * · 其余（未登记）→ 'neutral'
+ * @param {string} type
+ * @returns {'party-red'|'gold'|'neutral'}
+ */
+export function activityTypeTone(type) {
+  const cls = activityTypeClassification(type);
+  if (cls === 'three-meetings') return 'party-red';
+  if (cls === 'theme-party') return 'gold';
+  return 'neutral';
+}

@@ -1,0 +1,43 @@
+{
+  "overview": {
+    "heads": 1,
+    "cards": 0,
+    "metric": [
+      {
+        "text": "22",
+        "color": "rgb(146, 64, 14)"
+      },
+      {
+        "text": "12",
+        "color": "rgb(31, 41, 55)"
+      },
+      {
+        "text": "221",
+        "color": "rgb(107, 114, 128)"
+      },
+      {
+        "text": "2",
+        "color": "rgb(29, 78, 216)"
+      }
+    ],
+    "sectionCount": 3
+  },
+  "rowNormal": {
+    "radius": "8px",
+    "before": "1"
+  },
+  "rowHover": {
+    "bg": "rgb(251, 243, 220)",
+    "before": "1",
+    "barWidth": "3px"
+  },
+  "th": {
+    "bg": "rgba(0, 0, 0, 0)",
+    "borderBottom": "1px rgb(229, 231, 235)"
+  },
+  "search": {
+    "width": 320,
+    "listId": "lf2-kw",
+    "options": 34
+  }
+}

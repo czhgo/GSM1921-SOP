@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.1"
-last_updated: 2026-10-18
+last_updated: "2026-11-03"
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -13,7 +13,7 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 > **总述：** 本文是系统**数据**的唯一权威源，回答两件事——**「有哪些数据、每类数据的字段是什么」**（第一部分 · 数据模型，静态结构）与**「数据如何产生、流动、聚合」**（第二部分 · 数据流，动态过程）。两半是同一套数据的两个切面：模型侧定义结构，流侧定义过程；结构变更或流向变更都须两侧同步。第三部分列出本文不重复展开的权威源。
 > **受众：** [工程师]+[AI] —— 供开发决策参考，确保数据结构变更时全栈一致。
 > **权限矩阵**：本文档含权限简表，完整定义见 [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵，代码键级权威）。
-> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；② **权限矩阵的完整定义** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（冲突时以权威源为准）；③ **架构分层与目录结构** → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)；④ **登录门控与部署** → [DEPLOYMENT_GUIDE.md §四 / §二](../deploy/DEPLOYMENT_GUIDE.md)。
+> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；② **权限矩阵的完整定义** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（冲突时以权威源为准）；③ **架构分层与目录结构** → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)；④ **登录门控与部署** → [DEPLOYMENT_GUIDE.md §四 / §二](../deploy/DEPLOYMENT_GUIDE.md)。**字段 / 必填 / 枚举 / 种子计数的机读单一源** → [DATA_CONTRACT.md](./DATA_CONTRACT.md)（`server/data/domain-contract.mjs`）；本文只保留叙事与字段说明，两者冲突时以数据契约为准（守卫 `server/test/data-contract.test.mjs`）。**schema v12 与种子契约（2026-10-26）**：v12 已落四组唯一索引（`attendances(activityId,personId)` / 活组 `party_groups(branchId,name)` / `attendance_rosters(activityId)` / `workgroup_members(workgroupId,personId)`）、`todos.branch_id` 生成列、`contributions` 统一对象数组、考察人员 ∈ 父工作组校验，并 DROP `issue_reveals`、`committee_broadcasts` 转恒只读；结构明细见本文附录 A。**哪一行必须由种子给出、哪些字段只能派生 / 展示**，以 [DATA_SEED_CONTRACT.md](./DATA_SEED_CONTRACT.md) 为唯一权威（守卫 `server/test/seed-contract-guard.test.mjs`）；本文只登记字段与结构，不重复种子口径。
 
 ---
 
@@ -32,13 +32,13 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 | id | string | 是 | `generateId('act')` | 唯一标识符，前缀 `act_` |
 | title | string | 是 | -- | 活动标题 |
 | type | string | 是 | -- | 活动类型。类型体系（两大顶层非并列）：三会一课系含支部党员大会/支委会/党小组会/党课（组织生活会是**内容**而非子类，由三会之一召开，见 §2.1.2）；主题党日系含 `type='主题党日'` + 载体见 `carriers`。查询筛选按 `classifyActivityType` 级联展示 |
-| status | `'draft'\|'published'\|'ongoing'\|'completed'\|'cancelled'` | 是 | `'draft'` | 活动存储状态；页面展示态由生命周期派生（见下方"活动生命周期展示态"） |
+| status | `'draft'\|'pending-approval'\|'published'\|'ongoing'\|'completed'\|'cancelled'` | 是 | `'draft'` | 活动存储状态；页面展示态由生命周期派生（见下方"活动生命周期展示态"）。`pending-approval`＝待批（活动批准门开启时写入，默认关） |
 | visibility | `'branch'\|'group'` | 是 | `'group'` | 可见范围：全支部 or 党小组 |
 | date | string (YYYY-MM-DD) | 是 | -- | 活动日期 ISO 字符串 |
 | location | string\|null | 否 | null | 活动地点（线下活动场地/线上会议链接），用于活动详情与日历展示；可选字段，无则不显示地点 |
-| executor | string | 是 | -- | 执行角色标识 |
-| supervisor | string\|null | 是 | `null` | 督办角色（可为 null） |
-| createdBy | string | 是 | `'u_exec'` | 创建者用户 ID |
+| executor | string | 否 | -- | 执行角色标识（2026-11-02 批次 527：功能实际不产生 ⇒ 契约标 optional；历史行保留原值） |
+| supervisor | string\|null | 否 | `null` | 督办角色（2026-11-02：功能实际不产生 ⇒ optional；可为 null） |
+| createdBy | string | 否 | `null` | 创建者用户 ID（2026-11-02：功能实际不产生，装载默认可为 null ⇒ optional） |
 | createdAt | string (ISO) | 是 | `new Date().toISOString()` | 创建时间 |
 | priority | `'low'\|'normal'\|'urgent'` | 否 | -- | 工作流引擎优先级 |
 | dueDate | string (ISO) | 否 | -- | 截止日期（自动化提醒锚点） |
@@ -53,14 +53,18 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 | isJoint | boolean | 否 | `false` | 共建性质（共建开展为 true） |
 | brandName | string | 否 | -- | 品牌族名称（如"五四精神传承"/"人生回望录"），支委会认定 isBrand 后由写入表单"延续已有品牌/创建新品牌"补录 |
 | agenda | `Array<{id, item, host?, kinds?, agendaStep?, discussionAgendaItemId?, ...业务回指与结果字段}>` | 否 | `[]` | 会议议程（三会一课专用）。`agendaStep` 缺省＝普通/历史议题；`discussion`＝讨论项；`vote`＝表决项，须用 `discussionAgendaItemId` 指向本活动中排在前面的讨论项。`kinds` 仍是可多选业务标签，不表示议程步骤；“三会”会议类型仍由活动 `type/scenarioId` 表达。结果与表态锚定表决项；业务回指可留在其关联讨论项，由会后衔接读取。表态接口校验议题归属与步骤，旧议程未标步骤时继续沿用原逐项表态行为。创建时经写入表单"会议议程"区块填写；会后可在活动详情修改 |
-| organizer | string | 否 | -- | 组织者 personId。活动工作组中的 `organizer` 成员为标准记录；本字段是兼容读侧镜像。活动创建时由对应入口指定：组内活动由党小组组长写入，跨组活动由支书/副支书写入并指定组织者 |
+| organizer | string | 否 | -- | 组织者 personId。活动工作组中的 `organizer` 成员为标准记录；本字段是兼容读侧镜像。活动创建时由对应入口指定：本组活动由本组组长写入，支书/副支书可建任意承办组活动；组织者一般来自承办党小组，选他组时须填 `organizerExceptionReason` 留痕 |
 | direction | `'top-down'\|'bottom-up'` | 否 | `'bottom-up'` | 发起方向：自上而下（支部部署）/ 自下而上（党小组发起）；由组长写入表单 L4 级选定 |
-| hostGroup | string\|null | 否 | null | 旧名称兼容字段。新数据以 `hostGroupId` 表达责任归属；不得用它限制其他党小组成员报名或参加 |
+| hostGroup | string\|null | 否 | null | 责任党小组名称的**展示兼容字段**，权威归属以 `hostGroupId` 为准；不得用它限制其他党小组成员报名或参加 |
 | branchId | string | 是 | 创建者支部 | 活动所属支部；写入后不可改，跨支部引用由服务端拒绝 |
-| organizingScope | `'party-group'\|'cross-group'` | 是 | -- | 承办责任范围：组内承办或跨组承办。组内由本组组长从组长台创建；跨组由书记/副书记从书记台创建。它不限制其他成员报名或参加 |
-| hostGroupId | string\|null | 条件必填 | `null` | `party-group` 时指向同支部党小组；`cross-group` 时必须为 `null`。旧 `hostGroup` 名称字段暂保留兼容 |
+| organizingScope | `'party-group'\|'branch'` | 是 | -- | 组织落点，只有两档：`party-group`＝党小组承办（其余全部活动，**必填且唯一承办党小组**）/ `branch`＝支部级法定会议（支委会、党员大会、党课，不指定承办党小组）。本组活动由本组组长从组长台创建，支书/副支书可建任意承办组活动；支部级由支书/副书记或党委创建 |
+| hostGroupId | string\|null | 条件必填 | `null` | `party-group` 活动**必填**，指向同支部党小组且**唯一**；`branch` 时必须为 `null`。跨组招募只改变招募范围，不改变组织落点 |
+| recruitmentScope | `'group'\|'cross-group'` | 否 | `'group'` | 深度参与者招募范围，**跨组只在这里表达、不是组织落点**。`cross-group`＝需从其他党小组招募深参，须同时写 `crossGroupCoordinatorId`；跨党小组成员入组时行上记 `crossGroup/coordinatedBy`，不得静默入组 |
+| crossGroupCoordinatorId | string\|null | 条件必填 | `null` | `recruitmentScope='cross-group'` 时必填，默认本支部组织委员；组织台「跨组招募待协调」据此汇总 |
+| legacyHostGroup | boolean | 否 | -- | 历史「跨组且无承办党小组」记录的迁移标记（v8；v10 已把旧 `organizingScope='cross-group'` 归一为 `party-group`，缺承办组者置本标记）。系统**不猜测归属**；组织台单列「待补责任党小组」，补选后清除 |
+| organizerExceptionReason | string | 否 | -- | 组织者不由承办党小组承担时的例外说明（软提示后留痕，不阻断写入） |
 | workgroupId | string | 是 | `wg-activity-{id}` | 活动工作组主记录 ID；活动记录与统一工作组记录在同一事务中建立 |
-| assignments | `Array<{personId: string, role: 'organizer'\|'deep'\|'participant'}>` | 否 | `[]` | 兼容旧页面/快照的镜像。新工作组成员主源为 `workgroup_members`，只含组织者/深度参与者；旧 `participant` 行只按其来源事实读取，不转成工作组成员。主题党日一般参与者以报名记录为准；三会一课按正式名单处理。授权另存 `workgroup_grants` |
+| assignments | `Array<{personId: string, role: 'organizer'\|'deep'\|'participant', crossGroup?: boolean, coordinatedBy?: string}>` | 否 | `[]` | 兼容旧页面/快照的镜像。新工作组成员主源为 `workgroup_members`，只含组织者/深度参与者；旧 `participant` 行只按其来源事实读取，不转成工作组成员。跨党小组深参与成员主源同形，镜像 `crossGroup/coordinatedBy`。主题党日一般参与者以报名记录为准；三会一课按正式名单处理。授权另存 `workgroup_grants` |
 | signupEnabled | boolean | 否 | `false` | 开放报名开关（SOP-B-2）：勾选后该活动可被报名；草稿态默认不可报名，须本字段为 `true` 才放开。**与下行的分工**：本字段＝写入活动时的「是否开放报名」，关闭动作见 `signupClosed` |
 | signupClosed | boolean | 否 | `false` | 本场报名是否已**手动关闭**（SOP-B-2 · 支书 2026-09-20 定案「不设截止，但组织者可手动关」）：置 `true` 后成员不能**新报**（判据单一出口 `services/activity/signup.js::_sourceOpen`），**已报名者仍可自行取消**；可关者＝**本场组织者（判据 `isActivityOrganizer`）＋ 支书/副支书**，入口在活动详情页报名区块旁。**不设「报名截止时点」字段** |
 | requireMakeup | boolean | 否 | `false` | 活动级「本次要求补课」（SOP-B-6）：党小组会等**不默认补课**的类型，勾选后才进补课名单（补课范围单一出口 `isMakeupRequired`） |
@@ -184,9 +188,9 @@ ActivityRecord (主记录)
 
 #### 2.1.3 活动工作组与系统授权边界
 
-活动工作组成员关系只记录组织者和深度参与者，成员仍保留原党小组归属。主题党日的一般参与者来自报名记录，与工作组成员可在活动名单视图并列显示，但不合并成同一种数据关系。组织者身份用于标明本活动责任，不因此自动获得系统操作权；确需代录考勤、管理任务或提交产出时，由有权管理者通过授权语义接口单独授予、调整或撤销，并记录操作者与时间。参加资格、承办范围和系统权限是三个不同维度。
+活动工作组成员关系只记录组织者和深度参与者，成员仍保留原党小组归属。主题党日的一般参与者来自报名记录，与工作组成员可在活动名单视图并列显示，但不合并成同一种数据关系。组织者身份用于标明本活动责任，不因此自动获得系统操作权；确需代录考勤、管理任务或提交产出时，由有权管理者通过授权语义接口单独授予、调整或撤销，并记录操作者与时间。参加资格、组织落点和系统权限是三个不同维度。
 
-活动承办范围是活动数据字段：组内承办由本组组长从组长台创建；跨组承办由支书/副支书从书记台创建并指定工作组组织者。工作组成员关系不会自动形成报名或应到名单；主题党日按报名状态与线下意向计算，三会一课使用正式应到名单。活动参加范围可包含本支部其他党小组成员。
+活动组织落点只有两档：`party-group`（本组活动由本组组长从组长台创建，须有唯一承办党小组）与 `branch`（支部级法定会议由支书/副支书或党委创建）。跨组招募不是第三落点，只由 `recruitmentScope='cross-group'`＋`crossGroupCoordinatorId` 表达，并由组织委员协调。工作组成员关系不会自动形成报名或应到名单；主题党日按报名状态与线下意向计算，三会一课使用正式应到名单。活动参加范围可包含本支部其他党小组成员。
 
 ### 2.2 角色与权限数据
 
@@ -227,21 +231,21 @@ ActivityRecord (主记录)
 **关键规则要点**（详细规则见权威源）：
 - 基础 ACL 实现：[services/core/auth.js `AuthStore.canDo(personId, action, context)`](../../../docs/src/services/core/auth.js#L477-L496)（ROLE_PERMISSIONS + PROJECT_PERMISSIONS 并集判定；旧 domain.js `can()` 已移除）
 - 特殊资源 `evaluation`（考察档案）: 仅 `secretary` 和 `org-commissioner` 可读写，其他角色绝对隔离
-- 活动创建者按活动承办范围区分：组内活动由所属党小组组长写入，跨组活动由书记/副书记写入；服务端验证角色、支部、党小组和活动类型
+- 活动创建者按权限区分：本组活动由所属党小组组长写入，支书/副支书可建任意承办组活动；跨组只影响深度参与者招募范围（`recruitmentScope='cross-group'`）；服务端验证角色、支部、党小组和活动类型
 - 工作组成员关系不授予系统权限；工作组授权另行留痕，服务端逐操作核验支部、活动和工作组范围
 - 支委身份选择：sidebar "支委" 卡片 → 模态框选择 → `setState({ selectedRole })` → 工作台「我的职责」Tab 分组面板按角色显示对应支委面板
 - 支书独占能力：党课布置、主持大会、全局视角切换、赋权管理（详见 SYSTEM_ROLE_PERMISSION.md §9b）
 
 ### 2.3 专班数据 (TaskForceRecord)
 
-> 活动工作组与专班工作组共用工作组领域，但各自保留原有业务记录。活动工作组随活动创建；专班工作组围绕专班自身任务存在。跨组活动筹办组不改变成员的党小组归属。当前数据库表为 `workgroups`、`workgroup_members`、`workgroup_grants`、`workgroup_tasks`、`workgroup_outputs`。
+> 活动工作组与专班工作组共用工作组领域，但各自保留原有业务记录。活动工作组随活动创建；专班工作组围绕专班自身任务存在。跨组活动筹办组不改变成员的党小组归属，**也不改变活动的组织落点**——跨组只是参与/招募范围，活动仍有唯一承办党小组。当前数据库表为 `workgroups`、`workgroup_members`、`workgroup_grants`、`workgroup_tasks`、`workgroup_outputs`。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
 | id | string | 是 | `generateId('tf')` | 唯一标识符，前缀 `tf_` |
 | name | string | 是 | -- | 专班名称 |
 | type | string | 是 | -- | 专班类型 |
-| status | `'recruiting'\|'active'\|'archived'\|'dissolved'` | 是 | `'recruiting'` | 专班状态（状态机见 TaskForceRecordStore：recruiting → active → archived/dissolved） |
+| status | `'draft'\|'pending_review'\|'recruiting'\|'active'\|'completed'\|'archived'\|'dissolved'` | 是 | `'recruiting'` | 专班状态；canonical 单一源 `docs/src/core/domain/domain.js::TaskforceStatus / TASKFORCE_STATUSES`。直接流转仅 `recruiting → active`；发起/解散经 `submitForCommittee` / `applyCommitteeDecision`，终态为 `completed/archived/dissolved`。⚠ 与活动 status 是两套枚举，不共用 `published/ongoing/cancelled/pending-approval` |
 | branchId | string | 是 | -- | 所属支部；服务端逐次校验关联记录的支部归属 |
 | activityId | string\|null | 否 | `null` | 旧数据兼容字段；新专班围绕自身任务，不以此字段直接挂靠活动。活动上下文写入具体任务或产出 |
 | workgroupId | string | 是 | `wg-taskforce-{id}` | 对应专班工作组 ID |
@@ -257,15 +261,44 @@ ActivityRecord (主记录)
 
 | 记录 | 核心字段 | 约束 |
 |---|---|---|
-| `WorkGroup` | `id, branchId, kind, sourceType, sourceId, name, status, organizingScope?, hostGroupId?` | `kind` 为 `activity` 或 `taskforce`；活动与专班分别保留自己的业务记录，工作组记录是二者之上的协作结构、不是独立业务对象。**考察记录以工作组为父对象（活动工作组/专班工作组）；`sourceType` 只是工作组类型的投影，不是独立父对象** |
-| `WorkGroupMember` | `id, branchId, workgroupId, personId, role, status, createdBy, createdAt` | 活动与专班工作组的 `role` 均为 `organizer/deep`；成员须属于同一支部。活动一般参与者单独记录为报名，不属于工作组成员；专班可有组织者/深度参与者入组申请，但不设一般参与报名或考勤。登记成员不自动授予系统权限 |
+| `WorkGroup` | `id, branchId, kind, sourceType, sourceId, name, status, organizingScope?, hostGroupId?, recruitmentScope?, crossGroupCoordinatorId?, crossGroupCoordinatedBy?, crossGroupCoordinatedAt?` | `kind` 为 `activity` 或 `taskforce`；活动与专班分别保留自己的业务记录，工作组记录是二者之上的协作结构、不是独立业务对象。**考察记录以工作组为父对象（活动工作组/专班工作组）；`sourceType` 只是工作组类型的投影，不是独立父对象**。`status` 单一源 `domain.js::WorkgroupStatus / WORKGROUP_STATUSES`：活动工作组仅 `active/archived`，专班工作组随专班生命周期；写权限仅 `recruiting/active`，`draft/pending_review` 只读等待，`completed/archived/dissolved` 历史只读。跨组招募标记与协调人随活动创建写入；协调成败由组织台 `POST /workgroups/:id/coordinate` 留痕，不授予活动写权 |
+| `WorkGroupMember` | `id, branchId, workgroupId, personId, role, status, crossGroup?, coordinatedBy?, coordinatedAt?, createdBy, createdAt` | 活动与专班工作组的 `role` 均为 `organizer/deep`；成员须属于同一支部。成员所属党小组≠责任党小组时，必须有 `recruitmentScope='cross-group'` 与协调人，否则服务端拒绝；通过后行上记 `crossGroup:true, coordinatedBy`。活动一般参与者单独记录为报名，不属于工作组成员；专班可有组织者/深度参与者入组申请，但不设一般参与报名或考勤。登记成员不自动授予系统权限 |
 | `WorkGroupGrant` | `id, branchId, workgroupId, personId, templateKey?, permissionKeys[], status, grantedBy, grantedAt, revokedBy?, revokedAt?` | 独立授权留痕；可套用建议模板后调整；服务端按支部、活动与工作组范围校验每项操作 |
 | `WorkGroupTask` | `id, branchId, workgroupId, title, status, activityId?, capabilityPackageId?, isPurpose?` | `status` 为 `open/in_progress/completed/cancelled`；主任务 `isPurpose` 唯一。每个工作组至少有一项经确认的任务才可收尾。关联活动/能力包须同支部 |
 | `WorkGroupOutput` | `id, branchId, workgroupId, taskId?, activityId?, capabilityPackageId?, title, submittedBy, submittedAt, status` | 产出可关联任务、活动与能力包；跨支部或跨工作组引用由服务端拒绝。收尾需所有已登记产出完成登记 |
 
-**工作组创建、权限与生命周期**：活动工作组随活动创建；专班工作组围绕自身任务创建，专班可由能力包承载，也可由一次性任务触发。活动工作组不是独立业务对象，活动记录仍是活动业务的唯一载体；活动承办范围 (`party-group/cross-group`)、参加资格和系统授权是不同维度。党小组组长只能创建本组活动；跨组活动由支书/副书记创建。组织者与深度参与者是并列成员角色；具体操作权限经独立授权接口授予并留痕。活动、成员、任务和产出等跨记录写入都须由服务端校验支部归属。
+#### 2.3.2 schema v11：可下推列与影子子表（非权威源）
+
+> 2026-10-23 批次 504（第九轮 schema 方案）。**JSON 主表仍是唯一权威源**；以下结构只用于读过滤下推、分页与切表准备。
+
+| 结构 | 内容 | 边界 |
+|---|---|---|
+| generated VIRTUAL 列 | `attendances(branch_id,status,person_id,activity_id)`、`inspections(branch_id,activity_id)`、`notices(branch_id)`、`activities(branch_id,status)`、`todos(branch_id)` | 由 `json_extract(data, …)` 生成；只读，不参与业务写入。**一律 VIRTUAL、不是 STORED**——SQLite 不允许给**已有数据**的表 `ALTER … ADD … STORED`；读时计算、可建复合索引 |
+| 复合索引 | `(branch_id,status)`、`(branch_id,person_id,activity_id)`、`(branch_id,activity_id)` 等 | 查询结果须与「整表读 + JS 过滤」逐行等价（`perf-index-equivalence`） |
+| `agenda_items` | `id` 主键 + `data` JSON（`activityId / seq / item / kinds / result …`） | **影子表**：由活动 `agenda[]` 回填/双写；读仍走 JSON |
+| `taskforce_contributions` | `id` 主键 + `data` JSON（`taskforceId / workgroupId / personId / desc / by / at / verified*`） | **影子表**：由 `taskforces.members[].contributions[]` 回填/双写；读仍走 JSON |
+
+**切表判据（全真才可切 · 可执行版＝`server/scripts/schema-split-readiness.mjs`）**：**C1 规模**——单行 JSON `MAX(LENGTH(data))` > 256KB 或 p95 > 32KB 或单表 > 5000 行或 JSON 总量 > 2MB（任一）；**C2 冲突**——同一行 7 天内乐观锁 409 ≥ 3 次（读数＝`snapshot_conflicts` 埋点）；**C3 查询**——`agenda` / `contributions` 子项在 ≥ 2 个读口被按子项过滤/统计；**C4 影子稳定**——影子连续 7 天**每天** `mismatch=0` 且四写路径双写 100%；**C5 制度前置**——`B-500-4` 保留期已裁。**C1–C3 任一 ＋ C4、C5 全真**才可把权威源从 JSON 主表切到子表；未全真时读路径保持 JSON。
+
+**工作组创建、权限与生命周期**：活动工作组随活动创建；专班工作组围绕自身任务创建，专班可由能力包承载，也可由一次性任务触发。活动工作组不是独立业务对象，活动记录仍是活动业务的唯一载体；活动组织落点 (`party-group/branch`)、参加资格和系统授权是不同维度。党小组组长只能创建本组活动；支书/副支书可建任意承办组活动，且须选择唯一承办党小组；支委会、党员大会、党课等支部级法定会议单列 `branch`，不塞党小组。组织者一般由承办党小组承担，他组同志须留例外说明；深度参与者可按需跨组招募，但必须有招募标记与组织委员协调人，成员行记 `crossGroup/coordinatedBy`。组织者与深度参与者是并列成员角色；具体操作权限经独立授权接口授予并留痕。活动、成员、任务和产出等跨记录写入都须由服务端校验支部归属。
 
 工作组收尾以全部登记任务和产出闭合为准；考察依托工作组存在，是否要求提交按事项规则，不因建组自动触发。纪检考察与支委会表决只在制度、议程或该事项明确要求时触发。能力包停用后禁止新建事项，在办事项可以完成，历史只读保留。党委负责目录/模板，支部自主采纳模板版本。
+
+#### 2.3.2 专班 / 工作组状态 canonical 集合（2026-10-20 · R4-D03）
+
+> 状态集合由 UI 流程反推，不再以旧数据已有值作为保留理由。单一源：`docs/src/core/domain/domain.js`
+> （`TaskforceStatus` / `TASKFORCE_STATUSES`、`WorkgroupStatus` / `WORKGROUP_STATUSES`）。
+
+| 分类 | 状态 | UI / 授权判据 |
+|---|---|---|
+| 未开放（只读） | `draft`、`pending_review` | 草稿 / 已报送支委会待表决；页面可查看、可删除或改后重报，工作组不授予写权限 |
+| 在办（可写） | `recruiting`、`active` | 招募中 / 运行中；工作组成员、授权、任务与产出写口仅在此两态放行 |
+| 终态（历史只读） | `completed`、`archived`、`dissolved` | 已完结 / 已归档 / 已解散；收尾与表决解散后的历史保留态 |
+
+- **状态机**：`draft|pending_review --支委会发起表决通过--> recruiting`（未通过 → `draft`）；`recruiting --招募结束--> active`；`active --收尾/表决通过--> dissolved`（表决未通过 → `active`）。`completed/archived/dissolved` 不再回退。
+- **授权单一源**：`docs/src/services/core/auth.js::canDo` 与服务端 `hasWorkgroupPermission` 只认 `WORKGROUP_WRITABLE_STATUSES`；成员/授权/任务/产出写口对 `draft/pending_review` 返回 409，对终态返回「历史只读」。
+- **迁移映射**：历史别名 `in_progress` → `active`；未知状态不得原样复制，一律映射为 `draft` 并标记 `migrationState='pending-review'` 待人工核对。
+- **与活动状态分离**：活动使用 `draft|pending-approval|published|ongoing|completed|cancelled`（页面展示态另由 `deriveActivityLifecycleStatus` 派生）。不得把活动的 `published/ongoing/cancelled/pending-approval` 写入专班或工作组 status。
 
 **能力包目录**：`docs/src/core/domain/capability-packages.js` 是当前静态目录入口。能力包记录所属页面、工作流块、产出块、制度依据状态、适用范围、配置权、依赖和版本。`required/optional/local/pending` 是适用范围属性；制度依据尚未核实时保留 `pending`。党委维护目录与模板，支部自主选择并采纳模板版本。目录编辑和模板发布的专用管理界面尚未建立。T1–T3 是术语授权层级，不作为功能等级。
 
@@ -300,26 +333,29 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | createdAt | string (ISO) | 是 | 创建时间 |
 
 **边界关系**：
-- **活动** (ActivityRecord)：一次活动，带组内/跨组承办范围；需要协同即随活动建立活动工作组
+- **活动** (ActivityRecord)：一次活动，带组织落点（`party-group`/`branch`）与深度参与者招募范围（`group`/`cross-group`）；需要协同即随活动建立活动工作组
 - **系列活动** (SeriesRecord)：时间重复模式，仍关联多条独立活动记录
 - **专班工作组** (TaskForceRecord)：围绕一类任务或产出组织协作，可跨时间；是否表决由制度或具体议程要求决定
 
 ### 2.5 考勤数据 (AttendanceRecord)
 
 > 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js#L35-L46)（AttendanceRecord typedef）
-> **字段命名说明**：`personId` 统一为人员标识字段。代码中仍使用 `userId`，待后续同步。
+> **字段命名说明**：人员标识统一为 `personId`（与 AttendanceRecord typedef 一致）。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
 | id | string | 是 | `generateId()` | 唯一标识符 |
 | activityId | string | 是 | -- | 所属活动 ID |
-| personId | string | 是 | -- | 参会成员人员 ID（统一命名，代码中为 userId） |
+| personId | string | 是 | -- | 参会成员人员 ID（统一命名 personId） |
 | status | `'present'\|'absent'\|'leave'\|'made_up'` | 是 | -- | 出勤状态（出席/缺席/请假/已补） |
-| recordedBy | string | 是 | -- | 记录人用户 ID（纪检委员） |
+| recordedBy | string \| null | 否 | `null` | 记录人用户 ID（纪检委员）。2026-11-02 批次 527：种子大量为 null、上传/确认由运行时动作写入 ⇒ optional |
 | recordedAt | string (ISO) | 是 | -- | 记录时间 |
-| studentId | string | 否 | -- | 学号 |
-| developStage | `'积极分子'\|'发展对象'\|'预备党员'\|'正式党员'` | 否 | -- | 发展阶段（统一中文枚举） |
-| partyGroup | string | 否 | -- | 所属党小组 |
+| confirmed | boolean | 否 | false | 是否已确认（纪检 / 支书 / 副支书确认；**独立于上传位**） |
+| confirmedBy | string | 否 | -- | 确认人 user ID；确认**不改** `recordedBy`（上传人留痕） |
+| confirmedAt | string (ISO) | 否 | -- | 确认时间 |
+| studentId | string | 否 | -- | 学号（**派生**：按 personId 从人员档案现取，种子不落死值） |
+| developStage | `'积极分子'\|'发展对象'\|'预备党员'\|'正式党员'` | 否 | -- | 发展阶段（**派生**：人员档案同名字段；统一中文枚举） |
+| partyGroup | string | 否 | -- | 所属党小组（**派生**：人员档案同名字段） |
 
 **人 × 活动关系**：考勤不是两份互不相关的“人员清单”和“活动清单”，也不是把人员表原样转置；每条考勤事实是一个 `(activityId, personId)` 关系，表达某人在某场活动中的状态。因此矩阵的格子承载关系状态，行列是两个维度的索引。展示人员集取冻结应到人员与已有考勤人员并集，活动集取有冻结名单或考勤事实的活动；应到但未记录显示“未录”，不在冻结名单显示“非应”，没有冻结名单时显示“待冻”。
 
@@ -349,12 +385,17 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 > 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js#L165-L177)（InspectionRecord typedef），持久化域 `mockDB.inspections`（`domain.js:245`，随全量键 `workflowos_branch_db_v1` 持久化）。考察记录用于记录制度、议程或具体事项明确要求的考察工作，不是所有工作组/活动的通用必经步骤；**考察记录以工作组为父对象（活动工作组/专班工作组），`sourceType` 只是工作组类型的投影，不是独立父对象**；组织者/深度参与者与考勤事实分开建模（见本文 §3.3）。
 
+> **父键与展示快照（R4-D04）**：活动考察以 `activityId` 为父键；专班考察以 `workgroupId` 为父键（`taskforceId` 为兼容快照）。`sourceName` **只是展示快照**——关联、查询、成员/支部校验、确认/删除写门一律不得再按名称匹配，专班改名或同名都不会断链/串数据。历史记录无法回填父键时置 `legacy:true` 只读。
+
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
 | id | string | 是 | `generateId('insp')` | 唯一标识符，前缀 `insp_` |
 | sourceType | `'activity'\|'taskforce'` | 是 | -- | 考察来源类型：活动 or 专班 |
-| activityId | string | 是 | -- | 关联活动 ID（sourceType='activity' 时必填） |
-| sourceName | string | 否 | -- | 来源名称（sourceType='taskforce' 时为专班名称） |
+| activityId | string | 否 | -- | 关联活动 ID（sourceType='activity' 时必填） |
+| workgroupId | string | 否 | -- | **稳定父键**：考察所挂工作组 ID（sourceType='taskforce' 时必填） |
+| taskforceId | string | 否 | -- | 专班业务 ID 兼容快照（只读；关联与权限走 workgroupId） |
+| sourceName | string | 否 | -- | **仅展示快照**（sourceType='taskforce' 时为专班名称）；不得作为关联/查询/权限键 |
+| legacy | boolean | 否 | -- | 历史记录无法回填父键时为 `true`：只读，不参与写门与确认/删除 |
 | personId | string | 是 | -- | 人员 ID（引用 people.js）；必须是该考察所挂工作组的成员 |
 | level | `'organize'\|'deep'` | 是 | -- | 考察层级（仅组织者与深度参与者有考察记录） |
 | role | string | 是 | -- | 分工角色+描述（如：策划+全流程统筹、视频制作、PPT 设计） |
@@ -362,7 +403,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | recordedAt | string (ISO) | 是 | -- | 记录时间 |
 | status | `'pending'\|'confirmed'` | 否 | `'pending'` | 考察确认状态（纪检委员确认后录入考察总表） |
 
-> **写入/确认链路**：仅在事项明确要求考察时，按其授权流程写入并由纪检委员处理；不得仅因建立工作组而自动派生考察要求。既有党小组活动/专班考察数据与入口保留，具体流程见纪检委员指南。考察依托工作组：活动工作组的考察挂活动工作组，专班工作组的考察挂专班工作组；没有工作组就没有考察对象。
+> **写入/确认链路**：仅在事项明确要求考察时，按其授权流程写入并由纪检委员处理；不得仅因建立工作组而自动派生考察要求。既有党小组活动/专班考察数据与入口保留，具体流程见纪检委员指南。考察依托工作组：活动工作组的考察挂活动工作组（`activityId`），专班工作组的考察挂专班工作组（`workgroupId`）；没有工作组就没有考察对象。新建专班考察必须写入 `workgroupId`；历史记录由启动迁移回填，无法回填者标 `legacy:true` 只读。
 
 ### 2.6 分工数据 (AssignmentRecord)
 
@@ -429,20 +470,20 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | createdAt | string (ISO) | 是 | -- | 创建时间 |
 | completedAt | string\|null (ISO) | 否 | `null` | 完成时间 |
 
-### 2.9 通知数据 (Notice)
-
-> 类型定义位于 [notice.js](../../../docs/src/services/governance/notice.js)
+### 2.9 消息（Notice：公告 / 系统通知 / 私信）
+> 类型定义与字段口径单一源：[notice.js](../../../docs/src/services/governance/notice.js) 的 `kindOf` / `_normalizeNotice` / `listMessages` / `archiveForViewer`。一条消息只有一个身份，不再按「模块」分页。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
-| id | string | 是 | `'notice-' + Date.now()` | 唯一标识符 |
-| title | string | 是 | -- | 通知标题 |
-| content | string | 是 | -- | 通知内容 |
-| priority | `'urgent'\|'normal'\|'low'` | 是 | `'normal'` | 优先级（紧急/一般/低优） |
-| publishDate | string (YYYY-MM-DD) | 是 | 当前日期 | 发布日期 |
-| expireDate | string\|null (YYYY-MM-DD) | 否 | `null` | 过期日期（过期后不展示） |
-| targetModule | string | 否 | -- | 目标模块（点击跳转用） |
-| read | boolean | 否 | `false` | 是否已读 |
+| id / title / content | string | 是 | -- | 唯一标识 / 标题 / 正文 |
+| kind | `'announcement'\|'system'\|'message'` | 是 | 由来源归一 | 单一身份：公告 / 系统通知 / 私信；`kindOf()` 归一，历史行按此迁移 |
+| priority / publishDate | string | 是 | `'normal'` / 当天 | 优先级（urgent / normal / low）与发布日 |
+| expireDate | string \| null | 否 | 派生 | 目标为活动时＝活动日 + 收尾窗口（`deriveNoticeExpiry`）；过期即系统归档 |
+| audience / audiencePersons / actionRoles | array | 否 | `[]` | 受众三源：sentinel / 角色键、到人 personId、行动角色；命中任一即可见 |
+| targetType / targetId | string | 系统通知与私信必填，公告可空 | -- | 对象坐标（activity / taskforce / thoughtReport）；非公告必须有坐标 |
+| reads | string[] | 是 | `[]` | 逐人已读 personId；读侧 `read` 布尔＝当前人在此表内 |
+| archivedBy / archived | string[] / boolean | 是 / 否 | `[]` / `false` | 逐人归档（可恢复）与系统归档（随活动归档 / 过期，不可恢复） |
+| replyTo / fromPersonId | string \| null | 否 | `null` | 私信回复线程原信 id；发件人 personId（私信仅收发双方可见） |
 
 ### 2.10 经验沉淀 (ExperienceDeposit)
 
@@ -649,6 +690,12 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | hidden / mergedInto | boolean / string\|null | 支书隐藏（不在公开列表显示）/ 合并去向（被合并的 source 置位） |
 | comments | {id, author, authorRole, body, createdAt, kind, hidden, hiddenBy, hiddenReason, hiddenAt}[] | 评论时间线；kind：`comment`（普通评论）/ `reply`（支书正式答复，通知汇报人）/ `dispatch`（指派事件）/ `result`（处置结果）/ `verdict`（支书终审/合并事件）。注：工作汇报型 issue 自身 `kind='report'`（issue 级，非评论时间线 kind，见 issues.js addReport） |
 | resultPending / resultSubmittedAt | boolean / string\|null | 待终审标记（处置结果提交后置位） |
+| kind / reportCategory | `'report'` \| 无 / `'progress'\|'blocked'\|'ask'` | 工作汇报标记与分类（缺省＝意见反馈）。汇报带名、发往支书，走同一 `POST /issues` |
+| workgroupId / sourceType / sourceId / sourceName | string\|null / `'activity'\|'taskforce'`\|null / string\|null / string | **仅工作汇报**的可选父键：关联活动或专班。服务端按工作组复核支部归属并现取源对象名称；个人汇报四项均为空 |
+
+**受众口径（2026-10-21 支书裁定，覆盖批次 498 的「支书层」口径）**：内部汇报对**支委层（支书 / 副支书 / 组织 / 宣传 / 纪检委员）＋当事人（汇报人 / 被请求人 / 被指派人）＋该汇报所挂工作组的组织者＋汇报人所在党小组的组长**可见；隐藏 / 已合并反馈仍只对支书 / 副支书与处置人（按人 / 按角色指派）可见；其余公开反馈本支部成员可读。前后端共用 `docs/src/core/domain/issue-visibility.js::canReadIssue`（服务端 `GET /issues` 同源投影），不得只做支部过滤。汇报父键**可选**：有上下文的带上，不强制挂工作组；「支部向党委报告」仍是独立的 `ReviewRequest`（§2.23），不并入意见反馈。
+
+**汇总口径**：汇报按组织关系提供只读汇总视图——活动 / 专班上下文按**工作组**汇总（组织者看本组），组长台按**党小组**汇总（组长看本组）；汇总使用同一批汇报，不复制、不另造数据。空态给 `—` 与下一步，不造假入口。
 
 **匿名与范围口径（D-824）**：意见反馈必须登录后提交，并始终在提交人所属支部内读取和处置；支部账号不能跨支部读写，党委账号不读取列表、不代为提交，也不能揭名。匿名提交在支部工作人员的列表与详情中始终显示为「匿名」；服务端受保护记录保留真实提交人字段，但当前不提供任何系统揭名入口。无受保护服务端存储的浏览器 mock 只保留匿名业务内容，不持久化真实身份；升级时会清理本机旧匿名缓存与草稿中的身份字段。意见反馈不是向党委上报的通道。此规则不改变正式表决独立的「真无记名」机制。
 
@@ -779,14 +826,15 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 ### 2.18 待办任务数据 (Todo) — 最小三成本原则落地
 
 > **设计依据**：最小三成本原则（见 [DESIGN_SYSTEM.md §一 第2条](../design-system/DESIGN_SYSTEM.md)）——任务流默认直接展示在工作台，不要求用户额外操作才能看到"我需要做什么"。
-> **派生来源**：通知派生（§2.19）+ 活动生命周期事件派生 + 专班生命周期事件派生 + 手动创建。
-> **类型定义将位于** [domain.js](../../../docs/src/core/domain/domain.js)（待新增）。
+> **派生来源**：消息派生（§2.19）+ 活动生命周期事件派生 + 专班生命周期事件派生 + 手动创建。
+> **类型定义**：见 [domain.js](../../../docs/src/core/domain/domain.js) 的 `Todo` typedef（2026-10-23 批次 504 补登）。
 
 #### 2.18.1 字段定义
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
 | id | string | 是 | `generateId('todo')` | 唯一标识符，前缀 `todo_` |
+| branchId | string \| null | 是 | -- | 所属支部（v11 `todos.branch_id`）；**解析不出即拒绝写入**，`null` 仅表示待归属旧行 |
 | title | string | 是 | -- | 待办标题 |
 | description | string | 否 | `''` | 待办描述 |
 | role | string | 是 | -- | 目标角色（secretary/deputy-secretary/org-commissioner/prop-commissioner/disc-commissioner/leader/participant/party-staff/organizer/deep；角色键权威见 constants.js ROLE_KEYS） |
@@ -839,46 +887,46 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 `expired` 不是终态——超期未处理自动转 `expired` 红色标记，用户仍可激活完成。
 
-### 2.19 通知→待办派生机制
+### 2.19 消息→待办派生机制
 
-> **设计依据**：通知分类（信息性 vs 行动性）+ 最小三成本原则——行动性通知自动派生为对应角色待办，用户无需手动从通知列表中筛选"我需要做什么"。
+> **设计依据**：消息分类（信息性 vs 行动性）+ 最小三成本原则——行动性消息自动派生为对应收件人待办，用户无需手动从消息列表筛选"我需要做什么"。
 
-#### 2.19.1 通知扩展字段
+#### 2.19.1 消息扩展字段
 
-通知数据结构（§2.9）新增字段：
+在 §2.9 消息对象上追加（已读沿用 `reads[]`）：
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
-| actionable | boolean | 是 | `false` | 是否为行动性通知 |
+| actionable | boolean | 是 | `false` | 是否为行动性消息 |
 | actionRoles | string[] | 否 | `[]` | 需要执行的角色列表（actionable=true 时必填） |
 | actionTask | string | 否 | -- | 待办任务标题（actionable=true 时必填） |
 | actionDeadline | string (YYYY-MM-DD) | 否 | -- | 行动截止日期 |
-| readBy | string[] | 是 | `[]` | 已读人员 ID 列表（用于未读名单查看） |
+| actionKey | string | 否 | `'notice-read'` | 待办动作键；与 actionType 共同构成幂等键的动作位 |
 | reminderDays | number | 是 | `3` | 自动提醒触发天数（支书发布时配置） |
 | reminders | Array&lt;{type, sentAt, sentBy, targetPersonIds}&gt; | 是 | `[]` | 提醒记录（auto/manual） |
 
 #### 2.19.2 派生规则
 
-- 通知发布时，若 `actionable === true`，系统自动为 `actionRoles` 中的每个角色生成一条待办
-- 待办 `category = 'notice'`，`sourceType = 'notice'`，`sourceId = 通知ID`
-- 待办 `actionType` 由通知类型决定（如材料审核通知→`actionType='review'`）
-- 通知过期或被取消时，关联待办自动标记为 `expired`
+- 消息发布时，若 `actionable === true`，按 `actionRoles` 为每个角色生成一条待办；
+- 待办 `category='notice'`、`sourceType='notice'`、`sourceId=消息 id`，`actionType` 取 `actionKey || actionType`；
+- **幂等键＝`sourceType + sourceId + action + role + personId`**（`docs/src/services/governance/todo.js::_todoKey`）：同一收件人重复派生收敛为一条，不同收件人互不遮挡；
+- 消息过期或被取消时，关联待办标记为 `expired`；已读只销「本人 / 本角色」的阅读待办。
 
-#### 2.19.3 通知未读提醒机制
+#### 2.19.3 消息未读提醒机制
 
 | 提醒类型 | 触发条件 | 执行者 | 频率 |
 |---|---|---|---|
-| 自动提醒 | 发布后 `reminderDays` 天仍未读 | 系统 | 每条通知每用户仅触发一次 |
-| 手动催读 | 支书在通知管理中点击"催读" | 支书 | 可多次，记录写入 `reminders` 数组 |
+| 自动提醒 | 发布后 `reminderDays` 天仍未读（按 `reads[]` 逐人判） | 系统 | 每条消息每用户仅触发一次 |
+| 手动催读 | 支书在消息管理中点击"催读" | 支书 | 可多次，记录写入 `reminders` 数组 |
 
-**权限归属**：通知发布权=支书；自动提醒=系统；手动催读=支书。
+**权限归属**：消息发布权＝支书 / 副支书 / 组织委员 / 宣传委员（本场组织者另可发本场消息）；自动提醒＝系统；手动催读＝支书。
 
-#### 2.19.4 通知分类示例
+#### 2.19.4 消息分类示例
 
 | 类型 | 示例 | 处理方式 |
 |---|---|---|
-| 信息性通知 | "七一活动总结已发布" | 仅首页通知区展示 |
-| 行动性通知 | "本月发展党员材料审核截止7月30日" | 首页展示 + 自动生成组织委员待办 |
+| 信息性消息 | "七一活动总结已发布" | 仅消息中心与铃铛摘要展示 |
+| 行动性消息 | "本月发展党员材料审核截止7月30日" | 消息中心展示 + 自动生成组织委员待办 |
 
 ### 2.20 归档记录扩展字段
 
@@ -1014,18 +1062,18 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 > P3 双向治理通道·下发半侧：党委选目标支部下发 → **复用通知实体**，仅目标支部支委层成员在通知入口可见（支书 2026-09-03 裁定：能复用就复用，不新建「下发箱」领域）。
 
-§2.9 通知基础字段不变，下发时额外写入：
+§2.9 消息基础字段不变，下发时额外写入：
 
 | 字段名 | 类型 | 必填 | 说明 |
 |---|---|---|---|
 | source | `'committee'` | 是 | 来源标记：`'committee'` = 党委下发；缺省 = 支部自发通知（信息性/行动性） |
-| audience | `'committee'` | 是 | 党委下发通知专用取值：常量 `'committee'`（字符串）表示「本支部支委层」；支部自发通知缺省不设本字段。注意区分 §2.19.1 的 `actionRoles`（行动性通知待办执行角色**数组**）——`audience` 是下发专用可见性过滤常量，二者语义不同 |
+| audience | string[] | 是 | 受众**数组**（统一形状）；党委下发通知写 `['committee']`（sentinel＝本支部支委层），支部自发通知写 `['all']` / 角色键 / `leaders` / `activists` 等。注意区分 §2.19.1 的 `actionRoles`（行动性通知待办执行角色**数组**）——两者都是数组，但 `audience` 管可见性、`actionRoles` 管待办执行角色 |
 | branchId | string | 是 | 目标支部（支部动态创建后自动可选） |
 | branchName | string | 否 | 目标支部名快照（支部后续改名不使历史下发未同步） |
-| publisher | string | 否 | 展示覆盖 `'院党委（组织员）'`（通知详情「通知者」不按 targetModule 推断） |
+| publisher | string | 否 | 展示覆盖 `'院党委（组织员）'`（详情「通知者」按 `publisherId` / `publishedBy` 解析，不按页面模块推断） |
 | recipients | string | 否 | 展示覆盖 `'支部委员会（支委层）'` |
 
-**受众过滤规则**（`NoticeStore.list()`）：`audience === 'committee'` 的通知仅对「目标 branchId 支部且角色为支委层（支书/副支书/组织/宣传/纪检）」的当前登录用户可见；普通党员、党委组织员（非支委）一律不可见。支部端「已发布通知」管理区不展示上级下发（只读治理信息，不可删改）。
+**受众过滤规则**（`NoticeStore.list()`）：`audience` 数组含 `'committee'` sentinel 的通知，仅对「目标 branchId 支部且角色为支委层（支书/副支书/组织/宣传/纪检）」的当前登录用户可见；普通党员、党委组织员（非支委）一律不可见。`audience` 统一为数组（裸字符串旧值读时归一为单元素数组）。支部端「已发布通知」管理区不展示上级下发（只读治理信息，不可删改）。
 
 ### 2.25 思想汇报数据 (ThoughtReport)
 
@@ -1051,9 +1099,9 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
-| id | string | 主键，由 `generateId('p')` 派生（形如 `p_<hex>`） |
+| id | string | 主键＝**学号/工号**（与 `studentId` 同值）；学生用学号，教工/党委组织员用工号 |
 | name | string | 姓名（必填） |
-| studentId | string | 学号；**新增成员时采集**；支部内唯一；**同时作为登录账号** |
+| studentId | string | 学号/工号；**新增成员时采集**；支部内唯一；**同时作为登录账号** |
 | enrollYear | string | **届别/入学年份**；用于识别毕业批次，登记流入时采集 |
 | partyGroup | string | 党小组归属；**空字符串即「未分组」**（不属任何党小组） |
 | developStage | string | 发展阶段；枚举单一源见 `core/domain/constants.js::DEVELOP_STAGES` |
@@ -1063,6 +1111,8 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | residenceNote | string | 滞留备注（仅滞留态保留） |
 | residenceHistory | array | 在册状态变更留痕（from/to/updatedBy/updatedAt/note） |
 | selfProfile | object | **成员「自我描述」**（2026-10-05 `D-788` / `V-10b`：支书提供问卷字段清单 ⇒ 落点＝扩本实体）。**字段模型单一源＝`docs/src/core/domain/self-profile.js`**（15 字段 · 四类形态：`text` / `bool` / `multi` / `list`）；详见下表 |
+
+> **人员主键口径（2026-10-20 起，BREAKING）**：`id` 即**学号/工号**，与 `studentId` 同值；学生用学号，教工/党委组织员用工号。`p*` 不再作为人员 id 出现在界面或数据里。服务端 schema **v7 `person-id-student-number`** 在启动时一次性把 `users.id`、`sessions.person_id`、`attachments.uploaded_by` 与全部 JSON 表里的人员引用（组织者/记录人/指派对象/工作组成员/表决名单等）改为学号：单事务、先改 `users.id` 再改引用，无法映射即抛错并在清单里列出、整体回滚；重跑幂等（已全为学号时 `mapped=0`）。旧 id 映射只保留在 `server/migrations/legacy-person-ids.js` 与前端 `docs/src/data/legacy-person-ids.js`（deprecated，仅适配器迁移路径可引用）：旧 `p*` 只作**登录别名**，登录后会话一律存学号；旧链接 `person.html?id=p13` 按映射改写为学号并 `replaceState`，不 404。
 
 **`selfProfile` 子表（字段模型单一源＝`docs/src/core/domain/self-profile.js::SELF_PROFILE_FIELDS`）：**
 
@@ -1123,7 +1173,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 4. **未分组口径**：见 §2.26 行为口径 4；支书台「党小组」tab 顶部显示「未分组 N 人」并提供**行内下拉逐个归组**（名册中未分组成员显示「未分组」标注）。
 5. **组长绑定不落在本实体**：组长由成员档案 `role='leader'` + 党小组归属派生（`services/member/group-view.js::listPartyGroups`）；指派入口＝「党小组」tab 行内（组长 / 副组长），本实体只展示组长。
 6. **硬编码收敛**：支书台「党小组」tab 的组清单、组长建活动的承办党小组选项、演示用户域一律读取**活组清单**单一源（口径：`status='active'` 按 seq 排序）。
-7. **与工作地图的关系**：党小组管理**不新增**工作地图模块，按「职责有入口」原则（DESIGN_SYSTEM.md §4.6）落地为支书台一个 tab。
+7. **与工作地图的关系**：党小组管理**不新增**工作地图模块，按「职责有入口」原则（DS_03_COMPONENTS.md §4.6）落地为支书台一个 tab。
 
 ### 2.28 成员流动台账（MemberFlow）
 
@@ -1153,7 +1203,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 ### 2.29 匿名反馈核查留痕（IssueReveal）
 
-> **仅服务端表**：无前端持久化域、不进快照写穿、**无通用 CRUD**（`server/db.js::RESOURCE_TABLES`）。
+> **仅服务端表**：无前端持久化域、不进快照写穿、**无通用 CRUD**。**v12 已 `DROP TABLE`（2026-10-26），本节为历史字段契约留档**。
 
 > **历史用途**＝记录旧版系统曾由党委调用揭名出口的事件。D-824 之后不再提供揭名入口，历史记录保留、不新增；此表不构成当前任何角色的读取授权。
 
@@ -1170,6 +1220,57 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 1. `/api/v1/issues/reveal` 仅作为旧客户端兼容路径保留；当前所有登录请求均返回 **403**，不读真身、不新增留痕。未登录请求先由认证层返回 **401**。
 2. 本表不在通用资源读写映射内；前端不能通过快照或通用 CRUD 查询、制造或修改留痕。
 3. 既有留痕只用于历史审计，不能反推当前授权，也不能替代未来可能另行裁定的核查流程。
+
+### 2.30 事实 / 派生矩阵（mock 种子事实化，Task 1 · 2026-10-25）
+
+> **判据**：`docs/src/data/mock/**` 只写**事实**（日期、确认动作、归档指向、参会、报名…）；状态、进度、有效期与展示快照一律由唯一派生器 `docs/src/data/mock/derive.js::applyDerivedFacts` 在 hydrate / 播种时补回。派生器纯函数、幂等，只写派生字段，不覆盖 `title` / `date` 等运行时字段；天数取 `core/domain/policy-defaults.js`。
+> **调用点**：mock 三条装载路径（`mock-adapter.js` 的 `_seedInitialData` / `_syncDemoSeedRows` / `repairExistingSeedRows`）与 `server/seed.js::seedDatabase` 落库后，共用同一个 `applyDerivedFacts`。
+
+| 集合 | 字段 | 类别 | 输入（事实） | 派生函数 |
+|---|---|---|---|---|
+| activities | status | derived | `cancelled:true` / `draft:true` / 显式 `draft`、`pending-approval`、未来 `published` / `date` 与今天 | `deriveActivityStatus` |
+| activityReviews | progress | derived | 关联活动是否已结束（`isActivityEnded`） | `deriveReviewProgress` |
+| activityReviews | overdue | derived | 活动日 + `review.deadlineDays`、`reviewStatus` / `submittedAt` / `confirmedAt` | `deriveReviewOverdue`（复用 `isReviewOverdue`） |
+| activities | 会议展示态（待召开 / 进行中 / 已召开 / 已归档 / 已取消） | derived | `cancelled` / `archived` 事实、`date` 与今天、`votesLocked`、考勤 / 复盘 / 议程 `result` | `deriveMeetingStatus`（支委会页签唯一判据，替代页签本地四态 `meetingStatus()`） |
+| inspections | status | derived | `confirmedBy` / `confirmedAt` 确认动作；缺省（含打回后未再确认）＝`pending` | `deriveInspectionStatus` |
+| taskforces | status | derived | `dissolvedAt` / `deletedAt` / `draft` / `pendingReview` / `archived` / `deadline` 与今天 | `deriveTaskforceStatus`（canonical 七态） |
+| archiveRecords | activityName | derived | 归档事实 `activityId` → 活动标题；`materialOnly:true` 行取自带 `title` | `deriveArchiveState` |
+| archiveRecords | status | derived | 归档事实 `activityId` → `archived`；`materialOnly:true` 恒 `archived`；无父键且非材料行保留现值 | `deriveArchiveState` |
+| archiveRecords | archiveDate | runtime / fact | 上传动作写入；`materialOnly:true` 的非活动材料自带 `archiveDate` 事实 | — |
+| archiveRecords | materialOnly / title | fact | **非活动材料**（无 `activityId`）的自带事实；派生器不得用活动标题覆盖 | — |
+| notices | expireDate | derived / fact | `targetType==='activity'` → 活动日 + `review.deadlineDays`；其余通知保留发布人显式 `expireDate` | `deriveNoticeExpiry` |
+| attendances | studentId / developStage / partyGroup | derived | `personId` → 人员档案同名字段（改名 / 转组即时跟随） | `deriveAttendanceSnapshot` |
+| activities | cancelled / draft / date / title | fact | 业务事实，种子与写口负责 | — |
+| attendances | personId / activityId / status | fact | 参会事实（考勤状态由上传动作写入） | — |
+| notices | targetType / targetId / publishDate | fact | 消息对象坐标与发布事实 | — |
+
+#### 2.30.1 会议状态派生判据（`deriveMeetingStatus`）
+
+> 支委会页签、会议详情共用；页签不得再声明本地状态机。判据只读事实，不写库。
+
+| 输入（按优先级） | 输出 |
+|---|---|
+| `cancelled:true` / `status='cancelled'` | 已取消 |
+| `archived:true` | 已归档 |
+| 有考勤 / 复盘 / 议程项 `result` 等会后事实 | 已召开 |
+| `date` 晚于今天且 `votesLocked !== true` | 待召开（**唯一**入口） |
+| `date` 晚于今天且已锁定，或 `date` 等于今天 | 进行中 |
+| `date` 早于今天 | 已召开 |
+| 无 `date` | 进行中（日期缺失不构成「待召开」） |
+
+「应到」单一口径：`attendanceRosters` 冻结名单优先；无冻结名单时回落 `resolveVoterIds('committee')` 现算，并在行内标注「实时」；两者不得相加或互相覆盖。
+
+#### 2.30.2 归档单一事实与同事务同步
+
+> 活动归档动作是唯一事实：`activities.archived`、`archiveRecords`、通知系统归档、待归档待办销项必须在**同一次归档动作**内完成；重复归档不得新增记录、不得报错。
+
+| 形态 | 写口 | 同事务动作 |
+|---|---|---|
+| mock | `docs/src/services/core/mock.js::archiveActivity`（BranchService） | 置 `archived`；`upsertActivityArchiveRecord` 创建/同步归档记录；`NoticeStore.archiveBySource('activity', id)`；`TodoStore.completeByAction('activity', id, 'activity-archive')` |
+| mock（适配器旧口） | `docs/src/data/mock-adapter.js::activities.archive` | 同上（同一纯函数与同一 Store 入口） |
+| API | `server/routes/resources/index.js::POST /activities/:id/archive` | 同一 `db.transaction` 内更新 activities / archive_records / notices / todos |
+
+「待归档」待办改阶段：活动结束（`isActivityEnded`）即由 `LifecycleTodoDeriver.derivePendingArchiveTodos` 生成一条（幂等键 `sourceType+sourceId+actionKey`），归档动作负责完成；历史「归档完成后新建」的滞留待办由 `migrateStaleArchiveTodos` 一次性作废（幂等）。
 
 ---
 
@@ -1217,7 +1318,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 考勤记录 (AttendanceRecord) | mockDB.attendances + localStorage | 随活动创建->随活动归档 | 纪检委员写入，全员可读 |
 | 分工记录 (AssignmentRecord) | mockDB.assignments + localStorage | 随活动创建->待办->进行中->已完成 | 组织者创建分工，深度参与者执行 |
 | 补课任务 (MakeupTask) | mockDB.makeupTasks + localStorage | 缺勤触发->待补课->已完成 | 纪检委员创建，缺勤者执行补课 |
-| 通知 (Notice) | mockDB.notices + localStorage | 创建->持久化 | 系统通知，按类型分级（含行动性通知派生待办机制，见 §2.19） |
+| 通知 (Notice) | mockDB.notices + localStorage | 创建->持久化 | 消息对象（公告 / 系统通知 / 私信），含行动性消息派生待办机制，见 §2.19 |
 | 待办任务 (Todo) | mockDB.todos + localStorage | 创建->pending->in_progress->completed/expired | 最小三成本原则落地——任务流默认直接展示在工作台（见 §2.18） |
 | 经验沉淀 (ExperienceDeposit) | mockDB.experienceDeposits + localStorage | 创建->持久化 | 深度参与者经验总结 |
 | ~~制度文件引用 (ComplianceReference)~~ | **已删（2026-10-02 批次 342 · `CRUD-1`）** | 死表：无 UI 消费方 / 无写口 / 无字段契约 |
@@ -1225,7 +1326,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | SOP 场景模板 (Scenario) | sopData.js (静态代码) | 静态，代码级维护 | 7 个内置场景，驱动任务生成和工作流（内置清单见本文 §2.14） |
 | 工作流定义 (Definition) | definitions.js (静态代码) | 静态，代码级维护 | 3 套流程定义模板（theme-party-day / short-term / long-term），驱动活动流转（与本文 §2.15 一致） |
 | 应用状态 (appState) | core/base/state.js (内存) | 页面生命周期内 | UI 视图状态，不持久化 |
-| 用户/角色预设 (users) | mockDB.users (内存) | 静态预设 | 11 个 `u_*` 系统账号（支书/副支书/支委/3 组长/执行组长/组织者/深度参与者）；登录账号另见 data/mock/accounts.js `MOCK_ACCOUNTS`（`p*`，含党委组织员 p_pc） |
+| 用户/角色预设 (users) | mockDB.users (内存) | 静态预设 | 11 个 `u_*` 系统账号（支书/副支书/支委/3 组长/执行组长/组织者/深度参与者）；登录账号另见 data/mock/accounts.js `MOCK_ACCOUNTS`（账号＝学号，`personId` 同学号；含党委组织员工号 `9000000001`） |
 | 赋权审计 (AuthRecord) | API：服务端 `auth_audit`；mock：localStorage `sop_org_os_auth_audit` | 跨会话持久化 | API 写入须对应服务端核验的同支部角色/工作组成员变更；操作者、时间、支部归属由服务端生成，客户端同名字段不采信 |
 | 角色常量 (ROLE_LABELS/COLORS) | core/domain/constants.js (静态代码) | 静态，代码级维护 | 13 键角色（11 业务 + 2 遗留）的中文标签与视觉配色 |
 | 意见反馈 (IssueRecord) | `docs/data/issues.json` + localStorage `gsm1921-issue-drafts` | open->closed->reopened | GitHub Issue 风格开源讨论，双轨数据层，处置归支委会、由支书主持支委会（`issues.json` 权威源） |
@@ -1237,6 +1338,20 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 读取关联记录时按其所属活动、工作组、专班、党小组或人员解析支部；记录自身与关联对象的支部归属冲突时按无权处理。兼容的无 `branchId` 旧记录按 `br-b1` 读取，新的写入从关联业务记录或操作者取得支部归属。支部局部快照只替换本支部记录并保留其他支部已有行；`users` 与 `branches` 不接受快照写入，必须经过专用接口。跨支部关联写入由服务端逐项拒绝，工作组成员关系也不自动授予操作权限。
 
 活动/工作组分享页对未登录访问者隐藏组织者、工作组成员、报名者、正式名单和负责人姓名，仅展示角色与人数；登录查看仍须处于业务记录所属支部。党委组织员查看姓名前须明确选中对应支部。服务端 API 继续按登录身份和支部范围执行读取授权，页面脱敏不能替代 API 权限。
+
+### 1.2.2 数据保留期与清理边界（2026-10-28 支书裁定）
+
+**业务数据永不自动删除**。活动、通知、待办、归档、贡献、会议等业务记录的生命周期止于业务态（归档 / 关闭 / 完成 / 软删除标记），不因时间推移被脚本按保留期批量清除。
+
+`server/scripts/cleanup.mjs` 的 `--apply` 在业务数据面上只允许清理三类：
+
+1. **孤儿附件**：`uploads/` 中存在、但没有任何 `filePath` / `attachments.path` 引用的物理文件；
+2. **悬空引用**：`attachments` 表中的 `path` 对应的物理文件已不存在的行；
+3. **测试残留**：仅 `--test-residue` 档、以「ID 前缀 ＋ 标题/日期」双条件命中的测试数据及其派生行。
+
+任何业务表（活动、通知、待办、归档、贡献、会议等）都不得由脚本自动删除；`--test-residue` 也不按时间或数量批量删业务数据，只删双条件命中的测试行。旧备份轮转（`--keep`）与显式指定的 `--sessions-before` 属基础设施维护，不触业务表，其中会话清理默认关闭。
+
+若将来需要删除真实业务记录，须支书逐次手动触发并留审计。
 
 ### 1.3 端到端数据流交织图
 
@@ -1418,11 +1533,12 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 |---|---|---|---|
 | `workflowos_branch_db_v1` | 完整 mockDB 状态（全量序列化） | JSON | [data/mock-adapter.js `_saveToStorage()`](../../../docs/src/data/mock-adapter.js#L48-L109)（saveDB/loadDB 已收敛至 MockAdapter，services/core/mock.js 仅保留 API 模式扎口代理） |
 
-**全量键字段清单**（`mock-adapter.js _saveToStorage()` 实际序列化的 35 个字段，按代码顺序）：
+**全量键字段清单**（`mock-adapter.js _saveToStorage()` 实际序列化的 41 个字段，按代码顺序）：
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
 | `_schema` | number | Schema 版本号，当前值为 1（loadDB 校验，不匹配拒绝加载） |
+| `_seedVersion` | number | 种子数据版本（与 `domain.js::SEED_DATA_VERSION` 同源；旧版本本地演示数据自动失效并回新种子） |
 | `users` | User[] | `u_*` 系统账号预设（持久化但恢复时不做运行时污染覆盖） |
 | `activities` | ActivityRecord[] | 活动记录 |
 | `tasks` | Task[] | 任务记录 |
@@ -1437,6 +1553,12 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | `experienceDeposits` | ExperienceDeposit[] | 经验沉淀记录 |
 | `imageRecords` | ImageRecord[] | 图片记录 |
 | `taskforces` | TaskForceRecord[] | 专班记录 |
+| `workgroups` | Workgroup[] | 统一工作组主记录（活动工作组 / 专班工作组合一） |
+| `workgroupMembers` | WorkgroupMember[] | 工作组成员（组织者 / 深度参与者；不含权限） |
+| `workgroupGrants` | WorkgroupGrant[] | 工作组成员授权（与成员分工分离保存） |
+| `workgroupTasks` | WorkgroupTask[] | 工作组任务 |
+| `workgroupOutputs` | WorkgroupOutput[] | 工作组产出物 |
+| `attendanceRosters` | AttendanceRoster[] | 活动应到名单快照（按活动 ID 唯一） |
 | `notices` | Notice[] | 通知记录 |
 | `todos` | Todo[] | 待办任务记录（最小三成本原则落地，见 §2.18） |
 | `signups` | SignupRecord[] | 活动报名及专班组织者/深度参与者入组申请；专班不接受一般参与身份，且申请不生成考勤 |
@@ -1503,7 +1625,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 |---|---|---|---|
 | 人员（学生+系统账号） | `PEOPLE`（people.js）+ `mockDB.users`（domain.js，u_* 系统账号） | 全部渲染层经 `PersonStore.getAll()/getName()` 解析 | 任何模块不得自行硬编码人员名单 |
 | 发展党员追踪 | `PEOPLE.developStage` + `developStage` 变更时落档的 **`developStageSince`**（进入当前阶段日期；**2026-09-28 起在成员档案上、服务端权威**，原为本机覆盖档案 `gsm1921-dev-stage-overrides`） | 组织委员工作台发展党员/人才库 | 候选人由 `_buildCandidates()` 从 PEOPLE 派生（非正式党员），推进落成员档案字段（读口 `loadStageEntryDates()`） |
-| 反馈系统人员 ID | 真实成员短 ID（`p*`，如 `p13`/`p11`/`p1`；不得用 `u_*` 占位） | issue-list/issue-detail/issues.js 渲染层统一 `getPersonName()`/`PersonStore.getName()` 转姓名 | 存储与渲染均不得出现 `u_org_commissioner` 等长 ID；`PersonStore.getName` 解析不到时回退返回 ID 本身 |
+| 反馈系统人员 ID | 真实成员学号/工号（如 `2300010001`/`2400012355`；不得用 `u_*` 占位） | issue-list/issue-detail/issues.js 渲染层统一 `getPersonName()`/`PersonStore.getName()` 转姓名 | 存储与渲染均不得出现 `u_org_commissioner` 等长 ID，也不得出现已退役的 `p*`；`PersonStore.getName` 解析不到时回退返回 ID 本身 |
 | `partyGroups` | `docs/src/services/member/party-group.js`（写口）+ `mockDB.partyGroups` / server 表 `party_groups` | 支书台「党小组」tab 组清单、组长建活动承办组选项、成员名册下拉、group-view 聚合 | 支部级清单，活组（`status='active'`，按 seq 排序）为唯一枚举来源；实体与解散口径见 §2.27 + 单一源登记见 §三 |
 | `memberFlows` | `docs/src/services/member/member-flow.js` + `mockDB.memberFlows` / server 表 `member_flows` | 名册「成员流动」面板（台账 + 对账行）、流入自动建号 | 复式记账台账，对账恒等式「期初 + 流入 − 流出 = 在册」；实体见 §2.28 + 单一源登记见 §三 |
 
@@ -1691,3 +1813,87 @@ KANBAN\_MOCKS（mock/kanban.js）作为独立硬编码的看板数据，与正�
 | SOP 场景与任务模板 | `docs/src/workflow/sopData.js`（场景与任务定义）+ `docs/src/workflow/definitions.js`（工作流定义） |
 | 数据一致性判据与断言方法 | [DATA_CONSISTENCY_CHECKLIST.md](../../05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md) |
 | 沿革与「哪一批做了什么」 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` |
+| **种子契约（必须种子 / 可派生 / 可交叉验证 / 展示专用）** | [DATA_SEED_CONTRACT.md](./DATA_SEED_CONTRACT.md)（v12 起；守卫 `server/test/seed-contract-guard.test.mjs`） |
+
+---
+
+## 附录 A　schema v12 与辅助表字段登记（2026-10-26）
+
+> 本附录只登记 v12 的结构变更与「此前未进字段表」的辅助/语义表；逐表种子口径见
+> [DATA_SEED_CONTRACT.md](./DATA_SEED_CONTRACT.md)。JSON 主表仍是唯一权威源。
+
+### A.1 schema v12（`server/db.js::MIGRATIONS` version 12）
+
+| 变更 | 内容 | 边界 |
+|---|---|---|
+| 唯一索引 | `ux_attendances_activity_person`：`attendances(json_extract(data,'$.activityId'), json_extract(data,'$.personId'))` | 迁移内先幂等去重（保留确认时间最新的一条，同时间按 id） |
+| 唯一索引 | `ux_party_groups_branch_name`：`party_groups(branchId,name)`，`WHERE status='active'` | **部分唯一**：解散组保留同名历史，新建同名活组仍被拒（与 `party-group.js::_nameTaken` 同口径） |
+| 唯一索引 | `ux_attendance_rosters_activity`：`attendance_rosters(json_extract(data,'$.activityId'))` | 一活动一份冻结名单；重复保留 version/frozenAt 最新 |
+| 唯一索引 | `ux_workgroup_members_group_person`：`workgroup_members(workgroupId,personId)` | 重复保留非 removed / 最新 createdAt；撤销＝同一行 status 变更 |
+| 列维护 | `todos.branch_id` 改为 `GENERATED ALWAYS AS (json_extract(data,'$.branchId')) VIRTUAL` | 重建表；`INSERT INTO todos(id,data)` 不变；`UPDATE ... branch_id` 报错（写口只写 `data.branchId`）。回滚用 `rollbackV12`（删索引 + `user_version=11`；生成列保留，v11 已兼容） |
+| 数据回填 | 活动/考勤/考察/归档/宣传/外发/交接/确认/审计/待办补 `branchId` | 父行 → 所属人 → 部署默认支部；不覆盖既有归属 |
+| 数据规范化 | `taskforces.members[].contributions` 字符串 → `{ desc }` | `rebuildShadowTables` / `compareShadowTables` 共用 `normalizeContribution` |
+| 删表 | `issue_reveals`（`DROP TABLE IF EXISTS`） | `initDb` 经 `RETIRED_RESOURCE_TABLES` 不再重建；历史契约见 §2.29 |
+
+### A.2 辅助 / 语义表字段（v12 登记）
+
+| 表（集合） | 字段 | 类别 / 说明 |
+|---|---|---|
+| `signups` | `id, sourceType, sourceId, personId, role, status, createdAt, reviewedBy, reviewedAt, cancelledAt, cancelledBy, note` | 业务；支部由 `sourceId` 父行派生，不单独存 `branchId` |
+| `prop_tasks` | `id, branchId, source, sourceRole?, sourceOrg?, type, summary, status, createdAt` | 业务；`source` 展示快照，`sourceRole/sourceOrg` 为稳定键 |
+| `external_dispatches` | `id, branchId, refType, refLabel, senderId, senderName, receiverRole, note, sentAt, confirmedAt` | 业务；`refLabel` 展示，确认时间运行时 |
+| `member_change_requests` | `id, branchId, personId, fromStage, toStage, meetingResult, activityId, agendaItemId, status, approvedAt, approvedBy, confirmedAt, confirmedBy` | 运行时/派生；来源＝议程结果 |
+| `committee_broadcasts` | `id, branchId, requestId, recipientId, status, broadcastAt, read` | **v12 恒只读**；通用 POST/PATCH/DELETE 返回 409 |
+| `agenda_votes` | 记名：`id, branchId, activityId, agendaItemId, personId, position, note, updatedAt`；无记名：`id=avt-..., branchId, activityId, agendaItemId, ballotMode:'anonymous', tally, updatedAt` | 运行时；逐人选项只在记名制落库 |
+| `attendance_rosters` | `id, branchId, activityId, personIds[], frozen, version, frozenBy, frozenAt` | 运行时；一活动一行 |
+| `handoffs` | `id, branchId, type, from, to, refType, refLabel, refId, note, status, createdAt, confirmedAt, confirmedBy` | 语义端点；`from/to` 由 `type` 派生 |
+| `member_confirmations` | `id, branchId, kind, personId, action, from, to, note, by, status, decidedBy, decidedAt, rejectNote, createdAt` | 语义端点 |
+| `milestones` | `id, title, description, dueDate, issueIds[], status` | 只读语义域 |
+| `attendance_appeals` | `id, branchId, personId, activityId, note, status, createdAt, decidedBy, decidedAt, decisionNote` | 语义端点 |
+| `inspection_appeals` | 同上（申诉对象为考察记录） | 语义端点 |
+| `issue_unread` | `id=assigneeId:issueId, assigneeId, issueId, unread, at` | 语义端点；支部由 issue 派生 |
+| `auth_audit` | `id, branchId, targetPersonId, role, scopeRef, authorizedBy, authorizedAt, action` | 只增留痕 |
+
+### A.3 UI 写入但此前未登记的字段（v12 起登记）
+
+| 集合 | 字段 | 写入点 | 语义 |
+|---|---|---|---|
+| `activityReviews` | `remindedAt` | 复盘提醒动作 | 最后一次提醒时间（运行时） |
+| `activityReviews` | `reminderType` | 复盘提醒动作 | 提醒渠道/类型（运行时） |
+| `activityReviews` | `depositedAt` | 复盘经验沉淀 | 沉淀入库时间（运行时） |
+| `activities` | `galleryFeaturedBy` | 活动风采收录 | 收录操作人（运行时） |
+| `activities` | `galleryFeaturedAt` | 活动风采收录 | 收录时间（运行时） |
+| `todos` | `actionKey` | 待办派生/销项 | 幂等动作键（与 `sourceType+sourceId` 联合判重） |
+| `todos` | `flow` | 待办派生 | 流程标识（如 `attention/execute`） |
+| `notices` | `noticeType` | 消息/站内信 | 通知子类型（`message` 等） |
+| `notices` | `targetModule` | 通知发布 | 目标模块键（深链落点） |
+| `issues` | `domain` | 反馈/汇报提交 | 事项领域（选填；表单侧必填） |
+| `inspections` | `returnedBy` | 考察打回 | 打回操作人 |
+| `inspections` | `returnedAt` | 考察打回 | 打回时间 |
+| `inspections` | `returnReason` | 考察打回 | 打回原因 |
+| `attendances` | `secretaryConfirmedAt` | 支书确认考勤 | 支书确认时间（与纪检确认分开留痕） |
+
+### A.4 死表 / 半死表（v12）
+
+| 表 | 状态 | 依据 |
+|---|---|---|
+| `issue_reveals` | **已 DROP**（v12） | D-824 起停止写入、0 读取入口；`DATA_MODEL` §2.29 保留历史契约 |
+| `committee_broadcasts` | **只读保留** | 通用写口 409；送达由系统通知承担 |
+| `agenda_items` / `taskforce_contributions` | 影子表（无读口） | 仅 `rebuildShadowTables` 双写；已登记 `NO_READ_ALLOWLIST` |
+| `snapshot_conflicts` / `shadow_history` | 证据表（无读口） | 仅切表闸门只读；已登记 `NO_READ_ALLOWLIST` |
+
+---
+
+## 附：系统现行口径承接（2026-11-03）
+
+> 来源：`.ctx/ACTIVE_RULINGS.md` 分类承接；每条末尾 `（D-xxx）` 是决议指针，正文以本文件为准。
+
+- **工作地图 14 模块**：三会一课拆 4 模块（支部党员大会 / 支委会 / 党课＝支书，党小组会＝组长）、主题党日＝组长、共建活动＝组长、发展党员＝支委会、制度制定＝支委会、信息平台＝支委会；模块键集以 `config.workforce` 为准，原 `three-meetings` 键不再有效。（D-577/D-583/D-584/D-586）
+- **民主评议**：缺省主责＝支书；承载＝党员大会 / 党小组会；上传任务归支书。（D-585）
+- **换届选举**：主导＝党委；支部内务视图不列党委为主体，平铺模块降级为中性「上级党委」标注。（D-585/D-717）
+- **制度报送开关**：不勾＝支委会通过即现行版；勾＝转「待党员大会表决」，通过后才成现行版。（D-341/D-555）
+- **活动参与汇总**：以人为第一列。（D-396）
+- **意见反馈 `replyHint`**：随事项领域呈现反馈时间，只呈现、不改流转、不设催办门。（D-598）
+- **活动物理删除**：须连带清理关联数据，不留孤儿行。（D-812）
+- **服务端化判据**：清掉浏览器缓存后记录仍在，才算服务端化；只活在本机的域须进服务端表。（D-631/D-636）
+- **考勤浮窗**：默认带出报名者并保留调整空间；报名不设截止，本场组织者与支书 / 副支书可手动关闭（已报名者仍可取消）。（D-288/D-465/D-546）

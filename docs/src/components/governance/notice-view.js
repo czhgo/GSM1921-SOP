@@ -5,20 +5,23 @@
 //  分层纪律（G1 第③项，2026-09-28）：**服务层不产 UI**。「通知列表卡片 / 铃铛下拉浮窗 /
 //  发布本组通知浮窗」原与 NoticeStore 同住 services/governance/notice.js，服务层因此 import
 //  了组件（badges / modal）——本轮把**视图部分整体搬到这里**（逐字搬迁、零行为变化）；
-//  数据侧只留在 services/governance/notice.js（NoticeStore / NoticePermission / resolveNoticeUrl）。
+//  数据侧只留在 services/governance/notice.js（NoticeStore / NoticePermission）。
 //
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫见 notice-audience / doc-consistency。
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20261018h';
-import { openFormModal } from '../ui/modal.js?v=20261018h';
-import { showToast, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261018h';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261018h';
-import { AuthStore } from '../../services/core/auth.js?v=20261018h';
-import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261018h';
-import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261018h';
-import { NoticeStore, NoticePermission, resolveNoticeUrl } from '../../services/governance/notice.js?v=20261018h';
+import { badgeHtml } from '../ui/badges.js?v=20261102b';
+import { openFormModal } from '../ui/modal.js?v=20261102b';
+import { showToast, getBasePath, todayLocal, escHtml } from '../../core/base/utils.js?v=20261102b';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261102b';
+import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261102b';
+import { NoticeStore, NoticePermission } from '../../services/governance/notice.js?v=20261102b';
+// Task 6：通知 targetUrl 属 direct 深链（通知不在活动工作台内）；缺 id 不写空 URL。
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261102b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
 function committeeSourceChip() {
   return '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>';
 }
@@ -71,8 +74,17 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
     shown = singles.slice(0, limit);
   }
 
+  // 卡尾单一动作行（2026-10-31 支书补充）：未读数与「查看更多」**同一行**——
+  //   左对齐未读数、右对齐入口；不再让「2 条未读」在卡头、「查看更多」在卡尾各占一行。
+  //   `footerCountId` 仅首页传入（#dashboard-notice-count 由 main-entry.js 在同一渲染后回填）。
+  const footerHtml = `
+    <div class="mt-2 flex items-center justify-between gap-2" data-notice-footer>
+      <span${opts.footerCountId ? ` id="${escHtml(opts.footerCountId)}"` : ''} class="text-xs text-gray-500 tabular-nums"></span>
+      <a href="${getBasePath()}messages.html" class="text-xs text-accent">查看更多 →</a>
+    </div>`;
+
   if (shown.length === 0 && byClassList.length === 0) {
-    container.innerHTML = '<p class="text-sm text-gray-500">暂无通知</p>';
+    container.innerHTML = emptyStateHtml({ text: "暂无通知", variant: 'inline' }) + footerHtml;
     return;
   }
 
@@ -84,20 +96,20 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
   /**
    * 单条通知行（列表与聚合展开共用，避免落第二份标记）。
    * 导航行：整行可点，阅读详情即已读；不再单设「确认读取」第二动作。
-   * 用原生 <a> 承载整行，保留 data-notice-id / data-target / data-target-url 落点；
-   * 真实去向仍由统一的点击处理决定（resolveNoticeUrl）。
+   * Task 3（2026-10-25）：全部入口统一先落消息详情 `notice.html?id=`，删除 direct 直跳与页面级兜底。
    */
+  const noticeHref = (n) => `${getBasePath()}notice.html?id=${encodeURIComponent(n.id)}`;
   const rowHtml = (n) => `
-    <a href="${n.targetUrl || `${getBasePath()}notice.html?id=${encodeURIComponent(n.id)}`}" class="notice-item notice-row row-quiet w-full p-0 text-left cursor-pointer hover:bg-gray-50 rounded-lg transition-colors group"
-         data-target="${n.targetModule || ''}" data-notice-id="${n.id}" data-target-url="${n.targetUrl || ''}"
+    <a href="${noticeHref(n)}" class="notice-item notice-row row-quiet w-full text-left cursor-pointer hover:bg-[var(--surface-hover)] rounded-lg transition-colors group"
+         data-notice-id="${n.id}"
          title="${n.title} — ${n.content}">
       ${priorityBadge[n.priority] || ''}
       <div class="notice-row__main">
-        <div class="flex items-center gap-1.5 min-w-0">
+        <div class="flex items-center gap-2 min-w-0">
           ${n.source === 'committee' ? committeeSourceChip() : ''}
-          <span class="notice-row__title group-hover:text-blue-700 transition-colors">${n.title}</span>
+          <span class="notice-row__title group-hover:text-[var(--app-accent-soft-text)] transition-colors">${n.title}</span>
         </div>
-        <span class="notice-row__meta line-clamp-2">${n.content}</span>
+        <span class="notice-row__meta line-clamp-1">${n.content}</span>
       </div>
       <div class="notice-row__actions">
         <span class="notice-row__meta notice-row__meta--flush">${n.publishDate}</span>
@@ -122,7 +134,7 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
     //   展开态与收起态之间加一条分隔线（`[open] > summary` 的下边框）。
     summaryHtml = `<div class="notice-group-bar">${byClassList.map(([label, list]) => `
       <details class="notice-group-chip">
-        <summary class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg cursor-pointer text-sm text-gray-800 hover:bg-gray-50 transition-colors">
+        <summary class="flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer text-sm text-gray-800 hover:bg-[var(--surface-hover)] transition-colors">
           <span class="font-medium">${label}</span>${countCircle(list.length)}
         </summary>
         <div class="notice-group-body row-divider divide-y divide-gray-100">${list.map(rowHtml).join('')}</div>
@@ -130,21 +142,15 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
   }
 
   const listHtml = shown.length ? `<div class="row-divider divide-y divide-gray-100">${shown.map(rowHtml).join('')}</div>`
-    : '<p class="text-sm text-gray-500">暂无新通知</p>';
-  container.innerHTML = summaryHtml + listHtml;
+    : emptyStateHtml({ text: "暂无新通知", variant: 'inline' });
+  container.innerHTML = summaryHtml + listHtml + footerHtml;
 
-  // 整行为导航动作：阅读详情即已读（与工作台未读条同口径），不再设「确认读取」第二动作
+  // 整行为导航动作：统一先落消息详情（Task 3：删除导航前预写已读与 direct 直跳）
   container.querySelectorAll('.notice-item').forEach(item => {
     item.addEventListener('click', (e) => {
       e.preventDefault();
       const id = item.dataset.noticeId;
-      const notice = NoticeStore._notices.find(n => n.id === id);
-      if (id) NoticeStore.markRead(id);
-      // 视觉反馈：点击后标题颜色变浅
-      item.querySelector('.notice-row__title')?.classList.add('text-gray-500');
-      const dest = resolveNoticeUrl(notice);
-      const finalUrl = dest.direct ? dest.url : `${getBasePath()}notice.html?id=${id}`;
-      window.location.href = finalUrl;
+      if (id) window.location.href = `${getBasePath()}notice.html?id=${encodeURIComponent(id)}`;
     });
   });
 }
@@ -207,8 +213,8 @@ export function openGroupNoticeComposer({ activity, accentColor = '#3B82F6', onP
         targetModule: 'activity',
         targetType: 'activity',
         targetId: activity.id,
-        targetUrl: `activity.html?id=${encodeURIComponent(activity.id)}`,
-        read: false,
+        targetUrl: objectDetailHref('activity', activity.id, { entry: 'notice' }) || undefined,
+        // D13：不再写全局 `read` 布尔（逐人已读走 reads/NoticeStore.markRead；旧 read 只做迁移读）。
         audience: [],
         audiencePersons: ids,
         audienceLabel: `${audienceLabel} · 组织者发布`,

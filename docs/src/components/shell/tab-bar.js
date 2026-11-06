@@ -8,11 +8,12 @@
 
 
 
-import { accDarkParts } from '../../core/domain/constants.js?v=20261018h';
+import { icon } from '../../core/base/icons.js?v=20261102b';
+import { showToast, smoothScroll } from '../../core/base/utils.js?v=20261102b';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261018h';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261102b';
 
 
 
@@ -30,65 +31,118 @@ import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?
 
 // U3a（2026-09-07）壳层内容区加载占位 ——「卡片先占位不弹跳」
 
-// 背景：工作台首帧内容容器 0 高 + 懒加载 tab import 完成前内容区空 → 数据/模块到达时
+// 2026-10-27 Task 10（加载与过渡）改口径：
 
-//       整块内容弹出造成布局弹跳。此处统一提供两类占位：
+//   1) 空容器（首帧 / 壳期）→ 立即铺 3 条卡形骨架 + 「正在加载…」，固定 min-height 防 0 高弹跳；
 
-//   1) 骨架卡（tabContentSkeletonHtml）：容器为空（首帧/壳期）→ 固定 min-height 灰块 pulse，
+//   2) 已有旧内容（切页签）→ **旧内容先原样保留**，超过 120ms 仍未完成才淡出 120ms 并换骨架；
 
-//      视觉沿用首页正确做法 dashboard/stats.js 骨架（styles.css 禁改不碰，全 tailwind/内联）。
+//      快速渲染（<120ms）不闪骨架，新内容直接淡入；
 
-//   2) 轻量 loading 行（TAB_LOADING_BAR_HTML）：已有旧内容（切 tab/数据刷新）→ 置灰 + 顶部加载行，
+//   3) 新内容淡入 180ms + 8px 位移；**不整块压暗、不往内容里插「加载中」文本行**；
 
-//      避免旧内容硬留到新内容突然整块替换。
+//   4) 动效编排预算 ≤1s（数据等待本身仍由 8s 超时错误卡兜底）；
 
-// 两处共用：workspace-shell 壳顶层 await 期间注入骨架；tab-bar 每次渲染启动前按容器状态选择占位。
+//   5) prefers-reduced-motion：只淡入 80ms、无位移，骨架与文案保留。
 
-const TAB_LOADING_BAR_HTML = `
-
-  <div data-ws-tab-loading-bar class="flex items-center gap-1.5 text-xs rounded-lg bg-gray-100 px-3 py-1.5 mb-3 w-fit" style="color:var(--neutral-400);">
-
-    <span class="inline-block w-3 h-3 rounded-full animate-spin" style="border:2px solid var(--neutral-200);border-top-color:var(--neutral-400);"></span>
-
-    加载中…
-
-  </div>`;
+// 样式在 `./tab-loading.css`（组件单独文件，styles.css 不改；由本模块动态注入 <link>）。
 
 
 
-/** 内容区加载骨架占位 HTML（首帧/import 完成前注入；固定 min-height 防 0 高弹跳） */
+/** 骨架出现延迟：切页签时旧内容先原样保留，超过该时长仍未完成才铺骨架（防闪烁） */
 
-export function tabContentSkeletonHtml(text = '加载中…') {
+export const TAB_LOADING_SKELETON_DELAY_MS = 120;
+
+/** 旧内容淡出时长（与 --motion-fast 同档） */
+
+export const TAB_CONTENT_FADE_OUT_MS = 120;
+
+/** 新内容淡入时长（150–200ms 区间） */
+
+export const TAB_CONTENT_FADE_IN_MS = 180;
+
+/** 新内容淡入时的位移（自下而上 8px） */
+
+export const TAB_CONTENT_SHIFT_PX = 8;
+
+/** 减少动效时只淡入的时长（无位移） */
+
+export const TAB_CONTENT_FADE_IN_REDUCED_MS = 80;
+
+/** 加载动效编排预算上限：骨架脉冲在 1s 后收敛（数据等待仍由 8s 超时兜底） */
+
+export const TAB_LOADING_SKELETON_MAX_MS = 1000;
+
+
+
+/** 内容区加载骨架 HTML（首帧 / import 完成前注入；3 条卡形 + 「正在加载…」，固定 min-height 防弹跳） */
+
+export function tabContentSkeletonHtml(text = '正在加载…') {
 
   return `
 
-    <div data-ws-tab-loading-bar class="card rounded-xl p-5" style="min-height:320px;display:flex;flex-direction:column;">
+    <div data-ws-tab-loading-bar class="ws-tab-skeleton" role="status" aria-live="polite" aria-busy="true" style="min-height:clamp(320px, 52vh, 560px)">
 
-      <div class="flex items-center gap-2 text-xs" style="color:var(--neutral-400);">
+      <div class="ws-tab-skeleton-head">
 
-        <span class="inline-block w-3 h-3 rounded-full animate-spin" style="border:2px solid var(--neutral-200);border-top-color:var(--neutral-400);"></span>
+        <span class="ws-tab-skeleton-spinner" aria-hidden="true"></span>
 
-        ${text}
-
-      </div>
-
-      <div class="mt-4 space-y-3 flex-1">
-
-        <div class="h-10 rounded-lg bg-gray-100 animate-pulse"></div>
-
-        <div class="h-10 rounded-lg bg-gray-100 animate-pulse"></div>
-
-        <div class="h-10 rounded-lg bg-gray-100 animate-pulse"></div>
-
-        <div class="h-10 rounded-lg bg-gray-100 animate-pulse"></div>
-
-        <div class="h-10 rounded-lg bg-gray-100 animate-pulse"></div>
+        <span class="ws-tab-skeleton-text">${text}</span>
 
       </div>
+
+      <div class="ws-tab-skeleton-row ws-tab-skeleton-row--tall" aria-hidden="true"></div>
+
+      <div class="ws-tab-skeleton-row" aria-hidden="true"></div>
+
+      <div class="ws-tab-skeleton-row" aria-hidden="true"></div>
 
     </div>`;
 
 }
+
+/** 2026-11-01：页签模块加载失败的文案（说明「为什么 + 怎么办」；不暴露模块文件名 / 版本戳，也不用「请刷新」）。
+ *  组件只有一行正文，故说明句并入主文案第二句。 */
+export const TAB_MODULE_FAILURE_COPY = '这个页签没打开，页面可能刚更新过。数据没有丢失，重新载入一下就好';
+
+/** reload 分支按钮文案（与自动自愈动作同一句话） */
+export const TAB_RELOAD_LABEL = '重新载入';
+
+/** R3-U03：页签加载 / 刷新失败统一错误卡（**单一源**：tab-bar 切页签失败 与 workspace-shell
+ *  数据刷新失败 渲染同一张卡；重试按钮标记 `data-ws-tab-retry`，绑定由各自调用方负责）。 */
+export function tabErrorCardHtml(message = '这个页签暂时没加载出来', { action = 'retry' } = {}) {
+  return `
+      <div class="card rounded-xl p-6 text-center" data-ws-tab-error role="alert">
+        <p class="text-sm text-gray-600">${message}</p>
+        ${action === 'reload' ? `<button type="button" class="btn-outline text-xs px-3 py-1.5 mt-3" data-ws-tab-reload>${TAB_RELOAD_LABEL}</button>` : '<button type="button" class="btn-outline text-xs px-3 py-1.5 mt-3" data-ws-tab-retry>重试</button>'}
+      </div>`;
+}
+
+/**
+ * 页内失败态（2026-10-25 Task 1.3）：容器 / 节点缺失、页内动态 import 失败统一走这一处——
+ * 错误卡 + 重试，替代「静默 return」。宿主不可用时返回 false（调用方再退 toast）。
+ * @param {Element|null} host 承载错误卡的容器
+ * @param {{ onRetry?: Function, message?: string, action?: 'retry'|'reload' }} [opts]
+ * @returns {boolean} 是否已渲染
+ */
+export function mountTabFailure(host, { onRetry, message = '加载失败，重试', action = 'retry' } = {}) {
+  if (!host) return false;
+  host.innerHTML = tabErrorCardHtml(message, { action });
+  if (action === 'reload') {
+    host.querySelector('[data-ws-tab-reload]')?.addEventListener('click', () => {
+      try { window.location.reload(); } catch (e) { console.error('[tab-bar] 刷新失败', e); }
+    });
+    return true;
+  }
+  host.querySelector('[data-ws-tab-retry]')?.addEventListener('click', () => {
+    try { onRetry?.(); } catch (e) { console.error('[tab-bar] 重试失败', e); }
+  });
+  return true;
+}
+
+/** 2026-10-25 Task 1.4：loading 占位上限（≤8s）。promise 永不落定时解除 pointer-events:none / 灰化，
+ *  停止 animate-pulse / animate-spin，并给出可见「加载超时」与重试入口——不得永久灰化。 */
+export const TAB_LOADING_TIMEOUT_MS = 8000;
 
 const FALLBACK_ACCENT = {
 
@@ -102,8 +156,139 @@ const FALLBACK_ACCENT = {
 
 
 
-/**
+// ════════════════════════════════════════════════════════════════
+//  组件样式 / 跨文档跳转过渡（2026-10-27 Task 10）
+//   · 样式单独落 `./tab-loading.css`（styles.css 禁改），模块加载时注入 <link>；
+//   · 页面跳转：顶部 2px 品牌色进度条 + 内容淡出 120ms；落地首屏 skeleton 由 workspace-shell
+//     复用 `tabContentSkeletonHtml()` 铺出，新内容统一走 180ms 淡入（见 `_playContentEnter`）。
+// ════════════════════════════════════════════════════════════════
 
+/** 离开当前文档前的淡出时长（与 TAB_CONTENT_FADE_OUT_MS 同档） */
+export const ROUTE_LEAVE_MS = 120;
+
+const TAB_LOADING_CSS_URL = new URL('./tab-loading.css?v=20261102b', import.meta.url).href;
+
+const ROUTE_PROGRESS_ID = 'ws-route-progress';
+
+let _loadingStylesInjected = false;
+
+/** 注入组件样式（幂等；非浏览器环境静默跳过） */
+function _ensureTabLoadingStyles() {
+  if (_loadingStylesInjected || typeof document === 'undefined') return;
+  _loadingStylesInjected = true;
+  try {
+    if (document.getElementById('ws-tab-loading-css')) return;
+    const link = document.createElement('link');
+    link.id = 'ws-tab-loading-css';
+    link.rel = 'stylesheet';
+    link.href = TAB_LOADING_CSS_URL;
+    (document.head || document.documentElement).appendChild(link);
+  } catch (_) { /* 样式加载失败不阻断页签切换 */ }
+}
+
+/** 是否声明了「减少动效」偏好（无 window 的 node 环境一律 false） */
+function _prefersReducedMotion() {
+  try {
+    return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch (_) {
+    return false;
+  }
+}
+
+/** 顶部进度条节点（懒创建；非浏览器环境返回 null） */
+function _routeProgressEl() {
+  if (typeof document === 'undefined') return null;
+  let el = document.getElementById(ROUTE_PROGRESS_ID);
+  if (el) return el;
+  el = document.createElement('div');
+  el.id = ROUTE_PROGRESS_ID;
+  el.className = 'ws-route-progress';
+  el.setAttribute('role', 'presentation');
+  el.setAttribute('aria-hidden', 'true');
+  (document.body || document.documentElement).appendChild(el);
+  return el;
+}
+
+/** 离开前显示顶部 2px 进度条（品牌色；reduced-motion 下静默为静态条） */
+function _showRouteProgress() {
+  const el = _routeProgressEl();
+  if (!el) return;
+  delete el.dataset.done;
+  el.dataset.active = '1';
+  if (typeof el.getBoundingClientRect === 'function') void el.getBoundingClientRect();
+}
+
+/** 页面主内容容器（淡出用；取第一个可用的壳/主区） */
+function _pageStageEl() {
+  if (typeof document === 'undefined') return null;
+  return document.querySelector('main')
+    || document.getElementById('app')
+    || document.querySelector('.app-main')
+    || document.querySelector('.ws-shell-root')
+    || document.body
+    || null;
+}
+
+/** 离开前淡出当前内容 120ms（不白屏硬跳；reduced-motion 时直接跳转） */
+function _fadeOutPage() {
+  const stage = _pageStageEl();
+  if (!stage || !stage.classList) return;
+  stage.dataset.wsRouteLeaving = '1';
+  stage.classList.add('ws-tab-stage', 'is-leaving');
+}
+
+/** 重置跳转视觉（pageshow / bfcache 回退） */
+function _resetRouteVisuals() {
+  if (typeof document === 'undefined') return;
+  const bar = document.getElementById(ROUTE_PROGRESS_ID);
+  if (bar) { delete bar.dataset.active; delete bar.dataset.done; }
+  document.querySelectorAll('[data-ws-route-leaving]').forEach((n) => {
+    n.classList.remove('is-leaving');
+    delete n.dataset.wsRouteLeaving;
+  });
+}
+
+/** 同源文档跳转拦截：显示进度条 + 淡出后落地（仅左键、无修饰键、非新窗口 / 下载 / 纯锚点） */
+function _onRouteClick(event) {
+  if (!event || event.defaultPrevented) return;
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  const target = event.target;
+  const anchor = target && typeof target.closest === 'function' ? target.closest('a[href]') : null;
+  if (!anchor) return;
+  if (anchor.target && anchor.target !== '_self') return;
+  if (anchor.hasAttribute('download')) return;
+  const raw = anchor.getAttribute('href');
+  if (!raw || raw.startsWith('#')) return;
+  let url;
+  try { url = new URL(anchor.href, window.location.href); } catch (_) { return; }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+  if (url.origin !== window.location.origin) return;
+  const here = new URL(window.location.href);
+  if (url.hash && url.pathname === here.pathname && url.search === here.search) return; // 仅锚点
+  if (url.href === here.href) return;
+  event.preventDefault();
+  _showRouteProgress();
+  _fadeOutPage();
+  window.setTimeout(() => { window.location.assign(url.href); }, _prefersReducedMotion() ? 0 : ROUTE_LEAVE_MS);
+}
+
+let _routeHooked = false;
+
+/** 安装页面跳转进度条（幂等；tab-bar 模块加载时自动调用） */
+export function installNavigationProgress() {
+  if (_routeHooked || typeof document === 'undefined' || typeof window === 'undefined') return;
+  _routeHooked = true;
+  _ensureTabLoadingStyles();
+  try {
+    document.addEventListener('click', _onRouteClick);
+    // JS 主动跳转（location.href=）无法拦截点击：至少离开前亮出进度条
+    window.addEventListener('pagehide', _showRouteProgress);
+    window.addEventListener('pageshow', _resetRouteVisuals);
+  } catch (_) { /* 宿主不支持事件绑定时静默降级 */ }
+}
+
+/**
  * 渲染 Tab 栏并绑定切换事件
 
  *
@@ -192,21 +377,22 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
   const { accent, accentRgba, accentBorder } = accentColor || FALLBACK_ACCENT;
 
-  // 分组标签深色三件套（浅底深字 → 夜间提亮底+亮字+亮边框，配合 styles.css --acc-*-dark 覆盖规则）
-
-  const _grpDark = accDarkParts(accent);
-
 
 
   // 生成 Tab 按钮 HTML（active 状态由 CSS 类 + CSS 变量驱动）
-
-  // groupLabel 去重：同组只在首项前渲染标签（独立元素，不嵌在 button 内）
-
-  // 首组（整行第一个出现的标签）不加竖线，后续组加竖线分隔
-
+  //
+  // 2026-10-27 Task 6.1/6.2（脏乱繁 · 页签条分层）：
+  //   · **组名与页签分开**：组名不再夹在页签之间抢宽度（旧结构在 390 下与箭头、末签互挤），
+  //     改为页签条**上方的独立组名行** `.ws-tab-groups`——只显示**当前页签所属组**
+  //     （`当前组：总览`），`role="presentation"` 非按钮、不进 Tab 序列；切页签时随之更新。
+  //     「当前组 + 更多」是 Spec Task 6.1 允许的两行形态：宽度恒定，390 不会把组名挤出视口，
+  //     也不再用任何 `display:none` 隐藏组名。
+  //   · 页签仍**单行不换行**（2026-08-23 支书裁定）；组间保留 1px 分隔线 `.tab-group-sep`，
+  //     页签顺序 / 深链 / 个人排序一概不动（组名只是展示，不参与排序）。
+  //   · 页签行只承载页签与左右箭头（箭头与页签同轴）；右侧动作 `.ws-tab-extra` 随组名行移出页签行。
   const seenGroups = new Set();
 
-  let isFirstGroup = true; // 整行第一个 groupLabel 不加竖线
+  let activeGroupName = '';
 
   const btnsHtml = tabs.map(({ id, label, groupLabel }) => {
 
@@ -214,54 +400,67 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
     const activeClass = isActive ? ' tab-btn-active' : '';
 
-    const activeStyle = isActive
+    // 2026-10-24 批次 508：选中态改由 .tab-btn-active 直接消费 --app-accent-soft-* 令牌，
+    //   不再逐按钮注入 --tab-accent* 内联变量（同名两套机制退场）。
+    const activeStyle = '';
 
-      ? ` style="--tab-accent:${accent};--tab-accent-bg:${accentRgba};--tab-accent-border:${accentBorder}"`
+    // 组名 = groupLabel 去首尾空白（单一源）；当前激活页签的组名供上方组名行使用。
+    const groupName = String(groupLabel ?? '').trim();
 
-      : '';
+    if (isActive) activeGroupName = groupName;
 
-    // groupLabel 只在该组首次出现时渲染（独立元素，不被 button 选中态影响）
+    // 组间分隔线（aria-hidden）：只在某组首项前渲染；整行第一个分组之前不画线。
+    const sepHtml = seenGroups.has(groupName) || seenGroups.size === 0
+      ? ''
+      : '<span class="tab-group-sep" aria-hidden="true"></span>';
 
-    let groupHtml = '';
-
-    if (groupLabel && !seenGroups.has(groupLabel)) {
-
-      seenGroups.add(groupLabel);
-
-      const divider = isFirstGroup
-
-        ? ''
-
-        : `<span style="--acc-bg-dark:#334155;width:1px;height:14px;background:var(--neutral-200);display:inline-block;margin-right:4px;vertical-align:middle;"></span>`;
-
-      groupHtml = `<span class="tab-group-label shrink-0 inline-flex items-center gap-1.5" role="presentation" style="pointer-events:none;user-select:none;">${divider}<span style="padding:1px 5px;border-radius:3px;--acc-bg-dark:${_grpDark.bg};--acc-text-dark:${_grpDark.text};--acc-border-dark:${_grpDark.border};background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);font-weight:600;letter-spacing:0.5px;vertical-align:middle;" class="text-[11px]">${groupLabel}</span></span>`;
-
-      isFirstGroup = false;
-
-    }
+    seenGroups.add(groupName);
 
     // 2026-09-30 批次 297-2 收窄（支书裁「**把这些页头 tab 恢复到之前的模式**」）：
     //   页头 tab **自带选中态强调色**（`.tab-btn-active` ＋ 内联 `--tab-accent`）⇒ **不并入通用族**，
     //   回到迁移前 markup。此处把 `${btnClass}` **内联成字面**（DOM 输出不变），
     //   使 `button-system-guard::B4` 的字面扫描能认出这是「组件自有类」并豁免（见该守卫 COMPONENT_STATE_EXEMPT）。
-    return `${groupHtml}<button type="button" id="${prefix}-tab-${id}" role="tab" aria-selected="${isActive ? 'true' : 'false'}" aria-controls="${contentId}" tabindex="${isActive ? 0 : -1}" class="${prefix}-tab-btn${activeClass} shrink-0 min-h-9 px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}"${activeStyle}>${label}</button>`;
+    // 2026-11-01 批次 524（#7）：追加通用导航属性 `data-ws-tab-btn`——待办跳转改由
+    //   core/session/workspace-nav.js 统一按此属性点击，各台不再复制 `.<role>-tab-btn[data-…]` 选择器。
+    return `${sepHtml}<button type="button" id="${prefix}-tab-${id}" role="tab" aria-selected="${isActive ? 'true' : 'false'}" aria-controls="${contentId}" tabindex="${isActive ? 0 : -1}" class="${prefix}-tab-btn tab-btn${activeClass} shrink-0 min-h-9 px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}" data-ws-tab-btn="${id}"${activeStyle}>${label}</button>`;
 
   }).join('\n');
 
 
 
-  // 右侧动作不属于页签集合：放在 tablist 外，避免读屏把「发布招募」等动作当成页签。
-  const extraHtml = extraRightHtml ? `<div class="ml-auto shrink-0">${extraRightHtml}</div>` : '';
+  // 组名行（页签行之上）：只渲染当前页签所属组；非按钮、不可聚焦，切页签时由 _syncTabA11y 更新。
+  const groupName = activeGroupName;
+
+  const groupsHtml = `<div class="ws-tab-groups" role="presentation"><span class="tab-group-label" role="presentation" data-tab-current-group${groupName ? '' : ' hidden'}>当前组：${groupName}</span></div>`;
+
+
+
+  // 右侧动作不属于页签集合：放在 tablist 与页签滚动容器之外（读屏不把它当页签，也不被 overflow 裁掉），
+  // 2026-10-27 Task 6.1：位置随组名行移出页签行（CSS `order` 归到上面一行）。
+  const extraSlot = extraRightHtml ? `<div class="ws-tab-extra shrink-0">${extraRightHtml}</div>` : '';
 
 
 
   // 单行 + 横向平滑滚动（2026-08-23 支书裁定：tab 数量增加禁止随机换行成 2 行）——
-
+  //
   // flex-nowrap 永不换行，overflow-x-auto 超宽时横向滑动；ws-tab-scroll 样式在 styles.css 统一维护
-
-  // （隐藏滚动条 + scroll-behavior:smooth + 溢出时两侧渐隐遮罩）。
-
-  const html = `<div class="ws-tab-scroll flex flex-nowrap gap-2 mb-4 overflow-x-auto"><div class="flex flex-nowrap gap-2 shrink-0" role="tablist" aria-label="工作台页签">${btnsHtml}</div>${extraHtml}</div><div id="${contentId}" role="tabpanel"></div>`;
+  //
+  // （隐藏滚动条 + scroll-behavior:smooth）。
+  //
+  // 2026-10-19 Spec「页签溢出可发现」：`.ws-tab-scroll` 外包定位容器 `.ws-tab-shell`，
+  //   左右箭头与右侧渐隐只在可滚时出现；tab 自身的尺寸/选中态/顺序/分组完全不动。
+  // 2026-10-27 Task 6.2：箭头改挂页签行 `.ws-tab-row`（与页签共轴、不压组名行）；
+  //   溢出时组名行右端给「还有 N 个」按钮（与箭头同一套滚动逻辑），1440 放开到容器可用宽度。
+  const html = `<div class="ws-tab-shell" style="display:flex;align-items:center;gap:8px;">
+    ${groupsHtml}
+    <div class="ws-tab-row">
+      <button type="button" class="btn-outline btn-icon ws-tab-arrow ws-tab-arrow--left" data-tab-scroll-dir="-1" aria-label="向左滚动页签" hidden>${icon('chevronLeft', { className: 'w-4 h-4', extra: ' aria-hidden="true"' })}</button>
+      <div class="ws-tab-scroll flex flex-nowrap gap-2 mb-4 overflow-x-auto flex-1 min-w-0"><div class="flex flex-nowrap gap-2 shrink-0" role="tablist" aria-label="工作台页签">${btnsHtml}</div></div>
+      <button type="button" class="btn-outline btn-icon ws-tab-arrow ws-tab-arrow--right" data-tab-scroll-dir="1" aria-label="向右滚动页签" hidden>${icon('chevronRight', { className: 'w-4 h-4', extra: ' aria-hidden="true"' })}</button>
+    </div>
+    <button type="button" class="btn-text ws-tab-more" data-tab-more aria-label="还有更多页签" hidden>还有 <span data-tab-more-count>0</span> 个 ›</button>
+    ${extraSlot}
+  </div><div id="${contentId}" role="tabpanel"></div>`;
 
 
 
@@ -281,6 +480,84 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
   let _renderSeq = 0;
 
+  // 2026-10-25 Task 1.2/1.4：占位超时与「上一份完好内容」快照（陈旧写回 / 失败时恢复，不留半截 DOM）
+  let _loadingTimer = null;
+  // 2026-10-27 Task 10：加载/过渡编排定时器（120ms 延迟 → 120ms 淡出 → 骨架；≤1s 收敛；180/80ms 淡入收尾）
+  let _skeletonDelayTimer = null;
+  let _skeletonSwapTimer = null;
+  let _skeletonSettleTimer = null;
+  let _enterTimer = null;
+  let _lastGoodSnapshot = null;
+  // 去重期间又收到「重渲染当前 tab」的请求（setState / 再次点击）→ 本批完成后补渲一次最新态
+  const _renderRequested = new Set();
+  // 回退页签提示去重（同一请求 id 只提示一次，避免每次 setState 刷屏）
+  const _fallbackNotices = new Set();
+  // 2026-10-26 Task 2.4：状态驱动刷新（renderCurrent）不铺占位——
+  //   后台数据到达时不得让内容区 pointer-events:none / 压暗 / 插 loading 行（会打断 hover）。
+  let _backgroundRender = false;
+
+  /** 占位超时：promise 永不落定时解除灰化 + 停止动画 + 可见「加载超时」。 */
+  function _armLoadingTimeout(el) {
+    _clearLoadingTimer();
+    _loadingTimer = setTimeout(() => {
+      _loadingTimer = null;
+      if (!el || el.dataset.wsTabLoading !== '1') return;
+      _endTabLoading();
+      el.innerHTML = tabErrorCardHtml('加载超时');
+      el.querySelector('[data-ws-tab-error]')?.setAttribute('data-ws-tab-timeout', '1');
+      // 超时即视为该批失败：清掉 in-flight，否则再次点击 / 点重试只会拿到同一个永不落定的 Promise。
+      _renderInFlight.delete(currentTab);
+      el.querySelector('[data-ws-tab-retry]')?.addEventListener('click', () => {
+        const cur = tabs.find((t) => t.id === currentTab);
+        if (cur) { _renderInFlight.delete(cur.id); _safeRender(cur); }
+      });
+    }, TAB_LOADING_TIMEOUT_MS);
+  }
+
+  function _clearLoadingTimer() {
+    if (_loadingTimer != null) { clearTimeout(_loadingTimer); _loadingTimer = null; }
+  }
+
+  /** node 侧定时器不阻塞进程退出（浏览器侧为数字句柄，无 unref） */
+  function _setTimer(fn, ms) {
+    const t = setTimeout(fn, ms);
+    if (t && typeof t.unref === 'function') t.unref();
+    return t;
+  }
+
+  /** 清掉过渡编排定时器（骨架延迟 / 淡出换骨架 / 1s 收敛） */
+  function _clearTransitionTimers() {
+    if (_skeletonDelayTimer != null) { clearTimeout(_skeletonDelayTimer); _skeletonDelayTimer = null; }
+    if (_skeletonSwapTimer != null) { clearTimeout(_skeletonSwapTimer); _skeletonSwapTimer = null; }
+    if (_skeletonSettleTimer != null) { clearTimeout(_skeletonSettleTimer); _skeletonSettleTimer = null; }
+  }
+
+  /** 铺骨架（只在「确实需要等待」时调用；固定 min-height 防 0 高弹跳）
+   *  P10：不再把内容区整块 `pointer-events:none`——骨架自身在 tab-loading.css 内局部禁用，
+   *  内容容器保持可命中（骨架期读数 `pointerEvents=auto`），局部禁用 + 「正在加载…」为明确指示。 */
+  function _paintSkeleton(el) {
+    el.innerHTML = tabContentSkeletonHtml();
+    el.dataset.wsTabSkeleton = '1';
+    // 骨架期直接回到不透明（不承接旧内容淡出的 opacity 过渡），见 tab-loading.css::.is-skeleton
+    if (el.classList && typeof el.classList.add === 'function') el.classList.add('is-skeleton');
+  }
+
+  /** 新内容淡入：180ms + 8px 位移；reduced-motion 只淡入 80ms、无位移 */
+  function _playContentEnter(el) {
+    const ms = _prefersReducedMotion() ? TAB_CONTENT_FADE_IN_REDUCED_MS : TAB_CONTENT_FADE_IN_MS;
+    try {
+      el.classList.add('ws-tab-stage');
+      el.classList.remove('is-entering');
+      void el.offsetWidth; // 强制回流，连切页签时动画可重放
+      el.classList.add('is-entering');
+    } catch (_) { /* 非浏览器环境忽略 */ }
+    if (_enterTimer != null) clearTimeout(_enterTimer);
+    _enterTimer = _setTimer(() => {
+      _enterTimer = null;
+      try { el.classList.remove('is-entering'); } catch (_) { /* 节点可能已卸载 */ }
+    }, ms + 40);
+  }
+
 
 
   /** 内容容器（tab-bar 生成的 #${contentId}） */
@@ -293,18 +570,41 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
 
 
-  /** 渲染启动前占位：容器空（首帧/壳期）→ 注入骨架卡；已有旧内容（切 tab/刷新）→ 置灰 + 顶部轻量 loading 行 */
+  /** 渲染启动：容器空（首帧/壳期）→ 立即铺骨架；已有旧内容（切 tab）→ 先原样保留，
+   *  超过 120ms 仍未完成才淡出 120ms 并换骨架（快速渲染不闪骨架）。不整块压暗、不插加载行。 */
   function _beginTabLoading() {
     const el = _tabContentEl();
     if (!el || el.dataset.wsTabLoading === '1') return;
     el.dataset.wsTabLoading = '1';
+    if (typeof el.setAttribute === 'function') el.setAttribute('aria-busy', 'true');
+    // 过渡舞台类（CSS `.ws-tab-stage.is-leaving / .is-entering` 的基类；加一次即长期保留）
+    if (el.classList && typeof el.classList.add === 'function') el.classList.add('ws-tab-stage');
+    _clearTransitionTimers();
     if (!el.innerHTML.trim()) {
-      el.innerHTML = tabContentSkeletonHtml();
+      // 首帧 / 壳期：内容区 0 高，立即铺骨架防布局弹跳
+      _paintSkeleton(el);
     } else {
-      el.style.opacity = '0.45';
-      el.style.pointerEvents = 'none';
-      el.insertAdjacentHTML('afterbegin', TAB_LOADING_BAR_HTML);
+      // 已有旧内容：先原样保留，120ms 后才进入「旧内容淡出 → 骨架」编排
+      _skeletonDelayTimer = _setTimer(() => {
+        _skeletonDelayTimer = null;
+        if (el.dataset.wsTabLoading !== '1') return;
+        el.classList.add('is-leaving');
+        _skeletonSwapTimer = _setTimer(() => {
+          _skeletonSwapTimer = null;
+          if (el.dataset.wsTabLoading !== '1') return;
+          _paintSkeleton(el);
+          el.classList.remove('is-leaving');
+        }, TAB_CONTENT_FADE_OUT_MS);
+      }, TAB_LOADING_SKELETON_DELAY_MS);
     }
+    // 动效编排预算 ≤1s：到点后骨架停止脉冲（数据等待继续，8s 超时错误卡仍兜底）
+    _skeletonSettleTimer = _setTimer(() => {
+      _skeletonSettleTimer = null;
+      if (typeof el.querySelectorAll !== 'function') return;
+      el.querySelectorAll('[data-ws-tab-loading-bar]').forEach((n) => n.setAttribute('data-settled', '1'));
+    }, TAB_LOADING_SKELETON_MAX_MS);
+    // 2026-10-25 Task 1.4：占位必有时限（含首帧骨架）——超时解除灰化、停动画、给可见重试。
+    _armLoadingTimeout(el);
     // U3（2026-09-07）：overview「待答复」直达条槽（内容容器前兄弟）随切 tab 收起——条仅属 overview，
     // 由 overview 外壳 mount 时按需重建，避免条残留显示在其它 tab 内容上方
     const slot = el.previousElementSibling;
@@ -316,95 +616,231 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
 
 
-  /** 渲染完成/异常后收尾：移除 loading 行/骨架残留、还原置灰（内容由各 tab 自身 innerHTML 替换） */
+  /** 渲染完成/异常后收尾：移除骨架残留、还原可点，并让新内容淡入（后台刷新不重放动画） */
 
   function _endTabLoading() {
+
+    _clearLoadingTimer();
+
+    _clearTransitionTimers();
 
     const el = _tabContentEl();
 
     if (!el) return;
 
+    const wasLoading = el.dataset.wsTabLoading === '1';
+
     delete el.dataset.wsTabLoading;
+
+    delete el.dataset.wsTabSkeleton;
+
+    if (typeof el.removeAttribute === 'function') el.removeAttribute('aria-busy');
 
     el.style.opacity = '';
 
     el.style.pointerEvents = '';
 
+    // 摘掉旧内容淡出类；新内容由 `_playContentEnter` 统一 180ms 淡入（reduced-motion 80ms）。
+    // `motion-enter` 属上一版占位实现的残留类：一并摘掉，避免旧节点继续叠 200ms 过渡。
+    el.classList.remove('is-leaving');
+
+    el.classList.remove('is-skeleton');
+
+    el.classList.remove('motion-enter');
+
     el.querySelectorAll('[data-ws-tab-loading-bar]').forEach(n => n.remove());
+
+    // 2026-10-26 Task 2.4：状态驱动的后台刷新不铺占位，也不重放入场动画（避免打断 hover / 整块闪）
+    if (wasLoading) _playContentEnter(el);
 
   }
 
 
 
+  /** 渲染上下文解析（2026-10-25 Task 1.1）：壳传函数时**每次渲染取最新 state**，不再使用建栏时的冻结快照。
+   *  兼容旧调用方仍传对象（原样返回）。 */
+  function _resolveCtx(ctx) {
+    try {
+      if (typeof ctx === 'function') return ctx();
+      if (ctx !== undefined && ctx !== null) return ctx;
+      return typeof renderCtx === 'function' ? renderCtx() : renderCtx;
+    } catch (e) {
+      console.error('[tab-bar] 渲染上下文解析失败，按空上下文继续', e);
+      return {};
+    }
+  }
+
+  /** 重渲染当前 tab（陈旧写回纠正 / 去重补渲共用） */
+  function _rerenderCurrent() {
+    const cur = tabs.find((t) => t.id === currentTab);
+    if (cur) _safeRender(cur);
+  }
+
+  /** 恢复上一份完好内容（陈旧写回 / 失败时用；无快照则不动，交由随后的重渲染覆盖） */
+  function _restoreLastGood() {
+    const el = _tabContentEl();
+    if (el && typeof _lastGoodSnapshot === 'string') el.innerHTML = _lastGoodSnapshot;
+  }
+
+  /** 2026-11-01：页签模块失败的「同会话自愈一次」标记（sessionStorage，键含 tab.id）。
+   *  存储不可用时按「已用过」处理 —— 宁可出错误卡，也不做一次可能无限循环的 reload。 */
+  const TAB_SELFHEAL_KEY_PREFIX = 'gsm1921-tab-selfheal-';
+  function _tabSelfHealKey(tabId) { return `${TAB_SELFHEAL_KEY_PREFIX}${tabId}`; }
+  function _hasSelfHealed(tabId) {
+    try { return window.sessionStorage.getItem(_tabSelfHealKey(tabId)) === '1'; } catch (_) { return true; }
+  }
+  function _markSelfHealed(tabId) {
+    try { window.sessionStorage.setItem(_tabSelfHealKey(tabId), '1'); return true; } catch (_) { return false; }
+  }
+  function _clearSelfHealed(tabId) {
+    try { window.sessionStorage.removeItem(_tabSelfHealKey(tabId)); } catch (_) { /* 存储不可用：无需清理 */ }
+  }
+
+  /** R3-U03：页签模块 import / 渲染失败 → 容器内统一错误卡（保留页签栏，不整页遮罩）。 */
+  function _renderTabError(tab, err) {
+    const el = _tabContentEl();
+    if (!el) return;
+    _endTabLoading();
+    // 模块加载/解析失败：同一模块图不会自愈（重试必然再失败）。
+    // 2026-11-01：本会话第一次失败先自动重新载入一次（多半是页面刚更新、浏览器还留着旧文件）；
+    //   已置位（第二次仍失败）才出错误卡，避免 reload 死循环。标记在本页签渲染成功后清除。
+    //   判据来自能力表 loadTabModule 挂上的 __moduleSpec，不由渲染期异常冒充。
+    const spec = err && typeof err === 'object' ? err.__moduleSpec : null;
+    if (spec) {
+      if (!_hasSelfHealed(tab.id) && _markSelfHealed(tab.id)) {
+        try {
+          window.location.reload();
+          return;
+        } catch (e) {
+          console.error('[tab-bar] 自动重新载入失败', e);
+        }
+      }
+      mountTabFailure(el, {
+        message: TAB_MODULE_FAILURE_COPY,
+        action: 'reload',
+      });
+      return;
+    }
+    mountTabFailure(el, {
+      message: '这个页签暂时没加载出来',
+      onRetry: () => {
+        // 清掉失败缓存后重新走同一渲染链（含占位 / 并行去重 / 陈旧纠正）。
+        _renderInFlight.delete(tab.id);
+        _safeRender(tab);
+      },
+    });
+  }
+
+  /**
+   * 统一渲染生命周期（2026-10-25 Task 1.2/1.3/1.4）：
+   *   seq 序号 → 去重 → **切换前清 `dataset.currentTab`** → 等待 Promise → 失败可见（错误卡 + 重试）
+   *   → **陈旧写回先恢复上一快照再纠正当前 tab**（不得让旧 tab 的晚到覆盖新 tab，也不留半截 DOM）。
+   * @returns {Promise<boolean>} 本次渲染批次结束（永不 reject）
+   */
   function _safeRender(tab, ctx) {
 
-    if (!tab || typeof tab.render !== 'function') return;
+    if (!tab || typeof tab.render !== 'function') return Promise.resolve(false);
 
     let p = _renderInFlight.get(tab.id);
 
-    if (!p) {
-
-      try {
-
-        // U3a：渲染启动前先占位/置灰（首帧防 0 高弹跳；切 tab 防旧内容硬留到新内容突然整块替换）
-
-        const seq = ++_renderSeq;
-
-        _beginTabLoading();
-
-        // 跨 tab 共享容器约定 `dataset.currentTab`（见 today / group-progress / insight-view / calendar /
-        //   work-map / feedback / overview / notification / report-up 等十余处）＝「**标记符还在 ⇒ 我的骨架还在**」，
-        //   据此决定「是否重建骨架」。但**陈旧 tab 的覆盖写入不改该标记** ⇒ 上面那条「重渲染当前 tab」的纠正
-        //   会被该守卫挡住（标记仍指目标 tab、DOM 却已被换掉 ⇒ 目标 tab 找不到自己的 root 而静默 return，
-        //   残影照旧）。故：凡由本模块发起的渲染，先把该标记清掉，强制目标 tab 走**整段重渲染**、不留残影。
-        //   （状态变化重渲染走 `workspace-shell::_renderCurrentTab` → `tab.render` 直调，不经此处 ⇒ 该优化仍在。）
-        const _el0 = _tabContentEl();
-        if (_el0) delete _el0.dataset.currentTab;
-
-        p = Promise.resolve(tab.render(ctx));
-
-        const done = () => {
-
-          if (seq === _renderSeq) _endTabLoading();
-
-          if (_renderInFlight.get(tab.id) === p) _renderInFlight.delete(tab.id);
-
-          // 陈旧渲染纠正（2026-10-05 批次 386 · objective #7「tab 在切换和加载中存在加载不出来」）：
-          //   各 tab 的 render 由动态 import 驱动、**import 解析后才写共享容器** `#<prefix>-tab-content`
-          //   ⇒ 「先点（更早发起 import）的 tab 其模块后到」时，会把当前 tab 已渲染的内容覆盖掉
-          //   （症状＝高亮停在后点的 tab、内容却是先点的那个；快速连切时必现，读起来像「点了加载不出来」）。
-          //   故：本次渲染落定后若**已不是当前 tab**，则重渲染当前 tab 纠正之
-          //   （`_renderInFlight` 去重：当前 tab 若仍在渲染中则自然跳过，不会重复 import）。
-          if (currentTab !== tab.id) {
-            const cur = tabs.find((t) => t.id === currentTab);
-            if (cur) _safeRender(cur, ctx);
-          }
-
-        };
-
-        p.then(done, done);
-
-      } catch (e) {
-
-        console.error(`[tab-bar] tab「${tab.id}」渲染异常`, e);
-
-        _endTabLoading(); // U3a：异常也收尾（防占位/置灰残留）
-
-        return;
-
-      }
-
-      _renderInFlight.set(tab.id, p);
-
+    if (p) {
+      // 去重期间的新请求（setState / 再次点击同一 tab）→ 本批完成后按最新 state 补渲一次
+      if (currentTab === tab.id) _renderRequested.add(tab.id);
+      return p;
     }
 
-    p.catch(e => console.error(`[tab-bar] tab「${tab.id}」渲染失败`, e));
+    const seq = ++_renderSeq;
+    const el = _tabContentEl();
 
+    // U3a：渲染启动前先占位/置灰（首帧防 0 高弹跳；切 tab 防旧内容硬留到新内容突然整块替换）
+    // Task 2.4：状态驱动的后台刷新不铺占位（`_backgroundRender`），避免打断 hover / 整块变暗。
+    if (!_backgroundRender) _beginTabLoading();
+
+    // 跨 tab 共享容器约定 `dataset.currentTab`（见 today / group-progress / insight-view / calendar /
+    //   work-map / feedback / overview / notification / report-up 等十余处）＝「**标记符还在 ⇒ 我的骨架还在**」，
+    //   据此决定「是否重建骨架」。陈旧 tab 的覆盖写入不改该标记 ⇒ 纠正会被该守卫挡住（标记仍指目标 tab、
+    //   DOM 却已被换掉 ⇒ 目标 tab 找不到自己的 root 而静默 return，残影照旧）。
+    //   故：两条渲染路径（点击 / 状态刷新）都在渲染前清标记，强制目标 tab 走**整段重渲染**、不留残影。
+    if (el) delete el.dataset.currentTab;
+
+    let resolveInflight;
+    p = new Promise((resolve) => { resolveInflight = resolve; });
+    _renderInFlight.set(tab.id, p);
+
+    const finish = (ok) => {
+      if (_renderInFlight.get(tab.id) === p) _renderInFlight.delete(tab.id);
+      resolveInflight(ok);
+      if (_renderRequested.delete(tab.id) && currentTab === tab.id) {
+        Promise.resolve().then(() => { if (currentTab === tab.id) _safeRender(tab); });
+      }
+      return p;
+    };
+
+    let rendered;
+    try {
+      rendered = tab.render(_resolveCtx(ctx));
+    } catch (e) {
+      console.error(`[tab-bar] tab「${tab.id}」渲染异常`, e);
+      if (seq === _renderSeq) {
+        _endTabLoading();
+        _renderTabError(tab, e);
+      } else {
+        _restoreLastGood();
+        _rerenderCurrent();
+      }
+      return finish(false);
+    }
+
+    Promise.resolve(rendered).then(() => {
+      if (seq === _renderSeq && currentTab === tab.id) {
+        _endTabLoading();
+        // 2026-11-01：本页签真的渲染成功 ⇒ 清掉一次性自愈标记，下一次真故障仍可自愈一次。
+        _clearSelfHealed(tab.id);
+        const cur = _tabContentEl();
+        if (cur) _lastGoodSnapshot = cur.innerHTML;
+      } else {
+        // 陈旧写回（2026-10-05 批次 386 objective #7）：先恢复上一份完好内容（不留半截 DOM），
+        // 再重渲染当前 tab 纠正（去重：当前 tab 仍在渲染中则自然跳过）。
+        _restoreLastGood();
+        _rerenderCurrent();
+      }
+      finish(true);
+    }, (e) => {
+      console.error(`[tab-bar] tab「${tab.id}」渲染失败`, e);
+      if (seq === _renderSeq) {
+        _endTabLoading();
+        _renderTabError(tab, e);
+      } else {
+        _restoreLastGood();
+        _rerenderCurrent();
+      }
+      finish(false);
+    });
+
+    return p;
+
+  }
+
+  /** 状态变化触发的刷新（workspace-shell::_renderCurrentTab 唯一入口）——与点击共用同一生命周期。
+   *  2026-10-26 Task 2.4：与点击的区别只有「不铺占位」——后台数据到达时不得把内容区
+   *  `pointer-events:none` / 压暗并插入 loading 行（那会让正在 hover 的日历/列表失焦、整块闪一下）。
+   *  失败 / 陈旧写回 / 去重仍走同一套 `_safeRender` 分支。 */
+  function renderCurrent(ctx) {
+    const tab = tabs.find((t) => t.id === currentTab);
+    if (!tab) return Promise.resolve(false);
+    _backgroundRender = true;
+    try {
+      return _safeRender(tab, ctx);
+    } finally {
+      _backgroundRender = false;
+    }
   }
 
 
 
-  /** S2 键盘可达（2026-09-12）：同步 tab 按钮的选中态 ARIA 与 roving tabindex（仅选中项可 Tab 入）。 */
+  /** S2 键盘可达（2026-09-12）：同步 tab 按钮的选中态 ARIA 与 roving tabindex（仅选中项可 Tab 入）。
+   *  2026-10-27 Task 6.1：同步页签条上方组名行（`当前组：…`）——组名不是按钮、不进 Tab 序列，
+   *  只随当前页签更新，避免 390 下组名与页签抢宽度。 */
   function _syncTabA11y(tabId) {
     if (!boundContainer) return;
     boundContainer.querySelectorAll(`.${btnClass}`).forEach(b => {
@@ -412,9 +848,69 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
       b.setAttribute('aria-selected', on ? 'true' : 'false');
       b.setAttribute('tabindex', on ? '0' : '-1');
     });
+    const groupEl = boundContainer.querySelector('[data-tab-current-group]');
+    if (groupEl) {
+      const name = String((tabs.find(t => t.id === tabId) || {}).groupLabel ?? '').trim();
+      groupEl.textContent = name ? `当前组：${name}` : '';
+      groupEl.hidden = !name;
+    }
     // 内容区 = tabpanel：用当前页签的名字作为可访问名称（与 aria-controls 成对）。
     const panel = _tabContentEl();
     if (panel) panel.setAttribute('aria-labelledby', `${prefix}-tab-${tabId}`);
+  }
+
+  /**
+   * 页签溢出提示（2026-10-19）：左右箭头只在可滚时出现，右侧渐隐随滚动位置切换。
+   * 不改变 tab 尺寸 / 选中态 / 顺序；滚动步长 240px，平滑滚动。
+   * 2026-10-27 Task 6.2：组名行右端「还有 N 个」按钮与箭头同一套显隐（右侧还剩几个整页签），
+   * 点击同箭头右滚 240px；箭头挂页签行 `.ws-tab-row`，与页签共轴、不覆盖组名。
+   */
+  function _bindTabScroll(container) {
+    const shell = container.querySelector('.ws-tab-shell');
+    if (!shell) return;
+    const scroller = shell.querySelector('.ws-tab-scroll');
+    const left = shell.querySelector('.ws-tab-arrow--left');
+    const right = shell.querySelector('.ws-tab-arrow--right');
+    const more = shell.querySelector('[data-tab-more]');
+    const moreCount = more?.querySelector('[data-tab-more-count]');
+    if (!scroller || !left || !right) return;
+
+    const STEP = 240;
+    const sync = () => {
+      const max = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+      const x = scroller.scrollLeft;
+      const canScroll = max > 1;
+      const atStart = x <= 1;
+      const atEnd = x >= max - 1;
+      left.hidden = !canScroll || atStart;
+      right.hidden = !canScroll || atEnd;
+      if (more) {
+        // 右侧被箭头 / 渐隐压住的 40px 不计入「可见」；到末端即无「还有」。
+        const edge = scroller.getBoundingClientRect().right - (canScroll ? 44 : 0);
+        const rest = canScroll && !atEnd
+          ? [...scroller.querySelectorAll('button[role="tab"]')]
+            .filter((b) => b.getBoundingClientRect().right > edge + 1).length
+          : 0;
+        more.hidden = rest === 0;
+        if (moreCount) moreCount.textContent = String(rest);
+        more.setAttribute('aria-label', rest ? `还有 ${rest} 个页签，向右滚动` : '还有更多页签');
+      }
+      shell.toggleAttribute('data-scrollable', canScroll);
+      shell.toggleAttribute('data-scroll-end', atEnd);
+    };
+    // resize 重算：容器被重渲染后自动解绑（避免每次 entry 重渲染累积 window 监听）
+    const onResize = () => {
+      if (!scroller.isConnected) { window.removeEventListener('resize', onResize); return; }
+      sync();
+    };
+
+    left.addEventListener('click', () => smoothScroll(scroller, { left: -STEP, relative: true }));
+    right.addEventListener('click', () => smoothScroll(scroller, { left: STEP, relative: true }));
+    more?.addEventListener('click', () => smoothScroll(scroller, { left: STEP, relative: true }));
+    scroller.addEventListener('scroll', sync, { passive: true });
+    window.addEventListener('resize', onResize);
+    sync();
+    requestAnimationFrame(sync);
   }
 
   function bindEvents(container) {
@@ -428,8 +924,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
         });
         // 激活当前 Tab（添加 active 类 + 注入 CSS 变量）
         btn.classList.add('tab-btn-active');
-        btn.setAttribute('style', `--tab-accent:${accent};--tab-accent-bg:${accentRgba};--tab-accent-border:${accentBorder}`);
-        // 渲染内容
+
         const tabId = btn.getAttribute(dataAttr);
         _syncTabA11y(tabId);
         // 记忆到 localStorage
@@ -439,8 +934,9 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
         const tab = tabs.find(t => t.id === tabId);
         currentTab = tabId;
         if (typeof onTabChange === 'function') onTabChange(tabId, tab);
-        // 懒加载支持：render 可能返回 Promise（动态 import），统一去重兜底（T-304）
-        _safeRender(tab, renderCtx);
+        // 懒加载支持：render 可能返回 Promise（动态 import），统一去重兜底（T-304）。
+        // 2026-10-25 Task 1.1：不传 ctx ⇒ 每次点击按 renderCtx() 取**最新 state**（切月 → 切走 → 切回）。
+        _safeRender(tab);
       });
     });
 
@@ -461,6 +957,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
         btns[next].focus();
       });
     }
+    _bindTabScroll(container);
   }
 
 
@@ -488,12 +985,19 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
     if (fellBack) {
 
       console.warn(`[tab-bar] tab「${tabId}」不在当前可见清单（可能已被支部配置隐藏），回退到「${targetId}」`);
+      // 2026-10-25 Task 1.6：回退必须**可见说明**，不得「点 A 亮 B」无提示（同一请求只提示一次）。
+      if (tabId && targetId && !_fallbackNotices.has(tabId)) {
+        _fallbackNotices.add(tabId);
+        const from = (tabs.find((t) => t.id === tabId) || {}).label || tabId;
+        const to = (tabs.find((t) => t.id === targetId) || {}).label || targetId;
+        setTimeout(() => showToast('info', `「${from}」不在本角色的可见页签，已回到「${to}」`), 300);
+      }
 
     }
 
     tabId = targetId;
 
-    if (!tabId) return; // 无可渲染 tab（理论不发生：核心组固定保证至少一个可见）
+    if (!tabId) return Promise.resolve(false); // 无可渲染 tab（理论不发生：核心组固定保证至少一个可见）
 
     currentTab = tabId;
 
@@ -520,21 +1024,48 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
       const btn = boundContainer.querySelector(`.${btnClass}[${dataAttr}="${tabId}"]`);
       if (btn) {
         btn.classList.add('tab-btn-active');
-        btn.setAttribute('style', `--tab-accent:${accent};--tab-accent-bg:${accentRgba};--tab-accent-border:${accentBorder}`);
+
+        // R3-D05：激活页签若在横向滚动视口外，滚到最近可见位置。
+        // 2026-10-27 Task 2（阶段一 · 键盘起点）：**只改滚动容器的 scrollLeft**，不用元素级
+        //   滚动到视口——后者会把浏览器「顺序焦点导航起点」挪到该页签上，刷新后首次 Tab
+        //   落到页签条中段而不是「跳到主要内容」。保留「激活页签可见」能力（含左右留 8px）。
+        const scroller = boundContainer.querySelector('.ws-tab-scroll');
+        if (scroller) {
+          try {
+            const sRect = scroller.getBoundingClientRect();
+            const bRect = btn.getBoundingClientRect();
+            const pad = 8;
+            let left = scroller.scrollLeft;
+            if (bRect.left < sRect.left + pad) left -= (sRect.left + pad - bRect.left);
+            else if (bRect.right > sRect.right - pad) left += (bRect.right - (sRect.right - pad));
+            if (left !== scroller.scrollLeft) {
+              // 尊重减少动效偏好：CSS 已声明 scroll-behavior:smooth，偏好减少时用 auto 落位。
+              if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                smoothScroll(scroller, { left, smooth: false });
+              } else {
+                scroller.scrollLeft = left;
+              }
+            }
+          } catch (_) { /* 非浏览器环境 / 老浏览器：静默降级 */ }
+        }
       }
     }
     _syncTabA11y(tabId);
     const tab = tabs.find(t => t.id === tabId);
 
-    // 懒加载支持：render 可能返回 Promise（动态 import），统一去重兜底（T-304）
+    // 懒加载支持：render 可能返回 Promise（动态 import），统一去重兜底（T-304）。
+    // 2026-10-25 Task 1.1/1.2：返回 Promise ⇒ 壳可等待首次渲染完成；ctx 缺省时按最新 state 解析。
 
-    _safeRender(tab, ctx || renderCtx);
+    return _safeRender(tab, ctx);
 
   }
 
 
 
-  return { html, bindEvents, activate, contentId, activeTab, tabs, get currentTab() { return currentTab; } };
+  return { html, bindEvents, activate, renderCurrent, contentId, activeTab, tabs, get currentTab() { return currentTab; } };
 
 }
+
+// 模块加载即注入组件样式 + 跳转进度条（node 测试环境无 document / window ⇒ 自动跳过）
+installNavigationProgress();
 

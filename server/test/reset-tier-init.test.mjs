@@ -27,11 +27,13 @@ const {
   INIT_BLOB_KEY, INIT_BLOB_CLEAR_DEFAULTS, INIT_WHITELIST_STANDALONE_KEYS,
   INIT_STATE_KEY, stripSeedRecordsIfInitState,
   collectInitKeys, trimInitBlob, handleInitResetIfRequested,
-} = await import('../../docs/src/services/core/init-reset.js?v=20261018h');
+} = await import('../../docs/src/services/core/init-reset.js?v=20261102b');
 // 接线冒烟（⑤）：走 services/core/mock.js loadDB 可改 reset 链（数据源默认 mock）
-const { loadDB, saveDB } = await import('../../docs/src/services/core/mock.js?v=20261018h');
+const { loadDB, saveDB } = await import('../../docs/src/services/core/mock.js?v=20261102b');
 // C2 修复（⑥）：浏览器加载链多轮 loadDB 稳态断言（内存 mockDB 与浏览器同源单例）
-const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261018h');
+const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261102b');
+// 专班域自 B-499-8 起纳入 init 清空范围（不再按「空即回种子」恒常装载），
+// 断言据此改为真实空态；种子常量的增删不再影响本文件的期望值。
 
 // ── 内存桩（与 reset-tier.test.mjs 同构）────────────────────────
 function makeStorage(seed = {}) {
@@ -73,45 +75,45 @@ const BLOB = {
   _schema: 1,
   users: [
     { id: 'u_sec', role: 'secretary', name: '支书' },
-    { id: 'p13', role: 'secretary', name: '储子禾' },
+    { id: '2300010001', role: 'secretary', name: '储子禾' },
   ],
   branches: [{
-    id: 'br-b1', name: '光华管理学院本科生党支部', type: '本科生', secretaryId: 'p13',
+    id: 'br-b1', name: '光华管理学院本科生党支部', type: '本科生', secretaryId: '2300010001',
     config: {
       headerTitle: '光华管院本科党支部', themePreset: 'sky',
       workforce: { 'branch-party-meeting': { ownerType: 'role', ownerId: 'secretary' } },
       modules: null, blocks: null, fileSpaceIsolated: true,
     },
   }],
-  appointmentRecords: [{ id: 'appt-1', branchId: 'br-b1', secretaryId: 'p13', from: '2026-08-01T00:00:00.000Z', to: null }],
+  appointmentRecords: [{ id: 'appt-1', branchId: 'br-b1', secretaryId: '2300010001', from: '2026-08-01T00:00:00.000Z', to: null }],
   // ↓ 以下全部为业务过程域（试用/演示积累）——init 应清空
-  activities: [{ id: 'act-31', title: '9月支部党员大会（线上异步表决）', organizer: 'p11' }],
+  activities: [{ id: 'act-31', title: '9月支部党员大会（线上异步表决）', organizer: '2400012355' }],
   tasks: [{ id: 'tsk-1', activityId: 'act-31' }],
-  attendances: [{ id: 'att1', activityId: 'act-26', personId: 'p1', status: 'present' }],
-  inspections: [{ id: 'insp1', activityId: 'act-31', personId: 'p3', role: '策划' }],
-  assignments: [{ id: 'asgn1', activityId: 'act-31', personId: 'p8' }],
-  makeupTasks: [{ id: 'mkp1', activityId: 'act-26', personId: 'p9' }],
+  attendances: [{ id: 'att1', activityId: 'act-26', personId: '2400012345', status: 'present' }],
+  inspections: [{ id: 'insp1', activityId: 'act-31', personId: '2400012347', role: '策划' }],
+  assignments: [{ id: 'asgn1', activityId: 'act-31', personId: '2400012352' }],
+  makeupTasks: [{ id: 'mkp1', activityId: 'act-26', personId: '2400012353' }],
   actSubRecords: { 'act-31': { outputs: [] } },
   tfSubRecords: { 'tf-1': { progress: [] } },
   fileSpaceRecords: [{ id: 'fs1', fileName: '活动照片.zip' }],
   experienceDeposits: [{ id: 'exp1', title: '复盘经验' }],
   imageRecords: [{ id: 'img1', title: '活动合影' }],
-  taskforces: [{ id: 'tf-1', name: '迎新专班', manager: 'p3' }],
+  taskforces: [{ id: 'tf-1', name: '迎新专班', manager: '2400012347' }],
   notices: [{ id: 'notice-101', title: '9月活动通知' }],
   todos: [{ id: 'todo_1', title: '准备材料' }],
-  signups: [{ id: 'su-001', sourceType: 'activity', sourceId: 'act-31', personId: 'p5' }],
-  activityReviews: [{ id: 'r1', activityId: 'act-31', organizerId: 'p3' }],
-  taskforceReviews: [{ id: 'trv1', sourceType: 'taskforce', organizerId: 'p3' }],
+  signups: [{ id: 'su-001', sourceType: 'activity', sourceId: 'act-31', personId: '2400012349' }],
+  activityReviews: [{ id: 'r1', activityId: 'act-31', organizerId: '2400012347' }],
+  taskforceReviews: [{ id: 'trv1', sourceType: 'taskforce', organizerId: '2400012347' }],
   propTasks: [{ id: 'pt1', title: '宣传任务' }],
   periodicArchives: [{ id: 'pa1', title: '周期归档示例' }],
   archiveRecords: [{ id: 'ar1', title: '归档材料' }],
   externalDispatches: [{ id: 'ed1' }],
   branchDocs: [{ id: 'bd1', branchId: 'br-b1', fileName: '支部文件.pdf' }],
-  memberChangeRequests: [{ id: 'mcr1', personId: 'p1', status: 'pending-org-approval' }],
-  committeeBroadcasts: [{ id: 'cb1', requestId: 'mcr1', recipientId: 'p10' }],
-  agendaVotes: [{ id: 'av1', activityId: 'act-31', personId: 'p1', stance: 'agree' }],
-  handoffs: [{ id: 'ho1', from: 'p3', to: 'p8' }],
-  thoughtReports: [{ id: 'tr1', personId: 'p1', quarter: 'Q3' }],
+  memberChangeRequests: [{ id: 'mcr1', personId: '2400012345', status: 'pending-org-approval' }],
+  committeeBroadcasts: [{ id: 'cb1', requestId: 'mcr1', recipientId: '2400012354' }],
+  agendaVotes: [{ id: 'av1', activityId: 'act-31', personId: '2400012345', stance: 'agree' }],
+  handoffs: [{ id: 'ho1', from: '2400012347', to: '2400012352' }],
+  thoughtReports: [{ id: 'tr1', personId: '2400012345', quarter: 'Q3' }],
   reviewRequests: [{ id: 'rq1', branchId: 'br-b1', type: 'activity-report', status: 'pending' }],
 };
 const BLOB_JSON = JSON.stringify(BLOB);
@@ -125,7 +127,7 @@ const STANDALONE = {
   'gsm1921-issue-cache-v3': '[]',
   'gsm1921-issue-cache-version': '1',
   'gsm1921-issue-cache': '[]',
-  'gsm1921-issue-unread-p13': '{"c1":true}',
+  'gsm1921-issue-unread-2300010001': '{"c1":true}',
   'gsm1921-feedback-submissions': '[]',
   'gsm1921-feedback-migrated': '1',
   'gsm1921-milestone-cache': '[]',
@@ -143,7 +145,7 @@ const STANDALONE = {
   // 白名单独立键（init 保留）
   'gsm1921-members-overlay': '{"upserts":[]}',
   'gsm1921-residence-overrides': '{}',
-  'gsm1921-login-user': '{"personId":"p13"}',
+  'gsm1921-login-user': '{"personId":"2300010001"}',
   workflowos_theme: 'dark',
   workflowos_accent_role: 'blue',
   workflowos_font_size: 'medium',
@@ -208,7 +210,7 @@ test('collectInitKeys：移除独立业务/过程键（精确+前缀）；白名
   const out = collectInitKeys(keys);
   const businessPresent = [
     'gsm1921-issue-drafts', 'gsm1921-issue-cache-v3', 'gsm1921-issue-cache-version',
-    'gsm1921-issue-cache', 'gsm1921-issue-unread-p13', 'gsm1921-feedback-submissions',
+    'gsm1921-issue-cache', 'gsm1921-issue-unread-2300010001', 'gsm1921-feedback-submissions',
     'gsm1921-feedback-migrated', 'gsm1921-milestone-cache', 'gsm1921-member-confirmations',
     'gsm1921-base-data-preview', 'gsm1921-dev-stage-overrides', 'gsm1921-workforce-draft',
     'resolution-followup', 'wizard-draft-br-b1', 'wizard-draft-br-other',
@@ -268,7 +270,7 @@ test('执行：?reset=init 静态形态——主库裁剪写回（白名单保�
   assert.equal(blob.reviewRequests.length, 0, '上报审批清空');
   // 独立业务/过程键移除
   for (const k of [
-    'gsm1921-issue-drafts', 'gsm1921-issue-cache-v3', 'gsm1921-issue-unread-p13',
+    'gsm1921-issue-drafts', 'gsm1921-issue-cache-v3', 'gsm1921-issue-unread-2300010001',
     'gsm1921-feedback-submissions', 'gsm1921-member-confirmations',
     'gsm1921-base-data-preview', 'gsm1921-dev-stage-overrides', 'gsm1921-workforce-draft',
     'resolution-followup', 'wizard-draft-br-b1', 'wizard-draft-br-other',
@@ -289,13 +291,13 @@ test('执行：无主库现场（全新安装）→ 仅清独立业务键并导�
   const { ls, win } = stubGlobals({
     search: '?reset=init',
     href: 'http://127.0.0.1:3000/wizard.html?branch=br-b1&reset=init',
-    store: { 'gsm1921-issue-unread-p13': '{}', 'gsm1921-login-user': '{"personId":"p13"}', 'wizard-draft-br-b1': '{}' },
+    store: { 'gsm1921-issue-unread-2300010001': '{}', 'gsm1921-login-user': '{"personId":"2300010001"}', 'wizard-draft-br-b1': '{}' },
   });
   assert.equal(handleInitResetIfRequested(), true);
   const snap = ls.snapshot();
-  assert.equal(snap['gsm1921-issue-unread-p13'], undefined);
+  assert.equal(snap['gsm1921-issue-unread-2300010001'], undefined);
   assert.equal(snap['wizard-draft-br-b1'], undefined);
-  assert.equal(snap['gsm1921-login-user'], '{"personId":"p13"}', '白名单保留');
+  assert.equal(snap['gsm1921-login-user'], '{"personId":"2300010001"}', '白名单保留');
   assert.equal(win._replaced, 'http://127.0.0.1:3000/wizard.html?branch=br-b1', '去 reset 参数、保留 branch 参数');
 });
 
@@ -336,8 +338,13 @@ test('接线：services/core/mock.js loadDB（mock 数据源）在 ?reset=init �
 // MockAdapter.loadDB 后 stripSeedRecordsIfInitState 剔除回填种子并 saveDB——多轮 loadDB
 // 业务域稳态为空、白名单（账号/支部 config/任期档案）在；demo 无哨兵仍回种子（行为不变）。
 
-/** 演示种子回填域（mock-adapter merge/_seedInitialData 会回填的全部业务域） */
-const SEED_BACKFILL_KEYS = ['activities', 'tasks', 'assignments', 'attendances', 'notices', 'archiveRecords', 'signups'];
+/** 演示种子回填域（mock-adapter 正常加载/演示重建可能触及的全部业务域） */
+const SEED_BACKFILL_KEYS = [
+  'activities', 'tasks', 'assignments', 'attendances', 'notices', 'archiveRecords', 'signups',
+  'taskforces', 'makeupTasks', 'reviewRequests', 'partyGroups',
+  'workgroups', 'workgroupMembers', 'workgroupGrants', 'workgroupTasks', 'workgroupOutputs',
+  'attendanceRosters',
+];
 
 test('C2 修复：init 后浏览器加载链多轮 loadDB——业务域空 / 白名单在 / 再次 loadDB 仍空不回填', () => {
   const { ls, win } = stubGlobals({
@@ -359,7 +366,13 @@ test('C2 修复：init 后浏览器加载链多轮 loadDB——业务域空 / �
   for (const key of SEED_BACKFILL_KEYS) {
     assert.equal(mockDB[key].length, 0, `第 2 轮 loadDB 后 ${key} 为空（不被种子回填）`);
   }
-  assert.equal(mockDB.taskforces.length, 0, 'taskforces 为空');
+  assert.equal(mockDB.taskforces.length, 0,
+    'taskforces 在 init 态必须保持空（B-499-8：不再回种子）');
+  assert.equal(mockDB.makeupTasks.length, 0, 'makeupTasks 在 init 态必须保持空');
+  assert.equal(mockDB.reviewRequests.length, 0, 'reviewRequests 在 init 态必须保持空');
+  assert.equal(mockDB.partyGroups.length, 0, 'partyGroups 在 init 态必须保持空');
+  assert.equal(mockDB.workgroups.length, 0, 'workgroups 在 init 态必须保持空');
+  assert.equal(mockDB.attendanceRosters.length, 0, 'attendanceRosters 在 init 态必须保持空');
   assert.ok(mockDB.users.some(u => u.id === 'u_sec'), '账号结构保留（空支部起步登录可用）');
   assert.ok(mockDB.branches.some(b => b.id === 'br-b1'), '支部实例 br-b1 保留');
   assert.ok(mockDB.branches[0].config.headerTitle && mockDB.branches[0].config.workforce, '支部 config（header/分工）保留');
@@ -457,7 +470,7 @@ test('C2 修复：stripSeedRecordsIfInitState——有哨兵只剔种子留用�
 });
 
 test('C2 修复：loadActivities 读兜底——init 态空态返回 []（不回退演示种子）；无哨兵保持原回退', async () => {
-  const { loadActivities } = await import('../../docs/src/services/activity/activity.js?v=20261018h');
+  const { loadActivities } = await import('../../docs/src/services/activity/activity.js?v=20261102b');
   const { ls } = stubGlobals({ search: '', href: 'http://127.0.0.1:3000/index.html', store: { page_pref: 'x' } });
   // 无哨兵（正常演示态）：mockDB 空 → 回退演示种子（首屏早期/未加载语义不变）
   mockDB.activities = [];

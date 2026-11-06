@@ -1,0 +1,79 @@
+{
+  "measuredAt": "2026-10-31T17:26:46.086Z",
+  "base": "http://localhost:3000",
+  "todoStrip": {
+    "summaryBeforeHoverBg": "rgba(0, 0, 0, 0)",
+    "summaryHoverBg": "rgba(0, 0, 0, 0)",
+    "summaryHoverColor": "rgb(31, 41, 55)",
+    "chevronBorderColor": "rgb(31, 41, 55)",
+    "hoverBgTransparent": true,
+    "title": {
+      "text": "待答复与未读通知 3",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "24px",
+      "fontFamily": "\"Noto Serif SC\", STSong, SimSun, serif",
+      "rect": {
+        "left": 145,
+        "right": 1295,
+        "top": 219,
+        "height": 44
+      },
+      "cls": "disclosure__title text-base px-4"
+    },
+    "titleOk": true,
+    "titleClassClean": true,
+    "open": {
+      "initial": true,
+      "afterLeftClick": false,
+      "afterRightClick": true
+    },
+    "clickToggles": true,
+    "inlineSummary": {
+      "text": "未读通知 1",
+      "cls": "cursor-pointer select-none py-2"
+    },
+    "inlineHoverBg": "rgb(229, 231, 235)",
+    "inlineHoverHasGray": true
+  },
+  "disclosureTitleSamples": {
+    "group-progress": {
+      "url": "http://localhost:3000/workspace/secretary.html?tab=group-progress",
+      "samples": [
+        {
+          "text": "跨组进展",
+          "w": 1152,
+          "h": 44,
+          "scrollW": 1152,
+          "clientW": 1152,
+          "overflowX": false,
+          "clippedY": false,
+          "font": "16px",
+          "weight": "600",
+          "lineHeight": "24px",
+          "family": "\"Noto Serif SC\", STSong, SimSun, serif"
+        }
+      ],
+      "ok": true
+    },
+    "org-roster": {
+      "url": "http://localhost:3000/workspace/org.html?tab=roster",
+      "samples": [
+        {
+          "text": "导入自我描述（粘贴 / CSV） 问卷批量回收 · 预览后逐人落库",
+          "w": 1118,
+          "h": 44,
+          "scrollW": 1118,
+          "clientW": 1118,
+          "overflowX": false,
+          "clippedY": false,
+          "font": "16px",
+          "weight": "600",
+          "lineHeight": "24px",
+          "family": "\"Noto Serif SC\", STSong, SimSun, serif"
+        }
+      ],
+      "ok": true
+    }
+  }
+}

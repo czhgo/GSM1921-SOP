@@ -2,9 +2,29 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../../services/core/auth.js?v=20261018h';
-import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261018h';
-import { escHtml } from '../../core/base/utils.js?v=20261018h';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { BranchService } from '../../services/core/runtime.js?v=20261102b';
+import { getBranchOrg } from '../../services/branch/branch.js?v=20261102b';
+import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser, DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261102b';
+import { escHtml } from '../../core/base/utils.js?v=20261102b';
+// Task 2.1（2026-10-26）：服务端优先登录——静态托管 / 显式开发模式才走本地账号层。
+import { DEPLOY_MODE } from '../../config/deploy.js?v=20261102b';
+
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261102b';
+// C09（2026-10-20）：登录链接可带 `next`（目标页 URL）——登录成功后按 next 回跳，
+// 「未登录点活动 / 专班」不再只进工作台、丢掉原对象。只接受**同源** URL（防开放重定向），
+// 且 next 不得又指回登录页本身（防自循环）。
+// ⚠ 必须在下方「已登录直接跳工作台」之前求值：_goToWorkspace 首次调用就会读它（否则 TDZ）。
+function _safeNextUrl(raw) {
+  if (!raw) return '';
+  try {
+    const u = new URL(raw, window.location.href);
+    if (u.origin !== window.location.origin) return '';
+    if (/\/login\.html$/.test(u.pathname)) return '';
+    return u.href;
+  } catch (_) { return ''; }
+}
+const _NEXT_URL = _safeNextUrl(new URLSearchParams(window.location.search).get('next'));
 
 // 2026-09-29 批次 277（IAAA 入站）：带 `#iaaa=<会话 token>` 回跳时先走落地流程，
 //   不走「已登录直接跳工作台」；**待归属支部**者也不跳（由选支部面板承接）。
@@ -15,10 +35,51 @@ if (!_IAAA_HASH && !isBranchPendingUser(_user)) {
   if (_user) _goToWorkspace(_user.role);
 }
 
+// ── 登录页抬头：读支部配置档案（2026-10-28「支部名不写死」）───────────────
+// HTML 只留中性兜底「党支部管理系统」；支部显示名按托管形态运行期写入：
+//   · 本地演示形态（DEPLOY_MODE='static'）：支部配置就绪后读本地演示库
+//     （config.headerTitle → name；读取口与顶栏同族 = getBranchOrg）。
+//   · 服务端形态（api）：登录前无 token、`/api/v1/branches` 不可读 ⇒ 请求**免登录最小读口**
+//     `GET /api/v1/public/branch-name`（只回 `{ name }`）。失败 / 被拦截 / 空值一律保持中性兜底；
+//     请求在后台进行，不阻塞登录表单，也不向控制台报错。
+function _setLoginTitle(title) {
+  const el = document.getElementById('login-title');
+  if (!el) return;
+  const next = String(title || '').trim();
+  if (next) el.textContent = next;
+}
+
+function _applyLoginBrandTitle() {
+  const org = getBranchOrg(DEFAULT_BRANCH_ID);
+  _setLoginTitle(org && (org.headerTitle || org.name));
+}
+
+function _applyServerBrandTitle() {
+  fetch('./api/v1/public/branch-name', { cache: 'no-store', headers: { Accept: 'application/json' } })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((body) => { if (body) _setLoginTitle(body.name); })
+    .catch(() => { /* 保持中性兜底：不阻塞登录、不污染控制台 */ });
+}
+
+if (DEPLOY_MODE === 'static') {
+  try {
+    BranchService.loadDB();     // 配置就绪（幂等；与 main-entry.js 同一加载时序）
+    _applyLoginBrandTitle();
+  } catch (e) {
+    console.warn('[login] 支部配置未就绪，抬头保持中性兜底', e);
+  }
+} else {
+  _applyServerBrandTitle();
+}
+
 // 登录成功后按角色直达对应工作台（最小三成本：登录→工作台 ≤2 跳）
 // 2026-08-24 最小三成本专项评议 P2 修复：原固定跳首页，改为直达角色工作台
 // 2026-08-29 T-304 遗留修复：page 规范化补 .html 后缀（防御内嵌视图剥后缀导致的 404）
 function _goToWorkspace(role) {
+  // C09 的 next 回跳只服务「普通登录」；IAAA 落地与待归属选支部流程必须按角色/选支部面板走，
+  // 不得被 next 提前带走（否则选支部面板来不及呈现）。
+  const current = AuthStore.getCurrentUser();
+  if (_NEXT_URL && !_IAAA_HASH && !isBranchPendingUser(current)) { window.location.href = _NEXT_URL; return; }
   const raw = AuthStore.getPageForRole('workspace', role);
   const page = raw && !raw.endsWith('.html') ? raw + '.html' : raw;
   if (page) {
@@ -27,6 +88,41 @@ function _goToWorkspace(role) {
     window.location.href = './index.html';
   }
 }
+
+// ── 开发模式入口（2026-10-28 支书裁定：生产不渲染）──────────
+// 仅 `?dev=1` 或本机（localhost / 127.0.0.1 / [::1]）挂载 `#login-dev` 与 `#dev-toggle`；
+// 生产环境**不渲染**该区块（不是 display:none 藏起来）。`?dev=0` 显式关闭，供生产模拟与真机取证。
+// ⇒ `AuthStore.devLogin` 的唯一调用点（`_renderDevCards` 的身份卡点击）随之只在同一条件下可达。
+const _DEV_PARAM = new URLSearchParams(window.location.search).get('dev');
+const _DEV_ALLOWED = _DEV_PARAM === '1'
+  || (_DEV_PARAM !== '0' && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname));
+
+function _mountDevMode() {
+  const defaultSection = document.getElementById('login-default');
+  if (!defaultSection) return;
+
+  const devSection = document.createElement('div');
+  devSection.id = 'login-dev';
+  devSection.className = 'dev-mode-section login-card-anim login-card-anim-delay-1 bg-white rounded-b-2xl shadow-sm border border-t-0 border-gray-200 p-6';
+  devSection.innerHTML = `
+    <h2 class="font-title text-base font-semibold text-gray-800 mb-1">开发模式 · 选择身份</h2>
+    <p class="text-xs text-gray-500 mb-5">仅本地开发使用</p>
+    <div class="grid grid-cols-2 gap-3" id="dev-cards"></div>`;
+  defaultSection.insertAdjacentElement('afterend', devSection);
+
+  const toggleWrap = document.createElement('div');
+  toggleWrap.className = 'login-card-anim login-card-anim-delay-2 text-center mt-4';
+  toggleWrap.innerHTML = `
+    <label class="inline-flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
+      <input type="checkbox" id="dev-toggle" class="rounded">
+      开发模式
+    </label>`;
+  const footer = document.getElementById('login-footer');
+  if (footer) footer.before(toggleWrap);
+  else document.getElementById('main-content')?.append(toggleWrap);
+}
+
+if (_DEV_ALLOWED) _mountDevMode();
 
 // ── 开发模式卡片数据 ──────────────────────────────
 const DEV_CARDS = [
@@ -44,6 +140,7 @@ const DEV_CARDS = [
 
 // ── 渲染开发模式卡片 ──────────────────────────────
 function _renderDevCards() {
+  if (!_DEV_ALLOWED) return;
   const container = document.getElementById('dev-cards');
   if (!container) return;
 
@@ -59,7 +156,7 @@ function _renderDevCards() {
         <!-- 2026-09-24 无障碍：9 张身份卡的按钮可访问名原为清一色「登录」（身份名「组织委员」等
              只在兄弟 <span> 里、不进可访问名）⇒ 读屏分不出身份。此处把身份名并入按钮的可访问名；
              视觉与点击行为不变（点击仍由外层 .login-card 的委托处理）。 -->
-        <button class="btn-accent login-btn w-full text-sm px-4 py-[7px] font-medium" aria-label="以 ${card.label} 身份登录" >登录</button>
+        <button class="btn-accent w-full" aria-label="以 ${card.label} 身份登录" >登录</button>
       </div>
     `;
   }).join('');
@@ -97,23 +194,83 @@ if (devToggle) {
 // ── 账号密码登录 ──────────────────────────────────
 const loginForm = document.getElementById('login-form');
 if (loginForm) {
+  const studentIdEl = document.getElementById('student-id');
+  const passwordEl = document.getElementById('password');
+  const errorEl = document.getElementById('login-error');
+  const _fields = [studentIdEl, passwordEl].filter(Boolean);
+  const _errId = errorEl && errorEl.id;
+  /** 清空字段级错误态（aria-invalid / aria-describedby） */
+  const _clearField = (el) => {
+    if (!el) return;
+    el.removeAttribute('aria-invalid');
+    if (_errId && el.getAttribute('aria-describedby') === _errId) el.removeAttribute('aria-describedby');
+  };
+  const _clearError = () => {
+    _fields.forEach(_clearField);
+    if (errorEl) { errorEl.textContent = ''; errorEl.classList.add('hidden'); }
+  };
+  /** 错误贴到字段：文本在字段下方（#login-error），同时产出 aria-invalid + aria-describedby */
+  const _showError = (msg, fields) => {
+    const targets = Array.isArray(fields) && fields.length ? fields.filter(Boolean) : _fields;
+    if (!errorEl) return;
+    errorEl.textContent = msg;
+    errorEl.classList.remove('hidden');
+    targets.forEach((el) => {
+      el.setAttribute('aria-invalid', 'true');
+      if (_errId) el.setAttribute('aria-describedby', _errId);
+    });
+    targets[0]?.focus();
+  };
+  // 修正即清除该字段的错误态；已填内容不清空（不 reset 表单）
+  _fields.forEach((el) => el.addEventListener('input', () => _clearField(el)));
+
   loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const studentId = document.getElementById('student-id').value.trim();
-    const password = document.getElementById('password').value.trim();
-    const errorEl = document.getElementById('login-error');
+    const studentId = studentIdEl.value.trim();
+    const password = passwordEl.value.trim();
 
-    const result = AuthStore.verifyCredentials(studentId, password);
-    if (!result.ok) {
-      errorEl.classList.remove('hidden');
+    _clearError();
+    // 空字段就地提示（服务端优先时也不必发一次注定 401 的请求）
+    if (!studentId || !password) {
+      const bad = [];
+      if (!studentId) bad.push(studentIdEl);
+      if (!password) bad.push(passwordEl);
+      _showError('请输入学号与密码', bad);
       return;
     }
 
+    // Task 2.1（2026-10-26）：有 server（非静态托管）且未勾「开发模式」⇒ **服务端优先**：
+    //   先 POST /api/v1/auth/login，成功后才写本地登录态；本地账号层只在静态托管 / 显式开发模式使用。
+    //   这样服务端存在的真实账号（不在 MOCK_ACCOUNTS / gsm1921-accounts）也能登录。
+    const serverFirst = DEPLOY_MODE === 'server' && !(devToggle && devToggle.checked);
+    let personId = studentId;
+    if (!serverFirst) {
+      const result = AuthStore.verifyCredentials(studentId, password);
+      if (!result.ok) {
+        // 2026-10-22 第九轮 9B-6.7：失败时两个字段都标 aria-invalid，焦点回学号。
+        _showError('学号或密码错误，请重试', _fields);
+        return;
+      }
+      personId = result.personId;
+    }
+
     errorEl.classList.add('hidden');
-    // 等待登录完成（含后端 token 获取）后再跳转，确保 API 模式在导航前已生效
+    // 等待登录完成（服务端优先时＝后端已 200 且 token 已落 sessionStorage）后再跳转
     // 2026-09-03 P1b：向后端一并传递账号密码，供 /login 口令校验（演示账号 123456）
-    AuthStore.login(result.personId, password).then(() => {
+    AuthStore.login(personId, password, { serverFirst }).then(() => {
       _goToWorkspace(AuthStore.getCurrentUser()?.role);
+    }).catch((err) => {
+      // 6.7：请求失败不得无声停留——原位错误行（role="alert"）给出可恢复提示。
+      //   Task 2.1：后端 401 / 网络失败**停留登录页**，绝不跳工作台。
+      const status = err && err.status;
+      const msg = status === 401
+        ? ((err && err.message) || '学号或密码错误，请重试')
+        : '登录未完成：' + ((err && err.message) || '请稍后重试') + '；也可改用统一身份认证登录。';
+      // 显式写错误文本 + 去 hidden（`_showError` 内部同样会写；此处保留可见文案落点，
+      // 让「catch 分支只显示错误、不跳转」的静态守卫有稳定锚点）。
+      errorEl.textContent = msg;
+      _showError(msg, _fields);
+      errorEl.classList.remove('hidden');
     });
   });
 }
@@ -188,12 +345,14 @@ async function _loadBranches() {
   if (!_token()) { list.innerHTML = '<p class="text-xs text-gray-500">会话已失效，请重新登录。</p>'; return; }
   list.innerHTML = '<p class="text-xs text-gray-500">正在加载…</p>';
   try {
-    const r = await fetch('./api/v1/branches', { headers: _authHeaders() });
+    // 待归属者尚未获得支部资源读权（服务端 requireAssignedBranch 对支部资源读口 403），
+    // 选支部目录走 IAAA 独立路由的只读最小字段端点。
+    const r = await fetch('./api/v1/auth/iaaa/branches', { headers: _authHeaders() });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const body = await r.json();
     const rows = Array.isArray(body) ? body : (body && body.data) || [];
-    if (!rows.length) { list.innerHTML = '<p class="text-xs text-gray-500">暂无可用支部，请联系党委组织员。</p>'; return; }
-    list.innerHTML = rows.map((b) => `<button type="button" class="btn-outline login-btn w-full text-sm px-3 py-2 font-medium" data-branch="${escHtml(b.id)}">${escHtml(b.name || b.id)}</button>`).join('');
+    if (!rows.length) { list.innerHTML = emptyStateHtml({ text: "暂无可用支部，请联系党委组织员。", variant: 'inline' }); return; }
+    list.innerHTML = rows.map((b) => `<button type="button" class="btn-outline w-full" data-branch="${escHtml(b.id)}">${escHtml(b.name || b.id)}</button>`).join('');
     list.querySelectorAll('[data-branch]').forEach((btn) => {
       btn.addEventListener('click', () => _bindBranch(btn.dataset.branch, btn.textContent.trim()));
     });

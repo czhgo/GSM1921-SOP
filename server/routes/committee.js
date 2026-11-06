@@ -5,20 +5,18 @@
 //   旧活动（无 voteConfig）回退 deliberative + 支委白名单（现状行为零变化）。
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
-import { requireAuth, requireRole } from './auth.js';
+import { requireAuth, requireRole, requireCommissioner } from './auth.js';
 // P2c（2026-09-03）：角色/支委名单单一源 = docs/src/core/domain/constants.js（勿手写）
 // 计票方式（ballotMode）同源（2026-09-12 支书裁定「正式表决无记名 + 匿名模式可选」）：
 //   强制/默认规则 = ballotModeOfActivity/isAnonymousForced，勿在本文件另写副本。
-import { SECRETARY_AND_DEPUTY_ROLES as SECRETARY_DEPUTY_ROLE_KEYS, COMMITTEE_IDS as BRANCH_COMMITTEE_IDS, ballotModeOfActivity } from '../../docs/src/core/domain/constants.js';
+import { DEFAULT_BRANCH_ID, SECRETARY_AND_DEPUTY_ROLES as SECRETARY_DEPUTY_ROLE_KEYS, resolveCommitteeIds, ballotModeOfActivity } from '../../docs/src/core/domain/constants.js';
 import { validateAgendaVoteTarget } from '../../docs/src/services/activity/agenda-relations.js';
 import { actorBranchId, branchSelectionError, resourceRowsForActor } from './resources/branch-scope.js';
 
-// 支委白名单 = 旧活动回退白名单（保留不改行为；名单单一源 = constants.js COMMITTEE_IDS，与 member.js 同源），
-// 供无 voteConfig 的旧活动/回退场景兜底校验。
+// 支委白名单 = 旧活动回退白名单（P1-09，2026-10-20）：按当前 users.role 派生，不再维护 id 快照；
 // 权威名单 = 活动 voteConfig.voterIds（前端创建活动时经 vote-config 固化写入活动）；
 // 前端唯一源 = docs/src/services/activity/vote-config.js resolveVoterIds('committee')
-//   （people.js role + AuthStore.isCommissioner，排除 u_*）。名单变更请改前端权威源，勿在此增删成员。
-const COMMITTEE_IDS = new Set(BRANCH_COMMITTEE_IDS);
+//   （constants.js::resolveCommitteeIds 角色派生）。名单变更请改成员角色，勿在此增删成员。
 // 支书侧写权角色集（含副支书＝副书同权 2026-09-11 支书裁定；单一源 = constants.js）
 const SECRETARY_AND_DEPUTY_ROLES = new Set(SECRETARY_DEPUTY_ROLE_KEYS);
 
@@ -71,7 +69,7 @@ export function createCommitteeRouter(db) {
     // 活动存在性检查（活动数据在 activities 表；活动不存在一律 404，不静默放行）
     const actRow = getRow(db, 'activities', activityId);
     if (!actRow) return res.status(404).json({ error: '活动不存在' });
-    if (actorBranchId(req.actor) && actorBranchId(req.actor) !== (actRow.branchId || 'br-b1')) return res.status(403).json({ error: '无权限：不能参与其他支部活动表决' });
+    if (actorBranchId(req.actor) && actorBranchId(req.actor) !== (actRow.branchId || DEFAULT_BRANCH_ID)) return res.status(403).json({ error: '无权限：不能参与其他支部活动表决' });
     const agendaTarget = validateAgendaVoteTarget(actRow.agenda, agendaItemId);
     if (!agendaTarget.ok) return res.status(400).json({ error: agendaTarget.error });
     // ===== 表决授权解析（AV3，fail-closed）=====
@@ -93,7 +91,19 @@ export function createCommitteeRouter(db) {
       return res.status(400).json({ error: '活动表决名单无效：voterIds 须为非空数组' });
     }
     const optionSet = hasConfig ? vc.optionSet : 'deliberative';
-    const voterIds = hasConfig ? new Set(vc.voterIds) : COMMITTEE_IDS;
+    // 旧活动回退名单：按「本活动所属支部」的现任支委角色派生（P1-09）。
+    // 为什么 fail-closed：无支委角色时若静默放行/用假人，历史活动重开表决会把票记到错误的人；
+    // 明确 409 让操作者先维护角色或补齐 voteConfig。
+    let voterIds = null;
+    if (hasConfig) {
+      voterIds = new Set(vc.voterIds);
+    } else {
+      const branchId = actRow.branchId || DEFAULT_BRANCH_ID;
+      const branchUsers = listTable(db, 'users').filter((u) => (u.branchId || DEFAULT_BRANCH_ID) === branchId);
+      const committee = resolveCommitteeIds(branchUsers);
+      if (committee.error) return res.status(409).json({ error: committee.error });
+      voterIds = new Set(committee.ids);
+    }
     if (!voterIds.has(req.actor.id)) {
       return res.status(403).json({ error: hasConfig ? '不在本次表决名单' : '仅支委可表态' });
     }
@@ -129,7 +139,7 @@ export function createCommitteeRouter(db) {
         if (existing) return { row: existing, created: false };
         const row = {
           id: `av-${randomUUID().slice(0, 8)}`,
-          branchId: actRow.branchId || 'br-b1',
+          branchId: actRow.branchId || DEFAULT_BRANCH_ID,
           activityId, agendaItemId,
           personId: req.actor.id,
           votedAt: now,
@@ -142,7 +152,7 @@ export function createCommitteeRouter(db) {
         const prev = listTable(db, 'agenda_votes').find((v) => v.id === tallyId);
         const tally = { ...((prev && prev.tally) || {}) };
         tally[position] = (Number(tally[position]) || 0) + 1;
-        writeRow(db, 'agenda_votes', { id: tallyId, branchId: actRow.branchId || 'br-b1', activityId, agendaItemId, ballotMode: 'anonymous', tally, updatedAt: now });
+        writeRow(db, 'agenda_votes', { id: tallyId, branchId: actRow.branchId || DEFAULT_BRANCH_ID, activityId, agendaItemId, ballotMode: 'anonymous', tally, updatedAt: now });
         return { row, created: true };
       })();
       return res.status(saved.created ? 201 : 200).json(saved.row);
@@ -152,13 +162,13 @@ export function createCommitteeRouter(db) {
     const existing = listTable(db, 'agenda_votes').find((v) =>
       v.activityId === activityId && v.agendaItemId === agendaItemId && v.personId === req.actor.id);
     if (existing) {
-      const updated = { ...existing, branchId: actRow.branchId || 'br-b1', position, note, updatedAt: now };
+      const updated = { ...existing, branchId: actRow.branchId || DEFAULT_BRANCH_ID, position, note, updatedAt: now };
       writeRow(db, 'agenda_votes', updated);
       return res.json(updated);
     }
     const row = {
       id: `av-${randomUUID().slice(0, 8)}`,
-      branchId: actRow.branchId || 'br-b1',
+      branchId: actRow.branchId || DEFAULT_BRANCH_ID,
       activityId, agendaItemId,
       personId: req.actor.id,
       position, note,
@@ -167,6 +177,28 @@ export function createCommitteeRouter(db) {
     };
     writeRow(db, 'agenda_votes', row);
     res.status(201).json(row);
+  });
+
+  // 转移标注（Task 3 · 2026-10-26）：成员移出时给其已表态记录标注 `transferredOutAt`。
+  // 为什么单独开行级语义端点：`agenda_votes` 故意不进快照 payload（防陈旧缓存整表覆盖），
+  //   而全量快照又没有行级 patch 能力 ⇒ 若不补这个口，移出标注只会活在本机浏览器（假保存）。
+  // 白名单只有一个字段（`transferredOutAt`），不接受新增/删除/改票；写后清缓存重登仍可读。
+  router.post('/agenda-votes/:id/annotate', requireCommissioner(db), (req, res) => {
+    const existing = getRow(db, 'agenda_votes', req.params.id);
+    if (!existing) return res.status(404).json({ error: '表态记录不存在' });
+    if (actorBranchId(req.actor) && actorBranchId(req.actor) !== (existing.branchId || DEFAULT_BRANCH_ID)) {
+      return res.status(403).json({ error: '无权限：不能标注其他支部的表态记录' });
+    }
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const outside = Object.keys(body).filter((k) => k !== 'transferredOutAt');
+    if (outside.length) return res.status(400).json({ error: `字段 ${outside[0]} 不在白名单（本端点仅可写 transferredOutAt）` });
+    const updated = {
+      ...existing,
+      transferredOutAt: body.transferredOutAt ? String(body.transferredOutAt) : null,
+      annotatedAt: new Date().toISOString(),
+    };
+    writeRow(db, 'agenda_votes', updated);
+    res.json(updated);
   });
 
   // 支书截止（不可逆）：置 votesLocked=true / voteDeadline；副书同权（2026-09-11 支书裁定），
@@ -180,7 +212,7 @@ export function createCommitteeRouter(db) {
     }
     const act = getRow(db, 'activities', activityId);
     if (!act) return res.status(404).json({ error: '活动不存在' });
-    if (actorBranchId(req.actor) && actorBranchId(req.actor) !== (act.branchId || 'br-b1')) return res.status(403).json({ error: '无权限：不能截止其他支部活动表决' });
+    if (actorBranchId(req.actor) && actorBranchId(req.actor) !== (act.branchId || DEFAULT_BRANCH_ID)) return res.status(403).json({ error: '无权限：不能截止其他支部活动表决' });
     const merged = {
       ...act,
       // 截止不可逆：仅允许置 true，禁止解锁（传 false 不写入）

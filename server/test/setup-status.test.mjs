@@ -7,7 +7,7 @@
 //   S3 **安全底线（本件的核心断言）**：响应里**不得出现任何密钥实值**——
 //      测试故意把 `LOGIN_PASSWORD` / `IAAA_APP_ID` 设成特征串，然后断言**整个响应体不含该串**
 //   S4 **非空转 ＋ 双向**：故意不设 `SEED_FALLBACK` ⇒ 对应项 `ok:false`；设成 `0` ⇒ `ok:true`
-//   S5 「演示名册残留」判据**反例锁死**：插入一名演示人（id `p7`）⇒ 计数 1 且该项判红；移除 ⇒ 归零
+//   S5 「演示名册残留」判据**反例锁死**：插入一名演示人（id `2400012351`）⇒ 计数 1 且该项判红；移除 ⇒ 归零
 //   S6 `envTemplate` **只含键名与占位**：不得含任何实值（含测试设的密钥串）
 // ════════════════════════════════════════════════════════════════
 import { test, before, after } from 'node:test';
@@ -97,18 +97,18 @@ test('S4 非空转且双向：SEED_FALLBACK 未设 ⇒ 判红；设 0 ⇒ 转绿
   }
 });
 
-test('S5 演示名册判据反例锁死：塞入 p7 ⇒ 计数 1 且判红；移除 ⇒ 归零', async () => {
+test('S5 演示名册判据反例锁死：塞入旧演示 id p7 ⇒ 计数 1 且判红；移除 ⇒ 归零', async () => {
   const pc = await iaaaLogin('9000000001');
   const find = (j) => j.checklist.find((c) => c.id === 'no-demo');
   let j = (await get('/api/v1/setup/setup-status', pc.token)).json;
   assert.equal(j.db.demoAccounts, 0, '干净库应为 0');
   assert.equal(find(j).ok, true);
 
-  // 反例：塞一名 id 形如 p<数字> 的演示成员（真实演示种子的 id 形态）
+  // 反例：塞一名 id 形如 p<数字> 的**旧版**演示成员（v7 迁移前的 id 形态；判据专查历史残留）
   db.prepare('INSERT OR REPLACE INTO users (id, data) VALUES (?, ?)').run('p7', JSON.stringify(
     { id: 'p7', name: '演示成员', studentId: '2026000007', role: 'participant', branchId: 'br-b1' }));
   j = (await get('/api/v1/setup/setup-status', pc.token)).json;
-  assert.equal(j.db.demoAccounts, 1, '塞入演示人后计数应为 1（否则判据恒真、等于没检）');
+  assert.equal(j.db.demoAccounts, 1, '塞入旧演示人后计数应为 1（否则判据恒真、等于没检）');
   assert.equal(find(j).ok, false, '有演示残留 ⇒ 该项必须判红');
 
   db.prepare('DELETE FROM users WHERE id = ?').run('p7');

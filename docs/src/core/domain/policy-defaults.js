@@ -17,6 +17,10 @@
 //   组长学期提醒消费——一律改由本文件派生）。
 // ════════════════════════════════════════════════════════════════
 
+import { todayLocal } from '../base/date.js?v=20261102b';
+// 状态中文枚举单一源（R10-B19；domain.js 零依赖，不引入循环）。
+import { ReviewStatus } from './domain.js?v=20261102b';
+
 /** 深拷贝工具（policy 结构纯 JSON 数据；factory 基准深拷贝/复位用） */
 function _clone(v) {
   return JSON.parse(JSON.stringify(v));
@@ -131,6 +135,15 @@ const _FACTORY = {
     //   消费点改派生（窗口判定 + 支书待办窗口文案）；登记 POLICY_OVERRIDABLE → 组织委员可经
     //   config.policyOverrides.memberConfirmation.semesterDetainedWindows 覆盖，支书待办随窗口变化。
     semesterDetainedWindows: [[6, 15, 7, 15], [12, 15, 1, 15]],
+  },
+  member: {
+    // 预备期（R2-15，2026-10-20）：原 talent-tab 把「满 12 个月可转正 / 满 9 个月可筹备」
+    //   写死在页面里，制度天数调整时提示不跟随。这里收进制度参数（制度裁决固定项），
+    //   消费点 = entries/tabs/org/talent-tab.js（按**整月**计算，不再用年月差粗略相减）。
+    probation: {
+      completeMonths: 12,
+      prepMonths: 9,
+    },
   },
   review: {
     // 复盘提交提醒阈值（支书台自动提醒：活动结束 >overdueDays 天仍无复盘 → 提醒组织者提交）
@@ -269,6 +282,11 @@ export const POLICY_FIXED = [
   // ── profile：个人档案隐私边界（组织统一制度）──
   { path: ['profile', 'selfProfileReadScope'], kind: 'institutional',
     why: '个人自我描述仅本人及本支部支委可读；党委、组长与普通成员不得读取他人自述', src: '支书 2026-10-17 裁定；仅可经全组织制度裁决后修改' },
+  // ── member：预备期（R2-15；制度固定项）──
+  { path: ['member', 'probation', 'completeMonths'], kind: 'institutional',
+    why: '预备期满一年可转正是党章规定，不是支部可调技参', src: '《中国共产党章程》预备期一年；R2-15 从 talent-tab 硬编码迁入' },
+  { path: ['member', 'probation', 'prepMonths'], kind: 'institutional',
+    why: '「满 9 个月可筹备转正」是流程准备期口径，与满 12 个月同属制度固定项', src: 'R2-15；原 talent-tab 字面量' },
   // ── workforce（票决门槛；制度裁决）──
   { path: ['workforce', 'voteThreshold', 'quorum'], kind: 'institutional',
     why: '支委会票决通过门槛（应到 2/3 且无反对）＝制度裁决，非技参', src: 'REVIEW_QUEUE 附录⑩ S2 R2-3（支书 2026-09-06 裁）' },
@@ -332,13 +350,18 @@ export function resetPolicyDefaults() {
  * @returns {number} 实际覆盖的叶数
  */
 export function applyPolicyOverrides(clean) {
+  return _applyCleanOverrides(POLICY_DEFAULTS, clean);
+}
+
+/** 就地覆盖实现（applyPolicyOverrides 与 effectivePolicyWith 共用，防两处合并口径分叉） */
+function _applyCleanOverrides(targetRoot, clean) {
   let n = 0;
   if (!clean || typeof clean !== 'object' || Array.isArray(clean)) return 0;
   for (const spec of POLICY_OVERRIDABLE) {
     const [s0, s1, s2] = spec.path;
     const holder = clean[s0];
     if (!holder || typeof holder !== 'object' || Array.isArray(holder)) continue;
-    const target = POLICY_DEFAULTS[s0];
+    const target = targetRoot[s0];
     if (!target || typeof target !== 'object' || Array.isArray(target)) continue;
     if (s2 === undefined) {
       if (!Object.prototype.hasOwnProperty.call(holder, s1)) continue;
@@ -355,4 +378,111 @@ export function applyPolicyOverrides(clean) {
     }
   }
   return n;
+}
+
+/**
+ * 纯函数：按「出厂基准 + 已净化 overrides」算出某支部的有效策略（**不改 POLICY_DEFAULTS 全局**）。
+ * 消费点：services/branch/branch.js::getEffectivePolicy（按当前支部 id 取，报送/提示同源）。
+ * @param {Object|null} clean 已过 sanitizeConfigPolicyOverrides 的节对象
+ * @returns {Object} 有效策略（独立副本）
+ */
+export function effectivePolicyWith(clean) {
+  const out = _clone(_FACTORY);
+  _applyCleanOverrides(out, clean);
+  return out;
+}
+
+/**
+ * 域负责人角色 → 可管节集合（由 POLICY_OVERRIDABLE[*].domain 派生，前后端共用单一源）。
+ * 一域可辖多节（如纪检域＝inspection/attendance/review/makeup）；副组长与组长同权。
+ * @returns {Object<string,string[]>}
+ */
+export function policySectionsByRole() {
+  const map = {};
+  for (const spec of POLICY_OVERRIDABLE) {
+    const role = spec.domain;
+    if (!role) continue;
+    if (!map[role]) map[role] = [];
+    if (!map[role].includes(spec.path[0])) map[role].push(spec.path[0]);
+  }
+  if (Array.isArray(map.leader) && !map['deputy-leader']) map['deputy-leader'] = [...map.leader];
+  return map;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  考勤 / 复盘「已超期」现算（R7-33 单一源，2026-10-22）
+// ════════════════════════════════════════════════════════════════
+// 病灶：`overdue` 原是记录上的**存储快照**（mock 里少数行写死 true，新增一律 false）
+//   ⇒ 真实缺勤记录永远不会变「已超期」，政策时限调整也不跟随；同一「逾期」在
+//   纪检总表（OR 日期现算）与成员台（只读快照）出现两种结果。
+// 口径（纯函数，call-time 读 POLICY_DEFAULTS；today 可注入以便测试）：
+//   · 考勤：缺勤/请假未闭环，且已过**补课时限**（活动日 + makeup.deadlineDays）；
+//     已出勤 / 已补课（made_up）/ 线上参会 / 已作废 不判超期。
+//   · 复盘：未提交或已打回，且已过**复盘提交期限**（活动日 + review.deadlineDays）；
+//     已确认 / 已提交（已上传·批注中）/ 已作废 不判超期。
+// 存储字段 `overdue` 保留作历史兼容（不回写、不迁移），读侧一律改调本组函数。
+// ════════════════════════════════════════════════════════════════
+
+/** 本地日历日 + n 天（纯字符串/Date 运算；非法输入原样返回） */
+function _addDays(dateKey, n) {
+  const m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(String(dateKey || ''));
+  if (!m) return dateKey;
+  const d = new Date(+m[1], +m[2] - 1, +m[3] + n);
+  const pad = (x) => String(x).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/** 取记录上的日期锚点（活动日 / 记录日；显式 deadline 由 `_deadlineOf` 优先处理） */
+function _recordDateKey(record) {
+  const r = record || {};
+  const base = r.date || r.activityDate || r.recordedAt || r.submittedAt || r.createdAt || '';
+  const key = String(base).slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(key) ? key : '';
+}
+
+/** 期限：显式 deadline（YYYY-MM-DD）优先，否则日期锚点 + policy 天数 */
+function _deadlineOf(record, days, fallbackDays) {
+  const explicit = String((record || {}).deadline || '');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(explicit)) return explicit;
+  const base = _recordDateKey(record);
+  if (!base) return '';
+  return _addDays(base, Number.isInteger(days) ? days : fallbackDays);
+}
+
+/** 是否已过期限（today 严格大于 deadline 才算超期；当日不算） */
+function _isPast(today, deadline) {
+  return !!deadline && String(today) > deadline;
+}
+
+/**
+ * 考勤记录是否已超期（现算，R7-33）。
+ * @param {Object} record 考勤记录（date/activityDate/recordedAt 任一作日期锚点；deadline 优先）
+ * @param {{today?: string, policy?: Object}} [opts]
+ * @returns {boolean}
+ */
+export function isAttendanceOverdue(record, { today = todayLocal(), policy = POLICY_DEFAULTS } = {}) {
+  if (!record) return false;
+  // 已闭环：出勤 / 已补课 / 线上参会（免补课）/ 已作废（已处理）
+  if (record.status === 'present' || record.status === 'made_up') return false;
+  if (record.onlineAttend === true) return false;
+  if (record.voided === true) return false;
+  const days = (policy.makeup || {}).deadlineDays;
+  return _isPast(today, _deadlineOf(record, days, 7));
+}
+
+/**
+ * 复盘记录是否已超期（现算，R7-33）。
+ * 「已提交」（有 submittedAt 且非「已打回」）与「已确认」不判超期；未提交 / 已打回按期限判。
+ * @param {Object} record 复盘记录（date/activityDate 作活动日；deadline 优先）
+ * @param {{today?: string, policy?: Object}} [opts]
+ * @returns {boolean}
+ */
+export function isReviewOverdue(record, { today = todayLocal(), policy = POLICY_DEFAULTS } = {}) {
+  if (!record) return false;
+  if (record.confirmedAt) return false;                        // 已确认
+  if (record.voided === true) return false;                    // 已作废（已处理）
+  const rejected = record.reviewStatus === ReviewStatus.REJECTED;
+  if (record.submittedAt && !rejected) return false;           // 已上传 / 批注中：组织者已交
+  const days = (policy.review || {}).deadlineDays;
+  return _isPast(today, _deadlineOf(record, days, 10));
 }

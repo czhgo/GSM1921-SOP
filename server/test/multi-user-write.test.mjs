@@ -48,7 +48,7 @@ async function login(page, sid) {
   await page.waitForTimeout(1500);
   // P0-2（2026-09-23 支书裁定「形态必须可断言」）：本文件全部真机用例都走真后端 API 会话——
   // 断言单一源 = data/data-adapter.js::getRuntimeMode（此前只能靠「有没有 token」旁证，形态不可断言）。
-  const mode = await page.evaluate(async () => (await import('/src/data/data-adapter.js?v=20261018h')).getRuntimeMode());
+  const mode = await page.evaluate(async () => (await import('/src/data/data-adapter.js?v=20261102b')).getRuntimeMode());
   assert.equal(mode.source, 'api', `真机用例须确为 api 形态（实测 ${JSON.stringify(mode)}）`);
   assert.equal(mode.hasToken, true, 'api 形态应存在会话 token');
 }
@@ -56,8 +56,8 @@ async function login(page, sid) {
 /** 以正式写路径（mockDB 变更 → persist → 防抖快照写穿）写入一条记录 */
 async function pushAndPersist(page, collection, row) {
   await page.evaluate(async ({ collection, row }) => {
-    const { mockDB } = await import('/src/core/domain/domain.js?v=20261018h');
-    const { persist } = await import('/src/data/data-adapter.js?v=20261018h');
+    const { mockDB } = await import('/src/core/domain/domain.js?v=20261102b');
+    const { persist } = await import('/src/data/data-adapter.js?v=20261102b');
     mockDB[collection].push(row);
     persist();
   }, { collection, row });
@@ -110,13 +110,15 @@ test('多用户顺序写：后登录者 init 含先行数据，写后不互损',
   const ctxB = await browser.newContext();
   const pageB = await ctxB.newPage();
   await login(pageB, '2400012355');
-  await pushAndPersist(pageB, 'activities', { id: 'mw-act-B1', title: 'B 活动', type: '支委会', date: '2026-09-10', status: 'draft' });
+  // 2026-10-19 口径同步：活动创建已收口到语义写入口（snapshotScopeDeny），
+  // 本用例验证「跨集合写不互损」，改用 todos 集合（与首条用例同口径）。
+  await pushAndPersist(pageB, 'todos', { id: 'mw-todo-B2', title: 'B2', done: false });
   await flush();
 
   const noticesAfter = idsIn('notices', 'mw-notice-%');
-  const actsAfter = idsIn('activities', 'mw-act-%');
-  assert.ok(noticesAfter.includes('mw-notice-A2'), `B 写活动后 A2 通知必须保留（实测=${JSON.stringify(noticesAfter)}）`);
-  assert.ok(actsAfter.includes('mw-act-B1'), `B 的活动应写穿（实测=${JSON.stringify(actsAfter)}）`);
+  const todosAfter = idsIn('todos', 'mw-todo-%');
+  assert.ok(noticesAfter.includes('mw-notice-A2'), `B 写待办后 A2 通知必须保留（实测=${JSON.stringify(noticesAfter)}）`);
+  assert.ok(todosAfter.includes('mw-todo-B2'), `B 的待办应写穿（实测 todos=${JSON.stringify(todosAfter)}）`);
   await pageB.close(); await ctxB.close();
 });
 
@@ -174,7 +176,7 @@ test('同集合双写（P0-1 乐观锁）：后写者 409，先写者数据不�
     { timeout: 10000 }
   );
   const bAdoptedServerRow = await pageB.evaluate(async (id) => {
-    const { mockDB } = await import('/src/core/domain/domain.js?v=20261018h');
+    const { mockDB } = await import('/src/core/domain/domain.js?v=20261102b');
     return (mockDB.notices || []).some((n) => n.id === id);
   }, 'mw-notice-A3');
   assert.equal(bAdoptedServerRow, true, 'B 遇 409 后应重拉冲突集合并采用服务端数据（不得继续拿本地旧集合）');

@@ -14,8 +14,8 @@
 // ════════════════════════════════════════════════════════════════
 
 // Q-21-3 收敛（2026-09-13）：RESIDENCE 单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../core/domain/constants.js?v=20261018h';
-import { getResidenceOf } from './roster.js?v=20261018h';
+import { RESIDENCE } from '../../core/domain/constants.js?v=20261102b';
+import { getResidenceOf } from './roster.js?v=20261102b';
 
 // ── 删除守卫：业务域 → 产品话术类别（removeMember 引用守卫 refs 的展示映射）──
 // 映射键 = PersonStore.findMemberRefs 的 domain（详见 services/member/person.js）；
@@ -80,32 +80,36 @@ export function buildGuardMessage(name, refs = []) {
 }
 
 /**
- * 新增成员表单校验（姓名必填；学号/届别可暂缺；党小组/发展阶段可暂缺；
+ * 新增成员表单校验（姓名 / 学号 / 发展阶段必填；届别 / 党小组可暂缺；
  * 在册状态枚举 = RESIDENCE，禁造新枚举）
- * 学号唯一性（2026-09-14 批次 25）：学号可选，但**非空时不得与既有学号重复**——
- *   由调用方传入 opts.existingStudentIds（既有成员学号清单）做纯函数判定；
- *   单源写口侧的唯一性（流入登记）另在 services/member/member-flow.js::registerIntake 兜底。
+ * 学号（A15）：必填且**不得与既有学号重复**——由调用方传入 opts.existingStudentIds
+ *   （既有成员学号清单）做纯函数判定；单源写口侧的唯一性（流入登记）另在
+ *   services/member/member-flow.js::registerIntake 兜底。
+ * 发展阶段（A01）：必填——空阶段会让成员静默落在应到 / 表决名单之外。
  * 备注口径：仅滞留保留备注（在校 → 清空备注，与 org-base-data-preview 模板语义一致）
  * @param {Object} [form] { name, studentId, enrollYear, partyGroup, developStage, residenceStatus, residenceNote }
  * @param {Object} [opts]
  * @param {string[]} [opts.existingStudentIds] 既有成员学号清单（提供则校验唯一性）
- * @returns {{ok:true, value:Object}|{ok:false, message:string}}
+ * @returns {{ok:true, value:Object}|{ok:false, message:string, field:string}} `field`＝出错字段键，
+ *   供 `openFormModal` 的 `{ok:false, errors}` 契约落到对应控件（aria-invalid ＋ 聚焦首错）。
  */
 export function validateMemberForm(form = {}, opts = {}) {
   const name = typeof form.name === 'string' ? form.name.trim() : '';
-  if (!name) return { ok: false, message: '请填写成员姓名（必填）' };
+  if (!name) return { ok: false, message: '请填写成员姓名（必填）', field: 'name' };
   const studentId = typeof form.studentId === 'string' ? form.studentId.trim() : '';
+  if (!studentId) return { ok: false, message: '请填写学号（学号即成员唯一 id，必填）', field: 'studentId' };
   const enrollYear = typeof form.enrollYear === 'string' ? form.enrollYear.trim() : (form.enrollYear == null ? '' : String(form.enrollYear).trim());
   const partyGroup = typeof form.partyGroup === 'string' ? form.partyGroup.trim() : '';
   const developStage = typeof form.developStage === 'string' ? form.developStage.trim() : '';
+  if (!developStage) return { ok: false, message: '请选择发展阶段（必填）', field: 'developStage' };
   const residenceStatus = form.residenceStatus ?? RESIDENCE.CAMPUS;
   if (![RESIDENCE.CAMPUS, RESIDENCE.DETAINED].includes(residenceStatus)) {
-    return { ok: false, message: '在册状态须为「在校」或「滞留」' };
+    return { ok: false, message: '在册状态须为「在校」或「滞留」', field: 'residenceStatus' };
   }
-  // 学号唯一性：非空且与既有学号重复 → 拒绝（防「同一学号两人」）
+  // 学号唯一性：与既有学号重复 → 拒绝（防「同一学号两人」）
   const existing = Array.isArray(opts.existingStudentIds) ? opts.existingStudentIds : null;
   if (studentId && existing && existing.some((s) => String(s) === studentId)) {
-    return { ok: false, message: `学号 ${studentId} 已存在（不可重复建档）` };
+    return { ok: false, message: `学号 ${studentId} 已存在（不可重复建档）`, field: 'studentId' };
   }
   let residenceNote = typeof form.residenceNote === 'string' ? form.residenceNote.trim() : '';
   if (residenceNote.length > 120) residenceNote = residenceNote.slice(0, 120); // 与输入 maxlength 对齐

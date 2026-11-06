@@ -1,5 +1,5 @@
 // server/test/block-canvas-e2e.test.mjs — 块画布 v0 E2E（2026-09-03）
-// 支书在「工作台配置」停用「宣传」产出块 → 保存 → 组长(罗文杰 p1)活动详情
+// 支书在「工作台配置」停用「宣传」产出块 → 保存 → 组长(罗文杰 2400012345)活动详情
 // 「添加记录」按钮组不再含 publicity；恢复默认后回归。
 // 自包含：createApp(:memory:) + seedDatabase + 账号密码登录。
 
@@ -46,7 +46,7 @@ async function addBtnTypes(page) {
   );
 }
 
-async function openActivityDetail(page) {
+async function openActivityDetail(page, actId = 'act-37') {
   // 切到「本组活动」tab（leader 台默认待办；活动列表与子记录写口在 `write-tab.js` 渲染）。
   // ⚠ 2026-10-05 批次 386 改准（陈旧断言）：原按「**首个**含『活动』的 tab」点击 ⇒ `#10` 改版后该位被
   //   「活动日历」占据（`.leader-act-item` 实际只由「本组活动」渲染）⇒ 旧写法恒超时。
@@ -57,8 +57,13 @@ async function openActivityDetail(page) {
     if (btn) btn.click();
   });
   await page.waitForFunction(() => document.querySelector('.leader-act-item'), { timeout: 10000 });
-  await page.evaluate(() => document.querySelector('.leader-act-item')?.click());
-  await page.waitForFunction(() => document.querySelectorAll('.act-sub-add-btn').length > 0, { timeout: 8000 });
+  // 2026-10-26 批次 513：四个月窗口后首位可能是 11 月 draft（无产出块写口）；按 ID 选已开展活动。
+  await page.evaluate((id) => {
+    const target = document.querySelector(`.leader-act-item[data-act-id="${id}"]`)
+      || [...document.querySelectorAll('.leader-act-item')].find((el) => !/草稿|待批|已归档/.test(el.textContent));
+    target?.click();
+  }, actId);
+  await page.waitForTimeout(300);
 }
 
 test('产出块：支书停用宣传 → 组长活动详情无 publicity 按钮 → 恢复默认回归（D7：考勤/考察子记录只读）', async () => {
@@ -68,20 +73,29 @@ test('产出块：支书停用宣传 → 组长活动详情无 publicity 按钮 
   await login(sec, '2300010001');
   await sec.waitForURL('**/workspace/secretary.html', { timeout: 10000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await sec.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018h')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await sec.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261102b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await sec.evaluate(async () => {
-    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261018h');
+    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261102b');
     await updateBranchBlocks('br-b1', { outputBlocks: { hiddenBlockIds: ['publicity'], blockOrder: [] } });
   });
   await new Promise((r) => setTimeout(r, 1200));
 
-  // ② 组长 p1 登录 leader.html → 活动 tab → 打开活动详情 → 断言无 publicity 添加按钮
+  // ② 组长 2400012345 登录 leader.html → 活动 tab → 打开活动详情 → 断言无 publicity 添加按钮
   const lead = await browser.newPage();
   blockRoutes(lead);
   await login(lead, '2400012345');
   await lead.waitForURL('**/workspace/leader.html', { timeout: 10000 });
-  await openActivityDetail(lead);
-  const types = await addBtnTypes(lead);
+  // 2026-10-26 批次 513：登录后数据到达可能再渲染一次详情；试到有产出块写口的活动为止。
+  let types = [];
+  for (const id of ['act-37', 'act-21', 'act-26', 'act-3']) {
+    await openActivityDetail(lead, id);
+    for (let i = 0; i < 10; i += 1) {
+      await lead.waitForTimeout(300);
+      types = await addBtnTypes(lead);
+      if (types.includes('materials')) break;
+    }
+    if (types.includes('materials')) break;
+  }
   // D7 裁决批二（2026-09-08）：考勤/考察子记录只读化（无 + 添加/删除，双写口消除——
   // 统一走「考勤管理」「考察管理」页；专班详情只读化先例同款），仅宣传/材料保留写口。
   assert.ok(!types.includes('publicity'), '宣传块已隐藏');
@@ -92,14 +106,23 @@ test('产出块：支书停用宣传 → 组长活动详情无 publicity 按钮 
 
   // ③ 支书恢复默认（产出块=null）→ 组长刷新详情 → publicity 回归（考勤/考察仍只读）
   await sec.evaluate(async () => {
-    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261018h');
+    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261102b');
     await updateBranchBlocks('br-b1', null);
   });
   await new Promise((r) => setTimeout(r, 1000));
   await lead.reload({ waitUntil: 'domcontentloaded' });
   await lead.waitForURL('**/workspace/leader.html', { timeout: 10000 });
-  await openActivityDetail(lead);
-  const back = await addBtnTypes(lead);
+  // 2026-10-26 批次 513：分支配置在重载后异步到达；试到宣传块回归为止。
+  let back = [];
+  for (const id of ['act-37', 'act-21', 'act-26', 'act-3']) {
+    await openActivityDetail(lead, id);
+    for (let i = 0; i < 15; i += 1) {
+      await lead.waitForTimeout(300);
+      back = await addBtnTypes(lead);
+      if (back.includes('publicity')) break;
+    }
+    if (back.includes('publicity')) break;
+  }
   assert.ok(back.includes('publicity'), '恢复默认后宣传块回归');
   assert.ok(back.includes('materials'), '材料块保留添加');
   assert.ok(!back.includes('attendance') && !back.includes('inspection'), '考勤/考察仍只读（无添加按钮）');

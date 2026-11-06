@@ -11,6 +11,7 @@
 // 本页签的**能力边界**（只读，不做第二套写口）：
 //   · 只渲「月 / 周 / 日 / 列表」四视图 ＋ 类别图例 ＋ 月份选择（引擎单一源 `components/record/calendar.js`）；
 //   · **不挂**写入按钮 / 统计条 / 活动查询——那些是支书台的管侧面，挂在各成员台上既越权、又与「详情页」重复建设；
+//     右栏仅给「本场组织者且有考勤上传位」的人一枚**本位跳转**链接（跳组长 / 成员台的既有上传位，不复制表单）；
 //   · 点击活动条目 → `activity.html?id=…`（**既有落点**，与首页「近期活动」日历同一条跳转机制；
 //     不新增机制、不在本页复刻详情）；**点击日期格 → 右侧详情栏出当日活动**（只读分支，见下）。
 //
@@ -29,32 +30,38 @@
 //   容器内容却没登记标记」时会把本页判成「已在位」而跳过骨架重建，留下空白（同 today-tab 2026-09-25
 //   真机实测的残留病）。
 
-import { getAppState } from '../../../core/base/state.js?v=20261018h';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261018h';
-import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261018h';
+import { getAppState } from '../../../core/base/state.js?v=20261102b';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261102b';
+import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261102b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261102b';
+import { smoothScroll } from '../../../core/base/utils.js?v=20261102b';
+// Task 6：共享日历属「非对象所属工作台」的只读承载面 ⇒ 条目/详情卡直达完整详情页（direct）。
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261102b';
 
-const TAB_HTML = `
-  <div class="card rounded-xl p-5">
-    <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">活动日历</h3>
+const PANEL_HTML = `
     <div id="calendar-view-section" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
       <div class="lg:col-span-3">
         <div class="flex flex-wrap items-center gap-2 mb-3">
           <select id="month-selector" class="input-flat text-xs" style="min-width:120px;"></select>
           <div id="cal-view-switcher"></div>
         </div>
-        <div id="cal-main-empty" class="hidden text-sm text-gray-500 text-center py-8">本月暂无活动</div>
+        <div id="cal-main-empty" class="hidden"><div class="empty-state"><p class="empty-state__text">本月暂无活动</p></div></div>
         <div id="cal-main-grid"></div>
         <div id="calendar-legend" class="mt-3"></div>
       </div>
       <div id="inspector-container" class="lg:col-span-2 rounded-xl bg-gray-50/50 border border-gray-100 p-3">
-        <div id="inspector-default" class="text-sm text-gray-500 text-center py-8">点击日期查看活动详情，或点击活动条目直接进入详情</div>
+        <div id="inspector-default" class="text-sm text-gray-500 text-center py-8">未选择日期</div>
         <div id="inspector-content" class="hidden">
           <h4 id="inspector-date-title" class="font-title-cn text-sm font-bold text-gray-800 mb-3"></h4>
           <div id="inspector-cards"></div>
         </div>
       </div>
     </div>
-  </div>
+`;
+
+const TAB_HTML = `
+  ${renderTabHeader({ title: '活动日历', description: '月 / 周 / 日 / 列表四视图。' })}
+  <div class="card rounded-xl p-5">${PANEL_HTML}</div>
 `;
 
 /**
@@ -64,20 +71,36 @@ const TAB_HTML = `
  */
 export function renderContent(container, state) {
   if (!container) return;
+  if (!container.querySelector('#cal-main-grid')) container.innerHTML = TAB_HTML;
+  renderCalendarPanel(container, state);
+}
 
-  if (!container.querySelector('#cal-main-grid')) {
-    container.innerHTML = TAB_HTML;
-    // 活动条目 → 活动详情页。capture 阶段截断：引擎在条目自身上还绑了「选中日期 → 内部详情」链路
-    // （本页右栏由 inspector 消费）。
-    container.querySelector('#cal-main-grid')?.addEventListener('click', (e) => {
+/**
+ * 只渲染两栏面板（不含页头/外卡）——供「工作概况」页内折叠卡复用（2026-10-25 IA 62→45）。
+ * 日历引擎与只读 inspector 的实现仍是本文件这一份（不复制第二套日历）。
+ * @param {HTMLElement} container — 已含面板槽位的容器（或本页页签容器）
+ * @param {Object} [state]
+ */
+export function renderCalendarPanel(container, state) {
+  if (!container) return;
+  if (!container.querySelector('#cal-main-grid')) container.innerHTML = PANEL_HTML;
+
+  // 活动条目 → 活动详情页。capture 阶段截断：引擎在条目自身上还绑了「选中日期 → 内部详情」链路
+  // （本页右栏由 inspector 消费）。
+  const grid = container.querySelector('#cal-main-grid');
+  if (grid && grid.dataset.actLinkBound !== '1') {
+    grid.dataset.actLinkBound = '1';
+    grid.addEventListener('click', (e) => {
       const item = e.target.closest?.('.cal-activity-item');
       if (!item) return;
       e.stopPropagation();
       const id = item.dataset.actId;
+      // 统计 query 由 objectDetailHref 单一出口生成；缺 id 不跳转（不生成空 id 链接）。
+      const href = objectDetailHref('activity', id, { entry: 'shared-calendar' });
       // 用 `window.location =`（不带 `.href`）——与 `today-tab.js` 同款：`link-integrity::L2`
       // 只扫「location 点 href 赋值」这一形态（连注释里的同形写法也会被它当跳转目标抽走），
       // 带 query 的拼接会被误判为「目标文件不存在」。
-      if (id) window.location = 'activity.html?id=' + encodeURIComponent(id);
+      if (href) window.location = href;
     }, true);
   }
 
@@ -93,6 +116,75 @@ export function renderContent(container, state) {
 }
 
 /**
+ * 「活动日历」页内折叠卡（2026-10-25 IA 62→45：四台页签降级后的唯一落点）。
+ * 标题在 `<summary>` 外（`aria-labelledby` 关联），展开态在 `open` 上；首次展开时才挂载引擎，
+ * 避免给工作概况首屏多加一次日历渲染。
+ * @param {HTMLElement} host — 卡片宿主（追加一个 `<details>`）
+ * @param {Object} [state]
+ * @param {{id?:string, open?:boolean, afterHtml?:string, mountExtra?:(body:HTMLElement)=>void}} [opts]
+ * @returns {HTMLDetailsElement|null}
+ */
+export function renderCalendarCard(host, state, opts = {}) {
+  if (!host) return null;
+  _bindCardOpenEvent();
+  const id = opts.id || 'ov-calendar-card';
+  if (host.querySelector(`#${id}`)) {
+    const old = host.querySelector(`#${id}`);
+    // 深链要求展开：即使卡片已存在也按参数打开
+    if (opts.open) old.open = true;
+    if (old.open) _mountCard(old);
+    return old;
+  }
+  const wrap = document.createElement('div');
+  wrap.className = 'card rounded-xl p-5 disclosure-host';
+  // 2026-10-27 Task 6.3（脏乱繁 · 40px 折叠槽）：整句「展开月历与当日活动（只读）」此前被塞进
+  //   40×40 的 `.disclosure__summary`（绝对定位、flex 居中）⇒ 竖排折行把卡头压坏。
+  //   现与其它折叠卡同构：summary 只留 chevron（全局 `summary::before`），动作说明放 `aria-label`
+  //   （标题仍是兄弟 H3，可访问名称取自标题＋动作，读屏不再读一串竖排文字）。
+  wrap.innerHTML = `
+    <h3 class="disclosure__title" id="${id}-title">月历与当日活动</h3>
+    <details class="disclosure" id="${id}"${opts.open ? ' open' : ''}>
+      <summary class="disclosure__summary" aria-label="展开月历与当日活动（只读）"></summary>
+      <div class="disclosure__body" data-cal-card-body>
+        ${PANEL_HTML}
+        ${opts.afterHtml || ''}
+      </div>
+    </details>`;
+  host.appendChild(wrap);
+  const details = wrap.querySelector(`#${id}`);
+  const body = wrap.querySelector('[data-cal-card-body]');
+  const mount = () => _mountCard(details);
+  mount();
+  details.addEventListener('toggle', () => { if (details.open) mount(); });
+  return details;
+
+  function _mountCard(el) {
+    if (!body) return;
+    if (body.dataset.calMounted !== '1') {
+      body.dataset.calMounted = '1';
+      renderCalendarPanel(body, state);
+      opts.mountExtra?.(body);
+    } else {
+      renderCalendarPanel(body, state);
+    }
+    if (opts.open && el) el.open = true;
+  }
+}
+
+/** 「展开活动日历」全局事件（2026-10-25 IA 62→45）：各台「今天」页的会议「全部」等入口
+ *  在切到「工作概况」后派发 `ws:open-calendar`，本卡据此展开并滚到视野（绑定一次）。 */
+function _bindCardOpenEvent() {
+  if (typeof document === 'undefined' || document.body?.dataset.calCardOpenBound === '1') return;
+  if (document.body) document.body.dataset.calCardOpenBound = '1';
+  document.addEventListener('ws:open-calendar', () => {
+    const card = document.querySelector('details[id$="calendar-card"]');
+    if (!card) return;
+    card.open = true;
+    smoothScroll(card, { block: 'center' });
+  });
+}
+
+/**
  * 右栏活动卡补「查看活动详情」出口（2026-10-18 繁专项 Task 14）：
  * 只读 inspector 的参与者卡片原先只弹摘要浮层、没有下一步；此处复用左栏同一条落点
  * `./activity.html?id=…`。用 MutationObserver 跟随日期切换后的卡片重绘（不碰 inspector 共享实现）。
@@ -105,10 +197,11 @@ function _bindActivityDetailLinks(container) {
     cards.querySelectorAll('.inspector-card[data-act-id]').forEach((card) => {
       if (card.querySelector('.cal-activity-detail-link')) return;
       const id = card.dataset.actId;
-      if (!id) return;
+      const href = objectDetailHref('activity', id, { entry: 'shared-calendar' });
+      if (!href) return;
       const link = document.createElement('a');
-      link.className = 'cal-activity-detail-link inline-flex items-center gap-1 mt-2 text-xs text-sky-700 hover:text-sky-800 hover:underline transition-colors';
-      link.href = `./activity.html?id=${encodeURIComponent(id)}`;
+      link.className = 'cal-activity-detail-link inline-flex items-center gap-1 mt-2 text-xs text-accent transition-colors hover:bg-[var(--app-accent-tint)]';
+      link.href = `./${href}`;
       link.textContent = '查看活动详情 →';
       // 右栏卡片自身绑定了「打开摘要浮层」——链接点击不冒泡，直接走详情页。
       link.addEventListener('click', (e) => e.stopPropagation());

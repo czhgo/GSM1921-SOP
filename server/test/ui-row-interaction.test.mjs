@@ -65,8 +65,12 @@ test('R2 styles.css：展示行 / 动作行无 pointer，且 hover 不变底', (
 
 test('R3 可交互行有 :focus-visible', () => {
   const css = readFileSync(CSS, 'utf8');
-  assert.match(css, /\.list-row\[data-interactive="true"\]:focus-visible\s*\{/,
-    '可交互行缺 :focus-visible（键盘不可见焦点）');
+  // 2026-10-29 P1：行焦点三种写法合并为 `[data-interactive="true"]` 单一来源
+  //   （同时覆盖 .list-row 与表格行），仍须落在带 2px 主题色环的规则块里。
+  const focus = /\[data-interactive="true"\]:focus-visible[\s\S]{0,240}?\{([^}]*)\}/.exec(css);
+  assert.ok(focus, '可交互行缺 :focus-visible（键盘不可见焦点）');
+  assert.match(focus[1], /outline:\s*2px solid var\(--app-accent\)/,
+    '可交互行的 :focus-visible 必须出 2px 主题色环');
   assert.match(css, /\.list-row\[data-interactive="true"\]\s*\{[^}]*cursor:\s*pointer/,
     '可交互行缺 cursor: pointer');
 });

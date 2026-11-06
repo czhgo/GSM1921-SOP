@@ -10,9 +10,10 @@
 // 权限：党委台仅 party-staff 进入（canSwitchBranch 任意支部）；现任支书走独立页 wizard.html?branch=
 // 写口：branch 服务既有校验语义（config 写口 = party-staff / 本支部现任支书）+ 即时生效留痕。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261018h';
-import { mountOrgSetupWizard } from '../../../components/governance/org-setup-wizard.js?v=20261018h';
-import { getAuthToken, getApiBaseUrl, getDataSource } from '../../../data/data-adapter.js?v=20261018h';
+import { AuthStore } from '../../../services/core/auth.js?v=20261102b';
+import { mountOrgSetupWizard } from '../../../components/governance/org-setup-wizard.js?v=20261102b';
+import { getAuthToken, getApiBaseUrl, getDataSource } from '../../../data/data-adapter.js?v=20261102b';
+import { describeWriteError, escHtml } from '../../../core/base/utils.js?v=20261102b';
 
 // ════════════════════════════════════════════════════════════════
 //  「部署与对接」面板（2026-09-29 批次 273 新增）
@@ -38,12 +39,20 @@ async function renderDeployPanel(host) {
       headers: { Authorization: `Bearer ${getAuthToken()}` },
     });
     if (!resp.ok) {
-      host.innerHTML = `<p class="text-sm text-red-700" role="alert">读取失败（HTTP ${resp.status}）。本面板仅党委组织员可见。</p>`;
-      return;
+      let body = null;
+      try { body = await resp.json(); } catch { body = null; }
+      const error = new Error(body && typeof body.error === 'string' ? body.error : '');
+      error.status = resp.status;
+      error.type = resp.status === 401 ? 'AuthError'
+        : resp.status === 403 ? 'PermissionError'
+        : 'ApiError';
+      error.body = body;
+      throw error;
     }
     data = await resp.json();
   } catch (e) {
-    host.innerHTML = `<p class="text-sm text-red-700" role="alert">读取失败：${String(e && e.message || e)}</p>`;
+    // 401 / 403 才说权限；5xx 说稍后重试——状态码与原始异常一律不上界面（describeWriteError 单一源）
+    host.innerHTML = `<p class="text-sm text-red-700" role="alert">读取失败：${escHtml(describeWriteError(e))}</p>`;
     return;
   }
 
@@ -53,7 +62,7 @@ async function renderDeployPanel(host) {
   const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const row = (label, okv, extra = '') =>
     `<li class="flex items-start gap-2 py-1"><span>${okv ? '✅' : '⚠'}</span>`
-    + `<span class="text-gray-700">${label}</span>${extra ? `<span class="text-gray-400">${extra}</span>` : ''}</li>`;
+    + `<span class="text-gray-700">${label}</span>${extra ? `<span class="text-gray-500">${extra}</span>` : ''}</li>`;
 
   host.innerHTML = `
     <div class="space-y-4">
@@ -81,7 +90,7 @@ async function renderDeployPanel(host) {
         <button id="pc-copy-env" class="btn-outline mt-2 text-xs px-3 py-1.5">
           复制环境变量模板</button>
         <span id="pc-copy-msg" class="text-xs text-green-700 ml-2"></span>
-        <pre class="mt-2 text-[11px] leading-5 bg-gray-50 border border-gray-200 rounded p-2 overflow-x-auto">${esc(data.envTemplate)}</pre>
+        <pre class="mt-2 text-xs leading-5 bg-gray-50 border border-gray-200 rounded p-2 overflow-x-auto">${esc(data.envTemplate)}</pre>
       </details>
     </div>`;
 

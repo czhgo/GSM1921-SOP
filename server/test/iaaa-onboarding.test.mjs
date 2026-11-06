@@ -42,7 +42,7 @@ const iaaaLogin = async (studentId) => (await api('GET', `/api/v1/auth/iaaa/call
 before(async () => {
   const app = createApp(':memory:');
   db = app.locals.db;
-  seedBaseline(db);                       // 组织基线：党委账号 p_pc ＋ 支部 br-b1
+  seedBaseline(db);                       // 组织基线：党委账号 9000000001 ＋ 支部 br-b1
   // 造数据：第二个支部 ＋ 一名组织委员（br-b1）＋ 一名「申请进 br-x」的待确认者
   db.prepare('INSERT OR REPLACE INTO branches (id, data) VALUES (?, ?)')
     .run('br-x', JSON.stringify({ id: 'br-x', name: '测试他支部', config: { modules: null, blocks: null, workforce: null }, secretaryId: null, status: 'active' }));
@@ -70,7 +70,7 @@ test('T2 无号 ⇒ 自动建号（participant / branchId null / needBranch）�
   assert.equal(r1.needBranch, true, '未归属 ⇒ 需选支部');
   assert.equal(r1.user.branchId, null, '建号后**不得**自带支部');
   assert.equal(r1.user.role, 'participant', '入站即普通成员（身份由支部后续按制度配置）');
-  assert.match(r1.user.id, /^p_/, 'id 形态与既有 `p_<uuid>` 一致');
+  assert.equal(r1.user.id, sid, 'id = 学号/工号（与「新成员 id=学号」同源，R2-41）');
 
   const me = await api('GET', '/api/v1/auth/me', { token: r1.token });
   assert.equal(me.status, 200, '新号必须能登录（否则自助入站无意义）');

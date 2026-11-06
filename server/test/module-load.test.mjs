@@ -10,12 +10,13 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
-import { readdirSync, readFileSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { MOCK_ACCOUNTS } from '../../docs/src/data/mock/accounts.js?v=20261018h';
+import { MOCK_ACCOUNTS } from '../../docs/src/data/mock/accounts.js?v=20261102b';
+import { parseFiles } from './lib/esm-parse.mjs';
 
 let server;
 let BASE;
@@ -67,7 +68,7 @@ test('E1 编辑完整性：docs/src 全部模块可加载（无语法/重复声�
       let done = 0;
       for (const rel of mods) {
         try {
-          await import(`/src/${rel}?v=20261018h`);
+          await import(`/src/${rel}?v=20261102b`);
         } catch (e) {
           failures.push(`${rel} :: ${String(e).slice(0, 140)}`);
         }
@@ -180,9 +181,9 @@ test('E3 分层方向：服务层不得 import 组件（服务层不产 UI；组
 test('E4 真机装配：登录后 3 类角色的工作台页在真实浏览器里真的装配成 api', async () => {
   // 抽样取自 `docs/src/data/mock/accounts.js`（单一源）——personId 写在这里但**须真实存在**，否则红
   const SAMPLES = [
-    { label: '支书台', page: '/workspace/secretary.html', personId: 'p13' },
-    { label: '纪检台', page: '/workspace/disc.html', personId: 'p10' },
-    { label: '组长台', page: '/workspace/leader.html', personId: 'p1' },
+    { label: '支书台', page: '/workspace/secretary.html', personId: '2300010001' },
+    { label: '纪检台', page: '/workspace/disc.html', personId: '2400012354' },
+    { label: '组长台', page: '/workspace/leader.html', personId: '2400012345' },
   ];
   for (const s of SAMPLES) {
     assert.ok(MOCK_ACCOUNTS.some((a) => a.personId === s.personId),
@@ -210,6 +211,21 @@ test('E4 真机装配：登录后 3 类角色的工作台页在真实浏览器�
       const token = await login(s.personId);
       const page = await browser.newPage();
       await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort()); // 离线：与 E1 同口径
+      // 首屏 4xx 归零（批次 523）：带 token 后业务端点不该有任何 4xx——
+      //   上一轮审查曾据「56 个请求里 2 个恒 404」判风险，复核为驼峰路径误读（真实端点小写连字符，实测 200）。
+      //   此处按真机实况钉住：任何 `/api/v1/` 的 4xx 都要把状态码 + 路径逐条报出来，防真实回潮。
+      const bad4xx = new Map();
+      let apiTotal = 0; // 非空转旁证：只有真发出 /api/v1/ 请求，上面的「零 4xx」才有意义
+      page.on('response', (res) => {
+        let u;
+        try { u = new URL(res.url()); } catch (_) { return; }
+        if (!u.pathname.startsWith('/api/v1/')) return;
+        apiTotal += 1;
+        const status = res.status();
+        if (status < 400) return;
+        const key = `${status} ${u.pathname}`;
+        bad4xx.set(key, (bad4xx.get(key) || 0) + 1);
+      });
       await page.addInitScript((t) => {
         try { sessionStorage.setItem('gsm1921-api-token', t); } catch (_) { /* 隐私模式 */ }
       }, token);
@@ -224,6 +240,15 @@ test('E4 真机装配：登录后 3 类角色的工作台页在真实浏览器�
       assert.equal(mark, 'api',
         `${s.label}（${s.page}，${s.personId}）运行时数据源应为 api，实测 ${mark}`
         + `——入口「源码里有装配调用」不等于「运行时真装配成功」；出现 mock/未写入即页面静默退回了本地`);
+      // 等首屏请求收敛（轮询类请求不追；超时即按已收到的条目判定）
+      await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+      const offenders = [...bad4xx.entries()].map(([k, n]) => (n > 1 ? `${k}（×${n}）` : k));
+      console.log(`[E4] ${s.label}（${s.page}）：/api/v1/ 响应 ${apiTotal} 个 / 4xx ${offenders.length} 条`);
+      assert.deepEqual(offenders, [],
+        `${s.label}（${s.page}，${s.personId}）首屏出现 ${offenders.length} 条 /api/v1/ 4xx：\n  `
+        + `${offenders.join('\n  ')}\n`
+        + '带 token 的业务端点不应返回 4xx（404 多半是端点路径写错，如驼峰 ↔ 小写连字符）；'
+        + '不得为变绿而过滤条目，先查清 URL + 状态码 + 触发条件。');
       await page.close();
     }
 
@@ -243,4 +268,106 @@ test('E4 真机装配：登录后 3 类角色的工作台页在真实浏览器�
   } finally {
     await browser.close();
   }
+});
+
+// ════════════════════════════════════════════════════════════════
+//  E5 工作台能力表页签模块完整性（2026-10-29）
+// ════════════════════════════════════════════════════════════════
+//  病灶：`secretary/todo-tab.js` 与 `visitor/inspection-tab.js` 的 import 落进函数体，
+//    浏览器 ESM 解析直接 SyntaxError ⇒ 页签恒显错误卡。而既有判据恰好都绕开：
+//    E1 收集模块时**显式排除 `entries/**`**；`import-path-guard` 只查「路径是否存在」。
+//  判据（逐条）：
+//    ① 能力表里 `import('../entries/tabs/…')` / `loadTabModule('…')` 的路径必须解析到真实文件；
+//    ② 该文件必须通过真正的 ESM 解析（复用 `lib/esm-parse.mjs`，一次子进程遍历全部文件）；
+//    ③ 注册表实际调用的导出名（如 `.then(m => m.renderContent(ctx))` 的 `renderContent`）必须真被导出。
+//  精度边界（③）：用**导出声明扫描**，认 `export function/const/let/var/class`（含
+//    `export const { renderContent } = …` 这类解构导出）与 `export { … }`；
+//    不解析 `export * from` / 默认导出 / 字符串或注释里的伪声明，也不展开「定义后改名再导出」的复杂别名。
+//    当前页签模块均为直接导出或解构导出，够用；若将来出现 re-export 形态的页签模块，须扩本判据（否则会误红）。
+//  非空转：页签模块数 ≥ 40（防能力表解析失败导致所有断言恒真）。
+function exportedNamesOf(src) {
+  const names = new Set();
+  for (const m of src.matchAll(/\bexport\s+(?:async\s+)?function\s+([A-Za-z_$][\w$]*)/g)) names.add(m[1]);
+  for (const m of src.matchAll(/\bexport\s+(?:const|let|var)\s+([A-Za-z_$][\w$]*)/g)) names.add(m[1]);
+  for (const m of src.matchAll(/\bexport\s+class\s+([A-Za-z_$][\w$]*)/g)) names.add(m[1]);
+  // `export const { renderContent, other } = …`（todo-tab 的共享壳写法）
+  for (const m of src.matchAll(/\bexport\s+(?:const|let|var)\s*\{([^}]*)\}/g)) {
+    for (const part of m[1].split(',')) {
+      const seg = part.trim();
+      if (!seg) continue;
+      const renamed = /^[A-Za-z_$][\w$]*\s*:\s*([A-Za-z_$][\w$]*)$/.exec(seg);
+      names.add(renamed ? renamed[1] : seg.split(/\s+/)[0]);
+    }
+  }
+  for (const m of src.matchAll(/\bexport\s*\{([^}]*)\}/g)) {
+    for (const part of m[1].split(',')) {
+      const seg = part.trim();
+      if (!seg) continue;
+      const as = /\bas\s+([A-Za-z_$][\w$]*)$/.exec(seg);
+      names.add(as ? as[1] : seg.split(/\s+/)[0]);
+    }
+  }
+  return names;
+}
+
+test('E5 工作台能力表页签模块：路径真实 / ESM 可解析 / 调用的导出名确实存在', () => {
+  const docsDir = fileURLToPath(new URL('../../docs/', import.meta.url));
+  const capDir = join(docsDir, 'src', 'capabilities');
+  const capFiles = readdirSync(capDir).filter((n) => n.endsWith('-workspace.js')).sort();
+  assert.ok(capFiles.length >= 7, `工作台能力表应不少于 7 个，实测 ${capFiles.length}`);
+
+  // 兼容两种写法：改造前的直接 `import('…')` 与改造后的 `loadTabModule('…')`
+  const MODULE_RE = /(?:import|loadTabModule)\(\s*'([^']*\/entries\/tabs\/[^']+)'\s*\)/g;
+  const entries = [];
+  const seen = new Set();
+  for (const cap of capFiles) {
+    const capPath = join(capDir, cap);
+    const src = readFileSync(capPath, 'utf8');
+    for (const m of src.matchAll(MODULE_RE)) {
+      const spec = m[1];
+      const target = resolve(dirname(capPath), spec.split('?')[0]);
+      // 注册表实际调用名：`loadTabModule(spec).then(m => m.<name>(…))` 里的首个 `m.<name>`。
+      const rest = src.slice(m.index + m[0].length);
+      const thenAt = rest.indexOf('.then(');
+      const tail = thenAt >= 0 ? rest.slice(thenAt, thenAt + 800) : '';
+      const hit = /\bm\.([A-Za-z_$][\w$]*)/.exec(tail);
+      const exportName = hit ? hit[1] : null;
+      const key = `${target}::${exportName}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      entries.push({ cap, spec, target, exportName });
+    }
+  }
+
+  const uniqueTargets = [...new Set(entries.map((e) => e.target))];
+  assert.ok(uniqueTargets.length >= 40,
+    `只解析到 ${uniqueTargets.length} 个页签模块（下限 40）——能力表结构变了或正则失效，本项会变成恒真`);
+
+  // ① 路径存在（必须是文件，不能是目录）
+  const missing = entries.filter((e) => !existsSync(e.target) || statSync(e.target).isDirectory());
+  assert.deepEqual(missing.map((e) => `${e.cap} → ${e.spec}`), [],
+    `能力表指向的页签模块不存在：\n  ${missing.map((e) => `${e.cap} → ${e.spec}`).join('\n  ')}`);
+
+  // ② 真正的 ESM 解析（一次子进程遍历全部）
+  const { failures } = parseFiles(uniqueTargets);
+  assert.deepEqual(
+    failures.map((f) => `${relative(docsDir, f.file).replace(/\\/g, '/')} :: ${f.name}: ${f.message}`),
+    [],
+    '能力表里的页签模块无法被 ESM 解析（浏览器里整模块失败 ⇒ 该页签恒定报错）',
+  );
+
+  // ③ 注册表调用的导出名确实被该文件导出
+  const noExport = [];
+  for (const e of entries) {
+    if (!e.exportName) {
+      noExport.push(`${e.cap} → ${e.spec}：未能解析出注册表调用的导出名`);
+      continue;
+    }
+    const names = exportedNamesOf(readFileSync(e.target, 'utf8'));
+    if (!names.has(e.exportName)) {
+      noExport.push(`${e.cap} → ${e.spec}：调用 m.${e.exportName}()，但该模块未导出 ${e.exportName}`);
+    }
+  }
+  console.log(`[E5] 页签模块：${uniqueTargets.length} 个模块 / ${entries.length} 条注册调用，通过路径·ESM 解析·导出名校验`);
+  assert.deepEqual(noExport, [], `注册表调用名与模块导出不一致：\n  ${noExport.join('\n  ')}`);
 });

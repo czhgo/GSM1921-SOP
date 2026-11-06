@@ -1,16 +1,17 @@
 // 党委所选支部只读视图：页面身份不切换到支部工作台。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018h';
-import { renderHeader } from '../../components/shell/header.js?v=20261018h';
-import { AuthStore } from '../../services/core/auth.js?v=20261018h';
-import { BranchService } from '../../services/core/runtime.js?v=20261018h';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261018h';
-import { getBranchById } from '../../services/branch/branch.js?v=20261018h';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261018h';
-import { hydrateDataSource } from '../../data/data-adapter.js?v=20261018h';
-import { getBasePath, escHtml as esc } from '../../core/base/utils.js?v=20261018h';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261018h';
-import { renderPageHeader } from '../../components/shell/page-frame.js?v=20261018h';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261102b';
+import { renderHeader } from '../../components/shell/header.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { BranchService } from '../../services/core/runtime.js?v=20261102b';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261102b';
+import { getBranchById } from '../../services/branch/branch.js?v=20261102b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261102b';
+import { hydrateDataSource } from '../../data/data-adapter.js?v=20261102b';
+import { getBasePath, docAnchorHref, escHtml as esc } from '../../core/base/utils.js?v=20261102b';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS } from '../../core/domain/constants.js?v=20261102b';
+import { renderPageHeader } from '../../components/shell/page-frame.js?v=20261102b';
 
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261102b';
 renderSidebar('workspace');
 renderHeader('workspace');
 
@@ -31,7 +32,11 @@ function message(title, body, role = 'status') {
 
 async function render() {
   if (!host) return;
-  if (!actor) return message('请先登录', '党委支部只读视图需要党委组织员登录。', 'alert');
+  if (!actor) {
+    host.innerHTML = emptyStateHtml({ variant: 'panel', text: '请先登录后使用', actionHtml: `<a class="btn-outline" href="${getBasePath()}login.html">去登录</a>` });
+    host.setAttribute('aria-busy', 'false');
+    return;
+  }
   if (actor.role !== 'party-staff') return message('无权访问', '该只读视图仅供党委组织员使用。', 'alert');
   if (!branchId) return message('尚未选择支部', '请从党委支部台账选择一个支部后查看。', 'alert');
 
@@ -48,7 +53,7 @@ async function render() {
     .filter((person) => person.branchId === branchId && person.role !== 'party-staff' && person.transferOut !== true)
     .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'zh-CN'));
   const branchActivities = (activities || [])
-    .filter((activity) => (activity.branchId || 'br-b1') === branchId)
+    .filter((activity) => (activity.branchId || DEFAULT_BRANCH_ID) === branchId)
     .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
   const branchName = branch.config?.headerTitle || branch.name || branchId;
   const secretaryName = branch.secretaryId ? getPersonName(branch.secretaryId) : '待任命';
@@ -58,7 +63,7 @@ async function render() {
     <div class="page-frame page-frame--wide" data-branch-readonly="${esc(branchId)}">
       ${renderPageHeader({
         title: branchName,
-        actions: `<a class="btn-outline inline-flex shrink-0 px-3 py-2 text-sm" href="${getBasePath()}workspace/party-committee.html?tab=monitor">返回支部台账</a>`,
+        actions: `<a class="btn-outline inline-flex shrink-0 px-3 py-2 text-sm" href="${getBasePath()}workspace/party-committee.html?tab=branches">返回支部台账</a>`,
       })}
 
       <section id="branch-overview" class="card p-5" aria-labelledby="branch-state-heading">
@@ -76,7 +81,7 @@ async function render() {
       </section>
 
       <nav class="branch-readonly-nav" aria-label="支部只读视图目录">
-        <a href="#branch-overview">概况</a><a href="#branch-roster">名册</a><a href="#branch-activities">活动</a>
+        <a href="${esc(docAnchorHref('#branch-overview'))}">概况</a><a href="${esc(docAnchorHref('#branch-roster'))}">名册</a><a href="${esc(docAnchorHref('#branch-activities'))}">活动</a>
       </nav>
 
       <section id="branch-roster" class="card p-5" aria-labelledby="branch-members-heading">
@@ -90,7 +95,7 @@ async function render() {
           <div><label for="branch-member-stage-filter" class="mb-1 block text-sm font-medium text-gray-700">发展阶段</label><select id="branch-member-stage-filter" class="input-flat w-full"><option value="">全部阶段</option>${[...new Set(rows.map((person) => person.developStage || ROLE_LABELS[person.role] || '阶段未标注'))].sort((a, b) => a.localeCompare(b, 'zh-CN')).map((stage) => `<option value="${esc(stage)}">${esc(stage)}</option>`).join('')}</select></div>
         </div>
         <div class="pc-table-scroll pc-table-scroll--members mt-4 rounded-lg border border-gray-200">
-          <table class="data-table">
+          <table class="data-table" data-responsive="cards">
             <caption class="visually-hidden">${esc(branchName)}成员名册，包含党小组、发展阶段和只读档案入口</caption>
             <thead><tr><th scope="col">姓名</th><th scope="col">党小组</th><th scope="col">发展阶段</th><th scope="col">档案</th></tr></thead>
             <tbody id="branch-member-rows"></tbody>
@@ -108,7 +113,7 @@ async function render() {
           ${branchActivities.slice(0, 10).map((activity) => `<li class="grid grid-cols-[6rem_minmax(0,1fr)_auto] items-baseline gap-3 py-3">
             <time class="text-sm tabular-nums text-gray-500">${esc(String(activity.date || '未定').slice(0, 10))}</time><span class="min-w-0 text-sm font-medium text-gray-800">${esc(activity.title || '未命名活动')}</span><span class="text-sm text-gray-500">${esc(activity.status || '未标注状态')}</span>
           </li>`).join('')}
-        </ol>` : '<p class="mt-4 border-y border-gray-200 py-5 text-sm text-gray-500" role="status">暂无活动记录。</p>'}
+        </ol>` : emptyStateHtml({ variant: 'inline', text: '暂无活动记录' })}
       </section>
     </div>`;
 
@@ -133,9 +138,9 @@ async function render() {
     const tableRows = pageRows.map((person) => {
       const personStage = person.developStage || ROLE_LABELS[person.role] || '阶段未标注';
       const profileUrl = `${getBasePath()}person.html?id=${encodeURIComponent(person.id)}&branchId=${encodeURIComponent(branchId)}`;
-      return `<tr><td><a class="font-medium text-blue-700 underline underline-offset-2" href="${profileUrl}">${esc(person.name || '未命名成员')}</a></td><td>${esc(person.partyGroup || '未分组')}</td><td>${esc(personStage)}</td><td><a class="whitespace-nowrap text-sm text-blue-700 underline underline-offset-2" href="${profileUrl}">查看档案</a></td></tr>`;
+      return `<tr><td data-label="姓名"><a class="font-medium text-accent" href="${profileUrl}">${esc(person.name || '未命名成员')}</a></td><td data-label="党小组">${esc(person.partyGroup || '未分组')}</td><td data-label="发展阶段">${esc(personStage)}</td><td data-label="档案"><a class="whitespace-nowrap text-sm text-accent" href="${profileUrl}">查看档案</a></td></tr>`;
     }).join('');
-    host.querySelector('#branch-member-rows').innerHTML = tableRows || `<tr><td colspan="4" class="py-8 text-center text-sm text-gray-600">${rows.length ? '没有符合当前搜索和筛选条件的成员。' : '暂无在册成员。'}</td></tr>`;
+    host.querySelector('#branch-member-rows').innerHTML = tableRows || emptyStateHtml({ variant: 'table', text: rows.length ? '没有符合当前搜索和筛选条件的成员' : '暂无在册成员', colspan: 4 });
     host.querySelector('#branch-member-pagination').textContent = filtered.length
       ? `显示 ${first + 1}–${Math.min(first + PAGE_SIZE, filtered.length)} 人，共 ${filtered.length} 人`
       : `共 ${filtered.length} 人`;

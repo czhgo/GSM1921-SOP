@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  
+<script src="./src/theme-init.js?v=20261102b"></script>
+<meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>材料与归档 — GSM1921-SOP</title>
+  <meta name="description" content="材料与归档：材料清单 → 上传/核对 → 提交归档（单场活动）">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="./src/tailwind-config.js?v=20261102b"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261102b">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+</head>
+<body>
+<a href="#main-content" class="visually-hidden skip-link">跳到主要内容</a>
+
+<header id="app-header"></header>
+<div id="sidebar-overlay"></div>
+<aside id="app-sidebar" class="sidebar-collapsed"></aside>
+
+<main class="sidebar-main-content pt-16 min-h-screen" id="main-content">
+  <div class="max-w-3xl mx-auto px-4 py-6">
+    <button id="materials-back-btn" class="btn-outline btn-sm mb-4" aria-label="返回上一页">
+      ← 返回
+    </button>
+    <div id="materials-root" class="card rounded-xl p-5">
+      <!-- 动态渲染 -->
+    </div>
+  </div>
+</main>
+
+<!-- modulepreload:start -->
+  <link rel="modulepreload" href="./src/components/shell/sidebar.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/components/shell/header.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/services/core/runtime.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/core/domain/domain.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/services/activity/attendance.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/services/governance/review.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/services/core/auth.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/core/domain/constants.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/core/base/utils.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/core/domain/material-links.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/services/core/visibility.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/components/ui/empty-state.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/components/ui/modal.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/core/base/version-token.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/data/data-adapter.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/data/api-adapter.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/core/session/pending-writes.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/core/domain/object-route.js?v=20261102b" />
+  <!-- modulepreload:end -->
+  <script type="module" src="./src/entries/pages/activity-materials-entry.js?v=20261102b"></script>
+</body>
+</html>

@@ -4,29 +4,34 @@
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据支书第五轮裁定「新建专班查看组件（列表+详情）」。
 // 支书设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261018h';
-import { getPersonName } from '../../services/member/person.js?v=20261018h';
-import { mockDB } from '../../core/domain/domain.js?v=20261018h';
-import { AuthStore } from '../../services/core/auth.js?v=20261018h';
-import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261018h';
-import { badgeHtml } from '../ui/badges.js?v=20261018h';
-import { dotDarkVars } from '../../core/domain/constants.js?v=20261018h';
-import { flashHighlight, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261018h';
-import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261018h';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261102b';
+import { getPersonName } from '../../services/member/person.js?v=20261102b';
+import { mockDB } from '../../core/domain/domain.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261102b';
+import { badgeHtml } from '../ui/badges.js?v=20261102b';
+import { dotDarkVars } from '../../core/domain/constants.js?v=20261102b';
+import { flashHighlight, showToast, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261102b';
+import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261102b';
+// 批次 524（D）：只读由权限派生，不再写死「· 只读」字符串
+import { readonlyMeta } from '../../core/domain/view-capability.js?v=20261102b';
 // 统一检索引擎（2026-09-14 裁定）：只读详情「成员贡献」（第一列是人 → 配姓名关键词）与
 // 「中间进度」（时间线 → 只给分页：keyword null + facets []）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261018h';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261102b';
+// Task 6：专班的完整详情页出口（同页预览 + 「打开完整页」）；入口已在工作台内 ⇒ locate。
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261102b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
+// 批次 525（#4）：搜索建议走自建 suggestInput（原生 datalist 会在输入框内画 UA picker 三角）。
+import { suggestInput } from '../ui/forms.js?v=20261102b';
 // 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
 const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };
-const STATUS_COLOR = { pending_review: '#6366F1', recruiting: '#D97706', active: '#10B981', completed: '#3B82F6', archived: '#6B7280', dissolved: '#DC2626', draft: '#6B7280' };
-// 内联徽章深色亮色映射（深色下提亮一档，由 html.theme-dark [style*="--acc-bg-dark"] 规则应用）
-const STATUS_COLOR_DARK = { pending_review: '#A5B4FC', recruiting: '#FBBF24', active: '#34D399', completed: '#60A5FA', archived: '#94A3B8', dissolved: '#F87171', draft: '#94A3B8' };
-// 内联徽章双套色：日 = 原色 15% 透明底 + 原色字；夜 = 亮色 24% 透明底 + 亮色字
-function statusBadgeStyle(status) {
-  const c = STATUS_COLOR[status] || '#6B7280';
-  const dc = STATUS_COLOR_DARK[status] || '#94A3B8';
-  return `background:${c}15;color:color-mix(in srgb, ${c} 60%, #000);--acc-bg-dark:${dc}24;--acc-text-dark:${dc}`;
+// 专班状态 → 固定语义 tone（不随主题）
+// 2026-10-24 批次 508：completed 由 info（蓝=信息态）改为 success（完成态必须与「进行中/招募中」区分）；
+// recruiting 保留 amber（= warning 语义，招募中需要关注，不是纯信息展示）。
+const STATUS_TONE = { pending_review: 'purple', recruiting: 'amber', active: 'green', completed: 'success', archived: 'neutral', dissolved: 'danger', draft: 'neutral' };
+function statusTone(status) {
+  return STATUS_TONE[status] || 'neutral';
 }
 // B批：徽标文字（committeeRequest pending / draft 未通过 优先于纯状态映射）
 function statusText(t) {
@@ -43,28 +48,57 @@ function statusText(t) {
  * @param {Object} [opts]
  * @param {Array}  [opts.taskforces] — 专班数据（缺省回退 TaskForceRecordStore）
  * @param {string} [opts.highlightId] — URL 携带的 taskforceId（定位+高亮该专班）
+ * @param {boolean} [opts.embedded] — 嵌入形态（批次 524 · C：不套外层卡与卡头，只出检索行 / 列表 / 详情）
  */
 export function renderTaskforceView(container, opts = {}) {
   if (!container) return;
   const taskforces = opts.taskforces || TaskForceRecordStore.getAll() || [];
   const highlightId = opts.highlightId || null;
+  // 只读约束由当前角色现算（可写不显示、不可写才显示「只读」）
+  const user = AuthStore.getCurrentUser() || null;
+  const scopeMeta = esc(['全支部', readonlyMeta('taskforce', user)].filter(Boolean).join(' · '));
+  // 建议项 = 当前专班名（去重、上限 50）；骨架只建一次，故每次渲染把最新清单写回建议容器。
+  const nameItems = [...new Set(taskforces.map((t) => t.name).filter(Boolean))].slice(0, 50);
 
   // 骨架（首次渲染，tab 重渲染时保留容器）
   if (container.dataset.tfvInited !== '1') {
     container.dataset.tfvInited = '1';
-    container.innerHTML = `
+    // 嵌入形态：外层卡与卡头由「知情查看」卡持有，此处只出检索 / 列表 / 详情（无 .card）
+    const embeddedHtml = `
+        <div class="lf-bar mb-3">
+          <div class="lf-bar__row" data-seg="search">
+            ${suggestInput({ id: 'tfv-search', placeholder: '搜索专班名称或任务…', ariaLabel: '搜索专班名称或任务', suggestions: nameItems, className: 'lf-kw' })}
+          </div>
+          <div class="lf-bar__row" data-seg="reset">
+            <button type="button" id="tfv-search-clear" class="btn-tab lf-btn">清除</button>
+          </div>
+        </div>
+        <div id="tfv-list"></div>
+        <div id="tfv-detail" class="hidden mt-4"></div>`;
+    container.innerHTML = opts.embedded === true ? embeddedHtml : `
       <div class="card rounded-xl p-5">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">专班查看</h3>
-          <span class="text-xs text-gray-500">全支部专班一览 · 点击卡片查看详情（只读）</span>
+          <span class="text-xs text-gray-500">${scopeMeta}</span>
         </div>
+        <!-- P3 四段：本面只有检索；重置随检索提供（清除关键词后恢复全量） -->
         <div class="lf-bar mb-3">
-          <input type="text" id="tfv-search" class="input-flat text-xs lf-kw" placeholder="搜索专班名称或任务...">
+          <div class="lf-bar__row" data-seg="search">
+            ${suggestInput({ id: 'tfv-search', placeholder: '搜索专班名称或任务…', ariaLabel: '搜索专班名称或任务', suggestions: nameItems, className: 'lf-kw' })}
+          </div>
+          <div class="lf-bar__row" data-seg="reset">
+            <button type="button" id="tfv-search-clear" class="btn-tab lf-btn">清除</button>
+          </div>
         </div>
         <div id="tfv-list"></div>
         <div id="tfv-detail" class="hidden card rounded-xl p-5 mt-4"></div>
       </div>`;
   }
+
+  // 自建建议列表（批次 525 · #4）：骨架只建一次 ⇒ 每次渲染把最新建议项写回（无原生 datalist）。
+  const suggestInputEl = container.querySelector('#tfv-search');
+  const suggestWrap = suggestInputEl && suggestInputEl.closest('[data-suggest]');
+  if (suggestWrap) suggestWrap.setAttribute('data-suggest-items', JSON.stringify(nameItems));
 
   // 搜索过滤
   const searchEl = container.querySelector('#tfv-search');
@@ -88,7 +122,7 @@ export function renderTaskforceView(container, opts = {}) {
   if (listEl) {
     const hasAny = groups.some(g => g.list.length > 0);
     listEl.innerHTML = !hasAny
-      ? '<p class="text-sm text-gray-500 text-center py-8">暂无专班</p>'
+      ? emptyStateHtml({ text: "暂无专班", variant: 'panel' })
       : groups.filter(g => g.list.length > 0).map(g => `
           <div class="mb-4">
             <div class="flex items-center gap-2 mb-2">
@@ -96,17 +130,23 @@ export function renderTaskforceView(container, opts = {}) {
               <span class="font-title-cn text-sm font-bold text-gray-700">${g.label}</span>
               <span class="text-xs text-gray-500">${g.list.length}</span>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="card-grid">
               ${g.list.map(t => _renderTfCard(t)).join('')}
             </div>
           </div>
         `).join('');
   }
 
-  // 卡片点击 → 只读详情
+  // 卡片点击 → 只读详情（Task 6.6：卡片 role/tabindex + Enter/Space 与点击同路）
   container.querySelectorAll('.tfv-card').forEach(card => {
     if (card.dataset.bound) return;
     card.dataset.bound = '1';
+    card.addEventListener('keydown', (e) => {
+      if (e.target !== card) return;
+      if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+      e.preventDefault();
+      card.click();
+    });
     card.addEventListener('click', async () => {
       const tfId = card.dataset.tfId;
       const tf = taskforces.find(r => r.id === tfId);
@@ -118,8 +158,7 @@ export function renderTaskforceView(container, opts = {}) {
           const detail = container.querySelector('#tfv-detail');
           if (detail) detail.innerHTML = '<p class="text-sm text-red-600" role="alert">详情暂时无法加载，请稍后重试。</p>';
         }
-        // 触点即落点（全局 UX 反思批次 2026-09-13）：详情原先固定在看板末尾（跨 5 个工作台共用），
-        // 点第一张卡也要下滚才看得到 → 现紧贴被点卡片展开并滚入视野
+        // 详情紧贴被点卡片展开并滚入视野
         anchorDetailToTrigger(container.querySelector('#tfv-detail'), card);
       }
       // 点击即褪去定位高亮
@@ -129,13 +168,19 @@ export function renderTaskforceView(container, opts = {}) {
 
   // 搜索输入即时过滤
   if (searchEl) searchEl.oninput = () => renderTaskforceView(container, opts);
+  // 重置（P3 第四段）：清空关键词后按全量重绘
+  const clearEl = container.querySelector('#tfv-search-clear');
+  if (clearEl) clearEl.onclick = () => {
+    if (searchEl) searchEl.value = '';
+    renderTaskforceView(container, opts);
+  };
 
   // 定位高亮（定时自动褪去，支书 2026-08-08 裁定）
   if (highlightId) {
     setTimeout(() => {
       const card = container.querySelector(`.tfv-card[data-tf-id="${highlightId}"]`);
       if (card) {
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        smoothScroll(card, { block: 'center' });
         flashHighlight(card);
         // 通知调用方：定位完成，可清除导航目标（防重渲染反复定位）
         if (typeof opts.onLocated === 'function') opts.onLocated();
@@ -147,17 +192,17 @@ export function renderTaskforceView(container, opts = {}) {
 /** 专班卡片（只读，无流转按钮） */
 function _renderTfCard(t) {
   const filled = (t.members || []).filter(m => m.personId).length;
-  const color = STATUS_COLOR[t.status] || '#6B7280';
   return `
-    <div class="tfv-card p-4 rounded-xl bg-white border border-gray-100 cursor-pointer hover:border-gray-200 hover:shadow-sm transition-all" data-tf-id="${esc(t.id)}">
+    <div class="tfv-card p-4 rounded-xl bg-white border border-gray-100 cursor-pointer hover:border-[var(--color-border-strong)] hover:bg-[var(--surface-hover)] active:bg-[var(--surface-active)] active:border-[var(--app-accent)] transition-colors" role="button" tabindex="0" aria-label="查看专班：${esc(t.name)}" data-tf-id="${esc(t.id)}">
       <div class="flex items-start justify-between gap-2 mb-2">
         <span class="text-sm font-semibold text-gray-800 leading-snug">${esc(t.name)}</span>
-        <span class="badge" style="${statusBadgeStyle(t.status)}">${statusText(t)}</span>
+        <span class="tint-pill" data-tone="${statusTone(t.status)}">${statusText(t.status)}</span>
       </div>
       ${t.task ? `<p class="text-xs text-gray-500 mb-2 line-clamp-2">${esc(t.task)}</p>` : ''}
       <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
         <span>${filled}/${t.capacity || 0} 人</span>
         ${t.deadline ? `<span>截止 ${esc(t.deadline)}</span>` : ''}
+        <span class="ml-auto text-xs text-accent whitespace-nowrap">查看详情 →</span>
       </div>
     </div>`;
 }
@@ -166,15 +211,15 @@ function _renderTfCard(t) {
 function _contribTagOf(c) {
   if (!c || typeof c !== 'object' || !c.id) return '';
   if (c.verifiedStatus === 'approved') {
-    return `<span class="ml-1 inline-block align-middle text-[11px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">已入档${c.verifiedBy ? ' · ' + esc(getPersonName(c.verifiedBy)) : ''}</span>`;
+    return `<span class="ml-1 inline-block align-middle text-xs px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">已入档${c.verifiedBy ? ' · ' + esc(getPersonName(c.verifiedBy)) : ''}</span>`;
   }
   if (c.verifiedStatus === 'rejected') {
-    return `<span class="ml-1 inline-block align-middle text-[11px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-700">已退回${c.rejectNote ? ' · ' + esc(c.rejectNote) : ''}</span>`;
+    return `<span class="ml-1 inline-block align-middle text-xs px-1.5 py-0.5 rounded-full bg-red-50 text-red-700">已退回${c.rejectNote ? ' · ' + esc(c.rejectNote) : ''}</span>`;
   }
-  return '<span class="ml-1 inline-block align-middle text-[11px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">待核</span>';
+  return '<span class="ml-1 inline-block align-middle text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">待核</span>';
 }
 
-/** 只读详情：基本信息 + 历史分工 + 结构化工作产出登记 */
+/** 只读详情：基本信息 + 历史分工 + 工作产出 */
 async function _renderTfDetail(container, tf, highlightId) {
   const panel = container.querySelector('#tfv-detail');
   if (!panel) return;
@@ -204,7 +249,7 @@ async function _renderTfDetail(container, tf, highlightId) {
   // 成员贡献行改由统一检索引擎渲染（第一列是人 → 配姓名关键词；≤8 人不渲染检索条，观感不变）；
   // 空态（无成员）留在引擎外，逐字保留原文案
   const memberRows = filled.length === 0
-    ? '<p class="text-xs text-gray-500">暂无成员</p>'
+    ? emptyStateHtml({ text: "暂无成员", variant: 'inline' })
     : canRevealNames
       ? '<div id="tfv-member-host"></div>'
       : `<p class="text-xs text-gray-600">工作组成员：组织者 ${filled.filter((member) => member.role === 'organizer').length} 人、深度参与者 ${filled.filter((member) => member.role === 'deep').length} 人。登录并进入所属支部后可查看姓名。</p>`;
@@ -218,15 +263,14 @@ async function _renderTfDetail(container, tf, highlightId) {
       <div id="tfv-progress-host"></div>
     </div>` : '';
 
-  // 新产出写入 workgroup_outputs；旧 contributions 仅只读显示，避免新内容继续混入历史字段。
   const myFillHtml = canSubmitOutput ? `
     <div class="pt-3 border-t border-gray-100 mt-3">
-      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">登记工作产出 <span class="text-gray-500 font-normal">· 保存到结构化工作产出记录</span></h5>
+      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">登记工作产出</h5>
       <div class="rounded-lg bg-gray-50 p-2.5">
         <label for="tfv-output-title" class="block text-xs text-gray-600">产出名称（必填）</label>
-        <input id="tfv-output-title" class="input-flat mt-1 w-full text-sm" maxlength="160" placeholder="例如：专题稿件初稿">
+        <input id="tfv-output-title" class="input-flat mt-1 w-full" maxlength="160" placeholder="例如：专题稿件初稿">
         <label for="tfv-output-task" class="block mt-2 text-xs text-gray-600">关联任务（选填）</label>
-        <select id="tfv-output-task" class="input-flat mt-1 w-full text-sm">
+        <select id="tfv-output-task" class="input-flat mt-1 w-full">
           <option value="">暂不关联具体任务</option>
           ${tasks.map((task) => `<option value="${esc(task.id)}">${esc(task.title || task.name || '未命名任务')}</option>`).join('')}
         </select>
@@ -237,24 +281,28 @@ async function _renderTfDetail(container, tf, highlightId) {
         </div>
       </div>
     </div>` : (isMember && tf.status === 'active'
-      ? '<p class="mt-3 text-xs text-gray-500">工作组成员身份不会自动赋予提交权限；当前账号尚未获得“提交工作产出”授权。</p>'
+      ? emptyStateHtml({ text: "当前账号暂无「登记产出」权限。", variant: 'inline' })
       : '');
-  const outputStatus = { submitted: '已登记', accepted: '已采纳', archived: '已归档', pending: '待处理' };
+  const outputStatus = { submitted: '已登记', pending: '待处理' };
   const outputHtml = `
     <div class="pt-3 border-t border-gray-100 mt-3">
       <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">工作产出（${outputs.length}）</h5>
       ${outputs.length ? `<ul class="space-y-2">${outputs.map((output) => `
         <li class="rounded-lg bg-gray-50 px-3 py-2">
-          <div class="flex flex-wrap items-center gap-2"><span class="text-xs font-medium text-gray-800">${esc(output.title || '未命名产出')}</span><span class="rounded-full bg-white px-2 py-0.5 text-[11px] text-gray-600">${esc(outputStatus[output.status] || output.status || '已登记')}</span></div>
+          <div class="flex flex-wrap items-center gap-2"><span class="text-xs font-medium text-gray-800">${esc(output.title || '未命名产出')}</span><span class="rounded-full bg-white px-2 py-0.5 text-xs text-gray-600">${esc(outputStatus[output.status] || '已登记')}</span></div>
           ${output.taskId ? `<p class="mt-1 text-xs text-gray-500">任务：${esc(tasks.find((task) => task.id === output.taskId)?.title || output.taskId)}</p>` : ''}
           ${output.description ? `<p class="mt-1 whitespace-pre-wrap text-xs text-gray-600">${esc(output.description)}</p>` : ''}
-        </li>`).join('')}</ul>` : '<p class="text-xs text-gray-500">暂无结构化工作产出。</p>'}
+        </li>`).join('')}</ul>` : emptyStateHtml({ text: '暂无工作产出', variant: 'inline' })}
     </div>`;
 
+  const fullHref = objectDetailHref('taskforce', tf.id, { entry: 'owner-workspace' });
   panel.innerHTML = `
     <div class="flex items-start justify-between gap-2 mb-3">
       <h4 class="font-title-cn text-sm font-bold text-gray-800">${esc(tf.name)}</h4>
-      <span class="badge" style="${statusBadgeStyle(tf.status)}">${statusText(tf)}</span>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <span class="tint-pill" data-tone="${statusTone(tf.status)}">${statusText(tf.status)}</span>
+        ${fullHref ? `<a href="./${fullHref}" class="link text-xs" title="打开专班完整详情页">打开完整页 →</a>` : ''}
+      </div>
     </div>
     <div class="space-y-1.5 text-xs text-gray-600 mb-4">
       ${tf.task ? `<p><span class="text-gray-500">任务：</span>${esc(tf.task)}</p>` : ''}
@@ -264,8 +312,8 @@ async function _renderTfDetail(container, tf, highlightId) {
     </div>
     ${myFillHtml}
     <div class="pt-3 border-t border-gray-100">
-      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-1">历史分工记录（旧版工作量）</h5>
-      <p class="mb-2 text-xs leading-5 text-gray-500">旧成员贡献仅作历史分工记录保留，不自动迁移为任务或产出；新登记的工作内容单独保存在下方“工作产出”。${canRevealNames ? '' : '登录并进入所属支部后可查看历史分工明细。'}</p>
+      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-1">历史分工记录</h5>
+      <p class="mb-2 text-xs leading-5 text-gray-500">历史分工记录仅供查阅。${canRevealNames ? '' : '登录并进入所属支部后可查看历史分工明细。'}</p>
       ${memberRows}
     </div>
     ${outputHtml}
@@ -289,11 +337,11 @@ async function _renderTfDetail(container, tf, highlightId) {
           ? `<ul class="mt-1 space-y-0.5">${(m.contributions || []).map(c => {
               const desc = typeof c === 'string' ? c : (c.desc || c.description || c.title || JSON.stringify(c));
               const meta = (c && typeof c === 'object' && (c.by || c.at))
-                ? `<span class="text-[11px] text-gray-500"> · ${[c.by ? esc(getPersonName(c.by)) : '', c.at ? esc(String(c.at).slice(0, 16).replace('T', ' ')) : ''].filter(Boolean).join(' ')}</span>`
+                ? `<span class="text-xs text-gray-500"> · ${[c.by ? esc(getPersonName(c.by)) : '', c.at ? esc(String(c.at).slice(0, 16).replace('T', ' ')) : ''].filter(Boolean).join(' ')}</span>`
                 : '';
               return `<li class="text-[12px] text-gray-500 pl-2">${esc(desc)}${meta}${_contribTagOf(c)}</li>`;
             }).join('')}</ul>`
-          : '<span class="text-[12px] text-gray-500 pl-2">暂无贡献记录</span>';
+          : emptyStateHtml({ text: '暂无贡献记录', variant: 'inline', className: 'pl-2' });
         return `
           <div class="py-2 border-b border-gray-50 last:border-b-0">
             <div class="flex items-center justify-between">
@@ -321,12 +369,12 @@ async function _renderTfDetail(container, tf, highlightId) {
       emptyMessage: '暂无进度记录',
       rowHtml: (p) => `
           <div class="py-2 border-b border-gray-50 last:border-b-0 flex items-start gap-2">
-            <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:var(--functional-success);"></span>
+            <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:var(--status-success);"></span>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
-                ${p.stage ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#10B98115;color:#0D9488;">${esc(p.stage)}</span>` : ''}
-                <span class="text-[11px] text-gray-500">${esc((p.at || '').slice(0, 16).replace('T', ' '))}</span>
-                <span class="text-[11px] text-gray-500">${p.by ? (canRevealNames ? esc(getPersonName(p.by)) : '成员') : ''}</span>
+                ${p.stage ? `<span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#10B98115;color:#0D9488;">${esc(p.stage)}</span>` : ''}
+                <span class="text-xs text-gray-500">${esc((p.at || '').slice(0, 16).replace('T', ' '))}</span>
+                <span class="text-xs text-gray-500">${p.by ? (canRevealNames ? esc(getPersonName(p.by)) : '成员') : ''}</span>
               </div>
               <p class="text-xs text-gray-600 leading-relaxed mt-0.5">${esc(p.note || '')}</p>
             </div>
@@ -355,4 +403,17 @@ async function _renderTfDetail(container, tf, highlightId) {
       button.disabled = false;
     }
   });
+}
+
+/**
+ * 同页专班详情（Task 6 · locate）：复用本文件唯一详情渲染器 `_renderTfDetail`，
+ * 供成员台「项目分工」专班卡 / 工作概况预览打开同页预览（不复制第二套详情）。
+ * @param {HTMLElement} host — 详情宿主（内部自动建 `#tfv-detail`）
+ * @param {Object} tf — 专班记录
+ * @param {{highlightId?:string}} [opts]
+ */
+export async function renderTaskforceDetailPanel(host, tf, opts = {}) {
+  if (!host || !tf) return;
+  if (!host.querySelector('#tfv-detail')) host.innerHTML = '<div id="tfv-detail" class="hidden card rounded-xl p-5"></div>';
+  await _renderTfDetail(host, tf, opts.highlightId || null);
 }

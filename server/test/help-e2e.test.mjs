@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { FUNCTION_CATALOG } from '../../docs/src/core/domain/function-catalog.js?v=20261018h';
+import { FUNCTION_CATALOG } from '../../docs/src/core/domain/function-catalog.js?v=20261102b';
 
 let server, base, browser;
 
@@ -108,7 +108,9 @@ test('Help 搜索覆盖章节表格，并提供按角色与常见任务浏览', 
   await page.goto(`${base}/help.html`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('.help-toc-item', { timeout: 8000 });
 
-  await page.fill('#help-search-input', '最近 6 期可展开');
+  // 2026-10-20 判例②：思想汇报表行改为「本页只处理例外」；用它验证搜索覆盖章节表格
+  //   （原样本「最近 6 期可展开」随全量矩阵撤除而消失）。
+  await page.fill('#help-search-input', '本页只处理例外');
   await page.waitForFunction(() => document.querySelectorAll('.help-search-result').length > 0, null, { timeout: 3000 });
   const chapterResult = page.locator('.help-search-result').filter({ hasText: '角色工作台导览' }).first();
   assert.ok(await chapterResult.count(), '结果能定位到章节中的表格说明');
@@ -121,9 +123,86 @@ test('Help 搜索覆盖章节表格，并提供按角色与常见任务浏览', 
   const roleResults = await page.locator('.help-search-result').allTextContents();
   assert.ok(roleResults.some((text) => text.includes('组织委员')), '选择角色后显示相关入口');
 
-  const taskLink = page.getByRole('link', { name: '创建会议活动' });
+  const taskLink = page.getByRole('link', { name: '创建会议' });
   assert.equal(await taskLink.getAttribute('href'), '#card-dom31-meeting-create');
   await taskLink.click();
   assert.equal(new URL(page.url()).hash, '#card-dom31-meeting-create');
+  await page.close();
+});
+
+test('390 帮助页：无整页横溢 + 章节折叠 + 页首目录与搜索保留', async () => {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await page.route('**://cdn.jsdelivr.net/**', (r) => r.abort());
+  await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
+  await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
+  await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
+  await page.goto(`${base}/help.html`, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('.help-toc-item', { timeout: 8000 });
+
+  // 1. 整页不横溢：documentElement 的 scrollWidth 不得超过 390，正文宽度在视口内
+  const metrics = await page.evaluate(() => {
+    const de = document.documentElement;
+    const p = document.querySelector('#sec-ack .doc-p');
+    return {
+      client: de.clientWidth,
+      scroll: de.scrollWidth,
+      pRight: Math.round(p.getBoundingClientRect().right),
+    };
+  });
+  assert.ok(metrics.scroll <= 390, `390 整页横溢：scrollWidth=${metrics.scroll}`);
+  assert.ok(metrics.pRight <= 390, `390 正文被裁：右边界 ${metrics.pRight}`);
+
+  // 2. 目录在页首且不消失（11 章目录项全部由 help-catalog 渲染）
+  assert.equal(await page.locator('.help-toc-item').count(), 11, '390 目录项应保留 11 条');
+  assert.ok(await page.locator('#help-toc-slot .help-toc').isVisible(), '390 页首目录不可见');
+
+  // 3. 章节折叠：0–8 编号章均为 <details>；默认收起，点击标题展开
+  const chapters = page.locator('details.help-chapter');
+  assert.ok(await chapters.count() >= 8, `章节折叠数不足：${await chapters.count()}`);
+  assert.equal(await page.locator('details.help-chapter[open]').count(), 0, '章节默认应收起');
+  await page.locator('#sec-domains > summary').click();
+  await page.waitForSelector('#card-dom31-meeting-create', { state: 'visible', timeout: 3000 });
+  assert.equal(await page.evaluate(() => document.getElementById('sec-domains').open), true, '点击章节标题后应展开');
+
+  // 4. 宽表由容器自身横滚（overflow-x:auto），不把页面撑宽
+  await page.locator('#sec-quickstart > summary').click();
+  await page.waitForSelector('#sec-quickstart .doc-table-wrap', { state: 'visible', timeout: 3000 });
+  const table = await page.evaluate(() => {
+    const wrap = document.querySelector('#sec-quickstart .doc-table-wrap');
+    return wrap ? {
+      overflow: getComputedStyle(wrap).overflowX,
+      client: wrap.clientWidth,
+      scroll: wrap.scrollWidth,
+    } : null;
+  });
+  assert.ok(table && table.overflow === 'auto', '表格容器应自身横滚（overflow-x:auto）');
+  assert.ok(table && table.scroll >= table.client, '表格内容应限制在自身滚动容器内');
+  // 全部章节展开后仍不得横溢（覆盖章内表格、列表与提示块）
+  await page.evaluate(() => {
+    document.querySelectorAll('details.help-chapter').forEach((d) => { d.open = true; });
+  });
+  await page.waitForTimeout(120);
+  const allOpenScroll = await page.evaluate(() => document.documentElement.scrollWidth);
+  assert.ok(allOpenScroll <= 390, `全部章节展开后整页横溢：scrollWidth=${allOpenScroll}`);
+
+  // 5. 搜索保留：命中后自动展开目标章节并高亮
+  await page.fill('#help-search-input', '补课');
+  await page.waitForSelector('.help-search-result', { timeout: 3000 });
+  await page.locator('.help-search-result', { hasText: '补课制度' }).first().click();
+  await page.waitForSelector('.help-card.is-highlighted', { timeout: 3000 });
+  assert.ok(await page.locator('.help-card.is-highlighted').isVisible(), '搜索命中的卡片应可见');
+  await page.close();
+});
+
+test('章节折叠不挡深链：带锚点直达时自动展开目标章节', async () => {
+  const page = await browser.newPage();
+  await page.route('**://cdn.jsdelivr.net/**', (r) => r.abort());
+  await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
+  await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
+  await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
+  await page.goto(`${base}/help.html#card-dom31-agenda`, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('#card-dom31-agenda', { state: 'visible', timeout: 5000 });
+  assert.equal(await page.evaluate(() => document.getElementById('sec-domains').open), true,
+    '深链进入时应自动展开目标章节');
   await page.close();
 });

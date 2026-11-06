@@ -1,0 +1,598 @@
+{
+  "contrast": [
+    {
+      "fg": "#1F2937",
+      "bg": "#FFFFFF",
+      "mode": "light",
+      "ratio": 14.68,
+      "verdict": "pass",
+      "usage": "正文 @ 卡片底"
+    },
+    {
+      "fg": "#1F2937",
+      "bg": "#FAFAF5",
+      "mode": "light",
+      "ratio": 14.02,
+      "verdict": "pass",
+      "usage": "正文 @ 页面底"
+    },
+    {
+      "fg": "#1F2937",
+      "bg": "#F3F4F6",
+      "mode": "light",
+      "ratio": 13.34,
+      "verdict": "pass",
+      "usage": "正文 @ 浅灰底"
+    },
+    {
+      "fg": "#4B5563",
+      "bg": "#FFFFFF",
+      "mode": "light",
+      "ratio": 7.56,
+      "verdict": "pass",
+      "usage": "次要正文 @ 卡片底"
+    },
+    {
+      "fg": "#4B5563",
+      "bg": "#FAFAF5",
+      "mode": "light",
+      "ratio": 7.22,
+      "verdict": "pass",
+      "usage": "次要正文 @ 页面底"
+    },
+    {
+      "fg": "#6B7280",
+      "bg": "#FFFFFF",
+      "mode": "light",
+      "ratio": 4.83,
+      "verdict": "pass",
+      "usage": "弱化文本 @ 卡片底"
+    },
+    {
+      "fg": "#6B7280",
+      "bg": "#FAFAF5",
+      "mode": "light",
+      "ratio": 4.62,
+      "verdict": "pass",
+      "usage": "弱化文本 @ 页面底"
+    },
+    {
+      "fg": "#6B7280",
+      "bg": "#F3F4F6",
+      "mode": "light",
+      "ratio": 4.39,
+      "verdict": "fail",
+      "usage": "弱化文本 @ 浅灰底"
+    },
+    {
+      "fg": "#6B7280",
+      "bg": "#E5E7EB",
+      "mode": "light",
+      "ratio": 3.9,
+      "verdict": "fail",
+      "usage": "弱化文本 @ 悬停底（.hint-box）"
+    },
+    {
+      "fg": "#6B7280",
+      "bg": "#FBF3DC",
+      "mode": "light",
+      "ratio": 4.36,
+      "verdict": "fail",
+      "usage": "弱化文本 @ 主题浅底（金）"
+    },
+    {
+      "fg": "#FFFFFF",
+      "bg": "#9A6B0F",
+      "mode": "light",
+      "ratio": 4.68,
+      "verdict": "pass",
+      "usage": "实底按钮字 @ 主题强底（金）"
+    },
+    {
+      "fg": "#6E4E08",
+      "bg": "#FBF3DC",
+      "mode": "light",
+      "ratio": 6.88,
+      "verdict": "pass",
+      "usage": "链接 @ 主题浅底（金）"
+    },
+    {
+      "fg": "#F1F5F9",
+      "bg": "#141D2F",
+      "mode": "dark",
+      "ratio": 15.38,
+      "verdict": "pass",
+      "usage": "正文 @ 深卡底"
+    },
+    {
+      "fg": "#F1F5F9",
+      "bg": "#0B1220",
+      "mode": "dark",
+      "ratio": 17.09,
+      "verdict": "pass",
+      "usage": "正文 @ 页面底"
+    },
+    {
+      "fg": "#CBD5E1",
+      "bg": "#141D2F",
+      "mode": "dark",
+      "ratio": 11.35,
+      "verdict": "pass",
+      "usage": "次要正文 @ 深卡底"
+    },
+    {
+      "fg": "#94A3B8",
+      "bg": "#141D2F",
+      "mode": "dark",
+      "ratio": 6.57,
+      "verdict": "pass",
+      "usage": "弱化文本 @ 深卡底"
+    },
+    {
+      "fg": "#94A3B8",
+      "bg": "#0B1220",
+      "mode": "dark",
+      "ratio": 7.3,
+      "verdict": "pass",
+      "usage": "弱化文本 @ 页面底"
+    },
+    {
+      "fg": "#94A3B8",
+      "bg": "#334155",
+      "mode": "dark",
+      "ratio": 4.04,
+      "verdict": "fail",
+      "usage": "弱化文本 @ 深色悬停底（.hint-box）"
+    },
+    {
+      "fg": "#94A3B8",
+      "bg": "#1E293B",
+      "mode": "dark",
+      "ratio": 5.71,
+      "verdict": "pass",
+      "usage": "弱化文本 @ 深色浅灰底"
+    },
+    {
+      "fg": "#E8C97A",
+      "bg": "#2F2717",
+      "mode": "dark",
+      "ratio": 9.18,
+      "verdict": "pass",
+      "usage": "主题浅底字 @ 主题浅底（金）"
+    },
+    {
+      "fg": "#1E1503",
+      "bg": "#C89A34",
+      "mode": "dark",
+      "ratio": 6.98,
+      "verdict": "pass",
+      "usage": "实底按钮字 @ 主题强底（金）"
+    },
+    {
+      "fg": "#64748B",
+      "bg": "#141D2F",
+      "mode": "dark",
+      "ratio": 3.54,
+      "verdict": "pass",
+      "usage": "装饰分隔符 text-gray-300 @ 深卡（aria-hidden）"
+    },
+    {
+      "fg": "#10B981",
+      "bg": "#FFFFFF",
+      "mode": "light",
+      "ratio": 2.54,
+      "verdict": "fail",
+      "usage": "状态文字 · 成功 @ 卡片底"
+    },
+    {
+      "fg": "#F59E0B",
+      "bg": "#FFFFFF",
+      "mode": "light",
+      "ratio": 2.15,
+      "verdict": "fail",
+      "usage": "状态文字 · 警告 @ 卡片底"
+    },
+    {
+      "fg": "#EF4444",
+      "bg": "#FFFFFF",
+      "mode": "light",
+      "ratio": 3.76,
+      "verdict": "fail",
+      "usage": "状态文字 · 错误 @ 卡片底"
+    },
+    {
+      "fg": "#3B82F6",
+      "bg": "#FFFFFF",
+      "mode": "light",
+      "ratio": 3.68,
+      "verdict": "fail",
+      "usage": "状态文字 · 信息 @ 卡片底"
+    },
+    {
+      "fg": "#92400E",
+      "bg": "#FFFFFF",
+      "mode": "light",
+      "ratio": 7.09,
+      "verdict": "pass",
+      "usage": "状态文字 · 警告文字档 @ 卡片底"
+    },
+    {
+      "fg": "#EF4444",
+      "bg": "#fdecec",
+      "mode": "light",
+      "ratio": 3.29,
+      "verdict": "fail",
+      "usage": "状态文字 · 错误 @ .btn-danger 10% 浅底"
+    },
+    {
+      "fg": "#EF4444",
+      "bg": "#fce1e1",
+      "mode": "light",
+      "ratio": 3.05,
+      "verdict": "fail",
+      "usage": "状态文字 · 错误 @ .btn-danger hover 16% 浅底"
+    },
+    {
+      "fg": "#3B82F6",
+      "bg": "#F8FAFE",
+      "mode": "light",
+      "ratio": 3.52,
+      "verdict": "fail",
+      "usage": "状态文字 · 信息 @ .workflow-substate-owner 8% 浅底"
+    },
+    {
+      "fg": "#FFFFFF",
+      "bg": "#10B981",
+      "mode": "light",
+      "ratio": 2.54,
+      "verdict": "fail",
+      "usage": "实底反白 · 成功底"
+    },
+    {
+      "fg": "#FFFFFF",
+      "bg": "#F59E0B",
+      "mode": "light",
+      "ratio": 2.15,
+      "verdict": "fail",
+      "usage": "实底反白 · 警告底"
+    },
+    {
+      "fg": "#FFFFFF",
+      "bg": "#EF4444",
+      "mode": "light",
+      "ratio": 3.76,
+      "verdict": "fail",
+      "usage": "实底反白 · 错误底（.btn-danger-solid）"
+    },
+    {
+      "fg": "#FFFFFF",
+      "bg": "#3B82F6",
+      "mode": "light",
+      "ratio": 3.68,
+      "verdict": "fail",
+      "usage": "实底反白 · 信息底"
+    },
+    {
+      "fg": "#34D399",
+      "bg": "#141D2F",
+      "mode": "dark",
+      "ratio": 8.76,
+      "verdict": "pass",
+      "usage": "状态文字 · 成功 @ 深卡底"
+    },
+    {
+      "fg": "#FBBF24",
+      "bg": "#141D2F",
+      "mode": "dark",
+      "ratio": 10.09,
+      "verdict": "pass",
+      "usage": "状态文字 · 警告（填充档直接当字）@ 深卡底"
+    },
+    {
+      "fg": "#FCD34D",
+      "bg": "#141D2F",
+      "mode": "dark",
+      "ratio": 11.68,
+      "verdict": "pass",
+      "usage": "状态文字 · 警告文字档 @ 深卡底"
+    },
+    {
+      "fg": "#F87171",
+      "bg": "#141D2F",
+      "mode": "dark",
+      "ratio": 6.09,
+      "verdict": "pass",
+      "usage": "状态文字 · 错误 @ 深卡底"
+    },
+    {
+      "fg": "#60A5FA",
+      "bg": "#141D2F",
+      "mode": "dark",
+      "ratio": 6.63,
+      "verdict": "pass",
+      "usage": "状态文字 · 信息 @ 深卡底"
+    },
+    {
+      "fg": "#0F172A",
+      "bg": "#F87171",
+      "mode": "dark",
+      "ratio": 6.45,
+      "verdict": "pass",
+      "usage": "实底反白 · 错误底（暗色反相字）"
+    },
+    {
+      "fg": "#92400E",
+      "bg": "#141D2F",
+      "mode": "dark",
+      "ratio": 2.38,
+      "verdict": "fail",
+      "usage": "text-amber-800 未映射 @ 深卡底"
+    },
+    {
+      "fg": "#6366F1",
+      "bg": "#141D2F",
+      "mode": "dark",
+      "ratio": 3.77,
+      "verdict": "fail",
+      "usage": "专班分组色（硬编码）@ 深卡底"
+    },
+    {
+      "fg": "#E5E7EB",
+      "bg": "#FFFFFF",
+      "mode": "light",
+      "ratio": 1.24,
+      "verdict": "fail",
+      "usage": "控件边框 · .btn-outline @ 卡片底"
+    },
+    {
+      "fg": "#E5E7EB",
+      "bg": "#FAFAF5",
+      "mode": "light",
+      "ratio": 1.18,
+      "verdict": "fail",
+      "usage": "卡片 1px 描边 @ 页面底"
+    },
+    {
+      "fg": "#D1D5DB",
+      "bg": "#FFFFFF",
+      "mode": "light",
+      "ratio": 1.47,
+      "verdict": "fail",
+      "usage": "强边框 @ 卡片底"
+    },
+    {
+      "fg": "#334155",
+      "bg": "#141D2F",
+      "mode": "dark",
+      "ratio": 1.63,
+      "verdict": "fail",
+      "usage": "控件边框 · .btn-outline @ 深卡底"
+    },
+    {
+      "fg": "#475569",
+      "bg": "#141D2F",
+      "mode": "dark",
+      "ratio": 2.22,
+      "verdict": "fail",
+      "usage": "强边框 @ 深卡底"
+    },
+    {
+      "fg": "#E8D5A3",
+      "bg": "#FFFFFF",
+      "mode": "light",
+      "ratio": 1.45,
+      "verdict": "fail",
+      "usage": "主题浅底描边（金）@ 卡片底"
+    },
+    {
+      "fg": "#54441E",
+      "bg": "#141D2F",
+      "mode": "dark",
+      "ratio": 1.78,
+      "verdict": "fail",
+      "usage": "主题浅底描边（金·暗）@ 深卡底"
+    },
+    {
+      "fg": "#A97A12",
+      "bg": "#FFFFFF",
+      "mode": "light",
+      "ratio": 3.83,
+      "verdict": "pass",
+      "usage": "焦点环 · 主题 base（金）@ 卡片底"
+    },
+    {
+      "fg": "#A97A12",
+      "bg": "#141D2F",
+      "mode": "dark",
+      "ratio": 4.4,
+      "verdict": "pass",
+      "usage": "焦点环 · 主题 base（金·暗）@ 深卡底"
+    },
+    {
+      "fg": "#22C55E",
+      "bg": "#FFFFFF",
+      "mode": "light",
+      "ratio": 2.28,
+      "verdict": "fail",
+      "usage": "身份左条 · 组长（固定色）@ 卡片底"
+    },
+    {
+      "fg": "#0EA5E9",
+      "bg": "#FFFFFF",
+      "mode": "light",
+      "ratio": 2.77,
+      "verdict": "fail",
+      "usage": "身份左条 · 组织委员（固定色）@ 卡片底"
+    },
+    {
+      "fg": "#7C3AED",
+      "bg": "#FFFFFF",
+      "mode": "light",
+      "ratio": 5.7,
+      "verdict": "pass",
+      "usage": "身份左条 · 深度参与者（固定色）@ 卡片底"
+    },
+    {
+      "fg": "#CE1126",
+      "bg": "#FEF2F2",
+      "mode": "light",
+      "ratio": 5.14,
+      "verdict": "pass",
+      "usage": "党建红字 @ --primary-50（.workflow-state-phase）"
+    },
+    {
+      "fg": "#CE1126",
+      "bg": "#FEF2F2",
+      "mode": "dark",
+      "ratio": 5.14,
+      "verdict": "pass",
+      "usage": "党建红字 @ --primary-50（暗色未反向，实测同亮色）"
+    }
+  ],
+  "findings": [
+    {
+      "id": "C1",
+      "title": "成功 / 错误 / 信息三色直接当正文，亮色实测 2.54 / 3.76 / 3.68:1（只有 warning 有文字档）",
+      "evidence": "styles.css:5222 `.status-line{color:var(--status-success)}` 实测 #10B981 on #FFFFFF = 2.54:1（12px）；styles.css:1610 `.btn-danger{color:var(--status-error)}` 3.76:1；header.js:424 `style=\"color:var(--status-info)\"` 3.68:1；`--status-error` 作文字共 19 处（references.js:705/738/747/775/874、modal.js:466、member-flow-tab.js:302/306/318、activity-entry.js:115…）",
+      "scale": "亮色全站 · 4 个状态色 · 约 26 处文字消费",
+      "verdict": "违反规范",
+      "generalFix": "补 `--status-success-text`(#047857 亮 / #34D399 暗) 与 `--status-error-text`(#B91C1C 亮 / #F87171 暗)、`--status-info-text`(#1D4ED8 亮 / #60A5FA 暗)；状态色作文字一律走 `-text` 档，填充档只作圆点 / 左条 / 底。",
+      "machineCheckable": "server/test/ui-contrast-guard 增加 K7：扫 `color:\\s*var\\(--status-(success|warning|error|info)\\)` 计数为 0（-text 档除外），并逐底算比值 ≥4.5"
+    },
+    {
+      "id": "C2",
+      "title": "状态红做浅底药丸按钮：文字 3.29:1，hover 3.05:1；实底版反白 3.76:1",
+      "evidence": "styles.css:1608-1618 `.btn-danger{background:color-mix(status-error 10%,neutral-0);color:var(--status-error)}` 实测 #EF4444 on #FDECEC = 3.29:1，hover 16% = 3.05:1；styles.css:1622-1625 `.btn-danger-solid{background:var(--status-error);color:var(--neutral-0)}` 实测 #FFFFFF on #EF4444 = 3.76:1（13px）",
+      "scale": "全站删除 / 驳回类按钮 · 7 主题共用",
+      "verdict": "违反规范",
+      "generalFix": "浅底版文字改 `--status-error-text`（#B91C1C，对 #FDECEC = 5.6:1）；实底版底色改 #B91C1C（白字 6.47:1），或维持 #EF4444 但字重 / 字号不得低于 18.66px/700。",
+      "machineCheckable": "ui-contrast-guard K8：`.btn-danger` / `.btn-danger-solid` 的 color/background 组合逐主题算比值 ≥4.5"
+    },
+    {
+      "id": "C3",
+      "title": "暗色下 --primary-50/100/200 未反向：状态药丸仍是亮白 / 浅粉块",
+      "evidence": "Playwright 探针实测 `.workflow-state-phase` 亮 / 暗两模式完全相同：color rgb(206,17,38) on bg rgb(254,242,242)（= #FEF2F2）。html.theme-dark（styles.css:4602-4660）只反向 neutral / surface / status / accent，未反向 primary-50…300；同源还有 `.ref-doc-action-danger`(styles.css:3820-3823)、`_institutionStatusOf`(references.js:193-199 inline #D1FAE5/#FEF3C7/#DBEAFE)（.cal-cell-mobile.is-today 虽有 2807 补丁，但 .workflow-state-phase 与 .ref-doc-action-danger 无任何暗色覆盖）",
+      "scale": "暗色 · 工作流状态标签 / 制度页下载删除 / 移动端日历今天 / 制度状态徽章",
+      "verdict": "规范未覆盖",
+      "generalFix": "在 html.theme-dark 增 `--primary-50/-100/-200/-300` 四档反向（或新增 `--surface-danger-soft` 语义层），把「状态浅底」从 primary 色阶剥离；Inline 的 references.js 三态改读 `--status-*-text` + `color-mix(… var(--surface-card))`。",
+      "machineCheckable": "主题守卫 T13：html.theme-dark 必须覆盖 :root 中全部 `--primary-*` 消费面 / 扫 docs/src 内 `var(--primary-50|100|200)` 计数为 0"
+    },
+    {
+      "id": "C4",
+      "title": "弱化文本在浅灰底上跌破 4.5:1：.hint-box 亮 3.90 / 暗 4.04",
+      "evidence": "styles.css:5227-5234 `.hint-box{color:var(--neutral-500);background:var(--surface-hover)}`；Playwright 实测（2300010001 工作台）亮 #6B7280 on #E5E7EB = 3.90:1，暗 #94A3B8 on #334155 = 4.04:1（12px）。同源组合还有 #6B7280 on #F3F4F6 = 4.39、on #FBF3DC = 4.36",
+      "scale": "全站提示块 / 空态 / 面板内底 · 所有页面",
+      "verdict": "违反规范",
+      "generalFix": "浅灰底上的弱化文本改用 `--neutral-600`（#4B5563，对 #E5E7EB = 6.10:1），或把 `.hint-box` 底色改回 `--neutral-50`；规范里把「辅助文字 = neutral-500」限定在「白 / 暖白底」。",
+      "machineCheckable": "ui-contrast-guard 增补 K2 组合表：把 neutral-500 × {neutral-100, neutral-200, accent-soft-bg} 纳入计算，比值 <4.5 即红"
+    },
+    {
+      "id": "C5",
+      "title": "暗色映射只做到 text-*-700：text-amber-800 共 15 处，实测 2.38:1",
+      "evidence": "styles.css:5082 只映射 `.text-amber-700`；`.text-amber-800` 无暗色规则。Playwright 探针（暗色）读 `.text-amber-800` = rgb(146,64,14)，对深卡 #141D2F = 2.38:1。真实用例：todo-tab-shell.js:181（定位提示条，text-amber-800 + bg-amber-50）、workgroup-member-editor.js:18（「跨组」胶囊）、report-entry.js:44",
+      "scale": "暗色 · 3 个组件 / 15 处 · 提示条与徽章正文",
+      "verdict": "违反规范",
+      "generalFix": "补 `html.theme-dark .text-amber-800{color:#FCD34D}`（或统一收敛到 `--status-warning-text`，则该类不再单独出现在 HTML 里）。",
+      "machineCheckable": "ui-contrast-guard K9：Tailwind 语义色类（text-*-50…950）凡在 docs/src 出现即必须在暗色段有映射，且映射值对深卡 ≥4.5"
+    },
+    {
+      "id": "C6",
+      "title": "无边框按钮的 1px 描边不达非文本 3:1：亮 1.24、暗 1.63",
+      "evidence": "Playwright 探针（真实级联）读 `.btn-outline`：亮 border rgb(229,231,235) on rgb(255,255,255) = 1.24:1；暗 border rgb(51,65,85) on rgb(15,23,42) = 1.63:1；`.btn-outline.today-go` 卡片底实测 1.24 / 1.63。来源 styles.css 的 `--color-border-subtle`(neutral-200/300)",
+      "scale": "全站次级 / 中性按钮 · 7 主题 × 亮暗",
+      "verdict": "违反规范",
+      "generalFix": "按钮态描边不可用 `--neutral-200`；`--neutral-400`（对白 2.54）仍不足 ⇒ 需新建 `--color-border-control`（亮取 #6B7280，对白 4.83；暗取 #64748B，对深卡 3.54，勉强达 3:1），或按钮默认不画描边、靠底 / 字区分。",
+      "machineCheckable": "ui-contrast-guard 新增「控件边界」组：`.btn-outline` / input / select 的 border-color 对各自背景 ≥3:1"
+    },
+    {
+      "id": "C7",
+      "title": "Toast 是硬编码浅色皮肤：暗色下仍是 #F0FDF4 / #FEF2F2 白卡 + #1F2937 字",
+      "evidence": "utils.js:186-205 `COLORS = {success:{accent:#16A34A,bg:#F0FDF4}, error:{#EF4444,#FEF2F2}, info:{#3B82F6,#EFF6FF}}` + `style.cssText` 内写死 `background:${bg}`、`color:#1F2937`、`box-shadow:0 4px 24px rgba(0,0,0,.12)`；无任何 `.theme-dark` 覆盖（grep `theme-dark` × toast = 0）",
+      "scale": "暗色 · 全站保存 / 提交反馈（每次写入都出现）",
+      "verdict": "违反规范",
+      "generalFix": "Toast 改用令牌：bg = `color-mix(in srgb, var(--status-*-text) 10%, var(--surface-card))`、字 = `--color-text-primary`、边 = `--status-*`，并把 success 值统一到 `--status-success`。",
+      "machineCheckable": "ui-contrast-guard 的探针覆盖 Toast：两种模式下 bg 必须来自令牌（不得为纯白 / 纯暖白）"
+    },
+    {
+      "id": "C8",
+      "title": "状态色承担类别 / 装饰：活动类型色、专班分组色、步骤圆点",
+      "evidence": "write-tab.js:268-271 活动记录类型色 `#10B981 / #D97706 / #0E7490 / #3B82F6`（用状态色当类别色）；taskforce-view.js:88-91 专班分组 `#6366F1 / #D97706 / #10B981 / #3B82F6`（分组是类别不是状态）；styles.css:4346 `.workflow-substate-step.done .workflow-substep-dot{background:#10B981}`、4350 `.current` 用 `--primary-700` + rgba(206,17,38,.15) 环（等待 / 当前态被画成党建红）",
+      "scale": "活动管理 / 专班 / 工作流 · 亮暗两套 · 5 个组件",
+      "verdict": "违反规范",
+      "generalFix": "类别维度落 `ACTIVITY_CAT_COLOR` / `--color-category-*`，状态维度落 `--status-*`；「当前步骤」不得用党建红（读作错误 / 阻断），改 `--app-accent`；`.workflow-substep-waiting`（styles.css:4381 `color:var(--primary-700)`）同理。",
+      "machineCheckable": "activity-tone-guard 扩一条：状态 hex 集合 ∩ 类别色集合 = ∅；`styles.css` 内 `--primary-700` 作 `color:` 的计数收敛到 0"
+    },
+    {
+      "id": "C9",
+      "title": "同一语义多色：成功绿 3 个值、信息蓝 5 个值，且有一套绕开令牌的第二色源",
+      "evidence": "成功：`--status-success` #10B981（styles.css:47）、Toast `#16A34A`（utils.js:189）、身份组长 `#22C55E`（styles.css:86）。蓝：info #3B82F6（styles.css:50）、宣传委员 #2563EB（styles.css:89）、组织者 #0369A1（92）、组织委员 #0EA5E9（88）、发起人 #4F46E5（95）、专班待表决 #6366F1（taskforce-view.js:88）、制度待表决 #1D4ED8（references.js:199）",
+      "scale": "全站 · 7 处硬编码色源 / 6 个组件",
+      "verdict": "违反规范",
+      "generalFix": "成功语义只保留 `--status-success`，Toast 改读令牌；「身份绿 / 身份蓝」与「状态绿 / 状态蓝」在命名与用法上分家（identity-* 已分家，需在规范里写明「同色相不同层」验收口径），JS 侧硬编码一律改 token 字符串。",
+      "machineCheckable": "hex-hardcode-guard 扩面：`docs/src/components/**` 与 `entries/**` 的 `#RRGGBB`（含模板串）计数从基线 0 起；theme-palette-guard 增加「状态语义 → 唯一 hex」映射表核对"
+    },
+    {
+      "id": "C10",
+      "title": "暗色阴影只有两档被改写：header 阴影亮暗同一串，另有 4 处硬编码阴影无暗色值",
+      "evidence": "Playwright 实测 `header#app-header` 亮 / 暗 boxShadow 完全相同：`rgba(0, 0, 0, 0.12) 0px 1px 3px 0px`。html.theme-dark 只有 `--shadow-dropdown`(4651) 与 `--press-shadow`(4653) 两档；硬编码阴影不在其中：styles.css:1809 `0 4px 16px rgba(0,0,0,.08)`（tooltip）、2286 `0 1px 3px rgba(0,0,0,.12)`（顶栏）、2862 `0 2px 8px rgba(0,0,0,.06)`（移动日历详情）、3142 `0 1px 3px rgba(16,24,40,.12)`（.ov-sub-tab-active）",
+      "scale": "暗色 · 页头 / tooltip / 日历详情 / 总览子页签 · 4 处 + 1 处实测",
+      "verdict": "规范未覆盖",
+      "generalFix": "把阴影收敛成三档令牌（`--shadow-raised` / `--shadow-float` / `--shadow-inset`），暗色段统一加深（0.4–0.5 alpha）；规范补「暗色阴影必须换色，不得沿用亮色 alpha」。",
+      "machineCheckable": "hex-hardcode-guard 姊妹规则 `shadow-guard`：`box-shadow` 内出现 `rgba(` 字面量计数为 0，只允许 `var(--shadow-*)`"
+    },
+    {
+      "id": "C11",
+      "title": "身份色只作左条 / 圆点，但没有 3:1 门槛：组长绿 2.28、组织委员天蓝 2.77",
+      "evidence": "styles.css:86 `--color-identity-leader:#22C55E` 对白卡 = 2.28:1；:88 `--color-identity-org-commissioner:#0EA5E9` = 2.77:1；:93 `#7C3AED` = 5.70。用途 styles.css:4085-4115 `.inspector-card.role-theme-*{border-left-color:var(--color-identity-*)}`、3300-3308 横幅左条",
+      "scale": "亮色 · 成员 / 角色卡 / 关系网络 · 8 个身份色",
+      "verdict": "规范未覆盖",
+      "generalFix": "规范补「身份色作非文本标记 ≥3:1」并要求亮色身份色统一压深一档（组长 → #15803D，组织委员 → #0369A1），暗色保留现有亮档；或左条宽度增至 4px + 深色描边以补足。",
+      "machineCheckable": "ui-contrast-guard 新增「身份左条」组：`--color-identity-*` 对 `--surface-card` 亮暗各 ≥3:1"
+    },
+    {
+      "id": "C12",
+      "title": "状态色「只能进徽章 / 圆点 / 左条」的条文与实际（有文字档、19 处作正文）自相矛盾，且文字档未登记",
+      "evidence": "DS_03 §12.15 SD-46 原文「只用于徽章 / 圆点 / 左条 / 图例 / 提示条」；但 styles.css:55 已建 `--status-warning-text`、7 处消费，且 `--status-error` 作 `color:` 19 处；DS_01 §2.5 功能色表（DS_01:160-165）没有 `--status-warning-text` 行；CASES.md:300 却写「对比度判据同族见 SD-46（状态色文字档）」",
+      "scale": "规范条文 1 条 + 色表 1 张 · 影响全部状态色消费判断",
+      "verdict": "违反规范",
+      "generalFix": "DS_01 §2.5 增「填充档 / 文字档」两列，SD-46 把「只用于徽章 / 圆点 / 左条」改为「填充档只用于…；文字一律用 `-text` 档」，并把 4 个 `-text` 令牌登记进角色-令牌表。",
+      "machineCheckable": "doc-consistency：DS_01 功能色表 token 集合 = styles.css 内 `--status-*` 定义集合（双向相等）"
+    },
+    {
+      "id": "C13",
+      "title": "色相数量失控：291 个唯一 hex / 1352 次出现，蓝系 70 个、绿系 46 个；help.html 另有一套 532 处硬编码色板",
+      "evidence": "自算（docs/**/*.{js,css,html}，去中性）：蓝/青 190-265° 407 次 / 70 个唯一；绿/青绿 100-190° 178 次 / 46 个唯一；红 270 次 / 36 个；金橙 201 次 / 69 个。文件分布：help.html 532、styles.css 373、constants.js 194、about.css 50、tailwind-config.js 48。第 7 个蓝 = #6366F1（taskforce-view.js:88）、第 8 个绿 = #0D9488（taskforce-tab.js:1205）、第 9 个绿 = #14B8A6（attendance-tab.js:112）",
+      "scale": "全站 · 5 个文件承担 88% 的色值",
+      "verdict": "规范未覆盖",
+      "generalFix": "规范补「色相预算」：状态 4 + 类别 3 + 身份 8 + 主题 7 = 21 个色相上限；新增色相须登记进 `constants.js` 并说明与既有色相的距离（ΔH ≥ 15°）。help.html / about.css 的静态页色板应收敛到同一 `:root`（外链 styles.css 的 token 子集）。",
+      "machineCheckable": "theme-palette-guard 新增 T14：对 `docs/**` 求「饱和度 ≥0.10 的唯一 hex」计数，只降不升（基线 291）；并按 hue 分桶输出 ΔH 表"
+    },
+    {
+      "id": "C14",
+      "title": "规范多处色值与实现不符：§2.6 表面色、§2.3.2 身份色、§12.15 把 danger 写成 #B91C1C",
+      "evidence": "① DS_01:184-185 写 `--surface-hover:#F3F4F6`、`--surface-active:#FEE2E2`，实现 styles.css:140-143 已是 `var(--neutral-200)`(#E5E7EB)（注释：原值对白卡 1.11:1 读不出来；激活态由红改灰防误读）；② DS_01:127 `--accent-organizer:#7DD3FC`，实现 styles.css:92 是 `--color-identity-organizer:#0369A1`，且 §2.3.2 仍用已退场的 `--accent-*` 名（同文 DS_01:135 又称旧名已删）；③ DS_03:1485「与 danger `#B91C1C` / `#F87171` 逐值不同」——`#B91C1C` 实为 `--color-identity-secretary`，danger 是 `--status-error` #EF4444",
+      "scale": "规范 3 处（2 张表 + 1 条判据注）· 影响所有按规范实现的新代码",
+      "verdict": "违反规范",
+      "generalFix": "以实现为准更新 DS_01 §2.6 两行；§2.3.2 表名与色值换成 `--color-identity-*`；DS_03:1485 的 danger 值改 `#EF4444 / #F87171`。",
+      "machineCheckable": "doc-consistency S17：解析 DS_01 §2.2/§2.4/§2.6/§2.3.2 表格 hex 与 `--accent-*` 名，与 styles.css `:root` 逐 token 比对，不符即红"
+    },
+    {
+      "id": "C15",
+      "title": "「超期」文字靠样式表选择器反向补丁修（内联 --status-warning → --status-warning-text）",
+      "evidence": "work-overview.js:723 `esc(gap).replace(/超期/g, '<span style=\"color:var(--status-warning)\">超期</span>')`；styles.css:5663-5664 `.wo-line-gap [style*=\"color:var(--status-warning)\"]{color:var(--status-warning-text)!important}` —— 依赖内联字符串逐字匹配，换空格 / 换变量名即静默失效（回落到 2.15:1）",
+      "scale": "治理台 · 逾期文案 · 1 处（同类写法可能复现）",
+      "verdict": "规范未覆盖",
+      "generalFix": "源头改 `--status-warning-text`（work-overview.js:723），删除 5663-5664 的选择器补丁；规范补「禁止用属性选择器匹配内联样式做色值纠正」。",
+      "machineCheckable": "hex-hardcode-guard 姊妹规则：`[style*=]` 属性选择器计数为 0（styles.css）"
+    },
+    {
+      "id": "C16",
+      "title": "（主观）通知徽章固定亮金两模式不变；help 角色卡暗色把姓名染成身份色、亮色不染",
+      "evidence": "Playwright 实测 `#notif-badge` 亮 / 暗均 bg rgb(255,215,0) + 字 rgb(146,64,14)（5.05:1 达标）；暗色全页最亮点即它。styles.css:4831-4853 暗色把 `.rh-name/.rh-tag` 染成 identity-dark，而 help.html:257-258 亮色是 text-primary / secondary",
+      "scale": "暗色 · 页头 1 处 + help 页 8 张角色卡",
+      "verdict": "主观偏好",
+      "generalFix": "若保留品牌金：可加 1px 深金描边压亮度；help 页若要一致性，亮色也染身份色，或暗色也回中性。",
+      "machineCheckable": "不建议机检（品牌合规色 + 观感判断）"
+    }
+  ]
+}

@@ -1,16 +1,18 @@
 // role: [工程师]+[AI]
 // issue-detail.js — 反馈详情渲染
 
-import { IssueStore, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261018h';
-import { MilestoneStore } from '../../services/governance/milestones.js?v=20261018h';
-import { AuthStore } from '../../services/core/auth.js?v=20261018h';
-import { showToast } from '../../core/base/utils.js?v=20261018h';
-import { icon } from '../../core/base/icons.js?v=20261018h';
-import { getPersonName } from '../../services/member/person.js?v=20261018h';
-import { renderReactions, bindReactions } from './reactions.js?v=20261018h';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261018h';
-import { badgeHtml } from '../ui/badges.js?v=20261018h';
+import { IssueStore, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261102b';
+import { MilestoneStore } from '../../services/governance/milestones.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { showToast } from '../../core/base/utils.js?v=20261102b';
+import { icon } from '../../core/base/icons.js?v=20261102b';
+import { getPersonName } from '../../services/member/person.js?v=20261102b';
+import { renderReactions, bindReactions } from './reactions.js?v=20261102b';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261102b';
+import { badgeHtml } from '../ui/badges.js?v=20261102b';
+import { openFormModal } from '../ui/modal.js?v=20261102b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
 const SCOPE_LABELS = {
   permanent: '底层架构',
   global: '全局通用',
@@ -25,26 +27,16 @@ const TYPE_LABELS = {
   question: '疑问',
 };
 
-const TYPE_COLORS = {
-  bug: '#CE1126',
-  enhancement: '#A16207',
-  proposal: '#2563EB',
-  question: '#6B7280',
+// 反馈类型 → 固定语义 badge 变体（深色由 .badge--* 自带，不随主题）
+const TYPE_BADGE = {
+  bug: 'danger',
+  enhancement: 'warning',
+  proposal: 'info',
+  question: 'neutral',
 };
 
-// 内联徽章深色亮色映射（深色下提亮一档，与 badge--* 深色语义一致；由 html.theme-dark [style*="--acc-bg-dark"] 规则应用）
-const TYPE_COLORS_DARK = {
-  bug: '#F87171',
-  enhancement: '#FBBF24',
-  proposal: '#60A5FA',
-  question: '#94A3B8',
-};
-
-// 内联徽章双套色：日 = 原色 15% 透明底 + 原色字；夜 = 亮色 24% 透明底 + 亮色字
-function typeBadgeStyle(t) {
-  const c = TYPE_COLORS[t] || '#6B7280';
-  const dc = TYPE_COLORS_DARK[t] || '#94A3B8';
-  return `background:${c}15;color:color-mix(in srgb, ${c} 60%, #000);--acc-bg-dark:${dc}24;--acc-text-dark:${dc}`;
+function typeBadgeClass(t) {
+  return `badge--${TYPE_BADGE[t] || 'neutral'}`;
 }
 
 /** 获取当前登录用户 personId（plan 中为 AuthStore.getCurrentPersonId，修正为实际 API） */
@@ -66,7 +58,7 @@ export function renderIssueDetail(issueId) {
     container.innerHTML = `
       <div class="card rounded-xl p-5 text-center">
         <p class="text-sm text-gray-500 mb-3">反馈不存在或已被删除</p>
-        <a href="./feedback.html" class="text-xs text-blue-600 hover:text-blue-800">← 返回列表</a>
+        <a href="./feedback.html" class="text-xs text-accent">← 返回列表</a>
       </div>
     `;
     return;
@@ -80,7 +72,7 @@ export function renderIssueDetail(issueId) {
 
   container.innerHTML = `
     <div class="mb-4">
-      <a href="./feedback.html" class="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
+      <a href="./feedback.html" class="text-xs text-accent flex items-center gap-1">
         ${icon('chevronLeft', { className: 'w-3 h-3' })} 返回列表
       </a>
     </div>
@@ -101,7 +93,7 @@ export function renderIssueDetail(issueId) {
 
           <div class="flex items-center gap-2 mb-4 text-xs text-gray-500 flex-wrap">
             ${(issue.types || []).map(t =>
-              `<span class="badge" style="${typeBadgeStyle(t)}">${TYPE_LABELS[t] || t}</span>`
+              `<span class="badge ${typeBadgeClass(t)}">${TYPE_LABELS[t] || t}</span>`
             ).join('')}
             <span>·</span>
             <span>${SCOPE_LABELS[issue.scope] || issue.scope}</span>
@@ -120,7 +112,7 @@ export function renderIssueDetail(issueId) {
           <div class="mt-6 pt-4 border-t border-gray-100">
             <h3 class="font-title-cn text-sm font-semibold text-gray-700 mb-3">评论 (${issue.commentCount || 0})</h3>
             <div class="space-y-3">
-              ${(issue.comments || []).map(c => renderComment(c, canManage, issue.id)).join('') || '<p class="text-sm text-gray-500 font-sans">暂无评论</p>'}
+              ${(issue.comments || []).map(c => renderComment(c, canManage, issue.id)).join('') || emptyStateHtml({ text: '暂无评论', variant: 'inline', className: 'font-sans' })}
             </div>
 
             <!-- 评论输入框 -->
@@ -128,11 +120,11 @@ export function renderIssueDetail(issueId) {
               <textarea id="comment-input" rows="3" placeholder="添加评论...支持 @提及 与 #引用" class="input-flat w-full font-sans"></textarea>
               <div class="flex items-center justify-between mt-2">
                 <div class="text-xs text-gray-500 font-sans">
-                  <button id="btn-mention" class="btn-ghost">@提及</button>
+                  <button id="btn-mention" class="btn-outline btn-sm">@提及</button>
                   <span class="mx-1">·</span>
-                  <button id="btn-reference" class="btn-ghost">#引用</button>
+                  <button id="btn-reference" class="btn-outline btn-sm">#引用</button>
                 </div>
-                <button id="btn-submit-comment" class="btn-neutral text-sm px-4 py-[7px] font-sans">提交评论</button>
+                <button id="btn-submit-comment" class="btn-neutral text-sm px-4 py-1.5 font-sans">提交评论</button>
               </div>
             </div>
           </div>
@@ -150,17 +142,17 @@ export function renderIssueDetail(issueId) {
           <div class="mb-3">
             <p class="text-gray-500 mb-1">状态</p>
             ${canManage
-              ? `<select id="status-select" class="input-flat w-full text-xs rounded font-sans">
+              ? `<select id="status-select" class="input-flat w-full text-xs font-sans">
                   <option value="open" ${issue.status === 'open' ? 'selected' : ''}>开放中</option>
                   <option value="closed" ${issue.status === 'closed' ? 'selected' : ''}>已关闭</option>
                 </select>
-                <select id="closed-reason-select" class="input-flat w-full text-xs rounded mt-1 font-sans ${issue.status === 'open' ? 'hidden' : ''}">
+                <select id="closed-reason-select" class="input-flat w-full text-xs mt-1 font-sans ${issue.status === 'open' ? 'hidden' : ''}">
                   <option value="completed" ${issue.closedReason === 'completed' ? 'selected' : ''}>已解决</option>
                   <option value="duplicate" ${issue.closedReason === 'duplicate' ? 'selected' : ''}>重复</option>
                   <option value="wontfix" ${issue.closedReason === 'wontfix' ? 'selected' : ''}>不修复</option>
                   <option value="not_planned" ${issue.closedReason === 'not_planned' ? 'selected' : ''}>暂不计划</option>
                 </select>
-                <button id="btn-apply-status" class="btn-accent-soft mt-2 w-full text-sm px-4 py-1.5 font-sans" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)">应用</button>`
+                <button id="btn-apply-status" class="btn-accent-soft mt-2 w-full text-sm px-4 py-1.5 font-sans">应用</button>`
               : `<p class="text-gray-700 font-sans">${ISSUE_STATUS_LABELS[issue.status] || issue.status}${issue.closedReason ? ' · ' + (ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || issue.closedReason) : ''}</p>`
             }
           </div>
@@ -170,7 +162,7 @@ export function renderIssueDetail(issueId) {
             <div class="flex flex-wrap gap-1">
               ${badgeHtml(SCOPE_LABELS[issue.scope] || issue.scope, 'neutral')}
               ${(issue.types || []).map(t =>
-                `<span class="badge" style="${typeBadgeStyle(t)}">${TYPE_LABELS[t] || t}</span>`
+                `<span class="badge ${typeBadgeClass(t)}">${TYPE_LABELS[t] || t}</span>`
               ).join('')}
             </div>
           </div>
@@ -219,7 +211,7 @@ export function renderIssueDetail(issueId) {
 function renderComment(comment, canManage, issueId) {
   const hiddenClass = comment.hidden ? 'opacity-50' : '';
   const hideButton = canManage && !comment.hidden
-    ? `<button class="btn-ghost btn-hide-comment text-xs ml-2 font-sans" data-issue-id="${issueId}" data-comment-id="${comment.id}">隐藏</button>`
+    ? `<button class="btn-outline btn-sm btn-hide-comment text-xs ml-2 font-sans" data-issue-id="${issueId}" data-comment-id="${comment.id}">隐藏</button>`
     : '';
 
   const hiddenNote = comment.hidden
@@ -283,10 +275,20 @@ function bindDetailEvents(issue) {
     btn.addEventListener('click', () => {
       const issueId = btn.dataset.issueId;
       const commentId = btn.dataset.commentId;
-      const reason = prompt('请输入隐藏原因（可选）') || '不当言论';
-      IssueStore.hideComment(issueId, commentId, reason);
-      showToast('success', '评论已隐藏');
-      renderIssueDetail(issueId);
+      // 2026-10-23：原生 prompt 改统一单行输入浮窗（留空仍按「不当言论」记录）
+      openFormModal({
+        id: 'hide-comment',
+        title: '隐藏评论',
+        fields: [{ key: 'reason', label: '请输入隐藏原因（可选）', type: 'text', placeholder: '留空按「不当言论」记录' }],
+        submitLabel: '隐藏',
+        onSubmit: (values) => {
+          const reason = String(values.reason || '').trim() || '不当言论';
+          IssueStore.hideComment(issueId, commentId, reason);
+          showToast('success', '评论已隐藏');
+          renderIssueDetail(issueId);
+          return true;
+        },
+      });
     });
   });
 }

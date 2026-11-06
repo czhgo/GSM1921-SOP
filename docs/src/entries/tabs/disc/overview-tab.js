@@ -6,9 +6,10 @@
 // 顶部直达条属重复动作 ⇒ 外壳不再挂条，只保留骨架占位。
 // U3（2026-09-07）：先 beginOverviewShell 骨架/槽位占位 → 原地渲染概况（不推挤正文）。
 
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261018h';
-import { getDiscCommissionerId } from './_shared.js?v=20261018h';
-import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261018h';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261102b';
+import { getDiscCommissionerId } from './_shared.js?v=20261102b';
+import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261102b';
+import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261102b';
 
 /**
  * 条线缺口行补真实动作（2026-10-18 繁专项 Task 15）。
@@ -23,7 +24,7 @@ const DISC_GAP_TARGETS = [
 async function _goGapTarget(tab, segment) {
   if (segment === 'makeup') {
     try {
-      const m = await import('./attendance-tab.js?v=20261018h');
+      const m = await import('./attendance-tab.js?v=20261102b');
       m.focusSegment('makeup');
     } catch (_) { /* 分段记忆失败时仍进考勤页 */ }
   }
@@ -45,6 +46,8 @@ function _bindLineGapActions(container) {
     if (!target) return;
     const btn = document.createElement('button');
     btn.type = 'button';
+    // 2026-10-26 Task 5：把只读行升级为**整行导航载体**（w-full + text-left），
+    //   `.btn-ghost` 仅作尺寸族；可见 hover 由 `.btn-ghost:hover` 的 --surface-hover 承担。
     btn.className = `btn-ghost ${row.className} w-full text-left`;
     btn.dataset.woGap = target.tab;
     btn.dataset.woGapBound = '1';
@@ -65,6 +68,14 @@ export async function renderContent(ctx) {
     personId,
     accent: ctx.accent,
     prefix: 'disc',
+    title: '工作概况',
+    // 2026-10-25 IA 62→45：活动日历页签降为本页折叠卡（共享只读日历，单一源不复制）。
+    extraSections: [{
+      html: '<div id="ov-calendar-card-host"></div>',
+      mount: (host) => renderCalendarCard(host.querySelector('#ov-calendar-card-host'), undefined, {
+        open: ctx?.navTarget?.section === 'calendar',
+      }),
+    }],
   });
   _observeLineGapActions(el);
   return done;

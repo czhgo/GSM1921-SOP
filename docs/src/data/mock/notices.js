@@ -1,76 +1,71 @@
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261102b';
 export const MOCK_NOTICES = [
-  // ── 7 月通知（当前有效）──────────────────────────────────
+  // ── 历史通知（多数已过期；有效期由 expireDate 决定，不以注释断言「当前有效」）──────
+  // R10（2026-10-23）：种子不再写旧的全局 `read` 布尔——读侧只用逐人 `reads[]`；
+  //   历史库里的旧 `read` 由 mock-adapter 的迁移读取兼容，回填后删除（D13）。
   {
     id: 'notice-101',
-    title: '七月主题党日"深化改革"活动通知',
-    content: '7月25日下午14:00在光华1号楼101报告厅召开"深化改革"主题党日，请全体党员、预备党员、积极分子准时参加。',
+    title: '十月主题党日"深化改革"活动通知',
+    content: '10月6日下午14:00在光华1号楼101报告厅召开"深化改革"主题党日，请全体党员、预备党员、积极分子准时参加。',
     priority: 'urgent',
-    publishDate: '2026-07-15',
-    expireDate: '2026-07-25',
+    publishDate: '2026-09-28',
     targetModule: 'activity',
     targetType: 'activity',
     targetId: 'act-21',
-    read: false,
   },
   {
     id: 'notice-102',
     title: '发展党员材料审核提醒',
-    content: '本月发展党员材料审核截止日期为7月30日，请组织委员完成积极分子材料审核，并确认发展对象的预备党员接收材料。',
+    content: '本月发展党员材料审核截止日期为9月30日，请组织委员完成积极分子材料审核，并确认发展对象的预备党员接收材料。',
     priority: 'urgent',
-    publishDate: '2026-07-14',
-    expireDate: '2026-07-30',
+    publishDate: '2026-09-15',
+    expireDate: '2026-09-30',
     targetModule: 'party',
-    read: false,
   },
   {
     id: 'notice-103',
     title: '暑期实践总结分享筹备中',
-    content: '8月20日暑期实践总结分享会筹备中，面向全体支部成员开放参与，请有意向的同志联系组织委员。',
+    content: '8月4日暑期实践总结分享会筹备中，面向全体支部成员开放参与，请有意向的同志联系组织委员。',
     priority: 'normal',
-    publishDate: '2026-07-12',
-    expireDate: '2026-08-01',
+    publishDate: '2026-08-01',
+    expireDate: '2026-08-04',
     targetModule: 'workspace',
-    read: false,
   },
   {
     id: 'notice-104',
-    title: '七一建党节活动总结已发布',
-    content: '七一建党105周年系列活动总结已发布，请各党小组组长组织学习交流。',
+    title: '建党105周年活动总结已发布',
+    content: '纪念建党105周年系列活动总结已发布，请各党小组组长组织学习交流。',
     priority: 'normal',
-    publishDate: '2026-07-05',
-    expireDate: '2026-07-31',
+    publishDate: '2026-08-10',
+    expireDate: '2026-09-10',
     targetModule: 'activity',
-    read: true,
   },
   {
     id: 'notice-105',
     title: '积极分子座谈会安排通知',
-    content: '7月28日将召开积极分子座谈会，请相关同志做好发言准备。',
+    content: '10月7日将召开积极分子座谈会，请相关同志做好发言准备。',
     priority: 'normal',
-    publishDate: '2026-07-16',
-    expireDate: '2026-07-28',
+    publishDate: '2026-09-28',
+    expireDate: '2026-10-07',
     targetModule: 'party',
-    read: false,
   },
   {
     id: 'notice-106',
     title: '考勤记录待纪检委员确认',
-    content: '7月各项活动考勤记录已上传，请纪检委员于7月20日前完成考勤确认与录入考勤明细工作。',
+    content: '9月各项活动考勤记录已上传，请纪检委员于9月24日前完成考勤确认与录入考勤明细工作。',
     priority: 'normal',
-    publishDate: '2026-07-10',
-    expireDate: '2026-07-20',
+    publishDate: '2026-09-14',
+    expireDate: '2026-09-24',
     targetModule: 'attendance',
-    read: false,
   },
   {
     id: 'notice-107',
     title: '新学期工作部署预备通知',
     content: '秋季学期党支部工作部署会议将于8月底召开，请支委成员提前准备分管工作总结。',
     priority: 'normal',
-    publishDate: '2026-07-17',
-    expireDate: '2026-08-31',
+    publishDate: '2026-08-20',
+    expireDate: '2026-08-28',
     targetModule: 'workspace',
-    read: false,
   },
   // ── 8 月通知（暑期特色，与 activities.js 保持数据协调）─────────
   {
@@ -79,11 +74,9 @@ export const MOCK_NOTICES = [
     content: '8月4日下午14:00在光华1号楼101报告厅举行暑期实践总结分享会，请各党小组组织成员回顾暑期实践成果并做好分享准备。',
     priority: 'normal',
     publishDate: '2026-08-01',
-    expireDate: '2026-08-04',
     targetModule: 'activity',
     targetType: 'activity',
     targetId: 'act-29',
-    read: false,
   },
   {
     id: 'notice-110',
@@ -93,54 +86,49 @@ export const MOCK_NOTICES = [
     publishDate: '2026-08-18',
     expireDate: '2026-08-28',
     targetModule: 'workspace',
-    read: false,
   },
   // ── 历史通知（已过期，仅供归档参考；2026-09-06 随关联活动重排）──
   {
     id: 'notice-001',
     title: '五四主题党日筹备专班已组建',
-    content: '组织委员已为7月13日五四精神传承主题党日组建筹备专班，请相关同志确认参与。',
+    content: '组织委员已为9月3日五四精神传承主题党日组建筹备专班，请相关同志确认参与。',
     priority: 'urgent',
-    publishDate: '2026-07-10',
-    expireDate: '2026-07-13',
+    publishDate: '2026-08-26',
+    expireDate: '2026-09-03',
     targetModule: 'workspace',
-    read: true,
   },
   {
     id: 'notice-005',
     title: '建党105周年筹备专班招募',
-    content: '7月23日建党105周年主题党日大型活动筹备专班正在招募成员，欢迎报名参与。',
+    content: '10月3日建党105周年主题党日大型活动筹备专班正在招募成员，欢迎报名参与。',
     priority: 'urgent',
-    publishDate: '2026-07-15',
-    expireDate: '2026-07-23',
+    publishDate: '2026-09-22',
+    expireDate: '2026-10-02',
     targetModule: 'workspace',
     targetType: 'taskforce',
     targetId: 'tf-005',
-    read: true,
   },
   {
     id: 'notice-011',
-    title: '7月主题党日"建党105周年"正在进行',
-    content: '7月23日"建党105周年"主题党日活动正在进行中，请各党小组组长组织本组成员按时参加。',
+    title: '10月主题党日"建党105周年"正在进行',
+    content: '10月3日"建党105周年"主题党日活动正在进行中，请各党小组组长组织本组成员按时参加。',
     priority: 'urgent',
-    publishDate: '2026-07-21',
-    expireDate: '2026-07-23',
+    publishDate: '2026-09-30',
+    expireDate: '2026-10-03',
     targetModule: 'activity',
-    read: true,
   },
   // ── 10 月通知（2026-10 宣传基线，与 activities.js 保持数据协调）───────
-  //  expireDate 均不早于 2026-10-15（否则被视为过期通知、不派生阅读待办）。
+  // Task 1（2026-10-25）：活动类通知不再手写 `expireDate`，由
+  //   `data/mock/derive.js::deriveNoticeExpiry` 按「活动日 + 活动收尾窗口」现算。
   {
     id: 'notice-111',
     title: '开展"红色徒步·香山行"（纪念长征胜利 90 周年）活动的通知',
     content: '10月22日组织支部党员赴香山公园开展"红色徒步·香山行"主题党日（纪念长征胜利 90 周年），请全体党员、预备党员、积极分子做好参加准备。',
     priority: 'urgent',
     publishDate: '2026-10-08',
-    expireDate: '2026-10-22',
     targetModule: 'activity',
     targetType: 'activity',
     targetId: 'act-37',
-    read: false,
   },
   {
     id: 'notice-112',
@@ -148,10 +136,51 @@ export const MOCK_NOTICES = [
     content: '10月15日在光华1号楼101报告厅举办党建思想学习会，主题为深入学习党的创新理论，请全体党员准时参加。',
     priority: 'normal',
     publishDate: '2026-10-08',
-    expireDate: '2026-10-15',
     targetModule: 'activity',
     targetType: 'activity',
     targetId: 'act-36',
-    read: false,
   },
 ];
+
+// ── 通知受众 / 支部归属 / 来源（M3，2026-10-20）──────────────────────
+// 为什么补：原种子没有 audience/branchId/source，读侧一律当作「无受众 = 广播」，
+//   与现行受众模型（sentinels / 角色键 / audiencePersons）漂移，演示时无法验证定向可见性。
+// 覆盖三态：全体党员（all）、党小组组长（leaders）、指定人 / 指定角色（audiencePersons / 角色键）。
+// 受众取自通知正文的对象（如「请组织委员…」→ 组织委员），不新增业务语义。
+const NOTICE_AUDIENCE_SEED = {
+  'notice-101': { audience: ['all'] },
+  'notice-102': { audiencePersons: ['2400012355'] },          // 组织委员
+  'notice-103': { audience: ['all'] },
+  'notice-104': { audience: ['leaders'] },
+  'notice-105': { audience: ['activists'] },
+  'notice-106': { audience: ['disc-commissioner'] },   // 纪检委员
+  'notice-107': { audience: ['committee'] },
+  'notice-108': { audience: ['all'] },
+  'notice-110': { audience: ['committee'] },
+  'notice-001': { audience: ['committee'] },
+  'notice-005': { audience: ['all'] },
+  'notice-011': { audience: ['leaders'] },
+  'notice-111': { audience: ['all'] },
+  'notice-112': { audience: ['all'] },
+};
+
+for (const notice of MOCK_NOTICES) {
+  notice.branchId = notice.branchId ?? DEFAULT_BRANCH_ID;
+  notice.source = notice.source ?? 'branch';
+  // R2-37（2026-10-20）：历史种子通知不得把「现任支书」写进发布者——支书换人后新支书无法
+  //   编辑/撤回这些通知（发布者判据读 createdBy），审计也会显示错误发布者。种子统一记为系统通知
+  //   （createdBy:null），读侧按「系统初始通知」处理；真实发布的通知仍写当前登录人。
+  notice.createdBy = notice.createdBy ?? null;
+  // Task 3（2026-10-25）：消息对象模型字段随种子落库——kind 为语义事实（种子均为支部公告），
+  //   archivedBy 为逐人归档状态（初始为空）；与 API 投影 / 历史规范化同形，保证两形态读数一致。
+  notice.kind = notice.kind ?? 'announcement';
+  if (!Array.isArray(notice.archivedBy)) notice.archivedBy = [];
+  // 2026-11-02 批次 527（数据契约 Wave 2）：`reads` 是契约必填（逐人已读 personId 数组），
+  // 原种子从不补 ⇒ 文档必填写、种子从不填。此处统一补空数组（读侧 `read` 布尔仍按当前人投影）。
+  if (!Array.isArray(notice.reads)) notice.reads = [];
+  if (notice.audience === undefined && !Array.isArray(notice.audiencePersons)) {
+    Object.assign(notice, NOTICE_AUDIENCE_SEED[notice.id] || { audience: ['all'] });
+  }
+  // audience 统一数组：旧库/旧语料若写成裸字符串（如 'committee'），读时收成单元素数组。
+  if (!Array.isArray(notice.audience)) notice.audience = notice.audience ? [notice.audience] : [];
+}

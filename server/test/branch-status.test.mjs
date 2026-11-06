@@ -15,10 +15,10 @@
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018h';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018h';
-import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018h';
-import { setBranchActive, getBranchById } from '../../docs/src/services/branch/branch.js?v=20261018h';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261102b';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261102b';
+import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261102b';
+import { setBranchActive, getBranchById } from '../../docs/src/services/branch/branch.js?v=20261102b';
 
 // ── localStorage 内存桩（member-persist 同款；key/length 供枚举）──
 const _store = new Map();
@@ -32,7 +32,7 @@ globalThis.localStorage = {
 };
 globalThis.sessionStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
 
-const TARGET = 'br-b1'; // loadDB 种子里的示例支部（secretaryId p13）
+const TARGET = 'br-b1'; // loadDB 种子里的示例支部（secretaryId 2300010001）
 
 before(() => {
   registerMockAdapter(MockAdapter);

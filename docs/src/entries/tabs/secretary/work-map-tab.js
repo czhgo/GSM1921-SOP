@@ -11,19 +11,22 @@
 //   分区——**写侧默认折叠**（`_toolOpen`，同 group-progress `_progressOpen` 体例），首屏只留读侧；展开后功能一字不减。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
-import { escHtml as esc } from '../../../core/base/utils.js?v=20261018h';
-import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20261018h';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261018h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018h';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20261018h';
-import { getPersonName } from '../../../services/member/person.js?v=20261018h';
+import { escHtml as esc, smoothScroll } from '../../../core/base/utils.js?v=20261102b';
+import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20261102b';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261102b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261102b';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20261102b';
+import { getPersonName } from '../../../services/member/person.js?v=20261102b';
 // 人×工作项矩阵单一源（2026-09-14 批次 35）：按人 / 按项目 互为转置，勿自造表格与翻页
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261018h';
-// 责任关系表（2026-10-18 脏专项 Task 17）：逐项「模块 → 责任人 → 责任角色 → 责任说明」，
-// 表头与分页走统一检索引擎（勿在本文件手写 <table>，S12 台账只认引擎 / 矩阵两处单一源）。
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261018h';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261102b';
+// 责任关系（2026-10-24 Task 4.4 改主从两栏）：左列 14 个模块（模块名 + 责任人）单屏可览、
+// 右列选中模块的「责任角色 / 责任说明 / 停用·启用」。走原生 listbox 语义（非按钮族），
+// 不再把 14 项塞进 5 列表格，也不再分页；空「操作」列与表前读法说明一并未删功能地退场。
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261102b';
+// 空态单一源（一句说明 + 一个下一步），与全局概况 / 周期归档卡同形
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261102b';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅支书/副支书可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20261018h';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20261102b';
 
 // 2026-10-18 脏专项 Task 17：默认落「责任关系表」——14 项模块是 1:1 分派，
 // 逐行读出「谁负责什么」比 14×N 的稀疏矩阵直接；矩阵（按人 / 按项目）保留为可选视图。
@@ -33,10 +36,16 @@ let _view = 'relations'; // 视图：责任关系表 / 平铺模块 / 按人 / �
 //   写侧折叠为按钮；原 MODULE_UI_DESIGN.md §四 规划稿已清出，出处见 .ctx/logs/archive/2026-09-DECISION_LOG.md）。折叠体例照本仓既有 `_progressOpen`（group-progress-tab.js）：模块级布尔 + 卡片 + 单钮，
 //   展开态才挂载工具（未展开不 load，减负首屏）；功能不删（展开后 DOM/事件一字不减）。
 let _toolOpen = false;
+// A14：停用项「发起启用议题」→ 打开分工调整面板并预选该模块（一次性消费）。
+let _pendingReenableModule = null;
+// 责任关系主从视图的选中模块（同一会话内保持；换视图再回来仍停在原项）
+let _selectedModule = null;
 
 /** 负责人显示名：role → ROLE_LABELS；person → 姓名；org → 组织型主体名（如支委会，不是自然人） */
 function _ownerLabel(assign) {
   if (!assign) return '未分工';
+  // A14：停用项不是「未指派」——明示「已停用 / 不开展」（模块卡 / 矩阵 / 责任关系表共用本函数）。
+  if (assign.ownerType === 'none') return '已停用 / 不开展';
   if (assign.ownerType === 'person') return getPersonName(assign.ownerId) || assign.ownerId;
   if (assign.ownerType === 'org') return ORG_SUBJECT_LABELS[assign.ownerId] || assign.ownerId;
   return ROLE_LABELS[assign.ownerId] || assign.ownerId;
@@ -61,14 +70,14 @@ function _modulesHtml(workforce) {
         const ownerText = superior ? `上级${_ownerLabel(assign)}` : _ownerLabel(assign);
         const ownerTitle = superior ? '非支部分工：该事项由上级组织主导（支部侧按上级渠道对接），故不占支部承担方位' : `负责人：${_ownerLabel(assign)}`;
         const chips = (m.sub || []).map(s => `
-          <span class="text-[11px] px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">${esc(s)}</span>`).join('');
+          <span class="text-xs px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">${esc(s)}</span>`).join('');
         const outputs = (m.outputs || []).map(o => `
-          <span class="text-[11px] px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-600" style="--acc-text-dark:#CBD5E1">产出·${esc(o)}</span>`).join('');
+          <span class="text-xs px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-600">产出·${esc(o)}</span>`).join('');
         return `
         <div class="rounded-lg border border-gray-200 bg-white p-3.5 flex flex-col gap-2">
           <div class="flex items-start justify-between gap-2">
             <p class="font-title-cn text-sm font-bold text-gray-800">${esc(m.name)}</p>
-            <span class="shrink-0 text-[11px] px-2 py-0.5 rounded-full ${ownerCls}" title="${esc(ownerTitle)}">${esc(ownerText)}</span>
+            <span class="shrink-0 text-xs px-2 py-0.5 rounded-full ${ownerCls}" title="${esc(ownerTitle)}">${esc(ownerText)}</span>
           </div>
           ${chips ? `<div class="flex flex-wrap gap-1">${chips}</div>` : ''}
           <p class="text-xs text-gray-500 leading-5">${esc(m.desc)}</p>
@@ -89,40 +98,101 @@ function _relationRows(workforce) {
     return {
       id: m.id,
       module: m.name,
-      owner: disabled ? '未指派' : (superior ? `上级${_ownerLabel(assign)}` : _ownerLabel(assign)),
+      // A14：停用项不是「未指派」（那会让人以为是漏配）。明说「已停用 / 不开展」。
+      owner: disabled ? _ownerLabel(assign) : (superior ? `上级${_ownerLabel(assign)}` : _ownerLabel(assign)),
       role: disabled ? '停用' : (superior ? '上级主导' : '主责'),
       note: disabled
-        ? '本支部不开展该项工作方法（可由支部重新启用）'
+        ? '本支部不开展该项工作方法；可由支书 / 副支书发起启用议题'
         : (superior ? '由上级组织主导，支部按上级渠道对接' : (m.desc || '')),
+      disabled,
     };
   });
 }
 
-/** 责任关系表渲染（表头 / 空态 / 分页均由统一检索引擎产出） */
-function _renderRelations(workforce) {
-  const host = document.getElementById('work-map-relations');
-  if (!host) return;
-  renderFilteredList(host, {
-    stateKey: 'secretary-work-map-relations',
-    rows: _relationRows(workforce),
-    keyword: { keys: ['module', 'owner', 'role', 'note'], placeholder: '搜索模块或责任人…' },
-    facets: [{ key: 'role', label: '责任角色' }],
-    pageSize: 20,
-    countUnit: '项',
-    emptyMessage: '暂无分工数据（支部尚未配置工作模块）',
-    table: {
-      headHtml: '<tr><th>工作模块</th><th>责任人</th><th>责任角色</th><th>责任说明</th></tr>',
-      colSpan: 4,
-    },
-    rowHtml: (r) => {
-      const roleCls = r.role === '主责' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-neutral-100 text-neutral-600';
-      return `<tr>
-        <td class="text-gray-800 font-medium">${esc(r.module)}</td>
-        <td class="text-gray-700">${esc(r.owner)}</td>
-        <td><span class="text-xs px-1.5 py-0.5 rounded border ${roleCls}">${esc(r.role)}</span></td>
-        <td class="text-gray-600">${esc(r.note)}</td>
-      </tr>`;
-    },
+/** 右列详情：选中模块的责任角色、责任说明与停用项启用入口（非停用项无操作钮）。 */
+function _relationDetailHtml(row, editable) {
+  const roleCls = row.role === '主责' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-neutral-100 text-neutral-600';
+  // A14：停用项的「发起启用议题」落点＝本页分工调整面板（复用既有写口，不新造表单）。
+  const action = row.disabled
+    ? (editable
+      ? `<button type="button" class="btn-outline wm-reenable" data-module="${esc(row.id)}">发起启用议题</button>`
+      : '<span class="text-xs text-gray-500">由支书 / 副支书发起启用议题</span>')
+    : '';
+  return `
+    <h4 class="wm-detail__title text-sm font-semibold text-gray-800">${esc(row.module)}</h4>
+    <dl class="mt-2 mb-0">
+      <div class="wm-detail__row"><dt>责任角色</dt><dd><span class="text-xs px-1.5 py-0.5 rounded-full border ${roleCls}">${esc(row.role)}</span></dd></div>
+      <div class="wm-detail__row"><dt>责任说明</dt><dd>${esc(row.note)}</dd></div>
+    </dl>
+    ${action ? `<div class="mt-2">${action}</div>` : ''}`;
+}
+
+/** 责任关系主从两栏：左列模块清单（role=listbox，单屏可览不分页），右列选中详情。 */
+function _relationsCardHtml(rows, editable) {
+  if (!rows.length) {
+    return `<div class="card rounded-xl p-4" id="work-map-relations">
+      ${renderCardHeader({ title: '责任关系' })}
+      ${emptyStateHtml('暂无分工数据', {
+        actionHtml: '<button type="button" class="btn-outline" data-wm-view="modules">先看平铺模块</button>',
+      })}
+    </div>`;
+  }
+  const selectedId = rows.some((r) => r.id === _selectedModule) ? _selectedModule : rows[0].id;
+  _selectedModule = selectedId;
+  const current = rows.find((r) => r.id === selectedId);
+  return `<div class="card rounded-xl p-4" id="work-map-relations">
+      ${renderCardHeader({ title: '责任关系', meta: `${rows.length} 项工作 · 一项一名主责` })}
+      <div class="wm-split">
+        <div class="wm-module-list" id="wm-module-list" role="listbox" aria-label="工作模块" tabindex="0" aria-activedescendant="wm-opt-${esc(selectedId)}">
+          ${rows.map((r) => {
+            const on = r.id === selectedId;
+            return `<div id="wm-opt-${esc(r.id)}" class="wm-module-item${on ? ' is-selected' : ''}" role="option" aria-selected="${on ? 'true' : 'false'}" data-module="${esc(r.id)}">
+              <span class="wm-module-item__name">${esc(r.module)}</span>
+              <span class="wm-module-item__owner">${esc(r.owner)}</span>
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="wm-detail" id="wm-detail" role="region" aria-live="polite">${_relationDetailHtml(current, editable)}</div>
+      </div>
+    </div>`;
+}
+
+/** 主从视图键盘操作：↑/↓ 逐项、Home/End 首末；选中项常驻 aria-activedescendant。 */
+function _bindRelations(rows, editable) {
+  const list = document.getElementById('wm-module-list');
+  const detail = document.getElementById('wm-detail');
+  if (!list || !detail) return;
+  const items = [...list.querySelectorAll('.wm-module-item')];
+  if (!items.length) return;
+  const select = (id) => {
+    const item = items.find((it) => it.dataset.module === id);
+    const row = rows.find((r) => r.id === id);
+    if (!item || !row) return;
+    _selectedModule = id;
+    items.forEach((it) => {
+      const on = it.dataset.module === id;
+      it.classList.toggle('is-selected', on);
+      it.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    list.setAttribute('aria-activedescendant', `wm-opt-${id}`);
+    detail.innerHTML = _relationDetailHtml(row, editable);
+    smoothScroll(item, { block: 'nearest', smooth: false });
+  };
+  list.addEventListener('click', (e) => {
+    const item = e.target.closest('.wm-module-item');
+    if (item) select(item.dataset.module);
+  });
+  list.addEventListener('keydown', (e) => {
+    const ids = items.map((it) => it.dataset.module);
+    const idx = Math.max(0, ids.indexOf(_selectedModule));
+    let next = idx;
+    if (e.key === 'ArrowDown') next = Math.min(ids.length - 1, idx + 1);
+    else if (e.key === 'ArrowUp') next = Math.max(0, idx - 1);
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = ids.length - 1;
+    else return;
+    e.preventDefault();
+    select(ids[next]);
   });
 }
 
@@ -171,7 +241,7 @@ function _renderMatrix(workforce) {
       const assign = workforce[moduleId];
       // 命中该工作项负责人 → 「主责」徽标（朴素文本标记，本页禁 SVG）；否则 null → 组件渲染灰色「—」
       return `${assign.ownerType}:${assign.ownerId}` === personKey
-        ? '<span class="text-[11px] px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">主责</span>'
+        ? '<span class="text-xs px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">主责</span>'
         : null;
     },
     personLabel: '负责人',
@@ -187,13 +257,11 @@ function _renderMatrix(workforce) {
 function _toolFoldHtml() {
   return `
     <div class="card rounded-xl p-4 mt-3" id="workforce-panel-card">
-      <div class="flex items-center justify-between gap-2">
-        <div class="flex items-center gap-3">
-          <h3 class="font-title-cn text-sm font-bold text-gray-700">分工调整工具</h3>
-          <span class="text-xs text-gray-500">发起调整走支委会议题表决；跟踪与采纳亦在此</span>
-        </div>
-        <button type="button" class="btn-ghost wm-tool-toggle text-xs">${_toolOpen ? '收起' : '展开分工调整工具'}</button>
-      </div>
+      ${renderCardHeader({
+        title: '分工调整工具',
+        meta: '发起调整走支委会议题表决；跟踪与采纳亦在此',
+        actions: `<button type="button" class="btn-outline wm-tool-toggle">${_toolOpen ? '收起' : '展开分工调整工具'}</button>`,
+      })}
       ${_toolOpen ? '<div id="workforce-panel-host" class="mt-2"></div>' : ''}
     </div>`;
 }
@@ -201,13 +269,13 @@ function _toolFoldHtml() {
 /** 渲染支部分工 tab（tab-bar 懒加载调用） */
 export function renderContent() {
   const tc = document.getElementById('secretary-tab-content');
-  if (!tc) return;
+  if (!tc) throw new Error('[work-map-tab] 缺少内容容器 #secretary-tab-content');
   if (tc.dataset.currentTab !== 'work-map') {
     tc.innerHTML = `<div id="work-map-root"></div>`;
     tc.dataset.currentTab = 'work-map';
   }
   const root = document.getElementById('work-map-root');
-  if (!root) return;
+  if (!root) throw new Error('[work-map-tab] 缺少 #work-map-root');
   const me = AuthStore.getCurrentUser();
   const personId = me && (me.personId || me.id);
   const branchId = getBranchIdOfPerson(personId);
@@ -215,41 +283,34 @@ export function renderContent() {
   // L4 M2：分工调整工具（发起议题 / 跟踪 / 采纳）——仅支书/副支书可见（分工 = 支部自治）
   const editable = me && (me.role === 'secretary' || me.role === 'deputy-secretary');
 
+  // 视图分段＝`.btn-tab`（32px / 13px）＋ `.active` 单一源；不再在同排手写尺寸 / 边框 / 选中色。
+  // 2026-10-31 支书补充：页头「标题在左、页签组在右」同行（原先页签独占下一行）。
   const switchBar = `
-    <div class="flex items-center gap-2 mb-3">
-      <div class="flex items-center gap-2">
-        ${[
-          { key: 'relations', label: '责任关系' },
-          { key: 'modules', label: '平铺模块' },
-          { key: 'persons', label: '按人' },
-          { key: 'items', label: '按项目' },
-        ].map(t => `
-          <button type="button"
-            class="btn-tab ov-sub-tab px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${_view === t.key ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"
-            ${_view === t.key ? 'style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}
-            data-wm-view="${t.key}">${t.label}</button>`).join('')}
-      </div>
-      <p class="text-xs text-gray-500 ml-auto">分工由本支部自行调整（缺省按 SOP 责任人，改派走支委会议题）</p>
+    <div class="flex items-center gap-2 flex-wrap" role="group" aria-label="支部分工视图">
+      ${[
+        { key: 'relations', label: '责任关系' },
+        { key: 'modules', label: '平铺模块' },
+        { key: 'persons', label: '按人' },
+        { key: 'items', label: '按项目' },
+      ].map(t => `
+        <button type="button"
+          class="btn-tab ov-sub-tab${_view === t.key ? ' active' : ''}"
+          data-wm-view="${t.key}">${t.label}</button>`).join('')}
     </div>`;
+  const relationRows = _relationRows(workforce);
   const body = _view === 'modules'
     ? _modulesHtml(workforce)
     : _view === 'relations'
-      ? `<div class="card rounded-xl p-4">
-          <div class="flex items-center justify-between mb-1">
-            <h4 class="font-title-cn text-base font-semibold text-gray-800">责任关系表</h4>
-            <span class="text-xs text-gray-500">${WORK_MAP_MODULES.length} 项工作 · 一项一名主责</span>
-          </div>
-          <p class="text-xs text-gray-500 mb-2.5">每行读法：工作模块 → 责任人 → 责任角色 → 责任说明。</p>
-          <div id="work-map-relations"></div>
-        </div>`
+      ? _relationsCardHtml(relationRows, editable)
       : `<div id="work-map-matrix"></div>`;
 
-  root.innerHTML = `${switchBar}${body}${editable ? _toolFoldHtml() : ''}`;
-  // 责任关系表 / 矩阵分别挂到各自宿主（_view → mode 映射在 _renderMatrix 内）
-  if (_view === 'relations') _renderRelations(workforce);
+  // 说明后置（§10.5）：页面标题下不再压一段导语；分工口径放在主体与工具之后，全屏只留这一句。
+  root.innerHTML = `${renderTabHeader({ title: '支部分工', actions: switchBar })}${body}${editable ? _toolFoldHtml() : ''}<p class="text-xs text-gray-500 mt-3">分工由本支部自行调整，改派走支委会议题。</p>`;
+  // 责任关系（主从两栏）/ 矩阵分别挂到各自宿主（_view → mode 映射在 _renderMatrix 内）
+  if (_view === 'relations') _bindRelations(relationRows, editable);
   if (_view === 'persons' || _view === 'items') _renderMatrix(workforce);
-  // 视图切换（纯排列切换，不换数据）；复用 overview 的 ov-sub-tab 激活样式
-  root.querySelectorAll('.ov-sub-tab').forEach(btn => {
+  // 视图切换（纯排列切换，不换数据）；空态里的「先看平铺模块」同为 data-wm-view ⇒ 一并绑定
+  root.querySelectorAll('[data-wm-view]').forEach(btn => {
     btn.addEventListener('click', () => {
       _view = btn.dataset.wmView;
       renderContent();
@@ -260,8 +321,30 @@ export function renderContent() {
     _toolOpen = !_toolOpen;
     renderContent();
   });
+  // A14：停用项行内「发起启用议题」——展开并预选该模块（写口仍是既有分工调整面板）。
+  root.querySelector('#work-map-relations')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.wm-reenable');
+    if (!btn) return;
+    _pendingReenableModule = btn.dataset.module || null;
+    _toolOpen = true;
+    renderContent();
+  });
   // 展开态才挂载工具（仅支书/副支书可见）
   if (editable && _toolOpen) {
-    mountWorkforcePanel(branchId, root.querySelector('#workforce-panel-host')).catch(e => console.error('[work-map] 分工调整面板渲染失败', e));
+    mountWorkforcePanel(branchId, root.querySelector('#workforce-panel-host'))
+      .then(() => {
+        if (!_pendingReenableModule) return;
+        const mod = _pendingReenableModule;
+        _pendingReenableModule = null;
+        const host = root.querySelector('#workforce-panel-host');
+        host?.querySelector('#wf-open')?.click();
+        const row = host?.querySelector('.wf-row');
+        if (row) {
+          const sel = row.querySelector('.wf-module');
+          if (sel) sel.value = mod;
+          smoothScroll(row, { block: 'center' });
+        }
+      })
+      .catch(e => console.error('[work-map] 分工调整面板渲染失败', e));
   }
 }

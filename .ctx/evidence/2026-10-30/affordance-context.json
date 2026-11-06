@@ -1,0 +1,583 @@
+{
+  "meta": {
+    "title": "主行动可发现性 + 390 触控目标上下文取证",
+    "date": "2026-10-30",
+    "viewport": "390x844（DPR=1）",
+    "baseUrl": "http://localhost:3000",
+    "accounts": [
+      "2300010001 支书",
+      "2400012355 组织委员"
+    ],
+    "tool": "Playwright + Chromium（server/node_modules/playwright），只读，不提交任何业务写操作",
+    "screens": [
+      "/login.html",
+      "/workspace/secretary.html?tab=todo",
+      "/workspace/secretary.html?tab=calendar",
+      "/workspace/org.html?tab=roster",
+      "/settings.html（支部制度参数分区）",
+      "/feedback.html（新建反馈表单）"
+    ],
+    "countingRule": "「可动手元素」= 可见的 button / a[href] / summary / [role=button] / [role=tab] / [role=link] / [role=menuitem] / 可点卡；不含文本输入框与 select。触控目标统计另含输入框、select、复选框，凡任一边 <44px 即计入。",
+    "firstScreenRule": "390x844 下滚动前、无额外交互即可见；y 上限 844。"
+  },
+  "primaryActions": [
+    {
+      "screen": "登录页 /login.html",
+      "mainAction": "账号密码登录（「登录」提交按钮）",
+      "visualWeight": {
+        "fontSize": "13px",
+        "fontWeight": 400,
+        "height": 36,
+        "width": 308,
+        "solid": false,
+        "inFirstScreen": true
+      },
+      "secondaryAction": "统一身份认证登录（308x36，实底金色）",
+      "secondaryWeight": {
+        "fontSize": "13px",
+        "fontWeight": 400,
+        "height": 36,
+        "width": 308,
+        "solid": true,
+        "y": 314
+      },
+      "differsFromSecondaryBy": [
+        "color"
+      ],
+      "competingElements": 3,
+      "mostProminent": "统一身份认证登录（308x36，实底 rgb(154,107,15)，y=314）",
+      "numbers": {
+        "mainX": 41,
+        "mainY": 603,
+        "secondaryX": 41,
+        "secondaryY": 314,
+        "widthDelta": 0,
+        "heightDelta": 0,
+        "fontSizeDelta": "0px",
+        "fontWeightDelta": 0,
+        "bgMain": "rgb(255,255,255)",
+        "bgSecondary": "rgb(154,107,15)"
+      },
+      "notes": "主行动「登录」是白底描边；视觉最突出的是另一种登录方式「统一身份认证登录」。两者尺寸/字重完全相同，样式上只差颜色/填充；位置一上一下（y=314 vs y=603）。另有 2 个输入框（308x40）与 1 个开发模式复选框（13x13），未计入 3 个按钮/链接。"
+    },
+    {
+      "screen": "支书台·待办 /workspace/secretary.html?tab=todo",
+      "mainAction": "逐条催办（行尾「更多」菜单内的「催办」）",
+      "visualWeight": {
+        "fontSize": "12px",
+        "fontWeight": 400,
+        "height": 36,
+        "width": 110,
+        "solid": false,
+        "inFirstScreen": false
+      },
+      "secondaryAction": "行尾「更多」（42x28，白底描边）",
+      "secondaryWeight": {
+        "fontSize": "12px",
+        "fontWeight": 400,
+        "height": 28,
+        "width": 42,
+        "solid": false,
+        "y": 786
+      },
+      "differsFromSecondaryBy": [
+        "size",
+        "color",
+        "position"
+      ],
+      "competingElements": 35,
+      "mostProminent": "整行待办卡（316x56，首屏可见 4-5 张）；页签「待办」同时高亮（58x36，米色底+金色边）",
+      "numbers": {
+        "mainY": 808,
+        "secondaryY": 786,
+        "widthDelta": 68,
+        "heightDelta": 8,
+        "fontSizeDelta": "0px",
+        "fontWeightDelta": 0,
+        "bgMain": "rgba(0,0,0,0)",
+        "bgSecondary": "rgb(255,255,255)"
+      },
+      "notes": "催办在滚动前不可见：必须先点行尾「更多」（42x28）。展开后「催办」110x36 位于 y=808，仍在 844 首屏内；但这是一次额外交互后的可见，不是滚动前可见。首屏有 4 个同款「更多」。催办 vs 可见的「更多」：宽 +68、高 +8，颜色/实底不同，位置在浮层内。"
+    },
+    {
+      "screen": "支书台·活动管理 /workspace/secretary.html?tab=calendar",
+      "mainAction": "写入活动（顶栏 header-action-btn）",
+      "visualWeight": {
+        "fontSize": "13px",
+        "fontWeight": 400,
+        "height": 36,
+        "width": 66,
+        "solid": false,
+        "inFirstScreen": true
+      },
+      "secondaryAction": "一键汇报（同排 header-action-btn）",
+      "secondaryWeight": {
+        "fontSize": "13px",
+        "fontWeight": 400,
+        "height": 36,
+        "width": 66,
+        "solid": false,
+        "x": 264,
+        "y": 10
+      },
+      "differsFromSecondaryBy": [
+        "position"
+      ],
+      "competingElements": 26,
+      "mostProminent": "4 个 316x40 筛选触发器（月份/活动类别/品牌/范围）；按钮中「+ 新建党小组活动」123x36 最大",
+      "numbers": {
+        "mainX": 190,
+        "mainY": 10,
+        "secondaryX": 264,
+        "secondaryY": 10,
+        "widthDelta": 0,
+        "heightDelta": 0,
+        "fontSizeDelta": "0px",
+        "fontWeightDelta": 0,
+        "bgMain": "rgba(255,255,255,0.1)",
+        "bgSecondary": "rgba(255,255,255,0.1)",
+        "borderMain": "rgba(255,255,255,0.2)",
+        "borderSecondary": "rgba(255,255,255,0.2)"
+      },
+      "notes": "写入活动与一键汇报在字号、字重、高、宽、底色、边框上完全相同，仅 x 位置不同（190 vs 264，间距 8px）；主行动没有独立视觉权重。页内另有「+ 新建党小组活动」123x36（soft 米色）。"
+    },
+    {
+      "screen": "名册 /workspace/org.html?tab=roster",
+      "mainAction": "＋ 新增成员",
+      "visualWeight": {
+        "fontSize": "13px",
+        "fontWeight": 400,
+        "height": 36,
+        "width": 91,
+        "solid": false,
+        "inFirstScreen": true
+      },
+      "secondaryAction": "行内「编辑」（48x36）",
+      "secondaryWeight": {
+        "fontSize": "13px",
+        "fontWeight": 400,
+        "height": 36,
+        "width": 48,
+        "solid": false,
+        "y": 751
+      },
+      "differsFromSecondaryBy": [
+        "size",
+        "position"
+      ],
+      "competingElements": 61,
+      "mostProminent": "3 个 324x40 筛选触发器与 324x40 搜索框；按钮中「＋ 新增成员」91x36 最宽",
+      "numbers": {
+        "mainX": 266,
+        "mainY": 267,
+        "secondaryX": 203,
+        "secondaryY": 751,
+        "widthDelta": 43,
+        "heightDelta": 0,
+        "fontSizeDelta": "0px",
+        "fontWeightDelta": 0,
+        "bgMain": "rgb(251,243,220)",
+        "bgSecondary": "rgb(251,243,220)"
+      },
+      "notes": "新增成员与编辑同为 soft 米色底、13px/400、36 高；仅宽度（91 vs 48）和位置（页头 vs 行内）不同，颜色相同。行内「移出」48x36 为红色 soft（颜色不同）。列表含 10 组编辑/档案/移出。"
+    },
+    {
+      "screen": "设置·支部制度参数 /settings.html → 支部制度参数",
+      "mainAction": "保存（支部制度参数卡）",
+      "visualWeight": {
+        "fontSize": "13px",
+        "fontWeight": 400,
+        "height": 36,
+        "width": 48,
+        "solid": true,
+        "inFirstScreen": false
+      },
+      "secondaryAction": "恢复默认（74x36，soft）",
+      "secondaryWeight": {
+        "fontSize": "13px",
+        "fontWeight": 400,
+        "height": 36,
+        "width": 74,
+        "solid": false,
+        "y": 1706
+      },
+      "differsFromSecondaryBy": [
+        "color",
+        "size",
+        "position"
+      ],
+      "competingElements": 15,
+      "mostProminent": "左侧分组项「支部制度参数」（358x30，选中态）；保存按钮在 y=1706，滚动后才出现",
+      "numbers": {
+        "mainX": 37,
+        "mainY": 1706,
+        "secondaryX": 93,
+        "secondaryY": 1706,
+        "widthDelta": -26,
+        "heightDelta": 0,
+        "fontSizeDelta": "0px",
+        "fontWeightDelta": 0,
+        "bgMain": "rgb(154,107,15)",
+        "bgSecondary": "rgb(251,243,220)"
+      },
+      "notes": "同一屏有两个「保存」（y=1706、y=1965，均 48x36），分属两张参数卡；390x844 首屏内不可见。设置页没有全局保存，保存按分区出现（另有「工作台默认顺序」保存位）。"
+    },
+    {
+      "screen": "意见反馈·新建 /feedback.html → 提交意见反馈",
+      "mainAction": "提交反馈",
+      "visualWeight": {
+        "fontSize": "13px",
+        "fontWeight": 400,
+        "height": 38,
+        "width": 74,
+        "solid": true,
+        "inFirstScreen": true
+      },
+      "secondaryAction": "取消（62x38，描边；字号 14px）",
+      "secondaryWeight": {
+        "fontSize": "14px",
+        "fontWeight": 400,
+        "height": 38,
+        "width": 62,
+        "solid": false,
+        "y": 775
+      },
+      "differsFromSecondaryBy": [
+        "color",
+        "size",
+        "position"
+      ],
+      "competingElements": 7,
+      "mostProminent": "提交反馈（74x38 实底金色）",
+      "numbers": {
+        "mainX": 279,
+        "mainY": 775,
+        "secondaryX": 209,
+        "secondaryY": 775,
+        "widthDelta": 12,
+        "heightDelta": 0,
+        "fontSizeDelta": "+1px（主 13 / 次 14，次更大）",
+        "fontWeightDelta": 0,
+        "bgMain": "rgb(154,107,15)",
+        "bgSecondary": "rgba(0,0,0,0)"
+      },
+      "notes": "提交反馈 y=775、底边 813，在 844 首屏内。取消按钮字号 14px，反而比主行动 13px 大；两者高度 38 相同，宽度差 12px，实底 vs 描边，间距 8px。"
+    }
+  ],
+  "smallTargets": [
+    {
+      "name": "日历日期格",
+      "function": "选择日期（月视图）",
+      "size": "43x43",
+      "count": 31,
+      "perScreen": "活动管理·月视图 31 个",
+      "highFrequency": true,
+      "misTapConsequence": "选到相邻日期，日历焦点与当日列表切换；不写数据",
+      "minGapToNeighbor": 2,
+      "notes": "月视图网格，横向/纵向相邻格间距约 2px；部分带任务格实测 43x40。"
+    },
+    {
+      "name": "工作台页签",
+      "function": "在「今天/待办/活动管理/支委会…」页签间切换",
+      "size": "58-82x36",
+      "count": 38,
+      "perScreen": "支书台 10 个；组织台 8 个",
+      "highFrequency": true,
+      "misTapConsequence": "切到另一页签，当前页签的滚动位置/展开状态丢失；不写数据",
+      "minGapToNeighbor": 0,
+      "notes": "相邻页签常规间距 8px；右端「向右滚动页签」32x32 覆盖最后一个可见页签边缘，重叠处间距 0px。"
+    },
+    {
+      "name": "筛选下拉触发器",
+      "function": "选择月份/活动类别/品牌/范围，或名册党小组/发展阶段/在册状态",
+      "size": "316-324x40",
+      "count": 15,
+      "perScreen": "活动管理 4 个；名册 3 个；意见反馈列表 4 个；设置制度参数 2 个；反馈表单 2 个",
+      "highFrequency": true,
+      "misTapConsequence": "改变筛选条件，列表可能被过滤/清空，误以为数据丢失；不写数据",
+      "minGapToNeighbor": 8,
+      "notes": "另有 1x1 的原生 select 作为降级/无障碍节点，视觉上不可点，不计入 15 个可见触发器。"
+    },
+    {
+      "name": "顶栏动作「写入活动 / 一键汇报」",
+      "function": "写入活动（打开创建面板）/ 一键汇报（打开汇报入口）",
+      "size": "66x36",
+      "count": 11,
+      "perScreen": "支书台每屏 2 个；其余页 1 个（一键汇报）",
+      "highFrequency": true,
+      "misTapConsequence": "打开创建/汇报浮层；未提交前不写数据",
+      "minGapToNeighbor": 8,
+      "notes": "两个按钮同排，间距 8px，尺寸/字重/底色/边框完全相同。"
+    },
+    {
+      "name": "成员变更复选框",
+      "function": "勾选要确认的成员阶段变更（待办页成员变更区）",
+      "size": "13x13（label 296x50）",
+      "count": 2,
+      "perScreen": "支书台待办·成员变更区 2 个（全选 + 单个）",
+      "highFrequency": false,
+      "misTapConsequence": "误勾/取消；随后点「确认 N 项」会提交错误的成员阶段变更（还需再点一次确认）",
+      "minGapToNeighbor": 8,
+      "notes": "视觉 13x13，但单个成员的 label 命中区 296x50（>=44）；「全选」label 仅 88x16，仍 <44 高。仅在有成员变更待确认时出现。"
+    },
+    {
+      "name": "汉堡菜单",
+      "function": "打开主导航抽屉",
+      "size": "36x36",
+      "count": 10,
+      "perScreen": "每屏 1 个",
+      "highFrequency": true,
+      "misTapConsequence": "打开导航抽屉；不写数据",
+      "minGapToNeighbor": 142,
+      "notes": "位于左上角，左侧/上方贴边；同屏最近可点元素为顶栏动作（x=190）或通知（x=338）。"
+    },
+    {
+      "name": "通知图标",
+      "function": "打开通知列表",
+      "size": "40x40",
+      "count": 10,
+      "perScreen": "每屏 1 个",
+      "highFrequency": true,
+      "misTapConsequence": "打开通知列表；不写数据",
+      "minGapToNeighbor": 8,
+      "notes": "位于顶栏最右，与相邻顶栏动作间距 8px。"
+    },
+    {
+      "name": "名册「编辑」",
+      "function": "打开成员档案编辑浮层",
+      "size": "48x36",
+      "count": 10,
+      "perScreen": "名册每页 10 个",
+      "highFrequency": true,
+      "misTapConsequence": "打开编辑浮层；保存前不写数据",
+      "minGapToNeighbor": 6,
+      "notes": "与「档案」「移出」同一行，三枚按钮水平间距 6px。"
+    },
+    {
+      "name": "名册「档案」",
+      "function": "打开成员个人档案页",
+      "size": "46x26",
+      "count": 10,
+      "perScreen": "名册每页 10 个",
+      "highFrequency": true,
+      "misTapConsequence": "跳转到个人档案，离开名册列表",
+      "minGapToNeighbor": 6,
+      "notes": "行内三枚按钮中最矮的一枚（26px 高），夹在「编辑」与「移出」之间。"
+    },
+    {
+      "name": "名册「移出」",
+      "function": "把成员移出名册（走确认）",
+      "size": "48x36",
+      "count": 10,
+      "perScreen": "名册每页 10 个",
+      "highFrequency": false,
+      "misTapConsequence": "打开移出确认；若再确认会写数据（破坏性）",
+      "minGapToNeighbor": 6,
+      "notes": "红色 soft，与「档案」仅隔 6px；不是每日动作。"
+    },
+    {
+      "name": "待办行「更多」",
+      "function": "展开行级菜单（催办/作废/删除）",
+      "size": "42x28",
+      "count": 8,
+      "perScreen": "支书台待办每屏 4 个",
+      "highFrequency": true,
+      "misTapConsequence": "打开菜单，作废/删除/催办只差一次点击；点在按钮外则触发整行卡本身",
+      "minGapToNeighbor": 0,
+      "notes": "按钮嵌在可点击的 316x56 行卡内，与行卡边缘/行卡点击区间距 0px；菜单浮层紧贴行尾。"
+    },
+    {
+      "name": "设置分组项",
+      "function": "切换设置分区（外观/我的工作台/支部制度参数…）",
+      "size": "358x30",
+      "count": 18,
+      "perScreen": "设置页每屏 6 个",
+      "highFrequency": false,
+      "misTapConsequence": "切走当前分区，未保存的编辑可能丢失",
+      "minGapToNeighbor": 2,
+      "notes": "6 个分组项纵向排列，行间距 2px；整行可点但高度仅 30px。"
+    },
+    {
+      "name": "设置行内「上移/下移」",
+      "function": "调整我的工作台页签顺序（即时保存）",
+      "size": "34x26",
+      "count": 14,
+      "perScreen": "设置·我的工作台每屏 14 个（7 行 × 上下移）",
+      "highFrequency": false,
+      "misTapConsequence": "立即改页签顺序并保存（仅当前账号）",
+      "minGapToNeighbor": 2,
+      "notes": "同一行内「上移/下移」水平间距 2px；无伪元素扩大命中区，命中区 34x27。"
+    },
+    {
+      "name": "日历视图切换",
+      "function": "月/周/日/列表 切换",
+      "size": "31x32（列表 44x32）",
+      "count": 4,
+      "perScreen": "活动管理 4 个",
+      "highFrequency": true,
+      "misTapConsequence": "切换日历视图，当前视图/滚动位置丢失",
+      "minGapToNeighbor": 6,
+      "notes": "四枚按钮水平排列，间距 6px；无伪元素扩大命中区。"
+    },
+    {
+      "name": "页签滚动箭头",
+      "function": "横向滚动页签栏",
+      "size": "32x32",
+      "count": 4,
+      "perScreen": "有页签栏的屏 1 个",
+      "highFrequency": true,
+      "misTapConsequence": "滚动页签栏，可能把当前页签滚出视野",
+      "minGapToNeighbor": 0,
+      "notes": "浮在页签栏右端，与最后一个可见页签重叠 0px；误点风险高于普通相邻按钮。"
+    },
+    {
+      "name": "页签「还有 N 个」",
+      "function": "打开未显示的页签菜单",
+      "size": "58x18",
+      "count": 4,
+      "perScreen": "有页签栏的屏 1 个",
+      "highFrequency": true,
+      "misTapConsequence": "打开页签溢出菜单；不写数据",
+      "minGapToNeighbor": 5,
+      "notes": "高度仅 18px；与页签栏/滚动箭头间距约 5px。"
+    },
+    {
+      "name": "待办「查看并答复」",
+      "function": "打开汇报答复面板",
+      "size": "78x28",
+      "count": 4,
+      "perScreen": "支书台待办每屏 2 个",
+      "highFrequency": true,
+      "misTapConsequence": "打开答复面板；不写数据",
+      "minGapToNeighbor": 31,
+      "notes": "右侧留白较大，与相邻可点元素间距 31px，误触风险相对低。"
+    },
+    {
+      "name": "反馈类型复选框",
+      "function": "选择反馈类型（缺陷/增强/提案/疑问）",
+      "size": "13x13（label 152x21）",
+      "count": 4,
+      "perScreen": "意见反馈新建表单 4 个",
+      "highFrequency": false,
+      "misTapConsequence": "改变反馈类型；影响提交分类",
+      "minGapToNeighbor": 4,
+      "notes": "视觉 13x13，label 命中区 152x21，仍 <44 高；四行纵向间距 4px。匿名提交复选框 14x14、label 68x16，也未达 44。"
+    },
+    {
+      "name": "分页页码",
+      "function": "跳转名册页码",
+      "size": "30x32",
+      "count": 5,
+      "perScreen": "名册 5 个",
+      "highFrequency": true,
+      "misTapConsequence": "跳到另一页，当前行位置丢失",
+      "minGapToNeighbor": 6,
+      "notes": "页码 1-5 横排，间距 6px。"
+    },
+    {
+      "name": "分页「上一页/下一页」",
+      "function": "名册翻页",
+      "size": "57x32",
+      "count": 2,
+      "perScreen": "名册 2 个",
+      "highFrequency": true,
+      "misTapConsequence": "翻页，当前行位置丢失",
+      "minGapToNeighbor": 6,
+      "notes": "与页码行同排，间距 6px。"
+    },
+    {
+      "name": "待办批量「确认 N 项」",
+      "function": "提交当前勾选的成员阶段变更",
+      "size": "74x36",
+      "count": 2,
+      "perScreen": "支书台待办·成员变更区 1 个（两种状态）",
+      "highFrequency": false,
+      "misTapConsequence": "提交成员阶段变更（写数据）；未勾选时按钮禁用",
+      "minGapToNeighbor": 8,
+      "notes": "仅在成员变更待确认时可用；不是每日动作。"
+    },
+    {
+      "name": "未读通知展开",
+      "function": "展开未读通知列表",
+      "size": "42x28",
+      "count": 2,
+      "perScreen": "支书台待办 1 个（两种状态）",
+      "highFrequency": true,
+      "misTapConsequence": "展开通知列表；不写数据",
+      "minGapToNeighbor": 8,
+      "notes": "位于「未读通知 1」折叠行右侧。"
+    },
+    {
+      "name": "设置「保存 / 恢复默认」",
+      "function": "保存支部制度参数 / 恢复默认",
+      "size": "48x36 / 74x36",
+      "count": 4,
+      "perScreen": "设置·支部制度参数 2 组（2 个保存 + 2 个恢复默认）",
+      "highFrequency": false,
+      "misTapConsequence": "保存会改全体成员生效的参数；恢复默认会重置",
+      "minGapToNeighbor": 8,
+      "notes": "保存与恢复默认水平间距 8px；均在 y>1700，首屏不可见。"
+    },
+    {
+      "name": "登录「账号密码登录」",
+      "function": "用学号+密码登录",
+      "size": "308x36",
+      "count": 1,
+      "perScreen": "登录页 1 个",
+      "highFrequency": true,
+      "misTapConsequence": "提交登录；失败只提示，不写业务数据",
+      "minGapToNeighbor": 16,
+      "notes": "与密码输入框间距 16px；同为 308x36 的「统一身份认证登录」在上方 289px 处。"
+    },
+    {
+      "name": "「催办」菜单项",
+      "function": "对责任人发送定向催办通知",
+      "size": "110x36",
+      "count": 1,
+      "perScreen": "支书台待办首行菜单 1 个",
+      "highFrequency": false,
+      "misTapConsequence": "发送催办通知（写数据，产生通知留痕）",
+      "minGapToNeighbor": 0,
+      "notes": "在「更多」浮层内；支书台属例外代办，本位在组织委员台。菜单位于行卡上方，覆盖行卡内容，间距 0px。"
+    }
+  ],
+  "specialHitAreaChecks": [
+    {
+      "name": "日历日期格",
+      "visualSize": "43x43",
+      "hitSize": "44x44",
+      "consistent": true,
+      "method": "elementFromPoint 边界扫描 + ::before/::after 计算样式",
+      "note": "无伪元素外扩；44x44 为像素取整，设计值仍是 43x43。相邻格间距 2px。"
+    },
+    {
+      "name": "日历视图切换",
+      "visualSize": "31x32",
+      "hitSize": "31x32",
+      "consistent": true,
+      "method": "elementFromPoint 边界扫描 + ::before/::after 计算样式",
+      "note": "无伪元素外扩；命中区=视觉区。四枚按钮间距 6px。"
+    },
+    {
+      "name": "设置页 .btn-action",
+      "visualSize": "34x26",
+      "hitSize": "34x27",
+      "consistent": true,
+      "method": "elementFromPoint 边界扫描 + ::before/::after 计算样式",
+      "note": "无伪元素外扩；34x27 的 +1px 为边界取整。同一行上下移按钮间距 2px。"
+    }
+  ],
+  "notes": [
+    "测量环境：Chromium headless，390x844，DPR=1，localhost:3000，支书 2300010001 / 组织委员 2400012355；只打开页面与浮层，未点击保存、提交、催办、作废、移出等写操作。",
+    "「可动手元素」计数口径：可见的 button / a[href] / summary / [role=button] / [role=tab] / [role=link] / [role=menuitem] / 可点卡；不含文本输入框与 select。主行动属性按 DOM 实测。",
+    "触控目标统计口径：页面在 390 宽下的全部可点元素（含首屏外），任一边 <44 即计入；count 为本次审计各屏状态累计出现次数，不是控件种类数。",
+    "字重：六屏主/次行动没有一对存在 font-weight 差异（均为 400 或均为 500）。意见反馈主行动 13px、次行动「取消」14px，是唯一字号反向的主/次对。",
+    "待办「催办」在支书台属例外代办（本位在组织委员台）；滚动前不可见，需先点行尾「更多」。",
+    "活动管理「写入活动」与「一键汇报」尺寸/字重/底色/边框完全相同，仅位置不同；主行动没有独立视觉权重。",
+    "设置页没有全局保存；保存按卡片出现（支部制度参数屏有 2 个，工作台默认顺序另有 1 个），支部制度参数的保存均在 y>1700，390x844 首屏不可见。",
+    "日历日期格、日历视图切换、设置 .btn-action 三者均未用伪元素扩大命中区；视觉尺寸=命中区，属于真实小目标，而不是「看起来小、实际好点」。",
+    "成员变更复选框视觉 13x13，但单个成员 label 命中区 296x50（达标）；反馈类型 label 152x21、匿名 label 68x16，仍 <44 高。",
+    "未入 25 行表的小目标：新增成员 91x36、提交意见反馈 100x36、提交反馈 74x38、新建党小组活动 123x36、统一身份认证登录 308x36、返回主页 63x16、返回列表 358x16、筛选清除 316x36、折叠展开 40x40、主题明暗 32x24、字号 31x32、发布招募 80x30、应到明细 298x40、帮助 34x133。",
+    "「首屏可见」按 390x844、滚动前、无额外交互判定：登录 y=603、活动管理 y=10、名册 y=267、意见反馈 y=775 为可见；待办催办需先开「更多」；设置保存 y=1706 不可见。"
+  ]
+}

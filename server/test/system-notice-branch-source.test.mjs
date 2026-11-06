@@ -30,7 +30,7 @@ async function login(personId) {
 
 test('member-change notice resolves its source row and rejects another branch source', async () => {
   const noticeCount = app.locals.db.prepare('SELECT COUNT(*) AS n FROM notices').get().n;
-  const token = await login('p11');
+  const token = await login('2400012355');
   const res = await fetch(`${base}/api/v1/system-notices`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },

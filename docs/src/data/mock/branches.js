@@ -3,6 +3,11 @@
 // 单一事实源：前端 domain mockDB.branches 首启 seed + server/seed.js 两级导入均引用本文件
 // 支部不预设名字——br-b1 是当前实例（本科生党支部），硕博等支部由党委在系统内动态创建/改名。
 
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261102b';
+import { PEOPLE } from './people.js?v=20261102b';
+
+// R7-35：现任支书从角色派生（换人后种子自动跟随，不在数据里写死学号）
+const SECRETARY_ID = PEOPLE.find((p) => p.role === 'secretary')?.id || null;
 export const PARTY_COMMITTEE = {
   id: 'pc-gsm',
   name: '光华管理学院党委',   // 院系级党委（支书 2026-09-02 澄清：非全校）
@@ -12,7 +17,7 @@ export const PARTY_COMMITTEE = {
 /**
  * 支部实例：config 为支部配置档案（开源通用性——支部从已注册能力中排列组合自己的工作流）
  * config.modules: 工作流模块配置（L2，2026-09-03 支书裁定：支部自治/支书操作/清单+画布并用/tab 级/核心固定）
- *   { hiddenTabIds: string[], tabOrder: string[] }——null = 默认全开（现有 46 功能不变）；
+ *   { hiddenTabIds: string[], tabOrder: string[] }——null = 默认全开（页签清单见 capabilities 注册表）；
  *   核心组 tab（待办/工作概况等 groupLabel='工作台'）固定显示，不可隐藏、不参与排序。
  * config.headerTitle: header 品牌软编码（**可改写项**——换组织向导里单独改「页眉显示名」时写本项；
  *   为空/缺省时 header 回退 branch.name，见 services/branch/branch.js::getHeaderTitle 段②）
@@ -20,7 +25,7 @@ export const PARTY_COMMITTEE = {
  */
 export const BRANCHES = [
   {
-    id: 'br-b1',
+    id: DEFAULT_BRANCH_ID,
     name: '光华管理学院本科生党支部',   // 支部档案名（默认显示名；headerTitle 未单独设置时 header 用它）
     type: '本科生',                 // 类别标签（自由文本，不预设枚举）
     config: {
@@ -31,7 +36,7 @@ export const BRANCHES = [
       modules: null,                 // 全开（默认 profile，兼容现有演示）
       fileSpaceIsolated: true,
     },
-    secretaryId: 'p13',              // 现任支书（储子禾）；P2 起由党委任命驱动
+    secretaryId: SECRETARY_ID,              // 现任支书（由 PEOPLE 角色派生）；P2 起由党委任命驱动
     status: 'active',
     createdAt: '2026-09-01T00:00:00.000Z',
   },
@@ -43,4 +48,4 @@ export const BRANCHES = [
  * ⚠ 段②（真实支部数据）与段③（本兜底）在本演示实例下会取到**同一个字面量**、来源不同；
  *   要分辨当前生效的是哪一段，看 services/branch/branch.js::getAffiliationShape().segment（1–5）。
  */
-export const DEFAULT_BRANCH_DISPLAY_NAME = BRANCHES.find(b => b.id === 'br-b1')?.name || '示例组织';
+export const DEFAULT_BRANCH_DISPLAY_NAME = BRANCHES.find(b => b.id === DEFAULT_BRANCH_ID)?.name || '示例组织';

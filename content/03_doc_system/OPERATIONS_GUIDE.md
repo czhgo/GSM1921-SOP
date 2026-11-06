@@ -2,8 +2,8 @@
 title: "运行与协作规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-10-18
-version: "4.1"
+last_updated: "2026-11-03"
+version: "4.2"
 status: active
 merged_from:
   - content/03_doc_system/PROCESS_GUIDE.md (已删除，§15–§18 逐字并入)
@@ -113,9 +113,7 @@ related_files: [CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/03_doc_syst
 
 ## 2. 术语规范
 
-所有文档必须遵守 [§19 术语使用规范](#19-术语使用规范) 中的标准术语。
-
-**术语裁定与约束**：详见 [§19 术语使用规范](#19-术语使用规范)（2026-09-03 支书裁定）。
+**术语定义以 [TERMINOLOGY.md](TERMINOLOGY.md) 为准**（全仓唯一术语定义源）。本节只给使用规则，不重复定义；术语的裁定与使用约束见 [§19 术语使用规范](#19-术语使用规范)。
 
 ## 3. 文档关系定义
 
@@ -198,7 +196,7 @@ related_files: [...]
 | `log`            | 执行日志           | .ctx/logs/                                                                |
 | `decision_log`   | 决策日志           | .ctx/logs/                                                                |
 | `audit_report`   | 审计报告           | .ctx/logs/                                                                |
-| `snapshot`       | 系统快照           | .ctx/snapshots/                                                           |
+| `snapshot`       | 系统快照           | .ctx/logs/archive/2026-10/snapshots/                                      |
 
 **已废弃的 type 值**：`CLAUDE.md`（改为 `roadmap`）、`模板`（改为 `template`）、`导航`（改为 `index`）
 
@@ -557,6 +555,29 @@ Guides 文件不使用数字编号，使用**语义化文件名**（大写+下�
 - 具体边界由 AI 根据条目数量和逻辑分组灵活划分，不做硬性日期切割
 
 **与 H20.1 的关系**：H20.1 要求"读取 .ctx/ 确定当前基线"——AI 应优先读取活跃日志的摘要表和近期详细条目，按需读取归档文件。不得一次性读取全部归档内容。
+
+### 10.7 记录生命周期：产生 → 沉淀 → 归档（2026-10-20 立）
+
+> **为什么单列**：日志归档只解决了「日志变大」，没解决「审计报告堆在 `.ctx` 顶层」。记录从产生到归档要有固定路径，否则 `.ctx` 会变成筐。
+
+| 阶段 | 做什么 | 落点 |
+| --- | --- | --- |
+| **产生** | 任务过程、审计发现、真机读数先如实记录，带证据（`file:line` / 截图 / 命令输出） | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；二进制与读数放 `.ctx/evidence/YYYY-MM-DD/` |
+| **沉淀** | 把可复用结论拆成「原则」与「方法」，写进各自权威文档（见 `CLAUDE.md H26.3` 三去向） | 原则 → `CLAUDE.md` / `OPERATIONS_GUIDE.md` / `DESIGN_SYSTEM.md` / `DATA_MODEL.md`；方法 → `TEST_AND_VERIFICATION.md` / `PARALLEL_SKILL_AUDIT.md` |
+| **归档** | 一次性审计原文、脚本生成产物、已完成轮次的报告移入按月归档；结论与原文的指针一并交代 | `.ctx/logs/archive/YYYY-MM/` |
+
+**`.ctx` 的职责边界**：只放台账（`TIMESTAMPS.md` / `SNAPSHOT.md` / `REVIEW_QUEUE.md` / `ACTIVE_RULINGS.md` / `ENGINEERING_ASSESSMENT.md`）、日志（`logs/`）与证据（`evidence/`）。审计报告不是知识本体——结论沉淀后原文归档，不在顶层常驻；顶层新增文件必须命中 `CLAUDE.md H26.3` 的白名单。
+
+**2026-10 归档索引（原文唯一一份在 `.ctx/logs/archive/2026-10/`）**：
+
+- `AUDIT_IA_CRITICAL.md`（IA 六路审计；原则已进 `CLAUDE.md H21.3`，方法已进 `PARALLEL_SKILL_AUDIT.md §11`）
+- `IA_LINK_TRUTH.md`（逐角色链接真值；契约已进 `content/04_web_design/module/MODULE_UI_DESIGN.md §五`）
+- `IA_INVENTORY.md`（`server/scripts/ia-inventory.mjs` 生成产物，可重跑）
+- `AUDIT_ROUND1_WORKBENCH_STRUCTURE.md`
+- `AUDIT_ROUND2_MINIMUM_THREE_COSTS.md`
+- `AUDIT_ROUND3_4_COMBINED.md`
+- `WORKBENCH_67_TAB_AUDIT_DRAFT.md`（67 页签覆盖率历史证据）
+- `snapshots/`（历史系统快照）
 
 ## 11. 反论表述审核标准
 
@@ -1279,7 +1300,9 @@ AI在执行任何写入操作时，必须自检以下清单（对应 H40 文件�
 
 ## 19. 术语使用规范
 
-> **2026-09-03 支书裁定**：「党建工作 × 党务工作」二分体系已取消，本规范不再设该对标准术语。UI/功能分区保留普通名词「党建」（2026-09-03 当时为工作台 Tab 分组；2026-09-15 起工作台 Tab 分组按行为性质改为「工作台 / 我的职责 / 知情查看 / 制度与答复」四组，「党建」不再作组名，见 [DESIGN_SYSTEM §4.6](../04_web_design/design-system/DESIGN_SYSTEM.md)）；不再用「党建工作/党务工作」这对概念对工作进行归类，也不强制任何措辞替换。旧文档中该二分的定义与归类表达视为待修正项（已分批清理）。
+> **术语定义以 [TERMINOLOGY.md](TERMINOLOGY.md) 为准**（全仓唯一术语定义源）。本节只保留「怎么用」的规则——词条的定义、层级、并列集、禁用写法一律查该文件，本节不再重复定义。
+>
+> **2026-09-03 支书裁定**：「党建工作 × 党务工作」二分体系已取消，本规范不再设该对标准术语。UI/功能分区保留普通名词「党建」（2026-09-03 当时为工作台 Tab 分组；2026-10-24 起工作台 Tab 分组按行为性质改为「总览 / 我的职责 / 协作与知情 / 制度与答复」四组，「党建」不再作组名，见 [DS_03_COMPONENTS.md §4.6](../04_web_design/design-system/DS_03_COMPONENTS.md)）；不再用「党建工作/党务工作」这对概念对工作进行归类，也不强制任何措辞替换。旧文档中该二分的定义与归类表达视为待修正项（已分批清理）。
 >
 > **区分视角（支书 2026-09-03 补充）**：工作的真实区分在参与范围——不需要扩大参与的，由支委会承担；需要扩大参与的（如活动、专班），是另一种组织方式。按 T1 官方表达，两者都属党建工作。
 
@@ -1301,16 +1324,7 @@ T1 官方表达"入党积极分子"可简化为"积极分子"——这是发展�
 
 #### 19.2.1 工作组相关术语
 
-> 系统权限统一表述为「授权」；历史文本中的「赋权」为同义专名。
-
-| 术语 | 定义 | 权威源 |
-|------|------|--------|
-| **活动工作组** | 随活动创建、负责该活动组织与深度参与的协作结构；不是独立业务对象，活动记录仍是活动业务的唯一载体 | [COMMISSIONER_DUTY_FRAMEWORK.md §A.4–A.7](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) |
-| **专班工作组** | 围绕事项、任务或产出建立的工作组；专班记录仍独立存在，工作组不因关联活动而变成活动本身 | 同上 |
-| **组内承办** | 活动承办范围 `party-group`：由所属党小组组长从组长工作台创建；表达责任归属，不限制其他成员报名或参加 | 同上 + [DATA_MODEL.md §2.3.1](../04_web_design/data/DATA_MODEL.md) |
-| **跨组承办** | 活动承办范围 `cross-group`：由支书/副书记从支书工作台创建并指定成员；不指定单一承办党小组，也不限制其他成员参加 | 同上 |
-
-> **考察依托工作组**：上表两类工作组的考察均挂在该工作组，考察对象为工作组成员；考察不是按人或按活动漂浮的独立台账。
+> 术语定义以 [TERMINOLOGY.md](TERMINOLOGY.md) 为准（见「工作组 / 活动工作组 / 专班工作组 / 考察 / 授权」条目）。本节不再重复定义，只保留一处引用。
 
 ---
 
@@ -1318,7 +1332,7 @@ T1 官方表达"入党积极分子"可简化为"积极分子"——这是发展�
 
 > **确立日期**：2026-06-14 | **2026-08-04 修订**：废除"写入型 vs 支撑型"命名与角色清单，仅保留与代码一致的机制事实（原分类的角色清单与 `auth.js` 权限表不符）
 
-**写入门禁**：仅支书、副支书、党小组组长持有 `create_activity` 权限，可直接创建/修改活动数据；宣传委员、纪检委员不持有该权限，通过审核、确认、备案等流程间接参与，不直接写入活动。活动按承办范围区分：组内承办由所属党小组组长从组长工作台创建，跨组承办由支书/副书记从支书工作台创建并指定成员；活动工作组随活动创建。专班工作组围绕事项建立，走独立的 `initiate_taskforce`/`authorize_taskforce` 通道（权限矩阵见 [系统角色权限矩阵 §9b](../02_institution/SYSTEM_ROLE_PERMISSION.md)）。
+**写入门禁**：仅支书、副支书、党小组组长持有 `create_activity` 权限，可直接创建/修改活动数据；宣传委员、纪检委员不持有该权限，通过审核、确认、备案等流程间接参与，不直接写入活动。活动按组织落点区分：本组活动由所属党小组组长/副组长从组长工作台创建，支书/副支书可建任意承办组活动；跨组只表示深度参与者招募范围（`recruitmentScope='cross-group'`），不是第三落点；活动工作组随活动创建。专班工作组围绕事项建立，走独立的 `initiate_taskforce`/`authorize_taskforce` 通道（权限矩阵见 [系统角色权限矩阵 §9b](../02_institution/SYSTEM_ROLE_PERMISSION.md)）。
 
 ---
 
@@ -1650,7 +1664,7 @@ AI 对支书原话的展开，目标是**吃透支书精神后用自己的语言
 - **block manifest（旧词）**：工作流块元数据/封装契约的旧称，已改名并独立成文 [WORKFLOW_BLOCK_CONTRACT.md](../04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md)（L3 块封装契约 v1.1 唯一权威）；「manifest」现仅指该契约内的块元数据载体字段，不再代指整份契约
 - **canvas**：可视化拖拽「画布」——把工作流块拖入排列组合的编排界面（L4 愿景形态）；v0 落地于设置 → 支部治理「工作台默认顺序」/模块组合（支书/副同权）（[ARCHITECTURE_EVOLUTION.md §八](../04_web_design/evolution/ARCHITECTURE_EVOLUTION.md) 8.2/8.5）
 - **FLAT_DESIGN（旧词）**：扁平化组织设计权威文档的旧名，已改名 [FLAT_ORGANIZATION_DESIGN.md](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（组织者与深度参与者的扁平化设计 v2.2）——新文档/文件名一律用新名；**2026-09-26 该文件已全文并入 [COMMISSIONER_DUTY_FRAMEWORK.md §G](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（《支部组织与委员体系》）**，故 `FLAT_ORGANIZATION_DESIGN.md` 现亦为历史文件名（引用一律改指 `COMMISSIONER_DUTY_FRAMEWORK.md §G`）
-- **CLICK_MAP（旧词）**：点击落点规范的旧名，现行权威源为 [DESIGN_SYSTEM.md §十 点击落点映射](../04_web_design/design-system/DESIGN_SYSTEM.md)（「哪些地方可点、点了落在哪」的全局规范，支书 2026-08-29 分层原则裁定）
+- **CLICK_MAP（旧词）**：点击落点规范的旧名，现行权威源为 [DS_05_MAP_AND_REFERENCE.md §十 点击落点映射](../04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md)（「哪些地方可点、点了落在哪」的全局规范，支书 2026-08-29 分层原则裁定）
 - **ROLE_KEYS**：代码层角色英文键枚举（`secretary` / `deputy-secretary` / 各委员 / `leader`…）——角色标签、主题色、权限声明的单一事实源，对齐制度层角色键全表（[constants.js](../../docs/src/core/domain/constants.js) 导出，对照 [SYSTEM_ROLE_PERMISSION.md §9a0](../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵））
 - **mockDB**：浏览器端「模拟数据库」对象（演示/无后端形态可用）——数据读写统一收敛于 [mock.js](../../docs/src/services/core/mock.js)（对象定义于 [domain.js](../../docs/src/core/domain/domain.js)，持久化由 `data/mock-adapter.js` 承担），勿绕过该层直接改数据
 - **CLAUDE.md（harness 文件名惯例）**：仓库约定「给 AI 的主指令文件」固定命名为 CLAUDE.md（根目录一份；harness = 规则/工作流骨架，分甲/乙/丙三部）；「CLAUDE.md Hxx / T-xxx」即指该文件的编号条款（[CLAUDE.md](../../CLAUDE.md)）
@@ -1915,4 +1929,52 @@ AI 对支书原话的展开，目标是**吃透支书精神后用自己的语言
 - **2026-07-11（v3.0）**：从旧三分类 `[人]/[人机]/[AI]` 升级为新三分类 `[用户]/[工程师]/[AI]` + 复合标记。支书明确指出"【人】可以划分为'用户'和'工程师'两种角色"，"涉及党支部具体建设的解释、思路、支书的具体表述是给用户看的，工程师看的只是跟编程、系统设计、需求落地相关的文档"。废弃"正交双维度"模型，合并为单一维度。strategy/sop/insights 从 [人机] 重新判定为 [用户]+[AI]（非 [工程师]+[AI]）。
 - **2026-05-02（v2.0）**：SA1 动态角色判定 + SA2 can-modify 白名单。
 - **2026-05-02（v1.0-v1.1）**：初始三分类 `[人]/[人机]/[AI]` + 全仓写入。
+
+---
+
+## 32. 文档分职与判例编号（2026-10-24 立）
+
+> **本节回答什么**：一段内容该落在哪类载体，以及判例怎么编号。四类载体各有唯一职责，越界即视为写错落点。
+> **不回答什么**：具体的判例正文 → 判例库；具体规范条文 → 各域规范文件；某一批做了什么 → `.ctx/logs/`。
+
+### 32.1 四类载体
+
+| 载体 | 唯一职责 | 允许内容 | 禁止内容 | 落点 |
+|---|---|---|---|---|
+| 规范（法条） | 回答「必须 / 不得」 | 适用范围、规范编号、布尔判据、守卫或人工检查点、判例编号 | 判例正文、为什么、反例、沿革 | `OPERATIONS_GUIDE.md` / `DESIGN_SYSTEM.md` / `DATA_MODEL.md` / `SYSTEM_ROLE_PERMISSION.md` / `SECRETARY_DIRECTIVES.md` |
+| 判例库 | 回答「为什么 / 边界」 | 真实场景、结论、边界（什么情况下不适用）、对应规范编号、证据指针 | 新规范、新判据、「以后都应如此」 | `content/03_doc_system/CASES_INDEX.md`（总入口）＋各域 `CASES.md`（`04_web_design/design-system/CASES.md` / `02_institution/CASES.md` / `05_ai_coding/CASES.md`） |
+| 索引 | 回答「在哪里」 | 目录作用一句话、文件一句话、权威源指针、状态 | 规范条文、判例正文 | `DOC_MAP.md`、各层 `README.md` |
+| 过程记录 | 回答「当时发生了什么」 | 执行步骤、量测读数、裁定原话、坑与边界、未做的事 | 长期规则、判据 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` / `YYYY-MM-DECISION_LOG.md` / `.ctx/logs/archive/` |
+
+### 32.2 判例编号规则
+
+- **规范编号**（域-序号）：`D-` 决策、`SD-` 设计、`SR-` 制度、`OP-` 运行。编号**全仓唯一**，不复用、不跳号重用；新增一条即取该域下一个空号。
+- **判例编号**：`CASE-<域>-<三位序号>`，域取 `DESIGN`（网站设计）/ `INST`（制度）/ `AI`（AI 协作），如 `CASE-DESIGN-007`。判例编号一经登记不改号。
+- **双向指针**：规范条目写「判例：CASE-…」，判例写「对应规范编号：SD-…」。只删不链视为迁移未完成。
+- **尚未编号的域**：制度与运行域的规范条文当前以权威源节号为准（如 `SYSTEM_ROLE_PERMISSION §9j`、`CLAUDE.md H26.2`）；该域正式启用 `SR-` / `OP-` 编号时须一改具改，不得同时保留节号与编号两套。
+
+### 32.3 三条硬规
+
+1. **判例不得产生规范效力**：判例里出现「以后都应如此」「一律这样」「必须照做」等表述，必须迁到规范侧并取规范编号；迁不走就删句。
+2. **规范条目只写五件事**：适用范围 ＋ 编号 ＋ 布尔判据 ＋ 守卫/人工检查点 ＋ 判例编号；不写判例正文与沿革。
+3. **索引不得承载条文**：README / `DOC_MAP.md` 只写「在哪、是什么、谁是权威」，不得复述规范条文或判例正文。
+
+### 32.4 迁移判据
+
+| 一段文字在回答 | 归到 |
+|---|---|
+| 必须 / 不得（什么条件下成立） | 规范 |
+| 为什么 / 边界（什么情况下不适用） | 判例库 |
+| 在哪里（目录作用、权威源、文件入口） | 索引 |
+| 当时发生了什么（批次、读数、裁定过程） | 过程记录 |
+
+> 迁移动作须同时补齐双向指针：迁出方留判例编号（或规范编号），接收方写回原文位置。判据文字本身不得改写——只搬「为什么 / 反例 / 沿革」，不动「必须 / 不得」的判据措辞。
+
+---
+
+## 附：系统现行口径承接（2026-11-03）
+
+> 来源：`.ctx/ACTIVE_RULINGS.md` 分类承接；每条末尾 `（D-xxx）` 是决议指针，正文以本文件为准。
+
+- **文档与母本不留真实人名**；`docs/src/data/mock/**` 的「储子禾」是支书本人特批例外，保留、一字不改，不得再当「漏改项」。（D-392/D-588）
 

@@ -16,25 +16,25 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018h';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261102b';
 import {
   MockAdapter,
-} from '../../docs/src/data/mock-adapter.js?v=20261018h';
+} from '../../docs/src/data/mock-adapter.js?v=20261102b';
 import {
   PersonStore, getPersonName, MEMBER_OVERLAY_KEY,
-} from '../../docs/src/services/member/person.js?v=20261018h';
+} from '../../docs/src/services/member/person.js?v=20261102b';
 import {
   getResidenceOf, saveResidenceChange, getDetainedMembers, RESIDENCE_KEY,
-} from '../../docs/src/services/member/roster.js?v=20261018h';
+} from '../../docs/src/services/member/roster.js?v=20261102b';
 // Q-21-3（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20261018h';
+import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20261102b';
 import {
   submitMemberChange, submitTransferOut, listPendingConfirmations,
   decideConfirmation, isTransferredOut, shouldShowSemesterDetainedRemind,
   MEMBER_CONFIRM_KEY, loadStageEntryDates,
-} from '../../docs/src/services/member/member-confirmation.js?v=20261018h';
-import { buildDevelopNodeRemindGroup } from '../../docs/src/services/governance/todo.js?v=20261018h';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018h';
+} from '../../docs/src/services/member/member-confirmation.js?v=20261102b';
+import { buildDevelopNodeRemindGroup } from '../../docs/src/services/governance/todo.js?v=20261102b';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261102b';
 // R-26③（2026-10-05 批次 388）：测试的「今天 / 相对日」与生产同口径＝**本地**（服务端单一源）
 import { today as todayLocal, daysAgo } from '../services/reporting.js';
 
@@ -88,38 +88,38 @@ function _overlayRemovedIds() {
 
 test('submitMemberChange：成员不存在 / kind 非法 / 枚举外 / to=现值一致 均拒绝', () => {
   beginMockCase();
-  assert.equal(submitMemberChange({ personId: 'p_ghost', kind: 'developStage', to: '预备党员', by: 'p11' }).ok, false);
-  assert.equal(submitMemberChange({ personId: 'p1', kind: 'partyGroup', to: '第一党小组', by: 'p11' }).ok, false);
-  const badStage = submitMemberChange({ personId: 'p1', kind: 'developStage', to: '神秘阶段', by: 'p11' });
+  assert.equal(submitMemberChange({ personId: 'p_ghost', kind: 'developStage', to: '预备党员', by: '2400012355' }).ok, false);
+  assert.equal(submitMemberChange({ personId: '2400012345', kind: 'partyGroup', to: '第一党小组', by: '2400012355' }).ok, false);
+  const badStage = submitMemberChange({ personId: '2400012345', kind: 'developStage', to: '神秘阶段', by: '2400012355' });
   assert.equal(badStage.ok, false);
   assert.match(badStage.reason, /发展阶段须为/);
-  const badRes = submitMemberChange({ personId: 'p1', kind: 'residence', to: '离校', by: 'p11' });
+  const badRes = submitMemberChange({ personId: '2400012345', kind: 'residence', to: '离校', by: '2400012355' });
   assert.equal(badRes.ok, false);
-  // to = 现值（p1 正式党员 / 在校）
-  assert.match(submitMemberChange({ personId: 'p1', kind: 'developStage', to: '正式党员', by: 'p11' }).reason, /与现值一致/);
-  assert.match(submitMemberChange({ personId: 'p1', kind: 'residence', to: RESIDENCE.CAMPUS, by: 'p11' }).reason, /与现值一致/);
+  // to = 现值（p_2400012345 正式党员 / 在校）
+  assert.match(submitMemberChange({ personId: '2400012345', kind: 'developStage', to: '正式党员', by: '2400012355' }).reason, /与现值一致/);
+  assert.match(submitMemberChange({ personId: '2400012345', kind: 'residence', to: RESIDENCE.CAMPUS, by: '2400012355' }).reason, /与现值一致/);
   assert.equal(listPendingConfirmations().length, 0);
 });
 
 test('submitMemberChange：同 person+kind 已有 pending 拒绝；不同 kind 可并行（各自独立）', () => {
   beginMockCase();
-  const r1 = submitMemberChange({ personId: 'p1', kind: 'developStage', to: '预备党员', note: '', by: 'p11' });
+  const r1 = submitMemberChange({ personId: '2400012345', kind: 'developStage', to: '预备党员', note: '', by: '2400012355' });
   assert.equal(r1.ok, true, JSON.stringify(r1));
   assert.equal(r1.request.kind, 'change');
   assert.equal(r1.request.action, 'developStage');
-  assert.equal(r1.request.personId, 'p1');
+  assert.equal(r1.request.personId, '2400012345');
   assert.equal(r1.request.name, '罗文杰');
   assert.equal(r1.request.from, '正式党员');
   assert.equal(r1.request.to, '预备党员');
-  assert.equal(r1.request.by, 'p11');
+  assert.equal(r1.request.by, '2400012355');
   assert.equal(r1.request.status, 'pending');
   assert.match(r1.request.id, /^mc-/);
   // 同 kind 重复 → 拒绝
-  const dup = submitMemberChange({ personId: 'p1', kind: 'developStage', to: '发展对象', by: 'p11' });
+  const dup = submitMemberChange({ personId: '2400012345', kind: 'developStage', to: '发展对象', by: '2400012355' });
   assert.equal(dup.ok, false);
   assert.match(dup.reason, /待支书确认/);
-  // 不同 kind（residence）不受影响（p1 在校 → 滞留）
-  const res = submitMemberChange({ personId: 'p1', kind: 'residence', to: RESIDENCE.DETAINED, note: '交换一学期', by: 'p11' });
+  // 不同 kind（residence）不受影响（p_2400012345 在校 → 滞留）
+  const res = submitMemberChange({ personId: '2400012345', kind: 'residence', to: RESIDENCE.DETAINED, note: '交换一学期', by: '2400012355' });
   assert.equal(res.ok, true);
   assert.equal(listPendingConfirmations().length, 2);
   assert.equal(mockDB.pendingMemberConfirmations.length, 2);
@@ -129,13 +129,13 @@ test('submitMemberChange：同 person+kind 已有 pending 拒绝；不同 kind �
 
 test('decideConfirmation approved（发展阶段）：落档案 + decidedBy/decidedAt；listPending 剔除', async () => {
   beginMockCase();
-  const r = submitMemberChange({ personId: 'p1', kind: 'developStage', to: '预备党员', by: 'p11' });
-  const decided = await decideConfirmation(r.request.id, { decision: 'approved', by: 'p13', note: '' });
+  const r = submitMemberChange({ personId: '2400012345', kind: 'developStage', to: '预备党员', by: '2400012355' });
+  const decided = await decideConfirmation(r.request.id, { decision: 'approved', by: '2300010001', note: '' });
   assert.equal(decided.ok, true, JSON.stringify(decided));
   assert.equal(decided.request.status, 'approved');
-  assert.equal(decided.request.decidedBy, 'p13');
+  assert.equal(decided.request.decidedBy, '2300010001');
   assert.ok(decided.request.decidedAt, 'decidedAt 已写');
-  assert.equal(PersonStore.getById('p1').developStage, '预备党员', '阶段确认后落档案');
+  assert.equal(PersonStore.getById('2400012345').developStage, '预备党员', '阶段确认后落档案');
   assert.equal(listPendingConfirmations().length, 0, '已确认请求不再出现在待办');
   // 终态保留（审计追溯）
   assert.equal(mockDB.pendingMemberConfirmations.length, 1);
@@ -144,29 +144,29 @@ test('decideConfirmation approved（发展阶段）：落档案 + decidedBy/deci
 
 test('decideConfirmation rejected：rejectNote 透传 + 默认提示；不生效', async () => {
   beginMockCase();
-  const r = submitMemberChange({ personId: 'p1', kind: 'developStage', to: '发展对象', by: 'p11' });
-  const decided = await decideConfirmation(r.request.id, { decision: 'rejected', by: 'p13', note: '暂缓，材料不齐' });
+  const r = submitMemberChange({ personId: '2400012345', kind: 'developStage', to: '发展对象', by: '2400012355' });
+  const decided = await decideConfirmation(r.request.id, { decision: 'rejected', by: '2300010001', note: '暂缓，材料不齐' });
   assert.equal(decided.ok, true);
   assert.equal(decided.request.status, 'rejected');
   assert.equal(decided.request.rejectNote, '暂缓，材料不齐');
-  assert.equal(decided.request.decidedBy, 'p13');
-  assert.equal(PersonStore.getById('p1').developStage, '正式党员', '退回不生效');
+  assert.equal(decided.request.decidedBy, '2300010001');
+  assert.equal(PersonStore.getById('2400012345').developStage, '正式党员', '退回不生效');
   assert.equal(listPendingConfirmations().length, 0);
   // 空 note → 默认提示
-  const r2 = submitMemberChange({ personId: 'p6', kind: 'developStage', to: '预备党员', by: 'p11' });
-  const d2 = await decideConfirmation(r2.request.id, { decision: 'rejected', by: 'p13' });
+  const r2 = submitMemberChange({ personId: '2400012350', kind: 'developStage', to: '预备党员', by: '2400012355' });
+  const d2 = await decideConfirmation(r2.request.id, { decision: 'rejected', by: '2300010001' });
   assert.equal(d2.request.rejectNote, '支书未确认生效，请求已退回');
   // 非 pending / 已决策请求 → 不可重复决策
-  const again = await decideConfirmation(r.request.id, { decision: 'approved', by: 'p13' });
+  const again = await decideConfirmation(r.request.id, { decision: 'approved', by: '2300010001' });
   assert.equal(again.ok, false);
 });
 
 test('decideConfirmation：decision 非法 / 找不到 pending 请求 → 拒绝', async () => {
   beginMockCase();
-  const r = submitMemberChange({ personId: 'p1', kind: 'developStage', to: '预备党员', by: 'p11' });
-  const bad = await decideConfirmation(r.request.id, { decision: 'maybe', by: 'p13' });
+  const r = submitMemberChange({ personId: '2400012345', kind: 'developStage', to: '预备党员', by: '2400012355' });
+  const bad = await decideConfirmation(r.request.id, { decision: 'maybe', by: '2300010001' });
   assert.equal(bad.ok, false);
-  const ghost = await decideConfirmation('mc-不存在', { decision: 'approved', by: 'p13' });
+  const ghost = await decideConfirmation('mc-不存在', { decision: 'approved', by: '2300010001' });
   assert.equal(ghost.ok, false);
 });
 
@@ -174,94 +174,94 @@ test('decideConfirmation：decision 非法 / 找不到 pending 请求 → 拒绝
 
 test('C①-补（2026-09-28 服务端化）：阶段变更 entryDate 确认生效 → 成员档案 developStageSince，发展节点提醒恢复派生', async () => {
   beginMockCase();
-  const r = submitMemberChange({ personId: 'p6', kind: 'developStage', to: '预备党员', entryDate: '2025-06-01', by: 'p11' });
+  const r = submitMemberChange({ personId: '2400012350', kind: 'developStage', to: '预备党员', entryDate: '2025-06-01', by: '2400012355' });
   assert.equal(r.ok, true, JSON.stringify(r));
   assert.equal(r.request.entryDate, '2025-06-01', '请求携带进入当前阶段日期');
-  assert.equal(loadStageEntryDates()['p6'], undefined, '确认前不落档');
-  const decided = await decideConfirmation(r.request.id, { decision: 'approved', by: 'p13' });
+  assert.equal(loadStageEntryDates()['2400012350'], undefined, '确认前不落档');
+  const decided = await decideConfirmation(r.request.id, { decision: 'approved', by: '2300010001' });
   assert.equal(decided.ok, true, JSON.stringify(decided));
-  assert.deepEqual(loadStageEntryDates()['p6'], { stage: '预备党员', entryDate: '2025-06-01' }, '落成员档案字段 developStageSince（读口派生态形状不变）');
-  assert.equal(PersonStore.getById('p6').developStageSince, '2025-06-01', '落在成员档案上（服务端权威、跨设备可读）');
+  assert.deepEqual(loadStageEntryDates()['2400012350'], { stage: '预备党员', entryDate: '2025-06-01' }, '落成员档案字段 developStageSince（读口派生态形状不变）');
+  assert.equal(PersonStore.getById('2400012350').developStageSince, '2025-06-01', '落在成员档案上（服务端权威、跨设备可读）');
   assert.equal(localStorage.getItem('gsm1921-dev-stage-overrides'), null, '不再写本机覆盖键（2026-09-28 已撤除）');
-  // 期满派生恢复：p6 预备党员（2025-06-01 + 365 ≤ today）→ 发展节点提醒
-  const members = PersonStore.getMembers().filter(p => p.id === 'p6');
+  // 期满派生恢复：2400012350 预备党员（2025-06-01 + 365 ≤ today）→ 发展节点提醒
+  const members = PersonStore.getMembers().filter(p => p.id === '2400012350');
   const g = buildDevelopNodeRemindGroup({ members, overrides: loadStageEntryDates(), today: '2026-09-10' });
-  assert.ok(g && g.items.some(i => i.personId === 'p6'), '确认生效后组织台发展节点提醒恢复派生');
+  assert.ok(g && g.items.some(i => i.personId === '2400012350'), '确认生效后组织台发展节点提醒恢复派生');
 });
 
 test('C①-补：entryDate 缺省 → 今日；退回不落档；非阶段变更不携带/不落档', async () => {
   beginMockCase();
   const today = todayLocal();
-  const r = submitMemberChange({ personId: 'p6', kind: 'developStage', to: '预备党员', by: 'p11' });
+  const r = submitMemberChange({ personId: '2400012350', kind: 'developStage', to: '预备党员', by: '2400012355' });
   assert.equal(r.request.entryDate, today, '缺省默认今日');
-  await decideConfirmation(r.request.id, { decision: 'rejected', by: 'p13' });
-  assert.equal(loadStageEntryDates()['p6'], undefined, '退回不落档（不误报提醒）');
+  await decideConfirmation(r.request.id, { decision: 'rejected', by: '2300010001' });
+  assert.equal(loadStageEntryDates()['2400012350'], undefined, '退回不落档（不误报提醒）');
   // 非阶段变更：不携带 entryDate，确认生效也不落档
-  const r2 = submitMemberChange({ personId: 'p1', kind: 'residence', to: RESIDENCE.DETAINED, by: 'p11' });
+  const r2 = submitMemberChange({ personId: '2400012345', kind: 'residence', to: RESIDENCE.DETAINED, by: '2400012355' });
   assert.equal(r2.request.entryDate, undefined, '在册变更不携带 entryDate');
-  await decideConfirmation(r2.request.id, { decision: 'approved', by: 'p13' });
-  assert.equal(loadStageEntryDates()['p1'], undefined, '在册变更不落档');
+  await decideConfirmation(r2.request.id, { decision: 'approved', by: '2300010001' });
+  assert.equal(loadStageEntryDates()['2400012345'], undefined, '在册变更不落档');
 });
 
 // ═══════════════ ③ decide：在册滞留 approved（覆盖层+留痕+档案镜像） ═══════════════
 
 test('decideConfirmation approved（在册滞留）：roster 覆盖 + 留痕 updatedBy=支书 + 档案镜像', async () => {
   beginMockCase();
-  const r = submitMemberChange({ personId: 'p1', kind: 'residence', to: RESIDENCE.DETAINED, note: '2026-09 起交换一学期', by: 'p11' });
-  const decided = await decideConfirmation(r.request.id, { decision: 'approved', by: 'p13' });
+  const r = submitMemberChange({ personId: '2400012345', kind: 'residence', to: RESIDENCE.DETAINED, note: '2026-09 起交换一学期', by: '2400012355' });
+  const decided = await decideConfirmation(r.request.id, { decision: 'approved', by: '2300010001' });
   assert.equal(decided.ok, true, JSON.stringify(decided));
-  const p1 = PersonStore.getMembers().find(p => p.id === 'p1');
-  assert.equal(getResidenceOf(p1).residenceStatus, RESIDENCE.DETAINED, 'roster 覆盖层即时生效（纪检/支书复核同源）');
-  const history = getResidenceOf(p1).residenceHistory || [];
+  const p_2400012345 = PersonStore.getMembers().find(p => p.id === '2400012345');
+  assert.equal(getResidenceOf(p_2400012345).residenceStatus, RESIDENCE.DETAINED, 'roster 覆盖层即时生效（纪检/支书复核同源）');
+  const history = getResidenceOf(p_2400012345).residenceHistory || [];
   const last = history[history.length - 1];
   assert.equal(last.from, RESIDENCE.CAMPUS);
   assert.equal(last.to, RESIDENCE.DETAINED);
-  assert.equal(last.updatedBy, 'p13', '双层留痕：生效留痕人 = 支书');
-  assert.equal(PersonStore.getById('p1').residenceStatus, RESIDENCE.DETAINED, '档案镜像已写');
-  assert.ok(getDetainedMembers().some(p => p.id === 'p1'), '滞留名单即时包含 p1');
+  assert.equal(last.updatedBy, '2300010001', '双层留痕：生效留痕人 = 支书');
+  assert.equal(PersonStore.getById('2400012345').residenceStatus, RESIDENCE.DETAINED, '档案镜像已写');
+  assert.ok(getDetainedMembers().some(p => p.id === '2400012345'), '滞留名单即时包含 2400012345');
 });
 
 // ═══════════════ ④ submitTransferOut：拦截 / direct ═══════════════
 
-test('submitTransferOut：现任支书（p13）拒绝需先交接；已有 pending 其它请求拦截', async () => {
+test('submitTransferOut：现任支书（2300010001）拒绝需先交接；已有 pending 其它请求拦截', async () => {
   beginMockCase();
-  const sec = await submitTransferOut({ personId: 'p13', by: 'p11' });
+  const sec = await submitTransferOut({ personId: '2300010001', by: '2400012355' });
   assert.equal(sec.ok, false);
   assert.match(sec.reason, /现任支书/);
   // 先有阶段 pending → 移出被拦截
-  submitMemberChange({ personId: 'p1', kind: 'developStage', to: '预备党员', by: 'p11' });
-  const blocked = await submitTransferOut({ personId: 'p1', by: 'p11' });
+  submitMemberChange({ personId: '2400012345', kind: 'developStage', to: '预备党员', by: '2400012355' });
+  const blocked = await submitTransferOut({ personId: '2400012345', by: '2400012355' });
   assert.equal(blocked.ok, false);
   assert.match(blocked.reason, /已有待支书确认的请求/);
 });
 
 test('submitTransferOut：无任何引用 → direct 直接移出（removedIds 对象含 name；不匿名）', async () => {
   beginMockCase();
-  const r = await submitTransferOut({ personId: 'p50', by: 'p11', note: '毕业转出' });
+  const r = await submitTransferOut({ personId: '2500010036', by: '2400012355', note: '毕业转出' });
   assert.equal(r.ok, true, JSON.stringify(r));
   assert.equal(r.direct, true);
   assert.equal(r.clearedSafe, 0);
-  assert.equal(PersonStore.getMembers().some(p => p.id === 'p50'), false, '读链即时剔除');
+  assert.equal(PersonStore.getMembers().some(p => p.id === '2500010036'), false, '读链即时剔除');
   assert.equal(listPendingConfirmations().length, 0, 'direct 不建 pending');
   const recs = _overlayRemovedIds();
   assert.equal(recs.length, 1);
-  assert.equal(recs[0].id, 'p50');
+  assert.equal(recs[0].id, '2500010036');
   assert.equal(recs[0].name, '汪洋', 'removedIds 记录姓名（历史读链不匿名）');
-  assert.equal(recs[0].decidedBy, 'p11');
+  assert.equal(recs[0].decidedBy, '2400012355');
   assert.ok(recs[0].removedAt);
   assert.equal(recs[0].transferOut, true, '转出标记');
-  assert.equal(isTransferredOut('p50'), true);
-  assert.equal(getPersonName('p50'), '汪洋', '移出后姓名仍可解析');
-  assert.equal(PersonStore.getName('p50'), '汪洋');
+  assert.equal(isTransferredOut('2500010036'), true);
+  assert.equal(getPersonName('2500010036'), '汪洋', '移出后姓名仍可解析');
+  assert.equal(PersonStore.getName('2500010036'), '汪洋');
 });
 
 test('submitTransferOut：仅安全引用（未开始分工/未生效报名/未读广播）→ direct + clearedSafe', async () => {
   beginMockCase();
   const act = _addActivity('act-c-future'); // published + 未来日期 → 未开始
-  act.assignments = [{ personId: 'p50', role: 'deep' }];
-  mockDB.signups = [...mockDB.signups, { id: 'su-c-x', sourceType: 'activity', sourceId: 'act-c-future', personId: 'p50', status: 'pending', createdAt: new Date().toISOString() }];
-  mockDB.committeeBroadcasts = [...mockDB.committeeBroadcasts, { id: 'cb-c-x', requestId: 'rq-x', recipientId: 'p50', status: 'pending', broadcastAt: new Date().toISOString() }];
-  const r = await submitTransferOut({ personId: 'p50', by: 'p11' });
+  act.assignments = [{ personId: '2500010036', role: 'deep' }];
+  mockDB.signups = [...mockDB.signups, { id: 'su-c-x', sourceType: 'activity', sourceId: 'act-c-future', personId: '2500010036', status: 'pending', createdAt: new Date().toISOString() }];
+  mockDB.committeeBroadcasts = [...mockDB.committeeBroadcasts, { id: 'cb-c-x', requestId: 'rq-x', recipientId: '2500010036', status: 'pending', broadcastAt: new Date().toISOString() }];
+  const r = await submitTransferOut({ personId: '2500010036', by: '2400012355' });
   assert.equal(r.ok, true, JSON.stringify(r));
   assert.equal(r.direct, true);
   assert.equal(r.clearedSafe, 3);
@@ -269,52 +269,52 @@ test('submitTransferOut：仅安全引用（未开始分工/未生效报名/未�
   assert.equal(mockDB.activities.find(a => a.id === 'act-c-future').assignments.length, 0, '未开始活动分工行已解除');
   assert.equal(mockDB.signups.some(s => s.id === 'su-c-x'), false, '未生效报名已解除');
   assert.equal(mockDB.committeeBroadcasts.some(b => b.id === 'cb-c-x'), false, '未读广播已解除');
-  assert.equal(PersonStore.getMembers().some(p => p.id === 'p50'), false);
+  assert.equal(PersonStore.getMembers().some(p => p.id === '2500010036'), false);
 });
 
 // ═══════════════ ⑤ transferOut：登记即生效（有保留历史也直接生效，不建 pending）═══════════════
 
 test('submitTransferOut：有保留历史 → 登记即生效（安全解除 + keep 标注 + 成员即时移出；不建 pending）', async () => {
   beginMockCase();
-  // p5 种子活动分工（act-29 过去 / act-31 未来）会随系统日期归入 keep/safe → 先摘除，改受控数据：
+  // 2400012349 种子活动分工（act-29 过去 / act-31 未来）会随系统日期归入 keep/safe → 先摘除，改受控数据：
   mockDB.activities = mockDB.activities.map(a => ({
-    ...a, assignments: (a.assignments || []).filter(x => !(x && x.personId === 'p5')),
+    ...a, assignments: (a.assignments || []).filter(x => !(x && x.personId === '2400012349')),
   }));
   const keepAct = _addActivity('act-c-keep1', { status: 'completed', date: _dateOffset(-5) }); // 已开始 → keep
-  keepAct.assignments = [{ personId: 'p5', role: 'deep' }];
-  // assign_seed_002/004（assignments 域，assigneeId p5）→ keep；专班 tf-c-1（mock loadDB 不 seed taskforces）→ keep
+  keepAct.assignments = [{ personId: '2400012349', role: 'deep' }];
+  // assign_seed_002/004（assignments 域，assigneeId 2400012349）→ keep；专班 tf-c-1（mock loadDB 不 seed taskforces）→ keep
   mockDB.taskforces = [...mockDB.taskforces, {
-    id: 'tf-c-1', name: '测试专班', task: '测试', status: 'active', members: [{ personId: 'p5', role: 'participant' }],
+    id: 'tf-c-1', name: '测试专班', task: '测试', status: 'active', members: [{ personId: '2400012349', role: 'participant' }],
   }];
-  const r = await submitTransferOut({ personId: 'p5', by: 'p11', note: '毕业转出' });
+  const r = await submitTransferOut({ personId: '2400012349', by: '2400012355', note: '毕业转出' });
   assert.equal(r.ok, true, JSON.stringify(r));
   assert.equal(r.direct, true, '登记即生效（direct）');
   assert.ok(r.annotatedKeep > 0, '保留历史被标注');
   assert.equal(listPendingConfirmations().length, 0, '不再建 transferOut 待支书确认请求');
-  assert.equal(PersonStore.getMembers().some(p => p.id === 'p5'), false, '成员即时移出（无需二次确认）');
+  assert.equal(PersonStore.getMembers().some(p => p.id === '2400012349'), false, '成员即时移出（无需二次确认）');
   // keep 行标注 transferredOutAt（不删不匿名）
   const startedAct = mockDB.activities.find(a => a.id === 'act-c-keep1');
   assert.ok(startedAct.assignments[0].transferredOutAt, 'keep 活动分工行标注 transferredOutAt');
-  assert.equal(getPersonName('p5'), '宋佳宁', '移出后历史读链仍可解析姓名');
+  assert.equal(getPersonName('2400012349'), '宋佳宁', '移出后历史读链仍可解析姓名');
   // 已在册者再次流出 → 拒绝（档案中已无此人）
-  const again = await submitTransferOut({ personId: 'p5', by: 'p11' });
+  const again = await submitTransferOut({ personId: '2400012349', by: '2400012355' });
   assert.equal(again.ok, false);
   assert.match(again.reason, /成员不存在/);
 });
 
 test('submitTransferOut（登记即生效）：安全解除 + keep 标注 transferredOutAt + 专班普通成员移除 + 不匿名', async () => {
   beginMockCase();
-  // 构造：p5 一个未来活动内嵌分工行（safe）+ 一个过去/已开始分工行（keep）+ 考勤（keep）+ 专班普通成员（移除）
+  // 构造：2400012349 一个未来活动内嵌分工行（safe）+ 一个过去/已开始分工行（keep）+ 考勤（keep）+ 专班普通成员（移除）
   const future = _addActivity('act-c-future2');
-  future.assignments = [{ personId: 'p5', role: 'deep' }];
+  future.assignments = [{ personId: '2400012349', role: 'deep' }];
   const started = _addActivity('act-c-started', { status: 'completed', date: _dateOffset(-5) });
-  started.assignments = [{ personId: 'p5', role: 'deep' }];
-  mockDB.attendances = [...mockDB.attendances, { id: 'att-c-x', activityId: 'act-c-started', personId: 'p5', status: 'present', recordedBy: 'p10', recordedAt: new Date().toISOString() }];
+  started.assignments = [{ personId: '2400012349', role: 'deep' }];
+  mockDB.attendances = [...mockDB.attendances, { id: 'att-c-x', activityId: 'act-c-started', personId: '2400012349', status: 'present', recordedBy: '2400012354', recordedAt: new Date().toISOString() }];
   // 专班普通成员（mock loadDB 不 seed taskforces，手工构造）
   mockDB.taskforces = [...mockDB.taskforces, {
-    id: 'tf-c-1', name: '测试专班', task: '测试', status: 'active', members: [{ personId: 'p5', role: 'participant' }],
+    id: 'tf-c-1', name: '测试专班', task: '测试', status: 'active', members: [{ personId: '2400012349', role: 'participant' }],
   }];
-  const r = await submitTransferOut({ personId: 'p5', by: 'p11' });
+  const r = await submitTransferOut({ personId: '2400012349', by: '2400012355' });
   assert.equal(r.ok, true, JSON.stringify(r));
   assert.equal(r.direct, true, '登记即生效');
   // 安全行解除；keep 行标注
@@ -327,12 +327,12 @@ test('submitTransferOut（登记即生效）：安全解除 + keep 标注 transf
   assert.ok(att.transferredOutAt, '考勤记录标注 transferredOutAt（不删不匿名）');
   const tfC1 = mockDB.taskforces.find(t => t.id === 'tf-c-1');
   assert.ok(tfC1, '专班保留不删');
-  assert.ok(!tfC1.members.some(m => m.personId === 'p5'), '专班普通成员转出即移出（专班保留）');
+  assert.ok(!tfC1.members.some(m => m.personId === '2400012349'), '专班普通成员转出即移出（专班保留）');
   // 成员移除 + 姓名保留
-  assert.equal(PersonStore.getMembers().some(p => p.id === 'p5'), false);
-  assert.equal(isTransferredOut('p5'), true);
-  assert.equal(getPersonName('p5'), '宋佳宁');
-  // assign_seed_002（assigneeId p5，长期授权分工记录）标注
+  assert.equal(PersonStore.getMembers().some(p => p.id === '2400012349'), false);
+  assert.equal(isTransferredOut('2400012349'), true);
+  assert.equal(getPersonName('2400012349'), '宋佳宁');
+  // assign_seed_002（assigneeId 2400012349，长期授权分工记录）标注
   const asg = mockDB.assignments.find(x => x.id === 'assign_seed_002');
   assert.ok(asg.transferredOutAt, 'assignments 域记录标注 transferredOutAt');
   assert.equal(listPendingConfirmations().length, 0);
@@ -340,35 +340,35 @@ test('submitTransferOut（登记即生效）：安全解除 + keep 标注 transf
 
 test('submitTransferOut（登记即生效）：专班负责人保留行 + 提示 note；不阻塞移出', async () => {
   beginMockCase();
-  // p7 为自建专班 tf-c-org 负责人（organizer）；su-001（taskforce tf-005 approved 报名）→ keep
+  // 2400012351 为自建专班 tf-c-org 负责人（organizer）；su-001（taskforce tf-005 approved 报名）→ keep
   mockDB.taskforces = [...mockDB.taskforces, {
     id: 'tf-c-org', name: '宣传专班', task: '测试', status: 'active',
-    members: [{ personId: 'p7', role: 'organizer', contributions: [] }, { personId: 'p26', role: 'organizer', contributions: [] }],
+    members: [{ personId: '2400012351', role: 'organizer', contributions: [] }, { personId: '2500010012', role: 'organizer', contributions: [] }],
   }];
-  const r = await submitTransferOut({ personId: 'p7', by: 'p11' });
+  const r = await submitTransferOut({ personId: '2400012351', by: '2400012355' });
   assert.equal(r.ok, true, JSON.stringify(r));
   assert.equal(r.direct, true);
   const tfOrg = mockDB.taskforces.find(t => t.id === 'tf-c-org');
-  const orgRow = tfOrg.members.find(m => m.personId === 'p7');
+  const orgRow = tfOrg.members.find(m => m.personId === '2400012351');
   assert.ok(orgRow, '专班负责人成员行保留（不因转出被移除）');
   assert.ok(orgRow.transferredOutAt);
-  assert.equal(orgRow.note, '专班负责人，转出前须先移交');
-  assert.equal(tfOrg.members.some(m => m.personId === 'p26'), true, '其余成员不受影响');
+  assert.equal(orgRow.note, '专班组织者，转出前须先移交');
+  assert.equal(tfOrg.members.some(m => m.personId === '2500010012'), true, '其余成员不受影响');
   // 报名记录保留 + 标注
   const su = mockDB.signups.find(x => x.id === 'su-001');
   assert.ok(su.transferredOutAt, '已发生报名保留 + 标注');
   // 仍允许移出（负责人未交接不阻塞本批）
-  assert.equal(PersonStore.getMembers().some(p => p.id === 'p7'), false);
-  assert.equal(getPersonName('p7'), '曾雨桐');
+  assert.equal(PersonStore.getMembers().some(p => p.id === '2400012351'), false);
+  assert.equal(getPersonName('2400012351'), '曾雨桐');
 });
 
 test('submitTransferOut（登记即生效）：memberChangeRequests 非终态作废 cancelled + 终态标注', async () => {
   beginMockCase();
   mockDB.memberChangeRequests = [
-    { id: 'mcr-c-pending', personId: 'p1', activityId: 'act-x', fromStage: '正式党员', toStage: '预备党员', status: 'pending-secretary', createdAt: new Date().toISOString() },
-    { id: 'mcr-c-done', personId: 'p1', activityId: 'act-y', fromStage: '预备党员', toStage: '正式党员', status: 'completed', createdAt: new Date().toISOString() },
+    { id: 'mcr-c-pending', personId: '2400012345', activityId: 'act-x', fromStage: '正式党员', toStage: '预备党员', status: 'pending-secretary', createdAt: new Date().toISOString() },
+    { id: 'mcr-c-done', personId: '2400012345', activityId: 'act-y', fromStage: '预备党员', toStage: '正式党员', status: 'completed', createdAt: new Date().toISOString() },
   ];
-  const r = await submitTransferOut({ personId: 'p1', by: 'p11' });
+  const r = await submitTransferOut({ personId: '2400012345', by: '2400012355' });
   assert.equal(r.ok, true, JSON.stringify(r));
   assert.equal(r.direct, true);
   const pend = mockDB.memberChangeRequests.find(x => x.id === 'mcr-c-pending');
@@ -378,22 +378,22 @@ test('submitTransferOut（登记即生效）：memberChangeRequests 非终态作
   const done = mockDB.memberChangeRequests.find(x => x.id === 'mcr-c-done');
   assert.equal(done.status, 'completed', '终态请求状态不变');
   assert.ok(done.transferredOutAt, '终态请求仅标注');
-  assert.equal(getPersonName('p1'), '罗文杰', '移出后姓名仍可解析');
+  assert.equal(getPersonName('2400012345'), '罗文杰', '移出后姓名仍可解析');
 });
 
 // ═══════════════ ⑥ 持久（刷新恢复）+ 旧数据兼容 ═══════════════
 
 test('成员变更确认队列跨刷新持久：清 mockDB 后经 localStorage 镜像恢复；已决策记录保留', async () => {
   beginMockCase();
-  const r = submitMemberChange({ personId: 'p6', kind: 'developStage', to: '预备党员', by: 'p11' });
+  const r = submitMemberChange({ personId: '2400012350', kind: 'developStage', to: '预备党员', by: '2400012355' });
   assert.ok(r.ok);
   assert.ok(localStorage.getItem(MEMBER_CONFIRM_KEY), '请求写入 localStorage 镜像');
   // 模拟刷新：内存队列置空（loadDB 不触碰该数组，等价于页面重载后 mockDB 重建为空）
   mockDB.pendingMemberConfirmations = [];
   assert.equal(listPendingConfirmations().length, 1, 'list 读口从 localStorage 恢复');
   const req = listPendingConfirmations()[0];
-  await decideConfirmation(req.id, { decision: 'approved', by: 'p13' });
-  assert.equal(PersonStore.getById('p6').developStage, '预备党员');
+  await decideConfirmation(req.id, { decision: 'approved', by: '2300010001' });
+  assert.equal(PersonStore.getById('2400012350').developStage, '预备党员');
   // 再模拟刷新：终态记录保留（审计追溯）、pending 为空
   mockDB.pendingMemberConfirmations = [];
   assert.equal(listPendingConfirmations().length, 0);
@@ -412,7 +412,7 @@ test('旧 string removedIds 兼容：applyMemberOverlay 过滤 + getName 查不�
 
 test('shouldShowSemesterDetainedRemind：窗口 [06-15..07-15]∪[12-15..次年01-15] 且有滞留 → true；否则 false', () => {
   beginMockCase();
-  assert.equal(getDetainedMembers().length >= 1, true, '种子示范滞留存在（p5/p9）');
+  assert.equal(getDetainedMembers().length >= 1, true, '种子示范滞留存在（2400012349/2400012353）');
   for (const d of ['2026-06-15', '2026-06-30', '2026-07-15', '2026-12-15', '2026-12-31', '2027-01-01', '2027-01-15']) {
     assert.equal(shouldShowSemesterDetainedRemind(new Date(`${d}T00:00:00`)), true, `${d} 应在窗口`);
   }
@@ -420,15 +420,15 @@ test('shouldShowSemesterDetainedRemind：窗口 [06-15..07-15]∪[12-15..次年0
     assert.equal(shouldShowSemesterDetainedRemind(new Date(`${d}T00:00:00`)), false, `${d} 应在窗口外`);
   }
   // 窗口内但无滞留成员 → false
-  saveResidenceChange({ personId: 'p5', actorId: 'p11', status: RESIDENCE.CAMPUS });
-  saveResidenceChange({ personId: 'p9', actorId: 'p11', status: RESIDENCE.CAMPUS });
+  saveResidenceChange({ personId: '2400012349', actorId: '2400012355', status: RESIDENCE.CAMPUS });
+  saveResidenceChange({ personId: '2400012353', actorId: '2400012355', status: RESIDENCE.CAMPUS });
   assert.equal(getDetainedMembers().length, 0);
   assert.equal(shouldShowSemesterDetainedRemind(new Date('2026-06-30T00:00:00')), false, '无滞留成员不提醒');
 });
 
 test('listPendingConfirmations：仅 pending；含 name/action/from→to/by/at/note/kind', () => {
   beginMockCase();
-  const r1 = submitMemberChange({ personId: 'p1', kind: 'residence', to: RESIDENCE.DETAINED, note: '交换', by: 'p11' });
+  const r1 = submitMemberChange({ personId: '2400012345', kind: 'residence', to: RESIDENCE.DETAINED, note: '交换', by: '2400012355' });
   const list = listPendingConfirmations();
   assert.equal(list.length, 1);
   assert.ok(list[0].name && list[0].action && list[0].from && list[0].to && list[0].by && list[0].at && list[0].note !== undefined && list[0].kind, '展示字段齐全');

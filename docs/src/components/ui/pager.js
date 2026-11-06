@@ -25,13 +25,13 @@ export function pagerHtml({ page, pages, total, unit }) {
   const end = Math.min(pages, Math.max(cur, 3) + 2);
   for (let i = Math.max(1, end - 4); i <= end; i++) nums.push(i);
   return `
-      <div class="flex items-center justify-end pt-3">
+      <nav class="flex items-center justify-end pt-3" aria-label="分页">
         <div class="flex items-center gap-1.5">
           <button type="button" class="page-btn btn-tab" data-lf-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
-          ${nums.map(n => `<button type="button" class="page-num btn-tab${n === cur ? ' is-current' : ''}" data-lf-page="${n}">${n}</button>`).join('')}
+          ${nums.map(n => `<button type="button" class="page-num btn-tab${n === cur ? ' is-current' : ''}" data-lf-page="${n}"${n === cur ? ' aria-current="page"' : ''}>${n}</button>`).join('')}
           <button type="button" class="page-btn btn-tab" data-lf-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
         </div>
-      </div>`;
+      </nav>`;
   // 2026-09-30 批次 297-2 续③：原先此处另有一行 `.lf-count`「共 N … · 第 X / Y 页」，
   //   与 `list-filter.js` 的计数行重复（同一屏出现两遍「共 16 场」）⇒ **本文件只出翻页钮**，
   //   计数与分页文案统一由 `list-filter.js` 的 `.lf-count[role=status][aria-live=polite]` 一处产出。

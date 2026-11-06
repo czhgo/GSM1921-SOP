@@ -10,20 +10,33 @@
 //   - party 页面已移除，organizer/deep 内容落在成员工作台（workspace/visitor.html）——
 //     首页并无"我的角色"区块（2026-09-17 批次 64 dogfood 实测）
 
-import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261018h';
-import { PEOPLE } from '../../data/mock/index.js?v=20261018h';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261102b';
+import { PEOPLE } from '../../data/mock/index.js?v=20261102b';
 // 账号登录校验（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
 // 2026-09-14 批次 25：改为「可持久化账号层 ∪ 静态种子表」校验（成员流入自动建号 / 流出停用；
 //   见 services/core/accounts.js），支撑「账号与成员档案同源」口径。
-import { verifyLogin } from './accounts.js?v=20261018h';
-import { getPersonById, getPersonName } from '../member/person.js?v=20261018h';
-import { mockDB } from '../../core/domain/domain.js?v=20261018h';
-import { NoticeStore } from '../governance/notice.js?v=20261018h';
-import { getAdapter } from '../../data/data-adapter.js?v=20261018h';
-import { enableApiMode } from './runtime.js?v=20261018h';
-import { generateId } from '../../core/base/id.js?v=20261018h';
-import { todayLocal } from '../../core/base/utils.js?v=20261018h';
-import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../../core/domain/workgroup-policy.js?v=20261018h';
+import { verifyLogin } from './accounts.js?v=20261102b';
+import { getPersonById, getPersonName } from '../member/person.js?v=20261102b';
+import { mockDB, WORKGROUP_WRITABLE_STATUSES } from '../../core/domain/domain.js?v=20261102b';
+import { NoticeStore } from '../governance/notice.js?v=20261102b';
+import { getAdapter, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261102b';
+import { enableApiMode } from './runtime.js?v=20261102b';
+import { generateId } from '../../core/base/id.js?v=20261102b';
+import { todayLocal } from '../../core/base/utils.js?v=20261102b';
+import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../../core/domain/workgroup-policy.js?v=20261102b';
+
+// 迁移期（2026-10-20）：旧 p* 仅作登录别名 / 历史 localStorage 兼容，会话一律存学号。
+// 映射表经 data-adapter 的迁移入口转出，业务层不直接引用 deprecated 映射文件。
+let _legacyAliasWarned = false;
+function _toStudentId(id) {
+  const mapped = migrateLegacyPersonId(id);
+  if (mapped == null) return null;
+  if (mapped !== id && !_legacyAliasWarned) {
+    _legacyAliasWarned = true;
+    console.warn('[AuthStore] 检测到旧 p* 人员 id（仅迁移期兼容），已按学号处理');
+  }
+  return mapped;
+}
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
@@ -267,15 +280,15 @@ function _getProjectName(projectId) {
 
 // ── 项目角色赋权通知（organizer / deep 被赋权时推送）──────────────
 function _notifyProjectAuth(projectId, authorizerId, targetPersonId, role) {
-  // 赋权通知直达目标人员业务页（业务页直达优先）：
-  //   - 党小组组长 → 组长工作台
-  //   - 其余 → 参与人工作台，活动项目附带 activityId 高亮定位
-  //   - 专班项目无活动页可高亮 → 仅进入参与人工作台（项目分工页含专班）
+  // 赋权通知直达**接收人本位**工作台（F12 · 2026-10-20 IA 修复）：
+  //   原「组长→leader，其余→visitor」会把被赋权的支委/副组长弹回成员台（身份门拦回）。
+  //   角色→页单一源 = constants.js::ROLE_PAGE_MAP.workspace；活动项目附带 activityId 供定位。
   const person = getPersonById(targetPersonId);
   const isActivity = !!mockDB.activities.find(x => x.id === projectId);
-  const targetPage = person?.role === 'leader'
-    ? 'workspace/leader.html'
-    : (isActivity ? `workspace/visitor.html?activityId=${projectId}` : 'workspace/visitor.html');
+  const homePage = ROLE_PAGE_MAP.workspace[person?.role] || 'visitor.html';
+  const targetPage = homePage === 'visitor.html' && isActivity
+    ? `workspace/visitor.html?activityId=${projectId}`
+    : `workspace/${homePage}`;
 
   const authorizerName = getPersonName(authorizerId) || authorizerId || '系统';
   const projectName = _getProjectName(projectId) || '未命名项目';
@@ -342,7 +355,10 @@ export const AuthStore = {
    * @returns {{ ok: boolean, personId: string|null }}
    */
   verifyCredentials(studentId, password) {
-    return verifyLogin(studentId, password);
+    // 迁移期：旧 p* 可作登录别名，校验通过后返回的 personId 一律是学号
+    const resolved = _toStudentId(studentId);
+    if (resolved == null) return { ok: false, personId: null };
+    return verifyLogin(resolved, password);
   },
 
   /**
@@ -352,6 +368,9 @@ export const AuthStore = {
    * @returns {Promise<void>}
    */
   async login(personId, password) {
+    const accountId = _toStudentId(personId);
+    if (accountId == null) return;
+    personId = accountId;
     const role = _getUserRoleFromMemory(personId);
     _writeLogin({ personId, role });
 
@@ -401,7 +420,7 @@ export const AuthStore = {
   devLogin(role) {
     // 找到该角色的第一个 mock 用户
     const person = PEOPLE.find(p => p.role === role);
-    const personId = person ? person.id : 'p5';
+    const personId = person ? person.id : (PEOPLE[0]?.id || null);
     _writeLogin({ personId, role });
     // 修复（2026-08-05）：开发模式是纯 mock 路径，必须清除残留 API token，
     // 否则 bootstrap 检测到 sessionStorage['gsm1921-api-token'] 会把开发模式劫持为 API 模式
@@ -441,13 +460,24 @@ export const AuthStore = {
       // 回退到本标签页会话快照，避免 B 页登录改变 A 页身份。
       if (data.tabId && data.tabId !== _getTabId()) {
         const snapRaw = sessionStorage.getItem(SESSION_KEY);
-        if (snapRaw) return JSON.parse(snapRaw);
+        if (snapRaw) {
+          const snap = JSON.parse(snapRaw);
+          const mapped = _toStudentId(snap.personId);
+          if (mapped && mapped !== snap.personId) snap.personId = mapped;
+          return snap;
+        }
         return null;
       }
       // 迁移：旧格式 { userId, role } → 新格式 { personId, role }
       if (data.userId && !data.personId) {
         data.personId = data.userId;
         delete data.userId;
+        localStorage.setItem(LOGIN_KEY, JSON.stringify(data));
+      }
+      // 迁移期：历史 localStorage 里的 p* 会话一次性改存学号
+      const mapped = _toStudentId(data.personId);
+      if (mapped && mapped !== data.personId) {
+        data.personId = mapped;
         localStorage.setItem(LOGIN_KEY, JSON.stringify(data));
       }
       return data;
@@ -580,7 +610,8 @@ export const AuthStore = {
       const workgroupId = _workgroupIdForProject(context.projectId);
       const permissionKey = PROJECT_ACTION_PERMISSION[action] || (action.startsWith('view_') ? 'activity.view' : null);
       const workgroup = mockDB.workgroups.find((row) => row.id === workgroupId);
-      if (workgroupId && workgroup && ['active', 'recruiting'].includes(workgroup.status) && permissionKey && mockDB.workgroupGrants.some((grant) => grant.workgroupId === workgroupId
+      // 工作组写权限只认 canonical 在办状态（recruiting/active）；draft/pending_review 只读等待。
+      if (workgroupId && workgroup && WORKGROUP_WRITABLE_STATUSES.includes(workgroup.status) && permissionKey && mockDB.workgroupGrants.some((grant) => grant.workgroupId === workgroupId
         && grant.personId === personId && grant.status === 'active'
         && Array.isArray(grant.permissionKeys) && grant.permissionKeys.includes(permissionKey))) return true;
     }
@@ -833,6 +864,18 @@ export const AuthStore = {
   },
 };
 
+/**
+ * 当前登录人 personId（数据生命周期 P1-11，2026-10-20）。
+ *
+ * 为什么要有这个单一出口：各 tab 原写 `AuthStore.getCurrentUser()?.personId || 'pN'`，
+ *   登录态失效时会把写操作记到固定演示人名下（支书概况甚至回落到组长 p1）。现统一返回
+ *   `null`——写口必须拒绝并提示「请重新登录」，读口显示「—」，不得再猜人。
+ * @returns {string|null}
+ */
+export function currentUserId() {
+  return AuthStore.getCurrentUser()?.personId || null;
+}
+
 // ════════════════════════════════════════════════════════════════
 //  副组长键的权限 / 赋权链（2026-09-21 批次 139 · 裁定 `D-571`，系照支书 2026-09-21 口径落）
 // ════════════════════════════════════════════════════════════════
@@ -857,7 +900,7 @@ AUTHORIZE_CHAIN['deputy-leader'] = AUTHORIZE_CHAIN['leader'];
 //   插行会整体漂移（同上方 deputy-leader 的处置）。
 let _auditSyncedIds = null; // null = 未初始化；首次同步时以「服务端缓存里已有的 id」为起点
 
-/** api 形态：把新增的审计留痕同步到服务端（fire-and-forget；失败仅告警） */
+/** api 形态：把新增的审计留痕同步到服务端（R3-P1（F-09）：登记 pending-writes，失败让调用方感知） */
 function _syncAuthAuditToServer(records) {
   const rows = Array.isArray(records) ? records : [];
   if (_auditSyncedIds === null) {
@@ -866,16 +909,105 @@ function _syncAuthAuditToServer(records) {
   const fresh = rows.filter((r) => r && r.id && !_auditSyncedIds.has(r.id));
   if (!fresh.length) return;
   fresh.forEach((r) => _auditSyncedIds.add(r.id));
-  import('../../data/data-adapter.js?v=20261018h').then(async ({ getDataSource, getAdapter }) => {
+  const sync = import('../../data/data-adapter.js?v=20261102b').then(async ({ getDataSource, getAdapter }) => {
     if (getDataSource() !== 'api') return; // mock 形态：不发（本机键即权威）
     const a = getAdapter();
     if (!a.authAudit || typeof a.authAudit.create !== 'function') return;
     for (const r of fresh) {
       const target = getPersonById(r.targetPersonId);
-      await a.authAudit.create({ ...r, branchId: target?.branchId || AuthStore.getCurrentUser()?.branchId || 'br-b1' });
+      await a.authAudit.create({ ...r, branchId: target?.branchId || AuthStore.getCurrentUser()?.branchId || DEFAULT_BRANCH_ID });
     }
   }).catch((e) => {
     fresh.forEach((r) => _auditSyncedIds.delete(r.id)); // 失败回滚登记 → 下次写重试
     console.warn('[AuthStore] api 形态审计留痕落服务端失败（本地已记，下次 init 以服务端为准）：', e);
+    throw e;
   });
+  trackWrite(sync).catch(() => {});
 }
+
+// R3-P1（F-09）：授权审计语义端点登记 pending-writes（置尾 import，避免上文 README 取证行号漂移）
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261102b';
+
+// ════════════════════════════════════════════════════════════════
+//  服务端优先登录（2026-10-26 Task 2.1）
+// ════════════════════════════════════════════════════════════════
+// 口径（spec「登录服务端优先」）：有 server（非静态托管）时**先** `POST /api/v1/auth/login`，
+//   成功后才写 `gsm1921-login-user` / `gsm1921-api-token` / 本标签页会话快照；
+//   后端 401 或网络失败 ⇒ 抛错（登录页显示可见错误并停留，不跳工作台）。
+// 本地账号层（`verifyCredentials` + `gsm1921-accounts` / `MOCK_ACCOUNTS`）只用于：
+//   · 静态托管（`DEPLOY_MODE === 'static'`）；· 显式开发模式（登录页复选框 / 调用方传 `serverFirst:false`）。
+// IAAA 路径不经本函数（`startIaaaSession` 保持原样）。
+// ⚠ 置尾覆盖：本文件上文的行号是 README-server.md 的取证靶点，`login()` 原位改写会整体漂移；
+//   故与 `deputy-leader` / 审计同步同法——**集中置尾**重绑 `AuthStore.login`，语义不变、上方行号不动。
+import { DEPLOY_MODE } from '../../config/deploy.js?v=20261102b';
+
+const LOGIN_ENDPOINT = '/api/v1/auth/login';
+
+/** 构造带 HTTP 状态的登录错误（401=口令/账号错误；0=网络不可达；其余=服务端失败） */
+function _loginFailure(message, status) {
+  return Object.assign(new Error(message), { status });
+}
+
+/**
+ * 服务端登录取会话（成功才返回 `{token,user}`；失败一律抛错，不静默降级）。
+ * @param {string} personId
+ * @param {string} password
+ * @returns {Promise<{token:string,user:Object}>}
+ */
+async function _requestServerLogin(personId, password) {
+  let response;
+  try {
+    response = await fetch(LOGIN_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ personId, password }),
+    });
+  } catch (e) {
+    throw _loginFailure('无法连接服务器，请稍后重试', 0);
+  }
+  let body = null;
+  try { body = await response.json(); } catch (_) { body = null; }
+  if (!response.ok) {
+    const message = (body && body.error)
+      || (response.status === 401 ? '学号或口令错误，请重试' : `登录失败（HTTP ${response.status}）`);
+    throw _loginFailure(message, response.status);
+  }
+  if (!body || !body.token) throw _loginFailure('服务器未返回登录会话，请稍后重试', 502);
+  return body;
+}
+
+/** 是否走服务端优先：调用方可显式覆盖；缺省按部署形态（server=是 / static=否） */
+function _loginServerFirst(options) {
+  if (options && options.serverFirst !== undefined) return !!options.serverFirst;
+  return DEPLOY_MODE === 'server';
+}
+
+// 保留本地优先实现（静态托管 / 显式开发模式复用；避免复制第二套落盘逻辑）
+const _localFirstLogin = AuthStore.login;
+
+/**
+ * 登录（服务端优先）。**成功后才写本地登录态**；后端失败抛错由登录页显示。
+ * @param {string} personId
+ * @param {string} [password]
+ * @param {{ serverFirst?: boolean }} [options] `serverFirst:false` = 静态托管 / 显式开发模式
+ * @returns {Promise<void>}
+ */
+AuthStore.login = async function login(personId, password, options = {}) {
+  if (!_loginServerFirst(options)) {
+    return _localFirstLogin.call(AuthStore, personId, password);
+  }
+  const accountId = _toStudentId(personId);
+  if (accountId == null) throw _loginFailure('账号不存在', 401);
+  const data = await _requestServerLogin(accountId, password);
+  const user = data.user || {};
+  const patch = {
+    personId: user.id || accountId,
+    role: user.role || _getUserRoleFromMemory(accountId),
+  };
+  // 批次 277：服务端**明给** branchId 才带上（缺字段＝未知 ⇒ 不写 ⇒ 不走待归属阻断层）
+  if (Object.prototype.hasOwnProperty.call(user, 'branchId')) patch.branchId = user.branchId;
+  // 顺序：先落登录快照，再由 enableApiMode 写 token（两者都在服务端 200 之后）
+  _writeLogin(patch);
+  enableApiMode(data.token);
+  console.info('[AuthStore] 已切换至 API 数据源（服务端优先登录）');
+};

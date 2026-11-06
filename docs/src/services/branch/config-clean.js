@@ -7,15 +7,15 @@
 //  语义采用 server 严格口径：id 只收非空字符串（不强制转串）、长度 ≤80、去重保序、限长截断。
 //  本文件为纯 ESM（仅依赖 work-map / policy-defaults 两个纯数据模块），浏览器与 node 双端可加载。
 // ════════════════════════════════════════════════════════════════
-import { WORK_MAP_IDS, canDisableModule } from '../../core/domain/work-map.js?v=20261018h';
-import { CAPABILITY_PACKAGE_BY_ID } from '../../core/domain/capability-packages.js?v=20261018h';
+import { WORK_MAP_IDS, canDisableModule } from '../../core/domain/work-map.js?v=20261102b';
+import { CAPABILITY_PACKAGE_BY_ID } from '../../core/domain/capability-packages.js?v=20261102b';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 白名单/复位/注入原语取自 policy-defaults
 // （单源：覆盖白名单 POLICY_OVERRIDABLE 只定义于 policy-defaults，本文件为其唯一净化消费方）
 import {
   POLICY_OVERRIDABLE,
   resetPolicyDefaults,
   applyPolicyOverrides,
-} from '../../core/domain/policy-defaults.js?v=20261018h';
+} from '../../core/domain/policy-defaults.js?v=20261102b';
 
 const MAX_ID_LEN = 80;
 const MODULES_LIMIT = 200;
@@ -27,6 +27,9 @@ const BLOCKS_LIMIT = 50;
 // config.configChangeHistory 现逐键留痕 {by,at,what,from,to,why?}；why=依据/出处（可选，来源页回填
 // 如 REVIEW_QUEUE 附录编号）；单键回滚以 ROLLBACKABLE 键白名单收敛（跨键/聚合留痕不回滚）。
 export const CONFIG_HISTORY_MAX = 100; // 历史上限：保留最近 N 条（追加/回滚后裁剪最早）
+// R2-21（2026-10-20）：页面展示条数是**展示口径**，单独命名并从本文件导出——
+//   原先「展示最近 50 条」既写死在 slice 里、又写死在设置页文案里，两处数字各一份。
+export const CONFIG_HISTORY_DISPLAY_MAX = 50;
 export const CONFIG_ROLLBACK_WHAT = 'rollback'; // 回滚留痕 what 标记
 // 可回滚的单键变更（= 两端口径的追踪键全集；what 不在表内的留痕仅展示不可回滚）
 export const CONFIG_ROLLBACK_KEYS = [

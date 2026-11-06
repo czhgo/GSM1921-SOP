@@ -9,7 +9,7 @@ test('周期归档快照只接受本支部记录，且允许服务端保留其�
     db.exec('CREATE TABLE periodic_archive_submissions (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
     db.prepare('INSERT INTO periodic_archive_submissions (id, data) VALUES (?, ?)')
       .run('pa-branch-b', JSON.stringify({ id: 'pa-branch-b', branchId: 'br-b2', content: '其他支部' }));
-    const actor = { id: 'p1', role: 'prop-commissioner', branchId: 'br-b1' };
+    const actor = { id: '2400012345', role: 'prop-commissioner', branchId: 'br-b1' };
 
     const ownRows = [{ id: 'pa-branch-a', branchId: 'br-b1', content: '本支部' }];
     assert.equal(snapshotScopeDeny(db, { periodicArchives: ownRows }, actor), null,

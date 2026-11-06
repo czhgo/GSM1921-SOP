@@ -11,9 +11,10 @@
 //  端点：POST /api/v1/system-notices（server/routes/system-notices.js；未登录 401 / 未知 kind 400 /
 //        authorize 不通过 403 / 通过 201 并落库 notices 表）。
 //  ctx = { actor, sourceId, payload, db }
+//  展示值一律按源表复算（不采信客户端 payload）；人名按名册复算，名册查无者沿用 payload。
 //  角色集合单一源 = docs/src/core/domain/constants.js（勿手写 5 支委授权列表，roles-sync 守卫会拦）。
 // ════════════════════════════════════════════════════════════════
-import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES, PARTY_STAFF_ROLE, ROLE_LABELS } from '../docs/src/core/domain/constants.js';
+import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES, PARTY_STAFF_ROLE, ROLE_LABELS, isPartyGroupLeaderRole, LEADER_CREATABLE_ACTIVITY_TYPES } from '../docs/src/core/domain/constants.js';
 import { buildSystemNotice } from '../docs/src/core/domain/system-notice-templates.js';
 // R-23②（2026-10-05 批次 391）：支部上报的「支部名 / 事项摘要」展示值单一源（**零依赖叶子**，前端同引一处）
 import { branchDisplayName, reviewRequestSubject } from '../docs/src/core/domain/review-request-labels.js';
@@ -25,8 +26,8 @@ import { applyRosterNames } from './person-roster.js';
 const COMMITTEE_ROLE_SET = new Set(BRANCH_COMMISSION_ROLES);
 const SECRETARY_DEPUTY_SET = new Set(SECRETARY_AND_DEPUTY_ROLES);
 const PARTY_STAFF_SET = new Set(PARTY_STAFF_ROLE);
-// 组长可创建的活动类型（对齐 activities 写门 _assertActivityWrite / 组长手册）
-const LEADER_ACTIVITY_TYPES = new Set(['党小组会', '主题党日']);
+// 组长可创建的活动类型（单一源 = constants.js::LEADER_CREATABLE_ACTIVITY_TYPES；与活动写门 _assertActivityWrite 同源）
+const LEADER_ACTIVITY_TYPES = new Set(LEADER_CREATABLE_ACTIVITY_TYPES);
 
 /** 读单行（JSON 解包；表名由调用方以字面量传入，非用户输入） */
 function rowOf(db, table, id) {
@@ -119,8 +120,6 @@ const KINDS = {
         || act.organizer === actor.id
         || SECRETARY_DEPUTY_SET.has(actor.role);
     },
-    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
-    //   人名按**名册**复算（`server/person-roster.js`）；payload 不带 `<x>Id` 或名册查无者**沿用 payload**（已登记余项）。
     build(ctx) {
       const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
       const act = rowOf(ctx.db, 'activities', ctx.sourceId) || {};
@@ -136,8 +135,6 @@ const KINDS = {
       if (!actor) return false;
       return !!rowOf(db, 'activities', sourceId) && COMMITTEE_ROLE_SET.has(actor.role);
     },
-    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
-    //   人名按**名册**复算（`server/person-roster.js`）；payload 不带 `<x>Id` 或名册查无者**沿用 payload**（已登记余项）。
     build(ctx) {
       const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
       const act = rowOf(ctx.db, 'activities', ctx.sourceId) || {};
@@ -153,7 +150,6 @@ const KINDS = {
       if (!actor || actor.role !== 'org-commissioner') return false;
       return !!rowOf(db, 'member_change_requests', sourceId);
     },
-    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload。
     // 2026-10-06 批次 426（`R-23` 余项收口）：**成员**改「按源行派生配对 id」——源行 `personId` 补进 vars 后，
     //   由 `applyRosterNames` 按名册复算 `personName`（authorize 已核该申请存在）。
     build(ctx) {
@@ -174,8 +170,6 @@ const KINDS = {
       if (!actor || !SECRETARY_DEPUTY_SET.has(actor.role)) return false;
       return !!rowOf(db, 'activities', sourceId);
     },
-    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
-    //   人名按**名册**复算（`server/person-roster.js`）；payload 不带 `<x>Id` 或名册查无者**沿用 payload**（已登记余项）。
     build(ctx) {
       const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
       const act = rowOf(ctx.db, 'activities', ctx.sourceId) || {};
@@ -260,7 +254,7 @@ const KINDS = {
       const tf = rowOf(db, 'taskforces', sourceId);
       if (!act && !tf) return false;
       if (COMMITTEE_ROLE_SET.has(actor.role)) return true;
-      if (actor.role === 'leader') return true;
+      if (isPartyGroupLeaderRole(actor.role)) return true;
       const proj = act ? (act.assignments || []) : ((tf && tf.members) || []);
       return proj.some((x) => x && x.role === 'organizer' && x.personId === actor.id);
     },
@@ -281,6 +275,9 @@ const KINDS = {
       const tf = rowOf(ctx.db, 'taskforces', ctx.sourceId);
       if (act && act.title) vars.projectName = act.title;
       else if (tf && tf.name) vars.projectName = tf.name;
+      // Task 3（2026-10-25）：对象坐标按源表复算（不信客户端自述），保证非公告消息必有 targetType+targetId。
+      if (act) vars.targetType = 'activity';
+      else if (tf) vars.targetType = 'taskforce';
       return buildSystemNotice('project-auth-granted', vars);
     },
   },
@@ -294,7 +291,6 @@ const KINDS = {
       const senderId = rec ? rec.senderId : payloadOf({ payload }).senderId;
       return !!senderId && actor.id === senderId;
     },
-    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload。
     // 2026-10-06 批次 426（`R-23` 余项收口）：**发送人**改「按源行派生配对 id」——源行 `senderId` 补进 vars 后，
     //   由 `applyRosterNames` 按名册复算 `senderName`（该 id 即本请求 actor，authorize 已核）。
     build(ctx) {
@@ -367,10 +363,8 @@ const KINDS = {
       const act = rowOf(db, 'activities', sourceId);
       if (!act) return false;
       if (COMMITTEE_ROLE_SET.has(actor.role)) return true;
-      return actor.role === 'leader' && LEADER_ACTIVITY_TYPES.has(act.type);
+      return isPartyGroupLeaderRole(actor.role) && LEADER_ACTIVITY_TYPES.has(act.type);
     },
-    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
-    //   人名按**名册**复算（`server/person-roster.js`）；payload 不带 `<x>Id` 或名册查无者**沿用 payload**（已登记余项）。
     build(ctx) {
       const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
       const act = rowOf(ctx.db, 'activities', ctx.sourceId) || {};
@@ -388,8 +382,6 @@ const KINDS = {
       if (!actor || !COMMITTEE_ROLE_SET.has(actor.role)) return false;
       return !!rowOf(db, 'activities', sourceId);
     },
-    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
-    //   人名按**名册**复算（`server/person-roster.js`）；payload 不带 `<x>Id` 或名册查无者**沿用 payload**（已登记余项）。
     build(ctx) {
       const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
       const act = rowOf(ctx.db, 'activities', ctx.sourceId) || {};
@@ -444,12 +436,15 @@ const KINDS = {
     },
     build(ctx) {
       const row = rowOf(ctx.db, 'makeup_tasks', ctx.sourceId) || {};
+      // F12（IA-F12）：补课落点按当事人角色本位生成——服务端按名册表复算角色，不信客户端自述。
+      const person = row.personId ? (rowOf(ctx.db, RESOURCE_TABLES.users, row.personId) || {}) : {};
       return buildSystemNotice('makeup-remind', {
         sourceId: ctx.sourceId,
         personId: row.personId,
         personName: row.personName,
         activityName: row.activityName,
         deadline: row.deadline,
+        role: person.role || undefined,
       });
     },
   },
@@ -518,6 +513,9 @@ const KINDS = {
         decision: p.decision === 'rejected' || row.voidRejected ? 'rejected' : 'confirmed',
         reason: p.reason || (row.voided && row.voided.reason) || (row.voidRejected && row.voidRejected.reason) || '',
         audience: row.role ? [row.role] : undefined,
+        // F05（IA-F05）：落点按接收人角色生成本位工作台——服务端把行上的角色显式传入模板，
+        //   不再让模板固定落支书台（组织/宣传/纪检/组长接收时会被身份门弹回）。
+        role: row.role || undefined,
       });
     },
   },

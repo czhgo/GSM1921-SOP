@@ -62,10 +62,20 @@
 //   真机流程 **实有 60 → 59**，基线同批改准为 **117 / 59**。
 // 2026-10-18 支委会密度重组：支委会 tab 改行内改派 ⇒ 退役流程 `secretary-assign-branch-commissioner`
 //   （两条校验点保留、改为 `machine:false`）；真机流程 **实有 59 → 58**，`FLOWS_BASELINE` 同批改准为 **58**。
-export const SITES_BASELINE = 120;
+// 2026-10-21 批次 500：跨组「责任党小组」补真机流程 `secretary-calendar-write-scope`（主题党日 → 组织落点）；
+//   「组织者跨组说明」「org 补选责任组」两条改 `machine:false`（前置不可稳定造出，逐条写明 reason）⇒
+//   真机流程 **实有 58 → 59**，`FLOWS_BASELINE` 同批改准为 **59**（校验点 125 条不变，machine:true 100 / false 25）。
+//   ⚠ 向导「首任支书」由 machine:true 改 false：党委账号未选支部时名册为空、就地任命区块不渲染（探针实测）。
+// 2026-10-25 批次 511（IA 62→45）：全仓扫描台账里的 tab 名——`my-dispatch` / `tf-view` /
+//   组织·宣传·纪检·组长 `activity-calendar` / 组长 `inspection` / 宣传 `tasks` / 成员 `thought-report|inspection|review`
+//   **均已无 flow 引用**（各台新落点见 `docs/src/capabilities/*-workspace.js` 与壳 `_legacyTabAliases`）。
+//   唯一残留是 `leader-my-dispatch-detail-comment`（原「我的处置」）⇒ 改落「待办」页「我经办的反馈」区，
+//   稳定钩子 `[data-todo-dispatch]` 由 `components/record/todo-tab-shell.js` 输出；**成功路径三判据一条未删**
+//   （填对 → 触发 → 成功提示「评论已添加」＋ 评论真出现在 `#mydispatch-detail`）。台账/流程条数不变。
+export const SITES_BASELINE = 130;
 // 批次 323（2026-10-01）：补 `secretary-calendar-write-inline-grant`（覆盖批次 303 登记却漏纳入流程的
 //   「写入活动·内嵌项目赋权」两处 `machine:true`）⇒ 真机流程 **实有 56 → 57**，基线同批改准为 **57**。
-export const FLOWS_BASELINE = 58;
+export const FLOWS_BASELINE = 59;
 
 // ── 全站字段级必填校验点台账 ────────────────────────────────────────────
 // 字段：{ file, line, field, flow, machine, msg, reason? }
@@ -78,31 +88,41 @@ export const FLOWS_BASELINE = 58;
 export const SRC = 'docs/src/';
 export const VALIDATION_SITES = [
   // ── 支书台 ──
-  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 218, field: '通知标题', flow: 'secretary/通知发布', machine: true, msg: '请填写通知标题' },
-  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 219, field: '通知内容', flow: 'secretary/通知发布', machine: true, msg: '请填写通知内容' },
-  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 221, field: '目标受众', flow: 'secretary/通知发布', machine: true, msg: '请选择目标受众' },
-  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 218, field: '通知标题', flow: 'secretary/通知编辑浮窗', machine: true, msg: '请填写通知标题' },
-  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 219, field: '通知内容', flow: 'secretary/通知编辑浮窗', machine: true, msg: '请填写通知内容' },
+  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 275, field: '通知标题', flow: 'secretary/通知发布', machine: true, msg: '请填写通知标题' },
+  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 276, field: '通知内容', flow: 'secretary/通知发布', machine: true, msg: '请填写通知内容' },
+  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 281, field: '目标受众', flow: 'secretary/通知发布', machine: true, msg: '请选择目标受众' },
+  // Task 3（2026-10-25）：发布表单强制「公告 / 关联对象」二选一——选关联对象却未选对象时阻挡。
+  //   默认档＝公告（无对象）⇒ 既有真机流不触此分支；本批只登记、不新增慢件（D-753）。
+  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 318, field: '关联对象', flow: 'secretary/通知发布·关联对象', machine: false, msg: '请选择关联对象', reason: '【Task 3 新立】默认落点＝公告（无对象），既有真机流不切「关联对象」档；按 D-753 不新增慢件，落点与坐标由 notice-deeplink-guard::F06 静态覆盖。' },
+  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 550, field: '通知标题', flow: 'secretary/通知编辑浮窗', machine: true, msg: '请填写通知标题' },
+  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 551, field: '通知内容', flow: 'secretary/通知编辑浮窗', machine: true, msg: '请填写通知内容' },
   // 批次 91（2026-09-19 · SOP-B-17）：**本组通知的组织者发布口**（服务层单实现的浮窗，
   //   入口在成员台「活动动态」/ 组长台「活动管理」的活动行上，只对该场组织者本人出现）。
   //   `machine:false` 的原因是**前置数据随赋权而变**：要跑到这处校验，须先在同一演示库里造出
   //   「该演示账号恰是某场活动组织者」的稳定前置（7 个演示账号的组织者身份随库内容变化），
   //   故本批只登记、不造数据（同 `components/governance/resolution-followup-manager.js` 由「造出真机可达且自洽的前置」解锁的前例）。
-  { file: SRC + 'components/governance/notice-view.js', line: 293, field: '通知标题（本组通知）', flow: 'service/本组通知发布', machine: false, msg: '请填写通知标题', reason: '【批次 91 新增 · 待解锁】入口是「发布本组通知」浮窗，只对**本人为该场活动组织者**的活动行出现（`services/activity/activity.js::isActivityOrganizer` 实时判）；演示库里该条件随赋权数据变化，7 个演示账号不保证命中 ⇒ 造不出稳定前置。**这不是「结构性不可达」**（只要有一条该账号为组织者的活动即达），属「缺稳定数据」，与 `machine:false` 白名单里「需先造复杂前置数据」同类。' },
-  { file: SRC + 'components/governance/notice-view.js', line: 294, field: '通知内容（本组通知）', flow: 'service/本组通知发布', machine: false, msg: '请填写通知内容', reason: '同上：与本条同属一个浮窗（标题通过后才会走到内容这一格），入口条件相同（本人为该场组织者），本批只登记、不造数据。' },
-  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1387, field: '活动名称', flow: 'secretary/写入活动', machine: true, msg: '请填写活动名称' },
-  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1388, field: '日期', flow: 'secretary/写入活动', machine: true, msg: '请选择日期' },
-  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1389, field: '活动地点', flow: 'secretary/写入活动', machine: true, msg: '请填写活动地点' },
+  { file: SRC + 'components/governance/notice-view.js', line: 196, field: '通知标题（本组通知）', flow: 'service/本组通知发布', machine: false, msg: '请填写通知标题', reason: '【批次 91 新增 · 待解锁】入口是「发布本组通知」浮窗，只对**本人为该场活动组织者**的活动行出现（`services/activity/activity.js::isActivityOrganizer` 实时判）；演示库里该条件随赋权数据变化，7 个演示账号不保证命中 ⇒ 造不出稳定前置。**这不是「结构性不可达」**（只要有一条该账号为组织者的活动即达），属「缺稳定数据」，与 `machine:false` 白名单里「需先造复杂前置数据」同类。' },
+  { file: SRC + 'components/governance/notice-view.js', line: 197, field: '通知内容（本组通知）', flow: 'service/本组通知发布', machine: false, msg: '请填写通知内容', reason: '同上：与本条同属一个浮窗（标题通过后才会走到内容这一格），入口条件相同（本人为该场组织者），本批只登记、不造数据。' },
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1497, field: '活动名称', flow: 'secretary/写入活动', machine: true, msg: '请填写活动名称' },
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1498, field: '日期', flow: 'secretary/写入活动', machine: true, msg: '请选择日期' },
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1499, field: '活动地点', flow: 'secretary/写入活动', machine: true, msg: '请填写活动地点' },
   // 2026-09-30 批次 303（支书裁「在写入的时候直接就可以进行赋权了…内嵌在 活动/专班 字段中的」）：
   //   「写入活动」表单内嵌**项目赋权**字段组（人选 → 项目角色 →「+ 加入名单」），新增 2 处校验点。
-  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1146, field: '被赋权人', flow: 'secretary/写入活动·内嵌项目赋权', machine: true, msg: '请选择被赋权人' },
-  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1147, field: '项目角色', flow: 'secretary/写入活动·内嵌项目赋权', machine: true, msg: '请选择项目角色' },
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1244, field: '被赋权人', flow: 'secretary/写入活动·内嵌项目赋权', machine: true, msg: '请选择被赋权人' },
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1245, field: '项目角色', flow: 'secretary/写入活动·内嵌项目赋权', machine: true, msg: '请选择项目角色' },
   // 批次 47-M（2026-09-16）：原 reason「前置交互复杂」**又一次是读起来复杂**——真机实测三段全可脚本化：
   //   ① 议程行**出厂即有一条**（模板选中后 `#wp-agenda-list` 内已有 `.wp-agenda-row`）；
   //   ② 「待讨论名单」只是行内一个 chip（`.wp-agenda-kind[data-kind="attendee-list"]`，点一下即亮）；
   //   ③ 多选人员走通用 `openPicker`（复用考察上传同一步骤）。三字段（名称/日期/地点）用 satisfy 顺序放行即可达。
-  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1349, field: '目标阶段', flow: 'secretary/写入活动·议程待讨论名单', machine: true, msg: '待讨论名单请选择目标阶段' },
-  { file: SRC + 'entries/tabs/secretary/report-up-tab.js', line: 126, field: '事项类型、标题与说明', flow: 'secretary/上报党委', machine: true, msg: '请填写事项类型、标题与说明' },
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1459, field: '目标阶段', flow: 'secretary/写入活动·议程待讨论名单', machine: true, msg: '待讨论名单请选择目标阶段' },
+  // 2026-10-21 批次 502：跨组活动必须有唯一承办党小组；组织者跨组须留说明。
+  // 批次 500（R5 审查增行）：本文件多处校验点随「页题 H2 / 文案收口」整体下移，行号同批改签。
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1513, field: '承办党小组', flow: 'secretary/写入活动·组织落点', machine: true, msg: '请选择承办党小组' },
+  // ⚠ 只登记不机跑：要先在「人员配置」里选一位**他组**组织者，过 `confirmNudge` 对话框后才走到这格；
+  //   空必填路径（本台账的真机形态）到不了，且对话框会污染同一会话的一次性应答器。
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1541, field: '组织者跨组说明', flow: 'secretary/写入活动·组织落点', machine: false, msg: '请填写组织者跨组说明（将随活动留存）', reason: '【批次 499 新增 · 待解锁】同一浮窗内，但须先选**他组**组织者并通过 `confirmNudge` 软提示对话框；空必填路径不可达，机跑还会与「一次性 dialog 应答器」互相冒充（见本文件头部会话复用的说明）。本批只登记、不造前置。' },
+  { file: SRC + 'entries/tabs/org/activity-calendar-tab.js', line: 139, field: '责任党小组（补选）', flow: 'org/活动日历·待补责任党小组', machine: false, msg: '请选择责任党小组', reason: '【批次 499 新增 · 待解锁】入口只对**缺责任组的存量活动**出现；v8 迁移已把能判定的历史活动补齐承办范围，演示库里没有稳定的「待补」行 ⇒ 造不出稳定前置。改动路径本身由 `activity-party-group-assignment` / `cross-group-activity-probe` 的 API 用例覆盖。' },
+  { file: SRC + 'entries/tabs/secretary/report-up-tab.js', line: 131, field: '事项类型、标题与说明', flow: 'secretary/上报党委', machine: true, msg: '请填写事项类型、标题与说明' },
   // 2026-09-23（裁定乙）：支书台「赋权管理」按三个情景分块（情景② 活动 / 情景③ 专班各一套表单，
   //   校验共用一个实现）⇒ 台账行号随块位移（`:217,218,219` → `:243,244,245`；`:419,423` → `:447,451`）。
   //   校验实现只有一处（同一 `bindConfirmProjectAuth` 两处绑）⇒ **校验点条数与流程条数均不变**（不加新条目）。
@@ -136,25 +156,26 @@ export const VALIDATION_SITES = [
   //   ② 常设赋权面板加「身份」选择、撤面板内列表 ⇒ 「同志」line 改准 `532`；**第二条由「党小组」改为「身份」**
   //      （`请选择身份`，`537`）——空提交序＝同志 → 身份（党小组由清单行内「设 / 改」预设，不再空）；
   //   ③ 支委身份配置 2 处 line 改准 `643,644`。
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 322, field: '被赋权人', flow: 'secretary/活动管理·项目赋权', machine: true, msg: '请选择被赋权人' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 323, field: '项目', flow: 'secretary/活动管理·项目赋权', machine: true, msg: '请选择项目' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 324, field: '角色', flow: 'secretary/活动管理·项目赋权', machine: true, msg: '请选择角色' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 532, field: '同志', flow: 'secretary/党小组·常设赋权', machine: true, msg: '请选择同志' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 537, field: '身份', flow: 'secretary/党小组·常设赋权', machine: true, msg: '请选择身份' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 541, field: '党小组', flow: 'secretary/党小组·常设赋权', machine: false, msg: '请选择党小组', reason: '【批次 373 新增登记 · 待解锁】党小组由清单行内「设 / 改」预设（`openLeaderAssignPanel({ groupName })`）⇒ 空党小组分支只在「支部无在册党小组」（`groupOptions()` 为空 ⇒ `selectedGroup = null`）时可达，演示库恒有在册组 ⇒ 造不出稳定前置。**非结构性不可达**（空支部即达），属「缺稳定数据」类，故登记为 `machine:false`。' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 321, field: '被赋权人', flow: 'secretary/活动管理·项目赋权', machine: true, msg: '请选择被赋权人' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 322, field: '项目', flow: 'secretary/活动管理·项目赋权', machine: true, msg: '请选择项目' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 323, field: '角色', flow: 'secretary/活动管理·项目赋权', machine: true, msg: '请选择角色' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 530, field: '同志', flow: 'secretary/党小组·常设赋权', machine: true, msg: '请选择同志' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 535, field: '身份', flow: 'secretary/党小组·常设赋权', machine: true, msg: '请选择身份' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 539, field: '党小组', flow: 'secretary/党小组·常设赋权', machine: false, msg: '请选择党小组', reason: '【批次 373 新增登记 · 待解锁】党小组由清单行内「设 / 改」预设（`openLeaderAssignPanel({ groupName })`）⇒ 空党小组分支只在「支部无在册党小组」（`groupOptions()` 为空 ⇒ `selectedGroup = null`）时可达，演示库恒有在册组 ⇒ 造不出稳定前置。**非结构性不可达**（空支部即达），属「缺稳定数据」类，故登记为 `machine:false`。' },
   // 2026-09-23（支书裁定 · 情景①「最初只有党委给支书配置，剩下的身份由书记配置」）：情景① 卡内新增
   //   「支委身份配置」写口的 2 处校验点（人选 → 身份）。 2026-09-25：随情景① 并入「党小组与活动」。
   //   2026-09-27（支委会迁移批）：支委身份配置**整体迁入支书台「支委会」tab 的「机构构成」段**。
   //   2026-10-18（支委会密度重组）：支书台「支委会」tab 改为**行内改派**（`#cm-roster-table` 行尾选人），
   //   不再挂载整块「选人 → 选身份 → 确认」表单 ⇒ 本文件 `mountCommissionerAssign` 仍保留导出、
   //   但已无界面宿主，这 2 处校验点在现形态下不可达，按实情登记为 `machine:false`（写口本身不变）。
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 643, field: '支委人选', flow: 'secretary/支委会·支委身份配置（未挂载）', machine: false, msg: '请选择本支部在册成员', reason: '2026-10-18 起支委会 tab 改为行内改派，不再挂载该整块表单；导出保留、界面无宿主，校验点不可达。写口与权限判据未放宽。' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 644, field: '支委身份', flow: 'secretary/支委会·支委身份配置（未挂载）', machine: false, msg: '请选择要授予的支委身份', reason: '同上：行内改派不再呈现独立身份选择表单，该空提交分支无界面载体。' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 641, field: '支委人选', flow: 'secretary/支委会·支委身份配置（未挂载）', machine: false, msg: '请选择本支部在册成员', reason: '2026-10-18 起支委会 tab 改为行内改派，不再挂载该整块表单；导出保留、界面无宿主，校验点不可达。写口与权限判据未放宽。' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 642, field: '支委身份', flow: 'secretary/支委会·支委身份配置（未挂载）', machine: false, msg: '请选择要授予的支委身份', reason: '同上：行内改派不再呈现独立身份选择表单，该空提交分支无界面载体。' },
   // 2026-09-27（支委会迁移批）：`group-progress-tab.js` 删去「支委身份配置」宿主与挂载、进展区四卡改折叠下沉
   //   ⇒ 该文件既有登记下移 ⇒ `746` → `768`（S6：行号须落在文案那一行；file/field/msg 不变）。
   // 2026-10-04 批次 373：删「党小组活动」分区 + 撤独立「组长指派」块（该文件尾段缩短、上部加组长/副组长行内管理）
   //   ⇒ 「组名不能为空」再按实况改准 `775` → `833` → `835`（file/field/msg 不变）。
-  { file: SRC + 'entries/tabs/secretary/group-progress-tab.js', line: 836, field: '组名', flow: 'secretary/党小组·改名', machine: true, msg: '组名不能为空' },
+  // 2026-11-01 批次 525 Task 4（主从双栏重做，整页重排）⇒ 按实况再改准 `897` → `848`（file/field/msg 不变）。
+  { file: SRC + 'entries/tabs/secretary/group-progress-tab.js', line: 848, field: '组名', flow: 'secretary/党小组·改名', machine: true, msg: '组名不能为空' },
   // 批次 47-Z（2026-09-17）：**由 `machine:false` 转 `machine:true`**。原 reason 两句话各有问题，逐句更正：
   //   · 对的一半：「退回浮态（`#mc-reject-note`）只在**有 pending 成员变更确认**时挂载」——实测计数 0 属实。
   //   · 错的一半：「纳入条件：**组织委员**在某台发起一次成员变更」——**跨人不成立**。该队列是
@@ -162,84 +183,87 @@ export const VALIDATION_SITES = [
   //     `member-confirmation.js` 无任何服务端表，mock/api 两态同源）⇒ 请求只存在于**产生它的那个浏览器会话**里，
   //     **组织委员在另一台发起、支书这边根本看不到**。真正的前置是「**同一会话内先产生过一条请求**」。
   //   · 可达链（本批真机跑通）：支书本人也有该写权（`person-entry.js::EDIT_ROLES = 支书/副支书/组织委员`）⇒
-  //     `person.html?id=p7` → 编辑档案 → 改「发展阶段」→ 保存（报出「已报送支书确认 1 项」）→ 回支书台「待办」→
+  //     `person.html?id=2400012351` → 编辑档案 → 改「发展阶段」→ 保存（报出「已报送支书确认 1 项」）→ 回支书台「待办」→
   //     `[data-mc-id][data-decision="rejected"]` 即在位。**无需造种子、无需改产品、无需跨角色会话**。
   // 2026-09-27（本位 nudge 两处增设批）：`secretary/todo-tab.js` 接入催办 nudge（import 1 行 ＋ 外层包装 15 行）
   //   令本文件既有登记下移 ⇒ `672` → `691`（S6：行号须落在文案那一行；file/field/msg 不变）。
   // 2026-10-02（批次 340 · `#1`/`D-742` 作废落地）：同文件新增作废裁决区（约 +65 行）⇒ 本条再下移 `691` → `756`。
-  { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 815, field: '退回原因', flow: 'secretary/待办·退回', machine: true, msg: '请填写退回原因' }, // 2026-10-06 批次 433（D-807④ 代归档浮窗插入）⇒ 760 → 815
+  { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 860, field: '退回原因', flow: 'secretary/待办·退回', machine: true, msg: '请填写退回原因' }, // 2026-10-21 批次 497（浮层体例）⇒ 851 → 855；2026-10-29 ESM 修复后校准 ⇒ 860
+  { file: SRC + 'entries/tabs/secretary/overview-tab.js', line: 194, field: '退回说明', flow: 'secretary/周期归档待审·退回', machine: false, reason: '演示种子（PERIODIC_ARCHIVES_SEED）只有 submitted / draft，没有待审（pending_review）记录 ⇒ 支书台「退回周期归档」入口结构性不出现；本校验点由服务层 reviewPeriodicArchive 单测覆盖。', msg: '请填写退回说明' }, // 2026-10-19 批次 485（U-01 周期归档完整闭环）
   // 2026-10-02 批次 340（`#1`/`D-742` 待办「作废」落地）：新增两处「原因必填」校验点，均 `machine:false`
   //   ——**演示种子下无「待支委会确认的作废申请」过渡态**（须先由非支委 `requestVoid` 生成 `voidPending`，
   //   再由支书台确认/驳回；跨角色两步、无种子）⇒ 这两处弹窗在真机演示数据下结构性不可达；
   //   同批新定向件 `todo-void-flow.test.mjs` 已在**服务层**覆盖状态机（含「无原因不得作废」/确认/驳回）。
-  { file: SRC + 'components/record/todo-tab-shell.js', line: 557, field: '作废原因', flow: 'shell/待办·作废', machine: false, reason: '演示种子下无「待支委会确认的作废申请」过渡态（须先由非支委 requestVoid 生成 voidPending）⇒ 作废弹窗在真机演示数据下不可达；状态机由新定向件在服务层覆盖。', msg: '请填写作废原因（必填）' },
-  { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 885, field: '驳回意见', flow: 'secretary/待办·驳回作废', machine: false, reason: '同壳体作废弹窗：驳回入口只在「存在 voidPending 申请」时渲染，演示种子无该过渡态 ⇒ 真机不可达；驳回落库由新定向件在服务层覆盖。（批次 346 起「记录作废驳回」复用同一文案，登记只此一条、按 (file, 文案) 覆盖两处弹窗，行号取首处；批次 407 起「记录作废裁决」两分支发 `record-void-decided` 知会，本行号随该批插入位移改准；2026-10-06 批次 433 再随代归档浮窗插入 830 → 885〔文案在 885 / 917 两行〕。）', msg: '请填写驳回意见（必填）' },
-  { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 561, field: '评论内容', flow: 'secretary/反馈管理·议题评论', machine: true, msg: '请输入评论内容' },
-  { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 572, field: '批复内容', flow: 'secretary/反馈管理·议题批复', machine: true, msg: '请输入批复内容' },
-  { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 582, field: '正式答复内容', flow: 'secretary/反馈管理·正式答复', machine: true, msg: '请输入正式答复内容' },
+  { file: SRC + 'components/record/todo-tab-shell.js', line: 768, field: '作废原因', flow: 'shell/待办·作废', machine: false, reason: '演示种子下无「待支委会确认的作废申请」过渡态（须先由非支委 requestVoid 生成 voidPending）⇒ 作废弹窗在真机演示数据下不可达；状态机由新定向件在服务层覆盖。', msg: '请填写作废原因（必填）' },
+  { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 933, field: '驳回意见', flow: 'secretary/待办·驳回作废', machine: false, reason: '同壳体作废弹窗：驳回入口只在「存在 voidPending 申请」时渲染，演示种子无该过渡态 ⇒ 真机不可达；驳回落库由新定向件在服务层覆盖。（批次 346 起「记录作废驳回」复用同一文案，登记只此一条、按 (file, 文案) 覆盖两处弹窗，行号取首处；批次 407 起「记录作废裁决」两分支发 `record-void-decided` 知会，本行号随该批插入位移改准；2026-10-21 批次 497 再随浮层体例 885 → 930〔文案在 930 / 963 两行〕。）', msg: '请填写驳回意见（必填）' },
+  { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 563, field: '评论内容', flow: 'secretary/反馈管理·议题评论', machine: true, msg: '请输入评论内容' },
+  { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 574, field: '批复内容', flow: 'secretary/反馈管理·议题批复', machine: true, msg: '请输入批复内容' },
+  { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 584, field: '正式答复内容', flow: 'secretary/反馈管理·正式答复', machine: true, msg: '请输入正式答复内容' },
 
   // ── 纪检委员台 ──
   // 批次 124（2026-09-21）：会议考勤上传主体收归「该场会议组织者」（支书 2026-09-20 定案，落地 `D-547`）
-  //   ⇒ 纪检台「会议考勤录入」表单只列**本人可上传**的会议场次；演示数据里纪检（p10）不持任何会议
+  //   ⇒ 纪检台「会议考勤录入」表单只列**本人可上传**的会议场次；演示数据里纪检（2400012354）不持任何会议
   //   场次的上传位 ⇒ 表单长期空态、这两条校验分支**真机不可达**（原流程 `disc-meeting-attendance` 随之退役）。
   //   **同形态的两条校验未失覆盖**：组织者上传位（组长台「考勤上传」）的「活动 / 参会人员」两条仍 machine:true。
-  { file: SRC + 'entries/tabs/disc/attendance-tab.js', line: 319, field: '会议活动', flow: 'disc/考勤管理·建考勤', machine: false, reason: '上传位已收归该场会议组织者（批次 124 定案）；演示数据下纪检不持任何会议场次的上传位 ⇒ 该表单为空态、本分支不可达。同形态校验由 leader/考勤上传 覆盖。', msg: '请选择会议活动' },
-  { file: SRC + 'entries/tabs/disc/attendance-tab.js', line: 323, field: '参会人员', flow: 'disc/考勤管理·建考勤', machine: false, reason: '同上（同一表单空态 ⇒ 两条校验同源不可达）。', msg: '请选择参会人员' },
+  { file: SRC + 'entries/tabs/disc/attendance-tab.js', line: 356, field: '会议 / 活动', flow: 'disc/考勤管理·建考勤', machine: false, reason: '上传位已收归该场会议组织者（批次 124 定案）；演示数据下纪检不持任何会议场次的上传位 ⇒ 该表单为空态、本分支不可达。同形态校验由 leader/考勤上传 覆盖。', msg: '请选择会议 / 活动' },
+  { file: SRC + 'entries/tabs/disc/attendance-tab.js', line: 360, field: '参会人员', flow: 'disc/考勤管理·建考勤', machine: false, reason: '同上（同一表单空态 ⇒ 两条校验同源不可达）。', msg: '请选择参会人员' },
   // 2026-10-02 批次 346（`D-744`② 业务过程类补「作废·停用」软入口）：**纪检台 · 考勤管理 ·「补课」分段 · 作废弹窗**——
   //   原因必填（软作废、不硬删；支委层可直接作废、其余人报支委会确认）。服务端有 `makeup_tasks` 种子
   //   （`SEED_MAKEUP_TASKS`）⇒ 该行在演示态**可达** ⇒ 按 `machine:true` 纳入真机（弹窗由 `openModal` 生成，
   //   判据载体＝文本域自身；提交后弹窗不关、仅弹 toast ⇒ 载体仍在位）。
-  { file: SRC + 'components/ui/void-record.js', line: 61, field: '作废原因', flow: 'disc/考勤管理·补课作废', machine: true, msg: '请填写作废原因（必填）' },
+  { file: SRC + 'components/ui/void-record.js', line: 67, field: '作废原因', flow: 'disc/考勤管理·补课作废', machine: true, msg: '请填写作废原因（必填）' },
   // 2026-09-23 支书追裁「开一个代录位」：纪检台「考察管理」新增**考察代录位**（写口与字段全部复用组长台
   //   「考察上传」；本位＝该场活动的组织者 ⇒ 纪检代录属非本位 ⇒ 提交前带既有 nudge）。校验点 3 处。
-  { file: SRC + 'entries/tabs/disc/inspection-tab.js', line: 489, field: '代录活动', flow: 'disc/考察代录', machine: true, msg: '请选择要代录的活动' },
-  { file: SRC + 'entries/tabs/disc/inspection-tab.js', line: 493, field: '人员', flow: 'disc/考察代录', machine: true, msg: '请选择人员' },
-  { file: SRC + 'entries/tabs/disc/inspection-tab.js', line: 501, field: '考察内容（逐人）', flow: 'disc/考察代录', machine: true, msg: '的考察内容' },
+  { file: SRC + 'entries/tabs/disc/inspection-tab.js', line: 536, field: '代录活动', flow: 'disc/考察代录', machine: true, msg: '请选择要代录的活动' },
+  { file: SRC + 'entries/tabs/disc/inspection-tab.js', line: 540, field: '人员', flow: 'disc/考察代录', machine: true, msg: '请选择人员' },
+  { file: SRC + 'entries/tabs/disc/inspection-tab.js', line: 550, field: '考察内容（逐人）', flow: 'disc/考察代录', machine: true, msg: '的考察内容' },
 
   // ── 组长台 ──
-  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 113, field: '来源类型', flow: 'leader/考察上传', machine: true, msg: '请选择来源类型' },
-  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 312, field: '具体来源', flow: 'leader/考察上传', machine: true, msg: '请选择具体来源' },
-  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 315, field: '人员', flow: 'leader/考察上传', machine: true, msg: '请选择人员' },
-  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 322, field: '考察内容（逐人）', flow: 'leader/考察上传', machine: true, msg: '的考察内容' },
-  { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 147, field: '活动', flow: 'leader/考勤上传', machine: true, msg: '请选择活动' },
-  { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 426, field: '参会人员', flow: 'leader/考勤上传', machine: true, msg: '请选择参会人员' },
-  { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 576, field: '要应用的状态', flow: 'leader/考勤上传·批量改状态', machine: true, msg: '请先选择要应用的状态' },
+  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 349, field: '来源类型', flow: 'leader/考察上传', machine: true, msg: '请选择来源类型' },
+  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 353, field: '具体来源', flow: 'leader/考察上传', machine: true, msg: '请选择具体来源' },
+  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 356, field: '人员', flow: 'leader/考察上传', machine: true, msg: '请选择人员' },
+  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 367, field: '考察内容（逐人）', flow: 'leader/考察上传', machine: true, msg: '的考察内容' },
+  { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 446, field: '活动', flow: 'leader/考勤上传', machine: true, msg: '请选择活动' },
+  { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 449, field: '参会人员', flow: 'leader/考勤上传', machine: true, msg: '请选择参会人员' },
+  { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 600, field: '要应用的状态', flow: 'leader/考勤上传·批量改状态', machine: true, msg: '请先选择要应用的状态' },
   // 批次 47-M（2026-09-16）：**组长台 · 活动管理 · 活动详情「添加子记录」内联表单**（D7 后仅剩宣传/材料两类）。
   // ⚠ 原 reason「需先打开活动的子记录内联表单（先有活动并进入详情）」把**两步点击**当成了不可自动化——
   //   真机实测：`.leader-act-item` **10 个**、活动详情内 `.act-sub-add-btn[data-type="publicity"]` **1 个**，
   //   点它即渲染 `.record-form-shell`（含 `.f-title` 与 `.record-save-btn`）。两步点击＝可脚本化，**不是障碍**。
   //   报文是**动态拼接**（`请填写${type==='publicity'?'宣传标题':'材料名称'}`）→ 本流程覆盖宣传分支，
   //   故 flow 里断言的是拼好的整串「请填写宣传标题」（登记项 `msg` 仍取文件中真实存在的字面量「材料名称」）。
-  { file: SRC + 'entries/tabs/leader/write-tab.js', line: 259, field: '宣传标题/材料名称', flow: 'leader/活动管理·子记录', machine: true, msg: '材料名称' },
-  { file: SRC + 'entries/tabs/leader/write-tab.js', line: 1044, field: 'T-0 日期', flow: 'leader/活动管理·发起活动', machine: true, msg: '请填写 T-0 日期' },
-  { file: SRC + 'entries/tabs/leader/write-tab.js', line: 1045, field: '活动地点', flow: 'leader/活动管理·发起活动', machine: true, msg: '请填写活动地点' },
-  { file: SRC + 'entries/tabs/leader/write-tab.js', line: 1046, field: '活动名称', flow: 'leader/活动管理·发起活动', machine: true, msg: '请填写活动名称' },
+  { file: SRC + 'entries/tabs/leader/write-tab.js', line: 507, field: '宣传标题/材料名称', flow: 'leader/活动管理·子记录', machine: true, msg: '材料名称' },
+  // 2026-10-22 R7-04：宣传撰写人改为「默认当前登录人且必填」——新校验点，本轮无对应真机流程 ⇒ machine:false 登记。
+  { file: SRC + 'entries/tabs/leader/write-tab.js', line: 510, field: '撰写人', flow: 'leader/活动管理·子记录', machine: false, msg: '请填写撰写人', reason: '撰写人默认取当前登录人，正常路径不会触发空值；仅「代填时清空」可达，本轮不新造真机前置（避免为一条空值文案增开流程），登记为人工核对位。' },
+  { file: SRC + 'entries/tabs/leader/write-tab.js', line: 1099, field: 'T-0 日期', flow: 'leader/活动管理·发起活动', machine: true, msg: '请填写 T-0 日期' },
+  { file: SRC + 'entries/tabs/leader/write-tab.js', line: 1100, field: '活动地点', flow: 'leader/活动管理·发起活动', machine: true, msg: '请填写活动地点' },
+  { file: SRC + 'entries/tabs/leader/write-tab.js', line: 1101, field: '活动名称', flow: 'leader/活动管理·发起活动', machine: true, msg: '请填写活动名称' },
 
   // ── 组织委员台 ──
   // 2026-10-03 批次 366（`#10` 单一轴 甲档）：原独立「考察上传」页签降为「人才库」页内折叠动作位
   //   ⇒ `flow` 改「org/人才库·录入考察」；该文件顶部新增 JSDoc（+6 行）⇒ 下列 `line` 同批 +6（`S6` 精确命中）。
-  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 60, field: '专班', flow: 'org/人才库·录入考察', machine: true, msg: '请选择专班' },
-  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 270, field: '人员', flow: 'org/人才库·录入考察', machine: true, msg: '请选择人员' },
-  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 276, field: '考察内容（逐人）', flow: 'org/人才库·录入考察', machine: true, msg: '的考察内容' },
+  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 285, field: '专班', flow: 'org/人才库·录入考察', machine: true, msg: '请选择专班' },
+  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 291, field: '人员', flow: 'org/人才库·录入考察', machine: true, msg: '请选择人员' },
+  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 300, field: '考察内容（逐人）', flow: 'org/人才库·录入考察', machine: true, msg: '的考察内容' },
   // 2026-09-25（赋权按对象归位）：本台 `taskforce` tab 追加「情景③ 专班赋权」分区 ⇒ 该文件上文行号整体 +8
   //   （新增 import / 挂载宿主 / 挂载调用），下列行号按新实况改准（S6：行号须落在文案那一行）。
   // 2026-10-02 批次 343（D 档写口纪律）：该文件 `.taskforce` 私有字段手术改走 `SignupStore.deleteBySource()` ⇒
   //   行号再整体下移/上移，同批按实况改准（S6 判据不变）。
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1535, field: '专班名称', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写专班名称' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1536, field: '任务描述', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写任务描述' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1537, field: '所需人数', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写有效的所需人数' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1538, field: '截止日期', flow: 'org/专班管理·发起专班', machine: true, msg: '请选择截止日期' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 778, field: '退回原因', flow: 'org/专班·退回补料', machine: true, msg: '请填写退回原因' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 828, field: '贡献说明', flow: 'org/专班管理·代录贡献', machine: true, msg: '请填写贡献说明' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 830, field: '要代录的成员', flow: 'org/专班管理·代录贡献', machine: true, msg: '请选择要代录的成员' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1035, field: '材料名称', flow: 'org/专班管理·材料', machine: true, msg: '请填写材料名称' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1134, field: '进度说明', flow: 'org/专班管理·添加进度', machine: true, msg: '请填写进度说明' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1193, field: '专班复盘内容', flow: 'org/专班管理·提交复盘', machine: true, msg: '请填写专班复盘内容' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1678, field: '专班名称', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写专班名称' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1679, field: '任务描述', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写任务描述' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1680, field: '所需人数', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写有效的所需人数' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1681, field: '截止日期', flow: 'org/专班管理·发起专班', machine: true, msg: '请选择截止日期' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 891, field: '退回原因', flow: 'org/专班·退回补料', machine: true, msg: '请填写退回原因' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 939, field: '贡献说明', flow: 'org/专班管理·代录贡献', machine: true, msg: '请填写贡献说明' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 941, field: '要代录的成员', flow: 'org/专班管理·代录贡献', machine: true, msg: '请选择要代录的成员' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1148, field: '材料名称', flow: 'org/专班管理·材料', machine: true, msg: '请填写材料名称' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1248, field: '进度说明', flow: 'org/专班管理·添加进度', machine: true, msg: '请填写进度说明' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1307, field: '专班复盘内容', flow: 'org/专班管理·提交复盘', machine: true, msg: '请填写专班复盘内容' },
 
   // ── 宣传委员台 ──
-  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 154, field: '归档期次名称', flow: 'prop/档案归档·新增期次', machine: true, msg: '请填写归档期次名称' },
-  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 155, field: '归档日期范围', flow: 'prop/档案归档·新增期次', machine: true, msg: '请填写归档日期范围' },
-  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 199, field: '本期归档内容', flow: 'prop/档案归档', machine: true, msg: '请填写本期归档内容' },
+  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 160, field: '归档期次名称', flow: 'prop/档案归档·新增期次', machine: true, msg: '请填写归档期次名称' },
+  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 161, field: '归档日期范围', flow: 'prop/档案归档·新增期次', machine: true, msg: '请填写归档日期范围' },
+  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 206, field: '本期归档内容', flow: 'prop/档案归档', machine: true, msg: '请填写本期归档内容' },
   // 批次 47-M（2026-09-16）：**宣传委员台 · 档案归档 · 上传宣传材料浮窗**——一条流程覆盖该浮窗**两处**校验点。
   // ⚠ 台账原挂 machine:false 的两条理由都被真机证伪，且**证伪方式与 47-K「制度参考写入」完全同款**：
   //   ①「文件（文件选择器不可脚本设值）」——**把手段当成了结论**：该支只需文件**为空**即报，
@@ -248,20 +272,20 @@ export const VALIDATION_SITES = [
   //     点一下浮窗即在位，`#upload-activity` 出厂首项即空值「请选择关联活动」⇒ **空提交就报**，无需先选定。
   //   ⚠ 注意与 47-K 的差别：**这条也是 47-K 那条教训的第二次犯**（同一类理由、同一类证伪）——
   //     「理由即解法」若只在个案上纠正、不升格成普查项，就会一条条复发。
-  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 976, field: '关联活动', flow: 'prop/档案归档', machine: true, msg: '请先选择关联活动' }, // 2026-10-06 批次 433 ⇒ 987 → 973
-  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 980, field: '文件', flow: 'prop/档案归档', machine: true, msg: '请先选择文件' }, // 2026-10-06 批次 433 ⇒ 991 → 977
+  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 985, field: '关联活动', flow: 'prop/档案归档', machine: true, msg: '请先选择关联活动' }, // 2026-11-01 Task 5（归档页收敛 ≤4）⇒ 947 → 985
+  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 989, field: '文件', flow: 'prop/档案归档', machine: true, msg: '请先选择文件' }, // 2026-11-01 Task 5 ⇒ 951 → 989
   // 批次 120（2026-09-21）：**照片墙 · 上传照片浮窗**（支书定案「建，并入档案归档」）。
   //   取齐决定＝文件走既有上传接口（不在记录内放 base64）⇒ 该浮窗只有**一处**必填校验点：
   //   图片为空即报（日期出厂即今天、标题/主体可空，故无第二处）。行号随本批在 `renderContent`
   //   插入照片墙区块而整体下移，**同批同步**（批次 49 立的 S6 判据：行号必须精确命中）。
-  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 1374, field: '图片', flow: 'prop/照片墙', machine: true, msg: '请先选择图片' }, // 2026-10-06 批次 433 ⇒ 1384 → 1370
+  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 1373, field: '图片', flow: 'prop/照片墙', machine: true, msg: '请先选择图片' }, // 2026-11-01 Task 5（归档页收敛 ≤4）⇒ 1335 → 1373
 
   // ── 党委台 ──
-  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 78, field: '支部名称', flow: 'party-committee/支部管理·新建', machine: true, msg: '请填写支部名称' },
-  { file: SRC + 'entries/pages/branch-config-entry.js', line: 118, field: '支部名称', flow: 'party-committee/支部管理·改名', machine: true, msg: '支部名称不能为空' },
-  { file: SRC + 'entries/pages/branch-config-entry.js', line: 142, field: '新任支书', flow: 'party-committee/支部管理·任命', machine: true, msg: '请选择新任支书' },
-  { file: SRC + 'entries/tabs/party-committee/dispatch-tab.js', line: 134, field: '目标支部', flow: 'party-committee/下发通知', machine: true, msg: '请选择至少一个目标支部' },
-  { file: SRC + 'entries/tabs/party-committee/dispatch-tab.js', line: 135, field: '标题与正文', flow: 'party-committee/下发通知', machine: true, msg: '请填写标题与正文' },
+  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 203, field: '支部名称', flow: 'party-committee/支部管理·新建', machine: true, msg: '请填写支部名称' },
+  { file: SRC + 'entries/pages/branch-config-entry.js', line: 119, field: '支部名称', flow: 'party-committee/支部管理·改名', machine: true, msg: '支部名称不能为空' },
+  { file: SRC + 'entries/pages/branch-config-entry.js', line: 143, field: '新任支书', flow: 'party-committee/支部管理·任命', machine: true, msg: '请选择新任支书' },
+  { file: SRC + 'entries/tabs/party-committee/dispatch-tab.js', line: 150, field: '目标支部', flow: 'party-committee/下发通知', machine: true, msg: '请选择至少一个目标支部' },
+  { file: SRC + 'entries/tabs/party-committee/dispatch-tab.js', line: 151, field: '标题与正文', flow: 'party-committee/下发通知', machine: true, msg: '请填写标题与正文' },
   // 批次 47-P（2026-09-16）：**党委台 · 上报审批 · 驳回意见**——本条是「**改种子解锁一条**」的首个样本。
   // ⚠ 原 reason 是这样写的：「实测 `[data-rq-act="reject"]` 计数 **0**——驳回按钮只在**待批复**的支部上报事项上渲染，
   //   而种子无『支部上报党委』条目」。**这句实测是对的，但停在「现象」就下了结论**——
@@ -283,29 +307,29 @@ export const VALIDATION_SITES = [
   //   **(c)** 唯一抓住它的是「**把提示文案本身当断言对象**」的真机判据——**机器读到的是空文本，人才会说「怎么只弹了个 i」**。
   //   ⇒ 已有静态守卫 `ux-guard ⑥`（showToast 调用约定，防「参数写反」）**只匹配两参形态**，单参从它眼皮下走过；
   //     本批已**在同一守卫里补上「参数个数」这一维**（原判据的盲区）。三处已修（补 type）。
-  { file: SRC + 'entries/tabs/party-committee/review-tab.js', line: 138, field: '意见', flow: 'party-committee/支部上报·驳回', machine: true, msg: '驳回请填写意见' },
+  { file: SRC + 'entries/tabs/party-committee/review-tab.js', line: 151, field: '意见', flow: 'party-committee/支部上报·驳回', machine: true, msg: '驳回请填写意见' },
 
   // ── 成员（visitor）台 ──
-  { file: SRC + 'entries/tabs/visitor/thought-report-tab.js', line: 129, field: '思想汇报内容', flow: 'visitor/思想汇报', machine: true, msg: '请填写思想汇报内容' },
-  { file: SRC + 'entries/tabs/visitor/review-tab.js', line: 184, field: '复盘总结', flow: 'visitor/活动复盘', machine: true, msg: '请填写复盘总结' },
-  { file: SRC + 'entries/tabs/visitor/attendance-tab.js', line: 171, field: '补课说明', flow: 'visitor/考勤概况·补课申请', machine: true, msg: '请填写补课说明' },
+  { file: SRC + 'entries/tabs/visitor/thought-report-tab.js', line: 131, field: '思想汇报内容', flow: 'visitor/思想汇报', machine: true, msg: '请填写思想汇报内容' },
+  { file: SRC + 'entries/tabs/visitor/review-tab.js', line: 211, field: '复盘总结', flow: 'visitor/活动复盘', machine: true, msg: '请填写复盘总结' },
+  { file: SRC + 'entries/tabs/visitor/attendance-tab.js', line: 197, field: '补课说明', flow: 'visitor/考勤概况·补课申请', machine: true, msg: '请填写补课说明' },
 
   // 批次 327（2026-10-01 · `SOP-G-2-②`「转交组织者」· 支书裁「乙：直接转交 ＋ 留痕」）：
   //   独立页活动详情的**专用「转交组织者」浮窗**内未选接手人即点「转交」。
   //   ⚠ 与批次 323 登记的「成员角色内联编辑 → `请选择被赋权人`」**是两处不同调用点**（那条在表单内联编辑、
   //     这条在专用转交浮窗）⇒ 分别登记、各配一条真机流程（不为「同义」而合并）。
-  { file: SRC + 'components/governance/organizer-transfer.js', line: 132, field: '接手人', flow: 'secretary/活动详情·转交组织者', machine: true, msg: '请选择接手人' },
+  { file: SRC + 'components/governance/organizer-transfer.js', line: 161, field: '接手人', flow: 'secretary/活动详情·转交组织者', machine: true, msg: '请选择接手人' },
 
   // ── 跨台组件 / 服务 ──
-  { file: SRC + 'components/feedback/issue-form.js', line: 100, field: '标题', flow: 'component/议题提交', machine: true, msg: '请输入标题' },
-  { file: SRC + 'components/feedback/issue-form.js', line: 101, field: '正文', flow: 'component/议题提交', machine: true, msg: '请输入正文' },
-  { file: SRC + 'components/feedback/issue-form.js', line: 102, field: '范围', flow: 'component/议题提交', machine: true, msg: '请选择范围' },
+  { file: SRC + 'components/feedback/issue-form.js', line: 101, field: '标题', flow: 'component/议题提交', machine: true, msg: '请输入标题' },
+  { file: SRC + 'components/feedback/issue-form.js', line: 102, field: '正文', flow: 'component/议题提交', machine: true, msg: '请输入正文' },
+  { file: SRC + 'components/feedback/issue-form.js', line: 103, field: '范围', flow: 'component/议题提交', machine: true, msg: '请选择范围' },
   // 批次 47-M（2026-09-16）：**独立页 `docs/feedback.html?id=<议题>` 的议题详情评论区**（`components/feedback/issue-detail.js`）。
   // ⚠ 与支书台「反馈管理」的 `secretary-feedback-issue-detail` **是两处真实调用点**：feedback-tab.js 自带一份
   //   内联 `renderIssueDetail`（用自己的 `#issue-comment-input`），本组件是**独立页那一份**（`#comment-input`）。
   //   原 reason「入口在议题详情内联评论区，需先有议题」——「先有议题」由种子提供（`docs/data/issues.json`
   //   播了 issue-001~004），而详情页**支持 `?id=` 深链直达**，两者都不构成障碍。
-  { file: SRC + 'components/feedback/issue-detail.js', line: 255, field: '评论内容', flow: 'component/议题详情·评论', machine: true, msg: '请输入评论内容' },
+  { file: SRC + 'components/feedback/issue-detail.js', line: 246, field: '评论内容', flow: 'component/议题详情·评论', machine: true, msg: '请输入评论内容' },
   // 批次 47-M（2026-09-16）：**「我的处置」tab** 一栏三区（`services/governance/issues.js` 内三份渲染各自的内联动作）。
   // 实测：组长台「我的处置」① 待处置事项 **1 行**，点行进详情即 `#mydispatch-comment-input` + 「评论」+「提交处置结果」
   //   ⇒ 1428（评论）与 1434（处置结果）**同面板两个提交口，一条流程覆盖**（用 `expect[].submit`）。
@@ -332,14 +356,15 @@ export const VALIDATION_SITES = [
   //   已按 S6 报文更正为**实际行号**（判据与文案一字未改）；**下次改本组所属文件必须重核本组 5 条**。
   //   ⚠ 2026-09-28（G1 第③项）：本组 5 条所属**代码已由 `services/governance/issues.js` 整块搬到**
   //     `components/feedback/issue-dispatch-view.js`（服务层不产 UI）⇒ 台账 file/line 已同批改签。
-  { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 145, field: '汇报内容', flow: 'service/一键汇报', machine: true, msg: '请填写汇报内容' },
-  { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 321, field: '评论内容', flow: 'service/议题评论', machine: true, msg: '请输入评论内容' },
-  { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 321, field: '评论内容', flow: 'service/议题评论', machine: true, msg: '请输入评论内容' },
-  { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 404, field: '处置结果内容', flow: 'service/议题处置', machine: true, msg: '请输入处置结果内容' },
-  { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 478, field: '说明内容', flow: 'service/议题说明', machine: false, msg: '请输入说明内容', reason: '【批 47-X 真机+接口双取证·**口径更正**】原 reason 写「纳入条件：种子把某条议题的 reporterId/participants 指向演示账号」——**这是不够的、且方向错了**。实测事实：① 种子 `docs/data/issues.json` 里 issue-001 本就 `submittedBy:p5`、issue-002/003 的 `participants` 含 p11/p1/p13，**认人字段本来就在**；② 但 api 形态 `GET /api/v1/issues` 实测返回 **6 条**：4 条公开反馈**一律** `submittedBy:\'匿名\' / participants:[] / anonymous:true`（服务端按「真匿名」口径脱敏，见 `server/seed.js::seedIssues`）、2 条 `kind:\'report\'` 保留真名；③ 而 `IssueStore.getMyIssues` **排除 `kind===\'report\'`** 且靠 `submittedBy`/`participants` 认人 ⇒ **api 形态下该区结构上恒为空**（不是「种子没挂上」）。真机复核：成员台(p5)/组织台(p11)/组长台(p1)/宣传台(p12) 逐台打开「我的处置」，④区标题均为「我提交 / 参与的反馈 · 0」、宿主显「暂无我提交或参与的反馈」。**⇒ 这不是种子问题，是两形态口径不一致的产品缺口**（mock 形态直读 issues.json 带真名 ⇒ 有行；api 形态脱敏 ⇒ 恒空），而 help/README-members 都把该区写成了功能。**已立 `Q-23-48` 待支书裁定（2026-09-16 登记）**。**⇒ 批次 48（2026-09-17 支书裁定 `Q-23-48`：**接受缺口 + 改文案**）**已按裁定落地**：① **不改服务端隐私口径**（真匿名是公开反馈页的承诺）；② **不造种子**（④区的数据来源是「服务端按人回认」，只种 mock 等于**只在演示形态显形＝假绿**）；③ **改文案说清口径**——`services/governance/issues.js` ④区标题下新增说明行「仅本地演示模式可见：正式部署下公开反馈按「真匿名」口径脱敏，无法按人回认」+ `help.html` 两处（§角色 tab 说明行 / 「我的处置」卡）+ `README-members.md` 成员能力行；④ 故本条**保留 `machine:false`**，reason 由「**待裁**」改为「**已裁定为产品接受的缺口**」（不再是悬而未决项，也不再是「纳入条件」）。**⇒ 批次 49（2026-09-17）该缺口的「根因」被修掉**：支书改裁走**不可反查的本人标识**——`IssueStore.getMyIssues` 新增第 ③ 条判据（本浏览器提交令牌的哈希 `tokenHash` 相符即算「我的」），④区在**正式部署下也能列出本机提交过的反馈**，且任何人都无法由数据反推是谁。**本条仍保留 `machine:false`**：真机要跑到这处校验，须先**在同一会话内用公开反馈页提交一条反馈**（令牌落本地 → ④区出现该行 → 进详情 → 空提交触发本校验），与批 47-Z「让产品自己把前置走出来」同法，**留作下一批的解锁动作**（本批不动台账判据，只如实改写 reason + 更正行号）。' },
-  { file: SRC + 'components/record/report-entry.js', line: 119, field: '汇报内容', flow: 'component/一键汇报', machine: true, msg: '请填写汇报内容' },
-  { file: SRC + 'components/record/report-inbox.js', line: 217, field: '答复内容', flow: 'component/汇报收件箱·答复', machine: true, msg: '请填写答复内容' },
-  { file: SRC + 'components/record/taskforce-view.js', line: 342, field: '产出名称', flow: 'component/专班查看·产出', machine: true, msg: '请填写产出名称' },
+  { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 137, field: '汇报内容', flow: 'service/一键汇报', machine: true, msg: '请填写汇报内容' },
+  { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 301, field: '评论内容', flow: 'service/议题评论', machine: true, msg: '请输入评论内容' },
+  { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 378, field: '评论内容', flow: 'service/议题评论', machine: true, msg: '请输入评论内容' },
+  { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 384, field: '处置结果内容', flow: 'service/议题处置', machine: true, msg: '请输入处置结果内容' },
+  // 重复登记已合并（R3-08 两段化后实际行号 440；保留下一行）：{ file: SRC + 'components/feedback/issue-dispatch-view.js', line: 440, field: '说明内容', flow: 'service/议题说明', machine: false, msg: '请输入说明内容', reason: '【批 47-X 真机+接口双取证·**口径更正**】原 reason 写「纳入条件：种子把某条议题的 reporterId/participants 指向演示账号」——**这是不够的、且方向错了**。实测事实：① 种子 `docs/data/issues.json` 里 issue-001 本就 `submittedBy:2400012349`、issue-002/003 的 `participants` 含 2400012355/2400012345/2300010001，**认人字段本来就在**；② 但 api 形态 `GET /api/v1/issues` 实测返回 **6 条**：4 条公开反馈**一律** `submittedBy:\'匿名\' / participants:[] / anonymous:true`（服务端按「真匿名」口径脱敏，见 `server/seed.js::seedIssues`）、2 条 `kind:\'report\'` 保留真名；③ 而 `IssueStore.getMyIssues` **排除 `kind===\'report\'`** 且靠 `submittedBy`/`participants` 认人 ⇒ **api 形态下该区结构上恒为空**（不是「种子没挂上」）。真机复核：成员台(2400012349)/组织台(2400012355)/组长台(2400012345)/宣传台(2400012356) 逐台打开「我的处置」，④区标题均为「我提交 / 参与的反馈 · 0」、宿主显「暂无我提交或参与的反馈」。**⇒ 这不是种子问题，是两形态口径不一致的产品缺口**（mock 形态直读 issues.json 带真名 ⇒ 有行；api 形态脱敏 ⇒ 恒空），而 help/README-members 都把该区写成了功能。**已立 `Q-23-48` 待支书裁定（2026-09-16 登记）**。**⇒ 批次 48（2026-09-17 支书裁定 `Q-23-48`：**接受缺口 + 改文案**）**已按裁定落地**：① **不改服务端隐私口径**（真匿名是公开反馈页的承诺）；② **不造种子**（④区的数据来源是「服务端按人回认」，只种 mock 等于**只在演示形态显形＝假绿**）；③ **改文案说清口径**——`services/governance/issues.js` ④区标题下新增说明行「仅本地演示模式可见：正式部署下公开反馈按「真匿名」口径脱敏，无法按人回认」+ `help.html` 两处（§角色 tab 说明行 / 「我的处置」卡）+ `README-members.md` 成员能力行；④ 故本条**保留 `machine:false`**，reason 由「**待裁**」改为「**已裁定为产品接受的缺口**」（不再是悬而未决项，也不再是「纳入条件」）。**⇒ 批次 49（2026-09-17）该缺口的「根因」被修掉**：支书改裁走**不可反查的本人标识**——`IssueStore.getMyIssues` 新增第 ③ 条判据（本浏览器提交令牌的哈希 `tokenHash` 相符即算「我的」），④区在**正式部署下也能列出本机提交过的反馈**，且任何人都无法由数据反推是谁。**本条仍保留 `machine:false`**：真机要跑到这处校验，须先**在同一会话内用公开反馈页提交一条反馈**（令牌落本地 → ④区出现该行 → 进详情 → 空提交触发本校验），与批 47-Z「让产品自己把前置走出来」同法，**留作下一批的解锁动作**（本批不动台账判据，只如实改写 reason + 更正行号）。' },
+  { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 459, field: '说明内容', flow: 'service/议题说明', machine: false, msg: '请输入说明内容', reason: '【批 47-X 真机+接口双取证·**口径更正**】原 reason 写「纳入条件：种子把某条议题的 reporterId/participants 指向演示账号」——**这是不够的、且方向错了**。实测事实：① 种子 `docs/data/issues.json` 里 issue-001 本就 `submittedBy:2400012349`、issue-002/003 的 `participants` 含 2400012355/2400012345/2300010001，**认人字段本来就在**；② 但 api 形态 `GET /api/v1/issues` 实测返回 **6 条**：4 条公开反馈**一律** `submittedBy:\'匿名\' / participants:[] / anonymous:true`（服务端按「真匿名」口径脱敏，见 `server/seed.js::seedIssues`）、2 条 `kind:\'report\'` 保留真名；③ 而 `IssueStore.getMyIssues` **排除 `kind===\'report\'`** 且靠 `submittedBy`/`participants` 认人 ⇒ **api 形态下该区结构上恒为空**（不是「种子没挂上」）。真机复核：成员台(2400012349)/组织台(2400012355)/组长台(2400012345)/宣传台(2400012356) 逐台打开「我的处置」，④区标题均为「我提交 / 参与的反馈 · 0」、宿主显「暂无我提交或参与的反馈」。**⇒ 这不是种子问题，是两形态口径不一致的产品缺口**（mock 形态直读 issues.json 带真名 ⇒ 有行；api 形态脱敏 ⇒ 恒空），而 help/README-members 都把该区写成了功能。**已立 `Q-23-48` 待支书裁定（2026-09-16 登记）**。**⇒ 批次 48（2026-09-17 支书裁定 `Q-23-48`：**接受缺口 + 改文案**）**已按裁定落地**：① **不改服务端隐私口径**（真匿名是公开反馈页的承诺）；② **不造种子**（④区的数据来源是「服务端按人回认」，只种 mock 等于**只在演示形态显形＝假绿**）；③ **改文案说清口径**——`services/governance/issues.js` ④区标题下新增说明行「仅本地演示模式可见：正式部署下公开反馈按「真匿名」口径脱敏，无法按人回认」+ `help.html` 两处（§角色 tab 说明行 / 「我的处置」卡）+ `README-members.md` 成员能力行；④ 故本条**保留 `machine:false`**，reason 由「**待裁**」改为「**已裁定为产品接受的缺口**」（不再是悬而未决项，也不再是「纳入条件」）。**⇒ 批次 49（2026-09-17）该缺口的「根因」被修掉**：支书改裁走**不可反查的本人标识**——`IssueStore.getMyIssues` 新增第 ③ 条判据（本浏览器提交令牌的哈希 `tokenHash` 相符即算「我的」），④区在**正式部署下也能列出本机提交过的反馈**，且任何人都无法由数据反推是谁。**本条仍保留 `machine:false`**：真机要跑到这处校验，须先**在同一会话内用公开反馈页提交一条反馈**（令牌落本地 → ④区出现该行 → 进详情 → 空提交触发本校验），与批 47-Z「让产品自己把前置走出来」同法，**留作下一批的解锁动作**（本批不动台账判据，只如实改写 reason + 更正行号）。' },
+  { file: SRC + 'components/record/report-entry.js', line: 169, field: '汇报内容', flow: 'component/一键汇报', machine: true, msg: '请填写汇报内容' },
+  { file: SRC + 'components/record/report-inbox.js', line: 315, field: '答复内容', flow: 'component/汇报收件箱·答复', machine: true, msg: '请填写答复内容' },
+  { file: SRC + 'components/record/taskforce-view.js', line: 350, field: '产出名称', flow: 'component/专班查看·产出', machine: true, msg: '请填写产出名称' },
   // 批次 47-W（2026-09-16）：**三处由 `machine:false` 转 `machine:true`**——原 reason「实测 `.fu-add` 在 act-31
   //   详情不存在」**是事实**，但那只是**当时种子的事实**：该区只在有 `result:'passed'` 议程项时挂载，
   //   而原种子没有任何活动带 `result` ⇒ 结构性不可达。本批**按「造出真机可达且自洽的前置」处理**
@@ -349,11 +374,14 @@ export const VALIDATION_SITES = [
   { file: SRC + 'components/governance/resolution-followup-manager.js', line: 144, field: '责任人', flow: 'component/决议落实', machine: true, msg: '请选择责任人' },
   { file: SRC + 'components/governance/resolution-followup-manager.js', line: 145, field: '落实时限', flow: 'component/决议落实', machine: true, msg: '请选择落实时限' },
   { file: SRC + 'components/governance/vote-widget.js', line: 79, field: '表态', flow: 'component/表决控件', machine: true, msg: '请先选择表态' },
-  { file: SRC + 'components/record/inspector.js', line: 576, field: '表态', flow: 'component/活动巡查·表决', machine: true, msg: '请先选择表态' },
-  { file: SRC + 'components/record/inspector.js', line: 1415, field: '活动名称', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请填写活动名称' },
-  { file: SRC + 'components/record/inspector.js', line: 1416, field: '日期', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请选择日期' },
-  { file: SRC + 'components/record/inspector.js', line: 1417, field: '活动地点', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请填写活动地点' },
-  { file: SRC + 'components/governance/person-edit-modal.js', line: 334, field: '成员姓名', flow: 'component/人员编辑浮窗', machine: true, msg: '成员姓名不能为空' },
+  { file: SRC + 'components/record/inspector.js', line: 598, field: '表态', flow: 'component/活动巡查·表决', machine: true, msg: '请先选择表态' },
+  // 2026-10-20 数据生命周期批：纪检台写口不再硬编码 2400012354，改为按角色派生；无纪检委员时提示去档案维护。
+  //   这不是表单字段校验，而是「角色前置缺失」⇒ 无可稳定造出的真机表单路径，只登记不造数据。
+  { file: SRC + 'entries/tabs/disc/_shared.js', line: 28, field: '纪检委员', flow: 'disc/权限前置', machine: false, msg: '未找到纪检委员：请先在成员档案维护纪检委员角色', reason: '【2026-10-20 补登记】角色前置告警：需先把某人设为 disc-commissioner 才能进入写口；不属表单字段校验，缺稳定前置。' },
+  { file: SRC + 'components/record/inspector.js', line: 1429, field: '活动名称', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请填写活动名称' },
+  { file: SRC + 'components/record/inspector.js', line: 1430, field: '日期', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请选择日期' },
+  { file: SRC + 'components/record/inspector.js', line: 1431, field: '活动地点', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请填写活动地点' },
+  { file: SRC + 'components/governance/person-edit-modal.js', line: 352, field: '成员姓名', flow: 'component/人员编辑浮窗', machine: true, msg: '成员姓名不能为空' },
   // 批次 47-M（2026-09-16）：**独立页 `docs/wizard.html` · 「新建支部…」面板**——一条流程覆盖该面板**两处**校验点。
   // ⚠ 原 reason「需进入支部配置向导的对应步（多步向导）」/「同上：多步向导」**两条都错**：
   //   `_doCreate` 的两处守卫根本不在「多步向导的某一步」里，而在**页顶常驻的「新建支部…」小面板**上，
@@ -362,17 +390,20 @@ export const VALIDATION_SITES = [
   //   ⚠ 另一处实测事实：**「就地任命首任骨干」勾选框默认是勾上的**（`S.appointOn=true`，`#wz-create-appoint` checked）
   //   ——台账 47-K 曾有一条 reason 写「需勾选『就地任命首任骨干』（该勾选不存在）」被证伪（那是另一处）；
   //   这里恰好相反：**勾选存在且默认已勾** ⇒ 「首任支书」这一支**空提交即达**，连勾都不用点。
-  //   校验序：① 模式切「复制现有」后源支部为空 →「请选择源支部」；② 放行后 →「请选择首任支书…」。
-  { file: SRC + 'components/governance/org-setup-wizard.js', line: 1436, field: '源支部', flow: 'component/组织配置向导', machine: true, msg: '请选择源支部' },
-  { file: SRC + 'components/governance/org-setup-wizard.js', line: 392, field: '首任支书', flow: 'component/组织配置向导', machine: true, msg: '请选择首任支书' },
-  { file: SRC + 'components/sections/references.js', line: 803, field: '标题', flow: 'module/制度参考·写入', machine: true, msg: '请填写标题' },
-  { file: SRC + 'components/sections/references.js', line: 807, field: '制度正文', flow: 'module/制度参考·写入', machine: true, msg: '请填写制度正文' },
-  { file: SRC + 'components/sections/references.js', line: 809, field: '要上传的文件', flow: 'module/制度参考·写入', machine: true, msg: '请选择要上传的文件' },
+  //   ⚠ 2026-10-21 批次 500 改准：上面「勾选存在且默认已勾 ⇒ 空提交即达」只在**支部账号 / 有候选名册**时成立。
+  //   党委账号在向导页（未选支部）`PersonStore.getMembers()` 为空 ⇒ `appointable=false` ⇒ **整块不渲染**
+  //   （真机探针 500ms/2s/5s/10s 均无 `#wz-create-appoint`）⇒ 该支在本形态不可达，改 `machine:false` 登记。
+  //   校验序：① 模式切「复制现有」后源支部为空 →「请选择源支部」；② 放行后 →「请选择首任支书…」（仅支部账号）。
+  { file: SRC + 'components/governance/org-setup-wizard.js', line: 1443, field: '源支部', flow: 'component/组织配置向导', machine: true, msg: '请选择源支部' },
+  { file: SRC + 'components/governance/org-setup-wizard.js', line: 396, field: '首任支书', flow: 'component/组织配置向导', machine: false, msg: '请选择首任支书', reason: '【批次 500 改准 · 原判 machine:true 系误判】就地任命区块的渲染前提是 `appointable`（现役成员候选非空）；党委账号在向导页尚未选支部，`PersonStore.getMembers()` 为空（真机探针 500ms→10s 均未出现 `#wz-create-appoint`）⇒ 空提交直接建支部、走不到「请选择首任支书」。任命可在创支后于「支部管理 / 任命」完成（本批任命事务化端点覆盖）。' },
+  { file: SRC + 'components/sections/references.js', line: 788, field: '标题', flow: 'module/制度参考·写入', machine: true, msg: '请填写标题' },
+  { file: SRC + 'components/sections/references.js', line: 792, field: '制度正文', flow: 'module/制度参考·写入', machine: true, msg: '请填写制度正文' },
+  { file: SRC + 'components/sections/references.js', line: 794, field: '要上传的文件', flow: 'module/制度参考·写入', machine: true, msg: '请选择要上传的文件' },
   // 2026-10-05 批次 378（`SOP-B-25` ②「按草案落地」）：**制度内容（领域）必选**——决定「起草与监督」主体
   //   （判据单一源 `core/domain/work-map.js::INSTITUTION_DOMAINS`）；真机流程同 `page-refs-doc-write`（新增一步）。
-  { file: SRC + 'components/sections/references.js', line: 704, field: '制度内容（领域）', flow: 'module/制度参考·写入', machine: true, msg: '请选择制度内容（领域）' },
-  { file: SRC + 'components/sections/references.js', line: 803, field: '标题', flow: 'module/制度参考·新版本', machine: true, msg: '请填写标题' },
-  { file: SRC + 'components/sections/references.js', line: 929, field: '新版正文', flow: 'module/制度参考·新版本', machine: true, msg: '请填写新版正文' },
+  { file: SRC + 'components/sections/references.js', line: 699, field: '制度内容（领域）', flow: 'module/制度参考·写入', machine: true, msg: '请选择制度内容（领域）' },
+  { file: SRC + 'components/sections/references.js', line: 896, field: '标题', flow: 'module/制度参考·新版本', machine: true, msg: '请填写标题' },
+  { file: SRC + 'components/sections/references.js', line: 897, field: '新版正文', flow: 'module/制度参考·新版本', machine: true, msg: '请填写新版正文' },
   // 批次 47-M（2026-09-16）：**服务层与 UI 层的重复守卫**——这一条**不是「没去做」，也不是「种子不够」**，
   //   而是**结构上到不了**：`visitor/review-tab.js:181` 在**调它之前**就有一份同文案判据（`if (!content)` → return），
   //   故从任何 UI 入口都不可能让这份服务层守卫成为**第一个**报出来的那一个。
@@ -380,45 +411,52 @@ export const VALIDATION_SITES = [
   //   且 mock/api 双态下服务层才是真正边界 ⇒ 保留为**防御性重复守卫**合理。
   //   **台账口径**：此类条目应显式标注「服务层重复守卫」，与「缺数据/缺步骤」区分开——三者的处置完全不同
   //   （前者不修，中者可造数据，后者应补 schema）。本批首次给这一类打了标。
-  { file: SRC + 'services/governance/review.js', line: 119, field: '复盘总结', flow: 'service/活动复盘', machine: false, msg: '请填写复盘总结', reason: '【批 47-M 结构性不可达·服务层重复守卫】唯一 UI 调用点 `visitor/review-tab.js:181` 已先做同文案判据后才调用本函数 ⇒ 真机上本守卫**永远不是第一个报出来的**，UI 层实测已由同名额登记（`entries/tabs/visitor/review-tab.js` 182）。本函数为公开导出（`todo-domain-view.test.mjs` 断言支书「代提交复盘」走同链），服务层是 mock/api 双态的边界，故保留为防御性重复守卫。**归类：不修，只标**' },
-  { file: SRC + 'services/member/roster-ui-logic.js', line: 96, field: '成员姓名', flow: 'service/名册新增成员', machine: true, msg: '请填写成员姓名（必填）' },
-  { file: SRC + 'entries/pages/thought-report-entry.js', line: 284, field: '修改后的思想汇报内容', flow: '思想汇报页·修改', machine: true, msg: '请填写修改后的思想汇报内容' },
+  { file: SRC + 'services/governance/review.js', line: 121, field: '复盘总结', flow: 'service/活动复盘', machine: false, msg: '请填写复盘总结', reason: '【批 47-M 结构性不可达·服务层重复守卫】唯一 UI 调用点 `visitor/review-tab.js:181` 已先做同文案判据后才调用本函数 ⇒ 真机上本守卫**永远不是第一个报出来的**，UI 层实测已由同名额登记（`entries/tabs/visitor/review-tab.js` 182）。本函数为公开导出（`todo-domain-view.test.mjs` 断言支书「代提交复盘」走同链），服务层是 mock/api 双态的边界，故保留为防御性重复守卫。**归类：不修，只标**（2026-10-21 批次 497 随 `showActions` 选项插入 ⇒ 119 → 121）' },
+  { file: SRC + 'services/member/roster-ui-logic.js', line: 98, field: '成员姓名', flow: 'service/名册新增成员', machine: true, msg: '请填写成员姓名（必填）' },
+  // 2026-10-23 批次 504（R10-A01/A15）：学号与发展阶段改为必填，校验点在服务层同一函数内。
+  { file: SRC + 'services/member/roster-ui-logic.js', line: 100, field: '学号', flow: 'service/名册新增成员', machine: true, msg: '请填写学号（学号即成员唯一 id，必填）' },
+  { file: SRC + 'services/member/roster-ui-logic.js', line: 104, field: '发展阶段', flow: 'service/名册新增成员', machine: true, msg: '请选择发展阶段（必填）' },
+  { file: SRC + 'entries/pages/thought-report-entry.js', line: 290, field: '修改后的思想汇报内容', flow: '思想汇报页·修改', machine: true, msg: '请填写修改后的思想汇报内容' },
   // 批次 47-R（2026-09-16）**新增登记**：打回意见（同一独立页、另一提交口）。
   // ⚠ 说明为何此前不在台账里：S0/S2 只保证「规模不缩水」与「machine:true 全被覆盖」，
   //   **不保证「全站校验点都已登记」**——本条即是一处**台账遗漏**（原 92 条漏了这一处）。
-  //   本批顺手补上并直接真机覆盖：种子里 tr-4（p3）本就存在，**组织委员**登录该页即可打回
+  //   本批顺手补上并直接真机覆盖：种子里 tr-4（2400012347）本就存在，**组织委员**登录该页即可打回
   //   ⇒ 该处一直可达，只是**没人登记、也就没人跑**。**这就是「台账不是全量」的实例：漏登记＝漏发现。**
   // 2026-09-18 批次 86（`SOP-B-28` 取消初阅门）：打回由「初阅决定」改为**事后反馈**（可对任一篇发起），
   //   文案随之由「打回须填写初阅意见」改准为「打回须填写意见」；行号随本批改动同步。
-  { file: SRC + 'entries/pages/thought-report-entry.js', line: 261, field: '打回意见', flow: '思想汇报页·打回', machine: true, msg: '打回须填写意见' },
+  { file: SRC + 'entries/pages/thought-report-entry.js', line: 265, field: '打回意见', flow: '思想汇报页·打回', machine: true, msg: '打回须填写意见' },
 
   // ── 2026-10-01 批次 323（`R-73` 第 ③ 缺）：**新守卫 `validation-site-coverage::V1` 实测揪出的 5 处真漏登记** ──
   //   病因与批次 47-R 那条同源：S0/S2 只保证「规模不缩水」与「machine:true 全被覆盖」，
   //   **不保证「全站校验点都已登记」**——台账从此静默不是全量（`H-7` 的同一句话）。
   //   本批落成常驻守卫后立刻揪出这 5 处；四处都需特定前置态 ⇒ 一律 `machine:false` 并逐条写明理由（不造数据）。
-  { file: SRC + 'components/feedback/issue-form.js', line: 73, field: '事项领域', flow: 'component/议题提交·事项领域', machine: false, msg: '请选择事项领域', reason: '【批次 323 补登记】2026-09-21 批次 126（`SOP-B-32` 甲档）新立的**第二根轴**（「类型」＝对现状的性质、「事项领域」＝归口依据）当时未随批登记。真机流程 `page-feedback-issue-form` 现只放行 标题/正文/范围 三格 ⇒ 要达本分支须在该流程 `satisfy` 链上补 `#form-domain`，本批不造。' },
-  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 236, field: '考察处理内容（驳回申诉）', flow: 'leader/考察申诉·驳回', machine: false, msg: '请填写考察内容', reason: '【批次 323 补登记】组长台「考察管理」对**成员申诉**作处置时的必填项（`kind === "appeal"` 分支）。要达本分支须先有一条**处于申诉态**的考察记录（成员提申诉 → 组长处置），演示库里该前置不保证存在 ⇒ 缺稳定前置，本批只登记不造。' },
-  { file: SRC + 'entries/tabs/visitor/attendance-tab.js', line: 196, field: '说明（考勤申诉）', flow: 'visitor/考勤概况·申诉', machine: false, msg: '请填写说明', reason: '【批次 323 补登记】成员台「考勤概况」的「我参加了但没记上」浮窗（`visitor-att-appeal`）；与本文件 `:152`「补课申请」是**两个不同浮窗、两条不同判据**（此前台账只登了补课那条）。要达本分支须有一条**未记考勤**的当月活动 ⇒ 随演示库当月数据变化，缺稳定前置。' },
-  { file: SRC + 'entries/tabs/visitor/inspection-tab.js', line: 71, field: '申诉活动', flow: 'visitor/考察申诉', machine: false, msg: '请选择活动', reason: '【批次 323 补登记】成员台「考察」页的「申诉」表单（`#visitor-insp-appeal-act`）。**该文件此前不在台账内**（整条链路无登记）。要达本分支须先有可申诉的考察记录 ⇒ 缺稳定前置。' },
-  { file: SRC + 'entries/tabs/visitor/inspection-tab.js', line: 98, field: '申诉说明', flow: 'visitor/考察申诉', machine: false, msg: '请填写说明', reason: '【批次 323 补登记】同上一条（同一表单：活动格通过后才走到说明这一格）。' },
+  { file: SRC + 'components/feedback/issue-form.js', line: 74, field: '事项领域', flow: 'component/议题提交·事项领域', machine: false, msg: '请选择事项领域', reason: '【批次 323 补登记】2026-09-21 批次 126（`SOP-B-32` 甲档）新立的**第二根轴**（「类型」＝对现状的性质、「事项领域」＝归口依据）当时未随批登记。真机流程 `page-feedback-issue-form` 现只放行 标题/正文/范围 三格 ⇒ 要达本分支须在该流程 `satisfy` 链上补 `#form-domain`，本批不造。' },
+  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 246, field: '考察处理内容（驳回申诉）', flow: 'leader/考察申诉·驳回', machine: false, msg: '请填写考察内容', reason: '【批次 323 补登记】组长台「考察管理」对**成员申诉**作处置时的必填项（`kind === "appeal"` 分支）。要达本分支须先有一条**处于申诉态**的考察记录（成员提申诉 → 组长处置），演示库里该前置不保证存在 ⇒ 缺稳定前置，本批只登记不造。' },
+  { file: SRC + 'entries/tabs/visitor/attendance-tab.js', line: 222, field: '说明（考勤申诉）', flow: 'visitor/考勤概况·申诉', machine: false, msg: '请填写说明', reason: '【批次 323 补登记】成员台「考勤概况」的「我参加了但没记上」浮窗（`visitor-att-appeal`）；与本文件 `:152`「补课申请」是**两个不同浮窗、两条不同判据**（此前台账只登了补课那条）。要达本分支须有一条**未记考勤**的当月活动 ⇒ 随演示库当月数据变化，缺稳定前置。' },
+  { file: SRC + 'entries/tabs/visitor/inspection-tab.js', line: 105, field: '申诉活动', flow: 'visitor/考察申诉', machine: false, msg: '请选择活动', reason: '【批次 323 补登记】成员台「考察」页的「申诉」表单（`#visitor-insp-appeal-act`）。**该文件此前不在台账内**（整条链路无登记）。要达本分支须先有可申诉的考察记录 ⇒ 缺稳定前置。' },
+  { file: SRC + 'entries/tabs/visitor/inspection-tab.js', line: 106, field: '申诉说明', flow: 'visitor/考察申诉', machine: false, msg: '请填写说明', reason: '【批次 323 补登记】同上一条（同一表单：活动格通过后才走到说明这一格）。' },
   // ── 独立页：「我的私信」（批次 353 · 支书 `D-748`）────────────────────────
   //   三处均为「写私信」表单的字段级必填校验，**可机测**（真机流 `messages-compose-validate` 逐支验到）；
   //   校验次序刻意排为 **标题 → 正文 → 收件人** ⇒ 前两支**不依赖选人器**（真机流不需 openPicker）。
   //   回复区的「正文必填」**复用同一条文案**（同一口径，不另立第二处校验点）。
-  { file: SRC + 'entries/pages/messages-entry.js', line: 169, field: '标题', flow: 'messages/我的私信·写私信', machine: true, msg: '请填写标题' },
-  { file: SRC + 'entries/pages/messages-entry.js', line: 170, field: '正文', flow: 'messages/我的私信·写私信', machine: true, msg: '请填写正文' },
-  { file: SRC + 'entries/pages/messages-entry.js', line: 171, field: '收件人', flow: 'messages/我的私信·写私信', machine: true, msg: '请选择收件人' },
+  { file: SRC + 'entries/pages/messages-entry.js', line: 271, field: '标题', flow: 'messages/消息中心·写私信', machine: true, msg: '请填写标题' },
+  { file: SRC + 'entries/pages/messages-entry.js', line: 272, field: '正文', flow: 'messages/消息中心·写私信', machine: true, msg: '请填写正文' },
+  { file: SRC + 'entries/pages/messages-entry.js', line: 273, field: '收件人', flow: 'messages/消息中心·写私信', machine: true, msg: '请选择收件人' },
+  // ── 独立页「消息详情」私信回复（Task 3 · 2026-10-25）────────────────────────
+  //   回复框正文必填与「写私信」**同一文案同一口径**；本批不新增真机慢件（D-753），
+  //   线程回复已由服务层单测（notice-message / notice-audience 扩展）覆盖。
+  { file: SRC + 'entries/pages/notice-entry.js', line: 371, field: '回复正文', flow: 'notice/消息详情·私信回复', machine: false, msg: '请填写正文', reason: '【Task 3 新立】需先存在一条可见私信并进入详情页才能到达该分支；按 D-753 不新增真机慢件，回复写口由 notice 服务层单测覆盖。' },
   // ── 活动详情页「工作分工」（批次 359 · `D-750` 续答「全 CRUD」）────────────────
   //   新增 / 编辑共用表单的字段级必填校验一处（`#wa-work-name`）。
   //   ⚠ **本批未加真机流**：`D-753`（支书令「测试套件压到 ≤10 分钟 · 择其精要」）⇒ **不为新校验点新增慢件**；
   //   该分支已由**一次性真机探针**取证（批次 359 执行日志）。
-  { file: SRC + 'entries/pages/activity-entry.js', line: 781, field: '工作名称', flow: 'activity/工作分工·新增', machine: false, msg: '请填写工作名称', reason: '【批次 359 新立】**本批未加真机流**（`D-753`：测试套件压到 ≤10 分钟、择其精要 ⇒ 不新增慢件）；已由一次性真机探针取证（批次 359 执行日志「真机取证」节）。' },
+  { file: SRC + 'entries/pages/activity-entry.js', line: 1164, field: '工作名称', flow: 'activity/工作分工·新增', machine: false, msg: '请填写工作名称', reason: '【批次 359 新立】**本批未加真机流**（`D-753`：测试套件压到 ≤10 分钟、择其精要 ⇒ 不新增慢件）；已由一次性真机探针取证（批次 359 执行日志「真机取证」节）。' },
   // ── 2026-10-18 工作台提质：宣传任务登记（繁/堵专项 Task 3）──────────────
   //   新增登记表单两处字段级校验；按 `D-753` 不新增慢件，登记与校验由
   //   `workbench-revision-contract` 的静态断言覆盖（字段存在 + 校验文案在位）。
-  { file: SRC + 'entries/tabs/prop/tasks-tab.js', line: 102, field: '任务类型', flow: 'prop/宣传任务·登记', machine: false, msg: '请选择任务类型', reason: '【2026-10-18 新立】按 `D-753`（测试套件压到 ≤10 分钟）不新增慢件；登记表单与校验文案由 `workbench-revision-contract` 静态断言覆盖。' },
-  { file: SRC + 'entries/tabs/prop/tasks-tab.js', line: 107, field: '任务内容', flow: 'prop/宣传任务·登记', machine: false, msg: '请填写任务内容', reason: '同上：与任务类型同属一个新登记表单，本批不新增慢件。' },
-  { file: SRC + 'components/governance/signup-panel.js', line: 240, field: '是否线下参加', flow: 'activity/报名·线下选择', machine: false, msg: '请先选择是否线下参加本次主题党日', reason: '【2026-10-18 补登记】该分支须先有可报名的主题党日并进入线下选择；随演示库活动状态变化，缺稳定前置，本批只登记不造数据。' },
+  { file: SRC + 'entries/tabs/prop/tasks-tab.js', line: 118, field: '任务类型', flow: 'prop/宣传任务·登记', machine: false, msg: '请选择任务类型', reason: '【2026-10-18 新立】按 `D-753`（测试套件压到 ≤10 分钟）不新增慢件；登记表单与校验文案由 `workbench-revision-contract` 静态断言覆盖。' },
+  { file: SRC + 'entries/tabs/prop/tasks-tab.js', line: 123, field: '任务内容', flow: 'prop/宣传任务·登记', machine: false, msg: '请填写任务内容', reason: '同上：与任务类型同属一个新登记表单，本批不新增慢件。' },
+  { file: SRC + 'components/governance/signup-panel.js', line: 241, field: '是否线下参加', flow: 'activity/报名·线下选择', machine: false, msg: '请先选择是否线下参加本次主题党日', reason: '【2026-10-18 补登记】该分支须先有可报名的主题党日并进入线下选择；随演示库活动状态变化，缺稳定前置，本批只登记不造数据。' },
 ];
 
 // ── 真机闭环流程清单 ────────────────────────────────────────────────────
@@ -466,6 +504,29 @@ export const MACHINE_FLOWS = [
       { file: SRC + 'entries/tabs/secretary/calendar-tab.js', field: '活动地点', msg: '请填写活动地点', carrier: '#wp-location' },
     ],
   },
+  // 批次 500（B-499-1 收尾）：跨组活动必须有唯一责任党小组——把 `machine:true` 真正纳入真机闭环。
+  //   ⚠ 必须选**主题党日**（`data-category="theme-day"`）：三会一课三块是支部级法定会议（`organizingScope`
+  //   为 branch，不要求责任党小组），默认点第一张卡会跳到支部党员大会，第 4 跳永远不可达。
+  //   前置：选主题党日 → 清空预填日期 → 顺序放行名称 / 日期 / 地点 → 第 4 次提交落到「组织落点」。全程不落库。
+  {
+    id: 'secretary-calendar-write-scope',
+    page: 'secretary',
+    tab: '活动管理',
+    open: [
+      { click: '#ws-sec-write-btn' },
+      { waitFor: '[data-action="select-template"][data-category="theme-day"]' },
+      { click: '[data-action="select-template"][data-category="theme-day"]' },
+      { waitFor: '#wp-title' },
+      { setValue: { selector: '#wp-date', value: '' } },
+    ],
+    submit: [{ click: '[data-action="wp-submit"]' }],
+    expect: [
+      { file: SRC + 'entries/tabs/secretary/calendar-tab.js', field: '活动名称', msg: '请填写活动名称', carrier: '#wp-title', satisfy: { setValue: { selector: '#wp-title', value: '表单闭环普查·责任组' } } },
+      { file: SRC + 'entries/tabs/secretary/calendar-tab.js', field: '日期', msg: '请选择日期', carrier: '#wp-date', satisfy: { setValue: { selector: '#wp-date', value: '2026-10-31' } } },
+      { file: SRC + 'entries/tabs/secretary/calendar-tab.js', field: '活动地点', msg: '请填写活动地点', carrier: '#wp-location', satisfy: { setValue: { selector: '#wp-location', value: '第一会议室' } } },
+      { file: SRC + 'entries/tabs/secretary/calendar-tab.js', field: '承办党小组', msg: '请选择承办党小组', carrier: '#wp-host-group' },
+    ],
+  },
   // 批次 323（2026-10-01）：`R-73` 第 ③ 缺的守卫（`validation-site-coverage::V1`）落成时，`form-loop-sweep::S2`
   //   同时暴露一处**存量红**——批次 303 把「写入活动 · 内嵌项目赋权」两处登记为 `machine:true`，
   //   却**从未纳入任何 `MACHINE_FLOWS.expect`** ⇒ 按 S2 判据（machine:true 必须全部出现在某流程 expect 里）长期红。
@@ -503,7 +564,8 @@ export const MACHINE_FLOWS = [
   {
     id: 'visitor-thought-report',
     page: 'visitor',
-    tab: '思想汇报',
+    // 2026-10-25 IA 62→45：思想汇报页签并入「我的成长」；默认展开第一子区（思想汇报）。
+    tab: '我的成长',
     open: [],
     submit: [{ click: '#tr-submit' }],
     expect: [
@@ -662,7 +724,7 @@ export const MACHINE_FLOWS = [
     tab: '活动管理',
     open: [
       // 批次 47-W：入口由「日历**第一条**」改为**显式指定 act-31**——原写法依赖「当月恰好只有一条活动」
-      //   这个**偶然事实**（2026-09 只有 act-31）；本批为「决议落实」新增了 act-35（8 月）后，
+      //   这个**偶然事实**（当时 2026-09 只有 act-31）；本批为「决议落实」新增了 act-35（8 月）后，
       //   一旦将来 9 月再多一条，本流程就会静默切到别的活动上（**判据随数据变动**，同 R-76 ④）。
       // 批次 440（2026-10-11）：10 月新增 act-36/act-37 后，「活动管理」日历默认落**当月（10 月）**
       //   ⇒ act-31（9 月）不在默认网格里。故**先切月到 2026-09** 再点（做法同下方 act-35 流程的 `selectValue`）。
@@ -715,23 +777,23 @@ export const MACHINE_FLOWS = [
   {
     // 批次 47-X（2026-09-16）：**成员台 · 知情查看 · 专班分段 · 「我的产出填报」**——承 47-W 的 R-78 口径，再清一处不可达。
     // 入口链：知情查看 tab（`components/record/insight-view.js`）→ 分段钮 `.insight-view-btn[data-iview="taskforce"]`
-    //   → 专班卡 `.tfv-card[data-tf-id="tf-001"]`（点击进只读详情）→ 详情内 `#tfv-contrib-add`（「填报本条产出」）。
-    // ⚠ **成立条件＝种子给 active 专班补一名演示账号成员**（本批改 `docs/src/data/mock/taskforces.js::tf-001`
-    //   成员补 p5）：该填报区**只在 `tf.status==='active' && isMember` 时渲染**（`taskforce-view.js:194`），
-    //   而原种子两只 active 专班的成员（p8+p9 / p4+p7）**全非演示账号** ⇒ 任何演示账号登录都看不到它（结构性不可达）。
-    //   **造前置时守 R-78 ②**：只**加成员**、**不动状态**、容量内（2/5 → 3/5）⇒「某 active 专班的成员里有本人」
+    //   → 专班卡 `.tfv-card[data-tf-id="tf-002"]`（点击进只读详情）→ 详情内 `#tfv-contrib-add`（「填报本条产出」）。
+    // ⚠ **成立条件＝种子给 active 专班补一名演示账号成员**（R2-32 后 `docs/src/data/mock/taskforces.js::tf-002`
+    //   成员含 2400012349；tf-001 已按日期收口为 completed，不再承载该入口）：该填报区**只在 `tf.status==='active' && isMember` 时渲染**
+    //   （`taskforce-view.js:194`），而原种子两只 active 专班的成员（2400012352+2400012353 / 2400012348+2400012351）**全非演示账号** ⇒ 结构性不可达。
+    //   **造前置时守 R-78 ②**：只**加成员**、**不动状态**、容量内（2/3 → 3/3）⇒「某 active 专班的成员里有本人」
     //   本就是产品自己走得通的状态（成员由报名/发起流程加入）。
     // ⚠ 判据载体＝**文本域自身** `#tfv-my-contrib-desc`（不另造判据）；提示由 `showToast` 走全局 toast。
     // ⚠ 成员台「知情查看」是**只读形态**（`readonly` 缺省 true）——但「我的产出填报」是 R3-3 给**成员本人**的写口，
     //   与该形态不冲突（只读指的是「活动分段不可编辑」）。
     id: 'visitor-insight-taskforce-contribution',
     page: 'visitor',
-    // 2026-10-04 批次 371：成员台页签名由「知情查看」改「**专班动态**」（只出专班段；id 仍 `tf-view`）
-    tab: '专班动态',
+    // 2026-10-25 IA 62→45：成员台「专班动态」页签已并入「项目分工 · 专班」区
+    tab: '项目分工',
     open: [
-      { click: '.insight-view-btn[data-iview="taskforce"]' },
-      { waitFor: '.tfv-card[data-tf-id="tf-001"]' },
-      { click: '.tfv-card[data-tf-id="tf-001"]' },
+      { click: '[data-proj-subview="tf"]' },
+      { waitFor: '.tfv-card[data-tf-id="tf-002"]' },
+      { click: '.tfv-card[data-tf-id="tf-002"]' },
       { waitFor: '#tfv-output-add' },
     ],
     submit: [{ click: '#tfv-output-add' }],
@@ -780,7 +842,7 @@ export const MACHINE_FLOWS = [
   {
     // 批次 327（2026-10-01 · `SOP-G-2-②`「转交组织者」· 支书裁「乙：直接转交 ＋ 留痕」）：
     //   同一独立页 `docs/activity.html?id=act-31` 的**专用「转交组织者」浮窗**——不选接手人即点「转交」。
-    //   ⚠ 前置：`act-31` 的 `assignments` 含 `role:'organizer'`（p11）⇒ 「本场有组织者」成立；
+    //   ⚠ 前置：`act-31` 的 `assignments` 含 `role:'organizer'`（2400012355）⇒ 「本场有组织者」成立；
     //     发起人取支书（属四类可发起之一：支书 / 副支书 / 组织委员 / 现任组织者本人）。
     id: 'page-activity-organizer-transfer',
     page: 'secretary',
@@ -876,11 +938,18 @@ export const MACHINE_FLOWS = [
     path: '/workspace/org.html?tab=roster',
     open: [
       { click: '#roster-add-btn' },
-      { waitFor: 'form[data-modal-form] button[type="submit"]' },
+      { waitFor: '[data-modal-submit="roster-add-member"]' },
     ],
-    submit: [{ click: 'form[data-modal-form] button[type="submit"]' }],
+    submit: [{ click: '[data-modal-submit="roster-add-member"]' }],
     expect: [
-      { file: SRC + 'services/member/roster-ui-logic.js', field: '成员姓名', msg: '请填写成员姓名（必填）', carrier: 'form[data-modal-form] input[data-field="name"]' },
+      // 2026-10-23 批次 504（R10-A01/A15）：新增「学号必填」「发展阶段必填」两条——
+      //   `validateMemberForm` 的判定**有序**（姓名 → 学号 → 发展阶段），故三条必须按序放行：
+      //   前一条报错后先用 `satisfy` 补齐，才轮到下一条（与 secretary 通知三条同规）。
+      { file: SRC + 'services/member/roster-ui-logic.js', field: '成员姓名', msg: '请填写成员姓名（必填）', carrier: 'form[data-modal-form] input[data-field="name"]',
+        satisfy: { setValue: { selector: 'form[data-modal-form] input[data-field="name"]', value: '表单闭环普查成员' } } },
+      { file: SRC + 'services/member/roster-ui-logic.js', field: '学号', msg: '请填写学号（学号即成员唯一 id，必填）', carrier: 'form[data-modal-form] input[data-field="studentId"]',
+        satisfy: { setValue: { selector: 'form[data-modal-form] input[data-field="studentId"]', value: '2499999999' } } },
+      { file: SRC + 'services/member/roster-ui-logic.js', field: '发展阶段', msg: '请选择发展阶段（必填）', carrier: 'form[data-modal-form] select[data-field="developStage"]' },
     ],
   },
   {
@@ -896,7 +965,7 @@ export const MACHINE_FLOWS = [
       { waitFor: '#person-edit-modal-form' },
       { setValue: { selector: '#person-edit-modal-form input[data-field="name"]', value: '' } },
     ],
-    submit: [{ click: '#person-edit-modal-form button[type="submit"]' }],
+    submit: [{ click: '[data-modal-submit="person-edit-modal"]' }],
     expect: [
       { file: SRC + 'components/governance/person-edit-modal.js', field: '成员姓名', msg: '成员姓名不能为空', carrier: '#person-edit-modal-form input[data-field="name"]' },
     ],
@@ -922,9 +991,15 @@ export const MACHINE_FLOWS = [
   {
     id: 'leader-inspection',
     page: 'leader',
-    // 2026-10-04 批次 369（`#10` 单一轴 · 支书圈甲）：页签名由「考察上传」改「考察管理」（对象轴，与纪检台同名同轴）
-    tab: '考察管理',
+    // 2026-10-25 IA 62→45：考察管理页签降为「组员进展」页内折叠区「上传考察」。
+    // 2026-10-04 批次 369：页签名由「考察上传」改「考察管理」（对象轴，与纪检台同名同轴）
+    tab: '组员进展',
+    // 2026-11-01 Task 7：「上传考察」由页内折叠区降为卡头按钮。
     open: [
+      { waitFor: '#leader-insp-toggle' },
+      { click: '#leader-insp-toggle' },
+      // 折叠体内容由 `inspection-tab.js` 异步挂载 ⇒ 点按钮前必须等它真的渲染出来（否则点击静默落空）。
+      { waitFor: '#btn-leader-upload-insp' },
       { click: '#btn-leader-upload-insp' },
       { waitFor: '#insp-form-panel' },
     ],
@@ -945,6 +1020,7 @@ export const MACHINE_FLOWS = [
     page: 'disc',
     tab: '考察管理',
     open: [
+      { waitFor: '#btn-disc-upload-insp' },
       { click: '#btn-disc-upload-insp' },
       { waitFor: '#disc-insp-form-panel' },
     ],
@@ -999,14 +1075,15 @@ export const MACHINE_FLOWS = [
     //   ⇒ 源码 `if (reason === null) return;` **直接 return，连空值分支都到不了**
     //   （源码 624-626：先判 `null`，再判 `.trim()` 为空）。**两个障碍缺一不可**。
     // 处置（R-78 两条出口里的「造真机可达的前置」）：
-    //   ① 种子：`docs/src/data/mock/taskforces.js::tf-001` 给 p5 补**一条待核产出**（`{id,desc,by,at}` 且无
+    //   ① 种子：`docs/src/data/mock/taskforces.js::tf-002` 给 2400012349 补**一条待核产出**（`{id,desc,by,at}` 且无
     //      `verifiedStatus`）——这正是成员在「我的产出填报」提交后的形状，产品自己就会产出它；
+    //      （R2-32 后 tf-001 已按日期 completed，待核产出随演示载体一并迁到 tf-002。）
     //   ② 能力：`runStep` 新增 **`dialogAnswer`** 步骤（在**触发它的那一步之前**注册一次性应答器），
     //      本流程用 `answer:''` 打**空值分支**；`answer:'某原因'` 可打成功分支（留作后继复用）。
     // ⚠ 入口链与 `org-taskforce-progress-add`（47-V 成功路径）**同属「运行中」专班 → 详情面板**，
     //   只是本条的落点在**逐条核验块**而非进度块——「同面板多块」的第四例。
-    // ⚠ **入口必须显式指定 tf-001**（`[data-tf-id="tf-001"]`），不能点「第一张卡」——本批真机首跑即踩：
-    //   第一张卡**不是** tf-001（运行中桶里另有 tf-002），于是逐条核验块读的是别的专班 ⇒ 报「等待超时」。
+    // ⚠ **入口必须显式指定 tf-002**（`[data-tf-id="tf-002"]`），不能点「第一张卡」——本批真机首跑即踩：
+    //   第一张卡**不是**目标专班（运行中桶里另有其它 active），于是逐条核验块读的是别的专班 ⇒ 报「等待超时」。
     //   **这与 47-W 把 `.cal-activity-item` 改成 `[data-act-id]` 是同一课**：靠「第一张」成立的判据，
     //   一旦桶里多一只就静默换对象（R-78 ④）。
     // ⚠ 判据载体＝**被点的那个按钮自身**（点击后弹窗早期 return，按钮仍在位）。
@@ -1014,28 +1091,28 @@ export const MACHINE_FLOWS = [
     page: 'org',
     tab: '专班管理',
     open: [
-      { click: '#tf-bucket-active .tf-store-card[data-tf-id="tf-001"]' },
+      { click: '#tf-bucket-active .tf-store-card[data-tf-id="tf-002"]' },
       { waitFor: '.tf-contrib-verify-btn[data-decision="reject"]' },
       { dialogAnswer: '' },
     ],
     submit: [{ click: '.tf-contrib-verify-btn[data-decision="reject"]' }],
     expect: [
-      { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 778, field: '退回原因', msg: '请填写退回原因', carrier: '.tf-contrib-verify-btn[data-decision="reject"]' },
+      { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 851, field: '退回原因', msg: '请填写退回原因', carrier: '.tf-contrib-verify-btn[data-decision="reject"]' },
     ],
   },
   {
     // 批次 47-Y（2026-09-16，承 R-78 口径）：**成员台 · 考勤概况 · 去补课 → 补课说明**。
-    // 台账原 reason 写「需 p5 的 pending 补课任务；该域按设计无静态种子，由纪检操作派生」——**后半句是错的**：
+    // 台账原 reason 写「需 2400012349 的 pending 补课任务；该域按设计无静态种子，由纪检操作派生」——**后半句是错的**：
     //   ① 「无静态种子」不是设计必然，而是**当初没种**（`data-adapter.js` 那句「空属合理」已被本批更正）；
     //   ② 更关键的是**日期耦合**：该页只列**当月**活动（`visitor/attendance-tab.js:24-25`），
-    //      而 7 月那条现成的 p5 缺勤（att38/act-11）**根本不在当月** ⇒ 就算照原方案「等纪检派生」也看不到。
+    //      而 act-11（2026-09-04）那条现成的 2400012349 缺勤（att38）**根本不在当月** ⇒ 就算照原方案「等纪检派生」也看不到。
     // 处置（R-78 出口一：造**可达且自洽**的前置）：
-    //   ① `docs/src/data/mock/attendance.js` 补 **9 月**缺勤一条（`att-sep-1`：p5 · act-31 · 缺勤 · **已确认**）；
+    //   ① `docs/src/data/mock/attendance.js` 补 **9 月**缺勤一条（`att-sep-1`：2400012349 · act-31 · 缺勤 · **已确认**）；
     //   ② `docs/src/data/mock/seed.js::SEED_MAKEUP_TASKS` 补**该条的派生结果**（补课任务，`attendanceRecordId` 对得上、
     //      `deadline` = 缺勤日 +7 天、`proofContent: null`）⇒ 与 `autoGenerateMakeupTask()` 落库形状逐项一致；
     //   ③ 两形态同源注入（`server/seed.js` 的 `replaceCollection('makeup_tasks')` ＋ `mock-adapter._seedInitialData`）
     //      ——**只种 mock 就是假绿**（47-S 的教训）。
-    // ⚠ **必须是「已确认」的缺勤**（`recordedBy:'p10'`）：补课任务由「纪检**确认**考勤」时才派生，
+    // ⚠ **必须是「已确认」的缺勤**（`recordedBy:'2400012354'`）：补课任务由「纪检**确认**考勤」时才派生，
     //   若记录还是待确认态却已存在补课任务，两者自相矛盾（R-78 ② 自洽）。
     // ⚠ 弹窗由 `openFormModal` 生成：字段 `[data-field="proof"]`、提交口 `[data-modal-form="..."] button[type=submit]`；
     //   判据载体＝**文本域自身**（点击后弹窗不关，仅弹 toast，故载体仍在位）。
@@ -1046,9 +1123,9 @@ export const MACHINE_FLOWS = [
       { click: '.visitor-att-makeup-btn' },
       { waitFor: '[data-modal-form="visitor-makeup-proof"]' },
     ],
-    submit: [{ click: '[data-modal-form="visitor-makeup-proof"] button[type="submit"]' }],
+    submit: [{ click: '[data-modal-submit="visitor-makeup-proof"]' }],
     expect: [
-      { file: SRC + 'entries/tabs/visitor/attendance-tab.js', line: 171, field: '补课说明', msg: '请填写补课说明', carrier: '[data-field="proof"]' },
+      { file: SRC + 'entries/tabs/visitor/attendance-tab.js', line: 196, field: '补课说明', msg: '请填写补课说明', carrier: '[data-field="proof"]' },
     ],
   },
   {
@@ -1067,12 +1144,12 @@ export const MACHINE_FLOWS = [
     ],
     submit: [{ click: '[data-makeup-void-ok]' }],
     expect: [
-      { file: SRC + 'components/ui/void-record.js', line: 61, field: '作废原因', msg: '请填写作废原因（必填）', carrier: '#makeup-void-reason' },
+      { file: SRC + 'components/ui/void-record.js', line: 67, field: '作废原因', msg: '请填写作废原因（必填）', carrier: '#makeup-void-reason' },
     ],
   },
   // 批次 124（2026-09-21）**退役**：原 `disc-meeting-attendance`（纪检台 · 考勤管理 · 建考勤）流程——
   //   会议考勤上传主体收归「该场会议组织者」（支书 2026-09-20 定案，落地 `D-547`）后，纪检台
-  //   「会议考勤录入」表单只列**本人可上传**的会议场次；演示数据里纪检（p10）不持任何会议场次的上传位
+  //   「会议考勤录入」表单只列**本人可上传**的会议场次；演示数据里纪检（2400012354）不持任何会议场次的上传位
   //   ⇒ 表单长期空态，`waitFor: '#disc-meet-submit'` **结构性**不成立（不是抖动）。
   //   两条校验点随之转 `machine:false`（理由见上方 VALIDATION_SITES「纪检委员台」段）；
   //   **同形态的两条校验未失覆盖**：`leader-attendance-upload`（组织者上传位）的「活动 / 参会人员」仍在跑。
@@ -1244,7 +1321,7 @@ export const MACHINE_FLOWS = [
     //   而「先有议题」由种子提供，属可达。
     id: 'secretary-feedback-issue-detail',
     page: 'secretary',
-    tab: '反馈管理',
+    tab: '意见反馈',
     open: [
       { click: '[data-issue-action="open-detail"]' },
       { waitFor: '#issue-comment-input' },
@@ -1267,17 +1344,19 @@ export const MACHINE_FLOWS = [
     //   **「字段联动」是真的，但它只影响选项内容，不影响校验可达性**——把「联动复杂」当不可自动化的理由，
     //   是把「读起来复杂」当成了「跑不通」（同批第三例：见批 ⑨/⑫ 的同类教训）。
     id: 'secretary-assign-project-auth',
-    page: 'secretary',
-    tab: '活动管理',
+    page: 'org',
+    // 2026-10-25 IA 62→45：支书台「活动管理」不再承担权限分配（活动赋权在活动详情）；
+    //   本流程改测**本位承接面**——组织台「专班管理」页底的「项目赋权 · 专班」块（同一 assign-tab 实现）。
+    tab: '专班管理',
     open: [
-      { waitFor: '#confirm-project-auth-btn' },
-      { setValue: { selector: '#project-id-select', value: '' } },
+      { waitFor: '#confirm-tf-auth-btn' },
+      { setValue: { selector: '#tf-project-select', value: '' } },
     ],
-    submit: [{ click: '#confirm-project-auth-btn' }],
+    submit: [{ click: '#confirm-tf-auth-btn' }],
     expect: [
-      { file: SRC + 'entries/tabs/secretary/assign-tab.js', field: '被赋权人', msg: '请选择被赋权人', carrier: '#project-auth-picker-container .person-picker-trigger', satisfy: { openPicker: { trigger: '#project-auth-picker-container .person-picker-trigger', count: 1 } } },
-      { file: SRC + 'entries/tabs/secretary/assign-tab.js', field: '项目', msg: '请选择项目', carrier: '#project-id-select', satisfy: { selectFirstOption: '#project-id-select' } },
-      { file: SRC + 'entries/tabs/secretary/assign-tab.js', field: '角色', msg: '请选择角色', carrier: 'input[name="project-role"]' },
+      { file: SRC + 'entries/tabs/secretary/assign-tab.js', field: '被赋权人', msg: '请选择被赋权人', carrier: '#tf-auth-picker-container .person-picker-trigger', satisfy: { openPicker: { trigger: '#tf-auth-picker-container .person-picker-trigger', count: 1 } } },
+      { file: SRC + 'entries/tabs/secretary/assign-tab.js', field: '项目', msg: '请选择项目', carrier: '#tf-project-select', satisfy: { selectFirstOption: '#tf-project-select' } },
+      { file: SRC + 'entries/tabs/secretary/assign-tab.js', field: '角色', msg: '请选择角色', carrier: 'input[name="tf-role"]' },
     ],
   },
   {
@@ -1348,8 +1427,10 @@ export const MACHINE_FLOWS = [
     //   ⚠ 另一处同源坑的反面：**「待处置」有行不等于「请我汇报」也有行**——三个区各按不同字段过滤（见台账注释）。
     id: 'leader-my-dispatch-detail',
     page: 'leader',
-    tab: '我的处置',
+    // 2026-10-25 IA 62→45：我的处置页签并入待办「我经办的反馈」区。
+    tab: '待办',
     open: [
+      { waitFor: '[data-todo-dispatch]' },
       { waitFor: '[data-mydispatch-action="open"]' },
       { click: '[data-mydispatch-action="open"]' },
       { waitFor: '#mydispatch-comment-input' },
@@ -1437,7 +1518,6 @@ export const MACHINE_FLOWS = [
     submit: [{ click: '[data-wz-act="do-create"]' }],
     expect: [
       { file: SRC + 'components/governance/org-setup-wizard.js', field: '源支部', msg: '请选择源支部', carrier: '#wz-create-source', satisfy: { selectFirstOption: '#wz-create-source' } },
-      { file: SRC + 'components/governance/org-setup-wizard.js', field: '首任支书', msg: '请选择首任支书', carrier: '#wz-create-appoint-secretary' },
     ],
   },
   {
@@ -1477,7 +1557,7 @@ export const MACHINE_FLOWS = [
   // 四处的公共前置是「存在 `kind:'report'` 的内部汇报」，而该域的内容单一源 `docs/data/issues.json`
   // **当时同时是公开匿名反馈页的数据源** ⇒ 直种会让内部汇报出现在当时的公开面。
   // 处置（支书裁定 2026-09-16）：① **公开页加过滤**（`issue-list.js` 传 `kind:'feedback'`，列表与统计同一 kind）；
-  //   ② **种进同源**（issue-101 请汇报请求 → 组织委员 p11；issue-102 成员主动汇报 → 组长 p1）；
+  //   ② **种进同源**（issue-101 请汇报请求 → 组织委员 2400012355；issue-102 成员主动汇报 → 组长 2400012345）；
   //   ③ **服务端按 kind 分流脱敏**（真匿名是**公开反馈**的口径，内部汇报按设计带名）。
   // 现存提交口三处（工作概况行内提交口已于 2026-10-18 繁专项 Task 6 删除，提交只保留在「我的处置」）：
   //   · ①区「请我汇报」行内提交口（`[data-mydispatch-action="submit-report"]`）
@@ -1490,7 +1570,8 @@ export const MACHINE_FLOWS = [
   {
     id: 'org-my-dispatch-report-request',
     page: 'org',
-    tab: '我的处置',
+    // 2026-10-25 IA 62→45：我的处置页签并入待办「我经办的反馈」区。
+    tab: '待办',
     open: [
       { waitFor: '[data-mydispatch-action="submit-report"]' },
     ],
@@ -1502,7 +1583,8 @@ export const MACHINE_FLOWS = [
   {
     id: 'leader-my-dispatch-my-report',
     page: 'leader',
-    tab: '我的处置',
+    // 2026-10-25 IA 62→45：我的处置页签并入待办「我经办的反馈」区。
+    tab: '待办',
     open: [
       { waitFor: '[data-mydispatch-action="open-report"]' },
       { click: '[data-mydispatch-action="open-report"]' },
@@ -1533,25 +1615,24 @@ export const MACHINE_FLOWS = [
   //   自管 localStorage 键 `gsm1921-member-confirmations`，mock/api 两态都没有服务端表）。
   //   ⇒ 原 reason 写的「组织委员在**某台**发起一次变更 → 该待办即出现」是**不成立的跨人假设**（如实更正）。
   // 真正可达的链（同一会话内）：支书本人也在该写权内（`person-entry.js::EDIT_ROLES`）⇒
-  //   `person.html?id=p7` →「编辑档案」→ 改「发展阶段」（`[data-field="developStage"]`，报支书确认那一组）
+  //   `person.html?id=2400012351` →「编辑档案」→ 改「发展阶段」（`[data-field="developStage"]`，报支书确认那一组）
   //   → 保存 ⇒ 队列里出现一条 pending ⇒ 回支书台「待办」→ 成员发展域 → 组行进详情 ⇒ 退回按钮在位。
   // 依赖的新能力：`{ goto }`（跨页跳转）· `{ openTab }`（跳回工作台后切 tab）——与 `dialogAnswer` / `reopen[]`
   //   同规：**形态逼出来的能力，不是为凑覆盖**。
-  // ⚠ **2026-09-21 批次 127 改准（改测试不改制度，同 `D-513` 口径）**：原前置改的是 `p7`（**积极分子**）→
+  // ⚠ **2026-09-21 批次 127 改准（改测试不改制度，同 `D-513` 口径）**：原前置改的是 `2400012351`（**积极分子**）→
   //   「**发展对象**」；`D-553` 起该步**受「支委会讨论门」前置**（未上会讨论通过即被挡）⇒ 队列里不再出现 pending、
   //   本流程在「等 `secretary:member-confirm` 组行」处超时。本流程只为**造一条 pending**（校验点是「退回原因」必填），
   //   **与目标阶段无关** ⇒ 改用**不受该门约束**的 `积极分子 → 预备党员`（同一个人、同一处写口，**判据一字未改**）。
+  // 2026-10-21 批次 501 改准：原前置「支书本人经 person.html 改阶段」已不可达——
+  //   `canMaintainMemberProfileFields` 只认**同支部组织委员**（`#person-stage-btn` 不再给支书渲染，探针实测 count=0）。
+  //   现改为把「组织委员刚提交的一条 pending」写进同一个客户端队列（`gsm1921-member-confirmations`），
+  //   再走**真实 UI**：待办组 → 详情 → 退回 → 原因必填。判据（`请填写退回原因`）一字未改。
   {
     id: 'secretary-todo-reject-reason',
     page: 'secretary',
     tab: '待办',
     open: [
-      { goto: '/person.html?id=p7' },
-      { waitFor: '#person-stage-btn' },
-      { click: '#person-stage-btn' },
-      { waitFor: '#person-edit-modal-form' },
-      { selectValue: { selector: '[data-field="developStage"]', value: '预备党员' } },
-      { click: '#person-edit-modal-form button[type="submit"]' },
+      { seedPendingConfirmation: { personId: '2400012351', name: '曾雨桐', from: '积极分子', to: '预备党员', by: '2400012355' } },
       { goto: '/workspace/secretary.html' },
       { waitFor: 'button[role="tab"]' },
       { openTab: '待办' },
@@ -1568,19 +1649,21 @@ export const MACHINE_FLOWS = [
   },
   // 批次 47-R（2026-09-16，支书裁定「过渡态种子都补」）：**过渡态种子簇**——三处，两改种子 + 一处补登记。
   // 三处的共同点：**都缺「过渡态数据」而不是缺功能**（按钮只在某个状态分支里渲染，而种子里永远没有那个状态）。
-  // 1) 成员台「我的复盘」：种子把 p5 排为 act-3 的 `deep`（复盘责任人）⇒ 行卡出现。
-  // 2) 思想汇报「修改并重新提交」：种子补 tr-5（p5 · needs_revision）⇒ 本人可见修改态。
+  // 1) 成员台「我的复盘」：种子把 2400012349 排为 act-9 的 `deep`（复盘责任人）⇒ 行卡出现。
+  // 2) 思想汇报「修改并重新提交」：种子补 tr-5（2400012349 · needs_revision）⇒ 本人可见修改态。
   //    ⚠ 这条**只改 `docs/src/data/mock/thought-reports.js` 就够了**（与 47-P 的 `review_requests` 不同）：
   //      `loadThoughtReports()` 在 `mockDB.thoughtReports` 为空时**回退模块常量** ⇒ api 形态同样看得到。
-  // 3) 思想汇报「打回」（`#tr-reject-confirm`）：**这处此前压根没登记在台账里**——种子里 tr-4（p3）
+  // 3) 思想汇报「打回」（`#tr-reject-confirm`）：**这处此前压根没登记在台账里**——种子里 tr-4（2400012347）
   //    本就存在、组织委员一直可达，只是**没人登记、也就没人跑**。本批补登记并直接覆盖。
   //    （2026-09-18 批次 86 取消初阅门后：打回改为**事后反馈**，组织委员对任一篇都可发起 ⇒ 该流程仍可达。）
   //    ⇒ **「台账不是全量」的实例**：S0 只防规模缩水、S2 只防 machine:true 漏覆盖，**都防不了「漏登记」**。
   {
     id: 'visitor-activity-review',
     page: 'visitor',
-    tab: '我的复盘',
+    // 2026-10-25 IA 62→45：我的复盘页签并入「我的成长 · 复盘子区」。
+    tab: '我的成长',
     open: [
+      { click: '#growth-review summary' },
       { waitFor: '.review-toggle' },
       { click: '.review-toggle' },
       { waitFor: '.btn-review-submit' },
@@ -1641,9 +1724,9 @@ export const MACHINE_FLOWS = [
     ],
     submit: [{ click: '#msg-compose-send' }],
     expect: [
-      { file: SRC + 'entries/pages/messages-entry.js', line: 169, field: '标题', msg: '请填写标题', carrier: '#msg-compose-title', satisfy: { setValue: { selector: '#msg-compose-title', value: '（真机流程）标题' } } },
-      { file: SRC + 'entries/pages/messages-entry.js', line: 170, field: '正文', msg: '请填写正文', carrier: '#msg-compose-content', satisfy: { setValue: { selector: '#msg-compose-content', value: '（真机流程）正文' } } },
-      { file: SRC + 'entries/pages/messages-entry.js', line: 171, field: '收件人', msg: '请选择收件人', carrier: '#msg-composer-host .person-picker-trigger' },
+      { file: SRC + 'entries/pages/messages-entry.js', line: 271, field: '标题', msg: '请填写标题', carrier: '#msg-compose-title', satisfy: { setValue: { selector: '#msg-compose-title', value: '（真机流程）标题' } } },
+      { file: SRC + 'entries/pages/messages-entry.js', line: 272, field: '正文', msg: '请填写正文', carrier: '#msg-compose-content', satisfy: { setValue: { selector: '#msg-compose-content', value: '（真机流程）正文' } } },
+      { file: SRC + 'entries/pages/messages-entry.js', line: 273, field: '收件人', msg: '请选择收件人', carrier: '#msg-composer-host .person-picker-trigger' },
     ],
   },
 ];
@@ -1771,8 +1854,12 @@ export const SUCCESS_FLOWS = [
     //   **落库面留给第四条的独立页流程**（那条有稳定 URL 可重载）——两条合起来才覆盖 ②③。
     id: 'leader-my-dispatch-detail-comment',
     page: 'leader',
-    tab: '我的处置',
+    // 2026-10-25 IA 62→45：原「我的处置」页签已删 ⇒ 落「待办」页「我经办的反馈」区
+    //   （稳定钩子 `[data-todo-dispatch]` 由 `components/record/todo-tab-shell.js` 输出，
+    //   实现单一源仍是 `components/feedback/issue-dispatch-view.js`）。断言面保持「填对 → 触发 → 成功且真生效」。
+    tab: '待办',
     open: [
+      { waitFor: '[data-todo-dispatch]' },
       { waitFor: '[data-mydispatch-action="open"]' },
       { click: '[data-mydispatch-action="open"]' },
       { waitFor: '#mydispatch-comment-input' },
@@ -1929,8 +2016,9 @@ export const SUCCESS_FLOWS = [
       { waitFor: '#wz-create-name' },
     ],
     ready: '#wz-create-name',
+    // 批次 500：党委账号在向导页无候选名册 ⇒ 「就地任命」区块不渲染（`appointable=false`），
+    //   原先的 `setChecked #wz-create-appoint` 会匹配不到元素；本路径按「空支部」出口走。
     fill: [
-      { setChecked: { selector: '#wz-create-appoint', checked: false } },
       { setValue: { selector: '#wz-create-name', value: '（成功路径普查）第三党支部' } },
     ],
     act: [{ click: '[data-wz-act="do-create"]' }],
@@ -1987,13 +2075,19 @@ export const SUCCESS_FLOWS = [
     path: '/workspace/org.html?tab=roster',
     open: [
       { click: '#roster-add-btn' },
-      { waitFor: 'form[data-modal-form] button[type="submit"]' },
+      { waitFor: '[data-modal-submit="roster-add-member"]' },
     ],
     ready: 'form[data-modal-form] input[data-field="name"]',
     fill: [
       { setValue: { selector: 'form[data-modal-form] input[data-field="name"]', value: '（成功路径普查）新增成员甲' } },
+      // 批次 501 改准：学号自成员主键迁移后为**必填**（缺口径即「学号不能为空（学号即成员唯一 id）」）；
+      //   取校园卡号段外的测试号，避免撞既有 50 人。
+      { setValue: { selector: 'form[data-modal-form] input[data-field="studentId"]', value: '2400999001' } },
+      // 批次 504（R10-A01）：发展阶段改为必填（空阶段会让成员静默落在应到／表决名单之外）——
+      //   枚举单一源 `core/domain/constants.js::DEVELOP_STAGES`，成功路径必须真选一个。
+      { selectValue: { selector: 'form[data-modal-form] select[data-field="developStage"]', value: '积极分子' } },
     ],
-    act: [{ click: 'form[data-modal-form] button[type="submit"]' }],
+    act: [{ click: '[data-modal-submit="roster-add-member"]' }],
     toast: '已新增成员',
     settleMs: 1800,
     reload: true,
@@ -2012,9 +2106,9 @@ export const SUCCESS_FLOWS = [
       //   新成员按种子顺序**追加在末页** ⇒ 用 `#roster-list-host` 当载体只能看到第 1 页（实测踩到）。
       //   故改断言**该列表自己的计数**（`.lf-count`，文案 `共 N 人`）——它由 `rows` 现算，
       //   「当场 51 + 重载后仍 51」同时证了「真写了」「真读出来了」「真落库了」。
-      //   **口子在这里**：N 由种子决定（`PEOPLE` 51 条中 `branchId` 非空者 50 条 ⇒ 新增后 51）。
-      //   **若将来增删种子人员，必须同步改这里的 N**——否则本条会红，而那是「断言过期」不是「产品坏了」。
-      { text: '共 51 人', carrier: '#roster-list-host .lf-count' },
+      //   **口子在批次 500/501 暴露**：N 曾写死「共 51 人」，服务端种子人数一变就红（断言过期 ≠ 产品坏了）。
+      //   2026-10-21 批次 501 改为 `countUp: 1`：以动作前读数为基线、只断言 +1（真写了 / 真读出来了）。
+      { carrier: '#roster-list-host .lf-count', countUp: 1 },
     ],
   },
   {
@@ -2082,11 +2176,12 @@ export const SUCCESS_FLOWS = [
     // ⚠ 断言用**计数文案**「已提交 N 篇」而不是列表文案：新增记录的 `title` 恒为 '思想汇报'
     //   （`addThoughtReport` 的缺省），列表里**没有可区分的文本**；而计数是从 `mockDB.thoughtReports`
     //   现算的 ⇒ 「当场 2 篇 + 重载后仍 2 篇」同时证了「真写了」与「真落库了」。
-    //   **口子在这里**：N 由**种子**决定（演示账号 p5 的种子 = `tr-5` 一条）。**若将来给 p5 增删种子思想汇报，
+    //   **口子在这里**：N 由**种子**决定（演示账号 2400012349 的种子 = `tr-5` 一条）。**若将来给 2400012349 增删种子思想汇报，
     //   必须同步改这里的 N**——否则本条会红，而那是「断言过期」不是「产品坏了」。
     id: 'visitor-thought-report-submit',
     page: 'visitor',
-    tab: '思想汇报',
+    // 2026-10-25 IA 62→45：思想汇报页签并入「我的成长」；默认展开第一子区（思想汇报）。
+    tab: '我的成长',
     open: [],
     ready: '#tr-content',
     fill: [
@@ -2115,7 +2210,7 @@ export const SUCCESS_FLOWS = [
     //   （定向只跑这一个文件时与全量跑整站时的前序状态不同）。**绝对值看似是「事实」，其实是「此刻的巧合」**；
     //   本流程要证的只有「这次提交真写进了明细表」，故改判增量 `countUp: 2`（基线在动作前读、重载前后共用）。
     // ⚠⚠ 而「+2」这个数**必须由活动类型保证**，不能靠运气——探针实测（`probe-47T`，跑完即删）：
-    //   下拉里**第一条「未上传」的活动是 `act-21`（7月主题党日）**，其候选人集合是「**支部在册成员**」
+    //   下拉里**第一条「未上传」的活动是 `act-21`（主题党日）**，其候选人集合是「**支部在册成员**」
     //   （非党小组会不按应到收紧）⇒ 随机取 2 人里**有 1 人不属于本组** ⇒ 本组可见明细只 **+1**。
     //   故本条**再加 `selectOption.text: '党小组会'`**：党小组会的候选＝**本组应到名单**（实测「第一党小组应到 8 人」），
     //   取 2 人必在本组内 ⇒ 本组可见明细**稳定 +2**。**「涨了几」由产品语义决定，选哪一项要按这个语义去选。**

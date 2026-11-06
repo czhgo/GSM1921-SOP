@@ -4,8 +4,9 @@
 // ════════════════════════════════════════════════════════════════
 // 数据同源派生（无第二份存储，办完即消失）：
 //   - hasMeeting：activities.date===今天 且我"应到/参与"——
-//       支部党员大会/党课/组织生活会/党小组会 复用 services/member/roster.js 应到口径
-//       （党小组会按本人 partyGroup 组内党员）；列席积极分子/发展对象不计应到，
+//       制度参数设考勤的会议类型（POLICY_DEFAULTS.attendance.meetingTypes）＋党小组会，
+//       复用 services/member/roster.js 应到口径（党小组会按本人 partyGroup 组内党员）；
+//       列席积极分子/发展对象不计应到，
 //       但该活动 assignments/signups(approved) 有他则计参与；
 //       主题党日等非会类型活动仅按 assignments/signups 判参与。
 //   - overdue/dueToday：TodoStore.getGroupedByAction(role) 平铺当前角色待办
@@ -17,18 +18,33 @@
 // 时间口径：dateKey 由 now 按【本地时区】取 YYYY-MM-DD（勿用 toISOString——UTC 偏移跨日错位）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261018h';
-import { getMeetingRosterIds, getEffectiveMembers, RESIDENCE_KEY } from '../member/roster.js?v=20261018h';
-import { TodoStore, TodoActionType, inferDomain, WORK_DOMAIN_LABELS } from './todo.js?v=20261018h';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261102b';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261102b';
+import { mockDB } from '../../core/domain/domain.js?v=20261102b';
+import { getMeetingRosterIds, getEffectiveMembers, RESIDENCE_KEY } from '../member/roster.js?v=20261102b';
+import { TodoStore, TodoActionType, inferDomain, WORK_DOMAIN_LABELS } from './todo.js?v=20261102b';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：「今天」的今日会议/我的分工
 // 同样按查看者角色收窄——待批活动不进非支委层的今日摘要（与各台列表同一判据）。
-import { filterActivitiesForViewer } from '../core/visibility.js?v=20261018h';
-import { tokenOf } from '../../core/base/version-token.js?v=20261018h'; // P1 消费方会话缓存失效（spec §三.4）
+import { filterActivitiesForViewer } from '../core/visibility.js?v=20261102b';
+import { tokenOf } from '../../core/base/version-token.js?v=20261102b'; // P1 消费方会话缓存失效（spec §三.4）
 // 成员基础数据预览键（仅作 raw 源指纹；person.js 读链叠加预览，见 org-base-data-preview）
-import { PREVIEW_KEY } from '../branch/org-base-data-preview.js?v=20261018h';
+import { PREVIEW_KEY } from '../branch/org-base-data-preview.js?v=20261102b';
 
-/** 按 roster 应到口径判定的会议类型（R6-3 支书 2026-09-06 裁定：今天有会 = 我应出席/参与） */
-const ROSTER_MEETING_TYPES = new Set(['支部党员大会', '党课', '组织生活会', '党小组会']);
+/**
+ * 「今天有会」按应到口径判定的会议类型（R7-14 单一源 · call-time）：
+ *   `POLICY_DEFAULTS.attendance.meetingTypes`（设考勤的会议类型）∪ 党小组会（另走本组应到口径），
+ *   并剔除 `noAttendanceTypes`（不设考勤的类型不得因本页判定而误入）。
+ * ⚠ 请勿在页面另写类型数组；支部改制度参数后本函数随读侧注入变化。
+ */
+export const PARTY_GROUP_MEETING_TYPE = '党小组会';
+/** 近期安排窗口（天，不含今天）——2026-09-30 批次 299 支书裁「未来 7 天」；单一源，勿在调用点写 7 */
+export const UPCOMING_WINDOW_DAYS = 7;
+export function rosterMeetingTypes() {
+  const att = POLICY_DEFAULTS.attendance || {};
+  const excluded = new Set(att.noAttendanceTypes || []);
+  const types = [...(att.meetingTypes || []), PARTY_GROUP_MEETING_TYPE];
+  return new Set(types.filter((type) => !excluded.has(type)));
+}
 
 /** 本地时区日期键 + n 天（纯字符串/Date 运算；用于「近期安排」窗口上界） */
 function _addDays(dateKey, n) {
@@ -133,7 +149,7 @@ export function buildTodaySummary({ personId, role, now = new Date() } = {}) {
   const dateKey = _localDateKey(now);
   // P1：getEffectiveMembers 会话缓存读（键=member token + 覆盖/预览 raw 源；见 _cachedEffectiveMembers）
   const person = _cachedEffectiveMembers().find(p => p.id === personId) || null;
-  const branchId = person && person.branchId ? person.branchId : 'br-b1';
+  const branchId = person && person.branchId ? person.branchId : DEFAULT_BRANCH_ID;
 
   const todayActs = filterActivitiesForViewer(mockDB.activities, role).filter(a => a && a.date === dateKey);
   // 批次 358（`D-751`）：报名「作废（软）」的条目不参与「是否算参与」的判定（与 `SignupStore.getAll()` 同口径）
@@ -161,10 +177,11 @@ export function buildTodaySummary({ personId, role, now = new Date() } = {}) {
 
   const hasMeeting = [];
   const myDuties = [];
+  const rosterMeetingTypesSet = rosterMeetingTypes();
   for (const act of todayActs) {
     const attends = inAssignments(act)
       || approvedSignupHit(signupsIndex, act.id, personId)
-      || (ROSTER_MEETING_TYPES.has(act.type) && rosterHit(act));
+      || (rosterMeetingTypesSet.has(act.type) && rosterHit(act));
     if (attends) {
       hasMeeting.push({
         activityId: act.id,
@@ -260,7 +277,7 @@ export function buildTodaySummary({ personId, role, now = new Date() } = {}) {
   //   本支部近 7 日（**不含今天**，今天另由 hasMeeting 承载）可见活动，按日期 + 时间升序。
   //   口径 = 与今日会议同一可见性单一源（filterActivitiesForViewer）；**只读列示**，点击进活动详情。
   const upcoming = [];
-  const windowEnd = _addDays(dateKey, 7);
+  const windowEnd = _addDays(dateKey, UPCOMING_WINDOW_DAYS);
   for (const act of filterActivitiesForViewer(mockDB.activities, role)) {
     if (!act || !act.date) continue;
     if (act.date <= dateKey || act.date > windowEnd) continue;

@@ -8,17 +8,17 @@
 //   ② 组织委员任命：person.role/users.role==='org-commissioner'；不写 appointmentRecords（支书任期专表）
 //   ③ 支书=组织委员同人 → 服务层拦截 throw（UI 勾选/下拉/拦截属 DOM 交互，纯 node 不覆盖 → 代码自查）
 //   ④ 取消防任命（仅建支部、不调任命）→ 不产生 appointmentRecords、secretaryId 保持 null
-//   ⑤ 原支部 br-b1 不受影响（跨支部兼任边界：任命 p13 到新支部不清 br-b1 席位；记录逐支部独立）
+//   ⑤ 原支部 br-b1 不受影响（跨支部兼任边界：任命 2300010001 到新支部不清 br-b1 席位；记录逐支部独立）
 // 运行：node --test test/branch-appoint-inline.test.mjs（server 目录）
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018h';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018h';
-import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018h';
-import { createBranch, getBranchById } from '../../docs/src/services/branch/branch.js?v=20261018h';
-import { PersonStore } from '../../docs/src/services/member/person.js?v=20261018h';
-import { appointInauguralOfficers } from '../../docs/src/services/branch/appointment.js?v=20261018h';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261102b';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261102b';
+import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261102b';
+import { createBranch, getBranchById } from '../../docs/src/services/branch/branch.js?v=20261102b';
+import { PersonStore } from '../../docs/src/services/member/person.js?v=20261102b';
+import { appointInauguralOfficers } from '../../docs/src/services/branch/appointment.js?v=20261102b';
 
 // ── localStorage 内存桩（member-persist 同款；key/length 供 handleResetIfRequested 枚举）──
 const _store = new Map();
@@ -40,6 +40,75 @@ const BASE_USERS = (mockDB.users || []).map(u => ({ ...u }));
 //    _syncUserRole 落 mockDB.users 对应行——真实 mock 适配器同构但带 600ms 延迟，测试用同步版）──
 const adapter = {
   saveDB() {},
+  appointments: {
+    async apply(data) {
+      const branchId = String(data.branchId || '');
+      const idx = (mockDB.branches || []).findIndex(b => b.id === branchId);
+      if (idx === -1) throw Object.assign(new Error(`支部 ${branchId} 不存在`), { type: 'NotFoundError' });
+      const branch = mockDB.branches[idx];
+      if (Object.prototype.hasOwnProperty.call(data, 'expectedSecretaryId')
+        && (branch.secretaryId || null) !== (data.expectedSecretaryId || null)) {
+        throw Object.assign(new Error('现任支书已变更'), { type: 'ConflictError' });
+      }
+      const nextSecretaryId = data.secretaryId ? String(data.secretaryId) : null;
+      if (nextSecretaryId && !PersonStore.getById(nextSecretaryId)) {
+        throw Object.assign(new Error('被任命人不存在'), { type: 'BadRequestError' });
+      }
+      const now = new Date().toISOString();
+      const previousSecretaryId = branch.secretaryId || null;
+      const changedUsers = [];
+      const nextBranch = { ...branch, secretaryId: nextSecretaryId };
+      mockDB.branches = [...mockDB.branches.slice(0, idx), nextBranch, ...mockDB.branches.slice(idx + 1)];
+      const syncRole = (id, role) => {
+        const i = (mockDB.users || []).findIndex(u => u.id === id);
+        if (i >= 0) {
+          const next = { ...mockDB.users[i], role };
+          mockDB.users = [...mockDB.users.slice(0, i), next, ...mockDB.users.slice(i + 1)];
+          changedUsers.push(next);
+          return;
+        }
+        const person = PersonStore.getById(id);
+        if (!person) return;
+        const created = { ...person, role };
+        mockDB.users = [...(mockDB.users || []), created];
+        changedUsers.push(created);
+      };
+      if (previousSecretaryId && previousSecretaryId !== nextSecretaryId) syncRole(previousSecretaryId, 'participant');
+      if (nextSecretaryId) syncRole(nextSecretaryId, 'secretary');
+      const touched = [];
+      const records = (mockDB.appointmentRecords || []).map((record) => {
+        if (record.branchId !== branchId || record.to) return record;
+        const closed = { ...record, to: now };
+        touched.push(closed);
+        return closed;
+      });
+      let appointment = null;
+      if (nextSecretaryId) {
+        appointment = {
+          id: `appt-inline-${records.length + 1}`,
+          branchId,
+          secretaryId: nextSecretaryId,
+          appointedBy: 'party-staff',
+          note: data.note || '',
+          from: now,
+          to: null,
+        };
+        records.push(appointment);
+        touched.push(appointment);
+      }
+      mockDB.appointmentRecords = records;
+      for (const [id, role] of [
+        ...(previousSecretaryId && previousSecretaryId !== nextSecretaryId ? [[previousSecretaryId, 'participant']] : []),
+        ...(nextSecretaryId ? [[nextSecretaryId, 'secretary']] : []),
+      ]) {
+        const person = PersonStore.getById(id);
+        if (!person || !String(person.name || '').trim()) continue;
+        const saved = await PersonStore.saveMember({ id, role });
+        if (!saved || !saved.ok) throw Object.assign(new Error(saved?.reason || '角色同步失败'), { type: 'BadRequestError' });
+      }
+      return { ok: true, branch: nextBranch, appointment, appointmentRecords: touched, users: changedUsers };
+    },
+  },
   branches: {
     update(id, patch) {
       const idx = (mockDB.branches || []).findIndex(b => b.id === id);
@@ -97,13 +166,16 @@ function beginMockCase() {
   mockDB.branches = [];
   mockDB._loaded = false;
   setDataSource('mock'); // 数据源复位
-  MockAdapter.loadDB();  // seed：activities/tasks/assignments/archiveRecords/signups/branches(br-b1, secretaryId p13)
+  MockAdapter.loadDB();  // seed：activities/tasks/assignments/archiveRecords/signups/branches(br-b1, secretaryId 2300010001)
+  // 2026-10-23 批次 504（R10-C14）：mock 现与 api 同源播种 appointmentRecords；本文件以「零任期记录」为基线，
+  //   故在 loadDB 之后显式清空（只影响本文件的任命断言，不改产品种子）。
+  mockDB.appointmentRecords = [];
   mockDB.users = BASE_USERS.map(u => ({ ...u })); // loadDB 不重置 users → 显式回基线（防跨用例污染）
 }
 
 /** 建空支部（party-staff 动作；返回 createBranch 产物） */
 async function createEmptyBranch(name) {
-  const res = await createBranch({ name, by: 'p_pc', actorRole: 'party-staff' });
+  const res = await createBranch({ name, by: '9000000001', actorRole: 'party-staff' });
   assert.equal(res.ok, true, JSON.stringify(res));
   return res.branch;
 }
@@ -111,61 +183,61 @@ async function createEmptyBranch(name) {
 // ═══════════════ ① ② 就地任命支书+组织委员 ═══════════════
 test('就地任命首任支书+组织委员：secretaryId/任期记录/person.role/users 行/原支部不受影响', async () => {
   beginMockCase();
-  // users 对应行「若存在该行」正路径：p3/p6 注入 mockDB.users（模拟 API 模式缓存含 p-账号行）
+  // users 对应行「若存在该行」正路径：2400012347/2400012350 注入 mockDB.users（模拟 API 模式缓存含 p-账号行）
   mockDB.users = [
     ...mockDB.users,
-    { id: 'p3', name: '何晓峰', role: 'participant', developStage: '正式党员', branchId: 'br-b1' },
-    { id: 'p6', name: '苏明哲', role: 'participant', developStage: '发展对象', branchId: 'br-b1' },
+    { id: '2400012347', name: '何晓峰', role: 'participant', developStage: '正式党员', branchId: 'br-b1' },
+    { id: '2400012350', name: '苏明哲', role: 'participant', developStage: '发展对象', branchId: 'br-b1' },
   ];
   const b1Before = JSON.stringify(getBranchById('br-b1'));
-  assert.equal(PersonStore.getById('p3').role, 'participant', '任命前 p3 为普通成员');
+  assert.equal(PersonStore.getById('2400012347').role, 'participant', '任命前 2400012347 为普通成员');
 
   const created = await createEmptyBranch('光华管理学院硕士党支部');
-  const ap = await appointInauguralOfficers({ branchId: created.id, secretaryId: 'p3', orgCommissionerId: 'p6' });
+  const ap = await appointInauguralOfficers({ branchId: created.id, secretaryId: '2400012347', orgCommissionerId: '2400012350' });
   assert.equal(ap.ok, true, JSON.stringify(ap));
   assert.equal(ap.secretary, true, '支书任命完成标记');
   assert.equal(ap.org, true, '组织委员任命完成标记');
 
   // ① branches[new].secretaryId===支书 id；原支部不被触碰
   const newB = getBranchById(created.id);
-  assert.equal(newB.secretaryId, 'p3');
+  assert.equal(newB.secretaryId, '2400012347');
   assert.equal(newB.config.configChangeHistory.length, 1, 'config 留痕仍仅 branch-created（org 任命无纯追加口，不写 config 历史）');
-  assert.equal(JSON.stringify(getBranchById('br-b1')), b1Before, '原支部记录原样（secretaryId p13 / config 均未动）');
-  // ① appointmentRecords：新支部 1 条现任记录（无 to、secretaryId=p3、note 就地任命）
+  assert.equal(JSON.stringify(getBranchById('br-b1')), b1Before, '原支部记录原样（secretaryId 2300010001 / config 均未动）');
+  // ① appointmentRecords：新支部 1 条现任记录（无 to、secretaryId=2400012347、note 就地任命）
   const recs = (mockDB.appointmentRecords || []).filter(r => r.branchId === created.id);
   assert.equal(recs.length, 1);
   assert.equal(recs[0].to, null, '现任记录未封口');
-  assert.equal(recs[0].secretaryId, 'p3');
+  assert.equal(recs[0].secretaryId, '2400012347');
   assert.match(recs[0].note || '', /建空支部就地任命首任支书/);
   assert.equal((mockDB.appointmentRecords || []).some(r => r.branchId === 'br-b1'), false, '原支部任期记录零新增');
   // ① person.role（读链 = 档案叠加覆盖层）→ 'secretary'（角色双链补齐）
-  assert.equal(PersonStore.getById('p3').role, 'secretary');
+  assert.equal(PersonStore.getById('2400012347').role, 'secretary');
   // ① users 对应行 role==='secretary'（注入行存在 → 正路径）
-  assert.equal((mockDB.users || []).find(u => u.id === 'p3').role, 'secretary');
+  assert.equal((mockDB.users || []).find(u => u.id === '2400012347').role, 'secretary');
   // ② 组织委员：person.role/users.role==='org-commissioner'；不写 appointmentRecords（支书任期专表）
-  assert.equal(PersonStore.getById('p6').role, 'org-commissioner');
-  assert.equal((mockDB.users || []).find(u => u.id === 'p6').role, 'org-commissioner');
+  assert.equal(PersonStore.getById('2400012350').role, 'org-commissioner');
+  assert.equal((mockDB.users || []).find(u => u.id === '2400012350').role, 'org-commissioner');
   assert.equal((mockDB.appointmentRecords || []).filter(r => r.branchId === created.id).length, 1, '组织委员不产生任期记录');
-  // 数据边界：任命不改 person.branchId（跨支部兼任演示——p3/p6 仍属 br-b1 档案）
-  assert.equal(PersonStore.getById('p3').branchId, 'br-b1');
-  assert.equal(PersonStore.getById('p6').branchId, 'br-b1');
+  // 数据边界：任命不改 person.branchId（跨支部兼任演示——2400012347/2400012350 仍属 br-b1 档案）
+  assert.equal(PersonStore.getById('2400012347').branchId, 'br-b1');
+  assert.equal(PersonStore.getById('2400012350').branchId, 'br-b1');
 });
 
 // ═══════════════ ⑤ 跨支部兼任边界 ═══════════════
-test('跨支部兼任：任命 br-b1 现任支书 p13 为新支部首任支书 → 原支部席位不清空、任期记录逐支部独立', async () => {
+test('跨支部兼任：任命 br-b1 现任支书 2300010001 为新支部首任支书 → 原支部席位不清空、任期记录逐支部独立', async () => {
   beginMockCase();
   const created = await createEmptyBranch('兼任演示支部');
-  const ap = await appointInauguralOfficers({ branchId: created.id, secretaryId: 'p13' });
+  const ap = await appointInauguralOfficers({ branchId: created.id, secretaryId: '2300010001' });
   assert.equal(ap.ok, true, JSON.stringify(ap));
   assert.equal(ap.secretary, true);
   assert.equal(ap.org, false, '未选组织委员 → 跳过标记');
-  assert.equal(getBranchById(created.id).secretaryId, 'p13');
-  assert.equal(getBranchById('br-b1').secretaryId, 'p13', '原支部 secretaryId 不受影响（兼任不清原席位）');
+  assert.equal(getBranchById(created.id).secretaryId, '2300010001');
+  assert.equal(getBranchById('br-b1').secretaryId, '2300010001', '原支部 secretaryId 不受影响（兼任不清原席位）');
   const newRecs = (mockDB.appointmentRecords || []).filter(r => r.branchId === created.id);
   assert.equal(newRecs.length, 1);
-  assert.equal(newRecs[0].secretaryId, 'p13');
+  assert.equal(newRecs[0].secretaryId, '2300010001');
   assert.equal((mockDB.appointmentRecords || []).some(r => r.branchId === 'br-b1'), false, '原支部任期记录未被新任命触碰');
-  assert.equal(PersonStore.getById('p13').role, 'secretary', 'p13 本就支书，角色不变');
+  assert.equal(PersonStore.getById('2300010001').role, 'secretary', '2300010001 本就支书，角色不变');
 });
 
 // ═══════════════ ③ 同人拦截 ═══════════════
@@ -173,12 +245,12 @@ test('支书=组织委员同人 → appointInauguralOfficers 拦截 throw，不�
   beginMockCase();
   const created = await createEmptyBranch('同人拦截支部');
   await assert.rejects(
-    () => appointInauguralOfficers({ branchId: created.id, secretaryId: 'p3', orgCommissionerId: 'p3' }),
+    () => appointInauguralOfficers({ branchId: created.id, secretaryId: '2400012347', orgCommissionerId: '2400012347' }),
     /同一人/,
   );
   assert.equal(getBranchById(created.id).secretaryId, null, '拦截在写前 → secretaryId 保持空缺');
   assert.equal((mockDB.appointmentRecords || []).filter(r => r.branchId === created.id).length, 0, '拦截不产生任期记录');
-  assert.equal(PersonStore.getById('p3').role, 'participant', '拦截不产生角色变更');
+  assert.equal(PersonStore.getById('2400012347').role, 'participant', '拦截不产生角色变更');
 });
 
 // ═══════════════ ④ 取消防任命 ═══════════════
@@ -188,6 +260,6 @@ test('取消防任命（仅建空支部）→ 不产生 appointmentRecords、sec
   assert.equal(created.secretaryId, null, '仅建支部席位空缺');
   assert.equal(getBranchById(created.id).secretaryId, null);
   assert.equal((mockDB.appointmentRecords || []).length, 0, '取消防任命 = 零任期记录');
-  assert.equal(PersonStore.getById('p3').role, 'participant', '成员档案未被触碰');
+  assert.equal(PersonStore.getById('2400012347').role, 'participant', '成员档案未被触碰');
   assert.equal((mockDB.users || []).length, BASE_USERS.length, 'users 行零新增零改动');
 });

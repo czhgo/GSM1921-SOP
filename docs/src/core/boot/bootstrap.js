@@ -4,51 +4,102 @@
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018h';
-import { renderHeader } from '../../components/shell/header.js?v=20261018h';
-import { AuthStore } from '../../services/core/auth.js?v=20261018h';
-import { IssueStore } from '../../services/governance/issues.js?v=20261018h';
-import { MilestoneStore } from '../../services/governance/milestones.js?v=20261018h';
-import { CrossPageState } from '../session/cross-page-state.js?v=20261018h';
-import { getBasePath } from '../base/utils.js?v=20261018h';
-import { resolveDocumentUrl } from '../base/page-url.js?v=20261018h';
-import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261018h';
-import { isBranchPendingUser } from '../domain/constants.js?v=20261018h';
-// 强调色解析（R1-A 点⑤，2026-09-09）：person-aware 渲染时取色——替代只读全局键的
-// constants resolveAccentRole（冻结读取点语义，仅服务访客与首帧兜底）；--app-accent 与
-// 返回值（壳 ctx.accent → tab-bar/各 tab）统一取「当前作用域生效覆盖」，登录人改强调色后同源。
-import { getAppliedAccentColors } from './theme.js?v=20261018h';
-import { registerApiAdapter, init, renderDataSourceError, hydrateDataSource } from '../../data/data-adapter.js?v=20261018h';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261018h';
-import { getCapabilities } from './registry.js?v=20261018h';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261102b';
+import { renderHeader } from '../../components/shell/header.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { IssueStore } from '../../services/governance/issues.js?v=20261102b';
+import { MilestoneStore } from '../../services/governance/milestones.js?v=20261102b';
+import { CrossPageState } from '../session/cross-page-state.js?v=20261102b';
+import { getBasePath } from '../base/utils.js?v=20261102b';
+import { resolveDocumentUrl } from '../base/page-url.js?v=20261102b';
+import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261102b';
+import { isBranchPendingUser } from '../domain/constants.js?v=20261102b';
+// 主题色解析（R1-A 点⑤，2026-09-09）：person-aware 渲染时取色——替代只读全局键的
+// constants resolveAccentRole（冻结读取点语义，仅服务访客与首帧兜底）；返回值（壳 ctx.accent →
+// tab-bar/各 tab）统一取「当前作用域生效主题」，与 styles.css 别名同源。
+// 批次 505：注入改为 8 token × 亮/暗共 16 个原始变量（applyAccentThemeTokens），不再写 --app-accent 旧四件套。
+import { getAppliedAccentColors, resolveAppliedAccentRole, applyAccentThemeTokens } from './theme.js?v=20261102b';
+import { registerApiAdapter, init, renderDataSourceError, hydrateDataSource } from '../../data/data-adapter.js?v=20261102b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261102b';
+import { getCapabilities } from './registry.js?v=20261102b';
 // M4 数据源注册化：副作用导入触发 mock/api 数据源能力注册，bootstrap 经注册表选择数据源
-import '../../capabilities/data-source.js?v=20261018h';
+import '../../capabilities/data-source.js?v=20261102b';
 // M6（2026-08-30）：共享组件能力随全局引导注册（todo-list/calendar/custom-select），所有页面可发现组件清单
-import '../../capabilities/components.js?v=20261018h';
+import '../../capabilities/components.js?v=20261102b';
 
 // ════════════════════════════════════════════════════════════════
-// S2 自定义圆角下拉：全局自动增强（MutationObserver 防抖扫描）
+// S2 自定义圆角下拉：全局自动增强（增量扫描）
 // 任何时刻动态渲染出的 .input-flat select 都会被增强为自定义圆角下拉，
 // 无需在各渲染点逐处调用（组件内 data-cs-enhanced 标记防重）。
+//
+// 2026-10-26 Task 2.4：原实现 = `MutationObserver(body, childList+subtree)` 每次 DOM 变更
+//   都排一次**全文档** `querySelectorAll('select')`（工作台一次整块重建上千节点即触发，
+//   鼠标 hover 时被同步布局扫描打断）。现改为：
+//     · 回调只收集**新增节点**（addedNodes），不在回调里做任何查询（不阻塞渲染帧）；
+//     · 60ms 合并后只扫描这些新增子树，且先剪掉被父根包含的子根、无 select 的根直接跳过；
+//     · 首次仍全量扫一次（DOMContentLoaded / 模块载入）。
 // ════════════════════════════════════════════════════════════════
 let _csScanTimer = null;
-function _scheduleEnhance() {
+let _csRoots = new Set();
+
+function _scheduleEnhance(node) {
+  if (node && node.nodeType === 1) _csRoots.add(node);
   if (_csScanTimer) return;
-  _csScanTimer = setTimeout(() => {
-    _csScanTimer = null;
-    enhanceSelects(document);
-  }, 60);
+  _csScanTimer = setTimeout(_flushEnhance, 60);
 }
+
+function _flushEnhance() {
+  _csScanTimer = null;
+  const roots = [..._csRoots].filter((n) => n && n.isConnected !== false);
+  _csRoots = new Set();
+  // 新增节点可能整棵大树都在同一批里：去掉被其它根包含的子根，只扫最外层
+  const outer = roots.filter((n) => !roots.some((other) => other !== n && other.contains(n)));
+  for (const root of outer) {
+    if (root.tagName === 'SELECT') {
+      enhanceSelects(root.parentElement || root);
+    } else if (root.querySelector && root.querySelector('select.input-flat:not([data-cs-enhanced])')) {
+      enhanceSelects(root);
+    }
+  }
+}
+
 if (typeof MutationObserver !== 'undefined' && document.body) {
-  new MutationObserver(_scheduleEnhance).observe(document.body, { childList: true, subtree: true });
-} else if (document.body) {
-  _scheduleEnhance();
+  new MutationObserver((records) => {
+    for (const m of records) {
+      for (const n of m.addedNodes) _scheduleEnhance(n);
+    }
+  }).observe(document.body, { childList: true, subtree: true });
 }
+// 首次全量一次（静态 HTML 里已有的 select）；此后只扫新增子树（Task 2.4）。
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', _scheduleEnhance);
+  document.addEventListener('DOMContentLoaded', () => enhanceSelects(document));
 } else {
-  _scheduleEnhance();
+  enhanceSelects(document);
 }
+
+// ════════════════════════════════════════════════════════════════
+// 键盘激活单一源（2026-10-28 · 支书裁定「全站穷尽三态」）
+// ── 病灶：`div[role="button"]` / `tr[data-interactive="true"]` 只加了 role + tabindex，
+//    Enter / Space 不会触发点击 ⇒ 键盘能聚焦、却激活不了（假可点）。各组件曾各写一份
+//    keydown 补救（stats / activity-panel / archive / taskforce / visitor …），新增一处就要再抄一遍。
+// ── 落法：全站只在此处委托一次（document 冒泡阶段），命中后派发同一次 click。
+//    · 既有组件内的 keydown 都会先 `e.preventDefault()`（或直接操作业务函数），
+//      本处理器以 `e.defaultPrevented` 去重，不会重复触发；
+//    · 目标必须是**焦点元素本身**（`e.target.matches(...)`）——焦点在内层按钮 / 链接 / 输入框时
+//      由原生控件自理，整卡不连带触发；
+//    · `tr[data-interactive="true"]` 不挂 role=button（挂会破坏表格语义），但同样需要 Enter 激活。
+// ════════════════════════════════════════════════════════════════
+const KB_ACTIVATABLE = '[role="button"][tabindex], tr[data-interactive="true"][tabindex]';
+const NATIVE_CONTROL = 'a, button, input, select, textarea, summary';
+document.addEventListener('keydown', (e) => {
+  if (e.defaultPrevented) return;
+  if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+  const el = e.target instanceof Element ? e.target : null;
+  if (!el || !el.matches(KB_ACTIVATABLE)) return;
+  if (el.closest(NATIVE_CONTROL)) return;
+  e.preventDefault();
+  el.click();
+});
 
 // ════════════════════════════════════════════════════════════════
 // 安全最佳实践：开发绕过白名单（security-best-practices Skill 指导）
@@ -84,10 +135,20 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
   // 代码数据版本自检（2026-08-01 引入，配合 cross-page-state 的 CODE_VERSION）：
   // 旧 tab 持有旧 ES 模块时自动刷新一次加载新模块。必须放在最顶部（API 恢复/init 之前），
   // 否则部署后首次访问会 init 两遍（旧模块 + reload 后新模块各 10 个 fetch，P1 审查 M6）。
+  // 2026-10-26 Task 2.3：判定收窄在 `isStaleCodeVersion()` 内部——首次访问只记基线不 reload，
+  //   版本不一致时写回当前 CODE_VERSION 再 reload（reload 后即相等，不再每次新会话都双载）。
   if (CrossPageState.isStaleCodeVersion()) {
-    CrossPageState.bumpDataVersion();
     window.location.reload();
     return { user: null };
+  }
+
+  // ── IAAA 待归属阻断层（前置）──────────────────────────────────────────────
+  // 判据单一源仍是 `isBranchPendingUser`（下方登录检查处同一判据）。**必须在 init() 之前**：
+  // 待归属账号访问支部资源会被服务端 `requireAssignedBranch` 403，init() 随即抛错并在这里 return
+  // 「无法连接服务器」——永远走不到下方重定向（U4 回归）。前置判定只读本地会话，无网络依赖。
+  if (module === 'workspace' && isBranchPendingUser(AuthStore.getCurrentUser())) {
+    window.location.href = resolveDocumentUrl('login.html', { searchParams: { 'need-branch': '1' } });
+    return { user: null, needBranch: true };
   }
 
   // 恢复 API 数据源：已登录且存在 token 时切换到后端（认证由 api-adapter 读取 authToken）
@@ -201,36 +262,36 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
     }
   }
 
+  // ── 首屏不阻塞（2026-10-26 Task 2.3）──
+  // 反馈 / 里程碑首拉（mock 形态各是一次 fetch('./data/*.json')）原为「串行 await 后再进 tab 壳」，
+  // 把页签栏与首屏内容整体推迟至少一次网络往返。现只**发起**、不等待：
+  //   消费方（work-overview / overview-dispatch-bar / 各 tab）渲染前都会 await 同一 loadAll
+  //   （幂等缓存：首次完成后直接命中），数据到达即在原位补齐，不会把空快照当终态。
+  Promise.all([
+    IssueStore.loadAll(),
+    MilestoneStore.loadAll(),
+  ]).catch((e) => {
+    console.warn('[bootstrap] Service 预加载失败（不阻塞首屏）：', e);
+  });
+
   // 渲染侧边栏 + 顶栏
   renderSidebar(module);
   renderHeader(module);
 
-  // 强调色（主题色个性化：R1-A 后按作用域解析——登录人 person 覆盖 / 访客全局键 /
-  // 无覆盖回落角色默认，渲染时取当前值；与 settings/--app-accent 同源，
-  // 替代原 constants resolveAccentRole 全局键读取（冻结读取点语义，服务访客与首帧兜底））
+  // 主题色（批次 505：8 token × 亮/暗 = 16 个原始变量；R1-A 后按作用域解析——登录人 person 覆盖 /
+  // 访客全局键 / 无覆盖回落默认金，渲染时取当前值；与 settings/theme.js 同源）。
+  // 只注入原始变量，--app-accent / -soft-bg / -strong-bg 等**别名由 styles.css 按日夜选边**承接，
+  // 故切换亮/暗无需重新注入（幂等）。
   let accent, accentRgba, accentBorder;
   if (accentRole) {
-    ({ accent, accentRgba, accentBorder } = accentAlpha
-      ? getAppliedAccentColors(accentRole, accentAlpha[0], accentAlpha[1])
-      : getAppliedAccentColors(accentRole));
-    // 全局主题色变量（--app-accent 三件套）：cs-menu 选中项 / chips 选中态等
-    // 「统一主题色渲染」跟随当前用户主题色（支书 2026-08-08 三审定稿，弃用金实底）
-    const root = document.documentElement;
-    root.style.setProperty('--app-accent', accent);
-    root.style.setProperty('--app-accent-bg', accentRgba);
-    root.style.setProperty('--app-accent-border', accentBorder);
+    const appliedKey = resolveAppliedAccentRole(accentRole);
+    ({ accent, accentRgba, accentBorder } = getAppliedAccentColors(accentRole));
+    applyAccentThemeTokens(document.documentElement, appliedKey);
   }
 
   // 统一预加载所有 Service（并行，不阻塞渲染但保证后续同步调用有数据）
   // 修复跨页面数据不同步：之前 ws-secretary-entry 同步调用 IssueStore.getAll() 拿到空数组
-  try {
-    await Promise.all([
-      IssueStore.loadAll(),
-      MilestoneStore.loadAll(),
-    ]);
-  } catch (e) {
-    console.warn('[bootstrap] Service 预加载失败：', e);
-  }
+  // 2026-10-26 Task 2.3：改为在 renderHeader 之前**发起**且不 await（见上），此处不再串行等待。
 
   return { user, accent, accentRgba, accentBorder };
 }

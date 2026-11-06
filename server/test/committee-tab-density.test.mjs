@@ -73,3 +73,40 @@ test('T4 五类支委身份词齐备', () => {
 test('T5 含「新建线上支委会」入口', () => {
   assert.ok(RAW.includes('新建线上支委会'), '支委会 tab 缺「新建线上支委会」入口');
 });
+
+test('T6 帮助注释在两张表之后（说明后置）', () => {
+  const helpIdx = RAW.indexOf('help-note');
+  const rosterIdx = RAW.indexOf('cm-roster-table');
+  const meetingIdx = RAW.indexOf('cm-meeting-table');
+  assert.ok(helpIdx > rosterIdx && helpIdx > meetingIdx,
+    '帮助注释应后置到两张表之后，不再压在标题下');
+});
+
+test('T7 标题区只有一个主操作按钮，且行内不再出现 btn-ghost', () => {
+  // 2026-10-19 页标题统一后，标题区由 renderTabHeader 生成：在调用参数里核 CTA。
+  const start = RAW.indexOf('renderTabHeader({');
+  assert.ok(start >= 0, '标题区应走统一组件 renderTabHeader');
+  const header = RAW.slice(start, RAW.indexOf('})', start));
+  const accentCount = (header.match(/btn-accent(?![\w-])/g) || []).length;
+  assert.equal(accentCount, 1, `标题区 btn-accent 应为 1 个（新建 CTA），实测 ${accentCount}`);
+  assert.ok(!/\bbtn-ghost\b/.test(RAW), '支委会 tab 行内动作仍在使用 btn-ghost');
+});
+
+/** 取函数体（从 `function name` 到下一个顶层 `function`） */
+function functionBody(src, name) {
+  const start = src.indexOf(`function ${name}`);
+  assert.ok(start >= 0, `未找到函数 ${name}`);
+  const next = src.indexOf('\nfunction ', start + 1);
+  return next < 0 ? src.slice(start) : src.slice(start, next);
+}
+
+test('T8 委员表每行可见动作 ≤2：改派/补选 + 更多，撤销在菜单内', () => {
+  const body = functionBody(RAW, 'rosterRowHtml');
+  assert.match(body, /<details class="row-more">/, '委员行未使用「更多」菜单');
+  assert.match(body, /<summary class="btn-outline btn-sm">更多<\/summary>/, '「更多」触发器应为 btn-outline btn-sm');
+  const menu = body.slice(body.indexOf('row-more__menu'), body.indexOf('</details>'));
+  assert.ok(menu.includes('data-cm-revoke'), '撤销应在 row-more 菜单内');
+  const visible = body.replace(/<details[\s\S]*?<\/details>/g, '');
+  const count = (visible.match(/<button\b/g) || []).length;
+  assert.ok(count <= 2, `委员行可见动作应 ≤2（1 主 + 更多），实测 ${count}`);
+});

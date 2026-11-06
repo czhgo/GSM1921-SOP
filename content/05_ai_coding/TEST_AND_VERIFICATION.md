@@ -2,7 +2,7 @@
 title: "测试验证纪律"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-09-29
+last_updated: "2026-11-03"
 status: active
 related_files: [CLAUDE.md, DATA_CONSISTENCY_CHECKLIST.md, content/03_doc_system/OPERATIONS_GUIDE.md, docs/scripts/bump-version.mjs]
 ---
@@ -260,4 +260,98 @@ UI-2 通知点击响应修复时，首次基于"函数名直观判断"将 click 
 4. **静态守卫只能锁「形态」，锁不住「引用完整性」，须靠 e2e / 全量回归兜底**——模块环场景下单一源必须放**叶子件**，但其搬迁仍按本清单改签
 
 **生效条件**：任何「移动 / 重命名单一源位置」的任务（换文件、换导出名、抽出叶子件）；尤其当该单一源被 5 个以上文件引用时。
+
+---
+
+## 承载形态守卫（2026-10-20 立）
+
+> **判例**：`.ctx/logs/archive/2026-10/UI_AUDIT_R3.md`（浮窗体例 / 筛选形态 / 承载面）。**规则源**：`DESIGN_SYSTEM.md` §4.27 / §4.28 / §10.7。
+
+**三类守卫应存在（缺一类即视为该域未收口）**
+
+| 守卫 | 守什么（形态 / 状态） | 判据示例（可在源码或 DOM 上计数） | 现有落点 |
+|---|---|---|---|
+| 浮窗 | 三段结构、footer sticky、`85dvh`、四条关闭路径 reset | 提交按钮不在 `.modal-body` 内；`title` 不含 HTML；Esc / 遮罩 / × 均调用 reset | `modal-escape-guard.test.mjs`（转义部分）；形态部分待补 |
+| 筛选 | 引擎单一源与阈值 | `.lf-bar` 内页面自写 chip 计数 = 0；同页筛选控件 > 6 且无下拉 ⇒ 红；表格 > 8 行无搜索 ⇒ 红 | `filter-row.test.mjs::S2/S6/S7`、`list-filter-chip-e2e.test.mjs` |
+| 承载面 | 一个对象一个完整内容面 | 同一对象 id 的完整正文 / 字段清单节点计数 ≤ 1；次级入口只出现链接 + 摘要；第二写口计数 = 0 | 待建（对象级路由表或 `data-carrier` 标记） |
+
+**只守形态与状态，不锁文案**
+
+- **可守**：结构位置、控件数量、尺寸单位、关闭路径、是否存在第二个写口。
+- **不守**：句子措辞、按钮文案、说明长度——这些归 `DESIGN_SYSTEM.md` §4.18 与既有 copy guards。
+- **为什么**：文案会随场景正当变化，锁死只制造误报；形态失守才是结构与状态问题。
+
+**编制要求**
+
+1. **能力型守卫收在组件 / 引擎**（`modal.js` / `list-filter.js`），一处实现 + 一处守卫，页面不各写一份。
+2. **按语义判，不按字面判**：加禁令前先问「还有哪些等价写法能绕过」。
+3. **输入只读台账或可重跑产物**，不读一次性审计原文（见下一节）。
+4. 新增页面自动继承守卫；白名单必须断言「仍在用」，防僵尸例外。
+
+**Boolean 条件**：新增 / 改动浮窗、筛选、对象入口时，三类守卫全绿才算收口；任一类缺失，先补守卫，再逐页修。
+
+**生效条件**：任何新增浮窗 / 筛选 / 对象入口的批次，以及任何声称「UI 已收口」的验收。
+
+---
+
+## 守卫不得长期依赖一次性审计产物（2026-10-20 立）
+
+**问题**：审计报告、IA 矩阵、生成清单常被直接写成守卫的输入路径。一次性产物在结论沉淀后要移入 `.ctx/logs/archive/YYYY-MM/`；若守卫仍读 `.ctx` 顶层，迁移即红；若为了守卫把原文留在顶层，`.ctx` 又会重新变成筐。
+
+**规则**：
+
+1. **守卫只依赖两类输入**：① **台账**——`.ctx/TIMESTAMPS.md`、`.ctx/SNAPSHOT.md`、`.ctx/REVIEW_QUEUE.md`、`.ctx/ACTIVE_RULINGS.md` 等常驻文件；② **archive 中带生成脚本的产物**——能用脚本重跑，如 `server/scripts/ia-inventory.mjs` 生成的 `IA_INVENTORY.md`。
+2. **审计原文不是守卫契约**：需要断言的结论先沉淀到原则 / 方法文档（`CLAUDE.md`、`OPERATIONS_GUIDE.md`、`DESIGN_SYSTEM.md`、`DATA_MODEL.md` 或本篇 / `PARALLEL_SKILL_AUDIT.md`），守卫读那份文档，不读一次性报告。
+3. **迁移与改路径同批**：审计产物从 `.ctx` 顶层迁入 `archive/YYYY-MM/` 时，新增或迁移守卫**必须在同一批**改路径；迁移后全仓 Grep 旧路径应为 0 命中，并跑相关守卫。
+4. **跨月归档仍按一改具改**：守卫路径含月份目录；跨月归档后按 H30.1 同步改签，不得留下只在旧月份存在的隐式依赖。
+
+**Boolean 条件**：新增守卫引用 `.ctx/**` 文件 → 先问「它是台账，还是可由脚本重跑？两者都不是 ⇒ 不得作为守卫输入」；迁移 `.ctx` 文件 → 同批检查所有守卫与文档引用。
+
+**生效条件**：任何新增 / 修订守卫、任何 `.ctx` 文件迁移或归档的批次。
+
+
+---
+
+## 测试三层：daily / precommit / weekly（2026-10-21 批次 500 立）
+
+**问题**：daily 长期把真机普查与全部 e2e 混在一起，单次约 5–8 分钟，反馈变慢；但直接删测试又会丢覆盖。
+
+**规则**：
+
+1. **单一源**：server/test-tier-registry.mjs 登记每个测试文件的层级、理由与覆盖来源；server/test/test-tier-guard.test.mjs 断言磁盘全集 ↔ registry 三层双向相等、互不重叠。
+2. **daily**：只保留关键 probe——权限、数据真值、迁移、写链、构建完整性、本批改动面与防假绿守卫；墙钟目标约 4 分钟内。非 Playwright 的纯 node 守卫必须全部在 daily（doc-consistency::S16）。
+3. **precommit**：daily 全集 ＋ 真机 e2e（含 page-sweep、form-loop-sweep 与全部 *-e2e）。
+4. **weekly**：更慢的视觉/审计类；precommit/full 仍须覆盖。
+5. **移出不丢覆盖**：任一文件移出 daily，必须在 registry 写清移入层与覆盖来源；不得静默删除，也不得改断言变绿。
+6. **预算**：daily 文件数与断言行数写入常量；新增测试必须同批登记层级，预算只降不升。
+
+**Boolean 条件**：测试文件移出 daily → 必须同时出现在 precommit/weekly 且 registry 有 reason；否则守卫红。
+
+**生效条件**：任何新增 / 删除 / 移动测试文件或修改 server/package.json 测试脚本的批次。
+
+---
+
+## 判例：权限判据必须落在真实行为上（2026-11-03 批次 527 后）
+
+**问题**：审计按「中间件是不是 `requireAuth`」判越权，把 `signups` 这类「中间件只登录、handler 有专用 guard」的写口误记为风险；同时换轨演练暴露 `notices.reads` 被错误列为必填，导致导入被契约挡住。
+
+**规则**：
+
+1. 写权限的唯一机读源是 `server/security/write-policy-matrix.mjs`；矩阵行必须写 `roleGate / ownership / fieldLocks / evidence / status`。
+2. 审计 C1 只查矩阵：未登记 → P0；`known-risk` → exception 并回链阻断风险；`enforced` → 通过。运行期探针只抽样高风险行。
+3. 数据契约的 `required` 必须能在「演示库 + 真实库」两处都成立；只在实际写入方保证的字段才进 `required`，否则进 `optional`。
+
+**Boolean 条件**：新增 `POST/PATCH/DELETE` 路由 → 矩阵必须同步新增一行且 `write-policy-matrix` 绿；否则判红。
+
+**生效条件**：任何新增写口、改权限门、改审计 C1 口径或改 `domain-contract.required` 的批次。
+
+## 判例：用户说「保留」不等于「不用改」（2026-11-03 sample-diff-learning）
+
+**问题**：抽查时用户回「保留归保留，有改进空间就改进！有问题就改正」——若把这句读成 `Keep` 就会漏掉潜在缺陷。
+
+**规则**：收到「保留 + 改进」类反馈时，必须给出**具体改进点**（改了什么 / 为什么）或**明确说明为何当前无改进空间**（附检查项），不得以「已保留」结束。
+
+**Boolean 条件**：用户反馈含「改进 / 改正 / 有问题」→ 回复必须包含 `改动清单` 或 `无改进空间的三条检查证据`；否则视为未响应反馈。
+
+**生效条件**：每次 `sample-diff-learning` 抽样或用户对已交付改动作出保留类评价时。
 

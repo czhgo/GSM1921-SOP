@@ -3,22 +3,23 @@
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 // 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261018h';
-import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261018h';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261018h';
-import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261018h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018h';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018h';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261102b';
+import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261102b';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261102b';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261102b';
+import { currentUserId } from '../../../services/core/auth.js?v=20261102b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261102b';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261018h';
-import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261018h';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261018h';
-import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261018h';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018h';
-import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261018h';
-import { generateId } from '../../../core/base/id.js?v=20261018h';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261102b';
+import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261102b';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261102b';
+import { SourceType, ParticipationLevel, isTaskforceActiveStatus } from '../../../core/domain/domain.js?v=20261102b';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261102b';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261102b';
+import { generateId } from '../../../core/base/id.js?v=20261102b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261102b';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：考察明细表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018h';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261102b';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
@@ -35,7 +36,6 @@ export function renderContent(ctx, container) {
   if (!container) return;
 
   const { accent, accentRgba, accentBorder } = ctx;
-  const _accVars = accDarkVars(accent);
 
   if (_orgInspPickerInstance) { _orgInspPickerInstance.destroy(); _orgInspPickerInstance = null; }
 
@@ -48,7 +48,7 @@ export function renderContent(ctx, container) {
 
   // T223 专班新者在前（createdAt 降序）
   const activeTaskforces = TaskForceRecordStore.getAll()
-    .filter(t => t.status === 'active' || t.status === 'recruiting')
+    .filter(t => isTaskforceActiveStatus(t.status))
     .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
   const formHtml = _orgInspFormVisible ? `
@@ -58,7 +58,7 @@ export function renderContent(ctx, container) {
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择有明确考察要求的专班 <span class="text-red-600">*</span></label>
         <select id="org-insp-tf-select" class="input-flat w-full">
           <option value="">请选择专班</option>
-          ${activeTaskforces.map(tf => `<option value="${tf.id}" data-name="${tf.name}">${tf.name}（${tf.status === 'active' ? '运行中' : '招募中'}）</option>`).join('')}
+          ${activeTaskforces.map(tf => `<option value="${tf.id}" data-name="${tf.name}" data-workgroup-id="${tf.workgroupId || `wg-taskforce-${tf.id}`}">${tf.name}（${tf.status === 'active' ? '运行中' : '招募中'}）</option>`).join('')}
         </select>
       </div>
       <div class="mb-3">
@@ -67,10 +67,9 @@ export function renderContent(ctx, container) {
       </div>
       <div id="org-insp-content-rows" class="mb-3"></div>
       <div class="flex items-center gap-3">
-        <button id="org-insp-form-submit" class="btn-accent text-sm px-4 py-[7px]" style="cursor:pointer">提交考察</button>
+        <button id="org-insp-form-submit" class="btn-accent text-sm px-4 py-1.5" style="cursor:pointer">提交考察</button>
         <button id="org-insp-form-cancel" class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
       </div>
-      <p class="text-[11px] text-gray-500 mt-2">仅制度、议程或具体事项明确要求时录入；请在记录内容中写明要求来源。提交后由纪检确认。</p>
     </div>
   ` : '';
 
@@ -81,7 +80,7 @@ export function renderContent(ctx, container) {
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">专班事项考察记录</h3>
-        <button class="btn-md" id="btn-org-upload-insp" style="${_accVars}background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1px solid ${accentBorder};">${_orgInspFormVisible ? '收起表单' : '录入事项考察'}</button>
+        <button class="btn-md" id="btn-org-upload-insp" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);border:1px solid var(--app-accent-soft-border);">${_orgInspFormVisible ? '收起表单' : '录入事项考察'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">仅为制度、议程或事项明确要求的专班录入考察；工作组成员名单不会自动生成考察名单。提交后由纪检委员确认。</div>
       ${formHtml}
@@ -92,7 +91,7 @@ export function renderContent(ctx, container) {
       ${returnedRecords.length > 0 ? `
       <div class="mt-4 pt-3 border-t border-gray-100">
         <div class="text-xs font-bold text-gray-600 mb-2">纪检打回 · 待你确认（${returnedRecords.length}）</div>
-        <div class="text-xs text-gray-500 mb-2">纪检核实后打回，请重新确认该条专班考察（修改痕迹留存）；确认后回到纪检「待确认」队列复核</div>
+        <div class="text-xs text-gray-500 mb-2">纪检打回，请重新确认后提交。</div>
         <div class="space-y-2">
           ${returnedRecords.map(r => `
             <div class="flex items-center gap-2 p-2 rounded-lg bg-white border border-amber-100">
@@ -142,11 +141,11 @@ export function renderContent(ctx, container) {
     rows: inspRows,
     keyword: personKeyword(),
     facets: personFacets({ roleLabel: roleLabelOf }),
-    facetStyle: 'chip',
     countUnit: '条',
     emptyMessage: '暂无专班考察记录',
     table: {
       colSpan: 5,
+      responsive: true,
       headHtml: `<tr>
             <th>姓名</th>
             <th>专班</th>
@@ -156,12 +155,12 @@ export function renderContent(ctx, container) {
           </tr>`,
     },
     rowHtml: (i) => `
-            <tr class="cursor-pointer" data-insp-detail="${esc(i.id)}" title="点击查看考察详情">
-              <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
-              <td class="text-gray-600">${esc(i.source)}</td>
-              <td><span class="px-1.5 py-0.5 rounded text-xs ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">专班</span></td>
-              <td class="text-gray-600">${esc(i.content)}</td>
-              <td><span class="px-1.5 py-0.5 rounded-full text-xs ${statusColor[i.status] || 'bg-gray-100 text-gray-600'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
+            <tr class="cursor-pointer" data-interactive="true" tabindex="0" data-insp-detail="${esc(i.id)}" title="点击查看考察详情">
+              <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
+              <td data-label="专班" class="text-gray-600">${esc(i.source)}</td>
+              <td data-label="标签"><span class="px-1.5 py-0.5 rounded text-xs ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">专班</span></td>
+              <td data-label="考察内容" class="text-gray-600">${esc(i.content)}</td>
+              <td data-label="状态"><span class="px-1.5 py-0.5 rounded-full text-xs ${statusColor[i.status] || 'bg-gray-100 text-gray-600'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
             </tr>`,
   });
 
@@ -193,11 +192,11 @@ export function renderContent(ctx, container) {
         <div class="rounded-lg p-3" style="background:var(--neutral-50);border:1px solid var(--neutral-200);">
           <div class="flex items-center justify-between mb-2 pb-2" style="border-bottom:1px solid var(--neutral-200);">
             <p class="text-xs font-medium" style="color:var(--neutral-800);">考察记录详情</p>
-            <span class="text-[11px]" style="color:var(--neutral-500);">上传人 ${getPersonName(rec.recordedBy) || '—'} · ${rec.recordedAt || '—'}</span>
+            <span class="text-xs" style="color:var(--neutral-500);">上传人 ${getPersonName(rec.recordedBy) || '—'} · ${rec.recordedAt || '—'}</span>
           </div>
           <div class="text-xs">
             <div class="grid grid-cols-2 gap-x-6 py-1.5" style="border-bottom:1px solid var(--neutral-200);">
-              <p style="color:var(--neutral-700);">姓名 <a href="${getBasePath()}person.html?id=${encodeURIComponent(rec.personId)}" class="hover:underline hover:text-sky-700 transition-colors" style="color:var(--neutral-800);font-weight:500;" title="查看完整档案">${esc(long.name)}</a></p>
+              <p style="color:var(--neutral-700);">姓名 <a href="${getBasePath()}person.html?id=${encodeURIComponent(rec.personId)}" class="hover:text-[var(--app-accent-soft-text)] transition-colors" style="color:var(--neutral-800);font-weight:500;" title="查看完整档案">${esc(long.name)}</a></p>
               <p style="color:var(--neutral-700);">专班 <span style="color:var(--neutral-800);font-weight:500;">${long.source}</span></p>
             </div>
             <div class="grid grid-cols-2 gap-x-6 py-1.5" style="border-bottom:1px solid var(--neutral-200);">
@@ -208,7 +207,6 @@ export function renderContent(ctx, container) {
               <p style="color:var(--neutral-700);">考察内容 <span style="color:var(--neutral-800);font-weight:500;">${rec.content || rec.role || '—'}</span></p>
             </div>
           </div>
-          <p class="text-[11px] mt-2 pt-2" style="color:var(--neutral-500);border-top:1px solid var(--neutral-200);">流程：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表</p>
         </div>`;
       // 触点即落点（全局 UX 反思批次 2026-09-13）：详情紧贴被点的考察行展开并滚入视野
       //（此前单例面板固定在整张表之后，行数一多就要下滚寻找）
@@ -220,7 +218,9 @@ export function renderContent(ctx, container) {
   // 纪检打回：上传方重新确认（批次 119 · 与考勤打回同规）——清打回痕、回「待确认」交纪检复核
   container.querySelectorAll('.org-return-confirm').forEach(btn => {
     btn.addEventListener('click', () => {
-      const actorId = AuthStore.getCurrentUser()?.personId || 'p13';
+      const actorId = currentUserId();
+      // P1-11：失效会话不猜人——不再回落到支书 p13。
+      if (!actorId) { showToast('error', '登录态已失效，请重新登录'); return; }
       const res = reconfirmReturnedInspectionRecord(btn.dataset.id, { actorId });
       if (!res.ok) { showToast('error', '确认失败：该记录不存在'); return; }
       showToast('success', '已重新提交，等待纪检复核');
@@ -231,6 +231,13 @@ export function renderContent(ctx, container) {
   if (_orgInspFormVisible) {
     _initOrgInspForm(container, activeTaskforces, ctx);
   }
+}
+
+function _orgInspectionWorkgroupMemberIds(workgroupId) {
+  if (!workgroupId) return new Set();
+  return new Set((mockDB.workgroupMembers || [])
+    .filter((row) => row.workgroupId === workgroupId && row.status !== 'removed' && row.personId)
+    .map((row) => row.personId));
 }
 
 function _initOrgInspForm(container, activeTaskforces, ctx) {
@@ -251,6 +258,18 @@ function _initOrgInspForm(container, activeTaskforces, ctx) {
 
   _renderOrgInspContentRows([]);
 
+  // 2026-10-26 批次 513：专班考察对象必须是该专班工作组成员（服务端硬校验）。
+  //   选专班后收窄人员选择器并清空旧选择，避免“选得到、提交必被拒”。
+  const tfSelectForScope = container.querySelector('#org-insp-tf-select');
+  const syncOrgPickerScope = () => {
+    const tfId = tfSelectForScope?.value || '';
+    if (!tfId) { _orgInspPickerInstance?.setFilter(null); return; }
+    const wgId = tfSelectForScope?.selectedOptions?.[0]?.dataset.workgroupId || `wg-taskforce-${tfId}`;
+    const ids = _orgInspectionWorkgroupMemberIds(wgId);
+    _orgInspPickerInstance?.setFilter((p) => ids.has(p.id), { clear: true });
+  };
+  tfSelectForScope?.addEventListener('change', syncOrgPickerScope);
+
   container.querySelector('#org-insp-form-cancel')?.addEventListener('click', () => {
     // 保态折叠（同 toggle）：取消 = 收起，保留已选与逐人填写内容；仅提交成功后才重置会话
     const panel = container.querySelector('#org-insp-form-panel');
@@ -266,8 +285,13 @@ function _initOrgInspForm(container, activeTaskforces, ctx) {
     if (!tfId) { showToast('error', '请选择专班'); return; }
 
     const tfName = tfOption?.dataset.name || tfId;
+    // R4-D04：专班考察必须落稳定父键 workgroupId（显示仍用 name 快照）。
+    const workgroupId = tfOption?.dataset.workgroupId || `wg-taskforce-${tfId}`;
     const selectedIds = _orgInspPickerInstance ? _orgInspPickerInstance.getSelected() : [];
     if (selectedIds.length === 0) { showToast('error', '请选择人员'); return; }
+    // P1-11：recordedBy 必须是真实登录人；失效会话拒绝写入（不落到支书 p13）。
+    const actorId = currentUserId();
+    if (!actorId) { showToast('error', '登录态已失效，请重新登录'); return; }
 
     const records = [];
     for (const personId of selectedIds) {
@@ -279,12 +303,14 @@ function _initOrgInspForm(container, activeTaskforces, ctx) {
         id: generateId('insp'),
         sourceType: SourceType.TASKFORCE,
         activityId: null,
-        sourceName: tfName,
+        workgroupId,              // R4-D04：父键（改名/同名不断链）
+        taskforceId: tfId,        // 兼容快照
+        sourceName: tfName,       // 仅展示快照
         personId,
         level: ParticipationLevel.DEEP_PARTICIPATE,
         content,                 // 2026-09-04 补齐 P1-5：考察内容入 content 字段（原误写 role）
         role: '深度参与者',       // role 恢复为角色标签（与 level deep 语义一致）
-        recordedBy: AuthStore.getCurrentUser()?.personId || 'p13', // A1-2026-09-05：真实操作人（组织委员建档位临时承载专班上传，负责人位待另裁）
+        recordedBy: actorId, // A1-2026-09-05：真实操作人（组织委员建档位临时承载专班上传，负责人位待另裁）
         recordedAt: new Date().toISOString(),
         status: 'pending',
       });
@@ -295,7 +321,7 @@ function _initOrgInspForm(container, activeTaskforces, ctx) {
     //   （CF §D 考察管理表「专班考察：上传/修改：上传=专班实际负责人；组织委员=建档汇总，不直接录原始数据」）
     //   ⇒ 由本台代录时属**例外代办** ⇒ **写库前**弹一次确认（点「仍由我继续」才继续）。
     //   本位操作人（本人即该专班组织者）走原路径、零打扰。弹窗**必须点按钮才能关**；「取消」＝放弃本次上传。
-    if (!isInspectionHomePosition(AuthStore.getCurrentUser()?.personId, SourceType.TASKFORCE, tfId)) {
+    if (!isInspectionHomePosition(actorId, SourceType.TASKFORCE, workgroupId)) {
       const _homeOk = await confirmNudge({ nudgeKey: 'taskforce-upload', context: tfName });
       if (!_homeOk) return;
     }

@@ -65,3 +65,12 @@ test('M3 btn-accent 主按钮不超过 2 处（当前步只留一个）', () => 
   const n = (CODE.match(/btn-accent/g) || []).length;
   assert.ok(n <= 2, `会议页 btn-accent 出现 ${n} 处（上限 2）：当前步只留一个主按钮，其余降为次按钮`);
 });
+
+test('M4 议程行可见动作 ≤2（不出现第三个并列按钮）', () => {
+  const groups = [...RAW.matchAll(/<div class="mt-2 flex items-center gap-2 flex-wrap">([\s\S]*?)<\/div>/g)];
+  assert.ok(groups.length > 0, '未找到议程行动作组，抽取面可能写坏');
+  for (const g of groups) {
+    const n = (g[1].match(/<button\b/g) || []).length;
+    assert.ok(n <= 2, `议程行可见动作应 ≤2，实测 ${n}`);
+  }
+});

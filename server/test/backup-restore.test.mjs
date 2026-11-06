@@ -18,11 +18,13 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import Database from 'better-sqlite3';
 import { initDb } from '../db.js';
 
 const SERVER = path.resolve(import.meta.dirname, '..');
 const BACKUP_SCRIPT = path.join(SERVER, 'scripts', 'backup.mjs');
+const RESTORE_SCRIPT = path.join(SERVER, 'scripts', 'restore.mjs');
 
 const SEED = [
   { id: 'bk-1', role: 'secretary', name: '备份甲' },
@@ -67,6 +69,17 @@ test('B1 备份→恢复演练：真跑 scripts/backup.mjs ⇒ 破坏原库 ⇒ 
 
   const bakDb = path.join(outDir, 'data.db');
   assert.ok(fs.existsSync(bakDb), '备份应产出 data.db');
+
+  // ── ①b 备份清单（B-499-8）：user_version / 逐表行数 / 附件数 / sha256 必须与备份文件一致 ──
+  const manifestPath = path.join(outDir, 'backup.json');
+  assert.ok(fs.existsSync(manifestPath), '备份应产出 backup.json 清单');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const actualSha = createHash('sha256').update(fs.readFileSync(bakDb)).digest('hex');
+  assert.equal(manifest.sha256, actualSha, '清单 sha256 必须与备份副本一致');
+  assert.equal(manifest.user_version, Number(db.pragma('user_version', { simple: true })), '清单 user_version 必须与源库一致');
+  assert.equal(manifest.tables.users, SEED.length, '清单应记录 users 行数');
+  assert.equal(manifest.uploads.files, 1, '清单应记录附件文件数');
+  assert.equal(manifest.seed_version, null, '无 seed_meta 版本时应明确记为 null（不是猜值）');
 
   // ── ② 备份副本必须**含 WAL 未 checkpoint 的数据**：行数 + 逐值一致 ──
   const bk = new Database(bakDb, { readonly: true });
@@ -117,5 +130,93 @@ test('B1 备份→恢复演练：真跑 scripts/backup.mjs ⇒ 破坏原库 ⇒ 
     assert.equal(byId.get('bk-3').name, '备份丙', '关键字段逐值：bk-3.name');
   } finally { rd.close(); }
   assert.equal(fs.readFileSync(path.join(restoreUploads, 'note.txt'), 'utf8'), UPLOAD_TEXT, '附件须一并恢复');
+  // 恢复演练校验（B-499-8）：恢复后的库必须与清单 sha256 / 行数一致。
+  const restoredSha = createHash('sha256').update(fs.readFileSync(restoreDb)).digest('hex');
+  assert.equal(restoredSha, manifest.sha256, '恢复后的 data.db sha256 必须与备份清单一致');
+  const rd2 = new Database(restoreDb, { readonly: true });
+  try {
+    assert.equal(rd2.prepare('SELECT COUNT(*) c FROM users').get().c, manifest.tables.users, '恢复后行数必须与清单一致');
+  } finally { rd2.close(); }
+  console.log('[B1] ✔ backup.json 清单校验通过（sha256 / user_version / 逐表行数 / 附件数）');
   console.log('[B1] ✔ 破坏原库 → 恢复到新路径 → integrity_check=ok、行/字段逐值一致、附件还原');
+});
+
+// ════════════════════════════════════════════════════════════════
+//  B2（Task 7.3）：真跑 `scripts/restore.mjs`（备份 → dry-run → 正式恢复）
+//  验的是「恢复脚本本身」：integrity 校验 → 替换库 + uploads → 清 wal/shm → 旧件留档。
+//  用 `--force` 跳过停服探测（测试环境不保证 :3000 空闲；停服拒绝由脚本自身逻辑保证）。
+// ════════════════════════════════════════════════════════════════
+test('B2 restore.mjs：真备份 → dry-run 不落盘 → 正式恢复（integrity + 行/字段 + 附件一致，旧件留档）', () => {
+  const root2 = fs.mkdtempSync(path.join(os.tmpdir(), 'gsm-restore-'));
+  const srcDb = path.join(root2, 'src', 'data.db');
+  const srcUploads = path.join(root2, 'src', 'uploads');
+  const bakDir = path.join(root2, 'bak');
+  const targetDb = path.join(root2, 'target', 'data.db');
+  const targetUploads = path.join(root2, 'target', 'uploads');
+  fs.mkdirSync(path.dirname(srcDb), { recursive: true });
+  fs.mkdirSync(srcUploads, { recursive: true });
+  fs.writeFileSync(path.join(srcUploads, 'restore-note.txt'), '恢复脚本附件');
+
+  const src = initDb(srcDb);
+  const rows = [
+    { id: 'rs-1', name: '恢复甲', role: 'participant', nested: { n: 1 } },
+    { id: 'rs-2', name: '恢复乙', role: 'member', nested: { n: 2 } },
+  ];
+  const stmt = src.prepare('INSERT INTO users (id, data) VALUES (?, ?)');
+  for (const row of rows) stmt.run(row.id, JSON.stringify(row));
+  src.close();
+  // 模拟「目标位置已有一份旧库」：恢复时必须留档（*.pre-restore-*）
+  fs.mkdirSync(path.dirname(targetDb), { recursive: true });
+  const old = initDb(targetDb);
+  old.prepare('INSERT INTO users (id, data) VALUES (?, ?)').run('old-1', JSON.stringify({ id: 'old-1', name: '旧库成员' }));
+  old.close();
+  fs.mkdirSync(targetUploads, { recursive: true });
+  fs.writeFileSync(path.join(targetUploads, 'old.txt'), '旧附件');
+
+  try {
+    const backup = spawnSync(process.execPath,
+      [BACKUP_SCRIPT, '--db', srcDb, '--uploads', srcUploads, '--out', bakDir],
+      { encoding: 'utf8' });
+    assert.equal(backup.status, 0, `备份应成功：${(backup.stderr || '').trim()}`);
+
+    // ① dry-run：校验通过但不落盘
+    const dry = spawnSync(process.execPath,
+      [RESTORE_SCRIPT, '--from', bakDir, '--db', targetDb, '--uploads', targetUploads, '--dry-run'],
+      { encoding: 'utf8' });
+    assert.equal(dry.status, 0, `dry-run 应成功：${(dry.stderr || '').trim()}\n${dry.stdout}`);
+    assert.match(dry.stdout, /dry-run/, 'dry-run 应明确说明未落盘');
+    const oldStill = new Database(targetDb, { readonly: true });
+    try {
+      assert.equal(oldStill.prepare('SELECT COUNT(*) c FROM users').get().c, 1, 'dry-run 不得改动目标库');
+      assert.equal(oldStill.prepare('SELECT id FROM users').get().id, 'old-1', 'dry-run 后旧的 old-1 仍在');
+    } finally { oldStill.close(); }
+    for (const s of ['-wal', '-shm']) fs.rmSync(targetDb + s, { force: true });
+
+    // ② 正式恢复（--force 跳过停服探测）
+    const run = spawnSync(process.execPath,
+      [RESTORE_SCRIPT, '--from', bakDir, '--db', targetDb, '--uploads', targetUploads, '--force'],
+      { encoding: 'utf8' });
+    assert.equal(run.status, 0, `恢复应成功：${(run.stderr || '').trim()}\n${run.stdout}`);
+    assert.match(run.stdout, /恢复完成/, '应打印恢复完成与自检读数');
+
+    // ③ 恢复后逐值一致 + integrity
+    const got = new Database(targetDb, { readonly: true });
+    try {
+      assert.equal(got.pragma('integrity_check', { simple: true }), 'ok', '恢复后 integrity_check 必须 ok');
+      const restored = got.prepare('SELECT data FROM users ORDER BY id').all().map((r) => r.data);
+      assert.deepEqual(restored, rows.map((r) => JSON.stringify(r)), '恢复后 users 逐值一致（含嵌套字段）');
+    } finally { got.close(); }
+    assert.equal(fs.readFileSync(path.join(targetUploads, 'restore-note.txt'), 'utf8'), '恢复脚本附件', '附件一并恢复');
+    assert.equal(fs.existsSync(path.join(targetUploads, 'old.txt')), false, '旧附件目录被替换（旧件留档）');
+
+    // ④ 旧库/旧附件留档（可回退）
+    const keepDb = fs.readdirSync(path.dirname(targetDb)).filter((n) => n.includes('.pre-restore-'));
+    const keepUploads = fs.readdirSync(path.dirname(targetDb)).filter((n) => n.includes('uploads.pre-restore-'));
+    assert.ok(keepDb.length >= 1, '旧库应留档为 *.pre-restore-<时间戳>');
+    assert.ok(keepUploads.length >= 1, '旧附件目录应留档为 *.pre-restore-<时间戳>');
+    // 清理 wal/shm，避免临时目录残留影响断言
+    for (const s of ['-wal', '-shm']) fs.rmSync(targetDb + s, { force: true });
+  } finally {
+    fs.rmSync(root2, { recursive: true, force: true });
+  }
 });

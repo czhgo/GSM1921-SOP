@@ -3,13 +3,13 @@
 //  data-loader.js — 数据加载统一入口
 // ════════════════════════════════════════════════════════════════
 
-import { BranchService } from '../services/core/runtime.js?v=20261018h';
-import { getAppState, setState, STATE } from '../core/base/state.js?v=20261018h';
-import { notifyDataLoaded } from './data-adapter.js?v=20261018h';
-import { AuthStore } from '../services/core/auth.js?v=20261018h';
+import { BranchService } from '../services/core/runtime.js?v=20261102b';
+import { getAppState, setState, STATE } from '../core/base/state.js?v=20261102b';
+import { notifyDataLoaded } from './data-adapter.js?v=20261102b';
+import { AuthStore } from '../services/core/auth.js?v=20261102b';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：`state.activities` 是仪表盘与各
 // 工作台 tab 的主读口 ⇒ 在本口按查看者角色收窄一次，覆盖首页活动日历/列表、成员台「活动动态」等全部消费点。
-import { filterActivitiesForViewer } from '../services/core/visibility.js?v=20261018h';
+import { filterActivitiesForViewer } from '../services/core/visibility.js?v=20261102b';
 
 /**
  * 将 mock ACTIVITIES 映射为带完整字段的 fallback 数据
@@ -19,10 +19,11 @@ function fallbackMapActivities(activities) {
   return activities.map(a => ({
     ...a,
     visibility: 'branch',
-    executor: a.organizer || 'u_exec',
-    supervisor: null,
-    createdBy: a.organizer || 'u_exec',
-    createdAt: a.date || new Date().toISOString(),
+    // R2-12：装载兜底不得伪造操作人（原 `|| 'u_exec'` 会把活动记到不存在的账号）；
+    // 有组织者则沿用其 personId，缺失保持 null，读侧显示「—」。
+    // R2-13：executor/supervisor 已从活动模型下线，兜底映射不再生成这两个字段。
+    createdBy: a.createdBy || a.organizer || null,
+    createdAt: a.createdAt || a.date || new Date().toISOString(),
   }));
 }
 
@@ -53,6 +54,8 @@ export async function loadWorkspaceData({
   logTag = 'workspace',
 }) {
   // Step 1: loadDB + Store.init
+  // 2026-10-26 Task 2.2：工作台壳已先调过一次；此处由 mock-adapter 的页面级幂等锁复用
+  //   （重复调用直接返回，不再重读 localStorage / 重跑种子修复与派生）。
   try {
     if (typeof BranchService.loadDB === 'function') BranchService.loadDB();
     storeInits.forEach(fn => fn());

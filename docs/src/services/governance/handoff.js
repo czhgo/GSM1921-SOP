@@ -4,15 +4,17 @@
 //  落地 content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md §E.2 数据交接协议：
 //    纪检→组织 考勤统计 / 纪检→组织 考察记录提交 / 组织→纪检 补课需求回执
 //  （组织→纪检 专班名单同步已在纪检考察 tab 落地，不重复建模）
-//  后台同步机制（支书强调「信息流最畅通」）：交接生成 → 自动为接收方派生待办；
+//  后台同步机制（支书强调「信息流最畅通」）：**需接收方动作**的交接生成 → 为接收方派生待办；
 //  接收方确认 → 待办自动销项 + 状态落库，双向可追溯。
+//  D04（AP-IA-04）：auto 类（AUTO_CONFIRM_TYPES）发起即送达，**不派生待办**；confirm 幂等。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261018h';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261018h';
-import { bumpToken } from '../../core/base/version-token.js?v=20261018h'; // P0 域缓存失效（spec §二.3）
-import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20261018h';
-import { generateId } from '../../core/base/id.js?v=20261018h';
+import { mockDB } from '../../core/domain/domain.js?v=20261102b';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261102b';
+import { bumpToken } from '../../core/base/version-token.js?v=20261102b'; // P0 域缓存失效（spec §二.3）
+import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20261102b';
+import { generateId } from '../../core/base/id.js?v=20261102b';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261102b';
 
 // ── 2026-09-23 批次 163（T1）：api 形态补服务端对源 ─────────────────────────
 // 病灶：handoffs 有本地落盘（mock-adapter 域清单）却**不在**快照 payload / init 拉取列表 / 服务端资源名映射
@@ -35,11 +37,14 @@ function _syncToServer(fn, what) {
   try {
     const adapter = getAdapter();
     const call = fn(adapter);
-    if (call && typeof call.catch === 'function') {
-      call.catch((e) => console.warn(`[HandoffStore] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e));
+    // R3-P1（F-09）：语义端点落库登记到 pending-writes —— 成功提示前 await settleWrites()，
+    // 失败必须让调用方感知（不再 fire-and-forget 后照报成功）。
+    if (call && typeof call.then === 'function') {
+      trackWrite(call).catch((e) => console.warn(`[HandoffStore] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e));
     }
   } catch (e) {
     console.warn(`[HandoffStore] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e);
+    trackWrite(Promise.reject(e));
   }
 }
 
@@ -98,6 +103,11 @@ export const HandoffStore = {
     return _load().some(h => h.type === type && h.refId === refId && h.status === 'pending');
   },
 
+  /** 是否已发起过同类型 + 同引用对象的交接（D04：auto 类用「已送达」判重，不再用 pending 判重） */
+  hasFor(type, refId) {
+    return _load().some(h => h.type === type && h.refId === refId);
+  },
+
   /**
    * 发起交接（写入；**自动落定类**发起即 `done`，其余派生接收方待办）
    * @param {{type:string, refType:string, refLabel:string, refId:string, note?:string}} data
@@ -126,34 +136,43 @@ export const HandoffStore = {
     _save([..._load(), handoff]);
     // T1：api 形态同发服务端语义端点（本地已乐观写入；服务端在下一次 init 成为权威）
     _syncToServer((a) => a.handoffs && typeof a.handoffs.create === 'function' ? a.handoffs.create(handoff) : null, '交接发起');
-    // 后台同步：交接生成 → 接收方待办 +1（信息流最畅通，接收方工作台直接可见）
-    try {
-      TodoStore.create({
-        title: `数据交接：${meta.label}（${refLabel}）`,
-        description: note || `${HANDOFF_ROLE_LABELS[meta.from] || meta.from} → ${HANDOFF_ROLE_LABELS[meta.to] || meta.to}，请确认接收`,
-        role: meta.to,
-        category: TodoCategory.REVIEW,
-        priority: 'normal',
-        sourceType: TodoSourceType.MANUAL,
-        sourceId: handoff.id,
-        actionType: TodoActionType.REVIEW,
-        actionKey: `handoff-${type}`,
-        domain: meta.domain, // IA-C1 Task2：显式业务域（见 HANDOFF_TYPES 注释）
-        actionData: { handoffId: handoff.id },
-        flow: `交接：${HANDOFF_ROLE_LABELS[meta.from] || meta.from} → ${HANDOFF_ROLE_LABELS[meta.to] || meta.to}`,
-      });
-    } catch (e) {
-      console.warn('[HandoffStore] 派生待办失败：', e);
+    // D04（AP-IA-04）：auto 类交接**不派生接收方待办**——发起即已送达，待办会让接收方误以为要「确认接收」。
+    // 台账仍留痕（by/at/type 都在 handoff 行），只是不进待办面；material-shortage 等真待办类仍照常派生。
+    if (!auto) {
+      try {
+        TodoStore.create({
+          title: `数据交接：${meta.label}（${refLabel}）`,
+          description: note || `${HANDOFF_ROLE_LABELS[meta.from] || meta.from} → ${HANDOFF_ROLE_LABELS[meta.to] || meta.to}，请确认接收`,
+          role: meta.to,
+          category: TodoCategory.REVIEW,
+          priority: 'normal',
+          sourceType: TodoSourceType.MANUAL,
+          sourceId: handoff.id,
+          actionType: TodoActionType.REVIEW,
+          actionKey: `handoff-${type}`,
+          domain: meta.domain, // IA-C1 Task2：显式业务域（见 HANDOFF_TYPES 注释）
+          actionData: { handoffId: handoff.id },
+          flow: `交接：${HANDOFF_ROLE_LABELS[meta.from] || meta.from} → ${HANDOFF_ROLE_LABELS[meta.to] || meta.to}`,
+        });
+      } catch (e) {
+        console.warn('[HandoffStore] 派生待办失败：', e);
+      }
     }
     return handoff;
   },
 
-  /** 接收方确认交接（确认 = 销待办 + 状态落库） */
+  /**
+   * 接收方确认交接（确认 = 销待办 + 状态落库）。
+   * D04：幂等——同一接收方重复调用「已 done」的直接返回 true，不再写库/再销待办；
+   * 不存在或非本角色接收方仍返回 false。
+   */
   confirm(id, actorRole) {
     const list = _load();
     const h = list.find(x => x.id === id);
-    if (!h || h.status !== 'pending') return false;
+    if (!h) return false;
     if (h.to !== actorRole) return false;
+    if (h.status === 'done') return true; // 幂等：重复确认不重复写
+    if (h.status !== 'pending') return false;
     h.status = 'done';
     h.confirmedAt = new Date().toISOString();
     h.confirmedBy = actorRole;

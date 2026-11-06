@@ -1,25 +1,23 @@
-// relation-matrix.js — 「人 × 项目」二元关系矩阵（单一源；2026-09-14 批次 35）
-//
-// 背景（支书 2026-09-14 指令）：
-//   「活动的考勤考察，还是以 long form 为主，也就是每人次一行。wide form 是不是更简明？人和活动/专班
-//     分离开后，其实存在一种转置方式！第一列是人的话就能展示他参加的项目；第一列是项目就能看有哪些人。
-//     这是一个很全局性的需要思考和改进的工程！」→ 支书 2026-09-14 裁定：**宽表默认**（long form 降为明细/导出下钻），
-//     并把该矩阵**推广到其它二元关系域**（考勤、考察、分工、专班报名…）。
+// relation-matrix.js — 「人 × 项目」二元关系矩阵（单一源）
 //
 // 口径：
 //   · 两个正交视图互为**转置**：byPerson（行＝人，列＝项目）/ byItem（行＝项目，列＝人）——同一份数据、同一口径，
 //     不是「两种表」。切换只换视角，不改数据。
 //   · **项目维列上限**：项目（活动/专班/工作项）随年份无限累积 → 列必须封顶（缺省最近 6 项），
 //     可一键「显示全部 N 项」；行维保持全量 + 横向滚动 + 首列吸附。
-//   · **人维分页**（2026-09-14 批次 38，支书裁定「人维一并分页」）：人（支部成员）同样会增长到上百，
-//     故人维按页渲染（缺省每页 10 人），翻页控件走统一检索引擎的 `pagerHtml` **单一源**（勿另写翻页标记）；
-//     人维无论落在行（byPerson）还是列（byItem）都按同一页切片——转置只换视角，不换分页口径。
+//   · **人维分页**：人维按页渲染（缺省每页 10 人），翻页控件走统一检索引擎的 `pagerHtml` **单一源**
+//     （勿另写翻页标记）；人维无论落在行（byPerson）还是列（byItem）都按同一页切片。
 //   · 视图与「是否展开全部列」按 stateKey 持久（跨重渲染不丢，与统一检索引擎同一状态纪律）。
 //   · 载体单一源：表格用 .data-table；切换/展开钮用 .lf-btn；不为矩阵新造一套样式（styles.css 是禁改文件）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261018h';
+//   · **窄屏（≤640px）＝同一关系行的响应式形态**：仍是这一张表，只是每行按「行表头（人/项目）＋
+//     逐列 `data-label` 值」堆叠成卡；不新造第二套矩阵、不改 cell 口径。与引擎表共用 styles.css 的
+//     `[data-responsive="cards"]` 一套规则（thead 隐藏、sticky/min-width 清零）。
+import { escHtml as esc } from '../../core/base/utils.js?v=20261102b';
 // 翻页控件单一源（批次 38）：矩阵的人维分页与统一检索引擎共用同一套 .page-btn / .page-num 标记
 // （叶子件 pager.js——不经 list-filter 引入，避免 list-filter→inspector→vote-summary-panel 与本节成环）
-import { pagerHtml } from './pager.js?v=20261018h';
+import { pagerHtml } from './pager.js?v=20261102b';
+// 空态单一源：矩阵空行统一走 empty-state 的 table 形态（不再手写 `<tr class="is-empty">`）
+import { emptyStateHtml } from './empty-state.js?v=20261102b';
 
 /** 项目维缺省列上限（最近 N 项） */
 export const MATRIX_COL_LIMIT = 6;
@@ -63,13 +61,16 @@ export function renderRelationMatrix(host, cfg) {
   const persons = Array.isArray(cfg.persons) ? cfg.persons : [];
   const cell = typeof cfg.cell === 'function' ? cfg.cell : () => null;
   const cellClass = typeof cfg.cellClass === 'function' ? cfg.cellClass : () => '';
-  const cellOf = (pid, iid) => {
+  const cellOf = (pid, iid, label) => {
     const html = cell(pid, iid);
     const extra = cellClass(pid, iid) || '';
     const cls = extra ? ` ${extra}` : '';
+    // data-label＝该列在当前视图里的维度名（byPerson＝项目名 / byItem＝姓名）：
+    // 窄屏堆叠时由 styles.css 的 td::before 显示，桌面不参与布局。
+    const lab = label ? ` data-label="${esc(label)}" title="${esc(label)}"` : '';
     return html
-      ? `<td class="text-center${cls}">${html}</td>`
-      : `<td class="text-center text-gray-400${cls}">—</td>`;
+      ? `<td class="text-center${cls}"${lab}>${html}</td>`
+      : `<td class="text-center text-gray-400${cls}"${lab}>—</td>`;
   };
 
   const overLimit = colLimit > 0 && items.length > colLimit;
@@ -87,35 +88,35 @@ export function renderRelationMatrix(host, cfg) {
   });
 
   // 项目维两行表头（标题 + 日期/类型），宽表列窄，标题截断并留 title 悬浮全文
-  const itemTh = (it) => `<th class="text-center align-top max-w-[112px] whitespace-nowrap">
+  const itemTh = (it) => `<th scope="col" class="text-center align-top max-w-[112px] whitespace-nowrap">
       <div class="truncate" title="${esc(it.title)}">${esc(it.title)}</div>
-      ${it.sub ? `<div class="text-[11px] text-gray-500 font-normal">${esc(it.sub)}</div>` : ''}
+      ${it.sub ? `<div class="text-xs text-gray-500 font-normal">${esc(it.sub)}</div>` : ''}
     </th>`;
-  const itemRowHead = (it) => `<td class="sticky left-0 bg-white">
+  const itemRowHead = (it) => `<th scope="row" class="sticky left-0 bg-white" style="color:#1F2937">
       <div class="font-medium text-gray-800 max-w-[180px] truncate" title="${esc(it.title)}">${esc(it.title)}</div>
-      ${it.sub ? `<div class="text-[11px] text-gray-500">${esc(it.sub)}</div>` : ''}
-    </td>`;
+      ${it.sub ? `<div class="text-xs text-gray-500">${esc(it.sub)}</div>` : ''}
+    </th>`;
 
   // 2026-09-29 批次 295（支书评议「**为什么每一列这么宽？这么写着不占地方吗？**」）：
   //   根因＝`.data-table{width:100%}` ⇒ 列数少时每列被**拉伸填满**（格子只有徽标/「—」，信息量远小于列宽）。
   //   修＝矩阵改挂 `.rm-table`（`.data-table.rm-table{width:auto}` ＋ 横向内边距收窄 ⇒ **列按内容定宽**）。
   const headAttr = cfg.headTitle ? ` title="${esc(cfg.headTitle)}"` : '';
   const headRow = byPerson
-    ? `<th class="sticky left-0"${headAttr}>${esc(cfg.personLabel || '姓名')}</th>${cols.map(itemTh).join('')}`
-    : `<th class="sticky left-0 align-top"${headAttr}>${esc(cfg.itemLabel || '项目')}</th>${pagePersons.map(p => `<th class="text-center whitespace-nowrap">${esc(p.name)}</th>`).join('')}`;
+    ? `<th scope="col" class="sticky left-0"${headAttr}>${esc(cfg.personLabel || '姓名')}</th>${cols.map(itemTh).join('')}`
+    : `<th scope="col" class="sticky left-0 align-top"${headAttr}>${esc(cfg.itemLabel || '项目')}</th>${pagePersons.map(p => `<th scope="col" class="text-center whitespace-nowrap">${esc(p.name)}</th>`).join('')}`;
 
   const body = byPerson
     ? pagePersons.map(p => `<tr>
-        <td class="font-medium text-gray-800 whitespace-nowrap sticky left-0 bg-white">${esc(p.name)}</td>
-        ${cols.map(it => cellOf(p.id, it.id)).join('')}
+        <th scope="row" class="font-medium text-gray-800 whitespace-nowrap sticky left-0 bg-white" style="color:#1F2937">${esc(p.name)}</th>
+        ${cols.map(it => cellOf(p.id, it.id, it.title)).join('')}
       </tr>`).join('')
     : cols.map(it => `<tr>
         ${itemRowHead(it)}
-        ${pagePersons.map(p => cellOf(p.id, it.id)).join('')}
+        ${pagePersons.map(p => cellOf(p.id, it.id, p.name)).join('')}
       </tr>`).join('');
 
   const span = 1 + (byPerson ? cols.length : pagePersons.length);
-  const empty = `<tr class="is-empty"><td class="is-empty" colspan="${span}">${esc(cfg.emptyText || '无匹配数据（请调整筛选）')}</td></tr>`;
+  const empty = emptyStateHtml({ variant: 'table', text: cfg.emptyText || '无匹配数据（请调整筛选）', colspan: span });
 
   const hint = cfg.hintText || (overLimit
     ? `列＝最近 ${colLimit} 项（按时间倒序）；用筛选可查看更早的项目`
@@ -126,12 +127,13 @@ export function renderRelationMatrix(host, cfg) {
       ${(overLimit || hint) ? `
         <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
           <span class="text-xs text-gray-500">${esc(hint)}</span>
-          ${overLimit ? `<button type="button" class="btn-tab lf-btn rm-toggle" data-rm-toggle="1">
+          ${overLimit ? `<button type="button" class="btn-tab lf-btn rm-toggle" data-rm-toggle="1" aria-expanded="${st.showAll ? 'true' : 'false'}" aria-controls="${esc(host.id || 'rm')}-table">
             ${st.showAll ? `只看最近 ${colLimit} 项` : `显示全部 ${items.length} 项`}
           </button>` : ''}
         </div>` : ''}
-      <div class="overflow-x-auto max-h-[420px] overflow-y-auto">
-        <table class="data-table rm-table">
+      <div class="rm-scroll overflow-x-auto max-h-[420px] overflow-y-auto" id="${esc(host.id || 'rm')}-table">
+        <table class="data-table rm-table" data-responsive="cards">
+          <caption class="visually-hidden">关系矩阵：行与列交叉单元格</caption>
           <thead><tr>${headRow}</tr></thead>
           <tbody>${body || empty}</tbody>
         </table>

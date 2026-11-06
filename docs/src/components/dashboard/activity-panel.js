@@ -5,19 +5,22 @@
 //  职责单一：日历/列表双视图切换 + ?view=?month= URL 同步 + 活动列表（前 10 条）。
 // ════════════════════════════════════════════════════════════════
 
-import { setState, getAppState } from '../../core/base/state.js?v=20261018h';
-import { _fmtDate, getBasePath } from '../../core/base/utils.js?v=20261018h';
-import { getPersonName } from '../../services/member/person.js?v=20261018h';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261018h';
-import { AuthStore } from '../../services/core/auth.js?v=20261018h';
-import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261018h';
+import { setState, getAppState } from '../../core/base/state.js?v=20261102b';
+import { _fmtDate, getBasePath } from '../../core/base/utils.js?v=20261102b';
+import { getPersonName } from '../../services/member/person.js?v=20261102b';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261102b';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261018h';
-import { badgeHtml } from '../ui/badges.js?v=20261018h';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261018h';
-import { populateMonthSelector } from '../record/calendar.js?v=20261018h';
-import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/boot/registry.js?v=20261018h';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261102b';
+import { badgeHtml } from '../ui/badges.js?v=20261102b';
+// 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261102b';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261102b';
+import { populateMonthSelector } from '../record/calendar.js?v=20261102b';
+import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/boot/registry.js?v=20261102b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
 const DASHBOARD_DEFAULT_VIEW = 'calendar';
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });
 
@@ -46,8 +49,10 @@ export function syncURL(view, month) {
   history.replaceState(null, '', url);
 }
 
-/** 切换活动视图（日历/列表）+ 同步 URL（main-entry 初始化与渲染时调用） */
-export function switchActivityView(view) {
+/** 切换活动视图（日历/列表）。
+ *  `sync:false` 用于**首次渲染**——2026-10-28：首屏不写 URL（地址栏不再凭空出现 `?month=2026-10`）；
+ *  只有用户主动切视图 / 切月份才写。带 `?view=` / `?month=` 进入时仍按其渲染（深链可用）。 */
+export function switchActivityView(view, { sync = true } = {}) {
   const calView = document.getElementById('activity-calendar-view');
   const listView = document.getElementById('activity-list-view');
   if (!calView || !listView) return;
@@ -63,16 +68,28 @@ export function switchActivityView(view) {
   // 更新 tab 样式
   document.querySelectorAll('.activity-tab-btn').forEach(btn => {
     const isActive = btn.dataset.view === view;
-    btn.className = `activity-tab-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${
-      isActive ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'
+    btn.className = `activity-tab-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors duration-200 ${
+      isActive ? 'bg-[var(--app-accent-soft-bg)] border-[var(--app-accent)] [color:var(--app-accent-soft-text)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-[var(--surface-hover)]'
     }`;
-    if (isActive) btn.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent) 55%, #fff)'); else btn.style.removeProperty('--acc-text-dark');
   });
+
+  if (!sync) return;
 
   // 同步 URL
   const appState = getAppState();
   const month = appState?.displayMonth || '';
   syncURL(view, view === 'calendar' ? month : '');
+}
+
+/** 月份选择器「用户主动改动」才写 `?month=`（首次加载不写；选择器挂在持久元素上，绑定幂等） */
+function bindMonthUrlSync() {
+  const sel = document.getElementById('month-selector');
+  if (!sel || sel.dataset.urlSyncBound) return;
+  sel.dataset.urlSyncBound = '1';
+  sel.addEventListener('change', () => {
+    if (getInitialActivityView() !== 'calendar') return;
+    syncURL('calendar', sel.value || '');
+  });
 }
 
 /** 活动 tab 初始化绑定（tab 按钮为静态 HTML，模块初始化即绑定，防异步期间丢点击） */
@@ -90,14 +107,14 @@ export function renderActivityList(activities, user) {
   if (!container) return;
 
   // T223 排序统一：未完成在前、已完成在后，组内均按 date 降序（新者在前）
-  const isDone = a => a.archived || ['completed', 'cancelled'].includes(a.status);
+  const isDone = isActivityClosed;
   const sorted = [...activities]
     .filter(a => a.date && !isActivityArchived(a))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  const display = [...sorted.filter(a => !isDone(a)), ...sorted.filter(a => isDone(a))].slice(0, 10);
+  const display = [...sorted.filter(a => !isDone(a)), ...sorted.filter(a => isDone(a))].slice(0, DASHBOARD_LIMITS.activities);
 
   if (display.length === 0) {
-    container.innerHTML = '<p class="text-sm text-gray-500 p-4">暂无可展示的活动</p>';
+    container.innerHTML = emptyStateHtml({ text: "暂无可展示的活动", variant: 'inline' });
     return;
   }
 
@@ -107,7 +124,7 @@ export function renderActivityList(activities, user) {
     ? CrossPageState.buildURL(getBasePath() + 'workspace/' + (AuthStore.getPageForRole('workspace', user.role) || 'visitor.html'), { view: 'activities' })
     : getBasePath() + 'login.html';
   const moreHtml = sorted.length > display.length
-    ? `<a href="${moreUrl}" class="mt-2 flex items-center justify-center gap-1 py-2 text-xs font-medium rounded-lg transition-colors hover:bg-gray-50" style="color:var(--accent-blue);">查看更多活动（共 ${sorted.length} 条）→</a>`
+    ? `<a href="${moreUrl}" class="mt-2 flex items-center justify-center gap-1 py-2 text-xs font-medium rounded-lg text-accent transition-colors hover:bg-[var(--surface-hover)]">查看更多活动（共 ${sorted.length} 条）→</a>`
     : '';
 
   container.innerHTML = '<div class="space-y-2">' + display.map(a => {
@@ -119,24 +136,39 @@ export function renderActivityList(activities, user) {
     const organizerName = getPersonName(a.organizer);
 
     return `
-      <div class="flex items-center gap-3 p-2.5 rounded-lg hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group"
+      <div class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-[var(--surface-hover)] active:bg-[var(--surface-active)] transition-colors duration-200 cursor-pointer group"
+           role="button" tabindex="0"
            data-activity-id="${a.id || ''}"
            title="${a.title || '未命名活动'} | ${dateLabel} | ${color.label}${a.location ? ' | ' + a.location : ''}">
-        <div class="w-2.5 h-2.5 rounded-full flex-shrink-0 group-hover:scale-125 transition-transform" style="background: ${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''}"></div>
+        <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background: ${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''}"></div>
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-gray-800 truncate group-hover:text-blue-700 transition-colors">${a.title || '未命名活动'}</p>
+          <p class="text-sm font-medium text-gray-800 truncate group-hover:text-[var(--app-accent-soft-text)] transition-colors">${a.title || '未命名活动'}</p>
           <p class="text-xs text-gray-500 mt-0.5">${dateLabel} · ${color.label}${organizerName ? ' · ' + organizerName : ''}${a.location ? ' · ' + a.location : ''}</p>
         </div>
         ${badgeHtml(lifecycle.label, lifecycle.variant)}
       </div>
     `;
   }).join('') + '</div>' + moreHtml;
+
+  // 5.3（2026-10-22 第九轮）：整行可点但不是原生控件 —— 补 Enter / Space（委托到持久容器，
+  //   列表重绘后仍有效；点击本身由 main-entry 的 [data-activity-id] 委托承担，此处只转成一次 click）。
+  if (!container.dataset.activityKeydown) {
+    container.dataset.activityKeydown = '1';
+    container.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+      const row = e.target.closest('[data-activity-id][role="button"]');
+      if (!row || row !== e.target) return;
+      e.preventDefault();
+      row.click();
+    });
+  }
 }
 
 /** 渲染活动日历区（经注册表挂载 activity-calendar 能力） */
 export function renderActivityCalendar(state) {
   const currentView = getInitialActivityView();
-  switchActivityView(currentView);
+  // 首次渲染只摆视图，不写 URL（用户主动切换后才写；见 switchActivityView 的 sync 说明）
+  switchActivityView(currentView, { sync: false });
 
   if (currentView === 'calendar') {
     // ── 月份单一源（2026-09-13 月份口径彻查）───────────────────────────────
@@ -145,11 +177,14 @@ export function renderActivityCalendar(state) {
     //   选择器按自己的优先级（当日所在月优先于 displayMonth）自选 → 而日历永远按 state.displayMonth 渲染。
     // 修法（与支书台 2026-08-08 同口径）：以 state.displayMonth 为权威传参给选择器 → 再用选择器
     //   返回值回写 state → 二者恒等；日历用同一 month 渲染。
-    const wantMonth = state.displayMonth || getInitialMonth() || '';
+    // 2026-10-28：URL 的 `?month=` 必须**优先于** state 缺省值（state 缺省＝当前自然月），
+    //   否则深链 `?month=2026-11` 会被「当前月」盖掉（原写法 state.displayMonth || getInitialMonth() 即此病）。
+    const wantMonth = getInitialMonth() || state.displayMonth || '';
     const month = populateMonthSelector(state.activities || [], wantMonth || undefined);
     if (month && month !== state.displayMonth) {
       setState({ displayMonth: month });
     }
+    bindMonthUrlSync();
     // M7（2026-08-30）：dashboard 能力发现显式传 env/role，启用「按环境/角色选择性启用」机制
     // （activity-calendar 声明 env:null/requiredRoles:null，行为不变；机制对未来的 env/role 差异化能力生效）
     const cap = getCapabilities({ scope: 'dashboard', env: getRuntimeEnv(), role: AuthStore.getCurrentUser()?.role }).find(c => c.id === 'activity-calendar');

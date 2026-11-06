@@ -1,0 +1,155 @@
+{
+  "meta": {
+    "date": "2026-11-01",
+    "scope": "只读审查（除 .ctx/evidence 与本文件外未改任何代码/数据）",
+    "server": "复用已在运行的 http://localhost:3000（未重启）；写路径另起临时库 .tmp/data-perf.db + :3101，测完已停",
+    "account": { "personId": "2300010001", "role": "secretary", "branchId": "br-b1" },
+    "iterations": 20,
+    "warmup": 2,
+    "dataset_rows": {
+      "users": 51, "activities": 38, "attendances": 144, "inspections": 42, "todos": 4,
+      "notices": 14, "taskforces": 8, "workgroups": 46, "workgroup_members": 103,
+      "signups": 7, "issues": 6, "handoffs": 2, "sessions": 515
+    },
+    "server_endpoint_inventory_init": {
+      "note": "从 docs/src/data/data-adapter.js::init() 反推（:219 versions → :224 10 表 → :273 22 表 → :1319 _loadAuxCollections 语义域 → :1330 _loadWorkgroupAux 每可见组 2 请求）",
+      "requests_per_first_screen": "≈1 + 10 + 22 + 11 + ≤12 = 約 56 个 HTTP 请求",
+      "list": [
+        "GET /api/v1/snapshot/versions",
+        "GET /api/v1/users", "GET /api/v1/activities", "GET /api/v1/tasks", "GET /api/v1/attendances",
+        "GET /api/v1/inspections", "GET /api/v1/taskforces", "GET /api/v1/notices", "GET /api/v1/todos",
+        "GET /api/v1/assignments", "GET /api/v1/makeupTasks",
+        "GET /api/v1/experienceDeposits", "GET /api/v1/fileSpaceRecords", "GET /api/v1/imageRecords",
+        "GET /api/v1/signups", "GET /api/v1/activityReviews", "GET /api/v1/taskforceReviews",
+        "GET /api/v1/propTasks", "GET /api/v1/periodicArchives", "GET /api/v1/archiveRecords",
+        "GET /api/v1/externalDispatches", "GET /api/v1/branchDocs", "GET /api/v1/branches",
+        "GET /api/v1/memberChangeRequests(404)", "GET /api/v1/committeeBroadcasts", "GET /api/v1/agendaVotes(404)",
+        "GET /api/v1/appointmentRecords", "GET /api/v1/reviewRequests", "GET /api/v1/thoughtReports",
+        "GET /api/v1/partyGroups", "GET /api/v1/memberFlows", "GET /api/v1/actSubRecords", "GET /api/v1/tfSubRecords",
+        "GET /api/v1/handoffs", "GET /api/v1/attendance-appeals", "GET /api/v1/member-confirmations",
+        "GET /api/v1/inspection-appeals", "GET /api/v1/milestones", "GET /api/v1/issue-unread",
+        "GET /api/v1/auth-audit(支委层条件)", "GET /api/v1/workgroups", "GET /api/v1/workgroup-members",
+        "GET /api/v1/workgroup-grants", "GET /api/v1/attendance-rosters",
+        "GET /api/v1/workgroups/:id/tasks (≤6 组)", "GET /api/v1/workgroups/:id/outputs (≤6 组)"
+      ]
+    }
+  },
+  "http_reads_secretary": [
+    { "endpoint": "/api/v1/snapshot/versions", "status": 200, "p50_ms": 3.58, "p95_ms": 5.53, "decoded_bytes": 515, "wire_bytes_gzip": null },
+    { "endpoint": "/api/v1/users", "status": 200, "p50_ms": 4.57, "p95_ms": 6.99, "decoded_bytes": 9892, "wire_bytes_gzip": 1389 },
+    { "endpoint": "/api/v1/activities", "status": 200, "p50_ms": 7.09, "p95_ms": 10.14, "decoded_bytes": 24011, "wire_bytes_gzip": 2757 },
+    { "endpoint": "/api/v1/attendances", "status": 200, "p50_ms": 12.75, "p95_ms": 15.72, "decoded_bytes": 36170, "wire_bytes_gzip": 2105 },
+    { "endpoint": "/api/v1/inspections", "status": 200, "p50_ms": 6.79, "p95_ms": 9.51, "decoded_bytes": 12124, "wire_bytes_gzip": 1478 },
+    { "endpoint": "/api/v1/todos", "status": 200, "p50_ms": 3.92, "p95_ms": 6.05, "decoded_bytes": 2567, "wire_bytes_gzip": 948 },
+    { "endpoint": "/api/v1/notices", "status": 200, "p50_ms": 3.71, "p95_ms": 5.63, "decoded_bytes": 6175, "wire_bytes_gzip": 1617 },
+    { "endpoint": "/api/v1/workgroups", "status": 200, "p50_ms": 4.65, "p95_ms": 6.07, "decoded_bytes": 15432, "wire_bytes_gzip": 1680 },
+    { "endpoint": "/api/v1/handoffs", "status": 200, "p50_ms": 2.64, "p95_ms": 6.41, "decoded_bytes": 721, "wire_bytes_gzip": null },
+    { "endpoint": "/api/v1/attendance-rosters", "status": 200, "p50_ms": 1.84, "p95_ms": 3.65, "decoded_bytes": 2, "wire_bytes_gzip": null },
+    { "endpoint": "/api/v1/leader/member-progress?personIds=10人", "status": 200, "p50_ms": 18.38, "p95_ms": 24.60, "decoded_bytes": 1390 },
+    { "endpoint": "/api/v1/issues", "status": 200, "p50_ms": 6.37, "p95_ms": 10.25, "decoded_bytes": 7640 },
+    { "endpoint": "/api/v1/report/activity", "status": 200, "p50_ms": 3.84, "p95_ms": 5.91, "decoded_bytes": 144 },
+    { "endpoint": "/api/v1/bootstrap（一次给 29 表）", "status": 200, "p50_ms": 26.11, "p95_ms": 31.64, "decoded_bytes": 117542, "wire_bytes_gzip": 16065 }
+  ],
+  "http_reads_other_roles": [
+    { "role": "participant", "endpoint": "/api/v1/attendances", "status": 200, "p50_ms": 20.64, "p95_ms": 31.63, "decoded_bytes": 3425 },
+    { "role": "participant", "endpoint": "/api/v1/inspections", "status": 200, "p50_ms": 20.85, "p95_ms": 39.68, "decoded_bytes": 2318 },
+    { "role": "participant", "endpoint": "/api/v1/todos", "status": 200, "p50_ms": 2.59, "p95_ms": 4.05, "decoded_bytes": 2 },
+    { "role": "participant", "endpoint": "/api/v1/activities", "status": 200, "p50_ms": 6.40, "p95_ms": 7.20, "decoded_bytes": 24011 },
+    { "role": "participant", "endpoint": "/api/v1/notices", "status": 200, "p50_ms": 3.62, "p95_ms": 5.60, "decoded_bytes": 2872 },
+    { "role": "leader", "endpoint": "/api/v1/attendances", "status": 200, "p50_ms": 21.90, "p95_ms": 31.59, "decoded_bytes": 29949 },
+    { "role": "leader", "endpoint": "/api/v1/inspections", "status": 200, "p50_ms": 9.34, "p95_ms": 11.84, "decoded_bytes": 9507 },
+    { "role": "leader", "endpoint": "/api/v1/todos", "status": 200, "p50_ms": 2.93, "p95_ms": 3.53, "decoded_bytes": 2 },
+    { "role": "leader", "endpoint": "/api/v1/activities", "status": 200, "p50_ms": 6.57, "p95_ms": 8.79, "decoded_bytes": 24011 },
+    { "role": "leader", "endpoint": "/api/v1/notices", "status": 200, "p50_ms": 3.29, "p95_ms": 4.45, "decoded_bytes": 3683 }
+  ],
+  "http_write_snapshot_temp_db": {
+    "payload": { "domains": 27, "bytes": 106455 },
+    "full_27_domains": { "status": 200, "p50_ms": 115.16, "p95_ms": 130.07 },
+    "activities_only": { "status": 200, "p50_ms": 24.18, "p95_ms": 29.05 },
+    "stage_profile_ms": {
+      "_snapshotWrites": 0.02,
+      "scopedSnapshotWriteDeny": 37.48,
+      "mergeScopedSnapshotWrites": 15.22,
+      "_retainUngatedSnapshotRows": 3.51,
+      "_retainRowScopedSnapshotRows": 0.00,
+      "snapshotScopeDeny": 3.33,
+      "_snapshotResourceWriteGateDeny": 7.87,
+      "workgroupUpdates(3 fns)": 5.13,
+      "rebuildShadowTables": 1.66,
+      "replaceCollectionsAtomic": 17.13
+    },
+    "sql_statement_counts_one_full_snapshot": {
+      "prepare": 1424, "get": 1314, "all": 110,
+      "top": {
+        "SELECT data FROM activities WHERE id = ?": 783,
+        "SELECT data FROM workgroups WHERE id = ?": 236,
+        "SELECT data FROM attendances WHERE id = ?": 144,
+        "SELECT data FROM inspections WHERE id = ?": 42,
+        "SELECT data FROM taskforces WHERE id = ?": 27
+      },
+      "by_stage": {
+        "scopedSnapshotWriteDeny": { "prepare": 874, "get": 874, "all": 0 },
+        "mergeScopedSnapshotWrites": { "prepare": 307, "get": 280, "all": 27 },
+        "_retainUngatedSnapshotRows": { "prepare": 50, "get": 46, "all": 4 },
+        "snapshotScopeDeny": { "prepare": 4, "get": 0, "all": 4 },
+        "_snapshotResourceWriteGateDeny": { "prepare": 46, "get": 0, "all": 46 },
+        "workgroupUpdates": { "prepare": 116, "get": 114, "all": 2 }
+      }
+    }
+  },
+  "micro_benchmarks_inprocess": [
+    { "label": "listTable(attendances) 144 rows", "ms": 0.621 },
+    { "label": "144 次 activity 点查（N+1）", "ms": 2.536 },
+    { "label": "预载 activity→branchId Map（1 次查询）", "ms": 0.243 },
+    { "label": "SQL pushdown attendances WHERE branch_id", "ms": 0.321 },
+    { "label": "listTable(users) 51 rows", "ms": 0.2666 },
+    { "label": "policySectionsByRole()", "ms": 0.0045 },
+    { "label": "SELECT * FROM sessions WHERE token=?", "ms": 0.025 },
+    { "label": "getSessionUser（2 查询 + parse）", "ms": 0.073 },
+    { "label": "JSON.stringify 38 activities", "ms": 0.165 }
+  ],
+  "projection_benchmarks": {
+    "actor": "2400012347 / participant",
+    "resourceRowsForActor(attendances) 分支过滤": { "ms": 6.23 },
+    "行级投影现状（144 行逐行查 activities）": { "ms": 5.519 },
+    "行级投影按 activityId 记忆化": { "ms": 0.533 },
+    "inspections 行级投影现状（42 行）": { "ms": 1.526 },
+    "inspections 行级投影记忆化": { "ms": 0.407 },
+    "distinct_activity_ids_among_144_attendances": 14
+  },
+  "findings": [
+    { "id": "F1", "kind": "N+1 / 重复整表读", "where": "server/routes/resources/branch-scope.js:291,336,347; gates.js:399,422,444; workgroup-routes.js:404,422", "evidence": "1 次全量快照 = 1424 prepare / 1314 点查；activities 被点查 783 次", "impact": "POST /snapshot p50 115ms（>100ms 阈值）" },
+    { "id": "F2", "kind": "N+1 行级投影", "where": "server/routes/resources/index.js:93-97,136-157,269-273", "evidence": "participant GET /attendances 20.64ms、/inspections 20.85ms；144 行只涉及 14 个活动；记忆化后 5.52→0.53ms、1.53→0.41ms", "impact": "普通成员首屏两个读口约 55% 是重复点查" },
+    { "id": "F3", "kind": "N+1 支部归属解析", "where": "server/routes/resources/branch-scope.js:103-164,213-258", "evidence": "resourceRowsForActor(attendances)=6.23ms（144 次 activities 点查）；预载 Map 0.24ms", "impact": "secretary GET /attendances 12.75ms 中约 6ms" },
+    { "id": "F4", "kind": "重复聚合/多趟全表", "where": "server/routes/leader-progress.js:45,54-57；branch-scope.js:18-43", "evidence": "/leader/member-progress 18.38ms（4 张表全读 + 4 次分支过滤）；branchSummary 每支部再全读 users/activities/taskforces/notices", "impact": "组长台单请求 18ms，多为重复计算" },
+    { "id": "F5", "kind": "无效请求", "where": "docs/src/data/data-adapter.js:287,289 → 服务端无路由（store.js:7-43 无该键）", "evidence": "GET /api/v1/memberChangeRequests 404、GET /api/v1/agendaVotes 404（返回 HTML 错误页）", "impact": "每次首屏 2 个必然失败请求 + 控制台报错" },
+    { "id": "F6", "kind": "每次请求常量计算", "where": "server/routes/resources/gates.js:186-188（listTable users）；index.js:1158 policySectionsByRole()", "evidence": "0.267ms / 0.0045ms", "impact": "<1ms，不值得改" },
+    { "id": "F7", "kind": "返回体", "where": "全量读口", "evidence": "最大 decoded 36170B（attendances）/ 117542B（bootstrap）；gzip 后最大 16KB", "impact": "无 >500KB；gzip 已达标，不值得改" }
+  ],
+  "recommendations": [
+    { "rank": 1, "target": "POST /snapshot 写路径", "changes": "scopedSnapshotWriteDeny/mergeScopedSnapshotWrites/_retainUngatedSnapshotRows/_snapshotResourceWriteGateDeny 共用「每集合一次 SELECT id,data + 每表 id→branchId Map」；activityWorkgroupSyncUpdates 预载 workgroups Map；只对内容变更行跑门", "expected": "115ms → 约 35–45ms（1314 点查 × 0.043ms ≈ 56ms 可消）", "guards": ["server-base.test.mjs", "branch-resource-isolation.test.mjs", "r3-data-permission-regression.test.mjs", "write-path-guard.test.mjs", "multi-user-write.test.mjs"] },
+    { "rank": 2, "target": "attendances/inspections 行级投影", "changes": "index.js::_activityRow 改为请求内 Map 记忆化（activityId→activity），_activityPartyGroup 同法", "expected": "participant 20.6/20.9ms → 约 8/4ms；secretary 12.75 → 约 7ms", "guards": ["branch-resource-isolation.test.mjs", "r3-data-permission-regression.test.mjs", "records-endpoints.test.mjs"] },
+    { "rank": 3, "target": "branch-scope 归属解析", "changes": "resourceRowsForActor 前置一次 SELECT id,json_extract(branchId)，linkedBranch 走 Map；或在 SQL 侧 WHERE branch_id 直接过滤", "expected": "GET /attendances 再省约 5.5ms", "guards": ["branch-resource-isolation.test.mjs", "r3-data-permission-regression.test.mjs"] },
+    { "rank": 4, "target": "/leader/member-progress", "changes": "按 personIds 用 SQL 预筛（attendances 已有 idx_attendances_branch_person_activity），仅对命中行做聚合", "expected": "18.4ms → 约 6–8ms", "guards": ["todo-domain-view.test.mjs", "records-endpoints.test.mjs"] },
+    { "rank": 5, "target": "首屏 404", "changes": "补 /memberChangeRequests、/agendaVotes 读口（或前端停止调用）", "expected": "每首屏少 2 个 404 + 2 条错误日志", "guards": ["mock-api-parity-structure.test.mjs", "records-endpoints.test.mjs"] }
+  ],
+  "not_worth_changing": [
+    "listTable 全表扫（最大 144 行 / 0.62ms）：无索引需求",
+    "_paginateRows 在 JS 排序（index.js:220-237）：4–144 行，<0.2ms",
+    "requireAuth 每请求 2 次查询 0.073ms；56 个首屏请求合计约 4ms",
+    "gzip：最大 16KB，已过 compression threshold 1024",
+    "sessions 表 515 行无清理：PK 查询 0.025ms",
+    "_branchCommissionerGateDeny 全表 users 0.267ms、policySectionsByRole 0.0045ms"
+  ],
+  "thresholds": {
+    "gt_100ms": ["POST /api/v1/snapshot（115.16ms p50 / 130.07ms p95，27 域 106455B）"],
+    "gt_500KB": [],
+    "largest_get_decoded": "/api/v1/bootstrap 117542B（gzip 16065B）",
+    "largest_single_collection": "/api/v1/attendances 36170B（gzip 2105B）"
+  },
+  "artifacts": {
+    "temp_scripts_dir": "server/.tmp/",
+    "scripts": ["measure.mjs", "measure-roles.mjs", "measure-write.mjs", "measure-bootstrap.mjs", "measure-wire.mjs", "measure-projection.mjs", "profile-snapshot.mjs", "count-queries.mjs", "micro.mjs", "micro2.mjs", "inspect-db.mjs", "copy-db.mjs"],
+    "note": "写路径实测跑在 .tmp/data-perf.db（VACUUM INTO 副本），未触碰 server/data.db"
+  }
+}

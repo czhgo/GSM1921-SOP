@@ -49,6 +49,12 @@ test('S1 矩阵组件单一源在位：转置双视图 + 项目维列上限 6 + 
   assert.match(src, /import \{ pagerHtml \} from '\.\/pager\.js/, '人维翻页须复用单一源 pager.js（不得经 list-filter 引入，避免成环）');
   assert.match(src, /rm-pager/, '须渲染人维翻页区（.rm-pager）');
   assert.ok(!/class="page-btn"|class="page-num/.test(src), '矩阵不得自造翻页标记（须由 pagerHtml 单一源产出）');
+  // 2026-10-21 Task 7 / B-499-10：≤640px 堆叠＝同一关系行的响应式形态（不是第二套矩阵）
+  assert.match(src, /<table class="data-table rm-table" data-responsive="cards">/, '窄屏须与引擎表共用 data-responsive="cards"（同一张表）');
+  assert.match(src, /class="rm-scroll[^"]*"/, '矩阵滚动容器须挂 .rm-scroll（窄屏解除限高/横滚）');
+  assert.match(src, /data-label="\$\{esc\(label\)\}"/, '每个单元格须带 data-label（当前可见列名）作卡式字段名');
+  assert.match(src, /cellOf\(p\.id, it\.id, it\.title\)/, 'byPerson：卡内逐项目名（一人一卡）');
+  assert.match(src, /cellOf\(p\.id, it\.id, p\.name\)/, 'byItem：卡内逐人姓名（一项一卡）');
 });
 
 test('S2 参与方不得自造矩阵：矩阵表头与横向滚动容器只允许出现在组件内', () => {
@@ -106,33 +112,30 @@ test('S5 人维分页不得被调用点私自关掉（rowLimit: 0 须登记备�
   assert.deepEqual(hits, [], hits.join('\n'));
 });
 
-// S6（2026-09-14 批次 41，Q-23-18 余项收口）
-// 支书裁定四项口径：cell＝状态优先 + 篇数小字 / 行＝支部全体在册成员 / 列＝最近 6 期 + 一键展开 /
-//   宽表替「按人浏览」、保留「待初阅队列」。
-// ⚠ **2026-09-29 批次 295 改裁（支书评「每一列这么宽…没有更高效的展示视图嘛」⇒ 选「紧凑化」）**：
-//   cell 由「**徽标 + 篇数小字**」改为 **状态小色块（2.5×2.5 圆点）**，篇数与状态全文进 `title` 悬浮；
-//   并给矩阵加 `.rm-table`（列**按内容定宽**、不拉伸）。⇒ 上句「篇数小字」这一半**已被本批改裁**，
-//   本文件的相关断言已随之改准（真机仍守「有可下钻链接 ＋ 未提交者显「—」」两条不变量）。
-// 判据用**语义标记**（是否接入单一源 + 列维语义 + 期次排序来源 + 行维实时视图），并要求
-//   旧「按人分组 + 组内每篇一行」的自建列表**不得回潮**——该形态行数随篇数无限增长，
-//   正是支书「可能会无限增长的表格」病灶的矩阵版。
-test('S6 思想汇报台账＝人 × 期次宽表（单一源矩阵；不得回潮按人分组的自建列表）', () => {
+// S6（2026-10-21 Task 7 改准）：思想汇报**已撤出矩阵**（2026-10-20 第三轮 IA 判例②）。
+// 旧断言要求 `renderRelationMatrix` + `itemLabel: '期次'` + `data-trview="period"` —— 那是「人 × 期次」
+// 全量色块矩阵时代的口径，现实现已收窄为「未交 / 待初阅 / 待补充」例外清单：完整记录落个人档案，
+// 组织台只回答「现在有谁需要我处理」。本守卫改为锁**现行口径**，并防矩阵 / 按人分组列表回潮。
+test('S6 思想汇报已撤出矩阵：组织台只渲染例外清单（未交 / 待初阅 / 待补充）', () => {
   const src = read(join(SRC_DIR, 'entries', 'tabs', 'org', 'thought-review-tab.js'));
-  assert.match(src, /renderRelationMatrix\(/, '思想汇报台账须接入单一源矩阵');
-  assert.match(src, /itemLabel: '期次'/, '列维须为期次');
-  assert.match(src, /comparePeriodDesc/, '期次倒序须走单一源（core/base/period.js → services 再导出，勿另写比较规则）');
-  assert.match(src, /liveMembers\(\)/, '行＝支部在册成员须取实时视图（不得加载期快照，见 person-consistency S1）');
-  // 批次 43：本域补「按期次」转置视图（与考勤 / 考察 / 支部分工 / 专班报名 同款转置口径：只换视角）
-  assert.match(src, /data-trview="period"/, '台账须提供「按期次」转置视图钮');
-  assert.match(src, /mode: _view === 'period' \? 'byItem' : 'byPerson'/, '转置视图须经组件 mode 切换（不得自造第二套渲染）');
-  assert.ok(!/groupMap|tr-browse-host/.test(src), '不得回潮「按人分组 + 组内每篇一行」的自建列表（应走矩阵）');
-  // 2026-10-18 繁专项 Task 14：状态不能只靠颜色——须有可见图例 + 状态筛选；留痕行集须含已移出
-  assert.match(src, /function _legendHtml\(\)/, '状态须有可见图例（颜色 + 文字）');
-  assert.match(src, /data-trfilter="\$\{key\}" aria-pressed=/, '状态须提供可访问的筛选钮');
-  assert.match(src, /needs_revision', '待补充'\],\s*\n\s*\['archived', '已入库'\]/, '筛选至少覆盖待补充 / 已入库');
-  assert.match(src, /aria-label="\$\{esc\(tip\)\}"/, '色块链接须有 aria-label 可读状态');
-  assert.match(src, /const movedOut = \[\.\.\.new Set\(allRecs\.map/, '「留痕台账」行集须并入有汇报的已移出成员');
-  assert.match(src, /含已移出 \$\{movedOutShown\} 人/, '已移出成员须在页面上标注');
+  assert.doesNotMatch(src, /renderRelationMatrix\(/, '思想汇报不得回潮「人 × 期次」矩阵');
+  assert.doesNotMatch(src, /itemLabel: '期次'/, '不得回潮期次列矩阵');
+  assert.doesNotMatch(src, /data-trview=/, '不得回潮按人 / 按期次转置视图');
+  assert.ok(!/groupMap|tr-browse-host/.test(src), '不得回潮「按人分组 + 组内每篇一行」的自建列表');
+  // 三组例外（顺序＝处理优先级）与分页引擎仍在
+  assert.match(src, /const GROUPS = \[/, '须声明例外分组');
+  for (const key of ['missing', 'unreviewed', 'revision']) {
+    assert.ok(src.includes(`key: '${key}'`), `例外分组缺 ${key}`);
+  }
+  for (const title of ['未交', '待初阅', '待补充']) {
+    assert.ok(src.includes(`title: '${title}'`), `例外分组标题缺「${title}」`);
+  }
+  assert.match(src, /renderFilteredList\(/, '例外清单仍走统一检索引擎（分页单一源）');
+  assert.match(src, /liveMembers\(\)/, '行＝支部在册成员须取实时视图（不得加载期快照）');
+  assert.match(src, /comparePeriodDesc/, '期次倒序须走单一源（core/base/period.js → services 再导出）');
+  // 状态真值仍须可读（不靠颜色）
+  assert.match(src, /STATUS_LABEL/, '「已打回 · 待补充 / 已入库」状态标签须保留');
+  assert.match(src, /查看|档案/, '完整记录出口（查看 / 档案）须保留');
 });
 
 // ── 真机层 ────────────────────────────────────────────────────────────
@@ -168,14 +171,14 @@ async function loginDisc() {
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018h')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261102b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.waitForTimeout(600);
   return { page, errs };
 }
 const openTab = (page, label) => page.evaluate((l) => {
   [...document.querySelectorAll('button[role="tab"]')].find((x) => x.textContent.includes(l))?.click();
 }, label);
-/** 组织委员（p11 2400012355，role org-commissioner）登录 → 组织台 */
+/** 组织委员（2400012355 2400012355，role org-commissioner）登录 → 组织台 */
 async function loginOrg() {
   const page = await browser.newPage();
   const errs = [];
@@ -192,7 +195,7 @@ async function loginOrg() {
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018h')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261102b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.waitForTimeout(600);
   return { page, errs };
 }
@@ -214,6 +217,9 @@ test('① 考勤/考察宽表真机闭环：默认宽表 → 列上限 6 → 一
     // 考勤：默认按人（行=人，列=活动）
     await openTab(page, '考勤管理');
     await page.waitForTimeout(1400);
+    // 2026-10-20 IA 判例：考勤默认落「确认与录入」；矩阵在「数据查看」二级视图（R3-11 同批）
+    await page.evaluate(() => document.querySelector('.att-view-btn[data-att-view="data"]')?.click());
+    await page.waitForTimeout(700);
     const att1 = await shape(page);
     assert.ok(att1.isMatrix, '考勤矩阵须渲染为单一源矩阵');
     assert.equal(att1.first, '姓名', '考勤默认视图首列须为「姓名」（宽表默认）');
@@ -230,6 +236,45 @@ test('① 考勤/考察宽表真机闭环：默认宽表 → 列上限 6 → 一
     assert.equal(att3.first, '活动', '切「按活动」后首列须为「活动」（真转置）');
     assert.notEqual(att3.cols, att2.cols, '转置后列数应变为人数');
     assert.equal(att3.rows, att2.cols, '转置：原列数（活动数）应变为行数');
+
+    // 390×844 窄屏（2026-10-21 Task 7 / B-499-10）：同一张表堆叠为卡式行
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(500);
+    const narrowOf = () => page.evaluate(() => {
+      const root = document.querySelector('#disc-tab-content .rm-root');
+      const table = root?.querySelector('table.rm-table');
+      const thead = table?.querySelector('thead');
+      const tr = table?.querySelector('tbody tr');
+      const scroller = root?.querySelector('.rm-scroll');
+      const tds = [...(tr?.querySelectorAll('td') || [])];
+      return {
+        card: !!tr && getComputedStyle(tr).display === 'block',
+        theadHidden: !!thead && getComputedStyle(thead).display === 'none',
+        title: (tr?.querySelector('th[scope="row"]')?.textContent || '').trim(),
+        labels: tds.map((td) => td.getAttribute('data-label')),
+        allLabeled: tds.length > 0 && tds.every((td) => !!td.getAttribute('data-label')),
+        inlineScroll: !!scroller && scroller.scrollWidth > scroller.clientWidth + 1,
+        docOverflow: document.documentElement.scrollWidth - window.innerWidth,
+      };
+    });
+    const nb = await narrowOf();
+    assert.ok(nb.card, '≤640px 矩阵行须堆叠为卡（display:block）');
+    assert.ok(nb.theadHidden, '卡式形态下 thead 须隐藏');
+    assert.ok(nb.allLabeled, '每个单元格须带 data-label（当前可见列名）');
+    assert.ok(!nb.inlineScroll, '卡式形态下矩阵容器不得再横向滚动');
+    assert.ok(nb.docOverflow <= 1, `矩阵卡式形态不得撑出页面横向滚动：${nb.docOverflow}px`);
+    // byItem（按活动）＝一项一卡：卡内逐人姓名·状态
+    assert.ok(nb.title && nb.title !== '姓名', '转置视图卡标题须为项目（活动）');
+    assert.ok(nb.labels.every((l) => l && l !== '姓名'), 'byItem 卡内 data-label 须为成员姓名');
+    // byPerson（按人）＝一人一卡：卡内逐项目名·状态
+    await page.evaluate(() => [...document.querySelectorAll('.att-mtx-view-btn')].find((b) => b.dataset.view === 'byPerson')?.click());
+    await page.waitForTimeout(500);
+    const np = await narrowOf();
+    assert.ok(np.card && np.theadHidden, 'byPerson 卡式形态须保持一致');
+    assert.ok(np.title && np.title !== '活动', 'byPerson 卡标题须为人（姓名）');
+    assert.ok(np.labels.every((l) => l && l !== '姓名'), 'byPerson 卡内 data-label 须为项目名');
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.waitForTimeout(400);
 
     // 考察：默认宽表（按人）→ 按项目 → 明细
     await openTab(page, '考察管理');
@@ -257,64 +302,27 @@ test('① 考勤/考察宽表真机闭环：默认宽表 → 列上限 6 → 一
   }
 });
 
-test('② 思想汇报台账真机：矩阵「人 × 期次」（人维每页 10 / 期次新→旧封顶 6 / cell 可下钻）', async () => {
+test('② 思想汇报例外清单真机：无矩阵 / 三组在位 / 完整记录走个人档案', async () => {
   const { page, errs } = await loginOrg();
   try {
     await openTab(page, '思想汇报');
     await page.waitForTimeout(1600);
     const m = await page.evaluate(() => {
-      const root = document.querySelector('#org-tab-content .rm-root');
-      const heads = [...(root?.querySelectorAll('thead th') || [])].map((th) => (th.textContent || '').trim());
-      const rows = [...(root?.querySelectorAll('tbody tr') || [])];
+      const root = document.querySelector('#org-tab-content');
+      const heads = [...(root?.querySelectorAll('h4') || [])].map((h) => (h.textContent || '').replace(/\s+/g, ' ').trim());
       return {
-        isMatrix: !!root,
-        heads,
-        rows: rows.length,
-        dashes: rows.reduce((n, tr) => n + [...tr.querySelectorAll('td')].filter((td) => td.textContent.trim() === '—').length, 0),
-        links: root?.querySelectorAll('tbody a[href^="thought-report.html"]')?.length ?? 0,
-        pagerText: root?.querySelector('.rm-pager .lf-count')?.textContent?.trim() || '',
-        queue: !!document.querySelector('#org-tab-content #tr-queue-host .lf-root'),
+        matrix: !!root?.querySelector('.rm-root'),
+        groups: heads.filter((t) => /^(未交|待初阅|待补充)/.test(t)),
+        personLinks: root?.querySelectorAll('a[href*="person.html"]')?.length ?? 0,
+        reportLinks: root?.querySelectorAll('a[href*="thought-report.html"]')?.length ?? 0,
+        queue: !!root?.querySelector('#tr-queue-host'),
       };
     });
-    assert.ok(m.isMatrix, '思想汇报台账须渲染为单一源矩阵');
-    assert.equal(m.heads[0], '姓名', '首列须为「姓名」（行＝人）');
-    // 人维分页：每页 10 人
-    assert.ok(m.rows >= 1 && m.rows <= 10, `人维须每页 10 人：实测 ${m.rows}`);
-    // 列＝期次（新→旧），且封顶 6
-    const periods = m.heads.slice(1);
-    assert.ok(periods.length <= 6, `期次列须封顶 6：实测 ${periods.length}`);
-    assert.ok(periods.every((p) => /^\d{4}-Q[1-4]$/.test(p)), `列头须为期次（YYYY-Qn）：${periods.join(' / ')}`);
-    assert.deepEqual(periods, [...periods].sort((a, b) => b.localeCompare(a)), '期次须新→旧排列');
-    // cell：有记录＝可下钻徽标；无记录＝「—」（漏交可见）
-    assert.ok(m.links > 0, '台账须有可下钻的期次 cell（链到阅读页）');
-    assert.ok(m.dashes > 0, '未提交者须显示「—」（漏交可见）');
-    // 「待初阅队列」已随初阅门撤除（2026-09-18 批次 86 · `SOP-B-28` / `D-482`：提交即入库、审阅后置）——
-    // 原断言的守护对象（队列作为下钻入口仍走统一检索引擎）已不存在；改守现行口径：该整卡不得回潮。
+    assert.ok(!m.matrix, '思想汇报已收窄为例外清单，不得回潮「人 × 期次」矩阵');
+    assert.deepEqual(m.groups.length, 3, `须渲染三组例外（未交 / 待初阅 / 待补充），实测 ${JSON.stringify(m.groups)}`);
+    assert.ok(m.personLinks > 0, '每行须保留「档案」出口（完整记录落个人档案）');
+    assert.ok(m.reportLinks > 0, '有记录的行须保留「查看」下钻');
     assert.ok(!m.queue, '「待初阅队列」已随初阅门撤除（`SOP-B-28` / `D-482`），不得回潮');
-    if (m.pagerText) assert.match(m.pagerText, /共 \d+ 人 · 第 \d+ \/ \d+ 页/, '人维分页计数行口径');
-
-    // 批次 43：转置视图真机（「按期次」＝行＝期次、列＝人；只换视角）
-    await page.evaluate(() => [...document.querySelectorAll('#org-tab-content .tr-view-btn')].find((b) => b.dataset.trview === 'period')?.click());
-    await page.waitForTimeout(700);
-    const t = await page.evaluate(() => {
-      const root = document.querySelector('#org-tab-content .rm-root');
-      const heads = [...(root?.querySelectorAll('thead th') || [])].map((th) => (th.textContent || '').trim());
-      return {
-        first: heads[0] || '',
-        heads: heads.slice(1),
-        rows: root?.querySelectorAll('tbody tr')?.length ?? 0,
-        links: root?.querySelectorAll('tbody a[href^="thought-report.html"]')?.length ?? 0,
-      };
-    });
-    assert.equal(t.first, '期次', '「按期次」后首列须为「期次」（真转置）');
-    assert.equal(t.rows, m.heads.length - 1, '转置：原列数（期次数）应变为行数');
-    assert.ok(t.heads.every((h) => h && h !== '期次'), '转置后列头须为成员姓名');
-    assert.ok(t.links > 0, '转置视图下 cell 仍须可下钻（同一 cell 语义）');
-    await page.evaluate(() => [...document.querySelectorAll('#org-tab-content .tr-view-btn')].find((b) => b.dataset.trview === 'person')?.click());
-    await page.waitForTimeout(700);
-    const back = await page.evaluate(() => (document.querySelector('#org-tab-content .rm-root thead th')?.textContent || '').trim());
-    assert.equal(back, '姓名', '切回「按人」须恢复首列「姓名」');
-
     assert.deepEqual(errs, [], `页面脚本错误：\n${errs.join('\n')}`);
   } finally {
     await page.close();

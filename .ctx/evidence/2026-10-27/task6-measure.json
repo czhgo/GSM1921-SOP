@@ -1,0 +1,275 @@
+﻿[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[
+  {
+    "ws": "secretary",
+    "n390": {
+      "tabs": 10,
+      "fullVisible": 3,
+      "partiallyVisible": 4,
+      "groupChip": "当前组：总览",
+      "groupRowH": 24,
+      "tabRowH": 52,
+      "more": "还有 7 个 ›",
+      "scrollW": 911,
+      "clientW": 318,
+      "docOverflow": 0
+    },
+    "n1440": {
+      "tabs": 10,
+      "fullVisible": 10,
+      "partiallyVisible": 10,
+      "groupChip": "当前组：总览",
+      "groupRowH": 24,
+      "tabRowH": 52,
+      "more": "",
+      "scrollW": 1152,
+      "clientW": 1152,
+      "docOverflow": 0
+    },
+    "today": {
+      "hasEmptyCard": true,
+      "emptyCardCount": 0,
+      "emptyOutlineBtns": 1,
+      "pageHasWriteBtn": false,
+      "pageHasCalendarBtn": true,
+      "emptyText": "今天要办 全部 › 今天暂无待办与安排 看日历"
+    }
+  },
+  {
+    "ws": "org",
+    "n390": {
+      "tabs": 8,
+      "fullVisible": 3,
+      "partiallyVisible": 4,
+      "groupChip": "当前组：总览",
+      "groupRowH": 24,
+      "tabRowH": 52,
+      "more": "还有 5 个 ›",
+      "scrollW": 709,
+      "clientW": 318,
+      "docOverflow": 0
+    },
+    "n1440": {
+      "tabs": 8,
+      "fullVisible": 8,
+      "partiallyVisible": 8,
+      "groupChip": "当前组：总览",
+      "groupRowH": 24,
+      "tabRowH": 52,
+      "more": "",
+      "scrollW": 1152,
+      "clientW": 1152,
+      "docOverflow": 0
+    },
+    "today": {
+      "hasEmptyCard": true,
+      "emptyCardCount": 0,
+      "emptyOutlineBtns": 1,
+      "pageHasWriteBtn": false,
+      "pageHasCalendarBtn": true,
+      "emptyText": "今天要办 全部 › 今天暂无待办与安排 看日历"
+    }
+  },
+  {
+    "ws": "prop",
+    "n390": {
+      "tabs": 5,
+      "fullVisible": 3,
+      "partiallyVisible": 4,
+      "groupChip": "当前组：总览",
+      "groupRowH": 24,
+      "tabRowH": 52,
+      "more": "还有 2 个 ›",
+      "scrollW": 451,
+      "clientW": 318,
+      "docOverflow": 0
+    },
+    "n1440": {
+      "tabs": 5,
+      "fullVisible": 5,
+      "partiallyVisible": 5,
+      "groupChip": "当前组：总览",
+      "groupRowH": 24,
+      "tabRowH": 52,
+      "more": "",
+      "scrollW": 1152,
+      "clientW": 1152,
+      "docOverflow": 0
+    },
+    "today": {
+      "hasEmptyCard": false,
+      "emptyCardCount": 0,
+      "emptyOutlineBtns": 0,
+      "pageHasWriteBtn": false,
+      "pageHasCalendarBtn": true,
+      "emptyText": ""
+    }
+  },
+  {
+    "ws": "disc",
+    "n390": {
+      "tabs": 6,
+      "fullVisible": 3,
+      "partiallyVisible": 4,
+      "groupChip": "当前组：总览",
+      "groupRowH": 24,
+      "tabRowH": 52,
+      "more": "还有 3 个 ›",
+      "scrollW": 517,
+      "clientW": 318,
+      "docOverflow": 0
+    },
+    "n1440": {
+      "tabs": 6,
+      "fullVisible": 6,
+      "partiallyVisible": 6,
+      "groupChip": "当前组：总览",
+      "groupRowH": 24,
+      "tabRowH": 52,
+      "more": "",
+      "scrollW": 1152,
+      "clientW": 1152,
+      "docOverflow": 0
+    },
+    "today": {
+      "hasEmptyCard": true,
+      "emptyCardCount": 0,
+      "emptyOutlineBtns": 1,
+      "pageHasWriteBtn": false,
+      "pageHasCalendarBtn": true,
+      "emptyText": "今天要办 全部 › 今天暂无待办与安排 看日历"
+    }
+  },
+  {
+    "ws": "leader",
+    "n390": {
+      "tabs": 6,
+      "fullVisible": 3,
+      "partiallyVisible": 4,
+      "groupChip": "当前组：总览",
+      "groupRowH": 24,
+      "tabRowH": 52,
+      "more": "还有 3 个 ›",
+      "scrollW": 541,
+      "clientW": 318,
+      "docOverflow": 0
+    },
+    "n1440": {
+      "tabs": 6,
+      "fullVisible": 6,
+      "partiallyVisible": 6,
+      "groupChip": "当前组：总览",
+      "groupRowH": 24,
+      "tabRowH": 52,
+      "more": "",
+      "scrollW": 1152,
+      "clientW": 1152,
+      "docOverflow": 0
+    },
+    "today": {
+      "hasEmptyCard": true,
+      "emptyCardCount": 0,
+      "emptyOutlineBtns": 1,
+      "pageHasWriteBtn": false,
+      "pageHasCalendarBtn": true,
+      "emptyText": "今天要办 全部 › 今天暂无待办与安排 看日历"
+    }
+  },
+  {
+    "ws": "visitor",
+    "n390": {
+      "tabs": 7,
+      "fullVisible": 3,
+      "partiallyVisible": 4,
+      "groupChip": "当前组：总览",
+      "groupRowH": 24,
+      "tabRowH": 52,
+      "more": "还有 4 个 ›",
+      "scrollW": 631,
+      "clientW": 318,
+      "docOverflow": 0
+    },
+    "n1440": {
+      "tabs": 7,
+      "fullVisible": 7,
+      "partiallyVisible": 7,
+      "groupChip": "当前组：总览",
+      "groupRowH": 24,
+      "tabRowH": 52,
+      "more": "",
+      "scrollW": 1152,
+      "clientW": 1152,
+      "docOverflow": 0
+    },
+    "today": {
+      "hasEmptyCard": false,
+      "emptyCardCount": 0,
+      "emptyOutlineBtns": 0,
+      "pageHasWriteBtn": false,
+      "pageHasCalendarBtn": true,
+      "emptyText": ""
+    }
+  },
+  {
+    "ws": "party-committee",
+    "n390": {
+      "tabs": 3,
+      "fullVisible": 3,
+      "partiallyVisible": 3,
+      "groupChip": "当前组：党委治理",
+      "groupRowH": 24,
+      "tabRowH": 52,
+      "more": "",
+      "scrollW": 358,
+      "clientW": 358,
+      "docOverflow": 0
+    },
+    "n1440": {
+      "tabs": 3,
+      "fullVisible": 3,
+      "partiallyVisible": 3,
+      "groupChip": "当前组：党委治理",
+      "groupRowH": 24,
+      "tabRowH": 52,
+      "more": "",
+      "scrollW": 1280,
+      "clientW": 1280,
+      "docOverflow": 0
+    },
+    "today": {
+      "hasEmptyCard": false,
+      "emptyCardCount": 0,
+      "emptyOutlineBtns": 0,
+      "pageHasWriteBtn": false,
+      "pageHasCalendarBtn": false,
+      "emptyText": ""
+    }
+  },
+  {
+    "home390": {
+      "statHeights": [
+        100,
+        100,
+        100,
+        100
+      ],
+      "statLabels": [
+        "8场 本月活动",
+        "1个 活跃专班",
+        "1条 未读通知",
+        "— 个人考勤 待录入"
+      ],
+      "galleryHidden": false,
+      "galleryEmpty": true,
+      "galleryEmptyText": "暂无活动照片",
+      "gallery16x9": 0,
+      "docOverflow": 0
+    }
+  }
+]

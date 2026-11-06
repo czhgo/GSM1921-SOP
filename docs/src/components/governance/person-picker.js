@@ -7,16 +7,17 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261018h';
+import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261102b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../../services/member/person.js?v=20261018h';
+import { getPersonById } from '../../services/member/person.js?v=20261102b';
 // 党小组清单单一源（活组按 seq 升序；2026-09-14 批次 29 收敛——见文件头「党小组清单」说明）
-import { groupOptions } from '../../services/member/party-group.js?v=20261018h';
-import { icon } from '../../core/base/icons.js?v=20261018h';
-import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../../core/domain/constants.js?v=20261018h';
+import { groupOptions } from '../../services/member/party-group.js?v=20261102b';
+import { icon } from '../../core/base/icons.js?v=20261102b';
+import { ROLE_LABELS, ACCENT_COLORS } from '../../core/domain/constants.js?v=20261102b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
 // ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
 function hexToRgba(hex, alpha) {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -57,13 +58,13 @@ const STAGE_LABELS = {
   '积极分子': '积极',
 };
 
-// ── 发展阶段颜色映射（applyDark 补深色三件套，深色下由 --acc-*-dark 变量提亮）──
-const STAGE_COLORS = applyDark({
-  '正式党员': { bg: 'rgba(206,17,38,0.08)', text: '#991B1B', border: 'rgba(206,17,38,0.20)' },
-  '预备党员': { bg: 'rgba(59,130,246,0.08)', text: '#1D4ED8', border: 'rgba(59,130,246,0.20)' },
-  '发展对象': { bg: 'rgba(245,158,11,0.08)', text: '#A16207', border: 'rgba(245,158,11,0.20)' },
-  '积极分子': { bg: 'rgba(16,185,129,0.08)', text: '#047857', border: 'rgba(16,185,129,0.20)' },
-});
+// ── 发展阶段 → 固定语义 tone（不随主题）──
+const STAGE_TONE = {
+  '正式党员': 'danger',
+  '预备党员': 'info',
+  '发展对象': 'warning',
+  '积极分子': 'success',
+};
 
 // ════════════════════════════════════════════════════════════════
 //  PersonPicker 类
@@ -120,9 +121,14 @@ export class PersonPicker {
     // 过滤后的人员列表（缓存）
     this._filteredPeople = this._applyFilter(PEOPLE);
 
+    // 可达性状态（Task 5）：打开前的焦点 / body overflow 原值 / 重定位监听
+    this._lastFocused = null;
+    this._prevBodyOverflow = null;
+
     // 事件监听器引用（用于清理）
     this._boundDocClick = null;
-    this._boundEscKey = null;
+    this._boundKeydown = null;
+    this._boundReposition = null;
   }
 
   // ── 辅助：在元素上注入主题色 CSS 变量 ──────────────────────────
@@ -136,6 +142,26 @@ export class PersonPicker {
 
   _applyFilter(people) {
     return this._filter ? people.filter(this._filter) : [...people];
+  }
+
+  /**
+   * 2026-10-26 批次 513：按当前来源（活动/专班工作组）收窄可选人员。
+   * 考察记录的对象必须是父工作组成员（服务端已硬校验）；前端不再让人选到必被拒的人。
+   * @param {Function|null} filter - (person) => boolean；null = 恢复全量
+   * @param {{clear?: boolean}} [opts] - clear=true 时清空已选并回调
+   */
+  setFilter(filter, { clear = false } = {}) {
+    this._filter = filter || null;
+    this._filteredPeople = this._applyFilter(PEOPLE);
+    if (clear) {
+      this._selected.clear();
+      this._onSelect?.([]);
+    } else {
+      const visible = new Set(this._filteredPeople.map((p) => p.id));
+      for (const id of [...this._selected]) if (!visible.has(id)) this._selected.delete(id);
+    }
+    this._renderTrigger();
+    this._renderList();
   }
 
   _getVisiblePeople() {
@@ -228,9 +254,15 @@ export class PersonPicker {
   _openPanel() {
     if (this._panelOpen) return;
     this._panelOpen = true;
+
+    // 记录打开前的焦点（通常是触发按钮），关闭时回焦
+    this._lastFocused = document.activeElement;
+    // 打开时锁 body 滚动，保留原值以便关闭时恢复
+    this._prevBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
     this._triggerBtn?.setAttribute('aria-expanded', 'true');
 
-    // 更新触发按钮样式（通过类名切换，CSS 控制具体样式）
     if (this._triggerBtn) {
       this._triggerBtn.classList.add('open');
       const arrow = this._triggerBtn.querySelector('.person-picker-arrow');
@@ -269,8 +301,18 @@ export class PersonPicker {
     // 解绑全局事件
     this._unbindGlobalEvents();
 
-    // 关闭后归还焦点到触发按钮（rAF 保证重建 DOM 后执行）
-    requestAnimationFrame(() => this._triggerBtn?.focus());
+    // 恢复 body 滚动（打开前原值；空串也照原样还原）
+    if (this._prevBodyOverflow !== null) {
+      document.body.style.overflow = this._prevBodyOverflow;
+      this._prevBodyOverflow = null;
+    }
+
+    // 关闭后归还焦点：优先回到打开前的焦点（触发按钮），已脱离文档则退回触发按钮
+    const focusTarget = this._lastFocused && this._lastFocused.isConnected
+      ? this._lastFocused
+      : this._triggerBtn;
+    this._lastFocused = null;
+    requestAnimationFrame(() => focusTarget?.focus());
   }
 
   // ── 面板创建 ────────────────────────────────────────────────
@@ -278,7 +320,12 @@ export class PersonPicker {
   _createPanel() {
     // 遮罩层（纯视觉 backdrop，无语义内容：点击空白关闭）
     const overlay = document.createElement('div');
-    overlay.className = 'person-picker-overlay';
+    // P2-14：触发按钮在 modal 内时，弹窗已有一层 0.35 黑遮罩；picker 再叠 0.3 会变成双层黑。
+    // 此情形只保留透明点击捕获层，仍有「点空白关闭」，但不再加深画面。
+    const insideDialog = !!(this._triggerBtn && this._triggerBtn.closest('[role="dialog"]'));
+    overlay.className = insideDialog
+      ? 'person-picker-overlay person-picker-overlay--passive'
+      : 'person-picker-overlay';
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) this._closePanel();
     });
@@ -300,7 +347,7 @@ export class PersonPicker {
     header.innerHTML = `
       <div class="person-picker-header-row">
         <h4 class="person-picker-title ">选择人员</h4>
-        <button type="button" class="btn-ghost person-picker-close-btn" aria-label="关闭">
+        <button type="button" class="btn-outline btn-icon person-picker-close-btn" aria-label="关闭">
           ${icon('close', { stroke: '#6B7280', className: 'w-3.5 h-3.5', extra: ' aria-hidden="true"' })}
         </button>
       </div>
@@ -337,7 +384,6 @@ export class PersonPicker {
 
       tab.addEventListener('click', () => {
         this._activeGroup = group;
-        // 更新 tab 激活状态（类名切换，CSS 控制具体样式）
         tabBar.querySelectorAll('.person-picker-tab').forEach(t => {
           t.classList.toggle('active', t.dataset.group === this._activeGroup);
         });
@@ -410,10 +456,8 @@ export class PersonPicker {
 
     this._panelEl = panel;
 
-    // 渲染人员列表
     this._renderList();
 
-    // 聚焦搜索框
     requestAnimationFrame(() => searchInput.focus());
   }
 
@@ -438,21 +482,26 @@ export class PersonPicker {
     const MIN_PANEL_H = 160;
     const MAX_PANEL_H = 520;
     const PANEL_W = Math.min(380, viewportW - 16);
+    // P2-14：顶部 56px 是固定顶栏——面板向上展开时不得盖住它。
+    const headerEl = document.getElementById('app-header');
+    const topSafe = headerEl
+      ? Math.min(viewportH - MIN_PANEL_H, Math.max(8, headerEl.getBoundingClientRect().bottom + 8))
+      : 8;
 
     const belowH = viewportH - rect.bottom - GAP;
-    const aboveH = rect.top - GAP;
+    const aboveH = rect.top - GAP - topSafe;
     // 下方放得下（>= 下限）优先下方；否则上方放得下才翻到上方
     const placeBelow = belowH >= MIN_PANEL_H && (aboveH < MIN_PANEL_H || belowH >= aboveH);
 
     let top, panelH;
     if (placeBelow) {
-      top = rect.bottom + GAP;
+      top = Math.max(topSafe, rect.bottom + GAP);
       panelH = Math.min(MAX_PANEL_H, Math.max(MIN_PANEL_H, belowH));
       panelH = Math.min(panelH, viewportH - top - 8); // 兜底不溢出视口底
     } else {
       panelH = Math.min(MAX_PANEL_H, Math.max(MIN_PANEL_H, aboveH));
-      panelH = Math.min(panelH, rect.top - GAP - 8);   // 兜底不遮住触发按钮
-      top = Math.max(8, rect.top - GAP - panelH);
+      panelH = Math.min(panelH, Math.max(0, aboveH));   // 兜底不越过顶栏安全线
+      top = Math.max(topSafe, rect.top - GAP - panelH);
     }
 
     panel.style.width = `${PANEL_W}px`;
@@ -472,7 +521,7 @@ export class PersonPicker {
     if (people.length === 0) {
       listEl.innerHTML = `
         <div class="person-picker-empty ">
-          ${this._searchQuery ? '未找到匹配的人员' : '暂无可选人员'}
+          ${emptyStateHtml({ text: this._searchQuery ? '未找到匹配的人员' : '暂无可选人员', variant: 'inline' })}
         </div>
       `;
       return;
@@ -485,7 +534,7 @@ export class PersonPicker {
       const disabledTitle = isDisabled
         ? ((this._disabledTitle && this._disabledTitle(person)) || '该人员当前不可选')
         : '';
-      const stageColor = STAGE_COLORS[person.developStage] || STAGE_COLORS['正式党员'];
+      const stageTone = STAGE_TONE[person.developStage] || 'neutral';
       const stageLabel = STAGE_LABELS[person.developStage] || person.developStage;
       const roleLabel = person.role ? (ROLE_LABELS[person.role] || person.role) : '';
 
@@ -500,7 +549,7 @@ export class PersonPicker {
             <span class="person-picker-item-name-row">
               <span class="person-picker-item-name">${person.name}</span>
               ${isDisabled ? `<span class="person-picker-item-lock">${_escAttr(disabledLabel)}</span>` : ''}
-              <span class="person-picker-item-stage" style="--acc-bg-dark:${stageColor.bgDark};--acc-text-dark:${stageColor.textDark};background:${stageColor.bg};color:color-mix(in srgb, ${stageColor.text} 60%, #000);">${stageLabel}</span>
+              <span class="person-picker-item-stage tint-fill" data-tone="${stageTone}">${stageLabel}</span>
             </span>
             <span class="person-picker-item-meta">
               <span class="person-picker-item-meta-text">${person.studentId}</span>
@@ -513,7 +562,6 @@ export class PersonPicker {
       `;
     }).join('');
 
-    // 绑定点击事件
     listEl.querySelectorAll('.person-picker-item').forEach(item => {
       item.addEventListener('click', () => {
         const personId = item.dataset.personId;
@@ -582,17 +630,61 @@ export class PersonPicker {
   // ── 全局事件 ────────────────────────────────────────────────
 
   _bindGlobalEvents() {
-    this._boundEscKey = (e) => {
-      if (e.key === 'Escape') this._closePanel();
+    this._boundKeydown = (e) => {
+      // Esc 关闭：_closePanel 内统一回焦触发按钮
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        this._closePanel();
+        return;
+      }
+      if (e.key !== 'Tab' || !this._panelEl) return;
+
+      // 焦点陷阱：Tab / Shift+Tab 在面板内循环，不落到遮罩后的页面
+      const focusables = this._getFocusableElements();
+      if (focusables.length === 0) {
+        e.preventDefault();
+        return;
+      }
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || !this._panelEl.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (active === last || !this._panelEl.contains(active))) {
+        e.preventDefault();
+        first.focus();
+      }
     };
-    document.addEventListener('keydown', this._boundEscKey);
+    document.addEventListener('keydown', this._boundKeydown);
+
+    // 视口尺寸 / 转屏变化后按触发按钮的新位置重定位，390px 面板不出屏
+    this._boundReposition = () => {
+      if (this._panelOpen && this._panelEl) this._positionPanel(this._panelEl);
+    };
+    window.addEventListener('resize', this._boundReposition);
+    window.addEventListener('orientationchange', this._boundReposition);
   }
 
   _unbindGlobalEvents() {
-    if (this._boundEscKey) {
-      document.removeEventListener('keydown', this._boundEscKey);
-      this._boundEscKey = null;
+    if (this._boundKeydown) {
+      document.removeEventListener('keydown', this._boundKeydown);
+      this._boundKeydown = null;
     }
+    if (this._boundReposition) {
+      window.removeEventListener('resize', this._boundReposition);
+      window.removeEventListener('orientationchange', this._boundReposition);
+      this._boundReposition = null;
+    }
+  }
+
+  // 面板内可聚焦元素（按 DOM 顺序，供 Tab 循环）
+  _getFocusableElements() {
+    if (!this._panelEl) return [];
+    const selector = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), '
+      + 'textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
+    return [...this._panelEl.querySelectorAll(selector)]
+      .filter((el) => !el.hasAttribute('aria-hidden') && (el.offsetWidth > 0 || el.offsetHeight > 0));
   }
 
   // ── 公开 API ────────────────────────────────────────────────

@@ -10,15 +10,17 @@
 //  · 提交表单新增期次（period）手填下拉（缺省 = 当前期次）；
 //  · 「我的汇报」按期次分组，逐篇点击跳**独立阅读页** docs/thought-report.html——
 //    只读正文与「修改重交」均收敛到该页，本 tab 不再行内展开/就地编辑。
-import { AuthStore } from '../../../services/core/auth.js?v=20261018h';
+import { AuthStore } from '../../../services/core/auth.js?v=20261102b';
 import {
   addThoughtReport, listThoughtReportsByPersonGrouped,
   wordCountHint, wordHint, wordSoftMin, periodOf, periodOptions,
-} from '../../../services/governance/thought-report.js?v=20261018h';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261018h';
+} from '../../../services/governance/thought-report.js?v=20261102b';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261102b';
 // 统一检索引擎（支书 2026-09-14 裁定）：按期次分组子列表复用其分页（无 keyword/facets → 不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261018h';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261102b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261102b';
 
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261102b';
 // ── 状态徽标（与服务层 _effective 同语义：无状态 / 状态非法 / 旧 'pending' → 已入库）──
 const STATUS_META = {
   needs_revision: { label: '已打回·待补充', cls: 'bg-red-100 text-red-700' },
@@ -33,13 +35,13 @@ const _statusBadgeHtml = (status) => {
   return `<span class="text-xs px-1.5 py-0.5 rounded-full font-medium ${m.cls}">${m.label}</span>`;
 };
 
-export function renderContent(ctx) {
-  const tc = document.getElementById('visitor-tab-content');
+export function renderContent(ctx, host) {
+  const tc = host || document.getElementById('visitor-tab-content');
   if (!tc) return;
 
   const user = AuthStore.getCurrentUser();
   if (!user) {
-    tc.innerHTML = '<p class="text-sm text-gray-500 text-center py-6">请先登录</p>';
+    tc.innerHTML = `${host ? '' : renderTabHeader({ title: '思想汇报' })}${emptyStateHtml({ variant: 'panel', text: '请先登录后使用', actionHtml: `<a class="btn-outline" href="${getBasePath()}login.html">去登录</a>` })}`;
     return;
   }
   const personId = user.personId;
@@ -56,34 +58,35 @@ export function renderContent(ctx) {
           <div class="mb-3 last:mb-0">
             <div class="flex items-center gap-2 mb-1.5">
               <span class="text-xs font-semibold text-gray-700">${esc(g.label)}</span>
-              <span class="text-[11px] text-gray-500">${g.items.length} 篇</span>
+              <span class="text-xs text-gray-500">${g.items.length} 篇</span>
             </div>
             <div data-tr-group-host="${esc(g.period)}"></div>
           </div>`).join('');
 
     tc.innerHTML = `
-      <div class="mb-3 p-3 rounded-lg bg-white">
+      ${host ? '' : renderTabHeader({ title: '思想汇报', description: '按期次提交与回看；提交即入库归档。' })}
+      <div class="card rounded-xl p-5 mb-3">
         <p class="text-sm font-semibold text-gray-800">我的思想汇报</p>
-        <p class="text-xs text-gray-500 mt-0.5">已提交 ${total} 篇 · 提交即入库归档至个人档案；本页只收本人提交，组织侧台账在组织委员台「思想汇报」。</p>
+        <p class="text-xs text-gray-500 mt-0.5">已提交 ${total} 篇</p>
       </div>
-      <div class="mb-3 p-3 rounded-lg bg-white border border-gray-100">
+      <div class="card rounded-xl p-5 mb-3">
         <p class="text-xs font-medium text-gray-600 mb-2">提交思想汇报</p>
         <div class="flex items-center gap-2 mb-2">
-          <span class="text-[11px] text-gray-500 flex-shrink-0">期次</span>
+          <span class="text-xs text-gray-500 flex-shrink-0">期次</span>
           <select id="tr-period" class="input-flat text-xs">
             ${periodOptions().map(o => `<option value="${o.value}"${o.value === nowPeriod ? ' selected' : ''}>${esc(o.label)}</option>`).join('')}
           </select>
         </div>
         <textarea id="tr-content" rows="5" class="input-flat w-full resize-none" placeholder="请书写本季度思想汇报"></textarea>
-        <div class="flex items-center justify-between mt-2 gap-2">
-          <p class="text-[11px] text-gray-500">提交即入库归档至个人档案；建议 ${wordHint()} 字以上，少于 ${wordSoftMin()} 字将触发警告审阅（不影响提交；<b>此提醒只给你本人看</b>）</p>
-          <div class="flex items-center gap-2 flex-shrink-0">
-            <span id="tr-count" class="text-[11px] text-gray-500 tabular-nums">0 字</span>
-            <button id="tr-submit" class="btn-accent-soft text-xs px-4 py-1.5">提交</button>
+        <div class="flex flex-wrap items-center justify-between mt-2 gap-2">
+          <p class="text-xs text-gray-500">建议 ${wordHint()} 字以上；少于 ${wordSoftMin()} 字将触发警告审阅（不影响提交）</p>
+          <div class="flex flex-wrap items-center justify-end gap-2">
+            <span id="tr-count" class="text-xs text-gray-500 tabular-nums min-w-0">0 字</span>
+            <button id="tr-submit" class="btn-accent-soft text-xs px-4 py-1.5 flex-shrink-0">提交</button>
           </div>
         </div>
       </div>
-      <div id="tr-list">${total === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无思想汇报记录</p>' : groupsHtml}</div>
+      <div id="tr-list">${total === 0 ? emptyStateHtml({ text: '暂无思想汇报记录', variant: 'inline' }) : groupsHtml}</div>
     `;
 
     // 逐期次接入统一检索引擎（行 HTML 原样；每组仅分页，页数 ≤1 不出翻页控件）
@@ -97,12 +100,12 @@ export function renderContent(ctx) {
         rowHtml: (r) => {
           const wc = wordCountHint(r.content);
           return `
-                <a href="thought-report.html?id=${r.id}" class="flex items-center gap-2 p-3 rounded-lg bg-white border border-gray-50 hover:bg-gray-50 transition-colors">
+                <a href="thought-report.html?id=${r.id}" class="flex items-center gap-2 p-3 rounded-lg bg-white border border-gray-50 hover:bg-surface-hover transition-colors">
                   <span class="text-xs font-medium text-gray-700 truncate flex-1">${esc(r.title || '思想汇报')}</span>
-                  <span class="text-[11px] text-gray-500 flex-shrink-0">${_dateTime(r.submittedAt)}</span>
-                  <span class="text-[11px] text-gray-400 tabular-nums flex-shrink-0">${wc.count} 字</span>
+                  <span class="text-xs text-gray-500 flex-shrink-0">${_dateTime(r.submittedAt)}</span>
+                  <span class="text-xs text-gray-500 tabular-nums flex-shrink-0">${wc.count} 字</span>
                   ${wc.level === 'short'
-                    ? `<span class="text-[11px] text-amber-700 flex-shrink-0" title="少于 ${wordSoftMin()} 字：触发警告审阅（不影响提交与归档）">篇幅不足</span>`
+                    ? '<span class="text-xs text-amber-700 flex-shrink-0">篇幅不足</span>'
                     : ''}
                   ${_statusBadgeHtml(_effStatus(r))}
                 </a>`;
@@ -118,7 +121,7 @@ export function renderContent(ctx) {
       const h = wordCountHint(_contentEl?.value || '');
       if (_countEl) {
         _countEl.textContent = `当前 ${h.count} 字 · ${h.hint}`;
-        _countEl.className = `text-[11px] tabular-nums ${h.level === 'short' ? 'text-amber-600' : 'text-gray-500'}`;
+        _countEl.className = `text-xs tabular-nums ${h.level === 'short' ? 'text-amber-600' : 'text-gray-500'}`;
       }
     };
     _contentEl?.addEventListener('input', _syncCount);

@@ -2,19 +2,20 @@
 // 宣传委员工作台 Tab：宣传任务（T-279 M3 拆分，照 M2 样板）
 // 任务状态流转：待接收 → 进行中 → 已提交（seed 常量 + mockDB 持久化，刷新不再丢失）。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261018h';
-import { persist } from '../../../data/data-adapter.js?v=20261018h';
-import { showToast, downloadCSV, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261018h';
-import { generateId } from '../../../core/base/id.js?v=20261018h';
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261018h';
-// 2026-10-03 批次 358（`D-751`）：宣传任务「作废（软）」——弹窗**单一源**（原因必填那句校验只此一处）
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261018h';
-import { filterActive } from '../../../services/governance/soft-void.js?v=20261018h';
+import { mockDB } from '../../../core/domain/domain.js?v=20261102b';
+import { persist } from '../../../data/data-adapter.js?v=20261102b';
+import { showToast, downloadCSV, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261102b';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261102b';
+import { generateId } from '../../../core/base/id.js?v=20261102b';
+import { isActivityLive, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261102b';
+import { ORG_SUBJECT_LABELS } from '../../../core/domain/work-map.js?v=20261102b';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261102b';
+import { filterActive } from '../../../services/governance/soft-void.js?v=20261102b';
 
 // ── 宣传任务 mock 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/data/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261018h';
+import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261102b';
 
 // 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.propTasks 后调用 persist()
 function _loadPropTasks() {
@@ -50,6 +51,18 @@ const TASK_CREATE_TYPES = ['素材归档', '新闻稿', '推送排版', '周期�
 export function renderContent(ctx = {}) {
   const container = document.getElementById('prop-tab-content');
   if (!container) return;
+  renderBoard(container, ctx, { header: true });
+}
+
+/**
+ * 宣传任务板块（2026-10-25 IA 62→45）：本页签已并入「项目看板」页的「宣传任务」泳道，
+ * 渲染函数仍只此一份（`kanban-tab.js` 以 `renderBoard(host, ctx)` 复用），不复制列表/表单。
+ * @param {HTMLElement} container 承载容器
+ * @param {Object} ctx 工作台渲染上下文（activities 等）
+ * @param {{header?: boolean}} [opts] header=false 时不渲染页头 H2（泳道形态）
+ */
+export function renderBoard(container, ctx = {}, opts = {}) {
+  if (!container) return;
 
   // 按状态分组
   const pending = _activePropTasks().filter(t => t.status === 'pending');
@@ -59,34 +72,37 @@ export function renderContent(ctx = {}) {
   const activityMap = new Map((ctx.activities || []).map(a => [a.id, a]));
 
   container.innerHTML = `
+    ${opts.header ? renderTabHeader({ title: '宣传任务', description: '素材归档、新闻稿、推送排版与周期归档任务的登记与推进。' }) : ''}
     ${_renderCreateForm(ctx)}
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="font-title-cn text-base font-semibold text-gray-800">宣传任务</h3>
-      <button class="prop-task-export-btn btn-tab" style="cursor:pointer;">导出 CSV</button>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+    ${renderCardHeader({
+      title: '任务清单',
+      meta: '本支部 · 按状态分列',
+      actions: '<button class="prop-task-export-btn btn-tab" style="cursor:pointer;">导出 CSV</button>',
+    })}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(251,191,36,0.10);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.25);background:rgba(245,158,11,0.06);color:color-mix(in srgb, var(--accent-amber) 60%, #000);border-bottom:2px solid rgba(245,158,11,0.15);">待接收 (${pending.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold tint-section tint-section--head" data-tone="neutral">待接收 (${pending.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
-          ${pending.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无待接收任务</p>' :
+          ${pending.length === 0 ? emptyStateHtml({ text: '暂无待接收任务', variant: 'panel' }) :
             pending.map(t => _renderTaskCard(t, activityMap)).join('')}
         </div>
       </div>
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(96,165,250,0.10);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.25);background:rgba(59,130,246,0.06);color:color-mix(in srgb, var(--accent-blue) 60%, #000);border-bottom:2px solid rgba(59,130,246,0.15);">进行中 (${inProgress.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold tint-section tint-section--head" data-tone="neutral">进行中 (${inProgress.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
-          ${inProgress.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无进行中任务</p>' :
+          ${inProgress.length === 0 ? emptyStateHtml({ text: '暂无进行中任务', variant: 'panel' }) :
             inProgress.map(t => _renderTaskCard(t, activityMap)).join('')}
         </div>
       </div>
-      <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(52,211,153,0.10);--acc-text-dark:#34D399;--acc-border-dark:rgba(52,211,153,0.25);background:rgba(16,185,129,0.06);color:color-mix(in srgb, var(--functional-success) 60%, #000);border-bottom:2px solid rgba(16,185,129,0.15);">已提交 (${submitted.length})</div>
-        <div class="p-3 space-y-2 min-h-[120px]">
-          ${submitted.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无已提交任务</p>' :
-            submitted.map(t => _renderTaskCard(t, activityMap)).join('')}
-        </div>
-      </div>
     </div>
+    <!-- B08（2026-10-20）：终态「已提交」不再与两个行动列等权——进行中/待接收在前，已提交默认折叠（标题保留条数）。 -->
+    <details class="card rounded-xl p-0 overflow-hidden mb-4" id="prop-task-submitted-fold">
+      <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none tint-section tint-section--head" data-tone="neutral">已提交 (${submitted.length})</summary>
+      <div class="p-3 space-y-2">
+        ${submitted.length === 0 ? emptyStateHtml({ text: '暂无已提交任务', variant: 'panel' }) :
+          submitted.map(t => _renderTaskCard(t, activityMap)).join('')}
+      </div>
+    </details>
   `;
 
   // 登记宣传任务：写 mockDB.propTasks（关联活动可空；来源空则回落到默认值）
@@ -119,7 +135,7 @@ export function renderContent(ctx = {}) {
     });
     persist();
     showToast('success', `已登记宣传任务「${summary}」`);
-    renderContent(ctx);
+    renderBoard(container, ctx, opts);
   });
 
   // T-304 A 档下载闭环：宣传任务导出 CSV
@@ -148,7 +164,7 @@ export function renderContent(ctx = {}) {
       task.status = nextStatus;
       persist();
       showToast('success', `任务「${task.summary}」状态已更新为「${TASK_STATUS_LABEL[nextStatus]}」`);
-      renderContent(ctx);
+      renderBoard(container, ctx, opts);
     });
   });
 
@@ -168,7 +184,7 @@ export function renderContent(ctx = {}) {
         reasonId: 'prop-task-void-reason',
         okAttr: 'data-prop-task-void-ok',
         cancelAttr: 'data-prop-task-void-cancel',
-        onDone: () => renderContent(ctx),
+        onDone: () => renderBoard(container, ctx, opts),
       });
     });
   });
@@ -225,22 +241,29 @@ function _renderTaskCard(task, activityMap = new Map()) {
     ? `<button class="btn-accent-soft task-advance-btn text-xs px-3 py-1.5 mt-1" data-task-id="${task.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
     : '';
   // 批次 358（`D-751`）：行内「作废（软）」键（软作废 · 留痕 · 默认列表出列；原因必填在弹窗单一源里）
-  const voidBtn = `<button class="btn-ghost prop-task-void-btn text-xs px-2 py-1 mt-1" data-task-id="${task.id}" title="作废（软 · 留痕）">作废</button>`;
+  const voidBtn = `<button class="btn-outline btn-sm prop-task-void-btn mt-1" data-task-id="${task.id}">作废</button>`;
   const typeStyle = TASK_TYPE_STYLE[task.type] || 'bg-gray-50 text-gray-700';
   const statusStyle = TASK_STATUS_STYLE[task.status];
   const activity = task.activityId ? activityMap.get(task.activityId) : null;
   const related = activity ? ` · 关联：${escHtml(activity.title || '未命名活动')}` : '';
 
   return `
-    <div class="p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors">
+    <div class="p-3 rounded-xl bg-white">
       <div class="flex items-center gap-2 mb-1">
         <span class="text-xs px-1.5 py-0.5 rounded-full ${typeStyle}">${escHtml(task.type)}</span>
         <span class="text-xs px-1.5 py-0.5 rounded-full border ${statusStyle}">${TASK_STATUS_LABEL[task.status]}</span>
       </div>
       <div class="text-sm font-medium text-gray-800 mt-1">${escHtml(task.summary)}</div>
       <div class="flex items-center justify-between mt-1.5">
-        <span class="text-xs text-gray-500">来自：${escHtml(task.source)} · ${escHtml(task.createdAt)}${related}</span>
+        <span class="text-xs text-gray-500">来自：${escHtml(sourceLabelOf(task))} · ${escHtml(task.createdAt)}${related}</span>
         <span class="inline-flex items-center gap-1.5">${advanceBtn}${voidBtn}</span>
       </div>
     </div>`;
+}
+
+/** 来源展示：优先按稳定键（角色键 / 组织型主体 id）现取标签，source 只作兜底快照（R7-34） */
+function sourceLabelOf(task) {
+  if (task.sourceRole) return ROLE_LABELS[task.sourceRole] || task.source;
+  if (task.sourceOrg) return ORG_SUBJECT_LABELS[task.sourceOrg] || task.source;
+  return task.source;
 }

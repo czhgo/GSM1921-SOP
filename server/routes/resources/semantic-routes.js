@@ -7,13 +7,15 @@
 import { randomUUID } from 'node:crypto';
 import { requireAuth, requireRole } from '../auth.js';
 import { HANDOFF_TYPES as HANDOFF_TYPES_SRC, AUTO_CONFIRM_TYPES } from '../../../docs/src/services/governance/handoff.js';
-import { BRANCH_COMMISSION_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES, BRANCH_COMMISSIONER_FALLBACK_ROLE, branchCommissionerWriteDeny } from '../../../docs/src/core/domain/constants.js';
+import { BRANCH_COMMISSION_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES, BRANCH_COMMISSIONER_FALLBACK_ROLE, branchCommissionerWriteDeny, PARTY_GROUP_LEADER_ROLES, SECRETARY_AND_DEPUTY_ROLES, DEFAULT_BRANCH_ID } from '../../../docs/src/core/domain/constants.js';
 import { listTable, getRow, writeRow } from './store.js';
-import { ORG_COMMISSIONER_ROLE_SET, SECRETARY_AND_DEPUTY_ROLE_SET } from './gates.js';
+import { ORG_COMMISSIONER_ROLE_SET, PARTY_STAFF_ROLE, SECRETARY_AND_DEPUTY_ROLE_SET } from './gates.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
 import { today as todayLocal } from '../../services/reporting.js';
 import { canManageWorkgroup, hasWorkgroupPermission, registerWorkgroupRoutes } from './workgroup-routes.js';
 import { actorBranchId, branchSelectionError, selectedBranchRequiredError, branchForNewResource, recordBranchWriteDeny, resourceRowsForActor } from './branch-scope.js';
+// 2026-11-02 批次 527（数据契约 Wave 2）：成员变更统一形状的**读时别名**（不双写）
+import { aliasMemberChangeRow } from '../../data/domain-contract.mjs';
 
 // ════════════════════════════════════════════════════════════════
 //  语义端点：申诉队列 / 反馈未读标记 / 授权审计留痕（2026-09-24 批次 169）
@@ -35,9 +37,9 @@ export function registerExtraSemanticRoutes(router, db) {
   registerWorkgroupRoutes(router, db);
   const APPEAL_STATUSES = ['pending', 'returned', 'closed'];
   const APPEAL_PATCH_KEYS = ['status', 'note'];
-  // 申诉处置位＝支委层（纪检/支书/组织/宣传）+ 党小组组长（「交组织方重新确认」的重确认位）——
-  //   角色集由 constants.js::BRANCH_COMMISSION_ROLES 单一源派生，勿手写角色字符串
-  const APPEAL_DISPOSITION_ROLE_SET = new Set([...BRANCH_COMMISSION_ROLES, 'leader']);
+  // 申诉处置位＝支委层（纪检/支书/组织/宣传）+ 党小组组长/副组长（「交组织方重新确认」的重确认位）——
+  //   角色集由 constants.js::BRANCH_COMMISSION_ROLES / PARTY_GROUP_LEADER_ROLES 单一源派生，勿手写角色字符串
+  const APPEAL_DISPOSITION_ROLE_SET = new Set([...BRANCH_COMMISSION_ROLES, ...PARTY_GROUP_LEADER_ROLES]);
   const readScoped = (req, table, name = table) => resourceRowsForActor(db, name, listTable(db, table), req.actor, req.query.branchId);
   // 申诉读（可按支部 / 状态过滤）
   const readAppeals = (req, table) => {
@@ -56,7 +58,7 @@ export function registerExtraSemanticRoutes(router, db) {
     if (db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id)) return res.status(409).json({ error: '该申诉 id 已存在' });
     const row = {
       id,
-      branchId: req.actor.branchId || 'br-b1',
+      branchId: req.actor.branchId || DEFAULT_BRANCH_ID,
       personId,
       activityId,
       note: typeof body.note === 'string' ? body.note.trim() : '',
@@ -105,11 +107,48 @@ export function registerExtraSemanticRoutes(router, db) {
   router.patch('/inspection-appeals/:id', requireRole(db, APPEAL_DISPOSITION_ROLE_SET), (req, res) => disposeAppeal(req, res, 'inspection_appeals'));
   // ── 意见反馈「逐人未读标记」（前端 services/governance/issues.js::IssueNotify）──
   // 行＝{ id: `${assigneeId}:${issueId}`, assigneeId, issueId, unread:true, at }；销项＝unread:false（保留行便于审计）
-  // ⚠ 写门＝requireAuth（**与 mock 形态同口径**）：标记是「指派 / 答复」写链的副产品——**由派发方**替被指派人
-  //   落未读（见 docs/src/services/governance/issues.js:609,786 的 markUnread 调用点）。服务端只落不判定
-  //   「该 actor 是否真派发过」；如需收严另裁（如实登记，未自创第二套口径）。
+  // ⚠ 写门＝requireAuth + `issueUnreadWriteDeny`（2026-11-03 Task 4 收口）：标记是「指派 / 答复」写链的副产品——
+  //   **由派发位**替被指派人落未读（见 docs/src/services/governance/issues.js::assignIssue / requestReport）；
+  //   本人可清自己的已读；事项当事人可写 `secretary-review`。普通成员不再能替他人写/清未读。
   const issueUnreadId = (assigneeId, issueId) => `${assigneeId}:${issueId}`;
   const UNREAD_WRITE_KEYS = ['assigneeId', 'issueId', 'unread'];
+  /**
+   * 未读标记写门（2026-11-03 Task 4）：先查清前端真实语义——**不是**纯 self-service：
+   *   · `IssueNotify.markRead(本人 personId)`：本人清自己的已读；
+   *   · `assignIssue` / `requestReport`：**派发位**（支委层、党小组组长）替被指派人落未读；
+   *   · `markSecretaryReviewPending`：事项当事人（汇报人/被指派人）写角色保留键 `secretary-review`。
+   * 因此按「本人 ∪ 派发位角色 ∪ 事项当事人」收口；普通成员不再能替他人写/清未读。
+   * 注：`requestReport` 的 issue 只在本地新建（未同步服务端），故不能强依赖 issues 行存在；
+   *     仅当服务端能读到该事项时，额外校验 `assignee` 与标记对象一致（防伪造指派）。
+   * @returns {string|null} 403 文案；放行 → null
+   */
+  const issueUnreadWriteDeny = (actor, assigneeId, issueId) => {
+    if (!actor || !actor.id) return '未登录';
+    const self = String(actor.id);
+    if (String(assigneeId) === self) return null; // 本人标记本人（已读/未读）
+    const issue = getRow(db, 'issues', issueId);
+    if (issue) {
+      const issueBranch = issue.branchId || DEFAULT_BRANCH_ID;
+      const actorBranch = actorBranchId(actor);
+      if (actorBranch && issueBranch !== actorBranch) return '无权限：不能标记其他支部事项';
+    }
+    // 角色保留键：只有事项提交人 / 被指派人可把「待终审」推给支书
+    if (assigneeId === 'secretary-review') {
+      if (!issue) return null; // 历史实现允许（汇报链的 issue 可能尚未同步），保持兼容
+      return (String(issue.submittedBy || '') === self || String(issue.assignee || '') === self)
+        ? null
+        : '无权限：仅事项提交人或被指派人可标记待终审';
+    }
+    // 派发位：支委层 / 党小组组长 / 党委
+    // ⚠ 这里不再强校验「标记对象 === issue.assignee」：前端 assignIssue 先 fire-and-forget PATCH 事项、
+    //   紧接着 POST 未读，两条请求无顺序保证；若强校验，正常指派会偶发 403（提示角标丢失）。
+    //   支部归属由下方 recordBranchWriteDeny 复核，越权面已从「任一登录成员」收窄到「派发位角色」。
+    const dispatchRole = BRANCH_COMMISSION_ROLES.includes(actor.role)
+      || PARTY_GROUP_LEADER_ROLES.includes(actor.role)
+      || actor.role === 'party-staff';
+    if (!dispatchRole) return '无权限：只能标记本人或本人有权派发事项的未读';
+    return null;
+  };
   router.get('/issue-unread', requireAuth(db), (req, res) => {
     const deny = branchSelectionError(req.actor, req.query.branchId);
     if (deny) return res.status(403).json({ error: deny });
@@ -126,10 +165,20 @@ export function registerExtraSemanticRoutes(router, db) {
     const issueId = body.issueId ? String(body.issueId) : '';
     if (!assigneeId || !issueId) return res.status(400).json({ error: '缺少必要字段：assigneeId/issueId' });
     const id = issueUnreadId(assigneeId, issueId);
+    // 角色级未读（2026-10-21 批次 498 · 修 F-17）：「支书待终审/待答复」用保留键 `secretary-review`，
+    // 它不对应某个 users 行。原实现要求 users 表存在该 id ⇒ 400，前端每次提交汇报都报「未保存成功」。
+    // 现按「角色保留键」处理：支部归属取写入人（汇报人）所属支部；读口仍按支部与 assigneeId 过滤。
+    const ROLE_UNREAD_KEYS = new Set(['secretary-review']);
     const assignee = getRow(db, 'users', assigneeId);
-    if (!assignee) return res.status(400).json({ error: '未读标记对象不存在' });
+    const isRoleKey = ROLE_UNREAD_KEYS.has(assigneeId);
+    if (!assignee && !isRoleKey) return res.status(400).json({ error: '未读标记对象不存在' });
+    const rowBranchId = assignee ? (assignee.branchId || DEFAULT_BRANCH_ID) : (req.actor.branchId || null);
+    if (!rowBranchId) return res.status(403).json({ error: '无权限：请先选择支部后再操作' });
+    // Task 4：先判「谁能写这条未读」，再落库（支部归属另由 recordBranchWriteDeny 复核）
+    const unreadDeny = issueUnreadWriteDeny(req.actor, assigneeId, issueId);
+    if (unreadDeny) return res.status(403).json({ error: unreadDeny });
     const prev = getRow(db, 'issue_unread', id) || {};
-    const row = { ...prev, id, assigneeId, issueId, branchId: assignee.branchId || 'br-b1', unread: body.unread !== false, at: new Date().toISOString() };
+    const row = { ...prev, id, assigneeId, issueId, branchId: rowBranchId, unread: body.unread !== false, at: new Date().toISOString() };
     const scopeDeny = recordBranchWriteDeny(db, 'issue_unread', row, req.actor);
     if (scopeDeny) return res.status(403).json({ error: scopeDeny });
     writeRow(db, 'issue_unread', row);
@@ -156,7 +205,7 @@ export function registerExtraSemanticRoutes(router, db) {
     }
     const targetUser = getRow(db, 'users', targetPersonId);
     if (!targetUser) return res.status(400).json({ error: '授权对象不存在' });
-    const targetBranchId = targetUser.branchId || 'br-b1';
+    const targetBranchId = targetUser.branchId || DEFAULT_BRANCH_ID;
     const partyStaffSelection = selectedBranchRequiredError(req.actor, req.query.branchId);
     if (partyStaffSelection) return res.status(400).json({ error: partyStaffSelection });
     if (req.actor.role === 'party-staff' && req.query.branchId !== targetBranchId) {
@@ -200,7 +249,7 @@ export function registerExtraSemanticRoutes(router, db) {
       if (!group || group.branchId !== targetBranchId || targetUser.partyGroup !== group.name) {
         return res.status(403).json({ error: '无权限：党小组长授权对象与党小组归属不一致' });
       }
-      if (!['secretary', 'deputy-secretary'].includes(req.actor.role) || actorBranchId(req.actor) !== group.branchId) {
+      if (!SECRETARY_AND_DEPUTY_ROLES.includes(req.actor.role) || actorBranchId(req.actor) !== group.branchId) {
         return res.status(403).json({ error: '无权限：党小组长身份只能由本支部支书或副书记配置' });
       }
       const latest = listTable(db, 'auth_audit')
@@ -220,7 +269,7 @@ export function registerExtraSemanticRoutes(router, db) {
         actorRole: req.actor.role, actorId: req.actor.id, actorBranchId: actorBranchId(req.actor) || req.query.branchId,
         targetId: targetPersonId, targetRole: targetUser.role, targetBranchId,
         secretaryId: branch.secretaryId,
-        deputySecretaryId: branch.deputySecretaryId || listTable(db, 'users').find((user) => user.role === 'deputy-secretary' && (user.branchId || 'br-b1') === targetBranchId)?.id,
+        deputySecretaryId: branch.deputySecretaryId || listTable(db, 'users').find((user) => user.role === 'deputy-secretary' && (user.branchId || DEFAULT_BRANCH_ID) === targetBranchId)?.id,
         role: action === 'grant' ? role : BRANCH_COMMISSIONER_FALLBACK_ROLE,
       });
       if (deny) return res.status(403).json({ error: deny });
@@ -237,6 +286,176 @@ export function registerExtraSemanticRoutes(router, db) {
     if (scopeDeny) return res.status(403).json({ error: scopeDeny });
     writeRow(db, 'auth_audit', row);
     res.status(201).json(row);
+  });
+
+  // ── 支书任命（B-499-9）：branches / 双方 users / 任期记录同一事务 ──
+  // 与前端 services/branch/appointment.js 一次语义调用对应；appointedBy/from/id 由服务端生成，
+  // expectedSecretaryId 为可选乐观锁（与库中现值不一致 ⇒ 409）。重复提交同一 appointmentId ⇒ 幂等。
+  router.post('/branches/:id/appointments', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
+    const branchId = String(req.params.id);
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const result = db.transaction(() => {
+      const branch = getRow(db, 'branches', branchId);
+      if (!branch) return { status: 404, body: { error: '支部不存在' } };
+
+      const personId = body.secretaryId !== undefined ? body.secretaryId : body.personId;
+      const nextSecretaryId = personId ? String(personId) : null;
+      const requestedId = body.appointmentId ? String(body.appointmentId) : '';
+      if (requestedId) {
+        const existing = listTable(db, 'appointment_records').find((row) => row.id === requestedId);
+        if (existing) {
+          if (existing.branchId === branchId && (existing.secretaryId || null) === nextSecretaryId) {
+            return {
+              status: 200,
+              body: { ok: true, branch, appointment: existing, appointmentRecords: [existing], users: [] },
+            };
+          }
+          return { status: 409, body: { error: '该任命 id 已用于其他任命' } };
+        }
+      }
+      if (Object.prototype.hasOwnProperty.call(body, 'expectedSecretaryId')
+        && (branch.secretaryId || null) !== (body.expectedSecretaryId || null)) {
+        return { status: 409, body: { error: '支部现任支书已被他人变更，请刷新后重试' } };
+      }
+
+      let nextSecretary = null;
+      if (nextSecretaryId) {
+        nextSecretary = getRow(db, 'users', nextSecretaryId);
+        if (!nextSecretary) return { status: 400, body: { error: '被任命人不存在' } };
+        if (nextSecretary.transferOut === true) return { status: 400, body: { error: '被任命人已转出，不能任命' } };
+        if (nextSecretary.role === 'party-staff') return { status: 400, body: { error: '党委账号不能担任支部书记' } };
+        if (nextSecretary.branchId === null) return { status: 400, body: { error: '被任命人尚未归属支部，不能任命' } };
+      }
+
+      const now = new Date().toISOString();
+      const previousSecretaryId = branch.secretaryId || null;
+      const changedUsers = [];
+      const writeUserRole = (userId, role) => {
+        if (!userId || userId === nextSecretaryId && userId === previousSecretaryId) return;
+        const user = getRow(db, 'users', userId);
+        if (!user || user.role === role) return;
+        const next = { ...user, role };
+        writeRow(db, 'users', next);
+        changedUsers.push(next);
+      };
+
+      const nextBranch = { ...branch, secretaryId: nextSecretaryId };
+      writeRow(db, 'branches', nextBranch);
+      if (previousSecretaryId && previousSecretaryId !== nextSecretaryId) writeUserRole(previousSecretaryId, 'participant');
+      if (nextSecretaryId) writeUserRole(nextSecretaryId, 'secretary');
+
+      const touchedRecords = [];
+      for (const record of listTable(db, 'appointment_records')) {
+        if (record.branchId !== branchId || record.to) continue;
+        const closed = { ...record, to: now };
+        writeRow(db, 'appointment_records', closed);
+        touchedRecords.push(closed);
+      }
+      let appointment = null;
+      if (nextSecretaryId) {
+        appointment = {
+          id: requestedId || `appt-${randomUUID().slice(0, 8)}`,
+          branchId,
+          secretaryId: nextSecretaryId,
+          appointedBy: req.actor.id,
+          note: typeof body.note === 'string' ? body.note.trim() : '',
+          from: now,
+          to: null,
+        };
+        writeRow(db, 'appointment_records', appointment);
+        touchedRecords.push(appointment);
+      }
+      const openCount = listTable(db, 'appointment_records')
+        .filter((record) => record.branchId === branchId && !record.to).length;
+      if (openCount > 1) throw new Error('任命事务校验失败：同一支部存在多条未封口任期记录');
+
+      return {
+        status: 200,
+        body: { ok: true, branch: nextBranch, appointment, appointmentRecords: touchedRecords, users: changedUsers },
+      };
+    })();
+    res.status(result.status).json(result.body);
+  });
+
+  // ── 本支部支委身份配置（B-499-9）：users.role 与 auth_audit 同一事务 ──
+  // grant：授予/改派组织、宣传、纪检委员；revoke：回落普通参与者。判据单一源 = branchCommissionerWriteDeny。
+  // 审计 authorizedBy/authorizedAt 由服务端生成；仅本支部现任支书/副支书（跨支部靶标 403）。
+  router.post('/branches/:id/branch-commissioners', requireRole(db, SECRETARY_AND_DEPUTY_ROLE_SET), (req, res) => {
+    const branchId = String(req.params.id);
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const branch = getRow(db, 'branches', branchId);
+    if (!branch) return res.status(404).json({ error: '支部不存在' });
+    const targetId = body.personId ? String(body.personId) : '';
+    const requestedRole = body.role ? String(body.role) : '';
+    if (!targetId) return res.status(400).json({ error: '缺少被配置人（personId）' });
+    const target = getRow(db, 'users', targetId);
+    if (!target) return res.status(404).json({ error: '成员不存在（users 表中无该 id）' });
+
+    const action = body.action === 'revoke' || requestedRole === BRANCH_COMMISSIONER_FALLBACK_ROLE ? 'revoke' : 'grant';
+    const gateRole = action === 'revoke' ? BRANCH_COMMISSIONER_FALLBACK_ROLE : requestedRole;
+    const deputy = branch.deputySecretaryId
+      ? getRow(db, 'users', String(branch.deputySecretaryId))
+      : listTable(db, 'users').find((user) => user.role === 'deputy-secretary' && (user.branchId || DEFAULT_BRANCH_ID) === branchId);
+    const deny = branchCommissionerWriteDeny({
+      actorRole: req.actor.role,
+      actorId: req.actor.id,
+      actorBranchId: branchId,
+      targetId,
+      targetRole: target.role,
+      targetBranchId: target.branchId === null ? null : (target.branchId || branchId),
+      secretaryId: branch.secretaryId,
+      deputySecretaryId: deputy?.id || null,
+      role: gateRole,
+    });
+    if (deny) return res.status(403).json({ error: deny });
+
+    if (action === 'grant' && !BRANCH_COMMISSIONER_ASSIGNABLE_ROLES.includes(requestedRole)) {
+      return res.status(400).json({ error: 'role 须为组织 / 宣传 / 纪检委员之一' });
+    }
+    if (action === 'revoke' && target.role === BRANCH_COMMISSIONER_FALLBACK_ROLE) {
+      return res.json({ ok: true, user: target, audits: [] });
+    }
+    if (action === 'revoke' && !BRANCH_COMMISSIONER_ASSIGNABLE_ROLES.includes(target.role)) {
+      return res.status(400).json({ error: '该成员当前没有可撤销的支委身份' });
+    }
+    const nextRole = action === 'revoke' ? BRANCH_COMMISSIONER_FALLBACK_ROLE : requestedRole;
+    if (target.role === nextRole) return res.json({ ok: true, user: target, audits: [] });
+
+    const now = todayLocal();
+    const branchOfTarget = target.branchId || branchId;
+    const audits = [];
+    const result = db.transaction(() => {
+      const nextUser = { ...target, role: nextRole };
+      writeRow(db, 'users', nextUser);
+      if (action === 'grant' && BRANCH_COMMISSIONER_ASSIGNABLE_ROLES.includes(target.role)) {
+        const revoke = {
+          id: `auth-${randomUUID().slice(0, 8)}`,
+          branchId: branchOfTarget,
+          targetPersonId: targetId,
+          role: target.role,
+          scopeRef: null,
+          authorizedBy: req.actor.id,
+          authorizedAt: now,
+          action: 'revoke',
+        };
+        writeRow(db, 'auth_audit', revoke);
+        audits.push(revoke);
+      }
+      const audit = {
+        id: `auth-${randomUUID().slice(0, 8)}`,
+        branchId: branchOfTarget,
+        targetPersonId: targetId,
+        role: nextRole === BRANCH_COMMISSIONER_FALLBACK_ROLE ? target.role : nextRole,
+        scopeRef: null,
+        authorizedBy: req.actor.id,
+        authorizedAt: now,
+        action,
+      };
+      writeRow(db, 'auth_audit', audit);
+      audits.push(audit);
+      return { user: nextUser, audits };
+    })();
+    res.json({ ok: true, ...result });
   });
 
   // ════════════════════════════════════════════════════════════════
@@ -312,7 +531,7 @@ export function registerExtraSemanticRoutes(router, db) {
   router.get('/member-confirmations', requireAuth(db), (req, res) => {
     const deny = branchSelectionError(req.actor, req.query.branchId);
     if (deny) return res.status(403).json({ error: deny });
-    let rows = readScoped(req, 'member_confirmations', 'member_confirmations');
+    let rows = readScoped(req, 'member_confirmations', 'member_confirmations').map(aliasMemberChangeRow); // 读时别名：from/to→fromStage/toStage；只写本表
     if (req.query.status) rows = rows.filter((r) => r.status === req.query.status);
     res.json(rows);
   });
@@ -327,7 +546,7 @@ export function registerExtraSemanticRoutes(router, db) {
     const row = {
       ...body,
       id,
-      branchId: person.branchId || 'br-b1',
+      branchId: person.branchId || DEFAULT_BRANCH_ID,
       kind: kind || 'change',
       personId,
       action,

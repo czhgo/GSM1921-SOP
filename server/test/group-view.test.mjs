@@ -32,14 +32,14 @@ globalThis.localStorage = makeStorage();
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { PersonStore } from '../../docs/src/services/member/person.js?v=20261018h';
-import { isPartyMember } from '../../docs/src/services/member/roster.js?v=20261018h';
-import { ReviewStatus } from '../../docs/src/core/domain/domain.js?v=20261018h';
+import { PersonStore } from '../../docs/src/services/member/person.js?v=20261102b';
+import { isPartyMember } from '../../docs/src/services/member/roster.js?v=20261102b';
+import { ReviewStatus } from '../../docs/src/core/domain/domain.js?v=20261102b';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   isGroupActivity, groupActivitiesOf, reviewBucketOf,
-} from '../../docs/src/services/member/group-view.js?v=20261018h';
-import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018h';
+} from '../../docs/src/services/member/group-view.js?v=20261102b';
+import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261102b';
 
 // ── B 类现场（api 形态）：内存服务 + 真登录取 token + init() 把服务端全量灌进 mockDB 缓存 ──
 const _app = createApp({ dbPath: ':memory:' });
@@ -49,7 +49,7 @@ const _base = `http://127.0.0.1:${_server.address().port}`;
 const _loginRes = await fetch(`${_base}/api/v1/auth/login`, {
   method: 'POST',
   headers: { 'content-type': 'application/json' },
-  body: JSON.stringify({ personId: 'p13' }),
+  body: JSON.stringify({ personId: '2300010001' }),
 });
 assert.equal(_loginRes.status, 200, 'B 类现场：真登录须 200（DISABLE_PASSWORD_CHECK=1 时 personId 直登）');
 const { token: _token } = await _loginRes.json();
@@ -72,17 +72,17 @@ test('S0 形态：api 形态 + 有会话 token（数据来自服务端，不是�
 const MEMBERS = PersonStore.getMembers();
 
 // ── a) 组清单聚合 ────────────────────────────────────────────
-test('组清单：支部 partyGroup 聚合 3 组（档案顺序），组长=组内 role leader，不含空组/p_pc', () => {
+test('组清单：支部 partyGroup 聚合 3 组（档案顺序），组长=组内 role leader，不含空组/9000000001', () => {
   const groups = listPartyGroups({ members: MEMBERS });
   assert.deepEqual(groups.map(g => g.groupName), ['第一党小组', '第二党小组', '第三党小组']);
-  assert.deepEqual(groups.map(g => g.leaderId), ['p1', 'p2', 'p4']);
+  assert.deepEqual(groups.map(g => g.leaderId), ['2400012345', '2400012346', '2400012348']);
   assert.deepEqual(groups.map(g => g.memberCount), [17, 17, 16], '成员总数与种子头注 17/17/16 一致');
   const flat = groups.flatMap(g => g.memberIds);
-  assert.equal(flat.length, 50, '三组合计 50（p_pc 党委组织员 partyGroup 空 → 剔除）');
-  assert.ok(!flat.includes('p_pc'));
+  assert.equal(flat.length, 50, '三组合计 50（9000000001 党委组织员 partyGroup 空 → 剔除）');
+  assert.ok(!flat.includes('9000000001'));
 });
 
-test('组内党员数 = developStage ∈ partyStages（roster isPartyMember 同源，含滞留党员 p5/p9）', () => {
+test('组内党员数 = developStage ∈ partyStages（roster isPartyMember 同源，含滞留党员 2400012349/2400012353）', () => {
   const groups = listPartyGroups({ members: MEMBERS });
   for (const g of groups) {
     const expected = g.memberIds.filter(id => isPartyMember(MEMBERS.find(p => p.id === id))).length;
@@ -90,8 +90,8 @@ test('组内党员数 = developStage ∈ partyStages（roster isPartyMember 同�
   }
   assert.deepEqual(groups.map(g => g.partyCount), [9, 8, 4]);
   const byName = Object.fromEntries(groups.map(g => [g.groupName, g]));
-  assert.ok(byName['第一党小组'].partyMemberIds.includes('p9'), '滞留党员 p9（一组）仍计入党员数（身份口径）');
-  assert.ok(byName['第二党小组'].partyMemberIds.includes('p5'), '滞留党员 p5（二组）仍计入党员数（身份口径）');
+  assert.ok(byName['第一党小组'].partyMemberIds.includes('2400012353'), '滞留党员 2400012353（一组）仍计入党员数（身份口径）');
+  assert.ok(byName['第二党小组'].partyMemberIds.includes('2400012349'), '滞留党员 2400012349（二组）仍计入党员数（身份口径）');
 });
 
 test('branchId 过滤：br-b1 全部命中；不存在支部（br-b2）→ 空清单', () => {
@@ -106,25 +106,25 @@ test('组员口径：组内非组长成员；无组长组 = 全组成员', () =>
   const first = listPartyGroups({ members: MEMBERS })[0];
   const scope = memberScopeOfGroup(first);
   assert.equal(scope.length, 16);
-  assert.ok(!scope.includes('p1'), '组长 p1 不在组员集');
-  assert.ok(scope.includes('p3'));
+  assert.ok(!scope.includes('2400012345'), '组长 2400012345 不在组员集');
+  assert.ok(scope.includes('2400012347'));
   const noLeader = { memberIds: ['x1', 'x2', 'x3'], leaderId: null };
   assert.deepEqual(memberScopeOfGroup(noLeader), ['x1', 'x2', 'x3']);
 });
 
 // ── c) 待答复汇报开放数 ──────────────────────────────────────
 test('开放数口径：仅组员发起 open 汇报；closed/hidden/merged/组长自身/请求行不计', () => {
-  const first = listPartyGroups({ members: MEMBERS })[0]; // 组长 p1；组员 p3…
+  const first = listPartyGroups({ members: MEMBERS })[0]; // 组长 2400012345；组员 2400012347…
   const base = { kind: 'report', status: 'open', hidden: false, mergedInto: null };
   const issues = [
-    { ...base, id: 'r1', submittedBy: 'p3' },                                    // ✓ 组员 open
-    { ...base, id: 'r2', submittedBy: 'p3', status: 'closed' },                  // ✗ 已闭环
-    { ...base, id: 'r3', submittedBy: 'p3', hidden: true },                      // ✗ 隐藏
-    { ...base, id: 'r4', submittedBy: 'p3', mergedInto: 'r1' },                  // ✗ 已合并
-    { ...base, id: 'r5', submittedBy: 'p1' },                                    // ✗ 组长自身（不计组员集）
-    { ...base, id: 'r6', submittedBy: 'p1', requestedBy: 'p1', assignee: 'p3' }, // ✗ 组长请求行（submittedBy=组长）
-    { ...base, id: 'r7', submittedBy: 'p6', kind: 'feedback' },                  // ✗ 非汇报 kind
-    { id: 'x1', kind: 'report', status: 'open', submittedBy: 'p2' },             // ✗ 他组成员（第二组）
+    { ...base, id: 'r1', submittedBy: '2400012347' },                                    // ✓ 组员 open
+    { ...base, id: 'r2', submittedBy: '2400012347', status: 'closed' },                  // ✗ 已闭环
+    { ...base, id: 'r3', submittedBy: '2400012347', hidden: true },                      // ✗ 隐藏
+    { ...base, id: 'r4', submittedBy: '2400012347', mergedInto: 'r1' },                  // ✗ 已合并
+    { ...base, id: 'r5', submittedBy: '2400012345' },                                    // ✗ 组长自身（不计组员集）
+    { ...base, id: 'r6', submittedBy: '2400012345', requestedBy: '2400012345', assignee: '2400012347' }, // ✗ 组长请求行（submittedBy=组长）
+    { ...base, id: 'r7', submittedBy: '2400012350', kind: 'feedback' },                  // ✗ 非汇报 kind
+    { id: 'x1', kind: 'report', status: 'open', submittedBy: '2400012346' },             // ✗ 他组成员（第二组）
   ];
   assert.equal(countOpenReportsByGroup(issues, first), 1);
   assert.equal(countOpenReportsByGroup([], first), 0);
@@ -136,11 +136,11 @@ test('开放数口径：仅组员发起 open 汇报；closed/hidden/merged/组�
 test('本组活动：organizer 属本组且非取消/非归档；按 date 降序', () => {
   const members = MEMBERS;
   const acts = [
-    { id: 'a1', title: '一组会', date: '2026-07-01', organizer: 'p3', type: '党小组会' },     // ✓（p3 属一组）
-    { id: 'a2', title: '二组会', date: '2026-07-02', organizer: 'p2', type: '党小组会' },     // ✗（二组）
-    { id: 'a3', title: '取消会', date: '2026-07-03', organizer: 'p3', status: 'cancelled' },  // ✗ 取消
-    { id: 'a4', title: '归档会', date: '2026-07-04', organizer: 'p3', archived: true },       // ✗ 归档
-    { id: 'a5', title: '一组主题', date: '2026-08-01', organizer: 'p1', type: '主题党日' },   // ✓（组长 p1 属一组）
+    { id: 'a1', title: '一组会', date: '2026-07-01', organizer: '2400012347', type: '党小组会' },     // ✓（2400012347 属一组）
+    { id: 'a2', title: '二组会', date: '2026-07-02', organizer: '2400012346', type: '党小组会' },     // ✗（二组）
+    { id: 'a3', title: '取消会', date: '2026-07-03', organizer: '2400012347', status: 'cancelled' },  // ✗ 取消
+    { id: 'a4', title: '归档会', date: '2026-07-04', organizer: '2400012347', archived: true },       // ✗ 归档
+    { id: 'a5', title: '一组主题', date: '2026-08-01', organizer: '2400012345', type: '主题党日' },   // ✓（组长 2400012345 属一组）
   ];
   assert.equal(isGroupActivity(acts[0], members, '第一党小组'), true);
   assert.equal(isGroupActivity(acts[1], members, '第一党小组'), false);

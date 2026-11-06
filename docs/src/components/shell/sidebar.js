@@ -11,11 +11,10 @@
 // （R1-A 2026-09-09 支书裁决：不写全局键、person 无键=出厂默认不继承；冻结读取点
 // theme-init.js 首帧 / bootstrap.js 字号 / constants.js resolveAccentRole 保持全局键语义不改）。
 
-import { getBasePath } from '../../core/base/utils.js?v=20261018h';
-import { icon } from '../../core/base/icons.js?v=20261018h';
-import { syncAppearanceForActiveUser } from '../../core/boot/theme.js?v=20261018h';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261018h';
-import { DEPLOY_MODE } from '../../config/deploy.js?v=20261018h';
+import { getBasePath } from '../../core/base/utils.js?v=20261102b';
+import { icon } from '../../core/base/icons.js?v=20261102b';
+import { syncAppearanceForActiveUser } from '../../core/boot/theme.js?v=20261102b';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261102b';
 
 // 外观键空间适配：页面壳加载即执行（全站每页均渲染 sidebar，天然覆盖公共页/工作台）
 syncAppearanceForActiveUser();
@@ -29,7 +28,7 @@ syncAppearanceForActiveUser();
 let AuthStore = null;
 let _authModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261018h');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261102b');
   return _authModule;
 }
 
@@ -41,7 +40,7 @@ function loadAuth() {
 // 支部层各角色（支书/副支书/三委员/组长/成员）导航行为不变。
 const PARTY_STAFF_HIDDEN_NAV = new Set(['dashboard', 'search', 'feedback', 'archive', 'messages']);
 
-// 页脚动作（帮助/关于/设置/登录/退出）共用一档：Caption 12px、紧凑 28px（2026-10-18 支书实报
+// 页脚动作（帮助/设置/登录/退出）共用一档：Caption 12px、紧凑 28px（2026-10-18 支书实报
 // 「间距太大」后由 36px 收紧）。样式单一源＝styles.css `.sidebar-footer-action`，此处不再写内联样式。
 
 function getNavItems() {
@@ -49,9 +48,8 @@ function getNavItems() {
   return [
     { module: 'dashboard', label: '首页', href: base + 'index.html', icon: icon('home', { extra: ' aria-hidden="true"' }) },
     { module: 'workspace', label: '工作台', icon: icon('calendar', { extra: ' aria-hidden="true"' }) },
-    // 「我的私信」（2026-10-03 批次 353 · 支书 `D-748`）：站内信收件箱（点对点私信聚合面）
-    // 2026-10-18：私信用信封（mail），把对话气泡（message）留给「意见反馈」——同一图标不再承担两种语义。
-    { module: 'messages', label: '我的私信', href: base + 'messages.html', icon: icon('mail', { extra: ' aria-hidden="true"' }) },
+    // 「消息」（2026-10-25 Task 3）：公告 / 系统通知 / 私信的唯一列表入口；未读角标走 countUnread。
+    { module: 'messages', label: '消息', href: base + 'messages.html', icon: icon('mail', { extra: ' aria-hidden="true"' }) },
     { module: 'search', label: '资料查询', href: base + 'search.html', icon: icon('search', { extra: ' aria-hidden="true"' }) },
     { module: 'feedback', label: '意见反馈', href: base + 'feedback.html', icon: icon('message', { extra: ' aria-hidden="true"' }) },
     { module: 'archive', label: '归档库', href: base + 'archive.html', icon: icon('archive', { extra: ' aria-hidden="true"' }) },
@@ -64,19 +62,16 @@ function getFooterItems() {
   const items = [
     { module: 'help', label: '帮助', href: base + 'help.html' },
   ];
-  // 「关于」仅在静态托管（GitHub Pages）显示——有后端（内部工具）无公开门面
-  // 依据 content/04_web_design/deploy/AUTHENTICATION_MODEL.md §三
-  if (DEPLOY_MODE === 'static') {
-    items.push({ module: 'about', label: '关于', href: base + 'about.html' });
-  }
+  // 「关于」撤路由（2026-10-27 Task 12.4）：about.html 文件保留（旧外链仍可直达），
+  // 但不再有任何导航入口——侧边栏/帮助目录/README 指针一并撤除。
   // 「设置」入口（设置中心批1，2026-09-09）：全形态可见——访客进设置页仅外观，登录人按角色分组
   items.push({ module: 'settings', label: '设置', href: base + 'settings.html' });
   return items;
 }
 
-// footer 图标按模块取（stroke 随 footer 弱化色；设置=齿轮）
+// footer 图标按模块取（stroke 随 footer 弱化色；设置=齿轮，档案=文档）
 function _footerIcon(module) {
-  const name = module === 'help' ? 'book' : module === 'settings' ? 'gear' : 'info';
+  const name = module === 'help' ? 'book' : module === 'settings' ? 'gear' : module === 'profile' ? 'fileText' : 'info';
   return icon(name, { stroke: 'var(--neutral-500)', extra: ' aria-hidden="true"' });
 }
 
@@ -129,13 +124,19 @@ export async function renderSidebar(activeModule, opts = {}) {
       <a href="${href}" class="module-tab ${item.module === activeModule ? 'active' : ''}" data-module="${item.module}"${item.module === activeModule ? ' aria-current="page"' : ''}>
         ${item.icon}
         <span class="font-title-cn">${item.label}</span>
+        ${item.module === 'messages' ? '<span id="sidebar-message-badge" class="text-xs text-white font-semibold rounded-full items-center justify-center" style="display:none;min-width:16px;height:16px;padding:0 4px;margin-left:auto;background:var(--party-red);"></span>' : ''}
       </a>
     `;
   }).join('');
 
   const footerItems = getFooterItems();
+  // 「我的档案」（2026-10-28）：顶栏同名入口在 ≤640 收起（styles.css 的 #header-my-profile），
+  // 390 下改由侧栏页脚承担；该类在桌面 display:none（避免与顶栏重复），≤640 才显示。
+  if (role && role !== 'party-staff') {
+    footerItems.unshift({ module: 'profile', label: '我的档案', href: getBasePath() + 'person.html', mobileOnly: true });
+  }
   const footerHTML = footerItems.map(item => `
-    <a href="${item.href}" data-module="${item.module}" class="sidebar-footer-action">
+    <a href="${item.href}" data-module="${item.module}" class="sidebar-footer-action${item.mobileOnly ? ' sidebar-footer-action--mobile-only' : ''}">
       ${_footerIcon(item.module)}
       <span>${item.label}</span>
     </a>
@@ -163,7 +164,43 @@ export async function renderSidebar(activeModule, opts = {}) {
     </div>
   `;
 
-  if (user) _bindLogout(sidebar);
+  if (user) {
+    _bindLogout(sidebar);
+    // 静态壳页（帮助等）不加载通知数据链，与顶栏铃铛同策略：app 页才挂未读角标。
+    if (!staticShell) _bindMessageBadge();
+  }
+}
+
+// ── 「消息」未读角标（Task 3 · 2026-10-25）───────────────────────────
+// 读数单一源 = NoticeStore.countUnread（与消息中心列表 / 顶栏铃铛同源）。
+let _badgeBound = false;
+
+async function _refreshMessageBadge() {
+  const badge = document.getElementById('sidebar-message-badge');
+  if (!badge) return;
+  try {
+    const { NoticeStore } = await import('../../services/governance/notice.js?v=20261102b');
+    const unread = NoticeStore.countUnread(readLoginSnapshot()?.personId || null);
+    if (unread > 0) {
+      badge.textContent = unread > 9 ? '9+' : String(unread);
+      badge.style.display = 'flex';
+      badge.setAttribute('aria-label', `${unread} 条未读消息`);
+    } else {
+      badge.style.display = 'none';
+      badge.removeAttribute('aria-label');
+    }
+  } catch (_) { /* 静态页未加载数据链：静默（无角标可渲染） */ }
+}
+
+async function _bindMessageBadge() {
+  await _refreshMessageBadge();
+  if (_badgeBound) return;
+  _badgeBound = true;
+  try {
+    const { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } = await import('../../data/data-adapter.js?v=20261102b');
+    document.addEventListener(DATA_CHANGED_EVENT, _refreshMessageBadge);
+    document.addEventListener(DATA_LOADED_EVENT, _refreshMessageBadge);
+  } catch (_) { /* 静默 */ }
 }
 
 // 外观控件（字号/主题三态/强调色）已迁往设置页外观区：

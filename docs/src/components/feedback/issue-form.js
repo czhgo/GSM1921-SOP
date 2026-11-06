@@ -1,10 +1,10 @@
 // role: [工程师]+[AI]
 // issue-form.js — 反馈新建表单
 
-import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261018h';
-import { showToast } from '../../core/base/utils.js?v=20261018h';
-import { icon } from '../../core/base/icons.js?v=20261018h';
-import { badgeHtml } from '../ui/badges.js?v=20261018h';
+import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261102b';
+import { showToast } from '../../core/base/utils.js?v=20261102b';
+import { icon } from '../../core/base/icons.js?v=20261102b';
+import { badgeHtml } from '../ui/badges.js?v=20261102b';
 
 const SCOPE_OPTIONS = [
   { value: 'permanent', label: '底层架构' },
@@ -13,11 +13,12 @@ const SCOPE_OPTIONS = [
   { value: 'scenario', label: '特定场景' },
 ];
 
+// 固定语义 badge 变体（不随主题）
 const TYPE_OPTIONS = [
-  { value: 'bug', label: '缺陷', color: '#CE1126', darkColor: '#F87171' },
-  { value: 'enhancement', label: '增强', color: '#A16207', darkColor: '#FBBF24' },
-  { value: 'proposal', label: '提案', color: '#2563EB', darkColor: '#60A5FA' },
-  { value: 'question', label: '疑问', color: '#6B7280', darkColor: '#94A3B8' },
+  { value: 'bug', label: '缺陷', badge: 'danger' },
+  { value: 'enhancement', label: '增强', badge: 'warning' },
+  { value: 'proposal', label: '提案', badge: 'info' },
+  { value: 'question', label: '疑问', badge: 'neutral' },
 ];
 
 /** 渲染新建反馈表单（默认匿名；服务端受保护记录保留身份，mock 浏览器存储不留身份） */
@@ -27,7 +28,7 @@ export function renderIssueForm() {
 
   container.innerHTML = `
     <div class="mb-4">
-      <a href="./feedback.html" class="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
+      <a href="./feedback.html" class="text-xs text-accent flex items-center gap-1">
         ${icon('chevronLeft', { className: 'w-3 h-3' })} 返回列表
       </a>
     </div>
@@ -38,12 +39,12 @@ export function renderIssueForm() {
       <div class="space-y-4">
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">标题 <span class="text-red-600">*</span></label>
-          <input type="text" id="form-title" class="input-flat w-full font-sans" placeholder="一句话说清反馈的核心">
+          <input type="text" id="form-title" class="input-flat w-full font-sans" placeholder="如：报名名单与实际不符">
         </div>
 
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">正文 <span class="text-red-600">*</span></label>
-          <textarea id="form-body" rows="6" class="input-flat w-full font-sans" placeholder="详细描述：背景/痛点/期望/参考资料"></textarea>
+          <textarea id="form-body" rows="6" class="input-flat w-full font-sans" placeholder="如：活动名称 + 时间 + 具体情况"></textarea>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -60,7 +61,7 @@ export function renderIssueForm() {
               ${TYPE_OPTIONS.map(t => `
                 <label class="flex items-center gap-2 text-xs cursor-pointer font-sans">
                   <input type="checkbox" name="form-type" value="${t.value}" class="rounded">
-                  <span class="badge" style="background:${t.color}15;color:color-mix(in srgb, ${t.color} 60%, #000);--acc-bg-dark:${t.darkColor}24;--acc-text-dark:${t.darkColor}">${t.label}</span>
+                  <span class="badge badge--${t.badge}">${t.label}</span>
                 </label>
               `).join('')}
             </div>
@@ -82,8 +83,8 @@ export function renderIssueForm() {
             匿名提交
           </label>
           <div class="flex gap-2">
-            <a href="./feedback.html" class="px-4 py-2 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 font-sans">取消</a>
-            <button id="btn-submit-issue" class="btn-accent text-sm px-4 py-[7px] font-sans">提交反馈</button>
+            <a href="./feedback.html" class="px-4 py-2 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-surface-hover font-sans">取消</a>
+            <button id="btn-submit-issue" class="btn-accent text-sm px-4 py-1.5 font-sans">提交反馈</button>
           </div>
         </div>
       </div>

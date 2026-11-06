@@ -3,32 +3,38 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState, getAppState } from '../../../core/base/state.js?v=20261018h';
-import { BranchService } from '../../../services/core/runtime.js?v=20261018h';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/activity/decision-tree.js?v=20261018h';
+import { setState, getAppState } from '../../../core/base/state.js?v=20261102b';
+import { BranchService } from '../../../services/core/runtime.js?v=20261102b';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/activity/decision-tree.js?v=20261102b';
 // 党小组常态清单唯一来源（活组、按 seq 升序）——承办党小组选项不再写死
-import { groupOptions, loadPartyGroups } from '../../../services/member/party-group.js?v=20261018h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018h';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261018h';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain/domain.js?v=20261018h';
-import { persist } from '../../../data/data-adapter.js?v=20261018h';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018h';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261018h';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20261018h';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch/branch.js?v=20261018h';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261018h';
+import { groupOptions, loadPartyGroups } from '../../../services/member/party-group.js?v=20261102b';
+// 2026-10-21 批次 499：跨党小组深参/组织者需按成员所属组判定（组织者一般本组，跨组深参由组织委员协调）
+import { PersonStore } from '../../../services/member/person.js?v=20261102b';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261102b';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261102b';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain/domain.js?v=20261102b';
+import { persist } from '../../../data/data-adapter.js?v=20261102b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261102b';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261102b';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20261102b';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch/branch.js?v=20261102b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261102b';
 // 活动生命周期展示态单一源（草稿/已发布/进行中/待归档/已执行/已归档/已取消）——勿在本文件另造中文标签
-import { activityLifecycleBadgeHtml } from '../../../components/record/inspector.js?v=20261018h';
-import { showToast, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261018h';
+import { activityLifecycleBadgeHtml } from '../../../components/record/inspector.js?v=20261102b';
+import { showToast, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261102b';
 // 组织者的发布口（2026-09-19 批次 91 · SOP-B-17）：本人被指定为该场组织者时，本台即可发布本组通知
-import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity/activity.js?v=20261018h';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261018h';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261018h';
-import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/domain/constants.js?v=20261018h';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20261018h';
-import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261018h';
+import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity/activity.js?v=20261102b';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261102b';
+import { renderDisclosure } from '../../../components/ui/disclosure.js?v=20261102b';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261102b';
+import { DEFAULT_BRANCH_ID, solidAccentStyle, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType, ACTIVITY_SCOPES, RECRUITMENT_SCOPES } from '../../../core/domain/constants.js?v=20261102b';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20261102b';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261102b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261018h';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261102b';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261102b';
+// U-35：「我的任务」承载面（按项目身份派给组长的 SOP 任务；数据与写口复用 services/activity/activity.js）
+import { myTasksSectionHtml, bindMyTasksSection } from './my-tasks-section.js?v=20261102b';
 
 /**
  * 活动角色可编辑性（dogfood 权限专项 2026-09-13）
@@ -52,7 +58,8 @@ let _dtDeepPicker = null;     // 决策树表单：深度参与者多选
 let _detailOrgPicker = null;   // 活动详情：组织者多选（预填现有 assignments）
 let _detailDeepPicker = null;  // 活动详情：深度参与者多选
 let _dtActivities = [];        // C② 默认预选数据源：最近一次渲染的组长可见活动（ctx.filteredActivities）
-let _dtAdvOpen = false;        // C② 高级设置折叠区展开态（跨面板重建保态，便于连续选择）
+// 2026-10-25 Task 3：高级设置折叠区不再有 `_dtAdvOpen` 模块态——展开态由 `<details open>` 承载，
+//   面板重建前从 DOM 回读（见 `_refreshDtArea`），折叠语义单一源。
 
 // E-2 活动写入步骤草稿（2026-09-09 乙部评议待办）：
 // 步骤（L1-L4/承办党小组）重选或重进时会重建决策面板与输入框/角色 PersonPicker，
@@ -60,7 +67,7 @@ let _dtAdvOpen = false;        // C② 高级设置折叠区展开态（跨面�
 // 此处以模块级轻量草稿兜底：输入/选人即写入 dtDraft，重建面板时回填；
 // C6（2026-09-12）起草稿落 localStorage 跨整页刷新保留 + beforeunload 提醒；
 // 仅「写入成功」或表单内「取消」（dt.reset 重置会话）时清空。
-const dtDraft = { date: '', location: '', title: '', desc: '', orgIds: null, deepIds: null, signupEnabled: false, requireMakeup: false, isOutdoor: false, deepWork: {} };
+const dtDraft = { date: '', location: '', title: '', desc: '', orgIds: null, deepIds: null, signupEnabled: false, requireMakeup: false, isOutdoor: false, deepWork: {}, organizerExceptionReason: '' };
 
 // C6（2026-09-12）跨整页刷新草稿保护：dtDraft 同步落 localStorage，F5/误关闭后可恢复；
 // 存在未提交内容时 beforeunload 二次确认，避免「填了一半刷新即丢光且无提醒」。
@@ -99,6 +106,7 @@ function _dtDraftClear() {
   dtDraft.requireMakeup = false;
   dtDraft.isOutdoor = false;
   dtDraft.deepWork = {};
+  dtDraft.organizerExceptionReason = '';
   try { localStorage.removeItem(DT_DRAFT_KEY); } catch (e) { /* 忽略 */ }
 }
 
@@ -153,11 +161,10 @@ export function renderContent(ctx) {
   if (!container) return;
 
   const { accent, accentRgba, accentBorder } = ctx;
-  const _accVars = accDarkVars(accent);
   const _dtSelDark = accDarkParts(accent);
   const _dtBtnStyle = (selected) => selected
-    ? `--acc-bg-dark:${_dtSelDark.bg};--acc-text-dark:${_dtSelDark.text};--acc-border-dark:${_dtSelDark.border};background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1.5px solid ${accentBorder};`
-    : `--acc-bg-dark:#1E293B;--acc-text-dark:#CBD5E1;--acc-border-dark:#334155;background:white;color:#6B7280;border:1.5px solid #E5E7EB;`;
+    ? `background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);border:1.5px solid var(--app-accent-soft-border);`
+    : `background:white;color:#6B7280;border:1.5px solid #E5E7EB;`;
 
   const activities = ctx.filteredActivities || [];
   _dtActivities = activities; // C② 默认预选数据源（本人既有同类活动）
@@ -176,21 +183,23 @@ export function renderContent(ctx) {
   const _lifecycleBadge = (a) => activityLifecycleBadgeHtml(a, getAppState()?.tasks || []);
   const panelVisible = dt.showPanel;
   container.innerHTML = `
+    ${renderTabHeader({ title: '本组活动', description: '创建本组活动并登记责任 / 产出；支部级活动只读。' })}
+    ${myTasksSectionHtml(_me?.personId || '')}
     <div class="card rounded-xl p-5">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">本组活动</h3>
-        <button class="btn-md" id="btn-leader-create" style="${_accVars}background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1px solid ${accentBorder};">${panelVisible ? '收起面板' : '创建活动'}</button>
-      </div>
-      <div class="text-xs text-gray-500 mb-3">创建本组活动并登记责任 / 产出；本组创建 / 承办的活动可写入，支部级（定向）活动只读。</div>
+      ${renderCardHeader({
+        title: '活动清单',
+        meta: '本组创建 / 承办可写入 · 支部级只读',
+        actions: `<button class="btn-md" id="btn-leader-create" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);border:1px solid var(--app-accent-soft-border);">${panelVisible ? '收起面板' : '创建活动'}</button>`,
+      })}
       <div id="dt-panel-wrap" class="${panelVisible ? '' : 'hidden'}">
         ${_renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyle, _dtSelDark })}
       </div>
       <div class="mt-4 pt-3 border-t border-gray-100">
         <div id="leader-activity-lists">
-          <div class="flex items-center justify-between mb-2"><h4 class="font-title-cn text-base font-semibold text-gray-800">本组创建 / 承办</h4><span class="text-xs text-gray-500">可写入 · ${writableActs.length} 条</span></div>
+          <div class="flex items-center justify-between mb-2"><h3 class="font-title-cn text-sm font-bold text-gray-700">本组创建 / 承办</h3><span class="text-xs text-gray-500">可写入 · ${writableActs.length} 条</span></div>
           <div class="space-y-2" id="leader-activity-list"></div>
           <div class="mt-4 pt-3 border-t border-dashed border-gray-100">
-            <div class="flex items-center justify-between mb-2"><h4 class="font-title-cn text-base font-semibold text-gray-800">可见活动（只读）</h4><span class="text-xs text-gray-500">支部级 / 定向下发 · ${readonlyActs.length} 条</span></div>
+            <div class="flex items-center justify-between mb-2"><h3 class="font-title-cn text-sm font-bold text-gray-700">可见活动（只读）</h3><span class="text-xs text-gray-500">支部级 / 定向下发 · ${readonlyActs.length} 条</span></div>
             <div class="space-y-2" id="leader-activity-readonly-list"></div>
           </div>
         </div>
@@ -198,17 +207,20 @@ export function renderContent(ctx) {
       </div>
     </div>
   `;
+  // U-35：「我的任务」勾掉（写口在服务层复算「只认本人担的那步」；完成后整页重渲染）
+  bindMyTasksSection(container, _me?.personId || '', { onChange: () => renderContent(ctx) });
   // 统一检索引擎（活动列表：关键词 名称/地点 + 分面 月份/类别/类型/状态；行数 ≤8 时自动不渲染检索条）
   // 2026-10-18 脏专项 Top 4：列表按「本组创建/承办（可写）」与「可见活动（只读）」分组，
   // 支部级（top-down）活动不再混进写入列表；两组共用同一行模板与同一事件委托宿主。
+  // 2026-10-19 恢复半透明主题底体例：发布本组通知＝高频推进动作。
   const _actRowHtml = (a) => `
-              <div class="leader-act-item flex items-center justify-between p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" role="button" tabindex="0" aria-label="展开 ${escHtml(a.title || '未命名')} 详情与子记录" data-act-id="${a.id}">
+              <div class="leader-act-item flex items-center justify-between p-3 rounded-xl bg-white hover:bg-[var(--surface-hover)] transition-colors cursor-pointer focus-ring" role="button" tabindex="0" data-nested-actions="true" aria-label="展开 ${escHtml(a.title || '未命名')} 详情与子记录" data-act-id="${a.id}">
                 <div class="flex-1 min-w-0">
                   <div class="text-sm font-medium text-gray-800">${escHtml(a.title || '未命名')}</div>
                   <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
                   ${_outdoorChecklistDetailsHtml(a)}
                 </div>
-                ${isActivityOrganizer(AuthStore.getCurrentUser()?.personId, a.id) ? `<button type="button" class="btn-outline leader-group-notice-btn text-xs px-3 py-1.5 font-medium flex-shrink-0 mr-2" data-act-id="${a.id}" style="cursor:pointer;">发布本组通知</button>` : ''}
+                ${isActivityOrganizer(AuthStore.getCurrentUser()?.personId, a.id) ? `<button type="button" class="btn-accent-soft leader-group-notice-btn text-xs px-3 py-1.5 font-medium flex-shrink-0 mr-2" data-act-id="${a.id}" style="cursor:pointer;">发布本组通知</button>` : ''}
                 ${_lifecycleBadge(a)}
               </div>`;
   const _renderActList = (hostId, rows, stateKey, emptyMessage) => renderFilteredList(container.querySelector(hostId), {
@@ -263,6 +275,10 @@ export function renderContent(ctx) {
         const effectiveReadOnly = readOnly || !roleEditable;
         const cellOf = (item, key) => {
           if (key === 'time') return (item.recordedAt || '').slice(0, 16).replace('T', ' ') || '-';
+          // R7-04：历史宣传记录 author 为空 ⇒ 按既有 recordedBy 回填展示（不留无解释的空格）
+          if (key === 'author' && type === 'publicity' && !String(item.author || '').trim()) {
+            return item.recordedBy ? escHtml(PersonStore.getName(item.recordedBy)) : '-';
+          }
           // SOP-B-38：宣传初稿的状态位（标签单一源 = services/activity/activity.js；缺省即「初稿」）；
           // 被退回的带上宣传委员写的那句退回说明（留痕，供撰写人看见）
           if (key === 'draftStatus') {
@@ -279,7 +295,7 @@ export function renderContent(ctx) {
             <div class="flex items-center justify-between gap-2 mb-1.5">
               <h5 class="text-xs font-bold font-title-cn" style="color:${cfg.color}">${cfg.label} (${items.length})</h5>
               ${effectiveReadOnly
-                ? `<span class="text-[11px] text-amber-700 text-right">${type === 'attendance' ? '考勤请到「考勤管理」录入' : type === 'inspection' ? '考察请到「考察管理」录入' : '支部级（定向）活动由支书侧维护，本页只读'}</span>`
+                ? `<span class="text-xs text-amber-700 text-right">${type === 'attendance' ? '考勤请到「考勤管理」录入' : type === 'inspection' ? '考察请到「考察管理」录入' : '支部级（定向）活动由支书侧维护，本页只读'}</span>`
                 : `<button class="btn-outline act-sub-add-btn text-xs px-3 py-1.5" style="color:${cfg.color};border-color:${cfg.color}40" data-type="${type}">+ 添加</button>`}
             </div>
             <div class="act-sub-table-host"></div>
@@ -291,7 +307,8 @@ export function renderContent(ctx) {
           countUnit: '条',
           emptyMessage: '暂无记录',
           table: {
-            headHtml: `<tr>${cfg.fields.map(f => `<th>${f.label}</th>`).join('')}${effectiveReadOnly ? '' : '<th class="w-12"></th>'}</tr>`,
+            responsive: true,
+            headHtml: `<tr>${cfg.fields.map(f => `<th>${f.label}</th>`).join('')}${effectiveReadOnly ? '' : '<th class="w-12">操作</th>'}</tr>`,
             colSpan: cfg.fields.length + (effectiveReadOnly ? 0 : 1),
           },
           rowHtml: (item) => {
@@ -302,8 +319,8 @@ export function renderContent(ctx) {
               : '';
             return `
               <tr>
-                ${cfg.fields.map(f => `<td class="text-gray-700">${cellOf(item, f.key)}</td>`).join('')}
-                ${effectiveReadOnly ? '' : `<td class="text-center whitespace-nowrap">${draftBtn}<button class="btn-ghost act-sub-del-btn text-xs" data-type="${type}" data-idx="${idx}">删除</button></td>`}
+                ${cfg.fields.map(f => `<td data-label="${f.label}" class="text-gray-700">${cellOf(item, f.key)}</td>`).join('')}
+                ${effectiveReadOnly ? '' : `<td data-label="操作" class="text-center whitespace-nowrap">${draftBtn}<button class="btn-outline btn-sm act-sub-del-btn" data-type="${type}" data-idx="${idx}">删除</button></td>`}
               </tr>
             `;
           },
@@ -314,9 +331,9 @@ export function renderContent(ctx) {
       detailPanel.innerHTML = `
         <div class="flex items-center justify-between gap-2 mb-3">
           <div class="flex items-center gap-2 min-w-0">
-            <h5 class="font-title-cn text-sm font-bold text-gray-700 truncate">${activity.title || '未命名'}</h5>${roleEditable ? '' : '<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 flex-shrink-0">支部级 · 只读</span>'}
+            <h5 class="font-title-cn text-sm font-bold text-gray-700 truncate">${activity.title || '未命名'}</h5>${roleEditable ? '' : '<span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 flex-shrink-0">支部级 · 只读</span>'}
           </div>
-          <button id="btn-close-act-detail" class="btn-ghost text-xs">收起</button>
+          <button id="btn-close-act-detail" class="btn-outline btn-sm">收起</button>
         </div>
         <div class="text-xs text-gray-500 mb-2">${activity.date || ''} ${activity.type ? '· ' + activity.type : ''}</div>
         <!-- T-190 活动角色内联编辑：主源 assignments 预填，保存走 syncProjectRoles 三合一 -->
@@ -461,14 +478,20 @@ export function renderContent(ctx) {
 
           // T-224 §5.5：投递去向由产出类型派生（系统内置），组织者只见「提交」不见「发送对象」
           const route = type === 'publicity' ? deriveOutputRoute(OutputType.PUBLICITY) : null;
-          const routeHint = route ? `<div class="text-[11px] text-gray-500 mb-2">提交后自动投递：${route.route} → ${route.sink}</div>` : '';
+          const routeHint = route ? `<div class="text-xs text-gray-500 mb-2">提交后自动投递：${route.route} → ${route.sink}</div>` : '';
 
           const formHtml = recordFormShell({
             title: `添加${type === 'publicity' ? '宣传' : '材料'}记录`,
             accent,
             accentBorder,
             body: `${routeHint}
-              ${fields.map(([key, label]) => `<input class="f-${key} input-flat w-full mb-2" placeholder="${label}${key === 'title' || key === 'name' ? '（必填）' : '（选填）'}">`).join('')}`,
+              ${fields.map(([key, label]) => {
+                // R7-04：宣传撰写人默认当前登录人且必填（退回说明有明确收件人）；仍可代填。
+                const isPublicityAuthor = type === 'publicity' && key === 'author';
+                const required = key === 'title' || key === 'name' || isPublicityAuthor;
+                const prefill = isPublicityAuthor ? (PersonStore.getById(currentUserId())?.name || '') : '';
+                return `<input class="f-${key} input-flat w-full mb-2" placeholder="${label}${required ? '（必填）' : '（选填）'}" value="${escHtml(prefill)}">`;
+              }).join('')}`,
           });
 
           panelEl.insertAdjacentHTML('beforeend', formHtml);
@@ -482,9 +505,16 @@ export function renderContent(ctx) {
             const requiredKey = type === 'publicity' ? 'title' : 'name';
             const requiredVal = form.querySelector(`.f-${requiredKey}`).value.trim();
             if (!requiredVal) { showToast('error', `请填写${type === 'publicity' ? '宣传标题' : '材料名称'}`); return; }
+            // R7-04：宣传撰写人必填（默认已填当前登录人）
+            if (type === 'publicity' && !form.querySelector('.f-author').value.trim()) {
+              showToast('error', '请填写撰写人'); return;
+            }
             const entry = {};
             fields.forEach(([key]) => { entry[key] = form.querySelector(`.f-${key}`).value.trim(); });
-            entry.recordedBy = AuthStore.getCurrentUser()?.personId || 'u_exec';
+            // R2-12：留痕必须是当前登录人；会话失效时拒绝写入，不再回落到伪用户 u_exec。
+            const recordedBy = currentUserId();
+            if (!recordedBy) { showToast('error', '登录状态已失效，请重新登录后再添加'); return; }
+            entry.recordedBy = recordedBy;
             entry.recordedAt = new Date().toISOString();
             actSubs[type].push(entry);
             showToast('success', '已添加');
@@ -597,7 +627,7 @@ function _dtSummaryLine() {
   return parts.join(' · ');
 }
 
-function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyle, _dtSelDark }) {
+function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyle, _dtSelDark, advOpen = false }) {
   const { L1, L2, L3, L4, hostGroup } = dt.selections;
 
   // 当前进行到第几步（S6 修复：原代码引用未定义变量 step 导致面板渲染崩溃）
@@ -616,8 +646,8 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
         return `
           ${i > 0 ? `<div class="flex-1 h-0.5 rounded" style="--acc-dot-dark:${lineColor === accent ? _dtSelDark.text : '#475569'};background:${lineColor};"></div>` : ''}
           <div class="flex items-center gap-1.5 flex-shrink-0">
-            <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold" style="--acc-bg-dark:${isDone || isActive ? _dtSelDark.bg : '#1E293B'};--acc-text-dark:${isDone || isActive ? _dtSelDark.text : '#94A3B8'};--acc-border-dark:${isDone || isActive ? _dtSelDark.border : '#475569'};background:${isDone || isActive ? accentRgba : 'var(--neutral-100)'};color:color-mix(in srgb, ${dotColor} 60%, #000);border:1.5px solid ${dotColor};">${isDone ? '&#10003;' : i + 1}</div>
-            <span class="text-xs ${isActive ? 'font-bold' : ''}" style="--acc-text-dark:${dotColor === accent ? _dtSelDark.text : '#CBD5E1'};color:color-mix(in srgb, ${dotColor} 60%, #000);">${s}</span>
+            <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold" style="${isDone || isActive ? 'background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);border:1.5px solid var(--app-accent-soft-border);' : 'background:var(--neutral-100);color:var(--neutral-600);border:1.5px solid var(--neutral-200);'}">${isDone ? '&#10003;' : i + 1}</div>
+            <span class="text-xs ${isActive ? 'font-bold' : ''}" style="${dotColor === accent ? 'color:var(--app-accent-soft-text);' : 'color:var(--neutral-600);'}">${s}</span>
           </div>
         `;
       }).join('')}
@@ -637,7 +667,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L1.map(opt => {
           const selected = L1 === opt.value;
-          return `<button class="btn-ghost dt-l1-btn px-4 py-1.5 text-sm font-medium" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
+          return `<button class="btn-outline dt-l1-btn px-4 py-1.5 text-sm font-medium" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
         }).join('')}
       </div>
     </div>
@@ -650,7 +680,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
       <div class="flex flex-wrap gap-2">
         ${hostGroups.map(g => {
           const selected = hostGroup === g;
-          return `<button class="btn-ghost dt-host-btn px-4 py-1.5 text-sm font-medium" data-value="${g}" style="${_dtBtnStyle(selected)}cursor:pointer;">${g}</button>`;
+          return `<button class="btn-outline dt-host-btn px-4 py-1.5 text-sm font-medium" data-value="${g}" style="${_dtBtnStyle(selected)}cursor:pointer;">${g}</button>`;
         }).join('')}
       </div>
     </div>
@@ -664,7 +694,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
       <div class="flex flex-wrap gap-2">
         ${l2Options.map(opt => {
           const selected = L2 === opt.value;
-          return `<button class="btn-ghost dt-l2-btn px-4 py-1.5 text-sm font-medium" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
+          return `<button class="btn-outline dt-l2-btn px-4 py-1.5 text-sm font-medium" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
         }).join('')}
       </div>
     </div>
@@ -677,7 +707,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L3.map(opt => {
           const selected = L3 === opt.value;
-          return `<button class="btn-ghost dt-l3-btn px-4 py-1.5 text-sm font-medium" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
+          return `<button class="btn-outline dt-l3-btn px-4 py-1.5 text-sm font-medium" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
         }).join('')}
       </div>
     </div>
@@ -690,22 +720,26 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L4.map(opt => {
           const selected = L4 === opt.value;
-          return `<button class="btn-ghost dt-l4-btn px-4 py-1.5 text-sm font-medium" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
+          return `<button class="btn-outline dt-l4-btn px-4 py-1.5 text-sm font-medium" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
         }).join('')}
       </div>
     </div>
   ` : '';
 
   // 高级设置折叠区（默认收起）：L1–L4/承办党小组能力与「全选齐」校验保持不变，
-  // 展开后与原行为一致（步骤指示器 + 各层选择按钮）。展开态跨面板重建保态（_dtAdvOpen）。
+  // 展开后与原行为一致（步骤指示器 + 各层选择按钮）。2026-10-25 Task 3：改原生 details——
+  // 标题在 summary 外（兄弟 H4），展开态由 `open` 回读，不再手写 `▾/▴` 与 `.hidden`。
   const advBodyHtml = `${stepperHtml}${l1Html}${hostGroupHtml}${l2Html}${l3Html}${l4Html}`;
   const advHtml = `
     <div class="mb-4">
-      <div id="dt-adv-toggle" class="text-xs text-gray-500 cursor-pointer hover:text-gray-600 select-none flex items-center gap-1">
-        <span id="dt-adv-caret">${_dtAdvOpen ? '▴' : '▾'}</span>
-        <span>高级设置（可选）：活动类型 / 活动形式 / 时长 / 发起方向 / 承办党小组</span>
-      </div>
-      <div id="dt-adv-body" class="mt-3 ${_dtAdvOpen ? '' : 'hidden'}">${advBodyHtml}</div>
+      ${renderDisclosure({
+        id: 'dt-adv',
+        title: '高级设置（可选）',
+        meta: '活动类型 / 活动形式 / 时长 / 发起方向 / 承办党小组',
+        open: !!advOpen,
+        level: 4,
+        bodyHtml: `${advBodyHtml}`,
+      })}
     </div>
   `;
 
@@ -764,10 +798,17 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
           <div>
             <div class="text-[12px] text-gray-500 mb-1">组织者（默认组长本人，可改）</div>
             <div id="dt-org-picker"></div>
+            <!-- 2026-10-21 批次 499：组织者一般本组；他组同志须留说明（软提示，不阻断） -->
+            <p id="dt-org-cross-hint" class="text-xs text-amber-700 mt-1 hidden">组织者一般由本党小组承担；已选他组同志，请填写说明。</p>
+            <div id="dt-org-exception-slot" class="mt-1 hidden">
+              <input type="text" id="dt-org-exception" class="input-flat w-full text-xs" placeholder="组织者跨组说明（将随活动留存）" value="${escHtml(dtDraft.organizerExceptionReason || '')}">
+            </div>
           </div>
           <div>
             <div class="text-[12px] text-gray-500 mb-1">深度参与者 <span class="text-gray-500">（选填）</span></div>
             <div id="dt-deep-picker"></div>
+            <!-- 2026-10-21 批次 499：跨党小组深参须由组织委员协调，提交时自动标记跨组招募 -->
+            <p id="dt-deep-cross-hint" class="text-xs text-amber-700 mt-1 hidden"></p>
           </div>
         </div>
         ${renderWorkgroupPermissionEditor('activity-create')}
@@ -784,8 +825,8 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
       </div>
 
       <div class="flex items-center justify-end gap-3">
-        <button id="dt-cancel" type="button" class="btn-outline text-sm px-4 py-[7px]" style="cursor:pointer;">取消</button>
-        <button id="dt-submit" type="button" class="btn-accent text-sm px-4 py-[7px]" style="cursor:pointer">写入活动</button>
+        <button id="dt-cancel" type="button" class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
+        <button id="dt-submit" type="button" class="btn-accent text-sm px-4 py-1.5" style="cursor:pointer">写入活动</button>
       </div>
     </div>
   ` : '';
@@ -817,7 +858,7 @@ function _dtDeepWorkHtml() {
   return `
       <div class="mb-4 rounded-lg border border-gray-100 bg-gray-50/60 p-3">
         <div class="text-xs text-gray-500 mb-1.5 font-medium">深度参与者分工：逐项选择是否在系统内完成</div>
-        <p class="text-[11px] text-gray-500 mb-2 leading-5">系统内可承载的（如宣传文稿），由深度参与者在网页上完成、产出由系统在后台同步；系统无法承载的走线下（微信等）完成、<b>由组织者确认完成</b>。<b>不勾＝去线下做</b>。</p>
+        <p class="text-xs text-gray-500 mb-2 leading-5">系统内可承载的（如宣传文稿），由深度参与者在网页上完成、产出由系统在后台同步；系统无法承载的走线下（微信等）完成、<b>由组织者确认完成</b>。<b>不勾＝去线下做</b>。</p>
         ${items.map(t => `
         <label class="flex items-start gap-2 cursor-pointer select-none py-1">
           <input type="checkbox" data-deep-work="${escHtml(t.taskId)}" class="mt-0.5 accent-red-600" style="cursor:pointer;" ${dtDraft.deepWork && dtDraft.deepWork[t.taskId] === false ? '' : 'checked'}>
@@ -837,15 +878,12 @@ function _openOutdoorChecklistModal(activityTitle) {
     title: '外出提醒清单',
     width: '460px',
     accentColor: '#CE1126',
-    // 2026-09-21 批次 139：每台浮窗页脚一条「相关设置」深链（组长台 → 组长职责参数）
-    settingsLink: { href: './settings.html#domain-leader', text: '组长职责参数（学期组员进展自动归集提醒）→ 设置' },
     bodyHtml: `
       <div class="text-xs text-gray-500 mb-3 leading-5">活动「${escHtml(activityTitle || '未命名')}」已写入。以下是<b>外出活动</b>的提醒清单（已收起在该活动行下方，随时可展开）：</div>
       <ul class="list-disc pl-5 text-sm text-gray-700 space-y-0.5">${items}</ul>
-      <div class="mt-3 text-[11px] text-gray-500 leading-5">该清单是<b>提醒</b>——不是必填项，也不作系统校验；写不写、什么时候做，由组织者按现场情况把握。</div>
-      <div class="flex justify-end mt-4">
-        <button type="button" id="outdoor-checklist-ok" class="btn-accent text-sm px-4 py-[7px]">知道了</button>
-      </div>`,
+      <div class="mt-3 text-xs text-gray-500 leading-5">该清单是<b>提醒</b>——不是必填项，也不作系统校验；写不写、什么时候做，由组织者按现场情况把握。</div>`,
+    footerHtml: `
+      <button type="button" id="outdoor-checklist-ok" class="btn-accent text-sm px-4 py-1.5 font-medium">知道了</button>`,
     onMount: (root) => {
       root.querySelector('#outdoor-checklist-ok')?.addEventListener('click', () => closeModal('leader-outdoor-checklist'));
     },
@@ -857,9 +895,9 @@ function _outdoorChecklistDetailsHtml(a) {
   if (!isOutdoorActivity(a)) return '';
   return `
     <details class="leader-outdoor-check mt-1">
-      <summary class="text-[11px] text-gray-500 cursor-pointer select-none">外出提醒清单（${OUTDOOR_CHECKLIST.length} 项）</summary>
-      <ul class="mt-1 pl-4 list-disc text-[11px] text-gray-500 leading-5">${OUTDOOR_CHECKLIST.map(x => `<li>${escHtml(x)}</li>`).join('')}</ul>
-      <div class="mt-0.5 text-[11px] text-gray-400">提醒，非必填、不校验</div>
+      <summary class="text-xs text-gray-500 cursor-pointer select-none">外出提醒清单（${OUTDOOR_CHECKLIST.length} 项）</summary>
+      <ul class="mt-1 pl-4 list-disc text-xs text-gray-500 leading-5">${OUTDOOR_CHECKLIST.map(x => `<li>${escHtml(x)}</li>`).join('')}</ul>
+      <div class="mt-0.5 text-xs text-gray-500">提醒，非必填、不校验</div>
     </details>`;
 }
 
@@ -893,9 +931,10 @@ function _bindDecisionTreeEvents(container, ctx) {
     const wrap = container.querySelector('#dt-panel-wrap');
     if (!wrap) return;
     _dtDraftCapture(wrap); // 兜底：把 DOM 中已填值先落草稿再重建
+    const advOpen = !!wrap.querySelector('#dt-adv')?.open; // 折叠态从 DOM 回读（不再有模块级 _dtAdvOpen）
     if (_dtOrgPicker) { _dtOrgPicker.destroy(); _dtOrgPicker = null; }
     if (_dtDeepPicker) { _dtDeepPicker.destroy(); _dtDeepPicker = null; }
-    wrap.innerHTML = _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyle, _dtSelDark });
+    wrap.innerHTML = _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyle, _dtSelDark, advOpen });
     _dtBindPanelArea(container, ctx, _refreshDtArea);
     wrap.classList.toggle('hidden', !dt.showPanel);
     const btn = container.querySelector('#btn-leader-create');
@@ -917,14 +956,7 @@ function _dtBindPanelArea(container, ctx, refresh) {
   if (_dtOrgPicker) { _dtOrgPicker.destroy(); _dtOrgPicker = null; }
   if (_dtDeepPicker) { _dtDeepPicker.destroy(); _dtDeepPicker = null; }
 
-  // 高级设置折叠区（默认收起；展开态跨面板重建保态 _dtAdvOpen，便于连续选择各层）
-  wrap.querySelector('#dt-adv-toggle')?.addEventListener('click', () => {
-    _dtAdvOpen = !_dtAdvOpen;
-    const body = wrap.querySelector('#dt-adv-body');
-    const caret = wrap.querySelector('#dt-adv-caret');
-    if (body) body.classList.toggle('hidden', !_dtAdvOpen);
-    if (caret) caret.textContent = _dtAdvOpen ? '▴' : '▾';
-  });
+  // 高级设置折叠区（原生 details）：开合由浏览器承担，面板重建前的展开态在 `_refreshDtArea` 里回读。
 
   // 表单输入即存草稿（E-2）：步骤重选/重进重建面板时按草稿回填，不丢已填内容
   const draftFieldMap = { '#dt-target-date': 'date', '#dt-location': 'location', '#dt-title': 'title', '#dt-desc': 'desc' };
@@ -954,13 +986,31 @@ function _dtBindPanelArea(container, ctx, refresh) {
   const currentLeaderId = getCurrentLeaderId();
   const dtOrgEl = wrap.querySelector('#dt-org-picker');
   const dtDeepEl = wrap.querySelector('#dt-deep-picker');
+  // 2026-10-21 批次 499：跨组组织者 / 跨组深参的就地提示（提交时落 recruitmentScope 与说明）
+  const syncLeaderCrossGroupHints = () => {
+    const groupName = currentLeaderGroup();
+    const groupOfPerson = (id) => PersonStore.getById(id)?.partyGroup || '';
+    const orgIds = _dtOrgPicker ? _dtOrgPicker.getSelected() : [];
+    const deepIds = _dtDeepPicker ? _dtDeepPicker.getSelected() : [];
+    const crossOrgs = orgIds.filter((id) => groupOfPerson(id) && groupOfPerson(id) !== groupName);
+    const crossDeep = deepIds.filter((id) => groupOfPerson(id) && groupOfPerson(id) !== groupName);
+    wrap.querySelector('#dt-org-cross-hint')?.classList.toggle('hidden', crossOrgs.length === 0);
+    wrap.querySelector('#dt-org-exception-slot')?.classList.toggle('hidden', crossOrgs.length === 0);
+    const hint = wrap.querySelector('#dt-deep-cross-hint');
+    if (hint) {
+      hint.classList.toggle('hidden', crossDeep.length === 0);
+      hint.textContent = crossDeep.length
+        ? `跨党小组深参 ${crossDeep.map((id) => PersonStore.getById(id)?.name || id).join('、')}：提交后自动标记跨组招募，由组织委员协调。`
+        : '';
+    }
+  };
   if (dtOrgEl) {
     _dtOrgPicker = new PersonPicker({
       mode: 'multi',
       placeholder: '选择组织者',
       accentColor: accent,
       initialIds: dtDraft.orgIds !== null ? dtDraft.orgIds : [currentLeaderId],
-      onSelect: (ids) => { dtDraft.orgIds = ids; _dtDraftSave(); },
+      onSelect: (ids) => { dtDraft.orgIds = ids; _dtDraftSave(); syncLeaderCrossGroupHints(); },
     });
     _dtOrgPicker.render(dtOrgEl);
   }
@@ -970,10 +1020,14 @@ function _dtBindPanelArea(container, ctx, refresh) {
       placeholder: '选择深度参与者',
       accentColor: accent,
       initialIds: dtDraft.deepIds !== null ? dtDraft.deepIds : [],
-      onSelect: (ids) => { dtDraft.deepIds = ids; _dtDraftSave(); },
+      onSelect: (ids) => { dtDraft.deepIds = ids; _dtDraftSave(); syncLeaderCrossGroupHints(); },
     });
     _dtDeepPicker.render(dtDeepEl);
   }
+  wrap.querySelector('#dt-org-exception')?.addEventListener('input', (e) => {
+    dtDraft.organizerExceptionReason = e.target.value;
+  });
+  syncLeaderCrossGroupHints();
 
   // L1 按钮（变更时重置后续选择，轻量刷新面板动态区）
   wrap.querySelectorAll('.dt-l1-btn').forEach(btn => {
@@ -1028,7 +1082,8 @@ function _dtBindPanelArea(container, ctx, refresh) {
   wrap.querySelector('#dt-cancel')?.addEventListener('click', () => {
     dt.reset();
     _dtDraftClear();
-    _dtAdvOpen = false;
+    const advEl = wrap.querySelector('#dt-adv');
+    if (advEl) advEl.open = false;
     refresh();
   });
 
@@ -1076,8 +1131,24 @@ function _dtBindPanelArea(container, ctx, refresh) {
       const currentUser = AuthStore.getCurrentUser();
       const branchId = currentUser?.branchId || getBranchIdOfPerson(currentLeaderId);
       const hostGroupRecord = loadPartyGroups().find((group) => group.name === hostGroup
-        && (group.branchId || 'br-b1') === branchId && group.status === 'active');
+        && (group.branchId || DEFAULT_BRANCH_ID) === branchId && group.status === 'active');
       if (!hostGroupRecord) throw new Error('只能由组长创建本党小组承办的活动');
+      // 2026-10-21 批次 499：跨党小组深参由组织委员协调；组织者一般本组，例外须留说明。
+      const organizerIds = _dtOrgPicker ? _dtOrgPicker.getSelected() : [currentLeaderId];
+      const deepIds = _dtDeepPicker ? _dtDeepPicker.getSelected() : [];
+      const groupOfPerson = (id) => PersonStore.getById(id)?.partyGroup || '';
+      const crossOrganizers = organizerIds.filter((id) => groupOfPerson(id) && groupOfPerson(id) !== hostGroupRecord.name);
+      const crossDeep = deepIds.filter((id) => groupOfPerson(id) && groupOfPerson(id) !== hostGroupRecord.name);
+      const organizerExceptionReason = (wrap.querySelector('#dt-org-exception')?.value
+        || dtDraft.organizerExceptionReason || '').trim();
+      if (crossOrganizers.length && !organizerExceptionReason) {
+        throw new Error('组织者一般由本党小组承担；请填写组织者跨组说明');
+      }
+      const commissioner = PersonStore.getMembers().find((p) => p.role === 'org-commissioner'
+        && (p.branchId || DEFAULT_BRANCH_ID) === branchId);
+      if (crossDeep.length && !commissioner) {
+        throw new Error('本支部未配置组织委员，跨党小组深参暂不能招募');
+      }
       const activityData = {
         title,
         // 权威类型取值 = 子类中文名（单一源 ACTIVITY_SUBTYPES；组长台 L1 标签即权威子类名），
@@ -1094,7 +1165,11 @@ function _dtBindPanelArea(container, ctx, refresh) {
         duration: L3,
         hostGroup,
         hostGroupId: hostGroupRecord.id,
-        organizingScope: 'party-group',
+        organizingScope: ACTIVITY_SCOPES.PARTY_GROUP,
+        // 组内承办不变；跨组招募只影响深参来源，并指定组织委员协调
+        recruitmentScope: crossDeep.length ? RECRUITMENT_SCOPES.CROSS_GROUP : RECRUITMENT_SCOPES.GROUP,
+        ...(crossDeep.length ? { crossGroupCoordinatorId: commissioner?.id || null } : {}),
+        ...(crossOrganizers.length ? { organizerExceptionReason } : {}),
         branchId,
         scenarioId,
         status: 'draft',
@@ -1119,8 +1194,6 @@ function _dtBindPanelArea(container, ctx, refresh) {
       if (Object.keys(deepWorkMode).length) activityData.deepWorkMode = deepWorkMode;
 
       // T-190：创建时同步赋权——组织者（默认组长本人）+ 深度参与者写入主源 assignments
-      const organizerIds = _dtOrgPicker ? _dtOrgPicker.getSelected() : [currentLeaderId];
-      const deepIds = _dtDeepPicker ? _dtDeepPicker.getSelected() : [];
       const assignments = [
         ...organizerIds.map(personId => ({ personId, role: 'organizer' })),
         ...deepIds.map(personId => ({ personId, role: 'deep' })),
@@ -1159,7 +1232,8 @@ function _dtBindPanelArea(container, ctx, refresh) {
       // 5. 提交成功 → 重置决策树并清空步骤草稿（高级区回默认收起），刷新列表
       dt.reset();
       _dtDraftClear();
-      _dtAdvOpen = false;
+      const advEl = wrap.querySelector('#dt-adv');
+      if (advEl) advEl.open = false;
       const activities = await BranchService.listActivities();
       setState({ activities });
     } catch (err) {

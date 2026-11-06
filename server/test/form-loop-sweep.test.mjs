@@ -151,7 +151,7 @@ async function createSession(studentId, pageName) {
 
 /** P0-2 形态断言：本文件真机用例必须在 API 形态下跑（单一源 = data/data-adapter.js::getRuntimeMode） */
 async function assertApiMode(page) {
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018h')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261102b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 
 /** 等「上一态已清、本态已到」的**可判定条件**（替代原来的固定 `waitForTimeout(1500)`）。
@@ -165,7 +165,7 @@ async function assertApiMode(page) {
 async function waitShellSettled(page) {
   await page.waitForFunction(async () => {
     if (document.querySelectorAll('button[role="tab"]').length === 0) return false;
-    const { getAppState, STATE } = await import('/src/core/base/state.js?v=20261018h');
+    const { getAppState, STATE } = await import('/src/core/base/state.js?v=20261102b');
     const st = getAppState();
     // ⚠ 只判 `status === IDLE` **不够**：`status` 的初值就是 IDLE，而工作台壳层的 tab 条
     //   可能在 `loadWorkspaceData` 之前就已渲染 ⇒ 会「假就位」，此时切 tab 会被随后的
@@ -393,6 +393,36 @@ async function runStep(page, step) {
       return els.length;
     }, { s: cSel, c: checked });
     if (matched === 0) throw new Error(`setChecked 匹配不到任何元素：${cSel}`);
+    await page.waitForTimeout(150);
+  } else if (step.seedPendingConfirmation) {
+    // 批次 501：成员变更确认队列是**纯客户端**存储（`gsm1921-member-confirmations`）。
+    //   现行产品只允许**组织委员**维护档案字段，故「支书本人去改阶段」造前置已不可达（#person-stage-btn 不渲染）；
+    //   本步把「组织委员刚提交的一条 pending」写进同一队列，后续仍走真实 UI（待办组 → 详情 → 退回 → 原因必填）。
+    const r = step.seedPendingConfirmation;
+    await page.evaluate((row) => {
+      const key = 'gsm1921-member-confirmations';
+      const cur = JSON.parse(localStorage.getItem(key) || '{}');
+      const requests = Array.isArray(cur.requests) ? cur.requests : [];
+      const next = [...requests.filter((x) => x && x.id !== row.id), row];
+      localStorage.setItem(key, JSON.stringify({ version: cur.version || 1, requests: next }));
+    }, {
+      id: `mc-seed-${Date.now()}`,
+      kind: 'change',
+      action: 'developStage',
+      personId: r.personId,
+      name: r.name || r.personId,
+      from: r.from || '积极分子',
+      to: r.to || '预备党员',
+      note: '',
+      by: r.by || null,
+      at: new Date().toISOString(),
+      status: 'pending',
+      decidedBy: null,
+      decidedAt: null,
+      rejectNote: '',
+      refsSummary: null,
+      entryDate: new Date().toISOString().split('T')[0],
+    });
     await page.waitForTimeout(150);
   } else if (step.dialogAnswer !== undefined) {
     // 批次 47-Y（2026-09-16）：**原生对话框应答**——`window.prompt` 类校验点（专班「退回补料」，
@@ -914,7 +944,12 @@ test('S7 降频开关不得让真机用例静默归零：每个请求的 tab 名
 function uncaughtErrors(page) {
   // 既收未捕获脚本错误，也收被服务端拒绝的请求（4xx/5xx）——后者是「未保存成功」类
   // 静默失败最直接的证据，不能只留在控制台。
-  return (page.__errs || []).filter((m) => /ReferenceError|TypeError|is not a function|is not defined|Cannot read/.test(m) || /^HTTP [45]\d\d/.test(m));
+  // 2026-10-26 批次 514：409 是乐观锁冲突，前端已用可见 toast「数据已被他人更新，已为你刷新」
+  //   恢复并让用户重试；它不是静默失败。只把它从“未捕获错误”里排除，400/401/403/428/5xx 仍全收。
+  return (page.__errs || []).filter((m) => {
+    if (/^HTTP 409\b/.test(m) && /数据已被他人更新/.test(m)) return false;
+    return /ReferenceError|TypeError|is not a function|is not defined|Cannot read/.test(m) || /^HTTP [45]\d\d/.test(m);
+  });
 }
 
 for (const flow of MACHINE_IN_SCOPE) {

@@ -11,13 +11,14 @@
 //   ① 单一引擎：28 张按人表 + 32 张活动表共用本组件，勿各页手写搜索（现状：按人表 0 复用）。
 //   ② 能力 = 关键词（多字段模糊）+ 分面 + 结果计数 + **分页**；
 //      分面**两种形态**（2026-10-01 支书裁定「推翻筛选行禁 chip」后新增 chip 形态）：
-//        · `facetStyle: 'dropdown'`（**默认**，未迁移页原样）＝ `.lf-select` 下拉，首项「全部」，
+//        · `facetStyle: 'dropdown'`（**默认**）＝ `.lf-select` 下拉，首项「全部」，
 //          走全局 enhanceSelects 圆角增强；自身即状态显示位 ⇒ 改动无需重绘。
 //        · `facetStyle: 'chip'`＝**搜索框 ＋ span 小胶囊**（值平铺可见、少一次展开点击），
 //          选中态走 `.chip-accent-on`（判据·甲「选中态随主题色」）；平铺 ⇒ 改动须重绘。
 //      ⚠ 支书 2026-10-01 原话：「这个筛选器请全面移除。我 prefer div 这种格式。但是可以用 span 这样的小胶囊。
-//        搜索 姓名/学号/角色 即可」，同时裁「**具体问题一定要具体分析**」⇒ **默认不翻**、**逐页迁移**
-//        （先 人才库 · 成员名册），全部迁完再翻默认。
+//        搜索 姓名/学号/角色 即可」，同时裁「**具体问题一定要具体分析**」⇒ **逐页判断**。
+//      2026-10-20 第三轮 IA 判例⑤（名册 4 组 ≈20 枚胶囊把表格推下首屏）：**人维表（personFacets）
+//        一律回到 dropdown**；chip 只留给「取值 ≤3 且需快速切换」的极小维度（如成员流动的方向）。
 //      分面取值可 auto 派生（免各表手写枚举），取值 ≤1 种时该维度自动隐藏（空维度不占位）。
 //   ③ 出现门槛：当前视图行数 ≤ SEARCH_FILTER_MIN_ROWS（单一源 constants.js）→ **不渲染检索条**；
 //      行数变化自动出现/隐藏（动态，非静态按表判定）。
@@ -41,16 +42,21 @@
 //  数据变化后：同 stateKey 再调用一次，或 hold 返回值调 .update(newRows)。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc } from '../../core/base/utils.js?v=20261018h';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261102b';
 import {
   SEARCH_FILTER_MIN_ROWS, ROLE_LABELS, ACTIVITY_CLASSIFICATION,
   classifyActivityType, normalizeActivityType,
-} from '../../core/domain/constants.js?v=20261018h';
+} from '../../core/domain/constants.js?v=20261102b';
 // 活动生命周期**展示态**单一源 = components/record/inspector.js（草稿/已发布/进行中/待归档/已执行/已归档/已取消）
 // ——勿在本组件另写一套中文标签（constants.js 里曾短暂加过的副本已撤除）
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261018h';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261102b';
 // 翻页控件单一源（批次 38 下沉为叶子件 pager.js）：本引擎与关系矩阵共用，勿另写翻页标记
-import { pagerHtml } from './pager.js?v=20261018h';
+import { pagerHtml } from './pager.js?v=20261102b';
+// 空态单一源（U-09）：非表格列表空态原先是一行灰字 `<p>`（无出口、与 empty-state 两套样式）；
+// 改为 empty-state 组件，并支持 `emptyActionHtml` 给一个出口（表格空态仍由本文件自带空行）。
+import { emptyStateHtml } from './empty-state.js?v=20261102b';
+// 建议输入单一源（批次 525 · #4）：自建列表替原生 datalist（原生会在输入框内画 UA picker 三角）。
+import { suggestInput } from './forms.js?v=20261102b';
 
 /** 每个 stateKey 的筛选状态（跨重渲染保持；键集合有界 = 全站表格数，不做回收） */
 const _states = new Map();
@@ -96,16 +102,23 @@ function _keywordHit(item, q, keyword) {
  * @param {string} [cfg.stateKey] 状态保持键（同一张表固定串）
  * @param {Array} cfg.rows 数据集
  * @param {Function} cfg.rowHtml (item, index) => htmlString
- * @param {Object} [cfg.keyword] { keys:[字段], placeholder, get?(item,key) }
+ * @param {Object} [cfg.keyword] { keys:[字段], placeholder, get?(item,key),
+ *   suggestions?: string[] | ((rows) => string[]) }——suggestions 非空时走 `suggestInput` 自建补全
+ *   （批次 525 · #4：不再输出原生 `list` / `datalist`，避免 UA picker 三角）
+ * @param {string} [cfg.scopeHtml] 「范围」段控件 HTML（如支部 / 时间区间 / 可见范围下拉）。
+ *   P3 四段结构：scope → search → facet → reset；空段自动省略（不输出空行）。
  * @param {Array} [cfg.facets] [{ key, label, options?:[{value,label}]|'auto', get?, format?(v) }]
  * @param {number} [cfg.minRows] 检索条出现门槛（缺省 = SEARCH_FILTER_MIN_ROWS 单一源）
  * @param {number} [cfg.pageSize] 每页条数（缺省 10；传 0 = 不分页）。页数 ≤1 时不渲染翻页控件。
  * @param {string} [cfg.emptyMessage] 空结果文案
+ * @param {string} [cfg.emptyActionHtml] 列表模式空态的**唯一**出口（按钮 HTML；不传＝无出口）。
+ *   表格模式忽略本项（空行仍由 table.colSpan 自带）。
  * @param {Function} [cfg.sort] 排序比较器（缺省保持传入顺序）
  * @param {string} [cfg.listClass] 结果区 class（列表模式：行容器）
  * @param {string} [cfg.countUnit] 计数单位（'人' / '条'）
- * @param {{headHtml:string,colSpan:number,className?:string}} [cfg.table] 表格模式：结果区渲染为
+ * @param {{headHtml:string,colSpan:number,className?:string,responsive?:boolean}} [cfg.table] 表格模式：结果区渲染为
  *   `<table class="data-table">`（表头/行线/悬停/内边距由 styles.css 单一源提供；
+ *   `responsive: true` 时给 `<table>` 加 `data-responsive="cards"`，由 ≤640px 媒体查询转卡式行；
  *   rowHtml 须返回 `<tr>`，表头 `<th>` 不要再写 py-2 px-3 text-left 等重复类）——
  *   避免把 `<div>` 塞进 `<tbody>`（非法 HTML）。不传则为 div 列表模式。
  * @returns {{visible:boolean, state:Object, apply:Function, update:Function}}
@@ -117,6 +130,7 @@ export function renderFilteredList(container, cfg) {
     rows: [],
     rowHtml: () => '',
     keyword: null,
+    scopeHtml: '',
     facets: [],
     minRows: SEARCH_FILTER_MIN_ROWS,
     pageSize: 10,
@@ -170,15 +184,31 @@ export function renderFilteredList(container, cfg) {
   }
 
   function renderBar() {
-    // 无检索能力（既无关键词也无分面）= 调用方只要分页（如看板分桶 / 分组子列表）→ 不渲染检索条
-    // （批次 37：分页多为「桶 / 分组」所共用，避免每组各顶一条空检索条）
-    if (!config.keyword && facetDefs.length === 0) { barEl.hidden = true; barEl.innerHTML = ''; return; }
+    // 无检索能力（既无关键词、无分面、也无范围）= 调用方只要分页（如看板分桶 / 分组子列表）
+    // → 不渲染检索条（批次 37：分页多为「桶 / 分组」所共用，避免每组各顶一条空检索条）
+    if (!config.keyword && facetDefs.length === 0 && !config.scopeHtml) {
+      barEl.hidden = true; barEl.innerHTML = ''; return;
+    }
     barEl.hidden = !visible;
     if (!visible) { barEl.innerHTML = ''; return; }
+    // 自动补全（批次 524 · #9 引入；批次 525 · #4 去原生 datalist）：`keyword.suggestions` 非空时
+    //   走 `suggestInput` 自建列表（无 `list` 属性 ⇒ 输入框内不再出现 UA picker 三角）。
+    //   suggestions 可为数组或 `(rows) => string[]`；去重、截断 50 条，显示最多 8 条。
+    const hasSuggestions = !!config.keyword && config.keyword.suggestions !== undefined;
     const qHtml = config.keyword
-      ? `<input type="text" id="${uid}-q" class="input-flat text-xs lf-kw"
+      ? (hasSuggestions
+        ? suggestInput({
+          id: `${uid}-q`,
+          value: st.q,
+          placeholder: config.keyword.placeholder || '搜索…',
+          ariaLabel: config.keyword.placeholder || '搜索',
+          suggestions: suggestionValues(),
+          max: 8,
+          className: 'lf-kw',
+        })
+        : `<input type="text" id="${uid}-q" class="input-flat text-xs lf-kw"
              placeholder="${esc(config.keyword.placeholder || '搜索…')}"
-             aria-label="${esc(config.keyword.placeholder || '搜索')}" value="${esc(st.q)}" />`
+             aria-label="${esc(config.keyword.placeholder || '搜索')}" value="${esc(st.q)}" />`)
       : '';
     // 分面形态见文件头「② 能力」：默认 dropdown；chip 形态＝搜索框 ＋ span 小胶囊（逐页 opt-in）。
     const facetStyle = config.facetStyle || 'dropdown';
@@ -203,8 +233,14 @@ export function renderFilteredList(container, cfg) {
         ${f.options.map(o => `<option value="${esc(o.value)}"${sel === o.value ? ' selected' : ''}>${esc(o.label)}</option>`).join('')}
       </select>`;
     }).join('');
-    barEl.innerHTML = `${qHtml}${facetsHtml}
-      <button type="button" class="btn-tab lf-clear lf-btn">清除</button>`;
+    // P3 四段：范围 → 检索 → 分面 → 重置；空段不输出（无空行）。
+    // `.lf-bar` 的直接子元素只允许 `.lf-bar__row`（结构单一源，见 styles.css P3 段）。
+    const rows = [];
+    if (config.scopeHtml) rows.push(`<div class="lf-bar__row" data-seg="scope">${config.scopeHtml}</div>`);
+    if (qHtml) rows.push(`<div class="lf-bar__row" data-seg="search">${qHtml}</div>`);
+    if (facetsHtml) rows.push(`<div class="lf-bar__row" data-seg="facet">${facetsHtml}</div>`);
+    rows.push(`<div class="lf-bar__row" data-seg="reset"><button type="button" class="btn-tab lf-clear lf-btn">清除</button></div>`);
+    barEl.innerHTML = rows.join('');
 
     barEl.querySelector(`#${uid}-q`)?.addEventListener('input', (e) => {
       st.q = String(e.target.value || '').trim().toLowerCase();
@@ -234,6 +270,33 @@ export function renderFilteredList(container, cfg) {
       renderBar();
       renderList();
     });
+    renderSuggestions();
+  }
+
+  /** 关键词建议值（去重，上限 50；`suggestions` 可为数组或 `(rows) => string[]`） */
+  function suggestionValues() {
+    const src = config.keyword && config.keyword.suggestions;
+    if (src === undefined || src === null) return [];
+    const raw = typeof src === 'function' ? src(data) : src;
+    if (!Array.isArray(raw)) return [];
+    const seen = new Set();
+    const out = [];
+    for (const v of raw) {
+      const s = String(v ?? '').trim();
+      if (!s || seen.has(s)) continue;
+      seen.add(s);
+      out.push(s);
+      if (out.length >= 50) break;
+    }
+    return out;
+  }
+
+  /** 按当前行数据刷新建议项（沿用同一 uid；未配 suggestions 时为空操作） */
+  function renderSuggestions() {
+    const input = barEl.querySelector(`#${uid}-q`);
+    const wrap = input && input.closest('[data-suggest]');
+    if (!wrap) return;
+    wrap.setAttribute('data-suggest-items', JSON.stringify(suggestionValues()));
   }
 
   function renderList() {
@@ -253,15 +316,18 @@ export function renderFilteredList(container, cfg) {
     const shown = pageSize > 0 ? filtered.slice((st.page - 1) * pageSize, st.page * pageSize) : filtered;
 
     if (config.table) {
-      const empty = `<tr class="is-empty"><td colspan="${config.table.colSpan || 1}" class="is-empty">${esc(config.emptyMessage)}</td></tr>`;
+      // 表格空行同样走空态单一源（variant: 'table'；colSpan 由调用方给）
+      const empty = emptyStateHtml({ variant: 'table', text: config.emptyMessage, colspan: config.table.colSpan || 1 });
       // 表格样式单一源：表头/行线/悬停/内边距全部由 styles.css::.data-table 提供（各表勿再重复声明）
-      listEl.innerHTML = `<table class="data-table ${config.table.className || ''}">
+      listEl.innerHTML = `<table class="data-table ${config.table.className || ''}"${config.table.responsive ? ' data-responsive="cards"' : ''}>
         ${config.table.headHtml ? `<thead>${config.table.headHtml}</thead>` : ''}
         <tbody>${filtered.length === 0 ? empty : shown.map((item, i) => config.rowHtml(item, i)).join('')}</tbody>
       </table>`;
     } else {
+      // 非表格空态：单一源 empty-state（一句话 + 至多一个动作）；`emptyActionHtml` 由调用方给出口，
+      // 无出口时与原灰字空态等价，但样式归一到 .empty-state（U-09）。
       listEl.innerHTML = filtered.length === 0
-        ? `<p class="text-xs text-gray-500 text-center py-4">${esc(config.emptyMessage)}</p>`
+        ? emptyStateHtml(config.emptyMessage, { actionHtml: config.emptyActionHtml })
         : shown.map((item, i) => config.rowHtml(item, i)).join('');
     }
     countEl.hidden = !visible;
@@ -276,6 +342,8 @@ export function renderFilteredList(container, cfg) {
         + (pages > 1 ? ` · 第 ${Math.min(Math.max(1, st.page), pages)} / ${pages} 页` : '');
     }
     renderPager(pages, filtered.length);
+    // 数据变化后按需重建建议（`apply()` 即本函数 ⇒ 调用方只换行数据也能同步补全项）
+    renderSuggestions();
   }
 
   /** 翻页控件：走 .page-btn / .page-num 单一源（批次 28），页数 ≤1 不出控件 */

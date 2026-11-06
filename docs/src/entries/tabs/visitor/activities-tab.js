@@ -3,23 +3,27 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/base/icons.js?v=20261018h';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20261018h';
-import { flashHighlight } from '../../../core/base/utils.js?v=20261018h';
-import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261018h';
+import { icon } from '../../../core/base/icons.js?v=20261102b';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20261102b';
+import { flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261102b';
+import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261102b';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261018h';
-import { canSignup } from '../../../components/governance/signup-panel.js?v=20261018h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018h';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261102b';
+import { canSignup } from '../../../components/governance/signup-panel.js?v=20261102b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261102b';
 // 组织者按活动身份读（2026-09-19 批次 91 · SOP-B-17）：本人被指定为某场活动的组织者时，
 // 该场的发布口与上传位从该行可达——「组织者是这场事上被指定的人」，不是静态角色。
-import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261018h';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261018h';
+import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261102b';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261102b';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261018h';
-import { getAppState } from '../../../core/base/state.js?v=20261018h';
-import { renderContent as renderSharedActivityCalendar } from '../shared/activity-calendar-tab.js?v=20261018h';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261102b';
+import { getAppState } from '../../../core/base/state.js?v=20261102b';
+import { renderContent as renderSharedActivityCalendar } from '../shared/activity-calendar-tab.js?v=20261102b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261102b';
+// Task 6：活动动态属跨对象列表 ⇒ direct 完整详情页；缺 id 不渲染可点链接。
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261102b';
 
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261102b';
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
 // ③闭环样本1（2026-09-10）：活动列表/查询行补「去报名 / 去表态」明确入口——
@@ -28,15 +32,15 @@ const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 function _actEntryHtml(a, href) {
   const btns = [];
   if (canSignup('activity', a)) {
-    btns.push(`<a href="${href}" aria-label="报名活动：${a.title || ''}" class="text-xs px-3 py-1.5 rounded-lg font-medium text-white transition-colors hover:opacity-90 flex-shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" style="background:var(--party-red);text-decoration:none;">去报名</a>`);
+    btns.push(`<a href="${href}" aria-label="报名活动：${a.title || ''}" class="btn-accent text-xs px-3 py-1.5 font-medium flex-shrink-0" style="text-decoration:none;">去报名</a>`);
   }
   const me = AuthStore.getCurrentUser();
   const voterIds = (a.voteConfig && Array.isArray(a.voteConfig.voterIds)) ? a.voteConfig.voterIds : [];
   const hasVoteAgenda = Array.isArray(a.agenda) && a.agenda.some(x => x && x.id);
   if (me && a.voteConfig?.mode === 'async' && hasVoteAgenda && voterIds.includes(me.personId)) {
-    btns.push(`<a href="${href}" aria-label="活动表态：${a.title || ''}" class="text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors flex-shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" style="text-decoration:none;">去表态</a>`);
+    btns.push(`<a href="${href}" aria-label="活动表态：${a.title || ''}" class="text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-200 text-gray-600 hover:bg-surface-hover transition-colors flex-shrink-0 focus-ring" style="text-decoration:none;">去表态</a>`);
   }
-  return btns.length ? `<div class="flex items-center gap-1.5 flex-shrink-0">${btns.join('')}</div>` : '';
+  return btns.length ? `<div class="flex flex-wrap justify-end items-center gap-1.5">${btns.join('')}</div>` : '';
 }
 
 // 组织者的入口（2026-09-19 批次 91 · SOP-B-17 / `D-308` · `D-309` · §9k）：
@@ -48,19 +52,28 @@ function _actEntryHtml(a, href) {
 function _organizerEntryHtml(a) {
   const me = AuthStore.getCurrentUser();
   if (!me || !isActivityOrganizer(me.personId, a.id)) return '';
-  return `<div class="flex items-center gap-1.5 flex-shrink-0">
+  // C06（2026-10-20）：考勤上传位按角色落——成员组织者在本台（成员页上传位），组长才进组长台；
+  // 其他角色（支委）没有本台考勤上传位，只给纯文本，不再统一指向 leader.html 被身份门弹回。
+  const leaderRoles = ['leader', 'deputy-leader'];
+  let attendanceHref = '';
+  if (leaderRoles.includes(me.role)) attendanceHref = './workspace/leader.html?tab=attendance';
+  else if (me.role === 'participant') attendanceHref = './workspace/visitor.html?tab=attendance#org-host';
+  return `<div class="flex flex-wrap justify-end items-center gap-1.5 flex-shrink-0">
       <button type="button" class="btn-outline visitor-group-notice-btn text-xs px-3 py-1.5 font-medium" data-act-id="${a.id}" style="cursor:pointer;">发布本组通知</button>
-      <a href="./workspace/leader.html?tab=attendance" class="text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" style="text-decoration:none;" title="本场组织者的上传位：考勤上传与纪检打回后的待确认项">考勤管理 / 打回确认</a>
+      ${attendanceHref
+        ? `<a href="${attendanceHref}" class="text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-200 text-gray-600 hover:bg-surface-hover transition-colors focus-ring" style="text-decoration:none;" title="本场组织者的上传位：考勤上传与纪检打回后的待确认项">考勤管理 / 打回确认</a>`
+        : '<span class="text-xs text-gray-500">考勤由本场组织者按本位上传</span>'}
     </div>`;
 }
 
 // 列表行（列表/查询共用；行内主区为可点击详情链接，行尾为报名/表态入口）
 function _activityRowHtml(a) {
   const color = ACTIVITY_TYPE_COLORS[a.type || a.category] || { bg: '#F9FAFB', dot: '#6B7280' };
-  const href = `./activity.html?id=${a.id || ''}`;
+  const detailHref = objectDetailHref('activity', a.id, { entry: 'workspace-aggregate' });
+  const href = detailHref ? `./${detailHref}` : '';
   return `
-    <div class="flex items-center gap-3 p-3 rounded-lg bg-white hover:bg-gray-50 hover:shadow-sm transition-all" data-visitor-act-id="${a.id || ''}">
-      <a href="${href}" class="flex items-center gap-3 flex-1 min-w-0 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" style="text-decoration:none;color:inherit;" aria-label="查看活动详情：${a.title || '未命名'}">
+    <div class="flex flex-wrap items-center gap-3 p-3 rounded-lg bg-white hover:bg-surface-hover transition-colors" data-visitor-act-id="${a.id || ''}">
+      <a ${href ? `href="${href}"` : 'aria-disabled="true"'} class="flex items-center gap-3 flex-1 min-w-0 rounded-lg focus-ring hover:bg-[var(--surface-hover)] transition-colors" aria-label="查看活动详情：${a.title || '未命名'}">
         <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''}"></div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
@@ -84,7 +97,7 @@ let _programmaticViewClick = false;
 // 日历视图内层「月/周/日」工具条的降级守卫（共享日历每次切视图会重绘该工具条）
 let _calToolbarObserver = null;
 
-const _VIEW_ACTIVE = { background: 'var(--app-accent-bg)', color: 'var(--app-accent)', border: '1px solid var(--app-accent)' };
+const _VIEW_ACTIVE = { background: 'var(--app-accent-soft-bg)', color: 'var(--app-accent-soft-text)', border: '1px solid var(--app-accent)' };
 const _VIEW_IDLE = { background: 'var(--surface-card)', color: 'var(--neutral-500)', border: '1px solid var(--neutral-200)' };
 
 function _paintViewButtons(tc, active) {
@@ -143,14 +156,21 @@ export function renderContent(ctx) {
 
   if (!_viewParamConsumed) {
     _viewParamConsumed = true;
-    // `?subview=` 是既有深链协议；同时接受 `?view=`（活动动态被作为落点时的同义写法）。
-    const params = new URLSearchParams(location.search);
-    const v = params.get('subview') || params.get('view');
+    // 2026-10-24 批次 508：`?view=` 是**工作台壳的协议参数**（`view=activities`），壳导航时会消费并
+    //   清掉它 ⇒ 原 `params.get('view')` 分支永远读不到（等于死代码）。现按两处可读来源取值：
+    //   ① 壳透传的 `ctx.navTarget.view`（布尔 true＝旧 `view=activities` 落点，对应默认「列表」视图）；
+    //   ② `?subview=` 深链（首页「完整日历 →」用的就是它，壳不清）。
+    //   两者都没有 ⇒ 直接走默认视图，不再保留读不到的 `location.search?view=` 分支。
+    const navView = ctx?.navTarget?.view;
+    const fromCtx = typeof navView === 'string' ? navView : (navView === true ? 'list' : '');
+    const fromQuery = new URLSearchParams(location.search).get('subview') || '';
+    const v = fromCtx || fromQuery;
     if (v && ['list', 'calendar', 'query'].includes(v)) _pendingView = v;
   }
 
   // 唯一主视图切换（列表 / 日历 / 查询）；日历内的「月/周/日」只是次级粒度工具条。
   tc.innerHTML = `
+    ${renderTabHeader({ title: '活动动态', description: '列表 / 日历 / 查询三视图；报名与表态从行内直达。' })}
     <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
       <span class="text-xs text-gray-500">${sorted.length} 条活动</span>
       <div class="flex gap-1" role="tablist" aria-label="活动视图">
@@ -165,7 +185,7 @@ export function renderContent(ctx) {
         </button>
       </div>
     </div>
-    <div id="visitor-act-view"></div>
+    <div class="card rounded-xl p-5"><div id="visitor-act-view"></div></div>
   `;
   _paintViewButtons(tc, 'list');
 
@@ -195,10 +215,11 @@ export function renderContent(ctx) {
   if (typeof ctx.onNavLocated === 'function') ctx.onNavLocated();
 
   // 组织者入口（发布本组通知）：事件委托——列表/日历/查询三视图都会重绘行、且引擎筛选后行会被换掉，
-  // 行内直接绑定会失效；委托挂在容器上只挂一次（dataset 守卫防重复绑定致浮窗开两遍）。
-  if (!tc.dataset.organizerEntryBound) {
-    tc.dataset.organizerEntryBound = '1';
-    tc.addEventListener('click', (e) => {
+  // 行内直接绑定会失效；委托挂在视图宿主上（2026-10-25 Task 1.5：改挂**每次 renderContent 新建**的
+  // `#visitor-act-view`，不再用持久容器 `#visitor-tab-content` 上的 dataset 标记 ⇒ 新控件不会失去监听）。
+  const actView = tc.querySelector('#visitor-act-view');
+  if (actView) {
+    actView.addEventListener('click', (e) => {
       const btn = e.target.closest('.visitor-group-notice-btn');
       if (!btn) return;
       e.preventDefault();
@@ -227,7 +248,7 @@ function _renderActListView(sorted, highlightId) {
 
   vc.innerHTML = `
     <div class="space-y-2">
-      ${sorted.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无活动</p>' :
+      ${sorted.length === 0 ? emptyStateHtml({ text: '暂无活动 · 下一步：活动发布后会出现在这里', variant: 'panel' }) :
         pageItems.map(a => _activityRowHtml(a)).join('')}
     </div>
     ${pagerHtml({ page, pages: totalPages, total: sorted.length, unit: '条' })}
@@ -245,7 +266,7 @@ function _renderActListView(sorted, highlightId) {
   if (highlightId) {
     const el = vc.querySelector(`[data-visitor-act-id="${highlightId}"]`);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      smoothScroll(el, { block: 'center' });
       // 高亮定时自动褪去（支书 2026-08-08 裁定：2.5~3s CSS 过渡）
       flashHighlight(el);
     }
@@ -256,7 +277,7 @@ function _renderActCalendarView(sorted, highlightId) {
   const vc = document.getElementById('visitor-act-view');
   if (!vc) return;
   if (sorted.length === 0) {
-    vc.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">暂无活动</p>';
+    vc.innerHTML = emptyStateHtml({ text: "暂无活动", variant: 'panel' });
     return;
   }
   const state = getAppState() || {};
@@ -272,7 +293,7 @@ function _renderActCalendarView(sorted, highlightId) {
   if (highlightId) {
     const el = [...vc.querySelectorAll('.cal-activity-item')].find((item) => item.dataset.actId === highlightId);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      smoothScroll(el, { block: 'center' });
       flashHighlight(el);
     }
   }
@@ -305,7 +326,7 @@ function _renderActQueryView(sorted, highlightId) {
   if (highlightId) {
     const el = vc.querySelector(`[data-visitor-act-id="${highlightId}"]`);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      smoothScroll(el, { block: 'center' });
       // 高亮定时自动褪去（支书 2026-08-08 裁定：2.5~3s CSS 过渡）
       flashHighlight(el);
     }

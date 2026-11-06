@@ -2,8 +2,8 @@
 title: "全局文档导航映射"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-10-18
-version: "2.5"
+last_updated: "2026-11-03"
+version: "2.6"
 status: active
 related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUEUE.md, .ctx/ENGINEERING_ASSESSMENT.md, content/insights/README.md]
 ---
@@ -26,7 +26,9 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | 常读文件 | 回答什么问题（唯一职责） | 读的时机 | 读取策略 |
 |---|---|---|---|
 | `CLAUDE.md` | AI 每次开工**必须遵守什么**（甲部 Harness / 乙部执行 / 丙部待裁） | 每次会话 | **active** |
+| `.ctx/ACTIVE_CONTEXT.md` | **现在该知道什么 / 下一步做什么**（active 投影；≤300 行 / 30KB） | 每次会话 | **active** |
 | `content/05_ai_coding/CONTEXT_MANAGEMENT.md` | 上下文怎么管、防失忆怎么做 | 每次会话 | **active** |
+| `.ctx/ACTIVE_RULINGS.md` | **某条现行口径到哪找**（规则索引，正文在 content） | 需要分域裁定 | on-demand |
 | `.ctx/REVIEW_QUEUE.md` | **哪些评议与裁定还没闭环** | 每批开工前必扫 | on-demand |
 | `.ctx/ENGINEERING_ASSESSMENT.md` | 现在工程化到几成、**下一步该改哪里** | 定「下一批做什么」前 | on-demand |
 | `.ctx/SNAPSHOT.md` | **这个系统现在长什么样** | 新会话开局 / 换人接手 | on-demand |
@@ -100,11 +102,14 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
-| `content/03_doc_system/OPERATIONS_GUIDE.md` | [工程师]+[AI] | **《运行与协作规范》**（§1–§14 文档规范类：权威层级 §1、术语 §2、文档关系 §3、文件角色 §4、YAML §5、编码 §6、排版 §7、有机性 §8、编号 §9、日志 §10、反论 §11、命名 §12、面向用户表述 §13、角色操作 §14 ＋ §15–§18 流程机制类 ＋ §19–§23 使用规范类〔术语/AI 展开/Emoji/决策记录/词典〕 ＋ §24–§31 文件角色分类体系；**2026-09-26 批次 202 四份合一并迁入 `02_institution/ROLE_CLASSIFICATION`**：原 `PROCESS_GUIDE` / `USAGE_POLICY` / `ROLE_CLASSIFICATION` 已并入并删除） | CLAUDE.md（H40/H60/H70/H90 指针）、全仓库 |
+| `content/03_doc_system/OPERATIONS_GUIDE.md` | [工程师]+[AI] | **《运行与协作规范》**（§1–§14 文档规范类：权威层级 §1、术语 §2、文档关系 §3、文件角色 §4、YAML §5、编码 §6、排版 §7、有机性 §8、编号 §9、日志 §10、反论 §11、命名 §12、面向用户表述 §13、角色操作 §14 ＋ §15–§18 流程机制类 ＋ §19–§23 使用规范类〔术语使用规则/AI 展开/Emoji/决策记录/词典〕 ＋ §24–§31 文件角色分类体系；**2026-09-26 批次 202 四份合一并迁入 `02_institution/ROLE_CLASSIFICATION`**：原 `PROCESS_GUIDE` / `USAGE_POLICY` / `ROLE_CLASSIFICATION` 已并入并删除） | CLAUDE.md（H40/H60/H70/H90 指针）、全仓库 |
+| `content/03_doc_system/TERMINOLOGY.md` | [工程师]+[AI] | **术语表（全仓唯一术语定义源）**：首批 18 条的词条 / 定义 / 层级 / 上位下位 / 允许并列集 / 禁用写法 / 权威文档 / 代码键 / 合法别名；`OPERATIONS_GUIDE §19` 与 `sop/INDEX.md` 只留指针 | OPERATIONS_GUIDE.md §2/§19、ARCHITECTURE.md、DESIGN_SYSTEM.md |
 | `content/03_doc_system/DOC_MAP.md` | [工程师]+[AI] | 本文档：全局导航中心 | 所有文件 |
 | `content/03_doc_system/ARCHITECTURE.md` | [工程师]+[AI] | 架构与单一事实源（分层架构、仓库结构、数据模型、变更流水线 + 单一事实源注册表 + 统一服务目录） | README.md（架构图引用） |
 | `content/03_doc_system/工作模板/经验沉淀辅助提示词.md` | [用户]+[AI] | 经验沉淀辅助提示词模板 | content/04_web_design/module/SOP_WEBSITE_GUIDE.md |
 | `content/03_doc_system/README.md` | [工程师]+[AI] | 文档系统管理层目录索引 | — |
+| `content/03_doc_system/CASES_INDEX.md` | [工程师]+[AI] | 判例总索引（各域 `CASES.md` 的入口，不承担规范效力） | 各域 `CASES.md` |
+| `content/03_doc_system/INFORMATION_COMPUTATION.md` | [工程师]+[AI] | 信息计算口径（页面上的计数 / 派生值怎么算、以谁为准） | `DESIGN_SYSTEM.md`、各工作台服务 |
 
 ### 知识类型 4：网站系统的设计想法（content/04_web_design/）
 
@@ -113,7 +118,13 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
 | `content/04_web_design/data/DATA_MODEL.md` | [工程师]+[AI] | 数据模型与数据流（数据权威：§2.x 静态模型 20 类字段定义 + §写入数据验证 + 待办/通知派生 + 归档扩展字段；§1.x·§3.x·§4.x 数据流：数据架构总览 + 参与者数据流 + 前端数据流：状态管理/持久化/数据源边界/DataAdapter/写穿透） | SECRETARY_DIRECTIVES.md、ARCHITECTURE.md、CLAUDE.md |
-| `content/04_web_design/design-system/DESIGN_SYSTEM.md` | [工程师]+[AI] | 设计系统（§一 设计哲学/§二 色彩系统/§三 排版/§四 组件规范/§五 交互反馈/§六 响应式/§七 深色模式/§八 设计资产/§十 点击落点映射） | docs/src/styles.css、docs/src/components/*、docs/src/core/session/cross-page-state.js（buildURL 统一出口）、docs/src/services/governance/notice.js（resolveNoticeUrl） |
+| `content/04_web_design/design-system/DESIGN_SYSTEM.md` | [工程师]+[AI] | 设计系统父索引（§零 阅读指南 / §一 设计哲学 / 编目索引：六编分工 ＋ 我要找什么 → 去哪一编） | 六编 `DS_01`…`DS_06`、`docs/src/styles.css`、`docs/src/components/*` |
+| `content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md` | [工程师]+[AI] | 第一编 色彩与主题（§二 色彩系统：四层色板 / 色盘 / 主题色板 / 颜色四问；§七 深色模式） | `docs/src/styles.css`、`docs/src/core/domain/constants.js` |
+| `content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md` | [工程师]+[AI] | 第二编 排版与尺寸（§三 排版系统：字体 / 字号 / 字重 / 行高 / 文本档位；§3.4 栅格与容器档 P4） | `docs/src/styles.css` |
+| `content/04_web_design/design-system/DS_03_COMPONENTS.md` | [工程师]+[AI] | 第三编 组件（§四 组件规范：按钮 / 卡片 / 输入 / 导航 / 数据展示 / 间距 / 浮窗 / 筛选；§4.29–§4.30；§十二 组件层执行口径 SD-1…SD-59，SD-57…59 见 DS_06） | `docs/src/styles.css`、`docs/src/components/*` |
+| `content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md` | [工程师]+[AI] | 第四编 交互与响应式（§五 交互反馈：动效 / 反馈模式 / 焦点总则 §5.8；§六 响应式：断点 / 布局适配 / 窄屏） | `docs/src/styles.css`、`docs/src/components/*` |
+| `content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md` | [工程师]+[AI] | 第五编 地图与速查（§八 设计资产 / §九 快速参考 / §十 点击落点映射含 §10.7 承载面唯一性 / §十一 边界与引用） | `docs/src/core/session/cross-page-state.js`（buildURL 统一出口） |
+| `content/04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md` | [工程师]+[AI] | 第六编 布局与密度（§一 设计原则 / §二 SD-57 页签密度 · SD-58 筛选条两行 · SD-59 建议输入无系统图标 / §三 判定流程 / §四 边界 / §五 审计映射） | `server/test/style-baseline.mjs::TAB_BLOCK_BASELINE`、`filter-row::S14–S15`、`field-shell-guard::R4–R5`、`server/scripts/audit-tabs.mjs` |
 | `content/04_web_design/module/ABOUT_PAGE_DESIGN.md` | [工程师]+[AI] | About 页面设计系统（超参数设定原则/防风格疲劳/无竖线红线） | docs/src/about.css、docs/src/entries/pages/about-entry.js |
 | `content/04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md` | [工程师]+[AI] | 会议议程与资料查询联动设计（会前草案关联/会后少重复录入/单一数据源） | —（草案·待实施 2026-08-31） |
 | `content/04_web_design/module/MODULE_UI_DESIGN.md`（已落地 2026-09-03） | [工程师]+[AI] | 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR：「党建」Tab 分组+日历功能，已落地、设计论证档案） | docs/src/components/record/calendar.js |
@@ -128,6 +139,11 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | `content/04_web_design/evolution/DESIGN_METHODOLOGY.md` | [工程师]+[AI] | 设计理念与方法论承接（设计论证与方法档案：系统/工作台/前端实现方法论与判例、打卡化底线、叙述性人读方法论；2026-09-04 承接自 insights [4] 标签小节，出处注记保留） | DESIGN_SYSTEM.md（论证档案去向）；规范权威源 = DESIGN_SYSTEM / DATA_MODEL / SOP_WEBSITE_GUIDE |
 | `content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md` | [工程师]+[AI] | 院系党委后台设计定案（支部多实例两级治理：P1 支部实例+台账 / P2 支书任命 / P3 支部上报+下发；支书逐段批准） | docs/src/capabilities/party-committee-workspace.js |
 | `content/04_web_design/README.md` | [工程师]+[AI] | 网站设计层目录索引 | — |
+| `content/04_web_design/PRODUCT_IA.md` | [工程师]+[AI] | **派生索引**：逐台逐页签的组 / 渲染入口 / 一句话职责 / 主对象 / 主操作 / 新落点（当前 62）；不承担规范、禁止手改 | `docs/src/capabilities/*`、`docs/src/core/domain/function-catalog.js` |
+| `content/04_web_design/AGENTS.md` | [工程师]+[AI] | 04 目录协作说明：进入本目录前读什么、改什么、禁什么、怎么验 | — |
+| `content/04_web_design/data/DATA_SEED_CONTRACT.md` | [工程师]+[AI] | 种子契约（哪些字段归种子、哪些归运行时；drift 修复边界） | `server/seed.js`、`docs/src/data/seed-manifest.js` |
+| `content/04_web_design/design-system/CASES.md` | [工程师]+[AI] | 设计域判例（不产生规范效力，规范回六编；文末含三份迁移登记） | `DESIGN_SYSTEM.md` 编目索引 |
+| `content/04_web_design/deploy/SERVER_DEPLOY_MANUAL.md` | [工程师]+[AI] | 服务端部署手册（安装、更新、备份恢复的操作层步骤） | `deploy/*.sh`、`deploy/*.mjs` |
 
 ### 知识类型 5：网站系统的 AI coding 技术方法（content/05_ai_coding/）
 
@@ -137,11 +153,19 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 |------|------|------|---------|
 | `content/05_ai_coding/README.md` | [工程师]+[AI] | AI 协作方法论层目录索引（层索引表 + 分流来源声明；2026-09-04 原 19 条总篇拆分为 5 分篇） | CLAUDE.md H90 |
 | `content/05_ai_coding/FILE_OPERATION_RULES.md` | [工程师]+[AI] | 文件操作纪律分篇（持久化/临时文件/工具选择/版本参数/连续编辑/沙箱脚本 + 删除三铁律/架构迁移四步/仓库卫生；原 KNOWN §1/§3/§6/§13/§14/§18 + insights §2.3/§5.1/§5.11；read_strategy: on-demand） | CLAUDE.md H90 |
-| `content/05_ai_coding/TEST_AND_VERIFICATION.md` | [工程师]+[AI] | 测试验证纪律分篇（Subagent 虚假确认/同一套数据盲区/受限视觉三件套/版本分裂/e2e 写穿 + 模拟数据一致性/人工检查写法/修复前 Grep 定位/排序覆盖下拉/兜底模式/CSS 注释陷阱；原 KNOWN §11/§12/§15/§16/§17/§19 + insights §4.12.2/§5.10/§6.17/§6.25/§6.26/§6.29；read_strategy: on-demand） | DATA_CONSISTENCY_CHECKLIST.md（配套手册） |
+| `content/05_ai_coding/TEST_AND_VERIFICATION.md` | [工程师]+[AI] | 测试验证纪律分篇（Subagent 虚假确认/同一套数据盲区/受限视觉三件套/版本分裂/e2e 写穿 + 模拟数据一致性/人工检查写法/修复前 Grep 定位/排序覆盖下拉/兜底模式/CSS 注释陷阱/**承载形态守卫〔浮窗/筛选/承载面〕**；原 KNOWN §11/§12/§15/§16/§17/§19 + insights §4.12.2/§5.10/§6.17/§6.25/§6.26/§6.29；read_strategy: on-demand） | DATA_CONSISTENCY_CHECKLIST.md（配套手册） |
 | `content/05_ai_coding/DOCUMENT_GOVERNANCE.md` | [工程师]+[AI] | 文档治理与一改具改分篇（一改具改执行/分层体系冲突/遗漏场景 + 命名/SSOT/单一表达/历史不可变/文件归置/工具隔离/文件夹治理/阶段适应性/spec 全流程/治理审计/全仓验证/被否决残留；原 KNOWN §2/§7/§10 + insights §1.1/§1.2/§1.3/§3.6/§4.8/§4.18/§5.2-§5.4/§5.9/§6.4/§6.15/§6.27；read_strategy: on-demand） | OPERATIONS_GUIDE.md §1.4 |
 | `content/05_ai_coding/CONTEXT_MANAGEMENT.md` | [工程师]+[AI] | 上下文管理与防失忆分篇（上下文丢失/制度推断/对话总结虚假 + 减负/只留当前/决策三分/看板归档/交接协议/核心原则三分层/上下文工程/轮值推定/丙部触发 + 支书裁决落活层闭环规则；原 KNOWN §4/§8/§9 + insights §2.1/§2.2/§2.5/§2.6/§3.1/§3.2/§3.3/§6.1/§6.5/§6.11；**read_strategy: active**） | CLAUDE.md H90 + H26 |
 | `content/05_ai_coding/REVIEW_AND_EXPRESSION.md` | [工程师]+[AI] | 评议与表达纪律分篇（沉淀位置 + 内容归属/沉淀闭环/复盘理念/提级机制/Skill 检验/正反两面论/反论审核/尺度三分类/消歧写法/总分并列/打破重组/孤段落/叙述表达/零补丁/讲解三层/AI 概括层级/T3 行话；原 KNOWN §5 + insights §1.6/§3.4/§3.7/§4.5/§4.6/§4.7/§4.8/§4.12.6/§4.15/§5.10/§6.2/§6.18/§7.1-§7.5；read_strategy: on-demand） | insights/ |
+| `content/05_ai_coding/PARALLEL_SKILL_AUDIT.md` | [工程师]+[AI] | 多代理独立审查操作手册（H21 详版：提示词模板 / 输出 schema / 汇总模板 / 决策记录 / 反模式 / 四轮路线图；§11 批判性 IA 审查；§12 全局性审查五问与触发清单 / 判例登记；**§13 三阶段 UI 专项与三道门禁**；read_strategy: on-demand） | CLAUDE.md H21、`DESIGN_SYSTEM.md` §4.27/§4.28/§10.7 |
 | `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` | [工程师]+[AI] | 数据同源一致性校验手册（工程质检流程，按数据类别逐步检查；机器检查+人工检查分工；2026-09-04 自 04 evolution 迁入，AI 方法论归 05） | DATA_MODEL.md、ARCHITECTURE.md |
+| `content/05_ai_coding/GUARD_INVENTORY.md` | [工程师]+[AI] | 守卫清单与断言台账（按域分组；新增 / 合并 / 归并候选的唯一登记处） | `server/test/**`、`server/package.json` |
+| `content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md` | [工程师]+[AI] | 页签审计手册（五维检查表 / P0–P2 / 例外口径 / 怎么跑 / 怎么加检查与页签 / 报告字段） | `server/scripts/audit-tabs.mjs`、`server/scripts/audit/*`、DS_06 §五 |
+| `content/05_ai_coding/UI_REVIEW_CHECKLIST.md` | [工程师]+[AI] | 温层 UI 审查清单（按 8 组任务组织；每条带判据 + DS 节 / SD 编号 + 何时读；read_strategy: on-demand） | CLAUDE.md H40.2、DS_03 / DS_06 |
+| `content/05_ai_coding/REVIEW_QUESTION_SET.md` | [工程师]+[AI] | 审查问题集（Q-01…Q-22 布尔判据与审查方法，每轮开工逐条回答） | `QUESTION_HIT_MATRIX.md` |
+| `content/05_ai_coding/QUESTION_HIT_MATRIX.md` | [工程师]+[AI] | 问题集命中矩阵（spec × 问题的命中记录，派生不承担规范） | `REVIEW_QUESTION_SET.md` |
+| `content/05_ai_coding/CASES.md` | [工程师]+[AI] | AI 协作域判例（不产生规范效力，规范回五个分篇） | 五个分篇 |
+| `content/05_ai_coding/AGENTS.md` | [工程师]+[AI] | 05 目录协作说明：分层裁决（不写规范判据）、验证命令与常见坑 | — |
 
 ### 跨多类：经验沉淀（content/insights/）
 
@@ -151,7 +175,7 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 |------|------|------|---------|
 | `content/insights/README.md` | [用户]+[工程师] | 前后端、数据库、权限、测试、部署、架构和 AI 协作的学习入口；指向权威规范与经验文 | DOC_MAP、content/03_doc_system/、content/04_web_design/、content/05_ai_coding/ |
 | `content/insights/党支部管理与实务经验沉淀.md` | [用户]+[AI] | 经验沉淀（组织性/管理事服务人、条块二元结构、支委角色设计、活动分类体系、专班） | AI（经验提炼） |
-| `content/insights/工程与AI协作的全栈实践.md` | [用户]+[工程师] | 面向人的全栈工程方法：业务路径、数据权威源、权限、测试、运行及 AI 协作；规范细节回链 03/04/05 权威源 | insights/README.md、.ctx/ENGINEERING_ASSESSMENT.md |
+| `content/insights/工程与AI协作的全栈实践.md` | [用户]+[工程师] | 面向人的全栈工程方法：业务路径、数据权威源、权限、测试、运行及 AI 协作；含**经验各得其所（原则/方法/判例/解释四去向）**与**全局性审查优先于角落补丁**；规范细节回链 03/04/05 权威源 | insights/README.md、.ctx/ENGINEERING_ASSESSMENT.md |
 
 ### 跨多类：根目录 + 审计底座 + 实现层
 
@@ -161,10 +185,17 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | `README.md`（根目录） | [用户] | 项目门面，一句话说清是什么 | — |
 | `.ctx/TIMESTAMPS.md` | [工程师] | 文件时间戳注册表（含周期性任务追踪表） | CLAUDE.md |
 | `.ctx/SNAPSHOT.md` | [AI] | 系统快照、AI 快速同步入口（审计追溯层） | ARCHITECTURE.md、CLAUDE.md |
+| `.ctx/REVIEW_QUEUE.md` | [工程师]+[AI] | 评议队列（未闭环事项与评议规则） | CLAUDE.md H60/H60.6 |
+| `.ctx/ACTIVE_RULINGS.md` | [工程师]+[AI] | 现行有效裁定速查（权威源为月度决策日志） | CLAUDE.md H26 |
+| `.ctx/ENGINEERING_ASSESSMENT.md` | [工程师]+[AI] | 工程化评估与改造行动线 | CLAUDE.md、DOC_MAP §二 |
 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` | [工程师] | 月度执行日志 | ARCHITECTURE.md、CLAUDE.md |
 | `.ctx/logs/DECISION_LOG.md` | [工程师] | 决策日志 | ARCHITECTURE.md、CLAUDE.md |
+| `.ctx/logs/archive/YYYY-MM/` | [工程师]+[AI] | 一次性审计原文与已完成轮次报告归档 | CLAUDE.md H26.3 |
+| `.ctx/evidence/YYYY-MM-DD/` | [工程师]+[AI] | 真机截图与读数证据 | 执行日志对应条目 |
 | `docs/src/*` | [工程师] | 代码实现（workflow/services/entries/core/components/styles） | ARCHITECTURE.md |
 | `docs/help.html` | [用户] | 系统帮助与操作说明；章节阅读、全文搜索、按角色/任务进入 | Help 章节正文、FUNCTION_CATALOG、docs/src/components/sections/help-navigation.js |
+
+> **归档规则（`.ctx` 顶层准入）**：`.ctx` 顶层只列白名单 **10 项**——`logs/`、`evidence/`、`TIMESTAMPS.md`、`SNAPSHOT.md`、`REVIEW_QUEUE.md`、`ACTIVE_RULINGS.md`、`ENGINEERING_ASSESSMENT.md`、`ACTIVE_CONTEXT.md`、`README.md`、`AGENTS.md`。一次性审计报告 / 脚本生成产物在结论沉淀后移入 `.ctx/logs/archive/YYYY-MM/`，不得在顶层新增；准入与三去向见 `CLAUDE.md H26.3`。
 
 ---
 
@@ -242,3 +273,75 @@ insights 单文件膨胀后（10+ 章 / 1000+ 行），按**知识类型**拆分
 | 查看文档权威层级 | content/03_doc_system/OPERATIONS_GUIDE.md §1.1 | 本文档 §二 |
 | 查看母本子本关系 | content/03_doc_system/ARCHITECTURE.md §十 | content/03_doc_system/OPERATIONS_GUIDE.md §1.1 |
 | 查看支书重要论断 | content/01_strategy/SECRETARY_DIRECTIVES.md | CLAUDE.md H90 |
+
+---
+
+## 五、目录作用表（2026-10-24 立）
+
+> **本表回答什么**：一个目录**为什么存在、有没有自己的 README、权威源在哪、是否保留原始材料**。
+> **不回答什么**：规范条文与判例正文——分职规则见 [OPERATIONS_GUIDE.md §32](OPERATIONS_GUIDE.md#32-文档分职与判例编号2026-10-24-立)；判例见 [CASES_INDEX.md](CASES_INDEX.md)。
+> **AGENTS 列口径（2026-10-24 批次 509 更新）**：全仓现有 6 份 `AGENTS.md`（`docs/src` / `server` / `server/test` / `content/04_web_design` / `content/05_ai_coding` / `.ctx`），用于「进入该目录前读什么、改什么、禁什么、怎么验」；根 `CLAUDE.md` 仍承担全局纪律。其余目录记「无」。
+
+| 路径 | 作用一句话 | README 是否已有 | AGENTS | 权威源 | 是否保留原始材料 |
+|---|---|---|---|---|---|
+| `content/` | 五类知识类型的权威源总目录（01–05 ＋ insights） | 有（`content/README.md`） | 无 | 本文件 §二 ＋ 各层 README | 是（`01_strategy/references/` 存原文） |
+| `content/01_strategy/` | 支部战略、支书论断与发展路径 | 有 | 无 | `SECRETARY_DIRECTIVES.md` / `DEVELOPMENT_PATH.md` | 是（`references/` 存合规与会议原文） |
+| `content/01_strategy/references/` | 合规文件、历史会议材料、建设探索原文存档 | 有 | 无 | 原文本身（T1 制度原文） | 是（只存不改） |
+| `content/02_institution/` | 支部组织、角色权限、SOP 与制度判例 | 有 | 无 | `SYSTEM_ROLE_PERMISSION.md` / `COMMISSIONER_DUTY_FRAMEWORK.md` / `sop/INDEX.md`；判例 `CASES.md` | 否 |
+| `content/02_institution/sop/` | 各委员与党小组组长的操作流程 | 有 | 无 | `sop/*.md` 本身（母本） | 否 |
+| `content/03_doc_system/` | 文档治理、运行规范、导航与判例总索引 | 有 | 无 | `OPERATIONS_GUIDE.md`（§32 分职与编号）/ `ARCHITECTURE.md` / 本文件 / `CASES_INDEX.md` | 否 |
+| `content/04_web_design/` | 网站设计、数据模型、部署与设计演进；含派生索引 `PRODUCT_IA.md`（页签功能地图，不承担规范） | 有 | **有** | `design-system/DESIGN_SYSTEM.md` / `data/DATA_MODEL.md` / `deploy/DEPLOYMENT_GUIDE.md` | 否 |
+| `content/04_web_design/design-system/` | 设计系统正文与 design 域判例 | 有 | 无 | `DESIGN_SYSTEM.md`；判例 `CASES.md` | 否 |
+| `content/04_web_design/data/` | 数据模型与数据流 | 有 | 无 | `DATA_MODEL.md` | 否 |
+| `content/04_web_design/deploy/` | 部署路径、认证门控与对外对接 | 有 | 无 | `DEPLOYMENT_GUIDE.md` / `SERVER_DEPLOY_MANUAL.md` | 否 |
+| `content/04_web_design/module/` | 页面与模块设计、SOP-系统联动 | 有 | 无 | `SOP_WEBSITE_GUIDE.md`；其余为论证档案 | 否 |
+| `content/04_web_design/evolution/` | 架构演进、契约与设计方法论 | 有 | 无 | `WORKFLOW_BLOCK_CONTRACT.md` / `DESIGN_METHODOLOGY.md` | 否 |
+| `content/05_ai_coding/` | AI 协作方法论五个分篇与 ai-coding 判例 | 有 | **有** | `README.md`（索引）＋五个分篇；判例 `CASES.md` | 否 |
+| `content/insights/` | 面向人的经验沉淀与学习入口 | 有 | 无 | 不承担规范；规范回 03 / 04 / 05 | 否 |
+| `docs/` | 前端实现（页面、组件、服务、样式、数据适配） | 有 | 无 | `content/04_web_design/**` ＋ `content/03_doc_system/ARCHITECTURE.md §十一` | 是（源码） |
+| `docs/src/` | 前端代码：core / services / components / entries / workflow | 无 | 无 | 设计规范在 04，代码为子本 | 是 |
+| `docs/workspace/` | 七个角色工作台壳页面 | 无 | 无 | `docs/src/entries/workspace/**` | 是 |
+| `deploy/` | 部署、安装、体检与打包脚本 | 有 | 无 | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` | 是（脚本与模板） |
+| `server/` | 服务端 API、种子、迁移与运行脚本 | 有 | 无 | `README-server.md` / `server/README.md` | 是（服务端源码与种子） |
+| `server/test/` | 测试与守卫（`.test.js` / `.test.mjs`） | 无（见 `server/README.md`） | 无 | `README-server.md`「测试」＋ `DATA_CONSISTENCY_CHECKLIST.md §0.2` | 是 |
+| `server/routes/` | 资源路由与权限门（含 `resources/`） | 无 | 无 | `SYSTEM_ROLE_PERMISSION.md` ＋ `README-server.md` | 是 |
+| `server/services/` | 邮件、汇报等服务实现 | 无 | 无 | `README-server.md` | 是 |
+| `.ctx/` | 审计底座：日志、证据、快照、评议、裁定 | 有 | **有** | `logs/*-DECISION_LOG.md`（裁定权威）/ `TIMESTAMPS.md` | 是（日志与证据原文） |
+| `.ctx/logs/` | 执行日志、决策日志与归档审计 | 无 | 无 | `EXECUTION_LOG_INDEX.md` / `DECISION_LOG.md` | 是 |
+| `.ctx/logs/archive/` | 已闭环的一次性审计与轮次报告 | 无 | 无 | 归档原文 | 是（只存不改） |
+| `.ctx/evidence/` | 真机截图与量测读数 | 无 | 无 | 对应执行日志条目 | 是 |
+| `.trae/specs/` | 临时 spec / 任务清单（**用后即删**）；已完成专项整批归档在 `.ctx/logs/archive/2026-10/specs/`（索引同目录 `SPECS_INDEX.md`） | 无 | 无 | 任务本身；结论回流 content / `.ctx` | 否（不长期保留） |
+
+---
+
+## 六、四类载体索引（2026-10-24 立）
+
+> 分职规则（四类载体各写什么、禁止什么）见 [OPERATIONS_GUIDE.md §32](OPERATIONS_GUIDE.md#32-文档分职与判例编号2026-10-24-立)。本表只给入口。
+
+| 载体 | 入口 | 承载什么 |
+|---|---|---|
+| 规范 ① | [SECRETARY_DIRECTIVES.md](../01_strategy/SECRETARY_DIRECTIVES.md) | 战略与支书论断（元命题 / 战略路线级） |
+| 规范 ② | [SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md) | 角色权限矩阵与制度参数（键级权威） |
+| 规范 ③ | [OPERATIONS_GUIDE.md](OPERATIONS_GUIDE.md) | 文档治理、运行标准、分职与判例编号（§32） |
+| 规范 ④ | [DESIGN_SYSTEM.md](../04_web_design/design-system/DESIGN_SYSTEM.md) | 前端视觉、组件与点击落点（数据侧见 [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)） |
+| 规范 ⑤ | [content/05_ai_coding/README.md](../05_ai_coding/README.md) ＋五个分篇 | AI 协作方法（分篇为规范，README 为索引） |
+| 判例库入口 | [CASES_INDEX.md](CASES_INDEX.md) | 全部判例的编号、一句话、所属域、文件链接、对应规范编号 |
+| 索引入口 | 本文件 ＋ 各层 `README.md` | 目录作用、文件一句话、权威源指针 |
+| 派生索引入口 | [PRODUCT_IA.md](../04_web_design/PRODUCT_IA.md) | 页签功能地图（由 `capabilities/*` 与 `function-catalog.js` 派生，**不承担规范、禁止手改**） |
+| 过程记录入口 | [.ctx/logs/EXECUTION_LOG_INDEX.md](../../.ctx/logs/EXECUTION_LOG_INDEX.md) → 月度执行日志；[.ctx/logs/DECISION_LOG.md](../../.ctx/logs/DECISION_LOG.md) → 月度决策日志 | 当时做了什么、什么时候定了什么 |
+
+---
+
+## 七、重复主题的权威句位置（2026-10-27 立）
+
+> **本表回答什么**：同一条规则在多处被复述时，**哪一句是权威、其余该指向它**。本表**只给指针、不复制条文**（`OPERATIONS_GUIDE.md`「索引不得承载条文」）。
+> **用法**：写新文档引用这些主题时，引权威句所在篇名与节，不再复述一遍；清理重复表达到时以本表为锚。
+
+| 主题 | 权威句位置 | 常见复述面（引用即可，不必重写） |
+|---|---|---|
+| 一改具改（改一处须全仓同步并零残留） | `CLAUDE.md H30.1` ＋ `OPERATIONS_GUIDE.md` 变更流水线节 | `05_ai_coding/DOCUMENT_GOVERNANCE.md`、`ARCHITECTURE.md`、`DOC_MAP.md`、各层 `README.md` |
+| 单一源 / 唯一源（同一概念只在一处表达） | `05_ai_coding/DOCUMENT_GOVERNANCE.md` SSOT 四层与单一表达节 | `DESIGN_SYSTEM.md`（令牌）、`DATA_MODEL.md`（数据单一源清单）、`DATA_CONSISTENCY_CHECKLIST.md`、`REVIEW_QUESTION_SET.md` Q-01/Q-02 |
+| 判例不产生规范效力 | `OPERATIONS_GUIDE.md` 四类载体判据节 | 各域 `CASES.md` 抬头、`CASES_INDEX.md`、各层 `README.md` |
+| 索引 / README 只做索引、不承载条文 | `OPERATIONS_GUIDE.md` 索引与条文分职节 | 各层 `README.md`「不负责什么」、本文件 §六 |
+| 五类知识类型定义 | `OPERATIONS_GUIDE.md` 知识类型表 | 六份 `README.md` 首段、`ARCHITECTURE.md`、本文件 §二 |
+| 历史记录不可变 / 归档不改写 | `05_ai_coding/DOCUMENT_GOVERNANCE.md` 历史记录不可变节 | `DOC_MAP.md`、`OPERATIONS_GUIDE.md` 历史章 |

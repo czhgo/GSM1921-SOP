@@ -20,16 +20,16 @@
 //     预载后经缓存读取（签名未变秒回、变才 await 拉取）——todo-tab-shell _comboKeyOf 已并入
 //     该 token+长度指纹 → 确认/审批后渲染守卫键变化 → 重建而非命中跳过。
 
-import { getAdapter } from '../../data/data-adapter.js?v=20261018h';
-import { mockDB } from '../../core/domain/domain.js?v=20261018h';
-import { bumpToken } from '../../core/base/version-token.js?v=20261018h';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261018h';
-import { loadActivities } from '../../services/activity/activity.js?v=20261018h';
-import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261018h';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261018h';
-import { AuthStore } from '../../services/core/auth.js?v=20261018h';
+import { getAdapter } from '../../data/data-adapter.js?v=20261102b';
+import { mockDB } from '../../core/domain/domain.js?v=20261102b';
+import { bumpToken } from '../../core/base/version-token.js?v=20261102b';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261102b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261102b';
+import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261102b';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261102b';
+import { currentUserId } from '../../services/core/auth.js?v=20261102b';
 // roster=名册报送确认链（组织委员发起 → 支书确认/退回；bulk 行仅确认，退回留在详情逐项）
-import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../../services/member/member-confirmation.js?v=20261018h';
+import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../../services/member/member-confirmation.js?v=20261102b';
 
 const _pendingStatusOf = (mode) => (mode === 'org-approve' ? 'pending-org-approval' : 'pending-secretary');
 
@@ -118,20 +118,20 @@ export function renderMcBulkRowsHtml(rows, { mode = 'secretary-confirm', accent 
   if (list.length === 0) return '';
   const verb = mode === 'org-approve' ? '通过' : '确认';
   const sourceBadge = (s) => (s === 'agenda'
-    ? '<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 flex-shrink-0">议程</span>'
-    : '<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 flex-shrink-0">名册</span>');
+    ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 flex-shrink-0">议程</span>'
+    : '<span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 flex-shrink-0">名册</span>');
   const rowsHtml = list.map(r => `
-    <label class="flex items-center gap-2 px-1 py-1.5 rounded-lg hover:bg-white transition-colors cursor-pointer" data-mcb-row>
+    <label class="flex items-center gap-2 px-1 py-1.5 rounded-lg hover:bg-white transition-colors cursor-pointer" data-mcb-row data-mc-request-id="${esc(r.id)}">
       <input type="checkbox" class="mcb-check shrink-0" style="cursor:pointer;" data-mcb-source="${r.source}" data-mcb-id="${esc(r.id)}" />
       <span class="flex flex-col items-start gap-0.5 min-w-0 flex-1">
         <span class="flex items-center gap-1.5 min-w-0 w-full">
           ${sourceBadge(r.source)}
           ${r.personId
-            ? `<a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="text-sm font-medium text-gray-800 truncate hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(r.personName)}</a>`
+            ? `<a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="text-sm font-medium text-gray-800 truncate hover:text-accent transition-colors" title="查看完整档案">${esc(r.personName)}</a>`
             : `<span class="text-sm font-medium text-gray-800 truncate">${esc(r.personName)}</span>`}
-          <span class="text-[11px] text-gray-500 truncate">${esc(r.from || '')} → ${esc(r.to || '')}</span>
+          <span class="text-xs text-gray-500 truncate">${esc(r.from || '')} → ${esc(r.to || '')}</span>
         </span>
-        <span class="block text-[11px] text-gray-500 truncate w-full">${esc(r.meta || '')}${r.byName ? ` · ${esc(r.byName)}` : ''}${r.at ? ` · ${String(r.at).slice(0, 16).replace('T', ' ')}` : ''}</span>
+        <span class="block text-xs text-gray-500 truncate w-full">${esc(r.meta || '')}${r.byName ? ` · ${esc(r.byName)}` : ''}${r.at ? ` · ${String(r.at).slice(0, 16).replace('T', ' ')}` : ''}</span>
       </span>
     </label>`).join('');
   return `
@@ -141,12 +141,12 @@ export function renderMcBulkRowsHtml(rows, { mode = 'secretary-confirm', accent 
           <input type="checkbox" class="mcb-all shrink-0" style="cursor:pointer;" />
           全选（${list.length} 条）
         </label>
-        <span class="text-[11px] text-gray-500">勾选后批量${verb}，逐项处理见详情</span>
+        <span class="text-xs text-gray-500">勾选后批量${verb}，逐项处理见详情</span>
       </div>
       <div class="divide-y divide-gray-50 max-h-56 overflow-y-auto">${rowsHtml}</div>
       <div class="pt-2 flex items-center gap-2">
         <button type="button" class="btn-accent mcb-apply text-xs px-3 py-1.5" disabled>${verb} 0 项</button>
-        <span class="text-[11px] text-gray-500">批量${verb}同逐项同一写口（留痕不变）</span>
+        <span class="text-xs text-gray-500">批量${verb}同逐项同一写口（留痕不变）</span>
       </div>
     </div>`;
 }
@@ -196,7 +196,9 @@ export function bindMcBulk(container, { mode = 'secretary-confirm', onDone } = {
           if (mode === 'org-approve') await approveMemberChangeRequest(p.id);
           else await confirmMemberChangeRequest(p.id);
         } else if (p.source === 'roster' && mode !== 'org-approve') {
-          const by = AuthStore.getCurrentUser()?.personId || 'p13';
+          // P1-11：批量的名册确认也必须由真实登录人留痕（原有 p13 兜底会记到支书名下）。
+          const by = currentUserId();
+          if (!by) { showToast('error', '登录态已失效，请重新登录'); errN += 1; continue; }
           const r = await decideConfirmation(p.id, { decision: 'approved', by, note: '' });
           if (!r.ok) throw new Error(r.reason || '确认失败');
         } else {

@@ -19,7 +19,7 @@ import {
   getAccentRolePreference, setAccentRolePreference,
   resolveAppliedAccentRole, personPrefKey, syncAppearanceForActiveUser,
   getAppliedAccentColors,
-} from '../../docs/src/core/boot/theme.js?v=20261018h';
+} from '../../docs/src/core/boot/theme.js?v=20261102b';
 
 const THEME_KEY = 'workflowos_theme';
 const FONT_KEY = 'workflowos_font_size';
@@ -66,7 +66,7 @@ test('R1-A：访客在全局键留下偏好后，新登录账号 person 无键 �
   store.set(FONT_KEY, 'large');
   store.set(ACCENT_KEY, 'participant');
 
-  loginAs('p5'); // 新账号首登：person 空间全新
+  loginAs('2400012349'); // 新账号首登：person 空间全新
   assert.equal(getThemePreference(), 'system', '主题默认 = 跟随系统默认档（不继承全局 dark）');
   assert.equal(getFontSizePreference(), 'medium', '字号默认 = 中（不继承全局 large）');
   assert.equal(getAccentRolePreference(), null, '强调色默认 = 未设置 null（不继承全局 participant）');
@@ -84,14 +84,14 @@ test('R1-A：登录用户 set 只写 person 键，绝不材料化全局键', () 
   store.set(FONT_KEY, 'medium');
   store.set(ACCENT_KEY, 'secretary');
 
-  loginAs('p13');
+  loginAs('2300010001');
   setThemePreference('dark');
   setFontSizePreference('large');
   setAccentRolePreference('participant');
 
-  assert.equal(store.get(personPrefKey('p13', '-theme')), 'dark');
-  assert.equal(store.get(personPrefKey('p13', '-font-size')), 'large');
-  assert.equal(store.get(personPrefKey('p13', '-accent-role')), 'participant');
+  assert.equal(store.get(personPrefKey('2300010001', '-theme')), 'dark');
+  assert.equal(store.get(personPrefKey('2300010001', '-font-size')), 'large');
+  assert.equal(store.get(personPrefKey('2300010001', '-accent-role')), 'participant');
   // 全局键 = 访客原值（登录写入未触碰）
   assert.equal(store.get(THEME_KEY), 'light');
   assert.equal(store.get(FONT_KEY), 'medium');
@@ -116,81 +116,90 @@ test('R1-A：访客 set 只写全局键，get 读全局键；不产生任何 per
 });
 
 // ── 4) 双账号互不污染 + 切号读回 ──
-test('R1-A：p13 与 p5 偏好互不污染；切号后读回各自 person 键（p5 无键=默认）', () => {
+test('R1-A：2300010001 与 2400012349 偏好互不污染；切号后读回各自 person 键（2400012349 无键=默认）', () => {
   const store = installStorage();
-  loginAs('p13');
+  loginAs('2300010001');
   setThemePreference('dark');
   setFontSizePreference('large');
   setAccentRolePreference('participant');
   logout();
 
-  loginAs('p5'); // 切到另一账号：默认不继承
+  loginAs('2400012349'); // 切到另一账号：默认不继承
   assert.equal(getThemePreference(), 'system');
   assert.equal(getFontSizePreference(), 'medium');
   assert.equal(getAccentRolePreference(), null);
   logout();
 
-  loginAs('p13'); // 切回支书：person 键仍在
+  loginAs('2300010001'); // 切回支书：person 键仍在
   assert.equal(getThemePreference(), 'dark');
   assert.equal(getFontSizePreference(), 'large');
   assert.equal(getAccentRolePreference(), 'participant');
-  assert.equal(personKeysOf(store).length, 3, '仅 p13 三个 person 键；p5 首登零写入');
+  assert.equal(personKeysOf(store).length, 3, '仅 2300010001 三个 person 键；2400012349 首登零写入');
 });
 
-// ── 补充：resolveAppliedAccentRole 无覆盖回落默认金色 ──
-test('resolveAppliedAccentRole：登录无覆盖 → 默认金色；有覆盖 → 覆盖键；非法覆盖 → 默认金色', () => {
+// ── 补充：resolveAppliedAccentRole 无覆盖回落默认金色（批次 505：默认主题键 = gold） ──
+test('resolveAppliedAccentRole：登录无覆盖 → 默认 gold；有覆盖 → 覆盖键；非法覆盖 → 默认 gold', () => {
   const store = installStorage();
-  loginAs('p13');
-  assert.equal(resolveAppliedAccentRole('secretary'), 'participant', '登录无覆盖 → 默认金色（绝不回落全局/角色色）');
+  loginAs('2300010001');
+  assert.equal(resolveAppliedAccentRole('secretary'), 'gold', '登录无覆盖 → 默认主题键 gold（绝不回落全局/角色色）');
   store.set(ACCENT_KEY, 'leader'); // 全局残留上一登录者/访客键（应被无视）
-  assert.equal(resolveAppliedAccentRole('secretary'), 'participant', '登录解析无视全局残留');
-  setAccentRolePreference('leader');
-  assert.equal(resolveAppliedAccentRole('secretary'), 'leader', 'person 覆盖 → 覆盖键');
+  assert.equal(resolveAppliedAccentRole('secretary'), 'gold', '登录解析无视全局残留');
+  setAccentRolePreference('purple'); // 7 主题键之一
+  assert.equal(resolveAppliedAccentRole('secretary'), 'purple', 'person 覆盖 → 覆盖键');
+  setAccentRolePreference('leader'); // 历史角色键
+  assert.equal(resolveAppliedAccentRole('secretary'), 'green', '角色键经别名收敛到 7 主题键（leader → green）');
+  setAccentRolePreference('sky'); // 已删除的重复色相
+  assert.equal(resolveAppliedAccentRole('secretary'), 'blue', '旧键 sky 应回落 blue');
+  setAccentRolePreference('deep'); // 已删除的雾紫
+  assert.equal(resolveAppliedAccentRole('secretary'), 'purple', '旧键 deep 应回落 purple');
   setAccentRolePreference('ghost-role'); // 非法键
-  assert.equal(resolveAppliedAccentRole('secretary'), 'participant', '非法覆盖 → 默认金色');
+  assert.equal(resolveAppliedAccentRole('secretary'), 'gold', '非法覆盖 → 默认 gold');
 });
 
 // ── 补充：node 无 DOM 环境下模块 API 安全（守卫路径不抛）──
 test('node 环境安全：sync/DOM 依赖 API 有 typeof 守卫，调用不抛', () => {
-  loginAs('p13');
+  loginAs('2300010001');
   assert.equal(syncAppearanceForActiveUser(), undefined);
   setThemePreference('dark');
 });
 
 // ── 补充（R1-A 点⑤，2026-09-09）：getAppliedAccentColors 渲染时解析 =
 //    getAccentColors(resolveAppliedAccentRole(fallback))——登录人 person 覆盖生效、
-//    覆盖非法回落角色默认、访客回落全局键，供各消费点统一取色（模块加载期快照的替代）。 ──
-test('getAppliedAccentColors：登录 person 覆盖生效 / 无覆盖=默认金色 / 非法覆盖回落默认金色', () => {
+//    覆盖非法回落角色默认、访客回落全局键，供各消费点统一取色（模块加载期快照的替代）。
+//    批次 505：取色改为 7 主题显式表（softBg / softBorder / softText / strongBg / strongInk …），
+//    不再按 alpha 派生 rgba。 ──
+test('getAppliedAccentColors：登录 person 覆盖生效 / 无覆盖=默认金 / 非法覆盖回落默认金', () => {
   const store = installStorage();
-  loginAs('p13');
-  // 无 person 覆盖 → 默认金色（所有角色一致）
-  assert.equal(getAppliedAccentColors('secretary').accent, '#A16207');
+  loginAs('2300010001');
+  // 无 person 覆盖 → 默认 gold 主题（亮色 base #A97A12）
+  assert.equal(getAppliedAccentColors('secretary').accent, '#A97A12');
   // 全局残留（上一登录者/访客键）被无视
   store.set(ACCENT_KEY, 'leader');
-  assert.equal(getAppliedAccentColors('secretary').accent, '#A16207', '登录解析无视全局残留');
-  // person 覆盖（金 participant）→ 生效覆盖色（ACCENT_COLORS.participant 派生态：深金 hex + 亮金 bg/border）
+  assert.equal(getAppliedAccentColors('secretary').accent, '#A97A12', '登录解析无视全局残留');
+  // person 覆盖（participant 历史键 → gold 主题）→ 生效覆盖色（显式表 soft 三件套）
   setAccentRolePreference('participant');
-  assert.equal(getAppliedAccentColors('secretary').accent, '#A16207', 'person 覆盖=金（participant 深金 hex，三件套同主题色）');
-  assert.equal(getAppliedAccentColors('secretary').accentRgba, 'rgba(255,215,0,0.12)', '金 bg 用 participant 自带亮金底（覆盖默认 alpha）');
-  assert.equal(getAppliedAccentColors('secretary').accentBorder, 'rgba(255,215,0,0.35)', '金 border 用 participant 自带亮金边框');
-  // 覆盖非法 → 回落默认金色
+  assert.equal(getAppliedAccentColors('secretary').accent, '#A97A12', 'participant → gold 主题（亮色 base）');
+  assert.equal(getAppliedAccentColors('secretary').softBg, '#FBF3DC', '浅底取 gold.softBg');
+  assert.equal(getAppliedAccentColors('secretary').softBorder, '#E8D5A3', '浅底描边取 gold.softBorder');
+  assert.equal(getAppliedAccentColors('secretary').softText, '#6E4E08', '浅底深字取 gold.softText');
+  // 覆盖非法 → 回落默认 gold
   setAccentRolePreference('ghost-role');
-  assert.equal(getAppliedAccentColors('secretary').accent, '#A16207');
-  // 覆盖海蓝 → 设置与页面同源
+  assert.equal(getAppliedAccentColors('secretary').accent, '#A97A12');
+  // 覆盖宣传委员（角色键 → blue 主题）→ 设置与页面同源
   setAccentRolePreference('prop-commissioner');
-  assert.equal(getAppliedAccentColors('secretary').accent, '#2563EB');
-  // alpha 透传（海蓝 bg/border 派生自 hex）
-  const { accentRgba, accentBorder } = getAppliedAccentColors('secretary', 0.2, 0.5);
-  assert.equal(accentRgba, 'rgba(37,99,235,0.2)');
-  assert.equal(accentBorder, 'rgba(37,99,235,0.5)');
+  assert.equal(getAppliedAccentColors('secretary').accent, '#3D4E9C');
+  // 历史 alpha 参数已不生效（显式 token 不再派生 rgba）
+  const { softBg, softBorder } = getAppliedAccentColors('secretary', 0.2, 0.5);
+  assert.equal(softBg, '#EEF0F9', '浅底仍取 blue.softBg（alpha 参数不再生效）');
+  assert.equal(softBorder, '#C8CEE9', '描边仍取 blue.softBorder（alpha 参数不再生效）');
 });
 
-test('getAppliedAccentColors：访客全局覆盖优先 / 无覆盖回落默认金色', () => {
+test('getAppliedAccentColors：访客全局覆盖优先 / 无覆盖回落默认金', () => {
   const store = installStorage();
   logout();
   store.set(ACCENT_KEY, 'leader');
-  assert.equal(getAppliedAccentColors('secretary').accent, '#22C55E', '访客生效强调色 = 全局覆盖优先');
+  assert.equal(getAppliedAccentColors('secretary').accent, '#2F6B4F', '访客生效强调色 = 全局覆盖优先（leader → green）');
   store.clear();
   logout();
-  assert.equal(getAppliedAccentColors('secretary').accent, '#A16207', '访客无覆盖 → 默认金色');
+  assert.equal(getAppliedAccentColors('secretary').accent, '#A97A12', '访客无覆盖 → 默认 gold');
 });

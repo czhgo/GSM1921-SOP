@@ -3,27 +3,55 @@
 // 支部边界收敛点（防止未同步的情况）：人→支部归属、支部配置档案读取（header 软编码/主题/启停模块）
 // 单一数据源：mockDB.branches（首启 seed 自 data/mock/branches.js BRANCHES）
 
-import { mockDB } from '../../core/domain/domain.js?v=20261018h';
-import { getPersonById } from '../member/person.js?v=20261018h';
-import { PARTY_COMMITTEE, DEFAULT_BRANCH_DISPLAY_NAME } from '../../data/mock/branches.js?v=20261018h';
-import { getAdapter, persist, getDataSource } from '../../data/data-adapter.js?v=20261018h';
-import { listCapabilities } from '../../core/boot/registry.js?v=20261018h';
+import { mockDB } from '../../core/domain/domain.js?v=20261102b';
+import { getPersonById } from '../member/person.js?v=20261102b';
+import { PARTY_COMMITTEE, DEFAULT_BRANCH_DISPLAY_NAME } from '../../data/mock/branches.js?v=20261102b';
+import { PEOPLE } from '../../data/mock/people.js?v=20261102b';
+import { getAdapter, persist, getDataSource } from '../../data/data-adapter.js?v=20261102b';
+import { listCapabilities } from '../../core/boot/registry.js?v=20261102b';
 // P1a 单向权威（2026-09-03）：config 净化唯一实现 = services/branch/config-clean.js（server PATCH /branches/:id/config 同源）
-import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, sanitizeConfigCapabilityPackages, applyBranchPolicyOverrides } from './config-clean.js?v=20261018h';
-import { CAPABILITY_PACKAGES, disabledCapabilityChildIds } from '../../core/domain/capability-packages.js?v=20261018h';
+import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, sanitizeConfigCapabilityPackages, applyBranchPolicyOverrides } from './config-clean.js?v=20261102b';
+import { CAPABILITY_PACKAGES, disabledCapabilityChildIds } from '../../core/domain/capability-packages.js?v=20261102b';
 // 审计内核共享常量（2026-09-09 支书批）：why 透传/单键回滚白名单/历史上限单一源 = config-clean
 // （server resources.js 同源 import，双形态防止未同步的情况）
-import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from './config-clean.js?v=20261018h';
+import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from './config-clean.js?v=20261102b';
 // L4（2026-09-03）：支部工作地图模块目录单一源 = core/domain/work-map.js（14 模块/缺省分工/快照展开）
-import { expandWorkforce } from '../../core/domain/work-map.js?v=20261018h';
+import { expandWorkforce } from '../../core/domain/work-map.js?v=20261102b';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（覆盖写口校验用）
-import { POLICY_DEFAULTS, POLICY_OVERRIDE_SECTIONS } from '../../core/domain/policy-defaults.js?v=20261018h';
-import { randomHex } from '../../core/base/id.js?v=20261018h';
+import { POLICY_DEFAULTS, POLICY_OVERRIDE_SECTIONS, effectivePolicyWith, policySectionsByRole } from '../../core/domain/policy-defaults.js?v=20261102b';
+import { randomHex } from '../../core/base/id.js?v=20261102b';
 // 核心组判定单一源（2026-09-14 支书裁定·tab 全盘重设）：由「显示标签反推」改为「注册表 coreTab 显式声明」
-import { isCoreTab } from '../../core/domain/constants.js?v=20261018h';
+import { DEFAULT_BRANCH_ID, isCoreTab } from '../../core/domain/constants.js?v=20261102b';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
+}
+
+/**
+ * 补取支部完整档案（api 形态；D-825 批次 501）
+ * 党委目录行（GET /branches 未选中支部）只投影 id/name/type/status + config.headerTitle，
+ * 向导要读写 modules/blocks/capabilityPackages——必须换成该支部完整行，否则「保存成功 → 重进向导」读不到配置。
+ * mock 形态全量在内存，直接返回。
+ */
+export async function ensureBranchConfigLoaded(branchId) {
+  const row = getBranchById(branchId);
+  if (!branchId || getDataSource() !== 'api') return row;
+  // 已有 headerTitle 之外的配置键 = 完整行（如页面 URL 带 branchId 由全量快照恢复）
+  if (Object.keys(row?.config || {}).some((k) => k !== 'headerTitle')) return row;
+  try {
+    const rows = await getAdapter().branches.list({ branchId });
+    const full = (rows || []).find((r) => r && r.id === branchId);
+    if (!full) return getBranchById(branchId);
+    const patch = { ...full };
+    delete patch.summary; // 目录统计不是支部档案字段
+    const list = mockDB.branches || (mockDB.branches = []);
+    const idx = list.findIndex((b) => b.id === branchId);
+    if (idx >= 0) list[idx] = { ...list[idx], ...patch };
+    else list.push(patch);
+  } catch (e) {
+    console.warn('[branch] 支部完整配置读取失败（沿用目录行）', branchId, e);
+  }
+  return getBranchById(branchId);
 }
 
 // ── 工作流模块配置 L2（2026-09-03 支书裁定：支部自治/支书操作/清单+画布并用/tab 级/核心固定）──
@@ -379,7 +407,7 @@ export async function rollbackBranchConfig(branchId, { by = null, targetEntryAt,
   // api 形态：语义交服务端 /branches/:id/config/rollback（服务端角色门+同规则回滚，返回权威分支）
   if (getDataSource() === 'api') {
     try {
-      const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261018h');
+      const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261102b');
       const updated = await ApiAdapter.branches.rollbackConfig(branchId, {
         ...(typeof targetEntryAt === 'string' && targetEntryAt ? { targetEntryAt } : {}),
         ...(Number.isInteger(index) ? { index } : {}),
@@ -405,7 +433,8 @@ export async function rollbackBranchConfig(branchId, { by = null, targetEntryAt,
 
 /**
  * 保存支部工作流配置（UI 供本支部支书/副支书使用；最终写权由 server PATCH /branches/:id/config 校验。
- * 党委维护能力目录与模板，但不能替支部开关 modules/blocks/capabilityPackages）：
+ * 2026-10-21 批次 501（D-825）：**党委（party-staff）可代支部配置** modules / blocks / capabilityPackages，
+ *   每次写入进 `config.configChangeHistory` 并带 `byRole`（标明是党委代配）；支部可自行覆盖。
  *   modules —— config.modules：模块/业务 tab 配置（null=恢复默认全开；undefined=不改）；
  *   blocks  —— config.blocks：活动产出块配置（null=恢复默认；undefined=不改）
  * tabs 仅用于防御核心 tab 不可隐藏。
@@ -469,12 +498,21 @@ export async function updateBranchWorkforce(branchId, workforce, opts = {}) {
 //     组长=leader）→ 仅自己域节（含 null=恢复该域默认）。
 // 消费点：设置中心「支部治理 · 域参数」卡（L2）保存/恢复默认；读侧注入 = applyEffectivePolicyDefaultsForPerson。
 
-/** 域负责人角色 → 可管域节集合（纪检/组织/组长；一域可辖多节，2026-09-27 支书「补入口」批扩表；其余角色=不可管任何域参数） */
-export const POLICY_SECTION_BY_DOMAIN_ROLE = {
-  'disc-commissioner': ['inspection', 'attendance', 'review', 'makeup'],
-  'org-commissioner': ['memberConfirmation', 'thoughtReport'],
-  leader: ['leader'],
-};
+/** 域负责人角色 → 可管域节集合（R10-B10：由 policy-defaults.js::POLICY_OVERRIDABLE 的 domain 字段派生，
+ *  与 server 侧 policySectionsByRole() 同源；勿再手写第二份清单） */
+export const POLICY_SECTION_BY_DOMAIN_ROLE = policySectionsByRole();
+
+/**
+ * 某支部的有效策略（R10-D06 单一源）：出厂基准 + 该支部 config.policyOverrides（白名单净化后）合并。
+ * 纯读：不改 POLICY_DEFAULTS 全局，按支部 id 取——报送/提示文案都从这里取值，不直读 POLICY_DEFAULTS。
+ * @param {string} [branchId]
+ * @returns {Object} 有效策略（独立副本）
+ */
+export function getEffectivePolicy(branchId) {
+  const branch = getBranchById(branchId);
+  const clean = branch?.config ? sanitizeConfigPolicyOverrides(branch.config.policyOverrides) : null;
+  return effectivePolicyWith(clean);
+}
 
 /** 操作者角色解析（actor.role 优先；缺省回退档案角色） */
 function _actorRoleOf(actor) {
@@ -588,9 +626,9 @@ export function getBoundBranch(personId) {
  * 勿用本函数兜底判定归属——否则无归属者会被误判为 br-b1 成员（泄漏示例支部）。
  */
 export function getBranchIdOfPerson(personId) {
-  if (!personId) return 'br-b1';
+  if (!personId) return DEFAULT_BRANCH_ID;
   const person = getPersonById(personId);
-  return person?.branchId || 'br-b1';
+  return person?.branchId || DEFAULT_BRANCH_ID;
 }
 
 // 静态壳兜底名：分支数据尚未加载时的兜底（时序竞态用）——**单一源派生，不再复制字面量**：
@@ -689,7 +727,8 @@ export function getAffiliationShape(personId) {
  * 机构信息单一源（接入真实党委机构配置时替换本实现，UI 零改动）
  */
 export function getCommitteeName() {
-  return PARTY_COMMITTEE?.name || '光华管理学院党委';
+  // 兜底用中性串（不写具体学院名）：机构名缺省时显示「党委」，换部署实例不露别家组织名
+  return PARTY_COMMITTEE?.name || '党委';
 }
 
 /**
@@ -699,7 +738,7 @@ export function getCommitteeName() {
  */
 export function withinBranch(rows, personId) {
   const bid = getBranchIdOfPerson(personId);
-  return rows.filter(r => (r.branchId || 'br-b1') === bid);
+  return rows.filter(r => (r.branchId || DEFAULT_BRANCH_ID) === bid);
 }
 
 // ── 党委支部管理写操作（P1；adapter CRUD 实时写 + 本地 mockDB 同步，刷新不丢）────────
@@ -720,7 +759,7 @@ const NEW_BRANCH_NAME_MAX = 80;
  *   - headerTitle 空 → header 回退 branch.name（占位名）展示；desc 空、themePreset null（默认红调）。
  *   - config.modules/blocks null = 默认全开（同 br-b1）；config.workforce null = 缺省分工（expandWorkforce 兜底）。
  *   - secretaryId null = 席位空缺待党委任命。
- *   - 不引用演示成员 id（p1…）与任何业务域（people/activities/attendance/agenda/taskforces/notices/
+ *   - 不引用支部成员 id（学号/工号）与任何业务域（people/activities/attendance/agenda/taskforces/notices/
  *     thought-reports 等）——域内引用为空，按换壳工作单逐项填入。
  */
 export const EMPTY_BRANCH_TEMPLATE = Object.freeze({
@@ -1087,7 +1126,7 @@ export function getBranchOrg(branchId) {
 }
 
 // ── 立项⑤ 阶段A · 空模板/空支部引用审计分层（2026-09-06）──────────────
-// 空模板与「空模板初始化」产出的支部记录应满足：不含业务域键、不含演示成员 id（p1…）、
+// 空模板与「空模板初始化」产出的支部记录应满足：不含业务域键、不含支部成员 id（学号/工号）、
 // 席位空缺（无 secretaryId 任命）。纯校验函数供测试/审计断言使用（mock-integrity 演示侧不动）。
 
 /** 空支部记录不应携带的业务域键（全域单支部演示下新建支部不产生业务引用；含即异常） */
@@ -1096,6 +1135,16 @@ const EMPTY_BRANCH_FORBIDDEN_DOMAIN_KEYS = [
   'agenda', 'agendaVotes', 'taskforces', 'notices', 'todos', 'assignments',
   'makeupTasks', 'thoughtReports', 'reviews', 'archiveRecords', 'signups',
 ];
+
+/** 支部成员 id（学号/工号）集合——审计空支部记录时用于识别成员引用；党委组织员 branchId:null 不在其中 */
+const BRANCH_MEMBER_IDS = new Set(PEOPLE.filter((p) => p.branchId !== null && p.branchId !== undefined).map((p) => p.id));
+
+function _referencesBranchMember(value) {
+  if (typeof value === 'string') return BRANCH_MEMBER_IDS.has(value);
+  if (Array.isArray(value)) return value.some(_referencesBranchMember);
+  if (value && typeof value === 'object') return Object.values(value).some(_referencesBranchMember);
+  return false;
+}
 
 /**
  * 引用审计（纯）：空模板/新建空支部记录不得引用演示业务数据。
@@ -1106,8 +1155,8 @@ export function auditEmptyBranchRecord(branch) {
   if (!branch || typeof branch !== 'object' || Array.isArray(branch)) return '记录非对象';
   const present = EMPTY_BRANCH_FORBIDDEN_DOMAIN_KEYS.filter(k => branch[k] !== undefined && branch[k] !== null && branch[k] !== '');
   if (present.length) return `含业务域键：${present.join('、')}`;
-  // 不含演示成员 id（p1…）；留痕 by 允许党委组织员（p_pc 等非 p<数字>）审计人
-  if (/\bp\d+\b/.test(JSON.stringify(branch))) return '含演示成员 id 引用（p1…）';
+  // 不含支部成员 id（学号/工号 = 人员主键）；留痕 by 允许党委组织员（组织级、branchId:null）
+  if (_referencesBranchMember(branch)) return '含支部成员 id 引用';
   if (branch.secretaryId) return '含 secretaryId（席位应空缺待任命）';
   return null;
 }

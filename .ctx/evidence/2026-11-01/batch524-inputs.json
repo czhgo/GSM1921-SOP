@@ -1,0 +1,67 @@
+{
+  "at": "2026-11-01T09:16:09.013Z",
+  "viewport1440": {
+    "page": "/workspace/secretary.html?dev=secretary&tab=overview",
+    "searchWidth": 320,
+    "rowWidth": 1118,
+    "listAttr": "lf2-kw",
+    "datalistExists": true,
+    "datalistOptions": 34,
+    "errors": []
+  },
+  "viewport390": {
+    "searchWidth": 324,
+    "rowWidth": 324,
+    "fillsRow": true,
+    "errors": []
+  },
+  "pages": {
+    "org-taskforce": {
+      "url": "/workspace/org.html?dev=org-commissioner&tab=taskforce",
+      "ids": {
+        "org-tf-search": 1,
+        "org-tf-kanban": 1
+      },
+      "errors": []
+    },
+    "secretary-calendar": {
+      "url": "/workspace/secretary.html?dev=secretary&tab=calendar",
+      "ids": {
+        "cal-kw": 1,
+        "cal-brand": 1,
+        "cal-scope": 1
+      },
+      "errors": []
+    },
+    "prop-archive": {
+      "url": "/workspace/prop.html?dev=prop-commissioner&tab=archive",
+      "ids": {
+        "archive-upload-btn": 1,
+        "upload-activity": 1,
+        "upload-category": 1
+      },
+      "errors": []
+    },
+    "disc-attendance": {
+      "url": "/workspace/disc.html?dev=disc-commissioner&tab=attendance",
+      "ids": {
+        "att-table-search": 1,
+        "att-table-status": 1,
+        "att-mtx-search": 1
+      },
+      "errors": []
+    },
+    "org-roster-person-edit": {
+      "url": "/workspace/org.html?dev=org-commissioner&tab=roster",
+      "ids": {
+        "roster-list-card": 1,
+        "roster-add-btn": 1
+      },
+      "errors": [],
+      "modalFormId": 1,
+      "modalNameField": 1,
+      "modalStageField": 1
+    }
+  },
+  "consoleErrors": []
+}

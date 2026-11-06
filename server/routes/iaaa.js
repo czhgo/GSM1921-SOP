@@ -34,7 +34,7 @@
 import express from 'express';
 import { randomUUID } from 'node:crypto';
 import { requireAuth } from './auth.js';
-import { SECRETARY_AND_DEPUTY_ROLES, ORG_COMMISSIONER_ROLES, PARTY_STAFF_ROLE } from '../../docs/src/core/domain/constants.js';
+import { DEFAULT_BRANCH_ID, SECRETARY_AND_DEPUTY_ROLES, ORG_COMMISSIONER_ROLES, PARTY_STAFF_ROLE } from '../../docs/src/core/domain/constants.js';
 import { selectedBranchRequiredError } from './resources/branch-scope.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（`services/reporting.js` 是服务端单一源；禁 UTC 切串）
 import { today as todayLocal } from '../services/reporting.js';
@@ -48,7 +48,7 @@ const MOCK = process.env.IAAA_MOCK === '1';
 const AUTH_URL = process.env.IAAA_AUTH_URL || 'https://iaaa.pku.edu.cn/iaaa/oauth.jsp';   // 授权页（公开实证）
 const VERIFY_URL = process.env.IAAA_VERIFY_URL || 'https://iaaa.pku.edu.cn/iaaa/oauthlogin.do'; // 换学号/姓名（⚠ 待技术文档确认）
 const APP_ID = process.env.IAAA_APP_ID || '';             // ← 计算中心在《技术文档》里给你的 appID
-const APP_NAME = process.env.IAAA_APP_NAME || '光华管理学院党支部管理系统';
+const APP_NAME = process.env.IAAA_APP_NAME || '党支部管理系统';   // 中性缺省；部署实例用 IAAA_APP_NAME 覆盖
 const REDIRECT_URI = process.env.IAAA_REDIRECT_URI || ''; // ← 你在备案申请里填的回调地址（必须一致）
 // ════════════════════════════════════════════════════════════════
 //  【怎么拿到上面那两个值（公开流程，可自助办）】
@@ -160,8 +160,11 @@ export function createIaaaRouter(db) {
     let user = findByStudentId(db, ident.studentId);
     let created = false;
     if (!user) {
+      // R2-41（2026-10-20）：自助建号 id 直接用 IAAA 返回的学号/工号——
+      // 与「新成员 id = 学号」同源，避免生产入口持续制造 `p_<uuid>` 代理键、下一批迁移再洗一遍。
+      // `_verifyWithIaaa` 已保证 ident.studentId 非空；为空时不会走到这里（回调已 401）。
       user = {
-        id: `p_${randomUUID().replace(/-/g, '').slice(0, 12)}`,   // 与既有形态一致：`p_<uuid>`（见 services/member/person.js）
+        id: ident.studentId,
         name: ident.name,
         studentId: ident.studentId,
         partyGroup: '',
@@ -185,6 +188,14 @@ export function createIaaaRouter(db) {
     // 浏览器流：走 hash 回登录页（hash 不进服务端日志、不被 Referer 带出；前端取到后立即清掉）
     // ⚠ 批次 277：**绝对路径**（同 `/login` 处的理由——相对路径会被相对请求 URL 解析而 404）
     return res.redirect(`/login.html#iaaa=${encodeURIComponent(session)}`);
+  });
+
+  // 待归属者选支部所需的目录（只读最小字段）。
+  // 待归属账号被资源读口的 `requireAssignedBranch` 挡住（见 routes/resources/index.js），
+  // 而「选择支部」是入站必经步骤 ⇒ 由 IAAA 独立路由提供目录，不放大支部资源读权。
+  router.get('/branches', requireAuth(db), (req, res) => {
+    const rows = db.prepare('SELECT data FROM branches').all().map((r) => JSON.parse(r.data));
+    res.json(rows.map((b) => ({ id: b.id, name: b.name, type: b.type, status: b.status })));
   });
 
   // 本人选支部（须已登录且尚未归属）
@@ -211,7 +222,7 @@ export function createIaaaRouter(db) {
     const rows = listUsers(db)
       .filter((u) => u.branchId === null && u.joinIntent && u.joinIntent.branchId)
       .filter((u) => (want ? u.joinIntent.branchId === want : true))
-      .filter((u) => (mine ? u.joinIntent.branchId === (actor.branchId || 'br-b1') : true))
+      .filter((u) => (mine ? u.joinIntent.branchId === (actor.branchId || DEFAULT_BRANCH_ID) : true))
       .map((u) => ({ personId: u.id, name: u.name, studentId: u.studentId, joinIntent: u.joinIntent }));
     res.json(rows);
   });
@@ -225,7 +236,7 @@ export function createIaaaRouter(db) {
       if (!u) return res.status(404).json({ error: '账号不存在' });
       if (!u.joinIntent || !u.joinIntent.branchId) return res.status(409).json({ error: '该账号没有待确认的入站申请' });
       const target = String((req.body && req.body.branchId) || u.joinIntent.branchId);
-      if (actor.role !== 'party-staff' && target !== (actor.branchId || 'br-b1')) {
+      if (actor.role !== 'party-staff' && target !== (actor.branchId || DEFAULT_BRANCH_ID)) {
         return res.status(403).json({ error: '无权限：只能处理本支部的入站申请' });
       }
       if (verb === 'approve') {

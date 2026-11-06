@@ -3,52 +3,165 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 活动查询。
 // D4 裁决批二（2026-09-08）：「考勤概况」独立卡移除 → 考勤作为活动字段入「活动查询」行内只读摘要。
 
-import { getAppState, setState } from '../../../core/base/state.js?v=20261018h';
-import { showToast, escHtml as esc, todayLocal } from '../../../core/base/utils.js?v=20261018h';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261018h';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261018h';
-import { renderInspectorFromState, _draftMaterialCount } from '../../../components/record/inspector.js?v=20261018h';
-import { computeSecretaryStats } from '../../../services/core/roles.js?v=20261018h';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018h';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261018h';
-import { openModal, closeModal, confirmNudge, confirmWriteWithoutGrant } from '../../../components/ui/modal.js?v=20261018h';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/activity/decision-tree.js?v=20261018h';
-import { loadActivities, listBrandProposals } from '../../../services/activity/activity.js?v=20261018h';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20261018h';
-import { icon } from '../../../core/base/icons.js?v=20261018h';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261018h';
-import { liveMembers, PersonStore, getPersonName } from '../../../services/member/person.js?v=20261018h';
+import { getAppState, setState } from '../../../core/base/state.js?v=20261102b';
+import { showToast, escHtml as esc, todayLocal, describeWriteError } from '../../../core/base/utils.js?v=20261102b';
+import { renderDisclosure } from '../../../components/ui/disclosure.js?v=20261102b';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261102b';
+import { renderInspectorFromState, _draftMaterialCount } from '../../../components/record/inspector.js?v=20261102b';
+// 2026-11-01 批次 524（#7）：待办深链消费（PendingTarget）+ 复用既有活动锚点定位
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261102b';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261102b';
+// Task 6：支书「活动管理」内的条目走 locate——同页 inspector 预览 + 「打开完整页」。
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261102b';
+import { computeSecretaryStats } from '../../../services/core/roles.js?v=20261102b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261102b';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261102b';
+import { openModal, closeModal, confirmNudge, confirmWriteWithoutGrant } from '../../../components/ui/modal.js?v=20261102b';
+// 批次 524（F · 输入单一源）：布局中立的控件积木（只出控件本体，不套 label / 外边距）
+import { textInput, selectInput } from '../../../components/ui/forms.js?v=20261102b';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/activity/decision-tree.js?v=20261102b';
+import { loadActivities, listBrandProposals } from '../../../services/activity/activity.js?v=20261102b';
+import { icon } from '../../../core/base/icons.js?v=20261102b';
+import { liveMembers, PersonStore, getPersonName } from '../../../services/member/person.js?v=20261102b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261102b';
 const PEOPLE = liveMembers();
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261018h';
-import { BranchService } from '../../../services/core/runtime.js?v=20261018h';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS, ROLE_LABELS, PROJECT_ROLES, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261018h';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261102b';
+import { BranchService } from '../../../services/core/runtime.js?v=20261102b';
+import { DEFAULT_BRANCH_ID, ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS, ROLE_LABELS, PROJECT_ROLES, ACTIVITY_SCOPES, isBranchLevelScenario } from '../../../core/domain/constants.js?v=20261102b';
+// 责任党小组清单唯一来源（2026-10-21 批次 499：活动必须落到唯一责任党小组）
+import { loadPartyGroups } from '../../../services/member/party-group.js?v=20261102b';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261018h';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261018h';
-import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20261018h';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, resolveParticipantIds, isAnonymousForced } from '../../../services/activity/vote-config.js?v=20261018h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018h';
-import { getBranchIdOfPerson, getBranchById, getBranchOutputBlocks, applyWorkflowBlockPolicy, getWorkflowBlockFieldPolicy, getWorkflowBlockParticipantPolicy } from '../../../services/branch/branch.js?v=20261018h';
-import { generateId } from '../../../core/base/id.js?v=20261018h';
-import { validateAgendaStructure } from '../../../services/activity/agenda-relations.js?v=20261018h';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261102b';
+import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20261102b';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, resolveParticipantIds, isAnonymousForced } from '../../../services/activity/vote-config.js?v=20261102b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261102b';
+import { getBranchIdOfPerson, getBranchById, getBranchOutputBlocks, applyWorkflowBlockPolicy, getWorkflowBlockFieldPolicy, getWorkflowBlockParticipantPolicy } from '../../../services/branch/branch.js?v=20261102b';
+import { generateId } from '../../../core/base/id.js?v=20261102b';
+import { validateAgendaStructure } from '../../../services/activity/agenda-relations.js?v=20261102b';
 // 支部文件读侧收敛点（2026-09-10）：会前草案下拉经 branch-doc 服务读取（按归属支部过滤，跨支部不可见）
-import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch/branch-doc.js?v=20261018h';
+import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch/branch-doc.js?v=20261102b';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
-import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST, THREE_MEETINGS_MANIFESTS } from '../../../workflow/blocks/manifests.js?v=20261018h';
+import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST, THREE_MEETINGS_MANIFESTS } from '../../../workflow/blocks/manifests.js?v=20261102b';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261018h';
-// 统一检索引擎（2026-10-04 批次 373）：党小组活动列表（原支书台「党小组与活动」分区）按对象归位到本页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261018h';
-// 项目赋权整卡（2026-10-04 批次 373 · 支书圈乙「整卡搬去活动管理」）：实现单一源＝assign-tab.js
-//   ——本页只给落点宿主，不新造第二套视觉/表单（同 group-progress-tab 既有形态）。
-import { mountActivityProjectAuth } from './assign-tab.js?v=20261018h';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261102b';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261102b';
+// 2026-10-25 IA 62→45：本页**只承担活动生命周期**——原「活动查询」折叠区（`renderQueryView`）与
+//   「党小组活动」独立卡已删：关键词 / 类别 / 品牌 / 党小组活动统一为日历工具栏的筛选控件（同一屏、一次点击）；
+//   项目赋权整卡（`mountActivityProjectAuth`）已移出——专班赋权回组织台「专班管理」，活动赋权在活动详情
+//   （工作组组织者 / 深度参与者编辑器），本页不再同时承担「生命周期」与「权限分配」。
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
 function _accentHex() {
   return getAppliedAccentColors('secretary').accent;
+}
+
+// ── 责任党小组与跨组招募（2026-10-21 批次 499 · 支书补充口径）───────────────
+// 跨组只是参与/招募范围，活动仍须落到唯一责任党小组；组织者一般本组，
+// 跨党小组深度参与者由组织委员协调。判据与服务端 activityCreationDeny /
+// validAssignments 同口径——本处只做表单呈现与提交前软提示，不另立规则。
+function _currentBranchId() {
+  const me = AuthStore.getCurrentUser();
+  return me?.branchId || getBranchIdOfPerson(me?.personId) || DEFAULT_BRANCH_ID;
+}
+
+/** 本支部活组（显示顺序＝组序） */
+function _branchPartyGroups() {
+  const branchId = _currentBranchId();
+  return loadPartyGroups()
+    .filter((g) => g.status === 'active' && (g.branchId || DEFAULT_BRANCH_ID) === branchId)
+    .sort((a, b) => (Number(a.seq) || 0) - (Number(b.seq) || 0));
+}
+
+/** 本支部组织委员（跨组深参的默认协调人） */
+function _orgCommissionerId() {
+  const branchId = _currentBranchId();
+  return PEOPLE.find((p) => p.role === 'org-commissioner' && (p.branchId || DEFAULT_BRANCH_ID) === branchId)?.id || '';
+}
+
+/** 当前表单里已选的责任组 */
+function _selectedHostGroup() {
+  const id = wp.hostGroupId || '';
+  return _branchPartyGroups().find((g) => g.id === id) || null;
+}
+
+/** 赋权名单里跨党小组的深度参与者 / 组织者（用于提交前软提示与留痕） */
+function _pendingAuthCrossGroup() {
+  const group = _selectedHostGroup();
+  if (!group) return { deep: [], organizers: [] };
+  const deep = [];
+  const organizers = [];
+  for (const item of (wp.pendingAuth || [])) {
+    const person = PersonStore.getById(item.personId) || PEOPLE.find((p) => p.id === item.personId);
+    if (!person?.partyGroup || person.partyGroup === group.name) continue;
+    if (item.role === 'deep') deep.push(person);
+    if (item.role === 'organizer') organizers.push(person);
+  }
+  return { deep, organizers };
+}
+
+function _renderOrganizingScopeSection(scenarioId) {
+  const groups = _branchPartyGroups();
+  let html = `<div class="mb-3 card rounded-xl p-4" id="wp-organizing-scope">`;
+  html += `<p class="text-xs font-medium text-gray-700 mb-1.5">组织落点</p>`;
+  if (isBranchLevelScenario(scenarioId)) {
+    html += `<p class="text-xs text-gray-600 leading-5">支部级法定会议：由支委会 / 党员大会 / 党课统一组织，<b>不指定承办党小组</b>。</p>`;
+    html += `</div>`;
+    return html;
+  }
+  html += `<label for="wp-host-group" class="text-xs text-gray-500 mb-1.5 block font-medium">承办党小组 <span class="text-red-600">*</span></label>`;
+  html += selectInput({
+    id: 'wp-host-group',
+    options: [{ value: '', label: '请选择承办党小组' }, ...groups.map((g) => ({ value: g.id, label: g.name }))],
+    value: wp.hostGroupId || '',
+    className: 'w-full',
+    attrs: 'aria-describedby="wp-host-group-hint"',
+  });
+  html += `<p id="wp-host-group-hint" class="text-xs text-gray-500 mt-1">跨组只影响招募范围；活动始终落到该承办党小组。</p>`;
+  html += `<label class="flex items-start gap-2 text-xs text-gray-700 mt-2.5"><input type="checkbox" id="wp-cross-recruit" class="checkbox-accent mt-0.5"${wp.crossRecruit ? ' checked' : ''}><span>需从其他党小组招募深度参与者<span class="text-gray-500">（由组织委员协调）</span></span></label>`;
+  const coordinatorId = _orgCommissionerId();
+  html += `<p class="text-xs text-gray-500 mt-1">协调人：${coordinatorId ? esc(getPersonName(coordinatorId) || coordinatorId) + '（组织委员）' : '本支部未配置组织委员，暂不能跨组招募'}</p>`;
+  const cross = _pendingAuthCrossGroup();
+  const exceptionReason = wp.organizerExceptionReason || '';
+  html += `<div class="mt-2.5${cross.organizers.length ? '' : ' hidden'}" id="wp-organizer-exception-slot">`;
+  html += `<label for="wp-organizer-exception" class="text-xs text-gray-500 mb-1 block font-medium">组织者跨组说明 <span class="text-red-600">*</span></label>`;
+  html += textInput({
+    id: 'wp-organizer-exception',
+    value: exceptionReason,
+    placeholder: '组织者一般由承办党小组承担，请说明本次由他组同志承担的原因',
+    className: 'w-full',
+  });
+  html += `<p class="text-xs text-amber-700 mt-1">组织者一般由本组承担；确需他组同志时，说明将随活动留存（不阻断）。</p>`;
+  html += `</div>`;
+  html += `<p id="wp-cross-deep-note" class="text-xs text-amber-700 mt-2${cross.deep.length ? '' : ' hidden'}">${cross.deep.length ? `已在名单中的跨组深参：${cross.deep.map((p) => esc(p.name || p.id)).join('、')}——提交后由组织台「跨组招募待协调」跟进。` : ''}</p>`;
+  html += `</div>`;
+  return html;
+}
+
+/** 责任组 / 跨组招募与赋权名单联动（不重绘整个面板，避免丢已填内容） */
+function _syncOrganizingScopeUI(container) {
+  const hostSelect = container.querySelector('#wp-host-group');
+  if (hostSelect) wp.hostGroupId = hostSelect.value || '';
+  const recruit = container.querySelector('#wp-cross-recruit');
+  if (recruit) wp.crossRecruit = !!recruit.checked;
+  const cross = _pendingAuthCrossGroup();
+  // 名单里出现跨组深参 ⇒ 自动标记跨组招募（不自动勾选会被服务端拒绝，属假成功）
+  if (cross.deep.length && recruit && !recruit.checked) {
+    recruit.checked = true;
+    wp.crossRecruit = true;
+    showToast('warn', '已标记跨组招募：跨党小组深度参与者由组织委员协调');
+  }
+  const slot = container.querySelector('#wp-organizer-exception-slot');
+  if (slot) slot.classList.toggle('hidden', cross.organizers.length === 0);
+  const deepNote = container.querySelector('#wp-cross-deep-note');
+  if (deepNote) {
+    deepNote.classList.toggle('hidden', cross.deep.length === 0);
+    deepNote.textContent = cross.deep.length
+      ? `已在名单中的跨组深参：${cross.deep.map((p) => p.name || p.id).join('、')}——提交后由组织台「跨组招募待协调」跟进。`
+      : '';
+  }
 }
 
 // L3 S4：主题党日块 id 由 manifest 单一源派生（2026-09-03 去重收口，勿再手写字符串）
@@ -126,135 +239,171 @@ function _agendaRowHTML({ id = '', item = '', host = '', kinds = [], branchDocId
   const docVisible = kinds.includes('discussion-file') ? '' : ' hidden';
   const memberVisible = kinds.includes('attendee-list') ? '' : ' hidden';
   const agendaId = esc(id || generateId('ag'));
-  const stepOptions = [['', '普通议题'], ['discussion', '讨论项'], ['vote', '表决项']].map(([value, label]) =>
-    `<option value="${value}" ${value === agendaStep ? 'selected' : ''}>${label}</option>`).join('');
-  const targetOptions = ['', ...AGENDA_TARGET_STAGES].map((s) =>
-    `<option value="${s}" ${s === (toStage || '') ? 'selected' : ''}>${s ? `转为${s}` : '选择目标阶段'}</option>`).join('');
+  const stepOptions = [['', '普通议题'], ['discussion', '讨论项'], ['vote', '表决项']]
+    .map(([value, label]) => ({ value, label }));
+  const targetOptions = ['', ...AGENDA_TARGET_STAGES]
+    .map((s) => ({ value: s, label: s ? `转为${s}` : '选择目标阶段' }));
   return `
     <div class="wp-agenda-row border border-gray-100 rounded-lg p-2 space-y-1.5 bg-white" data-agenda-id="${agendaId}"${brandActivityId ? ` data-brand-activity-id="${esc(brandActivityId)}"` : ''}>
       <div class="flex items-center gap-2">
-        <input type="text" class="wp-agenda-item input-flat w-full text-xs" placeholder="议题，如：讨论关于 N 名发展对象转为预备党员" value="${item}">
-        <input type="text" class="wp-agenda-host input-flat w-24 text-xs" placeholder="主持人" value="${host}">
-        <button type="button" data-action="agenda-remove" class="btn-ghost text-sm px-1 shrink-0" title="删除该条">✕</button>
+        ${textInput({ value: item, placeholder: '议题，如：讨论关于 N 名发展对象转为预备党员', className: 'wp-agenda-item w-full' })}
+        ${textInput({ value: host, placeholder: '主持人', className: 'wp-agenda-host w-24' })}
+        <button type="button" data-action="agenda-remove" class="btn-outline btn-icon shrink-0" aria-label="删除该条议程" title="删除该条">✕</button>
       </div>
       <div class="flex flex-wrap items-center gap-1.5">
-        <label class="text-[11px] text-gray-500 shrink-0" for="${agendaId}-step">步骤</label>
-        <select id="${agendaId}-step" class="wp-agenda-step input-flat text-xs" aria-label="议程步骤">${stepOptions}</select>
+        <label class="text-xs text-gray-500 shrink-0" for="${agendaId}-step">步骤</label>
+        ${selectInput({ id: `${agendaId}-step`, options: stepOptions, value: agendaStep, ariaLabel: '议程步骤', className: 'wp-agenda-step' })}
         <div class="wp-agenda-discussion-slot flex items-center gap-1.5${agendaStep === 'vote' ? '' : ' hidden'}">
-          <label class="text-[11px] text-gray-500 shrink-0" for="${agendaId}-discussion">对应讨论项</label>
-          <select id="${agendaId}-discussion" class="wp-agenda-discussion-ref input-flat text-xs" aria-label="表决项对应的讨论项" data-selected="${esc(discussionAgendaItemId)}"></select>
+          <label class="text-xs text-gray-500 shrink-0" for="${agendaId}-discussion">对应讨论项</label>
+          ${selectInput({ id: `${agendaId}-discussion`, ariaLabel: '表决项对应的讨论项', className: 'wp-agenda-discussion-ref', attrs: `data-selected="${esc(discussionAgendaItemId)}"` })}
         </div>
-        <span class="text-[11px] text-gray-500 shrink-0">类型</span>
+        <span class="text-xs text-gray-500 shrink-0">类型</span>
         ${AGENDA_KIND_CHIPS.map((c) => `
-          <button type="button" data-kind="${c.kind}" class="btn-tab wp-agenda-kind text-xs px-3 py-1.5 rounded-lg border text-gray-600 transition-colors${kindOn(c.kind)}">${c.label}</button>
+          <button type="button" data-kind="${c.kind}" class="btn-tab wp-agenda-kind text-xs px-3 py-1.5 rounded-lg text-gray-600 transition-colors${kindOn(c.kind)}">${c.label}</button>
         `).join('')}
       </div>
       <div class="wp-agenda-doc-slot${docVisible}">
-        <select class="wp-agenda-doc input-flat w-full text-xs">
-          <option value="">加载会前草案…</option>
-        </select>
-        <p class="wp-agenda-doc-hint text-[11px] text-gray-500 mt-1 hidden">暂无会前草案，<a href="search.html" target="_blank" class="text-blue-600 hover:text-blue-800">去资料查询写入 →</a></p>
+        ${selectInput({ options: [{ value: '', label: '加载会前草案…' }], className: 'wp-agenda-doc w-full' })}
+        ${emptyStateHtml({ text: '暂无会前草案', variant: 'inline', className: 'wp-agenda-doc-hint mt-1 hidden', actionHtml: '<a href="search.html" target="_blank" class="text-accent">去资料查询写入 →</a>' })}
       </div>
       <div class="wp-agenda-member-slot flex items-center gap-2${memberVisible}">
-        <select class="wp-agenda-to input-flat w-32 shrink-0">${targetOptions}</select>
+        ${selectInput({ options: targetOptions, value: toStage || '', className: 'wp-agenda-to w-32 shrink-0' })}
         <div class="wp-agenda-person-slot flex-1"></div>
       </div>
     </div>`;
 }
 
 // 各 Tab 内容骨架模板（复用原 HTML 静态容器结构，由 render 函数按需注入）
+// 2026-10-25 IA 62→45（单屏纵向一致 + 生命周期单一职责）：
+//   · 「活动查询」折叠区与「党小组活动」独立卡已删 —— 关键词 / 类别 / 品牌 / 党小组活动改为**日历工具栏**的
+//     四个筛选控件（同一行、同形 `.input-flat`），活动列表即日历（点日期看当日、点条目进详情）；
+//   · 「+ 新建党小组活动」保留在日历卡头（写口单一源仍是写入浮窗，且预置 direction='bottom-up'）；
+//   · 项目赋权整卡移出（专班赋权回组织台「专班管理」；活动赋权在活动详情）。
 const CALENDAR_TAB_HTML = `
+  ${renderTabHeader({
+    title: '活动管理',
+    description: '全支部活动日历：筛选、写入与台账。',
+    // 批次 525（#2）：月/周/日/列表视图切换移出筛选条，与页头同一行（页头右侧）。
+    actions: '<div id="cal-view-switcher"></div>',
+  })}
   <!-- 统计条（紧凑文本概览） -->
   <div id="secretary-stats" class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500 mb-4 py-2 border-b border-gray-100"></div>
   <!-- 活动日历（2026-08-05：「写入活动」并入日历卡片头部，删除原独立活动写入卡片） -->
   <div class="card rounded-xl p-5 mb-4">
     <!-- 2026-10-01 批次 317（支书 V-3「功能钮提台顶栏全局固定位」）：原在本行的「写入活动」按钮
          已提到顶栏（ws-secretary-entry.js 经 header.js 的 mountHeaderCta 挂载）；
-         id ws-sec-write-btn 一字未改 ⇒ 台账 / 守卫 / 真机选择器零改签——本行只留标题。
+         id ws-sec-write-btn 一字未改 ⇒ 台账 / 守卫 / 真机选择器零改签。
          ⚠ 本块是模板字面量：注释里**不得出现反引号**（会截断模板串，批次 317 现场踩过）。 -->
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="font-title-cn text-base font-semibold text-gray-800">活动日历</h3>
-    </div>
+    ${renderCardHeader({
+      title: '活动日历',
+      actions: '<button type="button" id="cal-new-group-activity" class="btn-accent-soft">+ 新建党小组活动</button>',
+    })}
     <div id="calendar-view-section" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
       <div class="lg:col-span-3">
-        <div class="flex flex-wrap items-center gap-2 mb-3">
-          <select id="month-selector" class="input-flat text-xs"></select>
-          <div id="cal-view-switcher"></div>
+        <!-- P3 四段（批次 525 · #2 定版两行）：第 1 行＝月份＋搜索，第 2 行＝3 分面＋清除；
+             视图切换（月/周/日/列表）已移出筛选条，挂在页头右侧。 -->
+        <div class="lf-bar mb-3">
+          <div class="lf-bar__row" data-seg="scope">
+            ${selectInput({ id: 'month-selector', className: 'lf-select', attrs: 'style="min-width:120px;"' })}
+          </div>
+          <div class="lf-bar__row" data-seg="search">
+            ${textInput({ id: 'cal-kw', placeholder: '搜索活动名称…', ariaLabel: '搜索活动名称', className: 'lf-kw' })}
+          </div>
+          <div class="lf-bar__row" data-seg="facet" data-break-before="1">
+            ${selectInput({ id: 'cal-cat', ariaLabel: '活动类别筛选', className: 'lf-select' })}
+            ${selectInput({
+              id: 'cal-brand',
+              options: [{ value: '', label: '品牌：全部' }, { value: '1', label: '只看品牌' }],
+              ariaLabel: '品牌筛选',
+              className: 'lf-select',
+            })}
+            ${selectInput({
+              id: 'cal-scope',
+              options: [{ value: '', label: '范围：全部活动' }, { value: 'bottom-up', label: '党小组活动' }],
+              ariaLabel: '活动范围筛选',
+              className: 'lf-select',
+            })}
+          </div>
+          <div class="lf-bar__row" data-seg="reset">
+            <button type="button" id="cal-filter-clear" class="btn-tab lf-btn">清除</button>
+          </div>
         </div>
+        <p id="cal-filter-note" class="text-xs text-gray-500 mb-2"></p>
         <div id="cal-main-grid"></div>
         <div id="calendar-legend" class="mt-3"></div>
       </div>
       <div id="inspector-container" class="lg:col-span-2 rounded-xl bg-gray-50/50 border border-gray-100 p-3">
-        <div id="inspector-default" class="text-sm text-gray-500 text-center py-8">点击日期查看活动详情，或点击活动条目直接进入详情</div>
+        <div id="inspector-default" class="text-sm text-gray-500 text-center py-8">未选择日期</div>
         <div id="inspector-content" class="hidden">
-          <h4 id="inspector-date-title" class="font-title-cn text-sm font-bold text-gray-800 mb-3"></h4>
+          <h4 id="inspector-date-title" class="text-sm font-bold text-gray-800 mb-3"></h4>
           <div id="inspector-cards"></div>
         </div>
       </div>
     </div>
+    <p class="text-xs text-gray-500 mt-3">活动赋权在活动详情、专班赋权在组织台。</p>
   </div>
-  <!-- 党小组活动（2026-10-04 批次 373 · 支书 #10「按对象归位」：原支书台「党小组与活动」分区迁入本页） -->
-  <div class="card rounded-xl p-4 mb-4">
-    <div class="flex items-center justify-between mb-1">
-      <h3 class="font-title-cn text-base font-semibold text-gray-800">党小组活动</h3>
-      <button type="button" id="cal-new-group-activity" class="btn-accent-soft text-xs px-3 py-1.5 rounded-lg shrink-0">+ 新建党小组活动</button>
-    </div>
-    <p class="text-xs text-gray-500 mb-2.5">党小组发起或承办的活动（活动方向「自下而上」）在此归集，点行看详情；新建走本页「写入活动」，填表时在「高级选项 · 发起方向」选「自下而上」。</p>
-    <div id="cal-group-activities"></div>
-  </div>
-  <!-- D4 裁决批二（2026-09-08）：原「考勤概况」独立折叠卡已移除——
-       考勤作为该活动的字段出现在下方「活动查询」行内只读摘要（支书只读监督）；
-       纪检总表与全局概况 KPI 为专职读位不动；异常处理位 = 纪检考勤管理。 -->
-  <!-- 活动查询（默认折叠，点击展开） -->
-  <div class="card rounded-xl">
-    <button id="query-toggle" type="button" class="btn-ghost w-full px-6 py-3 flex items-center justify-between">
-      <h3 class="font-title-cn text-base font-semibold text-gray-800">活动查询</h3>
-      <svg id="query-toggle-icon" class="w-4 h-4 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
-      </svg>
-    </button>
-    <div id="query-collapsible" class="hidden px-6 pb-6">
-      <div id="secretary-query-container"></div>
-    </div>
-  </div>
-  <!-- 项目赋权（2026-10-04 批次 373 · 支书圈乙：原支书台「党小组与活动」整卡搬入本页；含 已赋权记录·活动/专班） -->
-  <div id="cal-activity-auth-host" class="mt-4"></div>
 `;
 
-/** 渲染活动管理 tab：统计条+考勤+日历+写入+查询（增量刷新，写入面板防重渲染） */
+/** 渲染活动管理 tab：统计条 + 筛选工具栏 + 日历 + 写入浮窗（增量刷新，写入面板防重渲染） */
 export function renderContent(state) {
   const tc = document.getElementById('secretary-tab-content');
-  if (!tc) return;
+  // 2026-10-25 Task 1.3：容器缺失不再静默 return——抛出后由 tab-bar 的渲染生命周期落可见错误卡（含重试）。
+  if (!tc) throw new Error('[calendar-tab] 缺少内容容器 #secretary-tab-content');
   if (tc.dataset.currentTab !== 'calendar') {
     tc.innerHTML = CALENDAR_TAB_HTML;
     tc.dataset.currentTab = 'calendar';
   }
 
-  const activities = state.activities || [];
-  renderSecretaryStats(activities);
+  // 2026-11-01 批次 524（#7）：待办跳转深链——只消费属于本页签的目标；非本页目标保持原样，
+  //   避免误清其它页签的待处理目标（PendingTarget 为一次性消费）。
+  const pending = PendingTarget.peek();
+  const navTarget = pending && pending.tab === 'calendar' ? PendingTarget.consume() : null;
+  const navActId = navTarget && navTarget.kind === 'activity' ? navTarget.id : null;
+  // 深链目标优先当作「选中活动」，使月份选择器先切到该活动所在月（与 URL selectedActivityId 同口径）
+  const view = (navActId && state && !state.selectedActivityId)
+    ? { ...state, selectedActivityId: navActId }
+    : state;
 
-  // T229：品牌筛选并入活动查询（品牌 chip 开关），日历恢复全量
-  const displayActivities = activities;
-  const filteredState = { ...state, activities: displayActivities };
+  const activities = view.activities || [];
+  renderSecretaryStats(activities);
+  renderCalendarFilterOptions();
+
+  // 2026-10-25 IA 62→45：筛选（关键词 / 类别 / 品牌 / 党小组活动）在**同一屏工具栏**上完成，
+  //   过滤结果直接驱动日历与右栏详情（原「活动查询」折叠区已删，不再有第二套列表）。
+  const displayActivities = filterActivities(activities);
+  const filteredState = { ...view, activities: displayActivities };
   // 月份一致性：以月份选择器为准（含"默认跟随当前月"规则），避免与 state.displayMonth 分叉
   // URL 直达（首页跳转落点 2026-08-08）：携带 selectedActivityId 时优先定位该活动所在月
-  const targetAct = state.selectedActivityId
-    ? activities.find(a => a.id === state.selectedActivityId)
+  const targetAct = view.selectedActivityId
+    ? activities.find(a => a.id === view.selectedActivityId)
     : null;
-  const targetMonth = targetAct?.date?.slice(0, 7) || state.displayMonth || undefined;
+  const targetMonth = targetAct?.date?.slice(0, 7) || view.displayMonth || undefined;
   const displayMonth = populateMonthSelector(displayActivities, targetMonth);
   renderCalendarByActivities(filteredState, displayMonth);
   renderInspectorFromState(filteredState); _decorateInspectorActivityLinks();
   bindMonthSelector();
-  renderQueryPanel(displayActivities);
-  bindQueryToggle();
-
-  // 2026-10-04 批次 373（支书 `#10` 按对象归位）：党小组活动 ＋ 项目赋权整卡自「党小组与活动」迁入本页
-  //   ——党小组活动判据单一源＝活动 direction==='bottom-up'（随迁，未引入第二判据）；项目赋权整卡
-  //   实现单一源＝assign-tab.js::mountActivityProjectAuth（含 已赋权记录·活动/专班）。
-  renderGroupActivities(displayActivities);
+  bindCalendarFilters();
   bindGroupActivityNew();
-  mountActivityProjectAuth(document.getElementById('cal-activity-auth-host'));
+
+  const noteEl = document.getElementById('cal-filter-note');
+  if (noteEl) {
+    const on = _activeFilterCount();
+    noteEl.textContent = on
+      ? `筛选后 ${displayActivities.length} / ${activities.length} 场`
+      : '';
+  }
+
+  // 2026-11-01 批次 524（#7）：深链定位——目标活动卡片渲染后滚动 + 高亮（复用既有锚点手法）；
+  //   目标在折叠/隐藏区或当前筛选外时，不硬造动画，只提示「已到页但未找到」。
+  if (navActId) {
+    let attempts = 0;
+    const locate = () => {
+      if (focusActivityAnchor(tc, navActId)) return;
+      if (attempts++ < 20) setTimeout(locate, 150);
+      else showToast('info', '已到活动管理；当前筛选或月份中未找到该活动');
+    };
+    setTimeout(locate, 150);
+  }
 
   // 写入活动 → 悬浮表单（T-217 §3：原内联 #write-form-area 迁移至 modal）
   // 2026-10-01 批次 317（支书 V-3）：按钮**已移出本 tab** ⇒ 其绑定与「党委下钻只读 ⇒ 不挂入口」
@@ -263,6 +412,84 @@ export function renderContent(state) {
 }
 
 // ── 活动管理 tab 子模块 ──────────────────────────────────
+
+/** 类别下拉（大类 + 子类合并为单层选项，值带前缀：`三会一课/||子类`） */
+const CAL_CATEGORY_PREFIX = { '三会一课': '三会一课/', '主题党日': '主题党日/' };
+
+/** 渲染类别下拉（只在骨架内一次；选项由活动类型单一源派生，不手写类型清单） */
+function renderCalendarFilterOptions() {
+  const el = document.getElementById('cal-cat');
+  if (!el || el.dataset.built === '1') return;
+  el.dataset.built = '1';
+  const groups = [
+    { label: '三会一课', items: ACTIVITY_CLASSIFICATION['three-meetings'].subtypes },
+    { label: '主题党日', items: ACTIVITY_CLASSIFICATION['theme-party'].carriers },
+  ];
+  el.innerHTML = '<option value="">活动类别：全部</option>'
+    + groups.map((g) => `<optgroup label="${esc(g.label)}">${g.items.map((s) => `<option value="${esc(CAL_CATEGORY_PREFIX[g.label] + s)}">${esc(s)}</option>`).join('')}</optgroup>`).join('');
+}
+
+/** 当前是否有筛选（用于页内计数说明） */
+function _activeFilterCount() {
+  return ['cal-kw', 'cal-cat', 'cal-brand', 'cal-scope']
+    .filter((id) => (document.getElementById(id)?.value || '').trim()).length;
+}
+
+/** 按工具栏筛选活动（关键词 = 标题；类别 = 大类或子类；品牌 = isBrand；范围 = bottom-up） */
+function filterActivities(activities) {
+  const kw = (document.getElementById('cal-kw')?.value || '').trim().toLowerCase();
+  const cat = document.getElementById('cal-cat')?.value || '';
+  const brandOn = (document.getElementById('cal-brand')?.value || '') === '1';
+  const scope = document.getElementById('cal-scope')?.value || '';
+  return (activities || []).filter((a) => {
+    if (!a) return false;
+    if (kw && !String(a.title || '').toLowerCase().includes(kw)) return false;
+    if (brandOn && !a.isBrand) return false;
+    // 党小组活动判据单一源＝活动 direction==='bottom-up'（原独立列表同一判据）
+    if (scope === 'bottom-up' && a.direction !== 'bottom-up') return false;
+    if (cat) {
+      const [groupLabel, sub] = cat.includes('/') ? cat.split('/') : [cat, ''];
+      if (groupLabel === '三会一课') {
+        if (sub) return a.type === sub;
+        return classifyActivityType(a.type) === 'three-meetings';
+      }
+      if (groupLabel === '主题党日') {
+        if (sub) return (a.carriers || []).includes(sub);
+        return classifyActivityType(a.type) === 'theme-party';
+      }
+    }
+    return true;
+  });
+}
+
+/** 日历筛选控件事件（2026-10-25 Task 1.5：绑定标记挂在**控件自身**，不挂持久容器
+ *  `#secretary-tab-content`——骨架被重建后新控件仍会重新绑定；离开再回来筛选照常生效）。 */
+function bindCalendarFilters() {
+  const rerender = () => renderContent(getAppState());
+  ['cal-kw'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el || el.dataset.bound === '1') return;
+    el.dataset.bound = '1';
+    el.addEventListener('input', rerender);
+  });
+  ['cal-cat', 'cal-brand', 'cal-scope'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el || el.dataset.bound === '1') return;
+    el.dataset.bound = '1';
+    el.addEventListener('change', rerender);
+  });
+  const clear = document.getElementById('cal-filter-clear');
+  if (clear && clear.dataset.bound !== '1') {
+    clear.dataset.bound = '1';
+    clear.addEventListener('click', () => {
+      ['cal-kw', 'cal-cat', 'cal-brand', 'cal-scope'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      rerender();
+    });
+  }
+}
 
 /** 统计条：紧凑文本概览（圆点+数字+标签） */
 function renderSecretaryStats(activities) {
@@ -273,7 +500,6 @@ function renderSecretaryStats(activities) {
     { label: '待赋权活动', value: stats.pendingAuth, color: _accentHex() },
     { label: '活跃活动', value: stats.activeEvents, color: _accentHex() },
     { label: '本月活动', value: stats.monthEvents, color: _accentHex() },
-    { label: '党小组组长', value: stats.authGranted, color: _accentHex() },
   ];
   statsEl.innerHTML = items.map(s => `
     <span class="inline-flex items-center gap-1.5">
@@ -282,64 +508,6 @@ function renderSecretaryStats(activities) {
       <span>${s.label}</span>
     </span>
   `).join('');
-}
-
-/** 活动查询视图（包装组件 renderQueryView，组装级联大类 + 品牌 chip 配置） */
-function renderQueryPanel(displayActivities) {
-  const queryContainer = document.getElementById('secretary-query-container');
-  if (!queryContainer) return;
-  // D4 裁决批二（2026-09-08）：考勤作为活动字段——查询行内只读摘要（inspector.js 禁改 →
-  // 字段落查询行自有区）。一次性分组 Map，逐行 O(1)；数据现读 attendance 记录。
-  const attendanceRecords = loadAttendanceRecords();
-  const recordsByActivity = new Map();
-  for (const r of attendanceRecords) {
-    if (!r || !r.activityId) continue;
-    const k = r.activityId;
-    if (!recordsByActivity.has(k)) recordsByActivity.set(k, []);
-    recordsByActivity.get(k).push(r);
-  }
-  renderQueryView(queryContainer, {
-    searchPlaceholder: '搜索活动名称...',
-    searchKey: 'title',
-    // T229：类型体系层级化筛选——大类下拉 → 子类 chips 联动（三会一课固定子类 / 主题党日载体）
-    category: {
-      key: 'category',
-      label: '活动类别',
-      groups: {
-        '三会一课': ACTIVITY_CLASSIFICATION['three-meetings'].subtypes,
-        '主题党日': ACTIVITY_CLASSIFICATION['theme-party'].carriers,
-      },
-      match(item, subValue, catValue) {
-        if (subValue) {
-          if (catValue === '主题党日') {
-            return (item.carriers || []).includes(subValue);
-          }
-          return item.type === subValue; // 三会一课子类（组织生活会是内容，不单独成子类）
-        }
-        return classifyActivityType(item.type) === (catValue === '三会一课' ? 'three-meetings' : 'theme-party');
-      },
-    },
-    brandChip: { key: 'brand', label: '只看品牌' },
-    data: displayActivities,
-    // 实体条目可点（2026-09-12 支书裁定）：查询行 = 活动实体 → 点击直达活动详情页
-    // （复用既有深链 activity.html?id=，与 visitor 活动动态同一落点机制；非新增机制）
-    renderRow: (a) => `
-      <a href="./activity.html?id=${encodeURIComponent(a.id || '')}" class="flex items-center justify-between p-3 rounded-xl bg-white transition-colors hover:bg-gray-50" style="text-decoration:none;color:inherit;" title="查看活动详情" data-act-id="${a.id || ''}">
-        <div class="flex-1 min-w-0">
-          <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
-          <div class="text-xs text-gray-500 mt-0.5">${a.date || ''}${a.type ? ' · ' + a.type : ''}${a.carriers?.length ? ' · ' + a.carriers.join('/') : ''}</div>
-          ${_attendanceSummaryHtml(a.id, recordsByActivity)}
-        </div>
-        ${badgeHtml(a.type || '活动', 'neutral')}
-      </a>
-    `,
-    emptyMessage: '暂无匹配活动',
-    accentColor: _accentHex(),
-    sortKey: 'date',
-    sortDir: 'desc',
-    pageSize: 10,      // 活动无上限增长 → 分页（2026-08-07）
-    pageParam: 'apage',
-  });
 }
 
 /** 月份选择器事件绑定（防重复） */
@@ -351,95 +519,15 @@ function bindMonthSelector() {
   }
 }
 
-/** 活动查询折叠面板绑定（默认折叠，点击展开/收起，防重复） */
-function bindQueryToggle() {
-  const queryToggle = document.getElementById('query-toggle');
-  const queryCollapsible = document.getElementById('query-collapsible');
-  const queryToggleIcon = document.getElementById('query-toggle-icon');
-  if (queryToggle && queryCollapsible && !queryToggle.dataset.bound) {
-    queryToggle.dataset.bound = '1';
-    queryToggle.addEventListener('click', () => {
-      const isHidden = queryCollapsible.classList.toggle('hidden');
-      if (queryToggleIcon) queryToggleIcon.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
-      // 触点即落点（全局 UX 反思批次 2026-09-13）：展开后首个结果行此前落在视口之下（只露出 25px），
-      // 补一次滚动让展开区可见
-      if (!isHidden) scrollDetailIntoView(queryCollapsible, { block: 'nearest' });
-    });
-  }
-}
+// ── 党小组活动（2026-10-25 IA 62→45：由独立卡改为日历筛选 `cal-scope=bottom-up`）──
+// 判据单一源仍是活动 `direction==='bottom-up'`（未引入第二判据）；原只读列表由日历承载。
 
-// ── 党小组活动（2026-10-04 批次 373 · 按对象归位：原支书台「党小组与活动」分区迁入本页）──
-// 判据单一源＝活动 direction==='bottom-up'（即活动详情页「活动方向」显示的「自下而上（党小组发起）」）——
-//   随迁**未引入第二判据**；只读列表（行点进 activity.html?id= 详情）＋「+ 新建党小组活动」
-//   （复用既有「写入活动」浮窗，**不新造表单**）；列表走统一检索引擎（分页/空态由引擎提供）。
-/** 党小组活动列表（direction==='bottom-up'，date 降序） */
-function renderGroupActivities(activities) {
-  const host = document.getElementById('cal-group-activities');
-  if (!host) return;
-  const rows = (activities || [])
-    .filter(a => a && a.direction === 'bottom-up')
-    .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
-  renderFilteredList(host, {
-    stateKey: 'secretary-group-activities',
-    rows,
-    countUnit: '场',
-    listClass: 'space-y-1.5',
-    emptyMessage: '暂无党小组发起的活动（新建时选「自下而上」）',
-    rowHtml: (a) => `
-      <a href="./activity.html?id=${encodeURIComponent(a.id || '')}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors" style="text-decoration:none;color:inherit;" title="查看活动详情">
-        <span class="text-xs text-gray-500 w-20 shrink-0 tabular-nums">${esc(a.date || '—')}</span>
-        ${badgeHtml(esc(a.type || '活动'), activityTypeBadgeVariant(a.type))}
-        <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(a.title || '未命名')}</span>
-        ${a.organizer ? `<span class="text-xs text-gray-500 shrink-0">${esc(getPersonName(a.organizer))}</span>` : ''}
-        <span class="text-xs text-gray-500 shrink-0">›</span>
-      </a>`,
-  });
-}
-
-/** 「+ 新建党小组活动」入口（绑定一次，防重复；复用既有「写入活动」浮窗） */
+/** 「+ 新建党小组活动」入口（绑定一次，防重复；复用既有「写入活动」浮窗，**预置 direction='bottom-up'**） */
 function bindGroupActivityNew() {
   const btn = document.getElementById('cal-new-group-activity');
   if (!btn || btn.dataset.bound) return;
   btn.dataset.bound = '1';
-  btn.addEventListener('click', () => openWriteModal());
-}
-
-// ── D4 裁决批二（2026-09-08）：考勤并入活动字段（支书活动管理页）──
-// 原「考勤概况」独立折叠卡（renderAttendanceSummary 及相关 HTML/折叠块）已移除：
-//   支书只读监督的考勤改作「该活动的字段」出现在「活动查询」行内只读摘要（inspector.js 禁改 →
-//   落点放查询行自有区，见下方 renderQueryPanel renderRow）；数据现读 attendance 记录。
-// 纪检考勤明细与全局概况 KPI 为专职读位，不动；异常处理位 = 纪检考勤管理。
-
-/**
- * 单个活动的考勤摘要 HTML（行内字段；无记录返回空串——不占行不误导）
- * 计数口径与纪检纪律台一致：present=实到 / absent=缺勤 / leave=请假 / made_up=补课 /
- * detainedMakeup=滞留到场补录；「应到」=该活动考勤记录覆盖人数（纪检全录时即应到清点口径）。
- * @param {string} actId
- * @param {Map<string, Array>} recordsByActivity — 一次性分组的考勤记录 Map
- * @returns {string}
- */
-function _attendanceSummaryHtml(actId, recordsByActivity) {
-  const records = recordsByActivity.get(actId) || [];
-  if (!records.length) return '';
-  let present = 0;
-  let absent = 0;
-  let leave = 0;
-  let madeUp = 0;
-  let detained = 0;
-  for (const r of records) {
-    if (r.status === 'present') present += 1;
-    else if (r.status === 'made_up') madeUp += 1;
-    else if (r.status === 'absent') absent += 1;
-    else if (r.status === 'leave') leave += 1;
-    if (r.detainedMakeup) detained += 1;
-  }
-  const parts = [`应到 ${records.length}`, `实到 ${present}`];
-  if (absent > 0) parts.push('<span class="text-red-600">缺勤 ' + absent + '</span>');
-  if (leave > 0) parts.push('<span class="text-orange-500">请假 ' + leave + '</span>');
-  if (madeUp > 0) parts.push('<span class="text-teal-600">补课 ' + madeUp + '</span>');
-  if (detained > 0) parts.push('<span class="text-blue-600">滞留补录 ' + detained + '</span>');
-  // R-20（2026-09-13）：考勤「应到」＝正式＋预备党员（剔除滞留），与表决「应到（有表决权党员）」口径不同
-  return `<div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-500" title="考勤应到＝正式＋预备党员（剔除滞留），与表决「应到（有表决权党员）」口径不同">考勤：${parts.join(' · ')}</div>`;
+  btn.addEventListener('click', () => openWriteModal('', { direction: 'bottom-up' }));
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -486,6 +574,37 @@ function _getWritePanelContainer() {
   return document.getElementById(`modal-overlay-${WRITE_MODAL_ID}`)?.querySelector('.modal-body') || null;
 }
 
+/** 定位悬浮页脚（动作常驻区；R3-10） */
+function _getWriteFooter() {
+  return document.getElementById(`modal-overlay-${WRITE_MODAL_ID}`)?.querySelector('[data-modal-footer]') || null;
+}
+
+/** 页脚动作：取消 + 提交（Step 1 只有取消；提交按钮只在 Step 2 出现） */
+function _writeFooterHtml() {
+  const cancel = `<button type="button" data-action="wp-cancel" class="btn-outline text-sm px-4 py-1.5">取消</button>`;
+  if (wp.step === 1) return cancel;
+  const submit = `<button type="button" data-action="wp-submit" class="btn-accent text-sm px-4 py-1.5 font-medium${wp.submitting ? ' opacity-50 cursor-not-allowed' : ''}">${wp.submitting ? '写入中…' : '创建活动'}</button>`;
+  return cancel + submit;
+}
+
+/** 重渲染后同步页脚（步骤切换 / 提交态变化都走这里，动作不随 body 滚动） */
+function _syncWriteFooter() {
+  const footer = _getWriteFooter();
+  if (footer) footer.innerHTML = _writeFooterHtml();
+}
+
+/** 取消 = 放弃本次编辑：清待提交赋权名单 / 选人器 / 议程行选人器（R3-02） */
+function _resetWriteState() {
+  wp.reset(); // 含 pendingAuth
+  // 2026-10-21 批次 499：责任组 / 跨组招募 / 组织者例外说明同属临时编辑态
+  wp.hostGroupId = '';
+  wp.crossRecruit = false;
+  wp.organizerExceptionReason = '';
+  if (wp.personPicker) { try { wp.personPicker.destroy(); } catch (_) { /* 已销毁则忽略 */ } wp.personPicker = null; }
+  (wp.agendaPickers || []).forEach(({ picker }) => { try { picker.destroy(); } catch (_) { /* 忽略 */ } });
+  wp.agendaPickers = [];
+}
+
 /** 品牌名下拉数据源：当前 state 内全部活动（写入面板仅在 tab 渲染后打开，state 已就绪） */
 function _getBrandList() {
   return getAppState()?.activities || [];
@@ -497,7 +616,7 @@ function _getBrandList() {
  *  ⚠ 只转调 `openWriteModal()` ——**党委下钻只读门在那个函数里**，故本出口天然受同一门约束。 */
 export function openActivityWriteForm() { openWriteModal(); }
 
-function openWriteModal() {
+function openWriteModal(prefillDate = '', opts = {}) {
   // B1（2026-09-12）提交处显式拒绝兜底：党委下钻只读视图不得打开写入表单
   if (isReadonlyBranchDrilldown()) {
     showToast('error', '党委视角（只读）：不可写入活动（写操作按角色权限拒绝）');
@@ -508,18 +627,30 @@ function openWriteModal() {
     title: '写入活动',
     width: '720px',
     accentColor: _accentHex(),
-    // 浮窗页脚就近深链（2026-09-19 批次 99 立；2026-09-21 批次 138 收进 modal.js 单一源）：本浮窗要定的
-    // 制度口径（票决门槛 / 应到名单核对 / 会议考勤类型与记录人）集中在设置的「支部制度参数」分区，
-    // 就地给去该分区的入口（设置页顶部有「← 返回上一页」）。渲染在 .modal-body 之外的页脚 ⇒ 切步骤不消失。
-    settingsLink: { href: './settings.html#branch-policy-params', text: '活动制度口径（票决门槛 / 应到名单核对 / 会议考勤类型与记录人）→ 支部制度参数' },
+    // R3-10：取消 / 提交固定在页脚（sticky），长表单滚到任何位置都能点
+    footerHtml: _writeFooterHtml(),
+    // R3-02：Esc / 遮罩 / × / 取消四条关闭路径统一「放弃本次编辑」——清 pendingAuth 与选人器
+    onCancel: _resetWriteState,
     onMount: (panel) => {
-      // 清理上次会话遗留的 PersonPicker（防 DOM 泄漏）
-      if (wp.personPicker) { wp.personPicker.destroy(); wp.personPicker = null; }
-      wp.step = 1;
+      // 打开即重置：上次取消后若还有残留（旧版本状态 / 异常关闭），从这里兜底
+      _resetWriteState();
+      // 右栏「新建活动（带日期）」入口把日期带进来；顶栏常规入口传空串 ⇒ 表单仍默认今天。
+      wp.prefillDate = prefillDate || '';
+      // 2026-10-25 IA 62→45：「+ 新建党小组活动」预置发起方向（原独立列表的新建按钮同一诉求）。
+      wp.prefillDirection = opts.direction || '';
+      // 页脚动作委托绑定（页脚内容随步骤重渲染，委托不会累积监听）
+      panel.querySelector('[data-modal-footer]')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-action]');
+        if (btn) handleWritePanelAction({ currentTarget: btn });
+      });
       renderWritePanel(panel.querySelector('.modal-body'));
     },
   });
 }
+
+// 右栏空日「新建活动（带日期）」→ 本页唯一写入浮窗（事件由 inspector 共享件派发，
+// 避免共享件反向 import 支书台模块形成环）。
+document.addEventListener('inspector:new-activity', (e) => openWriteModal(e.detail?.date || ''));
 
 /** 写入表单内「项目赋权」待提交名单（`wp.pendingAuth`）的 chips 渲染 —— 2026-09-30 批次 303 内嵌赋权。
  *  名单只暂存，**写入活动成功后才逐条落库**（见 `handleWritePanelAction` 的 wp-submit 分支）。
@@ -532,15 +663,20 @@ function _renderPendingAuth(container) {
     ? `<div class="flex flex-wrap gap-1.5">${list.map((x, i) => `
         <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700">
           ${esc(getPersonName(x.personId) || x.personId)} · ${esc(ROLE_LABELS[x.role] || x.role)}
-          <button type="button" data-wp-auth-del="${i}" class="btn-ghost text-gray-400 hover:text-red-600 leading-none" aria-label="从名单移除">✕</button>
+          <button type="button" data-wp-auth-del="${i}" class="btn-outline btn-icon text-gray-400 hover:text-red-600" aria-label="从名单移除">✕</button>
         </span>`).join('')}</div>`
     : '';
   host.querySelectorAll('[data-wp-auth-del]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const i = Number(btn.dataset.wpAuthDel);
-      if (Number.isInteger(i)) { (wp.pendingAuth || []).splice(i, 1); _renderPendingAuth(container); }
+      if (Number.isInteger(i)) {
+        (wp.pendingAuth || []).splice(i, 1);
+        _renderPendingAuth(container);
+        _syncOrganizingScopeUI(container);
+      }
     });
   });
+  _syncOrganizingScopeUI(container);
 }
 
 /** 主渲染入口（2 步：模板选择 → 表单填写）*/
@@ -550,9 +686,9 @@ function renderWritePanel(container) {
   // 面包屑（替代原 5 步指示器）
   const step1Active = wp.step === 1;
   html += `<div class="flex items-center gap-2 mb-5 text-xs">`;
-  html += `<span class="${step1Active ? 'text-accent font-semibold' : 'text-gray-500'}"${step1Active ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>① 选模板</span>`;
+  html += `<span class="${step1Active ? 'text-accent font-semibold' : 'text-gray-500'}">① 选模板</span>`;
   html += `<span class="text-gray-500">›</span>`;
-  html += `<span class="${!step1Active ? 'text-accent font-semibold' : 'text-gray-500'}"${!step1Active ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>② 填表单</span>`;
+  html += `<span class="${!step1Active ? 'text-accent font-semibold' : 'text-gray-500'}">② 填表单</span>`;
   html += `</div>`;
 
   // 当前步骤内容
@@ -564,7 +700,7 @@ function renderWritePanel(container) {
 
   // 返回按钮（step 2 时显示，返回 step 1 重选模板）
   if (wp.step > 1) {
-    html += `<button data-action="wp-back" class="btn-ghost mt-4 text-xs flex items-center gap-1">`;
+    html += `<button data-action="wp-back" class="btn-outline btn-sm mt-4 flex items-center gap-1">`;
     html += icon('chevronLeft', { className: 'w-3 h-3' });
     html += `返回选模板</button>`;
   }
@@ -574,6 +710,8 @@ function renderWritePanel(container) {
   wp.agendaPickers = [];
 
   container.innerHTML = html;
+  // 步骤切换后同步页脚：Step 1 只有「取消」，Step 2 才出现「创建活动」（动作不随 body 滚动）
+  _syncWriteFooter();
   bindWritePanelEvents(container);
 }
 
@@ -593,7 +731,7 @@ function renderTemplateStep() {
     const isUnique = tpl.subtypes.length === 0; // 主题党日：无子类型=唯一选项 → 整卡可点（点击热区=全卡）
     // 2026-09-03 支书澄清：仍须【点击】进入，只是点击热区扩至整卡（不必精准命中文字按钮）——
     // 绝不是 hover 自动进入。卡内按钮区域直接点击走按钮；其余区域点击由 data-tpl-click 委托触发。
-    html += `<div class="rounded-xl border border-gray-200 overflow-hidden transition-shadow hover:shadow-sm hover:border-gray-300" data-tpl-click="${isUnique ? '1' : ''}" style="${isUnique ? 'cursor:pointer;' : ''}" title="${isUnique ? `选择${tpl.categoryLabel}` : ''}">`;
+    html += `<div class="rounded-xl border border-gray-200 overflow-hidden transition-colors hover:border-gray-300" data-tpl-click="${isUnique ? '1' : ''}" style="${isUnique ? 'cursor:pointer;' : ''}" title="${isUnique ? `选择${tpl.categoryLabel}` : ''}">`;
     // 类别标题色块
     html += `<div class="px-3 py-2" style="background:${tpl.bg};border-bottom:1px solid ${tpl.border};">`;
     html += `<span class="text-sm font-semibold" style="color:${tpl.color};">${tpl.categoryLabel}</span>`;
@@ -604,7 +742,7 @@ function renderTemplateStep() {
       // 主题党日无固定子类型，直接选择模板（正交维度在 Step 2 表单中填写）
       // 点击由 bindWritePanelEvents 委托（整卡 data-tpl-click；按钮自身 data-action 不受影响）
       const isSelected = wp.selections.L1 === tpl.category;
-      html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="" data-scenario-id="${tpl.scenarioId || 'theme-party'}" data-activity-type="" data-color="${tpl.color}" class="btn-tab w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'sel-accent-on' : 'text-gray-700 hover:bg-gray-50'}"${isSelected ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>`;
+      html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="" data-scenario-id="${tpl.scenarioId || 'theme-party'}" data-activity-type="" data-color="${tpl.color}" class="btn-tab w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${isSelected ? 'sel-accent-on' : 'text-gray-700 hover:bg-[var(--surface-hover)]'}">`;
       html += `选择${tpl.categoryLabel}`;
       html += `</button>`;
     } else {
@@ -614,7 +752,7 @@ function renderTemplateStep() {
       }
       onSubs.forEach(sub => {
         const isSelected = wp.selections.L1 === tpl.category && wp.selections.L1Sub === sub.value;
-        html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="${sub.value}" data-scenario-id="${sub.scenarioId}" data-activity-type="${sub.activityType || ''}" data-color="${tpl.color}" class="btn-tab w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'sel-accent-on' : 'text-gray-700 hover:bg-gray-50'}"${isSelected ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>`;
+        html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="${sub.value}" data-scenario-id="${sub.scenarioId}" data-activity-type="${sub.activityType || ''}" data-color="${tpl.color}" class="btn-tab w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${isSelected ? 'sel-accent-on' : 'text-gray-700 hover:bg-[var(--surface-hover)]'}">`;
         html += sub.label;
         html += `</button>`;
       });
@@ -631,7 +769,7 @@ function renderTemplateStep() {
   (WRITE_TEMPLATES.find(t => t.category === 'three-meetings')?.subtypes || [])
     .forEach(sub => { if (!_scenarioBlockOn(sub.scenarioId)) offBlockNames.push(`${sub.label}块`); });
   if (offBlockNames.length) {
-    html += `<p class="mt-3 text-[11px] text-gray-500">工作流块「${offBlockNames.join('」「')}」已由支部配置停用——党委台「支部配置 · 工作流块」可恢复。</p>`;
+    html += `<p class="mt-3 text-xs text-gray-500">工作流块「${offBlockNames.join('」「')}」已由支部配置停用——党委台「支部配置 · 工作流块」可恢复。</p>`;
   }
   return html;
 }
@@ -678,9 +816,9 @@ function renderFormStep() {
   const titleHint = titleField?.hint || '';
   if (!fHidden('title')) {
     html += `<div class="mb-3">`;
-    html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">${titleLabel} ${titleRequired ? '<span class="text-red-600">*</span>' : ''}</label>`;
-    html += `<input type="text" id="wp-title" class="input-flat w-full" placeholder="${titleLabel}">`;
-    if (titleHint) html += `<p class="text-[11px] text-gray-500 mt-1">${titleHint}</p>`;
+    html += `<label for="wp-title" class="text-xs text-gray-500 mb-1.5 block font-medium">${titleLabel} ${titleRequired ? '<span class="text-red-600">*</span>' : ''}</label>`;
+    html += textInput({ id: 'wp-title', placeholder: titleLabel, className: 'w-full' });
+    if (titleHint) html += `<p class="text-xs text-gray-500 mt-1">${titleHint}</p>`;
     html += `</div>`;
   }
 
@@ -691,17 +829,17 @@ function renderFormStep() {
   const showDate = !fHidden('date');
   const showTime = !fHidden('time');
   if (showDate || showTime) {
-    html += (showDate && showTime) ? `<div class="grid grid-cols-2 gap-3 mb-3">` : `<div class="mb-3">`;
+    html += (showDate && showTime) ? `<div class="modal-form-grid mb-3">` : `<div class="mb-3">`;
     if (showDate) {
       html += `<div>`;
-      html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">${dateLabel} ${dateRequired ? '<span class="text-red-600">*</span>' : '<span class="text-gray-500">（选填）</span>'}</label>`;
-      html += `<input type="date" id="wp-date" value="${today}" class="input-flat w-full">`;
+      html += `<label for="wp-date" class="text-xs text-gray-500 mb-1.5 block font-medium">${dateLabel} ${dateRequired ? '<span class="text-red-600">*</span>' : '<span class="text-gray-500">（选填）</span>'}</label>`;
+      html += textInput({ id: 'wp-date', type: 'date', value: wp.prefillDate || today, className: 'w-full' });
       html += `</div>`;
     }
     if (showTime) {
       html += `<div>`;
-      html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">时间 <span class="text-gray-500">（选填）</span></label>`;
-      html += `<input type="text" id="wp-time" class="input-flat w-full" placeholder="如 14:00-16:00">`;
+      html += `<label for="wp-time" class="text-xs text-gray-500 mb-1.5 block font-medium">时间 <span class="text-gray-500">（选填）</span></label>`;
+      html += textInput({ id: 'wp-time', placeholder: '如 14:00-16:00', className: 'w-full' });
       html += `</div>`;
     }
     html += `</div>`;
@@ -711,8 +849,8 @@ function renderFormStep() {
   if (!fHidden('location')) {
     const locRequired = fReq('location', true);
     html += `<div class="mb-3">`;
-    html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">地点 ${locRequired ? '<span class="text-red-600">*</span>' : '<span class="text-gray-500">（选填）</span>'}</label>`;
-    html += `<input type="text" id="wp-location" class="input-flat w-full" placeholder="活动地点">`;
+    html += `<label for="wp-location" class="text-xs text-gray-500 mb-1.5 block font-medium">地点 ${locRequired ? '<span class="text-red-600">*</span>' : '<span class="text-gray-500">（选填）</span>'}</label>`;
+    html += textInput({ id: 'wp-location', placeholder: '活动地点', className: 'w-full' });
     html += `</div>`;
   }
 
@@ -721,11 +859,14 @@ function renderFormStep() {
     html += renderThemeDayDimensions();
   }
 
+  // 组织落点（2026-10-21 批次 499）：非支部级会议必须选责任党小组；跨组招募需组织委员协调
+  html += _renderOrganizingScopeSection(scenarioId);
+
   // 主持人（默认当前用户）
   if (!fHidden('host')) {
     html += `<div class="mb-3">`;
-    html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">主持人 <span class="text-gray-500">（选填）</span></label>`;
-    html += `<input type="text" id="wp-host" class="input-flat w-full" placeholder="默认为当前用户">`;
+    html += `<label for="wp-host" class="text-xs text-gray-500 mb-1.5 block font-medium">主持人 <span class="text-gray-500">（选填）</span></label>`;
+    html += textInput({ id: 'wp-host', placeholder: '默认为当前用户', className: 'w-full' });
     html += `</div>`;
   }
 
@@ -770,10 +911,10 @@ function renderFormStep() {
   html += `<button type="button" data-wp-brand="create" class="btn-tab wp-brand-chip text-xs px-3 py-1.5">创建新品牌</button>`;
   html += `</div>`;
   html += `<div id="wp-brand-inherit" class="hidden mt-2">`;
-  html += `<select id="wp-brand-select" class="input-flat w-full">${brandNames.map(n => `<option value="${n}">${n}</option>`).join('')}</select>`;
+  html += selectInput({ id: 'wp-brand-select', options: brandNames.map(n => ({ value: n, label: n })), className: 'w-full' });
   html += `</div>`;
   html += `<div id="wp-brand-create" class="hidden mt-2">`;
-  html += `<input type="text" id="wp-brand-input" class="input-flat w-full" placeholder="品牌名称，如：人生回望录">`;
+  html += textInput({ id: 'wp-brand-input', placeholder: '品牌名称，如：人生回望录', className: 'w-full' });
   html += `</div>`;
   html += `</div>`;
 
@@ -805,58 +946,60 @@ function renderFormStep() {
   html += `<button type="button" data-action="wp-auth-add" class="btn-outline text-xs px-3 py-1.5 shrink-0">+ 加入名单</button>`;
   html += `</div>`;
   html += `<div id="wp-auth-list" class="mt-2"></div>`;
+  // 2026-10-21 批次 499：组织者候选默认限责任党小组；关闭后才显示全部成员（跨组深参由此入口招募）。
+  html += `<label class="flex items-start gap-2 text-xs text-gray-600 mt-2"><input type="checkbox" id="wp-auth-same-group" class="checkbox-accent mt-0.5" checked><span>只显示承办党小组成员<span class="text-gray-500">（关闭后显示全部成员；组织者一般本组，跨组深参须由组织委员协调）</span></span></label>`;
   html += renderWorkgroupPermissionEditor('secretary-activity');
   html += `</div>`;
 
   // 自动发布通知（选填，2026-08-05 支书裁决「表单内预拟通知·只跑一次」）
-  // 自定义折叠（不用原生 details：保证跨浏览器折叠行为一致）
-  html += `<div class="mb-4">`;
-  html += `<div class="wp-collapse-toggle text-xs text-gray-500 cursor-pointer hover:text-gray-600 select-none" onclick="this.nextElementSibling.classList.toggle('hidden')">自动发布通知（选填，创建活动后立即通知全体成员）</div>`;
-  html += `<div class="mt-2 space-y-3">`;
-  html += `<div>`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">通知标题</label>`;
-  html += `<input type="text" id="wp-notice-title" class="input-flat w-full" placeholder="默认使用活动名称">`;
-  html += `</div>`;
-  html += `<div>`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">通知内容</label>`;
-  html += `<textarea id="wp-notice-content" rows="3" class="input-flat w-full" placeholder="如：8月20日 14:00 在光华1号楼101报告厅举行暑期实践总结分享，请全体成员准时参加。"></textarea>`;
-  html += `</div>`;
-  html += `</div>`;
-  html += `</div>`;
+  // 2026-10-25 Task 3：阅读型折叠统一为原生 details（本文件不再出现第二种折叠原语）
+  const noticeBodyHtml = `
+    <div>
+      <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知标题</label>
+      ${textInput({ id: 'wp-notice-title', placeholder: '默认使用活动名称', className: 'w-full' })}
+    </div>
+    <div>
+      <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知内容</label>
+      <textarea id="wp-notice-content" rows="3" class="input-flat w-full" placeholder="如：本周五 14:00 在光华1号楼101报告厅举行暑期实践总结分享，请全体成员准时参加。"></textarea>
+    </div>`;
+  html += `<div class="mb-4">${renderDisclosure({
+    id: 'wp-notice',
+    title: '自动发布通知（选填）',
+    meta: '创建活动后立即通知全体成员',
+    open: false,
+    level: 4,
+    bodyHtml: `<div class="space-y-3">${noticeBodyHtml}</div>`,
+  })}</div>`;
 
   // 高级选项（折叠）
-  html += `<div class="mb-4">`;
-  html += `<div class="wp-collapse-toggle text-xs text-gray-500 cursor-pointer hover:text-gray-600 select-none" onclick="this.nextElementSibling.classList.toggle('hidden')">高级选项（发起方向 / 时长）</div>`;
-  html += `<div class="mt-2 grid grid-cols-2 gap-3">`;
-  // 发起方向
-  html += `<div>`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">发起方向</label>`;
-  html += `<select id="wp-direction" class="input-flat w-full">`;
-  html += `<option value="">不指定</option>`;
-  html += `<option value="top-down">自上而下</option>`;
-  html += `<option value="bottom-up">自下而上</option>`;
-  html += `</select>`;
-  html += `</div>`;
-  // 时长
-  html += `<div>`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">时长</label>`;
-  html += `<select id="wp-duration" class="input-flat w-full">`;
-  html += `<option value="">不指定</option>`;
-  html += `<option value="short">短期</option>`;
-  html += `<option value="long">长期</option>`;
-  html += `</select>`;
-  html += `</div>`;
-  html += `</div>`;
-  html += `</div>`;
+  const advancedBodyHtml = `
+    <div>
+      <label class="text-xs text-gray-500 mb-1.5 block font-medium">发起方向</label>
+      ${selectInput({
+        id: 'wp-direction',
+        options: [{ value: '', label: '不指定' }, { value: 'top-down', label: '自上而下' }, { value: 'bottom-up', label: '自下而上' }],
+        value: wp.prefillDirection || '',
+        className: 'w-full',
+      })}
+    </div>
+    <div>
+      <label class="text-xs text-gray-500 mb-1.5 block font-medium">时长</label>
+      ${selectInput({
+        id: 'wp-duration',
+        options: [{ value: '', label: '不指定' }, { value: 'short', label: '短期' }, { value: 'long', label: '长期' }],
+        className: 'w-full',
+      })}
+    </div>`;
+  html += `<div class="mb-4">${renderDisclosure({
+    id: 'wp-advanced',
+    title: '高级选项',
+    meta: '发起方向 / 时长',
+    open: false,
+    level: 4,
+    bodyHtml: `<div class="modal-form-grid">${advancedBodyHtml}</div>`,
+  })}</div>`;
 
-  // 写入按钮（底栏统一：取消 + 提交，同规格 text-sm px-4 py-[7px]）
-  const btnText = wp.submitting ? '写入中...' : '创建活动';
-  const btnDisabled = wp.submitting ? 'opacity-50 cursor-not-allowed' : '';
-  html += `<div class="flex items-center justify-end gap-3">`;
-  html += `<button type="button" data-action="wp-cancel" class="btn-outline text-sm px-4 py-[7px]">取消</button>`;
-  html += `<button type="button" data-action="wp-submit" class="btn-accent text-sm px-4 py-[7px] font-medium ${btnDisabled}">${btnText}</button>`;
-  html += `</div>`;
-
+  // 动作行统一在浮窗页脚（R3-10）：body 只留表单，不再随内容滚出视口
   html += `</div>`;
   return html;
 }
@@ -941,7 +1084,6 @@ function renderVoteConfigSection(scenarioId) {
     html += `</label>`;
     html += `</div>`;
     html += `<p class="text-xs text-gray-500 mt-2">表决选项：赞成 / 反对 / 弃权 + 可附言</p>`;
-    html += `<p class="text-xs text-gray-500 mt-1">人数按现时「在校/滞留」状态自动剔除滞留成员，创建时锁定名单</p>`;
   }
   // 计票方式
   html += `<div class="mt-2.5">`;
@@ -960,7 +1102,7 @@ function renderVoteConfigSection(scenarioId) {
     html += `<input type="radio" name="wp-ballot-mode" value="anonymous" class="radio-accent">无记名（只计汇总）`;
     html += `</label>`;
     html += `</div>`;
-    html += `<p class="text-xs text-gray-500 mt-1">无记名仅记参与情况与汇总票数，不记录个人选项；同场表决口径统一</p>`;
+    html += `<p class="text-xs text-gray-500 mt-1">无记名仅计汇总票数；同场表决口径统一</p>`;
   }
   html += `</div>`;
   html += `</div>`;
@@ -1077,6 +1219,7 @@ function bindWritePanelEvents(container) {
   container.querySelectorAll('[data-action]').forEach(el => {
     el.addEventListener('click', handleWritePanelAction);
   });
+  // 折叠项（2026-10-25 Task 3）：通知 / 高级选项改原生 details，开合由浏览器承担，无需再绑脚本。
   // 会议议程初始行（T-283：三会一课模板默认 1 行空议程，减少首条输入点击）
   // 置于最前：避免后续参与人选择器（PersonPicker）初始化异常导致议程行被跳过
   const agendaList = container.querySelector('#wp-agenda-list');
@@ -1129,16 +1272,25 @@ function bindWritePanelEvents(container) {
   }
   // 项目赋权（内嵌）：被赋权人选择器（单选）＋ 名单 chips 回显 ＋「加入名单」/「移除」
   const authSlot = container.querySelector('#wp-auth-slot');
-  if (authSlot) {
+  const buildAuthPicker = () => {
+    if (!authSlot) return;
     if (wp.authPicker) wp.authPicker.destroy();
+    const sameGroupOnly = container.querySelector('#wp-auth-same-group')?.checked !== false;
+    const group = _selectedHostGroup();
+    const filter = sameGroupOnly && group
+      ? (person) => (person?.partyGroup || '') === group.name
+      : null;
     wp.authPicker = new PersonPicker({
       mode: 'single',
-      placeholder: '搜索姓名或学号选择被赋权人',
+      placeholder: sameGroupOnly && group ? `搜索${group.name}成员` : '搜索姓名或学号选择被赋权人',
       accentColor: _accentHex(),
+      filter,
       onSelect: () => {},
     });
     wp.authPicker.render(authSlot);
-  }
+  };
+  buildAuthPicker();
+  container.querySelector('#wp-auth-same-group')?.addEventListener('change', buildAuthPicker);
   _renderPendingAuth(container);
   container.querySelector('[data-action="wp-auth-add"]')?.addEventListener('click', () => {
     const personId = (wp.authPicker?.getSelected() || [])[0] || '';
@@ -1152,6 +1304,16 @@ function bindWritePanelEvents(container) {
     wp.pendingAuth.push({ personId, role });
     showToast('success', `已加入名单：${getPersonName(personId) || personId} · ${ROLE_LABELS[role] || role}`);
     _renderPendingAuth(container);
+    _syncOrganizingScopeUI(container);
+  });
+  // 组织落点（2026-10-21 批次 499）：责任组 / 跨组招募 / 组织者跨组说明
+  container.querySelector('#wp-host-group')?.addEventListener('change', () => {
+    _syncOrganizingScopeUI(container);
+    buildAuthPicker();
+  });
+  container.querySelector('#wp-cross-recruit')?.addEventListener('change', () => _syncOrganizingScopeUI(container));
+  container.querySelector('#wp-organizer-exception')?.addEventListener('input', (e) => {
+    wp.organizerExceptionReason = e.target.value;
   });
   // 主题党日正交维度按钮（单选组互斥 / 载体多选）
   container.querySelectorAll('[data-wp-dim]').forEach(el => {
@@ -1216,7 +1378,8 @@ function handleWritePanelAction(e) {
     }
 
     case 'wp-cancel': {
-      // 取消写入：关闭悬浮面板（底栏「取消 + 提交」统一规格）
+      // 取消写入 = 放弃本次编辑：清掉待提交赋权名单 / 选人器后再关窗（R3-02）
+      _resetWriteState();
       closeModal(WRITE_MODAL_ID);
       return;
     }
@@ -1267,11 +1430,12 @@ function handleWritePanelAction(e) {
 /** 提交按钮就地切换提交态（保态 2026-09-08：不再整面板重建——进行中/失败均保留已填内容与已选，
  *  仅按钮文案/禁用态切换；仅提交成功才 wp.reset() 重置面板（见 handleSubmitActivity 成功分支）） */
 function _setWriteSubmitBtn(submitting) {
-  const btn = _getWritePanelContainer()?.querySelector('[data-action="wp-submit"]');
+  const btn = _getWriteFooter()?.querySelector('[data-action="wp-submit"]');
   if (!btn) return;
-  btn.textContent = submitting ? '写入中...' : '创建活动';
+  btn.textContent = submitting ? '写入中…' : '创建活动';
   btn.classList.toggle('opacity-50', submitting);
   btn.classList.toggle('cursor-not-allowed', submitting);
+  btn.disabled = !!submitting;
 }
 
 async function handleSubmitActivity() {
@@ -1391,6 +1555,49 @@ async function handleSubmitActivity() {
   const scenarioId = wp.selections._scenarioId || wp.getScenarioId?.();
   if (!scenarioId) { showToast('error', '场景信息缺失，请重新选择模板'); return; }
 
+  // 组织落点（2026-10-21 批次 499）：跨组只是参与/招募范围，活动必须有唯一责任党小组；
+  //   支部级法定会议（支委会 / 党员大会 / 党课）单列 branch，不塞党小组。
+  const branchLevel = isBranchLevelScenario(scenarioId);
+  let hostGroupId = '';
+  let hostGroupName = '';
+  if (!branchLevel) {
+    const hostSelect = document.getElementById('wp-host-group');
+    hostGroupId = hostSelect?.value || wp.hostGroupId || '';
+    const group = _branchPartyGroups().find((g) => g.id === hostGroupId);
+    if (!group) { showToast('error', '请选择承办党小组'); hostSelect?.focus(); return; }
+    hostGroupName = group.name;
+    wp.hostGroupId = hostGroupId;
+  }
+  const crossRecruit = !branchLevel && !!document.getElementById('wp-cross-recruit')?.checked;
+  wp.crossRecruit = crossRecruit;
+  const crossAuth = _pendingAuthCrossGroup();
+  if (crossAuth.deep.length && !crossRecruit) {
+    showToast('error', '名单中有跨党小组深度参与者：请标记「跨组招募」，由组织委员协调');
+    return;
+  }
+  if (crossRecruit && !_orgCommissionerId()) {
+    showToast('error', '本支部未配置组织委员，暂不能跨组招募深度参与者');
+    return;
+  }
+  const organizerExceptionReason = (document.getElementById('wp-organizer-exception')?.value
+    || wp.organizerExceptionReason || '').trim();
+  if (crossAuth.organizers.length) {
+    // 组织者一般由责任党小组承担；他组同志属例外——软提示不阻断，但须留说明。
+    const ok = await confirmNudge({
+      nudgeKey: 'activity-write',
+      who: '承办党小组',
+      verb: '承担组织者',
+      why: '组织者一般由本组承担，跨组承担属例外；确认后将随活动留存说明。',
+      context: title,
+    });
+    if (!ok) { document.getElementById('wp-organizer-exception')?.focus(); return; }
+    if (!organizerExceptionReason) {
+      showToast('error', '请填写组织者跨组说明（将随活动留存）');
+      document.getElementById('wp-organizer-exception')?.focus();
+      return;
+    }
+  }
+
   // 会议形式（2026-09-02 线上异步表决泛化：决策类场景选「线上异步表决」→ 写入 voteConfig，
   // 参与范围按用户选择解析固化应到名单 voterIds；线下开会不写 voteConfig）
   // ②批（2026-09-06）：resolveVoterIds 已按现时居住状态剔滞留（roster 口径）→ 此处生成的
@@ -1471,9 +1678,13 @@ async function handleSubmitActivity() {
       // 2026-09-13 dogfood 同类彻查：创建人审计取真实登录成员（原写死占位 ID 'u_sec'）
       createdBy: AuthStore.getCurrentUser()?.personId || null,
       branchId: AuthStore.getCurrentUser()?.branchId || getBranchIdOfPerson(AuthStore.getCurrentUser()?.personId),
-      organizingScope: 'cross-group',
-      hostGroupId: null,
-      hostGroup: '',
+      // 2026-10-21 批次 502：组织落点只有两档（支部级 / 承办党小组）；「跨组」只由招募范围表达。
+      organizingScope: branchLevel ? ACTIVITY_SCOPES.BRANCH : ACTIVITY_SCOPES.PARTY_GROUP,
+      hostGroupId: branchLevel ? null : hostGroupId,
+      hostGroup: branchLevel ? '' : hostGroupName,
+      recruitmentScope: crossRecruit ? 'cross-group' : 'group',
+      ...(crossRecruit ? { crossGroupCoordinatorId: _orgCommissionerId() } : {}),
+      ...(organizerExceptionReason ? { organizerExceptionReason } : {}),
       // 2 步式元数据（替代旧 _dt_L3/L4）
       _dt_L1: wp.selections.L1,
       _dt_L1Sub: wp.selections.L1Sub || '',
@@ -1551,10 +1762,7 @@ async function handleSubmitActivity() {
 
   } catch (err) {
     console.error('[WritePanel] 写入失败', err);
-    const msg = err.type === 'NetworkError' ? '网络连接失败，请稍后重试'
-      : err.type === 'PermissionError' ? '权限不足'
-      : '写入失败：' + (err.message || '未知错误');
-    showToast('error', msg);
+    showToast('error', describeWriteError(err));
     wp.submitting = false;
     // 失败：保留悬浮与已填内容（保态 2026-09-08：仅提交成功才重置面板），就地恢复提交按钮
     _setWriteSubmitBtn(false);
@@ -1574,7 +1782,7 @@ function _agendaDocMaterialEl(select) {
   let el = row.querySelector('.wp-agenda-doc-material');
   if (!el) {
     el = document.createElement('p');
-    el.className = 'wp-agenda-doc-material text-[11px] text-gray-500 mt-1 hidden';
+    el.className = 'wp-agenda-doc-material text-xs text-gray-500 mt-1 hidden';
     el.title = '过程材料（试点意见 / 征求意见 / 修改说明）随草案归档，本处只作数量提示';
     el.textContent = '已附材料 0 件';
     (row.querySelector('.wp-agenda-doc-hint') || select).insertAdjacentElement('afterend', el);
@@ -1617,9 +1825,9 @@ document.addEventListener('click', (e) => { if (e.target?.closest?.('#wp-agenda-
 async function _loadAgendaCandidateSources() {
   const out = { taskforceProposals: [], issues: [], draftDocs: [], members: [], stageEntries: {} };
   const [{ TaskForceRecordStore }, { IssueStore }, { loadStageEntryDates }] = await Promise.all([
-    import('../../../services/activity/taskforce.js?v=20261018h'),
-    import('../../../services/governance/issues.js?v=20261018h'),
-    import('../../../services/member/member-confirmation.js?v=20261018h'),
+    import('../../../services/activity/taskforce.js?v=20261102b'),
+    import('../../../services/governance/issues.js?v=20261102b'),
+    import('../../../services/member/member-confirmation.js?v=20261102b'),
   ]);
   try { out.taskforceProposals = TaskForceRecordStore.listCommitteeRequests(); }
   catch (e) { console.warn('[calendar] 专班待议加载失败：', e); }
@@ -1651,7 +1859,7 @@ function _agendaCandidateRowHtml(c) {
         data-to-stage="${esc(c.toStage || '')}" data-person-ids="${esc((c.personIds || []).join(','))}">
       <span class="flex-1 min-w-0">
         <span class="block text-xs font-medium text-gray-700">${esc(c.text)}</span>
-        <span class="block text-[11px] text-gray-500 mt-0.5">${esc(c.meta)}</span>
+        <span class="block text-xs text-gray-500 mt-0.5">${esc(c.meta)}</span>
       </span>
     </label>`;
 }
@@ -1659,20 +1867,20 @@ function _agendaCandidateRowHtml(c) {
 /** 清单主体（按类目分组；**整张清单为空 → 一行空态、不报错**） */
 function _agendaCandidatesHtml(rows) {
   if (!rows.length) {
-    return '<p class="text-[11px] text-gray-500 px-1 py-1">当前没有待上会的事项——专班报送 / 归口支委会的意见反馈 / 制度草案 / 待报送党员大会表决的制度 / 待推荐的发展对象 / 品牌认定提案，出现后会归集到这里。</p>';
+    return emptyStateHtml({ text: "暂无可上会事项", variant: 'inline' });
   }
   let html = '';
   for (const g of AGENDA_CANDIDATE_GROUPS) {
     const list = rows.filter(r => r.group === g.key);
     if (!list.length) continue;
     html += `<div class="mb-1.5">`;
-    html += `<p class="text-[11px] font-medium text-gray-600 px-1">${esc(g.label)} · ${list.length}<span class="text-gray-500 font-normal ml-1.5">${esc(g.hint)}</span></p>`;
+    html += `<p class="text-xs font-medium text-gray-600 px-1">${esc(g.label)} · ${list.length}<span class="text-gray-500 font-normal ml-1.5">${esc(g.hint)}</span></p>`;
     html += list.map(_agendaCandidateRowHtml).join('');
     html += `</div>`;
   }
   html += `<div class="pt-1.5 mt-1 border-t border-gray-100 flex items-center gap-2">`;
   html += `<button type="button" data-action="agenda-candidates-add" class="text-xs px-3 py-1.5 rounded-lg btn-accent text-white font-medium">加入本场议程</button>`;
-  html += `<span class="text-[11px] text-gray-500">勾选后可一次加入多条（加入后即成为议程行，可再逐条改写）</span>`;
+  html += `<span class="text-xs text-gray-500">勾选后可一次加入多条（加入后即成为议程行，可再逐条改写）</span>`;
   html += `</div>`;
   return html;
 }
@@ -1681,7 +1889,7 @@ function _agendaCandidatesHtml(rows) {
 async function _hydrateAgendaCandidates(host) {
   if (!host || host.dataset.bound) return;
   host.dataset.bound = '1';
-  host.innerHTML = '<p class="text-[11px] text-gray-500 px-1 py-1">正在归集…</p>';
+  host.innerHTML = '<p class="text-xs text-gray-500 px-1 py-1">正在归集…</p>';
   const rows = buildAgendaCandidates(await _loadAgendaCandidateSources());
   host.innerHTML = _agendaCandidatesHtml(rows);
 }
@@ -1739,24 +1947,31 @@ function _decorateInspectorActivityLinks() {
     }, true);
   }
   const linkOf = (actId) => {
+    const href = objectDetailHref('activity', actId, { entry: 'owner-workspace' });
+    if (!href) return null;
     const a = document.createElement('a');
-    a.href = `./activity.html?id=${encodeURIComponent(actId)}`;
-    a.className = 'inline-block mt-1 text-xs text-sky-600 hover:underline';
+    a.href = `./${href}`;
+    a.className = 'inline-block mt-1 text-xs text-accent transition-colors hover:bg-[var(--app-accent-tint)]';
     a.dataset.secActivityOpen = '1';
-    a.textContent = '查看活动详情 →';
-    a.title = '打开活动完整页';
+    a.textContent = '打开完整页 →';
+    a.title = '打开活动详情完整页';
     return a;
   };
   host.querySelectorAll('[data-act-id]').forEach((card) => {
     const actId = card.dataset.actId;
     if (!actId || card.querySelector('[data-sec-activity-open]')) return;
-    card.appendChild(linkOf(actId));
+    // 共享 inspector 已按「当日清单 + 就地动作」渲染完整出口（查看详情 / 写纪要 / 考勤），
+    // 不再叠加第二枚同义链接。
+    if (card.querySelector('[data-inspector-actions]')) return;
+    const link = linkOf(actId);
+    if (link) card.appendChild(link);
   });
   // 详情态：共享详情面板已带支书专属深链；若整块仍无出口（口径变更 / 非支书身份），补在标题之后。
   if (!document.querySelector('#inspector-content a[href*="activity.html"]')) {
     const st = getAppState() || {};
     if (st.viewMode === 'detail' && st.selectedActivityId) {
-      document.getElementById('inspector-date-title')?.insertAdjacentElement('afterend', linkOf(st.selectedActivityId));
+      const link = linkOf(st.selectedActivityId);
+      if (link) document.getElementById('inspector-date-title')?.insertAdjacentElement('afterend', link);
     }
   }
 }

@@ -43,7 +43,7 @@ async function patchConfig(token, body) {
 }
 
 test('org 档案：party-staff 写 headerTitle/desc/themePreset → 白名单净化 + 留痕 {by,at,what,from,to}', async () => {
-  const staff = await login('p_pc');
+  const staff = await login('9000000001');
   const r = await patchConfig(staff, {
     config: { headerTitle: '光华本科生党支部·换壳', desc: '样板支部自述', themePreset: 'sky' },
   });
@@ -56,7 +56,7 @@ test('org 档案：party-staff 写 headerTitle/desc/themePreset → 白名单净
   assert.ok(Array.isArray(hist) && hist.length >= 3, '三种变更均留痕');
   const theme = hist.find((h) => h.what === 'themePreset');
   assert.ok(theme, 'themePreset 留痕存在');
-  assert.equal(theme.by, 'p_pc');
+  assert.equal(theme.by, '9000000001');
   assert.ok(theme.at && theme.what === 'themePreset');
   assert.equal(theme.from, null);
   assert.equal(theme.to, 'sky');
@@ -68,7 +68,7 @@ test('org 档案：party-staff 写 headerTitle/desc/themePreset → 白名单净
 });
 
 test('org 档案：现任支书/本副支书（副书同权）可写本支部 org 域；其它支委 403；越权 name 不生效', async () => {
-  const sec = await login('p13');
+  const sec = await login('2300010001');
   const r = await patchConfig(sec, { config: { themePreset: 'blue', headerTitle: '支书改的页眉' } });
   assert.equal(r.status, 200, '现任支书可写 org 域');
   const b = await r.json();
@@ -76,8 +76,8 @@ test('org 档案：现任支书/本副支书（副书同权）可写本支部 or
   assert.equal(b.config.headerTitle, '支书改的页眉');
   assert.equal(b.name, '光华管理学院本科生党支部', '顶层 name 不变（治理字段归 party-staff）');
 
-  // 副书同权（2026-09-09 支书批）：本副支书（p14，br-b1）同现任支书可写 config 域
-  const dep = await login('p14');
+  // 副书同权（2026-09-09 支书批）：本副支书（2300010002，br-b1）同现任支书可写 config 域
+  const dep = await login('2300010002');
   const rDep = await patchConfig(dep, { config: { themePreset: 'green', headerTitle: '副支书改的页眉' } });
   assert.equal(rDep.status, 200, '本副支书可写 org 域（副书同权）');
   const bDep = await rDep.json();
@@ -85,13 +85,13 @@ test('org 档案：现任支书/本副支书（副书同权）可写本支部 or
   assert.equal(bDep.config.headerTitle, '副支书改的页眉');
   assert.equal(bDep.name, '光华管理学院本科生党支部', '副支书写亦不影响治理字段');
 
-  const orgc = await login('p11'); // 组织委员（支委但非支书/副）
+  const orgc = await login('2400012355'); // 组织委员（支委但非支书/副）
   const r2 = await patchConfig(orgc, { config: { themePreset: 'sky' } });
   assert.equal(r2.status, 403, '非支书/副的其它支委不可写');
 });
 
 test('org 档案：themePreset 非法值忽略（白名单净化）；headerTitle 空串回退支部名', async () => {
-  const staff = await login('p_pc');
+  const staff = await login('9000000001');
   const r = await patchConfig(staff, { config: { themePreset: 'gold' } }); // gold 固定不可选
   assert.equal(r.status, 200);
   const b1 = await r.json();
@@ -103,7 +103,7 @@ test('org 档案：themePreset 非法值忽略（白名单净化）；headerTitl
 });
 
 test('org 档案：重复提交相同值不产生冗余留痕', async () => {
-  const sec = await login('p13');
+  const sec = await login('2300010001');
   await patchConfig(sec, { config: { themePreset: 'red', desc: '支部自述-v1' } });
   const before = (await (await patchConfig(sec, { config: { themePreset: 'red', desc: '支部自述-v1' } })).json()).config.configChangeHistory.length;
   const after = (await (await patchConfig(sec, { config: { themePreset: 'red', desc: '支部自述-v1' } })).json()).config.configChangeHistory.length;

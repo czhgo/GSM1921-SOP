@@ -28,7 +28,7 @@ before(async () => {
   const login = await fetch(`${base}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ personId: 'p13', password: '123456' }),
+    body: JSON.stringify({ personId: '2300010001', password: '123456' }),
   });
   token = (await login.json()).token;
 });
@@ -50,7 +50,7 @@ test('删除活动会原子清理所有活动关联数据并保留其他活动�
   put('signups', `signup-${id}`, { id: `signup-${id}`, sourceType: 'activity', sourceId: id });
   put('notices', `notice-${id}`, { id: `notice-${id}`, targetType: 'activity', targetId: id });
   put('todos', `todo-${id}`, { id: `todo-${id}`, sourceType: 'activity', sourceId: id });
-  put('agenda_votes', `avp-${id}`, { id: `avp-${id}`, activityId: id, agendaItemId: 'a1', personId: 'p3', position: 'approve' });
+  put('agenda_votes', `avp-${id}`, { id: `avp-${id}`, activityId: id, agendaItemId: 'a1', personId: '2400012347', position: 'approve' });
   put('agenda_votes', `avt-${id}`, { id: `avt-${id}`, activityId: id, agendaItemId: 'a1', ballotMode: 'anonymous', tally: { approve: 1 } });
   put('archive_records', `archive-${id}`, { id: `archive-${id}`, activityId: id, filePath: '/api/v1/uploads/activity.pdf' });
   put('file_space_records', `file-${id}`, { id: `file-${id}`, activityId: id, filePath: '/api/v1/uploads/activity.pdf' });
@@ -58,22 +58,22 @@ test('删除活动会原子清理所有活动关联数据并保留其他活动�
   put('workgroups', `wg-activity-${id}`, {
     id: `wg-activity-${id}`, branchId: 'br-b1', kind: 'activity', sourceType: 'activity', sourceId: id,
   });
-  put('workgroup_members', `wgm-${id}-p2`, {
-    id: `wgm-${id}-p2`, branchId: 'br-b1', workgroupId: `wg-activity-${id}`, personId: 'p2', status: 'active',
+  put('workgroup_members', `wgm-${id}-2400012346`, {
+    id: `wgm-${id}-2400012346`, branchId: 'br-b1', workgroupId: `wg-activity-${id}`, personId: '2400012346', status: 'active',
   });
-  put('workgroup_grants', `wgg-${id}-p2`, {
-    id: `wgg-${id}-p2`, branchId: 'br-b1', workgroupId: `wg-activity-${id}`, personId: 'p2', status: 'active',
+  put('workgroup_grants', `wgg-${id}-2400012346`, {
+    id: `wgg-${id}-2400012346`, branchId: 'br-b1', workgroupId: `wg-activity-${id}`, personId: '2400012346', status: 'active',
   });
   put('workgroup_tasks', `wgt-${id}`, { id: `wgt-${id}`, branchId: 'br-b1', workgroupId: `wg-activity-${id}` });
   put('workgroup_outputs', `wgo-${id}`, { id: `wgo-${id}`, branchId: 'br-b1', workgroupId: `wg-activity-${id}`, activityId: id });
-  put('attendance_rosters', `atr-${id}`, { id: `atr-${id}`, branchId: 'br-b1', activityId: id, personIds: ['p2'], frozen: true });
+  put('attendance_rosters', `atr-${id}`, { id: `atr-${id}`, branchId: 'br-b1', activityId: id, personIds: ['2400012346'], frozen: true });
   put('workgroups', 'wg-taskforce-keep', {
     id: 'wg-taskforce-keep', branchId: 'br-b1', kind: 'taskforce', sourceType: 'taskforce', sourceId: 'tf-keep',
   });
   put('workgroup_tasks', 'wgt-keep', { id: 'wgt-keep', branchId: 'br-b1', workgroupId: 'wg-taskforce-keep', activityId: id });
   put('workgroup_outputs', 'wgo-keep', { id: 'wgo-keep', branchId: 'br-b1', workgroupId: 'wg-taskforce-keep', activityId: id });
   db.prepare('INSERT INTO attachments (id, filename, path, size, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?)')
-    .run(`attachment-${id}`, 'activity.pdf', '/api/v1/uploads/activity.pdf', 1, 'p13', '2026-10-14');
+    .run(`attachment-${id}`, 'activity.pdf', '/api/v1/uploads/activity.pdf', 1, '2300010001', '2026-10-14');
   put('act_sub_records', '__root__', { [id]: { activityId: id, note: '删除' }, [other]: { activityId: other, note: '保留' } });
 
   const response = await removeActivity(id);
@@ -83,7 +83,7 @@ test('删除活动会原子清理所有活动关联数据并保留其他活动�
   for (const [table, rowId] of [['activities', id], ...linkedRows,
     ['signups', `signup-${id}`], ['notices', `notice-${id}`], ['todos', `todo-${id}`],
     ['archive_records', `archive-${id}`], ['file_space_records', `file-${id}`], ['image_records', `image-${id}`],
-    ['workgroups', `wg-activity-${id}`], ['workgroup_members', `wgm-${id}-p2`], ['workgroup_grants', `wgg-${id}-p2`],
+    ['workgroups', `wg-activity-${id}`], ['workgroup_members', `wgm-${id}-2400012346`], ['workgroup_grants', `wgg-${id}-2400012346`],
     ['workgroup_tasks', `wgt-${id}`], ['workgroup_outputs', `wgo-${id}`], ['attendance_rosters', `atr-${id}`]]) {
     assert.equal(db.prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE id = ?`).get(rowId).n, 0, `${table} should be removed`);
   }
@@ -105,7 +105,7 @@ test('关联记录删除失败时活动及已处理子记录全部回滚', async
   const id = 'act-delete-rollback';
   put('activities', id, { id, type: '支委会', title: '回滚验证' });
   put('tasks', `task-${id}`, { id: `task-${id}`, activityId: id });
-  put('agenda_votes', `avp-${id}`, { id: `avp-${id}`, activityId: id, agendaItemId: 'a1', personId: 'p3', position: 'approve' });
+  put('agenda_votes', `avp-${id}`, { id: `avp-${id}`, activityId: id, agendaItemId: 'a1', personId: '2400012347', position: 'approve' });
   db.exec(`CREATE TRIGGER fail_activity_vote_delete BEFORE DELETE ON agenda_votes
     WHEN OLD.id = 'avp-${id}' BEGIN SELECT RAISE(ABORT, 'forced child delete failure'); END`);
   try {

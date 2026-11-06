@@ -6,12 +6,13 @@
 //  挂载点：宣传/组织工作台待办列表顶部、纪检补课 tab 顶部。
 // ════════════════════════════════════════════════════════════════
 
-import { HandoffStore, HANDOFF_TYPES, HANDOFF_ROLE_LABELS } from '../../services/governance/handoff.js?v=20261018h';
-import { badgeHtml } from '../ui/badges.js?v=20261018h';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261018h';
+import { HandoffStore, HANDOFF_TYPES, HANDOFF_ROLE_LABELS } from '../../services/governance/handoff.js?v=20261102b';
+import { badgeHtml } from '../ui/badges.js?v=20261102b';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261102b';
 // 统一检索引擎（2026-09-14 批次 37）：待确认交接待办列表接入（关键词 事项/类型 + 引擎内置分页）
-import { renderFilteredList } from '../ui/list-filter.js?v=20261018h';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261102b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
 // 引擎行样式交接（2026-09-14 批次 37）：行由统一检索引擎渲染，而引擎须 DOM 就位后才可挂载
 //（render 出 HTML 串 → 调用方 innerHTML → bind 才拿到容器）；bind 侧调用方只传 to，拿不到强调色，
 // 故 render 按接收方角色暂存本轮强调色（行内确认钮样式依赖它），bind 取回后即挂载。
@@ -37,7 +38,7 @@ export function renderHandoffInboxHtml({ to, accent, title = '数据交接', ext
         <h4 class="font-title-cn text-sm font-bold text-gray-800">${title}</h4>
         ${items.length > 0 ? `<span class="text-xs text-gray-500 tabular-nums">${items.length} 条待确认</span>` : '<span class="text-xs text-gray-500">已清空</span>'}
       </div>
-      ${items.length > 0 ? '<div id="handoff-inbox-list-host"></div>' : '<p class="text-xs text-gray-500 py-1">暂无待确认的交接数据</p>'}
+      ${items.length > 0 ? '<div id="handoff-inbox-list-host"></div>' : emptyStateHtml({ text: '暂无待确认的交接数据', variant: 'inline' })}
       ${extraActionHtml || ''}
     </div>
   `;

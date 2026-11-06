@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadMemberProfile } from '../../docs/src/services/member/profile.js?v=20261018h';
-import { canMaintainMemberProfileFields } from '../../docs/src/core/domain/profile-access.js?v=20261018h';
+import { loadMemberProfile } from '../../docs/src/services/member/profile.js?v=20261102b';
+import { canMaintainMemberProfileFields } from '../../docs/src/core/domain/profile-access.js?v=20261102b';
 
 const member = { id: 'p-target', branchId: 'br-b1', name: '目标成员', selfProfile: { phone: 'protected' } };
 
@@ -82,4 +82,26 @@ test('治理字段编辑按钮只显示给同支部组织委员', () => {
   assert.equal(canMaintainMemberProfileFields({ id: 'p-sec', branchId: 'br-b1', role: 'secretary' }, member), false);
   assert.equal(canMaintainMemberProfileFields({ id: 'p-party', branchId: 'br-b1', role: 'party-staff' }, member), false);
   assert.equal(canMaintainMemberProfileFields({ id: 'p-other-org', branchId: 'br-b2', role: 'org-commissioner' }, member), false);
+});
+
+test('待归属（branchId:null）不得回落默认支部：组织委员不可读也不可维护', async () => {
+  const pending = { id: 'p-pending', branchId: null, name: '待归属成员', selfProfile: { phone: 'protected' } };
+  // 读：br-b1 组织委员不得把 null 当成默认支部成员
+  await assert.rejects(
+    loadMemberProfile({
+      personId: pending.id,
+      actor: { id: 'p-org', branchId: 'br-b1', role: 'org-commissioner' },
+      dataSource: 'mock', apiGet: async () => null, mockGet: () => pending,
+    }),
+    (error) => error.status === 403,
+  );
+  // 写：并显示编辑按钮同样拒绝
+  assert.equal(canMaintainMemberProfileFields({ id: 'p-org', branchId: 'br-b1', role: 'org-commissioner' }, pending), false);
+  // 待归属者本人仍可看自己的档案
+  const own = await loadMemberProfile({
+    personId: pending.id,
+    actor: { id: pending.id, branchId: null, role: 'participant' },
+    dataSource: 'mock', apiGet: async () => null, mockGet: () => pending,
+  });
+  assert.equal(own, pending);
 });

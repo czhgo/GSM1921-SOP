@@ -21,7 +21,18 @@ export function createAuthRouter(db) {
   const router = Router();
 
   router.post('/login', (req, res) => {
-    const { personId, password } = req.body || {};
+    let { personId } = req.body || {};
+    const { password } = req.body || {};
+    // 迁移期（2026-10-20）：旧 p* 仅作登录别名；会话一律存学号（一次 console.warn）
+    if (isLegacyPersonId(personId)) {
+      const mapped = mapPersonId(personId);
+      if (mapped == null) return res.status(401).json({ error: '未知人员' });
+      if (!legacyAliasWarned) {
+        legacyAliasWarned = true;
+        console.warn('[auth] 检测到旧 p* 人员 id 登录别名（仅迁移期兼容），会话已改存学号');
+      }
+      personId = mapped;
+    }
     const userRow = db.prepare('SELECT data FROM users WHERE id = ?').get(personId);
     if (!userRow) return res.status(401).json({ error: '未知人员' });
     if (!passwordCheckDisabled() && !loginPasswordOk(password)) {
@@ -43,11 +54,11 @@ export function createAuthRouter(db) {
   });
 
   router.get('/me', (req, res) => {
-    const token = (req.headers.authorization || '').replace('Bearer ', '');
-    const session = token ? db.prepare('SELECT * FROM sessions WHERE token = ?').get(token) : null;
-    if (!session) return res.status(401).json({ error: '未登录' });
-    const user = JSON.parse(db.prepare('SELECT data FROM users WHERE id = ?').get(session.person_id).data);
-    res.json(user);
+    // 2026-11-03 Task 4：改走 getSessionUser——会话过期（SESSION_TTL_DAYS）时同样 401；
+    // 原实现直查 sessions 表，会绕过 TTL 判定，令过期 token 仍能换取用户资料。
+    const actor = getSessionUser(db, req);
+    if (!actor) return res.status(401).json({ error: '未登录' });
+    res.json(actor.user);
   });
 
   return router;
@@ -64,10 +75,10 @@ export function requireAuth(db) {
   };
 }
 
-function getSessionUser(db, req) {
+export function getSessionUser(db, req) { // 2026-10-24 批次 508：导出供公开归档读口做「可选登录」（有 token 按登录口径，无 token 按匿名公开口径）
   const token = (req.headers.authorization || '').replace('Bearer ', '');
   const session = token ? db.prepare('SELECT * FROM sessions WHERE token = ?').get(token) : null;
-  if (!session) return null;
+  if (!session || _sessionExpired(db, session)) return null;
   const userRow = db.prepare('SELECT data FROM users WHERE id = ?').get(session.person_id);
   if (!userRow) return null;
   const user = JSON.parse(userRow.data);
@@ -99,3 +110,33 @@ export function requireCommissioner(db) {
 // 运行形态判定单一源（P0-3）：`APP_ENV=production` 或 `NODE_ENV=production`，见 server/env.js。
 // ⚠ 置尾以保上文行号（`auth.js:12-14` / `:17` / `:92-97` 等是 README-server.md 的取证靶点）；import 声明被提升，置尾不影响语义。
 import { isProductionEnv } from '../env.js';
+// 迁移期旧 p* 登录别名（映射表仅迁移与兼容使用，业务代码不得引用）
+import { isLegacyPersonId, mapPersonId } from '../migrations/legacy-person-ids.js';
+
+let legacyAliasWarned = false;
+
+// ════════════════════════════════════════════════════════════════
+//  会话 TTL（2026-11-03 Task 4）
+//  为什么：login 已写 `sessions.created_at`，但 getSessionUser 只查 token 存在与否 ⇒
+//    token 永久有效（README「token 无过期」风险项）。这里按 created_at 现算过期，
+//    过期即删该会话行并视为未登录（/auth/me 与所有 requireAuth 写口因此 401）。
+//  · 不改表结构、不加迁移：只读 login 已写的 created_at。
+//  · SESSION_TTL_HOURS 缺省 3（支书 2026-11-03 裁定：3 小时过期）；非法值回落 3，避免误配成「永不过期」。
+//  · 兼容旧配置：若只设了 SESSION_TTL_DAYS，则按天换算成小时。
+//  · created_at 缺失或不可解析：不判过期（保持历史会话可用，避免旧库突然全量掉线）。
+// ════════════════════════════════════════════════════════════════
+function _sessionTtlHours() {
+  const hours = Number(process.env.SESSION_TTL_HOURS);
+  if (Number.isFinite(hours) && hours > 0) return hours;
+  const days = Number(process.env.SESSION_TTL_DAYS);
+  if (Number.isFinite(days) && days > 0) return days * 24;
+  return 3;
+}
+
+function _sessionExpired(db, session) {
+  const created = Date.parse(session && session.created_at);
+  if (!Number.isFinite(created)) return false;
+  if (Date.now() - created <= _sessionTtlHours() * 60 * 60 * 1000) return false;
+  db.prepare('DELETE FROM sessions WHERE token = ?').run(session.token);
+  return true;
+}

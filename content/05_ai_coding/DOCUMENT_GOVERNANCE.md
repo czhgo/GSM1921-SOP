@@ -2,7 +2,7 @@
 title: "文档治理与一改具改"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-09-29
+last_updated: 2026-11-03
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -247,3 +247,21 @@ setActiveRole 参数从 `setActiveRole(role)` 变为 `setActiveRole(module, role
 **Boolean 条件**：重构动画/设计时，须先 grep 旧方案关键词（命名、注释、CSS 类、@keyframes）全仓清零，验证零残留后再实施新方案。
 
 **生效条件**：任何涉及「被否决方案」的动画/设计重构；H40 检查清单应纳入「被否决方案残留」扫描项（与 C-5 已降级定义残留审计并列）。
+
+## `.ctx` 与 `content` 的准入 / 晋升 / 删除（2026-11-03 批次 529）
+
+**问题**：`.ctx` 同时装现行事实、规则、判例、待办、证据与元数据，更新频率不同，导致同一事实多源、规则正文与索引混杂、新会话无法全读。
+
+**规则**：
+
+1. **准入**：新内容先判「知识类型 + 更新频率 + 权威性」。只有「当前状态 / 当前判断」可进 `.ctx/ACTIVE_CONTEXT.md`；规则进 `content/01–05`；证据进 `.ctx/evidence/`；流水进 `.ctx/logs/`。
+2. **晋升**：`.ctx` 中可复用的规则 / 判例 / 方法，必须先改写进 `content` 对应层（压缩、去重、逻辑修缮），再在 `.ctx` 留一行索引；不得直接 archive 了事。
+3. **删除**：纯历史 / 死场景 / 已被取代的内容可删除；git 即沿革，不再写「见 XXX」指针。若外部文档引用旧行，改指 `content` 对应节或 `D-xxx`。
+4. **去重**：同一事实只允许一个权威源；`ACTIVE_CONTEXT` 只做投影并带 source 指针，不复制全量规则。
+5. **保鲜**：`ACTIVE_CONTEXT.latest_decision` 必须 ≥ 当月决策日志最后一条 `D-xxx`；`ACTIVE_RULINGS` 必须含分域索引。
+
+**日志分层（2026-11-03 批次 530）**：每批「改了什么」的第一主记录是 `git commit message`（模板：`批次号｜为什么｜改动面｜验证读数｜D/任务号`）；`EXECUTION_LOG` 只写「为什么 / 拿不准 / 边界 / 读数 / commit hash」，不得复述逐文件 diff / 改动清单。判断口径：日志里出现逐文件改动清单 ⇒ 改动事实应回 commit message，日志只留 hash 与判断语境。
+
+**Boolean 条件**：`.ctx` 顶层新增文件未命中 `CLAUDE.md H26.3` 白名单，或规则正文出现在 `.ctx` 顶层 → `ctx-hygiene-guard` 判红。
+
+**生效条件**：新增 / 迁移 / 删除 `.ctx` 内容，或从 `.ctx` 提炼规则 / 判例 / 方法时。

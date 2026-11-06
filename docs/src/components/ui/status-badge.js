@@ -5,7 +5,7 @@
 //  用途：任务状态 / 考勤状态 / 交接状态等行内状态（替代原生 select 下拉）
 // ════════════════════════════════════════════════════════════════
 
-import { icon } from '../../core/base/icons.js?v=20261018h';
+import { icon } from '../../core/base/icons.js?v=20261102b';
 
 const VIEWPORT_PADDING = 8;
 
@@ -96,7 +96,6 @@ function _openStatusPopover(anchor, statuses, onChange) {
   popover.querySelectorAll('.status-badge-option').forEach(btn => {
     btn.addEventListener('click', () => {
       const value = btn.dataset.value;
-      // 立即同步徽章显示，再交由 onChange 触发全局状态刷新
       anchor.dataset.status = value;
       const def = statuses[value];
       if (def) {

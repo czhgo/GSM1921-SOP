@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20261018h';
+const V = '?v=20261102b';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const read = (f) => readFileSync(f, 'utf8');
@@ -88,13 +88,19 @@ test('S2 enrollYear 字段两侧白名单齐备（前端字段白名单 + server
   assert.match(modal, /enrollYear/, '完整档案展示须含 enrollYear（只读）');
   // 2026-10-18 繁专项 Task 14：届别补进「立即生效」可改组（服务端白名单已含 enrollYear）
   assert.match(modal, /data-field="enrollYear"/, '编辑模态须提供届别输入');
-  assert.match(modal, /INSTANT_FIELDS = \['name', 'studentId', 'enrollYear', 'partyGroup'\]/, '届别须随立即生效字段提交');
+  // 2026-10-22 R7-01：学号即人员主键、改为只读（改名走党委「重命名账号」受控端点）⇒ 立即生效组只余三项
+  assert.match(modal, /INSTANT_FIELDS = \['name', 'enrollYear', 'partyGroup'\]/, '届别须随立即生效字段提交');
 });
 
 test('S5 成员流动页首文案中性，不再写死「成员名册」', () => {
   const src = read(join(SRC_DIR, 'entries', 'tabs', 'org', 'member-flow-tab.js'));
   assert.doesNotMatch(src, /在册成员与档案状态见「成员名册」/, '共享组件不得写死支书台不存在的页签名');
-  assert.match(src, /在册成员与档案状态以成员档案为准/, '页首改为角色中性的档案指引');
+  // 2026-10-20 第二轮界面细化：页首三句说明（含「在册成员与档案状态以成员档案为准」）
+  //   按「此地无银」判据整句删除，页面只留卡片标题与台账本身。
+  assert.doesNotMatch(src, /在册成员与档案状态以成员档案为准/, '页首长说明已删，不再复述标题');
+  // 2026-10-24 Task 4.2：卡头改用 renderCardHeader；H3 不得逐字复述页签名「成员流动」
+  //   ⇒ 卡内标题改为带范围的「流动台账」（断言随结构改准，语义仍是「卡片标题保留」）。
+  assert.match(src, /renderCardHeader\(\{[\s\S]{0,120}title: '流动台账'/, '卡片标题保留（流动台账）');
 });
 
 test('S3 写门角色集来自单一源（不得手写角色字符串）', () => {
@@ -143,7 +149,7 @@ test('D1 单人流入：档案落档（含学号/届别）+ 台账一笔 + 账�
   const before = PersonStore.getMembers().length;
   const r = await registerIntake({
     name: '测试新生', studentId: '2600010001', enrollYear: '2026',
-    partyGroup: '第一党小组', note: '开学转入', by: 'p11', role: 'org-commissioner',
+    partyGroup: '第一党小组', developStage: '正式党员', note: '开学转入', by: '2400012355', role: 'org-commissioner',
   });
   assert.equal(r.ok, true, JSON.stringify(r));
   assert.ok(r.person && r.person.id);
@@ -160,7 +166,7 @@ test('D1 单人流入：档案落档（含学号/届别）+ 台账一笔 + 账�
   assert.equal(flows[0].direction, 'in');
   assert.equal(flows[0].personId, p.id);
   assert.equal(flows[0].studentId, '2600010001');
-  assert.equal(flows[0].by, 'p11');
+  assert.equal(flows[0].by, '2400012355');
 
   // 自动建号：账号 = 学号；口令 = 支部统一默认口令
   const login = verifyLogin('2600010001', '123456');
@@ -168,7 +174,7 @@ test('D1 单人流入：档案落档（含学号/届别）+ 台账一笔 + 账�
   assert.equal(login.personId, p.id);
   assert.equal(isAccountActive('2600010001'), true);
   // 学号重复 → 拒绝
-  const dup = await registerIntake({ name: '重复学号', studentId: '2600010001', by: 'p11', role: 'org-commissioner' });
+  const dup = await registerIntake({ name: '重复学号', studentId: '2600010001', developStage: '正式党员', by: '2400012355', role: 'org-commissioner' });
   assert.equal(dup.ok, false);
   assert.match(dup.reason, /学号/);
 });
@@ -176,12 +182,12 @@ test('D1 单人流入：档案落档（含学号/届别）+ 台账一笔 + 账�
 test('D2 批量粘贴（含一行错误）→ errors 有行号且其它行照常成功', async () => {
   beginMockCase();
   const text = [
-    '批量甲\t2600020001\t2026\t第一党小组',
-    '批量乙,2600020002,2026,第二党小组',
+    '批量甲\t2600020001\t2026\t第一党小组\t\t正式党员',
+    '批量乙,2600020002,2026,第二党小组,,正式党员',
     '',                                              // 空行跳过
-    '批量丙\t2600020001\t2026\t第一党小组',           // 学号与第 1 行重复 → 行号 4 报错
+    '批量丙\t2600020001\t2026\t第一党小组\t\t正式党员', // 学号与第 1 行重复 → 行号 4 报错
   ].join('\n');
-  const r = await registerIntakeBatch({ text, by: 'p11', role: 'org-commissioner' });
+  const r = await registerIntakeBatch({ text, by: '2400012355', role: 'org-commissioner' });
   assert.equal(r.created.length, 2, '两行合法照常成功');
   assert.equal(r.errors.length, 1);
   assert.equal(r.errors[0].line, 4, '行号 = 原始文本 1 起行号');
@@ -193,10 +199,10 @@ test('D2 批量粘贴（含一行错误）→ errors 有行号且其它行照常
 
 test('D3 多人流出：软标记 + 台账 + 账号停用 + 名册读链不再含该人', async () => {
   beginMockCase();
-  const a = await registerIntake({ name: '流出甲', studentId: '2600030001', by: 'p11', role: 'org-commissioner' });
-  const b = await registerIntake({ name: '流出乙', studentId: '2600030002', by: 'p11', role: 'org-commissioner' });
+  const a = await registerIntake({ name: '流出甲', studentId: '2600030001', developStage: '正式党员', by: '2400012355', role: 'org-commissioner' });
+  const b = await registerIntake({ name: '流出乙', studentId: '2600030002', developStage: '正式党员', by: '2400012355', role: 'org-commissioner' });
   const r = await registerOutflow({
-    personIds: [a.person.id, b.person.id], date: '2026-09-14', note: '毕业转出', by: 'p11', role: 'org-commissioner',
+    personIds: [a.person.id, b.person.id], date: '2026-09-14', note: '毕业转出', by: '2400012355', role: 'org-commissioner',
   });
   assert.equal(r.ok, true, JSON.stringify(r));
   assert.equal(r.movedCount, 2);
@@ -221,24 +227,24 @@ test('D3 多人流出：软标记 + 台账 + 账号停用 + 名册读链不再�
   assert.equal(verifyLogin('2600030001', '123456').ok, false, '停用账号禁止登录');
 
   // 已在册者再次流出 → skipped（幂等守卫）
-  const again = await registerOutflow({ personIds: [a.person.id], by: 'p11', role: 'org-commissioner' });
+  const again = await registerOutflow({ personIds: [a.person.id], by: '2400012355', role: 'org-commissioner' });
   assert.equal(again.movedCount, 0);
   assert.equal(again.skipped.length, 1);
 });
 
 test('D4 撤销：台账留痕（revokedAt/revokedBy）+ 回滚在册状态 + 账号恢复/停用', async () => {
   beginMockCase();
-  const a = await registerIntake({ name: '撤销流出', studentId: '2600040001', enrollYear: '2026', partyGroup: '第一党小组', by: 'p11', role: 'org-commissioner' });
-  const b = await registerIntake({ name: '撤销流入', studentId: '2600040002', by: 'p11', role: 'org-commissioner' });
-  await registerOutflow({ personIds: [a.person.id], note: '误登流出', by: 'p11', role: 'org-commissioner' });
+  const a = await registerIntake({ name: '撤销流出', studentId: '2600040001', enrollYear: '2026', partyGroup: '第一党小组', developStage: '正式党员', by: '2400012355', role: 'org-commissioner' });
+  const b = await registerIntake({ name: '撤销流入', studentId: '2600040002', developStage: '正式党员', by: '2400012355', role: 'org-commissioner' });
+  await registerOutflow({ personIds: [a.person.id], note: '误登流出', by: '2400012355', role: 'org-commissioner' });
   assert.equal(PersonStore.getMembers().some(p => p.id === a.person.id), false);
 
   // 撤销「流出」→ 成员恢复在册 + 账号恢复
   const outFlow = loadMemberFlows({ branchId: 'br-b1' }).find(f => f.direction === 'out' && f.personId === a.person.id);
-  const rvOut = await revokeFlow({ flowId: outFlow.id, by: 'p13', role: 'secretary' });
+  const rvOut = await revokeFlow({ flowId: outFlow.id, by: '2300010001', role: 'secretary' });
   assert.equal(rvOut.ok, true, JSON.stringify(rvOut));
   assert.ok(rvOut.flow.revokedAt, '撤销留痕时间');
-  assert.equal(rvOut.flow.revokedBy, 'p13', '撤销留痕人');
+  assert.equal(rvOut.flow.revokedBy, '2300010001', '撤销留痕人');
   const restored = PersonStore.getById(a.person.id);
   assert.ok(restored, '成员恢复在册');
   assert.equal(restored.name, '撤销流出');
@@ -248,13 +254,13 @@ test('D4 撤销：台账留痕（revokedAt/revokedBy）+ 回滚在册状态 + �
 
   // 撤销「流入」→ 成员回不在册 + 账号停用
   const inFlow = loadMemberFlows({ branchId: 'br-b1' }).find(f => f.direction === 'in' && f.personId === b.person.id);
-  const rvIn = await revokeFlow({ flowId: inFlow.id, by: 'p11', role: 'org-commissioner' });
+  const rvIn = await revokeFlow({ flowId: inFlow.id, by: '2400012355', role: 'org-commissioner' });
   assert.equal(rvIn.ok, true, JSON.stringify(rvIn));
   assert.equal(PersonStore.getMembers().some(p => p.id === b.person.id), false, '撤销流入 → 成员不再在册');
   assert.equal(verifyLogin('2600040002', '123456').ok, false, '撤销流入 → 账号停用');
 
   // 重复撤销拒绝
-  const again = await revokeFlow({ flowId: outFlow.id, by: 'p13', role: 'secretary' });
+  const again = await revokeFlow({ flowId: outFlow.id, by: '2300010001', role: 'secretary' });
   assert.equal(again.ok, false);
 });
 
@@ -266,9 +272,9 @@ test('D5 reconcile 恒等：期初在册 + 流入合计 − 流出合计 = 当�
   assert.equal(before.openingCount, before.currentCount, '无台账时期初 = 当前在册');
   assert.equal(before.balanced, true);
 
-  const a = await registerIntake({ name: '对账甲', studentId: '2600050001', by: 'p11', role: 'org-commissioner' });
-  await registerIntake({ name: '对账乙', studentId: '2600050002', by: 'p11', role: 'org-commissioner' });
-  await registerOutflow({ personIds: [a.person.id], by: 'p11', role: 'org-commissioner' });
+  const a = await registerIntake({ name: '对账甲', studentId: '2600050001', developStage: '正式党员', by: '2400012355', role: 'org-commissioner' });
+  await registerIntake({ name: '对账乙', studentId: '2600050002', developStage: '正式党员', by: '2400012355', role: 'org-commissioner' });
+  await registerOutflow({ personIds: [a.person.id], by: '2400012355', role: 'org-commissioner' });
 
   const r = reconcile({ branchId: 'br-b1' });
   assert.equal(r.inCount, 2);
@@ -280,7 +286,7 @@ test('D5 reconcile 恒等：期初在册 + 流入合计 − 流出合计 = 当�
 
   // 撤销后对账仍恒等（out 计回流水）
   const outFlow = loadMemberFlows({ branchId: 'br-b1' }).find(f => f.direction === 'out');
-  await revokeFlow({ flowId: outFlow.id, by: 'p11', role: 'org-commissioner' });
+  await revokeFlow({ flowId: outFlow.id, by: '2400012355', role: 'org-commissioner' });
   const r2 = reconcile({ branchId: 'br-b1' });
   assert.equal(r2.outCount, 0, '已撤销流出不再计入');
   assert.equal(r2.openingCount + r2.inCount - r2.outCount, r2.currentCount);
@@ -298,12 +304,12 @@ test('D6 权限：组织委员/支书/副支书可登记，其它角色拒绝', 
   // 单一源：canRegisterFlow ≡ MEMBER_FLOW_ROLES
   assert.deepEqual([...MEMBER_FLOW_ROLES].sort(), ['deputy-secretary', 'org-commissioner', 'secretary'].sort());
 
-  const denyIn = await registerIntake({ name: '越权', studentId: '2600060001', by: 'p5', role: 'participant' });
+  const denyIn = await registerIntake({ name: '越权', studentId: '2600060001', by: '2400012349', role: 'participant' });
   assert.equal(denyIn.ok, false);
-  const denyOut = await registerOutflow({ personIds: ['p50'], by: 'p5', role: 'participant' });
+  const denyOut = await registerOutflow({ personIds: ['2500010036'], by: '2400012349', role: 'participant' });
   assert.equal(denyOut.ok, false);
-  const denyBatch = await registerIntakeBatch({ text: '越权甲\t2600060002', by: 'p5', role: 'participant' });
+  const denyBatch = await registerIntakeBatch({ text: '越权甲\t2600060002', by: '2400012349', role: 'participant' });
   assert.equal(denyBatch.ok, false);
-  const denyRevoke = await revokeFlow({ flowId: 'mf-x', by: 'p5', role: 'participant' });
+  const denyRevoke = await revokeFlow({ flowId: 'mf-x', by: '2400012349', role: 'participant' });
   assert.equal(denyRevoke.ok, false);
 });

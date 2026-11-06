@@ -63,7 +63,7 @@ const AD_HOC = new Set([
   /COLLECTION_VERSIONS_TABLE = '(\w+)'/.exec(SRC)[1],
   ...MIGRATIONS.flatMap((migration) => migration.tables || []),
 ]);
-const AD_HOC_BASELINE = 51; // v1 冻结 44 张 + schema v3 新增 6 张 + schema v4 周期归档表；新增迁移表须同步审阅本基线。
+const AD_HOC_BASELINE = 54; // v1 冻结 44 张 + schema v3 新增 6 张 + schema v4 周期归档表 + schema v9 seed_meta + v11 影子子表 2 张；v12 不新增表（只删 issue_reveals）；新增迁移表须同步审阅本基线。
 
 /** 各迁移声明的表名（`tables` 字段） */
 const DECLARED = new Set();
@@ -73,7 +73,7 @@ const COVERED = new Set([...LEGACY_TABLES, ...DECLARED]);
 /** 从已创建结构扣除迁移明确声明删除的历史表，得到目标版本应存在的表集。 */
 const RETIRED_TABLES = new Set(MIGRATIONS.flatMap((migration) => migration.drops || []));
 const CURRENT_TABLES = new Set([...AD_HOC].filter((table) => !RETIRED_TABLES.has(table)));
-const CURRENT_TABLE_BASELINE = 50;
+const CURRENT_TABLE_BASELINE = 52; // v12 DROP issue_reveals ⇒ 53 − 1
 
 // ── G1 / G2 ────────────────────────────────────────────────────────────────
 test('G1/G2 完整性 + 版本对齐：临时库 integrity_check=ok，且 user_version=SCHEMA_VERSION', () => {
@@ -109,7 +109,7 @@ test('G4 非空转：抽取有基线 + 校验器在合成反例上必命中（�
     `db.js 自建表抽取数 ${AD_HOC.size} ≠ 当前冻结基线 ${AD_HOC_BASELINE}`);
   assert.equal(CURRENT_TABLES.size, CURRENT_TABLE_BASELINE,
     `迁移后的当前表数 ${CURRENT_TABLES.size} ≠ 当前基线 ${CURRENT_TABLE_BASELINE}`);
-  assert.equal(RETIRED_TABLES.size, 1, `已声明删除表数 ${RETIRED_TABLES.size} ≠ 当前基线 1`);
+  assert.equal(RETIRED_TABLES.size, 2, `已声明删除表数 ${RETIRED_TABLES.size} ≠ 当前基线 2（weekly_reports / issue_reveals）`);
   assert.deepEqual([...AD_HOC].sort(), [...new Set([...LEGACY_TABLES, ...DECLARED])].sort(),
     'db.js 自建表抽取与 v1 冻结基线 ∪ 迁移声明不符（新结构须登记迁移）');
 

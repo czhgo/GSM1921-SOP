@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261018h"></script>
+<script src="./src/theme-init.js?v=20261102b"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>资料查询 — GSM1921-SOP</title>
@@ -11,9 +11,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261018h"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261018h">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="./src/tailwind-config.js?v=20261102b"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261102b">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -32,12 +32,14 @@
       <div class="flex items-center justify-between mb-4">
         <div>
           <h2 class="font-title-cn text-xl font-bold text-gray-800">参考资料</h2>
-          <p class="text-xs text-gray-500 mt-1">系统迭代资料 / 党支部文档 / 外部链接 / 常用工具</p>
         </div>
-        <div class="flex items-center gap-2">
+        <a href="./index.html" class="text-xs text-accent flex items-center gap-1">← 返回主页</a>
+      </div>
+      <!-- P3 四段：检索（本页只有关键词，其余段为空段，不输出空行） -->
+      <div class="lf-bar mb-4">
+        <div class="lf-bar__row" data-seg="search">
           <label for="ref-search-input" class="sr-only">搜索资料</label>
-          <input type="search" id="ref-search-input" class="input-flat" style="width:200px;height:36px;font-size:0.75rem;" placeholder="搜索资料..." autocomplete="off">
-          <a href="./index.html" class="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">← 返回主页</a>
+          <input type="search" id="ref-search-input" class="input-flat text-xs lf-kw" placeholder="搜索资料..." autocomplete="off">
         </div>
       </div>
 
@@ -46,15 +48,15 @@
         <span id="ref-result-count" class="text-xs text-gray-500"></span>
       </div>
       <div id="ref-docs-list" class="space-y-3"></div>
-      <div id="ref-docs-empty" class="hidden text-center py-12 text-gray-500 text-sm">未找到匹配的资料</div>
+      <div id="ref-docs-empty" class="hidden"><div class="empty-state"><p class="empty-state__text">未找到匹配的资料</p></div></div>
 
       <div class="flex items-center justify-between mb-4 mt-8">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">支部文件</h3>
         <button id="ref-branch-doc-add-btn" class="ref-add-btn hidden">写入文件</button>
       </div>
       <div id="ref-branch-docs-list" class="space-y-3"></div>
-      <div id="ref-branch-docs-empty" class="hidden text-center py-12 text-gray-500 text-sm">暂无支部文件</div>
-      <div id="ref-branch-docs-login-hint" class="hidden text-center py-12 text-gray-500 text-sm">登录后查看支部文件</div>
+      <div id="ref-branch-docs-empty" class="hidden"><div class="empty-state"><p class="empty-state__text">暂无支部文件</p></div></div>
+      <div id="ref-branch-docs-login-hint" class="hidden"><div class="empty-state"><p class="empty-state__text">请先登录后使用</p></div></div>
 
       <div class="flex items-center justify-between mb-4 mt-8">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">常用入口</h3>
@@ -66,6 +68,14 @@
 </div>
 
 
-<script type="module" src="./src/entries/pages/search-entry.js?v=20261018h"></script>
+<!-- modulepreload:start -->
+  <link rel="modulepreload" href="./src/components/sections/references.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/components/shell/sidebar.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/components/shell/header.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/services/core/runtime.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/data/data-adapter.js?v=20261102b" />
+  <link rel="modulepreload" href="./src/data/api-adapter.js?v=20261102b" />
+  <!-- modulepreload:end -->
+  <script type="module" src="./src/entries/pages/search-entry.js?v=20261102b"></script>
 </body>
 </html>

@@ -1,0 +1,348 @@
+{
+  "generatedAt": "2026-11-01T08:11:35.914Z",
+  "base": "http://localhost:3000",
+  "viewport": "1440x1000",
+  "pages": [
+    {
+      "role": "secretary",
+      "url": "http://localhost:3000/workspace/secretary.html?dev=secretary&tab=overview",
+      "ok": true,
+      "errors": [],
+      "title": "光华管理学院本科生党支部光华党支部",
+      "metrics": [
+        {
+          "label": "逾期",
+          "value": "22",
+          "token": "var(--status-warning-text)",
+          "computedColor": "rgb(146, 64, 14)",
+          "resolvedToken": "rgb(146, 64, 14)",
+          "iconTint": "var(--status-warning-text)",
+          "metricKey": "overdue",
+          "tone": "warning"
+        },
+        {
+          "label": "待办",
+          "value": "12",
+          "token": "var(--neutral-800)",
+          "computedColor": "rgb(31, 41, 55)",
+          "resolvedToken": "rgb(31, 41, 55)",
+          "iconTint": "var(--neutral-800)",
+          "metricKey": "actions",
+          "tone": "neutral"
+        },
+        {
+          "label": "在办",
+          "value": "221",
+          "token": "var(--neutral-500)",
+          "computedColor": "rgb(107, 114, 128)",
+          "resolvedToken": "rgb(107, 114, 128)",
+          "iconTint": "var(--neutral-500)",
+          "metricKey": "active",
+          "tone": "neutral"
+        },
+        {
+          "label": "待答复",
+          "value": "2",
+          "token": "var(--status-info-text)",
+          "computedColor": "rgb(29, 78, 216)",
+          "resolvedToken": "rgb(29, 78, 216)",
+          "iconTint": "var(--status-info-text)",
+          "metricKey": "fourth",
+          "tone": "info"
+        }
+      ],
+      "tokens": {
+        "info": "#1D4ED8",
+        "warning": "#92400E",
+        "neutral800": "#1F2937",
+        "neutral500": "#6B7280"
+      }
+    },
+    {
+      "role": "org-commissioner",
+      "url": "http://localhost:3000/workspace/org.html?dev=org-commissioner&tab=overview",
+      "ok": true,
+      "errors": [],
+      "title": "光华管理学院本科生党支部光华党支部",
+      "metrics": [
+        {
+          "label": "逾期",
+          "value": "0",
+          "token": "var(--neutral-500)",
+          "computedColor": "rgb(107, 114, 128)",
+          "resolvedToken": "rgb(107, 114, 128)",
+          "iconTint": "var(--neutral-500)",
+          "metricKey": "overdue",
+          "tone": "neutral"
+        },
+        {
+          "label": "待办",
+          "value": "4",
+          "token": "var(--neutral-800)",
+          "computedColor": "rgb(31, 41, 55)",
+          "resolvedToken": "rgb(31, 41, 55)",
+          "iconTint": "var(--neutral-800)",
+          "metricKey": "actions",
+          "tone": "neutral"
+        },
+        {
+          "label": "在办",
+          "value": "3",
+          "token": "var(--neutral-500)",
+          "computedColor": "rgb(107, 114, 128)",
+          "resolvedToken": "rgb(107, 114, 128)",
+          "iconTint": "var(--neutral-500)",
+          "metricKey": "active",
+          "tone": "neutral"
+        },
+        {
+          "label": "待赋权",
+          "value": "0",
+          "token": "var(--status-info-text)",
+          "computedColor": "rgb(29, 78, 216)",
+          "resolvedToken": "rgb(29, 78, 216)",
+          "iconTint": "var(--status-info-text)",
+          "metricKey": "fourth",
+          "tone": "info"
+        }
+      ],
+      "tokens": {
+        "info": "#1D4ED8",
+        "warning": "#92400E",
+        "neutral800": "#1F2937",
+        "neutral500": "#6B7280"
+      }
+    },
+    {
+      "role": "prop-commissioner",
+      "url": "http://localhost:3000/workspace/prop.html?dev=prop-commissioner&tab=overview",
+      "ok": true,
+      "errors": [],
+      "title": "光华管理学院本科生党支部光华党支部",
+      "metrics": [
+        {
+          "label": "逾期",
+          "value": "0",
+          "token": "var(--neutral-500)",
+          "computedColor": "rgb(107, 114, 128)",
+          "resolvedToken": "rgb(107, 114, 128)",
+          "iconTint": "var(--neutral-500)",
+          "metricKey": "overdue",
+          "tone": "neutral"
+        },
+        {
+          "label": "待办",
+          "value": "6",
+          "token": "var(--neutral-800)",
+          "computedColor": "rgb(31, 41, 55)",
+          "resolvedToken": "rgb(31, 41, 55)",
+          "iconTint": "var(--neutral-800)",
+          "metricKey": "actions",
+          "tone": "neutral"
+        },
+        {
+          "label": "在办",
+          "value": "41",
+          "token": "var(--neutral-500)",
+          "computedColor": "rgb(107, 114, 128)",
+          "resolvedToken": "rgb(107, 114, 128)",
+          "iconTint": "var(--neutral-500)",
+          "metricKey": "active",
+          "tone": "neutral"
+        },
+        {
+          "label": "待归档",
+          "value": "34",
+          "token": "var(--status-info-text)",
+          "computedColor": "rgb(29, 78, 216)",
+          "resolvedToken": "rgb(29, 78, 216)",
+          "iconTint": "var(--status-info-text)",
+          "metricKey": "fourth",
+          "tone": "info"
+        }
+      ],
+      "tokens": {
+        "info": "#1D4ED8",
+        "warning": "#92400E",
+        "neutral800": "#1F2937",
+        "neutral500": "#6B7280"
+      }
+    },
+    {
+      "role": "disc-commissioner",
+      "url": "http://localhost:3000/workspace/disc.html?dev=disc-commissioner&tab=overview",
+      "ok": true,
+      "errors": [],
+      "title": "光华管理学院本科生党支部光华党支部",
+      "metrics": [
+        {
+          "label": "逾期",
+          "value": "10",
+          "token": "var(--status-warning-text)",
+          "computedColor": "rgb(146, 64, 14)",
+          "resolvedToken": "rgb(146, 64, 14)",
+          "iconTint": "var(--status-warning-text)",
+          "metricKey": "overdue",
+          "tone": "warning"
+        },
+        {
+          "label": "待办",
+          "value": "5",
+          "token": "var(--neutral-800)",
+          "computedColor": "rgb(31, 41, 55)",
+          "resolvedToken": "rgb(31, 41, 55)",
+          "iconTint": "var(--neutral-800)",
+          "metricKey": "actions",
+          "tone": "neutral"
+        },
+        {
+          "label": "在办",
+          "value": "200",
+          "token": "var(--neutral-500)",
+          "computedColor": "rgb(107, 114, 128)",
+          "resolvedToken": "rgb(107, 114, 128)",
+          "iconTint": "var(--neutral-500)",
+          "metricKey": "active",
+          "tone": "neutral"
+        },
+        {
+          "label": "待补课",
+          "value": "1",
+          "token": "var(--status-info-text)",
+          "computedColor": "rgb(29, 78, 216)",
+          "resolvedToken": "rgb(29, 78, 216)",
+          "iconTint": "var(--status-info-text)",
+          "metricKey": "fourth",
+          "tone": "info"
+        }
+      ],
+      "tokens": {
+        "info": "#1D4ED8",
+        "warning": "#92400E",
+        "neutral800": "#1F2937",
+        "neutral500": "#6B7280"
+      }
+    },
+    {
+      "role": "leader",
+      "url": "http://localhost:3000/workspace/leader.html?dev=leader&tab=overview",
+      "ok": true,
+      "errors": [],
+      "title": "光华管理学院本科生党支部光华党支部",
+      "metrics": [
+        {
+          "label": "逾期",
+          "value": "2",
+          "token": "var(--status-warning-text)",
+          "computedColor": "rgb(146, 64, 14)",
+          "resolvedToken": "rgb(146, 64, 14)",
+          "iconTint": "var(--status-warning-text)",
+          "metricKey": "overdue",
+          "tone": "warning"
+        },
+        {
+          "label": "待办",
+          "value": "2",
+          "token": "var(--neutral-800)",
+          "computedColor": "rgb(31, 41, 55)",
+          "resolvedToken": "rgb(31, 41, 55)",
+          "iconTint": "var(--neutral-800)",
+          "metricKey": "actions",
+          "tone": "neutral"
+        },
+        {
+          "label": "在办",
+          "value": "60",
+          "token": "var(--neutral-500)",
+          "computedColor": "rgb(107, 114, 128)",
+          "resolvedToken": "rgb(107, 114, 128)",
+          "iconTint": "var(--neutral-500)",
+          "metricKey": "active",
+          "tone": "neutral"
+        },
+        {
+          "label": "组员汇报",
+          "value": "0",
+          "token": "var(--status-info-text)",
+          "computedColor": "rgb(29, 78, 216)",
+          "resolvedToken": "rgb(29, 78, 216)",
+          "iconTint": "var(--status-info-text)",
+          "metricKey": "fourth",
+          "tone": "info"
+        }
+      ],
+      "tokens": {
+        "info": "#1D4ED8",
+        "warning": "#92400E",
+        "neutral800": "#1F2937",
+        "neutral500": "#6B7280"
+      }
+    },
+    {
+      "role": "visitor",
+      "url": "http://localhost:3000/workspace/visitor.html?dev=participant&tab=overview",
+      "ok": true,
+      "errors": [],
+      "title": "光华管理学院本科生党支部光华党支部",
+      "metrics": [
+        {
+          "label": "逾期",
+          "value": "0",
+          "token": "var(--neutral-500)",
+          "computedColor": "rgb(107, 114, 128)",
+          "resolvedToken": "rgb(107, 114, 128)",
+          "iconTint": "var(--neutral-500)",
+          "metricKey": "overdue",
+          "tone": "neutral"
+        },
+        {
+          "label": "待办",
+          "value": "3",
+          "token": "var(--neutral-800)",
+          "computedColor": "rgb(31, 41, 55)",
+          "resolvedToken": "rgb(31, 41, 55)",
+          "iconTint": "var(--neutral-800)",
+          "metricKey": "actions",
+          "tone": "neutral"
+        },
+        {
+          "label": "在办",
+          "value": "4",
+          "token": "var(--neutral-500)",
+          "computedColor": "rgb(107, 114, 128)",
+          "resolvedToken": "rgb(107, 114, 128)",
+          "iconTint": "var(--neutral-500)",
+          "metricKey": "active",
+          "tone": "neutral"
+        },
+        {
+          "label": "待汇报",
+          "value": "0",
+          "token": "var(--status-info-text)",
+          "computedColor": "rgb(29, 78, 216)",
+          "resolvedToken": "rgb(29, 78, 216)",
+          "iconTint": "var(--status-info-text)",
+          "metricKey": "fourth",
+          "tone": "info"
+        }
+      ],
+      "tokens": {
+        "info": "#1D4ED8",
+        "warning": "#92400E",
+        "neutral800": "#1F2937",
+        "neutral500": "#6B7280"
+      }
+    }
+  ],
+  "toneSummary": [
+    "warning",
+    "neutral",
+    "info"
+  ],
+  "criteria": {
+    "hasInfo": true,
+    "hasWarning": true,
+    "hasNeutral": true,
+    "noThemeAccentInMetrics": true
+  }
+}

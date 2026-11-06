@@ -3,7 +3,7 @@ title: "架构演进——组件化落地评估与轻量插件化设计"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-22
-last_updated: "2026-10-18"
+last_updated: "2026-11-03"
 status: active
 related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../03_doc_system/ARCHITECTURE.md, ../../05_ai_coding/README.md]
 ---
@@ -74,7 +74,7 @@ related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../
 - **权限与数据同源不因可视化而改变**：块可拖范围仍受角色与支部 config 约束；数据写入仍走 services 层收敛与 persist，界面只是"编排者"而非"新数据通道"。
 - **原则：可视化是编辑器形态，不是目的**——目的是降低「把工作流交给代码」的门槛。若某编排超出注册块的能力边界，退回"提需求→代码封装新块"的既有闭环，不追求万能低代码平台（YAGNI）。
 
-**工作组的分层位置与创建入口**：工作组不是新的执行引擎，也不是独立业务对象——它是活动/专班业务记录之上的协作结构。活动工作组随活动创建，入口分两处：组内承办由所属党小组组长从组长工作台创建，跨组承办由支书/副书记从支书工作台创建并指定成员；专班工作组围绕事项、任务或产出建立，入口在组织委员工作台（默认扎口，支部制度参数可调整）。两类工作组只登记组织者与深度参与者，成员关系不自动授予系统权限。**考察依托工作组**：考察记录挂活动工作组或专班工作组，考察对象为该工作组成员。制度与数据边界见 [COMMISSIONER_DUTY_FRAMEWORK.md §A.4–A.7](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)、[SYSTEM_ROLE_PERMISSION.md §9h.1](../../02_institution/SYSTEM_ROLE_PERMISSION.md)、[DATA_MODEL.md §2.3.1](../data/DATA_MODEL.md)。
+**工作组的分层位置与创建入口**：工作组不是新的执行引擎，也不是独立业务对象——它是活动/专班业务记录之上的协作结构。活动工作组随活动创建，入口分两处：本组活动由所属党小组组长/副组长从组长工作台创建，支书/副支书可建任意承办组活动（组织落点 `party-group`，承办党小组唯一），跨组只表示深度参与者招募范围（`recruitmentScope='cross-group'`），不是第三落点；专班工作组围绕事项、任务或产出建立，入口在组织委员工作台（默认扎口，支部制度参数可调整）。两类工作组只登记组织者与深度参与者，成员关系不自动授予系统权限。**考察依托工作组**：考察记录挂活动工作组或专班工作组，考察对象为该工作组成员。制度与数据边界见 [COMMISSIONER_DUTY_FRAMEWORK.md §A.4–A.7](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)、[SYSTEM_ROLE_PERMISSION.md §9h.1](../../02_institution/SYSTEM_ROLE_PERMISSION.md)、[DATA_MODEL.md §2.3.1](../data/DATA_MODEL.md)。
 
 ### 8.4 与支部配置档案的衔接
 
@@ -105,6 +105,82 @@ related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../
 **L4 画布 → 执行的映射（不做第二套引擎）**：拖拽产物 = `{ branchId, version, blocks: [blockId 序列 + 连线/条件] }`，经一次编译收敛为既有 workflow `definitions`（或 scenario 参数）→ WorkflowEngine 消费；权限仍在块粒度上受角色与支部 config 约束。
 
 **原型最小实验范围（YAGNI 边界）**：v0 画布只做「块的**排序/启停**预览」——把一个 scenario 的阶段序列可视化排布、勾选启停并保存回 config.enabledModules（文本勾选 ↔ 画布双向同步）；图形化条件分支、块导出/市场（L5）不在 v0。这样既能拿到"拖积木"的真实手感，又不触碰执行引擎。
+
+---
+
+## 九、性能与交付形态（2026-10-27 方案 · **未执行**）
+
+> **现状读数**（批次 515 实测）：26 个 HTML（18 根页 ＋ 8 工作台）· 312 个 JS / 94,036 行 · `styles.css` 6,454 行；26/26 页各 1 个 `type="module"`；首屏静态 import 链 ≥4 层（entry → 20 个模块 → `bootstrap` 16 个）；tab 模块走动态 `import()`。无 gzip / brotli；全部静态文件共用 `Cache-Control: no-cache, must-revalidate`；`modulepreload` 0 处；Tailwind 走无版本、无 SRI 的 Play CDN（25 页）。
+
+### 9.1 结论：不引入打包器（bundler）
+
+打包器的作用是构建期把 ESM 源文件合并 / 摇树 / 压缩成少量产物。本仓**不引入**，依据四条：
+
+1. **请求数已被控制**：tab 渲染模块是动态 `import()`，首屏只拉壳层与数据层，312 个模块不会一次性请求。
+2. **失效机制已自洽**：`?v=` 版本戳（`docs/scripts/bump-version.mjs`）＋ `version-stamp::S3`（全站唯一戳）＋ `cross-page-state.CODE_VERSION`，引入打包器要整体重写这套机制。
+3. **零构建是当前部署前提**：26 页静态直出、GitHub Pages 只读演示、`deploy/package.mjs` 白名单出包，都建立在「源码即产物」上。
+4. **瓶颈不在文件数**：真正的缺口是「无压缩 ＋ 无缓存分层」，见 9.2 第 1、2 项。
+
+> 若未来确要引入，触发条件应是「首屏关键路径需要跨模块摇树」或「需要 tree-shaking 级体积优化」，而不是「文件多」。
+
+### 9.2 四项必要项（本轮只出方案）
+
+| # | 项 | 方案要点 | 验收判据 |
+|---|---|---|---|
+| 1 | 响应压缩 | `server/app.js` 挂 `compression`（gzip / brotli，按 `Accept-Encoding`）；`deploy/nginx.sample.conf` 同步开启 | 同一 JS 的传输体积下降；`/api/v1/snapshot` 已自带 gzip 请求体，确认不双压缩 |
+| 2 | 缓存分层 | HTML 保持 no-store；URL 带 `?v=` 的 JS / CSS / 字体改 `public, max-age=31536000, immutable`；`/src/config/deploy.js` 保持动态 | 二次访问静态资源零回源；新增守卫断言「只有带戳资源可长缓存」 |
+| 3 | `modulepreload` | 为 entry 的静态 import 与 `bootstrap` 的依赖生成 `<link rel=modulepreload>`，由 `bump-version.mjs` 同批维护 | 首屏瀑布减少 1–2 个 RTT；戳与资源一致、不重复下载 |
+| 4 | Tailwind 锁定 / 本地化 | 二选一：① 保留 CDN 但锁固定版本 URL；② Tailwind CLI 生成静态 CSS 并纳入 `?v=` | 外部依赖不再「随时可变」；选 ② 会引入构建步骤，须单独裁定 |
+
+> **优先级**：1 → 2 → 4 → 3。第 1、2 项收益最大且不动前端代码；第 3 项需与版本戳同批改；第 4 项涉及「无构建」现状，须支书裁定。
+> **待办登记**：`CLAUDE.md` 乙部 `B-515-1`。
+
+### 9.3 版本戳的成本收益（2026-10-28）
+
+`?v=` 全站同戳不是免费的：本仓实测 **442 个文件**含版本戳，一次 bump 会把 JS 内部 import、HTML 入口与样式表 href、CSS `url()`、`server/test` 内戳、`modulepreload` 块与 `CODE_VERSION` 一并改写，**约 450 个文件进同一个 diff**。成本落在两处：一是评审与回滚——一次缓存换新会淹没真正的功能改动；二是 git 历史——每个提交都带几百行查询串变动，`git blame` 失去可读性。
+
+收益同样明确：**① 无陈旧模块**——入口与其内部 import 同 URL 同戳，部署后不会出现「新入口拉起旧模块」的模块实例分裂（`DATA_CONSISTENCY_CHECKLIST` 的 `?v=` 口径即为此而立）；**② immutable 缓存**——URL 带戳即可给静态资源 `public, max-age=31536000, immutable`，HTML 保持回源，二次访问静态资源零回源（§9.2 第 2 项）。
+
+取舍是把 bump 的**时机**从「每次改动」挪到「发布」：日常提交不动 `?v=`（降低 diff 噪音），发布前跑一次 `cd server; npm run release:stamp`（先全站补戳，再以 `--check` 核对陈旧戳与 `CODE_VERSION`）。这条取舍的前提是**部署必经 `release:stamp`**——若直接部署未 bump 的代码，`?v=` 未变的模块 URL 会命中旧缓存，新旧混用随即回来。
+
+> **若将来要退出戳，必须先把内部模块改 no-cache 协商**——否则浏览器按 URL 缓存 ES Module 的语义不变，去掉 `?v=` 只会把「陈旧模块」从可见变成不可见。
+
+---
+
+## 十、多支部同实例设计（2026-11-03 · 设计稿，未实现）
+
+> **支书口径**：「服务端要考虑多支部情况，需要有所设计」。本节只定**模型与实施顺序**，不改变当前上线形态——上线仍坚持「一实例一支部」，production 档在多支部且未显式放行时拒绝启动。完成本节 Phase 1–2 后，才允许 `ALLOW_MULTI_BRANCH=1`。
+
+### 10.1 现状与风险
+
+- 数据行已有 `branchId`（资源、语义、工作组表均带；历史缺字段回落 `br-b1`），写门已有支部校验（`branch-scope.js` / `RESOURCE_WRITE_GATE`）。
+- **读面没有统一收口**：`listTable` 与部分语义端点整表读取，支部过滤靠前端投影；因此同实例多支部会串读。
+- 快照写穿已做「写入行归属校验」，但读取面未过滤，导致「写得住、看得穿」。
+
+### 10.2 目标模型（请求级支部上下文）
+
+1. **单一来源**：每个请求由 `requireAuth` 注入 `req.actor.branchId`；无支部归属仅限 `party-staff` / 待归属账号。
+2. **读口统一过滤**：所有 `list` / `bootstrap` / 语义读口在取得行后经过 `resourceRowsForActor(db, name, rows, actor, reader)`；禁止在 handler 里自行 `JSON.parse` 后直接返回全表。
+3. **治理面显式跨支部**：`party-staff` 读取跨支部时必须带 `?branchId=` 或走党委专用端点，并在 `auth_audit` 留痕；不带范围时默认拒绝，而不是默认全量。
+4. **写入面不变**：继续用 `RESOURCE_WRITE_GATE` + 行级归属；快照写入的 `snapshotScopeDeny` 与 `_retainUngatedSnapshotRows` 保持现值。
+5. **索引**：`MIGRATIONS v2` 增加 `branchId` 表达式索引（`json_extract(data,'$.branchId')`），只在实际出现跨支部查询后加，不提前空转。
+
+### 10.3 实施顺序（每阶段可独立回归）
+
+| 阶段 | 内容 | 验收判据 | 风险 |
+|---|---|---|---|
+| Phase 1 | 读口统一过滤：`/bootstrap`、资源 `GET`、语义读口全部接入 `resourceRowsForActor` | 双支部夹具下，A 支部账号读不到 B 支部任何行；单支部现有测试全绿 | 可能误伤党委跨支部治理视图，需显式范围参数 |
+| Phase 2 | 快照读面按支部返回；前端 `data-adapter` 不再假设全量 | 双支部下快照同步后本支部数据完整、他支部数据不出现 | 前端缓存键需带 branchId |
+| Phase 3 | 党委跨支部入口与审计留痕；`ALLOW_MULTI_BRANCH=1` 才允许启动 | 党委带范围可读、普通账号跨支部 403；审计可查 | 权限面扩大，须支书裁定 |
+| Phase 4 | 索引与压力测试（万行级） | p95 不退化；无全表扫描 | 需要真实规模数据 |
+
+### 10.4 不做什么
+
+- 不把支部做成独立数据库 / 独立 schema（迁移与备份成本高，且当前规模不需要）。
+- 不在前端做「隐藏他支部数据」来替代服务端读过滤——前端隐藏不是隔离。
+- 不在 Phase 1–2 完成前打开 `ALLOW_MULTI_BRANCH`。
+
+> **决策待办**：Phase 3 的「党委跨支部读取」是否需要独立页面/入口，还是仅 API 参数；这个决定会影响 `party-committee` 工作台的 IA，留给支书裁定。
 
 ---
 

@@ -1,28 +1,30 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../../core/base/icons.js?v=20261018h';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20261018h';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261018h';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261018h';
-import { AuthStore } from '../../services/core/auth.js?v=20261018h';
-import { loadActivities } from '../../services/activity/activity.js?v=20261018h';
-import { PEOPLE } from '../../data/mock/people.js?v=20261018h';
+import { icon } from '../../core/base/icons.js?v=20261102b';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20261102b';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261102b';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261102b';
+import { PEOPLE } from '../../data/mock/people.js?v=20261102b';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 // 2026-09-21 批次 129：制度链（草案 → 支委会审议 → 现行版 / 退回修改）——草案态与修改口同源于该服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   updateInstitutionDraft, INSTITUTION_DRAFT, INSTITUTION_PENDING_PARTY_MEETING,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../../services/branch/branch-doc.js?v=20261018h';
+} from '../../services/branch/branch-doc.js?v=20261102b';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261018h';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261102b';
+import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261102b';
 // 制度内容（领域）→ 对应【主体】：判据单一源（2026-10-05 批次 378 · `SOP-B-25` 第 ② 项「按草案落地」）
 import {
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_LABELS, institutionSubjectOfDomain, ORG_SUBJECT_LABELS,
-} from '../../core/domain/work-map.js?v=20261018h';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261018h';
+} from '../../core/domain/work-map.js?v=20261102b';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261102b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
 /** 主体引用 → 显示名（角色键 → 角色名；组织型主体 id → 组织名，如「支委会」） */
 function _subjectLabelOf(subjectId) {
   if (!subjectId) return '';
@@ -370,7 +372,11 @@ export class ReferencesModule {
       ReferencesModule._setBranchFilterVisible(false);
       if (empty) empty.classList.add('hidden');
       if (loginHint) {
-        loginHint.innerHTML = `登录后查看支部文件 <a href="${getBasePath()}login.html" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90" style="background:var(--party-red);text-decoration:none;">去登录</a>`;
+        loginHint.innerHTML = emptyStateHtml({
+          variant: 'panel',
+          text: '请先登录后使用',
+          actionHtml: `<a href="${getBasePath()}login.html" class="btn-accent btn-party-solid inline-block px-3 py-1.5 rounded-lg text-xs font-medium text-white" style="text-decoration:none;">去登录</a>`,
+        });
         loginHint.classList.remove('hidden');
       }
       if (addBtn) addBtn.classList.add('hidden');
@@ -412,11 +418,14 @@ export class ReferencesModule {
     if (docs.length === 0) {
       list.innerHTML = '';
       if (empty) {
-        empty.textContent = ReferencesModule._onlyInstitution
-          ? (ReferencesModule._isInstitutionManager
-            ? '暂无制度文本——可在「写入文件」中选择「制度文本」发布（支书/副支书）'
-            : '暂无制度文本')
-          : '暂无支部文件';
+        empty.innerHTML = emptyStateHtml({
+          variant: 'inline',
+          text: ReferencesModule._onlyInstitution
+            ? (ReferencesModule._isInstitutionManager
+              ? '暂无制度文本——可在「写入文件」中选择「制度文本」发布（支书/副支书）'
+              : '暂无制度文本')
+            : '暂无支部文件',
+        });
         empty.classList.remove('hidden');
       }
       return;
@@ -446,8 +455,8 @@ export class ReferencesModule {
     const downloadAttr = downloadable ? `download="${_esc(d.fileName || d.title || '文件')}"` : '';
     const fileTarget = d.filePath ? 'target="_blank" rel="noopener noreferrer"' : '';
     const actions = ReferencesModule._isCommissioner ? `
-      <button type="button" class="btn-ghost ref-doc-action-btn" data-action="edit" data-id="${_esc(d.id)}">修改</button>
-      <button type="button" class="btn-ghost ref-doc-action-btn ref-doc-action-danger" data-action="delete" data-id="${_esc(d.id)}">删除</button>
+      <button type="button" class="btn-outline ref-doc-action-btn" data-action="edit" data-id="${_esc(d.id)}">修改</button>
+      <button type="button" class="btn-outline ref-doc-action-btn ref-doc-action-danger" data-action="delete" data-id="${_esc(d.id)}">删除</button>
     ` : '';
     return `
       <div class="ref-doc-item" data-id="${_esc(d.id)}">
@@ -484,12 +493,12 @@ export class ReferencesModule {
     let actions = '';
     if (ReferencesModule._isInstitutionManager) {
       if (isDraft) {
-        actions += `<button type="button" class="btn-ghost ref-doc-action-btn" data-action="edit" data-id="${_esc(d.id)}">修改草案</button>`;
+        actions += `<button type="button" class="btn-outline ref-doc-action-btn" data-action="edit" data-id="${_esc(d.id)}">修改草案</button>`;
       } else if (isCurrent) {
-        actions += `<button type="button" class="btn-ghost ref-doc-action-btn" data-action="publish-version" data-id="${_esc(d.id)}">上传新版</button>`;
-        actions += `<button type="button" class="btn-ghost ref-doc-action-btn" data-action="disable" data-id="${_esc(d.id)}">停用</button>`;
+        actions += `<button type="button" class="btn-outline ref-doc-action-btn" data-action="publish-version" data-id="${_esc(d.id)}">上传新版</button>`;
+        actions += `<button type="button" class="btn-outline ref-doc-action-btn" data-action="disable" data-id="${_esc(d.id)}">停用</button>`;
       } else if (d.status === 'disabled') {
-        actions += `<button type="button" class="btn-ghost ref-doc-action-btn" data-action="enable" data-id="${_esc(d.id)}">重新启用</button>`;
+        actions += `<button type="button" class="btn-outline ref-doc-action-btn" data-action="enable" data-id="${_esc(d.id)}">重新启用</button>`;
       }
       // 「待党员大会表决」态不出操作：下一步在支部党员大会议程上（既有会议议程），本列表不另开入口
     }
@@ -537,16 +546,18 @@ export class ReferencesModule {
             ${actions}
           </div>
         </div>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <button type="button" class="btn-ghost ref-doc-action-btn" data-toggle-panel="ref-read-${uid}" data-label-close="阅读正文" data-label-open="收起正文">阅读正文</button>
-          ${histCount > 0
-            ? `<button type="button" class="btn-ghost ref-doc-action-btn" data-toggle-panel="ref-hist-${uid}" data-label-close="历史版本 (${histCount})" data-label-open="收起历史">历史版本 (${histCount})</button>`
-            : ''}
+        <div class="ref-doc-folds" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
+          <details class="ref-doc-fold" id="ref-read-${uid}-fold">
+            <summary class="ref-doc-action-btn">阅读正文</summary>
+            <div id="ref-read-${uid}" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--neutral-100);">
+              ${readPanel}
+            </div>
+          </details>
+          ${histCount > 0 ? `<details class="ref-doc-fold" id="ref-hist-${uid}-fold">
+            <summary class="ref-doc-action-btn">历史版本 (${histCount})</summary>
+            <div id="ref-hist-${uid}" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--neutral-100);">${histPanel}</div>
+          </details>` : ''}
         </div>
-        <div id="ref-read-${uid}" class="hidden" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--neutral-100);">
-          ${readPanel}
-        </div>
-        ${histCount > 0 ? `<div id="ref-hist-${uid}" class="hidden" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--neutral-100);">${histPanel}</div>` : ''}
       </div>
     `;
   }
@@ -622,6 +633,7 @@ export class ReferencesModule {
       else if (action === 'disable') ReferencesModule._setInstitutionStatus(id, 'disabled');
       else if (action === 'enable') ReferencesModule._setInstitutionStatus(id, 'current');
       else if (btn.dataset.togglePanel) {
+        // 2026-10-25 Task 3：阅读正文 / 历史版本已改原生 details，此分支保留为兼容旧标记（当前无调用点）
         const panel = document.getElementById(btn.dataset.togglePanel);
         if (!panel) return;
         const closed = panel.classList.toggle('hidden');
@@ -672,16 +684,7 @@ export class ReferencesModule {
     const editing = docId ? ReferencesModule._branchDocs.find(d => d.id === docId) : null;
     // 2026-09-21 批次 129：编辑**制度草案**＝起草人修改（正文预填、保存后仍是草案）；其余编辑维持现状
     const editingDraft = !!(editing && _isInstitutionDoc(editing) && editing.status === INSTITUTION_DRAFT);
-
-    const existing = document.getElementById('ref-branch-doc-modal');
-    if (existing) existing.remove();
-
-    const overlay = document.createElement('div');
-    overlay.id = 'ref-branch-doc-modal';
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
-
-    const card = document.createElement('div');
-    card.style.cssText = 'background:var(--surface-card);border-radius:14px;padding:0;max-width:480px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);max-height:88vh;display:flex;flex-direction:column;';
+    const MODAL_ID = 'ref-branch-doc';
 
     // 用途：仅新增时可选（制度文本仅支书/副支书可见该选项）；编辑普通文件维持现状，不含转制度入口
     const purposeOptions = ['doc'].concat(ReferencesModule._isInstitutionManager ? ['institution'] : []);
@@ -699,7 +702,7 @@ export class ReferencesModule {
     const instBoxHtml = (editing && !editingDraft) ? '' : `
       <div id="ref-modal-inst-box" class="${editingDraft ? 'space-y-3.5' : 'hidden space-y-3.5'}">
         <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-domain">制度内容（领域） <span style="color:var(--functional-error);">*</span></label>
+          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-domain">制度内容（领域） <span style="color:var(--status-error-text);">*</span></label>
           <select id="ref-modal-domain" class="input-flat w-full">
             <option value="">请选择制度内容（领域）</option>
             ${INSTITUTION_DOMAINS.map((dm) => `<option value="${dm.id}"${(editingDraft && editing.domain === dm.id) ? ' selected' : ''}>${dm.label} —— 起草与监督：${_subjectLabelOf(dm.subject)}</option>`).join('')}
@@ -724,44 +727,34 @@ export class ReferencesModule {
       </div>
     `;
 
-    card.innerHTML = `
-      <div class="px-5 pt-4 pb-3 flex items-center justify-between" style="border-bottom:1px solid var(--neutral-200);">
-        <h3 class="font-title-cn text-sm font-semibold" style="color:var(--neutral-800);">${editingDraft ? '修改制度草案' : (editing ? '修改支部文件' : '写入支部文件')}</h3>
-        <button id="ref-modal-close" type="button" aria-label="关闭写入支部文件窗口" style="color:var(--neutral-400);font-size:1rem;line-height:1;background:none;border:none;cursor:pointer;">&times;</button>
-      </div>
-      <div class="px-5 py-4 space-y-3.5 overflow-y-auto">
-        ${purposeSelectHtml}
-        <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--functional-error);">*</span></label>
-          <input id="ref-modal-title" class="input-flat w-full" placeholder="如：积极分子考察表模板 / 支部例会制度" value="${editing ? _esc(editing.title || '') : ''}" />
-        </div>
-        <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-desc">描述</label>
-          <textarea id="ref-modal-desc" class="input-flat w-full" rows="2" placeholder="可选：文件用途 / 说明">${editing ? _esc(editing.desc || '') : ''}</textarea>
-        </div>
-        ${instBoxHtml}
-        <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" id="ref-modal-file-label">${editing ? '替换文件（可选，不选则保留原文件）' : '选择文件 <span style="color:var(--functional-error);">*</span>'}</label>
-          <input id="ref-modal-file" type="file" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xlsx,.mp4"
-            class="block w-full text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" style="color:var(--neutral-600);" />
-        </div>
-        <div id="ref-modal-status" class="hidden text-xs rounded-lg px-3 py-2"></div>
-      </div>
-      <div class="flex justify-end gap-2 px-5 py-3" style="border-top:1px solid var(--neutral-200);">
-        <button id="ref-modal-cancel" type="button" class="btn-ghost text-xs px-3 py-1.5">取消</button>
-        <button id="ref-modal-confirm" type="button" class="btn-accent text-xs px-3 py-1.5">${editing ? '保存' : '写入'}</button>
-      </div>
-    `;
-
-    overlay.appendChild(card);
-    document.body.appendChild(overlay);
-
-    const closeModal = () => overlay.remove();
-    card.querySelector('#ref-modal-close').addEventListener('click', closeModal);
-    card.querySelector('#ref-modal-cancel').addEventListener('click', closeModal);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
-
-    const statusEl = card.querySelector('#ref-modal-status');
+    openModal({
+      id: MODAL_ID,
+      title: editingDraft ? '修改制度草案' : (editing ? '修改支部文件' : '写入支部文件'),
+      width: '480px',
+      bodyHtml: `
+        <div class="space-y-3.5">
+          ${purposeSelectHtml}
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--status-error-text);">*</span></label>
+            <input id="ref-modal-title" class="input-flat w-full" placeholder="如：积极分子考察表模板 / 支部例会制度" value="${editing ? _esc(editing.title || '') : ''}" />
+          </div>
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-desc">描述</label>
+            <textarea id="ref-modal-desc" class="input-flat w-full" rows="2" placeholder="可选：文件用途 / 说明">${editing ? _esc(editing.desc || '') : ''}</textarea>
+          </div>
+          ${instBoxHtml}
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" id="ref-modal-file-label">${editing ? '替换文件（可选，不选则保留原文件）' : '选择文件 <span style="color:var(--status-error-text);">*</span>'}</label>
+            <input id="ref-modal-file" type="file" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xlsx,.mp4"
+              class="block w-full text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" style="color:var(--neutral-600);" />
+          </div>
+          <div id="ref-modal-status" class="hidden text-xs rounded-lg px-3 py-2"></div>
+        </div>`,
+      footerHtml: `
+        <button id="ref-modal-cancel" type="button" data-modal-cancel="${MODAL_ID}" class="btn-outline text-xs px-3 py-1.5">取消</button>
+        <button id="ref-modal-confirm" type="button" class="btn-accent text-xs px-3 py-1.5">${editing ? '保存' : '写入'}</button>`,
+      onMount: (card) => {
+        const statusEl = card.querySelector('#ref-modal-status');
     const showStatus = (type, msg) => {
       statusEl.classList.remove('hidden');
       statusEl.textContent = msg;
@@ -779,7 +772,7 @@ export class ReferencesModule {
         instBox.classList.toggle('hidden', !inst);
         fileLabel.innerHTML = inst
           ? '附件（可选；正文与附件可并存，正文优先网页阅读）'
-          : '选择文件 <span style="color:var(--functional-error);">*</span>';
+          : '选择文件 <span style="color:var(--status-error-text);">*</span>';
       };
       purposeSel.addEventListener('change', syncPurpose);
     }
@@ -823,11 +816,13 @@ export class ReferencesModule {
         const savedMsg = editingDraft ? `已保存「${title}」（仍为草案）`
           : (asDraft ? `已存为草案「${title}」（待支委会审议）` : `已保存「${title}」`);
         showToast('success', savedMsg);
-        closeModal();
+        closeModal(MODAL_ID);
       } catch (e) {
         confirmBtn.disabled = false;
         showStatus('error', e.message || '操作失败');
       }
+    });
+      },
     });
   }
 
@@ -867,53 +862,34 @@ export class ReferencesModule {
   static _openPublishModal(docId) {
     const doc = ReferencesModule._branchDocs.find((d) => d.id === docId);
     if (!doc || !_isInstitutionDoc(doc)) return;
+    const MODAL_ID = 'ref-branch-doc-publish';
 
-    const existing = document.getElementById('ref-branch-doc-publish-modal');
-    if (existing) existing.remove();
-
-    const overlay = document.createElement('div');
-    overlay.id = 'ref-branch-doc-publish-modal';
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
-
-    const card = document.createElement('div');
-    card.style.cssText = 'background:var(--surface-card);border-radius:14px;padding:0;max-width:560px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);max-height:88vh;display:flex;flex-direction:column;';
-
-    card.innerHTML = `
-      <div class="px-5 pt-4 pb-3 flex items-center justify-between" style="border-bottom:1px solid var(--neutral-200);">
-        <h3 class="font-title-cn text-sm font-semibold" style="color:var(--neutral-800);">上传新版（制度文本）</h3>
-        <button id="ref-pub-close" type="button" aria-label="关闭上传新版窗口" style="color:var(--neutral-400);font-size:1rem;line-height:1;background:none;border:none;cursor:pointer;">&times;</button>
-      </div>
-      <div class="px-5 py-4 space-y-3.5 overflow-y-auto">
-        <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--functional-error);">*</span></label>
-          <input id="ref-pub-title" class="input-flat w-full" value="${_esc(doc.title || '')}" />
-        </div>
-        <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-pub-body">正文（文本 / Markdown，已预填现行版）</label>
-          <textarea id="ref-pub-body" class="input-flat w-full" rows="12" style="font-family:inherit;">${_esc(doc.bodyText || '')}</textarea>
-        </div>
-        <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-pub-note">版本说明（可选）</label>
-          <input id="ref-pub-note" class="input-flat w-full" placeholder="如：根据 2026-09 支委会意见修订第三条" />
-        </div>
-        <p class="text-xs" style="color:var(--neutral-500);">保存后：当前「现行版 v${doc.version || 1}」自动归档为历史版本（成员仍可展开查阅），正文更新为「现行版 v${(doc.version || 1) + 1}」。</p>
-        <div id="ref-pub-status" class="hidden text-xs rounded-lg px-3 py-2"></div>
-      </div>
-      <div class="flex justify-end gap-2 px-5 py-3" style="border-top:1px solid var(--neutral-200);">
-        <button id="ref-pub-cancel" type="button" class="btn-ghost text-xs px-3 py-1.5">取消</button>
-        <button id="ref-pub-confirm" type="button" class="btn-accent text-xs px-3 py-1.5">发布新版</button>
-      </div>
-    `;
-
-    overlay.appendChild(card);
-    document.body.appendChild(overlay);
-
-    const closeModal = () => overlay.remove();
-    card.querySelector('#ref-pub-close').addEventListener('click', closeModal);
-    card.querySelector('#ref-pub-cancel').addEventListener('click', closeModal);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
-
-    const statusEl = card.querySelector('#ref-pub-status');
+    openModal({
+      id: MODAL_ID,
+      title: '上传新版（制度文本）',
+      width: '560px',
+      bodyHtml: `
+        <div class="space-y-3.5">
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--status-error-text);">*</span></label>
+            <input id="ref-pub-title" class="input-flat w-full" value="${_esc(doc.title || '')}" />
+          </div>
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-pub-body">正文（文本 / Markdown，已预填现行版）</label>
+            <textarea id="ref-pub-body" class="input-flat w-full" rows="12" style="font-family:inherit;">${_esc(doc.bodyText || '')}</textarea>
+          </div>
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-pub-note">版本说明（可选）</label>
+            <input id="ref-pub-note" class="input-flat w-full" placeholder="如：根据支委会意见修订第三条" />
+          </div>
+          <p class="text-xs" style="color:var(--neutral-500);">保存后：当前「现行版 v${doc.version || 1}」自动归档为历史版本（成员仍可展开查阅），正文更新为「现行版 v${(doc.version || 1) + 1}」。</p>
+          <div id="ref-pub-status" class="hidden text-xs rounded-lg px-3 py-2"></div>
+        </div>`,
+      footerHtml: `
+        <button id="ref-pub-cancel" type="button" data-modal-cancel="${MODAL_ID}" class="btn-outline text-xs px-3 py-1.5">取消</button>
+        <button id="ref-pub-confirm" type="button" class="btn-accent text-xs px-3 py-1.5">发布新版</button>`,
+      onMount: (card) => {
+        const statusEl = card.querySelector('#ref-pub-status');
     const showStatus = (type, msg) => {
       statusEl.classList.remove('hidden');
       statusEl.textContent = msg;
@@ -940,11 +916,13 @@ export class ReferencesModule {
         // 批次 48（2026-09-17）：与上方「制度写入」成功分支**同一形态的静默**（原只有 `closeModal()`），
         //   按 R-67 同批一并补提示（两分支同源，见上处注释的支书裁定 Q-23-46，2026-09-17）。
         showToast('success', `已发布「${title}」新版本`);
-        closeModal();
+        closeModal(MODAL_ID);
       } catch (e) {
         confirmBtn.disabled = false;
         showStatus('error', e.message || '操作失败');
       }
+    });
+      },
     });
   }
 
@@ -954,8 +932,8 @@ export class ReferencesModule {
     if (!doc || !_isInstitutionDoc(doc)) return;
     const name = doc.title || '未命名制度';
     const confirmed = status === 'disabled'
-      ? window.confirm(`停用制度《${name}》？\n\n停用后列表不再标注「现行」，历史版本仍可查阅；可随时重新启用。`)
-      : window.confirm(`重新启用制度《${name}》？\n\n启用后该制度恢复为「现行」，全体成员可读。`);
+      ? await confirmDanger({ id: 'institution-disable', title: `停用制度《${name}》`, bodyHtml: `<p class="text-sm text-gray-700">结束该制度的现行效力。<br>影响：列表不再标注「现行」，成员侧不再以现行制度展示；历史版本仍可查阅。<br>可恢复：可随时重新启用。</p>`, confirmLabel: '停用' })
+      : await confirmDanger({ id: 'institution-enable', title: `重新启用制度《${name}》`, bodyHtml: `<p class="text-sm text-gray-700">把该制度恢复为现行。<br>影响：列表重新标注「现行」，全体成员可读。<br>可恢复：可再次停用。</p>`, confirmLabel: '启用' });
     if (!confirmed) return;
 
     const by = ReferencesModule._currentUser ? ReferencesModule._currentUser.personId : null;
@@ -1014,7 +992,7 @@ export class ReferencesModule {
       window.alert('制度文本不支持删除：请使用「停用」结束其效力，历史版本仍可查阅。');
       return;
     }
-    if (!window.confirm(`确定删除支部文件「${doc.title || doc.fileName}」吗？删除后不可恢复。`)) return;
+    if (!await confirmDanger({ id: 'branch-doc-delete', title: `删除支部文件「${doc.title || doc.fileName}」`, bodyHtml: '<p class="text-sm text-gray-700">删除这份支部文件。<br>影响：文件从「支部文件」列表移除，成员不再可查。<br><b>不可恢复</b>。</p>', confirmLabel: '删除' })) return;
     try {
       await getAdapter().branchDocs.delete(id);
       ReferencesModule._branchDocs = ReferencesModule._branchDocs.filter(d => d.id !== id);

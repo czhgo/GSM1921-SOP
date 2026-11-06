@@ -10,14 +10,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018h';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018h';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018h';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261102b';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261102b';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261102b';
 import {
   TodoStore, TodoSourceType, LifecycleTodoDeriver,
-} from '../../docs/src/services/governance/todo.js?v=20261018h';
-import { createActivity } from '../../docs/src/services/core/mock.js?v=20261018h';
-import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261018h';
+} from '../../docs/src/services/governance/todo.js?v=20261102b';
+import { createActivity } from '../../docs/src/services/core/mock.js?v=20261102b';
+import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261102b';
 
 // ── localStorage 内存桩 ─────────────────────────────────────────
 const _store = new Map();
@@ -83,13 +83,13 @@ test('A4 改派到「人」⇒ 补 personId，role 回退固定角色（待办�
   beginMockCase();
   LifecycleTodoDeriver.deriveFromActivityCreate(
     { id: 'act-t', title: '10月主题党日', type: '主题党日', date: '2026-10-23' },
-    { snapshot: { 'theme-party': { ownerType: 'person', ownerId: 'p3' } } },
+    { snapshot: { 'theme-party': { ownerType: 'person', ownerId: '2400012347' } } },
   );
   const t = todoOf(TodoSourceType.ACTIVITY, 'act-t');
   assert.equal(t.role, 'leader', '到人档 role 回退本台固定角色（否则 getByRole 取不到）');
-  assert.equal(t.personId, 'p3', '定向：主责人落 personId');
+  assert.equal(t.personId, '2400012347', '定向：主责人落 personId');
   assert.equal(t.actionData.ownerType, 'person');
-  assert.equal(t.actionData.ownerId, 'p3');
+  assert.equal(t.actionData.ownerId, '2400012347');
 });
 
 test('A5 改派到「角色」⇒ 收件人随分工走', () => {
@@ -130,11 +130,11 @@ test('A8 专班改派到「人」⇒ 补 personId、role 回退组织委员', ()
   beginMockCase();
   LifecycleTodoDeriver.deriveFromTaskforceCreate(
     { id: 'tf-b', name: '改派专班', startDate: '2026-10-01', endDate: '2026-11-30' },
-    { snapshot: { taskforce: { ownerType: 'person', ownerId: 'p9' } } },
+    { snapshot: { taskforce: { ownerType: 'person', ownerId: '2400012353' } } },
   );
   const t = todoOf(TodoSourceType.TASKFORCE, 'tf-b');
   assert.equal(t.role, 'org-commissioner');
-  assert.equal(t.personId, 'p9');
+  assert.equal(t.personId, '2400012353');
   assert.equal(t.actionData.ownerType, 'person');
 });
 
@@ -142,20 +142,20 @@ test('A8 专班改派到「人」⇒ 补 personId、role 回退组织委员', ()
 
 test('A12 `personId` 非空的待办只给本人看；角色档不受影响；未给本人身份时不过滤（既有行为不变）', () => {
   beginMockCase();
-  // 到人档：`theme-party` 改派给具体人 p3 ⇒ 收件人 role 回退 leader ＋ personId='p3'
+  // 到人档：`theme-party` 改派给具体人 2400012347 ⇒ 收件人 role 回退 leader ＋ personId='2400012347'
   LifecycleTodoDeriver.deriveFromActivityCreate(
     { id: 'act-p', title: '到人档 · 主题党日', type: '主题党日', date: '2026-10-28' },
-    { snapshot: { 'theme-party': { ownerType: 'person', ownerId: 'p3' } } },
+    { snapshot: { 'theme-party': { ownerType: 'person', ownerId: '2400012347' } } },
   );
   // 角色档（无 personId）：作对照
   LifecycleTodoDeriver.deriveFromActivityCreate({ id: 'act-r', title: '角色档 · 党小组会', type: '党小组会', date: '2026-10-29' });
 
-  const asOther = TodoStore.getByRole('leader', { personId: 'p9' });
-  assert.ok(!asOther.some((t) => t.sourceId === 'act-p'), '到人待办不得出现在他人（p9）的待办面');
+  const asOther = TodoStore.getByRole('leader', { personId: '2400012353' });
+  assert.ok(!asOther.some((t) => t.sourceId === 'act-p'), '到人待办不得出现在他人（2400012353）的待办面');
   assert.ok(asOther.some((t) => t.sourceId === 'act-r'), '角色档（无 personId）不受按人过滤影响');
 
-  const asSelf = TodoStore.getByRole('leader', { personId: 'p3' });
-  assert.ok(asSelf.some((t) => t.sourceId === 'act-p'), '本人（p3）须看得到该到人待办');
+  const asSelf = TodoStore.getByRole('leader', { personId: '2400012347' });
+  assert.ok(asSelf.some((t) => t.sourceId === 'act-p'), '本人（2400012347）须看得到该到人待办');
 
   const noFilter = TodoStore.getByRole('leader');
   assert.ok(noFilter.some((t) => t.sourceId === 'act-p'),
@@ -163,9 +163,9 @@ test('A12 `personId` 非空的待办只给本人看；角色档不受影响；�
 
   // 待办页主读链（域视图）同口径
   const ids = (d) => (d.groups || []).flatMap((g) => (g.items || []).map((i) => i.sourceId));
-  const domOther = TodoStore.mergeRealtimeDomains('leader', [], { personId: 'p9' }).flatMap(ids);
+  const domOther = TodoStore.mergeRealtimeDomains('leader', [], { personId: '2400012353' }).flatMap(ids);
   assert.ok(!domOther.includes('act-p'), '域视图（待办页主读链）也须按人过滤');
-  const domSelf = TodoStore.mergeRealtimeDomains('leader', [], { personId: 'p3' }).flatMap(ids);
+  const domSelf = TodoStore.mergeRealtimeDomains('leader', [], { personId: '2400012347' }).flatMap(ids);
   assert.ok(domSelf.includes('act-p'), '本人的域视图须含该条');
 });
 
@@ -178,13 +178,13 @@ test('A9 非空转：角色档能被 getByRole 取到（防「回退写错 ⇒ �
   assert.ok(list.some((t) => t.sourceId === 'act-v'), '支部党员大会主责＝支书 ⇒ 必须出现在支书台 getByRole("secretary")');
 
   LifecycleTodoDeriver.deriveFromActivityCreate(
-    { id: 'act-v2', title: '改派给 p3 的主题党日', type: '主题党日', date: '2026-10-27' },
-    { snapshot: { 'theme-party': { ownerType: 'person', ownerId: 'p3' } } },
+    { id: 'act-v2', title: '改派给 2400012347 的主题党日', type: '主题党日', date: '2026-10-27' },
+    { snapshot: { 'theme-party': { ownerType: 'person', ownerId: '2400012347' } } },
   );
   const leaderList = TodoStore.getByRole('leader');
   const hit = leaderList.find((t) => t.sourceId === 'act-v2');
   assert.ok(hit, '到人档仍须落在回退角色的可见面内');
-  assert.equal(hit.personId, 'p3');
+  assert.equal(hit.personId, '2400012347');
 });
 
 // ═══════════════ A10–A11 接线：写口须把「分工快照」传进派生器（批次 425）═══════════════
@@ -203,7 +203,7 @@ test('A10 活动写口（mock.js::createActivity）已把分工快照传进派�
   beginMockCase();
   const restore = _overrideWorkforce('branch-committee-meeting', { ownerType: 'role', ownerId: 'deputy-secretary' });
   try {
-    const act = await createActivity({ title: '改派核 · 支委会', type: '支委会', date: '2026-10-30', createdBy: 'p1' });
+    const act = await createActivity({ title: '改派核 · 支委会', type: '支委会', date: '2026-10-30', createdBy: '2400012345' });
     await tick();
     const t = todoOf(TodoSourceType.ACTIVITY, act.id);
     assert.ok(t, '活动创建须派生赋权待办（assignments 为空）');
@@ -215,7 +215,7 @@ test('A11 专班写口（TaskForceRecordStore.add）已把分工快照传进派�
   beginMockCase();
   const restore = _overrideWorkforce('taskforce', { ownerType: 'role', ownerId: 'deputy-secretary' });
   try {
-    const rec = TaskForceRecordStore.add({ name: '改派核 · 专班', manager: 'p1', members: [] });
+    const rec = TaskForceRecordStore.add({ name: '改派核 · 专班', manager: '2400012345', members: [] });
     await tick();
     const t = todoOf(TodoSourceType.TASKFORCE, rec.id);
     assert.ok(t, '专班创建须派生赋权待办（members 为空）');

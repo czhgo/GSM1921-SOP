@@ -13,10 +13,14 @@
 // 用法：
 //   node docs/scripts/bump-version.mjs            # 无参：读仓库现有戳推导「同日续号」（如已有 20260914b → 20260914c）
 //   node docs/scripts/bump-version.mjs 20260807b  # 显式指定版本号（须不小于仓库现有最大戳，否则报错退出）
+//   node docs/scripts/bump-version.mjs --check    # 只检查不写：陈旧戳 / CODE_VERSION 与戳不一致 → 退出码 1
+//
+// 发布语义（2026-10-28）：**日常提交不 bump，只在发布时跑一次**（`cd server; npm run release:stamp`）。
+//   理由：入口 HTML 单独加戳无效——入口内部 import 的 URL 不变，浏览器仍复用旧模块实例。
 // ════════════════════════════════════════════════════════════════
 
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { nextVersionFor, isForward, isCommentLine, codePartOf, stampTestFileContent, cacheKeyStamps } from './version-next.mjs';
 
@@ -26,6 +30,12 @@ const HTML_DIR = ROOT;
 const TEST_DIR = join(ROOT, '..', 'server', 'test');
 
 const TODAY = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+
+// ── 运行模式 ──
+//   CHECK_MODE：只检查不写（`--check`）。判定口径与写模式**完全同一套**（陈旧戳扫描 / CODE_VERSION 锚），
+//   区别只在于「不落盘」，以便发布脚本在 bump 之后立刻核账（`server/package.json` 的 release:stamp）。
+const CHECK_MODE = process.argv.includes('--check');
+const EXPLICIT_VERSION = process.argv.slice(2).find((a) => !a.startsWith('--')) || '';
 
 // ── 收集仓库现有版本戳（用于「同日续号」推导与「只允许前进」断言）──
 // 与收尾自检同源跳过注释行：注释里的版本号是人工历史注记，不是缓存键。
@@ -57,7 +67,16 @@ function collectExistingStamps() {
 
 const EXISTING = collectExistingStamps();
 const PREV_MAX = EXISTING.slice().sort().pop() || '';
-const VERSION = process.argv[2] || nextVersionFor(TODAY, EXISTING);
+// 版本口径：
+//   写模式（默认）——显式传参优先，否则按「当天续号」推导下一个号；
+//   检查模式（--check）——不推导下一个号，以**仓库现有最大戳**为「当前版本」只做核对
+//   （若沿用 nextVersionFor，则全站戳都会显得「陈旧」，检查将永远为红）。
+const VERSION = EXPLICIT_VERSION || (CHECK_MODE ? PREV_MAX : nextVersionFor(TODAY, EXISTING));
+
+if (CHECK_MODE && !VERSION) {
+  console.error('[bump-version] ✖ --check 无法核对：仓库内没有任何 `?v=` 版本戳（扫描根路径可能失效）。');
+  process.exit(1);
+}
 
 // 版本号只允许前进（2026-09-14 批次 28，Q-23-8）：原无参默认「当天日期 + a」缺续号逻辑，
 // 同日第二次发版会把全站戳往回写，而收尾自检只比对「是否等于本次 VERSION」故仍报 0 残留。
@@ -67,6 +86,12 @@ if (!isForward(VERSION, PREV_MAX)) {
       `  请改用更大的版本号（无参运行即按「同日续号」自动推导）。`
   );
   process.exit(1);
+}
+
+// ── 落盘出口 ──
+// `--check` 只检查不写：所有改写一律经此出口，写模式才会真正写盘（计数照常统计「将会改写」）。
+function write(file, content) {
+  if (!CHECK_MODE) writeFileSync(file, content, 'utf8');
 }
 
 // ── 递归收集 .js / .html 文件 ──
@@ -111,6 +136,21 @@ function stampLine(line, version) {
     /(import\(\s*[`'"])(\.{1,2}\/[^`'"?]*\.js)(\?[^`'"]*)?([`'"]\s*\))/g,
     (m, pre, path, _q, end) => `${pre}${path}?v=${version}${end}`
   );
+  // JS 侧资源 URL：new URL('./x.css?v=…', import.meta.url)（如 tab-bar.js 的 tab-loading.css）
+  // 这些 `?v=` 同样会被收尾自检当作**活动缓存键**扫描，漏改即「陈旧戳残留」——2026-10-28 补。
+  line = line.replace(
+    /(new URL\(\s*['"])([^'"?]+\.(?:css|woff2?|ttf|otf|eot|png|jpe?g|svg|webp))(\?[^'"]*)?(['"])/g,
+    (m, pre, path, _q, end) => `${pre}${path}?v=${version}${end}`
+  );
+  // 通用兜底（2026-10-29 补）：**已经带 `?v=` 的相对 .js 说明符**，无论出现在哪种加载形式里，
+  //   一律换成当前戳。由来：能力表改用 `loadTabModule('./x.js?v=…')` 包一层后，上面三条规则都不认，
+  //   发布补戳漏了 7 个 `capabilities/*-workspace.js`，被 `--check` 判为陈旧戳残留。
+  //   边界：只改「本来就带戳」的串，因此不会把数据串误当模块补戳（与上方规则的历史教训一致）。
+  //   新增加载器不必再改本脚本。
+  line = line.replace(
+    /(['"`])(\.{1,2}\/[^'"`?]*\.js)\?v=[^'"`]*\1/g,
+    (m, q, path) => `${q}${path}?v=${version}${q}`
+  );
   return line;
 }
 
@@ -127,9 +167,35 @@ for (const file of jsFiles) {
     .map((line) => (isCommentLine(line) ? line : stampLine(line, VERSION)))
     .join('\n');
   if (after !== before) {
-    writeFileSync(file, after, 'utf8');
+    write(file, after);
     jsCount++;
   }
+}
+
+// ── modulepreload（2026-10-27 批次 516）──
+// 判据（ARCHITECTURE_EVOLUTION §九 第 3 项）：每页首屏的静态 import 链在 HTML 里预加载一层，
+// 减少 1–2 个 RTT；href 必须与入口模块同戳，否则会重复下载两个实例。
+// 只取入口模块的**直接静态 import**（不递归）：再深一层交给浏览器解析，避免 HTML 体积失控。
+function modulePreloadHrefs(htmlFile, entrySrc) {
+  // workspace 页有 <base href="../">：实际解析基准是 base，不是 HTML 文件目录（否则会少一层）
+  const htmlSrc = readFileSync(htmlFile, 'utf8');
+  const baseHref = (htmlSrc.match(/<base\s+href="([^"]+)"/) || [])[1] || '';
+  const baseDir = resolve(dirname(htmlFile), baseHref || '.');
+  const abs = resolve(baseDir, entrySrc.split('?')[0]);
+  if (!existsSync(abs)) return [];
+  const src = readFileSync(abs, 'utf8');
+  const specs = [...src.matchAll(/import\s+(?:[^'"]*?\s+from\s+)?['"]([^'"]+)['"]/g)]
+    .map((mm) => mm[1])
+    .filter((s) => s.startsWith('.'));
+  const out = [];
+  for (const spec of new Set(specs)) {
+    const target = resolve(dirname(abs), spec.split('?')[0]);
+    if (!existsSync(target)) continue;
+    let rel = relative(baseDir, target).split(sep).join('/');
+    if (!rel.startsWith('.')) rel = `./${rel}`;
+    out.push(`${rel}?v=${VERSION}`);
+  }
+  return out;
 }
 
 // ── 处理各 html：entry script + styles.css 版本号 ──
@@ -157,8 +223,21 @@ for (const file of htmlFiles) {
       /(<script src="[^"?]*\/src\/[^"?]*\.js)(\?[^"]*)?(")/g,
       (m, pre, _q, end) => `${pre}?v=${VERSION}${end}`
     );
-  if (next !== before) {
-    writeFileSync(file, next, 'utf8');
+  // modulepreload 块：有 entry 模块才生成；块内 href 同戳，重复运行做替换而非追加
+  let withPreload = next;
+  const entryTag = next.match(/<script type="module" src="([^"]+)"/);
+  if (entryTag) {
+    const hrefs = modulePreloadHrefs(file, entryTag[1]);
+    if (hrefs.length) {
+      const block = `<!-- modulepreload:start -->\n${hrefs.map((h) => `  <link rel="modulepreload" href="${h}" />`).join('\n')}\n  <!-- modulepreload:end -->`;
+      const blockRe = /[ \t]*<!-- modulepreload:start -->[\s\S]*?<!-- modulepreload:end -->/;
+      withPreload = blockRe.test(next)
+        ? next.replace(blockRe, block)
+        : next.replace(entryTag[0], `${block}\n  ${entryTag[0]}`);
+    }
+  }
+  if (withPreload !== before) {
+    write(file, withPreload);
     htmlCount++;
   }
 }
@@ -173,25 +252,45 @@ for (const file of collectFiles(SRC_DIR, '.css')) {
     (m, pre, _q, end) => `${pre}?v=${VERSION}${end}`
   );
   if (next !== content) {
-    writeFileSync(file, next, 'utf8');
+    write(file, next);
     cssCount++;
   }
 }
 
 // ── 同步 bump CODE_VERSION（cross-page-state.js 运行时自检常量）──
 // 使旧 tab 持有旧 ES 模块时自动刷新一次（与模块 URL 版本号双保险）
+//
+// 版本锚（2026-10-28）：同一行末尾由本脚本维护 `[stamp:YYYYMMDDx]`，记录「这次 CODE_VERSION 属于哪一版戳」。
+// 它是 `--check` 判定「CODE_VERSION 与戳不一致」的唯一依据——没有锚就分不清「CODE_VERSION 没跟着 bump」
+// 与「正常状态」（两者代码里都是个整数，无从比对）。
+//
+// 逐行改写（不用整串正则）：仓库文件是 CRLF，`[^\n]*` 会把行尾 `\r` 也捕获进锚点前，
+// 使 `[stamp:…]` 落到「同一行内的 CR 之后」——按行处理并显式去掉 CR 才不会写坏这一行。
+const CPS_MARKER_RE = /\s*\[stamp:\d{8}[a-z]\]/;
+const CPS_MARKER_STAMP_RE = /\[stamp:(\d{8}[a-z])\]/;
+const CPS_LINE_RE = /const CODE_VERSION = (\d+);/;
 let codeVersionChanged = false;
+let codeVersionIssue = '';
 const cpsFile = join(SRC_DIR, 'core', 'session', 'cross-page-state.js');
 const cpsContent = readFileSync(cpsFile, 'utf8');
-const cpsNext = cpsContent.replace(
-  /const CODE_VERSION = (\d+);/,
-  (m, cur) => {
-    codeVersionChanged = true;
-    return `const CODE_VERSION = ${parseInt(cur, 10) + 1};`;
+const cpsLines = cpsContent.split('\n');
+const cpsIdx = cpsLines.findIndex((l) => CPS_LINE_RE.test(l));
+const cpsLine = cpsIdx >= 0 ? cpsLines[cpsIdx].replace(/\r$/, '') : '';
+if (CHECK_MODE) {
+  if (cpsIdx < 0) {
+    codeVersionIssue = 'cross-page-state.js 缺 `const CODE_VERSION = N;` 声明';
+  } else {
+    const anchor = (CPS_MARKER_STAMP_RE.exec(cpsLine) || [])[1] || '';
+    if (!anchor) codeVersionIssue = 'CODE_VERSION 行缺版本锚 `[stamp:…]`（请跑一次 bump 写入）';
+    else if (anchor !== VERSION) codeVersionIssue = `CODE_VERSION 锚 ${anchor} 与当前戳 ${VERSION} 不一致（上次 bump 只落了一半）`;
   }
-);
-if (codeVersionChanged) {
-  writeFileSync(cpsFile, cpsNext, 'utf8');
+} else if (cpsIdx >= 0) {
+  codeVersionChanged = true;
+  const eol = cpsLines[cpsIdx].endsWith('\r') ? '\r' : '';
+  const tail = cpsLine.slice(cpsLine.indexOf(';') + 1).replace(CPS_MARKER_RE, '').replace(/\r/g, '');
+  const bumped = parseInt(CPS_LINE_RE.exec(cpsLine)[1], 10) + 1;
+  cpsLines[cpsIdx] = `const CODE_VERSION = ${bumped};${tail} [stamp:${VERSION}]${eol}`;
+  write(cpsFile, cpsLines.join('\n'));
 }
 
 // ── 同步 server/test/*.mjs 与 *.test.js 内的页面模块版本戳（防模块实例分裂）──
@@ -216,7 +315,7 @@ if (existsSync(testDir)) {
     const content = readFileSync(file, 'utf8');
     const next = stampTestFileContent(content, VERSION);
     if (next !== content) {
-      writeFileSync(file, next, 'utf8');
+      write(file, next);
       testCount++;
     }
   }
@@ -256,6 +355,22 @@ function scanStale(dir, exts, stampsOf) {
 scanStale(SRC_DIR, ['.js', '.css'], broadStamps);
 scanStale(HTML_DIR, ['.html'], broadStamps);
 if (existsSync(TEST_DIR)) scanStale(TEST_DIR, ['.mjs', '.test.js'], cacheKeyStamps);
+
+if (CHECK_MODE) {
+  // ── --check：只报告不写，有陈旧戳或 CODE_VERSION 与戳不一致即退出 1 ──
+  console.log(`[bump-version] 检查模式（--check）：当前戳 ${VERSION}（仓库现有最大戳 ${PREV_MAX || '无'}）`);
+  console.log(`[bump-version] 试算改写量（未落盘）：JS ${jsCount} 个 / HTML ${htmlCount} 个 / CSS ${cssCount} 个 / server-test ${testCount} 个`);
+  const problems = [...staleFiles];
+  if (codeVersionIssue) problems.push(`docs/src/core/session/cross-page-state.js（${codeVersionIssue}）`);
+  if (problems.length === 0) {
+    console.log('[bump-version] 检查通过：0 处陈旧戳，CODE_VERSION 与戳一致 ✅');
+    process.exit(0);
+  }
+  console.error(`[bump-version] ✖ 检查未通过：${problems.length} 项——`);
+  for (const p of problems) console.error(`  - ${p}`);
+  console.error('  处理：发布前跑 `node docs/scripts/bump-version.mjs` 重新全站补戳后重试本检查。');
+  process.exit(1);
+}
 
 console.log(`[bump-version] 版本号：${VERSION}（仓库现有最大戳 ${PREV_MAX || '无'}）`);
 console.log(`[bump-version] 实际改写：JS ${jsCount} 个 / HTML ${htmlCount} 个 / CSS ${cssCount} 个 / server-test ${testCount} 个`);

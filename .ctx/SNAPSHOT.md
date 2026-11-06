@@ -2,15 +2,16 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-10-18"
+last_updated: "2026-11-03"
 status: "ACTIVE"
-date: "2026-10-18"
-version: "v59"
+layer: reference
+date: "2026-10-23"
+version: "v62"
 ---
 
-# System Snapshot — v59
+# System Snapshot — v62
 
-> 当前活跃基线。历史快照见 `.ctx/snapshots/`。
+> 当前活跃基线。历史快照见 `.ctx/logs/archive/2026-10/snapshots/`。
 
 > **职能（2026-09-17 立，规范见 [OPERATIONS_GUIDE §5.1](../content/03_doc_system/OPERATIONS_GUIDE.md)）**
 > **回答什么问题**：「**这个系统现在长什么样**」——目录结构、页面与数据表清单、账号与角色、当前基线口径。**AI 新会话开局靠它一次同步到现状**，不必重读全部历史。
@@ -28,7 +29,7 @@ GSM1921-SOP/
 ├── LICENSE / CONTRIBUTING.md   ← 开源 License + 贡献指南（**2026-09-28 批次 236 新增 §六「发版（语义化 release）」**）
 ├── CHANGELOG.md                ← 变更日志（Keep a Changelog 体例；**只记「对使用者可见的变更」**——逐批沿革归 `.ctx/logs/**`；起点＝首次语义化发版 `0.1.0` 2026-09-28、不回溯补记）
 ├── CLAUDE.md                   ← 上下文入口（甲部 H10-H100 约束力三层 + H60 提问准则 + 乙部执行 + 丙部待决策）
-├── docs/                       ← 前端代码层（根 HTML + workspace/ 工作台 + ESM 模块化源码；页面实测 25=17 根+8 工作台/只读视图，清单见 §III，以 docs/ 实况为准）
+├── docs/                       ← 前端代码层（根 HTML + workspace/ 工作台 + ESM 模块化源码；页面实测 26=18 根+8 工作台/只读视图，清单见 §III，以 docs/ 实况为准）
 │   ├── index.html              ← 主页入口（通知/招募/日历/待办四组件）
 │   ├── notice.html             ← 通知独立页（含「党委下发」红标）
 │   ├── about.html              ← 支部的故事
@@ -90,9 +91,11 @@ GSM1921-SOP/
     └── logs/                   ← 执行日志+决策日志（临时 spec 受管区 .trae/specs 用后即删，禁入 content）
 ```
 
+> **schema v12（2026-10-27 批次 515 实测，`initDb(':memory:')` 读数）**：当前 **52 张表**（v1 基线 ＋ 影子子表 `agenda_items` / `taskforce_contributions`；v12 已 DROP `issue_reveals`）；五张热表有 generated VIRTUAL 列（不是 STORED）与复合索引；`todos.branch_id` 为生成列。**影子子表不是权威源**——读写仍走 JSON 主表，切表判据见 `content/04_web_design/data/DATA_MODEL.md §2.3.2` 与 `server/scripts/schema-split-readiness.mjs`。
+>
 > **数据表现状（台账标注 · 2026-09-25 批次 190，系 `.ctx` 侧登记、**未改 `server/**`**）**：`server/data.db` 实有 **45 张表**、全库 **317 行**；其中 **30 张为空表**——**仅结构先行、数据尚未落地**（逐表清单见下句）。**⚠ 本注记的性质＝台账标注**：这些表**有结构、有读写口**（多为既有上传 / 留痕 / 申诉 / 服务端化链的承载位），**不代表功能不可用**——**这不是缺陷、也未被「修复」**（**只是把结构现状写清**）。同批另两条**本就建议不动**，一并说明：**单写者**（better-sqlite3 同步、单进程；WAL 只救读、不救写）· **附件走磁盘**（`uploads/` 落文件、库里只存路径，当前方向正确）。
 >
-> **28 张「结构先行、暂无数据」的表（逐表清单，照录上一批后端实测；2026-10-02 批次 342 删 `compliance_references` ⇒ 30 → 29；schema v4 将 `weekly_reports` 迁入有数据的通用周期归档表，空表 29 → 28）**：`act_sub_records` · `activity_reviews` · `agenda_votes` · `appointment_records` · `attachments` · `attendance_appeals` · `attendances` · `auth_audit` · `branch_docs` · `collection_versions` · `committee_broadcasts` · `experience_deposits` · `external_dispatches` · `file_space_records` · `handoffs` · `image_records` · `inspection_appeals` · `inspections` · `issue_reveals` · `issue_unread` · `member_change_requests` · `member_confirmations` · `member_flows` · `milestones` · `prop_tasks` · `taskforce_reviews` · `tf_sub_records` · `thought_reports`。
+> **27 张「结构先行、暂无数据」的表（逐表清单，照录上一批后端实测；2026-10-02 批次 342 删 `compliance_references` ⇒ 30 → 29；schema v4 将 `weekly_reports` 迁入有数据的通用周期归档表，空表 29 → 28；schema v12 DROP `issue_reveals` ⇒ 28 → 27）**：`act_sub_records` · `activity_reviews` · `agenda_votes` · `appointment_records` · `attachments` · `attendance_appeals` · `attendances` · `auth_audit` · `branch_docs` · `collection_versions` · `committee_broadcasts` · `experience_deposits` · `external_dispatches` · `file_space_records` · `handoffs` · `image_records` · `inspection_appeals` · `inspections` · `issue_unread` · `member_change_requests` · `member_confirmations` · `member_flows` · `milestones` · `prop_tasks` · `taskforce_reviews` · `tf_sub_records` · `thought_reports`。
 
 ## II. 分层架构（D-218 正交维度模型）
 
@@ -122,7 +125,7 @@ GSM1921-SOP/
 | `content/03_doc_system/ARCHITECTURE.md` | ✅ | 《架构与单一事实源》（分层架构 + 仓库结构 + 数据模型 + 变更流水线 ＋ **§十 母本注册表 / 同步触发矩阵** ＋ **§十一 统一服务目录（服务清单 + 角色权限矩阵）**；**2026-09-25 批次 179 三份合一**：原 `SSOT_INDEX.md` / `SERVICE_CATALOG.md` 两份并入本文件并删除） |
 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | ✅ | 系统角色权限矩阵（角色键全表 §9a0 + 权限矩阵/赋权链，代码键级权威） |
 
-### 前端页面（HTML 实测 25 个：17 根 + 8 工作台/只读视图；以 docs/ 实况为准——清单以 `docs/*.html` 与 `docs/workspace/*.html` 实测为准）
+### 前端页面（HTML 实测 26 个：18 根 + 8 工作台/只读视图；以 docs/ 实况为准——清单以 `docs/*.html` 与 `docs/workspace/*.html` 实测为准）
 
 | 页面 | 类型 | 说明 |
 |------|------|------|
@@ -136,6 +139,7 @@ GSM1921-SOP/
 | `search.html` | 独立 | 资料查询（支部文件唯一上传入口） |
 | `feedback.html` | 独立 | 意见反馈 |
 | `activity.html` | 公共页 | 活动/专班详情（议程区+表决端+通知直达锚点） |
+| `activity-materials.html` | 公共页 | 活动材料闭环（单场活动：材料清单 → 上传/核对 → 提交归档；复用 imageRecords / 考勤 / 考察 / 复盘与 archiveActivity） |
 | `party-committee-meeting.html` | 公共页 | 支委会会议页（线上召开：选线上召开 / 提取议程（专班报送·意见反馈）/ 委员线上表态 / 支书汇总截止（votesLocked）/ 留存并查阅讨论结果；仅支委可进，批次 105 / D-526） |
 | `taskforce.html` | 公共页 | 专班详情 |
 | `wizard.html` | 公共页 | 换组织向导（支书限本支部/党委任意/他角色无权限卡） |
@@ -192,3 +196,5 @@ GSM1921-SOP/
 ## VI. 版本里程碑
 
 > **本节（原版本里程碑）已按 2026-09-17 裁定移入 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md` 的「附：SNAPSHOT 版本沿革」节。**
+
+> **批次小结去向（2026-11-03）**：批次 509–528 的 5 行小结已删除（git 保留历史）；替代索引见 `.ctx/logs/EXECUTION_LOG_INDEX.md` 的「批次索引」表。本文件只答「系统现在长什么样」。

@@ -14,6 +14,21 @@
 
 MIT · Node ≥ 22 · 原生 ESM（无打包器/无构建步骤）· 纯本地数据可离线 · 可选 Node 一体化后端
 
+## 去哪找什么
+
+| 我想找… | 去哪 | 一句话 |
+|---------|------|--------|
+| 用户怎么用（角色、操作、常见场景） | [README-members.md](README-members.md) · [SOP 索引](content/02_institution/sop/INDEX.md) | 使用者视角与各角色操作规程 |
+| 部署与运维（打包、安装、更新、体检） | [deploy/README.md](deploy/README.md) · [部署指南](content/04_web_design/deploy/DEPLOYMENT_GUIDE.md) | 脚本各自何时用、失败看哪 |
+| 设计与视觉（颜色、组件、点击落点） | [DESIGN_SYSTEM.md](content/04_web_design/design-system/DESIGN_SYSTEM.md) | 前端视觉与组件的唯一权威 |
+| 数据模型与数据流 | [DATA_MODEL.md](content/04_web_design/data/DATA_MODEL.md) | 有哪些数据、字段是什么、怎么流动 |
+| 制度与 SOP | [SOP 索引](content/02_institution/sop/INDEX.md) · [角色权限矩阵](content/02_institution/SYSTEM_ROLE_PERMISSION.md) | 组织分工、权限口径与操作母本 |
+| 文档治理与导航 | [DOC_MAP.md](content/03_doc_system/DOC_MAP.md) · [运行与协作规范](content/03_doc_system/OPERATIONS_GUIDE.md) | 文档放哪、以谁为准、怎么改 |
+| AI 协作与审查 | [CLAUDE.md](CLAUDE.md) · [AI coding 索引](content/05_ai_coding/README.md) | 执行规则、方法论与审查判据 |
+| 历史证据与台账 | [.ctx/README.md](.ctx/README.md) | 日志、证据、快照、评议与裁定 |
+| 前端代码与页面 | [docs/README.md](docs/README.md) | 应用层、工作台壳、根页与维护脚本 |
+| 战略与支书论断 | [SECRETARY_DIRECTIVES.md](content/01_strategy/SECRETARY_DIRECTIVES.md) | 支部为什么存在、往哪走 |
+
 ---
 
 ## 快速开始：三条命令跑起来，浏览器即用
@@ -43,7 +58,6 @@ npm start                                                  # ③ 启动服务
 > 通用能力与组织特有能力以（通用）/（特有）文本标注区分；本块三章（能力地图 / 关键业务链路表 / 完整四章指针）由 `node docs/scripts/gen-function-mermaid.mjs --write` 从 docs/src/core/domain/function-catalog.js 与 mermaid-sources.js 生成，勿手改（完整四章含逐条 flowchart 用同脚本 stdout 打印）。
 
 <!--FUNC-MAP:START-->
-
 ### 一、能力地图（按制度域）
 
 > **读法**：本图按**制度域**分组（党建 / 宣传与档案 / 活动与专班 / 公共 / 角色工作台），与「角色工作台」不互斥——同一能力可能由多台承载，故「党建」组里既有页面也有职能。
@@ -102,9 +116,9 @@ mindmap
 
 | 链路 | 起 | 经 | 终 |
 |------|----|----|----|
-| 支委会链路 | 支书 · 确定议题并提前通知 | 4 步 | 纪检委员 · 跟进请假缺勤补课 |
+| 支委会链路 | 支书 · 确定议题并提前通知 | 2 步 | 宣传委员 · 归档会议材料 |
 | 线上支委会链路 | 支书 · 创建线上支委会并定稿议程 | 3 步 | 支书 · 记录会议决议 |
-| 党小组会链路 | 党小组组长 · 统筹时间·确定主题·提前通知 | 6 步 | 宣传委员 · 归档党小组会记录 |
+| 党小组会链路 | 党小组组长 · 统筹时间·确定主题·提前通知 | 5 步 | 宣传委员 · 归档党小组会记录 |
 | 党课链路 | 支书 · 发布党课通知与学习材料 | 1 步 | 支书 · 提醒缺席党员补课 |
 | 主题党日链路 | 组织者 · 策划并发起活动 | 7 步 | 宣传委员 · 归档宣传与活动材料 |
 | 支部党员大会链路 | 党小组组长 · 统筹时间·确定会议主题 | 6 步 | 宣传委员 · 推文与工作记录归档 |
@@ -118,7 +132,6 @@ mindmap
 ### 三、完整四章（架构分层 · 服务依赖 · 数据流）
 
 > 完整四章（功能地图 · 12 条业务链路 flowchart · 架构分层 · 服务依赖）**不落盘**（免 README 臃肿）：运行 `node docs/scripts/gen-function-mermaid.mjs` 打印到 stdout 查看。
-
 <!--FUNC-MAP:END-->
 
 ## 一、你的部署（每个组织自己的实例）
@@ -153,25 +166,25 @@ mindmap
 | | activity / taskforce / notice | 活动与会议详情 / 专班详情 / 通知 |
 | | [party-committee-meeting.html](docs/party-committee-meeting.html) | 支委会会议页（选线上召开 → 提取议程 → 委员线上表态 → 汇总截止 → 留存并查阅讨论结果；仅支委可进） |
 | | thought-report / person | 思想汇报长文阅读 / 成员档案 |
-| | wizard / help / about / settings | 支部配置分步向导 / 帮助手册 / 关于 / 设置中心 |
+| | wizard / help / settings | 支部配置分步向导 / 帮助手册 / 设置中心 |
 | 工作台 | [secretary.html](docs/workspace/secretary.html) | 支书工作台（支书 / 副支书**共台**） |
 | | org / prop / disc | 组织 / 宣传 / 纪检委员工作台 |
 | | leader / visitor | 党小组组长 / 成员工作台 |
 | | [party-committee.html](docs/workspace/party-committee.html) | **党委工作台**（组织级：监控全院支部、管理支部实例，不进入支部匿名反馈闭环；真实提交人仅保留在服务端受保护字段，浏览器 mock 不留存，当前无系统揭名入口，`D-824`） |
 
-全站共 25 个静态页（17 个根页 + 8 个工作台页面，含党委只读支部视图）：**逐枚页面**的用途与登录门控见 [README-server.md](README-server.md) §3.1，**角色工作台页签**（共 67 个）见其 §3.2 与系统内【帮助】页第 0 / 2 章。
+全站共 26 个静态页（18 个根页 + 8 个工作台页面，含党委只读支部视图）：**逐枚页面**的用途与登录门控见 [README-server.md](README-server.md) §3.1，**各工作台逐枚页签**（共 45 个）见其 §3.2 与系统内【帮助】页第 0 / 2 章。
 
 **设置中心**（settings.html，侧边栏右下角「设置」）按登录身份分区（左栏共 10 个分区）：**外观**人人可用（字号 / 明暗主题 / 强调色，全站即时生效；未登录访客偏好存本浏览器、登录后随账号）；**我的工作台**供登录用户调整本人页签顺序（仅本账号生效）；**支部治理**按角色发牌——支书 / 副支书管支部信息与换组织向导、工作台默认顺序、支部制度参数、**配置变更记录**（每次配置保存的留痕与单键回滚）（**副书同权**），纪检 / 组织 / 组长各管本域职责参数，党委组织员另有跨支部治理入口。**页签顺序个性化**：登录用户可在 设置→我的工作台 调整本人页签顺序（默认沿用支部默认顺序，核心固定页签不可动）；支书 / 副支书可在 设置→支部治理→工作台默认顺序 为全体成员设定默认顺序。**逐区一览**（有哪些区 / 每区管什么 / 你能看到哪几区）见【帮助】页 §4.1、使用者操作见 [README-members.md](README-members.md)。
 
 ### 3.2 工作台的通用结构
 
-登录后直达对应工作台并落在「**今天**」页（置首 tab = 登录落点）；各支部角色工作台 tab 按「工作台 → 我的职责 → 知情查看 → 制度与答复」分组；党委五个治理页签统一归入「党委治理」组：
+登录后直达对应工作台并落在「**今天**」页（置首 tab = 登录落点）；各支部角色工作台 tab 按「总览 → 我的职责 → 协作与知情 → 制度与答复」分组；党委三个治理页签统一归入「党委治理」组：
 
 - **今天** — 只读速览（今天有会 / 今天到期 / 今日分工），全部点击 ≤1 跳直达处理处
 - **待办** — 页顶「未读通知 N 条」轻量条 + **工作域折组**（`D-787` 由 9 域合并为 6 类）：项目（会务、活动、专班）、考勤纪律、考察、成员发展、上报与汇报（决议上报、汇报反馈）、归档宣传（实时提醒组并入对应域）；域内提供批量确认，如「成员发展」域批量勾选确认/退回成员变更（发展阶段/在册状态/移出）
 - **工作概况** — 汇报 / 卡点 / 在办信息按任务层次呈现（支书台「全局概况」以统一待处理队列为主，异常单独列示；责任线概况和指标按需展开）
 - **我的职责 tab 群** — 各角色职责域（见下）
-- **我的处置** — 意见反馈 / 汇报的收件处理位（组长台为「组员进展」内待答复）
+- **我经办的反馈** — 意见反馈 / 汇报的收件处理位（2026-10-25 IA 62→45：五台原「我的处置」页签已并入各自「待办」页；支书台为「意见反馈」，组长台另有「组员进展」内待答复）
 
 **表格与宽表（全站统一口径）**：
 
@@ -183,7 +196,7 @@ mindmap
 
 ### 3.3 支书工作台（支书 / 副支书共台）
 
-覆盖面＝支部统筹的各条线：全局概况以统一待处理队列为主，待决定/确认与异常/督办分开展示；责任线概况和指标按需展开。活动管理（会务日历）与支委会会议（线上召开：提取议程 / 委员表态 / 汇总截止 / 留存讨论结果，线上与线下完全同等效力）、赋权管理与通知发布、上报党委（见 3.5）、支部分工（工作地图，平铺模块 / 按人 / 按项目三视图，缺省「按人」宽表）、反馈管理，以及只读的知情查看（活动 / 专班分段——知情权：无职责亦有知情权）。**党小组**清单与新增 / 改名 / 解散写权归支书与副支书，未分组行内归组；跨组切换只读掌握，组内待答复可「请组长关注」——支书不代组长答复。待办含「待答复」「专班待议」置顶入口。支部治理类操作（换组织向导 / 模块组合 / 工作台默认顺序等）收口于侧边栏右下角「设置 → 支部治理」（支书 / 副支书共台同权，见 3.1 设置中心说明）。本台逐枚页签见 [README-server.md](README-server.md) §3.2.1。
+覆盖面＝支部统筹的各条线：全局概况以统一待处理队列为主，待决定/确认与异常/督办分开展示；责任线概况和指标按需展开。活动管理（会务日历 + 工具栏筛选：关键词 / 类别 / 品牌 / 党小组活动）与支委会会议（线上召开：提取议程 / 委员表态 / 汇总截止 / 留存讨论结果，线上与线下完全同等效力）、通知发布、上报党委（见 3.5）、支部分工（工作地图，平铺模块 / 按人 / 按项目三视图，缺省「按人」宽表）、意见反馈，以及**全局概况页内「知情查看」卡**（活动工作组 / 专班工作组两段只读——知情权：无职责亦有知情权）。**党小组**清单与新增 / 改名 / 解散写权归支书与副支书，未分组行内归组；跨组切换只读掌握，组内待答复可「请组长关注」——支书不代组长答复。待办含「待答复」「专班待议」置顶入口。支部治理类操作（换组织向导 / 模块组合 / 工作台默认顺序等）收口于侧边栏右下角「设置 → 支部治理」（支书 / 副支书共台同权，见 3.1 设置中心说明）。本台逐枚页签见 [README-server.md](README-server.md) §3.2.1。
 
 ### 3.4 党委工作台（组织级）
 
@@ -195,7 +208,7 @@ mindmap
 - **考勤**：上传位**按会议类型分**——支委会**不考勤**（规模小），党课 / 支部党员大会由**纪检委员**上传（支书 / 副支书亦有权上传），党小组会 / 组织生活会 / 主题党日由**该场组织者**上传；纪检管确认与统计核对、认定异常标因、滞留到场补录；考勤确认 → 三会一课/主题党日缺勤**自动生成补课任务** → **考勤统计报支委会**（组织委员接收建档；原「交宣传备案」去向已按 `D-429` / `D-474` 改准）
 - **考察**：活动/专班考察上传（组织者）→ **纪检确认** → 组织建档（考察记录汇总入成员发展档案）
 - **发展党员两级确认**：两种来源——名册报送（成员发展阶段/在册状态/移出由组织发起）与会议议程「待讨论名单」（**会上逐人记「通过/未通过」，未通过留痕**）→ **组织审批 → 支书确认**生效，双层留痕、可退回（退回名册报送须填意见），逐项或域内批量；通过者自动进入确认链（来源标「会议结果」），成员发展档案可溯「来源会议」。会议议程中的发展事项只选**目标**（转为预备党员 / 转为正式党员），当前阶段由系统按成员档案自动取；「积极分子 → 发展对象」这一步**须先经支委会讨论通过**才可发起阶段变更
-- **思想汇报**：**提交即入库即归档**（算法按人归集至个人档案，不设人工归档门）；篇幅建议 1500 字以上，**少于 1200 字触发警告审阅、不影响提交**（**该提醒只给你本人看**，组织侧不留「篇幅不足」标记）；组织委员在「思想汇报」页查看调用（**台账宽表（人 × 期次）**，一眼看出谁哪期交了、有没有漏交，点格直达阅读页；必要时可在阅读页**打回要求本人补充**）
+- **思想汇报**：**提交即入库即归档**（算法按人归集至个人档案，不设人工归档门）；篇幅建议 1500 字以上，**少于 1200 字触发警告审阅、不影响提交**（**该提醒只给你本人看**，组织侧不留「篇幅不足」标记）；完整记录按人归集在**个人档案**的「思想汇报」段；组织委员在「思想汇报」页只处理**例外清单**（未交 / 待初阅 / 待补充，点「查看」直达阅读页；必要时可在阅读页**打回要求本人补充**）
 - **专班全生命周期**：发起（提出需求）→ 招募统筹 → 定人定责定岗 → 运行（活动/考察承接）→ 复盘 → 归档；发起与招募分离
 - **上报党委双向通道**：支部关键事项（发展节点/活动报备）上报 → 党委逐项审批（通过/批驳）结论回传支部；党委侧另有下发通知通道
 - **资料查询与支部文件版本化**：全站资料查询（search）；支部文件支持**上传新版=旧版归档可查**、现行/停用态、制度文本由支书 / 副支书（副书同权）新建，并支持**制度草案态**（草案 → 支委会审议 → 通过成现行版 / 未通过退回起草人修改；是否报送党员大会表决在审议时定）
@@ -218,7 +231,7 @@ mindmap
 |---------|---------|
 | 组织数据（人员/活动/通知/专班/考勤/档案） | [docs/src/data/mock/](docs/src/data/mock/) 数据文件整体替换；服务端种子 [server/seed.js](server/seed.js) 复用同一份数据 |
 | 角色与权限 | 角色清单单一事实源 [docs/src/core/domain/constants.js](docs/src/core/domain/constants.js)；权限矩阵 [content/02_institution/SYSTEM_ROLE_PERMISSION.md](content/02_institution/SYSTEM_ROLE_PERMISSION.md)；部署形态 [docs/src/config/deploy.js](docs/src/config/deploy.js) |
-| 主题配色 | 色彩令牌 [docs/src/styles.css](docs/src/styles.css) + constants.js（禁改，须支书特批）；固定/可调口径见 [DESIGN_SYSTEM.md §二 色彩系统](content/04_web_design/design-system/DESIGN_SYSTEM.md) |
+| 主题配色 | 色彩令牌 [docs/src/styles.css](docs/src/styles.css) + constants.js（禁改，须支书特批）；固定/可调口径见 [DS_01_COLOR_AND_THEME.md §二 色彩系统](content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md) |
 | 术语与制度 | 术语权威源 [OPERATIONS_GUIDE.md §19](content/03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》）；制度母本 [content/02_institution/](content/02_institution/) |
 | 业务默认（阈值/名单） | [docs/src/core/domain/policy-defaults.js](docs/src/core/domain/policy-defaults.js)（`branch-default`=支部可调 / `institutional`=制度固定须支书裁决） |
 | 功能模块组合 | 能力注册表 + 支部 config.modules/blocks 启停排序（模块声明契约 [docs/src/core/base/module-compose.js](docs/src/core/base/module-compose.js)） |
@@ -296,11 +309,11 @@ content/ 文档是**支书批改的权威源**（制度先改文本、后同步�
 `cd server && npm test` —— **node:test** 套件（`node --test`，纯 node 部分沙箱可跑；浏览器类/E2E（Playwright，锁定 1.60.0）需常规终端）。**测试按工作台分片**（`server/test/sweep-shard.mjs` 单源 · 启动器 `server/run-suite.mjs`）：`npm test` 默认只跑**一片**（**单片墙钟 ≤10 分钟**；非 e2e 文件每片全跑，e2e 按片切分，**四片并集 ≡ 全量**——由 `suite-shard.test.mjs` 钉死），`$env:SWEEP_SHARD=<1|2|3|4>` 选片（**改到某台/某线必须选覆盖它的片**），`npm run test:full` 跑**全量**（发布前 / 大批改动）。重点文件集（随功能演进持续增长）：
 
 - 待办/今天域：`todo-domain.test.mjs` / `todo-deriver-domain.test.mjs` / `todo-domain-view.test.mjs` / `today-summary.test.mjs`
-- 性能守卫：`perf-render-guard.test.mjs` / `perf-todo-agg-cache.test.mjs` / `perf-version-token.test.mjs` / `perf-index-equivalence.test.mjs`
+- 性能守卫：`perf-guard.test.mjs` / `perf-guard.test.mjs` / `perf-guard.test.mjs` / `perf-guard.test.mjs`
 - 成员确认/报送：`member-confirmation.test.mjs` / `reset-tier.test.mjs` / `reset-tier-init.test.mjs` / `thought-review.test.mjs` / `roster.test.mjs` / `roster-ui-logic.test.mjs` / `group-view.test.mjs`
 - 治理/审计：`resolution-followup.test.mjs` / `workforce-gate.test.mjs` / `link-integrity.test.mjs`（死链与页面定位）/ `catalog-sync.test.mjs`（**清单类口径同步**：功能目录结构 T1 · 链路键集 T2 · 功能地图 T3 · 表决枚举 T4 · 官方制度链接 T5——批次 47-F 由五个细碎文件合并）
-- **真机普查 / 同类病灶规模守卫**：`page-sweep.test.mjs`（**七台 × 全部 tab 真机普查**：分页 · 宽表人维（含**转置视图**——人维落在列上时按同一页切片口径断言）· 手写表格 · 检索 · 零脚本错误 ＋ **真机尺规**（控件 38px / 数据格 13px / 裸控件 / 分页钮 30px 例外；规则编号见文件头（**非断言名**））＋ **二级视图审次**（矩阵「显示全部 N 项」展开态、视图切换钮——原只审默认视图）＋ **自建列表分页**（卡片 / 行块 ≥ 12 同构块须有翻页；**原 2 处已确认不合规的载体（档案归档 22 块 / 组员进展卡点 13 块）已于批次 47-H 全部接统一检索引擎闭环、待修台账随之清空 `Q-23-40`**，台账僵尸化同样红灯）；**S0** 门槛取单一源、**S1** 分页非空转、**S2** 环境自检（静音的外部资源须逐条登记理由——真机 ≠ 真环境）、**S3** 尺规非空转）· `form-loop-sweep.test.mjs`（**S0–S6** 台账守卫 + **58 条真机闭环**：空必填点提交须报**可见**提示，且**提示点名的字段必须有可见载体**；另 **17 条真机成功路径**：填对→触发须有**成功提示** + **当场真生效** + **整页重载后仍成立**（＝落库；详情面板类写口用 `reopen[]` 重开后断言），每条流程另施加「**未捕获脚本错误**」判据；台账 `form-loop-registry.mjs` 共 **120** 处校验点（`SITES_BASELINE`）、其中 `machine:true` **100** 条可自动化、`machine:false` **20** 条非自动化逐条写明 reason；台账另有真机流程 **58** 条（`FLOWS_BASELINE`）。**S6（批次 49）＝台账行号未同步即红灯**：声明的 `line` 必须精确落在该文案那一行——`S4` 只核「文件在 + 文案在文件里」，行号是台账里唯一没人核的那一半，实做时查出 93 条里 11 条已经对不上）· `validation-site-coverage.test.mjs`（**`R-73` 第 ③ 缺的守卫**：`V1` **漏登记增量检测**——按台账开篇同一套「登记判据」扫 `docs/src/**`，把「未登进 `VALIDATION_SITES` 的字段级必填校验点」压进**只降不升**的存量基线；**本守卫落成当天即揪出 5 处真漏登记**〔议题「事项领域」· 组长驳回申诉 · 成员考勤申诉 · 成员考察申诉 ×2〕⇒ 已同批登记，台账 103 → 108。⚠ 只认**字面量文案**形态：经变量拼接的报文扫不出，那一半仍靠人读）
-- 口径 / 单一源 / 说明文件守卫（**凡 `DATA_CONSISTENCY_CHECKLIST.md §0.2` 索引引用的守卫都必须登记在本清单**，由 `doc-consistency.test.mjs::S10` 常驻断言——守卫存在却没人看得见＝半个没做，批 43 的 `page-sweep` 即长期缺席）：`filter-row.test.mjs`（S1–S13 + D1–D3）/ `relation-matrix.test.mjs`（S1–S6）/ `party-group.test.mjs`（S1–S4 + D1–D6）/ `version-stamp.test.mjs`（S1–S7 + D1–D11）/ `doc-consistency.test.mjs`（S1–S16；**S13 规模判据＝推导式恒等式**——已比对 ＋ 各档已跳过 ＝ 登记总数，取代旧的手改字面量；**S16 守卫注册完整性**——S 类测试文件须全数列入 `test:daily`，防守卫孤儿化）/ `frontmatter-freshness.test.mjs`（**`R-83` 机检**：`F1` git-free（登记行备注日期 > 表行日期即红）· `F2` git（`last_updated` 早于最后提交日、或干净却写超前日期即红；无 git 只报不判）· `F3` 非空转正负例——「改了没刷卡」不再靠人记）/ `ux-guard.test.mjs` / `inspection-loop-e2e.test.mjs` / `member-flow.test.mjs` / `member-persist.test.mjs` / `permission-gate.test.mjs` / `person-consistency.test.mjs` / `id-uniqueness.test.mjs` / `notice-audience.test.mjs` / `issue-branch.test.mjs` / `module-load.test.mjs`（`E1`–`E4`；`E4`＝真机装配断言） / `click-cost.test.mjs` / `mock-integrity.test.mjs` / `member-progress.test.mjs`（**服务端汇总**：单一源结构断言 + 双态同源 + 四项非空转）/ `pending-writes.test.mjs`（**「成功提示＝落库已确认」**：W1–W4 行为层（落地 / 失败必抛且只报一次 / 长链期间新登记也等到 / 不产生 unhandledrejection）+ W5–W9 结构层（success 必先经 `settleWrites`、Toast 渲染单一源、`persist` 与**快照排程**都须登记、flush 失败须结算并上抛、外部写链须登记且 `saveDB` 不得再用动态 import——批次 49 立） / `issue-anonymity.test.mjs`（**匿名反馈的支部隔离、身份脱敏与写口纪律**：未登录 401、只读本支部、党委空列表、兼容揭名路径一律 403；常规/API/mock 出口不含真身，处置回写后服务端受保护字段仍保留——「处置不清真身」） / `issue-mock-identity.test.mjs`（mock 浏览器缓存与草稿不留匿名真身，旧缓存读取时迁除身份） / `doc-line-ref.test.mjs`（**说明文件的取证断言**（批次 107）：`README-server.md` 里 **≥370 处 `文件:行号` 引用**（下限＝`doc-line-ref::R5` 基线，**不写死精确数**——写死必陈旧，见 `CLAUDE.md R-91`；本批实测 407 处）逐条核 **R1** 指针指向真实位置（文件可解析 / 行号在范围内 / 区间非空——含**短式** `:192` 与**逗号续列** `:44,161`）· **R2** 引用后括注里的符号（如 （`ROLE_KEYS`））必须出现在**声明区间内** · **R3** md 区间不得越到下一节（末个非空行不是标题 / 起点是标题时区间内无同级标题）· **R4** 「零命中 / 检索不到消费点」类**关键词型取证**仍成立 · **R5** 非空转基线。⚠ 边界：**「换一种说法」的旧口径机检不了**（grep 只覆盖字面层），该半落 `CLAUDE.md R-87` 纪律） / `hex-hardcode-guard.test.mjs`（**硬编码 hex 存量回归**：H1–H5——新增即红 · 逐文件处数 ratchet · 非空转 · 缩减进度 · 搬移例外台账；基线 `server/test/style-baseline.mjs`）/ `control-font-guard.test.mjs`（**控件小字存量回归**：T1–T4——控件挂 `text-[11px]/[10px]/[9px]` 即红，`DESIGN_SYSTEM.md §4.3` 控件字号单档 13px）/ `link-target-guard.test.mjs`（**JS 渲染型 href 的裸文件名**：L6–L7——工作台页 `<base href="../">` 下裸 `x.html` 解析到站点根 ⇒ 404，须按 `<base>` 规则核目标真实存在） / `dead-selector-guard.test.mjs`（**零引用 CSS 类**存量回归：新增死类即红 · 台账 ＋ 动态白名单） / `text-tier-guard.test.mjs`（**段落档位**：`<p>` 挂 9/10px 即红、11px〔Overline 标签档〕基线之外新增即红） / `import-path-guard.test.mjs`（**`G1`–`G3`——相对 ESM 规格符的路径必须存在**：`from '…'` / `import('…')` 的**字面量**查文件、**模板字面量动态 import** 查**静态前缀目录**；补 `module-load::E1`（其 `collectJsFiles` 明写**跳过 `entries/`**）与 `link-integrity::L2`（自述**排除 ESM 规格符**）双双绕开的那一格。**由来＝批次 262 定根因的真事**：P5 目录分层把 `entries/*.js` 移进 `entries/pages/` 后**漏改一处模板字面量动态 import 的路径深度**（少一个 `../`）⇒ 运行时 **404**、「设置 → 我的工作台」面板恒显「加载失败」——**这就是 `preferences.test.mjs::真实拖拽` 长期红的根因**） / `copy-master-guard.test.mjs`（`N1`–`N4`——**界面复述制度母本**：与制度母本「连续 ≥20 字重合」即红，须改写成一行 ＋ `help.html` 深链） / `copy-length-guard.test.mjs`（`L1`–`L6`——**界面文案长度存量**：卡片导语 ≤60 字 · 单段 ≤80 字 · 单句括注 ≤2 个 · 空态 ≤30 字） / `copy-screen-guard.test.mjs`（`M1`–`M4`——**同屏复述 · 每屏「文案 ÷ 控件」**：真机 7 台 × 默认视图） / `copy-fold-guard.test.mjs`（`F1`/`F2`——**折叠区口径是否有 help 同义段**：机器判不了「同义」⇒ **只报不判**） / `copy-anchor-guard-e2e.test.mjs`（`A1`–`A3`——**口径定点锚点真机可达 / 可检索**） / `mock-api-parity.test.mjs`（`S0` / `P1`–`P3`——**mock 与 api 两形态读数一致 ＋ 服务端真按同源播种**；承重臂＝服务端 HTTP 原始行，防 `SEED_FALLBACK` 假绿） / `db-migration.test.mjs`（`M1`–`M6`——**版本化迁移**：新建库 / 幂等 / 既有库兼容 / 失败回滚 / 失败不吞） / `backup-restore.test.mjs`（`B1`——**备份 → 破坏 → 恢复演练**；反证「只 `copy` 丢 WAL 尾」） / `db-integrity-guard.test.mjs`（`G1`–`G6`——**完整性 / 版本自检 ＋ 新增结构须写 migration**） / `localstorage-key-guard.test.mjs`（`L1`–`L3`——**浏览器存储键必须登记**：三档白名单，`DATA_CONSISTENCY_CHECKLIST.md §0.3` 是其镜像） / `timestamps-note-guard.test.mjs`（`N1`–`N7`——**台账备注列预算**（`CLAUDE.md R-89`）：总量预算 ＋ 冻结高水位（**只降不升**）· 单格硬顶 1000 字 · 禁 `T-` 编号 · 禁日期复述 · 单格「批次 N」> 3 次；四份存量清单与命中集**双向相等**——新增即红、收敛未撤条目亦红） / `policy-config.test.mjs`（`R1`–`R3`——**每个 policy 参数恰属「可覆盖白名单」或「不可覆盖固定台账」两类之一**（`POLICY_FIXED`：kind ＋ why ＋ src），**无「未登记」第三态**；`R2` 禁 institutional 混入白名单 · `R3` 恒等式非空转） / `block-orchestration.test.mjs`（`O1`–`O5`——**工作流块编排内核**（`WORKFLOW_BLOCK_CONTRACT` L3/L4）：`O1` 用**反例**锁住「组合体检不是恒真」〔批次 239 修的真缺陷：`module-compose.js` 原只认 `it.id`、而块清单键名是 `blockId` ⇒ 过滤成空集 ⇒ 体检恒真〕· `O2` 端到端编排 · `O3` 错误累积不抛 · `O4` 拓扑序只前移被依赖者 · `O5` 编译产物是**既有 definition 形状的纯数据**） / `date-canon-guard.test.mjs`（**日期口径**：`D1` 应用面（`docs/src` ＋ `server`）不得用 UTC 切串取「今天」——那是 **UTC**、Asia/Shanghai 00:00–08:00 判成昨天；`D2` 本地口径单一源在位：前端零依赖叶子 `docs/src/core/base/date.js::todayLocal` ＋ 服务端 `services/reporting.js::today`/`fmtLocal`，且 `core/domain/constants.js` 仍只引这一个零依赖叶子；`CLAUDE.md R-26`③）
+- **真机普查 / 同类病灶规模守卫**：`page-sweep.test.mjs`（**七台 × 全部 tab 真机普查**：分页 · 宽表人维（含**转置视图**——人维落在列上时按同一页切片口径断言）· 手写表格 · 检索 · 零脚本错误 ＋ **真机尺规**（控件 38px / 数据格 13px / 裸控件 / 分页钮 30px 例外；规则编号见文件头（**非断言名**））＋ **二级视图审次**（矩阵「显示全部 N 项」展开态、视图切换钮——原只审默认视图）＋ **自建列表分页**（卡片 / 行块 ≥ 12 同构块须有翻页；**原 2 处已确认不合规的载体（档案归档 22 块 / 组员进展卡点 13 块）已于批次 47-H 全部接统一检索引擎闭环、待修台账随之清空 `Q-23-40`**，台账僵尸化同样红灯）；**S0** 门槛取单一源、**S1** 分页非空转、**S2** 环境自检（静音的外部资源须逐条登记理由——真机 ≠ 真环境）、**S3** 尺规非空转）· `form-loop-sweep.test.mjs`（**S0–S6** 台账守卫 + **59 条真机闭环**：空必填点提交须报**可见**提示，且**提示点名的字段必须有可见载体**；另 **17 条真机成功路径**：填对→触发须有**成功提示** + **当场真生效** + **整页重载后仍成立**（＝落库；详情面板类写口用 `reopen[]` 重开后断言），每条流程另施加「**未捕获脚本错误**」判据；台账 `form-loop-registry.mjs` 共 **130** 处校验点（`SITES_BASELINE`）、其中 `machine:true` **102** 条可自动化、`machine:false` **28** 条非自动化逐条写明 reason；台账另有真机流程 **59** 条（`FLOWS_BASELINE`）。**S6（批次 49）＝台账行号未同步即红灯**：声明的 `line` 必须精确落在该文案那一行——`S4` 只核「文件在 + 文案在文件里」，行号是台账里唯一没人核的那一半，实做时查出 93 条里 11 条已经对不上）· `validation-site-coverage.test.mjs`（**`R-73` 第 ③ 缺的守卫**：`V1` **漏登记增量检测**——按台账开篇同一套「登记判据」扫 `docs/src/**`，把「未登进 `VALIDATION_SITES` 的字段级必填校验点」压进**只降不升**的存量基线；**本守卫落成当天即揪出 5 处真漏登记**〔议题「事项领域」· 组长驳回申诉 · 成员考勤申诉 · 成员考察申诉 ×2〕⇒ 已同批登记，台账 103 → 108。⚠ 只认**字面量文案**形态：经变量拼接的报文扫不出，那一半仍靠人读）
+- 口径 / 单一源 / 说明文件守卫（**凡 `DATA_CONSISTENCY_CHECKLIST.md §0.2` 索引引用的守卫都必须登记在本清单**，由 `doc-consistency.test.mjs::S10` 常驻断言——守卫存在却没人看得见＝半个没做，批 43 的 `page-sweep` 即长期缺席）：`filter-row.test.mjs`（S1–S13 + D1–D3）/ `relation-matrix.test.mjs`（S1–S6）/ `party-group.test.mjs`（S1–S4 + D1–D6）/ `version-stamp.test.mjs`（S1–S7 + D1–D11）/ `doc-consistency.test.mjs`（S1–S16；**S13 规模判据＝推导式恒等式**——已比对 ＋ 各档已跳过 ＝ 登记总数，取代旧的手改字面量；**S16 守卫注册完整性**——S 类测试文件须全数列入 `test:daily`，防守卫孤儿化）/ `docs-governance-guard.test.mjs`（**`R-83` 机检**：`F1` git-free（登记行备注日期 > 表行日期即红）· `F2` git（`last_updated` 早于最后提交日、或干净却写超前日期即红；无 git 只报不判）· `F3` 非空转正负例——「改了没刷卡」不再靠人记）/ `ux-guard.test.mjs` / `inspection-loop-e2e.test.mjs` / `member-flow.test.mjs` / `member-persist.test.mjs` / `permission-gate.test.mjs` / `person-consistency.test.mjs` / `id-uniqueness.test.mjs` / `notice-audience.test.mjs` / `issue-branch.test.mjs` / `module-load.test.mjs`（`E1`–`E4`；`E4`＝真机装配断言） / `click-cost.test.mjs` / `mock-integrity.test.mjs` / `member-progress.test.mjs`（**服务端汇总**：单一源结构断言 + 双态同源 + 四项非空转）/ `pending-writes.test.mjs`（**「成功提示＝落库已确认」**：W1–W4 行为层（落地 / 失败必抛且只报一次 / 长链期间新登记也等到 / 不产生 unhandledrejection）+ W5–W9 结构层（success 必先经 `settleWrites`、Toast 渲染单一源、`persist` 与**快照排程**都须登记、flush 失败须结算并上抛、外部写链须登记且 `saveDB` 不得再用动态 import——批次 49 立） / `issue-anonymity.test.mjs`（**匿名反馈的支部隔离、身份脱敏与写口纪律**：未登录 401、只读本支部、党委空列表、兼容揭名路径一律 403；常规/API/mock 出口不含真身，处置回写后服务端受保护字段仍保留——「处置不清真身」） / `issue-mock-identity.test.mjs`（mock 浏览器缓存与草稿不留匿名真身，旧缓存读取时迁除身份） / `docs-governance-guard.test.mjs`（**说明文件的取证断言**（批次 107）：`README-server.md` 里 **≥370 处 `文件:行号` 引用**（下限＝`doc-line-ref::R5` 基线，**不写死精确数**——写死必陈旧，见 `CLAUDE.md R-91`；本批实测 407 处）逐条核 **R1** 指针指向真实位置（文件可解析 / 行号在范围内 / 区间非空——含**短式** `:192` 与**逗号续列** `:44,161`）· **R2** 引用后括注里的符号（如 （`ROLE_KEYS`））必须出现在**声明区间内** · **R3** md 区间不得越到下一节（末个非空行不是标题 / 起点是标题时区间内无同级标题）· **R4** 「零命中 / 检索不到消费点」类**关键词型取证**仍成立 · **R5** 非空转基线。⚠ 边界：**「换一种说法」的旧口径机检不了**（grep 只覆盖字面层），该半落 `CLAUDE.md R-87` 纪律） / `hex-hardcode-guard.test.mjs`（**硬编码 hex 存量回归**：H1–H5——新增即红 · 逐文件处数 ratchet · 非空转 · 缩减进度 · 搬移例外台账；基线 `server/test/style-baseline.mjs`）/ `type-scale-guard.test.mjs`（**控件小字存量回归**：T1–T4——控件挂 `text-[11px]/[10px]/[9px]` 即红，`DS_03_COMPONENTS.md §4.3` 控件字号单档 13px）/ `link-target-guard.test.mjs`（**JS 渲染型 href 的裸文件名**：L6–L7——工作台页 `<base href="../">` 下裸 `x.html` 解析到站点根 ⇒ 404，须按 `<base>` 规则核目标真实存在） / `dead-selector-guard.test.mjs`（**零引用 CSS 类**存量回归：新增死类即红 · 台账 ＋ 动态白名单） / `type-scale-guard.test.mjs`（**段落档位**：`<p>` 挂 9/10px 即红、11px〔Overline 标签档〕基线之外新增即红） / `import-path-guard.test.mjs`（**`G1`–`G3`——相对 ESM 规格符的路径必须存在**：`from '…'` / `import('…')` 的**字面量**查文件、**模板字面量动态 import** 查**静态前缀目录**；补 `module-load::E1`（其 `collectJsFiles` 明写**跳过 `entries/`**）与 `link-integrity::L2`（自述**排除 ESM 规格符**）双双绕开的那一格。**由来＝批次 262 定根因的真事**：P5 目录分层把 `entries/*.js` 移进 `entries/pages/` 后**漏改一处模板字面量动态 import 的路径深度**（少一个 `../`）⇒ 运行时 **404**、「设置 → 我的工作台」面板恒显「加载失败」——**这就是 `preferences.test.mjs::真实拖拽` 长期红的根因**） / `copy-guard.test.mjs`（`N1`–`N4`——**界面复述制度母本**：与制度母本「连续 ≥20 字重合」即红，须改写成一行 ＋ `help.html` 深链） / `copy-guard.test.mjs`（`L1`–`L6`——**界面文案长度存量**：卡片导语 ≤60 字 · 单段 ≤80 字 · 单句括注 ≤2 个 · 空态 ≤30 字） / `copy-screen-guard.test.mjs`（`M1`–`M4`——**同屏复述 · 每屏「文案 ÷ 控件」**：真机 7 台 × 默认视图） / `copy-guard.test.mjs`（`F1`/`F2`——**折叠区口径是否有 help 同义段**：机器判不了「同义」⇒ **只报不判**） / `copy-anchor-guard-e2e.test.mjs`（`A1`–`A3`——**口径定点锚点真机可达 / 可检索**） / `mock-api-parity.test.mjs`（`S0` / `P1`–`P3`——**mock 与 api 两形态读数一致 ＋ 服务端真按同源播种**；承重臂＝服务端 HTTP 原始行，防 `SEED_FALLBACK` 假绿） / `mock-api-parity-structure.test.mjs`（**mock ↔ API 结构真值 ＋ 两适配器接口面双向比对**） / `seed-contract-guard.test.mjs`（**种子契约**：branchId / 生成列 / 唯一索引 / 死表） / `seed-drift.test.mjs`（**种子漂移修复**：只改 seedOwnedFields、二次 plan 零改写） / `db-migration.test.mjs`（`M1`–`M7`——**版本化迁移**：新建库 / 幂等 / 既有库兼容 / 失败回滚 / 失败不吞 / v8 活动组织落点） / `backup-restore.test.mjs`（`B1`——**备份 → 破坏 → 恢复演练**；反证「只 `copy` 丢 WAL 尾」） / `db-integrity-guard.test.mjs`（`G1`–`G6`——**完整性 / 版本自检 ＋ 新增结构须写 migration**） / `localstorage-key-guard.test.mjs`（`L1`–`L3`——**浏览器存储键必须登记**：三档白名单，`DATA_CONSISTENCY_CHECKLIST.md §0.3` 是其镜像） / `docs-governance-guard.test.mjs`（`N1`–`N7`——**台账备注列预算**（`CLAUDE.md R-89`）：总量预算 ＋ 冻结高水位（**只降不升**）· 单格硬顶 1000 字 · 禁 `T-` 编号 · 禁日期复述 · 单格「批次 N」> 3 次；四份存量清单与命中集**双向相等**——新增即红、收敛未撤条目亦红） / `policy-config.test.mjs`（`R1`–`R3`——**每个 policy 参数恰属「可覆盖白名单」或「不可覆盖固定台账」两类之一**（`POLICY_FIXED`：kind ＋ why ＋ src），**无「未登记」第三态**；`R2` 禁 institutional 混入白名单 · `R3` 恒等式非空转） / `block-orchestration.test.mjs`（`O1`–`O5`——**工作流块编排内核**（`WORKFLOW_BLOCK_CONTRACT` L3/L4）：`O1` 用**反例**锁住「组合体检不是恒真」〔批次 239 修的真缺陷：`module-compose.js` 原只认 `it.id`、而块清单键名是 `blockId` ⇒ 过滤成空集 ⇒ 体检恒真〕· `O2` 端到端编排 · `O3` 错误累积不抛 · `O4` 拓扑序只前移被依赖者 · `O5` 编译产物是**既有 definition 形状的纯数据**） / `date-canon-guard.test.mjs`（**日期口径**：`D1` 应用面（`docs/src` ＋ `server`）不得用 UTC 切串取「今天」——那是 **UTC**、Asia/Shanghai 00:00–08:00 判成昨天；`D2` 本地口径单一源在位：前端零依赖叶子 `docs/src/core/base/date.js::todayLocal` ＋ 服务端 `services/reporting.js::today`/`fmtLocal`，且 `core/domain/constants.js` 仍只引这一个零依赖叶子；`CLAUDE.md R-26`③）
 
 - 测试机制守卫：`suite-shard.test.mjs`（`G1`–`G4`——**分片池并集 ≡ 磁盘全部 e2e 文件**（双向）· 片内文件存在且确为 e2e · 无重叠 · `SHARD_PAGES` 取值域 ≡ 真机 `flow.page` 出现过的页名；**新增 e2e 未归片即红**）
 
@@ -308,7 +321,11 @@ content/ 文档是**支书批改的权威源**（制度先改文本、后同步�
 
 ### ?v= 版本串收口纪律
 
-浏览器缓存防分裂：改动前端文件后必须全链 bump 版本戳——`node docs/scripts/bump-version.mjs` 一键同步全站 `?v=`（含 `server/test/*.mjs` 内戳与 CODE_VERSION），**改文件即 bump 全链**；禁改文件仅随全站 stamp 动 `?v=` 查询串（零代码改动）。bump 后跑一次全量测试。
+浏览器缓存防分裂：全站 `?v=` 由 `docs/scripts/bump-version.mjs` 一次同步（含 `server/test/*.mjs` 内戳与 `CODE_VERSION`），任何会话都不手改查询串、也不逐个文件补戳。
+
+- **日常提交不跑 bump**：功能与修复按小步提交，`?v=` 原地不动；缓存换新统一交给发布那一次。
+- **发布前跑一次**：`cd server; npm run release:stamp`——先全站补戳，紧接着 `--check` 核对「陈旧戳」与「`CODE_VERSION` 与戳是否一致」，任一不齐即以退出码 1 结束并列出清单。
+- **只给入口加戳无效**：入口 HTML 的 `?v=` 换了、入口内部 `import` 的 URL 没换，浏览器仍按旧 URL 复用旧模块实例——新旧模块混用正是「数据一会显示一会不显示」的根因。
 
 ### 发版（语义化 release）
 
@@ -318,6 +335,9 @@ content/ 文档是**支书批改的权威源**（制度先改文本、后同步�
 
 - **纯静态**：任意静态服务把 `docs/` 当根目录（演示卡/账号登录走本地 mock，数据存浏览器本地）
 - **账号登录/持久化**：`cd server && npm start`（页面与 API 同源，前端数据层一个常量切换形态，UI 零改动）
+- **运行档（2026-11-03 固化，两档互斥）**：判定单一源＝`server/env.js::isProductionEnv`（`APP_ENV=production` 或 `NODE_ENV=production`）。
+  - **review 档（视觉检验，缺省）**：不设上述变量即此档；`cd server && npm run start:review` 启动（自动使用独立库 `server/data.review.db`），或 `DB_PATH=data.review.db npm start`；日志打印 `[server] 运行档：review（视觉检验；演示种子=on/off；库=…）`，多支部只提示分支数、**不拦截**。**不得指向生产库**（显式 `DB_PATH` 时由操作者自行确认）。
+  - **production 档（正式上线）**：`APP_ENV=production` 且必须设 `LOGIN_PASSWORD`；默认不播种演示种子；迁移完成后若 `branches` 表行数 >1 且未设 `ALLOW_MULTI_BRANCH=1`，**启动即退出（exit 1）**。口径：一实例一支部；多支部需先完成服务端读过滤或显式设置 `ALLOW_MULTI_BRANCH=1`。启动方式见 [deploy/env.production.example](deploy/env.production.example) 与 [README-server.md §5.2](README-server.md#52-启动与构建方式)。
 
 ### 部署定位
 

@@ -4,6 +4,7 @@
 //  判据单一源＝ docs/src/services/activity/activity.js（自带 import 随块搬迁）。
 // ════════════════════════════════════════════════════════════════
 
+import { DEFAULT_BRANCH_ID } from '../../../docs/src/core/domain/constants.js';
 import { listTable } from './store.js';
 
 // ════════════════════════════════════════════════════════════════
@@ -81,10 +82,12 @@ export function _activityApprovalGateDeny(prevRow, body, actor) {
  * @param {{role?:string}} actor 写者（requireAuth 注入）
  * @returns {string|null}
  */
-export function _snapshotActivityApprovalGateDeny(db, payload, actor) {
+export function _snapshotActivityApprovalGateDeny(db, payload, actor, reader) {
   const rows = (payload && Array.isArray(payload.activities)) ? payload.activities : null;
   if (!rows) return null;
-  const prevById = new Map(listTable(db, 'activities').map(r => [r.id, r]));
+  const prevById = reader
+    ? new Map(reader.rows('activities').map((r) => [r.id, r]))
+    : new Map(listTable(db, 'activities').map(r => [r.id, r]));
   for (const row of rows) {
     if (!row || typeof row !== 'object') continue;
     const prevRow = prevById.get(row.id);
@@ -106,7 +109,7 @@ export function _snapshotActivityApprovalGateDeny(db, payload, actor) {
 export function _activityCreateGatePatch(db, actor) {
   let mode = 'off';
   try {
-    const row = db.prepare('SELECT data FROM branches WHERE id = ?').get((actor && actor.branchId) || 'br-b1');
+    const row = db.prepare('SELECT data FROM branches WHERE id = ?').get((actor && actor.branchId) || DEFAULT_BRANCH_ID);
     const cfg = row ? JSON.parse(row.data).config : null;
     mode = (cfg && cfg.policyOverrides && cfg.policyOverrides.activityApproval
       && cfg.policyOverrides.activityApproval.mode) || 'off';

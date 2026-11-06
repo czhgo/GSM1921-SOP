@@ -1,0 +1,223 @@
+{
+  "desktop": {
+    "normal": {
+      "found": true,
+      "count": 5,
+      "text": "复盘待提交 项目 · 23 条 · 截止 2026-08-11 更多",
+      "selected": null,
+      "borderRadius": "8px",
+      "position": "relative",
+      "background": "rgba(0, 0, 0, 0)",
+      "boxShadow": "none",
+      "transition": "background-color 0.12s cubic-bezier(0.2, 0.6, 0.36, 1), color 0.12s cubic-bezier(0.2, 0.6, 0.36, 1), box-shadow 0.12s cubic-bezier(0.2, 0.6, 0.36, 1)",
+      "outlineOffset": "0px",
+      "outlineWidth": "3px",
+      "focusVisible": false,
+      "bar": {
+        "width": "3px",
+        "background": "rgb(169, 122, 18)",
+        "opacity": "0",
+        "transition": "opacity 0.12s cubic-bezier(0.2, 0.6, 0.36, 1)",
+        "content": "\"\""
+      },
+      "rect": {
+        "x": 165,
+        "y": 746,
+        "w": 721,
+        "h": 56
+      }
+    },
+    "hover": {
+      "found": true,
+      "count": 5,
+      "text": "复盘待提交 项目 · 23 条 · 截止 2026-08-11 更多",
+      "selected": null,
+      "borderRadius": "8px",
+      "position": "relative",
+      "background": "color(srgb 0.662745 0.478431 0.0705882 / 0.1)",
+      "boxShadow": "none",
+      "transition": "background-color 0.12s cubic-bezier(0.2, 0.6, 0.36, 1), color 0.12s cubic-bezier(0.2, 0.6, 0.36, 1), box-shadow 0.12s cubic-bezier(0.2, 0.6, 0.36, 1)",
+      "outlineOffset": "0px",
+      "outlineWidth": "3px",
+      "focusVisible": false,
+      "bar": {
+        "width": "3px",
+        "background": "rgb(169, 122, 18)",
+        "opacity": "1",
+        "transition": "opacity 0.12s cubic-bezier(0.2, 0.6, 0.36, 1)",
+        "content": "\"\""
+      },
+      "rect": {
+        "x": 165,
+        "y": 746,
+        "w": 721,
+        "h": 56
+      }
+    },
+    "selected": {
+      "found": true,
+      "count": 5,
+      "text": "复盘待提交 项目 · 23 条 · 截止 2026-08-11 更多",
+      "selected": "true",
+      "borderRadius": "8px",
+      "position": "relative",
+      "background": "rgb(251, 243, 220)",
+      "boxShadow": "rgb(169, 122, 18) 3px 0px 0px 0px inset",
+      "transition": "background-color 0.12s cubic-bezier(0.2, 0.6, 0.36, 1), color 0.12s cubic-bezier(0.2, 0.6, 0.36, 1), box-shadow 0.12s cubic-bezier(0.2, 0.6, 0.36, 1)",
+      "outlineOffset": "0px",
+      "outlineWidth": "3px",
+      "focusVisible": false,
+      "bar": {
+        "width": "3px",
+        "background": "rgb(169, 122, 18)",
+        "opacity": "1",
+        "transition": "opacity 0.12s cubic-bezier(0.2, 0.6, 0.36, 1)",
+        "content": "\"\""
+      },
+      "rect": {
+        "x": 165,
+        "y": 586,
+        "w": 721,
+        "h": 56
+      }
+    },
+    "focus": {
+      "found": true,
+      "borderRadius": "8px",
+      "outlineOffset": "-2px",
+      "outlineWidth": "2px",
+      "outlineStyle": "solid",
+      "outlineColor": "rgb(169, 122, 18)",
+      "focusVisible": true,
+      "selected": null,
+      "tabbed": true
+    },
+    "counts": {
+      "rows": 5,
+      "interactive": 5,
+      "deadSelectedClass": 0
+    }
+  },
+  "mobile": {
+    "normal": {
+      "found": true,
+      "count": 5,
+      "text": "复盘待提交 项目 · 23 条 · 截止 2026-08-11 更多",
+      "selected": null,
+      "borderRadius": "8px",
+      "position": "relative",
+      "background": "rgba(0, 0, 0, 0)",
+      "boxShadow": "none",
+      "transition": "background-color 0.12s cubic-bezier(0.2, 0.6, 0.36, 1), color 0.12s cubic-bezier(0.2, 0.6, 0.36, 1), box-shadow 0.12s cubic-bezier(0.2, 0.6, 0.36, 1)",
+      "outlineOffset": "0px",
+      "outlineWidth": "3px",
+      "focusVisible": false,
+      "bar": {
+        "width": "3px",
+        "background": "rgb(169, 122, 18)",
+        "opacity": "0",
+        "transition": "opacity 0.12s cubic-bezier(0.2, 0.6, 0.36, 1)",
+        "content": "\"\""
+      },
+      "rect": {
+        "x": 37,
+        "y": 842,
+        "w": 316,
+        "h": 56
+      }
+    },
+    "hover": {
+      "found": true,
+      "count": 5,
+      "text": "复盘待提交 项目 · 23 条 · 截止 2026-08-11 更多",
+      "selected": null,
+      "borderRadius": "8px",
+      "position": "relative",
+      "background": "color(srgb 0.662745 0.478431 0.0705882 / 0.1)",
+      "boxShadow": "none",
+      "transition": "background-color 0.12s cubic-bezier(0.2, 0.6, 0.36, 1), color 0.12s cubic-bezier(0.2, 0.6, 0.36, 1), box-shadow 0.12s cubic-bezier(0.2, 0.6, 0.36, 1)",
+      "outlineOffset": "0px",
+      "outlineWidth": "3px",
+      "focusVisible": false,
+      "bar": {
+        "width": "3px",
+        "background": "rgb(169, 122, 18)",
+        "opacity": "1",
+        "transition": "opacity 0.12s cubic-bezier(0.2, 0.6, 0.36, 1)",
+        "content": "\"\""
+      },
+      "rect": {
+        "x": 37,
+        "y": 788,
+        "w": 316,
+        "h": 56
+      }
+    },
+    "selected": {
+      "found": true,
+      "count": 5,
+      "text": "复盘待提交 项目 · 23 条 · 截止 2026-08-11 更多",
+      "selected": "true",
+      "borderRadius": "8px",
+      "position": "relative",
+      "background": "rgb(251, 243, 220)",
+      "boxShadow": "rgb(169, 122, 18) 3px 0px 0px 0px inset",
+      "transition": "background-color 0.12s cubic-bezier(0.2, 0.6, 0.36, 1), color 0.12s cubic-bezier(0.2, 0.6, 0.36, 1), box-shadow 0.12s cubic-bezier(0.2, 0.6, 0.36, 1)",
+      "outlineOffset": "0px",
+      "outlineWidth": "3px",
+      "focusVisible": false,
+      "bar": {
+        "width": "3px",
+        "background": "rgb(169, 122, 18)",
+        "opacity": "1",
+        "transition": "opacity 0.12s cubic-bezier(0.2, 0.6, 0.36, 1)",
+        "content": "\"\""
+      },
+      "rect": {
+        "x": 37,
+        "y": 203,
+        "w": 316,
+        "h": 56
+      }
+    },
+    "focus": {
+      "found": true,
+      "borderRadius": "8px",
+      "outlineOffset": "-2px",
+      "outlineWidth": "2px",
+      "outlineStyle": "solid",
+      "outlineColor": "rgb(169, 122, 18)",
+      "focusVisible": true,
+      "selected": null,
+      "tabbed": true
+    },
+    "counts": {
+      "rows": 5,
+      "interactive": 5,
+      "deadSelectedClass": 0
+    }
+  },
+  "tableHeader": {
+    "text": "党小组",
+    "backgroundColor": "rgba(0, 0, 0, 0)",
+    "borderBottom": "1px solid rgb(229, 231, 235)",
+    "fontSize": "13px",
+    "fontWeight": "600",
+    "color": "rgb(75, 85, 99)"
+  },
+  "relationMatrix": {
+    "head": {
+      "text": "姓名",
+      "backgroundColor": "rgba(0, 0, 0, 0)",
+      "effectiveBg": "rgb(255, 255, 255)",
+      "borderBottom": "1px solid"
+    },
+    "rowHead": {
+      "text": "何晓峰",
+      "backgroundColor": "rgb(255, 255, 255)",
+      "effectiveBg": "rgb(255, 255, 255)",
+      "borderBottom": "0px solid"
+    },
+    "same": true
+  }
+}

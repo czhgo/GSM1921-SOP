@@ -12,16 +12,16 @@ import {
   ORG_SUBJECT_IDS, ORG_SUBJECT_LABELS, BRANCH_ORG_SUBJECT_IDS, isOrgSubject, isBranchOrgSubject,
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_IDS, INSTITUTION_COLLECTIVE_SUBJECTS, institutionSubjectOfDomain,
   transferRowOf, transferTabDecision, TRANSFERABLE_TAB_ROWS,
-} from '../../docs/src/core/domain/work-map.js?v=20261018h';
-import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261018h';
-import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261018h';
+} from '../../docs/src/core/domain/work-map.js?v=20261102b';
+import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261102b';
+import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261102b';
 
 let server, base, token;
 
 async function login() {
   const r = await fetch(`${base}/api/v1/auth/login`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ personId: 'p13', password: '123456' }),
+    body: JSON.stringify({ personId: '2300010001', password: '123456' }),
   });
   return (await r.json()).token;
 }
@@ -100,22 +100,22 @@ test('expandWorkforce：null → 全缺省（role / org）；覆盖 person 项�
   assert.equal(dflt['develop-party-member'].ownerType, 'org');
   assert.equal(dflt['develop-party-member'].ownerId, 'branch-committee');
 
-  const withPerson = expandWorkforce({ 'develop-party-member': { ownerType: 'person', ownerId: 'p14' } });
-  assert.deepEqual(withPerson['develop-party-member'], { ownerType: 'person', ownerId: 'p14' });
+  const withPerson = expandWorkforce({ 'develop-party-member': { ownerType: 'person', ownerId: '2300010002' } });
+  assert.deepEqual(withPerson['develop-party-member'], { ownerType: 'person', ownerId: '2300010002' });
   assert.equal(withPerson['theme-party'].ownerType, 'role'); // 未覆盖 → 缺省
 });
 
 test('mergeWorkforceSnapshot：按改派清单合并，未涉及模块原样保留（M2 采纳落库前置）', () => {
-  const snapshot = expandWorkforce({ 'develop-party-member': { ownerType: 'person', ownerId: 'p14' } });
+  const snapshot = expandWorkforce({ 'develop-party-member': { ownerType: 'person', ownerId: '2300010002' } });
   const merged = mergeWorkforceSnapshot(snapshot, [
     { moduleId: 'theme-party', to: { ownerType: 'role', ownerId: 'deputy-secretary' } },
     { moduleId: 'feedback-handling', to: { ownerType: 'org', ownerId: 'branch-committee' } }, // 组织型主体位
-    { moduleId: 'not-a-module', to: { ownerType: 'person', ownerId: 'p5' } }, // 未知模块 → 忽略
+    { moduleId: 'not-a-module', to: { ownerType: 'person', ownerId: '2400012349' } }, // 未知模块 → 忽略
   ]);
   assert.equal(Object.keys(merged).length, 14);
   assert.deepEqual(merged['theme-party'], { ownerType: 'role', ownerId: 'deputy-secretary' });
   assert.deepEqual(merged['feedback-handling'], { ownerType: 'org', ownerId: 'branch-committee' });
-  assert.deepEqual(merged['develop-party-member'], { ownerType: 'person', ownerId: 'p14' }); // 既有 person 保留
+  assert.deepEqual(merged['develop-party-member'], { ownerType: 'person', ownerId: '2300010002' }); // 既有 person 保留
   assert.equal(merged['taskforce'].ownerType, 'role'); // 未涉及 → 缺省
   assert.equal(merged['not-a-module'], undefined);
 });
@@ -124,14 +124,14 @@ test('sanitizeConfigWorkforce：null→null；合法保留；未知模块/非法
   assert.equal(sanitizeConfigWorkforce(null), null);
   assert.deepEqual(
     sanitizeConfigWorkforce({
-      'theme-party': { ownerType: 'person', ownerId: 'p14' },
+      'theme-party': { ownerType: 'person', ownerId: '2300010002' },
       'rule-making': { ownerType: 'org', ownerId: 'branch-committee' }, // 组织型主体位 → 合法保留
       'not-a-module': { ownerType: 'role', ownerId: 'secretary' }, // 未知模块 → 丢
       'taskforce': { ownerType: 'nobody', ownerId: 'x' },           // 非法 ownerType → 丢
       'election': { ownerType: 'role', ownerId: '' },               // 空 ownerId → 丢
     }),
     {
-      'theme-party': { ownerType: 'person', ownerId: 'p14' },
+      'theme-party': { ownerType: 'person', ownerId: '2300010002' },
       'rule-making': { ownerType: 'org', ownerId: 'branch-committee' },
     },
   );
@@ -163,17 +163,27 @@ test('分层与停用（2026-09-13 支书裁定）：tier ∈ {norm,method}；�
   );
 });
 
-// 2026-10-18 脏专项 Task 17：支部分工页「关系表缺表头/责任列」回修守卫
+// 2026-10-24 Task 4.4：责任关系由「5 列表格 + 10 条分页」改为**主从两栏**
+//   （左列模块清单 / 右列责任角色 + 责任说明 + 停用项启用入口）。
+//   原断言「表头四列齐全 + 走 renderFilteredList」随被替换的结构退场，**改为断言新结构**（未删覆盖面）：
+//   listbox/option 键盘语义、右侧两字段、停用项操作、无空「操作」列与「每行读法」、无分页。
 const WORK_MAP_UI = readFileSync(new URL('../../docs/src/entries/tabs/secretary/work-map-tab.js', import.meta.url), 'utf8');
 
-test('UI 责任关系表：表头与责任列齐全（模块 / 责任人 / 责任角色 / 责任说明），空态明确', () => {
-  assert.match(WORK_MAP_UI, /let _view = 'relations'/, '默认视图须落「责任关系表」');
-  for (const th of ['工作模块', '责任人', '责任角色', '责任说明']) {
-    assert.ok(WORK_MAP_UI.includes(`<th>${th}</th>`), `关系表须有表头「${th}」`);
+test('UI 责任关系主从两栏：左列 listbox 模块清单、右列责任角色 / 责任说明、停用项才有操作', () => {
+  assert.match(WORK_MAP_UI, /let _view = 'relations'/, '默认视图须落「责任关系」');
+  assert.match(WORK_MAP_UI, /role="listbox"/, '左列模块清单须有 listbox 语义');
+  assert.match(WORK_MAP_UI, /role="option"/, '每个模块须是可选项（role=option）');
+  assert.match(WORK_MAP_UI, /aria-activedescendant/, 'listbox 须用 aria-activedescendant 暴露当前项');
+  assert.match(WORK_MAP_UI, /ArrowDown[\s\S]{0,200}ArrowUp/, '左列须支持 ↑ / ↓ 键盘选择');
+  for (const label of ['责任角色', '责任说明']) {
+    assert.ok(WORK_MAP_UI.includes(`<dt>${label}</dt>`), `右列须有字段「${label}」`);
   }
-  assert.match(WORK_MAP_UI, /renderFilteredList\(/, '关系表须走统一检索引擎（表头/空态/分页单一源）');
-  assert.match(WORK_MAP_UI, /emptyMessage: '暂无分工数据/, '关系表须有明确空态');
-  assert.match(WORK_MAP_UI, /role: disabled \? '停用'/, '停用项须给出责任角色（不得空白）');
+  assert.match(WORK_MAP_UI, /wm-reenable/, '停用项须保留「发起启用议题」入口');
+  assert.ok(!WORK_MAP_UI.includes('每行读法'), '不得再复述表头读法');
+  assert.ok(!WORK_MAP_UI.includes('<th>操作</th>'), '不得再有空的「操作」列');
+  assert.ok(!WORK_MAP_UI.includes('renderFilteredList'), '主从两栏不再走分页引擎（14 项单屏可览）');
+  assert.ok(!/pageSize\s*:\s*10/.test(WORK_MAP_UI), '不得保留 10 条分页');
+  assert.match(WORK_MAP_UI, /暂无分工数据/, '须有明确空态');
 });
 
 test('HTTP：支书 PATCH config.workforce 落库（净化生效），null 恢复默认', async () => {
@@ -183,7 +193,7 @@ test('HTTP：支书 PATCH config.workforce 落库（净化生效），null 恢�
     body: JSON.stringify({
       config: {
         workforce: {
-          'develop-party-member': { ownerType: 'person', ownerId: 'p14' },
+          'develop-party-member': { ownerType: 'person', ownerId: '2300010002' },
           'fake-module': { ownerType: 'role', ownerId: 'secretary' },
         },
       },
@@ -192,7 +202,7 @@ test('HTTP：支书 PATCH config.workforce 落库（净化生效），null 恢�
   assert.equal(put.status, 200);
   const branch = await put.json();
   assert.deepEqual(branch.config.workforce, {
-    'develop-party-member': { ownerType: 'person', ownerId: 'p14' },
+    'develop-party-member': { ownerType: 'person', ownerId: '2300010002' },
   }, '未知模块被净化丢弃');
 
   const reset = await fetch(`${base}/api/v1/branches/br-b1/config`, {
@@ -243,9 +253,9 @@ test('归属可转移：复合键（模块 × 台 × id）单一源；缺省＝g
   assert.equal(transferTabDecision(row, { role: 'org-commissioner' }, movedToSecretary), 'revoked');
 
   // 改派给具体人（person）⇒ 只该人 granted
-  const movedToPerson = expandWorkforce({ taskforce: { ownerType: 'person', ownerId: 'p5' } });
-  assert.equal(transferTabDecision(row, { role: 'org-commissioner', personId: 'p5' }, movedToPerson), 'granted');
-  assert.equal(transferTabDecision(row, { role: 'org-commissioner', personId: 'p6' }, movedToPerson), 'revoked');
+  const movedToPerson = expandWorkforce({ taskforce: { ownerType: 'person', ownerId: '2400012349' } });
+  assert.equal(transferTabDecision(row, { role: 'org-commissioner', personId: '2400012349' }, movedToPerson), 'granted');
+  assert.equal(transferTabDecision(row, { role: 'org-commissioner', personId: '2400012350' }, movedToPerson), 'revoked');
 
   // 主责为组织型主体 / 停用 ⇒ 无人可承接 ⇒ pinned（只留原台）
   const orgOwner = expandWorkforce({ taskforce: { ownerType: 'org', ownerId: 'branch-committee' } });

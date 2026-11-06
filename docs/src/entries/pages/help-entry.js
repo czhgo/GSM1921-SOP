@@ -1,21 +1,65 @@
 // role: [工程师]+[AI]
 // help-entry.js — 帮助页入口（系统说明书）
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018h';
-import { renderHeader } from '../../components/shell/header.js?v=20261018h';
-import { HELP_TOC_CHAPTERS } from '../../components/sections/help-navigation.js?v=20261018h';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261102b';
+import { renderHeader } from '../../components/shell/header.js?v=20261102b';
+import { HELP_TOC_CHAPTERS } from '../../components/sections/help-navigation.js?v=20261102b';
+import { BranchService } from '../../services/core/runtime.js?v=20261102b';
+import { getBranchOrg } from '../../services/branch/branch.js?v=20261102b';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261102b';
+import { DEPLOY_MODE } from '../../config/deploy.js?v=20261102b';
+import { smoothScroll } from '../../core/base/utils.js?v=20261102b';
 
 // 静态壳模式（2026-08-12）：help 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），
 // 仅渲染共享侧边栏/顶栏壳；通知铃首次点击时才按需加载通知模块。
 renderSidebar('help', { staticShell: true });
 renderHeader('help', { staticShell: true });
 
+// ── 支部名软编码（2026-10-28）────────────────────────────────────────────
+// HTML 三处（页眉 / 正文实例说明 / 免责声明）只留中性兜底「本支部」，统一用 `data-org-name` 标记；
+// 支部显示名按托管形态运行期填充：
+//   · 本地演示形态（DEPLOY_MODE='static'）：加载本地演示库后读支部档案（getBranchOrg；
+//     config.headerTitle → name）——静态逻辑保持不变。
+//   · 服务端形态（api）：访客登录前读不到支部资源，改走**免登录最小读口**
+//     `GET /api/v1/public/branch-name`（只回 `{ name }`）。失败 / 被拦截 / 空值保持中性兜底，
+//     不报错、不阻塞其它内容渲染。
+function applyOrgName(title) {
+  const next = String(title || '').trim();
+  if (!next) return;
+  document.querySelectorAll('[data-org-name]').forEach((el) => {
+    el.textContent = next;
+  });
+}
+
+function applyLocalOrgName() {
+  const org = getBranchOrg(DEFAULT_BRANCH_ID);
+  applyOrgName(org && (org.headerTitle || org.name));
+}
+
+function applyServerOrgName() {
+  fetch('./api/v1/public/branch-name', { cache: 'no-store', headers: { Accept: 'application/json' } })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((body) => { if (body) applyOrgName(body.name); })
+    .catch(() => { /* 保持中性兜底：不阻塞页面、不污染控制台 */ });
+}
+
+if (DEPLOY_MODE === 'static') {
+  try {
+    BranchService.loadDB();
+    applyLocalOrgName();
+  } catch (e) {
+    console.warn('[help] 支部配置未就绪，支部名保持中性兜底', e);
+  }
+} else {
+  applyServerOrgName();
+}
+
 // 目录树 + 搜索 + 功能章节卡片 + 功能地图/业务链路 mermaid 源（catalog 驱动，
 // 搜索框由渲染器直接注入右内容面板顶部 #help-search-slot）
 // E-5（2026-09-09）首屏优化：catalog 链（help-catalog → function-catalog/mermaid-sources
 // 约 30KB 模块）改 DOMContentLoaded 后动态加载——0–7 章为 help.html 静态正文，首屏不等待
 // 该模块图；目录/搜索/卡片在 DCL 后数毫秒内补齐，交互与功能不变。
-import('../../components/sections/help-catalog.js?v=20261018h')
+import('../../components/sections/help-catalog.js?v=20261102b')
   .then(({ renderHelpCatalog }) => {
     renderHelpCatalog(document.getElementById('help-toc-slot'));
   })
@@ -57,13 +101,12 @@ function bindTOC() {
       if (target) {
         const headerOffset = 64;
         const top = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
-        window.scrollTo({ top, behavior: 'smooth' });
+        smoothScroll(window, { top });
       }
     });
   });
 
-  nav.addEventListener('mouseenter', () => nav.classList.add('is-hovered'));
-  nav.addEventListener('mouseleave', () => nav.classList.remove('is-hovered'));
+  // 2026-10-23 Task 7：目录提亮改由 `.help-toc-nav:focus-within` 触发（键盘等价），不再绑 mouseenter。
 
   let currentId = null;
   const setActive = (id) => {

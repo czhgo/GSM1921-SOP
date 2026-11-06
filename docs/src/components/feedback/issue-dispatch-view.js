@@ -11,10 +11,12 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫：issue-branch.test.mjs（结构层）。
 // ════════════════════════════════════════════════════════════════
 
-import { renderFilteredList } from '../ui/list-filter.js?v=20261018h';
-import { escHtml, showToast } from '../../core/base/utils.js?v=20261018h';
-import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261018h';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261102b';
+import { renderTabHeader } from '../shell/page-frame.js?v=20261102b';
+import { escHtml, showToast } from '../../core/base/utils.js?v=20261102b';
+import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261102b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
 // ════════════════════════════════════════════════════════════════
 //  「我的处置」Tab 渲染工具（各角色工作台复用）
 //  2026-07-30 新增：被指派人视角的反馈列表+详情+评论/提交处置结果
@@ -23,66 +25,43 @@ import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, di
 /**
  * 渲染「我的处置」Tab 内容
  * @param {string} role 角色键（如 'org-commissioner'）
- * @param {string} userId 被指派人 personId（如 'p11'）
+ * @param {string} userId 被指派人 personId（如 '2400012355'）
  * @returns {string} HTML
  */
 export function renderMyDispatchTab(role, userId, opts = {}) {
-  // 支书规则（2026-08-01）：带时间字段的列示按提交时间倒序（最新在前）——三区行序现由引擎 sort 承载
-  //（单一源见 bindMyDispatchEvents）；此处排序仅用于取「请我汇报」块标题的发起人（最新一条）
+  // 支书规则（2026-08-01）：带时间字段的列示按提交时间倒序（最新在前）——两段行序由引擎 sort 承载
+  //（单一源见 bindMyDispatchEvents）。
+  // 2026-10-21 R3-08：四段（请我汇报 / 我发起的汇报 / 指派给我的反馈 / 我提交或参与）
+  //   ⇒ **两段（待我处理 / 我已处理）**；每段一个检索引擎实例，全页最多两个搜索框。
   const issues = IssueStore.getAssignedTo(userId);
-  const unread = IssueNotify.getUnread(userId);
-  // 标记全部已读
-  unread.forEach(id => IssueNotify.markRead(userId, id));
-  // ── 我的汇报（2026-08-10 新增，支书裁定：信息双向互动）──
-  const reportRequests = IssueStore.getReportRequestsFor(userId)
-    .sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || '')); // IA-C2：取最新一条作块标题发起人
+  const reportRequests = IssueStore.getReportRequestsFor(userId);
   const myReports = IssueStore.getMyReports(userId);
-  // 我提交 / 参与的反馈（2026-09-15 支书裁定「每个人都可以参与答复」）——成员（participant）亦可在此答复
   const myIssues = IssueStore.getMyIssues(userId);
-  // ① 上级"了解进展"请求（待我汇报，行内填写即发；发起人可能是支书或组长）
-  //  三区行内容统一改由检索引擎渲染（本函数只出宿主 div——引擎需 DOM 就位后才可挂载，
-  //  挂载与行内动作委托均见 bindMyDispatchEvents）
-  let reqHtml = '';
-  if (reportRequests.length) {
-    const requesterName = _displayName(reportRequests[0].requestedBy) || '上级';
-    reqHtml += `<div class="rounded-xl border border-blue-200 bg-blue-50/40 p-3">`;
-    reqHtml += `<p class="text-xs font-medium text-blue-700 mb-2">${requesterName}请汇报 · ${reportRequests.length}</p>`;
-    reqHtml += `<div id="mydispatch-req-host"></div>`;
-    reqHtml += `</div>`;
-  }
-  // ② 我发起的汇报（追踪 + 详情 + 确认收到）
-  let myReportsHtml = '';
-  if (myReports.length) {
-    myReportsHtml += `<div class="rounded-xl bg-white p-3">`;
-    myReportsHtml += `<p class="text-xs font-medium text-gray-700 mb-2">我发起的汇报 · ${myReports.length}</p>`;
-    myReportsHtml += `<div id="mydispatch-myreports-host"></div>`;
-    myReportsHtml += `</div>`;
-  }
-  // ③ 指派给我的反馈（原有）
-  // IA-C2 收敛（2026-09-06）：块标题与 ①/② 对齐、明示计数；超期优先不适用（issue/report 无 deadline 字段），
-  // 排序沿用支书 2026-08-01「带时间字段按提交时间倒序」裁定（登记）。空态由引擎 emptyMessage 承载（文案原样）。
-  let assignedHtml = '';
-  assignedHtml += `<p class="text-xs font-medium text-gray-700 mb-1">指派给我的反馈 · ${issues.length}</p>`;
-  assignedHtml += `<p class="text-xs text-gray-500 mb-2">开放中指派，可评论或提交处置结果</p>`;
-  assignedHtml += `<div id="mydispatch-issues-host"></div>`;
+  // 行内动作委托见 bindMyDispatchEvents（引擎重绘后仍有效）
+  const pendingRows = [
+    ...reportRequests.map((row) => ({ __kind: 'request', row })),
+    ...issues.map((row) => ({ __kind: 'issue', row })),
+  ];
+  const doneRows = [
+    ...myReports.map((row) => ({ __kind: 'my-report', row })),
+    ...myIssues.map((row) => ({ __kind: 'my-issue', row })),
+  ];
 
-  // ④ 我提交 / 参与的反馈（每个人都可以参与答复——成员亦可对自己提交/参与的反馈追加说明）
-  // ⚠ 口径（2026-09-17 支书裁定 `Q-23-48`）：按本浏览器随机令牌的哈希自认（api 形态 submittedBy 已匿名脱敏）；
-  //   提交时带与 personId 无关的令牌，服务端只存哈希 ⇒ 浏览器认得出「我提交过哪几条」，tokenHash 推不出提交人。
-  //   边界：换设备/清浏览器数据后认不回（真身另存 `_realPersonId`，当前无系统揭名入口；见 D-824）。
-  let myIssuesHtml = '';
-  myIssuesHtml += `<div class="rounded-xl bg-white p-3 mt-3">`;
-  myIssuesHtml += `<p class="text-xs font-medium text-gray-700 mb-1">我提交 / 参与的反馈 · ${myIssues.length}</p>`;
-  myIssuesHtml += `<p class="text-xs text-gray-500 mb-2">本浏览器提交的反馈可在此回看（按提交时的随机令牌比对，不以提交人身份为判据；换设备或清除浏览器数据后无法回认）</p>`;
-  myIssuesHtml += `<div id="mydispatch-myissues-host"></div>`;
-  myIssuesHtml += `</div>`;
-
-  // 2026-10-18 脏专项：组长台 / 成员台把「我提交 / 参与的反馈」前移为第一段（主对象置首；
-  //   其余三台的既有段序不变——由调用方声明 `myIssuesFirst`，不改数据范围、不改提交逻辑）。
-  const segs = opts.myIssuesFirst
-    ? [myIssuesHtml, reqHtml, myReportsHtml, assignedHtml]
-    : [reqHtml, myReportsHtml, assignedHtml, myIssuesHtml];
-  let html = `<div class="space-y-3">${segs.join('')}`;
+  let html = opts.embedded ? '' : renderTabHeader({
+    title: '我经办的反馈',
+    description: '支部派发的汇报与反馈在此处理；处理结果可回看。',
+  });
+  html += `<div class="space-y-4">`;
+  html += `<div class="card rounded-xl p-5">`;
+  html += `<h3 class="font-title-cn text-sm font-bold text-gray-700 mb-2">待我处理 <span class="tabular-nums text-gray-500">${pendingRows.length}</span></h3>`;
+  html += `<div id="mydispatch-pending-host"></div>`;
+  html += `</div>`;
+  html += `<div class="card rounded-xl p-5">`;
+  html += `<h3 class="font-title-cn text-sm font-bold text-gray-700 mb-2">我已处理 <span class="tabular-nums text-gray-500">${doneRows.length}</span></h3>`;
+  // R3-08：原 100 字令牌机制说明移 help，界面只留一句可执行提示。
+  html += `<p class="text-xs text-gray-500 mb-2">可回看本浏览器提交或参与的反馈；换设备后无法回认。<a href="./help.html#card-dom39-my-dispatch" class="text-accent">帮助</a></p>`;
+  html += `<div id="mydispatch-done-host"></div>`;
+  html += `</div>`;
   html += `</div>`;
   html += `<div id="mydispatch-detail" class="hidden"></div>`;
   return html;
@@ -113,20 +92,92 @@ function _rerenderMyDispatch(container, role, userId, opts = {}) {
  * 故筛选/翻页后仍有效，且不随每次渲染叠加监听。
  */
 export function bindMyDispatchEvents(container, role, userId, opts = {}) {
-  const bySubmittedDesc = (a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || '');
+  const bySubmittedDesc = (a, b) => (b.row?.submittedAt || '').localeCompare(a.row?.submittedAt || '');
+  const keywordOf = (placeholder) => ({
+    keys: ['title', 'body', 'name'],
+    placeholder,
+    get: (item, k) => (k === 'name'
+      ? _displayName(item.__kind === 'issue' ? item.row.submittedBy : item.row.requestedBy)
+      : item.row[k]),
+  });
 
-  // ① 请我汇报（行内填写即发）
-  const reqHost = container.querySelector('#mydispatch-req-host');
-  if (reqHost) {
-    renderFilteredList(reqHost, {
-      stateKey: 'mydispatch-report-requests',
-      rows: IssueStore.getReportRequestsFor(userId),
-      keyword: { keys: ['title', 'body'], placeholder: '搜索汇报事项…' },
+  // 5.3（2026-10-22 第九轮）：行容器可点但不是原生控件 —— Enter / Space 与点击等效。
+  //   委托挂在宿主上（引擎翻页/筛选只重绘其内部），故重绘后仍有效。
+  const bindRowKeydown = (host) => {
+    host?.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+      const row = e.target.closest('[data-mydispatch-action][role="button"]');
+      if (!row || row !== e.target) return;
+      e.preventDefault();
+      row.click();
+    });
+  };
+
+  // 待我处理（请我汇报 + 指派给我的反馈）
+  const pendingHost = container.querySelector('#mydispatch-pending-host');
+  if (pendingHost) {
+    renderFilteredList(pendingHost, {
+      stateKey: 'mydispatch-pending',
+      rows: [
+        ...IssueStore.getReportRequestsFor(userId).map((row) => ({ __kind: 'request', row })),
+        ...IssueStore.getAssignedTo(userId).map((row) => ({ __kind: 'issue', row })),
+      ],
+      keyword: keywordOf('搜索汇报 / 反馈…'),
       sort: bySubmittedDesc,
       countUnit: '条',
-      listClass: 'space-y-0', // 行自带 mb-2（8px），保持原行间距
-      emptyMessage: '暂无待我汇报的请求',
-      rowHtml: (r) => `
+      listClass: 'space-y-3',
+      emptyMessage: '暂无待我处理事项',
+      rowHtml: (item) => (item.__kind === 'request' ? _reportRequestRowHtml(item.row) : _assignedIssueRowHtml(item.row, userId)),
+    });
+    pendingHost.addEventListener('click', (e) => {
+      const submitEl = e.target.closest('[data-mydispatch-action="submit-report"]');
+      if (submitEl) {
+        const id = submitEl.dataset.issueId;
+        const input = document.getElementById('report-req-input-' + id);
+        const body = input?.value?.trim();
+        if (!body) { showToast('error', '请填写汇报内容'); return; }
+        IssueStore.addComment(id, userId, role, body, 'result');
+        // E-3：提交行立即清空再整 tab 重渲染——已发内容不回填到该行输入框
+        if (input) input.value = '';
+        showToast('success', '汇报已发出，等待支书答复');
+        _rerenderMyDispatch(container, role, userId, opts);
+        return;
+      }
+      const openEl = e.target.closest('[data-mydispatch-action="open"]');
+      if (openEl) _renderMyDispatchDetail(openEl.dataset.issueId, role, userId, container);
+    });
+    bindRowKeydown(pendingHost);
+  }
+
+  // 我已处理（我发起的汇报 + 我提交 / 参与的反馈）
+  const doneHost = container.querySelector('#mydispatch-done-host');
+  if (doneHost) {
+    renderFilteredList(doneHost, {
+      stateKey: 'mydispatch-done',
+      rows: [
+        ...IssueStore.getMyReports(userId).map((row) => ({ __kind: 'my-report', row })),
+        ...IssueStore.getMyIssues(userId).map((row) => ({ __kind: 'my-issue', row })),
+      ],
+      keyword: keywordOf('搜索汇报 / 反馈…'),
+      sort: bySubmittedDesc,
+      countUnit: '条',
+      listClass: 'divide-y divide-gray-100',
+      emptyMessage: '还没有处理记录',
+      rowHtml: (item) => (item.__kind === 'my-report' ? _myReportRowHtml(item.row) : _myIssueRowHtml(item.row)),
+    });
+    doneHost.addEventListener('click', (e) => {
+      const reportEl = e.target.closest('[data-mydispatch-action="open-report"]');
+      if (reportEl) { _renderMyReportDetail(reportEl.dataset.issueId, role, userId, container, opts); return; }
+      const issueEl = e.target.closest('[data-mydispatch-action="open-my-issue"]');
+      if (issueEl) _renderMyIssueDetail(issueEl.dataset.issueId, role, userId, container);
+    });
+    bindRowKeydown(doneHost);
+  }
+}
+
+/** 待我处理 · 请我汇报行（行内填写即发） */
+function _reportRequestRowHtml(r) {
+  return `
         <div class="rounded-lg bg-white border border-blue-100 p-3 mb-2">
           <p class="text-sm font-medium text-gray-800">${r.title}</p>
           ${r.body && r.body !== r.title ? `<p class="text-xs text-gray-600 mt-1">${r.body}</p>` : ''}
@@ -134,73 +185,15 @@ export function bindMyDispatchEvents(container, role, userId, opts = {}) {
             <input type="text" id="report-req-input-${r.id}" class="input-flat flex-1" placeholder="填写汇报内容…">
             <button data-mydispatch-action="submit-report" data-issue-id="${r.id}" class="btn-accent-soft text-xs px-3 py-2 flex-shrink-0">汇报</button>
           </div>
-        </div>`,
-    });
-    reqHost.addEventListener('click', (e) => {
-      const el = e.target.closest('[data-mydispatch-action="submit-report"]');
-      if (!el) return;
-      const id = el.dataset.issueId;
-      const input = document.getElementById('report-req-input-' + id);
-      const body = input?.value?.trim();
-      if (!body) { showToast('error', '请填写汇报内容'); return; }
-      IssueStore.addComment(id, userId, role, body, 'result');
-      // E-3：提交行立即清空再整 tab 重渲染——已发内容不回填到该行输入框
-      //（该行因 requestedBy+open 过滤在 ① 区仍保留，仅草稿清空）
-      if (input) input.value = '';
-      showToast('success', '汇报已发出，等待支书答复');
-      _rerenderMyDispatch(container, role, userId, opts);
-    });
-  }
-
-  // ② 我发起的汇报（点击行进详情，含确认收到）
-  const myReportHost = container.querySelector('#mydispatch-myreports-host');
-  if (myReportHost) {
-    renderFilteredList(myReportHost, {
-      stateKey: 'mydispatch-my-reports',
-      rows: IssueStore.getMyReports(userId),
-      keyword: { keys: ['title', 'body'], placeholder: '搜索汇报事项…' },
-      sort: bySubmittedDesc,
-      countUnit: '条',
-      listClass: 'divide-y divide-gray-100', // 纯展示行只用分隔线，不加外框
-      emptyMessage: '暂无我发起的汇报',
-      rowHtml: (r) => {
-        const ds = deriveIssueDisplayState(r);
-        return `
-        <div class="flex items-center gap-2 py-1.5 px-1 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors" data-mydispatch-action="open-report" data-issue-id="${r.id}">
-          <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>
-          <span class="text-xs text-gray-500">${REPORT_CATEGORIES[r.reportCategory] || '进度'}</span>
-          <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${r.title}</span>
-          <span class="text-xs text-gray-500 flex-shrink-0">${r.submittedAt || '—'}</span>
         </div>`;
-      },
-    });
-    myReportHost.addEventListener('click', (e) => {
-      const el = e.target.closest('[data-mydispatch-action="open-report"]');
-      if (!el) return;
-      _renderMyReportDetail(el.dataset.issueId, role, userId, container, opts);
-    });
-  }
+}
 
-  // ③ 指派给我的反馈（点击行进详情；空态文案由 emptyMessage 原样承载）
-  const issuesHost = container.querySelector('#mydispatch-issues-host');
-  if (issuesHost) {
-    renderFilteredList(issuesHost, {
-      stateKey: 'mydispatch-issues',
-      rows: IssueStore.getAssignedTo(userId),
-      keyword: {
-        keys: ['title', 'name'],
-        placeholder: '搜索反馈标题 / 提交人…',
-        get: (i, k) => (k === 'name' ? _displayName(i.submittedBy) : i[k]),
-      },
-      sort: bySubmittedDesc,
-      countUnit: '条',
-      listClass: 'space-y-3', // 原根容器 .space-y-3 作用于行间 → 迁至结果区
-      emptyMessage: '暂无待处置反馈',
-      rowHtml: (issue) => {
-        const ds = deriveIssueDisplayState(issue);
-        const dispatchNote = (issue.dispatchHistory || []).find(d => d.to === userId);
-        return `
-        <div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 cursor-pointer transition-all" data-mydispatch-action="open" data-issue-id="${issue.id}">
+/** 待我处理 · 指派给我的反馈行 */
+function _assignedIssueRowHtml(issue, userId) {
+  const ds = deriveIssueDisplayState(issue);
+  const dispatchNote = (issue.dispatchHistory || []).find(d => d.to === userId);
+  return `
+        <div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 active:bg-[var(--surface-active)] active:border-[var(--app-accent)] cursor-pointer transition-colors" role="button" tabindex="0" data-mydispatch-action="open" data-issue-id="${issue.id}">
           <div class="flex items-center justify-between mb-1">
             <span class="text-xs text-gray-500 font-mono">#${issue.number}</span>
             <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>
@@ -209,44 +202,31 @@ export function bindMyDispatchEvents(container, role, userId, opts = {}) {
           ${dispatchNote?.note ? `<p class="text-xs text-blue-600 mt-1">支书备注：${dispatchNote.note}</p>` : ''}
           <div class="text-xs text-gray-500 mt-1">${_displayName(issue.submittedBy)} · ${issue.submittedAt} · ${issue.commentCount || 0} 评论</div>
         </div>`;
-      },
-    });
-    issuesHost.addEventListener('click', (e) => {
-      const el = e.target.closest('[data-mydispatch-action="open"]');
-      if (!el) return;
-      _renderMyDispatchDetail(el.dataset.issueId, role, userId, container);
-    });
-  }
+}
 
-  // ④ 我提交 / 参与的反馈（成员亦可对自己提交/参与的反馈追加说明——写权不外扩到处置他人反馈）
-  const myIssuesHost = container.querySelector('#mydispatch-myissues-host');
-  if (myIssuesHost) {
-    renderFilteredList(myIssuesHost, {
-      stateKey: 'mydispatch-my-issues',
-      rows: IssueStore.getMyIssues(userId),
-      keyword: { keys: ['title', 'body'], placeholder: '搜索反馈标题…' },
-      sort: bySubmittedDesc,
-      countUnit: '条',
-      listClass: 'divide-y divide-gray-100', // 纯展示行只用分隔线，不加外框
-      emptyMessage: '暂无我提交或参与的反馈',
-      rowHtml: (issue) => {
-        const ds = deriveIssueDisplayState(issue);
-        return `
-        <div class="flex items-center gap-2 py-1.5 px-1 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors" data-mydispatch-action="open-my-issue" data-issue-id="${issue.id}">
+/** 我已处理 · 我发起的汇报行 */
+function _myReportRowHtml(r) {
+  const ds = deriveIssueDisplayState(r);
+  return `
+        <div role="button" tabindex="0" data-mydispatch-action="open-report" data-issue-id="${r.id}" class="flex items-center gap-2 py-1.5 px-1 rounded-lg border border-gray-100 cursor-pointer hover:bg-surface-hover active:bg-[var(--surface-active)] transition-colors">
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>
+          <span class="text-xs text-gray-500">${REPORT_CATEGORIES[r.reportCategory] || '进度'}</span>
+          <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${r.title}</span>
+          <span class="text-xs text-gray-500 flex-shrink-0">${r.submittedAt || '—'}</span>
+        </div>`;
+}
+
+/** 我已处理 · 我提交 / 参与的反馈行 */
+function _myIssueRowHtml(issue) {
+  const ds = deriveIssueDisplayState(issue);
+  return `
+        <div class="flex items-center gap-2 py-1.5 px-1 rounded-lg border border-gray-100 cursor-pointer hover:bg-surface-hover active:bg-[var(--surface-active)] transition-colors" role="button" tabindex="0" data-mydispatch-action="open-my-issue" data-issue-id="${issue.id}">
           <span class="text-xs text-gray-500 font-mono flex-shrink-0">#${issue.number}</span>
           <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass} flex-shrink-0">${ds.label}</span>
           <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${issue.title}</span>
           <span class="text-xs text-gray-500 flex-shrink-0">${issue.commentCount || 0} 评论</span>
           <span class="text-xs text-gray-500 flex-shrink-0">${issue.submittedAt || '—'}</span>
         </div>`;
-      },
-    });
-    myIssuesHost.addEventListener('click', (e) => {
-      const el = e.target.closest('[data-mydispatch-action="open-my-issue"]');
-      if (!el) return;
-      _renderMyIssueDetail(el.dataset.issueId, role, userId, container);
-    });
-  }
 }
 
 /** 我的汇报详情（对话时间线 + 支书答复确认收到） */
@@ -260,7 +240,7 @@ function _renderMyReportDetail(issueId, role, userId, container, opts = {}) {
   const hasReply = (issue.comments || []).some(c => c.kind === 'reply');
 
   let html = `<div class="card rounded-xl p-5">`;
-  html += `<button data-mydispatch-action="back" class="btn-ghost text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
+  html += `<button data-mydispatch-action="back" class="btn-outline btn-sm text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
   html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
@@ -268,6 +248,7 @@ function _renderMyReportDetail(issueId, role, userId, container, opts = {}) {
   if (issue.body) html += `<p class="text-sm text-gray-600 whitespace-pre-wrap mb-4">${issue.body}</p>`;
   html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mb-4 pb-4 border-b border-gray-100">`;
   html += `<span>${REPORT_CATEGORIES[issue.reportCategory] || '进度'}汇报</span>`;
+  if (issue.sourceName) html += `<span>关联：${escHtml(issue.sourceName)}</span>`;
   html += `<span>发出：${issue.submittedAt}</span>`;
   if (issue.closedAt) html += `<span>已办结：${issue.closedAt}</span>`;
   html += `</div>`;
@@ -276,16 +257,16 @@ function _renderMyReportDetail(issueId, role, userId, container, opts = {}) {
   html += `<div class="mb-4"><span class="text-xs font-medium text-gray-700 block mb-3">对话</span><div class="space-y-2">`;
   const comments = (issue.comments || []).filter(c => !c.hidden);
   if (!comments.length) {
-    html += `<p class="text-xs text-gray-500">暂无对话，等待支书答复</p>`;
+    html += emptyStateHtml({ text: "暂无对话，等待支书答复", variant: 'inline' });
   } else {
     comments.forEach(c => {
       const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'reply' ? '答' : c.kind === 'verdict' ? '★' : '';
-      const kindBg = c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'result' ? 'bg-green-50' : c.kind === 'reply' ? 'bg-red-50/70' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
-      const kindDark = c.kind === 'reply' ? ' style="--acc-bg-dark:rgba(239,68,68,0.12);"' : '';
-      html += `<div class="rounded-lg p-2.5 ${kindBg}"${kindDark}>`;
+      // 评论类型固定语义 tone（不随主题）：指派=信息 / 结果=成功 / 正式答复=危险 / 判定=提醒 / 其余=中性
+      const kindTone = c.kind === 'dispatch' ? 'info' : c.kind === 'result' ? 'success' : c.kind === 'reply' ? 'danger' : c.kind === 'verdict' ? 'warning' : 'neutral';
+      html += `<div class="rounded-lg p-2.5 tint-section" data-tone="${kindTone}">`;
       html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${_displayName(c.author)}</span>`;
       if (c.kind === 'reply') {
-        html += `<span class="text-xs px-1 py-0.5 rounded font-medium" style="background:var(--app-accent-bg);color:var(--app-accent);">正式答复</span>`;
+        html += `<span class="text-xs px-1 py-0.5 rounded font-medium" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);">正式答复</span>`;
       }
       html += `<span class="text-xs text-gray-500 ml-1">${c.createdAt}</span>`;
       html += `<p class="text-xs text-gray-600 mt-0.5">${c.body}</p></div>`;
@@ -340,7 +321,7 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
   const ds = deriveIssueDisplayState(issue);
 
   let html = `<div class="card rounded-xl p-5">`;
-  html += `<button data-mydispatch-action="back" class="btn-ghost text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
+  html += `<button data-mydispatch-action="back" class="btn-outline btn-sm text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
   html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
@@ -420,10 +401,11 @@ function _renderMyIssueDetail(issueId, role, userId, container) {
   if (!detailEl) return;
   const issue = IssueStore.getById(issueId);
   if (!issue) return;
+  IssueNotify.markRead(userId, issueId);
   const ds = deriveIssueDisplayState(issue);
 
   let html = `<div class="card rounded-xl p-5">`;
-  html += `<button data-mydispatch-action="back" class="btn-ghost text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
+  html += `<button data-mydispatch-action="back" class="btn-outline btn-sm text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
   html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
@@ -438,7 +420,7 @@ function _renderMyIssueDetail(issueId, role, userId, container) {
   html += `<div class="mb-4"><span class="text-xs font-medium text-gray-700 block mb-3">评论与答复</span><div class="space-y-2">`;
   const comments = (issue.comments || []).filter(c => !c.hidden);
   if (!comments.length) {
-    html += `<p class="text-xs text-gray-500">暂无评论，等待答复</p>`;
+    html += emptyStateHtml({ text: "暂无评论，等待答复", variant: 'inline' });
   } else {
     comments.forEach(c => {
       const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'reply' ? '答' : c.kind === 'verdict' ? '★' : '';
@@ -446,7 +428,7 @@ function _renderMyIssueDetail(issueId, role, userId, container) {
       html += `<div class="rounded-lg p-2.5 ${kindBg}">`;
       html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${_displayName(c.author)}</span>`;
       if (c.kind === 'reply') {
-        html += `<span class="text-xs px-1 py-0.5 rounded font-medium ml-1" style="background:var(--app-accent-bg);color:var(--app-accent);">正式答复</span>`;
+        html += `<span class="text-xs px-1 py-0.5 rounded font-medium ml-1" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);">正式答复</span>`;
       }
       html += `<span class="text-xs text-gray-500 ml-1">${c.createdAt}</span>`;
       html += `<p class="text-xs text-gray-600 mt-0.5">${c.body}</p></div>`;

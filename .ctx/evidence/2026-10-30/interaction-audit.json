@@ -1,0 +1,189 @@
+{
+  "meta": {
+    "audit": "交互与可达性（键盘焦点 / 键盘可达 / 触控目标 / 模态 / 表单校验 / 空态与加载态）",
+    "date": "2026-10-30",
+    "viewports": ["1440x900", "390x844"],
+    "theme": "light",
+    "pages": ["/login.html", "/workspace/secretary.html（10 个页签各一次）", "/settings.html", "/help.html"],
+    "accounts": ["2300010001 支书", "2400012349 普通成员", "2400012355 组织委员（本报告以支书账号为主）"],
+    "tool": "playwright 148.0.7778.96（server/node_modules/playwright，chromium，--no-proxy-server）"
+  },
+  "checks": {
+    "1_keyboard_focus_visible": {
+      "result": "通过",
+      "invisibleStops": 0,
+      "sampledStops": "约 400（登录 7 停点 ×2 档；支书台 10 页签各 40 次 Tab；设置页 22 停点；帮助页 50 停点）",
+      "note": "登录页首 Tab 落在 .skip-link（2px 主题色环，可见）；输入族靠边框变 rgb(169,122,18)，按钮/链接靠 2px 环；#dev-toggle 复选框为 UA 1px 环（13×13，偏小但可见）"
+    },
+    "2_keyboard_reachable": {
+      "result": "通过（0 处鼠标专属）",
+      "mouseOnlyControls": 0,
+      "verifiedPatterns": "页签 tablist 单停点+方向键（ArrowRight/End 实测移动）；日历 role=grid role=gridcell roving（31 格中 1 个 tabindex=0、30 个 -1，ArrowRight/ArrowDown 移动）；支部分工 role=listbox tabindex=0 容器+ArrowDown 换选中；通知/反馈行 role=button tabindex=0"
+    },
+    "3_touch_targets_390": {
+      "result": "未通过",
+      "lt44Occurrences": ">=140（按页状态累计；含设置子组时 173）",
+      "pages": {
+        "login": "5/6 个可点元素 <44（输入 308×40、按钮 308×36、复选框标签 69×16）",
+        "secretary/today": "10/13",
+        "secretary/todo": "9/20",
+        "secretary/calendar": "50/54",
+        "secretary/work-map": "12/17",
+        "secretary/feedback": "12/20",
+        "secretary/notification": "19/24",
+        "settings": "11/20（外观）～18/20（我的工作台/支部制度参数）",
+        "help": "12/16"
+      }
+    },
+    "4_modal": {
+      "writeActivityModal": {"esc": "pass", "trap": "pass（25 次 Tab + 8 次 Shift+Tab 越界 0）", "focusReturn": "pass（#ws-sec-write-btn）", "autoFocus": "pass（首个模板按钮）"},
+      "settingsConfirmModal": {"esc": "fail（设计为必须点按钮，dismissable:false）", "trap": "pass（10 次 Tab 越界 0）", "focusReturn": "pass（关闭后回到「回滚」按钮）", "autoFocus": "pass（落在「取消」）"}
+    },
+    "5_form_validation": {
+      "login": {"a_errorNearField": "pass", "b_ariaInvalid": "pass", "c_keepInput": "pass"},
+      "settingsWizard": {"a_errorNearField": "fail（仅右下 toast，top=833）", "b_ariaInvalid": "fail（null）", "c_keepInput": "pass（下一步→上一步后值仍在）"}
+    },
+    "6_empty_loading": {
+      "emptySameVisual": "pass（日历/反馈均为 .empty-state + .empty-state__text）",
+      "loadingPointerEvents": "auto（#secretary-content、.ws-tab-skeleton、#settings-panel 实测均为 auto）",
+      "layoutShift": "fail（设置页骨架 76px→内容 649px，CLS 0.2284 @565ms，source=HR.mt-4；支书台 320→404→268px）"
+    }
+  },
+  "findings": [
+    {
+      "id": "I1",
+      "title": "390 下大量可点元素命中区低于 44×44，且全站没有统一触控目标条款",
+      "evidence": "390 实测：页签 10×(58~82×36)、日历视图切换 4×(31×32)、日历格 31×(43×43)（styles.css:2747-2748 min-height 2.5rem）、通知对象 chip 8×(70×32)、设置分组 6×(358×30)、帮助目录 5×(46×30)、顶栏动作 2×(66×36)、ws-tab-more 1×(58×18)；日历页 50/54、通知页 19/24 可点元素 <44",
+      "scale": "≥140 处（跨 4 页 × 各页签状态）",
+      "verdict": "规范未覆盖",
+      "generalFix": "把「触控目标 ≥44×44」升级为全站条款（现仅 DS_03 §12.7 对行内按钮/图标按钮要求 44），并对页签高 36、chip 32、日历格 43 逐族补 ::after 命中区；或明确声明本项目只承诺 WCAG 2.5.8 的 24px",
+      "machineCheckable": "expect(visibleClickables.every(r => r.width>=44 && r.height>=44)).toBe(true)（当前 false）"
+    },
+    {
+      "id": "I2",
+      "title": "role=button 行容器内部再嵌原生按钮（14 处），破坏按钮语义与键盘路径",
+      "evidence": "notification-tab.js:458 行容器 role=button tabindex=0，内部第 454/456 行仍渲染「删除/编辑」按钮；实测 10 处通知行 + 4 处待办行（list-row todo-row）命中 [role=button] button，共 14 处",
+      "scale": "14 处（通知 10、待办 4）",
+      "verdict": "违反规范",
+      "generalFix": "行容器改为非交互容器，主操作与行级操作分成两个并列可聚焦元素；或把行改为 <a>/<article> 并把操作按钮移出 role=button 子树（ARIA 不允许 button 内含可聚焦后代）",
+      "machineCheckable": "expect(document.querySelectorAll('[role=\"button\"] button, [role=\"button\"] a[href]').length).toBe(0)（当前 14）"
+    },
+    {
+      "id": "I3",
+      "title": "设置页加载骨架与目标版式差 573px，加载完成整页重排",
+      "evidence": "settings.html:41-55 骨架实测高 76px；设置内容到达后 #settings-panel 高 649px（t=703ms）；layout-shift 0.2284 @565ms，sources=HR.mt-4/DIV.flex（PerformanceObserver 实测）",
+      "scale": "1 处（设置页首屏），CLS 0.2284 > 0.1",
+      "verdict": "违反规范",
+      "generalFix": "骨架按实际两栏（md:flex-row + 6 个分组行 + 内容卡）铺近似占位并锁定 min-height，数据到达后只替换文字不换骨架几何",
+      "machineCheckable": "expect(cls).toBeLessThan(0.1)（layout-shift 监听，当前 0.2284）"
+    },
+    {
+      "id": "I4",
+      "title": "设置页行内操作按钮命中区 34×26，低于规范自定的 44px",
+      "evidence": "390 实测 #settings-panel .btn-action = 34×26（12 处：我的工作台/支部制度参数/默认顺序）；styles.css:5395-5399 只给 4px/8px 内边距、18px 行高，styles.css:5461-5471 的 44px ::after 仅限 .list-row__trailing/.notice-row__actions；DS_03_COMPONENTS.md:1288 明写「行内按钮（sm/action）… 命中区 44px」",
+      "scale": "12 处（每页签各 12 个）",
+      "verdict": "违反规范",
+      "generalFix": "把 44px 命中区 ::after 从 list-row/notice-row 提到 .btn-action 基类（或设置页行容器补同一规则），视觉尺寸不变",
+      "machineCheckable": "expect(hitBox('#settings-panel .btn-action')).toBeGreaterThanOrEqual(44)（含 ::after，当前 34×26）"
+    },
+    {
+      "id": "I5",
+      "title": "设置向导校验失败只在右下角弹 toast，字段旁无错误、无 aria-invalid",
+      "evidence": "org-setup-wizard.js:1228 校验失败走 showToast('info','页眉显示名不能为空')；实测 #wz-org-header 清空后点「下一步」：页面无变化、[role=alert] 0 个、aria-invalid=null、aria-describedby=null，toast 位于 top=833（role=status aria-live=polite）；值未被清空（下一步→上一步仍为「测试页眉X」）",
+      "scale": "1 个表单（设置 · 支部信息与向导 · 步骤①），错误提示 1 处",
+      "verdict": "规范未覆盖",
+      "generalFix": "错误文案落在字段下方（label 内 aria-describedby 指向），同步 aria-invalid=true 并把焦点移到首个错误字段；toast 只作兜底",
+      "machineCheckable": "expect(field.getAttribute('aria-invalid')).toBe('true') && expect(field.getAttribute('aria-describedby')).toBeTruthy()（当前均为 null）"
+    },
+    {
+      "id": "I6",
+      "title": "登录失败后错误提示与字段无 aria-describedby 关联",
+      "evidence": "login.html:92-98：两个 input 与 #login-error 无 aria-describedby；login-entry.js:201-233 只写 aria-invalid 并把焦点送回 #student-id，实测 describedBy=null、role=alert 可播报但焦点字段读不出原因",
+      "scale": "2 个字段（学号/密码）",
+      "verdict": "规范未覆盖",
+      "generalFix": "给两个字段加 aria-describedby=\"login-error\"（或字段级错误节点），并在错误出现时同步 aria-errormessage",
+      "machineCheckable": "expect(input.getAttribute('aria-describedby')).toBeTruthy()（当前 null）"
+    },
+    {
+      "id": "I7",
+      "title": "设置页危险确认弹窗 Esc 不关闭，与「Esc 是四条关闭路径之一」的既有规范冲突",
+      "evidence": "modal.js:721 dismissable:false（confirmDanger 走 _mustPressConfirm）；实测 Esc 后 overlay 仍在、焦点停在「取消」；DS_03_COMPONENTS.md:1083 M-5 却把「取消 / Esc / 遮罩 / ×」并列为关闭路径",
+      "scale": "1 类弹窗（全站 confirmDanger 复用）",
+      "verdict": "规范未覆盖",
+      "generalFix": "先裁定危险确认是否允许 Esc＝取消（建议允许并等价于「取消」）；裁定后同步 M-5 与 §4.27.1 的措辞，避免两条规范互相否定",
+      "machineCheckable": "no（Esc 行为属策略冲突，需先有裁定；现有两处规范互相否定）"
+    },
+    {
+      "id": "I8",
+      "title": "日历筛选无结果时仍显示「本月暂无活动」，空态原因与用户操作不符",
+      "evidence": "calendar.js:158 固定文案「本月暂无活动」；实测 #cal-kw 输入 zzzz-no-match-zzzz 后 .empty-state__text 仍为「本月暂无活动」（不是「无匹配活动」）",
+      "scale": "1 处（活动管理 · 月历/列表空态）",
+      "verdict": "违反规范",
+      "generalFix": "空态按是否带筛选分支：有筛选 → 「无匹配活动（清除筛选）」；无筛选 → 「本月暂无活动」。DS_03_COMPONENTS.md:736 C6 要求空态写「为什么空」",
+      "machineCheckable": "expect(emptyText).toContain('匹配')（筛选激活且 0 结果时；当前为「本月暂无活动」）"
+    },
+    {
+      "id": "I9",
+      "title": "打开「换组织向导（内嵌）」后焦点掉到 BODY，键盘用户被送回页首",
+      "evidence": "settings-entry.js:897-903 面板级委托重绘 #settings-panel；实测用 Enter 激活「打开换组织向导」后 document.activeElement === document.body，需再按 2 次 Tab 才回到向导内容（首个落点 A「独立页直达」），向导标题/第一步无 tabindex=-1 承接",
+      "scale": "1 处（设置 · 支部信息与向导）",
+      "verdict": "规范未覆盖",
+      "generalFix": "面板重绘后把焦点移到新面板标题（tabindex=-1）或第一步首个字段，并给容器 role=region/aria-label",
+      "machineCheckable": "expect(document.activeElement).not.toBe(document.body)（点击后立即断言）"
+    },
+    {
+      "id": "I10",
+      "title": "加载期骨架 pointer-events 实测 auto，加载块仍可命中（虽无处理器）",
+      "evidence": "tab-bar.js:529 有 el.style.pointerEvents='none'，但首屏路径实测 .ws-tab-skeleton 与 #secretary-content 均为 auto，elementFromPoint(骨架内) 命中 DIV.ws-tab-skeleton；设置页 #settings-panel 加载期同为 auto",
+      "scale": "2 处容器（支书台首屏骨架、设置页骨架）",
+      "verdict": "规范未覆盖",
+      "generalFix": "明确「加载期容器 aria-busy + pointer-events:none（或 inert）」条款，并在首屏路径统一套用；当前只有部分路径写了 inline 样式",
+      "machineCheckable": "expect(getComputedStyle(loadingEl).pointerEvents).toBe('none')（当前 auto）"
+    },
+    {
+      "id": "I11",
+      "title": "390 顶栏两个动作按钮仍显示，与 DS_04 §6.3「移动端 display:none」的示例相反",
+      "evidence": "实测 390：#ws-sec-write-btn / #btn-report-entry display=inline-flex、66×36（styles.css:6479-6483 反向只收窄左右内边距）；DS_04_INTERACTION_AND_RESPONSIVE.md:164-166 写 .header-action-btn{display:none}",
+      "scale": "2 处（支书台每页）",
+      "verdict": "规范未覆盖",
+      "generalFix": "二选一：要么按文档在 ≤767 隐藏（入口移侧栏/更多菜单），要么把 DS_04 §6.3 示例改成「保留但收窄内边距」并补触控尺寸",
+      "machineCheckable": "expect(getComputedStyle(btn).display).toBe('none')（按现行文档应为 none，实测 inline-flex）"
+    },
+    {
+      "id": "I12",
+      "title": "空态是否带图标的规范自相矛盾，实现只保留文字",
+      "evidence": "DS_04_INTERACTION_AND_RESPONSIVE.md:38 要求「SVG 图标 + 中性色文字」；DS_03_COMPONENTS.md:857/935 与 empty-state.js:4 明确「不铺插图、只一句话」；实测 .empty-state 子节点只有 P/SPAN",
+      "scale": "全站（所有 emptyStateHtml 调用）",
+      "verdict": "规范未覆盖",
+      "generalFix": "删掉 DS_04 §5.2 的「SVG 图标」一行，统一为「一句话（≤30 字）+ 至多一个动作」；否则实现与文档长期互相判红",
+      "machineCheckable": "no（文档互斥，需先改规范；代码侧只能断言 .empty-state 内无 svg）"
+    },
+    {
+      "id": "I13",
+      "title": "键盘可达性本身无缺陷，但三套复合控件键盘模型没有任何规范/守卫约束",
+      "evidence": "逐页扫描 cursor:pointer 顶层控件：0 处 Tab 到不了；三处依赖各自实现——calendar.js:639-674（gridcell roving，实测 31 格中 1 个 tabindex=0）、work-map-tab.js:146-149（listbox+aria-activedescendant）、tab-bar.js:452 页签 tablist（ArrowRight/End 实测移动）",
+      "scale": "3 类复合控件（日历 / 支部分工 / 页签栏）",
+      "verdict": "规范未覆盖",
+      "generalFix": "在 DS_04 增加「复合控件键盘契约」（单停点 + 方向键 + Home/End + 激活键），并为三类各加一条机器守卫；否则新增页签/网格时容易退回 tabindex=0 全量铺开",
+      "machineCheckable": "no（可达性由三套自维护模型保证，目前无统一契约可断言）"
+    }
+  ],
+  "subjective": [
+    {
+      "name": "移动端页签高 36px 是否偏小",
+      "why": "高于 WCAG 2.5.8 的 24px 下限，36px 是项目既有密度档；只有把它与 44px 硬线比较时才成立，属于偏好"
+    },
+    {
+      "name": "空态是否需要插图",
+      "why": "两处规范互斥，取舍属设计取向而非可测缺陷"
+    },
+    {
+      "name": "「本月暂无活动」与「无匹配活动」的措辞选择",
+      "why": "I8 已按 C6 记为缺陷；具体用词（是否加「清除筛选」出口）属文案偏好"
+    },
+    {
+      "name": "帮助页目录项 46×30 的触控舒适度",
+      "why": "满足 24px 下限，是否升级到 44px 属舒适度取舍"
+    }
+  ]
+}

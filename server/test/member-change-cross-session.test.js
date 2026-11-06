@@ -37,14 +37,14 @@ async function api(token, path, method = 'GET', body) {
 }
 
 test('独立支委会话读取支书确认后的同一服务器数据', async () => {
-  const secretary = await login('p13');
-  const organizer = await login('p11');
-  const independentCommissioner = await login('p10');
+  const secretary = await login('2300010001');
+  const organizer = await login('2400012355');
+  const independentCommissioner = await login('2400012354');
 
   const create = await api(secretary, '/api/v1/member-change-requests', 'POST', {
     activityId: 'act-27',
-    agendaItemId: 'agenda-cross-session-p6',
-    personId: 'p6',
+    agendaItemId: 'agenda-cross-session-2400012350',
+    personId: '2400012350',
     fromStage: '发展对象',
     toStage: '预备党员',
     meetingResult: 'passed',
@@ -58,10 +58,11 @@ test('独立支委会话读取支书确认后的同一服务器数据', async ()
   const usersResponse = await api(independentCommissioner, '/api/v1/users');
   assert.equal(usersResponse.status, 200);
   const users = await usersResponse.json();
-  assert.equal(users.find((person) => person.id === 'p6').developStage, '预备党员');
+  assert.equal(users.find((person) => person.id === '2400012350').developStage, '预备党员');
 
+  // P1-26（2026-10-20）：committee_broadcasts 无消费端，审批通过不再写入（送达改由系统通知）。
   const broadcastsResponse = await api(independentCommissioner, `/api/v1/committeeBroadcasts?requestId=${request.id}`);
   assert.equal(broadcastsResponse.status, 200);
   const broadcasts = await broadcastsResponse.json();
-  assert.equal(broadcasts.some((record) => record.recipientId === 'p10'), true);
+  assert.equal(broadcasts.length, 0);
 });

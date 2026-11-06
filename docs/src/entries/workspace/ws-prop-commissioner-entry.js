@@ -2,13 +2,16 @@
 // ws-prop-commissioner-entry.js — 宣传委员工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261018h';
-import { flashHighlight } from '../../core/base/utils.js?v=20261018h';
-import { loadActivities } from '../../services/activity/activity.js?v=20261018h';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261018h';
-import { seedTodos } from '../../services/governance/todo.js?v=20261018h';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261102b';
+import { flashHighlight, smoothScroll } from '../../core/base/utils.js?v=20261102b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261102b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261102b';
+import { seedTodos } from '../../services/governance/todo.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { PEOPLE } from '../../data/mock/index.js?v=20261102b';
+import { mockDB } from '../../core/domain/domain.js?v=20261102b';
 // 副作用导入触发宣传委员工作台能力注册（tab 清单）
-import '../../capabilities/prop-workspace.js?v=20261018h';
+import '../../capabilities/prop-workspace.js?v=20261102b';
 
 await createWorkspaceShell({
   accentRole: 'prop-commissioner',
@@ -18,12 +21,24 @@ await createWorkspaceShell({
   prefix: 'prop',
   storageKey: 'workflowos_tab_prop',
   defaultTab: 'today',
-  // 角色特有渲染上下文：宣传相关专班（名称含"宣传"或发起人为宣传委员）
+  // 角色特有渲染上下文：宣传相关专班（按**角色/工作组归属**，不按名称子串或固定 personId）
+  // 为什么（R2-11）：名称含「宣传」会把别组专班误收；写死 p12 会让委员换人后看不到自己的专班。
   renderCtxExtras: (state) => {
     const taskforces = TaskForceRecordStore.getAll();
+    const me = AuthStore.getCurrentUser();
+    // 角色派生：静态名册里的所有宣传委员 ∪ 当前登录人（api 形态名册可能不含新委员）
+    const propPersonIds = new Set(PEOPLE.filter(p => p.role === 'prop-commissioner').map(p => p.id));
+    if (me?.role === 'prop-commissioner' && me.personId) propPersonIds.add(me.personId);
+    // 工作组归属：本人被授予该工作组权限（active grant）也算「自己的专班」
+    const myWgIds = new Set((mockDB.workgroupGrants || [])
+      .filter(g => g.status === 'active' && propPersonIds.has(g.personId))
+      .map(g => g.workgroupId));
     return {
       activities: state.activities || [],
-      propTf: taskforces.filter(t => t.name.includes('宣传') || t.initiator === 'p12'),
+      propTf: taskforces.filter(t =>
+        propPersonIds.has(t.manager) || propPersonIds.has(t.initiator)
+        || (Array.isArray(t.members) && t.members.some(m => propPersonIds.has(m.personId)))
+        || (t.workgroupId && myWgIds.has(t.workgroupId))),
     };
   },
   // 2026-09-30 批次 297-2（支书裁「页头只留 1 枚本台主 CTA；跨台通用动作收进全局固定位」）：
@@ -40,7 +55,7 @@ await createWorkspaceShell({
       const tryLocate = () => {
         const target = document.querySelector(sel);
         if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          smoothScroll(target, { block: 'center' });
           flashHighlight(target);
         } else if (attempts < 20) {
           attempts++;

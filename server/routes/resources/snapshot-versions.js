@@ -3,7 +3,7 @@
 //  server/routes/resources/snapshot-versions.js —— **快照写穿的集合版本号（乐观锁）协议**（2026-09-23 P0-1）
 // ════════════════════════════════════════════════════════════════
 
-import { replaceCollectionsAtomic, readCollectionVersions } from '../../db.js';
+import { replaceCollectionsAtomic, readCollectionVersions, recordSnapshotConflict } from '../../db.js';
 import { RESOURCE_TABLES } from './store.js';
 
 // ════════════════════════════════════════════════════════════════
@@ -101,5 +101,20 @@ export function _snapshotVersionConflicts(db, payload, baseVersions) {
     }
   }
   return conflicts;
+}
+
+/**
+ * C2 埋点（2026-10-23 拆表闸门）：记下**真正返回 409** 的冲突集合，供 `schema-split-readiness.mjs` 读「同一行 7 天 ≥3」。
+ * 只写证据表，不改 conflicts 内容、不改响应体；任何异常都在内部 warn 掉 ⇒ 埋点失败不影响 409 语义。
+ * 行粒度：版本冲突是**整批 409**、冲突清单只到集合级 ⇒ `rowId` 缺省记 `'*'`（该集合整体冲突）。
+ */
+export function recordSnapshotConflicts(db, conflicts, at = new Date()) {
+  try {
+    for (const conflict of conflicts || []) {
+      recordSnapshotConflict(db, { collection: conflict.collection, rowId: conflict.rowId, at });
+    }
+  } catch (e) {
+    console.warn(`[snapshot] 409 埋点写入失败（不影响 409 响应）：${e.message}`);
+  }
 }
 

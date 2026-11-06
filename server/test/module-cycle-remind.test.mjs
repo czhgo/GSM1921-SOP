@@ -11,18 +11,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018h';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018h';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018h';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261102b';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261102b';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261102b';
 import {
   WORK_MAP_MODULES, ownerOfModule, moduleIdOfActivity, modulesWithCycle, cycleOfModule, expandWorkforce,
-} from '../../docs/src/core/domain/work-map.js?v=20261018h';
+} from '../../docs/src/core/domain/work-map.js?v=20261102b';
 import {
   CYCLE_UNITS, CYCLE_UNIT_LABELS, cyclePeriodOf, cyclePeriodLabel,
-} from '../../docs/src/core/base/period.js?v=20261018h';
+} from '../../docs/src/core/base/period.js?v=20261102b';
 import {
   REALTIME_GROUP_DOMAIN, MODULE_CYCLE_ACTION_KEY, buildModuleCycleRemindGroup,
-} from '../../docs/src/services/governance/todo.js?v=20261018h';
+} from '../../docs/src/services/governance/todo.js?v=20261102b';
 
 // ── localStorage 内存桩（与 todo-deriver-domain 同款）─────────────
 const _store = new Map();
@@ -159,12 +159,12 @@ test('C5 非本台主体主责的模块一律不出（本台无周期模块 ⇒ 
 test('C6 支部改派随分工快照走（到人 ⇒ 该人可见；该角色不再出）', () => {
   beginMockCase();
   // 分工快照 = `expandWorkforce` 展开后（支部改派项 ＋ 缺省兜底）——调用方契约同 `getBranchWorkforce`
-  const snapshot = expandWorkforce({ 'party-group-meeting': { ownerType: 'person', ownerId: 'p3' } });
-  const asP3 = buildModuleCycleRemindGroup({ activities: [], subjectIds: ['p3'], snapshot, modules: CYCLE_ON, today: '2026-10-15' });
+  const snapshot = expandWorkforce({ 'party-group-meeting': { ownerType: 'person', ownerId: '2400012347' } });
+  const asP3 = buildModuleCycleRemindGroup({ activities: [], subjectIds: ['2400012347'], snapshot, modules: CYCLE_ON, today: '2026-10-15' });
   assert.deepEqual(asP3.items.map((i) => i.moduleId), ['party-group-meeting'],
-    'p3 只领改派到的党小组会（主题党日仍归 leader 角色，不在本主体集内）');
+    '2400012347 只领改派到的党小组会（主题党日仍归 leader 角色，不在本主体集内）');
   const asLeader = buildModuleCycleRemindGroup({ activities: [], subjectIds: ['leader'], snapshot, modules: CYCLE_ON, today: '2026-10-15' });
-  assert.deepEqual(asLeader.items.map((i) => i.moduleId), ['theme-party'], '党小组会已改派给 p3 ⇒ leader 不再出该条');
+  assert.deepEqual(asLeader.items.map((i) => i.moduleId), ['theme-party'], '党小组会已改派给 2400012347 ⇒ leader 不再出该条');
 
   // 停用（方法类）⇒ 不出；此处用同一停机位验证「none 一律跳过」
   const off = buildModuleCycleRemindGroup({

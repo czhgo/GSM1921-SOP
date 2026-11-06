@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { SELF_PROFILE_FIELDS } from '../../docs/src/core/domain/self-profile.js?v=20261018h';
+import { SELF_PROFILE_FIELDS } from '../../docs/src/core/domain/self-profile.js?v=20261102b';
 
 const testDir = dirname(fileURLToPath(import.meta.url));
 const presentationPath = resolve(testDir, '../../docs/src/components/governance/person-profile-sections.js');
@@ -45,7 +45,7 @@ const FULL_SELF_PROFILE = {
 
 async function loadPresentation() {
   assert.equal(existsSync(presentationPath), true, '个人档案应有可独立验证的自我描述展示组件');
-  return import(`${pathToFileURL(presentationPath).href}?v=20261018h`);
+  return import(`${pathToFileURL(presentationPath).href}?v=20261102b`);
 }
 
 function dataFields(html) {
@@ -178,10 +178,11 @@ test('档案入口按 L0 结论带与三分区排列，字段各有唯一落点'
   assert.doesNotMatch(presentation, /min-w-0 rounded-xl bg-gray-50 px-4 py-3/);
   assert.doesNotMatch(presentation, /rounded-xl bg-gray-50 px-4 py-3/);
 
-  // 全页词表与待确认读口
+  // 全页词表与待确认读口（2026-10-23 批次 505：空值统一走 constants.js::EMPTY_TEXT / EMPTY_NOT_APPLICABLE）
   assert.match(source, /未分组/);
   assert.match(source, /在校（默认）/);
-  assert.match(source, /未填写/);
+  assert.match(source, /EMPTY_TEXT/);
+  assert.match(source, /EMPTY_NOT_APPLICABLE/);
   assert.match(source, /listPendingConfirmations/);
   assert.match(source, /暂无待确认/);
   assert.match(source, /待支书确认/);
@@ -198,5 +199,7 @@ test('档案入口沿用授权读口与页面状态提示，不自造折叠脚�
   const presentation = readFileSync(presentationPath, 'utf8');
   assert.doesNotMatch(presentation, /focus-visible:ring/, '档案按钮沿用设计系统全局焦点样式');
   const styles = readFileSync(stylesPath, 'utf8');
-  assert.match(styles, /button:focus-visible,[\s\S]{0,120}outline: 2px solid var\(--party-gold\)/);
+  // R5A-05（2026-10-28 改准）：焦点环统一走主题色 --app-accent（2px / offset 1px / 无 box-shadow）。
+  // 2026-10-29 P1：全局名单新增 `[data-interactive="true"]` / `.focus-ring` 两个基，选择器串变长 ⇒ 邻近上限 200 → 400。
+  assert.match(styles, /button:focus-visible,[\s\S]{0,400}outline: 2px solid var\(--app-accent\)/);
 });

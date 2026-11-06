@@ -2,7 +2,7 @@
 title: "系统角色权限矩阵（代码键级权威）"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-10-18
+last_updated: 2026-11-03
 status: active
 related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/constants.js]
 ---
@@ -49,7 +49,7 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 
 > **来源：**[OPERATIONS_GUIDE.md §19.3](../03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》术语使用规范；原 `USAGE_POLICY.md`，2026-09-26 已并入） — 术语权威源。
 
-**写入门禁**：活动创建主体受持久化承办范围约束：组内承办只能由所属党小组组长从组长工作台创建；跨组承办由本支部支书/副书记从支书工作台创建。党委角色不能替代支部写入人。活动工作组随活动创建；专班工作组围绕事项创建，由组织委员默认扎口协调（制度参数可调整）。工作组成员登记与系统权限授权分开处理。旧矩阵中的通用权限键仍须受本节范围规则及服务端对象归属校验约束。
+**写入门禁**：活动创建主体受组织落点约束：`party-group` 活动由本支部支书/副支书或该活动承办党小组组长/副组长创建，且须指定唯一承办党小组；`branch`（支委会、党员大会、党课）由支书/副支书创建，不指定承办党小组。`cross-group` 不是组织落点，只是深度参与者招募范围，通过 `recruitmentScope='cross-group'`＋`crossGroupCoordinatorId` 表达。党委角色不能替代支部写入人。活动工作组随活动创建；专班工作组围绕事项创建，由组织委员默认扎口协调（制度参数可调整）。工作组成员登记与系统权限授权分开处理。旧矩阵中的通用权限键仍须受本节范围规则及服务端对象归属校验约束。
 
 ## 9b. 常设角色权限矩阵（6 角色 × 16 操作）
 
@@ -135,11 +135,11 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 
 ## 9h. 支部 config 写权（config 写权分层）
 
-> **定位与键级说明**：支部 config（branches.config 各域）写权**未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与建档/监督/导入等操作位限定同理，不硬凑缺键）。党委维护能力目录与模板，支部自主选择已发布能力包；党委组织员不直接替支部开关模块、流程块或能力包。服务端仍按域校验党委组织员可写的组织档案、分工和域参数；本支部支书/副支书可管理本支部的模块、流程块和能力包；域负责人仅写本域 policyOverrides。实现见 `server/routes/resources/index.js` 与 `services/branch/branch.js`。
+> **定位与键级说明**：支部 config（branches.config 各域）写权**未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与建档/监督/导入等操作位限定同理，不硬凑缺键）。**2026-10-22 批次 501（`D-825`）起：党委作为管理后台可代支部配置模块、流程块与能力包**（每次写入进 `config.configChangeHistory` 并带 `byRole`，标明代配）；支部（支书/副支书）仍可自行选择与覆盖。党委维护能力目录与模板的职责不变；域负责人仅写本域 policyOverrides。实现见 `server/routes/resources/index.js` 与 `services/branch/branch.js`。
 
 | 角色 | config.modules/blocks | config.capabilityPackages | config.workforce | org 档案（headerTitle/desc/themePreset） | 域参数 policyOverrides（L2） | 顶层治理字段 name/type/secretaryId/status |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
-| party-staff（党委组织员，组织级） | -- | -- | Y（全支部） | Y（全支部；含 name 同步） | Y（全量） | **Y（唯一可写）** |
+| party-staff（党委组织员，组织级） | **Y（代支部；留痕 `byRole`）** | **Y（代支部；留痕 `byRole`）** | Y（全支部） | Y（全支部；含 name 同步） | Y（全量） | **Y（唯一可写）** |
 | 现任支书（本支部） | Y | Y | Y（日常 = 支委会议题 M2 表决落库；换壳/部署 = 向导③直写） | Y（**不含 name**） | Y（全量） | -- |
 | 现任副支书（本支部 · 副书同权） | Y | Y | Y（同上） | Y（**不含 name**） | Y（全量） | -- |
 | 纪检委员（本支部） | -- | -- | -- | -- | Y（本域 `inspection`/`attendance`/`review`/`makeup` 节） | -- |
@@ -147,14 +147,14 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 | 党小组组长（本支部） | -- | -- | -- | -- | Y（仅 `leader` 节） | -- |
 | 其余角色（宣传委员/成员等） | -- | -- | -- | -- | -- | -- |
 
-> 注：① modules/blocks 核心组（groupLabel='工作台'）固定不可关、不参与排序；null = 默认全开。② `config.capabilityPackages` 只接受目录中可由支部配置的 optional/local 包；停用后停止新建，在办可完成，历史只读；模板版本由支部自主采纳。③ org 档案写口 = 换组织向导步骤①；顶层 name 仅 party-staff（支书/副支书不可改官方名，改名同步 headerTitle）。④ 全部 config 写留痕 `config.configChangeHistory`（{by,at,what,from?,to?}），逐键 diff、空变化不冗余。⑤ 他支部的支书/副支书不可写本支部 config（person → branchId 归属校验）。⑥ modules/blocks/workforce/org 档案操作位 = 设置（侧边栏右下）→ 支部治理 + 换组织向导内嵌（支书/副支书共台）。
+> 注：① modules/blocks 核心组（groupLabel='工作台'）固定不可关、不参与排序；null = 默认全开。② `config.capabilityPackages` 只接受目录中可由支部配置的 optional/local 包；停用后停止新建，在办可完成，历史只读；模板版本由支部自主采纳。③ org 档案写口 = 换组织向导步骤①；顶层 name 仅 party-staff（支书/副支书不可改官方名，改名同步 headerTitle）。④ 全部 config 写留痕 `config.configChangeHistory`（{by,byRole,at,what,from?,to?}），逐键 diff、空变化不冗余；`byRole` 用于区分「党委代配置」与「支部自行配置」。⑤ 他支部的支书/副支书不可写本支部 config（person → branchId 归属校验）。⑥ modules/blocks/workforce/org 档案操作位 = 设置（侧边栏右下）→ 支部治理 + 换组织向导内嵌（支书/副支书共台）。
 
 ### 9h.1 活动承办与工作组权限边界
 
 | 操作 | 允许主体 | 范围与限制 |
 |---|---|---|
-| 创建组内承办活动 | 所属支部党小组组长 | 仅本支部、本人所属党小组；活动记录持久化 `organizingScope='party-group'` |
-| 创建跨组承办活动 | 本支部支书/副支书 | 从支书工作台创建并指定跨组工作组人员；记录 `organizingScope='cross-group'`，不限制其他成员参加 |
+| 创建本组活动 | 所属支部党小组组长/副组长 | 仅本支部、本人所属党小组；活动记录持久化 `organizingScope='party-group'` 与唯一 `hostGroupId` |
+| 创建跨组招募活动 | 本支部支书/副支书 | 可建任意承办组活动并指定唯一承办党小组；深度参与者跨组招募时记录 `recruitmentScope='cross-group'`＋`crossGroupCoordinatorId`，不限制其他成员参加 |
 | 维护工作组成员 | 具备对应业务范围的负责人 | 成员关系不自动授予系统权限；组织者与深度参与者是并列分工 |
 | 授予/撤销系统权限 | 具备独立授权权的负责人 | 单独留痕授权人、时间和权限键；服务端按支部、活动及工作组逐项核验 |
 
@@ -287,3 +287,22 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 - **2026-09-05**：自 ROLE_CLASSIFICATION.md §九 迁出为独立文件（名实分离修复——该文件回归纯文件角色分类，本文件承担系统运行角色权限矩阵的键级权威）。迁出时同步修复：9a0 补 `party-staff`（党委组织员，组织级）行，真实对齐 constants.js `ROLE_KEYS`/`ROLE_LABELS`/`ROLE_PAGE_MAP`；9a0 登记表述改指 constants.js `ROLE_PAGE_MAP`（2026-09 已自 auth.js 迁入常量层）；9a 引用纠错（USAGE_POLICY §1.2.5 → §1.3）；9f 增补双轨约定（CF §C 逐操作位视图 ↔ 本文件键级视图）。〔**2026-09-26 批次 202 补注**：`ROLE_CLASSIFICATION.md` 与 `USAGE_POLICY.md` 已分别并入 [OPERATIONS_GUIDE.md](../03_doc_system/OPERATIONS_GUIDE.md) 的 §24–§31 与 §19；本条为历史留痕、原句保留〕
 - **2026-09-05（A1 批1 落代码）**：`dispatch_line`（条线下发）键入集——授予组织/宣传/纪检三委员（auth.js `ROLE_PERMISSIONS`，canDo 可判定），9f 增映射行、9b 附注说明；交互流消费侧待建、不入 16 操作列（不硬凑列原则）。
 - 前身沿革：本节原为 ROLE_CLASSIFICATION.md §九（PERMISSION_MATRIX.md → MANAGEMENT_MODE.md → ROLE_CLASSIFICATION §九，2026-07-08 迁入；2026-07-12 §九 重写 9a~9g；2026-08-29 增 9a0），历史记录见 [OPERATIONS_GUIDE.md §31](../03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》文件角色分类体系·变更历史；该节原为 `ROLE_CLASSIFICATION.md` §八，2026-09-26 批次 202 随该文件并入并升格为 §31）。
+
+---
+
+## 附：系统现行口径承接（2026-11-03）
+
+> 来源：`.ctx/ACTIVE_RULINGS.md` 分类承接；每条末尾 `（D-xxx）` 是决议指针，正文以本文件为准。
+
+- **组织型主体**：支委会 / 党委 / 支委扩大会可作「承担方」（`ownerType:'org'`），但不是角色键、不在 `ROLE_PAGE_MAP`、不能登录；其权限门仍由自然人角色键判定。（D-573/D-612）
+- **活动批准门三态**：`off`（默认）/ `secretary` / `branch-committee`，属支部可调制度参数；开启后写入即「待批」，批准前不推进、不批准即终止。（D-587）
+- **待批可见性**：待批活动只对支委层与该场组织者可见，其余角色与访客不可见；门关闭时该收窄不生效。（D-590/D-594）
+- **不得绕门**：`POST /activities`、`POST /snapshot` 与 `PATCH` 用同一批准判据，直调接口不得把待批活动改成已发布 / 终止。（D-591/D-593）
+- **支委会档复用线上表决**：不另造第二套表决机制，结果经既有议程结果回写为发布 / 终止。（D-592）
+- **会议考勤上传位**：支委会不考勤；党员大会 / 党课归纪检（支书 / 副支书可代）；党小组会归本场组织者；其他归组织者。（D-558/D-613）
+- **出勤率**：只提示、不设阈值、不触发纪律动作；提示只给支委会与本人，不公示。（D-304/D-537）
+- **意见反馈**：与纪检委员解绑，处置归支委层、支书可指派他人；匿名反馈支部内闭环，无系统揭名入口（同 §9j）。（D-301/D-824）
+- **事项领域**：只按领域给出归口建议，不自动派单。（D-551）
+- **记录人必呈现**：考勤明细与导出均呈现记录人；记录时间可留存、不强调。（D-457）
+- **项目角色不落 `users.role`**：`organizer` / `deep` 写门拒收，只在具体活动 / 专班内生效；一人多岗权限取并集。（D-687）
+- **待人工**：D-442「专班发布招募即入待支委会表决」与组织委员指南「专班不必先经统一表决」口径不一致，未择边，待人工裁定。

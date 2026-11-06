@@ -90,10 +90,11 @@ function runChannel(tag, list, extraEnv, concurrency) {
 
 const t0 = Date.now();
 // ── 通道划分（D-807⑤ · 2026-10-06 批次 435）：全量档 e2e 再分双道 ──
-//   依据（实测 grep）：仅 click-cost / b3-1-makeup-writeback / mock-integrity 三件依赖外部 `:3000`
+//   依据（实测 grep）：仅 click-cost / mock-integrity 两件依赖外部 `:3000`
 //   （共享演示库数据，须同道串行防互踩）；其余 e2e 件全部 `app.listen(0)` 自托管 ⇒ 文件级并行安全。
+//   2026-10-26 Task 6：b3-1 改为「运行库只读备份 → mkdtemp 临时库 + listen(0)」⇒ 退出共享端口道。
 //   form-loop-sweep 是最重件（全页真机流程），分给文件数较少的那道做粗平衡。
-const SHARED_PORT_FILES = ['click-cost.test.mjs', 'b3-1-makeup-writeback.test.mjs', 'mock-integrity.test.mjs'];
+const SHARED_PORT_FILES = ['click-cost.test.mjs', 'mock-integrity.test.mjs'];
 const channels = [];
 if (mode === 'all') {
   const laneA = [...SHARED_PORT_FILES];
@@ -101,7 +102,7 @@ if (mode === 'all') {
   const selfHosted = e2eFiles.filter((f) => !SHARED_PORT_FILES.includes(f) && !ALWAYS_E2E.includes(f));
   selfHosted.forEach((f, i) => (i % 2 === 0 ? laneB : laneA).push(f));
   (laneA.length <= laneB.length ? laneA : laneB).push(...ALWAYS_E2E);
-  console.log(`[suite] e2e 双道：A=${laneA.length} 件（含 :3000 三件）· B=${laneB.length} 件（各自 listen(0) 隔离）`);
+  console.log(`[suite] e2e 双道：A=${laneA.length} 件（含 :3000 两件）· B=${laneB.length} 件（各自 listen(0) 隔离）`);
   channels.push(['[node]', nonE2eFiles, {}, NON_E2E_CONCURRENCY]);
   channels.push(['[e2e-A]', laneA, {}, 1]);
   channels.push(['[e2e-B]', laneB, {}, 1]);

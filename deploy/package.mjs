@@ -35,7 +35,11 @@ const OUT_DIR = path.join(ROOT, outArg === -1 ? 'dist' : argv[outArg + 1]);
 const INCLUDE = [
   'docs',
   'server/server.js', 'server/app.js', 'server/db.js', 'server/env.js', 'server/seed.js',
-  'server/seed-baseline.js', 'server/system-notice-kinds.js', 'server/package.json', 'server/package-lock.json',
+  'server/seed-baseline.js', 'server/seed-repair.js', 'server/seed-rows.js', 'server/person-roster.js',
+  'server/system-notice-kinds.js', 'server/package.json', 'server/package-lock.json',
+  // Task 7（2026-10-26）：生产启动闸门与只读演练是 server.js / app.js 的**直接依赖**，
+  // 漏进白名单会导致发布包「装着装着起不来」。
+  'server/demo-data-guard.js', 'server/read-only.js',
   'server/routes', 'server/services', 'server/scripts',
   'deploy',                       // 部署脚本本身要进包（说明书里让运维跑 `deploy/install.sh` / `doctor.mjs`）
   'README.md', 'README-server.md', 'LICENSE', 'CHANGELOG.md',

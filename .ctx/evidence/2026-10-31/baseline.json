@@ -1,0 +1,526 @@
+{
+  "index": {
+    "390": {
+      "hero": {
+        "textAlign": "center",
+        "dataHero": "full",
+        "rect": {
+          "x": 16,
+          "y": 88,
+          "width": 358,
+          "height": 92,
+          "top": 88,
+          "right": 374,
+          "bottom": 180,
+          "left": 16
+        }
+      },
+      "emblem": {
+        "rect": {
+          "x": 171,
+          "y": 88,
+          "width": 48,
+          "height": 48,
+          "top": 88,
+          "right": 219,
+          "bottom": 136,
+          "left": 171
+        },
+        "cx": 195
+      },
+      "title": {
+        "rect": {
+          "x": 16,
+          "y": 148,
+          "width": 358,
+          "height": 32,
+          "top": 148,
+          "right": 374,
+          "bottom": 180,
+          "left": 16
+        },
+        "cx": 195,
+        "fontSize": "24px"
+      },
+      "noticeCount": {
+        "text": "1 条未读",
+        "rect": {
+          "x": 307.640625,
+          "y": 469,
+          "width": 45.359375,
+          "height": 16,
+          "top": 469,
+          "right": 353,
+          "bottom": 485,
+          "left": 307.640625
+        }
+      },
+      "moreLink": {
+        "rect": {
+          "x": 290.296875,
+          "y": 571,
+          "width": 62.703125,
+          "height": 17,
+          "top": 571,
+          "right": 353,
+          "bottom": 588,
+          "left": 290.296875
+        },
+        "top": 571
+      },
+      "statCards": [
+        {
+          "rect": {
+            "x": 16,
+            "y": 204,
+            "width": 171,
+            "height": 104,
+            "top": 204,
+            "right": 187,
+            "bottom": 308,
+            "left": 16
+          },
+          "height": 104,
+          "paddingTop": "16px",
+          "paddingBottom": "16px"
+        },
+        {
+          "rect": {
+            "x": 203,
+            "y": 204,
+            "width": 171,
+            "height": 104,
+            "top": 204,
+            "right": 374,
+            "bottom": 308,
+            "left": 203
+          },
+          "height": 104,
+          "paddingTop": "16px",
+          "paddingBottom": "16px"
+        },
+        {
+          "rect": {
+            "x": 16,
+            "y": 324,
+            "width": 171,
+            "height": 104,
+            "top": 324,
+            "right": 187,
+            "bottom": 428,
+            "left": 16
+          },
+          "height": 104,
+          "paddingTop": "16px",
+          "paddingBottom": "16px"
+        },
+        {
+          "rect": {
+            "x": 203,
+            "y": 324,
+            "width": 171,
+            "height": 104,
+            "top": 324,
+            "right": 374,
+            "bottom": 428,
+            "left": 203
+          },
+          "height": 104,
+          "paddingTop": "16px",
+          "paddingBottom": "16px"
+        }
+      ],
+      "statHeights": [
+        104,
+        104,
+        104,
+        104
+      ]
+    },
+    "768": {
+      "hero": {
+        "textAlign": "center",
+        "dataHero": "full",
+        "rect": {
+          "x": 32,
+          "y": 88,
+          "width": 704,
+          "height": 92,
+          "top": 88,
+          "right": 736,
+          "bottom": 180,
+          "left": 32
+        }
+      },
+      "emblem": {
+        "rect": {
+          "x": 360,
+          "y": 88,
+          "width": 48,
+          "height": 48,
+          "top": 88,
+          "right": 408,
+          "bottom": 136,
+          "left": 360
+        },
+        "cx": 384
+      },
+      "title": {
+        "rect": {
+          "x": 32,
+          "y": 148,
+          "width": 704,
+          "height": 32,
+          "top": 148,
+          "right": 736,
+          "bottom": 180,
+          "left": 32
+        },
+        "cx": 384,
+        "fontSize": "24px"
+      },
+      "noticeCount": {
+        "text": "1 条未读",
+        "rect": {
+          "x": 669.640625,
+          "y": 469,
+          "width": 45.359375,
+          "height": 16,
+          "top": 469,
+          "right": 715,
+          "bottom": 485,
+          "left": 669.640625
+        }
+      },
+      "moreLink": {
+        "rect": {
+          "x": 652.296875,
+          "y": 571,
+          "width": 62.703125,
+          "height": 17,
+          "top": 571,
+          "right": 715,
+          "bottom": 588,
+          "left": 652.296875
+        },
+        "top": 571
+      },
+      "statCards": [
+        {
+          "rect": {
+            "x": 32,
+            "y": 204,
+            "width": 344,
+            "height": 104,
+            "top": 204,
+            "right": 376,
+            "bottom": 308,
+            "left": 32
+          },
+          "height": 104,
+          "paddingTop": "16px",
+          "paddingBottom": "16px"
+        },
+        {
+          "rect": {
+            "x": 392,
+            "y": 204,
+            "width": 344,
+            "height": 104,
+            "top": 204,
+            "right": 736,
+            "bottom": 308,
+            "left": 392
+          },
+          "height": 104,
+          "paddingTop": "16px",
+          "paddingBottom": "16px"
+        },
+        {
+          "rect": {
+            "x": 32,
+            "y": 324,
+            "width": 344,
+            "height": 104,
+            "top": 324,
+            "right": 376,
+            "bottom": 428,
+            "left": 32
+          },
+          "height": 104,
+          "paddingTop": "16px",
+          "paddingBottom": "16px"
+        },
+        {
+          "rect": {
+            "x": 392,
+            "y": 324,
+            "width": 344,
+            "height": 104,
+            "top": 324,
+            "right": 736,
+            "bottom": 428,
+            "left": 392
+          },
+          "height": 104,
+          "paddingTop": "16px",
+          "paddingBottom": "16px"
+        }
+      ],
+      "statHeights": [
+        104,
+        104,
+        104,
+        104
+      ]
+    },
+    "1440": {
+      "hero": {
+        "textAlign": "center",
+        "dataHero": "full",
+        "rect": {
+          "x": 144,
+          "y": 88,
+          "width": 1152,
+          "height": 92,
+          "top": 88,
+          "right": 1296,
+          "bottom": 180,
+          "left": 144
+        }
+      },
+      "emblem": {
+        "rect": {
+          "x": 696,
+          "y": 88,
+          "width": 48,
+          "height": 48,
+          "top": 88,
+          "right": 744,
+          "bottom": 136,
+          "left": 696
+        },
+        "cx": 720
+      },
+      "title": {
+        "rect": {
+          "x": 144,
+          "y": 148,
+          "width": 1152,
+          "height": 32,
+          "top": 148,
+          "right": 1296,
+          "bottom": 180,
+          "left": 144
+        },
+        "cx": 720,
+        "fontSize": "24px"
+      },
+      "noticeCount": {
+        "text": "1 条未读",
+        "rect": {
+          "x": 1229.640625,
+          "y": 349,
+          "width": 45.359375,
+          "height": 16,
+          "top": 349,
+          "right": 1275,
+          "bottom": 365,
+          "left": 1229.640625
+        }
+      },
+      "moreLink": {
+        "rect": {
+          "x": 1212.296875,
+          "y": 451,
+          "width": 62.703125,
+          "height": 17,
+          "top": 451,
+          "right": 1275,
+          "bottom": 468,
+          "left": 1212.296875
+        },
+        "top": 451
+      },
+      "statCards": [
+        {
+          "rect": {
+            "x": 144,
+            "y": 204,
+            "width": 276,
+            "height": 104,
+            "top": 204,
+            "right": 420,
+            "bottom": 308,
+            "left": 144
+          },
+          "height": 104,
+          "paddingTop": "16px",
+          "paddingBottom": "16px"
+        },
+        {
+          "rect": {
+            "x": 436,
+            "y": 204,
+            "width": 276,
+            "height": 104,
+            "top": 204,
+            "right": 712,
+            "bottom": 308,
+            "left": 436
+          },
+          "height": 104,
+          "paddingTop": "16px",
+          "paddingBottom": "16px"
+        },
+        {
+          "rect": {
+            "x": 728,
+            "y": 204,
+            "width": 276,
+            "height": 104,
+            "top": 204,
+            "right": 1004,
+            "bottom": 308,
+            "left": 728
+          },
+          "height": 104,
+          "paddingTop": "16px",
+          "paddingBottom": "16px"
+        },
+        {
+          "rect": {
+            "x": 1020,
+            "y": 204,
+            "width": 276,
+            "height": 104,
+            "top": 204,
+            "right": 1296,
+            "bottom": 308,
+            "left": 1020
+          },
+          "height": 104,
+          "paddingTop": "16px",
+          "paddingBottom": "16px"
+        }
+      ],
+      "statHeights": [
+        104,
+        104,
+        104,
+        104
+      ]
+    }
+  },
+  "roster": {
+    "viewport": {
+      "w": 768,
+      "h": 1024
+    },
+    "card": {
+      "x": 32,
+      "y": 250,
+      "width": 704,
+      "height": 880.5,
+      "top": 250,
+      "right": 736,
+      "bottom": 1130.5,
+      "left": 32
+    },
+    "row": {
+      "x": 49,
+      "y": 517,
+      "width": 670,
+      "height": 52,
+      "top": 517,
+      "right": 719,
+      "bottom": 569,
+      "left": 49
+    },
+    "rowScrollWidth": 828,
+    "buttons": [
+      {
+        "text": "编辑",
+        "rect": {
+          "x": 723,
+          "y": 525,
+          "width": 48,
+          "height": 36,
+          "top": 525,
+          "right": 771,
+          "bottom": 561,
+          "left": 723
+        },
+        "inViewport": false
+      },
+      {
+        "text": "档案",
+        "rect": {
+          "x": 777,
+          "y": 530,
+          "width": 46,
+          "height": 26,
+          "top": 530,
+          "right": 823,
+          "bottom": 556,
+          "left": 777
+        },
+        "inViewport": false
+      },
+      {
+        "text": "移出",
+        "rect": {
+          "x": 829,
+          "y": 525,
+          "width": 48,
+          "height": 36,
+          "top": 525,
+          "right": 877,
+          "bottom": 561,
+          "left": 829
+        },
+        "inViewport": false
+      }
+    ]
+  },
+  "workmap": {
+    "header": {
+      "x": 144,
+      "y": 172,
+      "width": 1152,
+      "height": 34,
+      "top": 172,
+      "right": 1296,
+      "bottom": 206,
+      "left": 144
+    },
+    "title": {
+      "x": 144,
+      "y": 176,
+      "width": 80,
+      "height": 30,
+      "top": 176,
+      "right": 224,
+      "bottom": 206,
+      "left": 144
+    },
+    "tabs": {
+      "rect": {
+        "x": 144,
+        "y": 206,
+        "width": 70,
+        "height": 32,
+        "top": 206,
+        "right": 214,
+        "bottom": 238,
+        "left": 144
+      },
+      "top": 206
+    }
+  },
+  "todo": {
+    "title": null,
+    "summary": null,
+    "host": null
+  }
+}

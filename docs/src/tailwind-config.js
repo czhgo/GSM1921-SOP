@@ -9,17 +9,29 @@
 
 window.tailwind = window.tailwind || {};
 window.tailwind.config = {
+  // 2026-10-23 Task 7：所有 `hover:` 工具类自动包进 `@media (hover: hover)`；
+  // 触屏不再触发悬停样式（改用组件 `:active`）。
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   theme: {
     extend: {
       colors: {
         party: { DEFAULT:'#CE1126', red:'#CE1126', gold:'#FFD700', 'gold-light':'#FDE68A', 50:'#FEF2F2', 100:'#FEE2E2', 200:'#FECACA', 300:'#FCA5A5', 400:'#F87171', 500:'#EF4444', 600:'#DC2626', 700:'#CE1126', 800:'#9B0000', 900:'#7A0010', 950:'#4A000A' },
         primary: { 50:'#FEF2F2', 100:'#FEE2E2', 200:'#FECACA', 300:'#FCA5A5', 400:'#F87171', 500:'#EF4444', 600:'#DC2626', 700:'#CE1126', 800:'#9B0000', 900:'#7A0010', 950:'#4A000A' },
-        accent: { gold:'#FFD700', 'gold-light':'#FDE68A', amber:'#D97706', blue:'#3B82F6', emerald:'#10B981', violet:'#8B5CF6' },
+        // accent.DEFAULT 只用于链接的 `hover:text-accent`，映射到浅底深字 token（随主题/日夜切换）。
+        accent: { DEFAULT:'var(--app-accent-soft-text)', gold:'#FFD700', 'gold-light':'#FDE68A', amber:'#D97706', blue:'#3B82F6', emerald:'#10B981', violet:'#8B5CF6' },
         neutral: { 0:'#FFFFFF', 50:'#F8F9FA', 100:'#F3F4F6', 200:'#E5E7EB', 300:'#D1D5DB', 400:'#9CA3AF', 500:'#6B7280', 600:'#4B5563', 700:'#374151', 800:'#1F2937', 900:'#111827' },
-        surface: { page:'#F8F9FA', card:'#FFFFFF', elevated:'#FFFFFF', header:'#7A0010', sidebar:'#FFFFFF', hover:'#F3F4F6', active:'#FEE2E2' },
+        surface: { page:'#F8F9FA', card:'#FFFFFF', elevated:'#FFFFFF', header:'#7A0010', sidebar:'#FFFFFF', hover:'var(--surface-hover)', active:'var(--surface-active)' },
       },
       fontFamily: { sans:['Noto Sans SC','-apple-system','PingFang SC','Microsoft YaHei','sans-serif'], serif:['Noto Serif SC','STKaiti','KaiTi','serif'], title:['STZhongsong','华文中宋','Noto Serif SC','STSong','SimSun','serif'], 'title-en':['Times New Roman','Georgia','serif'] },
-      animation: { 'fade-in':'fadeIn 0.4s ease-out forwards', 'slide-up':'slideUp 0.4s ease-out forwards', 'slide-right':'slideRight 0.2s ease-out forwards', 'pulse-soft':'pulseSoft 2s ease-in-out infinite' },
+      // 2026-10-31 P10：时长统一走 styles.css 三档令牌（不再写裸 0.4s / 0.2s / 2s）。
+      animation: {
+        'fade-in': 'fadeIn var(--motion-emphasis) var(--ease-standard) forwards',
+        'slide-up': 'slideUp var(--motion-emphasis) var(--ease-standard) forwards',
+        'slide-right': 'slideRight var(--motion-enter) var(--ease-standard) forwards',
+        'pulse-soft': 'pulseSoft calc(var(--motion-emphasis) * 7) ease-in-out infinite',
+      },
       keyframes: { fadeIn:{'0%':{opacity:'0'},'100%':{opacity:'1'}}, slideUp:{'0%':{opacity:'0',transform:'translateY(16px)'},'100%':{opacity:'1',transform:'translateY(0)'}}, slideRight:{'0%':{transform:'translateX(-100%)'},'100%':{transform:'translateX(0)'}}, pulseSoft:{'0%, 100%':{opacity:'1'},'50%':{opacity:'0.6'}} },
     },
   }

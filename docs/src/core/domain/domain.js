@@ -16,22 +16,20 @@ export const SCHEMA_VERSION = 1;
  * ⚠ 与 SCHEMA_VERSION 区分：SCHEMA_VERSION 是「持久化结构版本」（结构变了才动，现为 1 不动）；
  *    本值是「数据内容版本」（内容变了就改）。
  */
-export const SEED_DATA_VERSION = '2026-10-07';
+export const SEED_DATA_VERSION = '2026-10-21a';
 
 /**
  * @typedef {Object} Activity
  * @property {string}  id          - 唯一标识符（由 id.js 生成）
  * @property {string}  title       - 活动标题
  * @property {string}  type        - 活动类型（如 '组织生活会'、'主题党日'）
- * @property {'party-group'|'cross-group'} [organizingScope] - 持久化承办责任范围；不限制成员报名或参加
- * @property {string|null} [hostGroupId] - 组内承办党小组 ID；跨组承办时为 null
+ * @property {'party-group'|'branch'} [organizingScope] - 持久化组织落点，只有两档：非支部级活动一律 party-group（承办党小组由 hostGroupId 指定），支部级法定会议为 branch；「跨组」只由 recruitmentScope='cross-group' 与成员 crossGroup 表达，不是第三种落点（旧值 cross-group 由 normalizeOrganizingScope 读取兼容）
+ * @property {string|null} [hostGroupId] - 责任党小组 ID；所有非支部级活动必填，branch 时必须为 null
  * @property {string} [workgroupId] - 随活动创建的活动工作组主记录 ID
  * @property {string} [branchId] - 活动所属支部；关联写入须由服务端校验同支部
  * @property {'draft'|'pending-approval'|'published'|'ongoing'|'completed'|'cancelled'} status - 活动状态（`pending-approval`＝待批，2026-09-22 批次 150 活动批准门开启时写入，默认关） - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
  * @property {'branch'|'group'} visibility - 可见范围：全支部 or 党小组 - Source: knowledge/SOP/支委与党小组定人定责定岗说明.md#一、人员结构与双重身份体系
  * @property {string}  date        - 活动日期 ISO 字符串（YYYY-MM-DD）
- * @property {string}  executor    - 执行角色 - Source: knowledge/SOP/组织委员工作流程指南.md#一、工作职责总览
- * @property {string|null} supervisor - 督办角色（可为 null） - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
  * @property {string}  createdBy   - 创建者用户 ID
  * @property {string}  createdAt   - 创建时间 ISO 字符串
  * @property {'normal'|'urgent'} [priority] - 优先级（工作流引擎用） - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
@@ -48,6 +46,20 @@ export const SEED_DATA_VERSION = '2026-10-07';
  */
 
 /**
+ * @typedef {Object} TaskForceRecord
+ * @property {string} id
+ * @property {string} name
+ * @property {string} task - 专班主任务（同时镜像为工作组 isPurpose 任务）
+ * @property {'draft'|'pending_review'|'recruiting'|'active'|'completed'|'archived'|'dissolved'} status
+ *   - 状态词为 `TaskforceStatus`，判据/流转见同文件 `TASKFORCE_STATUSES` 与 `TASKFORCE_DIRECT_TRANSITIONS`
+ * @property {string} branchId
+ * @property {string} [workgroupId] - 对应工作组；缺省 `wg-taskforce-{id}`
+ * @property {string} [createdAt]
+ * @property {string} [dissolvedAt]
+ * @property {'approved'|'rejected'} [approvalStatus] - 发起报送支委会的表决结果（`draft` 可据其展示「未通过·草稿」）
+ */
+
+/**
  * @typedef {Object} WorkGroupRecord
  * @property {string} id
  * @property {string} branchId
@@ -55,12 +67,135 @@ export const SEED_DATA_VERSION = '2026-10-07';
  * @property {'activity'|'taskforce'} sourceType
  * @property {string} sourceId
  * @property {string} name
- * @property {'active'|'recruiting'|'archived'|'dissolved'} status
- * @property {'party-group'|'cross-group'} [organizingScope] - 活动工作组的承办范围
- * @property {string|null} [hostGroupId] - 活动工作组的承办党小组；跨组时为 null
+ * @property {'draft'|'pending_review'|'recruiting'|'active'|'completed'|'archived'|'dissolved'} status
+ *   - 状态词为 `WorkgroupStatus`；活动工作组只会出现 `active/archived`，专班工作组随专班生命周期
+ * @property {'party-group'|'branch'} [organizingScope] - 活动工作组的组织落点（两档；跨组只由 recruitmentScope 表达）
+ * @property {string|null} [hostGroupId] - 责任党小组 ID；所有非支部级活动必填，branch 时必须为 null（recruitmentScope / crossGroupCoordinatorId 见 DATA_MODEL §2.3.1）
  * @property {string} createdBy
  * @property {string} createdAt
  */
+
+// ════════════════════════════════════════════════════════════════
+//  专班 / 工作组状态（canonical 单一源）
+//  状态集合由 UI 流程反推（2026-10-20 · Phase 0 R4-D03）：
+//    · 组织委员/只读专班视图按 draft/pending_review/recruiting/active/completed/archived/dissolved 分组；
+//    · 发起报送（submitForCommittee）只认 draft/pending_review，解散只认 active；
+//    · 收尾（含表决解散）只认 completed/archived/dissolved 为终态；
+//    · 工作组写权限只认 recruiting/active（招募期与运行期），draft/pending_review 只读等待。
+//  ⚠ 与「活动 status」无关：活动状态是 `draft|pending-approval|published|ongoing|completed|cancelled`
+//    （见 Activity typedef 与 `constants.js::isActivityEnded`），两套枚举不得互相借值。
+// ════════════════════════════════════════════════════════════════
+export const TaskforceStatus = Object.freeze({
+  DRAFT: 'draft',
+  PENDING_REVIEW: 'pending_review',
+  RECRUITING: 'recruiting',
+  ACTIVE: 'active',
+  COMPLETED: 'completed',
+  ARCHIVED: 'archived',
+  DISSOLVED: 'dissolved',
+});
+
+/** 专班状态全集（写口/守卫的唯一枚举源） */
+export const TASKFORCE_STATUSES = Object.freeze(Object.values(TaskforceStatus));
+
+/** 立项尚未开放：草稿 / 待支委会表决（只读等待，不授予工作组写权限） */
+export const TASKFORCE_PRE_OPEN_STATUSES = Object.freeze([
+  TaskforceStatus.DRAFT,
+  TaskforceStatus.PENDING_REVIEW,
+]);
+
+/** 在办：招募中 / 运行中（工作组可写的两个状态） */
+export const TASKFORCE_ACTIVE_STATUSES = Object.freeze([
+  TaskforceStatus.RECRUITING,
+  TaskforceStatus.ACTIVE,
+]);
+
+/** 终态：已完结 / 已归档 / 已解散（历史只读） */
+export const TASKFORCE_TERMINAL_STATUSES = Object.freeze([
+  TaskforceStatus.COMPLETED,
+  TaskforceStatus.ARCHIVED,
+  TaskforceStatus.DISSOLVED,
+]);
+
+/**
+ * 专班直接状态流转（不含支委会表决与收尾语义写口）：
+ *   · recruiting → active：招募结束、进入运行；
+ *   · active → dissolved / pending_review → recruiting/draft 等必须走
+ *     `TaskForceRecordStore.dissolve / submitForCommittee / applyCommitteeDecision`。
+ */
+export const TASKFORCE_DIRECT_TRANSITIONS = Object.freeze({
+  [TaskforceStatus.DRAFT]: Object.freeze([]),
+  [TaskforceStatus.PENDING_REVIEW]: Object.freeze([]),
+  [TaskforceStatus.RECRUITING]: Object.freeze([TaskforceStatus.ACTIVE]),
+  [TaskforceStatus.ACTIVE]: Object.freeze([]),
+  [TaskforceStatus.COMPLETED]: Object.freeze([]),
+  [TaskforceStatus.ARCHIVED]: Object.freeze([]),
+  [TaskforceStatus.DISSOLVED]: Object.freeze([]),
+});
+
+export const WorkgroupStatus = Object.freeze({ ...TaskforceStatus });
+
+/** 工作组状态全集；活动工作组仅使用 active/archived，专班工作组随专班生命周期 */
+export const WORKGROUP_STATUSES = Object.freeze(Object.values(WorkgroupStatus));
+
+/** 工作组写权限判据：只有招募中 / 运行中可写成员、授权、任务与产出 */
+export const WORKGROUP_WRITABLE_STATUSES = Object.freeze([
+  WorkgroupStatus.RECRUITING,
+  WorkgroupStatus.ACTIVE,
+]);
+
+/** 工作组终态：历史只读 */
+export const WORKGROUP_CLOSED_STATUSES = Object.freeze([
+  WorkgroupStatus.COMPLETED,
+  WorkgroupStatus.ARCHIVED,
+  WorkgroupStatus.DISSOLVED,
+]);
+
+/** 已废弃/历史别名 → canonical（只做读侧映射，不写入新记录） */
+const TASKFORCE_STATUS_ALIASES = Object.freeze({
+  in_progress: TaskforceStatus.ACTIVE,
+});
+
+export function isTaskforceStatus(status) {
+  return TASKFORCE_STATUSES.includes(status);
+}
+
+export function isWorkgroupStatus(status) {
+  return WORKGROUP_STATUSES.includes(status);
+}
+
+export function isTaskforceTerminalStatus(status) {
+  return TASKFORCE_TERMINAL_STATUSES.includes(status);
+}
+
+export function isTaskforceActiveStatus(status) {
+  return TASKFORCE_ACTIVE_STATUSES.includes(status);
+}
+
+export function isWorkgroupWritableStatus(status) {
+  return WORKGROUP_WRITABLE_STATUSES.includes(status);
+}
+
+export function isWorkgroupClosedStatus(status) {
+  return WORKGROUP_CLOSED_STATUSES.includes(status);
+}
+
+/** 规范化专班状态：历史别名按映射处理，未知值落回 fallback（默认 recruiting） */
+export function normalizeTaskforceStatus(status, fallback = TaskforceStatus.RECRUITING) {
+  const alias = TASKFORCE_STATUS_ALIASES[status];
+  if (alias) return alias;
+  return isTaskforceStatus(status) ? status : fallback;
+}
+
+/**
+ * 专班状态 → 工作组状态：canonical 原样映射；历史别名 `in_progress` → active；
+ * 未知状态不得原样复制，一律落为 `draft`（只读待核），由迁移标记人工复核。
+ */
+export function workgroupStatusForTaskforce(status) {
+  const alias = TASKFORCE_STATUS_ALIASES[status];
+  if (alias) return alias;
+  return isWorkgroupStatus(status) ? status : WorkgroupStatus.DRAFT;
+}
 
 /**
  * @typedef {Object} WorkGroupMemberRecord
@@ -99,17 +234,26 @@ export const SEED_DATA_VERSION = '2026-10-07';
  * @property {string}  [studentId] - 学号 - Source: content/02_institution/sop/常见工作场景快速指南.md#三会一课通用流程
  * @property {'积极分子'|'发展对象'|'预备党员'|'正式党员'} [developStage] - 发展阶段（四阶段，2026-08-01 支书决策移除【入党申请人】） - Source: content/02_institution/sop/纪检委员工作流程指南.md#二考勤管理三会一课 + content/04_web_design/data/DATA_ARCHITECTURE.md §2.5
  * @property {string}  [partyGroup] - 所属党小组 - Source: content/02_institution/sop/常见工作场景快速指南.md#三会一课通用流程
+ * @property {boolean} [confirmed] - 是否已确认（纪检/支书确认后为 true）
+ * @property {string}  [confirmedBy] - 确认人 personId（与上传人 recordedBy 分离）
+ * @property {string}  [confirmedAt] - 确认时间 ISO 字符串
+ * @property {string}  [submittedBy] - 上传人 personId（组织者上传即本人）
+ * @property {string}  [returnedBy] - 打回人 personId（打回回退态）
+ * @property {string}  [returnedAt] - 打回时间 ISO 字符串
+ * @property {string}  [returnReason] - 打回原因
+ * @property {string}  [absenceReason] - 未到固定枚举标因（leave/other 等，见 services/activity/attendance.js）
+ * @property {boolean} [onlineAttend] - 线上参会（记请假、只免补课）
  */
 
 /**
  * @typedef {Object} Person
- * @property {string}  id          - 人员 ID（如 'p5'）
+ * @property {string}  id          - 人员 ID（学号/工号，如 '2400012345'）
  * @property {string}  name        - 姓名
  * @property {string}  studentId   - 学号
  * @property {string}  partyGroup  - 所属党小组（如 '第一党小组'）
  * @property {'正式党员'|'预备党员'|'发展对象'|'积极分子'} developStage - 发展阶段（四阶段，2026-08-01 支书决策移除【入党申请人】）
  * @property {string}  role        - 角色键（secretary/org-commissioner/participant…，与 core/domain/constants.js ROLE_KEYS 对齐）
- * @property {string}  [branchId]  - 所属支部（缺省 br-b1；p_pc 党委组织员=null 不属于支部）
+ * @property {string}  [branchId]  - 所属支部（缺省 br-b1；党委组织员（party-staff）=null 不属于支部）
  * @property {'在校'|'滞留'} [residenceStatus] - 居住/在册状态（S1–S4 滞留党员设计，2026-09-06 支书已批）：
  *   滞留 = 组织关系在本支部但人不在校、不参加日常会议；成员身份保留、应到剔除、通知照发。
  *   未标注 = 默认「在校」。
@@ -125,6 +269,26 @@ export const SEED_DATA_VERSION = '2026-10-07';
  * @property {string}  title       - 任务标题
  * @property {'pending'|'in_progress'|'completed'} status - 任务状态 - Source: knowledge/SOP/组织委员工作流程指南.md#四大工作场景
  * @property {string}  createdAt   - 创建时间 ISO 字符串（审计字段）
+ */
+
+/**
+ * 待办记录（运行时可派生、可落库；R10 补全归属与来源字段）。
+ * @typedef {Object} Todo
+ * @property {string}  id
+ * @property {string}  branchId     - 所属支部（v11 起必填；由来源父行 / 所属人员解析）
+ * @property {string}  title
+ * @property {string}  [description]
+ * @property {string}  role         - 角色视角（secretary / org-commissioner / visitor …）
+ * @property {'role'|'person'|null} [ownerType] - 归属类型：到角色 / 到人
+ * @property {string|null} [ownerId] - 归属对象（role 键或 personId）
+ * @property {string}  [flow]       - 流程说明文案
+ * @property {string}  [actionKey]  - 业务动作聚合键（与 role 组成聚合组）
+ * @property {string}  [sourceType] - 来源类型（activity / taskforce / notice / issue …）
+ * @property {string}  [sourceId]   - 来源业务 id
+ * @property {string}  [personId]   - 到人待办的 personId（visitor 视角行级写门用）
+ * @property {string}  [deadline]   - 截止日期 ISO 字符串
+ * @property {'pending'|'completed'} [status]
+ * @property {string}  [completedAt]
  */
 
 /**
@@ -205,6 +369,7 @@ export const REVIEW_STATUS_LABELS = {
  * @property {string}  activityId    - 关联活动 ID（活动复盘时必填）
  * @property {string}  [sourceType]  - 来源类型：'activity' | 'taskforce'（专班复盘时为 'taskforce'）
  * @property {string}  [sourceName]  - 来源名称（专班复盘时为专班名称）
+ * @property {string}  [workgroupId] - 稳定父键：复盘所挂工作组 ID（活动/专班均写）
  * @property {string}  organizerId   - 组织者人员 ID（须为活动/专班的实际 organizer）
  * @property {string}  progress      - 进度状态（如 '已完成'/'进行中'/'超时'）
  * @property {boolean} overdue       - 是否超时
@@ -215,6 +380,7 @@ export const REVIEW_STATUS_LABELS = {
  * @property {string}  [annotatedAt] - 批注时间 ISO 字符串
  * @property {string}  [submittedAt] - 提交时间 ISO 字符串（reviewStatus 非'未提交'时填写）
  * @property {string}  [confirmedAt] - 确认时间 ISO 字符串（reviewStatus='已确认'时填写）
+ * @property {Array<Object>} [issues] - 复盘发现的问题清单（纪检批注 / 跟进用）
  */
 
 /**
@@ -242,13 +408,22 @@ export const REVIEW_STATUS_LABELS = {
  * @property {string}  id            - 唯一标识符（由 id.js 生成）
  * @property {'activity'|'taskforce'} sourceType - 考察来源类型（活动 or 专班）— Source: D-198
  * @property {string}  activityId    - 关联活动 ID（sourceType='activity'时必填）
- * @property {string}  sourceName    - 来源名称（sourceType='taskforce'时为专班名称）
+ * @property {string}  [workgroupId] - 稳定父键：考察所挂工作组 ID（sourceType='taskforce' 时必填；R4-D04）
+ * @property {string}  [taskforceId] - 专班业务 ID 兼容快照（只读展示/回填用，关联与权限一律走 workgroupId）
+ * @property {string|null} [sourceName] - 来源名称（**仅展示快照**，不得用于关联/查询/权限判断；专班改名后不再断链）
+ * @property {boolean} [legacy]      - 历史记录无法回填工作组键时置 true：只读，不参与写门与确认/删除
  * @property {string}  personId      - 人员 ID（引用 people.js）
  * @property {'organize'|'deep'} level - 考察层级（仅组织者和深度参与者有考察记录） - Source: content/04_web_design/data/DATA_ARCHITECTURE.md §3.3
  * @property {string}  role          - 分工角色+描述（如：策划+全流程统筹、视频制作、PPT设计）
  * @property {string}  recordedBy    - 记录人 personId
  * @property {string}  recordedAt    - 记录时间 ISO 字符串
  * @property {'pending'|'confirmed'} [status] - 考察确认状态（纪检委员确认后录入考察总表）
+ * @property {string}  [confirmedBy] - 确认人 personId
+ * @property {string}  [confirmedAt] - 确认时间 ISO 字符串
+ * @property {string}  [returnedBy] - 打回人 personId
+ * @property {string}  [returnedAt] - 打回时间 ISO 字符串
+ * @property {string}  [returnReason] - 打回原因
+ * @property {string}  [submittedBy] - 上传人 personId
  */
 
 /**
@@ -493,4 +668,66 @@ const OUTPUT_ROUTES = {
  */
 export function deriveOutputRoute(type) {
   return OUTPUT_ROUTES[type] || null;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  活动 / 任务 / 产出「已闭环」判据（canonical 单一源，R7-16，2026-10-22）
+//  ⚠ 本块置于文件末尾：README-server.md 按行号引用本文件中段（handoffs / OUTPUT_ROUTES /
+//    pendingMemberConfirmations），中段插入会整体位移既有引用 ⇒ 只追加在末尾。
+//  病灶：`['completed','cancelled']` 与 `['submitted','accepted','archived']` 在全站 9 处手写，
+//    新增终态时漏改一处即出现「统计已闭合、按钮仍可点」的矛盾。
+//  ⚠ 与专班 / 工作组状态集分开：活动状态是 `draft|pending-approval|published|ongoing|completed|cancelled`，
+//    任务状态是 `open|in_progress|completed|cancelled`，产出状态见 `OutputStatus`；三套枚举不得互相借值。
+// ════════════════════════════════════════════════════════════════
+
+/** 任务状态全集（工作组任务） */
+export const TaskStatus = Object.freeze({
+  OPEN: 'open',
+  IN_PROGRESS: 'in_progress',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
+});
+
+export const TASK_STATUSES = Object.freeze(Object.values(TaskStatus));
+
+/** 任务终态：已完成 / 已取消（「任务已闭环」的唯一判据） */
+export const TASK_TERMINAL_STATUSES = Object.freeze([
+  TaskStatus.COMPLETED,
+  TaskStatus.CANCELLED,
+]);
+
+/** 产出物登记状态全集（工作组产出） */
+export const OutputStatus = Object.freeze({
+  DRAFT: 'draft',
+  PENDING: 'pending',
+  SUBMITTED: 'submitted',
+  ACCEPTED: 'accepted',
+  ARCHIVED: 'archived',
+});
+
+export const OUTPUT_STATUSES = Object.freeze(Object.values(OutputStatus));
+
+/** 产出终态：已提交 / 已确认 / 已归档（「产出已闭环」的唯一判据） */
+export const OUTPUT_TERMINAL_STATUSES = Object.freeze([
+  OutputStatus.SUBMITTED,
+  OutputStatus.ACCEPTED,
+  OutputStatus.ARCHIVED,
+]);
+
+/** 活动闭环状态（不含 archived 软删标记，由 isActivityClosed 一并判定） */
+export const ACTIVITY_CLOSED_STATUSES = Object.freeze(['completed', 'cancelled']);
+
+/**
+ * 活动是否已闭环（单一源）：`archived===true` 或 status ∈ `ACTIVITY_CLOSED_STATUSES`。
+ * 与 `constants.js::isActivityEnded` 的分工：后者是「已结束」＝completed/archived（不含取消），
+ * 本函数用于列表排序 / 收录候选等「已完成或已取消」的闭环档位。
+ */
+export function isActivityClosed(activity) {
+  const a = activity || {};
+  return a.archived === true || ACTIVITY_CLOSED_STATUSES.includes(a.status);
+}
+
+/** 工作组是否已闭环（别名，口径同 `isWorkgroupClosedStatus`；R7-16 单一源） */
+export function isWorkgroupClosed(status) {
+  return WORKGROUP_CLOSED_STATUSES.includes(status);
 }

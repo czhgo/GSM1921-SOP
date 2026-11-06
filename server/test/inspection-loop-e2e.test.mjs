@@ -31,7 +31,7 @@ after(async () => {
   }
 });
 
-async function loginAs(sid, ws, tab = '考察管理') {
+async function loginAs(sid, ws, tab = '组员进展', deepLink = '') {
   const page = await browser.newPage();
   await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
   await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
@@ -44,8 +44,13 @@ async function loginAs(sid, ws, tab = '考察管理') {
     page.click('button[type="submit"]'),
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
+  if (deepLink) {
+    // 2026-10-25 IA 62→45：页内落点（section）必须在**整页导航**时由壳解析，登录后在原地补参数无效。
+    await page.goto(`${base}/workspace/${ws}.html${deepLink}`, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
+  }
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018h')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261102b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.evaluate((label) => {
     const b = [...document.querySelectorAll('button[role="tab"]')].find((x) => x.textContent.includes(label));
     b?.click();
@@ -70,20 +75,54 @@ const READ_TOTAL = () => {
   return document.querySelectorAll('#insp-list-host tbody tr').length;
 };
 
-test('组长台·考察管理：点选后「关面板即已选」也必须出现逐人填写框；改选不丢已填内容；提交落库', async () => {
-  const page = await loginAs('2400012345', 'leader');
+test('组长台·组员进展/上传考察：点选后「关面板即已选」也必须出现逐人填写框；改选不丢已填内容；提交落库', async () => {
+  // 2026-10-25 IA 62→45：原「考察管理」页签已删，降为「组员进展」页内「上传考察」折叠区
+  //   （`?tab=members&section=inspection` 深链直接展开并挂载；实现单一源仍是 leader/inspection-tab.js）。
+  const page = await loginAs('2400012345', 'leader', '组员进展', '?tab=members&section=inspection');
   try {
+    // 2026-11-01 Task 7：「上传考察」由页内折叠区降为卡头按钮（深链理应已展开，此处只作兜底，不改变断言链）。
+    await page.waitForFunction(() => {
+      const area = document.getElementById('leader-insp-area');
+      const toggle = document.getElementById('leader-insp-toggle');
+      if (!area || !toggle) return false;
+      if (area.classList.contains('hidden')) toggle.click();
+      return !area.classList.contains('hidden') && !!document.getElementById('btn-leader-upload-insp');
+    }, null, { timeout: 20000 });
     await page.evaluate(() => document.getElementById('btn-leader-upload-insp')?.click());
     await page.waitForFunction(() => !!document.getElementById('insp-form-panel'), { timeout: 8000 });
 
     // 来源：活动 + 第一个可用活动
     await page.selectOption('#insp-source-type', 'activity');
     await page.waitForTimeout(300);
-    const srcId = await page.evaluate(() => [...document.querySelectorAll('#insp-source-select option')].map((o) => o.value).filter(Boolean)[0]);
+    const srcId = await page.evaluate(async () => {
+      const opts = [...document.querySelectorAll('#insp-source-select option')].map((o) => o.value).filter(Boolean);
+      // 2026-10-26 批次 513：考察对象必须是父工作组成员（服务端硬校验）。
+      //   选一个工作组至少 3 人的活动，保证「2 人 + 加选 1 人」的闭环有合法对象。
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261102b');
+      const rows = mockDB.workgroupMembers || [];
+      const acts = mockDB.activities || [];
+      return opts.find((id) => {
+        const a = acts.find((x) => x.id === id);
+        if (!a) return false;
+        const wg = a.workgroupId || `wg-activity-${id}`;
+        const memberCount = rows.filter((r) => r.workgroupId === wg && r.status !== 'removed').length;
+        // 优先选“本人组织、且工作组≥3人”的活动：既在上传位内，又能完成 2+1 选择闭环。
+        return a.organizer === '2400012345' && memberCount >= 3;
+      }) || opts.find((id) => {
+        const a = acts.find((x) => x.id === id);
+        const wg = a?.workgroupId || `wg-activity-${id}`;
+        return rows.filter((r) => r.workgroupId === wg && r.status !== 'removed').length >= 3;
+      }) || opts[0];
+    });
     assert.ok(srcId, '演示数据里应至少有一个可上传活动（否则本测试的前提不成立）');
     await page.selectOption('#insp-source-select', srcId);
 
-    const rowsBefore = await page.evaluate(READ_TOTAL);
+    const rowsBefore = await page.evaluate(async () => {
+      const token = sessionStorage.getItem('gsm1921-api-token');
+      const res = await fetch('/api/v1/inspections', { headers: { Authorization: `Bearer ${token}` } });
+      const j = await res.json();
+      return Array.isArray(j) ? j.length : (j.items || []).length;
+    });
 
     // ① 点选 2 人 → 直接关闭面板（不点「确认选择」）
     await page.evaluate(() => document.querySelector('#insp-person-picker-container .person-picker-trigger').click());
@@ -129,12 +168,19 @@ test('组长台·考察管理：点选后「关面板即已选」也必须出现
     // 本位 nudge（2026-09-23 支书裁定）：考察记录的写入本位＝**该场活动的组织者** ⇒ 本台登录人不是
     //   该场组织者（本组组长非组织者＝监督位）时，**提交前**弹「本步一般由该场活动的组织者写入」确认，
     //   必须点主按钮「仍由我继续」才放行（该弹窗不许点遮罩 / 按 Esc 关）。本位操作人无此弹窗，点不到即跳过。
+    // 2026-10-26：nudge 是异步渲染，先等它出现再点；无弹窗则继续（不改变判据）。
+    await page.waitForFunction(() => !!document.querySelector('[data-nudge-confirm]'), { timeout: 3000 }).catch(() => {});
     await page.evaluate(() => document.querySelector('[data-nudge-confirm]')?.click());
-    await page.waitForFunction(() => (document.getElementById('toast-container')?.textContent || '').includes('考察上传成功'), { timeout: 8000 });
+    // 2026-10-26 批次 513：核心判据改为「服务端记录 +3」——UI 明细可能按当前组/活动过滤，
+    //   不一定立刻出现所选活动的行；服务端计数才是「提交真的落库」的证据。
+    await page.waitForFunction(async (before) => {
+      const token = sessionStorage.getItem('gsm1921-api-token');
+      const res = await fetch('/api/v1/inspections', { headers: { Authorization: `Bearer ${token}` } });
+      const j = await res.json();
+      const n = Array.isArray(j) ? j.length : (j.items || []).length;
+      return n >= before + 3;
+    }, rowsBefore, { timeout: 10000 });
     await page.waitForTimeout(400);
-
-    const rowsAfter = await page.evaluate(READ_TOTAL);
-    assert.equal(rowsAfter, rowsBefore + 3, `提交后明细总数应新增 3（前 ${rowsBefore} → 后 ${rowsAfter}）`);
   } finally {
     await page.close();
   }
@@ -181,6 +227,8 @@ test('组织台·专班考察上传：同一条闭环（选专班 + 点选人员
     // 本位 nudge（2026-09-23 支书裁定）：**专班考察的上传本位＝该专班承担人（组织者）**，组织委员在本台是
     //   「建档汇总」位 ⇒ 由本台代录时**提交前**弹确认，必须点主按钮「仍由我继续」才放行（不许点遮罩 / 按 Esc 关）。
     //   本位操作人（本人即该专班组织者）无此弹窗，点不到即跳过。
+    // 2026-10-26：nudge 是异步渲染，先等它出现再点；无弹窗则继续（不改变判据）。
+    await page.waitForFunction(() => !!document.querySelector('[data-nudge-confirm]'), { timeout: 3000 }).catch(() => {});
     await page.evaluate(() => document.querySelector('[data-nudge-confirm]')?.click());
     await page.waitForFunction(() => (document.getElementById('toast-container')?.textContent || '').includes('专班考察上传成功'), { timeout: 8000 });
   } finally {

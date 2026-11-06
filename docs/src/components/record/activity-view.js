@@ -4,17 +4,21 @@
 // 日历视图（复用 calendar.js 渲染引擎）+ 只读活动详情（点击日历条目）。
 // 形态依据支书第四轮裁定：「支书的日历视图只要删去写入活动等功能，就可以提供很好的活动详情」。
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261018h';
-import { renderCalendarByActivities } from './calendar.js?v=20261018h';
-import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261018h';
-import { badgeHtml } from '../ui/badges.js?v=20261018h';
-import { ROLE_COLORS, dotDarkVars, isActivityArchived } from '../../core/domain/constants.js?v=20261018h';
-import { activityLifecycleBadgeHtml } from './inspector.js?v=20261018h';
-import { getPersonById } from '../../services/member/person.js?v=20261018h';
-import { AuthStore } from '../../services/core/auth.js?v=20261018h';
-import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261018h';
+import { getAppState, setState } from '../../core/base/state.js?v=20261102b';
+import { renderCalendarByActivities } from './calendar.js?v=20261102b';
+import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261102b';
+import { badgeHtml } from '../ui/badges.js?v=20261102b';
+import { ROLE_COLORS, dotDarkVars, isActivityArchived, activityTypeBadgeVariant } from '../../core/domain/constants.js?v=20261102b';
+import { activityLifecycleBadgeHtml } from './inspector.js?v=20261102b';
+import { getPersonById } from '../../services/member/person.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+// 批次 524（D）：只读由权限派生，不再写死「· 只读」字符串
+import { readonlyMeta } from '../../core/domain/view-capability.js?v=20261102b';
+import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261102b';
 // 表决组件（AV4.5 公共端：复用 activity.html 同款 renderVoteWidget，授权按 voterIds 判定）
-import { renderVoteWidget } from '../governance/vote-widget.js?v=20261018h';
+import { renderVoteWidget } from '../governance/vote-widget.js?v=20261102b';
+// Task 6：本组件常驻「工作概况」页内预览 ⇒ locate：保留预览 + 「打开完整页」。
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261102b';
 
 // 任务状态元数据（状态点 + 文案，轻量自包含，避免依赖 status-badge 全家桶）
 const _TASK_STATUS_META = {
@@ -44,12 +48,13 @@ export function renderActivityView(container, opts = {}) {
   // 骨架（首次渲染，tab 重渲染时保留容器）
   if (container.dataset.avInited !== '1') {
     container.dataset.avInited = '1';
+    const scopeMeta = ['全支部', readonlyMeta('activity', AuthStore.getCurrentUser())].filter(Boolean).join(' · ');
     container.innerHTML = `
       <div class="card rounded-xl p-5">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">活动查看</h3>
           <div class="flex items-center gap-3">
-            <span class="text-xs text-gray-500">全支部活动一览 · 点击条目查看详情（只读）</span>
+            <span class="text-xs text-gray-500">${scopeMeta}</span>
             <button class="btn-outline av-export-btn h-8 px-3.5 inline-flex items-center gap-1.5 text-xs font-medium">导出 CSV</button>
           </div>
         </div>
@@ -102,7 +107,11 @@ export function renderActivityView(container, opts = {}) {
   }
 
   // ── 日历（复用 calendar.js 渲染引擎；点击活动条目 → setState → 本组件重渲染详情）──
-  renderCalendarByActivities({ ...state, activities }, displayMonth);
+  // 2026-11-02 批次 526：本组件也被「活动动态」页复用，该页没有日历容器；
+  //   无容器时跳过，避免 console.error 噪声（F8 P1）。
+  if (document.getElementById('cal-main-grid')) {
+    renderCalendarByActivities({ ...state, activities }, displayMonth);
+  }
 
   // ── 详情面板：URL 携带 activityId 时优先展示（兜底 state.selectedActivityId）──
   _renderDetail(state, activities, tasks, highlightId, !!opts.readonly);
@@ -112,7 +121,7 @@ export function renderActivityView(container, opts = {}) {
     setTimeout(() => {
       const item = container.querySelector(`.cal-activity-item[data-act-id="${highlightId}"]`);
       if (item) {
-        item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        smoothScroll(item, { block: 'center' });
         flashHighlight(item);
         // 通知调用方：定位完成，可清除导航目标（防重渲染反复定位）
         if (typeof opts.onLocated === 'function') opts.onLocated();
@@ -127,7 +136,7 @@ function _renderDetail(state, activities, tasks, highlightId, readonly = false) 
   if (!panel) return;
   const actId = state.selectedActivityId || highlightId;
   if (!actId) {
-    panel.innerHTML = '<div class="text-sm text-gray-500 text-center py-8">点击日历中的活动条目查看详情</div>';
+    panel.innerHTML = '<div class="text-sm text-gray-500 text-center py-8">未选择活动</div>';
     return;
   }
   const act = activities.find(a => a.id === actId);
@@ -150,18 +159,18 @@ function _renderDetail(state, activities, tasks, highlightId, readonly = false) 
   // B6④（2026-09-12）：readonly=true（组织台「活动查看（只读）」）→ 不挂表决组件，写法与只读标注统一
   const isAsyncVote = !readonly && !!viewer && act.voteConfig?.mode === 'async' && voteAgenda.length > 0;
   const resultBadgeHtml = (r) => (r
-    ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium ${r === 'passed' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">${r === 'passed' ? '已通过' : '未通过'}</span>`
+    ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${r === 'passed' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">${r === 'passed' ? '已通过' : '未通过'}</span>`
     : '');
   const agendaStepBadge = (a) => a.agendaStep === 'discussion'
-    ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-indigo-700 bg-indigo-50">讨论项</span>'
-    : (a.agendaStep === 'vote' ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-rose-700 bg-rose-50">表决项</span>' : '');
+    ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-indigo-700 bg-indigo-50">讨论项</span>'
+    : (a.agendaStep === 'vote' ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-rose-700 bg-rose-50">表决项</span>' : '');
   const relatedDiscussionLabel = (a) => {
     const discussion = a.discussionAgendaItemId ? agendaList.find((item) => item.id === a.discussionAgendaItemId) : null;
     return discussion ? `对应讨论：${esc(discussion.item)}` : '';
   };
   const agendaHtml = agendaList.length === 0 ? '' : `
     <div class="pt-3 border-t border-gray-100">
-      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2 flex items-center gap-1.5 flex-wrap">会议议程${isAsyncVote ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-amber-700 bg-amber-50">线上异步表决</span>' : (readonly && voteAgenda.length ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-gray-600 bg-gray-100">只读查看</span>' : '')}</h5>
+      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2 flex items-center gap-1.5 flex-wrap">会议议程${isAsyncVote ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-amber-700 bg-amber-50">线上异步表决</span>' : (readonly && voteAgenda.length ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-gray-600 bg-gray-100">只读查看</span>' : '')}</h5>
       <ol id="av-agenda-list" class="space-y-1.5">
         ${agendaList.map((a, i) => `
           <li class="flex items-start gap-1.5 text-xs">
@@ -173,16 +182,22 @@ function _renderDetail(state, activities, tasks, highlightId, readonly = false) 
                 ${resultBadgeHtml(a.result)}
               </div>
               ${a.host || relatedDiscussionLabel(a) ? `<div class="text-gray-500 mt-0.5">${a.host ? `（主持人：${esc(a.host)}）` : ''}${relatedDiscussionLabel(a) ? `${a.host ? ' · ' : ''}${relatedDiscussionLabel(a)}` : ''}</div>` : ''}
-              ${a.agendaStep === 'discussion' ? '<div class="text-[11px] text-gray-500 mt-1">讨论过程项；表态与决议结果记录在关联表决项</div>' : (isAsyncVote && a.id ? `<div class="vote-widget-slot" data-vote-item-id="${esc(a.id)}"></div>` : '')}
+              ${a.agendaStep === 'discussion' ? '<div class="text-xs text-gray-500 mt-1">讨论过程项；表态与决议结果记录在关联表决项</div>' : (isAsyncVote && a.id ? `<div class="vote-widget-slot" data-vote-item-id="${esc(a.id)}"></div>` : '')}
             </div>
           </li>`).join('')}
       </ol>
     </div>`;
 
+  // 2026-10-24 批次 508：活动类别徽章改走单一源 activityTypeBadgeVariant（三会一课=brand 红 / 主题党日=gold）。
+  // 原固定 'neutral' 使所有活动类别在详情面板里恒为灰色，类别信息完全丢失。
+  const fullHref = objectDetailHref('activity', act.id, { entry: 'overview-preview' });
   panel.innerHTML = `
-    <h4 class="font-title-cn text-sm font-bold text-gray-800 mb-3">${act.title || '未命名活动'}</h4>
+    <div class="flex items-start justify-between gap-2 mb-3">
+      <h4 class="font-title-cn text-sm font-bold text-gray-800">${act.title || '未命名活动'}</h4>
+      ${fullHref ? `<a href="./${fullHref}" class="link text-xs flex-shrink-0" title="打开活动完整详情页">打开完整页 →</a>` : ''}
+    </div>
     <div class="flex flex-wrap gap-1.5 mb-3">
-      ${badgeHtml(act.type || '活动', 'neutral')}
+      ${badgeHtml(act.type || '活动', activityTypeBadgeVariant(act.type))}
       ${activityLifecycleBadgeHtml(act, tasks)}
     </div>
     <div class="space-y-1.5 text-xs text-gray-600 mb-4">
@@ -195,7 +210,7 @@ function _renderDetail(state, activities, tasks, highlightId, readonly = false) 
     ${agendaHtml}
     <div class="pt-3 border-t border-gray-100">
       <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">任务节点</h5>
-      ${actTasks.length === 0 ? '<p class="text-xs text-gray-500">暂无任务节点</p>' : `
+      ${actTasks.length === 0 ? emptyStateHtml({ text: '暂无任务节点', variant: 'inline' }) : `
         <ul class="space-y-1.5">
           ${actTasks.map(t => {
             const st = _TASK_STATUS_META[t.status] || { label: t.status || '待处理', color: '#9CA3AF' };

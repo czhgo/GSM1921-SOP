@@ -1,0 +1,2805 @@
+[
+ {
+  "role": "secretary",
+  "landing": "http://127.0.0.1:3000/workspace/secretary.html",
+  "wsUrl": "http://127.0.0.1:3000/workspace/secretary.html",
+  "title": "支书工作台 — 光华管理学院本科生党支部",
+  "tabs": [
+   "今天",
+   "待办",
+   "全局概况",
+   "活动管理",
+   "支委会",
+   "党小组",
+   "通知发布",
+   "上报党委",
+   "支部分工",
+   "反馈管理"
+  ]
+ },
+ {
+  "role": "secretary",
+  "shot": "default",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/secretary.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "待办",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "全局概况",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "活动管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "支委会",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "党小组",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "通知发布",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "上报党委",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "支部分工",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "反馈管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [],
+   "failCount": 0
+  }
+ },
+ {
+  "role": "secretary",
+  "shot": "tab1",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/secretary.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待办",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "全局概况",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "活动管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "支委会",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "党小组",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "通知发布",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "上报党委",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "支部分工",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "反馈管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [
+    {
+     "text": "56",
+     "path": "div.card.rounded-xl.p-5 > div.metric-band.metric-band--static.mb-4 > span.metric-band__item > span.metric-band__value.metric-band__value--warning",
+     "fg": "rgba(245,158,11,1.00)",
+     "bg": "rgb(255,255,255)",
+     "ratio": 2.15,
+     "need": 3,
+     "size": 24,
+     "weight": 600,
+     "imageBg": [],
+     "rect": {
+      "x": 182,
+      "y": 595
+     }
+    },
+    {
+     "text": "考勤纪律 · 17 条 · 截止 2026-08-06",
+     "path": "div.list-group > div.list-row.todo-row.secretary-todo-item > div.list-row__main > div.list-row__meta",
+     "fg": "rgba(107,114,128,1.00)",
+     "bg": "rgb(251,243,220)",
+     "ratio": 4.36,
+     "need": 4.5,
+     "size": 12,
+     "weight": 400,
+     "imageBg": [],
+     "rect": {
+      "x": 177,
+      "y": 711
+     }
+    }
+   ],
+   "failCount": 2
+  }
+ },
+ {
+  "role": "secretary",
+  "shot": "tab2",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/secretary.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待办",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "全局概况",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "活动管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "支委会",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "党小组",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "通知发布",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "上报党委",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "支部分工",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "反馈管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [
+    {
+     "text": "超期",
+     "path": "tr > td.wo-line-gap > span.inline-flex.items-center.gap-2 > span",
+     "fg": "rgba(245,158,11,1.00)",
+     "bg": "rgb(255,255,255)",
+     "ratio": 2.15,
+     "need": 4.5,
+     "size": 13,
+     "weight": 400,
+     "imageBg": [],
+     "rect": {
+      "x": 1129,
+      "y": 539
+     }
+    },
+    {
+     "text": "39",
+     "path": "div.stack-page > section.metric-band.metric-band--interactive > button.metric-band__item.metric-band__item--filter > span.metric-band__value.metric-band__value--warning",
+     "fg": "rgba(245,158,11,1.00)",
+     "bg": "rgb(255,255,255)",
+     "ratio": 2.15,
+     "need": 3,
+     "size": 24,
+     "weight": 600,
+     "imageBg": [],
+     "rect": {
+      "x": 174,
+      "y": 277
+     }
+    }
+   ],
+   "failCount": 2
+  }
+ },
+ {
+  "role": "secretary",
+  "shot": "default",
+  "dark": {
+   "url": "http://127.0.0.1:3000/workspace/secretary.html",
+   "themeDark": true,
+   "bodyBg": "rgb(11, 18, 32)",
+   "bodyFg": "rgb(241, 245, 249)",
+   "tokens": {
+    "--surface-page": "#0B1220",
+    "--surface-card": "#141D2F",
+    "--surface-elevated": "#1A2438",
+    "--surface-sidebar": "#0F172A",
+    "--color-text-primary": "#F1F5F9",
+    "--color-text-secondary": "#CBD5E1",
+    "--color-text-tertiary": "#94A3B8",
+    "--color-link": "#E8C97A",
+    "--app-accent": "#E0B24C",
+    "--app-accent-soft-bg": "#2F2717",
+    "--app-accent-soft-text": "#E8C97A",
+    "--app-accent-strong-bg": "#C89A34",
+    "--app-accent-strong-ink": "#1E1503",
+    "--status-success": "#34D399",
+    "--status-warning": "#FBBF24",
+    "--status-error": "#F87171",
+    "--status-info": "#60A5FA",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#E0B24C"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待办",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "全局概况",
+     "selected": "true",
+     "color": "rgb(232, 201, 122)",
+     "bg": "rgb(47, 39, 23)",
+     "border": "rgb(84, 68, 30)"
+    },
+    {
+     "text": "活动管理",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "支委会",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "党小组",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "通知发布",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "上报党委",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "支部分工",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "反馈管理",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [
+    {
+     "text": "工作台",
+     "path": "nav.sidebar-nav > div.flex.flex-col.gap-2 > a.module-tab.active > span.font-title-cn",
+     "fg": "rgba(248,113,113,1.00)",
+     "bg": "rgb(51,65,85)",
+     "ratio": 3.74,
+     "need": 4.5,
+     "size": 13,
+     "weight": 800,
+     "imageBg": [],
+     "rect": {
+      "x": -200,
+      "y": 146
+     }
+    }
+   ],
+   "failCount": 1
+  }
+ },
+ {
+  "role": "org",
+  "landing": "http://127.0.0.1:3000/workspace/org.html",
+  "wsUrl": "http://127.0.0.1:3000/workspace/org.html",
+  "title": "组织委员工作台 — 光华管理学院本科生党支部",
+  "tabs": [
+   "今天",
+   "待办",
+   "工作概况",
+   "成员名册",
+   "人才库",
+   "思想汇报",
+   "专班管理",
+   "成员流动"
+  ]
+ },
+ {
+  "role": "org",
+  "shot": "default",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/org.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "待办",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "成员名册",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "人才库",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "思想汇报",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "专班管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "成员流动",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [],
+   "failCount": 0
+  }
+ },
+ {
+  "role": "org",
+  "shot": "tab1",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/org.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待办",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "成员名册",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "人才库",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "思想汇报",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "专班管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "成员流动",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [
+    {
+     "text": "17",
+     "path": "div.card.rounded-xl.p-5 > div.metric-band.metric-band--static.mb-4 > span.metric-band__item > span.metric-band__value.metric-band__value--warning",
+     "fg": "rgba(245,158,11,1.00)",
+     "bg": "rgb(255,255,255)",
+     "ratio": 2.15,
+     "need": 3,
+     "size": 24,
+     "weight": 600,
+     "imageBg": [],
+     "rect": {
+      "x": 182,
+      "y": 431
+     }
+    },
+    {
+     "text": "考察 · 17 条 · 截止 2026-08-14",
+     "path": "div.list-group > div.list-row.todo-row.org-todo-item > div.list-row__main > div.list-row__meta",
+     "fg": "rgba(107,114,128,1.00)",
+     "bg": "rgb(251,243,220)",
+     "ratio": 4.36,
+     "need": 4.5,
+     "size": 12,
+     "weight": 400,
+     "imageBg": [],
+     "rect": {
+      "x": 177,
+      "y": 547
+     }
+    }
+   ],
+   "failCount": 2
+  }
+ },
+ {
+  "role": "org",
+  "shot": "tab2",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/org.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待办",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "成员名册",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "人才库",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "思想汇报",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "专班管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "成员流动",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [],
+   "failCount": 0
+  }
+ },
+ {
+  "role": "org",
+  "shot": "default",
+  "dark": {
+   "url": "http://127.0.0.1:3000/workspace/org.html",
+   "themeDark": true,
+   "bodyBg": "rgb(11, 18, 32)",
+   "bodyFg": "rgb(241, 245, 249)",
+   "tokens": {
+    "--surface-page": "#0B1220",
+    "--surface-card": "#141D2F",
+    "--surface-elevated": "#1A2438",
+    "--surface-sidebar": "#0F172A",
+    "--color-text-primary": "#F1F5F9",
+    "--color-text-secondary": "#CBD5E1",
+    "--color-text-tertiary": "#94A3B8",
+    "--color-link": "#E8C97A",
+    "--app-accent": "#E0B24C",
+    "--app-accent-soft-bg": "#2F2717",
+    "--app-accent-soft-text": "#E8C97A",
+    "--app-accent-strong-bg": "#C89A34",
+    "--app-accent-strong-ink": "#1E1503",
+    "--status-success": "#34D399",
+    "--status-warning": "#FBBF24",
+    "--status-error": "#F87171",
+    "--status-info": "#60A5FA",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#E0B24C"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待办",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "true",
+     "color": "rgb(232, 201, 122)",
+     "bg": "rgb(47, 39, 23)",
+     "border": "rgb(84, 68, 30)"
+    },
+    {
+     "text": "成员名册",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "人才库",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "思想汇报",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "专班管理",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "成员流动",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [
+    {
+     "text": "工作台",
+     "path": "nav.sidebar-nav > div.flex.flex-col.gap-2 > a.module-tab.active > span.font-title-cn",
+     "fg": "rgba(248,113,113,1.00)",
+     "bg": "rgb(51,65,85)",
+     "ratio": 3.74,
+     "need": 4.5,
+     "size": 13,
+     "weight": 800,
+     "imageBg": [],
+     "rect": {
+      "x": -200,
+      "y": 146
+     }
+    }
+   ],
+   "failCount": 1
+  }
+ },
+ {
+  "role": "prop",
+  "landing": "http://127.0.0.1:3000/workspace/prop.html",
+  "wsUrl": "http://127.0.0.1:3000/workspace/prop.html",
+  "title": "宣传委员工作台 — 光华管理学院本科生党支部",
+  "tabs": [
+   "今天",
+   "待办",
+   "工作概况",
+   "项目看板",
+   "档案归档"
+  ]
+ },
+ {
+  "role": "prop",
+  "shot": "default",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/prop.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "待办",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "项目看板",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "档案归档",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [],
+   "failCount": 0
+  }
+ },
+ {
+  "role": "prop",
+  "shot": "tab1",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/prop.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待办",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "项目看板",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "档案归档",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [
+    {
+     "text": "归档宣传 · 截止 2026-11-01",
+     "path": "div.list-group > div.list-row.todo-row.prop-todo-item > div.list-row__main > div.list-row__meta",
+     "fg": "rgba(107,114,128,1.00)",
+     "bg": "rgb(251,243,220)",
+     "ratio": 4.36,
+     "need": 4.5,
+     "size": 12,
+     "weight": 400,
+     "imageBg": [],
+     "rect": {
+      "x": 177,
+      "y": 547
+     }
+    }
+   ],
+   "failCount": 1
+  }
+ },
+ {
+  "role": "prop",
+  "shot": "tab2",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/prop.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待办",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "项目看板",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "档案归档",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [],
+   "failCount": 0
+  }
+ },
+ {
+  "role": "prop",
+  "shot": "default",
+  "dark": {
+   "url": "http://127.0.0.1:3000/workspace/prop.html",
+   "themeDark": true,
+   "bodyBg": "rgb(11, 18, 32)",
+   "bodyFg": "rgb(241, 245, 249)",
+   "tokens": {
+    "--surface-page": "#0B1220",
+    "--surface-card": "#141D2F",
+    "--surface-elevated": "#1A2438",
+    "--surface-sidebar": "#0F172A",
+    "--color-text-primary": "#F1F5F9",
+    "--color-text-secondary": "#CBD5E1",
+    "--color-text-tertiary": "#94A3B8",
+    "--color-link": "#E8C97A",
+    "--app-accent": "#E0B24C",
+    "--app-accent-soft-bg": "#2F2717",
+    "--app-accent-soft-text": "#E8C97A",
+    "--app-accent-strong-bg": "#C89A34",
+    "--app-accent-strong-ink": "#1E1503",
+    "--status-success": "#34D399",
+    "--status-warning": "#FBBF24",
+    "--status-error": "#F87171",
+    "--status-info": "#60A5FA",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#E0B24C"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待办",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "true",
+     "color": "rgb(232, 201, 122)",
+     "bg": "rgb(47, 39, 23)",
+     "border": "rgb(84, 68, 30)"
+    },
+    {
+     "text": "项目看板",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "档案归档",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [
+    {
+     "text": "工作台",
+     "path": "nav.sidebar-nav > div.flex.flex-col.gap-2 > a.module-tab.active > span.font-title-cn",
+     "fg": "rgba(248,113,113,1.00)",
+     "bg": "rgb(51,65,85)",
+     "ratio": 3.74,
+     "need": 4.5,
+     "size": 13,
+     "weight": 800,
+     "imageBg": [],
+     "rect": {
+      "x": -200,
+      "y": 146
+     }
+    }
+   ],
+   "failCount": 1
+  }
+ },
+ {
+  "role": "disc",
+  "landing": "http://127.0.0.1:3000/workspace/disc.html",
+  "wsUrl": "http://127.0.0.1:3000/workspace/disc.html",
+  "title": "纪检委员工作台 — 光华管理学院本科生党支部",
+  "tabs": [
+   "今天",
+   "待办",
+   "工作概况",
+   "考勤管理",
+   "复盘",
+   "考察管理"
+  ]
+ },
+ {
+  "role": "disc",
+  "shot": "default",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/disc.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "待办",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "考勤管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "复盘",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "考察管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [],
+   "failCount": 0
+  }
+ },
+ {
+  "role": "disc",
+  "shot": "tab1",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/disc.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待办",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "考勤管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "复盘",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "考察管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [
+    {
+     "text": "考勤纪律 · 15 条",
+     "path": "div.list-group > div.list-row.todo-row.disc-todo-item > div.list-row__main > div.list-row__meta",
+     "fg": "rgba(107,114,128,1.00)",
+     "bg": "rgb(251,243,220)",
+     "ratio": 4.36,
+     "need": 4.5,
+     "size": 12,
+     "weight": 400,
+     "imageBg": [],
+     "rect": {
+      "x": 177,
+      "y": 547
+     }
+    }
+   ],
+   "failCount": 1
+  }
+ },
+ {
+  "role": "disc",
+  "shot": "tab2",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/disc.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待办",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "考勤管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "复盘",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "考察管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [
+    {
+     "text": "超期",
+     "path": "tr > td.wo-line-gap > span.inline-flex.items-center.gap-2 > span",
+     "fg": "rgba(245,158,11,1.00)",
+     "bg": "rgb(255,255,255)",
+     "ratio": 2.15,
+     "need": 4.5,
+     "size": 13,
+     "weight": 400,
+     "imageBg": [],
+     "rect": {
+      "x": 1105,
+      "y": 539
+     }
+    },
+    {
+     "text": "27",
+     "path": "div.stack-page > section.metric-band.metric-band--interactive > button.metric-band__item.metric-band__item--filter > span.metric-band__value.metric-band__value--warning",
+     "fg": "rgba(245,158,11,1.00)",
+     "bg": "rgb(255,255,255)",
+     "ratio": 2.15,
+     "need": 3,
+     "size": 24,
+     "weight": 600,
+     "imageBg": [],
+     "rect": {
+      "x": 174,
+      "y": 277
+     }
+    }
+   ],
+   "failCount": 2
+  }
+ },
+ {
+  "role": "disc",
+  "shot": "default",
+  "dark": {
+   "url": "http://127.0.0.1:3000/workspace/disc.html",
+   "themeDark": true,
+   "bodyBg": "rgb(11, 18, 32)",
+   "bodyFg": "rgb(241, 245, 249)",
+   "tokens": {
+    "--surface-page": "#0B1220",
+    "--surface-card": "#141D2F",
+    "--surface-elevated": "#1A2438",
+    "--surface-sidebar": "#0F172A",
+    "--color-text-primary": "#F1F5F9",
+    "--color-text-secondary": "#CBD5E1",
+    "--color-text-tertiary": "#94A3B8",
+    "--color-link": "#E8C97A",
+    "--app-accent": "#E0B24C",
+    "--app-accent-soft-bg": "#2F2717",
+    "--app-accent-soft-text": "#E8C97A",
+    "--app-accent-strong-bg": "#C89A34",
+    "--app-accent-strong-ink": "#1E1503",
+    "--status-success": "#34D399",
+    "--status-warning": "#FBBF24",
+    "--status-error": "#F87171",
+    "--status-info": "#60A5FA",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#E0B24C"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待办",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "true",
+     "color": "rgb(232, 201, 122)",
+     "bg": "rgb(47, 39, 23)",
+     "border": "rgb(84, 68, 30)"
+    },
+    {
+     "text": "考勤管理",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "复盘",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "考察管理",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [
+    {
+     "text": "工作台",
+     "path": "nav.sidebar-nav > div.flex.flex-col.gap-2 > a.module-tab.active > span.font-title-cn",
+     "fg": "rgba(248,113,113,1.00)",
+     "bg": "rgb(51,65,85)",
+     "ratio": 3.74,
+     "need": 4.5,
+     "size": 13,
+     "weight": 800,
+     "imageBg": [],
+     "rect": {
+      "x": -200,
+      "y": 146
+     }
+    }
+   ],
+   "failCount": 1
+  }
+ },
+ {
+  "role": "leader",
+  "landing": "http://127.0.0.1:3000/workspace/leader.html",
+  "wsUrl": "http://127.0.0.1:3000/workspace/leader.html",
+  "title": "党小组组长工作台 — 光华管理学院本科生党支部",
+  "tabs": [
+   "今天",
+   "待办",
+   "工作概况",
+   "本组活动",
+   "考勤管理",
+   "组员进展"
+  ]
+ },
+ {
+  "role": "leader",
+  "shot": "default",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/leader.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "待办",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "本组活动",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "考勤管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "组员进展",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [],
+   "failCount": 0
+  }
+ },
+ {
+  "role": "leader",
+  "shot": "tab1",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/leader.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待办",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "本组活动",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "考勤管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "组员进展",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [],
+   "failCount": 0
+  }
+ },
+ {
+  "role": "leader",
+  "shot": "tab2",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/leader.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待办",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "本组活动",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "考勤管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "组员进展",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [
+    {
+     "text": "10",
+     "path": "div.stack-page > section.metric-band.metric-band--interactive > button.metric-band__item.metric-band__item--filter > span.metric-band__value.metric-band__value--warning",
+     "fg": "rgba(245,158,11,1.00)",
+     "bg": "rgb(255,255,255)",
+     "ratio": 2.15,
+     "need": 3,
+     "size": 24,
+     "weight": 600,
+     "imageBg": [],
+     "rect": {
+      "x": 174,
+      "y": 277
+     }
+    }
+   ],
+   "failCount": 1
+  }
+ },
+ {
+  "role": "leader",
+  "shot": "default",
+  "dark": {
+   "url": "http://127.0.0.1:3000/workspace/leader.html",
+   "themeDark": true,
+   "bodyBg": "rgb(11, 18, 32)",
+   "bodyFg": "rgb(241, 245, 249)",
+   "tokens": {
+    "--surface-page": "#0B1220",
+    "--surface-card": "#141D2F",
+    "--surface-elevated": "#1A2438",
+    "--surface-sidebar": "#0F172A",
+    "--color-text-primary": "#F1F5F9",
+    "--color-text-secondary": "#CBD5E1",
+    "--color-text-tertiary": "#94A3B8",
+    "--color-link": "#E8C97A",
+    "--app-accent": "#E0B24C",
+    "--app-accent-soft-bg": "#2F2717",
+    "--app-accent-soft-text": "#E8C97A",
+    "--app-accent-strong-bg": "#C89A34",
+    "--app-accent-strong-ink": "#1E1503",
+    "--status-success": "#34D399",
+    "--status-warning": "#FBBF24",
+    "--status-error": "#F87171",
+    "--status-info": "#60A5FA",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#E0B24C"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待办",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "true",
+     "color": "rgb(232, 201, 122)",
+     "bg": "rgb(47, 39, 23)",
+     "border": "rgb(84, 68, 30)"
+    },
+    {
+     "text": "本组活动",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "考勤管理",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "组员进展",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [
+    {
+     "text": "工作台",
+     "path": "nav.sidebar-nav > div.flex.flex-col.gap-2 > a.module-tab.active > span.font-title-cn",
+     "fg": "rgba(248,113,113,1.00)",
+     "bg": "rgb(51,65,85)",
+     "ratio": 3.74,
+     "need": 4.5,
+     "size": 13,
+     "weight": 800,
+     "imageBg": [],
+     "rect": {
+      "x": -200,
+      "y": 146
+     }
+    }
+   ],
+   "failCount": 1
+  }
+ },
+ {
+  "role": "visitor",
+  "landing": "http://127.0.0.1:3000/workspace/visitor.html",
+  "wsUrl": "http://127.0.0.1:3000/workspace/visitor.html",
+  "title": "成员工作台 — 光华管理学院本科生党支部",
+  "tabs": [
+   "今天",
+   "待办",
+   "工作概况",
+   "活动动态",
+   "项目分工",
+   "考勤概况",
+   "我的成长"
+  ]
+ },
+ {
+  "role": "visitor",
+  "shot": "default",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/visitor.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "待办",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "活动动态",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "项目分工",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "考勤概况",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "我的成长",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [],
+   "failCount": 0
+  }
+ },
+ {
+  "role": "visitor",
+  "shot": "tab1",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/visitor.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待办",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "活动动态",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "项目分工",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "考勤概况",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "我的成长",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [],
+   "failCount": 0
+  }
+ },
+ {
+  "role": "visitor",
+  "shot": "tab2",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/visitor.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待办",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "活动动态",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "项目分工",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "考勤概况",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "我的成长",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [
+    {
+     "text": "1",
+     "path": "div.stack-page > section.metric-band.metric-band--interactive > button.metric-band__item.metric-band__item--filter > span.metric-band__value.metric-band__value--warning",
+     "fg": "rgba(245,158,11,1.00)",
+     "bg": "rgb(255,255,255)",
+     "ratio": 2.15,
+     "need": 3,
+     "size": 24,
+     "weight": 600,
+     "imageBg": [],
+     "rect": {
+      "x": 174,
+      "y": 277
+     }
+    }
+   ],
+   "failCount": 1
+  }
+ },
+ {
+  "role": "visitor",
+  "shot": "default",
+  "dark": {
+   "url": "http://127.0.0.1:3000/workspace/visitor.html",
+   "themeDark": true,
+   "bodyBg": "rgb(11, 18, 32)",
+   "bodyFg": "rgb(241, 245, 249)",
+   "tokens": {
+    "--surface-page": "#0B1220",
+    "--surface-card": "#141D2F",
+    "--surface-elevated": "#1A2438",
+    "--surface-sidebar": "#0F172A",
+    "--color-text-primary": "#F1F5F9",
+    "--color-text-secondary": "#CBD5E1",
+    "--color-text-tertiary": "#94A3B8",
+    "--color-link": "#E8C97A",
+    "--app-accent": "#E0B24C",
+    "--app-accent-soft-bg": "#2F2717",
+    "--app-accent-soft-text": "#E8C97A",
+    "--app-accent-strong-bg": "#C89A34",
+    "--app-accent-strong-ink": "#1E1503",
+    "--status-success": "#34D399",
+    "--status-warning": "#FBBF24",
+    "--status-error": "#F87171",
+    "--status-info": "#60A5FA",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#E0B24C"
+   },
+   "tabInfo": [
+    {
+     "text": "今天",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待办",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "工作概况",
+     "selected": "true",
+     "color": "rgb(232, 201, 122)",
+     "bg": "rgb(47, 39, 23)",
+     "border": "rgb(84, 68, 30)"
+    },
+    {
+     "text": "活动动态",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "项目分工",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "考勤概况",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "我的成长",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [
+    {
+     "text": "工作台",
+     "path": "nav.sidebar-nav > div.flex.flex-col.gap-2 > a.module-tab.active > span.font-title-cn",
+     "fg": "rgba(248,113,113,1.00)",
+     "bg": "rgb(51,65,85)",
+     "ratio": 3.74,
+     "need": 4.5,
+     "size": 13,
+     "weight": 800,
+     "imageBg": [],
+     "rect": {
+      "x": -200,
+      "y": 146
+     }
+    }
+   ],
+   "failCount": 1
+  }
+ },
+ {
+  "role": "party-committee",
+  "landing": "http://127.0.0.1:3000/workspace/party-committee.html",
+  "wsUrl": "http://127.0.0.1:3000/workspace/party-committee.html",
+  "title": "党委工作台 — 光华管理学院党委",
+  "tabs": [
+   "下发通知",
+   "支部上报",
+   "支部管理",
+   "待批复 1",
+   "已处理 0"
+  ]
+ },
+ {
+  "role": "party-committee",
+  "shot": "default",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/party-committee.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "下发通知",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "支部上报",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "支部管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待批复 1",
+     "selected": "true",
+     "color": "rgb(169, 122, 18)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgb(169, 122, 18)"
+    },
+    {
+     "text": "已处理 0",
+     "selected": "false",
+     "color": "rgb(75, 85, 99)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgb(75, 85, 99) rgb(75, 85, 99) rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [
+    {
+     "text": "待批复",
+     "path": "div.page-section-stack > section.card.p-5 > div.subtabs > button#pc-review-tab-pending.subtab",
+     "fg": "rgba(169,122,18,1.00)",
+     "bg": "rgb(255,255,255)",
+     "ratio": 3.83,
+     "need": 4.5,
+     "size": 14,
+     "weight": 600,
+     "imageBg": [],
+     "rect": {
+      "x": 101,
+      "y": 392
+     }
+    },
+    {
+     "text": "1",
+     "path": "section.card.p-5 > div.subtabs > button#pc-review-tab-pending.subtab > span.ml-1.tabular-nums",
+     "fg": "rgba(169,122,18,1.00)",
+     "bg": "rgb(255,255,255)",
+     "ratio": 3.83,
+     "need": 4.5,
+     "size": 14,
+     "weight": 600,
+     "imageBg": [],
+     "rect": {
+      "x": 162,
+      "y": 400
+     }
+    }
+   ],
+   "failCount": 2
+  }
+ },
+ {
+  "role": "party-committee",
+  "shot": "tab1",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/party-committee.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "下发通知",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "支部上报",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    },
+    {
+     "text": "支部管理",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "待批复 1",
+     "selected": "true",
+     "color": "rgb(169, 122, 18)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgb(169, 122, 18)"
+    },
+    {
+     "text": "已处理 0",
+     "selected": "false",
+     "color": "rgb(75, 85, 99)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgb(75, 85, 99) rgb(75, 85, 99) rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [
+    {
+     "text": "待批复",
+     "path": "div.page-section-stack > section.card.p-5 > div.subtabs > button#pc-review-tab-pending.subtab",
+     "fg": "rgba(169,122,18,1.00)",
+     "bg": "rgb(255,255,255)",
+     "ratio": 3.83,
+     "need": 4.5,
+     "size": 14,
+     "weight": 600,
+     "imageBg": [],
+     "rect": {
+      "x": 101,
+      "y": 392
+     }
+    },
+    {
+     "text": "1",
+     "path": "section.card.p-5 > div.subtabs > button#pc-review-tab-pending.subtab > span.ml-1.tabular-nums",
+     "fg": "rgba(169,122,18,1.00)",
+     "bg": "rgb(255,255,255)",
+     "ratio": 3.83,
+     "need": 4.5,
+     "size": 14,
+     "weight": 600,
+     "imageBg": [],
+     "rect": {
+      "x": 162,
+      "y": 400
+     }
+    }
+   ],
+   "failCount": 2
+  }
+ },
+ {
+  "role": "party-committee",
+  "shot": "tab2",
+  "light": {
+   "url": "http://127.0.0.1:3000/workspace/party-committee.html",
+   "themeDark": false,
+   "bodyBg": "rgb(250, 250, 245)",
+   "bodyFg": "rgb(31, 41, 55)",
+   "tokens": {
+    "--surface-page": "#FAFAF5",
+    "--surface-card": "#FFFFFF",
+    "--surface-elevated": "#FFFFFF",
+    "--surface-sidebar": "#FFFFFF",
+    "--color-text-primary": "#1F2937",
+    "--color-text-secondary": "#4B5563",
+    "--color-text-tertiary": "#6B7280",
+    "--color-link": "#6E4E08",
+    "--app-accent": "#A97A12",
+    "--app-accent-soft-bg": "#FBF3DC",
+    "--app-accent-soft-text": "#6E4E08",
+    "--app-accent-strong-bg": "#9A6B0F",
+    "--app-accent-strong-ink": "#FFFFFF",
+    "--status-success": "#10B981",
+    "--status-warning": "#F59E0B",
+    "--status-error": "#EF4444",
+    "--status-info": "#3B82F6",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#1F2937"
+   },
+   "tabInfo": [
+    {
+     "text": "下发通知",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "支部上报",
+     "selected": "false",
+     "color": "rgb(31, 41, 55)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "支部管理",
+     "selected": "true",
+     "color": "rgb(110, 78, 8)",
+     "bg": "rgb(251, 243, 220)",
+     "border": "rgb(232, 213, 163)"
+    }
+   ],
+   "failures": [],
+   "failCount": 0
+  }
+ },
+ {
+  "role": "party-committee",
+  "shot": "default",
+  "dark": {
+   "url": "http://127.0.0.1:3000/workspace/party-committee.html",
+   "themeDark": true,
+   "bodyBg": "rgb(11, 18, 32)",
+   "bodyFg": "rgb(241, 245, 249)",
+   "tokens": {
+    "--surface-page": "#0B1220",
+    "--surface-card": "#141D2F",
+    "--surface-elevated": "#1A2438",
+    "--surface-sidebar": "#0F172A",
+    "--color-text-primary": "#F1F5F9",
+    "--color-text-secondary": "#CBD5E1",
+    "--color-text-tertiary": "#94A3B8",
+    "--color-link": "#E8C97A",
+    "--app-accent": "#E0B24C",
+    "--app-accent-soft-bg": "#2F2717",
+    "--app-accent-soft-text": "#E8C97A",
+    "--app-accent-strong-bg": "#C89A34",
+    "--app-accent-strong-ink": "#1E1503",
+    "--status-success": "#34D399",
+    "--status-warning": "#FBBF24",
+    "--status-error": "#F87171",
+    "--status-info": "#60A5FA",
+    "--color-category-three-meetings": "#CE1126",
+    "--color-category-theme-day": "#A16207",
+    "--color-category-other": "#6B7280",
+    "--focus-ring": "#E0B24C"
+   },
+   "tabInfo": [
+    {
+     "text": "下发通知",
+     "selected": "false",
+     "color": "rgb(241, 245, 249)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgba(0, 0, 0, 0)"
+    },
+    {
+     "text": "支部上报",
+     "selected": "true",
+     "color": "rgb(232, 201, 122)",
+     "bg": "rgb(47, 39, 23)",
+     "border": "rgb(84, 68, 30)"
+    },
+    {
+     "text": "支部管理",
+     "selected": "false",
+     "color": "rgb(226, 232, 240)",
+     "bg": "rgb(51, 65, 85)",
+     "border": "rgb(51, 65, 85)"
+    },
+    {
+     "text": "待批复 1",
+     "selected": "true",
+     "color": "rgb(224, 178, 76)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgb(224, 178, 76)"
+    },
+    {
+     "text": "已处理 0",
+     "selected": "false",
+     "color": "rgb(203, 213, 225)",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "rgb(203, 213, 225) rgb(203, 213, 225) rgba(0, 0, 0, 0)"
+    }
+   ],
+   "failures": [
+    {
+     "text": "工作台",
+     "path": "nav.sidebar-nav > div.flex.flex-col.gap-2 > a.module-tab.active > span.font-title-cn",
+     "fg": "rgba(248,113,113,1.00)",
+     "bg": "rgb(51,65,85)",
+     "ratio": 3.74,
+     "need": 4.5,
+     "size": 13,
+     "weight": 800,
+     "imageBg": [],
+     "rect": {
+      "x": -200,
+      "y": 146
+     }
+    }
+   ],
+   "failCount": 1
+  }
+ }
+]

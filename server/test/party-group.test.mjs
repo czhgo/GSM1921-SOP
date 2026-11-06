@@ -10,7 +10,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20261018h';
+const V = '?v=20261102b';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const CAP_DIR = join(SRC_DIR, 'capabilities');
@@ -48,7 +48,6 @@ test('S1 全站不得写死组名清单（白名单＝种子/档案语料/演示
     'data/mock/people.js',            // 成员档案语料（partyGroup 取值）
     'data/mock/activities.js',        // 活动语料（hostGroup 取值）
     'data/mock/attendance.js',        // 考勤语料（partyGroup 快照）
-    'services/governance/todo.js',          // 待办种子文案（「设置第三党小组组长」）
     'core/domain/domain.js',            // 演示用户域（u_leader_N 名称文案，非清单判定源）
   ]);
   const offenders = [];
@@ -153,45 +152,45 @@ test('D1 活组清单：种子三组、按 seq 升序、已解散组不入清单
 });
 
 test('D2 新增：默认命名「第 N 党小组」、活组重名拒绝、非管理者拒绝', async () => {
-  const denied = await pgMod.addGroup({ name: '第四党小组', by: 'p3', role: 'participant' });
+  const denied = await pgMod.addGroup({ name: '第四党小组', by: '2400012347', role: 'participant' });
   assert.equal(denied.ok, false, '普通成员不得增组');
 
-  const created = await pgMod.addGroup({ by: 'p13', role: 'secretary' });
+  const created = await pgMod.addGroup({ by: '2300010001', role: 'secretary' });
   assert.equal(created.ok, true);
   assert.equal(created.group.name, '第4党小组', '留空即按组序默认命名');
   assert.equal(created.group.status, 'active');
 
-  const dup = await pgMod.addGroup({ name: '第4党小组', by: 'p13', role: 'secretary' });
+  const dup = await pgMod.addGroup({ name: '第4党小组', by: '2300010001', role: 'secretary' });
   assert.equal(dup.ok, false, '同支部活组不得重名');
 
   // 收尾：撤销本用例新建的组（避免影响后续用例口径）
-  await pgMod.dissolveGroup(created.group.id, { by: 'p13', role: 'secretary', note: '单测收尾' });
+  await pgMod.dissolveGroup(created.group.id, { by: '2300010001', role: 'secretary', note: '单测收尾' });
   assert.deepEqual(pgMod.groupOptions(), ['第一党小组', '第二党小组', '第三党小组']);
 });
 
 test('D3 改名：批量改写该组成员档案的 partyGroup', async () => {
-  const created = await pgMod.addGroup({ name: '临时党小组', by: 'p13', role: 'secretary' });
+  const created = await pgMod.addGroup({ name: '临时党小组', by: '2300010001', role: 'secretary' });
   assert.equal(created.ok, true);
   const members = personMod.PersonStore.getMembers().filter(p => p.branchId === 'br-b1').slice(0, 2);
   for (const m of members) {
-    await pgMod.assignMemberToGroup(m.id, '临时党小组', { by: 'p13', role: 'secretary' });
+    await pgMod.assignMemberToGroup(m.id, '临时党小组', { by: '2300010001', role: 'secretary' });
   }
-  const renamed = await pgMod.renameGroup(created.group.id, '临时党小组（改名）', { by: 'p13', role: 'secretary' });
+  const renamed = await pgMod.renameGroup(created.group.id, '临时党小组（改名）', { by: '2300010001', role: 'secretary' });
   assert.equal(renamed.ok, true);
   assert.equal(renamed.movedCount, 2, '改名须同步改写组内 2 名成员');
   const after = members.map(m => personMod.getPersonById(m.id));
   assert.ok(after.every(p => p.partyGroup === '临时党小组（改名）'), '成员档案党小组须随之改名');
   assert.equal(pgMod.groupOptions().includes('临时党小组'), false, '旧组名退出活组清单');
   assert.equal(pgMod.groupOptions().includes('临时党小组（改名）'), true, '新组名进入活组清单');
-  await pgMod.dissolveGroup(created.group.id, { by: 'p13', role: 'secretary', note: '单测收尾' });
+  await pgMod.dissolveGroup(created.group.id, { by: '2300010001', role: 'secretary', note: '单测收尾' });
 });
 
 test('D4 解散非空组：成员转「未分组」、组状态转已解散、不可重复解散', async () => {
-  const created = await pgMod.addGroup({ name: '待解散党小组', by: 'p13', role: 'secretary' });
+  const created = await pgMod.addGroup({ name: '待解散党小组', by: '2300010001', role: 'secretary' });
   const m = personMod.PersonStore.getMembers().find(p => p.branchId === 'br-b1');
-  await pgMod.assignMemberToGroup(m.id, '待解散党小组', { by: 'p13', role: 'secretary' });
+  await pgMod.assignMemberToGroup(m.id, '待解散党小组', { by: '2300010001', role: 'secretary' });
 
-  const dis = await pgMod.dissolveGroup(created.group.id, { by: 'p13', role: 'secretary', note: '毕业离校批次' });
+  const dis = await pgMod.dissolveGroup(created.group.id, { by: '2300010001', role: 'secretary', note: '毕业离校批次' });
   assert.equal(dis.ok, true);
   assert.equal(dis.movedCount, 1, '组内 1 人须转为未分组');
   assert.equal(personMod.getPersonById(m.id).partyGroup, '', '解散后成员党小组为空（未分组）');
@@ -199,7 +198,7 @@ test('D4 解散非空组：成员转「未分组」、组状态转已解散、�
   assert.equal(ent.status, 'dissolved');
   assert.ok(ent.dissolvedAt, '解散须留痕时间');
   assert.equal(pgMod.groupOptions().includes('待解散党小组'), false, '已解散组不入活组清单');
-  const again = await pgMod.dissolveGroup(created.group.id, { by: 'p13', role: 'secretary' });
+  const again = await pgMod.dissolveGroup(created.group.id, { by: '2300010001', role: 'secretary' });
   assert.equal(again.ok, false, '不可重复解散');
 });
 

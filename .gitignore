@@ -20,6 +20,7 @@ desktop.ini
 server/data.db
 server/data.*.db*
 server/uploads/
+server/debug.log
 
 # Build output (project uses ESM directly, no bundler needed)
 docs/dist

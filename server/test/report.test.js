@@ -3,6 +3,16 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261102b';
+import { monthKeyOf } from '../../docs/src/data/mock/demo-window.js?v=20261102b';
+
+// 演示种子日期（单一源）：排序后取首尾，测试锚点随种子窗口自动跟随，不再写死月份。
+const ACTIVITY_DATES = ACTIVITIES.map((a) => a.date).sort();
+const REPORT_FROM = ACTIVITY_DATES[0];
+const REPORT_TO = ACTIVITY_DATES[ACTIVITY_DATES.length - 1];
+const FILTER_MONTH = monthKeyOf(REPORT_FROM);
+const FILTER_FROM = `${FILTER_MONTH}-01`;
+const FILTER_TO = `${FILTER_MONTH}-31`;
 
 let server, base, token, partyToken;
 
@@ -14,13 +24,13 @@ before(async () => {
   const login = await fetch(`${base}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ personId: 'p13', password: '123456' }),
+    body: JSON.stringify({ personId: '2300010001', password: '123456' }),
   });
   token = (await login.json()).token;
   const partyLogin = await fetch(`${base}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ personId: 'p_pc', password: '123456' }),
+    body: JSON.stringify({ personId: '9000000001', password: '123456' }),
   });
   partyToken = (await partyLogin.json()).token;
 });
@@ -43,13 +53,13 @@ test('activity 域 JSON 拉取（全时段）', async () => {
 });
 
 test('activity 域 from/to 时段过滤', async () => {
-  // 2026-09-06 基线刷新：3–6 月旧批活动已重排至 7 月，过滤窗口改用 2026-07
-  const res = await fetch(`${base}/api/v1/report/activity?from=2026-07-01&to=2026-07-31`, {
+  // 过滤窗口取种子最早活动的所在月（数据推导，换演示窗口时自动跟随）
+  const res = await fetch(`${base}/api/v1/report/activity?from=${FILTER_FROM}&to=${FILTER_TO}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const body = await res.json();
   assert.ok(body.count > 0);
-  assert.ok(body.items.every(i => i.date >= '2026-07-01' && i.date <= '2026-07-31'));
+  assert.ok(body.items.every(i => i.date >= FILTER_FROM && i.date <= FILTER_TO));
 });
 
 test('member 域返回全量成员档案（脱敏：默认不报联系方式）', async () => {
@@ -72,7 +82,14 @@ test('attendance 域仅输出已确认数据（排除 pending）', async () => {
 });
 
 test('export CSV 导出（BOM + 表头 + 数据行）', async () => {
-  const res = await fetch(`${base}/api/v1/report/export?domain=activity&from=2026-01-01&to=2026-12-31`, {
+  // 先取同窗口 JSON 的首条活动日期（数据推导），CSV 行由同一 extractDomain 生成 ⇒ 必含该日期
+  const jsonRes = await fetch(`${base}/api/v1/report/activity?from=${REPORT_FROM}&to=${REPORT_TO}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const firstActivityDate = (await jsonRes.json()).items[0]?.date;
+  assert.ok(firstActivityDate, '活动域应有数据，否则 CSV 日期断言无意义');
+
+  const res = await fetch(`${base}/api/v1/report/export?domain=activity&from=${REPORT_FROM}&to=${REPORT_TO}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   assert.equal(res.status, 200);
@@ -81,7 +98,7 @@ test('export CSV 导出（BOM + 表头 + 数据行）', async () => {
   assert.deepEqual([...bytes.slice(0, 3)], [0xef, 0xbb, 0xbf], 'CSV 应带 UTF-8 BOM');
   const text = new TextDecoder('utf-8').decode(bytes);
   assert.match(text, /title/);
-  assert.match(text, /2026-07-01/);  // 2026-09-06 基线刷新：act-1 由 3/15 重排至 7/1
+  assert.ok(text.includes(firstActivityDate), `CSV 应含首条活动日期 ${firstActivityDate}`);
 });
 
 test('未知数据域返回 400', async () => {

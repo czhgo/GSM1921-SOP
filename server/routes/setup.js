@@ -18,7 +18,11 @@
 // ════════════════════════════════════════════════════════════════
 import express from 'express';
 import { requireAuth } from './auth.js';
-import { PARTY_STAFF_ROLE } from '../../docs/src/core/domain/constants.js';
+import { PARTY_STAFF_ROLE, DEFAULT_BRANCH_ID } from '../../docs/src/core/domain/constants.js';
+// 支部显示名单一源（与服务端系统通知共用）＝ docs/src/core/domain/review-request-labels.js::branchDisplayName
+// （`config.headerTitle` → `name`；支部行缺失时回中性「本支部」）；支部行读取复用资源层既有 getRow。
+import { getRow } from './resources/store.js';
+import { branchDisplayName } from '../../docs/src/core/domain/review-request-labels.js';
 
 const has = (k) => !!(process.env[k] && String(process.env[k]).trim());
 const isProd = () => process.env.APP_ENV === 'production' || process.env.NODE_ENV === 'production';
@@ -39,7 +43,7 @@ export function createSetupRouter(db) {
       LOGIN_PASSWORD_IS_DEFAULT: process.env.LOGIN_PASSWORD === '123456',
       DB_PATH: has('DB_PATH'),
       UPLOAD_DIR: has('UPLOAD_DIR'),
-      SEED_FALLBACK_OFF: process.env.SEED_FALLBACK === '0',
+      SEED_FALLBACK_OFF: process.env.SEED_FALLBACK === undefined ? isProd() : process.env.SEED_FALLBACK === '0',
       MAIL_ENABLED: process.env.MAIL_ENABLED === 'true',
       IAAA_APP_ID: has('IAAA_APP_ID'),
       IAAA_REDIRECT_URI: has('IAAA_REDIRECT_URI'),
@@ -50,7 +54,7 @@ export function createSetupRouter(db) {
     const users = db.prepare('SELECT data FROM users').all().map((r) => JSON.parse(r.data));
     // 「演示名册成员」的**包无关**判据：演示人的 id 形如 `p1`…`p50`（短 `p`＋数字）——
     //   ⚠ 不能用「id ∈ PEOPLE」：发布包里 `docs/src/data/mock/people.js` 已被**空壳化**（`PEOPLE = []`），
-    //   那样判据会**恒真**（等于没检）。而基线党委账号是 `p_pc`、IAAA 自建号是 `p_<uuid12>` ⇒ 都不会被误判。
+    //   那样判据会**恒真**（等于没检）。而基线党委账号是工号 `9000000001` ⇒ 不会被误判（判据只认旧版 `p<数字>` 残留）。
     const demoAccounts = users.filter((u) => /^p\d{1,3}$/.test(String(u.id))).length;
     const dbStat = {
       partyStaff: users.filter((u) => u.role === 'party-staff').length,
@@ -61,6 +65,11 @@ export function createSetupRouter(db) {
       users: users.length,
       schemaVersion: db.pragma('user_version', { simple: true }),
     };
+
+    // 支部名运行期读取（换部署实例后不再写死学院/支部名；读不到回中性「本支部」）
+    let baselineBranch = null;
+    try { baselineBranch = getRow(db, 'branches', DEFAULT_BRANCH_ID); } catch (_) { /* 表缺失 ⇒ 中性兜底 */ }
+    const baselineBranchName = branchDisplayName('', baselineBranch);
 
     // ── 「还需要改什么」清单（**口径单一源**：面板不再自己判断）──
     const checklist = [
@@ -78,7 +87,7 @@ export function createSetupRouter(db) {
         howto: '不关的话，考勤/考察/待办空表会注入演示数据' },
       { id: 'baseline', ok: dbStat.partyStaff >= 1 && dbStat.branches >= 1,
         label: '组织基线已建立（党委账号 ≥1 ＋ 支部 ≥1）',
-        howto: '空库首启会自动建立（党委 1 ＋ 支部「光华管理学院本科生党支部」）；若为 0，检查启动日志' },
+        howto: `空库首启会自动建立（党委 1 ＋ 支部「${baselineBranchName}」）；若为 0，检查启动日志` },
       { id: 'no-demo', ok: dbStat.demoAccounts === 0,
         label: '库内没有演示名册残留（演示种子账号 = 0）',
         howto: '看启动日志「自检 · 演示种子账号=…」，应为 0；>0 说明库是从演示库来的 ⇒ 用空库重新起步（先备份再迁真人数据）' },

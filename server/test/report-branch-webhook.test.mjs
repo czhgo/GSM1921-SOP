@@ -67,7 +67,7 @@ test('党委手动触发必须选择一个支部，并投递到该支部专属�
     const base = `http://127.0.0.1:${server.address().port}`;
     const login = await fetch(`${base}/api/v1/auth/login`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ personId: 'p_pc', password: '123456' }),
+      body: JSON.stringify({ personId: '9000000001', password: '123456' }),
     });
     assert.equal(login.status, 200);
     const token = (await login.json()).token;

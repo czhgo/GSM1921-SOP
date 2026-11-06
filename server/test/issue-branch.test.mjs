@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20261018h';
+const V = '?v=20261102b';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const ISSUES_JSON = join(ROOT, 'docs', 'data', 'issues.json');
@@ -86,10 +86,10 @@ test('S2 写入口径锁定：前端 submitIssue/approveDraft 与服务端 POST/
   const resources = read(join(ROOT, 'server', 'routes', 'resources', 'index.js'));
   assert.match(resources, /const branchId = actorBranchId\(actor\)/, 'server POST 须取登录人所属支部（权威），党委不得回落默认支部');
   // PowerShell checkout uses CRLF; allow either LF or CRLF between record fields.
-  assert.match(resources, /branchId,\r?\n\s*title,/, 'server 落库记录须含 branchId');
+  assert.match(resources, /branchId,\r?\n\s*title:/, 'server 落库记录须含 branchId');
 
   const seed = read(join(ROOT, 'server', 'seed.js'));
-  assert.match(seed, /branchId:\s*r\.branchId \|\| 'br-b1'/, 'seedIssues 播种须补 branchId（缺省部署默认支部）');
+  assert.match(seed, /branchId:\s*r\.branchId \|\| DEFAULT_BRANCH_ID/, 'seedIssues 播种须补 branchId（缺省支部单一源）');
 });
 
 test('S3 读取过滤单一源：issues.js 经 branch.js 的 withinBranch 收敛（勿另写第二套支部口径）', () => {
@@ -98,10 +98,11 @@ test('S3 读取过滤单一源：issues.js 经 branch.js 的 withinBranch 收敛
     '须 import branch.js 单一源（withinBranch/getBranchIdOfPerson）——2026-09-28 目录分层后 issues.js 在 services/governance/、branch.js 在 services/branch/，相对路径为 ../branch/branch.js');
   assert.match(issues, /function _withinViewerBranch\(list\) \{\s*if \(!_hasBranchFeedbackAccess\(\)\) return \[\];\s*return withinBranch\(list \|\| \[\], _viewerId\(\)\);/,
     '登录且有支部归属后，过滤器须经 withinBranch 单一源实现');
-  const n = (issues.match(/_withinViewerBranch\(/g) || []).length;
-  assert.ok(n >= 12, `列表出口均须按 viewer 所属支部过滤（实际接线 ${n} 处，期望 ≥12）`);
+  // 2026-10-21 批次 498：读口在支部过滤之上再加受众投影（`_visibleIssues`），两件都算「已接线」
+  const n = (issues.match(/_withinViewerBranch\(|_visibleIssues\(/g) || []).length;
+  assert.ok(n >= 12, `列表出口均须按 viewer 所属支部过滤并做受众投影（实际接线 ${n} 处，期望 ≥12）`);
   // getSecretaryPendingReports / getAssignedToRole 等此前未过滤的出口须覆盖
-  assert.match(issues, /getAssignedToRole\(role\) \{\s*return _withinViewerBranch/, 'getAssignedToRole 须按支部过滤');
+  assert.match(issues, /getAssignedToRole\(role\) \{\s*return _visibleIssues\(/, 'getAssignedToRole 须按支部过滤并做受众投影');
 });
 
 test('S4 成员参与接线：getMyIssues 出口 + 我的处置 tab「我提交/参与的反馈」区', () => {
@@ -110,7 +111,9 @@ test('S4 成员参与接线：getMyIssues 出口 + 我的处置 tab「我提交/
   // 渲染相关断言改读组件 components/feedback/issue-dispatch-view.js；数据出口断言仍读服务层。
   const view = read(join(SRC_DIR, 'components', 'feedback', 'issue-dispatch-view.js'));
   assert.match(issues, /getMyIssues\(userId\) \{/, 'IssueStore 须暴露 getMyIssues（我提交/参与的反馈）');
-  assert.match(view, /mydispatch-myissues-host/, 'renderMyDispatchTab 须渲染成员参与区宿主');
+  // 2026-10-21 R3-08：四段收为两段——我提交/参与并入「我已处理」宿主（不再单列 myissues 宿主）
+  assert.match(view, /mydispatch-done-host/, 'renderMyDispatchTab 须渲染成员参与区宿主（我已处理）');
+  assert.match(view, /getMyIssues\(userId\)/, '我已处理段须并入我提交/参与的反馈');
   assert.match(view, /function _renderMyIssueDetail\(/, '成员答复详情须存在（追加说明，issue 答复口径）');
   // 成员参与绝不放大写权：详情仅 addComment('comment')，不出现提交处置结果/关闭
   const seg = view.slice(view.indexOf('function _renderMyIssueDetail('));
@@ -118,15 +121,22 @@ test('S4 成员参与接线：getMyIssues 出口 + 我的处置 tab「我提交/
   assert.ok(!/submit-result/.test(seg), '成员参与详情不得提供「提交处置结果」（写权不外扩）');
 });
 
-test('S5 组长/成员「我的处置」：我提交/参与段前移，提交与已读逻辑不变', () => {
+test('S5 组长/成员「我的处置」：两段结构、打开行才标已读、令牌说明移 help', () => {
   const view = read(join(SRC_DIR, 'components', 'feedback', 'issue-dispatch-view.js'));
-  assert.match(view, /renderMyDispatchTab\(role, userId, opts = \{\}\)/, '渲染入口须接受段序选项');
-  assert.match(view, /bindMyDispatchEvents\(container, role, userId, opts = \{\}\)/, '事件绑定须透传段序选项');
-  assert.match(view, /opts\.myIssuesFirst[\s\S]{0,140}\[myIssuesHtml, reqHtml, myReportsHtml, assignedHtml\]/, '我提交/参与段须可前移为第一段');
-  assert.match(view, /unread\.forEach\(id => IssueNotify\.markRead\(userId, id\)\);/, '整批标已读逻辑不得改动');
+  assert.match(view, /renderMyDispatchTab\(role, userId, opts = \{\}\)/, '渲染入口须保留角色 / 用户参数');
+  assert.match(view, /bindMyDispatchEvents\(container, role, userId, opts = \{\}\)/, '事件绑定须透传选项');
+  // 2026-10-21 R3-08：四段收两段（待我处理 / 我已处理）。
+  assert.match(view, /id="mydispatch-pending-host"/, '须有「待我处理」段宿主');
+  assert.match(view, /id="mydispatch-done-host"/, '须有「我已处理」段宿主');
+  assert.doesNotMatch(view, /mydispatch-(?:req|issues|myreports|myissues)-host/, '四段旧宿主不得回潮');
+  // 渲染时不得整批 markRead；改为打开行时标记（详情渲染内逐条 markRead）。
+  assert.doesNotMatch(view, /unread\.forEach\(id => IssueNotify\.markRead\(userId, id\)\);/, '不得整批 markRead');
+  assert.match(view, /IssueNotify\.markRead\(userId, issueId\)/, '打开行时才标记已读');
+  // 100 字令牌机制说明移 help，界面只留一句短提示 + help 深链。
+  assert.doesNotMatch(view, /随机令牌比对|不以提交人身份为判据/, '长令牌说明不得留在界面');
+  assert.match(view, /\.\/help\.html#card-dom39-my-dispatch/, '令牌说明的完整口径须指向 help');
   for (const role of ['leader', 'visitor']) {
     const tab = read(join(SRC_DIR, 'entries', 'tabs', role, 'my-dispatch-tab.js'));
-    assert.match(tab, /myIssuesFirst: true/, `${role} 台须声明我提交/参与段前置`);
     assert.match(tab, /renderMyDispatchTab\('(?:leader|participant)', uid, opts\)/, `${role} 台须把选项传入渲染入口`);
     assert.match(tab, /bindMyDispatchEvents\(el, '(?:leader|participant)', uid, opts\)/, `${role} 台须把选项传入事件绑定`);
   }
@@ -137,9 +147,11 @@ test('S5 组长/成员「我的处置」：我提交/参与段前移，提交与
 test('D1 存量迁移：缓存各条均带 branchId；viewer 取到本支部 issue', async () => {
   const data = JSON.parse(read(ISSUES_JSON));
   await beginIssueCase(data.issues);
-  loginAs('p5', 'participant');
+  loginAs('2400012349', 'participant');
   const all = IssueStore.getAll();
-  assert.equal(all.length, data.issues.length, 'br-b1 viewer 可见全部存量 issue');
+  // 2026-10-21 批次 498：内部汇报（kind='report'）只给支书层与当事人，普通成员列表只含公开反馈。
+  const visible = data.issues.filter((i) => i.kind !== 'report');
+  assert.equal(all.length, visible.length, 'br-b1 viewer 可见本支部公开反馈（不含他人内部汇报）');
   for (const i of all) {
     assert.ok(i.branchId, `读取到的 issue ${i.id} 须带 branchId`);
     assert.equal(i.branchId, 'br-b1');
@@ -150,12 +162,12 @@ test('D1 存量迁移：缓存各条均带 branchId；viewer 取到本支部 iss
 });
 
 test('D2 跨支部不可见：br-b1 viewer 取不到 br-b2 issue，反之亦然', async () => {
-  const A = { id: 'issue-a', number: 101, branchId: 'br-b1', title: '甲支部反馈', status: 'open', submittedBy: 'p5', participants: ['p5'], comments: [], commentCount: 0 };
+  const A = { id: 'issue-a', number: 101, branchId: 'br-b1', title: '甲支部反馈', status: 'open', submittedBy: '2400012349', participants: ['2400012349'], comments: [], commentCount: 0 };
   const B = { id: 'issue-b', number: 102, branchId: 'br-b2', title: '乙支部反馈', status: 'open', submittedBy: 'pX', participants: ['pX'], comments: [], commentCount: 0 };
   await beginIssueCase([A, B]);
 
-  // br-b1 viewer（p5）→ 只见甲支部
-  loginAs('p5', 'participant');
+  // br-b1 viewer（2400012349）→ 只见甲支部
+  loginAs('2400012349', 'participant');
   assert.deepEqual(IssueStore.getAll().map((i) => i.id), ['issue-a'], 'br-b1 viewer 仅见本支部');
   assert.ok(IssueStore.getById('issue-a'), '本支部 issue 可取');
   assert.equal(IssueStore.getById('issue-b'), undefined, '跨支部 issue 不可见（getById）');
@@ -170,28 +182,28 @@ test('D2 跨支部不可见：br-b1 viewer 取不到 br-b2 issue，反之亦然'
 });
 
 test('D3 成员参与答复：participant 可对自己提交的 issue 追加说明（作者/计数落库）', async () => {
-  const A = { id: 'issue-a', number: 201, branchId: 'br-b1', title: '我提的反馈', status: 'open', submittedBy: 'p5', participants: ['p5'], comments: [], commentCount: 0 };
+  const A = { id: 'issue-a', number: 201, branchId: 'br-b1', title: '我提的反馈', status: 'open', submittedBy: '2400012349', participants: ['2400012349'], comments: [], commentCount: 0 };
   await beginIssueCase([A]);
-  loginAs('p5', 'participant');
+  loginAs('2400012349', 'participant');
 
-  const mine = IssueStore.getMyIssues('p5');
+  const mine = IssueStore.getMyIssues('2400012349');
   assert.equal(mine.length, 1, '我提交的反馈进入「我提交/参与的反馈」');
   assert.equal(mine[0].id, 'issue-a');
 
-  const updated = IssueStore.addComment('issue-a', 'p5', 'participant', '我再补充一点说明', 'comment');
+  const updated = IssueStore.addComment('issue-a', '2400012349', 'participant', '我再补充一点说明', 'comment');
   assert.ok(updated, '追加说明成功');
   assert.equal(updated.commentCount, 1, 'commentCount +1');
   const last = updated.comments[updated.comments.length - 1];
-  assert.equal(last.author, 'p5', '评论作者 = 本人');
+  assert.equal(last.author, '2400012349', '评论作者 = 本人');
   assert.equal(last.body, '我再补充一点说明');
   assert.equal(last.kind, 'comment', '成员答复 kind = comment（非处置结果）');
 
   // 持久化回缓存（后续读取一致）
   const cached = JSON.parse(_store.get(CACHE_KEY)).find((i) => i.id === 'issue-a');
   assert.equal(cached.commentCount, 1, '缓存已落库');
-  assert.equal(cached.comments[cached.comments.length - 1].author, 'p5');
+  assert.equal(cached.comments[cached.comments.length - 1].author, '2400012349');
 
   // 权限边界：成员不因参与答复获得「处置他人反馈」能力（指派处置仍按原角色口径）
-  assert.deepEqual(IssueStore.getAssignedTo('p5'), [], '成员无被指派处置项');
+  assert.deepEqual(IssueStore.getAssignedTo('2400012349'), [], '成员无被指派处置项');
   assert.ok(AuthStore.getCurrentUser()?.role === 'participant', '身份为成员 participant');
 });

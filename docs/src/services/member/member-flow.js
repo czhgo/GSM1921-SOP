@@ -9,7 +9,7 @@
 //     + 记台账一笔。
 //   · 流出 = **登记即生效**：软标记移出（保留原记录 + 标注已转出）+ 记台账一笔 + 账号停用 + 留痕。
 //   · 撤销 = 台账行写 revokedAt/revokedBy 留痕并回滚成员在册状态（登错可纠正；不做物理删除）。
-//   · 批量：流入支持「粘贴多行」（一行一人，Tab/逗号分隔：姓名/学号/届别/党小组）；
+//   · 批量：流入支持「粘贴多行」（一行一人，Tab/逗号分隔：姓名/学号/届别/党小组/备注/发展阶段）；
 //     流出支持勾选多人。
 //   · 权限门（单一源 core/domain/constants.js::MEMBER_FLOW_ROLES = 组织委员 + 支书/副支书）：
 //     UI 显隐与写口双重校验同源（canRegisterFlow）；server 写门（resources.js）同源。
@@ -17,19 +17,18 @@
 //  依赖：core(domain/data-adapter/id/version-token/constants) + services(person/member-confirmation/accounts)。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261018h';
-import { persist, getDataSource } from '../../data/data-adapter.js?v=20261018h';
-import { generateId } from '../../core/base/id.js?v=20261018h';
-import { bumpToken } from '../../core/base/version-token.js?v=20261018h';
+import { mockDB } from '../../core/domain/domain.js?v=20261102b';
+import { persist, getDataSource } from '../../data/data-adapter.js?v=20261102b';
+import { generateId } from '../../core/base/id.js?v=20261102b';
+import { bumpToken } from '../../core/base/version-token.js?v=20261102b';
 // 登记角色集单一源（勿手写角色名单——roles-sync 守卫会拦）
-import { MEMBER_FLOW_ROLES } from '../../core/domain/constants.js?v=20261018h';
-import { MEMBER_FLOWS } from '../../data/mock/index.js?v=20261018h';
-import { PersonStore } from './person.js?v=20261018h';
-import { submitTransferOut } from './member-confirmation.js?v=20261018h';
-import { createAccount, deactivateAccount, reactivateAccount } from '../core/accounts.js?v=20261018h';
+import { MEMBER_FLOW_ROLES, DEFAULT_BRANCH_ID, DEVELOP_STAGES } from '../../core/domain/constants.js?v=20261102b';
+import { MEMBER_FLOWS } from '../../data/mock/index.js?v=20261102b';
+import { PersonStore } from './person.js?v=20261102b';
+import { submitTransferOut } from './member-confirmation.js?v=20261102b';
+import { createAccount, deactivateAccount, reactivateAccount } from '../core/accounts.js?v=20261102b';
 
-/** 缺省支部（与 mock-adapter/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
-const DEFAULT_BRANCH_ID = 'br-b1';
+// R2-17：缺省支部单一源 = core/domain/constants.js::DEFAULT_BRANCH_ID（老数据无 branchId 视为 br-b1）。
 /** 无权限文案（UI 与服务层同源） */
 const DENY_REGISTER = '成员流入/流出登记仅限组织委员或支书/副支书';
 
@@ -99,13 +98,14 @@ export function reconcile({ branchId } = {}) {
  * @param {string} params.studentId  学号（必填；账号由此派生，全站唯一）
  * @param {string} [params.enrollYear] 届别/入学年份
  * @param {string} [params.partyGroup] 党小组
+ * @param {string} params.developStage 发展阶段（必填；枚举单一源 core/domain/constants.js::DEVELOP_STAGES）
  * @param {string} [params.note]      备注
  * @param {string} [params.by]        操作人 personId
  * @param {string} [params.role]      操作人角色（服务层双重校验）
  * @param {string} [params.branchId]  归属支部（缺省 br-b1）
  * @returns {Promise<{ok:true, person:Object, flow:Object, account:Object|null}|{ok:false, reason:string}>}
  */
-export async function registerIntake({ name, studentId, enrollYear, partyGroup, note, by, role, branchId } = {}) {
+export async function registerIntake({ name, studentId, enrollYear, partyGroup, developStage, note, by, role, branchId } = {}) {
   if (!canRegisterFlow(role)) return { ok: false, reason: DENY_REGISTER };
   const branch = branchId || DEFAULT_BRANCH_ID;
   const nm = String(name == null ? '' : name).trim();
@@ -114,13 +114,18 @@ export async function registerIntake({ name, studentId, enrollYear, partyGroup, 
   if (!sid) return { ok: false, reason: '学号不能为空（账号由学号派生）' };
   const year = String(enrollYear == null ? '' : enrollYear).trim();
   const group = String(partyGroup == null ? '' : partyGroup).trim();
+  // 发展阶段必填（A01）：空阶段会让成员不被计入应到 / 表决名单，且无人提示 ⇒ 在写口拒绝，
+  //   枚举单一源 = core/domain/constants.js::DEVELOP_STAGES（勿另造枚举）。
+  const stage = String(developStage == null ? '' : developStage).trim();
+  if (!stage) return { ok: false, reason: `发展阶段不能为空（请选择${DEVELOP_STAGES.join(' / ')}）` };
+  if (!DEVELOP_STAGES.includes(stage)) return { ok: false, reason: `发展阶段须为${DEVELOP_STAGES.join(' / ')}之一` };
   // 学号唯一性（全站档案；学号天然唯一，防同一学号两人）
   const dup = PersonStore.getMembers().find(p => String(p.studentId || '') === sid);
   if (dup) return { ok: false, reason: `学号 ${sid} 已存在（成员「${dup.name || dup.id}」），不可重复建档` };
   // 建成员档案（治理字段 role/branchId 不入 api 语义端点 → 仅 mock 形态携带 branchId；
   //   api 形态走成员流动专用流入端点 POST /members/intake：强制归操作人支部 + 默认 role=participant，
   //   写门＝组织委员 + 支书/副支书，与 canRegisterFlow 同源 —— 2026-09-14 批次 30 裁定 Q-23-10）
-  const payload = { name: nm, studentId: sid, enrollYear: year, partyGroup: group };
+  const payload = { name: nm, studentId: sid, enrollYear: year, partyGroup: group, developStage: stage };
   if (getDataSource() === 'mock') payload.branchId = branch;
   const saved = await PersonStore.saveMember(payload, { by, memberFlowIntake: true });
   if (!saved.ok) return { ok: false, reason: saved.reason || '成员建档失败' };
@@ -138,6 +143,7 @@ export async function registerIntake({ name, studentId, enrollYear, partyGroup, 
     studentId: sid,
     enrollYear: year,
     partyGroup: group,
+    developStage: stage,
     date: at.slice(0, 10),
     note: String(note == null ? '' : note).trim(),
     by: by || null,
@@ -149,14 +155,14 @@ export async function registerIntake({ name, studentId, enrollYear, partyGroup, 
   return { ok: true, person, flow, account: acct.account || null };
 }
 
-/** 批量粘贴解析：Tab / 半角逗号 / 全角逗号分隔；列序 姓名/学号/届别/党小组；跳空行 */
+/** 批量粘贴解析：Tab / 半角逗号 / 全角逗号分隔；列序 姓名/学号/届别/党小组/备注/发展阶段；跳空行 */
 function _parseIntakeLine(raw) {
   return String(raw).split(/[\t,，]/).map(s => s.trim());
 }
 
 /**
- * 批量流入登记（粘贴多行，一行一人；Tab/逗号分隔：姓名/学号/届别/党小组）。
- * 跳空行；逐行给出行号级错误（line = 原始文本 1 起行号）。
+ * 批量流入登记（粘贴多行，一行一人；Tab/逗号分隔：姓名/学号/届别/党小组/备注/发展阶段）。
+ * 第 5 列＝备注（A09），第 6 列＝发展阶段（A01 必填）；跳空行；逐行给出行号级错误。
  * @param {Object} params
  * @param {string} params.text      粘贴文本
  * @param {string} [params.by]
@@ -172,8 +178,8 @@ export async function registerIntakeBatch({ text, by, role, branchId } = {}) {
   for (let i = 0; i < lines.length; i++) {
     const raw = lines[i];
     if (!raw || !raw.trim()) continue; // 跳空行
-    const [name, studentId, enrollYear, partyGroup] = _parseIntakeLine(raw);
-    const r = await registerIntake({ name, studentId, enrollYear, partyGroup, by, role, branchId });
+    const [name, studentId, enrollYear, partyGroup, note, developStage] = _parseIntakeLine(raw);
+    const r = await registerIntake({ name, studentId, enrollYear, partyGroup, note, developStage, by, role, branchId });
     if (r.ok) created.push(r);
     else errors.push({ line: i + 1, reason: r.reason || '登记失败' });
   }

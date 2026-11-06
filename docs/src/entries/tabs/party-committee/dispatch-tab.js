@@ -1,21 +1,34 @@
 // Party dispatch reuses the notice domain; this page separates composing from sent history.
-import { mockDB } from '../../../core/domain/domain.js?v=20261018h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018h';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261018h';
-import { textField, textareaField } from '../../../components/ui/forms.js?v=20261018h';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261018h';
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261018h';
-import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018h';
+import { mockDB } from '../../../core/domain/domain.js?v=20261102b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261102b';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261102b';
+import { textField, textareaField } from '../../../components/ui/forms.js?v=20261102b';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261102b';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261102b';
+import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261102b';
 
 const BRANCH_FILTER_STATE = 'pc-dispatch';
-const initialView = new URLSearchParams(window.location.search).get('view');
-let dispatchView = initialView === 'history' ? 'history' : 'compose';
+// 2026-10-24 批次 508：`view` 是**工作台壳的既有协议参数**（`view=activities` 一类旧导航落点），
+//   壳在导航时会消费并清掉它 ⇒ 本页原来的 `location.search.get('view')` 永远读不到，恒落「撰写」。
+//   现改为：① 读壳透传的 `ctx.navTarget.view`（布尔，仅表示旧导航落点，不是本页视图名）；
+//   ② 本页视图名深链统一用 `subview`（壳不清该参数，由承载页自行消费）；
+//   两者都没有 ⇒ 默认「撰写」，不再保留永远读不到的 `location.search?view=` 分支。
+let dispatchView = null;
 let draft = null;
+
+/** 首帧视图（只消费一次；之后由页内切换/`subview` 记忆决定） */
+function _initialView(ctx) {
+  const navView = ctx?.navTarget?.view;
+  const fromCtx = typeof navView === 'string' ? navView : '';
+  const fromQuery = new URLSearchParams(window.location.search).get('subview') || '';
+  return (fromCtx || fromQuery) === 'history' ? 'history' : 'compose';
+}
 
 function setDispatchView(view) {
   dispatchView = view === 'history' ? 'history' : 'compose';
   const url = new URL(window.location.href);
-  url.searchParams.set('view', dispatchView);
+  // 2026-10-24 批次 508：写回与读取侧同名（`subview`）——写 `view` 会被壳清掉、下次进页读不到
+  url.searchParams.set('subview', dispatchView);
   window.history.replaceState({}, '', url);
 }
 
@@ -31,10 +44,12 @@ function readDraft(el) {
   };
 }
 
-export function renderContent() {
+export function renderContent(ctx) {
   const host = document.getElementById('party-committee-tab-content');
   if (!host) return;
   host.dataset.currentTab = 'dispatch';
+  // 2026-10-24 批次 508：首帧视图只消费一次（后续重渲染沿用页内当前视图，不被 URL 回拉）
+  if (dispatchView == null) dispatchView = _initialView(ctx);
   const actor = AuthStore.getCurrentUser();
   if (!actor) return;
   draft = readDraft(host) || draft || {
@@ -43,6 +58,7 @@ export function renderContent() {
   };
 
   host.innerHTML = `
+    ${renderTabHeader({ title: '下发通知', description: '通知送达所选支部的支委层；收件人在通知铃铛中查看。' })}
     <div class="page-section-stack">
       <div class="subtabs" role="tablist" aria-label="通知工作区">
         <button id="pc-dispatch-tab-compose" type="button" class="subtab" data-dispatch-view="compose" role="tab" aria-controls="pc-dispatch-panel" aria-selected="${dispatchView === 'compose'}" tabindex="${dispatchView === 'compose' ? '0' : '-1'}">撰写</button>
@@ -83,7 +99,7 @@ function composeHtml(state) {
   const branches = mockDB.branches || [];
   const selected = new Set(state.branchIds || []);
   return `
-    <section aria-labelledby="dispatch-compose-title" class="card page-section page-section--form p-5">
+    <div class="card page-section page-section--form p-5">
       ${renderSectionHeader({ titleId: 'dispatch-compose-title', title: '撰写一条党委通知', description: '通知送达所选支部的支委层；收件人在通知铃铛中查看。', level: 3 })}
       <fieldset id="dispatch-branches" class="mt-4">
         <legend class="text-sm font-medium text-gray-800">目标支部 <span class="text-red-700">*</span></legend>
@@ -107,7 +123,7 @@ function composeHtml(state) {
       <div class="mt-5 flex justify-end border-t border-gray-200 pt-4">
         <button id="dispatch-submit" type="button" class="btn-accent px-4 py-2 text-sm font-medium">下发通知</button>
       </div>
-    </section>`;
+    </div>`;
 }
 
 function bindComposer(host) {

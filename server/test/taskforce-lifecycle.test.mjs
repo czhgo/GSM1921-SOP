@@ -10,9 +10,9 @@
 // 注意：mockDB/服务均带 ?v= 导入保证与 services 模块缓存同一实例。
 import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018h';
-import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261018h';
-import { getDataSource, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018h';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261102b';
+import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261102b';
+import { getDataSource, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261102b';
 
 const ORIGINAL_TASKFORCES = mockDB.taskforces;
 const ORIGINAL_WORKGROUP_TASKS = mockDB.workgroupTasks;
@@ -27,8 +27,8 @@ function addTf(overrides = {}) {
     name: '测试专班',
     task: '测试任务',
     status: 'draft',
-    manager: 'p11',
-    initiator: 'p11',
+    manager: '2400012355',
+    initiator: '2400012355',
     members: [],
     capacity: 3,
     deadline: '2026-09-30',
@@ -52,7 +52,7 @@ afterEach(() => {
 // ── A. 报送支委会：状态门禁 ─────────────────────────────────────
 test('A1 submitForCommittee initiate：draft/pending_review 可报；recruiting/active 拒绝', () => {
   const tfDraft = addTf({ status: 'draft' });
-  const r1 = TaskForceRecordStore.submitForCommittee(tfDraft.id, { kind: 'initiate', by: 'p11', note: '请支委会审议' });
+  const r1 = TaskForceRecordStore.submitForCommittee(tfDraft.id, { kind: 'initiate', by: '2400012355', note: '请支委会审议' });
   assert.ok(r1, 'draft 可报送发起');
   assert.equal(r1.committeeRequest.kind, 'initiate');
   assert.equal(r1.committeeRequest.status, 'pending');
@@ -96,7 +96,7 @@ test('API 空支部不灌演示专班；旧含义不明 localStorage 键原样�
 
 test('A2 submitForCommittee dissolve：仅 active 可报解散；recruiting 拒绝', () => {
   const tfActive = addTf({ status: 'active' });
-  const r = TaskForceRecordStore.submitForCommittee(tfActive.id, { kind: 'dissolve', by: 'p11' });
+  const r = TaskForceRecordStore.submitForCommittee(tfActive.id, { kind: 'dissolve', by: '2400012355' });
   assert.ok(r);
   assert.equal(r.committeeRequest.kind, 'dissolve');
 
@@ -157,9 +157,9 @@ test('C1 listCommitteeRequests：仅 pending、先报先议、字段齐全', () 
   const tf2 = addTf({ status: 'active', name: 'B 专班', task: '任务B' });
   const tf3 = addTf({ status: 'draft', name: 'C 专班', task: '任务C' });
   // 按序报送：B(解散)→A(发起)→C(发起)；tf2 之外补一个已决专班不含 pending
-  TaskForceRecordStore.submitForCommittee(tf2.id, { kind: 'dissolve', by: 'p11', note: '任务完成' });
-  TaskForceRecordStore.submitForCommittee(tf1.id, { kind: 'initiate', by: 'p11', note: '请审议' });
-  TaskForceRecordStore.submitForCommittee(tf3.id, { kind: 'initiate', by: 'p13' });
+  TaskForceRecordStore.submitForCommittee(tf2.id, { kind: 'dissolve', by: '2400012355', note: '任务完成' });
+  TaskForceRecordStore.submitForCommittee(tf1.id, { kind: 'initiate', by: '2400012355', note: '请审议' });
+  TaskForceRecordStore.submitForCommittee(tf3.id, { kind: 'initiate', by: '2300010001' });
   // C 已表决通过 → 不再出现在归集
   TaskForceRecordStore.applyCommitteeDecision(tf3.id, { decision: 'approved' });
 
@@ -179,9 +179,9 @@ test('C1 listCommitteeRequests：仅 pending、先报先议、字段齐全', () 
 
 test('C2 listCommitteeRequests：先报先议（按报送时间升序）', () => {
   TaskForceRecordStore._records = [
-    { id: 'tf-x1', name: 'A', task: 't', status: 'draft', initiator: 'p11', createdAt: '2026-09-01', committeeRequest: { kind: 'initiate', status: 'pending', at: '2026-09-06T03:00:00.000Z' } },
-    { id: 'tf-x2', name: 'B', task: 't', status: 'active', initiator: 'p13', createdAt: '2026-09-02', committeeRequest: { kind: 'dissolve', status: 'pending', at: '2026-09-06T01:00:00.000Z' } },
-    { id: 'tf-x3', name: 'C', task: 't', status: 'draft', initiator: 'p13', createdAt: '2026-09-03', committeeRequest: { kind: 'initiate', status: 'approved', at: '2026-09-06T02:00:00.000Z' } },
+    { id: 'tf-x1', name: 'A', task: 't', status: 'draft', initiator: '2400012355', createdAt: '2026-09-01', committeeRequest: { kind: 'initiate', status: 'pending', at: '2026-09-06T03:00:00.000Z' } },
+    { id: 'tf-x2', name: 'B', task: 't', status: 'active', initiator: '2300010001', createdAt: '2026-09-02', committeeRequest: { kind: 'dissolve', status: 'pending', at: '2026-09-06T01:00:00.000Z' } },
+    { id: 'tf-x3', name: 'C', task: 't', status: 'draft', initiator: '2300010001', createdAt: '2026-09-03', committeeRequest: { kind: 'initiate', status: 'approved', at: '2026-09-06T02:00:00.000Z' } },
   ];
   const list = TaskForceRecordStore.listCommitteeRequests();
   assert.deepEqual(list.map(x => x.id), ['tf-x2', 'tf-x1'], '最早报送排最前；已决(approved)不出现在归集');
@@ -190,7 +190,7 @@ test('C2 listCommitteeRequests：先报先议（按报送时间升序）', () =>
 // ── D. 表决结果落地 ────────────────────────────────────────────
 test('D1 applyCommitteeDecision initiate approved：→ recruiting + approvalStatus + 留痕清请求', () => {
   const tf = addTf({ status: 'draft', name: '筹备专班', task: '任务' });
-  TaskForceRecordStore.submitForCommittee(tf.id, { kind: 'initiate', by: 'p11' });
+  TaskForceRecordStore.submitForCommittee(tf.id, { kind: 'initiate', by: '2400012355' });
   const outcome = TaskForceRecordStore.evaluateCommitteeVote({
     roster: ['c1', 'c2', 'c3', 'c4'],
     votes: [
@@ -200,7 +200,7 @@ test('D1 applyCommitteeDecision initiate approved：→ recruiting + approvalSta
     ],
   });
   const updated = TaskForceRecordStore.applyCommitteeDecision(tf.id, {
-    decision: 'approved', outcome, by: 'p1', decisionRef: 'act-xx:ag-1',
+    decision: 'approved', outcome, by: '2400012345', decisionRef: 'act-xx:ag-1',
   });
   assert.equal(updated.status, 'recruiting');
   assert.equal(updated.approvalStatus, 'approved');
@@ -213,15 +213,15 @@ test('D1 applyCommitteeDecision initiate approved：→ recruiting + approvalSta
 
 test('D2 applyCommitteeDecision initiate rejected：→ draft 可改重报，二次报送成功', () => {
   const tf = addTf({ status: 'pending_review' });
-  TaskForceRecordStore.submitForCommittee(tf.id, { kind: 'initiate', by: 'p11' });
+  TaskForceRecordStore.submitForCommittee(tf.id, { kind: 'initiate', by: '2400012355' });
   const updated = TaskForceRecordStore.applyCommitteeDecision(tf.id, {
-    decision: 'rejected', outcome: { status: 'failed', tally: { object: 1 } }, by: 'p1', note: '任务范围不清',
+    decision: 'rejected', outcome: { status: 'failed', tally: { object: 1 } }, by: '2400012345', note: '任务范围不清',
   });
   assert.equal(updated.status, 'draft', '未通过退回草稿');
   assert.equal(updated.approvalStatus, 'rejected');
   assert.equal(updated.committeeDecision[0].note, '任务范围不清');
   // 修改后可再次报送
-  const resubmit = TaskForceRecordStore.submitForCommittee(tf.id, { kind: 'initiate', by: 'p11', note: '已补充范围' });
+  const resubmit = TaskForceRecordStore.submitForCommittee(tf.id, { kind: 'initiate', by: '2400012355', note: '已补充范围' });
   assert.ok(resubmit.committeeRequest, '未通过后可修改重报');
 });
 
@@ -230,16 +230,16 @@ test('D3 applyCommitteeDecision dissolve approved：→ dissolved + dissolvedAt�
   const workgroupId = `wg-taskforce-${tf1.id}`;
   mockDB.workgroupTasks = [{ id: 'task-close-vote', workgroupId, isPurpose: true, status: 'completed' }];
   mockDB.workgroupOutputs = [];
-  TaskForceRecordStore.submitForCommittee(tf1.id, { kind: 'dissolve', by: 'p11' });
+  TaskForceRecordStore.submitForCommittee(tf1.id, { kind: 'dissolve', by: '2400012355' });
   const approved = TaskForceRecordStore.applyCommitteeDecision(tf1.id, {
-    decision: 'approved', by: 'p1', decisionRef: 'meeting-dissolution:agenda-dissolve',
+    decision: 'approved', by: '2400012345', decisionRef: 'meeting-dissolution:agenda-dissolve',
   });
   assert.equal(approved.status, 'dissolved', '表决通过解散留痕');
   assert.ok(approved.dissolvedAt, '记录解散日期');
   assert.equal(approved.committeeDecision[0].kind, 'dissolve');
 
   const tf2 = addTf({ status: 'active' });
-  TaskForceRecordStore.submitForCommittee(tf2.id, { kind: 'dissolve', by: 'p11' });
+  TaskForceRecordStore.submitForCommittee(tf2.id, { kind: 'dissolve', by: '2400012355' });
   const rejected = TaskForceRecordStore.applyCommitteeDecision(tf2.id, { decision: 'rejected', note: '产出未达要求' });
   assert.equal(rejected.status, 'active', '解散未通过专班保持运行');
   assert.equal(rejected.committeeDecision[0].note, '产出未达要求');
@@ -257,49 +257,49 @@ test('E1 verifyContributions approve：同意入档留痕；reject：退回补�
   const tf = addTf({
     status: 'active',
     members: [
-      { personId: 'p1', role: 'deep', contributions: [] },
-      { personId: 'p2', role: 'deep', contributions: [] },
+      { personId: '2400012345', role: 'deep', contributions: [] },
+      { personId: '2400012346', role: 'deep', contributions: [] },
     ],
   });
-  // 成员 p1/p2 逐条填报
-  TaskForceRecordStore.addContributions(tf.id, { personIds: ['p1'], desc: '完成采写初稿', by: 'p1' });
-  TaskForceRecordStore.addContributions(tf.id, { personIds: ['p2'], desc: '物料清单草拟', by: 'p2' });
+  // 成员 2400012345/2400012346 逐条填报
+  TaskForceRecordStore.addContributions(tf.id, { personIds: ['2400012345'], desc: '完成采写初稿', by: '2400012345' });
+  TaskForceRecordStore.addContributions(tf.id, { personIds: ['2400012346'], desc: '物料清单草拟', by: '2400012346' });
 
   const stored = TaskForceRecordStore.getAll().find(r => r.id === tf.id);
-  const c1 = stored.members.find(m => m.personId === 'p1').contributions[0];
-  const c2 = stored.members.find(m => m.personId === 'p2').contributions[0];
-  assert.ok(c1.id && c1.by === 'p1');
+  const c1 = stored.members.find(m => m.personId === '2400012345').contributions[0];
+  const c2 = stored.members.find(m => m.personId === '2400012346').contributions[0];
+  assert.ok(c1.id && c1.by === '2400012345');
 
   // 组织委员逐条核：同意 c1、退回 c2
   const res = TaskForceRecordStore.verifyContributions(tf.id, {
-    contributionIds: [c1.id], decision: 'approve', by: 'p11',
+    contributionIds: [c1.id], decision: 'approve', by: '2400012355',
   });
   assert.equal(res.updated, 1);
   const after = TaskForceRecordStore.verifyContributions(tf.id, {
-    contributionIds: [c2.id], decision: 'reject', by: 'p11', note: '请补充交付物链接',
+    contributionIds: [c2.id], decision: 'reject', by: '2400012355', note: '请补充交付物链接',
   });
   assert.equal(after.updated, 1, '退回补料');
   const final = TaskForceRecordStore.getAll().find(r => r.id === tf.id);
-  const mc1 = final.members.find(m => m.personId === 'p1').contributions[0];
-  const mc2 = final.members.find(m => m.personId === 'p2').contributions[0];
+  const mc1 = final.members.find(m => m.personId === '2400012345').contributions[0];
+  const mc2 = final.members.find(m => m.personId === '2400012346').contributions[0];
   assert.equal(mc1.verifiedStatus, 'approved');
   assert.equal(mc2.verifiedStatus, 'rejected');
   assert.equal(mc2.rejectNote, '请补充交付物链接');
-  assert.ok(mc1.verifiedBy === 'p11' && mc2.verifiedBy === 'p11', '核验人留痕');
+  assert.ok(mc1.verifiedBy === '2400012355' && mc2.verifiedBy === '2400012355', '核验人留痕');
 });
 
 test('E2 verifyContributions：幂等跳过已核；历史字符串不参与；非法入参 → null/updated 0', () => {
   const tf = addTf({
     status: 'active',
     members: [
-      { personId: 'p1', role: 'deep', contributions: [{ id: 'tc-1', desc: '采写', by: 'p1', at: 'x' }] },
-      { personId: 'p2', role: 'deep', contributions: ['历史字符串摘要'] },
+      { personId: '2400012345', role: 'deep', contributions: [{ id: 'tc-1', desc: '采写', by: '2400012345', at: 'x' }] },
+      { personId: '2400012346', role: 'deep', contributions: ['历史字符串摘要'] },
     ],
   });
   // 二次核同一 id：幂等 updated 0
-  const r1 = TaskForceRecordStore.verifyContributions(tf.id, { contributionIds: ['tc-1'], decision: 'approve', by: 'p11' });
+  const r1 = TaskForceRecordStore.verifyContributions(tf.id, { contributionIds: ['tc-1'], decision: 'approve', by: '2400012355' });
   assert.equal(r1.updated, 1);
-  const r2 = TaskForceRecordStore.verifyContributions(tf.id, { contributionIds: ['tc-1'], decision: 'reject', by: 'p11' });
+  const r2 = TaskForceRecordStore.verifyContributions(tf.id, { contributionIds: ['tc-1'], decision: 'reject', by: '2400012355' });
   assert.equal(r2.updated, 0, '已核条目幂等跳过');
   assert.equal(TaskForceRecordStore.verifyContributions(tf.id, { contributionIds: [], decision: 'approve' }), null, '空 ids 拒绝');
   assert.equal(TaskForceRecordStore.verifyContributions(tf.id, { contributionIds: ['x'], decision: 'undo' }), null, '非法 decision 拒绝');

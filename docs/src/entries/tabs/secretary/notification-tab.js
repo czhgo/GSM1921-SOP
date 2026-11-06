@@ -3,25 +3,29 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261018h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018h';
-import { showToast, getBasePath, _fmtDate, todayLocal } from '../../../core/base/utils.js?v=20261018h';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261018h';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261018h';
+import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261102b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261102b';
+import { showToast, getBasePath, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261102b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261102b';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261102b';
 // 统一检索引擎（2026-09-14 批次 37）：已发布通知列表接入关键词（标题/正文）+ 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261018h';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261102b';
 // Q-22-1（2026-09-13）：受众选项改引 core/domain/constants.js 单一源（NOTICE_AUDIENCE_SENTINELS）——
 // 发布侧写入值必须与消费端可见性判定同源，勿再本地手写 sentinel 列表（否则 ['all'] 永不命中）。
-import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261018h';
-// SOP-B-5（D-293）：发布三会一课通知时选定本次活动 —— 被通知人在「确认读取」时填「能否线上参会」
-import { loadActivities } from '../../../services/activity/activity.js?v=20261018h';
+import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261102b';
+// SOP-B-5（D-293）：发布三会一课通知时选定本次活动 —— 被通知人在「确认收到」时填「能否线上参会」
+import { loadActivities } from '../../../services/activity/activity.js?v=20261102b';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261102b';
+import { TaskforceStatus } from '../../../core/domain/domain.js?v=20261102b';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261018h';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261102b';
 // 站内信（批次 348 · 支书 `#4`「站内信是一个很重要的形式」）：受众「指定人（私发）」——选人用 PersonPicker
 //（选人规范 §2.2：姓名/学号搜索，不手写名单）
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018h';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261102b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261102b';
 
 const NOTIFICATION_TAB_HTML = `
+  ${renderTabHeader({ title: '通知发布' })}
   <div class="card rounded-xl p-5 mb-6">
     <div class="flex items-center justify-between mb-1">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">发布通知</h3>
@@ -41,7 +45,7 @@ const NOTIFICATION_TAB_HTML = `
 /** 渲染通知发布 tab */
 export function renderContent() {
   const tc = document.getElementById('secretary-tab-content');
-  if (!tc) return;
+  if (!tc) throw new Error('[notification-tab] 缺少内容容器 #secretary-tab-content');
   if (tc.dataset.currentTab !== 'notification') {
     tc.innerHTML = NOTIFICATION_TAB_HTML;
     tc.dataset.currentTab = 'notification';
@@ -55,29 +59,36 @@ function renderNotificationPanel() {
   renderNotificationList();
 }
 
-/** 渲染发布表单 */
-function renderNotificationForm() {
+/** 渲染发布表单（重渲染时默认保留已填内容；发布成功后传 reset=true 清空） */
+function renderNotificationForm(reset = false) {
   const formArea = document.getElementById('notification-form-area');
   if (!formArea) return;
 
-  // B1（2026-09-12）：党委下钻只读视图 → 不渲染发布表单，改为只读说明
+  // B1（2026-09-12）：党委下钻只读视图 → 不渲染发布表单；入口已由权限隐藏，只留一句状态
   if (isReadonlyBranchDrilldown()) {
-    formArea.innerHTML = '<p class="text-xs text-gray-500 leading-relaxed">党委视角（只读）：本页仅供只读查看，不可发布/编辑/删除通知（写操作按角色权限拒绝）。</p>';
+    formArea.innerHTML = '<p class="text-xs text-gray-500">当前身份不可发布通知。</p>';
     return;
   }
+
+  const draft = reset ? {} : {
+    title: document.getElementById('notif-title')?.value || '',
+    content: document.getElementById('notif-content')?.value || '',
+    expire: document.getElementById('notif-expire')?.value || '',
+    objectId: document.getElementById('notif-object-id')?.value || '',
+  };
 
   let html = '';
 
   // 通知标题
   html += `<div class="mb-4">`;
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">通知标题 <span class="text-red-600">*</span></label>`;
-  html += `<input type="text" id="notif-title" class="input-flat w-full" placeholder="通知标题">`;
+  html += `<input type="text" id="notif-title" class="input-flat w-full" placeholder="通知标题" value="${escHtml(draft.title || '')}">`;
   html += `</div>`;
 
   // 通知内容
   html += `<div class="mb-4">`;
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">通知内容 <span class="text-red-600">*</span></label>`;
-  html += `<textarea id="notif-content" rows="4" class="input-flat w-full" placeholder="通知正文"></textarea>`;
+  html += `<textarea id="notif-content" rows="4" class="input-flat w-full" placeholder="通知正文">${escHtml(draft.content || '')}</textarea>`;
   html += `</div>`;
 
   // 目标受众
@@ -86,7 +97,7 @@ function renderNotificationForm() {
   html += `<div class="flex flex-wrap gap-2">`;
   NOTICE_AUDIENCE_OPTIONS.forEach(a => {
     const on = _selectedAudience.includes(a.value);
-    html += `<button data-notif-action="select-audience" data-value="${a.value}" class="btn-tab chip-option text-sm px-4 py-2 rounded-lg${on ? ' chip-accent-on font-medium' : ''}"${on ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>${a.label}</button>`;
+    html += `<button data-notif-action="select-audience" data-value="${a.value}" class="btn-tab chip-option text-sm px-4 py-2 rounded-lg${on ? ' chip-accent-on font-medium' : ''}">${a.label}</button>`;
   });
   html += `</div>`;
   // 站内信（批次 348 · 支书 `#4`）：与「群体受众」并列的一档——**指定人（私发）**（点对点 / 点对多人）
@@ -96,31 +107,55 @@ function renderNotificationForm() {
   html += `</div>`;
   if (_directMode) {
     html += `<div class="mb-5 rounded-lg border border-gray-200 bg-white p-3">`;
-    html += `<p class="text-xs text-gray-500 mb-2">收件人（可多选）——站内信<b>仅你与收件人可见</b>，不进支部公告。</p>`;
+    html += `<div class="mb-2 flex items-center gap-2"><span class="text-xs text-gray-500">收件人（可多选）</span><span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">仅双方可见</span></div>`;
     html += `<div id="notif-direct-host"></div>`;
     html += `</div>`;
   }
 
-  // 关联三会一课活动（选填，SOP-B-5）
+  // 有效期（选填，A13）：到期后进入消息中心「已归档」；留空 = 长期有效
   html += `<div class="mb-5">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium" for="notif-meeting-activity">关联会议活动 <span class="text-gray-500">（选填；发布三会一课通知时选定本次活动）</span></label>`;
-  html += `<select id="notif-meeting-activity" class="input-flat w-full">`;
-  html += `<option value="">不关联（普通通知）</option>`;
-  _meetingActivityOptions().forEach(a => {
-    html += `<option value="${a.id}">${a.title}（${a.date || '未排期'} · ${a.type}）</option>`;
-  });
-  html += `</select>`;
-  html += `<p class="text-[11px] text-gray-500 mt-1 leading-5">关联后，被通知人在通知详情点「确认读取」时可填<b>能否线上参会</b>；线上参会按制度记「请假」、<b>不计入出席、只免补课</b>。</p>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium" for="notif-expire">有效期 <span class="text-gray-500">（选填；留空 = 长期有效）</span></label>`;
+  html += `<input type="date" id="notif-expire" class="input-flat text-xs w-full" value="${escHtml(draft.expire || '')}">`;
   html += `</div>`;
 
-  // 发布按钮
-  html += `<button data-notif-action="publish" class="btn-accent text-sm px-4 py-[7px] font-medium">发布通知</button>`;
+  // 落点（Task 3 · 2026-10-25）：强制二选一「公告（无对象）」/「关联对象」。
+  // 关联对象时写 targetType + targetId；活动同时并入 meetingActivityId（线上参会回执靠它定位）。
+  html += `<div class="mb-5">`;
+  html += `<label class="text-xs text-gray-500 mb-2 block font-medium">落点 <span class="text-red-600">*</span></label>`;
+  html += `<div class="flex flex-wrap gap-2 mb-2">`;
+  html += `<button data-notif-action="mode-announcement" class="btn-tab chip-option text-sm px-4 py-2 rounded-lg${_objectMode ? '' : ' chip-accent-on font-medium'}">公告（不关联对象）</button>`;
+  html += `<button data-notif-action="mode-object" class="btn-tab chip-option text-sm px-4 py-2 rounded-lg${_objectMode ? ' chip-accent-on font-medium' : ''}">关联对象</button>`;
+  html += `</div>`;
+  if (_objectMode) {
+    html += `<div class="rounded-lg border border-gray-200 bg-white p-3">`;
+    html += `<label class="text-xs text-gray-500 mb-2 block font-medium" for="notif-object-type">对象类型</label>`;
+    html += `<select id="notif-object-type" class="input-flat w-full mb-2">`;
+    html += `<option value="activity"${_objectType === 'activity' ? ' selected' : ''}>活动</option>`;
+    html += `<option value="taskforce"${_objectType === 'taskforce' ? ' selected' : ''}>专班</option>`;
+    html += `</select>`;
+    html += `<label class="text-xs text-gray-500 mb-2 block font-medium" for="notif-object-id">关联对象</label>`;
+    html += `<select id="notif-object-id" class="input-flat w-full">`;
+    html += `<option value="">请选择关联对象</option>`;
+    _objectOptions().forEach((o) => {
+      html += `<option value="${o.id}"${draft.objectId === o.id ? ' selected' : ''}>${escHtml(o.label)}</option>`;
+    });
+    html += `</select>`;
+    html += `<p class="help-note mt-1"><a href="./help.html#card-copy-attendance-record" class="help-note__link">见帮助 · 线上参会记录</a></p>`;
+    html += `</div>`;
+  }
+  html += `</div>`;
+
+  html += `<button data-notif-action="publish" class="btn-accent text-sm px-4 py-1.5 font-medium">发布通知</button>`;
 
   formArea.innerHTML = html;
 
-  // 绑定事件
   formArea.querySelectorAll('[data-notif-action]').forEach(el => {
     el.addEventListener('click', handleNotifAction);
+  });
+  // 对象类型切换：重渲染以换用对应对象清单（标题/正文/有效期保留）
+  formArea.querySelector('#notif-object-type')?.addEventListener('change', (e) => {
+    _objectType = e.target.value === 'taskforce' ? 'taskforce' : 'activity';
+    renderNotificationForm();
   });
 
   // 站内信（批次 348）：指定人档的选人器（每次重渲染重建；destroy 防叠加）
@@ -138,6 +173,9 @@ let _selectedAudience = [];
 /** 站内信（私发）状态（批次 348）：是否切到「指定人」档 ＋ 选人器实例 */
 let _directMode = false;
 let _directPicker = null;
+/** 落点状态（Task 3）：false = 公告（无对象）；true = 关联对象（activity / taskforce） */
+let _objectMode = false;
+let _objectType = 'activity';
 
 /** 处理通知面板操作 */
 function handleNotifAction(e) {
@@ -146,12 +184,10 @@ function handleNotifAction(e) {
 
   switch (action) {
     case 'select-audience': {
-      // 多选切换：已选则移除，未选则加入
       const value = btn.dataset.value;
       _selectedAudience = _selectedAudience.includes(value)
         ? _selectedAudience.filter(v => v !== value)
         : [..._selectedAudience, value];
-      // 更新按钮视觉状态（选中项红色高亮）
       const formArea = document.getElementById('notification-form-area');
       if (formArea) {
         formArea.querySelectorAll('[data-notif-action="select-audience"]').forEach(b => {
@@ -159,8 +195,6 @@ function handleNotifAction(e) {
           b.className = isSelected
             ? 'chip-accent-on chip-option text-sm px-4 py-2 rounded-lg font-medium'
             : 'chip-option text-sm px-4 py-2 rounded-lg';
-          if (isSelected) b.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent) 55%, #fff)');
-          else b.style.removeProperty('--acc-text-dark');
         });
       }
       break;
@@ -169,6 +203,18 @@ function handleNotifAction(e) {
     case 'toggle-direct': {
       // 站内信（批次 348）：切「指定人（私发）」档（重渲染以显示 / 隐藏选人器）
       _directMode = !_directMode;
+      renderNotificationForm();
+      break;
+    }
+
+    case 'mode-announcement': {
+      _objectMode = false;
+      renderNotificationForm();
+      break;
+    }
+
+    case 'mode-object': {
+      _objectMode = true;
       renderNotificationForm();
       break;
     }
@@ -200,6 +246,17 @@ function _meetingActivityOptions() {
   return loadActivities()
     .filter(a => a && !a.archived && a.status !== 'cancelled' && types.includes(a.type))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+}
+
+/** 关联对象清单（活动 / 专班）：活动优先三会一课，专班排除已解散。 */
+function _objectOptions() {
+  if (_objectType === 'taskforce') {
+    return TaskForceRecordStore.getAll()
+      .filter(tf => tf && tf.status !== TaskforceStatus.DISSOLVED)
+      .sort((a, b) => (b.deadline || b.createdAt || '').localeCompare(a.deadline || a.createdAt || ''))
+      .map(tf => ({ id: tf.id, label: `${tf.name || '未命名专班'}（${tf.deadline || '未排期'}）` }));
+  }
+  return _meetingActivityOptions().map(a => ({ id: a.id, label: `${a.title}（${a.date || '未排期'} · ${a.type}）` }));
 }
 
 /** 发布通知（写入 NoticeStore，与首页/全局概况/visitor 同源） */
@@ -244,25 +301,43 @@ function handlePublishNotification() {
     showToast('success', `站内信「${title}」已发送给 ${sent} 人（仅你与收件人可见）`);
     _selectedAudience = [];
     _directMode = false;
-    renderNotificationForm();
+    renderNotificationForm(true);
     renderNotificationList();
     return;
   }
 
-  // 关联会议活动（选填，SOP-B-5）：关联后该通知的「确认读取」可填「能否线上参会」，落该场考勤
-  const meetingActivityId = document.getElementById('notif-meeting-activity')?.value || null;
+  // 落点（Task 3）：关联对象时 targetType + targetId 是唯一锚点；活动并入 meetingActivityId（回执定位）。
+  let targetType = null;
+  let targetId = null;
+  let objectLabel = '';
+  if (_objectMode) {
+    targetType = _objectType === 'taskforce' ? 'taskforce' : 'activity';
+    const objectSelect = document.getElementById('notif-object-id');
+    targetId = objectSelect?.value || null;
+    objectLabel = objectSelect?.selectedOptions?.[0]?.textContent || targetId || '';
+    if (!targetId) { showToast('error', '请选择关联对象'); return; }
+  }
+  const meetingActivityId = targetType === 'activity' ? targetId : null;
 
   const audienceLabels = _audienceLabels(_selectedAudience);
+  // A13：有效期（选填）——为空 = 长期有效；到期后由消息中心「已归档」分支收口。
+  const expireDate = document.getElementById('notif-expire')?.value || null;
   const notification = {
     title,
     content,
     priority: 'normal',
     publishDate: todayLocal(),
-    expireDate: null,
-    targetModule: 'workspace',
-    read: false,
+    expireDate,
+    // 公告（无对象）显式 kind='announcement'；关联对象时是带对象卡与唯一动作的系统型通知。
+    kind: _objectMode ? 'system' : 'announcement',
+    // D13：不再写全局 `read` 布尔（逐人已读走 reads/NoticeStore.markRead；旧 read 只做迁移读）。
     audience: [..._selectedAudience],
     audienceLabel: audienceLabels.join('、'),
+    ...(targetType ? {
+      targetType,
+      targetId,
+      targetUrl: `${targetType === 'taskforce' ? 'taskforce' : 'activity'}.html?id=${encodeURIComponent(targetId)}`,
+    } : {}),
     // 关联的三会一课活动 id（不关联则 null）——通知→考勤的线上参会申报靠它定位活动
     meetingActivityId,
     // 落款按实际发布角色（dogfood 权限专项 2026-09-13）：此前硬编码「支书」，
@@ -272,14 +347,75 @@ function handlePublishNotification() {
 
   // 2026-09-19 批次 91（SOP-B-17）：发布权判定一并带 personId——白名单角色不变，
   //   本组通知另按「此人是否该场组织者」放行（支书台的发布口仍是全支部通知主位）。
-  NoticeStore.add(notification, _me.role || 'secretary', _me.personId || null);
+  // 2026-10-22 第九轮 9B-5.1：**判返回值**——`NoticeStore.add` 权限不足返回 null（见服务层），
+  //   原实现无条件报成功 ⇒ 「提示已发布、列表里没有」。失败时表单原位给 role="alert" + 重试，
+  //   且不重置任何已填内容。
+  let created = null;
+  try {
+    created = NoticeStore.add(notification, _me.role || 'secretary', _me.personId || null);
+  } catch (err) {
+    console.warn('[notification-tab] 通知写入异常', err);
+    created = null;
+  }
+  if (!created) {
+    _renderPublishError('通知未发出：当前账号可能无发布权，或本地暂存失败。已填内容已保留，可修正后重试。');
+    return;
+  }
 
-  showToast('success', `通知「${title}」已发布至${audienceLabels.join('、')}`);
+  // 成功提示：`showToast('success')` 内部已等 `settleWrites()` 落库确认（见 core/base/utils.js），
+  //   落库失败会改报失败文案，不再出现「提示成功、其实没存上」。
+  // Task 3：提示写清落点（公告 / 关联对象），避免「发布后不知道去哪看」。
+  const landing = _objectMode
+    ? `消息中心 · ${targetType === 'taskforce' ? '关联专班' : '关联活动'}「${objectLabel}」`
+    : '消息中心 · 公告';
+  showToast('success', `通知「${title}」已发布至${audienceLabels.join('、')}；落点：${landing}`);
 
   // 重置表单
   _selectedAudience = [];
-  renderNotificationForm();
+  _objectMode = false;
+  _objectType = 'activity';
+  renderNotificationForm(true);
   renderNotificationList();
+}
+
+/** 5.1：发布失败的原位错误（role="alert" ＋ 重试；不动表单已填内容） */
+function _renderPublishError(message) {
+  const formArea = document.getElementById('notification-form-area');
+  if (!formArea) { showToast('error', message); return; }
+  formArea.querySelector('[data-notif-publish-error]')?.remove();
+  const html = `<div data-notif-publish-error role="alert" class="mt-2 flex flex-wrap items-center gap-2 text-xs text-red-700">
+      <span>${escHtml(message)}</span>
+      <button type="button" data-notif-retry class="btn-outline">重试发布</button>
+    </div>`;
+  const anchor = formArea.querySelector('[data-notif-action="publish"]');
+  if (anchor) anchor.insertAdjacentHTML('afterend', html);
+  else formArea.insertAdjacentHTML('beforeend', html);
+  formArea.querySelector('[data-notif-retry]')?.addEventListener('click', () => handlePublishNotification());
+}
+
+/** R5A-07：删除通知前二次确认（复用统一浮窗），确认后才物理删除并联动清理待办。 */
+function _confirmDeleteNotice(noticeId) {
+  const notice = NoticeStore.getAll({ includeArchived: true }).find(n => n.id === noticeId);
+  if (!notice) return;
+  openModal({
+    id: 'notice-delete-confirm',
+    title: '删除通知',
+    size: 'sm',
+    bodyHtml: `
+      <p class="text-sm text-gray-700 leading-relaxed">确认删除通知「${escHtml(notice.title)}」？</p>
+      <p class="mt-2 text-xs text-gray-500 leading-relaxed">删除后不可恢复，并将同步删除该通知关联的待办。</p>`,
+    footerHtml: `
+      <button type="button" data-modal-cancel="notice-delete-confirm" class="btn-outline text-sm px-3 py-1.5" style="cursor:pointer;">取消</button>
+      <button type="button" data-notice-delete-confirm class="btn-danger-solid text-sm px-3 py-1.5 font-medium">删除</button>`,
+    onMount: (panel) => {
+      panel.querySelector('[data-notice-delete-confirm]')?.addEventListener('click', () => {
+        NoticeStore.remove(noticeId, 'secretary');
+        closeModal('notice-delete-confirm');
+        showToast('success', '通知已删除，关联待办已同步移除');
+        renderNotificationList();
+      });
+    },
+  });
 }
 
 /** 渲染已发布通知列表（NoticeStore 全部通知，按发布日期倒序） */
@@ -315,11 +451,11 @@ function renderNotificationList() {
         : '';
       // B1（2026-09-12）：党委下钻只读视图 → 不渲染删除/编辑写入口
       const writeBtns = isReadonlyBranchDrilldown() ? '' : `
-          <button data-notif-action="delete" data-notif-id="${n.id}" class="btn-ghost text-xs ml-2 flex-shrink-0 px-3 py-1.5">删除</button>
+          <button data-notif-action="delete" data-notif-id="${n.id}" class="btn-danger text-xs ml-2 flex-shrink-0 px-3 py-1.5">删除</button>
           <!-- B 档 CRUD 补全：通知编辑（复用 NoticeStore.update，同源写穿） -->
           <button data-notif-action="edit" data-notif-id="${n.id}" class="btn-outline text-xs flex-shrink-0 px-3 py-1.5" title="编辑该通知">编辑</button>`;
       return `
-      <div class="py-3 px-4 rounded-xl bg-white transition-colors group cursor-pointer hover:bg-gray-50" data-notif-id="${n.id}" data-notif-row="1" title="查看通知详情">
+      <div class="py-3 px-4 rounded-xl bg-white transition-colors group cursor-pointer hover:bg-[var(--surface-hover)] active:bg-[var(--surface-active)]" role="button" tabindex="0" data-notif-id="${n.id}" data-notif-row="1" data-nested-actions="true" title="查看通知详情">
         <div class="flex items-center justify-between mb-1">
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-gray-800">${n.title}</span>
@@ -336,24 +472,29 @@ function renderNotificationList() {
 
   // 行内「删除 / 编辑」与整卡「查看详情」改事件委托（引擎翻页/筛选会重绘列表，行内直接绑定会失效）：
   // 挂在持久容器 #notification-list-area 上；先判按钮后判整卡，等效原 stopPropagation（按钮不触发跳转）。
+  // 2026-10-31 P0（嵌套交互）：行是 role=button，内层「删除 / 编辑」是独立 button ⇒ 两层都阻断冒泡；
+  //   键盘焦点落在内层按钮时由原生控件自理，落在整行时由 bootstrap 的 role=button 键盘激活兜底。
   if (!listArea.dataset.notifDelegated) {
     listArea.dataset.notifDelegated = '1';
     listArea.addEventListener('click', (e) => {
       const delBtn = e.target.closest('[data-notif-action="delete"]');
       if (delBtn) {
-        NoticeStore.remove(delBtn.dataset.notifId, 'secretary');
-        showToast('success', '通知已删除');
-        renderNotificationList();
+        e.stopPropagation();
+        _confirmDeleteNotice(delBtn.dataset.notifId);
         return;
       }
       const editBtn = e.target.closest('[data-notif-action="edit"]');
       if (editBtn) {
+        e.stopPropagation();
         const notice = NoticeStore.getAll().find(n => n.id === editBtn.dataset.notifId);
         if (notice) _openNoticeEditModal(notice);
         return;
       }
       const row = e.target.closest('[data-notif-row="1"]');
-      if (row) window.location.href = `${getBasePath()}notice.html?id=${row.dataset.notifId}`;
+      if (row) {
+        e.stopPropagation();
+        window.location.href = `${getBasePath()}notice.html?id=${row.dataset.notifId}`;
+      }
     });
   }
 }
@@ -365,7 +506,7 @@ function _openNoticeEditModal(notice) {
   const audienceValues = Array.isArray(notice.audience) ? notice.audience : (notice.audience ? [notice.audience] : []);
   const chips = NOTICE_AUDIENCE_OPTIONS.map(a => {
     const on = audienceValues.includes(a.value) ? ' chip-accent-on font-medium' : '';
-    return `<button type="button" data-notif-edit-aud="${a.value}" class="btn-tab chip-option text-sm px-4 py-2 rounded-lg${on}"${on ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>${a.label}</button>`;
+    return `<button type="button" data-notif-edit-aud="${a.value}" class="btn-tab chip-option text-sm px-4 py-2 rounded-lg${on}">${a.label}</button>`;
   }).join('');
 
   openModal({
@@ -374,37 +515,42 @@ function _openNoticeEditModal(notice) {
     width: '560px',
     accentColor: '#CE1126',
     bodyHtml: `
-      <div class="space-y-3">
-        <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知标题 <span class="text-red-600">*</span></label>
-          <input type="text" id="ne-title" class="input-flat w-full" value="${notice.title || ''}">
+      <fieldset class="modal-fieldset">
+        <legend class="modal-fieldset__legend">内容</legend>
+        <div class="modal-fieldset__body">
+          <div class="mb-3">
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知标题 <span class="text-red-600">*</span></label>
+            <input type="text" id="ne-title" class="input-flat w-full" value="${notice.title || ''}">
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知内容 <span class="text-red-600">*</span></label>
+            <textarea id="ne-content" rows="4" class="input-flat w-full">${notice.content || ''}</textarea>
+          </div>
         </div>
-        <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知内容 <span class="text-red-600">*</span></label>
-          <textarea id="ne-content" rows="4" class="input-flat w-full">${notice.content || ''}</textarea>
+      </fieldset>
+      <fieldset class="modal-fieldset">
+        <legend class="modal-fieldset__legend">送达</legend>
+        <div class="modal-fieldset__body">
+          <div class="mb-3">
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium">目标受众</label>
+            <div class="flex flex-wrap gap-2">${chips}</div>
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="ne-priority">优先级</label>
+            <select id="ne-priority" class="input-flat w-full">
+              <option value="normal" ${notice.priority !== 'urgent' ? 'selected' : ''}>普通</option>
+              <option value="urgent" ${notice.priority === 'urgent' ? 'selected' : ''}>紧急</option>
+            </select>
+          </div>
         </div>
-        <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">目标受众</label>
-          <div class="flex flex-wrap gap-2">${chips}</div>
-        </div>
-        <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="ne-priority">优先级</label>
-          <select id="ne-priority" class="input-flat w-full">
-            <option value="normal" ${notice.priority !== 'urgent' ? 'selected' : ''}>普通</option>
-            <option value="urgent" ${notice.priority === 'urgent' ? 'selected' : ''}>紧急</option>
-          </select>
-        </div>
-      </div>
-      <div class="flex justify-end gap-2 mt-4">
-        <button id="ne-cancel" class="btn-ghost text-xs px-3 py-1.5">取消</button>
-        <button id="ne-save" class="btn-accent text-xs px-3 py-1.5">保存</button>
-      </div>
-    `,
+      </fieldset>`,
+    footerHtml: `
+      <button type="button" data-modal-cancel="notice-edit" class="btn-outline text-sm px-4 py-1.5">取消</button>
+      <button type="button" id="ne-save" class="btn-accent text-sm px-4 py-1.5 font-medium">保存</button>`,
     onMount: (panel) => {
       panel.querySelectorAll('[data-notif-edit-aud]').forEach(chip => {
         chip.addEventListener('click', () => chip.classList.toggle('chip-accent-on'));
       });
-      panel.querySelector('#ne-cancel')?.addEventListener('click', () => closeModal('notice-edit'));
       panel.querySelector('#ne-save')?.addEventListener('click', () => {
         const title = panel.querySelector('#ne-title')?.value?.trim();
         const content = panel.querySelector('#ne-content')?.value?.trim();

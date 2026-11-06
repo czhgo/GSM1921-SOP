@@ -5,10 +5,11 @@
 // 动画：Lenis 平滑滚动 + CSS 滚动驱动（animation-timeline: view()）+ 原生 JS 驱动
 // 签名元素：收束致谢（三层小字）+ 探索区 SVG 关系网络 + 对话卡日出日落公转（文字正立）
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018h';
-import { renderHeader } from '../../components/shell/header.js?v=20261018h';
-import { getBasePath } from '../../core/base/utils.js?v=20261018h';
-import { icon } from '../../core/base/icons.js?v=20261018h';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261102b';
+import { renderHeader } from '../../components/shell/header.js?v=20261102b';
+import { getBasePath } from '../../core/base/utils.js?v=20261102b';
+import { icon } from '../../core/base/icons.js?v=20261102b';
+import { ROLE_COLORS } from '../../core/domain/constants.js?v=20261102b';
 
 // ── 公开访问：不检查登录 ──
 // 静态壳模式（2026-08-12）：about 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），
@@ -67,10 +68,10 @@ const WORKFLOW_ROLES = {
   permission:{ name: '系统权限',     short: '系统权限',   color: '#64748B' },
   tasks:     { name: '登记任务',     short: '登记任务',   color: WF_EXEC_COLOR },
   outputs:   { name: '登记产出',     short: '登记产出',   color: '#2563EB' },
-  normal:    { name: '普通参与者',   short: '普通参与者', color: '#6B7280' }, // 灰·参与
-  orgComm:   { name: '组织委员',     short: '组织委员',   color: '#0EA5E9' }, // 天蓝·组织协调（DESIGN_SYSTEM §2.3.2）
-  discComm:  { name: '纪检委员',     short: '纪检委员',   color: '#C2410C' }, // 深橙·监督警示（DESIGN_SYSTEM §2.3.2）
-  propComm:  { name: '宣传委员',     short: '宣传委员',   color: '#2563EB' }, // 海蓝·宣传传播（DESIGN_SYSTEM §2.3.2）
+  normal:    { name: '普通参与者',   short: '普通参与者', color: ROLE_COLORS.participant.text }, // 灰·参与（身份色单一源）
+  orgComm:   { name: '组织委员',     short: '组织委员',   color: ROLE_COLORS['org-commissioner'].text }, // 天蓝·组织协调（DESIGN_SYSTEM §2.3.2）
+  discComm:  { name: '纪检委员',     short: '纪检委员',   color: ROLE_COLORS['disc-commissioner'].text }, // 深橙·监督警示（DESIGN_SYSTEM §2.3.2）
+  propComm:  { name: '宣传委员',     short: '宣传委员',   color: ROLE_COLORS['prop-commissioner'].text }, // 海蓝·宣传传播（DESIGN_SYSTEM §2.3.2）
   initiator: { name: '发起人',       short: '发起人',     color: '#B91C1C' }, // 党建红·发起
   committee: { name: '支委会',       short: '支委会',     color: '#B91C1C' }, // 党建红·制度、议程明确要求时作集体决策
   expanded:  { name: '支委扩大群',   short: '支委扩大群', color: '#B91C1C' }, // 党建红·活动报备（群内知悉，不另加审批门）
@@ -82,16 +83,16 @@ const WF_FALLBACK_COLOR = '#64748B';
 const ACTIVITY_SCENE = {
   id: 'activity',
   no: '01',
-  title: '活动：按承办范围确定责任入口',
-  note: '本图展示组内承办示例：党小组组长创建活动并建立活动工作组；跨组承办由支书/副书记从支书台创建。承办范围表示责任归属，不限制参与资格。',
+  title: '活动：按承办党小组确定责任入口',
+  note: '本图展示组内承办示例：党小组组长创建活动并建立活动工作组；支书/副书记从支书台创建时同样选择承办党小组，跨组只体现在招募范围。',
   viewBox: '0 0 800 720',
   shots: [
     {
       id: 0,
-      title: '按承办范围创建',
-      desc: '组内承办由所属党小组组长从组长台创建；跨组承办由支书/副书记从支书台创建。活动创建时建立工作组并记录组织者、深度参与者等并列分工。',
+      title: '按承办党小组创建',
+      desc: '组内活动由所属党小组组长从组长台创建；支书/副书记从支书台创建时须指定承办党小组。跨党小组深度参与者由组织委员协调。活动创建时建立工作组并记录组织者、深度参与者等并列分工。',
       flows: [
-        { text: '责任主体 → 活动记录（持久化承办范围）', type: 'task' },
+        { text: '责任主体 → 活动记录（持久化承办党小组）', type: 'task' },
         { text: '活动记录 → 活动工作组（建立协作成员）', type: 'task' },
       ],
       nodes: [
@@ -887,7 +888,7 @@ function safe(name, fn) {
     return fn();
   } catch (e) {
     console.error(`[renderAboutContent] ${name} ERROR:`, e);
-    return `<div style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;--acc-border-dark:#F87171;padding:20px;background:#fee;border:2px solid red;color:#900;">[${name} 渲染失败: ${e.message}]</div>`;
+    return `<div style="padding:20px;background:#fee;border:2px solid red;color:#900;">[${name} 渲染失败: ${e.message}]</div>`;
   }
 }
 
@@ -968,7 +969,6 @@ function bindLenis() {
 
 function bindTOC() {
   const tocItems = document.querySelectorAll('.ab-toc-dot-item');
-  const tocNav = document.querySelector('.ab-toc-nav');
   const sections = document.querySelectorAll('.ab-page[data-toc-id]');
   if (!tocItems.length || !sections.length) return;
 
@@ -1017,10 +1017,7 @@ function bindTOC() {
     });
   });
 
-  if (tocNav) {
-    tocNav.addEventListener('mouseenter', () => tocNav.classList.add('is-hovered'));
-    tocNav.addEventListener('mouseleave', () => tocNav.classList.remove('is-hovered'));
-  }
+  // 2026-10-23 Task 7：目录提亮改由 `.help-toc-nav:focus-within` 触发（键盘等价），不再绑 mouseenter。
 
   let currentId = null;
   const setActive = (id) => {

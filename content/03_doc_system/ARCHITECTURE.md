@@ -2,7 +2,7 @@
 title: "架构与单一事实源"
 type: architecture
 role: "[工程师]+[AI]"
-last_updated: 2026-10-18
+last_updated: "2026-11-03"
 version: "7.4"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/04_web_design/]
@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/02_institut
 
 > **总述：** 本文是系统**架构与单一事实源**的唯一权威源，回答三件事——① **系统怎么分层、物理分布在哪**（§四 分层架构 / §五 仓库结构）；② **母本/子本关系怎么注册、变更怎么传播**（§八 SSOT 双向变更流水线 / §十 单一事实源注册表与权威源治理）；③ **系统有哪些服务、谁有权限**（§十一 统一服务目录与角色-服务权限矩阵）。三分互为依据：分层架构是物理承载，注册表规定「谁是母本、冲突以谁为准」，服务目录把架构与制度落成可盘的实现清单——任一处改动的溯源链路都回 §八 与 §十。
 > **受众：** [工程师]+[AI]
-> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；② **数据结构与数据流（实体字段表 / 枚举 / 表结构）** → [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)；③ **系统角色权限矩阵（角色键级权威）** → [SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md)；④ **文档导航与权威层级定义** → [DOC_MAP.md](./DOC_MAP.md) 与 [OPERATIONS_GUIDE.md §1.1](./OPERATIONS_GUIDE.md)；⑤ **术语与使用规范 / 文件角色分类** → [OPERATIONS_GUIDE.md](./OPERATIONS_GUIDE.md)（《运行与协作规范》：§19 术语 / §20 AI 展开 / §21 Emoji / §24–§31 文件角色分类）；⑥ **前端设计规范** → [DESIGN_SYSTEM.md](../04_web_design/design-system/DESIGN_SYSTEM.md)。
+> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；② **数据结构与数据流（实体字段表 / 枚举 / 表结构）** → [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)；③ **系统角色权限矩阵（角色键级权威）** → [SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md)；④ **文档导航与权威层级定义** → [DOC_MAP.md](./DOC_MAP.md) 与 [OPERATIONS_GUIDE.md §1.1](./OPERATIONS_GUIDE.md)；⑤ **术语定义** → [TERMINOLOGY.md](./TERMINOLOGY.md)（全仓唯一源）；**使用规范 / 文件角色分类** → [OPERATIONS_GUIDE.md](./OPERATIONS_GUIDE.md)（§20 AI 展开 / §21 Emoji / §24–§31 文件角色分类）；⑥ **前端设计规范** → [DESIGN_SYSTEM.md](../04_web_design/design-system/DESIGN_SYSTEM.md)。
 
 ---
 
@@ -36,7 +36,7 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 ### 工作组概念
 
 - **分层位置**：工作组是活动/专班业务记录之上的协作结构，**不是独立业务对象**。活动记录仍是活动业务的唯一载体，专班记录仍是专班业务的唯一载体；工作组只承接组织者/深度参与者、任务、产出与授权。
-- **活动工作组**：随活动创建。**组内承办**由所属党小组组长从组长工作台创建；**跨组承办**由支书/副书记从支书工作台创建并指定成员。承办范围是责任字段，不限制其他成员报名或参加。
+- **活动工作组**：随活动创建。组织落点只有**党小组承办**（`party-group`：本组活动由所属党小组组长/副组长从组长工作台创建，支书/副支书可建任意承办组活动，承办党小组唯一）与**支部级**（`branch`）两档；**跨组**只表示深度参与者招募范围（`recruitmentScope='cross-group'`），不是第三落点。组织落点是责任字段，不限制其他成员报名或参加。
 - **专班工作组**：围绕事项、任务或产出建立；组织委员默认扎口协调，支部制度参数可调整。
 - **权限边界**：两类工作组均只登记组织者与深度参与者，成员关系不自动授予系统权限；确需系统操作能力时另行授权并留痕。
 - **考察依托工作组**：考察记录挂该工作组，考察对象为该工作组成员；活动工作组的考察挂活动工作组，专班工作组的考察挂专班工作组。考察不是独立于工作组的第四种记录。
@@ -102,7 +102,7 @@ Layer 6: 实现层（代码实现与运行时）
   └─ server/                              [工程师]+[AI] Node 一体化后端（Express + better-sqlite3）
 
 Layer 7: 审计参考层（审计与参考）
-  └─ .ctx/                                [AI]/[工程师]+[AI] 审计底座（logs/TIMESTAMPS/SNAPSHOT/REVIEW_QUEUE）
+  └─ .ctx/                                [AI]/[工程师]+[AI] 审计底座（logs/ · evidence/ · TIMESTAMPS · SNAPSHOT · REVIEW_QUEUE · ACTIVE_RULINGS · ENGINEERING_ASSESSMENT）
 ```
 
 ---
@@ -135,7 +135,7 @@ Layer 7: 审计参考层（审计与参考）
 │   │   ├── leader.html                [用户]+[AI] 党小组组长工作台（活动写入+考勤管理+考察管理+复盘提交+待办）
 │   │   ├── org.html                   [用户]+[AI] 组织委员工作台（考察管理+专班管理+人才库+发展党员+待办）
 │   │   ├── prop.html                  [用户]+[AI] 宣传委员工作台（宣传任务+项目看板+档案归档+待办）
-│   │   ├── disc.html                  [用户]+[AI] 纪检委员工作台（考勤管理（含补课分段）+复盘+考察管理+知情查看+待办）
+│   │   ├── disc.html                  [用户]+[AI] 纪检委员工作台（考勤管理（含补课分段）+复盘+考察管理+待办）
 │   │   ├── visitor.html               [用户]+[AI] 成员工作台（含待办）
 │   │   └── party-committee.html       [工程师]+[AI] 党委后台工作台（支部实例+支书任命+支部上报，P1-P3）
 │   └── src/                           [工程师]+[AI] ESM 模块化源码
@@ -177,7 +177,7 @@ Layer 7: 审计参考层（审计与参考）
 │   │   └── README.md                 [工程师]+[AI] 文档系统治理层目录索引
 │   ├── 04_web_design/                [工程师]+[AI] 网站设计层（设计理念与思路档案）
 │   │   ├── data/                      [工程师]+[AI] 数据权威（DATA_MODEL 数据模型与数据流）
-│   │   ├── design-system/             [工程师]+[AI] 全站通用规范（DESIGN_SYSTEM：设计哲学/色彩/排版/组件/交互/响应式/深色/资产/点击落点）
+│   │   ├── design-system/             [工程师]+[AI] 全站通用规范（DESIGN_SYSTEM：设计哲学/色彩/排版/组件〔含浮窗体例、筛选形态〕/交互/响应式/深色/资产/点击落点〔含承载面唯一性〕）
 │   │   ├── module/                    [工程师]+[AI] 页面与模块设计（SOP_WEBSITE_GUIDE / MODULE_UI_DESIGN / ABOUT_PAGE_DESIGN / AGENDA_AND_REFERENCE_DESIGN）
 │   │   ├── deploy/                    [工程师]+[AI] 部署与集成设计（DEPLOYMENT_GUIDE）
 │   │   ├── evolution/                 [工程师]+[AI] 演进、契约与评估（ARCHITECTURE_EVOLUTION / WORKFLOW_BLOCK_CONTRACT / BRANCH_WORK_MAP / PARTY_COMMITTEE_DESIGN / ROLE_PERMISSION_DESIGN / DESIGN_METHODOLOGY；工程化评估见 .ctx/ENGINEERING_ASSESSMENT.md）
@@ -185,28 +185,32 @@ Layer 7: 审计参考层（审计与参考）
 │   ├── 05_ai_coding/                 [工程师]+[AI] AI 协作方法论层（唯一 AI 协作方法论层：README + 5 分篇 + DATA_CONSISTENCY_CHECKLIST）
 │   │   ├── README.md                         [工程师]+[AI] AI 协作方法论层目录索引（层索引表 + 分流来源声明）
 │   │   ├── FILE_OPERATION_RULES.md           [工程师]+[AI] 文件操作纪律分篇
-│   │   ├── TEST_AND_VERIFICATION.md         [工程师]+[AI] 测试验证纪律分篇（含数据同源一致性校验节）
+│   │   ├── TEST_AND_VERIFICATION.md         [工程师]+[AI] 测试验证纪律分篇（含数据同源一致性校验节、承载形态守卫）
 │   │   ├── DOCUMENT_GOVERNANCE.md           [工程师]+[AI] 文档治理与一改具改分篇
 │   │   ├── CONTEXT_MANAGEMENT.md            [工程师]+[AI] 上下文管理与防失忆分篇（read_strategy: active）
 │   │   ├── REVIEW_AND_EXPRESSION.md         [工程师]+[AI] 评议与表达纪律分篇
+│   │   ├── PARALLEL_SKILL_AUDIT.md          [工程师]+[AI] 多代理独立审查操作手册（H21 详版；§12 全局性审查五问）
 │   │   └── DATA_CONSISTENCY_CHECKLIST.md    [工程师]+[AI] 数据同源一致性校验手册（工程质检纪律）
 │   ├── insights/                     [用户]+[AI] 经验沉淀（党建实务保留）
 │   │   ├── README.md                 [用户]+[工程师] 经验沉淀层目录索引
 │   │   └── 党支部管理与实务经验沉淀.md [用户]+[AI] 按 5 类知识类型组织的经验沉淀（党建实务）
 │   └── README.md                     [用户]+[AI] 内容中心索引
 │
-├── .ctx/                              [AI] 运行时上下文（审计底座）
+├── .ctx/                              [AI] 运行时上下文（审计底座；顶层只列白名单 7 项）
 │   ├── TIMESTAMPS.md                  [工程师]+[AI] 文件时间戳注册表
 │   ├── SNAPSHOT.md                    [AI] 当前基线快照
 │   ├── REVIEW_QUEUE.md                [工程师]+[AI] 支书评议队列
+│   ├── ACTIVE_RULINGS.md              [工程师]+[AI] 现行有效裁定速查
 │   ├── ENGINEERING_ASSESSMENT.md     [工程师]+[AI] 工程化评估与改造行动线（评估职能归审计底座）
-│   ├── snapshots/                     [AI] 历史快照归档
+│   ├── evidence/                      [工程师]+[AI] 真机证据（按日期：YYYY-MM-DD/ 截图与读数）
 │   └── logs/                          [工程师]+[AI] 月度执行日志与决策日志
-│       ├── archive/                   [工程师]+[AI] 历史日志归档
+│       ├── archive/                   [工程师]+[AI] 历史日志与审计原文归档（按月份：YYYY-MM/）
 │       ├── EXECUTION_LOG_INDEX.md     [工程师]+[AI] 日志导航索引
 │       ├── YYYY-MM-EXECUTION_LOG.md   [工程师]+[AI] 月度执行日志
 │       └── YYYY-MM-DECISION_LOG.md    [工程师]+[AI] 月度决策日志
 ```
+
+> **归档规则**：`.ctx` 顶层只放 `logs/`、`evidence/`、`TIMESTAMPS.md`、`SNAPSHOT.md`、`REVIEW_QUEUE.md`、`ACTIVE_RULINGS.md`、`ENGINEERING_ASSESSMENT.md`。一次性审计报告与脚本生成产物在结论沉淀到原则 / 方法文档后，移入 `.ctx/logs/archive/YYYY-MM/`，不得在顶层新增；准入与三去向见 `CLAUDE.md H26.3`。
 
 ---
 
@@ -370,7 +374,8 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 | `content/02_institution/sop/*.md` | `docs/src/workflow/`、`docs/src/` | 制度→代码（H30.2 规则1）。SOP 制度文本是系统代码的母本。凡涉及流程步骤、术语、权限规则，必须先检查 content/02_institution/sop/ |
 | `content/04_web_design/data/DATA_MODEL.md §3（参与者数据流设计）` | `docs/src/`（角色权限引擎） | 设计→代码。数据流架构定义角色数据流与登录态说明（§3.4，已实现登录态），代码实现设计 |
 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` | `docs/src/`（专班管理 + 审批流程） | 设计→代码。支委系统设计定义专班管理逻辑和§审批流程规范，代码实现 |
-| `content/04_web_design/design-system/DESIGN_SYSTEM.md` | `docs/src/styles.css`、`docs/src/components/*` | 设计→样式/代码。设计系统是全局样式与各组件实现的母本（查色值见 §二，写组件见 §四，点击落点见 §十） |
+| `content/04_web_design/design-system/DESIGN_SYSTEM.md`（父索引） | `docs/src/styles.css`、`docs/src/components/*` | 设计→样式/代码。设计系统是全局样式与各组件实现的母本（查色值见 DS_01 §二，写组件见 DS_03 §四，点击落点见 DS_05 §十） |
+| `content/04_web_design/design-system/DS_03_COMPONENTS.md §4.27–§4.28` 与 `content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md §10.7` | `docs/src/components/ui/modal.js`、`docs/src/components/ui/list-filter.js`、各对象入口页 | 设计→代码。浮窗体例 / 筛选形态 / 承载面唯一性是组件与入口的母本；新增浮窗、筛选或对象入口先对照三节 |
 | `content/04_web_design/module/MODULE_UI_DESIGN.md` | `docs/src/components/record/calendar.js` | 设计→代码。日历功能规划是日历渲染引擎的母本 |
 | `content/04_web_design/data/DATA_MODEL.md` | `docs/src/core/domain/domain.js` | 数据→代码。数据字段定义权威源（含§写入数据验证设计），代码中的数据结构必须与 DATA_MODEL.md 一致 |
 | `content/04_web_design/data/DATA_MODEL.md §3.4（登录态说明）` | `docs/src/core/base/state.js` | 设计→代码。DATA_MODEL §3.4 登录态说明是状态中心登录逻辑的母本 |
@@ -415,7 +420,7 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 
 **区分「定义残留」与「合法功能分区」**：
 - **必须改**：与权威源不一致的旧定义——权威源变更后旧表述即属残留，须全仓同步；"那是旧的划分"这类表述同样不写，只讲"当前定义是什么"
-- **保留**：功能分区本身不是旧定义的载体——分区标题与 UI 标签归位到现行分区即可；工作台 Tab 组名按行为性质分「工作台 / 我的职责 / 知情查看 / 制度与答复」四组，不再出现党建/党务二分章节标题与场景前缀
+- **保留**：功能分区本身不是旧定义的载体——分区标题与 UI 标签归位到现行分区即可；工作台 Tab 组名按行为性质分「总览 / 我的职责 / 协作与知情 / 制度与答复」四组，不再出现党建/党务二分章节标题与场景前缀
 
 **Boolean 条件**：定义/术语变更传播完成 ⇔ 全仓 Grep 旧表述零残留（合法功能分区除外）**且** 权威源所有链接指向的下游文件已同步。
 
@@ -587,3 +592,14 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 | 前端设计规范 | [DESIGN_SYSTEM.md](../04_web_design/design-system/DESIGN_SYSTEM.md) |
 | 支书裁定原文（P-xxx 系列） | [SECRETARY_DIRECTIVES.md](../01_strategy/SECRETARY_DIRECTIVES.md) |
 | 沿革与「哪一批做了什么」 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` |
+
+---
+
+## 附：系统现行口径承接（2026-11-03）
+
+> 来源：`.ctx/ACTIVE_RULINGS.md` 分类承接；每条末尾 `（D-xxx）` 是决议指针，正文以本文件为准。
+
+- **独立页必须 hydrate**：`docs/*.html` 独立页入口须 `registerApiAdapter` ＋ `init()` / `bootstrapPage`；只 import `runtime.js` 默认仍是 mock，api 形态下只能读到种子。（D-485/D-489）
+- **渲染型路径写 `./`**：JS 渲染的链接 / 资源路径一律 `./`，不得 `../`；裸文件名按 `<base>` 解析后必须真实存在。（D-610/D-646/D-656）
+- **批准门服务端补门**：`POST /activities` 与 `POST /snapshot` 与 `PATCH` 过同一判据，不新增专用端点。（D-591/D-593）
+- **`WORKFLOW_BLOCK_CONTRACT` 的定位**：属 `evolution/` 论证档，不是现行权威；现行契约以 `DS_03` 与本文为准。（D-686）

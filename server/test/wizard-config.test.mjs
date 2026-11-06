@@ -30,15 +30,15 @@
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018h';
-import { registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261018h';
-import { applyConfigCopy, getBranchById } from '../../docs/src/services/branch/branch.js?v=20261018h';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261102b';
+import { registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261102b';
+import { applyConfigCopy, getBranchById } from '../../docs/src/services/branch/branch.js?v=20261102b';
 import {
   buildConfigPackage,
   applyConfigPackage,
   PACKAGE_KIND,
   PACKAGE_VERSION,
-} from '../../docs/src/services/branch/org-config-package.js?v=20261018h';
+} from '../../docs/src/services/branch/org-config-package.js?v=20261102b';
 
 // ── localStorage 内存桩（import 之后建立；branch 服务在函数体内惰性访问）──
 const _store = new Map();
@@ -129,7 +129,7 @@ function tgtBranch(id, name) {
 test('copy：源→单 target 生效（modules/blocks/workforce/org），逐 target 留痕 config-copied、源不被污染', async () => {
   seedBranches([srcBranch(), tgtBranch('br-t1', '目标一')]);
   const srcBefore = JSON.stringify(mockDB.branches.find(b => b.id === 'br-src'));
-  const res = await applyConfigCopy('br-src', ['br-t1'], { by: 'p_pc' });
+  const res = await applyConfigCopy('br-src', ['br-t1'], { by: '9000000001' });
   assert.equal(res.length, 1);
   assert.equal(res[0].targetId, 'br-t1');
   assert.equal(res[0].ok, true);
@@ -154,7 +154,7 @@ test('copy：源→单 target 生效（modules/blocks/workforce/org），逐 tar
   assert.ok(Array.isArray(hist) && hist.length === 1, '一次复制一条聚合留痕');
   assert.equal(hist[0].what, 'config-copied');
   assert.equal(hist[0].from, 'branch:br-src');
-  assert.equal(hist[0].by, 'p_pc');
+  assert.equal(hist[0].by, '9000000001');
   assert.deepEqual(hist[0].to, ['headerTitle', 'desc', 'themePreset', 'modules', 'blocks', 'workforce']);
   // 源不被污染
   assert.equal(JSON.stringify(getBranchById('br-src')), srcBefore, '源支部配置未变');
@@ -164,7 +164,7 @@ test('copy：源→单 target 生效（modules/blocks/workforce/org），逐 tar
 // ── b) 源 → 多 target ─────────────────────────────────────
 test('copy：源→多 target 各自生效并独立留痕；结果逐 target 返回', async () => {
   seedBranches([srcBranch(), tgtBranch('br-t1', '目标一'), tgtBranch('br-t2', '目标二')]);
-  const res = await applyConfigCopy('br-src', ['br-t1', 'br-t2'], { by: 'p_pc' });
+  const res = await applyConfigCopy('br-src', ['br-t1', 'br-t2'], { by: '9000000001' });
   assert.equal(res.length, 2);
   for (const r of res) {
     assert.equal(r.ok, true);
@@ -181,7 +181,7 @@ test('copy：源→多 target 各自生效并独立留痕；结果逐 target 返
 // ── c) includeOrg=false ────────────────────────────────────
 test('copy：includeOrg=false 不动 org（headerTitle/themePreset/desc 保持目标现值）', async () => {
   seedBranches([srcBranch(), tgtBranch('br-t1', '目标一')]);
-  const res = await applyConfigCopy('br-src', ['br-t1'], { by: 'p_pc', includeOrg: false });
+  const res = await applyConfigCopy('br-src', ['br-t1'], { by: '9000000001', includeOrg: false });
   assert.equal(res[0].ok, true);
   assert.deepEqual(res[0].fields, ['modules', 'blocks', 'workforce']);
   const t1 = getBranchById('br-t1');
@@ -194,7 +194,7 @@ test('copy：includeOrg=false 不动 org（headerTitle/themePreset/desc 保持�
 // ── d) 非法 / 不存在 → 原因 ──────────────────────────────
 test('copy：目标不存在返回原因；混合成功+失败逐条返回', async () => {
   seedBranches([srcBranch(), tgtBranch('br-t1', '目标一')]);
-  const res = await applyConfigCopy('br-src', ['br-t1', 'br-nope'], { by: 'p_pc' });
+  const res = await applyConfigCopy('br-src', ['br-t1', 'br-nope'], { by: '9000000001' });
   assert.equal(res.length, 2);
   assert.equal(res[0].ok, true, '存在的目标正常复制');
   assert.equal(res[1].ok, false);
@@ -204,13 +204,13 @@ test('copy：目标不存在返回原因；混合成功+失败逐条返回', asy
 
 test('copy：源不存在 / 目标=源 / 空目标清单 → 不写不崩', async () => {
   seedBranches([srcBranch()]);
-  const r1 = await applyConfigCopy('br-none', ['br-t1'], { by: 'p_pc' });
+  const r1 = await applyConfigCopy('br-none', ['br-t1'], { by: '9000000001' });
   assert.equal(r1[0].ok, false);
   assert.match(r1[0].reason, /源支部不存在/);
-  const r2 = await applyConfigCopy('br-src', ['br-src'], { by: 'p_pc' });
+  const r2 = await applyConfigCopy('br-src', ['br-src'], { by: '9000000001' });
   assert.equal(r2[0].ok, false);
   assert.match(r2[0].reason, /同一支部/);
-  const r3 = await applyConfigCopy('br-src', [], { by: 'p_pc' });
+  const r3 = await applyConfigCopy('br-src', [], { by: '9000000001' });
   assert.deepEqual(r3, [], '空目标清单 → 空结果');
   assert.equal(getBranchById('br-src').config.configChangeHistory, undefined, '全程未写入');
 });
@@ -223,7 +223,7 @@ test('copy：源 config 缺省域（默认全开/默认分工）→ 目标该域
   delete src.config.workforce; // 源为默认态
   seedBranches([src, tgtBranch('br-t1', '目标一')]);
   const srcBefore = JSON.stringify(getBranchById('br-src'));
-  const res = await applyConfigCopy('br-src', ['br-t1'], { by: 'p_pc' });
+  const res = await applyConfigCopy('br-src', ['br-t1'], { by: '9000000001' });
   assert.equal(res[0].ok, true);
   const t1 = getBranchById('br-t1');
   assert.equal(t1.config.modules, null, '目标模块配置恢复默认');
@@ -244,7 +244,7 @@ function validPkg(overrides = {}) {
     version: PACKAGE_VERSION,
     branchId: 'br-src',
     exportedAt: '2026-09-06T00:00:00.000Z',
-    by: 'p_pc',
+    by: '9000000001',
     org: { headerTitle: '源支部页眉', desc: '源支部自述', themePreset: 'sky' },
     config: {
       modules: { hiddenTabIds: ['calendar'], tabOrder: ['report-up'] },
@@ -273,12 +273,12 @@ test('build：覆盖件含 kind/version/branchId/exportedAt/by 与 org+config �
       workforce: { taskforce: { ownerType: 'role', ownerId: 'org-commissioner' } },
     },
   }]);
-  const pkg = buildConfigPackage({ branchId: 'br-src', by: 'p_pc' });
+  const pkg = buildConfigPackage({ branchId: 'br-src', by: '9000000001' });
   assert.equal(pkg.kind, 'gsm1921-org-config');
   assert.equal(pkg.version, 1);
   assert.equal(pkg.branchId, 'br-src');
   assert.ok(typeof pkg.exportedAt === 'string' && pkg.exportedAt.length > 0, 'exportedAt 为 ISO 时间串');
-  assert.equal(pkg.by, 'p_pc');
+  assert.equal(pkg.by, '9000000001');
   // org 全键
   assert.equal(pkg.org.headerTitle, '源支部页眉');
   assert.equal(pkg.org.desc, '源支部自述');
@@ -307,7 +307,7 @@ test('build：支部不存在 → 抛错', () => {
 // ── g) apply：合法包写入生效 + 留痕 ─────────────────────────
 test('apply：合法包写入目标，headerTitle/themePreset/modules/blocks/workforce 生效且留痕 what=config-package-import', async () => {
   seedBranches([{ id: 'br-tgt', name: '目标支部', type: '本科生', config: { headerTitle: '旧页眉', desc: '', modules: { hiddenTabIds: ['feedback'], tabOrder: [] }, blocks: { outputBlocks: { hiddenBlockIds: ['materials'], blockOrder: [] } }, workforce: null } }]);
-  const res = await applyConfigPackage(validPkg(), { branchId: 'br-tgt', by: 'p_pc' });
+  const res = await applyConfigPackage(validPkg(), { branchId: 'br-tgt', by: '9000000001' });
   assert.equal(res.ok, true);
   assert.equal(res.unchanged, false);
   assert.deepEqual(res.updatedFields.sort(), ['blocks', 'headerTitle', 'modules', 'themePreset', 'workforce', 'desc'].sort());
@@ -324,14 +324,14 @@ test('apply：合法包写入目标，headerTitle/themePreset/modules/blocks/wor
   const entry = hist[hist.length - 1];
   assert.equal(entry.what, 'config-package-import');
   assert.equal(entry.from, 'branch:br-src');
-  assert.equal(entry.by, 'p_pc');
+  assert.equal(entry.by, '9000000001');
   assert.ok(Array.isArray(entry.to) && entry.to.includes('themePreset'), 'to 记录实际变更字段');
 });
 
 // ── h) 净化：非法 themePreset / modules / workforce 不写坏 ──
 test('apply：非法 themePreset（白名单外）/ 空 headerTitle 被净化丢弃，不写坏目标', async () => {
   seedBranches([{ id: 'br-tgt', name: '目标支部', type: '本科生', config: { headerTitle: '保留页眉', themePreset: 'red', desc: '' } }]);
-  const res = await applyConfigPackage(validPkg({ org: { headerTitle: '   ', themePreset: 'gold', desc: '' } }), { branchId: 'br-tgt', by: 'p_pc' });
+  const res = await applyConfigPackage(validPkg({ org: { headerTitle: '   ', themePreset: 'gold', desc: '' } }), { branchId: 'br-tgt', by: '9000000001' });
   assert.equal(res.ok, true);
   const tgt = getBranchById('br-tgt');
   assert.equal(tgt.config.headerTitle, '保留页眉', '空 headerTitle 丢弃（不允许清空）');
@@ -352,7 +352,7 @@ test('apply：非法 modules id（非字符串/超长）与非法 workforce 项�
       },
     },
   });
-  const res = await applyConfigPackage(pkg, { branchId: 'br-tgt', by: 'p_pc' });
+  const res = await applyConfigPackage(pkg, { branchId: 'br-tgt', by: '9000000001' });
   assert.equal(res.ok, true);
   const tgt = getBranchById('br-tgt');
   assert.deepEqual(tgt.config.modules.hiddenTabIds, ['ok-mod'], '非字符串/超长 id 被净化；tabOrder 非数组归空');
@@ -371,35 +371,35 @@ test('apply：缺字段安全——org 只给部分键只改该键；无 org/con
     },
   }]);
   // org 部分键 + config 全缺 → 只写 themePreset
-  const r1 = await applyConfigPackage(validPkg({ config: undefined, org: { themePreset: 'green' } }), { branchId: 'br-tgt', by: 'p_pc' });
+  const r1 = await applyConfigPackage(validPkg({ config: undefined, org: { themePreset: 'green' } }), { branchId: 'br-tgt', by: '9000000001' });
   assert.deepEqual(r1.updatedFields, ['themePreset']);
   assert.equal(getBranchById('br-tgt').config.themePreset, 'green');
   assert.equal(getBranchById('br-tgt').config.headerTitle, '现页眉', '未提供键不动');
   // config 只给 workforce=null（恢复默认）→ 只写 workforce
-  const r2 = await applyConfigPackage(validPkg({ org: undefined, config: { workforce: null } }), { branchId: 'br-tgt', by: 'p_pc' });
+  const r2 = await applyConfigPackage(validPkg({ org: undefined, config: { workforce: null } }), { branchId: 'br-tgt', by: '9000000001' });
   assert.deepEqual(r2.updatedFields, ['workforce']);
   assert.equal(getBranchById('br-tgt').config.workforce, null, 'workforce 恢复默认（null）');
   // 空覆盖件（kind/version 合法但无 org/config）→ unchanged，不抛
-  const r3 = await applyConfigPackage({ kind: PACKAGE_KIND, version: PACKAGE_VERSION, branchId: 'br-src' }, { branchId: 'br-tgt', by: 'p_pc' });
+  const r3 = await applyConfigPackage({ kind: PACKAGE_KIND, version: PACKAGE_VERSION, branchId: 'br-src' }, { branchId: 'br-tgt', by: '9000000001' });
   assert.equal(r3.unchanged, true);
 });
 
 test('apply：kind/version 不符 / 目标不存在 → 抛错（前端捕获 toast），不写坏', async () => {
   seedBranches([{ id: 'br-tgt', name: '目标支部', type: '本科生', config: { headerTitle: '现页眉' } }]);
-  await assert.rejects(() => applyConfigPackage({ kind: 'other', version: 1 }, { branchId: 'br-tgt', by: 'p_pc' }), /kind/);
-  await assert.rejects(() => applyConfigPackage(validPkg({ version: 99 }), { branchId: 'br-tgt', by: 'p_pc' }), /版本/);
-  await assert.rejects(() => applyConfigPackage(validPkg(), { branchId: 'br-none', by: 'p_pc' }), /目标支部不存在/);
+  await assert.rejects(() => applyConfigPackage({ kind: 'other', version: 1 }, { branchId: 'br-tgt', by: '9000000001' }), /kind/);
+  await assert.rejects(() => applyConfigPackage(validPkg({ version: 99 }), { branchId: 'br-tgt', by: '9000000001' }), /版本/);
+  await assert.rejects(() => applyConfigPackage(validPkg(), { branchId: 'br-none', by: '9000000001' }), /目标支部不存在/);
   assert.equal(getBranchById('br-tgt').config.headerTitle, '现页眉', '失败路径不产生写入');
 });
 
 test('apply：与现状一致的包不写不留痕（重复应用无冗余条目）', async () => {
   seedBranches([{ id: 'br-tgt', name: '目标支部', type: '本科生', config: {} }]);
   const pkg = validPkg({ config: { modules: null, blocks: null, workforce: null } });
-  const r1 = await applyConfigPackage(pkg, { branchId: 'br-tgt', by: 'p_pc' });
+  const r1 = await applyConfigPackage(pkg, { branchId: 'br-tgt', by: '9000000001' });
   assert.ok(r1.updatedFields.includes('headerTitle') && r1.updatedFields.includes('themePreset') && r1.updatedFields.includes('desc'), '首次仍生效（org 域）');
   assert.ok(!r1.updatedFields.includes('modules'), 'config null 与目标 null 一致时不写');
   const n1 = getBranchById('br-tgt').config.configChangeHistory.length;
-  const r2 = await applyConfigPackage(pkg, { branchId: 'br-tgt', by: 'p_pc' });
+  const r2 = await applyConfigPackage(pkg, { branchId: 'br-tgt', by: '9000000001' });
   assert.equal(r2.unchanged, true);
   assert.equal(getBranchById('br-tgt').config.configChangeHistory.length, n1, '重复应用不追加留痕');
 });

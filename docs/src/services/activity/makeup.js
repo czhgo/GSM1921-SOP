@@ -17,14 +17,13 @@
 //   **逐场开关**：勾 = 本场要补、不勾 = 本场不补。⇒「只有两项的名单」是硬要求名单**唯一的判据源**，
 //   消费点勿另写第二份，也别把某项从这里挪走当成「关掉」。见 `D-467` / `D-545`。
 
-import { mockDB, AttendanceStatus } from '../../core/domain/domain.js?v=20261018h';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261018h';
-import { persist } from '../../data/data-adapter.js?v=20261018h';
-import { PEOPLE } from '../../data/mock/index.js?v=20261018h';
-import { getPersonById } from '../member/person.js?v=20261018h';
-import { loadAttendanceRecords, saveAttendanceRecords } from './attendance.js?v=20261018h';
-import { findActivityById } from './activity.js?v=20261018h';
-import { generateId } from '../../core/base/id.js?v=20261018h';
+import { mockDB, AttendanceStatus } from '../../core/domain/domain.js?v=20261102b';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261102b';
+import { persist } from '../../data/data-adapter.js?v=20261102b';
+import { getPersonById } from '../member/person.js?v=20261102b';
+import { loadAttendanceRecords, saveAttendanceRecords } from './attendance.js?v=20261102b';
+import { findActivityById } from './activity.js?v=20261102b';
+import { generateId } from '../../core/base/id.js?v=20261102b';
 
 /**
  * 制度硬要求补课类型（补课范围判据的**单一出口／call-time**）——支部级可调。
@@ -51,6 +50,30 @@ export function makeupDefaultActivityTypes() {
 export function makeupDeadlineDays() {
   const d = (POLICY_DEFAULTS.makeup || {}).deadlineDays;
   return Number.isInteger(d) ? d : 7;
+}
+
+/**
+ * 制度补课类型的界面称谓（R7-15 单一出口／call-time）：按当前参数拼「A与B」，
+ * 关掉一类后只剩该类，全关则返回 ''（调用方据此换整句）。
+ * @returns {string}
+ */
+export function makeupScopeLabel() {
+  const types = makeupDefaultActivityTypes();
+  if (types.length === 0) return '';
+  if (types.length === 1) return types[0];
+  return `${types.slice(0, -1).join('、')}与${types[types.length - 1]}`;
+}
+
+/**
+ * 补课范围与时限说明（R7-15 单一出口）：类型与天数一律取制度参数**现值**，不写死数字/枚举。
+ * 消费点：纪检台补课分段说明、设置页与帮助文案——勿在页面另拼一份。
+ * @returns {string}
+ */
+export function makeupScopeHint() {
+  const label = makeupScopeLabel();
+  if (!label) return '当前支部未设制度补课类型；补课仅按单场活动勾选。';
+  const days = makeupDeadlineDays();
+  return `仅${label}需 ${days} 日内补课（T+${days}）。`;
 }
 
 /**

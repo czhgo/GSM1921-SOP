@@ -1,11 +1,14 @@
 // role: [工程师]+[AI]
 // 个人档案页的「本人自述」展示：折叠摘要 + 5 个子组。
 // 字段顺序与含义沿用自我描述字段单一源（core/domain/self-profile.js）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261018h';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261102b';
 import {
   isSelfProfileEmpty, SELF_PROFILE_FIELDS,
-} from '../../core/domain/self-profile.js?v=20261018h';
+} from '../../core/domain/self-profile.js?v=20261102b';
+import { EMPTY_TEXT } from '../../core/domain/constants.js?v=20261102b';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261102b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
 /** 15 个自述字段的展示子组（顺序＝展开后的阅读顺序；键集≡SELF_PROFILE_FIELDS） */
 export const SELF_PROFILE_GROUPS = [
   { title: '基本信息', keys: ['phone', 'grade', 'major'] },
@@ -65,21 +68,22 @@ export function selfProfileMissingGroupNames(selfProfile) {
 function emptyTextFor(key, selfProfile) {
   const dep = DEPENDENT_FIELDS[key];
   if (dep && selfProfile?.[dep.parent] === false) return dep.empty;
-  return '未填写';
+  return EMPTY_TEXT;
 }
 
-/** 子表：表头 + 行（不为每行做白卡；子项不再加 data-field） */
+/** 子表：表头 + 行（不为每行做白卡；子项不再加 data-field）；≤640px 走既有卡式行（DESIGN_SYSTEM §4.20） */
 function listTableHtml(field, value, emptyText) {
   const rows = Array.isArray(value)
     ? value.filter((row) => row && typeof row === 'object'
       && Object.values(row).some((cell) => String(cell == null ? '' : cell).trim()))
     : [];
   if (!rows.length) return esc(emptyText);
-  const cols = field.itemFields || [];
+  // 空列整列不渲染（列声明 emptyText，全空即无信息）
+  const cols = (field.itemFields || []).filter((col) => rows.some((row) => String(row[col.key] == null ? '' : row[col.key]).trim()));
   return `<div class="overflow-x-auto">
-    <table class="data-table">
+    <table class="data-table" data-responsive="cards">
       <thead><tr>${cols.map((col) => `<th scope="col">${esc(col.label)}</th>`).join('')}</tr></thead>
-      <tbody>${rows.map((row) => `<tr class="border-t border-gray-100 align-top">${cols.map((col) => `<td class="break-words whitespace-pre-wrap">${esc(row[col.key] || '—')}</td>`).join('')}</tr>`).join('')}</tbody>
+      <tbody>${rows.map((row) => `<tr class="border-t border-gray-100 align-top">${cols.map((col) => `<td data-label="${esc(col.label)}" class="break-words whitespace-pre-wrap">${esc(row[col.key] || EMPTY_TEXT)}</td>`).join('')}</tr>`).join('')}</tbody>
     </table>
   </div>`;
 }
@@ -89,7 +93,7 @@ function fieldValueHtml(field, selfProfile) {
   if (field.type === 'bool') {
     if (value === true) return '是';
     if (value === false) return '否';
-    return '未填写';
+    return EMPTY_TEXT;
   }
   if (field.type === 'multi') {
     const values = Array.isArray(value) ? value.filter((item) => String(item == null ? '' : item).trim()) : [];
@@ -137,7 +141,7 @@ export function renderSelfDescriptionSection(selfProfile, {
     ? `<button type="button" id="person-self-profile-btn" data-mode="self" class="btn-outline text-sm px-4 py-2 rounded-lg">${empty ? '填写' : '编辑'}我的自述</button>`
     : canDictate
       ? '<button type="button" id="person-self-profile-btn" data-mode="dictate" class="btn-outline text-sm px-4 py-2 rounded-lg">代录自述</button>'
-      : `<p class="text-xs text-gray-400">${esc(readOnlyReason || '仅本人或本支部组织委员可填写')}</p>`;
+      : `<p class="text-xs text-gray-500">${esc(readOnlyReason || '仅本人或本支部组织委员可填写')}</p>`;
 
   const body = empty
     ? `<p class="mt-2 text-sm text-gray-600">${isSelf
@@ -157,5 +161,46 @@ export function renderSelfDescriptionSection(selfProfile, {
       </details>
       <div class="flex-shrink-0">${action}</div>
     </div>
+  </section>`;
+}
+
+const THOUGHT_STATUS = {
+  needs_revision: '已打回 · 待补充',
+  archived: '已入库',
+};
+
+/**
+ * 个人档案「思想汇报」段（2026-10-20 R3-20）。
+ * 制度三处都写「提交即入库、算法归集至个人档案」；此前档案页没有这一段，组织台只能拿台账代偿。
+ * 本段只做**按人归集的查阅出口**（列表 + 查看），数据由调用方从既有服务取，组件不新造数据源。
+ *
+ * @param {Object} opts
+ * @param {Array}  [opts.reports]      已归一、已按提交时间倒序的本人汇报
+ * @param {number} [opts.total]        全部篇数（缺省取 reports.length）
+ * @param {string} [opts.viewAllHref]  「全部 N 篇」出口（thought-report.html?personId=…）
+ * @param {number} [opts.limit]        段内最多显示几篇（缺省 3）
+ */
+export function renderThoughtReportsSection({ reports = [], total = 0, viewAllHref = '', limit = 3 } = {}) {
+  const count = total || reports.length;
+  const shown = reports.slice(0, limit);
+  const rows = shown.map((r) => listRowHtml({
+    rowType: 'action',
+    title: r.title || '思想汇报',
+    meta: `${r.period || '期次未记录'} · 提交 ${String(r.submittedAt || '').slice(0, 10) || '时间未记录'} · ${THOUGHT_STATUS[r.reviewStatus] || '已入库'}`,
+    trailing: `<a href="./thought-report.html?id=${encodeURIComponent(r.id)}" class="text-xs text-accent">查看</a>`,
+  }));
+  return `<section id="person-thought-reports" aria-labelledby="person-thought-heading" class="mb-6 border-b border-gray-100 pb-6">
+    <div class="flex flex-wrap items-baseline justify-between gap-2">
+      <div class="flex items-baseline gap-2 min-w-0">
+        <h2 id="person-thought-heading" class="text-base font-semibold text-gray-700">思想汇报</h2>
+        <span class="text-xs text-gray-500">共 ${count} 篇 · 提交即入库</span>
+      </div>
+      ${count > shown.length && viewAllHref
+        ? `<a href="${viewAllHref}" class="text-xs text-accent">全部 ${count} 篇 →</a>`
+        : ''}
+    </div>
+    ${rows.length
+      ? `<div class="mt-2 border-t border-gray-100 pt-1">${listGroupHtml(rows)}</div>`
+      : emptyStateHtml({ text: '暂无思想汇报', variant: 'inline', className: 'mt-2' })}
   </section>`;
 }

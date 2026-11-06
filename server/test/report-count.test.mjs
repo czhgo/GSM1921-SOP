@@ -15,19 +15,19 @@ test('activity participantCount：分配成员与有效报名按 personId 去重
       type: '主题党日',
       status: 'completed',
       assignments: [
-        { personId: 'p1', role: 'organizer' },
-        { personId: 'p2', role: 'participant' },
-        { personId: 'p2', role: 'deep' },
+        { personId: '2400012345', role: 'organizer' },
+        { personId: '2400012346', role: 'participant' },
+        { personId: '2400012346', role: 'deep' },
         { role: 'participant' },
       ],
     }));
     const signups = [
-      { id: 'su-count-overlap', personId: 'p2', status: 'approved' },
-      { id: 'su-count-approved', personId: 'p3', status: 'approved' },
-      { id: 'su-count-pending', personId: 'p4', status: 'pending' },
-      { id: 'su-count-rejected', personId: 'p5', status: 'rejected' },
-      { id: 'su-count-cancelled', personId: 'p6', status: 'cancelled' },
-      { id: 'su-count-voided', personId: 'p7', status: 'approved', voided: true },
+      { id: 'su-count-overlap', personId: '2400012346', status: 'approved' },
+      { id: 'su-count-approved', personId: '2400012347', status: 'approved' },
+      { id: 'su-count-pending', personId: '2400012348', status: 'pending' },
+      { id: 'su-count-rejected', personId: '2400012349', status: 'rejected' },
+      { id: 'su-count-cancelled', personId: '2400012350', status: 'cancelled' },
+      { id: 'su-count-voided', personId: '2400012351', status: 'approved', voided: true },
       { id: 'su-count-no-person', status: 'approved' },
     ];
     for (const signup of signups) {
@@ -38,13 +38,13 @@ test('activity participantCount：分配成员与有效报名按 personId 去重
       }));
     }
     db.prepare('INSERT INTO signups (id, data) VALUES (?, ?)').run('su-count-taskforce', JSON.stringify({
-      id: 'su-count-taskforce', sourceType: 'taskforce', sourceId: 'tf-count', personId: 'p8', status: 'approved',
+      id: 'su-count-taskforce', sourceType: 'taskforce', sourceId: 'tf-count', personId: '2400012352', status: 'approved',
     }));
 
     const rows = extractDomain(db, 'activity', '2026-10-12', '2026-10-12');
     const item = rows.find((row) => row.id === activityId);
     assert.ok(item, '活动应出现在上报结果中');
-    assert.equal(item.participantCount, 3, '名单应为 p1、p2、p3，各计一次');
+    assert.equal(item.participantCount, 3, '名单应为 2400012345、2400012346、2400012347，各计一次');
 
     const updateSignup = (signupId, patch) => {
       const row = db.prepare('SELECT data FROM signups WHERE id = ?').get(signupId);

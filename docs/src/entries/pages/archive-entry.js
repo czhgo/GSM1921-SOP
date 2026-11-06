@@ -1,28 +1,34 @@
 // role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
-// 2026-07-30: Tab 分类（活动/专班/通知），替代原单一列表
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018h';
-import { renderHeader } from '../../components/shell/header.js?v=20261018h';
-import { BranchService } from '../../services/core/runtime.js?v=20261018h';
-import { mockDB } from '../../core/domain/domain.js?v=20261018h';
-import { getPersonById } from '../../services/member/person.js?v=20261018h';
-import { loadActivities } from '../../services/activity/activity.js?v=20261018h';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261018h';
-import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261018h';
+// 2026-07-30: Tab 分类（活动/专班），替代原单一列表
+// Task 3（2026-10-25）：`?tab=notice` 退役——消息有了唯一列表与「已归档」筛选，归档页只留活动、专班两栏。
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261102b';
+import { renderHeader } from '../../components/shell/header.js?v=20261102b';
+import { BranchService } from '../../services/core/runtime.js?v=20261102b';
+import { mockDB, TaskforceStatus, TASKFORCE_TERMINAL_STATUSES } from '../../core/domain/domain.js?v=20261102b';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261102b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261102b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261102b';
+import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261102b';
 // 活动「已结束」口径单一源（2026-09-13 收敛）：替代手写 status==='completed' || archived
-import { isActivityEnded } from '../../core/domain/constants.js?v=20261018h';
-import { NoticeStore, resolveNoticeUrl } from '../../services/governance/notice.js?v=20261018h';
-import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261018h';
-import { AuthStore } from '../../services/core/auth.js?v=20261018h';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261018h';
+// 2026-10-24 批次 508：归档库的「已归档活动」改用 `isActivityArchived`（仅看 archived 软标记），
+//   与宣传台「档案归档」同口径——原 `isActivityEnded`（archived ∨ status==='completed'）会把
+//   **已结束但尚未归档**的活动也算进归档库，与同页其它两栏（专班/通知只收归档件）不一致。
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261102b';
+import { getBasePath, escHtml, showToast } from '../../core/base/utils.js?v=20261102b';
+// Task 6：归档弹窗是列表内预览（locate）⇒ 保留预览 + 「打开完整页」；深链校验归档终态。
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261102b';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261102b';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../components/ui/pager.js?v=20261018h';
+import { pagerHtml } from '../../components/ui/pager.js?v=20261102b';
+import { openModal } from '../../components/ui/modal.js?v=20261102b';
 // 批次 87：本页必须先 hydrate API 数据源再渲染——与 activity.html（批次 83 修好后的标准形）同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下归档库读的是本地备份，
 // 服务端已归档的活动 / 专班 / 通知看不到。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261018h';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261018h';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261102b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261102b';
 
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261102b';
 renderSidebar('archive');
 renderHeader('archive');
 
@@ -44,9 +50,20 @@ async function _hydrateData() {
 const ARCHIVE_TABS = [
   { id: 'activity', label: '党建活动' },
   { id: 'taskforce', label: '专班' },
-  { id: 'notice', label: '通知' },
 ];
 let _activeTab = 'activity';
+// 2026-10-24 批次 508：归档库此前不读任何 URL 参数——外部深链（`?tab=taskforce&id=…`）一律落回
+//   默认「党建活动」且不打开详情。现按既有页签 id 取值（非法值回落 activity），`id` 在首帧渲染后
+//   打开对应详情浮窗（见 init 末尾 `_openArchivedDetail`）。
+// Task 3（2026-10-25）：`?tab=notice` 已退役，重定向到消息中心「已归档」。
+const _urlParams = new URLSearchParams(location.search);
+const _tabParam = _urlParams.get('tab');
+if (ARCHIVE_TABS.some(t => t.id === _tabParam)) _activeTab = _tabParam;
+const _focusArchiveId = _urlParams.get('id') || '';
+const _legacyNoticeTab = _tabParam === 'notice';
+if (_legacyNoticeTab) {
+  window.location.replace(`${getBasePath()}messages.html?filter=archived`);
+}
 
 const tabContainer = document.getElementById('archive-tabs');
 const contentContainer = document.getElementById('archive-tab-content');
@@ -72,12 +89,11 @@ function renderContent() {
 
   if (_activeTab === 'activity') renderActivityArchive();
   else if (_activeTab === 'taskforce') renderTaskforceArchive();
-  else if (_activeTab === 'notice') renderNoticeArchive();
 }
 
 // ── 分页（支书 2026-08-08：归档数据无上限增长 → 前端分页，复用 query-view 分页模式）──
 const PAGE_SIZE = 10;
-const _pageState = { activity: 1, taskforce: 1, notice: 1 };
+const _pageState = { activity: 1, taskforce: 1 };
 
 /** 搜索匹配（任一字段命中即显示） */
 function _matchesQuery(...fields) {
@@ -96,16 +112,16 @@ function _renderPager(total, key) {
 // ── 活动归档 ──
 function renderActivityArchive() {
   const all = loadActivities()
-    .filter(a => isActivityEnded(a))
+    .filter(a => isActivityArchived(a))
     .sort((a, b) => (b.date || '').localeCompare(a.date || '')); // 新日期在前
 
   if (all.length === 0) {
-    contentContainer.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">暂无已归档活动</p>';
+    contentContainer.innerHTML = emptyStateHtml({ text: "暂无已归档活动", variant: 'panel' });
     return;
   }
   const filtered = all.filter(a => _matchesQuery(a.title, a.date, a.type, (getPersonById(a.organizer) || {}).name));
   if (filtered.length === 0) {
-    contentContainer.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">无匹配归档活动</p>';
+    contentContainer.innerHTML = emptyStateHtml({ text: "无匹配归档活动", variant: 'panel' });
     return;
   }
   const cur = Math.min(_pageState.activity, Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)));
@@ -117,7 +133,7 @@ function renderActivityArchive() {
         const organizer = getPersonById(a.organizer);
         const isBrand = !!a.isBrand;
         return `
-          <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:shadow-sm hover:border-gray-200 transition-all cursor-pointer" data-archive-item data-archive-type="activity" data-archive-id="${a.id}">
+          <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:border-gray-200 active:bg-[var(--surface-active)] active:border-[var(--app-accent)] transition-colors cursor-pointer" role="button" tabindex="0" data-archive-item data-archive-type="activity" data-archive-id="${a.id}">
             <div class="flex items-center justify-between mb-2">
               <div class="flex items-center gap-2">
                 <span class="text-sm font-medium text-gray-800">${a.title || '未命名活动'}</span>
@@ -125,7 +141,7 @@ function renderActivityArchive() {
               </div>
               ${badgeHtml('已归档', 'neutral')}
             </div>
-            <p class="text-xs text-gray-500">${a.date || ''} · ${a.type || '活动'}${organizer ? ' · ' + organizer.name : ''}</p>
+            <p class="text-xs text-gray-500">${a.date || ''} · ${a.type || '活动'}${organizer ? ' · ' + organizer.name : ''} · 上传人：${escHtml(_archiveUploaderNameOf(a.id) || '登记时未采集')}</p>
           </div>
         `;
       }).join('')}
@@ -137,16 +153,17 @@ function renderActivityArchive() {
 // ── 专班归档 ──
 function renderTaskforceArchive() {
   const all = TaskForceRecordStore.getAll()
-    .filter(tf => tf.status === 'completed' || tf.status === 'archived')
+    // R10-B14：终态集单一源；归档页按现状**显式排除已解散**（dissolved 有独立留痕面，不混入「已归档专班」）。
+    .filter(tf => TASKFORCE_TERMINAL_STATUSES.includes(tf.status) && tf.status !== TaskforceStatus.DISSOLVED)
     .sort((a, b) => (b.deadline || b.createdAt || '').localeCompare(a.deadline || a.createdAt || '')); // 新日期在前
 
   if (all.length === 0) {
-    contentContainer.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">暂无已归档专班</p>';
+    contentContainer.innerHTML = emptyStateHtml({ text: "暂无已归档专班", variant: 'panel' });
     return;
   }
   const filtered = all.filter(tf => _matchesQuery(tf.name, tf.createdAt, tf.deadline, (getPersonById(tf.initiator) || {}).name));
   if (filtered.length === 0) {
-    contentContainer.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">无匹配归档专班</p>';
+    contentContainer.innerHTML = emptyStateHtml({ text: "无匹配归档专班", variant: 'panel' });
     return;
   }
   const cur = Math.min(_pageState.taskforce, Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)));
@@ -157,7 +174,7 @@ function renderTaskforceArchive() {
       ${items.map(tf => {
         const initiator = getPersonById(tf.initiator);
         return `
-          <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:shadow-sm hover:border-gray-200 transition-all cursor-pointer" data-archive-item data-archive-type="taskforce" data-archive-id="${tf.id}">
+          <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:border-gray-200 active:bg-[var(--surface-active)] active:border-[var(--app-accent)] transition-colors cursor-pointer" role="button" tabindex="0" data-archive-item data-archive-type="taskforce" data-archive-id="${tf.id}">
             <div class="flex items-center justify-between mb-2">
               <span class="text-sm font-medium text-gray-800">${tf.name || '未命名专班'}</span>
               ${badgeHtml('已归档', 'neutral')}
@@ -169,64 +186,6 @@ function renderTaskforceArchive() {
     </div>
     ${_renderPager(filtered.length, 'taskforce')}
   `;
-}
-
-// ── 通知归档 ──
-function renderNoticeArchive() {
-  // 2026-08-08 归档闭环：归档库只承载「已退出工作区」的通知——
-  //   ① 随活动/专班归档的通知（archived=true）
-  //   ② 自然过期（expireDate < 今天）的历史通知
-  // 工作区（首页/支书通知发布/全局概况）仅保留未归档的有效通知，杜绝列表爆炸。
-  const today = todayLocal();
-  const all = NoticeStore.getAll({ includeArchived: true })
-    .filter(n => n.archived === true || (n.expireDate && n.expireDate < today));
-
-  if (all.length === 0) {
-    contentContainer.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">暂无归档通知</p>';
-    return;
-  }
-  const filtered = all.filter(n => _matchesQuery(n.title, n.content, n.publishDate));
-  if (filtered.length === 0) {
-    contentContainer.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">无匹配归档通知</p>';
-    return;
-  }
-  const cur = Math.min(_pageState.notice, Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)));
-  const items = filtered.slice((cur - 1) * PAGE_SIZE, cur * PAGE_SIZE);
-
-  const priorityBadge = {
-    urgent: badgeHtml('紧急', 'danger'),
-    normal: badgeHtml('重要', 'info'),
-  };
-
-  contentContainer.innerHTML = `
-    <div class="space-y-3">
-      ${items.map(n => `
-        <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:shadow-sm transition-all cursor-pointer" data-notice-id="${n.id}">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              ${priorityBadge[n.priority] || ''}
-              <span class="text-sm font-medium text-gray-800">${n.title}</span>
-              ${n.archived === true ? badgeHtml('已归档', 'neutral') : badgeHtml('已过期', 'neutral')}
-            </div>
-            <span class="text-xs text-gray-500">${n.publishDate || ''}</span>
-          </div>
-          <p class="text-xs text-gray-500 line-clamp-2">${n.content || ''}</p>
-        </div>
-      `).join('')}
-    </div>
-    ${_renderPager(filtered.length, 'notice')}
-  `;
-
-  // 点击跳转：业务页直达优先（与全站统一 resolveNoticeUrl）
-  contentContainer.querySelectorAll('[data-notice-id]').forEach(item => {
-    item.addEventListener('click', () => {
-      const id = item.dataset.noticeId;
-      const notice = NoticeStore._notices.find(n => n.id === id);
-      const dest = resolveNoticeUrl(notice, AuthStore.getCurrentUser()?.role || null);
-      const finalUrl = dest.direct ? dest.url : `${getBasePath()}notice.html?id=${id}`;
-      window.location.href = finalUrl;
-    });
-  });
 }
 
 // ── 搜索（重渲染 + 页码归 1）──
@@ -241,59 +200,57 @@ archiveSearch?.addEventListener('input', (e) => {
 
 // ── 初始渲染（先 hydrate 再初始化各 Store / 渲染，见 _hydrateData 注释）──
 (async () => {
+  if (_legacyNoticeTab) return; // 已重定向到消息中心（见文件头 Task 3 说明）
   await _hydrateData();
   TaskForceRecordStore.init();
-  NoticeStore.init();
   renderTabs();
   renderContent();
+  // 2026-10-24 批次 508：?id= 命中则渲染后打开对应详情浮窗（活动 / 专班）
+  _openArchivedDetail(_focusArchiveId);
 })();
 
 // ════════════════════════════════════════════════════════════════
 //  归档详情浮窗（阶段1C-4：点击归档条目查看详情）
-//  浮窗展示活动/专班的完整归档元数据，阶段2接入后端后支持文件查看
+//  浮窗展示活动/专班的完整归档元数据；形态走统一浮层（DESIGN_SYSTEM §4.27），
+//  标题纯文本、焦点接管与关闭语义由 modal.js 单点提供。
 // ════════════════════════════════════════════════════════════════
 
-let _archiveDetailOverlay = null;
-let _archiveDetailModal = null;
-
-function _ensureArchiveDetailModal() {
-  if (_archiveDetailOverlay) return;
-  _archiveDetailOverlay = document.createElement('div');
-  _archiveDetailOverlay.id = 'archive-detail-overlay';
-  _archiveDetailOverlay.className = 'fixed inset-0 bg-black/40 z-50 hidden';
-  _archiveDetailOverlay.innerHTML = `
-    <div class="absolute inset-0" data-close></div>
-    <div id="archive-detail-modal" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[640px] max-w-[92vw] max-h-[85vh] overflow-y-auto bg-white rounded-xl shadow-2xl">
-      <!-- 内容由 _showArchiveDetail 注入 -->
-    </div>
-  `;
-  document.body.appendChild(_archiveDetailOverlay);
-
-  _archiveDetailModal = _archiveDetailOverlay.querySelector('#archive-detail-modal');
-
-  // 点击遮罩或关闭按钮关闭
-  _archiveDetailOverlay.addEventListener('click', (e) => {
-    if (e.target.dataset.close !== undefined || e.target.closest('[data-close]')) {
-      _hideArchiveDetail();
-    }
-  });
-
-  // ESC 关闭
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !_archiveDetailOverlay.classList.contains('hidden')) {
-      _hideArchiveDetail();
-    }
+function _showArchiveDetail({ title, bodyHtml, fullHref }) {
+  openModal({
+    id: 'archive-detail',
+    title,
+    size: 'lg',
+    bodyHtml,
+    footerHtml: `
+      ${fullHref ? `<a href="${escHtml(fullHref)}" class="btn-outline text-sm px-4 py-1.5" title="打开对象完整详情页">打开完整页 →</a>` : ''}
+      <button type="button" data-modal-cancel="archive-detail" class="btn-outline text-sm px-4 py-1.5">关闭</button>`,
   });
 }
 
-function _hideArchiveDetail() {
-  if (_archiveDetailOverlay) _archiveDetailOverlay.classList.add('hidden');
-}
-
-function _showArchiveDetail(html) {
-  _ensureArchiveDetailModal();
-  _archiveDetailModal.innerHTML = html;
-  _archiveDetailOverlay.classList.remove('hidden');
+/** 深链 `?id=` 的详情落点（2026-10-24 批次 508）：
+ *  activity 页签 → 活动归档详情；taskforce 页签 → 专班归档详情；
+ *  notice 页签的条目本身就是导航链接（无详情浮窗）⇒ 不造第二套浮窗。
+ *  只读既有读口 + 既有详情渲染，不新增筛选/权限判定。 */
+function _openArchivedDetail(id) {
+  if (!id) return;
+  if (_activeTab === 'activity') {
+    const activity = loadActivities().find(a => a.id === id);
+    // Task 6：深链必须命中「已归档」对象；命中不到 / 未归档 → 可见提示，不静默落回列表。
+    if (!activity || !isActivityArchived(activity)) {
+      showToast('info', '未找到该已归档活动（可能未归档、已删除或不属于本支部）');
+      return;
+    }
+    _showArchiveDetail(_renderActivityDetail(activity));
+    return;
+  }
+  if (_activeTab === 'taskforce') {
+    const tf = TaskForceRecordStore.getAll().find(t => t.id === id);
+    if (!tf || !TASKFORCE_TERMINAL_STATUSES.includes(tf.status) || tf.status === TaskforceStatus.DISSOLVED) {
+      showToast('info', '未找到该已归档专班（可能未归档、已解散或不属于本支部）');
+      return;
+    }
+    _showArchiveDetail(_renderTaskforceDetail(tf));
+  }
 }
 
 function _renderActivityDetail(activity) {
@@ -301,25 +258,17 @@ function _renderActivityDetail(activity) {
   const typeColors = getActivityTypeColors({ withLabel: true });
   const color = typeColors[activity.type] || { dot: '#6B7280', label: activity.type || '活动' };
 
-  return `
-    <div class="p-6">
-      <div class="flex items-start justify-between mb-4">
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="w-2 h-2 rounded-full" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''};"></span>
-            <span class="text-xs text-gray-500">${color.label}</span>
-            ${activity.isBrand ? badgeHtml('品牌', 'brand') : ''}
-          </div>
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">${activity.title || '未命名活动'}</h3>
-        </div>
-        <button data-close class="btn-ghost ml-3 flex-shrink-0">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
+  return {
+    title: activity.title || '归档详情',
+    fullHref: objectDetailHref('activity', activity.id, { entry: 'archive-modal' }),
+    bodyHtml: `
+      <div class="flex items-center gap-2 mb-4">
+        <span class="w-2 h-2 rounded-full" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''};"></span>
+        <span class="text-xs text-gray-500">${color.label}</span>
+        ${activity.isBrand ? badgeHtml('品牌', 'brand') : ''}
       </div>
 
-      <div class="grid grid-cols-2 gap-3 mb-5 text-xs">
+      <div class="modal-form-grid mb-5 text-xs">
         <div class="bg-gray-50 rounded-lg p-3">
           <p class="text-gray-500 mb-1">活动日期</p>
           <p class="text-gray-800 font-medium">${activity.date || '未设定'}</p>
@@ -331,6 +280,7 @@ function _renderActivityDetail(activity) {
         <div class="bg-gray-50 rounded-lg p-3">
           <p class="text-gray-500 mb-1">组织者</p>
           <p class="text-gray-800 font-medium">${organizer ? organizer.name : '未指派'}</p>
+          ${activity.organizerExceptionReason ? `<p class="mt-1 text-xs leading-5 text-gray-500">跨组说明：${escHtml(activity.organizerExceptionReason)}</p>` : ''}
         </div>
         <div class="bg-gray-50 rounded-lg p-3">
           <p class="text-gray-500 mb-1">活动状态</p>
@@ -351,8 +301,14 @@ function _renderActivityDetail(activity) {
         </div>
         ${_renderArchiveMaterials(activity)}
       </div>
-    </div>
-  `;
+    `,
+  };
+}
+
+/** A10：归档行上传人——优先读该活动归档材料的 uploadedBy（缺失 ⇒ 空串，由调用方显示「登记时未采集」） */
+function _archiveUploaderNameOf(activityId) {
+  const row = (mockDB.archiveRecords || []).find((r) => r.activityId === activityId && r.uploadedBy);
+  return row ? (getPersonName(row.uploadedBy) || row.uploadedBy) : '';
 }
 
 /** 归档材料补真（2026-08-07）：优先读取 mockDB.archiveRecords 中同 activityId 的真实材料 */
@@ -372,44 +328,36 @@ function _renderArchiveMaterials(activity) {
         ${records.map(r => {
           const cb = catBadge[r.category] || catBadge.其他;
           return `
-            <div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50 hover:bg-surface-hover transition-colors">
               <svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
               </svg>
               <span class="text-sm text-gray-700 flex-1 truncate">${r.activityName || activity.title}${r.status === 'pending' ? '（待归档）' : ''}</span>
               ${badgeHtml(cb[1], cb[0])}
-              <span class="text-xs text-gray-500">${r.archiveDate || ''}</span>
+              <span class="text-xs text-gray-500">${r.archiveDate || ''} · 上传人：${escHtml(r.uploadedBy ? (getPersonName(r.uploadedBy) || r.uploadedBy) : '登记时未采集')}</span>
             </div>
           `;
         }).join('')}
       </div>
     `;
   }
-  return '<p class="text-xs text-gray-500 text-center py-4">暂无归档材料</p>';
+  return emptyStateHtml({ text: "暂无归档材料", variant: 'panel' });
 }
 
 function _renderTaskforceDetail(tf) {
   const initiator = getPersonById(tf.initiator);
   const filledMembers = (tf.members || []).filter(m => m.personId);
 
-  return `
-    <div class="p-6">
-      <div class="flex items-start justify-between mb-4">
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 mb-2">
-            ${badgeHtml('专班', 'info')}
-            ${badgeHtml('已归档', 'neutral')}
-          </div>
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">${tf.name || '未命名专班'}</h3>
-        </div>
-        <button data-close class="btn-ghost ml-3 flex-shrink-0">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
+  return {
+    title: tf.name || '归档详情',
+    fullHref: objectDetailHref('taskforce', tf.id, { entry: 'archive-modal' }),
+    bodyHtml: `
+      <div class="flex items-center gap-2 mb-4">
+        ${badgeHtml('专班', 'info')}
+        ${badgeHtml('已归档', 'neutral')}
       </div>
 
-      <div class="grid grid-cols-2 gap-3 mb-5 text-xs">
+      <div class="modal-form-grid mb-5 text-xs">
         <div class="bg-gray-50 rounded-lg p-3">
           <p class="text-gray-500 mb-1">发起日期</p>
           <p class="text-gray-800 font-medium">${tf.createdAt || '未设定'}</p>
@@ -454,8 +402,8 @@ function _renderTaskforceDetail(tf) {
           </div>
         </div>
       ` : ''}
-    </div>
-  `;
+    `,
+  };
 }
 
 // 事件委托：分页按钮 / 点击归档条目弹出详情浮窗
@@ -482,4 +430,13 @@ contentContainer?.addEventListener('click', (e) => {
     const tf = TaskForceRecordStore.getAll().find(t => t.id === id);
     if (tf) _showArchiveDetail(_renderTaskforceDetail(tf));
   }
+});
+
+// 5.3：归档条目（活动 / 专班）整行可点但不是原生控件 —— 补 Enter / Space（与鼠标等效）。
+contentContainer?.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+  const item = e.target.closest('[data-archive-item][role="button"]');
+  if (!item || item !== e.target) return;
+  e.preventDefault();
+  item.click();
 });

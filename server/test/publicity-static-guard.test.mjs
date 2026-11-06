@@ -115,11 +115,13 @@ test('G3 种子待办无过去截止（SEED_TODOS 的日期型 deadline 不早�
   const block = src.slice(start, end);
   // 只取 `deadline: 'YYYY-MM-DD'` 字面量（`deadline: null` / `deadline: someExpr` 自然跳过）
   const deadlines = [...block.matchAll(/deadline:\s*'(\d{4}-\d{2}-\d{2})'/g)].map((m) => m[1]);
-  // 非空转：SEED_TODOS 里有一条 `deadline: null`，故用「解析到的日期字面量 ≥ 1」作下限——防正则失效恒真
-  assert.ok(deadlines.length >= 1,
+  // 2026-10-23 批次 504（R10-B03）：复盘截止改为「活动日 + POLICY_DEFAULTS.review.deadlineDays」现算，
+  //   不再写字面量 ⇒ 非空转下限改成「字面量 + 合规计算式」二者合计 ≥1。
+  const computed = [...block.matchAll(/deadline:\s*_addDays\([\s\S]{0,220}?review\.deadlineDays\)/g)].length;
+  assert.ok(deadlines.length + computed >= 1,
     `SEED_TODOS 里一条日期型 deadline 都没解析到（下限 1）：正则或锚点失效，守卫会恒真`);
   const past = deadlines.filter((d) => d < SEED_DEADLINE_FLOOR);
-  console.log(`[种子待办截止] 解析到 ${deadlines.length} 条日期型 deadline：${deadlines.join(' / ')}（下限 ${SEED_DEADLINE_FLOOR}）`);
+  console.log(`[种子待办截止] 字面量 ${deadlines.length} 条：${deadlines.join(' / ')}；计算式 ${computed} 条（下限 ${SEED_DEADLINE_FLOOR}）`);
   assert.deepEqual(past, [],
     `SEED_TODOS 有早于 ${SEED_DEADLINE_FLOOR}（2026-10 宣传基线）的截止日——静态演示会显示「已过期」待办：\n  ${past.join('\n  ')}`);
 });

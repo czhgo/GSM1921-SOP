@@ -18,7 +18,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { initDb } from '../db.js';
 import { seedBaseline } from '../seed-baseline.js';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261018h';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261102b';
+import { createApp } from '../app.js';
+import { detectDemoSeedRows, demoGateDecision, enforceProductionDemoGate } from '../demo-data-guard.js';
+import { repairSeedRowsIfNeeded, readSeedMeta, writeSeedMeta } from '../seed-repair.js';
+import { loadSeedRowsForTable } from '../seed-rows.js';
 
 const rows = (db, t) => db.prepare(`SELECT data FROM ${t}`).all().map((r) => JSON.parse(r.data));
 const count = (db, t) => db.prepare(`SELECT COUNT(*) c FROM ${t}`).get().c;
@@ -83,13 +87,135 @@ test('B3 幂等 + 不覆盖：连跑两次不变；已有支部 / 已有党委�
 
   // 已有数据时**不覆盖**：换一个已存在的支部 + 已存在的党委账号 ⇒ 调用前后逐值不变
   const db2 = initDb(':memory:');
-  const custom = { id: 'br-b1', name: '我自己的支部名', type: 'x', config: { headerTitle: 'HH' }, secretaryId: 'p1', status: 'active' };
+  const custom = { id: 'br-b1', name: '我自己的支部名', type: 'x', config: { headerTitle: 'HH' }, secretaryId: '2400012345', status: 'active' };
   db2.prepare('INSERT INTO branches (id, data) VALUES (?, ?)').run(custom.id, JSON.stringify(custom));
-  const staff = { id: 'p_pc', name: '真名党务老师', studentId: '1234567890', role: 'party-staff', branchId: null };
+  const staff = { id: '9000000001', name: '真名党务老师', studentId: '1234567890', role: 'party-staff', branchId: null };
   db2.prepare('INSERT INTO users (id, data) VALUES (?, ?)').run(staff.id, JSON.stringify(staff));
   const r = seedBaseline(db2);
   assert.deepEqual(r, { branch: false, partyStaff: false }, '已有支部与账号 ⇒ 一项都不补');
   assert.equal(rows(db2, 'branches')[0].name, '我自己的支部名', '**不覆盖**已有支部（改名/配置必须保留）');
   assert.equal(rows(db2, 'users')[0].name, '真名党务老师', '**不覆盖**已有党委账号');
   db.close(); db2.close();
+});
+
+// ════════════════════════════════════════════════════════════════
+//  B5–B7 正式数据轨道（spec restore-capsule-and-harden-data-truth · Task 7）
+// ════════════════════════════════════════════════════════════════
+
+/** 读 `/src/config/deploy.js` 注入值（bool） */
+async function injectedSeedFallback() {
+  const app = createApp({ dbPath: ':memory:' });
+  const server = app.listen(0);
+  await new Promise((resolve) => server.once('listening', resolve));
+  try {
+    const base = `http://127.0.0.1:${server.address().port}`;
+    const text = await (await fetch(`${base}/src/config/deploy.js`)).text();
+    const match = /export const SEED_FALLBACK = (true|false);/.exec(text);
+    assert.ok(match, `注入串应含 SEED_FALLBACK：${text.slice(0, 120)}`);
+    return match[1] === 'true';
+  } finally {
+    server.closeAllConnections?.();
+    await new Promise((resolve) => server.close(resolve));
+    app.locals.db.close();
+  }
+}
+
+test('B5 生产默认关闭前端演示回退：未显式 SEED_FALLBACK ⇒ 注入 false；非生产/显式值保持既有语义', async () => {
+  const saved = {
+    APP_ENV: process.env.APP_ENV, NODE_ENV: process.env.NODE_ENV, SEED_FALLBACK: process.env.SEED_FALLBACK,
+  };
+  try {
+    delete process.env.APP_ENV; delete process.env.NODE_ENV; delete process.env.SEED_FALLBACK;
+    assert.equal(await injectedSeedFallback(), true, '非生产 + 未设 ⇒ true（既有行为不变）');
+
+    process.env.APP_ENV = 'production';
+    assert.equal(await injectedSeedFallback(), false, '生产 + 未设 ⇒ 必须注入 false');
+
+    process.env.SEED_FALLBACK = '1';
+    assert.equal(await injectedSeedFallback(), true, '生产 + 显式 1 ⇒ 尊重显式值');
+    process.env.SEED_FALLBACK = '0';
+    assert.equal(await injectedSeedFallback(), false, '生产 + 显式 0 ⇒ false');
+  } finally {
+    for (const [key, value] of Object.entries(saved)) {
+      if (value === undefined) delete process.env[key]; else process.env[key] = value;
+    }
+  }
+});
+
+test('B6 生产启动闸门：空库基线不误伤；含演示种子行默认拒启，ALLOW_DEMO_DATA=1 才放行', async () => {
+  const demoIds = new Set(PEOPLE.filter((p) => p.branchId).map((p) => String(p.id)));
+  const clean = initDb(':memory:');
+  seedBaseline(clean);
+  assert.equal(detectDemoSeedRows(clean, { demoUserIds: demoIds }).demo, false, '空库基线（1 支部 + 1 party-staff）不得被判为演示库');
+  // 第三判据：即便演示行被手工删净，seed_meta.mode=demo 仍应判为演示库（包无关、防「标记还在却放行」）
+  writeSeedMeta(clean, 'mode', 'demo');
+  const modeOnly = detectDemoSeedRows(clean, { demoUserIds: demoIds });
+  assert.equal(modeOnly.demoUsers.length, 0);
+  assert.equal(modeOnly.seedActivities.length, 0);
+  assert.equal(modeOnly.seedMode, 'demo');
+  assert.equal(modeOnly.demo, true, 'seed_meta.mode=demo ⇒ 演示库');
+  clean.close();
+
+  const dirty = initDb(':memory:');
+  seedBaseline(dirty);
+  const demoPerson = PEOPLE.find((p) => p.branchId);
+  dirty.prepare('INSERT OR REPLACE INTO users (id, data) VALUES (?, ?)').run(demoPerson.id, JSON.stringify(demoPerson));
+  dirty.prepare('INSERT OR REPLACE INTO activities (id, data) VALUES (?, ?)')
+    .run('act-1', JSON.stringify({ id: 'act-1', title: '演示活动', date: '2026-08-07', type: '党小组会' }));
+  const found = detectDemoSeedRows(dirty, { demoUserIds: demoIds });
+  assert.deepEqual(found.demoUsers, [demoPerson.id], 'users 演示账号按 PEOPLE 支部成员识别');
+  assert.deepEqual(found.seedActivities, ['act-1'], 'activities 演示种子 id 按 act-<短数字> 识别');
+  assert.equal(found.demo, true);
+
+  assert.equal(demoGateDecision({ production: true, allowDemoData: false, ...found }).reason, 'demo-detected');
+  assert.equal(demoGateDecision({ production: true, allowDemoData: true, ...found }).blocked, false, 'ALLOW_DEMO_DATA=1 ⇒ 放行');
+  assert.equal(demoGateDecision({ production: false, allowDemoData: false, ...found }).blocked, false, '非生产形态不拦（本地演示/测试）');
+
+  // 执行器：生产 + 演示行 + 未放行 ⇒ exit(1)；日志可读
+  const logs = [];
+  const exits = [];
+  const log = { log: (m) => logs.push(['log', m]), warn: (m) => logs.push(['warn', m]), error: (m) => logs.push(['error', m]) };
+  const blocked = await enforceProductionDemoGate(dirty, {
+    env: { APP_ENV: 'production' }, log, exit: (code) => exits.push(code),
+  });
+  assert.equal(blocked.blocked, true);
+  assert.deepEqual(exits, [1], '生产形态含演示种子 ⇒ 必须退出码 1');
+  assert.ok(logs.some(([level, msg]) => level === 'error' && /启动被拒/.test(msg)), '拒绝日志须可读');
+
+  // ALLOW_DEMO_DATA=1：不 exit，但必须明确警告
+  logs.length = 0; exits.length = 0;
+  const allowed = await enforceProductionDemoGate(dirty, {
+    env: { APP_ENV: 'production', ALLOW_DEMO_DATA: '1' }, log, exit: (code) => exits.push(code),
+  });
+  assert.equal(allowed.blocked, false);
+  assert.deepEqual(exits, []);
+  assert.ok(logs.some(([level, msg]) => level === 'warn' && /ALLOW_DEMO_DATA=1/.test(msg)), '放行时须留下警告');
+  dirty.close();
+});
+
+test('B7 seed-repair 在 baseline / 生产形态不修复演示 seed id，且 seed_meta 只读', async () => {
+  const db = initDb(':memory:');
+  try {
+    const seeds = await loadSeedRowsForTable('activities');
+    const seed = seeds[0];
+    db.prepare('INSERT INTO activities (id, data) VALUES (?, ?)').run(seed.id, JSON.stringify({ ...seed, visibility: 'drifted-visibility' }));
+    writeSeedMeta(db, 'seed_version', 'old-version');
+    writeSeedMeta(db, 'mode', 'baseline');
+
+    const before = db.prepare('SELECT data FROM activities WHERE id = ?').get(seed.id).data;
+    const baselineRun = await repairSeedRowsIfNeeded(db, 'new-version');
+    assert.equal(baselineRun.skipped, true);
+    assert.equal(baselineRun.reason, 'baseline-mode');
+    assert.equal(db.prepare('SELECT data FROM activities WHERE id = ?').get(seed.id).data, before, 'baseline 形态不得改写演示种子行');
+    assert.equal(readSeedMeta(db, 'seed_version'), 'old-version', '跳过时 seed_meta 只读（不得写回版本）');
+
+    db.prepare("DELETE FROM seed_meta WHERE key = 'mode'").run();
+    const prodRun = await repairSeedRowsIfNeeded(db, 'new-version', { production: true });
+    assert.equal(prodRun.skipped, true);
+    assert.equal(prodRun.reason, 'production');
+    assert.equal(db.prepare('SELECT data FROM activities WHERE id = ?').get(seed.id).data, before, '生产形态不得改写演示种子行');
+    assert.equal(readSeedMeta(db, 'seed_version'), 'old-version', '生产形态同样只读 seed_meta');
+  } finally {
+    db.close();
+  }
 });

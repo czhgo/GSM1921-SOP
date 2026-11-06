@@ -12,10 +12,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018h';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018h';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018h';
-import { TodoStore, TodoCategory } from '../../docs/src/services/governance/todo.js?v=20261018h';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261102b';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261102b';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261102b';
+import { TodoStore, TodoCategory } from '../../docs/src/services/governance/todo.js?v=20261102b';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 
@@ -71,7 +71,7 @@ test('V1 无原因不得作废：requestVoid/confirmVoid 空原因一律拒绝',
   const t = mk();
   assert.equal(TodoStore.requestVoid(t.id, { reason: '   ' }), null, '空原因申请应被拒');
   assert.equal(!!TodoStore.getById(t.id).voidPending, false, '空原因申请不得落 voidPending');
-  assert.equal(TodoStore.confirmVoid(t.id, { byPersonId: 'p13' }), null, '未申请且无 note ⇒ 直接作废也应被拒（原因必填）');
+  assert.equal(TodoStore.confirmVoid(t.id, { byPersonId: '2300010001' }), null, '未申请且无 note ⇒ 直接作废也应被拒（原因必填）');
   assert.equal(!!TodoStore.getById(t.id).voided, false, '被拒的作废不得落 voided');
 });
 
@@ -79,10 +79,10 @@ test('V1 无原因不得作废：requestVoid/confirmVoid 空原因一律拒绝',
 test('V2 requestVoid：落 voidPending、列表照常可见、进入 getVoidPending', () => {
   beginMockCase();
   const t = mk();
-  const r = TodoStore.requestVoid(t.id, { reason: '活动早已结束，此项不该再挂', byPersonId: 'p6' });
+  const r = TodoStore.requestVoid(t.id, { reason: '活动早已结束，此项不该再挂', byPersonId: '2400012350' });
   assert.ok(r && r.voidPending, 'requestVoid 应落 voidPending');
   assert.equal(r.voidPending.reason, '活动早已结束，此项不该再挂');
-  assert.equal(r.voidPending.byPersonId, 'p6');
+  assert.equal(r.voidPending.byPersonId, '2400012350');
   assert.equal(!!r.voided, false, '申请阶段不得直接 voided');
 
   // 列表照常可见（默认过滤只挡 voided，不挡 voidPending）
@@ -101,11 +101,11 @@ test('V2 requestVoid：落 voidPending、列表照常可见、进入 getVoidPend
 test('V3 confirmVoid：落 voided 且默认列表出列，includeVoided 可回看', () => {
   beginMockCase();
   const t = mk();
-  TodoStore.requestVoid(t.id, { reason: '重复派生', byPersonId: 'p6' });
-  const r = TodoStore.confirmVoid(t.id, { byPersonId: 'p13' });
+  TodoStore.requestVoid(t.id, { reason: '重复派生', byPersonId: '2400012350' });
+  const r = TodoStore.confirmVoid(t.id, { byPersonId: '2300010001' });
   assert.ok(r && r.voided, 'confirmVoid 应落 voided');
   assert.equal(r.voided.reason, '重复派生', '作废原因沿用申请原因');
-  assert.equal(r.voided.confirmedBy, 'p13');
+  assert.equal(r.voided.confirmedBy, '2300010001');
   assert.equal(!!r.voidPending, false, '确认后应清掉 voidPending');
 
   assert.equal(TodoStore.getByRole('org-commissioner').some(x => x.id === t.id), false, 'voided 默认应从列表出列');
@@ -117,8 +117,8 @@ test('V3 confirmVoid：落 voided 且默认列表出列，includeVoided 可回�
 test('V4 rejectVoid：清 voidPending 回原状（列表可见）并留 voidRejected', () => {
   beginMockCase();
   const t = mk();
-  TodoStore.requestVoid(t.id, { reason: '不办了', byPersonId: 'p6' });
-  const r = TodoStore.rejectVoid(t.id, { byPersonId: 'p13', note: '先留一周，仍须办结' });
+  TodoStore.requestVoid(t.id, { reason: '不办了', byPersonId: '2400012350' });
+  const r = TodoStore.rejectVoid(t.id, { byPersonId: '2300010001', note: '先留一周，仍须办结' });
   assert.ok(r, 'rejectVoid 应返回更新后的行');
   assert.equal(!!r.voidPending, false, '驳回后应清 voidPending');
   assert.equal(!!r.voided, false, '驳回不得作废');
@@ -147,10 +147,14 @@ test('V5 防回潮：硬删只在支委层渲染；作废/删除只对落库组�
   assert.match(list, /-todo-void-btn/, '作废键应有点击委托');
 });
 
-// ── V6（2026-10-18 繁专项 Task 14）：详情动作与行尾一致，不得空转 ──────
-test('V6 待办详情：hideActionBtn 组不再渲染空转「去处理」；detailAction 走真实落点', () => {
+// ── V6（2026-10-18 繁专项 Task 14；2026-10-27 Task 5 改准）：详情只出真实下一步，不重复行尾主行动 ──
+test('V6 待办详情：行尾隐藏动作的组不再出「去处理」；无 detailAction 也不回退主行动', () => {
   const shell = readFileSync(join(ROOT, 'docs/src/components/record/todo-tab-shell.js'), 'utf8');
-  assert.match(shell, /todo\.hideActionBtn \? '' : '去处理'/, '行尾隐藏动作的组，详情不得再出「去处理」');
+  // 2026-10-27 Task 5：行尾已有唯一主行动 ⇒ 详情不得再回退同名「去处理」（同义并排）。
+  // 断言随结构改准：由「hideActionBtn 才隐藏」改为「只有 detailAction 才渲染」。
+  assert.match(shell, /const actionLabel = action && action\.label \? action\.label : ''/,
+    '详情只渲染组自带真实落点；无 detailAction 时不得回退「去处理」');
+  assert.doesNotMatch(shell, /todo\.hideActionBtn \? '' : '去处理'/, '详情不得再保留旧的「去处理」回退分支');
   assert.match(shell, /group\.detailAction && typeof group\.detailAction\.run === 'function'/, '详情按钮须支持组自带真实落点');
   assert.match(shell, /aria-label="\$\{escHtml\(actionLabel\)\}/, '详情按钮保留无障碍名称');
 

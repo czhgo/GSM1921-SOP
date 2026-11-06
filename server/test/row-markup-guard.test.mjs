@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC = join(ROOT, 'docs', 'src');
 const UI = join(SRC, 'components', 'ui');
-const DESIGN = join(ROOT, 'content', '04_web_design', 'design-system', 'DESIGN_SYSTEM.md');
+const DESIGN = join(ROOT, 'content', '04_web_design', 'design-system', 'DS_03_COMPONENTS.md');
 
 /** 典型手写行容器特征（逐字子串；本批实测合计 12） */
 const HANDWRITTEN_ROW_PATTERNS = [

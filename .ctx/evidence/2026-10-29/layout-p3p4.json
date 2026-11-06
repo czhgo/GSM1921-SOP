@@ -1,0 +1,1351 @@
+{
+  "generatedAt": "2026-10-29T16:32:14.090Z",
+  "base": "memory-db",
+  "widths": [
+    1440,
+    1024,
+    768,
+    390
+  ],
+  "pages": [
+    {
+      "key": "org-roster",
+      "path": "/workspace/org.html?tab=roster",
+      "tier": "72rem",
+      "byWidth": {
+        "390": {
+          "readings": [
+            {
+              "segs": [
+                "search",
+                "facet",
+                "reset"
+              ],
+              "rowCount": 3,
+              "rows": [
+                {
+                  "seg": "search",
+                  "left": 33,
+                  "right": 357,
+                  "firstLeft": 33,
+                  "firstRight": 357,
+                  "height": 40,
+                  "firstWidth": 324,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "facet",
+                  "left": 33,
+                  "right": 357,
+                  "firstLeft": 33,
+                  "firstRight": 357,
+                  "height": 136,
+                  "firstWidth": 324,
+                  "rowWrapped": true,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "reset",
+                  "left": 33,
+                  "right": 357,
+                  "firstLeft": 33,
+                  "firstRight": 357,
+                  "height": 36,
+                  "firstWidth": 324,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 324,
+              "barScrollWidth": 324
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-6xl.mx-auto",
+            "left": 16,
+            "right": 374,
+            "width": 358,
+            "maxWidth": "1152px"
+          },
+          "overflow": {
+            "docScrollWidth": 390,
+            "innerWidth": 390,
+            "horizontalOverflow": false
+          }
+        },
+        "768": {
+          "readings": [
+            {
+              "segs": [
+                "search",
+                "facet",
+                "reset"
+              ],
+              "rowCount": 3,
+              "rows": [
+                {
+                  "seg": "search",
+                  "left": 49,
+                  "right": 719,
+                  "firstLeft": 49,
+                  "firstRight": 719,
+                  "height": 40,
+                  "firstWidth": 670,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "facet",
+                  "left": 49,
+                  "right": 719,
+                  "firstLeft": 49,
+                  "firstRight": 173,
+                  "height": 40,
+                  "firstWidth": 124,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "reset",
+                  "left": 49,
+                  "right": 719,
+                  "firstLeft": 49,
+                  "firstRight": 97,
+                  "height": 36,
+                  "firstWidth": 48,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 670,
+              "barScrollWidth": 670
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-6xl.mx-auto",
+            "left": 32,
+            "right": 736,
+            "width": 704,
+            "maxWidth": "1152px"
+          },
+          "overflow": {
+            "docScrollWidth": 768,
+            "innerWidth": 768,
+            "horizontalOverflow": false
+          }
+        },
+        "1024": {
+          "readings": [
+            {
+              "segs": [
+                "search",
+                "facet",
+                "reset"
+              ],
+              "rowCount": 3,
+              "rows": [
+                {
+                  "seg": "search",
+                  "left": 49,
+                  "right": 975,
+                  "firstLeft": 49,
+                  "firstRight": 975,
+                  "height": 40,
+                  "firstWidth": 926,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "facet",
+                  "left": 49,
+                  "right": 975,
+                  "firstLeft": 49,
+                  "firstRight": 173,
+                  "height": 40,
+                  "firstWidth": 124,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "reset",
+                  "left": 49,
+                  "right": 975,
+                  "firstLeft": 49,
+                  "firstRight": 97,
+                  "height": 36,
+                  "firstWidth": 48,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 926,
+              "barScrollWidth": 926
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-6xl.mx-auto",
+            "left": 32,
+            "right": 992,
+            "width": 960,
+            "maxWidth": "1152px"
+          },
+          "overflow": {
+            "docScrollWidth": 1024,
+            "innerWidth": 1024,
+            "horizontalOverflow": false
+          }
+        },
+        "1440": {
+          "readings": [
+            {
+              "segs": [
+                "search",
+                "facet",
+                "reset"
+              ],
+              "rowCount": 3,
+              "rows": [
+                {
+                  "seg": "search",
+                  "left": 161,
+                  "right": 1279,
+                  "firstLeft": 161,
+                  "firstRight": 1279,
+                  "height": 40,
+                  "firstWidth": 1118,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "facet",
+                  "left": 161,
+                  "right": 1279,
+                  "firstLeft": 161,
+                  "firstRight": 285,
+                  "height": 40,
+                  "firstWidth": 124,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "reset",
+                  "left": 161,
+                  "right": 1279,
+                  "firstLeft": 161,
+                  "firstRight": 209,
+                  "height": 36,
+                  "firstWidth": 48,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 1118,
+              "barScrollWidth": 1118
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-6xl.mx-auto",
+            "left": 144,
+            "right": 1296,
+            "width": 1152,
+            "maxWidth": "1152px"
+          },
+          "overflow": {
+            "docScrollWidth": 1440,
+            "innerWidth": 1440,
+            "horizontalOverflow": false
+          }
+        }
+      }
+    },
+    {
+      "key": "org-taskforce",
+      "path": "/workspace/org.html?tab=taskforce",
+      "tier": "72rem",
+      "byWidth": {
+        "390": {
+          "readings": [
+            {
+              "segs": [
+                "scope",
+                "search"
+              ],
+              "rowCount": 2,
+              "rows": [
+                {
+                  "seg": "scope",
+                  "left": 16,
+                  "right": 374,
+                  "firstLeft": 16,
+                  "firstRight": 374,
+                  "height": 16,
+                  "firstWidth": 358,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "search",
+                  "left": 16,
+                  "right": 374,
+                  "firstLeft": 16,
+                  "firstRight": 374,
+                  "height": 40,
+                  "firstWidth": 358,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 358,
+              "barScrollWidth": 358
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-6xl.mx-auto",
+            "left": 16,
+            "right": 374,
+            "width": 358,
+            "maxWidth": "1152px"
+          },
+          "overflow": {
+            "docScrollWidth": 390,
+            "innerWidth": 390,
+            "horizontalOverflow": false
+          }
+        },
+        "768": {
+          "readings": [
+            {
+              "segs": [
+                "scope",
+                "search"
+              ],
+              "rowCount": 2,
+              "rows": [
+                {
+                  "seg": "scope",
+                  "left": 32,
+                  "right": 736,
+                  "firstLeft": 32,
+                  "firstRight": 125,
+                  "height": 16,
+                  "firstWidth": 93,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "search",
+                  "left": 32,
+                  "right": 736,
+                  "firstLeft": 32,
+                  "firstRight": 736,
+                  "height": 40,
+                  "firstWidth": 704,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 704,
+              "barScrollWidth": 704
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-6xl.mx-auto",
+            "left": 32,
+            "right": 736,
+            "width": 704,
+            "maxWidth": "1152px"
+          },
+          "overflow": {
+            "docScrollWidth": 768,
+            "innerWidth": 768,
+            "horizontalOverflow": false
+          }
+        },
+        "1024": {
+          "readings": [
+            {
+              "segs": [
+                "scope",
+                "search"
+              ],
+              "rowCount": 2,
+              "rows": [
+                {
+                  "seg": "scope",
+                  "left": 32,
+                  "right": 992,
+                  "firstLeft": 32,
+                  "firstRight": 125,
+                  "height": 16,
+                  "firstWidth": 93,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "search",
+                  "left": 32,
+                  "right": 992,
+                  "firstLeft": 32,
+                  "firstRight": 992,
+                  "height": 40,
+                  "firstWidth": 960,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 960,
+              "barScrollWidth": 960
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-6xl.mx-auto",
+            "left": 32,
+            "right": 992,
+            "width": 960,
+            "maxWidth": "1152px"
+          },
+          "overflow": {
+            "docScrollWidth": 1024,
+            "innerWidth": 1024,
+            "horizontalOverflow": false
+          }
+        },
+        "1440": {
+          "readings": [
+            {
+              "segs": [
+                "scope",
+                "search"
+              ],
+              "rowCount": 2,
+              "rows": [
+                {
+                  "seg": "scope",
+                  "left": 144,
+                  "right": 1296,
+                  "firstLeft": 144,
+                  "firstRight": 237,
+                  "height": 16,
+                  "firstWidth": 93,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "search",
+                  "left": 144,
+                  "right": 1296,
+                  "firstLeft": 144,
+                  "firstRight": 1296,
+                  "height": 40,
+                  "firstWidth": 1152,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 1152,
+              "barScrollWidth": 1152
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-6xl.mx-auto",
+            "left": 144,
+            "right": 1296,
+            "width": 1152,
+            "maxWidth": "1152px"
+          },
+          "overflow": {
+            "docScrollWidth": 1440,
+            "innerWidth": 1440,
+            "horizontalOverflow": false
+          }
+        }
+      }
+    },
+    {
+      "key": "secretary-feedback",
+      "path": "/workspace/secretary.html?tab=feedback",
+      "tier": "72rem",
+      "byWidth": {
+        "390": {
+          "readings": [
+            {
+              "segs": [
+                "search",
+                "facet",
+                "reset"
+              ],
+              "rowCount": 3,
+              "rows": [
+                {
+                  "seg": "search",
+                  "left": 37,
+                  "right": 353,
+                  "firstLeft": 37,
+                  "firstRight": 353,
+                  "height": 40,
+                  "firstWidth": 316,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "facet",
+                  "left": 37,
+                  "right": 353,
+                  "firstLeft": 37,
+                  "firstRight": 353,
+                  "height": 88,
+                  "firstWidth": 316,
+                  "rowWrapped": true,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "reset",
+                  "left": 37,
+                  "right": 353,
+                  "firstLeft": 37,
+                  "firstRight": 353,
+                  "height": 36,
+                  "firstWidth": 316,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 316,
+              "barScrollWidth": 316
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-6xl.mx-auto",
+            "left": 16,
+            "right": 374,
+            "width": 358,
+            "maxWidth": "1152px"
+          },
+          "overflow": {
+            "docScrollWidth": 390,
+            "innerWidth": 390,
+            "horizontalOverflow": false
+          }
+        },
+        "768": {
+          "readings": [
+            {
+              "segs": [
+                "search",
+                "facet",
+                "reset"
+              ],
+              "rowCount": 3,
+              "rows": [
+                {
+                  "seg": "search",
+                  "left": 53,
+                  "right": 715,
+                  "firstLeft": 53,
+                  "firstRight": 715,
+                  "height": 40,
+                  "firstWidth": 662,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "facet",
+                  "left": 53,
+                  "right": 715,
+                  "firstLeft": 53,
+                  "firstRight": 164,
+                  "height": 40,
+                  "firstWidth": 111,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "reset",
+                  "left": 53,
+                  "right": 715,
+                  "firstLeft": 53,
+                  "firstRight": 101,
+                  "height": 36,
+                  "firstWidth": 48,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 662,
+              "barScrollWidth": 662
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-6xl.mx-auto",
+            "left": 32,
+            "right": 736,
+            "width": 704,
+            "maxWidth": "1152px"
+          },
+          "overflow": {
+            "docScrollWidth": 768,
+            "innerWidth": 768,
+            "horizontalOverflow": false
+          }
+        },
+        "1024": {
+          "readings": [
+            {
+              "segs": [
+                "search",
+                "facet",
+                "reset"
+              ],
+              "rowCount": 3,
+              "rows": [
+                {
+                  "seg": "search",
+                  "left": 53,
+                  "right": 971,
+                  "firstLeft": 53,
+                  "firstRight": 971,
+                  "height": 40,
+                  "firstWidth": 918,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "facet",
+                  "left": 53,
+                  "right": 971,
+                  "firstLeft": 53,
+                  "firstRight": 164,
+                  "height": 40,
+                  "firstWidth": 111,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "reset",
+                  "left": 53,
+                  "right": 971,
+                  "firstLeft": 53,
+                  "firstRight": 101,
+                  "height": 36,
+                  "firstWidth": 48,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 918,
+              "barScrollWidth": 918
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-6xl.mx-auto",
+            "left": 32,
+            "right": 992,
+            "width": 960,
+            "maxWidth": "1152px"
+          },
+          "overflow": {
+            "docScrollWidth": 1024,
+            "innerWidth": 1024,
+            "horizontalOverflow": false
+          }
+        },
+        "1440": {
+          "readings": [
+            {
+              "segs": [
+                "search",
+                "facet",
+                "reset"
+              ],
+              "rowCount": 3,
+              "rows": [
+                {
+                  "seg": "search",
+                  "left": 165,
+                  "right": 1275,
+                  "firstLeft": 165,
+                  "firstRight": 1275,
+                  "height": 40,
+                  "firstWidth": 1110,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "facet",
+                  "left": 165,
+                  "right": 1275,
+                  "firstLeft": 165,
+                  "firstRight": 276,
+                  "height": 40,
+                  "firstWidth": 111,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "reset",
+                  "left": 165,
+                  "right": 1275,
+                  "firstLeft": 165,
+                  "firstRight": 213,
+                  "height": 36,
+                  "firstWidth": 48,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 1110,
+              "barScrollWidth": 1110
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-6xl.mx-auto",
+            "left": 144,
+            "right": 1296,
+            "width": 1152,
+            "maxWidth": "1152px"
+          },
+          "overflow": {
+            "docScrollWidth": 1440,
+            "innerWidth": 1440,
+            "horizontalOverflow": false
+          }
+        }
+      }
+    },
+    {
+      "key": "disc-attendance",
+      "path": "/workspace/disc.html?tab=attendance",
+      "tier": "72rem",
+      "byWidth": {
+        "390": {
+          "readings": [
+            {
+              "segs": [
+                "scope",
+                "search",
+                "reset"
+              ],
+              "rowCount": 3,
+              "rows": [
+                {
+                  "seg": "scope",
+                  "left": 37,
+                  "right": 353,
+                  "firstLeft": 37,
+                  "firstRight": 353,
+                  "height": 88,
+                  "firstWidth": 316,
+                  "rowWrapped": true,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "search",
+                  "left": 37,
+                  "right": 353,
+                  "firstLeft": 37,
+                  "firstRight": 353,
+                  "height": 40,
+                  "firstWidth": 316,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "reset",
+                  "left": 37,
+                  "right": 353,
+                  "firstLeft": 37,
+                  "firstRight": 353,
+                  "height": 36,
+                  "firstWidth": 316,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 316,
+              "barScrollWidth": 316
+            },
+            {
+              "segs": [
+                "search",
+                "facet",
+                "reset"
+              ],
+              "rowCount": 3,
+              "rows": [
+                {
+                  "seg": "search",
+                  "left": 37,
+                  "right": 353,
+                  "firstLeft": 37,
+                  "firstRight": 353,
+                  "height": 40,
+                  "firstWidth": 316,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "facet",
+                  "left": 37,
+                  "right": 353,
+                  "firstLeft": 37,
+                  "firstRight": 353,
+                  "height": 88,
+                  "firstWidth": 316,
+                  "rowWrapped": true,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "reset",
+                  "left": 37,
+                  "right": 353,
+                  "firstLeft": 37,
+                  "firstRight": 353,
+                  "height": 36,
+                  "firstWidth": 316,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 316,
+              "barScrollWidth": 316
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-6xl.mx-auto",
+            "left": 16,
+            "right": 374,
+            "width": 358,
+            "maxWidth": "1152px"
+          },
+          "overflow": {
+            "docScrollWidth": 390,
+            "innerWidth": 390,
+            "horizontalOverflow": false
+          }
+        },
+        "768": {
+          "readings": [
+            {
+              "segs": [
+                "scope",
+                "search",
+                "reset"
+              ],
+              "rowCount": 3,
+              "rows": [
+                {
+                  "seg": "scope",
+                  "left": 53,
+                  "right": 715,
+                  "firstLeft": 53,
+                  "firstRight": 164,
+                  "height": 40,
+                  "firstWidth": 111,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "search",
+                  "left": 53,
+                  "right": 715,
+                  "firstLeft": 53,
+                  "firstRight": 715,
+                  "height": 40,
+                  "firstWidth": 662,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "reset",
+                  "left": 53,
+                  "right": 715,
+                  "firstLeft": 53,
+                  "firstRight": 101,
+                  "height": 36,
+                  "firstWidth": 48,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 662,
+              "barScrollWidth": 662
+            },
+            {
+              "segs": [
+                "search",
+                "facet",
+                "reset"
+              ],
+              "rowCount": 3,
+              "rows": [
+                {
+                  "seg": "search",
+                  "left": 53,
+                  "right": 715,
+                  "firstLeft": 53,
+                  "firstRight": 715,
+                  "height": 40,
+                  "firstWidth": 662,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "facet",
+                  "left": 53,
+                  "right": 715,
+                  "firstLeft": 53,
+                  "firstRight": 164,
+                  "height": 40,
+                  "firstWidth": 111,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "reset",
+                  "left": 53,
+                  "right": 715,
+                  "firstLeft": 53,
+                  "firstRight": 101,
+                  "height": 36,
+                  "firstWidth": 48,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 662,
+              "barScrollWidth": 662
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-6xl.mx-auto",
+            "left": 32,
+            "right": 736,
+            "width": 704,
+            "maxWidth": "1152px"
+          },
+          "overflow": {
+            "docScrollWidth": 768,
+            "innerWidth": 768,
+            "horizontalOverflow": false
+          }
+        },
+        "1024": {
+          "readings": [
+            {
+              "segs": [
+                "scope",
+                "search",
+                "reset"
+              ],
+              "rowCount": 3,
+              "rows": [
+                {
+                  "seg": "scope",
+                  "left": 53,
+                  "right": 971,
+                  "firstLeft": 53,
+                  "firstRight": 164,
+                  "height": 40,
+                  "firstWidth": 111,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "search",
+                  "left": 53,
+                  "right": 971,
+                  "firstLeft": 53,
+                  "firstRight": 971,
+                  "height": 40,
+                  "firstWidth": 918,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "reset",
+                  "left": 53,
+                  "right": 971,
+                  "firstLeft": 53,
+                  "firstRight": 101,
+                  "height": 36,
+                  "firstWidth": 48,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 918,
+              "barScrollWidth": 918
+            },
+            {
+              "segs": [
+                "search",
+                "facet",
+                "reset"
+              ],
+              "rowCount": 3,
+              "rows": [
+                {
+                  "seg": "search",
+                  "left": 53,
+                  "right": 971,
+                  "firstLeft": 53,
+                  "firstRight": 971,
+                  "height": 40,
+                  "firstWidth": 918,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "facet",
+                  "left": 53,
+                  "right": 971,
+                  "firstLeft": 53,
+                  "firstRight": 164,
+                  "height": 40,
+                  "firstWidth": 111,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "reset",
+                  "left": 53,
+                  "right": 971,
+                  "firstLeft": 53,
+                  "firstRight": 101,
+                  "height": 36,
+                  "firstWidth": 48,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 918,
+              "barScrollWidth": 918
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-6xl.mx-auto",
+            "left": 32,
+            "right": 992,
+            "width": 960,
+            "maxWidth": "1152px"
+          },
+          "overflow": {
+            "docScrollWidth": 1024,
+            "innerWidth": 1024,
+            "horizontalOverflow": false
+          }
+        },
+        "1440": {
+          "readings": [
+            {
+              "segs": [
+                "scope",
+                "search",
+                "reset"
+              ],
+              "rowCount": 3,
+              "rows": [
+                {
+                  "seg": "scope",
+                  "left": 165,
+                  "right": 1275,
+                  "firstLeft": 165,
+                  "firstRight": 276,
+                  "height": 40,
+                  "firstWidth": 111,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "search",
+                  "left": 165,
+                  "right": 1275,
+                  "firstLeft": 165,
+                  "firstRight": 1275,
+                  "height": 40,
+                  "firstWidth": 1110,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "reset",
+                  "left": 165,
+                  "right": 1275,
+                  "firstLeft": 165,
+                  "firstRight": 213,
+                  "height": 36,
+                  "firstWidth": 48,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 1110,
+              "barScrollWidth": 1110
+            },
+            {
+              "segs": [
+                "search",
+                "facet",
+                "reset"
+              ],
+              "rowCount": 3,
+              "rows": [
+                {
+                  "seg": "search",
+                  "left": 165,
+                  "right": 1275,
+                  "firstLeft": 165,
+                  "firstRight": 1275,
+                  "height": 40,
+                  "firstWidth": 1110,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "facet",
+                  "left": 165,
+                  "right": 1275,
+                  "firstLeft": 165,
+                  "firstRight": 276,
+                  "height": 40,
+                  "firstWidth": 111,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                },
+                {
+                  "seg": "reset",
+                  "left": 165,
+                  "right": 1275,
+                  "firstLeft": 165,
+                  "firstRight": 213,
+                  "height": 36,
+                  "firstWidth": 48,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 1110,
+              "barScrollWidth": 1110
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-6xl.mx-auto",
+            "left": 144,
+            "right": 1296,
+            "width": 1152,
+            "maxWidth": "1152px"
+          },
+          "overflow": {
+            "docScrollWidth": 1440,
+            "innerWidth": 1440,
+            "horizontalOverflow": false
+          }
+        }
+      }
+    },
+    {
+      "key": "archive",
+      "path": "/archive.html",
+      "tier": "64rem",
+      "byWidth": {
+        "390": {
+          "readings": [
+            {
+              "segs": [
+                "search"
+              ],
+              "rowCount": 1,
+              "rows": [
+                {
+                  "seg": "search",
+                  "left": 37,
+                  "right": 353,
+                  "firstLeft": 37,
+                  "firstRight": 353,
+                  "height": 40,
+                  "firstWidth": 316,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 316,
+              "barScrollWidth": 316
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-5xl.mx-auto",
+            "left": 0,
+            "right": 390,
+            "width": 390,
+            "maxWidth": "1024px"
+          },
+          "overflow": {
+            "docScrollWidth": 390,
+            "innerWidth": 390,
+            "horizontalOverflow": false
+          }
+        },
+        "768": {
+          "readings": [
+            {
+              "segs": [
+                "search"
+              ],
+              "rowCount": 1,
+              "rows": [
+                {
+                  "seg": "search",
+                  "left": 37,
+                  "right": 731,
+                  "firstLeft": 37,
+                  "firstRight": 731,
+                  "height": 40,
+                  "firstWidth": 694,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 694,
+              "barScrollWidth": 694
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-5xl.mx-auto",
+            "left": 0,
+            "right": 768,
+            "width": 768,
+            "maxWidth": "1024px"
+          },
+          "overflow": {
+            "docScrollWidth": 768,
+            "innerWidth": 768,
+            "horizontalOverflow": false
+          }
+        },
+        "1024": {
+          "readings": [
+            {
+              "segs": [
+                "search"
+              ],
+              "rowCount": 1,
+              "rows": [
+                {
+                  "seg": "search",
+                  "left": 37,
+                  "right": 987,
+                  "firstLeft": 37,
+                  "firstRight": 987,
+                  "height": 40,
+                  "firstWidth": 950,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 950,
+              "barScrollWidth": 950
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-5xl.mx-auto",
+            "left": 0,
+            "right": 1024,
+            "width": 1024,
+            "maxWidth": "1024px"
+          },
+          "overflow": {
+            "docScrollWidth": 1024,
+            "innerWidth": 1024,
+            "horizontalOverflow": false
+          }
+        },
+        "1440": {
+          "readings": [
+            {
+              "segs": [
+                "search"
+              ],
+              "rowCount": 1,
+              "rows": [
+                {
+                  "seg": "search",
+                  "left": 245,
+                  "right": 1195,
+                  "firstLeft": 245,
+                  "firstRight": 1195,
+                  "height": 40,
+                  "firstWidth": 950,
+                  "rowWrapped": false,
+                  "overflowRight": false
+                }
+              ],
+              "alignDelta": 0,
+              "barOverflowX": false,
+              "barClientWidth": 950,
+              "barScrollWidth": 950
+            }
+          ],
+          "container": {
+            "selector": "div.max-w-5xl.mx-auto",
+            "left": 208,
+            "right": 1232,
+            "width": 1024,
+            "maxWidth": "1024px"
+          },
+          "overflow": {
+            "docScrollWidth": 1440,
+            "innerWidth": 1440,
+            "horizontalOverflow": false
+          }
+        }
+      }
+    }
+  ]
+}

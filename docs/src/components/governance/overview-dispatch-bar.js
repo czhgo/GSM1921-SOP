@@ -19,7 +19,7 @@
 //  本组件仅处理展示与跳转；计数语义由调用方（外壳）按角色注入。
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore } from '../../services/governance/issues.js?v=20261018h'; // 计数依赖（U3 前置计数须显式引用；勿裸依赖全局）
+import { IssueStore } from '../../services/governance/issues.js?v=20261102b'; // 计数依赖（U3 前置计数须显式引用；勿裸依赖全局）
 
 /** 等高骨架卡（内容容器为空/仍为壳骨架时的兜底占位；min-height 防 0 高弹跳） */
 export function overviewSkeletonHtml(text = '工作概况加载中…') {
@@ -55,7 +55,9 @@ export function beginOverviewShell(el) {
   if (!(slot && slot.classList.contains('overview-dispatch-slot'))) {
     slot = document.createElement('div');
     slot.className = 'overview-dispatch-slot';
-    slot.style.cssText = 'min-height:0;overflow:hidden;transition:min-height .15s ease;';
+    // P10：原 `transition:min-height` 触发布局回流（每帧重排），改为不加过渡——
+    // 槽位出现 / 收起是瞬时结构变化，不做高度动画；条形自身的 hover 反馈走颜色过渡。
+    slot.style.cssText = 'min-height:0;overflow:hidden;';
     el.insertAdjacentElement('beforebegin', slot);
   }
   // 首次进入且容器仍为壳骨架/空 → 等高骨架卡占位（await 计数/渲染期间防 0 高弹跳）
@@ -87,9 +89,8 @@ export async function countOwnPendingReports(personId) {
  * @param {number} opts.count       — 待处理数（>0 才挂载）
  * @param {string} opts.prefix      — 工作台前缀（org/leader/disc/prop/visitor）
  * @param {string} opts.jumpTab     — 处理位 tab id（my-dispatch / members）
- * @param {string} [opts.accent]    — 主题强调色（hex）
  */
-export function mountOverviewDispatchBar(el, { count, prefix, jumpTab, accent = '#B91C1C' }) {
+export function mountOverviewDispatchBar(el, { count, prefix, jumpTab }) {
   if (!el || !el.isConnected) return;
   const slot = el.previousElementSibling;
   if (!(slot && slot.classList.contains('overview-dispatch-slot'))) return; // 无槽：未经 beginOverviewShell，跳过
@@ -103,14 +104,15 @@ export function mountOverviewDispatchBar(el, { count, prefix, jumpTab, accent = 
     return;
   }
   slot.style.minHeight = '';
+  // 2026-11-01 批次 524 支书裁定：待答复条是「待处理状态」指标，用功能色 info（不是角色主题色）；
+  //   动作 / 导航仍走主题色。底色 / 描边沿用 .state-badge--info 同一派生比例（12% / 28%）。
   slot.innerHTML = `
-    <button type="button" class="btn-ghost overview-dispatch-bar w-full flex items-center justify-between gap-3 px-4 py-2.5 mb-3"
-      style="background:${accent}1A;border:1px solid ${accent}40;color:${accent};cursor:pointer;transition:opacity .15s;"
+    <button type="button" class="btn-outline overview-dispatch-bar w-full flex items-center justify-between gap-3 px-4 py-2.5 mb-3"
+      style="background:color-mix(in srgb, var(--status-info-text) 12%, transparent);border:1px solid color-mix(in srgb, var(--status-info-text) 28%, transparent);color:var(--status-info-text);cursor:pointer;transition:background-color var(--motion-feedback) var(--ease-standard);"
       aria-label="待答复 ${count} 条，去处理">
       <span class="text-xs font-medium">待答复 <b class="tabular-nums">${count}</b></span><span class="text-xs font-semibold">去处理 →</span>
     </button>`;
   const bar = slot.querySelector('.overview-dispatch-bar');
-  bar.addEventListener('mouseenter', () => { bar.style.opacity = '0.85'; });
-  bar.addEventListener('mouseleave', () => { bar.style.opacity = ''; });
+  // 2026-10-23 Task 7：hover / active 由 `.overview-dispatch-bar` 的 CSS 状态承担（不再写 opacity）。
   bar.addEventListener('click', () => tabBtn.click());
 }

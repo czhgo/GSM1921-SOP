@@ -1,14 +1,22 @@
-import { PersonPicker } from './pickers.js?v=20261018h';
-import { getAdapter } from '../../data/data-adapter.js?v=20261018h';
-import { getPersonById } from '../../services/member/person.js?v=20261018h';
-import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261018h';
+import { PersonPicker } from './pickers.js?v=20261102b';
+import { getAdapter } from '../../data/data-adapter.js?v=20261102b';
+import { getPersonById } from '../../services/member/person.js?v=20261102b';
+import { describeWriteError } from '../../core/base/utils.js?v=20261102b';
+import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261102b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const permissionName = (key) => WORKGROUP_PERMISSION_LABELS[key] || key;
 
 function renderMemberRow(member, grant, kind, canEdit) {
   const personId = String(member.personId || '');
-  const name = member.name || getPersonById(personId)?.name || personId;
+  const person = getPersonById(personId);
+  const name = member.name || person?.name || personId;
+  // 2026-10-21 批次 499：成员行显示所属党小组，跨组深参一眼可辨（跨组由组织委员协调）
+  const partyGroup = person?.partyGroup || '';
+  const groupLabel = partyGroup
+    ? `<span class="text-[11px] text-gray-500">${esc(partyGroup)}</span>${member.crossGroup ? '<span class="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] text-amber-800">跨组</span>' : ''}`
+    : '';
   const role = member.role === 'organizer' ? 'organizer' : 'deep';
   const templates = workgroupPermissionTemplates(kind);
   const activeKeys = new Set(Array.isArray(grant?.permissionKeys) ? grant.permissionKeys : []);
@@ -25,8 +33,8 @@ function renderMemberRow(member, grant, kind, canEdit) {
         <input class="input-flat mt-1 w-full text-xs" data-wg-reason maxlength="200" value="${esc(grant?.reason || '')}" placeholder="说明这项工作需要的操作">
       </label>
       <div class="mt-2 flex flex-wrap gap-2">
-        <button type="button" class="btn-ghost text-xs px-2 py-1" data-wg-apply-template>套用${WORKGROUP_ROLE_LABELS[role]}建议</button>
-        <button type="button" class="btn-ghost text-xs px-2 py-1 text-red-700" data-wg-remove>移出工作组</button>
+        <button type="button" class="btn-outline btn-sm" data-wg-apply-template>套用${WORKGROUP_ROLE_LABELS[role]}建议</button>
+        <button type="button" class="btn-outline btn-sm text-red-700" data-wg-remove>移出工作组</button>
       </div>`
     : `<p class="mt-2 text-xs text-gray-600">${activeKeys.size ? [...activeKeys].map(permissionName).map(esc).join('、') : '未授予操作权限'}</p>`;
 
@@ -35,6 +43,7 @@ function renderMemberRow(member, grant, kind, canEdit) {
       <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
         <span class="font-medium text-gray-800">${esc(name)}</span>
         <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">${WORKGROUP_ROLE_LABELS[role]}</span>
+        ${groupLabel}
         <span class="ml-auto text-xs text-gray-500">只读</span>
       </div>
       ${permissionControls}
@@ -42,21 +51,21 @@ function renderMemberRow(member, grant, kind, canEdit) {
   }
 
   return `<details class="rounded-lg border border-gray-200 bg-white px-3 py-2" data-wg-member="${esc(personId)}" data-template-key="${esc(grant?.templateKey || '')}">
-    <summary class="flex cursor-pointer list-none flex-wrap items-center gap-x-2 gap-y-1 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">
+    <summary class="flex cursor-pointer flex-wrap items-center gap-x-2 gap-y-1 text-sm focus-ring">
       <span class="font-medium text-gray-800">${esc(name)}</span>
       <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">${WORKGROUP_ROLE_LABELS[role]}</span>
+      ${groupLabel}
       <span class="ml-auto text-xs text-gray-500">${permissionSummary} · 展开管理</span>
     </summary>
     <div class="mt-3 border-t border-gray-100 pt-2">
       ${canEdit ? `<label class="block max-w-xs text-xs text-gray-600">工作组分工
-        <select class="input-flat mt-1 w-full text-sm" data-member-role aria-label="${esc(name)}的工作组分工">
+        <select class="input-flat mt-1 w-full" data-member-role aria-label="${esc(name)}的工作组分工">
           ${Object.entries(WORKGROUP_ROLE_LABELS).map(([key, label]) => `<option value="${key}"${role === key ? ' selected' : ''}>${label}</option>`).join('')}
         </select>
       </label>` : ''}
       ${canEdit ? `<fieldset class="mt-3">
         <legend class="text-xs font-medium text-gray-700">独立操作授权</legend>
         ${permissionControls}
-        <p class="mt-2 text-xs text-gray-500">工作组成员身份本身不会授予系统权限；勾选项将随本次保存一并生效。</p>
       </fieldset>` : ''}
     </div>
   </details>`;
@@ -65,10 +74,9 @@ function renderMemberRow(member, grant, kind, canEdit) {
 function renderParticipantList(participants) {
   return `<section class="mt-5 border-t border-gray-100 pt-4" aria-labelledby="wg-general-participants-title">
     <h4 id="wg-general-participants-title" class="text-sm font-semibold text-gray-800">一般参与者（已通过报名）· ${participants.length}</h4>
-    <p class="mt-1 text-xs text-gray-500">报名关系独立记录，不属于工作组角色；主题党日有效报名默认选择线下参加。</p>
     ${participants.length
       ? `<ul class="mt-2 flex flex-wrap gap-2">${participants.map((row) => `<li class="rounded-lg bg-gray-50 px-2.5 py-1 text-xs text-gray-700">${esc(row.name || getPersonById(row.personId)?.name || row.personId)}</li>`).join('')}</ul>`
-      : '<p class="mt-2 text-xs text-gray-500">暂无已通过报名</p>'}
+      : emptyStateHtml({ text: '暂无已通过报名', variant: 'inline', className: 'mt-2' })}
   </section>`;
 }
 
@@ -81,17 +89,19 @@ export function renderWorkgroupMemberEditor({
   const activeMembers = (Array.isArray(members) ? members : []).filter((row) => row?.personId && ['organizer', 'deep'].includes(row.role));
   const activeGrants = new Map((Array.isArray(grants) ? grants : [])
     .filter((row) => row?.status === 'active').map((row) => [String(row.personId), row]));
+  // 2026-10-21 批次 499：跨党小组深参由组织委员协调——成员区顶部明确标出，避免静默入组。
+  const crossMembers = activeMembers.filter((row) => row.crossGroup);
   return `<section class="mt-6" data-workgroup-member-editor="${esc(workgroupId)}" data-workgroup-kind="${activity ? 'activity' : 'taskforce'}" aria-labelledby="wg-editor-title-${esc(workgroupId)}">
     <div class="flex flex-wrap items-end justify-between gap-2 border-b border-gray-100 pb-2">
-      <div><h3 id="wg-editor-title-${esc(workgroupId)}" class="text-sm font-semibold text-gray-800">${title}（${activeMembers.length}）</h3>
-      <p class="mt-1 text-xs text-gray-500">组织者与深度参与者是工作组分工；操作授权单独选择。</p></div>
+      <div><h3 id="wg-editor-title-${esc(workgroupId)}" class="text-sm font-semibold text-gray-800">${title}（${activeMembers.length}）</h3></div>
     </div>
+    ${activity && crossMembers.length ? `<p class="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">跨党小组深度参与者 ${crossMembers.length} 人：${crossMembers.map((row) => esc(row.name || getPersonById(row.personId)?.name || row.personId)).join('、')}。须由组织委员协调；协调进度见组织台「跨组招募待协调」。</p>` : ''}
     <div class="mt-3 space-y-2" data-wg-member-list>
       ${activeMembers.length
         ? activeMembers.map((row) => renderMemberRow(row, activeGrants.get(String(row.personId)), activity ? 'activity' : 'taskforce', canEdit)).join('')
-        : '<p class="rounded-lg bg-gray-50 px-3 py-3 text-sm text-gray-500">暂无工作组成员</p>'}
+        : emptyStateHtml({ text: '暂无工作组成员', variant: 'inline' })}
       ${legacyRows.length ? `<details class="rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-2">
-        <summary class="cursor-pointer text-xs font-medium text-amber-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-700">历史普通参与记录待核（${legacyRows.length}）</summary>
+        <summary class="cursor-pointer text-xs font-medium text-amber-900 focus-ring">历史普通参与记录待核（${legacyRows.length}）</summary>
         <p class="mt-1 text-xs text-amber-900">${activity ? '旧成员镜像保留查看，核实后再纳入活动名单。' : '专班不设一般参与者；旧记录保留待核，不计入工作组成员。'}</p>
         <ul class="mt-1 text-xs text-gray-700">${legacyRows.map((row) => `<li>${esc(row.name || getPersonById(row.personId)?.name || row.personId)}</li>`).join('')}</ul>
       </details>` : ''}
@@ -99,7 +109,6 @@ export function renderWorkgroupMemberEditor({
     ${activity ? renderParticipantList(participants) : '<p class="mt-4 border-t border-gray-100 pt-3 text-xs text-gray-500">专班不设一般参与者报名、应到名单或考勤；组织者/深度参与者入组申请由组织台受理，工作执行按登记任务与产出记录。</p>'}
     ${canEdit ? `<div class="mt-4 border-t border-gray-100 pt-4">
       <h4 class="text-xs font-semibold text-gray-800">加入成员</h4>
-      <p class="mt-1 text-xs text-gray-500">新成员初始不带操作授权；需要时在成员详情中明确勾选。</p>
       <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
         <div class="min-w-0 flex-1" data-wg-person-picker></div>
         <button type="button" class="btn-outline min-h-10 px-3 text-sm" data-wg-add>加入选中成员</button>
@@ -108,7 +117,7 @@ export function renderWorkgroupMemberEditor({
         <button type="button" class="btn-accent min-h-10 px-4 text-sm" data-wg-save>保存成员和权限</button>
         <span class="text-xs text-gray-500" data-wg-status aria-live="polite"></span>
       </div>
-    </div>` : '<p class="mt-3 text-xs text-gray-500">当前为只读视图。</p>'}
+    </div>` : '<span class="inline-flex items-center mt-3 px-2 py-0.5 rounded-full text-[11px] bg-gray-100 text-gray-600">只读</span>'}
   </section>`;
 }
 
@@ -179,7 +188,7 @@ export function bindWorkgroupMemberEditor(root, { onSaved } = {}) {
         list.innerHTML = [...memberMap.values()].map((row) => {
           const grant = { status: 'active', permissionKeys: row.permissionKeys, templateKey: row.templateKey, reason: row.reason };
           return renderMemberRow(row, grant, kind, true);
-        }).join('') || '<p class="rounded-lg bg-gray-50 px-3 py-3 text-sm text-gray-500">暂无工作组成员</p>';
+        }).join('') || emptyStateHtml({ text: '暂无工作组成员', variant: 'inline' });
         if (legacy) list.append(legacy);
       }
       picker.clearSelection();
@@ -207,7 +216,8 @@ export function bindWorkgroupMemberEditor(root, { onSaved } = {}) {
       status.textContent = '成员和权限已保存。';
       if (typeof onSaved === 'function') await onSaved();
     } catch (error) {
-      status.textContent = error?.message ? `保存失败：${error.message}` : '保存失败；当前编辑内容已保留，请重试。';
+      // 失败文案统一走 describeWriteError（不直接展示 error.message 里的技术串）
+      status.textContent = `保存失败：${describeWriteError(error)}；当前编辑内容已保留，请重试。`;
       button.disabled = false;
     }
   });

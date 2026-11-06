@@ -32,7 +32,7 @@ test('纪检批量确认默认不选，展开只保留显式选择，清空覆�
   await page.route('**://cdn.tailwindcss.com/**', (route) => route.abort());
   try {
     await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
-    await page.fill('#student-id', '2400012354'); // 纪检委员 p10
+    await page.fill('#student-id', '2400012354'); // 纪检委员 2400012354
     await page.fill('#password', '123456');
     await Promise.all([
       page.waitForURL('**/workspace/disc.html', { timeout: 15000 }),
@@ -92,6 +92,8 @@ test('党小组会考勤并入总表筛选视图并保持只读', async () => {
       page.click('button[type="submit"]'),
     ]);
     await page.locator('.disc-tab-btn[data-disc-tab="attendance"]').click();
+    // 考勤页自批次 369 起分「确认与录入 / 数据查看」两视图；总表在「数据查看」内。
+    await page.locator('.att-view-btn[data-att-view="data"]').click();
     await page.locator('#att-table-container table tbody tr').first().waitFor({ state: 'visible', timeout: 15000 });
 
     assert.equal(await page.getByRole('heading', { name: '党小组会考勤（纪检只读掌握）' }).count(), 0,

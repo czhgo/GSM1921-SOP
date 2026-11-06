@@ -7,6 +7,18 @@
 //  content/02_institution/ 对应文档，不在此复制长文
 // ════════════════════════════════════════════════════════════════
 
+import { POLICY_DEFAULTS } from '../core/domain/policy-defaults.js?v=20261102b';
+
+// ── 制度派生值（R10-B02/B03/B08：期限/角色一律从 policy 单一源取，勿在任务里写死）──
+/** 通知提前量（天）：三会正式通知 5 / 活动通知 2 / 复盘提醒 1（B08 三处共用） */
+const NOTICE_ADVANCE_DAYS = Object.freeze({ MEETING: 5, ACTIVITY: 2, REMIND: 1 });
+/** 党小组会考勤录入人（B02）：由 policy-defaults.attendance.recorderByType['党小组会'] 派生角色键 */
+const PARTY_GROUP_ATTENDANCE_RECORDER = ((POLICY_DEFAULTS.attendance.recorderByType || {})['党小组会'] || [])[0] || 'leader';
+/** 复盘时限（B03）：提交期限 / 监督超期阈值，call-time 读，随支部参数生效 */
+const reviewDeadlineDays = () => POLICY_DEFAULTS.review.deadlineDays;
+const reviewOverdueDays = () => POLICY_DEFAULTS.review.overdueDays;
+const reviewDeadlineLabel = () => `T+${reviewDeadlineDays()}`;
+
 export const sopDatabase = {
   scenarios: [
     {
@@ -16,17 +28,17 @@ export const sopDatabase = {
         { taskId: '1b-1', title: '活动发起',              executor: 'organizer',        supervisor: 'leader',     timeOffset: -7, desc: '策划活动方案，选定路径a/b并启动招募。' },
         { taskId: '1b-2', title: '活动报备',              executor: 'expanded-committee', supervisor: null,         timeOffset: -7, desc: '把活动方案发到支委扩大群报备，报备通过后方才写入活动。' },
         { taskId: '1b-3', title: '联系条条委员',          executor: 'organizer',        supervisor: 'leader',     timeOffset: -7, desc: '按需联系组织/宣传/纪检委员对接需求。' },
-        { taskId: '1b-4', title: '发布活动通知',          executor: 'organizer',        supervisor: null,         timeOffset: -2, desc: '群内发布活动通知；外出活动提前2天建群。' },
+        { taskId: '1b-4', title: '发布活动通知',          executor: 'organizer',        supervisor: null,         timeOffset: -NOTICE_ADVANCE_DAYS.ACTIVITY, desc: `群内发布活动通知；外出活动提前${NOTICE_ADVANCE_DAYS.ACTIVITY}天建群。` },
         { taskId: '1b-4b', title: '宣传准备',             executor: 'prop-commissioner',supervisor: 'organizer',   timeOffset: -2, desc: '确认宣传负责人（深度参与者），宣传委员指导。' },
-        { taskId: '1b-5', title: '对接考勤要求与复盘底线',   executor: 'disc-commissioner',supervisor: 'leader',     timeOffset: -2, desc: '与组织者对接考勤要求与复盘底线（T+7）。' },
+        { taskId: '1b-5', title: '对接考勤要求与复盘底线',   executor: 'disc-commissioner',supervisor: 'leader',     timeOffset: -2, desc: `与组织者对接考勤要求与复盘底线（${reviewDeadlineLabel()}）。` },
         { taskId: '1b-6', title: '活动实施',              executor: 'organizer',        supervisor: 'leader',     timeOffset:  0, desc: '全程负责：签到/拍照/发言记录/材料收齐。' },
         { taskId: '1b-6a', title: '考勤确认',            executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  0, desc: '组织者上传党小组考勤，纪检确认后录入总表。' },
-        { taskId: '1b-6b', title: '复盘提醒',            executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  1, desc: 'T+1提醒组织者本人按时提交复盘（T+7）。' },
-        { taskId: '1b-7', title: '活动复盘',              executor: 'organizer',        supervisor: 'leader',     timeOffset:  7, desc: '完成活动复盘（积极分子可代，组长把关）。' },
+        { taskId: '1b-6b', title: '复盘提醒',            executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  NOTICE_ADVANCE_DAYS.REMIND, desc: `T+${NOTICE_ADVANCE_DAYS.REMIND}提醒组织者本人按时提交复盘（${reviewDeadlineLabel()}）。` },
+        { taskId: '1b-7', title: '活动复盘',              executor: 'organizer',        supervisor: 'leader',     get timeOffset() { return reviewDeadlineDays(); }, desc: '完成活动复盘（积极分子可代，组长把关）。' },
         { taskId: '1b-8', title: '宣传产出（摘要+配图）', executor: 'deep',             supervisor: 'organizer',   timeOffset: 3, desc: '深度参与者产出摘要+配图，组织者打包督办，纳入月度推送。' },
         { taskId: '1b-7c', title: '考察确认',            executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  3, desc: '组织者上传活动考察，纪检确认后录入总表。' },
         { taskId: '1b-9', title: '材料归档',              executor: 'organizer',        supervisor: 'leader',     timeOffset:  7, desc: '打包宣传材料交宣传委员归档；考勤与考察统计报支委会（组织委员接收）。' },
-        { taskId: '1b-7b', title: '复盘监督（批注/打回/确认）', executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  7, desc: '检查复盘是否本人完成/充实/按时，批注或打回。' },
+        { taskId: '1b-7b', title: '复盘监督（批注/打回/确认）', executor: 'disc-commissioner',supervisor: 'leader',     get timeOffset() { return reviewOverdueDays(); }, desc: '检查复盘是否本人完成/充实/按时，批注或打回。' },
       ],
     },
     {
@@ -36,7 +48,7 @@ export const sopDatabase = {
         // C-23/D-328：三会按同一套环节取齐（母本《常见工作场景快速指南》三会一课通用流程 9 步）——
         // 全支部会议由支书承担会前与会中主持环节。
         { taskId: '1c-1', title: '确定会议主题',      executor: 'secretary',        supervisor: null,      timeOffset: -7, desc: '根据支委会部署确定会议主题与议程。' },
-        { taskId: '1c-2', title: '通知到人',          executor: 'secretary',        supervisor: null,      timeOffset: -5, desc: '提前至少5天发送正式会议通知，确认收到时即确认能否线上参会。' },
+        { taskId: '1c-2', title: '通知到人',          executor: 'secretary',        supervisor: null,      timeOffset: -NOTICE_ADVANCE_DAYS.MEETING, desc: `提前至少${NOTICE_ADVANCE_DAYS.MEETING}天发送正式会议通知，确认收到时即确认能否线上参会。` },
         { taskId: '1c-3', title: '现场签到',          executor: 'disc-commissioner',supervisor: 'leader',  timeOffset:  0, desc: '现场按应到名单录入签到并汇总签到结果。' },
         { taskId: '1c-4', title: '签到考勤',          executor: 'disc-commissioner',supervisor: 'leader',  timeOffset:  0, desc: '刚性考勤；请假/缺勤留档并跟进补课。' },
         { taskId: '1c-5', title: '按议程开会',        executor: 'secretary',        supervisor: null,      timeOffset:  0, desc: '按会议性质推进议程，主持人作总结发言。' },
@@ -53,9 +65,9 @@ export const sopDatabase = {
         // C-23/D-328：三会按同一套环节取齐（母本《常见工作场景快速指南》三会一课通用流程 9 步）——
         // 党小组会由党小组组长承担会前、会中主持与会议记录环节。
         { taskId: '1d-1', title: '确定会议主题',      executor: 'leader',           supervisor: null,      timeOffset: -7, desc: '按支委会部署确定会议主题与议程。' },
-        { taskId: '1d-2', title: '通知到人',          executor: 'leader',           supervisor: null,      timeOffset: -5, desc: '提前至少5天群发正式会议通知，确认收到时即确认能否线上参会。' },
-        { taskId: '1d-3', title: '现场签到',          executor: 'disc-commissioner',supervisor: 'leader',  timeOffset:  0, desc: '现场按应到名单录入签到并汇总签到结果。' },
-        { taskId: '1d-4', title: '签到考勤',          executor: 'disc-commissioner',supervisor: 'leader',  timeOffset:  0, desc: '刚性考勤；请假/缺勤留档并跟进补课。' },
+        { taskId: '1d-2', title: '通知到人',          executor: 'leader',           supervisor: null,      timeOffset: -NOTICE_ADVANCE_DAYS.MEETING, desc: `提前至少${NOTICE_ADVANCE_DAYS.MEETING}天群发正式会议通知，确认收到时即确认能否线上参会。` },
+        { taskId: '1d-3', title: '现场签到',          executor: PARTY_GROUP_ATTENDANCE_RECORDER, supervisor: 'leader',  timeOffset:  0, desc: '本组组长（兼本场组织者）现场按应到名单录入签到并汇总签到结果。' },
+        { taskId: '1d-4', title: '签到考勤',          executor: PARTY_GROUP_ATTENDANCE_RECORDER, supervisor: 'leader',  timeOffset:  0, desc: '本组组长（兼本场组织者）录入刚性考勤；请假/缺勤留档并跟进补课。' },
         { taskId: '1d-5', title: '按议程开会',        executor: 'leader',           supervisor: null,      timeOffset:  0, desc: '按会议性质推进议程，主持人作总结发言。' },
         { taskId: '1d-6', title: '摄影留存宣传底稿',  executor: 'leader',           supervisor: null,      timeOffset:  3, desc: '摄影留存，形成宣传底稿交宣传委员。' },
         { taskId: '1d-7', title: '后台考勤汇总',      executor: 'disc-commissioner',supervisor: 'leader',  timeOffset:  3, desc: '后台汇总出勤数据（汇总表第一列是人）。' },
@@ -78,12 +90,10 @@ export const sopDatabase = {
         // C-23/D-328：三会按同一套环节取齐（母本《常见工作场景快速指南》三会一课通用流程 9 步）——
         // 支委会由支书承担会前、会中主持与会议记录环节（督办位＝支书）。
         { taskId: '1e-1', title: '确定会议主题',      executor: 'secretary',        supervisor: null,        timeOffset: -7, desc: '支书定议题与议程。' },
-        { taskId: '1e-2', title: '通知到人',          executor: 'secretary',        supervisor: null,        timeOffset: -5, desc: '提前至少5天通知支委（时间/地点/议题）。' },
-        { taskId: '1e-3', title: '现场签到',          executor: 'disc-commissioner',supervisor: 'secretary', timeOffset:  0, desc: '现场按应到名单录入签到并汇总签到结果。' },
-        { taskId: '1e-4', title: '签到考勤',          executor: 'disc-commissioner',supervisor: 'secretary', timeOffset:  0, desc: '纪检记录支委到场情况；请假/缺勤留档。' },
+        { taskId: '1e-2', title: '通知到人',          executor: 'secretary',        supervisor: null,        timeOffset: -NOTICE_ADVANCE_DAYS.MEETING, desc: `提前至少${NOTICE_ADVANCE_DAYS.MEETING}天通知支委（时间/地点/议题）。` },
+        // 支委会不考勤（POLICY_DEFAULTS.attendance.noAttendanceTypes）：不生成签到 / 考勤 / 汇总任务（R10-B01）。
         { taskId: '1e-5', title: '按议程开会',        executor: 'secretary',        supervisor: null,        timeOffset:  0, desc: '支书主持，按议程研究支部日常工作并作总结。' },
         { taskId: '1e-6', title: '摄影留存宣传底稿',  executor: 'secretary',        supervisor: null,        timeOffset:  3, desc: '摄影留存，形成宣传底稿交宣传委员。' },
-        { taskId: '1e-7', title: '后台考勤汇总',      executor: 'disc-commissioner',supervisor: 'secretary', timeOffset:  3, desc: '后台汇总出勤数据（汇总表第一列是人）。' },
         { taskId: '1e-8', title: '汇总会议记录',      executor: 'secretary',        supervisor: null,        timeOffset:  5, desc: '用工作记录模板记决议。' },
         { taskId: '1e-9', title: '档案归档',          executor: 'prop-commissioner',supervisor: 'secretary', timeOffset:  5, desc: '归档党支部工作记录并上传党建平台。' },
       ],

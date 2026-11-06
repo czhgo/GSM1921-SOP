@@ -17,7 +17,7 @@
 //
 // 表集合（**覆盖本批补 / 改的表 ＋ 已知易漂的表**）：
 //   · `todos`（本批补种；也是唯一曾被 `SEED_FALLBACK` 掩盖缺口的表）· `notices`（种子计数曾疑 12 vs 13）
-//   · `attendances`（本批改 8 月生成段 `_ALL_PERSON_IDS`：剔除党委组织员 p_pc）
+//   · `attendances`（本批改 8 月生成段 `_ALL_PERSON_IDS`：剔除党委组织员 9000000001）
 //   · `inspections`（id 序列跳过 insp-17）· `makeupTasks`（本批改 `attendanceRecordId`：att-sep-1 → att900）
 //   ⚠ 未再扩张到「服务端逐字复刻、无 mock 具名导出可比」的表（weekly_reports / prop_tasks / handoffs /
 //     各申诉队列等：它们的语料在 UI 文件内私有或纯服务端常量，本守卫**没有**一侧可比对 ⇒ 强行纳入会假绿）。
@@ -48,15 +48,31 @@ globalThis.localStorage = makeStorage();
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018h';
-import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018h';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261102b';
+import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261102b';
 // ── mock 形态语料（单一源；服务端 seed.js 亦从这些具名导出播种 ⇒ 两侧本应逐值相同）──
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261018h';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261018h';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261018h';
-import { SEED_MAKEUP_TASKS } from '../../docs/src/data/mock/seed.js?v=20261018h';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261102b';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261102b';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261102b';
+import { SEED_MAKEUP_TASKS, SEED_SIGNUPS, SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261102b';
+import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261102b';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261102b';
+import { BRANCHES } from '../../docs/src/data/mock/branches.js?v=20261102b';
+import { SEED_TASKS, SEED_ARCHIVE_RECORDS, SEED_REVIEW_REQUESTS } from '../../docs/src/data/mock/seed.js?v=20261102b';
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20261102b';
+import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20261102b';
+import { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261102b';
+import {
+  SEED_EXTERNAL_DISPATCHES, SEED_APPOINTMENT_RECORDS,
+  SEED_IMAGE_RECORDS, SEED_MEMBER_CHANGE_REQUESTS,
+  SEED_WORKGROUP_TASKS, SEED_WORKGROUP_OUTPUTS,
+} from '../../docs/src/data/mock/auxiliary.js?v=20261102b';
+import { normalizeSeedActivitySeedRows, ensureLegacySourceWorkgroups, ensureDemoWorkgroupGrants } from '../../docs/src/data/workgroup-seed-sync.js?v=20261102b';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261102b';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261102b';
+import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261102b';
 // `SEED_TODOS` 不在 `mock/**`（它是服务层常量，前端 seedTodos() 读的正是它）——服务端 seed.js 同源 import
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261018h';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261102b';
 
 // ════════════════════════════════════════════════════════════════
 //  B 类现场（api 形态）：内存服务 + 真登录取 token + init() 把服务端全量灌进 mockDB 缓存
@@ -69,7 +85,7 @@ const _base = `http://127.0.0.1:${_server.address().port}`;
 const _loginRes = await fetch(`${_base}/api/v1/auth/login`, {
   method: 'POST',
   headers: { 'content-type': 'application/json' },
-  body: JSON.stringify({ personId: 'p13', password: '123456' }),
+  body: JSON.stringify({ personId: '2300010001', password: '123456' }),
 });
 assert.equal(_loginRes.status, 200, 'B 类现场：真登录须 200');
 const { token: _token } = await _loginRes.json();
@@ -111,15 +127,70 @@ function diffOf(a, b) {
 }
 
 /**
+ * Task 1（2026-10-25）：种子只存事实；mock 语料按同一派生器补回运行时形状后再与 API 比对。
+ * （否则比较的是「种子静态行」与「服务端派生行」，必然把派生字段判成漂移。）
+ */
+const DERIVED_SOURCES = {
+  // activities 参与派生（通知 expireDate 等依赖活动日期），但不作为本文件的对照表源
+  activities: ACTIVITIES.map((row) => ({ ...row })),
+  notices: MOCK_NOTICES.map((row) => ({ ...row })),
+  attendances: ATTENDANCE_RECORDS.map((row) => ({ ...row })),
+  inspections: INSPECTION_RECORDS.map((row) => ({ ...row })),
+  activityReviews: REVIEW_RECORDS.map((row) => ({ ...row })),
+  archiveRecords: SEED_ARCHIVE_RECORDS.map((row) => ({ ...row })),
+};
+applyDerivedFacts(DERIVED_SOURCES, { people: PEOPLE });
+
+/**
+ * 活动 / 专班：服务端播种前会过 `workgroup-seed-sync` 归一（组织落点 + 工作组镜像 + 演示授权），
+ * 直接拿裸语料比会必然把「装配产物」判成漂移；此处照 `server/seed.js` 同一管线复现。
+ */
+const WORKGROUP_SEED = {
+  activities: normalizeSeedActivitySeedRows(ACTIVITIES),
+  taskforces: MOCK_TASKFORCES.map((row) => ({ ...row })),
+  workgroups: [], workgroupMembers: [], workgroupGrants: [],
+};
+applyDerivedFacts(WORKGROUP_SEED, { people: PEOPLE });
+ensureLegacySourceWorkgroups(WORKGROUP_SEED);
+ensureDemoWorkgroupGrants(WORKGROUP_SEED);
+
+/**
  * 表集合：`key`=mockDB 缓存键（init 灌入）· `resource`=API 资源名 · `source`=mock 形态语料
  * @type {Array<{key:string, resource:string, source:Array, label:string, min:number}>}
  */
 const TABLES = [
-  { key: 'todos', resource: 'todos', source: SEED_TODOS, label: '待办（本批补种）', min: 2 },
-  { key: 'notices', resource: 'notices', source: MOCK_NOTICES, label: '通知（种子计数曾疑 12 vs 13）', min: 12 },
-  { key: 'attendances', resource: 'attendances', source: ATTENDANCE_RECORDS, label: '考勤（本批改 8 月 _ALL_PERSON_IDS）', min: 150 },
-  { key: 'inspections', resource: 'inspections', source: INSPECTION_RECORDS, label: '考察（id 跳过 insp-17）', min: 42 },
+  // ── 10 张既有值对照（2026-10-27 批次 515）──
+  { key: 'todos', resource: 'todos', source: SEED_TODOS, label: '待办（本批补种）', min: 1 },
+  { key: 'notices', resource: 'notices', source: DERIVED_SOURCES.notices, label: '通知（种子计数曾疑 12 vs 13）', min: 12 },
+  // 2026-10-23 批次 504（R10-C06）：删除支委会 act-27 的 8 条非法考勤 ⇒ 152 → 144；下限随之收至 140。
+  { key: 'attendances', resource: 'attendances', source: DERIVED_SOURCES.attendances, label: '考勤（本批改 8 月 _ALL_PERSON_IDS）', min: 140 },
+  { key: 'inspections', resource: 'inspections', source: DERIVED_SOURCES.inspections, label: '考察（id 跳过 insp-17）', min: 42 },
   { key: 'makeupTasks', resource: 'makeupTasks', source: SEED_MAKEUP_TASKS, label: '补课任务（本批改 attendanceRecordId）', min: 1 },
+  { key: 'activities', resource: 'activities', source: WORKGROUP_SEED.activities, label: '活动（按 seed 同管线归一后）', min: 1 },
+  { key: 'taskforces', resource: 'taskforces', source: WORKGROUP_SEED.taskforces, label: '专班（派生后）', min: 1 },
+  { key: 'assignments', resource: 'assignments', source: SEED_ASSIGNMENTS, label: '分工', min: 1 },
+  { key: 'signups', resource: 'signups', source: SEED_SIGNUPS, label: '报名', min: 1 },
+  { key: 'partyGroups', resource: 'partyGroups', source: PARTY_GROUPS, label: '党小组', min: 1 },
+  // ── 2026-11-02 批次 527（Wave 2）：值对照 10 → 26（全部有 mock 同源行的资源表）──
+  // 服务端 `GET /users` 按支部投影：支书看不到组织级 party-staff（branchId:null），
+  // 故对照源同步剔除，避免把「权限投影」误判成「数据漂移」。
+  { key: 'users', resource: 'users', source: PEOPLE.filter((p) => p.branchId), label: '人员档案（本支部）', min: 40 },
+  { key: 'branches', resource: 'branches', source: BRANCHES, label: '支部实例', min: 1 },
+  { key: 'tasks', resource: 'tasks', source: SEED_TASKS, label: '活动任务', min: 1 },
+  { key: 'activityReviews', resource: 'activityReviews', source: DERIVED_SOURCES.activityReviews, label: '活动复盘（派生后）', min: 1 },
+  { key: 'taskforceReviews', resource: 'taskforceReviews', source: TASKFORCE_REVIEW_RECORDS, label: '专班复盘', min: 1 },
+  { key: 'thoughtReports', resource: 'thoughtReports', source: THOUGHT_REPORTS, label: '思想汇报', min: 1 },
+  { key: 'propTasks', resource: 'propTasks', source: PROP_TASKS_SEED, label: '宣传任务', min: 1 },
+  { key: 'periodicArchives', resource: 'periodicArchives', source: PERIODIC_ARCHIVES_SEED, label: '周期归档', min: 1 },
+  { key: 'archiveRecords', resource: 'archiveRecords', source: DERIVED_SOURCES.archiveRecords, label: '档案归档（派生后）', min: 1 },
+  { key: 'externalDispatches', resource: 'externalDispatches', source: SEED_EXTERNAL_DISPATCHES, label: '外发确认', min: 1 },
+  { key: 'reviewRequests', resource: 'reviewRequests', source: SEED_REVIEW_REQUESTS, label: '支部上报', min: 1 },
+  { key: 'appointmentRecords', resource: 'appointmentRecords', source: SEED_APPOINTMENT_RECORDS, label: '任期记录', min: 1 },
+  { key: 'imageRecords', resource: 'imageRecords', source: SEED_IMAGE_RECORDS, label: '活动照片（本批补种）', min: 2 },
+  // 成员变更走语义端点 `/member-change-requests`（驼峰资源名不是路由路径）。
+  { key: 'memberChangeRequests', resource: 'member-change-requests', source: SEED_MEMBER_CHANGE_REQUESTS, label: '成员变更申请（本批补种）', min: 2 },
+  // 注：workgroupTasks / workgroupOutputs 无通用资源端点（走 /workgroups/:id/tasks|outputs），
+  //   不作值对照；其结构真值由 `mock-api-parity-structure.test.mjs::S1` 直接读表覆盖。
 ];
 
 // ── S0 形态：本文件用例必须跑在 api 形态上 ──
@@ -154,9 +225,22 @@ test('P2 两形态读数一致：init() 后 mockDB 缓存（api 形态）与 moc
   assert.deepEqual(problems, [], `两形态读数不一致：\n  ${problems.join('\n  ')}`);
 });
 
+// ── P4（R9 Task 4.4）：workgroup_tasks / outputs 首屏装载 ──
+test('P4 init 批量装载 workgroup_tasks / outputs，并标记 loaded（首页不再把未装载当无任务）', () => {
+  const loaded = mockDB.workgroupAuxLoaded;
+  assert.ok(loaded && Array.isArray(loaded.tasks) && Array.isArray(loaded.outputs), 'init 完成后须标记已装载组清单');
+  assert.ok(Array.isArray(mockDB.workgroupTasks), 'workgroupTasks 必须是数组');
+  assert.ok(mockDB.workgroupTasks.length > 0, '首页可见专班的任务应在 init 装载后可见（否则首页仍显「任务 —」）');
+  assert.ok(Array.isArray(mockDB.workgroupOutputs), 'workgroupOutputs 必须是数组');
+  assert.ok(mockDB.workgroupTasks.every((row) => row && row.workgroupId), '任务必须带 workgroupId（首页按组汇总）');
+  for (const groupId of new Set(mockDB.workgroupTasks.map((row) => row.workgroupId))) {
+    assert.ok(loaded.tasks.includes(groupId), `${groupId} 的任务已装载，标记里必须含该组（否则首页误显示加载中）`);
+  }
+});
+
 // ── P3 非空转：抽取面下限 ＋ 逐表断言为真 ＋ 比较器自检 ──
-test('P3 非空转：表集合 ≥5、逐表读数 > 0、比对行数 ≥200，且比较器能判出人为差异', () => {
-  assert.ok(TABLES.length >= 5, `表集合只剩 ${TABLES.length} 张（下限 5）`);
+test('P3 非空转：表集合 ≥20、逐表读数 > 0、比对行数 ≥200，且比较器能判出人为差异', () => {
+  assert.ok(TABLES.length >= 20, `表集合只剩 ${TABLES.length} 张（下限 20：值对照已扩容到全部有 mock 同源行的资源表）`);
   let total = 0;
   for (const t of TABLES) {
     assert.ok(Array.isArray(t.source) && t.source.length > 0, `${t.key}：mock 语料为空（断言会「空 == 空」恒真）`);

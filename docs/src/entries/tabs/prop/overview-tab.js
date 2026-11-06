@@ -6,9 +6,10 @@
 // 顶部直达条属重复动作 ⇒ 外壳不再挂条，只保留骨架占位。
 // U3（2026-09-07）：先 beginOverviewShell 骨架/槽位占位 → 原地渲染概况（不推挤正文）。
 
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261018h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018h';
-import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261018h';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261102b';
+import { currentUserId } from '../../../services/core/auth.js?v=20261102b';
+import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261102b';
+import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261102b';
 
 /**
  * 条线缺口行补真实动作（2026-10-18 繁专项 Task 15）。
@@ -23,6 +24,8 @@ function _upgradeGapRow(row, target) {
   if (!row || row.dataset.woGapBound) return;
   const btn = document.createElement('button');
   btn.type = 'button';
+  // 2026-10-26 Task 5：整行导航载体（w-full + text-left），`.btn-ghost` 仅作尺寸族；
+  //   可见 hover 由 `.btn-ghost:hover` 的 --surface-hover 承担。
   btn.className = `btn-ghost ${row.className} w-full text-left`;
   btn.dataset.woGap = target.tab;
   btn.dataset.woGapBound = '1';
@@ -59,13 +62,26 @@ function _bindLineGapActions(container) {
 export async function renderContent(ctx) {
   const el = document.getElementById('prop-tab-content');
   if (!el) return null;
-  const personId = AuthStore.getCurrentUser()?.personId || 'p12';
+  const personId = currentUserId();
+  // 失效会话不猜人（P1-11）：读口显式显示 —，不再回落到固定宣传委员 p12。
+  if (!personId) {
+    el.innerHTML = '<div class="card rounded-xl p-5 text-center"><p class="text-xs text-gray-500">—（登录态已失效，请重新登录）</p></div>';
+    return null;
+  }
   beginOverviewShell(el);
   const done = await renderWorkOverview(el, {
     role: 'prop-commissioner',
     personId,
     accent: ctx.accent,
     prefix: 'prop',
+    title: '工作概况',
+    // 2026-10-25 IA 62→45：活动日历页签降为本页折叠卡（共享只读日历，单一源不复制）。
+    extraSections: [{
+      html: '<div id="ov-calendar-card-host"></div>',
+      mount: (host) => renderCalendarCard(host.querySelector('#ov-calendar-card-host'), undefined, {
+        open: ctx?.navTarget?.section === 'calendar',
+      }),
+    }],
   });
   _observeLineGapActions(el);
   return done;

@@ -15,9 +15,9 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { resolveVoterIds, resolveParticipantIds } from '../../docs/src/services/activity/vote-config.js?v=20261018h';
-import { cleanParticipantPolicies } from '../../docs/src/services/branch/config-clean.js?v=20261018h';
-import { getWorkflowBlockParticipantPolicy } from '../../docs/src/services/branch/branch.js?v=20261018h';
+import { resolveVoterIds, resolveParticipantIds } from '../../docs/src/services/activity/vote-config.js?v=20261102b';
+import { cleanParticipantPolicies } from '../../docs/src/services/branch/config-clean.js?v=20261102b';
+import { getWorkflowBlockParticipantPolicy } from '../../docs/src/services/branch/branch.js?v=20261102b';
 
 let server, base;
 
@@ -83,7 +83,7 @@ test('③ 消费面：none 与 resolveVoterIds 逐字一致；organizer-deep 确
 
   // ① 缺省 / none ⇒ 逐字一致（默认零影响）
   assert.deepEqual(resolveParticipantIds('committee'), baseIds, '无 policy ⇒ 逐字一致');
-  assert.deepEqual(resolveParticipantIds('committee', { orgMode: 'none' }, ['p13', 'x']), baseIds, 'none ⇒ 不并入指派层');
+  assert.deepEqual(resolveParticipantIds('committee', { orgMode: 'none' }, ['2300010001', 'x']), baseIds, 'none ⇒ 不并入指派层');
   assert.deepEqual(resolveParticipantIds('committee', { orgMode: 'organizer-deep' }, []), baseIds, 'organizer-deep 但无指派 ⇒ 一致');
 
   // ② organizer-deep ⇒ 并入指派层（base 在前、按入参顺序、去重、非串丢弃）
@@ -98,8 +98,8 @@ test('③ 消费面：none 与 resolveVoterIds 逐字一致；organizer-deep 确
 });
 
 test('③ HTTP：participantPolicies 净化往返 / 未写不引入该段 / blocks=null 恢复默认', async () => {
-  const { token: sec } = await login('p13');    // 现任支书
-  const { token: staff } = await login('p_pc'); // 党委组织员
+  const { token: sec } = await login('2300010001');    // 现任支书
+  const { token: staff } = await login('9000000001'); // 党委组织员
 
   const r1 = await patchConfig(sec, {
     config: {
@@ -119,11 +119,17 @@ test('③ HTTP：participantPolicies 净化往返 / 未写不引入该段 / bloc
   assert.equal(wp1.participantPolicies.bad, undefined, '非法空壳被丢弃');
   assert.ok(!Object.prototype.hasOwnProperty.call(wp1.participantPolicies[BLOCK], 'personIds'), '不含任何具体人名字段');
 
-  const r2 = await patchConfig(staff, { config: { blocks: { workflowBlocks: { hiddenBlockIds: [] } } } });
+  const r2 = await patchConfig(sec, { config: { blocks: { workflowBlocks: { hiddenBlockIds: [] } } } });
   assert.equal(r2.status, 200, '仅 workflowBlocks 合法');
   assert.equal((await r2.json()).config.blocks.workflowBlocks.participantPolicies, undefined, '未写则不引入该段');
 
-  const r3 = await patchConfig(staff, { config: { blocks: null } });
+  const r3 = await patchConfig(sec, { config: { blocks: null } });
   assert.equal(r3.status, 200, 'blocks=null 恢复默认');
   assert.equal((await r3.json()).config.blocks, null, 'blocks 全清');
+
+  // 2026-10-22 批次 501（`D-825`）：党委可代支部写 blocks（留痕 byRole），支部仍可覆盖
+  const staffWrite = await patchConfig(staff, { config: { blocks: { workflowBlocks: { hiddenBlockIds: [] } } } });
+  assert.equal(staffWrite.status, 200, '党委可代支部写 config.blocks（D-825）');
+  assert.equal((await staffWrite.json()).config.configChangeHistory.at(-1).byRole, 'party-staff', '留痕标明党委代配置');
+  assert.equal((await patchConfig(staff, { config: { blocks: null } })).status, 200, '党委可代支部恢复 blocks 默认');
 });

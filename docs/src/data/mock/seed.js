@@ -4,58 +4,68 @@
 // ════════════════════════════════════════════════════════════════
 //  为 mockDB 中初始为空的字段提供示例数据，确保首次体验完整。
 //  种子数据在 loadDB() 时注入 mockDB（仅当对应字段为空时）。
-//  2026-09-06 基线刷新：createdAt/ddl 等时间随关联活动（见 activities.js 头注）同步平移，
-//  并钳制于 [07-01, 活动日前 1 天]；signups（su-001~007，8 月）保留。
+//  2026-10-26 Task 5 基线刷新：createdAt/ddl 等时间随关联活动（见 activities.js 头注）同步平移，
+//  并钳制于 [活动日前 1 天, 活动日]；signups（su-001~007）日期均在演示窗口内，保持不变。
 
 // ── 任务种子（关联活动，时间随活动重排） ────────────────────
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261102b';
+import { _fmtDate, todayLocal } from '../../core/base/date.js?v=20261102b';
 export const SEED_TASKS = [
-  { id: 'tsk-001', activityId: 'act-1', title: '预定会议室并通知参会人员', status: 'completed', createdAt: '2026-07-01T08:00:00Z' },
-  { id: 'tsk-002', activityId: 'act-1', title: '整理会议记录并归档', status: 'completed', createdAt: '2026-07-01T08:00:00Z' },
-  { id: 'tsk-003', activityId: 'act-3', title: '准备学习材料（两会精神解读）', status: 'completed', createdAt: '2026-07-02T08:00:00Z' },
-  { id: 'tsk-004', activityId: 'act-3', title: '撰写活动总结', status: 'completed', createdAt: '2026-07-02T08:00:00Z' },
-  { id: 'tsk-005', activityId: 'act-5', title: '联系共建单位确认参访安排', status: 'completed', createdAt: '2026-07-06T08:00:00Z' },
-  { id: 'tsk-006', activityId: 'act-5', title: '安排车辆和午餐', status: 'completed', createdAt: '2026-07-06T08:00:00Z' },
-  { id: 'tsk-007', activityId: 'act-10', title: '准备主题党日方案', status: 'in_progress', createdAt: '2026-07-12T08:00:00Z' },
-  { id: 'tsk-008', activityId: 'act-10', title: '收集参与者反馈', status: 'pending', createdAt: '2026-07-12T08:00:00Z' },
+  { id: 'tsk-001', activityId: 'act-1', title: '预定会议室并通知参会人员', status: 'completed', createdAt: '2026-08-07T08:00:00Z' },
+  { id: 'tsk-002', activityId: 'act-1', title: '整理会议记录并归档', status: 'completed', createdAt: '2026-08-07T08:00:00Z' },
+  { id: 'tsk-003', activityId: 'act-3', title: '准备学习材料（两会精神解读）', status: 'completed', createdAt: '2026-08-08T08:00:00Z' },
+  { id: 'tsk-004', activityId: 'act-3', title: '撰写活动总结', status: 'completed', createdAt: '2026-08-08T08:00:00Z' },
+  { id: 'tsk-005', activityId: 'act-5', title: '联系共建单位确认参访安排', status: 'completed', createdAt: '2026-08-12T08:00:00Z' },
+  { id: 'tsk-006', activityId: 'act-5', title: '安排车辆和午餐', status: 'completed', createdAt: '2026-08-12T08:00:00Z' },
+  { id: 'tsk-007', activityId: 'act-10', title: '准备主题党日方案', status: 'completed', createdAt: '2026-09-02T08:00:00Z' },
+  { id: 'tsk-008', activityId: 'act-10', title: '收集参与者反馈', status: 'completed', createdAt: '2026-09-02T08:00:00Z' },
 ];
 
 // ── 分工种子（组织者分配，时间随活动重排） ──────────────────
 export const SEED_ASSIGNMENTS = [
-  { id: 'assign_seed_001', activityId: 'act-3', workName: '撰写学习材料', workDescription: '整理两会精神要点，制作学习PPT', ddl: '2026-07-02T00:00:00Z', assigneeId: 'p3', status: 'completed', createdBy: 'p1', createdAt: '2026-07-02T08:00:00Z', completedAt: '2026-07-02T16:00:00Z' },
-  { id: 'assign_seed_002', activityId: 'act-3', workName: '场地布置', workDescription: '准备投影设备、签到表、座位安排', ddl: '2026-07-02T00:00:00Z', assigneeId: 'p5', status: 'completed', createdBy: 'p1', createdAt: '2026-07-02T08:00:00Z', completedAt: '2026-07-02T08:00:00Z' },
-  { id: 'assign_seed_003', activityId: 'act-5', workName: '联系共建单位', workDescription: '确认参访时间、路线、交流内容', ddl: '2026-07-06T00:00:00Z', assigneeId: 'p3', status: 'completed', createdBy: 'p11', createdAt: '2026-07-06T08:00:00Z', completedAt: '2026-07-06T10:00:00Z' },
-  { id: 'assign_seed_004', activityId: 'act-5', workName: '拍摄活动照片', workDescription: '全程拍摄参访活动照片，活动结束后提交', ddl: '2026-07-06T00:00:00Z', assigneeId: 'p5', status: 'completed', createdBy: 'p3', createdAt: '2026-07-06T08:00:00Z', completedAt: null },
-  { id: 'assign_seed_005', activityId: 'act-10', workName: '准备活动方案', workDescription: '撰写主题党日活动方案，含议程和分工', ddl: '2026-07-12T00:00:00Z', assigneeId: 'p3', status: 'in_progress', createdBy: 'p1', createdAt: '2026-07-12T08:00:00Z', completedAt: null },
+  { id: 'assign_seed_001', activityId: 'act-3', workName: '撰写学习材料', workDescription: '整理两会精神要点，制作学习PPT', ddl: '2026-08-08T00:00:00Z', assigneeId: '2400012347', status: 'completed', createdBy: '2400012345', createdAt: '2026-08-08T08:00:00Z', completedAt: '2026-08-08T16:00:00Z' },
+  { id: 'assign_seed_002', activityId: 'act-3', workName: '场地布置', workDescription: '准备投影设备、签到表、座位安排', ddl: '2026-08-08T00:00:00Z', assigneeId: '2400012349', status: 'completed', createdBy: '2400012345', createdAt: '2026-08-08T08:00:00Z', completedAt: '2026-08-08T08:00:00Z' },
+  { id: 'assign_seed_003', activityId: 'act-5', workName: '联系共建单位', workDescription: '确认参访时间、路线、交流内容', ddl: '2026-08-12T00:00:00Z', assigneeId: '2400012347', status: 'completed', createdBy: '2400012355', createdAt: '2026-08-12T08:00:00Z', completedAt: '2026-08-12T10:00:00Z' },
+  { id: 'assign_seed_004', activityId: 'act-5', workName: '拍摄活动照片', workDescription: '全程拍摄参访活动照片，活动结束后提交', ddl: '2026-08-12T00:00:00Z', assigneeId: '2400012349', status: 'completed', createdBy: '2400012347', createdAt: '2026-08-12T08:00:00Z', completedAt: null },
+  // act-10 完成态 ⇒ 分工同步收口（ddl 保持活动日前 1 天，completedAt 记活动当日）
+  { id: 'assign_seed_005', activityId: 'act-10', workName: '准备活动方案', workDescription: '撰写主题党日活动方案，含议程和分工', ddl: '2026-09-02T00:00:00Z', assigneeId: '2400012347', status: 'completed', createdBy: '2400012345', createdAt: '2026-09-02T08:00:00Z', completedAt: '2026-09-03T18:00:00Z' },
 ];
 
 // ── 档案归档种子 ─────────────────────────────────────────────
-// 关联键统一用 activityId（2026-08-06 支书裁决），activityName 仅作展示；
-// 非活动类材料（发展对象公示等）无 activityId，靠 activityName 兜底展示。
-// 种子提升为全局（2026-08-06）：loadDB 时注入，供产出物区/关闭条件同源读取，
-// 不再依赖先访问宣传委员工作台才注入（违反「同一套数据」）。
-// 2026-09-06：ar5 归档对象 act-19 重排至 7/19，archiveDate 顺延至 7/26。
+// Task 1（2026-10-25 · mock 事实化）：归档的**唯一事实**是「哪个活动被归档」——
+//   种子只写 `activityId + category`；`activityName`（取活动标题）与 `status='archived'`
+//   由 `data/mock/derive.js::deriveArchiveState` 在 hydrate 时补回。
+// Task 2（2026-10-25）：恢复 ar3/ar4/ar6 三条**非活动材料**——它们不以活动为父键，
+//   用 `materialOnly:true` + 自带 `title/category/archiveDate` 作为事实保留；
+//   派生器只把 title 映射为显示名、状态恒 archived，绝不用活动标题覆盖（activityId 为空）。
 export const SEED_ARCHIVE_RECORDS = [
-  { id: 'ar1', activityId: 'act-25', activityName: '七一建党105周年活动', archiveDate: '2026-07-15', category: '新闻稿', status: 'archived' },
-  { id: 'ar2', activityId: 'act-25', activityName: '七一建党105周年活动', archiveDate: '2026-07-15', category: '照片', status: 'archived' },
-  { id: 'ar3', activityName: '发展对象公示', archiveDate: '2026-07-22', category: '新闻稿', status: 'pending' },
-  { id: 'ar4', activityName: '预备党员转正大会', archiveDate: '2026-07-28', category: '视频', status: 'pending' },
-  { id: 'ar5', activityId: 'act-19', activityName: '7月组织生活会', archiveDate: '2026-07-26', category: '其他', status: 'archived' },
-  { id: 'ar6', activityName: '入党积极分子培训', archiveDate: '2026-07-18', category: '照片', status: 'in_progress' },
-];
+  { id: 'ar1', activityId: 'act-25', category: '新闻稿' },
+  { id: 'ar2', activityId: 'act-25', category: '照片' },
+  { id: 'ar3', activityId: null, materialOnly: true, title: '2026 年上半年支部党员大会会议记录汇编', category: '其他', archiveDate: '2026-08-15' },
+  { id: 'ar4', activityId: null, materialOnly: true, title: '2026 年上半年发展党员材料（归档卷）', category: '其他', archiveDate: '2026-08-10' },
+  { id: 'ar5', activityId: 'act-19', category: '其他' },
+  { id: 'ar6', activityId: null, materialOnly: true, title: '支部 2026 年度工作计划（归档件）', category: '其他', archiveDate: '2026-09-20' },
+].map((row) => ({ ...row, branchId: row.branchId || DEFAULT_BRANCH_ID }));
 
-// ── 报名种子（T233 报名渠道演示：含 approved 与 pending 两种流程） ──
-// 2026-09-06 基线刷新：su-001~007 均为 8 月数据（>07-01），时间与指向（tf-005/006/act-30）不变。
+// ── 报名种子（T233 报名渠道演示） ──
+// R10（2026-10-23）：按产品报名口径重做（C07）：
+//   · 在办报名只挂**运行中专班 tf-002**，且只用 organizer/deep（专班不设普通 participant）；
+//   · 已完成专班（tf-005/tf-006）不保留 pending——历史 participant/pending 一律落为 `rejected`，
+//     与 `SignupStore.review()`「专班普通参与身份只能保留核查或拒绝」的判据一致；
+//   · 活动报名仍挂 act-30（已结束活动为历史事实，approved 不再产生新流程）。
 export const SEED_SIGNUPS = [
-  // tf-005 建党105周年筹备专班（招募中，截止 8/20，2/8 已满编 2 名组织者）
-  { id: 'su-001', sourceType: 'taskforce', sourceId: 'tf-005', personId: 'p7',  role: 'participant', status: 'approved', createdAt: '2026-08-10T09:00:00', reviewedBy: null, reviewedAt: null, note: '想参与活动筹备' },
-  { id: 'su-002', sourceType: 'taskforce', sourceId: 'tf-005', personId: 'p22', role: 'deep',        status: 'pending',   createdAt: '2026-08-10T10:30:00', reviewedBy: null, reviewedAt: null, note: '可负责宣传物料' },
-  { id: 'su-003', sourceType: 'taskforce', sourceId: 'tf-005', personId: 'p27', role: 'organizer',   status: 'pending',   createdAt: '2026-08-11T08:00:00', reviewedBy: null, reviewedAt: null, note: '有活动统筹经验' },
-  // tf-006 参访活动保障专班（招募中，截止 8/15，0/4）
-  { id: 'su-004', sourceType: 'taskforce', sourceId: 'tf-006', personId: 'p6',  role: 'participant', status: 'approved', createdAt: '2026-08-09T14:00:00', reviewedBy: null, reviewedAt: null, note: null },
-  { id: 'su-005', sourceType: 'taskforce', sourceId: 'tf-006', personId: 'p9',  role: 'deep',        status: 'pending',   createdAt: '2026-08-10T16:00:00', reviewedBy: null, reviewedAt: null, note: '负责后勤协调' },
-  // act-30 秋季学期工作部署会（published，8/28）
-  { id: 'su-006', sourceType: 'activity', sourceId: 'act-30', personId: 'p8',  role: 'participant', status: 'approved', createdAt: '2026-08-11T11:00:00', reviewedBy: null, reviewedAt: null, note: null },
-  { id: 'su-007', sourceType: 'activity', sourceId: 'act-30', personId: 'p15', role: 'participant', status: 'approved', createdAt: '2026-08-11T11:30:00', reviewedBy: null, reviewedAt: null, note: '反馈#4 提出者' },
+  // 历史拒绝（tf-005 建党105周年筹备专班已完成）：保留核查痕迹，不再阻塞审核队列。
+  { id: 'su-001', sourceType: 'taskforce', sourceId: 'tf-005', personId: '2400012351', role: 'participant', status: 'rejected', createdAt: '2026-08-10T09:00:00', reviewedBy: '2400012355', reviewedAt: '2026-10-05T10:00:00.000Z', note: '专班已完成，普通参与身份不可转为成员' },
+  // tf-002 SOP 系统维护专班（active）：产品只允许 `recruiting` 专班接受新报名 ⇒ 这两条作为历史申请关闭，
+  //   不再伪造「运行中专班仍可报名」的待审项（R10-C07 收口）。
+  { id: 'su-002', sourceType: 'taskforce', sourceId: 'tf-002', personId: '2500010008', role: 'deep',      status: 'rejected', createdAt: '2026-10-18T10:30:00.000Z', reviewedBy: '2400012355', reviewedAt: '2026-10-19T09:00:00.000Z', note: '专班当前非招募中，历史申请已关闭' },
+  { id: 'su-003', sourceType: 'taskforce', sourceId: 'tf-002', personId: '2500010013', role: 'organizer', status: 'rejected', createdAt: '2026-10-18T11:00:00.000Z', reviewedBy: '2400012355', reviewedAt: '2026-10-19T09:05:00.000Z', note: '专班当前非招募中，历史申请已关闭' },
+  // 历史拒绝（tf-006 参访活动保障专班已完成）：同 su-001 口径。
+  { id: 'su-004', sourceType: 'taskforce', sourceId: 'tf-006', personId: '2400012350', role: 'participant', status: 'rejected', createdAt: '2026-08-09T14:00:00', reviewedBy: '2400012355', reviewedAt: '2026-10-04T10:00:00.000Z', note: '专班已完成，普通参与身份不可转为成员' },
+  { id: 'su-005', sourceType: 'taskforce', sourceId: 'tf-006', personId: '2400012353', role: 'deep',        status: 'rejected', createdAt: '2026-08-10T16:00:00', reviewedBy: '2400012355', reviewedAt: '2026-10-04T10:05:00.000Z', note: '专班已完成，报名不再进入审核' },
+  // act-30 秋季学期工作部署会（已结束；approved 为历史事实）
+  { id: 'su-006', sourceType: 'activity', sourceId: 'act-30', personId: '2400012352',  role: 'participant', status: 'approved', createdAt: '2026-08-11T11:00:00', reviewedBy: null, reviewedAt: null, note: null },
+  { id: 'su-007', sourceType: 'activity', sourceId: 'act-30', personId: '2500010001', role: 'participant', status: 'approved', createdAt: '2026-08-11T11:30:00', reviewedBy: null, reviewedAt: null, note: '反馈#4 提出者' },
 ];
 
 // ── 支部上报审批种子（2026-09-16 批次 47-P，支书「允许改种子」裁定） ──
@@ -72,11 +82,11 @@ export const SEED_SIGNUPS = [
 export const SEED_REVIEW_REQUESTS = [
   {
     id: 'rq-seed-1',
-    branchId: 'br-b1',
+    branchId: DEFAULT_BRANCH_ID,
     type: 'activity-report',
     title: '关于赴香山开展主题党日的报备',
-    content: '拟定 8 月中旬组织支部党员赴香山开展主题党日，含往返交通、安全预案与经费说明，报请党委备案。',
-    submittedBy: 'p1',
+    content: '拟定 10 月中旬组织支部党员赴香山开展主题党日，含往返交通、安全预案与经费说明，报请党委备案（8 月报备、后按活动安排调整至 10 月 22 日）。',
+    submittedBy: '2400012345',
     status: 'pending',
     createdAt: '2026-08-06T09:00:00.000Z',
   },
@@ -88,7 +98,7 @@ export const SEED_REVIEW_REQUESTS = [
 //   而本表**原无任何种子**（`data-adapter.js:312` 明确写「makeupTasks 无静态种子（由纪检操作生成），空属合理，不回退」）
 //   ⇒ api/mock 两形态首启都空 ⇒ 该判据**结构性不可达**（批 47-X 真机实测入口计数 0）。
 // **为什么自洽（R-78 ②）**：这条任务**就是** `services/activity/makeup.js::autoGenerateMakeupTask()` 对
-//   `att900`（p5 · act-31 · `AttendanceStatus.ABSENT` · 已由 p10 确认）的**派生结果**——
+//   `att900`（2400012349 · act-31 · `AttendanceStatus.ABSENT` · 已由 2400012354 确认）的**派生结果**——
 //   字段与 `autoGenerateMakeupTask` 落库形状逐项对齐（含 `attendanceRecordId: 'att900'`、
 //   `deadline` = 缺勤日 +7 天、`proofContent: null`、`status: 'pending'`、`isMandatory: true`
 //   因 act-31 是「支部党员大会」）⇒ 产品在「纪检确认考勤」时自己就会产出它，不是伪造状态。
@@ -96,10 +106,18 @@ export const SEED_REVIEW_REQUESTS = [
 //   ⇒ 挂过去也看不到（原登记说的「日期耦合」）。
 //   另：`proofContent: null` **必须保持为空**——该弹窗用 `initialValues.proofContent` 预填，
 //   若预填了内容，「请填写补课说明」这一支会被**默认预填**挡住（「默认预填藏必填分支」同族）。
+// R10（2026-10-23，B21）：截止日改为**相对今天**生成（今天 + 7 天），不再固定 2026-09-17，
+//   避免首启即逾期 36 天；缺勤日保持 att900 的真实日期（历史事实不改）。
+const _makeupDeadline = () => {
+  const day = new Date(`${todayLocal()}T00:00:00`);
+  day.setDate(day.getDate() + 7);
+  return _fmtDate(day);
+};
+
 export const SEED_MAKEUP_TASKS = [
   {
     id: 'mk-seed-1',
-    personId: 'p5',
+    personId: '2400012349',
     activityId: 'act-31',
     // 2026-09-26 本批改准：原写 'att-sep-1'（**对不上任何考勤行**）——`attendance.js` 里那条实际 id 是
     //   `att900`（该文件注释专门解释了为何必须是 `att900`：`?reset=init` 的种子识别口径 `/^att\d+$/`）。
@@ -109,7 +127,7 @@ export const SEED_MAKEUP_TASKS = [
     activityName: '9月支部党员大会（线上异步表决）',
     personName: '宋佳宁',
     absentDate: '2026-09-10',
-    deadline: '2026-09-17',
+    deadline: _makeupDeadline(),
     status: 'pending',
     isMandatory: true,
     proofContent: null,

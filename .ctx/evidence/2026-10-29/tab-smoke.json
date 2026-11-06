@@ -1,0 +1,229 @@
+{
+  "at": "2026-10-29T13:26:38.388Z",
+  "base": "http://127.0.0.1:50880",
+  "runs": [
+    {
+      "role": "支书",
+      "personId": "2300010001",
+      "page": "/workspace/secretary.html",
+      "tabs": [
+        {
+          "label": "今天",
+          "hasRoot": true,
+          "renderedLen": 844,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        },
+        {
+          "label": "待办",
+          "hasRoot": true,
+          "renderedLen": 18112,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        },
+        {
+          "label": "全局概况",
+          "hasRoot": true,
+          "renderedLen": 19800,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        },
+        {
+          "label": "活动管理",
+          "hasRoot": true,
+          "renderedLen": 19608,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        },
+        {
+          "label": "支委会",
+          "hasRoot": true,
+          "renderedLen": 8131,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        },
+        {
+          "label": "党小组",
+          "hasRoot": true,
+          "renderedLen": 6713,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        },
+        {
+          "label": "通知发布",
+          "hasRoot": true,
+          "renderedLen": 15441,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        },
+        {
+          "label": "上报党委",
+          "hasRoot": true,
+          "renderedLen": 3058,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        },
+        {
+          "label": "支部分工",
+          "hasRoot": true,
+          "renderedLen": 5901,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        },
+        {
+          "label": "意见反馈",
+          "hasRoot": true,
+          "renderedLen": 7907,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        }
+      ],
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "role": "党委组织员",
+      "personId": "9000000001",
+      "page": "/workspace/party-committee.html",
+      "tabs": [
+        {
+          "label": "下发通知",
+          "hasRoot": true,
+          "renderedLen": 3356,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        },
+        {
+          "label": "支部上报",
+          "hasRoot": true,
+          "renderedLen": 4598,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        },
+        {
+          "label": "支部管理",
+          "hasRoot": true,
+          "renderedLen": 4926,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        }
+      ],
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "role": "普通成员",
+      "personId": "2400012349",
+      "page": "/workspace/visitor.html",
+      "tabs": [
+        {
+          "label": "今天",
+          "hasRoot": true,
+          "renderedLen": 3026,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        },
+        {
+          "label": "待办",
+          "hasRoot": true,
+          "renderedLen": 7123,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        },
+        {
+          "label": "工作概况",
+          "hasRoot": true,
+          "renderedLen": 8438,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        },
+        {
+          "label": "活动动态",
+          "hasRoot": true,
+          "renderedLen": 11427,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        },
+        {
+          "label": "项目分工",
+          "hasRoot": true,
+          "renderedLen": 2130,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        },
+        {
+          "label": "考勤概况",
+          "hasRoot": true,
+          "renderedLen": 15507,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        },
+        {
+          "label": "我的成长",
+          "hasRoot": true,
+          "renderedLen": 5140,
+          "errorCard": false,
+          "errorText": null,
+          "retryButton": false,
+          "reloadButton": false
+        }
+      ],
+      "consoleErrors": [],
+      "pageErrors": []
+    }
+  ],
+  "faultInjection": {
+    "tab": "待办",
+    "module": "todo-tab.js",
+    "errorCard": true,
+    "retryButton": false,
+    "reloadButton": true,
+    "message": "这个页签的模块没能加载（todo-tab.js），请刷新页面后再试 刷新页面"
+  },
+  "summary": {
+    "runs": 3,
+    "tabs": 20,
+    "errorCards": 0,
+    "consoleErrors": 0,
+    "pageErrors": 0,
+    "hardFailures": 0
+  }
+}

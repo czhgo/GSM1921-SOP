@@ -7,13 +7,15 @@
 // 文案由 components/record/todo-list.js actionLabels 收敛为「去考勤管理/去考察管理」（跳管理页队列，
 // 确认唯一位=考勤管理/考察管理页），补课回执交接行=「去补课制度」跳转——本文件无逻辑改动。
 
-import { showToast } from '../../../core/base/utils.js?v=20261018h';
-import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/governance/todo.js?v=20261018h';
-import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261018h';
-import { loadActiveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261018h';
-import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261018h';
-import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261018h';
-import { getPersonName } from '../../../services/member/person.js?v=20261018h';
+import { showToast } from '../../../core/base/utils.js?v=20261102b';
+import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/governance/todo.js?v=20261102b';
+import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261102b';
+// 2026-11-01 批次 524（#7）：主行动落点由动作表声明，页签切换走统一导航（删写死 workspace URL）
+import { resolveTodoAction } from '../../../core/domain/todo-actions.js?v=20261102b';
+import { goToWorkspaceTab } from '../../../core/session/workspace-nav.js?v=20261102b';
+import { loadActiveAttendanceRecords, isAttendancePendingConfirm } from '../../../services/activity/attendance.js?v=20261102b';
+import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261102b';
+import { getPersonName } from '../../../services/member/person.js?v=20261102b';
 
 // ── 纪检实时聚合组（2026-08-07 闭环化） ────────────────────────
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降，
@@ -26,9 +28,7 @@ function _buildDiscRealtimeGroups() {
   // 动态组1：考勤待确认（T-304 第5轮 · 源头审校+异常驱动：出勤/已补上传方已审校自动确认，
   // 纪检只处理异常=缺勤/请假未确认；仅活跃活动，归档活动退出工作区）
   // 2026-10-18 繁专项 Task 15：与管理页队列同口径——**已打回**记录交组织方重新确认，不计入纪检待确认。
-  const pendingAtt = loadActiveAttendanceRecords().filter(r =>
-    !r.recordedBy && !r.returnedBy && r.status !== AttendanceStatus.PRESENT && r.status !== AttendanceStatus.MADE_UP
-  );
+  const pendingAtt = loadActiveAttendanceRecords().filter(isAttendancePendingConfirm);
   if (pendingAtt.length > 0) {
     dynamic.push({
       groupKey: 'disc-commissioner:attendance-confirm',
@@ -41,7 +41,7 @@ function _buildDiscRealtimeGroups() {
       flow: '考勤上传 → 纪检确认 → 考勤明细',
       deadline: null,
       count: pendingAtt.length,
-      items: pendingAtt.map(r => ({ id: r.id, title: `确认考勤：${getPersonName(r.personId)}`, sourceType: TodoSourceType.ACTIVITY, sourceId: r.activityId })),
+      items: pendingAtt.map(r => ({ id: r.id, activityId: r.activityId, title: `确认考勤：${getPersonName(r.personId)}`, sourceType: TodoSourceType.ACTIVITY, sourceId: r.activityId })),
     });
   }
   // 动态组2：考察待确认（status 非 confirmed；仅活跃活动，专班类保留）
@@ -59,41 +59,34 @@ function _buildDiscRealtimeGroups() {
       flow: '纪检录入考察 → 纪检确认 → 组织建档',
       deadline: null,
       count: pendingInsp.length,
-      items: pendingInsp.map(r => ({ id: r.id, title: `确认考察：${getPersonName(r.personId)}`, sourceType: TodoSourceType.ACTIVITY, sourceId: r.activityId ? `insp_${r.id}` : null })),
+      items: pendingInsp.map(r => ({ id: r.id, activityId: r.activityId || '', title: `确认考察：${getPersonName(r.personId)}`, sourceType: TodoSourceType.ACTIVITY, sourceId: r.activityId || null })),
     });
   }
   return dynamic;
 }
 
 function _handleTodoAction(todo) {
-  // 2026-08-07 闭环化：聚合对象优先按 actionKey 跳转（区分同 actionType 的业务域），普通明细按 actionType 兜底
-  // 无生产者残留键清理（IA-C1 Task5 登记 2026-09-06）：review-submit/review-confirm/submit/confirm 旧键
-  // 均无派生器移除（纪检台现派生=实时考勤/考察待确认组 + handoff-material-shortage 补课回执，
-  // 均带 actionKey；actionType 兜底仅余 review 供 signup-review 未直跳等边界）——未知键落 else「请处理」。
-  // 2026-09-15：补课并入「考勤管理」（原「制度与文本」tab 已废止）——补课回执落「考勤管理」的「补课」分段。
-  const jump = {
-    'attendance-confirm': { tab: 'attendance', label: '考勤管理' },
-    'inspection-confirm': { tab: 'inspection', label: '考察管理' },
-    'handoff-material-shortage': { tab: 'attendance', label: '考勤管理', segment: 'makeup' },
-    review:   { tab: 'review', label: '复盘' },
-  };
-  const target = jump[todo.actionKey] || jump[todo.actionType];
-  if (target) {
-    const go = () => {
-      const btn = document.querySelector(`.disc-tab-btn[data-disc-tab="${target.tab}"]`);
-      if (btn) btn.click();
-      showToast('info', `已跳转到${target.label}，请处理：${todo.title}`);
-    };
-    if (target.segment) {
-      // 先置一级分段再切 tab（分段由 attendance-tab 模块级记忆，见其 focusSegment 导出）
-      import('../../../entries/tabs/disc/attendance-tab.js?v=20261018h')
-        .then(m => { m.focusSegment(target.segment); go(); })
-        .catch(go);
-    } else {
-      go();
-    }
-  } else {
+  // 2026-08-07 闭环化：聚合对象优先按 actionKey 跳转（区分同 actionType 的业务域），普通明细按 actionType 兜底。
+  // 2026-11-01 批次 524（#7）：落点表迁到 core/domain/todo-actions.js；考勤/考察待确认改为
+  //   同页切页签 + PendingTarget 深链（不再写死 workspace/disc.html?tab=… 整页跳转）。
+  const action = resolveTodoAction(todo, 'disc-commissioner');
+  if (!action || !action.tab) {
     showToast('info', `请处理：${todo.title}`);
+    return;
+  }
+  const first = Array.isArray(todo.items) ? todo.items[0] : null;
+  const targetId = (first && (first.id || first.activityId)) || todo.id || null;
+  const go = () => {
+    const ok = goToWorkspaceTab(action.tab, { kind: action.kind, id: targetId });
+    showToast('info', ok ? `已跳转，请处理：${todo.title}` : `请处理：${todo.title}`);
+  };
+  if (action.segment) {
+    // 先置一级分段再切 tab（分段由 attendance-tab 模块级记忆，见其 focusSegment 导出）
+    import('../../../entries/tabs/disc/attendance-tab.js?v=20261102b')
+      .then(m => { m.focusSegment(action.segment); go(); })
+      .catch(go);
+  } else {
+    go();
   }
 }
 
@@ -104,5 +97,5 @@ export const { renderContent } = createTodoTab({
   onAction: _handleTodoAction,
   // IA-C1 Task4：纪检实时队列（考勤/考察待确认）并入对应域折组
   buildRealtimeGroups: _buildDiscRealtimeGroups,
-  emptyHint: '或直接点击"去审核/去确认"等按钮处理',
+  emptyHint: '暂无待办',
 });

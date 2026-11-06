@@ -15,18 +15,18 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018h';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018h';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261102b';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261102b';
 import {
   PersonStore, getBaseMemberRecords,
-} from '../../docs/src/services/member/person.js?v=20261018h';
-import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261018h';
+} from '../../docs/src/services/member/person.js?v=20261102b';
+import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261102b';
 import {
   BRANCH_ROSTER_KIND, BRANCH_ROSTER_VERSION,
   buildBranchRosterTemplate, sanitizeBranchRoster,
-} from '../../docs/src/services/member/branch-roster-import.js?v=20261018h';
-import { buildPreviewTemplate } from '../../docs/src/services/branch/org-base-data-preview.js?v=20261018h';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018h';
+} from '../../docs/src/services/member/branch-roster-import.js?v=20261102b';
+import { buildPreviewTemplate } from '../../docs/src/services/branch/org-base-data-preview.js?v=20261102b';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261102b';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -73,44 +73,44 @@ test('净化①：名册包净化 → valid + 净化行（档案字段继承/可
   const tpl = buildBranchRosterTemplate();
   assert.equal(tpl.kind, BRANCH_ROSTER_KIND);
   assert.equal(tpl.version, BRANCH_ROSTER_VERSION);
-  assert.equal(tpl.people.length, 50, '可迁成员 = 档案成员（PEOPLE 51 − 党委组织员 p_pc）');
+  assert.equal(tpl.people.length, 50, '可迁成员 = 档案成员（PEOPLE 51 − 党委组织员 9000000001）');
   assert.ok(tpl.people.every(r => r.id && r.name && r.partyGroup && r.developStage), '模板行含 id/name/党小组/发展阶段');
 
-  // p31 改党小组 → 第二党小组；p24 只给 id+name（其余继承档案）
+  // 2500010017 改党小组 → 第二党小组；2500010010 只给 id+name（其余继承档案）
   const pkg = {
     kind: BRANCH_ROSTER_KIND,
     version: BRANCH_ROSTER_VERSION,
     people: [
-      { id: 'p31', name: '刘子昂', partyGroup: '第二党小组' },
-      { id: 'p24', name: '曹雅婷' },
+      { id: '2500010017', name: '刘子昂', partyGroup: '第二党小组' },
+      { id: '2500010010', name: '曹雅婷' },
     ],
   };
   const res = sanitizeBranchRoster(pkg);
   assert.equal(res.valid, true, JSON.stringify(res));
   assert.equal(res.dropped, 0);
   assert.equal(res.people.length, 2);
-  const r31 = res.people.find(r => r.id === 'p31');
-  const r24 = res.people.find(r => r.id === 'p24');
+  const r31 = res.people.find(r => r.id === '2500010017');
+  const r24 = res.people.find(r => r.id === '2500010010');
   assert.equal(r31.partyGroup, '第二党小组', '文件党小组编辑生效');
-  assert.equal(r31.developStage, '预备党员', '未给字段继承档案（p31 预备党员）');
-  assert.equal(r31.studentId, archiveOf('p31').studentId, 'studentId 档案权威带出（api 重建整行完整）');
-  assert.equal(r31.role, archiveOf('p31').role, 'role 档案权威带出');
-  assert.equal(r24.partyGroup, '第三党小组', 'p24 档案党小组继承');
+  assert.equal(r31.developStage, '预备党员', '未给字段继承档案（2500010017 预备党员）');
+  assert.equal(r31.studentId, archiveOf('2500010017').studentId, 'studentId 档案权威带出（api 重建整行完整）');
+  assert.equal(r31.role, archiveOf('2500010017').role, 'role 档案权威带出');
+  assert.equal(r24.partyGroup, '第三党小组', '2500010010 档案党小组继承');
   // 统计卡（目标空支部导入后 = 净化行整体）：在册党员 2（均预备）、应到 2、无滞留
   assert.equal(res.stats.partyTotal, 2);
   assert.equal(res.stats.official, 0);
   assert.equal(res.stats.probationary, 2);
   assert.equal(res.stats.detained, 0);
   assert.equal(res.stats.expected, 2);
-  assert.equal(res.stats.perGroup['第二党小组'].partyTotal, 1, 'p31 编辑后归第二党小组');
+  assert.equal(res.stats.perGroup['第二党小组'].partyTotal, 1, '2500010017 编辑后归第二党小组');
   assert.equal(res.stats.perGroup['第二党小组'].expected, 1);
   assert.equal(res.stats.perGroup['第三党小组'].partyTotal, 1);
   assert.equal(res.stats.perGroup['第一党小组'].partyTotal, 0);
 
   // 数组输入（无 kind 包）兼容
-  const arrRes = sanitizeBranchRoster([{ id: 'p5', name: '宋佳宁' }]);
+  const arrRes = sanitizeBranchRoster([{ id: '2400012349', name: '宋佳宁' }]);
   assert.equal(arrRes.valid, true, JSON.stringify(arrRes));
-  assert.equal(arrRes.people[0].residenceStatus, '滞留', '档案滞留状态继承（p5 滞留示范）');
+  assert.equal(arrRes.people[0].residenceStatus, '滞留', '档案滞留状态继承（2400012349 滞留示范）');
   assert.equal(arrRes.stats.partyTotal, 1);
   assert.equal(arrRes.stats.detained, 1, '滞留党员统计在册基数');
   assert.equal(arrRes.stats.expected, 0, '应到 = 党员 − 滞留（口径 excludeDetained）');
@@ -120,22 +120,22 @@ test('净化②：白名单外 id / 空姓名 → 丢弃；非法枚举 → 回�
   beginMockCase();
   const res = sanitizeBranchRoster([
     { id: 'p999', name: '幽灵成员' },                       // 白名单外 → 丢弃
-    { id: 'p24', name: '   ' },                              // 空姓名 → 丢弃
-    { id: 'p31', name: '刘子昂', partyGroup: '第四党小组' },  // 非法枚举 → 回退档案
-    { id: 'p1', name: '罗文杰', developStage: '群众', residenceStatus: '离职' }, // 非法枚举 → 回退档案
-    { id: 'p5', name: '宋佳宁' },                            // 合法（档案滞留继承）
+    { id: '2500010010', name: '   ' },                              // 空姓名 → 丢弃
+    { id: '2500010017', name: '刘子昂', partyGroup: '第四党小组' },  // 非法枚举 → 回退档案
+    { id: '2400012345', name: '罗文杰', developStage: '群众', residenceStatus: '离职' }, // 非法枚举 → 回退档案
+    { id: '2400012349', name: '宋佳宁' },                            // 合法（档案滞留继承）
   ]);
   assert.equal(res.valid, true, JSON.stringify(res));
   assert.equal(res.dropped, 2, '白名单外 + 空姓名共丢弃 2 条');
   assert.equal(res.people.length, 3);
-  const r31 = res.people.find(r => r.id === 'p31');
-  assert.equal(r31.partyGroup, '第一党小组', 'partyGroup 非法 → 回退档案原值（p31 第一党小组）');
-  const r1 = res.people.find(r => r.id === 'p1');
+  const r31 = res.people.find(r => r.id === '2500010017');
+  assert.equal(r31.partyGroup, '第一党小组', 'partyGroup 非法 → 回退档案原值（2500010017 第一党小组）');
+  const r1 = res.people.find(r => r.id === '2400012345');
   assert.equal(r1.developStage, '正式党员', 'developStage 非法 → 回退档案原值');
   assert.equal(r1.residenceStatus, '在校', 'residenceStatus 非法 → 回退档案/缺省在校');
   assert.equal(res.stats.partyTotal, 3);
-  assert.equal(res.stats.official, 2, 'p1/p5 正式 + p31 预备');
-  assert.equal(res.stats.detained, 1, 'p5 滞留');
+  assert.equal(res.stats.official, 2, '2400012345/2400012349 正式 + 2500010017 预备');
+  assert.equal(res.stats.detained, 1, '2400012349 滞留');
 });
 
 test('净化③：坏文件 / 全非法 / 版本与 kind 门槛 → 可读原因；预览模板包可复用', () => {
@@ -147,8 +147,8 @@ test('净化③：坏文件 / 全非法 / 版本与 kind 门槛 → 可读原因
   };
   invalid(null, /未识别到成员名册/);
   invalid({}, /未识别到成员名册/);
-  invalid({ kind: 'other-kind', people: [{ id: 'p1', name: '罗文杰' }] }, /不是成员名册文件/);
-  invalid({ kind: BRANCH_ROSTER_KIND, version: 9, people: [{ id: 'p1', name: '罗文杰' }] }, /版本不支持/);
+  invalid({ kind: 'other-kind', people: [{ id: '2400012345', name: '罗文杰' }] }, /不是成员名册文件/);
+  invalid({ kind: BRANCH_ROSTER_KIND, version: 9, people: [{ id: '2400012345', name: '罗文杰' }] }, /版本不支持/);
   invalid({ kind: BRANCH_ROSTER_KIND, people: [] }, /名单为空/);
   invalid([{ id: 'p999', name: '幽灵成员' }], /无有效成员/);
   invalid('not-json', /未识别到成员名册/);
@@ -181,41 +181,41 @@ test('mock ④：净化 → 空支部 replaceBranchMembers 落库 → getRosterS
   const clean = sanitizeBranchRoster({
     kind: BRANCH_ROSTER_KIND,
     people: [
-      { id: 'p31', name: '刘子昂', partyGroup: '第一党小组' },
-      { id: 'p24', name: '曹雅婷' },
-      { id: 'p5', name: '宋佳宁' }, // 滞留党员也在名册内（组织关系保留）
+      { id: '2500010017', name: '刘子昂', partyGroup: '第一党小组' },
+      { id: '2500010010', name: '曹雅婷' },
+      { id: '2400012349', name: '宋佳宁' }, // 滞留党员也在名册内（组织关系保留）
     ],
   });
   assert.equal(clean.valid, true, JSON.stringify(clean));
-  const r = await PersonStore.replaceBranchMembers(clean.people, { branchId: 'br-x', by: 'p_pc' });
+  const r = await PersonStore.replaceBranchMembers(clean.people, { branchId: 'br-x', by: '9000000001' });
   assert.equal(r.ok, true, JSON.stringify(r));
   assert.equal(r.count, 3);
   assert.equal(r.branchId, 'br-x');
 
   // 应到统计即时变化（读链 = PersonStore.getMembers 自动吃覆盖层）
   const stats = getRosterStats({ branchId: 'br-x' });
-  assert.equal(stats.partyTotal, 3, 'p31/p24 预备 + p5 正式 = 党员 3');
-  assert.equal(stats.detainedParty, 1, 'p5 滞留被剔除');
+  assert.equal(stats.partyTotal, 3, '2500010017/2500010010 预备 + 2400012349 正式 = 党员 3');
+  assert.equal(stats.detainedParty, 1, '2400012349 滞留被剔除');
   assert.equal(stats.expected, 2, '应到 = 3 − 1 滞留');
-  assert.equal(PersonStore.getById('p31').branchId, 'br-x');
-  assert.equal(PersonStore.getById('p5').branchId, 'br-x');
+  assert.equal(PersonStore.getById('2500010017').branchId, 'br-x');
+  assert.equal(PersonStore.getById('2400012349').branchId, 'br-x');
   assert.equal(getRosterStats({ branchId: 'br-b1' }).partyTotal, brB1Before - 3, '原支部党员随迁出减 3');
 
   // 模拟刷新：members 覆盖层独立键持久（重 loadDB 不触碰）→ 归属与统计保持
   MockAdapter.loadDB();
-  assert.equal(PersonStore.getById('p31').branchId, 'br-x', '刷新后迁移仍持久');
+  assert.equal(PersonStore.getById('2500010017').branchId, 'br-x', '刷新后迁移仍持久');
   assert.equal(getRosterStats({ branchId: 'br-x' }).partyTotal, 3);
   assert.equal(getRosterStats({ branchId: 'br-x' }).expected, 2);
 });
 
 test('mock ⑤：有历史支部（br-b1）整表替换被服务拒绝（防孤儿）', async () => {
   beginMockCase();
-  const clean = sanitizeBranchRoster([{ id: 'p31', name: '刘子昂' }]);
+  const clean = sanitizeBranchRoster([{ id: '2500010017', name: '刘子昂' }]);
   assert.equal(clean.valid, true);
-  const deny = await PersonStore.replaceBranchMembers(clean.people, { branchId: 'br-b1', by: 'p_pc' });
+  const deny = await PersonStore.replaceBranchMembers(clean.people, { branchId: 'br-b1', by: '9000000001' });
   assert.equal(deny.ok, false);
   assert.match(deny.reason, /业务历史/);
-  assert.equal(PersonStore.getById('p31').branchId, 'br-b1', '拒绝后成员归属不变');
+  assert.equal(PersonStore.getById('2500010017').branchId, 'br-b1', '拒绝后成员归属不变');
 });
 
 // ═══════════════ api 形态（server users 落库） ═══════════════
@@ -249,15 +249,16 @@ async function login(personId) {
 function auth(token) {
   return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 }
-async function getUsers(token) {
-  const res = await fetch(`${base}/api/v1/users`, { headers: auth(token) });
+async function getUsers(token, branchId) {
+  const qs = branchId ? `?branchId=${encodeURIComponent(branchId)}` : '';
+  const res = await fetch(`${base}/api/v1/users${qs}`, { headers: auth(token) });
   assert.equal(res.status, 200);
   return res.json();
 }
 
 test('api ⑥：replaceBranchMembers（api 形态）整支部替换落 server users——目标空支部建、源支部减员、缓存同步', async () => {
   beginMockCase(); // 重置 mockDB 业务域（历史守卫的 mockDB 缓存：br-b1 有活动）
-  if (!staffToken) staffToken = await login('p_pc');
+  if (!staffToken) staffToken = await login('9000000001');
 
   // 党委在服务端建空支部（POST /branches mode=empty；与 empty-template ⑤ 同法）
   const created = await fetch(`${base}/api/v1/branches`, {
@@ -271,30 +272,103 @@ test('api ⑥：replaceBranchMembers（api 形态）整支部替换落 server us
   mockDB.branches = [...(mockDB.branches || []), branch];
 
   setDataSource('api', { apiBaseUrl: base, authToken: staffToken });
+  // 党委按支部作业（产品口径：党委未选支部时资源读口为空集；浏览器场景由 ?branchId= 选定支部）。
+  // ApiAdapter 的读请求从 window.location.search 附加 branchId，故此处模拟「已选中目标支部」。
+  globalThis.window = { location: { search: `?branchId=${encodeURIComponent(branch.id)}` } };
   try {
     // 净化（本地档案白名单与 mock 形态同规则）→ api 形态落库
     const clean = sanitizeBranchRoster([
-      { id: 'p31', name: '刘子昂' },
-      { id: 'p24', name: '曹雅婷' },
+      { id: '2500010017', name: '刘子昂' },
+      { id: '2500010010', name: '曹雅婷' },
     ]);
     assert.equal(clean.valid, true, JSON.stringify(clean));
-    const r = await PersonStore.replaceBranchMembers(clean.people, { branchId: branch.id, by: 'p_pc' });
+    // 服务器 users 是全局 id 表：整表替换走「先移出（DELETE）再在目标支部建号」，
+    // 否则 create 会撞既有 id（409）。删除仅作用于本用例的 :memory: 现场。
+    for (const id of ['2500010017', '2500010010']) {
+      const del = await fetch(`${base}/api/v1/users/${id}`, { method: 'DELETE', headers: auth(staffToken) });
+      assert.equal(del.status, 204, `前置：移出 ${id} 以腾出全局 id`);
+    }
+    const r = await PersonStore.replaceBranchMembers(clean.people, { branchId: branch.id, by: '9000000001' });
     assert.equal(r.ok, true, JSON.stringify(r));
     assert.equal(r.count, 2);
 
-    // server users 落库断言：p31/p24 branchId = 目标空支部；净化行带全字段（重建整行完整）
-    const users = await getUsers(staffToken);
-    const u31 = users.find(u => u.id === 'p31');
-    assert.equal(u31.branchId, branch.id, 'p31 归属目标支部（server users 落库）');
+    // server users 落库断言：2500010017/2500010010 branchId = 目标空支部；净化行带全字段（重建整行完整）
+    const users = await getUsers(staffToken, branch.id);
+    const u31 = users.find(u => u.id === '2500010017');
+    assert.equal(u31.branchId, branch.id, '2500010017 归属目标支部（server users 落库）');
     assert.equal(u31.name, '刘子昂');
     assert.equal(u31.developStage, '预备党员', '净化行携带档案字段 → api 重建不丢发展阶段');
     assert.equal(u31.partyGroup, '第一党小组');
     assert.equal(users.filter(u => u.branchId === branch.id).length, 2, '目标支部恰 2 名成员');
-    assert.equal(users.filter(u => (u.branchId || 'br-b1') === 'br-b1').length, 49,
-      '源支部 br-b1 桶减员 2（PEOPLE 51 − p31/p24；p_pc branchId null 兜底归 br-b1 桶）');
+    // 源支部 br-b1 桶减员 2（PEOPLE 51 中含党委组织员 9000000001，其 branchId null 不属任何支部 ⇒ 支部读口 50 − 2 = 48）
+    assert.equal((await getUsers(staffToken, 'br-b1')).length, 48,
+      '源支部 br-b1 桶减员 2（2500010017/2500010010 已迁出；党委组织员不属支部，不计入支部桶）');
     // mockDB.users 缓存同步（_apiReplaceBranchMembers 整支部维度重拉）
-    assert.equal((mockDB.users || []).find(u => u.id === 'p31')?.branchId, branch.id, 'mockDB.users 缓存同步 p31 归属');
+    assert.equal((mockDB.users || []).find(u => u.id === '2500010017')?.branchId, branch.id, 'mockDB.users 缓存同步 2500010017 归属');
   } finally {
     setDataSource('mock');
+    delete globalThis.window;
+  }
+});
+
+// ── Task 7.5（2026-10-26）：名册导入原子化 PUT /branches/:id/roster ─────────────
+// 判据：① 单事务替换成功；② 失败整体回滚（旧名册逐值不变）；③ 导入后真实成员可账号密码登录
+// （服务端登录只查 users 表，不依赖本机账号层）。
+test('api ⑦：PUT /branches/:id/roster 单事务替换；失败回滚旧名册不变；导入后成员可账号密码登录', async () => {
+  if (!staffToken) staffToken = await login('9000000001');
+  const created = await fetch(`${base}/api/v1/branches`, {
+    method: 'POST', headers: auth(staffToken),
+    body: JSON.stringify({ mode: 'empty', name: '原子名册导入支部', type: '测试' }),
+  });
+  assert.equal(created.status, 201);
+  const { branch } = await created.json();
+
+  // ① 首次替换（2 名）→ 200
+  const first = await fetch(`${base}/api/v1/branches/${branch.id}/roster`, {
+    method: 'PUT', headers: auth(staffToken),
+    body: JSON.stringify({ members: [
+      { id: 'r-import-1', name: '原子导入甲', partyGroup: '第一党小组', developStage: '正式党员' },
+      { id: 'r-import-2', name: '原子导入乙', developStage: '预备党员' },
+    ] }),
+  });
+  assert.equal(first.status, 200, `首次导入应 200：${await first.clone().text()}`);
+  const firstBody = await first.json();
+  assert.equal(firstBody.count, 2);
+  assert.equal(firstBody.branchId, branch.id);
+  const afterFirst = await getUsers(staffToken, branch.id);
+  assert.deepEqual(afterFirst.map((u) => u.id).sort(), ['r-import-1', 'r-import-2']);
+
+  // ② 失败回滚：把 br-b1 的既有成员塞进名册 ⇒ 409；旧名册逐值不变
+  const conflict = await fetch(`${base}/api/v1/branches/${branch.id}/roster`, {
+    method: 'PUT', headers: auth(staffToken),
+    body: JSON.stringify({ members: [
+      { id: 'r-import-3', name: '不该落库的丙' },
+      { id: '2400012345', name: '跨支部成员' },
+    ] }),
+  });
+  assert.equal(conflict.status, 409, '引用其他支部既有成员 ⇒ 409');
+  assert.match((await conflict.json()).error, /其他支部/);
+  const afterFail = await getUsers(staffToken, branch.id);
+  assert.deepEqual(afterFail.map((u) => u.id).sort(), ['r-import-1', 'r-import-2'], '失败后旧名册不变（整体回滚）');
+  assert.equal((await getUsers(staffToken, branch.id)).find((u) => u.id === 'r-import-1').name, '原子导入甲', '旧行字段逐值不变');
+
+  // ③ 导入后真实成员可账号密码登录（服务端登录只查 users；不依赖本机 accounts 层）
+  const saved = { check: process.env.DISABLE_PASSWORD_CHECK, pw: process.env.LOGIN_PASSWORD };
+  process.env.DISABLE_PASSWORD_CHECK = '0';
+  process.env.LOGIN_PASSWORD = 'real-import-pass';
+  try {
+    const okLogin = await fetch(`${base}/api/v1/auth/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ personId: 'r-import-1', password: 'real-import-pass' }),
+    });
+    assert.equal(okLogin.status, 200, '导入成员应以真实账号 + 口令登录成功');
+    const badLogin = await fetch(`${base}/api/v1/auth/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ personId: 'r-import-1', password: 'wrong-pass' }),
+    });
+    assert.equal(badLogin.status, 401, '错误口令仍应 401（证明不是口令逃逸）');
+  } finally {
+    if (saved.check === undefined) delete process.env.DISABLE_PASSWORD_CHECK; else process.env.DISABLE_PASSWORD_CHECK = saved.check;
+    if (saved.pw === undefined) delete process.env.LOGIN_PASSWORD; else process.env.LOGIN_PASSWORD = saved.pw;
   }
 });

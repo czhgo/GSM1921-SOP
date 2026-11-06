@@ -73,13 +73,24 @@ async function setMonth(page, month) {
   }, month);
 }
 
-// A1：三会一课活动详情显示议程（act-8 7月支部党员大会；2026-09-06 基线刷新：原 5 月批次重排至 7 月）
+/** 从应用状态读取某活动所在月份（YYYY-MM）：不写死演示月份，种子重排后自动跟随。 */
+async function monthOfActivity(page, activityId) {
+  const month = await page.evaluate(async (id) => {
+    const m = await import('/src/core/base/state.js?v=20261102b');
+    const act = (m.getAppState().activities || []).find((a) => a.id === id);
+    return act ? String(act.date).slice(0, 7) : null;
+  }, activityId);
+  assert.ok(month, `${activityId} 应存在于应用状态（无法推导所在月份）`);
+  return month;
+}
+
+// A1：三会一课活动详情显示议程（act-8 支部党员大会；月份由种子数据推导）
 test('A1 活动详情显示会议议程（含主持人）', async () => {
   const { context, page } = await newIsolatedPage();
   try {
     await loginAs(page, 'secretary');
     await gotoCalendar(page);
-    await setMonth(page, '2026-07');
+    await setMonth(page, await monthOfActivity(page, 'act-8'));
     await page.waitForSelector('.cal-activity-item[data-act-id="act-8"]', { timeout: 10000 });
     await page.click('.cal-activity-item[data-act-id="act-8"]');
     await page.waitForSelector('#agenda-block', { timeout: 10000 });
@@ -183,7 +194,7 @@ test('A3 详情编辑议程保存后更新并持久化', async () => {
   try {
     await loginAs(page, 'secretary');
     await gotoCalendar(page);
-    await setMonth(page, '2026-08');
+    await setMonth(page, await monthOfActivity(page, 'act-27'));
     await page.waitForSelector('.cal-activity-item[data-act-id="act-27"]', { timeout: 10000 });
     await page.click('.cal-activity-item[data-act-id="act-27"]');
     await page.waitForSelector('#agenda-block', { timeout: 10000 });

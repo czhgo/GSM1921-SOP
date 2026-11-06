@@ -12,6 +12,13 @@
 //
 // 行型（2026-10-18 立 · 单一源＝DESIGN_SYSTEM.md §10.4 五类行型矩阵）：
 //   nav（导航）/ action（动作）/ select（选择）/ display（展示）/ master（主从）。
+//   2026-10-26 Task 3.1 登记四类行载体与区分口径（守卫见 ui-control-system-guard::V1）：
+//     展示行 display —— <div>，不可点、无 hover；
+//     导航行 nav     —— <a href> 或 <button>，整行跳转；
+//     动作行 action  —— <div>，本行不可点，动作在行尾 trailing；
+//     主从行 master  —— <div role="button" tabindex="0">，整行选中 + 行尾动作。
+//   （select 为选择行，沿用同一 data-row-type 通道；元素为原生 <button>。）
+//   区分口径＝元素 + data-row-type + data-interactive 三者一致，类名不另造第二套。
 //   行型决定元素与可点性：nav 用 <a> 或 <button>；action / display 用 <div> 且不带
 //   data-interactive；select 用 <button>；master 用 <div role="button" tabindex="0">——
 //   主从行行尾允许再放「去处理 / 更多」，原生 <button> 内嵌按钮是非法 HTML，故以
@@ -24,12 +31,13 @@
 //
 // 静雅公文基础类（styles.css 单一源，供后续页面按 §2.10 / §4.23 采用）：
 //   .section-head / .section-head__title / .section-head__meta / .section-head__count
-//   · .metric-band / .metric-band__item / .metric-band__value / .metric-band__label
-//   · .metric-band__value--warning / .metric-band__value--accent
+//   · .metric-band / .metric-band__item / .metric-band__jump（可交互指标卡容器）
+//   · .stat-card / .stat-card__body / .stat-card__value / .stat-card__label（数字组单一语法）
+//   · .stat-card__value--warning / .stat-grid（列数交给栅格）
 //   · .state-badge / .state-badge--neutral / .state-badge--success / .state-badge--warning
 //   · .state-badge--info / .state-badge--accent · .section-accent-left
 //   · 行型样式：.list-row[data-row-type="nav|action|select|display|master"]（本件输出 data-row-type）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261018h';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261102b';
 
 /** dataAttrs 对象 → HTML 属性串（键名只允许字母开头的属性名；值统一转义） */
 function dataAttrsHtml(dataAttrs) {
@@ -82,6 +90,9 @@ export function listRowHtml({
   }
 
   // 导航行：有 href 用 <a>；无 href 用 <button>，两者都标记 data-interactive。
+  // 2026-10-26 Task 5：无 href 的导航行是**非动作行载体**（整行点击跳转），
+  //   `.btn-ghost` 在此仅作尺寸族；可见 affordance 由 styles.css 的
+  //   `.list-row[data-interactive="true"]:hover`（底 ＋ 3px 主题左条）承担。
   if (type === 'nav') {
     if (href) {
       return `<a class="${baseClass}" href="${esc(href)}" data-row-type="nav" data-interactive="true"${dataAttrsHtml(dataAttrs)}>${inner}</a>`;
@@ -91,13 +102,17 @@ export function listRowHtml({
 
   // 主从行：整行选中，但行尾还要放「去处理 / 更多」——原生 <button> 内嵌按钮非法，
   // 故用带 role="button" 的 div；键盘 Enter / Space 由调用方绑定（见 todo-list.js）。
+  // 2026-10-31 P0（嵌套交互）：行尾含独立 button/a 时显式登记 `data-nested-actions="true"`，
+  //   作为 nested-interaction-guard 的白名单标记；调用方须同时阻断行与内层按钮的冒泡。
   if (type === 'master') {
-    return `<div class="${baseClass}" data-row-type="master" data-interactive="true" role="button" tabindex="0"${dataAttrsHtml(dataAttrs)}>${inner}</div>`;
+    const nested = trailing && /<(?:button|a)\b/i.test(trailing);
+    const nestedAttr = nested ? ' data-nested-actions="true"' : '';
+    return `<div class="${baseClass}" data-row-type="master" data-interactive="true" role="button" tabindex="0"${nestedAttr}${dataAttrsHtml(dataAttrs)}>${inner}</div>`;
   }
 
   // 选择行：原生 <button>，键盘可达；data-interactive 表示整行可点。
-  // 可交互行用原生 <button>：btn-ghost 只是语义族标记，
-  // 行内尺寸由 styles.css 的 .list-row.btn-ghost 覆盖。
+  // 2026-10-26 Task 5：同为**非动作行载体**（选中一行，不是执行写操作）；
+  //   `.btn-ghost` 仅提供尺寸族，hover 底 ＋ 3px 主题左条见 styles.css。
   return `<button type="button" class="${baseClass} btn-ghost" data-row-type="${type}" data-interactive="true"${dataAttrsHtml(dataAttrs)}>${inner}</button>`;
 }
 

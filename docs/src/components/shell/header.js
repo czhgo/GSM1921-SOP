@@ -3,18 +3,16 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../../core/domain/constants.js?v=20261018h';
-// R1-A 点⑤（2026-09-09）：身份标签取色走 person-aware 解析（登录 person 覆盖 / 访客全局键 / 角色默认），
-// 替代 constants resolveAccentRole（只读全局键=旧残留/默认）——支书改强调色后 header 角色标签同金。
-import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20261018h';
-import { getBasePath } from '../../core/base/utils.js?v=20261018h';
-import { icon } from '../../core/base/icons.js?v=20261018h';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261018h';
-import { badgeHtml } from '../ui/badges.js?v=20261018h';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261018h';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261102b';
+import { getBasePath } from '../../core/base/utils.js?v=20261102b';
+import { icon } from '../../core/base/icons.js?v=20261102b';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261102b';
+import { badgeHtml } from '../ui/badges.js?v=20261102b';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261102b';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261018h';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261102b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
 // （auth→runtime→mock→domain 全量约 50 模块），通知铃首次点击或 app 模式渲染后按需加载。
@@ -22,18 +20,18 @@ import { getHeaderTitle } from '../../services/branch/branch.js?v=20261018h';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261018h');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261102b');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261018h');
+  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261102b');
   return _noticeModule;
 }
 // 2026-09-30 批次 297-2：跨台通用动作「一键汇报」收进顶栏唯一固定位 ⇒ 顶栏按需加载其入口模块
 // （与 auth / notice 同一策略：静态壳页不加载，app 模式渲染后加载，模块缓存后即时）
 let _reportEntryModule = null;
 function loadReportEntry() {
-  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261018h');
+  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261102b');
   return _reportEntryModule;
 }
 
@@ -138,9 +136,10 @@ async function _renderNotificationBadge() {
   }
   const old = bell.querySelector('#notif-badge');
   if (old) old.remove();
-  // 只统计未过期的未读通知，与 index 首页通知栏数据一致
-  const activeNotices = NoticeStore.list(_noticeListFilter({ activeOnly: true }));
-  const unread = activeNotices.filter(n => !n.read).length;
+  // 未读计数单一源 = NoticeStore.countUnread（消息中心列表 / 侧栏角标 / 铃铛同一读数）。
+  const unread = NoticeStore.countUnread(readLoginSnapshot()?.personId || null, _noticeListFilter());
+  // R3-F02：铃铛可访问名称随未读数动态播报（视觉角标仍保留）。
+  document.getElementById('notif-btn')?.setAttribute('aria-label', unread > 0 ? `通知，${unread} 条未读` : '通知');
   if (unread > 0) {
     const badge = document.createElement('span');
     badge.id = 'notif-badge';
@@ -178,7 +177,16 @@ async function _refreshHeaderTitle() {
     return; // 静态页未加载数据链时静默（无 h1 可判定）
   }
   const title = getHeaderTitle(personId || undefined, { role });
-  if (titleEl.textContent !== title) titleEl.textContent = title;
+  // 只改两个 span 的文本，保留 .header-title-full / -short 结构（直接写 h1.textContent 会抹掉 390px 短名）。
+  const fullEl = titleEl.querySelector('.header-title-full');
+  const shortEl = titleEl.querySelector('.header-title-short');
+  if (fullEl && shortEl) {
+    if (fullEl.textContent !== title) fullEl.textContent = title;
+    const short = title.includes('党支部') && title.length > 6 ? `${title.slice(0, 2)}党支部` : title;
+    if (shortEl.textContent !== short) shortEl.textContent = short;
+  } else if (titleEl.textContent !== title) {
+    titleEl.textContent = title;
+  }
   _applyDocumentTitle(title);
 }
 
@@ -186,16 +194,11 @@ function _roleLabelHTML(role) {
   if (!role) return '';
   // 普通参与者默认无标记：没有标记就是普通参与者的标记（支书 2026-08-01 决策）
   if (role === 'participant') return '';
-  const { accent } = getAccentColors(resolveAppliedAccentRole(role));
   const label = ROLE_LABELS[role] || role;
-  // 2026-08-11 四审纠正：header 身份显示 = 主题色实底（正常饱和度）+ 白字，
-  // 与整个 header（深红底白字）一致；淡底深字/边框在 header 上突兀臃肿，日/夜一致。
-  // R-9 ①（2026-09-11 对比度收口）：亮色 accent（感知亮度 > 0.18，如翠绿 0.41/天蓝 0.33）
-  // 实底白字仅 2.28–2.77 → 底色压深一档（60% 原色 + 40% 黑），白字达 AA（≥ 5.0）；
-  // 深色 accent（党建红/深橙/海蓝/金）对比已达标，保持正常饱和度不动。
-  const chipBg = relativeLuminance(accent) > 0.18 ? `color-mix(in srgb, ${accent} 60%, #000)` : accent;
+  // 2026-08-11 四审纠正：header 身份显示 = 主题色实底 + 实底字，与整个 header 一致。
+  // 批次 506：底色/字色直接取主题表的 strongBg / strongInk（不再按感知亮度分流 + 混色压深）。
   return `
-    <div class="role-label" id="role-label" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:var(--radius-sm);background:${chipBg};color:#fff;">
+    <div class="role-label" id="role-label" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:var(--radius-sm);background:var(--app-accent-strong-bg);color:var(--app-accent-strong-ink);">
       <span class="text-xs font-medium">${label}</span>
     </div>
   `;
@@ -212,7 +215,7 @@ function _notificationBellHTML() {
   // （静态壳页不加载数据链 → 无角标；app 页渲染后即时补上，无感知延迟）
   return `
     <div id="notification-bell" style="position:relative;">
-      <button id="notif-btn" class="btn-neutral btn-icon" aria-label="通知" aria-haspopup="true" aria-expanded="false" style="width:40px;height:40px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;cursor:pointer;">
+      <button id="notif-btn" class="btn-neutral btn-icon header-icon-btn" aria-label="通知" aria-haspopup="true" aria-expanded="false" aria-controls="notif-dropdown" style="width:40px;height:40px;">
         ${icon('bell', { stroke: '#FFFFFF', className: 'w-4 h-4', extra: ' aria-hidden="true"' })}
       </button>
       <div id="notif-dropdown" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;width:320px;background:var(--surface-card);border-radius:var(--radius-sm);box-shadow:var(--shadow-dropdown);z-index:100;overflow:hidden;border:1px solid var(--neutral-200);"></div>
@@ -245,12 +248,16 @@ export async function renderHeader(activeModule, opts = {}) {
   //   分支数据尚未加载（时序）→ 静态兜底名（getHeaderTitle 内处理），数据到达后由 _refreshHeaderTitle 归还真实支部名；
   //   未登录静态壳（personId 缺省）→ 中性占位「示例组织（未登录）」。
   const headerTitle = getHeaderTitle(personId || undefined, { role });
+  // 390px 顶栏只留可读短名：取前两字 + 「党支部」，避免被压成「光…」。
+  const shortHeaderTitle = headerTitle.includes('党支部') && headerTitle.length > 6
+    ? `${headerTitle.slice(0, 2)}党支部`
+    : headerTitle;
   // 2026-09-23：浏览器标签页标题同源刷新（渲染路径；未登录/登出后重绘即回到「示例组织（未登录）」）
   _applyDocumentTitle(headerTitle);
 
   header.innerHTML = `
     <div class="header-content">
-      <button id="hamburger-btn" aria-label="打开导航菜单" aria-controls="app-sidebar" aria-expanded="false" class="btn-ghost hamburger-btn">
+      <button id="hamburger-btn" aria-label="打开导航菜单" aria-controls="app-sidebar" aria-expanded="false" class="btn-outline hamburger-btn">
         <span></span><span></span><span></span>
       </button>
       <div class="party-emblem-wrapper">
@@ -258,11 +265,11 @@ export async function renderHeader(activeModule, opts = {}) {
       </div>
       <div class="header-title">
         <!-- h1 无归属态即显示「未绑定支部」中性占位（getHeaderTitle 收敛）；不加点击引导（二期候选 b 登记：可考虑引导去党委确认归属） -->
-        <h1 class="font-title-cn">${headerTitle}</h1>
+        <h1 class="font-title-cn"><span class="header-title-full">${headerTitle}</span><span class="header-title-short">${shortHeaderTitle}</span></h1>
       </div>
       <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
         ${role ? _roleLabelHTML(role) : _loginEntryHTML()}
-        ${personId && role !== 'party-staff' ? `<a href="${getBasePath()}person.html" id="header-my-profile" class="header-action-btn" style="display:inline-flex;align-items:center;text-decoration:none;" title="我的档案（自己看自己）">我的档案</a>` : ''}
+        ${personId && role !== 'party-staff' ? `<a href="${getBasePath()}person.html" id="header-my-profile" class="header-action-btn" style="display:inline-flex;align-items:center;text-decoration:none;">我的档案</a>` : ''}
         <span id="header-cta-slot"></span>
         <span id="report-entry-slot"></span>
         ${_notificationBellHTML()}
@@ -299,34 +306,72 @@ function _bindHamburger(header) {
   // 2026-09-24 无障碍：折叠态的侧栏只是 `transform: translateX(-100%)` 移出视口——元素仍在文档流里、
   // 8 条导航链接**全部留在 Tab 序列**（DOM 顺序 header → 侧栏 → main ⇒ 键盘用户前 8 个 Tab 停在看不见的控件上）。
   // 故折叠/展开时同步 `inert`（属性不是 CSS，必须在此切换）：折叠＝不可聚焦不可读，展开＝恢复。
+  //
+  // 2026-10-27 Task 2（阶段一 · 操作成本）：
+  //   · 打开抽屉后焦点进入首个导航项；Esc 关闭并回焦汉堡；收起时侧栏 inert（不再吞焦点）。
+  //   · DOM 顺序 header → sidebar 无法改（22 页模板不在本批写权内）⇒ 展开时把顶栏动作区
+  //     临时移出 Tab 序列（tabindex=-1，鼠标点击不受影响），使首次 Tab 从汉堡直接进侧栏；
+  //     收起时按原值还原（含「原本无 tabindex」状态）。
+  const headerActions = header.querySelector('.header-actions');
+  const setHeaderActionsTabbable = (tabbable) => {
+    if (!headerActions) return;
+    headerActions.querySelectorAll('a[href], button, [tabindex]').forEach((el) => {
+      if (!tabbable) {
+        if (!el.hasAttribute('data-prev-tabindex')) {
+          el.setAttribute('data-prev-tabindex', el.getAttribute('tabindex') ?? '');
+        }
+        el.setAttribute('tabindex', '-1');
+      } else if (el.hasAttribute('data-prev-tabindex')) {
+        const prev = el.getAttribute('data-prev-tabindex');
+        if (prev === '') el.removeAttribute('tabindex');
+        else el.setAttribute('tabindex', prev);
+        el.removeAttribute('data-prev-tabindex');
+      }
+    });
+  };
+
   const syncSidebarInert = () => {
     const expanded = !sidebar.classList.contains('sidebar-collapsed');
     sidebar.inert = !expanded;
+    setHeaderActionsTabbable(!expanded);
     // 2026-10-18：汉堡按钮同步展开态，读屏可感知「打开/关闭」而非固定文案。
     hamburger.setAttribute('aria-expanded', String(expanded));
     hamburger.setAttribute('aria-label', expanded ? '关闭导航菜单' : '打开导航菜单');
   };
+
+  const openSidebar = () => {
+    sidebar.classList.remove('sidebar-collapsed');
+    if (overlay) overlay.classList.add('visible');
+    syncSidebarInert();
+    // 焦点进入首个导航项（不是 body / 不是汉堡），读屏用户立即落在导航上。
+    sidebar.querySelector('.sidebar-nav a[href], .sidebar-nav button')?.focus();
+  };
+
+  const closeSidebar = ({ restoreFocus = false } = {}) => {
+    sidebar.classList.add('sidebar-collapsed');
+    if (overlay) overlay.classList.remove('visible');
+    syncSidebarInert();
+    if (restoreFocus) hamburger.focus();
+  };
+
   syncSidebarInert(); // 首屏：模板里侧栏自带 `sidebar-collapsed` ⇒ 页面一进来即为 inert
 
   hamburger.addEventListener('click', () => {
-    const collapsed = sidebar.classList.contains('sidebar-collapsed');
-    if (collapsed) {
-      sidebar.classList.remove('sidebar-collapsed');
-      if (overlay) overlay.classList.add('visible');
-    } else {
-      sidebar.classList.add('sidebar-collapsed');
-      if (overlay) overlay.classList.remove('visible');
-    }
-    syncSidebarInert();
+    if (sidebar.classList.contains('sidebar-collapsed')) openSidebar();
+    else closeSidebar();
   });
 
   if (overlay) {
-    overlay.addEventListener('click', () => {
-      overlay.classList.remove('visible');
-      sidebar.classList.add('sidebar-collapsed');
-      syncSidebarInert();
-    });
+    overlay.addEventListener('click', () => closeSidebar({ restoreFocus: true }));
   }
+
+  // Esc 关闭抽屉并回焦汉堡（只在展开时接管，不干扰通知下拉自己的 Esc）。
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (sidebar.classList.contains('sidebar-collapsed')) return;
+    e.preventDefault();
+    closeSidebar({ restoreFocus: true });
+  });
 }
 
 function _bindNotificationBell(header) {
@@ -340,17 +385,23 @@ function _bindNotificationBell(header) {
     btn.setAttribute('aria-expanded', String(!dropdown.classList.contains('hidden')));
     if (!dropdown.classList.contains('hidden')) {
       // 首次点击时按需加载通知数据链（静态壳页点开铃铛才会加载，平时零依赖）
-      let NoticeStore, resolveNoticeUrl;
+      let NoticeStore;
       try {
-        ({ NoticeStore, resolveNoticeUrl } = await loadNotice());
+        ({ NoticeStore } = await loadNotice());
       } catch (err) {
         dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:var(--neutral-500);" class="text-sm">通知数据不可用</div>';
         return;
       }
-      // 保留策略（支书 2026-08-05）：紧急通知全部展示，重要通知仅展示未读
-      const notices = NoticeStore.list(_noticeListFilter({ activeOnly: true, sortBy: 'date', retention: 'visible' }));
+      // 铃铛 = 未读列表（Task 3 · 2026-10-25）：全量可滚动，不再按固定条数裁剪；
+      // 行点击统一先落消息详情，不在导航前预写已读（已读由详情页进入即标记）。
+      const { items: notices } = NoticeStore.listMessages({
+        viewerId: readLoginSnapshot()?.personId || null,
+        box: 'unread',
+        pageSize: 1000,
+        ..._noticeListFilter(),
+      });
       if (notices.length === 0) {
-        dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:var(--neutral-500);" class="text-sm">暂无通知</div>';
+        dropdown.innerHTML = emptyStateHtml({ text: "暂无未读通知", variant: 'inline' });
         return;
       }
 
@@ -359,20 +410,24 @@ function _bindNotificationBell(header) {
         normal: badgeHtml('重要', 'info'),
       };
 
-      dropdown.innerHTML = `<div class="divide-y divide-gray-100">${notices.slice(0, 10).map(n => `
-        <div class="notif-dropdown-item" data-notice-id="${n.id}" data-target="${n.targetModule || ''}" data-target-url="${n.targetUrl || ''}"
-             role="button" tabindex="0" aria-label="查看通知：${n.title || n.content || ''}"
-             style="padding:12px;cursor:pointer;transition:background 0.15s;">
+      dropdown.innerHTML = `
+        <div class="divide-y divide-gray-100" style="max-height:min(70vh,420px);overflow-y:auto;">
+          ${notices.map(n => `
+        <div class="notif-dropdown-item" data-notice-id="${n.id}"
+             role="button" tabindex="0" data-nested-actions="true" aria-label="查看通知：${n.title || n.content || ''}"
+             style="padding:12px;cursor:pointer;transition:background-color var(--motion-feedback) var(--ease-standard);">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
             ${priorityBadge[n.priority] || ''}
             ${n.source === 'committee' ? '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>' : ''}
-            ${n.noticeType === 'message' ? badgeHtml('私信', 'brand') : ''}
+            ${n.kind === 'message' ? badgeHtml('私信', 'brand') : ''}
             <p style="color:var(--neutral-700);margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" class="text-body-sm">${n.title || n.content}</p>
-            ${!n.read ? `<button class="btn-ghost notif-mark-read text-xs px-1.5 py-0.5" data-notice-id="${n.id}" style="color:var(--functional-info);flex-shrink:0;">已读</button>` : ''}
+            <button class="btn-outline notif-mark-read text-xs px-1.5 py-0.5" data-notice-id="${n.id}" style="color:var(--status-info-text);flex-shrink:0;">已读</button>
           </div>
           <p style="color:var(--neutral-500);margin:0;" class="text-[12px]">${n.publishDate || n.date || ''}</p>
         </div>
-      `).join('')}</div>`;
+      `).join('')}
+        </div>
+        <a href="${getBasePath()}messages.html?filter=unread" class="block text-center text-xs" style="padding:10px;color:var(--app-accent-soft-text);border-top:1px solid var(--neutral-200);">查看全部 ›</a>`;
 
       // 绑定"已读"按钮：stopPropagation 防止触发外层跳转
       dropdown.querySelectorAll('.notif-mark-read').forEach(btn => {
@@ -391,32 +446,22 @@ function _bindNotificationBell(header) {
         });
       });
 
-      // 绑定点击：标记已读 + 统一跳转（resolveNoticeUrl 业务页直达优先，与全站一致）
+      // 绑定点击：统一先落消息详情（Task 3）：不再 direct 直跳，也不在导航前预写已读。
       // C4（2026-09-12）：条目为不可聚焦 div → 语义化为可聚焦按钮，鼠标/键盘 Enter/Space 等效
+      // 2026-10-23 Task 7：hover 交给 `.notif-dropdown-item` 的 CSS 状态（含 hover 门控），
+      //   这里不再用 mouseenter 写内联 background。
       dropdown.querySelectorAll('.notif-dropdown-item').forEach(item => {
-        item.addEventListener('mouseenter', () => {
-          item.style.background = 'var(--surface-hover)';
-        });
-        item.addEventListener('mouseleave', () => {
-          item.style.background = 'transparent';
-        });
         const open = () => {
           const id = item.dataset.noticeId;
-          const notice = NoticeStore._notices.find(n => n.id === id);
-          if (id) NoticeStore.markRead(id);
-          _renderNotificationBadge();
-          // 视觉反馈：点击后标题颜色变浅
-          const titleP = item.querySelector('p[style*="color:var(--neutral-700)"]');
-          if (titleP) titleP.style.color = 'var(--neutral-500)';
-          const dest = resolveNoticeUrl(notice);
-          const finalUrl = dest.direct ? dest.url : `${getBasePath()}notice.html?id=${id}`;
-          window.location.href = finalUrl;
+          if (id) window.location.href = `${getBasePath()}notice.html?id=${encodeURIComponent(id)}`;
         };
         item.addEventListener('click', (ev) => {
           ev.stopPropagation();
           open();
         });
         item.addEventListener('keydown', (ev) => {
+          // R3-F02：条目内嵌「已读」按钮时，键盘事件不得冒泡触发整条跳转。
+          if (ev.target.closest('button,a,input,textarea,select')) return;
           if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'Spacebar') {
             ev.preventDefault();
             ev.stopPropagation();

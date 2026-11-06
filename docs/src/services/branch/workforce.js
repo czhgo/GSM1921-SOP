@@ -9,21 +9,21 @@
 //   议题 extras 记 voteOutcome {status,tally,needed,evaluatedAt}；会前草稿=支书台暂存。
 // R2-3（2026-09-06 支书裁，附录⑩ S2）：门槛改「应到会人数超过 2/3 且无反对」——
 //   出席须严格超过应到 2/3（整界不过），反对=0（'object' 异议与 'oppose' 反对同口径），弃权允许。
-import { BranchService } from '../core/runtime.js?v=20261018h';
-import { NoticeStore } from '../governance/notice.js?v=20261018h';
-import { defaultVoteConfig, resolveVoterIds } from '../activity/vote-config.js?v=20261018h';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261018h';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261018h';
-import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule, ORG_SUBJECT_LABELS } from '../../core/domain/work-map.js?v=20261018h';
-import { getPersonName } from '../member/person.js?v=20261018h';
-import { AuthStore } from '../core/auth.js?v=20261018h';
-import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20261018h';
-import { fetchVotesStrict } from '../activity/committee-vote.js?v=20261018h';
-import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from '../governance/todo.js?v=20261018h';
+import { BranchService } from '../core/runtime.js?v=20261102b';
+import { NoticeStore } from '../governance/notice.js?v=20261102b';
+import { defaultVoteConfig, resolveVoterIds } from '../activity/vote-config.js?v=20261102b';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261102b';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261102b';
+import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule, ORG_SUBJECT_LABELS } from '../../core/domain/work-map.js?v=20261102b';
+import { getPersonName } from '../member/person.js?v=20261102b';
+import { AuthStore, currentUserId } from '../core/auth.js?v=20261102b';
+import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20261102b';
+import { fetchVotesStrict } from '../activity/committee-vote.js?v=20261102b';
+import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from '../governance/todo.js?v=20261102b';
 // 2026-09-28 修（去表决 dogfood）：议题议程项须带 id，线上表态位（.vote-widget-slot / .vote-panel-slot
 //   仅在议程项含 id 时渲染）才成立；原实现无 id ⇒ 表决入口页「该条无表决编号」，谁也投不了票。
-import { generateId } from '../../core/base/id.js?v=20261018h';
-import { todayLocal } from '../../core/base/utils.js?v=20261018h';
+import { generateId } from '../../core/base/id.js?v=20261102b';
+import { todayLocal } from '../../core/base/utils.js?v=20261102b';
 
 export const WORKFORCE_PROPOSAL_KIND = 'workforce-proposal';
 
@@ -149,15 +149,20 @@ export async function createWorkforceProposalActivity(branchId, changes, note = 
   if (clean.length === 0) throw new Error('改派清单为空：请选择要调整的模块与目标负责人');
 
   const lines = clean.map((c) => `- ${moduleName(c.moduleId)}：现任 ${ownerDisplay(getBranchWorkforce(branchId)[c.moduleId])} → 拟改派 ${ownerDisplay(c.to)}`);
+  // R2-12：活动创建人/组织者必须是当前登录人；无会话拒绝写入（不再由数据层落伪用户）。
+  const actorId = currentUserId();
+  if (!actorId) throw new Error('登录状态已失效，请重新登录后再发起分工调整');
   const activity = await BranchService.createActivity({
     type: '支委会',
     scenarioId: 'branch-committee',
-    organizingScope: 'cross-group',
+    organizingScope: 'branch',
     hostGroupId: null,
     title: _titleFor(clean),
     date: date || todayLocal(),
     status: 'published',
     visibility: 'group',
+    organizer: actorId,
+    createdBy: actorId,
     // 新支委会表决活动（支书 2026-09-06 ②批）：voterIds 固化 = 现时支委应到名单
     // （支委若滞留则剔，roster 口径；历史活动快照不回改）
     voteConfig: { ...defaultVoteConfig('branch-committee'), voterIds: resolveVoterIds('committee') }, // deliberative / committee / quorum=false
@@ -233,25 +238,38 @@ export async function adoptWorkforceProposal(branchId, activityId) {
   return updated;
 }
 
-/** 模块 → 业务域（履职待办归入对应域折组；缺省 ACTIVITY） */
-const DUTY_DOMAIN = {
-  // 2026-09-22 批次 145：原「三会一课」单模块按形式拆为 4 个模块（见 core/domain/work-map.js 文件头），
-  //   四者均属「项目」域（`D-787` 合并后 会务 / 活动 / 专班 → 项目，与原 `three-meetings` 同域）。
-  'branch-party-meeting': WORK_DOMAIN.PROJECT,
-  'branch-committee-meeting': WORK_DOMAIN.PROJECT,
-  'party-group-meeting': WORK_DOMAIN.PROJECT,
-  'party-lecture': WORK_DOMAIN.PROJECT,
-  'theme-party': WORK_DOMAIN.PROJECT,
-  taskforce: WORK_DOMAIN.PROJECT,
-  'joint-event': WORK_DOMAIN.PROJECT,
-  'develop-party-member': WORK_DOMAIN.MEMBER_DEV,
-  'democratic-review': WORK_DOMAIN.PROJECT,
-  election: WORK_DOMAIN.PROJECT,
-  'attendance-inspection': WORK_DOMAIN.ATTENDANCE,
-  'feedback-handling': WORK_DOMAIN.REPORT_UP,
-  'rule-making': WORK_DOMAIN.PROJECT,
-  'info-platform': WORK_DOMAIN.ARCHIVE,
-};
+/** 模块 → 业务域（履职待办归入对应域折组；缺省 ACTIVITY）
+ *  2026-10-25 批次 510：改为**懒建**——`todo.js` 现在会经 `close-conditions.js` 反向引用本模块，
+ *  顶层读 `WORK_DOMAIN` 会在循环里命中 TDZ；映射本身与 `WORK_MAP_MODULES` 的校验保持不变。 */
+let _dutyDomainCache = null;
+function dutyDomainMap() {
+  if (_dutyDomainCache) return _dutyDomainCache;
+  const map = {
+    // 2026-09-22 批次 145：原「三会一课」单模块按形式拆为 4 个模块（见 core/domain/work-map.js 文件头），
+    //   四者均属「项目」域（`D-787` 合并后 会务 / 活动 / 专班 → 项目，与原 `three-meetings` 同域）。
+    'branch-party-meeting': WORK_DOMAIN.PROJECT,
+    'branch-committee-meeting': WORK_DOMAIN.PROJECT,
+    'party-group-meeting': WORK_DOMAIN.PROJECT,
+    'party-lecture': WORK_DOMAIN.PROJECT,
+    'theme-party': WORK_DOMAIN.PROJECT,
+    taskforce: WORK_DOMAIN.PROJECT,
+    'joint-event': WORK_DOMAIN.PROJECT,
+    'develop-party-member': WORK_DOMAIN.MEMBER_DEV,
+    'democratic-review': WORK_DOMAIN.PROJECT,
+    election: WORK_DOMAIN.PROJECT,
+    'attendance-inspection': WORK_DOMAIN.ATTENDANCE,
+    'feedback-handling': WORK_DOMAIN.REPORT_UP,
+    'rule-making': WORK_DOMAIN.PROJECT,
+    'info-platform': WORK_DOMAIN.ARCHIVE,
+  };
+  // R7-23：键集与 work-map 模块目录同源守卫——新增/改名模块漏登记时 fail-fast，不静默落默认域。
+  const missing = WORK_MAP_MODULES.map((m) => m.id).filter((id) => !(id in map));
+  if (missing.length) {
+    throw new Error(`[workforce] DUTY_DOMAIN 缺少模块映射：${missing.join(', ')}（见 core/domain/work-map.js::WORK_MAP_MODULES）`);
+  }
+  _dutyDomainCache = map;
+  return map;
+}
 
 /**
  * 分工自动传递（2026-09-13 支书裁定「通过线上的调整实现信息和任务的算法自动传递」）：
@@ -276,7 +294,7 @@ function _deriveDutyTodos(activityId, proposal) {
         description: `支委会已通过分工调整：「${name}」由你负责。请按对应工作台的规范与工作方法推进。`,
         category: TodoCategory.TRACK,
         priority: 'normal',
-        domain: DUTY_DOMAIN[c.moduleId] || WORK_DOMAIN.PROJECT,
+        domain: dutyDomainMap()[c.moduleId] || WORK_DOMAIN.PROJECT,
         sourceType: TodoSourceType.MANUAL,
         sourceId,
         actionKey: 'workforce-duty',

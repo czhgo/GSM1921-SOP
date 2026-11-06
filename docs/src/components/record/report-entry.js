@@ -19,10 +19,15 @@
 //    **不落 hex**。
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261018h';
-import { AuthStore } from '../../services/core/auth.js?v=20261018h';
-import { showToast } from '../../core/base/utils.js?v=20261018h';
-import { getPersonName } from '../../services/member/person.js?v=20261018h';
+import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { showToast, getBasePath } from '../../core/base/utils.js?v=20261102b';
+import { getPersonName } from '../../services/member/person.js?v=20261102b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261102b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261102b';
+import { SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261102b';
+import { isTaskforceTerminalStatus } from '../../core/domain/domain.js?v=20261102b';
+import { openModal, closeModal } from '../ui/modal.js?v=20261102b';
 
 /** 当前用户未读汇报数（「支书请我汇报」＋「支书答复发回」） */
 function _unreadCount() {
@@ -45,7 +50,7 @@ function _badgeHtml(unread) {
  */
 export function renderReportEntryHtml() {
   return `
-    <button id="btn-report-entry" type="button" class="btn-ghost header-action-btn report-entry-btn" aria-haspopup="dialog" aria-label="一键汇报">一键汇报${_badgeHtml(_unreadCount())}</button>`;
+    <button id="btn-report-entry" type="button" class="btn-outline header-action-btn report-entry-btn" aria-haspopup="dialog" aria-label="一键汇报">一键汇报${_badgeHtml(_unreadCount())}</button>`;
 }
 
 /** 刷新角标（数据变更 / 发出汇报后调用；与顶栏铃铛角标同一刷新路径） */
@@ -65,63 +70,125 @@ export function bindReportEntry(root = document) {
   root.querySelector('#btn-report-entry')?.addEventListener('click', () => openReportModal());
 }
 
+/** 可选父键候选：在办的活动 / 专班（各自带工作组 id；不新造工作组） */
+function _reportTargets() {
+  const acts = (loadActivities() || [])
+    .filter(a => !a.archived)
+    .map(a => ({
+      workgroupId: a.workgroupId || `wg-activity-${a.id}`,
+      sourceType: 'activity',
+      sourceId: a.id,
+      label: `活动：${a.title || a.id}`,
+    }));
+  const tfs = (TaskForceRecordStore.getAll() || [])
+    .filter(t => !isTaskforceTerminalStatus(t.status))
+    .map(t => ({
+      workgroupId: t.workgroupId || `wg-taskforce-${t.id}`,
+      sourceType: 'taskforce',
+      sourceId: t.id,
+      label: `专班：${t.name || t.id}`,
+    }));
+  return [...acts, ...tfs];
+}
+
+/** 上下文预选：从活动 / 专班详情页发起时，把当前对象带进汇报（父键不是必填，仍可改回「不关联」） */
+function _contextReportTarget() {
+  try {
+    const q = new URLSearchParams(window.location.search);
+    const path = window.location.pathname;
+    if (/activity\.html$/.test(path)) return { sourceType: 'activity', sourceId: q.get('activityId') || q.get('id') };
+    if (/taskforce\.html$/.test(path)) return { sourceType: 'taskforce', sourceId: q.get('taskforceId') || q.get('id') };
+  } catch {}
+  return null;
+}
+
 /** 打开汇报弹窗（预加载 issues 权威源，避免覆盖本地缓存） */
 async function openReportModal() {
   await IssueStore.loadAll();
-  const existing = document.getElementById('report-modal-root');
-  if (existing) existing.remove();
+  const MODAL_ID = 'report-entry';
+  const me = AuthStore.getCurrentUser();
+  const targets = _reportTargets();
+  const ctx = _contextReportTarget();
+  const preselected = ctx
+    ? targets.find(t => t.sourceType === ctx.sourceType && t.sourceId === ctx.sourceId)
+    : null;
+  const canReportUp = !!me && SECRETARY_AND_DEPUTY_ROLES.includes(me.role);
+  const optionsHtml = [
+    '<option value="">（不关联，个人汇报）</option>',
+    targets.some(t => t.sourceType === 'activity')
+      ? `<optgroup label="活动">${targets.filter(t => t.sourceType === 'activity')
+          .map(t => `<option value="${t.workgroupId}"${preselected && preselected.workgroupId === t.workgroupId ? ' selected' : ''}>${t.label}</option>`).join('')}</optgroup>`
+      : '',
+    targets.some(t => t.sourceType === 'taskforce')
+      ? `<optgroup label="专班">${targets.filter(t => t.sourceType === 'taskforce')
+          .map(t => `<option value="${t.workgroupId}"${preselected && preselected.workgroupId === t.workgroupId ? ' selected' : ''}>${t.label}</option>`).join('')}</optgroup>`
+      : '',
+  ].join('');
 
-  const root = document.createElement('div');
-  root.id = 'report-modal-root';
-  root.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;';
-  root.innerHTML = `
-    <div class="card rounded-xl p-5 w-full" style="max-width:480px;margin:16px;">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">一键汇报</h3>
-        <button type="button" class="btn-ghost report-modal-close text-xs">关闭</button>
-      </div>
-      <p class="text-xs text-gray-500 mb-3">汇报将发往支书，答复后发回给你。请选择分类并填写内容。</p>
-      <div class="flex items-center gap-2 mb-3">
-        ${Object.entries(REPORT_CATEGORIES).map(([key, label]) => `
-          <button type="button" class="btn-tab report-cat-btn text-xs px-3 py-1.5 rounded-lg transition-all ${key === 'progress' ? 'report-cat-active' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'}"
-            data-category="${key}">${label}</button>
-        `).join('')}
-      </div>
-      <textarea id="report-modal-body" class="input-flat w-full h-24 resize-none" placeholder="填写汇报内容（进度 / 难点卡点 / 请示事项）…"></textarea>
-      <div class="flex justify-end gap-2 mt-3">
-        <button type="button" class="btn-outline report-modal-close text-xs px-3 py-2">取消</button>
-        <button id="report-modal-submit" class="btn-accent text-xs px-4 py-2">发出汇报</button>
-      </div>
+  // 浮层统一体例（DESIGN_SYSTEM §4.27）：header 纯文本标题 / 动作固定在 footer / 取消走 onCancel
+  const bodyHtml = `
+    <p class="text-xs text-gray-500 mb-3">汇报将发往支书，答复后发回给你。请选择分类并填写内容。</p>
+    <div class="mb-3">
+      <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="report-modal-target">关联事项（可选）</label>
+      <select id="report-modal-target" class="input-flat w-full">${optionsHtml}</select>
     </div>
+    <div class="flex items-center gap-2 mb-3">
+      ${Object.entries(REPORT_CATEGORIES).map(([key, label]) => `
+        <button type="button" class="btn-tab report-cat-btn text-xs px-3 py-1.5 rounded-lg transition-colors ${key === 'progress' ? 'report-cat-active' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'}"
+          data-category="${key}">${label}</button>
+      `).join('')}
+    </div>
+    <textarea id="report-modal-body" class="input-flat w-full h-24 resize-none" placeholder="填写汇报内容（进度 / 难点卡点 / 请示事项）…"></textarea>
+    ${canReportUp ? `<p class="text-xs text-gray-500 mt-3">需向党委上报（发展节点 / 活动报备）？<a style="color:var(--app-accent-soft-text);font-weight:600;" href="${getBasePath()}workspace/secretary.html?tab=report-up">去上报党委</a></p>` : ''}
   `;
-  document.body.appendChild(root);
 
-  // 分类选择
-  let category = 'progress';
-  root.querySelectorAll('.report-cat-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      category = btn.dataset.category;
-      root.querySelectorAll('.report-cat-btn').forEach(b => {
-        const on = b === btn;
-        b.className = `report-cat-btn text-xs px-3 py-1.5 rounded-lg transition-all ${on ? 'report-cat-active' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'}`;
+  openModal({
+    id: MODAL_ID,
+    title: '一键汇报',
+    bodyHtml,
+    size: 'md',
+    footerHtml: `
+      <button type="button" data-modal-cancel="${MODAL_ID}" class="btn-outline text-xs px-3 py-2">取消</button>
+      <button id="report-modal-submit" type="button" class="btn-accent text-xs px-4 py-2">发出汇报</button>`,
+    onMount: (panel) => {
+      // 分类选择
+      let category = 'progress';
+      panel.querySelectorAll('.report-cat-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          category = btn.dataset.category;
+          panel.querySelectorAll('.report-cat-btn').forEach(b => {
+            const on = b === btn;
+            b.className = `report-cat-btn text-xs px-3 py-1.5 rounded-lg transition-colors ${on ? 'report-cat-active' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'}`;
+          });
+        });
       });
-    });
-  });
 
-  // 关闭
-  const close = () => root.remove();
-  root.querySelectorAll('.report-modal-close').forEach(b => b.addEventListener('click', close));
-  root.addEventListener('click', e => { if (e.target === root) close(); });
-
-  // 提交
-  root.querySelector('#report-modal-submit').addEventListener('click', () => {
-    const body = document.getElementById('report-modal-body')?.value?.trim();
-    if (!body) { showToast('error', '请填写汇报内容'); return; }
-    const issue = IssueStore.submitReport({ category, body });
-    if (!issue) { showToast('error', '汇报发送失败'); return; }
-    showToast('success', '汇报已发出，等待支书答复');
-    close();
-    refreshReportEntryBadge();
+      // 提交：校验失败不关窗、不丢正文（M-6）
+      panel.querySelector('#report-modal-submit').addEventListener('click', async () => {
+        const body = panel.querySelector('#report-modal-body')?.value?.trim();
+        if (!body) { showToast('error', '请填写汇报内容'); return; }
+        const workgroupId = panel.querySelector('#report-modal-target')?.value || '';
+        const target = workgroupId ? targets.find(t => t.workgroupId === workgroupId) : null;
+        const submitBtn = panel.querySelector('#report-modal-submit');
+        submitBtn.disabled = true;
+        try {
+          const issue = await IssueStore.submitReport({
+            category,
+            body,
+            workgroupId: workgroupId || null,
+            sourceType: target?.sourceType || null,
+            sourceId: target?.sourceId || null,
+            sourceName: target?.label || '',
+          });
+          if (!issue) { showToast('error', '汇报发送失败'); return; }
+          showToast('success', '汇报已发出，等待支书答复');
+          closeModal(MODAL_ID);
+          refreshReportEntryBadge();
+        } finally {
+          submitBtn.disabled = false;
+        }
+      });
+    },
   });
 }
 

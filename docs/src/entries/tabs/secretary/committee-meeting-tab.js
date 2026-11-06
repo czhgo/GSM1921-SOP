@@ -8,33 +8,38 @@
 //     revokeBranchCommissioner）；可授予身份白名单 = core/domain/constants.js::BRANCH_COMMISSIONER_ASSIGNABLE_ROLES；
 //     支书 / 副支书身份归党委配置，本 tab 只读。
 //   · 会议实体 = mockDB.activities（type==='支委会' 或 scenarioId==='branch-committee'）；
-//     应到人数 = services/activity/vote-config.js::resolveVoterIds('committee')（与本场应到名单同一口径）。
+//     会议状态 = `data/mock/derive.js::deriveMeetingStatus`（全站唯一判据，本页不得再写本地状态机）。
+//     应到 = `attendanceRosters` 冻结名单优先，无冻结时回落 `services/activity/vote-config.js::resolveVoterIds('committee')`
+//     并标注「实时」；两种口径不混算。
 //   · 表格 = components/ui/data-table.js（.data-table 单一源）；行内选人 = components/governance/pickers.js::PersonPicker。
-import { mockDB } from '../../../core/domain/domain.js?v=20261018h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018h';
-import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261018h';
+import { mockDB } from '../../../core/domain/domain.js?v=20261102b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261102b';
+import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261102b';
 import {
   listBranchCommissioners,
   appointBranchCommissioner,
   revokeBranchCommissioner,
-} from '../../../services/branch/appointment.js?v=20261018h';
-import { ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261018h';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261018h';
-import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261018h';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018h';
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261018h';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261018h';
+} from '../../../services/branch/appointment.js?v=20261102b';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261102b';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261102b';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261102b';
+import { deriveMeetingStatus } from '../../../data/mock/derive.js?v=20261102b';
+import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261102b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261102b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261102b';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261102b';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261102b';
 
 /** 本支部 id（登录人归属；缺省 br-b1，与全仓同口径） */
 function branchId() {
   const me = getPersonById(AuthStore.getCurrentUser()?.personId);
-  return (me && me.branchId) || 'br-b1';
+  return (me && me.branchId) || DEFAULT_BRANCH_ID;
 }
 
 /** 支委构成五行：支书、副支书（党委配置，只读）＋ 组织委员、宣传委员、纪检委员（支部授予，可改派可撤销） */
 function rosterRows() {
   const bid = branchId();
-  const members = PersonStore.getMembers().filter((p) => (p.branchId || 'br-b1') === bid);
+  const members = PersonStore.getMembers().filter((p) => (p.branchId || DEFAULT_BRANCH_ID) === bid);
   const granted = new Map(listBranchCommissioners(bid).map((r) => [r.role, r]));
   const branch = (mockDB.branches || []).find((b) => b.id === bid) || null;
   const secretary = members.find((p) => p.id === branch?.secretaryId)
@@ -69,24 +74,31 @@ function statusBadge(label, variant) {
   return `<span class="state-badge state-badge--${variant}">${esc(label)}</span>`;
 }
 
-/** 支委构成行：末列动作只在本行内展开选人面板，不再出现全局「选人 → 选身份 → 确认」表单 */
-function rosterRowHtml(r) {
+/** 支委构成行：末列 1 主（改派 / 补选）+「更多（撤销）」，只在本行内展开选人面板，
+ *  不再出现全局「选人 → 选身份 → 确认」表单 */
+function rosterRowHtml(r, showStatus) {
   const vacant = !r.name;
-  const personCell = vacant ? '<span class="text-gray-400">空缺</span>' : esc(r.name);
+  const personCell = vacant ? '<span class="text-gray-500">空缺</span>' : esc(r.name);
   const statusCell = vacant ? statusBadge('空缺', 'warning') : statusBadge('在任', 'neutral');
-  let action = '<span class="text-gray-400">党委配置</span>';
+  let action = '<span class="text-gray-500">党委配置</span>';
   if (r.editable && !vacant) {
-    action = `<button type="button" class="btn-ghost text-accent" data-cm-replace="${esc(r.role)}">改派</button>
-      <button type="button" class="btn-ghost text-red-600" data-cm-revoke="${esc(r.role)}" data-person-id="${esc(r.personId)}">撤销</button>`;
+    // 1 主（改派）＋ 1 个「更多」；撤销进菜单（2026-10-19 Task 7）
+    action = `<button type="button" class="btn-accent-soft btn-sm" data-cm-replace="${esc(r.role)}">改派</button>
+      <details class="row-more">
+        <summary class="btn-outline btn-sm">更多</summary>
+        <div class="row-more__menu" role="menu">
+          <button type="button" role="menuitem" class="btn-danger btn-sm" data-cm-revoke="${esc(r.role)}" data-person-id="${esc(r.personId)}">撤销</button>
+        </div>
+      </details>`;
   } else if (r.editable) {
-    action = `<button type="button" class="btn-ghost text-accent" data-cm-replace="${esc(r.role)}">补选</button>`;
+    action = `<button type="button" class="btn-accent-soft btn-sm" data-cm-replace="${esc(r.role)}">补选</button>`;
   }
   return `<tr>
-    <td${vacant ? ' class="section-accent-left"' : ''}>${personCell}</td>
-    <td>${esc(r.label)}</td>
-    <td>${esc(r.source)}</td>
-    <td>${statusCell}</td>
-    <td data-cm-cell="${esc(r.role)}"><div class="flex items-center gap-2">${action}</div></td>
+    <td${vacant ? ' class="section-accent-left"' : ''} data-label="姓名">${personCell}</td>
+    <td data-label="身份">${esc(r.label)}</td>
+    <td data-label="来源">${esc(r.source)}</td>
+    <td${showStatus ? '' : ' class="is-redundant"'} data-label="状态">${statusCell}</td>
+    <td data-label="操作" data-cm-cell="${esc(r.role)}"><div class="flex items-center gap-2">${action}</div></td>
   </tr>`;
 }
 
@@ -98,40 +110,42 @@ function meetingRows() {
     .slice(0, 8);
 }
 
-/** 会议状态 → 徽章档（四选一：待召开 / 线上表态中 / 已截止 / 已留存） */
+/** 会议状态 → 徽章档（统一派生五态；状态判据单一源 = data/mock/derive.js::deriveMeetingStatus） */
 const MEETING_STATUS_VARIANT = {
   '待召开': 'info',
-  '线上表态中': 'accent',
-  '已截止': 'neutral',
-  '已留存': 'success',
+  '进行中': 'accent',
+  '已召开': 'success',
+  '已归档': 'neutral',
+  '已取消': 'neutral',
 };
 
-/** 会议状态四选一：待召开 / 线上表态中 / 已截止 / 已留存（判据只用既有字段） */
-function meetingStatus(act) {
-  if (act.votesLocked === true) {
-    const items = (act.agenda || []).filter((x) => x && x.id);
-    return items.length > 0 && items.every((x) => x.result) ? '已留存' : '已截止';
-  }
-  if (act.voteConfig && act.voteConfig.mode === 'async' && (act.agenda || []).some((x) => x && x.id)) {
-    return '线上表态中';
-  }
-  return '待召开';
+/** 本场会议相关事实（考勤 / 复盘）——只供 deriveMeetingStatus 判「已召开」 */
+function meetingFacts(activityId) {
+  return {
+    attendances: (mockDB.attendances || []).filter((row) => row && row.activityId === activityId),
+    reviews: (mockDB.activityReviews || []).filter((row) => row && row.activityId === activityId),
+  };
 }
 
-/** 应到人数（本场固化名单优先；未固化时回落支委名单同一口径） */
-function attendeeCount(act) {
-  const ids = Array.isArray(act.voteConfig?.voterIds) ? act.voteConfig.voterIds : [];
-  return ids.length || resolveVoterIds('committee').length;
+/** 应到名单：冻结名单（attendanceRosters）优先；无冻结时回落 resolveVoterIds 现算并标注「实时」。 */
+function attendeeOf(act) {
+  const roster = (mockDB.attendanceRosters || [])
+    .find((row) => row && row.activityId === act.id && row.frozen === true);
+  if (roster && Array.isArray(roster.personIds)) {
+    return { count: roster.personIds.length, live: false };
+  }
+  return { count: resolveVoterIds('committee').length, live: true };
 }
 
 function meetingRowHtml(act) {
-  const status = meetingStatus(act);
+  const status = deriveMeetingStatus(act, meetingFacts(act.id));
+  const attendee = attendeeOf(act);
   return `<tr>
-    <td class="whitespace-nowrap">${esc(act.date || '—')}</td>
-    <td>${esc(act.title || '未命名会议')}</td>
-    <td>${statusBadge(status, MEETING_STATUS_VARIANT[status] || 'neutral')}</td>
-    <td>${attendeeCount(act)}</td>
-    <td><a href="./party-committee-meeting.html?id=${encodeURIComponent(act.id)}" class="text-accent" style="text-decoration:none;">进入 ›</a></td>
+    <td data-label="日期" class="whitespace-nowrap">${esc(act.date || '—')}</td>
+    <td data-label="议题">${esc(act.title || '未命名会议')}</td>
+    <td data-label="状态">${statusBadge(status, MEETING_STATUS_VARIANT[status] || 'neutral')}</td>
+    <td class="is-numeric" data-label="应到">${attendee.count}${attendee.live ? '<span class="text-gray-500 text-xs"> 实时</span>' : ''}</td>
+    <td data-label="操作"><a href="./party-committee-meeting.html?id=${encodeURIComponent(act.id)}" class="btn-outline btn-sm" style="text-decoration:none;">进入 ›</a></td>
   </tr>`;
 }
 
@@ -149,12 +163,12 @@ function openRowPicker(role) {
   destroyRowPicker();
   cell.innerHTML = `<div class="flex items-center gap-2">
     <div id="cm-row-picker" class="w-56"></div>
-    <button type="button" class="btn-ghost" data-cm-cancel>取消</button>
+    <button type="button" class="btn-outline btn-sm" data-cm-cancel>取消</button>
   </div>`;
   _rowPicker = new PersonPicker({
     mode: 'single',
     placeholder: `选择${ROLE_LABELS[role] || role}人选`,
-    filter: (p) => (p.branchId || 'br-b1') === branchId()
+    filter: (p) => (p.branchId || DEFAULT_BRANCH_ID) === branchId()
       && p.role !== 'secretary' && p.role !== 'deputy-secretary',
     accentColor: getAppliedAccentColors('secretary').accent,
     onSelect: async (ids) => {
@@ -178,7 +192,7 @@ function openRowPicker(role) {
 /** 撤销支委身份（回落普通参与者；服务层判据不变） */
 async function revokeSeat(role, personId) {
   const label = ROLE_LABELS[role] || role;
-  if (!window.confirm(`撤销「${label}」身份？该同志将回落为普通参与者。`)) return;
+  if (!await confirmDanger({ id: 'committee-seat-revoke', title: `撤销「${label}」身份`, bodyHtml: `<p class="text-sm text-gray-700">撤销该同志的「${esc(label)}」支委身份。<br>影响：该同志回落为普通参与者，对应工作台与待办入口对其关闭。<br>可恢复：可重新任命（每次变更记入任期留痕）。</p>`, confirmLabel: '撤销身份' })) return;
   const res = await revokeBranchCommissioner({ branchId: branchId(), personId, role });
   if (!res || !res.ok) {
     showToast('error', (res && res.reason) || '撤销失败');
@@ -193,6 +207,11 @@ function bindEvents(tc) {
   if (tc.dataset.cmBound === '1') return;
   tc.dataset.cmBound = '1';
   tc.addEventListener('click', async (e) => {
+    // 行尾「更多」（原生 details）：点击其它区域 / 菜单项时收起（2026-10-19 Task 7）
+    const clickedMore = e.target.closest('.row-more');
+    tc.querySelectorAll('.row-more[open]').forEach(d => {
+      if (d !== clickedMore || e.target.closest('.row-more__menu')) d.removeAttribute('open');
+    });
     const cancel = e.target.closest('[data-cm-cancel]');
     if (cancel) {
       destroyRowPicker();
@@ -209,42 +228,53 @@ function bindEvents(tc) {
       await revokeSeat(revoke.dataset.cmRevoke, revoke.dataset.personId);
     }
   });
+  // Esc 收起行尾「更多」菜单（原生 details 不自行关闭）
+  tc.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    tc.querySelectorAll('.row-more[open]').forEach(d => d.removeAttribute('open'));
+  });
 }
 
 export function renderContent() {
   const tc = document.getElementById('secretary-tab-content');
-  if (!tc) return;
+  if (!tc) throw new Error('[committee-meeting-tab] 缺少内容容器 #secretary-tab-content');
   destroyRowPicker();
   tc.dataset.currentTab = 'committee-meeting';
   tc.innerHTML = `
     <div class="stack-page">
-      <header class="flex items-start justify-between gap-3 flex-wrap">
-        <div class="min-w-0">
-          <h2 class="font-title-cn text-xl font-bold text-gray-800">支委会</h2>
-          <p class="text-xs text-gray-500 mt-1">支委身份由支书配置；支书 / 副支书由党委配置。<a href="./help.html#card-copy-pcm-scope" class="text-gray-500 underline hover:text-gray-700">见帮助</a></p>
-        </div>
-        <a href="./party-committee-meeting.html?action=new" class="btn-accent" style="text-decoration:none;">新建线上支委会 →</a>
-      </header>
-      <section class="card rounded-xl card-standard stack-card">
+      ${renderTabHeader({
+        title: '支委会',
+        description: '支委身份由支书配置；支书 / 副支书由党委配置。',
+        actions: '<a href="./party-committee-meeting.html?action=new" class="btn-accent" style="text-decoration:none;">新建线上支委会 →</a>',
+      })}
+      <div class="card card--static rounded-xl card-standard stack-card">
         <h3 class="font-title-cn text-sm font-bold text-gray-700">支委构成</h3>
         <div id="cm-roster-table" class="overflow-x-auto"></div>
-      </section>
-      <section class="card card--static rounded-xl card-standard stack-card">
+      </div>
+      <div class="card card--static rounded-xl card-standard stack-card">
         <h3 class="font-title-cn text-sm font-bold text-gray-700">支委会会议</h3>
         <div id="cm-meeting-table" class="overflow-x-auto"></div>
-      </section>
+      </div>
+      <p class="help-note">授予、改派与撤销的完整口径与权限边界，详见<a href="./help.html#card-copy-pcm-scope" class="help-note__link" title="见帮助：支委身份的授予、改派与撤销">帮助 · 支委身份</a>。</p>
     </div>`;
   bindEvents(tc);
 
+  // 状态列去重（2026-10-19）：全部为「在任」时整列无信息量，隐藏；出现「空缺」才显示。
+  const roster = rosterRows();
+  const showStatus = roster.some((r) => !r.name);
+
   renderDataTable(tc.querySelector('#cm-roster-table'), {
     stateKey: 'secretary-committee-roster',
-    rows: rosterRows(),
-    rowHtml: rosterRowHtml,
+    rows: roster,
+    rowHtml: (r) => rosterRowHtml(r, showStatus),
     headHtml: tableHeadHtml([
-      { label: '姓名' }, { label: '身份' }, { label: '来源' }, { label: '状态' }, { label: '操作' },
+      { label: '姓名' }, { label: '身份' }, { label: '来源' },
+      { label: '状态', className: showStatus ? '' : 'is-redundant' },
+      { label: '操作' },
     ]),
     colSpan: 5,
     pageSize: 0,
+    responsive: true,
     emptyMessage: '暂无支委身份',
   });
 
@@ -253,10 +283,13 @@ export function renderContent() {
     rows: meetingRows(),
     rowHtml: meetingRowHtml,
     headHtml: tableHeadHtml([
-      { label: '日期' }, { label: '议题' }, { label: '状态' }, { label: '应到' }, { label: '操作' },
+      { label: '日期' }, { label: '议题' }, { label: '状态' },
+      { label: '应到', className: 'is-numeric' },
+      { label: '操作' },
     ]),
     colSpan: 5,
     pageSize: 8,
+    responsive: true,
     emptyMessage: '暂无支委会会议',
   });
 }

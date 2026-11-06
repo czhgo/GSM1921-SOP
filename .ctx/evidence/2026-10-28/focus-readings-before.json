@@ -1,0 +1,88 @@
+{
+  "tag": "before",
+  "at": "2026-10-28T16:00:07.586Z",
+  "areas": {
+    "listFilter": {
+      "reached": true,
+      "reading": {
+        "target": "#lf2-q",
+        "outline": "solid 2px rgb(169, 122, 18) (offset 1px)",
+        "boxShadow": "rgb(251, 243, 220) 0px 0px 0px 3px",
+        "border": "1px solid rgb(169, 122, 18)",
+        "rings": [
+          "outline",
+          "box-shadow"
+        ],
+        "ringCount": 2
+      }
+    },
+    "selectTrigger": {
+      "reached": true,
+      "reading": {
+        "target": "#lf2-f-partyGroup-trigger",
+        "outline": "solid 2px rgb(169, 122, 18) (offset 1px)",
+        "boxShadow": "rgb(251, 243, 220) 0px 0px 0px 3px",
+        "border": "1px solid rgb(169, 122, 18)",
+        "rings": [
+          "outline",
+          "box-shadow"
+        ],
+        "ringCount": 2
+      }
+    },
+    "customSelectSearch": {
+      "reached": true,
+      "reading": {
+        "target": "input.cs-search-input",
+        "outline": "solid 2px rgb(31, 41, 55) (offset 1px)",
+        "boxShadow": "none",
+        "border": "1px solid rgb(255, 215, 0)",
+        "rings": [
+          "outline"
+        ],
+        "ringCount": 1
+      }
+    },
+    "archiveSearch": {
+      "reached": true,
+      "reading": {
+        "target": "#archive-search",
+        "outline": "solid 2px rgb(169, 122, 18) (offset 1px)",
+        "boxShadow": "rgb(251, 243, 220) 0px 0px 0px 3px",
+        "border": "1px solid rgb(169, 122, 18)",
+        "rings": [
+          "outline",
+          "box-shadow"
+        ],
+        "ringCount": 2
+      }
+    },
+    "siteSearch": {
+      "reached": true,
+      "reading": {
+        "target": "#ref-search-input",
+        "outline": "solid 2px rgb(169, 122, 18) (offset 1px)",
+        "boxShadow": "rgb(251, 243, 220) 0px 0px 0px 3px",
+        "border": "1px solid rgb(169, 122, 18)",
+        "rings": [
+          "outline",
+          "box-shadow"
+        ],
+        "ringCount": 2
+      }
+    },
+    "helpSearch": {
+      "reached": true,
+      "reading": {
+        "target": "#help-search-input",
+        "outline": "solid 2px rgb(31, 41, 55) (offset 1px)",
+        "boxShadow": "none",
+        "border": "1px solid rgb(255, 215, 0)",
+        "rings": [
+          "outline"
+        ],
+        "ringCount": 1
+      }
+    }
+  }
+}

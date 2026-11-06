@@ -55,6 +55,7 @@ export const SHARD_E2E_FILES = {
   2: [
     'page-sweep.test.mjs',
     'module-load.test.mjs',
+    'a11y-tree.test.mjs',
     'block-canvas-e2e.test.mjs',
     'block-config-ui-e2e.test.mjs',
     'block-entry-guard-e2e.test.mjs',

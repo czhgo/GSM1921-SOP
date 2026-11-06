@@ -13,19 +13,20 @@
 import {
   listPartyGroups, countOpenReportsByGroup, groupReportRowsOf, reportRowStateOf,
   groupActivitiesOf, reviewBucketOf,
-} from '../../services/member/group-view.js?v=20261018h';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261018h';
-import { AuthStore } from '../../services/core/auth.js?v=20261018h';
-import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261018h';
-import { IssueStore } from '../../services/governance/issues.js?v=20261018h';
-import { loadActivities } from '../../services/activity/activity.js?v=20261018h';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261018h';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261018h';
-import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261018h';
-import { getMeetingRosterIds } from '../../services/member/roster.js?v=20261018h';
-import { AttendanceStatus } from '../../core/domain/domain.js?v=20261018h';
-import { escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261018h';
+} from '../../services/member/group-view.js?v=20261102b';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261102b';
+import { AuthStore } from '../../services/core/auth.js?v=20261102b';
+import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261102b';
+import { IssueStore } from '../../services/governance/issues.js?v=20261102b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261102b';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261102b';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261102b';
+import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261102b';
+import { getMeetingRosterIds } from '../../services/member/roster.js?v=20261102b';
+import { AttendanceStatus } from '../../core/domain/domain.js?v=20261102b';
+import { escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261102b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
 /**
  * 渲染「其他组」只读一览（本支部内除「我所属组」外的所有组，逐组一卡）。
  * @param {HTMLElement} container — `insight-view` 的 `#insight-seg-body`（每次换新节点）
@@ -55,9 +56,8 @@ export async function renderOtherGroupsView(container) {
 
   container.innerHTML = groups.length
     ? `<div class="space-y-3">${groups.map(g => _cardHtml(g, ctx)).join('')}</div>`
-    : `<div class="card rounded-xl p-5 text-center">
-         <p class="text-sm text-gray-500">支部暂无其他党小组${myGroup ? `（你所在：「${esc(myGroup)}」）` : ''}</p>
-         <p class="text-xs text-gray-500 mt-1">其他党小组成立后，此处显示其 组员进展 / 复盘状态 / 活动与考勤 只读一览</p>
+    : `<div class="card rounded-xl p-5">
+         ${emptyStateHtml({ variant: 'panel', text: `支部暂无其他党小组${myGroup ? `（你所在：「${myGroup}」）` : ''}` })}
        </div>`;
 }
 
@@ -102,7 +102,7 @@ function _cardHtml(g, ctx) {
         <div class="text-xs font-bold text-gray-600 mb-1">组员进展（只读）</div>
         ${reports.length
           ? `<div class="space-y-1">${reports.map(_reportRowHtml).join('')}</div>`
-          : '<p class="text-xs text-gray-500">暂无组员汇报</p>'}
+          : emptyStateHtml({ text: '暂无组员汇报', variant: 'inline' })}
       </div>
     </div>`;
 }

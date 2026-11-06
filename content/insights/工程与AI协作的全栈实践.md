@@ -2,9 +2,9 @@
 title: "工程与 AI 协作的全栈实践"
 type: experience_doc
 role: "[用户]+[工程师]"
-last_updated: "2026-10-16"
+last_updated: "2026-10-22"
 status: active
-related_files: [content/insights/README.md, content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/04_web_design/data/DATA_MODEL.md, content/04_web_design/data/SYSTEM_ROLE_PERMISSION.md, content/04_web_design/design-system/DESIGN_SYSTEM.md, content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md, content/05_ai_coding/TEST_AND_VERIFICATION.md, content/05_ai_coding/CONTEXT_MANAGEMENT.md, server/README.md, .ctx/ENGINEERING_ASSESSMENT.md]
+related_files: [CLAUDE.md, content/insights/README.md, content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/04_web_design/data/DATA_MODEL.md, content/04_web_design/data/SYSTEM_ROLE_PERMISSION.md, content/04_web_design/design-system/DESIGN_SYSTEM.md, content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md, content/05_ai_coding/TEST_AND_VERIFICATION.md, content/05_ai_coding/CONTEXT_MANAGEMENT.md, server/README.md, .ctx/ENGINEERING_ASSESSMENT.md]
 ---
 
 # 工程与 AI 协作的全栈实践
@@ -95,7 +95,7 @@ related_files: [content/insights/README.md, content/03_doc_system/ARCHITECTURE.m
 
 同一规则在两个入口重复实现，常适合抽出共用服务；两个角色的工作台布局相似，却可能代表不同责任，不应只为减少文件数而合并。项目已把分工提案和专班提案的票决计算归为同一算法，同时保留不同场景的门槛；Help 的章节导航元数据也从两处定义收敛为一处。这类改动减少重复口径，没有改变业务语义。
 
-本轮工作台复核进一步用具体维度检验这条判据：正式会议类型与议程步骤分别表达；活动与专班保留各自记录并关联共同工作组；活动承办范围与报名资格分别判断；工作组成员与系统授权分别记录；角色入口保留，同时允许只读日历共用渲染。候选合并时逐项比较任务、数据来源、身份键、生命周期、权限和失败处理；这些条件一致时合并实现，条件有差异时保留各自对象或责任关系。验证时改变其中一项，检查其余维度的存储值、访问范围和角色入口不发生意外联动。
+本轮工作台复核进一步用具体维度检验这条判据：正式会议类型与议程步骤分别表达；活动与专班保留各自记录并关联共同工作组；活动组织落点与报名资格分别判断；工作组成员与系统授权分别记录；角色入口保留，同时允许只读日历共用渲染。候选合并时逐项比较任务、数据来源、身份键、生命周期、权限和失败处理；这些条件一致时合并实现，条件有差异时保留各自对象或责任关系。验证时改变其中一项，检查其余维度的存储值、访问范围和角色入口不发生意外联动。
 
 评估功能体验时，使用设计规范中的**最小三成本**：信息成本（找出要做什么）、操作成本（从入口到完成动作的步骤）、适应学习成本（理解角色分工和使用方式）。对真实高频任务逐条走查，记录用户需要找几次、跳几页、还要问谁；再决定应删除入口、合并入口、改名还是把信息前置。
 
@@ -121,6 +121,35 @@ AI 擅长快速搜索、连通调用链、生成测试反例和做重复编辑�
 4. **先做最小反例与计划：** 定义需要保留的行为、失败行为、受影响文件和测试，再实施。多个职责不同的改动分开验证。
 5. **改后验证并更新归处：** 跑覆盖本批逻辑的测试、检查真实用户路径，核对数据库没有被意外写入，并更新必要的帮助、索引和学习文档。
 6. **把经验放回合适位置：** 当前规则进权威文件；可复用的检查方法进 05；给人读的跨层经验进 insights；本次发生的事情进执行记录；不要在多个文件复制同一段规则。
+
+### 审计产物不是知识
+
+一次审计产出的报告、矩阵、截图和生成清单，证明的是「这一次查到了什么」，不是「以后该怎么判」。可复用的结论要在当批拆成两类沉淀：原则（以后怎么判）进 `CLAUDE.md`、`OPERATIONS_GUIDE.md`、`DESIGN_SYSTEM.md`、`DATA_MODEL.md`；方法（以后怎么做）进 `TEST_AND_VERIFICATION.md`、`PARALLEL_SKILL_AUDIT.md`。原文只留一份证据，移入 `.ctx/logs/archive/YYYY-MM/`。
+
+把审计报告常驻 `.ctx` 顶层，会让上下文目录变成筐：下次开工读到的是一堆一次性过程，真正的规则却仍散落在报告里。`.ctx` 顶层准入白名单与「原则 / 方法 / 沿革」三去向见 [CLAUDE.md](../../CLAUDE.md) 的「`.ctx` 准入与审计产物三去向」。
+
+### 经验要各得其所（2026-10-20）
+
+一条经验写在哪里，不看它「像什么」，看它「以后要被谁、以什么方式调用」：
+
+| 经验类型 | 去处 | 判据 |
+|---|---|---|
+| 原则（以后怎么判） | `CLAUDE.md` / `OPERATIONS_GUIDE.md` / `DESIGN_SYSTEM.md` / `DATA_MODEL.md` | 换一个页面、换一个对象仍然成立 |
+| 方法（以后怎么做） | `TEST_AND_VERIFICATION.md` / `PARALLEL_SKILL_AUDIT.md` | 能写成步骤、阈值或守卫判据 |
+| 判例（这次查到了什么） | `.ctx/logs/archive/YYYY-MM/` | 只对这一次有证明力 |
+| 给人读的跨层解释 | `content/insights/` | 帮助理解，不承担裁定 |
+
+判断方法：一段话若同时像原则和方法，先拆成两句；若只是这次的故事，留在 archive。**不要把全部经验堆进一个文件**——那会让每个读者都要读完全部才能找到自己那一句。各得其所之后，经验才是复利资产：下次遇到同类问题，只需回一个地方。
+
+### 全局性审查优先于角落补丁（2026-10-20）
+
+同一个病灶出现三次，就不再是「这个页面没做好」，而是「形态本身选错了」。处理顺序：
+
+1. **第一次**：修当下页面；
+2. **第二次**：记录模式，Grep 全站同类；
+3. **第三次**：停手，发起专项审查，先改形态 / 引擎 / 守卫，再回收各页。
+
+为什么不是逐页修：逐页修会得到三套阈值、三种交互和互相矛盾的文案；每修一页，下一批又会回潮。全局性审查先回答对象边界（同一对象有几个承载面）、状态判据（一个状态算几次）、动作语义（同款按钮是不是同一件事）、名实与数据真值，再谈视觉。五问见 [PARALLEL_SKILL_AUDIT.md §12](../05_ai_coding/PARALLEL_SKILL_AUDIT.md#12-全局性审查的五问2026-10-20-立--第三轮专项沉淀)；本轮浮窗（34 项里 5 类共性问题）、名册 chip（约 20 个按钮）、「专班管理」名实不符，都是这样从单页问题升级为专项的。
 
 让 AI 提供判断和反例，而不是替使用者承担业务裁定。出现权限变化、统计口径变化、跨角色流程变化时，应该明确展示差异和代价，再由负责者决定。
 

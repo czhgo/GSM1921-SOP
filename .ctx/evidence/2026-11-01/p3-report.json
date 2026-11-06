@@ -1,0 +1,35 @@
+{
+  "baselineState": {
+    "id": "lf2-q",
+    "list": "lf2-kw",
+    "options": 34,
+    "pickerDisplay": "block",
+    "pickerWidth": "319.992px",
+    "pickerBg": "none",
+    "pickerPosition": "static",
+    "pickerMarginRight": "0px",
+    "rect": {
+      "x": 155.96217346191406,
+      "y": 480.7436828613281,
+      "width": 319.9915771484375,
+      "height": 39.59243392944336,
+      "top": 480.7436828613281,
+      "right": 475.95375061035156,
+      "bottom": 520.3361167907715,
+      "left": 155.96217346191406
+    }
+  },
+  "afterRemoveList": {
+    "list": null
+  },
+  "afterHideIndicator": {
+    "list": "lf2-kw",
+    "pickerDisplay": "block",
+    "pickerWidth": "319.992px"
+  },
+  "afterAppearanceNone": {
+    "appearance": "none",
+    "list": "lf2-kw",
+    "spin": "block"
+  }
+}

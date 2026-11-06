@@ -20,15 +20,15 @@
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018h';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018h';
-import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018h';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261102b';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261102b';
+import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261102b';
 import {
   SOFT_VOID_RESOURCES, filterActive, listPending, listVoidPending, parseRecordVoidId,
   requestVoid, confirmVoid, rejectVoid,
-} from '../../docs/src/services/governance/soft-void.js?v=20261018h';
+} from '../../docs/src/services/governance/soft-void.js?v=20261102b';
 // 批次 405（`D-792`）：报名「作废（软）」后的重复报名判据（`hasApplied`）单源验证
-import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261018h';
+import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261102b';
 
 // ── localStorage 内存桩（member-persist 同款）──
 const _store = new Map();
@@ -58,10 +58,10 @@ before(() => {
 
 test('V1 申请作废：落 voidPending（原因/申请人/时间），但该行**仍在**默认列表（申请 ≠ 出列）', async () => {
   const before0 = { ...find(TARGET) };
-  const r = await requestVoid(RES, TARGET, { reason: '长期未补、当事人已毕业', byPersonId: 'p10' });
+  const r = await requestVoid(RES, TARGET, { reason: '长期未补、当事人已毕业', byPersonId: '2400012354' });
   assert.ok(r && r.voidPending, '申请后记录带 voidPending');
   assert.equal(r.voidPending.reason, '长期未补、当事人已毕业');
-  assert.equal(r.voidPending.byPersonId, 'p10');
+  assert.equal(r.voidPending.byPersonId, '2400012354');
   assert.ok(r.voidPending.at, '带申请时间');
   assert.ok(!r.voided, '申请阶段不落 voided');
   // 非恒真：申请≠出列
@@ -75,7 +75,7 @@ test('V1 申请作废：落 voidPending（原因/申请人/时间），但该行
 
 test('V2 申请必填：空原因不改记录（非恒真）', async () => {
   const snap = JSON.stringify(find(TARGET).voidPending);
-  const r = await requestVoid(RES, TARGET, { reason: '   ', byPersonId: 'p10' });
+  const r = await requestVoid(RES, TARGET, { reason: '   ', byPersonId: '2400012354' });
   assert.equal(r, null, '空原因必须拒绝');
   assert.equal(JSON.stringify(find(TARGET).voidPending), snap, '记录未被改坏');
 });
@@ -94,11 +94,11 @@ test('V3 待确认映射：id 形如 `<资源>:<记录id>`，可回解（支书�
 
 test('V4 确认作废：落 voided（原因取申请）＋ 清 voidPending ＋ **出列** ＋ 行数不变', async () => {
   const countBefore = n0();
-  const r = await confirmVoid(RES, TARGET, { byPersonId: 'p13' });
+  const r = await confirmVoid(RES, TARGET, { byPersonId: '2300010001' });
   assert.ok(r && r.voided, '确认后带 voided');
   assert.equal(r.voided.reason, '长期未补、当事人已毕业', '原因取自申请');
-  assert.equal(r.voided.byPersonId, 'p10', '保留申请人');
-  assert.equal(r.voided.confirmedBy, 'p13', '记录确认人（支委层）');
+  assert.equal(r.voided.byPersonId, '2400012354', '保留申请人');
+  assert.equal(r.voided.confirmedBy, '2300010001', '记录确认人（支委层）');
   assert.equal(r.voidPending, null, 'voidPending 已清空');
   const cur = find(TARGET);
   assert.equal(cur.voided.confirmedAt, r.voided.confirmedAt);
@@ -112,16 +112,16 @@ test('V5 驳回作废：清 voidPending ＋ 落 voidRejected 留痕 ＋ 该行**
   // 换一行做驳回（上一行已 voided）；种子只有一条补课任务时补一条测试行
   let other = (mockDB.makeupTasks || []).find((t) => t.id !== TARGET && !t.voided);
   if (!other) {
-    other = { id: 'mkp-test-v5', personId: 'p5', personName: '（测试）', activityName: '（测试）支部党员大会', status: 'pending', deadline: '2026-10-01', isMandatory: true };
+    other = { id: 'mkp-test-v5', personId: '2400012349', personName: '（测试）', activityName: '（测试）支部党员大会', status: 'pending', deadline: '2026-10-01', isMandatory: true };
     mockDB.makeupTasks = [...mockDB.makeupTasks, other];
   }
-  await requestVoid(RES, other.id, { reason: '误报缺勤，待核', byPersonId: 'p10' });
+  await requestVoid(RES, other.id, { reason: '误报缺勤，待核', byPersonId: '2400012354' });
   assert.equal(filterActive(RES, mockDB.makeupTasks).some((t) => t.id === other.id), true, '申请阶段在列表');
-  const r = await rejectVoid(RES, other.id, { byPersonId: 'p13', note: '考勤复核后无须补课' });
+  const r = await rejectVoid(RES, other.id, { byPersonId: '2300010001', note: '考勤复核后无须补课' });
   assert.ok(r, '驳回返回记录');
   assert.equal(r.voidPending, null, 'voidPending 已清空');
   assert.ok(r.voidRejected, '驳回留痕');
-  assert.equal(r.voidRejected.rejectedBy, 'p13');
+  assert.equal(r.voidRejected.rejectedBy, '2300010001');
   assert.equal(r.voidRejected.note, '考勤复核后无须补课');
   assert.ok(!r.voided, '驳回＝未作废');
   assert.equal(filterActive(RES, mockDB.makeupTasks).some((t) => t.id === other.id), true, '回到默认列表');
@@ -139,12 +139,12 @@ test('V6 注册表扩容：周期归档使用同一套软作废语义（申请 �
   const target = mockDB.periodicArchives[0].id;
   const count0 = mockDB.periodicArchives.length;
 
-  const r1 = await requestVoid(R2, target, { reason: '（测试）内容并入下一期', byPersonId: 'p12' });
+  const r1 = await requestVoid(R2, target, { reason: '（测试）内容并入下一期', byPersonId: '2400012356' });
   assert.ok(r1 && r1.voidPending, '申请落 voidPending');
   assert.equal(filterActive(R2, mockDB.periodicArchives).some((x) => x.id === target), true, '申请阶段仍在列表');
   assert.ok(listVoidPending().some((x) => x.id === `${R2}:${target}`), '待确认组按资源名聚合（多资源同组）');
 
-  const r2 = await confirmVoid(R2, target, { byPersonId: 'p13' });
+  const r2 = await confirmVoid(R2, target, { byPersonId: '2300010001' });
   assert.ok(r2 && r2.voided, '确认落 voided');
   assert.equal(filterActive(R2, mockDB.periodicArchives).some((x) => x.id === target), false, '确认后出列');
   assert.equal(mockDB.periodicArchives.length, count0, '软作废保留记录行');
@@ -156,7 +156,7 @@ test('V6 注册表扩容：周期归档使用同一套软作废语义（申请 �
 //   **而当时一件静态守卫都没拦住**。本判据＝对每张登记表逐面核「两个适配器都有 `update`」＋「mockDB 有该域」
 //   ＋「注册项四要素齐」——新增登记表忘了补适配器时**立刻红**。
 test('V7 登记表 × 适配器完备性：每张登记表在两个适配器上都必须可写（防同型缺口复发）', async () => {
-  const { ApiAdapter } = await import('../../docs/src/data/api-adapter.js?v=20261018h');
+  const { ApiAdapter } = await import('../../docs/src/data/api-adapter.js?v=20261102b');
   const problems = [];
   const res = Object.keys(SOFT_VOID_RESOURCES);
   assert.ok(res.length >= 6, `登记表只剩 ${res.length} 张（基线 6）：登记面被掏空`);
@@ -178,15 +178,15 @@ test('V7 登记表 × 适配器完备性：每张登记表在两个适配器上�
 test('V8（批次 405）已作废报名不再挡重复报名；有效报名（approved / pending）仍挡', () => {
   const prev = mockDB.signups;
   mockDB.signups = [
-    { id: 'su-test-v8-void', sourceType: 'taskforce', sourceId: 'tf-v8', personId: 'p1', role: 'participant', status: 'approved', voided: { reason: '（测试）作废', byPersonId: 'p11' } },
-    { id: 'su-test-v8-ok', sourceType: 'taskforce', sourceId: 'tf-v8', personId: 'p2', role: 'participant', status: 'approved' },
-    { id: 'su-test-v8-pending', sourceType: 'taskforce', sourceId: 'tf-v8', personId: 'p3', role: 'organizer', status: 'pending' },
+    { id: 'su-test-v8-void', sourceType: 'taskforce', sourceId: 'tf-v8', personId: '2400012345', role: 'participant', status: 'approved', voided: { reason: '（测试）作废', byPersonId: '2400012355' } },
+    { id: 'su-test-v8-ok', sourceType: 'taskforce', sourceId: 'tf-v8', personId: '2400012346', role: 'participant', status: 'approved' },
+    { id: 'su-test-v8-pending', sourceType: 'taskforce', sourceId: 'tf-v8', personId: '2400012347', role: 'organizer', status: 'pending' },
   ];
   try {
     SignupStore.init();
-    assert.equal(SignupStore.hasApplied('taskforce', 'tf-v8', 'p1'), false, '已作废（voided）报名**不再**挡重复报名');
-    assert.equal(SignupStore.hasApplied('taskforce', 'tf-v8', 'p2'), true, 'approved 仍挡');
-    assert.equal(SignupStore.hasApplied('taskforce', 'tf-v8', 'p3'), true, 'pending 仍挡');
+    assert.equal(SignupStore.hasApplied('taskforce', 'tf-v8', '2400012345'), false, '已作废（voided）报名**不再**挡重复报名');
+    assert.equal(SignupStore.hasApplied('taskforce', 'tf-v8', '2400012346'), true, 'approved 仍挡');
+    assert.equal(SignupStore.hasApplied('taskforce', 'tf-v8', '2400012347'), true, 'pending 仍挡');
   } finally {
     mockDB.signups = prev;
     SignupStore.init();

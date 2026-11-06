@@ -12,11 +12,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018h';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018h';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261018h';
-import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20261018h';
-import * as TR from '../../docs/src/services/governance/thought-report.js?v=20261018h';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261102b';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261102b';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261102b';
+import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20261102b';
+import * as TR from '../../docs/src/services/governance/thought-report.js?v=20261102b';
 
 // ── localStorage 内存桩（与 thought-review.test.mjs 同做法）──
 const _store = new Map();
@@ -56,13 +56,13 @@ test('① 期次：手填优先（跨季补交归对期次）；缺省/非法按
   const nowPeriod = TR.periodOf(new Date().toISOString());
 
   // 手填「2026-Q1」而当前提交时间属 2026-Q3 → 归属以手填为准（这就是手填优于自动归属的理由）
-  const hand = TR.addThoughtReport({ personId: 'p6', title: '第一季度补交', content: LONG, period: '2026-Q1' });
+  const hand = TR.addThoughtReport({ personId: '2400012350', title: '第一季度补交', content: LONG, period: '2026-Q1' });
   assert.equal(hand.period, '2026-Q1', '手填期次优先，不按提交时间改写');
 
-  const auto = TR.addThoughtReport({ personId: 'p7', title: '未填期次', content: LONG });
+  const auto = TR.addThoughtReport({ personId: '2400012351', title: '未填期次', content: LONG });
   assert.equal(auto.period, nowPeriod, '缺省期次按 submittedAt 推导');
 
-  const illegal = TR.addThoughtReport({ personId: 'p16', title: '非法期次', content: LONG, period: '2026-Q9' });
+  const illegal = TR.addThoughtReport({ personId: '2500010002', title: '非法期次', content: LONG, period: '2026-Q9' });
   assert.equal(illegal.period, nowPeriod, '非法期次（Q9）回落按 submittedAt 推导');
 });
 
@@ -70,28 +70,28 @@ test('② 面板数据：同一 personId 同一期次可多篇（无唯一性约
   beginMockCase();
   // 注：首次写入会把种子（THOUGHT_REPORTS）物化进 mockDB（loadThoughtReports 的空表回退），
   // 故本用例以「增量」断言，不写死绝对篇数。
-  const before = TR.countThoughtReportsByPerson('p6');
-  const a = TR.addThoughtReport({ personId: 'p6', title: '季度汇报正稿', content: LONG, period: '2026-Q2' });
-  const b = TR.addThoughtReport({ personId: 'p6', title: '季度汇报补充稿', content: LONG, period: '2026-Q2' });
+  const before = TR.countThoughtReportsByPerson('2400012350');
+  const a = TR.addThoughtReport({ personId: '2400012350', title: '季度汇报正稿', content: LONG, period: '2026-Q2' });
+  const b = TR.addThoughtReport({ personId: '2400012350', title: '季度汇报补充稿', content: LONG, period: '2026-Q2' });
 
   // 同毫秒连续提交：原实现 `'tr_' + Date.now()` 会**撞 id**（重复主键），本断言即该缺陷的回归位
   assert.notEqual(a.id, b.id, '同毫秒连提两篇不得撞 id');
 
-  const mine = TR.listThoughtReportsByPerson('p6');
+  const mine = TR.listThoughtReportsByPerson('2400012350');
   assert.equal(mine.length, before + 2, '同一人同期次两篇并存（面板数据）');
   const ids = mine.map(r => r.id);
   assert.ok(ids.includes(a.id) && ids.includes(b.id), '两篇均入个人归集');
   assert.ok(mine.filter(r => r.period === '2026-Q2').length >= 2, '同期次多篇并存');
-  assert.equal(TR.countThoughtReportsByPerson('p6'), before + 2);
+  assert.equal(TR.countThoughtReportsByPerson('2400012350'), before + 2);
 });
 
 test('③ 按期次归集：组内多篇、组间期次倒序', () => {
   beginMockCase();
-  const q1 = TR.addThoughtReport({ personId: 'p6', title: 'Q1 汇报', content: LONG, period: '2026-Q1' });
-  const q2a = TR.addThoughtReport({ personId: 'p6', title: 'Q2 正稿', content: LONG, period: '2026-Q2' });
-  const q2b = TR.addThoughtReport({ personId: 'p6', title: 'Q2 补充稿', content: LONG, period: '2026-Q2' });
+  const q1 = TR.addThoughtReport({ personId: '2400012350', title: 'Q1 汇报', content: LONG, period: '2026-Q1' });
+  const q2a = TR.addThoughtReport({ personId: '2400012350', title: 'Q2 正稿', content: LONG, period: '2026-Q2' });
+  const q2b = TR.addThoughtReport({ personId: '2400012350', title: 'Q2 补充稿', content: LONG, period: '2026-Q2' });
 
-  const groups = TR.listThoughtReportsByPersonGrouped('p6');
+  const groups = TR.listThoughtReportsByPersonGrouped('2400012350');
   assert.equal(groups[0].period, '2026-Q2', '组间按期次倒序（新期次在前）');
   assert.equal(groups[0].label, '2026年第二季度', '期次中文标签（单一源 core/base/period.js）');
   assert.ok(groups[0].items.some(r => r.id === q2a.id) && groups[0].items.some(r => r.id === q2b.id),
@@ -108,15 +108,15 @@ test('④ 存量归一：无 period / 非法 period 的记录读取时按 submit
   beginMockCase();
   // 直接注入「面板数据改造前」形态的存量记录（无 period）
   mockDB.thoughtReports = [
-    { id: 'tr-legacy', personId: 'p6', personName: '苏明哲', title: '旧数据', content: LONG, submittedAt: '2026-04-20T09:00:00', reviewStatus: 'archived' },
-    { id: 'tr-dirty', personId: 'p6', personName: '苏明哲', title: '脏值', content: LONG, submittedAt: '2026-10-05T09:00:00', period: '2026-Q9', reviewStatus: 'archived' },
+    { id: 'tr-legacy', personId: '2400012350', personName: '苏明哲', title: '旧数据', content: LONG, submittedAt: '2026-04-20T09:00:00', reviewStatus: 'archived' },
+    { id: 'tr-dirty', personId: '2400012350', personName: '苏明哲', title: '脏值', content: LONG, submittedAt: '2026-10-05T09:00:00', period: '2026-Q9', reviewStatus: 'archived' },
   ];
-  const list = TR.listThoughtReportsByPerson('p6');
+  const list = TR.listThoughtReportsByPerson('2400012350');
   const legacy = list.find(r => r.id === 'tr-legacy');
   const dirty = list.find(r => r.id === 'tr-dirty');
   assert.equal(legacy.period, '2026-Q2', '无 period → 按 submittedAt(2026-04) 推导为 Q2');
   assert.equal(dirty.period, '2026-Q4', '非法 period → 按 submittedAt(2026-10) 推导为 Q4');
-  const groups = TR.listThoughtReportsByPersonGrouped('p6');
+  const groups = TR.listThoughtReportsByPersonGrouped('2400012350');
   assert.deepEqual(groups.map(g => g.period), ['2026-Q4', '2026-Q2'], '归集使用归一后的期次');
 });
 
@@ -140,12 +140,12 @@ test('⑤ 篇幅口径（SOP-B-11）：建议 1500 / 警告审阅线 1200 / 一�
   assert.ok(l.hint.includes('1500') && l.hint.includes('不影响提交'), '达标侧同样给出建议值与「不影响提交」');
 
   // ⚠ 关键（「不影响提交」是硬约束）：过短**不被拦截**——仍可提交，且**直接入库归档**
-  const rec = TR.addThoughtReport({ personId: 'p6', title: '偏短汇报', content: shortText, period: '2026-Q3' });
+  const rec = TR.addThoughtReport({ personId: '2400012350', title: '偏短汇报', content: shortText, period: '2026-Q3' });
   assert.equal(rec.reviewStatus, 'archived', '过短仍可提交 → 提交即入库归档（不拦、不等初阅）');
   assert.equal(rec.period, '2026-Q3');
   // 「1500 / 1200 / 不影响提交」三者不混：1200 只决定提示级别，不决定能否提交
   assert.equal(TR.wordCountHint(shortText).level, 'short');
-  assert.ok(TR.addThoughtReport({ personId: 'p7', title: '更短', content: '一句话。' }).id, '极短同样可提交');
+  assert.ok(TR.addThoughtReport({ personId: '2400012351', title: '更短', content: '一句话。' }).id, '极短同样可提交');
 });
 
 test('⑥ 期次助手（单一源）：标签 / 排序 / 选项', () => {

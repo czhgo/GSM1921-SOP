@@ -2,7 +2,7 @@
 title: "2026年10月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: 2026-10-18
+last_updated: 2026-10-27
 status: active
 related_files: [CLAUDE.md, .ctx/logs/archive/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -1711,6 +1711,8 @@ $body
 - 本窗累计 **4 个 commit**（408 / 409 / 410 / 411）⇒ 按 `D-795`「**5–6**」门槛**继续累计**（未到阈；下一窗自批次 412 起）。
 - 其间每批已跑：`test:fast` **146/146**（批次 408 / 410）· `module-load` **4/4** · 真机 `help-e2e`＋`copy-anchor-guard-e2e` **4/4** · `copy-screen-guard` **11/11** · 静态族（`doc-consistency` / `timestamps-note-guard` / `frontmatter-freshness` / `link-integrity` / `doc-line-ref` / `catalog-sync`）**全绿**。
 
+
+
 ## 批次 412（2026-10-06 · `D-800`）**台账文件作用分工（`H26.2`）＋「不留指针」口径**
 
 > **来源**：支书令「REVIEW_QUEUE 只承担**评议规则**的作用，但后来又新建了 ACTIVE RULINGS，所以我要求你**明确好文件的作用**！**不用什么都保留指针**！……**git 过程中 log 已经很清楚了！我们的 10 月的 logs 也要瘦身！**」（`D-800`）。
@@ -2610,6 +2612,50 @@ $body
 - commit 正文规范从本批起执行：`批次 NNN：短标题` + Why / What / Verification / Boundaries；历史 commit 不回写。
 - 未改权限矩阵与业务状态流；未写日常 `server/data.db`。
 
+## 批次 482（2026-10-19）：H21 多代理独立审查协议 ＋ 未完成审计清单
+
+### 一、判据
+
+- 支书要求把 2026-10-19 三路独立审计的成功经验泛化为 CLAUDE.md 可复用案例：每个子代理只持一个 skill、彼此不读报告，主代理汇总共识 / 分歧，人类在 loop 中裁定。
+- 四轮路线图：脏乱繁复审计 / 最小三成本 / 功能与美观 / 全栈数据结构设计；逐轮启动，不得四轮同时开。
+- 未完成工作接入 Round 1：两份 68 页签审计稿 ＋ `REVIEW_QUEUE` 未闭环项合并为一张清单。
+
+### 二、动作
+
+- `CLAUDE.md`：新增 H21（协议八条 / 反模式 / 2026-10-19 判例 / 四轮路线图）；H20.2 增加「多视角审查前置」入口。
+- `content/05_ai_coding/PARALLEL_SKILL_AUDIT.md`：新增 H21 详版手册（提示词模板 / 输出 schema / 汇总模板 / 决策记录 / 反模式 / 判例 / 路线图）。
+- `content/05_ai_coding/README.md`：索引补行。
+- `server/test/claude-parallel-audit.test.mjs`：新增 7 项守卫；登记 `test:daily`。
+- `.trae/specs/generalize-parallel-skill-audit/spec.md`：追加 skill 发现矩阵附录 A（Round 1 三个 lens 可用；Round 2–4 待支书确认）。
+- `.ctx/UNFINISHED_AUDIT_BACKLOG.md`：新增 53 条未完成清单（INFO_AUDIT 14 / 68_TAB_DRAFT 8 / REVIEW_QUEUE 31）。
+
+### 三、边界与读数
+
+- 本批**不改业务 UI / 数据 / 接口**；仅因 `taskforce-list.js` 未登录链接修正而 bump `?v=` 到 `20261018p`；不启动 Round 1。
+- `grill-me` 在本机不可用（注册表存在、未安装）；Round 2–4 的 lens 未确认前不写死进 H21。
+- 守卫：`claude-parallel-audit` 7/7；`doc-consistency` / `frontmatter-freshness` / `timestamps-note-guard` 待本批收尾复跑。
+
+## 批次 483（2026-10-19）：Round 1 工作台结构审计与修复 spec
+
+### 一、判据
+
+- 53 条全量 triage；15 条分层深审；三路独立 lens（`web-design-guidelines` / `design-with-taste` / `frontend-design`）；四轮程序先落盘；临时 `.ctx` 完成后退出。
+- 支书四项裁定：U-05 保留 Round 1 修复；U-01 开小调查；P7 表档先归因；修复 spec 纳入 U-23/U-35，U-53 留 Round 4。
+
+### 二、动作
+
+- 三路并行审查，分别写入 `.ctx/audit-round1/lens-a/b/c.md`；主代理合并为 53 条 disposition：9 共识结项、5 共识确认、5 分歧、13 需补证、21 转轮次。
+- 新增 `.ctx/AUDIT_ROUND1_WORKBENCH_STRUCTURE.md`（53 条 triage + 三路汇总 + 共识/分歧/裁定 + 证据门 + diff 记录）。
+- 新增 `.trae/specs/round1-workbench-structure-remediation/{spec,tasks,checklist}.md`：实施项 U-04/U-05/U-09/U-23/U-35；证据门 U-01/U-06/U-10/U-22。
+- 临时上下文退出：两份 68 页签审计稿移入 `.ctx/logs/archive/`；`UNFINISHED_AUDIT_BACKLOG.md` 删除。
+- 四轮表同步到 `CLAUDE.md` H21.2 与 `PARALLEL_SKILL_AUDIT.md` §9。
+
+### 三、边界与读数
+
+- 未改生产代码；未启动 Round 2；U-53 留 Round 4；U-23/U-35 只写 spec，不实施。
+- page-sweep 红灯（P7 表头 12px / 首列 14px、S1、S19）记录为证据门，未改代码、未放宽守卫。
+- 守卫：`claude-parallel-audit` 7/7；`doc-consistency` S1–S21、`frontmatter-freshness`、`timestamps-note-guard`、`link-integrity`、`version-stamp` 合计 62/62。
+
 ## 批次 474（2026-10-18 · 抽样复核修正：未读通知、页脚间距与「考察依托工作组」）
 
 **为什么**：支书用 sample-diff-learning 抽查后指出：同一未读通知在首页与工作台两套样子、侧栏页脚间距不像原样、且「考察依托工作组」这一关键概念没有进入全部权威文件。本轮按抽样逐条复核并修正。
@@ -2652,3 +2698,1450 @@ $body
 - `INFORMATION_COMPUTATION.md` 如实登记了「角标数可能大于下拉条数」「概况与考勤出勤率两套口径」「待办去重键缺失」等 11 项未统一，未假装已统一。
 - `leader-attendance-upload-submit`、向导两条、`pc-review-reject-note` 仍红，原因见批次 472；本轮未改。
 - 未改权限矩阵与业务状态流；未写日常 `server/data.db`。
+
+## 批次 484（2026-10-19）：Round 1 修复批 —— U-04 / U-05 / U-09 / U-23 / U-35 落地 ＋ 四项证据门
+
+### 一、判据
+
+- 按 `.trae/specs/round1-workbench-structure-remediation/{spec,tasks,checklist}.md` 开工，不再只写 spec。
+- 四项既有裁定继续有效：U-05 保留修复；U-01 开小调查；P7 表档先归因、不改代码不放宽守卫；U-53 留 Round 4。
+
+### 二、动作
+
+- **U-04 纪检考勤**：`disc/attendance-tab.js` 两处打回说明从 `window.prompt` 收口到 `modal.js::openModal`
+  单一浮窗 `_openReturnNoteModal`；会议活动 label 补 `for`；确认段两视图保留 `aria-pressed`；
+  整行点击仍是鼠标增强，键盘路径（checkbox / 链接）保留；会议卡默认收起。
+- **U-05 专班管理**：视图钮（含报名总表「按人 / 按项目」）补初始与切换 `aria-pressed`；
+  招募浮窗改 `openModal` + `onMount`（dialog / aria-modal / Esc / 焦点回还 / inert 全由组件承担），
+  `_closeRecruitForm` 改 `closeModal`；「自动发布通知」折叠改 `<button aria-expanded aria-controls>`。
+  真机复核顺带修正 `modal.js::_focusInto` 的选择器作用域（原焦点落到右上角 ×，现落正文首个字段）。
+- **U-09 项目分工**：`list-filter.js` 非表格空态并轨 `empty-state.js` 并新增 `emptyActionHtml`；
+  「我的任务」空态给「去看我的分工」、「我的分工」空态给「浏览全局分工」；
+  子视图补 `aria-pressed`，`transition-all` 改 `transition-colors`；空态出口与顶部页签共用 `goSubView`。
+- **U-23 活动材料闭环**：新增 `docs/activity-materials.html` ＋ `entries/pages/activity-materials-entry.js`：
+  ① 材料清单（宣传材料 / 考勤 / 考察 / 复盘，逐类计数与去向）→ ② 上传/核对（链到既有本位面）→
+  ③ 提交归档（`BranchService.archiveActivity` 单一写口，失败给原因与「重试归档」）。
+  入口：活动详情标题行、支书台代归档浮窗行、组织台活动进度行。
+- **U-35 组长台「我的任务」**：新增 `entries/tabs/leader/my-tasks-section.js`，挂在「本组活动」页顶部；
+  复用 `listMyProjectTasks` / `completeMyProjectTask`，空态给「查看本组活动」；
+  文案写明与「待办」页待办聚合的口径区别。
+- **证据门**（未改代码、未放宽守卫）：结论写入 `.ctx/AUDIT_ROUND1_WORKBENCH_STRUCTURE.md §6.4`；
+  U-10 量测与 page-sweep 原始日志落 `.ctx/evidence/2026-10-19/`。
+- 新增常驻守卫 `server/test/round1-remediation-guard.test.mjs`（R1–R5），并登记进 `test:daily`。
+- 页面台账同步：`README-server.md §3.1` 26 页（18 根 + 8 台）· `README.md` 同数 · `SNAPSHOT.md` v60；
+  版本戳升 `20261018q`。
+
+### 三、读数
+
+- 新增守卫 R1–R5 **5/5**；`version-stamp` 28/28；`import-path-guard`、`link-target-guard`、`doc-consistency`、
+  `module-load`（E1 202/202、E2 15 页、E3、E4）、`button-system-guard`、`spacing-scale-guard`、
+  `text-tier-guard`、`copy-length-guard`、`link-integrity`、`write-path-guard` 等静态组全绿。
+- U-10 真机量测（带 Tailwind，14 组）：768 / 1024 两档全部无页面级横向溢出；6 台页签条可滚且右箭头可见，
+  党委台 5 枚不滚；末枚页签在未滚动时露出半枚（即可发现提示）。
+- page-sweep 回归：`tab=67 · 列表=56（>10 行 19）· 矩阵=2 · 手写表格=9`；红灯仍为 P7 / S1 / S19，均已归因（§6.4）。
+
+### 四、边界
+
+- P7 仍红：根因是 `styles.css:4490-4508` 的 12px / 14px 视觉档与 13px 单档契约冲突；本批只归因，未改字号、未放宽 P7。
+- S1 仍红：矩阵样本基线 4 已过期（现默认视图 2 个）；本批未下调基线。
+- S19 仍红：根 `README.md` 措辞与解析锚点不一致（「角色工作台页签」vs「逐枚页签」）；本批未改措辞。
+- U-01 判为确认缺口（服务层有写口、页面零消费、通知深链落空），建议 Round 2 落地；本批未改代码。
+- 未改后端 API / 数据模型 / 权限链；U-53 未实施；未写日常 `server/data.db`。
+
+## 批次 485（2026-10-19）：Round 2 最小三成本审查 ＋ P7/S1/S19 收口 ＋ U-01 闭环 ＋ 无障碍机检
+
+### 一、判据
+
+- 四轮程序：Round 1 修复批完成后启动 Round 2；lens＝`better-layout` / `better-accessibility` / `better-writing`。
+- 支书四项裁定：P7 回退 13px；S1 矩阵基线下调 2；U-01 完整闭环；Round 2 七台全量三 lens。
+- 支书执行纪律：不确定处集中呈报；需要做的事不拖；长远动作必须落盘。
+
+### 二、动作
+
+- **三路独立审查**：三个子代理各自只加载一个 skill、不互读报告，覆盖 7 台 + 关键公共页；产出 12 / 12 / 12 条发现，写入 `.ctx/AUDIT_ROUND2_MINIMUM_THREE_COSTS.md`（共识 5 条 / 分歧 3 条 / 归属表）。
+- **P7**：`styles.css` 表头与首列回退 13px（保留 600 / neutral-600 / 500）；新增 `table-type-scale-guard`；P7 判据未动。
+- **S1 / S19**：`page-sweep` 矩阵门槛 4 → 2（注释写实测与范围未缩水）；根 `README.md` 页签句对齐「逐枚页签（共 67 个）」。
+- **U-01**：支书台工作概况新增周期归档待审卡（通过 / 退回，退回走 `openModal` 填说明）；消费 `?highlight=` 定位高亮；`work-overview`「待我处理」并入待审计数（同源 `listPeriodicArchivesPendingReview`）。
+- **无障碍机检**：新增 `server/test/a11y-tree.test.mjs`（CDP Accessibility 树）：dialog 名称、焦点入正文、Esc 回还、专班/项目分工 `pressed`、会议活动 combobox、空态出口可聚焦。
+- **审计本批修**：P1「支部分工」`pageSize` 20→10；写入活动浮窗两处折叠改 `button aria-expanded`；看板卡 keydown 排除内层控件；浮窗关闭补 `aria-label`；矩阵行首 `th scope=row` + 分页 `nav/aria-current`；考勤队列复选框/下拉补对象名；详情缺对象补下一步；材料页第②步改「核对材料」并去内部话术；用户可见省略号统一「…」。
+- 版本戳 `20261018q` → `20261018r`；新增测试登记：`table-type-scale-guard` → `test:daily`，`a11y-tree` → `test:core`。
+
+### 三、读数
+
+- 静态 + a11y 组 **75/75 通过**（version-stamp 28、module-load E1 202/202、E2 15 页、E3/E4、round1 R1–R5、a11y A1–A6、table-type P7、doc-consistency S1–S21、button/spacing/text/import-path）。
+- page-sweep **16/16 通过**：P1/P2/P3/P7/S1/S2/S3/S19/S20/S21/S22/S23 全绿；`tab=67 · 列表=56（>10 行 19）· 矩阵=2 · 手写表格=9`。
+- U-01 真机 e2e PASS：待审卡出现、highlight 高亮、通过后状态 approved（本地 + 服务端）、「待我处理」33 → 32；退回 `reviewNote` 落库。
+- AX 读数：dialog「发布专班招募」；焦点 `INPUT#rf-name`；Esc 后焦点回 `#btn-publish-tf`；三视图 pressed true/false；会议活动 combobox name「会议活动 *」。
+
+### 四、边界
+
+- 三路分歧按原样保留：一页多筛选作用域、宽表卡式化、技术信息折叠——归 Round 3/4，不预写默认值。
+- 转 Round 3：L-A01/A02/A04/A05/A06/A07/A10/A11/A12、L-B01/B04/B07/B08/B10/B12、L-C02/C03/C04/C05/C06/C07/C08/C09。
+- 转 Round 4：L-A03/A08、L-B02、L-C11。
+- 未启动 Round 3/4；未改后端 API / 数据模型 / 权限链；未实施 U-53；未为 P7 改 DESIGN_SYSTEM 的 13px 单档契约。
+
+## 批次 486（2026-10-19）：首页抬头、金色与按钮体例回归修复 ＋ 党委台支部摘要/名册
+
+### 一、判据
+
+- 支书实机审查：首页组织名与党徽消失；按钮变丑、半透明主题底消失；金色变成深棕；党委台支部数据疑似未同步。
+- 支书裁定：首页恢复「党徽 + 动态支部名」；按钮恢复半透明主题底；默认金改 `#F5C518`；党委台「摘要列 + 行内名册」两者都做。
+- 支书要求 Round 3 / Round 4 合并为 1 轮；另行落盘 Part B。
+
+### 二、动作
+
+- **首页抬头**：`index.html` 恢复党徽 48px + `#dashboard-hero-title` + 副标题；`main-entry.js` 用 `getHeaderTitle` 按登录态写动态支部名，不写死示例名。
+- **金色**：默认金 `#A16207` → `#F5C518`；新增 `accentButtonColors(hex)`，亮色（金）用本色底 + `#1F2937` 深字，暗色（红/绿/蓝）用 58% 压深底 + 白字；四个注入点同步写 `--app-accent-strong` / `--app-accent-ink` / `--app-accent-text`。
+- **按钮体例**：`.btn-accent` 用 `--app-accent-ink`；`.btn-accent-soft` 用 `--app-accent-text`；恢复 4 处高频动作（支书代归档/代提交复盘、组长发布本组通知、成员勾掉）为半透明主题底。
+- **党委台**：`branches-tab.js` 补「活动 / 专班 / 通知」三列（`11 / 35`、`4 / 8`、`14`），每行「名册」行内展开 50 人；保留「查看该支部」。实测确认无计算盲区：API summary 已含 50/21/35/8/14。
+- **守卫**：新增 `ui-home-hero`、`gold-accent-guard`、`party-branch-directory-guard`；同步批次 480 的 U8（允许抬头 H2/党徽）与批次 467-471 遗留的 `party-workbench-layout` 版心断言。
+- 版本戳 `20261018r → 20261018s`。
+
+### 三、读数
+
+- 静态 + a11y 组 **97/97 通过**（version-stamp 28、doc-consistency S1–S21、module-load 202/202、a11y A1–A6、hex H1–H5、button B1–B8、three new guards）。
+- 首页 1440 / 390：党徽在、标题「光华管理学院本科生党支部」、副标题「组织生活与工作台账」；`:root --app-accent=#F5C518 / --app-accent-ink=#1F2937`；无横向溢出。
+- 党委台 e2e：表头 9 列；行文本 `50 人 / 21 人 / 11 / 35 / 4 / 8 / 14`；名册展开 50 行，100 个档案链接。
+- 证据：`.ctx/evidence/2026-10-19/part-a-home-1440.png`、`part-a-home-390.png`、`part-a-workbench-1440.png`。
+
+### 四、边界
+
+- 本批只修回归与党委台摘要/名册；Part B（Round 3+4 合并审查）另行推进。
+- 未改后端 API / 数据模型 / 权限链；党委台只读边界不变；未撤销四类按钮体系；未改首页区块顺序。
+
+## 批次 487（2026-10-19）：Round 3 + Round 4 合并审查与修复（batch 1 / 2A / 2B / 2C）
+
+### 一、判据
+
+- 支书裁定「Round 3 与 Round 4 两轮合为 1 轮」；六路 lens 一次进场、一份报告、一次 frontier。
+- frontier 裁定：R4 后端安全四项**本批授权修**；结构前端做「待办 + 日历 + 专班卡 + 页头/外壳统一」；表单做「openFormModal + 四表单」；金色文字/焦点**全面压深**。
+- 支书强调「该落盘的一定要落盘清楚」：裁定与批次写入 `.trae/specs/restore-homepage-brand-and-gold/spec.md §7`、`tasks.md` Part B、`.ctx/AUDIT_ROUND3_4_COMBINED.md` 三处同源。
+
+### 二、审查
+
+- Round 3：`frontend-design` / `design-with-taste` / `uicraft`；Round 4：`fullstack-developer` / `domain-modeling` / `backend-architect`（后两者本机未注册，按同等口径完成并登记）。
+- 六路共 60 条发现；合并报告 `.ctx/AUDIT_ROUND3_4_COMBINED.md`：共识 5、分歧 3、待裁定 4。
+- 关键共识：金色文字/焦点必须压深；表单 label/必填体系最大面积债；错误语义三套并存；日历空态/默认日期/键盘同源；后端快照写门最高风险。
+
+### 三、修复
+
+**batch 1（低风险高价值）**
+- R3-D01 金色文字/chip/链接/焦点统一 `--app-accent-text`，新增 G5 守卫禁止裸 `var(--app-accent)` 作 color/outline。
+- R4-F01 `openModal/openFormModal` title/label/placeholder/value/option/错误文本全量 `escHtml`。
+- R3-U01 组织台「发布招募」移出 `.ws-tab-scroll` 到固定右格；R3-U03 页签渲染失败统一错误卡 + 重试；R3-D05 激活页签 scrollIntoView。
+- R3-F02 通知条目 keydown 排除内层按钮 + 铃铛 aria-label 带未读数。
+- R3-U07 材料页四类行恒显示 + 步骤条单调；R3-U08「今天」错误态不冒充空态。
+- R3-F09 组长台卡点前置；R3-F10 成员台活动行动作换行。
+- R4-F07 日历空态/图例槽位兜底；R3-F03/B01 日历活动条目与日期格键盘可达。
+- R4-D07 DATA_MODEL 持久化字段 35→41、补 6 工作区域、personId、pending-approval/low。
+
+**batch 2A（后端安全，已授权）**
+- R4-B01/F02 快照写穿口按资源复算角色门；有门集合保留无删除权存量行；notices 新增/修改分权。
+- R4-B02 `branchId:null` 与历史缺字段分离；新增 `requireAssignedBranch`，IAAA 绑定端点显式放行。
+- R4-B03 非党委账号 `users.patch` 只允许 `role`，拒绝 branchId/transferOut/studentId/developStage 夹带。
+- R4-B04 思想汇报读口按 `canReadThoughtReport` 过滤（本人或支委层）。
+- R4-F03 通知组织者写口前后端同源；R4-F04 attendances/inspections/todos 非支委层行级投影。
+- 新增 `round3-4-security.test.mjs` 9/9：伪造考勤/通知/成员字段/思想汇报均被拒，正常保存不受误伤。
+
+**batch 2B（表单/错误/金色文字）**
+- `openFormModal` 生成 `${id}-${key}` 稳定 id、label for、required/aria-required、错误行/aria-invalid/aria-describedby、聚焦首错；默认按钮「保存」。
+- 四个重点表单补 for/id：写活动、成员流入库、工作分工、复盘批注。
+- 新增 `describeWriteError`（401/403/404/409/428/408/5xx/网络分流）；api-adapter 优先服务端 body.error；party-config/calendar 统一文案，界面不再显示 HTTP 数字。
+- nudge 标题动词化（写入/上传/催办/赋权）；浮窗 150ms 淡出且 inert/焦点立即回还；活动详情 7 处原生 confirm/prompt 迁 openModal。
+
+**batch 2C（结构性前端）**
+- 待办窄屏详情列 `order-first` + 选中 scrollIntoView + `aria-live`；删除重复「待办」H2。
+- 组织台专班卡 `role=button`/`tabindex`/aria-label + Enter/Space，内层按钮不劫持。
+- `work-overview` 概况标题参数化：支书「全局概况」、成员「我的工作概况」、其余「工作概况」；六台保留页头 H2，党委台 80rem 宽表例外。
+
+**测试口径同步**
+- `ui-primary-cta-color` C3 改按「亮色本色+深字 / 暗色 58% 压深+白字」；`ui-phase2-urgent` U8 改按概况标题参数化与待办去重。
+- `form-loop-registry` 新增「周期归档退回说明」校验点，`SITES_BASELINE 120→121`，README 同步 121/101。
+- `multi-user-write` 顺序写改用 todos（活动创建已收口语义入口）；`permission-gate` 跨支部成员改用党委账号 + branchId 回读。两项均为既有测试口径同步，已先在工作树基线复现为红。
+
+### 四、读数
+
+- 新守卫：`round3-4-batch1` 10/10、`modal-escape` 3/3、`frontend-foundations` 7/7、`round3-4-security` 9/9、`structural-round3` 5/5。
+- page-sweep **16/16** 全绿（P1/P2/P3/P7/S1/S2/S3/S19/S20/S21/S22/S23）。
+- doc-consistency 22/22、module-load E1 202/202、a11y-tree A1–A6、multi-user-write 3/3、permission-gate 13/13。
+- 版本戳 `20261018s → 20261018t`。
+
+### 五、边界
+
+- 转后续：R4-D02 活动创建事务 / D03 状态机 / D04 考察父键 / D05 考察写门；R4-F06/B09 宽表卡式化；R4-B07 mock 支部过滤。
+- 未改数据模型 / 表结构；未重写 68 页签；未恢复 `.btn-ghost` 为动作按钮。
+- 临时脚本与 worktree 已删除；证据落 `.ctx/evidence/2026-10-19/`。
+
+## 批次 488（2026-10-19）：信息架构批判性专项 ＋ Phase 0 前置正确性 ＋ H21.3
+
+### 一、判据
+
+- 支书指出：入口太多、界面太多，没有各尽其责又相互配合；tab/卡片是否需要、链接是否指向真正该去的地方；要求审查更有批判性。
+- 支书裁定：Phase 0 先做 D05 考察写门、D02 活动创建事务、D03 状态按 UI 反推、mock 多支部过滤；D04 单独迁移 spec；宽表等 IA 裁定。
+- 数据适配功能：DB/枚举/mock 以页面功能与权限判据为准，旧数据不构成保留理由；mock 可删改。
+- sample-diff 五样本全部按建议通过；frontier 裁定 tab 五项全做、链接建新契约、交接四项优先、卡片低风险六项。
+
+### 二、Phase 0 动作
+
+- **D05 考察写门**：前端 `canUploadInspection` deny-by-default；确认/删除同口径；服务端 `RESOURCE_WRITE_GATE.inspections` 补 create/patch/delete 门；`recordedBy` 强制会话人、禁止改写。新增 `inspection-write-gate` 4/4。
+- **D02 活动创建事务**：mock `createActivity` 改走 `MockAdapter.activities.create`，活动 + 工作组 + 成员同一写入；新增 `activity-creation-transaction` 3/3（含幂等）。
+- **D03 状态反推**：建立 `TaskforceStatus` / `WorkgroupStatus` 七态 canonical 集合；三分类（未开放只读 / 在办可写 / 终态只读）；`in_progress→active`、未知→`draft`；授权/迁移/服务端写口全引用单一源；新增 `state-enum-guard` 6/6。
+- **mock 多支部过滤**：`list({branchId})` 覆盖 users/activities/notices/attendances/todos/assignments；不传保持全量；新增 `mock-multi-branch` 3/3。
+- **D04**：另开 `.trae/specs/migrate-inspection-workgroup-key/`（只落盘，不实施）。
+
+### 三、IA 专项动作
+
+- **矩阵**：新增 `server/scripts/ia-inventory.mjs`，生成 `.ctx/IA_INVENTORY.md`：7 台 / 67 tab / 100 卡片 / 124 链接 / 28 深链；两次运行 SHA256 一致。
+- **六路审查**：Tab 必要性（A）、卡片顺序（B）、链接真值（C）、跨角色交接（D）、最小三成本（E）、数据/路由真值（F）；共 60+ 条发现，落 `.ctx/AUDIT_IA_CRITICAL.md`。
+- **链接真值**：`.ctx/IA_LINK_TRUTH.md` 材料闭环逐角色落点表 + 12 条高风险链接；真机确认组长从材料页点「考勤」→ 被弹回 `leader.html`，tab/对象丢失。
+- **sample-diff 五样本**：C01 角色化考勤链接、A01 纪检 tf-view 删除、B01 今天写入口移出日程卡、D04 auto 不派生待办、F01 改读 navTarget；全部按建议通过。
+- **learned rules**：AP-IA-01..05 落 `content/05_ai_coding/PARALLEL_SKILL_AUDIT.md §11.3` 与 `CLAUDE.md H21.3`。
+- **修复 spec**：`.trae/specs/ia-critical-remediation/`：tab 67→60、链接契约 `resolveMaterialHref` + `focusActivityId` + `[data-act-id]` + `highlightType`、交接 D01/D06/D04/D08、卡片六项。
+
+### 四、读数
+
+- Phase 0：inspection-write-gate 4/4、activity-creation-transaction 3/3、state-enum-guard 6/6、mock-multi-branch 3/3。
+- IA：ia-critical-guard 5/5；doc-consistency 22/22；claude-parallel-audit 7/7；frontmatter-freshness / version-stamp 全绿。
+- 真机：组长 `activity-materials.html?id=act-1` → 考勤链接 `disc.html?tab=attendance` → 最终 `workspace/leader.html`（确认弹回）。
+- 版本戳 `20261018t → 20261018u`。
+
+### 五、边界
+
+- 修复 spec 已落盘但**未实施**：tab 合并、链接契约、交接四项、卡片六项留下一批。
+- D04 workgroupId 迁移只落 spec，未改数据结构。
+- 宽表卡式化未提前做；A08 / B01/B03/B04/B05/B09/B11 / D02/D03/D05/D07/D09/D12 留后续。
+- 未改表结构；未重写 68 页签；临时脚本已删除。
+
+## 批次 489（2026-10-20）：IA 批判性修复落地（tab 合并 / 链接真值 / 交接 / 卡片）
+
+### 一、判据
+
+- 执行 `.trae/specs/ia-critical-remediation/`：tab 合并、链接真值契约、通知深链、跨角色交接、卡片顺序五组一次落地。
+- 数据适配功能原则继续生效：页签与落点以角色职责为准，mock / 旧数据不为保留而削足适履。
+- 实测修正：A 项实际减 5 个页签（67 → 62）；A03 只收段、A07 只并页内区，不减页签（原估 60 已改准）。
+
+### 二、Tab 合并（67 → 62）
+
+- A01 纪检撤 `tf-view`（9→8）：专班深链改 `taskforce.html?id=`；旧 `?tab=tf-view` → `calendar`。
+- A02 宣传撤 `tf-view`（9→8）：旧 id → `kanban`；专班查看入口改项目看板。
+- A03 组长 `tf-view` 只留「其他党小组」只读段；活动深链仍落 `write`。
+- A04 组织撤 `tf-view`（11→10）：对象级专班并「专班管理」，加「只看我参与的」筛选并消费 `highlightTfId`。
+- A05 党委撤 `monitor`：待批复列 + 支部筛选并入「支部管理」，隐私边界（不展示个人档案）保留。
+- A06 党委撤 `governance-overview`：登录落点改 `review`；「组织待补」并「支部管理」组织提醒列。
+- A07 宣传看板归档桶并「档案归档」；看板只留在办。
+- 别名单一源 `workspace-shell.js::_legacyTabAliases`；新增 `tab-alias-guard` 3/3。
+
+### 三、链接真值
+
+- 新增 `docs/src/core/domain/material-links.js`：`resolveMaterialHref` 四行 × 七类角色；`null` 行只出纯文本交接，不造假入口。
+- 壳新增 `focusActivityId` 契约 + `[data-act-id]` 锚点 + `highlightType`（p/a/t/rq/tr/mcr/group）+ 3s 清理；隐藏/失效 tab 出可见提示。
+- 材料页：C10 referrer 返回、C11 复用 `isActivityVisibleTo`、C12 入口只对支委/本场组织者；C06/C07/C08/C09 按角色或详情页落点。
+- 通知深链：F01 读 `ctx.navTarget.hl`；F02 落 `thought-report.html?id=`；F03 补 `data-mc-request-id`；F04/F05 受众与落点按角色；F06 明确「类型优先、targetUrl 兜底」；F07 首页不拼 `tab`；F12 跨台按接收人角色。
+
+### 四、交接与卡片
+
+- D01 考察确认白名单 + 禁止自确认 + `confirmedBy/At`；服务端快照写穿复算。
+- D06 会议考勤明确「录入即确认」，自录不再回待确认队列；异常记录仍进队列。
+- D04 auto 交接不派生待办、confirm 幂等、徽章改「已自动送达」。
+- D08 组织委员正式纳入考察写门（建档代录），前端与服务端同源。
+- B02 今天日程合卡；B06 待赋权可点；B07 归档动作前置 / 展示下沉；B08 已提交折叠；B10 复盘并卡；B12 名册统计进卡头。
+
+### 五、读数
+
+- `npm run test:daily`：**1239 / 1239 通过，0 断言失败**。
+- page-sweep：16/16，**SWEEP.tabs=62**（12/10/8/8/10/11/3）。
+- doc-consistency 21/21；a11y-tree 6/6；material-link-truth 6/6；notice-deeplink-guard 通过；handoff-state-guard 10/10；tab-alias-guard 3/3。
+- 版本戳 `20261018u → 20261019a`。
+
+### 六、边界
+
+- 未改表结构；未重写全部页签；宽表卡式化未提前做。
+- 留后续：A08、B01/B03/B04/B05/B09/B11、D02/D03/D05/D07/D09/D12。
+- 既有 `doc-line-ref` 漂移与 27 条 test:daily 存量红灯同批归因并修复（含 IAAA 待归属目录端点、登录前置守卫 2 处真实缺陷）。
+
+## 批次 490（2026-10-20）：考察记录父键迁移（R4-D04）
+
+### 一、判据
+
+- 执行 `.trae/specs/migrate-inspection-workgroup-key/`：专班考察以 `sourceName` 字符串挂载，改名即断链、同名串数据。
+- 不改表结构：考察记录是 JSON 行，只补 `workgroupId` / `taskforceId` / `legacy` 字段。
+
+### 二、动作
+
+- 写口：专班考察必写 `workgroupId`（活动类写 `activityId`）；`sourceName` 降为展示快照。
+- 查询/成员/支部校验/确认/删除写门全部改走 `workgroupId`；名称匹配删除。
+- 回填：新增 `inspection-migrate.js`（纯函数 + 可注入），按 `workgroupId → taskforceId → 唯一 sourceName → 唯一工作组名` 回填；同名多专班不猜，标 `legacy:true` 只读。mock hydrate 与 server migration v5 同源，幂等可重跑并输出回填率。
+- 权限：`legacy:true` 确认/删除 403；新建缺父键 400；PATCH 禁止改写父键/`legacy`。
+
+### 三、读数
+
+- 同名专班样本：`total=3 filled=1 legacy=1 rate=66.7%`；第二次 `filled=0 legacy=1`（幂等）。
+- 种子专班考察：`rate=100.0%`；剥离父键重跑 `filled=2`。
+- `inspection-workgroup-key` 5/5；连同 inspection / handoff / module-load / parity / db-migration / doc 守卫共 84 项全绿。
+- 版本戳 `20261019a → 20261020a`。
+
+### 四、边界
+
+- 未改 SQLite 表结构；未做 UI 改版；未混入 IA 修复。
+- 极旧客户端缓存的迁移前记录若整表快照回写，会因父键不可改写被 403；正常 `init()` 后带新键。
+- `legacy` 记录需人工补键或重录，系统不猜同名专班归属。
+
+## 批次 491（2026-10-20）：`.ctx` 瘦身——审计产物归位与准入边界
+
+### 一、判据
+
+- 支书：不是 `.ctx` 要退出，而是 `.ctx` 顶层文件太多、正在变成筐；审计知识要「各找各的地方」——原则找原则、方法找方法、执行沿革进 `logs/archive/`。
+- sample-diff 四样本（IA 审计原文 / 链接真值 / 生成矩阵 / 67 页签草稿）全部按「结论沉淀 + 原文归档」通过。
+
+### 二、动作
+
+- **归档**：7 份审计原文与 `snapshots/` 移入 `.ctx/logs/archive/2026-10/`；`.ctx` 顶层只剩白名单 7 项（`logs/`、`evidence/` + 5 份台账）。
+- **沉淀**：
+  - 链接真值 → `content/04_web_design/module/MODULE_UI_DESIGN.md §五`（四行角色表 + `focusActivityId` / `highlightType` / `[data-act-id]`）；
+  - `.ctx` 准入与三去向 → `CLAUDE.md H26.3`；
+  - 记录生命周期 → `OPERATIONS_GUIDE §10.7`（含 2026-10 归档索引）；
+  - `.ctx` 树与归档规则 → `DOC_MAP` / `ARCHITECTURE`；
+  - 守卫纪律 → `TEST_AND_VERIFICATION`「守卫不得依赖一次性审计产物」；
+  - CTX-01..04 四条 Boolean 规则 → `PARALLEL_SKILL_AUDIT §11.3`；
+  - 「审计产物不是知识」→ `content/insights/工程与AI协作的全栈实践.md`。
+- **路径**：`ia-inventory.mjs` 输出改归档；`ia-critical-guard` / `workbench-audit-coverage` / `doc-consistency` 改读归档路径；新增 `ctx-hygiene-guard`（白名单 / 顶层禁入 / 归档指针 / 生成脚本）。
+- **修**：D04 迁移 v5 在无 `inspections` 表的最小库上先判表存在再回填；README-server 的 `SCHEMA_VERSION` 行号随迁改准。
+
+### 三、读数
+
+- `.ctx` 顶层：7 项（无 `AUDIT_*` / `IA_*` / `*_DRAFT.md` / `snapshots/`）。
+- `ia-inventory.mjs` 重跑：7 台 / 62 tab / 89 卡片 / 114 链接 / 17 深链，写入归档路径。
+- `npm run test:daily`：**1248 / 1248 通过，0 断言失败**。
+- doc-consistency / doc-line-ref / timestamps-note-guard / frontmatter-freshness / ia-critical-guard / workbench-audit-coverage / ctx-hygiene-guard 全绿。
+- 版本戳 `20261020a → 20261020b`。
+
+### 四、边界
+
+- 未删除 `.ctx`；未搬走 `logs/`、`evidence/` 与 5 份台账；未复制审计原文。
+- 历史日志正文不改写（append-only）；旧路径仅作为历史记录存在。
+- 未改业务功能 / 表结构。
+
+## 批次 492（2026-10-20）：界面细化 × 两轮平行审查（Phase 1）
+
+### 一、判据
+
+- 支书真机审阅五处：hero 副标题冗余、「组织事实」占版面、`dt` 不可理解、`span` 此地无银、档案编号仍是 p*。
+- 两轮平行审查常设化：前端「繁」重点查**无动作的冗余注释**；数据生命周期查**空值字段是否有写入口 / 工作流硬编码 / mock 漂移**。
+- sample-diff 四样本（六台页头副标题、概况内部术语、复盘父键、支委名单兜底）全部按建议通过。
+
+### 二、界面
+
+- 删除首页 hero 副标题与六台页头职责副标题。
+- 「组织事实」压成一行小标签 + 两列事实；`dt` 改「阶段起始日」；删「仅新增时采集 / 同时是登录账号 / 系统随阶段变更落档」。
+- 空值统一 `—`；档案编号改学号，页面不再显示 `p*`。
+- 下拉：补大字号菜单/分组/搜索/空态、暗色选中态、禁用与 0 选项空态。
+- 概况内部词改业务词：`逾期（全口径）`→`逾期`、`条线`→`工作分工`、`最近卡点`→`待处理`。
+
+### 三、数据
+
+- 支委名单/纪检委员 id 全部按角色派生；删除 16 处 `|| 'pN'` 兜底（失效会话不猜人）。
+- 新成员 `id = 学号`；复盘/经验沉淀补 `workgroupId/taskforceId` 并按父键比对，mock 同步，回填 100%。
+- 删除守卫覆盖 32 个域；`committeeBroadcasts` 停止写入（送达由 notice 承担）。
+- mock：通知补受众/支部/来源；考勤支委名单改派生；账号注释改真。
+
+### 四、读数
+
+- `ui-redundancy-guard` 2/2、`ui-select-appearance-guard` 6/6、`data-lifecycle-guard` 7/7。
+- copy-screen 11/11（`disc::复盘` 17.7 重新登记、`disc::考勤管理` C3=2 结构性重复）；page-sweep 16/16（62 tab）；a11y 4 通过 1 跳过。
+- doc-consistency / doc-line-ref / person / workbench / ui 系列全绿。
+- 版本戳 `20261020b → 20261020c`。
+
+### 五、边界
+
+- 未做全库主键迁移（Phase 2）；存量 p* 仍在 mock/历史记录中。
+- 审计原文落 `.ctx/logs/archive/2026-10/{UI_REDUNDANCY_AUDIT,DATA_LIFECYCLE_AUDIT}.md`。
+
+## 批次 493（2026-10-20）：第二轮平行审查（前端冗余 × 数据生命周期）
+
+### 一、判据
+
+- 支书：「这个工作还要再来一轮」；前端重点仍是「此地无银三百两」的注释；数据侧追空值写入口、工作流硬编码、mock 漂移，不削足适履。
+- sample-diff 三样本（出勤率分母、按人已读、在办单一源）全部按建议通过；范围定为 **P1 + P2 全修**。
+
+### 二、前端
+
+- 48/48 处置：删同义标题/正文（今天·组员进展）、三层重复口径（组织考察）、108 字说明（组长考察）、102 字打回规则（组长考勤）、重复「只读」、补课双层说明、常驻「† 口径」、6 处「应到」口径、向导里的源码路径与 `npm test`。
+- 帮助页删除「从界面搬来」的版本叙事；`title=` 字段定义与跨页逐字说明按类清理。
+- 守卫：copy-length 6/6、copy-master 4/4、copy-screen 11/11、text-tier 4/4、ui-redundancy 2/2、a11y 6/6、page-sweep 21/21。
+
+### 三、数据
+
+- 出勤率：分母改应到人次（roster/在册/报名），未录为「待录入」；4 人应到 2 人到场 = 50%（旧实现 100%）。
+- 通知已读按人：共享行改 `reads[]`，旧全局 `read` 一次性回填当前人后删除；铃铛/首页/待办按当前人算。
+- 在办单一源：`isActivityInProgress` / `isTaskforceActiveStatus`；草稿与已取消不计；9 处手写状态集改引用。
+- 宣传上传人、宣传判据、`u_exec` 兜底、IAAA 建号（id=学号）、待归属支部权限（null 不回落 br-b1）全部改派生/拒绝。
+- mock 收口：在办活动 11→1、在办专班 4→1；假待办删除；过期 recruiting 收口；归档记录改 `ArchiveStore` 持久化；p4 补账号。
+- 剩余 p*：416 处 / 18 文件（Top：activities 103、inspection 84、attendance 63、people 52），留待学号迁移批。
+
+### 四、读数
+
+- `npm run test:daily`：**1271 / 1271 通过，0 断言失败**。
+- doc-line-ref 6/6、doc-consistency 21/21、timestamps/frontmatter 10/10。
+- 版本戳 `20261020c → 20261020d`。
+
+### 五、边界
+
+- 未做 p* → 学号主键迁移（BREAKING，下一批）。
+- 未改表结构；通知已读为 JSON 行内 `reads[]`；归档记录落既有 `archive_records`。
+
+## 批次 494（2026-10-20）：学号/工号作为人员唯一主键（BREAKING）
+
+### 一、判据
+
+- 支书：学号就是唯一 id；教工/党委用工号；界面与数据都不再保留 p*。
+- 迁移可重跑、有映射率；无法映射即回滚，不静默丢。
+
+### 二、动作
+
+- 映射单一源：`server/migrations/legacy-person-ids.js`（迁移专用）+ 前端 deprecated 兼容表；业务禁止引用。
+- mock/seed 全量重写：people / accounts / activities / attendance / inspection / review / taskforces / seed / thought-reports / party-groups / notices / branches / workgroup-seed-sync / issues.json。
+- migration v7：先改 `users.id`，再改 sessions/attachments 与全部资源、语义、工作组 JSON 表；支持复合 id（`p11:issue-002`、`wgm-…-p13`）；单事务、失败回滚、输出映射率。
+- 登录：会话 id=学号；旧 p* 仅作登录别名（一次 warn），不落库。
+- 旧链接 `person.html?id=p13` 一次 replaceState 改学号；历史 localStorage 迁移。
+
+### 三、读数
+
+- 映射率 **51/51（100%）**；v7 重跑 `total=0 mapped=0`（幂等）。
+- `test:daily`：**1278 / 1278 通过，0 断言失败**。
+- 生产代码与数据残留 p*：**0**；仅两份迁移映射文件保留。
+- 版本戳 `20261020d → 20261020e`。
+
+### 四、边界
+
+- 未改业务语义与页签；迁移失败整批回滚。
+- 测试夹具保留少量旧 id（登录别名/合成账号），守卫只约束种子与业务代码。
+
+## 批次 495（2026-10-20）：全栈审查 P0/P1 修复
+
+### 一、P0
+
+- v7 迁移 import 复核已存在（真实旧库 p13 实测 6/6 映射）。
+- **快照写穿不再删他人记录**：`resources/index.js` 快照合并阶段保留「本人不可见的同支部存量行」，覆盖 todos / thoughtReports / attendances / inspections；组长考勤保存不再被误判为删除他组行。
+
+### 二、P1
+
+- 通知 `reads[]` 只允许追加/删除本人；私信与定向通知读口按 `canReadNotice` 投影。
+- 14 个未设门资源补角色/归属门，未知门 deny-by-default。
+- 移出成员在 users / PersonStore / roster 统一剔除（治理侧可显式读历史）。
+- 交接/成员确认/考勤/考察/授权审计登记 `trackWrite`，成功提示＝已落库。
+- 本地缓存整库 + person 键空间迁移；`SEED_DATA_VERSION` 升。
+- 迁移支持 `personStages` 对象键、数字 id、`p_<uuid>`，并做目标主键冲突预检（失败零写入）。
+
+### 三、读数
+
+- `test:daily`：**1287 / 1287 通过，0 断言失败**。
+- 新增 `r3-data-permission-regression` 9 条并登记。
+- 版本戳 `20261020e → 20261020f`。
+
+### 四、边界
+
+- 延期：issues 受众投影、任命事务化、ownBranch 去回落、归档语义端点、角色级未读。
+- 未做 UI 版式修改；未改学号主键口径。
+
+## 批次 496（2026-10-20）：第三轮 IA 六判例 + 浮窗全局体例
+
+### 一、判例
+
+- 支书：对发现的问题要有全局性观点，不局限角落；模式沉淀为专项审查的问题意识。
+- 六条判例：日历右栏、浮窗、思想汇报、专班名实、我的处置、名册筛选。
+
+### 二、落地
+
+- **浮窗统一体例**：`modal.js` 提供 header 纯文本 / body fieldset / sticky footer / `min(92dvh,900px)` + safe-area / `onCancel` / 失败留在浮窗；34 个调用点套用，28 个改统一 footer；R3-01 标题转义、R3-02 取消残留 pendingAuth、R3-09 只读去重、R3-10 移动端单列。
+- **日历右栏**：改「当日清单 + 就地动作」（查看详情 / 写纪要 / 登记考勤 / 空日新建）；保留左日历右详情裁定。
+- **思想汇报**：档案补「思想汇报」段；组织台收窄为「未交 / 待初阅 / 待补充」例外清单，删全量矩阵。
+- **专班名实**：专班页只留专班工作组 / 报名总表；活动工作组迁到组织台「活动日历 · 活动进展」；「确认完成」不再假称归档。
+- **我的处置**：待我处理 / 我已处理（折叠）两段；指标控件区分筛选 chip 与页内链接；动作列无动作留空。
+- **名册筛选**：4 组 ≈20 chip → 1 搜索 + 3 下拉；人维表其它页面同步回下拉；新增 `roster-filter-guard`。
+
+### 三、经验沉淀
+
+- `DESIGN_SYSTEM §4.27 浮窗体例 / §4.28 筛选形态 / §10.7 承载面唯一性`。
+- `PARALLEL_SKILL_AUDIT §12 全局性审查五问 + 审查触发清单`。
+- `TEST_AND_VERIFICATION` 承载形态守卫；`insights` 补「经验各得其所」「全局性审查优先于角落补丁」。
+
+### 四、读数
+
+- `test:daily`：**1298 / 1298 通过，0 断言失败**（Playwright debug.log 沙箱拒绝属环境）。
+- 收基线：hex 文件 75→74、自由间距 35→0；未上调任何基线。
+- 版本戳 `20261020f → 20261020g`。
+
+### 五、边界
+
+- 未改学号主键与业务权限；`secretary-delegate-review`、归档 overlay、内联表单仍为已知例外。
+
+## 批次 497（2026-10-21）：浮层承载面专项
+
+### 一、判据
+
+- 交接把浮窗问题列为「三处已知例外」；实测是**第二实现**：`ui-modal-form-guard` 的 G3 只扫 `openModal(`，自建 overlay 不在扫描面内，白名单为空造成「零例外」的假绿。
+- 同一病灶 ≥3 处 ⇒ 按 `PARALLEL_SKILL_AUDIT §12.2` 升级专项、按 `H31` 先改引擎与守卫再回收调用点，不做逐页补丁。
+- 前置：批次 496 改了组织委员 SOP 正文未刷 frontmatter，基线实为 1297/1298（非交接所称 1298/1298）；本批先补刷 `R-83` 再开工。
+
+### 二、动作
+
+- **守卫**：新增 G6/G7 —— `hasFixedOverlay` 识别自建全屏层；对话框一律走 `openModal`，白名单只留 `data-adapter` 的连接失败拦截层（role=alert、非表单）。改造前实测报出 **7 文件 / 12 处**。
+- **迁移 12 处**：7 个写入口（上传宣传材料 / 文件外发 / 上传照片 / 标注照片 / 写支部文件 / 上传新版 / 一键汇报）+ 5 个只读确认（参与者摘要 / 关闭受阻 / 结束工作组 / 表决结果 / 归档详情）。写入口的取消 / Esc / 遮罩统一清 objectURL 与未提交选择。
+- **复盘表单**：`renderActivityReviewFormHtml` 增加 `showActions`（默认 true，页面内联不变）；代提交复盘的「提交复盘」进 footer。
+- **文档**：`DESIGN_SYSTEM §4.27 M-4` 高度口径改准（85dvh → `min(92dvh, 900px)`，与代码和 G2 同源）。
+
+### 三、读数
+
+- `ui-modal-form-guard` 7/7；`module-load` 4/4；`a11y-tree` 5/5；`page-sweep` 16/16。
+- `form-loop` 台账 S0–S6 全绿；本批触碰的四条流程（`prop-archive-upload` / `prop-photo-wall-upload` / `page-refs-doc-write` / `page-refs-publish-version`）全绿。台账 21 条行号随位移改准。
+- `npm run test:daily`：**1300 / 1300 通过，0 断言失败**。
+- 版本戳 `20261020g → 20261020h`。
+
+### 四、边界
+
+- `form-loop` 全量仍有存量红（跨台 snapshot 403、专班进度写 403 等），非本批引入；`report-entry-one-click` 的红点是页面加载期 403，不是浮窗校验。
+- 未改权限、数据模型、字段与校验；只改承载形态、动作位置与关闭语义。
+- 原生 `window.confirm/alert`（制度停用 / 启用）不在 `openModal` 体系内，本批未动，留待专项裁定。
+
+## 批次 498（2026-10-21）：汇报父键与反馈受众投影
+
+### 一、判据（支书四项裁定 · grill 两轮收敛）
+
+- 一键汇报**可选父键**：从活动 / 专班上下文发起时自动带入；从顶栏发起可选，不选＝个人汇报。不强制、不造虚拟工作组。
+- 「支部向党委报告」**不并入**一键汇报（受众 / 生命周期 / 权限三处不同），只给入口链接。
+- 内部汇报可见面＝**支书层 + 当事人**（汇报人 / 被请求人 / 被指派人），不因父键扩散给该组组织者；隐藏反馈＝**支书层 + 处置人**。
+- 宣传台**撤掉「归档活动」**（宣传委员归档材料；活动归档归支书 / 本场组织者）；党委未选支部时**拒绝写入并提示先选支部**。
+
+### 二、动作
+
+- 受众判据单一源：新增 `docs/src/core/domain/issue-visibility.js::canReadIssue`；前端全部读口经 `_visibleIssues`，服务端 `GET /issues` 同源投影。此前服务端只按支部过滤，同支部任一成员可直连读到他人汇报与隐藏行。
+- 汇报父键：`Issue` 增 `workgroupId / sourceType / sourceId / sourceName`；`submitReport` 在 API 形态改走 `POST /issues`（原实现只写本机缓存，刷新即丢）；服务端按工作组复核支部归属并现取源对象名称，跨支部 403、不存在 400。
+- 前端：汇报浮窗增「关联事项（可选）」分组选择器（活动 / 专班），活动详情与专班详情页按 URL 上下文预选；支书层可见「去上报党委」链接。
+- 宣传台：移除归档活动按钮与写链，保留只读清单并写明归档归属。
+- 支部归属：`ownBranch / memberBranch` 去 `br-b1` 回落；创建、快照、成员校验、应到名单等写门在无支部时统一返回「请先选择支部后再操作」。
+- 顺带修复（真机暴露）：① 角色级未读保留键 `secretary-review` 落库（F-17），提交汇报不再因 issue-unread 400 误报失败；② 通知快照门把 `undefined` 与 `false` 视为同值，消除普通成员整行回传被误判为「改了通知」；③ 待办过期刷新只写本人行，不再替其他角色落库。
+
+### 三、读数
+
+- `npm run test:daily`：**1309 / 1309 通过，0 断言失败**。
+- 新增 `issue-audience-projection` 4 条、`workgroup-branch-scope` 3 条、`archive-action-guard` 2 条，全绿；`issue-branch` / `state-enum-guard` / `perf-version-token` / `doc-line-ref` / `version-stamp` 同步改准后全绿。
+- `page-sweep` 16/16（62 tab）。
+- 真机：成员台一键汇报选「7月党小组会」→ 落库 `workgroupId=wg-activity-act-1 / sourceType=activity / sourceName=7月党小组会`，支书侧可按工作组分流。
+- 版本戳 `20261020h → 20261021a`。
+
+### 四、边界与坑
+
+- **未修**：visitor 页仍会替其他角色派生待办（如宣传委员的新闻稿待办），行级写门 403 会让同一次 flush 的成功提示显示「未保存成功」。本批只把「过期刷新」限制为本人行；跨角色派生链需下一批专项（改为本角色派生或服务端派生）。
+- 演示库 `data.db` 的 seed todo 行一次性对齐（只更新既有 seed id，不新增行）；新库由种子直接生成，无此问题。
+- 未扫前端 43 处 `|| 'br-b1'` 读侧兼容；本批只收服务端写门（数据生命周期专项继续）。
+- **版本戳坑**：批次 497 提交后，工作区 7 个被编辑文件被旧缓冲回写为 `20261020g`（提交内是 h）。`version-stamp` 在脏工作树下抓到；本批已校正并复跑。改动后若编辑器回写旧缓冲，提交前须再跑一次 `version-stamp`。
+
+### 五、sample-diff 四样本（AI 假设 → 支书意图）
+
+| # | AI 假设 | 支书意图 | 偏差类型 | 可复用规则（Boolean） |
+|---|---|---|---|---|
+| 1 | 浮窗是 3 个点状例外 | 12 处第二实现，应升专项 | scope_narrowing | IF 同一对象出现第二实现 THEN 先扩守卫再迁移，不把例外写成白名单 |
+| 2 | 汇报应统一挂工作组 | 可选父键＋上下文自动带 | scope_widening | IF 父键非必需 THEN 有上下文带入、无上下文留空，禁止造虚拟父键 |
+| 3 | 为减少入口把党委报告并入汇报 | 不并入，只给链接 | definition_mismatch | IF 受众/生命周期/权限三处不同 THEN 不合并对象，只给入口链接 |
+| 4 | 保留宣传台归档并授权 | 撤掉，归支书/组织者 | priority_inversion | IF 母本只给材料归档 THEN 不扩活动归档；先查母本再定权限 |
+
+## 批次 499（2026-10-21）：跨组活动落实到党小组与跨组招募协调
+
+### 一、判据
+
+- 支书补充口径：跨组活动也要落实到党小组；组织者一般本组，深度参与者按需跨组招募，由组织委员协调。
+- 旧模型把 cross-group 定义为 hostGroupId=null，跨组活动因而没有组织落点；本次按定义失配处理，先改字段、校验、迁移，再改页面。
+- 支委会 / 党员大会 / 党课是支部级法定会议，单列 organizingScope='branch'，不硬塞党小组；旧客户端不传 scope 时按 type 推断。
+
+### 二、动作
+
+- 数据与服务端：新增 ACTIVITY_SCOPES / isBranchLevelActivity；activityCreationDeny 改为 branch / party-group / cross-group 三分支；非支部级活动责任组必填。validAssignments 与单加成员同判据：跨党小组深参必须有 recruitmentScope='cross-group' 与协调人，否则 403；通过后成员行与活动 assignments 镜像写 crossGroup/coordinatedBy。新增 POST /workgroups/:id/coordinate，仅组织委员 / 支书 / 副支书可标记协调完成或撤销，不授予活动写权。
+- 迁移 v8：支部级会议重分类为 branch；有 hostGroupId 的旧行补齐承办范围；其余跨组无责任组行标 legacyHostGroup，不猜测归属；重复执行幂等。
+- 前端：支书台写入表单新增责任党小组必选、跨组招募勾选、组织委员协调人、组织者跨组说明（软提示＋留痕）；组织者候选默认只显示责任党小组，可关闭以选他组。组长台对跨组深参自动标记 recruitmentScope 并指定组织委员。组织台「活动日历」新增「跨组招募待协调」与「待补责任党小组」两段，可就地标记协调 / 补选责任组。
+- mock / 种子：normalizeSeedActivityOrganizing 作为单一源补齐种子字段；MockAdapter 创建、批量保存、单加成员、协调接口与 server 同口径。
+- 文档：SECRETARY_DIRECTIVES 新增 P-018（逐字原话）；DATA_MODEL §2.1/§2.3；组织委员指南与党小组组长手册；PARALLEL_SKILL_AUDIT §11.3 AP-IA-09/10；CLAUDE.md 乙部登记 B-499-1…10。
+
+### 三、读数
+
+- npm run test:daily：**1318 / 1318 通过，0 断言失败**（Playwright debug.log 沙箱拒绝属环境）。
+- 新增 activity-party-group-assignment（5 条）与 cross-group-recruitment（3 条）全绿；db-migration 新增 M7（v8 重分类 / legacy / 幂等）全绿。
+- mock-multi-branch M3 两形态逐值一致；text-tier / validation-site / doc-line-ref / doc-consistency / timestamps-note 全绿。
+- page-sweep 七台全部 tab 通过；version-stamp 全站单一戳。
+- 真机：支书台创建「跨组活动真机验证 499」→ 未选责任组被拒「请选择责任党小组」→ 选第一党小组 → 关闭「只显示责任党小组」→ 选第二党小组宋佳宁为深参 → 自动勾选跨组招募 → 创建成功；活动详情显示「跨党小组深度参与者 1 人：宋佳宁（第二党小组 · 跨组）」。
+- 版本戳 20261021a → 20261021b。
+
+### 四、边界
+
+- 组织者候选默认过滤只在支书台写入表单；组长台仍以已选组织者提示为准。
+- 跨组招募标记目前随活动创建写入，创建后不再改写 recruitmentScope；历史行补选只补责任组，不改招募范围。
+- 组织台协调面在 API 形态需异步补拉工作组 / 成员（不进整库快照），已就地重绘，不触发整页循环渲染；协调动作本身由 cross-group-recruitment 服务端测试覆盖，页面渲染由 page-sweep 组织台全 tab 覆盖。
+
+### 五、sample-diff 四样本（AI 假设 → 支书意图）
+
+| # | AI 假设 | 支书意图 | 偏差类型 | 可复用规则（Boolean） |
+|---|---|---|---|---|
+| 1 | 跨组承办＝没有承办党小组 | 跨组是参与/招募范围，活动仍须唯一责任组 | definition_mismatch | IF 活动允许跨组参与 THEN 仍必须有唯一责任党小组 |
+| 2 | 支委会也塞一个党小组 | 支部级法定会议单列 branch | scope_mismatch | IF 支委会/党员大会/党课 THEN organizingScope='branch'，不指定责任组 |
+| 3 | 深参能选到人即可入组 | 跨组深参必须由组织委员协调并留痕 | permission_gap | IF 成员所属组≠责任组 THEN 必须有 recruitmentScope + 协调人，否则拒绝 |
+| 4 | 组织委员协调顺带获得活动写权 | 协调只标记状态，不扩权 | permission_creep | IF 协调动作 THEN 只写协调状态，不改成员关系、不授予活动写权 |
+
+## 批次 500（2026-10-21）：十项专项一次收口（跨角色待办 · 汇报受众 · mock 真值 · seed 生命周期 · 任命事务化 · IA · 宽表 · 跨组 · 测试分层 · 第五轮审查）
+
+### 一、判据
+
+- 支书本轮指令：**全局考虑、一推到底、不分批**；daily 收敛到约 4 分钟、重活移 precommit；数据生命周期取**默认安全模式**（cleanup 默认 dry-run、不自动删业务记录）；IA 剩余项并入本轮；第五轮「脏乱繁」审查在功能改造后立即审、共识项本轮直接修。
+- 汇报受众按支书原话改为**支委层＋当事人＋该工作组组织者＋汇报人所在党小组组长**（覆盖批次 498 的「支书层」口径）。
+- 派生待办口径：**谁的动作给谁生成待办**是正当业务，不得因行级写门把「A 的动作给 B 生成待办」整批拒掉；但他人已有待办只能本人推进。
+
+### 二、动作
+
+1. **跨角色待办（B-499-3）**：`VisitorTodoDeriver` 三条链补 `personId`、去重 / 清理按人收敛；API 形态 `seedTodos` 只补当前角色；`completeBySource` 加 `{personId, role}` 作用域；`refreshExpiredStatus` 无会话不写。服务端 `todo-row` 门收敛为：本人 / 本角色可推进；**新建**派生行按「支委层代办」或「来源可证」（`sourceType + sourceId + actionKey` 指向真实且同支部的 notices/activities/taskforces）放行，`patch` / `delete` 仍只归本人。
+2. **汇报受众与汇总（B-499-2）**：`canReadIssue(row, viewer, access)` 注入组织者 / 组长解析；服务端 `GET /issues` 同判据；活动 / 专班页「本工作组汇报汇总」、组长台按党小组汇总，复用 `report-inbox` + `filterReportsByScope`，空态 `—`。
+3. **mock↔API 结构真值（B-499-4）**：新增 `seed-manifest.js` 与 `mock-api-parity-structure.test.mjs`（33 表 / 495 行 / 4773 字段，白名单仅 `issues.anonymous` 4 条）；修活动种子缺 `visibility/createdBy/createdAt`。
+4. **seed 漂移与生命周期（B-499-8）**：`seed-drift.js` 纯函数 + 服务端 `seed_meta`（v9）+ 启动幂等修复；`cleanup.mjs` 默认 dry-run、`--keep 14`；`rebuild-demo.mjs` 生产拒绝 demo；`backup.json` 清单；归档单删联动物理文件（仍被引用则保留）。
+5. **任命事务化（B-499-9）**：新增 `POST /branches/:id/appointments` 与 `/branch-commissioners`，单事务 + `expectedSecretaryId` 409 + `appointmentId` 幂等；前端一次调用、不再吞错；mock 快照失败恢复。
+6. **IA 剩余项（B-499-7）**：「我的处置」两段、逐行已读；条线动作列并入待处理；6 处浮窗设置链统一「制度参数 →」；`activity.html` 接受 `id|activityId`；思想汇报完整记录落 `person.html`；重跑 `ia-inventory`（7 台 / 62 tab / 103 卡片 / 117 链接）。
+7. **宽表窄屏（B-499-10）**：关系矩阵 ≤640px 卡式堆叠、考勤汇总与成员流动台账 `data-responsive="cards"` + `data-label`、打印恢复表格；设计系统 §4.10/§4.20 改准。
+8. **跨组余项（B-499-1）**：新增 `cross-group-activity-probe`；补真机流程 `secretary-calendar-write-scope`（主题党日 → 组织落点），「组织者跨组说明」「org 补选责任组」「向导首任支书」三条改 `machine:false` 并逐条写 reason。
+9. **测试分层（B-499-5）**：`test-tier-registry.mjs` 三层登记（daily 209 / precommit 36 / weekly 2）+ `test-tier-guard` T1–T6；daily 由 454s 降至 74s。
+10. **第五轮审查（B-499-6）**：三路 lens 报告归档 `AUDIT_R5_A/B/C`；共识 P1 本轮修复（skip link / `<base>` 相对链接 / custom-select 键盘与标签 / 焦点环 / 62 tab 页题 H2 / 13 处宽表卡式化）；并修 e2e 暴露的链路：`auth-audit` 按角色跳过、党委未选支部不发快照、`link-integrity` 锚点解析 bug、`block-entry-guard` 改用支书令牌、三会一课模板基数 4→3。
+
+### 三、读数
+
+- `npm run test:daily`：**1388 / 1388 通过、0 失败，74s**（静态断言预算 1377 → **1383**，同批写明理由）。
+- precommit 全量（`SWEEP_SHARD=all`）：**非 e2e 通道 1388 / 1388 全绿**；e2e-A **52 / 58**（5 失败、1 skip）；e2e-B **175 / 179**（4 失败）。
+- 版本戳 20261021b → **20261021c**；`version-stamp` / `page-sweep` / `doc-line-ref`（R1–R6）/ `doc-consistency`（S1–S21）/ `timestamps-note-guard` 全绿。
+- `ia-inventory` 重跑：workspaces=7 · tabs=62 · cards=103 · sections=112 · links=117。
+
+### 四、边界（如实）
+
+- **e2e 仍有 9 条红（均为存量 / 测试与产品口径脱节，非本轮十项的功能未做）**：
+  - e2e-B 4 条：`A5 项目分工空态出口`、`S3 工作流块配置区`（`#pc-wizard-host` 已随「支部配置」并入 `branch-config.html`，党委台 tab 不再挂载）、`secretary-todo-reject-reason`（49s 等不到可作废待办）、`org-roster-member-add-save`。
+  - e2e-A 5 条：`核心闭环议程→归档`、`B3-1 补课回写`（造考勤前置失败）、`党委支部配置向导`（同上 `#pc-wizard-host` 落点）、`判据A 跨标签`（前置写入未落服务端）、`判据D 断服静默`（前一条留下 pending-write ⇒ 探测被跳过，测试自污染）。
+  - 已在本轮修掉的同类：`block-entry-guard` 4/4 全绿、`e2e-login` `t is not defined`、`link-integrity` 锚点解析、`wizard` 两条、`party-committee`/`visitor` 全量真机流程。
+- **派生行「来源可证」只证明来源存在**：伪造仍可往待办列表塞一条（不能改他人已有待办的状态）。彻底收口需服务端派生，登记为下一轮专项。
+- **党委未选支部时快照不发送**：原本必 403；现按本地缓存保留、选支后由读口刷新。这是「不把 403 误报成保存失败」，不是补齐党委跨支部批处理。
+- **三条 `machine:false`**（组织者跨组说明 / org 补选责任组 / 向导首任支书）均有真机探针证据与 reason，不是删判据。
+- **`test:precommit` 的 e2e 双道并行共享 :3000**：`判据D` 这类「前一条留 pending-write」的用例对执行顺序敏感，属测试自污染，未在本轮改其夹具。
+
+### 五、sample-diff 四样本（AI 假设 → 支书意图）
+
+| # | AI 假设 | 支书意图 | 偏差类型 | 可复用规则（Boolean） |
+|---|---|---|---|---|
+| 1 | 行级写门只认本人 / 本角色，跨角色派生一律拒 | 业务动作生成的待办必须能落库；只有「推进他人待办」才该拒 | permission_scope_mismatch | IF 待办行是新建 AND（支委代办 OR 来源记录可证同支部）THEN 放行；IF patch/delete 他人行 THEN 拒 |
+| 2 | 用户看不到就说明没写 | 成员页成功却提示失败＝**写链整批被拒**，读投影不是主因 | symptom_misread | IF 成功提示被反转 THEN 先查同批 snapshot 是否 403，不先改读口 |
+| 3 | mock 数据只要「看起来像」就行 | mock 必须是真实 API 结构的真值呈现 | definition_mismatch | IF mock 与 API 同表 THEN 字段集合与类型逐项相等，差异只许进白名单并写理由 |
+| 4 | 空白即「不可自动化」，登记 machine:false 即可 | 不可自动化必须有**探针证据**；能点开的就补真机 | evidence_gap | IF 校验点标 machine:false THEN 附真机探针结论与不可达原因；能造前置的必须补流程 |
+
+***
+
+## 批次 501（2026-10-22）：推翻 448 写门（党委代配置）＋ precommit 存量九红清零
+
+### 一、判据
+
+- 支书选中批次 500「未完成（已登记，未粉饰）」的 9 条 e2e 红，指令「规划并执行！！」，并按 `/plan` 走 `sample-diff-learning` + `grill-me`。
+- 复议 `D-448`（党委不能代支部选配）时支书原话：「党委就是 管理后台，这么看来，是否应当推翻448裁定内容？」⇒ 新裁定 `D-825` / `P-020`：党委可代支部配置，支部保留覆盖权，留痕标 `byRole`。
+- 九条里只有 1 条属产品能力（党委代配置），其余 8 条按现行产品口径改准测试；不改批次 500 已收口的十项口径。
+
+### 二、动作
+
+1. **党委代配置（产品）**：删 `server/routes/resources/index.js` 的 `isStaff` 403 分支；留痕行补 `byRole`；配置回滚端点同口径（删「党委不能回滚 modules/blocks」分支）；向导 chip / 排序 / 能力包对党委只在「未选支部」时只读；`_resetModules` 去掉党委早退；`branch.js` 注释、`SYSTEM_ROLE_PERMISSION §9h`、`README-server` §2.2.8 / §6 改准。
+2. **向导读不到完整 config（真机定位）**：`GET /branches` 对未选中支部只投影 summary（仅 `headerTitle`）⇒ 保存成功但重进读不到。新增 `branch.js::ensureBranchConfigLoaded`，向导挂载与切支部前按支部补取完整行；不把全量配置广播给目录页。
+3. **八条测试改准**：`agenda-closure`（`party-group-meeting`→`branch-committee`，`apiLogin` 补口令）、`b3-1`（支书令牌造「支部党员大会」，纪检令牌登考勤 / 补课，自清也用支书令牌）、`multi-tab`（判据A 改用宣传委员；判据D 先 `waitIdle`+`settle`+`waitIdle`）、`a11y-tree` A5（该 tab 空态是 `projects-tab.js` 自定义文案，改断言 `/暂无|无匹配/`）、form-loop 两条（待办退回原因改由客户端确认队列播种；名册新增补必填学号，计数改 `countUp:1`）、`module-config-e2e` / `block-config-ui-e2e`（改签到 `/wizard.html?branch=br-b1`）。
+4. **随全量验证暴露并按 D-825 改准的三条非 e2e**：`workgroup-api`（党委改选能力包 → 200 + `byRole`）、`policy-config` ⑦（党委写 modules/blocks 与回滚 → 200）、`participant-scope`（党委写 blocks → 200）；`block-entry-guard-e2e` 四行旧注释改准（仍走支部写口）。
+5. **台账行号同步**：`org-setup-wizard.js` 增行后两处校验点漂移（源支部 1434→1449、首任支书 396→401）；`resources/index.js` 净 −1 行后 `README-server` 四处引用改签（1124→1123、1107-1138→1106-1137、1214→1213、1087-1098→1086-1097）。
+
+### 三、读数
+
+- 逐项：`module-config-e2e` 1/1、`block-config-ui-e2e` 1/1、`agenda-closure` 1/1、`b3-1` 1/1、`multi-tab-sync` 6/6、`a11y-tree` 5/5、`workflow-block-config` + `block-field-policy` + `module-config` 8/8。
+- form-loop（`FORM_LOOP_PAGES=secretary,org` + `FORM_LOOP_TABS=待办,成员名册`）：S0–S7 台账守卫 + 4 条机器流程 + 1 条成功路径 = **13/13**。
+- `npm run test:daily`：**1386 / 1386 通过、0 失败**（91s）。
+- `SWEEP_SHARD=all node run-suite.mjs`（带 `DISABLE_PASSWORD_CHECK=1` / `DEMO_READONLY=0`）：**[node] 1388 / 1388**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 179 / 179** ⇒ **三通道全绿、0 失败**；墙钟 **1226.7s**（略超 H25 全量 ≤1200s 的纪律线 26.7s，如实登记：本批新增的真机与守卫往返所致，未删判据换时间）。
+- 版本戳 20261021c → **20261022a**；`version-stamp` / `doc-line-ref`（R1–R6）/ `doc-consistency`（S1–S21）/ `timestamps-note-guard` / `frontmatter-freshness` 全绿。
+- 环境坑（如实）：① 直跑 `node --test` 未带 `DISABLE_PASSWORD_CHECK=1` 时，`module-config` / `workflow-block-config` / `block-entry-guard-e2e` / `todo-role-write-gate` 会因缺口令 401 假红；未带 `DEMO_READONLY=0` 时 `issue-anonymity` 的 mock 分支会按「浏览模式不可写」报错——两者都是脚本档既有注入，非判据面变化。② 全量首跑误用裸 `node run-suite.mjs`（未注入上述两个变量）⇒ 三通道各 1 红，带变量复跑全绿。
+
+### 四、边界（如实）
+
+- 党委代配置不改变「支部自治」：支部后写覆盖；`byRole` 只标来源，不做「谁优先」的自动裁决。
+- 目录页仍是 summary：向导是**按支部补取**，不是把跨支部配置一次性下发。
+- `b3-1` 依赖 `:3000` 外部 server（既有口径），本轮按运行中的实例验证并自清。
+
+### 五、sample-diff 三样本（AI 假设 → 支书意图）
+
+| # | AI 假设 | 支书意图 | 偏差类型 | 可复用规则（Boolean） |
+|---|---|---|---|---|
+| 1 | 448 写门是「支部自治」的制度表达，应当遵守 | 党委就是管理后台，后台必须能代办 | principle_misread | IF 该角色是本系统的运维后台 THEN 允许代配置，但留痕来源并保留下级覆盖权 |
+| 2 | 服务端 PATCH 200 且库里已写 ⇒ 保存链没问题 | 真实根因是读投影只给 summary，向导没补取 | evidence_gap | IF 写成功但重进读不到 THEN 先查读投影范围，不先改写链 |
+| 3 | 红项多半要放开产品才能过 | 九条里八条是测试与现行口径脱节 | attribution_error | IF 红项定级 THEN 先判「产品能力缺失 or 测试口径过期」，只有前者改产品 |
+
+***
+
+## 批次 502（2026-10-22）：第六、七轮专项审查 ＋ 跨组「不是第三落点」落地
+
+### 一、判据
+
+- 支书：这样的审查还要走**至少 3–4 轮**；本轮先做两轮——① 前端脏乱繁复审，重点「繁」里的**此地无银式注释**；② 数据生命周期（空值字段要有改写入口、工作流硬编码要计算/派生、mock 跟代码走、**不削足适履**）。
+- 支书追加必须落实：**「跨组活动同样落实承办党小组；组织者一般来自承办组，深度参与者可以跨组招募，由组织委员协调。」**
+- 同时要求：未完成工作继续推进、多问、先盘点遗留。审查按 `sample-diff-learning` 出样本表，口径拿不准处用 `AskUserQuestion` 呈报（本轮四问：学号写口、副组长写权、缺省支部、向导定位）。
+
+### 二、动作
+
+1. **跨组不是第三落点（`D-826`，BREAKING）**：`ACTIVITY_SCOPES` 生产路径只产出 `party-group` / `branch`；新增 `normalizeOrganizingScope()`；支书台非支部级固定写 `party-group`＋必选承办组，跨组只由 `recruitmentScope='cross-group'`＋协调人表达；服务端 `activityCreationDeny` 归一旧入参、新增 `activityOrganizerExceptionDeny`（他组组织者无说明 400）；迁移 **v10** 归一旧行、补招募标记与工作组镜像；组织台 / 进度 / 成员编辑器措辞统一为「承办党小组＋跨组招募」。
+2. **第六轮前端审查**：四路 lens（`frontend-design` / `design-with-taste` / `better-writing` / `web-design-guidelines`）复读 R2 与 R5 报告，产出 39 条（P1 6 / P2 12 / P3 21）；P1/P2 全部修（含向导页删内部字段名与源码路径、纪检三处长导语、我的处置空态改控件、页头与卡头同句）。
+3. **第七轮数据生命周期**：产出 36 条（P1 1 / P2 12 / P3 23）；P1 学号写口按支书选择**新建账号重命名端点**（党委专用、单事务改名＋会话＋JSON 引用＋审计），档案页学号改只读；P2 修在册备注死入口、阶段起始日不渲染/派生、撰写人默认当前人、会议类型读 policy、补课文案参数化、状态集合单一源、`enrollYear` 补 mock 与 manifest、代理 id；**`overdue` 改为按日期＋制度现算**（存储字段保留不迁移）。
+4. **支书四答落地**：副组长与组长同权（`PARTY_GROUP_LEADER_ROLES`，仍限本组）；缺省支部全量替换 **151 处 / 44 文件**并新增 `branch-id-literal-guard`；向导按产品页处理。
+5. **遗留盘点**：`CLAUDE.md` 乙部新增 `B-502-1…7`（第八轮最小三成本、第九轮功能美观＋全栈数据结构、两轮 P3、重命名边界、补课文案余项、`u_*` 口径澄清）。
+6. **文档同步**：`SECRETARY_DIRECTIVES` P-018 补 2026-10-22 原话与「跨组不是第三落点」；`DATA_MODEL` / `SYSTEM_ROLE_PERMISSION` / `COMMISSIONER_DUTY_FRAMEWORK` / SOP 母本 / `ARCHITECTURE` / `OPERATIONS_GUIDE` / `PARALLEL_SKILL_AUDIT`（AP-IA-09 改准、新增 AP-IA-16）等 14 份 content 文件同批改准。
+
+### 三、读数
+
+- `npm run test:daily`：**1396 / 1396 通过、0 失败**（93s）。
+- `SWEEP_SHARD=all`（带 `DISABLE_PASSWORD_CHECK=1` / `DEMO_READONLY=0`）：**[node] 1398 / 1398**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 179 / 179** ⇒ 三通道全绿、0 失败；墙钟 **1171.8s**（≤1200s）。
+- 守卫：`doc-consistency`（S1–S21）/ `doc-line-ref`（R1–R6）/ `link-integrity` / `timestamps-note-guard` / `frontmatter-freshness` / `version-stamp` **61/61**；`button-system-guard` B7 收口（新按钮不再写尺寸类）。
+- 迁移实测（演示库）：v10 落点归一 **14** 条、工作组镜像 **36** 条、待补承办组 **0**。
+- 版本戳 20261022b → **20261022c**。
+
+### 四、边界（如实）
+
+- **审查是抽样**：R6/R7 各 39/36 条，不承诺穷举；P3 未修、已逐条登记乙部（`B-502-3` / `B-502-4`）。
+- **`overdue` 现算后历史行会多出「超期」**（约 9 条考勤、`rev11` 复盘）：这是修正而非回归；存储字段保留、不回写不迁移。
+- **账号重命名边界**：旧 token 仍有效（不把人锁在门外）；旧 `person.html?id=旧学号` 与外链会 404；复合物理 id（如 `wgm-…-旧学号`）不重写，但其 `data.personId` 已同步（`B-502-5`）。
+- **`u_*` 是空支部基线系统账号**，不是幽灵数据：`getAll()` 保留，成员名单走 `getMembers()`（R7-30 原判据已按证据修正）。
+- **补课文案两处未接统一派生**：`disc/makeup-tab.js` 与设置页仍各写「T+7」（`B-502-6`）。
+- **stamp 事故（如实登记）**：本轮中段工作树曾出现 `?v=20261021c` 与 `20261022a` 混用（126 文件），导致一次 daily 108 假红；已用 `bump-version` 全量收口并复核旧戳 0 处（注释内历史戳除外）。
+- **form-loop 台账新增 1 处 machine:false**（组长台「请填写撰写人」），写明不新造前置的理由；`SITES_BASELINE` 125 → 126、README 计数同批改准。
+
+### 五、sample-diff 四样本（AI 假设 → 支书意图）
+
+| # | AI 假设 | 支书意图 | 偏差类型 | 可复用规则（Boolean） |
+|---|---|---|---|---|
+| 1 | `cross-group` 是第三种组织落点，带责任组就算落实 | 承办组永远唯一，跨组只是招募范围 | definition_mismatch | IF 活动非支部级 THEN 必须唯一承办组且落 `party-group`；IF 深参跨组 THEN 只写 `recruitmentScope` |
+| 2 | 学号可编辑就补个提示即可 | 主键改名必须走受控端点，同步会话与全部引用 | definition_mismatch | IF 字段是实体主键 THEN 只读；改名走单事务受控端点并写审计 |
+| 3 | 「未填写」只要有入口就算有信息 | 有入口但存不进＝死信息，按缺陷修 | symptom_misread | IF 字段可编辑 THEN 保存后读侧必须刷新；否则隐藏或标归属，不留死入口 |
+| 4 | 审查报告列出问题就算完成 | P1/P2 必须本批修，P3 要有去处 | evidence_gap | IF 审查产出 THEN P1/P2 同批修、P3 登记乙部并写清下一轮 |
+
+***
+
+## 批次 503（2026-10-22）：第八轮最小三成本 ＋ 第九轮功能/美观与全栈数据结构
+
+### 一、判据
+
+- 支书：继续走第八、九轮专项，**先并行只读审查、报告后再出 spec**，不要直接写 spec；使用 `grill-me` 与 `sample-diff-learning`。
+- 三成本口径按支书四答改准为**信息成本 / 操作成本 / 适应学习成本**（维护成本只作工程维度，指向 `ENGINEERING_ASSESSMENT §2.4`）。
+- 第八轮采「续审＋对账」（不重开旧号）；第九轮采「先诊断后实施」；数据结构采「**只诊断＋出方案**」（本轮不改 schema）。
+
+### 二、动作
+
+1. **旧账对账（先做）**：Round 2（36）＋ R5-B（22）＋ R5-C（23）＋ R6 P3（21）＋ R7 P3（23）＋ 乙部 8 项 ＝ **133 条**逐条回读当前 HEAD，判定「已消解 31 / 仍存在 101 / 已裁不做 1 / 待裁 0」；已消解项给当前 `文件:行号`，不重开。
+2. **第八轮真机两任务**（自托管 `:memory:` ＋ Playwright）：支书建活动 **5 击 / 0 页跳 / 1 签**、无 403、落库并刷新可回看；纪检确认考勤 **5 击 / 0 页跳 / 2 签**，待办**不带 id**、落地**需二次定位**，确认后 `POST /snapshot` **403** 且 UI 乐观更新、刷新回滚。
+3. **403 根因与修复（产品缺陷，非测试口径）**：快照写门把「记录人留痕」与「确认」混为一谈，而纪检委员不在上传位。按「**确认权独立于上传位**」拆开——新增 `attendanceConfirmerId/isAttendanceConfirmed/confirmAttendanceRecords`（只写 `confirmed/confirmedBy/confirmedAt`，**不动 `recordedBy`**）；服务端 `PATCH /attendances/:id` 支持确认-only（确认人取会话），快照门放行纯确认变更。
+4. **活动 ↔ 工作组同步单一投影**：新增 `activity-workgroup-sync.js`（服务端与 mock 共用）；创建 / 编辑 / 归档 / 删除四处同事务同步 `name/status/organizingScope/hostGroupId/recruitmentScope/coordinator`；**归档强制工作组 `archived`**，成员/任务/产出写口随 `workgroup.status` 拒绝。
+5. **专班成员与贡献走主源**：报名审核与代录贡献改走 `workgroups.members` / `workgroups.outputs`，`taskforces.members` 只作镜像；服务端加成员按 `personId` 合并历史 `contributions`（不再清空）。
+6. **种子修复不回滚治理结果**：`assignments / agenda / isBrand / brandName / members` 与 `confirmed/confirmedBy/confirmedAt` 移入 `seed-manifest` 的 `runtimeFields`；`agenda` 拆基底与运行时结果。
+7. **首页工作组任务装载**：`data-adapter._loadWorkgroupAux` 按首页可见组批量拉 `tasks/outputs` 并打 `workgroupAuxLoaded`；未装载显示「加载中」，不再恒为 0。
+8. **第八轮 P1 七条**：材料页一名到底（「材料与归档」）＋第②步补真实控件；纪检待办带 `focusActivityId/recordId` 直达并高亮、未命中才 toast；`function-catalog` 两条导航改准 ＋ `catalog-sync` 增断言；页签计数只由注册表现算；建活动统一「写入活动」＋无顶栏按钮时直接开表单；活动详情标题下加「下一步」动作行（按角色 1 主 2 次）。
+9. **第九轮 9B**：通知发布判返回值（失败不报成功、原位 `role="alert"`＋重试）；上报党委提交中禁用＋失败保留表单；可点容器补 `role="button" tabindex="0"`＋Enter/Space（能改 `<a>` 的改 `<a>`）；壳层刷新失败复用 `tab-bar` 错误卡；材料/档案/设置首屏 `aria-busy`＋骨架；设置卡头 H2→H3；登录错误 `role="alert"`＋`aria-invalid`＋聚焦首错；名册新增字段级错误（`aria-invalid`＋聚焦首错，同时保留 toast 以便真机探针可检测）。
+10. **守卫**：新增 `ui-motion-guard`（M1 卡片 hover 阴影/上浮＝0、M2 `transition-all`＝0、M3 非空转 3 条）；`frontend-foundations-guard` 增 F8（可点非原生控件必须键盘可达）与 F9（写口失败不得提示成功：成功 toast 必须排在失败分支之后）；均登记 `test-tier-registry`，预算 218 文件 / 1409 条并写明理由。
+11. **台账**：`CLAUDE.md` 乙部 `B-502-1` 三成本改准、新增 `B-503-1…7`；`DATA_MODEL` 补考勤确认三字段；`DESIGN_SYSTEM` 补「执行口径（批次 503）」6 条；`README*` 计数与行号改签；`SECRETARY_DIRECTIVES` P-018 补「跨组不是第三落点」；新增 `D-826`（两档落点）。
+
+### 三、读数
+
+- **第八轮真机**：支书 5 击/0 页跳/1 签/0 个 4xx；纪检 5 击/0 页跳/2 签，修前 403、修后确认落库且刷新可回看。三成本判定：A 信息中低 · 操作可接受 · 适应学习低—中；B 信息高 · 操作「表面可接受、实际不可完成」→ 修后可达 · 适应学习高→中。
+- **第九轮 9A 诊断**：16 个业务事实的权威源矩阵、10 实体 × 5 层抽查、15 条「同一事实多处写/读」、3 项 schema 方案（Todo `branchId` v11 / 分页与真实列索引 / JSON 宽表拆分触发条件）——**全部不实施**，待 P13 与多支部形态裁定。
+- `npm run test:daily`：**1412 / 1412 通过、0 失败**（75.8s）。
+- `SWEEP_SHARD=all`（带 `DISABLE_PASSWORD_CHECK=1` / `DEMO_READONLY=0`）：**[node] 1414 / 1414**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 179 / 179** ⇒ 三通道全绿、0 失败；墙钟 **1079.4s**（≤1200s）。
+- 守卫：`doc-consistency`（S1–S21）/ `doc-line-ref`（R1–R6）/ `link-integrity` / `timestamps-note-guard` / `frontmatter-freshness` / `version-stamp` 全绿。
+- 版本戳 `20261022c` → **`20261022d`**。
+- **环境坑（如实）**：全量命令最终退出码 1，来自 Playwright 沙箱拒绝写 `ms-playwright/**/debug.log`，**不是测试失败**；汇总行已打印「三通道全绿 · 0 失败」。
+- **一次瞬态红（如实）**：全量复跑中 `multi-tab-sync::判据C-②` 曾红一次（`干净集合应照常刷新` 为 false）。单跑该文件 6/6 绿，判定为**前置竞态**：满载并行时固定 1800ms 不足以等 A 的两笔写落库。处置＝把该例前置改成「有界轮询服务端真值（≤15s），超时直接红」，**判据语义一字未变**；改后单跑 6/6、全量复跑全绿。
+
+### 四、边界（如实）
+
+- **schema 未动**：本轮 0 迁移、`db-migration` 仍为 v10；Todo `branchId`、分页/索引、宽表拆分只出方案（`B-503-7` 待裁）。
+- **四项待支书裁定**（未自行改）：登录页品牌渐变 vs §5.3、首页 hero 党徽 vs §4.25、同名页签是否加范围后缀、支书台是否改名「反馈与回复」（`B-503-5`）。
+- **余项登记**：R6 P3（21）＋ R7 P3（23）＋ 第八轮 P2/P3 ＋ 帮助注释未迁移 9 处（`party-committee-meeting-entry.js`）入 `B-503-6`，下一轮实施前先重钉行号。
+- **考勤确认只负责「确认」**：不改 `recordedBy`、不代填出勤状态；确认人取会话、不信任请求体。
+- **活动↔工作组同步是镜像不是合并**：`workgroups` 为工作组事实主源，`activities` 仍保留落点字段供列表/权限读；归档只单向强制 `archived`，不反向解除。
+- **种子修复只保运行时字段**：`agenda` 的基底模板仍由种子提供，运行时结果不被 repair 覆盖；这是「不回滚治理结果」的边界，不是全表冻结。
+
+### 五、sample-diff 四样本（AI 假设 → 支书意图）
+
+| # | AI 假设 | 支书意图 | 偏差类型 | 可复用规则（Boolean） |
+|---|---|---|---|---|
+| 1 | 纪检确认失败是按钮或乐观更新问题，改 UI 反馈即可 | 确认是独立权限，不能被「上传位」绑架 | attribution_error | IF 动作失败在写门 THEN 先判「权限模型是否把两件事混成一个位」，再改文案/交互 |
+| 2 | 活动建组时同步过一次就够了 | 编辑 / 归档 / 删除都必须同事务同步，归档后工作组必须只读 | definition_mismatch | IF 两个实体互为镜像 THEN 每个写口（建/改/归档/删）都要同步，且归档是单向硬约束 |
+| 3 | 种子 repair 覆盖全部字段最省事 | 运行时产生的治理结果不能被种子回滚 | symptom_misread | IF 字段由用户行为产生 THEN 归 `runtimeFields`，repair 只重建基底 |
+| 4 | 数据结构审计发现问题就顺手改 schema | 本轮只诊断出方案，schema 变更须与部署形态同批裁定 | scope_creep | IF 变更触及 schema/索引 THEN 先出方案＋依赖清单，支书裁定后才实施 |
+
+
+
+## 批次 504（2026-10-23）：R10 数据生命周期四批 ＋ 第九轮 schema 方案落地（v11）
+
+### 一、判据
+
+- 支书：**两份 spec「一推到底」**——`advance-r10-data-lifecycle`（十轮审查 75 条，按「数据安全 → 种子 → 制度 → 空字段」四批）与 `implement-r9-schema-plan`（v11：Todo 归属 / 热表下推 / 影子拆表）。
+- 四答锁定口径：① R10 按主题全量修；② 空字段「可派生则派生，否则必须可写」；③ 种子按产品口径重做演示数据；④ 拆表只建表回填＋影子比对，**不切权威源**，但必须写清「何时可切」。
+- 另两答：Todo `branchId` 保留 `NULL`＋一个兼容周期；测试预算 3 次（定向／daily／全量）。
+
+### 二、动作（指针）
+
+1. **v11 迁移**（`server/db.js`）：`todos.branch_id` 按「父行 → 所属人 → NULL」回填并计数 `unresolved`；五张热表加 generated **VIRTUAL** 列＋复合索引；建影子子表 `agenda_items` / `taskforce_contributions` 并回填；`replaceCollectionsAtomic` 覆盖活动/专班时重建影子；导出 `rebuildShadowTables` / `compareShadowTables` / `rollbackV11`。
+2. **Todo 归属 fail-closed**：`branch-scope.js::resourceBranchId('todos')` 不再回落默认支部；新写无支部 400（服务端与 mock 同口径）；历史 `NULL` 行仅本人/同角色可见并标 `branchLegacy`；兼容期常量在 `constants.js`。
+3. **热表下推＋可选分页**：`_listRowsWithPushdown`（`branch_id = ? OR branch_id IS NULL`，JS 侧统一判归属）与 `_paginateRows`（`(updated_at,id)` 游标、无 OFFSET、`pageSize ≤ 200`）；无 `page/cursor` 时仍返回原数组。
+4. **拆表判据**：新增 `server/scripts/schema-split-readiness.mjs`（C1 规模 / C2 409 / C3 子项查询 / C4 影子 mismatch / C5 保留期）＋ `CLAUDE.md B-504-1` 逐字登记「全真才可切」。
+5. **R10 第 1 批（数据安全）**：语义写口统一 bump 集合版本（系统通知 / 通用 CRUD / 工作组成员·授权·产出 / 支部配置）；专班移出改 tombstone 保留贡献；API 形态不再注入周期归档演示种子；考察快照强制会话记录人/确认人；恢复归档回收工作组；无父键归属 fail-closed；删除幽灵操作人兜底。
+6. **R10 第 2 批（种子与 mock）**：用户可编辑字段移入 `seed-manifest::runtimeFields`；种子派生复用产品同步；删违反制度的演示行（支委会考勤、报名样本、过期窗口）；补 `confirmedBy/confirmedAt` 三件套；`_mockSeedSources` 由 manifest 生成，8 个仅服务端集合迁入 `mock/auxiliary.js` 同源。
+7. **R10 第 3 批（制度单一源）**：SOP 任务可执行（支委会不生成考勤、执行人＝本场组织者、复盘期限现算）；`definitions.js` 只存 `sopTaskId`、`SLA_HOURS` 常量化、`WORKFLOW_ROLES` 断言；`policySectionsByRole()` / `committee` sentinel / `computeRosterStats()` / `groupOptions()` / `workgroupIdFor()` 收口；考勤确认统一 `confirmedBy`，`overdue` 停写并现算。
+8. **R10 第 4 批（空字段与体验）**：发展阶段/学号必填＋字段级错误＋历史空值「未登记（可补）」；会议名单读冻结应到；组织者读 `assignments`；通知收发人读真实字段；活动详情补时间/主持人/说明；归档显示上传人；停用项给启用落点；工作组预载与首页同谓词。
+
+### 三、读数
+
+- **定向（第 1 次）**：`node --test`（R9 九件 ＋ R10 十六件）＝ **126 / 126 通过、0 失败**。
+- **daily（第 2 次）**：`npm run test:daily` 首跑 **1418 / 1421（3 红：doc-line-ref R1/R2 ＋ timestamps N2）**；修后 `doc-line-ref` ＋ `timestamps-note-guard` **13 / 13 绿**（R1/R2 重钉 README-server 的 `data-adapter.js`/`db.js` 行号；N2 压缩本批备注列）。
+- **全量（第 3 次）**：`SWEEP_SHARD=all`（`DISABLE_PASSWORD_CHECK=1` / `DEMO_READONLY=0`）＝ **[node] 1423 / 1423**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 177 / 179（2 红）**；墙钟 **1120.8s**（≤1200s）。两红＝① `page-sweep` P6：新增的「有效期」`input[type=date]` 未带 `.text-xs` ⇒ 40px（日期控件的 38px 规则挂在 `.input-flat.text-xs[type=date]` 上）；② `today-action-groups-e2e` S12：支书种子待办已按 R2-33 收口为 0，今天页走**空态**布局而空态缺「全部 ›」标题行。处置：① 补 `.text-xs`；② 空态左卡改与正常态**同一标题行**（`data-today-all="todo"` 常在）。**单文件复跑** `page-sweep` ＋ `today-action-groups-e2e` ＝ **17 / 17 绿**——**如实登记为「非单一绿跑取证」**（其余 177 件在同一次全量里已全过，本批只改这两处渲染）。
+- 单文件诊断（不计入 3 次预算）：`form-loop-sweep` 85 / 85 绿（含 S0–S7 与 27 条真机流程）、`b3-1-makeup-writeback` 1 / 1 绿。
+- 版本戳 `20261022d` → **`20261023a`**（JS 255 / HTML 26 / CSS 2 / server-test 138）。
+
+### 四、两类红（如实登记）
+
+1. **v11 首跑启动崩**：`ALTER TABLE ... ADD ... STORED` 在**已有数据**的表上被 SQLite 拒绝 ⇒ 演示库启动失败、e2e-A 8 件连带红。改为 `VIRTUAL`，并改用 `PRAGMA table_xinfo` 识别生成列（否则重跑会重复加列）；`createIndex` 加 `hasTable` 守卫（最小库没有五张热表）。
+2. **e2e-B 真机 409（自写冲突）**：本批让语义写口推进集合版本后，直连写（`POST /activities`、`POST /system-notices`）先把服务端版本推高，页面随后的整表快照仍带旧基线 ⇒ **被自己刚写的那一版挡成 409**，用户看到「数据已被他人更新」。处置（客户端两处）：① `ApiAdapter` 的 `_post/_patch/_delete` 成功后调 `advanceVersionBaselineAfterWrite`（仅当「服务端版本＝基线＋1」才推进，期间有他人写则保持旧基线、照常走冲突恢复）；② `NoticeStore.addSystem` 成功后 `adoptCollectionFromServer('notices', { keepLocal:true })`（先取版本再拉数据、按 id 合并且本机行优先，不丢本地未落库通知）。
+
+### 五、边界（如实）
+
+- **拆表未切权威源**：`agenda_items` / `taskforce_contributions` 只是影子，读写仍走 JSON；切换须 `schema-split-readiness.mjs` 五项判据全真＋`B-504-1` 裁定，本批**不切**。
+- **Todo `NULL` 兼容期**：历史 `NULL` 行仍按「本人/同角色」可见；到期常量先到者为准（下一次 schema 升级或 2026-12-31），到期后才隐藏。
+- **generated 列是 VIRTUAL 不是 STORED**：SQLite 不支持给已有数据的表加 STORED；索引与读侧下推不受影响，但**磁盘上不物化**（后续若要物化须走 12 步表重建，未做）。
+- **`overdue` 存储值保留但不写不读**：读侧一律 `isAttendanceOverdue` 现算；历史行里的旧快照不再被消费。
+- **演示种子按当前日期重做**：10 月窗口、补课相对日期等会随日期漂移的样本改为相对/现算，后续再跑不会因「今天」变化而红。
+
+### 六、sample-diff 三样本（AI 假设 → 支书意图）
+
+| # | AI 假设 | 支书意图 | 偏差类型 | 可复用规则（Boolean） |
+|---|---|---|---|---|
+| 1 | 空字段先都补成「未填写」文案，保证界面不空 | 可派生就派生，派生不了才给写入口；「未填写」不是终点 | symptom_misread | IF 字段为空 THEN 先问「能否从既有事实派生」，否则必须给可写入口 |
+| 2 | 拆表＝直接把读路径切到子表，一步到位 | 先建表回填＋影子比对，判据全真才切，且要防 AI 忘掉条件 | scope_creep | IF 变更触及权威源 THEN 先影子双写＋判据脚本＋书面切换条件，不切权威源 |
+| 3 | 语义写口推进版本是「更安全」，不需要改前端 | 前端直连写与整表快照并存 ⇒ 必须同步推进本地基线，否则用户看到假冲突 | incomplete_contract | IF 服务端新增「写后 bump」THEN 同步检查所有客户端写路径的基线与冲突恢复 |
+
+## 批次 505（2026-10-23）：组件层收敛 ＋ 反馈可信化 ＋ R10 收尾
+
+### 一、判据
+
+- 支书九条 UI 判例（黑边/缺描边/控件不一、页签分区标识、今天待办脏、summary 三角、按钮文字色与逼仄、按钮单薄、字体字号组件脏乱繁、toast/modal 功能、CLAUDE 清理）＋ 一条数据判据（R10 P3 与拆表闸门）。
+- 支书产品裁定：按钮按「外围—内围」分层（最外围实底主题色、内围浅主题底 + 深主题字、工具位白底描边、行内无框）；行内允许浅底与描边并用；尺寸 36/32/28；「太单薄」＝高度偏矮 + 描边/底色太淡。
+- 审查先行：用 `frontend-design` / `better-*` / `design-with-taste` / `uicraft` / `web-design-guidelines` 出 R11 报告，再按 P0/P1 施工。
+
+### 二、动作（指针）
+
+1. **组件层单源**：`.input-flat-sm` 补齐完整字段（32px/白底/1px `--neutral-200`/8px/13px/焦点）；日期钉高改为匹配所有 `.input-flat`；搜索类输入并入同口径；全仓删除控件上的 `text-sm`/`rounded`/无颜色 `border`；`text-[11px]` 统一并入 `text-xs`（12px，251 处 / 41 文件）。
+2. **按钮**：尺寸 36/32/28；`.btn-accent` 补同色描边；`.btn-accent-soft` 改浅主题底（36% 主题色）+ 深主题字 `--app-accent-deep`（45% 主题色 + 深中性）+ 同色描边，补 disabled 与深色主题；行内动作去死尺寸类。
+3. **页签**：`tab-bar.js` 为每个分组（含首组）渲染可见组名 + 组间 `.tab-group-sep`；≤1280 只隐藏组名。
+4. **今天/待办**：指标带白底 + 24px 数值 + 12px 标签；字号收敛 12/13/14/16，删除 11px；「逾期 > 0」才着色；空态与正常态共用标题行。
+5. **summary**：全局去 UA 三角 + 单一 chevron（展开旋转），33 处统一，删除逐点 `list-none`。
+6. **反馈可信**：`pending-writes` 增动作作用域（`beginWriteScope/settleScope`），`showToast('success', …, {scope})` 只等本动作；失败走 `describeWriteError` 分级；toast 可关闭/暂停/去重/上限 3/error 用 `role=alert`；修 `activity-entry`、`activity-materials-entry`、`issues`、`roster-tab`、`workflow/engine` 五处假成功。
+7. **弹窗**：滚动锁定、焦点陷阱、提交中禁 Esc/遮罩/×/取消 + `aria-busy`、未保存关闭确认、错误区 `role=alert`、字段错误播报与清除、`undefined` 不再当成功、移除三处原生 `prompt/confirm`。
+8. **R10 P3**：R6 21 条（已改 20、部分 1）、R7 18 条（已改 16、保留 2）、帮助注释 9 处全部迁移；对账表 `.ctx/logs/2026-10-R10_P3_CLOSURE.md`。
+9. **拆表闸门**：新增 `snapshot_conflicts` / `shadow_history` 两张懒建表与 `getConflictCounts/getShadowHistory`；脚本 C2 读真实 409、C4 读近 7 天历史（不足 7 天即 false）；C5 仍读 `B-500-4`；**未切权威源**。
+10. **CLAUDE 清理**：乙部删 10 行（8 条已完成 + `B-504-1`/`B-503-2` 先迁正文/残项）；`B-504-1` 判据归位脚本 + `DATA_MODEL §2.3.2`；保留 `B-500-4`/T-903/评议空表头。
+11. **守卫**：新增 `ui-control-system-guard`（SD-1/2/3/4/6/9/10）、`feedback-integrity`、`modal-contract`、`schema-split-gate`；更新按钮/页签/指标带/分页/字号基线；台账 26 处行号改签。
+
+### 三、读数
+
+- **定向（第 1 次）**：静态 216 / 216 绿；浏览器 `page-sweep` ＋ `form-loop-sweep` 100 / 100 绿。
+- **daily（第 2 次）**：`npm run test:daily` **1449 / 1449 绿**。
+- **全量（第 3 次）**：`SWEEP_SHARD=all`（`DISABLE_PASSWORD_CHECK=1` / `DEMO_READONLY=0`）＝ **[node] 1451 / 1451**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 179 / 179**；墙钟 **1104.4s**（≤1200s），三通道全绿、0 失败。
+- 版本戳 `20261023a` → **`20261023b`**（JS 256 / HTML 26 / CSS 2 / server-test 139）。
+
+### 四、修复过程（如实）
+
+- daily 首跑 13 红：根因是 R7-31 修复把既有成员 `2400012347` 的角色从 `participant` 改为 `deputy-leader`（并新增账号），连带权限/投影/跟进/报名等用例；**已回退**该演示数据改动，R7-31 保留到下一轮（需新增独立演示账号，不得改变既有成员角色）。
+- 其余红：新埋点用 UTC 切日（已改本地 `gateLocalDay`）、toast 常量名 `__pending__` 被判为存储键（改名 `TOAST_PENDING_ID`）、成员流动表头改为动态 `heads` 数组导致守卫解析不到列（守卫改为读 heads）、空值词表由 `return '—'` 改为 `EMPTY_TEXT`（守卫改断言常量）、6 台工作台版心例外注释被 P3 清理删除（守卫锚点，已恢复）。
+- 按钮/页签/字号基线的更新均为 spec 显式变更（36/32/28、`--text-xs` 12px、组名可见），逐条在守卫内加注释，不是为变绿削弱断言。
+
+### 五、边界（如实）
+
+- **拆表仍 NOT_READY**：C1/C2 false、C3 true、C4 因历史 `0/7` 改判 false、C5 待 `B-500-4`；读路径全部走 JSON，本轮**不切权威源**。
+- **11px 未全站清零**：今天/待办为 0；`person-edit-modal` / `taskforce-tab` / `secretary/todo-tab` 仍各有 1–4 处 11px（收基线台账保留），不在本轮 UI 面内。
+- **R7-31 保留**：副组长演示身份未新增独立账号；当前演示库无 `deputy-leader` 种子（改既有成员会破坏权限用例）。
+- **弹窗 toast 返回 Promise**：非 success 也 resolve；调用方不要依赖返回值判断业务成功，`onSubmit` 必须显式 `return true`。
+- **`--app-accent-deep` 用 `color-mix`**：不支持该函数的内核回退 `--app-accent-text`（近黑），可读但不呈主题色。
+
+### 六、sample-diff（本轮支书反馈 → 规则）
+
+见 `DESIGN_SYSTEM.md §十二.12.6`：SD-1 控件单一源；SD-2 边框必须 token；SD-3 圆角按组件角色；SD-4 summary 单一 chevron；SD-5 按钮按外围—内围；SD-6 浅主题底不得近白；SD-7 成功只属本动作；SD-8 提交中不得关闭；SD-9 组名必须可见；SD-10 正文 12/13/14/16；SD-11 删「繁」不得删防错信息。
+
+## 批次 506（2026-10-23）：主题色板 7×2×8 全手选 ＋ 密度/间距重排 ＋ hover 三态门控
+
+### 一、判据
+
+- 支书追问三件：①「淡色底 + 主题色字」的设计在 origin 里是什么、为什么现在这么脏；②列表行高与按钮高度要相对整页排布重排（`a` 太窄、`button` 太厚、`p` 贴着 `summary`）；③ hover 到底怎么落地的，要做一轮前端设计专项。
+- 支书补充三条产品取向：**党徽金 ≠ 主题金**、**主题党日 / 三会一课与主题色无关**（固定语义色）；**「沉稳但是鲜活」**（不要用艳丽/高对比把界面做成色块拼贴）；**颜色维护不过来就削减**（紫只一个、蓝只一个）。
+- 审查先行：`frontend-design` / `better-colors` / `better-ui` / `better-layout` / `web-design-guidelines` 多路并行出结论，`grill-me` 逐条压问后再落 spec。
+
+### 二、动作（指针）
+
+1. **色板 10 → 7、每部分手选**：`ACCENT_COLORS` 由「1 hex + rgba/color-mix 公式」改为「每主题 × 亮/暗 × 8 手选 hex」（`base/softBg/softBorder/softText/strongBg/strongInk/hoverBg/activeBg`）；删天蓝 / 亮蓝 / 雾紫；旧键回落 `sky|light-blue→blue`、`deep→purple`。origin 的「浅底深字」是 `color-mix(X 45%, neutral-900)`——在绿/天蓝/雾紫上只有 1.59–2.51:1，这就是「脏」的根因（`DESIGN_SYSTEM §2.11`）。
+2. **注入契约**：`theme.js::accentThemeTokenVars/applyAccentThemeTokens` 写 16 个原始变量（`--app-accent-*-light/-dark`）；`styles.css` 8 个别名负责亮/暗选边 ⇒ 切日夜不重注入；JS 侧不再把亮色 token 内联写到 `<html>`。
+3. **消费方清零**：`styles.css` 17 处主题色 `color-mix` → 0；37 处旧别名迁移；`filter/brightness`、`opacity` 作 hover → 0。JS 侧 `--acc-text-dark/-bg-dark/-border-dark` 112 处 → 0，主题色 `color-mix` → 0。
+4. **固定语义色分离**：党徽金 `#FFD700`、三会一课 `#CE1126`、主题党日亮金 + 金黄字 `#A16207` 走 `--party-*` 与固定常量，**不读任何主题 token**；活动类别 / 角色标记改 `data-tone` 类（`.badge--*` / `.tint-pill` / `.tint-section` / `.tint-fill`），只做小面积。
+5. **密度与间距**：输入 40（紧凑 34）、按钮按位置 36/32/28、列表 48/56/44、表格行 40、`summary` ≥40；高度一律「padding + 显式 line-height + 边框」推导，**不再写 `min-height`**；间距只取 4/8/12/16/24。
+6. **hover 三态**：`hoverBg` / `activeBg` / soft 三件套；全部 `:hover` 包进 `@media (hover:hover)`，Tailwind `future.hoverOnlyWhenSupported`；静态行/卡去 hover（`.card:hover` 整条退场）；行内按钮 28 视觉 + 44 命中区。
+7. **触屏底线**：≤640px 输入 ≥16px；placeholder 提到 `--neutral-500`；页码 / 图标按钮 / 主题色块命中区 ≥44。
+8. **主题选择器**：7 项 × 两枚小样（浅底深字 / 实底字），取色走 `getAccentColors`，本文件零 hex；旧键提示不写浏览器存储（未重选前每次进设置页可见）。
+9. **守卫**：新增 `theme-palette-guard`（T1–T5）、`density-spacing-guard`（D1–D7）、`hover-state-guard`（H1–H5）；更新 `theme-pref` / `gold-accent-guard` / `ui-primary-cta-color` / `ui-contrast-guard` / `ui-tab-overflow` / `button-system-guard` / `page-sweep` / `style-baseline` / `hex-hardcode-guard`（新增 H6）/ `filter-row` / `ui-control-system-guard` / `ui-select-appearance-guard` / `ui-phase2-urgent` / `workbench-revision-contract` / `dead-selector-guard` / `doc-line-ref` 等基线。
+
+### 三、读数
+
+- **定向（第 1 次）**：静态 132 / 132 绿；浏览器 `page-sweep` ＋ `form-loop-sweep` 100 例（其中 S6 台账行号 50 处漂移，改签后单跑绿）；`page-sweep` 在 CSS 死码删除后复跑 16 / 16 绿。
+- **daily（第 2 次）**：`npm run test:daily` **1467 / 1467 绿**（81.7s）。
+- **全量（第 3 次）**：`SWEEP_SHARD=all` ＝ **[node] 1469 / 1469 绿**、**[e2e-B] 179 / 179 绿**、**[e2e-A] 56 / 58**（1 红：`multi-tab-sync` 判据C-② 的前置竞态）；墙钟 **1048.9s**（≤1200s）。
+- 版本戳 `20261023b` → **`20261023c`**（JS 256 / HTML 26 / CSS 2 / server-test 141）。
+- 对比度实测：`softText/softBg` 6.88–9.33、`strongInk/strongBg` 4.64–8.64、`strongBg/卡片` 4.20–8.64、`softBg` 与白 1.11–1.15、`strongBg` 饱和度 23%–82%（全部 ≤85%）。
+
+### 四、修复过程（如实）
+
+- `page-sweep` 3 红（支书「知情查看」/ 成员「专班动态」缺页级 H2 ＋ S1 审次级联）：真因不是页头缺失，而是 `taskforce-view.js::_renderTfCard` 留着已删常量 `STATUS_COLOR` 的**死变量**——tab 渲染抛 `ReferenceError`，整块退化成「这个页签暂时没加载出来」。删该行即绿（早前一度去改 `insight-view` 的骨架重建条件，属**治错对象**，已回退）。
+- `form-loop-sweep::S6` 红：本批 CSS/JS 改动使台账 50 处行号漂移——按「实际行号」逐条改签（台账指错地方＝读的人一定读歪）。
+- daily 首跑 11 红：① `filter-row` D1/D2 仍按 38px 旧档（已抬 40）；② `ui-phase2-urgent` U2/U4 仍断言 72% `color-mix` 与 `.card:hover`（两者本批已退场）；③ `ui-select-appearance-guard` S2 仍要求深色逐点补丁（现由 `*-dark` 别名承担）；④ `ui-control-system-guard` SD-6 仍要求 `color-mix` 与独立 `--app-accent-deep`；⑤ `dead-selector-guard` 报 7 个零引用类（`tf-section-head`、`bg-gray-200`、`hover:bg-gray-50/100/200`、`bg-cyan-100`、`text-cyan-700`）——CSS 死码，**删规则**而不是登记白名单；⑥ `localstorage-key-guard` 报 `workflowos_accent_legacy_notice`——**去掉该存储**（旧键提示改为每次进设置页可见），不给本机偏好再加一个键；⑦ `doc-line-ref` 13 处 `constants.js` 行号漂移——改准；⑧ `workbench-revision-contract` 锁死了 `_renderTfCard` 的旧形参——锚点收窄为函数名，判据（人数取 `_tfAssignsOf`）不变。
+- 全量 `[e2e-A]` 唯一红（`multi-tab-sync` 判据C-②）：**整文件跑红、单跑绿**，插桩后复绿 ⇒ 是就绪竞态而非丢写。根因：该例只 `waitIdle(B)` 没等 A 的 `init()`，A 的首份快照可能晚于用例 `mockDB.push` 把两行覆盖掉。补 `waitIdle(A)` 后整文件连跑两次 6 / 6 绿（**只等就绪，判据语义一字未改**）。
+- 另发现并修正 `ui-control-system-guard` SD-2：主题色选项按钮用了裸 `border`（无同串色类）⇒ 补 `border-neutral-200`（产品代码修，不是改断言）。
+
+### 五、边界（如实）
+
+- **分页钮仍 30px**：`page-sweep::DECK.pagerH` 按 CSS 实况取 30（明载例外），本批未并入 40 控件档；若要抬到 32 须同批改 CSS ＋ DECK。
+- **Tailwind `1.5/2.5/3.5` 未清零**：全量 1056 处，本批只登记「只降不升」基线，未逐处改。
+- **兼容别名保留一轮**：`--app-accent-bg/-border/-text/-deep/strong/ink` 仍存在（指向新 token），标注「批次 506 消费方迁移后删除」；下一批可整体退场。
+- **`--acc-dot-dark` 保留**（12 处）：只管实色圆点的暗色提亮，不属于主题色三件套。
+- **`html.theme-dark` 的 token 别名仍带 `!important`**：仅作旧缓存 bundle 的兜底，`docs/src` 已无内联写入。
+- **两支固定语义色仍是 hex 字面量**（党徽金 / 党建红）：它们是合规色，不走主题注入，`hex-hardcode-guard` 按既有台账计数。
+
+### 六、sample-diff（本轮支书反馈 → 规则）
+
+见 `DESIGN_SYSTEM.md §12.7–§12.9` ＋ SD-12…SD-21：主题 token 必须手选 hex（零 `color-mix/rgba/brightness`）；`softText` 可与 `strongBg` 不同但 ≥4.5:1；行内 28 / 卡片 32 / 页面 36 且不许 `min-height` 撑高；列表 48/56/44 且文本上下 ≥8；hover 用 `hoverBg` 且必须门控；静态行/卡无 hover；标题→次级→描述 8px；党徽/活动类别色切主题前后不变；正文 4.5–9:1、`softBg` 与白 1.08–1.35、强色小面积且饱和度 ≤85%；主题选择器恰 7 项、无两个紫或两个蓝。
+
+## 批次 507（2026-10-23/24）：链接语义色与按压态统一（spec `unify-link-and-press-states`）
+
+### 一、判据
+
+- 支书两条实报：① 同一页「查看全部 →」是主题色、「完整日历 →」是蓝色 —— 两种颜色都在承担「链接」，读者无法从颜色判断语义；② 按钮点下去瞬间变红、动效太快，「要么灰、要么主题色淡色变体」。
+- 取证：`<a>` 上的 Tailwind 蓝 **132 处 / 43 文件**（`text-accent` 仅 18 处）；`--surface-active` 亮 `#FEE2E2` / 暗 `#2A1A22`（党建红浅底），**约 20 个组件**的 `:active` 共用它 ⇒ 中性按钮按下必闪红。
+- 四问四答（`grill-me` 一轮）：链接统一主题色深字；中性灰 + 主题 `activeBg`；180ms + 1px 内阴影、不加位移；细则进设计文件、CLAUDE 另立专项。
+
+### 二、动作（指针）
+
+1. **`.link` 组件类**（`styles.css`）：色 `--app-accent-soft-text`；hover 只加下划线（`underline-offset: 2px`，不改色以免掉对比度）；`:active` 同色；`focus-visible` 焦点环；`.text-accent` 保留为等价别名。
+2. **迁移**：28 文件 45 处 `<a>` ＋ 3 个根页返回链接 ＋ `activity-panel.js` 的内联 `color:var(--accent-blue)`；信息态蓝（徽章 / 状态 map / 表单控件）**保留**，逐条登记。
+3. **按压三源**：`--surface-active` → `var(--neutral-200)`（亮 `#E5E7EB` / 暗 `#334155`，删暗色红覆盖）；主题色控件（`.btn-tab.active` / `.tab-btn-active` / 主题 chip）→ `--app-accent-active-bg`；党建红实底仍 `--party-red-active`。
+4. **动效**：`--transition-press: 180ms`、`--press-shadow: inset 0 1px 2px`；聚合 `:is(…):active` 为**唯一源**，置于文件末尾；按钮族 transition 换 press 令牌。
+5. **顺带收口**：`.tab-btn-active` 的文字由 `color-mix(--tab-accent 45%, #000)` 改为 `--app-accent-soft-text`（主题色链路的最后一条运行时派生）。
+6. **守卫**：新增 `link-color-guard`（L1–L5：`<a>` 禁蓝 / `.link` 单一源 / softText / 蓝类总量棘轮）；`hover-state-guard` 增 H6/H7（按压三源 + 唯一内阴影 + 无位移）；`ui-contrast-guard::K2` 改按 softText 核对比度；删两条零引用暗色覆盖（`text-sky-600` / `hover:text-blue-800`）。
+7. **文档**：`DESIGN_SYSTEM` §12.8 补「按压三源」、新增 §12.10（链接与按压）、SD-22…SD-24。
+
+### 三、读数
+
+- **定向**：静态 112 / 112 绿；`page-sweep` 16 / 16 绿；`ui-contrast` / `theme-palette` / `dead-selector` / `doc-*` / `version-stamp` 全绿。
+- **真机 computed**：未选中页签按下 `#E5E7EB` + `inset 0 1px 2px`；选中页签按下 `#F0DFAC`（金 activeBg）+ 同款内阴影；首页四个「→」链接均为 `#6E4E08`（= `--app-accent-soft-text`）。
+- **daily**：`npm run test:daily` **1474 / 1474 绿**。
+- **全量**：`SWEEP_SHARD=all` ＝ **[node] 1476 / 1476 绿**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 179 / 179 绿**；墙钟 **1175.9s**（≤1200s）。
+  （进程退出码非零来自运行器收尾时写 Playwright 自身 `debug.log` 被判沙箱限制，三通道汇总行是「全绿」；非用例失败。）
+- 版本戳 `20261023c` → **`20261024a`**。
+
+### 四、修复过程（如实）
+
+- **内阴影首版完全没生效**：聚合规则放在文件中段，被 `.ws-tab-arrow` 等**后段同特异性** `box-shadow` 规则压掉（真机按下 shadow=none）⇒ 整段移到文件末尾，并在注释里写明原因。
+- **工作台顶栏页签漏接**：它是 `.tab-btn` / `.tab-btn-active`，不是 `.btn-tab` / `.active` ⇒ 首版按压规则没覆盖；补入聚合选择器与 `activeBg` 分支（真机复验两个态都对）。
+- **`package.json` 被写出 BOM**：PowerShell `Set-Content` 默认带 BOM，`doc-consistency::S16` 的 `JSON.parse` 直接报错 ⇒ 用 node 重写去 BOM。
+- **日期翻页**：跨零点后 `frontmatter-freshness::F2` 报 `DESIGN_SYSTEM` 表行/头注释比最后提交日旧一天 ⇒ 刷 `last_updated` 与 TIMESTAMPS 三处（含自身行）。
+
+### 五、边界（如实）
+
+- **信息态蓝保留 69 处**（徽章 / 状态色 map / `file:text-blue-600` 等）：`link-color-guard::L5` 以 70 为棘轮上限，只降不升。
+- **`--tab-accent*` 内联三件套仍在**：选中页签的底/边仍用 tab-bar.js 注入的变量（文字已改 softText）；整体并入 `--app-accent-*` 留待下一批。
+- **`.btn-outline` 的真机按压未取到**：目标按钮位于会重渲的待办列表，`mousedown` 后节点被替换（量到的是新节点）；规则层面的覆盖由 H7 选择器断言保证。
+- **点击动效只做「颜色 + 内阴影」**：按支书裁定不加位移/缩放，因此观感上的「快」改善来自 180ms 与内阴影厚度，而不是动画时长的大幅加长。
+
+### 六、sample-diff（本轮支书反馈 → 规则）
+
+- **样本 1**：同一页两个「→」两种颜色（`text-accent` vs `text-blue-600 hover:text-blue-800`）。
+  → **SD-22**：`<a>` 的链接色只能来自 `.link` / `.text-accent`（`--app-accent-soft-text`）；`<a>` 上 `text-blue/sky/indigo` 计数为 0（带 `bg-*` 的信息态按钮型链接除外）。
+  → 推广：**「同一语义两种颜色」不是审美问题，是语义层缺单一源**；新增颜色先问「它属于哪个语义」，再问「有没有既有 token」。
+- **样本 2**：点击 `btn-tab` 瞬间变红（`--surface-active: #FEE2E2`）。
+  → **SD-23**：中性控件按压 = `--surface-active`（`var(--neutral-200)`）；主题色控件 = `--app-accent-active-bg`；党建红实底 = `--party-red-active`。
+  → **SD-24**：按压反馈唯一源 `--press-shadow` + `--transition-press` 180ms；`transform/scale/translate` 计数 0。
+  → 推广：**复用令牌前先核语义**——「active 就是红」这类命名会让红泄漏到中性控件；令牌名要绑定「用途」而不是「状态词」。
+
+## 批次 508（2026-10-24）：字段外壳 ＋ 状态语言 ＋ 动效令 ＋ 数据闭环（spec `unify-field-shell-and-interaction-states`）
+
+### 一、判据
+
+- 支书六条：① 选中灰太深、且不该用灰表达选中；② 动效要按「不跳帧」的思路做可复用模块；③ 数据功能链接要落到真实信息（活动去归档落空）；④ input/select 出现黑边黄边、原生下拉不与设计统一；⑤ 深色按钮悬停变灰；⑥ 同行 `summary` 与 `button` 厚薄不一。
+- 三路并行取证（前端交互 / 颜色纪律 / 数据链路）结论：都不是单点样式问题，而是**缺一套状态语言**。硬证据：`login.html:63` 的 `.login-btn:hover` 把深色键刷成 `#F3F4F6`；`.input-flat:focus` 金边（`#FFD700`）＋ `outline:2px #1F2937` 双答；`summary` 全局 `min-height:40` 与 `.btn-sm` 28 并存；`activity-view.js:185` 恒 `neutral`；`archive.html` 不读任何 URL 参数。
+- 四问四答（`grill-me`）：选中改主题 soft；深色键 hover 同色相加深；输入控件采用 **B 字段外壳**（并求「更一般化的产品思路」）；错误仍走 toast（真正要补的是闭环）；范围＝全量收口。
+
+### 二、动作（指针）
+
+1. **状态语言**：`.list-row[data-selected]`、`.cal-cell-large.selected`（桌面/移动同源）、`.subtab[aria-selected]`、`.cs-option:focus-visible`、`.status-badge-option.is-active`、支委会步骤条 → 主题 soft 三件套；侧边栏 `.module-tab.active` 保留浅灰并注明「唯一豁免」。
+2. **实底 hover**：主题表新增第 9 token `strongHover`（7×2 手选 hex，与 `strongInk` ≥4.5:1）；`.btn-accent:hover` 同色相加深；删除 `login.html` 的 `.login-btn:hover/:active` 灰覆盖。
+3. **字段外壳**：静置 1px `--neutral-300`、悬停 `--neutral-400`、活动态＝主题色边 + 3px 主题浅晕、`:focus-visible` 才出 2px 主题色环、禁用/只读分态；删除 `:focus` 的 outline 与金边框双答；暗色 `--focus-ring` 不再用党徽金。
+4. **选择器统一**：`custom-select` 增 `data-cs-search` / `data-cs-priority="recent"` / `data-cs-limit`（搜索 / 近期优先 / 分批渲染 / 空态），`#pcm-pick` 与设置页 select 接入 `enhanceSelects`。
+5. **动效令**：`--motion-fast/base/slow/enter` + 两个 easing；`.motion-enter/.motion-collapse/.motion-press/.motion-scale-in`；折叠改 `grid-template-rows`、进度改 `transform`；裸 `0.15s` 全部并回令牌；删死 keyframes；reduced-motion 补 delay 归零；切页签不再两帧硬切。
+6. **活动类别色**：新增 `activityTypeTone(type)`（三会一课=`#CE1126`、主题党日=`#A16207`、其余中性）与 `data-tone="party-red"` 档；修 6 处「恒灰 / 兜底蓝 / 第三种红」；状态色与类别色分离（完成→success、招募→warning、打回→warning、计数→neutral）。
+7. **数据闭环**：归档页首屏空态卡、命中 `focusActivityId` 先展开折叠区、定位失败 toast；`archive.html` 消费 `?tab=`/`?id=` 并与宣传台同用 `isActivityArchived`；删掉「复盘」落 `talent/archive` 的假入口；`view` 深链改走 `navTarget`/`subview`；`person.html?personId=` 兼容；党委台补 `onNavTarget`、组织台补 `setHighlight`。
+8. **后端**：`GET /activities` 支持 `archived`/`status` SQL 下推与分页；`archive_records` 无 `activityId` 时按 `branchId` 归属（不再塞默认支部，未归属只党委可见）；归档只读子集（`activities?archived=true` + `archiveRecords`）免登录并带 `X-Data-Mode: public-archive`；补 `(archived,status)` 索引。
+9. **遗留收口**：分页钮 30→32（CSS＋`page-sweep::DECK`）；`--tab-accent*` 并入 `--app-accent-soft-*` 并删内联注入；`--app-accent-bg/-border/-text/-deep/-strong/-ink` 兼容别名退场（9 个消费方迁移）；CLAUDE 乙部删两条已完成项、增一条「只留在办项」纪律。
+
+### 三、读数
+
+- **定向**：静态 188 / 188 绿（含 4 个新守卫 28 条）；`page-sweep` 16 / 16 绿；`form-loop::S6`、`doc-line-ref`、`timestamps-note` 全绿。
+- **daily**：`npm run test:daily` **1497 / 1497 绿**（86.1s）。
+- **全量**：`SWEEP_SHARD=all` ＝ **[node] 1499 / 1499 绿**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 179 / 179 绿**；墙钟 **1080.7s**（≤1200s）。
+  （进程退出码非零仍来自收尾写 Playwright 自身 `debug.log` 被判沙箱限制；三通道汇总行为「全绿」。）
+- 版本戳 `20261024a` → **`20261024b`**。
+
+### 四、修复过程（如实）
+
+- **按压内阴影首版不生效**：聚合规则放在了文件中段，被 `.ws-tab-arrow` 等后段同特异性 `box-shadow` 压掉 ⇒ 整段移到文件末尾（并在注释写明）。
+- **顶栏页签漏接**：工作台页签是 `.tab-btn` / `.tab-btn-active`，不是 `.btn-tab` / `.active` ⇒ 首版按压规则未覆盖，补入聚合选择器与 `activeBg` 分支。
+- **`package.json` 被写出 BOM**：`Set-Content` 默认带 BOM，`doc-consistency::S16` 的 `JSON.parse` 直接报错 ⇒ 改用 node 写文件。
+- **守卫基线一次性重算**：新增 14 个主题 hex 使 `HEX_VALUE_BASELINE` 287→300、`HEX_TOTAL_BASELINE` 1419→1433；分页钮抬档使 `page-sweep::DECK.pagerH` 30→32；`summary` 分档使 `density-spacing-guard::D3` 改判「非按钮 summary」。每处都在守卫内注明理由，不是为变绿削弱断言。
+- **`--tab-accent*` 退场**：内联注入删除后，深色段的 `color-mix(--tab-accent …)` 覆盖一并删除（主题 soft 别名已承担暗色）。
+
+### 五、边界（如实）
+
+- **错误态仍走 toast**：按支书裁定不加内联错误行；控件只保留红边，`aria-invalid` 沿用既有校验链。真正的「闭环」由本批的深链与假入口修复承担。
+- **`badge--info` 白名单 69 处**：由 `activity-tone-guard::A3` 逐条登记（通知重要 / 已发布 / 待汇报 / 建议选修 / 配置标注等），新增即红；但「重要 vs 紧急」的档位统一留待下一批。
+- **大选项集只做「搜索 / 近期优先 / 分批渲染」**：虚拟滚动与远端分页未做（当前数据量下分批足够）；选人仍走 `person-picker`。
+- **`calendar-tab.js` / `kanban-tab.js` 的类别兜底**仍登记为待迁移例外（存量违规，守卫已白名单化并防僵尸）。
+- **`about.css` / `help.html`** 仍属文档页例外，未并入动效令与外壳。
+
+### 六、sample-diff（本轮支书反馈 → 规则）
+
+- **样本 1**：待办选中行 `#F3F4F6`、日历选中格 `#E5E7EB`、二级页签近黑 —— 三种「选中」三种灰。
+  → **SD-25**：选中＝主题 soft 三件套；侧边栏唯一豁免；hover/active 令牌不得表达 selected。
+- **样本 2**：输入框「金边＋黑环」，暗色「双金边」。
+  → **SD-27**：活动态＝主题色边＋浅晕；`:focus` 不出 outline；`:focus-visible` 才出环；禁用/只读分态（SD-28）。
+- **样本 3**：`summary` 40 / `button` 32 / 行内按钮 28 同排。
+  → 推广：**同一视觉档位必须有唯一源**——`min-height` 这类「兜底尺寸」只能作用于自己的语义类，不得污染按钮族。
+- **样本 4**：`归档` 点击后空页 / 落错页。
+  → **SD-32**：深链落点必须消费参数、定位失败必须可见提示、无承载面不得渲染入口。
+
+
+
+## 批次 509（2026-10-24）：文档分职 ＋ 旧轮倒查 ＋ .ctx 治理 ＋ 守卫精简（spec `clarify-doc-scope-and-review-question-set`）
+
+### 一、判据
+
+- 支书四点修正：① 不是把「要求与判例」堆进同一份文档，而是**文档之间各司其职**；② 问题集倒查太少，至少 **40 轮**（spec 文件都还在 `.trae`）；③ `.ctx` 又脏又全，要当重要信息源，**过去的阶段性小结要延续**，并查清「为什么落地过的总结后来被弃用」（指令不清 ⇒ AI 逃逸）；④ **守卫太多**，要合并到「能充分暴露问题的最优数量」。
+- 取证：`.trae/specs` **35 个**、`server/test` **264 个**文件（guard 类 **72 个**、断言 **435 条**）、`.ctx` **124 个**文件混放 8 类。
+
+### 二、动作（指针）
+
+1. **四类分职**：`OPERATIONS_GUIDE §32` 定职责表（规范/判例/索引/过程）、判例编号规则（`D-`/`SD-`/`SR-`/`OP-`）与三条硬规；新建 `CASES_INDEX.md`（21 条）＋ 三个域 `CASES.md`（design 11 / institution 5 / ai-coding 5）；`DESIGN_SYSTEM` 的 SD-22…SD-32 只搬「为什么/反例/沿革」，正文留编号＋判据＋守卫＋判例指针。
+2. **问题集**：倒查 35 spec ＋ 40 条批次日志 ＋ 14 份审计 → `REVIEW_QUESTION_SET.md` **20 条**（四组 16 ＋ 低频高危 4）；`QUESTION_HIT_MATRIX.md` 35×20（非空率 94.3%）；`H21`/`PARALLEL_SKILL_AUDIT` 增「先跑问题集、填矩阵」前置。
+3. **.ctx 治理**：新建 `.ctx/README.md`（五桶：evidence / logs / archive / state / index；三问同步判据）；`SNAPSHOT.md` 恢复「每批 5 行小结」；弃用根因实证（阶段小结 2026-09 有、2026-10 零命中；Snapshot 归档 58 版未归档；批次 376 删节丢项）＋防逃逸三件套；`H50.1` 增两条。
+4. **README/AGENTS**：16 个 README 按 7 字段重写/新建（`docs/`、`deploy/`、`.ctx/`、`04` 五子目录等）；6 个 `AGENTS.md`（每个 45–48 行，含可复制验证命令）；根 README 增「去哪找什么」路由表。
+5. **守卫精简**：`GUARD_INVENTORY.md` 清点 72 件 → 本次合并 3 组（文档 4→1、颜色 2→1、交互 2→1），72 → **68 件**，目标 **54 ± 3**（后续 510–513 分批）；每组做故障注入（红→还原绿），断言一条未删。
+
+### 三、读数
+
+- **定向**：`doc-consistency` ＋ `docs-governance-guard` ＋ 颜色/交互合并件 ＋ `test-tier` ＋ `ctx-hygiene` ＋ `version-stamp` ＝ **97 / 97 绿**。
+- **daily**：`npm run test:daily` **1502 / 1502 绿**（98.5s）。
+- **全量**：`SWEEP_SHARD=all` ＝ **[node] 1504 / 1504 绿**、**[e2e-A] 绿**、**[e2e-B] 179 / 179 绿**；墙钟 **1141.0s**（≤1200s）。
+  （进程退出码非零仍来自收尾写 Playwright 自身 `debug.log` 被判沙箱限制；套件汇总行为「全通道绿」。）
+- 版本戳：`20261024b` → **`20261024c`**（JS 256 / HTML 26 / CSS 2 / server-test 141 个文件改写，陈旧戳 0 残留）。
+
+### 四、修复过程（如实）
+
+- **合并后的引用漂移**：`DATA_CONSISTENCY_CHECKLIST §0.2`、根 `README.md`、`server/README.md`、`.ctx/AGENTS.md` 等仍指被删的 4 个守卫文件 ⇒ 统一改指新文件（历史日志里的旧名保留，不动）。
+- **S13 存量漂移 12 行**：README 批次改动使 frontmatter 变 10-24，而 `TIMESTAMPS` 表行滞后 ⇒ 以 frontmatter 为准刷表行。
+- **R1 三处指向空行**：`README-server.md` 引 `content/README.md:24`（空行）与 `README.md:198`（空行）⇒ 改指 `:15` / `:199`。
+- **`ctx-hygiene-guard` 白名单**：`.ctx` 顶层新增 `README.md` 与 `AGENTS.md`，白名单 7 → 9。
+- **文档族红项归属**：`docs-governance-guard::R1` 合并前即红（`README-server.md` 存量 3 处），本批修准；不是合并引入。
+- **`GUARD_INVENTORY.md` 无 frontmatter 首跑红**：`daily` 首跑 `doc-consistency::S13` 报「markdown 类文件无 frontmatter 且未登记进 `TIMESTAMPS_NO_FM_MD_OK`」⇒ 补 5 字段 frontmatter（与其他 `content/05` 引导件同形），不走近路加白名单；随后 daily 与全量全绿。
+
+### 五、边界（如实）
+
+- **只合并 3 组**：其余重叠（`ui-color-semantics` / `activity-tone` 并入颜色族；`field-shell` / `hover-state` / `density-spacing` 并入交互族）登记 510–513，避免一次动太大。
+- **`.ctx` 不做物理搬迁**：只做逻辑分桶＋README 索引，避免 124 个文件的引用断链。
+- **判例迁移只做 SD-22…32**：SD-01…21 的判例化登记为后续批次，不在本批强行重写。
+- **TIMESTAMPS 只增 6 行**（问题集/矩阵/清点/判例索引/新守卫/.ctx README），其余新 README 由 `docs-governance-guard` 覆盖，不再逐行进台账（控制备注预算）。
+
+### 六、sample-diff（本轮支书反馈 → 规则）
+
+- **样本 1**：「要求与判例堆一起」→ 不是结构问题，是**载体未分职**。
+  → §32 四类载体表；判例不得产生规范效力；README/AGENTS 不得承载条文。
+- **样本 2**：问题集只倒查 6 轮 → **样本面决定结论可信度**。
+  → Q-01…Q-20 附 35 spec 清单与命中矩阵；「低频高危」单列，防被频次淹没。
+- **样本 3**：`.ctx` 脏但全 → **脏不是删的理由，是分桶的理由**。
+  → 五桶 + 三问同步判据；阶段小结以 `SNAPSHOT.md` 为唯一落点。
+- **样本 4**：守卫 72 个 → **数量不是质量，定位才是**。
+  → 合并以「任一故障能被唯一守卫定位」为约束；每组必须过故障注入才允许合。
+
+## 批次 510（2026-10-25）：统一消息中心 ＋ 数据真相 ＋ 工作台视觉 ＋ 守卫判例（spec `rebuild-notification-and-data-truth`）
+
+### 一、判据
+
+- 支书 8 条反馈 ＋ 三方独立审查（前端 / 后端 / 运算逻辑）：消息被拆成 4 个承载面、3 套已读、2 套归档；「待召开」是支委会页签的第二套状态机；归档完成后才派生无法销项的待办；工作关系 5 列表格第 5 列全空；分组胶囊在 ≤1280px 被隐藏；知情查看调用方写死 `views:['taskforce']`；mock 种子用手写结果代替事实。
+- 支书裁定：通知与私信合并为「消息」对象（A 方案）；通知必须带对象坐标；mock「只存事实，其余派生」。
+- 同批完成 Task 1–6：事实化种子与派生器、状态 / 归档 / 待办单一源、统一消息中心、工作台视觉与卡内构成、知情查看工作组、守卫与判例收尾。
+
+### 二、动作（指针）
+
+1. **事实化（Task 1）**：新增 `docs/src/data/mock/derive.js`（`applyDerivedFacts`、`deriveActivityStatus`、`deriveMeetingStatus` 等）；种子删除 `activities.status`、`review.progress/overdue`、`inspection.status`、`taskforce.status`、`notices.expireDate`、归档记录的结果字段与考勤人员快照；mock 三条装载路径与 `server/seed.js` 共用同一派生器。事实 / 派生矩阵写入 `DATA_MODEL §2.30`。
+2. **单一源（Task 2）**：删除支委会 `meetingStatus()`；归档动作在同一事务内同步活动、归档记录、消息系统归档与待办销项（mock / API 两形态）；待办加 `sourceType+sourceId+action` 幂等键；催办只增通知不增待办；补齐 60% 考察确认事实与 3 条非活动归档材料。
+3. **消息中心（Task 3）**：`notices` 增 `kind / archivedBy[]`；`messages.html` 升级为唯一列表（全部/未读/已读/已归档 × 来源），`notice.html` 升级为唯一全貌（公告 / 系统 / 私信三种布局）；入口收口到详情页；归档页 notice tab 退役；发布表单强制「关联对象 / 公告」。
+4. **视觉（Task 4）**：分组名改四组「总览 / 我的职责 / 协作与知情 / 制度与答复」并恢复小胶囊；卡头收为 `renderCardHeader`；工作关系改主从两栏；11px 清零；六台壳与党委台统一。
+5. **知情查看（Task 5）**：新增 `workgroup-view.js`，`insight-view` 分段扩为 `workgroup / taskforce / group`。
+6. **规范**：`DESIGN_SYSTEM.md` 增 SD-33（消息承载面唯一与落点坐标）、SD-34（逐人状态 / 已读≠回执，含状态单一派生与种子只存事实）、SD-35（卡内构成）、SD-36（页签分组胶囊）；§12.15 只写适用范围、布尔判据、守卫指针与判例编号。
+7. **判例**：`design-system/CASES.md` 增 `CASE-DESIGN-012…016`（通知跳工作台 / 待召开双状态机 / 归档倒序待办 / 工作关系 5 列空列 / mock 结果字段）；`CASES_INDEX.md` 增 5 行索引，design 域 11 → 16。
+8. **问题集**：`REVIEW_QUESTION_SET.md` 增 Q-21「同一用户对象只有一个承载面」（低频高危）；全文 20 → 21 条，附录样本 35 spec / 40 批次 → 36 / 42；`QUESTION_HIT_MATRIX.md` 加 Q-21 列（历史 35 行留空）并新增本 spec 一行；`PARALLEL_SKILL_AUDIT` / `AGENTS.md` 的 Q-01…Q-20 与「20 条」同步改准。
+9. **守卫台账**：`GUARD_INVENTORY.md` 记明本批**未新增 / 删除 guard 文件**（68 件不变）＋ §七扩展记录；`resolveNoticeUrl` 全仓无消费者（Q-14），删除导出与残留引用，`notice-deeplink-guard::F06` 改为断言「不得再有该导出」。
+10. **遗留修复**：`checkActivityCloseConditions` 从 `inspector.js` 迁至 `services/activity/close-conditions.js`（服务层复用，避免 todo ↔ inspector 成环）；`derivePendingArchiveTodos` 加 `canClose` 门；`workforce.js::DUTY_DOMAIN` 改懒建以断开循环引用。
+
+### 三、读数
+
+- **定向**：`docs-governance-guard` ＋ `doc-consistency` ＋ `todo-domain` ＋ `todo-domain-view` ＋ `notice-deeplink-guard` ＋ `notice-audience` ＋ `claude-parallel-audit` ＝ **87 / 87 绿**。
+- **补充定向**（本批触及的其余守卫）：`state-enum-guard` ＋ `mock-api-parity-structure` ＋ `notice-message` ＋ `workbench-audit-coverage` ＋ `todo-deriver-domain` ＋ `work-map` ＝ **44 / 44 绿**。
+- **daily**：`npm run test:daily` **1514 / 1514 绿**（78.5s；补三条守卫断言后复跑）。
+- **全量三通道**：`SWEEP_SHARD=all` ＝ **[node] 1516 / 1516 绿**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 179 / 179 绿**；墙钟 **1056.9s**（≤1200s）。
+  （进程退出码非零来自运行器收尾写 Playwright 自身 `debug.log` 被判沙箱限制；汇总行为「全通道绿」。）
+- **版本戳**：`20261024c` → **`20261024d`**（JS 259 / HTML 26 / CSS 2 / server-test 141 个文件改写，陈旧戳 0 残留）。
+- **待归档待办**：改前 hydrate 生成 **34 条**；改后 **0 条**（种子内无关闭条件齐备的活动）。注入验证：补齐 act-1 会议纪要后生成 **1 条**；置 `archived=true` 并 `completeByAction('activity','act-1','activity-archive')` 后销项，再次 hydrate **0 条**。
+
+### 四、修复过程（如实）
+
+- **服务层复用关闭条件**：直接把 `inspector.js` 引入 `todo.js` 触发 `todo → inspector → workforce → todo` 循环（`WORK_DOMAIN` TDZ），改为**迁出判据**到 `services/activity/close-conditions.js` ＋ `workforce.js` 的 `DUTY_DOMAIN` 懒建，两个改动同批落地后才绿。
+- **删除死码后的连锁**：`resolveNoticeUrl` 删除后 `getBasePath` 在 `notice.js` 变成无引用，一并移除；`README-server.md` 的 `inspector.js:681` 因迁出判据位移到 `:639`，按 `docs-governance-guard::R2` 改签。
+- **S13 漂移**：本批改了 6 份 `content/**`（DESIGN_SYSTEM / CASES_INDEX / DOC_MAP / REVIEW_QUESTION_SET / QUESTION_HIT_MATRIX / GUARD_INVENTORY）＋ 4 份 `.ctx` / 数据文件（TIMESTAMPS / SNAPSHOT / EXECUTION_LOG / DATA_MODEL），首跑 S13 红；以 frontmatter 为准同批刷 `TIMESTAMPS` 表行。
+- **判例索引计数**：`CASES_INDEX` 的 design 域条数与域入口表同步为 16，避免索引与判例库不一致。
+- **首跑全量 e2e-A 红（M1）**：`mock-integrity` 直接审计原始种子，事实化后 35 条活动「缺必填 status」⇒ 改为先用 `applyDerivedFacts` 补齐运行时形状再审计；不是给种子写回结果字段。
+- **首跑全量 e2e-B 红（form-loop-sweep）**：`inspector.js` 迁出关闭条件后行号位移，4 处台账（表态 / 活动名称 / 日期 / 活动地点）按实际行号改签（629→587、1458→1416、1459→1417、1460→1418）。
+- **收尾**：bump 版本戳 → daily 复跑 → 全量三通道复跑（第二轮全绿）；中文提交，不 push。
+
+### 五、边界（如实）
+
+- 版本戳、全量三通道与提交由收尾统一执行（见三、读数）。
+- 待归档待办降为 **0** 是数据事实（种子活动均缺会议纪要 / 考察确认 / 复盘等关闭前置），不是查询失效；归档面仍以只读列表展示已结束未归档活动。
+- SD-36（分组胶囊）本批只立判据、**暂无判例**（本轮 8 条反馈中无新增胶囊样本）。
+- Q-21 为 2026-10-25 新立，命中矩阵历史 35 行该列留空（当时未问），不追填。
+
+### 六、sample-diff（本轮支书反馈 → 规则）
+
+| # | 样本 | 根因 | 规则 | 守卫 |
+|---:|---|---|---|---|
+| 1 | 点击会议通知落工作台首页，`notice.html` 被绕过 | `targetModule:'workspace'` 兜底 ＋ `resolveNoticeUrl` direct 分支 ＋ 入口各自判断 | SD-33 / CASE-DESIGN-012 | `notice-deeplink-guard::F06` |
+| 2 | 支委会历史会议已考勤、已复盘仍显示「待召开」 | 页签自带 `meetingStatus()` 第二套状态机，只按日期判定 | SD-34 / CASE-DESIGN-013 | `state-enum-guard` ＋ `workbench-revision-contract` |
+| 3 | 归档完成后才派生「归档材料」待办，无人能销项 | 待办生成时点在归档之后，且用「活动结束」代替「关闭条件已齐」 | SD-34 / CASE-DESIGN-014 | `todo-domain` / `todo-deriver-domain` |
+| 4 | 工作关系表 5 列，第 5 列全「—」并分两页 | 无用列保留列位，把表格当作唯一形态 | SD-35 / CASE-DESIGN-015 | `workbench-audit-coverage` |
+| 5 | ≤1280px 分组名整体隐藏；「知情查看」组名＝页签名 | 分组名被当作可裁剪装饰，未按「可见但非按钮」处理 | SD-36（暂无判例） | `doc-consistency::S3` ＋ 键盘序列人工检查 |
+| 6 | 知情查看写死 `views:['taskforce']`，活动工作组不可见 | 分段集合由调用方写死，组件从未提供「工作组」段 | Task 5 分段契约（SD-35 同类：卡内构成） | `workbench-audit-coverage`（Task 5 用例） |
+| 7 | mock 35 条活动状态逐行手写；复盘 `overdue` 快照；归档两套状态；通知正文抄日期 | 种子存派生结果，派生器与种子形成两套真相 | SD-34 / CASE-DESIGN-016 | `state-enum-guard::G4` ＋ `mock-api-parity-structure` |
+| 8 | 消息四个承载面、三套已读语义、两套归档语义 | 同一用户对象没有唯一列表 / 全貌 / 状态机 | Q-21 ＋ SD-33 / SD-34 / CASE-DESIGN-012 / 013 | `notice-deeplink-guard` ＋ `notice-audience::N13–N16` ＋ `notice-message::N5` |
+
+## 批次 511（2026-10-25）：IA 62→45 ＋ 组件契约 ＋ 术语 Harness ＋ 文档补账（spec `consolidate-ia-terms-and-components`）
+
+### 一、判据
+
+- 支书 4 条反馈：① 上批探索的长期结论没有全部落进文档体系（`DATA_MODEL` 仍写旧消息模型）；② 同一折叠功能存在 `<details>` 与 `<button>` 两套实现，且 `button` 里嵌 `h3`、`summary` 里嵌 `role=heading`；③ 62 个页签中约 20 个是同一渲染器重复注册，支书台「活动管理」把日历、查询、党小组活动、项目赋权四件事塞在一页；④ 「工作组 / 专班 / 其他组」把协作结构、业务对象、党小组三个层级并列成一排按钮，全仓没有单一术语表。
+- 四份独立审计：文档落地（`DATA_MODEL §2.9` 仍用 `targetModule` ＋ 全局 `read`；help 四处漂移）· 组件（4 处标题嵌套 ＋ 4 个 `div` 伪开关 ＋ 24 个无 ARIA 折叠）· IA（62 页签中 17 项可删/降，实际收敛区间 10/8/5/6/6/7/3＝45）· 术语（0 份唯一术语源，并列关系全凭各台自己写）。
+- 支书裁定：组件按工程判断定契约；IA 全面重组 62→45；术语可新建唯一文件，但必须用 Harness 与 `OPERATIONS_GUIDE §19` / `sop/INDEX.md` 钉死关系；知情查看改「同层对象切换 ＋ 独立区」。
+
+### 二、动作（指针）
+
+1. **Task 1 文档补账**：`DATA_MODEL §2.9` 重写为消息对象（`kind` / `targetType+targetId` / `reads[]` / `archivedBy[]` / `archived` / `replyTo` / 有效期派生），删 `targetModule` 与全局 `read`；`§2.19` 同步逐人已读与待办幂等键；四组页签名统一为「总览 / 我的职责 / 协作与知情 / 制度与答复」；`DESIGN_SYSTEM` 增 SD-37/38/39/40；新建 `TERMINOLOGY.md`（20 条 × 9 字段）与 `PRODUCT_IA.md`（45 行派生索引）。
+2. **Task 2 术语 Harness**：`docs-governance-guard` 增 H-T1…H-T5（并列组层级 / 页签名覆盖 / 结构性标签登记 / 废弃写法零残留 / 术语表关系钉死），配套 `terminology-map.mjs` 与 `terminology-baseline.mjs`。
+3. **Task 3 组件契约**：新增 `components/ui/disclosure.js`（`details/summary` 封装）与 `menu-button.js`（`aria-expanded` ＋ `aria-controls` ＋ Esc/焦点归还）；修 4 处标题嵌套；4 个 `div` 伪开关升级为原生控件；24 个折叠迁移到统一原语；`ui-control-system-guard` 增 T3-1…T3-3 与 `frontend-foundations-guard::F8` 扩 4 个伪开关。
+4. **Task 4 同屏一致**：支书「活动管理 / 知情查看 / 支部分工」三屏按同一套折叠头、行内动作、计数与说明收口；活动管理统计条去掉组织域指标。
+5. **Task 5 IA 62→45**：活动管理只承担活动生命周期（查询并入日历工具栏、党小组活动改筛选并预置 `direction:'bottom-up'`、赋权移出）；专班赋权回组织台；知情查看一级只留「活动工作组 / 专班工作组」、「其他党小组」独立区；五台「我的处置」并入待办「我经办的反馈」；四台活动日历降为工作概况卡；成员「我的成长」三子区；宣传任务并入看板泳道；`catalog-sync` 增 T6 校验 IA 地图 ≡ 注册表（45 条）。
+6. **Task 6 收口**：`CASES.md` 增 CASE-DESIGN-017/018/019 并同步 `CASES_INDEX`；本条日志与 `SNAPSHOT` / `TIMESTAMPS` / `GUARD_INVENTORY` 补账。
+
+### 三、读数
+
+- **定向**：`node --test test/docs-governance-guard.test.mjs test/doc-consistency.test.mjs test/catalog-sync.test.mjs test/ui-control-system-guard.test.mjs test/frontend-foundations-guard.test.mjs` ＝ **82 / 82 绿**（docs-governance 28 ＋ catalog-sync 6 ＋ doc-consistency 21 ＋ ui-control 18 ＋ frontend-foundations 9）。
+- **术语 Harness 实测**：H-T3 结构性标签 **234** 处、命中术语表 **22** 处、未命中 **131** 个（全部已在基线，只降不升）、扫描 **78** 文件；H-T4 用户可见文案零命中；H-T5 术语表 **20** 条 × 9 字段齐，`§19` 与 `sop/INDEX.md` 只含指针。
+- **组件 Harness 实测**：T3-1 交互元素 **675** 个、内含标题 **0** 处；T3-2 `details` 文件 **32** 个、静态 `aria-expanded` **13** 个；T3-3 `details` 文件 **32** 个、混用 **0** 处；T4-1 `renderDisclosure` 文件 **4** 个、手写折叠 **32** 个、混用 **3** 处（**3 处豁免**）。
+- **IA 对账**：`catalog-sync::T6` 通过——IA 地图 **45** 条、逐台集合与注册表相等（支书 10 / 组织 8 / 宣传 5 / 纪检 6 / 组长 6 / 成员 7 / 党委 3）。
+- **daily（最终）**：`npm run test:daily` **1524 / 1524 绿**（102.2s；修复临时件与预算后复跑，bump 后再次 1524 / 1524）。
+- **全量三通道（最终）**：`SWEEP_SHARD=all` ＝ **[node] 1526 / 1526 绿**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 179 / 179 绿**；墙钟 **1117.3s**（≤1200s）。
+  （首跑 e2e-A/B 各 1 红：组长考察入口随页签降级、copy-screen 基线/下限与台账行号；逐条修复后第二轮全绿。）
+- **版本戳**：`20261024d` → **`20261025a`**（JS 262 / HTML 26 / CSS 2 / server-test 141 个文件改写，陈旧戳 0 残留）。
+
+### 四、修复过程（如实）
+
+- **Task 1 的 3 项 docs-governance 红（并行改动）**：Task 1（文档）与 Task 3（组件）文件不重叠、同批并行，守卫读到的是中间态——登记行日期与 `文件:行号` 引用追不上同批落地的文件。按实文件与 frontmatter 改准、并在 Task 3 落地后复跑，三项转绿。
+- **Task 2 的 H-T4 文案修复**：H-T4 首跑在 `docs/src/**` 的用户可见文案里命中废弃写法（注释存量按基线豁免）；把命中文案改为术语表规范词后零命中，**基线未放宽**（只降不升）。
+- **Task 3 的 daily 4 红**：组件迁移后 daily 首跑 4 红＝`ui-control-system-guard::T3-1`（标题进入交互元素）/ `T3-2`（折叠状态不可静态回读）/ `T3-3`（同文件混用原语）/ `T4-1`（封装与手写折叠混用）；逐条改代码（标题移兄弟节点、状态落 `open`/`aria-expanded`、择一原语）后转绿。
+- **Task 5 的阶段红**：按台分阶段删/降页签，每阶段都会先红——注册表已删而 `help.html` / `PRODUCT_IA` / 深链重定向未同批跟上时，`doc-consistency::S1/S2` 与 `catalog-sync::T6` 判红；按「新落点 ＋ 深链重定向 ＋ help 更新」三件齐备逐台收口后复绿。
+- **Task 4 的锚点同步**：样板屏改动使 `docs/src/entries/pages/main-entry.js` 等文件行号位移，`README-server.md` 的 `main-entry.js:241-253` → `:235-248` 等 `文件:行号` 锚点同批改签（`docs-governance-guard::R1/R2` 逐条核）。
+
+### 五、边界（如实）
+
+- **旧实现文件保留但取消注册**：`my-dispatch-tab.js`（五台）/ `activity-calendar-tab.js`（四台）/ `tf-view-tab.js`（纪检 / 宣传 / 组织）/ `thought-report-tab.js` / `visitor/inspection-tab.js` / `visitor/review-tab.js` 等仍在盘上、可被深链兼容层引用，但**不再注册为页签**；删除留给后续确认无消费者的批次。
+- **help 历史关键词保留**：`help.html` 搜索索引保留旧页签名（我的处置 / 活动日历 / 专班动态 / 思想汇报）作为关键词，命中后指向新落点；不是第二份页签表。
+- **工具栏控件三档高度未强制同高**：活动管理日历工具栏里的输入框 / 下拉 / 按钮分别走既有 36 / 32 / 28px 三档，本批只统一了排布与间距，**未**为「看起来齐」强行改控件高度。
+- **T4-1 三条豁免**：3 处文件同时存在 `renderDisclosure` 与手写 `details`（行内清单折叠不是分区折叠头），已在守卫内逐条豁免并写明理由；收口计划是逐文件择一原语。
+- **技能更新失败**：`npx skills check` 发现 18 个更新；`julianoczkowski/designer-skills@information-architecture`（5.9K）安装失败（git 克隆被网络拒绝），本批按本地 `frontend-design` / `web-design-guidelines` 执行，未把旧版技能当最新。
+- **daily 两红的归属**：`tmp-ia-check.mjs` 是本批 IA 校验的临时产物、按 `ctx-hygiene` 应先沉淀后归档；daily 断言预算上调属 `server/**` 授权面外——两项均如实留红，不在本收尾批改代码。
+
+### 六、sample-diff（支书 4 条反馈 → 规则）
+
+| 样本 | AI 假设 | 人类意图 | 泛化规则 | 守卫 |
+|---|---|---|---|---|
+| `DATA_MODEL §2.9` 仍写 `targetModule` ＋ 全局 `read`，上批消息模型结论只在日志里 | 设计结论记进执行日志就等于落地；代码与日志可替代母本 | 文档是母本：字段口径必须同批写进权威文档，日志只记沿革 | 长期结论必须落 `content/**` 权威源；唯一源之间用指针 ＋ Harness 钉死，禁止二次定义 | `docs-governance-guard::R1/R2` ＋ `H-T5`（关系钉死）；`DATA_MODEL` 字段级仍为人工核对 |
+| `calendar-tab.js` `button>h3`、`work-overview.js` `summary>h3`、`todo-tab-shell.js` `summary>role=heading`、`gallery.js` `role=button>h3`；4 个 `div` 伪开关 Tab 不可达 | 折叠头就是「一块可点的区域」，标题放进去最省事；`div` 加点击与原生控件等价 | 标题是结构、交互是动作，二者不能互相包裹；阅读型折叠、菜单、浮窗各有唯一原语 | 同类功能同一原语；标题永不进交互元素；折叠状态必须能由 `open` / `aria-expanded` 静态回读 | `ui-control-system-guard::T3-1/T3-2/T3-3/T4-1` ＋ `frontend-foundations-guard::F8`（CASE-DESIGN-018） |
+| 62 页签中约 20 个同一渲染器重复注册；支书台活动管理一页塞日历 ＋ 查询 ＋ 党小组活动 ＋ 项目赋权 | 页签是「每台自己的入口」，重复注册最直观；删页签只删注册行；辅助功能可以独立成页 | 一功能一页签；重复项要么是通用面（同名同组件），要么降为页内区 / 折叠卡；降级必须三件齐备 | 页签集合与 IA 地图必须逐台相等；已降级旧名不得重新注册；删除前先备「新落点 ＋ 深链重定向 ＋ help 更新」 | `catalog-sync::T6` ＋ `doc-consistency::S1/S2` ＋ `page-sweep`（CASE-DESIGN-019） |
+| 知情查看把「活动工作组 / 专班工作组 / 其他组」并成三枚同形按钮；各台 `views` 写死 `['taskforce']`；全仓无术语表 | 只要能只读就能放同一分段；分段集合由调用方按需传，组件不必管语义层级 | 工作组是协作结构、党小组是组织单元，不同层不能同排；「其他党小组」要看但须独立成区；通用能力由组件统一定义 | 并列项必须来自术语表同一「允许并列集」；跨层对象降为独立区或筛选器；每个词条必须显式写「允许并列集」 | `docs-governance-guard::H-T1/H-T2/H-T3/H-T4` ＋ `workbench-audit-coverage`（CASE-DESIGN-017） |
+
+
+## 批次 512（2026-10-26）：视觉层级 ＋ 色彩双层 ＋ 按钮三档 ＋ 详情路由 ＋ 运行时竞态（spec `restore-visual-hierarchy-and-runtime`）
+
+### 一、判据
+
+- 支书 2026-10-26 抽样 7 条视觉反馈：① 分组胶囊「没恢复」；② 按钮无边框、看不出能点；③ 表格「向后伸展」；④ 同屏「单调」；⑤ 详情「什么时候可点」不清楚；⑥ 结论带挤在一起、竖条与文字只有 4px；⑦ 数据零值与可点箭头太浅。
+- 2 条运行时反馈：⑧ 点了 tab 渲染不出来 / 点 A 亮 B；⑨ 首屏慢、鼠标卡帧。
+- 取证读数：胶囊 `≤1280px` 直接 `display:none`、底色与页面底 **1.06:1**、高度 **18px**；`btn-ghost` 当动作按钮 **79 处**、hover 对白卡 **1.06–1.11:1**；全仓 `table-layout` **0 处**；颜色引用中性 : 强调 : 状态 : 类别 ≈ **4.9 : 2.4 : 0.8 : 1.0**、中性占 **54–76%**；同一活动有 **4 种**详情面、归档深链不校验状态；Tab 侧 `renderCtx` 冻结、`dataset.currentTab` 不清、绑定标记挂持久容器；首屏 1 个 **600ms** 硬等待、两次全库 `loadDB`、hover 浮窗「写 DOM → 读布局」。
+
+### 二、动作（指针）
+
+1. **运行时（Task 1）**：`workspace-shell.js` 的 `renderCtx` 改函数、每次点击取最新 state；`tab-bar.js` 统一 `_safeRender` / `renderCurrent` 生命周期（seq / 去重 / 清 marker / await / 快照恢复 / 错误卡 / `TAB_LOADING_TIMEOUT_MS` 8s）；`calFiltersBound` / `organizerEntryBound` / `talentJumpBound` 改挂重建元素或事件委托；回退页签 toast。
+2. **性能（Task 2）**：mock 延迟可配（默认 80ms，`window.__MOCK_DELAY_MS` / `MOCK_DELAY_MS`）；`loadDB` 幂等锁；`IssueStore` / `MilestoneStore` 不阻塞壳；hover 浮窗先读后写、Observer 只扫新增、后台 render 不铺占位。
+3. **视觉（Task 3）**：`metric-band` 拆 `--static` / `--interactive`；`section.card` 必有可访问名；`.list-row` 四载体 `data-row-type`；胶囊全宽可见（≥24px、neutral-400 描边、≤1280 只缩）；卡内 8/16 间距、竖条 8px、`neutral-400` 只装饰；`.wo-lines-table` fixed ＋ `colgroup` ＋ 末列贴列尾 ＋ ≤640 动作列 `flex-start`。
+4. **色彩（Task 4）**：主题色层 7×2×9 零改值并文档化（`DESIGN_SYSTEM §2.12`）；功能色层 `--status-*` / `--color-category-*` / `--color-identity-*` / `--color-link`（§2.13）；身份色单一源；暗色类别与 danger 分离；删除 12 个僵尸 token；链接全量收口。
+5. **按钮（Task 5）**：`btn-ghost` 迁移 67 处，保留 6 处非动作行载体白名单；纯文字动作 `.btn-text`（下划线 ＋ 箭头）；图标 32 视觉 / 44 命中；hover 对白卡 1.24:1、暗色 1.63:1。
+6. **详情（Task 6）**：`core/domain/object-route.js::resolveObjectRoute`（direct / locate / none）＋ `OBJECT_ROUTE_ENTRIES` 11 入口；通知/待办/首页/共享日历/归档行/跨页深链/工作台聚合 direct；支书活动管理/组织台专班/成员项目分工/工作概况预览/归档弹窗 locate；已归档只读、跨支部门、缺 id 不渲染、归档深链失败提示。
+7. **规范与判例（Task 7）**：`DESIGN_SYSTEM §12.15` 增 SD-41…SD-46 并同步 §2.12 / §2.13 指针（同时改准 SD-36 的「≤1280 隐藏」旧句）；`design-system/CASES.md` 增 CASE-DESIGN-020…024；`CASES_INDEX` design 19→24；`05_ai_coding/CASES.md` 增 CASE-AI-006、索引 ai-coding 5→6；`PRODUCT_IA` 增详情路由矩阵；`GUARD_INVENTORY` 增 §九。
+
+### 三、读数
+
+- **定向（本批终态，2026-10-26）**：`node --test test/docs-governance-guard.test.mjs test/doc-consistency.test.mjs test/runtime-tab-lifecycle-guard.test.mjs test/object-route-guard.test.mjs test/theme-palette-guard.test.mjs test/ui-control-system-guard.test.mjs` ＝ **112 / 112 绿**，`duration_ms 5442.43`（≈5.44s）。静态 `test(` 调用点 **109** 条；`N3–N6` 由 `for (const c of CHECKS)` 循环生成 4 条 ⇒ 运行 **112**。逐件：docs-governance 25 · doc-consistency 21 · runtime-tab-lifecycle 16 · object-route 8 · theme-palette 14 · ui-control 25。
+- **daily（终态）**：`npm run test:daily` ＝ **1561 / 1561 绿**（69.97s；bump 后复跑 1561 / 1561）。
+- **全量三通道（最终）**：`SWEEP_SHARD=all` ＝ **[node] 1563 / 1563 绿**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 179 / 179 绿**；墙钟 **986.2s**（≤1200s）。
+  （首跑 e2e-B 4 红：copy-screen 基线、台账行号 39 处、leader 建活动 409、今天页探针节点竞态；逐条修复后第二轮全绿。）
+- **版本戳**：`20261025a` → **`20261025b`**（JS 263 / HTML 26 / CSS 2 / server-test 143 个文件改写，陈旧戳 0 残留）。
+- **运行时读数（Task 1/2，演示环境实测）**：首屏内容出现 **974 → 515ms**；hover 处理 **p95 3.5 → 0.9ms**；mock 默认延迟 600 → **80ms**（可配）；`loadDB` 每页 2 → **1** 次；loading 占位超时 **8s**、超时后解除 `pointer-events:none` 并显示「加载超时」。
+- **视觉读数（Task 3/5）**：分组胶囊 5 个宽度（390/768/1024/1280/1440）均可见、高度 **≥24px**、描边对白底约 **2.5:1**；工作分工表 5 列 18/16/9/9/48%、末列 `text-align:end`；`btn-ghost` **67 迁移 / 6 白名单**；图标按钮 **9** 个全部 44 命中 ＋ 无障碍名；可点行 hover 亮色 **1.24:1**、暗色 **1.63:1**。
+- **色彩读数（Task 4）**：主题色盘 **7 × 2 × 9 = 126** 个 token 零改值；功能色层状态 4 / 类别 3 / 身份 12 角色齐备；暗色类别红 `#FCA5A5` ≠ danger `#F87171`、主题党日金 `#FCD34D` ≠ warning `#FBBF24`；删除 **12** 个僵尸 token、零残留；链接 **L6–L8** 帮助 / 速查 / about·help 全部并入 `--color-link`；关键配对对比度 **10+ 组**实测（正文 10.31:1、次要 7.56:1、辅助 4.83:1、暗色正文 11.35:1 等，详见 `DESIGN_SYSTEM §2.13`）。
+- **详情读数（Task 6）**：入口矩阵 **11** 条（direct 8 / locate 3）；`objectDetailHref` 调用点 ≥30；裸 `activity.html?id=` / `taskforce.html?id=` 生成点 **0**；已归档写口 **5** 处全部纳入 `!readOnly`；归档弹窗与工作概况 / 专班面板均有「打开完整页」。
+- **守卫台账（Task 7）**：`GUARD_INVENTORY` 件数 **68 → 70**、静态断言 **410 → 462**；新增 `runtime-tab-lifecycle-guard`（16）与 `object-route-guard`（8）。
+- **判例索引**：design **19 → 24**、ai-coding **5 → 6**；`docs-governance-guard::G7` 逐行核「所属域 / 对应规范编号」通过。
+
+### 四、修复过程（如实）
+
+- **首跑定向 111 / 112**：唯一红为 `docs-governance-guard::N2`——TIMESTAMPS 备注列合计 **31486** 字 > 预算 **31400** 字（本批新增 4 行注释所致）。按守卫给出的「等量置换」路径收短本批 4 行备注（CASES / CASES_INDEX / PRODUCT_IA / GUARD_INVENTORY），未上调预算、未删存量；复跑 **112 / 112**。
+- **规范自相矛盾**：SD-36 原写「≤1280px 只隐藏文字、保留分隔」，与 Task 3 落地和 V2 守卫直接冲突；本批改准为「只缩内边距 / 字号，不得隐藏」，并指向 SD-42 的可见性细则。
+- **运行时**：先改 `renderCtx` 为函数，再把 `_safeRender` 与 `_renderCurrentTab` 收成同一生命周期；`_lastGoodSnapshot` 用于陈旧写回前恢复；新增 `_armLoadingTimeout` 防永久灰化；三个持久绑定标记逐个改挂重建元素。
+- **视觉**：胶囊删除 `display:none` 断点→只缩；`metric-band` 拆两档并去掉 0 间距＋左线；`.today-go` 的 `gap:4px !important` 改 8px；工作分工表补 `colgroup` 与末列规则。
+- **色彩**：先补功能色 token 与暗色值，再迁移消费方（`--functional-*` 只留别名），最后删 12 个零消费者 token；身份色以 `ROLE_COLORS` 为唯一源逐值核对。
+- **按钮**：按三档逐页迁移 67 处 `btn-ghost`；纯文字动作统一 `.btn-text`；图标按钮补 `::after` 44 命中与 `aria-label`。
+- **详情**：新增纯函数路由后，16 个消费文件逐个接入；`activity-entry` 的 5 个写口统一加 `!readOnly`；归档库深链补未命中提示；专班终态统一 `isTaskforceTerminalStatus`。
+- **文档**：SD-41…SD-46 与 5 条判例同批落位；`CASES_INDEX` 与 `TIMESTAMPS` 同批刷卡；`PRODUCT_IA` 路由矩阵与 `OBJECT_ROUTE_ENTRIES` 逐条对齐（发现「组长本组活动」无实际 `owner-workspace` 调用，矩阵不列该入口）。
+
+### 五、边界（如实）
+
+- **不做**：版本戳 bump、全量三通道、提交与 push——全部留主代理收尾；本批只跑定向与 daily。
+- **SD-41 无独立判例**：容器语义由 `ui-control-system-guard::V1` 机检承担，本轮 7 条反馈中无单独「同 class 双语义」样本。
+- **`content/05_ai_coding/CASES.md` 无 TIMESTAMPS 登记行**：沿用本表「只登记不补行」的覆盖缺口处置；其 frontmatter 由 `docs-governance-guard::F2` 按 git 提交日核，不靠表行。
+- **PRODUCT_IA 路由矩阵是派生附录**：不是规范；`OBJECT_ROUTE_ENTRIES` 增删入口须同批改表，否则矩阵与代码脱节。
+- **性能读数为演示环境实测**：首屏 974→515ms、hover p95 3.5→0.9ms 不作为跨机器承诺；守卫只锁「默认延迟 ≤120ms / 单次 loadDB / 先读后写」等结构性判据。
+- **`frontend-foundations-guard::F8` 本批只扩扫描面**（0 条新增断言），台账按 9 条计；新增的 2 件 guard 才计入 68→70。
+- **三通道未跑**：`SWEEP_SHARD=all` 的真机页扫与 e2e 属收尾；本批「胶囊 390px 可见」「末列贴列尾」的最终真机确认留给三通道。
+
+### 六、sample-diff（支书 7 条视觉 ＋ 2 条运行时反馈 → 规则）
+
+| # | 样本 | AI 假设 | 人类意图 | 泛化规则 | 守卫 |
+|---:|---|---|---|---|---|
+| 1 | 分组胶囊「没恢复」：CSS 有 `.tab-group-label`，但 ≤1280 直接隐藏、底色 1.06:1、高 18px | 改了 CSS 就完成；组名是可裁剪装饰 | 要的是**可感知**，不是声明存在 | 判据必须含断点集合 ＋ 可见性 ＋ 高度 ≥24px ＋ 形状对比 ≥1.5:1，不只看声明存在；窄屏只缩不隐藏 | `ui-control-system-guard::V2` ＋ `ui-contrast-guard::K3` ＋ `page-sweep`（CASE-DESIGN-020） |
+| 2 | 按钮无边框：79 处 `btn-ghost` 当动作按钮，hover 仅 1.06–1.11:1 | 旧类名沿用最省事；hover 有变化就算可点 | 要**控件与内容可区分** | 动作按钮必有描边 / 底色；纯文字动作有下划线 / 箭头；图标 32 视觉 ＋ 44 命中；`btn-ghost` 只作非动作行载体 | `ui-control-system-guard::V4–V7` ＋ `frontend-foundations-guard::F8`（CASE-DESIGN-021） |
+| 3 | 表格「向后伸展」：全仓 0 处 `table-layout`，末列吃掉余量 | 只填内容，浏览器会自动排好 | 要的是**列宽模板**，同列对齐、末列贴列尾 | 关键宽表 `fixed` ＋ `colgroup`；首列 nowrap 有 max-width；末列 end ＋ 16px；≤640 动作列 flex-start | `ui-control-system-guard::V3`（CASE-DESIGN-022） |
+| 4 | 「单调」：中性 : 强调 : 状态 : 类别 ≈ 4.9 : 2.4 : 0.8 : 1.0，中性 54–76% | 把主题色当唯一强调；要解决就重做主题色盘 | 要**主题色层与功能色层并列**，功能色在小面积功能位 | 主题色盘值不改、只担四类角色；功能色独立 token / 暗色值 / 小面积边界；两层不互借 | `theme-palette-guard::T8/T9` ＋ `link-color-guard::L6–L8` ＋ `ui-contrast-guard`（CASE-DESIGN-024） |
+| 5 | 详情「什么时候可点」：同一对象 4 种详情面，归档深链不校验、缺 id 仍出链接 | 入口一刀切（全直达或全落台）；能打开就算对 | 要**最小三成本路由**：所属工作台内定位、工作台外直达、无门不可点 | 每入口只声明 `direct` / `locate`；未知 / 缺 id / 跨支部 → `none`；已归档只读；同页只有一个完整详情落点 | `object-route-guard::R1–R8`（CASE-DESIGN-023） |
+| 6 | 结论带挤在一起：`metric-band` 0 间距 ＋ 1px 左线；竖条与文字被 `gap:4px !important` 压成 4px | 项间贴紧更「紧凑」；线比间距省地方 | 卡内要**分组呼吸感**，组内 8 / 组间 16，竖条与文字 8px | `metric-band` 拆两档、项间 8–12px、去掉左线；`today-go` gap 8px；`disclosure__body` 4→8px | `ui-control-system-guard::V1` ＋ `density-spacing-guard`（SD-41） |
+| 7 | 数据零值 / 可点箭头太浅：`neutral-400` 同时用于装饰与信息 | 中性色越浅越「轻」 | `neutral-400` **只装饰**；数据与箭头要可读可辨 | 数据零值 / 可点箭头 / 状态点改 `neutral-600` 或主题 soft-text；正文对比 ≥4.5:1；箭头不得 neutral-400 | `ui-control-system-guard::V5` ＋ `ui-contrast-guard`（SD-43） |
+| 8 | tab「渲染不出来 / 点 A 亮 B」：冻结 `renderCtx`、marker 不清、持久绑定标记 | 首屏能渲染就代表生命周期正确；绑定一次永久有效 | 点哪个 tab，最终渲染的就是**该 tab 最新数据**；控件离开再回来仍生效 | 渲染上下文取最新 state；统一生命周期（seq / 去重 / 清 marker / await / 错误卡 / 8s 超时）；绑定标记挂重建元素或委托 | `runtime-tab-lifecycle-guard::R1–R7`（CASE-AI-006） |
+| 9 | 「卡」：首屏 600ms 硬等待、双 `loadDB`、hover 浮窗写后读、Observer 全文档扫 | 慢是网络 / 数据量问题；loading 只是视觉 | 首屏不被硬推迟，鼠标移动不被布局读取打断 | 延迟可配（默认 ≤120ms）；`loadDB` 幂等；首屏只派生一次；hover 先读后写；Observer 只扫新增；后台 render 不铺占位 | `runtime-tab-lifecycle-guard::P1–P5`（CASE-AI-006） |
+
+## 批次 513（2026-10-26）：胶囊主题色回退 ＋ 数据真相 ＋ schema v12 ＋ 四个月窗口 ＋ 测试隔离 ＋ 正式轨道（spec `restore-capsule-and-harden-data-truth`）
+
+### 一、判据
+
+- 支书复核批次 512 的胶囊：「还是没恢复」。取证：批次 512 只做到「全宽可见 ＋ ≥24px ＋ 描边」，但底色 `neutral-100` / 文字 `neutral-500` / `border-radius:999px` / 400 字重——**可见性达标，8–9 月的主题 soft 底 ＋ 3px 直角 ＋ 600 字重全部丢失**。
+- 数据线取证：`getDataSource()==='api'` 时，活动 / 考勤 / 考察仍回退静态种子；通知 / 报名 / 待办仍补种子并 `persist()`；`persist()` 对快照未覆盖的 `committeeBroadcasts / agendaVotes / memberChangeRequests` 直接 resolve（界面上「保存成功」，清缓存重登即消失）。登录仍先查本地账号层。
+- 结构取证：种子缺 `branchId`、缺唯一约束、字段未登记；`issue_reveals` 为死表、`committee_broadcasts` 为半死表；`todos.branch_id` 未下推。运行库混入 `act-b31-* / att-b31-* / mk-b31-* / todo_seed_7 / 测试通知 / 测试议题` 等测试残留。
+- 演示窗口：旧种子含 7 月及更早内容，11 月无计划活动。目标窗口统一为 **2026-08-01–2026-11-30**，保留每种关键状态样本，**不按日期 DELETE**。
+- 正式轨道缺口：生产形态默认可回退演示种子；无「空库基线 → 名册导入 dry-run → 恢复脚本 → 只读演练」的完整路径。
+
+### 二、动作（指针）
+
+1. **胶囊（Task 1）**：`styles.css::.tab-group-label` 改用 `--app-accent-soft-bg` / `--app-accent-soft-text`，`border-radius:3px`、`font-weight:600`、`letter-spacing:0.5px`，保留 `min-height:24px` / `flex-shrink:0` / 全宽可见；描边 `--neutral-400`（约 2.43:1）；≤1280px 只缩内边距，字号保持 12px。
+2. **缓存与登录（Task 2）**：`docs/src/data/cache-registry.js` 建四类键单一源（visual / auth / read-cache / temp）；`workflowos_branch_db_v1` 写入带 `_versions` ＋ `savedAt`（30 分钟有效期）；`login-entry.js` / `auth.js` 改服务端优先，后端失败停留登录页；outbox 键 `gsm1921-pending-writes-outbox` 承担失败重试 / 放弃。
+3. **去 mock 回退（Task 3）**：六个读口 / 种子口（活动、考勤、考察、通知、报名、待办）在 api 形态加显式闸门并置于种子常量之前；`persist()` flush 按「快照 / 语义端点 / 本机 / 显式失败」四类分流；`agendaVotes` 与 `memberChangeRequests` 新增 annotate 语义端点；`committeeBroadcasts` 标 temp 并显示「本机未同步」。
+4. **schema v12 与种子契约（Task 4）**：四组唯一索引（`attendances(activityId,personId)` / 活组 `party_groups(branchId,name)` / `attendance_rosters(activityId)` / `workgroup_members(workgroupId,personId)`）；`todos.branch_id` 生成列；`contributions` 统一 `{desc, by, at}` 对象；考察成员 ∈ 父工作组在服务端写口校验；`issue_reveals` DROP；`committee_broadcasts` 只读（写口 409）；新增 [DATA_SEED_CONTRACT.md](../../content/04_web_design/data/DATA_SEED_CONTRACT.md)（四类口径 ＋ 逐表契约 ＋ v12 强约束）。
+5. **四个月窗口（Task 5）**：`demo-window.js::DEMO_WINDOW` 单一源；活动按业务内容重排为 8 月 18 / 9 月 9 / 10 月 8 / 11 月 3；11 月只 `draft/published`、无考勤 / 复盘；考勤 / 考察 / 复盘 / 任务 / 分工 / 通知 / 归档 / 报名 / 外发 / 交接 / 议题级联重排；`tf-002` 跨期保留；运行库用 `rebuild-demo` 重建后替换（旧库备份 `server/backups/pre-513`）。
+6. **测试隔离（Task 6）**：`test-tier-registry` 增四类 `fixtureClass`；`b3-1` 改临时库 ＋ `t.after`；`cleanup.mjs` 修「无 data 列的表」并新增 `--test-residue`（dry-run 默认）；新增 `test:clean` / `test:full:safe`；测试套件保留（268 个文件）。
+7. **正式轨道（Task 7）**：生产默认 `SEED_FALLBACK=false`；演示库拒启（`ALLOW_DEMO_DATA=1` 放行）；`seed-repair` 不修演示 seed id；新增 `import-branch.mjs`（dry-run ＋ 事务）与 `restore.mjs`；`READ_ONLY=1` 只读演练；`PUT /branches/:id/roster` 单事务替换。
+8. **规范与判例（Task 8）**：`DESIGN_SYSTEM` 增 SD-47（胶囊视觉构成）与 SD-48（缓存 / 写确认 / 演示窗口 / 测试残留四层），并同步 §12.3 / SD-3 / SD-36 的例外与指针；`design-system/CASES.md` 增 CASE-DESIGN-025、CASE-DATA-001 与 sample-diff 五列；`CASES_INDEX` 增两行与 data 域计数；`DATA_MODEL` 顶部补种子契约指针与 v12 摘要；`PRODUCT_IA` 增「数据形态与缓存边界」附录；`GUARD_INVENTORY` 记 74 件 / 501 条。
+
+### 三、读数
+
+- **定向（终态）**：`node --test test/docs-governance-guard.test.mjs test/doc-consistency.test.mjs test/seed-contract-guard.test.mjs test/test-isolation-guard.test.mjs test/write-truth-guard.test.mjs test/demo-window-guard.test.mjs test/ui-contrast-guard.test.mjs test/ui-control-system-guard.test.mjs` ＝ **107 / 107 绿**，`duration_ms 9744.80`（≈9.74s）。逐件：docs-governance 28（静态 25 条；`N3–N6` 循环展开 4 条 ⇒ 运行 28）· doc-consistency 21 · seed-contract 10 · test-isolation 4 · write-truth 9 · demo-window 5 · ui-contrast 5 · ui-control 25。
+- **daily（终态）**：`npm run test:daily` ＝ **1608 / 1608 绿**（93.8s；0 cancelled / 0 skipped）。
+- **胶囊**：亮色 softText vs softBg **6.88:1**、暗色 **9.18:1**；描边对页面底约 **2.43:1**；五档宽度（390 / 768 / 1024 / 1280 / 1440）全宽可见，`min-height 24px`、`border-radius 3px`、`font-weight 600`、`letter-spacing 0.5px`。
+- **运行库（v12）**：`user_version = 12`、表 **52** 张（`issue_reveals` 已删）；活动 **38** 条——8 月 **18** / 9 月 **9** / 10 月 **8** / 11 月 **3**（`published / published / draft`）；11 月活动考勤 **0**、复盘 **0**。
+- **守卫台账**：件数 **70 → 74**、断言 **462 → 501**；新增 `seed-contract-guard`（10）、`test-isolation-guard`（4）、`write-truth-guard`（9）、`demo-window-guard`（5）；`localstorage-key-guard` 3→10、`seed-baseline` 3→6、`data-lifecycle-guard` 14→15。
+- **测试残留**：旧库 `cleanup --test-residue` dry-run 命中 **10 张表 / 52 行**；替换为重建库后复跑 **0 表 / 0 行**。
+- **全量三通道（最终）**：`SWEEP_SHARD=all` ＝ **[node] 1608 / 1608 绿**、**[e2e-A] 92 / 92 绿**、**[e2e-B] 144 过 + 1 skip（145）**；墙钟 **849.8s**（≤1200s）。
+- **版本戳**：`20261025b` → **`20261026a`**（JS 263 / HTML 26 / CSS 2 / server-test 151 个文件改写，陈旧戳 0 残留）。
+- **数据切换**：旧库备份 `server/backups/pre-513`（schema v11，51 users / 39 activities）→ `rebuild-demo` 生成新库（schema v12，38 activities）→ 替换 `server/data.db` 并清 wal/shm。
+
+### 四、修复过程（如实）
+
+- **schema v12 生成列导致播种失败**：`todos.branch_id` 改为 `GENERATED ALWAYS AS (json_extract(data,'$.branchId')) VIRTUAL` 后，播种 / 写口仍按旧列写 `INSERT … branch_id`，SQLite 直接报「cannot INSERT into generated column」，首启播种中断。修复：写口只写 `id + data`（`branchId` 留在 JSON 内），生成列自动派生；快照 / 语义写口同步；`seed-contract-guard::C3` 把「`INSERT(id,data)` 可用、JSON 一致、手写列报错」锁成判据。
+- **胶囊「可见 ≠ 恢复」**：批次 512 的 V2 / K3 只判可见性与描边，未判主题色与字重；本批先改 CSS，再把 K3 从 `neutral-500` 改为「主题 soft-bg / soft-text ＋ 亮暗 ≥4.5:1」，V2 从字面 `neutral-400` 改为「描边对页面底 ≥1.5:1」并补 3px 断言——**判据跟着准绳改，不是让实现迁就旧判据**。
+- **api 形态假成功的连锁**：先加六个读口闸门（否则空库仍显示演示活动），再改 flush 四类分流（否则非快照域静默 resolve），最后补 outbox 与「未同步」文案；三步缺一，界面上仍会出现「保存成功但重登消失」。
+- **窗口重排不是删除**：先按业务内容把 7 月活动重排到 8–10 月并补 11 月计划活动，再级联重排考勤 / 考察 / 复盘 / 任务 / 分工 / 通知 / 归档 / 报名 / 外发 / 交接 / 议题，最后 `rebuild-demo` 重建并替换运行库；旧库先备份到 `server/backups/pre-513`。直接按日期 DELETE 会打断跨期实体（`tf-002`）与状态样本。
+- **文档侧三次回退**（本 Task 8 实跑暴露）：① `DATA_MODEL` 顶部新增一行导致 `README-server.md` 的 `文件:行号` 锚点整体 +1（docs-governance R1/R2/R3 三红），改为并入既有「本文不回答」同一条（不增行）；② TIMESTAMPS 备注列 **31,430 > 31,400**（N2 红），按「等量置换」收短 DATA_MODEL / CASES / SNAPSHOT / 日志四格，未上调预算；③ `DATA_SEED_CONTRACT` 无 frontmatter 被 S13 判红，补 frontmatter（不改守卫白名单）；补齐后 F1 的「带日期 content 行 ≥20」下限恢复。
+- **收尾**：定向 107/107、daily 1606/1606；版本戳、全量三通道与提交留给主代理收尾。
+
+### 五、边界（如实）
+
+- **不做**：版本戳 bump、全量三通道、提交与 push——全部留主代理收尾；本批只跑定向与 daily。
+- **SD-47 与 SD-36 / SD-42 分职**：SD-47 只管**视觉构成**（主题 soft 三件套 / 3px / 600 / 0.5px 字距 / ≥24px）；非按钮语义仍归 SD-36，全宽可见仍归 SD-42；`.tab-group-label` 是 SD-3「999px」的**唯一登记例外**，例外只改圆角。
+- **SD-48 是边界条款，不是字段表**：缓存键清单以 `cache-registry.js` 为准、种子逐表口径以 `DATA_SEED_CONTRACT.md` 为准、窗口以 `DEMO_WINDOW` 为准、测试分层以 `test-tier-registry` ＋ `cleanup --test-residue` 为准；`DESIGN_SYSTEM` 不重复抄写。
+- **新增守卫 4 件**（spec 原写「新增 ≤2」）：`seed-contract-guard` / `test-isolation-guard` 为 spec 点名；`write-truth-guard` / `demo-window-guard` 是把 Task 3 / Task 5 的验收从一次性脚本升为常驻守卫，故实际 4 件；件数与断言已在 `GUARD_INVENTORY` 如实登记。
+- **判例不产生规范效力**：CASE-DESIGN-025 / CASE-DATA-001 只记「当时确认的落点」，布尔判据在 SD-47 / SD-48；`content/05_ai_coding` 不写规范条文。
+- **11 月无考勤 / 复盘**是数据事实（计划态活动尚未发生），不是查询失效；`act-38/39` 为 `published`、`act-40` 为 `draft`。
+- **`DATA_SEED_CONTRACT` 补 frontmatter** 是为满足 `doc-consistency::S13`（无 frontmatter 的 md 须登记白名单），不是新增规范字段；白名单未改。
+- **只读演练 / 名册导入**的真机验证留给收尾三通道；本批只核脚本与写口判据。
+
+### 六、sample-diff 五列（本批抽样 → 规则）
+
+| 样本（证据） | AI 假设 | 人类意图 | 偏差类型 | 泛化规则（守卫） |
+|---|---|---|---|---|
+| 分组胶囊「没恢复」：已全宽可见、≥24px、有描边，但仍中性灰 999px / 400 字重 | 改可见性＝恢复；颜色与圆角只是装饰 | 要回到 8–9 月的**主题色 soft 底 ＋ 3px 直角 ＋ 600 字重** | `definition_mismatch` | 可感知与视觉构成分开登记、同时把守；3px 是登记例外，不豁免主题色与字重（SD-47 / K3 ＋ V2；CASE-DESIGN-025） |
+| 「删除测试用例」：运行库残留 `act-b31-*` / `att-b31-*` / `mk-b31-*` / `todo_seed_7` / 测试通知 / 测试议题 | 测试数据＝测试套件的一部分，删残留＝删测试 | 要清**运行库残留**，保留 268 个自动化测试文件 | `scope_widening` | 测试套件与测试数据分层：外部写用临时库或 `finally` 清理，残留由 `test:clean --test-residue` 清（SD-48 / I1–I4） |
+| 「四个月窗口」：7 月 25 场活动需进入 8–11 月窗口 | 按日期把窗口外的行 DELETE 掉最直接 | 要**重排事实 ＋ 重建运行库**，保留跨期实体与每种关键状态样本 | `tool_mismatch` | 先备份 → 重排种子 → `rebuild-demo` 重建 → 替换库；不逐表按日期 DELETE（SD-48 / W1–W5） |
+| 「缓存」：清缓存重登后标注消失；`persist()` 本地 resolve 曾报成功 | 本地缓存能显示就算可用；读缓存可当权威 | 要**服务端权威**：读缓存只是加速，写成功必须有服务端证据 | `priority_inversion` | 业务读缓存带 `_versions` ＋ `savedAt`；写三选一可证；失败进 outbox 显示「未同步」（SD-48 / L4–L10 ＋ A1–A4/B1–B5；CASE-DATA-001） |
+
+## 批次 514（2026-10-27）：UI 三项专项（最小三成本 / 脏乱繁 / 美学）（spec `refine-ui-three-lenses`）
+
+### 一、判据
+
+- **最小三成本（阶段一）**：刷新七台任一工作台，首次 Tab 必须落「跳到主要内容」，不得落到页签条或正文中部；页签激活只改滚动位置；顶栏焦点环在 `#7A0010` 上 ≥3:1；侧栏抽屉打开焦点进入首个导航项、Esc 关闭并回焦；首页日历只有 1 个 Tab 停点（`role=grid` ＋ roving tabindex）；390 待办先列表后详情、未选中不渲染详情；五台「看日历」必须有真实落点；普通成员首屏能读出「成员工作台」；“我的处置”幽灵提示与变更注记清零。
+- **脏乱繁（阶段二）**：每页唯一 H2（页签 `renderTabHeader`）；党委台「支部上报」只出现一次；每行 1 主行动 ＋ 1「更多」；活动 / 专班详情不显示 `act-*` / `tf-*` 原始 ID；页签条组名行与页签行分层（390 显示「还有 N 个」、1440 十签全见）；40px 折叠摘要不塞整句；首页无图不出 16:9；今天空态一行 ＋ 单一 CTA；390 统计卡等高；帮助页 390 `scrollWidth = 390`、章节可折叠、目录保留、正文 38 字/行。
+- **美学（阶段三）**：组名＝10% 主题淡底 ＋ 无边框 ＋ 3px，选中页签＝solid soft ＋ 主题描边 ＋ 700；全站文本下划线 **0** 处；字体 1 个 display serif ＋ 15/13/12 三档；加载 skeleton（120ms 延迟 / 180ms 淡入 / ≤1s / 无压暗硬替换）；逾期文字、暗色侧栏选中、help 目录激活、登录暗色 placeholder 对比达标；功能红 / 金与 danger / warning / 主题分离；About 零入口（文件保留）。
+- 验收纪律：每个子专项「上一阶段验证通过才进入下一阶段」；修改不只看类名 / 元素是否存在，还要看**相邻态一眼可分**与**全站计数归零**（CASE-DESIGN-026）。
+
+### 二、动作（指针）
+
+1. **阶段一 · 信息 / 布局（Task 1）**：`todo-tab-shell.js` / `todo-list.js` 改 390 主从顺序；首页 / 今天页首屏收敛为单一主行动；空态一行 ＋ 单一 CTA（结构与阶段二共用）。
+2. **阶段一 · 操作 / 键盘（Task 2）**：`tab-bar.js` 激活去掉 `scrollIntoView`、改 `scrollLeft`；`header.js` 作用域焦点环改白 / 党徽金；`sidebar.js` 抽屉焦点与 Esc 回焦；`calendar.js` 改 `role=grid` ＋ roving tabindex；`ui-focus-ring` / `ui-tab-overflow` 补断言。
+3. **阶段一 · 学习 / 入口（Task 3）**：五台 `onNav('calendar')` 落到工作概况日历卡 / 活动动态；活动「下一步」按组织者 / 深参与分流；普通成员页题「成员工作台」；删「我的处置」幽灵提示与「原…已并入本页」注记。
+4. **阶段二 · 页标题（Task 5）**：七台静态 H2 删除，`renderTabHeader` 成唯一 H2；党委台三连消除；活动 / 专班 H3/H4 顺序修正；每行 1 主行动 ＋ 1「更多」；原始 ID 移入 `title`；`page-title-guard::P4–P6`。
+5. **阶段二 · 页签条与空态（Task 6）**：`tab-bar.js` / `workspace-shell.js` 组名行与页签行分层（390「还有 N 个」、1440 放开宽度）；`activity-calendar-tab` 40px 折叠摘要改 chevron ＋ `aria-label`；首页无图不出 16:9；今天空态一行 ＋ 单一 CTA；390 统计卡 `min-height:100px`；`ui-tab-overflow::T5–T7` / `responsive-cards-guard::C7`。
+6. **阶段二 · 帮助页（Task 7）**：`.help-layout` / `.help-main` / `.doc-card` 收 `min-width:0`；390 无整页横溢（表格容器自滚）；9 章可折叠；目录保留；正文行长收到 38 字/行。
+7. **阶段三 · 胶囊 / 下划线 / 字体（Task 9）**：`styles.css` 新增 `--app-accent-tint`（主题色 10%）；`.tab-group-label` 去边框、改淡底；`.tab-btn-active` 用 solid soft ＋ `--app-accent` 描边 ＋ 700；全站 110 处 / 54 文件下划线清零，`.link` / `.help-note__link` / `.btn-text` 改「600 字重 ＋ 箭头 ＋ 淡底 hover」；字体收 1 个 display serif ＋ 15/13/12 三档；新增 `no-underline-guard`。
+8. **阶段三 · 加载（Task 10）**：`tab-bar.js` 新增 `tabContentSkeletonHtml`（「正在加载…」＋ 3 条卡形 ＋ spinner ＋ `role=status`）、`TAB_LOADING_SKELETON_DELAY_MS=120`、淡出 120ms / 淡入 180ms ＋ 8px、`TAB_LOADING_SKELETON_MAX_MS=1000`；`tab-loading.css` 顶部 2px 进度条与 reduced-motion 分支；新增 `loading-experience-guard`。
+9. **阶段三 · 色彩（Task 11）**：`--status-warning-text`（亮 `#92400E` / 暗 `#FCD34D`）；暗色侧栏选中改主题 soft；help 目录透明度只作用未激活圆点；新增 `--color-functional-red/gold`（亮 / 暗）；登录暗色输入补表面 token 与 placeholder；`ui-contrast::K6` / `theme-palette::T10`。
+10. **阶段三 · 细节 / About（Task 12）**：登录两按钮补 `:active`；390 统计卡等高等宽；六台「看日历」单按钮不全宽；侧边栏 / 帮助目录 / README 撤 About 入口（`about.html` 文件保留）；新增 `no-about-route-guard`。
+11. **文档（Task 13.4）**：`DESIGN_SYSTEM` 增 SD-49…SD-52 并改准 §12.3 / §12.10 / SD-3 / SD-36 / SD-42 / SD-43 / SD-47 的交叉口径；`CASES.md` 增 CASE-DESIGN-026 / 027；`CASES_INDEX` design 25 → 27；`PRODUCT_IA` 增 About 撤路由附录；`GUARD_INVENTORY` §十一（77 件 / 526 条）。
+
+### 三、读数
+
+- **定向（终态）**：`node --test test/docs-governance-guard.test.mjs test/doc-consistency.test.mjs test/no-underline-guard.test.mjs test/loading-experience-guard.test.mjs test/no-about-route-guard.test.mjs` ＝ **64 / 64 绿**，`duration_ms 5975.93`（≈5.98s；多次连跑 5.9–6.0s）。
+- **daily（终态）**：`npm run test:daily` ＝ **1634 / 1634 绿**（63.75s；0 cancelled / 0 skipped / 0 fail）。**与主代理交接口径 1636 差 2 条**，本日志以本次实跑为准（两次连跑同为 1634）。
+- **全量三通道（收尾实测）**：`SWEEP_SHARD=all` ＝ **[node] 1636 / 1636 绿**、**[e2e-A] 94 / 94 绿**、**[e2e-B] 147 过 ＋ 1 skip**；墙钟 **837.3s**（≤1200s）。
+- **胶囊 / 页签**：组名 `--app-accent-tint` 10% 淡底、无边框、3px、12px/600/0.5px、24px；选中页签 solid soft ＋ accent 1px 描边 ＋ 700；390 见「还有 N 个」，1440 十签全见。
+- **下划线 / 字体**：全站文本下划线 **110 → 0**（54 文件，含 help / login）；标题族 1 个 display serif ＋ 15/13/12 三档（`text-xs` 存量 1911 处未全量迁移，见 §五）。
+- **加载**：骨架 120ms 延迟 → 淡出 120ms → 淡入 180ms（8px）；实测 **825–900ms**（预算 1000ms）；reduced-motion 80ms 无位移。
+- **对比度**：逾期文字 `--status-warning-text` 亮 **7.09:1** / 暗 **11.68:1**；暗色侧栏选中 **6.44:1**；help 目录激活 **4.61:1**；登录暗色 placeholder **6.57:1**。
+- **结构**：七台静态 H2 删除、`renderTabHeader` 唯一 H2；待办每行 1 主行动 ＋ 1「更多」；390 统计卡 **100px** 等高；首页无图不出 16:9；今天空态一行 ＋ 单一 CTA。
+- **帮助页**：390 `documentElement.scrollWidth = 390`；9 章可折叠；目录保留；正文 **38 字/行**。
+- **守卫台账**：件数 **74 → 77**、断言 **501 → 526**（新增 `no-underline` 4 / `loading-experience` 6 / `no-about-route` 5；扩展 `ui-contrast` ＋1、`theme-palette` ＋1、`page-title` ＋3、`responsive-cards` ＋1；校准 `doc-consistency` 23、`test-tier` 8）。
+- **版本戳**：`20261026a` → **`20261026b`**（本批未 bump，沿用已完成值）。
+
+### 四、修复过程（如实）
+
+- **首次 Tab 起点**：`tab-bar.js` 的 activate 原先调用 `scrollIntoView`，会把焦点 / 视口带到页签条；改为只改 `scrollLeft` 后，键盘起点才回到「跳到主要内容」。守卫侧把「不用元素级滚动定位」写成 `ui-tab-overflow::T5`，防止回潮。
+- **页签条分层不是换行**：390 上组名与页签挤在一行时，溢出箭头会盖住组名；改成「组名行 ＋ 页签行」两层后，390 用「还有 N 个」收口、1440 放开容器宽度；`ui-tab-overflow::T6/T7` 同时判结构与样式，避免只改 DOM 不改观感。
+- **40px 折叠摘要**：整句摘要压进 40×40 槽会把 chevron 挤没；改为「只留 chevron ＋ `aria-label`」，`responsive-cards-guard::C7` 锁住。
+- **胶囊与选中页签“同色”**：批次 513 的组名与选中页签都用 soft 底，只差一个浅边框；本批把组名降到 10% 淡底并去边框，选中页签升到 accent 描边 ＋ 700，两者才一眼可分。`ui-contrast::K3` / `ui-control::V2` 同步改判据，不是让实现迁就旧判据。
+- **下划线清零的连锁**：先清 110 处（54 文件），再把 `DESIGN_SYSTEM` 里「静态下划线作非颜色线索」的旧条文改掉——否则规范与守卫互相打架，下一批必回潮。`no-underline-guard::N2/N4` 以「全站 0 处」为判据，不是「新增不加」。
+- **加载体验**：旧实现 `opacity=0.45` ＋ 顶部插「加载中…」行，切页签整块闪；新实现把骨架延迟到 120ms 之后，旧内容淡出、新内容淡入，并用 `data-settled` 在 1s 后停止脉冲。`loading-experience-guard` 用同一纯函数跑真实源码与故障注入，防止「正则写坏后恒绿」。
+- **文档侧的自洽修复**：`CASES.md` 初稿把「动效令」误写成 SD-13，改为 SD-30 ＋ §12.13；`PRODUCT_IA` 的 About 附录初稿误引 CASE-DESIGN-027，改为 CASE-DESIGN-026（027 是加载判例）。这类编号 / 指针错误不改就会成为下一批的「第二套真相」。
+- **读数差异**：daily 本次实跑 1634，与交接的 1636 差 2；不追平数字，按实况记录。
+
+### 五、边界（如实）
+
+- **本收尾任务不改代码 / 测试 / 数据**：只改 `content/**` 四份文档与 `.ctx/**` 三份记录；不 commit、不 bump（版本仍是 `20261026b`）。
+- **未全量迁移项（如实）**：① `text-xs` 仍剩 **1911 处**，本批只收标题族与三档字号，未逐页替换；② About 虽已撤导航，`function-catalog.js` 仍保留「关于」功能卡（不在本批写权面，未删）；③ `about.html` / `about-entry.js` 文件保留，存量样式仍受 SD-49 约束但不作路由；④ 帮助页 9 章折叠与 38 字/行为实测值，非所有长文页的统一约束。
+- **SD-49 与 SD-43 的边界**：`border-*`（表格分隔线 / 卡边 / 选中态边线）不属文本装饰，不要求清零；链接仍必须有非颜色线索，不是「只留颜色」。
+- **SD-50 与 SD-47 / SD-42 的分职**：SD-50 只改底色（10% tint）与描边（无边框）及选中页签层级；SD-47 的 3px / 600 / 0.5px / 12px / ≥24px、SD-42 的全宽可见、SD-36 的非按钮语义继续有效；`.tab-group-label` 仍是 SD-3「999px」的唯一登记例外。
+- **SD-51 与 SD-30 的边界**：加载编排的 120 / 180ms 在动效白名单内；8s 数据超时错误卡是失败态，不归 SD-51。
+- **SD-52 与 SD-46 / SD-31 的边界**：功能红 / 金只细化功能色层与类别 tone，不改主题色盘，也不承担状态（进行中 / 完成 / 打回仍走 `--status-*`）。
+- **全量三通道**：本次收尾未重跑三通道，读数沿用主代理实测（node 1636 / e2e-A 94 / e2e-B 147＋1skip / 837.3s）；本日志只实跑定向 64 与 daily 1634。
+- **About 判例**：About 撤路由没有独立判例，边界写在 `PRODUCT_IA` 附录与 CASE-DESIGN-026 的边界一列；`no-about-route-guard::A1–A4` 是机检件。
+
+### 六、sample-diff 五列（本批抽样 → 规则）
+
+| 样本（证据） | AI 假设 | 人类意图 | 偏差类型 | 泛化规则（守卫） |
+|---|---|---|---|---|
+| 胶囊与选中页签同为 soft 底，只差一个浅边框；支书仍说「分不出组 / 页」 | 写上主题色＝恢复层级；元素存在＝改完 | 相邻两态必须**一眼可分**：10% tint / 无边框 / 600 vs solid soft / accent 描边 / 700 | `definition_mismatch` | 视觉改动同时判「相邻态差异可测」与「全站计数归零」（SD-50 / K3 ＋ V2；CASE-DESIGN-026） |
+| 全站 110 处 / 54 文件文本下划线，help / login 也在内；规范还写着「静态下划线作线索」 | 下划线是链接默认线索，留着更安全；规范写过就照做 | 下划线全站清零，链接改**颜色 ＋ 箭头/图标/底色 hover**；表格线不属文本装饰 | `priority_inversion`（旧规范压过用户裁定） | `no-underline-guard::N2/N4` 以全站 0 处为判据；同步改 SD-22 / SD-43 / §12.10，避免规范与守卫两套真相（SD-49） |
+| 旧加载态 `opacity=0.45` ＋ 顶部插「加载中…」，切页签整块闪 | 压暗是最省事的加载信号；插一行文字就能解释等待 | 要**版式骨架 ＋ 120ms 延迟 ＋ 180ms 交叉淡入 ＋ ≤1s**；禁止压暗 / 插行 / 硬替换 | `tool_mismatch` | 加载体验四件齐备；故障注入逐条判红；reduced-motion 保留骨架与文案（SD-51 / L1–L7；CASE-DESIGN-027） |
+| 七台静态壳仍输出台名 H2，页签 `renderTabHeader` 又出一个 H2；党委台「支部上报」三连 | 静态标题是壳的一部分，留着不影响 | 每页恰 1 个 H2；静态台名降为面包屑 / 眉题或移除 | `scope_widening`（标题层级被当成装饰） | 静态壳不得有 `<h2>` / `.page-frame__title`；H3/H4 顺序合法（SD-35 / P4–P6） |
+| `DESIGN_SYSTEM` 仍写「胶囊 1px 描边」「链接静态下划线」，实现已改掉 | 文档滞后一批再补也行 | 规范与实现必须同批一致；否则守卫与文档互相打架 | `documentation_drift` | 改视觉判据同批改 SD 条文与判例指针；`doc-consistency` / `docs-governance` 复核（SD-49 / SD-50） |
+
+## 2026-10-28 焦点单环 ＋ 大字数值对比（戳 `20261028d`，未 bump）
+
+**为什么改**：键盘聚焦 `.input-flat` 搜索框时 `:focus` 与 `:focus-visible` 同时命中，`box-shadow: 0 0 0 3px var(--app-accent-soft-bg)` 与 `outline: 2px solid var(--app-accent)` 叠成两环。真机读数（`.ctx/evidence/2026-10-28/focus-readings-before.json`）：`.lf-kw` / `#archive-search` / `#ref-search-input` 均为 outline 2px `rgb(169,122,18)` offset 1px ＋ box-shadow `rgb(251,243,220)` 0 0 0 3px；soft-bg 环对白卡 1.11:1、暗色下比卡片更暗（`--app-accent-soft-bg-dark`）⇒ 肉眼读成「黑环 + 金环」。`<select>`（`.cs-trigger`）实测也是两条声明，但 3px 环几乎不可见，故用户看到单环。
+
+**口径（单一源＝`styles.css:1021–1022`）**：环只由 `:focus-visible` 的一条 `outline: 2px solid var(--app-accent)`（offset 1px）承担；`:focus` 只改边框色并把 `box-shadow` 钉成 `none`（顺带挡掉 `<button>` 触发器继承的全局 6px `--focus-halo`）。四处＋两处搜索面并到同一口径：`.lf-kw`（list-filter）· `.cs-search-input`（下拉内嵌）· `#archive-search` · `#ref-search-input` · `.help-search-input`（help.html 内联）· `.person-picker-search`。
+
+**对比度**：环 `#A97A12` vs 白卡 3.83:1、vs 页面底 3.66:1（≥3）。`--status-success` 作 24px 数值对白卡仅 2.54:1 ⇒「个人考勤」良好档数值退回 `--neutral-800`（14.68:1），绿色只留 `.stat-icon-tint`（`aria-hidden` 装饰件）；仓内无更深成功文字 token（先 Grep `--status-success-text` / `--color-functional-*`），故不新增 hex。
+
+**守卫同批改**：`field-shell-guard::F2`（由「必须有 3px 浅晕」改准为「必须 `box-shadow: none`」，判据不降）· `ui-focus-ring::F3`（同口径）· `ui-control-system-guard` 新增 `FOCUS-1…3`（双环检测含正/反例 · 搜索框与 `<select>` 同环 · 良好档数值 ≥3:1）；`test-tier-registry` 预算 1647 → 1650 并写理由。
+
+**读数**：定向 61/61 绿（`ui-control-system`＋`ui-contrast`＋`hex-hardcode`＋`theme-palette`＋`ui-focus-ring`）；`test:daily` 1653/1653 绿（95s）。反例实测：临时把旧 `:focus` 3px 阴影 ＋ `:focus-visible` outline 写回 `styles.css`，`FOCUS-1` 报红并指出两条规则的行号（1027 / 1028），随后已回退。
+
+**边界**：本批不 bump 版本戳（戳仍为 `20261028d`）；`.input-flat-sm`（紧凑档）与 `.vote-note` 本就是单环（深灰 `--focus-ring`），不在本次四处之内，未改；`button/a` 的「金环 + 深色补环」是 §A11y 段的既定双线索，与「同一控件的第二条环」不是同一问题。
+
+## 2026-10-28 焦点单一体例 ＋ 交互三态 ＋ 支部名单一源（戳 `20261028e`）
+
+**为什么改**：支书实报「搜索框点进去一黑一金」，并要求「扁平不等于没有交互」。三路独立取证（交互反馈 / 焦点样式 / 非日期硬编码）显示上一批只修了输入框：全站焦点**四套颜色**（主题色 / 固定党徽金 1.40:1 / 党建红 / 深棕）＋ 全局 `0 0 0 6px --focus-halo` 光晕并存，共 20 组双环风险（最集中在 `help.html` 六处）；另有 23 处可交互表面三态不足（仅 hover 变色、`div[role=button]` 不吃全局焦点规则、三处「看着能点其实点不动」）。
+
+**口径（支书裁定）**：焦点只有一套外观——`outline: 2px solid var(--app-accent)` / `outline-offset: 1px` / `box-shadow: none`；输入族边框同变主题色且 `:focus` 即生效（鼠标与键盘同表现）；按钮与链接族不改底色，实底主题色控件取反 `--app-accent-strong-ink` 并压到内侧（`offset: -2px`）；顶栏深红底为例外，用白色令牌 `--app-accent-strong-ink-light`（对 `#7A0010` 11.44:1，七色在其上仅 1.51–2.99:1）。`--focus-ring` 与 `--focus-halo` 两个 token 退场。
+
+**「金」的来源（查实，防再误判）**：焦点用的金是**主题色**，默认金 `#A97A12`（暗 `#E0B24C`），随外观设置切换；`#FFD700` 是固定党徽金，对白仅 1.40:1，不得用于焦点。色板 2026-10-23 已由十色并为七色（金红橙绿青蓝紫），帮助页仍写「十色可选」，本批改准。
+
+**读数**：`test:daily` **1659 / 1659**（65s）；守卫 64 件 / 540 条；七色 base 对白卡 3.83–7.59:1、对深卡 6.48–9.49:1；真机 `.ctx/evidence/2026-10-28/focus-520.json`——五处搜索 `ringCount 1`、顶栏白环、实底取反 `offset -2px`、暗色自动切 `#E0B24C`、可点卡 hover 边框 `#E5E7EB → #A97A12` 且底色 10% tint、390 四页横向溢出 0、登录页标题显示配置值；戳 `20261028e`，`--check` 零陈旧。
+
+**边界**：About 两张卡不动（独立冻结件，登记 `B-520-1`）；`.btn-md` 五个调用点靠 `!important` 才吃族类状态（`B-520-2`）；非日期常量层未收口（`B-520-3`）；换组织向导预设表仍带旧色名（`B-520-5`）；焦点与悬停叠加的三个深红按下档 <3:1（键盘不触发 hover，未处理）；本批不推送。
+
+## 2026-10-29 原则落地 ＋ About 上锁（戳 `20261029a`）
+
+**为什么改**：支书连提四点（页签打不开、输入框又脏又厚、四数卡摊大饼、筛选行乱），并指出「这些背后是一套原则，不只是判例」。复核后确认根因是同一件事：规范只写成条文与判例，没有收敛成「换一处也成立」的原则，也没有落到全量守卫上。
+
+**页签事故（P5 的由来）**：`docs/src/entries/tabs/secretary/todo-tab.js:65` 与 `visitor/inspection-tab.js:24` 的 `import` 被插进了函数体（批次 518「空态全站收口」机械插入时落错），浏览器整模块解析失败。三道防线全漏：`node --check` 对 `.js` 按 CommonJS 解析、放过了该写法（实测该文件 `--check` 退出码 0）；`module-load` 的 root 扫描 `continue` 跳过整个 `entries`，E5 只覆盖 40 个页签；三批无人打开过支书台「待办」。
+
+**立的七条原则（P1–P7）**：焦点只有一个信号 · 同类只有一个语法 · 筛选四段 · 一套栅格 · 静态可解析且入口可达 · 例外必须上锁 · 一文件一问。每条都配「判据 ＋ 反例 ＋ 全量守卫」，写不成交断言的退回判例。
+
+**防过拟合三条机制**：M1 同类穷举（清单 `.ctx/evidence/2026-10-29/principle-inventory.json`，七条原则共 239 个实例）；M2 守卫扫全量（新增 4 件守卫，扫描面均为目录级）；M3 换场景自检（用支书没点名的场景验 78 项，全过）。
+
+**读数**：`test:daily` **1679 / 1679**（221s）；新增守卫 `esm-parse-guard` / `lf-bar-structure-guard` / `container-width-guard` / `about-freeze-guard`，均带反例并在修复/改造前先验红；真机证据见 `.ctx/evidence/2026-10-29/`（`principle-inventory.json`、`focus-p1.json`、`stats-p2.json`、`layout-p3p4.json`、`m3-selfcheck.json`、`p5-injection.log`、`p6-injection.log`、`tab-smoke.json`）；戳 `20261029a`。
+
+**边界**：About 两张卡的可点语义仍不动（`B-520-1`）；§12.6 的 SD 判据表迁入 `CASES` 是否回迁规范侧待裁（`B-521-1`）；`TIMESTAMPS` 备注预算余 29 字（`B-521-2`）；About 的 64rem/1120px/1320px 是五档白名单唯一例外（`B-521-3`）；`.btn-md` 的 `!important`（`B-520-2`）与非日期常量层（`B-520-3`）未收；本批不推送。
+
+**教训（已入 CASE-DESIGN-032）**：判例修不完，原则才收敛；`node --check` 不能当 ESM 门禁；机械批量改动必须配一条对应门禁，否则等于不可验收。
+
+## 2026-10-31 界面质量加固（戳 `20261031a`）
+
+**为什么改**：支书要求再做一次前端设计、颜色、交互、动画的独立评估。四路并行审查（版式／色彩／交互／动效）共 55 条，其中三类会直接影响使用：状态色当正文不达标（成功 2.54:1）、转场存在「看不见却点得到」的窗口、768 下名册操作列被裁 158px。
+
+**四路共识**：规则写进了文档，但没进守卫的扫描面——`motion-guard` 只看 `styles.css`（其它 CSS 与 JS 内联 42 处裸毫秒长期没人管）；`hex-hardcode-guard` 用棘轮基线（`help.html` 532 处硬编码长期合法）；状态色没有「文字档」概念，26 处不达标也就没人判。
+
+**做了什么**：状态色分两层（新增 success／error／info 文字档，30 处迁移）；暗色补齐 primary 三档与 13 个身份色；规范纠错四条（含「按规范实现会退回 1.11:1」的表面色旧值）；触控热区补到 44 且视觉零变化（六类互不重叠）；表单就地报错＋`aria-invalid`／`aria-describedby`，确认窗 Esc 可关、焦点回归、Tab 被困；动效立三档并删掉 `scale`／`rotateX`／`clip-path` 与布局属性过渡，59 处滚动收进判偏好的 helper；转场零「不可见可点」帧、骨架期不再整块禁用、设置页 CLS 0.228→0.0115；支书四点补充全部落地（同行优先、卡片 104→96、hero 居中白名单、页头页签同行、折叠头整行 44 高）；字号档位表补齐、间距基线棘轮登记。
+
+**读数**：`test:daily` **1710 / 1710**（267s）；新增守卫 `status-color-guard`、`touch-target-guard`、`nested-interaction-guard`、`card-summary-hero-guard`，扩展 `motion-guard`、`theme-palette-guard`、`modal-guard`、`type-scale-guard`、`spacing-scale-guard`；证据在 `.ctx/evidence/2026-10-30/` 与 `.ctx/evidence/2026-10-31/`。
+
+**边界（未做）**：① 「今天」首屏空 71.5% 与「归档」63% 的补内容、低密度卡收拢——需要内容与信息架构决策，本轮只做卡片高度与栅格自适应（`B-522-1`）；② About 的 22 处裸毫秒与旋转／裁剪只登记不改（冻结件）；③ `help.html` 532 处硬编码颜色（`B-522-2`）；④ `.btn-md` 的 `!important`（`B-520-2`）。本批不推送。
+

@@ -7,19 +7,34 @@
 // 顶部直达条属重复动作 ⇒ 外壳不再挂条，只保留骨架占位。
 // U3（2026-09-07）：先 beginOverviewShell 骨架/槽位占位 → 原地渲染概况（不推挤正文）。
 
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261018h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018h';
-import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261018h';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261102b';
+import { currentUserId } from '../../../services/core/auth.js?v=20261102b';
+import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261102b';
+import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261102b';
 
 export async function renderContent(ctx) {
   const el = document.getElementById('leader-tab-content');
   if (!el) return null;
-  const personId = AuthStore.getCurrentUser()?.personId || 'p4';
+  const personId = currentUserId();
+  // 失效会话不猜人（P1-11）：读口显式显示 —，不再回落到固定的旧演示组长。
+  if (!personId) {
+    el.innerHTML = '<div class="card rounded-xl p-5 text-center"><p class="text-xs text-gray-500">—（登录态已失效，请重新登录）</p></div>';
+    return null;
+  }
   beginOverviewShell(el);
-  return renderWorkOverview(el, {
+  await renderWorkOverview(el, {
     role: 'leader',
     personId,
     accent: ctx.accent,
     prefix: 'leader',
+    title: '工作概况',
+    // 2026-10-25 IA 62→45：活动日历页签降为本页折叠卡（共享只读日历，单一源不复制）。
+    extraSections: [{
+      html: '<div id="ov-calendar-card-host"></div>',
+      mount: (host) => renderCalendarCard(host.querySelector('#ov-calendar-card-host'), undefined, {
+        open: ctx?.navTarget?.section === 'calendar',
+      }),
+    }],
   });
+  return null;
 }

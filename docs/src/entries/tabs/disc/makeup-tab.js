@@ -2,28 +2,28 @@
 // 纪检委员工作台：补课（「考勤管理」tab 的「补课」一级分段渲染模块；2026-09-15 支书裁定并入考勤管理，
 // 由 attendance-tab 传入分段容器调用；原为独立 tab，内部逻辑原样保留）。
 // 补课口径（现行 = D-293）：范围＝支部党员大会 + 党课（支委会不补、主题党日不强制补课、
-// 党小组会按写入活动时的勾选），缺勤/请假的这些场次须在 T+7 内补课，纪检委员确认完成；
+// 党小组会按写入活动时的勾选），缺勤/请假的这些场次须在补课时限（policy.makeup.deadlineDays）内补课，纪检委员确认完成；
 // 请假且线上参会的**不补课**（判据单一源 = services/activity/makeup.js::shouldGenerateMakeupTask）。
 // B3-1 修复（T-280）：确认补课完成时回写考勤 status=made_up——完成必须对应真实产物（打卡化判定）。
 
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261018h';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261018h';
-import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261018h';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261018h';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261018h';
-import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261018h';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/governance/handoff-inbox.js?v=20261018h';
+import { loadMakeupTasks, saveMakeupTasks, makeupScopeHint } from '../../../services/activity/makeup.js?v=20261102b';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261102b';
+import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261102b';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261102b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261102b';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261102b';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/governance/handoff-inbox.js?v=20261102b';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代 resolveAccentRole 只读全局键快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261018h';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261102b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018h';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261102b';
 // V-7（2026-10-01 批次 324）：纪检「催当事人」走系统派生通知单一入口（服务端 kind 注册表复算授权）
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261018h';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261102b';
 // 批次 346（`D-744`②）：补课任务「作废（软）」——统一写口 ＋ 支委层判据（支委可直接作废，其余报支委会）
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261018h';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261102b';
 // 批次 352（`D-746`）：作废弹窗改走**单一源**（`components/ui/void-record.js`）——本板块沿用既有 id，
 //   故真机流 `disc-makeup-void-reason` 的选择器一字未改
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261018h';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261102b';
 
 /**
  * @param {HTMLElement} [containerEl] — 挂载容器（缺省本台 tab 内容容器）。
@@ -67,12 +67,12 @@ export function renderContent(containerEl) {
     const rowBg = isOverdue ? 'bg-red-50/40' : t.status === 'completed' ? '' : 'bg-orange-50/20';
     return `
               <tr${rowBg ? ` class="${rowBg}"` : ''}>
-                <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(t.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(t.personId))}</a></td>
-                <td class="text-gray-600">${t.activityName || '—'}</td>
-                <td class="text-gray-600">${t.isMandatory ? badgeHtml('必修', 'danger') + ' 自学+心得' : badgeHtml('选修', 'info') + ' 自学'}</td>
-                <td class="text-gray-600">${t.deadline || '—'}</td>
-                <td>${statusBadge(t)}</td>
-                <td>${t.status === 'pending' ? `<button class="btn-action btn-action-green btn-disc-confirm-makeup" data-task-id="${t.id}">确认完成</button> <button class="btn-action btn-disc-urge-makeup" data-task-id="${t.id}" title="向当事人发送补课提醒（V-7：纪检催当事人）">催当事人</button>` : ''}${t.voidPending ? '<span class="text-xs text-gray-500">待支委会确认</span>' : `<button class="btn-action btn-action-gray btn-disc-void-makeup" data-task-id="${t.id}" title="软作废：默认列表出列、留痕可回查；支委可直接作废，其余人报支委会确认">作废</button>`}</td>
+                <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(t.personId)}" class="hover:text-accent transition-colors" title="查看完整档案">${esc(getPersonName(t.personId))}</a></td>
+                <td data-label="缺席活动" class="text-gray-600">${t.activityName || '—'}</td>
+                <td data-label="补课方式" class="text-gray-600">${t.isMandatory ? badgeHtml('必修', 'danger') + ' 自学+心得' : badgeHtml('选修', 'info') + ' 自学'}</td>
+                <td data-label="截止日期" class="text-gray-600">${t.deadline || '—'}</td>
+                <td data-label="状态">${statusBadge(t)}</td>
+                <td data-label="操作">${t.status === 'pending' ? `<button class="btn-action btn-action-green btn-disc-confirm-makeup" data-task-id="${t.id}">确认完成</button> <button class="btn-action btn-disc-urge-makeup" data-task-id="${t.id}" title="向当事人发送补课提醒（V-7：纪检催当事人）">催当事人</button>` : ''}${t.voidPending ? '<span class="text-xs text-gray-500">待支委会确认</span>' : `<button class="btn-action btn-action-gray btn-disc-void-makeup" data-task-id="${t.id}" title="软作废：默认列表出列、留痕可回查；支委可直接作废，其余人报支委会确认">作废</button>`}</td>
               </tr>`;
   };
 
@@ -91,11 +91,7 @@ export function renderContent(containerEl) {
             <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span><span class="text-gray-600">已超期</span><span class="font-bold text-red-700">${overdueTasks.length}</span></div>
           </div>
         </div>
-        <p class="text-xs text-gray-500 mb-2">补课范围按会议类型分：仅支部党员大会与党课须 7 日内补课（T+7）。<a href="./help.html#card-copy-makeup-scope" class="text-sky-600 hover:underline">见帮助 · 补课范围与归档</a></p>
-        <details class="mb-3">
-          <summary class="text-[11px] text-gray-500 cursor-pointer select-none">补课范围与归档口径 ▾</summary>
-          <div class="text-[11px] text-gray-500 leading-5 mt-1">支委会与主题党日均不补课（后者不强制），党小组会依该场勾选进名单；请假且线上参会者不补课。补课记录随考勤自动归档（随「考勤管理」一并交付支委会），不另设「补课记录归档审查」个人动作——归档不靠重复劳动。</div>
-        </details>
+        <p class="help-note mb-2">${makeupScopeHint()}<a href="./help.html#card-copy-makeup-scope" class="help-note__link">见帮助 · 补课范围与归档</a></p>
         <div class="overflow-x-auto">
           <div id="disc-makeup-host"></div>
         </div>
@@ -110,11 +106,11 @@ export function renderContent(containerEl) {
     rows: makeupRows,
     keyword: personKeyword(),
     facets: personFacets({ roleLabel: roleLabelOf }),
-    facetStyle: 'chip',
     countUnit: '人',
     emptyMessage: '暂无补课任务',
     table: {
       colSpan: 6,
+      responsive: true,
       headHtml: `<tr>
               <th>姓名</th>
               <th>缺席活动</th>
@@ -141,6 +137,9 @@ export function renderContent(containerEl) {
           personName: task.personName,
           activityName: task.activityName,
           deadline: task.deadline,
+          // F12（IA-F12）：mock 模式无服务端按表复算，客户端带上当事人角色；
+          //   模板据此生成本位落点（API 模式仍以服务端名册为准）。
+          role: getPersonById(task.personId)?.role || '',
         });
         showToast('success', `已向 ${getPersonName(task.personId)} 发出补课提醒`);
       }
@@ -166,7 +165,6 @@ export function renderContent(containerEl) {
           const rec = records.find(r => r.id === task.attendanceRecordId);
           if (rec && (rec.status === AttendanceStatus.ABSENT || rec.status === AttendanceStatus.LEAVE)) {
             rec.status = AttendanceStatus.MADE_UP;
-            rec.overdue = false; // 补课完成 = 缺勤闭环，不再逾期
             rec.madeUpAt = new Date().toISOString();
             saveAttendanceRecords(records);
           }

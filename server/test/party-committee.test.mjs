@@ -2,7 +2,7 @@
 // 验收（设计 §8）：党委组织员登录直达党委工作台；header 显示院系党委名；
 // 监控台账渲染支部；支部管理动态创建支部（支部不预设名字）且持久化（reload 仍在）。
 //
-// 自包含：createApp(:memory:) + seedDatabase；登录走账号密码表单（9000000001/123456 → p_pc 党委组织员）。
+// 自包含：createApp(:memory:) + seedDatabase；登录走账号密码表单（9000000001/123456 → 9000000001 党委组织员）。
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -52,7 +52,7 @@ test('党委组织员登录直达党委工作台：台账见支部、可创建�
   await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
 
   try {
-    // 1. 登录党委账号（9000000001/123456 → p_pc）→ 直达 party-committee.html
+    // 1. 登录党委账号（9000000001/123456 → 9000000001）→ 直达 party-committee.html
     await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
     await page.fill('#student-id', '9000000001');
     await page.fill('#password', '123456');
@@ -69,27 +69,36 @@ test('党委组织员登录直达党委工作台：台账见支部、可创建�
     assert.match(await page.title(), /党委工作台/);
     assert.equal(await page.locator('#header-my-profile').count(), 0, 'Party header must hide own-profile link');
 
-    // 3. 治理首页以真实待处理事项为主，不向党委首页暴露个人级明细
-    await waitForBodyText(page, '支部动态'); // tab 栏存在
+    // 3. 登录落点＝「支部上报」（A06：治理总览撤页，登录先看待批复队列），且不暴露个人级明细
+    await waitForBodyText(page, '支部上报'); // tab 栏存在
     await page.waitForFunction(() => {
       const c = document.getElementById('party-committee-tab-content');
-      return c && c.textContent.includes('党委待处理') && c.textContent.includes('组织待补');
+      // 2026-10-27 Task 5：页签 H2「支部上报」是本页唯一页面标题（卡头不再复述）。
+      const h2 = c ? c.querySelector('h2') : null;
+      return !!h2 && h2.textContent.trim() === '支部上报' && c.textContent.includes('待批复');
     }, { timeout: 10000 });
-    const govText = await page.evaluate(() => document.getElementById('party-committee-tab-content')?.textContent || '');
-    assert.ok(!govText.includes('储子禾'), '党委治理首页不得展示个人级档案明细');
-    assert.ok(!govText.includes('思想汇报'), '党委治理首页不得展示思想汇报明细');
-    assert.ok(govText.includes('待批复上报'), '首页队列必须说明任务来源和动作');
+    const reviewText = await page.evaluate(() => document.getElementById('party-committee-tab-content')?.textContent || '');
+    assert.ok(!reviewText.includes('储子禾'), '党委登录首页不得展示个人级档案明细');
+    assert.ok(!reviewText.includes('思想汇报'), '党委登录首页不得展示思想汇报明细');
 
-    // 3′. 支部监控按行对比组织状态；查看入口进入独立党委只读视图，不借用支书工作台
-    await page.click('.ws-tab-scroll button:has-text("支部动态")');
-    await waitForBodyText(page, '支部运行台账');
-    const monText = await page.evaluate(() => document.getElementById('party-committee-tab-content')?.textContent || '');
-    assert.ok(/成员\s*在册党员/.test(monText) && /待批复\s*活动/.test(monText), '台账应将组织规模与待办/活动动态并列呈现');
-    assert.ok(!monText.includes('储子禾') && !monText.includes('思想汇报'), '全院支部台账不得铺开个人级详情');
-    assert.ok(await page.evaluate(() => Boolean(document.querySelector('.branch-readonly-enter[data-branch-id="br-b1"]'))), '台账应有独立的只读下钻入口');
-
-    // 4. 切到「支部管理」tab → 新建支部（支部不预设名字——党委动态录入）
+    // 3′. 支部管理页（A05：支部动态撤页后并入）：待批复数量列 + 支部筛选 + 独立只读下钻
     await page.click('.ws-tab-scroll button:has-text("支部管理")');
+    await waitForBodyText(page, '支部目录');
+    const branchText = await page.evaluate(() => document.getElementById('party-committee-tab-content')?.textContent || '');
+    assert.ok(/成员\s*在册党员/.test(branchText) && /通知\s*待批复/.test(branchText), '支部目录应将组织规模与待批复并列呈现');
+    assert.ok(!branchText.includes('储子禾') && !branchText.includes('思想汇报'), '全院支部目录不得铺开个人级详情');
+    assert.ok(await page.evaluate(() => Boolean(document.querySelector('.branch-readonly-enter[data-branch-id="br-b1"]'))), '目录应有独立的只读下钻入口');
+    // 支部筛选（A05 自「支部动态」迁入）：选中支部后待批复计数带 branchId 深链，可直接定位该支部待批复队列。
+    //   API 模式下党委未选支部时服务端不回支部明细（reviewRequests 亦同），故按真实读取路径带 branchId 进入。
+    assert.ok(await page.evaluate(() => Boolean(document.getElementById('pc-branches-branch-select'))), '支部管理应提供支部筛选');
+    await page.goto(`${base}/workspace/party-committee.html?tab=branches&branchId=br-b1`, { waitUntil: 'domcontentloaded' });
+    await waitForBodyText(page, '支部目录');
+    await page.waitForFunction(() => Boolean(document.querySelector('a[href*="tab=review"][href*="branchId=br-b1"]')), { timeout: 15000 });
+    // 回到全量目录继续新建支部（清掉 branchId 筛选）
+    await page.goto(`${base}/workspace/party-committee.html?tab=branches`, { waitUntil: 'domcontentloaded' });
+    await waitForBodyText(page, '支部目录');
+
+    // 4. 在「支部管理」新建支部（支部不预设名字——党委动态录入）
     await waitForBodyText(page, '新建支部');
     // 展开新建表单（UI toggle 点击存在渲染时序 flaky——确定性展开）
     await page.evaluate(() => {
@@ -116,10 +125,17 @@ test('党委组织员登录直达党委工作台：台账见支部、可创建�
 
     // 5. 持久化：reload 后新支部仍在（API 模式 → server branches 表）
     await page.reload({ waitUntil: 'domcontentloaded' });
-    // reload 后回到默认 tab（治理总览，不含支部明细）→ 切「支部动态」应列出新支部
+    // reload 后回到默认 tab（支部上报，不含支部明细）→ 切「支部管理」应列出多个支部（含新建）
     await page.waitForFunction(() => Boolean(document.querySelector('.ws-tab-scroll button')), { timeout: 15000 });
-    await page.click('.ws-tab-scroll button:has-text("支部动态")');
-    await waitForBodyText(page, branchName);
+    await page.click('.ws-tab-scroll button:has-text("支部管理")');
+    // 2026-10-23 批次 506：并发跑时「正文已出现支部名」可能来自支部筛选下拉，表格行尚未渲染
+    //   ⇒ 计数前显式等**卡片行**就位（只收紧等待，不改断言口径）
+    await page.waitForFunction((name) => {
+      const rows = [...document.querySelectorAll('[data-branch-card]')];
+      return rows.length >= 2 && rows.some((r) => r.textContent.includes(name));
+    }, branchName, { timeout: 15000 });
+    const branchCardCount = await page.evaluate(() => document.querySelectorAll('[data-branch-card]').length);
+    assert.ok(branchCardCount >= 2, `支部管理应能看到多个支部，实际 ${branchCardCount} 个`);
   } finally {
     await page.close();
   }
@@ -145,7 +161,7 @@ test('党委未选支部时只看党委下发通知，支部内其他通知不�
   assert.deepEqual(scoped.map((row) => row.id), ['n1', 'n2'], '选定支部后按原有支部范围读取');
 });
 
-test('设置页主题色色块与页面 --app-accent 同源，默认显示金（默认）', async () => {
+test('设置页主题选择器：7 项 × 2 枚小样，默认金，且与页面 --app-accent 同源', async () => {
   const page = await browser.newPage();
   await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
   await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
@@ -159,19 +175,33 @@ test('设置页主题色色块与页面 --app-accent 同源，默认显示金（
       page.click('button[type="submit"]'),
     ]);
     await page.goto(`${base}/settings.html#appearance`, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => Boolean(document.querySelector('#appearance-accent-swatch')), { timeout: 15000 });
+    await page.waitForFunction(() => Boolean(document.querySelector('[data-accent-key]')), { timeout: 15000 });
     const actual = await page.evaluate(() => {
-      const swatch = document.querySelector('#appearance-accent-swatch');
+      // 批次 505：主题项 = 带 data-accent-key 的按钮；每项内含两枚 data-accent-sample 小样
+      //（soft = 浅底+深字 / strong = 实底+字），不再有单色块 #appearance-accent-swatch。
+      const options = [...document.querySelectorAll('[data-accent-key]:not([data-accent-sample])')];
+      const gold = options.find((el) => el.dataset.accentKey === 'gold');
+      const soft = gold?.querySelector('[data-accent-sample="soft"]');
+      const strong = gold?.querySelector('[data-accent-sample="strong"]');
       return {
-        swatch: getComputedStyle(swatch).backgroundColor,
+        count: options.length,
+        keys: options.map((el) => el.dataset.accentKey),
+        sampleCounts: options.map((el) => el.querySelectorAll('[data-accent-sample]').length),
+        ariaPressed: gold?.getAttribute('aria-pressed'),
+        softBg: soft ? getComputedStyle(soft).backgroundColor : '',
+        strongBg: strong ? getComputedStyle(strong).backgroundColor : '',
         pageAccent: getComputedStyle(document.documentElement).getPropertyValue('--app-accent').trim().toLowerCase(),
         text: document.getElementById('settings-panel')?.textContent || '',
-        current: swatch.dataset.currentRole,
       };
     });
-    assert.equal(actual.swatch, 'rgb(161, 98, 7)', '主题色色块取实际生效的深金色');
-    assert.equal(actual.pageAccent, '#a16207', '页面 --app-accent 与色块同源');
-    assert.equal(actual.current, 'participant', '色块 data-current-role 应为实际解析键');
+    assert.equal(actual.count, 7, `主题项应为 7 个，实际 ${actual.count}（${actual.keys.join('/')}）`);
+    assert.deepEqual([...actual.keys].sort(), ['blue', 'cyan', 'gold', 'green', 'orange', 'purple', 'red'],
+      '主题键应为金/红/橙/绿/青/蓝/紫');
+    assert.ok(actual.sampleCounts.every((n) => n === 2), `每项应有 2 枚小样，实际 ${actual.sampleCounts.join('/')}`);
+    assert.equal(actual.ariaPressed, 'true', '默认金项应 aria-pressed="true"');
+    assert.equal(actual.softBg, 'rgb(251, 243, 220)', '金 soft 小样应为 gold.light.softBg #FBF3DC');
+    assert.equal(actual.strongBg, 'rgb(154, 107, 15)', '金 strong 小样应为 gold.light.strongBg #9A6B0F');
+    assert.equal(actual.pageAccent, '#a97a12', '页面 --app-accent 应为默认金 base #A97A12（与主题表同源）');
     assert.ok(actual.text.includes('金（默认）'), '设置页标签应显示「金（默认）」');
     assert.ok(actual.text.includes('主题色'), '设置页用户可见文案应为「主题色」');
   } finally {
@@ -186,7 +216,7 @@ test('支部主题预设只做预览，不覆盖登录用户主题色', async ()
   await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
   try {
     await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
-    await page.fill('#student-id', '2300010001'); // p13 支书
+    await page.fill('#student-id', '2300010001'); // p_2300010001 支书
     await page.fill('#password', '123456');
     await Promise.all([
       page.waitForURL('**/workspace/secretary.html', { timeout: 10000 }),
@@ -200,14 +230,14 @@ test('支部主题预设只做预览，不覆盖登录用户主题色', async ()
     await page.evaluate(() => document.querySelector('input[name="wz-theme"][value="green"]').click());
     await page.waitForTimeout(300);
     const after = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--app-accent').trim().toLowerCase());
-    assert.equal(before, '#a16207', '登录用户默认主题色为金');
+    assert.equal(before, '#a97a12', '登录用户默认主题色为金（#A97A12）');
     assert.equal(after, before, '支部主题预设不得写全局 --app-accent');
   } finally {
     await page.close();
   }
 });
 
-test('P2 支书任命：任命宋佳宁(p5)为支书 → p5 登录直达支书台、原支书储子禾(p13)降回成员', async () => {
+test('P2 支书任命：任命宋佳宁(2400012349)为支书 → 2400012349 登录直达支书台、原支书储子禾(2300010001)降回成员', async () => {
   const page = await browser.newPage();
   await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
   await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
@@ -226,52 +256,52 @@ test('P2 支书任命：任命宋佳宁(p5)为支书 → p5 登录直达支书�
       return h && h.textContent.includes('光华管理学院党委');
     }, { timeout: 10000 });
     const appoint = await page.evaluate(async () => {
-      const { appointSecretary } = await import('/src/services/branch/appointment.js?v=20261018h');
-      await appointSecretary({ branchId: 'br-b1', personId: 'p5', note: 'E2E 换届测试' });
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261018h');
+      const { appointSecretary } = await import('/src/services/branch/appointment.js?v=20261102b');
+      await appointSecretary({ branchId: 'br-b1', personId: '2400012349', note: 'E2E 换届测试' });
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261102b');
       const branch = (mockDB.branches || []).find(b => b.id === 'br-b1');
       const recs = (mockDB.appointmentRecords || []).filter(r => r.branchId === 'br-b1');
       return { secretaryId: branch?.secretaryId, recs: recs.length, currentTo: (recs.find(r => !r.to) || {}).secretaryId };
     });
-    // 2. 断言：br-b1.secretaryId=p5 + 任期记录存在且现任=p5（原支支书录已封口）
-    if (appoint.secretaryId !== 'p5') throw new Error(`任命后 secretaryId 应为 p5，实际 ${appoint.secretaryId}`);
-    if (!(appoint.recs >= 1 && appoint.currentTo === 'p5')) throw new Error(`任期记录异常：${JSON.stringify(appoint)}`);
+    // 2. 断言：br-b1.secretaryId=p_2400012349 + 任期记录存在且现任=p_2400012349（原支支书录已封口）
+    if (appoint.secretaryId !== '2400012349') throw new Error(`任命后 secretaryId 应为 2400012349，实际 ${appoint.secretaryId}`);
+    if (!(appoint.recs >= 1 && appoint.currentTo === '2400012349')) throw new Error(`任期记录异常：${JSON.stringify(appoint)}`);
 
-    // 切监控台账验证只呈组织级信息，不在党委台账铺开支书个人档案。
+    // 切「支部管理」验证只呈组织级信息，不在党委目录铺开支书个人档案。
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => Boolean(document.querySelector('.ws-tab-scroll button')), { timeout: 15000 });
-    await page.click('.ws-tab-scroll button:has-text("支部动态")');
+    await page.click('.ws-tab-scroll button:has-text("支部管理")');
     await waitForBodyText(page, '光华管理学院本科生党支部');
-    const monitorText = await page.evaluate(() => document.getElementById('party-committee-tab-content')?.textContent || '');
-    assert.ok(!monitorText.includes('宋佳宁'), '党委支部动态不应展示个人档案明细');
+    const branchText = await page.evaluate(() => document.getElementById('party-committee-tab-content')?.textContent || '');
+    assert.ok(!branchText.includes('宋佳宁'), '党委支部管理不应展示个人档案明细');
 
-    // 3. 新任支书宋佳宁(p5)登录 → 直达支书工作台 secretary.html
-    const p5 = await browser.newPage();
-    await p5.route('**://fonts.googleapis.com/**', (r) => r.abort());
-    await p5.route('**://fonts.gstatic.com/**', (r) => r.abort());
-    await p5.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
-    await p5.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
-    await p5.fill('#student-id', '2400012349'); // p5 宋佳宁
-    await p5.fill('#password', '123456');
+    // 3. 新任支书宋佳宁(p_2400012349)登录 → 直达支书工作台 secretary.html
+    const p_2400012349 = await browser.newPage();
+    await p_2400012349.route('**://fonts.googleapis.com/**', (r) => r.abort());
+    await p_2400012349.route('**://fonts.gstatic.com/**', (r) => r.abort());
+    await p_2400012349.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
+    await p_2400012349.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
+    await p_2400012349.fill('#student-id', '2400012349'); // p_2400012349 宋佳宁
+    await p_2400012349.fill('#password', '123456');
     await Promise.all([
-      p5.waitForURL('**/workspace/secretary.html', { timeout: 10000 }),
-      p5.click('button[type="submit"]'),
+      p_2400012349.waitForURL('**/workspace/secretary.html', { timeout: 10000 }),
+      p_2400012349.click('button[type="submit"]'),
     ]);
 
-    // 4. 原支书储子禾(p13)登录 → 降回成员，直达 visitor.html
-    const p13 = await browser.newPage();
-    await p13.route('**://fonts.googleapis.com/**', (r) => r.abort());
-    await p13.route('**://fonts.gstatic.com/**', (r) => r.abort());
-    await p13.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
-    await p13.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
-    await p13.fill('#student-id', '2300010001'); // p13 储子禾
-    await p13.fill('#password', '123456');
+    // 4. 原支书储子禾(p_2300010001)登录 → 降回成员，直达 visitor.html
+    const p_2300010001 = await browser.newPage();
+    await p_2300010001.route('**://fonts.googleapis.com/**', (r) => r.abort());
+    await p_2300010001.route('**://fonts.gstatic.com/**', (r) => r.abort());
+    await p_2300010001.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
+    await p_2300010001.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
+    await p_2300010001.fill('#student-id', '2300010001'); // p_2300010001 储子禾
+    await p_2300010001.fill('#password', '123456');
     await Promise.all([
-      p13.waitForURL('**/workspace/visitor.html', { timeout: 10000 }),
-      p13.click('button[type="submit"]'),
+      p_2300010001.waitForURL('**/workspace/visitor.html', { timeout: 10000 }),
+      p_2300010001.click('button[type="submit"]'),
     ]);
-    await p5.close();
-    await p13.close();
+    await p_2400012349.close();
+    await p_2300010001.close();
   } finally {
     await page.close();
   }
@@ -302,13 +332,13 @@ test('党委「查看该支部」进入独立只读视图：范围明确、无�
       '党委登录后应为 API 会话（存在 gsm1921-api-token）'
     );
     // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：真机用例的数据源形态单一源 = data/data-adapter.js::getRuntimeMode()
-    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018h')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261102b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
     await page.waitForFunction(() => Boolean(document.getElementById('app-header')), { timeout: 15000 });
 
-    // 2. 「支部动态」→ 点 br-b1 的「查看该支部」
+    // 2. 「支部管理」→ 点 br-b1 的「查看该支部」
     await page.waitForFunction(() => Boolean(document.querySelector('.ws-tab-scroll button')), { timeout: 15000 });
     await page.evaluate(() => {
-      const b = [...document.querySelectorAll('.ws-tab-scroll button')].find((x) => x.textContent.includes('支部动态'));
+      const b = [...document.querySelectorAll('.ws-tab-scroll button')].find((x) => x.textContent.includes('支部管理'));
       if (b) b.click();
     });
     await page.waitForFunction(() => Boolean(document.querySelector('.branch-readonly-enter[data-branch-id="br-b1"]')), { timeout: 15000 });
@@ -346,7 +376,7 @@ test('党委「查看该支部」进入独立只读视图：范围明确、无�
 
     // 5. 只读下钻保持 party-staff 身份，不借用支书身份
     const perms = await page.evaluate(async () => {
-      const { AuthStore } = await import('/src/services/core/auth.js?v=20261018h');
+      const { AuthStore } = await import('/src/services/core/auth.js?v=20261102b');
       const me = AuthStore.getCurrentUser();
       return {
         role: me && me.role,

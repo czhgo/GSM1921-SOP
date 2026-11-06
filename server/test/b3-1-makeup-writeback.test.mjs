@@ -21,23 +21,38 @@
 //    ④ 读回断言走 `GET /api/v1/attendances` / `GET /api/v1/makeupTasks`（**不看前端内存**）；
 //    ⑤ 收尾 `DELETE` 自清（不留测试数据）。
 //
-//  运行：先启动 server（缺省 :3000），再 `node --test server/test/b3-1-makeup-writeback.test.mjs`
+//  【2026-10-26 Task 6：测试残留隔离】原版连外部 `:3000` 真库（`server/data.db`）写 activities /
+//  attendances / makeupTasks，只在用例末尾自清 ⇒ 中途失败/中断即留残留（`act-b31-*` 等）。
+//  现改为**自托管临时库**：`mkdtemp` ＋ 把运行库用 SQLite 在线备份 API 复制成临时副本
+//  ＋ `createApp({dbPath: 临时库})` ＋ `listen(0)`；判据链（①–⑤）一字未改，只换数据面；
+//  服务关闭与临时目录删除放在 `t.after()`（失败也执行），运行库只作**只读**备份源。
+//
+//  运行：`node --test server/test/b3-1-makeup-writeback.test.mjs`（**不需要**外部 :3000）
 // ════════════════════════════════════════════════════════════════
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import Database from 'better-sqlite3';
 import { chromium } from 'playwright';
+// R10-D15：考勤超期不再读存储快照，一律按 `policy-defaults::isAttendanceOverdue` 现算。
+import { isAttendanceOverdue } from '../../docs/src/core/domain/policy-defaults.js?v=20261102b';
+import { createApp } from '../app.js';
 
-const BASE = process.env.BASE || 'http://localhost:3000';
+let BASE = '';
 const PW = process.env.LOGIN_PASSWORD || '123456';
-const DISC_PERSON = 'p10';               // 纪检委员（`docs/src/data/mock/people.js`）
+const DISC_PERSON = '2400012354';               // 纪检委员（`docs/src/data/mock/people.js`）
+const SEC_PERSON = '2300010001';                // 支书（支部级会议唯一合法创建人之一）
 const DISC_STUDENT = '2400012354';       // 上者的学号（登录页表单用学号）
-const MENTEE = 'p5';                     // 被补课人
+const MENTEE = '2400012349';                     // 被补课人
+const RUNTIME_DB = join(import.meta.dirname, '..', 'data.db');
 const RID = Math.random().toString(36).slice(2, 8);
 const ATT_ID = `att-b31-${RID}`;
 const MK_ID = `mk-b31-${RID}`;
 const today = new Date();
 const dstr = (d) => d.toISOString().split('T')[0];
-const ABSENT_DATE = dstr(new Date(today.getTime() - 3 * 864e5));   // 活动日＝3 天前
+const ABSENT_DATE = dstr(new Date(today.getTime() - 10 * 864e5));  // 活动日＝10 天前（> 补课时限 7 天 ⇒ 现算超期）
 const DEADLINE = dstr(new Date(today.getTime() + 4 * 864e5));      // 截止＝4 天后（⇒「待补课」）
 
 const api = async (method, path, { token, body } = {}) => {
@@ -51,29 +66,61 @@ const api = async (method, path, { token, body } = {}) => {
   return { status: r.status, json, text };
 };
 
+/** 轮询直到条件成立（返回 boolean；用于等服务端落库，不放宽断言） */
+const waitFor = async (fn, { timeout = 15000, interval = 250 } = {}) => {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    if (await fn()) return true;
+    await new Promise((resolve) => setTimeout(resolve, interval));
+  }
+  return false;
+};
+
 test('B3-1（API 级）补课完成 → 服务端考勤回写 made_up ＋ overdue 清除', async (t) => {
+  // ── ⓪ 数据面：临时库自托管（不碰 server/data.db；失败也清理）──
+  assert.ok(existsSync(RUNTIME_DB), `缺少运行库 ${RUNTIME_DB}：本用例需要已播种的演示库作**只读备份源**（不写它）`);
+  const tempDir = mkdtempSync(join(tmpdir(), 'gsm-b31-'));
+  const dbPath = join(tempDir, 'data.db');
+  // SQLite 在线备份 API：含 WAL 内容的一致性副本（等价 server/scripts/backup.mjs 的取数方式）
+  const source = new Database(RUNTIME_DB, { readonly: true });
+  try { await source.backup(dbPath); } finally { source.close(); }
+  const app = createApp({ dbPath });
+  const server = app.listen(0);
+  BASE = `http://127.0.0.1:${server.address().port}`;
+  t.after(async () => {
+    await new Promise((resolve) => server.close(resolve));
+    try { app.locals.db.close(); } catch { /* 已关闭 */ }
+    rmSync(tempDir, { recursive: true, force: true });
+  });
+
   // ── ① 前置：API 登录（失败 ⇒ 明确报「server 未起 / 口令不符」而不是含糊失败）──
   const login = await api('POST', '/api/v1/auth/login', { body: { personId: DISC_PERSON, password: PW } });
   assert.equal(login.status, 200, `纪检登录失败（HTTP ${login.status} ${login.text.slice(0, 120)}）`
-    + '——请确认 server 已在 ' + BASE + ' 运行，且口令与 LOGIN_PASSWORD 一致');
+    + '——请确认测试自托管服务已在 ' + BASE + ' 运行，且口令与 LOGIN_PASSWORD 一致');
   const token = login.json.token;
   assert.ok(token, '登录未返回 token');
 
-  // 取一条活动（补课任务要挂活动；若库里没有活动就现造一条，日期用相对今天的有效值）
-  let activityId = (await api('GET', '/api/v1/activities', { token })).json?.[0]?.id;
-  if (!activityId) {
-    activityId = `act-b31-${RID}`;
-    const mk = await api('POST', '/api/v1/activities', { token, body: {
-      id: activityId, name: 'B3-1 测试活动', date: ABSENT_DATE, type: '支委会',
-    } });
-    assert.equal(mk.status, 201, `造活动失败：HTTP ${mk.status} ${mk.text.slice(0, 120)}`);
-  }
-  const activityName = (await api('GET', '/api/v1/activities', { token })).json
-    .find((a) => a.id === activityId)?.name || 'B3-1 测试活动';
+  // 2026-10-21 批次 501：**总是**造一条专属活动——不再复用 `activities[0]`：
+  //   复用会撞两类 409（活动已结束 ⇒ 考勤只读；同活动同人已有考勤 ⇒ 唯一性拒绝），
+  //   导致「造考勤记录失败」且随演示库状态漂移。专属活动 id/标题唯一，重复执行也稳定。
+  const activityId = `act-b31-${RID}`;
+  // 2026-10-21 批次 501：支部级会议（支委会）按现行门只允许支书/副书记/党委创建（`activityCreationDeny`），
+  //   纪检建活动一律 403 ⇒ 活动用支书令牌造，考勤/补课仍用纪检令牌（回写链的写入者不变）。
+  const secLogin = await api('POST', '/api/v1/auth/login', { body: { personId: SEC_PERSON, password: PW } });
+  assert.equal(secLogin.status, 200, `支书登录失败（HTTP ${secLogin.status} ${secLogin.text.slice(0, 120)}）`);
+  const secToken = secLogin.json.token;
+  const mk = await api('POST', '/api/v1/activities', { token: secToken, body: {
+    // 类型取「支部党员大会」：支委会在 `attendance.noAttendanceTypes` 内（口径一：规模小不考勤），
+    //   且该类型的记录位＝纪检（`recorderByType`）⇒ 纪检登考勤/补课才合法。
+    id: activityId, title: 'B3-1 测试活动', name: 'B3-1 测试活动', date: ABSENT_DATE, type: '支部党员大会', status: 'completed',
+  } });
+  assert.equal(mk.status, 201, `造活动失败：HTTP ${mk.status} ${mk.text.slice(0, 120)}`);
+  const activityName = 'B3-1 测试活动';
 
-  // ── ② 以 API 造前置态：考勤（absent ＋ overdue）＋ 补课任务（pending，截止在未来）──
+  // ── ② 以 API 造前置态：考勤（absent）＋ 补课任务（pending，截止在未来）──
+  // R10-D15：不再写存储 `overdue`，超期由活动日 + makeup.deadlineDays 现算。
   assert.equal((await api('POST', '/api/v1/attendances', { token, body: {
-    id: ATT_ID, personId: MENTEE, activityId, status: 'absent', overdue: true,
+    id: ATT_ID, personId: MENTEE, activityId, status: 'absent',
     recordedBy: DISC_PERSON, recordedAt: new Date().toISOString(),
   } })).status, 201, '造考勤记录失败');
   assert.equal((await api('POST', '/api/v1/makeupTasks', { token, body: {
@@ -85,7 +132,7 @@ test('B3-1（API 级）补课完成 → 服务端考勤回写 made_up ＋ overdu
   // 反例锁死：确认前置态**确实是** absent＋overdue（否则「回写成功」可能是恒真）
   const before = (await api('GET', '/api/v1/attendances', { token })).json.find((r) => r.id === ATT_ID);
   assert.equal(before.status, 'absent', '前置态应为 absent（否则回写分支不会执行）');
-  assert.equal(before.overdue, true, '前置态应为 overdue=true（保持「overdue 清除」的检出力）');
+  assert.equal(isAttendanceOverdue({ ...before, date: ABSENT_DATE }), true, '前置态应按现算判据超期（活动日 +7 天已过）');
 
   // ── ③ 浏览器：走**真 API 登录**（登录页表单），再进纪检台的补课分段 ──
   const browser = await chromium.launch();
@@ -103,17 +150,23 @@ test('B3-1（API 级）补课完成 → 服务端考勤回写 made_up ＋ overdu
     await p.waitForFunction(() => !!sessionStorage.getItem('gsm1921-api-token'), null, { timeout: 15000 });
 
     await p.goto(`${BASE}/workspace/disc.html`, { waitUntil: 'domcontentloaded' });
-    await p.waitForTimeout(2500);
-    await p.click('.disc-tab-btn[data-disc-tab="attendance"]').catch(() => {});
-    await p.waitForTimeout(1200);
-    await p.click('.att-seg-btn[data-seg="makeup"]').catch(() => {});
-    await p.waitForTimeout(1200);
+    // 等真实渲染完成再交互（固定 sleep 在自托管空库下会偶发「点了但还没渲染 / 还没落库」）
+    await p.waitForSelector('.disc-tab-btn[data-disc-tab="attendance"]', { timeout: 15000 });
+    await p.click('.disc-tab-btn[data-disc-tab="attendance"]');
+    await p.waitForSelector('.att-seg-btn[data-seg="makeup"]', { timeout: 15000 });
+    await p.click('.att-seg-btn[data-seg="makeup"]');
+    await p.waitForSelector(`.btn-disc-confirm-makeup[data-task-id="${MK_ID}"]`, { timeout: 15000 });
 
     const visible = await p.evaluate((id) => !!document.querySelector(`.btn-disc-confirm-makeup[data-task-id="${id}"]`), MK_ID);
     assert.ok(visible, '注入的补课任务应出现在待补课列表（服务端造的数据 ⇒ 列表读得到）');
 
     await p.click(`.btn-disc-confirm-makeup[data-task-id="${MK_ID}"]`);
-    await p.waitForTimeout(1500);
+    // 等写链真正落库（服务端读回为据；后续 ④ 仍逐项断言真值）
+    const written = await waitFor(async () => {
+      const row = (await api('GET', '/api/v1/makeupTasks', { token })).json.find((r) => r.id === MK_ID);
+      return row?.status === 'completed';
+    });
+    assert.ok(written, '确认完成后服务端补课任务应回写 completed（等待 15s）');
 
     assert.deepEqual(errs, [], `页面不应有 JS 错误：${errs.slice(0, 2).join(' | ')}`);
   } finally {
@@ -128,12 +181,13 @@ test('B3-1（API 级）补课完成 → 服务端考勤回写 made_up ＋ overdu
   assert.equal(task.status, 'completed', `补课任务应回写 completed，实测 ${task.status}`);
   assert.ok(task.completedAt, '应记 completedAt');
   assert.equal(att.status, 'made_up', `考勤应回写 made_up，实测 ${att.status}`);
-  assert.equal(att.overdue, false, `overdue 应清除，实测 ${att.overdue}`);
+  assert.equal(isAttendanceOverdue({ ...att, date: ABSENT_DATE }), false, 'overdue 应按现算判据清除（R10-D15：停止写存储值）');
   assert.ok(att.madeUpAt, '应记 madeUpAt');
 
-  // ── ⑤ 自清：不留测试数据 ──
+  // ── ⑤ 自清：不留测试数据（含本批新造的专属活动）──
   await api('DELETE', `/api/v1/makeupTasks/${MK_ID}`, { token });
   await api('DELETE', `/api/v1/attendances/${ATT_ID}`, { token });
+  await api('DELETE', `/api/v1/activities/${activityId}`, { token: secToken });
   const gone = (await api('GET', '/api/v1/attendances', { token })).json.find((r) => r.id === ATT_ID);
   assert.equal(gone, undefined, '清理应生效（否则测试库会被污染）');
 });

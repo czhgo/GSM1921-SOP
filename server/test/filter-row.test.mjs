@@ -22,7 +22,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -268,7 +268,6 @@ test('S12 手写表格收敛台账：`<table` 只允许出现在登记在案的�
     ['components/ui/relation-matrix.js', '「人 × 项目」矩阵单一源'],
     ['entries/tabs/disc/attendance-tab.js', '考勤明细（导出 / 打印专用明细表；分页已走单一源 pager.js）'],
     ['entries/tabs/secretary/group-progress-tab.js', '党小组清单（行数＝党小组数，天然有界）'],
-    ['entries/tabs/party-committee/monitor-tab.js', '党委支部动态比较表（角色范围固定，行表数据采用统一 .data-table 样式）'],
     ['entries/tabs/party-committee/branches-tab.js', '党委支部目录（角色范围固定，行表数据采用统一 .data-table 样式）'],
     ['entries/pages/branch-readonly-entry.js', '党委只读支部名册（规模可达 50 人，统一 .data-table 样式并提供检索分页）'],
     ['components/governance/person-profile-sections.js', '档案内嵌 list 字段表：字段级嵌套表，非独立数据视图；使用 .data-table 单一源类'],
@@ -293,17 +292,20 @@ test('S12 手写表格收敛台账：`<table` 只允许出现在登记在案的�
 
 // ── 口径层 ──────────────────────────────────────────────────────────
 
-test('D1 单档口径同源：全站只剩「38px 高 / 13px 字」一套（2026-09-14 批次 33 支书裁定折中值）', () => {
+test('D1 单档口径同源：全站只剩「40px 控件 / 13px 字」一套（2026-10-23 Task 6 抬档）', () => {
   const css = read(CSS);
-  assert.match(css, /\.lf-btn\s*\{[^}]*height:\s*38px/, '.lf-btn 高度须为 38px（单档）');
+  // 2026-10-23 批次 506：控件档由 38 抬到 40（内边距 8+8 ＋ 行高 22 ＋ 边框 2），
+  //   `.lf-btn` 按位置取 36（8+8+18+2），不再写死 height。
+  assert.match(css, /\.lf-btn\s*\{[^}]*padding:\s*8px 10px/, '.lf-btn 内边距须为 8px 10px（36px 档的推导源）');
+  assert.match(css, /\.lf-btn\s*\{[^}]*line-height:\s*18px/, '.lf-btn 须显式声明行高 18px（8+8+18+2=36）');
   assert.match(css, /\.data-table\s*\{[^}]*font-size:\s*0\.8125rem/, '.data-table 字号须与全站正文同（0.8125rem）');
   assert.match(css, /\.data-table\s*\{[^}]*line-height:\s*1\.25rem/, '.data-table 行高须为 1.25rem（13px 正文配 20px 行高）');
   assert.match(css, /\.lf-btn\s*\{[^}]*font-size:\s*0\.8125rem/, '.lf-btn 字号须为 0.8125rem');
-  // 输入框档：input.input-flat.text-xs 上下 10px + 行高 16px + 边框 2px = 38px
-  assert.match(css, /input\.input-flat\.text-xs\s*\{[^}]*padding-top:\s*10px/, '输入框须为 10px 上内边距（38px 档）');
-  assert.match(css, /input\.input-flat\.text-xs\s*\{[^}]*padding-bottom:\s*10px/, '输入框须为 10px 下内边距（38px 档）');
+  // 输入框档：上下 8px + 行高 22px + 边框 2px = 40px
+  assert.match(css, /\.input-flat\s*\{[^}]*padding:\s*8px 16px/, '输入框须为 8px 16px 内边距（40px 档）');
+  assert.match(css, /\.input-flat\s*\{[^}]*line-height:\s*22px/, '输入框须显式声明行高 22px（8+8+22+2=40）');
   // 并档断言：旧的「第二档」数值不得回潮（34px 控件 / 12px 表格正文 / 14px 表单控件）
-  assert.ok(!/\.lf-btn\s*\{[^}]*height:\s*34px/.test(css), '不得残留 34px 旧档（批次 33 已并档为 38px）');
+  assert.ok(!/\.lf-btn\s*\{[^}]*height:\s*34px/.test(css), '不得残留 34px 旧档（批次 33 已并档）');
   assert.ok(!/\.data-table\s*\{[^}]*font-size:\s*0\.75rem/.test(css), '不得残留 12px 表格正文（批次 33 已并为 13px）');
   assert.ok(!/\.input-flat\s*\{[^}]*font-size:\s*0\.875rem/.test(css), '不得残留 14px 表单控件（批次 33 已并为 13px）');
 });
@@ -314,7 +316,7 @@ test('D1 单档口径同源：全站只剩「38px 高 / 13px 字」一套（2026
 //   text-* 工具类提供：环境一变（离线、CDN 被挡、裸 input 取继承行高）就退化，
 //   同一表单内曾实测出 42 / 43 / 47 三值并存（触发器 43、无 text 类的裸输入框 47）。
 //   故把算式本身锁死：五处载体的高度必须由显式行高算出，且等于规范档位。
-test('D2 档位算式显式（内边距 + 显式行高 + 边框 = 38），禁靠 UA 或 CDN 工具类给行高', () => {
+test('D2 档位算式显式（内边距 + 显式行高 + 边框 = 40），禁靠 UA 或 CDN 工具类给行高', () => {
   // 去注释：说明文字里含「行高」「38px」等字样，不剥掉会被当成声明误读
   const css = read(CSS).replace(/\/\*[\s\S]*?\*\//g, ' ');
   const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -342,11 +344,11 @@ test('D2 档位算式显式（内边距 + 显式行高 + 边框 = 38），禁靠
   };
 
   const CASES = [
-    ['.input-flat', 38, '表单输入框'],
-    ['input.input-flat.text-xs', 38, '筛选行关键词框'],
-    ['select.input-flat.text-xs', 38, '原生下拉'],
-    ['.cs-trigger.input-flat', 38, '下拉触发器'],
-    ['.cs-trigger.input-flat.text-xs', 38, '下拉触发器（带 text-xs 类名）'],
+    ['.input-flat', 40, '表单输入框'],
+    ['input.input-flat.text-xs', 40, '筛选行关键词框'],
+    ['select.input-flat.text-xs', 40, '原生下拉'],
+    ['.cs-trigger.input-flat', 40, '下拉触发器'],
+    ['.cs-trigger.input-flat.text-xs', 40, '下拉触发器（带 text-xs 类名）'],
   ];
   const bad = [];
   for (const [sel, want, label] of CASES) {
@@ -394,4 +396,93 @@ test('S13 数据格不得挂小字类（text-xs / text-[1Npx] 只许出现在单
   }
   assert.deepEqual(hits, [],
     `数据格自身不得挂辅助小字类（把「数据」降到辅助档；支书实报的「表格字体小」即此）：\n${hits.join('\n')}`);
+});
+
+// S14（2026-11-01 批次 525 · #2）：筛选条最多两行。
+// 病灶：`.lf-bar` 原为 `flex-direction: column`，每个 `data-seg` 独占一行、`reset` 无条件另起一行
+//   ⇒ 活动日历实测 4 行 ≈184px、意见反馈 4 行、纪检考勤 3 行。
+// 判据：`.lf-bar` 可折行（flex-wrap: wrap）且不得回到 column；`.lf-bar__row` 不生成盒子
+//   （display: contents ⇒ 段与段同排、段内控件也同排）；reset 不得被 `flex-basis:100%` 钉成整行。
+/** 取选择器列表中精确包含 selector 的第一条规则体（剥注释，避免说明文字里的花括号干扰） */
+function cssRuleBody(css, selector) {
+  const src = String(css).replace(/\/\*[\s\S]*?\*\//g, '');
+  const re = /([^{}]+)\{([^{}]*)\}/g;
+  let m;
+  while ((m = re.exec(src))) {
+    const sels = m[1].split(',').map((s) => s.trim());
+    if (sels.includes(selector)) return m[2];
+  }
+  return '';
+}
+
+/** 分析筛选条布局规则，返回违规列表（空 = 合法；供正例与反例共用） */
+function analyzeLfBarLayout(css) {
+  const bad = [];
+  const bar = cssRuleBody(css, '.lf-bar');
+  const row = cssRuleBody(css, '.lf-bar__row');
+  if (!bar) bad.push('.lf-bar 规则缺失');
+  if (!/flex-wrap:\s*wrap\b/.test(bar)) bad.push('.lf-bar 缺少 flex-wrap: wrap（筛选条须可折行）');
+  if (/flex-direction:\s*column\b/.test(bar)) bad.push('.lf-bar 不得 flex-direction: column（会把每段挤成独立一行）');
+  if (!/display:\s*contents\b/.test(row)) bad.push('.lf-bar__row 须 display: contents（段内控件直接参与外层折行）');
+  const noComment = String(css).replace(/\/\*[\s\S]*?\*\//g, '');
+  const re = /([^{}]+)\{([^{}]*)\}/g;
+  let m;
+  while ((m = re.exec(noComment))) {
+    const sels = m[1];
+    if (!/(?:data-seg="reset"|\.lf-clear|\.lf-btn)/.test(sels)) continue;
+    if (/(?:flex|flex-basis)\s*:\s*[^;]*\b100%/.test(m[2])) {
+      bad.push('reset / 清除按钮不得 flex-basis:100%（会独占整行）');
+      break;
+    }
+  }
+  return bad;
+}
+
+test('S14 筛选条两行布局：可折行、段内控件同排、reset 不独占整行', () => {
+  const css = read(CSS);
+  assert.deepEqual(analyzeLfBarLayout(css), [],
+    `筛选条布局不合规（批次 525 · #2 要求最多两行）：\n${analyzeLfBarLayout(css).join('\n')}`);
+  // 反例①：退回逐段独占一行
+  const columnCss = '.lf-bar { display: flex; flex-direction: column; flex-wrap: wrap; }\n.lf-bar__row { display: contents; }';
+  assert.ok(analyzeLfBarLayout(columnCss).some((s) => s.includes('column')),
+    '反例（.lf-bar 仍为 column）未被判红');
+  // 反例②：reset 被钉成整行
+  const resetCss = '.lf-bar { display: flex; flex-wrap: wrap; }\n.lf-bar__row { display: contents; }\n.lf-bar__row[data-seg="reset"] { flex-basis: 100%; }';
+  assert.ok(analyzeLfBarLayout(resetCss).some((s) => s.includes('reset')),
+    '反例（reset flex-basis:100%）未被判红');
+  // 反例③：行仍生成盒子（段与段不会同排）
+  const blockCss = '.lf-bar { display: flex; flex-wrap: wrap; }\n.lf-bar__row { display: flex; }';
+  assert.ok(analyzeLfBarLayout(blockCss).some((s) => s.includes('display: contents')),
+    '反例（.lf-bar__row 仍为 flex 盒）未被判红');
+});
+
+// S15（2026-11-01 批次 525 · #2）：四页真机 1440 读数 ≤2 行 / ≤96px。
+// 真机读数由 `server/.tmp/verify-525-filter.mjs`（Playwright）产出，证据落在
+//   `.ctx/evidence/2026-11-01/batch525-filter.json`；本守卫只读证据做棘轮（daily 不引 playwright）。
+const FILTER_EVIDENCE = join(ROOT, '.ctx', 'evidence', '2026-11-01', 'batch525-filter.json');
+const FILTER_PAGES = ['calendar', 'issue-list', 'feedback', 'attendance'];
+
+function validateFilterReport(report) {
+  const bad = [];
+  const pages = Array.isArray(report?.pages) ? report.pages : [];
+  for (const want of FILTER_PAGES) {
+    if (!pages.some((p) => p.page === want)) bad.push(`缺少 ${want} 的真机读数`);
+  }
+  for (const p of pages) {
+    const rows = Number(p.rows);
+    const height = Number(p.height1440 ?? p.height);
+    if (!Number.isFinite(rows) || rows > 2) bad.push(`${p.page}：${rows} 行（上限 2）`);
+    if (!Number.isFinite(height) || height > 96) bad.push(`${p.page}：${height}px（上限 96）`);
+  }
+  return bad;
+}
+
+test('S15 四页真机 1440 筛选条高度 ≤96px（≤2 行）', () => {
+  assert.ok(existsSync(FILTER_EVIDENCE), `缺少真机证据 ${FILTER_EVIDENCE}（先跑 verify-525-filter.mjs）`);
+  const report = JSON.parse(readFileSync(FILTER_EVIDENCE, 'utf8'));
+  assert.deepEqual(validateFilterReport(report), [],
+    `四页筛选条超过两行 / 96px：\n${validateFilterReport(report).join('\n')}`);
+  // 反例：4 行 184px 的合成读数必须判红
+  const bad = { pages: FILTER_PAGES.map((page) => ({ page, rows: 4, height1440: 184 })) };
+  assert.ok(validateFilterReport(bad).length === FILTER_PAGES.length * 2, '反例（4 行 184px）未被判红');
 });
