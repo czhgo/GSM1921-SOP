@@ -9,14 +9,14 @@
 // 与「待办」页的口径区分（写进页面文案，避免两处被读成同一份清单）：
 //   · 本段＝**按项目身份**（组织者 / 深度参与者）派给本人的 SOP 任务节点；
 //   · 「待办」页＝`TodoStore` 的待办聚合（含通知 / 审核 / 催办等派生项，来源与生命周期不同）。
-import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity/activity.js?v=20261104a';
-import { isActivityVisibleTo } from '../../../services/core/visibility.js?v=20261104a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261104a';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261104a';
-import { escHtml as esc, showToast, docAnchorHref } from '../../../core/base/utils.js?v=20261104a';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261104a';
+import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity/activity.js?v=20261107a';
+import { isActivityVisibleTo } from '../../../services/core/visibility.js?v=20261107a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261107a';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261107a';
+import { escHtml as esc, showToast, docAnchorHref } from '../../../core/base/utils.js?v=20261107a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261107a';
 // Task 6：我的任务行跨项目 ⇒ 活动详情直达（direct）；缺 id 不渲染链接。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261104a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261107a';
 
 const STATUS_LABEL = { pending: '待办', in_progress: '进行中', completed: '已完成' };
 const STATUS_CLASS = {
@@ -56,12 +56,12 @@ export function myTasksSectionHtml(personId) {
     })
     : `<div class="space-y-2">${rows.map(_rowHtml).join('')}</div>`;
   return `
-    <div class="card rounded-xl p-5 mb-4" id="leader-my-tasks">
+    <div class="card rounded-xl p-4 mb-4" id="leader-my-tasks">
       <div class="flex items-center justify-between mb-1">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">我的任务</h3>
         <span class="text-xs text-gray-500">按项目身份分配 · ${rows.length} 项</span>
       </div>
-      <p class="text-xs text-gray-500 mb-3">只列按项目身份（组织者 / 深度参与者）派给本人的 SOP 任务；与「待办」页的待办聚合口径不同。</p>
+      <p class="text-xs text-gray-500 mb-3">这里只列按项目身份派给你的任务；其他待办请到「待办」页查看。</p>
       ${body}
     </div>`;
 }

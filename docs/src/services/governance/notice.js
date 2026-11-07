@@ -5,24 +5,24 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261104a';
-import { generateId } from '../../core/base/id.js?v=20261104a';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken, adoptCollectionFromServer } from '../../data/data-adapter.js?v=20261104a';
-import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261104a';
-import { bumpToken } from '../../core/base/version-token.js?v=20261104a'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261104a';
-import { isInitStateActive } from '../core/init-reset.js?v=20261104a'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { todayLocal } from '../../core/base/utils.js?v=20261104a';
-import { AuthStore } from '../core/auth.js?v=20261104a';
-import {  getPersonById, getPersonName } from '../member/person.js?v=20261104a';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261104a';
+import { mockDB } from '../../core/domain/domain.js?v=20261107a';
+import { generateId } from '../../core/base/id.js?v=20261107a';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken, adoptCollectionFromServer } from '../../data/data-adapter.js?v=20261107a';
+import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261107a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261107a'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261107a';
+import { isInitStateActive } from '../core/init-reset.js?v=20261107a'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { todayLocal } from '../../core/base/utils.js?v=20261107a';
+import { AuthStore } from '../core/auth.js?v=20261107a';
+import {  getPersonById, getPersonName } from '../member/person.js?v=20261107a';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261107a';
 // 组织者身份读取单一源（2026-09-19 批次 91 · SOP-B-17）——发布权随「被指定为该场组织者」动态获得
-import {  getOrganizedActivities } from '../activity/activity.js?v=20261104a';
+import {  getOrganizedActivities } from '../activity/activity.js?v=20261107a';
 import {
   NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
   NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
   DEFAULT_BRANCH_ID,
-} from '../../core/domain/constants.js?v=20261104a';
+} from '../../core/domain/constants.js?v=20261107a';
 
 // ════════════════════════════════════════════════════════════════
 //  消息对象模型（Task 3 · 2026-10-25）
@@ -445,8 +445,15 @@ export const NoticeStore = {
       // 该角色不属于任何支部（branchId:null），故不做本支部比对；默认不传 scope 时保持原行为。
       const _staffCommitteeScope = filter.scope === 'committee' && _role === 'party-staff';
       result = result.filter((n) => {
-        if (!_hasAudience(n)) return true;   // 广播
-        if (!_role) return true;         // 无会话：不按受众收窄（保持既有行为）
+        // 2026-11-07 批次 535（CASE-AI-004）：无登录会话一律不可见（显式广播匿名待公共入口裁定）。
+        if (!_role) return false;
+        // 存量迁移标记：补不出受众的历史系统通知，仅发布者可见。
+        if (n.legacyUnscoped === true) return _isPublisher(n, _ctx);
+        if (!_hasAudience(n)) {
+          // 公告无受众＝支部广播（历史行兼容）；系统通知无受众＝未授权，不可见（fail-closed）。
+          return kindOf(n) === 'announcement';
+        }
+        if (_isBroadcastAudience(n)) return true;
         if (_staffCommitteeScope && _audienceSentinelPresent(n, 'committee')) return true;
         if (_audienceSentinelHit(n, 'committee', _ctx) && !!_myBranch && (n.branchId || DEFAULT_BRANCH_ID) === _myBranch) return true;
         if (_hitPersons(n) || _hitRoles(n) || _hitActions(n)) return true;
@@ -921,14 +928,16 @@ export const NoticeStore = {
 /**
  * 是否可读某条通知（详情页读取权限，单一源，Q-22-1 2026-09-13）
  *
- * 规则：
- *   ① 无受众 / 广播 sentinel（all）→ 人人可读（含无登录会话）；
- *   ② 无登录会话 → 仅广播/无受众可读（上一步已返回）；
- *   ③ 党委组织员（party-staff）可读党委级通知（source/audience 命中 committee）；
- *   ④ 发布者恒可读（签发人不应被自己的定向通知挡在门外）；
- *   ⑤ 支委层（BRANCH_COMMISSION_ROLES）可读（治理信息）；
- *   ⑥ 命中受众（audience sentinel / 裸角色键 / audiencePersons / actionRoles）可读；
- *   ⑦ 其余不可读。
+ * 规则（2026-11-07 批次 535 · CASE-AI-004 改准）：
+ *   ① 无登录会话 → 一律不可读（显式广播匿名待公共入口裁定）；
+ *   ② 存量 `legacyUnscoped` → 仅发布者可读；
+ *   ③ 广播 sentinel（all）→ 登录成员可读；
+ *   ④ 无受众：公告按支部广播兼容；系统通知无受众 → 不可读（不得当广播）；
+ *   ⑤ 党委组织员（party-staff）可读党委级通知（source/audience 命中 committee）；
+ *   ⑥ 发布者恒可读（签发人不应被自己的定向通知挡在门外）；
+ *   ⑦ 支委层（BRANCH_COMMISSION_ROLES）可读（治理信息）；
+ *   ⑧ 命中受众（audience sentinel / 裸角色键 / audiencePersons / actionRoles）可读；
+ *   ⑨ 其余不可读。
  * 判定复用 list() 受众门**同一套** sentinel 判定（_audienceHit 等，勿写第二套规则）。
  * 注：本函数与 getById() 分工——getById 只取数、本函数判可见性（详情页渲染前调用）。
  * @param {Object} notice 通知对象
@@ -947,15 +956,17 @@ export function canReadNotice(notice, viewer) {
     if (!ctx.role) return false;                       // 无会话 → 不可读（私信不广播）
     return _isPublisher(n, ctx) || _audiencePersonsHit(n, ctx);
   }
-  if (!_hasAudience(n) || _isBroadcastAudience(n)) return true; // ① 无受众 / 广播 → 人人可读
-  if (!ctx.role) return false;                                  // ② 无登录会话：仅广播/无受众
-  // ③ 党委组织员（party-staff）可读党委下发通道（audience 含 committee sentinel）——
+  if (!ctx.role) return false;                                  // ① 无登录会话：一律不可读
+  if (n.legacyUnscoped === true) return _isPublisher(n, ctx);    // ② 存量无受众：仅发布者
+  if (_isBroadcastAudience(n)) return true;                      // ③ 显式广播：登录成员可读
+  if (!_hasAudience(n)) return kindOf(n) === 'announcement';     // ④ 系统通知无受众 → 不可读
+  // ⑤ 党委组织员（party-staff）可读党委下发通道（audience 含 committee sentinel）——
   //    与 list() 受众门同口径；否则顶栏铃铛可见、点开详情却「不可读」。
   if (ctx.role === 'party-staff'
     && (n.source === 'committee' || _audienceSentinelPresent(n, 'committee'))) return true;
-  if (_isPublisher(n, ctx)) return true;                        // ④ 发布者恒可读
-  if (BRANCH_COMMISSION_ROLES.includes(ctx.role)) return true;  // ⑤ 支委层可读
-  return _audiencePersonsHit(n, ctx)                            // ⑥ 命中受众可读
+  if (_isPublisher(n, ctx)) return true;                        // ⑥ 发布者恒可读
+  if (BRANCH_COMMISSION_ROLES.includes(ctx.role)) return true;  // ⑦ 支委层可读
+  return _audiencePersonsHit(n, ctx)                            // ⑧ 命中受众可读
     || _audienceHit(n, ctx)
     || _audienceActionRolesHit(n, ctx);
 }

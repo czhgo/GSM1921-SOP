@@ -90,7 +90,9 @@ export const filesByFixtureClass = (fixtureClass) => TEST_TIERS
  *   ④ mock=正常路径不冒充失败 · ⑤ 服务端空组不得被客户端猜回 · ⑥ 默认路径不派生已接管键 ·
  *   ⑦ 接线守卫），纯 node（注入 fetch / builder，不起浏览器）⇒ daily；文件预算 242 → 243，
  *  断言预算按实测 1776 + 7 = 1783，登记 1785（留 2 条余量，不作「9999 式」放宽）。 */
-export const DAILY_FILE_BUDGET = 243;
+/** 2026-11-07 批次 535（通知受众 fail-closed ＋ SD-60 行动行）：新增 notice-audience-failclosed 6 条
+ *  与 action-row-wrap-guard 5 条 ⇒ daily；文件预算 243 → 245，断言预算按实测 1797 登记。 */
+export const DAILY_FILE_BUDGET = 245;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
@@ -344,7 +346,7 @@ export const DAILY_FILE_BUDGET = 243;
  *  ⇒ 实测 1765，按 1767 登记（留 2 条余量，不作「9999 式」放宽）。未新增测试文件，文件预算维持 240。 */
 /** 2026-11-04 批次 534（B-500-7b-1 Task 9）：新增 `todo-realtime-source` 7 条 ⇒ 实测 1783，按 1785 登记
  *  （留 2 条余量，不作「9999 式」放宽）。 */
-export const DAILY_TEST_BUDGET = 1785;
+export const DAILY_TEST_BUDGET = 1797;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -370,6 +372,7 @@ export const TEST_TIERS = [
     'issue-audience-projection.test.mjs',
     'issue-branch-policy.test.mjs',
     'module-owner-authz.test.mjs',
+    'notice-audience-failclosed.test.mjs',
     'notice-audience.test.mjs',
     'output-block-policy.test.mjs',
     'participant-scope.test.mjs',
@@ -406,6 +409,7 @@ export const TEST_TIERS = [
   // daily · 数据真值 / 迁移 / 种子 / 备份
   ...group('daily', '数据真值 / 迁移 / 种子 / 备份', [
     'account-rename.test.mjs',
+    'action-row-wrap-guard.test.mjs',
     'archive-action-guard.test.mjs',
     'archive-record-write.test.mjs',
     'backup-restore.test.mjs',

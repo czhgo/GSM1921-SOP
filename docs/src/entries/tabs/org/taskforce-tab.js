@@ -4,45 +4,45 @@
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类）经 ctx 传入。
 // 2026-10-20 第三轮 IA 判例④：活动视图已迁至「活动日历」页，本页不再消费 ctx.activities。
 
-import { setState } from '../../../core/base/state.js?v=20261104a';
-import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261104a';
-import { legacyParticipantAssignmentRows, workgroupMembers } from '../../../services/activity/workgroup-members.js?v=20261104a';
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261104a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261104a';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261104a';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261104a';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261104a';
-import { mockDB, ReviewStatus, isTaskforceTerminalStatus, isTaskforceActiveStatus, TASKFORCE_TERMINAL_STATUSES, TASK_TERMINAL_STATUSES, OUTPUT_TERMINAL_STATUSES } from '../../../core/domain/domain.js?v=20261104a'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../data/data-adapter.js?v=20261104a';
-import { settleWrites } from '../../../core/session/pending-writes.js?v=20261104a';
-import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261104a';
-import { generateId } from '../../../core/base/id.js?v=20261104a';
-import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261104a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261104a';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261104a';
-import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../../components/governance/workgroup-member-editor.js?v=20261104a';
-import { getAdapter } from '../../../data/data-adapter.js?v=20261104a';
+import { setState } from '../../../core/base/state.js?v=20261107a';
+import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261107a';
+import { legacyParticipantAssignmentRows, workgroupMembers } from '../../../services/activity/workgroup-members.js?v=20261107a';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261107a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261107a';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261107a';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261107a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261107a';
+import { mockDB, ReviewStatus, isTaskforceTerminalStatus, isTaskforceActiveStatus, TASKFORCE_TERMINAL_STATUSES, TASK_TERMINAL_STATUSES, OUTPUT_TERMINAL_STATUSES } from '../../../core/domain/domain.js?v=20261107a'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../data/data-adapter.js?v=20261107a';
+import { settleWrites } from '../../../core/session/pending-writes.js?v=20261107a';
+import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261107a';
+import { generateId } from '../../../core/base/id.js?v=20261107a';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261107a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261107a';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261107a';
+import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../../components/governance/workgroup-member-editor.js?v=20261107a';
+import { getAdapter } from '../../../data/data-adapter.js?v=20261107a';
 // 批次 524（F · 输入单一源）：recordFormShell ＋ 布局中立的控件积木（只出控件本体，不套 label / 外边距）
-import { recordFormShell, textInput, selectInput } from '../../../components/ui/forms.js?v=20261104a';
+import { recordFormShell, textInput, selectInput } from '../../../components/ui/forms.js?v=20261107a';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
 // U-05：招募浮窗原为手写 overlay/panel（无 dialog 语义 / 无焦点接管）→ 改走同一组件的 openModal。
-import { confirmNudge, confirmWriteWithoutGrant, openModal, closeModal, setModalBusy, confirmDanger } from '../../../components/ui/modal.js?v=20261104a';
+import { confirmNudge, confirmWriteWithoutGrant, openModal, closeModal, setModalBusy, confirmDanger } from '../../../components/ui/modal.js?v=20261107a';
 // 转交组织者（SOP-G-2-② · 2026-10-01 批次 327 · 支书裁「乙：直接转交 ＋ 留痕」）：判据 / 写口 /
 //   弹窗单一源＝`components/governance/organizer-transfer.js`（本台只挂入口，不复制一份实现）。
-import { canTransferOrganizer, openOrganizerTransfer, organizerOf } from '../../../components/governance/organizer-transfer.js?v=20261104a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261104a';
+import { canTransferOrganizer, openOrganizerTransfer, organizerOf } from '../../../components/governance/organizer-transfer.js?v=20261107a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261107a';
 // 人×项目矩阵单一源（支书 2026-09-14 裁定：把宽表推广到其它二元关系域 → 本批「专班报名」域）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261104a';
-import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261104a';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261107a';
+import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261107a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：报名名单等按人段落接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261104a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261104a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261107a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261107a';
 // 专班赋权（2026-10-25 IA 62→45）：自支书台「活动管理」整卡迁回本位——实现单一源仍是
 //   `secretary/assign-tab.js::mountTaskforceProjectAuth`（本页只给落点宿主，不复制表单）。
-import { mountTaskforceProjectAuth } from '../secretary/assign-tab.js?v=20261104a';
+import { mountTaskforceProjectAuth } from '../secretary/assign-tab.js?v=20261107a';
 // Task 6：本台「专班管理」是对象所属工作台 ⇒ locate（同页面板 + 「打开完整页」）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261104a';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261104a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261107a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261107a';
 // 私有状态（随模块自持，不污染入口）
 let _recruitOrganizerPicker = null;
 let _recruitDeepPicker = null;
@@ -687,7 +687,7 @@ async function _tfRenderTasksBlock(panel, tf, ctx = {}) {
       <section aria-labelledby="tf-task-output-title">
         <div class="flex items-start justify-between gap-3 mb-2">
           <div>
-            <h4 id="tf-task-output-title" class="font-title-cn text-[13px] font-semibold text-gray-700">任务清单与产出记录</h4>
+            <h4 id="tf-task-output-title" class="font-title-cn text-sm font-semibold text-gray-700">任务清单与产出记录</h4>
             <p class="mt-1 text-xs leading-5 text-gray-500">结束前须闭合所有登记任务与产出；历史记录保留。纪检考察仅在事项明确要求时办理。</p>
           </div>
           <span class="text-[11px] text-gray-500 flex-shrink-0">任务 ${closedCount}/${tasks.length} · 产出 ${closedOutputCount}/${outputs.length}</span>
@@ -917,7 +917,7 @@ function _tfRenderVerifyBlock(panel, tf) {
   });
   mount.innerHTML = `
     <div class="mb-2 flex items-center justify-between gap-2">
-      <h4 class="font-title-cn text-[13px] font-semibold text-gray-700">逐条核验 <span class="text-xs font-normal text-gray-500">· 核验旧版贡献记录；新工作产出在「任务与过程」登记</span></h4>
+      <h4 class="font-title-cn text-sm font-semibold text-gray-700">逐条核验 <span class="text-xs font-normal text-gray-500">· 核验旧版贡献记录；新工作产出在「任务与过程」登记</span></h4>
       <span class="text-xs text-gray-500">共 ${contribVerifyRows.length} 条</span>
     </div>
     <div class="rounded-lg bg-gray-50 p-2.5"><div id="tf-verify-host"></div></div>`;
@@ -983,7 +983,7 @@ function _tfRenderContribBlock(panel, tf, ctx) {
   mount.innerHTML = `
     <!-- 组织委员代录（兜底）：单条 desc + 选人（B批 R3-3，代录后仍需逐条核） -->
     <div class="mt-3 rounded-lg bg-white p-2.5 border border-dashed border-gray-200">
-      <h4 class="font-title-cn text-[13px] font-semibold text-gray-700 mb-1">组织委员代录（兜底）<span class="text-xs font-normal text-gray-500">· 单条代录成员产出，代录后仍需逐条核</span></h4>
+      <h4 class="font-title-cn text-sm font-semibold text-gray-700 mb-1">组织委员代录（兜底）<span class="text-xs font-normal text-gray-500">· 单条代录成员产出，代录后仍需逐条核</span></h4>
       <div class="flex flex-col md:flex-row gap-2">
         <div id="tf-contrib-picker" class="w-48 flex-shrink-0"></div>
         <textarea id="tf-contrib-desc" rows="1" placeholder="贡献说明（必填），如：完成活动策划与执行排期…" class="input-flat flex-1 min-w-[160px] resize-none"></textarea>
@@ -1061,7 +1061,7 @@ function _tfRenderSignupBlock(panel, tf, ctx) {
   mount.innerHTML = `
     <div>
       <div class="flex items-center justify-between mb-2">
-        <h4 class="font-title-cn text-[13px] font-semibold text-gray-700">工作组申请记录（${approvedSignups.length}）<span class="text-xs font-normal text-gray-500">· 成员 ${filled}/${tf.capacity}</span></h4>
+        <h4 class="font-title-cn text-sm font-semibold text-gray-700">工作组申请记录（${approvedSignups.length}）<span class="text-xs font-normal text-gray-500">· 成员 ${filled}/${tf.capacity}</span></h4>
       </div>
       <div id="tf-signup-list"></div>
       ${otherSignupTxt ? `<p class="text-[11px] text-gray-500 mt-1">${otherSignupTxt}</p>` : ''}
@@ -1163,7 +1163,7 @@ function _tfRenderSubsBlock(panel, tf, ctx) {
 
   mount.innerHTML = `
     <div class="mt-3">
-      <h4 class="font-title-cn text-[13px] font-semibold text-gray-700 mb-2">子记录</h4>
+      <h4 class="font-title-cn text-sm font-semibold text-gray-700 mb-2">子记录</h4>
       ${inspectionHtml /* 仅有明确事项并已有记录时展示；新事项不被误导成必须考察 */}
       ${mat.shellHtml}
     </div>`;
@@ -1285,7 +1285,7 @@ function _tfRenderProgressBlock(panel, tf, ctx) {
             <span class="text-[11px] text-gray-500">${p.by ? getPersonName(p.by) : ''}</span>
             <span class="ml-auto">${delBtn}</span>
           </div>
-          <p class="text-xs text-gray-600 leading-relaxed mt-0.5">${p.note || ''}</p>
+          <p class="text-body-sm text-gray-600 mt-0.5">${p.note || ''}</p>
         </div>
       </div>`;
   }).join('');
@@ -1307,7 +1307,7 @@ function _tfRenderProgressBlock(panel, tf, ctx) {
   mount.innerHTML = `
     <div>
       <div class="flex items-center justify-between mb-1">
-        <h4 class="font-title-cn text-[13px] font-semibold text-gray-700">中间进度 <span class="text-xs font-normal text-gray-500">· 运行期分阶段进展</span></h4>
+        <h4 class="font-title-cn text-sm font-semibold text-gray-700">中间进度 <span class="text-xs font-normal text-gray-500">· 运行期分阶段进展</span></h4>
         ${tfProgressList.length > 0 ? `<span class="text-[11px] text-gray-500">${tfProgressList.length} 条</span>` : ''}
       </div>
       ${tfProgressList.length === 0
@@ -1353,10 +1353,10 @@ function _tfRenderReviewBlock(panel, tf, ctx) {
     mount.innerHTML = `
       <div class="mt-3">
         <div class="flex items-center justify-between mb-2">
-          <h4 class="font-title-cn text-[13px] font-semibold text-gray-700">专班复盘</h4>
+          <h4 class="font-title-cn text-sm font-semibold text-gray-700">专班复盘</h4>
           <span class="text-xs px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">已提交</span>
         </div>
-        <p class="text-xs text-gray-600 leading-relaxed">${tfReviewRecord.reviewContent || '（已提交，待纪检委员批注）'}</p>
+        <p class="text-body-sm text-gray-600">${tfReviewRecord.reviewContent || '（已提交，待纪检委员批注）'}</p>
         ${tfReviewRecord.issues?.length ? `<p class="text-[11px] text-amber-700 mt-1">问题：${tfReviewRecord.issues.join('；')}</p>` : ''}
       </div>`;
     return;
@@ -1365,7 +1365,7 @@ function _tfRenderReviewBlock(panel, tf, ctx) {
   mount.innerHTML = `
     <div class="mt-3">
       <div class="flex items-center justify-between mb-2">
-        <h4 class="font-title-cn text-[13px] font-semibold text-gray-700">专班复盘</h4>
+        <h4 class="font-title-cn text-sm font-semibold text-gray-700">专班复盘</h4>
         <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">未提交</span>
       </div>
       <textarea id="tf-review-content" rows="3" placeholder="专班任务完成情况、工作成果与不足" class="input-flat w-full resize-none"></textarea>

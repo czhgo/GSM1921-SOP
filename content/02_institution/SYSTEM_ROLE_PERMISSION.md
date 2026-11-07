@@ -2,7 +2,7 @@
 title: "系统角色权限矩阵（代码键级权威）"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-11-03
+last_updated: 2026-11-07
 status: active
 related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/constants.js]
 ---
@@ -40,6 +40,7 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 **语义约定**：
 - **`all` 不是角色键**：`all`（全体相关）解析不到具体人，已从 `constants.js` 的 `ROLE_LEGACY_KEYS` 撤除；**「全体党员」语义不在角色键上**，由通知受众 sentinel（`constants.js` 的 `NOTICE_AUDIENCE_SENTINELS.all`）承载；`all` 仍作为参与者视角的参考指南展示键（`core/base/state.js`）使用，标签/色值保留。
 - **访客非角色**：未登录即访客（无角色键），`visitor` 仅为参与者工作台页面的 tab 前缀/待办聚合键，勿与「访客（未登录）」混淆。
+- **赋权通知只发给被赋权人**：`project-auth-granted` 必须写 `audiencePersons=[targetPersonId]`；授权人姓名由服务端按名册复算，不采信客户端自述。未登录会话一律不可读站内通知。
 - **`COMMISSIONER_ROLES` 两处语义区分**：constants.js 版指条条委员（三委员，不含支书/副支书，业务判定用）；auth.js 版指授权语义（含支书/副支书，授权候选人排除支委用）。勿混用。
 - **组织级角色（`party-staff`）**：党委组织员/党务老师——院系党委组织级角色，监控全院各支部、管理支部实例，**不属于任一支部、不参与支部内部活动闭环**；因此不落入 §9b（支部常设 6 角色）与 §9c（项目角色）矩阵——矩阵为支部业务角色视图。其能力模块为 `party-committee-workspace`（工作台 `party-committee.html`）。匿名意见反馈不构成例外；党委不得读取、提交或揭名，见 **§9j（D-824）**。
 - **遗留键**仅保留兼容兜底，不参与权限判定；新功能不得新增遗留键。

@@ -2,7 +2,7 @@
 title: "设计域判例库"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-04"
+last_updated: "2026-11-07"
 status: active
 related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -359,6 +359,18 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **对应规范编号**：SD-25（关联 SD-46 功能色使用面、§4.2 边线语义）；交互条文见 `DS_04_INTERACTION_AND_RESPONSIVE.md §5.2`。
 - **守卫**：`hover-state-guard::H11`（可点行不得定义状态左条）＋ `ui-control-system-guard::V7`（不得存在状态左条，选中靠 soft 底）＋ `ui-contrast-guard::K6`（`.section-accent-left` 不得再用左条；若选择器仍在，必须另有背景 / 文字承载状态）。三条均带「把 3px 左条加回来必须判红」的反例。
 - **证据指针**：`content/04_web_design/design-system/DS_03_COMPONENTS.md` §4.2 / §12.11；`content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md` §5.2；`server/test/hover-state-guard.test.mjs`；`server/test/ui-control-system-guard.test.mjs`；`server/test/ui-contrast-guard.test.mjs`。
+
+---
+
+## CASE-DESIGN-034 卡头按钮被「机械分行」：标题不让位 ＋ aside 整组掉行
+
+- **编号**：CASE-DESIGN-034
+- **场景（真实发生）**：支书指出多个页面的按钮「被机械地分行了」——不是按钮文字断行，而是整组动作在宽度足够时掉到第二行。取证：`.card-head` / `.card-head__aside` 三处 `flex-wrap: wrap`，标题只有 `margin: 0` 不承担伸缩，aside 带 `margin-left: auto` 整组让位 ⇒ 标题 + meta 稍长就把按钮组挤下去。按钮族本身已有 `white-space: nowrap`，不是缺 nowrap。
+- **结论**：换行发生在「组」一级是问题，发生在「组内元素」一级不是问题。≥641px 卡头不换行，标题 `flex:1 1 auto; min-width:0` 承担伸缩并允许自身换行，aside `flex:0 0 auto` 不拆组；≤640px 才允许 aside 掉行并右对齐。单枚低价值按钮并入右对齐，不单独占行。
+- **边界**：本判例只约束 `.card-head` 家族与 P1 表单 / 工具行；`.lf-bar` 仍守 SD-58「两行上限」，不得改成横向滚动；`round3-4-batch1` 锁定的活动卡片行动区不动。
+- **对应规范编号**：SD-60（行动行排布，`DS_06_LAYOUT_AND_DENSITY.md §二`）；关联 SD-57 / SD-58。
+- **守卫**：`action-row-wrap-guard::W1–W5`（`.card-head` 基准 nowrap ＋ ≤640 覆盖、标题伸缩、aside 不拆组、按钮族 nowrap、`.lf-bar` 仍可折行）。
+- **证据指针**：`docs/src/styles.css`（`.card-head` 家族）· `docs/src/components/shell/page-frame.js::renderCardHeader` · `server/test/action-row-wrap-guard.test.mjs` · `.ctx/evidence/2026-11-07/ui-audit.md`。
 
 ---
 

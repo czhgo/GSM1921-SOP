@@ -2,7 +2,7 @@
 title: "支书评议队列"
 type: audit_report
 role: "[工程师]+[AI]"
-last_updated: 2026-11-03
+last_updated: 2026-11-07
 status: active
 layer: reference
 related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
@@ -50,6 +50,8 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 | AI 逃逸捕捉 | 逃逸点五维扫描（E1 规则软化 / E2 判据缺位 / E3 边界模糊 / E4 例外无闸 / E5 验证无闭环） | `CLAUDE.md H27` ＋ 附录⑦ |
 | 功能实现评议 | SOP「设计考量」↔ 代码实现对照，缺口登记送审 | 附录⑧ |
 | 卡片重合·必要性·顺序审计 | 卡级清单 × 同源冲突 × 可替代性 × 顺序认知 | 附录⑪ |
+| UI 审计 2026-11 | 空间 / 字号 / 脏乱 / 守卫空白四路 findings（已修 vs 已登记） | `.ctx/evidence/2026-11-07/ui-audit.md` |
+| 通知受众 gap 2026-11 | content 规定 ↔ 代码实现逐条对照（受众定义 / 必填 / 匿名 / 模板 / 名册） | `.ctx/evidence/2026-11-07/notice-audience-gap.md` |
 
 ### 附录 ① 反论评议
 

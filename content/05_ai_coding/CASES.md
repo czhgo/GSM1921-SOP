@@ -2,7 +2,7 @@
 title: "AI 协作域判例库"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-04"
+last_updated: "2026-11-07"
 status: active
 related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -72,3 +72,26 @@ related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_
 - **对应规范编号**：`TEST_AND_VERIFICATION.md`「非闭环类缺陷的守卫写法：真机闭环断言 + 静态保态断言」＋ `CLAUDE.md H25`
 - **边界**：本条针对「同一 tab 的渲染 / 绑定生命周期」；纯服务端接口契约测试不受此限。首屏性能读数（974→515ms、hover p95 3.5→0.9ms）属演示环境实测，不当作跨机器承诺。
 - **证据指针**：`docs/src/components/shell/tab-bar.js`（`renderCurrent` / `_safeRender` / `_armLoadingTimeout`）· `docs/src/components/shell/workspace-shell.js`（`renderCtx: () => _renderCtx(getAppState())`）· `server/test/runtime-tab-lifecycle-guard.test.mjs` · `.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 512。
+
+## CASE-AI-007 系统通知「无受众」被当成广播，匿名读到定向赋权
+
+- **编号**：CASE-AI-007
+- **样本（真实发生）**：支书在未登录状态看到「某某已将您赋权」通知。取证发现三层叠加：`project-auth-granted` 写侧不产 `audience` / `audiencePersons`；读侧 `canReadNotice` 把「无受众」当广播、`list()` 无会话直接全放行；授权人姓名依赖前端 payload，服务端未复算。同类 7 个 kind 恒无受众。
+- **AI 假设**：没有受众字段就是广播；服务端生成的通知天然可信；未登录放行只是演示便利。
+- **人类意图**：没有受众就是**未授权**；定向通知只能到人；未登录不读任何站内通知；广播必须显式写 `audience:['all']`。
+- **泛化规则（结论）**：安全默认 fail-closed——无受众系统通知不可读；广播必须显式；写侧按 kind 声明 `required / broadcast / conditional` 并在落库前校验；展示值（人名 / 项目名）由服务端按表复算；存量无受众行标 `legacyUnscoped`，仅发布者可见。
+- **守卫**：`notice-audience-failclosed`（F1–F6）＋ `notice-audience::N1/N6/N7` ＋ `system-notice-project-auth-authorize::B10/E3/E5/E6`。
+- **对应规范编号**：`CLAUDE.md H32`（服务端算业务事实）＋ `DATA_MODEL.md §2.9`（受众必填）＋ `INFORMATION_COMPUTATION.md §1.2–§1.4`。
+- **边界**：公告（`kind='announcement'`）无受众仍按支部广播兼容；显式广播是否允许匿名，待 `PUBLIC_ENTRANCE.md` 裁定。
+- **证据指针**：`docs/src/services/governance/notice.js`（`list()` / `canReadNotice`）· `server/system-notice-kinds.js`（`audiencePolicy`）· `server/routes/system-notices.js`（`normalizeSystemNotice`）· `server/scripts/migrate-notice-audience.mjs` · `.ctx/evidence/2026-11-07/notice-audience-gap.md`。
+
+## CASE-AI-008 CLAUDE 层标记漂移：温层被搬空仍宣称三层
+
+- **编号**：CASE-AI-008
+- **样本（真实发生）**：`CLAUDE.md` 声明「热 / 温 / 冷三层」，实际温层 0 行、H60–H80 全被并进热层；守卫只挡总量与引用框，没有层边界、单节配额与温层非空检查，乙部历史叙述也不计入行数。
+- **AI 假设**：只要总量不超 600 行就安全；层标记只是注释；历史完成项留在乙部便于追溯。
+- **人类意图**：温层必须真的被用起来（触发式任务表）；层边界与单节配额要有机检；完成项整行删除，沿革归 git。
+- **泛化规则（结论）**：结构规则必须有结构守卫——热/温/冷区间、每层允许的 H 节、温层非空、单节配额、乙部无历史叙述、触发表指针 `existsSync`；新增规则同批删等量旧行或降为指针。
+- **守卫**：`ctx-hygiene-guard::⑧⑨`（层边界 / 温层 3–60 行 / 乙部 ≤18 行且无历史）＋ `claude-parallel-audit::C4`（判例下迁手册）＋ `ui-preflight-context::P5`（温层非空 + 触发表）。
+- **对应规范编号**：`CLAUDE.md H26` / `H50` ＋ `CONTEXT_MANAGEMENT.md` 三层模型。
+- **证据指针**：`CLAUDE.md`（`# 热层` / `# 温层` / `# 冷层`）· `server/test/ctx-hygiene-guard.test.mjs` · `.ctx/evidence/2026-11-07/ui-audit.md`。

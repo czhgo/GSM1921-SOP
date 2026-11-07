@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261104a');
+@import url('components/person-picker.css?v=20261107a');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -870,10 +870,12 @@ body {
   gap: 0.5rem;
 }
 /* 卡头单一源（2026-10-24 Task 4.2 · components/shell/page-frame.js::renderCardHeader）
-   —— 卡内标题左、计数与动作右；说明不得压在主体之前（§10.5）。 */
+   —— 卡内标题左、计数与动作右；说明不得压在主体之前（§10.5）。
+   2026-11-07 批次 535（SD-60）：≥641 不换行，标题承担伸缩；≤640 才允许 aside 掉行。
+   病灶：标题不收缩 + aside 整组 margin-left:auto ⇒ 按钮组被机械挤到第二行。 */
 .card-head {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-2);
@@ -881,14 +883,21 @@ body {
 }
 .card-head__title {
   margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .card-head__aside {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-end;
   gap: var(--space-2);
   margin-left: auto;
+  flex: 0 0 auto;
+}
+@media (max-width: 640px) {
+  .card-head { flex-wrap: wrap; }
+  .card-head__aside { flex-wrap: wrap; }
 }
 .card-head__meta {
   display: flex;
@@ -2576,7 +2585,7 @@ a.text-accent {
 .report-entry-btn { position: relative; display: inline-flex; align-items: center; }
 .report-entry-badge {
   position: absolute; top: -5px; right: -6px; min-width: 16px; height: 16px; line-height: 16px;
-  padding: 0 4px; border-radius: 9999px; font-size: 10px; font-weight: 600; text-align: center;
+  padding: 0 4px; border-radius: 9999px; font-size: 11px; font-weight: 600; text-align: center;
   background: var(--party-gold);
 }
 
@@ -4917,7 +4926,6 @@ html.theme-dark .ref-doc-action-danger {
   html.theme-dark .bg-emerald-100 { background-color: rgba(52, 211, 153, 0.16) !important; }
   html.theme-dark .bg-sky-100     { background-color: rgba(56, 189, 248, 0.16) !important; }
   @media (hover: hover) {
-    html.theme-dark .hover\:bg-red-100:hover    { background-color: rgba(239, 68, 68, 0.16) !important; }
     html.theme-dark .hover\:bg-sky-100:hover    { background-color: rgba(56, 189, 248, 0.16) !important; }
   }
   /* 2026-10-31 P8：文字类一律映射到文字档（填充档只承担底色 / 圆点 / 左条）。 */
@@ -5471,6 +5479,12 @@ html.theme-dark .agg-count-badge {
 }
 
 /* ── 设置左栏分组项（类名被测试选择器锁定 ⇒ 样式落此处，页面不再自建） ── */
+/* 2026-11-07 批次 535：`.btn-tab` 族规则（justify-content:center）后置，会压掉左栏导航的左对齐；
+   以组合选择器（特异性 0,2,0）恢复标签居左、状态居右。 */
+.btn-tab.settings-group-item {
+  justify-content: space-between;
+  text-align: left;
+}
 .settings-group-item {
   display: flex;
   align-items: center;
@@ -6853,7 +6867,7 @@ button.metric-band__item--filter.is-active {
 .modal-title {
   min-width: 0;
   font-family: var(--font-display);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--neutral-800);
   overflow-wrap: anywhere;

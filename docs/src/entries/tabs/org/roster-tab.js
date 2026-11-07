@@ -42,37 +42,37 @@
 //    支书确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261104a';
-import { getRosterStats, getResidenceOf } from '../../../services/member/roster.js?v=20261104a';
-import { listPendingConfirmations } from '../../../services/member/member-confirmation.js?v=20261104a';
-import { DEVELOP_STAGE_OPTIONS } from '../../../services/branch/org-base-data-preview.js?v=20261104a';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261107a';
+import { getRosterStats, getResidenceOf } from '../../../services/member/roster.js?v=20261107a';
+import { listPendingConfirmations } from '../../../services/member/member-confirmation.js?v=20261107a';
+import { DEVELOP_STAGE_OPTIONS } from '../../../services/branch/org-base-data-preview.js?v=20261107a';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）
-import { groupOptions } from '../../../services/member/party-group.js?v=20261104a';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261104a';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261107a';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261107a';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../../core/domain/constants.js?v=20261104a';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261104a';
-import { openModal, closeModal, openFormModal } from '../../../components/ui/modal.js?v=20261104a';
+import { ROLE_LABELS, RESIDENCE } from '../../../core/domain/constants.js?v=20261107a';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261107a';
+import { openModal, closeModal, openFormModal } from '../../../components/ui/modal.js?v=20261107a';
 // 统一成员档案编辑模态（成员名册行内「编辑」入口；模态内按字段分流：档案属性立即生效 / 制度变更报支书确认）
-import { openPersonEditModal } from '../../../components/governance/pickers.js?v=20261104a';
+import { openPersonEditModal } from '../../../components/governance/pickers.js?v=20261107a';
 // 纯逻辑（可单测）：新增表单校验
-import { validateMemberForm } from '../../../services/member/roster-ui-logic.js?v=20261104a';
+import { validateMemberForm } from '../../../services/member/roster-ui-logic.js?v=20261107a';
 // `D-788` / `V-10b` 第三批（2026-10-05 · 支书圈「甲：粘贴/CSV ＋ 预览」）：自我描述批量导入服务
 //   （纯函数：解析 → 表头关键词映射 → 净化 → 与名册匹配 → 预览；本模块不落库，确认由本 tab 逐行走 saveMember）
-import { buildSelfProfileImport } from '../../../services/member/self-profile-import.js?v=20261104a';
+import { buildSelfProfileImport } from '../../../services/member/self-profile-import.js?v=20261107a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：名册列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
 // 2026-10-20 第三轮 IA 判例⑤：名册是核对表而非标签墙 ⇒ 4 组 chip（约 20 枚）收回
 //   「搜索 + 党小组 / 发展阶段 / 在册状态 三个下拉」；角色是低频维度、不进主行（改在个人档案看）。
-import { renderFilteredList, personKeyword, personFacets } from '../../../components/ui/list-filter.js?v=20261104a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261104a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261104a';
+import { renderFilteredList, personKeyword, personFacets } from '../../../components/ui/list-filter.js?v=20261107a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261107a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261107a';
 // 成员流出登记（行内「移出」＝登记即生效）：2026-09-28 批次 220 · R10 拆分后，本 tab 只留「移出」这一
 //   行操作；「成员流动」面板（登记流入 / 登记流出 / 对账行 / 台账表 / 撤销）已拆到独立 tab（org/member-flow-tab.js）。
-import { registerOutflow } from '../../../services/member/member-flow.js?v=20261104a';
+import { registerOutflow } from '../../../services/member/member-flow.js?v=20261107a';
 // 支部归属解析（当前操作人 → 支部 id）：台账/对账/登记同支部口径
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261104a';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261107a';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261104a';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261107a';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -216,6 +216,16 @@ export function renderContent(ctx) {
     table: {
       colSpan: 6,
       responsive: true,
+      className: 'data-table--fixed',
+      // 2026-11-07 批次 535（SD-60 / 空间）：定宽列模板，避免「在册状态」被挤成竖排。
+      colgroupHtml: `<colgroup>
+            <col style="width:20%">
+            <col style="width:12%">
+            <col style="width:20%">
+            <col style="width:16%">
+            <col style="width:14%">
+            <col style="width:18%">
+          </colgroup>`,
       headHtml: `<tr>
             <th scope="col">姓名</th>
             <th scope="col">党小组</th>
@@ -271,9 +281,11 @@ function _rowHtml(p, pend) {
       <td data-label="滞留备注" class="text-gray-600 truncate" title="${esc(rs.residenceNote || '')}"><span class="text-xs">${esc(rs.residenceNote || '—')}</span></td>
       <td data-label="操作" class="whitespace-nowrap">
         <div class="flex items-center justify-end gap-1.5">
-          <button type="button" class="btn-accent-soft roster-edit text-xs px-2.5 py-1 whitespace-nowrap" data-person-id="${esc(p.id)}" style="cursor:pointer;">编辑</button>
-          <a href="${getBasePath()}person.html?id=${encodeURIComponent(p.id)}" class="text-xs px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" style="text-decoration:none;">档案</a>
-          <button type="button" class="btn-danger roster-del text-xs px-2.5 py-1 rounded-lg ${outPend ? 'bg-gray-50 text-gray-500 border border-gray-100' : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'} transition-colors whitespace-nowrap" data-person-id="${esc(p.id)}" title="${outPend ? '已报送支书确认移出，处理完成前不可重复发起' : ''}" ${outPend ? 'disabled' : ''} style="cursor:${outPend ? 'not-allowed' : 'pointer'};">${outPend ? '移出待确认' : '移出'}</button>
+          <button type="button" class="btn-outline border border-gray-200 roster-edit btn-sm whitespace-nowrap" data-person-id="${esc(p.id)}" style="cursor:pointer;">编辑</button>
+          <a href="${getBasePath()}person.html?id=${encodeURIComponent(p.id)}" class="btn-outline border border-gray-200 btn-sm whitespace-nowrap" style="text-decoration:none;">档案</a>
+          ${outPend
+            ? `<button type="button" class="btn-outline roster-del btn-sm whitespace-nowrap" data-person-id="${esc(p.id)}" title="已报送支书确认移出，处理完成前不可重复发起" disabled style="cursor:not-allowed;">移出待确认</button>`
+            : `<button type="button" class="btn-danger roster-del btn-sm whitespace-nowrap" data-person-id="${esc(p.id)}" style="cursor:pointer;">移出</button>`}
         </div>
       </td>
     </tr>`;

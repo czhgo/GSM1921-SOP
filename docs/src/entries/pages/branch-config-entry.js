@@ -1,22 +1,22 @@
 // Party-only per-branch configuration. The selected branch remains explicit in the URL.
-import { mockDB } from '../../core/domain/domain.js?v=20261104a';
-import { AuthStore } from '../../services/core/auth.js?v=20261104a';
-import { BranchService } from '../../services/core/runtime.js?v=20261104a';
-import { getPersonName } from '../../services/member/person.js?v=20261104a';
-import { getBranchById, renameBranch, setBranchActive } from '../../services/branch/branch.js?v=20261104a';
-import { appointSecretary, listAppointments } from '../../services/branch/appointment.js?v=20261104a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261104a';
-import { hydrateDataSource } from '../../data/data-adapter.js?v=20261104a';
-import { mountPartyConfig } from '../tabs/party-committee/party-config-tab.js?v=20261104a';
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261104a';
-import { renderHeader } from '../../components/shell/header.js?v=20261104a';
-import { mountBranchRosterImport } from '../../components/governance/branch-roster-import-panel.js?v=20261104a';
-import { PersonPicker } from '../../components/governance/pickers.js?v=20261104a';
-import { escHtml as esc, showToast, getBasePath } from '../../core/base/utils.js?v=20261104a';
-import { renderSectionHeader } from '../../components/shell/page-frame.js?v=20261104a';
-import { confirmDanger } from '../../components/ui/modal.js?v=20261104a';
+import { mockDB } from '../../core/domain/domain.js?v=20261107a';
+import { AuthStore } from '../../services/core/auth.js?v=20261107a';
+import { BranchService } from '../../services/core/runtime.js?v=20261107a';
+import { getPersonName } from '../../services/member/person.js?v=20261107a';
+import { getBranchById, renameBranch, setBranchActive } from '../../services/branch/branch.js?v=20261107a';
+import { appointSecretary, listAppointments } from '../../services/branch/appointment.js?v=20261107a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261107a';
+import { hydrateDataSource } from '../../data/data-adapter.js?v=20261107a';
+import { mountPartyConfig } from '../tabs/party-committee/party-config-tab.js?v=20261107a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261107a';
+import { renderHeader } from '../../components/shell/header.js?v=20261107a';
+import { mountBranchRosterImport } from '../../components/governance/branch-roster-import-panel.js?v=20261107a';
+import { PersonPicker } from '../../components/governance/pickers.js?v=20261107a';
+import { escHtml as esc, showToast, getBasePath } from '../../core/base/utils.js?v=20261107a';
+import { renderSectionHeader } from '../../components/shell/page-frame.js?v=20261107a';
+import { confirmDanger } from '../../components/ui/modal.js?v=20261107a';
 
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261104a';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261107a';
 renderSidebar('workspace');
 renderHeader('workspace');
 

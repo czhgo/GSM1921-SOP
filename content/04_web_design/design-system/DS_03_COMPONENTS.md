@@ -2,7 +2,7 @@
 title: "设计系统 · 第三编 组件"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-04"
+last_updated: "2026-11-07"
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_RESPONSIVE.md, DS_06_LAYOUT_AND_DENSITY.md, ../../../docs/src/styles.css, CASES.md]
 ---
@@ -158,6 +158,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 
 > CSS 实现见 `docs/src/styles.css`（`.card` 的圆角为 `var(--radius-md)` = 12px）。禁止：`backdrop-filter`、`box-shadow`、`transform`。
 > **交互声明（2026-10-19）**：卡片默认是**展示卡**，`.card:hover` 不变色；确需整卡点击的卡显式加 `.card--interactive`（`cursor:pointer` + hover `border-color` 加深）。`.card--static` 保留为兼容标记，不改变展示卡外观。
+> **卡头排布（2026-11-07 · SD-60）**：① 标题让位——`.card-head__title` 取 `flex:1 1 auto; min-width:0`，允许自身换行；② aside 不拆组——`.card-head__aside` 取 `flex:0 0 auto`，meta 与 actions 不得被拆到两行；③ 单枚低价值按钮并入右对齐，不单独占一行；≥641px 卡头不换行，≤640px 才允许 aside 掉行。判例：CASE-DESIGN-034。
 > **内边距两档适用**：**标准档 20px** 用于页面级主卡片；**紧凑档 16px** 用于页内从属容器。局部例外见 §4.3「工作台内嵌面板」与 §4.9「日历图例容器」。
 > **结构性例外（不加卡片内边距；2026-09-24 按实现口径登记，三类之外不得再出现第四种取值）**：① **卡内自带分区**（看板列卡 / 折叠卡：卡内区头 `px-4 py-3` + 内容块各管内边距）用 `p-0` + `overflow-hidden`；② **纯容器卡**（弹窗卡 / 折叠容器：子块各管内边距）不挂内边距类；③ **单行条卡**（骨架条 / 待办折叠条 / 交接条）用 `px-4 py-2.5`，使条高与同行 38px 控件档对齐。
 > **越档值收敛方向**：`p-6`(24px) / `p-8`(32px) → 标准档 `p-5`(20px)；`p-3`(12px) / `p-3.5`(14px) → 紧凑档 `p-4`(16px)（即「越档值归到最近档」，禁止为凑数把已属两档的 `p-4`/`p-5` 再压小）。

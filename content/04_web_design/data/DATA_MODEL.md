@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.1"
-last_updated: "2026-11-03"
+last_updated: "2026-11-07"
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -477,9 +477,10 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 |---|---|---|---|---|
 | id / title / content | string | 是 | -- | 唯一标识 / 标题 / 正文 |
 | kind | `'announcement'\|'system'\|'message'` | 是 | 由来源归一 | 单一身份：公告 / 系统通知 / 私信；`kindOf()` 归一，历史行按此迁移 |
+| systemKind | string | 系统通知必填 | 由写入侧 kind 写入 | 来源系统通知 kind（如 `project-auth-granted`）；受众策略与存量迁移按此识别 |
 | priority / publishDate | string | 是 | `'normal'` / 当天 | 优先级（urgent / normal / low）与发布日 |
 | expireDate | string \| null | 否 | 派生 | 目标为活动时＝活动日 + 收尾窗口（`deriveNoticeExpiry`）；过期即系统归档 |
-| audience / audiencePersons / actionRoles | array | 否 | `[]` | 受众三源：sentinel / 角色键、到人 personId、行动角色；命中任一即可见 |
+| audience / audiencePersons / actionRoles | array | 系统通知至少一项必填；公告可空 | `[]` | 受众三源：sentinel / 角色键、到人 personId、行动角色；命中任一即可见。**空数组不得视为广播**；广播必须显式 `audience:['all']`。`project-auth-granted` 必须写 `audiencePersons=[targetPersonId]`（仅被赋权人） |
 | targetType / targetId | string | 系统通知与私信必填，公告可空 | -- | 对象坐标（activity / taskforce / thoughtReport）；非公告必须有坐标 |
 | reads | string[] | 是 | `[]` | 逐人已读 personId；读侧 `read` 布尔＝当前人在此表内 |
 | archivedBy / archived | string[] / boolean | 是 / 否 | `[]` / `false` | 逐人归档（可恢复）与系统归档（随活动归档 / 过期，不可恢复） |

@@ -19,15 +19,15 @@
 //    **不落 hex**。
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261104a';
-import { AuthStore } from '../../services/core/auth.js?v=20261104a';
-import { showToast, getBasePath } from '../../core/base/utils.js?v=20261104a';
-import { getPersonName } from '../../services/member/person.js?v=20261104a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261104a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261104a';
-import { SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261104a';
-import { isTaskforceTerminalStatus } from '../../core/domain/domain.js?v=20261104a';
-import { openModal, closeModal } from '../ui/modal.js?v=20261104a';
+import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261107a';
+import { AuthStore } from '../../services/core/auth.js?v=20261107a';
+import { showToast, getBasePath } from '../../core/base/utils.js?v=20261107a';
+import { getPersonName } from '../../services/member/person.js?v=20261107a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261107a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261107a';
+import { SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261107a';
+import { isTaskforceTerminalStatus } from '../../core/domain/domain.js?v=20261107a';
+import { openModal, closeModal } from '../ui/modal.js?v=20261107a';
 
 /** 当前用户未读汇报数（「支书请我汇报」＋「支书答复发回」） */
 function _unreadCount() {

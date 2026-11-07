@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-856`，共 30 条**；下一条自 **`D-857`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-857`，共 31 条**；下一条自 **`D-858`**。
 
 ## 本月目录（2026-11）
 
@@ -50,6 +50,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 丙部四项：旧 token 失效 / 成功色档已存在 / SD 留 CASES / 低密度卡先收拢 | `D-854` | 2026-11-03 | 已落（批次 531） |
 | 乙部余项合并批：最小 Plan B + 全量对账 + 9 条 e2e + 长期棘轮 | `D-855` | 2026-11-04 | 已落（批次 533） |
 | 界面信号统一：删左条 / 焦点单环不回潮 / 颜色单一权威 / 7 类待办服务端化 | `D-856` | 2026-11-04 | 已落（批次 534） |
+| CLAUDE 三层恢复 / 通知受众 fail-closed / SD-60 行动行 | `D-857` | 2026-11-07 | 已落（批次 535） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -207,4 +208,12 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > - **完整 Plan B**：7 类实时组全部服务端化；测试先行＝先用客户端结果做标准答案、再逐字段对账、再加双支部夹具；服务端为默认源，客户端只留展示派生，失败兜底不得生成新业务事实。`B-500-7b-1` 已完成，`B-500-7b-2` 前置已达、**不以上线为前提**。
 > - **数据分层**：`CLAUDE.md H32` 增补「服务端算业务事实 / 客户端算展示派生 / 兜底不得生成新事实」。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-856`**（共 **30** 条）。
+## D-857 2026-11-07 — CLAUDE 三层恢复、通知受众 fail-closed 与 SD-60 行动行
+
+> **评议 → 裁定 → 落点**（支书 `/plan` 三项要求后裁定，批次 535）：
+> - **CLAUDE 三层**：温层从 0 行恢复为「触发式任务表 + H60–H80」；热层 H10–H50、冷层 H90–H100；乙部删除批次历史叙述，完成项整行删除。守卫新增层边界、温层 3–60 行、乙部 ≤18 行且无「已核实完成 / 已清出」、触发表指针 `existsSync`。落 `CLAUDE.md`、`server/test/ctx-hygiene-guard.test.mjs`、`server/test/claude-parallel-audit.test.mjs::C4`、`server/test/ui-preflight-context.test.mjs::P5`。
+> - **通知受众 fail-closed**：系统通知无受众＝不可读；广播必须显式 `audience:['all']`；未登录一律不可读；`project-auth-granted` 定向到被赋权人且授权人姓名由服务端按名册复算；存量迁移标 `legacyUnscoped`。落 `docs/src/services/governance/notice.js`、`server/system-notice-kinds.js`、`server/routes/system-notices.js`、`server/scripts/migrate-notice-audience.mjs`、`server/test/notice-audience-failclosed.test.mjs`。
+> - **UI 行动行**：SD-60 四类排布（长组件伸缩 / 多短按钮 / 单枚低价值 / 筛选条），`.card-head` ≥641 不换行、标题让位、aside 不拆组；新增 `action-row-wrap-guard`。落 `DS_06 §二`、`DS_03 §4.2`、`docs/src/styles.css`、`CASE-DESIGN-034`。
+> - **未登录公共入口**：只研究不改；三方向（A 最小收紧 / B 学院级入口 / C 公共门户）落 `content/04_web_design/evolution/PUBLIC_ENTRANCE.md`，进丙部 V-11 待裁。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-857`**（共 **31** 条）。

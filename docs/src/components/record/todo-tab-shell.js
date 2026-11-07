@@ -19,37 +19,37 @@
 // 视觉沿用 card/rounded 既有体系（四档列表渲染在 components/record/todo-list.js renderUrgencyTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261104a';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261107a';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261104a';
-import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261104a';
-import { badgeHtml } from '../ui/badges.js?v=20261104a';
-import { icon } from '../../core/base/icons.js?v=20261104a';
-import { showToast, escHtml, todayLocal, flashHighlight, getBasePath, smoothScroll } from '../../core/base/utils.js?v=20261104a';
-import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261104a';
-import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261104a';
-import { AuthStore } from '../../services/core/auth.js?v=20261104a';
-import { mockDB } from '../../core/domain/domain.js?v=20261104a';
-import { tokenOf } from '../../core/base/version-token.js?v=20261104a'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261104a';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261104a'; // P2 渲染守卫（spec §四.1）
-import { renderTabHeader } from '../shell/page-frame.js?v=20261104a'; // 页题单一源（H2）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261107a';
+import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261107a';
+import { badgeHtml } from '../ui/badges.js?v=20261107a';
+import { icon } from '../../core/base/icons.js?v=20261107a';
+import { showToast, escHtml, todayLocal, flashHighlight, getBasePath, smoothScroll } from '../../core/base/utils.js?v=20261107a';
+import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261107a';
+import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261107a';
+import { AuthStore } from '../../services/core/auth.js?v=20261107a';
+import { mockDB } from '../../core/domain/domain.js?v=20261107a';
+import { tokenOf } from '../../core/base/version-token.js?v=20261107a'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261107a';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261107a'; // P2 渲染守卫（spec §四.1）
+import { renderTabHeader } from '../shell/page-frame.js?v=20261107a'; // 页题单一源（H2）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261104a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261107a';
 // 待办「实时派生组」服务端只读端点（批次 532 · B-500-7 最小 Plan B）：
 //   批次 534（B-500-7b-1 Task 9）起**服务端为默认来源**——api 形态取服务端派生组，客户端只做展示派生
 //   （分档 / 排序 / 格式化 / 筛选 / 折叠）；mock 形态 / 服务端读取失败才回落客户端派生（兜底）。
-import { getAdapter, getDataSource } from '../../data/data-adapter.js?v=20261104a';
+import { getAdapter, getDataSource } from '../../data/data-adapter.js?v=20261107a';
 // 7 键实时组映射（服务端 Task 8 同源消费）：用于声明「服务端已接管」的动作键集合
-import { DERIVE_GROUP_DOMAIN } from '../../core/domain/todo-derive.js?v=20261104a';
+import { DERIVE_GROUP_DOMAIN } from '../../core/domain/todo-derive.js?v=20261107a';
 
 // ── 「我经办的反馈」区（2026-10-25 IA 62→45 · spec Task 5）──────────────
 // 五台原「我的处置」页签已删（与待办同属「我的待处理」，只是对象为反馈）⇒ 并入本页成一段。
 // 实现单一源＝`components/feedback/issue-dispatch-view.js`（embedded 形态：不渲染第二张页头 H2，
 // 列表 / 详情 / 评论 / 提交处置结果一字未改，不复制第二套）。
 // 旧深链 `?tab=my-dispatch` 由工作台壳落 `todo&filter=dispatch`（本区据此滚到视野）。
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261104a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261107a';
 const DISPATCH_SECTION_BY_ROLE = {
   'org-commissioner': { roleKey: 'org-commissioner', opts: {} },
   'prop-commissioner': { roleKey: 'prop-commissioner', opts: {} },
@@ -346,11 +346,10 @@ function _urgencySummaryHtml(summary) {
       ${item('warning', 'var(--status-warning-text)', '逾期', overdue, overdueTone)}
       ${item('clock', 'var(--status-info)', '今日', today, '')}
       ${item('calendar', 'var(--app-accent-soft-text)', '本周', week, '')}
-      <div class="card rounded-xl p-4 stat-card">
+      <div class="card rounded-xl p-4 stat-card" title="合计＝逾期＋今日＋本周＋以后 ${later}">
         <div class="stat-card__body">
           <p class="stat-card__value">${pending}</p>
           <p class="stat-card__label">待处理</p>
-          <p class="stat-card__note text-body-sm text-gray-500">＝逾期＋今日＋本周＋以后 ${later}</p>
         </div>
       </div>
     </div>`;
@@ -423,7 +422,7 @@ function _mountDispatchSection(container, role, ctx) {
     host.innerHTML = emptyStateHtml({ variant: 'panel', text: '请先登录后使用', actionHtml: `<a class="btn-outline" href="${getBasePath()}login.html">去登录</a>` });
     return;
   }
-  import('../feedback/issue-dispatch-view.js?v=20261104a').then((m) => {
+  import('../feedback/issue-dispatch-view.js?v=20261107a').then((m) => {
     if (!host.isConnected) return;
     host.innerHTML = m.renderMyDispatchTab(cfg.roleKey, uid, { ...cfg.opts, embedded: true });
     m.bindMyDispatchEvents(host, cfg.roleKey, uid, cfg.opts);
@@ -525,7 +524,7 @@ export function createTodoTab(opts) {
               <dd class="text-gray-700 tabular-nums">${todo.deadline}</dd>
             </div>` : ''}
           </dl>
-          ${todo.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.flow}</p>` : ''}
+          ${todo.flow ? `<p class="text-body-sm text-gray-600">${todo.flow}</p>` : ''}
           ${actionBtn ? `<div class="pt-3 border-t border-gray-100 flex gap-2">${actionBtn}</div>` : ''}
         </div>
       `;
@@ -565,7 +564,7 @@ export function createTodoTab(opts) {
             <dd class="text-gray-700 tabular-nums">${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</dd>
           </div>
         </dl>
-        ${todo.description ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.description}</p>` : ''}
+        ${todo.description ? `<p class="text-body-sm text-gray-600">${todo.description}</p>` : ''}
         <div class="pt-3 border-t border-gray-100 flex gap-2">
           ${todo.actionType ? `<button type="button" class="btn-accent-soft btn-sm ${detailBtnClass}">处理</button>` : ''}
         </div>

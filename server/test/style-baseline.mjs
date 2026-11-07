@@ -783,7 +783,8 @@ export const RAW_INPUT_FILE_BASELINE = 57;
    口径：`role.tab → { blocks, reason }`，与 `docs/src/capabilities/*-workspace.js`
    注册的 45 个页签一一对应（键集合双向相等，由 `ui-first-screen-order.test.mjs`
    的 F6 机检；新增 / 删除页签未登记即红）。
-   · blocks = 该页「用户可见的独立顶层区块」数（含页头；条件块按结构计，标注见 reason）；
+   · blocks = 该页「用户可见的独立顶层区块」数（**本表历史口径含页头**；SD-57 判定页头不计，
+     等价于 `blocks - 1 ≤ 4`；全表重基数列入 C-4，不在本批批量改数）；
    · 密度上限 = `TAB_BLOCK_LIMIT`（4）；blocks > 4 的条目必须有非空 reason（F7 机检）。
    数据源：`.ctx/evidence/2026-11-01/tab-inventory.json`（同批生成；改清单须同批改本表）。
    收基线纪律：只随页签收敛下调；**不得**为变绿放宽上限或删条目。

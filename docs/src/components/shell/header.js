@@ -3,16 +3,16 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261104a';
-import { getBasePath } from '../../core/base/utils.js?v=20261104a';
-import { icon } from '../../core/base/icons.js?v=20261104a';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261104a';
-import { badgeHtml } from '../ui/badges.js?v=20261104a';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261104a';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261107a';
+import { getBasePath } from '../../core/base/utils.js?v=20261107a';
+import { icon } from '../../core/base/icons.js?v=20261107a';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261107a';
+import { badgeHtml } from '../ui/badges.js?v=20261107a';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261107a';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261104a';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261107a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261104a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261107a';
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
 // （auth→runtime→mock→domain 全量约 50 模块），通知铃首次点击或 app 模式渲染后按需加载。
@@ -20,18 +20,18 @@ import { emptyStateHtml } from '../ui/empty-state.js?v=20261104a';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261104a');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261107a');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261104a');
+  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261107a');
   return _noticeModule;
 }
 // 2026-09-30 批次 297-2：跨台通用动作「一键汇报」收进顶栏唯一固定位 ⇒ 顶栏按需加载其入口模块
 // （与 auth / notice 同一策略：静态壳页不加载，app 模式渲染后加载，模块缓存后即时）
 let _reportEntryModule = null;
 function loadReportEntry() {
-  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261104a');
+  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261107a');
   return _reportEntryModule;
 }
 
@@ -128,6 +128,13 @@ function _noticeListFilter(extra = {}) {
 async function _renderNotificationBadge() {
   const bell = document.getElementById('notification-bell');
   if (!bell) return;
+  // 2026-11-07 批次 535：未登录不加载通知数据链，也不显示角标（读侧已 fail-closed）。
+  if (!readLoginSnapshot()?.role) {
+    const stale = bell.querySelector('#notif-badge');
+    if (stale) stale.remove();
+    document.getElementById('notif-btn')?.setAttribute('aria-label', '通知');
+    return;
+  }
   let NoticeStore;
   try {
     ({ NoticeStore } = await loadNotice());
@@ -386,6 +393,11 @@ function _bindNotificationBell(header) {
     dropdown.classList.toggle('hidden');
     btn.setAttribute('aria-expanded', String(!dropdown.classList.contains('hidden')));
     if (!dropdown.classList.contains('hidden')) {
+      // 2026-11-07 批次 535：未登录不加载通知数据链（读侧 fail-closed，匿名无可见通知）。
+      if (!readLoginSnapshot()?.role) {
+        dropdown.innerHTML = emptyStateHtml({ text: '登录后可查看通知', variant: 'inline' });
+        return;
+      }
       // 首次点击时按需加载通知数据链（静态壳页点开铃铛才会加载，平时零依赖）
       let NoticeStore;
       try {
@@ -420,7 +432,7 @@ function _bindNotificationBell(header) {
              style="padding:12px;cursor:pointer;transition:background-color var(--motion-feedback) var(--ease-standard);">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
             ${priorityBadge[n.priority] || ''}
-            ${n.source === 'committee' ? '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>' : ''}
+            ${n.source === 'committee' ? '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:11px;line-height:16px;flex-shrink:0;">党委下发</span>' : ''}
             ${n.kind === 'message' ? badgeHtml('私信', 'brand') : ''}
             <p style="color:var(--neutral-700);margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" class="text-body-sm">${n.title || n.content}</p>
             <button class="btn-outline notif-mark-read text-xs px-1.5 py-0.5" data-notice-id="${n.id}" style="color:var(--status-info-text);flex-shrink:0;">已读</button>

@@ -97,7 +97,7 @@ test('R5 U-35 组长台「我的任务」：承载面 + 复用单一口径 + 已
   assert.match(section, /export function myTasksSectionHtml/, '缺少 myTasksSectionHtml 导出');
   assert.match(section, /export function bindMyTasksSection/, '缺少 bindMyTasksSection 导出');
   assert.match(section, /暂无我的任务/, '缺少空态文案「暂无我的任务」');
-  assert.match(section, /与「待办」页的待办聚合口径不同/, '缺少与待办聚合的口径区分说明');
+  assert.match(section, /其他待办请到「待办」页查看/, '缺少与待办页的范围区分说明');
   const write = read('docs/src/entries/tabs/leader/write-tab.js');
   assert.match(write, /myTasksSectionHtml\(/, '组长台「本组活动」未挂载我的任务区块');
   assert.match(write, /bindMyTasksSection\(/, '我的任务勾掉未接线');

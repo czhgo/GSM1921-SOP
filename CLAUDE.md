@@ -2,14 +2,14 @@
 title: "CLAUDE — 项目宪法与路由"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-03"
+last_updated: "2026-11-07"
 status: active
 ---
 
 # CLAUDE.md
 
 > **定位（2026-11-03 批次 529 改准）**：本文件是**宪法 + 路由**，不是历史档案。每次会话只读 **本文件 + `.ctx/ACTIVE_CONTEXT.md`**；细则 / 判例 / 方法按指针去 `content/01–05`；历史去 `.ctx/logs/`。
-> **预算**：≤600 行 / ≤85KB；甲部引用框 ≤15；乙部 ≤12 行；丙部 ≤4 条。超出时先降级细节，不堆叙述。
+> **预算**：≤600 行 / ≤85KB；甲部引用框 ≤15；乙部 ≤18 行；丙部 ≤4 条。超出时先降级细节，不堆叙述。
 > **H 编号保留**：H10–H100 编号与顺序不变；子节只合并不改号（H26.1–4 保留标题、压缩正文）。
 
 # 甲部：通用流程与指导思想（Harness）
@@ -87,9 +87,7 @@ status: active
 7. **复盘**：按 sample-diff-learning 记录「AI 假设 / 人类意图 / 偏差类型 / 泛化规则」。
 8. **不重复劳动**：同一文件同一问题只由一个 lens 主审，其他 lens 只做交叉验证。
 
-**H21.1 判例（2026-10-19）**：三路 lens＝web-design-guidelines / design-with-taste / frontend-design；产出 **6 项共识**、**5 项分歧**、**支书四项裁定**。判例全文见 `content/05_ai_coding/PARALLEL_SKILL_AUDIT.md §8`。
-
-**H21.2 四轮路线图**：Round 1 脏乱繁复审计 → Round 2 最小三成本 → Round 3 功能与美观 → Round 4 全栈数据结构设计。**逐轮启动**，**不得同时开四轮**；路线图详见同手册 §9。
+**H21.1 判例与路线图（指针）**：2026-10-19 三路 lens 判例见 `content/05_ai_coding/PARALLEL_SKILL_AUDIT.md §8`；Round 1–4 路线图见同手册 §9。逐轮启动，不得同时开四轮。
 
 **H21.3 批判性 IA 审查**：每个入口先问三问——「这个 tab 是否必须存在」「这张卡是否改变一个决策」「这枚链接是否指向对的对象」；**mock 可删改**，mock 数据只是验证辅助，不得让 mock 结构决定产品结构；**数据适配功能**，不是功能适配数据。详细判据见同手册 §11 与 `AP-IA-01…05`。
 
@@ -199,6 +197,19 @@ status: active
 - 写法：问题 + 选项 + 推荐 + 影响；
 - 裁定后：决策日志归档 → 执行 → 从丙部删除。
 
+# 温层：修改时必读
+
+> **触发式任务表**：按改动面读对应权威源；表外场景先查 `H90` 索引。
+>
+> | 触发 | 读什么 |
+> |---|---|
+> | 改 UI / 布局 / 字号 | `content/05_ai_coding/UI_REVIEW_CHECKLIST.md` + `DS_03 §4.21` + `DS_06` |
+> | 改数据 / 派生 | `content/04_web_design/data/DATA_MODEL.md` + `H32` + `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md §0.2` |
+> | 改权限 / 写口 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md` + `server/security/write-policy-matrix.mjs` + `server/AGENTS.md` |
+> | 评议 / 复盘 | `content/05_ai_coding/PARALLEL_SKILL_AUDIT.md §3/§4/§8` + `.ctx/REVIEW_QUEUE.md` |
+> | 反思 / 学习闭环 | `H70` + `content/05_ai_coding/TEST_AND_VERIFICATION.md` |
+> | 改 CLAUDE 本身 | `content/05_ai_coding/DOCUMENT_GOVERNANCE.md` + `content/05_ai_coding/CONTEXT_MANAGEMENT.md` 三层节 |
+
 ## H60. 支书评议工作流
 
 **H60.1 入口**：支书说「评议 / 审查 / 复盘」即启动；先读 `REVIEW_QUESTION_SET` 与 `REVIEW_QUEUE` 未闭环。
@@ -238,8 +249,6 @@ status: active
 3. 规则写入 `content/05_ai_coding/TEST_AND_VERIFICATION.md` 或 `CLAUDE.md` 对应 H 节；
 4. 与既有规则冲突时先问支书，不静默覆盖；
 5. 下一轮按 Top-5 稀疏检索应用，并报告命中。
-
-# 温层：修改时必读
 
 # 冷层：按需参考
 
@@ -285,15 +294,10 @@ status: active
 |---|---|---|---|---|
 | 后续 | B-500-7b-2 | 完整 Plan B 收尾：客户端业务派生摘除（默认路径已切服务端）＋ 读面前置解耦 ＋ 缓存 / 性能。**前置已达**：7 类对账 8/8、双支部夹具、daily 1788 全绿；**不以上线为前提**，测试门全绿即可启动 | `server/routes/todo-groups.js`、`docs/src/components/record/todo-tab-shell.js`、`server/test/todo-derive-parity.test.mjs` | 待启动 |
 
-> **已清出**：批次 524 七条规则已并入 `H40.3` 与 `DS_06`；`B-518-4` 并入 `B-522-2`；`V-10b`（支书本人上传）移出；About 冻结件 `B-520-1` / `B-521-3` / `B-522-3` 删除；`B-521-2` 作为 `H26.1` 备注保留。**批次 530 已核实完成**：`B-500-6`（`branches` / `appointmentRecords` 已是 `party-staff` 写门）、`B-520-2`（`.btn-md` 五个调用点已改类名驱动）、`B-518-3`（全站仅 About 冻结件保留 `scrollIntoView smooth`）、`B-520-3`（常量层收口）、`B-520-5`（旧色名归位）、`B-518-1`（状态胶囊两族）、`B-518-2`（加载态骨架）、`B-515-3`（content 重复表达改指针）。
-
-**批次 533 已核实完成**：`B-515-5`（`text-xs` 本批迁 23 处、两批累计 41 处；转 `TEXT_XS_BASELINE` 棘轮）、`B-500-1`（R5 55 条逐条对账：仍命中者修复 / 已消失者留证据）、`B-515-6`（4 条真缺陷：2 条经探针证伪已修复、向导校验与待批复种子已修；9 条 precommit e2e 全绿）、`B-516-1`（13 条人工核销 + R7-31 / R7-23 / R7-26 收口）、`B-500-7`（最小 Plan B 上线，完整版见上表 `B-500-7b-2`）、`B-522-1`（今天 / 归档卡片收拢）、`B-522-2`（help.html 532 → 167 处并转棘轮）。
-
-**批次 534 已核实完成**：`B-500-7b-1`（7 类实时组全部服务端化 + 标准答案对账 8/8 + 双支部夹具；客户端切服务端默认、保留兜底）；左条退出界面信号（CASE-DESIGN-033 / SD-25）；颜色单一权威（`styles.css` + `constants.js` / `tailwind-config.js` 镜像守卫）；P1 结构修复（考勤行键盘 / 名册语义表格 / 设置 aria / 帮助 390 溢出 / 登录主次 / 待办四数 / 今天逾期 / 未来活动态）。
-
 # 丙部：待决策事项
 
 > 只留真待裁：问题 + 选项 + 推荐 + 影响；裁定后归档并删除（`H50.2`）。
 
 | ID | 问题 | 选项 | 推荐 | 影响 |
 |---|---|---|---|---|
+| V-11 | 未登录即看到具体支部名；是否改中性品牌或做学院级统一入口？ | A 最小收紧（未登录中性）/ B 学院级统一入口 / C 公共门户 | A | 影响登录页品牌与路由；研究见 `content/04_web_design/evolution/PUBLIC_ENTRANCE.md`；裁定前不改 |

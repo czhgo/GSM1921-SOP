@@ -11,43 +11,43 @@
 // 「支部治理·快捷块说明」仍建设中（分组结构可见性即角色化验收点）。
 // 登录态：非纯静态——readLoginSnapshot() + 动态 import auth（同 sidebar.js 模式）。
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261104a';
-import { renderHeader } from '../../components/shell/header.js?v=20261104a';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261104a';
-import { ROLE_LABELS, ROLE_PAGE_MAP } from '../../core/domain/constants.js?v=20261104a';
-import { resolveAppliedAccentRole, applyAccentThemeTokens } from '../../core/boot/theme.js?v=20261104a';
-import { appearanceControlsHTML, bindAppearanceControls } from '../../components/shell/appearance-controls.js?v=20261104a';
-import { icon } from '../../core/base/icons.js?v=20261104a';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261104a';
-import { escHtml as esc } from '../../core/base/utils.js?v=20261104a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261107a';
+import { renderHeader } from '../../components/shell/header.js?v=20261107a';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261107a';
+import { ROLE_LABELS, ROLE_PAGE_MAP } from '../../core/domain/constants.js?v=20261107a';
+import { resolveAppliedAccentRole, applyAccentThemeTokens } from '../../core/boot/theme.js?v=20261107a';
+import { appearanceControlsHTML, bindAppearanceControls } from '../../components/shell/appearance-controls.js?v=20261107a';
+import { icon } from '../../core/base/icons.js?v=20261107a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261107a';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261107a';
 // 2026-10-24 批次 508：支部制度参数区仍有原生 `select.input-flat`（活动批准门 / 归档周期）
 //   ⇒ 渲染后统一接入统一自定义下拉（同全站 S2 下拉口径）
-import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261104a';
-import { confirmDanger } from '../../components/ui/modal.js?v=20261104a';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261104a';
+import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261107a';
+import { confirmDanger } from '../../components/ui/modal.js?v=20261107a';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261107a';
 import {
   coreTabIdsOf, sameIdOrder, applyPersonalTabOrder, readPersonalTabOrder,
   savePersonalTabOrder, resetPersonalTabOrder,
-} from '../../services/core/preferences.js?v=20261104a';
+} from '../../services/core/preferences.js?v=20261107a';
 // 批4（2026-09-09 支书批「域参数」）：制度默认单一源 = policy-defaults（设置页展示「制度默认」行与域参数默认值）
-import { POLICY_DEFAULTS, ACTIVITY_APPROVAL_MODES, ACTIVITY_APPROVAL_MODE_LABELS, policyRange, POLICY_WINDOW_RANGE } from '../../core/domain/policy-defaults.js?v=20261104a';
+import { POLICY_DEFAULTS, ACTIVITY_APPROVAL_MODES, ACTIVITY_APPROVAL_MODE_LABELS, policyRange, POLICY_WINDOW_RANGE } from '../../core/domain/policy-defaults.js?v=20261107a';
 // 数据层初始化（2026-09-09 冒烟修复，同 wizard/search 独立页模式）：设置页治理区（支部信息/默认顺序/
 // 制度参数/域参数）与「我的工作台」需读支部配置——注册适配器并恢复本地 mock 数据（或 API 模式 init），
 // 否则整页加载后 mockDB 恒空 → 治理区误显「未找到您所属支部」且写口（保存默认顺序/域参数）不可达。
-import { BranchService } from '../../services/core/runtime.js?v=20261104a';
-import { hydrateDataSource } from '../../data/data-adapter.js?v=20261104a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261104a';
+import { BranchService } from '../../services/core/runtime.js?v=20261107a';
+import { hydrateDataSource } from '../../data/data-adapter.js?v=20261107a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261107a';
 
 // 2026-09-09 支部归属显式化/审计内核：变更记录展示与回滚按钮需要操作者姓名、单键回滚白名单
-import { getPersonName } from '../../services/member/person.js?v=20261104a';
-import { CONFIG_ROLLBACK_KEYS, CONFIG_HISTORY_MAX, CONFIG_HISTORY_DISPLAY_MAX } from '../../services/branch/config-clean.js?v=20261104a';
+import { getPersonName } from '../../services/member/person.js?v=20261107a';
+import { CONFIG_ROLLBACK_KEYS, CONFIG_HISTORY_MAX, CONFIG_HISTORY_DISPLAY_MAX } from '../../services/branch/config-clean.js?v=20261107a';
 // 2026-09-23 支书批「判别依据可感」：「当前形态 · 归属判定」卡的数据源 = branch.getAffiliationShape
 // （数据源/判定段/支部 id 单一源，判定逻辑不在此复制第二遍）
-import { getAffiliationShape } from '../../services/branch/branch.js?v=20261104a';
+import { getAffiliationShape } from '../../services/branch/branch.js?v=20261107a';
 // R10-B04：补课范围/时限文案与判定同源（makeup.js，勿在页面写死「T+7」）。
-import { makeupScopeHint } from '../../services/activity/makeup.js?v=20261104a';
+import { makeupScopeHint } from '../../services/activity/makeup.js?v=20261107a';
 
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261104a';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261107a';
 // 支部治理区归属缺失统一文案（2026-09-09 支书批「未绑定支部」口径：支部语境一律 getBoundBranch 判定，
 // 不再回退示例支部 br-b1；由党委在『支部管理』中确认归属后才可见本支部治理内容）
 const GOV_NO_BRANCH_TEXT = '未找到您所属支部——请先由党委在『支部管理』中确认归属。';
@@ -55,7 +55,7 @@ const GOV_NO_BRANCH_TEXT = '未找到您所属支部——请先由党委在『�
 // ── 数据层按需加载（同 sidebar staticShell 模式：确已登录才动态 import auth）──
 let _authModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261104a');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261107a');
   return _authModule;
 }
 
@@ -230,7 +230,7 @@ function renderPanel(panel) {
           <h3 class="font-title-cn text-base font-bold text-gray-800">外观</h3>
           ${badgeHtml('即时生效', 'success')}
         </div>
-        <p class="text-[13px] leading-relaxed text-gray-500 mb-4">字号、明暗主题与主题色的个人偏好设置 —— 保存后全站即时生效。</p>
+        <p class="text-xs text-gray-500 mb-4">字号、明暗主题与主题色的个人偏好设置 —— 保存后全站即时生效。</p>
         <div id="appearance-controls-host" class="mt-2"></div>
       </div>
       ${shapeCardHtml()}
@@ -265,7 +265,7 @@ function renderPanel(panel) {
         <h3 class="font-title-cn text-base font-bold text-gray-800">${meta.title}</h3>
         ${meta.badge ? badgeHtml(meta.badge, 'neutral') : ''}
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">${meta.desc}</p>
+      <p class="text-xs text-gray-500 mb-4">${meta.desc}</p>
       <div class="hint-box">
         <span class="hint-dot"></span>
         建设中 · 随后续批次开放。${meta.note}
@@ -295,11 +295,11 @@ async function buildMyWorkspaceModel(role, personId) {
   //   曾写成 `../modules/…` ⇒ 解析到不存在的 `src/entries/modules/…` ⇒ 404、「我的工作台」面板恒显「加载失败」
   //   （2026-09-29 批次 262 定根因并修；`preferences.test.mjs::真实拖拽` 长期红的根因即此）。
   //   2026-09-29 批次 267：`modules/capabilities/` 上提为顶层 `capabilities/`，深度不变（同批已改）。
-  await import(`../../capabilities/${stem}-workspace.js?v=20261104a`);
+  await import(`../../capabilities/${stem}-workspace.js?v=20261107a`);
   const cap = getCapabilities({ scope }).find(c => c.id === `${stem}-workspace`);
   const rawTabs = cap && typeof cap.tabs === 'function' ? cap.tabs() : [];
   if (!rawTabs.length) return null;
-  const { applyTabPolicy, getBranchIdOfPerson } = await import('../../services/branch/branch.js?v=20261104a');
+  const { applyTabPolicy, getBranchIdOfPerson } = await import('../../services/branch/branch.js?v=20261107a');
   // 支部策略口径与 workspace-shell 一致：支部层工作台应用 config.modules；党委台不受支部配置影响
   let base = rawTabs;
   if (scope !== 'workspace:party-committee' && role !== 'party-staff') {
@@ -351,7 +351,7 @@ function mywsCardHtml(model) {
     return `
       <li class="myws-row${locked ? ' is-locked' : ''}" draggable="${!locked}" data-id="${id}" data-locked="${locked ? '1' : '0'}">
         <span class="${gripCls}" title="${locked ? '核心固定，不可拖动' : '拖拽排序'}">${icon('grip', { className: 'icon-base w-4 h-4' })}</span>
-        <span class="flex-1 min-w-0 text-[13px] font-semibold text-gray-800 leading-snug">${tab.label || id}</span>
+        <span class="flex-1 min-w-0 text-sm font-semibold text-gray-800 leading-snug">${tab.label || id}</span>
         ${badgeHtml(tab.groupLabel || '页签', 'neutral')}
         <span class="flex items-center gap-1.5 shrink-0">${statusTag}</span>
         <span class="flex items-center gap-0.5 shrink-0">${acts}</span>
@@ -365,7 +365,7 @@ function mywsCardHtml(model) {
           <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" data-myws="reset-all" title="恢复全部默认（清除本账号顺序调整）" ${hasPref ? '' : 'disabled'}>${icon('undo', { className: 'icon-base w-[13px] h-[13px]' })}恢复全部默认</button>
         </span>
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">${label}工作台页签顺序 · 拖拽或按钮调整，即时保存（仅对当前账号生效）。</p>
+      <p class="text-xs text-gray-500 mb-4">${label}工作台页签顺序 · 拖拽或按钮调整，即时保存（仅对当前账号生效）。</p>
       <ul class="myws-list" data-myws-list="1">${rows}</ul>
       <p class="status-line" data-myws-status aria-live="polite"></p>
       <div class="hint-box mt-3.5">${hint}</div>
@@ -373,7 +373,7 @@ function mywsCardHtml(model) {
 }
 
 function mywsEmptyHtml(text) {
-  return `<div class="card rounded-xl p-5"><h3 class="font-title-cn text-base font-bold text-gray-800">我的工作台</h3><p class="text-[13px] leading-relaxed text-gray-500 mt-2 mb-0">${text}</p></div>`;
+  return `<div class="card rounded-xl p-5"><h3 class="font-title-cn text-base font-bold text-gray-800">我的工作台</h3><p class="text-xs text-gray-500 mt-2 mb-0">${text}</p></div>`;
 }
 
 function showMywsStatus(panel, msg, isErr = false) {
@@ -513,7 +513,7 @@ let _bwsModel = null;  // 工作台默认顺序当前渲染模型（行操作/�
 const GOV_ROLES = new Set(['secretary', 'deputy-secretary']); // 支部治理分组可见角色（与 buildGroups 同源）
 
 function govEmptyHtml(text) {
-  return `<div class="card rounded-xl p-5"><h3 class="font-title-cn text-base font-bold text-gray-800">支部治理</h3><p class="text-[13px] leading-relaxed text-gray-500 mt-2 mb-0">${text}</p></div>`;
+  return `<div class="card rounded-xl p-5"><h3 class="font-title-cn text-base font-bold text-gray-800">支部治理</h3><p class="text-xs text-gray-500 mt-2 mb-0">${text}</p></div>`;
 }
 
 /** 区块分发：支部信息与向导 / 工作台默认顺序 */
@@ -526,7 +526,7 @@ async function renderBranchGovSection(panel, sectionId) {
   }
   panel.innerHTML = govEmptyHtml('加载支部配置…');
   try {
-    const br = await import('../../services/branch/branch.js?v=20261104a');
+    const br = await import('../../services/branch/branch.js?v=20261107a');
     const branch = br.getBoundBranch(personId);
     if (!branch) {
       panel.innerHTML = govEmptyHtml(GOV_NO_BRANCH_TEXT);
@@ -543,7 +543,7 @@ async function renderBranchGovSection(panel, sectionId) {
     } else if (_currentSectionId === 'branch-default-tab-order') {
       // 2026-09-09 冒烟修复：先注册支书工作台能力模块（buildBranchOrderModel 读注册表取 tab 清单；
       // 设置页独立加载，不先经 workspace-shell/我的工作台则能力未注册 → 误显「未能读取…页签清单」）
-      await import('../../capabilities/secretary-workspace.js?v=20261104a');
+      await import('../../capabilities/secretary-workspace.js?v=20261107a');
       if (seq !== _govSeq) return;
       const model = buildBranchOrderModel(br, branch);
       if (!model) { panel.innerHTML = govEmptyHtml('未能读取该支部工作台页签清单。'); return; }
@@ -573,7 +573,7 @@ function renderBranchInfoCard(panel, br, branch) {
         <h3 class="font-title-cn text-base font-bold text-gray-800">支部信息与向导</h3>
         ${badgeHtml('档案 · 只读展示', 'neutral')}
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">支部基础档案只读展示（名称等治理字段归党委管理）；需要调整支部信息 / 模块组合 / 分工 / 术语时，打开换组织向导 —— 每步保存即时生效并记录变更。</p>
+      <p class="text-xs text-gray-500 mb-4">支部基础档案只读展示（名称等治理字段归党委管理）；需要调整支部信息 / 模块组合 / 分工 / 术语时，打开换组织向导 —— 每步保存即时生效并记录变更。</p>
       <dl class="kv-list">${kv}</dl>
       <div class="hint-box mt-3.5">
         <b>改名 / 改自述，去哪改</b>：官方名与类别归党委（党委台「支部管理」）；页眉名、自述、主题与模块组合在本页「打开换组织向导」内改。
@@ -602,7 +602,7 @@ async function openWizardEmbed(panel) {
     <div id="settings-wizard-host"></div>`;
   const host = panel.querySelector('#settings-wizard-host');
   try {
-    const { mountOrgSetupWizard } = await import('../../components/governance/org-setup-wizard.js?v=20261104a');
+    const { mountOrgSetupWizard } = await import('../../components/governance/org-setup-wizard.js?v=20261107a');
     if (seq !== _govSeq || !host) return;
     mountOrgSetupWizard(host, { actor: { personId, role }, branchId: _govBranchId, embed: true });
   } catch (e) {
@@ -690,7 +690,7 @@ function renderConfigHistorySection(panel, br, branch, statusMsg) {
         <h3 class="font-title-cn text-base font-bold text-gray-800">配置变更记录</h3>
         ${badgeHtml(`${esc(roleLabel)} · 本支部 · 审计`, 'neutral')}
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">每次保存自动记账（谁 / 何时 / 改了哪一项 / 前后值 / 依据）；单键改动可回滚，回滚本身再记一条。迁移前记录无操作人。</p>
+      <p class="text-xs text-gray-500 mb-4">每次保存自动记账（谁 / 何时 / 改了哪一项 / 前后值 / 依据）；单键改动可回滚，回滚本身再记一条。迁移前记录无操作人。</p>
       <ul class="flex flex-col gap-2 mt-3 p-0 list-none">${rowsHtml}</ul>
       <p class="status-line" data-cfg-hist-status aria-live="polite"></p>
     </div>`;
@@ -714,7 +714,7 @@ async function runConfigHistoryRollback(panel, entryAt) {
   if (!await confirmDanger({ id: 'config-rollback', title: '回滚这条配置更改', bodyHtml: '<p class="text-sm text-gray-700">把该项配置恢复到本次变更前的值。<br>影响：本支部对应设置立即回到旧值，并追加一条回滚记录。<br>可恢复：回滚记录可查；如需改回，只能再改一次配置。</p>', confirmLabel: '回滚' })) return;
   const seq = ++_govSeq;
   try {
-    const br = await import('../../services/branch/branch.js?v=20261104a');
+    const br = await import('../../services/branch/branch.js?v=20261107a');
     const res = await br.rollbackBranchConfig(_govBranchId, { by: personId, targetEntryAt: entryAt });
     if (!res.ok) {
       if (_currentSectionId === 'branch-config-history' && seq === _govSeq) showCfgHistStatus(panel, res.reason || '回滚失败。', true);
@@ -795,7 +795,7 @@ function branchOrderCardHtml(model) {
     return `
       <li class="myws-row${locked ? ' is-locked' : ''}" draggable="${!locked}" data-id="${id}" data-locked="${locked ? '1' : '0'}">
         <span class="${gripCls}" title="${locked ? '核心固定，不可拖动' : '拖拽排序'}">${icon('grip', { className: 'icon-base w-4 h-4' })}</span>
-        <span class="flex-1 min-w-0 text-[13px] font-semibold text-gray-800 leading-snug">${esc(tab.label || id)}</span>
+        <span class="flex-1 min-w-0 text-sm font-semibold text-gray-800 leading-snug">${esc(tab.label || id)}</span>
         ${badgeHtml(esc(tab.groupLabel || '页签'), 'neutral')}
         <span class="flex items-center gap-1.5 shrink-0">${bwsRowBadgeHtml(model, tab, bizIdx)}</span>
         <span class="flex items-center gap-0.5 shrink-0">${acts}</span>
@@ -812,7 +812,7 @@ function branchOrderCardHtml(model) {
           <button type="button" class="btn-accent text-xs px-3 py-1.5" data-bws="save" title="保存为支部默认顺序" ${dirty ? '' : 'disabled'}>保存</button>
         </span>
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">${roleLabel}设定支部工作台默认页签顺序 —— 保存后<strong>全体成员下一刷新按新默认</strong>；成员仍可在「个人设置 → 我的工作台」做个人调整。</p>
+      <p class="text-xs text-gray-500 mb-4">${roleLabel}设定支部工作台默认页签顺序 —— 保存后<strong>全体成员下一刷新按新默认</strong>；成员仍可在「个人设置 → 我的工作台」做个人调整。</p>
       <div class="hint-box mb-3">${icon('bell', { className: 'icon-base w-3.5 h-3.5 mt-0.5 text-gray-400' })}<span>影响全体成员：此处变更写入支部默认配置，全员工作台随之生效；行徽标「默认」表示与当前支部默认一致，「调整中」表示有未保存的位置调整。</span></div>
       <ul class="myws-list" data-bws-list="1">${rows}</ul>
       <p class="status-line" data-bws-status aria-live="polite"></p>
@@ -837,7 +837,7 @@ async function saveBranchOrder(panel) {
   const hidden = Array.isArray(m.modules?.hiddenTabIds) ? m.modules.hiddenTabIds : [];
   const canNull = !hidden.length && sameIdOrder(cur, m.baseBizIds);
   try {
-    const br = await import('../../services/branch/branch.js?v=20261104a');
+    const br = await import('../../services/branch/branch.js?v=20261107a');
     await br.updateBranchModules(m.branchId, canNull ? null : { hiddenTabIds: hidden, tabOrder: cur }, m.rawTabs);
     await refreshBranchOrder(panel, canNull
       ? '已恢复系统默认顺序 —— 全体成员下一刷新按默认全开 · 注册顺序。'
@@ -853,7 +853,7 @@ async function resetBranchOrder(panel) {
   const m = _bwsModel;
   if (!m) return;
   try {
-    const br = await import('../../services/branch/branch.js?v=20261104a');
+    const br = await import('../../services/branch/branch.js?v=20261107a');
     await br.updateBranchModules(m.branchId, null, m.rawTabs);
     await refreshBranchOrder(panel, '已恢复系统默认顺序 —— 全体成员下一刷新按默认全开 · 注册顺序。');
   } catch (e) {
@@ -866,7 +866,7 @@ async function resetBranchOrder(panel) {
 async function refreshBranchOrder(panel, msg) {
   const seq = ++_govSeq;
   try {
-    const br = await import('../../services/branch/branch.js?v=20261104a');
+    const br = await import('../../services/branch/branch.js?v=20261107a');
     const branch = br.getBranchById(_govBranchId);
     if (!branch || seq !== _govSeq) return;
     const model = buildBranchOrderModel(br, branch);
@@ -975,7 +975,7 @@ const DOMAIN_CARD_META = {
 const LOCKED_POLICY_ROLES = new Set(['secretary', 'deputy-secretary']); // 制度锁定展示 = 支书/副视角
 
 function policyEmptyHtml(title, text) {
-  return `<div class="card rounded-xl p-5"><h3 class="font-title-cn text-base font-bold text-gray-800">${title}</h3><p class="text-[13px] leading-relaxed text-gray-500 mt-2 mb-0">${text}</p></div>`;
+  return `<div class="card rounded-xl p-5"><h3 class="font-title-cn text-base font-bold text-gray-800">${title}</h3><p class="text-xs text-gray-500 mt-2 mb-0">${text}</p></div>`;
 }
 
 /** 统一入口：支部制度参数（支书/副）/ 域参数卡（域负责人）——可见角色不匹配给提示 */
@@ -1000,7 +1000,7 @@ async function renderPolicySection(panel, sectionId) {
   }
   panel.innerHTML = policyEmptyHtml(SECTION_META[sectionId]?.title || '设置', '加载支部配置…');
   try {
-    const br = await import('../../services/branch/branch.js?v=20261104a');
+    const br = await import('../../services/branch/branch.js?v=20261107a');
     // 2026-09-09 归属显式化：支部语境用 getBoundBranch（无归属 → 统一提示，不兜底示例支部）
     const branch = br.getBoundBranch(personId);
     if (!branch) {
@@ -1072,7 +1072,7 @@ function branchPolicyLockedCardHtml(branch) {
         <h3 class="font-title-cn text-base font-bold text-gray-800">支部制度参数</h3>
         ${badgeHtml('制度默认 · 只读', 'neutral')}
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">下面制度项的当前取值集中摆出，供核对；本卡不放控件，改动要走制度裁决与放行程序（见下）。</p>
+      <p class="text-xs text-gray-500 mb-4">下面制度项的当前取值集中摆出，供核对；本卡不放控件，改动要走制度裁决与放行程序（见下）。</p>
       <dl class="kv-list">${rows}</dl>
       <div class="hint-box mt-3.5">
         <b>为什么只读</b>：这些口径关系组织统一的权力边界、票决、应到与考勤判定，故不随支部各自调整。
@@ -1119,7 +1119,7 @@ function activityApprovalCardHtml(branch, P) {
         <h3 class="font-title-cn text-base font-bold text-gray-800">活动批准门</h3>
         ${badgeHtml(`${esc(roleLabel)} · 本支部可调`, 'info')}
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">开启后活动须批准才能推进。</p>
+      <p class="text-xs text-gray-500 mb-4">开启后活动须批准才能推进。</p>
       <div class="kv-row">
         <dt>批准门档位</dt>
         <dd>
@@ -1145,7 +1145,7 @@ function periodicArchivePolicyCardHtml(branch, P) {
         <h3 class="font-title-cn text-base font-bold text-gray-800">周期归档规则</h3>
         ${badgeHtml('支部制度参数', 'info')}
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-3">调整只影响之后新建和提交的期次，已提交记录保留原规则。</p>
+      <p class="text-xs text-gray-500 mb-3">调整只影响之后新建和提交的期次，已提交记录保留原规则。</p>
       <div class="kv-row">
         <dt>归档周期</dt>
         <dd><select id="pol-archive-unit" class="input-flat text-xs w-56">
@@ -1172,7 +1172,7 @@ async function runPeriodicArchivePolicyAction(panel, action) {
   const patch = action === 'reset' ? { archive: null } : { archive: { periodic: { unit } } };
   const seq = ++_govSeq;
   try {
-    const br = await import('../../services/branch/branch.js?v=20261104a');
+    const br = await import('../../services/branch/branch.js?v=20261107a');
     const res = await br.savePolicyOverrides(_govBranchId, patch, { actor: { personId, role } });
     if (!res.ok) {
       if (_currentSectionId === 'branch-policy-params') showPolicyStatus(panel, res.reason || '保存失败（无权限或参数非法）。', true);
@@ -1204,7 +1204,7 @@ async function runActivityApprovalAction(panel, action) {
   const patch = action === 'reset' ? { activityApproval: null } : { activityApproval: { mode } };
   const seq = ++_govSeq;
   try {
-    const br = await import('../../services/branch/branch.js?v=20261104a');
+    const br = await import('../../services/branch/branch.js?v=20261107a');
     const res = await br.savePolicyOverrides(_govBranchId, patch, { actor: { personId, role } });
     if (!res.ok) {
       if (_currentSectionId === 'branch-policy-params') showPolicyStatus(panel, res.reason || '保存失败（无权限或参数非法）。', true);
@@ -1278,7 +1278,7 @@ function domainCardHtml(meta, branch, P) {
           <h3 class="font-title-cn text-base font-bold text-gray-800">纪检职责参数</h3>
           ${badgeHtml(`${esc(meta.roleLabel)} 可调`, 'info')}
         </div>
-        <p class="text-[13px] leading-relaxed text-gray-500 mb-4">考察超期、考勤与复盘时限、补课范围与时限。保存后：纪检台判定、支书台提醒与补课判据同源生效。</p>
+        <p class="text-xs text-gray-500 mb-4">考察超期、考勤与复盘时限、补课范围与时限。保存后：纪检台判定、支书台提醒与补课判据同源生效。</p>
         <div class="space-y-3">
           ${row('考察确认超期', numField('pol-inp-disc-days', cur, r.inspection.min, r.inspection.max, '超过', '天未确认判超期'), `${span(r.inspection, '天')}默认 ${def} 天。${curState}`)}
           ${row('考勤录入提醒', numField('pol-disc-entry-remind', cEntry, r.entry.min, r.entry.max, '活动结束超过', '天未录入判提醒'), `${span(r.entry, '天')}默认 ${ad.entryRemindDays} 天（母本 24h）。`)}
@@ -1372,7 +1372,7 @@ function domainCardHtml(meta, branch, P) {
         <h3 class="font-title-cn text-base font-bold text-gray-800">组长职责参数</h3>
         ${badgeHtml(`${esc(meta.roleLabel)} 可调`, 'info')}
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">学期组员进展自动归集提醒：每学期开学周（3 月 / 9 月首周）在组长工作台提醒一次「逐人归集本组组员进展」。频率固定学期制。</p>
+      <p class="text-xs text-gray-500 mb-4">学期组员进展自动归集提醒：每学期开学周（3 月 / 9 月首周）在组长工作台提醒一次「逐人归集本组组员进展」。频率固定学期制。</p>
       <div class="kv-row">
         <dt>学期提醒</dt>
         <dd>
@@ -1485,7 +1485,7 @@ async function runPolicyAction(panel, cardId, action) {
   if (action === 'save' && !patch) return; // 输入非法已提示
   const seq = ++_govSeq;
   try {
-    const br = await import('../../services/branch/branch.js?v=20261104a');
+    const br = await import('../../services/branch/branch.js?v=20261107a');
     const res = await br.savePolicyOverrides(_govBranchId, patch, { actor: { personId, role } });
     if (!res.ok) {
       if (_currentSectionId === cardId) showPolicyStatus(panel, res.reason || '保存失败（无权限或参数非法）。', true);

@@ -3,9 +3,9 @@ title: "Active Context — 当前判断入口"
 type: active_context
 role: "[AI]"
 layer: active
-last_updated: "2026-11-04"
-last_verified: "2026-11-04"
-latest_decision: "D-856"
+last_updated: "2026-11-07"
+last_verified: "2026-11-07"
+latest_decision: "D-857"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -28,9 +28,9 @@ status: active
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
 - **审计**：45 页签 **P0 0 / P1 0 / P2 2 / exception 44**；F1–F8 全绿；M1–M3 在位。
   - source：`.ctx/evidence/2026-11-03/tab-audit/summary.md`。
-- **测试**：`npm run test:daily` **1788 / 1788**（约 430s）；9 条 precommit e2e **20 / 20** 全绿；Plan B 对账 7 类 8/8。
-  - source：`.ctx/logs/2026-11-EXECUTION_LOG.md §批次 534`、`.ctx/ENGINEERING_ASSESSMENT.md §二 2.5`。
-- **版本戳**：`20261104a`，0 处陈旧。
+- **测试**：`npm run test:daily` 预算 **1792**；本批定向守卫全绿，全量结果见 `.ctx/logs/2026-11-EXECUTION_LOG.md` 批次 535；9 条 precommit e2e 仍待发布前复跑。
+  - source：`.ctx/logs/2026-11-EXECUTION_LOG.md §批次 535`、`server/test-tier-registry.mjs`。
+- **版本戳**：`20261107a`，0 处陈旧。
   - source：`docs/scripts/bump-version.mjs --check`。
 - **换轨**：副本 **48 表 / 577 行** export → dry-run → apply 一致；生产空库 `preflight-cutover --strict` exit 0 / 警告 0。
   - source：`deploy/CUTOVER_RUNBOOK.md`、`.ctx/evidence/2026-11-03/security/summary.md`。
@@ -53,6 +53,7 @@ status: active
 - **规则与判例先进 content，再进 .ctx 索引**；`.ctx` 不再承担规则正文。（`D-850` · `D-852`）→ `.ctx/README.md`、`content/05_ai_coding/CONTEXT_MANAGEMENT.md`。
 - **乙部余项合并批**：待办派生先上最小 Plan B（服务端只读端点 + 客户端切读 + 降级），完整版阶段门槛登记为 `B-500-7b`；R5 旧账全量对账；9 条 precommit e2e 全绿；`text-xs` / help.html 色转守卫棘轮。（`D-855`）→ `server/routes/todo-groups.js`、`CLAUDE.md 乙部`、`type-scale-guard::Q6`。
 - **界面信号与颜色权威**：状态 / 装饰左条退出（CASE-DESIGN-033）；焦点沿用 SD-27 单环、2px 不加宽、双层环不得回潮；`styles.css` 为唯一颜色权威，`constants.js` / `tailwind-config.js` 受守卫镜像；7 类待办组全部服务端化且测试先行；数据分层写入 `H32`。（`D-856`）→ `DS_03 SD-25`、`theme-palette-guard::T12/T13`、`server/test/todo-derive-parity.test.mjs`。
+- **CLAUDE 三层与通知受众**：温层恢复为「触发表 + H60–H80」，层边界 / 乙部去历史有守卫；系统通知无受众＝不可读、广播必须显式 `all`、未登录一律不可读；行动行按 SD-60 四类排布。（`D-857`）→ `CLAUDE.md`、`notice.js`、`DS_06 SD-60`、`action-row-wrap-guard`。
 
 ## §3 当前风险与下一步
 
@@ -73,6 +74,7 @@ status: active
 - `L-11` 共享口令。
 - `L-12` 审计脚本不进 daily（发布前硬门）。
 - `L-13` 41 个页签仅登记未重构。
+- **V-11 未登录公共入口**：登录页当前显示具体支部名；三方向见 `content/04_web_design/evolution/PUBLIC_ENTRANCE.md`，裁定前不改。
 - `L-14` / `L-15` 块停用与画布 / 按角色配置（先出方案）。
 - `L-16` 表决名单重算待支书裁定。
 - `L-17` 宽表与索引。

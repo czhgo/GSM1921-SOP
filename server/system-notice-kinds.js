@@ -21,7 +21,7 @@ import { branchDisplayName, reviewRequestSubject } from '../docs/src/core/domain
 // 补录#1（2026-10-05 批次 407）：`payload.resource` → 服务端表名的单一源（勿另写一张名表）
 import { RESOURCE_TABLES } from './routes/resources/store.js';
 // R-23 余项（2026-10-06 批次 422 · `D-803`③）：服务端**人员名册读口**——通知里的人名不再无条件采信 payload
-import { applyRosterNames } from './person-roster.js';
+import { applyRosterNames, personName } from './person-roster.js';
 
 const COMMITTEE_ROLE_SET = new Set(BRANCH_COMMISSION_ROLES);
 const SECRETARY_DEPUTY_SET = new Set(SECRETARY_AND_DEPUTY_ROLES);
@@ -278,6 +278,25 @@ const KINDS = {
       // Task 3（2026-10-25）：对象坐标按源表复算（不信客户端自述），保证非公告消息必有 targetType+targetId。
       if (act) vars.targetType = 'activity';
       else if (tf) vars.targetType = 'taskforce';
+      // 2026-11-07 批次 535（CASE-AI-004）：赋权通知必须定向到被赋权人，且授权人姓名由服务端复算。
+      //   缺 targetPersonId / 目标人不在项目名册 / 授权人查无姓名 ⇒ 抛错让路由 500，不落一条无受众通知。
+      const targetPersonId = raw.targetPersonId ? String(raw.targetPersonId) : '';
+      if (!targetPersonId) throw new Error('project-auth-granted 缺 targetPersonId');
+      const members = act ? (act.assignments || []) : ((tf && tf.members) || []);
+      const inProjectRoster = members.some((x) => x && String(x.personId) === targetPersonId);
+      // 授权链路先写 workgroup_members、再触发通知，活动 / 专班内嵌名单可能尚未同步；
+      // 因此同时认工作组在册成员（status !== 'removed'）。
+      const workgroupId = (act && act.workgroupId)
+        || (act ? `wg-activity-${ctx.sourceId}` : (tf && tf.workgroupId) || `wg-taskforce-${ctx.sourceId}`);
+      const inWorkgroup = rowsOf(ctx.db, 'workgroup_members')
+        .some((r) => r && r.workgroupId === workgroupId && String(r.personId) === targetPersonId && r.status !== 'removed');
+      if (!inProjectRoster && !inWorkgroup) {
+        throw new Error(`project-auth-granted 的目标人 ${targetPersonId} 不在该项目名册`);
+      }
+      const authorizerName = personName(ctx.db, ctx.actor && ctx.actor.id);
+      if (!authorizerName) throw new Error('project-auth-granted 的授权人姓名无法按名册复算');
+      vars.authorizerName = authorizerName;
+      vars.audiencePersons = [targetPersonId];
       return buildSystemNotice('project-auth-granted', vars);
     },
   },
@@ -559,6 +578,46 @@ for (const [kind, def] of Object.entries(KINDS)) {
 }
 
 export const SYSTEM_NOTICE_KINDS = KINDS;
+
+/**
+ * 受众策略（2026-11-07 批次 535 · CASE-AI-004）：
+ *   required    — 落库前必须至少有一项受众（audience / audiencePersons / actionRoles），否则 422；
+ *   broadcast   — 必须显式 `audience` 含 `'all'`（登录成员广播，不匿名）；
+ *   conditional — 由模板 / build 自行决定，允许无受众但读侧按 fail-closed 处理。
+ * 单一源：本表；路由 `normalizeSystemNotice` 与测试同引此处。
+ */
+export const SYSTEM_NOTICE_AUDIENCE_POLICY = Object.freeze({
+  'project-auth-granted': 'required',
+  'attendance-confirmed': 'required',
+  'activity-agenda-updated': 'required',
+  'workforce-proposal-created': 'required',
+  'activity-notice-draft': 'required',
+  'taskforce-notice-draft': 'required',
+  'activity-created-broadcast': 'broadcast',
+  'thought-report-submitted': 'conditional',
+  'periodic-archive-submitted': 'conditional',
+  'weekly-report-submitted': 'conditional',
+  'member-change-approved': 'conditional',
+  'workforce-proposal-adopted': 'conditional',
+  'committee-vote-progress': 'conditional',
+  'committee-vote-locked': 'conditional',
+  'external-dispatch-created': 'conditional',
+  'review-request-submitted': 'conditional',
+  'review-request-decided': 'conditional',
+  'taskforce-vote-requested': 'conditional',
+  'review-overdue-reminder': 'conditional',
+  'review-resubmit-reminder': 'conditional',
+  'makeup-remind': 'conditional',
+  'committee-dispatch': 'conditional',
+  'organizer-transferred': 'conditional',
+  'todo-void-decided': 'conditional',
+  'record-void-decided': 'conditional',
+});
+
+/** 取某 kind 的受众策略；未登记按 conditional（读侧仍 fail-closed） */
+export function audiencePolicyOf(kind) {
+  return SYSTEM_NOTICE_AUDIENCE_POLICY[kind] || 'conditional';
+}
 
 /** 全部 kind 名（供端点校验/调试） */
 export const SYSTEM_NOTICE_KIND_NAMES = Object.keys(KINDS);

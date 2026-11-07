@@ -21,9 +21,9 @@
 // ════════════════════════════════════════════════════════════════
 
 // 期次标签单一源（core/base/period.js）——勿在本文件另写季度格式化
-import { periodLabel } from '../base/period.js?v=20261104a';
+import { periodLabel } from '../base/period.js?v=20261107a';
 // 角色 → 工作台页单一源（F05/F12：按接收人角色生成落点，勿在本文件另写一张角色页表）
-import { ROLE_PAGE_MAP, SECRETARY_AND_DEPUTY_ROLES } from './constants.js?v=20261104a';
+import { ROLE_PAGE_MAP, SECRETARY_AND_DEPUTY_ROLES } from './constants.js?v=20261107a';
 
 /** 组装返回对象（跳过 undefined，保持通知结构精简；与原前端 add() 落库形态一致） */
 function pick(obj) {
@@ -85,6 +85,8 @@ const TEMPLATES = {
     title: '考勤已确认并归档',
     content: `「${activityTitle}」考勤已由纪检确认，系统已自动归档至考察档案，组织委员可直接读取使用。`,
     priority: 'normal',
+    // 2026-11-07 批次 535：系统通知必须有受众；考勤归档的使用方是组织委员。
+    audience: ['org-commissioner'],
     targetType: 'activity',
     targetId: sourceId,
   }),
@@ -93,6 +95,7 @@ const TEMPLATES = {
   'activity-agenda-updated': ({ sourceId, activityTitle }) => pick({
     title: `「${activityTitle}」议程已更新`,
     content: '议程已更新，可查看最新议程',
+    audience: ['all'],
     targetType: 'activity',
     targetId: sourceId,
   }),
@@ -119,6 +122,7 @@ const TEMPLATES = {
     title: '支部分工调整议题待表决',
     content: `「${activityTitle}」已发起，请支委在本次支委会活动中参与线上表决（交流式表态）。`,
     priority: 'normal',
+    audience: 'committee',
     targetType: 'activity',
     targetId: sourceId,
   }),
@@ -167,13 +171,15 @@ const TEMPLATES = {
   }),
 
   // ── 赋权通知（auth.js 迁移） ────────────────────────────────────
-  'project-auth-granted': ({ sourceId, targetPage, authorizerName, projectName, roleLabel, targetType }) => pick({
+  'project-auth-granted': ({ sourceId, targetPage, authorizerName, projectName, roleLabel, targetType, targetPersonId }) => pick({
     title: '赋权通知',
     content: `${authorizerName} 已将您赋权为「${projectName}」的${roleLabel}。点击前往工作台。`,
     priority: 'normal',
     targetType: targetType || (String(sourceId || '').startsWith('tf-') ? 'taskforce' : 'activity'),
     targetId: sourceId,
     targetUrl: targetPage,
+    // 2026-11-07 批次 535：赋权通知只发给被赋权人；无 audiencePersons 即不可读（fail-closed）。
+    audiencePersons: targetPersonId ? [String(targetPersonId)] : undefined,
   }),
 
   // ── 材料外发待确认（external-dispatch.js 迁移） ───────────────────
@@ -222,6 +228,7 @@ const TEMPLATES = {
     title: '活动已创建，请建核心群',
     content: `「${activityTitle}」${date}${location ? ' · ' + location : ' · 线上'}：请前往微信群建核心群。`,
     priority: 'normal',
+    audience: ['all'],
     targetType: 'activity',
     targetId: sourceId,
     // F06：`targetType+targetId` 优先 ⇒ 原 `targetUrl: workspace/leader.html` 永不生效（死链），删除。
@@ -274,6 +281,7 @@ const TEMPLATES = {
     content: content || `请全体成员关注「${activityTitle}」，按时参加。`,
     priority: 'normal',
     expireDate,
+    audience: ['all'],
     targetModule: 'activity',
     targetType: 'activity',
     targetId: sourceId,
@@ -285,6 +293,7 @@ const TEMPLATES = {
     content: content || `专班「${taskforceName}」已报送支委会表决，表决通过后将开放招募（截止 ${deadline}），欢迎届时报名参与。`,
     priority: 'normal',
     expireDate: deadline,
+    audience: ['all'],
     targetModule: 'workspace',
     targetType: 'taskforce',
     targetId: sourceId,

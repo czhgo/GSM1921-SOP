@@ -87,3 +87,14 @@ test('P4 非空转：抽取出的两节正文均可达标', () => {
   assert.ok(claudeSection.length > 80 && checklist.length > 1500,
     `抽取口径失效（CLAUDE ${claudeSection.length} 字 / 清单 ${checklist.length} 字）：守卫会恒真`);
 });
+
+test('P5 温层非空且含触发式任务表（UI 检查有落点）', () => {
+  const src = readFileSync(CLAUDE, 'utf8');
+  const warm = sliceBetween(src, '# 温层', '# 冷层');
+  assert.ok(warm.length > 0, 'CLAUDE 缺温层区间（# 温层 → # 冷层）');
+  const nonEmpty = warm.split(/\r?\n/).filter((l) => l.trim() !== '').length;
+  assert.ok(nonEmpty >= 3, `温层只有 ${nonEmpty} 行非空内容：触发式检查没有落点`);
+  assert.ok(warm.includes('触发式任务表'), '温层缺「触发式任务表」');
+  assert.ok(warm.includes('UI_REVIEW_CHECKLIST'), '温层触发表未指向 UI_REVIEW_CHECKLIST');
+  assert.ok(warm.includes('DS_06'), '温层触发表未指向 DS_06（布局与密度）');
+});

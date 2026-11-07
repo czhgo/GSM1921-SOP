@@ -2,7 +2,7 @@
 title: "全局文档导航映射"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-04"
+last_updated: "2026-11-07"
 version: "2.6"
 status: active
 related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUEUE.md, .ctx/ENGINEERING_ASSESSMENT.md, content/insights/README.md]
@@ -25,7 +25,7 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 
 | 常读文件 | 回答什么问题（唯一职责） | 读的时机 | 读取策略 |
 |---|---|---|---|
-| `CLAUDE.md` | AI 每次开工**必须遵守什么**（甲部 Harness / 乙部执行 / 丙部待裁） | 每次会话 | **active** |
+| `CLAUDE.md` | AI 每次开工**必须遵守什么**（甲部 Harness / 乙部执行 / 丙部待裁；甲部按热 / 温 / 冷三层组织，温层含触发式任务表） | 每次会话 | **active** |
 | `.ctx/ACTIVE_CONTEXT.md` | **现在该知道什么 / 下一步做什么**（active 投影；≤300 行 / 30KB） | 每次会话 | **active** |
 | `content/05_ai_coding/CONTEXT_MANAGEMENT.md` | 上下文怎么管、防失忆怎么做 | 每次会话 | **active** |
 | `.ctx/ACTIVE_RULINGS.md` | **某条现行口径到哪找**（规则索引，正文在 content） | 需要分域裁定 | on-demand |

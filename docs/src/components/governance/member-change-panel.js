@@ -20,16 +20,16 @@
 //     预载后经缓存读取（签名未变秒回、变才 await 拉取）——todo-tab-shell _comboKeyOf 已并入
 //     该 token+长度指纹 → 确认/审批后渲染守卫键变化 → 重建而非命中跳过。
 
-import { getAdapter } from '../../data/data-adapter.js?v=20261104a';
-import { mockDB } from '../../core/domain/domain.js?v=20261104a';
-import { bumpToken } from '../../core/base/version-token.js?v=20261104a';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261104a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261104a';
-import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261104a';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261104a';
-import { currentUserId } from '../../services/core/auth.js?v=20261104a';
+import { getAdapter } from '../../data/data-adapter.js?v=20261107a';
+import { mockDB } from '../../core/domain/domain.js?v=20261107a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261107a';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261107a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261107a';
+import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261107a';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261107a';
+import { currentUserId } from '../../services/core/auth.js?v=20261107a';
 // roster=名册报送确认链（组织委员发起 → 支书确认/退回；bulk 行仅确认，退回留在详情逐项）
-import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../../services/member/member-confirmation.js?v=20261104a';
+import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../../services/member/member-confirmation.js?v=20261107a';
 
 const _pendingStatusOf = (mode) => (mode === 'org-approve' ? 'pending-org-approval' : 'pending-secretary');
 
@@ -145,8 +145,8 @@ export function renderMcBulkRowsHtml(rows, { mode = 'secretary-confirm', accent 
       </div>
       <div class="divide-y divide-gray-50 max-h-56 overflow-y-auto">${rowsHtml}</div>
       <div class="pt-2 flex items-center gap-2">
-        <button type="button" class="btn-accent mcb-apply text-xs px-3 py-1.5" disabled>${verb} 0 项</button>
-        <span class="text-xs text-gray-500">批量${verb}同逐项同一写口（留痕不变）</span>
+        <button type="button" class="btn-accent mcb-apply text-xs px-3 py-1.5" disabled>未选择</button>
+        <span class="text-xs text-gray-500">批量处理与逐项处理结果一致</span>
       </div>
     </div>`;
 }

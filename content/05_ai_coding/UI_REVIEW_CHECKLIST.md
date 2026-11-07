@@ -2,7 +2,7 @@
 title: "UI 审查清单——改界面时按任务组逐条过"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-11-04"
+last_updated: "2026-11-05"
 status: active
 ---
 

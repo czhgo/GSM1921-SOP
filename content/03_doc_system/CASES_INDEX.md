@@ -2,7 +2,7 @@
 title: "判例库总索引"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-11-04"
+last_updated: "2026-11-07"
 status: active
 related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-system/CASES.md, content/02_institution/CASES.md, content/05_ai_coding/CASES.md]
 ---
@@ -57,6 +57,7 @@ related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-sy
 | CASE-DESIGN-031 | 焦点修两轮才查出四套颜色 ＋ 全局 6px 光晕；先穷尽来源再动手 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-27（关联 SD-21 / §5.7） | 2026-10-28（批次 520） |
 | CASE-DESIGN-032 | 判例修不完，原则才收敛；同类分支第三次就停手盘点，原则要能机检并带反例 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-27（P1）；关联 P2–P7 | 2026-10-29（M3 自检） |
 | CASE-DESIGN-033 | 左条退出界面信号：选中用 soft 底 ＋ 字重，状态 / 装饰左条清零 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-25（关联 SD-46 / §4.2） | 2026-11-04（批次 534） |
+| CASE-DESIGN-034 | 卡头按钮被机械分行：标题让位、aside 不拆组；换行发生在「组」一级才算问题 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-60（关联 SD-57 / SD-58） | 2026-11-07（批次 535） |
 | CASE-DATA-001 | api 形态不得回退 mock；本地 resolve 不算写成功 | data | [CASES.md](../04_web_design/design-system/CASES.md) | SD-48 | 批次 513 |
 | CASE-INST-001 | 匿名反馈改裁为支部内闭环、无系统揭名入口 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9j`（SR 待编号） | 2026-10-16（D-824） |
 | CASE-INST-002 | 意见处置与品牌认定归支委会，支书主持 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9j`（SR 待编号） | 2026-09-18 |
@@ -69,12 +70,14 @@ related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-sy
 | CASE-AI-004 | 批量脚本重复执行误覆盖源文件 | ai-coding | [CASES.md](../05_ai_coding/CASES.md) | `FILE_OPERATION_RULES.md`「批量脚本沙箱重复执行」 | T-282（2026-08-24 立规） |
 | CASE-AI-005 | e2e 绕过前端写穿，被冲刷覆盖 | ai-coding | [CASES.md](../05_ai_coding/CASES.md) | `TEST_AND_VERIFICATION.md`「浏览器 e2e 写穿断言」 | 2026-08-27（e2e-login 回归） |
 | CASE-AI-006 | Tab 渲染竞态：冻结 ctx ＋ marker 不清 ＋ 持久绑定标记 | ai-coding | [CASES.md](../05_ai_coding/CASES.md) | `TEST_AND_VERIFICATION.md`「非闭环类缺陷的守卫写法」＋ `CLAUDE.md H25` | 批次 512 |
+| CASE-AI-007 | 系统通知无受众被当广播，匿名读到定向赋权；安全默认 fail-closed | ai-coding | [CASES.md](../05_ai_coding/CASES.md) | `CLAUDE.md H32` ＋ `DATA_MODEL §2.9` | 2026-11-07（批次 535） |
+| CASE-AI-008 | CLAUDE 层标记漂移：温层被搬空仍宣称三层；结构规则要有结构守卫 | ai-coding | [CASES.md](../05_ai_coding/CASES.md) | `CLAUDE.md H26` / `H50` | 2026-11-07（批次 535） |
 
 ## 域入口
 
 | 域 | 判例文件 | 现有条数 |
 |---|---|---|
-| design（网站设计） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 32 |
+| design（网站设计） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 33 |
 | data（数据真相） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 1 |
 | institution（制度） | [02_institution/CASES.md](../02_institution/CASES.md) | 5 |
-| ai-coding（AI 协作） | [05_ai_coding/CASES.md](../05_ai_coding/CASES.md) | 6 |
+| ai-coding（AI 协作） | [05_ai_coding/CASES.md](../05_ai_coding/CASES.md) | 8 |

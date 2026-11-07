@@ -11,10 +11,10 @@
 //  确保现有调用方无需修改。
 // ════════════════════════════════════════════════════════════════
 
-import * as mockService from './mock.js?v=20261104a';
-import { registerMockAdapter, registerApiAdapter, setDataSource, getDataSource } from '../../data/data-adapter.js?v=20261104a';
-import { MockAdapter } from '../../data/mock-adapter.js?v=20261104a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261104a';
+import * as mockService from './mock.js?v=20261107a';
+import { registerMockAdapter, registerApiAdapter, setDataSource, getDataSource } from '../../data/data-adapter.js?v=20261107a';
+import { MockAdapter } from '../../data/mock-adapter.js?v=20261107a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261107a';
 
 // ── 初始化 DataAdapter ──────────────────────────────────────────
 

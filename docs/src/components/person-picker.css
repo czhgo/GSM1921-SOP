@@ -76,7 +76,7 @@
 .person-picker-trigger-badge {
   background: var(--pp-accent);
   color: white;
-  font-size: 10px;
+  font-size: 11px;
   min-width: 18px;
   height: 18px;
   border-radius: var(--radius-sm);

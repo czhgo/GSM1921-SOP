@@ -156,16 +156,59 @@ test('⑧ CLAUDE.md：≤600 行 / ≤85KB；甲部引用框 ≤15 且不写历�
   const historical = quotes.filter((l) => /批次\s*\d+|已废止|沿革|支书原话/.test(l) && !l.includes('批次 521'));
   assert.deepEqual(historical, [],
     `甲部引用框仍含历史叙述（应删 / 迁 logs，只留「原话即规则」）：\n  ${historical.join('\n  ')}`);
+
+  // ⑧-b 层边界与单节配额（2026-11-07 批次 535）：防「层标记漂移 + 慢性加行」
+  const hotStart = src.indexOf('# 热层');
+  const warmStart = src.indexOf('# 温层');
+  const coldStart = src.indexOf('# 冷层');
+  assert.ok(hotStart >= 0 && warmStart > hotStart && coldStart > warmStart,
+    'CLAUDE 三层标记缺失或顺序错乱（应 热层 → 温层 → 冷层）');
+  const hot = src.slice(hotStart, warmStart);
+  const warm = src.slice(warmStart, coldStart);
+  const cold = src.slice(coldStart, yiStart);
+  const hOf = (block) => [...block.matchAll(/^## (H\d+)\./gm)].map((m) => m[1]);
+  const hotH = hOf(hot);
+  const warmH = hOf(warm);
+  const coldH = hOf(cold);
+  assert.ok(hotH.includes('H10') && hotH.includes('H50'), `热层应含 H10–H50，实测 ${hotH.join('/')}`);
+  assert.deepEqual(warmH, ['H60', 'H70', 'H80'], `温层应只含 H60/H70/H80，实测 ${warmH.join('/')}`);
+  assert.deepEqual(coldH, ['H90', 'H100'], `冷层应只含 H90/H100，实测 ${coldH.join('/')}`);
+  const allH = [...src.matchAll(/^## (H\d+)\./gm)].map((m) => m[1]);
+  const dupH = allH.filter((x, i) => allH.indexOf(x) !== i);
+  assert.deepEqual(dupH, [], `H 节重复出现：${dupH.join(' / ')}（同一规则只能在一个层里）`);
+  const warmLines = warm.split(/\r?\n/).filter((l) => l.trim() !== '').length;
+  assert.ok(warmLines >= 3 && warmLines <= 60,
+    `温层非空行 ${warmLines} 行（应 3–60）：空温层＝触发式检查没有落点；超限＝细则应迁 content`);
+  const hotLines = hot.split(/\r?\n/).filter((l) => l.trim() !== '').length;
+  assert.ok(hotLines <= 190, `热层非空行 ${hotLines} > 190：可延迟规则应降入温层或 content`);
+
+  // ⑧-c 触发式任务表指针必须真实存在（防死链）
+  const TRIGGER_PATHS = [
+    'content/05_ai_coding/UI_REVIEW_CHECKLIST.md',
+    'content/04_web_design/data/DATA_MODEL.md',
+    'content/02_institution/SYSTEM_ROLE_PERMISSION.md',
+    'server/security/write-policy-matrix.mjs',
+    'server/AGENTS.md',
+    'content/05_ai_coding/PARALLEL_SKILL_AUDIT.md',
+    '.ctx/REVIEW_QUEUE.md',
+    'content/05_ai_coding/TEST_AND_VERIFICATION.md',
+    'content/05_ai_coding/DOCUMENT_GOVERNANCE.md',
+    'content/05_ai_coding/CONTEXT_MANAGEMENT.md',
+  ];
+  const missingPointers = TRIGGER_PATHS.filter((rel) => !existsSync(join(ROOT, rel)));
+  assert.deepEqual(missingPointers, [], `温层触发表含死链：${missingPointers.join(' / ')}`);
 });
 
-test('⑨ CLAUDE.md：乙部 ≤12 行且状态合法；丙部 ≤4 条且无已裁', () => {
+test('⑨ CLAUDE.md：乙部 ≤18 行且无历史叙述；丙部 ≤4 条且无已裁', () => {
   const src = readFileSync(join(ROOT, 'CLAUDE.md'), 'utf8');
   const yiStart = src.indexOf('# 乙部');
   const bingStart = src.indexOf('# 丙部');
   assert.ok(yiStart >= 0 && bingStart > yiStart, 'CLAUDE 缺 `# 乙部` / `# 丙部` 分界');
   const yi = src.slice(yiStart, bingStart);
   const yiRows = yi.split(/\r?\n/).filter((l) => /^\|/.test(l) && !/^\|\s*[-:]+\s*\|/.test(l) && !/^\|\s*(ID|目标批次)\s*\|/.test(l));
-  assert.ok(yiRows.length <= 12, `乙部表行 ${yiRows.length} 行 > 12：真任务应排期，假任务应删除`);
+  assert.ok(yiRows.length <= 18, `乙部表行 ${yiRows.length} 行 > 18：真任务应排期，假任务应删除`);
+  assert.doesNotMatch(yi, /已核实完成|已清出/,
+    '乙部仍含「已核实完成 / 已清出」历史叙述：完成项应整行删除，沿革只留 git 与 .ctx/logs（H50.1）');
   const allowed = new Set(['在办', '待启动', '待裁']);
   const bad = yiRows.map((l) => l.split('|').map((s) => s.trim()).filter(Boolean)).filter((cells) => !allowed.has(cells[cells.length - 1]));
   assert.deepEqual(bad.map((c) => c.join(' | ')), [],

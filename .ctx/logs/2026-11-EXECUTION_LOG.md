@@ -226,3 +226,34 @@ status: active
 - 硬编码：**808 处 / 291 值 / 45 文件**（基线 812 / 291 / 45；styles.css 388、constants.js 195、about.css 50、help.html 48）。
 - 颜色镜像：T12（tailwind↔styles 44 对）/ T13（constants↔styles 44 对）全绿，含反例。
 - commit：见 `git log --grep="批次 534"`。
+
+---
+
+## 批次 535 · CLAUDE 三层恢复、通知受众 fail-closed、SD-60 行动行（2026-11-07）
+
+### 为什么
+
+支书 `/plan` 三项：① 温层 0 行不合理，要从根本防止 CLAUDE 膨胀；② 对既有判例做全局复查（空间 / 字号 / 脏乱），并专门检查「按钮被机械分行」；③ 未登录为何能看到「谁给我赋权」，要求 content 规定 ↔ 代码 gap 彻查。
+
+### 拿不准 / 取舍
+
+- **CLAUDE 层界**：热层收到 H10–H50，温层 H60–H80 + 触发表，冷层 H90/H100；乙部历史叙述整段删除。守卫按「层边界 + 温层 3–60 行 + 乙部 ≤18 行 + 触发表指针存在」机检，不只挡总量。
+- **通知受众**：本批取最严档——未登录一律不可读；系统通知无受众＝不可读；广播必须显式 `all`。显式广播是否允许匿名不自行放开，登记 V-11 待裁。
+- **按钮换行**：先证伪——按钮族已有 `white-space:nowrap`，问题在 `.card-head` 三处 `flex-wrap:wrap` + 标题不伸缩。改为「标题让位、aside 不拆组、≥641 不换行」，不搞全站 nowrap；`.lf-bar` 仍守 SD-58 两行上限。
+- **p-5 / body 15px / btn-action 12px**：逐条回查 DS_02 / DS_03 后判**不是违规**，从计划中的「修」改为「不改」，避免过拟合。
+- **TAB_BLOCK_BASELINE**：全表含页头是历史口径；本批只把口径写清（`blocks-1 ≤4`），不批量改 45 条数，避免与 inventory 脱节。
+
+### 边界
+
+- 未登录公共入口只研究、不改登录页品牌与路由；CASE-AI-004/005 编号已被占用，实际落 `CASE-AI-007/008`。
+- `.lf-bar`、`round3-4-batch1` 锁定的可折行行动区不纳入新守卫。
+- 存量通知迁移脚本默认 dry-run，补不出受众标 `legacyUnscoped`，不删除数据。
+- 全量 daily 的 npm 命令在 Windows 超出命令行长度（新增 2 个测试文件后触发）；已用分片方式验证，命令本身未改。
+
+### 读数
+
+- 定向守卫：`ctx-hygiene` / `claude-parallel-audit` / `ui-preflight-context` 22/22；`notice-audience*` / `system-notice-project-auth` / `test-tier` 61/61；`action-row-wrap` / `test-tier` 12/12；`type-scale` / `text-tier` 21/21；`ui-control-system` 32/32。
+- 文档守卫：`doc-consistency` / `docs-governance` / `version-stamp` / `ctx-hygiene` 见各次定向结果；S13/S14/F2/R1–R3 的日期与计数同批刷新。
+- 版本戳：`20261107a`，0 处陈旧（JS 268 / HTML 26 / CSS 2 / server-test 155）。
+- 测试预算：daily 文件 243 → 245；断言 1785 → 1792。
+- commit：见 `git log --grep="批次 535"`。

@@ -2,7 +2,7 @@
 title: "设计系统 · 第六编 布局与密度"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-03"
+last_updated: "2026-11-07"
 status: active
 related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RESPONSIVE.md, DS_05_MAP_AND_REFERENCE.md, DESIGN_SYSTEM.md, ../PRODUCT_IA.md, ../../../docs/src/styles.css, ../../05_ai_coding/TAB_AUDIT_PLAYBOOK.md]
 ---
@@ -60,6 +60,25 @@ related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONEN
 | 守卫 | `field-shell-guard::R4`（原生 `list` / `<datalist>` 清零，含反例与 `data-*-list` 负例）＋ `field-shell-guard::R5`（`suggestInput` 产物 ARIA 齐备、无 `list` 属性，含无 ARIA 反例） |
 
 > **口径**：原生 `<datalist>` 与 `list` 属性会引入浏览器自己的建议箭头，且样式不可控；改用 `components/ui/form-field.js::suggestInput`。自建下拉只承载建议，不改变输入框的焦点、边框与字号口径（见 DS_03 §12.1 / DS_04 §5.8）。
+
+### SD-60 行动行排布
+
+| 项 | 内容 |
+|---|---|
+| 对象 | `.card-head` 家族（标题 ＋ meta ＋ actions）与 P1 页面内的表单 / 工具行；不覆盖 `.lf-bar`（SD-58） |
+| 判据 | ≥641px：`.card-head` 不得换行；标题 `flex:1 1 auto; min-width:0`，承担伸缩并允许自身换行；aside `flex:0 0 auto`，meta 与 actions 不拆组；单枚低价值按钮并入右对齐，不单独占行。≤640px：允许 aside 掉到标题下方并右对齐，组内仍不拆行 |
+| 守卫 | `action-row-wrap-guard`（CSS 单一源断言 ＋ 反向断言）；真机复核 1440 / 390 两档截图 |
+
+**四类排布矩阵**
+
+| 类 | 场景 | ≥1024 | 641–1023 | ≤640 |
+|---|---|---|---|---|
+| A 长组件 + 短按钮 | 表单行 / 工具行（非 `.lf-bar`） | 长组件 `flex:1 1 260px; min-width:0`，按钮 `flex:0 0 auto`，同行 | 长组件 `flex:1 1 200px`，按钮同行 | 长组件独占一行，按钮组下一行右对齐 |
+| B 多短按钮 | 卡头 aside 2–4 枚 | 标题让位、aside 同行右对齐 | 同 ≥1024；标题最多两行 | aside 可掉行并右对齐，组内仍 nowrap |
+| C 单枚低价值按钮 | 导出 / 「全部 ›」/ 单按钮卡头 | 并入 meta 或标题同行居右 | 同 ≥1024 | 可居右单独一行，压缩上间距 |
+| D 筛选条 / chips | `.lf-bar`、状态 chips | 沿用 SD-58「两行上限」 | 同 ≥1024 | 同 ≥1024；折行后右对齐，不逐枚占行 |
+
+> **口径**：换行发生在「组」一级是问题，发生在「组内元素」一级不是问题。标题必须让位，aside 不得整组被机械挤到下一行。筛选条仍守 SD-58，不得以「防换行」为名改成横向滚动。
 
 ## 三、判定流程（怎么审）
 
