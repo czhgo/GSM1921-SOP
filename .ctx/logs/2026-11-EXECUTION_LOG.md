@@ -256,4 +256,4 @@ status: active
 - 文档守卫：`doc-consistency` / `docs-governance` / `version-stamp` / `ctx-hygiene` 见各次定向结果；S13/S14/F2/R1–R3 的日期与计数同批刷新。
 - 版本戳：`20261107a`，0 处陈旧（JS 268 / HTML 26 / CSS 2 / server-test 155）。
 - 测试预算：daily 文件 243 → 245；断言 1785 → 1792。
-- commit：见 `git log --grep="批次 535"`。
+- commit：`321be71c3`（535 主记录）；本行补记随 `535a` 提交。
