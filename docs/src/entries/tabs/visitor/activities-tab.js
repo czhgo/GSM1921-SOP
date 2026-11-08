@@ -3,27 +3,29 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/base/icons.js?v=20261107a';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20261107a';
-import { flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261107a';
-import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261107a';
+import { icon } from '../../../core/base/icons.js?v=20261108a';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20261108a';
+import { flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261108a';
+import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261108a';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261107a';
-import { canSignup } from '../../../components/governance/signup-panel.js?v=20261107a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261107a';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261108a';
+import { canSignup } from '../../../components/governance/signup-panel.js?v=20261108a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261108a';
 // 组织者按活动身份读（2026-09-19 批次 91 · SOP-B-17）：本人被指定为某场活动的组织者时，
 // 该场的发布口与上传位从该行可达——「组织者是这场事上被指定的人」，不是静态角色。
-import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261107a';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261107a';
+import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261108a';
+import { isCommitteeActivity, isCommitteeCopy } from '../../../services/activity/committee-activity.js?v=20261108a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261108a';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261108a';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261107a';
-import { getAppState } from '../../../core/base/state.js?v=20261107a';
-import { renderContent as renderSharedActivityCalendar } from '../shared/activity-calendar-tab.js?v=20261107a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261107a';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261108a';
+import { getAppState } from '../../../core/base/state.js?v=20261108a';
+import { renderContent as renderSharedActivityCalendar } from '../shared/activity-calendar-tab.js?v=20261108a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261108a';
 // Task 6：活动动态属跨对象列表 ⇒ direct 完整详情页；缺 id 不渲染可点链接。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261107a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261108a';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261107a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261108a';
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
 // ③闭环样本1（2026-09-10）：活动列表/查询行补「去报名 / 去表态」明确入口——
@@ -71,12 +73,17 @@ function _activityRowHtml(a) {
   const color = ACTIVITY_TYPE_COLORS[a.type || a.category] || { bg: '#F9FAFB', dot: '#6B7280' };
   const detailHref = objectDetailHref('activity', a.id, { entry: 'workspace-aggregate' });
   const href = detailHref ? `./${detailHref}` : '';
+  // 院级标识（批次 534 · Task 9）：成员只读知悉来源，不提供采用入口（采用权在支书 / 副支书）。
+  const committeeMarks = [
+    isCommitteeActivity(a) ? badgeHtml('院级', 'brand') : '',
+    isCommitteeCopy(a) ? badgeHtml('源自党委', 'info') : '',
+  ].filter(Boolean).join('');
   return `
     <div class="flex flex-wrap items-center gap-3 p-3 rounded-lg bg-white hover:bg-surface-hover transition-colors" data-visitor-act-id="${a.id || ''}">
       <a ${href ? `href="${href}"` : 'aria-disabled="true"'} class="flex items-center gap-3 flex-1 min-w-0 rounded-lg focus-ring hover:bg-[var(--surface-hover)] transition-colors" aria-label="查看活动详情：${a.title || '未命名'}">
         <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''}"></div>
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
+          <p class="flex flex-wrap items-center gap-1.5 text-sm font-medium text-gray-800">${a.title || '未命名'}${committeeMarks}</p>
           <p class="text-xs text-gray-500 mt-0.5">${a.date || '待定'} · ${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
         </div>
       </a>

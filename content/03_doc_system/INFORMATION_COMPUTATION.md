@@ -2,7 +2,7 @@
 title: "信息计算与呈现口径"
 type: spec
 role: "[工程师]+[AI]"
-last_updated: 2026-11-07
+last_updated: 2026-11-08
 status: active
 related_files: [docs/src/services/governance/notice.js, docs/src/components/shell/header.js, docs/src/services/governance/todo.js, docs/src/services/governance/today-summary.js, docs/src/components/governance/work-overview.js, docs/src/services/activity/taskforce.js, docs/src/services/activity/attendance.js]
 ---
@@ -57,7 +57,7 @@ related_files: [docs/src/services/governance/notice.js, docs/src/components/shel
 1. **党委下发**：代码仅在 `party-staff` 传入 `scope: 'committee'`（党委台铃铛）时放行 `audience === 'committee'` 及其数组写法（该角色不属于任何支部，故不做支部比对）；默认列表调用保持原行为。支委层则要求 `branchId` 与本人支部一致。
 2. **角色定向**：`audience` 为 sentinel 时按 `NOTICE_AUDIENCE_SENTINELS` 判定；裸角色键直接比对角色；`actionRoles` 只对目标角色可见。
 3. **到人私信**：`list()` 只按 `audiencePersons` 命中收件人；发件人查看自己的私信走 `listMyMessages()`（内部逐条 `canReadNotice`）。
-4. **无登录会话**：`list()` 与 `canReadNotice` 统一为**一律不可见 / 不可读**（2026-11-07 批次 535）；显式广播是否允许匿名，待公共入口裁定（`PUBLIC_ENTRANCE.md`）。
+4. **无登录会话**：`list()` 与 `canReadNotice` 统一为**一律不可见 / 不可读**（2026-11-07 批次 535）；公开门厅的匿名窄口只对 `publishScope='public'` 且未过期的党委内容开放，已裁定，见 `D-858` / `PUBLIC_ENTRANCE.md`。
 
 ### 1.4 详情可读性矩阵（`canReadNotice`）
 
@@ -295,7 +295,7 @@ related_files: [docs/src/services/governance/notice.js, docs/src/components/shel
 
 > 以下问题需要支书明确口径后才能改代码；本文不替支书做决定。
 
-1. **无会话的显式广播是否允许匿名**：本批已统一「无会话一律不可见 / 不可读」；是否对 `audience:['all']` 开一个匿名可读的窄口，待 `PUBLIC_ENTRANCE.md` 公共入口裁定。
+1. **无会话的显式广播是否允许匿名**：本批已统一「无会话一律不可见 / 不可读」；匿名可读只开 `publishScope='public'` 且未过期这一条窄口，`audience:['all']` 的系统广播仍不对匿名开放——已裁定，见 `D-858` / `PUBLIC_ENTRANCE.md`。
 2. **支书概况出勤率是否改用应到名单做分母**：当前按记录条数，是否统一到 `summarizeAttendanceByActivity` 的场次口径。
 3. **补课未完成是否统一为补课任务表口径**：当前支书概况与工作概况各算一套；是否保留「人员差集」作为另一种提示，还是只留任务表。
 4. **通知行动待办是否补去重键**：建议键为 `sourceType = 'notice'` ＋ `sourceId` ＋ `actionKey`（或 `role`）；是否采纳。

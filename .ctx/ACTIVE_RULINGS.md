@@ -3,7 +3,7 @@ title: "现行有效裁定索引"
 type: rulings_index
 role: "[工程师]+[AI]"
 layer: reference
-last_updated: "2026-11-03"
+last_updated: "2026-11-08"
 status: active
 ---
 
@@ -47,6 +47,7 @@ status: active
 | 十四、工作流块配置面 | `content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md §8` | `D-686` | 表单轴 / 参与人轴；evolution 为论证档 |
 | 十五、工作跟着岗位走 | `SYSTEM_ROLE_PERMISSION §9c` | `D-687` | 项目角色不落 `users.role` |
 | 十六、界面规范 | `content/04_web_design/design-system/DS_03_COMPONENTS.md` | `D-698` · `D-710` · `D-713` | 按钮四类两档、活动风采置顶 |
+| 十七、党委内容与公开门厅 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md §9a.1` ＋ `content/04_web_design/evolution/PUBLIC_ENTRANCE.md` | `D-858` | 党委内容域、`publishScope` 三档、`publication_audits` |
 
 ## §C 系统配置类（属本代码库，不进 content）
 

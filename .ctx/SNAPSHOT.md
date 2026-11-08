@@ -2,7 +2,7 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-11-03"
+last_updated: "2026-11-08"
 status: "ACTIVE"
 layer: reference
 date: "2026-10-23"
@@ -30,7 +30,7 @@ GSM1921-SOP/
 ├── CHANGELOG.md                ← 变更日志（Keep a Changelog 体例；**只记「对使用者可见的变更」**——逐批沿革归 `.ctx/logs/**`；起点＝首次语义化发版 `0.1.0` 2026-09-28、不回溯补记）
 ├── CLAUDE.md                   ← 上下文入口（甲部 H10-H100 约束力三层 + H60 提问准则 + 乙部执行 + 丙部待决策）
 ├── docs/                       ← 前端代码层（根 HTML + workspace/ 工作台 + ESM 模块化源码；页面实测 26=18 根+8 工作台/只读视图，清单见 §III，以 docs/ 实况为准）
-│   ├── index.html              ← 主页入口（通知/招募/日历/待办四组件）
+│   ├── index.html              ← 主页入口（未登录＝学院党委公共门厅：公开通知全文 / 活动摘要 / 公开资料 ＋ 登录入口；登录后为通知/招募/日历/待办四组件）
 │   ├── notice.html             ← 通知独立页（含「党委下发」红标）
 │   ├── about.html              ← 支部的故事
 │   ├── archive.html            ← 归档库
@@ -91,7 +91,7 @@ GSM1921-SOP/
     └── logs/                   ← 执行日志+决策日志（临时 spec 受管区 .trae/specs 用后即删，禁入 content）
 ```
 
-> **schema v12（2026-10-27 批次 515 实测，`initDb(':memory:')` 读数）**：当前 **52 张表**（v1 基线 ＋ 影子子表 `agenda_items` / `taskforce_contributions`；v12 已 DROP `issue_reveals`）；五张热表有 generated VIRTUAL 列（不是 STORED）与复合索引；`todos.branch_id` 为生成列。**影子子表不是权威源**——读写仍走 JSON 主表，切表判据见 `content/04_web_design/data/DATA_MODEL.md §2.3.2` 与 `server/scripts/schema-split-readiness.mjs`。
+> **schema v13（2026-11-08 批次 536 实测，`initDb(':memory:')` 读数）**：当前 **53 张表**（v1 基线 ＋ 影子子表 `agenda_items` / `taskforce_contributions`；v12 已 DROP `issue_reveals`；v13 新建 `publication_audits`，并给 `activities` / `notices` / `branch_docs` 加 `owner_scope` / `publish_scope` 生成列与部分唯一索引）；业务表 **48 张（34 资源 ＋ 8 语义 ＋ 6 工作组）**；五张热表有 generated VIRTUAL 列（不是 STORED）与复合索引；`todos.branch_id` 为生成列。**影子子表不是权威源**——读写仍走 JSON 主表，切表判据见 `content/04_web_design/data/DATA_MODEL.md §2.3.2` 与 `server/scripts/schema-split-readiness.mjs`。
 >
 > **数据表现状（台账标注 · 2026-09-25 批次 190，系 `.ctx` 侧登记、**未改 `server/**`**）**：`server/data.db` 实有 **45 张表**、全库 **317 行**；其中 **30 张为空表**——**仅结构先行、数据尚未落地**（逐表清单见下句）。**⚠ 本注记的性质＝台账标注**：这些表**有结构、有读写口**（多为既有上传 / 留痕 / 申诉 / 服务端化链的承载位），**不代表功能不可用**——**这不是缺陷、也未被「修复」**（**只是把结构现状写清**）。同批另两条**本就建议不动**，一并说明：**单写者**（better-sqlite3 同步、单进程；WAL 只救读、不救写）· **附件走磁盘**（`uploads/` 落文件、库里只存路径，当前方向正确）。
 >
@@ -129,7 +129,7 @@ GSM1921-SOP/
 
 | 页面 | 类型 | 说明 |
 |------|------|------|
-| `index.html` | 入口 | 主页（通知/招募/日历/待办） |
+| `index.html` | 入口 | 主页（未登录＝学院党委公共门厅：党委公开通知全文 / 活动摘要 / 公开资料 ＋ 登录入口；登录后为通知/招募/日历/待办） |
 | `notice.html` | 独立 | 通知独立页（含「党委下发」红标） |
 | `messages.html` | 独立 | 我的私信（站内信收件箱：收件 ＋ 发件一屏、就地回复成线；**仅收发双方可见**） |
 | `help.html` | 独立 | 系统说明书（功能地图+搜索） |
@@ -153,7 +153,7 @@ GSM1921-SOP/
 | `workspace/prop.html` | 子页面 | 宣传委员工作台（宣传任务+项目看板+档案归档+周期归档+待办） |
 | `workspace/disc.html` | 子页面 | 纪检委员工作台（考勤管理（含补课分段）+监督复盘+考察管理+知情查看+待办） |
 | `workspace/visitor.html` | 子页面 | 成员工作台（活动动态+专班进展+个人考勤+思想汇报提交+日历/列表切换+待办） |
-| `workspace/party-committee.html` | 子页面 | 党委工作台（党委组织员：支部台账/支部管理/任命/上报审批/下发通知/支部配置） |
+| `workspace/party-committee.html` | 子页面 | 党委工作台（党委组织员：4 页签＝下发通知 / 院级内容 / 支部上报 / 支部管理） |
 | `workspace/branch-readonly.html` | 只读下钻 | 党委组织员在明确选择支部后查看该支部成员与活动；保留党委身份，不进入支书工作台 |
 
 ## IV. 核心理论

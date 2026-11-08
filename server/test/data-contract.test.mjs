@@ -21,6 +21,7 @@ import {
   DOMAIN_CONTRACT, ENTITY_BY_TABLE, ENTITY_BY_NAME,
   aliasMemberChangeRow, validateEntityRows,
 } from '../data/domain-contract.mjs';
+import { COMMITTEE_OWNER_ID } from '../../docs/src/core/domain/constants.js?v=20261108a';
 
 let app;
 let db;
@@ -38,13 +39,20 @@ after(async () => {
 
 const ALL_TABLES = [...RESOURCE_TABLES, ...SEMANTIC_TABLES, ...WORKGROUP_TABLES];
 const SEEDED = () => DOMAIN_CONTRACT.filter((entry) => !entry.deprecated && entry.seedCount > 0);
+/**
+ * `required` 非空但无演示种子的表：必须在表登记理由（写入由运行时动作产生的留痕类）。
+ * 值＝理由；键必须真实在契约内且 seedCount=0（下方 C2 自检）。
+ */
+const REQUIRED_WITHOUT_SEED_OK = new Map([
+  ['publication_audits', '发布动作留痕：只由发布 / 撤回 / 过期 / 支部采纳写入，演示种子为空'],
+]);
 
 // ── ① 资源表覆盖 ────────────────────────────────────────────────
-test('C1 契约覆盖 34 资源表 + 7 语义表 + 6 工作组表（双向相等，无缺无幽灵）', () => {
+test('C1 契约覆盖 34 资源表 + 8 语义表 + 6 工作组表（双向相等，无缺无幽灵）', () => {
   assert.equal(RESOURCE_TABLES.length, 34, `db.js RESOURCE_TABLES 应为 34（实测 ${RESOURCE_TABLES.length}）`);
-  assert.equal(SEMANTIC_TABLES.length, 7, `db.js SEMANTIC_TABLES 应为 7（实测 ${SEMANTIC_TABLES.length}）`);
+  assert.equal(SEMANTIC_TABLES.length, 8, `db.js SEMANTIC_TABLES 应为 8（实测 ${SEMANTIC_TABLES.length}）`);
   assert.equal(WORKGROUP_TABLES.length, 6, `db.js WORKGROUP_TABLES 应为 6（实测 ${WORKGROUP_TABLES.length}）`);
-  assert.equal(new Set(ALL_TABLES).size, 47, '三张清单并集应为 47 表');
+  assert.equal(new Set(ALL_TABLES).size, 48, '三张清单并集应为 48 表');
 
   const contractTables = new Set(DOMAIN_CONTRACT.map((entry) => entry.table));
   for (const table of ALL_TABLES) {
@@ -79,6 +87,7 @@ test('C2 每个 required 字段在播种后的真实行（seed/mock 同源）中
   for (const entry of DOMAIN_CONTRACT) {
     if (entry.deprecated) continue;
     const rows = rowsOf(entry.table);
+    const seedlessOk = REQUIRED_WITHOUT_SEED_OK.has(entry.table);
     if (entry.seedCount > 0) {
       assert.ok(rows.length > 0, `${entry.table}：契约 seedCount=${entry.seedCount} 但落库为空（种子未接上）`);
       assert.equal(rows.length, entry.seedCount,
@@ -88,12 +97,23 @@ test('C2 每个 required 字段在播种后的真实行（seed/mock 同源）中
       requiredChecks += 1;
       const hit = rows.some((row) => row && Object.hasOwn(row, field));
       if (hit) fieldHits += 1;
-      else problems.push(`${entry.entity}(${entry.table}).${field}：required 字段在 ${rows.length} 行中一次都没出现`);
+      // 已登记「无演示种子」的留痕表没有落库行可核，跳过逐字段命中（理由见 REQUIRED_WITHOUT_SEED_OK）。
+      else if (!seedlessOk) problems.push(`${entry.entity}(${entry.table}).${field}：required 字段在 ${rows.length} 行中一次都没出现`);
+      else fieldHits += 1;
     }
     // 有 required 却零种子的表必须显式说明（防止「契约写必填、实际生产不出」）
-    if (entry.required.length > 0 && entry.seedCount === 0) {
+    if (entry.required.length > 0 && entry.seedCount === 0 && !seedlessOk) {
       problems.push(`${entry.entity}(${entry.table})：required 非空但 seedCount=0（无同源样本，判据不可达）`);
     }
+  }
+
+  // 登记表自检：理由必须成立（表存在、确实无种子），不得用来放过有种子的表
+  for (const [table, reason] of REQUIRED_WITHOUT_SEED_OK) {
+    const entry = ENTITY_BY_TABLE[table];
+    assert.ok(entry, `REQUIRED_WITHOUT_SEED_OK 登记了契约外实体 ${table}`);
+    assert.equal(entry.seedCount, 0, `${table} 有演示种子，不得进 REQUIRED_WITHOUT_SEED_OK`);
+    assert.ok(entry.required.length > 0, `${table} 无 required，无需登记本白名单`);
+    assert.ok(String(reason || '').trim().length >= 8, `${table} 的免种子理由过短`);
   }
 
   assert.ok(requiredChecks >= 100, `必填检查次数 ${requiredChecks} < 100（抽取面过小）`);
@@ -186,4 +206,52 @@ test('C6 issue_reveals 标 deprecated + 停写注释；仍留在 db.js 清单（
   assert.match(String(entry.notes || ''), /停写|只读兼容/, 'issue_reveals 必须写明「停写，保留只读兼容」');
   assert.ok(RESOURCE_TABLES.includes('issue_reveals'), 'RESOURCE_TABLES 不得删除 issue_reveals（server AGENTS 禁删）');
   assert.equal(entry.seedCount, 0, 'issue_reveals 不应再有种子');
+});
+
+// ── ⑦ 党委内容与公开发布（2026-11-08 批次 536）────────────────────
+test('C7 党委内容与公开发布：新字段 / 新实体通过校验；非法 ownerScope / publishScope 被判红', () => {
+  // 合法：党委活动（ownerScope=committee、登录可见）
+  const committeeActivity = {
+    id: 'act-committee-1', title: '党委统一主题党日', type: '主题党日', date: '2026-11-15',
+    branchId: COMMITTEE_OWNER_ID, visibility: 'branch',
+    ownerScope: 'committee', targetBranchIds: ['br-b1'], publishScope: 'login',
+    publishExpiresAt: '2026-12-31', publicSummary: '党委统一部署', contentVersion: 2,
+    sourceActivityId: 'act-source-1', sourceVersion: 1, sourceSyncedAt: '2026-11-08T00:00:00.000Z',
+    adoptedAt: '2026-11-08T00:00:00.000Z', adoptedBy: '2400012345',
+  };
+  assert.deepEqual(validateEntityRows('activities', [committeeActivity], { strictFields: true }), [],
+    '党委活动合法行不应报错（strictFields 下新字段须登记进契约 fields）');
+
+  // 合法：公开通知
+  const publicNotice = {
+    id: 'notice-public-1', title: '公开公告', content: '正文', priority: 'normal',
+    publishDate: '2026-11-08', branchId: COMMITTEE_OWNER_ID, kind: 'announcement',
+    publishScope: 'public', publishExpiresAt: '2026-12-31', publicSummary: '公开摘要',
+  };
+  assert.deepEqual(validateEntityRows('notices', [publicNotice]), []);
+
+  // 合法：党委下发支部文件
+  const branchDoc = {
+    id: 'bdoc-1', ownerScope: 'committee', publishScope: 'login',
+    publishExpiresAt: '2026-12-31', publicSummary: '', summary: '学习资料',
+  };
+  assert.deepEqual(validateEntityRows('branchDocs', [branchDoc]), []);
+
+  // 合法：发布留痕
+  const audit = {
+    id: 'pa-1', resourceType: 'activity', resourceId: 'act-committee-1', action: 'publish',
+    at: '2026-11-08T00:00:00.000Z', actorId: '9000000001', actorRole: 'party-staff',
+    anonymous: false, oldValue: 'branch', newValue: 'public', note: '',
+  };
+  assert.deepEqual(validateEntityRows('publication_audits', [audit]), []);
+
+  // 枚举只认单一源：constants 的 ownerScope / publishScope 取值与契约一致
+  assert.deepEqual([...ENTITY_BY_NAME.activities.enums.ownerScope], ['branch', 'committee']);
+  assert.deepEqual([...ENTITY_BY_NAME.activities.enums.publishScope], ['branch', 'login', 'public']);
+
+  // 反例：非法归属范围 / 非法发布范围必须判红（同一校验器，防恒真）
+  const badOwner = validateEntityRows('activities', [{ ...committeeActivity, ownerScope: 'org' }]);
+  assert.ok(badOwner.some((p) => p.kind === 'enum' && p.field === 'ownerScope'), '非法 ownerScope 未判红');
+  const badPublish = validateEntityRows('notices', [{ ...publicNotice, publishScope: 'everyone' }]);
+  assert.ok(badPublish.some((p) => p.kind === 'enum' && p.field === 'publishScope'), '非法 publishScope 未判红');
 });

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildPartyOverviewModel } from '../../docs/src/core/domain/party-overview.js?v=20261107a';
+import { buildPartyOverviewModel } from '../../docs/src/core/domain/party-overview.js?v=20261108a';
 
 test('Party overview queue count matches actionable pending review rows', () => {
   const model = buildPartyOverviewModel({

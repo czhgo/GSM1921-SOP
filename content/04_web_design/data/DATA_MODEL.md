@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.1"
-last_updated: "2026-11-07"
+last_updated: "2026-11-08"
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -71,6 +71,17 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 | voteConfig | object\|null | 否 | null | 线上异步表决配置 `{mode, optionSet, ballotMode, voterScope, voterIds[], quorumCheck}`：决策类场景选「线上异步表决」时固化应到名单快照；**线下开会不写本字段**（读侧无此字段＝旧活动 / 线下） |
 | isOutdoor | boolean | 否 | `false` | 是否外出（校外）活动——主题党日正交维度之二（见 §2.1.2）。写入后弹「外出提醒清单」（**是提醒、非必填、不作校验**） |
 | deepWorkMode | object | 否 | -- | 深参分工的完成方式（2026-09-23 批次 156）：形状 `{ [taskId]: 'in-system' \| 'offline' }`——写入活动时由组织者**逐项**勾选「系统内做 / 去线下做」，项＝该场景 SOP 任务链里 `executor==='deep'` 的节点（无深参项的场景不写本字段）；**缺省 / 非法值读侧一律按 `in-system`**（＝既有行为零变化）。单一源 `docs/src/services/activity/activity.js`（`DEEP_WORK_MODE` / `DEEP_WORK_MODE_LABEL` / `deepWorkModeOf`），写入位 `docs/src/entries/tabs/leader/write-tab.js`。 |
+| ownerScope | `'branch'`\|`'committee'` | 否 | 读侧缺省 `'branch'` | 内容归属（2026-11-08 批次 536）：`branch`＝支部自发；`committee`＝党委下发 / 党委自有。存量行不写本字段，读侧按 `branch` 处理 |
+| targetBranchIds | string[] | 否 | `[]` | 党委活动的下发目标支部 id 列表；支部副本不使用本字段 |
+| publishScope | `'branch'`\|`'login'`\|`'public'` | 否 | 读侧缺省 `'branch'` | 发布可见范围：仅本支部 / 登录可见 / 公开可见 |
+| publishExpiresAt | string (ISO)\|null | 否 | `null` | 公开发布的到期时点；到期后按 `branch` 可见范围处理 |
+| publicSummary | string | 否 | -- | 对外展示的公开摘要；不得写入成员个人数据 |
+| contentVersion | number | 否 | `1` | 党委原件的内容版本；支部副本按 `sourceVersion` 对齐 |
+| sourceActivityId | string\|null | 否 | `null` | 党委活动原件 id；非空表示本行是下发副本 |
+| sourceVersion | number\|null | 否 | `null` | 副本对应的原件 `contentVersion` |
+| sourceSyncedAt | string (ISO)\|null | 否 | `null` | 副本最近一次与原件对齐的时间 |
+| adoptedAt | string (ISO)\|null | 否 | `null` | 支部采纳该下发活动的时间 |
+| adoptedBy | string\|null | 否 | `null` | 采纳人 personId |
 
 > **设计注记（活动写入表单必有地点字段，出处见 insights §6.6）**：活动写入表单不得只含日期而没有地点——"什么时候"和"在哪里"是参与者最基本的信息需求，缺少任何一个，表单就是不完整的。适用：任何活动写入/编辑表单设计，与字段表 `location` 行（含线上会议链接场景）配套阅读。
 
@@ -485,6 +496,9 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | reads | string[] | 是 | `[]` | 逐人已读 personId；读侧 `read` 布尔＝当前人在此表内 |
 | archivedBy / archived | string[] / boolean | 是 / 否 | `[]` / `false` | 逐人归档（可恢复）与系统归档（随活动归档 / 过期，不可恢复） |
 | replyTo / fromPersonId | string \| null | 否 | `null` | 私信回复线程原信 id；发件人 personId（私信仅收发双方可见） |
+| publishScope | `'branch'`\|`'login'`\|`'public'` | 否 | 读侧缺省 `'branch'` | 发布可见范围：仅本支部 / 登录可见 / 公开可见（2026-11-08 批次 536） |
+| publishExpiresAt | string (ISO)\|null | 否 | `null` | 公开发布的到期时点；到期后按 `branch` 可见范围处理 |
+| publicSummary | string | 否 | -- | 对外展示的公开摘要；不得写入成员个人数据 |
 
 ### 2.10 经验沉淀 (ExperienceDeposit)
 
@@ -1272,6 +1286,63 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | API | `server/routes/resources/index.js::POST /activities/:id/archive` | 同一 `db.transaction` 内更新 activities / archive_records / notices / todos |
 
 「待归档」待办改阶段：活动结束（`isActivityEnded`）即由 `LifecycleTodoDeriver.derivePendingArchiveTodos` 生成一条（幂等键 `sourceType+sourceId+actionKey`），归档动作负责完成；历史「归档完成后新建」的滞留待办由 `migrateStaleArchiveTodos` 一次性作废（幂等）。
+
+### 2.31 党委内容与公开发布（ownerScope / publishScope / publication_audits）
+
+> 党委（party-staff）写入的活动、通知、支部文件按 `ownerScope` 区分归属，按 `publishScope` 控制可见范围。枚举单一源 `docs/src/core/domain/constants.js`（`COMMITTEE_OWNER_ID` / `ACTIVITY_OWNER_SCOPES` / `PUBLISH_SCOPES`），字段必填与枚举登记以 [DATA_CONTRACT.md](./DATA_CONTRACT.md) 为准。
+
+**归属与发布枚举**
+
+| 常量 | 取值 | 用途 |
+|---|---|---|
+| `COMMITTEE_OWNER_ID` | `'pc-gsm'` | 党委自有内容的归属键（党委伪支部 id） |
+| `ACTIVITY_OWNER_SCOPES` | `'branch'` / `'committee'` | 内容归属：支部自发 / 党委下发或党委自有 |
+| `PUBLISH_SCOPES` | `'branch'` / `'login'` / `'public'` | 发布可见范围：仅本支部 / 登录可见 / 公开可见 |
+| `EMPHASIS_NOTICE_WINDOW_MS` | 24 小时（毫秒） | 通知发布后的强调展示窗口 |
+
+**支部副本的改写边界**（`ACTIVITY_COPY_LOCKED_FIELDS` / `ACTIVITY_COPY_EDITABLE_FIELDS`）
+
+| 类别 | 字段 | 说明 |
+|---|---|---|
+| 锁定 | title / type / description / agenda / carriers / publicSummary / summary / content | 党委原件内容，支部副本不得改写 |
+| 可改 | date / location / organizingScope / hostGroupId / hostGroup / recruitmentScope / crossGroupCoordinatorId / signupEnabled / signupClosed / requireMakeup / isOutdoor / deepWorkMode / assignments / participants | 支部在本地安排的时间、地点、承办与分工 |
+
+**支部文件 (BranchDoc)**
+
+> 一支部一存储空间，跨支部不可见；表结构 `branch_docs (id, data)`。党委下发文件的归属与发布字段如下。
+
+| 字段名 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| ownerScope | `'branch'`\|`'committee'` | 否 | 缺省读作 `branch`；`committee` 表示党委下发的支部文件 |
+| publishScope | `'branch'`\|`'login'`\|`'public'` | 否 | 发布可见范围；缺省读作 `branch` |
+| publishExpiresAt | string (ISO)\|null | 否 | 公开发布到期时点 |
+| publicSummary | string | 否 | 对外展示的公开摘要 |
+| summary | string | 否 | 文件摘要（支部内展示） |
+
+**发布留痕 (publication_audits)**
+
+> 发布 / 撤回 / 过期 / 支部采纳的逐次留痕；只增不改，演示种子为空。表结构 `publication_audits (id, data)`。
+
+| 字段名 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| id | string | 是 | 留痕 id |
+| resourceType | string | 是 | 被操作的资源类型（activity / notice / branchDoc） |
+| resourceId | string | 是 | 被操作的资源 id |
+| action | string | 是 | 动作（publish / unpublish / expire / adopt） |
+| at | string (ISO) | 是 | 动作时间 |
+| actorId | string | 否 | 操作人 personId |
+| actorRole | string | 否 | 操作人角色键 |
+| anonymous | boolean | 否 | 公开访问下的匿名动作标记 |
+| oldValue / newValue | any | 否 | 变更前后的取值 |
+| note | string | 否 | 备注 |
+
+**schema v13 读侧结构**（`server/db.js::MIGRATIONS` version 13）
+
+| 形态 | 内容 |
+|---|---|
+| VIRTUAL 生成列 | `activities(owner_scope, source_activity_id, publish_scope)`、`notices(publish_scope)`、`branch_docs(owner_scope, publish_scope)`；缺省一律 `branch`，只读、不参与写入 |
+| 部分唯一索引 | `idx_activities_source_branch`：同一支部对同一条党委活动最多一条副本（`source_activity_id` 非空时才约束） |
+| 读口索引 | `idx_activities_owner_scope_publish` / `idx_notices_publish_scope` / `idx_branch_docs_publish_scope` |
 
 ---
 

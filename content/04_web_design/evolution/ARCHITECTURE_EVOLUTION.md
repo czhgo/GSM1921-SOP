@@ -3,9 +3,9 @@ title: "架构演进——组件化落地评估与轻量插件化设计"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-22
-last_updated: "2026-11-03"
+last_updated: "2026-11-08"
 status: active
-related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../03_doc_system/ARCHITECTURE.md, ../../05_ai_coding/README.md]
+related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, PUBLIC_ENTRANCE.md, ../../03_doc_system/ARCHITECTURE.md, ../../05_ai_coding/README.md]
 ---
 
 # 架构演进——组件化落地评估与轻量插件化设计
@@ -147,40 +147,55 @@ related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../
 
 ---
 
-## 十、多支部同实例设计（2026-11-03 · 设计稿，未实现）
+## 十、多支部同实例与党委内容域（2026-11-08 · 设计与前置条件）
 
-> **支书口径**：「服务端要考虑多支部情况，需要有所设计」。本节只定**模型与实施顺序**，不改变当前上线形态——上线仍坚持「一实例一支部」，production 档在多支部且未显式放行时拒绝启动。完成本节 Phase 1–2 后，才允许 `ALLOW_MULTI_BRANCH=1`。
+> **支书口径**：「服务端要考虑多支部情况，需要有所设计」。本节定**模型、阶段顺序与验收**，不改变当前上线形态——生产仍为「一实例一支部」，`ALLOW_MULTI_BRANCH` 开关**保持关闭**，多支部且未显式放行时 production 档拒绝启动。Phase 1–2 是打开开关的**前置**；Phase 3–4 不以上线为前提。
 
 ### 10.1 现状与风险
 
 - 数据行已有 `branchId`（资源、语义、工作组表均带；历史缺字段回落 `br-b1`），写门已有支部校验（`branch-scope.js` / `RESOURCE_WRITE_GATE`）。
-- **读面没有统一收口**：`listTable` 与部分语义端点整表读取，支部过滤靠前端投影；因此同实例多支部会串读。
-- 快照写穿已做「写入行归属校验」，但读取面未过滤，导致「写得住、看得穿」。
+- **读面没有统一收口**：`listTable` 与部分语义端点整表读取，支部过滤靠前端投影；同实例多支部会串读。
+- 快照写穿已做「写入行归属校验」，读取面未过滤，形成「写得住、看得穿」。
+- 党委此前只有治理视野（监控 / 任命 / 审批 / 下发），没有内容域：院级活动、院级通知、院级资料无处落行。
 
 ### 10.2 目标模型（请求级支部上下文）
 
 1. **单一来源**：每个请求由 `requireAuth` 注入 `req.actor.branchId`；无支部归属仅限 `party-staff` / 待归属账号。
-2. **读口统一过滤**：所有 `list` / `bootstrap` / 语义读口在取得行后经过 `resourceRowsForActor(db, name, rows, actor, reader)`；禁止在 handler 里自行 `JSON.parse` 后直接返回全表。
-3. **治理面显式跨支部**：`party-staff` 读取跨支部时必须带 `?branchId=` 或走党委专用端点，并在 `auth_audit` 留痕；不带范围时默认拒绝，而不是默认全量。
-4. **写入面不变**：继续用 `RESOURCE_WRITE_GATE` + 行级归属；快照写入的 `snapshotScopeDeny` 与 `_retainUngatedSnapshotRows` 保持现值。
-5. **索引**：`MIGRATIONS v2` 增加 `branchId` 表达式索引（`json_extract(data,'$.branchId')`），只在实际出现跨支部查询后加，不提前空转。
+2. **读口统一过滤**：`list` / `bootstrap` / 语义读口取得行后必须经过 `resourceRowsForActor(db, name, rows, actor, reader)`；不得在 handler 里 `JSON.parse` 后直接返回全表。
+3. **治理面显式跨支部**：`party-staff` 跨支部读取必须带 `?branchId=` 或走党委专用端点，并留痕；不带范围时拒绝，不默认全量。
+4. **写入面按内容归属分档**：`ownerScope` 决定写门；支部账号只写 `ownerScope='branch'` 且属于本支部的行，党委账号写支部业务记录时必须明确 `branchId`。
+5. **索引随查询出现再加**：`MIGRATIONS` 追加 `branchId` 表达式索引（`json_extract(data,'$.branchId')`），只在实际出现跨支部查询后加。
 
-### 10.3 实施顺序（每阶段可独立回归）
+### 10.3 党委伪支部 `pc-gsm` 与真实支部的边界
 
-| 阶段 | 内容 | 验收判据 | 风险 |
+| 维度 | 党委伪支部 `pc-gsm` | 真实支部 |
+|---|---|---|
+| 支部目录 | 不进入；不参与支部数与统计 | 进入目录，参与统计 |
+| 成员与考勤 | 不承载成员名册、考勤、工作组 | 承载 |
+| 支书任命 | 不可任命 | 可任命 |
+| 内容行 | 党委活动、党委通知、院级资料 | 支部活动、支部内部通知、支部资料 |
+| 写入口 | 只对 `party-staff` 开放 | 支部账号写本支部行；党委写支部业务记录须明确 `branchId` |
+
+- **跨支部副本唯一性**：唯一约束落在 `(branch_id, source_activity_id)`（排除空值），同一支部对一条党委活动最多一条副本；不同支部各自一条，互不影响。
+- **公开路由与支部隔离**：公开路由不经支部作用域，只返回 `publishScope='public'` 且未过期的党委行；登录态读口仍走支部作用域 ＋ 党委可见行的并集。两条通道不共用同一条 SQL 分支。
+
+### 10.4 实施顺序（每阶段可独立回归）
+
+| 阶段 | 内容 | 验收判据 | 是否上线前置 |
 |---|---|---|---|
-| Phase 1 | 读口统一过滤：`/bootstrap`、资源 `GET`、语义读口全部接入 `resourceRowsForActor` | 双支部夹具下，A 支部账号读不到 B 支部任何行；单支部现有测试全绿 | 可能误伤党委跨支部治理视图，需显式范围参数 |
-| Phase 2 | 快照读面按支部返回；前端 `data-adapter` 不再假设全量 | 双支部下快照同步后本支部数据完整、他支部数据不出现 | 前端缓存键需带 branchId |
-| Phase 3 | 党委跨支部入口与审计留痕；`ALLOW_MULTI_BRANCH=1` 才允许启动 | 党委带范围可读、普通账号跨支部 403；审计可查 | 权限面扩大，须支书裁定 |
-| Phase 4 | 索引与压力测试（万行级） | p95 不退化；无全表扫描 | 需要真实规模数据 |
+| **Phase 1 数据模型** | `activities` 增 `ownerScope`、`targetBranchIds`、`sourceActivityId`、`sourceVersion`、`sourceSyncedAt`、`adoptedAt`、`adoptedBy`、`contentVersion`、`publicSummary`、`publishScope`、`publishExpiresAt`；党委活动行 `branchId='pc-gsm'`；`notices` / `branch_docs` 增 `publishScope` / `publishExpiresAt`；迁移追加生成列与部分唯一索引；存量行缺 `ownerScope` 读作 `branch` | 迁移后字段、生成列与索引齐备；`data-contract` / `db-integrity-guard` / `seed-contract-guard` 绿；存量活动与通知不丢失 | 是（打开开关的前置） |
+| **Phase 2 读侧并集与写门** | `resourceRowsForActor` 对 `activities` / `notices` / `branchDocs` 支部账号返回「本支部行 ＋ 党委可见行」，已有副本时排除党委原件；写门按 `ownerScope` 判定；党委伪支部不进入支部目录与支部统计；其余资源维持支部隔离 | 双支部夹具下 A 支部读不到 B 支部任何行；支部汇总不含 `pc-gsm`；其他资源隔离不松动；单支部既有测试全绿 | 是（打开开关的前置） |
+| **Phase 3 下发与采用** | 下发按目标支部创建系统通知（受众 `['secretary','deputy-secretary']`，同一 `contentVersion` 幂等）；支部幂等采用生成副本（并发由唯一索引 ＋ 事务兜底）；副本内容字段锁定，只允许执行字段；手动同步只覆盖内容字段并更新 `sourceVersion` / `sourceSyncedAt`；强调通知按 `(branchId, sourceActivityId)` 24 小时限频 | 重复下发不新增通知；重复采用返回同一副本；副本内容字段变更返回 422；越权采用 403；24 小时内重复强调通知返回 429 | 否 |
+| **Phase 4 公开门厅与多实例部署** | 匿名只读接口（字段白名单、有效期 fail-closed、不存在与无权统一 404、下载写审计）；公开权限只归党委；多实例部署由 `ALLOW_MULTI_BRANCH` 控制，开关关闭时多支部配置拒绝启动 | 匿名响应不含成员与内部字段；过期后匿名 404；公开与撤下可在审计表查到；开关关闭时单支部正常启动、打开时通过多支部校验 | 否 |
 
-### 10.4 不做什么
+### 10.5 不做什么
 
-- 不把支部做成独立数据库 / 独立 schema（迁移与备份成本高，且当前规模不需要）。
-- 不在前端做「隐藏他支部数据」来替代服务端读过滤——前端隐藏不是隔离。
+- 不把支部做成独立数据库 / 独立 schema（迁移与备份成本高，当前规模不需要）。
+- 不在前端做「隐藏他支部数据」来替代服务端读过滤——前端隐藏不构成隔离。
 - 不在 Phase 1–2 完成前打开 `ALLOW_MULTI_BRANCH`。
+- 不为党委内容域另建一套活动表；党委活动与支部活动同表，由 `ownerScope` 区分。
 
-> **决策待办**：Phase 3 的「党委跨支部读取」是否需要独立页面/入口，还是仅 API 参数；这个决定会影响 `party-committee` 工作台的 IA，留给支书裁定。
+> **决策待办**：Phase 2 之后「党委跨支部读取是否需要独立页面 / 入口，还是仅 API 参数」仍留给支书裁定，该决定影响党委工作台的 IA。开关打开本身另需支书裁定与部署放行，本节不预设时间。
 
 ---
 

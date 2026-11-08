@@ -2,7 +2,7 @@
 title: "支书评议队列"
 type: audit_report
 role: "[工程师]+[AI]"
-last_updated: 2026-11-07
+last_updated: 2026-11-08
 status: active
 layer: reference
 related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
@@ -207,6 +207,7 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 
 ### 归口待办（非待裁）
 
+- **公共门厅 SD 编号待登记**：`CASE-DESIGN-035`（公共门厅未登录不出现支部名）的 `CASES_INDEX.md` 行与计数已补（2026-11-08 批次 536）；门厅版式与匿名字段白名单的 SD 编号待设计系统登记后回填判例「对应规范编号」。
 - **`B-3`**：「活动材料闭环」建议页从未建；其余 7 条「立表时待确认」均已闭环。
 - **chips 启停证据**：产出块「chips 启停 → 保存」的 UI 路径无真机证据 → 补一条真机流程，或写明「不覆盖」理由（同 `Q-23-44` 法）。
 - **`Q-23-9`**：`getMembers()` 在 api 形态只返回静态种子、不含 server 新建成员 ⇒ 流入后无法立即流出；支书裁定随「服务器权威读回归」一并处理。

@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken, advanceVersionBaselineAfterWrite } from './data-adapter.js?v=20261107a';
+import { getApiBaseUrl, getAuthToken, advanceVersionBaselineAfterWrite } from './data-adapter.js?v=20261108a';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -662,6 +662,63 @@ export const ApiAdapter = {
 
     delete(id) {
       return _delete(`/api/v1/branchDocs/${id}`);
+    },
+  },
+
+  // 2026-11-08 批次 536 · 党委工作台「院级内容」写口（Task 8 前端接线）。
+  // 服务端实现 = server/routes/resources/semantic-routes.js（`requireRole(PARTY_STAFF_ROLE)`；
+  //   `ownerScope='committee'` 与 `branchId='pc-gsm'` 由服务端固定，本组不传）。
+  // 读侧沿用 `_get`：党委内容按 ownerScope 过滤，`_withSelectedBranch` 附加的 branchId 不改变结果集。
+  // 新增的 publication / dispatch / cancel / archive / withdraw 均为行级语义端点，不接受整表覆盖。
+  committeeContent: {
+    activities: {
+      list(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        return _get(`/api/v1/committee/activities${query ? '?' + query : ''}`);
+      },
+
+      create(data) {
+        return _post('/api/v1/committee/activities', data);
+      },
+
+      update(id, patch) {
+        return _patch(`/api/v1/committee/activities/${encodeURIComponent(id)}`, patch);
+      },
+
+      cancel(id) {
+        return _post(`/api/v1/committee/activities/${encodeURIComponent(id)}/cancel`);
+      },
+
+      archive(id) {
+        return _post(`/api/v1/committee/activities/${encodeURIComponent(id)}/archive`);
+      },
+
+      updatePublication(id, patch) {
+        return _patch(`/api/v1/committee/activities/${encodeURIComponent(id)}/publication`, patch);
+      },
+
+      dispatch(id, body) {
+        return _post(`/api/v1/committee/activities/${encodeURIComponent(id)}/dispatch`, body);
+      },
+    },
+
+    documents: {
+      list(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        return _get(`/api/v1/committee/documents${query ? '?' + query : ''}`);
+      },
+
+      create(data) {
+        return _post('/api/v1/committee/documents', data);
+      },
+
+      update(id, patch) {
+        return _patch(`/api/v1/committee/documents/${encodeURIComponent(id)}`, patch);
+      },
+
+      withdraw(id) {
+        return _post(`/api/v1/committee/documents/${encodeURIComponent(id)}/withdraw`);
+      },
     },
   },
 

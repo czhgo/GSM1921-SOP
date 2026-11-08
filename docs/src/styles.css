@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261107a');
+@import url('components/person-picker.css?v=20261108a');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -894,6 +894,10 @@ body {
   gap: var(--space-2);
   margin-left: auto;
   flex: 0 0 auto;
+  /* 2026-11-08 批次 536 收尾（页签审计 F7）：`flex: 0 0 auto` 让侧栏按 max-content 定宽，
+     窄屏下长 meta / 长徽标会把卡头撑破父级（390 溢出 29–62px）。上限＝卡头宽，
+     超宽时按下方 wrap 落到下一行。 */
+  max-width: 100%;
 }
 @media (max-width: 640px) {
   .card-head { flex-wrap: wrap; }
@@ -3367,6 +3371,55 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
 .dashboard-hero__emblem {
   width: 48px;
   height: 48px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT: 公共门厅（未登录首页 · 2026-11-08 批次 536 · Task 7）
+   hero 与工作台 #dashboard-hero 分开：门厅只在未登录时出现，
+   不复用首页 hero 的居中白名单判据（DS_05 §10.5.1）。
+   ═══════════════════════════════════════════════════════════════ */
+.public-portal-hero__emblem {
+  width: 56px;
+  height: 56px;
+}
+/* 未登录门厅 / 登录工作台二选一：`.view-section.hidden` 的旧规则只做透明过渡、元素仍占位，
+   门厅分流必须真正不占位（否则隐藏区会留下整屏空白） */
+#view-public-portal.hidden,
+#view-dashboard.hidden {
+  display: none !important;
+}
+.public-portal-item {
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--neutral-200);
+}
+.public-portal-item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.public-portal-item:last-child {
+  padding-bottom: 0;
+}
+.public-portal-item__title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--neutral-800);
+}
+.public-portal-item__meta {
+  margin-top: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--neutral-500);
+}
+.public-portal-item__body {
+  margin-top: var(--space-2);
+  font-size: var(--text-base);
+  color: var(--neutral-700);
+  white-space: pre-wrap;
+}
+.public-portal-download {
+  display: inline-block;
+  margin-top: var(--space-2);
+  font-size: var(--text-base);
+  color: var(--app-accent-soft-text);
 }
 @media (min-width: 769px) {
   .cal-mobile-detail {

@@ -1,4 +1,4 @@
-﻿﻿// server/test/run-mode.test.mjs —— 运行档（review / production）与生产单支部硬断言守卫
+// server/test/run-mode.test.mjs —— 运行档（review / production）与生产单支部硬断言守卫
 //
 // 为什么单独成文件：本组用例只覆盖「启动形态」，不触 HTTP、不连 3000、不写运行库
 //   （全部 `:memory:`），与 api 形态用例分离，秒级可跑。

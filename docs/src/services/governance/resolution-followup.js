@@ -15,19 +15,19 @@
 //  BOM/纯 ESM 零依赖 DOM；扫描/派生为纯函数（activities 数组入参），供 node 单测与支书台聚合共用。
 // ════════════════════════════════════════════════════════════════
 
-import { generateId } from '../../core/base/id.js?v=20261107a';
-import { mockDB } from '../../core/domain/domain.js?v=20261107a';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261107a'; // P0 域缓存失效（spec §二.3/§二.4）
+import { generateId } from '../../core/base/id.js?v=20261108a';
+import { mockDB } from '../../core/domain/domain.js?v=20261108a';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261108a'; // P0 域缓存失效（spec §二.3/§二.4）
 import {
   TodoStore, TodoStatus, TodoCategory, TodoActionType, TodoSourceType,
-} from './todo.js?v=20261107a';
-import { BranchService } from '../core/runtime.js?v=20261107a';
-import { loadActivities } from '../activity/activity.js?v=20261107a';
-import { PersonStore } from '../member/person.js?v=20261107a';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261107a';
-import { todayLocal } from '../../core/base/utils.js?v=20261107a';
+} from './todo.js?v=20261108a';
+import { BranchService } from '../core/runtime.js?v=20261108a';
+import { loadActivities } from '../activity/activity.js?v=20261108a';
+import { PersonStore } from '../member/person.js?v=20261108a';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261108a';
+import { todayLocal } from '../../core/base/utils.js?v=20261108a';
 // 决议逾期派生单一源（零依赖叶子件；服务端 Task 8 同源消费）
-import { collectOverdueResolutionFollowups, deriveResolutionFollowupRemindGroup } from '../../core/domain/todo-derive.js?v=20261107a';
+import { collectOverdueResolutionFollowups, deriveResolutionFollowupRemindGroup } from '../../core/domain/todo-derive.js?v=20261108a';
 
 /** 待落实跟进状态 */
 export const FOLLOWUP_STATUS = {

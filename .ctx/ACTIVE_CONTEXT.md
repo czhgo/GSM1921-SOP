@@ -3,9 +3,9 @@ title: "Active Context — 当前判断入口"
 type: active_context
 role: "[AI]"
 layer: active
-last_updated: "2026-11-07"
-last_verified: "2026-11-07"
-latest_decision: "D-857"
+last_updated: "2026-11-08"
+last_verified: "2026-11-08"
+latest_decision: "D-858"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -20,17 +20,17 @@ status: active
 
 ## §1 系统现状（只读这一屏）
 
-- **形态**：原生 ESM 多页应用 ＋ Node/Express ＋ better-sqlite3；页面 26 个（18 根页 ＋ 8 工作台/只读视图）；工作台 7 个（支书 / 组织 / 宣传 / 纪检 / 组长 / 成员 / 党委）。
+- **形态**：原生 ESM 多页应用 ＋ Node/Express ＋ better-sqlite3；页面 26 个（18 根页 ＋ 8 工作台/只读视图）；工作台 7 个（支书 / 组织 / 宣传 / 纪检 / 组长 / 成员 / 党委）；党委台 4 页签（下发通知 / 院级内容 / 支部上报 / 支部管理）。
   - source：`.ctx/SNAPSHOT.md §I/§III`。
-- **数据**：业务表 47 张（34 资源 ＋ 7 语义 ＋ 6 工作组）；SQLite 宽表 `id + data(JSON)`；schema **v12**；空库首启补最小组织基线（1 支部 ＋ 党委账号 ＋ 6 角色账号）。
+- **数据**：业务表 48 张（34 资源 ＋ 8 语义 ＋ 6 工作组）；SQLite 宽表 `id + data(JSON)`；schema **v13**（新增 `publication_audits`，三张内容表加 `owner_scope` / `publish_scope` 生成列）；空库首启补最小组织基线（1 支部 ＋ 党委账号 ＋ 6 角色账号）。
   - source：`server/data/domain-contract.mjs`、`content/04_web_design/data/DATA_CONTRACT.md`。
 - **权限**：写入口权限矩阵 **141 条**（135 enforced / 4 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵；审计 C1 查矩阵 + 高风险抽样。
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
-- **审计**：45 页签 **P0 0 / P1 0 / P2 2 / exception 44**；F1–F8 全绿；M1–M3 在位。
-  - source：`.ctx/evidence/2026-11-03/tab-audit/summary.md`。
-- **测试**：`npm run test:daily` 预算 **1792**；本批定向守卫全绿，全量结果见 `.ctx/logs/2026-11-EXECUTION_LOG.md` 批次 535；9 条 precommit e2e 仍待发布前复跑。
-  - source：`.ctx/logs/2026-11-EXECUTION_LOG.md §批次 535`、`server/test-tier-registry.mjs`。
-- **版本戳**：`20261107a`，0 处陈旧。
+- **审计**：46 页签 **P0 0 / P1 0 / P2 2 / exception 44**；F1–F8 全绿；M1–M3 在位。
+  - source：`.ctx/evidence/2026-11-08/tab-audit/summary.md`。
+- **测试**：daily **255 文件 / 1872 断言**；本批全量分片 5/5 全绿；9 条 precommit e2e 仍待发布前复跑。
+  - source：`.ctx/logs/2026-11-EXECUTION_LOG.md §批次 536`、`server/test-tier-registry.mjs`。
+- **版本戳**：目标 `20261108a`（主代理收尾统一 bump），当前 0 处陈旧。
   - source：`docs/scripts/bump-version.mjs --check`。
 - **换轨**：副本 **48 表 / 577 行** export → dry-run → apply 一致；生产空库 `preflight-cutover --strict` exit 0 / 警告 0。
   - source：`deploy/CUTOVER_RUNBOOK.md`、`.ctx/evidence/2026-11-03/security/summary.md`。
@@ -54,6 +54,7 @@ status: active
 - **乙部余项合并批**：待办派生先上最小 Plan B（服务端只读端点 + 客户端切读 + 降级），完整版阶段门槛登记为 `B-500-7b`；R5 旧账全量对账；9 条 precommit e2e 全绿；`text-xs` / help.html 色转守卫棘轮。（`D-855`）→ `server/routes/todo-groups.js`、`CLAUDE.md 乙部`、`type-scale-guard::Q6`。
 - **界面信号与颜色权威**：状态 / 装饰左条退出（CASE-DESIGN-033）；焦点沿用 SD-27 单环、2px 不加宽、双层环不得回潮；`styles.css` 为唯一颜色权威，`constants.js` / `tailwind-config.js` 受守卫镜像；7 类待办组全部服务端化且测试先行；数据分层写入 `H32`。（`D-856`）→ `DS_03 SD-25`、`theme-palette-guard::T12/T13`、`server/test/todo-derive-parity.test.mjs`。
 - **CLAUDE 三层与通知受众**：温层恢复为「触发表 + H60–H80」，层边界 / 乙部去历史有守卫；系统通知无受众＝不可读、广播必须显式 `all`、未登录一律不可读；行动行按 SD-60 四类排布。（`D-857`）→ `CLAUDE.md`、`notice.js`、`DS_06 SD-60`、`action-row-wrap-guard`。
+- **党委内容域与公共门厅**：未登录只看党委公开内容（公开通知全文 / 活动摘要 / 公开资料），登录后看党委与支部并集；`public` 只归党委、必须带未来有效期并留痕 `publication_audits`；支部副本只改执行字段、手动同步。（`D-858`）→ `SYSTEM_ROLE_PERMISSION §9a.1`、`PUBLIC_ENTRANCE.md`、`server/routes/public-portal.js`。
 
 ## §3 当前风险与下一步
 
@@ -74,7 +75,7 @@ status: active
 - `L-11` 共享口令。
 - `L-12` 审计脚本不进 daily（发布前硬门）。
 - `L-13` 41 个页签仅登记未重构。
-- **V-11 未登录公共入口**：登录页当前显示具体支部名；三方向见 `content/04_web_design/evolution/PUBLIC_ENTRANCE.md`，裁定前不改。
+- **公开内容与党委内容读面（`D-858`）**：未登录只读 `publishScope='public'` 且未过期的党委内容，过期即 404 fail-closed；党委内容只经服务端读口（`/committee/*` 与公开门厅），客户端不得本地派生可见性、不得带出支部名与成员字段。
 - `L-14` / `L-15` 块停用与画布 / 按角色配置（先出方案）。
 - `L-16` 表决名单重算待支书裁定。
 - `L-17` 宽表与索引。

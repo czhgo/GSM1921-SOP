@@ -16,7 +16,7 @@ import { CAPABILITY_PACKAGE_BY_ID } from '../../../docs/src/core/domain/capabili
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（server 写口与前端 branch.js 同源校验）
 import { POLICY_DEFAULTS, POLICY_OVERRIDE_SECTIONS, policySectionsByRole } from '../../../docs/src/core/domain/policy-defaults.js';
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/domain/constants.js（勿手写）
-import { ACTIVITY_SCOPES, BRANCH_COMMISSION_ROLES, hashSubmitterToken, isActivityEnded, isBranchLevelActivity, normalizeOrganizingScope, isPartyGroupLeaderRole, DEFAULT_BRANCH_ID } from '../../../docs/src/core/domain/constants.js';
+import { ACTIVITY_SCOPES, ACTIVITY_COPY_LOCKED_FIELDS, BRANCH_COMMISSION_ROLES, COMMITTEE_OWNER_ID, hashSubmitterToken, isActivityEnded, isBranchLevelActivity, normalizeOrganizingScope, isPartyGroupLeaderRole, DEFAULT_BRANCH_ID } from '../../../docs/src/core/domain/constants.js';
 import { projectMemberListRow } from '../../../docs/src/core/domain/profile-access.js';
 import {
   TaskforceStatus, TASKFORCE_TERMINAL_STATUSES, isTaskforceStatus, workgroupStatusForTaskforce, isActivityClosed,
@@ -391,6 +391,11 @@ export function createResourcesRouter(db) {
         if (name === 'committeeBroadcasts') {
           return res.status(409).json({ error: '支委广播已停止写入（存量只读保留；送达由系统通知承担）' });
         }
+        // 批次 536 Task 3：党委活动只走 /committee/activities（通用口按支部归属解析，写不进 pc-gsm）
+        if (name === 'activities' && req.body && typeof req.body === 'object'
+          && (req.body.ownerScope === 'committee' || req.body.branchId === COMMITTEE_OWNER_ID)) {
+          return res.status(400).json({ error: '党委活动请走 /committee/activities' });
+        }
         // R4-D04：先判稳定父键，再判角色门——缺键给出可懂 400，而不是笼统 403。
         if (name === 'inspections') {
           const keyDeny = _inspectionSourceKeyDeny(req.body);
@@ -547,8 +552,8 @@ export function createResourcesRouter(db) {
         && Object.prototype.hasOwnProperty.call(req.body, 'config')) {
         return res.status(400).json({ error: '支部配置请走 /branches/:id/config（统一净化与留痕）' });
       }
-      // R4-B03：非党委账号对 users 的通用 PATCH 只允许「role」一个字段（支委身份配置），
-      // 拒绝 branchId / transferOut / studentId / developStage 等夹带；目标支部严格等值由写门判据负责。
+      // R4-B03：非党委账号对 users 的通用 PATCH 只允许「role」一个字段（支委身份配置），拒绝 branchId / transferOut / studentId / developStage 等夹带；目标支部严格等值由写门判据负责。
+      if (name === 'users' && req.actor.role === 'party-staff' && req.body && typeof req.body === 'object' && !Array.isArray(req.body) && Object.prototype.hasOwnProperty.call(req.body, 'developStage')) return res.status(403).json({ error: '党委不得直接修改成员发展阶段，请提交名册提案' }); // 批次 536 Task 10：党委侧只提案（POST /committee/roster-proposals），阶段由支部确认链落库
       if (name === 'users' && req.actor.role !== 'party-staff') {
         const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
         const outside = Object.keys(body).filter((key) => key !== 'role');
@@ -581,6 +586,16 @@ export function createResourcesRouter(db) {
       const existing = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(id);
       if (!existing) return res.status(404).json({ error: 'not found' });
       const previousRecord = JSON.parse(existing.data);
+      // 批次 536 Task 3：党委活动副本的内容字段只由原件维护（`ACTIVITY_COPY_LOCKED_FIELDS` 单一源）；
+      //   归属 / 来源 / 版本由服务端维护，任何直改一律拒绝。
+      if (name === 'activities' && previousRecord.sourceActivityId) {
+        const copyPatch = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+        const locked = ACTIVITY_COPY_LOCKED_FIELDS.find((key) => Object.prototype.hasOwnProperty.call(copyPatch, key));
+        if (locked) return res.status(422).json({ error: `副本内容字段 ${locked} 由党委活动维护，请走同步` });
+        const immutable = ['sourceActivityId', 'sourceVersion', 'ownerScope', 'branchId']
+          .find((key) => Object.prototype.hasOwnProperty.call(copyPatch, key));
+        if (immutable) return res.status(403).json({ error: `无权限：副本的 ${immutable} 不可修改` });
+      }
       // 考察记录人不可代署/篡改（R4-D05：记录人=上传操作人）
       if (name === 'inspections' && req.body
         && Object.prototype.hasOwnProperty.call(req.body, 'recordedBy')

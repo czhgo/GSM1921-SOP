@@ -159,7 +159,9 @@ test('U8 页标题层级：四页重点各一个 H2，卡头 H3，首页抬头�
   assert.doesNotMatch(html, /光华管理学院本科生党支部/, '首页不得出现硬编码示例支部名');
   assert.match(html, /id="dashboard-hero-title"/, '首页抬头标题须走专属 id');
   assert.doesNotMatch(html, /<h3/, '首页区块标题应升为 H2，不再保留 H3');
-  assert.equal((html.match(/<h2/g) || []).length, 5, '首页应有 4 个区块 H2 + 1 个抬头 H2');
+  // 2026-11-08 批次 536 · Task 7：未登录公共门厅在首页追加 3 个区块 H2（重要通知 / 近期活动 / 公开资料），
+  //   与工作台的 4 个区块 H2 + 1 个抬头 H2 并存；两态由 JS 二选一显示。
+  assert.equal((html.match(/<h2/g) || []).length, 8, '首页应有 8 个 H2：工作台 4 区块 + 1 抬头 + 门厅 3 区块');
 
   const gallery = read('docs/src/components/dashboard/gallery.js');
   assert.match(gallery, /<h3 class="gallery-card__title">/, '风采卡标题应为 H3');

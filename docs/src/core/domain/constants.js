@@ -5,7 +5,7 @@
 // R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
 //   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
 
-import { todayLocal } from '../base/date.js?v=20261107a';
+import { todayLocal } from '../base/date.js?v=20261108a';
 
 // ════════════════════════════════════════════════════════════════
 //  缺省支部 id（单一源，R2-17，2026-10-20）
@@ -1165,3 +1165,30 @@ export function activityTypeTone(type) {
   if (cls === 'theme-party') return 'gold';
   return 'neutral';
 }
+
+// ════════════════════════════════════════════════════════════════
+//  党委内容与公开发布（单一源，2026-11-08 · 批次 534）
+// ════════════════════════════════════════════════════════════════
+// 党委（party-staff）写入的活动 / 通知 / 支部文件按 `ownerScope` 区分归属：
+//   支部自发内容缺省 `branch`；党委内容写 `committee`，并以下发原件 id 关联支部副本。
+// 发布可见范围只认三档；公开摘要承载展示用文案，不得写入成员个人数据。
+// ⚠ 追加在文件末，避免上方行号引用漂移。
+
+/** 党委伪支部 id：党委自有内容的归属键，不参与真实支部的成员归属 */
+export const COMMITTEE_OWNER_ID = 'pc-gsm';
+/** 内容归属范围：`branch`＝支部自发；`committee`＝党委下发 / 党委自有 */
+export const ACTIVITY_OWNER_SCOPES = Object.freeze(['branch', 'committee']);
+/** 发布可见范围：`branch`＝仅本支部；`login`＝登录可见；`public`＝公开可见 */
+export const PUBLISH_SCOPES = Object.freeze(['branch', 'login', 'public']);
+/** 党委活动副本的锁定字段：标题 / 类型 / 描述 / 议程 / 载体 / 公开摘要 / 正文，支部不得改写 */
+export const ACTIVITY_COPY_LOCKED_FIELDS = Object.freeze([
+  'title', 'type', 'description', 'agenda', 'carriers', 'publicSummary', 'summary', 'content',
+]);
+/** 党委活动副本的可改字段：时间 / 地点 / 承办 / 招募 / 分工 / 参与者，支部可本地调整 */
+export const ACTIVITY_COPY_EDITABLE_FIELDS = Object.freeze([
+  'date', 'location', 'organizingScope', 'hostGroupId', 'hostGroup', 'recruitmentScope',
+  'crossGroupCoordinatorId', 'signupEnabled', 'signupClosed', 'requireMakeup', 'isOutdoor',
+  'deepWorkMode', 'assignments', 'participants',
+]);
+/** 通知「强调」窗口（毫秒）：发布后该窗口内的通知按强调态展示 */
+export const EMPHASIS_NOTICE_WINDOW_MS = 24 * 60 * 60 * 1000;

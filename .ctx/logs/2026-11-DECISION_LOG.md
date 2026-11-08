@@ -2,7 +2,7 @@
 title: "2026年11月决策日志"
 type: decision_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-04
+last_updated: 2026-11-08
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-DECISION_LOG.md, content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md, content/04_web_design/design-system/DS_03_COMPONENTS.md, content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md]
 ---
@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-857`，共 31 条**；下一条自 **`D-858`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-858`，共 32 条**；下一条自 **`D-859`**。
 
 ## 本月目录（2026-11）
 
@@ -51,6 +51,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 乙部余项合并批：最小 Plan B + 全量对账 + 9 条 e2e + 长期棘轮 | `D-855` | 2026-11-04 | 已落（批次 533） |
 | 界面信号统一：删左条 / 焦点单环不回潮 / 颜色单一权威 / 7 类待办服务端化 | `D-856` | 2026-11-04 | 已落（批次 534） |
 | CLAUDE 三层恢复 / 通知受众 fail-closed / SD-60 行动行 | `D-857` | 2026-11-07 | 已落（批次 535） |
+| V-11 裁定：党委内容域 + 公共门厅 + 支部幂等采用 | `D-858` | 2026-11-08 | 已落（批次 536） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -201,7 +202,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 
 ## D-856 2026-11-04 — 界面信号统一、颜色单一权威与完整 Plan B 一期
 
-> **评议 → 裁定 → 落点**（支书四轮 grill 后裁定，批次 534）：
+> **评议 → 裁定 → 落点**（支书四轮 grill 后裁定，批次 536）：
 > - **左条**：删除所有状态型 / 装饰型左侧强调条（hover、选中、当前、状态、提示、装饰）；身份与品牌改圆点 / 徽章，引述改全框 / 底色；只留 1px 结构边。落 `DS_03` SD-25 / §12.11 / §4.2、`DS_04 §5.2`、`UI_REVIEW_CHECKLIST ③-3`、`CASES` CASE-DESIGN-033；守卫 `hover-state-guard::H11`、`ui-control-system-guard::V7`、`ui-contrast-guard::K6` 改判「不得再有状态左条」。
 > - **焦点**：沿用 SD-27 / DS_04 §5.7 单环（2px 实线、仅键盘触发、`box-shadow:none`），**不加宽、不收窄、不新增双层环 / 光晕 / 边框叠加**；输入族保持「只变边框」现状。回潮由 `FOCUS-1…5` / `ui-focus-ring::F1–F6` 守住。
 > - **颜色**：`styles.css` 为唯一权威；`constants.js` / `tailwind-config.js` 做受守卫镜像（T12/T13 逐值相等）；`about.css` 从 `allowNew` 改 `false`（内容不动）；渲染层彩色 `rgba()` 清零；help 内联徽标改文档页类；`btn-action` / toast 用专用令牌（暗色不覆写，保持浅底深字）。顶栏「写入活动」实底 CTA 按 V-3 保持。
@@ -216,4 +217,15 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > - **UI 行动行**：SD-60 四类排布（长组件伸缩 / 多短按钮 / 单枚低价值 / 筛选条），`.card-head` ≥641 不换行、标题让位、aside 不拆组；新增 `action-row-wrap-guard`。落 `DS_06 §二`、`DS_03 §4.2`、`docs/src/styles.css`、`CASE-DESIGN-034`。
 > - **未登录公共入口**：只研究不改；三方向（A 最小收紧 / B 学院级入口 / C 公共门户）落 `content/04_web_design/evolution/PUBLIC_ENTRANCE.md`，进丙部 V-11 待裁。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-857`**（共 **31** 条）。
+## D-858 2026-11-08 — 党委内容域与公共门厅
+
+> **评议 → 裁定 → 落点**（V-11 三方向比选后，支书裁定取 B 学院级公共门厅并同时立党委内容域，批次 536）：
+> - **读面**：未登录只看党委公开内容——党委公开通知全文、党委公开活动摘要、公开资料（列表 / 详情 / 下载）与登录入口；登录后看党委与支部并集。党委组织员获得活动写入、下发、公开与多域写权。
+> - **数据边界**：党委内容与支部内容同表，以 `ownerScope='committee'` ＋ `branchId='pc-gsm'` 标识；下发目标支部写 `['all']` 或支部 id。支部侧生成副本，副本只改执行字段（时间 / 地点 / 组织者 / 考勤），与原件手动同步，不自动回写；本支部已有副本时，支部列表隐藏党委原件。
+> - **公开边界**：`publishScope` 三档（`branch` / `login` / `public`）；`public` 只归党委，必须有未来有效期，撤下与过期一律 fail-closed（匿名接口 404）；公开、撤下、有效期变更与匿名下载写入 `publication_audits` 留痕。
+> - **通知与名册**：党委下发到支部的通知限支部内可见，同文重复下发按 24 小时限频；党委可导入支部名册、接收支部上报与提案，处置仍在支部侧。
+> - **品牌**：未登录门厅品牌为党徽 ＋「光华管理学院党建平台」，不出现具体支部名、成员姓名、统计卡与工作组。
+> - **未选方案**：A 最小收紧（无法承载公开内容）、C 公共门户（超出当前需求）；多支部 Phase 3–4 不以上线为前提，`ALLOW_MULTI_BRANCH` 保持关闭。
+> - **落点**：`server/routes/resources/semantic-routes.js`（党委内容语义端点）、`server/routes/resources/branch-scope.js`、`server/routes/public-portal.js`、`server/routes/resources/publication-audit.js`、`docs/index.html`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md §9a.1`、`content/04_web_design/evolution/PUBLIC_ENTRANCE.md`、`content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §十`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-858`**（共 **32** 条）。

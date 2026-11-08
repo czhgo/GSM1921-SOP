@@ -1,0 +1,380 @@
+{
+  "generatedAt": "2026-11-07T22:51:14.127Z",
+  "base": "http://127.0.0.1:55032",
+  "dbMode": "memory",
+  "tabs": [
+    {
+      "key": "secretary.work-map",
+      "label": "支部分工",
+      "blocks": 3,
+      "findings": [
+        {
+          "key": "secretary.work-map",
+          "rule": "F1",
+          "severity": "P1",
+          "status": "pass",
+          "message": "顶层块基线 3 ≤ 4（DOM 实测 3，仅作复核线索）",
+          "evidence": {
+            "measured": 3,
+            "raw": 1,
+            "baseline": 3,
+            "blocks": [
+              "div.card rounded-xl p-4",
+              "div.card rounded-xl p-4",
+              "p.text-xs text-gray-500 mt-3"
+            ]
+          }
+        },
+        {
+          "key": "secretary.work-map",
+          "rule": "F2",
+          "severity": "P1",
+          "status": "pass",
+          "message": "无筛选条（.lf-bar）",
+          "evidence": {
+            "bars": 0
+          }
+        },
+        {
+          "key": "secretary.work-map",
+          "rule": "F3",
+          "severity": "P1",
+          "status": "pass",
+          "message": "无 input[list]/datalist；suggest 输入 ARIA 合规",
+          "evidence": {
+            "inputList": 0,
+            "datalist": 0,
+            "suggest": 0
+          }
+        },
+        {
+          "key": "secretary.work-map",
+          "rule": "F4",
+          "severity": "P1",
+          "status": "pass",
+          "message": "H1 0 / H2 1；标题序列 h2→h3→h4→h3",
+          "evidence": {
+            "headings": [
+              {
+                "level": 2,
+                "text": "支部分工"
+              },
+              {
+                "level": 3,
+                "text": "责任关系"
+              },
+              {
+                "level": 4,
+                "text": "支部党员大会"
+              },
+              {
+                "level": 3,
+                "text": "分工调整工具"
+              }
+            ],
+            "jumps": []
+          }
+        },
+        {
+          "key": "secretary.work-map",
+          "rule": "F5",
+          "severity": "P1",
+          "status": "pass",
+          "message": "0 个 section 均有名称，无嵌套",
+          "evidence": {
+            "sections": 0
+          }
+        },
+        {
+          "key": "secretary.work-map",
+          "rule": "F6",
+          "severity": "P2",
+          "status": "pass",
+          "message": "未发现 .empty-state 之外的空态文本",
+          "evidence": {
+            "hits": 0
+          }
+        },
+        {
+          "key": "secretary.work-map",
+          "rule": "F7",
+          "severity": "P1",
+          "status": "fail",
+          "message": "390 横向溢出：scrollWidth 419 > innerWidth 390",
+          "evidence": {
+            "scrollWidth": 419,
+            "innerWidth": 390
+          }
+        },
+        {
+          "key": "secretary.work-map",
+          "rule": "F8",
+          "severity": "P0",
+          "status": "pass",
+          "message": "pageerror 0 / console.error 0 / 4xx 0",
+          "evidence": {
+            "pageErrors": 0,
+            "consoleErrors": 0,
+            "http4xx": 0
+          }
+        }
+      ]
+    },
+    {
+      "key": "secretary.feedback",
+      "label": "意见反馈",
+      "blocks": 3,
+      "findings": [
+        {
+          "key": "secretary.feedback",
+          "rule": "F1",
+          "severity": "P1",
+          "status": "pass",
+          "message": "顶层块基线 3 ≤ 4（DOM 实测 1，仅作复核线索）",
+          "evidence": {
+            "measured": 1,
+            "raw": 1,
+            "baseline": 3,
+            "blocks": [
+              "div.card rounded-xl p-5"
+            ]
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "F2",
+          "severity": "P1",
+          "status": "pass",
+          "message": "1 条筛选条均 ≤2 行、非 column、reset 未整行",
+          "evidence": {
+            "bars": [
+              {
+                "rows": 2,
+                "height": 96,
+                "flexDirection": "row",
+                "resetFullWidth": false
+              }
+            ]
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "F3",
+          "severity": "P1",
+          "status": "pass",
+          "message": "无 input[list]/datalist；suggest 输入 ARIA 合规",
+          "evidence": {
+            "inputList": 0,
+            "datalist": 0,
+            "suggest": 0
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "F4",
+          "severity": "P1",
+          "status": "pass",
+          "message": "H1 0 / H2 1；标题序列 h2→h3",
+          "evidence": {
+            "headings": [
+              {
+                "level": 2,
+                "text": "意见反馈"
+              },
+              {
+                "level": 3,
+                "text": "反馈列表"
+              }
+            ],
+            "jumps": []
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "F5",
+          "severity": "P1",
+          "status": "pass",
+          "message": "0 个 section 均有名称，无嵌套",
+          "evidence": {
+            "sections": 0
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "F6",
+          "severity": "P2",
+          "status": "pass",
+          "message": "未发现 .empty-state 之外的空态文本",
+          "evidence": {
+            "hits": 0
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "F7",
+          "severity": "P1",
+          "status": "fail",
+          "message": "390 横向溢出：scrollWidth 400 > innerWidth 390",
+          "evidence": {
+            "scrollWidth": 400,
+            "innerWidth": 390
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "F8",
+          "severity": "P0",
+          "status": "pass",
+          "message": "pageerror 0 / console.error 0 / 4xx 0",
+          "evidence": {
+            "pageErrors": 0,
+            "consoleErrors": 0,
+            "http4xx": 0
+          }
+        }
+      ]
+    },
+    {
+      "key": "visitor.todo",
+      "label": "待办",
+      "blocks": 5,
+      "findings": [
+        {
+          "key": "visitor.todo",
+          "rule": "F1",
+          "severity": "P1",
+          "status": "exception",
+          "message": "顶层块 5 > 4，已登记例外：页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）",
+          "evidence": {
+            "measured": 3,
+            "raw": 2,
+            "baseline": 5,
+            "blocks": [
+              "div.card rounded-xl p-5",
+              "div.card rounded-xl p-5",
+              "div.card rounded-xl p-5"
+            ],
+            "reason": "页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"
+          }
+        },
+        {
+          "key": "visitor.todo",
+          "rule": "F2",
+          "severity": "P1",
+          "status": "pass",
+          "message": "无筛选条（.lf-bar）",
+          "evidence": {
+            "bars": 0
+          }
+        },
+        {
+          "key": "visitor.todo",
+          "rule": "F3",
+          "severity": "P1",
+          "status": "pass",
+          "message": "无 input[list]/datalist；suggest 输入 ARIA 合规",
+          "evidence": {
+            "inputList": 0,
+            "datalist": 0,
+            "suggest": 0
+          }
+        },
+        {
+          "key": "visitor.todo",
+          "rule": "F4",
+          "severity": "P1",
+          "status": "pass",
+          "message": "H1 0 / H2 1；标题序列 h2→h3→h3→h3→h3→h3",
+          "evidence": {
+            "headings": [
+              {
+                "level": 2,
+                "text": "待办"
+              },
+              {
+                "level": 3,
+                "text": "我的待办"
+              },
+              {
+                "level": 3,
+                "text": "详情"
+              },
+              {
+                "level": 3,
+                "text": "我经办的反馈"
+              },
+              {
+                "level": 3,
+                "text": "待我处理 0"
+              },
+              {
+                "level": 3,
+                "text": "我已处理 0"
+              }
+            ],
+            "jumps": []
+          }
+        },
+        {
+          "key": "visitor.todo",
+          "rule": "F5",
+          "severity": "P1",
+          "status": "pass",
+          "message": "1 个 section 均有名称，无嵌套",
+          "evidence": {
+            "sections": 1
+          }
+        },
+        {
+          "key": "visitor.todo",
+          "rule": "F6",
+          "severity": "P2",
+          "status": "pass",
+          "message": "未发现 .empty-state 之外的空态文本",
+          "evidence": {
+            "hits": 0
+          }
+        },
+        {
+          "key": "visitor.todo",
+          "rule": "F7",
+          "severity": "P1",
+          "status": "pass",
+          "message": "390 无横向溢出（390 ≤ 390 + 1）；长列表分页门槛通过",
+          "evidence": {
+            "scrollWidth": 390,
+            "innerWidth": 390
+          }
+        },
+        {
+          "key": "visitor.todo",
+          "rule": "F8",
+          "severity": "P0",
+          "status": "fail",
+          "message": "4xx 1",
+          "evidence": {
+            "pageErrors": [],
+            "consoleErrors": [],
+            "http4xx": [
+              {
+                "status": 403,
+                "url": "http://127.0.0.1:55032/api/v1/todo-groups?role=visitor&personId=2400012349"
+              }
+            ],
+            "counts": {
+              "pageErrors": 0,
+              "consoleErrors": 0,
+              "http4xx": 1
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "P0": 1,
+    "P1": 2,
+    "P2": 0,
+    "exceptions": 1
+  }
+}

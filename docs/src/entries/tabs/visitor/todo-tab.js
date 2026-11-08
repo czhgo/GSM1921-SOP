@@ -2,12 +2,12 @@
 // 参与者工作台 Tab：待办（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 todo-tab-shell）
 // 最小三成本原则落地：进入即见首条详情，减一次点击。
 
-import { showToast } from '../../../core/base/utils.js?v=20261107a';
-import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261107a';
-import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261107a';
+import { showToast } from '../../../core/base/utils.js?v=20261108a';
+import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261108a';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261108a';
 // 2026-11-01 批次 524（#7）：主行动落点由动作表声明，页签切换走统一导航
-import { resolveTodoAction } from '../../../core/domain/todo-actions.js?v=20261107a';
-import { goToWorkspaceTab } from '../../../core/session/workspace-nav.js?v=20261107a';
+import { resolveTodoAction } from '../../../core/domain/todo-actions.js?v=20261108a';
+import { goToWorkspaceTab } from '../../../core/session/workspace-nav.js?v=20261108a';
 
 // G3 修正（2026-08-08）：参与者视角按钮用金浅底（纯亮金 #FFD700 实底过艳）
 // 党徽金系固定语义，不随主题（样式单一源＝styles.css .tint-action-gold）

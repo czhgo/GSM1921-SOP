@@ -264,6 +264,118 @@ const NON_RESOURCE_ROWS = [
     fieldLocks: ['decidedBy/decidedAt（服务端会话）'],
     evidence: 'server/routes/resources/semantic-routes.js#L524-L537', status: 'enforced',
   },
+  // ── 党委内容写口（2026-11-08 批次 536 · 党委内容与公开发布 Task 2）──
+  // 归属 / 版本 / 创建人均由服务端强制；发布留痕统一走 `publication-audit.js`。
+  {
+    method: 'POST', path: '/api/v1/committee/activities', resource: 'committeeActivities',
+    middleware: 'requireRole(PARTY_STAFF_ROLE)', roleGate: 'party-staff', ownership: 'party-staff',
+    fieldLocks: ['ownerScope/branchId（服务端固定 committee / pc-gsm）', 'contentVersion（服务端置 1）',
+      'createdBy/createdAt（服务端会话）', "targetBranchIds（['all'] 或已存在支部 id；禁 pc-gsm）",
+      'publishScope/publishExpiresAt/publicSummary（公开须未来有效期 + 非空摘要）'],
+    evidence: 'server/routes/resources/semantic-routes.js::registerExtraSemanticRoutes（党委活动创建）; server/routes/resources/publication-audit.js::writePublicationAudit; server/test/committee-activities.test.mjs',
+    status: 'enforced',
+  },
+  {
+    method: 'PATCH', path: '/api/v1/committee/activities/:id', resource: 'committeeActivities',
+    middleware: 'requireRole(PARTY_STAFF_ROLE)', roleGate: 'party-staff；仅 ownerScope=committee 行', ownership: 'party-staff',
+    fieldLocks: ['ownerScope/branchId/sourceActivityId/contentVersion（不可直改）',
+      'contentVersion（锁定字段变化时服务端 +1）', '发布面变化写 publication_audits'],
+    evidence: 'server/routes/resources/semantic-routes.js::registerExtraSemanticRoutes（党委活动编辑）; server/test/committee-activities.test.mjs',
+    status: 'enforced',
+  },
+  {
+    method: 'POST', path: '/api/v1/committee/activities/:id/cancel', resource: 'committeeActivities',
+    middleware: 'requireRole(PARTY_STAFF_ROLE)', roleGate: 'party-staff；仅 ownerScope=committee 行', ownership: 'party-staff',
+    fieldLocks: ['status/cancelledAt（服务端置位）', '不级联支部副本'],
+    evidence: 'server/routes/resources/semantic-routes.js::registerExtraSemanticRoutes（党委活动取消）; server/test/committee-activities.test.mjs',
+    status: 'enforced',
+  },
+  {
+    method: 'POST', path: '/api/v1/committee/activities/:id/archive', resource: 'committeeActivities',
+    middleware: 'requireRole(PARTY_STAFF_ROLE)', roleGate: 'party-staff；仅 ownerScope=committee 行', ownership: 'party-staff',
+    fieldLocks: ['archived/archivedAt（服务端置位）', '不级联支部副本'],
+    evidence: 'server/routes/resources/semantic-routes.js::registerExtraSemanticRoutes（党委活动归档）; server/test/committee-activities.test.mjs',
+    status: 'enforced',
+  },
+  {
+    method: 'PATCH', path: '/api/v1/committee/activities/:id/publication', resource: 'committeeActivities',
+    middleware: 'requireRole(PARTY_STAFF_ROLE)', roleGate: 'party-staff；仅 ownerScope=committee 行', ownership: 'party-staff',
+    fieldLocks: ['publishScope（PUBLISH_SCOPES 枚举）', 'public 须未来 publishExpiresAt + 非空 publicSummary',
+      'oldValue/newValue 写 publication_audits'],
+    evidence: 'server/routes/resources/semantic-routes.js::registerExtraSemanticRoutes（发布范围调整）; server/routes/resources/publication-audit.js::writePublicationAudit; server/test/committee-activities.test.mjs',
+    status: 'enforced',
+  },
+  // ── 党委下发 / 支部幂等采用 / 副本锁定 / 手动同步 / 强调通知（批次 536 · Task 3/4）──
+  // 以下四条路由随 Task 3/4 落地，本批（Task 10）补登记，保证矩阵与运行期路由表完全相等。
+  {
+    method: 'POST', path: '/api/v1/committee/activities/:id/dispatch', resource: 'committeeActivities',
+    middleware: 'requireRole(PARTY_STAFF_ROLE)', roleGate: 'party-staff；仅 ownerScope=committee 行', ownership: 'party-staff',
+    fieldLocks: ["branchIds（须为 targetBranchIds 子集 / 缺省展开 ['all']）", 'notices 的 sourceVersion/systemKind/audience/createdBy（服务端生成）', '同版本幂等'],
+    evidence: 'server/routes/resources/semantic-routes.js::registerExtraSemanticRoutes（党委活动下发）; server/test/committee-activities.test.mjs',
+    status: 'enforced',
+  },
+  {
+    method: 'POST', path: '/api/v1/activities/:id/adopt', resource: 'activities',
+    middleware: 'requireRole(SECRETARY_AND_DEPUTY_ROLE_SET)', roleGate: '支书 / 副支书；本支部且活动已下发到本支部', ownership: 'branch',
+    fieldLocks: ['ownerScope/branchId（服务端固定 branch / 本人支部）', 'sourceActivityId/sourceVersion（服务端置位）',
+      '内容字段（复制自原件，采用后由同步维护）', '幂等（同支部对同原件最多一条副本）'],
+    evidence: 'server/routes/resources/semantic-routes.js::registerExtraSemanticRoutes（支部采用党委活动）; server/test/committee-activities.test.mjs',
+    status: 'enforced',
+  },
+  {
+    method: 'POST', path: '/api/v1/activities/:id/sync-source', resource: 'activities',
+    middleware: 'requireRole(SECRETARY_AND_DEPUTY_ROLE_SET)', roleGate: '支书 / 副支书；仅本支部副本', ownership: 'branch',
+    fieldLocks: ['只覆盖原件内容字段（ACTIVITY_COPY_LOCKED_FIELDS）', 'sourceVersion/sourceSyncedAt（服务端置位）', '执行字段与本地调整保留'],
+    evidence: 'server/routes/resources/semantic-routes.js::registerExtraSemanticRoutes（副本手动同步）; server/test/committee-activities.test.mjs',
+    status: 'enforced',
+  },
+  {
+    method: 'POST', path: '/api/v1/activities/:id/emphasis-notice', resource: 'activities',
+    middleware: 'requireAuth', roleGate: 'SECRETARY_AND_DEPUTY_ROLE_SET 且本人支部＝副本支部', ownership: 'branch',
+    fieldLocks: ['audience（固定 all）', 'title/content（缺省由服务端派生）', '24 小时限频（同 branchId+sourceActivityId）'],
+    evidence: 'server/routes/resources/semantic-routes.js::registerExtraSemanticRoutes（强调通知）; server/test/committee-activities.test.mjs',
+    status: 'enforced',
+  },
+  // ── 党委多域写入（2026-11-08 批次 536 · Task 10）──
+  // 院级资料 / 支部档案 / 名册提案；归属、用途、状态、版本、创建人一律由服务端强制。
+  {
+    method: 'POST', path: '/api/v1/committee/documents', resource: 'committeeDocuments',
+    middleware: 'requireRole(PARTY_STAFF_ROLE)', roleGate: 'party-staff', ownership: 'party-staff',
+    fieldLocks: ['ownerScope/branchId（服务端固定 committee / pc-gsm）', 'purpose/status/version/cat（服务端固定 doc / current / 1 / committee-doc）',
+      'uploadedBy/uploadedAt（服务端会话）', 'publishScope（仅 login / public；public 须未来有效期 + 非空 summary）'],
+    evidence: 'server/routes/resources/semantic-routes.js::registerExtraSemanticRoutes（院级资料创建）; server/routes/resources/publication-audit.js::writePublicationAudit; server/test/committee-multidomain.test.mjs',
+    status: 'enforced',
+  },
+  {
+    method: 'PATCH', path: '/api/v1/committee/documents/:id', resource: 'committeeDocuments',
+    middleware: 'requireRole(PARTY_STAFF_ROLE)', roleGate: 'party-staff；仅 ownerScope=committee 行', ownership: 'party-staff',
+    fieldLocks: ['字段白名单（title/summary/bodyText/fileName/fileSize/format/fileData/filePath/publishScope/publishExpiresAt）',
+      'publishScope（仅 login / public；public 须未来有效期 + 非空 summary）', '发布面变化写 publication_audits'],
+    evidence: 'server/routes/resources/semantic-routes.js::registerExtraSemanticRoutes（院级资料编辑）; server/routes/resources/publication-audit.js::writePublicationAudit; server/test/committee-multidomain.test.mjs',
+    status: 'enforced',
+  },
+  {
+    method: 'POST', path: '/api/v1/committee/documents/:id/withdraw', resource: 'committeeDocuments',
+    middleware: 'requireRole(PARTY_STAFF_ROLE)', roleGate: 'party-staff；仅 ownerScope=committee 行', ownership: 'party-staff',
+    fieldLocks: ['publishScope（服务端置 login）', '不删表行；重复撤下幂等', '写 publication_audits（unpublish）'],
+    evidence: 'server/routes/resources/semantic-routes.js::registerExtraSemanticRoutes（院级资料撤下）; server/test/committee-multidomain.test.mjs',
+    status: 'enforced',
+  },
+  {
+    method: 'POST', path: '/api/v1/committee/archive-records', resource: 'committeeArchiveRecords',
+    middleware: 'requireRole(PARTY_STAFF_ROLE)', roleGate: 'party-staff', ownership: 'party-staff',
+    fieldLocks: ['branchId（须为已存在支部）', 'id/status/uploadedBy/createdBy/createdAt（服务端生成）', '只新增档案记录，不改该支部活动'],
+    evidence: 'server/routes/resources/semantic-routes.js::registerExtraSemanticRoutes（党委补录支部档案）; server/test/committee-multidomain.test.mjs',
+    status: 'enforced',
+  },
+  {
+    method: 'POST', path: '/api/v1/committee/roster-proposals', resource: 'committeeRosterProposals',
+    middleware: 'requireRole(PARTY_STAFF_ROLE)', roleGate: 'party-staff', ownership: 'party-staff',
+    fieldLocks: ['status（服务端置 pending-org-approval）', 'fromStage（须等于成员当前 developStage）',
+      'meetingResult/source/proposedBy/createdBy/createdAt（服务端固定）', '不直接改 users.developStage；同 (branchId, personId) 在途唯一'],
+    evidence: 'server/routes/resources/semantic-routes.js::registerExtraSemanticRoutes（名册提案）; server/routes/member.js（approve→confirm 状态机）; server/test/committee-multidomain.test.mjs',
+    status: 'enforced',
+  },
 
   // ── resources/index.js 语义写口 ─────────────────────────────────
   {

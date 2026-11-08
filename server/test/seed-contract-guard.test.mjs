@@ -9,7 +9,7 @@
 //   C6 考察 personId 必须是父工作组在册成员（种子 0 违规 + 写口判据拒绝非成员）；
 //   C7 死表/半死表：issue_reveals 已删；committee_broadcasts 写口 409；影子/证据表进 NO_READ_ALLOWLIST；
 //   C8 DATA_MODEL/DATA_SEED_CONTRACT 已登记辅助表与 UI 写入字段；
-//   C9 契约四类口径 + 语义 7 表 + 演示窗口存在；
+//   C9 契约四类口径 + 语义表名齐备 + 演示窗口存在；
 //   C10 SEED_MANIFEST 把 branchId 登记为种子负责字段。
 // 非空转：每条断言都带「故障注入」或规模下限，取反后必须报红。
 // 运行：node --test server/test/seed-contract-guard.test.mjs（纯 node）
@@ -26,20 +26,20 @@ import {
   normalizeSeedActivitySeedRows,
   ensureLegacySourceWorkgroups,
   ensureInspectionWorkgroupMembers,
-} from '../../docs/src/data/workgroup-seed-sync.js?v=20261107a';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261107a';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261107a';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261107a';
-import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261107a';
+} from '../../docs/src/data/workgroup-seed-sync.js?v=20261108a';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261108a';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261108a';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261108a';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261108a';
 import {
   SEED_ARCHIVE_RECORDS, SEED_SIGNUPS,
-} from '../../docs/src/data/mock/seed.js?v=20261107a';
-import { PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261107a';
+} from '../../docs/src/data/mock/seed.js?v=20261108a';
+import { PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261108a';
 import {
   SEED_EXTERNAL_DISPATCHES, SEED_HANDOFFS, SEED_MEMBER_CONFIRMATIONS, SEED_AUTH_AUDIT,
-} from '../../docs/src/data/mock/auxiliary.js?v=20261107a';
-import { SEED_MANIFEST, NO_READ_ALLOWLIST } from '../../docs/src/data/seed-manifest.js?v=20261107a';
-import { DEFAULT_BRANCH_ID } from '../../docs/src/core/domain/constants.js?v=20261107a';
+} from '../../docs/src/data/mock/auxiliary.js?v=20261108a';
+import { SEED_MANIFEST, NO_READ_ALLOWLIST } from '../../docs/src/data/seed-manifest.js?v=20261108a';
+import { DEFAULT_BRANCH_ID } from '../../docs/src/core/domain/constants.js?v=20261108a';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const readDoc = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
@@ -274,7 +274,7 @@ test('C8 DATA_MODEL / DATA_SEED_CONTRACT 已登记辅助表与 UI 写入字段',
 });
 
 // ── C9 ─────────────────────────────────────────────────────────────────────
-test('C9 契约四类口径 + 语义 7 表', () => {
+test('C9 契约四类口径 + 语义表名齐备', () => {
   const contract = readDoc('content/04_web_design/data/DATA_SEED_CONTRACT.md');
   for (const label of ['必须种子', '可派生', '可交叉验证', '展示专用']) {
     assert.ok(contract.includes(label), `契约缺类别「${label}」`);

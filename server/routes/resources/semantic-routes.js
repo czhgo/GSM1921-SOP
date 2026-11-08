@@ -12,7 +12,7 @@ import { listTable, getRow, writeRow } from './store.js';
 import { ORG_COMMISSIONER_ROLE_SET, PARTY_STAFF_ROLE, SECRETARY_AND_DEPUTY_ROLE_SET } from './gates.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
 import { today as todayLocal } from '../../services/reporting.js';
-import { canManageWorkgroup, hasWorkgroupPermission, registerWorkgroupRoutes } from './workgroup-routes.js';
+import { activityWorkgroupUpdate, canManageWorkgroup, createActivityWorkgroup, hasWorkgroupPermission, registerWorkgroupRoutes } from './workgroup-routes.js';
 import { actorBranchId, branchSelectionError, selectedBranchRequiredError, branchForNewResource, recordBranchWriteDeny, resourceRowsForActor } from './branch-scope.js';
 // 2026-11-02 批次 527（数据契约 Wave 2）：成员变更统一形状的**读时别名**（不双写）
 import { aliasMemberChangeRow } from '../../data/domain-contract.mjs';
@@ -577,5 +577,851 @@ export function registerExtraSemanticRoutes(router, db) {
   });
   // ── 批次里程碑（只读；内容单一源 = docs/data/milestones.json，由 seed.js 播种）──
   router.get('/milestones', requireAuth(db), (req, res) => res.json(listTable(db, 'milestones')));
+
+  // ════════════════════════════════════════════════════════════════
+  //  党委内容写口（2026-11-08 批次 536 · 党委内容与公开发布 Task 2）
+  // ════════════════════════════════════════════════════════════════
+  // 由来（spec Task 2）：党委自有活动（`ownerScope='committee'`，归属 id＝`pc-gsm`）此前的唯一
+  //   写口是通用 `/activities`，而该口按支部归属解析行（`branchId='pc-gsm'` 解析不到任何支部）
+  //   ⇒ 党委无法在服务端建立「可下发的内容原件」。本段补**党委内容写口**：创建 / 编辑 / 取消 /
+  //   归档 / 改发布范围 + 发布留痕读取，全部只允许 `party-staff`。
+  // 纪律：
+  //   ① 落点＝本函数尾部（`registerExtraSemanticRoutes`），不进通用 CRUD、不进快照 payload；
+  //   ② 写门一律 `requireRole(db, PARTY_STAFF_ROLE)`（角色集单一源 = `gates.js` / `constants.js`）；
+  //   ③ 本段**不做**下发 / 采用 / 同步 / 强调通知（Task 3/4），也**不级联**支部副本；
+  //   ④ 发布留痕只经 `publication-audit.js::writePublicationAudit` 一条出口。
+  // ⚠ 本段置尾：上文行号是 `README-server.md` 的取证靶点，插在中间会整体漂移。
+  // 创建时可从 body 采纳的活动字段（其余一律由服务端决定或忽略；不写工作组 / voteConfig / 参与名单）
+  const COMMITTEE_ACTIVITY_CREATE_FIELDS = [
+    'title', 'type', 'description', 'agenda', 'carriers', 'summary', 'content',
+    'date', 'location', 'direction', 'visibility', 'organizingScope', 'recruitmentScope',
+    'hostGroupId', 'hostGroup', 'crossGroupCoordinatorId',
+    'signupEnabled', 'signupClosed', 'requireMakeup', 'isOutdoor', 'deepWorkMode',
+    'scenarioId', 'domain', 'status',
+    'targetBranchIds', 'publishScope', 'publishExpiresAt', 'publicSummary',
+  ];
+  // 编辑白名单＝内容字段（`ACTIVITY_COPY_LOCKED_FIELDS` 单一源）+ 排期 / 状态 / 发布面
+  const COMMITTEE_ACTIVITY_PATCH_FIELDS = new Set([
+    ...ACTIVITY_COPY_LOCKED_FIELDS,
+    'targetBranchIds', 'date', 'location', 'status', 'publishScope', 'publishExpiresAt',
+  ]);
+  // 归属 / 来源 / 版本由服务端维护，任何直改一律拒绝（防洗归属、防绕过版本递增）
+  const COMMITTEE_ACTIVITY_IMMUTABLE_FIELDS = ['ownerScope', 'branchId', 'sourceActivityId', 'contentVersion'];
+
+  /** `targetBranchIds` 归一：`['all']` 或已存在支部 id 数组（去重）；空 / 未知 / 含党委归属 id ⇒ 错误 */
+  const normalizeTargetBranchIds = (value) => {
+    if (value === undefined || value === null) return { ids: null };
+    if (!Array.isArray(value) || value.length === 0) {
+      return { error: "targetBranchIds 须为非空数组（['all'] 或已存在支部 id 数组）" };
+    }
+    const ids = [];
+    for (const raw of value) {
+      if (typeof raw !== 'string' || !raw.trim()) return { error: 'targetBranchIds 的每一项须为非空字符串' };
+      const id = raw.trim();
+      if (!ids.includes(id)) ids.push(id);
+    }
+    if (ids.length === 1 && ids[0] === 'all') return { ids };
+    if (ids.includes('all')) return { error: "targetBranchIds 中 'all' 只能单独使用" };
+    if (ids.includes(COMMITTEE_OWNER_ID)) {
+      return { error: `targetBranchIds 不得包含党委归属 id（${COMMITTEE_OWNER_ID}）` };
+    }
+    const unknown = ids.filter((id) => !db.prepare('SELECT id FROM branches WHERE id = ?').get(id));
+    if (unknown.length) return { error: `targetBranchIds 含不存在的支部：${unknown.join('、')}` };
+    return { ids };
+  };
+
+  /** 发布面取值快照（留痕 oldValue / newValue 用；缺省范围按 `branch` 归一） */
+  const committeePublicationSnapshot = (row) => ({
+    publishScope: (row && row.publishScope) || 'branch',
+    publishExpiresAt: row && row.publishExpiresAt !== undefined ? row.publishExpiresAt : null,
+    publicSummary: row && row.publicSummary !== undefined ? row.publicSummary : null,
+  });
+
+  /** 发布面校验：范围枚举 + 公开可见的有效期 / 摘要要求（返回可懂原因；通过 → null） */
+  const committeePublicationError = (row) => {
+    const scope = (row && row.publishScope) || 'branch';
+    if (!PUBLISH_SCOPES.includes(scope)) {
+      return `publishScope 须为 ${PUBLISH_SCOPES.join(' / ')} 之一`;
+    }
+    if (scope !== 'public') return null;
+    const expiresAt = row.publishExpiresAt;
+    const ts = expiresAt ? Date.parse(expiresAt) : NaN;
+    if (!Number.isFinite(ts) || ts <= Date.now()) {
+      return 'public 可见须设置未来的 publishExpiresAt（ISO 时间）';
+    }
+    const summary = typeof row.publicSummary === 'string' ? row.publicSummary.trim() : '';
+    if (!summary) return 'public 可见须填写非空 publicSummary';
+    if (summary.length > 500) return 'publicSummary 不得超过 500 字';
+    return null;
+  };
+
+  /** 发布面变化：无变化 → null；否则给出留痕动作与旧值 / 新值 */
+  const committeePublicationChange = (prev, next) => {
+    const before = committeePublicationSnapshot(prev);
+    const after = committeePublicationSnapshot(next);
+    if (JSON.stringify(before) === JSON.stringify(after)) return null;
+    let action = 'update-scope';
+    if (before.publishScope !== 'public' && after.publishScope === 'public') action = 'publish';
+    else if (before.publishScope === 'public' && after.publishScope !== 'public') action = 'unpublish';
+    return { action, oldValue: before, newValue: after };
+  };
+
+  /** 锁定字段是否真的变了（`undefined` 与 `null` 等价；对象 / 数组按 JSON 比较） */
+  const committeeLockedFieldChanged = (prev, next, key) => JSON.stringify(
+    prev && prev[key] !== undefined ? prev[key] : null,
+  ) !== JSON.stringify(next && next[key] !== undefined ? next[key] : null);
+
+  /** 读取一条党委活动行；不存在 → null，非党委归属 → `false`（区分 404 与 403） */
+  const readCommitteeActivity = (id) => {
+    const row = getRow(db, 'activities', id);
+    if (!row) return null;
+    return row.ownerScope === 'committee' ? row : false;
+  };
+
+  // ── 党委活动列表（全部党委自有活动；可按状态 / 发布范围过滤；日期倒序）──
+  router.get('/committee/activities', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
+    let rows = listTable(db, 'activities').filter((row) => row && row.ownerScope === 'committee');
+    if (req.query.status) rows = rows.filter((row) => row.status === req.query.status);
+    if (req.query.publishScope) {
+      rows = rows.filter((row) => ((row.publishScope || 'branch') === req.query.publishScope));
+    }
+    rows.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+    res.json(rows);
+  });
+
+  // ── 创建党委活动（归属 / 版本 / 创建人 / 时间由服务端强制；不建工作组、不写 voteConfig / 参与名单）──
+  router.post('/committee/activities', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const id = body.id ? String(body.id) : `act-${randomUUID().slice(0, 8)}`;
+    if (getRow(db, 'activities', id)) return res.status(409).json({ error: '该活动 id 已存在' });
+    const row = { id };
+    for (const key of COMMITTEE_ACTIVITY_CREATE_FIELDS) {
+      if (Object.prototype.hasOwnProperty.call(body, key)) row[key] = body[key];
+    }
+    row.ownerScope = 'committee';
+    row.branchId = COMMITTEE_OWNER_ID;
+    row.contentVersion = 1;
+    row.createdBy = req.actor.id;
+    row.createdAt = new Date().toISOString();
+    row.visibility = row.visibility || 'branch';
+    row.organizingScope = row.organizingScope || 'branch';
+    row.status = row.status || 'published';
+    row.publishScope = row.publishScope || 'branch';
+
+    const targetCheck = normalizeTargetBranchIds(row.targetBranchIds);
+    if (targetCheck.error) return res.status(422).json({ error: targetCheck.error });
+    if (row.status !== 'draft' && !targetCheck.ids) {
+      return res.status(422).json({ error: "status 非 draft 时必须指定 targetBranchIds（['all'] 或已存在支部 id 数组）" });
+    }
+    if (targetCheck.ids) row.targetBranchIds = targetCheck.ids;
+
+    const publishError = committeePublicationError(row);
+    if (publishError) return res.status(422).json({ error: publishError });
+
+    writeRow(db, 'activities', row);
+    writePublicationAudit(db, {
+      resourceType: 'activity',
+      resourceId: row.id,
+      action: 'publish',
+      actor: req.actor,
+      oldValue: null,
+      newValue: committeePublicationSnapshot(row),
+    });
+    res.status(201).json(row);
+  });
+
+  // ── 编辑党委活动（白名单字段；锁定字段变化 ⇒ contentVersion+1；公开面变化 ⇒ 写留痕）──
+  router.patch('/committee/activities/:id', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
+    const prev = readCommitteeActivity(req.params.id);
+    if (prev === null) return res.status(404).json({ error: '活动不存在' });
+    if (prev === false) return res.status(403).json({ error: '无权限：只能编辑党委活动' });
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const immutable = COMMITTEE_ACTIVITY_IMMUTABLE_FIELDS
+      .find((key) => Object.prototype.hasOwnProperty.call(body, key));
+    if (immutable) return res.status(403).json({ error: `无权限：${immutable} 不可通过本端点修改` });
+    const unknown = Object.keys(body).find((key) => !COMMITTEE_ACTIVITY_PATCH_FIELDS.has(key));
+    if (unknown) return res.status(400).json({ error: `字段 ${unknown} 不在本端点白名单` });
+
+    const next = { ...prev };
+    for (const key of Object.keys(body)) next[key] = body[key];
+
+    const targetCheck = normalizeTargetBranchIds(next.targetBranchIds);
+    if (targetCheck.error) return res.status(422).json({ error: targetCheck.error });
+    if (next.status !== 'draft' && !targetCheck.ids) {
+      return res.status(422).json({ error: "status 非 draft 时必须指定 targetBranchIds（['all'] 或已存在支部 id 数组）" });
+    }
+    if (targetCheck.ids) next.targetBranchIds = targetCheck.ids;
+
+    const publishError = committeePublicationError(next);
+    if (publishError) return res.status(422).json({ error: publishError });
+
+    if (ACTIVITY_COPY_LOCKED_FIELDS.some((key) => committeeLockedFieldChanged(prev, next, key))) {
+      next.contentVersion = (Number(prev.contentVersion) || 1) + 1;
+    }
+
+    writeRow(db, 'activities', next);
+    const change = committeePublicationChange(prev, next);
+    if (change) {
+      writePublicationAudit(db, {
+        resourceType: 'activity',
+        resourceId: next.id,
+        action: change.action,
+        actor: req.actor,
+        oldValue: change.oldValue,
+        newValue: change.newValue,
+      });
+    }
+    res.json(next);
+  });
+
+  // ── 取消党委活动（只置本行状态；不级联支部副本）──
+  router.post('/committee/activities/:id/cancel', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
+    const row = readCommitteeActivity(req.params.id);
+    if (row === null) return res.status(404).json({ error: '活动不存在' });
+    if (row === false) return res.status(403).json({ error: '无权限：只能取消党委活动' });
+    if (row.status === 'cancelled') return res.json(row);
+    const next = { ...row, status: 'cancelled', cancelledAt: new Date().toISOString() };
+    writeRow(db, 'activities', next);
+    res.json(next);
+  });
+
+  // ── 归档党委活动（只置本行标记；不级联支部副本）──
+  router.post('/committee/activities/:id/archive', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
+    const row = readCommitteeActivity(req.params.id);
+    if (row === null) return res.status(404).json({ error: '活动不存在' });
+    if (row === false) return res.status(403).json({ error: '无权限：只能归档党委活动' });
+    if (row.archived === true) return res.json(row);
+    const next = { ...row, archived: true, archivedAt: new Date().toISOString() };
+    writeRow(db, 'activities', next);
+    res.json(next);
+  });
+
+  // ── 改发布范围（发布 / 撤回 / 改期；公开可见须未来有效期与非空摘要；每次变化写留痕）──
+  router.patch('/committee/activities/:id/publication', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
+    const prev = readCommitteeActivity(req.params.id);
+    if (prev === null) return res.status(404).json({ error: '活动不存在' });
+    if (prev === false) return res.status(403).json({ error: '无权限：只能调整党委活动的发布范围' });
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const allowed = ['publishScope', 'publishExpiresAt', 'publicSummary'];
+    const unknown = Object.keys(body).find((key) => !allowed.includes(key));
+    if (unknown) return res.status(400).json({ error: `字段 ${unknown} 不在本端点白名单` });
+    if (!body.publishScope) return res.status(400).json({ error: '缺少必要字段：publishScope' });
+
+    const next = { ...prev, publishScope: body.publishScope };
+    if (Object.prototype.hasOwnProperty.call(body, 'publishExpiresAt')) next.publishExpiresAt = body.publishExpiresAt;
+    if (Object.prototype.hasOwnProperty.call(body, 'publicSummary')) next.publicSummary = body.publicSummary;
+
+    const publishError = committeePublicationError(next);
+    if (publishError) return res.status(422).json({ error: publishError });
+
+    writeRow(db, 'activities', next);
+    const change = committeePublicationChange(prev, next);
+    if (change) {
+      writePublicationAudit(db, {
+        resourceType: 'activity',
+        resourceId: next.id,
+        action: change.action,
+        actor: req.actor,
+        oldValue: change.oldValue,
+        newValue: change.newValue,
+      });
+    }
+    res.json(next);
+  });
+
+  // ── 发布留痕读取（党委；可按资源 / 动作过滤；时间倒序）──
+  router.get('/committee/publication-audits', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
+    let rows = listTable(db, 'publication_audits');
+    for (const key of ['resourceType', 'resourceId', 'action']) {
+      if (req.query[key]) rows = rows.filter((row) => row[key] === req.query[key]);
+    }
+    rows.sort((a, b) => String(b.at || '').localeCompare(String(a.at || '')));
+    res.json(rows);
+  });
+
+  // ════════════════════════════════════════════════════════════════
+  //  党委下发 / 支部幂等采用 / 副本内容锁定 / 手动同步（2026-11-08 批次 536 · Task 3）
+  // ════════════════════════════════════════════════════════════════
+  // 由来（spec Task 3）：党委活动（`ownerScope='committee'`）需要「下发 → 支部幂等采用 → 副本内容锁定 →
+  //   手动同步」四件能力。通知的强调 / 已读等展示面属 Task 4，本段**不做**。
+  // 纪律：
+  //   ① 下发不调用 `/system-notices`（那条链按 kind 复算授权与受众策略）：直接写 `notices` 并显式落 `audience`；
+  //   ② 采用幂等靠 v13 部分唯一索引 `idx_activities_source_branch`（同一支部对同一原件最多一条副本）；
+  //   ③ 副本内容字段只由原件维护（`ACTIVITY_COPY_LOCKED_FIELDS` 单一源），支部只改执行字段；
+  //   ④ 不级联：党委取消 / 归档只改原件，副本状态保持不变（内容变化只经手动同步进入副本）。
+  // ⚠ 本段置尾：上文行号是 `README-server.md` 的取证靶点，插在中间会整体漂移。
+  const COMMITTEE_DISPATCH_KIND = 'committee-activity-dispatch';
+  const ADOPTABLE_SOURCE_STATUSES = new Set(['published', 'ongoing']);
+  // 采用时复制的内容字段（＝锁定字段单一源）+ 排期默认值
+  const ADOPT_COPY_FIELDS = [...ACTIVITY_COPY_LOCKED_FIELDS, 'date', 'location'];
+
+  /** 本支部对某党委原件的副本（`sourceActivityId + branchId` 命中即唯一） */
+  const findAdoptedCopy = (sourceId, branchId) => listTable(db, 'activities').find((row) => row
+    && String(row.sourceActivityId || '') === String(sourceId)
+    && row.branchId === branchId) || null;
+
+  /**
+   * 下发目标支部归一：`body.branchIds` 可选；给了必须是活动 `targetBranchIds` 的子集，
+   * 缺省用活动 `targetBranchIds`（`['all']` 展开为全部真实支部）。
+   * @returns {{ids?:string[], error?:string, status?:number}}
+   */
+  const resolveDispatchTargets = (source, requested) => {
+    const allowed = Array.isArray(source.targetBranchIds) ? source.targetBranchIds.map(String) : [];
+    const branchExists = (id) => !!db.prepare('SELECT id FROM branches WHERE id = ?').get(id);
+    if (requested !== undefined && requested !== null) {
+      if (!Array.isArray(requested) || requested.length === 0) {
+        return { error: 'branchIds 须为非空数组（已存在支部 id）', status: 422 };
+      }
+      const ids = [];
+      for (const raw of requested) {
+        if (typeof raw !== 'string' || !raw.trim()) return { error: 'branchIds 的每一项须为非空字符串', status: 422 };
+        const id = raw.trim();
+        if (!ids.includes(id)) ids.push(id);
+      }
+      if (allowed.length === 0) return { error: '该活动未设置 targetBranchIds，无法下发', status: 422 };
+      if (!allowed.includes('all')) {
+        const outside = ids.filter((id) => !allowed.includes(id));
+        if (outside.length) return { error: `无权限：${outside.join('、')} 不在本活动下发范围`, status: 403 };
+      }
+      const unknown = ids.filter((id) => !branchExists(id));
+      if (unknown.length) return { error: `支部不存在：${unknown.join('、')}`, status: 422 };
+      return { ids };
+    }
+    if (allowed.length === 0) return { error: '该活动未设置 targetBranchIds，无法下发', status: 422 };
+    if (allowed.includes('all')) return { ids: listTable(db, 'branches').map((row) => String(row.id)) };
+    const unknown = allowed.filter((id) => !branchExists(id));
+    if (unknown.length) return { error: `下发目标支部不存在：${unknown.join('、')}`, status: 422 };
+    return { ids: allowed };
+  };
+
+  // ── 下发：为每个目标支部建一条「党委活动」通知（同版本幂等；版本升级后新增，旧通知保留）──
+  router.post('/committee/activities/:id/dispatch', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
+    const source = readCommitteeActivity(req.params.id);
+    if (source === null) return res.status(404).json({ error: '活动不存在' });
+    if (source === false) return res.status(403).json({ error: '无权限：只能下发党委活动' });
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const resolved = resolveDispatchTargets(source, body.branchIds);
+    if (resolved.error) return res.status(resolved.status).json({ error: resolved.error });
+
+    const version = Number(source.contentVersion) || 1;
+    const title = String(source.title || source.id);
+    const description = typeof source.description === 'string' ? source.description.trim() : '';
+    const createdAt = new Date().toISOString();
+    // 同版本幂等：同一「原件 + 目标支部 + systemKind」已有该版本通知 ⇒ 跳过（旧版本通知不算重）
+    const dispatchedBranches = new Set(listTable(db, 'notices')
+      .filter((row) => row
+        && row.sourceType === 'activity'
+        && String(row.sourceId) === String(source.id)
+        && row.systemKind === COMMITTEE_DISPATCH_KIND
+        && Number(row.sourceVersion ?? row.contentVersion) === version)
+      .map((row) => String(row.branchId)));
+    const created = [];
+    let skipped = 0;
+    db.transaction(() => {
+      for (const branchId of resolved.ids) {
+        if (dispatchedBranches.has(String(branchId))) { skipped += 1; continue; }
+        const row = {
+          id: `ntc-${randomUUID().slice(0, 8)}`,
+          kind: 'system',
+          title: `党委活动：${title}`,
+          content: description || title,
+          priority: 'normal',
+          publishDate: todayLocal(),
+          branchId,
+          source: 'committee',
+          sourceType: 'activity',
+          sourceId: String(source.id),
+          sourceVersion: version,
+          systemKind: COMMITTEE_DISPATCH_KIND,
+          audience: ['secretary', 'deputy-secretary'],
+          createdBy: req.actor.id,
+          createdAt,
+        };
+        writeRow(db, 'notices', row);
+        dispatchedBranches.add(String(branchId));
+        created.push(row);
+      }
+      if (created.length > 0) bumpCollectionVersion(db, 'notices');
+    })();
+    res.json({ created: created.length, skipped, notices: created });
+  });
+
+  // ── 采用：目标支部的支书 / 副支书把党委活动复制成本支部活动（幂等；并发靠唯一索引兜底）──
+  router.post('/activities/:id/adopt', requireRole(db, SECRETARY_AND_DEPUTY_ROLE_SET), (req, res) => {
+    const source = getRow(db, 'activities', String(req.params.id));
+    if (!source) return res.status(404).json({ error: '活动不存在' });
+    if (source.ownerScope !== 'committee') return res.status(400).json({ error: '该活动不是党委活动，无需采用' });
+    const branchId = actorBranchId(req.actor);
+    if (!branchId) return res.status(403).json({ error: '无权限：请先选择支部后再操作' });
+    const targets = Array.isArray(source.targetBranchIds) ? source.targetBranchIds.map(String) : [];
+    if (!(targets.includes('all') || targets.includes(String(branchId)))) {
+      return res.status(403).json({ error: '无权限：本活动未下发到本支部' });
+    }
+    if (source.archived === true || !ADOPTABLE_SOURCE_STATUSES.has(source.status)) {
+      return res.status(409).json({ error: `当前状态「${source.status || '未知'}」的党委活动不可采用` });
+    }
+    const existing = findAdoptedCopy(source.id, branchId);
+    if (existing) return res.json({ activity: existing, idempotent: true });
+
+    const createdAt = new Date().toISOString();
+    const id = `act-${randomUUID().slice(0, 8)}`;
+    const copy = { id, ownerScope: 'branch', branchId };
+    for (const key of ADOPT_COPY_FIELDS) {
+      if (Object.prototype.hasOwnProperty.call(source, key) && source[key] !== undefined) copy[key] = source[key];
+    }
+    // 副本固定为本支部执行面：承办党小组 / 招募范围可复制，但不复制原件的下发范围与发布面
+    copy.visibility = 'branch';
+    copy.organizingScope = source.organizingScope || 'branch';
+    copy.hostGroupId = null;
+    copy.hostGroup = '';
+    copy.recruitmentScope = source.recruitmentScope || 'group';
+    copy.crossGroupCoordinatorId = source.crossGroupCoordinatorId || null;
+    for (const key of ['signupEnabled', 'signupClosed', 'requireMakeup', 'isOutdoor', 'deepWorkMode']) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) copy[key] = source[key];
+    }
+    copy.status = source.status;
+    copy.sourceActivityId = String(source.id);
+    copy.sourceVersion = Number(source.contentVersion) || 1;
+    copy.sourceSyncedAt = null;
+    copy.adoptedAt = createdAt;
+    copy.adoptedBy = req.actor.id;
+    copy.publishScope = 'branch';
+    copy.organizer = req.actor.id;
+    // 分工覆盖为「采用人＝组织者」，避免原件里的跨支部人员进入本支部工作组
+    copy.assignments = [{ personId: req.actor.id, role: 'organizer' }];
+    copy.createdBy = req.actor.id;
+    copy.createdAt = createdAt;
+    copy.workgroupId = workgroupIdFor('activity', id);
+
+    try {
+      db.transaction(() => {
+        const group = createActivityWorkgroup(db, req.actor, copy);
+        if (!group.ok) {
+          const denied = new Error(group.error || '活动工作组创建失败');
+          denied.adoptStatus = group.status || 400;
+          throw denied;
+        }
+        bumpCollectionVersion(db, 'activities');
+        rebuildShadowTables(db);
+      })();
+    } catch (err) {
+      if (err && err.adoptStatus) return res.status(err.adoptStatus).json({ error: err.message });
+      // 并发兜底：v13 部分唯一索引 (branch_id, source_activity_id) 拦下第二条副本 ⇒ 回查后按幂等返回
+      if (/UNIQUE constraint failed/i.test(String((err && err.message) || ''))) {
+        const raced = findAdoptedCopy(source.id, branchId);
+        if (raced) return res.json({ activity: raced, idempotent: true });
+      }
+      throw err;
+    }
+    res.status(201).json({ activity: copy, idempotent: false });
+  });
+
+  // ── 手动同步：只覆盖内容字段（原件有值才覆盖），执行字段与支部本地调整保留 ──
+  router.post('/activities/:id/sync-source', requireRole(db, SECRETARY_AND_DEPUTY_ROLE_SET), (req, res) => {
+    const copy = getRow(db, 'activities', String(req.params.id));
+    if (!copy) return res.status(404).json({ error: '活动不存在' });
+    if (!copy.sourceActivityId) return res.status(400).json({ error: '不是党委活动副本，无需同步' });
+    const branchId = actorBranchId(req.actor);
+    if (!branchId || copy.branchId !== branchId) {
+      return res.status(403).json({ error: '无权限：只能同步本支部的副本' });
+    }
+    const source = getRow(db, 'activities', String(copy.sourceActivityId));
+    if (!source) return res.status(404).json({ error: '党委原件不存在' });
+
+    const copyVersion = Number(copy.sourceVersion) || 0;
+    const sourceVersion = Number(source.contentVersion) || 1;
+    if (copyVersion >= sourceVersion) return res.json({ activity: copy, synced: false });
+
+    const next = { ...copy };
+    for (const key of ACTIVITY_COPY_LOCKED_FIELDS) {
+      if (Object.prototype.hasOwnProperty.call(source, key) && source[key] !== undefined) next[key] = source[key];
+    }
+    next.sourceVersion = sourceVersion;
+    next.sourceSyncedAt = new Date().toISOString();
+    // 活动改名 → 工作组名同源（R9 Task 4.3 单一投影，与通用 PATCH 同口径）
+    const workgroup = activityWorkgroupUpdate(db, next, req.actor.id);
+    db.transaction(() => {
+      writeRow(db, 'activities', next);
+      if (workgroup) {
+        db.prepare('INSERT OR REPLACE INTO workgroups (id, data) VALUES (?, ?)')
+          .run(workgroup.id, JSON.stringify(workgroup));
+        bumpCollectionVersion(db, 'workgroups');
+      }
+      bumpCollectionVersion(db, 'activities');
+      rebuildShadowTables(db);
+    })();
+    res.json({ activity: next, synced: true });
+  });
+
+  // ════════════════════════════════════════════════════════════════
+  //  支部副本的「强调通知」（2026-11-08 批次 536 · Task 4）
+  // ════════════════════════════════════════════════════════════════
+  // 由来（spec Requirement「强调通知」+ 不变量 I7）：支部采用党委活动后，支书 / 副支书可在**本支部副本**上
+  //   向支部内全体党员发一条强调通知。口径：
+  //   ① 受众 `['all']`（支部内全体党员），非幂等——过了窗口可再发，产生第二条；
+  //   ② 限频按 `(branchId, sourceActivityId)`：同一支部对同一党委活动 24 小时内最多一条（`EMPHASIS_NOTICE_WINDOW_MS`
+  //      单一源 = constants.js），命中返回 429 + 剩余可用时间，不创建；
+  //   ③ 只允许副本所属支部的支书 / 副支书（`SECRETARY_AND_DEPUTY_ROLE_SET` 单一源 = gates.js）；党委与跨支部一律 403；
+  //   ④ 直接写 `notices` 并显式落受众（与下发同口径），不走 `/system-notices` 的 kind 授权链。
+  // ⚠ 本段置尾：上文行号是 `README-server.md` 的取证靶点，插在中间会整体漂移。
+  const EMPHASIS_NOTICE_KIND = 'activity-emphasis';
+
+  /** 通知的「发送时刻」（限频判据：优先 `at`，历史行回落 `publishDate` / `createdAt`） */
+  const emphasisNoticeTime = (notice) => {
+    for (const key of ['at', 'publishDate', 'createdAt']) {
+      const ts = notice && notice[key] ? Date.parse(notice[key]) : NaN;
+      if (Number.isFinite(ts)) return ts;
+    }
+    return NaN;
+  };
+
+  /** 缺省正文：写清活动日期、地点与要求（保证不出现空正文） */
+  const emphasisDefaultContent = (copy) => {
+    const title = String(copy.title || copy.id);
+    const date = typeof copy.date === 'string' && copy.date.trim() ? copy.date.trim() : '（日期以支部安排为准）';
+    const location = typeof copy.location === 'string' && copy.location.trim()
+      ? copy.location.trim() : '（地点以支部安排为准）';
+    return `院级活动「${title}」将于 ${date} 在 ${location} 开展，请全体党员按时参加并提前到场签到；`
+      + '确有特殊情况无法参加的，须提前向支书请假。';
+  };
+
+  // ── 发送强调通知（支部副本；支书 / 副支书；24 小时限频）──
+  router.post('/activities/:id/emphasis-notice', requireAuth(db), (req, res) => {
+    const copy = getRow(db, 'activities', String(req.params.id));
+    if (!copy) return res.status(404).json({ error: '活动不存在' });
+    if (!copy.sourceActivityId) return res.status(400).json({ error: '不是党委活动副本' });
+    const branchId = actorBranchId(req.actor);
+    if (!SECRETARY_AND_DEPUTY_ROLE_SET.has(req.actor.role) || !branchId || String(branchId) !== String(copy.branchId)) {
+      return res.status(403).json({ error: '无权限：强调通知仅限本支部支书 / 副支书发送' });
+    }
+
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const title = (typeof body.title === 'string' && body.title.trim()) ? body.title.trim() : `活动强调：${copy.title || copy.id}`;
+    const content = (typeof body.content === 'string' && body.content.trim()) ? body.content.trim() : emphasisDefaultContent(copy);
+
+    const now = Date.now();
+    const outcome = db.transaction(() => {
+      const hit = listTable(db, 'notices').find((row) => row
+        && String(row.branchId) === String(copy.branchId)
+        && String(row.sourceId) === String(copy.id)
+        && row.systemKind === EMPHASIS_NOTICE_KIND
+        && emphasisNoticeTime(row) > now - EMPHASIS_NOTICE_WINDOW_MS);
+      if (hit) return { hit };
+      const at = new Date(now).toISOString();
+      const notice = {
+        id: `ntc-${randomUUID().slice(0, 8)}`,
+        kind: 'system',
+        systemKind: EMPHASIS_NOTICE_KIND,
+        emphasis: true,
+        title,
+        content,
+        priority: 'normal',
+        publishDate: at,
+        at,
+        branchId: copy.branchId,
+        source: 'branch',
+        sourceType: 'activity',
+        sourceId: String(copy.id),
+        sourceActivityId: String(copy.sourceActivityId),
+        audience: ['all'],
+        createdBy: req.actor.id,
+        createdAt: at,
+      };
+      writeRow(db, 'notices', notice);
+      bumpCollectionVersion(db, 'notices');
+      return { notice };
+    })();
+
+    if (outcome.hit) {
+      const sentAt = emphasisNoticeTime(outcome.hit);
+      const retryAt = sentAt + EMPHASIS_NOTICE_WINDOW_MS;
+      return res.status(429).json({
+        error: '同一活动 24 小时内只能发送一次强调通知',
+        retryAfterMs: Math.max(0, retryAt - now),
+        retryAt: new Date(retryAt).toISOString(),
+      });
+    }
+    res.status(201).json({ notice: outcome.notice });
+  });
+
+  // ════════════════════════════════════════════════════════════════
+  //  党委多域写入：院级资料 / 支部档案 / 名册提案（2026-11-08 批次 536 · Task 10）
+  // ════════════════════════════════════════════════════════════════
+  // 由来（spec Requirement「党委多域写入」）：党委此前只能写活动，院级资料 / 支部档案 / 名册调整三条
+  //   写链没有服务端落点 ⇒ 只能靠通用 CRUD（按支部归属解析，写不进 `pc-gsm`）或前端假保存。
+  // 口径：
+  //   ① 三段全部只允许 `party-staff`；
+  //   ② 院级资料落 `branch_docs`（`ownerScope='committee'` / `branchId=pc-gsm`），发布面变化写留痕；
+  //   ③ 支部档案只**新增** `archive_records`，不改该支部活动本身；
+  //   ④ 名册调整只**提案**（写 `member_change_requests` 起点 `pending-org-approval`），党委不直接改
+  //      `users.developStage`；支部确认链（组织委员 approve → 支书 confirm）原样复用。
+  // ⚠ 本段置尾：上文行号是 `README-server.md` 的取证靶点，插在中间会整体漂移。
+
+  // ── 一、院级资料（`branch_docs` 中 `ownerScope='committee'` 的行）──
+  const COMMITTEE_DOCUMENT_FIELDS = [
+    'title', 'summary', 'bodyText', 'fileName', 'fileSize', 'format', 'fileData', 'filePath',
+    'publishScope', 'publishExpiresAt',
+  ];
+  // 院级资料的发布面字段（留痕 oldValue / newValue 用；缺省范围＝login）
+  const committeeDocumentPublication = (row) => ({
+    publishScope: (row && row.publishScope) || 'login',
+    publishExpiresAt: row && row.publishExpiresAt !== undefined ? row.publishExpiresAt : null,
+    summary: row && row.summary !== undefined ? row.summary : null,
+  });
+  /** 院级资料发布面校验：只收 login / public；public 须未来有效期 + 非空摘要（≤500 字） */
+  const committeeDocumentScopeError = (row) => {
+    const scope = (row && row.publishScope) || 'login';
+    if (scope !== 'login' && scope !== 'public') {
+      return 'publishScope 须为 login / public（院级资料不得按支部发布）';
+    }
+    if (scope !== 'public') return null;
+    const ts = row.publishExpiresAt ? Date.parse(row.publishExpiresAt) : NaN;
+    if (!Number.isFinite(ts) || ts <= Date.now()) {
+      return 'public 可见须设置未来的 publishExpiresAt（ISO 时间）';
+    }
+    const summary = typeof row.summary === 'string' ? row.summary.trim() : '';
+    if (!summary) return 'public 可见须填写非空 summary';
+    if (summary.length > 500) return 'summary 不得超过 500 字';
+    return null;
+  };
+  const committeeDocumentScopeChange = (prev, next) => {
+    const before = committeeDocumentPublication(prev);
+    const after = committeeDocumentPublication(next);
+    if (JSON.stringify(before) === JSON.stringify(after)) return null;
+    let action = 'update-scope';
+    if (before.publishScope !== 'public' && after.publishScope === 'public') action = 'publish';
+    else if (before.publishScope === 'public' && after.publishScope !== 'public') action = 'unpublish';
+    return { action, oldValue: before, newValue: after };
+  };
+  /** 读取一条院级资料行；不存在 → null，非党委归属 → `false`（区分 404 与 403） */
+  const readCommitteeDocument = (id) => {
+    const row = getRow(db, 'branch_docs', id);
+    if (!row) return null;
+    return row.ownerScope === 'committee' ? row : false;
+  };
+
+  // ── 院级资料列表（可按发布范围过滤；按上传时间倒序）──
+  router.get('/committee/documents', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
+    let rows = listTable(db, 'branch_docs').filter((row) => row && row.ownerScope === 'committee');
+    if (req.query.publishScope) {
+      rows = rows.filter((row) => ((row.publishScope || 'login') === req.query.publishScope));
+    }
+    rows.sort((a, b) => String(b.uploadedAt || '').localeCompare(String(a.uploadedAt || '')));
+    res.json(rows);
+  });
+
+  // ── 新建院级资料（归属 / 用途 / 状态 / 版本 / 上传人 / 时间由服务端强制）──
+  router.post('/committee/documents', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const title = typeof body.title === 'string' ? body.title.trim() : '';
+    if (!title) return res.status(422).json({ error: '缺少必要字段：title' });
+    const id = body.id ? String(body.id) : `bd-${randomUUID().slice(0, 8)}`;
+    if (getRow(db, 'branch_docs', id)) return res.status(409).json({ error: '该资料 id 已存在' });
+
+    const row = { id };
+    for (const key of COMMITTEE_DOCUMENT_FIELDS) {
+      if (Object.prototype.hasOwnProperty.call(body, key)) row[key] = body[key];
+    }
+    row.title = title;
+    row.publishScope = row.publishScope || 'login';
+    const scopeError = committeeDocumentScopeError(row);
+    if (scopeError) return res.status(422).json({ error: scopeError });
+
+    row.ownerScope = 'committee';
+    row.branchId = COMMITTEE_OWNER_ID;
+    row.purpose = 'doc';
+    row.status = 'current';
+    row.version = 1;
+    row.cat = 'committee-doc';
+    row.uploadedBy = req.actor.id;
+    row.uploadedAt = new Date().toISOString();
+
+    writeRow(db, 'branch_docs', row);
+    writePublicationAudit(db, {
+      resourceType: 'document',
+      resourceId: row.id,
+      action: 'publish',
+      actor: req.actor,
+      oldValue: null,
+      newValue: committeeDocumentPublication(row),
+    });
+    res.status(201).json(row);
+  });
+
+  // ── 编辑院级资料（白名单字段；公开面变化写留痕）──
+  router.patch('/committee/documents/:id', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
+    const prev = readCommitteeDocument(req.params.id);
+    if (prev === null) return res.status(404).json({ error: '资料不存在' });
+    if (prev === false) return res.status(403).json({ error: '无权限：只能编辑院级资料' });
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const unknown = Object.keys(body).find((key) => !COMMITTEE_DOCUMENT_FIELDS.includes(key));
+    if (unknown) return res.status(400).json({ error: `字段 ${unknown} 不在本端点白名单` });
+
+    const next = { ...prev };
+    for (const key of Object.keys(body)) next[key] = body[key];
+    if (Object.prototype.hasOwnProperty.call(body, 'title')) {
+      next.title = typeof body.title === 'string' ? body.title.trim() : '';
+      if (!next.title) return res.status(422).json({ error: 'title 不得为空' });
+    }
+    const scopeError = committeeDocumentScopeError(next);
+    if (scopeError) return res.status(422).json({ error: scopeError });
+
+    writeRow(db, 'branch_docs', next);
+    const change = committeeDocumentScopeChange(prev, next);
+    if (change) {
+      writePublicationAudit(db, {
+        resourceType: 'document',
+        resourceId: next.id,
+        action: change.action,
+        actor: req.actor,
+        oldValue: change.oldValue,
+        newValue: change.newValue,
+      });
+    }
+    res.json(next);
+  });
+
+  // ── 撤下院级资料（只把发布范围置回 login；幂等；不删表行）──
+  router.post('/committee/documents/:id/withdraw', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
+    const row = readCommitteeDocument(req.params.id);
+    if (row === null) return res.status(404).json({ error: '资料不存在' });
+    if (row === false) return res.status(403).json({ error: '无权限：只能撤下院级资料' });
+    if ((row.publishScope || 'login') === 'login') return res.json(row);
+    const next = { ...row, publishScope: 'login' };
+    writeRow(db, 'branch_docs', next);
+    writePublicationAudit(db, {
+      resourceType: 'document',
+      resourceId: next.id,
+      action: 'unpublish',
+      actor: req.actor,
+      oldValue: committeeDocumentPublication(row),
+      newValue: committeeDocumentPublication(next),
+    });
+    res.json(next);
+  });
+
+  // ── 二、支部档案（只新增 `archive_records`；党委不改写该支部活动本身）──
+  const COMMITTEE_ARCHIVE_FIELDS = [
+    'title', 'category', 'period', 'archiveDate', 'materialOnly', 'activityId', 'activityName',
+    'fileName', 'filePath', 'fileSize', 'note',
+  ];
+
+  router.post('/committee/archive-records', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const branchId = body.branchId ? String(body.branchId).trim() : '';
+    if (!branchId) return res.status(422).json({ error: '缺少必要字段：branchId' });
+    if (!db.prepare('SELECT id FROM branches WHERE id = ?').get(branchId)) {
+      return res.status(422).json({ error: `支部不存在：${branchId}` });
+    }
+    const category = typeof body.category === 'string' ? body.category.trim() : '';
+    const title = typeof body.title === 'string' ? body.title.trim() : '';
+    if (!category) return res.status(422).json({ error: '缺少必要字段：category' });
+    if (!title) return res.status(422).json({ error: '缺少必要字段：title' });
+
+    const period = typeof body.period === 'string' ? body.period.trim() : '';
+    const archiveDate = (typeof body.archiveDate === 'string' && body.archiveDate.trim())
+      ? body.archiveDate.trim()
+      : (/^\d{4}-\d{2}-\d{2}$/.test(period) ? period : todayLocal());
+    const now = new Date().toISOString();
+    const row = {
+      id: body.id ? String(body.id) : `ar-${randomUUID().slice(0, 8)}`,
+      branchId,
+      category,
+      title,
+      archiveDate,
+      materialOnly: body.materialOnly === true,
+      status: 'archived',
+      uploadedBy: req.actor.id,
+      createdBy: req.actor.id,
+      createdAt: now,
+    };
+    for (const key of COMMITTEE_ARCHIVE_FIELDS) {
+      if (key === 'title' || key === 'category' || key === 'period' || key === 'archiveDate') continue;
+      if (Object.prototype.hasOwnProperty.call(body, key)) row[key] = body[key];
+    }
+    if (period) row.period = period;
+
+    writeRow(db, 'archive_records', row);
+    bumpCollectionVersion(db, 'archive_records');
+    res.status(201).json(row);
+  });
+
+  // ── 支部档案读取（可按支部过滤；供党委工作台验证写入结果）──
+  router.get('/committee/archive-records', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
+    let rows = listTable(db, 'archive_records');
+    if (req.query.branchId) rows = rows.filter((row) => row && String(row.branchId) === String(req.query.branchId));
+    rows.sort((a, b) => String(b.createdAt || b.archiveDate || '')
+      .localeCompare(String(a.createdAt || a.archiveDate || '')));
+    res.json(rows);
+  });
+
+  // ── 三、名册提案（只写 `member_change_requests` 起点；不直接改 `users.developStage`）──
+  // 非终态 ＝ 尚未 completed / rejected / cancelled；同 (branchId, personId) 只允许一条在途提案。
+  const MEMBER_CHANGE_TERMINAL_STATUSES = new Set(['completed', 'rejected', 'cancelled']);
+
+  router.post('/committee/roster-proposals', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const branchId = body.branchId ? String(body.branchId).trim() : '';
+    const personId = body.personId ? String(body.personId).trim() : '';
+    const fromStage = body.fromStage ? String(body.fromStage).trim() : '';
+    const toStage = body.toStage ? String(body.toStage).trim() : '';
+    if (!branchId || !personId || !fromStage || !toStage) {
+      return res.status(422).json({ error: '缺少必要字段：branchId/personId/fromStage/toStage' });
+    }
+    if (!db.prepare('SELECT id FROM branches WHERE id = ?').get(branchId)) {
+      return res.status(422).json({ error: `支部不存在：${branchId}` });
+    }
+    const userRow = db.prepare('SELECT data FROM users WHERE id = ?').get(personId);
+    if (!userRow) return res.status(422).json({ error: `成员不存在：${personId}` });
+    const user = JSON.parse(userRow.data);
+    if ((user.branchId || DEFAULT_BRANCH_ID) !== branchId) {
+      return res.status(422).json({ error: `成员 ${personId} 不属于支部 ${branchId}` });
+    }
+    if ((user.developStage || '') !== fromStage) {
+      return res.status(422).json({ error: `fromStage 与成员当前阶段不一致（当前：${user.developStage || '空'}）` });
+    }
+    const existing = listTable(db, 'member_change_requests').find((row) => row
+      && String(row.branchId) === branchId
+      && String(row.personId) === personId
+      && !MEMBER_CHANGE_TERMINAL_STATUSES.has(row.status));
+    if (existing) {
+      return res.status(409).json({ error: '该成员已有在途的变更提案', id: existing.id });
+    }
+    const now = new Date().toISOString();
+    const row = {
+      id: `mcr-${randomUUID().slice(0, 8)}`,
+      branchId,
+      personId,
+      fromStage,
+      toStage,
+      meetingResult: 'committee-proposal',
+      status: 'pending-org-approval',
+      source: 'committee-proposal',
+      note: typeof body.note === 'string' ? body.note.trim() : '',
+      proposedBy: req.actor.id,
+      createdBy: req.actor.id,
+      createdAt: now,
+    };
+    writeRow(db, 'member_change_requests', row);
+    res.status(201).json(row);
+  });
+
+  // ── 名册提案读取（可按支部 / 状态过滤；按创建时间倒序）──
+  router.get('/committee/roster-proposals', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
+    let rows = listTable(db, 'member_change_requests');
+    if (req.query.branchId) rows = rows.filter((row) => row && String(row.branchId) === String(req.query.branchId));
+    if (req.query.status) rows = rows.filter((row) => row && row.status === req.query.status);
+    rows.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+    res.json(rows.map(aliasMemberChangeRow));
+  });
 }
+
+// 党委内容写口的依赖（置尾追加：import 声明被提升，上文行号零漂移）
+import { COMMITTEE_OWNER_ID, ACTIVITY_COPY_LOCKED_FIELDS, PUBLISH_SCOPES } from '../../../docs/src/core/domain/constants.js';
+import { writePublicationAudit } from './publication-audit.js';
+// 下发 / 采用 / 同步的依赖（Task 3；同样置尾追加，避开 README-server.md 的既有行号靶点）
+import { bumpCollectionVersion, rebuildShadowTables } from '../../db.js';
+import { workgroupIdFor } from '../../../docs/src/data/activity-workgroup-sync.js';
+// 强调通知限频窗口的依赖（Task 4；同样置尾追加）
+import { EMPHASIS_NOTICE_WINDOW_MS } from '../../../docs/src/core/domain/constants.js';
 

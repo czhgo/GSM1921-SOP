@@ -17,6 +17,7 @@ import { seedDatabase } from '../seed.js';
 
 const ORG_COMMISSIONER_ID = '2400012355'; // 高翔宇（组织委员，br-b1）
 const SECRETARY_ID = '2300010001';        // 储子禾（支书，br-b1）
+const PARTICIPANT_ID = '2400012349';      // 宋佳宁（正式党员 / participant，br-b1；成员台登录人）
 const FIXTURE_MEMBER_ID = 'test-dev-1';   // 期满的预备党员（造发展节点提醒用）
 
 const GROUP_KEYS = ['groupKey', 'domain', 'actionKey', 'title', 'category', 'actionType', 'actionData', 'deadline', 'flow', 'count', 'items'];
@@ -161,4 +162,18 @@ test('⑤ 7 类实时组已服务端化：unsupported 清空，已算组不再�
   // 反空转：组织委员台的两类实时组必须真的产出（否则「清空 unsupported」可被空集蒙混）
   assert.ok(computed.has('inspection-remind'), '组织委员台应产出考察超期未确认组');
   assert.ok(computed.has('member-approve'), '组织委员台应产出成员变更待审批组');
+});
+
+test('⑥ 页面 key 归一：participant 传 role=visitor 可读本人视图，跨角色仍 403', async () => {
+  const { token } = await login(PARTICIPANT_ID);
+
+  // 成员台（页面 key = 'visitor'）只服务 participant ⇒ 归一到真实角色，读本人视图 200
+  const visitorView = await fetchGroups(token, `?role=visitor&personId=${PARTICIPANT_ID}`);
+  assert.equal(visitorView.status, 200, 'participant 账号传页面 key visitor 应可读本人视图');
+  assert.equal(visitorView.body.role, 'participant', 'role 回显真实角色，不回显页面 key');
+  assert.equal(visitorView.body.personId, PARTICIPANT_ID, 'personId 回显本人');
+
+  // 归一只发生在 visitor → participant，不放宽读权限：跨角色仍 403
+  const crossRole = await fetchGroups(token, '?role=secretary');
+  assert.equal(crossRole.status, 403, 'participant 不得借页面 key 读取其他角色的待办视图');
 });

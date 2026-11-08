@@ -200,14 +200,15 @@ test('T5 官方制度文件均链接至 12371 官方原文并在新标签页打�
 //   病灶：`PRODUCT_IA.md` 是**派生索引**（不承担规范、禁止手改），但它的页签表此前**无任何守卫**——
 //     62 → 45 收敛时漏改一处，地图就会「多一个已删页签 / 少一个现行页签」；而注册表、help.html
 //     各自为真（`doc-consistency::S1` 只对 help ↔ 注册），读者照着地图仍会找不到入口。
-//   判据（Boolean）：① 地图行数 ＝ 页签总数（**45**，固定值）；② 逐台 label 集合 ≡ 注册表
+//   判据（Boolean）：① 地图行数 ＝ 页签总数（**46**，固定值；2026-11-08 批次 536 党委台新增「院级内容」45 → 46）；
+//     ② 逐台 label 集合 ≡ 注册表
 //     （多一个 / 少一个 / 台名对不上都红）；③ 已降级的旧页签名不得在任何台重新注册
 //     （「一功能一页签」；跨台重复必须先降级为页内区 + 深链重定向，见 `PRODUCT_IA` 重定向表）。
 //   豁免：`成员流动` 的本位是组织台（支书台已降为页面级重定向）——只允许出现在组织台。
 //   非空转：解析到的台数 ≥ 7、地图行 ≥ 45、注册 label 总量 ≥ 45（解析写坏 ⇒ 本条恒真）。
 
 const IA_MAP = 'content/04_web_design/PRODUCT_IA.md';
-const IA_EXPECTED_TOTAL = 45;
+const IA_EXPECTED_TOTAL = 46;
 
 /** 台名（地图列）→ 注册文件 */
 const IA_PAGE_FILES = [
@@ -232,17 +233,17 @@ const IA_RETIRED_LABELS = {
   成员流动: ['组织'],
 };
 
-test('T6 IA 地图 ≡ 页签注册表（45 条 · 逐台集合相等 · 已降级旧名不得重注册）', () => {
+test('T6 IA 地图 ≡ 页签注册表（46 条 · 逐台集合相等 · 已降级旧名不得重注册）', () => {
   const ia = readFileSync(`${ROOT}${IA_MAP}`, 'utf8');
   const start = ia.search(/^##\s*页签表/m);
   const end = ia.search(/^##\s*统计/m);
   assert.ok(start >= 0 && end > start, `${IA_MAP} 找不到「## 页签表」/「## 统计」边界：表格结构被改写`);
   const block = ia.slice(start, end);
 
-  // ① 表头声明的总数 ＝ 固定 45
+  // ① 表头声明的总数 ＝ 固定 46
   const declared = Number(/##\s*页签表（(\d+)）/.exec(block)?.[1]);
   assert.equal(declared, IA_EXPECTED_TOTAL,
-    `${IA_MAP} 表头声明的页签总数写 ${declared ?? '(缺)'}，应为 ${IA_EXPECTED_TOTAL}（IA 62→45 的目标）`);
+    `${IA_MAP} 表头声明的页签总数写 ${declared ?? '(缺)'}，应为 ${IA_EXPECTED_TOTAL}（现行固定值；IA 62→45 后批次 534 增至 46）`);
 
   // ② 逐行取「台 | 页签」
   const iaRows = block.split(/\r?\n/).filter((l) => /^\|\s*(支书|组织|宣传|纪检|组长|成员|党委)\s*\|/.test(l));

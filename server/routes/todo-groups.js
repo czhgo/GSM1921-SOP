@@ -463,6 +463,22 @@ function _deriveGroups(db, { actor, role, personId, branchId }) {
 }
 
 /**
+ * 页面 key → 真实角色（批次 536 收尾 · 页签审计 P0）。
+ * 客户端按**页面 key** 传 `role`（`entries/tabs/visitor/todo-tab.js` 传 `'visitor'`），
+ *   页面 key 不是角色键：visitor 页只服务登录角色 `participant` ⇒ 归一到 `actor.role`
+ *   （**仅当** `actor.role === 'participant'`）；其他页面 key（secretary / org / prop / disc / leader）
+ *   的壳角色键与角色键同名，保持原样。
+ * 归一只在读面解析处发生，**不放宽任何读权限**：非 participant 传 `'visitor'` 仍按 `'visitor'` 判权（→ 403）。
+ * @param {string} pageRole 请求里的 role 参数（可能是页面 key）
+ * @param {{id:string, role:string}} actor 会话用户
+ * @returns {string} 真实角色键
+ */
+function _normalizeScopeRole(pageRole, actor) {
+  if (pageRole === 'visitor' && actor && actor.role === 'participant') return actor.role;
+  return pageRole;
+}
+
+/**
  * 挂载 `GET /api/v1/todo-groups`（只读）。
  * 装配点：`server/routes/resources/index.js` 的 `registerExtraSemanticRoutes(router, db)` **同一行**
  *   （不新增行 ⇒ `README-server.md` 的 `文件:行号` 取证引用零位移）。
@@ -474,7 +490,7 @@ export function registerTodoGroupRoutes(router, db) {
     const deny = branchSelectionError(req.actor, req.query.branchId);
     if (deny) return res.status(403).json({ error: deny });
     const actor = req.actor;
-    const scopeRole = String(req.query.role || actor.role || '');
+    const scopeRole = _normalizeScopeRole(String(req.query.role || actor.role || ''), actor);
     // 读权限门（同 `_canReadTodoRow`）：角色视图只给本角色；到人视图只给本人。
     if (!canReadTodoRow({ role: scopeRole }, actor)) {
       return res.status(403).json({ error: '无权限：只能读取本角色的待办视图' });

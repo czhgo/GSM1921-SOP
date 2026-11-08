@@ -781,7 +781,7 @@ export const RAW_INPUT_FILE_BASELINE = 57;
    页签顶层区块数基线（2026-11-01 · spec consolidate-tab-density-and-filter-bars Task 1）
    ────────────────────────────────────────────────────────────────
    口径：`role.tab → { blocks, reason }`，与 `docs/src/capabilities/*-workspace.js`
-   注册的 45 个页签一一对应（键集合双向相等，由 `ui-first-screen-order.test.mjs`
+   注册的 46 个页签一一对应（键集合双向相等，由 `ui-first-screen-order.test.mjs`
    的 F6 机检；新增 / 删除页签未登记即红）。
    · blocks = 该页「用户可见的独立顶层区块」数（**本表历史口径含页头**；SD-57 判定页头不计，
      等价于 `blocks - 1 ≤ 4`；全表重基数列入 C-4，不在本批批量改数）；
@@ -793,8 +793,8 @@ export const RAW_INPUT_FILE_BASELINE = 57;
 /** 单页顶层区块密度上限（SD-57 页签密度；见 DS_06 §2） */
 export const TAB_BLOCK_LIMIT = 4;
 
-/** 基线规模（非空转下限：注册表 7 台共 45 个页签） */
-export const TAB_BLOCK_TOTAL_BASELINE = 45;
+/** 基线规模（非空转下限：注册表 7 台共 46 个页签） */
+export const TAB_BLOCK_TOTAL_BASELINE = 46;
 
 /** 逐页签块数基线：`role.tab → { blocks, reason }`（reason 仅 >4 块时必填） */
 export const TAB_BLOCK_BASELINE = {
@@ -903,8 +903,10 @@ export const TAB_BLOCK_BASELINE = {
   'visitor.projects': { blocks: 3, reason: '' },
   'visitor.attendance': { blocks: 4, reason: '' },
   'visitor.growth': { blocks: 4, reason: '' },
-  // 党委台（3）
+  // 党委台（4）
   'party-committee.dispatch': { blocks: 3, reason: '' },
+  // 2026-11-08 批次 536（spec Task 8）：院级内容＝页头 + 子视图切换 + 列表卡 + 撰写卡（活动 / 资料同构）
+  'party-committee.gov-content': { blocks: 4, reason: '' },
   'party-committee.review': { blocks: 2, reason: '' },
   'party-committee.branches': { blocks: 2, reason: '' },
 };

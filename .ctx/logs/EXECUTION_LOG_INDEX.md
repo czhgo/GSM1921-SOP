@@ -3,7 +3,7 @@ title: "Agent Execution Ledger — Index & Redirect"
 type: log_index
 owner: "Org OS Agent 集群"
 role: "[工程师]+[AI]"
-last_updated: "2026-11-03"
+last_updated: "2026-11-08"
 status: active
 ---
 
@@ -54,6 +54,7 @@ status: active
 | 528 | 2026-11-03 | 写权限矩阵、会话过期、两档运行 |
 | 529 | 2026-11-03 | `.ctx` 知识分层与 active context |
 | 530 | 2026-11-03 | CLAUDE 宪法化与乙部清账 |
+| 536 | 2026-11-08 | 党委内容域与公共门厅（V-11 D-858） |
 
 ## 轮转规则
 

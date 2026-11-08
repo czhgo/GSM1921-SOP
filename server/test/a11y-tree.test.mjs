@@ -394,7 +394,8 @@ test('A9 首页日历：role=grid/row + 单一 Tab 停点 + 方向键移动', as
   const page = await browser.newPage();
   try {
     for (const pattern of MUTED) await page.route(pattern, (route) => route.abort());
-    await page.goto(`${base}/index.html`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${base}/index.html?dev=secretary`, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('#view-dashboard:not(.hidden)', { timeout: 30000 });
     await page.waitForSelector('#cal-main-grid [role="grid"] [data-date][role="gridcell"]', { timeout: 30000 });
 
     const shape = await page.evaluate(() => {
@@ -471,11 +472,11 @@ test('A6 纪检台会议考勤：AX role=combobox、name 含「会议 / 活动�
 //  A10 `section` 语义判据（批次 524 · D/#4 · SD-55）
 //  规则：`section` 是页面级独立区块，开标签必须有可访问名称（`aria-label`，或
 //        `aria-labelledby` 指向**存在且有文本**的 id）；`section` 内不得再嵌套 `section`。
-//  判据：① 现有页面清单（首页 / 支书台·概况 / 组织台·专班 / 成员台·分工 / 纪检台·考勤）
+//  判据：① 现有页面清单（首页 / 公共门厅 / 支书台·概况 / 组织台·专班 / 成员台·分工 / 纪检台·考勤）
 //          真机遍历，无名 section 与嵌套 section 计数均为 0；
 //        ② 同一口径在合成 DOM 上跑一遍（无名 / 悬空 labelledby / 嵌套三类反例必须命中，
 //           正常 section 不得误伤）——证明检查器不是恒真。
-//  样本下限：5 页合计 section 数 ≥ 3（低于此值说明扫描面被写坏）。
+//  样本下限：6 页合计 section 数 ≥ 3（低于此值说明扫描面被写坏）。
 // ════════════════════════════════════════════════════════════════
 
 /** 浏览器内执行：page 内全部 section 的「名称 / 嵌套」审计（A10 与合成反例共用同一口径） */
@@ -524,8 +525,13 @@ test('A10 section 语义：现有页面全部有可访问名称且不嵌套（�
   const pages = [
     { label: '首页', open: async (page) => {
       for (const pattern of MUTED) await page.route(pattern, (route) => route.abort());
+      await page.goto(`${base}/index.html?dev=secretary`, { waitUntil: 'domcontentloaded' });
+      await page.waitForSelector('#view-dashboard:not(.hidden)', { timeout: 30000 });
+    } },
+    { label: '公共门厅', open: async (page) => {
+      for (const pattern of MUTED) await page.route(pattern, (route) => route.abort());
       await page.goto(`${base}/index.html`, { waitUntil: 'domcontentloaded' });
-      await page.waitForSelector('#view-dashboard', { timeout: 30000 });
+      await page.waitForSelector('#view-public-portal:not(.hidden)', { timeout: 30000 });
     } },
     { label: '支书台·全局概况', open: async (page) => {
       await openWorkspace(page, '2300010001', 'secretary');
@@ -569,7 +575,7 @@ test('A10 section 语义：现有页面全部有可访问名称且不嵌套（�
   console.log('[A11Y] section 审计:', JSON.stringify(readings));
 
   const total = readings.reduce((n, r) => n + r.total, 0);
-  assert.ok(total >= 3, `5 页合计只解析到 ${total} 个 section（下限 3）：扫描面被写坏`);
+  assert.ok(total >= 3, `6 页合计只解析到 ${total} 个 section（下限 3）：扫描面被写坏`);
   const unnamed = readings.filter((r) => r.unnamed.length).map((r) => `${r.page}: ${r.unnamed.join(', ')}`);
   assert.deepEqual(unnamed, [],
     `section 缺可访问名称（SD-55）：开标签必须带 aria-label 或指向存在 id 的 aria-labelledby\n  ${unnamed.join('\n  ')}`);

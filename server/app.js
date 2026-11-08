@@ -89,6 +89,10 @@ export function createApp({ dbPath = ':memory:' } = {}) {
   // 名册整表导入（Task 7.5）：PUT /api/v1/branches/:id/roster —— 单事务替换；前端只调一次。
   app.use('/api/v1', createBranchRosterRouter(app.locals.db));
 
+  // 未登录公共门厅只读接口（2026-11-08 批次 536 · Task 6）：**追加在 createApp 末尾**——
+  // 上方 `:22`–`:90` 是 `README-server.md` 的取证靶点，中间插行会整体漂移。
+  app.use('/api/public', createPublicPortalRouter(app.locals.db));
+
   return app;
 }
 
@@ -99,4 +103,5 @@ import { createReadOnlyGuard } from './read-only.js';
 import { isProductionEnv } from './env.js';
 import { createBranchRosterRouter } from './routes/branch-roster.js';
 import { createPublicInfoRouter } from './routes/public-info.js';
+import { createPublicPortalRouter } from './routes/public-portal.js';
 import compression from 'compression';

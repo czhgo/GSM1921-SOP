@@ -3,7 +3,7 @@
 //  server/data/domain-contract.mjs —— 领域契约**单一源**（2026-11-02 批次 527 · Wave 2）
 // ════════════════════════════════════════════════════════════════
 // 由来（审计简并计划 `2026-11-02-audit-consolidation-and-cutover.md` §三 Wave 2）：
-//   现状有 34 张资源表 / 7 张语义表 / 6 张工作组表，字段「必填 / 枚举 / 种子计数 / 别名」
+//   现状有 34 张资源表 / 8 张语义表 / 6 张工作组表，字段「必填 / 枚举 / 种子计数 / 别名」
 //   分散在 DATA_MODEL.md、seed-manifest.js、各处服务层与测试里，同一口径多处维护 ⇒ 必然漂移。
 // 本文件是**人读契约与机检契约的同一份数据**：
 //   · `content/04_web_design/data/DATA_CONTRACT.md` 由本文件逐条誊写（人读版）；
@@ -24,6 +24,7 @@ import {
 import {
   ROLE_KEYS, DEVELOP_STAGES, RESIDENCE,
   ACTIVITY_SCOPES,
+  ACTIVITY_OWNER_SCOPES, PUBLISH_SCOPES,
 } from '../../docs/src/core/domain/constants.js';
 import {
   TaskStatus, TaskforceStatus, AttendanceStatus, ReviewStatus, OutputStatus,
@@ -95,11 +96,15 @@ const RESOURCE_CONTRACT = [
     // 2026-11-02 批次 527 · 漂移 3：executor / supervisor / createdBy 功能实际不产生（活动装载只补
     // visibility / createdBy / createdAt），契约改为 optional；createdBy 仍可被装载默认写入。
     optional: ['executor', 'supervisor', 'createdBy', 'createdAt', 'location', 'organizingScope',
-      'hostGroupId', 'hostGroup', 'recruitmentScope', 'crossGroupCoordinatorId', 'organizer', 'isOutdoor', 'isJoint', 'voteConfig'],
+      'hostGroupId', 'hostGroup', 'recruitmentScope', 'crossGroupCoordinatorId', 'organizer', 'isOutdoor', 'isJoint', 'voteConfig',
+      // 2026-11-08 批次 536（党委内容与公开发布 Task 1）：归属 / 下发关联 / 发布范围与公开摘要。
+      'ownerScope', 'targetBranchIds', 'publishScope', 'publishExpiresAt', 'publicSummary', 'contentVersion',
+      'sourceActivityId', 'sourceVersion', 'sourceSyncedAt', 'adoptedAt', 'adoptedBy'],
     derived: ['status', 'archived', 'archivedAt'],
     enums: {
       type: ACTIVITY_TYPES, direction: ACTIVITY_DIRECTIONS, visibility: ACTIVITY_VISIBILITIES,
       status: ACTIVITY_STATUSES, organizingScope: ACTIVITY_ORGANIZING_SCOPES,
+      ownerScope: ACTIVITY_OWNER_SCOPES, publishScope: PUBLISH_SCOPES,
     },
     seedCount: 38,
     aliases: [],
@@ -107,7 +112,9 @@ const RESOURCE_CONTRACT = [
       'executor', 'supervisor', 'priority', 'dueDate', 'organizingScope', 'hostGroupId', 'hostGroup',
       'recruitmentScope', 'crossGroupCoordinatorId', 'organizer', 'isOutdoor', 'isJoint', 'voteConfig', 'cancelled', 'draft',
       'archived', 'archivedAt', 'status', 'branchId', 'assignments', 'agenda', 'isBrand', 'brandName',
-      'galleryFeatured', 'galleryPinned', 'participants', 'workgroupId', 'scenarioId', 'domain', 'carriers'],
+      'galleryFeatured', 'galleryPinned', 'participants', 'workgroupId', 'scenarioId', 'domain', 'carriers',
+      'ownerScope', 'targetBranchIds', 'publishScope', 'publishExpiresAt', 'publicSummary', 'contentVersion',
+      'sourceActivityId', 'sourceVersion', 'sourceSyncedAt', 'adoptedAt', 'adoptedBy'],
   },
   {
     entity: 'tasks', table: 'tasks', mockCollection: 'tasks',
@@ -148,9 +155,11 @@ const RESOURCE_CONTRACT = [
     entity: 'notices', table: 'notices', mockCollection: 'notices',
     required: ['id', 'title', 'content', 'priority', 'publishDate', 'branchId', 'kind'],
     optional: ['reads', 'audience', 'audiencePersons', 'actionRoles', 'targetType', 'targetId', 'expireDate',
-      'archived', 'archivedAt', 'archivedBy', 'source', 'createdBy', 'replyTo', 'fromPersonId'],
+      'archived', 'archivedAt', 'archivedBy', 'source', 'createdBy', 'replyTo', 'fromPersonId',
+      // 2026-11-08 批次 536（党委内容与公开发布 Task 1）：发布范围与公开摘要。
+      'publishScope', 'publishExpiresAt', 'publicSummary'],
     derived: ['expireDate'],
-    enums: { priority: PRIORITIES, kind: ['announcement', 'system', 'action', 'message'] },
+    enums: { priority: PRIORITIES, kind: ['announcement', 'system', 'action', 'message'], publishScope: PUBLISH_SCOPES },
     seedCount: 14, aliases: [],
   },
   {
@@ -258,7 +267,11 @@ const RESOURCE_CONTRACT = [
   },
   {
     entity: 'branchDocs', table: 'branch_docs', mockCollection: 'branchDocs',
-    required: [], enums: {}, seedCount: 0, aliases: [],
+    required: [],
+    // 2026-11-08 批次 536（党委内容与公开发布 Task 1）：党委下发的支部文件与发布范围。
+    optional: ['ownerScope', 'publishScope', 'publishExpiresAt', 'publicSummary', 'summary'],
+    enums: { ownerScope: ACTIVITY_OWNER_SCOPES, publishScope: PUBLISH_SCOPES },
+    seedCount: 0, aliases: [],
     notes: '运行时域（支部文件上传）；演示种子为空。',
   },
   {
@@ -342,7 +355,7 @@ const RESOURCE_CONTRACT = [
   },
 ];
 
-/** 7 张语义表（`db.js::SEMANTIC_TABLES`）——最小契约；无 mock 持久化键者标 null。 */
+/** 8 张语义表（`db.js::SEMANTIC_TABLES`）——最小契约；无 mock 持久化键者标 null。 */
 const SEMANTIC_CONTRACT = [
   {
     entity: 'handoffs', table: 'handoffs', mockCollection: 'handoffs',
@@ -393,6 +406,14 @@ const SEMANTIC_CONTRACT = [
     enums: { action: ['grant', 'revoke'] },
     seedCount: 1, aliases: [],
   },
+  {
+    // 2026-11-08 批次 536（党委内容与公开发布 Task 1）：发布 / 撤回 / 过期 / 支部采纳的留痕。
+    // 只增不改、无演示种子（由发布动作写入）。
+    entity: 'publication_audits', table: 'publication_audits', mockCollection: 'publication_audits',
+    required: ['id', 'resourceType', 'resourceId', 'action', 'at'],
+    optional: ['actorId', 'actorRole', 'anonymous', 'oldValue', 'newValue', 'note'],
+    seedCount: 0, aliases: [],
+  },
 ];
 
 /** 6 张工作组表（`db.js::WORKGROUP_TABLES`）——最小契约。 */
@@ -441,7 +462,7 @@ const WORKGROUP_CONTRACT = [
   },
 ];
 
-/** 全量契约（47 表：34 资源 + 7 语义 + 6 工作组） */
+/** 全量契约（48 表：34 资源 + 8 语义 + 6 工作组） */
 export const DOMAIN_CONTRACT = Object.freeze(
   [...RESOURCE_CONTRACT, ...SEMANTIC_CONTRACT, ...WORKGROUP_CONTRACT].map((entry) => Object.freeze({
     optional: [], derived: [], aliases: [], enums: {}, ...entry,

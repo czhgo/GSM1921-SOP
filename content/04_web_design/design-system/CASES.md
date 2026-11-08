@@ -2,7 +2,7 @@
 title: "设计域判例库"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-07"
+last_updated: "2026-11-08"
 status: active
 related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -371,6 +371,17 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **对应规范编号**：SD-60（行动行排布，`DS_06_LAYOUT_AND_DENSITY.md §二`）；关联 SD-57 / SD-58。
 - **守卫**：`action-row-wrap-guard::W1–W5`（`.card-head` 基准 nowrap ＋ ≤640 覆盖、标题伸缩、aside 不拆组、按钮族 nowrap、`.lf-bar` 仍可折行）。
 - **证据指针**：`docs/src/styles.css`（`.card-head` 家族）· `docs/src/components/shell/page-frame.js::renderCardHeader` · `server/test/action-row-wrap-guard.test.mjs` · `.ctx/evidence/2026-11-07/ui-audit.md`。
+
+---
+
+## CASE-DESIGN-035 公共门厅未登录不出现支部名
+
+- **编号**：CASE-DESIGN-035
+- **场景（真实发生）**：未登录首页曾按「默认支部工作台」渲染，登录页标题读取 `DEFAULT_BRANCH_ID` 的 `headerTitle || name`，未登录即可看到「光华管理学院本科生党支部」；同一屏还挂着统计卡、工作组、活动风采与通知角标。V-11 待裁期间（2026-11-07 批次 535）先做了通知读侧 fail-closed，未登录不再读站内通知；2026-11-08 支书裁定改为学院党委公共门厅（D-858）。
+- **结论**：未登录首页渲染学院党委公共门厅，品牌为党徽 ＋「光华管理学院党建平台」；公开面只出现党委公开通知全文、党委公开活动摘要、公开资料列表 / 详情 / 下载与登录入口。具体支部名、成员姓名、统计卡、工作组、活动风采与通知角标不进入未登录面。登录后回到工作台，活动 / 通知 / 资料按党委与支部并集展示。
+- **边界**：支部名可在登录后的工作台、支部档案与党委选定支部后的只读视图出现；无会话的接口不返回支部名与成员字段；公开内容过期后匿名接口返回 404，呈现为「不存在」，不留「空列表」形状的空态；公开设置与审计的规范条文见 `SYSTEM_ROLE_PERMISSION.md §9a.1`，门厅的显示范围与验收判据见 `PUBLIC_ENTRANCE.md`。
+- **对应规范编号**：待登记（门厅版式与匿名字段白名单的 SD 编号待设计系统登记；已登记于 `.ctx/REVIEW_QUEUE.md` 归口待办）
+- **证据指针**：`content/04_web_design/evolution/PUBLIC_ENTRANCE.md`（§二 至 §六）· `content/02_institution/SYSTEM_ROLE_PERMISSION.md` §9a.1 · `docs/index.html` · `docs/src/entries/pages/main-entry.js`。
 
 ---
 

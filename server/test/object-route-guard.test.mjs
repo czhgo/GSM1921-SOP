@@ -33,7 +33,7 @@ import {
   isTerminal,
   objectDetailHref,
   resolveObjectRoute,
-} from '../../docs/src/core/domain/object-route.js?v=20261107a';
+} from '../../docs/src/core/domain/object-route.js?v=20261108a';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -131,7 +131,10 @@ test('R4 已归档/终态只读：resolveObjectRoute.readOnly 与 activity-entry
   assert.equal(archivedRoute.readOnly, true, '已归档必须 readOnly');
 
   const entry = read('docs/src/entries/pages/activity-entry.js');
-  assert.match(entry, /const readOnly = act\.archived === true;/, 'activity-entry 缺 archived 只读判定');
+  // 批次 536：readOnly 扩为「归档只读 ∨ 党委原件锁定」；两种写法都接受，但 archived ⇒ readOnly 必须成立。
+  assert.match(entry, /act\.archived === true/, 'activity-entry 缺 archived 只读判定');
+  assert.match(entry, /const readOnly = (?:act\.archived === true|archivedReadOnly \|\| committeeSourceLocked);/,
+    'activity-entry 的 readOnly 必须由归档只读派生（可扩展党委原件锁定）');
   assert.match(entry, /const canManageMembers = !readOnly && !formalRoster/, '已归档活动的 canManageMembers 必须为 false');
   assert.match(entry, /已归档，只读保留/, '已归档详情必须显示「已归档，只读保留」');
   for (const gate of ['canSignup = !readOnly', 'canCloseSignup = !readOnly', 'canManageWork = !readOnly', 'canInitiateTransfer = !readOnly']) {

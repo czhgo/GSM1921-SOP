@@ -3,50 +3,54 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 活动查询。
 // D4 裁决批二（2026-09-08）：「考勤概况」独立卡移除 → 考勤作为活动字段入「活动查询」行内只读摘要。
 
-import { getAppState, setState } from '../../../core/base/state.js?v=20261107a';
-import { showToast, escHtml as esc, todayLocal, describeWriteError } from '../../../core/base/utils.js?v=20261107a';
-import { renderDisclosure } from '../../../components/ui/disclosure.js?v=20261107a';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261107a';
-import { renderInspectorFromState, _draftMaterialCount } from '../../../components/record/inspector.js?v=20261107a';
+import { getAppState, setState } from '../../../core/base/state.js?v=20261108a';
+import { showToast, escHtml as esc, todayLocal, describeWriteError } from '../../../core/base/utils.js?v=20261108a';
+import { renderDisclosure } from '../../../components/ui/disclosure.js?v=20261108a';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261108a';
+import { renderInspectorFromState, _draftMaterialCount } from '../../../components/record/inspector.js?v=20261108a';
 // 2026-11-01 批次 524（#7）：待办深链消费（PendingTarget）+ 复用既有活动锚点定位
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261107a';
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261107a';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261108a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261108a';
 // Task 6：支书「活动管理」内的条目走 locate——同页 inspector 预览 + 「打开完整页」。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261107a';
-import { computeSecretaryStats } from '../../../services/core/roles.js?v=20261107a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261107a';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261107a';
-import { openModal, closeModal, confirmNudge, confirmWriteWithoutGrant } from '../../../components/ui/modal.js?v=20261107a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261108a';
+import { computeSecretaryStats } from '../../../services/core/roles.js?v=20261108a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261108a';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261108a';
+import { openModal, closeModal, confirmNudge, confirmWriteWithoutGrant } from '../../../components/ui/modal.js?v=20261108a';
 // 批次 524（F · 输入单一源）：布局中立的控件积木（只出控件本体，不套 label / 外边距）
-import { textInput, selectInput } from '../../../components/ui/forms.js?v=20261107a';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/activity/decision-tree.js?v=20261107a';
-import { loadActivities, listBrandProposals } from '../../../services/activity/activity.js?v=20261107a';
-import { icon } from '../../../core/base/icons.js?v=20261107a';
-import { liveMembers, PersonStore, getPersonName } from '../../../services/member/person.js?v=20261107a';
+import { textInput, selectInput } from '../../../components/ui/forms.js?v=20261108a';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/activity/decision-tree.js?v=20261108a';
+import { loadActivities, listBrandProposals } from '../../../services/activity/activity.js?v=20261108a';
+import { icon } from '../../../core/base/icons.js?v=20261108a';
+import { liveMembers, PersonStore, getPersonName } from '../../../services/member/person.js?v=20261108a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261107a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261108a';
 const PEOPLE = liveMembers();
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261107a';
-import { BranchService } from '../../../services/core/runtime.js?v=20261107a';
-import { DEFAULT_BRANCH_ID, ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS, ROLE_LABELS, PROJECT_ROLES, ACTIVITY_SCOPES, isBranchLevelScenario } from '../../../core/domain/constants.js?v=20261107a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261108a';
+import { BranchService } from '../../../services/core/runtime.js?v=20261108a';
+import { DEFAULT_BRANCH_ID, ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS, ROLE_LABELS, PROJECT_ROLES, ACTIVITY_SCOPES, isBranchLevelScenario } from '../../../core/domain/constants.js?v=20261108a';
 // 责任党小组清单唯一来源（2026-10-21 批次 499：活动必须落到唯一责任党小组）
-import { loadPartyGroups } from '../../../services/member/party-group.js?v=20261107a';
+import { loadPartyGroups } from '../../../services/member/party-group.js?v=20261108a';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261107a';
-import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20261107a';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, resolveParticipantIds, isAnonymousForced } from '../../../services/activity/vote-config.js?v=20261107a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261107a';
-import { getBranchIdOfPerson, getBranchById, getBranchOutputBlocks, applyWorkflowBlockPolicy, getWorkflowBlockFieldPolicy, getWorkflowBlockParticipantPolicy } from '../../../services/branch/branch.js?v=20261107a';
-import { generateId } from '../../../core/base/id.js?v=20261107a';
-import { validateAgendaStructure } from '../../../services/activity/agenda-relations.js?v=20261107a';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261108a';
+import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20261108a';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, resolveParticipantIds, isAnonymousForced } from '../../../services/activity/vote-config.js?v=20261108a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261108a';
+import { getBranchIdOfPerson, getBranchById, getBranchOutputBlocks, applyWorkflowBlockPolicy, getWorkflowBlockFieldPolicy, getWorkflowBlockParticipantPolicy } from '../../../services/branch/branch.js?v=20261108a';
+import { generateId } from '../../../core/base/id.js?v=20261108a';
+import { validateAgendaStructure } from '../../../services/activity/agenda-relations.js?v=20261108a';
 // 支部文件读侧收敛点（2026-09-10）：会前草案下拉经 branch-doc 服务读取（按归属支部过滤，跨支部不可见）
-import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch/branch-doc.js?v=20261107a';
+import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch/branch-doc.js?v=20261108a';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
-import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST, THREE_MEETINGS_MANIFESTS } from '../../../workflow/blocks/manifests.js?v=20261107a';
+import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST, THREE_MEETINGS_MANIFESTS } from '../../../workflow/blocks/manifests.js?v=20261108a';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261107a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261107a';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261108a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261108a';
+// 党委活动（院级内容 · 批次 534 · Task 9）：院级 / 源自党委标识 + 未采用时的采用入口。
+// 判据与语义端点组装单一源＝services/activity/committee-activity.js。
+import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261108a';
+import { isCommitteeActivity, isCommitteeCopy, canAdopt, adoptActivity } from '../../../services/activity/committee-activity.js?v=20261108a';
 // 2026-10-25 IA 62→45：本页**只承担活动生命周期**——原「活动查询」折叠区（`renderQueryView`）与
 //   「党小组活动」独立卡已删：关键词 / 类别 / 品牌 / 党小组活动统一为日历工具栏的筛选控件（同一屏、一次点击）；
 //   项目赋权整卡（`mountActivityProjectAuth`）已移出——专班赋权回组织台「专班管理」，活动赋权在活动详情
@@ -300,6 +304,8 @@ const CALENDAR_TAB_HTML = `
       title: '活动日历',
       actions: '<button type="button" id="cal-new-group-activity" class="btn-accent-soft">+ 新建党小组活动</button>',
     })}
+    <!-- 院级活动待采用（批次 534 · Task 9）：同一张日历卡内的行内动作，不新开顶层区块。 -->
+    <div id="committee-activity-strip" class="mb-3" hidden></div>
     <div id="calendar-view-section" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
       <div class="lg:col-span-3">
         <!-- P3 四段（批次 525 · #2 定版两行）：第 1 行＝月份＋搜索，第 2 行＝3 分面＋清除；
@@ -405,6 +411,11 @@ export function renderContent(state) {
   const targetMonth = targetAct?.date?.slice(0, 7) || view.displayMonth || undefined;
   const displayMonth = populateMonthSelector(displayActivities, targetMonth);
   renderCalendarByActivities(filteredState, displayMonth);
+  // 批次 534 · Task 9：院级活动标识 / 待采用入口（渲染后装饰，不改共享日历组件）。
+  _renderCommitteeStrip();
+  _bindCommitteeStrip();
+  _decorateCommitteeRows();
+  _watchCommitteeRows();
   renderInspectorFromState(filteredState); _decorateInspectorActivityLinks();
   bindMonthSelector();
   bindCalendarFilters();
@@ -1851,9 +1862,9 @@ document.addEventListener('click', (e) => { if (e.target?.closest?.('#wp-agenda-
 async function _loadAgendaCandidateSources() {
   const out = { taskforceProposals: [], issues: [], draftDocs: [], members: [], stageEntries: {} };
   const [{ TaskForceRecordStore }, { IssueStore }, { loadStageEntryDates }] = await Promise.all([
-    import('../../../services/activity/taskforce.js?v=20261107a'),
-    import('../../../services/governance/issues.js?v=20261107a'),
-    import('../../../services/member/member-confirmation.js?v=20261107a'),
+    import('../../../services/activity/taskforce.js?v=20261108a'),
+    import('../../../services/governance/issues.js?v=20261108a'),
+    import('../../../services/member/member-confirmation.js?v=20261108a'),
   ]);
   try { out.taskforceProposals = TaskForceRecordStore.listCommitteeRequests(); }
   catch (e) { _reportCalendarDataError('[calendar] 专班待议加载失败', e); }
@@ -2000,4 +2011,103 @@ function _decorateInspectorActivityLinks() {
       if (link) document.getElementById('inspector-date-title')?.insertAdjacentElement('afterend', link);
     }
   }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  党委活动在支部活动管理台的就地入口（2026-11-08 批次 536 · Task 9）
+// ════════════════════════════════════════════════════════════════
+// 为什么做「渲染后装饰」而不改共享日历：`components/record/calendar.js` 是六台共用的日历渲染，
+//   日历条目本身是 `role="button"`（不能内嵌第二枚按钮）。故本台只做两件事：
+//   ① 给已渲染的条目补「院级 / 源自党委（上级 vN）」小徽章；
+//   ② 在同一张日历卡内加一行「院级活动待采用」（标题伸缩 + 采用按钮，遵守 SD-60 行动行排布）。
+// 采用成功后整页重载——服务端副本是唯一事实，不在本地另造第二份状态。
+let _committeeMarkObserver = null;
+
+/** 当前账号 + 解析后的 branchId（采用判据需要支部命中） */
+function _committeeUser() {
+  const me = AuthStore.getCurrentUser();
+  return me ? { ...me, branchId: me.branchId || _currentBranchId() } : null;
+}
+
+/** 「院级活动待采用」行：只在有可采用活动时出现（无则整块收起，不占版面） */
+function _renderCommitteeStrip() {
+  const host = document.getElementById('committee-activity-strip');
+  if (!host) return;
+  const user = _committeeUser();
+  const pending = loadActivities().filter((a) => canAdopt(user, a));
+  if (!pending.length) {
+    host.hidden = true;
+    host.innerHTML = '';
+    return;
+  }
+  host.hidden = false;
+  host.innerHTML = `
+    <div class="rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-3">
+      <p class="text-xs text-gray-600 mb-2">院级活动待采用 <span class="tabular-nums">${pending.length}</span></p>
+      <div class="space-y-2">
+        ${pending.map((a) => `
+          <div class="flex flex-wrap items-center gap-2">
+            ${badgeHtml('院级', 'brand')}
+            <span class="text-sm font-medium text-gray-800 min-w-0 flex-1 truncate" title="${esc(a.title || '')}">${esc(a.title || '未命名')}</span>
+            <span class="text-xs text-gray-500 flex-shrink-0">${esc(a.date || '待定')}</span>
+            <button type="button" class="btn-accent btn-sm flex-shrink-0" data-committee-adopt="${esc(a.id)}">采用</button>
+          </div>`).join('')}
+      </div>
+      <p class="mt-2 text-xs text-gray-500">采用后生成本支部副本；日期 / 地点 / 承办党小组 / 报名 / 考勤等执行信息在副本中维护。</p>
+    </div>`;
+}
+
+/** 采用入口（事件委托；成功后重载页面） */
+function _bindCommitteeStrip() {
+  const host = document.getElementById('committee-activity-strip');
+  if (!host || host.dataset.committeeBound === '1') return;
+  host.dataset.committeeBound = '1';
+  host.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-committee-adopt]');
+    if (!btn || btn.disabled) return;
+    btn.disabled = true;
+    const res = await adoptActivity(btn.dataset.committeeAdopt);
+    if (!res.ok) {
+      btn.disabled = false;
+      showToast('error', res.error || res.reason || '采用失败');
+      return;
+    }
+    await showToast('success', res.data?.idempotent ? '本支部已采用该活动（副本已存在）' : '已采用到本支部');
+    window.location.reload();
+  });
+}
+
+/** 给已渲染的日历条目补来源徽章（院级 / 源自党委 + 上级 vN） */
+function _decorateCommitteeRows() {
+  const grid = document.getElementById('cal-main-grid');
+  if (!grid) return;
+  const byId = new Map(loadActivities().map((a) => [String(a.id), a]));
+  grid.querySelectorAll('.cal-activity-item[data-act-id], .cal-list-item[data-act-id]').forEach((item) => {
+    if (item.querySelector('[data-committee-mark]')) return;
+    const act = byId.get(String(item.dataset.actId || ''));
+    if (!act) return;
+    const copy = isCommitteeCopy(act);
+    if (!copy && !isCommitteeActivity(act)) return;
+    const mark = document.createElement('span');
+    mark.dataset.committeeMark = '1';
+    mark.className = `badge ${badgeVariantClass(copy ? 'neutral' : 'brand')}`;
+    mark.textContent = copy ? '源自党委' : '院级';
+    item.appendChild(mark);
+    if (copy) {
+      const ver = document.createElement('span');
+      ver.dataset.committeeMark = '1';
+      ver.className = 'text-[11px] text-gray-500 flex-shrink-0';
+      ver.textContent = `上级 v${Number(act.sourceVersion) || 1}`;
+      item.appendChild(ver);
+    }
+  });
+}
+
+/** 日历切换视图会重绘条目 ⇒ 用观察器把徽章补回（有 `data-committee-mark` 守卫，不会自激） */
+function _watchCommitteeRows() {
+  const grid = document.getElementById('cal-main-grid');
+  if (!grid || typeof MutationObserver === 'undefined') return;
+  _committeeMarkObserver?.disconnect();
+  _committeeMarkObserver = new MutationObserver(() => _decorateCommitteeRows());
+  _committeeMarkObserver.observe(grid, { childList: true, subtree: true });
 }

@@ -8,7 +8,7 @@
 // 设计源：DESIGN_SYSTEM §4.3（输入统一原则）+ web-interface-guidelines（Forms/Accessibility）
 // 演进：块画布 L3 的块 inputs 声明复用同一字段积木目录。
 // 批次 525（#4）：键盘选中项滚入视野走全站唯一滚动出口（motion-guard M10）。
-import { smoothScroll } from '../../core/base/utils.js?v=20261107a';
+import { smoothScroll } from '../../core/base/utils.js?v=20261108a';
 
 /** 标签行（for 关联控件 id；必填星号；可选 hint 描述） */
 export function labelHtml({ id, text, required = false, hint = '' } = {}) {
@@ -265,5 +265,25 @@ export function suggestInput({ id, value = '', placeholder = '', ariaLabel = '',
 export function dateField({ id, label, value = '', required = false, hint = '', error = '', name = '', compact = false }) {
   const cls = compact ? 'input-flat w-full' : 'input-flat w-full';
   const control = `<input type="date" id="${id}" name="${name || id}" autocomplete="off" class="${cls}${error ? ' border-red-400' : ''}" value="${String(value)}"${error ? ` aria-describedby="${id}-err"` : ''}>`;
+  return _fieldShell({ id, label, required, hint, error, control });
+}
+
+/**
+ * 文件字段（批次 534 · 院级资料上传）。
+ * 为什么放在本库：文件选择此前没有单一出口，调用点各写一份裸 file 控件（自带 input-flat 类），
+ * 会撞 `field-shell-guard` 的裸输入棘轮（只减不增）。本件与 textField 共用 `_fieldShell` 的 label / 错误行结构，
+ * class 由变量拼装（与 textField / dateField 同体例），调用点只传 id / label / accept。
+ * @param {Object} o
+ * @param {string} o.id
+ * @param {string} o.label
+ * @param {string} [o.accept] 允许的扩展名 / MIME（如 `.pdf,.doc,.docx`）
+ * @param {boolean} [o.required]
+ * @param {string} [o.hint]
+ * @param {string} [o.error]
+ * @param {string} [o.name]
+ */
+export function fileField({ id, label, accept = '', required = false, hint = '', error = '', name = '' }) {
+  const cls = 'input-flat w-full';
+  const control = `<input type="file" id="${id}" name="${name || id}" class="${cls}${error ? ' border-red-400' : ''}"${accept ? ` accept="${accept}"` : ''}${error ? ` aria-describedby="${id}-err"` : ''}>`;
   return _fieldShell({ id, label, required, hint, error, control });
 }

@@ -2,7 +2,7 @@
 title: "数据同源一致性校验手册"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-03"
+last_updated: "2026-11-08"
 status: active
 related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ---
@@ -199,7 +199,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | **两适配器的接口面**（资源组 / 方法集合双向比对；差异须逐条登记理由，Mock 不得先造 API 没有的组） | `docs/src/data/api-adapter.js` · `docs/src/data/mock-adapter.js` | `mock-api-parity-structure.test.mjs::S1 / S2 / S2b / S3 / S4 / C3`（6 条） | 已闭环（21 条差异白名单，每条带理由） | 批次 515 · 本文件 §0.2 |
 | **种子契约**（branchId 非空且同支部 / `todos.branch_id` 生成列 / 四组唯一索引 / contributions 对象化 / 考察成员资格 / 死表与只读表 / 文档登记） | `server/seed.js` · `server/db.js` · `docs/src/data/seed-manifest.js` | `seed-contract-guard.test.mjs::C1–C10` | 已闭环 | `content/04_web_design/data/DATA_SEED_CONTRACT.md` |
 | **种子漂移修复**（只改 `seedOwnedFields`、二次 plan 零改写、启动只修既有 seed id 不插不删） | `docs/src/data/seed-drift.js` · `server/seed-repair.js` | `seed-drift.test.mjs::D1–D4` | 已闭环 | `content/04_web_design/data/DATA_SEED_CONTRACT.md` |
-| **已知缺口（只登记、不判红）**：① 14 个无种子集合 / 18 张无种子表不在 mock↔API 结构对照内；② 7 张语义表无集合版本（`GET /snapshot/versions` 只遍历资源名映射）；③ 快照可写集合 29 与前端 payload 24 不相等；④ 语义端点无值对照 | `docs/src/data/seed-manifest.js`（`NON_SEED_COLLECTIONS` / `NON_SEED_TABLES`）· `server/routes/resources/store.js` · `snapshot-versions.js` | 无（缺口登记，不设守卫） | 已登记（2026-10-27 批次 516 · `B-515-4`） | 本文件 §0.2 |
+| **已知缺口（只登记、不判红）**：① 14 个无种子集合 / 18 张无种子表不在 mock↔API 结构对照内；② 8 张语义表无集合版本（`GET /snapshot/versions` 只遍历资源名映射）；③ 快照可写集合 29 与前端 payload 24 不相等；④ 语义端点无值对照 | `docs/src/data/seed-manifest.js`（`NON_SEED_COLLECTIONS` / `NON_SEED_TABLES`）· `server/routes/resources/store.js` · `snapshot-versions.js` | 无（缺口登记，不设守卫） | 已登记（2026-10-27 批次 516 · `B-515-4`） | 本文件 §0.2 |
 | 数据库结构变更必须走**版本化迁移**（`PRAGMA user_version` ＋ 有序 `MIGRATIONS`；新建库 / 幂等可重入 / 既有库兼容 / 失败回滚 / 失败不吞） | `server/db.js`（`MIGRATIONS` / `SCHEMA_VERSION` / `applyMigrations`） | `db-migration.test.mjs::M1–M6` | 已闭环 | `.ctx/ACTIVE_RULINGS.md`（`D-650`） |
 | SQLite 备份一律用 `db.backup()`、**绝不直接 `copy` 主文件**（WAL 尾部会丢）——备份 → 破坏 → 恢复到新路径演练 | `server/scripts/backup.mjs`（在线备份 API） | `backup-restore.test.mjs::B1` | 已闭环（真 spawn 备份脚本 ＋ 反证「只 `copy` 丢 WAL 尾」） | `.ctx/ACTIVE_RULINGS.md`（`D-650`） |
 | 数据库完整性 / 版本自检 ＋ 「**新增结构须写 migration**」纪律（`ALTER TABLE` 只许出现在 migration 段内） | `server/db.js`（`validateMigrations` · v1 冻结基线 45 表） | `db-integrity-guard.test.mjs::G1–G6` | 已闭环 | `.ctx/ACTIVE_RULINGS.md`（`D-650`） |

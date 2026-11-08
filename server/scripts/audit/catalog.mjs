@@ -4,7 +4,7 @@
 // 口径见 `.trae/documents/2026-11-02-tab-audit-asset.md` §3.2：
 //   · 页签清单**只从** `docs/src/capabilities/*-workspace.js` 读取（不在本文件手写第二份）；
 //   · `blocks` 只从 `server/test/style-baseline.mjs::TAB_BLOCK_BASELINE` 读取；
-//   · 启动时校验：45 项、键集合与 `TAB_BLOCK_BASELINE` 双向相等，否则抛错。
+//   · 启动时校验：46 项、键集合与 `TAB_BLOCK_BASELINE` 双向相等，否则抛错。
 // ⚠ 新增 / 删除页签必须同批改 capabilities 注册表与 `TAB_BLOCK_BASELINE`，本文件自动跟随。
 
 import { readFileSync } from 'node:fs';
@@ -14,8 +14,8 @@ import { TAB_BLOCK_BASELINE, TAB_BLOCK_TOTAL_BASELINE } from '../../test/style-b
 /** 七个工作台（与 `server/test/page-sweep.test.mjs::WORKS` 一致） */
 export const ROLES = ['secretary', 'org', 'prop', 'disc', 'leader', 'visitor', 'party-committee'];
 
-/** 页签数（契约固定 45；同时与基线规模常量对账） */
-export const CATALOG_SIZE = 45;
+/** 页签数（契约 46：2026-11-08 批次 536 党委台新增「院级内容」；同时与基线规模常量对账） */
+export const CATALOG_SIZE = 46;
 
 const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 const CAPABILITIES_DIR = `${REPO_ROOT}docs/src/capabilities`;

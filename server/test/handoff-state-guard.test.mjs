@@ -12,30 +12,30 @@ import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261107a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261108a';
 import {
   INSPECTION_WRITE_ROLES,
   INSPECTION_CONFIRM_ROLES,
-} from '../../docs/src/core/domain/constants.js?v=20261107a';
+} from '../../docs/src/core/domain/constants.js?v=20261108a';
 import {
   INSPECTION_ROLE_WRITE,
   INSPECTION_ROLE_CONFIRM,
   canUploadInspection,
   confirmInspectionRecord,
   returnInspectionRecord,
-} from '../../docs/src/services/activity/inspection.js?v=20261107a';
+} from '../../docs/src/services/activity/inspection.js?v=20261108a';
 import {
   INSPECTION_WRITE_ROLE_SET,
   INSPECTION_CONFIRM_ROLE_SET,
 } from '../routes/resources/gates.js';
-import { HandoffStore } from '../../docs/src/services/governance/handoff.js?v=20261107a';
-import { TodoStore } from '../../docs/src/services/governance/todo.js?v=20261107a';
+import { HandoffStore } from '../../docs/src/services/governance/handoff.js?v=20261108a';
+import { TodoStore } from '../../docs/src/services/governance/todo.js?v=20261108a';
 import {
   upsertMeetingAttendance,
   appendAttendanceRecords,
   isAttendancePendingConfirm,
   listPendingAttendanceConfirm,
-} from '../../docs/src/services/activity/attendance.js?v=20261107a';
+} from '../../docs/src/services/activity/attendance.js?v=20261108a';
 
 let server, base;
 

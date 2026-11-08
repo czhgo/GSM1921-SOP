@@ -3,14 +3,14 @@ title: "院系党委后台——支部多实例两级治理设计定案"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-02
-last_updated: 2026-10-30
+last_updated: 2026-11-08
 status: approved-by-secretary
-related_files: [docs/src/core/domain/domain.js, docs/src/data/mock/people.js, docs/src/data/mock/accounts.js, server/seed.js, server/db.js, docs/src/data/data-adapter.js, docs/src/core/domain/constants.js, docs/src/services/core/auth.js, docs/src/capabilities/]
+related_files: [docs/src/core/domain/domain.js, docs/src/data/mock/people.js, docs/src/data/mock/accounts.js, server/seed.js, server/db.js, docs/src/data/data-adapter.js, docs/src/core/domain/constants.js, docs/src/services/core/auth.js, docs/src/capabilities/, PUBLIC_ENTRANCE.md, ../../02_institution/SYSTEM_ROLE_PERMISSION.md]
 ---
 
 # 院系党委后台——支部多实例两级治理设计定案
 
-> **本文负责**：**院系党委 → 支部多实例两级治理的设计定案**——方向选择记录、两级组织模型、支部配置档案与配置写权分层、两级角色可见范围、数据模型横向扩展、功能分期与验收原则。
+> **本文负责**：**院系党委 → 支部多实例两级治理的设计定案**——方向选择记录、两级组织模型、支部配置档案与配置写权分层、两级角色可见范围、数据模型横向扩展、功能分期与验收原则；2026-11-08 起补入**院级内容作者与公开审计**两节（§5.2 / §5.3）。
 > **本文不负责**：① **党委台界面与服务落点清单** → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) §十一 与 [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md)；② **角色键与权限键** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)；③ **部署形态与对外对接** → [DEPLOYMENT_GUIDE.md](../deploy/DEPLOYMENT_GUIDE.md)；④ **L4 拖拽编排的架构锚点** → [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §八。
 
 > **性质：设计图与方向选择说明**（为什么这样做、选了什么方向）。
@@ -183,6 +183,52 @@ related_files: [docs/src/core/domain/domain.js, docs/src/data/mock/people.js, do
 **档案服务边界**：不选支部时，党委只读跨支部汇总；选中一个支部后，党委可读取该支部完整档案；请求参数与成员 `branchId` 不一致、缺少选定范围或读取其他支部时由服务端拒绝。前端隐藏入口不构成权限控制。党委组织员不能读取自己的成员档案，也不能通过通用名册接口绕过选定范围。
 
 配置按分区导航与引导式向导共用 `org-setup-wizard.js`。日常配置使用分区入口；首次建支部/逐步核对可进入 `wizard.html?branch=...`，保留草稿续做、复制/创建、配置导入导出和工作单。配置区继续按角色限制写权：党委可维护组织字段和权限范围内的参数；模块/能力包的选择权归支部。
+
+## 5.2 院级内容作者（2026-11-08 · 设计）
+
+> **状态**：设计定案，按 spec 分批落地；本节不记录实现进度。权限条文见 [SYSTEM_ROLE_PERMISSION.md §9a.1](../../02_institution/SYSTEM_ROLE_PERMISSION.md)，字段见 [DATA_MODEL.md](../data/DATA_MODEL.md)。
+
+党委从「只管治理」扩到「也写院级内容」。党委工作台新增一个「院级内容」页签，内部区分活动与资料两个子视图，不另开第二个页签。
+
+**写入范围**
+
+| 内容 | 落点 | 关键约束 |
+|---|---|---|
+| 党委活动 | `activities`，`ownerScope='committee'`、`branchId='pc-gsm'` | 目标支部为 `['all']` 或已存在支部；已发布时目标支部必填；不承载报名、参与名单、考勤与投票配置 |
+| 党委通知 | `notices` | 受众与公开范围分开设置；空受众不得视为广播 |
+| 院级资料 | `branch_docs`，`ownerScope='committee'`、`branchId='pc-gsm'` | 发布范围为 `login` 或 `public` |
+| 支部档案 | `archive_records` | 必须明确目标支部 `branchId`；不得改写该支部活动本身 |
+| 成员名册 | 既有导入 ＋ `member_change_requests` 提案 | 提案 `source='committee-proposal'`，须目标支部支书确认后阶段才变更 |
+
+**两个独立维度**：目标支部决定登录后谁能看到（`['all']` 或指定支部数组），公开范围决定未登录能否看到（`login` / `public`）。两者不互相推导。
+
+**下发链路**
+
+1. **发布**：党委写党委活动并设置目标支部；编辑内容时 `contentVersion` 加 1。
+2. **下发**：按目标支部创建系统通知，受众为支书与副支书，关联活动 id 与版本号；同一 `contentVersion` 重复下发不新增通知，新版本另建一条，旧通知保留。
+3. **采用**：目标支部支书或副支书采用后生成支部副本（`ownerScope='branch'`、`sourceActivityId` 指向原件、`sourceVersion` 记录版本）；重复采用返回同一副本，并发由唯一索引与事务兜底。
+4. **执行维护**：副本内容字段以党委活动为准，支部只改执行字段（日期、地点、承办党小组、参与范围、报名设置、补课要求、外出标记、深参方式）。
+5. **手动同步**：副本 `sourceVersion` 落后时由支书触发同步，只覆盖内容字段并更新 `sourceVersion` / `sourceSyncedAt`；不做自动推送。
+6. **强调通知**：支部副本上由支书或副支书发送，受众为支部内全体党员；同一 `(branchId, sourceActivityId)` 在 24 小时内最多一条。
+
+**与副本的关系**
+
+- 党委活动与支部副本同表不同 `ownerScope`；一个支部对一条党委活动最多一条副本，唯一约束落在 `(branch_id, source_activity_id)`（排除空值）。
+- 支部列表在已有副本时隐藏党委原件；直达原件时只读展示并提示「本支部已采用」。
+- 党委取消或归档活动不自动改变副本状态；副本显示上级状态提示，由支书自行处理。
+
+**党委不代写支部内部内容**：支部活动内容、支部内部通知、支部制度文本与成员阶段直接变更均不在党委写权内。党委需要调整成员阶段时提交提案，由目标支部确认。
+
+## 5.3 公开与审计（2026-11-08 · 设计）
+
+> **状态**：设计定案，随公共门厅一起落地；门厅本身的显示范围与验收判据见 [PUBLIC_ENTRANCE.md](./PUBLIC_ENTRANCE.md)。
+
+- **公开权限只归党委**：`publishScope='public'` 的设置与撤销只对 `party-staff` 开放；支部账号设置返回 403。
+- **有效期必填**：设为 `public` 必须同时给出未来的 `publishExpiresAt`；缺失或已过期返回 422。
+- **过期 fail-closed**：过期后匿名接口不再返回该条内容；登录用户的可见性仍按受众与目标支部判定。
+- **字段白名单**：匿名接口只返回白名单字段，不返回成员姓名、`personId`、组织者、分工、投票配置与内部审批字段；不存在与无权统一 404。
+- **审计**：`publication_audits` 记录公开、撤下、有效期变更与匿名下载，字段覆盖操作人、角色、资源类型、资源 id、动作、旧值与新值、时间；匿名下载的操作人为空。
+- **院级资料的公开**：院级资料可设 `login`（登录可见）或 `public`（匿名可见）；支部资料不进入公开面。
 
 ## 6. 演示与基线
 

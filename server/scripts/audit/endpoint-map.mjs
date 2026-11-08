@@ -37,6 +37,8 @@ const R = {
   archiveRecords: 'GET /api/v1/archiveRecords',
   externalDispatches: 'GET /api/v1/externalDispatches',
   branchDocs: 'GET /api/v1/branchDocs',
+  committeeActivities: 'GET /api/v1/committee/activities',
+  committeeDocuments: 'GET /api/v1/committee/documents',
   branches: 'GET /api/v1/branches',
   partyGroups: 'GET /api/v1/partyGroups',
   memberFlows: 'GET /api/v1/memberFlows',
@@ -114,6 +116,7 @@ const SRC = {
   visitorAttendance: 'docs/src/entries/tabs/visitor/attendance-tab.js',
   visitorGrowth: 'docs/src/entries/tabs/visitor/growth-tab.js',
   partyDispatch: 'docs/src/entries/tabs/party-committee/dispatch-tab.js',
+  partyContent: 'docs/src/entries/tabs/party-committee/content-tab.js',
   partyReview: 'docs/src/entries/tabs/party-committee/review-tab.js',
   partyBranches: 'docs/src/entries/tabs/party-committee/branches-tab.js',
 };
@@ -754,7 +757,7 @@ export const ENDPOINT_MAP = {
     count: [],
   },
 
-  // ── 党委台（3）────────────────────────────────────────────────
+  // ── 党委台（4）────────────────────────────────────────────────
   'party-committee.dispatch': {
     source: SRC.partyDispatch,
     read: read('reviewRequests', 'branches', 'users', 'appointmentRecords', 'notices', 'issues',
@@ -772,6 +775,27 @@ export const ENDPOINT_MAP = {
       write('POST', '/api/v1/system-notices', 'committee-dispatch', 'committee-dispatch'),
       write('POST', '/api/v1/report/trigger', 'party-staff', 'report-trigger'),
       write('POST', '/api/v1/auth-audit', 'requireAuth', 'auth-audit-create'),
+    ],
+    destructive: [],
+    count: [],
+  },
+  // 2026-11-08 批次 536（spec Task 8）：院级内容＝党委活动 + 院级资料两个子视图。
+  // 读口 / 写口与 api-adapter.js::committeeContent 一一对应；写门均为 requireRole(PARTY_STAFF_ROLE)，
+  // 文件本体走既有 POST /api/v1/uploads（requireCommissioner）。
+  'party-committee.gov-content': {
+    source: SRC.partyContent,
+    read: read('committeeActivities', 'committeeDocuments', 'branches'),
+    write: [
+      write('POST', '/api/v1/committee/activities', 'PARTY_STAFF_ROLE', 'committee-activity-create'),
+      write('PATCH', '/api/v1/committee/activities/:id', 'PARTY_STAFF_ROLE', 'committee-activity-update'),
+      write('POST', '/api/v1/committee/activities/:id/cancel', 'PARTY_STAFF_ROLE', 'committee-activity-cancel'),
+      write('POST', '/api/v1/committee/activities/:id/archive', 'PARTY_STAFF_ROLE', 'committee-activity-archive'),
+      write('PATCH', '/api/v1/committee/activities/:id/publication', 'PARTY_STAFF_ROLE', 'committee-activity-publication'),
+      write('POST', '/api/v1/committee/activities/:id/dispatch', 'PARTY_STAFF_ROLE', 'committee-activity-dispatch'),
+      write('POST', '/api/v1/committee/documents', 'PARTY_STAFF_ROLE', 'committee-document-create'),
+      write('PATCH', '/api/v1/committee/documents/:id', 'PARTY_STAFF_ROLE', 'committee-document-update'),
+      write('POST', '/api/v1/committee/documents/:id/withdraw', 'PARTY_STAFF_ROLE', 'committee-document-withdraw'),
+      write('POST', '/api/v1/uploads', 'requireCommissioner', 'file-upload'),
     ],
     destructive: [],
     count: [],

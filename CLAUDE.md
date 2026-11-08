@@ -2,7 +2,7 @@
 title: "CLAUDE — 项目宪法与路由"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-07"
+last_updated: "2026-11-08"
 status: active
 ---
 
@@ -293,6 +293,8 @@ status: active
 | 目标批次 | 条目 | 一句话 | 判据 / 出处 | 状态 |
 |---|---|---|---|---|
 | 后续 | B-500-7b-2 | 完整 Plan B 收尾：客户端业务派生摘除（默认路径已切服务端）＋ 读面前置解耦 ＋ 缓存 / 性能。**前置已达**：7 类对账 8/8、双支部夹具、daily 1788 全绿；**不以上线为前提**，测试门全绿即可启动 | `server/routes/todo-groups.js`、`docs/src/components/record/todo-tab-shell.js`、`server/test/todo-derive-parity.test.mjs` | 待启动 |
+| 后续 | B-536-1 | `ALLOW_MULTI_BRANCH` 在 Phase 1–2 实施与验收前不打开开关；当前只补设计 | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §十` | 待启动 |
+| 后续 | B-536-2 | Windows `test:daily` 命令行超长，补 registry 驱动的分片 runner | `server/test-tier-registry.mjs` ＋ `server/package.json` | 待启动 |
 
 # 丙部：待决策事项
 
@@ -300,4 +302,3 @@ status: active
 
 | ID | 问题 | 选项 | 推荐 | 影响 |
 |---|---|---|---|---|
-| V-11 | 未登录即看到具体支部名；是否改中性品牌或做学院级统一入口？ | A 最小收紧（未登录中性）/ B 学院级统一入口 / C 公共门户 | A | 影响登录页品牌与路由；研究见 `content/04_web_design/evolution/PUBLIC_ENTRANCE.md`；裁定前不改 |

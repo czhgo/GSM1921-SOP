@@ -2,7 +2,7 @@
 title: "产品 IA 派生索引（页签功能地图）"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-11-03"
+last_updated: "2026-11-08"
 version: "0.2"
 status: active
 related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/, content/03_doc_system/DOC_MAP.md]
@@ -13,11 +13,11 @@ related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/
 > **定位：派生索引，不承担规范，禁止手改。** 本文件由 `docs/src/capabilities/*-workspace.js`（页签注册单一源）与 `docs/src/core/domain/function-catalog.js`（功能目录单一源）派生而来，只回答「哪台有哪些页签、各自归哪组、主对象与主操作是什么」。
 > **不负责什么**：页签的规范定义（分组轴见 [DS_03_COMPONENTS.md §4.6](design-system/DS_03_COMPONENTS.md)；组件与承载面见同文 §10.7 / §12.15，§10.7 在 [DS_05_MAP_AND_REFERENCE.md](design-system/DS_05_MAP_AND_REFERENCE.md)）、页签注册本身（改 `capabilities/*`）、术语定义（见 [TERMINOLOGY.md](../03_doc_system/TERMINOLOGY.md)）。
 > **维护方式**：页签增删改 → 先改 `capabilities/*`，再同批按实况重写本表；`catalog-sync` 校验本表页签集合与注册表一致。**不得只改本表**。
-> **当前总数：45**（支书 10 / 组织 8 / 宣传 5 / 纪检 6 / 组长 6 / 成员 7 / 党委 3）。2026-10-25 Task 5 完成 62 → 45；被删/降的 17 项见文末「旧页签 → 新落点」重定向表。
+> **当前总数：46**（支书 10 / 组织 8 / 宣传 5 / 纪检 6 / 组长 6 / 成员 7 / 党委 4）。2026-10-25 Task 5 完成 62 → 45；2026-11-08 批次 536 党委台新增「院级内容」⇒ 46；被删/降的 17 项见文末「旧页签 → 新落点」重定向表。
 
-## 页签表（45）
+## 页签表（46）
 
-> **块数口径**：每页签的顶层区块数基线＝`server/test/style-baseline.mjs::TAB_BLOCK_BASELINE`（45 条，与注册表双向相等）；上限、同类合并与超限例外登记判据见 [DS_06_LAYOUT_AND_DENSITY.md §二 SD-57](design-system/DS_06_LAYOUT_AND_DENSITY.md)。本表只列页签与主对象，不重复块数。
+> **块数口径**：每页签的顶层区块数基线＝`server/test/style-baseline.mjs::TAB_BLOCK_BASELINE`（46 条，与注册表双向相等）；上限、同类合并与超限例外登记判据见 [DS_06_LAYOUT_AND_DENSITY.md §二 SD-57](design-system/DS_06_LAYOUT_AND_DENSITY.md)。本表只列页签与主对象，不重复块数。
 
 | 台 | 组 | 页签 | 渲染入口 | 一句话职责 | 主对象 | 主操作 | 新落点 |
 |---|---|---|---|---|---|---|---|
@@ -64,6 +64,7 @@ related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/
 | 成员 | 我的职责 | 考勤概况 | `entries/tabs/visitor/attendance-tab.js` | 个人考勤与补课状态 | 考勤 | 查看 | — |
 | 成员 | 我的职责 | 我的成长 | `entries/tabs/visitor/growth-tab.js` | 思想汇报 / 我的考察 / 我的复盘三个子区 | 思想汇报 / 考察 / 复盘 | 提交 / 查看 / 申诉 / 复盘 | 合并原「思想汇报」「我的考察」「我的复盘」三页签 |
 | 党委 | 党委治理 | 下发通知 | `entries/tabs/party-committee/dispatch-tab.js` | 向目标支部下发治理通知 | 消息（党委下发） | 选支部 / 下发 | — |
+| 党委 | 党委治理 | 院级内容 | `entries/tabs/party-committee/content-tab.js` | 党委自有活动与院级资料：撰写 / 公开范围 / 下发 / 归档 | 活动 / 资料（院级） | 撰写 / 下发 / 发布 / 撤下 | — |
 | 党委 | 党委治理 | 支部上报 | `entries/tabs/party-committee/review-tab.js` | 审批支部上报事项 | 上报 | 批准 / 驳回 | — |
 | 党委 | 党委治理 | 支部管理 | `entries/tabs/party-committee/branches-tab.js` | 支部实例目录与配置 | 支部 | 查看 / 配置 | — |
 
@@ -77,10 +78,10 @@ related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/
 | 纪检 | 6 |
 | 组长 | 6 |
 | 成员 | 7 |
-| 党委 | 3 |
-| **合计** | **45** |
+| 党委 | 4 |
+| **合计** | **46** |
 
-## 页签构成清单（45）
+## 页签构成清单（46）
 
 > 密度规则见 [DS_06_LAYOUT_AND_DENSITY.md](design-system/DS_06_LAYOUT_AND_DENSITY.md) §2（SD-57 页签密度，本批新增）：单页顶层区块 ≤4。本表按源码顺序列「用户可见的独立区块」，块数 >4 的页签标「待收敛」并写明原因。
 
@@ -129,6 +130,7 @@ related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/
 | 成员 | 考勤概况 | 页头 · 本月出勤率卡 · 出勤明细卡 · 由我组织的活动 · 考勤上传位 | 4 | 0 | 第 4 块条件渲染 |
 | 成员 | 我的成长 | 页头 · 思想汇报（折叠） · 我的考察（折叠） · 我的复盘（折叠） | 4 | 0 | 默认展开第一区 |
 | 党委 | 下发通知 | 页头 · 撰写 / 已发送子页签 · 当前子视图面板 | 3 | 1 | 已发送视图含支部筛选 1 段 |
+| 党委 | 院级内容 | 页头 · 活动 / 资料子页签 · 列表卡 · 撰写 / 上传卡 | 4 | 0 | 两个子视图共用同一骨架；卡内无筛选条 |
 | 党委 | 支部上报 | 页头 · 支部上报处理卡 | 2 | 1 | 支部筛选 1 段 |
 | 党委 | 支部管理 | 页头 · 支部目录卡 | 2 | 1 | 支部筛选 1 段；新建表单在卡内 |
 
@@ -173,7 +175,7 @@ related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/
 >
 > **独立冻结件（2026-10-27 支书裁定）**：About **与本项目无关，属独立件**——`docs/about.html`、`docs/src/about.css`、`docs/src/entries/pages/about-entry.js` **原样保留、不作修改**；**也不去修改它的引用面**（功能目录里的「关于」卡、help 正文的页面清单均**不动**）。它既不纳入本项目的 IA / 页面清单统计，也不纳入守卫扫描与待办清单。→ 由此，凡「About 功能卡 / help 页面清单仍有『关于』」**不再算待办**，出手修改即违规。
 >
-> - **页面清单 / 导航**：本文件的页签表（45 项）与旧页签重定向表均不含 About；侧边栏、help 目录、README 的入口已删除。
+> - **页面清单 / 导航**：本文件的页签表（46 项）与旧页签重定向表均不含 About；侧边栏、help 目录、README 的入口已删除。
 > - **文件保留**：`docs/about.html` 与 `docs/src/entries/pages/about-entry.js` 仍在仓库中，供历史外链直达；**不再新增**指向它的 href / `module: 'about'` 侧栏项 / 文档登记指针。
 > - **判据与守卫**：`no-about-route-guard::A1–A4`（HTML 零链接 / JS 零路由与侧栏项 / Markdown 零指针 / 文件仍存在且非空）；判例边界见 [CASES.md](design-system/CASES.md) CASE-DESIGN-026。**守卫只覆盖上列四项，不扫功能目录与 help 正文**——那两处属独立件，刻意不判。**冻结件内容基线**另由 `server/test/about-freeze-guard.test.mjs` 承担（5 处：三件套整文件哈希 ＋ 功能目录「关于」卡 / help 正文页面清单的定位片段，改动即红）。
 > - **后续**：若要恢复「关于」入口，须同时补页面清单、导航、help 落点与守卫白名单，不得只加回一个链接。

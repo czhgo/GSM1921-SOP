@@ -3,7 +3,7 @@ title: "领域数据契约（单一源）"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: "2026-11-03"
+last_updated: "2026-11-08"
 status: active
 related_files: [content/04_web_design/data/DATA_MODEL.md, content/04_web_design/data/DATA_SEED_CONTRACT.md, server/data/domain-contract.mjs]
 ---
@@ -11,7 +11,7 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/04_web_design/
 # 领域数据契约（单一源）
 
 > **机读单一源**：[`server/data/domain-contract.mjs`](../../../server/data/domain-contract.mjs)；表清单再取自 [`server/db.js`](../../../server/db.js) 的 `RESOURCE_TABLES / SEMANTIC_TABLES / WORKGROUP_TABLES`。本文件是它的人读版，**不另立第二份口径**：字段 / 必填 / 枚举 / 种子计数有冲突时，以 `domain-contract.mjs` 为准（守卫 `server/test/data-contract.test.mjs`）。
-> **范围**：34 张资源表 + 7 张语义表 + 6 张工作组表 = **47 表**。`seedCount`＝`server/seed.js` 首启播种后的行数（0＝无演示种子 / 运行时域）。
+> **范围**：34 张资源表 + 8 张语义表 + 6 张工作组表 = **48 表**。`seedCount`＝`server/seed.js` 首启播种后的行数（0＝无演示种子 / 运行时域）。
 > **口径**：`required`＝首启落库行必须出现的字段；`optional`＝功能可产生、也可不产生；`derived`＝运行时现算（种子只写事实）；`aliases`＝读时别名（**不双写**）。
 
 ## 一、资源表（34）
@@ -19,12 +19,12 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/04_web_design/
 | 实体 | 表 | mock 集合 | 必填（required） | 枚举（enums） | 种子数 | 别名 |
 |---|---|---|---|---|---:|---|
 | users | users | users | id/name/studentId/role/branchId/developStage/partyGroup/residenceStatus | role·developStage·residenceStatus | 51 | members |
-| activities | activities | activities | id/title/type/date/branchId/visibility | type·direction·visibility·status·organizingScope | 38 | — |
+| activities | activities | activities | id/title/type/date/branchId/visibility | type·direction·visibility·status·organizingScope·ownerScope·publishScope | 38 | — |
 | tasks | tasks | tasks | id/activityId/title/status/createdAt | status | 8 | — |
 | attendances | attendances | attendances | id/personId/activityId/status/branchId | status·developStage | 144 | — |
 | inspections | inspections | inspections | id/sourceType/activityId/sourceName/personId/level/recordedAt/branchId | level·status | 42 | — |
 | taskforces | taskforces | taskforces | id/name/task/manager/initiator/deadline/createdAt | status | 8 | — |
-| notices | notices | notices | id/title/content/priority/publishDate/branchId/kind/reads | priority·kind | 14 | — |
+| notices | notices | notices | id/title/content/priority/publishDate/branchId/kind/reads | priority·kind·publishScope | 14 | — |
 | todos | todos | todos | id/title/role/category/priority/status/branchId/createdAt | status·category·priority·actionType·sourceType | 3 | — |
 | assignments | assignments | assignments | id/activityId/workName/assigneeId/status/createdAt | status | 5 | — |
 | makeupTasks | makeup_tasks | makeupTasks | id/personId/activityId/attendanceRecordId/deadline/status/createdAt | status | 1 | — |
@@ -40,7 +40,7 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/04_web_design/
 | externalDispatches | external_dispatches | externalDispatches | id/refType/refLabel/senderId/receiverRole/sentAt/branchId | refType | 2 | — |
 | actSubRecords | act_sub_records | actSubRecords | —（`__root__` 对象聚合域） | — | 0 | — |
 | tfSubRecords | tf_sub_records | tfSubRecords | —（`__root__` 对象聚合域） | — | 0 | — |
-| branchDocs | branch_docs | branchDocs | —（运行时域） | — | 0 | — |
+| branchDocs | branch_docs | branchDocs | —（运行时域） | ownerScope·publishScope | 0 | — |
 | memberChangeRequests | member_change_requests | memberChangeRequests | id/personId/fromStage/toStage/action/status/createdAt | action·status | 2 | member_confirmations / memberConfirmations / pendingMemberConfirmations |
 | committeeBroadcasts | committee_broadcasts | committeeBroadcasts | —（2026-10-20 起停写） | — | 0 | — |
 | agendaVotes | agenda_votes | agendaVotes | —（运行时域） | — | 0 | — |
@@ -53,7 +53,15 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/04_web_design/
 | memberFlows | member_flows | memberFlows | —（运行时域） | — | 0 | — |
 | issueReveals | issue_reveals | — | —（**deprecated**） | — | 0 | — |
 
-## 二、语义表（7）
+**党委内容与公开发布的新增 optional 字段**（2026-11-08 批次 536；枚举取自 `docs/src/core/domain/constants.js` 单一源，机读同源 `domain-contract.mjs`）：
+
+| 表 | optional 新增 | 枚举新增 |
+|---|---|---|
+| activities | ownerScope / targetBranchIds / publishScope / publishExpiresAt / publicSummary / contentVersion / sourceActivityId / sourceVersion / sourceSyncedAt / adoptedAt / adoptedBy | ownerScope（branch·committee）·publishScope（branch·login·public） |
+| notices | publishScope / publishExpiresAt / publicSummary | publishScope（branch·login·public） |
+| branch_docs | ownerScope / publishScope / publishExpiresAt / publicSummary / summary | ownerScope（branch·committee）·publishScope（branch·login·public） |
+
+## 二、语义表（8）
 
 | 实体 | 表 | mock 集合 | 必填（required） | 枚举（enums） | 种子数 | 别名 |
 |---|---|---|---|---|---:|---|
@@ -64,6 +72,9 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/04_web_design/
 | inspectionAppeals | inspection_appeals | — | id/branchId/personId/activityId/status/createdAt | status | 1 | — |
 | issueUnread | issue_unread | — | id/assigneeId/issueId/unread | — | 2 | — |
 | authAudit | auth_audit | — | id/targetPersonId/role/authorizedBy/authorizedAt/action/branchId | action | 1 | — |
+| publicationAudits | publication_audits | publication_audits | id/resourceType/resourceId/action/at | — | 0 | — |
+
+> `publication_audits` 为发布动作留痕表：`required` 非空但无演示种子（`seedCount: 0`），写入由发布 / 撤回 / 过期 / 支部采纳动作产生；守卫按 `REQUIRED_WITHOUT_SEED_OK` 显式登记放行理由（见 `server/test/data-contract.test.mjs`）。
 
 ## 三、工作组表（6）
 

@@ -46,3 +46,5 @@ cd server; npm run test:full
 | 触发条件 | 新增写口（POST / PATCH / DELETE）或新增角色可见动作 |
 | 唯一落点 | `routes/resources/gates.js::RESOURCE_WRITE_GATE`（或对应业务写门）+ `semantic-routes.js` |
 | 检查方式 | `permission-gate` + `r3-data-permission-regression` + `roles-sync` 全绿 |
+
+党委内容写口（`/committee/activities*`）落点 ＝ `routes/resources/semantic-routes.js::registerExtraSemanticRoutes` 尾部；发布留痕只经 `routes/resources/publication-audit.js::writePublicationAudit`。检查方式 ＝ `server/test/committee-activities.test.mjs` + `write-policy-matrix`。

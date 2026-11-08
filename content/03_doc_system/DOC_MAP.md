@@ -2,7 +2,7 @@
 title: "全局文档导航映射"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-07"
+last_updated: "2026-11-08"
 version: "2.6"
 status: active
 related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUEUE.md, .ctx/ENGINEERING_ASSESSMENT.md, content/insights/README.md]
@@ -86,7 +86,7 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` | [用户]+[AI] | 支部组织与委员体系（支部组织形态 + 委员系统设计 + 工作组与专班、授权关系链 + §G 扁平化设计〔组织者 / 深度参与者〕+ §审批流程规范；2026-09-26 原 `FLAT_ORGANIZATION_DESIGN.md` 全文并入 §G） | SECRETARY_DIRECTIVES.md |
-| `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | [工程师]+[AI] | 系统角色权限矩阵（角色键全表 9a0 + 权限矩阵/授权链〔历史称赋权链〕，代码键级权威；2026-09-05 自 `ROLE_CLASSIFICATION.md` §九 迁出——该文件已于 2026-09-26 批次 202 并入 [OPERATIONS_GUIDE.md](./OPERATIONS_GUIDE.md) §24–§31） | ARCHITECTURE.md §十一、DATA_MODEL.md、COMMISSIONER_DUTY_FRAMEWORK.md |
+| `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | [工程师]+[AI] | 系统角色权限矩阵（角色键全表 9a0 + 权限矩阵/授权链〔历史称赋权链〕，代码键级权威；§9a.1 党委内容写权与支部采用权〔D-858〕；2026-09-05 自 `ROLE_CLASSIFICATION.md` §九 迁出——该文件已于 2026-09-26 批次 202 并入 [OPERATIONS_GUIDE.md](./OPERATIONS_GUIDE.md) §24–§31） | ARCHITECTURE.md §十一、DATA_MODEL.md、COMMISSIONER_DUTY_FRAMEWORK.md |
 | `content/02_institution/sop/INDEX.md` | [用户]+[AI] | SOP 导航目录 | ARCHITECTURE.md |
 | `content/02_institution/sop/常见工作场景快速指南.md` | [用户]+[AI] | 快速使用指南 | INDEX |
 | `content/02_institution/sop/支委与党小组定人定责定岗说明.md` | [用户]+[AI] | 职责分工文档 | INDEX |
@@ -131,13 +131,13 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | `content/04_web_design/evolution/ROLE_PERMISSION_DESIGN.md`（已落地 2026-09-03） | [工程师]+[AI] | 权限功能合一收敛设计（角色权限四处分散声明 → 单一事实源 ROLE_KEYS + 派生；S1~S10 已验收达成、设计论证档案） | 权威源 SYSTEM_ROLE_PERMISSION.md §9a0/§9b/§9c + 代码 ROLE_KEYS |
 | `content/04_web_design/module/SOP_WEBSITE_GUIDE.md` | [工程师]+[AI] | SOP 系统优化与同步指南 | CLAUDE.md H30.2 |
 | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` | [工程师]+[AI] | 部署与对外对接（系统形态速览 + 四条落地路径与决策矩阵 + 学校/党校对接总叙事与决策矩阵 + 认证与登录门控 + 微信协同与小程序 + 北大党校与智慧党建对接） | DATA_MODEL.md、SYSTEM_ROLE_PERMISSION.md、DESIGN_SYSTEM.md、ARCHITECTURE.md |
-| `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md` | [工程师]+[AI] | 架构演进（2026-09-03 精简：组件化落地评估历史结论 + §八 拖拽编排远期愿景；评估承接见 .ctx/ENGINEERING_ASSESSMENT.md「工程化评估与改造行动线」） | .ctx/ENGINEERING_ASSESSMENT.md、DATA_MODEL.md、SOP_WEBSITE_GUIDE.md |
+| `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md` | [工程师]+[AI] | 架构演进（2026-09-03 精简：组件化落地评估历史结论 + §八 拖拽编排远期愿景 + §九 性能与交付形态 + §十 多支部同实例与党委内容域〔Phase 1–4，开关保持关闭〕；评估承接见 .ctx/ENGINEERING_ASSESSMENT.md「工程化评估与改造行动线」） | .ctx/ENGINEERING_ASSESSMENT.md、DATA_MODEL.md、SOP_WEBSITE_GUIDE.md |
 | `.ctx/ENGINEERING_ASSESSMENT.md`（2026-09-08 自 content/04_web_design/evolution 迁入 .ctx/；2026-09-09 更名自 MODULARIZATION_ASSESSMENT；逐批沿革由月度日志承接） | [工程师]+[AI] | 工程化评估与改造行动线——**回答「当前风险在哪里、下一步先改什么」**：业务与数据正确性、安全与权限、最小三成本体验、架构复杂度与变更成本、测试与发布质量、运行/部署/跨组织复用六维评分；**不设综合均分**，阻断风险单列。各维证据、残项和行动顺序以本文为准。 | ARCHITECTURE_EVOLUTION.md、CLAUDE.md、content/insights/README.md |
 | `.ctx/REVIEW_QUEUE.md`（2026-09-17 收敛：已闭环项迁入月度日志，本体只留未闭环；此前**未登记于本表**，2026-09-17 补登） | [工程师]+[AI] | 支书评议队列——**回答「哪些评议与裁定还没闭环」**：待裁 / 待登记 / 进行中 / 待落地事项 + W4 专项评议循环承接区（全局评估总表 / 评议方法总索引 / 附录 ①–⑪） | CLAUDE.md H60/H60.6、各批次执行日志 |
 | `content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md` | [工程师]+[AI] | L3 工作流块封装契约 v1.1（块差异化三维度 + 契约总则 + manifest 字段定义；2026-09-03 定稿） | docs/src/workflow/blocks/*、server/test/block-*（契约源） |
 | `content/04_web_design/evolution/BRANCH_WORK_MAP.md`（已落地 2026-09-04） | [工程师]+[AI] | L4 支部工作地图设计稿 v2.1（平铺模块清单 + 按人双视图，已落地、设计论证档案；支书 2026-09-03 放行编码） | docs/src/entries/tabs/secretary/work-map-tab.js + workforce-panel.js（server/test/work-map.test.mjs） |
 | `content/04_web_design/evolution/DESIGN_METHODOLOGY.md` | [工程师]+[AI] | 设计理念与方法论承接（设计论证与方法档案：系统/工作台/前端实现方法论与判例、打卡化底线、叙述性人读方法论；2026-09-04 承接自 insights [4] 标签小节，出处注记保留） | DESIGN_SYSTEM.md（论证档案去向）；规范权威源 = DESIGN_SYSTEM / DATA_MODEL / SOP_WEBSITE_GUIDE |
-| `content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md` | [工程师]+[AI] | 院系党委后台设计定案（支部多实例两级治理：P1 支部实例+台账 / P2 支书任命 / P3 支部上报+下发；支书逐段批准） | docs/src/capabilities/party-committee-workspace.js |
+| `content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md` | [工程师]+[AI] | 院系党委后台设计定案（支部多实例两级治理：P1 支部实例+台账 / P2 支书任命 / P3 支部上报+下发；§5.2 院级内容作者与下发链路 / §5.3 公开与审计；支书逐段批准） | docs/src/capabilities/party-committee-workspace.js |
 | `content/04_web_design/README.md` | [工程师]+[AI] | 网站设计层目录索引 | — |
 | `content/04_web_design/PRODUCT_IA.md` | [工程师]+[AI] | **派生索引**：逐台逐页签的组 / 渲染入口 / 一句话职责 / 主对象 / 主操作 / 新落点（当前 62）；不承担规范、禁止手改 | `docs/src/capabilities/*`、`docs/src/core/domain/function-catalog.js` |
 | `content/04_web_design/AGENTS.md` | [工程师]+[AI] | 04 目录协作说明：进入本目录前读什么、改什么、禁什么、怎么验 | — |

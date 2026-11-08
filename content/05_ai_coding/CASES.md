@@ -2,7 +2,7 @@
 title: "AI 协作域判例库"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-07"
+last_updated: "2026-11-08"
 status: active
 related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -82,7 +82,7 @@ related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_
 - **泛化规则（结论）**：安全默认 fail-closed——无受众系统通知不可读；广播必须显式；写侧按 kind 声明 `required / broadcast / conditional` 并在落库前校验；展示值（人名 / 项目名）由服务端按表复算；存量无受众行标 `legacyUnscoped`，仅发布者可见。
 - **守卫**：`notice-audience-failclosed`（F1–F6）＋ `notice-audience::N1/N6/N7` ＋ `system-notice-project-auth-authorize::B10/E3/E5/E6`。
 - **对应规范编号**：`CLAUDE.md H32`（服务端算业务事实）＋ `DATA_MODEL.md §2.9`（受众必填）＋ `INFORMATION_COMPUTATION.md §1.2–§1.4`。
-- **边界**：公告（`kind='announcement'`）无受众仍按支部广播兼容；显式广播是否允许匿名，待 `PUBLIC_ENTRANCE.md` 裁定。
+- **边界**：公告（`kind='announcement'`）无受众仍按支部广播兼容；匿名可读只开 `publishScope='public'` 且未过期这一条窄口，已裁定，见 `D-858` / `PUBLIC_ENTRANCE.md`。
 - **证据指针**：`docs/src/services/governance/notice.js`（`list()` / `canReadNotice`）· `server/system-notice-kinds.js`（`audiencePolicy`）· `server/routes/system-notices.js`（`normalizeSystemNotice`）· `server/scripts/migrate-notice-audience.mjs` · `.ctx/evidence/2026-11-07/notice-audience-gap.md`。
 
 ## CASE-AI-008 CLAUDE 层标记漂移：温层被搬空仍宣称三层

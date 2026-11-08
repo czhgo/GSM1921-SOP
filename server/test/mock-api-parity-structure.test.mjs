@@ -36,32 +36,32 @@ import {
 } from '../seed.js';
 import {
   SEED_MANIFEST, SEED_MANIFEST_BY_TABLE, SEED_LIFECYCLE_CLASSES, SEED_INIT_TIERS,
-} from '../../docs/src/data/seed-manifest.js?v=20261107a';
+} from '../../docs/src/data/seed-manifest.js?v=20261108a';
 import {
   normalizeSeedActivitySeedRows, ensureLegacySourceWorkgroups, ensureDemoWorkgroupGrants,
   ensureInspectionWorkgroupMembers,
-} from '../../docs/src/data/workgroup-seed-sync.js?v=20261107a';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261107a';
-import { BRANCHES } from '../../docs/src/data/mock/branches.js?v=20261107a';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261107a';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261107a';
-import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261107a';
+} from '../../docs/src/data/workgroup-seed-sync.js?v=20261108a';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261108a';
+import { BRANCHES } from '../../docs/src/data/mock/branches.js?v=20261108a';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261108a';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261108a';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261108a';
 import {
   SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS,
   SEED_REVIEW_REQUESTS, SEED_MAKEUP_TASKS,
-} from '../../docs/src/data/mock/seed.js?v=20261107a';
-import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261107a';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261107a';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261107a';
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20261107a';
-import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20261107a';
-import { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261107a';
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261107a';
+} from '../../docs/src/data/mock/seed.js?v=20261108a';
+import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261108a';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261108a';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261108a';
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20261108a';
+import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20261108a';
+import { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261108a';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261108a';
 import {
   SEED_IMAGE_RECORDS, SEED_MEMBER_CHANGE_REQUESTS,
   SEED_WORKGROUP_TASKS, SEED_WORKGROUP_OUTPUTS,
-} from '../../docs/src/data/mock/auxiliary.js?v=20261107a';
-import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261107a';
+} from '../../docs/src/data/mock/auxiliary.js?v=20261108a';
+import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261108a';
 import {
   DOMAIN_CONTRACT, RESOURCE_TABLES, SEMANTIC_TABLES, WORKGROUP_TABLES,
   validateEntityRows,
@@ -150,7 +150,7 @@ const EXPECTED = {
 
 /**
  * 结构对照覆盖全集（2026-11-02 批次 527）：
- *   34 资源表 + 7 语义表 + 6 工作组表 = 47 表；每张表必须**要么**在同源行里比对，
+ *   34 资源表 + 8 语义表 + 6 工作组表 = 48 表；每张表必须**要么**在同源行里比对，
  *   **要么**在 `STRUCTURE_EXEMPT` 里登记理由（不得静默跳过）。
  */
 const EXTRA_STRUCTURE_TABLES = ['image_records', 'member_change_requests', 'workgroup_tasks', 'workgroup_outputs'];
@@ -165,6 +165,7 @@ const STRUCTURE_EXEMPT = {
   member_flows: '运行时域（流入/流出复式记账），演示种子为空',
   issue_reveals: '2026-09-17 D-824 停写、v12 已 DROP；保留只读兼容，不参与结构比对',
   attendance_rosters: '运行时域（按活动冻结的应到名单快照），演示种子为空',
+  publication_audits: '发布动作留痕（v13）：由发布 / 撤回 / 过期 / 支部采纳写入，演示种子为空，无 mock 同源行',
 };
 const ALL_STRUCTURE_TABLES = [...RESOURCE_TABLES, ...SEMANTIC_TABLES, ...WORKGROUP_TABLES];
 
@@ -264,7 +265,7 @@ const serverRows = (table) => db.prepare(`SELECT data FROM ${table}`).all().map(
 
 // ── S1 主判据：全表结构对照（白名单外漂移即红）──────────
 const STRUCTURE_TABLES = [...new Set([...SEED_MANIFEST.map((entry) => entry.table), ...EXTRA_STRUCTURE_TABLES])];
-test('S1 结构真值：47 表逐行比对字段集合 / 类型，输出多出 / 缺失 / 类型不符', () => {
+test('S1 结构真值：48 表逐行比对字段集合 / 类型，输出多出 / 缺失 / 类型不符', () => {
   const allProblems = [];
   const allowedHits = [];
   const lines = [];
@@ -319,13 +320,13 @@ test('S1 结构真值：47 表逐行比对字段集合 / 类型，输出多出 /
 });
 
 // ── S5（2026-11-02 批次 527）：覆盖全集 + 契约必填 / 枚举 ─────────
-test('S5 覆盖 47 表无静默跳过；契约 required / enums 与落库行一致（mock 独有形状也校验）', () => {
+test('S5 覆盖 48 表无静默跳过；契约 required / enums 与落库行一致（mock 独有形状也校验）', () => {
   const covered = new Set(STRUCTURE_TABLES);
   const exempt = new Set(Object.keys(STRUCTURE_EXEMPT));
   const all = new Set(ALL_STRUCTURE_TABLES);
 
   // ① 覆盖全集：每张表要么比对、要么豁免；两者不相交；无未登记项。
-  assert.equal(all.size, 47, `db.js 三张清单并集应为 47 表（实测 ${all.size}）`);
+  assert.equal(all.size, 48, `db.js 三张清单并集应为 48 表（实测 ${all.size}）`);
   for (const table of all) {
     assert.ok(covered.has(table) || exempt.has(table), `${table} 既未结构比对、也未登记 exempt（静默跳过）`);
     assert.ok(!(covered.has(table) && exempt.has(table)), `${table} 同时出现在比对面与 exempt 面`);
@@ -531,6 +532,7 @@ const ADAPTER_SURFACE = {
     // 2026-11-03 批次 533（B-500-7 最小 Plan B）：服务端只读派生视图；mock 形态继续走客户端派生，
     // 无对应资源组。客户端在 mock 数据源下不调用该组（兼容期判据见 todo-tab-shell.js）。
     todoGroups: '待办实时派生只读视图（GET /todo-groups）；mock 形态由客户端派生，无资源组',
+    committeeContent: '党委院级内容（活动/资料/下发）仅服务端模式；mock 形态不提供写入，前端在 mock 下不调用该组',
   },
   /** 同名但方法面不同（apiOnly / mockOnly 两个方向都要写全） */
   methodDiff: {
@@ -558,8 +560,8 @@ test('S4 适配器接口面：两个适配器的资源组 / 方法集合双向�
   }
   if (!globalThis.sessionStorage) globalThis.sessionStorage = globalThis.localStorage;
 
-  const { ApiAdapter } = await import('../../docs/src/data/api-adapter.js?v=20261107a');
-  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261107a');
+  const { ApiAdapter } = await import('../../docs/src/data/api-adapter.js?v=20261108a');
+  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261108a');
 
   const surface = (obj) => Object.fromEntries(
     Object.entries(obj)

@@ -608,6 +608,8 @@ export const NON_SEED_TABLES = Object.freeze([
   'attendance_rosters', 'branch_docs', 'committee_broadcasts', 'agenda_votes',
   'member_flows', 'issue_reveals',
   'sessions', 'attachments', 'collection_versions', 'seed_meta',
+  // 2026-11-08 批次 536：党委发布留痕（v13）——无演示种子，由发布 / 撤回 / 过期 / 支部采纳写入。
+  'publication_audits',
 ]);
 
 /**

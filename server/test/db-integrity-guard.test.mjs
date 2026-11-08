@@ -41,7 +41,7 @@ const LEGACY_TABLES = [
   'branch_docs', 'member_change_requests', 'committee_broadcasts',
   'agenda_votes', 'branches', 'appointment_records', 'review_requests',
   'issues', 'thought_reports', 'party_groups', 'member_flows', 'issue_reveals',
-  // 7 张语义表（SEMANTIC_TABLES）
+  // 8 张语义表（SEMANTIC_TABLES）
   'handoffs', 'member_confirmations', 'milestones',
   'attendance_appeals', 'inspection_appeals', 'issue_unread', 'auth_audit',
   // SCHEMA 里的 2 张关系表 + 乐观锁表
@@ -63,7 +63,7 @@ const AD_HOC = new Set([
   /COLLECTION_VERSIONS_TABLE = '(\w+)'/.exec(SRC)[1],
   ...MIGRATIONS.flatMap((migration) => migration.tables || []),
 ]);
-const AD_HOC_BASELINE = 54; // v1 冻结 44 张 + schema v3 新增 6 张 + schema v4 周期归档表 + schema v9 seed_meta + v11 影子子表 2 张；v12 不新增表（只删 issue_reveals）；新增迁移表须同步审阅本基线。
+const AD_HOC_BASELINE = 55; // v1 冻结 44 张 + schema v3 新增 6 张 + schema v4 周期归档表 + schema v9 seed_meta + v11 影子子表 2 张；v12 不新增表（只删 issue_reveals）；v13 新增 publication_audits（语义表）⇒ 54 → 55；新增迁移表须同步审阅本基线。
 
 /** 各迁移声明的表名（`tables` 字段） */
 const DECLARED = new Set();
@@ -73,7 +73,7 @@ const COVERED = new Set([...LEGACY_TABLES, ...DECLARED]);
 /** 从已创建结构扣除迁移明确声明删除的历史表，得到目标版本应存在的表集。 */
 const RETIRED_TABLES = new Set(MIGRATIONS.flatMap((migration) => migration.drops || []));
 const CURRENT_TABLES = new Set([...AD_HOC].filter((table) => !RETIRED_TABLES.has(table)));
-const CURRENT_TABLE_BASELINE = 52; // v12 DROP issue_reveals ⇒ 53 − 1
+const CURRENT_TABLE_BASELINE = 53; // v12 DROP issue_reveals ⇒ 53 − 1；v13 新增 publication_audits ⇒ 52 + 1
 
 // ── G1 / G2 ────────────────────────────────────────────────────────────────
 test('G1/G2 完整性 + 版本对齐：临时库 integrity_check=ok，且 user_version=SCHEMA_VERSION', () => {
@@ -136,6 +136,68 @@ test('G5 纪律：db.js 自建表必须被「v1 冻结基线 ∪ 迁移声明」
   // v1 基线冻结：不得被悄悄加表（新增一律走 v2+，勿改基线）
   assert.deepEqual([...MIGRATIONS[0].tables].sort(), [...LEGACY_TABLES].sort(),
     'v1 基线表清单被改动——新增结构请追加 v2+ 迁移，勿改冻结基线（否则 G5 可被「往基线里塞表」绕过）');
+});
+
+// ── G7：schema v13 党委内容与公开发布 ───────────────────────────────────────
+test('G7 schema v13：生成列（VIRTUAL / 缺省 branch）＋ 部分唯一索引 ＋ publication_audits 空表', () => {
+  assert.ok(SCHEMA_VERSION >= 13, `SCHEMA_VERSION=${SCHEMA_VERSION}（v13 起）`);
+  const v13 = MIGRATIONS.find((m) => m.version === 13);
+  assert.ok(v13, '迁移 v13 不存在');
+  assert.equal(v13.name, 'committee-content-and-publication');
+  for (const table of ['activities', 'notices', 'branch_docs', 'publication_audits']) {
+    assert.ok(v13.tables.includes(table), `v13.tables 未登记 ${table}`);
+  }
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gsm-guard-v13-'));
+  const db = initDb(path.join(dir, 'data.db'));
+  try {
+    const column = (table, name) => db.prepare(`PRAGMA table_xinfo(${table})`).all().find((c) => c.name === name);
+    const generatedColumns = [
+      ['activities', 'owner_scope'], ['activities', 'source_activity_id'], ['activities', 'publish_scope'],
+      ['notices', 'publish_scope'], ['branch_docs', 'owner_scope'], ['branch_docs', 'publish_scope'],
+    ];
+    for (const [table, name] of generatedColumns) {
+      const info = column(table, name);
+      assert.ok(info, `v13 缺生成列 ${table}.${name}`);
+      assert.notEqual(info.hidden, 0, `${table}.${name} 必须是 GENERATED/VIRTUAL（只读，不参与写入）`);
+    }
+
+    // 读侧缺省 branch；显式值原样透出
+    const insertActivity = (row) => db.prepare('INSERT INTO activities (id, data) VALUES (?, ?)').run(row.id, JSON.stringify(row));
+    insertActivity({ id: 'act-v13-local', branchId: 'br-b1', title: '支部自办' });
+    insertActivity({ id: 'act-v13-committee', branchId: 'pc-gsm', title: '党委活动', ownerScope: 'committee', publishScope: 'login', sourceActivityId: null });
+    const local = db.prepare('SELECT owner_scope, publish_scope, source_activity_id FROM activities WHERE id = ?').get('act-v13-local');
+    assert.deepEqual({ ...local }, { owner_scope: 'branch', publish_scope: 'branch', source_activity_id: null });
+    const committee = db.prepare('SELECT owner_scope, publish_scope FROM activities WHERE id = ?').get('act-v13-committee');
+    assert.deepEqual({ ...committee }, { owner_scope: 'committee', publish_scope: 'login' });
+
+    const indexes = new Set(db.prepare("SELECT name FROM sqlite_master WHERE type = 'index'").all().map((row) => row.name));
+    for (const name of [
+      'idx_activities_source_branch', 'idx_activities_owner_scope_publish',
+      'idx_notices_publish_scope', 'idx_branch_docs_publish_scope',
+    ]) assert.ok(indexes.has(name), `v13 缺索引 ${name}`);
+    const uniquePartial = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'index' AND name = ?").get('idx_activities_source_branch');
+    assert.match(String(uniquePartial?.sql || ''), /UNIQUE INDEX/i, 'idx_activities_source_branch 必须是 UNIQUE 索引');
+    assert.match(String(uniquePartial?.sql || ''), /WHERE/i, 'idx_activities_source_branch 必须是部分索引（WHERE source_activity_id IS NOT NULL）');
+
+    // 同一支部对同一条党委活动最多一条副本；本支部自办活动（无 sourceActivityId）不受限
+    insertActivity({ id: 'act-copy-1', branchId: 'br-b1', title: '副本一', sourceActivityId: 'act-v13-committee' });
+    assert.throws(
+      () => insertActivity({ id: 'act-copy-2', branchId: 'br-b1', title: '副本二', sourceActivityId: 'act-v13-committee' }),
+      /UNIQUE constraint failed/,
+      '同一支部第二条副本未被数据库拒绝',
+    );
+    insertActivity({ id: 'act-own-1', branchId: 'br-b1', title: '自办一' });
+    insertActivity({ id: 'act-own-2', branchId: 'br-b1', title: '自办二' });
+
+    // 留痕表存在且为空
+    const tables = new Set(db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all().map((row) => row.name));
+    assert.ok(tables.has('publication_audits'), 'v13 缺 publication_audits 表');
+    assert.equal(db.prepare('SELECT COUNT(1) AS c FROM publication_audits').get().c, 0, 'publication_audits 不得有演示种子');
+  } finally {
+    db.close();
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 // ── G6 纪律：ALTER TABLE 必须落在 migration 段内 ────────────────────────────

@@ -28,7 +28,7 @@ import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 import { today } from '../services/reporting.js';
 
-import { DEFAULT_BRANCH_ID } from '../../docs/src/core/domain/constants.js?v=20261107a';
+import { DEFAULT_BRANCH_ID } from '../../docs/src/core/domain/constants.js?v=20261108a';
 import {
   deriveAttendanceRemindGroup,
   deriveInspectionRemindGroup,
@@ -37,14 +37,14 @@ import {
   deriveMemberApproveGroup,
   deriveSemesterDetainedRemindGroup,
   deriveTaskforceAuthorizeGroup,
-} from '../../docs/src/core/domain/todo-derive.js?v=20261107a';
+} from '../../docs/src/core/domain/todo-derive.js?v=20261108a';
 
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261107a';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261107a';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261107a';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261107a';
-import { SEED_MEMBER_CHANGE_REQUESTS, SEED_MEMBER_CONFIRMATIONS } from '../../docs/src/data/mock/auxiliary.js?v=20261107a';
-import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261107a';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261108a';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261108a';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261108a';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261108a';
+import { SEED_MEMBER_CHANGE_REQUESTS, SEED_MEMBER_CONFIRMATIONS } from '../../docs/src/data/mock/auxiliary.js?v=20261108a';
+import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261108a';
 
 // ════════════════════════════════════════════════════════════════
 //  7 键与角色分工（客户端消费点单一源）

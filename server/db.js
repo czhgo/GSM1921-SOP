@@ -177,6 +177,9 @@ export const SEMANTIC_TABLES = [
   //   ⇒ 清缓存即留痕灭失。留痕的意义＝让「谁给谁赋了什么角色」这条治理承诺可被事后核对（只增不改）。
   'auth_audit',
   // 工作组子域和应到名单快照不属于既有语义表；由 schema v3 迁移建立。
+  // 2026-11-08 批次 536（党委内容与公开发布 · Task 1）：发布动作留痕（发布 / 撤回 / 过期 / 支部采纳），
+  //   只增不改，演示种子为空；表结构由 schema v13 建立，读写口在后续任务接入。
+  'publication_audits',
 ];
 
 export const WORKGROUP_TABLES = Object.freeze([
@@ -849,6 +852,58 @@ export const MIGRATIONS = [
         }
         db.exec('CREATE INDEX IF NOT EXISTS idx_todos_branch ON todos(branch_id)');
       }
+    },
+  },
+  {
+    // v13（2026-11-08 批次 536 · 党委内容与公开发布 Task 1）：
+    //   ① 三张内容表增只读生成列：activities(owner_scope / source_activity_id / publish_scope)、
+    //      notices(publish_scope)、branch_docs(owner_scope / publish_scope)——读侧缺省一律 branch；
+    //   ② 部分唯一索引：同一支部对同一条党委活动最多一条副本（以 source_activity_id 判定）；
+    //   ③ 发布范围读口索引；④ 新建 publication_audits 留痕表。
+    // ⚠ 不给存量行写 ownerScope / publishScope（读侧 COALESCE 缺省 branch），不改 v1 基线。
+    // 幂等：每步先探测表 / 列 / 索引；重复重放不重复 ADD、不改写任何行。
+    version: 13,
+    name: 'committee-content-and-publication',
+    tables: ['activities', 'notices', 'branch_docs', 'publication_audits'],
+    up(db) {
+      const hasTable = (name) => !!db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(name);
+      // ⚠ 用 table_xinfo（table_info 不列 generated 列）；VIRTUAL 生成列对已有数据的表可 ADD。
+      const columns = (table) => (hasTable(table) ? db.prepare(`PRAGMA table_xinfo(${table})`).all().map((c) => c.name) : []);
+      const addGenerated = (table, column, expr) => {
+        if (!hasTable(table) || columns(table).includes(column)) return;
+        try {
+          db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} TEXT GENERATED ALWAYS AS (${expr}) VIRTUAL`);
+        } catch (e) {
+          throw new Error(`[db] v13 加列失败 ${table}.${column}：${e.message}（现有列：${columns(table).join(',')}）`);
+        }
+      };
+
+      // ① 生成列（缺省 branch：读侧不必区分「未写」与「支部自发」）
+      addGenerated('activities', 'owner_scope', "COALESCE(json_extract(data,'$.ownerScope'),'branch')");
+      addGenerated('activities', 'source_activity_id', "json_extract(data,'$.sourceActivityId')");
+      addGenerated('activities', 'publish_scope', "COALESCE(json_extract(data,'$.publishScope'),'branch')");
+      addGenerated('notices', 'publish_scope', "COALESCE(json_extract(data,'$.publishScope'),'branch')");
+      addGenerated('branch_docs', 'owner_scope', "COALESCE(json_extract(data,'$.ownerScope'),'branch')");
+      addGenerated('branch_docs', 'publish_scope', "COALESCE(json_extract(data,'$.publishScope'),'branch')");
+
+      // ② 部分唯一索引：只约束「有下发原件 id」的副本行
+      if (hasTable('activities')) {
+        db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_activities_source_branch ON activities(branch_id, source_activity_id) WHERE source_activity_id IS NOT NULL");
+      }
+
+      // ③ 发布范围读口索引
+      if (hasTable('activities')) {
+        db.exec('CREATE INDEX IF NOT EXISTS idx_activities_owner_scope_publish ON activities(owner_scope, publish_scope)');
+      }
+      if (hasTable('notices')) {
+        db.exec('CREATE INDEX IF NOT EXISTS idx_notices_publish_scope ON notices(publish_scope)');
+      }
+      if (hasTable('branch_docs')) {
+        db.exec('CREATE INDEX IF NOT EXISTS idx_branch_docs_publish_scope ON branch_docs(publish_scope)');
+      }
+
+      // ④ 发布动作留痕表（只增不改）
+      db.exec('CREATE TABLE IF NOT EXISTS publication_audits (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
     },
   },
 ];

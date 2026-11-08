@@ -12,12 +12,12 @@
 //  任务完成数＝completed 数 / 非 cancelled 任务总数，无任务显示「—」；两类皆空则整卡隐藏。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261107a';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261107a';
-import { AuthStore } from '../../services/core/auth.js?v=20261107a';
-import { getBasePath } from '../../core/base/utils.js?v=20261107a';
-import { DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261107a';
-import { badgeHtml } from '../ui/badges.js?v=20261107a';
+import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261108a';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261108a';
+import { AuthStore } from '../../services/core/auth.js?v=20261108a';
+import { getBasePath } from '../../core/base/utils.js?v=20261108a';
+import { DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261108a';
+import { badgeHtml } from '../ui/badges.js?v=20261108a';
 
 // 每组预览条数 = 单一源（批次 530 · B-520-3；与 data-adapter 预载条数同值）
 const GROUP_LIMIT = DASHBOARD_LIMITS.groupPreview;

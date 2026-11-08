@@ -3,16 +3,16 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261107a';
-import { getBasePath } from '../../core/base/utils.js?v=20261107a';
-import { icon } from '../../core/base/icons.js?v=20261107a';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261107a';
-import { badgeHtml } from '../ui/badges.js?v=20261107a';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261107a';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261108a';
+import { getBasePath } from '../../core/base/utils.js?v=20261108a';
+import { icon } from '../../core/base/icons.js?v=20261108a';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261108a';
+import { badgeHtml } from '../ui/badges.js?v=20261108a';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261108a';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261107a';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261108a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261107a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261108a';
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
 // （auth→runtime→mock→domain 全量约 50 模块），通知铃首次点击或 app 模式渲染后按需加载。
@@ -20,18 +20,18 @@ import { emptyStateHtml } from '../ui/empty-state.js?v=20261107a';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261107a');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261108a');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261107a');
+  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261108a');
   return _noticeModule;
 }
 // 2026-09-30 批次 297-2：跨台通用动作「一键汇报」收进顶栏唯一固定位 ⇒ 顶栏按需加载其入口模块
 // （与 auth / notice 同一策略：静态壳页不加载，app 模式渲染后加载，模块缓存后即时）
 let _reportEntryModule = null;
 function loadReportEntry() {
-  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261107a');
+  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261108a');
   return _reportEntryModule;
 }
 
@@ -80,7 +80,10 @@ const PAGE_NAME = _STATIC_PAGE_TITLE.split(DOC_TITLE_SEP)[0].trim();
 /** 刷新浏览器标签页标题（组织名由调用方传入 = getHeaderTitle 结果；页面名取静态 <title> 快照） */
 function _applyDocumentTitle(orgTitle) {
   if (typeof document === 'undefined' || !document) return;
-  const next = PAGE_NAME ? `${PAGE_NAME}${DOC_TITLE_SEP}${orgTitle}` : orgTitle;
+  // 页面名与组织名同值（未登录首页：静态 title 已是平台品牌）时不重复拼成「品牌 — 品牌」
+  const next = (!PAGE_NAME || PAGE_NAME === orgTitle)
+    ? orgTitle
+    : `${PAGE_NAME}${DOC_TITLE_SEP}${orgTitle}`;
   if (document.title !== next) document.title = next;
 }
 
@@ -256,7 +259,7 @@ export async function renderHeader(activeModule, opts = {}) {
   // P1 软编码 + 2026-09-09 支部归属显式化：支部名随配置档案（getBoundBranch 有效归属 → config.headerTitle）；
   //   登录但无有效归属支部（branchId 空/查无）→ 中性占位「未绑定支部」（不再泄漏示例支部名）；
   //   分支数据尚未加载（时序）→ 静态兜底名（getHeaderTitle 内处理），数据到达后由 _refreshHeaderTitle 归还真实支部名；
-  //   未登录静态壳（personId 缺省）→ 中性占位「示例组织（未登录）」。
+  //   未登录静态壳（personId 缺省）→ 公共平台品牌「光华管理学院党建平台」（不显示具体支部名）。
   const headerTitle = getHeaderTitle(personId || undefined, { role });
   // C-14：390px 顶栏显示完整支部名（不再取前两字拼「党支部」）；放不下由 h1 的 ellipsis 截断，
   //   title 属性保留全名，语义不因窄屏改变。

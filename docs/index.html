@@ -3,12 +3,12 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261107a"></script>
+<script src="./src/theme-init.js?v=20261108a"></script>
 <meta charset="UTF-8">
   <meta name="theme-color" content="#CE1126">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>首页 — GSM1921-SOP</title>
-  <meta name="description" content="GSM1921-SOP —— 党支部工作系统（开源模板，每个支部可部署自己的实例）">
+  <title>光华管理学院党建平台 — GSM1921-SOP</title>
+  <meta name="description" content="光华管理学院党建平台 —— 公开通知、公开活动与公开资料；登录后进入所在支部工作台。">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,9 +16,9 @@
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="./src/tailwind-config.js?v=20261107a"></script>
+  <script src="./src/tailwind-config.js?v=20261108a"></script>
 
-  <link rel="stylesheet" href="./src/styles.css?v=20261107a">
+  <link rel="stylesheet" href="./src/styles.css?v=20261108a">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -139,34 +139,92 @@
         </div>
       </div>
     </section>
+
+    <!-- 未登录公共门厅（2026-11-08 批次 536 · Task 7 · spec「未登录公共门厅」）：
+         品牌 + 党徽 + 登录入口 + 公开通知全文 / 公开活动摘要 / 公开资料列表下载。
+         登录态由 main-entry.js 分流：未登录隐藏 #view-dashboard、显示本块；已登录反之。
+         本块不写死任何支部名、成员姓名与统计口径。 -->
+    <section id="view-public-portal" class="view-section hidden" aria-labelledby="public-portal-title">
+      <div class="max-w-6xl mx-auto">
+        <div class="public-portal-hero text-center mb-6">
+          <img src="./assets/images/party_emblem.png" alt="党徽" class="public-portal-hero__emblem mx-auto mb-3" draggable="false">
+          <h1 id="public-portal-title" class="font-title-cn text-2xl font-bold text-gray-800 mb-1">光华管理学院党建平台</h1>
+          <p class="text-sm text-gray-600 mb-4">院级党建公开信息：重要通知、近期活动与公开资料。</p>
+          <a id="public-portal-login" href="./login.html" class="btn-accent">登录</a>
+        </div>
+
+        <div class="card rounded-xl p-5 mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="font-title-cn text-base font-semibold text-gray-800">重要通知</h2>
+          </div>
+          <div id="public-portal-notices" class="text-sm text-gray-500" aria-busy="true">
+            <div class="skeleton-block" aria-hidden="true">
+              <div class="skeleton-line h-4 w-full animate-pulse"></div>
+              <div class="skeleton-line h-4 w-5/6 animate-pulse"></div>
+              <div class="skeleton-line h-4 w-2/3 animate-pulse"></div>
+            </div>
+            <p class="visually-hidden" role="status">正在加载公开通知…</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div class="card rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="font-title-cn text-base font-semibold text-gray-800">近期活动</h2>
+            </div>
+            <div id="public-portal-activities" class="text-sm text-gray-500" aria-busy="true">
+              <div class="skeleton-block" aria-hidden="true">
+                <div class="skeleton-line h-4 w-full animate-pulse"></div>
+                <div class="skeleton-line h-4 w-2/3 animate-pulse"></div>
+              </div>
+              <p class="visually-hidden" role="status">正在加载公开活动…</p>
+            </div>
+          </div>
+          <div class="card rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="font-title-cn text-base font-semibold text-gray-800">公开资料</h2>
+            </div>
+            <div id="public-portal-documents" class="text-sm text-gray-500" aria-busy="true">
+              <div class="skeleton-block" aria-hidden="true">
+                <div class="skeleton-line h-4 w-full animate-pulse"></div>
+                <div class="skeleton-line h-4 w-2/3 animate-pulse"></div>
+              </div>
+              <p class="visually-hidden" role="status">正在加载公开资料…</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 </div>
 
 
 
 <!-- modulepreload:start -->
-  <link rel="modulepreload" href="./src/services/core/runtime.js?v=20261107a" />
-  <link rel="modulepreload" href="./src/core/base/state.js?v=20261107a" />
-  <link rel="modulepreload" href="./src/services/governance/notice.js?v=20261107a" />
-  <link rel="modulepreload" href="./src/components/governance/notice-view.js?v=20261107a" />
-  <link rel="modulepreload" href="./src/services/activity/taskforce.js?v=20261107a" />
-  <link rel="modulepreload" href="./src/core/base/utils.js?v=20261107a" />
-  <link rel="modulepreload" href="./src/services/activity/attendance.js?v=20261107a" />
-  <link rel="modulepreload" href="./src/services/activity/activity.js?v=20261107a" />
-  <link rel="modulepreload" href="./src/core/session/cross-page-state.js?v=20261107a" />
-  <link rel="modulepreload" href="./src/core/domain/object-route.js?v=20261107a" />
-  <link rel="modulepreload" href="./src/core/boot/bootstrap.js?v=20261107a" />
-  <link rel="modulepreload" href="./src/services/core/auth.js?v=20261107a" />
-  <link rel="modulepreload" href="./src/services/branch/branch.js?v=20261107a" />
-  <link rel="modulepreload" href="./src/data/data-loader.js?v=20261107a" />
-  <link rel="modulepreload" href="./src/data/data-adapter.js?v=20261107a" />
-  <link rel="modulepreload" href="./src/capabilities/activity-calendar.js?v=20261107a" />
-  <link rel="modulepreload" href="./src/components/dashboard/stats.js?v=20261107a" />
-  <link rel="modulepreload" href="./src/components/dashboard/activity-panel.js?v=20261107a" />
-  <link rel="modulepreload" href="./src/components/dashboard/taskforce-list.js?v=20261107a" />
-  <link rel="modulepreload" href="./src/components/dashboard/gallery.js?v=20261107a" />
+  <link rel="modulepreload" href="./src/services/core/runtime.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/core/base/state.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/services/governance/notice.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/components/governance/notice-view.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/services/activity/taskforce.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/core/base/utils.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/services/activity/attendance.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/services/activity/activity.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/core/session/cross-page-state.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/core/domain/object-route.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/core/boot/bootstrap.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/services/core/auth.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/services/branch/branch.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/data/data-loader.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/data/data-adapter.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/capabilities/activity-calendar.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/components/dashboard/stats.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/components/dashboard/activity-panel.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/components/dashboard/taskforce-list.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/components/dashboard/gallery.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/components/ui/empty-state.js?v=20261108a" />
+  <link rel="modulepreload" href="./src/data/public-portal-client.js?v=20261108a" />
   <!-- modulepreload:end -->
-  <script type="module" src="./src/entries/pages/main-entry.js?v=20261107a"></script>
+  <script type="module" src="./src/entries/pages/main-entry.js?v=20261108a"></script>
 
 </body>
 </html>

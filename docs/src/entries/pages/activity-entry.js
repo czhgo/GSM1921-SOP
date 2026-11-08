@@ -2,75 +2,82 @@
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261107a';
-import { renderHeader } from '../../components/shell/header.js?v=20261107a';
-import { BranchService } from '../../services/core/runtime.js?v=20261107a';
-import { mockDB, isTaskforceTerminalStatus, SourceType, PARTICIPATION_LEVEL_LABELS } from '../../core/domain/domain.js?v=20261107a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261108a';
+import { renderHeader } from '../../components/shell/header.js?v=20261108a';
+import { BranchService } from '../../services/core/runtime.js?v=20261108a';
+import { mockDB, isTaskforceTerminalStatus, SourceType, PARTICIPATION_LEVEL_LABELS } from '../../core/domain/domain.js?v=20261108a';
 // A02：正式会议应到名单读取口径——冻结快照优先，未冻结按 roster 现算（不再读 act.assignments）
-import { loadAttendanceRosterSnapshots } from '../../services/activity/attendance.js?v=20261107a';
-import { getMeetingRosterIds } from '../../services/member/roster.js?v=20261107a';
+import { loadAttendanceRosterSnapshots } from '../../services/activity/attendance.js?v=20261108a';
+import { getMeetingRosterIds } from '../../services/member/roster.js?v=20261108a';
 // A04：专班「工作考察」按稳定父键 workgroupId 读 inspection 记录（不再按名称匹配复盘）
-import { getRecordsBySource } from '../../services/activity/inspection.js?v=20261107a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261107a';
-import { legacyParticipantAssignmentRows, workgroupMembers } from '../../services/activity/workgroup-members.js?v=20261107a';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261107a';
-import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../../services/activity/signup.js?v=20261107a';
-import { AuthStore } from '../../services/core/auth.js?v=20261107a';
-import { getPersonById } from '../../services/member/person.js?v=20261107a';
+import { getRecordsBySource } from '../../services/activity/inspection.js?v=20261108a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261108a';
+import { legacyParticipantAssignmentRows, workgroupMembers } from '../../services/activity/workgroup-members.js?v=20261108a';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261108a';
+import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../../services/activity/signup.js?v=20261108a';
+import { AuthStore } from '../../services/core/auth.js?v=20261108a';
+import { getPersonById } from '../../services/member/person.js?v=20261108a';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：
 // 判据与写口单一源 = services/activity/activity.js；本页**不再有「点一下即认定」**（提案 / 撤回 / 取消认定三种动作）。
-import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../../services/activity/activity.js?v=20261107a';
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../../services/activity/activity.js?v=20261108a';
 // 转交组织者（SOP-G-2-② · 2026-10-01 批次 327 · 支书裁「乙：直接转交 ＋ 留痕」）：
 //   母本《常见工作场景快速指南》`:125`「组织者退出需经支委会确定好接手的组织者并负责地完成工作交接
 //   后方可退出」；可发起＝支书 / 副支书 / 组织委员 / **该场现任组织者本人**。判据与写口单一源＝
 //   `components/governance/organizer-transfer.js`（本页只挂入口）。
-import { canTransferOrganizer, openOrganizerTransfer, organizerOf } from '../../components/governance/organizer-transfer.js?v=20261107a';
+import { canTransferOrganizer, openOrganizerTransfer, organizerOf } from '../../components/governance/organizer-transfer.js?v=20261108a';
 // 追加复盘要求（2026-09-21 批次 135 · 裁定二「按推荐档落」）：支委会可额外要求本场组织者完成复盘；
 // 判据与写口单一源 = services/activity/activity.js；另有「交回状态」须读该场复盘记录（services/governance/review.js）。
-import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../../services/activity/activity.js?v=20261107a';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261107a';
-import { getBasePath, escHtml as esc, showToast, describeWriteError, smoothScroll } from '../../core/base/utils.js?v=20261107a';
-import { getActivityTypeColors, usesFormalMeetingRoster, SECRETARY_AND_DEPUTY_ROLES, isPartyGroupLeaderRole, isActivityLive } from '../../core/domain/constants.js?v=20261107a';
-import { getAppState } from '../../core/base/state.js?v=20261107a';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261107a';
+import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../../services/activity/activity.js?v=20261108a';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261108a';
+import { getBasePath, escHtml as esc, showToast, describeWriteError, smoothScroll } from '../../core/base/utils.js?v=20261108a';
+import { getActivityTypeColors, usesFormalMeetingRoster, SECRETARY_AND_DEPUTY_ROLES, isPartyGroupLeaderRole, isActivityLive } from '../../core/domain/constants.js?v=20261108a';
+import { getAppState } from '../../core/base/state.js?v=20261108a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261108a';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：详情页**直按 id 打开**也要守同一判据
 // （列表里不出现、但链接/历史记录可直达 ⇒ 只靠列表过滤不够）。
-import { isActivityVisibleTo, canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261107a';
+import { isActivityVisibleTo, canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261108a';
 // 活动生命周期展示态单一源（2026-09-13 收敛）：徽章/文案不得本地另写一套中文状态映射
-import { activityLifecycleBadgeHtml } from '../../components/record/inspector.js?v=20261107a';
-import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261107a';
-import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../../components/governance/signup-panel.js?v=20261107a';
+import { activityLifecycleBadgeHtml } from '../../components/record/inspector.js?v=20261108a';
+import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261108a';
+import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../../components/governance/signup-panel.js?v=20261108a';
 // 工作分工（`assignments` 表 · 2026-10-03 批次 359 · `D-750` 续答「全 CRUD」）：落点＝**活动详情页新增一块**；
 //   ⚠ 与活动内联的「参与人员」（`act.assignments`＝**项目角色数组**）**不是同一份数据**；术语用「项目分工 / 事上见」，
 //   **不得**称「常备性分工」（支书明令禁用）。判据与写口单一源＝`services/activity/work-assignment.js`。
-import { canManageWorkAssignments, listWorkAssignments, createWorkAssignment, updateWorkAssignment, removeWorkAssignment, WORK_ASSIGNMENT_STATUS, WORK_ASSIGNMENT_STATUS_LABELS } from '../../services/activity/work-assignment.js?v=20261107a';
+import { canManageWorkAssignments, listWorkAssignments, createWorkAssignment, updateWorkAssignment, removeWorkAssignment, WORK_ASSIGNMENT_STATUS, WORK_ASSIGNMENT_STATUS_LABELS } from '../../services/activity/work-assignment.js?v=20261108a';
 // 选人载体单一源（`DESIGN_SYSTEM §4.13` · `filter-row::S9`）：**「选名单成员」一律 PersonPicker**，
 //   **不得**用自建 `<select>` 罗列人名（`S9` 只放行「任命 / 指派到人」四处例外、且明禁新代码长出第 5 处）——
 //   本块「负责人」属「选名单成员」⇒ 走 PersonPicker（唯一出口 `components/governance/pickers.js`）。
-import { PersonPicker } from '../../components/governance/pickers.js?v=20261107a';
-import { renderShareButtonHtml, bindShareButton } from '../../components/shell/share-button.js?v=20261107a';
-import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261107a';
-import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261107a';
+import { PersonPicker } from '../../components/governance/pickers.js?v=20261108a';
+import { renderShareButtonHtml, bindShareButton } from '../../components/shell/share-button.js?v=20261108a';
+import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261108a';
+import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261108a';
 // 表态权判据单一源（2026-09-30 批次 304）：本页此前**内联**判过一遍 `voterIds.includes(me)`，
 //   与 inspector.js 的 `isCommittee` 角色门形成两种口径；现统一消费 `isVoterOf`（角色无关）。
-import { isVoterOf } from '../../services/activity/vote-config.js?v=20261107a';
+import { isVoterOf } from '../../services/activity/vote-config.js?v=20261108a';
 // SOP-B-2（批次 83）：本页必须先 hydrate API 数据源再渲染——见 _hydrateData 注释
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261107a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261108a';
 // Task 6：详情页门（跨支部拒绝）+ 已归档只读。判定单一源 = core/domain/object-route.js。
-import { canViewObjectDetail } from '../../core/domain/object-route.js?v=20261107a';
-import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261107a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261107a';
+import { canViewObjectDetail, objectDetailHref } from '../../core/domain/object-route.js?v=20261108a';
+import { getBranchIdOfPerson, getBranchById } from '../../services/branch/branch.js?v=20261108a';
+// 党委活动在支部侧（2026-11-08 批次 536 · Task 9）：院级标识 / 采用 / 副本版本提示 / 手动同步 / 强调通知。
+// 判据与语义端点组装单一源＝services/activity/committee-activity.js（服务端仍复算一次）。
+import {
+  isCommitteeActivity, isCommitteeCopy, canAdopt, canManageCopy, copyForBranch, sourceOf, targetsBranch,
+  isSourceOutdated, adoptActivity, syncFromSource, sendEmphasisNotice, emphasisCooldownMs,
+} from '../../services/activity/committee-activity.js?v=20261108a';
+import { textField, textareaField } from '../../components/ui/forms.js?v=20261108a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261108a';
 // 批次 123：「关闭报名」后按批次 49「存好了才报成功」同一口径——先结算在途落库再刷新；
 // R11 P0-03：关闭报名用**动作作用域**结算，只等本动作自己的写
-import { beginWriteScope, endWriteScope } from '../../core/session/pending-writes.js?v=20261107a';
-import { getAdapter } from '../../data/data-adapter.js?v=20261107a';
-import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../components/governance/workgroup-member-editor.js?v=20261107a';
-import { openModal, closeModal, confirmDanger } from '../../components/ui/modal.js?v=20261107a';
+import { beginWriteScope, endWriteScope } from '../../core/session/pending-writes.js?v=20261108a';
+import { getAdapter } from '../../data/data-adapter.js?v=20261108a';
+import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../components/governance/workgroup-member-editor.js?v=20261108a';
+import { openModal, closeModal, confirmDanger } from '../../components/ui/modal.js?v=20261108a';
 // 汇报汇总（批次 500 · B-499-2）：活动 / 专班上下文按工作组汇总；渲染复用汇报收件箱，不另造第二套。
-import { IssueStore } from '../../services/governance/issues.js?v=20261107a';
-import { renderReportInboxHtml, bindReportInbox, filterReportsByScope } from '../../components/record/reporting.js?v=20261107a';
+import { IssueStore } from '../../services/governance/issues.js?v=20261108a';
+import { renderReportInboxHtml, bindReportInbox, filterReportsByScope } from '../../components/record/reporting.js?v=20261108a';
 
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261107a';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261108a';
 renderSidebar('dashboard');
 renderHeader('dashboard');
 
@@ -136,6 +143,33 @@ function _openNotePrompt({ title, label, placeholder, confirmLabel, onConfirm })
         }
         closeModal(id);
         onConfirm(value);
+      });
+    },
+  });
+}
+
+/** 强调通知正文（标题 / 正文均可留空，留空由服务端写默认标题与正文） */
+function _openEmphasisComposer({ onConfirm }) {
+  const id = `activity-emphasis-${++_activityDialogSeq}`;
+  openModal({
+    id,
+    title: '发送强调通知',
+    width: '520px',
+    dismissable: true,
+    bodyHtml: `
+      <p class="text-xs text-gray-500" style="margin:0 0 10px;">可不填；留空由系统写默认标题与正文（含活动日期、地点与到场要求）。</p>
+      ${textField({ id: 'emphasis-notice-title', label: '通知标题（可选）', placeholder: '留空使用默认标题' })}
+      <div class="mt-3">${textareaField({ id: 'emphasis-notice-content', label: '通知正文（可选）', rows: 4, placeholder: '留空使用默认正文' })}</div>`,
+    footerHtml: `
+      <button type="button" data-emphasis-cancel class="btn-outline btn-sm">取消</button>
+      <button type="button" data-emphasis-ok class="btn-accent btn-sm">发送</button>`,
+    onMount: (panel) => {
+      panel.querySelector('[data-emphasis-cancel]')?.addEventListener('click', () => closeModal(id));
+      panel.querySelector('[data-emphasis-ok]')?.addEventListener('click', () => {
+        const title = String(panel.querySelector('#emphasis-notice-title')?.value || '').trim();
+        const content = String(panel.querySelector('#emphasis-notice-content')?.value || '').trim();
+        closeModal(id);
+        onConfirm({ title, content });
       });
     },
   });
@@ -301,6 +335,27 @@ async function renderActivity(id) {
     return;
   }
   if (!act) {
+    // 有副本后，支部活动列表隐藏党委原件（服务端并集只回本支部行）⇒ 直开原件 id 时本地查不到行。
+    // 此时若本支部存在指向它的副本，仍给只读横幅（「本支部已采用」），并指向副本作为维护落点。
+    const viewerBranch = currentUser ? (currentUser.branchId || getBranchIdOfPerson(currentUser.personId)) : '';
+    const privileged = ['party-staff', 'org-commissioner'].includes(currentUser?.role);
+    const copyRow = (mockDB.activities || []).find((row) => row
+      && String(row.sourceActivityId || '') === String(id)
+      && (privileged || !viewerBranch || String(row.branchId || '') === String(viewerBranch)));
+    if (copyRow) {
+      const copyHref = objectDetailHref('activity', copyRow.id, { entry: 'home' });
+      cardEl.innerHTML = `
+        <div class="mb-4 flex flex-wrap items-center gap-2">
+          ${badgeHtml('院级', 'brand')}
+          <h2 class="font-title-cn text-xl font-bold text-gray-800 leading-snug">${esc(copyRow.title || '院级活动')}</h2>
+        </div>
+        <p class="text-sm text-gray-500">${esc(copyRow.date || '—')}${copyRow.location ? ' · ' + esc(copyRow.location) : ''}</p>
+        <div class="mt-3 rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-2.5" role="note">
+          <p class="text-body-sm leading-6 text-gray-600">本支部已采用，请在支部副本中维护执行信息。</p>
+          ${copyHref ? `<a class="mt-1 inline-block text-body-sm font-medium text-accent focus-ring rounded" href="${getBasePath()}${copyHref}">打开支部副本 →</a>` : ''}
+        </div>`;
+      return;
+    }
     cardEl.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">活动不存在。请返回活动列表重新选择。</p>';
     return;
   }
@@ -322,11 +377,40 @@ async function renderActivity(id) {
   const viewerWithBranch = currentUser
     ? { ...currentUser, branchId: currentUser.branchId || getBranchIdOfPerson(currentUser.personId) }
     : null;
-  if (!canViewObjectDetail({ type: 'activity', obj: { id: act.id, branchId: act.branchId || workgroup?.branchId }, viewer: viewerWithBranch })) {
+  // 党委活动在支部侧（批次 534 · Task 9）：党委原件归属 `pc-gsm`，但对目标支部可见 ——
+  //   详情门按「目标支部命中 ⇒ 视作本支部可见」判定；否则支部账号直开原件会被跨支部门挡掉，
+  //   「已采用 ⇒ 只读横幅」这条口径就没有落点。
+  const myBranchId = viewerWithBranch?.branchId || '';
+  const committeeActivity = isCommitteeActivity(act);
+  const committeeCopy = isCommitteeCopy(act);
+  const committeeTargetsMe = committeeActivity && targetsBranch(act, myBranchId);
+  const detailBranchId = committeeTargetsMe ? myBranchId : (act.branchId || workgroup?.branchId);
+  if (!canViewObjectDetail({ type: 'activity', obj: { id: act.id, branchId: detailBranchId }, viewer: viewerWithBranch })) {
     cardEl.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">无权查看该对象</p>';
     return;
   }
-  const readOnly = act.archived === true;
+  // 本支部对党委原件的副本（有副本 ⇒ 列表隐藏原件；直开原件一律只读）
+  const adoptedCopy = committeeActivity ? copyForBranch(act.id, myBranchId) : null;
+  const adoptedCopyHref = adoptedCopy ? objectDetailHref('activity', adoptedCopy.id, { entry: 'home' }) : '';
+  const committeeSourceLocked = committeeActivity && !!adoptedCopy;
+  const archivedReadOnly = act.archived === true;
+  const readOnly = archivedReadOnly || committeeSourceLocked;
+  // 采用 / 维护副本 / 副本版本：判据单一源＝services/activity/committee-activity.js
+  const canAdoptNow = committeeActivity && canAdopt(viewerWithBranch, act);
+  const canManageThisCopy = committeeCopy && canManageCopy(viewerWithBranch, act);
+  const copySource = committeeCopy ? sourceOf(act) : null;
+  const copyOutdated = committeeCopy && isSourceOutdated(act);
+  // 支部账号的活动列表隐藏党委原件（有副本时）⇒ 本地可能拿不到原件版本；
+  //   此时不臆断「已同步」，同步按钮仍给出（服务端会返回 synced:false，天然幂等）。
+  const showCopySync = canManageThisCopy && (copyOutdated || !copySource);
+  const emphasisMs = committeeCopy ? emphasisCooldownMs(act.id) : 0;
+  const targetBranchText = (() => {
+    const raw = act.targetBranchIds;
+    const ids = Array.isArray(raw) ? raw.map(String) : [];
+    if (ids.includes('all')) return '全部支部';
+    if (!ids.length) return '未指定';
+    return ids.map((id) => getBranchById(id)?.name || id).join('、');
+  })();
   const canRevealMemberNames = canRevealActivityMemberNames({ ...act, branchId: act.branchId || workgroup?.branchId }, currentUser, selectedBranchId);
   // A02：正式会议名单优先读**冻结应到快照**；未冻结按 roster.getMeetingRosterIds 现算。
   //   不再读 `act.assignments`（那是项目角色数组，不是应到名单）。
@@ -514,7 +598,8 @@ async function renderActivity(id) {
   const myActiveSignup = myId ? signups.find(s => s.personId === myId
     && (s.status === SignupStatus.APPROVED || s.status === SignupStatus.PENDING)) : null;
   // 已归档详情只读：连「取消报名」也不再提供（归档后名单冻结）。
-  const showSignupCard = !readOnly && !formalRoster && (canSignup || (signupClosed && !!myActiveSignup));
+  // 党委活动不承载报名 / 参与名单 / 考勤（spec PARTY_COMMITTEE_DESIGN §5.2）⇒ 原件不渲染报名区。
+  const showSignupCard = !readOnly && !committeeActivity && !formalRoster && (canSignup || (signupClosed && !!myActiveSignup));
 
   // 会议议程区（2026-09-06 点验修复①）：渲染条件放宽为「activity.agenda 存在且 length>0」——
   // 此前议程只随线上异步表决区（voteConfig.mode==='async'）渲染，导致「支部党员大会」等
@@ -598,13 +683,36 @@ async function renderActivity(id) {
       <div class="flex items-center gap-2.5 mb-2 flex-wrap">
         ${statusBadge(act, 'act')}
         <span class="tint-pill" data-tone="${tagTone}">${act.type || '活动'}</span>
+        ${committeeActivity ? badgeHtml('院级', 'brand') : ''}
+        ${committeeCopy ? badgeHtml('源自党委活动', 'brand') : ''}
+        ${committeeCopy ? `<span class="text-xs text-gray-500 tabular-nums">v${Number(act.sourceVersion) || 1}</span>` : ''}
         <span class="ml-auto flex items-center gap-3" title="对象编号 ${esc(act.id)} · 复制本页链接">
           ${renderShareButtonHtml()}
         </span>
       </div>
       <h2 class="font-title-cn text-xl font-bold text-gray-800 leading-snug">${act.title || '未命名活动'}</h2>
       <p class="text-sm text-gray-500 mt-1">${act.date || '—'}${act.location ? ' · ' + act.location : ''}</p>
-      ${readOnly ? '<p class="mt-2 text-xs text-gray-500" role="status">已归档，只读保留：成员编辑与写按钮已关闭。</p>' : ''}
+      ${archivedReadOnly ? '<p class="mt-2 text-xs text-gray-500" role="status">已归档，只读保留：成员编辑与写按钮已关闭。</p>' : ''}
+      ${committeeActivity ? `
+      <!-- 党委活动（院级内容 · 批次 534 · Task 9）：目标支部说明 + 未采用时的「采用到本支部」；
+           已有副本 ⇒ 只读横幅（本支部清单不再显示原件，直达时只看不改）。 -->
+      <div class="mt-3 rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-2.5" role="note">
+        <p class="text-xs leading-6 text-gray-600">院级活动（党委下发） · 目标支部：${esc(targetBranchText)}。采用后生成本支部副本，日期 / 地点 / 承办党小组 / 报名 / 考勤等执行信息在副本中维护；原件内容以党委为准。</p>
+        ${committeeSourceLocked
+          ? `<p class="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-600">本支部已采用，请在支部副本中维护执行信息。${adoptedCopyHref ? `<a class="text-accent font-medium focus-ring rounded" href="${getBasePath()}${adoptedCopyHref}">打开支部副本 →</a>` : ''}</p>`
+          : (canAdoptNow
+            ? '<div class="mt-2 flex flex-wrap items-center justify-end"><button type="button" id="committee-adopt-btn" class="btn-accent btn-sm flex-shrink-0">采用到本支部</button></div>'
+            : '<p class="mt-1 text-xs text-gray-500">当前账号不可采用：需本支部支书 / 副支书，且活动处于已发布 / 进行中。</p>')}
+      </div>` : ''}
+      ${committeeCopy ? `
+      <!-- 党委活动副本（批次 534 · Task 9）：版本提示 + 手动同步（只覆盖内容字段，执行字段保留）。 -->
+      <div class="mt-3 rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-2.5" role="note">
+        <p class="text-xs leading-6 text-gray-600">源自党委活动${copySource ? `「${esc(copySource.title || copySource.id)}」` : ''} · ${copySource
+          ? `副本内容版本 v${Number(act.sourceVersion) || 1}${copyOutdated ? ` · 党委已更新至 v${Number(copySource.contentVersion) || 1}` : ' · 已与党委同步'}`
+          : `副本内容版本 v${Number(act.sourceVersion) || 1} · 党委原件版本由党委端维护`}。</p>
+        ${showCopySync ? '<div class="mt-2 flex flex-wrap items-center justify-end"><button type="button" id="committee-sync-btn" class="btn-outline btn-sm flex-shrink-0">同步党委内容</button></div>' : ''}
+        ${copyOutdated && !canManageThisCopy ? '<p class="mt-1 text-xs text-gray-500">请本支部支书 / 副支书同步党委内容。</p>' : ''}
+      </div>` : ''}
       ${_nextStepRowHtml(act, {
         role: myRole,
         isOrganizer: organizerId === myId,
@@ -659,6 +767,13 @@ async function renderActivity(id) {
     ${brandCardHtml}
     ${reviewRequestCardHtml}
     ${transferCardHtml}
+    ${committeeCopy && canManageThisCopy && !archivedReadOnly ? `
+    <!-- 强调通知（批次 534 · Task 4）：本支部副本上由支书 / 副支书发送，受众＝支部内全体党员；
+         同一（支部, 党委活动）24 小时内最多一条（EMPHASIS_NOTICE_WINDOW_MS 单一源）。 -->
+    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50/60 px-5 py-3 mb-6">
+      <span class="text-xs text-gray-500">强调通知：向本支部全体党员推送一条提醒；同一活动 24 小时内最多一条${emphasisMs > 0 ? ` · ${Math.ceil(emphasisMs / 3600000)} 小时后可再次发送` : ''}</span>
+      <button type="button" id="committee-emphasis-btn" class="btn-accent btn-sm flex-shrink-0"${emphasisMs > 0 ? ' disabled' : ''}>${emphasisMs > 0 ? `${Math.ceil(emphasisMs / 3600000)} 小时后可再次发送` : '发送强调通知'}</button>
+    </div>` : ''}
 
     <!-- 报名名单 -->
     ${canRevealMemberNames
@@ -790,6 +905,65 @@ async function renderActivity(id) {
     const res = revokeBrandDesignation({ activityId: act.id, by: myId, role: myRole });
     if (!res.ok) { showToast('error', res.reason || '取消失败'); return; }
     await afterBrandWrite('已取消品牌认定');
+  });
+
+  // 党委活动三动作（2026-11-08 批次 536 · Task 9）：采用 / 同步 / 强调通知。
+  //   写链单一源＝services/activity/committee-activity.js（服务端事务与唯一索引兜底）；成功后整页重载，
+  //   让「本支部副本 / 版本号 / 限频状态」这些服务端事实即时可见。
+  //   采用只新建副本、不删数据 ⇒ 用非危险确认（可撤回 = 不再维护该副本）；强调通知会触达全体党员 ⇒ confirmDanger。
+  cardEl.querySelector('#committee-adopt-btn')?.addEventListener('click', () => {
+    _openConfirm({
+      title: '采用到本支部',
+      message: `把「${act.title || act.id}」采用到本支部？`,
+      consequence: '采用会生成本支部副本（不改动党委原件）；日期 / 地点 / 承办党小组 / 报名 / 考勤等执行信息在副本中维护。重复采用返回同一副本。',
+      confirmLabel: '采用',
+      dismissable: true,
+      onConfirm: async () => {
+        const res = await adoptActivity(act.id);
+        if (!res.ok) { showToast('error', res.error || res.reason || '采用失败'); return; }
+        await showToast('success', res.data?.idempotent ? '本支部已采用该活动（副本已存在）' : '已采用到本支部');
+        window.location.reload();
+      },
+    });
+  });
+  // 同步会覆盖副本的内容字段（旧内容不保留）⇒ 走 confirmDanger 三段式
+  cardEl.querySelector('#committee-sync-btn')?.addEventListener('click', async () => {
+    if (!await confirmDanger({
+      id: 'committee-sync',
+      title: '同步党委内容',
+      bodyHtml: '<p class="text-sm text-gray-700">用党委最新内容覆盖本副本的内容字段（标题 / 说明 / 议程等）。<br>影响：日期 / 地点 / 承办党小组 / 报名 / 考勤等执行字段保留；被覆盖的旧内容不保留。<br>可恢复：可在副本上重新补写内容，但旧值无法找回。</p>',
+      confirmLabel: '同步',
+    })) return;
+    const res = await syncFromSource(act.id);
+    if (!res.ok) { showToast('error', res.error || res.reason || '同步失败'); return; }
+    if (res.data?.synced === false) { showToast('info', '党委内容已是最新，无需同步'); return; }
+    await showToast('success', '已同步党委内容');
+    window.location.reload();
+  });
+  // 强调通知：先确认触达范围，再可选填标题 / 正文；429 用服务端 retryAfterMs 报剩余时间
+  cardEl.querySelector('#committee-emphasis-btn')?.addEventListener('click', async () => {
+    if (!await confirmDanger({
+      id: 'committee-emphasis',
+      title: '发送强调通知',
+      bodyHtml: '<p class="text-sm text-gray-700">向本支部全体党员发送一条强调通知。<br>影响：全体党员都会收到系统通知；同一活动 24 小时内只能发送一次。<br>可恢复：发出后不可撤回。</p>',
+      confirmLabel: '继续',
+    })) return;
+    _openEmphasisComposer({
+      onConfirm: async ({ title, content }) => {
+        const res = await sendEmphasisNotice(act.id, { title, content });
+        if (!res.ok) {
+          if (res.status === 429) {
+            const ms = Number(res.data?.retryAfterMs) || emphasisCooldownMs(act.id);
+            showToast('error', `同一活动 24 小时内只能发送一次强调通知${ms > 0 ? `，约 ${Math.ceil(ms / 3600000)} 小时后可再次发送` : ''}`);
+            return;
+          }
+          showToast('error', res.error || res.reason || '发送失败');
+          return;
+        }
+        await showToast('success', '已向本支部全体党员发送强调通知');
+        window.location.reload();
+      },
+    });
   });
 
   // 追加复盘要求两动作（2026-09-21 批次 135 · 裁定二「按推荐档落」）：① 要求组织者复盘（支委会全体）

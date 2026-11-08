@@ -3,25 +3,25 @@
 // 支部边界收敛点（防止未同步的情况）：人→支部归属、支部配置档案读取（header 软编码/主题/启停模块）
 // 单一数据源：mockDB.branches（首启 seed 自 data/mock/branches.js BRANCHES）
 
-import { mockDB } from '../../core/domain/domain.js?v=20261107a';
-import { getPersonById } from '../member/person.js?v=20261107a';
-import { PARTY_COMMITTEE, DEFAULT_BRANCH_DISPLAY_NAME } from '../../data/mock/branches.js?v=20261107a';
-import { PEOPLE } from '../../data/mock/people.js?v=20261107a';
-import { getAdapter, persist, getDataSource } from '../../data/data-adapter.js?v=20261107a';
-import { listCapabilities } from '../../core/boot/registry.js?v=20261107a';
+import { mockDB } from '../../core/domain/domain.js?v=20261108a';
+import { getPersonById } from '../member/person.js?v=20261108a';
+import { PARTY_COMMITTEE, DEFAULT_BRANCH_DISPLAY_NAME } from '../../data/mock/branches.js?v=20261108a';
+import { PEOPLE } from '../../data/mock/people.js?v=20261108a';
+import { getAdapter, persist, getDataSource } from '../../data/data-adapter.js?v=20261108a';
+import { listCapabilities } from '../../core/boot/registry.js?v=20261108a';
 // P1a 单向权威（2026-09-03）：config 净化唯一实现 = services/branch/config-clean.js（server PATCH /branches/:id/config 同源）
-import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, sanitizeConfigCapabilityPackages, applyBranchPolicyOverrides } from './config-clean.js?v=20261107a';
-import { CAPABILITY_PACKAGES, disabledCapabilityChildIds } from '../../core/domain/capability-packages.js?v=20261107a';
+import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, sanitizeConfigCapabilityPackages, applyBranchPolicyOverrides } from './config-clean.js?v=20261108a';
+import { CAPABILITY_PACKAGES, disabledCapabilityChildIds } from '../../core/domain/capability-packages.js?v=20261108a';
 // 审计内核共享常量（2026-09-09 支书批）：why 透传/单键回滚白名单/历史上限单一源 = config-clean
 // （server resources.js 同源 import，双形态防止未同步的情况）
-import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from './config-clean.js?v=20261107a';
+import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from './config-clean.js?v=20261108a';
 // L4（2026-09-03）：支部工作地图模块目录单一源 = core/domain/work-map.js（14 模块/缺省分工/快照展开）
-import { expandWorkforce } from '../../core/domain/work-map.js?v=20261107a';
+import { expandWorkforce } from '../../core/domain/work-map.js?v=20261108a';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（覆盖写口校验用）
-import { POLICY_DEFAULTS, POLICY_OVERRIDE_SECTIONS, effectivePolicyWith, policySectionsByRole } from '../../core/domain/policy-defaults.js?v=20261107a';
-import { randomHex } from '../../core/base/id.js?v=20261107a';
+import { POLICY_DEFAULTS, POLICY_OVERRIDE_SECTIONS, effectivePolicyWith, policySectionsByRole } from '../../core/domain/policy-defaults.js?v=20261108a';
+import { randomHex } from '../../core/base/id.js?v=20261108a';
 // 核心组判定单一源（2026-09-14 支书裁定·tab 全盘重设）：由「显示标签反推」改为「注册表 coreTab 显式声明」
-import { DEFAULT_BRANCH_ID, isCoreTab } from '../../core/domain/constants.js?v=20261107a';
+import { DEFAULT_BRANCH_ID, isCoreTab } from '../../core/domain/constants.js?v=20261108a';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
@@ -407,7 +407,7 @@ export async function rollbackBranchConfig(branchId, { by = null, targetEntryAt,
   // api 形态：语义交服务端 /branches/:id/config/rollback（服务端角色门+同规则回滚，返回权威分支）
   if (getDataSource() === 'api') {
     try {
-      const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261107a');
+      const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261108a');
       const updated = await ApiAdapter.branches.rollbackConfig(branchId, {
         ...(typeof targetEntryAt === 'string' && targetEntryAt ? { targetEntryAt } : {}),
         ...(Number.isInteger(index) ? { index } : {}),
@@ -638,10 +638,10 @@ export function getBranchIdOfPerson(personId) {
 //   （数据未加载时根本读不到支部记录）。肉眼分辨不了时看 getAffiliationShape().segment（1–5 段号 + 业务语言）。
 const STATIC_HEADER_FALLBACK = DEFAULT_BRANCH_DISPLAY_NAME;
 
-// 未登录静态壳显示名（2026-09-10 支书批「归属显示不一致」修复；2026-10-11 去演示化）：
-// 未登录/查无档案时不再走 getBranchIdOfPerson 的 br-b1 数据解析兜底（那会像真有归属），
-// 改为落**支部显示名**（数据驱动，缺省取支部名兜底）——与 STATIC_HEADER_FALLBACK（数据未加载兜底）同源。
-const GUEST_HEADER_PLACEHOLDER = STATIC_HEADER_FALLBACK;
+// 未登录静态壳显示名（2026-11-08 批次 536 · spec「未登录公共门厅」· D-858 决策 10）：
+// 未登录 / 查无档案一律显示公共平台品牌，不暴露任何具体支部名；
+// 支部品牌只在登录后按有效归属（段②）出现。
+const PLATFORM_BRAND_TITLE = '光华管理学院党建平台';
 
 /** 分支数据是否已加载（mockDB 已从存储/后端恢复）——用于区分「数据未加载」与「真无归属」 */
 export function isLoaded() {
@@ -660,8 +660,8 @@ export function isLoaded() {
  *      （时序修复：避免加载竞态把登录人误报「未绑定支部」；数据到达后 header 重绘归还真实支部名）；
  *   4) 有 person 档案且数据已加载、确无有效归属支部（branchId 空/查无）→ 中性占位「未绑定支部」
  *      （不再泄漏示例支部名；opts.placeholder 可覆盖）；
- *   5) 无 person（未登录静态壳/查无档案）→ 支部显示名 GUEST_HEADER_PLACEHOLDER
- *      （数据驱动，缺省取支部名兜底）。
+ *   5) 无 person（未登录静态壳/查无档案）→ 公共平台品牌 PLATFORM_BRAND_TITLE
+ *      （不显示任何具体支部名）。
  * ⚠ 本函数是**唯一判定实现**（getHeaderTitle / getAffiliationShape 共用），勿在别处复制判定。
  * @param {string} [personId] 当前登录人 personId（缺省 = 未登录静态壳）
  * @param {{ placeholder?: string, role?: string }} [opts] role 由登录态直接传入：
@@ -681,8 +681,8 @@ function _resolveHeaderTitle(personId, opts = {}) {
   if (person && !isLoaded()) return { title: STATIC_HEADER_FALLBACK, segment: 3 };
   // 段④ 登录且有 person 档案、但无有效归属支部 → 中性占位（支书语义：真无支部不显示示例支部名）
   if (person) return { title: placeholder, segment: 4 };
-  // 段⑤ 未登录 / 查无档案（静态壳）：支部显示名（数据驱动，缺省取支部名兜底）
-  return { title: GUEST_HEADER_PLACEHOLDER, segment: 5 };
+  // 段⑤ 未登录 / 查无档案（静态壳）：公共平台品牌（不显示具体支部名）
+  return { title: PLATFORM_BRAND_TITLE, segment: 5 };
 }
 
 export function getHeaderTitle(personId, opts = {}) {
@@ -695,7 +695,7 @@ export const HEADER_SEGMENT_LABELS = {
   2: '按你的支部档案解析到本支部',
   3: '数据加载中，暂用默认支部名',
   4: '已登录，但档案里没有有效归属支部',
-  5: '未登录 / 查无档案，按支部显示名展示',
+  5: '未登录 / 查无档案，显示公共平台品牌',
 };
 
 /**

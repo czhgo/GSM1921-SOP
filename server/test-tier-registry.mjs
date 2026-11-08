@@ -92,7 +92,11 @@ export const filesByFixtureClass = (fixtureClass) => TEST_TIERS
  *  断言预算按实测 1776 + 7 = 1783，登记 1785（留 2 条余量，不作「9999 式」放宽）。 */
 /** 2026-11-07 批次 535（通知受众 fail-closed ＋ SD-60 行动行）：新增 notice-audience-failclosed 6 条
  *  与 action-row-wrap-guard 5 条 ⇒ daily；文件预算 243 → 245，断言预算按实测 1797 登记。 */
-export const DAILY_FILE_BUDGET = 245;
+/** 2026-11-08 批次 536：新增 10 件党委内容/公共门厅测试（activity-adoption / committee-activities /
+ *  committee-adoption-ui / committee-content-tab / committee-multidomain / committee-owner-scope /
+ *  notice-emphasis-limit / public-brand-guard / public-portal-leak-guard / public-portal，均纯 node）
+ *  ⇒ 文件 245 → 255，断言 1799 → 1871。 */
+export const DAILY_FILE_BUDGET = 255;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
@@ -346,7 +350,12 @@ export const DAILY_FILE_BUDGET = 245;
  *  ⇒ 实测 1765，按 1767 登记（留 2 条余量，不作「9999 式」放宽）。未新增测试文件，文件预算维持 240。 */
 /** 2026-11-04 批次 534（B-500-7b-1 Task 9）：新增 `todo-realtime-source` 7 条 ⇒ 实测 1783，按 1785 登记
  *  （留 2 条余量，不作「9999 式」放宽）。 */
-export const DAILY_TEST_BUDGET = 1797;
+/** 2026-11-08 批次 536（党委内容与公开发布 Task 1）：`db-integrity-guard` 新增 G7（v13 生成列 / 部分唯一索引 / 审计空表）、
+ *  `data-contract` 新增 C7（新字段与新实体 / 非法枚举反例）共 2 条 ⇒ 实测 1799，按 1799 登记（同批核对，不留虚位）。 */
+/** 2026-11-08 批次 536：新增 10 件党委内容/公共门厅测试，文件 245→255，断言 1799→1871（按实然值登记，不留虚位）。 */
+/** 2026-11-08 批次 536 收尾（页签审计 P0）：`todo-groups-api` 新增 ⑥（页面 key visitor → participant 归一可读、
+ *  跨角色仍 403）1 条，不新增文件 ⇒ 断言 1871→1872（按实然值登记）。 */
+export const DAILY_TEST_BUDGET = 1872;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -457,6 +466,12 @@ export const TEST_TIERS = [
   // daily · 静态结构 / UI / 文案 / 防假绿守卫
   ...group('daily', '静态结构 / UI / 文案 / 防假绿守卫', [
     'activity-block-gate.test.mjs',
+    // 2026-11-08 批次 536（党委内容与公共门厅 UI / 文案 / 防泄漏；纯 node）
+    'committee-adoption-ui.test.mjs',
+    'committee-content-tab.test.mjs',
+    'notice-emphasis-limit.test.mjs',
+    'public-brand-guard.test.mjs',
+    'public-portal-leak-guard.test.mjs',
     // 2026-10-24 批次 508：活动类别 tone 单一源 / info 语义隔离 / 党建红 ≠ 错误红（纯 node）
     'activity-tone-guard.test.mjs',
     // 2026-10-24 批次 508：归档 ?tab=/?id= 深链、focusActivityId 展开折叠区、复盘落点（纯 node）
@@ -567,6 +582,12 @@ export const TEST_TIERS = [
   ]),
   // daily · 业务域回归 / 写链 / 事务 / 状态机
   ...group('daily', '业务域回归 / 写链 / 事务 / 状态机', [
+    // 2026-11-08 批次 536（党委活动写入 / 公共门厅）：党委自有内容的采用 / 多域 / 归属与公开门厅读口（纯 node）
+    'activity-adoption.test.mjs',
+    'committee-activities.test.mjs',
+    'committee-multidomain.test.mjs',
+    'committee-owner-scope.test.mjs',
+    'public-portal.test.mjs',
     'activity-calendar-sharing.test.mjs',
     'activity-creation-transaction.test.mjs',
     'activity-delete-client.test.mjs',

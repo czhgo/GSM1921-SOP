@@ -9,7 +9,7 @@
 //
 //  覆盖的表（与 `db.js` 同源，不另抄清单）：
 //    RESOURCE_TABLES（34，已退役的 issue_reveals 自动跳过）
-//    ＋ SEMANTIC_TABLES（7）＋ WORKGROUP_TABLES（6）
+//    ＋ SEMANTIC_TABLES（8）＋ WORKGROUP_TABLES（6）
 //    ＋ collection_versions（集合版本）＋ seed_meta（部署形态/种子版本）
 //
 //  产物：
