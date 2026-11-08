@@ -145,7 +145,7 @@
 | 不能做什么 | 不持 `create_activity`、`assign_task`、`modify_assignment`、`mark_complete`、`fill_review`、`record_attendance`、`summarize_inspection`、`authorize`、`manage_members`（**不能设/取消组长**）；不能增减党小组（只能看清单与未分组人数） |
 | 审批位 | ① 成员变更申请**审批**（`POST /api/v1/member-change-requests/:id/approve`，**组织委员专属**）；② 思想汇报**打回**（事后反馈，须附意见；提交即入库，不需要审批归档）；③ 名册**新增成员**与**档案行内编辑**（专属写门）；④ 成员流动（流入/流出）登记 |
 | 特例 | 域参数：可改**本域** `policyOverrides.memberConfirmation`（学期末滞留集中复核窗口）/ `thoughtReport`（思想汇报建议篇幅与警告审阅线） |
-| 依据 | `docs/src/services/core/auth.js:94`、`server/routes/member.js:95,238,305`、`server/routes/resources/index.js:325-328`、`server/system-notice-kinds.js:128-148`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:192-201`（§9i） |
+| 依据 | `docs/src/services/core/auth.js:94`、`server/routes/member.js:95,247,314`、`server/routes/resources/index.js:325-328`、`server/system-notice-kinds.js:128-148`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:192-201`（§9i） |
 
 #### 2.2.4 `prop-commissioner` 宣传委员
 
@@ -298,10 +298,10 @@
 | 支部顶层治理字段（`name`/`type`/`secretaryId`/`status`） | **仅 `party-staff`** | `server/routes/resources/gates.js:25-27` |
 | **本支部支委身份**（组织 / 宣传 / 纪检委员；`users` 的 `PATCH`） | 仅**本支部现任支书 / 副支书**（`branches.secretaryId` / 本支部现任 `deputy-secretary` 那一行）；靶标限**本支部成员**、写入身份限**白名单 ∪ 撤销回落 `participant`**；跨支部 / 白名单外角色键 / 支书·副支书身份一律 **403** | `server/routes/resources/gates.js:175`（`_branchCommissionerGateDeny`）、`docs/src/core/domain/constants.js::branchCommissionerWriteDeny` |
 | 党小组管理（新增/改名/解散/归组） | 支书 + 副支书 | `server/routes/resources/gates.js:33,63` |
-| 成员流动登记（流入/流出/撤销） | 组织委员 + 支书 + 副支书 | `server/routes/resources/gates.js:35,65`、`server/routes/member.js:342,345,366` |
-| 名册新增（`POST /members`） | **仅组织委员** | `server/routes/member.js:341` |
-| 成员档案行内编辑（`PATCH /members/:id/profile`） | 仅组织委员（本人只可写 `selfProfile`） | `server/routes/member.js:276-279` |
-| 发展阶段推进 / 在册状态镜像 / 移出 / 撤销流出 | 支书 + 副支书（移出为「组织委员发起 或 支书/副支书确认」——代码实际角色集＝`org-commissioner` + 支书/副支书） | `server/routes/member.js:186,255,345,366` |
+| 成员流动登记（流入/流出/撤销） | 组织委员 + 支书 + 副支书 | `server/routes/resources/gates.js:35,65`、`server/routes/member.js:351,354,375` |
+| 名册新增（`POST /members`） | **仅组织委员** | `server/routes/member.js:350` |
+| 成员档案行内编辑（`PATCH /members/:id/profile`） | 仅组织委员（本人只可写 `selfProfile`） | `server/routes/member.js:285-288` |
+| 发展阶段推进 / 在册状态镜像 / 移出 / 撤销流出 | 支书 + 副支书（移出为「组织委员发起 或 支书/副支书确认」——代码实际角色集＝`org-commissioner` + 支书/副支书） | `server/routes/member.js:195,264,354,375` |
 | 信息公开的实名/匿名与真身核查 | 见 §9j：处置＝**支委会（支委层）**，看真身＝仅 `party-staff` | `server/routes/resources/index.js:505-569` |
 | 支部文件（`branchDocs`）资源写口 | 支委层（含支书/副支书） | `server/routes/resources/index.js:56` |
 | 通知发布 / 通知管理 | 发布＝支委层除纪检；管理（编辑/删除）＝支委层全体 | `server/routes/resources/gates.js:31` |
@@ -844,7 +844,7 @@
 **服务端「移出」流程追加的字段（代码为准）**：`transferOut`（true＝已转出软标记，**登录与在途会话一律拒绝**）、`transferredOutAt`、`removedAt`、`removedBy`、`transferOutNote`；另有 `email`（**字段预留，示例数据中没有**，用于邮件通知收件人）。
 **成员「自我描述」（`selfProfile`）**（2026-10-05 `D-788` / `V-10b`）：字段模型**单一源＝`docs/src/core/domain/self-profile.js`**（15 字段 · 四类形态 `text`/`bool`/`multi`/`list`；子表见母本 §2.26）。**录入主体＝「本人可填 ＋ 支委层代录」**——`PATCH /members/:id/profile` 采**靶向判据**：组织委员 ⇒ 全白名单（口径不变）；**靶标＝本人**（`actor.id === :id`）⇒ **仅 `selfProfile` 一键**；其余 ⇒ 403。**不放宽任何其他档案字段**；服务端按叶子 `sanitizeSelfProfile` **净化**（白名单外键丢弃、类型归一、有限长）。
 **行为口径（4 条）**：① 写口白名单见 `server/routes/member.js` 的 `PROFILE_FIELDS` / `CREATE_FIELDS`；② **新增成员即自动建号**（账号＝学号，口令＝支部统一默认口令），成员流出一并停用；③ 变更分流——姓名/学号/党小组**立即生效**，发展阶段/在册状态须走「组织委员发起 → 支书确认」确认链，**流出登记登记即生效、不走确认链**（其中「**积极分子 → 发展对象**」另设**支委会讨论前置门**：须先上会讨论通过才可发起，判据见 §3.4）；④ `partyGroup` 为空即未分组：党小组会应到**不含**，支部大会应到**照计**，表决名单**照计**。
-**依据**：`content/04_web_design/data/DATA_MODEL.md:1093-1110`（思想汇报）、`:1111-1166`（成员档案）、`server/routes/member.js:202-205,281-348`、`server/routes/auth.js:42,85`、`server/services/mailer.js:93-106`。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:1093-1110`（思想汇报）、`:1111-1166`（成员档案）、`server/routes/member.js:211-214,290-357`、`server/routes/auth.js:42,85`、`server/services/mailer.js:93-106`。
 
 ### 4.31 党小组（PartyGroup）
 
@@ -1114,7 +1114,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 - **无构建步骤**：不需要 `npm run build`，前后端都是源码直接运行。
 - 启动入口 `server/server.js`：初始化数据库 → **空库自动导入示例种子**（`DISABLE_SEED=1` 时跳过；**生产形态 `APP_ENV=production` 下默认不播种**，见 §5.2）→ 起服务 → 启动定时任务（每日 03:00 按已配置支部逐个上报 + 每 10 分钟会议提醒扫描）→ 打印 `users` 计数与「演示种子账号」计数自检（核对「库内是否只有真人」）。
 - 启动后访问 `http://127.0.0.1:3000/login.html`。
-- **测试（四层，2026-11-08 批次 537）**：`npm run test:daily`（**结果门禁**，43 文件 / 294 断言，实测量级 ≈2 分钟）/ `npm run test:guards`（静态守卫，93 文件 / 759 断言，按需）/ `npm run test:changed`（按 `git diff` 选守卫）/ `npm run test:precommit`（daily ＋ guards ＋ 域回归 ＋ 真机 e2e）/ `npm run test:full`（全量，含 weekly 普查）/ `npm test`（分片档）/ `npm run test:core` / `npm run test:fast` / `npm run clean:tmp`。四个 runner 在脚本内注入 `DISABLE_PASSWORD_CHECK=1` 与 `DEMO_READONLY=0`（不再用 `set X=1&&` 的 cmd 专有语法；手跑 `node --test` 时仍须自行设置，否则按只读演示运行、写路径用例会红）。分层单一源＝`server/test-tier-registry.mjs`。
+- **测试（四层，2026-11-08 批次 537 / 波次 A）**：`npm run test:daily`（**结果门禁**，25 文件 / 187 断言，实测量级 ≈70–80 秒；`npm run test:daily:timing` 可逐文件计时）/ `npm run test:guards`（静态守卫，99 文件 / 788 断言，按需）/ `npm run test:changed`（按 `git diff` 选守卫）/ `npm run test:precommit`（daily ＋ guards ＋ 域回归 ＋ 真机 e2e）/ `npm run test:full`（全量，含 weekly 普查）/ `npm test`（分片档）/ `npm run test:core` / `npm run test:fast` / `npm run clean:tmp`。四个 runner 在脚本内注入 `DISABLE_PASSWORD_CHECK=1` 与 `DEMO_READONLY=0`（不再用 `set X=1&&` 的 cmd 专有语法；手跑 `node --test` 时仍须自行设置，否则按只读演示运行、写路径用例会红）。分层单一源＝`server/test-tier-registry.mjs`。
 - **前端 API 形态启用路径**：登录表单 → 本地 Mock 校验（学号 → personId）→ `POST /api/v1/auth/login`（**传 personId + password**）→ 拿到 token → 写入 `sessionStorage['gsm1921-api-token']` → 切换为 API 数据源。**不许静默降级**：**有 token 时**若 `init()` 拉不到服务端数据，页面**显式报错**（「无法连接服务器」+ 重试按钮），**不再**回退可写的本地 mock（旧行为＝用户以为在真系统里操作、实际只写浏览器，下次登录被服务端覆盖 ⇒ **静默丢单**）；**无 token 的本地演示形态保持原样**。运行时形态可用 `docs/src/data/data-adapter.js::getRuntimeMode()` 查（返回 `{source, hasToken, branchId, stage}`）。
 - **远端变更探测（P1-1）——多标签 / 多设备「不整页重载也能看见别人刚写的」**：前端 `init()` 只在**页面加载那一刻**拉一次数据、之后读内存缓存 ⇒ 补一条**低频探测**（`docs/src/data/data-adapter.js:1501`（`probeRemoteChanges`））：① 页面由隐藏转可见时探测一次（`docs/src/entries/pages/main-entry.js:243-257`（`visibilitychange`），**复用既有监听器**、不另挂第二个）；② 可见态下的低频定时器（缺省 **60 秒**，`docs/src/data/data-adapter.js:1364`（`REMOTE_PROBE_INTERVAL_MS`）；隐藏态不探测）。动作＝取既有 `GET /api/v1/snapshot/versions`（**未新增任何接口**）与本机基线 `_versions` **逐集合比对**，**只对版本不一致的集合**重拉（与 409 冲突恢复共用同一份 `_refreshCollections`）。同源多标签另加 `BroadcastChannel`（频道 `gsm1921-data-changed`）：写成功后广播一次，**零网络**，收信侧只把它当「去探测一次」的唤醒信号（数据一律从服务端取）。**避让**（防把本机未提交的改动当「远端更新」回滚）：本机有在途写 / `init()` 未完成 ⇒ 整次跳过；该集合本机仍脏 ⇒ 逐个排除在重拉清单之外。**失败静默**：探测只读，失败只 `console.warn`，**不弹错误、不影响使用**（写链 fail-fast 行为一字未改）。**开关**：`localStorage['gsm1921-remote-probe'] = 'off'`（键名见 `docs/src/data/data-adapter.js:1367`（`REMOTE_PROBE_PREF_KEY`））关闭，也可在页面内调 `docs/src/data/data-adapter.js:1404`（`setRemoteProbeEnabled`）；**默认开**。**mock / 静态托管形态零网络、自动不启用**（`DATA_SOURCE !== 'api'` 直接返回）。定时器可手动 `startRemoteChangeProbe()` / `stopRemoteChangeProbe()`（`:1558` / `:1569`）。
 - 静态托管形态（无后端）：把 `docs/` 当 Web 根目录即可，`docs/src/config/deploy.js` 在浏览器加载时**自动判为 `DEPLOY_MODE = 'static'`**（**无需手改**）；**Node 形态下由服务端动态注入**该文件为 `DEPLOY_MODE = "server"`（见 §6.12）。
@@ -1136,7 +1136,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 1 | `PORT` | 服务监听端口 | 否 | `3000` | `server/server.js:8` |
 | 2 | `DB_PATH` | SQLite 数据库文件路径（`:memory:` 为内存库，测试用） | 否 | `server/data.db` | `server/server.js:9`、`server/.env.example:9` |
 | 3 | `DISABLE_SEED` | 置 `1` 时**空库也不导入演示种子**（真实部署务必开；生产形态已默认不播种） | 否 | 未设置（＝播种；生产形态＝不播种） | `server/server.js:12-18` |
-| 4 | `LOGIN_PASSWORD` | **统一登录口令**（所有账号共用），`/auth/login` 校验用 | 否（**生产形态必填**：未设则启动即拒） | `123456`（**非生产形态**；生产形态无缺省，无口令比对兜底） | `server/routes/auth.js:17` |
+| 4 | `LOGIN_PASSWORD` | **共享登录口令**（仅未设个人密码的账号使用；个人密码优先），`/auth/login` 校验用 | 否（**生产形态必填**：未设则启动即拒） | `123456`（**非生产形态**；生产形态无缺省，无口令比对兜底） | `server/routes/auth.js:17` |
 | 5 | `DISABLE_PASSWORD_CHECK` | 置 `1` 时**跳过口令校验**，仅凭 personId 即可登录（**生产形态不认此开关**） | 否 | 未设置（＝校验） | `server/routes/auth.js:12-14` |
 | 6 | `MAIL_ENABLED` | 是否启用邮件通道（须为字符串 `'true'`） | 否 | 未设置（＝停用） | `server/services/mailer.js:16` |
 | 7 | `SMTP_HOST` | SMTP 服务器地址（未配置则邮件整体跳过） | 否 | 空 | `server/services/mailer.js:17`、`:29` |
@@ -1169,7 +1169,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 前端静态文件 | `docs/` | 由 Express 静态托管并**按 URL 分流缓存**：HTML 与无戳资源 `no-cache, must-revalidate`；带 `?v=` 的 JS / CSS / 字体 `public, max-age=31536000, immutable`；响应经 `compression`（>1KB 才压缩） | `server/app.js:23`、`server/app.js:63-66` |
 | 备份 | `server/backups/<时间戳>/` | **用脚本备，不要手拷库文件**：`scripts/backup.mjs`（Windows 可调 `scripts/backup.ps1`）→ 数据库走 SQLite **在线备份**（better-sqlite3 `db.backup()`，**含 WAL 内容的一致性快照，不需停服**）+ 附件目录整体复制 + 备份当场校验（`integrity_check`）；**只拷 `data.db` 会丢最近写入**（WAL 未并回）**且会丢附件物理文件**（表里只存元数据） | `server/scripts/backup.mjs`、`server/README.md`「备份与恢复」一节；WAL 见 `server/db.js:62`；附件目录见 §5.4 上一行 |
 | 重置 | —— | **API 形态下 `?reset=` 三档不生效**；服务端重置＝删除 `server/data.db` 后重启自动重种，或 `DISABLE_SEED=1` 空库起步 | `server/README.md:19` |
-| 库结构版本 | 库内 `PRAGMA user_version` | **有版本化迁移**：`server/db.js` 末尾「最小可用迁移机制」段以 `user_version` 记 schema 版本，启动（`initDb`）时把未应用的迁移**按序、在一个事务内**执行、**失败即抛**（不静默）；`v1` 为**冻结的基线迁移**，之后结构变更走 `v2+`；v3 新增工作组与应到名单快照表；v4 将周报历史迁入通用周期归档表，旧专班/活动工作组兼容迁入；v7 `person-id-student-number` 把人员主键由 `p*` 迁移为学号/工号（先改 `users.id` 再改全部引用，单事务、无法映射即回滚、重跑幂等）；v8 `activity-host-group-scope` 把支部级会议重分类为 `branch`、为可判定旧行补承办范围、其余跨组无责任组行标 `legacyHostGroup`（不猜测归属，组织台补选）；v9 `seed-meta` 建 `seed_meta` 并存 `seed_version`，启动时只修复既有 seed 行（不增不删）；v10 `activity-scope-two-tier` 把组织落点收敛为 `party-group` / `branch` 两档（旧 `cross-group` 归一为 `party-group`，缺承办组标 `legacyHostGroup`，并按需补 `recruitmentScope='cross-group'` 与组织委员协调人）；v11 `todo-branch-pushdown-shadow` 给 `todos` 加 `branch_id` 并回填、给五张热表加 generated VIRTUAL 列与复合索引（SQLite 不允许给已有数据的表加 STORED）、建影子子表 `agenda_items` / `taskforce_contributions`（**影子表非权威源，读写仍走 JSON**；切表判据见 `DATA_MODEL.md` §2.3.2 与 `server/scripts/schema-split-readiness.mjs`）；验收见 `server/test/db-migration.test.mjs` / `server/test/db-integrity-guard.test.mjs` / `server/test/backup-restore.test.mjs` / `server/test/schema-split-shadow.test.mjs` | `server/db.js:224-909`（`MIGRATIONS`）、`server/db.js:912`（`SCHEMA_VERSION`）、`server/db.js:62-70`（启动接入点） |
+| 库结构版本 | 库内 `PRAGMA user_version` | **有版本化迁移**：`server/db.js` 末尾「最小可用迁移机制」段以 `user_version` 记 schema 版本，启动（`initDb`）时把未应用的迁移**按序、在一个事务内**执行、**失败即抛**（不静默）；`v1` 为**冻结的基线迁移**，之后结构变更走 `v2+`；v3 新增工作组与应到名单快照表；v4 将周报历史迁入通用周期归档表，旧专班/活动工作组兼容迁入；v7 `person-id-student-number` 把人员主键由 `p*` 迁移为学号/工号（先改 `users.id` 再改全部引用，单事务、无法映射即回滚、重跑幂等）；v8 `activity-host-group-scope` 把支部级会议重分类为 `branch`、为可判定旧行补承办范围、其余跨组无责任组行标 `legacyHostGroup`（不猜测归属，组织台补选）；v9 `seed-meta` 建 `seed_meta` 并存 `seed_version`，启动时只修复既有 seed 行（不增不删）；v10 `activity-scope-two-tier` 把组织落点收敛为 `party-group` / `branch` 两档（旧 `cross-group` 归一为 `party-group`，缺承办组标 `legacyHostGroup`，并按需补 `recruitmentScope='cross-group'` 与组织委员协调人）；v11 `todo-branch-pushdown-shadow` 给 `todos` 加 `branch_id` 并回填、给五张热表加 generated VIRTUAL 列与复合索引（SQLite 不允许给已有数据的表加 STORED）、建影子子表 `agenda_items` / `taskforce_contributions`（**影子表非权威源，读写仍走 JSON**；切表判据见 `DATA_MODEL.md` §2.3.2 与 `server/scripts/schema-split-readiness.mjs`）；验收见 `server/test/db-migration.test.mjs` / `server/test/db-integrity-guard.test.mjs` / `server/test/backup-restore.test.mjs` / `server/test/schema-split-shadow.test.mjs` | `server/db.js:224-930`（`MIGRATIONS`）、`server/db.js:933`（`SCHEMA_VERSION`）、`server/db.js:62-70`（启动接入点） |
 
 ### 5.5 服务器侧注意事项 / 限制（**请逐条核对**）
 
@@ -1191,7 +1191,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 14 | **删除活动会级联删除子数据** | 删活动在同一 SQLite 事务中清理任务、考勤、考察、分工、复盘、补课、报名、通知、待办、归档/文件/图片记录、议题表态和活动子记录；关联附件仅在无其他记录引用时物理删除。集合版本同步递增；操作**不可撤销** | `server/routes/resources/index.js:674-737` |
 | 15 | **配置写留痕上限 100 条** | 超出后裁剪最早条目（低频可回滚，历史不改写） | `server/routes/resources/index.js:14,437-442` |
 | 16 | **支委名单按角色派生（已撤销硬编码）** | 原 `COMMITTEE_IDS = ['p10'…'p14']` 已删除；支委名单由 `getCommitteeIds / resolveCommitteeIds` 从 users 的 `secretary / deputy-secretary / org-commissioner / prop-commissioner / disc-commissioner` 派生。**无支委角色时 fail-closed**（旧活动表决名单返回空并告警），不再用假人兜底 | `docs/src/core/domain/constants.js:230-243`、`server/routes/member.js:111`、`server/routes/committee.js:89` |
-| 17 | **默认支部 id 硬编码兜底** | 大量读写在 `branchId` 缺省时回退常量 `'br-b1'`（示例支部 id）；真实部署若用别的 id，须保证所有写入都带 `branchId` | `server/routes/resources/gates.js:50`、`server/routes/resources/index.js:514,562-563`、`server/routes/member.js:180,207` |
+| 17 | **默认支部 id 硬编码兜底** | 大量读写在 `branchId` 缺省时回退常量 `'br-b1'`（示例支部 id）；真实部署若用别的 id，须保证所有写入都带 `branchId` | `server/routes/resources/gates.js:50`、`server/routes/resources/index.js:514,562-563`、`server/routes/member.js:189,216` |
 | 18 | **快照写穿的残余口（P0-1）** | `POST /api/v1/snapshot` 的乐观锁只对**带了 `_versions` 的集合**生效；未带该键的集合**按无条件整表写**（兼容旧客户端与直连调用，如 `server-base.test.mjs`）。真实写路径只有前端一条（`data-adapter.js::_flushSnapshot` 恒定带 `_versions`）⇒ 生产链路不暴露；对外直连写库须自行带 `_versions`（先 `GET /api/v1/snapshot/versions` 取基线） | `server/routes/resources/index.js` 末尾「快照写穿的集合版本号协议」段、`docs/src/data/data-adapter.js` 末尾「P0-1 乐观锁」段 |
 | 19 | **pagehide 兜底写撞 409 时无法当场自愈** | 页面卸载瞬间的同步冲刷（`_flushSnapshotSync`）同样带 `_versions`（不会退化成无条件覆盖），但**该上下文已无法再观测响应** ⇒ 撞 409 时只 `console.warn`，本地改动靠 `localStorage` 备份保留、不会进服务端（下次打开页面以服务端为准） | `docs/src/data/data-adapter.js`（`_flushSnapshotSync` / `_recoverFromConflict`） |
 | 20 | **远端变更探测（P1-1）：多标签 / 多设备不必整页重载** | 前端读的是内存缓存（`init()` 只在页面加载时拉一次）⇒ 现加**低频探测**：触发＝①「页面转可见」（`docs/src/entries/pages/main-entry.js:243-257`（`visibilitychange`），复用既有监听器）② 可见态低频定时器（缺省 60s，`docs/src/data/data-adapter.js:1364`（`REMOTE_PROBE_INTERVAL_MS`））；动作＝取既有 `GET /api/v1/snapshot/versions` 与本机基线**逐集合比对**、**只重拉版本不一致的集合**（与 409 冲突恢复共用 `_refreshCollections`）；同源多标签另有 `BroadcastChannel`（频道 `gsm1921-data-changed`）**零网络**唤醒——它只是「去探测一次」的信号，数据一律从服务端取。**避让**：本机在途写 / `init()` 未完成 ⇒ 整次跳过；该集合本机仍脏 ⇒ 逐个排除（防回滚本机未提交的改动）。**失败静默**（探测只读；失败仅 `console.warn`，不弹错误、不影响使用——与写链 fail-fast 是两件事）。**开关**：`localStorage['gsm1921-remote-probe']='off'`（或 `setRemoteProbeEnabled(false)`）关闭，**默认开**；**mock / 静态托管形态零网络、不启用**。**未新增任何服务端路由** | `docs/src/data/data-adapter.js:1501`（`probeRemoteChanges`）、`docs/src/entries/pages/main-entry.js:243-257`（`visibilitychange`）、`server/routes/resources/index.js:669`（versions 读口） |
@@ -1510,7 +1510,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 3 | **通用资源写口仍有登录即写面** | 资源角色门见 `RESOURCE_WRITE_GATE`；活动、专班工作组、考勤等另有业务写门。未列入角色门且无专门 handler 的部分资源仍只要求登录；各业务动作的角色授权尚未完全统一 | `server/routes/resources/gates.js`、`server/routes/resources/index.js`、`server/routes/resources/workgroup-routes.js` |
 | 4 | **活动写门是有意留白** | 活动写门已拒「非支委层」，但**支委层的既有功能位（宣传归档、议程/结果编辑、状态更新）保持放行**——注释明确写「是否进一步收紧为『仅支书/副支书/党小组组长』列入待支书裁（避免误伤归档/议程链路）」 | `server/routes/resources/gates.js:83-97`（尤其 141-142 行） |
 | 5 | **token 无过期 / 无刷新机制** | 会话表无过期时间字段；仅显式 logout 或账号流出时失效 | `server/db.js:45-49`、`server/routes/auth.js:84-87` |
-| 6 | **口令是「全支部统一口令」** | 所有账号共用 `LOGIN_PASSWORD`（缺省 `123456`）；系统**没有个人密码**概念。「新增成员自动建号」也是用这个统一口令 | `server/routes/auth.js:15-18` |
+| 6 | **口令默认仍是「全支部共享」** | 未设个人密码的账号共用 `LOGIN_PASSWORD`（缺省 `123456`）；**设了个人密码的账号只认个人密码、失败不回退**。「新增成员自动建号」建出的账号初始仍用共享口令；个人密码用 `cd server; npm run set-password -- <学号>` 逐人设置（scrypt 散列，旧库无需回填） | `server/routes/auth.js:15-18`、`server/routes/auth.js:153-166`（`loginPasswordForUser`） |
 | 7 | **无 CORS / 无限流 / 无 HTTPS** | 同 §5.5 第 3、4、6 条 | 同左 |
 | 8 | **前端限权 ≠ 服务端限权（多处）** | 对比示例：前端 `ROLE_PERMISSIONS` 判定的 `record_attendance`、`fill_review`、`dispatch_line` 等键在**服务端并无对应校验**（服务端只做上表的粗粒度门）；反之服务端的支部级校验（`actor.branchId`）在前端 mock 形态无对应实现 | `docs/src/services/core/auth.js:90-98`（前端键集）vs `server/routes/resources/gates.js:24-67`（服务端门集） |
 
@@ -1543,7 +1543,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 24 | API 形态下的「一键重置」 | 前端 `?reset=` 三档**只在无 token 的 mock 形态生效**；API 形态没有对应接口，重置需运维手工删 `data.db` | `server/README.md:19` |
 | 25 | 数据模型文档与部署文档的表数口径过期 | **已对齐**：部署文档原写「32 资源表」，现与代码一致为 **34 张**——后端按 **34 张**实现 | 以 `server/db.js:9-41` 为唯一口径 |
 
-> **另有一处需要说明的「未取证」**：`server/test/` 下的测试套件规模（文件数/断言数）本文件不写具体数字——它随开发持续增长，`server/README.md:37` 明确「本文件不维护固定计数，以 `server/test/` 实际目录为准」。
+> **另有一处需要说明的「未取证」**：`server/test/` 下的测试套件规模（文件数/断言数）本文件不写具体数字——它随开发持续增长，`server/README.md:83` 明确「本文件不维护固定计数，以 `server/test/` 实际目录为准」。
 
 ---
 

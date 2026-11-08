@@ -140,13 +140,15 @@ export function registerExtraSemanticRoutes(router, db) {
         : '无权限：仅事项提交人或被指派人可标记待终审';
     }
     // 派发位：支委层 / 党小组组长 / 党委
-    // ⚠ 这里不再强校验「标记对象 === issue.assignee」：前端 assignIssue 先 fire-and-forget PATCH 事项、
-    //   紧接着 POST 未读，两条请求无顺序保证；若强校验，正常指派会偶发 403（提示角标丢失）。
-    //   支部归属由下方 recordBranchWriteDeny 复核，越权面已从「任一登录成员」收窄到「派发位角色」。
+    // L-09（2026-11-08 波次 B）：派发位写未读时必须与事项行的 `assignee` 一致——否则 403，
+    //   防「给同支部任意成员写未读」。事项未同步（无 issue 行）时保持原兼容口径。
     const dispatchRole = BRANCH_COMMISSION_ROLES.includes(actor.role)
       || PARTY_GROUP_LEADER_ROLES.includes(actor.role)
       || actor.role === 'party-staff';
     if (!dispatchRole) return '无权限：只能标记本人或本人有权派发事项的未读';
+    if (issue && String(issue.assignee || '') !== String(assigneeId)) {
+      return '无权限：未读标记对象须为事项当前被指派人';
+    }
     return null;
   };
   router.get('/issue-unread', requireAuth(db), (req, res) => {
@@ -829,14 +831,20 @@ export function registerExtraSemanticRoutes(router, db) {
     res.json(next);
   });
 
-  // ── 发布留痕读取（党委；可按资源 / 动作过滤；时间倒序）──
+  // ── 发布留痕读取（党委；可按资源 / 动作过滤；时间倒序；`limit` / `offset` 分页）──
+  // 2026-11-08 波次 B：返回 `{ rows, total, limit, offset }`（total 为过滤后总数）；
+  //   默认 limit 50，取值域 1..100；offset 缺省 0，负数按 0。
   router.get('/committee/publication-audits', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
     let rows = listTable(db, 'publication_audits');
     for (const key of ['resourceType', 'resourceId', 'action']) {
       if (req.query[key]) rows = rows.filter((row) => row[key] === req.query[key]);
     }
     rows.sort((a, b) => String(b.at || '').localeCompare(String(a.at || '')));
-    res.json(rows);
+    const parsedLimit = Number.parseInt(String(req.query.limit === undefined ? '' : req.query.limit), 10);
+    const limit = Number.isFinite(parsedLimit) ? Math.min(100, Math.max(1, parsedLimit)) : 50;
+    const parsedOffset = Number.parseInt(String(req.query.offset === undefined ? '' : req.query.offset), 10);
+    const offset = Number.isFinite(parsedOffset) ? Math.max(0, parsedOffset) : 0;
+    res.json({ rows: rows.slice(offset, offset + limit), total: rows.length, limit, offset });
   });
 
   // ════════════════════════════════════════════════════════════════
@@ -1030,6 +1038,16 @@ export function registerExtraSemanticRoutes(router, db) {
     }
     const source = getRow(db, 'activities', String(copy.sourceActivityId));
     if (!source) return res.status(404).json({ error: '党委原件不存在' });
+
+    // G5（2026-11-08 波次 B）：同步前复核原件仍可追——已取消 / 已归档，或原件下发范围
+    //   已不再包含本支部 ⇒ 409，且不覆盖副本任何字段（通知 / 下发不受本端点约束）。
+    if (source.status === 'cancelled' || source.status === 'archived' || source.archived === true) {
+      return res.status(409).json({ error: '原件已取消或归档，不可同步' });
+    }
+    const sourceTargets = Array.isArray(source.targetBranchIds) ? source.targetBranchIds.map(String) : [];
+    if (!(sourceTargets.includes('all') || sourceTargets.includes(String(copy.branchId)))) {
+      return res.status(409).json({ error: '原件下发范围已不含本支部，不可同步' });
+    }
 
     const copyVersion = Number(copy.sourceVersion) || 0;
     const sourceVersion = Number(source.contentVersion) || 1;

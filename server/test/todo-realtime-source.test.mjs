@@ -27,12 +27,12 @@ import { join } from 'node:path';
 import {
   collectRealtimeGroups,
   SERVER_OWNED_ACTION_KEYS,
-} from '../../docs/src/components/record/todo-tab-shell.js?v=20261108b';
-import { DERIVE_GROUP_DOMAIN } from '../../docs/src/core/domain/todo-derive.js?v=20261108b';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261108b';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261108b';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261108b';
-import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261108b';
+} from '../../docs/src/components/record/todo-tab-shell.js?v=20261108c';
+import { DERIVE_GROUP_DOMAIN } from '../../docs/src/core/domain/todo-derive.js?v=20261108c';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261108c';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261108c';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261108c';
+import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261108c';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 

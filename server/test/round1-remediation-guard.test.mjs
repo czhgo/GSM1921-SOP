@@ -28,8 +28,11 @@ test('R1 U-04 纪检考勤：无 window.prompt · 会议 label 关联 · 视图 
   //   静态 `id="…"` 与 helper 参数，仍要求 id 真实存在（不许只写 label）。
   assert.match(src, /(?:id="disc-meet-activity"|id:\s*'disc-meet-activity')/,
     '会议活动 select 缺少 id（label 无法关联）');
-  assert.match(src, /data-att-view="process" aria-pressed=/, '「确认与录入」视图钮须带 aria-pressed');
-  assert.match(src, /data-att-view="data" aria-pressed=/, '「数据查看」视图钮须带 aria-pressed');
+  // 2026-11-08 波次 C（IA-E05）：撤「确认与录入 / 数据查看」二级切换 ⇒ 一级分段只剩 考勤 / 补课；
+  //   判据仍要求分段钮带 aria-pressed（当前分段可静态回读），并守住二级切换不回潮。
+  assert.match(src, /data-seg="attendance" aria-pressed=/, '「考勤」分段钮须带 aria-pressed');
+  assert.match(src, /data-seg="makeup" aria-pressed=/, '「补课」分段钮须带 aria-pressed');
+  assert.ok(!/data-att-view=/.test(src), '考勤页不得回潮「确认与录入 / 数据查看」二级切换（IA-E05）');
 });
 
 test('R2 U-05 专班管理：招募浮窗走通用 modal · 视图 aria-pressed · 折叠 aria-expanded', () => {

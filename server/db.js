@@ -906,6 +906,27 @@ export const MIGRATIONS = [
       db.exec('CREATE TABLE IF NOT EXISTS publication_audits (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
     },
   },
+  {
+    // v14（2026-11-08 波次 B · 安全加固）：`publication_audits` 读口需要按时间 / 资源检索，
+    //   追加三只读生成列（at / resource_type / resource_id）与两只索引，避免全表 JSON 扫描。
+    // 幂等：先探测列 / 索引；表缺失时先补建（v13 已建，重放时不会再建）。
+    version: 14,
+    name: 'publication-audits-index',
+    tables: ['publication_audits'],
+    up(db) {
+      db.exec('CREATE TABLE IF NOT EXISTS publication_audits (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
+      const columns = db.prepare('PRAGMA table_xinfo(publication_audits)').all().map((c) => c.name);
+      const addGenerated = (column, expr) => {
+        if (columns.includes(column)) return;
+        db.exec(`ALTER TABLE publication_audits ADD COLUMN ${column} TEXT GENERATED ALWAYS AS (${expr}) VIRTUAL`);
+      };
+      addGenerated('at', "json_extract(data,'$.at')");
+      addGenerated('resource_type', "json_extract(data,'$.resourceType')");
+      addGenerated('resource_id', "json_extract(data,'$.resourceId')");
+      db.exec('CREATE INDEX IF NOT EXISTS idx_publication_audits_at ON publication_audits(at)');
+      db.exec('CREATE INDEX IF NOT EXISTS idx_publication_audits_resource ON publication_audits(resource_type, resource_id)');
+    },
+  },
 ];
 
 /** 迁移列表的最大版本（＝目标 schema 版本；守卫据此核 `user_version`，防「有迁移没跑」/「版本号被手改」） */

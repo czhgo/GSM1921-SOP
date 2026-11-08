@@ -2,105 +2,96 @@
 // 纪检委员工作台 Tab：考勤管理（T-279 M3 拆分 · T-304 重设计）
 // 一级分段（2026-09-15 支书裁定）：考勤 / 补课——互斥分段钮置顶。
 //   2026-11-03 批次 531（F-06）：首屏原并列「页头 ＋ 考勤/补课分段 ＋ 确认与录入/数据查看视图」三套互斥轴，
-//   收敛为「页头 ＋ 一行分段」（三个分段：确认与录入 / 数据查看 / 补课）；功能与 aria-pressed 全部保留。
+//   收敛为「页头 ＋ 一行分段」。
+//   2026-11-08 波次 C（IA-E05）：撤二级切换——原「确认与录入 / 数据查看」是同一批考勤数据的两个视图，
+//   切换本身不改变任何数据口径，只让「确认」多一次点击 ⇒ 合并为**单一层级视图**（分段只剩 考勤 / 补课）；
+//   确认队列、出勤申诉、会议录入与矩阵 / 总表同屏顺读，矩阵与总表共用一条筛选条（DS_06 SD-58）。
 //   「补课」分段整段复用 makeup-tab 渲染（补课原为独立 tab，并入本 tab）；「?tab=makeup」旧深链兼容见 renderContent 首段。
-// 「考勤」分段三段式：① 待确认队列（卡片式，进入即见，确认即闭环+聚焦下一条）
-//        ② 考勤矩阵（人×活动 二元关系单一源组件 relation-matrix：行=人/列=活动 与 行=活动/列=人 互为转置；
+// 「考勤」分段单一层级视图（三项顺读，不再是三段互斥视图）：
+//        ① 待确认队列（卡片式，进入即见，确认即闭环+聚焦下一条）
+//        ② 出勤申诉 / 会议考勤录入（同为纪检写侧动作，随确认队列顺读）
+//        ③ 考勤数据（矩阵 ＋ 全量总表合卡，共用一条筛选条）：
+//           矩阵＝人×活动 二元关系单一源组件 relation-matrix（行=人/列=活动 与 行=活动/列=人 互为转置；
 //           **默认「按人」宽表**——支书 2026-09-14 批次 35 裁定「long form 不该为主」；项目维列封顶最近 6 项，
-//           可一键展开全部；活动名搜索 + 时间区间筛选）
-//        ③ 全量总表（分页铁律，低频操作：导出/打印/提交考勤统计至支委会）——即 long form，定位＝明细/导出下钻
+//           可一键展开全部）；总表＝long form，定位＝明细 / 导出下钻（分页铁律）；
+//           筛选条（DS_06 SD-58 两行）＝活动范围 / 时间区间 / 姓名或活动关键词 / 状态 / 活动类型 / 清除。
 // 设计裁定（支书 2026-08-29）：
-//   - 两个视图是转置关系，不是 long/wide 长表与矩阵的区别
+//   - 矩阵两个方向是转置关系，不是 long/wide 长表与矩阵的区别
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261108b';
-import { generateId } from '../../../core/base/id.js?v=20261108b';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity, isAttendancePendingConfirm, isAttendanceConfirmed, isAutoConfirmedAttendance, attendanceConfirmerId, confirmAttendanceRecords } from '../../../services/activity/attendance.js?v=20261108b';
-import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261108b';
-import { getPersonName } from '../../../services/member/person.js?v=20261108b';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261108c';
+import { generateId } from '../../../core/base/id.js?v=20261108c';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity, isAttendancePendingConfirm, isAttendanceConfirmed, isAutoConfirmedAttendance, attendanceConfirmerId, confirmAttendanceRecords } from '../../../services/activity/attendance.js?v=20261108c';
+import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261108c';
+import { getPersonName } from '../../../services/member/person.js?v=20261108c';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261108b';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive, DASHBOARD_LIMITS } from '../../../core/domain/constants.js?v=20261108b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261108b';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261108c';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive, DASHBOARD_LIMITS } from '../../../core/domain/constants.js?v=20261108c';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261108c';
 // R7-33：考勤「超期」按「活动日 + 补课时限（policy）」现算，不再直读记录上的 overdue 快照
-import { isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261108b';
+import { isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261108c';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261108b';
-import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261108b';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261108b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261108b';
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261108b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261108b';
-import { skeletonHtml } from '../../../components/ui/empty-state.js?v=20261108b';
+import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261108c';
+import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261108c';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261108c';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261108c';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261108c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261108c';
+import { skeletonHtml } from '../../../components/ui/empty-state.js?v=20261108c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 // pagerHtml = 翻页控件单一源（批次 38：全站手写翻页一律并轨；叶子件，避免与矩阵相互成环）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261108b';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261108c';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261108b';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261108b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261108b';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261108c';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261108c';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261108c';
 // 批次 524（F · 输入单一源）：布局中立的控件积木（只出控件本体，不套 label / 外边距）
-import { textInput, selectInput } from '../../../components/ui/forms.js?v=20261108b';
-import { requireDiscCommissionerId } from './_shared.js?v=20261108b';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261108b';
-import { currentUserId } from '../../../services/core/auth.js?v=20261108b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261108b';
+import { textInput, selectInput } from '../../../components/ui/forms.js?v=20261108c';
+import { requireDiscCommissionerId } from './_shared.js?v=20261108c';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261108c';
+import { currentUserId } from '../../../services/core/auth.js?v=20261108c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261108c';
 // 通用浮窗 + 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js）
 // U-04：申诉打回原用 `window.prompt`（无对话框语义、无焦点接管、移动端样式原生）→ 换本组件 openModal。
-import { confirmNudge, openModal, closeModal } from '../../../components/ui/modal.js?v=20261108b';
+import { confirmNudge, openModal, closeModal } from '../../../components/ui/modal.js?v=20261108c';
 // 「补课」分段整段复用原独立 tab 的渲染（2026-09-15 支书裁定：补课并入考勤管理，内部逻辑不改写）
-import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261108b';
+import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261108c';
 // Task 6：考勤表的活动列是跨对象行 ⇒ 直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261108b';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261108c';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261108b';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261108c';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261108b';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261108c';
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
 
-// ── 分段（确认与录入 / 数据查看 / 补课）——模块级记忆（沿既有 tab 内 _view 模式）──
-// 「确认与录入」含待确认队列 / 会议录入；「数据查看」含矩阵 / 总表（党小组会只读视图并入总表筛选）；
+// ── 分段（考勤 / 补课）——模块级记忆（沿既有 tab 内 _view 模式）──
+// 单一层级：考勤＝确认队列 + 申诉 + 会议录入 + 矩阵 / 总表同一视图（2026-11-08 波次 C 撤二级切换）；
 // 「补课」分段渲染 makeup-tab 全部功能（补课任务清单/确认回写考勤/交接回执/检索分页）。
 let _segment = 'attendance';
-let _attendanceView = 'process';
 // 深链一次性消费标记：?tab=makeup（补课原为独立 tab）→ 落「补课」分段；
 // 同一导航对象只应用一次，用户随后切分段不再被回置（见 renderContent 首段）。
 let _deepLinkNavTarget = null;
 
-/** 当前分段值：补课独占一段；否则取考勤视图（确认与录入 / 数据查看） */
-function _segmentValue() {
-  return _segment === 'makeup' ? 'makeup' : _attendanceView;
-}
-
-/** 一行分段钮组（F-06 / C-08）：页头之下只留这一组互斥切换——
- *  考勤的两个视图（确认与录入 / 数据查看）与「补课」并入同一行，不再各占一套轴。
+/** 一行分段钮组（F-06 / C-08 / IA-E05）：页头之下只留这一组互斥切换——考勤 / 补课。
  *  选中态沿用既有 `.btn-tab.active` 单一语法（styles.css 的 soft 三件套），不自造内联主题类。 */
 function _segmentRowHtml() {
-  const seg = _segmentValue();
-  const on = (value) => (seg === value ? ' active' : '');
-  return `<div class="flex items-center gap-2 mb-3" role="group" aria-label="考勤工作视图">
-      <button type="button" class="btn-tab att-seg-btn att-view-btn text-xs px-3 py-1.5${on('process')}" data-seg="process" data-att-view="process" aria-pressed="${seg === 'process'}">确认与录入</button>
-      <button type="button" class="btn-tab att-seg-btn att-view-btn text-xs px-3 py-1.5${on('data')}" data-seg="data" data-att-view="data" aria-pressed="${seg === 'data'}">数据查看</button>
-      <button type="button" class="btn-tab att-seg-btn text-xs px-3 py-1.5${on('makeup')}" data-seg="makeup" aria-pressed="${seg === 'makeup'}">补课</button>
+  const on = (value) => (_segment === value ? ' active' : '');
+  return `<div class="flex items-center gap-2 mb-3" role="group" aria-label="考勤工作区">
+      <button type="button" class="btn-tab att-seg-btn text-xs px-3 py-1.5${on('attendance')}" data-seg="attendance" aria-pressed="${_segment === 'attendance'}">考勤</button>
+      <button type="button" class="btn-tab att-seg-btn text-xs px-3 py-1.5${on('makeup')}" data-seg="makeup" aria-pressed="${_segment === 'makeup'}">补课</button>
     </div>`;
 }
 
 function _bindSegmentBtns(container, ctx) {
   container.querySelectorAll('.att-seg-btn').forEach(b => {
     b.addEventListener('click', () => {
-      const seg = b.dataset.seg;
-      if (seg === 'makeup') {
-        if (_segment === 'makeup') return;
-        _segment = 'makeup';
-      } else if (seg === 'process' || seg === 'data') {
-        if (_segment !== 'makeup' && _attendanceView === seg) return;
-        _segment = 'attendance';
-        _attendanceView = seg;
-      } else return;
+      const seg = b.dataset.seg === 'makeup' ? 'makeup' : 'attendance';
+      if (_segment === seg) return;
+      _segment = seg;
       renderContent(ctx);
     });
   });
@@ -148,16 +139,13 @@ export function renderContent(ctx) {
     return;
   }
 
-  const { accent, accentRgba, accentBorder } = ctx;
-  // 材料页深链（2026-10-20）：本场活动预选进既有活动筛选（只在未设置时写一次，用户「清除聚焦」后不再回填）；
-  // 同时落到「数据查看」视图——只有该视图才渲染活动行/矩阵，否则深链到了也看不到本场。
+  const { accent, accentBorder } = ctx;
+  // 材料页深链（2026-10-20）：本场活动预选进既有活动筛选（只在未设置时写一次，用户「清除聚焦」后不再回填）。
+  // 2026-11-08 波次 C：单一层级视图下矩阵 / 总表始终在位，深链不再需要先切视图。
   if (ctx?.focusActivityId && ctx.attendanceFilterActId === undefined) {
     ctx.attendanceFilterActId = ctx.focusActivityId;
-    // 待办带 recordId 深链时落「确认与录入」并高亮该行；纯材料页深链仍落「数据查看」。
-    _attendanceView = ctx?.focusRecordId ? 'process' : 'data';
   }
   if (ctx?.focusRecordId) {
-    _attendanceView = 'process';
     _queueExpanded = true;
     _pendingFocusRecordId = ctx.focusRecordId;
     ctx.focusRecordId = null; // 一次性定位：确认后重渲染不再重复提示
@@ -213,7 +201,7 @@ export function renderContent(ctx) {
     : '';
 
   // ════════════════════════════════════════════════════════════════
-  //  三段式渲染
+  //  单一层级视图（2026-11-08 波次 C · IA-E05）：确认 → 申诉 → 会议录入 → 考勤数据顺读
   // ════════════════════════════════════════════════════════════════
   container.innerHTML = `
     ${renderTabHeader({ title: '考勤管理', description: '待确认考勤、出勤申诉与考勤数据查看。' })}
@@ -221,14 +209,10 @@ export function renderContent(ctx) {
     <div id="att-segment-body">
       ${_receiptHtml()}
       ${filterBanner}
-      ${_attendanceView === 'process' ? `
-        ${_buildQueueHTML(queueItems, returnedRecs, queueLeave, queueAbsent, queueOverdue, autoConfirmedCount, accent, accentBorder, actById)}
-        ${_buildAppealCardHTML(pendingAppeals, returnedAppeals, actById, accent, accentBorder)}
-        ${_buildMeetingCardHTML(ctx, accent, accentBorder, actById)}
-      ` : `
-        ${_buildMatrixCardHTML(ctx, matrixModel, filterActivityId, accent, accentRgba, accentBorder)}
-        ${_buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityId, accent, accentRgba, accentBorder)}
-      `}
+      ${_buildQueueHTML(queueItems, returnedRecs, queueLeave, queueAbsent, queueOverdue, autoConfirmedCount, accent, accentBorder, actById)}
+      ${_buildAppealCardHTML(pendingAppeals, returnedAppeals, actById, accent, accentBorder)}
+      ${_buildMeetingCardHTML(ctx, accent, accentBorder, actById)}
+      ${_buildDataCardHTML(matrixModel, allRecords, longData, filterActivityId)}
     </div>
   `;
   _bindSegmentBtns(container, ctx);
@@ -446,6 +430,7 @@ export function renderContent(ctx) {
   // 批次 35（支书 2026-09-14 裁定「宽表默认」）：默认「按人」——一进 tab 先看「谁参加了哪些活动」
   let matrixView = 'byPerson'; // byPerson（行=人，列=活动，宽表默认）| byActivity（行=活动，列=人）
   const renderMatrix = () => _renderMatrix(matrixView, matrixModel, actById, allRecords, ctx, accent, accentBorder);
+  const renderTable = () => _renderTable(longData, allRecords, actById, accent, accentBorder, ctx, groupMeetingMetaByActivity);
   container.querySelectorAll('.att-mtx-view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       // C-08：选中态走既有 `.btn-tab.active` 单一语法（软三件套），不再逐类切换内联主题色。
@@ -458,38 +443,27 @@ export function renderContent(ctx) {
       renderMatrix();
     });
   });
-  container.querySelector('#att-mtx-search')?.addEventListener('input', () => renderMatrix());
-  container.querySelector('#att-mtx-from')?.addEventListener('change', () => renderMatrix());
-  container.querySelector('#att-mtx-to')?.addEventListener('change', () => renderMatrix());
+  // ── 共用一条筛选条（2026-11-08 波次 C · DS_06 SD-58）：矩阵与总表同页，筛选只留一组 ──
+  const renderData = () => { _page = 1; renderMatrix(); renderTable(); };
+  container.querySelector('#att-table-search')?.addEventListener('input', renderData);
+  container.querySelector('#att-table-status')?.addEventListener('change', renderData);
+  container.querySelector('#att-table-type')?.addEventListener('change', renderData);
+  container.querySelector('#att-filter-from')?.addEventListener('change', renderData);
+  container.querySelector('#att-filter-to')?.addEventListener('change', renderData);
   // T223 保留：活动下拉聚焦（URL activityId 落点同源，选中即聚焦该活动考勤）
   container.querySelector('#att-activity-select')?.addEventListener('change', () => {
     const v = document.getElementById('att-activity-select')?.value;
     ctx.attendanceFilterActId = v || null;
     renderContent(ctx);
   });
-  // P3 重置段（矩阵）：范围（活动 / 时间区间）与检索一并复位
-  container.querySelector('#att-mtx-clear')?.addEventListener('click', () => {
+  // 重置段：范围（活动 / 时间区间）＋ 关键词 ＋ 状态 / 类型一并复位
+  container.querySelector('#att-filter-clear')?.addEventListener('click', () => {
     ctx.attendanceFilterActId = null;
-    ['att-mtx-search', 'att-mtx-from', 'att-mtx-to'].forEach((id) => {
+    ['att-table-search', 'att-table-status', 'att-table-type', 'att-filter-from', 'att-filter-to'].forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
     renderContent(ctx);
-  });
-
-  // ── 全量总表：搜索/状态筛选/分页 ──
-  const renderTable = () => _renderTable(longData, allRecords, actById, accent, accentBorder, ctx, groupMeetingMetaByActivity);
-  container.querySelector('#att-table-search')?.addEventListener('input', () => { _page = 1; renderTable(); });
-  container.querySelector('#att-table-status')?.addEventListener('change', () => { _page = 1; renderTable(); });
-  container.querySelector('#att-table-type')?.addEventListener('change', () => { _page = 1; renderTable(); });
-  // P3 重置段（总表）：关键词 + 状态 + 活动类型一并复位
-  container.querySelector('#att-table-clear')?.addEventListener('click', () => {
-    ['att-table-search', 'att-table-status', 'att-table-type'].forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
-    _page = 1;
-    renderTable();
   });
   // 翻页（委托一次：`#att-table-pager` 由卡片模板持有、内容重绘不影响绑定；读 data-lf-page）
   container.querySelector('#att-table-pager')?.addEventListener('click', (e) => {
@@ -837,11 +811,10 @@ function _consumePendingFocus(container) {
   return true;
 }
 
-/** 统一下钻：矩阵单元格 / 总表「去打包确认」都落到队列的同一确认位。 */
+/** 统一下钻：矩阵单元格 / 总表「去打包确认」都落到队列的同一确认位（单一视图下只需滚动到队列）。 */
 function _focusRecord(recordId) {
   if (!recordId) return;
   _pendingFocusRecordId = recordId;
-  _attendanceView = 'process';
   _queueExpanded = true;
   if (_lastCtx) renderContent(_lastCtx);
 }
@@ -1184,31 +1157,38 @@ function _syncReasonNote(rowsContainer, pid) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  ② 考勤矩阵（「按活动」/「按人」互为转置 + 活动名/时间区间筛选）
+//  ② 考勤数据 = 考勤矩阵 ＋ 全量总表（2026-11-08 波次 C 合卡）
+//     为什么合卡：原「数据查看」视图里矩阵与总表各挂一条筛选条 ⇒ 同页两条筛选条
+//     （DS_06 SD-58 违例），而两组筛选本就是同一批考勤记录的口径（活动 / 时间 / 关键词）。
+//     合卡后共用一条筛选条：第 1 行＝活动＋时间区间，第 2 行＝关键词＋状态 / 类型＋清除；
+//     矩阵在上、明细总表在下，导出 / 打印 / 提交等低频动作收进卡头。
 // ════════════════════════════════════════════════════════════════
-function _buildMatrixCardHTML(ctx, matrixModel, filterActivityId, accent, accentRgba, accentBorder) {
+function _buildDataCardHTML(matrixModel, allRecords, longData, filterActivityId) {
   const acts = matrixModel.activities
     .filter(a => isActivityLive(a))
-    .filter(a => !filterActivityId || a.id === filterActivityId)
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const actOptions = acts
     .map(a => `<option value="${a.id}" ${filterActivityId === a.id ? 'selected' : ''}>${a.title}（${a.date}）</option>`)
     .join('');
+  const total = longData.length;
+  // 待确认 = 仅异常（缺勤/请假）未确认；出勤/已补源头审校自动确认不计入
+  const totalPending = allRecords.filter(isAttendancePendingConfirm).length;
+  const totalAuto = allRecords.filter(isAutoConfirmedAttendance).length;
+  const legend = `${Object.entries(CELL_META).map(([k, m]) => `<span class="inline-flex items-center gap-1 mr-2"><span class="w-2 h-2 rounded-full" style="background:${m.dot}"></span>${ATTENDANCE_STATUS_LABELS[k]}</span>`).join('')}<span class="mr-2">未录＝冻结应到但无记录</span><span class="mr-2">非应＝不在冻结名单</span><span>待冻＝尚无冻结名单</span>`;
+  const headMeta = `<span>共 <span class="tabular-nums font-medium text-gray-700">${total}</span> 条</span>
+          <span>待确认 <span class="tabular-nums font-medium text-orange-700">${totalPending}</span> 条</span>
+          ${totalAuto > 0 ? `<span>已录入 <span class="tabular-nums font-medium text-green-700">${totalAuto}</span> 条</span>` : ''}
+          ${HandoffStore.hasFor('attendance-archival', 'attendance') ? '<span class="text-teal-600 font-medium">已自动送达</span>' : ''}`;
+  const headActions = `<button type="button" class="btn-outline btn-sm att-export-btn">导出 CSV</button>
+            <button type="button" class="btn-outline btn-sm att-rate-export-btn" title="本月各场出勤率汇总，供支委会内部使用（不公示、不对外；SOP-B-35）">导出出勤率汇总（支委会内部）</button>
+            <button type="button" class="btn-outline btn-sm att-print-btn">打印</button>
+            <button type="button" class="btn-outline btn-sm att-handoff-btn">提交考勤统计至支委会</button>`;
 
   return `
-    <div class="card rounded-xl p-5 mb-4">
-      <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤矩阵</h3>
-        <!-- C-08：选中态＝既有 `.btn-tab.active`（软三件套），不再用内联主题色类自成分段 -->
-        <!-- 批次 35（2026-09-14）：默认翻为「按人」宽表（支书裁定 long form/按活动不该为主） -->
-        <div class="flex items-center gap-2" role="group" aria-label="矩阵视图">
-          <button type="button" class="btn-tab att-mtx-view-btn active px-3 py-1.5 text-xs font-medium" data-view="byPerson" aria-pressed="true">按人</button>
-          <button type="button" class="btn-tab att-mtx-view-btn px-3 py-1.5 text-xs font-medium" data-view="byActivity" aria-pressed="false">按活动</button>
-        </div>
-      </div>
+    <div class="card rounded-xl p-5">
+      ${renderCardHeader({ title: '考勤数据', meta: headMeta, actions: headActions })}
       <div class="text-xs text-gray-500 mb-3">留痕台账 · 不提供删除（更正 / 打回走状态）</div>
-      <!-- P3 四段（批次 525 · #2 定版两行）：第 1 行＝活动＋日期区间，第 2 行＝搜索＋清除；
-           分面为空段（不输出空行） -->
+      <!-- 共用筛选条（DS_06 SD-58 · 两行上限）：范围在上、关键词与分面在下，清除不独占一行 -->
       <div class="lf-bar mb-3">
         <div class="lf-bar__row" data-seg="scope">
           <select id="att-activity-select" class="input-flat text-xs lf-select">
@@ -1216,33 +1196,61 @@ function _buildMatrixCardHTML(ctx, matrixModel, filterActivityId, accent, accent
             ${actOptions}
           </select>
           <span class="lf-range">
-            ${textInput({ id: 'att-mtx-from', type: 'date', attrs: 'title="时间区间：起始日期"' })}
+            ${textInput({ id: 'att-filter-from', type: 'date', attrs: 'title="时间区间：起始日期"' })}
             <span class="text-xs text-gray-500">至</span>
-            ${textInput({ id: 'att-mtx-to', type: 'date', attrs: 'title="时间区间：截止日期"' })}
+            ${textInput({ id: 'att-filter-to', type: 'date', attrs: 'title="时间区间：截止日期"' })}
           </span>
         </div>
         <div class="lf-bar__row" data-seg="search" data-break-before="1">
-          ${textInput({ id: 'att-mtx-search', placeholder: '活动名筛选…', className: 'lf-kw' })}
-        </div>
-        <div class="lf-bar__row" data-seg="reset">
-          <button type="button" id="att-mtx-clear" class="btn-tab lf-btn">清除</button>
+          ${textInput({ id: 'att-table-search', placeholder: '搜索姓名或活动…', className: 'lf-kw' })}
+          ${selectInput({
+            id: 'att-table-status',
+            options: [{ value: '', label: '状态：全部' }, ...Object.values(AttendanceStatus).map(s => ({ value: s, label: ATTENDANCE_STATUS_LABELS[s] }))],
+            ariaLabel: '状态筛选',
+            className: 'lf-select',
+          })}
+          ${selectInput({
+            id: 'att-table-type',
+            options: [{ value: '', label: '活动类型：全部' }, { value: '党小组会', label: '党小组会（只读）' }],
+            ariaLabel: '活动类型筛选',
+            className: 'lf-select',
+          })}
+          <button type="button" id="att-filter-clear" class="btn-tab lf-btn">清除</button>
         </div>
       </div>
-      <div class="text-xs text-gray-500 mb-2">${Object.entries(CELL_META).map(([k, m]) => `<span class="inline-flex items-center gap-1 mr-2"><span class="w-2 h-2 rounded-full" style="background:${m.dot}"></span>${ATTENDANCE_STATUS_LABELS[k]}</span>`).join('')}<span class="mr-2">未录＝冻结应到但无记录</span><span class="mr-2">非应＝不在冻结名单</span><span>待冻＝尚无冻结名单</span></div>
+      <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+        <h4 class="text-sm font-semibold text-gray-800">考勤矩阵</h4>
+        <!-- C-08：选中态沿用既有 .btn-tab.active（软三件套），不再用内联主题色类自成分段 -->
+        <!-- 批次 35（2026-09-14）：默认翻为「按人」宽表（支书裁定 long form/按活动不该为主）；
+             按人 / 按活动是同一张表的两个方向，不是页面级视图切换 -->
+        <div class="flex items-center gap-2" role="group" aria-label="矩阵视图">
+          <button type="button" class="btn-tab att-mtx-view-btn active px-3 py-1.5 text-xs font-medium" data-view="byPerson" aria-pressed="true">按人</button>
+          <button type="button" class="btn-tab att-mtx-view-btn px-3 py-1.5 text-xs font-medium" data-view="byActivity" aria-pressed="false">按活动</button>
+        </div>
+      </div>
+      <div class="text-xs text-gray-500 mb-2">${legend}</div>
       <div id="att-matrix-container"></div>
+      <div class="mt-5 pt-4 border-t border-gray-200">
+        <h4 class="text-sm font-semibold text-gray-800 mb-2">明细总表</h4>
+        <div id="att-table-container">${_attSectionSkeletonHtml()}</div>
+        <div id="att-table-pager"></div>
+      </div>
     </div>
   `;
 }
 
-/** 活动筛选：活动名包含 + 时间区间（起止） */
-function _filterActivities(acts, actById) {
-  const searchEl = document.getElementById('att-mtx-search');
-  const fromEl = document.getElementById('att-mtx-from');
-  const toEl = document.getElementById('att-mtx-to');
+/** 活动筛选：活动范围 + 时间区间（起止）+ 关键词（活动名包含） */
+function _filterActivities(acts) {
+  const actEl = document.getElementById('att-activity-select');
+  const searchEl = document.getElementById('att-table-search');
+  const fromEl = document.getElementById('att-filter-from');
+  const toEl = document.getElementById('att-filter-to');
+  const actId = actEl ? actEl.value : '';
   const q = searchEl ? searchEl.value.trim().toLowerCase() : '';
   const from = fromEl ? fromEl.value : '';
   const to = toEl ? toEl.value : '';
   return acts.filter(a => {
+    if (actId && a.id !== actId) return false;
     if (q && !(a.title || '').toLowerCase().includes(q)) return false;
     if (from && a.date && a.date < from) return false;
     if (to && a.date && a.date > to) return false;
@@ -1257,7 +1265,7 @@ function _renderMatrix(matrixView, matrixModel, actById, allRecords, ctx, accent
   const acts = matrixModel.activities
     .filter(a => isActivityLive(a))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  const visibleActs = _filterActivities(acts, actById);
+  const visibleActs = _filterActivities(acts);
   const personIds = matrixModel.personIds;
   const recordById = new Map((allRecords || []).map(r => [r.id, r]));
 
@@ -1308,71 +1316,26 @@ function _renderMatrix(matrixView, matrixModel, actById, allRecords, ctx, accent
 
 // ════════════════════════════════════════════════════════════════
 //  ③ 全量总表（分页铁律 · 低频操作：导出/打印/提交考勤）
+//     2026-11-08 波次 C：卡壳随矩阵合入「考勤数据」卡，筛选条与矩阵共用一条（见 _buildDataCardHTML）。
 // ════════════════════════════════════════════════════════════════
-function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityId, accent, accentRgba, accentBorder) {
-  const total = longData.length;
-  // 待确认 = 仅异常（缺勤/请假）未确认；出勤/已补源头审校自动确认不计入
-  const totalPending = allRecords.filter(isAttendancePendingConfirm).length;
-  const totalAuto = allRecords.filter(isAutoConfirmedAttendance).length;
-  return `
-    <div class="card rounded-xl p-5">
-      <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
-        <div class="flex items-center gap-3">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤汇总（导出 / 打印）</h3>
-          <div class="flex gap-2 text-xs">
-            <span class="text-gray-600">共 <span class="font-bold text-gray-800">${total}</span> 条</span>
-            <span class="text-gray-600">待确认 <span class="font-bold text-orange-700">${totalPending}</span></span>
-            ${totalAuto > 0 ? `<span class="text-gray-500">已录入 <span class="font-bold text-green-700">${totalAuto}</span></span>` : ''}
-            ${HandoffStore.hasFor('attendance-archival', 'attendance') ? '<span class="text-teal-600 font-medium">已自动送达</span>' : ''}
-          </div>
-        </div>
-        <!-- U5b（2026-09-07）：低频操作钮统一 32px 圆角（与分页钮/下拉同高同 border 家族，hover 统一 bg-gray-50） -->
-        <div class="flex flex-wrap items-center gap-2">
-          <button class="btn-outline att-export-btn h-8 px-3 text-xs font-medium">导出 CSV</button>
-          <button class="btn-outline att-rate-export-btn h-8 px-3 text-xs font-medium" title="本月各场出勤率汇总，供支委会内部使用（不公示、不对外；SOP-B-35）">导出出勤率汇总（支委会内部）</button>
-          <button class="btn-outline att-print-btn h-8 px-3 text-xs font-medium">打印</button>
-          <button class="btn-outline att-handoff-btn h-8 px-3 text-xs font-medium">提交考勤统计至支委会</button>
-        </div>
-      </div>
-      <!-- U5b（2026-09-07）：搜索输入 + 状态下拉（enhanceSelects 后为 cs-trigger）统一 text-xs 紧凑档；
-           2026-09-14 批次 27：载体收敛为 lf-bar/lf-kw/lf-select，控件统一 34px 高 / 12px 字 -->
-      <!-- P3 四段：检索 → 分面（状态 / 活动类型）→ 重置；范围为空段（不输出空行） -->
-      <div class="lf-bar mb-3">
-        <div class="lf-bar__row" data-seg="search">
-          ${textInput({ id: 'att-table-search', placeholder: '搜索姓名或活动…', className: 'lf-kw' })}
-        </div>
-        <div class="lf-bar__row" data-seg="facet">
-          ${selectInput({
-            id: 'att-table-status',
-            options: [{ value: '', label: '状态：全部' }, ...Object.values(AttendanceStatus).map(s => ({ value: s, label: ATTENDANCE_STATUS_LABELS[s] }))],
-            ariaLabel: '状态筛选',
-            className: 'lf-select',
-          })}
-          ${selectInput({
-            id: 'att-table-type',
-            options: [{ value: '', label: '活动类型：全部' }, { value: '党小组会', label: '党小组会（只读）' }],
-            ariaLabel: '活动类型筛选',
-            className: 'lf-select',
-          })}
-        </div>
-        <div class="lf-bar__row" data-seg="reset">
-          <button type="button" id="att-table-clear" class="btn-tab lf-btn">清除</button>
-        </div>
-      </div>
-      <div id="att-table-container">${_attSectionSkeletonHtml()}</div>
-      <div id="att-table-pager"></div>
-    </div>
-  `;
-}
-
 function applyTableFilter(longData, allRecords, actById) {
+  const actEl = document.getElementById('att-activity-select');
+  const fromEl = document.getElementById('att-filter-from');
+  const toEl = document.getElementById('att-filter-to');
   const searchEl = document.getElementById('att-table-search');
   const statusEl = document.getElementById('att-table-status');
   const typeEl = document.getElementById('att-table-type');
+  const actId = actEl ? actEl.value : '';
+  const from = fromEl ? fromEl.value : '';
+  const to = toEl ? toEl.value : '';
   const q = searchEl ? searchEl.value.trim().toLowerCase() : '';
   const s = statusEl ? statusEl.value : '';
   const type = typeEl ? typeEl.value : '';
   return longData.filter(r => {
+    if (actId && r.activityId !== actId) return false;
+    const date = actById?.get?.(r.activityId)?.date || '';
+    if (from && date && date < from) return false;
+    if (to && date && date > to) return false;
     if (q && !(r.name || '').toLowerCase().includes(q) && !(r.activity || '').toLowerCase().includes(q)) return false;
     // 修复：attendanceToLong 的 status 为中文标签，须用 statusKey（英文枚举）比较；
     // 双值兼容：单选 value 为英文枚举，r.statusKey 与之同构（T-304 实测修复）

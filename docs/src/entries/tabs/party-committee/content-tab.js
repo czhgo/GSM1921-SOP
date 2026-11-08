@@ -3,6 +3,8 @@
 //
 // 一个页签、两个子视图：
 //   · 活动：党委自有活动（ownerScope='committee'）的列表 / 撰写 / 编辑 / 公开范围 / 下发 / 取消 / 归档；
+//     行内动作收敛为「编辑 ＋ 更多」（2026-11-08 波次 C）：下发 / 公开设置 / 撤下公开 / 取消 / 归档 进
+//     `menu-button.js` 菜单（单一源），危险动作仍走 `confirmDanger`——只换入口，不改确认口径。
 //   · 资料：院级资料（branch_docs 中 ownerScope='committee'）的列表 / 上传 / 编辑 / 发布范围 / 撤下。
 // 为什么合并进一个页签：两类内容都属于「党委自有内容 + 发布面」的同一治理对象，分开注册会让党委台
 //   页签 3 → 5，首屏密度与导航重复插标同时上升；合并后各自的列表与编辑入口仍独立。
@@ -12,14 +14,16 @@
 // 子视图协议：`?subview=activities|docs`（与 dispatch-tab 同协议；工作台壳不清该参数）。
 // 输入控件只经 components/ui/forms.js（具名导出）；目标支部复选框沿用 dispatch-tab 的既有写法。
 
-import { ACTIVITY_SUBTYPES } from '../../../core/domain/constants.js?v=20261108b';
-import { getAdapter, getDataSource, getApiBaseUrl, getAuthToken } from '../../../data/data-adapter.js?v=20261108b';
-import { textField, textareaField, selectField, dateField, fileField } from '../../../components/ui/forms.js?v=20261108b';
-import { emptyStateHtml, skeletonHtml } from '../../../components/ui/empty-state.js?v=20261108b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261108b';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261108b';
-import { confirmDanger } from '../../../components/ui/modal.js?v=20261108b';
-import { showToast, escHtml as esc, smoothScroll } from '../../../core/base/utils.js?v=20261108b';
+import { ACTIVITY_SUBTYPES } from '../../../core/domain/constants.js?v=20261108c';
+import { getAdapter, getDataSource, getApiBaseUrl, getAuthToken } from '../../../data/data-adapter.js?v=20261108c';
+import { textField, textareaField, selectField, dateField, fileField } from '../../../components/ui/forms.js?v=20261108c';
+import { emptyStateHtml, skeletonHtml } from '../../../components/ui/empty-state.js?v=20261108c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261108c';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261108c';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261108c';
+// 菜单单一源（2026-11-08 波次 C）：行内动作收为「编辑 + 更多」，二级动作进 aria-haspopup 菜单。
+import { renderMenuButton, bindMenuButtons } from '../../../components/ui/menu-button.js?v=20261108c';
+import { showToast, escHtml as esc, smoothScroll } from '../../../core/base/utils.js?v=20261108c';
 
 const HOST_ID = 'party-committee-tab-content';
 const VIEW_ACTIVITIES = 'activities';
@@ -212,6 +216,8 @@ function paint(host) {
     </div>`;
 
   bindSubtabs(host);
+  // 菜单交互（点击展开 / 外部与 Esc 关闭 / 方向键）由 menu-button 单一源挂载（幂等，按根节点只挂一次）
+  bindMenuButtons(host);
   host.querySelector('[data-content-retry]')?.addEventListener('click', () => refresh(host));
   if (isActivities) bindActivities(host);
   else bindDocs(host);
@@ -308,16 +314,32 @@ function activityRowHtml(row) {
         </div>
         <div class="card-head__actions" role="group" aria-label="「${esc(title)}」的操作">
           <button type="button" class="btn-outline btn-sm" data-activity-act="edit" data-id="${esc(row.id)}">编辑</button>
-          <button type="button" class="btn-outline btn-sm" data-activity-act="dispatch" data-id="${esc(row.id)}" ${state.branchesError ? 'disabled' : ''}>下发</button>
-          <button type="button" class="btn-outline btn-sm" data-activity-act="publish" data-id="${esc(row.id)}">公开设置</button>
-          ${row.publishScope === 'public'
-            ? `<button type="button" class="btn-outline btn-sm" data-activity-act="unpublish" data-id="${esc(row.id)}">撤下公开</button>`
-            : ''}
-          <button type="button" class="btn-danger btn-sm" data-activity-act="cancel" data-id="${esc(row.id)}" ${row.status === 'cancelled' ? 'disabled' : ''}>取消</button>
-          <button type="button" class="btn-outline btn-sm" data-activity-act="archive" data-id="${esc(row.id)}" ${row.archived === true ? 'disabled' : ''}>归档</button>
+          ${activityMoreMenuHtml(row, title)}
         </div>
       </div>
     </div>`;
+}
+
+/** 行内二级动作菜单（2026-11-08 波次 C）：下发 / 公开设置 / 撤下公开 / 取消 / 归档。
+ *  危险动作仍走 `confirmDanger`（见 handleActivityAction），菜单只换入口、不改确认口径。 */
+function activityMoreMenuHtml(row, title) {
+  const items = [
+    `<button type="button" role="menuitem" class="todo-more__item" data-activity-act="dispatch" data-id="${esc(row.id)}" ${state.branchesError ? 'disabled' : ''} title="下发到目标支部（支部名单读取失败时不可用）">下发</button>`,
+    `<button type="button" role="menuitem" class="todo-more__item" data-activity-act="publish" data-id="${esc(row.id)}">公开设置</button>`,
+    row.publishScope === 'public'
+      ? `<button type="button" role="menuitem" class="todo-more__item" data-activity-act="unpublish" data-id="${esc(row.id)}">撤下公开</button>`
+      : '',
+    `<button type="button" role="menuitem" class="todo-more__item todo-more__item--danger" data-activity-act="cancel" data-id="${esc(row.id)}" ${row.status === 'cancelled' ? 'disabled' : ''}>取消</button>`,
+    `<button type="button" role="menuitem" class="todo-more__item" data-activity-act="archive" data-id="${esc(row.id)}" ${row.archived === true ? 'disabled' : ''}>归档</button>`,
+  ].filter(Boolean).join('');
+  return renderMenuButton({
+    id: `pc-activity-more-${row.id}`,
+    label: '更多',
+    itemsHtml: items,
+    buttonClassName: 'btn-outline btn-sm',
+    // 一屏多个「更多」：可读名称带活动标题，屏幕阅读器不必靠猜上下文
+    buttonAriaLabel: `「${title}」的更多操作`,
+  });
 }
 
 function activityFormHtml() {

@@ -453,8 +453,8 @@ test('党委取消 / 归档后副本状态不变', async () => {
   assert.equal(copy.status, 'published', '副本状态不随原件取消 / 归档变化');
   assert.equal(copy.archived, undefined);
 
-  // 同步只覆盖内容，不改副本状态
+  // 同步前复核原件：已取消 / 归档 ⇒ 409，且不改副本状态（G5 波次 B）
   const synced = await request('sec-1', 'POST', `activities/${copyId}/sync-source`);
-  assert.equal(synced.status, 200);
+  assert.equal(synced.status, 409);
   assert.equal(activityRow(copyId).status, 'published');
 });

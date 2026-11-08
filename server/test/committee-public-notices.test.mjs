@@ -188,11 +188,11 @@ test('发布留痕：创建 publish / 改期 update-scope / 撤下 unpublish；�
 
   const initial = await request('pc-1', 'GET', `committee/publication-audits?resourceType=notice&resourceId=${id}`);
   assert.equal(initial.status, 200);
-  assert.equal(initial.data.length, 1, '创建写一条 publish 留痕');
-  assert.equal(initial.data[0].action, 'publish');
-  assert.equal(initial.data[0].actorId, 'pc-1');
-  assert.equal(initial.data[0].oldValue, null);
-  assert.equal(initial.data[0].newValue.publishScope, 'login');
+  assert.equal(initial.data.rows.length, 1, '创建写一条 publish 留痕');
+  assert.equal(initial.data.rows[0].action, 'publish');
+  assert.equal(initial.data.rows[0].actorId, 'pc-1');
+  assert.equal(initial.data.rows[0].oldValue, null);
+  assert.equal(initial.data.rows[0].newValue.publishScope, 'login');
 
   const expires1 = futureIso(10);
   const published = await request('pc-1', 'PATCH', `committee/notices/${id}`, {
@@ -201,7 +201,7 @@ test('发布留痕：创建 publish / 改期 update-scope / 撤下 unpublish；�
   assert.equal(published.status, 200);
   assert.equal(published.data.publishScope, 'public');
   const publishes = await request('pc-1', 'GET', `committee/publication-audits?resourceId=${id}&action=publish`);
-  assert.equal(publishes.data.length, 2, '发布到 public 再写一条 publish');
+  assert.equal(publishes.data.rows.length, 2, '发布到 public 再写一条 publish');
 
   const expires2 = futureIso(20);
   const rescheduled = await request('pc-1', 'PATCH', `committee/notices/${id}`, {
@@ -209,19 +209,19 @@ test('发布留痕：创建 publish / 改期 update-scope / 撤下 unpublish；�
   });
   assert.equal(rescheduled.status, 200);
   const scopes = await request('pc-1', 'GET', `committee/publication-audits?resourceId=${id}&action=update-scope`);
-  assert.equal(scopes.data.length, 1, '改期写 update-scope');
-  assert.equal(scopes.data[0].oldValue.publishExpiresAt, expires1);
-  assert.equal(scopes.data[0].newValue.publishExpiresAt, expires2);
+  assert.equal(scopes.data.rows.length, 1, '改期写 update-scope');
+  assert.equal(scopes.data.rows[0].oldValue.publishExpiresAt, expires1);
+  assert.equal(scopes.data.rows[0].newValue.publishExpiresAt, expires2);
 
   const withdrawn = await request('pc-1', 'POST', `committee/notices/${id}/withdraw`);
   assert.equal(withdrawn.status, 200);
   assert.equal(withdrawn.data.publishScope, 'login');
   const unpublish = await request('pc-1', 'GET', `committee/publication-audits?resourceId=${id}&action=unpublish`);
-  assert.equal(unpublish.data.length, 1);
+  assert.equal(unpublish.data.rows.length, 1);
 
   const again = await request('pc-1', 'POST', `committee/notices/${id}/withdraw`);
   assert.equal(again.status, 200, '撤下幂等');
-  assert.equal((await request('pc-1', 'GET', `committee/publication-audits?resourceId=${id}&action=unpublish`)).data.length, 1,
+  assert.equal((await request('pc-1', 'GET', `committee/publication-audits?resourceId=${id}&action=unpublish`)).data.rows.length, 1,
     '幂等撤下不重复写留痕');
 });
 

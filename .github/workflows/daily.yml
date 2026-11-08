@@ -30,3 +30,25 @@ jobs:
         working-directory: .
         run: |
           for f in deploy/*.sh; do bash -n "$f"; done
+
+  # 部署件容器验证（批次 533 波次 D）：只跑「ubuntu 容器里能真验证」的部分——
+  # shell 语法 · doctor · 起服务 · smoke --login · preflight-cutover --strict · package。
+  # **不跑** systemd / root / 真机 install（那部分只能在测试机验证，见 deploy/README.md）。
+  deploy-verify:
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - name: 部署件容器验证
+        working-directory: .
+        run: bash deploy/verify-linux.sh

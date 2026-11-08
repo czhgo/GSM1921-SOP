@@ -43,6 +43,29 @@ const NOT_FOUND_BODY = Object.freeze({ error: 'not found' });
 
 const DOCUMENT_DOWNLOAD_PATH = '/api/public/documents/';
 
+// ── 下载限频（2026-11-08 波次 B · 进程内）──
+// 同 IP 每 60 秒最多 `PUBLIC_DOWNLOAD_RATE_LIMIT` 次（默认 60；仅测试注入低阈值）。
+// 超限 429 `{ error:'too many requests', retryAfterMs }`，且**不写**留痕、不读文件。
+const DOWNLOAD_RATE_WINDOW_MS = 60_000;
+const DOWNLOAD_RATE_DEFAULT = 60;
+/** ip ⇒ 窗口内命中时刻（毫秒） */
+const downloadHits = new Map();
+
+function downloadRateLimit(req) {
+  const raw = Number.parseInt(String(process.env.PUBLIC_DOWNLOAD_RATE_LIMIT ?? ''), 10);
+  const max = Number.isFinite(raw) && raw > 0 ? raw : DOWNLOAD_RATE_DEFAULT;
+  const now = Date.now();
+  const ip = String(req.ip || (req.socket && req.socket.remoteAddress) || 'unknown');
+  const hits = (downloadHits.get(ip) || []).filter((ts) => now - ts < DOWNLOAD_RATE_WINDOW_MS);
+  if (hits.length >= max) {
+    downloadHits.set(ip, hits);
+    return { retryAfterMs: Math.max(1, DOWNLOAD_RATE_WINDOW_MS - (now - hits[0])) };
+  }
+  hits.push(now);
+  downloadHits.set(ip, hits);
+  return null;
+}
+
 const CONTENT_TYPES = Object.freeze({
   pdf: 'application/pdf',
   png: 'image/png',
@@ -297,6 +320,11 @@ export function createPublicPortalRouter(db) {
 
   router.get('/documents/:id/download', (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
+    const limited = downloadRateLimit(req);
+    if (limited) {
+      res.setHeader('Retry-After', String(Math.ceil(limited.retryAfterMs / 1000)));
+      return res.status(429).json({ error: 'too many requests', retryAfterMs: limited.retryAfterMs });
+    }
     const row = readRow(db, 'branch_docs', req.params.id);
     if (!isPublicDocument(row, Date.now())) return notFound(res);
 

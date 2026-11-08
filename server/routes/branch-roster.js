@@ -141,8 +141,11 @@ export function createBranchRosterRouter(db) {
     });
     run();
 
-    res.json({ ok: true, branchId, count: saved.length, removed: removed.length, members: saved });
+    res.json({ ok: true, branchId, count: saved.length, removed: removed.length, members: saved.map(stripPasswordHash) });
   });
 
   return router;
 }
+
+// 个人密码散列（波次 G）：users 行响应脱敏单一源；置尾不移动上文行号
+import { stripPasswordHash } from '../security/password.mjs';

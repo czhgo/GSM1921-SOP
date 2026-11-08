@@ -183,7 +183,7 @@ export function createIaaaRouter(db) {
     db.prepare('INSERT INTO sessions (token, person_id, created_at) VALUES (?, ?, ?)')
       .run(session, user.id, new Date().toISOString());
 
-    const payload = { ok: true, token: session, user, created, needBranch: !user.branchId };
+    const payload = { ok: true, token: session, user: stripPasswordHash(user), created, needBranch: !user.branchId };
     if (wantsJson) return res.json(payload);
     // 浏览器流：走 hash 回登录页（hash 不进服务端日志、不被 Referer 带出；前端取到后立即清掉）
     // ⚠ 批次 277：**绝对路径**（同 `/login` 处的理由——相对路径会被相对请求 URL 解析而 404）
@@ -252,9 +252,12 @@ export function createIaaaRouter(db) {
       }
       putUser(db, u);
       const audited = audit(db, { targetPersonId: u.id, branchId: target, actorId: actor.id, action });
-      res.json({ ok: true, user: u, audit: audited });
+      res.json({ ok: true, user: stripPasswordHash(u), audit: audited });
     });
   }
 
   return router;
 }
+
+// 个人密码散列（波次 G）：users 行响应脱敏单一源；置尾不移动上文行号
+import { stripPasswordHash } from '../security/password.mjs';

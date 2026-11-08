@@ -6,11 +6,13 @@
   "scripts": {
     "start": "node server.js",
     "start:review": "node scripts/start-review.mjs",
+    "set-password": "node scripts/set-password.mjs",
     "test": "set DISABLE_PASSWORD_CHECK=1&& set DEMO_READONLY=0&& node run-suite.mjs",
     "test:full": "set DISABLE_PASSWORD_CHECK=1&& set DEMO_READONLY=0&& set SWEEP_SHARD=all&& node run-suite.mjs",
  "test:fast": "set DISABLE_PASSWORD_CHECK=1&& set DEMO_READONLY=0&& node --test --test-concurrency=1 test/auth.test.js test/report.test.js test/skeleton.test.js test/server-base.test.mjs test/catalog-sync.test.mjs test/link-integrity.test.mjs test/backup-restore.test.mjs test/db-migration.test.mjs test/db-integrity-guard.test.mjs test/hex-hardcode-guard.test.mjs test/identity-student-id-guard.test.mjs test/type-scale-guard.test.mjs test/link-target-guard.test.mjs test/localstorage-key-guard.test.mjs test/copy-guard.test.mjs test/mock-api-parity.test.mjs test/docs-governance-guard.test.mjs test/block-orchestration.test.mjs test/dead-selector-guard.test.mjs test/write-path-guard.test.mjs test/spacing-scale-guard.test.mjs test/row-markup-guard.test.mjs test/seed-baseline.test.mjs test/iaaa-onboarding.test.mjs test/setup-status.test.mjs test/activity-block-gate.test.mjs test/block-field-policy.test.mjs test/participant-scope.test.mjs test/iaaa-ui-onboarding.test.mjs test/ui-control-system-guard.test.mjs test/validation-site-coverage.test.mjs test/date-canon-guard.test.mjs test/member-roster-api-read.test.mjs test/module-cycle-remind.test.mjs test/module-owner-authz.test.mjs",
     "test:core": "set DISABLE_PASSWORD_CHECK=1&& set DEMO_READONLY=0&& node --test --test-concurrency=1 test/agenda-closure-core.test.mjs test/agenda-relations.test.mjs test/agenda-flow.test.mjs test/online-committee.test.mjs test/agenda-votes.test.mjs test/member-change-flow.test.js test/multi-user-write.test.mjs test/module-load.test.mjs test/help-e2e.test.mjs test/a11y-tree.test.mjs",
     "test:daily": "node scripts/run-daily.mjs",
+    "test:daily:timing": "node scripts/run-daily.mjs --timing",
     "test:guards": "node scripts/run-guards.mjs",
     "test:precommit": "node scripts/run-precommit.mjs",
     "test:changed": "node scripts/run-changed.mjs",

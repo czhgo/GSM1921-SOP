@@ -7,7 +7,7 @@
 //   · 菜单容器 `role="menu"`，菜单项 `role="menuitem"`；
 //   · Esc 关闭并把焦点归还给触发按钮；点击外部关闭；
 //   · 折叠状态由 `aria-expanded` **静态回读**（菜单不是阅读型折叠，故不进 `<details>`）。
-import { escHtml } from '../../core/base/utils.js?v=20261108b';
+import { escHtml } from '../../core/base/utils.js?v=20261108c';
 
 /** 每个根节点只挂一次文档级关闭监听（容器跨重渲染复用） */
 const _bound = new WeakSet();
@@ -20,6 +20,7 @@ const _bound = new WeakSet();
  * @param {string} opts.itemsHtml       菜单项 HTML（每项应为 `role="menuitem"`）
  * @param {string} [opts.className]     根容器附加类（如 `todo-more`）
  * @param {string} [opts.buttonClassName] 按钮类（默认 `btn-outline btn-sm menu-button__btn`）
+ * @param {string} [opts.buttonAriaLabel] 按钮可读名称（缺省取按钮文本；一屏多个「更多」时传上下文）
  * @param {string} [opts.menuClassName] 菜单容器附加类（如 `todo-more__menu`）
  * @returns {string}
  */
@@ -29,14 +30,16 @@ export function renderMenuButton({
   itemsHtml,
   className = '',
   buttonClassName = 'btn-outline btn-sm menu-button__btn',
+  buttonAriaLabel = '',
   menuClassName = '',
 }) {
   const mid = String(id || '').trim();
   if (!mid) throw new Error('[menu-button] 需要稳定的 id（决定 DOM 钩子）');
   const menuId = `${mid}-menu`;
+  const ariaLabel = buttonAriaLabel ? ` aria-label="${escHtml(buttonAriaLabel)}"` : '';
   return `
     <div class="menu-button${className ? ` ${className}` : ''}" data-menu-button>
-      <button type="button" id="${escHtml(mid)}" class="${escHtml(buttonClassName)}" aria-haspopup="menu" aria-expanded="false" aria-controls="${escHtml(menuId)}">${label}</button>
+      <button type="button" id="${escHtml(mid)}" class="${escHtml(buttonClassName)}" aria-haspopup="menu" aria-expanded="false" aria-controls="${escHtml(menuId)}"${ariaLabel}>${label}</button>
       <div class="${menuClassName ? `${escHtml(menuClassName)} ` : ''}menu-button__menu" id="${escHtml(menuId)}" role="menu" hidden>${itemsHtml}</div>
     </div>`;
 }

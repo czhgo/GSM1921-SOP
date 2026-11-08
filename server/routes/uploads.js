@@ -64,10 +64,19 @@ const PARTY_STAFF_ROLE_SET = new Set(PARTY_STAFF_KEYS);
 
 export function createUploadsRouter(db) {
   const router = Router();
+  const requireAuthGate = requireAuth(db);
+  const requireCommissionerGate = requireCommissioner(db);
+  // 上传门：支委层或党委（党委需要上传院级资料）；普通成员仍拒绝。
+  const requireUploader = (req, res, next) => requireAuthGate(req, res, (err) => {
+    if (err) return next(err);
+    if (PARTY_STAFF_ROLE_SET.has(req.actor?.role)) return next();
+    return requireCommissionerGate(req, res, next);
+  });
 
   // 上传写口（2026-09-18 批次 80 · 风险-⑤ 收紧）：原仅 requireAuth ⇒ 任一登录成员可上传。
-  // 现按既有附件写口口径收（COMMISSIONER_WRITE，server/routes/resources.js:196 的同一支委门）＝支委层。
-  router.post('/uploads', requireCommissioner(db), upload.single('file'), (req, res) => {
+  // 现按既有附件写口口径收（COMMISSIONER_WRITE，server/routes/resources.js:196 的同一支委门）＝支委层；
+  // 2026-11-08 波次 H：党委可上传院级资料，故放行 party-staff（普通成员仍 403）。
+  router.post('/uploads', requireUploader, upload.single('file'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: '文件类型不支持或为空' });
     const meta = {
       id: randomUUID(),

@@ -264,12 +264,13 @@ test('发布面变化（发布 / 改期 / 撤回）写留痕，旧值新值可�
   // 创建即写一条 publish 留痕（oldValue=null）
   const initial = await request('pc-1', 'GET', `committee/publication-audits?resourceType=activity&resourceId=${id}`);
   assert.equal(initial.status, 200);
-  assert.equal(initial.data.length, 1, '创建写一条 publish 留痕');
-  assert.equal(initial.data[0].action, 'publish');
-  assert.equal(initial.data[0].actorId, 'pc-1');
-  assert.equal(initial.data[0].actorRole, 'party-staff');
-  assert.equal(initial.data[0].oldValue, null);
-  assert.equal(initial.data[0].newValue.publishScope, 'branch');
+  assert.equal(initial.data.rows.length, 1, '创建写一条 publish 留痕');
+  assert.equal(initial.data.total, 1);
+  assert.equal(initial.data.rows[0].action, 'publish');
+  assert.equal(initial.data.rows[0].actorId, 'pc-1');
+  assert.equal(initial.data.rows[0].actorRole, 'party-staff');
+  assert.equal(initial.data.rows[0].oldValue, null);
+  assert.equal(initial.data.rows[0].newValue.publishScope, 'branch');
 
   const expires = futureIso(10);
   const published = await request('pc-1', 'PATCH', `committee/activities/${id}/publication`, {
@@ -280,7 +281,7 @@ test('发布面变化（发布 / 改期 / 撤回）写留痕，旧值新值可�
 
   const afterPublish = await request('pc-1', 'GET', `committee/publication-audits?resourceId=${id}&action=publish`);
   assert.equal(afterPublish.status, 200);
-  const publishAudit = afterPublish.data[0];
+  const publishAudit = afterPublish.data.rows[0];
   assert.equal(publishAudit.action, 'publish');
   assert.equal(publishAudit.oldValue.publishScope, 'branch');
   assert.equal(publishAudit.newValue.publishScope, 'public');
@@ -293,17 +294,17 @@ test('发布面变化（发布 / 改期 / 撤回）写留痕，旧值新值可�
   assert.equal(rescheduled.status, 200);
   const scopeAudits = await request('pc-1', 'GET', `committee/publication-audits?resourceId=${id}&action=update-scope`);
   assert.equal(scopeAudits.status, 200);
-  assert.equal(scopeAudits.data.length, 1, '改期写 update-scope 留痕');
-  assert.equal(scopeAudits.data[0].oldValue.publishExpiresAt, expires);
-  assert.equal(scopeAudits.data[0].newValue.publishExpiresAt, rescheduledExpires);
+  assert.equal(scopeAudits.data.rows.length, 1, '改期写 update-scope 留痕');
+  assert.equal(scopeAudits.data.rows[0].oldValue.publishExpiresAt, expires);
+  assert.equal(scopeAudits.data.rows[0].newValue.publishExpiresAt, rescheduledExpires);
 
   const unpublished = await request('pc-1', 'PATCH', `committee/activities/${id}/publication`, { publishScope: 'login' });
   assert.equal(unpublished.status, 200);
   const unpublishAudits = await request('pc-1', 'GET', `committee/publication-audits?resourceId=${id}&action=unpublish`);
   assert.equal(unpublishAudits.status, 200);
-  assert.equal(unpublishAudits.data.length, 1);
-  assert.equal(unpublishAudits.data[0].oldValue.publishScope, 'public');
-  assert.equal(unpublishAudits.data[0].newValue.publishScope, 'login');
+  assert.equal(unpublishAudits.data.rows.length, 1);
+  assert.equal(unpublishAudits.data.rows[0].oldValue.publishScope, 'public');
+  assert.equal(unpublishAudits.data.rows[0].newValue.publishScope, 'login');
 
   // 公开可见的硬校验在改发布端点同样生效（用一条从未设过有效期的新活动验证）
   const fresh = await createActivity({ title: '发布端点校验活动' });

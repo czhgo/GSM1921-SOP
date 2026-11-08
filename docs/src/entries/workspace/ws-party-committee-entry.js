@@ -6,15 +6,15 @@
 // 2026-10-20 IA 修复批次（A06）：治理总览撤页（「组织待补」已并入支部管理的组织提醒列）
 //   ⇒ 登录落点改为「支部上报」（review）：党委进入工作台先看待批复队列，再下发通知 / 管理支部。
 
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261108b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261108b';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261108b';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261108c';
+import { loadActivities } from '../../services/activity/activity.js?v=20261108c';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261108c';
 // 2026-10-24 批次 508：活动深链的显式落点（提示 + 跳活动详情）需要这两个工具出口
-import { showToast, getBasePath } from '../../core/base/utils.js?v=20261108b';
+import { showToast, getBasePath } from '../../core/base/utils.js?v=20261108c';
 // Task 6：本台无活动承载面 ⇒ 跨页直达完整详情页（direct，objectDetailHref 统一出口）。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261108b';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261108c';
 // 副作用导入触发党委工作台能力注册（tab 清单）
-import '../../capabilities/party-committee-workspace.js?v=20261108b';
+import '../../capabilities/party-committee-workspace.js?v=20261108c';
 
 await createWorkspaceShell({
   accentRole: 'party-staff',

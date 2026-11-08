@@ -9,7 +9,8 @@ cd server
 npm install            # 安装依赖（含 devDependency playwright，用于 E2E）
 npm start              # 启动服务，默认端口 3000（可用 PORT 环境变量覆盖）
 npm test               # **分片档**：默认跑片 1（`SWEEP_SHARD` 选片 1–4），单片墙钟 ≤10 分钟，需先 npm start
-npm run test:daily     # **结果门禁**：改代码时的日常档（registry 驱动 runner，43 文件 / 294 断言，实测量级 ≈2 分钟，见「测试说明」）
+npm run test:daily     # **结果门禁**：改代码时的日常档（registry 驱动 runner，25 文件 / 187 断言，实测量级 ≈70–80 秒，见「测试说明」）
+npm run test:daily:timing # daily 逐文件计时（诊断用：串行 spawn，打印每个文件耗时与最慢 5 个；不改判据）
 npm run test:guards    # **静态守卫**：样式 / 字号 / 颜色 / 动效 / 结构 / 文案 / 文档 / 行号，按需跑
 npm run test:changed   # 按 `git diff` 改动面自选守卫（改 docs/ → UI 守卫；改 content/ → 文档守卫；改 server/ → daily）
 npm run test:precommit # **提交前 / 发布前**：daily ＋ guards ＋ 非核心域回归 ＋ 真机 e2e（缺 Playwright 明确报错）
@@ -20,7 +21,7 @@ npm run clean:tmp      # 清理测试残留目录 .tmp（脚本非正常中止�
 ```
 
 - 启动入口 `server/server.js`：数据库为空时自动从 `docs/src/data/mock/*.js` 导入种子数据（users/branches/activities/notices/taskforces/tasks/assignments/archive_records/signups；**2026-09-25 批次 189 起另补** attendances/inspections/activity_reviews/taskforce_reviews/thought_reports/periodic_archive_submissions/prop_tasks/external_dispatches/appointment_records 与语义端点域 handoffs/member_confirmations/attendance_appeals/inspection_appeals/issue_unread/auth_audit —— 使「只有结构、没有数据」的表**首启即有真行**（判据：引用一律取自既有 users/branches/activities，零孤立引用）；`DISABLE_SEED=1` 时空库也不导入演示种子（真实支部全新建库直接录真实数据用）。**2026-09-23 P0-4**：**生产形态（`APP_ENV=production` 或 `NODE_ENV=production`）默认不播种**（不必依赖「记得设 `DISABLE_SEED=1`」）；启动日志会打印 `users` 计数与「演示种子账号」计数，供核对「库内是否只有真人」。**前端侧另有构建期常量 `docs/src/config/deploy.js::SEED_FALLBACK`**（**2026-09-23 批次 163 起已接线、改它生效**）：置 `false` 时 `docs/src/data/data-adapter.js::init()` 不再为「考勤 / 考察 / 待办」三域注入演示种子（默认 `true`＝演示形态）。⚠ **Node 托管（本 server）形态下已接线**：`server/app.js` 对 `/src/config/deploy.js` 的动态注入串**已带上该常量**，其值由环境变量 `SEED_FALLBACK` 决定（置 `0` ⇒ 注入 `false`；缺省 / 其它值 ⇒ `true`）⇒ 本形态下发 `SEED_FALLBACK=0` 即可关断（见 `server/.env.example`）。它只覆盖那三处，**不替代**上面的 `DISABLE_SEED`／生产形态。
-- 环境变量模板见 `server/.env.example`（均有缺省，未配置即可本地演示运行）：`DB_PATH` 指定数据库文件路径（默认 `server/data.db`）、`PORT` 指定监听端口、`LOGIN_PASSWORD` 为统一登录口令（缺省 '123456'，与前端演示账号一致）、`SESSION_TTL_HOURS` 会话有效期小时数（缺省 3；旧 `SESSION_TTL_DAYS` 仍兼容按天换算）、`DISABLE_PASSWORD_CHECK=1` 跳过口令校验（内网演示/测试套件用；`npm test`/`test:core`/`test:fast`/`test:full` 脚本均默认注入）、`APP_ENV` 运行形态（**`production` ＝ 生产**，见下条）。**2026-09-23 P0-3（上线安全）**：生产形态下 ① 未设 `LOGIN_PASSWORD` ⇒ **启动即拒**（进程退出并打印可读原因）；② `DISABLE_PASSWORD_CHECK` **一律不认**（逃逸门只在本地/测试形态生效）；③ 口令比对不含 `'123456'` 兜底。**非生产形态（本地/测试）行为一字不变**。
+- 环境变量模板见 `server/.env.example`（均有缺省，未配置即可本地演示运行）：`DB_PATH` 指定数据库文件路径（默认 `server/data.db`）、`PORT` 指定监听端口、`LOGIN_PASSWORD` 为共享登录口令（缺省 '123456'，与前端演示账号一致；**设了个人密码的账号不用它**，个人密码用 `npm run set-password -- <学号>` 设置）、`SESSION_TTL_HOURS` 会话有效期小时数（缺省 3；旧 `SESSION_TTL_DAYS` 仍兼容按天换算）、`DISABLE_PASSWORD_CHECK=1` 跳过口令校验（内网演示/测试套件用；`npm test`/`test:core`/`test:fast`/`test:full` 脚本均默认注入）、`APP_ENV` 运行形态（**`production` ＝ 生产**，见下条）。**2026-09-23 P0-3（上线安全）**：生产形态下 ① 未设 `LOGIN_PASSWORD` ⇒ **启动即拒**（进程退出并打印可读原因）；② `DISABLE_PASSWORD_CHECK` **一律不认**（逃逸门只在本地/测试形态生效）；③ 口令比对不含 `'123456'` 兜底。**非生产形态（本地/测试）行为一字不变**。
 - **重置 / 初始化口径**：前端 `?reset=demo/preview/init` 仅本地演示形态（无 API token）生效，API 模式不执行、数据以服务器为权威；服务端重置 = 删除 `server/data.db` 后重启自动重种，或 `DISABLE_SEED=1`（或生产形态）空库起步。
 
 ## 数据与文件
@@ -84,8 +85,8 @@ node scripts/backup.mjs --out /srv/bak/20260923
 - **全量跑**：`npm run test:full`（＝`SWEEP_SHARD=all`，含 weekly 慢速普查；**不再等价 `test:precommit`**——后者按四层依次跑 daily → guards → precommit 域回归 ＋ e2e，不含 weekly）——脚本注入 `DISABLE_PASSWORD_CHECK=1` 后执行 `node --test --test-concurrency=1`，自动发现 `server/test/` 下全部 `*.test.{js,mjs}`。纯 node 部分沙箱环境即可运行；浏览器类/E2E（Playwright）需在常规终端运行（依赖见下文 Playwright 条）。**发布前 / 大批改动跑。** ⚠ **降频（2026-10-05 支书令；同日改准为 5–6）**：「跑全量 probe 一定要减少频率，否则效率太低」⇒ **全量不必每批跑，按 5–6 个 commit 累积一次**；其间每批只跑「**覆盖本批改动面的分片**（`$env:SWEEP_SHARD=<k>; npm test`）＋ `npm run test:guards`」。
 - **子集回归**：`npm run test:core`（核心流程：议程/表决、成员变更、多端写入、模块加载、帮助 E2E 等）与 `npm run test:fast`（基础单元 + 目录/链接审计等快速项）按子集加速回归，文件清单见 `server/package.json` 的 scripts。
 - **四层测试（2026-11-08 批次 537 支书裁定「结果优先、守卫按需」）**——分层单一源＝`server/test-tier-registry.mjs`，runner 统一走 `scripts/tier-runner.mjs`（跨平台，环境变量在 runner 内注入，不再用 `set X=1&&`）：
-  - **日常（改代码时）：`npm run test:daily`** —— 只跑**结果门禁**：服务启动 / 登录与会话 / 权限与写门 / 数据契约与迁移 / 核心业务结果（党委内容、公开门厅、名册、考勤、待办派生）/ 构建可运行。当前 **43 文件 / 294 断言**。分层只决定「哪一层跑」：precommit / full 仍覆盖全部文件，**没有任何测试或断言被删除**。
-  - **静态守卫（按需）：`npm run test:guards`** —— 样式 / 字号 / 间距 / 颜色 / 动效 / 结构 / 文案 / 文档 / 行号 / 页签密度，共 **93 文件 / 759 断言**。改样式或文档时跑；`npm run test:changed` 按 `git diff --name-only` 自动选（改 `docs/` → UI 守卫；改 `content/` → 文档守卫；改 `server/` → daily）。
+  - **日常（改代码时）：`npm run test:daily`** —— 只跑**结果门禁**：服务启动 / 登录与会话 / 权限与写门 / 数据契约与迁移 / 核心业务结果（党委内容、公开门厅、名册、考勤、待办派生）/ 构建可运行。当前 **25 文件 / 187 断言**（2026-11-08 波次 A 由 43 文件收口，依据 `D-859`「结果优先、守卫按需」＋ 波次 A 瘦身计划：静态守卫迁 guards、非核心结果回归迁 precommit）。分层只决定「哪一层跑」：precommit / full 仍覆盖全部文件，**没有任何测试或断言被删除**。
+  - **静态守卫（按需）：`npm run test:guards`** —— 样式 / 字号 / 间距 / 颜色 / 动效 / 结构 / 文案 / 文档 / 行号 / 页签密度，共 **99 文件 / 788 断言**。改样式或文档时跑；`npm run test:changed` 按 `git diff --name-only` 自动选（改 `docs/` → UI 守卫；改 `content/` → 文档守卫；改 `server/` → daily）。
   - **提交前 / 发布前：`npm run test:precommit`** —— 依次跑 daily → guards → precommit 层（非核心域回归 ＋ Playwright e2e）；**环境缺 Playwright 时明确报错退出 2，不跳层、不假绿**。
   - **发布前全量：`npm run test:full`** —— `run-suite.mjs` 全目录（含 weekly 慢速普查 `click-cost` / `copy-screen-guard`）。
   - ⚠ **日常档不含「形态断言」那几项**：`getRuntimeMode()` 形态断言落在 **P 类真机文件**（`form-loop-sweep` / `page-sweep` / `multi-user-write`），改到**真机交互 / 数据源形态 / 登录会话**时，直接跑 `test:precommit` 或用下面的**降频开关**定向跑真机。
@@ -107,7 +108,7 @@ node scripts/backup.mjs --out /srv/bak/20260923
   - **浏览器临时夹具**：e2e 用例应自托管临时库并**关闭浏览器 context**（`ctx.close()`）；需要重置演示态的页面用 `?reset`（`?reset=demo|init|preview`），不要手写 localStorage / 直接改运行库。
 - **P1-1 判据 A–D 验收（2026-09-24 批次 164）**：`test/multi-tab-sync.test.mjs` —— **自包含**（测试内 `createApp({ dbPath: ':memory:' })` + 随机端口 + Playwright 真机，**不需要 3000 端口的常驻服务**，与 `page-sweep` 同款自起自停）。五条用例＝**判据 A**（跨标签：`visibilitychange` 骨架与低频定时器两条触发面各验一次，B 标签不重载即看到 A 的记录）· **判据 B**（跨设备：全新 context 重进即可见 ＋ `GET /api/v1/snapshot/versions` 上该集合版本**严格 +1**）· **判据 C-①**（防抖窗口内探测**整次跳过**、本机改动不被吞、随后仍正常落库）· **判据 C-②**（本机未 persist 的脏集合不重拉、其它集合照常刷新）· **判据 D**（停服后探测静默：无 `#data-source-error` 浮层、无 `pageerror`、页面仍可用）。
 - **版本戳**：`node docs/scripts/bump-version.mjs` 会同步 `server/test/*.mjs` 内的 `?v=` 版本戳；bump 后跑一次全量测试。**注意**：该脚本按「字符串含 `/src/….js` 且以引号收尾」判定（宽是必要的——测试里有 `from '../../docs/src/…js'` 这类相对路径 import），因此会命中**数据字符串**：凡把 `docs/src/…js` 路径当**数据**存的文件，请写成 `SRC + '相对路径'`（见 `test/form-loop-registry.mjs`），否则补戳会把数据改坏（2026-09-15 批次 44 真实事故，见 `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 范本第十四与 `REVIEW_QUEUE Q-23-33`）。
-- **测试节奏（2026-09-15 支书定；2026-09-23 提速批按支书「任务执行要提速」重排；2026-10-03 批次 360 按支书「控制到 10 分钟以内」加分片）**：**日常只跑与改动面相关的定向守卫**（或直接 `npm run test:daily`，实测约 2.3 分钟）；**收尾只在交付/提交前跑**——默认跑**覆盖本批改动面的那一片**（`$env:SWEEP_SHARD=<k>; npm test`，**≤10 分钟**），**发布前 / 大批改动**跑 `npm run test:full`（全量）。真机普查（`page-sweep` 七台 × 全 tab、`form-loop-sweep` 56 条真机闭环 ＋ 17 条成功路径）耗时最长，且本机若开着大量浏览器进程会导致 e2e 超时——此时以**单独复跑**取证，区分「环境负载」与「真回归」；**只关心某几个 tab 时用上面的 `FORM_LOOP_TABS` 降频开关**（支书 2026-09-23 放行「按 tab 降频」，不必整份跑完）。
+- **测试节奏（2026-09-15 支书定；2026-09-23 提速批按支书「任务执行要提速」重排；2026-10-03 批次 360 按支书「控制到 10 分钟以内」加分片；2026-11-08 波次 A 把 daily 收到 25 文件，实测约 70–80 秒）**：**日常只跑与改动面相关的定向守卫**（或直接 `npm run test:daily`）；**收尾只在交付/提交前跑**——默认跑**覆盖本批改动面的那一片**（`$env:SWEEP_SHARD=<k>; npm test`，**≤10 分钟**），**发布前 / 大批改动**跑 `npm run test:full`（全量）。真机普查（`page-sweep` 七台 × 全 tab、`form-loop-sweep` 56 条真机闭环 ＋ 17 条成功路径）耗时最长，且本机若开着大量浏览器进程会导致 e2e 超时——此时以**单独复跑**取证，区分「环境负载」与「真回归」；**只关心某几个 tab 时用上面的 `FORM_LOOP_TABS` 降频开关**（支书 2026-09-23 放行「按 tab 降频」，不必整份跑完）。
 - **测试耗时台账（2026-09-21 支书定；2026-09-23 批次 159 按实测重数）**：下表是**本机实测**（2026-09-21，开发机常规终端，`--test-concurrency=1` 串行；项数与守卫子集耗时于 2026-09-23 复核），用来回答三件事——**改代码时跑什么、收尾跑什么、怎么跑最省时间**。**口径**：耗时给的是**量级与量程**，不是承诺（同一项两次取样可差一到七个百分点——`link-integrity` 9.5 / 10.6 秒；机器忙起来还会更长）；**「有多少文件、多少项」仍以上一句「套件规模（动态口径）」为准**（会随开发增长的计数不写死，相对稳定的耗时才值得记）。
 
   **⓪ 各档套件实测（2026-09-27 本机实测；2026-10-03 批次 360 补**分片档**；`--test-concurrency=1` 串行）**——把「各档跑多久、跑什么」集中一处，供**按改动面选跑哪档**：
@@ -116,13 +117,13 @@ node scripts/backup.mjs --out /srv/bak/20260923
   |---|---|---|---|
   | `npm run test:fast` | 23 文件 / **102 项** | **≈35 秒** | 基础单元 ＋ 全站目录 / 链接 / 文案 / 数据库守卫；改文档或小改后先跑 |
   | `npm run test:core` | 8 文件 / **36 项** | **≈96 秒** | 议程 / 表决、成员变更、多端写入、模块加载、帮助 E2E；改核心流程 |
-  | `npm run test:daily` | **43 文件 / 294 断言** | **≈120–150 秒**（并发 4；**未达 ≤60s 目标**，见下注） | **结果门禁**：运行 / 登录 / 权限 / 写门 / 数据契约 / 迁移 / 核心业务结果 / 构建可运行；**改代码时的日常档** |
-  | `npm run test:guards` | **93 文件 / 759 断言** | **≈90–120 秒**（并发 4） | **静态守卫**：样式 / 字号 / 颜色 / 动效 / 结构 / 文案 / 文档 / 行号 / 页签密度；**改样式 / 文档时跑** |
+  | `npm run test:daily` | **25 文件 / 187 断言** | **≈70–80 秒**（并发 4；2026-11-08 波次 A 三次取样 75.8 / 77.7 / 69.2 秒） | **结果门禁**：运行 / 登录 / 权限 / 写门 / 数据契约 / 迁移 / 核心业务结果；**改代码时的日常档** |
+  | `npm run test:guards` | **99 文件 / 788 断言** | **≈90–120 秒**（并发 4） | **静态守卫**：样式 / 字号 / 颜色 / 动效 / 结构 / 文案 / 文档 / 行号 / 页签密度；**改样式 / 文档时跑** |
   | `npm run test:precommit` | daily ＋ guards ＋ 域回归 ＋ **36 个 e2e** | **≈20–25 分钟**（e2e 串行） | **提交前 / 发布前**；缺 Playwright 明确报错（退出 2），不跳层 |
   | `npm test`（**分片档**） | 非 e2e 全量 ＋ 本片 e2e | **425–510 秒（≈7–8.5 分钟）** | **单片墙钟 ≤10 分钟**；默认片 1，`SWEEP_SHARD` 选片；**收尾按改动面选片**。**2026-10-03 四片实测**：773 / 780 / 806 / 782 项，**全绿** |
   | `npm run test:full`（全量） | 全目录（含 weekly 普查） | **≈23 分钟** | 含 **38 个 e2e 文件**（含两个真机普查）＋ 两个需 3000 服务的文件（`b3-1` 已自托管）；**发布前 / 大批改动跑** |
 
-  > **daily 墙钟实测与目标差距（2026-11-08 批次 537，如实登记）**：43 文件串行相加约 **500 秒**；片内并发 4 实测 **≈123 秒**，并发 8 / 12 实测 **≈148–150 秒**（并发不再提升——bcrypt 与 SQLite / `uploads` 写盘为主，属**串行成本 + 资源争用**）。要在 60 秒内跑完需把 daily 压到约 20 个文件，那会丢掉登录 / 权限 / 迁移等结果门禁 ⇒ **本批不压到 60 秒**，保留 40–60 文件与结果覆盖；后续若需提速，方向是降测试内固定成本（共享 bootstrap 夹具、测试档降低 bcrypt 轮数），不是删判据。
+  > **daily 墙钟实测（2026-11-08 波次 A，如实登记）**：daily 由 43 文件收口到 **25 文件 / 187 断言**后，`npm run test:daily:timing` 逐文件串行合计 **≈173 秒**；片内并发 4 实测 **75.8 / 77.7 / 69.2 秒**（三次取样，末次全绿），已进入 60–75 秒目标区间。瓶颈已从「文件数」转到**单文件固定成本 ≈7–9 秒**（每个文件重建库 + 应用迁移 + bcrypt），所以继续删文件收益递减；并发 8 实测 105.4 秒且出现红项（资源争用）⇒ 上调并发不是有效杠杆。后续若需再压，方向是降测试内固定成本（共享 bootstrap 夹具、测试档降低 bcrypt 轮数），不是删判据。
 
   **单文件最慢（2026-09-27 单跑实测）**：`form-loop-sweep` **81 项 / 539.8 秒（约 9 分钟）** · `page-sweep` **11 项 / 114.6 秒** · `multi-tab-sync` **6 项 / 24.7 秒** · `link-integrity` **5 项 / 9.9 秒**；`click-cost` ≈50 秒 · `agenda-flow` ≈40 秒 · `branch-doc` ≈36 秒（后三者 2026-09-23 提速批实测、本批未重测；`click-cost` 需 3000 常驻服务）。
 
@@ -257,7 +258,7 @@ node --input-type=module -e "import Database from 'better-sqlite3'; import { PEO
 |---|---|---|
 | 1 | **各业务动作的角色写权限按矩阵逐口登记** | 资源级角色门见 `RESOURCE_WRITE_GATE`，活动、专班工作组、考勤等另有专门业务写门；`server/security/write-policy-matrix.mjs` 是唯一机读矩阵（141 行，`known-risk` 0），新增写口未登记即由 `write-policy-matrix` 判红。仍不应把“矩阵已覆盖”理解成“所有角色写权已按业务最终统一” |
 | 2 | **无业务字段索引** | 全库是 `(id TEXT PRIMARY KEY, data TEXT)` 宽表：`id` 有主键索引，**`data` 内字段无索引**、读路径一律取全表在 JS 里 `JSON.parse`。⇒ 数据量上到**万行级**前应先评估再优化（属**性能债**，非功能缺陷；本批**只登记未改**） |
-| 3 | **token 3 小时过期 / 无刷新** · **口令是全支部统一口令** | 会话超过 `SESSION_TTL_HOURS`（缺省 3，可调）即失效并要求重新登录；系统**没有个人密码**概念（`README-server.md §7.1 #5 / #6`） |
+| 3 | **token 3 小时过期 / 无刷新** · **个人密码优先、共享口令回退** | 会话超过 `SESSION_TTL_HOURS`（缺省 3，可调）即失效并要求重新登录。口令分两级：用户设了个人密码（`users.data.passwordHash`）⇒ 只认个人密码、失败不回退；未设 ⇒ 回退支部统一口令 `LOGIN_PASSWORD`（生产未设 ⇒ 启动即拒）。个人密码用 `cd server; npm run set-password -- <学号>` 设置（scrypt 散列，旧库无需回填）。见 `README-server.md §7.1 #5 / #6` |
 
 ### 优雅关闭（2026-09-29 批次 268 新增）
 

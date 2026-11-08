@@ -222,7 +222,7 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 | 党小组组长 | -- | -- |
 | 其余角色（宣传委员/纪检委员/成员等） | -- | -- |
 
-> 注：① **登记即生效，不再需要支书二次确认**——本条只覆盖**成员流动登记（流入/流出/撤销）**：登记即生效、可撤销并留痕，支书不再做二次确认。**发展节点审批链**（发展阶段变更 / 在册状态 / 移出，经组织委员报送 → 支书确认方生效，见根 [README-members.md:57](../../README-members.md)；流程档案 [AGENDA_AND_REFERENCE_DESIGN.md:120](../04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md)）**不属本条**。② **新增成员自动建号**——账号即学号、口令为支部统一默认口令；账号层可持久化，成员加入支部即可登录该支部。③ 台账记账口径（复式记账）与「未分组」语义的权威定义见上引 OPERATIONS_GUIDE.md §23 词典节，本节不重复定义。
+> 注：① **登记即生效，不再需要支书二次确认**——本条只覆盖**成员流动登记（流入/流出/撤销）**：登记即生效、可撤销并留痕，支书不再做二次确认。**发展节点审批链**（发展阶段变更 / 在册状态 / 移出，经组织委员报送 → 支书确认方生效，见根 [README-members.md:57](../../README-members.md)；流程档案 [AGENDA_AND_REFERENCE_DESIGN.md:120](../04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md)）**不属本条**。② **新增成员自动建号**——账号即学号、口令为支部统一默认口令（**个人密码优先**：用 `cd server; npm run set-password -- <学号>` 设过个人密码的账号只认个人密码，未设者回退共享口令）；账号层可持久化，成员加入支部即可登录该支部。③ 台账记账口径（复式记账）与「未分组」语义的权威定义见上引 OPERATIONS_GUIDE.md §23 词典节，本节不重复定义。
 
 > 注：④ **API 形态写门与两处语义端点**：`POST /members/:id/transfer-out`（流出软标记）与 `POST /members/:id/undo-transfer-out`（撤销流出、清软标记）的角色集与上表一致（组织委员 + 支书/副支书，同支部 + 幂等）。**流入建档**则一分为二——`POST /members`（名册新增）保持 R-10 口径的「组织委员专属」，`POST /members/intake`（成员流动·流入登记）写门为上表的「组织委员 + 支书/副支书」。**成员流动单列语义端点、不放宽** `/members` 的**名册越权面**。两处端点为**同一实现体、两个写门**（`server/routes/member.js::createMemberRow`）。
 

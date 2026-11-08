@@ -186,10 +186,10 @@ test('院级资料：匿名公共门厅只见 public；撤下＝改范围并写�
   // 创建即写 publish 留痕
   const created = await request('pc-1', 'GET', 'committee/publication-audits?resourceType=document&resourceId=bd-test-public');
   assert.equal(created.status, 200);
-  assert.equal(created.data.length, 1);
-  assert.equal(created.data[0].action, 'publish');
-  assert.equal(created.data[0].actorId, 'pc-1');
-  assert.equal(created.data[0].oldValue, null);
+  assert.equal(created.data.rows.length, 1);
+  assert.equal(created.data.rows[0].action, 'publish');
+  assert.equal(created.data.rows[0].actorId, 'pc-1');
+  assert.equal(created.data.rows[0].oldValue, null);
 
   // 改期 ⇒ update-scope
   const rescheduled = await request('pc-1', 'PATCH', 'committee/documents/bd-test-public', {
@@ -198,7 +198,7 @@ test('院级资料：匿名公共门厅只见 public；撤下＝改范围并写�
   assert.equal(rescheduled.status, 200);
   const scopeAudits = await request('pc-1', 'GET', 'committee/publication-audits?resourceType=document&resourceId=bd-test-public&action=update-scope');
   assert.equal(scopeAudits.status, 200);
-  assert.equal(scopeAudits.data.length, 1, '改期写 update-scope 留痕');
+  assert.equal(scopeAudits.data.rows.length, 1, '改期写 update-scope 留痕');
 
   // 改为 login ⇒ unpublish
   const toLogin = await request('pc-1', 'PATCH', 'committee/documents/bd-test-public', { publishScope: 'login' });
@@ -218,8 +218,8 @@ test('院级资料：匿名公共门厅只见 public；撤下＝改范围并写�
   assert.equal(withdrawAgain.data.publishScope, 'login');
   const unpublishAudits = await request('pc-1', 'GET', 'committee/publication-audits?resourceType=document&resourceId=bd-test-public&action=unpublish');
   assert.equal(unpublishAudits.status, 200);
-  assert.ok(unpublishAudits.data.length >= 1, '撤下写 unpublish 留痕');
-  assert.equal(unpublishAudits.data[0].newValue.publishScope, 'login');
+  assert.ok(unpublishAudits.data.rows.length >= 1, '撤下写 unpublish 留痕');
+  assert.equal(unpublishAudits.data.rows[0].newValue.publishScope, 'login');
 
   // 撤下后公共门厅不可见；表行仍在（撤下＝改范围，不删行）
   const portalAfter = await anonymous('/api/public/portal');

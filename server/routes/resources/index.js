@@ -188,9 +188,9 @@ function _listRowsWithPushdown(db, name, table, query = {}, opts = {}) {
   if (!allowed) return listTable(db, table);
   const clauses = [];
   const params = [];
-  if (query.branchId && allowed.includes('branch_id')) {
-    // v11：NULL 行不直接丢弃——todos 可能是「父行可解析」的种子/历史行（branch_id 尚未回填），
-    //   统一交回 JS 侧 resourceBranchId（先父行、后所属人、最后待归属）判定。
+  if (query.branchId && allowed.includes('branch_id') && !(opts.actor && (name === 'activities' || name === 'notices'))) {
+    // v11：NULL 行不丢弃，交回 JS 侧 resourceBranchId 判定；波次 E：活动 / 通知属「本支部 + 党委可见」并集，
+    //   SQL 按 branch_id 下推会先砍掉 pc-gsm 行 ⇒ 登录态一律不下推这两类（支部边界仍由 JS 判定，不放宽）。
     clauses.push('(branch_id = ? OR branch_id IS NULL)'); params.push(String(query.branchId));
   }
   // 2026-10-24 批次 508：活动归档读口过滤下推（`archived` → 记录自身 archived；`status` 支持逗号分隔）。
@@ -267,7 +267,7 @@ function _forceInspectionRecorders(db, writes, actor, read) {
 function _resourceRowsForActor(db, name, table, actor, requestedBranchId, opts = {}) {
   // 请求级表读取器：仅本次调用内复用（请求结束即丢弃），**不做**模块级跨请求缓存。
   const read = createTableReader(db);
-  let rows = resourceRowsForActor(db, name, _listRowsWithPushdown(db, name, table, opts.query || {}, opts), actor, requestedBranchId, read);
+  let rows = resourceRowsForActor(db, name, _listRowsWithPushdown(db, name, table, opts.query || {}, { ...opts, actor }), actor, requestedBranchId, read);
   // R4-B04：思想汇报读口与前端 canReadThoughtReport 同一判据（本人或支委层）。
   if (name === 'thoughtReports') {
     rows = rows.filter((row) => canReadThoughtReport(row, { personId: actor?.id, role: actor?.role }));
@@ -279,7 +279,7 @@ function _resourceRowsForActor(db, name, table, actor, requestedBranchId, opts =
     if (name === 'todos') rows = rows.filter((row) => _canReadTodoRow(row, actor));
   }
   if (name !== 'users') return _projectResourceRowsExt(db, name, rows, actor);
-  return rows.filter((row) => row && ((opts.includeTransferredOut === true || opts.includeTransferredOut === '1') && (PARTY_STAFF_ROLE.has(actor?.role) || BRANCH_COMMITTEE_ROLES.has(actor?.role)) ? true : row.transferOut !== true)).map((row) => projectMemberListRow(row, {
+  return rows.filter((row) => row && ((opts.includeTransferredOut === true || opts.includeTransferredOut === '1') && (PARTY_STAFF_ROLE.has(actor?.role) || BRANCH_COMMITTEE_ROLES.has(actor?.role)) ? true : row.transferOut !== true)).map((row) => projectMemberListRow(stripPasswordHash(row), {
     id: actor?.id,
     role: actor?.role,
     branchId: actorBranchId(actor) || resourceBranchId(db, 'users', row),
@@ -536,7 +536,7 @@ export function createResourcesRouter(db) {
         bumpCollectionVersion(db, name);
         // v11 影子表：活动/专班写后重建（非权威源，只做双写比对）
         if (name === 'activities' || name === 'taskforces') rebuildShadowTables(db);
-        res.status(201).json(data);
+        res.status(201).json(stripPasswordHash(data));
       });
     }
 
@@ -833,7 +833,7 @@ export function createResourcesRouter(db) {
       });
       save();
       if (name === 'activities' || name === 'taskforces') rebuildShadowTables(db);
-      res.json(merged);
+      res.json(stripPasswordHash(merged));
     });
 
     // 删除
@@ -1485,8 +1485,8 @@ export function createResourcesRouter(db) {
     // 可直连读到他人汇报与隐藏行。
     const viewer = { personId: req.actor?.id || null, role: req.actor?.role || null };
     const access = issueAudienceContext(viewer, branchId);
-    return res.json(listIssues().filter((row) =>
-      (row.branchId || DEFAULT_BRANCH_ID) === branchId && canReadIssue(row, viewer, access)));
+    // 支部边界统一走 `resourceRowsForActor`（与通用读口同一 helper），不再在本处另写过滤。
+    return res.json(resourceRowsForActor(db, 'issues', listIssues(), req.actor, req.query.branchId).filter((row) => canReadIssue(row, viewer, access)));
   });
 
   // D-824：任何角色均没有系统揭名入口。保留此兼容路径以便旧客户端得到明确拒绝；
@@ -1775,6 +1775,8 @@ export function _retainRowScopedSnapshotRows(db, writes, actor, reader) {
 import { canReadNotice, kindOf } from '../../../docs/src/services/governance/notice.js';
 // 反馈 / 汇报的受众判定单一源 = domain 层纯函数（服务端不能 import issues.js：那件牵 localStorage/适配器）
 import { canReadIssue } from '../../../docs/src/core/domain/issue-visibility.js';
+// 个人密码散列（波次 G）：users 行读口脱敏单一源；置尾不移动上文行号（同 auth.js 口径）
+import { stripPasswordHash } from '../../security/password.mjs';
 
 // ════════════════════════════════════════════════════════════════
 //  公开面写口收口（批次 537 波次 1 · G1）

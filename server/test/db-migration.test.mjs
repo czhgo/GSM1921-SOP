@@ -157,7 +157,7 @@ test('M7 v8/v10 活动组织落点：两档归一 / legacy 标记 / 补跨组招
     }));
 
     const applied = applyMigrations(db);
-    assert.deepEqual(applied.applied, [8, 9, 10, 11, 12, 13], '应从 v7 补跑 v8 + v9 + v10 + v11 + v12 + v13（v13 结构幂等）');
+    assert.deepEqual(applied.applied, [8, 9, 10, 11, 12, 13, 14], '应从 v7 补跑 v8…v14（v13 / v14 结构幂等）');
     const row = (id) => JSON.parse(db.prepare('SELECT data FROM activities WHERE id = ?').get(id).data);
     assert.equal(row('act-v8-legacy').organizingScope, 'party-group', '旧 cross-group 归一为 party-group');
     assert.equal(row('act-v8-legacy').legacyHostGroup, true, '无承办组 ⇒ legacy 标记，不猜测');

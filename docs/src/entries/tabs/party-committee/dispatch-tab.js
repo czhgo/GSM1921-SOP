@@ -1,15 +1,15 @@
 // Party dispatch reuses the notice domain; this page separates composing from sent history,
 // and (批次 537 波次 1) adds a committee-public notice subview backed by /committee/notices.
-import { mockDB } from '../../../core/domain/domain.js?v=20261108b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261108b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261108b';
-import { textField, textareaField, selectField } from '../../../components/ui/forms.js?v=20261108b';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261108b';
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261108b';
-import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261108b';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261108b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261108b';
-import { getAdapter } from '../../../data/data-adapter.js?v=20261108b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261108c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261108c';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261108c';
+import { textField, textareaField, selectField } from '../../../components/ui/forms.js?v=20261108c';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261108c';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261108c';
+import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261108c';
+import { emptyStateHtml, skeletonHtml } from '../../../components/ui/empty-state.js?v=20261108c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261108c';
+import { getAdapter } from '../../../data/data-adapter.js?v=20261108c';
 
 const BRANCH_FILTER_STATE = 'pc-dispatch';
 const VIEW_COMPOSE = 'compose';
@@ -233,7 +233,7 @@ function historyHtml() {
             <h3 class="mt-1 text-sm font-semibold text-gray-900">${esc(notice.title || '无标题')}</h3>
             <p class="mt-1 whitespace-pre-wrap text-sm leading-6 text-gray-700">${esc(notice.content || '')}</p>
           </li>`).join('')}
-      </ol>` : `<p class="border-y border-gray-200 py-8 text-sm text-gray-600" role="status">当前筛选下没有已发送通知。</p>`}
+      </ol>` : emptyStateHtml({ variant: 'inline', text: '当前筛选下没有已发送通知' })}
     </section>`;
 }
 
@@ -276,7 +276,8 @@ function publicHtml() {
 }
 
 function publicListHtml() {
-  if (publicState.loading) return '<p class="py-6 text-sm text-gray-600" role="status">正在加载公开通知…</p>';
+  // 加载骨架单一源（empty-state.js::skeletonHtml）；空态与错误态一律 emptyStateHtml
+  if (publicState.loading) return skeletonHtml(3, { variant: 'list', ariaText: '正在加载公开通知…' });
   if (publicState.error) {
     return emptyStateHtml({
       variant: 'panel',

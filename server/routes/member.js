@@ -170,10 +170,19 @@ export function createMemberRouter(db) {
     if (existing.status !== 'pending-secretary') {
       return res.status(400).json({ error: `当前状态 ${existing.status} 不可确认，须组织委员审批后` });
     }
+    // G4（2026-11-08 波次 B）：提案目标阶段必须是合法枚举——脏数据不得落 `users.developStage`。
+    const proposal = aliasMemberChangeRow(existing);
+    if (!DEVELOP_STAGE_OPTIONS.includes(String(proposal.toStage || ''))) {
+      return res.status(422).json({ error: `提案目标阶段非法：${proposal.toStage || '空'}（须为 ${DEVELOP_STAGE_OPTIONS.join(' / ')}）` });
+    }
     const userRow = db.prepare('SELECT data FROM users WHERE id = ?').get(existing.personId);
     const user = userRow ? JSON.parse(userRow.data) : null;
     if (user && branchOf(req.actor) !== branchOf(user)) {
       return res.status(403).json({ error: '无权限：仅可确认本支部成员的变更申请' });
+    }
+    // G4：落库前重新读取成员当前阶段，必须仍等于提案 `fromStage`（不等＝期间已被他处改动，拒绝覆盖）。
+    if (user && String(user.developStage || '') !== String(proposal.fromStage || '')) {
+      return res.status(409).json({ error: '阶段已变化，请重新提交提案' });
     }
     const updated = {
       ...existing,
@@ -187,8 +196,8 @@ export function createMemberRouter(db) {
     // 2026-09-28 服务端化：一并落 developStageSince（进入当前阶段日期，取自申请的 entryDate）——
     // 原记在本机 localStorage 覆盖档案 gsm1921-dev-stage-overrides（跨设备不可读），已撤除。
     if (user) {
-      const merged = { ...user, developStage: existing.toStage || user.developStage };
-      if (existing.toStage) {
+      const merged = { ...user, developStage: proposal.toStage || user.developStage };
+      if (proposal.toStage) {
         const d = String(existing.entryDate || '').slice(0, 10);
         merged.developStageSince = /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : todayLocal();
       }
@@ -387,7 +396,7 @@ export function createMemberRouter(db) {
     }
     const merged = { ...user, ...body };
     writeRow(db, 'users', merged);
-    res.json(merged);
+    res.json(stripPasswordHash(merged));
   });
 
   // ② 名册档案维护：组织委员行内编辑（姓名/学号/党小组/自我描述/在册属性）
@@ -429,7 +438,7 @@ export function createMemberRouter(db) {
     if (patch.selfProfile !== undefined) patch.selfProfile = sanitizeSelfProfile(patch.selfProfile);
     const merged = { ...user, ...patch };
     writeRow(db, 'users', merged);
-    res.json(merged);
+    res.json(stripPasswordHash(merged));
   });
 
   // ②b 名册新增：组织委员；id 缺省服务端生成；强制归本支部 + 默认 role=participant（防注入）
@@ -460,7 +469,7 @@ export function createMemberRouter(db) {
     }
     const row = { ...body, id, name: body.name.trim(), role: 'participant', branchId: branchOf(req.actor) };
     writeRow(db, 'users', row);
-    res.status(201).json(row);
+    res.status(201).json(stripPasswordHash(row));
   };
   router.post('/members', requireRole(db, ORG_COMMISSIONER_ROLES), createMemberRow);
   router.post('/members/intake', requireRole(db, MEMBER_FLOW_ROLES), createMemberRow);
@@ -475,12 +484,12 @@ export function createMemberRouter(db) {
     if (branchOf(req.actor) !== branchOf(user)) {
       return res.status(403).json({ error: '无权限：仅可移出本支部成员' });
     }
-    if (user.transferOut === true) return res.json(user); // 幂等：已转出重复请求不重复改写
+    if (user.transferOut === true) return res.json(stripPasswordHash(user)); // 幂等：已转出重复请求不重复改写
     const at = new Date().toISOString();
     const merged = { ...user, transferOut: true, transferredOutAt: at, removedAt: at, removedBy: req.actor.id };
     if (typeof body.note === 'string' && body.note.trim()) merged.transferOutNote = body.note.trim();
     writeRow(db, 'users', merged);
-    res.json(merged);
+    res.json(stripPasswordHash(merged));
   });
 
   // ④ 撤销流出（登记即生效的纠错口；2026-09-14 批次 29 支书裁定，Q-23-5 闭环）
@@ -496,7 +505,7 @@ export function createMemberRouter(db) {
     if (branchOf(req.actor) !== branchOf(user)) {
       return res.status(403).json({ error: '无权限：仅可撤销本支部成员的流出' });
     }
-    if (user.transferOut !== true) return res.json(user); // 幂等：本就在册，不重复改写
+    if (user.transferOut !== true) return res.json(stripPasswordHash(user)); // 幂等：本就在册，不重复改写
     const merged = { ...user };
     delete merged.transferOut;
     delete merged.transferredOutAt;
@@ -504,7 +513,7 @@ export function createMemberRouter(db) {
     delete merged.removedBy;
     delete merged.transferOutNote;
     writeRow(db, 'users', merged);
-    res.json(merged);
+    res.json(stripPasswordHash(merged));
   });
 
   // ── 广播记录（支委可见；按 requestId 过滤）──
@@ -518,3 +527,6 @@ export function createMemberRouter(db) {
 
   return router;
 }
+
+// 个人密码散列（波次 G）：users 行响应脱敏单一源；置尾以保上文（README-server.md 的 member.js 行号引用）不漂移
+import { stripPasswordHash } from '../security/password.mjs';

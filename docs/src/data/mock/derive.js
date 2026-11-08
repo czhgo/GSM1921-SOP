@@ -9,10 +9,10 @@
 //   · 只写派生字段；不触碰 title / date / assignments 等用户运行时字段。
 //   · 天数一律取 `core/domain/policy-defaults.js`，不在此写死业务数字。
 // ════════════════════════════════════════════════════════════════
-import { todayLocal } from '../../core/base/date.js?v=20261108b';
-import { isActivityEnded } from '../../core/domain/constants.js?v=20261108b';
-import { POLICY_DEFAULTS, isReviewOverdue } from '../../core/domain/policy-defaults.js?v=20261108b';
-import { ReviewStatus, TaskforceStatus } from '../../core/domain/domain.js?v=20261108b';
+import { todayLocal } from '../../core/base/date.js?v=20261108c';
+import { isActivityEnded } from '../../core/domain/constants.js?v=20261108c';
+import { POLICY_DEFAULTS, isReviewOverdue } from '../../core/domain/policy-defaults.js?v=20261108c';
+import { ReviewStatus, TaskforceStatus } from '../../core/domain/domain.js?v=20261108c';
 
 function _addDays(dateKey, days) {
   if (!dateKey) return null;

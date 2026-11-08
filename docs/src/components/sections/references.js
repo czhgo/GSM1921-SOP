@@ -1,30 +1,34 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../../core/base/icons.js?v=20261108b';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20261108b';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261108b';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261108b';
-import { AuthStore } from '../../services/core/auth.js?v=20261108b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261108b';
-import { PEOPLE } from '../../data/mock/people.js?v=20261108b';
+import { icon } from '../../core/base/icons.js?v=20261108c';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20261108c';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261108c';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261108c';
+import { AuthStore } from '../../services/core/auth.js?v=20261108c';
+import { loadActivities } from '../../services/activity/activity.js?v=20261108c';
+import { PEOPLE } from '../../data/mock/people.js?v=20261108c';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 // 2026-09-21 批次 129：制度链（草案 → 支委会审议 → 现行版 / 退回修改）——草案态与修改口同源于该服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   updateInstitutionDraft, INSTITUTION_DRAFT, INSTITUTION_PENDING_PARTY_MEETING,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../../services/branch/branch-doc.js?v=20261108b';
+} from '../../services/branch/branch-doc.js?v=20261108c';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261108b';
-import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261108b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261108c';
+import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261108c';
 // 制度内容（领域）→ 对应【主体】：判据单一源（2026-10-05 批次 378 · `SOP-B-25` 第 ② 项「按草案落地」）
 import {
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_LABELS, institutionSubjectOfDomain, ORG_SUBJECT_LABELS,
-} from '../../core/domain/work-map.js?v=20261108b';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261108b';
+} from '../../core/domain/work-map.js?v=20261108c';
+import { ROLE_LABELS, COMMITTEE_OWNER_ID } from '../../core/domain/constants.js?v=20261108c';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261108b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261108c';
+/** 院级资料（党委自有内容）：登录后按 D-858 与本支部文件并集展示；写口仍只归党委。 */
+function _isCommitteeDoc(d) {
+  return !!d && (d.ownerScope === 'committee' || d.branchId === COMMITTEE_OWNER_ID);
+}
 /** 主体引用 → 显示名（角色键 → 角色名；组织型主体 id → 组织名，如「支委会」） */
 function _subjectLabelOf(subjectId) {
   if (!subjectId) return '';
@@ -396,7 +400,8 @@ export class ReferencesModule {
       // 成员可见：**现行 / 已停用**的制度文本（全员可读）+ 已归档普通文件（现状不变）；
       // 会前草案（status=draft）维持现状仅支委可见；2026-09-21 批次 129：**制度草案 / 待党员大会表决**
       // 同属「尚未成为现行版」，与普通文件草案一样**仅支委层可见**（不让草案提前对全员公开）。
-      docs = docs.filter((doc) => (_isInstitutionDoc(doc)
+      // 院级资料按 D-858 对登录成员并集展示（服务端已按 publishScope 过滤，本层不再二次收紧）
+      docs = docs.filter((doc) => _isCommitteeDoc(doc) || (_isInstitutionDoc(doc)
         && doc.status !== INSTITUTION_DRAFT && doc.status !== INSTITUTION_PENDING_PARTY_MEETING)
         || doc.status === 'archived');
     }
@@ -455,7 +460,12 @@ export class ReferencesModule {
     const downloadable = href && href !== '#';
     const downloadAttr = downloadable ? `download="${_esc(d.fileName || d.title || '文件')}"` : '';
     const fileTarget = d.filePath ? 'target="_blank" rel="noopener noreferrer"' : '';
-    const actions = ReferencesModule._isCommissioner ? `
+    const isCommittee = _isCommitteeDoc(d);
+    const statusText = isCommittee
+      ? `院级资料 · ${d.publishScope === 'public' ? '公开' : '登录可见'}`
+      : (d.status === 'draft' ? '会前草案' : '已归档');
+    // 院级资料的写口只归党委，支部侧不呈现修改 / 删除（点了也会被服务端拒绝）
+    const actions = ReferencesModule._isCommissioner && !isCommittee ? `
       <button type="button" class="btn-outline ref-doc-action-btn" data-action="edit" data-id="${_esc(d.id)}">修改</button>
       <button type="button" class="btn-outline ref-doc-action-btn ref-doc-action-danger" data-action="delete" data-id="${_esc(d.id)}">删除</button>
     ` : '';
@@ -465,7 +475,7 @@ export class ReferencesModule {
           ${_formatIcon(d.format || _extFromName(d.fileName))}
           <div class="ref-doc-info">
             <span class="ref-doc-title">${_esc(d.title || d.fileName || '未命名文件')}</span>
-            <span class="ref-doc-meta">${_esc(d.status === 'draft' ? '会前草案' : '已归档')}${_discussionLabel(d)}${d.desc || d.fileName ? ' · ' + _esc(d.desc || d.fileName || '') : ''}</span>
+            <span class="ref-doc-meta">${_esc(statusText)}${_discussionLabel(d)}${d.desc || d.fileName ? ' · ' + _esc(d.desc || d.fileName || '') : ''}</span>
           </div>
         </div>
         <div class="ref-doc-right">

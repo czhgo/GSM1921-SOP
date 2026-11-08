@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-859`，共 33 条**；下一条自 **`D-860`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-860`，共 34 条**；下一条自 **`D-861`**。
 
 ## 本月目录（2026-11）
 
@@ -53,6 +53,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | CLAUDE 三层恢复 / 通知受众 fail-closed / SD-60 行动行 | `D-857` | 2026-11-07 | 已落（批次 535） |
 | V-11 裁定：党委内容域 + 公共门厅 + 支部幂等采用 | `D-858` | 2026-11-08 | 已落（批次 536） |
 | 测试瘦身：结果优先、守卫按需（四层 daily / guards / precommit / weekly） | `D-859` | 2026-11-08 | 已落（批次 537） |
+| 测试瘦身二阶段 + 安全 / 体验 / 部署梯度：六维 80/78/74/85/77/74 | `D-860` | 2026-11-08 | 已落（批次 538） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -238,4 +239,23 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > - **未选方案**：① 继续把守卫留在 daily（改样式即等全量，违背「过程按需」）；② 直接删守卫 / 降 `skip`（丢判据，违反 H25）；③ 只把 daily 压到约 20 个文件换 60 秒（丢登录 / 权限 / 迁移结果门禁）。三条均不取。
 > - **落点**：`server/test-tier-registry.mjs`（四层 ＋ 四个预算常量）、`server/scripts/{tier-runner,run-daily,run-guards,run-precommit,run-changed}.mjs`、`server/package.json`（`test:daily` / `test:guards` / `test:precommit` / `test:changed`，去掉 `set X=1&&`）、`server/test/test-tier-guard.test.mjs`（T1/T3/T4/T5）、`server/test/doc-consistency.test.mjs::S16`、`server/test/contract-doc-guard.test.mjs`（新增）、`server/test/test-isolation-guard.test.mjs::I1`、四个自查登记守卫（`claude-parallel-audit::C7` / `container-width-guard::C5` / `lf-bar-structure-guard::L5` / `roster-filter-guard::R5`）、`CLAUDE.md H25`、`server/README.md`、`README-server.md`、`server/AGENTS.md`、`server/test/AGENTS.md`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-859`**（共 **33** 条）。
+## D-860 2026-11-08 — 测试瘦身二阶段与安全 / 体验 / 部署梯度
+
+> **评议 → 裁定 → 落点**（支书要求「评分必须带证据卡、未达证据的检查点不加分」，批次 538；只改评分子本与台账，不改代码）：
+> - **测试（83 → 85）**：daily **27 文件 / 207 断言 / 60.9s** 全绿，guards **99 文件 / 791 tests / 96.1s** 全绿；四层 runner 按 `test-tier-registry.mjs` 单一源执行，CI `daily.yml` 接 `test:daily` 与 `deploy-verify`。补的是「分层 runner 可复跑 + 结果门禁达时」。
+> - **安全（66 → 78）**：B / E / G 三批证据——`security-hardening` 8/8（G4 名册提案复核 / G5 副本同步复核 / L-09 派发位 403 / v14 生成列与索引 / 读口分页 / 公共下载限频 429）、`multi-branch-read-filter` 9 组、`personal-password` 21/21、上传门党委 201 / 普通成员 403。共享口令仍作回退保留；`ALLOW_MULTI_BRANCH` 仍关闭。
+> - **体验（68 → 74）**：C 波 2 条 B 项 ＋ 院级内容动作收敛 ＋ 下发通知空态；F 波 5 个 C 页签 IA 三问出结论（1 归档为 A、4 保留改 CTA）；H 波 5 个用户任务在 1440 / 390 双档 PASS，同批修复 `branch-doc` 与 `references` 院级过滤。**75 暂不授予**：用户任务为自动走查、未获真人签收；未登录资料查询页仍只给登录提示。
+> - **部署（73 → 74）**：`deploy/verify-linux.sh` 本地 Git Bash 5/6（`bash -n` / `doctor` / `smoke` / `preflight` 过；`package` 因 msys `tar` 失败），PowerShell `package` 断言过；CI 增 `deploy-verify` job。**75 暂不授予**：CI job 未实跑绿、`package` 在 msys `tar` 未过；**80 需真机**。
+> - **业务 79 → 80**：G4 / G5 写入前复核 + v14 审计索引 + 党委公开通知写口。**架构 76 → 77**：契约类落地 + registry runner 单源；行号 / 版本戳维护成本仍在。
+> - **未选方案**：① 按「功能已做完」直接给体验 75 / 部署 75（违反「未达证据不加分」）；② 把自动走查记作真人签收（证据不成立）；③ 把 CI job 已配置记作已跑绿。三条均不取。
+> - **证据卡**：
+
+| AI 假设 | 人类意图 | 偏差类型 | 泛化规则 |
+|---|---|---|---|
+| 用户任务走查 PASS 即等于体验达标，可给 75 | 走查是自动取证，真人签收才算体验验收；未登录资料查询页 GAP 未闭不加分 | 证据强度高估（自动 → 人工） | 加分必须写清证据类型；自动走查只能作下限，不得替代真人签收 |
+| CI job 已配置即等于部署可验证 | 未实跑绿、`package` 未过即证据不成立 | 配置 ≠ 运行结果 | 部署类加分只认「本机 / CI 实跑读数」，配置只登记不记分 |
+| 测试文件减少即等于测试变强 | 分层只改「哪一层跑」，覆盖不减；加分来自结果门禁达时与 runner 单源 | 手段 ≠ 判据 | 测试类加分按「结果门禁读数 + 覆盖未减」计，不按文件数计 |
+
+> **落点**：`.ctx/ENGINEERING_ASSESSMENT.md`（§一 六维与证据行 / §二 各维结论 / §四 L-02·L-09·L-10·L-11·L-12·L-13 / §5.2 当前值）、`.ctx/ACTIVE_CONTEXT.md`、`.ctx/logs/2026-11-EXECUTION_LOG.md`（批次 538）。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-860`**（共 **34** 条）。

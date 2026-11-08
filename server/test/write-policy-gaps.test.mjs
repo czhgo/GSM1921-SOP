@@ -187,7 +187,7 @@ test('④⑤ tfSubRecords：普通成员写/改他人专班子记录 403；专�
 });
 
 // ── ⑥ 意见反馈未读标记 ────────────────────────────────────────
-test('⑥ POST /issue-unread：普通成员替他人写未读 403；本人/支委派发/事项当事人 200', async () => {
+test('⑥ POST /issue-unread：普通成员替他人写未读 403；本人/支委派发/事项当事人 200（派发位 assignee 须＝事项 assignee）', async () => {
   const memberToken = await login(MEMBER);
   const selfToken = await login(TARGET);
   const committeeToken = await login(SECRETARY);
@@ -209,9 +209,9 @@ test('⑥ POST /issue-unread：普通成员替他人写未读 403；本人/支�
   assert.equal((await setUnread(committeeToken, TARGET)).status, 200, '支委派发位可替被指派人写未读');
   assert.equal((await setUnread(leaderToken, TARGET)).status, 200, '党小组组长派发位可写未读');
 
-  // 派发位可替同支部成员写未读（前端 assignIssue / requestReport 的真实语义；
-  // 强校验 issue.assignee 会与 fire-and-forget 的 PATCH 竞态，故判据只锁角色不锁对象）
-  assert.equal((await setUnread(committeeToken, ORGANIZER_A)).status, 200, '支委派发位可写同支部成员的未读');
+  // L-09（2026-11-08 波次 B）：派发位写未读时 `assigneeId` 必须等于事项行 `assignee`，
+  // 不再允许「给同支部任意成员写未读」；前端须先 PATCH 事项再写未读。
+  assert.equal((await setUnread(committeeToken, ORGANIZER_A)).status, 403, '派发位不得给非事项被指派人写未读');
 
   // 角色保留键 secretary-review：只有事项提交人/被指派人可写
   const setSecretaryReview = (token) => fetch(`${base}/api/v1/issue-unread`, {

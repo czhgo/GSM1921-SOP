@@ -4,7 +4,7 @@
 //  （B-499-5 · Task 9 建表；2026-11-08 批次 537 按支书裁定改四层「结果优先、守卫按需」）
 //
 //  四层口径（互不重叠、并集 = 磁盘全部 `server/test/*.test.{js,mjs}`）：
-//    · daily     —— 结果门禁，每次改完必跑（墙钟目标 ≤60s）。只回答「结果对不对」：
+//    · daily     —— 结果门禁，每次改完必跑（墙钟目标 ≤75s）。只回答「结果对不对」：
 //                   服务启动 / 登录与会话 / 权限与写门 / 数据契约与迁移 / 核心业务结果
 //                   （党委内容 / 公开门厅 / 名册 / 考勤 / 待办派生）/ 构建可运行。
 //    · guards    —— 静态守卫，按需跑（`npm run test:guards` 或按改动面 `npm run test:changed`）。
@@ -49,24 +49,33 @@ export const filesByFixtureClass = (fixtureClass) => TEST_TIERS
   .filter((e) => fixtureClassOf(e.file) === fixtureClass)
   .map((e) => e.file);
 
-/** daily 文件数预算（含本守卫自身；新增 daily 测试须同批上调并写明理由）
- *  2026-11-08 批次 537（支书裁定「测试瘦身：结果优先、守卫按需」）：daily 由「全部纯 node」
- *    （255 文件 / 1872 断言）收敛为**结果门禁白名单**；静态守卫迁 guards，非核心域回归迁 precommit。
+/** daily 文件数预算（新增 daily 测试须同批上调并写明理由）
+ *  2026-11-08 批次 537（`D-859`「结果优先、守卫按需」）：daily 由「全部纯 node」收敛为结果门禁白名单；
  *    不删任何测试文件 / 断言，只改分层与触发方式。
- *    同批并入波次 1 两件结果门禁（`public-write-closure` / `committee-public-notices`）
- *    ⇒ 实测 43 文件 / 294 断言，按 43 / 296 登记（断言留 2 条余量，不作「9999 式」放宽）。 */
-export const DAILY_FILE_BUDGET = 43;
+ *  2026-11-08 波次 A（daily 墙钟收口）：43 → **25 文件 / 187 断言**——六个静态守卫
+ *    （`public-brand-guard` / `public-portal-leak-guard` / `import-path-guard` / `test-tier-guard` /
+ *    `test-isolation-guard` / `contract-doc-guard`）迁 guards；十二个非核心结果回归
+ *    （`write-policy-gaps` / `notice-audience` / `seed-baseline` / `branch-roster-import` /
+ *    `member-change-flow` / `member-change-cross-session` / `activity-creation-transaction` /
+ *    `attendance-roster-union` / `attendance-batch` / `inspection-workgroup-key` / `run-mode` /
+ *    `version-stamp`）迁 precommit（判据不丢：precommit / full 仍覆盖）。
+ *    `version-stamp` 按 `--timing` 实测最慢（23.0s）且不属业务结果，按「最慢非关键件移 precommit」处理。
+ *    按实然值 25 登记。 */
+export const DAILY_FILE_BUDGET = 27;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
- *  2026-11-08 批次 537：按实然值登记 296（实测 294 + 2 条余量）。 */
-export const DAILY_TEST_BUDGET = 296;
+ *  2026-11-08 波次 A：实测 187，按 189 登记（留 2 条余量；结果门禁上限 220）。
+ *  2026-11-08 波次 B/E/G：并入 security-hardening / multi-branch-read-filter / personal-password，
+ *    并把 auth-password 移 precommit；实测 207，按 209 登记。 */
+export const DAILY_TEST_BUDGET = 209;
 
 /** guards 文件数预算（静态守卫；按需跑，不阻塞日常）
- *  2026-11-08 批次 537：实测 93 文件 / 759 断言，按 93 / 762 登记（断言留 3 条余量）。 */
-export const GUARDS_FILE_BUDGET = 93;
+ *  2026-11-08 波次 A：daily 迁入 6 件 ⇒ 实测 99 文件，按 99 登记。 */
+export const GUARDS_FILE_BUDGET = 99;
 
-/** guards 静态 `test(` / `it(` 调用点预算 */
-export const GUARDS_TEST_BUDGET = 762;
+/** guards 静态 `test(` / `it(` 调用点预算
+ *  2026-11-08 波次 A：实测 788 断言，按 791 登记（断言留 3 条余量）。 */
+export const GUARDS_TEST_BUDGET = 791;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -76,58 +85,42 @@ export const TEST_TIERS = [
   ...group('daily', '结果门禁 · 运行 / 登录 / 会话 / 权限 / 写门结果', [
     'server-base.test.mjs',
     'auth.test.js',
-    'auth-password.test.mjs',
+    'personal-password.test.mjs',
     'session-ttl.test.mjs',
     'permission-gate.test.mjs',
     'r3-data-permission-regression.test.mjs',
     'write-policy-matrix.test.mjs',
-    'write-policy-gaps.test.mjs',
     'security-redteam.test.mjs',
-    // 2026-11-08 批次 537 波次 1（另一代理）：公开面写口收口 ＋ 党委公开通知写口（结果门禁）
+    // 2026-11-08 批次 537 波次 1（另一代理）：公开面写口收口（结果门禁）
     'public-write-closure.test.mjs',
-    'committee-public-notices.test.mjs',
-    'notice-audience.test.mjs',
+    'security-hardening.test.mjs',
   ]),
   ...group('daily', '结果门禁 · 数据契约 / 迁移 / 种子结果', [
     'data-contract.test.mjs',
     'db-integrity-guard.test.mjs',
     'db-migration.test.mjs',
     'seed-contract-guard.test.mjs',
-    'seed-baseline.test.mjs',
   ]),
   ...group('daily', '结果门禁 · 支部 / 名册 / 成员变更结果', [
     'branch-resource-isolation.test.mjs',
-    'branch-roster-import.test.mjs',
-    'member-change-flow.test.js',
-    'member-change-cross-session.test.js',
     'member-persist.test.mjs',
+    'multi-branch-read-filter.test.mjs',
   ]),
   ...group('daily', '结果门禁 · 公开面 / 党委内容结果', [
     'public-portal.test.mjs',
-    'public-portal-leak-guard.test.mjs',
-    'public-brand-guard.test.mjs',
     'committee-activities.test.mjs',
+    'committee-public-notices.test.mjs',
     'committee-multidomain.test.mjs',
     'committee-owner-scope.test.mjs',
     'activity-adoption.test.mjs',
-    'activity-creation-transaction.test.mjs',
     'notice-emphasis-limit.test.mjs',
   ]),
-  ...group('daily', '结果门禁 · 待办派生 / 考勤 / 考察结果', [
+  ...group('daily', '结果门禁 · 待办派生结果', [
     'todo-groups-api.test.mjs',
     'todo-derive-parity.test.mjs',
-    'attendance-roster-union.test.mjs',
-    'attendance-batch.test.mjs',
-    'inspection-workgroup-key.test.mjs',
   ]),
-  ...group('daily', '结果门禁 · 构建可运行 / 分层与契约守卫', [
-    'run-mode.test.mjs',
+  ...group('daily', '结果门禁 · 构建可运行', [
     'esm-parse-guard.test.mjs',
-    'import-path-guard.test.mjs',
-    'version-stamp.test.mjs',
-    'test-tier-guard.test.mjs',
-    'test-isolation-guard.test.mjs',
-    'contract-doc-guard.test.mjs',
   ]),
 
   // ── guards · 静态守卫（按需跑；precommit / full 仍全量覆盖）─────────────
@@ -194,6 +187,10 @@ export const TEST_TIERS = [
     'handoff-state-guard.test.mjs',
     'ia-critical-guard.test.mjs',
     'identity-student-id-guard.test.mjs',
+    // 2026-11-08 波次 A：daily 迁入（静态解析 / 分层自检，不属结果门禁）
+    'import-path-guard.test.mjs',
+    'test-isolation-guard.test.mjs',
+    'test-tier-guard.test.mjs',
     'link-target-guard.test.mjs',
     'localstorage-key-guard.test.mjs',
     'modal-guard.test.mjs',
@@ -204,6 +201,9 @@ export const TEST_TIERS = [
     'party-branch-directory-context.test.mjs',
     'party-branch-directory-guard.test.mjs',
     'perf-guard.test.mjs',
+    // 2026-11-08 波次 A：daily 迁入（公开面品牌 / 泄露静态扫描）
+    'public-brand-guard.test.mjs',
+    'public-portal-leak-guard.test.mjs',
     'publicity-static-guard.test.mjs',
     'roster-filter-guard.test.mjs',
     'round1-remediation-guard.test.mjs',
@@ -223,6 +223,8 @@ export const TEST_TIERS = [
   ...group('guards', '静态文档 / 台账 / 行号 / 冻结件守卫', [
     'about-freeze-guard.test.mjs',
     'claude-parallel-audit.test.mjs',
+    // 2026-11-08 波次 A：daily 迁入（测试与契约文档一致性）
+    'contract-doc-guard.test.mjs',
     'ctx-hygiene-guard.test.mjs',
     'data-lifecycle-guard.test.mjs',
     'date-canon-guard.test.mjs',
@@ -234,6 +236,7 @@ export const TEST_TIERS = [
   // ── precommit · 非核心域回归（提交前 / 发布前覆盖；进 daily 会拖长日常）─────
   ...group('precommit', '纯 node 域回归（非结果门禁核心；提交前 / 发布前跑）', [
     'account-rename.test.mjs',
+    'auth-password.test.mjs',
     'activity-block-gate.test.mjs',
     'activity-calendar-sharing.test.mjs',
     'activity-delete-client.test.mjs',
@@ -355,6 +358,22 @@ export const TEST_TIERS = [
     'workgroup-member-editor.test.mjs',
     'workgroup-member-grant-revoke.test.mjs',
     'workgroup-member-semantics.test.mjs',
+  ]),
+
+  // ── precommit · 原 daily 业务回归（2026-11-08 波次 A 降频；判据不丢，日常墙钟收口）───
+  ...group('precommit', '原 daily 业务回归（波次 A 降频：进 precommit 保留判据，不占日常墙钟）', [
+    'activity-creation-transaction.test.mjs',
+    'attendance-batch.test.mjs',
+    'attendance-roster-union.test.mjs',
+    'branch-roster-import.test.mjs',
+    'inspection-workgroup-key.test.mjs',
+    'member-change-cross-session.test.js',
+    'member-change-flow.test.js',
+    'notice-audience.test.mjs',
+    'run-mode.test.mjs',
+    'seed-baseline.test.mjs',
+    'version-stamp.test.mjs',
+    'write-policy-gaps.test.mjs',
   ]),
 
   // ── precommit · 真机浏览器 e2e（shared :3000 与自托管混排）─────────────────

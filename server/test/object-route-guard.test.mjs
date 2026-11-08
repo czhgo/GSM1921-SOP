@@ -33,7 +33,7 @@ import {
   isTerminal,
   objectDetailHref,
   resolveObjectRoute,
-} from '../../docs/src/core/domain/object-route.js?v=20261108b';
+} from '../../docs/src/core/domain/object-route.js?v=20261108c';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');

@@ -5,9 +5,9 @@
 //   POST /api/v1/activities/:id/sync-source    （副本所属支部支书 / 副支书，只覆盖内容字段）
 //   POST /api/v1/activities/:id/emphasis-notice（副本所属支部支书 / 副支书，24 小时限频）
 // 本模块只做「前端判据 + fetch 组装」，判据与写口仍以服务端复算为准（放行不被 UI 绕过）。
-import { mockDB } from '../../core/domain/domain.js?v=20261108b';
-import { SECRETARY_AND_DEPUTY_ROLES, COMMITTEE_OWNER_ID, EMPHASIS_NOTICE_WINDOW_MS } from '../../core/domain/constants.js?v=20261108b';
-import { getApiBaseUrl, getAuthToken, getDataSource } from '../../data/data-adapter.js?v=20261108b';
+import { mockDB } from '../../core/domain/domain.js?v=20261108c';
+import { SECRETARY_AND_DEPUTY_ROLES, COMMITTEE_OWNER_ID, EMPHASIS_NOTICE_WINDOW_MS } from '../../core/domain/constants.js?v=20261108c';
+import { getApiBaseUrl, getAuthToken, getDataSource } from '../../data/data-adapter.js?v=20261108c';
 
 /** 语义端点请求超时（毫秒） */
 const REQUEST_TIMEOUT_MS = 10000;

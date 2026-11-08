@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: "2026-11-08"
 last_verified: "2026-11-08"
-latest_decision: "D-859"
+latest_decision: "D-860"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -28,9 +28,11 @@ status: active
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
 - **审计**：46 页签 **P0 0 / P1 0 / P2 2 / exception 44**；F1–F8 全绿；M1–M3 在位。
   - source：`.ctx/evidence/2026-11-08/tab-audit/summary.md`。
-- **测试（四层，`D-859`）**：daily **43 文件 / 294 断言**（结果门禁）；guards **93 文件 / 765 tests**（静态守卫，按需）；precommit 158 文件（含 36 个 e2e）；weekly 2。daily 墙钟实测 **≈108s**（并发 4），**未达 ≤60s**（串行成本约 500s，并发不再线性加速；差距已记入 `server/README.md`）。
-  - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859`。
-- **版本戳**：`20261108b`，0 处陈旧。
+- **测试（四层，`D-859` / `D-860`）**：daily **27 文件 / 207 断言 / 60.9s**（结果门禁）；guards **99 文件 / 791 tests / 96.1s**（静态守卫，按需）；precommit＝daily＋guards＋非核心域回归＋e2e（时长仍长）；weekly 2。四层 runner 按 registry 单一源执行；CI `daily.yml` 接 `test:daily` 与 `deploy-verify`。
+  - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859 / §D-860`。
+- **工程评分（`D-860`）**：业务与数据 **80** · 安全与权限 **78** · 最小三成本 **74** · 测试与发布 **85** · 架构与可维护性 **77** · 运行部署 **74**；不设平均总分。
+  - source：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §5.2`。
+- **版本戳**：`20261108b`（本批目标 bump 至 `20261108c`，由主代理执行后核对 0 处陈旧）。
   - source：`docs/scripts/bump-version.mjs --check`。
 - **换轨**：副本 **48 表 / 577 行** export → dry-run → apply 一致；生产空库 `preflight-cutover --strict` exit 0 / 警告 0。
   - source：`deploy/CUTOVER_RUNBOOK.md`、`.ctx/evidence/2026-11-03/security/summary.md`。
@@ -62,20 +64,19 @@ status: active
 ### 阻断级风险（5 条，逐条复核）
 
 1. **多支部同实例会跨支部读出数据**：读面未统一过滤；production 已硬拦多支部；设计见 `ARCHITECTURE_EVOLUTION §十`。**保留**。
-2. **通用写口权限**：矩阵 141 行 / 0 known-risk，6 条缺口已修。**部分闭环**；残项：共享口令、多支部读过滤、`issue-unread` 派发位未强校验 `assignee`。
+2. **通用写口权限**：矩阵 141 行 / 0 known-risk，6 条缺口已修；`issue-unread` 派发位已加 403 校验。**部分闭环**；残项：共享口令、多支部读过滤未接线。
 3. **表决选民名单来自活动数据本身**：服务端未按场景重算 `voteConfig.voterIds`。**保留**。
-4. **共享口令**：会话已 3 小时过期。**部分闭环**；共享口令仍在，生产用 systemd 注入强口令并定期更换。
+4. **共享口令**：会话已 3 小时过期，个人密码已落地（21/21）。**部分闭环**；共享口令作回退保留，生产用 systemd 注入强口令并定期更换。
 5. **SQLite JSON 宽表是规模边界**：无业务字段索引；万行级前评估 `MIGRATIONS v2`。**保留**。
 
 ### 上线残项中仍 open 的（详见 `.ctx/ENGINEERING_ASSESSMENT.md §四`）
 
-- `L-02` `install.sh` / `install.ps1` / `update.sh` 未在 Linux 真机验证（post-launch；首次部署前必须跑）。
-- `L-08` 47 条 exception 无固定复核节奏（每次全量审计同批复核）。
-- `L-09` `issue-unread` 派发位未强校验 `assignee`。
-- `L-10` 多支部读过滤未实现（设计已出）。
-- `L-11` 共享口令。
-- `L-12` 审计脚本不进 daily（发布前硬门）。
-- `L-13` 6 个超 4 块页签 ＋ 7 条 IA 未闭项 ＋ 5 个从未做 IA 三问的页签；34 个已完成；不盲改 41 个（台账 `.ctx/evidence/2026-11-08/tab-review-ledger.md`）。
+- `L-02` `install.sh` / `install.ps1` / `update.sh` 未在 Linux 真机验证；容器可验证部分 `deploy/verify-linux.sh` 5/6（`package` 在 msys `tar` 未过），CI `deploy-verify` job 未实跑绿。
+- `L-08` 44 条 exception 无固定复核节奏（每次全量审计同批复核）。
+- `L-10` 多支部读过滤未接线到生产读面（`multi-branch-read-filter` 9 组夹具已证明可行；设计已出，开关仍关闭）。
+- `L-11` 共享口令（个人密码已落地，共享口令作回退保留）。
+- `L-12` 审计脚本不进 daily（发布前硬门）；precommit / full 时长仍长。
+- `L-13` 页签 IA 未闭项 **A 35 / B 11 / C 0**；6 个超 4 块页签登记例外；按台账 §四 逐条排批（台账 `.ctx/evidence/2026-11-08/tab-review-ledger.md`）。
 - **公开内容与党委内容读面（`D-858`）**：未登录只读 `publishScope='public'` 且未过期的党委内容，过期即 404 fail-closed；党委内容只经服务端读口（`/committee/*` 与公开门厅），客户端不得本地派生可见性、不得带出支部名与成员字段。
 - `L-14` / `L-15` 块停用与画布 / 按角色配置（先出方案）。
 - `L-16` 表决名单重算待支书裁定。

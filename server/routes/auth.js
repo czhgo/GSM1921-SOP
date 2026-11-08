@@ -6,7 +6,7 @@ import { BRANCH_COMMISSION_ROLES } from '../../docs/src/core/domain/constants.js
 
 // ── 登录口令校验（2026-09-03 P1b 运行安全；2026-09-23 P0-3 生产硬挡）────────────────
 // 原状：POST /login 仅凭 personId 发 token——多人/计算中心部署时任何知道学号者可冒名登录。
-// 现状：默认校验口令。口令 = 支部统一登录口令，env LOGIN_PASSWORD 可换，缺省 '123456'（与前端演示账号密码一致，登录体验不变；同时堵住「直连 API 猜 personId」通道）。
+// 现状：默认校验口令。个人密码优先（`users.data.passwordHash`，见 `loginPasswordForUser`）；未设者回退支部共享口令（env LOGIN_PASSWORD，缺省 '123456'）。
 // **生产形态**（isProductionEnv，单一源 server/env.js）：启动即要求 LOGIN_PASSWORD（缺省口令不得上线，见 server.js）；
 //   逃逸门 DISABLE_PASSWORD_CHECK **一律不认**，且口令比对不含 '123456' 兜底 ⇒ 生产不存在「无口令也能登录」。
 function passwordCheckDisabled() {
@@ -35,16 +35,16 @@ export function createAuthRouter(db) {
     }
     const userRow = db.prepare('SELECT data FROM users WHERE id = ?').get(personId);
     if (!userRow) return res.status(401).json({ error: '未知人员' });
-    if (!passwordCheckDisabled() && !loginPasswordOk(password)) {
+    const user = JSON.parse(userRow.data);
+    if (!passwordCheckDisabled() && !loginPasswordForUser(password, user)) {
       return res.status(401).json({ error: '口令错误' });
     }
-    const user = JSON.parse(userRow.data);
     // 2026-09-14 批次 25：成员流出/转出 → 账号停用（软标记行保留，登录一律拒绝）
     if (user.transferOut === true) return res.status(401).json({ error: '账号已停用（该成员已流出）' });
     const token = randomUUID();
     db.prepare('INSERT INTO sessions (token, person_id, created_at) VALUES (?, ?, ?)')
       .run(token, personId, new Date().toISOString());
-    res.json({ token, user });
+    res.json({ token, user: stripPasswordHash(user) });
   });
 
   router.post('/logout', (req, res) => {
@@ -84,7 +84,7 @@ export function getSessionUser(db, req) { // 2026-10-24 批次 508：导出供�
   const user = JSON.parse(userRow.data);
   // 2026-09-14 批次 25：停用账号（成员已流出）的在途会话一并失效
   if (user.transferOut === true) return null;
-  return { session, user };
+  return { session, user: stripPasswordHash(user) };
 }
 
 export function requireRole(db, roles) {
@@ -112,6 +112,8 @@ export function requireCommissioner(db) {
 import { isProductionEnv } from '../env.js';
 // 迁移期旧 p* 登录别名（映射表仅迁移与兼容使用，业务代码不得引用）
 import { isLegacyPersonId, mapPersonId } from '../migrations/legacy-person-ids.js';
+// 个人密码散列（波次 G）：校验与读口脱敏单一源，勿在此另写散列逻辑
+import { isPasswordHash, verifyPassword, stripPasswordHash } from '../security/password.mjs';
 
 let legacyAliasWarned = false;
 
@@ -140,3 +142,26 @@ function _sessionExpired(db, session) {
   db.prepare('DELETE FROM sessions WHERE token = ?').run(session.token);
   return true;
 }
+
+// ════════════════════════════════════════════════════════════════
+//  登录口令判定（波次 G · 2026-11-08：个人密码优先，共享口令回退）
+//  · 个人密码优先：`users.data.passwordHash` 为合法散列 ⇒ **只**校验个人密码，失败即拒，不回退共享口令。
+//  · 旧库 / 未设置（字段缺失或空串）⇒ 回退支部统一口令 `loginPasswordOk()`（LOGIN_PASSWORD / 非生产 '123456'）。
+//  · 字段存在但格式非法 ⇒ fail-closed（按口令错误处理并告警），不静默降级到共享口令。
+//  · 逃逸门 `DISABLE_PASSWORD_CHECK=1`（仅非生产）仍在调用方先判，本函数不会被执行。
+// ════════════════════════════════════════════════════════════════
+function loginPasswordForUser(password, user) {
+  const stored = user && user.passwordHash;
+  if (stored === undefined || stored === null || stored === '') return loginPasswordOk(password);
+  if (!isPasswordHash(stored)) {
+    console.warn('[auth] 用户口令散列格式非法，已按口令错误处理（请用 scripts/set-password.mjs 重置）');
+    return false;
+  }
+  try {
+    return verifyPassword(password, stored);
+  } catch (e) {
+    console.warn(`[auth] 口令校验异常：${e.message}`);
+    return false;
+  }
+}
+

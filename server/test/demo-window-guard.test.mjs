@@ -12,30 +12,30 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { DEMO_WINDOW, dateKeyOf, inDemoWindow, monthKeyOf } from '../../docs/src/data/mock/demo-window.js?v=20261108b';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261108b';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261108b';
-import { BRANCHES } from '../../docs/src/data/mock/branches.js?v=20261108b';
-import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261108b';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261108b';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261108b';
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20261108b';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261108b';
-import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261108b';
-import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20261108b';
-import { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261108b';
+import { DEMO_WINDOW, dateKeyOf, inDemoWindow, monthKeyOf } from '../../docs/src/data/mock/demo-window.js?v=20261108c';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261108c';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261108c';
+import { BRANCHES } from '../../docs/src/data/mock/branches.js?v=20261108c';
+import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261108c';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261108c';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261108c';
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20261108c';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261108c';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261108c';
+import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20261108c';
+import { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261108c';
 import {
   SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS,
   SEED_REVIEW_REQUESTS, SEED_MAKEUP_TASKS,
-} from '../../docs/src/data/mock/seed.js?v=20261108b';
+} from '../../docs/src/data/mock/seed.js?v=20261108c';
 import {
   SEED_EXTERNAL_DISPATCHES, SEED_HANDOFFS, SEED_MEMBER_CONFIRMATIONS,
   SEED_ATTENDANCE_APPEALS, SEED_INSPECTION_APPEALS, SEED_ISSUE_UNREAD,
   SEED_AUTH_AUDIT, SEED_APPOINTMENT_RECORDS,
-} from '../../docs/src/data/mock/auxiliary.js?v=20261108b';
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261108b';
-import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261108b';
-import { AttendanceStatus, ReviewStatus, TaskforceStatus } from '../../docs/src/core/domain/domain.js?v=20261108b';
+} from '../../docs/src/data/mock/auxiliary.js?v=20261108c';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261108c';
+import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261108c';
+import { AttendanceStatus, ReviewStatus, TaskforceStatus } from '../../docs/src/core/domain/domain.js?v=20261108c';
 
 /** 「今天」锚点（与种子一致；写死保证守卫确定性，不随运行日变化）。 */
 const DEMO_TODAY = '2026-10-26';
