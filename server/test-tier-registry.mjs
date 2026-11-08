@@ -60,7 +60,7 @@ export const filesByFixtureClass = (fixtureClass) => TEST_TIERS
  *    `attendance-roster-union` / `attendance-batch` / `inspection-workgroup-key` / `run-mode` /
  *    `version-stamp`）迁 precommit（判据不丢：precommit / full 仍覆盖）。
  *    `version-stamp` 按 `--timing` 实测最慢（23.0s）且不属业务结果，按「最慢非关键件移 precommit」处理。
- *    按实然值 25 登记。 */
+ *    按实然值 27 登记。 */
 export const DAILY_FILE_BUDGET = 27;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
