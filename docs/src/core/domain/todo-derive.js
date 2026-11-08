@@ -18,9 +18,9 @@
 //  入参从 DB 取同形数据；对账测试 `server/test/todo-derive-parity.test.mjs` 逐键判绿。
 // ════════════════════════════════════════════════════════════════
 
-import { isActivityEnded, RESIDENCE } from './constants.js?v=20261108a';
-import { POLICY_DEFAULTS } from './policy-defaults.js?v=20261108a';
-import { todayLocal, _fmtDate } from '../base/date.js?v=20261108a';
+import { isActivityEnded, RESIDENCE } from './constants.js?v=20261108b';
+import { POLICY_DEFAULTS } from './policy-defaults.js?v=20261108b';
+import { todayLocal, _fmtDate } from '../base/date.js?v=20261108b';
 
 /** 7 键实时组 → 业务域（单一源；`services/governance/todo.js` 展开引用） */
 export const DERIVE_GROUP_DOMAIN = {

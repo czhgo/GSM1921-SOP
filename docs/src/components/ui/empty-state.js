@@ -18,7 +18,7 @@
 //   · 数据表空态：list-filter 的 table 模式与 relation-matrix 一律调 `variant: 'table'`，不再手写空行。
 //   · 页签切换骨架（3 条卡形 + spinner）仍以 components/shell/tab-bar.js::tabContentSkeletonHtml 为准，
 //     本件只承担「页 / 页签首帧的线条占位」。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261108a';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261108b';
 
 /**
  * 生成空态 HTML。

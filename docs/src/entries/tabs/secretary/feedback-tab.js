@@ -3,27 +3,27 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261108a';
-import { showToast, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261108a';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261108a';
+import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261108b';
+import { showToast, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261108b';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261108b';
 // 2026-11-01 批次 524（#7）：待办深链消费（只认本页签；非本页目标不清除）
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261108a';
-import { icon } from '../../../core/base/icons.js?v=20261108a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261108a';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261108a';
-import { getPersonName } from '../../../services/member/person.js?v=20261108a';
-import { PersonStore } from '../../../services/member/person.js?v=20261108a';
-import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261108a';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261108b';
+import { icon } from '../../../core/base/icons.js?v=20261108b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261108b';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261108b';
+import { getPersonName } from '../../../services/member/person.js?v=20261108b';
+import { PersonStore } from '../../../services/member/person.js?v=20261108b';
+import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261108b';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261108a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261108a';
-import { openFormModal, confirmDanger } from '../../../components/ui/modal.js?v=20261108a';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261108b';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261108b';
+import { openFormModal, confirmDanger } from '../../../components/ui/modal.js?v=20261108b';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261108a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261108b';
 // 范围标签单一源（批次 525 · #2：反馈页与意见反馈页同一口径，不另抄一份）
-import { SCOPE_LABELS } from '../../../components/feedback/issue-list.js?v=20261108a';
+import { SCOPE_LABELS } from '../../../components/feedback/issue-list.js?v=20261108b';
 // 布局中立下拉（批次 524 F 输入单一源；新控件不得手写 input-flat 裸标签）
-import { selectInput } from '../../../components/ui/forms.js?v=20261108a';
+import { selectInput } from '../../../components/ui/forms.js?v=20261108b';
 const FEEDBACK_TAB_HTML = `
   ${renderTabHeader({ title: '意见反馈' })}
   <!-- 列表面板 -->

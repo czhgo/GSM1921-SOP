@@ -658,9 +658,9 @@ function enumCount(line) {
 
 test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代码 / 数据的实然值', async () => {
   const problems = [];
-  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261108a');
-  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261108a');
-  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261108a');
+  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261108b');
+  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261108b');
+  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261108b');
   const { SYSTEM_NOTICE_KIND_NAMES } = await import('../system-notice-kinds.js');
 
   /** 对账一条：`got` 为文档里抽出的数（null＝抽不出，判红并提示是判据失效而非「文档错」） */
@@ -672,7 +672,7 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
     if (got !== real) problems.push(`【${fact}】${where} 写 ${got}，实然 ${real}${hint ? `（${hint}）` : ''}`);
   };
   // 支部分工模块数**第 4 读**的锚点＝母本 `BRANCH_WORK_MAP.md`（2026-10-01 批次 314 改锚，理由见下方 `eq`）
-  const bwm = read(join(ROOT, 'content', '04_web_design', 'evolution', 'BRANCH_WORK_MAP.md'));
+  const bwm = read(join(ROOT, 'content', '04_web_design', 'evolution', 'archive', 'BRANCH_WORK_MAP.md'));
   const rs = read(README_SERVER);
   const help = read(HELP);
   const snap = read(SNAPSHOT);
@@ -925,29 +925,31 @@ test('S15 弱清单：有正当沿革 / 取值定义不清的枚举数字只登�
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// S16 守卫注册完整性（2026-09-28 批次 243）：**S 类测试文件必须全数列入 `test:daily` 显式清单**。
-//   病灶（本批实测）：`dead-selector-guard`（批次 227 立）与 `text-tier-guard`（文本档位批立）两个
-//   **纯 node 守卫**——文件在、断言在、单跑全绿，却**不在任何 npm script 里**（`test:fast` / `test:daily`
-//   都是**显式清单**）⇒ **从不自动运行**。同类「漏注册」已第三次：批 43 的 `page-sweep`（`S10` 即为此立）、
-//   批次 239 的 `block-orchestration`（当批自补）、本次两个。**根因＝「新增守卫」没和「登记进日常档」绑定**。
-//   判据（单一源）：`server/test/` 下**不** `import 'playwright'` 的 `*.test.{js,mjs}`（＝S 类，`CLAUDE.md R-85`）
-//   必须 ⊆ `test:daily` 清单；两侧都设非空转下限（防解析写坏 ⇒ 差集恒空 ⇒ 漏注册也绿）。
+// S16 守卫注册完整性：**S 类测试文件必须登记在 daily / guards / precommit 之一**（不得落在 weekly）。
+//   病灶（批次 243 立）：`dead-selector-guard` 与 `text-tier-guard` 两个**纯 node 守卫**——文件在、
+//     断言在、单跑全绿，却**不在任何 npm script 里** ⇒ **从不自动运行**。根因＝「新增守卫」没和
+//     「登记进日常档」绑定。
+//   2026-11-08 批次 537（支书裁定「测试瘦身：结果优先、守卫按需」）：分层由三层改四层，
+//     静态守卫迁 `guards`、非核心域回归迁 `precommit` ⇒ 判据由「必须 ⊆ test:daily 显式清单」
+//     改为「必须 ⊆ registry 的 daily / guards / precommit 并集」，**仍守「不得孤儿化」**，
+//     只放掉「必须在 daily」这一条（daily 已收敛为结果门禁白名单）。
+//   判据（单一源）：`server/test-tier-registry.mjs`；S 类 = 不 `import 'playwright'` 的
+//     `*.test.{js,mjs}`（`CLAUDE.md H25`）。两侧都设非空转下限（防解析写坏 ⇒ 差集恒空 ⇒ 漏注册也绿）。
 // ─────────────────────────────────────────────────────────────────────────────
-test('S16 守卫注册完整性：S 类测试文件必须全数列入 test:daily（防守卫孤儿化）', () => {
+test('S16 守卫注册完整性：S 类测试文件必须登记在 daily / guards / precommit（防守卫孤儿化）', async () => {
   const TDIR = join(ROOT, 'server', 'test');
   const all = readdirSync(TDIR).filter((f) => /\.test\.(js|mjs)$/.test(f));
   const playwrightRe = /from\s+['"]playwright['"]|import\(\s*['"]playwright['"]\s*\)/;
   const sClass = all.filter((f) => !playwrightRe.test(read(join(TDIR, f))));
-  const pkg = JSON.parse(read(join(ROOT, 'server', 'package.json')));
-  const daily = new Set((pkg.scripts['test:daily'].match(/test\/[A-Za-z0-9_.-]+\.test\.m?js/g) || [])
-    .map((x) => x.replace(/^test\//, '')));
+  const { dailyFiles, guardsFiles, precommitFiles } = await import('../test-tier-registry.mjs');
+  const registered = new Set([...dailyFiles, ...guardsFiles, ...precommitFiles]);
   // 非空转：两侧都必须有规模（解析写坏 ⇒ 差集恒空 ⇒ 「漏注册」也判绿）
-  assert.ok(sClass.length >= 60 && daily.size >= 60,
-    `解析面不足（S 类 ${sClass.length} / test:daily ${daily.size}，下限均 60）：判据或 package.json 解析被写坏`);
-  const missing = sClass.filter((f) => !daily.has(f)).sort();
+  assert.ok(sClass.length >= 200 && registered.size >= 200,
+    `解析面不足（S 类 ${sClass.length} / registry 三层 ${registered.size}，下限均 200）：判据或 registry 被写坏`);
+  const missing = sClass.filter((f) => !registered.has(f)).sort();
   assert.deepEqual(missing, [],
-    `以下 S 类测试文件**不在 test:daily 清单**（守卫孤儿化 ⇒ 从不自动运行）：\n  ${missing.join('\n  ')}\n` +
-    '  处置：加进 `server/package.json` 的 `test:daily`（S 类应全数入档，见 `CLAUDE.md R-85`）。');
+    `以下 S 类测试文件**未登记 daily / guards / precommit**（守卫孤儿化 ⇒ 从不自动运行）：\n  ${missing.join('\n  ')}\n` +
+    '  处置：在 `server/test-tier-registry.mjs` 登记 tier + reason（见 `CLAUDE.md H25`）。');
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

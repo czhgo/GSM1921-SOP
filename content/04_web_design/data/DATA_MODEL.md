@@ -1010,7 +1010,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 ---
 
-> **党委两级治理数据域**：支部多实例两级治理数据域为 §2.21~§2.24。设计定案见 [PARTY_COMMITTEE_DESIGN.md](../evolution/PARTY_COMMITTEE_DESIGN.md)；服务端表/路由接线见 [db.js](../../../server/db.js) 与 [resources.js](../../../server/routes/resources.js)；类型定义位于 `docs/src/core/domain/domain.js`（mockDB 成员）+ `docs/src/services/{branch,appointment,review-request}.js`。
+> **党委两级治理数据域**：支部多实例两级治理数据域为 §2.21~§2.24。设计定案见 [PARTY_COMMITTEE_DESIGN.md](../contracts/PARTY_COMMITTEE_DESIGN.md)；服务端表/路由接线见 [db.js](../../../server/db.js) 与 [resources.js](../../../server/routes/resources.js)；类型定义位于 `docs/src/core/domain/domain.js`（mockDB 成员）+ `docs/src/services/{branch,appointment,review-request}.js`。
 
 ### 2.21 支部实例数据 (BranchRecord)
 
@@ -1034,11 +1034,11 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | accent | string \| null | 否 | `null` | 支部主题色（可选，默认党建红不变） |
 | desc | string | 否 | `''` | 支部自述（可选，≤500 截断；换组织向导步骤①可改，净化见 config-clean `sanitizeConfigOrg`） |
 | themePreset | string \| null | 否 | `null` | 支部主题预设 id（白名单 `THEME_PRESET_IDS` = red/green/sky/blue；`null` = 默认党建红调；向导①可改，净化同 `sanitizeConfigOrg`） |
-| modules | object \| null | 否 | `null` | 工作流模块配置（L2）：`{ hiddenTabIds: string[], tabOrder: string[] }`——null=全开（默认 profile 兼容现有演示）；最小单位=工作台 tab，核心组（groupLabel='工作台'）固定不可关、不参与排序；写权与操作位 → [PARTY_COMMITTEE_DESIGN.md §2.5/§2.6](../evolution/PARTY_COMMITTEE_DESIGN.md)；治理字段（name/type/secretaryId/status）不经此写 |
+| modules | object \| null | 否 | `null` | 工作流模块配置（L2）：`{ hiddenTabIds: string[], tabOrder: string[] }`——null=全开（默认 profile 兼容现有演示）；最小单位=工作台 tab，核心组（groupLabel='工作台'）固定不可关、不参与排序；写权与操作位 → [PARTY_COMMITTEE_DESIGN.md §2.5/§2.6](../contracts/PARTY_COMMITTEE_DESIGN.md)；治理字段（name/type/secretaryId/status）不经此写 |
 | blocks | object \| null | 否 | `null` | 产出块/工作流块显隐：`{ outputBlocks?: { hiddenBlockIds: string[], blockOrder: string[] }, workflowBlocks?: { hiddenBlockIds: string[] } }`——null=全开；与 modules 同维护权/操作位（换组织向导②内改），目录源 = constants `OUTPUT_BLOCK_DEFS` / `BLOCK_MANIFESTS`。⚠ 口径（由块画布 v0 spec 归档时补录）：`outputBlocks.blockOrder` **目前没有 UI 写入口**——原设计里的拖拽排序画布已裁定撤销，向导保存时恒写 `[]`；纯函数侧仍支持排序（`getOutputBlockPolicy` / `applyOutputBlockPolicy`），即**能力在、入口无**——若将来要开放排序，属新增产品能力、须走丙部 |
-| workforce | object \| null | 否 | `null` | 模块分工归属（L4 支部分工）：`{ [moduleId]: { ownerType: 'role'\|'person'\|'none', ownerId } }`——null=缺省分工（SOP 责任人列）；`ownerType:'none'`＝**方法类停用**（本支部不开展该工作，仅 `tier:'method'` 模块允许，规范类被 `mergeWorkforceSnapshot`/`sanitizeConfigWorkforce` 拦掉）；日常调整走支委会议题（M2）表决后落库、换壳/部署期向导③直写（见 [BRANCH_WORK_MAP.md](../evolution/BRANCH_WORK_MAP.md)）；**采纳后自动派生责任人「履职」待办**（到人→personId／角色→role）并按 `extras.proposal` 复算通知受众（`committee` + `audiencePersons` 到人 + `actionRoles` 角色） |
+| workforce | object \| null | 否 | `null` | 模块分工归属（L4 支部分工）：`{ [moduleId]: { ownerType: 'role'\|'person'\|'none', ownerId } }`——null=缺省分工（SOP 责任人列）；`ownerType:'none'`＝**方法类停用**（本支部不开展该工作，仅 `tier:'method'` 模块允许，规范类被 `mergeWorkforceSnapshot`/`sanitizeConfigWorkforce` 拦掉）；日常调整走支委会议题（M2）表决后落库、换壳/部署期向导③直写（见 [BRANCH_WORK_MAP.md](../evolution/archive/BRANCH_WORK_MAP.md)）；**采纳后自动派生责任人「履职」待办**（到人→personId／角色→role）并按 `extras.proposal` 复算通知受众（`committee` + `audiencePersons` 到人 + `actionRoles` 角色） |
 | policyOverrides | object \| null | 否 | `null` | 域参数覆盖（L2，2026-09-09 支书批；2026-09-27 批扩表）：`{ 节: { 叶: 值 } \| null }`——节共 8 个=inspection/memberConfirmation/leader/activityApproval/attendance/review/makeup/thoughtReport（白名单 `POLICY_OVERRIDABLE` 只定义于 policy-defaults，共 14 条叶项）；值=覆盖、null=恢复该域默认、整体 null=全量恢复默认；读侧注入 `POLICY_DEFAULTS`，全站判定随参数生效（净化见 config-clean `sanitizeConfigPolicyOverrides`） |
-| configChangeHistory | array | 否 | `[]` | config 写留痕：`{ by, at, what, from?, to?, why? }`——逐键 diff 追加、空变化不冗余；保留最近 100 条（`CONFIG_HISTORY_MAX`）；单键可回滚、回滚再留一痕、历史不改写（见 [PARTY_COMMITTEE_DESIGN.md §2.6 变更流](../evolution/PARTY_COMMITTEE_DESIGN.md)） |
+| configChangeHistory | array | 否 | `[]` | config 写留痕：`{ by, at, what, from?, to?, why? }`——逐键 diff 追加、空变化不冗余；保留最近 100 条（`CONFIG_HISTORY_MAX`）；单键可回滚、回滚再留一痕、历史不改写（见 [PARTY_COMMITTEE_DESIGN.md §2.6 变更流](../contracts/PARTY_COMMITTEE_DESIGN.md)） |
 | fileSpaceIsolated | boolean | 是 | `true` | 支部文件（branchDocs）/附件一支部一独立存储空间——按 branchId 分区、跨支部不可见 |
 
 ### 2.22 支书任期记录 (AppointmentRecord)

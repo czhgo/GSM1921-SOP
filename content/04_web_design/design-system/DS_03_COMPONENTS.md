@@ -2,7 +2,7 @@
 title: "设计系统 · 第三编 组件"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-07"
+last_updated: "2026-11-08"
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_RESPONSIVE.md, DS_06_LAYOUT_AND_DENSITY.md, ../../../docs/src/styles.css, CASES.md]
 ---
@@ -352,7 +352,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 
 > 支书实报「tab 怎么划分，要做一次全部重新的考虑」。
 
-**主轴：按行为性质分四组**（不按业务域分）——四组标准适用**支部角色工作台**（支书 / 组织 / 宣传 / 纪检 / 组长 / 成员**六台**）；**党委台为院级一组例外**（3 个页签统一归「党委治理」，见 [PARTY_COMMITTEE_DESIGN.md](../evolution/PARTY_COMMITTEE_DESIGN.md)）。⚠ **与 §2.8 的「7 个工作台」不是矛盾**：`bootstrapPage` 共注入 **七个**工作台＝上述**六台 ＋ 党委台**（党委台不适用本处四组标准，按「党委治理」一组，见上方链接）：
+**主轴：按行为性质分四组**（不按业务域分）——四组标准适用**支部角色工作台**（支书 / 组织 / 宣传 / 纪检 / 组长 / 成员**六台**）；**党委台为院级一组例外**（3 个页签统一归「党委治理」，见 [PARTY_COMMITTEE_DESIGN.md](../contracts/PARTY_COMMITTEE_DESIGN.md)）。⚠ **与 §2.8 的「7 个工作台」不是矛盾**：`bootstrapPage` 共注入 **七个**工作台＝上述**六台 ＋ 党委台**（党委台不适用本处四组标准，按「党委治理」一组，见上方链接）：
 
 | 组 | 判定问句 | 典型成员 |
 |---|---|---|
@@ -509,11 +509,11 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 
 | # | 数据格式 / 形态 | 该用的视图 | 判据（什么信号决定用它） | 本仓实例（`文件:行`） | 反例（用错的实例） | 落位（新增 / 并入既有） |
 |---|---|---|---|---|---|---|
-| 1 | 多行同字段 | 表格（`.data-table` ＋ 统一检索引擎分页） | 首列是同一维度、行数 > 1；行数 > `SEARCH_FILTER_MIN_ROWS`(8) 才挂检索条 | `docs/src/components/ui/list-filter.js`；`docs/src/entries/tabs/disc/makeup-tab.js` | 小表强加检索条（已修，`content/04_web_design/evolution/BRANCH_WORK_MAP.md:87`）；成员名册已改引擎**列表模式**（网格行，不是 `.data-table`） | **新增**（视图＝§4.10 既有；判据 / 反例新增） |
+| 1 | 多行同字段 | 表格（`.data-table` ＋ 统一检索引擎分页） | 首列是同一维度、行数 > 1；行数 > `SEARCH_FILTER_MIN_ROWS`(8) 才挂检索条 | `docs/src/components/ui/list-filter.js`；`docs/src/entries/tabs/disc/makeup-tab.js` | 小表强加检索条（已修，`content/04_web_design/evolution/archive/BRANCH_WORK_MAP.md:87`）；成员名册已改引擎**列表模式**（网格行，不是 `.data-table`） | **新增**（视图＝§4.10 既有；判据 / 反例新增） |
 | 2 | 单实体档案 | 卡片（`.card`，一份＝一卡） | 一条记录、字段多、需并读 | `docs/src/entries/tabs/party-committee/monitor-tab.js:32`；`docs/src/entries/tabs/org/talent-tab.js` | 「全量成员档案平铺」（已收敛为观察卡，`docs/src/entries/tabs/org/talent-tab.js:2-8` 头注即反例记录） | **新增**（视图＝§4.2 卡片既有；判据 / 反例新增） |
 | 3 | 跨期 / 交叉对比 | 矩阵（`docs/src/components/ui/relation-matrix.js` 转置双视图，默认宽表） | 二元关系（人×项目 / 人×期次） | 本 §4.10「转置双视图」（单一源 `relation-matrix.js`）；`docs/src/entries/tabs/disc/attendance-tab.js`、`docs/src/entries/tabs/org/taskforce-tab.js` | long form 当主视图（2026-09-14 裁定降为「明细 / 导出」下钻，本 §4.10「默认视图＝宽表」条）；思想汇报已收窄为例外清单（2026-10-20 判例②） | **并入既有**（本 §4.10「转置双视图」；只补判据） |
 | 4 | 流状事件 | 时间轴 / 日志（行＝时间＋动作＋人） | 有先后、需留痕、只增不改 | `docs/src/entries/tabs/secretary/group-progress-tab.js:267`（组级变更留痕）；`docs/src/components/feedback/issue-detail.js:119-123`（评论 timeline） | — | **新增**（视图＝§4.10 表外既有实现；判据 / 实例新增） |
-| 5 | 分类归属 | 看板 / 分列（只渲染有内容的分桶） | 每行必落且仅落一桶 | `docs/src/entries/tabs/org/taskforce-tab.js`（三桶）；`docs/src/entries/tabs/prop/kanban-tab.js` | 空桶恒渲染撑 `min-h-[120px]`（已修，`content/04_web_design/evolution/BRANCH_WORK_MAP.md:61`） | **新增**（视图＝§4.10「看板视图」行；判据 / 反例新增） |
+| 5 | 分类归属 | 看板 / 分列（只渲染有内容的分桶） | 每行必落且仅落一桶 | `docs/src/entries/tabs/org/taskforce-tab.js`（三桶）；`docs/src/entries/tabs/prop/kanban-tab.js` | 空桶恒渲染撑 `min-h-[120px]`（已修，`content/04_web_design/evolution/archive/BRANCH_WORK_MAP.md:61`） | **新增**（视图＝§4.10「看板视图」行；判据 / 反例新增） |
 | 6 | 进度与占比 | 进度条 / 迷你条 | 面向「未完成」的推进度 | 本 §4.10「执行层仪表盘」KPI 进度条 | 「已完成 N/总数」无差异存量统计（违 §一 原则11） | **并入既有**（本 §4.10 执行层仪表盘；只补判据） |
 | 7 | 少量关键数 | KPI 条（页首内联一行） | ≤ 约 5 个摘要数、进入即见 | `docs/src/entries/tabs/secretary/report-up-tab.js:39-40`（统计条）；`docs/src/entries/tabs/party-committee/governance-overview-tab.js` | `docs/src/entries/tabs/secretary/committee-meeting-tab.js:29-31`「支委会场次 N」＝累计存量数（原则11 违例候选） | **并入既有**（本 §4.10 执行层仪表盘 KPI 顶栏；只补判据） |
 | 8 | 两两关系 | 关系图 / 矩阵 | 关系是主体、非时序 | 单一源同第 3 行 `docs/src/components/ui/relation-matrix.js` | 各域自造矩阵（已收，守卫 `server/test/relation-matrix.test.mjs`） | **并入既有**（同第 3 行单一源；只补判据） |
@@ -683,7 +683,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 
 ### 4.16 组件设计原则
 
-> 与本节 4.1~4.15 既有组件规范互补——既有条目规定组件"长什么样"（规格表），本节记录组件"为什么这样设计"（布局/交互论证与判例）。论证与判例档案见 [DESIGN_METHODOLOGY.md](../evolution/DESIGN_METHODOLOGY.md)。
+> 与本节 4.1~4.15 既有组件规范互补——既有条目规定组件"长什么样"（规格表），本节记录组件"为什么这样设计"（布局/交互论证与判例）。论证与判例档案见 [DESIGN_METHODOLOGY.md](../evolution/archive/DESIGN_METHODOLOGY.md)。
 
 **主页布局：2+1 排布**：上方两列（通知+招募）+ 下方全宽（日历），信息层级清晰。三等分布局不适合信息层级不同的内容——通知和招募是快速浏览型，日历是深度交互型，不应争夺同样的视觉空间。
 
@@ -707,7 +707,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 
 **生效条件**：导航项可按"角色 × 功能域"两轴正交切分的多角色系统（组织内部管理系统、多岗位后台）。单角色站点、或导航项无法正交切分时，卡片/列表形态仍适用。
 
-> **关联**：最小三成本（[DESIGN_METHODOLOGY.md](../evolution/DESIGN_METHODOLOGY.md) §1.3.1）、H40.1 概念命名守则（扁平化）、web-design-guidelines（语义 `<a>`/focus-visible）
+> **关联**：最小三成本（[DESIGN_METHODOLOGY.md](../evolution/archive/DESIGN_METHODOLOGY.md) §1.3.1）、H40.1 概念命名守则（扁平化）、web-design-guidelines（语义 `<a>`/focus-visible）
 
 ### 4.18 界面文案（Copy）规范（2026-09-24 立 · 阈值全部来自实测）
 
@@ -772,7 +772,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 > 同理，**「新界面比老界面字多」不作规则**：按 tab 新旧分组取证时结论随切分阈值摆动（见执行日志），不是一个稳定命题。
 
 > **关联**：§3.3.1 标题语义层级（复述的源头常常是标题层）、§4.16 组件设计原则、
-> [DESIGN_METHODOLOGY.md](../evolution/DESIGN_METHODOLOGY.md)（判据论证）、`docs/help.html`（长文的正规去处）
+> [DESIGN_METHODOLOGY.md](../evolution/archive/DESIGN_METHODOLOGY.md)（判据论证）、`docs/help.html`（长文的正规去处）
 
 ---
 
@@ -812,7 +812,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
    边缘只按 §4.2「边线语义」保留 1px 结构边；状态 / 身份 / 品牌 / 引述改用底色、圆点、徽章或全框。
 
 > **关联**：§4.2 卡片（本表的权威行）· §4.3 输入框单档 · §4.10 数据展示与分页控件 · §5.3 禁止动效 ·
-> 研判见 [DESIGN_METHODOLOGY.md](../evolution/DESIGN_METHODOLOGY.md)
+> 研判见 [DESIGN_METHODOLOGY.md](../evolution/archive/DESIGN_METHODOLOGY.md)
 
 ---
 
@@ -1514,7 +1514,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 > **批次 524 口径（SD-56）**：本条只判「控件从哪出」「搜索框多宽」「补全用什么」，不重写 §4.3 的尺寸与外观；`RAW_INPUT_BASELINE` 是**存量棘轮**（只减不增，不得借新增文件扩面），首批迁移 5 文件（`org/taskforce-tab` 25→9、`secretary/calendar-tab` 25→2、`prop/archive-tab` 12→0、`disc/attendance-tab` 11→2、`person-edit-modal` 10→2）；未迁部分＝`textarea`（暂无布局中立 helper）与选项由变量拼好的 `select`。补全方式自批次 525 起由 SD-59 取代（原生 `<datalist>` 退场）。
 
 > **批次 525 口径（SD-57…SD-59）**：三条的**正文与判定流程在 [DS_06](DS_06_LAYOUT_AND_DENSITY.md)**，本表只登记编号、对象、一句话判据与守卫，不重复展开。
-> ① **SD-57** 管「一页几块」，基线 `TAB_BLOCK_BASELINE` 与 45 个注册页签双向相等；未登记页签即红，超限无 `reason` 即红。
+> ① **SD-57** 管「一页几块」，基线 `TAB_BLOCK_BASELINE` 与 46 个注册页签双向相等；未登记页签即红，超限无 `reason` 即红。
 > ② **SD-58** 管「筛选条几行」，结构判据与真机读数分两条守卫（S14 / S15）；一页只有一个筛选条。
 > ③ **SD-59** 管「输入框有没有系统装饰」，`list="` 与 `<datalist` 全量清零；SD-56 中「补全只用原生 `<datalist>`」一句由本条取代，其余口径（控件出口、搜索框宽度、存量棘轮）继续有效。
 

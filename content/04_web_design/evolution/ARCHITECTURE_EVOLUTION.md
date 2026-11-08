@@ -5,13 +5,13 @@ role: "[工程师]+[AI]"
 created: 2026-08-22
 last_updated: "2026-11-08"
 status: active
-related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, PUBLIC_ENTRANCE.md, ../../03_doc_system/ARCHITECTURE.md, ../../05_ai_coding/README.md]
+related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../module/PUBLIC_ENTRANCE.md, ../../03_doc_system/ARCHITECTURE.md, ../../05_ai_coding/README.md]
 ---
 
 # 架构演进——组件化落地评估与轻量插件化设计
 
 > **本文负责**：系统架构的**演进方向与承载机制**——组件化落地的历史结论、M1~M8 落地账、L1~L5 层级愿景，以及 L3/L4 的架构锚点与 YAGNI 边界。
-> **本文不负责**：① **架构的现行描述**（分层 / 目录结构 / 单一事实源注册表）→ [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)；② **工程化现状与下一步改造行动线** → [ENGINEERING_ASSESSMENT.md](../../../.ctx/ENGINEERING_ASSESSMENT.md)（本文件的评估正文已由它承接）；③ **L3 块封装的字段规格** → [WORKFLOW_BLOCK_CONTRACT.md](WORKFLOW_BLOCK_CONTRACT.md)；④ **支部工作地图（L4 的设计稿）** → [BRANCH_WORK_MAP.md](BRANCH_WORK_MAP.md)。
+> **本文不负责**：① **架构的现行描述**（分层 / 目录结构 / 单一事实源注册表）→ [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)；② **工程化现状与下一步改造行动线** → [ENGINEERING_ASSESSMENT.md](../../../.ctx/ENGINEERING_ASSESSMENT.md)（本文件的评估正文已由它承接）；③ **L3 块封装的字段规格** → [WORKFLOW_BLOCK_CONTRACT.md](../contracts/WORKFLOW_BLOCK_CONTRACT.md)；④ **支部工作地图（L4 的设计稿）** → [BRANCH_WORK_MAP.md](archive/BRANCH_WORK_MAP.md)。
 
 > **定位**：一次关于系统架构的探索——「高度组件化、高度可复用」的目标落地到什么程度？距离「一切皆插件」的灵活性还有多远？上线后的多轮迭代靠什么机制承载？本文档只表达探索与选择，不代表最终结论，更不代表方案完备。
 > **受众**：[工程师]+[AI]（架构维护者、开发者）+ 愿意给出架构反馈的外部评审者
@@ -52,7 +52,7 @@ related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, PUBLIC
 
 本系统的核心资产不是界面，而是**一套把支部工作流（SOP）代码化的方法论**：决策树引导写入、WorkflowEngine 纯数据驱动、SOP-系统双向映射（SOP_WEBSITE_GUIDE）。三者已经证明「流程可被描述、可被机器执行」。在此基础上，真正的复用瓶颈不再是"能不能写"而是"支部/用户能否自己组合"：
 
-- 不同支部流程不同（本科 vs 硕博、常规 vs 专项），`enabledModules` 勾选已能排列组合（见 [PARTY_COMMITTEE_DESIGN.md](PARTY_COMMITTEE_DESIGN.md) §2.5）；
+- 不同支部流程不同（本科 vs 硕博、常规 vs 专项），`enabledModules` 勾选已能排列组合（见 [PARTY_COMMITTEE_DESIGN.md](../contracts/PARTY_COMMITTEE_DESIGN.md) §2.5）；
 - 能力注册表（见 §二 历史结论，M1~M8 已落地）已经为每个能力单元提供**目录**；
 - 缺的最后一块拼图是：一个面向使用者的**可视化编排形态**——把「代码级能力」翻译为「可拖的工作流块」。
 
@@ -61,12 +61,12 @@ related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, PUBLIC
 | 层 | 内容 | 状态 |
 |---|---|---|
 | L1 能力目录化 | 能力注册表 = 全仓能力的单一目录（M1~M8 已全落地，2026-08-30） | 已落地 |
-| L2 支部组合化 | 支部 config.modules（hiddenTabIds/tabOrder）从已注册工作台 tab 中排列组合；**已落地（2026-09-03 支部自治/核心固定；2026-09-09 操作位收口）**——写权与操作位见 [PARTY_COMMITTEE_DESIGN.md](PARTY_COMMITTEE_DESIGN.md) §2.5/§2.6 | 已落地（L2 定案） |
-| L3 块封装契约 | 把一条 SOP 封装为一个「工作流块」：声明输入（发起角色/必填字段）、阶段（节点与顺序）、产出（待办/通知/归档联动） | 已落地（2026-09-03，S1~S4）→ 见 [WORKFLOW_BLOCK_CONTRACT.md](WORKFLOW_BLOCK_CONTRACT.md) §六/§七 |
+| L2 支部组合化 | 支部 config.modules（hiddenTabIds/tabOrder）从已注册工作台 tab 中排列组合；**已落地（2026-09-03 支部自治/核心固定；2026-09-09 操作位收口）**——写权与操作位见 [PARTY_COMMITTEE_DESIGN.md](../contracts/PARTY_COMMITTEE_DESIGN.md) §2.5/§2.6 | 已落地（L2 定案） |
+| L3 块封装契约 | 把一条 SOP 封装为一个「工作流块」：声明输入（发起角色/必填字段）、阶段（节点与顺序）、产出（待办/通知/归档联动） | 已落地（2026-09-03，S1~S4）→ 见 [WORKFLOW_BLOCK_CONTRACT.md](../contracts/WORKFLOW_BLOCK_CONTRACT.md) §六/§七 |
 | L4 拖拽编排 | 画布拖拽块 → 连线定顺序/条件 → 导出为版本化工作流定义 JSON（可预览、可回退） | 远期愿景 |
 | L5 块市场/分享 | 编排好的工作流块可命名、可导出、可复用于其他支部（开源社区的场景库） | 远期愿景 |
 
-> **注（2026-09-03 后续落地）**：L3 契约与 L4 画布/地图设计已独立成文——[WORKFLOW_BLOCK_CONTRACT.md](WORKFLOW_BLOCK_CONTRACT.md)（L3 块封装契约 v1.1 定稿）、[BRANCH_WORK_MAP.md](BRANCH_WORK_MAP.md)（L4 支部工作地图设计稿 v2.1，支书放行编码）；本表与 §8.5 的草案状态以上述两文件为准。
+> **注（2026-09-03 后续落地）**：L3 契约与 L4 画布/地图设计已独立成文——[WORKFLOW_BLOCK_CONTRACT.md](../contracts/WORKFLOW_BLOCK_CONTRACT.md)（L3 块封装契约 v1.1 定稿）、[BRANCH_WORK_MAP.md](archive/BRANCH_WORK_MAP.md)（L4 支部工作地图设计稿 v2.1，支书放行编码）；本表与 §8.5 的草案状态以上述两文件为准。
 
 ### 8.3 落地时的架构锚点（不新造核心）
 

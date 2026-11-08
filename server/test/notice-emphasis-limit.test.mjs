@@ -142,6 +142,10 @@ test('支书首次发送 201：受众 all、关联副本与原件；通知字段
   assert.equal(notice.sourceType, 'activity');
   assert.equal(notice.sourceId, 'act-copy-1', '关联支部副本 id');
   assert.equal(notice.sourceActivityId, 'act-src-1', '关联党委原件 id');
+  // 批次 537 波次 1：强调通知落点＝支部副本（notice.js 归一化要求 system 有 targetType + targetId，
+  //   否则会降级成 announcement）。
+  assert.equal(notice.targetType, 'activity', '通知落点类型须为 activity');
+  assert.equal(notice.targetId, 'act-copy-1', '通知落点＝支部副本 id');
   assert.equal(notice.priority, 'normal');
   assert.equal(notice.createdBy, 'sec-1');
   assert.ok(notice.at && notice.publishDate && notice.createdAt, '时间字段须齐备');

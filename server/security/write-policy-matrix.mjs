@@ -361,6 +361,31 @@ const NON_RESOURCE_ROWS = [
     evidence: 'server/routes/resources/semantic-routes.js::registerExtraSemanticRoutes（院级资料撤下）; server/test/committee-multidomain.test.mjs',
     status: 'enforced',
   },
+  // ── 党委公开通知写口（2026-11-08 批次 537 波次 1 · G2）──
+  // 归属 / 来源 / 受众 / 类型 / 日期 / 创建人一律由服务端强制；发布留痕统一走 publication-audit.js。
+  {
+    method: 'POST', path: '/api/v1/committee/notices', resource: 'committeeNotices',
+    middleware: 'requireRole(PARTY_STAFF_ROLE)', roleGate: 'party-staff', ownership: 'party-staff',
+    fieldLocks: ['id（服务端 ntc-<uuid8>）', 'branchId/source/audience/kind（服务端固定 pc-gsm / committee / all / announcement）',
+      'publishDate/createdBy/createdAt（服务端会话）', 'publishScope（仅 login / public；public 须未来有效期）'],
+    evidence: 'server/routes/resources/committee-notices.js::registerCommitteeNoticeRoutes（党委公开通知创建）; server/routes/resources/publication-audit.js::writePublicationAudit; server/test/committee-public-notices.test.mjs',
+    status: 'enforced',
+  },
+  {
+    method: 'PATCH', path: '/api/v1/committee/notices/:id', resource: 'committeeNotices',
+    middleware: 'requireRole(PARTY_STAFF_ROLE)', roleGate: 'party-staff；仅 branchId=pc-gsm 且 source=committee 行', ownership: 'party-staff',
+    fieldLocks: ['字段白名单（title/content/priority/publishScope/publishExpiresAt）',
+      'publishScope（仅 login / public；public 须未来有效期）', '发布面变化写 publication_audits'],
+    evidence: 'server/routes/resources/committee-notices.js::registerCommitteeNoticeRoutes（党委公开通知编辑）; server/routes/resources/publication-audit.js::writePublicationAudit; server/test/committee-public-notices.test.mjs',
+    status: 'enforced',
+  },
+  {
+    method: 'POST', path: '/api/v1/committee/notices/:id/withdraw', resource: 'committeeNotices',
+    middleware: 'requireRole(PARTY_STAFF_ROLE)', roleGate: 'party-staff；仅 branchId=pc-gsm 且 source=committee 行', ownership: 'party-staff',
+    fieldLocks: ['publishScope（服务端置 login）', '不删表行；重复撤下幂等', '写 publication_audits（unpublish）'],
+    evidence: 'server/routes/resources/committee-notices.js::registerCommitteeNoticeRoutes（党委公开通知撤下）; server/test/committee-public-notices.test.mjs',
+    status: 'enforced',
+  },
   {
     method: 'POST', path: '/api/v1/committee/archive-records', resource: 'committeeArchiveRecords',
     middleware: 'requireRole(PARTY_STAFF_ROLE)', roleGate: 'party-staff', ownership: 'party-staff',

@@ -110,8 +110,13 @@ status: active
 
 ## H25. 测试系统（AI 必知）
 
-- **三层**：`test:daily`（纯 node / HTTP，日常）、`test:precommit`（daily + 真机 e2e）、`test:full`（发布前全量）。档位登记单一源＝`server/test-tier-registry.mjs`。
-- **验证顺序**：先定向跑改到的文件 → 再跑同域守卫 → 收尾跑 daily；发布前跑 full。
+- **四层**（档位登记单一源＝`server/test-tier-registry.mjs`）：
+  - **`test:daily`（结果门禁，每次改完必跑）**：服务启动 / 登录与会话 / 权限与写门 / 数据契约与迁移 / 核心业务结果（党委内容、公开门厅、名册、考勤、待办派生）/ 构建可运行。只回答「结果对不对」，不检查过程。
+  - **`test:guards`（静态守卫，按需跑）**：样式 / 字号 / 间距 / 颜色 / 动效 / 结构 / 文案 / 文档 / 行号 / 页签密度。改样式或文档时跑；`test:changed` 按改动面自动选。
+  - **`test:precommit`（提交前 / 发布前）**：daily ＋ guards ＋ 非核心域回归 ＋ Playwright e2e；缺 Playwright 明确报错，不跳层、不假绿。
+  - **`test:full`（发布前全量）**：`run-suite.mjs` 全目录。
+- **分层只决定「哪一层跑」，不决定「跑不跑」**：precommit / full 覆盖全部文件；不得以「不在 daily」为理由删测试、删断言或改 `skip`。
+- **验证顺序**：先定向跑改到的文件 → 改样式 / 文档补 `test:guards` → 收尾跑 `test:daily`；提交前 `test:precommit`；发布前 `test:full`。
 - **不以 GetDiagnostics 代替测试**；不以「模块能 import」代替行为验证。
 - **红项分类**：环境 / 陈旧断言 / 真回归；不得把红改成 `skip` 或删断言。
 
@@ -292,9 +297,8 @@ status: active
 
 | 目标批次 | 条目 | 一句话 | 判据 / 出处 | 状态 |
 |---|---|---|---|---|
-| 后续 | B-500-7b-2 | 完整 Plan B 收尾：客户端业务派生摘除（默认路径已切服务端）＋ 读面前置解耦 ＋ 缓存 / 性能。**前置已达**：7 类对账 8/8、双支部夹具、daily 1788 全绿；**不以上线为前提**，测试门全绿即可启动 | `server/routes/todo-groups.js`、`docs/src/components/record/todo-tab-shell.js`、`server/test/todo-derive-parity.test.mjs` | 待启动 |
+| 后续 | B-500-7b-2 | 完整 Plan B 收尾：客户端业务派生摘除（默认路径已切服务端）＋ 读面前置解耦 ＋ 缓存 / 性能。**前置已达**：7 类对账 8/8、双支部夹具、daily 294 断言全绿；**不以上线为前提**，测试门全绿即可启动 | `server/routes/todo-groups.js`、`docs/src/components/record/todo-tab-shell.js`、`server/test/todo-derive-parity.test.mjs` | 待启动 |
 | 后续 | B-536-1 | `ALLOW_MULTI_BRANCH` 在 Phase 1–2 实施与验收前不打开开关；当前只补设计 | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §十` | 待启动 |
-| 后续 | B-536-2 | Windows `test:daily` 命令行超长，补 registry 驱动的分片 runner | `server/test-tier-registry.mjs` ＋ `server/package.json` | 待启动 |
 
 # 丙部：待决策事项
 

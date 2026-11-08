@@ -4,21 +4,21 @@
 // 日历视图（复用 calendar.js 渲染引擎）+ 只读活动详情（点击日历条目）。
 // 形态依据支书第四轮裁定：「支书的日历视图只要删去写入活动等功能，就可以提供很好的活动详情」。
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261108a';
-import { renderCalendarByActivities } from './calendar.js?v=20261108a';
-import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261108a';
-import { badgeHtml } from '../ui/badges.js?v=20261108a';
-import { ROLE_COLORS, dotDarkVars, isActivityArchived, activityTypeBadgeVariant, TASK_STATUS_TONE } from '../../core/domain/constants.js?v=20261108a';
-import { activityLifecycleBadgeHtml } from './inspector.js?v=20261108a';
-import { getPersonById } from '../../services/member/person.js?v=20261108a';
-import { AuthStore } from '../../services/core/auth.js?v=20261108a';
+import { getAppState, setState } from '../../core/base/state.js?v=20261108b';
+import { renderCalendarByActivities } from './calendar.js?v=20261108b';
+import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261108b';
+import { badgeHtml } from '../ui/badges.js?v=20261108b';
+import { ROLE_COLORS, dotDarkVars, isActivityArchived, activityTypeBadgeVariant, TASK_STATUS_TONE } from '../../core/domain/constants.js?v=20261108b';
+import { activityLifecycleBadgeHtml } from './inspector.js?v=20261108b';
+import { getPersonById } from '../../services/member/person.js?v=20261108b';
+import { AuthStore } from '../../services/core/auth.js?v=20261108b';
 // 批次 524（D）：只读由权限派生，不再写死「· 只读」字符串
-import { readonlyMeta } from '../../core/domain/view-capability.js?v=20261108a';
-import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261108a';
+import { readonlyMeta } from '../../core/domain/view-capability.js?v=20261108b';
+import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261108b';
 // 表决组件（AV4.5 公共端：复用 activity.html 同款 renderVoteWidget，授权按 voterIds 判定）
-import { renderVoteWidget } from '../governance/vote-widget.js?v=20261108a';
+import { renderVoteWidget } from '../governance/vote-widget.js?v=20261108b';
 // Task 6：本组件常驻「工作概况」页内预览 ⇒ locate：保留预览 + 「打开完整页」。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261108a';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261108b';
 
 // 任务状态元数据（状态点 + 文案，轻量自包含，避免依赖 status-badge 全家桶）
 // 2026-11-04 批次 534（Task 6.4）：三态色单一源＝constants.js::TASK_STATUS_TONE（值逐字不变）。

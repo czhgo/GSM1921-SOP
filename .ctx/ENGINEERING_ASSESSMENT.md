@@ -6,7 +6,7 @@ created: 2026-09-03
 last_updated: "2026-11-03"
 status: active
 layer: reference
-related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md, content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/04_web_design/deploy/DEPLOYMENT_GUIDE.md, .ctx/REVIEW_QUEUE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/insights/README.md, content/insights/工程与AI协作的全栈实践.md, server/README.md, docs/help.html]
+related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md, content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/04_web_design/deploy/DEPLOYMENT_GUIDE.md, .ctx/REVIEW_QUEUE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/insights/README.md, content/insights/工程与AI协作的全栈实践.md, server/README.md, docs/help.html]
 ---
 
 # 工程化评估与改造行动线
@@ -16,7 +16,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 > **定位**：本文档为项目当前工程评估与复盘的唯一口径：六个工程维度、七个月复盘、业务/数据/权限阻断风险、工程做法纪律与改进顺序。打分用于暴露短板，不把不同风险平均成一个总数。
 > **维护纪律（本文件自述即判据）**：**覆盖式维护、不逐轮留历史行**——本文件只写「**当前值 / 当前残项 / 当前纪律**」，**逐批「做了什么、为什么 +1」一律进 `.ctx/logs/**`**（沿革单一源）。⚠ 2026-09-29 批次 266 据此做了一次**瘦身**：此前 §一 速览行内 / 综合行 / §二 各维标题 / §四 各行动行内累积的**逐批论证链**已删除（同批已核：其内容在月度日志逐批段与「附：工程化评估逐批沿革」节内均已有），**只留当前值与指针**；再犯即属违规。
 > **受众**：[工程师]+[AI]（架构维护者）+ 支书（方向裁决人）
-> **关联**：`content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md`（组件化/插件化演进母文档，评估正文已压为其 §二 历史结论段）、`content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md`（L3 工作流块契约）、`content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md`（两级治理设计）、`.ctx/REVIEW_QUEUE.md`（全局评估总表，本文件一行）。
+> **关联**：`content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md`（组件化/插件化演进母文档，评估正文已压为其 §二 历史结论段）、`content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md`（L3 工作流块契约）、`content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md`（两级治理契约）、`.ctx/REVIEW_QUEUE.md`（全局评估总表，本文件一行）。
 > **职能（2026-09-17 立，规范见 [OPERATIONS_GUIDE §5.1](../content/03_doc_system/OPERATIONS_GUIDE.md)）**
 > **回答什么问题**：「**当前工程短板在哪里、什么是真返工、先改哪条边界**」——业务与数据、安全与权限、最小三成本体验（含前端与交互）、测试发布、架构与可维护性、运行部署六维证据；以及复盘结论与当前行动。
 > **不回答什么**：① **哪一批做了什么**（沿革与逐批论证）→ `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；② **规则与守卫的判据细节** → `CLAUDE.md`（R 表）与 `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md §0.2`（规则→守卫→状态索引）；③ **测试清单与运行方式** → `README.md` / `server/README.md`；④ **系统当前长什么样**（目录树 / 表数 / 页面数）→ `.ctx/SNAPSHOT.md`；⑤ **文档职责与导航** → `content/03_doc_system/DOC_MAP.md`。
@@ -32,7 +32,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 |------|------|---------------------|
 | 业务与数据正确性 | **79 / 100** | 45 页签全量审计的 D1 读口全部 2xx / JSON 可解析 / ≤500KB；D2 计数对账一致；C2 在 `:memory:` 临时库完成 CRUD 往返。本轮换轨演练发现并修正契约漂移（`notices.reads` 由 required 改 optional），副本库 **48 表 / 577 行** export → dry-run → apply 逐表行数与 sha256 一致。残项：SQLite 仍以 JSON 宽行存储，跨表关联无数据库外键；票决名单由活动写入方固化；F6 两处启发式已人工确认（非空态）。**78 → 79（+1）**：补的是「契约与真实库一致」的可验证证据，不改业务规则。 |
 | 安全与权限 | **66 / 100** | `write-policy-matrix` 覆盖 **141 条**写路由（135 enforced / 4 self-service / 2 public / **0 known-risk**），守卫断言运行期路由 ≡ 矩阵；C1 改为矩阵判定 + 高风险抽样。修复 6 条真实缺口（考勤删除、活动/专班子记录、issue-unread、快照聚合清空、快照考勤清空）；`SESSION_TTL_HOURS` 缺省 3 小时；production 多支部拒绝启动；`npm run start:review` 隔离演示库。残项：共享口令、多支部服务端读过滤（设计已出、未实现）、issue-unread 派发位未强校验 assignee。**52 → 66（+14）**：补的是「每个写口都有可复查判据 + 会话过期 + 快照 P0」，不等于多支部隔离已完成。 |
-| 最小三成本体验（含前端与交互） | **68 / 100** | 45 页签审计资产复跑：**P0 0 / P1 0 / P2 2 / exception 44**；F1–F8 全绿；M1–M3 与 4 个「独立对象池」例外在位。P2 两处经人工确认均非空态（页签分组提示 / 指标占位），F6 探针已识别表格空态变体。残项：41 个页签仅登记未重构；尚无按常见任务的用户实测。维持原分——审计读数改善不等于三成本实质下降。 |
+| 最小三成本体验（含前端与交互） | **68 / 100** | 45 页签审计资产复跑：**P0 0 / P1 0 / P2 2 / exception 44**；F1–F8 全绿；M1–M3 与 4 个「独立对象池」例外在位。P2 两处经人工确认均非空态（页签分组提示 / 指标占位），F6 探针已识别表格空态变体。残项：6 个超 4 块页签 ＋ 7 条 IA 未闭项 ＋ 5 个从未做 IA 三问的页签；34 个已完成；不盲改 41 个；尚无按常见任务的用户实测（台账 `.ctx/evidence/2026-11-08/tab-review-ledger.md`）。维持原分——审计读数改善不等于三成本实质下降。 |
 | 测试与发布质量 | **83 / 100** | `workbench-audit-coverage::W1–W5` 常驻；新增 `write-policy-matrix`（路由 ≡ 矩阵 + 反例）、`write-policy-gaps`（6 条缺口）、`security-redteam`（快照 P0）、`session-ttl`、`run-mode`，全部进 daily 并登记 tier；最终审计 P0 0 / P1 0。残项：审计脚本仍不进 daily；precommit / full 时长仍是发布风险；守卫证明形态不等于业务输出正确。**80 → 83（+3）**：补的是「权限矩阵/红队/会话/运行档」的可复跑覆盖。 |
 | 架构与可维护性（原「架构复杂度与变更成本」） | **76 / 100** | 审计分层沿用；新增 `write-policy-matrix` 作为写权限唯一机读源，审计 C1 与 README 同源；多支部同实例设计稿落到 `ARCHITECTURE_EVOLUTION §十`（四阶段）。成本与残项：catalog / matrix / baseline 须同批维护；双数据适配器、活动内嵌数据、静态版本戳与行号守卫仍抬高跨层变更成本。**74 → 76（+2）**：补的是「权限判据单源化」，但新增一处同批维护点。 |
 | 运行、部署与跨组织复用 | **73 / 100** | 换轨闭环实测：副本库 **48 表 / 577 行**一致；生产空库首启补 6 角色账号后 `preflight-cutover --strict` **exit 0 / 警告 0**；`user_version` 拒绝降级；迁移前备份；`start:review` 隔离演示库；production 单支部断言。残项：`install.sh` / `install.ps1` / `update.sh` 未在 Linux 真机验证（L-02 降级）；附件 / 会话按 runbook 另搬；多支部读过滤未实现。**68 → 73（+5）**：补的是「可演练 + 可拒绝 + 可隔离」，不掩盖真机部署未验证。 |
@@ -85,7 +85,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 **得分依据**：45 页签审计复跑 **P0 0 / P1 0 / P2 2 / exception 44**；F1–F8 全绿；M1–M3 与 4 个「独立对象池」例外在位；F6 探针已识别 `empty-state` 表格变体。
 
-**残项**：P2 两处均非空态（页签提示 / 指标占位）；41 个页签仅登记未重构；尚无按常见任务的用户实测。审计读数改善不等于三成本实质下降。
+**残项**：P2 两处均非空态（页签提示 / 指标占位）；6 个超 4 块页签 ＋ 7 条 IA 未闭项 ＋ 5 个从未做 IA 三问的页签；34 个已完成；不盲改 41 个（台账 `.ctx/evidence/2026-11-08/tab-review-ledger.md`）；尚无按常见任务的用户实测。审计读数改善不等于三成本实质下降。
 
 **本轮结论**：维持 **68**；不因审计工具或探针修正加分。
 
@@ -307,9 +307,9 @@ Git 从 2026-03-14 至 2026-10-14 共 1,133 条提交记录；按提交日期分
 | L-10 | 单实例多支部硬边界；服务端按支部读过滤未做 | post-launch | 在办 | **设计已出**（Architecture §十：请求级支部上下文 / 读口统一过滤 / 党委显式跨支部 / Phase 1–4）；上线仍坚持一实例一支部，Phase 1–2 完成前不得打开 `ALLOW_MULTI_BRANCH` | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §十（L150-L184）`；`server/run-mode.js#L34-L48`；本文件 §四 P13（L260） |
 | L-11 | 全支部共享一个 `LOGIN_PASSWORD`，无个人密码 | post-launch | 待办 | **会话过期已关闭**（`SESSION_TTL_HOURS` 缺省 3）；剩余共享口令属受控部署：上线用 systemd 注入强口令并定期更换；个人密码 / 校外身份接入另立方案 | `server/README.md §部署前必知限制 #3（L249）`；`server/routes/auth.js#L118-L141`；`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` A.2 第 2 条（L998） |
 | L-12 | 审计脚本不进 `test:daily`；precommit / full 时长仍是发布风险 | post-launch | 待办 | 保持「发布前 `audit-tabs --all`」为硬门，不把全量审计塞进 daily | 本文件 §二 2.5（L101）；`server/README.md`「测试耗时台账」（L104-L110） |
-| L-13 | 41 个页签仅登记未重构 | backlog | 待办 | 按 `TAB_BLOCK_BASELINE` 的 reason 排序，后批逐页推进 | `.ctx/SNAPSHOT.md` 批次 525「未决」①（L331）、批次 526「未决」③（L339）；`content/04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md` L74 |
-| L-14 | 块停用是否同步阻断任务派生 / 通知 | backlog | 待办 | 先出方案定口径，再并入工作流批 | `content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md §8.1（L283）`、`§8.4（L328）`；本文件 §四 P10（L257） |
-| L-15 | 画布 UI（L4）与「按角色配置（块决定 tab）」 | backlog | 待办 | 新维度先出方案；与 `allowedPages` 身份门、tab 计数守卫一起评审 | `content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md §8.4（L328）`；`.ctx/REVIEW_QUEUE.md` H-24（L235） |
+| L-13 | 6 个超 4 块页签 ＋ 7 条 IA 未闭项 ＋ 5 个从未做 IA 三问的页签；34 个已完成；不盲改 41 个 | backlog | 待办 | 按 `.ctx/evidence/2026-11-08/tab-review-ledger.md §四` 逐条排批；先挑 2 条低风险 B 项（`org.talent` 录入考察上提、`disc.attendance` 撤两级切换），其余待支书裁定 | `.ctx/evidence/2026-11-08/tab-review-ledger.md`；`.ctx/evidence/2026-11-03/tab-audit/summary.md`；`content/04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md` L74 |
+| L-14 | 块停用是否同步阻断任务派生 / 通知 | backlog | 待办 | 先出方案定口径，再并入工作流批 | `content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md §8.1（L286）`、`§8.4（L331）`；本文件 §四 P10（L257） |
+| L-15 | 画布 UI（L4）与「按角色配置（块决定 tab）」 | backlog | 待办 | 新维度先出方案；与 `allowedPages` 身份门、tab 计数守卫一起评审 | `content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md §8.4（L331）`；`.ctx/REVIEW_QUEUE.md` H-24（L235） |
 | L-16 | 表决 `voteConfig.voterIds` 由活动写入方固化，服务端未按场景重算 | backlog | 待办 | 待支书裁定重算口径（按 users + 组织归属）；裁定前不扩写 | 本文件 §一 阻断级风险 3（L51）；`server/routes/committee.js#L76-L97` |
 | L-17 | SQLite JSON 宽表、无跨表外键、无业务字段索引 | backlog | 待办 | 万行级前评估 `MIGRATIONS v2` 与索引；当前只登记 | 本文件 §一 阻断级风险 5（L53）；`server/README.md §部署前必知限制 #2（L248）` |
 | L-18 | 单一源组件出口仍有零星散件；R2 复核保留、R10 / R11 观察 | backlog | 待办 | 按 §3.3 末清单逐项收敛；观察项不提前合并 | 本文件 §3.3 复核保留（L225-L234）、§四 P0·统一扎口（L242） |
@@ -321,7 +321,7 @@ Git 从 2026-03-14 至 2026-10-14 共 1,133 条提交记录；按提交日期分
 
 1. **本次 spec 关闭的 launch-blocker**：L-01（生产空库 `--strict` exit 0）· L-03（会话不迁移 + 附件按 runbook 搬）· L-04（表随库导出，不再要求手工导 localStorage）· L-05（`npm run start:review` 强制独立库）· L-06（考勤删除门 + 快照红队回归）；均已在 2026-11-03 任务 6 关闭或给出可复跑证据。
 2. **明确降级为 post-launch**：L-02 降级（本机为 Windows 开发机，无法代替 Linux 测试机；首次部署前必须在测试机验证 install / update）；L-10 依据 spec 关键假设 3「上线＝一实例一支部」；L-11 的会话过期已在本批关闭，剩余共享口令属受控部署、由 systemd 注入强口令。其余 post-launch：L-07 是 P2 启发式、无功能或权限影响，Task 6.2 先人工确认；L-08 属审计节奏而非缺陷；L-09 已收窄到派发位且做支部校验；L-12 是发布时长权衡。
-3. **backlog 只登记**：L-13（41 个页签按 reason 排序推进）、L-14 / L-15（工作流新维度先出方案）、L-16（表决名单需支书裁定）、L-17（宽表与索引）、L-18（组件出口散件）；均不排入本批。
+3. **backlog 只登记**：L-13（6 个超 4 块页签 ＋ 7 条 IA 未闭项 ＋ 5 个未评页签，按台账排批）、L-14 / L-15（工作流新维度先出方案）、L-16（表决名单需支书裁定）、L-17（宽表与索引）、L-18（组件出口散件）；均不排入本批。
 4. **口径**：本表只归总残项与顺序，不改 §一 / §二 / §五 的评分与论证；每条下一动作均落到可定位文件与小节 / 行号，不写「见上文」。
 
 ---
@@ -403,7 +403,7 @@ Git 从 2026-03-14 至 2026-10-14 共 1,133 条提交记录；按提交日期分
 ### G3 · 已获支书点选 / 裁决（三项）
 - **G3-1 语义化 release / 发布工作流**：✅ 已交付（→ §四 **P8**；纪律 `CLAUDE.md R-90` · `CONTRIBUTING.md §六`）。
 - **G3-2 全量 config 引擎**：✅ 已收口（→ §四 **P9**；`POLICY_FIXED` 台账 ＋ 守卫 `policy-config::R1–R3`）。
-- **G3-3 工作流组合推广**（→ §四 **P10**）：L1 编排内核、L2 配置排序、L3 manifest、活动写口服务端门、表单字段策略及参与人范围解析均已落地。当前余项只有：块停用是否同步阻断任务派生/通知；画布 UI（L4）与按角色配置 tab 属新维度，需先设计再排期。实现状态以 [WORKFLOW_BLOCK_CONTRACT.md §8](../content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md) 和 H-24 为准；本行只保留当前状态，不复述批次过程。
+- **G3-3 工作流组合推广**（→ §四 **P10**）：L1 编排内核、L2 配置排序、L3 manifest、活动写口服务端门、表单字段策略及参与人范围解析均已落地。当前余项只有：块停用是否同步阻断任务派生/通知；画布 UI（L4）与按角色配置 tab 属新维度，需先设计再排期。实现状态以 [WORKFLOW_BLOCK_CONTRACT.md §8](../content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md) 和 H-24 为准；本行只保留当前状态，不复述批次过程。
 - **English 版：裁定不做**（支书 2026-09-28 原文「我们不需要英语！」）⇒ 从开源化残项移出（→ §四 **P11**）。
 - **纪律**：每项**先出方案再动手**（本文件与 `content/**` 均为支书批改层）；**G3 任何一项不得以「顺手一起做」进入 G0–G2 的批次**（`CLAUDE.md R-70`）。
 

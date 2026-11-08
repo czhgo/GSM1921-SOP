@@ -191,6 +191,8 @@ test('L4 非空转下限：`.lf-bar` 产出点 ≥ 12', () => {
   assert.ok(files.size >= 12, `只涉及 ${files.size} 个文件（下限 12）`);
 });
 
-test('L5 守卫登记在 test:daily', () => {
-  assert.match(PKG.scripts['test:daily'], /lf-bar-structure-guard\.test\.mjs/, 'test:daily 须登记本守卫');
+test('L5 守卫登记在 daily / guards 层（2026-11-08 批次 537 起按需跑，不得孤儿化）', async () => {
+  const { tierOf } = await import('../test-tier-registry.mjs');
+  assert.ok(['daily', 'guards'].includes(tierOf('lf-bar-structure-guard.test.mjs')),
+    'registry 未把 lf-bar-structure-guard 登记在 daily / guards：守卫孤儿化');
 });

@@ -933,6 +933,9 @@ export function registerExtraSemanticRoutes(router, db) {
           sourceId: String(source.id),
           sourceVersion: version,
           systemKind: COMMITTEE_DISPATCH_KIND,
+          // 批次 537 波次 1：通知落点必须带对象坐标，否则 notice.js 归一化会把 system 降级成 announcement。
+          targetType: 'activity',
+          targetId: String(source.id),
           audience: ['secretary', 'deputy-secretary'],
           createdBy: req.actor.id,
           createdAt,
@@ -1123,6 +1126,9 @@ export function registerExtraSemanticRoutes(router, db) {
         sourceType: 'activity',
         sourceId: String(copy.id),
         sourceActivityId: String(copy.sourceActivityId),
+        // 批次 537 波次 1：强调通知落点＝支部副本（对象卡可直达），避免 notice.js 把 system 降级成 announcement。
+        targetType: 'activity',
+        targetId: String(copy.id),
         audience: ['all'],
         createdBy: req.actor.id,
         createdAt: at,
@@ -1414,6 +1420,9 @@ export function registerExtraSemanticRoutes(router, db) {
     rows.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
     res.json(rows.map(aliasMemberChangeRow));
   });
+
+  // 批次 537 波次 1（G2）：党委公开通知写口 /committee/notices*（纯追加，不移动上文行号）
+  registerCommitteeNoticeRoutes(router, db);
 }
 
 // 党委内容写口的依赖（置尾追加：import 声明被提升，上文行号零漂移）
@@ -1424,4 +1433,6 @@ import { bumpCollectionVersion, rebuildShadowTables } from '../../db.js';
 import { workgroupIdFor } from '../../../docs/src/data/activity-workgroup-sync.js';
 // 强调通知限频窗口的依赖（Task 4；同样置尾追加）
 import { EMPHASIS_NOTICE_WINDOW_MS } from '../../../docs/src/core/domain/constants.js';
+// 党委公开通知写口的依赖（批次 537 波次 1 · G2；同样置尾追加）
+import { registerCommitteeNoticeRoutes } from './committee-notices.js';
 

@@ -173,11 +173,10 @@ test('C6 05 索引已登记 PARALLEL_SKILL_AUDIT.md 且为 on-demand', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// C7 守卫已登记 test:daily
+// C7 守卫已登记 daily / guards 层（2026-11-08 批次 537 起本守卫在 guards 层按需跑）
 // ─────────────────────────────────────────────────────────────────────────────
-test('C7 守卫已登记 test:daily', () => {
-  const pkg = JSON.parse(read(PKG));
-  const daily = pkg.scripts?.['test:daily'] ?? '';
-  assert.ok(daily.includes('test/claude-parallel-audit.test.mjs'),
-    'server/package.json 的 test:daily 未登记 test/claude-parallel-audit.test.mjs：守卫孤儿化，从不自动运行');
+test('C7 守卫已登记 daily / guards 层', async () => {
+  const { tierOf } = await import('../test-tier-registry.mjs');
+  assert.ok(['daily', 'guards'].includes(tierOf('claude-parallel-audit.test.mjs')),
+    'registry 未把 claude-parallel-audit 登记在 daily / guards：守卫孤儿化，从不自动运行');
 });

@@ -112,3 +112,37 @@ test('U5 新增界面不引入裸 text-[13px]，新增块无硬编码 hex', () =
   assert.ok(visitorRow.length > 300, '抽取口径失效：成员列表行为空');
   assert.ok(!visitorRow.includes('text-[13px]'), '成员列表行新增块不得写裸 text-[13px]');
 });
+
+test('U6 采用统一二次确认：列表 strip 与详情页共用 modal.js::confirmAction，无确认不直写', () => {
+  const modal = read('components/ui/modal.js');
+  assert.match(modal, /export function confirmAction\(/, 'modal.js 须导出统一非危险确认 confirmAction');
+  assert.match(modal, /id:\s*`action-\$\{id\}`/, 'confirmAction 须走 _mustPressConfirm（action-<id> 语义 id）');
+
+  /** 取 token 之后的一段源码（adopt 入口块；判据失效时为空串 ⇒ 下方断言会红） */
+  const after = (src, token) => {
+    const at = src.indexOf(token);
+    return at < 0 ? '' : src.slice(at, at + 2600);
+  };
+
+  const entry = read('entries/pages/activity-entry.js');
+  const entryBlock = after(entry, '#committee-adopt-btn');
+  assert.ok(entryBlock.length > 300, '抽取口径失效：详情页采用入口块为空');
+  assert.match(entryBlock, /confirmAction\(/, '详情页采用入口未走统一确认 confirmAction');
+  assert.match(entryBlock, /adoptActivity\(/, '详情页采用入口未调用 adoptActivity');
+  assert.ok(entryBlock.indexOf('confirmAction(') < entryBlock.indexOf('adoptActivity('),
+    '详情页须先确认后写入（确认在 adoptActivity 之前）');
+
+  const calendar = read('entries/tabs/secretary/calendar-tab.js');
+  const calendarBlock = after(calendar, 'data-committee-adopt');
+  assert.ok(calendarBlock.length > 300, '抽取口径失效：支书列表采用入口块为空');
+  assert.match(calendarBlock, /confirmAction\(/, '支书列表采用入口未走统一确认 confirmAction');
+  assert.match(calendarBlock, /adoptActivity\(/, '支书列表采用入口未调用 adoptActivity');
+  assert.ok(calendarBlock.indexOf('confirmAction(') < calendarBlock.indexOf('adoptActivity('),
+    '支书列表须先确认后写入（确认在 adoptActivity 之前）');
+
+  // 两处都必须从 modal.js 具名导入同一确认函数（不允许各自复制弹窗）
+  for (const [name, src] of [['activity-entry.js', entry], ['calendar-tab.js', calendar]]) {
+    assert.match(src, /import\s*\{[^}]*\bconfirmAction\b[^}]*\}\s*from\s*'[^']*components\/ui\/modal\.js/,
+      `${name} 未从 components/ui/modal.js 导入 confirmAction（两处必须共用同一确认函数）`);
+  }
+});

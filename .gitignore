@@ -25,6 +25,10 @@ server/debug.log
 # Build output (project uses ESM directly, no bundler needed)
 docs/dist
 
+# 本地工具产物（可再生成，不入库）
+.trae-html-share-packages/
+.worktrees/
+
 # 发布包产物（deploy/package.mjs 的输出）
 dist/
 

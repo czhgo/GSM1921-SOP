@@ -12,24 +12,24 @@
 //     应到 = `attendanceRosters` 冻结名单优先，无冻结时回落 `services/activity/vote-config.js::resolveVoterIds('committee')`
 //     并标注「实时」；两种口径不混算。
 //   · 表格 = components/ui/data-table.js（.data-table 单一源）；行内选人 = components/governance/pickers.js::PersonPicker。
-import { mockDB } from '../../../core/domain/domain.js?v=20261108a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261108a';
-import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261108a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261108b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261108b';
+import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261108b';
 import {
   listBranchCommissioners,
   appointBranchCommissioner,
   revokeBranchCommissioner,
-} from '../../../services/branch/appointment.js?v=20261108a';
-import { confirmDanger } from '../../../components/ui/modal.js?v=20261108a';
-import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261108a';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261108a';
-import { deriveMeetingStatus } from '../../../data/mock/derive.js?v=20261108a';
-import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261108a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261108a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261108a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261108a';
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261108a';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261108a';
+} from '../../../services/branch/appointment.js?v=20261108b';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261108b';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261108b';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261108b';
+import { deriveMeetingStatus } from '../../../data/mock/derive.js?v=20261108b';
+import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261108b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261108b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261108b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261108b';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261108b';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261108b';
 
 /** 本支部 id（登录人归属；缺省 br-b1，与全仓同口径） */
 function branchId() {

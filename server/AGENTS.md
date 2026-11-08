@@ -23,9 +23,13 @@
 cd server; $env:DISABLE_PASSWORD_CHECK=1; node --test test/r3-data-permission-regression.test.mjs test/permission-gate.test.mjs test/roles-sync.test.mjs test/server-base.test.mjs
 # 动到语义端点时追加（真机，自起自停，较慢）
 cd server; node --test test/records-endpoints.test.mjs
-# 全量日常（实测 ≈150s，预算 ≤180s）
+# 全量日常（结果门禁，实测 ≈120–150s）
 cd server; npm run test:daily
-# 发布 / 大批改动（预算 ≤1200s；README 实测量级 ≈23 分钟）
+# 改样式 / 文档后补静态守卫（按需）
+cd server; npm run test:guards
+# 提交前 / 发布前（daily + guards + 域回归 + e2e）
+cd server; npm run test:precommit
+# 发布前全量（预算 ≤1200s；README 实测量级 ≈23 分钟）
 cd server; npm run test:full
 ```
 

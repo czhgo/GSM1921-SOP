@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-858`，共 32 条**；下一条自 **`D-859`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-859`，共 33 条**；下一条自 **`D-860`**。
 
 ## 本月目录（2026-11）
 
@@ -52,6 +52,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 界面信号统一：删左条 / 焦点单环不回潮 / 颜色单一权威 / 7 类待办服务端化 | `D-856` | 2026-11-04 | 已落（批次 534） |
 | CLAUDE 三层恢复 / 通知受众 fail-closed / SD-60 行动行 | `D-857` | 2026-11-07 | 已落（批次 535） |
 | V-11 裁定：党委内容域 + 公共门厅 + 支部幂等采用 | `D-858` | 2026-11-08 | 已落（批次 536） |
+| 测试瘦身：结果优先、守卫按需（四层 daily / guards / precommit / weekly） | `D-859` | 2026-11-08 | 已落（批次 537） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -228,4 +229,13 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > - **未选方案**：A 最小收紧（无法承载公开内容）、C 公共门户（超出当前需求）；多支部 Phase 3–4 不以上线为前提，`ALLOW_MULTI_BRANCH` 保持关闭。
 > - **落点**：`server/routes/resources/semantic-routes.js`（党委内容语义端点）、`server/routes/resources/branch-scope.js`、`server/routes/public-portal.js`、`server/routes/resources/publication-audit.js`、`docs/index.html`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md §9a.1`、`content/04_web_design/evolution/PUBLIC_ENTRANCE.md`、`content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §十`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-858`**（共 **32** 条）。
+## D-859 2026-11-08 — 测试瘦身：结果优先、守卫按需
+
+> **评议 → 裁定 → 落点**（支书 2026-11-08 补充裁定第 3 条，批次 537）：
+> - **问题**：`test:daily` 已胀到 255 文件 / 1872 断言 / 约 150s，且**结论与过程混跑**——改一个样式要等全部静态守卫与域回归；同时 `server/package.json` 的 `test:daily` 显式清单长 8518 字符，超过 Windows 命令行 8191 上限，Linux 也因 `set X=1&&` 语法不能跑。
+> - **裁定**：测试目的＝**暴露结果错误**；结果正确时不检查过程，结果错误时才按需看过程 ⇒ 四层：`daily` 只留**结果门禁**（权限 / 会话 / 数据契约与迁移 / 核心业务结果 / 构建可运行），`guards` 收**静态守卫**（样式 / 字号 / 颜色 / 动效 / 结构 / 文案 / 文档 / 行号 / 页签密度）按需跑，`precommit`＝daily＋guards＋非核心域回归＋e2e，`weekly` 留慢速普查。**不删任何测试文件或断言**，只改分层与触发方式；precommit / full 仍覆盖全部文件。
+> - **读数**：daily 255 → **43 文件 / 294 断言**；guards **93 文件 / 759 断言**；precommit 158 文件（含 38 个 e2e）；weekly 2。daily 墙钟实测 **≈123s（并发 4）/ ≈148s（并发 8）**——**未达 ≤60s**：43 文件串行成本约 500s（bcrypt ＋ SQLite / uploads 写盘），并发不再线性加速；压到 60s 需砍到约 20 个文件，会丢登录 / 权限 / 迁移门禁，故保留覆盖并把差距计入 README。后续提速方向＝降测试内固定成本（共享 bootstrap 夹具 / 测试档降 bcrypt 轮数），不是删判据。
+> - **未选方案**：① 继续把守卫留在 daily（改样式即等全量，违背「过程按需」）；② 直接删守卫 / 降 `skip`（丢判据，违反 H25）；③ 只把 daily 压到约 20 个文件换 60 秒（丢登录 / 权限 / 迁移结果门禁）。三条均不取。
+> - **落点**：`server/test-tier-registry.mjs`（四层 ＋ 四个预算常量）、`server/scripts/{tier-runner,run-daily,run-guards,run-precommit,run-changed}.mjs`、`server/package.json`（`test:daily` / `test:guards` / `test:precommit` / `test:changed`，去掉 `set X=1&&`）、`server/test/test-tier-guard.test.mjs`（T1/T3/T4/T5）、`server/test/doc-consistency.test.mjs::S16`、`server/test/contract-doc-guard.test.mjs`（新增）、`server/test/test-isolation-guard.test.mjs::I1`、四个自查登记守卫（`claude-parallel-audit::C7` / `container-width-guard::C5` / `lf-bar-structure-guard::L5` / `roster-filter-guard::R5`）、`CLAUDE.md H25`、`server/README.md`、`README-server.md`、`server/AGENTS.md`、`server/test/AGENTS.md`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-859`**（共 **33** 条）。

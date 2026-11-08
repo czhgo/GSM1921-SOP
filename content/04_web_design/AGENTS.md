@@ -1,7 +1,7 @@
 # AGENTS — content/04_web_design
 
 ## 读什么（最多 3 条）
-1. `content/04_web_design/README.md`（五子目录分职与权威源速查）。
+1. `content/04_web_design/README.md`（六子目录分职与权威源速查）。
 2. `design-system/DESIGN_SYSTEM.md`（父索引：哲学 ＋ 编目；条文在 `DS_01`…`DS_06`，§12 组件层执行口径在 `DS_03`）。
 3. `design-system/CASES.md`（判例：为什么这样定、边界在哪）。
 
@@ -10,7 +10,8 @@
 - 判例（场景 → 结论 → 边界 → SD 编号）→ `design-system/CASES.md`。
 - 数据模型 / 数据流 → `data/DATA_MODEL.md`。
 - 部署与对外对接 → `deploy/DEPLOYMENT_GUIDE.md`。
-- 页面 / 模块设计 → `module/*`；演进论证 → `evolution/*`（论证档案，不承担现行权威）。
+- 页面 / 模块设计 → `module/*`（含 `module/PUBLIC_ENTRANCE.md`）；演进愿景 → `evolution/ARCHITECTURE_EVOLUTION.md`；已落地论证 → `evolution/archive/*`（档案，不承担现行权威）。
+- 实现必须遵守的结构 / 版本 / 兼容 / 验收 → 只进 `contracts/*`，frontmatter 必备 `type: contract` / `status` / `version` / `owner` / `acceptance`。
 
 ## 禁什么（3 条硬禁）
 1. 不得在 `docs/**` 写规范条文（「必须 / 不得 / 禁止」口径）。判定：`git diff docs` 新增命中规范句式即回改到对应编。
@@ -20,7 +21,7 @@
 ## 验证命令
 ```powershell
 # 定向（改规范 / 判例后先跑，纯 node）
-cd server; node --test test/doc-consistency.test.mjs test/docs-governance-guard.test.mjs test/theme-palette-guard.test.mjs test/hex-hardcode-guard.test.mjs
+cd server; node --test test/doc-consistency.test.mjs test/docs-governance-guard.test.mjs test/contract-doc-guard.test.mjs test/theme-palette-guard.test.mjs test/hex-hardcode-guard.test.mjs
 # 改密度 / 交互 / 动效时追加
 cd server; node --test test/density-spacing-guard.test.mjs test/hover-state-guard.test.mjs test/motion-guard.test.mjs
 # 全量日常（实测 ≈150s，预算 ≤180s）

@@ -380,7 +380,7 @@ export function createResourcesRouter(db) {
   // 未登录/非支委层一律 403；读口仍按公开只读子集之外的 requireAuth 口径（2026-10-24 批次 508 仅放行归档只读）。
   const COMMISSIONER_WRITE = COMMISSIONER_WRITE_RESOURCES;
   for (const [name, table] of Object.entries(RESOURCE_TABLES)) {
-    const writeAuth = COMMISSIONER_WRITE.has(name) ? requireCommissioner(db) : requireAuth(db);
+    const writeAuth = [(req, res, next) => { if (req.method !== 'POST' && req.method !== 'PATCH') return next(); const deny = _publicFaceWriteDeny(req.actor, name, req.body); return deny ? res.status(deny.status).json({ error: deny.error }) : next(); }, COMMISSIONER_WRITE.has(name) ? requireCommissioner(db) : requireAuth(db)]; // G1：公开面字段先于角色写门判定（非党委 403 / 党委 400；仅 POST/PATCH）
 
     // 创建：body 为单条数据对象；缺 id 时服务端生成（与前端 mock 生成风格对齐）
     // 2026-09-06 立项⑤：branches 的 POST 收口为下方语义化「POST /branches」
@@ -1775,3 +1775,26 @@ export function _retainRowScopedSnapshotRows(db, writes, actor, reader) {
 import { canReadNotice, kindOf } from '../../../docs/src/services/governance/notice.js';
 // 反馈 / 汇报的受众判定单一源 = domain 层纯函数（服务端不能 import issues.js：那件牵 localStorage/适配器）
 import { canReadIssue } from '../../../docs/src/core/domain/issue-visibility.js';
+
+// ════════════════════════════════════════════════════════════════
+//  公开面写口收口（批次 537 波次 1 · G1）
+// ════════════════════════════════════════════════════════════════
+// 由来：通用 `POST/PATCH /notices` 与 `/branchDocs` 此前接受 `publishScope` / `publishExpiresAt` /
+//   `publicSummary`，任一登录成员即可把内容标成公开面，绕过「public 只归党委」的权限口径。
+// 口径：这两个资源一旦出现公开面字段——
+//   · 非 party-staff（支书 / 支委 / 普通成员）⇒ 403「公开范围仅党委可设」；
+//   · party-staff ⇒ 400，指向党委发布口（/committee/notices 或 /committee/documents）。
+// 边界：只拦这三个字段；其余字段与既有写门一律不动（普通通知 / 支部文件照常可写）。
+// ⚠ 本段置尾：上文行号是 README-server.md 的取证靶点，追加在文件末尾不移动既有行号。
+const PUBLIC_FACE_FIELDS = ['publishScope', 'publishExpiresAt', 'publicSummary'];
+const PUBLIC_FACE_RESOURCES = new Set(['notices', 'branchDocs']);
+
+function _publicFaceWriteDeny(actor, name, body) {
+  if (!PUBLIC_FACE_RESOURCES.has(name)) return null;
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return null;
+  if (!PUBLIC_FACE_FIELDS.some((field) => Object.prototype.hasOwnProperty.call(body, field))) return null;
+  if (!actor || !PARTY_STAFF_ROLE.has(actor.role)) {
+    return { status: 403, error: '无权限：公开范围仅党委可设' };
+  }
+  return { status: 400, error: '请走 /committee/notices 或 /committee/documents 发布口' };
+}

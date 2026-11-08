@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken, advanceVersionBaselineAfterWrite } from './data-adapter.js?v=20261108a';
+import { getApiBaseUrl, getAuthToken, advanceVersionBaselineAfterWrite } from './data-adapter.js?v=20261108b';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -718,6 +718,27 @@ export const ApiAdapter = {
 
       withdraw(id) {
         return _post(`/api/v1/committee/documents/${encodeURIComponent(id)}/withdraw`);
+      },
+    },
+
+    // 2026-11-08 批次 537 波次 1：党委公开通知（服务端 semantic-routes.js → committee-notices.js）。
+    // 归属 / 来源 / 受众 / 类型 / 日期由服务端强制；publishScope 只收 login / public。
+    notices: {
+      list(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        return _get(`/api/v1/committee/notices${query ? '?' + query : ''}`);
+      },
+
+      create(data) {
+        return _post('/api/v1/committee/notices', data);
+      },
+
+      update(id, patch) {
+        return _patch(`/api/v1/committee/notices/${encodeURIComponent(id)}`, patch);
+      },
+
+      withdraw(id) {
+        return _post(`/api/v1/committee/notices/${encodeURIComponent(id)}/withdraw`);
       },
     },
   },

@@ -1,0 +1,6227 @@
+{
+  "secretary-default-1440": {
+    "url": "/workspace/secretary.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 15,
+      "16px": 3,
+      "14px": 3,
+      "13px": 2
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "支书工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 14,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 1,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "全局概况",
+      "活动管理",
+      "支委会",
+      "党小组",
+      "通知发布",
+      "上报党委",
+      "支部分工",
+      "反馈管理"
+    ],
+    "tabCount": 10,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 125,
+    "text": "支书工作台 总览 今天 待办 全局概况 我的职责 活动管理 支委会 党小组 通知发布 上报党委 协作与知情 支部分工 制度与答复 反馈管理 今天 · 10月27日 周二 今天要办 全部 › 今天暂无待办 日程 今天暂无安排 活动管理 写入活动 看日历",
+    "colorCombos": 8,
+    "shot": ".tmp\\shots\\secretary-default-1440.png"
+  },
+  "secretary-today-1440": {
+    "url": "/workspace/secretary.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 15,
+      "16px": 3,
+      "14px": 3,
+      "13px": 2
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "支书工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 14,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 1,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "全局概况",
+      "活动管理",
+      "支委会",
+      "党小组",
+      "通知发布",
+      "上报党委",
+      "支部分工",
+      "反馈管理"
+    ],
+    "tabCount": 10,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 125,
+    "text": "支书工作台 总览 今天 待办 全局概况 我的职责 活动管理 支委会 党小组 通知发布 上报党委 协作与知情 支部分工 制度与答复 反馈管理 今天 · 10月27日 周二 今天要办 全部 › 今天暂无待办 日程 今天暂无安排 活动管理 写入活动 看日历",
+    "colorCombos": 8,
+    "shot": ".tmp\\shots\\secretary-today-1440.png"
+  },
+  "secretary-todo-1440": {
+    "url": "/workspace/secretary.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 66,
+      "14px": 15,
+      "13px": 2,
+      "11px": 3,
+      "16px": 3,
+      "24px": 4
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "支书工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "待办",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "待答复与未读通知\n          3",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我的待办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "待办详情",
+        "size": "16px",
+        "weight": "600"
+      }
+    ],
+    "btns": 20,
+    "dupLabels": [
+      [
+        "更多",
+        4
+      ],
+      [
+        "去处理",
+        2
+      ]
+    ],
+    "cards": 3,
+    "pills": 4,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "全局概况",
+      "活动管理",
+      "支委会",
+      "党小组",
+      "通知发布",
+      "上报党委",
+      "支部分工",
+      "反馈管理"
+    ],
+    "tabCount": 10,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 763,
+    "text": "支书工作台 总览 今天 待办 全局概况 我的职责 活动管理 支委会 党小组 通知发布 上报党委 协作与知情 支部分工 制度与答复 反馈管理 待办 待答复与未读通知 3 待答复 【进度汇报】 罗文杰 · 2026-07-08 进行中 去处理 了解进展：宣传专班（第二期）招募与推进情况 了解进展 · 储子禾 · 2026-07-05 待汇报 去处理 未读通知 1 我的待办 56 逾期 0 今日 0 本周 108 待处理 逾期 考勤待录入 考勤纪律 · 17 条 · 截止 2026-08-06 更多 复盘待提交 项目 · 22 条 · 截止 2026-08-11 更多 考察超期未确认 考察 · 17 条 · 截止 2026-08-14 更多 以后 归档待复核 归档宣传 · 6 条 考勤待复核 考勤纪律 · 18 条 考察待复核 考察 · 25 条 更多 成员变更待确认 成员发展 全选（1 条） 勾选后批量确认，逐项处理见详情 名册 2400012350 发展对象 → 预备党员 阶段变更 · 高翔宇 确认 0 项 批量确认同逐项同一写口（留痕不变） 复盘待复核 项目 · 2 条 待办详情 17 项待跟进 最早 2026-08-06 考勤待录入 活动结束>1天未录入考勤 → 纪检确认 → 考勤明细 8月主题党日：红色基地参访 2026-08-14 校企共建座谈：光华 x 中信证券 2026-09-05 积极分子座谈会 2026-09-07 9月党课：宏观经济形势分析 2026-09-08 10月参访：中关村科技企业 2026-10-01 10月共建：光华 x 人大商学院 2026-10-02 10月主题党日：建党105周年 2026-10-03 10月党小组会 2026-10-05 … 另有 9 项 去活动管理",
+    "colorCombos": 19,
+    "shot": ".tmp\\shots\\secretary-todo-1440.png"
+  },
+  "secretary-default-390": {
+    "url": "/workspace/secretary.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 15,
+      "16px": 3,
+      "14px": 3,
+      "13px": 2
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "支书工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 14,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 1,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "全局概况",
+      "活动管理",
+      "支委会",
+      "党小组",
+      "通知发布",
+      "上报党委",
+      "支部分工",
+      "反馈管理"
+    ],
+    "tabCount": 10,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 125,
+    "text": "支书工作台 总览 今天 待办 全局概况 我的职责 活动管理 支委会 党小组 通知发布 上报党委 协作与知情 支部分工 制度与答复 反馈管理 今天 · 10月27日 周二 今天要办 全部 › 今天暂无待办 日程 今天暂无安排 活动管理 写入活动 看日历",
+    "colorCombos": 8,
+    "shot": ".tmp\\shots\\secretary-default-390.png"
+  },
+  "secretary-today-390": {
+    "url": "/workspace/secretary.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 15,
+      "16px": 3,
+      "14px": 3,
+      "13px": 2
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "支书工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 14,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 1,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "全局概况",
+      "活动管理",
+      "支委会",
+      "党小组",
+      "通知发布",
+      "上报党委",
+      "支部分工",
+      "反馈管理"
+    ],
+    "tabCount": 10,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 125,
+    "text": "支书工作台 总览 今天 待办 全局概况 我的职责 活动管理 支委会 党小组 通知发布 上报党委 协作与知情 支部分工 制度与答复 反馈管理 今天 · 10月27日 周二 今天要办 全部 › 今天暂无待办 日程 今天暂无安排 活动管理 写入活动 看日历",
+    "colorCombos": 8,
+    "shot": ".tmp\\shots\\secretary-today-390.png"
+  },
+  "secretary-todo-390": {
+    "url": "/workspace/secretary.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 66,
+      "14px": 15,
+      "13px": 2,
+      "11px": 3,
+      "16px": 3,
+      "24px": 4
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "支书工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "待办",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "待答复与未读通知\n          3",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我的待办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "待办详情",
+        "size": "16px",
+        "weight": "600"
+      }
+    ],
+    "btns": 20,
+    "dupLabels": [
+      [
+        "更多",
+        4
+      ],
+      [
+        "去处理",
+        2
+      ]
+    ],
+    "cards": 3,
+    "pills": 4,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "全局概况",
+      "活动管理",
+      "支委会",
+      "党小组",
+      "通知发布",
+      "上报党委",
+      "支部分工",
+      "反馈管理"
+    ],
+    "tabCount": 10,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 763,
+    "text": "支书工作台 总览 今天 待办 全局概况 我的职责 活动管理 支委会 党小组 通知发布 上报党委 协作与知情 支部分工 制度与答复 反馈管理 待办 待答复与未读通知 3 待答复 【进度汇报】 罗文杰 · 2026-07-08 进行中 去处理 了解进展：宣传专班（第二期）招募与推进情况 了解进展 · 储子禾 · 2026-07-05 待汇报 去处理 未读通知 1 我的待办 56 逾期 0 今日 0 本周 108 待处理 逾期 考勤待录入 考勤纪律 · 17 条 · 截止 2026-08-06 更多 复盘待提交 项目 · 22 条 · 截止 2026-08-11 更多 考察超期未确认 考察 · 17 条 · 截止 2026-08-14 更多 以后 归档待复核 归档宣传 · 6 条 考勤待复核 考勤纪律 · 18 条 考察待复核 考察 · 25 条 更多 成员变更待确认 成员发展 全选（1 条） 勾选后批量确认，逐项处理见详情 名册 2400012350 发展对象 → 预备党员 阶段变更 · 高翔宇 确认 0 项 批量确认同逐项同一写口（留痕不变） 复盘待复核 项目 · 2 条 待办详情 17 项待跟进 最早 2026-08-06 考勤待录入 活动结束>1天未录入考勤 → 纪检确认 → 考勤明细 8月主题党日：红色基地参访 2026-08-14 校企共建座谈：光华 x 中信证券 2026-09-05 积极分子座谈会 2026-09-07 9月党课：宏观经济形势分析 2026-09-08 10月参访：中关村科技企业 2026-10-01 10月共建：光华 x 人大商学院 2026-10-02 10月主题党日：建党105周年 2026-10-03 10月党小组会 2026-10-05 … 另有 9 项 去活动管理",
+    "colorCombos": 19,
+    "shot": ".tmp\\shots\\secretary-todo-390.png"
+  },
+  "org-default-1440": {
+    "url": "/workspace/org.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 12,
+      "16px": 3,
+      "14px": 3,
+      "13px": 1
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "组织委员工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 11,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 1,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "成员名册",
+      "人才库",
+      "思想汇报",
+      "专班管理",
+      "成员流动"
+    ],
+    "tabCount": 8,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 106,
+    "text": "组织委员工作台 总览 今天 待办 工作概况 我的职责 成员名册 人才库 思想汇报 专班管理 成员流动 发布招募 今天 · 10月27日 周二 今天要办 全部 › 今天暂无待办 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 9,
+    "shot": ".tmp\\shots\\org-default-1440.png"
+  },
+  "org-today-1440": {
+    "url": "/workspace/org.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 12,
+      "16px": 3,
+      "14px": 3,
+      "13px": 1
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "组织委员工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 11,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 1,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "成员名册",
+      "人才库",
+      "思想汇报",
+      "专班管理",
+      "成员流动"
+    ],
+    "tabCount": 8,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 106,
+    "text": "组织委员工作台 总览 今天 待办 工作概况 我的职责 成员名册 人才库 思想汇报 专班管理 成员流动 发布招募 今天 · 10月27日 周二 今天要办 全部 › 今天暂无待办 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 9,
+    "shot": ".tmp\\shots\\org-today-1440.png"
+  },
+  "org-todo-1440": {
+    "url": "/workspace/org.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 43,
+      "14px": 13,
+      "13px": 2,
+      "11px": 1,
+      "16px": 4,
+      "24px": 4
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "组织委员工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "待办",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "待答复与未读通知\n          1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我的待办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "详情",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我经办的反馈",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "待我处理 3",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "我已处理 0",
+        "size": "14px",
+        "weight": "700"
+      }
+    ],
+    "btns": 14,
+    "dupLabels": [],
+    "cards": 6,
+    "pills": 2,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "成员名册",
+      "人才库",
+      "思想汇报",
+      "专班管理",
+      "成员流动"
+    ],
+    "tabCount": 8,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 536,
+    "text": "组织委员工作台 总览 今天 待办 工作概况 我的职责 成员名册 人才库 思想汇报 专班管理 成员流动 发布招募 待办 待答复与未读通知 1 未读通知 1 我的待办 17 逾期 0 今日 0 本周 23 待处理 逾期 考察超期未确认 考察 · 17 条 · 截止 2026-08-14 更多 以后 半年考察提醒（2026-H2） 成员发展 · 6 条 去处理 详情 考察超期未确认 条数 17 条 最早截止 2026-08-14 纪检录入考察 → 确认 → 组织建档 → 人才库 去录入考察 我经办的反馈 原「我的处置」已并入本页 支部派发的汇报与反馈在此处理；处理结果可回看。 待我处理 3 #2 已指派 支委会会议纪要模板缺失「下一步行动」字段 支书备注：请组织委员核实并补充模板字段 匿名 · 2026-07-22 · 2 评论 了解进展：宣传专班（第二期）招募与推进情况 请同步宣传专班（第二期）的招募进展与任务推进情况，开学前需向党委报进度。 汇报 #5 待汇报 了解进展：宣传专班（第二期）招募与推进情况 支书备注：了解进展 储子禾 · 2026-07-05 · 0 评论 我已处理 0 可回看本浏览器提交或参与的反馈；换设备后无法回认。帮助 — 还没有处理记录",
+    "colorCombos": 16,
+    "shot": ".tmp\\shots\\org-todo-1440.png"
+  },
+  "org-default-390": {
+    "url": "/workspace/org.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 12,
+      "16px": 3,
+      "14px": 3,
+      "13px": 1
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "组织委员工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 12,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 1,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "成员名册",
+      "人才库",
+      "思想汇报",
+      "专班管理",
+      "成员流动"
+    ],
+    "tabCount": 8,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 106,
+    "text": "组织委员工作台 总览 今天 待办 工作概况 我的职责 成员名册 人才库 思想汇报 专班管理 成员流动 发布招募 今天 · 10月27日 周二 今天要办 全部 › 今天暂无待办 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 9,
+    "shot": ".tmp\\shots\\org-default-390.png"
+  },
+  "org-today-390": {
+    "url": "/workspace/org.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 12,
+      "16px": 3,
+      "14px": 3,
+      "13px": 1
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "组织委员工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 12,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 1,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "成员名册",
+      "人才库",
+      "思想汇报",
+      "专班管理",
+      "成员流动"
+    ],
+    "tabCount": 8,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 106,
+    "text": "组织委员工作台 总览 今天 待办 工作概况 我的职责 成员名册 人才库 思想汇报 专班管理 成员流动 发布招募 今天 · 10月27日 周二 今天要办 全部 › 今天暂无待办 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 9,
+    "shot": ".tmp\\shots\\org-today-390.png"
+  },
+  "org-todo-390": {
+    "url": "/workspace/org.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 43,
+      "14px": 13,
+      "13px": 2,
+      "11px": 1,
+      "16px": 4,
+      "24px": 4
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "组织委员工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "待办",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "待答复与未读通知\n          1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我的待办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "详情",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我经办的反馈",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "待我处理 3",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "我已处理 0",
+        "size": "14px",
+        "weight": "700"
+      }
+    ],
+    "btns": 15,
+    "dupLabels": [],
+    "cards": 6,
+    "pills": 2,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "成员名册",
+      "人才库",
+      "思想汇报",
+      "专班管理",
+      "成员流动"
+    ],
+    "tabCount": 8,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 536,
+    "text": "组织委员工作台 总览 今天 待办 工作概况 我的职责 成员名册 人才库 思想汇报 专班管理 成员流动 发布招募 待办 待答复与未读通知 1 未读通知 1 我的待办 17 逾期 0 今日 0 本周 23 待处理 逾期 考察超期未确认 考察 · 17 条 · 截止 2026-08-14 更多 以后 半年考察提醒（2026-H2） 成员发展 · 6 条 去处理 详情 考察超期未确认 条数 17 条 最早截止 2026-08-14 纪检录入考察 → 确认 → 组织建档 → 人才库 去录入考察 我经办的反馈 原「我的处置」已并入本页 支部派发的汇报与反馈在此处理；处理结果可回看。 待我处理 3 #2 已指派 支委会会议纪要模板缺失「下一步行动」字段 支书备注：请组织委员核实并补充模板字段 匿名 · 2026-07-22 · 2 评论 了解进展：宣传专班（第二期）招募与推进情况 请同步宣传专班（第二期）的招募进展与任务推进情况，开学前需向党委报进度。 汇报 #5 待汇报 了解进展：宣传专班（第二期）招募与推进情况 支书备注：了解进展 储子禾 · 2026-07-05 · 0 评论 我已处理 0 可回看本浏览器提交或参与的反馈；换设备后无法回认。帮助 — 还没有处理记录",
+    "colorCombos": 16,
+    "shot": ".tmp\\shots\\org-todo-390.png"
+  },
+  "prop-default-1440": {
+    "url": "/workspace/prop.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 11,
+      "16px": 3,
+      "14px": 3,
+      "13px": 5
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "宣传委员工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "参与1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "阅读1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 9,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 2,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "项目看板",
+      "档案归档"
+    ],
+    "tabCount": 5,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 150,
+    "text": "宣传委员工作台 总览 今天 待办 工作概况 我的职责 项目看板 档案归档 今天 · 10月27日 周二 今天要办 全部 › 参与1 9月支部党员大会（线上异步表决） › 阅读1 开展\"红色徒步·香山行\"（纪念长征胜利 90 周年）活动的通知 2026-10-08 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 7,
+    "shot": ".tmp\\shots\\prop-default-1440.png"
+  },
+  "prop-today-1440": {
+    "url": "/workspace/prop.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 11,
+      "16px": 3,
+      "14px": 3,
+      "13px": 5
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "宣传委员工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "参与1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "阅读1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 9,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 2,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "项目看板",
+      "档案归档"
+    ],
+    "tabCount": 5,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 150,
+    "text": "宣传委员工作台 总览 今天 待办 工作概况 我的职责 项目看板 档案归档 今天 · 10月27日 周二 今天要办 全部 › 参与1 9月支部党员大会（线上异步表决） › 阅读1 开展\"红色徒步·香山行\"（纪念长征胜利 90 周年）活动的通知 2026-10-08 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 7,
+    "shot": ".tmp\\shots\\prop-today-1440.png"
+  },
+  "prop-todo-1440": {
+    "url": "/workspace/prop.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 30,
+      "14px": 8,
+      "13px": 1,
+      "11px": 1,
+      "16px": 4,
+      "24px": 4
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "宣传委员工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "待办",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "待答复与未读通知\n          1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我的待办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "详情",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我经办的反馈",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "待我处理 0",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "我已处理 0",
+        "size": "14px",
+        "weight": "700"
+      }
+    ],
+    "btns": 9,
+    "dupLabels": [],
+    "cards": 6,
+    "pills": 0,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "项目看板",
+      "档案归档"
+    ],
+    "tabCount": 5,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 308,
+    "text": "宣传委员工作台 总览 今天 待办 工作概况 我的职责 项目看板 档案归档 待办 待答复与未读通知 1 未读通知 1 我的待办 0 逾期 0 今日 1 本周 1 待处理 本周 提交\"红色徒步·香山行\"活动新闻稿 归档宣传 · 截止 2026-11-01 去归档 更多 详情 提交\"红色徒步·香山行\"活动新闻稿 条数 1 条 最早截止 2026-11-01 宣传材料 → 宣传委员归档 → 产出物区 去处理 我经办的反馈 原「我的处置」已并入本页 支部派发的汇报与反馈在此处理；处理结果可回看。 待我处理 0 — 暂无待我处理事项 我已处理 0 可回看本浏览器提交或参与的反馈；换设备后无法回认。帮助 — 还没有处理记录",
+    "colorCombos": 10,
+    "shot": ".tmp\\shots\\prop-todo-1440.png"
+  },
+  "prop-default-390": {
+    "url": "/workspace/prop.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 11,
+      "16px": 3,
+      "14px": 3,
+      "13px": 5
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "宣传委员工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "参与1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "阅读1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 10,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 2,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "项目看板",
+      "档案归档"
+    ],
+    "tabCount": 5,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 150,
+    "text": "宣传委员工作台 总览 今天 待办 工作概况 我的职责 项目看板 档案归档 今天 · 10月27日 周二 今天要办 全部 › 参与1 9月支部党员大会（线上异步表决） › 阅读1 开展\"红色徒步·香山行\"（纪念长征胜利 90 周年）活动的通知 2026-10-08 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 7,
+    "shot": ".tmp\\shots\\prop-default-390.png"
+  },
+  "prop-today-390": {
+    "url": "/workspace/prop.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 11,
+      "16px": 3,
+      "14px": 3,
+      "13px": 5
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "宣传委员工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "参与1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "阅读1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 10,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 2,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "项目看板",
+      "档案归档"
+    ],
+    "tabCount": 5,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 150,
+    "text": "宣传委员工作台 总览 今天 待办 工作概况 我的职责 项目看板 档案归档 今天 · 10月27日 周二 今天要办 全部 › 参与1 9月支部党员大会（线上异步表决） › 阅读1 开展\"红色徒步·香山行\"（纪念长征胜利 90 周年）活动的通知 2026-10-08 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 7,
+    "shot": ".tmp\\shots\\prop-today-390.png"
+  },
+  "prop-todo-390": {
+    "url": "/workspace/prop.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 30,
+      "14px": 8,
+      "13px": 1,
+      "11px": 1,
+      "16px": 4,
+      "24px": 4
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "宣传委员工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "待办",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "待答复与未读通知\n          1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我的待办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "详情",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我经办的反馈",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "待我处理 0",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "我已处理 0",
+        "size": "14px",
+        "weight": "700"
+      }
+    ],
+    "btns": 10,
+    "dupLabels": [],
+    "cards": 6,
+    "pills": 0,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "项目看板",
+      "档案归档"
+    ],
+    "tabCount": 5,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 308,
+    "text": "宣传委员工作台 总览 今天 待办 工作概况 我的职责 项目看板 档案归档 待办 待答复与未读通知 1 未读通知 1 我的待办 0 逾期 0 今日 1 本周 1 待处理 本周 提交\"红色徒步·香山行\"活动新闻稿 归档宣传 · 截止 2026-11-01 去归档 更多 详情 提交\"红色徒步·香山行\"活动新闻稿 条数 1 条 最早截止 2026-11-01 宣传材料 → 宣传委员归档 → 产出物区 去处理 我经办的反馈 原「我的处置」已并入本页 支部派发的汇报与反馈在此处理；处理结果可回看。 待我处理 0 — 暂无待我处理事项 我已处理 0 可回看本浏览器提交或参与的反馈；换设备后无法回认。帮助 — 还没有处理记录",
+    "colorCombos": 10,
+    "shot": ".tmp\\shots\\prop-todo-390.png"
+  },
+  "disc-default-1440": {
+    "url": "/workspace/disc.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 9,
+      "16px": 3,
+      "14px": 3,
+      "13px": 1
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "纪检委员工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 8,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 1,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "考勤管理",
+      "复盘",
+      "考察管理"
+    ],
+    "tabCount": 6,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 90,
+    "text": "纪检委员工作台 总览 今天 待办 工作概况 我的职责 考勤管理 复盘 考察管理 今天 · 10月27日 周二 今天要办 全部 › 今天暂无待办 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 8,
+    "shot": ".tmp\\shots\\disc-default-1440.png"
+  },
+  "disc-today-1440": {
+    "url": "/workspace/disc.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 9,
+      "16px": 3,
+      "14px": 3,
+      "13px": 1
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "纪检委员工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 8,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 1,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "考勤管理",
+      "复盘",
+      "考察管理"
+    ],
+    "tabCount": 6,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 90,
+    "text": "纪检委员工作台 总览 今天 待办 工作概况 我的职责 考勤管理 复盘 考察管理 今天 · 10月27日 周二 今天要办 全部 › 今天暂无待办 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 8,
+    "shot": ".tmp\\shots\\disc-today-1440.png"
+  },
+  "disc-todo-1440": {
+    "url": "/workspace/disc.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 30,
+      "14px": 9,
+      "13px": 1,
+      "11px": 1,
+      "16px": 4,
+      "24px": 4
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "纪检委员工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "待办",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "待答复与未读通知\n          1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我的待办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "详情",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我经办的反馈",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "待我处理 0",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "我已处理 0",
+        "size": "14px",
+        "weight": "700"
+      }
+    ],
+    "btns": 10,
+    "dupLabels": [],
+    "cards": 6,
+    "pills": 0,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "考勤管理",
+      "复盘",
+      "考察管理"
+    ],
+    "tabCount": 6,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 283,
+    "text": "纪检委员工作台 总览 今天 待办 工作概况 我的职责 考勤管理 复盘 考察管理 待办 待答复与未读通知 1 未读通知 1 我的待办 0 逾期 0 今日 0 本周 32 待处理 以后 考勤待确认 考勤纪律 · 15 条 去考勤管理 考察待确认 考察 · 17 条 去考察管理 详情 考勤待确认 条数 15 条 考勤上传 → 纪检确认 → 考勤明细 去处理 我经办的反馈 原「我的处置」已并入本页 支部派发的汇报与反馈在此处理；处理结果可回看。 待我处理 0 — 暂无待我处理事项 我已处理 0 可回看本浏览器提交或参与的反馈；换设备后无法回认。帮助 — 还没有处理记录",
+    "colorCombos": 11,
+    "shot": ".tmp\\shots\\disc-todo-1440.png"
+  },
+  "disc-default-390": {
+    "url": "/workspace/disc.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 9,
+      "16px": 3,
+      "14px": 3,
+      "13px": 1
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "纪检委员工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 9,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 1,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "考勤管理",
+      "复盘",
+      "考察管理"
+    ],
+    "tabCount": 6,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 90,
+    "text": "纪检委员工作台 总览 今天 待办 工作概况 我的职责 考勤管理 复盘 考察管理 今天 · 10月27日 周二 今天要办 全部 › 今天暂无待办 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 8,
+    "shot": ".tmp\\shots\\disc-default-390.png"
+  },
+  "disc-today-390": {
+    "url": "/workspace/disc.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 9,
+      "16px": 3,
+      "14px": 3,
+      "13px": 1
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "纪检委员工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 9,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 1,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "考勤管理",
+      "复盘",
+      "考察管理"
+    ],
+    "tabCount": 6,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 90,
+    "text": "纪检委员工作台 总览 今天 待办 工作概况 我的职责 考勤管理 复盘 考察管理 今天 · 10月27日 周二 今天要办 全部 › 今天暂无待办 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 8,
+    "shot": ".tmp\\shots\\disc-today-390.png"
+  },
+  "disc-todo-390": {
+    "url": "/workspace/disc.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 30,
+      "14px": 9,
+      "13px": 1,
+      "11px": 1,
+      "16px": 4,
+      "24px": 4
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "纪检委员工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "待办",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "待答复与未读通知\n          1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我的待办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "详情",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我经办的反馈",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "待我处理 0",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "我已处理 0",
+        "size": "14px",
+        "weight": "700"
+      }
+    ],
+    "btns": 11,
+    "dupLabels": [],
+    "cards": 6,
+    "pills": 0,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "考勤管理",
+      "复盘",
+      "考察管理"
+    ],
+    "tabCount": 6,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 283,
+    "text": "纪检委员工作台 总览 今天 待办 工作概况 我的职责 考勤管理 复盘 考察管理 待办 待答复与未读通知 1 未读通知 1 我的待办 0 逾期 0 今日 0 本周 32 待处理 以后 考勤待确认 考勤纪律 · 15 条 去考勤管理 考察待确认 考察 · 17 条 去考察管理 详情 考勤待确认 条数 15 条 考勤上传 → 纪检确认 → 考勤明细 去处理 我经办的反馈 原「我的处置」已并入本页 支部派发的汇报与反馈在此处理；处理结果可回看。 待我处理 0 — 暂无待我处理事项 我已处理 0 可回看本浏览器提交或参与的反馈；换设备后无法回认。帮助 — 还没有处理记录",
+    "colorCombos": 11,
+    "shot": ".tmp\\shots\\disc-todo-390.png"
+  },
+  "leader-default-1440": {
+    "url": "/workspace/leader.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 9,
+      "16px": 3,
+      "14px": 3,
+      "13px": 1
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "党小组组长工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 8,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 1,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "本组活动",
+      "考勤管理",
+      "组员进展"
+    ],
+    "tabCount": 6,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 93,
+    "text": "党小组组长工作台 总览 今天 待办 工作概况 我的职责 本组活动 考勤管理 组员进展 今天 · 10月27日 周二 今天要办 全部 › 今天暂无待办 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 8,
+    "shot": ".tmp\\shots\\leader-default-1440.png"
+  },
+  "leader-today-1440": {
+    "url": "/workspace/leader.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 9,
+      "16px": 3,
+      "14px": 3,
+      "13px": 1
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "党小组组长工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 8,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 1,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "本组活动",
+      "考勤管理",
+      "组员进展"
+    ],
+    "tabCount": 6,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 93,
+    "text": "党小组组长工作台 总览 今天 待办 工作概况 我的职责 本组活动 考勤管理 组员进展 今天 · 10月27日 周二 今天要办 全部 › 今天暂无待办 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 8,
+    "shot": ".tmp\\shots\\leader-today-1440.png"
+  },
+  "leader-todo-1440": {
+    "url": "/workspace/leader.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 28,
+      "14px": 9,
+      "13px": 1,
+      "11px": 1,
+      "16px": 3,
+      "24px": 4
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "党小组组长工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "待办",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "待答复与未读通知\n          1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我的待办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "详情",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我经办的反馈",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "待我处理 1",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "我已处理 1",
+        "size": "14px",
+        "weight": "700"
+      }
+    ],
+    "btns": 7,
+    "dupLabels": [],
+    "cards": 6,
+    "pills": 2,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "本组活动",
+      "考勤管理",
+      "组员进展"
+    ],
+    "tabCount": 6,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 305,
+    "text": "党小组组长工作台 总览 今天 待办 工作概况 我的职责 本组活动 考勤管理 组员进展 待办 待答复与未读通知 1 未读通知 1 我的待办 0 逾期 0 今日 0 本周 0 待处理 或直接点击\"去赋权/去审核\"等按钮处理 详情 选择一条待办查看详情 我经办的反馈 原「我的处置」已并入本页 支部派发的汇报与反馈在此处理；处理结果可回看。 待我处理 1 #3 待终审 党小组会签到流程建议改为扫码 支书备注：请第一党小组组长评估在本小组试点的可行性 匿名 · 2026-07-25 · 2 评论 我已处理 1 可回看本浏览器提交或参与的反馈；换设备后无法回认。帮助 进行中 进度 【进度汇报】 2026-07-08",
+    "colorCombos": 11,
+    "shot": ".tmp\\shots\\leader-todo-1440.png"
+  },
+  "leader-default-390": {
+    "url": "/workspace/leader.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 9,
+      "16px": 3,
+      "14px": 3,
+      "13px": 1
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "党小组组长工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 9,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 1,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "本组活动",
+      "考勤管理",
+      "组员进展"
+    ],
+    "tabCount": 6,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 93,
+    "text": "党小组组长工作台 总览 今天 待办 工作概况 我的职责 本组活动 考勤管理 组员进展 今天 · 10月27日 周二 今天要办 全部 › 今天暂无待办 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 8,
+    "shot": ".tmp\\shots\\leader-default-390.png"
+  },
+  "leader-today-390": {
+    "url": "/workspace/leader.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 9,
+      "16px": 3,
+      "14px": 3,
+      "13px": 1
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "党小组组长工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 9,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 1,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "本组活动",
+      "考勤管理",
+      "组员进展"
+    ],
+    "tabCount": 6,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 93,
+    "text": "党小组组长工作台 总览 今天 待办 工作概况 我的职责 本组活动 考勤管理 组员进展 今天 · 10月27日 周二 今天要办 全部 › 今天暂无待办 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 8,
+    "shot": ".tmp\\shots\\leader-today-390.png"
+  },
+  "leader-todo-390": {
+    "url": "/workspace/leader.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 28,
+      "14px": 9,
+      "13px": 1,
+      "11px": 1,
+      "16px": 3,
+      "24px": 4
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "党小组组长工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "待办",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "待答复与未读通知\n          1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我的待办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "详情",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我经办的反馈",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "待我处理 1",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "我已处理 1",
+        "size": "14px",
+        "weight": "700"
+      }
+    ],
+    "btns": 8,
+    "dupLabels": [],
+    "cards": 6,
+    "pills": 2,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "本组活动",
+      "考勤管理",
+      "组员进展"
+    ],
+    "tabCount": 6,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 305,
+    "text": "党小组组长工作台 总览 今天 待办 工作概况 我的职责 本组活动 考勤管理 组员进展 待办 待答复与未读通知 1 未读通知 1 我的待办 0 逾期 0 今日 0 本周 0 待处理 或直接点击\"去赋权/去审核\"等按钮处理 详情 选择一条待办查看详情 我经办的反馈 原「我的处置」已并入本页 支部派发的汇报与反馈在此处理；处理结果可回看。 待我处理 1 #3 待终审 党小组会签到流程建议改为扫码 支书备注：请第一党小组组长评估在本小组试点的可行性 匿名 · 2026-07-25 · 2 评论 我已处理 1 可回看本浏览器提交或参与的反馈；换设备后无法回认。帮助 进行中 进度 【进度汇报】 2026-07-08",
+    "colorCombos": 11,
+    "shot": ".tmp\\shots\\leader-todo-390.png"
+  },
+  "visitor-default-1440": {
+    "url": "/workspace/visitor.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 13,
+      "16px": 3,
+      "14px": 3,
+      "13px": 5
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "参与1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "阅读1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 11,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 2,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "活动动态",
+      "项目分工",
+      "考勤概况",
+      "我的成长"
+    ],
+    "tabCount": 7,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 156,
+    "text": "工作台 总览 今天 待办 工作概况 我的职责 活动动态 项目分工 考勤概况 我的成长 今天 · 10月27日 周二 今天要办 全部 › 参与1 9月支部党员大会（线上异步表决） › 阅读1 开展\"红色徒步·香山行\"（纪念长征胜利 90 周年）活动的通知 2026-10-08 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 7,
+    "shot": ".tmp\\shots\\visitor-default-1440.png"
+  },
+  "visitor-today-1440": {
+    "url": "/workspace/visitor.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 13,
+      "16px": 3,
+      "14px": 3,
+      "13px": 5
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "参与1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "阅读1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 11,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 2,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "活动动态",
+      "项目分工",
+      "考勤概况",
+      "我的成长"
+    ],
+    "tabCount": 7,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 156,
+    "text": "工作台 总览 今天 待办 工作概况 我的职责 活动动态 项目分工 考勤概况 我的成长 今天 · 10月27日 周二 今天要办 全部 › 参与1 9月支部党员大会（线上异步表决） › 阅读1 开展\"红色徒步·香山行\"（纪念长征胜利 90 周年）活动的通知 2026-10-08 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 7,
+    "shot": ".tmp\\shots\\visitor-today-1440.png"
+  },
+  "visitor-todo-1440": {
+    "url": "/workspace/visitor.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 31,
+      "14px": 8,
+      "13px": 1,
+      "11px": 1,
+      "16px": 4,
+      "24px": 4
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "待办",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "待答复与未读通知\n          1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我的待办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "详情",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我经办的反馈",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "待我处理 0",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "我已处理 0",
+        "size": "14px",
+        "weight": "700"
+      }
+    ],
+    "btns": 11,
+    "dupLabels": [],
+    "cards": 6,
+    "pills": 0,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "活动动态",
+      "项目分工",
+      "考勤概况",
+      "我的成长"
+    ],
+    "tabCount": 7,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 289,
+    "text": "工作台 总览 今天 待办 工作概况 我的职责 活动动态 项目分工 考勤概况 我的成长 待办 待答复与未读通知 1 未读通知 1 我的待办 0 逾期 0 今日 0 本周 1 待处理 以后 参与专班「SOP 系统维护专班」 项目 · 截止 2026-12-31 去参与 更多 详情 参与专班「SOP 系统维护专班」 条数 1 条 最早截止 2026-12-31 去处理 我经办的反馈 原「我的处置」已并入本页 支部派发的汇报与反馈在此处理；处理结果可回看。 待我处理 0 — 暂无待我处理事项 我已处理 0 可回看本浏览器提交或参与的反馈；换设备后无法回认。帮助 — 还没有处理记录",
+    "colorCombos": 10,
+    "shot": ".tmp\\shots\\visitor-todo-1440.png"
+  },
+  "visitor-default-390": {
+    "url": "/workspace/visitor.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 13,
+      "16px": 3,
+      "14px": 3,
+      "13px": 5
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "参与1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "阅读1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 12,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 2,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "活动动态",
+      "项目分工",
+      "考勤概况",
+      "我的成长"
+    ],
+    "tabCount": 7,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 156,
+    "text": "工作台 总览 今天 待办 工作概况 我的职责 活动动态 项目分工 考勤概况 我的成长 今天 · 10月27日 周二 今天要办 全部 › 参与1 9月支部党员大会（线上异步表决） › 阅读1 开展\"红色徒步·香山行\"（纪念长征胜利 90 周年）活动的通知 2026-10-08 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 7,
+    "shot": ".tmp\\shots\\visitor-default-390.png"
+  },
+  "visitor-today-390": {
+    "url": "/workspace/visitor.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 13,
+      "16px": 3,
+      "14px": 3,
+      "13px": 5
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "今天 · 10月27日 周二",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "今天要办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "参与1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "阅读1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "日程",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "活动管理",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 12,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 2,
+    "chevrons": 2,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "活动动态",
+      "项目分工",
+      "考勤概况",
+      "我的成长"
+    ],
+    "tabCount": 7,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 156,
+    "text": "工作台 总览 今天 待办 工作概况 我的职责 活动动态 项目分工 考勤概况 我的成长 今天 · 10月27日 周二 今天要办 全部 › 参与1 9月支部党员大会（线上异步表决） › 阅读1 开展\"红色徒步·香山行\"（纪念长征胜利 90 周年）活动的通知 2026-10-08 日程 今天暂无安排 活动管理 看日历",
+    "colorCombos": 7,
+    "shot": ".tmp\\shots\\visitor-today-390.png"
+  },
+  "visitor-todo-390": {
+    "url": "/workspace/visitor.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 31,
+      "14px": 8,
+      "13px": 1,
+      "11px": 1,
+      "16px": 4,
+      "24px": 4
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "待办",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "待答复与未读通知\n          1",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我的待办",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "详情",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "我经办的反馈",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "待我处理 0",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "我已处理 0",
+        "size": "14px",
+        "weight": "700"
+      }
+    ],
+    "btns": 12,
+    "dupLabels": [],
+    "cards": 6,
+    "pills": 0,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [
+      "今天",
+      "待办",
+      "工作概况",
+      "活动动态",
+      "项目分工",
+      "考勤概况",
+      "我的成长"
+    ],
+    "tabCount": 7,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 289,
+    "text": "工作台 总览 今天 待办 工作概况 我的职责 活动动态 项目分工 考勤概况 我的成长 待办 待答复与未读通知 1 未读通知 1 我的待办 0 逾期 0 今日 0 本周 1 待处理 以后 参与专班「SOP 系统维护专班」 项目 · 截止 2026-12-31 去参与 更多 详情 参与专班「SOP 系统维护专班」 条数 1 条 最早截止 2026-12-31 去处理 我经办的反馈 原「我的处置」已并入本页 支部派发的汇报与反馈在此处理；处理结果可回看。 待我处理 0 — 暂无待我处理事项 我已处理 0 可回看本浏览器提交或参与的反馈；换设备后无法回认。帮助 — 还没有处理记录",
+    "colorCombos": 10,
+    "shot": ".tmp\\shots\\visitor-todo-390.png"
+  },
+  "party-default-1440": {
+    "url": "/workspace/party-committee.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 11,
+      "16px": 1,
+      "13px": 3,
+      "14px": 5
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "党委工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "支部上报",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "支部上报处理",
+        "size": "16px",
+        "weight": "700"
+      }
+    ],
+    "btns": 8,
+    "dupLabels": [],
+    "cards": 1,
+    "pills": 3,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [
+      "下发通知",
+      "支部上报",
+      "支部管理",
+      "待批复 1",
+      "已处理 0"
+    ],
+    "tabCount": 5,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 258,
+    "text": "党委工作台 党委治理 下发通知 支部上报 支部管理 支部上报 党委逐项批复，决定和意见会回传提交支部。 支部上报处理 支部筛选 选择支部查看明细 光华管理学院本科生党支部 选择支部查看明细 待批复 1 已处理 0 光华管理学院本科生党支部 活动报备 待批复 关于赴香山开展主题党日的报备 拟定 10 月中旬组织支部党员赴香山开展主题党日，含往返交通、安全预案与经费说明，报请党委备案（8 月报备、后按活动安排调整至 10 月 22 日）。 2400012345 提交 · 2026-08-06 09:00 驳回 批准",
+    "colorCombos": 12,
+    "shot": ".tmp\\shots\\party-default-1440.png"
+  },
+  "party-review-1440": {
+    "url": "/workspace/party-committee.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 11,
+      "16px": 1,
+      "13px": 3,
+      "14px": 5
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "党委工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "支部上报",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "支部上报处理",
+        "size": "16px",
+        "weight": "700"
+      }
+    ],
+    "btns": 8,
+    "dupLabels": [],
+    "cards": 1,
+    "pills": 3,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [
+      "下发通知",
+      "支部上报",
+      "支部管理",
+      "待批复 1",
+      "已处理 0"
+    ],
+    "tabCount": 5,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 258,
+    "text": "党委工作台 党委治理 下发通知 支部上报 支部管理 支部上报 党委逐项批复，决定和意见会回传提交支部。 支部上报处理 支部筛选 选择支部查看明细 光华管理学院本科生党支部 选择支部查看明细 待批复 1 已处理 0 光华管理学院本科生党支部 活动报备 待批复 关于赴香山开展主题党日的报备 拟定 10 月中旬组织支部党员赴香山开展主题党日，含往返交通、安全预案与经费说明，报请党委备案（8 月报备、后按活动安排调整至 10 月 22 日）。 2400012345 提交 · 2026-08-06 09:00 驳回 批准",
+    "colorCombos": 12,
+    "shot": ".tmp\\shots\\party-review-1440.png"
+  },
+  "party-dispatch-1440": {
+    "url": "/workspace/party-committee.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 10,
+      "14px": 10,
+      "16px": 1,
+      "13px": 2
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "党委工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "下发通知",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "撰写一条党委通知",
+        "size": "16px",
+        "weight": "700"
+      }
+    ],
+    "btns": 6,
+    "dupLabels": [
+      [
+        "下发通知",
+        2
+      ]
+    ],
+    "cards": 1,
+    "pills": 0,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [
+      "下发通知",
+      "支部上报",
+      "支部管理",
+      "撰写",
+      "已发送 0"
+    ],
+    "tabCount": 5,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 181,
+    "text": "党委工作台 党委治理 下发通知 支部上报 支部管理 下发通知 通知送达所选支部的支委层；收件人在通知铃铛中查看。 撰写 已发送 0 撰写一条党委通知 通知送达所选支部的支委层；收件人在通知铃铛中查看。 目标支部 * 全部支部 光华管理学院本科生党支部 默认不选；请主动勾选目标支部后再发送。 标题 * 正文 * 优先级 重要（常规） 紧急（需立即办理） 下发通知",
+    "colorCombos": 10,
+    "shot": ".tmp\\shots\\party-dispatch-1440.png"
+  },
+  "party-default-390": {
+    "url": "/workspace/party-committee.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 11,
+      "16px": 2,
+      "14px": 5,
+      "13px": 2
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "党委工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "支部上报",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "支部上报处理",
+        "size": "16px",
+        "weight": "700"
+      }
+    ],
+    "btns": 9,
+    "dupLabels": [],
+    "cards": 1,
+    "pills": 3,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [
+      "下发通知",
+      "支部上报",
+      "支部管理",
+      "待批复 1",
+      "已处理 0"
+    ],
+    "tabCount": 5,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 258,
+    "text": "党委工作台 党委治理 下发通知 支部上报 支部管理 支部上报 党委逐项批复，决定和意见会回传提交支部。 支部上报处理 支部筛选 选择支部查看明细 光华管理学院本科生党支部 选择支部查看明细 待批复 1 已处理 0 光华管理学院本科生党支部 活动报备 待批复 关于赴香山开展主题党日的报备 拟定 10 月中旬组织支部党员赴香山开展主题党日，含往返交通、安全预案与经费说明，报请党委备案（8 月报备、后按活动安排调整至 10 月 22 日）。 2400012345 提交 · 2026-08-06 09:00 驳回 批准",
+    "colorCombos": 12,
+    "shot": ".tmp\\shots\\party-default-390.png"
+  },
+  "party-review-390": {
+    "url": "/workspace/party-committee.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 11,
+      "16px": 2,
+      "14px": 5,
+      "13px": 2
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "党委工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "支部上报",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "支部上报处理",
+        "size": "16px",
+        "weight": "700"
+      }
+    ],
+    "btns": 9,
+    "dupLabels": [],
+    "cards": 1,
+    "pills": 3,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [
+      "下发通知",
+      "支部上报",
+      "支部管理",
+      "待批复 1",
+      "已处理 0"
+    ],
+    "tabCount": 5,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 258,
+    "text": "党委工作台 党委治理 下发通知 支部上报 支部管理 支部上报 党委逐项批复，决定和意见会回传提交支部。 支部上报处理 支部筛选 选择支部查看明细 光华管理学院本科生党支部 选择支部查看明细 待批复 1 已处理 0 光华管理学院本科生党支部 活动报备 待批复 关于赴香山开展主题党日的报备 拟定 10 月中旬组织支部党员赴香山开展主题党日，含往返交通、安全预案与经费说明，报请党委备案（8 月报备、后按活动安排调整至 10 月 22 日）。 2400012345 提交 · 2026-08-06 09:00 驳回 批准",
+    "colorCombos": 12,
+    "shot": ".tmp\\shots\\party-review-390.png"
+  },
+  "party-dispatch-390": {
+    "url": "/workspace/party-committee.html",
+    "fonts": {
+      "20px": 2,
+      "12px": 10,
+      "14px": 10,
+      "16px": 1,
+      "13px": 2
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "党委工作台",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "下发通知",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "撰写一条党委通知",
+        "size": "16px",
+        "weight": "700"
+      }
+    ],
+    "btns": 7,
+    "dupLabels": [
+      [
+        "下发通知",
+        2
+      ]
+    ],
+    "cards": 1,
+    "pills": 0,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [
+      "下发通知",
+      "支部上报",
+      "支部管理",
+      "撰写",
+      "已发送 0"
+    ],
+    "tabCount": 5,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 181,
+    "text": "党委工作台 党委治理 下发通知 支部上报 支部管理 下发通知 通知送达所选支部的支委层；收件人在通知铃铛中查看。 撰写 已发送 0 撰写一条党委通知 通知送达所选支部的支委层；收件人在通知铃铛中查看。 目标支部 * 全部支部 光华管理学院本科生党支部 默认不选；请主动勾选目标支部后再发送。 标题 * 正文 * 优先级 重要（常规） 紧急（需立即办理） 下发通知",
+    "colorCombos": 9,
+    "shot": ".tmp\\shots\\party-dispatch-390.png"
+  },
+  "index-1440": {
+    "url": "/index.html?month=2026-10",
+    "fonts": {
+      "24px": 5,
+      "12px": 84,
+      "16px": 4,
+      "11px": 21,
+      "14px": 14,
+      "13px": 1
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "光华管理学院本科生党支部",
+        "size": "24px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "重要通知",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H2",
+        "text": "近期活动",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H2",
+        "text": "工作组进展",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H2",
+        "text": "活动风采",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "10月主题党日：建党105周年 →",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "10月主题党日：深化改革 →",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "9月主题党日：五四精神传承 →",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "8月支委会：发展党员工作阶段审议 →",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "8月党小组会：第三党小组理论学习 →",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "暑期实践总结分享 →",
+        "size": "14px",
+        "weight": "700"
+      }
+    ],
+    "btns": 7,
+    "dupLabels": [],
+    "cards": 14,
+    "pills": 0,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [],
+    "tabCount": 0,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 926,
+    "text": "光华管理学院本科生党支部 8场 本月活动 1个 活跃专班 1条 未读通知 — 个人考勤（待录入） 重要通知 1 条未读 紧急 开展\"红色徒步·香山行\"（纪念长征胜利 90 周年）活动的通知 10月22日组织支部党员赴香山公园开展\"红色徒步·香山行\"主题党日（纪念长征胜利 90 周年），请全体党员、预备党员、积极分子做好参加准备。 2026-10-08 查看更多 → 近期活动 日历 列表 工作台 → 完整日历 → 全部月份 2026-11 2026-10 2026-09 2026-08 2026-10 2026年 十月 一 二 三 四 五 六 日 1 党日 2 党日 3 党日 4 5 党会 6 党日 7 党日 8 9 10 11 12 13 14 15 党课 16 17 18 19 20 21 22 党日 23 24 25 26 27 28 29 30 31 三会一课 主题党日 工作组进展 活动工作组 37 查看全部 → 11月支委会：发展党员工作专题 成员 1 人 · 日期 2026-11-25 运行中 进入 → 11月党小组会：第三党小组理论学习 成员 1 人 · 日期 2026-11-19 运行中 进入 → 11月主题党日：学习贯彻党的二十届四中全会精神 成员 2 人 · 日期 2026-11-12 运行中 进入 → 专班工作组 1 查看全部 → SOP 系统维护专班 成员 3 人 · 任务 0/1 运行中 进入 → 活动风采 归档库 → 暂无活动照片 主题党日 10月主题党日：建党105周年 → 2026-10-03 · 罗文杰 待归档 暂无活动照片 主题党日 10月主题党日：深化改革 → 2026-10-06 · 罗文杰 待归档 暂无活动照片 主题党日 9月主题党日：五四精神传承 → 2026-09-03 · 何晓峰 待归档 暂无活动照片 支委会 8月支委会：发展党员工作阶段审议 → 2026-08-12 · 高翔宇 待归档 暂无活动照片 党小组会 8月党小组会：第三党小组理论学习 → 2026-08-05 · 梁凯文 待归档 暂无活动照片 主题党日 暑期实践总结分享 → 2026-08-04 · 罗文杰 待归档",
+    "colorCombos": 20,
+    "shot": ".tmp\\shots\\index-1440.png"
+  },
+  "activity-1440": {
+    "url": "/activity.html?id=act-1",
+    "fonts": {
+      "12px": 19,
+      "11px": 11,
+      "13px": 4,
+      "20px": 1,
+      "14px": 9
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "8月党小组会",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "本工作组汇报",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "应到名单（8）未冻结 · 按当前在册现算",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "工作分工（0）",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 7,
+    "dupLabels": [
+      [
+        "转交组织者",
+        2
+      ]
+    ],
+    "cards": 2,
+    "pills": 10,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [],
+    "tabCount": 0,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 312,
+    "text": "← 返回 待归档 党小组会 act-1 复制链接 8月党小组会 2026-08-07 · 光华1号楼203会议室 下一步 材料与归档 转交组织者 组织者 何晓峰 活动方向 自下而上（党小组发起） 品牌认定（支委会）：本场尚未认定为品牌活动——须由支委 / 党小组组长提案，经支委会审议通过后认定 提议认定为品牌活动 转交组织者：选定接手人后立即生效（原组织者退出、新人接手）；更换会记入本场角色变更留痕 转交组织者 本工作组汇报汇总 0 应到名单（8）未冻结 · 按当前在册现算 罗 罗文杰 何 何晓峰 方 方文静 储 储子禾 黄 黄志远 顾 顾文博 陈 陈晓彤 刘 刘子昂 工作分工（0） 新增分工 本场尚未安排工作分工。",
+    "colorCombos": 10,
+    "shot": ".tmp\\shots\\activity-1440.png"
+  },
+  "taskforce-1440": {
+    "url": "/taskforce.html?id=tf-001",
+    "fonts": {
+      "12px": 23,
+      "11px": 5,
+      "13px": 1,
+      "20px": 1,
+      "14px": 16
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "宣传专班（第二期）",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "本工作组汇报",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "专班工作组成员（3）",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "登记任务（1）",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "工作产出（0）",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "工作考察（1）",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 2,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 9,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [],
+    "tabCount": 0,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 372,
+    "text": "← 返回 已完结 专班 tf-001 复制链接 宣传专班（第二期） 深度报道与专题视频制作 — 秋季学期系列主题活动宣传任务 发起人 方文静 创建时间 2026-08-06 本工作组汇报汇总 0 工作组已结束，成员与授权记录只读保留。 专班工作组成员（3） 彭博文 深度参与者 第二党小组 只读 未授予操作权限 吕思涵 深度参与者 第一党小组 只读 未授予操作权限 宋佳宁 深度参与者 第二党小组 只读 未授予操作权限 专班不设一般参与者报名、应到名单或考勤；组织者/深度参与者入组申请由组织台受理，工作执行按登记任务与产出记录。 只读 登记任务（1） 深度报道与专题视频制作 — 秋季学期系列主题活动宣传任务 待开始 工作产出（0） 暂无登记产出。 工作考察（1） 吕思涵 深度参与 待确认 文案撰写 记录人：罗文杰 · 2026-08-12",
+    "colorCombos": 7,
+    "shot": ".tmp\\shots\\taskforce-1440.png"
+  },
+  "help-1440": {
+    "url": "/help.html",
+    "fonts": {
+      "24px": 17,
+      "13.44px": 57,
+      "13.12px": 178,
+      "12.16px": 1,
+      "21.6px": 13,
+      "16px": 63,
+      "16.32px": 46,
+      "15.2px": 257,
+      "14.4px": 923,
+      "13.76px": 868,
+      "10.88px": 137,
+      "13.6px": 3,
+      "12px": 1
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "光华管理学院本科生党支部",
+        "size": "24px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "致谢",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "0入口速查",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "0.1全站页面清单",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "0.2角色 ↔ 工作台映射",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "0.3登录说明",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "0.4设置中心速览（外观 / 我的工作台 / 支部治理）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "设置在哪 · 先看哪一节",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "1快速上手",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "1.1登录与角色落点",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "1.2工作台通用骨架",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "1.3权限知情边界",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H2",
+        "text": "2角色工作台导览",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "2.1支书工作台（支书 / 副支书共台 · 10 tab）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "2.2组织委员工作台（8 tab）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "2.3宣传委员工作台（5 tab）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "2.4纪检委员工作台（6 tab）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "2.5党小组组长工作台（6 tab）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "2.6成员工作台（7 tab · 含组织者 / 深度参与者）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "2.7党委工作台（3 tab · 党委组织员）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H2",
+        "text": "附口径定点（界面深链落点）",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "党小组与组长（组长怎么产生 · 改名与解散各牵动什么）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "活动复盘提交位（谁提交 · 哪里只读 · 待复盘与打回怎么算）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "常设赋权（设党小组组长 / 副组长 · 支委身份配置）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "项目赋权 · 活动（按活动给同志赋项目角色）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "项目赋权 · 专班（按专班给同志赋项目角色）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "匿名反馈的支部范围与身份保护",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "支委会会议页（可见范围 · 参会范围 · 效力口径）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "会议考勤（上传位怎么分 · 录入与更正口径）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "补课（哪些会议要补 · 记录怎么归档）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "图功能地图",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "党建",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "活动创建 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "会议议程 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "三会一课 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "主题党日 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "活动报名 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "赋权按对象归位 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "通知发布 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "线上异步表决 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "发展党员 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "人才库 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "考察记录 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "考勤管理 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "补课制度 特有",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "复盘 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "思想汇报 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "成员变更审批 特有",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "宣传与档案",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "宣传任务 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "项目看板 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "周期归档报送 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "支部文件 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "归档库 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "活动与专班",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "专班发起 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "招募统筹 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "定人定责定岗 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "外派任务 特有",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "公共",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "首页 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "资料查询 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "意见反馈 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "个人待办 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "个人考勤 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "帮助（本页） 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "关于 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "角色工作台",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "支书工作台 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "组织委员工作台 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "宣传委员工作台 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "纪检委员工作台 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "党小组组长工作台 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "成员工作台 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "3域手册",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "3.1会务（三会一课）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "创建会议（支部党员大会 / 支委会 / 党课 / 党小组会）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "会议议程与记录（讨论文件 / 待讨论名单 / 决议落实）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "线上异步表决（决策类：支委会 / 支部党员大会）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "考勤管理 · 上传（组长 → 纪检确认）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "3.2活动 / 项目（主题党日）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "主题党日创建（场景维度选型）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "报名参与",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "复盘提交（组织者 / 深度参与者 → 纪检复核）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "3.3考勤纪律",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "会议考勤录入（党课 / 支部党员大会：纪检上传位）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "考勤确认（待确认队列 / 总表确认）→ 自动补课",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "考勤矩阵与明细（查看 / 筛选 / 导出）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "补课任务与完成回写",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "考勤统计交接支委会（组织委员接收建档）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "3.4考察",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "考察管理 · 上传（组长 · 活动侧 / 组织 · 专班侧）+ 纪检代录",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "纪检确认与超期提醒",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "考察交接归集组织（建档）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "3.5成员发展",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "发展管线推进",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "思想汇报（提交即入库归档 / 篇幅不足只提示 / 必要时打回）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "成员名册（新增 / 行内调整 / 变更确认 / 移出）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "3.6专班（跨组攻坚 · 组织统筹）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "发起专班（发布招募表单 → 自动报送支委会表决）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "支委会表决专班议案（发起 / 解散；支书排入 → 生效落果）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "招募报名与分级审核（普通即通过 / 深度与组织者待审核）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "启动运行与成员角色（定人定责定岗）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "运行中：中间进度填报（组织侧分阶段进展）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "运行中：成员产出填报与组织逐条核验（同意入档 / 退回补料）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "专班复盘（组织侧提交 → 纪检批注收尾）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "解散报送支委会表决（含关闭前置校验）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "知情查看（支书 / 组长只读知情 · 一级分段＝活动工作组 / 专班工作组；纪检经专班详情页）与归档撤销（组织台）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "3.7决议上报",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "会议决议落实（登记待落实 → 责任人跟进 → 逾期支书督办 → 销项）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "上报党委（支书发起 · 支部侧）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "党委批复（党委台「支部上报」· 组织级）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "3.8归档与宣传",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "宣传任务（三栏接单 → 进行中 → 已提交）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "项目看板（活动 + 专班合并卡 · 专班工作量）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "周期归档（周/月由支部制度参数决定）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "档案归档（待归档 / 归档中 / 已归档 + 材料清单 + 上传与下载）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "支部文件与官方文件（公共页「资料查询」· 支部文件版本化）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "3.9汇报与反馈",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "双向工作汇报（一键汇报 → 支书答复 → 汇报人确认后办结）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "「了解进展」（支书 / 组长请汇报 → 行内即发）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "意见反馈（支部内提交 + 支委处置）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "我经办的反馈（组织 / 宣传 / 纪检 / 党小组组长 / 成员五台：待我处理 / 我已处理；成员台为答复入口）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "组员进展（组长台：组员汇报收件 + 正式答复 + 卡点进度知情）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "文件外发确认（发送方标记 → 接收方确认，两侧动作）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "4设置逐项",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "4.1设置中心分区一览（10 个分区 · 你能看到哪几区）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "10 个分区：每区管什么 · 谁能看到",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "4.2外观（字号 / 明暗主题 / 主题色）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "三项偏好逐项 · 以及同区的「当前形态 · 归属判定」自查卡",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "4.3我的工作台（本人页签顺序）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "它管什么 · 谁能改 · 改后会怎样",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "4.4支部治理 · 支部信息与向导",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "支部档案（只读）+ 换组织向导（内嵌打开）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "4.5支部治理 · 工作台默认顺序",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "它管什么 · 谁能改 · 改后会怎样",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "4.6支部治理 · 支部制度参数（逐项）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "卡上六项：各自管什么 · 默认值 · 能不能改",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "制度已登记「支部可调」、现已开放入口的参数",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "4.7支部治理 · 活动批准门（本区唯一可直接改的制度开关）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "三档：关闭（默认）/ 支书批准 / 支委会批准",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "4.8支部治理 · 各域职责参数（纪检 / 组织 / 组长）与配置变更记录",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "三张域参数卡：它管什么 · 默认值与范围 · 改后会怎样",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "配置变更记录：可查 · 单键可回滚",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "5业务链路",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "支委会链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "线上支委会链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "党小组会链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "党课链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "主题党日链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "支部党员大会链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "专班链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "发展党员链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "考察积极分子链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "制度制定与迭代链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "补课回写链路 特有",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "思想汇报链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.1三会一课链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "创建 → 议程 → 记录 → 考勤 → 归档（支部党员大会 / 支委会 / 党小组会 / 党课）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.2主题党日链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "选型创建 → 报名分工 → 实施监督 → 复盘 → 宣传归档",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.3考勤纪律链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "组织者上传 → 纪检确认与录入总表 → 自动补课 → 考勤统计交支委会",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.4考察链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "考察管理 · 上传 → 纪检确认 → 交接组织建档（供发展使用）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.5发展党员链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "管线推进 / 名册变更 → 支书确认（材料自动归集）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.6思想汇报链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "成员提交即入库归档 → 组织委员查看调用（必要时打回重交）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.7专班链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "发起 → 支委会表决 → 招募 → 执行核验 → 复盘 → 解散表决",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.8决议落实链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "记录决议 → 责任人待办 → 逾期支书督办 → 销项",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.9上报党委链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "支部上报 → 党委批复 / 驳回 → 结论回传支部",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.10换届 / 换组织链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "换届任命 → 支部配置分步向导（数据保留语义）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "6党委与配置",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "6.1党委工作台 3 tab 导览",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "3 tab：给谁用 · 做什么 · 操作要点",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "6.2支部配置分区页与引导模式（3 入口）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "三个入口：从哪进、谁能进",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "各步分别做什么（保存即生效 / 出工作单）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "6.3数据保留、重置与本地缓存清理",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "重置会清什么、保留什么 · 如何清掉旧的本地数据 / 缓存",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "7这个系统在干什么",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "制度即代码",
+        "size": "13.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "角色即视图",
+        "size": "13.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "经验可传承",
+        "size": "13.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "8技术架构",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "8.1分层结构",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "8.2技术栈与运行方式",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H2",
+        "text": "免责声明",
+        "size": "21.6px",
+        "weight": "700"
+      }
+    ],
+    "btns": 0,
+    "dupLabels": [],
+    "cards": 0,
+    "pills": 0,
+    "chevrons": 0,
+    "dupHeadings": [
+      [
+        "它管什么 · 谁能改 · 改后会怎样",
+        2
+      ]
+    ],
+    "tabs": [],
+    "tabCount": 0,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 68965,
+    "text": "光华管理学院本科生党支部 致谢 0 入口速查 1 快速上手 2 角色工作台导览 3 域手册 4 设置逐项 5 业务链路 6 党委与配置 7 这个系统在干什么 8 技术架构 免责声明 搜索系统使用说明 按角色或常见任务浏览 致谢 感谢党委书记马化祥、党委副书记鞠晓对本支部数字化管理探索的大力支持。 感谢支部委员：赵雅萱、代艺、徐瑗依、秦若琳、韩思宁、辛长乐、侯嘉嵘、王峥旭、王溪斌、悦佳荷——正是各位委员在各自岗位上精益求精的实务耕耘，才为本系统的设计提供了丰富的场景素材与实践检验。 特别感谢赵雅萱、闫鑫岳同志对于宣传档案工作的鼎力指导。 特别感谢韩思宁、辛长乐同志对于党小组工作组织和考勤考察划分的工作方法创新。 特别感谢白文琦、孙睿同志对于支部扁平化工作方法 SOP 工作流的理论贡献，为系统决策树模型建构了方法论支撑。 特别感谢朱阳俊峰、杜新宇同志对于品牌活动打磨和党小组工作做法的创造性贡献。 感谢党建中心提供的资源平台支持。 0 入口速查 系统说明书分 0–8 章。这一章是「先看哪、谁能进、怎么到」：全站页面分为根页面与各角色工作台（页面清单以 docs/ 实测为准）。 登录后按身份直达对应工作台，工作内容都收在工作台内——读第 1 章知道通用规则，再翻第 2 章自己那台的小节即可动手。 0.1 全站页面清单 「谁能进」里的“公共”指未登录也可浏览（登录后可见更多本人相关数据）；工作台须登录（未登录访问自动跳登录页）。点击页面名可直达。 页面 是什么 谁能进 怎么到达 首页 支部活动日历 / 近期活动 / 通知与招募一览；「工作组进展」卡分活动工作组与专班工作组两组，逐行显示成员数与任务完成数；登录后显示本人待办与角色区块 公共 站点入口；侧边栏「首页」 登录 账号登录（开发模式卡见 0.3） 所有人 顶栏 / 侧栏「登录」按钮；访问需登录页面自动跳转 资料查询 官方制度文件与支部文件检索；已归档支部文件标注讨论来源 公共 侧边栏「资料查询」 归档库 历届已归档工作成果的浏览与检索 公共 侧边栏「归档库」 活动详情 单个活动的详情页：议程 / 报名 / 线上表态 / 考勤与产出记录；报名、表态、记录需登录 公共可看；操作需登录 首页日历与活动卡、工作台内活动行、待办、通知等链接 消息详情 单条消息的完整内容：公告（正文 / 发布人 / 受众）、系统通知（正文 ＋ 对象卡 ＋ 唯一动作）、私信（会话线程 ＋ 回复）；进入即已读，会议类通知的回执独立呈现 公共可看；已读 / 回执 / 回复需登录 消息中心行；顶栏铃铛；首页通知区；通知类待办 消息 消息中心：公告 / 系统通知 / 私信同列在一条时间流（按来源徽标区分），支持未读 / 已读 / 已归档筛选；私信仅你与对方可见，在详情页接成会话 需登录（任何支部成员均可写私信） 侧边栏「消息」/ 顶栏铃铛 专班详情 单个专班的详情页：招募 / 分工 / 进展（专班为跨小组集中推进形态） 公共可看；报名、操作需登录 首页「工作组进展」卡；工作台「专班管理 / 项目分工 · 专班 / 全局概况 · 知情查看卡」行内链接 支委会会议页 线上召开支委会的会议页：选线上召开 → 定本场参会范围（默认支委层，可改为支委扩大会、选定扩大到谁）→ 提取议程 → 表态 → 支书汇总截止 → 留存并查阅讨论结果。效力口径：线上",
+    "colorCombos": 14,
+    "shot": ".tmp\\shots\\help-1440.png"
+  },
+  "about-1440": {
+    "url": "/about.html",
+    "fonts": {
+      "12px": 27,
+      "84px": 2,
+      "18px": 4,
+      "120px": 6,
+      "14px": 101,
+      "54px": 7,
+      "32px": 16,
+      "16px": 25,
+      "17px": 6,
+      "20px": 3,
+      "24px": 10,
+      "22px": 26,
+      "72px": 1,
+      "52px": 1
+    },
+    "headings": [
+      {
+        "tag": "H1",
+        "text": "从入党申请人到正式党员",
+        "size": "84px",
+        "weight": "400"
+      },
+      {
+        "tag": "H2",
+        "text": "「组织性」的展开",
+        "size": "54px",
+        "weight": "400"
+      },
+      {
+        "tag": "H3",
+        "text": "学生组织",
+        "size": "32px",
+        "weight": "400"
+      },
+      {
+        "tag": "H3",
+        "text": "政治组织",
+        "size": "32px",
+        "weight": "400"
+      },
+      {
+        "tag": "H3",
+        "text": "具体",
+        "size": "32px",
+        "weight": "400"
+      },
+      {
+        "tag": "H3",
+        "text": "方兴未艾",
+        "size": "32px",
+        "weight": "400"
+      },
+      {
+        "tag": "H3",
+        "text": "提供成长",
+        "size": "32px",
+        "weight": "400"
+      },
+      {
+        "tag": "H4",
+        "text": "你可以期待的成长路径",
+        "size": "18px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "你可以期待的做事方式",
+        "size": "18px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "你可以期待的表达空间",
+        "size": "18px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "三个成长机会",
+        "size": "54px",
+        "weight": "400"
+      },
+      {
+        "tag": "H3",
+        "text": "适应、学习的机会",
+        "size": "20px",
+        "weight": "400"
+      },
+      {
+        "tag": "H3",
+        "text": "探索、创新的机会",
+        "size": "20px",
+        "weight": "400"
+      },
+      {
+        "tag": "H3",
+        "text": "对话的机会——党建+科研",
+        "size": "20px",
+        "weight": "400"
+      },
+      {
+        "tag": "H2",
+        "text": "身份阶段：从入党申请人到正式党员",
+        "size": "54px",
+        "weight": "400"
+      },
+      {
+        "tag": "H2",
+        "text": "我们如何考察",
+        "size": "54px",
+        "weight": "400"
+      },
+      {
+        "tag": "H2",
+        "text": "工作流——谁在什么时候该去找谁？",
+        "size": "54px",
+        "weight": "400"
+      },
+      {
+        "tag": "H3",
+        "text": "活动：按承办党小组确定责任入口",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "tag": "H4",
+        "text": "按承办党小组创建",
+        "size": "16px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "分工",
+        "size": "16px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "联系条条 + 通知 + 准备",
+        "size": "16px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "复盘、宣传产出与材料归档",
+        "size": "16px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "按需考察与活动收尾",
+        "size": "16px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "专班工作组：围绕事项协作",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "tag": "H4",
+        "text": "明确事项 + 建立工作组",
+        "size": "16px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "并列分工 + 独立授权",
+        "size": "16px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "任务产出闭合 + 收尾",
+        "size": "16px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "行百里者半九十",
+        "size": "54px",
+        "weight": "400"
+      }
+    ],
+    "btns": 0,
+    "dupLabels": [],
+    "cards": 0,
+    "pills": 0,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [],
+    "tabCount": 0,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 3778,
+    "text": "开篇 从入党申请人 到正式党员 以本支部为例 向下滚动 01 第一章 · 组织性 「组织性」的展开 「组织性」 的展开 学生组织 政治组织 具体 方兴未艾 提供成长 你可以期待的成长路径 各种发展轨迹，都可以加入其中，获得他想要的成长，并且是通过组织获得他想要的成长。 你可以期待的做事方式 事情的运作固然有管理的科学和既往的经验。作为支部成员，在执行已沉淀的工作流的基础上，本身便可以得到成长和锻炼。 支部的建设方兴未艾，所以需要大家都发挥主人翁意识来创新、沉淀新的经验。 你可以期待的表达空间 我们不反对批评意见，但要求要在组织的框架内提出批评意见……我特别怕大家因为认为是‘党支部’，所以怕说错话，而选择不‘真实表达’！因为这样自己既没有真实的交互体验，组织也没办法持续进步。 支委和支书的职责所在包含了开放心态，积极交流，维护团结。也因此要充分吸收意见建议、帮助支部成员按照组织程序进行组织表达。 02 第二章 · 成长机会 成长机会 三个成长机会 本支部提供三个并列的成长机会。 适应、学习的机会 “民主集中制”下感受真实的组织的两个向度：“赋权”背景下的程序性 和 “探索”背景下的扁平化。 这也就意味着真实的组织，不能只靠程序性令人凝聚在一起，也不能只靠“扁平化”而不去形成共识、带来效率。 程序在所有人之上，所以扁平；但程序中，支委个人都因为更大的责任而被要求嵌入地更深。 提高生涯发展中对于所处组织的适应能力和开放心态。 程序性 “赋权”背景下——组织通过分工、流程、记录、复盘让人凝聚 扁平化 “探索”背景下——组织通过平等协商让人创新 探索、创新的机会 作为AI时代中一个建设方兴未艾的学生组织， ①可以真实地参与组织制度和组织文化的构建； ②可以在“没有经济负担”的背景下探索AI时代下组织转型的萌芽和组织产品的生产。 组织高度赞赏创新，不要因为年级、政治面貌而影响想法的交流和反馈。 支部的建设方兴未艾，任何的意见、建议、创新都弥足珍贵。 参与构建 可以真实地参与组织制度和组织文化的构建 探索自由度 在“没有经济负担”的背景下探索组织转型的萌芽和组织产品的生产——未来进入职场后难以获得 学生党支部的“方兴未艾”恰恰是机会所在：成熟组织没有这种探索空间，而学生组织有。 对话的机会——党建+科研 党建和经管学科科研的交叉点在于恢复和马克思主义的对话能力，恢复理论研究和现实治理之间的对话能力。 研究对象 经管学科研究对象本身是历史生成、社会建构的，不是自明的——这是理工科不遇到的问题 抽象能力 从现实到理论的抽象缺乏系统训练；马克思主义方法论与经济学工具互补，党建以组织化机制补足 组织环境 党建+科研建设的是「促进高质量问题生成的组织环境」 对经管学生而言，「服务人」有一个特别值得做的方向——恢复对话能力是「服务人」的一个子命题：帮助你恢复与思想、与现实世界的对话能力。 03 第三章 · 身份阶段 身份阶段 身份阶段：从入党申请人到正式党员 依据《中国共产党发展党员工作细则（2026年）》 从入党申请人到正式党员，变的不仅是身份，更是「组织性」——党员最重要的特质。 普通节点 关键决策节点 入党申请人 → 入党积极分子 §5/§7 本人自愿 入党申请人表达意愿；党组织一个月内派人谈话（支部执行，弱化） 1 递交入党申请书 年满十八岁 一年以上培养考察期 2 ",
+    "colorCombos": 24,
+    "shot": ".tmp\\shots\\about-1440.png"
+  },
+  "index-390": {
+    "url": "/index.html?month=2026-10",
+    "fonts": {
+      "24px": 5,
+      "12px": 84,
+      "16px": 5,
+      "11px": 21,
+      "14px": 14
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "光华管理学院本科生党支部",
+        "size": "24px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "重要通知",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H2",
+        "text": "近期活动",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H2",
+        "text": "工作组进展",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H2",
+        "text": "活动风采",
+        "size": "16px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "10月主题党日：建党105周年 →",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "10月主题党日：深化改革 →",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "9月主题党日：五四精神传承 →",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "8月支委会：发展党员工作阶段审议 →",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "8月党小组会：第三党小组理论学习 →",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "暑期实践总结分享 →",
+        "size": "14px",
+        "weight": "700"
+      }
+    ],
+    "btns": 7,
+    "dupLabels": [],
+    "cards": 14,
+    "pills": 0,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [],
+    "tabCount": 0,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 926,
+    "text": "光华管理学院本科生党支部 8场 本月活动 1个 活跃专班 1条 未读通知 — 个人考勤（待录入） 重要通知 1 条未读 紧急 开展\"红色徒步·香山行\"（纪念长征胜利 90 周年）活动的通知 10月22日组织支部党员赴香山公园开展\"红色徒步·香山行\"主题党日（纪念长征胜利 90 周年），请全体党员、预备党员、积极分子做好参加准备。 2026-10-08 查看更多 → 近期活动 日历 列表 工作台 → 完整日历 → 全部月份 2026-11 2026-10 2026-09 2026-08 2026-10 2026年 十月 一 二 三 四 五 六 日 1 党日 2 党日 3 党日 4 5 党会 6 党日 7 党日 8 9 10 11 12 13 14 15 党课 16 17 18 19 20 21 22 党日 23 24 25 26 27 28 29 30 31 三会一课 主题党日 工作组进展 活动工作组 37 查看全部 → 11月支委会：发展党员工作专题 成员 1 人 · 日期 2026-11-25 运行中 进入 → 11月党小组会：第三党小组理论学习 成员 1 人 · 日期 2026-11-19 运行中 进入 → 11月主题党日：学习贯彻党的二十届四中全会精神 成员 2 人 · 日期 2026-11-12 运行中 进入 → 专班工作组 1 查看全部 → SOP 系统维护专班 成员 3 人 · 任务 0/1 运行中 进入 → 活动风采 归档库 → 暂无活动照片 主题党日 10月主题党日：建党105周年 → 2026-10-03 · 罗文杰 待归档 暂无活动照片 主题党日 10月主题党日：深化改革 → 2026-10-06 · 罗文杰 待归档 暂无活动照片 主题党日 9月主题党日：五四精神传承 → 2026-09-03 · 何晓峰 待归档 暂无活动照片 支委会 8月支委会：发展党员工作阶段审议 → 2026-08-12 · 高翔宇 待归档 暂无活动照片 党小组会 8月党小组会：第三党小组理论学习 → 2026-08-05 · 梁凯文 待归档 暂无活动照片 主题党日 暑期实践总结分享 → 2026-08-04 · 罗文杰 待归档",
+    "colorCombos": 20,
+    "shot": ".tmp\\shots\\index-390.png"
+  },
+  "activity-390": {
+    "url": "/activity.html?id=act-1",
+    "fonts": {
+      "12px": 19,
+      "11px": 11,
+      "13px": 4,
+      "20px": 1,
+      "14px": 9
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "8月党小组会",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "本工作组汇报",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "应到名单（8）未冻结 · 按当前在册现算",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "工作分工（0）",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 7,
+    "dupLabels": [
+      [
+        "转交组织者",
+        2
+      ]
+    ],
+    "cards": 2,
+    "pills": 10,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [],
+    "tabCount": 0,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 312,
+    "text": "← 返回 待归档 党小组会 act-1 复制链接 8月党小组会 2026-08-07 · 光华1号楼203会议室 下一步 材料与归档 转交组织者 组织者 何晓峰 活动方向 自下而上（党小组发起） 品牌认定（支委会）：本场尚未认定为品牌活动——须由支委 / 党小组组长提案，经支委会审议通过后认定 提议认定为品牌活动 转交组织者：选定接手人后立即生效（原组织者退出、新人接手）；更换会记入本场角色变更留痕 转交组织者 本工作组汇报汇总 0 应到名单（8）未冻结 · 按当前在册现算 罗 罗文杰 何 何晓峰 方 方文静 储 储子禾 黄 黄志远 顾 顾文博 陈 陈晓彤 刘 刘子昂 工作分工（0） 新增分工 本场尚未安排工作分工。",
+    "colorCombos": 9,
+    "shot": ".tmp\\shots\\activity-390.png"
+  },
+  "taskforce-390": {
+    "url": "/taskforce.html?id=tf-001",
+    "fonts": {
+      "12px": 23,
+      "11px": 5,
+      "13px": 1,
+      "20px": 1,
+      "14px": 16
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "宣传专班（第二期）",
+        "size": "20px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "本工作组汇报",
+        "size": "14px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "专班工作组成员（3）",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "登记任务（1）",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "工作产出（0）",
+        "size": "14px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "工作考察（1）",
+        "size": "14px",
+        "weight": "600"
+      }
+    ],
+    "btns": 2,
+    "dupLabels": [],
+    "cards": 2,
+    "pills": 9,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [],
+    "tabCount": 0,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 372,
+    "text": "← 返回 已完结 专班 tf-001 复制链接 宣传专班（第二期） 深度报道与专题视频制作 — 秋季学期系列主题活动宣传任务 发起人 方文静 创建时间 2026-08-06 本工作组汇报汇总 0 工作组已结束，成员与授权记录只读保留。 专班工作组成员（3） 彭博文 深度参与者 第二党小组 只读 未授予操作权限 吕思涵 深度参与者 第一党小组 只读 未授予操作权限 宋佳宁 深度参与者 第二党小组 只读 未授予操作权限 专班不设一般参与者报名、应到名单或考勤；组织者/深度参与者入组申请由组织台受理，工作执行按登记任务与产出记录。 只读 登记任务（1） 深度报道与专题视频制作 — 秋季学期系列主题活动宣传任务 待开始 工作产出（0） 暂无登记产出。 工作考察（1） 吕思涵 深度参与 待确认 文案撰写 记录人：罗文杰 · 2026-08-12",
+    "colorCombos": 7,
+    "shot": ".tmp\\shots\\taskforce-390.png"
+  },
+  "help-390": {
+    "url": "/help.html",
+    "fonts": {
+      "24px": 17,
+      "12.8px": 11,
+      "13.12px": 178,
+      "12.16px": 1,
+      "21.6px": 13,
+      "16px": 63,
+      "13.44px": 46,
+      "16.32px": 46,
+      "15.2px": 257,
+      "14.4px": 923,
+      "13.76px": 868,
+      "10.88px": 137,
+      "13.6px": 3,
+      "12px": 1
+    },
+    "headings": [
+      {
+        "tag": "H2",
+        "text": "光华管理学院本科生党支部",
+        "size": "24px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "致谢",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "0入口速查",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "0.1全站页面清单",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "0.2角色 ↔ 工作台映射",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "0.3登录说明",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "0.4设置中心速览（外观 / 我的工作台 / 支部治理）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "设置在哪 · 先看哪一节",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "1快速上手",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "1.1登录与角色落点",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "1.2工作台通用骨架",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "1.3权限知情边界",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H2",
+        "text": "2角色工作台导览",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "2.1支书工作台（支书 / 副支书共台 · 10 tab）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "2.2组织委员工作台（8 tab）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "2.3宣传委员工作台（5 tab）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "2.4纪检委员工作台（6 tab）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "2.5党小组组长工作台（6 tab）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "2.6成员工作台（7 tab · 含组织者 / 深度参与者）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "2.7党委工作台（3 tab · 党委组织员）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H2",
+        "text": "附口径定点（界面深链落点）",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "党小组与组长（组长怎么产生 · 改名与解散各牵动什么）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "活动复盘提交位（谁提交 · 哪里只读 · 待复盘与打回怎么算）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "常设赋权（设党小组组长 / 副组长 · 支委身份配置）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "项目赋权 · 活动（按活动给同志赋项目角色）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "项目赋权 · 专班（按专班给同志赋项目角色）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "匿名反馈的支部范围与身份保护",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "支委会会议页（可见范围 · 参会范围 · 效力口径）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "会议考勤（上传位怎么分 · 录入与更正口径）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "补课（哪些会议要补 · 记录怎么归档）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "图功能地图",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "党建",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "活动创建 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "会议议程 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "三会一课 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "主题党日 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "活动报名 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "赋权按对象归位 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "通知发布 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "线上异步表决 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "发展党员 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "人才库 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "考察记录 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "考勤管理 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "补课制度 特有",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "复盘 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "思想汇报 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "成员变更审批 特有",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "宣传与档案",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "宣传任务 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "项目看板 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "周期归档报送 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "支部文件 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "归档库 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "活动与专班",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "专班发起 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "招募统筹 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "定人定责定岗 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "外派任务 特有",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "公共",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "首页 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "资料查询 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "意见反馈 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "个人待办 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "个人考勤 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "帮助（本页） 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "关于 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "角色工作台",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "支书工作台 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "组织委员工作台 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "宣传委员工作台 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "纪检委员工作台 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "党小组组长工作台 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "成员工作台 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "3域手册",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "3.1会务（三会一课）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "创建会议（支部党员大会 / 支委会 / 党课 / 党小组会）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "会议议程与记录（讨论文件 / 待讨论名单 / 决议落实）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "线上异步表决（决策类：支委会 / 支部党员大会）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "考勤管理 · 上传（组长 → 纪检确认）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "3.2活动 / 项目（主题党日）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "主题党日创建（场景维度选型）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "报名参与",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "复盘提交（组织者 / 深度参与者 → 纪检复核）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "3.3考勤纪律",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "会议考勤录入（党课 / 支部党员大会：纪检上传位）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "考勤确认（待确认队列 / 总表确认）→ 自动补课",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "考勤矩阵与明细（查看 / 筛选 / 导出）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "补课任务与完成回写",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "考勤统计交接支委会（组织委员接收建档）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "3.4考察",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "考察管理 · 上传（组长 · 活动侧 / 组织 · 专班侧）+ 纪检代录",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "纪检确认与超期提醒",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "考察交接归集组织（建档）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "3.5成员发展",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "发展管线推进",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "思想汇报（提交即入库归档 / 篇幅不足只提示 / 必要时打回）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "成员名册（新增 / 行内调整 / 变更确认 / 移出）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "3.6专班（跨组攻坚 · 组织统筹）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "发起专班（发布招募表单 → 自动报送支委会表决）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "支委会表决专班议案（发起 / 解散；支书排入 → 生效落果）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "招募报名与分级审核（普通即通过 / 深度与组织者待审核）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "启动运行与成员角色（定人定责定岗）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "运行中：中间进度填报（组织侧分阶段进展）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "运行中：成员产出填报与组织逐条核验（同意入档 / 退回补料）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "专班复盘（组织侧提交 → 纪检批注收尾）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "解散报送支委会表决（含关闭前置校验）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "知情查看（支书 / 组长只读知情 · 一级分段＝活动工作组 / 专班工作组；纪检经专班详情页）与归档撤销（组织台）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "3.7决议上报",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "会议决议落实（登记待落实 → 责任人跟进 → 逾期支书督办 → 销项）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "上报党委（支书发起 · 支部侧）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "党委批复（党委台「支部上报」· 组织级）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "3.8归档与宣传",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "宣传任务（三栏接单 → 进行中 → 已提交）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "项目看板（活动 + 专班合并卡 · 专班工作量）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "周期归档（周/月由支部制度参数决定）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "档案归档（待归档 / 归档中 / 已归档 + 材料清单 + 上传与下载）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "支部文件与官方文件（公共页「资料查询」· 支部文件版本化）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "3.9汇报与反馈",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "双向工作汇报（一键汇报 → 支书答复 → 汇报人确认后办结）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "「了解进展」（支书 / 组长请汇报 → 行内即发）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "意见反馈（支部内提交 + 支委处置）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "我经办的反馈（组织 / 宣传 / 纪检 / 党小组组长 / 成员五台：待我处理 / 我已处理；成员台为答复入口）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "组员进展（组长台：组员汇报收件 + 正式答复 + 卡点进度知情）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "文件外发确认（发送方标记 → 接收方确认，两侧动作）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "4设置逐项",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "4.1设置中心分区一览（10 个分区 · 你能看到哪几区）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "10 个分区：每区管什么 · 谁能看到",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "4.2外观（字号 / 明暗主题 / 主题色）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "三项偏好逐项 · 以及同区的「当前形态 · 归属判定」自查卡",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "4.3我的工作台（本人页签顺序）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "它管什么 · 谁能改 · 改后会怎样",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "4.4支部治理 · 支部信息与向导",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "支部档案（只读）+ 换组织向导（内嵌打开）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "4.5支部治理 · 工作台默认顺序",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "它管什么 · 谁能改 · 改后会怎样",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "4.6支部治理 · 支部制度参数（逐项）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "卡上六项：各自管什么 · 默认值 · 能不能改",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "制度已登记「支部可调」、现已开放入口的参数",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "4.7支部治理 · 活动批准门（本区唯一可直接改的制度开关）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "三档：关闭（默认）/ 支书批准 / 支委会批准",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "4.8支部治理 · 各域职责参数（纪检 / 组织 / 组长）与配置变更记录",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "三张域参数卡：它管什么 · 默认值与范围 · 改后会怎样",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "配置变更记录：可查 · 单键可回滚",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "5业务链路",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "支委会链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "线上支委会链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "党小组会链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "党课链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "主题党日链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "支部党员大会链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "专班链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "发展党员链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "考察积极分子链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "制度制定与迭代链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "补课回写链路 特有",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "思想汇报链路 通用",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.1三会一课链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "创建 → 议程 → 记录 → 考勤 → 归档（支部党员大会 / 支委会 / 党小组会 / 党课）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.2主题党日链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "选型创建 → 报名分工 → 实施监督 → 复盘 → 宣传归档",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.3考勤纪律链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "组织者上传 → 纪检确认与录入总表 → 自动补课 → 考勤统计交支委会",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.4考察链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "考察管理 · 上传 → 纪检确认 → 交接组织建档（供发展使用）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.5发展党员链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "管线推进 / 名册变更 → 支书确认（材料自动归集）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.6思想汇报链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "成员提交即入库归档 → 组织委员查看调用（必要时打回重交）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.7专班链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "发起 → 支委会表决 → 招募 → 执行核验 → 复盘 → 解散表决",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.8决议落实链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "记录决议 → 责任人待办 → 逾期支书督办 → 销项",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.9上报党委链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "支部上报 → 党委批复 / 驳回 → 结论回传支部",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "5.10换届 / 换组织链路",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "换届任命 → 支部配置分步向导（数据保留语义）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "6党委与配置",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "6.1党委工作台 3 tab 导览",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "3 tab：给谁用 · 做什么 · 操作要点",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "6.2支部配置分区页与引导模式（3 入口）",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "三个入口：从哪进、谁能进",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "各步分别做什么（保存即生效 / 出工作单）",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "6.3数据保留、重置与本地缓存清理",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H4",
+        "text": "重置会清什么、保留什么 · 如何清掉旧的本地数据 / 缓存",
+        "size": "15.2px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "7这个系统在干什么",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "制度即代码",
+        "size": "13.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "角色即视图",
+        "size": "13.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "经验可传承",
+        "size": "13.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "8技术架构",
+        "size": "21.6px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "8.1分层结构",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H3",
+        "text": "8.2技术栈与运行方式",
+        "size": "16.32px",
+        "weight": "600"
+      },
+      {
+        "tag": "H2",
+        "text": "免责声明",
+        "size": "21.6px",
+        "weight": "700"
+      }
+    ],
+    "btns": 0,
+    "dupLabels": [],
+    "cards": 0,
+    "pills": 0,
+    "chevrons": 0,
+    "dupHeadings": [
+      [
+        "它管什么 · 谁能改 · 改后会怎样",
+        2
+      ]
+    ],
+    "tabs": [],
+    "tabCount": 0,
+    "bodyScrollWidth": 473,
+    "clientWidth": 390,
+    "textLen": 68965,
+    "text": "光华管理学院本科生党支部 致谢 0 入口速查 1 快速上手 2 角色工作台导览 3 域手册 4 设置逐项 5 业务链路 6 党委与配置 7 这个系统在干什么 8 技术架构 免责声明 搜索系统使用说明 按角色或常见任务浏览 致谢 感谢党委书记马化祥、党委副书记鞠晓对本支部数字化管理探索的大力支持。 感谢支部委员：赵雅萱、代艺、徐瑗依、秦若琳、韩思宁、辛长乐、侯嘉嵘、王峥旭、王溪斌、悦佳荷——正是各位委员在各自岗位上精益求精的实务耕耘，才为本系统的设计提供了丰富的场景素材与实践检验。 特别感谢赵雅萱、闫鑫岳同志对于宣传档案工作的鼎力指导。 特别感谢韩思宁、辛长乐同志对于党小组工作组织和考勤考察划分的工作方法创新。 特别感谢白文琦、孙睿同志对于支部扁平化工作方法 SOP 工作流的理论贡献，为系统决策树模型建构了方法论支撑。 特别感谢朱阳俊峰、杜新宇同志对于品牌活动打磨和党小组工作做法的创造性贡献。 感谢党建中心提供的资源平台支持。 0 入口速查 系统说明书分 0–8 章。这一章是「先看哪、谁能进、怎么到」：全站页面分为根页面与各角色工作台（页面清单以 docs/ 实测为准）。 登录后按身份直达对应工作台，工作内容都收在工作台内——读第 1 章知道通用规则，再翻第 2 章自己那台的小节即可动手。 0.1 全站页面清单 「谁能进」里的“公共”指未登录也可浏览（登录后可见更多本人相关数据）；工作台须登录（未登录访问自动跳登录页）。点击页面名可直达。 页面 是什么 谁能进 怎么到达 首页 支部活动日历 / 近期活动 / 通知与招募一览；「工作组进展」卡分活动工作组与专班工作组两组，逐行显示成员数与任务完成数；登录后显示本人待办与角色区块 公共 站点入口；侧边栏「首页」 登录 账号登录（开发模式卡见 0.3） 所有人 顶栏 / 侧栏「登录」按钮；访问需登录页面自动跳转 资料查询 官方制度文件与支部文件检索；已归档支部文件标注讨论来源 公共 侧边栏「资料查询」 归档库 历届已归档工作成果的浏览与检索 公共 侧边栏「归档库」 活动详情 单个活动的详情页：议程 / 报名 / 线上表态 / 考勤与产出记录；报名、表态、记录需登录 公共可看；操作需登录 首页日历与活动卡、工作台内活动行、待办、通知等链接 消息详情 单条消息的完整内容：公告（正文 / 发布人 / 受众）、系统通知（正文 ＋ 对象卡 ＋ 唯一动作）、私信（会话线程 ＋ 回复）；进入即已读，会议类通知的回执独立呈现 公共可看；已读 / 回执 / 回复需登录 消息中心行；顶栏铃铛；首页通知区；通知类待办 消息 消息中心：公告 / 系统通知 / 私信同列在一条时间流（按来源徽标区分），支持未读 / 已读 / 已归档筛选；私信仅你与对方可见，在详情页接成会话 需登录（任何支部成员均可写私信） 侧边栏「消息」/ 顶栏铃铛 专班详情 单个专班的详情页：招募 / 分工 / 进展（专班为跨小组集中推进形态） 公共可看；报名、操作需登录 首页「工作组进展」卡；工作台「专班管理 / 项目分工 · 专班 / 全局概况 · 知情查看卡」行内链接 支委会会议页 线上召开支委会的会议页：选线上召开 → 定本场参会范围（默认支委层，可改为支委扩大会、选定扩大到谁）→ 提取议程 → 表态 → 支书汇总截止 → 留存并查阅讨论结果。效力口径：线上",
+    "colorCombos": 13,
+    "shot": ".tmp\\shots\\help-390.png"
+  },
+  "about-390": {
+    "url": "/about.html",
+    "fonts": {
+      "35.1px": 2,
+      "14px": 108,
+      "12px": 20,
+      "48px": 7,
+      "27.3px": 7,
+      "24px": 8,
+      "18px": 3,
+      "16px": 25,
+      "20px": 10,
+      "22px": 26,
+      "32px": 10,
+      "36px": 1,
+      "26px": 1
+    },
+    "headings": [
+      {
+        "tag": "H1",
+        "text": "从入党申请人到正式党员",
+        "size": "35.1px",
+        "weight": "400"
+      },
+      {
+        "tag": "H2",
+        "text": "「组织性」的展开",
+        "size": "27.3px",
+        "weight": "400"
+      },
+      {
+        "tag": "H3",
+        "text": "学生组织",
+        "size": "24px",
+        "weight": "400"
+      },
+      {
+        "tag": "H3",
+        "text": "政治组织",
+        "size": "24px",
+        "weight": "400"
+      },
+      {
+        "tag": "H3",
+        "text": "具体",
+        "size": "24px",
+        "weight": "400"
+      },
+      {
+        "tag": "H3",
+        "text": "方兴未艾",
+        "size": "24px",
+        "weight": "400"
+      },
+      {
+        "tag": "H3",
+        "text": "提供成长",
+        "size": "24px",
+        "weight": "400"
+      },
+      {
+        "tag": "H4",
+        "text": "你可以期待的成长路径",
+        "size": "18px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "你可以期待的做事方式",
+        "size": "18px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "你可以期待的表达空间",
+        "size": "18px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "三个成长机会",
+        "size": "27.3px",
+        "weight": "400"
+      },
+      {
+        "tag": "H3",
+        "text": "适应、学习的机会",
+        "size": "20px",
+        "weight": "400"
+      },
+      {
+        "tag": "H3",
+        "text": "探索、创新的机会",
+        "size": "20px",
+        "weight": "400"
+      },
+      {
+        "tag": "H3",
+        "text": "对话的机会——党建+科研",
+        "size": "20px",
+        "weight": "400"
+      },
+      {
+        "tag": "H2",
+        "text": "身份阶段：从入党申请人到正式党员",
+        "size": "27.3px",
+        "weight": "400"
+      },
+      {
+        "tag": "H2",
+        "text": "我们如何考察",
+        "size": "27.3px",
+        "weight": "400"
+      },
+      {
+        "tag": "H2",
+        "text": "工作流——谁在什么时候该去找谁？",
+        "size": "27.3px",
+        "weight": "400"
+      },
+      {
+        "tag": "H3",
+        "text": "活动：按承办党小组确定责任入口",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "tag": "H4",
+        "text": "按承办党小组创建",
+        "size": "16px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "分工",
+        "size": "16px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "联系条条 + 通知 + 准备",
+        "size": "16px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "复盘、宣传产出与材料归档",
+        "size": "16px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "按需考察与活动收尾",
+        "size": "16px",
+        "weight": "700"
+      },
+      {
+        "tag": "H3",
+        "text": "专班工作组：围绕事项协作",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "tag": "H4",
+        "text": "明确事项 + 建立工作组",
+        "size": "16px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "并列分工 + 独立授权",
+        "size": "16px",
+        "weight": "700"
+      },
+      {
+        "tag": "H4",
+        "text": "任务产出闭合 + 收尾",
+        "size": "16px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "行百里者半九十",
+        "size": "27.3px",
+        "weight": "400"
+      }
+    ],
+    "btns": 0,
+    "dupLabels": [],
+    "cards": 0,
+    "pills": 0,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [],
+    "tabCount": 0,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 3708,
+    "text": "从入党申请人 到正式党员 以本支部为例 向下滚动 01 「组织性」的展开 「组织性」 的展开 学生组织 政治组织 具体 方兴未艾 提供成长 你可以期待的成长路径 各种发展轨迹，都可以加入其中，获得他想要的成长，并且是通过组织获得他想要的成长。 你可以期待的做事方式 事情的运作固然有管理的科学和既往的经验。作为支部成员，在执行已沉淀的工作流的基础上，本身便可以得到成长和锻炼。 支部的建设方兴未艾，所以需要大家都发挥主人翁意识来创新、沉淀新的经验。 你可以期待的表达空间 我们不反对批评意见，但要求要在组织的框架内提出批评意见……我特别怕大家因为认为是‘党支部’，所以怕说错话，而选择不‘真实表达’！因为这样自己既没有真实的交互体验，组织也没办法持续进步。 支委和支书的职责所在包含了开放心态，积极交流，维护团结。也因此要充分吸收意见建议、帮助支部成员按照组织程序进行组织表达。 02 成长机会 三个成长机会 本支部提供三个并列的成长机会。 适应、学习的机会 “民主集中制”下感受真实的组织的两个向度：“赋权”背景下的程序性 和 “探索”背景下的扁平化。 这也就意味着真实的组织，不能只靠程序性令人凝聚在一起，也不能只靠“扁平化”而不去形成共识、带来效率。 程序在所有人之上，所以扁平；但程序中，支委个人都因为更大的责任而被要求嵌入地更深。 提高生涯发展中对于所处组织的适应能力和开放心态。 程序性 “赋权”背景下——组织通过分工、流程、记录、复盘让人凝聚 扁平化 “探索”背景下——组织通过平等协商让人创新 探索、创新的机会 作为AI时代中一个建设方兴未艾的学生组织， ①可以真实地参与组织制度和组织文化的构建； ②可以在“没有经济负担”的背景下探索AI时代下组织转型的萌芽和组织产品的生产。 组织高度赞赏创新，不要因为年级、政治面貌而影响想法的交流和反馈。 支部的建设方兴未艾，任何的意见、建议、创新都弥足珍贵。 参与构建 可以真实地参与组织制度和组织文化的构建 探索自由度 在“没有经济负担”的背景下探索组织转型的萌芽和组织产品的生产——未来进入职场后难以获得 学生党支部的“方兴未艾”恰恰是机会所在：成熟组织没有这种探索空间，而学生组织有。 对话的机会——党建+科研 党建和经管学科科研的交叉点在于恢复和马克思主义的对话能力，恢复理论研究和现实治理之间的对话能力。 研究对象 经管学科研究对象本身是历史生成、社会建构的，不是自明的——这是理工科不遇到的问题 抽象能力 从现实到理论的抽象缺乏系统训练；马克思主义方法论与经济学工具互补，党建以组织化机制补足 组织环境 党建+科研建设的是「促进高质量问题生成的组织环境」 对经管学生而言，「服务人」有一个特别值得做的方向——恢复对话能力是「服务人」的一个子命题：帮助你恢复与思想、与现实世界的对话能力。 03 身份阶段 身份阶段：从入党申请人到正式党员 依据《中国共产党发展党员工作细则（2026年）》 从入党申请人到正式党员，变的不仅是身份，更是「组织性」——党员最重要的特质。 普通节点 关键决策节点 入党申请人 → 入党积极分子 §5/§7 本人自愿 入党申请人表达意愿；党组织一个月内派人谈话（支部执行，弱化） 1 递交入党申请书 年满十八岁 一年以上培养考察期 2 培养考察期 一年以上 §9/§11 培养联系人 + 党支部 定期撰写思",
+    "colorCombos": 22,
+    "shot": ".tmp\\shots\\about-390.png"
+  },
+  "login-1440": {
+    "url": "/login.html",
+    "fonts": {
+      "18px": 1,
+      "16px": 1,
+      "12px": 7,
+      "14px": 2
+    },
+    "headings": [
+      {
+        "tag": "H1",
+        "text": "光华管理学院本科生党支部",
+        "size": "18px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "登录",
+        "size": "16px",
+        "weight": "600"
+      }
+    ],
+    "btns": 2,
+    "dupLabels": [],
+    "cards": 0,
+    "pills": 0,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [],
+    "tabCount": 0,
+    "bodyScrollWidth": 1440,
+    "clientWidth": 1440,
+    "textLen": 86,
+    "text": "光华管理学院本科生党支部 登录 请选择登录方式 统一身份认证登录 首次登录自动建号，选择支部后由支部确认。 账号（学号 ＋ 密码） 学号 密码 登录 开发模式 ← 返回主页",
+    "colorCombos": 5,
+    "shot": ".tmp\\shots\\login-1440.png"
+  },
+  "login-390": {
+    "url": "/login.html",
+    "fonts": {
+      "18px": 1,
+      "16px": 1,
+      "12px": 7,
+      "14px": 2
+    },
+    "headings": [
+      {
+        "tag": "H1",
+        "text": "光华管理学院本科生党支部",
+        "size": "18px",
+        "weight": "700"
+      },
+      {
+        "tag": "H2",
+        "text": "登录",
+        "size": "16px",
+        "weight": "600"
+      }
+    ],
+    "btns": 2,
+    "dupLabels": [],
+    "cards": 0,
+    "pills": 0,
+    "chevrons": 0,
+    "dupHeadings": [],
+    "tabs": [],
+    "tabCount": 0,
+    "bodyScrollWidth": 390,
+    "clientWidth": 390,
+    "textLen": 86,
+    "text": "光华管理学院本科生党支部 登录 请选择登录方式 统一身份认证登录 首次登录自动建号，选择支部后由支部确认。 账号（学号 ＋ 密码） 学号 密码 登录 开发模式 ← 返回主页",
+    "colorCombos": 5,
+    "shot": ".tmp\\shots\\login-390.png"
+  }
+}

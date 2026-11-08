@@ -2,7 +2,7 @@
 title: "设计系统 · 第六编 布局与密度"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-07"
+last_updated: "2026-11-08"
 status: active
 related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RESPONSIVE.md, DS_05_MAP_AND_REFERENCE.md, DESIGN_SYSTEM.md, ../PRODUCT_IA.md, ../../../docs/src/styles.css, ../../05_ai_coding/TAB_AUDIT_PLAYBOOK.md]
 ---
@@ -34,7 +34,7 @@ related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONEN
 
 | 项 | 内容 |
 |---|---|
-| 对象 | 全部注册页签（7 台 × 45 页签） |
+| 对象 | 全部注册页签（7 台 × 46 页签） |
 | 判据 | 单页顶层区块 ≤ **4**（页头不计）；同类同源的内容必须合并进同一块；空态与列表二选一，不得同时作为两块常驻 |
 | 守卫 | `ui-first-screen-order::F6–F9`（基线 `style-baseline.mjs::TAB_BLOCK_BASELINE`，上限 `TAB_BLOCK_LIMIT = 4`） |
 | 登记 | 块数 > 4 的页签必须在 `TAB_BLOCK_BASELINE` 的 `reason` 写明「为什么不能合并」；未登记即红 |
@@ -90,7 +90,7 @@ related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONEN
 
 ## 四、边界
 
-- **不重排 41 个未超限页签。** 本编只约束「超过四块」与「新增块」，不要求把 ≤4 块的页面再改一遍；已有合并结果不因本编回退。
+- **只处理 6 个超 4 块页签，不重排 46 个页签。** 本编只约束「超过四块」与「新增块」，不要求把 ≤4 块的页面再改一遍；已有合并结果不因本编回退。
 - **不改业务规则。** 块怎么合并、筛选条怎么排，不改变角色权限、写口、深链与数据口径；业务判据仍以 `content/02_institution`、`content/04_web_design/data/DATA_MODEL.md` 与代码为准。
 - **不接管组件外观。** 颜色、字号、控件外观、交互态仍归 DS_01–DS_04；本编只回答「几块、几行、有没有系统装饰」。
 - **判例不进本编。** 具体页面为什么这样合并，写入 `CASES.md` 并回链本编 SD 编号；本编只保留可判定的规范句。

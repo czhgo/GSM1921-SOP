@@ -3,18 +3,18 @@ title: "设计理念与方法论承接（设计论证与方法档案）"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-04
-last_updated: "2026-10-30"
+last_updated: "2026-11-08"
 status: active
-related_files: [../design-system/DESIGN_SYSTEM.md, ../data/DATA_MODEL.md, ../../05_ai_coding/REVIEW_AND_EXPRESSION.md]
+related_files: [../../design-system/DESIGN_SYSTEM.md, ../../data/DATA_MODEL.md, ../../../05_ai_coding/REVIEW_AND_EXPRESSION.md]
 ---
 
 # 设计理念与方法论承接（设计论证与方法档案）
 
 > **本文负责**：**设计决策的论证档案**——「为什么这么做 / 为什么不是别的做法 / 什么条件下失效」：系统与工作台设计方法论、前端实现判例、工作台行为底线、叙述性人读方法论。
-> **本文不负责**：① **规范形态**（规则 / 色值 / 组件标准 / 数据约束）→ [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md) 与 [DATA_MODEL.md](../data/DATA_MODEL.md)（冲突时以规范为准）；② **架构演进的方向选择** → [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md)；③ **AI 编码 / 上下文 / 测试验证方法** → [content/05_ai_coding/](../../05_ai_coding/)（AI 协作方法论 5 分篇）。
+> **本文不负责**：① **规范形态**（规则 / 色值 / 组件标准 / 数据约束）→ [DESIGN_SYSTEM.md](../../design-system/DESIGN_SYSTEM.md) 与 [DATA_MODEL.md](../../data/DATA_MODEL.md)（冲突时以规范为准）；② **架构演进的方向选择** → [ARCHITECTURE_EVOLUTION.md](../ARCHITECTURE_EVOLUTION.md)；③ **AI 编码 / 上下文 / 测试验证方法** → [content/05_ai_coding/](../../../05_ai_coding/)（AI 协作方法论 5 分篇）。
 
 > **2026-09-04 承接**：原 content/insights/工程演进与设计方法论.md [4] 标签小节分流至此（支书裁决：04=纯系统设计）；本文档承接通用设计方法论与设计判例，供工程师与 AI 设计决策时阅读。
-> **方法论文体与规范文体分离**：设计结论的规范形态（规则/色值/组件标准/数据约束）以 design-system/ 与 data/ 各唯一权威源为准——[DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md)（设计哲学/色彩/排版/组件/动效）、[DATA_MODEL.md](../data/DATA_MODEL.md)（数据模型与数据流）；本文档只承载**论证（为什么）、反论（为什么不是）、判例（什么条件下失效）与生效条件**。规范与论证冲突时以权威源规范为准。
+> **方法论文体与规范文体分离**：设计结论的规范形态（规则/色值/组件标准/数据约束）以 design-system/ 与 data/ 各唯一权威源为准——[DESIGN_SYSTEM.md](../../design-system/DESIGN_SYSTEM.md)（设计哲学/色彩/排版/组件/动效）、[DATA_MODEL.md](../../data/DATA_MODEL.md)（数据模型与数据流）；本文档只承载**论证（为什么）、反论（为什么不是）、判例（什么条件下失效）与生效条件**。规范与论证冲突时以权威源规范为准。
 > **出处注记**：每小节保留「（原 insights §N）」出处；源文件（content/insights/工程演进与设计方法论.md）已于 2026-09-04 清理，历史交叉引用由 insights 承接声明（content/insights/README.md）兜底。
 
 ---
@@ -31,7 +31,7 @@ related_files: [../design-system/DESIGN_SYSTEM.md, ../data/DATA_MODEL.md, ../../
 
 ### 1.2 最小三成本原则——论证档案（原 insights §4.10）
 
-> **规范权威源**：规则正文已落位 [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md) §一 第2条（最小三成本 Min Cost First，任务流默认直接展示）；数据模型位置 [DATA_MODEL.md](../data/DATA_MODEL.md) §2.18~§2.20（待办任务数据/通知→待办派生）。本文档仅承接论证补强（来源、落地机制、适用边界），与 §1.3.1（4.12.1 最高优先级原则）互为表里。
+> **规范权威源**：规则正文已落位 [DESIGN_SYSTEM.md](../../design-system/DESIGN_SYSTEM.md) §一 第2条（最小三成本 Min Cost First，任务流默认直接展示）；数据模型位置 [DATA_MODEL.md](../../data/DATA_MODEL.md) §2.18~§2.20（待办任务数据/通知→待办派生）。本文档仅承接论证补强（来源、落地机制、适用边界），与 §1.3.1（4.12.1 最高优先级原则）互为表里。
 
 工作台设计的三条成本底线——信息成本（用户获取"我需要做什么"所需的搜寻成本，任务流默认直接展示）、操作成本（从"进入工作台"到"看到可执行事项"的点击次数，进入即见、系统主动推送；**操作次数上限为至多跳转 2 次、一般 1 次，能就地解决就就地解决**）、适应学习成本（新用户理解工作分工与信息流运作方式的学习成本，通过系统设计本身自解释）。三成本适用于全系统所有角色工作台，是工作台设计的元原则——任何"用户需要先点击 X 才能看到 Y"的设计都违反最小操作成本，任何"用户需要培训才能理解"的设计都违反最小适应学习成本。
 
@@ -53,7 +53,7 @@ related_files: [../design-system/DESIGN_SYSTEM.md, ../data/DATA_MODEL.md, ../../
 
 ### 1.3 设计决策原则（原 insights §4.12.1 / §4.12.4 / §4.12.5）
 
-> **承接说明**：原 insights §4.12（系统功能与视觉设计决策原则，T-142 后续迭代收尾，2026-08-01）集中收录反复强调或要求写入乙部长期排查的功能与视觉决策原则。本次按映射清单承接其中三条 [4] 决策原则（4.12.1 / 4.12.4 / 4.12.5）；收录标准机制（原 4.12.6 反复强调内容提级机制）已随分流迁至 [REVIEW_AND_EXPRESSION.md](../../05_ai_coding/REVIEW_AND_EXPRESSION.md)「反复强调内容提级机制」节（原 insights 源文件已清理）。
+> **承接说明**：原 insights §4.12（系统功能与视觉设计决策原则，T-142 后续迭代收尾，2026-08-01）集中收录反复强调或要求写入乙部长期排查的功能与视觉决策原则。本次按映射清单承接其中三条 [4] 决策原则（4.12.1 / 4.12.4 / 4.12.5）；收录标准机制（原 4.12.6 反复强调内容提级机制）已随分流迁至 [REVIEW_AND_EXPRESSION.md](../../../05_ai_coding/REVIEW_AND_EXPRESSION.md)「反复强调内容提级机制」节（原 insights 源文件已清理）。
 
 #### 1.3.1 最小三成本——最高优先级原则（原 insights §4.12.1）
 
@@ -73,7 +73,7 @@ related_files: [../design-system/DESIGN_SYSTEM.md, ../data/DATA_MODEL.md, ../../
 
 ### 1.4 主体色配色规则——论证档案（原 insights §4.13）
 
-> **规范权威源**：配色规则五条与全部色值（tab 激活态用主体色 X、品牌金统一层、状态色全局统一、暖白底、灰只做中性；角色冷色系/活动暖色系双权威源分离；语义红保留清单）已权威落位于 [DS_01_COLOR_AND_THEME.md](../design-system/DS_01_COLOR_AND_THEME.md) §2.7 主体色配色规则（打样样板）。本文档仅承接原 §4.13 中规范文件未展开的**论证部分**——规则与色值一律以 DS_01 §2.7 为准。
+> **规范权威源**：配色规则五条与全部色值（tab 激活态用主体色 X、品牌金统一层、状态色全局统一、暖白底、灰只做中性；角色冷色系/活动暖色系双权威源分离；语义红保留清单）已权威落位于 [DS_01_COLOR_AND_THEME.md](../../design-system/DS_01_COLOR_AND_THEME.md) §2.7 主体色配色规则（打样样板）。本文档仅承接原 §4.13 中规范文件未展开的**论证部分**——规则与色值一律以 DS_01 §2.7 为准。
 
 **为什么"红色太多、意义不明确"是危险的？** 红色同时承担品牌语义（党建红标签）、告警语义（超期/删除/必填）与角色语义（参与者身份色）时，用户无法区分"这是身份色还是警示色"——多种颜色语义相互冲突。T-185 修复轮确立**双权威源分离**：角色维度冷色系（`ROLE_COLORS`：组织者天蓝/深度参与紫/参与者灰/发起人靛蓝），活动类型维度暖色系（`getActivityTypeColors()`：三会一课红/主题党日金），红色收敛到品牌+告警语义。后续任何页面的"装饰红"（本应为主题色却用了品牌红）一律按此修正。
 
@@ -169,7 +169,7 @@ related_files: [../design-system/DESIGN_SYSTEM.md, ../data/DATA_MODEL.md, ../../
 > **元数据**
 >
 > - 出处：T-197 帮助页圆点导航（2026-08-03）
-> - 关联：[REVIEW_AND_EXPRESSION.md](../../05_ai_coding/REVIEW_AND_EXPRESSION.md)「叙述式有机表达——把理由织进叙述，而非『为什么』设问」节（原 insights §4.15，同属帮助页改造系列）
+> - 关联：[REVIEW_AND_EXPRESSION.md](../../../05_ai_coding/REVIEW_AND_EXPRESSION.md)「叙述式有机表达——把理由织进叙述，而非『为什么』设问」节（原 insights §4.15，同属帮助页改造系列）
 
 ### 2.3 环形排布的弦长校验——相邻元素互不重叠的几何前提（T-223 判例）（原 insights §6.28）
 

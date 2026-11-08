@@ -133,6 +133,8 @@ test('C4 非空转下限：扫描页面数 ≥ 20', () => {
   assert.equal(files.filter((f) => rel(f) === ABOUT_EXEMPT).length, 0, 'About 须继续豁免（白名单不得误伤）');
 });
 
-test('C5 守卫登记在 test:daily', () => {
-  assert.match(PKG.scripts['test:daily'], /container-width-guard\.test\.mjs/, 'test:daily 须登记本守卫');
+test('C5 守卫登记在 daily / guards 层（2026-11-08 批次 537 起按需跑，不得孤儿化）', async () => {
+  const { tierOf } = await import('../test-tier-registry.mjs');
+  assert.ok(['daily', 'guards'].includes(tierOf('container-width-guard.test.mjs')),
+    'registry 未把 container-width-guard 登记在 daily / guards：守卫孤儿化');
 });

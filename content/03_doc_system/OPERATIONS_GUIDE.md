@@ -2,7 +2,7 @@
 title: "运行与协作规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-07"
+last_updated: "2026-11-08"
 version: "4.2"
 status: active
 merged_from:
@@ -170,7 +170,7 @@ related_files: [CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/03_doc_syst
 title: "中文标题"
 type: <枚举值>
 role: "[用户]"/"[工程师]"/"[AI]"（可用 + 连接形成复合标记）
-last_updated: "YYYY-MM-DD"
+last_updated: "2026-11-08"
 version: "X.Y"
 status: active/archived/suspended
 related_files: [...]
@@ -1661,7 +1661,7 @@ AI 对支书原话的展开，目标是**吃透支书精神后用自己的语言
 - **L1-L4 阶段号**：工作流「代码化 → 可拖拽化」演进的推进层级号——L1 能力目录化 → L2 支部组合化 → L3 块封装契约 → L4 拖拽编排（L5 块分享复用）；说「做到 L3」即指推进到该层（[ARCHITECTURE_EVOLUTION.md §八](../04_web_design/evolution/ARCHITECTURE_EVOLUTION.md) 8.2 目标分层表；愿景总述见根 [README.md](../../README.md)「开源项目目标」）
 - **T-/D-/P- 编号体系**：全仓前缀编号——T 是任务（CLAUDE.md 乙部条目 / 执行日志条目），D 是决策（`.ctx/logs/` 决策日志，全局递增），P 是待决策问题（CLAUDE.md 丙部）或支书论断索引（[SECRETARY_DIRECTIVES.md](../01_strategy/SECRETARY_DIRECTIVES.md) 附录 P-001…）；看到前缀即知去哪个权威处查（生命周期见 [CLAUDE.md](../../CLAUDE.md) H50，编号规则总表见 [§9](#9-编号命名规则)）
 - **H 编号**：根 [CLAUDE.md](../../CLAUDE.md) 甲部规则条编号（H10~H100，按约束力分热/温/冷三层、10 递增预留）；「H30 一改具改」即引用该文件的第 30 号条款（编号语义对照见 [§9.1](#91-甲部-harness-编号体系)）
-- **block manifest（旧词）**：工作流块元数据/封装契约的旧称，已改名并独立成文 [WORKFLOW_BLOCK_CONTRACT.md](../04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md)（L3 块封装契约 v1.1 唯一权威）；「manifest」现仅指该契约内的块元数据载体字段，不再代指整份契约
+- **block manifest（旧词）**：工作流块元数据/封装契约的旧称，已改名并独立成文 [WORKFLOW_BLOCK_CONTRACT.md](../04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md)（L3 块封装契约 v1.1，契约类，规范效力见 `contracts/README.md`）；「manifest」现仅指该契约内的块元数据载体字段，不再代指整份契约
 - **canvas**：可视化拖拽「画布」——把工作流块拖入排列组合的编排界面（L4 愿景形态）；v0 落地于设置 → 支部治理「工作台默认顺序」/模块组合（支书/副同权）（[ARCHITECTURE_EVOLUTION.md §八](../04_web_design/evolution/ARCHITECTURE_EVOLUTION.md) 8.2/8.5）
 - **FLAT_DESIGN（旧词）**：扁平化组织设计权威文档的旧名，已改名 [FLAT_ORGANIZATION_DESIGN.md](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（组织者与深度参与者的扁平化设计 v2.2）——新文档/文件名一律用新名；**2026-09-26 该文件已全文并入 [COMMISSIONER_DUTY_FRAMEWORK.md §G](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（《支部组织与委员体系》）**，故 `FLAT_ORGANIZATION_DESIGN.md` 现亦为历史文件名（引用一律改指 `COMMISSIONER_DUTY_FRAMEWORK.md §G`）
 - **CLICK_MAP（旧词）**：点击落点规范的旧名，现行权威源为 [DS_05_MAP_AND_REFERENCE.md §十 点击落点映射](../04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md)（「哪些地方可点、点了落在哪」的全局规范，支书 2026-08-29 分层原则裁定）
@@ -1669,9 +1669,9 @@ AI 对支书原话的展开，目标是**吃透支书精神后用自己的语言
 - **mockDB**：浏览器端「模拟数据库」对象（演示/无后端形态可用）——数据读写统一收敛于 [mock.js](../../docs/src/services/core/mock.js)（对象定义于 [domain.js](../../docs/src/core/domain/domain.js)，持久化由 `data/mock-adapter.js` 承担），勿绕过该层直接改数据
 - **CLAUDE.md（harness 文件名惯例）**：仓库约定「给 AI 的主指令文件」固定命名为 CLAUDE.md（根目录一份；harness = 规则/工作流骨架，分甲/乙/丙三部）；「CLAUDE.md Hxx / T-xxx」即指该文件的编号条款（[CLAUDE.md](../../CLAUDE.md)）
 
-> **2026-09-09 补录**（支部 config 写权分层相关黑话，随 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md) / [§9h 写权矩阵](../02_institution/SYSTEM_ROLE_PERMISSION.md) 审定定稿）：
+> **2026-09-09 补录**（支部 config 写权分层相关黑话，随 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md) / [§9h 写权矩阵](../02_institution/SYSTEM_ROLE_PERMISSION.md) 审定定稿）：
 
-- **L2-L3 配置层**：支部 config **写权分层**——L2 = 支部可在线调的域参数层（policyOverrides）；L3 = 制度刚性只读锁定层（制度默认展示位）——⚠️ **与「L1-L4 阶段号」非同一编号体系**（后者 = 工作流「代码化→拖拽化」演进层号）；写权矩阵与词条收口见 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md)
+- **L2-L3 配置层**：支部 config **写权分层**——L2 = 支部可在线调的域参数层（policyOverrides）；L3 = 制度刚性只读锁定层（制度默认展示位）——⚠️ **与「L1-L4 阶段号」非同一编号体系**（后者 = 工作流「代码化→拖拽化」演进层号）；写权矩阵与词条收口见 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md)
 - **kind**：`policy-defaults.js` 每个业务默认键上的**类别标注字段**（取值 `branch-default` / `institutional`，附出处编号 + 消费点）——业务层一律引用派生导出，不在别处新写字面量（[policy-defaults.js](../../docs/src/core/domain/policy-defaults.js)）
 - **branch-default**：kind 值之一 = **支部默认值**（源码单一源，开源部署可按支部制度调整）——**不自动进设置可调**（当前形态走换壳工作单源码改）；登记 `POLICY_OVERRIDABLE` 者升级为「域参数（L2）」可经 UI 覆盖
 - **institutional**：kind 值之一 = **制度裁决固定**项（考勤记录人 / 请假缺席标因 / 上传位例外等）——不因支部而异，改须党委/支书裁决后源码层变更
@@ -1682,7 +1682,7 @@ AI 对支书原话的展开，目标是**吃透支书精神后用自己的语言
 - **POLICY_OVERRIDABLE**：域参数覆盖**白名单**（`policy-defaults.js` 导出数组，每项 = path/type/钳制范围/domain 域节）——**只定义于 policy-defaults**，config-clean 为其唯一净化消费方；白名单 = 可经 UI 覆盖的域参数全集，白名单外一律不可经 UI 写
 - **换壳工作单**：换组织向导步骤④生成下载的 Markdown——「已完成配置摘要 + 待手动替换仓库文件清单 + 验证点」；向导①②③ 在线可改已即时写入 config，仓库文件内容（mock 数据 / constants / 权限矩阵 / 术语 / 制度 SOP / 配色固定令牌 / policy-defaults 未登记项）一律出工作单**人工替换、不经设置页**（[org-wizard-report.js](../../docs/src/services/branch/org-wizard-report.js)）
 
-> **2026-09-14 补录**（成员流动与党小组相关黑话，随 [SYSTEM_ROLE_PERMISSION.md §9i](../02_institution/SYSTEM_ROLE_PERMISSION.md) 党小组管理/成员流动登记写权与 [BRANCH_WORK_MAP.md](../04_web_design/evolution/BRANCH_WORK_MAP.md) 党小组一等实体落地注记同期定案）：
+> **2026-09-14 补录**（成员流动与党小组相关黑话，随 [SYSTEM_ROLE_PERMISSION.md §9i](../02_institution/SYSTEM_ROLE_PERMISSION.md) 党小组管理/成员流动登记写权与 [BRANCH_WORK_MAP.md](../04_web_design/evolution/archive/BRANCH_WORK_MAP.md) 党小组一等实体落地注记同期定案）：
 
 - **未分组**：成员档案 `partyGroup` 为空字符串的状态。语义是**不属任何党小组**（非"第五个组"）：党小组会应到名单不含、支部大会应到照计、表决名单照计；名册与相关页面显示为「未分组」并提供归组入口。禁写「无党小组」「非党小组」等他名。
 - **成员流动台账**：成员流入/流出的记账表。
@@ -1934,16 +1934,17 @@ AI 对支书原话的展开，目标是**吃透支书精神后用自己的语言
 
 ## 32. 文档分职与判例编号（2026-10-24 立）
 
-> **本节回答什么**：一段内容该落在哪类载体，以及判例怎么编号。四类载体各有唯一职责，越界即视为写错落点。
+> **本节回答什么**：一段内容该落在哪类载体，以及判例怎么编号。五类载体各有唯一职责，越界即视为写错落点。
 > **不回答什么**：具体的判例正文 → 判例库；具体规范条文 → 各域规范文件；某一批做了什么 → `.ctx/logs/`。
 
-### 32.1 四类载体
+### 32.1 五类载体
 
 | 载体 | 唯一职责 | 允许内容 | 禁止内容 | 落点 |
 |---|---|---|---|---|
 | 规范（法条） | 回答「必须 / 不得」 | 适用范围、规范编号、布尔判据、守卫或人工检查点、判例编号 | 判例正文、为什么、反例、沿革 | `OPERATIONS_GUIDE.md` / `DESIGN_SYSTEM.md` / `DATA_MODEL.md` / `SYSTEM_ROLE_PERMISSION.md` / `SECRETARY_DIRECTIVES.md` |
 | 判例库 | 回答「为什么 / 边界」 | 真实场景、结论、边界（什么情况下不适用）、对应规范编号、证据指针 | 新规范、新判据、「以后都应如此」 | `content/03_doc_system/CASES_INDEX.md`（总入口）＋各域 `CASES.md`（`04_web_design/design-system/CASES.md` / `02_institution/CASES.md` / `05_ai_coding/CASES.md`） |
 | 索引 | 回答「在哪里」 | 目录作用一句话、文件一句话、权威源指针、状态 | 规范条文、判例正文 | `DOC_MAP.md`、各层 `README.md` |
+| 契约 | 回答「实现必须遵守什么结构 / 版本 / 兼容 / 验收」 | 接口、schema、版本号、owner、验收判据、兼容边界 | 为什么、反例、沿革 | `content/04_web_design/contracts/`（状态词与变更规则见 `contracts/README.md`） |
 | 过程记录 | 回答「当时发生了什么」 | 执行步骤、量测读数、裁定原话、坑与边界、未做的事 | 长期规则、判据 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` / `YYYY-MM-DECISION_LOG.md` / `.ctx/logs/archive/` |
 
 ### 32.2 判例编号规则
@@ -1966,6 +1967,7 @@ AI 对支书原话的展开，目标是**吃透支书精神后用自己的语言
 | 必须 / 不得（什么条件下成立） | 规范 |
 | 为什么 / 边界（什么情况下不适用） | 判例库 |
 | 在哪里（目录作用、权威源、文件入口） | 索引 |
+| 必须遵守什么结构 / 版本 / 验收 | 契约 |
 | 当时发生了什么（批次、读数、裁定过程） | 过程记录 |
 
 > 迁移动作须同时补齐双向指针：迁出方留判例编号（或规范编号），接收方写回原文位置。判据文字本身不得改写——只搬「为什么 / 反例 / 沿革」，不动「必须 / 不得」的判据措辞。

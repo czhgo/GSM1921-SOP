@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // block-manifest.test.mjs — L3 块 manifest 校验器单测（S1，2026-09-03）
-// 契约源：content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md v1.1
+// 契约源：content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md v1.1
 // 机制：浏览器内 import workflow/blocks/manifests.js（与运行时同解析），跑正/反样例断言
 // 运行：node --test server/test/block-manifest.test.mjs（自包含 server，TMP 需指向可写目录）
 import { test, before, after } from 'node:test';
@@ -13,10 +13,10 @@ import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 import {
   BLOCK_MANIFESTS, validateBlockManifest, CAPABILITY_PROVENANCE,
-} from '../../docs/src/workflow/blocks/manifests.js?v=20261108a';
-import { assertComposeValid } from '../../docs/src/core/base/module-compose.js?v=20261108a';
-import { sopDatabase } from '../../docs/src/workflow/sopData.js?v=20261108a';
-import * as DEF_MODULE from '../../docs/src/workflow/definitions.js?v=20261108a';
+} from '../../docs/src/workflow/blocks/manifests.js?v=20261108b';
+import { assertComposeValid } from '../../docs/src/core/base/module-compose.js?v=20261108b';
+import { sopDatabase } from '../../docs/src/workflow/sopData.js?v=20261108b';
+import * as DEF_MODULE from '../../docs/src/workflow/definitions.js?v=20261108b';
 
 let server;
 let BASE;
@@ -44,7 +44,7 @@ test('S1 块 manifest：试点清单合规 + 校验器正/反样例', async () =
     await page.waitForFunction(() => document.readyState === 'complete', null, { timeout: 10000 });
 
     const result = await page.evaluate(async () => {
-      const { BLOCK_MANIFESTS, validateBlockManifest } = await import('/src/workflow/blocks/manifests.js?v=20261108a');
+      const { BLOCK_MANIFESTS, validateBlockManifest } = await import('/src/workflow/blocks/manifests.js?v=20261108b');
       const out = { ids: [], allOk: true, invalidCount: 0, antiExamples: {} };
 
       // 正向：全部试点清单合规

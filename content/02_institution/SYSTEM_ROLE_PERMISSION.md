@@ -4,7 +4,7 @@ type: governance
 role: "[工程师]+[AI]"
 last_updated: 2026-11-08
 status: active
-related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/constants.js, server/security/write-policy-matrix.mjs, content/04_web_design/evolution/PUBLIC_ENTRANCE.md]
+related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/constants.js, server/security/write-policy-matrix.mjs, content/04_web_design/module/PUBLIC_ENTRANCE.md]
 ---
 
 # 系统角色权限矩阵（代码键级权威）
@@ -54,7 +54,7 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 
 ### 9a.1 党委内容写权与支部采用权（D-858）
 
-> **定位与键级说明**：本节属**写层业务守卫**（与 §9h / §9i 同体例，未入 `auth.js` 的 `ROLE_PERMISSIONS` 键集，不并入 §9b 的 16 操作列）。裁定来源：V-11 已裁（D-858）；字段、生成列与唯一索引的代码口径见 `server/db.js` 迁移 v13 与 `server/security/write-policy-matrix.mjs`，公开路由与读侧口径见 `content/04_web_design/evolution/PUBLIC_ENTRANCE.md`。
+> **定位与键级说明**：本节属**写层业务守卫**（与 §9h / §9i 同体例，未入 `auth.js` 的 `ROLE_PERMISSIONS` 键集，不并入 §9b 的 16 操作列）。裁定来源：V-11 已裁（D-858）；字段、生成列与唯一索引的代码口径见 `server/db.js` 迁移 v13 与 `server/security/write-policy-matrix.mjs`，公开路由与读侧口径见 `content/04_web_design/module/PUBLIC_ENTRANCE.md`。
 
 **党委（`party-staff`）可写与不可写**
 
@@ -325,7 +325,7 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 - **2026-09-17（历史裁定，已由 D-824 于 2026-10-16 改裁）**：当时将匿名意见反馈的揭名权授予党委并要求写入 `issue_reveals` 留痕；该历史权限与页面入口现已关闭。当前以 §9j 的支部内闭环、无系统揭名入口为准；正式表决无记名仍是独立边界。
 
 - **2026-09-14（支书裁定）**：新增 §9i「党小组管理与成员流动登记写权」矩阵节——党小组管理（新增/改名/解散/归组）授支书/副支书（副书同权），组织委员仅可查看清单与未分组人数；成员流动登记（流入/流出含批量、台账撤销）授组织委员（名册所在岗位）+ 支书/副支书同等登记权，**登记即生效、不再需支书二次确认**（与既往「成员移出需支书确认」的差异已在注①写明）；同时登记「新增成员自动建号（账号即学号、口令为支部统一默认口令）」。属写层业务守卫（未入 ROLE_PERMISSIONS 键集）。术语权威定义见 [OPERATIONS_GUIDE.md §23](../03_doc_system/OPERATIONS_GUIDE.md)。
-- **2026-09-09（支书审定定稿）**：新增 §9h「支部 config 写权」矩阵节——随 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md)（2026-09-09 审定定稿）同步：config 写权属写层业务守卫（未入 ROLE_PERMISSIONS 键集，遵循 §9f 不硬凑缺键约定），表为守卫语义的文档化；含副书同权（2026-09-09 支书批）、域负责人仅本域参数、顶层治理字段仅 party-staff 三要点。
+- **2026-09-09（支书审定定稿）**：新增 §9h「支部 config 写权」矩阵节——随 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md)（2026-09-09 审定定稿）同步：config 写权属写层业务守卫（未入 ROLE_PERMISSIONS 键集，遵循 §9f 不硬凑缺键约定），表为守卫语义的文档化；含副书同权（2026-09-09 支书批）、域负责人仅本域参数、顶层治理字段仅 party-staff 三要点。
 - **2026-09-05**：自 ROLE_CLASSIFICATION.md §九 迁出为独立文件（名实分离修复——该文件回归纯文件角色分类，本文件承担系统运行角色权限矩阵的键级权威）。迁出时同步修复：9a0 补 `party-staff`（党委组织员，组织级）行，真实对齐 constants.js `ROLE_KEYS`/`ROLE_LABELS`/`ROLE_PAGE_MAP`；9a0 登记表述改指 constants.js `ROLE_PAGE_MAP`（2026-09 已自 auth.js 迁入常量层）；9a 引用纠错（USAGE_POLICY §1.2.5 → §1.3）；9f 增补双轨约定（CF §C 逐操作位视图 ↔ 本文件键级视图）。〔**2026-09-26 批次 202 补注**：`ROLE_CLASSIFICATION.md` 与 `USAGE_POLICY.md` 已分别并入 [OPERATIONS_GUIDE.md](../03_doc_system/OPERATIONS_GUIDE.md) 的 §24–§31 与 §19；本条为历史留痕、原句保留〕
 - **2026-09-05（A1 批1 落代码）**：`dispatch_line`（条线下发）键入集——授予组织/宣传/纪检三委员（auth.js `ROLE_PERMISSIONS`，canDo 可判定），9f 增映射行、9b 附注说明；交互流消费侧待建、不入 16 操作列（不硬凑列原则）。
 - 前身沿革：本节原为 ROLE_CLASSIFICATION.md §九（PERMISSION_MATRIX.md → MANAGEMENT_MODE.md → ROLE_CLASSIFICATION §九，2026-07-08 迁入；2026-07-12 §九 重写 9a~9g；2026-08-29 增 9a0），历史记录见 [OPERATIONS_GUIDE.md §31](../03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》文件角色分类体系·变更历史；该节原为 `ROLE_CLASSIFICATION.md` §八，2026-09-26 批次 202 随该文件并入并升格为 §31）。

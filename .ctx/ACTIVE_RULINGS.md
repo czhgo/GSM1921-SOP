@@ -44,10 +44,10 @@ status: active
 | 十一、术语与平台 | `content/03_doc_system/TERMINOLOGY.md` | `D-302` · `D-303` | 平台全称、党员大会全称 |
 | 十二、死场景与系统形态 | `content/03_doc_system/ARCHITECTURE.md` ＋ `DS_06` ＋ `FILE_OPERATION_RULES` | `D-610` · `D-628` · `D-631` · `D-668` · `D-675` | 独立页 hydrate、路径 `./`、分区顺序 |
 | 十三、闭环与确认 | 纪检 / 组织指南 | `D-455` · `D-456` · `D-457` | 打包确认、记录人必呈现 |
-| 十四、工作流块配置面 | `content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md §8` | `D-686` | 表单轴 / 参与人轴；evolution 为论证档 |
+| 十四、工作流块配置面 | `content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md §8` | `D-686` | 表单轴 / 参与人轴；契约类（规范效力见 `contracts/README.md`） |
 | 十五、工作跟着岗位走 | `SYSTEM_ROLE_PERMISSION §9c` | `D-687` | 项目角色不落 `users.role` |
 | 十六、界面规范 | `content/04_web_design/design-system/DS_03_COMPONENTS.md` | `D-698` · `D-710` · `D-713` | 按钮四类两档、活动风采置顶 |
-| 十七、党委内容与公开门厅 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md §9a.1` ＋ `content/04_web_design/evolution/PUBLIC_ENTRANCE.md` | `D-858` | 党委内容域、`publishScope` 三档、`publication_audits` |
+| 十七、党委内容与公开门厅 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md §9a.1` ＋ `content/04_web_design/module/PUBLIC_ENTRANCE.md` | `D-858` | 党委内容域、`publishScope` 三档、`publication_audits` |
 
 ## §C 系统配置类（属本代码库，不进 content）
 

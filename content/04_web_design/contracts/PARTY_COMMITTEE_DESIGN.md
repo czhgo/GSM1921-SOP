@@ -1,17 +1,20 @@
 ---
 title: "院系党委后台——支部多实例两级治理设计定案"
-type: design
+type: contract
 role: "[工程师]+[AI]"
 created: 2026-09-02
 last_updated: 2026-11-08
 status: approved-by-secretary
-related_files: [docs/src/core/domain/domain.js, docs/src/data/mock/people.js, docs/src/data/mock/accounts.js, server/seed.js, server/db.js, docs/src/data/data-adapter.js, docs/src/core/domain/constants.js, docs/src/services/core/auth.js, docs/src/capabilities/, PUBLIC_ENTRANCE.md, ../../02_institution/SYSTEM_ROLE_PERMISSION.md]
+version: "1.0"
+owner: "支书（契约裁决）；[工程师]+[AI]（维护）"
+acceptance: "两级治理范围与公开审计由 SYSTEM_ROLE_PERMISSION §9a.1 与 party-committee 测试组共同验收，未过则不视为落地"
+related_files: [docs/src/core/domain/domain.js, docs/src/data/mock/people.js, docs/src/data/mock/accounts.js, server/seed.js, server/db.js, docs/src/data/data-adapter.js, docs/src/core/domain/constants.js, docs/src/services/core/auth.js, docs/src/capabilities/, ../module/PUBLIC_ENTRANCE.md, ../../02_institution/SYSTEM_ROLE_PERMISSION.md]
 ---
 
 # 院系党委后台——支部多实例两级治理设计定案
 
 > **本文负责**：**院系党委 → 支部多实例两级治理的设计定案**——方向选择记录、两级组织模型、支部配置档案与配置写权分层、两级角色可见范围、数据模型横向扩展、功能分期与验收原则；2026-11-08 起补入**院级内容作者与公开审计**两节（§5.2 / §5.3）。
-> **本文不负责**：① **党委台界面与服务落点清单** → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) §十一 与 [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md)；② **角色键与权限键** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)；③ **部署形态与对外对接** → [DEPLOYMENT_GUIDE.md](../deploy/DEPLOYMENT_GUIDE.md)；④ **L4 拖拽编排的架构锚点** → [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §八。
+> **本文不负责**：① **党委台界面与服务落点清单** → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) §十一 与 [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md)；② **角色键与权限键** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)；③ **部署形态与对外对接** → [DEPLOYMENT_GUIDE.md](../deploy/DEPLOYMENT_GUIDE.md)；④ **L4 拖拽编排的架构锚点** → [ARCHITECTURE_EVOLUTION.md](../evolution/ARCHITECTURE_EVOLUTION.md) §八。
 
 > **性质：设计图与方向选择说明**（为什么这样做、选了什么方向）。
 > 执行路线图（怎么一步步落地）另置过程 spec（`.trae/specs/`，**用后即删**）；落地过程台账在 `.ctx/logs/`。本文档为常驻设计记录，**不承载执行步骤、测试清单与过程台账**。
@@ -38,7 +41,7 @@ related_files: [docs/src/core/domain/domain.js, docs/src/data/mock/people.js, do
 | P3 下发承载（2026-09-03） | 新建「下发箱」领域 / **复用通知** | **复用通知**：通知实体加 `audience:'committee'` + `branchId` 受众过滤与「党委下发」来源徽标——送达=目标支部**支委层**，普通党员/党委组织员（非支委）不打扰；支部不可在自发通知管理区删改上级下发 |
 | P3 入口落点（2026-09-03） | — | 支部侧=支书工作台新 tab「上报党委」；党委侧=独立 tab「支部上报」与「下发通知」——上报/下发两向入口分离，互不混淆（页签名 2026-10-04 批次 374 由「上报审批」改准〔党委侧视角：不上报、只接收 + 回复支部〕） |
 | L2 工作流模块配置权（2026-09-03） | 党委代配 / **支部自治（支书/副支书操作）** | **支部自治**：config 工作流模块由**本支部现任支书 / 副支书（副书同权，2026-09-09）**在 **设置（侧边栏右下）→ 支部治理**操作（「工作台默认顺序」卡直存 + 「支部信息与向导」内嵌换组织向导② chips 启停；原支书工作台「工作台配置」tab 已废止），党委不代配（党委只管建支部/任命/审批/下发） |
-| L2 配置粒度与策略（2026-09-03） | — | 最小单位=**工作台 tab**（能力为分组容器）；**默认全开**（config.modules=null，46 功能兼容）；**核心组固定**（待办/概况等 groupLabel='工作台' 不可关）；服务端 PATCH /branches/:id/config 仅本支部现任支书 / 副支书（副书同权）/party-staff，白名单收 **config.modules / config.blocks / config.workforce / org 档案 / policyOverrides 五组**（blocks 含 workflowBlocks.hiddenBlockIds，见 [WORKFLOW_BLOCK_CONTRACT.md §七 S3](WORKFLOW_BLOCK_CONTRACT.md)；workforce 见 [BRANCH_WORK_MAP.md M0](BRANCH_WORK_MAP.md)；org 档案与域参数细则与写权矩阵见 §2.6 / SYSTEM_ROLE_PERMISSION §9h；治理字段不可经此改） |
+| L2 配置粒度与策略（2026-09-03） | — | 最小单位=**工作台 tab**（能力为分组容器）；**默认全开**（config.modules=null，46 功能兼容）；**核心组固定**（待办/概况等 groupLabel='工作台' 不可关）；服务端 PATCH /branches/:id/config 仅本支部现任支书 / 副支书（副书同权）/party-staff，白名单收 **config.modules / config.blocks / config.workforce / org 档案 / policyOverrides 五组**（blocks 含 workflowBlocks.hiddenBlockIds，见 [WORKFLOW_BLOCK_CONTRACT.md §七 S3](WORKFLOW_BLOCK_CONTRACT.md)；workforce 见 [BRANCH_WORK_MAP.md M0](../evolution/archive/BRANCH_WORK_MAP.md)；org 档案与域参数细则与写权矩阵见 §2.6 / SYSTEM_ROLE_PERMISSION §9h；治理字段不可经此改） |
 
 ## 1. 目标与边界
 
@@ -74,7 +77,7 @@ related_files: [docs/src/core/domain/domain.js, docs/src/data/mock/people.js, do
 - `desc` / `themePreset`：支部自述（可选）与主题预设 id（null=默认红调）——组织档案域（净化/白名单见 `config-clean.js` `sanitizeConfigOrg`，写口=换组织向导步骤①）
 - `modules`（L2，2026-09-03 定案）：工作流模块配置 `{ hiddenTabIds: string[], tabOrder: string[] }`，**null=默认全开**（46 功能兼容）。最小单位=工作台 tab；核心组（groupLabel='工作台'：待办/概况等）固定不可关、不参与排序。**维护权=本支部现任支书/副支书同权（2026-09-09 支书批·副书同权）**——操作位=**设置（侧边栏右下）→ 支部治理**（「工作台默认顺序」卡直存；「支部信息与向导」卡内嵌换组织向导②模块/块组合，chips 启停）；原「支书工作台 · 工作台配置」tab 表述随批3 迁移废止；党委不代配。
 - `blocks`：活动产出块 / 工作流块显隐（`outputBlocks` / `workflowBlocks`，null=全开；2026-09-03 定案）——与 modules 同维护权/操作位（向导②内改），目录源 = constants `OUTPUT_BLOCK_DEFS` / `BLOCK_MANIFESTS`
-- `workforce`：模块分工归属 `{ [moduleId]: { ownerType:'role'|'person', ownerId } }`（null=缺省分工，SOP 责任人列；目录源 = work-map）——**日常调整走支委会议题（M2）表决通过后落库；换壳/部署期可向导③直写**（见 [BRANCH_WORK_MAP.md](BRANCH_WORK_MAP.md)）
+- `workforce`：模块分工归属 `{ [moduleId]: { ownerType:'role'|'person', ownerId } }`（null=缺省分工，SOP 责任人列；目录源 = work-map）——**日常调整走支委会议题（M2）表决通过后落库；换壳/部署期可向导③直写**（见 [BRANCH_WORK_MAP.md](../evolution/archive/BRANCH_WORK_MAP.md)）
 - `policyOverrides`（L2 域参数，2026-09-09 支书批）：白名单覆盖 `POLICY_OVERRIDABLE`（纪检超期 / 组织滞留复核窗 / 组长学期提醒三键）——域负责人仅本域、支书/副/party-staff 全量，读侧注入全站判定随参数生效
 - `configChangeHistory`：config 写留痕（`{by,at,what,from?,to?}`，逐键 diff 追加、空变化不冗余）——modules/blocks/workforce/org 档案/policyOverrides/建支部/配置导入复制全部写口共用（随 2026-09-09 审计内核收口，详见 §2.6 变更流）
 - `fileSpaceIsolated: true`：**支部文件（branchDocs）与附件一个支部一个独立存储空间**——存储/查询按 branchId 分区，跨支部不可见（P1 落地）
@@ -82,7 +85,7 @@ related_files: [docs/src/core/domain/domain.js, docs/src/data/mock/people.js, do
 
 工作流匹配：支部内 decision-tree/sop-scenarios 消费自身 config.modules 显隐后的工作流集合（如硕博支部不需要的模块由支书在本支部配置中停用），场景引擎已注册式可配，仅需支部级过滤。
 
-> **远期形态**：见 [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §八（开源项目目标：config 清单/画布组合演进为「工作流块拖拽编排」；数据模型不变，块即注册能力 + 元数据）。
+> **远期形态**：见 [ARCHITECTURE_EVOLUTION.md](../evolution/ARCHITECTURE_EVOLUTION.md) §八（开源项目目标：config 清单/画布组合演进为「工作流块拖拽编排」；数据模型不变，块即注册能力 + 元数据）。
 
 ### 2.6 配置写权与变更流分层（2026-09-09 审定定稿）
 
@@ -221,7 +224,7 @@ related_files: [docs/src/core/domain/domain.js, docs/src/data/mock/people.js, do
 
 ## 5.3 公开与审计（2026-11-08 · 设计）
 
-> **状态**：设计定案，随公共门厅一起落地；门厅本身的显示范围与验收判据见 [PUBLIC_ENTRANCE.md](./PUBLIC_ENTRANCE.md)。
+> **状态**：设计定案，随公共门厅一起落地；门厅本身的显示范围与验收判据见 [PUBLIC_ENTRANCE.md](../module/PUBLIC_ENTRANCE.md)。
 
 - **公开权限只归党委**：`publishScope='public'` 的设置与撤销只对 `party-staff` 开放；支部账号设置返回 403。
 - **有效期必填**：设为 `public` 必须同时给出未来的 `publishExpiresAt`；缺失或已过期返回 422。

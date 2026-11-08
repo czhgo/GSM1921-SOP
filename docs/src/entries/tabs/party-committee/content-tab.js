@@ -12,15 +12,14 @@
 // 子视图协议：`?subview=activities|docs`（与 dispatch-tab 同协议；工作台壳不清该参数）。
 // 输入控件只经 components/ui/forms.js（具名导出）；目标支部复选框沿用 dispatch-tab 的既有写法。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261108a';
-import { ACTIVITY_SUBTYPES } from '../../../core/domain/constants.js?v=20261108a';
-import { getAdapter, getDataSource, getApiBaseUrl, getAuthToken } from '../../../data/data-adapter.js?v=20261108a';
-import { textField, textareaField, selectField, dateField, fileField } from '../../../components/ui/forms.js?v=20261108a';
-import { emptyStateHtml, skeletonHtml } from '../../../components/ui/empty-state.js?v=20261108a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261108a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261108a';
-import { confirmDanger } from '../../../components/ui/modal.js?v=20261108a';
-import { showToast, escHtml as esc, smoothScroll } from '../../../core/base/utils.js?v=20261108a';
+import { ACTIVITY_SUBTYPES } from '../../../core/domain/constants.js?v=20261108b';
+import { getAdapter, getDataSource, getApiBaseUrl, getAuthToken } from '../../../data/data-adapter.js?v=20261108b';
+import { textField, textareaField, selectField, dateField, fileField } from '../../../components/ui/forms.js?v=20261108b';
+import { emptyStateHtml, skeletonHtml } from '../../../components/ui/empty-state.js?v=20261108b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261108b';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261108b';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261108b';
+import { showToast, escHtml as esc, smoothScroll } from '../../../core/base/utils.js?v=20261108b';
 
 const HOST_ID = 'party-committee-tab-content';
 const VIEW_ACTIVITIES = 'activities';
@@ -57,6 +56,10 @@ const state = {
   branches: [],
   loading: false,
   error: '',
+  // 批次 537 波次 1：分块错误——读失败不得回落 mockDB（H32「兜底不造事实」）。
+  activitiesError: '',
+  documentsError: '',
+  branchesError: '',
   editingActivityId: '',
   editingDocId: '',
   activityDraft: null,
@@ -149,33 +152,49 @@ export function renderContent(ctx = {}) {
 async function refresh(host) {
   state.loading = true;
   state.error = '';
+  state.activitiesError = '';
+  state.documentsError = '';
+  state.branchesError = '';
   paint(host);
-  try {
-    const group = contentAdapter();
-    if (!group) throw new Error('院级内容需接入服务端后使用');
-    const branchTask = (async () => {
-      try {
-        const list = await getAdapter().branches.list();
-        return Array.isArray(list) ? list : [];
-      } catch (_) {
-        return mockDB.branches || [];
-      }
-    })();
-    const [activities, documents, branches] = await Promise.all([
-      group.activities.list(),
-      group.documents.list(),
-      branchTask,
-    ]);
-    state.activities = Array.isArray(activities) ? activities : [];
-    state.documents = Array.isArray(documents) ? documents : [];
-    state.branches = Array.isArray(branches) && branches.length ? branches : (mockDB.branches || []);
-  } catch (error) {
-    state.error = writeErrorMessage(error);
-    showToast('error', `院级内容加载失败：${state.error}`);
-  } finally {
+  const group = contentAdapter();
+  if (!group) {
     state.loading = false;
+    state.error = '院级内容需接入服务端后使用';
     paint(host);
+    return;
   }
+  // 分块结算：某一块读失败只影响该块（活动 / 资料 / 支部名单各自给错误与重试），
+  //   不得用 `mockDB.branches` 或其他本地数据补位（H32：兜底不造事实）。
+  const branchTask = Promise.resolve()
+    .then(() => getAdapter().branches.list())
+    .then((list) => (Array.isArray(list) ? list : []));
+  const [activities, documents, branches] = await Promise.allSettled([
+    group.activities.list(),
+    group.documents.list(),
+    branchTask,
+  ]);
+  if (activities.status === 'fulfilled') {
+    state.activities = Array.isArray(activities.value) ? activities.value : [];
+  } else {
+    state.activities = [];
+    state.activitiesError = writeErrorMessage(activities.reason);
+  }
+  if (documents.status === 'fulfilled') {
+    state.documents = Array.isArray(documents.value) ? documents.value : [];
+  } else {
+    state.documents = [];
+    state.documentsError = writeErrorMessage(documents.reason);
+  }
+  if (branches.status === 'fulfilled') {
+    state.branches = Array.isArray(branches.value) ? branches.value : [];
+  } else {
+    state.branches = [];
+    state.branchesError = writeErrorMessage(branches.reason);
+  }
+  state.loading = false;
+  paint(host);
+  const firstError = state.activitiesError || state.documentsError || state.branchesError;
+  if (firstError) showToast('error', `院级内容部分数据加载失败：${firstError}`);
 }
 
 function paint(host) {
@@ -248,6 +267,17 @@ function saveDraftsFromDom(host) {
 
 function activitiesHtml() {
   const rows = state.activities;
+  if (state.activitiesError) {
+    return `
+      <div class="card p-5">
+        ${renderCardHeader({ title: '党委活动', titleId: 'pc-content-activity-list', meta: '加载失败' })}
+        ${emptyStateHtml({
+          variant: 'panel',
+          text: `活动加载失败：${state.activitiesError}`,
+          actionHtml: '<button type="button" class="btn-outline btn-sm" data-content-retry>重试</button>',
+        })}
+      </div>`;
+  }
   return `
     <div class="space-y-4">
       <div class="card p-5">
@@ -278,7 +308,7 @@ function activityRowHtml(row) {
         </div>
         <div class="card-head__actions" role="group" aria-label="「${esc(title)}」的操作">
           <button type="button" class="btn-outline btn-sm" data-activity-act="edit" data-id="${esc(row.id)}">编辑</button>
-          <button type="button" class="btn-outline btn-sm" data-activity-act="dispatch" data-id="${esc(row.id)}">下发</button>
+          <button type="button" class="btn-outline btn-sm" data-activity-act="dispatch" data-id="${esc(row.id)}" ${state.branchesError ? 'disabled' : ''}>下发</button>
           <button type="button" class="btn-outline btn-sm" data-activity-act="publish" data-id="${esc(row.id)}">公开设置</button>
           ${row.publishScope === 'public'
             ? `<button type="button" class="btn-outline btn-sm" data-activity-act="unpublish" data-id="${esc(row.id)}">撤下公开</button>`
@@ -318,6 +348,7 @@ function activityFormHtml() {
             <label class="inline-flex items-center gap-2 py-1 text-sm text-gray-700"><input type="checkbox" data-target-all ${allChecked ? 'checked' : ''}>全部支部</label>
             ${branches.map((branch) => `<label class="inline-flex items-center gap-2 py-1 text-sm text-gray-700"><input type="checkbox" data-target-branch value="${esc(branch.id)}" ${selected.has(branch.id) ? 'checked' : ''}>${esc(branch.config?.headerTitle || branch.name || branch.id)}</label>`).join('')}
           </div>
+          ${state.branchesError ? `<p class="mt-2 text-sm text-red-700" role="alert">支部名单加载失败：${esc(state.branchesError)}。暂不能下发；请用页内「重试」重新读取。</p>` : ''}
         </fieldset>
         <div class="grid gap-3 sm:grid-cols-2 mt-1">
           ${selectField({ id: 'pc-activity-scope', label: '公开范围', options: ACTIVITY_PUBLISH_OPTIONS, value: draft.publishScope || 'branch' })}
@@ -325,7 +356,7 @@ function activityFormHtml() {
         </div>
         <div class="mt-4 flex flex-wrap justify-end gap-2 border-t border-gray-200 pt-4">
           ${editing ? '<button type="button" class="btn-outline btn-sm" data-activity-form="cancel-edit">取消编辑</button>' : ''}
-          <button type="button" class="btn-outline btn-sm" data-activity-form="save-dispatch">保存并下发</button>
+          <button type="button" class="btn-outline btn-sm" data-activity-form="save-dispatch" ${state.branchesError ? 'disabled' : ''}>保存并下发</button>
           <button type="button" class="btn-accent btn-sm" data-activity-form="save">保存</button>
         </div>
       </div>
@@ -462,6 +493,10 @@ async function saveActivity(host, { dispatchAfter = false } = {}) {
 async function dispatchActivity(row, host) {
   const group = contentAdapter();
   if (!group) return;
+  if (state.branchesError) {
+    showToast('error', '支部名单读取失败；下发暂不可用。页内可重试重新读取。');
+    return;
+  }
   const confirmed = await confirmDanger({
     id: 'committee-activity-dispatch',
     title: `下发「${row.title || '未命名活动'}」`,
@@ -534,6 +569,17 @@ async function archiveActivity(row, host) {
 
 function docsHtml() {
   const rows = state.documents;
+  if (state.documentsError) {
+    return `
+      <div class="card p-5">
+        ${renderCardHeader({ title: '院级资料', titleId: 'pc-content-doc-list', meta: '加载失败' })}
+        ${emptyStateHtml({
+          variant: 'panel',
+          text: `资料加载失败：${state.documentsError}`,
+          actionHtml: '<button type="button" class="btn-outline btn-sm" data-content-retry>重试</button>',
+        })}
+      </div>`;
+  }
   return `
     <div class="space-y-4">
       <div class="card p-5">

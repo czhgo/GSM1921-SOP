@@ -8,7 +8,7 @@
 //  需要定位目标项时，先写 PendingTarget，再由目标页签 render 后消费（不新增第二套深链）。
 // ════════════════════════════════════════════════════════════════
 
-import { PendingTarget } from './pending-target.js?v=20261108a';
+import { PendingTarget } from './pending-target.js?v=20261108b';
 
 /**
  * 切到当前工作台的指定页签。

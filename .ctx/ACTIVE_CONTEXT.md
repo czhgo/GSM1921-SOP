@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: "2026-11-08"
 last_verified: "2026-11-08"
-latest_decision: "D-858"
+latest_decision: "D-859"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -28,9 +28,9 @@ status: active
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
 - **审计**：46 页签 **P0 0 / P1 0 / P2 2 / exception 44**；F1–F8 全绿；M1–M3 在位。
   - source：`.ctx/evidence/2026-11-08/tab-audit/summary.md`。
-- **测试**：daily **255 文件 / 1872 断言**；本批全量分片 5/5 全绿；9 条 precommit e2e 仍待发布前复跑。
-  - source：`.ctx/logs/2026-11-EXECUTION_LOG.md §批次 536`、`server/test-tier-registry.mjs`。
-- **版本戳**：目标 `20261108a`（主代理收尾统一 bump），当前 0 处陈旧。
+- **测试（四层，`D-859`）**：daily **43 文件 / 294 断言**（结果门禁）；guards **93 文件 / 765 tests**（静态守卫，按需）；precommit 158 文件（含 36 个 e2e）；weekly 2。daily 墙钟实测 **≈108s**（并发 4），**未达 ≤60s**（串行成本约 500s，并发不再线性加速；差距已记入 `server/README.md`）。
+  - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859`。
+- **版本戳**：`20261108b`，0 处陈旧。
   - source：`docs/scripts/bump-version.mjs --check`。
 - **换轨**：副本 **48 表 / 577 行** export → dry-run → apply 一致；生产空库 `preflight-cutover --strict` exit 0 / 警告 0。
   - source：`deploy/CUTOVER_RUNBOOK.md`、`.ctx/evidence/2026-11-03/security/summary.md`。
@@ -55,6 +55,7 @@ status: active
 - **界面信号与颜色权威**：状态 / 装饰左条退出（CASE-DESIGN-033）；焦点沿用 SD-27 单环、2px 不加宽、双层环不得回潮；`styles.css` 为唯一颜色权威，`constants.js` / `tailwind-config.js` 受守卫镜像；7 类待办组全部服务端化且测试先行；数据分层写入 `H32`。（`D-856`）→ `DS_03 SD-25`、`theme-palette-guard::T12/T13`、`server/test/todo-derive-parity.test.mjs`。
 - **CLAUDE 三层与通知受众**：温层恢复为「触发表 + H60–H80」，层边界 / 乙部去历史有守卫；系统通知无受众＝不可读、广播必须显式 `all`、未登录一律不可读；行动行按 SD-60 四类排布。（`D-857`）→ `CLAUDE.md`、`notice.js`、`DS_06 SD-60`、`action-row-wrap-guard`。
 - **党委内容域与公共门厅**：未登录只看党委公开内容（公开通知全文 / 活动摘要 / 公开资料），登录后看党委与支部并集；`public` 只归党委、必须带未来有效期并留痕 `publication_audits`；支部副本只改执行字段、手动同步。（`D-858`）→ `SYSTEM_ROLE_PERMISSION §9a.1`、`PUBLIC_ENTRANCE.md`、`server/routes/public-portal.js`。
+- **测试瘦身（结果优先、守卫按需）**：四层 daily / guards / precommit / weekly；daily 只留结果门禁（权限、会话、数据契约与迁移、核心业务结果、构建可运行），静态守卫迁 guards 按需跑；不删任何测试或断言，precommit / full 仍覆盖全部文件。（`D-859`）→ `server/test-tier-registry.mjs`、`server/scripts/run-{daily,guards,precommit,changed}.mjs`、`CLAUDE.md H25`。
 
 ## §3 当前风险与下一步
 
@@ -74,7 +75,7 @@ status: active
 - `L-10` 多支部读过滤未实现（设计已出）。
 - `L-11` 共享口令。
 - `L-12` 审计脚本不进 daily（发布前硬门）。
-- `L-13` 41 个页签仅登记未重构。
+- `L-13` 6 个超 4 块页签 ＋ 7 条 IA 未闭项 ＋ 5 个从未做 IA 三问的页签；34 个已完成；不盲改 41 个（台账 `.ctx/evidence/2026-11-08/tab-review-ledger.md`）。
 - **公开内容与党委内容读面（`D-858`）**：未登录只读 `publishScope='public'` 且未过期的党委内容，过期即 404 fail-closed；党委内容只经服务端读口（`/committee/*` 与公开门厅），客户端不得本地派生可见性、不得带出支部名与成员字段。
 - `L-14` / `L-15` 块停用与画布 / 按角色配置（先出方案）。
 - `L-16` 表决名单重算待支书裁定。

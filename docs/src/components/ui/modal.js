@@ -5,7 +5,7 @@
 //  设计原则：点击按钮→弹出浮窗→在浮窗中完成写入→关闭浮窗
 //  页面保持清爽，所有表单/编辑器都在浮窗中完成
 
-import { escHtml, describeWriteError, prefersReducedMotion } from '../../core/base/utils.js?v=20261108a';
+import { escHtml, describeWriteError, prefersReducedMotion } from '../../core/base/utils.js?v=20261108b';
 
 // 2026-09-13 修复（成员档案模态走查暴露）：Esc 监听原只在「按 Esc 关闭」这一条路径上注销，
 // 走遮罩点击/关闭按钮/程序化 closeModal 关闭时监听残留 → 反复打开同一 id 浮窗会累积 keydown
@@ -880,6 +880,30 @@ export function confirmWriteWithoutGrant({ subject = '活动', context = '' } = 
     cancelLabel: '返回指定',
     bodyHtml: `${_noGrantNoteHtml(subject, context)}
         <p style="margin:10px 0 0;font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">点「仍然提交」＝本次先写入、稍后补指定；点「返回指定」＝回到表单先指定组织者。这不改动任何权限。</p>`,
+  });
+}
+
+/**
+ * 非危险动作的统一二次确认（批次 537 波次 1）。
+ * 用途：可撤回 / 可重做的动作（如「采用党委活动」）——与 `confirmDanger` 同一套机制（`_mustPressConfirm`），
+ *   只是主按钮走 `.btn-accent`，语义不是「不可逆」。同一动作在不同入口必须调本函数，
+ *   不得各写一份弹窗（避免「一处有确认、一处直写」）。
+ * @param {Object} o
+ * @param {string} o.id 语义 id（渲染为 `#modal-overlay-action-<id>`，测试可定位）
+ * @param {string} o.title 标题＝做什么（一行动词）
+ * @param {string} o.bodyHtml 影响范围 + 可否恢复
+ * @param {string} [o.confirmLabel='确认'] 主按钮文案
+ * @param {string} [o.cancelLabel='取消'] 次按钮文案
+ * @returns {Promise<boolean>} true＝用户确认；false＝取消
+ */
+export function confirmAction({ id, title, bodyHtml, confirmLabel = '确认', cancelLabel = '取消' }) {
+  return _mustPressConfirm({
+    id: `action-${id}`,
+    title,
+    bodyHtml,
+    confirmLabel,
+    cancelLabel,
+    danger: false,
   });
 }
 

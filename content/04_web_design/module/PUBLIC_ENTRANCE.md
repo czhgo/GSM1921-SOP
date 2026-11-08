@@ -4,13 +4,13 @@ type: design
 role: "[工程师]+[AI]"
 last_updated: 2026-11-08
 status: approved-by-secretary
-related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md, content/04_web_design/design-system/CASES.md]
+related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md, content/04_web_design/design-system/CASES.md]
 ---
 
 # 学院党委公共门厅——未登录入口与公开内容（已裁定）
 
 > **本文负责**：记录 V-11 的裁定结论（D-858）、门厅的显示与不显示范围、登录后的读面、公开权限与审计边界、验收判据，以及三种候选方向中未选两个的理由。
-> **本文不负责**：① 角色与权限的规范条文 → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md) §9a.1；② 公开门厅的版式与组件规范 → 设计系统（编号待登记，见 `design-system/CASES.md` CASE-DESIGN-035 与 `.ctx/REVIEW_QUEUE.md`）；③ 多支部同实例的技术路线与开关 → [ARCHITECTURE_EVOLUTION.md](./ARCHITECTURE_EVOLUTION.md) §十；④ 登录实现细节 → `docs/src/entries/pages/login-entry.js`。
+> **本文不负责**：① 角色与权限的规范条文 → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md) §9a.1；② 公开门厅的版式与组件规范 → 设计系统（编号待登记，见 `design-system/CASES.md` CASE-DESIGN-035 与 `.ctx/REVIEW_QUEUE.md`）；③ 多支部同实例的技术路线与开关 → [ARCHITECTURE_EVOLUTION.md](../evolution/ARCHITECTURE_EVOLUTION.md) §十；④ 登录实现细节 → `docs/src/entries/pages/login-entry.js`。
 > **性质**：演进档案，只写「为什么这样定、边界在哪、什么没选」。规范效力以 `SYSTEM_ROLE_PERMISSION.md` 与设计系统条文为准；字段与接口口径见 `DATA_MODEL.md` / `DATA_CONTRACT.md`。
 
 ## 一、裁定结论

@@ -118,6 +118,10 @@ test('下发：目标支部各一条通知，受众为支书 / 副支书；同�
     assert.equal(notice.source, 'committee');
     assert.equal(notice.sourceType, 'activity');
     assert.equal(notice.sourceVersion, 1);
+    // 批次 537 波次 1：通知落点带对象坐标（notice.js 归一化要求 system 有 targetType + targetId，
+    //   否则会降级成 announcement —— 铃铛/消息中心的「系统通知」分类与对象卡跳转随之失效）。
+    assert.equal(notice.targetType, 'activity', '通知落点类型须为 activity');
+    assert.equal(notice.targetId, id, '通知落点＝党委活动 id');
     assert.deepEqual(notice.audience, ['secretary', 'deputy-secretary']);
     assert.equal(notice.priority, 'normal');
     assert.match(notice.publishDate, /^\d{4}-\d{2}-\d{2}$/);

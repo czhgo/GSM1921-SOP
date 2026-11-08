@@ -10,6 +10,29 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 537（2026-11-08）· 文档契约化、P0 缺口与测试瘦身
+
+### 为什么
+- V-11 后公共门厅已有读口，但党委公开通知无写入路径；通用 `/notices`、`/branchDocs` 可绕过「public 只归党委」。
+- 测试膨胀到 255 文件 / 1872 断言，Windows `npm run test:daily` 命令串 8518 字符已不可执行。
+- `04_web_design` 的「契约」无合法载体落点，`evolution/` 混放权威与档案。
+
+### 拿不准 / 边界
+- 41 页签是批次 525 算术残值，实际为 6 个超 4 块 + 7 条 IA 未闭 + 5 个未评；本批只出台账，不重构。
+- 测试瘦身不删文件、不删断言，只改四层（daily / guards / precommit / weekly）与入口；daily 墙钟 114.8s，未达 60s，已登记差距。
+- 公开通知只校验有效期；公共门厅 notices 投影无摘要字段。
+
+### 读数
+- `npm run test:daily`：43 文件 / 294 断言 / 114.8s 全绿。
+- `npm run test:guards`：93 文件 / 297 tests / 101.4s 全绿。
+- `audit-tabs --all`：46 页签 P0 0 / P1 0 / P2 2 / exception 44。
+- 文档守卫：`doc-consistency` / `docs-governance` / `contract-doc-guard` 54/54 全绿。
+- 清理：删除 `.worktrees/agenda-link-voting`、`.trae-html-share-packages/`、`server/.tmp/shots*`、`.screenshots/.tmp` 等约 114MB；`.gitignore` 增 `.worktrees/` 与 `.trae-html-share-packages/`。
+
+### 未完成
+- 41 页签的具体 B/C 项由支书决定后另批。
+- daily 60s 目标未达；后续可做共享 bootstrap 夹具 / 降测试 bcrypt 轮数。
+
 ## 批次 536（2026-11-08）· 党委活动写入与公共门厅
 
 ### 为什么

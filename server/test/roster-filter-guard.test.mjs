@@ -68,8 +68,10 @@ test('R4 390px 单列：由通用筛选行规则覆盖（不再保留名册专�
   assert.ok(!/#roster-list-host \.lf-bar/.test(STYLES), '不得保留名册专用特例（避免第二套窄屏规则）');
 });
 
-test('R5 守卫登记在 test:daily', () => {
-  assert.match(PKG, /test:daily[^\n]*roster-filter-guard\.test\.mjs/, 'test:daily 须登记 roster-filter-guard.test.mjs');
+test('R5 守卫登记在 daily / guards 层（2026-11-08 批次 537 起按需跑，不得孤儿化）', async () => {
+  const { tierOf } = await import('../test-tier-registry.mjs');
+  assert.ok(['daily', 'guards'].includes(tierOf('roster-filter-guard.test.mjs')),
+    'registry 未把 roster-filter-guard 登记在 daily / guards：守卫孤儿化，从不自动运行');
 });
 
 test('R6 R3-17：待确认摘要不重复、pill title 只写「待支书确认」', () => {

@@ -2,15 +2,15 @@
 title: "设计系统（父索引）"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-03"
+last_updated: "2026-11-08"
 status: active
-related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RESPONSIVE.md, DS_05_MAP_AND_REFERENCE.md, DS_06_LAYOUT_AND_DENSITY.md, CASES.md, ../../../docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data/DATA_MODEL.md]
+related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RESPONSIVE.md, DS_05_MAP_AND_REFERENCE.md, DS_06_LAYOUT_AND_DENSITY.md, CASES.md, ../../../docs/src/styles.css, ../evolution/archive/DESIGN_METHODOLOGY.md, ../data/DATA_MODEL.md]
 ---
 
 # 设计系统（父索引）
 
 > **回答什么问题**：我要找的那条设计规则在哪一编。本页只做编目与导航，条文一律在六编里，不在此重复。
-> **不回答什么**：具体条文（色板值、字号档、组件结构、点击落点表）→ 六编各自成文，见「编目索引 · 六编分工」；判例（为什么这样定、什么条件下不适用）→ [CASES.md](CASES.md)；设计论证 → [DESIGN_METHODOLOGY.md](../evolution/DESIGN_METHODOLOGY.md)。
+> **不回答什么**：具体条文（色板值、字号档、组件结构、点击落点表）→ 六编各自成文，见「编目索引 · 六编分工」；判例（为什么这样定、什么条件下不适用）→ [CASES.md](CASES.md)；设计论证 → [DESIGN_METHODOLOGY.md](../evolution/archive/DESIGN_METHODOLOGY.md)。
 > **谁什么时候读**：[工程师]+[AI]；每次改界面前先读本页定位编目，再读对应编；不确定「这条该写进哪一编」时也读本页。
 
 > **分编总述**：设计系统拆为六编，一编只回答一个问题——① [DS_01 色彩与主题](DS_01_COLOR_AND_THEME.md)：颜色怎么选、主题与暗色怎么定；② [DS_02 排版与尺寸](DS_02_TYPE_AND_SIZE.md)：字号、行高、页面多宽、列数多少；③ [DS_03 组件](DS_03_COMPONENTS.md)：某类组件长什么样、有哪些强制结构；④ [DS_04 交互与响应式](DS_04_INTERACTION_AND_RESPONSIVE.md)：悬停/按下/聚焦怎么表现、窄屏怎么变；⑤ [DS_05 地图与速查](DS_05_MAP_AND_REFERENCE.md)：点哪里去哪、速查、边界；⑥ [DS_06 布局与密度](DS_06_LAYOUT_AND_DENSITY.md)：一页几块、筛选条几行、建议输入有无系统装饰。设计哲学（§一）留在本页，作为六编共同的裁决标准。

@@ -2,7 +2,7 @@
 title: "页面与模块设计目录索引（04/module/）"
 type: index
 role: "[工程师]+[AI]"
-last_updated: 2026-10-24
+last_updated: "2026-11-08"
 status: active
 ---
 
@@ -18,6 +18,7 @@ status: active
 
 - 不写整体视觉规范（色彩、组件、动效、点击落点）——归 [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md)。
 - 不写数据模型与字段——归 [DATA_MODEL.md](../data/DATA_MODEL.md)。
+- 不写实现必须遵守的结构 / 版本 / 验收——归 [contracts/README.md](../contracts/README.md)。
 - 不写 SOP 正文与权限矩阵——归 `../../02_institution/`。
 - 不写代码实现清单——`docs/src/` 是子本。
 
@@ -29,11 +30,12 @@ status: active
 | [ABOUT_PAGE_DESIGN.md](ABOUT_PAGE_DESIGN.md) | About 页设计系统：叙事册风、超参数设定原则、防风格疲劳与无竖线红线 | **是**——About 页超参数设定的权威；整体视觉仍服从 `DESIGN_SYSTEM` |
 | [MODULE_UI_DESIGN.md](MODULE_UI_DESIGN.md) | 「党建」Tab 分组与日历功能模块的界面设计（已落地） | 否——设计论证档案；现行规范为 `DESIGN_SYSTEM` §四 与 `SOP_WEBSITE_GUIDE` |
 | [AGENDA_AND_REFERENCE_DESIGN.md](AGENDA_AND_REFERENCE_DESIGN.md) | 会议议程与资料查询的联动设计：会前草案关联、会后少重复录入 | 否——设计论证档案（状态以文件头 `status` 为准）；现行模型与行为以 [DATA_MODEL.md](../data/DATA_MODEL.md) 和服务层实现为准 |
+| [PUBLIC_ENTRANCE.md](PUBLIC_ENTRANCE.md) | 学院党委公共门厅：未登录入口的显示范围、登录后读面、公开权限与审计边界（D-858 已裁定） | **是**——未登录入口形态与公开内容边界的权威；角色与权限条文仍归 [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md) §9a.1 |
 | `README.md` | 本目录索引（边界、与 DESIGN_SYSTEM 的关系、维护规则） | 指针 → 上述文件 |
 
 ## 权威源与派生
 
-- **权威源**：`SOP_WEBSITE_GUIDE.md`（SOP ↔ 系统的方法）与 `ABOUT_PAGE_DESIGN.md`（About 页超参数）在各自主题上生效；整体视觉、组件与点击落点仍以 [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md) 为唯一权威。
+- **权威源**：`SOP_WEBSITE_GUIDE.md`（SOP ↔ 系统的方法）、`ABOUT_PAGE_DESIGN.md`（About 页超参数）与 `PUBLIC_ENTRANCE.md`（未登录入口形态与公开内容边界）在各自主题上生效；整体视觉、组件与点击落点仍以 [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md) 为唯一权威。
 - **档案**：`MODULE_UI_DESIGN.md` 与 `AGENDA_AND_REFERENCE_DESIGN.md` 已落地或已给出结论，保留「为什么」；其规范部分回 `DESIGN_SYSTEM` / `DATA_MODEL`，实现以代码为准。
 - **与 DESIGN_SYSTEM 的边界**：本目录可以提出某个模块的**局部**设计口径（如 About 页超参数）；一旦与 DESIGN_SYSTEM 的全局条目冲突，以 DESIGN_SYSTEM 为准并回写本目录。
 

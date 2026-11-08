@@ -1,0 +1,32 @@
+name: daily
+
+on:
+  push:
+    branches: [main, release/**]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  daily:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    env:
+      DISABLE_PASSWORD_CHECK: '1'
+      DEMO_READONLY: '0'
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - run: npm run test:daily
+      - name: Shell syntax
+        if: always()
+        working-directory: .
+        run: |
+          for f in deploy/*.sh; do bash -n "$f"; done
