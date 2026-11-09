@@ -2,7 +2,7 @@
 title: "2026年11月决策日志"
 type: decision_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-08
+last_updated: 2026-11-09
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-DECISION_LOG.md, content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md, content/04_web_design/design-system/DS_03_COMPONENTS.md, content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md]
 ---
@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-860`，共 34 条**；下一条自 **`D-861`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-862`，共 36 条**；下一条自 **`D-863`**。
 
 ## 本月目录（2026-11）
 
@@ -54,6 +54,8 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | V-11 裁定：党委内容域 + 公共门厅 + 支部幂等采用 | `D-858` | 2026-11-08 | 已落（批次 536） |
 | 测试瘦身：结果优先、守卫按需（四层 daily / guards / precommit / weekly） | `D-859` | 2026-11-08 | 已落（批次 537） |
 | 测试瘦身二阶段 + 安全 / 体验 / 部署梯度：六维 80/78/74/85/77/74 | `D-860` | 2026-11-08 | 已落（批次 538） |
+| 六维批判性修正：业务 80→79 · 安全 78→77 · 体验 74→72 · 测试 85→83（架构 77 / 部署 74 维持） | `D-861` | 2026-11-09 | 已落（批次 539） |
+| 批次 539 终评：待办计算化 + 分工页美学 + R2/IA + 部署 6/6；六维 80/77/77/83/77/76 | `D-862` | 2026-11-09 | 已落（批次 539） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -258,4 +260,48 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 
 > **落点**：`.ctx/ENGINEERING_ASSESSMENT.md`（§一 六维与证据行 / §二 各维结论 / §四 L-02·L-09·L-10·L-11·L-12·L-13 / §5.2 当前值）、`.ctx/ACTIVE_CONTEXT.md`、`.ctx/logs/2026-11-EXECUTION_LOG.md`（批次 538）。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-860`**（共 **34** 条）。
+## D-861 2026-11-09 — 六维评分批判性修正
+
+> **评议 → 裁定 → 落点**（支书 2026-11-09 要求「六维分数立即修正」，批次 539 波次 S；只改 `.ctx` 台账与评估文档，不改代码 / 不改测试 / 不 commit / 不 bump）：
+> - **业务 80 → 79**：D2 只对 3 个计数（`org.roster` 50 = 50、`secretary.group-progress` 3 = 3、`party-committee.branches` 1 = 1）；C2 在 46 页签 **0 pass**（34 skip / 12 exception），只有 `:memory:` 手工往返；`L-16` 表决名单服务端重算未闭。
+> - **安全 78 → 77**：上传门代码 `server/routes/uploads.js:68-74` 已用 `requireUploader` 放行 `party-staff`（`security-hardening.test.mjs:304-324` 常驻断言 party-staff 201 / 普通成员 403），但 `server/security/write-policy-matrix.mjs:534-538` 仍登记 `requireCommissioner` / 支委层——唯一机读源与运行期不同批。
+> - **体验 74 → 72**：H 波 5 个用户任务实为 **4/5 PASS**（任务 5 未登录资料查询只给登录提示，`R2` GAP）；`B11`（`org.talent` 录入考察沉底）未动；`R1` 台账仍写「只登记不修」，与已修代码不一致。
+> - **测试 85 → 83**：daily 60.9s 来自断言 **294 → 207**（12 条域回归移出 daily）；CI `daily` / `deploy-verify` 均无实跑读数；`CLAUDE.md` 乙部 `B-500-7b-2` 仍写「daily 294 断言全绿」。
+> - **架构 77 / 部署 74 维持**：本轮无新增可复跑证据。
+> - **未选方案**：① 维持原分只加注（等于「已给分不回收」）；② 只调测试分、不动安全 / 体验（同批证据同源，分维口径不一致）；③ 顺手改代码 / 测试 / 版本戳把分补回来（越出「只改台账」授权）。三条均不取。
+> - **证据卡**：
+
+| AI 假设 | 人类意图 | 偏差类型 | 泛化规则 |
+|---|---|---|---|
+| D2「计数对账一致」即可代表业务对账覆盖 | 只有 3 个计数被测，其余未测即未覆盖 | 抽样当全量 | 加分须写明样本量；「对账一致」必须给分母 |
+| C2 在 `:memory:` 手工往返一次即写口已覆盖 | 46 页签 C2 0 pass（skip / exception），不能算日常门禁 | 一次性手工当常驻 | 写口覆盖只认常驻 tier 内的 pass，skip / exception 不计 |
+| 测试断言减少但时长达标即测试变强 | 60.9s 是覆盖变窄换来的，须同报移出清单 | 手段当判据 | 时长与覆盖必须成对报，只报其一不得加分 |
+| 上传门代码改了即安全口径已对齐 | 矩阵仍是唯一机读源，代码先行、矩阵未改即单源破裂 | 实现当权威 | 权限类加减分以「矩阵 ≡ 运行期门」为准，代码先行不算 |
+| 自动走查 4/5 可记作 5 个任务全部 PASS | 未登录资料查询 GAP 未闭；自动走查不能替代真人签收 | 证据强度高估 | 体验验收按「任务分母 + 未闭 GAP + 签收人」三项计 |
+
+> **落点**：`.ctx/ENGINEERING_ASSESSMENT.md`（§一 六维与证据行 / §二 2.1·2.2·2.3·2.5 / §5.2）、`.ctx/ACTIVE_CONTEXT.md`、`.ctx/ACTIVE_RULINGS.md`、`.ctx/evidence/2026-11-08/user-task-test.md`（R1 改准）、`.ctx/TIMESTAMPS.md`。**未改代码 / 测试 / 版本戳，未 commit。**
+
+## D-862 2026-11-09 — 批次 539：待办计算化 + 分工页美学 + 体验 / 部署提分
+
+> **评议 → 裁定 → 落点**（支书 2026-11-09 要求「更新批次 539 最终评分与台账」；只改 `.ctx` 台账与 `CLAUDE.md` 乙部读数，不改代码 / 不 commit / 不 bump）：
+> - **业务 79 → 80**：待办「P0 漏提醒」修复——组织委员前置门由「有待办行」改「有成员发展数据」，空 `todos` 库不再吞发展节点 / 半年考察提醒；发展节点 / 半年考察 / 模块周期三类派生迁入 `todo-derive.js` 单一源（`server/routes/todo-groups.js` 删掉约 130 行复刻）；纪检「考勤 / 考察待确认」改由服务端派生（11 类组全同源）；`count === items.length` 成为唯一计数口径（议程派生行另计 `agendaCount`）；演示单据种子行（`todo_seed_*` / `mc-seed-*` / `mcr-seed-*`）纳入 `server/demo-data-guard.js` 的生产演示数据门。**81 不授予**：D2 / C2 覆盖未扩、`L-16` 表决名单重算未闭。
+> - **安全维持 77**：`server/security/write-policy-matrix.mjs:534-536` 把 `POST /api/v1/uploads` 登记为 `requireAuth + (party-staff | requireCommissioner)` / `roleGate: 支委层或 party-staff`，唯一机读源与运行期 `requireUploader` 同批一致，补上 `D-861` 的失分项；但多支部读过滤未接线、`ALLOW_MULTI_BRANCH` 仍关闭，**78 不授予**。
+> - **体验 72 → 77**：`secretary.work-map` 责任关系由主从两栏改单列对象列表（14 项逐行摊平、行载体走 `list-row.js`、≤640 展开整段说明）；`R2` 未登录资料查询接入匿名门厅读口（`references.js` → `loadPublicPortal`，含匿名下载 / 失败重试 / 「去登录」附注），补上 `D-861` 的 GAP；IA 三条（`party-committee.dispatch` / `leader.write` / `org.member-flow`）落结论；`disc.review` 复盘页动作收敛。**未做**：5 个 B 中 `party-committee.branches` 因既有契约（目录只创建 / 选择）回退。**78 不授予**：真人签收未完成（自动走查 ＋ 截图不计验收）。
+> - **测试维持 83**：daily **27 文件 / 210 断言 / 63.5s**、guards **99 文件全绿**；断言 207 → 210 为待办 P0 回归净增，覆盖未缩；`CLAUDE.md` 乙部 `B-500-7b-2` 的「daily 294 断言」同批改准为「daily 210 断言（结果门禁）」。**CI 未实跑，84 不授予**。
+> - **架构维持 77**：11 类待办派生收成 `todo-derive.js` 单源；行号 / 版本戳维护成本未降。
+> - **部署 74 → 76**：`deploy/package.mjs:269-273` 改在 `OUT_DIR` 下用相对文件名调 `tar`、`deploy/verify-linux.sh:42-48` 用 `cygpath -u` 转 POSIX（修 msys 把 `D:` 当远程主机）；`VERIFY_TMPDIR=D:\…\.tmp` 下 **6/6 · 退出码 0**（语法 3/3 · doctor · 起服务 · smoke --login · preflight strict 阻断 0 / 警告 0 · package 460 文件 / 12.9 MB / 断言 0 命中），PowerShell 侧 package 回归退出 0。**77 / 80 不授予**：GitHub Actions `deploy-verify` 未实跑、真机 `install` / `update` 未验（`L-02`）。
+> - **未选方案**：① 把「自动走查 + 截图」记作真人签收换体验 78（证据强度不足）；② 把 `verify-linux` 6/6 记作 CI 已绿、部署给 77（本机无 `gh`、本批不推送）；③ 越过「目录只创建 / 选择」契约强改 `party-committee.branches`（改 IA 契约须先裁定）。三条均不取。
+> - **证据卡**：
+
+| AI 假设 | 人类意图 | 偏差类型 | 泛化规则 |
+|---|---|---|---|
+| 待办提醒有服务端组即覆盖完整 | 前置门以「有待办行」为条件会吞掉提醒，须按业务数据判 | 前置条件当业务判据 | 派生组的启用门必须由业务数据决定，不得由别的派生产物决定 |
+| 服务端按客户端口径复刻三类派生可接受 | 复刻即双源，改一处必漏一处；应进同一个叶子件 | 实现形态当单一源 | 派生规则只允许一份实现；双端只能 import，不得复刻 |
+| 计数含派生批次行是既有口径 | 计数须等于条目数，附加行数另设字段 | 字段混用 | `count` 只数 `items`；任何附加计数必须有独立字段名 |
+| verify 5/6 属环境差异、不必修 | 同一根因同时打中打包与校验两处，须同批修 | 环境归因掩盖根因 | 平台报错先定位根因；同一根因的多处调用须同批修 |
+| 部署容器 6/6 等于 CI 已绿 | 未在 GitHub Actions 实跑即无读数，配置不算证据 | 本地等价当远端结果 | 部署加分只认目标环境实跑；本地等价仅作下限 |
+
+> **落点**：`.ctx/ENGINEERING_ASSESSMENT.md`（§一 六维与证据行 / 阻断风险注 / §二 2.1–2.6 / §四 L-02·L-12 / §5.2）、`.ctx/ACTIVE_CONTEXT.md`、`.ctx/ACTIVE_RULINGS.md §A`、`.ctx/logs/2026-11-EXECUTION_LOG.md`（批次 539）、`.ctx/logs/EXECUTION_LOG_INDEX.md`、`.ctx/TIMESTAMPS.md`、`CLAUDE.md` 乙部 `B-500-7b-2`、`.ctx/evidence/2026-11-09/*/summary.md`。**未改代码 / 测试 / 版本戳，未 commit。**
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-862`**（共 **36** 条）。
+

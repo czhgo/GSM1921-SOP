@@ -314,7 +314,7 @@ test('L4 浏览器实测：登录态跳转逻辑（未登录直达登录页 / �
 
     // 1. 未登录：首页 workspace 链接应被 main-entry 改为 login.html（消除绕路）
     await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' });
-    await page.waitForSelector('#cal-main-grid', { timeout: 10000 }); // 首页渲染完成
+    await page.waitForSelector('#view-public-portal:not(.hidden)', { timeout: 10000 }); // 未登录首页=公共门厅
     await page.waitForTimeout(800); // 等 _updateWorkspaceLinks / 查看更多链接生成
     const unlogged = await page.evaluate(() => ({
       workspaceLinks: [...document.querySelectorAll('a[href*="workspace/"]')].map(a => a.getAttribute('href')),

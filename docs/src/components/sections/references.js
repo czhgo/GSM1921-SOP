@@ -1,30 +1,32 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../../core/base/icons.js?v=20261108c';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20261108c';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261108c';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261108c';
-import { AuthStore } from '../../services/core/auth.js?v=20261108c';
-import { loadActivities } from '../../services/activity/activity.js?v=20261108c';
-import { PEOPLE } from '../../data/mock/people.js?v=20261108c';
+import { icon } from '../../core/base/icons.js?v=20261109a';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20261109a';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261109a';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261109a';
+import { AuthStore } from '../../services/core/auth.js?v=20261109a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261109a';
+import { PEOPLE } from '../../data/mock/people.js?v=20261109a';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 // 2026-09-21 批次 129：制度链（草案 → 支委会审议 → 现行版 / 退回修改）——草案态与修改口同源于该服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   updateInstitutionDraft, INSTITUTION_DRAFT, INSTITUTION_PENDING_PARTY_MEETING,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../../services/branch/branch-doc.js?v=20261108c';
+} from '../../services/branch/branch-doc.js?v=20261109a';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261108c';
-import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261108c';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261109a';
+import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261109a';
 // 制度内容（领域）→ 对应【主体】：判据单一源（2026-10-05 批次 378 · `SOP-B-25` 第 ② 项「按草案落地」）
 import {
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_LABELS, institutionSubjectOfDomain, ORG_SUBJECT_LABELS,
-} from '../../core/domain/work-map.js?v=20261108c';
-import { ROLE_LABELS, COMMITTEE_OWNER_ID } from '../../core/domain/constants.js?v=20261108c';
+} from '../../core/domain/work-map.js?v=20261109a';
+import { ROLE_LABELS, COMMITTEE_OWNER_ID } from '../../core/domain/constants.js?v=20261109a';
+// 未登录公共门厅读口（匿名 `/api/public/*`，只返回党委公开、未过期内容）——批次 539 R2
+import { loadPublicPortal, publicDocumentDownloadUrl } from '../../data/public-portal-client.js?v=20261109a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261108c';
+import { emptyStateHtml, skeletonHtml } from '../ui/empty-state.js?v=20261109a';
 /** 院级资料（党委自有内容）：登录后按 D-858 与本支部文件并集展示；写口仍只归党委。 */
 function _isCommitteeDoc(d) {
   return !!d && (d.ownerScope === 'committee' || d.branchId === COMMITTEE_OWNER_ID);
@@ -226,6 +228,9 @@ export class ReferencesModule {
   static _isInstitutionManager = false;
   /** 「只看制度」过滤开关（默认全部） */
   static _onlyInstitution = false;
+  /** 未登录时可见的党委公开资料（公共门厅匿名读口；不含支部名与成员字段） */
+  static _publicDocs = [];
+  static _publicDocsState = { loading: false, loaded: false, error: '' };
 
   static init() {
     ReferencesModule._onlyInstitution = false;
@@ -234,7 +239,9 @@ export class ReferencesModule {
     // 支部文件行内动作：宿主 #ref-branch-docs-list 常驻、行由引擎重绘 → 事件委托只挂一次
     ReferencesModule._bindBranchDocList();
     ReferencesModule._loadAuth();
-    ReferencesModule._loadBranchDocs().then(() => ReferencesModule.render());
+    ReferencesModule._loadBranchDocs()
+      .then(() => (ReferencesModule._currentUser ? null : ReferencesModule._loadPublicDocs()))
+      .then(() => ReferencesModule.render());
   }
 
   static _loadAuth() {
@@ -256,6 +263,26 @@ export class ReferencesModule {
     } catch (e) {
       console.warn('[references] 支部文件加载失败：', e);
       ReferencesModule._branchDocs = [];
+    }
+  }
+
+  /** 未登录公开资料：只走匿名公共门厅读口（服务端白名单投影，不含支部名 / 成员字段） */
+  static async _loadPublicDocs() {
+    const state = ReferencesModule._publicDocsState;
+    if (state.loading) return;
+    state.loading = true;
+    state.error = '';
+    ReferencesModule.render();
+    try {
+      const data = await loadPublicPortal({ limit: 20 });
+      ReferencesModule._publicDocs = data.documents;
+      state.loaded = true;
+    } catch (e) {
+      ReferencesModule._publicDocs = [];
+      state.error = (e && e.message) ? e.message : '加载失败';
+    } finally {
+      state.loading = false;
+      ReferencesModule.render();
     }
   }
 
@@ -371,20 +398,12 @@ export class ReferencesModule {
     ReferencesModule._ensureBranchFilterToolbar();
 
     // 保持匿名可访：支部文件需登录后可见（支书 2026-08-18 裁决）；
-    // 匿名提示附「去登录」入口（支书 2026-09-07 U1 批准；静态文案位在 search.html，此处 JS 补链）
+    // 批次 539 R2：匿名不再只给登录提示——同一宿主展示党委公开资料（匿名门厅读口）＋ 下载入口，
+    //   「去登录」降为附注（登录后才看得到所属支部文件）。
     if (!ReferencesModule._currentUser) {
-      list.innerHTML = '';
       ReferencesModule._setBranchFilterVisible(false);
-      if (empty) empty.classList.add('hidden');
-      if (loginHint) {
-        loginHint.innerHTML = emptyStateHtml({
-          variant: 'panel',
-          text: '请先登录后使用',
-          actionHtml: `<a href="${getBasePath()}login.html" class="btn-accent btn-party-solid inline-block px-3 py-1.5 rounded-lg text-xs font-medium text-white" style="text-decoration:none;">去登录</a>`,
-        });
-        loginHint.classList.remove('hidden');
-      }
       if (addBtn) addBtn.classList.add('hidden');
+      ReferencesModule._renderPublicDocs(list, empty, loginHint);
       return;
     }
     ReferencesModule._setBranchFilterVisible(true);
@@ -452,6 +471,82 @@ export class ReferencesModule {
         ? ReferencesModule._renderInstitutionRow(d)
         : ReferencesModule._renderDocRow(d)),
     });
+  }
+
+  /**
+   * 未登录公开资料渲染（批次 539 R2）。
+   * 只消费匿名门厅投影（标题 / 摘要 / 格式 / 大小 / 下载），不出现支部名与成员字段；
+   * 载荷、空态、失败态沿用本页既有形态（骨架 / emptyStateHtml / ref-doc-item 行）。
+   */
+  static _renderPublicDocs(list, empty, loginHint) {
+    const state = ReferencesModule._publicDocsState;
+    const loginAction = `<a href="${getBasePath()}login.html" class="btn-accent btn-party-solid inline-block px-3 py-1.5 rounded-lg text-xs font-medium text-white" style="text-decoration:none;">去登录</a>`;
+
+    if (empty) empty.classList.add('hidden');
+    if (loginHint) loginHint.classList.add('hidden');
+
+    if (state.loading) {
+      list.innerHTML = skeletonHtml(3, { variant: 'list', ariaText: '正在加载公开资料…' });
+      return;
+    }
+    if (state.error) {
+      list.innerHTML = emptyStateHtml({
+        variant: 'panel',
+        text: `公开资料加载失败：${state.error}`,
+        actionHtml: '<button type="button" class="btn-outline btn-sm" data-public-docs-retry>重试</button>',
+      });
+      return;
+    }
+
+    let docs = ReferencesModule._publicDocs;
+    const q = ReferencesModule._searchTerm;
+    if (q) {
+      docs = docs.filter((d) => [d.title, d.summary, d.fileName]
+        .some((value) => String(value || '').toLowerCase().includes(q)));
+    }
+
+    if (!docs.length) {
+      list.innerHTML = emptyStateHtml({
+        variant: 'panel',
+        text: q ? '未找到匹配的公开资料' : '暂无公开资料',
+        actionHtml: q ? '' : loginAction,
+      });
+      return;
+    }
+
+    list.innerHTML = docs.map((d) => ReferencesModule._renderPublicDocRow(d)).join('');
+    if (loginHint) {
+      loginHint.innerHTML = emptyStateHtml({
+        variant: 'panel',
+        text: '以上为党委公开资料；登录后可查看所属支部文件',
+        actionHtml: loginAction,
+      });
+      loginHint.classList.remove('hidden');
+    }
+  }
+
+  /** 公开资料行：沿用本页 ref-doc-item 行型（不复用门厅样式），下载走匿名下载口 */
+  static _renderPublicDocRow(d) {
+    const title = d.title || d.fileName || '未命名资料';
+    const fmt = String(d.format || _extFromName(d.fileName) || '').toLowerCase();
+    const size = _formatSize(d.fileSize);
+    const meta = [d.updatedAt ? String(d.updatedAt).slice(0, 10) : '', d.summary || '']
+      .filter(Boolean).join(' · ');
+    return `
+      <div class="ref-doc-item">
+        <div class="ref-doc-left">
+          ${fmt ? _formatIcon(fmt) : ''}
+          <div class="ref-doc-info">
+            <span class="ref-doc-title">${_esc(title)}</span>
+            ${meta ? `<span class="ref-doc-meta">${_esc(meta)}</span>` : ''}
+          </div>
+        </div>
+        <div class="ref-doc-right">
+          ${size ? `<span class="ref-doc-size">${size}</span>` : ''}
+          <a class="ref-download-btn" href="${_esc(publicDocumentDownloadUrl(d.id))}" download="${_esc(d.fileName || title)}">${icon('download', { className: 'w-3.5 h-3.5' })}下载</a>
+        </div>
+      </div>
+    `;
   }
 
   /** 普通文件行（维持现状模板：类型徽标 + 标题/元信息 + 下载 + 支委修改/删除） */
@@ -632,6 +727,11 @@ export class ReferencesModule {
     const list = document.getElementById('ref-branch-docs-list');
     if (!list) return;
     list.addEventListener('click', (e) => {
+      // 匿名公开资料失败重试（批次 539 R2）：列表由本函数重绘，故走宿主委托
+      if (e.target.closest('[data-public-docs-retry]')) {
+        ReferencesModule._loadPublicDocs();
+        return;
+      }
       const btn = e.target.closest('.ref-doc-action-btn');
       if (!btn) return;
       e.preventDefault();

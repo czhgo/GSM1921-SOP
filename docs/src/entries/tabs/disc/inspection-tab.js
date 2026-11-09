@@ -3,37 +3,37 @@
 // 仅展示已登记的考察事项；工作组成员名单不自动生成考察清单。
 // 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20261108c';
-import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition, inspectionConfirmDenyReason } from '../../../services/activity/inspection.js?v=20261108c';
-import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/activity/inspection.js?v=20261108c';
-import { inspectionToLong, inspectionToWide } from '../../../services/activity/inspection.js?v=20261108c';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261108c';
-import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261108c';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20261109a';
+import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition, inspectionConfirmDenyReason } from '../../../services/activity/inspection.js?v=20261109a';
+import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/activity/inspection.js?v=20261109a';
+import { inspectionToLong, inspectionToWide } from '../../../services/activity/inspection.js?v=20261109a';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261109a';
+import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261109a';
 // 超期天数单一源（设置中心可调）：只用于徽章 title，不在界面铺口径说明
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261108c';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261108c';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261108c';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261108c';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261108c';
-import { requireDiscCommissionerId } from './_shared.js?v=20261108c';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261109a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261109a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261109a';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261109a';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261109a';
+import { requireDiscCommissionerId } from './_shared.js?v=20261109a';
 // 统一检索引擎（支书 2026-09-13 裁定）：可搜索表一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261108c';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261108c';
+import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261109a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261109a';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广到其它二元关系域）
-import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/ui/relation-matrix.js?v=20261108c';
+import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/ui/relation-matrix.js?v=20261109a';
 // 考察代录位（2026-09-23 支书追裁「开一个代录位」）：写口与字段**完全复用**组长台「考察上传」，
 //   本位判据单一源 `services/activity/inspection.js::isInspectionHomePosition`，非本位代录走既有 nudge。
-import { loadActivities } from '../../../services/activity/activity.js?v=20261108c';
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261108c';
-import { currentUserId } from '../../../services/core/auth.js?v=20261108c';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261108c';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261109a';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261109a';
+import { currentUserId } from '../../../services/core/auth.js?v=20261109a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261109a';
 // 「本位」nudge 确认弹窗（单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge, confirmDanger } from '../../../components/ui/modal.js?v=20261108c';
-import { generateId } from '../../../core/base/id.js?v=20261108c';
+import { confirmNudge, confirmDanger } from '../../../components/ui/modal.js?v=20261109a';
+import { generateId } from '../../../core/base/id.js?v=20261109a';
 // Task 6：考察/申诉表格是跨对象聚合面 ⇒ 活动名直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261108c';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261109a';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261108c';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261109a';
 
 // 考察代录表单状态（随模块自持，不污染入口；与组长 / 组织台考察上传同规）
 let _discInspFormVisible = false;

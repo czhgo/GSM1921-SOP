@@ -14,16 +14,16 @@
 // 子视图协议：`?subview=activities|docs`（与 dispatch-tab 同协议；工作台壳不清该参数）。
 // 输入控件只经 components/ui/forms.js（具名导出）；目标支部复选框沿用 dispatch-tab 的既有写法。
 
-import { ACTIVITY_SUBTYPES } from '../../../core/domain/constants.js?v=20261108c';
-import { getAdapter, getDataSource, getApiBaseUrl, getAuthToken } from '../../../data/data-adapter.js?v=20261108c';
-import { textField, textareaField, selectField, dateField, fileField } from '../../../components/ui/forms.js?v=20261108c';
-import { emptyStateHtml, skeletonHtml } from '../../../components/ui/empty-state.js?v=20261108c';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261108c';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261108c';
-import { confirmDanger } from '../../../components/ui/modal.js?v=20261108c';
+import { ACTIVITY_SUBTYPES } from '../../../core/domain/constants.js?v=20261109a';
+import { getAdapter, getDataSource, getApiBaseUrl, getAuthToken } from '../../../data/data-adapter.js?v=20261109a';
+import { textField, textareaField, selectField, dateField, fileField } from '../../../components/ui/forms.js?v=20261109a';
+import { emptyStateHtml, skeletonHtml } from '../../../components/ui/empty-state.js?v=20261109a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261109a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261109a';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261109a';
 // 菜单单一源（2026-11-08 波次 C）：行内动作收为「编辑 + 更多」，二级动作进 aria-haspopup 菜单。
-import { renderMenuButton, bindMenuButtons } from '../../../components/ui/menu-button.js?v=20261108c';
-import { showToast, escHtml as esc, smoothScroll } from '../../../core/base/utils.js?v=20261108c';
+import { renderMenuButton, bindMenuButtons } from '../../../components/ui/menu-button.js?v=20261109a';
+import { showToast, escHtml as esc, smoothScroll } from '../../../core/base/utils.js?v=20261109a';
 
 const HOST_ID = 'party-committee-tab-content';
 const VIEW_ACTIVITIES = 'activities';

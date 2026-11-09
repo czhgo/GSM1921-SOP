@@ -2,7 +2,7 @@
 title: "CLAUDE — 项目宪法与路由"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-08"
+last_updated: "2026-11-09"
 status: active
 ---
 
@@ -297,7 +297,7 @@ status: active
 
 | 目标批次 | 条目 | 一句话 | 判据 / 出处 | 状态 |
 |---|---|---|---|---|
-| 后续 | B-500-7b-2 | 完整 Plan B 收尾：客户端业务派生摘除（默认路径已切服务端）＋ 读面前置解耦 ＋ 缓存 / 性能。**前置已达**：7 类对账 8/8、双支部夹具、daily 294 断言全绿；**不以上线为前提**，测试门全绿即可启动 | `server/routes/todo-groups.js`、`docs/src/components/record/todo-tab-shell.js`、`server/test/todo-derive-parity.test.mjs` | 待启动 |
+| 后续 | B-500-7b-2 | 完整 Plan B 收尾：客户端业务派生摘除（默认路径已切服务端）＋ 读面前置解耦 ＋ 缓存 / 性能。**前置已达**：7 类对账 8/8、双支部夹具、daily 210 断言（结果门禁）全绿；**不以上线为前提**，测试门全绿即可启动 | `server/routes/todo-groups.js`、`docs/src/components/record/todo-tab-shell.js`、`server/test/todo-derive-parity.test.mjs` | 待启动 |
 | 后续 | B-536-1 | `ALLOW_MULTI_BRANCH` 在 Phase 1–2 实施与验收前不打开开关；当前只补设计 | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §十` | 待启动 |
 
 # 丙部：待决策事项

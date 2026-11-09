@@ -11,27 +11,22 @@
 //      （`branch-scope.js` 的 `actorBranchId` / `branchSelectionError`），本文件不新增任何写口。
 //    · 读权限门 = **与 `routes/resources/index.js::_canReadTodoRow` 同口径**（见下方 `canReadTodoRow`
 //      注释：该口径单一源在 index.js，本文件复刻同判据；口径变更必须两处同改）。
-//    · 本端点算 10 类实时组：既有三类「确定性复算」组（发展节点 / 半年考察 / 模块周期），
-//      加批次 534（B-500-7b-1 Task 8）落地的 7 类实时组（考勤·考察队列、决议逾期、成员变更确认 /
-//      审批、学期末滞留、支委专班赋权）⇒ `unsupported` 清空（客户端派生在兼容期仍可补位）。
+//    · 本端点算 11 类实时组：三类「确定性复算」组（发展节点 / 半年考察 / 模块周期）、
+//      7 类实时组（考勤·考察队列、决议逾期、成员变更确认 / 审批、学期末滞留、支委专班赋权）
+//      ＋ 批次 539 增的纪检「考勤 / 考察待确认」两键 ⇒ `unsupported` 清空（客户端只展示）。
 //
-//  ⚠ 派生口径的**单一源**：
-//    · 7 类实时组 = `docs/src/core/domain/todo-derive.js` 的纯函数（零依赖叶子件，双端同源 import）；
-//    · 既有三类 = `docs/src/services/governance/todo.js`
-//      `buildDevelopNodeRemindGroup`(:303) / `buildHalfYearInspectionRemindGroup`(:366) /
-//      `buildModuleCycleRemindGroup`(:430)。该模块顶层依赖 `mockDB` / `data-adapter` / `AuthStore`，
-//      **不得整模块 import 到服务端** ⇒ 本文件按同口径复刻（组键 / 标题 / flow / 条目 id 逐字一致）。
-//    改任一条派生规则时，客户端单一源与本文件必须同批同改（判定：`todo-derive-parity` + `todo-groups-api`）。
+//  ⚠ 派生口径的**单一源**：全部 11 类均 import `docs/src/core/domain/todo-derive.js` 的纯函数
+//    （零依赖叶子件，双端同源）。`services/governance/todo.js` 只做再导出，不再保留复刻实现。
+//    改任一条派生规则时只改该叶子件（判定：`todo-derive-parity` + `todo-groups-api`）。
 // ════════════════════════════════════════════════════════════════
 
 import { requireAuth } from './auth.js';
 import { listTable } from './resources/store.js';
 import { actorBranchId, branchSelectionError } from './resources/branch-scope.js';
 // 周期口径（月 / 季 / 半年 / 年）与模块目录：均为零依赖叶子件，服务端直导可载（与客户端同一份口径）
-import { WORK_MAP_MODULES, expandWorkforce, moduleIdOfActivity, ownerOfModule } from '../../docs/src/core/domain/work-map.js';
-import { cyclePeriodLabel, cyclePeriodOf } from '../../docs/src/core/base/period.js';
+import { expandWorkforce } from '../../docs/src/core/domain/work-map.js';
 import { DEFAULT_BRANCH_ID } from '../../docs/src/core/domain/constants.js';
-// 7 类实时组的纯派生单一源（Task 7 叶子件；零业务依赖，浏览器与 node 同源 import）
+// 实时组纯派生**单一源**（零业务依赖叶子件；浏览器与 node 同源 import）
 import {
   DERIVE_GROUP_DOMAIN,
   deriveAttendanceRemindGroup,
@@ -41,6 +36,11 @@ import {
   deriveMemberApproveGroup,
   deriveSemesterDetainedRemindGroup,
   deriveTaskforceAuthorizeGroup,
+  deriveAttendanceConfirmGroup,
+  deriveInspectionConfirmGroup,
+  buildDevelopNodeRemindGroup,
+  buildHalfYearInspectionRemindGroup,
+  buildModuleCycleRemindGroup,
 } from '../../docs/src/core/domain/todo-derive.js';
 import { today } from '../services/reporting.js';
 
@@ -63,6 +63,8 @@ const _LEGACY_DOMAIN = {
 /** 实时组 actionKey → 业务域（单一源 = todo.js::REALTIME_GROUP_DOMAIN；7 类键直接展开叶子件映射） */
 const REALTIME_GROUP_DOMAIN = {
   ...DERIVE_GROUP_DOMAIN,
+  'attendance-confirm': WORK_DOMAIN.ATTENDANCE,
+  'inspection-confirm': WORK_DOMAIN.INSPECTION,
   'develop-node-remind': WORK_DOMAIN.MEMBER_DEV,
   'half-year-inspection-remind': WORK_DOMAIN.MEMBER_DEV,
   'module-cycle-remind': WORK_DOMAIN.PROJECT,
@@ -125,142 +127,9 @@ export function realtimeGroupDomainOf(group) {
   return inferDomain(group);
 }
 
-// ── 日期工具（**单一源** = `docs/src/core/base/utils.js` → `date.js`；本地日历日口径 `R-26③`）────
-function _pad(n) { return n < 10 ? `0${n}` : `${n}`; }
-/** Date → 本地日历日 YYYY-MM-DD（与 `date.js::_fmtDate` 同口径） */
-function _fmtDate(d) { return `${d.getFullYear()}-${_pad(d.getMonth() + 1)}-${_pad(d.getDate())}`; }
-/** 日期 + N 天（单一源 = `todo.js::_addDays`：UTC 运算避免时区未同步；非法输入 → null） */
-function _addDays(dateStr, days) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(dateStr || ''));
-  if (!m) return null;
-  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]) + Number(days)));
-  return Number.isNaN(d.getTime()) ? null : _fmtDate(d);
-}
-/** 自然半年期键 'YYYY-H1' / 'YYYY-H2'（单一源 = `todo.js::halfYearPeriodOf`；制度固定，非可调参数） */
-function _halfYearPeriodOf(dateStr) {
-  const m = /^(\d{4})-(\d{2})/.exec(String(dateStr || ''));
-  if (!m) return null;
-  const month = Number(m[2]);
-  if (month < 1 || month > 12) return null;
-  return `${m[1]}-H${month <= 6 ? 1 : 2}`;
-}
-/** 发展节点期满阈值（单一源 = `todo.js::DEVELOP_NODE_THRESHOLDS`；《发展党员工作细则》一年，常量化） */
-const DEVELOP_NODE_THRESHOLDS = { '积极分子': 365, '预备党员': 365 };
-
-// ── 三类派生（逐字对齐 todo.js 的组键 / 标题 / flow / 条目 id）────────────────────────────
-
-/** 发展节点提醒（单一源 = `todo.js::buildDevelopNodeRemindGroup`）：无期满成员 → null（不产生空组卡） */
-function _buildDevelopNodeRemindGroup({ members = [], overrides = {}, day }) {
-  const items = [];
-  for (const p of members || []) {
-    if (!p || !p.id) continue;
-    const ov = overrides[p.id] || {};
-    const stage = ov.stage || p.developStage;
-    const days = DEVELOP_NODE_THRESHOLDS[stage];
-    if (!days) continue;
-    const entryDate = ov.entryDate || p.entryDate || null;
-    if (!entryDate) continue;
-    const dueDate = _addDays(entryDate, days);
-    if (!dueDate || dueDate > day) continue;
-    items.push({
-      id: `dev-${p.id}`,
-      personId: p.id,
-      name: p.name,
-      stage,
-      entryDate,
-      dueDate,
-      title: stage === '预备党员' ? `${p.name} 预备期满（应办转正）` : `${p.name} 培养考察期满（应转发展对象）`,
-    });
-  }
-  if (!items.length) return null;
-  return {
-    groupKey: 'org-commissioner:develop-node-remind',
-    actionKey: 'develop-node-remind',
-    domain: WORK_DOMAIN.MEMBER_DEV,
-    title: '发展节点提醒',
-    flow: '发展阶段进入期满 → 组织委员办理下一节点（积极分子→发展对象 / 预备党员→转正）',
-    count: items.length,
-    items,
-  };
-}
-
-/** 半年考察提醒（单一源 = `todo.js::buildHalfYearInspectionRemindGroup`）：本半年无考察记录才提醒 */
-function _buildHalfYearInspectionRemindGroup({ members = [], records = [], overrides = {}, day }) {
-  const period = _halfYearPeriodOf(day);
-  if (!period) return null;
-  const covered = new Set();
-  for (const r of records || []) {
-    if (!r || !r.personId) continue;
-    if (_halfYearPeriodOf(String(r.recordedAt || '').slice(0, 10)) === period) covered.add(r.personId);
-  }
-  const items = [];
-  for (const p of members || []) {
-    if (!p || !p.id) continue;
-    const stage = (overrides[p.id] || {}).stage || p.developStage;
-    if (!DEVELOP_NODE_THRESHOLDS[stage]) continue;
-    if (covered.has(p.id)) continue;
-    items.push({
-      id: `halfyear-${p.id}`,
-      personId: p.id,
-      name: p.name,
-      stage,
-      period,
-      title: `${p.name} · 本半年考察意见待更新`,
-    });
-  }
-  if (!items.length) return null;
-  return {
-    groupKey: 'org-commissioner:half-year-inspection-remind',
-    actionKey: 'half-year-inspection-remind',
-    domain: WORK_DOMAIN.MEMBER_DEV,
-    title: `半年考察提醒（${period}）`,
-    flow: '考察意见半年一次（制度固定）→ 本半年内无考察记录 → 组织委员核对建档；考察记录的督办位仍在纪检台',
-    count: items.length,
-    items,
-  };
-}
-
-/** 模块周期提醒（单一源 = `todo.js::buildModuleCycleRemindGroup`）：只列本主体主责、本期未见开展的模块 */
-function _buildModuleCycleRemindGroup({ activities = [], subjectIds = [], snapshot = null, day }) {
-  const ids = (Array.isArray(subjectIds) ? subjectIds : [subjectIds]).filter(Boolean);
-  if (!ids.length) return null;
-  const snap = expandWorkforce(snapshot);
-  if (!/^\d{4}-\d{2}/.test(String(day))) return null;
-  const items = [];
-  for (const m of WORK_MAP_MODULES || []) {
-    const cyc = m.cycle;
-    if (!cyc || !cyc.unit) continue;
-    const owner = ownerOfModule(m.id, snap);
-    if (!owner || !ids.includes(owner.ownerId)) continue;
-    const period = cyclePeriodOf(day, cyc.unit);
-    if (!period) continue;
-    const done = (activities || []).some((a) => {
-      if (!a || moduleIdOfActivity(a) !== m.id) return false;
-      const d = String(a.date || '').slice(0, 10);
-      return !!d && cyclePeriodOf(d, cyc.unit) === period;
-    });
-    if (done) continue;
-    items.push({
-      id: `cycle-${m.id}-${period}`,
-      moduleId: m.id,
-      moduleName: m.name,
-      period,
-      ownerType: owner.ownerType,
-      ownerId: owner.ownerId,
-      title: `${cyclePeriodLabel(period, cyc.unit)}的「${m.name}」尚未开展`,
-    });
-  }
-  if (!items.length) return null;
-  return {
-    groupKey: 'module-cycle-remind',
-    actionKey: 'module-cycle-remind',
-    domain: WORK_DOMAIN.PROJECT,
-    title: '本周期尚未开展（支部分工模块）',
-    flow: '模块周期（母本可核者）→ 本期未见对应活动 → 主责人据此组织；不派任务、不改数据',
-    count: items.length,
-    items,
-  };
-}
+// ── 三类确定性复算组（发展节点 / 半年考察 / 模块周期）─────────────────────────────
+//  2026-11-09 批次 539：实现已迁入 `docs/src/core/domain/todo-derive.js`（纯函数单一源），
+//  本文件只 import 同名函数并按 DB 取同形入参——原此处的「照抄复刻」已删除。
 
 // ── 读面（支部作用域）─────────────────────────────────────────────────────────────
 
@@ -310,7 +179,8 @@ function _workforceOfBranch(db, branchId) {
 // ── 组装配 ────────────────────────────────────────────────────────────────────
 
 /**
- * 7 类实时组的角色消费面（与 Task 7 对账口径同源：支书台 5 键 / 组织委员台 3 键，inspection 两台上都出现）。
+ * 实时组角色消费面（与客户端各台消费口径同源）：支书台 5 键 / 组织委员台 3 键 / 纪检台 2 键，
+ *   inspection-remind 支书与组织两台上都出现。
  * 读权限前置已由路由按 `canReadTodoRow` 锁死「只能读本角色视图」⇒ 本表只做组归位，不放宽任何读面。
  */
 const REALTIME_GROUP_ROLES = {
@@ -321,6 +191,8 @@ const REALTIME_GROUP_ROLES = {
   'member-approve': ['org-commissioner'],
   'semester-detained-remind': ['secretary'],
   'taskforce-authorize': ['org-commissioner'],
+  'attendance-confirm': ['disc-commissioner'],
+  'inspection-confirm': ['disc-commissioner'],
 };
 
 /** 本期不在服务端算的实时组：7 类已全部落地 ⇒ 空清单（保留字段与形状，客户端无需区分阶段） */
@@ -428,6 +300,27 @@ function _deriveRealtimeGroups(db, { actor, role, personId, branchId }) {
     if (group) groups.push(group);
   }
 
+  // 纪检台「考勤 / 考察待确认」（批次 539）：判据单一源在 `todo-derive.js`，客户端只展示
+  if (has('attendance-confirm')) {
+    const group = deriveAttendanceConfirmGroup({
+      activities: rowsOf('activities'),
+      attendanceRecords: rowsOf('attendances'),
+      persons: _membersOfBranch(db, branchId),
+      groupKeyPrefix: 'disc-commissioner',
+    });
+    if (group) groups.push(group);
+  }
+
+  if (has('inspection-confirm')) {
+    const group = deriveInspectionConfirmGroup({
+      activities: rowsOf('activities'),
+      inspectionRecords: rowsOf('inspections'),
+      persons: _membersOfBranch(db, branchId),
+      groupKeyPrefix: 'disc-commissioner',
+    });
+    if (group) groups.push(group);
+  }
+
   return groups;
 }
 
@@ -440,21 +333,26 @@ function _deriveGroups(db, { actor, role, personId, branchId }) {
   const day = today();
   const groups = [];
   // ① ② 只在组织委员台派生（客户端单一源：`entries/tabs/org/todo-tab.js::_buildOrgRealtimeGroups`）
-  if (role === 'org-commissioner' && _visibleTodos(db, actor, branchId).length > 0) {
+  //  2026-11-09 批次 539（P0 漏提醒）：前置门从「有待办行」改为「有成员发展数据」——
+  //  待办行为空不得吞掉发展节点 / 半年考察提醒；无 developStage 数据时纯函数自身返回 null（不产空组）。
+  if (role === 'org-commissioner') {
     const members = _membersOfBranch(db, branchId);
-    const overrides = _stageEntryDates(members);
-    const records = listTable(db, 'inspections').filter((row) => _belongsTo(row, branchId));
-    const dev = _buildDevelopNodeRemindGroup({ members, overrides, day });
-    if (dev) groups.push(dev);
-    const halfYear = _buildHalfYearInspectionRemindGroup({ members, records, overrides, day });
-    if (halfYear) groups.push(halfYear);
+    const hasDevelopData = members.some((m) => m && (m.developStage || m.developStageSince));
+    if (hasDevelopData) {
+      const overrides = _stageEntryDates(members);
+      const records = listTable(db, 'inspections').filter((row) => _belongsTo(row, branchId));
+      const dev = buildDevelopNodeRemindGroup({ members, overrides, today: day });
+      if (dev) groups.push(dev);
+      const halfYear = buildHalfYearInspectionRemindGroup({ members, records, overrides, today: day });
+      if (halfYear) groups.push(halfYear);
+    }
   }
   // ③ 各台通用（客户端单一源：`components/record/todo-tab-shell.js::_moduleCycleGroupsFor`）
-  const cycle = _buildModuleCycleRemindGroup({
+  const cycle = buildModuleCycleRemindGroup({
     activities: listTable(db, 'activities').filter((row) => _belongsTo(row, branchId)),
     subjectIds: [role, personId].filter(Boolean),
     snapshot: _workforceOfBranch(db, branchId),
-    day,
+    today: day,
   });
   if (cycle) groups.push(cycle);
   // ④ 7 类实时组（Task 8）：按角色归位，读面沿用支部作用域（详见 `_deriveRealtimeGroups`）

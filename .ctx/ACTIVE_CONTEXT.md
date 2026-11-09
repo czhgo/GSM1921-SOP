@@ -3,9 +3,9 @@ title: "Active Context — 当前判断入口"
 type: active_context
 role: "[AI]"
 layer: active
-last_updated: "2026-11-08"
-last_verified: "2026-11-08"
-latest_decision: "D-860"
+last_updated: "2026-11-09"
+last_verified: "2026-11-09"
+latest_decision: "D-862"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -28,10 +28,10 @@ status: active
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
 - **审计**：46 页签 **P0 0 / P1 0 / P2 2 / exception 44**；F1–F8 全绿；M1–M3 在位。
   - source：`.ctx/evidence/2026-11-08/tab-audit/summary.md`。
-- **测试（四层，`D-859` / `D-860`）**：daily **27 文件 / 207 断言 / 60.9s**（结果门禁）；guards **99 文件 / 791 tests / 96.1s**（静态守卫，按需）；precommit＝daily＋guards＋非核心域回归＋e2e（时长仍长）；weekly 2。四层 runner 按 registry 单一源执行；CI `daily.yml` 接 `test:daily` 与 `deploy-verify`。
-  - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859 / §D-860`。
-- **工程评分（`D-860`）**：业务与数据 **80** · 安全与权限 **78** · 最小三成本 **74** · 测试与发布 **85** · 架构与可维护性 **77** · 运行部署 **74**；不设平均总分。
-  - source：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §5.2`。
+- **测试（四层，`D-859` / `D-860`）**：daily **27 文件 / 210 断言 / 63.5s**（结果门禁）；guards **99 文件全绿**（静态守卫，按需）；precommit＝daily＋guards＋非核心域回归＋e2e（时长仍长）；weekly 2。四层 runner 按 registry 单一源执行；CI `daily.yml` 已接 `test:daily` 与 `deploy-verify`（两个 job 均未实跑绿）。
+  - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859 / §D-860 / §D-862`。
+- **工程评分（`D-862`）**：业务与数据 **80** · 安全与权限 **77** · 最小三成本 **77** · 测试与发布 **83** · 架构与可维护性 **77** · 运行部署 **76**；不设平均总分。
+  - source：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/logs/2026-11-DECISION_LOG.md §D-862`。
 - **版本戳**：`20261108b`（本批目标 bump 至 `20261108c`，由主代理执行后核对 0 处陈旧）。
   - source：`docs/scripts/bump-version.mjs --check`。
 - **换轨**：副本 **48 表 / 577 行** export → dry-run → apply 一致；生产空库 `preflight-cutover --strict` exit 0 / 警告 0。
@@ -58,6 +58,7 @@ status: active
 - **CLAUDE 三层与通知受众**：温层恢复为「触发表 + H60–H80」，层边界 / 乙部去历史有守卫；系统通知无受众＝不可读、广播必须显式 `all`、未登录一律不可读；行动行按 SD-60 四类排布。（`D-857`）→ `CLAUDE.md`、`notice.js`、`DS_06 SD-60`、`action-row-wrap-guard`。
 - **党委内容域与公共门厅**：未登录只看党委公开内容（公开通知全文 / 活动摘要 / 公开资料），登录后看党委与支部并集；`public` 只归党委、必须带未来有效期并留痕 `publication_audits`；支部副本只改执行字段、手动同步。（`D-858`）→ `SYSTEM_ROLE_PERMISSION §9a.1`、`PUBLIC_ENTRANCE.md`、`server/routes/public-portal.js`。
 - **测试瘦身（结果优先、守卫按需）**：四层 daily / guards / precommit / weekly；daily 只留结果门禁（权限、会话、数据契约与迁移、核心业务结果、构建可运行），静态守卫迁 guards 按需跑；不删任何测试或断言，precommit / full 仍覆盖全部文件。（`D-859`）→ `server/test-tier-registry.mjs`、`server/scripts/run-{daily,guards,precommit,changed}.mjs`、`CLAUDE.md H25`。
+- **六维评分按 `D-862` 修正**：业务 80 · 安全 77 · 体验 77 · 测试 83 · 架构 77 · 部署 76；加分只认实跑读数，配置、自动走查、文件数、本地等价不计满分（部署 6/6 只作下限）。（`D-862`）→ `.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`。
 
 ## §3 当前风险与下一步
 
@@ -71,7 +72,7 @@ status: active
 
 ### 上线残项中仍 open 的（详见 `.ctx/ENGINEERING_ASSESSMENT.md §四`）
 
-- `L-02` `install.sh` / `install.ps1` / `update.sh` 未在 Linux 真机验证；容器可验证部分 `deploy/verify-linux.sh` 5/6（`package` 在 msys `tar` 未过），CI `deploy-verify` job 未实跑绿。
+- `L-02` `install.sh` / `install.ps1` / `update.sh` 未在 Linux 真机验证；容器可验证部分 `deploy/verify-linux.sh` **6/6**（批次 539 修 `package` 的 msys `tar` 盘符问题 ＋ `cygpath -u`，证据 `.ctx/evidence/2026-11-09/deploy-verify.md`），CI `deploy-verify` job 未实跑绿。
 - `L-08` 44 条 exception 无固定复核节奏（每次全量审计同批复核）。
 - `L-10` 多支部读过滤未接线到生产读面（`multi-branch-read-filter` 9 组夹具已证明可行；设计已出，开关仍关闭）。
 - `L-11` 共享口令（个人密码已落地，共享口令作回退保留）。
@@ -86,7 +87,7 @@ status: active
 ### 下一批最该做的 3 件事
 
 1. **首次部署前验证**：在 Linux 测试机跑 `install/update` + `preflight-cutover --strict`，把 `L-02` 关掉。
-2. **完整 Plan B 二期（`B-500-7b-2`）**：删客户端业务派生的默认路径 + 读面前置解耦 + 缓存 / 性能；前置（7 类对账 8/8、双支部夹具、daily 1788）已达，不以上线为前提。
+2. **完整 Plan B 二期（`B-500-7b-2`）**：删客户端业务派生的默认路径 + 读面前置解耦 + 缓存 / 性能；前置（7 类对账 8/8、双支部夹具、daily 210 断言）已达，不以上线为前提。
 3. **多支部 Phase 1**：读口统一接入 `resourceRowsForActor`，双支部夹具证明 A 读不到 B；完成前不打开 `ALLOW_MULTI_BRANCH`。
 
 ## §4 文件地图（读什么 / 不读什么）

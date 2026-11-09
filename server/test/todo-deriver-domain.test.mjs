@@ -19,24 +19,24 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261108c';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261109a';
 import {
   MockAdapter,
-} from '../../docs/src/data/mock-adapter.js?v=20261108c';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261108c';
+} from '../../docs/src/data/mock-adapter.js?v=20261109a';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261109a';
 import {
   WORK_DOMAIN, TodoStore, TodoSourceType,
   LifecycleTodoDeriver, VisitorTodoDeriver, NoticeTodoDeriver,
   REALTIME_GROUP_DOMAIN, realtimeGroupDomainOf,
   buildDevelopNodeRemindGroup,
-} from '../../docs/src/services/governance/todo.js?v=20261108c';
-import { HandoffStore } from '../../docs/src/services/governance/handoff.js?v=20261108c';
-import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261108c';
-import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261108c';
+} from '../../docs/src/services/governance/todo.js?v=20261109a';
+import { HandoffStore } from '../../docs/src/services/governance/handoff.js?v=20261109a';
+import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261109a';
+import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261109a';
 import {
   saveFollowups, buildOverdueRemindGroup,
-} from '../../docs/src/services/governance/resolution-followup.js?v=20261108c';
-import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261108c';
+} from '../../docs/src/services/governance/resolution-followup.js?v=20261109a';
+import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261109a';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();

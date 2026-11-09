@@ -19,8 +19,9 @@
 #    这些必须上测试机；容器里不跑，也不假跑。
 #
 #  前置：node ≥ 22、npm、curl、tar；server/node_modules 已装（CI 先 `cd server && npm ci`）。
-#  临时目录：mktemp -d（默认 TMPDIR 或 /tmp）；可用 VERIFY_TMPDIR 指定父目录（Windows Git Bash 建议
-#    设成本盘目录，避免跨盘路径）。trap 负责清理临时目录与后台服务进程。
+#  临时目录：mktemp -d（默认 TMPDIR 或 /tmp）；可用 VERIFY_TMPDIR 指定父目录，Windows 原生路径
+#    （如 `D:\repo\.tmp`）会被转成 POSIX 再交给 bash / tar（建议设成本盘目录，避免跨盘路径）。
+#    trap 负责清理临时目录与后台服务进程。
 #  退出码：0 全通过 / 1 任一步失败（失败即停）。
 # ════════════════════════════════════════════════════════════════
 set -euo pipefail
@@ -39,6 +40,11 @@ free_port() {
   node -e 'const s=require("node:net").createServer();s.listen(0,"127.0.0.1",()=>{console.log(s.address().port);s.close();})'
 }
 
+# VERIFY_TMPDIR 常被设成 Windows 原生路径（如 D:\repo\.tmp）；统一转成 POSIX 再交给 bash / tar，
+# 否则 MSYS tar 把 `D:` 当成远程主机（批次 539 实测）。Linux 上无 cygpath，原样保留。
+if [ -n "${VERIFY_TMPDIR:-}" ] && command -v cygpath >/dev/null 2>&1; then
+  VERIFY_TMPDIR="$(cygpath -u "$VERIFY_TMPDIR")"
+fi
 TMP="$(mktemp -d "${VERIFY_TMPDIR:-${TMPDIR:-/tmp}}/gsm1921-verify.XXXXXX")"
 TMP_WIN="$(native_path "$TMP")"
 SERVER_PID=""

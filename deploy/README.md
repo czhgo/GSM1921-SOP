@@ -2,7 +2,7 @@
 title: "部署与运维脚本索引（deploy/）"
 type: index
 role: "[工程师]+[运维执行人]"
-last_updated: 2026-11-08
+last_updated: 2026-11-09
 status: active
 ---
 
@@ -67,6 +67,17 @@ status: active
 
 - **本轮（波次 D）部署项评分上限 77**：以上「容器可验证」列全绿也只能证到 77。
 - **要到 80 必须在测试机上完成「仅真机」列**：`install.sh` 全链一次、`update.sh` 一次换版本演练、反代 + HTTPS 各一次；读数与证据存 `.ctx/evidence/`。
+
+### 本轮证据（2026-11-09 批次 539：74→76）
+
+| 项 | 读数 | 证据 |
+|---|---|---|
+| 本地 6/6 | `VERIFY_TMPDIR=D:\GitHub\GSM1921-SOP\.tmp bash deploy/verify-linux.sh` 退出码 **0**，尾行「容器可验证项 6/6 通过」 | [`.ctx/evidence/2026-11-09/deploy-verify.md`](../.ctx/evidence/2026-11-09/deploy-verify.md) §三 |
+| `package` 在 Git Bash 的修复 | MSYS tar 把 `D:` 当远程主机（exit 2）→ `package.mjs` 改为 `cwd=OUT_DIR` 且只传相对文件名；`verify-linux.sh` 把 Windows 原生 `VERIFY_TMPDIR` 先转 POSIX | 同上 §一 / §二 |
+| PowerShell 打包回归 | `node deploy/package.mjs --out .tmp/pkg-ps` 退出 0，460 文件 / 12.9 MB / 断言 0 命中 | 同上 §四 |
+
+- **75 缺口**：`deploy-verify` job 在 GitHub Actions 实跑绿仍未取得。本机无 `gh`，本批不 commit、不推送，workflow 无法触发（即使 dispatch 也跑远端旧提交）。本轮只给**本地 6/6 等价证据**，不声称 CI 已绿。
+- 证据能力边界不变：以上全绿也只证到 77；systemd / root / 真机反代仍需测试机读数（清单见上一节右列）。
 
 ## 权威源与派生
 

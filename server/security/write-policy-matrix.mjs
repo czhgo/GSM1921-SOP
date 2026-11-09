@@ -533,7 +533,7 @@ const NON_RESOURCE_ROWS = [
   },
   {
     method: 'POST', path: '/api/v1/uploads', resource: 'uploads',
-    middleware: 'requireCommissioner', roleGate: '支委层', ownership: 'branch', fieldLocks: ['文件名/路径（服务端生成）'],
+    middleware: 'requireAuth + (party-staff | requireCommissioner)', roleGate: '支委层或 party-staff', ownership: 'branch', fieldLocks: ['文件名/路径（服务端生成）'],
     evidence: 'server/routes/uploads.js#L70; server/test/branch-doc.test.mjs', status: 'enforced',
   },
   {

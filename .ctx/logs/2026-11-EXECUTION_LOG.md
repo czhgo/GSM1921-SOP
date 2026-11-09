@@ -2,13 +2,41 @@
 title: "2026年11月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-08
+last_updated: 2026-11-09
 status: active
 ---
 
 # 2026年11月执行日志
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
+
+## 批次 539（2026-11-09）· 待办计算化、分工页美学与体验 / 部署提分
+
+### 为什么
+- 待办派生有两份实现：7 类在 `todo-derive.js`，发展节点 / 半年考察 / 模块周期三类在 `server/routes/todo-groups.js` 按客户端口径复刻；改一处必漏一处。
+- 组织委员前置门写成「有待办行才派生」，空 `todos` 库会把发展节点 / 半年考察提醒整组吞掉（P0 漏提醒）。
+- `count` 曾按组混合口径（`member-confirm` 额外并入议程派生批次行），计数与条目数不一致。
+- `secretary.work-map` 主从两栏在 390 档挤压；未登录资料查询页只给「请先登录」（`R2` GAP）；部署 `package` 在 Git Bash 报 `tar status 2`。
+
+### 拿不准 / 边界
+- 「目录只创建 / 选择」是既有契约：`party-committee.branches` 的 B 项若要「选择既有目录」，须先改契约；本轮**回退未做**。
+- 体验只到 77：用户任务仍是自动走查 ＋ 截图，**真人签收未完成**，按「证据强度」不计验收。
+- 部署只到 76：`verify-linux` 是本机 Git Bash 的**等价证据**；本机无 `gh`、本批不 commit 不推送，无法取得 GitHub Actions run 链接。
+- 本批只改代码 / 台账；评分与台账同批落 `D-862`；不 bump 版本戳。
+
+### 读数
+- `npm run test:daily`：**27 文件 / 210 断言 / 63.5s** 全绿（较批次 538 增 3 条待办 P0 回归）。
+- `npm run test:guards`：**99 文件全绿**。
+- 审计：`secretary.work-map` P0/P1/P2 = 0（3 块 · `.lf-bar` 0 条）；`ia`（dispatch / leader.write / member-flow）P0 0 / P1 0 / P2 1；`b2`（`disc.review` / `party-committee.branches`）P0 0 / P1 0 / P2 0。
+- 安全：`write-policy-matrix.mjs:534-536` 的 uploads `roleGate` 改准为 `party-staff | 支委层`。
+- 部署：`VERIFY_TMPDIR=D:\…\.tmp bash deploy/verify-linux.sh` **6/6 · 退出码 0**（语法 3/3 · doctor · 起服务 · smoke · preflight strict 阻断 0 / 警告 0 · package 460 文件 / 12.9 MB / 断言 0 命中），PowerShell `package` 退出 0。
+
+### 未完成
+- 体验 78：真人签收 5 个用户任务；`B11`（`org.talent` 录入考察沉底）仍为 B 类。
+- `party-committee.branches` 的 B 项：须先改「目录只创建 / 选择」契约再排批。
+- 部署 77 / 80：GitHub Actions `deploy-verify` 实跑、Linux 真机 `install` / `update`（`L-02`）。
+- `L-16` 表决名单重算、多支部读过滤接线（`ALLOW_MULTI_BRANCH` 仍关闭）。
+- 版本戳 `20261108c` 未 bump（由主代理执行）；未 commit。
 
 ## 批次 538（2026-11-08）· 评分证据卡与安全 / 体验 / 部署梯度
 

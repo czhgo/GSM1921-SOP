@@ -59,7 +59,7 @@
       "resolution-followup-remind": null,
       "member-confirm": {
         "groupKey": "secretary:member-confirm",
-        "count": 2,
+        "count": 1,
         "itemIds": [
           "mc-seed-1"
         ]

@@ -7,60 +7,39 @@
 // 文案由 components/record/todo-list.js actionLabels 收敛为「去考勤管理/去考察管理」（跳管理页队列，
 // 确认唯一位=考勤管理/考察管理页），补课回执交接行=「去补课制度」跳转——本文件无逻辑改动。
 
-import { showToast } from '../../../core/base/utils.js?v=20261108c';
-import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/governance/todo.js?v=20261108c';
-import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261108c';
+import { showToast } from '../../../core/base/utils.js?v=20261109a';
+import { seedTodos } from '../../../services/governance/todo.js?v=20261109a';
+import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261109a';
 // 2026-11-01 批次 524（#7）：主行动落点由动作表声明，页签切换走统一导航（删写死 workspace URL）
-import { resolveTodoAction } from '../../../core/domain/todo-actions.js?v=20261108c';
-import { goToWorkspaceTab } from '../../../core/session/workspace-nav.js?v=20261108c';
-import { loadActiveAttendanceRecords, isAttendancePendingConfirm } from '../../../services/activity/attendance.js?v=20261108c';
-import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261108c';
-import { getPersonName } from '../../../services/member/person.js?v=20261108c';
+import { resolveTodoAction } from '../../../core/domain/todo-actions.js?v=20261109a';
+import { goToWorkspaceTab } from '../../../core/session/workspace-nav.js?v=20261109a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261109a';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261109a';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261109a';
+import { PersonStore } from '../../../services/member/person.js?v=20261109a';
+// 「考勤 / 考察待确认」判据单一源（批次 539：服务端派生；mock / 失败兜底同源复用）
+import { deriveAttendanceConfirmGroup, deriveInspectionConfirmGroup } from '../../../core/domain/todo-derive.js?v=20261109a';
 
 // ── 纪检实时聚合组（2026-08-07 闭环化） ────────────────────────
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降，
 // 不再依赖过期种子待办（种子来源与销项动作不匹配，无法闭环）。
 // IA-C1 Task4：持久化待办由壳 getDomainsWithGroups 按域聚合；本函数只返回
 // 「不落库」实时队列组，壳 mergeRealtimeDomains 并入「考勤纪律/考察」域（同 groupKey 去重）。
-function _buildDiscRealtimeGroups() {
+// 2026-11-09 批次 539：判据收进 `core/domain/todo-derive.js`（服务端同源）；本台只做展示。
+function _buildDiscRealtimeGroups(_ctx, opts) {
   seedTodos(); // 补种子 + 动态聚合（T232 闭环化）
+  const skip = opts && opts.skipActionKeys instanceof Set ? opts.skipActionKeys : null;
+  const skipKey = (k) => !!(skip && skip.has(k));
+  const activities = loadActivities();
+  const persons = PersonStore.getAll();
   const dynamic = [];
-  // 动态组1：考勤待确认（T-304 第5轮 · 源头审校+异常驱动：出勤/已补上传方已审校自动确认，
-  // 纪检只处理异常=缺勤/请假未确认；仅活跃活动，归档活动退出工作区）
-  // 2026-10-18 繁专项 Task 15：与管理页队列同口径——**已打回**记录交组织方重新确认，不计入纪检待确认。
-  const pendingAtt = loadActiveAttendanceRecords().filter(isAttendancePendingConfirm);
-  if (pendingAtt.length > 0) {
-    dynamic.push({
-      groupKey: 'disc-commissioner:attendance-confirm',
-      actionKey: 'attendance-confirm',
-      // IA-C1 Task2：实时组标注业务域（考勤纪律；供 T4 域折组）
-      domain: REALTIME_GROUP_DOMAIN['attendance-confirm'],
-      title: '考勤待确认',
-      category: TodoCategory.REVIEW,
-      actionType: TodoActionType.REVIEW,
-      flow: '考勤上传 → 纪检确认 → 考勤明细',
-      deadline: null,
-      count: pendingAtt.length,
-      items: pendingAtt.map(r => ({ id: r.id, activityId: r.activityId, title: `确认考勤：${getPersonName(r.personId)}`, sourceType: TodoSourceType.ACTIVITY, sourceId: r.activityId })),
-    });
+  if (!skipKey('attendance-confirm')) {
+    const group = deriveAttendanceConfirmGroup({ activities, attendanceRecords: loadAttendanceRecords(), persons });
+    if (group) dynamic.push(group);
   }
-  // 动态组2：考察待确认（status 非 confirmed；仅活跃活动，专班类保留）
-  // 2026-10-18 繁专项 Task 15：**已打回**记录交上传方重新确认，不再计入「考察待确认」。
-  const pendingInsp = loadActiveInspectionRecords().filter(r => r.status !== 'confirmed' && !r.returnedBy);
-  if (pendingInsp.length > 0) {
-    dynamic.push({
-      groupKey: 'disc-commissioner:inspection-confirm',
-      actionKey: 'inspection-confirm',
-      // IA-C1 Task2：实时组标注业务域（考察；供 T4 域折组）
-      domain: REALTIME_GROUP_DOMAIN['inspection-confirm'],
-      title: '考察待确认',
-      category: TodoCategory.REVIEW,
-      actionType: TodoActionType.REVIEW,
-      flow: '纪检录入考察 → 纪检确认 → 组织建档',
-      deadline: null,
-      count: pendingInsp.length,
-      items: pendingInsp.map(r => ({ id: r.id, activityId: r.activityId || '', title: `确认考察：${getPersonName(r.personId)}`, sourceType: TodoSourceType.ACTIVITY, sourceId: r.activityId || null })),
-    });
+  if (!skipKey('inspection-confirm')) {
+    const group = deriveInspectionConfirmGroup({ activities, inspectionRecords: loadInspectionRecords(), persons });
+    if (group) dynamic.push(group);
   }
   return dynamic;
 }
@@ -82,7 +61,7 @@ function _handleTodoAction(todo) {
   };
   if (action.segment) {
     // 先置一级分段再切 tab（分段由 attendance-tab 模块级记忆，见其 focusSegment 导出）
-    import('../../../entries/tabs/disc/attendance-tab.js?v=20261108c')
+    import('../../../entries/tabs/disc/attendance-tab.js?v=20261109a')
       .then(m => { m.focusSegment(action.segment); go(); })
       .catch(go);
   } else {

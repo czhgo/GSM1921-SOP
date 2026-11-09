@@ -268,7 +268,9 @@ fs.writeFileSync(path.join(stage, 'MANIFEST.txt'),
 
 const tarball = path.join(OUT_DIR, `${name}.tar.gz`);
 fs.rmSync(tarball, { force: true });
-execFileSync('tar', ['-czf', tarball, '-C', OUT_DIR, name], { stdio: 'inherit' });
+//  只给 tar **相对路径**（cwd 切到 OUT_DIR）：Windows 自带 bsdtar 与 Linux 的 GNU tar 都吃相对路径；
+//  而 Git Bash 的 MSYS tar 见到 `D:\…` 这类绝对路径会把 `D:` 当远程主机（remote host）而报错退出（批次 539 实测 exit 2）。
+execFileSync('tar', ['-czf', `${name}.tar.gz`, name], { cwd: OUT_DIR, stdio: 'inherit' });
 const sha = crypto.createHash('sha256').update(fs.readFileSync(tarball)).digest('hex');
 fs.writeFileSync(tarball + '.sha256', `${sha}  ${path.basename(tarball)}\n`);
 fs.rmSync(stage, { recursive: true, force: true });

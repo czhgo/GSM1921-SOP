@@ -11,22 +11,23 @@
 //   分区——**写侧默认折叠**（`_toolOpen`，同 group-progress `_progressOpen` 体例），首屏只留读侧；展开后功能一字不减。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
-import { escHtml as esc, smoothScroll } from '../../../core/base/utils.js?v=20261108c';
-import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20261108c';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261108c';
-import { AuthStore } from '../../../services/core/auth.js?v=20261108c';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20261108c';
-import { getPersonName } from '../../../services/member/person.js?v=20261108c';
+import { escHtml as esc, smoothScroll } from '../../../core/base/utils.js?v=20261109a';
+import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20261109a';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261109a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261109a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20261109a';
+import { getPersonName } from '../../../services/member/person.js?v=20261109a';
 // 人×工作项矩阵单一源（2026-09-14 批次 35）：按人 / 按项目 互为转置，勿自造表格与翻页
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261108c';
-// 责任关系（2026-10-24 Task 4.4 改主从两栏）：左列 14 个模块（模块名 + 责任人）单屏可览、
-// 右列选中模块的「责任角色 / 责任说明 / 停用·启用」。走原生 listbox 语义（非按钮族），
-// 不再把 14 项塞进 5 列表格，也不再分页；空「操作」列与表前读法说明一并未删功能地退场。
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261108c';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261109a';
+// 行载体与分隔线一律走 list-row.js（master 行）+ .list-group；数据口径与权限不变。
+import { listGroupHtml, listRowHtml } from '../../../components/ui/list-row.js?v=20261109a';
+// 责任关系（2026-11-09 批次 539 改单列对象列表）：14 个模块逐行摊平，每行＝角色徽章 +
+// 工作项（14/600）+ 负责人（12）+ 一行截断说明（title 全文）；停用项行尾「发起启用议题」。
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261109a';
 // 空态单一源（一句说明 + 一个下一步），与全局概况 / 周期归档卡同形
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261108c';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261109a';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅支书/副支书可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20261108c';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20261109a';
 
 // 2026-10-18 脏专项 Task 17：默认落「责任关系表」——14 项模块是 1:1 分派，
 // 逐行读出「谁负责什么」比 14×N 的稀疏矩阵直接；矩阵（按人 / 按项目）保留为可选视图。
@@ -38,7 +39,7 @@ let _view = 'relations'; // 视图：责任关系表 / 平铺模块 / 按人 / �
 let _toolOpen = false;
 // A14：停用项「发起启用议题」→ 打开分工调整面板并预选该模块（一次性消费）。
 let _pendingReenableModule = null;
-// 责任关系主从视图的选中模块（同一会话内保持；换视图再回来仍停在原项）
+// 责任关系单列列表的选中项（同一会话内保持；≤640 时选中项展开整段说明）
 let _selectedModule = null;
 
 /** 负责人显示名：role → ROLE_LABELS；person → 姓名；org → 组织型主体名（如支委会，不是自然人） */
@@ -109,90 +110,97 @@ function _relationRows(workforce) {
   });
 }
 
-/** 右列详情：选中模块的责任角色、责任说明与停用项启用入口（非停用项无操作钮）。 */
-function _relationDetailHtml(row, editable) {
-  const roleCls = row.role === '主责' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-neutral-100 text-neutral-600';
+/** 角色徽章（行首插槽）：主责＝主题 soft 档，停用 / 上级主导＝中性档；本页禁 SVG，只用文字。 */
+function _roleBadgeHtml(role) {
+  const tone = role === '主责' ? 'badge--accent' : 'badge--neutral';
+  return `<span class="badge ${tone}">${esc(role)}</span>`;
+}
+
+/** 单行对象行：角色徽章 + 工作项（14/600）+ 负责人（12）+ 一行截断说明（title 全文）。
+ *  停用项行尾「发起启用议题」（写口仍是既有分工调整面板）；非停用项无操作钮。 */
+function _relationRowHtml(row, selected, editable) {
   // A14：停用项的「发起启用议题」落点＝本页分工调整面板（复用既有写口，不新造表单）。
   const action = row.disabled
     ? (editable
-      ? `<button type="button" class="btn-outline wm-reenable" data-module="${esc(row.id)}">发起启用议题</button>`
-      : '<span class="text-xs text-gray-500">由支书 / 副支书发起启用议题</span>')
+      ? `<button type="button" class="btn-action wm-reenable" data-module="${esc(row.id)}">发起启用议题</button>`
+      : '<span class="wm-row__hint">由支书 / 副支书发起启用</span>')
     : '';
-  return `
-    <h4 class="wm-detail__title text-sm font-semibold text-gray-800">${esc(row.module)}</h4>
-    <dl class="mt-2 mb-0">
-      <div class="wm-detail__row"><dt>责任角色</dt><dd><span class="text-xs px-1.5 py-0.5 rounded-full border ${roleCls}">${esc(row.role)}</span></dd></div>
-      <div class="wm-detail__row"><dt>责任说明</dt><dd>${esc(row.note)}</dd></div>
-    </dl>
-    ${action ? `<div class="mt-2">${action}</div>` : ''}`;
+  return listRowHtml({
+    rowType: 'master',
+    className: 'wm-row',
+    leading: _roleBadgeHtml(row.role),
+    title: row.module,
+    meta: `负责人：${row.owner}`,
+    description: row.note,
+    trailing: action,
+    dataAttrs: {
+      'data-module': row.id,
+      'data-selected': selected ? 'true' : 'false',
+      title: row.note,
+    },
+  });
 }
 
-/** 责任关系主从两栏：左列模块清单（role=listbox，单屏可览不分页），右列选中详情。 */
+/** 责任关系单列列表：14 项工作逐行摊平（不分页、不内滚），行尾只在停用项给启用入口。 */
 function _relationsCardHtml(rows, editable) {
+  const head = renderCardHeader({
+    title: '分工清单',
+    meta: `${rows.length} 项 · 一项一名主责`,
+  });
   if (!rows.length) {
-    return `<div class="card rounded-xl p-4" id="work-map-relations">
-      ${renderCardHeader({ title: '责任关系' })}
+    return `<div class="card rounded-xl p-5" id="work-map-relations">
+      ${head}
       ${emptyStateHtml('暂无分工数据', {
         actionHtml: '<button type="button" class="btn-outline" data-wm-view="modules">先看平铺模块</button>',
       })}
     </div>`;
   }
-  const selectedId = rows.some((r) => r.id === _selectedModule) ? _selectedModule : rows[0].id;
+  const selectedId = rows.some((r) => r.id === _selectedModule) ? _selectedModule : null;
   _selectedModule = selectedId;
-  const current = rows.find((r) => r.id === selectedId);
-  return `<div class="card rounded-xl p-4" id="work-map-relations">
-      ${renderCardHeader({ title: '责任关系', meta: `${rows.length} 项工作 · 一项一名主责` })}
-      <div class="wm-split">
-        <div class="wm-module-list" id="wm-module-list" role="listbox" aria-label="工作模块" tabindex="0" aria-activedescendant="wm-opt-${esc(selectedId)}">
-          ${rows.map((r) => {
-            const on = r.id === selectedId;
-            return `<div id="wm-opt-${esc(r.id)}" class="wm-module-item${on ? ' is-selected' : ''}" role="option" aria-selected="${on ? 'true' : 'false'}" data-module="${esc(r.id)}">
-              <span class="wm-module-item__name">${esc(r.module)}</span>
-              <span class="wm-module-item__owner">${esc(r.owner)}</span>
-            </div>`;
-          }).join('')}
-        </div>
-        <div class="wm-detail" id="wm-detail" role="region" aria-live="polite">${_relationDetailHtml(current, editable)}</div>
+  return `<div class="card rounded-xl p-5" id="work-map-relations">
+      ${head}
+      <div id="wm-module-list">
+        ${listGroupHtml(rows.map((r) => _relationRowHtml(r, r.id === selectedId, editable)))}
       </div>
     </div>`;
 }
 
-/** 主从视图键盘操作：↑/↓ 逐项、Home/End 首末；选中项常驻 aria-activedescendant。 */
-function _bindRelations(rows, editable) {
+/** 行交互：点 / Enter 选中（≤640 时选中项展开整段说明）；↑/↓ 逐项、Home/End 首末。
+ *  master 行是 div[role=button]，行内按钮的点击 / 按键不连带改选中项。 */
+function _bindRelations() {
   const list = document.getElementById('wm-module-list');
-  const detail = document.getElementById('wm-detail');
-  if (!list || !detail) return;
-  const items = [...list.querySelectorAll('.wm-module-item')];
+  if (!list) return;
+  const items = [...list.querySelectorAll('.wm-row')];
   if (!items.length) return;
   const select = (id) => {
-    const item = items.find((it) => it.dataset.module === id);
-    const row = rows.find((r) => r.id === id);
-    if (!item || !row) return;
     _selectedModule = id;
-    items.forEach((it) => {
-      const on = it.dataset.module === id;
-      it.classList.toggle('is-selected', on);
-      it.setAttribute('aria-selected', on ? 'true' : 'false');
-    });
-    list.setAttribute('aria-activedescendant', `wm-opt-${id}`);
-    detail.innerHTML = _relationDetailHtml(row, editable);
-    smoothScroll(item, { block: 'nearest', smooth: false });
+    items.forEach((it) => it.setAttribute('data-selected', it.dataset.module === id ? 'true' : 'false'));
   };
+  const focusAt = (idx) => items[Math.max(0, Math.min(items.length - 1, idx))]?.focus();
   list.addEventListener('click', (e) => {
-    const item = e.target.closest('.wm-module-item');
+    if (e.target.closest('.wm-reenable')) return;
+    const item = e.target.closest('.wm-row');
     if (item) select(item.dataset.module);
   });
   list.addEventListener('keydown', (e) => {
+    if (e.target.closest('.wm-reenable')) return;
     const ids = items.map((it) => it.dataset.module);
     const idx = Math.max(0, ids.indexOf(_selectedModule));
-    let next = idx;
-    if (e.key === 'ArrowDown') next = Math.min(ids.length - 1, idx + 1);
-    else if (e.key === 'ArrowUp') next = Math.max(0, idx - 1);
+    if (e.key === 'Enter' || e.key === ' ') {
+      const item = e.target.closest('.wm-row');
+      if (!item) return;
+      e.preventDefault();
+      select(item.dataset.module);
+      return;
+    }
+    let next;
+    if (e.key === 'ArrowDown') next = idx + 1;
+    else if (e.key === 'ArrowUp') next = idx - 1;
     else if (e.key === 'Home') next = 0;
     else if (e.key === 'End') next = ids.length - 1;
     else return;
     e.preventDefault();
-    select(ids[next]);
+    focusAt(next);
   });
 }
 
@@ -306,8 +314,8 @@ export function renderContent() {
 
   // 说明后置（§10.5）：页面标题下不再压一段导语；分工口径放在主体与工具之后，全屏只留这一句。
   root.innerHTML = `${renderTabHeader({ title: '支部分工', actions: switchBar })}${body}${editable ? _toolFoldHtml() : ''}<p class="text-xs text-gray-500 mt-3">分工由本支部自行调整，改派走支委会议题。</p>`;
-  // 责任关系（主从两栏）/ 矩阵分别挂到各自宿主（_view → mode 映射在 _renderMatrix 内）
-  if (_view === 'relations') _bindRelations(relationRows, editable);
+  // 责任关系（单列对象列表）/ 矩阵分别挂到各自宿主（_view → mode 映射在 _renderMatrix 内）
+  if (_view === 'relations') _bindRelations();
   if (_view === 'persons' || _view === 'items') _renderMatrix(workforce);
   // 视图切换（纯排列切换，不换数据）；空态里的「先看平铺模块」同为 data-wm-view ⇒ 一并绑定
   root.querySelectorAll('[data-wm-view]').forEach(btn => {

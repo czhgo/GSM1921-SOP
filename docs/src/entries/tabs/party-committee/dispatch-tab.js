@@ -1,15 +1,15 @@
 // Party dispatch reuses the notice domain; this page separates composing from sent history,
 // and (批次 537 波次 1) adds a committee-public notice subview backed by /committee/notices.
-import { mockDB } from '../../../core/domain/domain.js?v=20261108c';
-import { AuthStore } from '../../../services/core/auth.js?v=20261108c';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261108c';
-import { textField, textareaField, selectField } from '../../../components/ui/forms.js?v=20261108c';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261108c';
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261108c';
-import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261108c';
-import { emptyStateHtml, skeletonHtml } from '../../../components/ui/empty-state.js?v=20261108c';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261108c';
-import { getAdapter } from '../../../data/data-adapter.js?v=20261108c';
+import { mockDB } from '../../../core/domain/domain.js?v=20261109a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261109a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261109a';
+import { textField, textareaField, selectField } from '../../../components/ui/forms.js?v=20261109a';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261109a';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261109a';
+import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261109a';
+import { emptyStateHtml, skeletonHtml } from '../../../components/ui/empty-state.js?v=20261109a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261109a';
+import { getAdapter } from '../../../data/data-adapter.js?v=20261109a';
 
 const BRANCH_FILTER_STATE = 'pc-dispatch';
 const VIEW_COMPOSE = 'compose';
@@ -95,19 +95,30 @@ export function renderContent(ctx) {
     pri: 'normal', title: '', content: '',
   };
   paint(host);
-  if (dispatchView === VIEW_PUBLIC && !publicState.loaded && !publicState.loading) refreshPublic(host);
+  // 批次 539（F-5）：公开通知计数首屏不再恒 0——先按本地已有通知初始化，再后台向服务端对齐；
+  //   已在公开子视图时沿用既有刷新（带骨架 / 失败重试），其余子视图只更新计数徽标，不打断正在填写的内容。
+  if (!publicState.loaded && !publicState.loading) {
+    if (dispatchView === VIEW_PUBLIC) refreshPublic(host);
+    else syncPublicCount(host);
+  }
+}
+
+/** 公开通知计数：服务端已回包以回包为准；首帧按本地通知镜像（党委下发）初始化 */
+function publicCount() {
+  if (publicState.loaded) return publicState.rows.length;
+  return (mockDB.notices || []).filter((notice) => notice.source === 'committee').length;
 }
 
 function paint(host) {
   const historyCount = (mockDB.notices || []).filter((notice) => notice.source === 'committee').length;
-  const publicCount = publicState.rows.length;
+  const publicTotal = publicCount();
   host.innerHTML = `
     ${renderTabHeader({ title: '下发通知', description: '通知送达所选支部的支委层；收件人在通知铃铛中查看。公开通知另行发布到公共门厅。' })}
     <div class="page-section-stack">
       <div class="subtabs" role="tablist" aria-label="通知工作区">
         <button id="pc-dispatch-tab-compose" type="button" class="subtab" data-dispatch-view="compose" role="tab" aria-controls="pc-dispatch-panel" aria-selected="${dispatchView === 'compose'}" tabindex="${dispatchView === 'compose' ? '0' : '-1'}">撰写</button>
         <button id="pc-dispatch-tab-history" type="button" class="subtab" data-dispatch-view="history" role="tab" aria-controls="pc-dispatch-panel" aria-selected="${dispatchView === 'history'}" tabindex="${dispatchView === 'history' ? '0' : '-1'}">已发送 <span class="ml-1 tabular-nums">${historyCount}</span></button>
-        <button id="pc-dispatch-tab-public" type="button" class="subtab" data-dispatch-view="public" role="tab" aria-controls="pc-dispatch-panel" aria-selected="${dispatchView === 'public'}" tabindex="${dispatchView === 'public' ? '0' : '-1'}">公开通知 <span class="ml-1 tabular-nums">${publicCount}</span></button>
+        <button id="pc-dispatch-tab-public" type="button" class="subtab" data-dispatch-view="public" role="tab" aria-controls="pc-dispatch-panel" aria-selected="${dispatchView === 'public'}" tabindex="${dispatchView === 'public' ? '0' : '-1'}">公开通知 <span class="ml-1 tabular-nums" data-public-count>${publicTotal}</span></button>
       </div>
       <section id="pc-dispatch-panel" role="tabpanel" aria-labelledby="${dispatchView === 'compose' ? 'pc-dispatch-tab-compose' : dispatchView === 'history' ? 'pc-dispatch-tab-history' : 'pc-dispatch-tab-public'}" tabindex="0">
         ${dispatchView === 'compose' ? composeHtml(draft) : dispatchView === 'history' ? historyHtml() : publicHtml()}
@@ -190,25 +201,46 @@ function bindComposer(host) {
   host.querySelector('#dispatch-content')?.addEventListener('input', () => { draft = readDraft(host); });
   host.querySelectorAll('input[name="dispatch-pri"]').forEach((radio) => radio.addEventListener('change', () => { draft = readDraft(host); }));
 
-  host.querySelector('#dispatch-submit')?.addEventListener('click', () => {
+  host.querySelector('#dispatch-submit')?.addEventListener('click', async (event) => {
     const state = readDraft(host);
     const title = state?.title.trim();
     const content = state?.content.trim();
     const branchIds = state?.branchIds || [];
     if (!branchIds.length) { showToast('error', '请选择至少一个目标支部'); return; }
     if (!title || !content) { showToast('error', '请填写标题与正文'); return; }
-    branchIds.forEach((branchId) => {
+
+    // 批次 539（F-5）：逐支部等 addSystem 回包，按结果提示——回包前不得宣称「已下发」。
+    //   addSystem 在 mock 形态同步返回对象、API 形态返回 Promise（失败 null），统一 await。
+    const submitBtn = event.currentTarget;
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '下发中…'; }
+    const results = await Promise.all(branchIds.map((branchId) => {
       const branch = (mockDB.branches || []).find((item) => item.id === branchId);
-      NoticeStore.addSystem('committee-dispatch', branchId, {
-        title,
-        content,
-        priority: state.pri,
-        branchName: branch?.config?.headerTitle || branch?.name || branchId,
-      });
-    });
-    showToast('success', `已下发至 ${branchIds.length} 个支部的支委层`);
-    draft = { branchIds: [], pri: 'normal', title: '', content: '' };
-    setDispatchView('history');
+      return Promise.resolve()
+        .then(() => NoticeStore.addSystem('committee-dispatch', branchId, {
+          title,
+          content,
+          priority: state.pri,
+          branchName: branch?.config?.headerTitle || branch?.name || branchId,
+        }))
+        .catch(() => null);
+    }));
+    const failedIds = branchIds.filter((_, index) => !results[index]);
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '下发通知'; }
+
+    if (!failedIds.length) {
+      showToast('success', `已下发至 ${branchIds.length} 个支部的支委层`);
+      draft = { branchIds: [], pri: 'normal', title: '', content: '' };
+      setDispatchView('history');
+      renderContent();
+      return;
+    }
+    // 有失败：不改口成成功；保留失败支部供重试，成功的支部不再重复勾选。
+    draft = { ...state, branchIds: failedIds };
+    if (failedIds.length === branchIds.length) {
+      showToast('error', `下发失败：${failedIds.length} 个支部未送达，请重试`);
+    } else {
+      showToast('error', `已送达 ${branchIds.length - failedIds.length} 个支部；${failedIds.length} 个失败，请重试`);
+    }
     renderContent();
   });
 }
@@ -306,6 +338,26 @@ function publicNoticeRowHtml(row) {
       <p class="mt-1 whitespace-pre-wrap text-sm leading-6 text-gray-700">${esc(row.content || '')}</p>
       ${isPublic && row.publishExpiresAt ? `<p class="mt-1 text-body-sm text-gray-500">公开到期：${esc(String(row.publishExpiresAt).slice(0, 10))}</p>` : ''}
     </div>`;
+}
+
+/** 后台对齐公开通知计数（不抢占当前子视图）：回包后只改徽标，不整页重绘、不打断填写 */
+async function syncPublicCount(host) {
+  const group = noticesAdapter();
+  if (!group) return;
+  publicState.loading = true;
+  try {
+    const rows = await group.list();
+    publicState.rows = Array.isArray(rows) ? rows : [];
+    publicState.loaded = true;
+    publicState.error = '';
+  } catch (error) {
+    // 计数失败不覆盖已显示的内容；公开子视图自身仍按 refreshPublic 的错误态重试
+    publicState.error = (error && error.message) ? error.message : '加载失败';
+  } finally {
+    publicState.loading = false;
+    const badge = host.querySelector('[data-public-count]');
+    if (badge) badge.textContent = String(publicCount());
+  }
 }
 
 async function refreshPublic(host) {

@@ -2,21 +2,21 @@
 // 宣传委员工作台 Tab：项目看板（T-279 M3 拆分，照 M2 样板）
 // 活动/专班合并看板（活动+专班分桶）+ 专班工作量区块；从 TaskForceRecordStore 动态派生（H-1 数据断裂修复）。
 
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261108c';
-import { BranchService } from '../../../services/core/runtime.js?v=20261108c';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261108c';
-import { persist } from '../../../data/data-adapter.js?v=20261108c';
-import { showToast, escHtml as esc, smoothScroll } from '../../../core/base/utils.js?v=20261108c';
-import { setState } from '../../../core/base/state.js?v=20261108c';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261108c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261109a';
+import { BranchService } from '../../../services/core/runtime.js?v=20261109a';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261109a';
+import { persist } from '../../../data/data-adapter.js?v=20261109a';
+import { showToast, escHtml as esc, smoothScroll } from '../../../core/base/utils.js?v=20261109a';
+import { setState } from '../../../core/base/state.js?v=20261109a';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261109a';
 // 「已归档」判据单一源（只看 archived === true；不得再把 status === 'completed' 当归档）
-import { isActivityArchived, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261108c';
+import { isActivityArchived, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261109a';
 // 统一检索引擎（2026-09-14 批次 37）：三桶各接一个实例（keyword null + facets [] → 仅分页，保持三桶观感）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261108c';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261108c';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261109a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261109a';
 // Task 6：项目看板是跨对象聚合面 ⇒ 活动/专班卡直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261108c';
-import { confirmDanger } from '../../../components/ui/modal.js?v=20261108c';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261109a';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261109a';
 
 export function renderContent(ctx) {
   const container = document.getElementById('prop-tab-content');
@@ -134,7 +134,7 @@ export function renderContent(ctx) {
   // 宣传任务泳道（2026-10-25 IA 62→45）：复用 `tasks-tab.js::renderBoard`（列表 / 登记 / 推进 / 作废单一源）。
   const tasksHost = container.querySelector('#prop-tasks-host');
   if (tasksHost) {
-    import('./tasks-tab.js?v=20261108c').then((m) => {
+    import('./tasks-tab.js?v=20261109a').then((m) => {
       if (tasksHost.isConnected) m.renderBoard(tasksHost, ctx, { header: false });
     });
     // 旧深链 `?tab=kanban&lane=tasks`：滚到本条泳道并给可见落点。

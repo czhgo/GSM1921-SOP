@@ -5,7 +5,7 @@
 - 视口：1440×900 / 390×844
 - 账号：党委组织员 `9000000001`、支书 `2300010001`、党员 `2500010001`（口令 `123456`）
 - 截图：`.ctx/evidence/2026-11-08/user-task-test/shots/`
-- 结论：5 个任务中 4 个 PASS；任务 5 登录态 PASS、未登录资料查询页留 GAP；另登记 1 个服务端写口阻断。
+- 结论：5 个任务 **4/5 PASS**；任务 5 仅登录态 PASS，未登录资料查询页留 GAP（R2）；R1 上传门已修复并常驻断言（2026-11-09 复核改准，见 §四）。
 
 ## 一、任务结论
 
@@ -15,7 +15,7 @@
 | 2 党委发公开通知 | PASS | PASS | 党委台「下发通知 → 公开通知」发布成功；未登录门厅显示标题与正文全文 |
 | 3 支书采用党委活动 | PASS | PASS | strip 提示「院级活动待采用 1」→ 二次确认 → 生成副本 → 列表隐藏原件 |
 | 4 发强调通知 | PASS | PASS | 党员铃铛收到「活动强调：…」；再发返回 429（24h 限频） |
-| 5 资料查询 | PASS | PASS | 登录后可见院级 `login` / `public` 资料；未登录资料查询页仅「请先登录后使用」(GAP) |
+| 5 资料查询 | PASS（登录态） | PASS（登录态） | 登录后可见院级 `login` / `public` 资料；未登录资料查询页仅「请先登录后使用」＝ **R2 GAP**，本任务计为未全通过 |
 
 走查数据（review 库）：
 - 公开通知：`ntc-c832878e` / `ntc-752831c5` 等（标题「用户任务走查·公开通知（1440/390）」）。
@@ -58,7 +58,8 @@
   - 未登录：`search.html` 仍只显示「请先登录后使用 / 去登录」（GAP，见 §四 R2）；未登录首页门厅可见 `public` 资料且不含 `login` 资料。
 - 看得懂：PASS（修复后）。行内文案为「院级资料 · 公开」/「院级资料 · 登录可见」，不再误标「已归档」。
 - 点得动：PASS（修复后）。「下载」链接在位；院级资料不再向支部侧显示「修改 / 删除」（写口只归党委）。
-- 党委创建资料的「点得动」：FAIL → 上传 `POST /api/v1/uploads` 返回 **403 无权限**（R1），页面无可见错误，只在控制台报错。本走查改用 `POST /api/v1/committee/documents`（带 `fileData`）落数据。
+- 党委创建资料的「点得动」：修复前 FAIL → 上传 `POST /api/v1/uploads` 返回 **403 无权限**（R1），页面无可见错误，只在控制台报错；本走查改用 `POST /api/v1/committee/documents`（带 `fileData`）落数据。
+  - 2026-11-09 复核改准：`server/routes/uploads.js:68-74` 已用 `requireUploader` 放行 `party-staff`，`server/test/security-hardening.test.mjs:304-324` 常驻断言 party-staff **201** / 普通成员 **403** ⇒ 该 UI 链路恢复。矩阵仍写支委层（`write-policy-matrix.mjs:534-538`），单源未同批 → 记为 `D-861` 安全失分依据。
 
 ## 三、小修复（已改、已复跑）
 
@@ -78,15 +79,15 @@
 - `cd server; npm run test:daily` → **203 pass / 0 fail**，墙钟 60.6s，全绿。
 - 未改服务端路由、未改测试分层、未 commit、未 bump 版本戳。
 
-## 四、只登记不修
+## 四、登记项（2026-11-09 复核改准）
 
-| ID | 级别 | 问题 | 证据 |
+| ID | 级别 | 问题 | 状态与证据 |
 |---|---|---|---|
-| R1 | P1 | 党委组织员上传院级资料被 403「无权限」：`POST /api/v1/uploads` 走 `requireCommissioner`，party-staff 无支部委员身份。院级资料「上传并保存」整条 UI 链路因此不可用 | `server/routes/uploads.js:70`；`docs/src/entries/tabs/party-committee/content-tab.js:735-760`；实测 403 `{"error":"无权限"}` |
-| R2 | P2 | 未登录 `search.html` 不展示公开院级资料，只给「请先登录后使用」；公开资料只在 `index.html` 公共门厅可见 | `docs/src/components/sections/references.js:371-385`（匿名分支）；`server/routes/public-portal.js` 已有 `/api/public/portal` 可复用 |
-| R3 | P3 | 强调通知 24h 内二次发送时按钮直接禁用，用户看不到 429 文案，仅看倒计时 | `docs/src/entries/pages/activity-entry.js:774-776、943-966` |
+| R1 | P1 | 党委组织员上传院级资料被 403「无权限」：`POST /api/v1/uploads` 原走 `requireCommissioner`，party-staff 无支部委员身份，院级资料「上传并保存」UI 链路因此不可用 | **已修**：`server/routes/uploads.js:68-74` 用 `requireUploader` 放行 party-staff，普通成员仍拒绝；`server/test/security-hardening.test.mjs:304-324` 常驻断言 **201 / 403**。**残项已清（批次 539）**：`write-policy-matrix.mjs:534-536` 已改准为 `requireAuth + (party-staff \| requireCommissioner)` / `roleGate: 支委层或 party-staff`，单源与运行期同批（`D-862`） |
+| R2 | P2 | 未登录 `search.html` 不展示公开院级资料，只给「请先登录后使用」；公开资料只在 `index.html` 公共门厅可见 | **已修（批次 539）**：`docs/src/components/sections/references.js` 匿名分支改消费匿名门厅读口 `loadPublicPortal`（服务端 `server/routes/public-portal.js`），含匿名下载 / 失败重试 / 「去登录」附注；证据 `.ctx/evidence/2026-11-09/ia/`（`D-862`） |
+| R3 | P3 | 强调通知 24h 内二次发送时按钮直接禁用，用户看不到 429 文案，仅看倒计时 | **不修**（口径一致）。`docs/src/entries/pages/activity-entry.js:774-776、943-966` |
 
-R1 需要服务端写口口径裁定（是否给 party-staff 单独开上传，或改为由 `committee/documents` 直收 `fileData`）；R2 需要产品裁定是否把公开资料接进资料查询页。
+R1 已按「party-staff 单独放行上传」落地并常驻断言，矩阵已于批次 539 同批改准（`D-862`）；R2 已于批次 539 把公开资料接进资料查询页（匿名门厅读口，`D-862`）。
 
 ## 五、证据文件
 

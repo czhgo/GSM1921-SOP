@@ -27,12 +27,12 @@ import { join } from 'node:path';
 import {
   collectRealtimeGroups,
   SERVER_OWNED_ACTION_KEYS,
-} from '../../docs/src/components/record/todo-tab-shell.js?v=20261108c';
-import { DERIVE_GROUP_DOMAIN } from '../../docs/src/core/domain/todo-derive.js?v=20261108c';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261108c';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261108c';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261108c';
-import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261108c';
+} from '../../docs/src/components/record/todo-tab-shell.js?v=20261109a';
+import { DERIVE_GROUP_DOMAIN } from '../../docs/src/core/domain/todo-derive.js?v=20261109a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261109a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261109a';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261109a';
+import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261109a';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 
@@ -130,6 +130,10 @@ test('① 服务端成功：7 类/已接管键只取服务端（客户端同键�
   assert.ok(skip instanceof Set, 'builder 应收到 skipActionKeys（集合）');
   for (const k of Object.keys(DERIVE_GROUP_DOMAIN)) {
     assert.ok(skip.has(k), `skipActionKeys 应含 7 类键：${k}`);
+  }
+  // 批次 539：纪检确认队列与既有三类同样由服务端接管 ⇒ 客户端默认路径不再派生
+  for (const k of ['attendance-confirm', 'inspection-confirm', 'develop-node-remind', 'half-year-inspection-remind', 'module-cycle-remind']) {
+    assert.ok(skip.has(k), `skipActionKeys 应含服务端已接管键：${k}`);
   }
 });
 

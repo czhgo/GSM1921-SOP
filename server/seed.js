@@ -2,6 +2,8 @@
 import { DEFAULT_BRANCH_ID } from '../docs/src/core/domain/constants.js';
 import { readFileSync } from 'node:fs';
 import { replaceCollection } from './db.js';
+// 生产形态判定单一源（批次 539：播种演示待办前显式断言，不靠调用方自觉）
+import { isProductionEnv } from './env.js';
 // Task 1（2026-10-25）：种子只写事实；派生字段统一由 mock/derive.js 补回，API 与 mock 同源。
 import { applyDerivedFacts } from '../docs/src/data/mock/derive.js';
 
@@ -61,6 +63,13 @@ export function seedMilestones() {
 }
 
 export async function seedDatabase(db) {
+  // 批次 539：生产形态**显式拒绝**播种演示数据（此前只靠调用方「生产不播种」，无本函数级断言）。
+  // 置于任何写库动作之前——拒绝时不得留下半播状态。
+  if (isProductionEnv()) {
+    throw new Error('[seed] 生产形态不得播种演示种子（含 SEED_TODOS）——请以空库/基线库起步'
+      + '（scripts/rebuild-demo.mjs --mode baseline）；仅演练环境需显式 ALLOW_DEMO_DATA=1 走 demo 重建，'
+      + '不得在正式库上调用 seedDatabase()。');
+  }
   const [peopleMod, activitiesMod, noticesMod, taskforcesMod, seedMod, branchesMod, partyGroupsMod, workgroupSyncMod] = await Promise.all([
     import('../docs/src/data/mock/people.js'),
     import('../docs/src/data/mock/activities.js'),
@@ -225,6 +234,7 @@ export async function seedDatabase(db) {
   //   `await` 之前）。补种后该分支**不再被走到**（附带收益；`SEED_FALLBACK`/`DISABLE_SEED`/生产默认不播种
   //   三条开关语义**一字未改**）。
   // 幂等：`replaceCollection` = `DELETE FROM todos` + 整表 `INSERT` ⇒ 重复播种只覆盖、不叠加。
+  // 生产形态拒绝见本函数开头断言（批次 539）。
   const { SEED_TODOS } = await import('../docs/src/services/governance/todo.js?v=20260924a');
   // v11（批次 504）：`todos.branch_id` 是普通列，`replaceCollection` 只写 id/data ⇒ 种子也须显式归属，
   //   否则 API 形态按支部读待办会空。缺省归属沿用部署默认支部（与消息/活动种子同口径）。

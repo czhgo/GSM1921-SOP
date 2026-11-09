@@ -1,0 +1,1809 @@
+{
+  "generatedAt": "2026-11-09T15:04:57.576Z",
+  "base": "http://127.0.0.1:53218",
+  "dbMode": "memory",
+  "tabs": [
+    {
+      "key": "disc.review",
+      "label": "复盘",
+      "blocks": 4,
+      "findings": [
+        {
+          "key": "disc.review",
+          "rule": "F1",
+          "severity": "P1",
+          "status": "pass",
+          "message": "顶层块基线 4 ≤ 4（DOM 实测 2，仅作复核线索）",
+          "evidence": {
+            "measured": 2,
+            "raw": 1,
+            "baseline": 4,
+            "blocks": [
+              "div.card rounded-xl p-5",
+              "div.card rounded-xl p-5"
+            ]
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "F2",
+          "severity": "P1",
+          "status": "pass",
+          "message": "2 条筛选条均 ≤2 行、非 column、reset 未整行",
+          "evidence": {
+            "bars": [
+              {
+                "rows": 1,
+                "height": 40,
+                "flexDirection": "row",
+                "resetFullWidth": false
+              },
+              {
+                "rows": 1,
+                "height": 40,
+                "flexDirection": "row",
+                "resetFullWidth": false
+              }
+            ]
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "F3",
+          "severity": "P1",
+          "status": "pass",
+          "message": "无 input[list]/datalist；suggest 输入 ARIA 合规",
+          "evidence": {
+            "inputList": 0,
+            "datalist": 0,
+            "suggest": 0
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "F4",
+          "severity": "P1",
+          "status": "pass",
+          "message": "H1 0 / H2 1；标题序列 h2→h3→h4→h4→h3",
+          "evidence": {
+            "headings": [
+              {
+                "level": 2,
+                "text": "复盘"
+              },
+              {
+                "level": 3,
+                "text": "待处理"
+              },
+              {
+                "level": 4,
+                "text": "流程监督"
+              },
+              {
+                "level": 4,
+                "text": "复盘处理"
+              },
+              {
+                "level": 3,
+                "text": "已沉淀"
+              }
+            ],
+            "jumps": []
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "F5",
+          "severity": "P1",
+          "status": "pass",
+          "message": "2 个 section 均有名称，无嵌套",
+          "evidence": {
+            "sections": 2
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "F6",
+          "severity": "P2",
+          "status": "pass",
+          "message": "未发现 .empty-state 之外的空态文本",
+          "evidence": {
+            "hits": 0
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "F7",
+          "severity": "P1",
+          "status": "pass",
+          "message": "390 无横向溢出（390 ≤ 390 + 1）；长列表分页门槛通过",
+          "evidence": {
+            "scrollWidth": 390,
+            "innerWidth": 390
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "F8",
+          "severity": "P0",
+          "status": "pass",
+          "message": "pageerror 0 / console.error 0 / 4xx 0",
+          "evidence": {
+            "pageErrors": 0,
+            "consoleErrors": 0,
+            "http4xx": 0
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "D1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口全部 2xx 且 JSON 可解析（7 个，每口 5 次）",
+          "evidence": {
+            "count": 7,
+            "perEndpoint": [
+              {
+                "endpoint": "GET /api/v1/activityReviews",
+                "status": 200,
+                "runs": 5,
+                "p50": 12,
+                "p95": 26,
+                "bytes": 4956
+              },
+              {
+                "endpoint": "GET /api/v1/taskforceReviews",
+                "status": 200,
+                "runs": 5,
+                "p50": 7,
+                "p95": 14,
+                "bytes": 1060
+              },
+              {
+                "endpoint": "GET /api/v1/activities",
+                "status": 200,
+                "runs": 5,
+                "p50": 10,
+                "p95": 11,
+                "bytes": 24011
+              },
+              {
+                "endpoint": "GET /api/v1/notices",
+                "status": 200,
+                "runs": 5,
+                "p50": 6,
+                "p95": 7,
+                "bytes": 6343
+              },
+              {
+                "endpoint": "GET /api/v1/users",
+                "status": 200,
+                "runs": 5,
+                "p50": 6,
+                "p95": 11,
+                "bytes": 9892
+              },
+              {
+                "endpoint": "GET /api/v1/todos",
+                "status": 200,
+                "runs": 5,
+                "p50": 7,
+                "p95": 11,
+                "bytes": 1567
+              },
+              {
+                "endpoint": "GET /api/v1/partyGroups",
+                "status": 200,
+                "runs": 5,
+                "p50": 6,
+                "p95": 8,
+                "bytes": 899
+              }
+            ],
+            "measurements": [
+              {
+                "endpoint": "GET /api/v1/activityReviews",
+                "runs": 5,
+                "p50": 12,
+                "p95": 26,
+                "min": 6,
+                "max": 26,
+                "bytes": 4956
+              },
+              {
+                "endpoint": "GET /api/v1/taskforceReviews",
+                "runs": 5,
+                "p50": 7,
+                "p95": 14,
+                "min": 5,
+                "max": 14,
+                "bytes": 1060
+              },
+              {
+                "endpoint": "GET /api/v1/activities",
+                "runs": 5,
+                "p50": 10,
+                "p95": 11,
+                "min": 7,
+                "max": 11,
+                "bytes": 24011
+              },
+              {
+                "endpoint": "GET /api/v1/notices",
+                "runs": 5,
+                "p50": 6,
+                "p95": 7,
+                "min": 5,
+                "max": 7,
+                "bytes": 6343
+              },
+              {
+                "endpoint": "GET /api/v1/users",
+                "runs": 5,
+                "p50": 6,
+                "p95": 11,
+                "min": 5,
+                "max": 11,
+                "bytes": 9892
+              },
+              {
+                "endpoint": "GET /api/v1/todos",
+                "runs": 5,
+                "p50": 7,
+                "p95": 11,
+                "min": 6,
+                "max": 11,
+                "bytes": 1567
+              },
+              {
+                "endpoint": "GET /api/v1/partyGroups",
+                "runs": 5,
+                "p50": 6,
+                "p95": 8,
+                "min": 3,
+                "max": 8,
+                "bytes": 899
+              }
+            ]
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "D3",
+          "severity": null,
+          "status": "pass",
+          "message": "首屏 /api/v1/ 4xx 归零（复用 F8 evidence）",
+          "evidence": {
+            "source": "F8",
+            "http4xx": 0,
+            "f8Status": "pass"
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口已登记：POST /api/v1/activityReviews（enforced / requireAuth / RESOURCE_WRITE_GATE.activityReviews → committee-or-organizer）",
+          "evidence": {
+            "write": "activity-review-create",
+            "endpoint": "POST /api/v1/activityReviews",
+            "matrix": {
+              "method": "POST",
+              "path": "/api/v1/activityReviews",
+              "middleware": "requireAuth",
+              "roleGate": "RESOURCE_WRITE_GATE.activityReviews → committee-or-organizer",
+              "ownership": "organizer",
+              "status": "enforced",
+              "evidence": "server/routes/resources/gates.js::RESOURCE_WRITE_GATE + _assertResourceWrite"
+            }
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口已登记：PATCH /api/v1/activityReviews/:id（enforced / requireAuth / RESOURCE_WRITE_GATE.activityReviews → committee-or-organizer）",
+          "evidence": {
+            "write": "activity-review-update",
+            "endpoint": "PATCH /api/v1/activityReviews/:id",
+            "matrix": {
+              "method": "PATCH",
+              "path": "/api/v1/activityReviews/:id",
+              "middleware": "requireAuth",
+              "roleGate": "RESOURCE_WRITE_GATE.activityReviews → committee-or-organizer",
+              "ownership": "organizer",
+              "status": "enforced",
+              "evidence": "server/routes/resources/gates.js::RESOURCE_WRITE_GATE + _assertResourceWrite"
+            }
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口已登记：POST /api/v1/taskforceReviews（enforced / requireAuth / RESOURCE_WRITE_GATE.taskforceReviews → committee-or-organizer）",
+          "evidence": {
+            "write": "taskforce-review-create",
+            "endpoint": "POST /api/v1/taskforceReviews",
+            "matrix": {
+              "method": "POST",
+              "path": "/api/v1/taskforceReviews",
+              "middleware": "requireAuth",
+              "roleGate": "RESOURCE_WRITE_GATE.taskforceReviews → committee-or-organizer",
+              "ownership": "organizer",
+              "status": "enforced",
+              "evidence": "server/routes/resources/gates.js::RESOURCE_WRITE_GATE + _assertResourceWrite"
+            }
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口已登记：PATCH /api/v1/taskforceReviews/:id（enforced / requireAuth / RESOURCE_WRITE_GATE.taskforceReviews → committee-or-organizer）",
+          "evidence": {
+            "write": "taskforce-review-update",
+            "endpoint": "PATCH /api/v1/taskforceReviews/:id",
+            "matrix": {
+              "method": "PATCH",
+              "path": "/api/v1/taskforceReviews/:id",
+              "middleware": "requireAuth",
+              "roleGate": "RESOURCE_WRITE_GATE.taskforceReviews → committee-or-organizer",
+              "ownership": "organizer",
+              "status": "enforced",
+              "evidence": "server/routes/resources/gates.js::RESOURCE_WRITE_GATE + _assertResourceWrite"
+            }
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口已登记：PATCH /api/v1/activities/:id（enforced / requireAuth / _assertActivityWrite + activityOperationAllowed + _activityApprovalGateDeny）",
+          "evidence": {
+            "write": "activity-update",
+            "endpoint": "PATCH /api/v1/activities/:id",
+            "matrix": {
+              "method": "PATCH",
+              "path": "/api/v1/activities/:id",
+              "middleware": "requireAuth",
+              "roleGate": "_assertActivityWrite + activityOperationAllowed + _activityApprovalGateDeny",
+              "ownership": "organizer",
+              "status": "enforced",
+              "evidence": "server/routes/resources/gates.js::_assertActivityWrite; server/routes/resources/workgroup-routes.js::activityOperationAllowed; server/test/permission-gate.test.mjs"
+            }
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口已登记：POST /api/v1/system-notices（enforced / requireAuth / system-notice-kinds 注册表按 kind 复算授权）",
+          "evidence": {
+            "write": "review-overdue-reminder",
+            "endpoint": "POST /api/v1/system-notices",
+            "matrix": {
+              "method": "POST",
+              "path": "/api/v1/system-notices",
+              "middleware": "requireAuth",
+              "roleGate": "system-notice-kinds 注册表按 kind 复算授权",
+              "ownership": "branch",
+              "status": "enforced",
+              "evidence": "server/routes/system-notices.js#L133; server/system-notice-kinds.js; server/test/system-notice-branch-source.test.mjs"
+            }
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口已登记：POST /api/v1/todos（enforced / requireAuth / RESOURCE_WRITE_GATE.todos → todo-row）",
+          "evidence": {
+            "write": "todo-create",
+            "endpoint": "POST /api/v1/todos",
+            "matrix": {
+              "method": "POST",
+              "path": "/api/v1/todos",
+              "middleware": "requireAuth",
+              "roleGate": "RESOURCE_WRITE_GATE.todos → todo-row",
+              "ownership": "self",
+              "status": "enforced",
+              "evidence": "server/routes/resources/gates.js::RESOURCE_WRITE_GATE + _assertResourceWrite"
+            }
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "C2",
+          "severity": null,
+          "status": "pass",
+          "message": "CRUD 往返通过（todos）：create→read→delete",
+          "evidence": {
+            "recipe": "todos",
+            "endpoint": "/api/v1/todos",
+            "destructiveProbeOnly": false,
+            "steps": [
+              {
+                "step": "create",
+                "status": 201,
+                "endpoint": "POST /api/v1/todos"
+              },
+              {
+                "step": "read-after-create",
+                "status": 200,
+                "found": true
+              },
+              {
+                "step": "patch",
+                "status": "skip:no-update"
+              },
+              {
+                "step": "delete",
+                "status": 204,
+                "endpoint": "DELETE /api/v1/todos/:id"
+              },
+              {
+                "step": "read-after-delete",
+                "status": 200,
+                "absent": true
+              }
+            ]
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：POST /api/v1/activityReviews",
+          "evidence": {
+            "write": "activity-review-create",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：PATCH /api/v1/activityReviews/:id",
+          "evidence": {
+            "write": "activity-review-update",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：POST /api/v1/taskforceReviews",
+          "evidence": {
+            "write": "taskforce-review-create",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：PATCH /api/v1/taskforceReviews/:id",
+          "evidence": {
+            "write": "taskforce-review-update",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：PATCH /api/v1/activities/:id",
+          "evidence": {
+            "write": "activity-update",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：POST /api/v1/system-notices",
+          "evidence": {
+            "write": "review-overdue-reminder",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "C3",
+          "severity": null,
+          "status": "pass",
+          "message": "页签无 data-action / data-todo-action / data-mfw 写动作选择器",
+          "evidence": {
+            "source": "docs/src/entries/tabs/disc/review-tab.js",
+            "dataAttributes": [
+              "data-act-id",
+              "data-activity-id",
+              "data-activity-name",
+              "data-deposit-id",
+              "data-modal-cancel",
+              "data-organizer",
+              "data-review-id",
+              "data-source-type",
+              "data-taskforce-id",
+              "data-workgroup-id"
+            ],
+            "note": "其余 data-* 仅作靶标（data-id / data-group 等），不当作动作语义"
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "C4",
+          "severity": null,
+          "status": "pass",
+          "message": "写口 gate 与路径全部可定位（4 个门）",
+          "evidence": {
+            "gates": [
+              "committee-or-organizer",
+              "ACTIVITY_WRITE_ROLES",
+              "review-overdue-reminder",
+              "todo-row"
+            ],
+            "endpoints": [
+              "POST /api/v1/activityReviews",
+              "PATCH /api/v1/activityReviews/:id",
+              "POST /api/v1/taskforceReviews",
+              "PATCH /api/v1/taskforceReviews/:id",
+              "PATCH /api/v1/activities/:id",
+              "POST /api/v1/system-notices",
+              "POST /api/v1/todos"
+            ]
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/activityReviews（p95 26ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/activityReviews",
+            "stats": {
+              "endpoint": "GET /api/v1/activityReviews",
+              "runs": 5,
+              "p50": 12,
+              "p95": 26,
+              "min": 6,
+              "max": 26,
+              "bytes": 4956
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 5948
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/taskforceReviews（p95 14ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/taskforceReviews",
+            "stats": {
+              "endpoint": "GET /api/v1/taskforceReviews",
+              "runs": 5,
+              "p50": 7,
+              "p95": 14,
+              "min": 5,
+              "max": 14,
+              "bytes": 1060
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 1272
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/activities（p95 11ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/activities",
+            "stats": {
+              "endpoint": "GET /api/v1/activities",
+              "runs": 5,
+              "p50": 10,
+              "p95": 11,
+              "min": 7,
+              "max": 11,
+              "bytes": 24011
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 28814
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/notices（p95 7ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/notices",
+            "stats": {
+              "endpoint": "GET /api/v1/notices",
+              "runs": 5,
+              "p50": 6,
+              "p95": 7,
+              "min": 5,
+              "max": 7,
+              "bytes": 6343
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 7410
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/users（p95 11ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/users",
+            "stats": {
+              "endpoint": "GET /api/v1/users",
+              "runs": 5,
+              "p50": 6,
+              "p95": 11,
+              "min": 5,
+              "max": 11,
+              "bytes": 9892
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 11871
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/todos（p95 11ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/todos",
+            "stats": {
+              "endpoint": "GET /api/v1/todos",
+              "runs": 5,
+              "p50": 7,
+              "p95": 11,
+              "min": 6,
+              "max": 11,
+              "bytes": 1567
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 665
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/partyGroups（p95 8ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/partyGroups",
+            "stats": {
+              "endpoint": "GET /api/v1/partyGroups",
+              "runs": 5,
+              "p50": 6,
+              "p95": 8,
+              "min": 3,
+              "max": 8,
+              "bytes": 899
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 567
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "E2",
+          "severity": null,
+          "status": "pass",
+          "message": "接口性能摘要：最慢 5 条 / 最大 5 条",
+          "evidence": {
+            "slowest": [
+              {
+                "endpoint": "GET /api/v1/activityReviews",
+                "p50": 12,
+                "p95": 26,
+                "bytes": 4956
+              },
+              {
+                "endpoint": "GET /api/v1/taskforceReviews",
+                "p50": 7,
+                "p95": 14,
+                "bytes": 1060
+              },
+              {
+                "endpoint": "GET /api/v1/activities",
+                "p50": 10,
+                "p95": 11,
+                "bytes": 24011
+              },
+              {
+                "endpoint": "GET /api/v1/users",
+                "p50": 6,
+                "p95": 11,
+                "bytes": 9892
+              },
+              {
+                "endpoint": "GET /api/v1/todos",
+                "p50": 7,
+                "p95": 11,
+                "bytes": 1567
+              }
+            ],
+            "largest": [
+              {
+                "endpoint": "GET /api/v1/activities",
+                "p95": 11,
+                "bytes": 24011
+              },
+              {
+                "endpoint": "GET /api/v1/users",
+                "p95": 11,
+                "bytes": 9892
+              },
+              {
+                "endpoint": "GET /api/v1/notices",
+                "p95": 7,
+                "bytes": 6343
+              },
+              {
+                "endpoint": "GET /api/v1/activityReviews",
+                "p95": 26,
+                "bytes": 4956
+              },
+              {
+                "endpoint": "GET /api/v1/todos",
+                "p95": 11,
+                "bytes": 1567
+              }
+            ],
+            "measured": 7
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "M1",
+          "severity": null,
+          "status": "pass",
+          "message": "顶层块 4 ≤ 4（无超限例外）",
+          "evidence": {
+            "key": "disc.review",
+            "blocks": 4,
+            "limit": 4,
+            "reason": "",
+            "oversize": [
+              {
+                "key": "secretary.overview",
+                "blocks": 7,
+                "reason": "共享骨架 5 块（页头 / 结论带 / 条线表 / 待我处理 / 我已处理）+ 支书专属「周期归档待审核」「知情查看」两卡"
+              },
+              {
+                "key": "org.todo",
+                "blocks": 5,
+                "reason": "页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"
+              },
+              {
+                "key": "org.overview",
+                "blocks": 6,
+                "reason": "共享三层骨架 5 块 + 页内「活动日历」折叠卡（承接原活动日历页签）"
+              },
+              {
+                "key": "prop.todo",
+                "blocks": 5,
+                "reason": "页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"
+              },
+              {
+                "key": "prop.overview",
+                "blocks": 6,
+                "reason": "共享三层骨架 5 块 + 页内「活动日历」折叠卡"
+              },
+              {
+                "key": "prop.kanban",
+                "blocks": 5,
+                "reason": "待启动 / 进行中 / 宣传任务三块主体之外，另有独立的「去档案归档」去向条与页头并列"
+              },
+              {
+                "key": "disc.todo",
+                "blocks": 5,
+                "reason": "页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"
+              },
+              {
+                "key": "disc.overview",
+                "blocks": 6,
+                "reason": "共享三层骨架 5 块 + 页内「活动日历」折叠卡"
+              },
+              {
+                "key": "disc.attendance",
+                "blocks": 6,
+                "reason": "单一层级视图：分段条（考勤/补课）+ 待确认考勤 + 出勤申诉 + 会议考勤录入 + 考勤数据（矩阵/总表合卡），加页头共 6 块"
+              },
+              {
+                "key": "disc.inspection",
+                "blocks": 5,
+                "reason": "督办清单 / 考察申诉 / 考察代录 / 考察总表四张功能卡并列（含页头 5 块）"
+              },
+              {
+                "key": "leader.todo",
+                "blocks": 5,
+                "reason": "页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"
+              },
+              {
+                "key": "leader.overview",
+                "blocks": 6,
+                "reason": "共享三层骨架 5 块 + 页内「活动日历」折叠卡"
+              },
+              {
+                "key": "visitor.todo",
+                "blocks": 5,
+                "reason": "页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"
+              },
+              {
+                "key": "visitor.overview",
+                "blocks": 5,
+                "reason": "无页内折叠卡，但共享骨架本身 5 块（含「我已处理」折叠）"
+              }
+            ]
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "M2",
+          "severity": null,
+          "status": "pass",
+          "message": "可见 H3 2 个，无重复卡头",
+          "evidence": {
+            "h3Count": 2,
+            "duplicates": []
+          }
+        },
+        {
+          "key": "disc.review",
+          "rule": "M3",
+          "severity": null,
+          "status": "exception",
+          "message": "同页 .lf-bar 2 条，已登记例外：监督卡与上报/复盘列表口径不同（监督对象 vs 上报记录），筛选维度不可共用",
+          "evidence": {
+            "bars": 2,
+            "reason": "监督卡与上报/复盘列表口径不同（监督对象 vs 上报记录），筛选维度不可共用"
+          }
+        }
+      ]
+    },
+    {
+      "key": "party-committee.branches",
+      "label": "支部管理",
+      "blocks": 2,
+      "findings": [
+        {
+          "key": "party-committee.branches",
+          "rule": "F1",
+          "severity": "P1",
+          "status": "pass",
+          "message": "顶层块基线 2 ≤ 4（DOM 实测 1，仅作复核线索）",
+          "evidence": {
+            "measured": 1,
+            "raw": 1,
+            "baseline": 2,
+            "blocks": [
+              "section.card p-5"
+            ]
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "F2",
+          "severity": "P1",
+          "status": "pass",
+          "message": "1 条筛选条均 ≤2 行、非 column、reset 未整行",
+          "evidence": {
+            "bars": [
+              {
+                "rows": 1,
+                "height": 40,
+                "flexDirection": "row",
+                "resetFullWidth": false
+              }
+            ]
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "F3",
+          "severity": "P1",
+          "status": "pass",
+          "message": "无 input[list]/datalist；suggest 输入 ARIA 合规",
+          "evidence": {
+            "inputList": 0,
+            "datalist": 0,
+            "suggest": 0
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "F4",
+          "severity": "P1",
+          "status": "pass",
+          "message": "H1 0 / H2 1；标题序列 h2→h3",
+          "evidence": {
+            "headings": [
+              {
+                "level": 2,
+                "text": "支部管理"
+              },
+              {
+                "level": 3,
+                "text": "支部目录"
+              }
+            ],
+            "jumps": []
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "F5",
+          "severity": "P1",
+          "status": "pass",
+          "message": "1 个 section 均有名称，无嵌套",
+          "evidence": {
+            "sections": 1
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "F6",
+          "severity": "P2",
+          "status": "pass",
+          "message": "未发现 .empty-state 之外的空态文本",
+          "evidence": {
+            "hits": 0
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "F7",
+          "severity": "P1",
+          "status": "pass",
+          "message": "390 无横向溢出（390 ≤ 390 + 1）；长列表分页门槛通过",
+          "evidence": {
+            "scrollWidth": 390,
+            "innerWidth": 390
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "F8",
+          "severity": "P0",
+          "status": "pass",
+          "message": "pageerror 0 / console.error 0 / 4xx 0",
+          "evidence": {
+            "pageErrors": 0,
+            "consoleErrors": 0,
+            "http4xx": 0
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "D1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口全部 2xx 且 JSON 可解析（7 个，每口 5 次）",
+          "evidence": {
+            "count": 7,
+            "perEndpoint": [
+              {
+                "endpoint": "GET /api/v1/branches",
+                "status": 200,
+                "runs": 5,
+                "p50": 7,
+                "p95": 11,
+                "bytes": 368
+              },
+              {
+                "endpoint": "GET /api/v1/users",
+                "status": 200,
+                "runs": 5,
+                "p50": 3,
+                "p95": 5,
+                "bytes": 2
+              },
+              {
+                "endpoint": "GET /api/v1/appointmentRecords",
+                "status": 200,
+                "runs": 5,
+                "p50": 5,
+                "p95": 6,
+                "bytes": 2
+              },
+              {
+                "endpoint": "GET /api/v1/reviewRequests",
+                "status": 200,
+                "runs": 5,
+                "p50": 4,
+                "p95": 5,
+                "bytes": 797
+              },
+              {
+                "endpoint": "GET /api/v1/branchDocs",
+                "status": 200,
+                "runs": 5,
+                "p50": 2,
+                "p95": 5,
+                "bytes": 2
+              },
+              {
+                "endpoint": "GET /api/v1/activities",
+                "status": 200,
+                "runs": 5,
+                "p50": 4,
+                "p95": 8,
+                "bytes": 2
+              },
+              {
+                "endpoint": "GET /api/v1/notices",
+                "status": 200,
+                "runs": 5,
+                "p50": 3,
+                "p95": 6,
+                "bytes": 2
+              }
+            ],
+            "measurements": [
+              {
+                "endpoint": "GET /api/v1/branches",
+                "runs": 5,
+                "p50": 7,
+                "p95": 11,
+                "min": 5,
+                "max": 11,
+                "bytes": 368
+              },
+              {
+                "endpoint": "GET /api/v1/users",
+                "runs": 5,
+                "p50": 3,
+                "p95": 5,
+                "min": 2,
+                "max": 5,
+                "bytes": 2
+              },
+              {
+                "endpoint": "GET /api/v1/appointmentRecords",
+                "runs": 5,
+                "p50": 5,
+                "p95": 6,
+                "min": 3,
+                "max": 6,
+                "bytes": 2
+              },
+              {
+                "endpoint": "GET /api/v1/reviewRequests",
+                "runs": 5,
+                "p50": 4,
+                "p95": 5,
+                "min": 3,
+                "max": 5,
+                "bytes": 797
+              },
+              {
+                "endpoint": "GET /api/v1/branchDocs",
+                "runs": 5,
+                "p50": 2,
+                "p95": 5,
+                "min": 2,
+                "max": 5,
+                "bytes": 2
+              },
+              {
+                "endpoint": "GET /api/v1/activities",
+                "runs": 5,
+                "p50": 4,
+                "p95": 8,
+                "min": 3,
+                "max": 8,
+                "bytes": 2
+              },
+              {
+                "endpoint": "GET /api/v1/notices",
+                "runs": 5,
+                "p50": 3,
+                "p95": 6,
+                "min": 2,
+                "max": 6,
+                "bytes": 2
+              }
+            ]
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "D2",
+          "severity": null,
+          "status": "pass",
+          "message": "UI 计数与接口一致：1（mode=rows）",
+          "evidence": {
+            "rule": {
+              "ui": "tr[data-branch-card]",
+              "collection": "branches",
+              "endpoint": "GET /api/v1/branches"
+            },
+            "ui": 1,
+            "api": 1,
+            "endpoint": "GET /api/v1/branches",
+            "mode": "rows"
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "D3",
+          "severity": null,
+          "status": "pass",
+          "message": "首屏 /api/v1/ 4xx 归零（复用 F8 evidence）",
+          "evidence": {
+            "source": "F8",
+            "http4xx": 0,
+            "f8Status": "pass"
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口已登记：POST /api/v1/branches（enforced / requireAuth / PARTY_STAFF_ROLE（handler 内判定））",
+          "evidence": {
+            "write": "branch-create",
+            "endpoint": "POST /api/v1/branches",
+            "matrix": {
+              "method": "POST",
+              "path": "/api/v1/branches",
+              "middleware": "requireAuth",
+              "roleGate": "PARTY_STAFF_ROLE（handler 内判定）",
+              "ownership": "party-staff",
+              "status": "enforced",
+              "evidence": "server/routes/resources/index.js#L927-L986"
+            }
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口已登记：PATCH /api/v1/branches/:id/config（enforced / requireAuth / party-staff / 本支部支书·副支书；域负责人仅本域 policyOverrides）",
+          "evidence": {
+            "write": "branch-config-update",
+            "endpoint": "PATCH /api/v1/branches/:id/config",
+            "matrix": {
+              "method": "PATCH",
+              "path": "/api/v1/branches/:id/config",
+              "middleware": "requireAuth",
+              "roleGate": "party-staff / 本支部支书·副支书；域负责人仅本域 policyOverrides",
+              "ownership": "branch",
+              "status": "enforced",
+              "evidence": "server/routes/resources/index.js#L1156-L1176; server/test/branch-config-audit.test.mjs"
+            }
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口已登记：PATCH /api/v1/branches/:id/config/rollback（enforced / requireAuth / party-staff / 本支部支书·副支书）",
+          "evidence": {
+            "write": "branch-config-rollback",
+            "endpoint": "PATCH /api/v1/branches/:id/config/rollback",
+            "matrix": {
+              "method": "PATCH",
+              "path": "/api/v1/branches/:id/config/rollback",
+              "middleware": "requireAuth",
+              "roleGate": "party-staff / 本支部支书·副支书",
+              "ownership": "branch",
+              "status": "enforced",
+              "evidence": "server/routes/resources/index.js#L1341-L1352"
+            }
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口已登记：POST /api/v1/branches/:id/appointments（enforced / requireRole(PARTY_STAFF_ROLE) / party-staff）",
+          "evidence": {
+            "write": "branch-secretary-appoint",
+            "endpoint": "POST /api/v1/branches/:id/appointments",
+            "matrix": {
+              "method": "POST",
+              "path": "/api/v1/branches/:id/appointments",
+              "middleware": "requireRole(PARTY_STAFF_ROLE)",
+              "roleGate": "party-staff",
+              "ownership": "party-staff",
+              "status": "enforced",
+              "evidence": "server/routes/resources/semantic-routes.js#L254"
+            }
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口已登记：PUT /api/v1/branches/:id/roster（enforced / requireAuth / actor.role === party-staff（handler 内判定））",
+          "evidence": {
+            "write": "branch-roster-save",
+            "endpoint": "PUT /api/v1/branches/:id/roster",
+            "matrix": {
+              "method": "PUT",
+              "path": "/api/v1/branches/:id/roster",
+              "middleware": "requireAuth",
+              "roleGate": "actor.role === party-staff（handler 内判定）",
+              "ownership": "party-staff",
+              "status": "enforced",
+              "evidence": "server/routes/branch-roster.js#L81-L86; server/test/branch-roster-import.test.mjs"
+            }
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口已登记：DELETE /api/v1/branches/:id（enforced / requireAuth / RESOURCE_WRITE_GATE.branches → party-staff）",
+          "evidence": {
+            "write": "branch-delete",
+            "endpoint": "DELETE /api/v1/branches/:id",
+            "matrix": {
+              "method": "DELETE",
+              "path": "/api/v1/branches/:id",
+              "middleware": "requireAuth",
+              "roleGate": "RESOURCE_WRITE_GATE.branches → party-staff",
+              "ownership": "party-staff",
+              "status": "enforced",
+              "evidence": "server/routes/resources/gates.js::RESOURCE_WRITE_GATE + _assertResourceWrite"
+            }
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口已登记：POST /api/v1/auth-audit（enforced / requireAuth / mutationProven：须能证明对应授权变更已发生）",
+          "evidence": {
+            "write": "auth-audit-create",
+            "endpoint": "POST /api/v1/auth-audit",
+            "matrix": {
+              "method": "POST",
+              "path": "/api/v1/auth-audit",
+              "middleware": "requireAuth",
+              "roleGate": "mutationProven：须能证明对应授权变更已发生",
+              "ownership": "branch",
+              "status": "enforced",
+              "evidence": "server/routes/resources/semantic-routes.js#L155-L249"
+            }
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "C2",
+          "severity": null,
+          "status": "exception",
+          "message": "destructive 流程未真删（无 CRUD 配方）：branch-delete",
+          "evidence": {
+            "write": "branch-delete",
+            "reason": "删除支部会移除其组织档案与配置；审计只验证写门，不真删"
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：POST /api/v1/branches",
+          "evidence": {
+            "write": "branch-create",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：PATCH /api/v1/branches/:id/config",
+          "evidence": {
+            "write": "branch-config-update",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：PATCH /api/v1/branches/:id/config/rollback",
+          "evidence": {
+            "write": "branch-config-rollback",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：POST /api/v1/branches/:id/appointments",
+          "evidence": {
+            "write": "branch-secretary-appoint",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：PUT /api/v1/branches/:id/roster",
+          "evidence": {
+            "write": "branch-roster-save",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：POST /api/v1/auth-audit",
+          "evidence": {
+            "write": "auth-audit-create",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "C3",
+          "severity": null,
+          "status": "pass",
+          "message": "页签无 data-action / data-todo-action / data-mfw 写动作选择器",
+          "evidence": {
+            "source": "docs/src/entries/tabs/party-committee/branches-tab.js",
+            "dataAttributes": [
+              "data-branch-appoint",
+              "data-branch-card",
+              "data-branch-id",
+              "data-branch-member-count",
+              "data-branch-review-preview",
+              "data-label",
+              "data-modal-cancel",
+              "data-responsive",
+              "data-rq-act",
+              "data-rq-card"
+            ],
+            "note": "其余 data-* 仅作靶标（data-id / data-group 等），不当作动作语义"
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "C4",
+          "severity": null,
+          "status": "pass",
+          "message": "写口 gate 与路径全部可定位（3 个门）",
+          "evidence": {
+            "gates": [
+              "party-staff",
+              "PARTY_STAFF_ROLE",
+              "requireAuth"
+            ],
+            "endpoints": [
+              "POST /api/v1/branches",
+              "PATCH /api/v1/branches/:id/config",
+              "PATCH /api/v1/branches/:id/config/rollback",
+              "POST /api/v1/branches/:id/appointments",
+              "PUT /api/v1/branches/:id/roster",
+              "DELETE /api/v1/branches/:id",
+              "POST /api/v1/auth-audit"
+            ]
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/branches（p95 11ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/branches",
+            "stats": {
+              "endpoint": "GET /api/v1/branches",
+              "runs": 5,
+              "p50": 7,
+              "p95": 11,
+              "min": 5,
+              "max": 11,
+              "bytes": 368
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 340
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/users（p95 5ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/users",
+            "stats": {
+              "endpoint": "GET /api/v1/users",
+              "runs": 5,
+              "p50": 3,
+              "p95": 5,
+              "min": 2,
+              "max": 5,
+              "bytes": 2
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 11871
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/appointmentRecords（p95 6ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/appointmentRecords",
+            "stats": {
+              "endpoint": "GET /api/v1/appointmentRecords",
+              "runs": 5,
+              "p50": 5,
+              "p95": 6,
+              "min": 3,
+              "max": 6,
+              "bytes": 2
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 3
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/reviewRequests（p95 5ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/reviewRequests",
+            "stats": {
+              "endpoint": "GET /api/v1/reviewRequests",
+              "runs": 5,
+              "p50": 4,
+              "p95": 5,
+              "min": 3,
+              "max": 5,
+              "bytes": 797
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 495
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/branchDocs（p95 5ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/branchDocs",
+            "stats": {
+              "endpoint": "GET /api/v1/branchDocs",
+              "runs": 5,
+              "p50": 2,
+              "p95": 5,
+              "min": 2,
+              "max": 5,
+              "bytes": 2
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 3
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/activities（p95 8ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/activities",
+            "stats": {
+              "endpoint": "GET /api/v1/activities",
+              "runs": 5,
+              "p50": 4,
+              "p95": 8,
+              "min": 3,
+              "max": 8,
+              "bytes": 2
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 28814
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/notices（p95 6ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/notices",
+            "stats": {
+              "endpoint": "GET /api/v1/notices",
+              "runs": 5,
+              "p50": 3,
+              "p95": 6,
+              "min": 2,
+              "max": 6,
+              "bytes": 2
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 7410
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "E2",
+          "severity": null,
+          "status": "pass",
+          "message": "接口性能摘要：最慢 5 条 / 最大 5 条",
+          "evidence": {
+            "slowest": [
+              {
+                "endpoint": "GET /api/v1/branches",
+                "p50": 7,
+                "p95": 11,
+                "bytes": 368
+              },
+              {
+                "endpoint": "GET /api/v1/activities",
+                "p50": 4,
+                "p95": 8,
+                "bytes": 2
+              },
+              {
+                "endpoint": "GET /api/v1/appointmentRecords",
+                "p50": 5,
+                "p95": 6,
+                "bytes": 2
+              },
+              {
+                "endpoint": "GET /api/v1/notices",
+                "p50": 3,
+                "p95": 6,
+                "bytes": 2
+              },
+              {
+                "endpoint": "GET /api/v1/users",
+                "p50": 3,
+                "p95": 5,
+                "bytes": 2
+              }
+            ],
+            "largest": [
+              {
+                "endpoint": "GET /api/v1/reviewRequests",
+                "p95": 5,
+                "bytes": 797
+              },
+              {
+                "endpoint": "GET /api/v1/branches",
+                "p95": 11,
+                "bytes": 368
+              },
+              {
+                "endpoint": "GET /api/v1/users",
+                "p95": 5,
+                "bytes": 2
+              },
+              {
+                "endpoint": "GET /api/v1/appointmentRecords",
+                "p95": 6,
+                "bytes": 2
+              },
+              {
+                "endpoint": "GET /api/v1/branchDocs",
+                "p95": 5,
+                "bytes": 2
+              }
+            ],
+            "measured": 7
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "M1",
+          "severity": null,
+          "status": "pass",
+          "message": "顶层块 2 ≤ 4（无超限例外）",
+          "evidence": {
+            "key": "party-committee.branches",
+            "blocks": 2,
+            "limit": 4,
+            "reason": "",
+            "oversize": [
+              {
+                "key": "secretary.overview",
+                "blocks": 7,
+                "reason": "共享骨架 5 块（页头 / 结论带 / 条线表 / 待我处理 / 我已处理）+ 支书专属「周期归档待审核」「知情查看」两卡"
+              },
+              {
+                "key": "org.todo",
+                "blocks": 5,
+                "reason": "页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"
+              },
+              {
+                "key": "org.overview",
+                "blocks": 6,
+                "reason": "共享三层骨架 5 块 + 页内「活动日历」折叠卡（承接原活动日历页签）"
+              },
+              {
+                "key": "prop.todo",
+                "blocks": 5,
+                "reason": "页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"
+              },
+              {
+                "key": "prop.overview",
+                "blocks": 6,
+                "reason": "共享三层骨架 5 块 + 页内「活动日历」折叠卡"
+              },
+              {
+                "key": "prop.kanban",
+                "blocks": 5,
+                "reason": "待启动 / 进行中 / 宣传任务三块主体之外，另有独立的「去档案归档」去向条与页头并列"
+              },
+              {
+                "key": "disc.todo",
+                "blocks": 5,
+                "reason": "页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"
+              },
+              {
+                "key": "disc.overview",
+                "blocks": 6,
+                "reason": "共享三层骨架 5 块 + 页内「活动日历」折叠卡"
+              },
+              {
+                "key": "disc.attendance",
+                "blocks": 6,
+                "reason": "单一层级视图：分段条（考勤/补课）+ 待确认考勤 + 出勤申诉 + 会议考勤录入 + 考勤数据（矩阵/总表合卡），加页头共 6 块"
+              },
+              {
+                "key": "disc.inspection",
+                "blocks": 5,
+                "reason": "督办清单 / 考察申诉 / 考察代录 / 考察总表四张功能卡并列（含页头 5 块）"
+              },
+              {
+                "key": "leader.todo",
+                "blocks": 5,
+                "reason": "页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"
+              },
+              {
+                "key": "leader.overview",
+                "blocks": 6,
+                "reason": "共享三层骨架 5 块 + 页内「活动日历」折叠卡"
+              },
+              {
+                "key": "visitor.todo",
+                "blocks": 5,
+                "reason": "页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"
+              },
+              {
+                "key": "visitor.overview",
+                "blocks": 5,
+                "reason": "无页内折叠卡，但共享骨架本身 5 块（含「我已处理」折叠）"
+              }
+            ]
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "M2",
+          "severity": null,
+          "status": "pass",
+          "message": "可见 H3 1 个，无重复卡头",
+          "evidence": {
+            "h3Count": 1,
+            "duplicates": []
+          }
+        },
+        {
+          "key": "party-committee.branches",
+          "rule": "M3",
+          "severity": null,
+          "status": "pass",
+          "message": ".lf-bar 1 条（≤1）",
+          "evidence": {
+            "bars": 1
+          }
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0,
+    "exceptions": 2
+  }
+}

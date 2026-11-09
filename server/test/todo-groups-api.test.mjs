@@ -18,14 +18,13 @@ import { seedDatabase } from '../seed.js';
 const ORG_COMMISSIONER_ID = '2400012355'; // 高翔宇（组织委员，br-b1）
 const SECRETARY_ID = '2300010001';        // 储子禾（支书，br-b1）
 const PARTICIPANT_ID = '2400012349';      // 宋佳宁（正式党员 / participant，br-b1；成员台登录人）
+const DISC_COMMISSIONER_ID = '2400012354'; // 董建军（纪检委员，br-b1）
 const FIXTURE_MEMBER_ID = 'test-dev-1';   // 期满的预备党员（造发展节点提醒用）
 
 const GROUP_KEYS = ['groupKey', 'domain', 'actionKey', 'title', 'category', 'actionType', 'actionData', 'deadline', 'flow', 'count', 'items'];
 // 7 类实时组落地后无「不支持」清单（字段与形状保留）
 const UNSUPPORTED_EXPECTED = [];
-// count 口径例外：member-confirm = 名册待确认行（items）+ 议程派生批次行（Task 7 已钉住；
-//   本测试库种子 `mcr-seed-roster` 为唯一 pending-secretary 行）
-const AGENDA_COUNT_EXTRA = { 'member-confirm': 1 };
+// count 唯一口径（批次 539）：`count === items.length`；议程派生行数只作展示补充 `agendaCount`，不并入 count
 
 let app, server, base;
 
@@ -56,14 +55,18 @@ after(() => {
   return new Promise((resolve) => server.close(resolve));
 });
 
-async function login(personId) {
-  const res = await fetch(`${base}/api/v1/auth/login`, {
+async function loginAt(baseUrl, personId) {
+  const res = await fetch(`${baseUrl}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ personId }),
   });
   assert.equal(res.status, 200, `登录失败 ${personId}`);
   return res.json();
+}
+
+async function login(personId) {
+  return loginAt(base, personId);
 }
 
 function authHeaders(token) {
@@ -117,18 +120,18 @@ test('③ 返回形状稳定（顶层 5 键 / 组内 11 键 / 类型固定）', 
     assert.equal(typeof g.domain, 'string');
     assert.ok(Array.isArray(g.items), `${g.groupKey}.items 为数组`);
     assert.equal(typeof g.count, 'number');
-    // count 按组口径：member-confirm 另含议程派生批次行（不新增响应字段），其余组＝items 长度
-    assert.equal(g.count, g.items.length + (AGENDA_COUNT_EXTRA[g.actionKey] || 0), `${g.groupKey}.count 与组口径一致`);
+    // count 唯一口径：`count === items.length`（批次 539；议程派生行数不并入）
+    assert.equal(g.count, g.items.length, `${g.groupKey}.count 必须等于 items 长度`);
   }
 
-  // 支书视图覆盖 count 例外组：member-confirm = 名册待确认行 + 议程派生批次行
+  // 支书视图覆盖 member-confirm：count 只数名册行；议程派生行数由展示补充 `agendaCount` 承载
   const { token: secretaryToken } = await login(SECRETARY_ID);
   const secretary = await fetchGroups(secretaryToken, `?role=secretary`);
   assert.equal(secretary.status, 200);
   const memberConfirm = secretary.body.groups.find((g) => g.actionKey === 'member-confirm');
   assert.ok(memberConfirm, '支书视图应产出成员变更待确认组');
-  assert.equal(memberConfirm.count, memberConfirm.items.length + AGENDA_COUNT_EXTRA['member-confirm'],
-    'member-confirm.count = 名册待确认行数 + 议程派生批次行数');
+  assert.equal(memberConfirm.count, memberConfirm.items.length,
+    'member-confirm.count = 名册待确认行数（议程派生批次行另计 agendaCount，不并入 count）');
 
   // 形态抽查：发展节点提醒（域＝成员发展；条目 id 形态 dev-<personId>）
   const dev = body.groups.find((g) => g.groupKey === 'org-commissioner:develop-node-remind');
@@ -144,11 +147,9 @@ test('④ 同 groupKey 不重复（合并不重复计数）', async () => {
   const keys = body.groups.map((g) => g.groupKey);
   assert.equal(new Set(keys).size, keys.length, `groups 出现重复 groupKey：${keys.join(',')}`);
   const total = body.groups.reduce((sum, g) => sum + g.count, 0);
-  // 按组口径汇总：count = items.length，例外组另加议程派生批次行（无重复累加）
-  const expected = body.groups.reduce(
-    (sum, g) => sum + g.items.length + (AGENDA_COUNT_EXTRA[g.actionKey] || 0), 0,
-  );
-  assert.equal(total, expected, '汇总计数＝各组合计（member-confirm 另含议程派生批次行），无重复累加');
+  // 汇总计数＝各组合计（count 唯一口径＝items.length，无额外批次行重复累加）
+  const expected = body.groups.reduce((sum, g) => sum + g.items.length, 0);
+  assert.equal(total, expected, '汇总计数＝各组合计（count === items.length），无重复累加');
 });
 
 test('⑤ 7 类实时组已服务端化：unsupported 清空，已算组不再标不支持', async () => {
@@ -176,4 +177,100 @@ test('⑥ 页面 key 归一：participant 传 role=visitor 可读本人视图，
   // 归一只发生在 visitor → participant，不放宽读权限：跨角色仍 403
   const crossRole = await fetchGroups(token, '?role=secretary');
   assert.equal(crossRole.status, 403, 'participant 不得借页面 key 读取其他角色的待办视图');
+});
+
+// ════════════════════════════════════════════════════════════════
+//  ⑦ P0：待办为空不得吞掉「发展节点 / 半年考察」提醒
+// ════════════════════════════════════════════════════════════════
+
+test('⑦ P0：空 todos 库 + 有成员发展数据 ⇒ 仍返回发展节点 / 半年考察组；无数据 ⇒ 不产空组', async () => {
+  // ① 空 todos、有发展数据：仍须产出两张组卡（前置门＝数据存在性，不是待办行）
+  const app1 = createApp({ dbPath: ':memory:' });
+  const db1 = app1.locals.db;
+  await seedDatabase(db1);
+  db1.prepare('DELETE FROM todos').run();
+  assert.equal(db1.prepare('SELECT COUNT(*) c FROM todos').get().c, 0, '前置：todos 必须为空');
+  db1.prepare('INSERT OR REPLACE INTO users (id, data) VALUES (?, ?)').run('p0-dev', JSON.stringify({
+    id: 'p0-dev', name: 'P0 预备党员', studentId: 'p0-dev', partyGroup: '第一党小组',
+    developStage: '预备党员', developStageSince: '2024-01-01', role: 'participant', branchId: 'br-b1',
+  }));
+  const server1 = app1.listen(0);
+  const base1 = `http://127.0.0.1:${server1.address().port}`;
+  try {
+    const { token } = await loginAt(base1, ORG_COMMISSIONER_ID);
+    const res = await fetch(`${base1}/api/v1/todo-groups?role=org-commissioner`, { headers: authHeaders(token) });
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    const dev = body.groups.find((g) => g.actionKey === 'develop-node-remind');
+    const halfYear = body.groups.find((g) => g.actionKey === 'half-year-inspection-remind');
+    assert.ok(dev, '空 todos 库不得吞掉发展节点提醒');
+    assert.ok(dev.items.some((it) => it.id === 'dev-p0-dev'), '发展节点条目应含期满成员');
+    assert.equal(dev.count, dev.items.length, 'count 与 items 一致');
+    assert.ok(halfYear, '空 todos 库不得吞掉半年考察提醒');
+    assert.ok(halfYear.items.some((it) => it.id === 'halfyear-p0-dev'), '半年考察条目应含培养期成员');
+    assert.equal(halfYear.count, halfYear.items.length, 'count 与 items 一致');
+  } finally {
+    server1.closeAllConnections?.();
+    await new Promise((r) => server1.close(r));
+    db1.close();
+  }
+
+  // ② 无发展数据：不得产出空组（前置门不得退化成「恒产出」）
+  const app2 = createApp({ dbPath: ':memory:' });
+  const db2 = app2.locals.db;
+  await seedDatabase(db2);
+  db2.prepare('DELETE FROM todos').run();
+  db2.prepare('DELETE FROM users').run();
+  db2.prepare('INSERT INTO users (id, data) VALUES (?, ?)').run('p0-org', JSON.stringify({
+    id: 'p0-org', name: '无发展阶段组织委员', studentId: 'p0-org', role: 'org-commissioner', branchId: 'br-b1',
+  }));
+  const server2 = app2.listen(0);
+  const base2 = `http://127.0.0.1:${server2.address().port}`;
+  try {
+    const { token } = await loginAt(base2, 'p0-org');
+    const res = await fetch(`${base2}/api/v1/todo-groups?role=org-commissioner`, { headers: authHeaders(token) });
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    const keys = body.groups.map((g) => g.actionKey);
+    assert.ok(!keys.includes('develop-node-remind'), '无 developStage 数据不得产出发展节点组');
+    assert.ok(!keys.includes('half-year-inspection-remind'), '无 developStage 数据不得产出半年考察组');
+  } finally {
+    server2.closeAllConnections?.();
+    await new Promise((r) => server2.close(r));
+    db2.close();
+  }
+});
+
+// ════════════════════════════════════════════════════════════════
+//  ⑧ 纪检确认队列服务端派生 + 计算单一源守卫
+// ════════════════════════════════════════════════════════════════
+
+test('⑧ 纪检台「考勤 / 考察待确认」由服务端派生，count === items.length', async () => {
+  const { token: discToken } = await login(DISC_COMMISSIONER_ID);
+  const { status, body } = await fetchGroups(discToken, '?role=disc-commissioner');
+  assert.equal(status, 200);
+  const keys = body.groups.map((g) => g.actionKey);
+  // 种子库有未确认考勤 / 未确认考察 ⇒ 两组应真实产出（非空转）
+  assert.ok(keys.includes('attendance-confirm'), '纪检视图应产出考勤待确认组');
+  assert.ok(keys.includes('inspection-confirm'), '纪检视图应产出考察待确认组');
+  for (const g of body.groups) assert.equal(g.count, g.items.length, `${g.groupKey}.count === items.length`);
+  // 客户端不再自行计算：服务端已接管键必须出现在壳的 SERVER_OWNED_ACTION_KEYS
+  const { SERVER_OWNED_ACTION_KEYS } = await import('../../docs/src/components/record/todo-tab-shell.js?v=20261109a');
+  for (const key of ['attendance-confirm', 'inspection-confirm']) {
+    assert.ok(SERVER_OWNED_ACTION_KEYS.has(key), `客户端壳应声明服务端已接管：${key}`);
+  }
+});
+
+test('⑨ 计算单一源守卫：路由不得 import mockDB / SEED_TODOS；api 形态不得调用演示种子', async () => {
+  const { readFileSync } = await import('node:fs');
+  const src = readFileSync(new URL('../routes/todo-groups.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(src, /mockDB/, '服务端派生路由不得 import mockDB（会退回客户端数据面）');
+  assert.doesNotMatch(src, /SEED_TODOS/, '服务端派生路由不得引用 SEED_TODOS（演示种子不得进入 API 形态）');
+  // 运行时：任何组的条目 id 都不得是演示种子 id 形态
+  const { token } = await login(ORG_COMMISSIONER_ID);
+  const { body } = await fetchGroups(token);
+  const demoIdRe = /^(todo_seed_\d+|mc-seed-\d+|mcr-seed-[a-z]+)$/;
+  const leaked = body.groups.flatMap((g) => (g.items || []).map((it) => String(it.id))).filter((id) => demoIdRe.test(id));
+  // 种子库本就有 mc-seed-1 / mcr-seed-roster（演示数据），本守卫只钉「路由自身不生成 todo_seed_*」
+  assert.ok(!leaked.some((id) => id.startsWith('todo_seed_')), `API 派生不得凭空生成演示待办：${leaked.join(',')}`);
 });

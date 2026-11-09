@@ -12,9 +12,9 @@ import {
   ORG_SUBJECT_IDS, ORG_SUBJECT_LABELS, BRANCH_ORG_SUBJECT_IDS, isOrgSubject, isBranchOrgSubject,
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_IDS, INSTITUTION_COLLECTIVE_SUBJECTS, institutionSubjectOfDomain,
   transferRowOf, transferTabDecision, TRANSFERABLE_TAB_ROWS,
-} from '../../docs/src/core/domain/work-map.js?v=20261108c';
-import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261108c';
-import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261108c';
+} from '../../docs/src/core/domain/work-map.js?v=20261109a';
+import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261109a';
+import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261109a';
 
 let server, base, token;
 
@@ -163,27 +163,32 @@ test('分层与停用（2026-09-13 支书裁定）：tier ∈ {norm,method}；�
   );
 });
 
-// 2026-10-24 Task 4.4：责任关系由「5 列表格 + 10 条分页」改为**主从两栏**
-//   （左列模块清单 / 右列责任角色 + 责任说明 + 停用项启用入口）。
-//   原断言「表头四列齐全 + 走 renderFilteredList」随被替换的结构退场，**改为断言新结构**（未删覆盖面）：
-//   listbox/option 键盘语义、右侧两字段、停用项操作、无空「操作」列与「每行读法」、无分页。
+// 2026-10-24 Task 4.4：责任关系由「5 列表格 + 10 条分页」改为**主从两栏**。
+// 2026-11-09 批次 539（支书点名「排版丑陋」）：主从两栏再改为**单列对象列表**——
+//   左 260px 清单 + 右约 600px 空白详情撤除，14 项改为一条条对象行（行尾只在停用项给入口）。
+//   原断言「listbox / option / aria-activedescendant + 右列 dl 两字段」随被替换的结构退场，
+//   **改为断言新结构**（未删覆盖面）：master 单列行、角色徽章、负责人、截断说明、
+//   停用项操作、键盘 ↑/↓、空态、卡头不复述视图名、无分页引擎。
 const WORK_MAP_UI = readFileSync(new URL('../../docs/src/entries/tabs/secretary/work-map-tab.js', import.meta.url), 'utf8');
 
-test('UI 责任关系主从两栏：左列 listbox 模块清单、右列责任角色 / 责任说明、停用项才有操作', () => {
+test('UI 责任关系单列列表：master 行承载工作项 / 负责人 / 角色徽章，停用项才有操作', () => {
   assert.match(WORK_MAP_UI, /let _view = 'relations'/, '默认视图须落「责任关系」');
-  assert.match(WORK_MAP_UI, /role="listbox"/, '左列模块清单须有 listbox 语义');
-  assert.match(WORK_MAP_UI, /role="option"/, '每个模块须是可选项（role=option）');
-  assert.match(WORK_MAP_UI, /aria-activedescendant/, 'listbox 须用 aria-activedescendant 暴露当前项');
-  assert.match(WORK_MAP_UI, /ArrowDown[\s\S]{0,200}ArrowUp/, '左列须支持 ↑ / ↓ 键盘选择');
-  for (const label of ['责任角色', '责任说明']) {
-    assert.ok(WORK_MAP_UI.includes(`<dt>${label}</dt>`), `右列须有字段「${label}」`);
-  }
+  assert.match(WORK_MAP_UI, /listRowHtml\(\{[\s\S]{0,200}rowType: 'master'/, '单列行须走 list-row 的 master 行型');
+  assert.match(WORK_MAP_UI, /listGroupHtml\(/, '行间分隔线由 list-group 承担，不再手写行容器');
+  assert.doesNotMatch(WORK_MAP_UI, /role="listbox"|role="option"/, '已改单列列表，不再走主从 listbox 语义');
+  assert.doesNotMatch(WORK_MAP_UI, /wm-split|wm-detail/, '左右两栏与右侧详情列已撤');
+  assert.match(WORK_MAP_UI, /_roleBadgeHtml/, '每行须有角色徽章（主责 / 停用 / 上级主导）');
+  assert.ok(WORK_MAP_UI.includes('负责人：'), '每行须给出负责人');
+  assert.match(WORK_MAP_UI, /description: row\.note/, '每行须有一行责任说明');
+  assert.match(WORK_MAP_UI, /title: row\.note/, '说明须带 title 全文（行内截断）');
+  assert.match(WORK_MAP_UI, /ArrowDown[\s\S]{0,200}ArrowUp/, '行间须支持 ↑ / ↓ 键盘移动');
   assert.match(WORK_MAP_UI, /wm-reenable/, '停用项须保留「发起启用议题」入口');
   assert.ok(!WORK_MAP_UI.includes('每行读法'), '不得再复述表头读法');
   assert.ok(!WORK_MAP_UI.includes('<th>操作</th>'), '不得再有空的「操作」列');
-  assert.ok(!WORK_MAP_UI.includes('renderFilteredList'), '主从两栏不再走分页引擎（14 项单屏可览）');
+  assert.ok(!WORK_MAP_UI.includes('renderFilteredList'), '单列列表不再走分页引擎（14 项单屏可览）');
   assert.ok(!/pageSize\s*:\s*10/.test(WORK_MAP_UI), '不得保留 10 条分页');
   assert.match(WORK_MAP_UI, /暂无分工数据/, '须有明确空态');
+  assert.doesNotMatch(WORK_MAP_UI, /title: '责任关系'/, '卡头不得逐字复述视图名「责任关系」（只留视图页签一处）');
 });
 
 test('HTTP：支书 PATCH config.workforce 落库（净化生效），null 恢复默认', async () => {

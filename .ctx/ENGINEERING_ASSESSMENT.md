@@ -3,7 +3,7 @@ title: "工程化评估与改造行动线"
 type: audit_report
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-11-08"
+last_updated: "2026-11-09"
 status: active
 layer: reference
 related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md, content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/04_web_design/deploy/DEPLOYMENT_GUIDE.md, .ctx/REVIEW_QUEUE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/insights/README.md, content/insights/工程与AI协作的全栈实践.md, server/README.md, docs/help.html]
@@ -30,12 +30,12 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 | 维度 | 得分 | 证据、风险与未完成项 |
 |------|------|---------------------|
-| 业务与数据正确性 | **80 / 100** | 46 页签全量审计的 D1 读口全部 2xx / JSON 可解析 / ≤500KB；D2 计数对账一致；C2 在 `:memory:` 临时库完成 CRUD 往返；换轨演练副本库 **48 表 / 577 行** export → dry-run → apply 逐表行数与 sha256 一致。批次 538 新增可复跑证据：名册提案确认复核（G4）与党委副本同步复核（G5）各有 409 / 422 反例；`publication_audits` v14 生成列 ＋ 索引；党委公开通知写口落地。残项：SQLite 仍以 JSON 宽行存储，跨表关联无数据库外键；票决名单由活动写入方固化。**79 → 80（+1）**：补的是「写入前重读事实 + 公开内容留痕可查」，不改业务规则。 |
-| 安全与权限 | **78 / 100** | `write-policy-matrix` 覆盖 **141 条**写路由（135 enforced / 4 self-service / 2 public / **0 known-risk**），守卫断言运行期路由 ≡ 矩阵；`SESSION_TTL_HOURS` 缺省 3 小时；production 多支部拒绝启动；`npm run start:review` 隔离演示库。批次 538 三批证据：`security-hardening` **8/8**（G4 名册提案复核 / G5 副本同步复核 / L-09 派发位 403 / v14 索引 / 读口分页 / 公共下载限频 429）；`multi-branch-read-filter` **9 组**（读口按支部过滤的夹具证明）；`personal-password` **21/21**；上传门党委 201 / 普通成员 403。残项：共享口令仍作回退保留；`ALLOW_MULTI_BRANCH` 仍关闭，读过滤未接线到生产读面。**66 → 78（+12）**：补的是「派发位 / 复核 / 限频 / 个人密码」的可复跑判据，不等于多支部已可开启。 |
-| 最小三成本体验（含前端与交互） | **74 / 100** | 46 页签审计复跑：**P0 0 / P1 0 / P2 2 / exception 44**；F1–F8 全绿；M1–M3 与 4 个「独立对象池」例外在位。批次 538 新增：C 波 2 条 B 项 ＋ 院级内容动作收敛 ＋ 下发通知空态；F 波 5 个 C 页签完成 IA 三问并出结论（1 归档为 A、4 保留改 CTA）；H 波 5 个用户任务在 1440 / 390 双档 PASS（截图 `.ctx/evidence/2026-11-08/user-task-test/`），同批修复 `branch-doc` 与 `references` 的院级过滤。残项：A 35 / B 11 / C 0（台账 §三）；6 个超 4 块页签登记例外；未登录资料查询页仍只给登录提示。**68 → 74（+6）**；**75 暂不授予**：用户任务为自动走查、未获真人签收，且未登录资料查询页 GAP 未闭。 |
-| 测试与发布质量 | **85 / 100** | `workbench-audit-coverage::W1–W5` 常驻；`write-policy-matrix`（路由 ≡ 矩阵 + 反例）、`security-hardening`（G4/G5/L-09/限频/分页）、`session-ttl`、`run-mode` 均登记 tier。批次 538 读数：daily **27 文件 / 207 断言 / 60.9s** 全绿（结果门禁达到 ≤60s 量级）；guards **99 文件 / 791 tests / 96.1s** 全绿；四层 runner（daily / guards / precommit / full）按 registry 单一源执行；CI `daily.yml` 已接 `test:daily` 与 `deploy-verify` job。残项：审计脚本仍不进 daily；precommit / full 时长仍是发布风险；守卫证明形态不等于业务输出正确。**83 → 85（+2）**：补的是「分层 runner 可复跑 + 结果门禁达时」。 |
-| 架构与可维护性（原「架构复杂度与变更成本」） | **77 / 100** | 审计分层沿用；`write-policy-matrix` 为写权限唯一机读源，审计 C1 与 README 同源；多支部同实例设计稿落到 `ARCHITECTURE_EVOLUTION §十`（四阶段）。批次 538：契约类（`content/04_web_design/contracts/`）落地为合法载体；测试分层由 `test-tier-registry.mjs` 单一源驱动四个 runner，入口不再各写清单。成本与残项：catalog / matrix / baseline 须同批维护；双数据适配器、活动内嵌数据、静态版本戳与行号守卫仍抬高跨层变更成本。**76 → 77（+1）**：补的是「runner 与档位单源」，行号 / 版本戳维护成本未降。 |
-| 运行、部署与跨组织复用 | **74 / 100** | 换轨闭环实测：副本库 **48 表 / 577 行**一致；生产空库首启补 6 角色账号后 `preflight-cutover --strict` **exit 0 / 警告 0**；`user_version` 拒绝降级；迁移前备份；`start:review` 隔离演示库；production 单支部断言。批次 538：`deploy/verify-linux.sh` 在本地 Git Bash 走通 **5/6**（`bash -n` / `doctor` / `smoke` / `preflight` 过；`package` 因 msys `tar` 失败），PowerShell 侧 `package` 断言过；`.github/workflows/daily.yml` 已加 `deploy-verify` job（`bash deploy/verify-linux.sh`）。残项：`install.sh` / `install.ps1` / `update.sh` 未在 Linux 真机验证（L-02）；`deploy-verify` job 尚未实际跑绿；附件 / 会话按 runbook 另搬；多支部读过滤未实现。**73 → 74（+1）**；**75 暂不授予**：CI job 未实跑绿、`package` 在 msys `tar` 未过；**80 需真机**。 |
+| 业务与数据正确性 | **80 / 100** | 46 页签全量审计的 D1 读口全部 2xx / JSON 可解析 / ≤500KB；换轨演练副本库 **48 表 / 577 行** export → dry-run → apply 逐表行数与 sha256 一致；G4 / G5 写入前重核（409 / 422 反例）、`publication_audits` 生成列 ＋ 索引、党委公开通知写口。**`D-862` 上调（79 → 80）**：① 待办「P0 漏提醒」修复——组织委员前置门由「有待办行」改为「有成员发展数据」，空 `todos` 不再吞发展节点 / 半年考察提醒；② 发展节点 / 半年考察 / 模块周期三类派生迁入 `todo-derive.js` 单一源，服务端不再复刻；③ `count === items.length` 成为唯一计数口径（议程派生行另计 `agendaCount`）；④ 演示单据种子行（`todo_seed_*` / `mc-seed-*` / `mcr-seed-*`）纳入生产演示数据门。**未达 81**：D2 计数对账仍只对 3 个（`org.roster` 50 = 50、`secretary.group-progress` 3 = 3、`party-committee.branches` 1 = 1）；C2（写口往返）在 46 页签 **0 pass**（34 skip / 12 exception）；`L-16` 表决名单服务端重算未闭。**需补证据**：D2 扩到全部计数页签并给分母、C2 补可复跑配方（不跳页签）、`voteConfig.voterIds` 重算口径落地。残项：SQLite JSON 宽行、无跨表外键。 |
+| 安全与权限 | **77 / 100** | `write-policy-matrix` 覆盖 **141 条**写路由（135 enforced / 4 self-service / 2 public / **0 known-risk**），守卫断言运行期写路由 ≡ 矩阵的**登记面**；`SESSION_TTL_HOURS` 缺省 3 小时；production 多支部拒绝启动；`npm run start:review` 隔离演示库。`security-hardening` **8/8**、`multi-branch-read-filter` **9 组**、`personal-password` **21/21**、上传门党委 201 / 普通成员 403（`server/test/security-hardening.test.mjs:304-324`）。**`D-862` 维持 77**：`server/security/write-policy-matrix.mjs:534-536` 已把 `POST /api/v1/uploads` 登记为 `requireAuth + (party-staff | requireCommissioner)` / `roleGate: 支委层或 party-staff`，唯一机读源与运行期同批改准（补上 `D-861` 的失分项）。**78 暂不授予**：多支部读过滤仍未接线到生产读面、`ALLOW_MULTI_BRANCH` 仍关闭；矩阵仍未断言「门函数 / 角色集合」本身。**需补证据**：读过滤接线到读面后复核 0 known-risk，并补门函数 ≡ 矩阵的角色集合断言。残项：共享口令回退保留。 |
+| 最小三成本体验（含前端与交互） | **77 / 100** | 46 页签审计复跑：**P0 0 / P1 0 / P2 2 / exception 44**；F1–F8 全绿；M1–M3 与 4 个「独立对象池」例外在位。**`D-862` 上调（72 → 77）**：① `secretary.work-map` 责任关系由主从两栏改单列对象列表（14 项逐行摊平，行载体走 `list-row.js`，≤640 展开整段说明）；② `R2` 未登录资料查询接入匿名门厅读口（`references.js` 消费 `loadPublicPortal` ＋ 匿名下载，失败态带重试，「去登录」降为附注），补上 `D-861` 的 GAP；③ IA 三条落结论（`party-committee.dispatch` / `leader.write` / `org.member-flow`，证据 `.ctx/evidence/2026-11-09/ia/`）；④ `disc.review` 复盘页动作收敛（三档 P0/P1/P2 = 0）。**未做**：5 个 B 项中 `party-committee.branches` 因既有契约（目录只创建 / 选择）回退，本轮不改。**78 暂不授予**：真人签收未完成（自动走查 ＋ 截图不计验收），`B11`（`org.talent` 录入考察沉底）仍为 B 类。**需补证据**：真人签收 5 个用户任务、`B11` 卡头 CTA 落地。残项：A 35 / B 11 / C 0（台账 §三）；6 个超 4 块页签登记例外。 |
+| 测试与发布质量 | **83 / 100** | `workbench-audit-coverage::W1–W5` 常驻；`write-policy-matrix`（路由 ≡ 矩阵 + 反例）、`security-hardening`、`session-ttl`、`run-mode` 均登记 tier。批次 539 读数：daily **27 文件 / 210 断言 / 63.5s**；guards **99 文件全绿**；四层 runner 按 registry 单一源执行；`daily.yml` 已接 `test:daily` 与 `deploy-verify` job；`CLAUDE.md` 乙部 `B-500-7b-2` 的读数已同批改准（294 → 210）。**`D-862` 维持 83**：断言 207 → 210（新增待办 P0 回归），覆盖未缩；但 GitHub Actions 两个 job 仍未实跑（无 run id / 日志），CI 加分不授予。**需补证据**：CI 首跑绿读数、daily ↔ guards 移出清单逐条可核。残项：审计脚本仍不进 daily；precommit / full 时长仍是发布风险；守卫证明形态不等于业务输出正确。 |
+| 架构与可维护性（原「架构复杂度与变更成本」） | **77 / 100** | 审计分层沿用；`write-policy-matrix` 为写权限唯一机读源，审计 C1 与 README 同源；多支部同实例设计稿落到 `ARCHITECTURE_EVOLUTION §十`（四阶段）。契约类（`content/04_web_design/contracts/`）落地为合法载体；测试分层由 `test-tier-registry.mjs` 单一源驱动四个 runner，入口不再各写清单。成本与残项：catalog / matrix / baseline 须同批维护；双数据适配器、活动内嵌数据、静态版本戳与行号守卫仍抬高跨层变更成本。**`D-862` 维持 77**：本轮把 11 类待办派生收成 `todo-derive.js` 单源（服务端不再复刻三类），但行号 / 版本戳维护成本未降。 |
+| 运行、部署与跨组织复用 | **76 / 100** | 换轨闭环实测：副本库 **48 表 / 577 行**一致；生产空库首启补 6 角色账号后 `preflight-cutover --strict` **exit 0 / 警告 0**；`user_version` 拒绝降级；迁移前备份；`start:review` 隔离演示库；production 单支部断言。**`D-862` 上调（74 → 76）**：`deploy/package.mjs:269-273` 改在 `OUT_DIR` 下用相对文件名调 `tar`、`deploy/verify-linux.sh:42-48` 用 `cygpath -u` 转 POSIX（修 msys 把 `D:` 当远程主机），Git Bash 下 `VERIFY_TMPDIR=D:\…` 跑通 **6/6 · 退出码 0**：shell 语法 3/3 · doctor · 起服务 · smoke --login · `preflight --strict` 阻断 0 / 警告 0 · package 460 文件 / 12.9 MB / 断言 0 命中；PowerShell 侧 package 回归退出 0。**77 / 80 暂不授予**：GitHub Actions `deploy-verify` 未实跑（本机无 `gh`、本批不推送，无法给 run 链接）；`install.sh` / `install.ps1` / `update.sh` 未在 Linux 真机验证（L-02）。残项：附件 / 会话按 runbook 另搬；多支部读过滤未实现。 |
 
 ### 评分锚点
 
@@ -47,10 +47,10 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 ### 阻断级风险
 
-> **本轮复核（2026-11-08 批次 538 评分证据卡）**：逐条标注「保留 / 部分闭环 / 闭环 / 新增」，闭环必须给证据。结论：第 2 条部分闭环（矩阵 141 行、0 known-risk、6 条缺口已修，且 `issue-unread` 派发位已加强校验）；第 4 条的会话过期已闭环，个人密码已落地、共享口令作回退保留；第 1、3、5 条保留。
+> **本轮复核（2026-11-08 批次 538 评分证据卡；2026-11-09 `D-862` 按批次 539 实跑读数复核）**：逐条标注「保留 / 部分闭环 / 闭环 / 新增」，闭环必须给证据。结论：第 2 条部分闭环（矩阵 141 行、0 known-risk、6 条缺口已修，`issue-unread` 派发位已加强校验；批次 539 已把上传门矩阵 `roleGate` 同批改准为 `party-staff | 支委层`，单源恢复一致）；第 4 条的会话过期已闭环，个人密码已落地、共享口令作回退保留；第 1、3、5 条保留。
 
 1. **多支部共用一个服务实例会跨支部读出数据。** **保留**。服务器读面仍未统一按支部过滤；`multi-branch-read-filter` 9 组夹具只证明设计可行，`ALLOW_MULTI_BRANCH` 仍关闭；设计稿见 `ARCHITECTURE_EVOLUTION §十`。
-2. **多数通用写口只验证登录。** **部分闭环**。权限矩阵 141 行覆盖全部写路由，`known-risk` 清零；考勤删除、活动/专班子记录、`issue-unread`、快照聚合/考勤清空 6 条缺口已补服务端判据；批次 538 增 G4 / G5 写入前复核与 `issue-unread` 派发位 403。残项：共享口令、多支部读过滤未接线。
+2. **多数通用写口只验证登录。** **部分闭环**。权限矩阵 141 行覆盖全部写路由，`known-risk` 清零；考勤删除、活动/专班子记录、`issue-unread`、快照聚合/考勤清空 6 条缺口已补服务端判据；增 G4 / G5 写入前复核与 `issue-unread` 派发位 403；批次 539 把上传门矩阵 `roleGate` 改准为 `party-staff | 支委层`，与运行期 `requireUploader` 同批。残项：共享口令、多支部读过滤未接线。
 3. **表决选民名单来自活动数据本身。** **保留**。创建/修改活动的服务端没有按场景从 users 和组织归属重算 `voteConfig.voterIds`；C2 只验证既有写口往返，不覆盖名单重算。
 4. **共用口令只适合受控部署。** **部分闭环**。会话已按 `SESSION_TTL_HOURS`（缺省 3 小时）过期；个人密码已落地（`personal-password` 21/21），共享口令仅作回退保留；生产用 systemd 注入强口令并定期更换。
 5. **SQLite JSON 宽表是规模边界。** **保留**。批次 538 只加 `publication_audits` 的 v14 生成列与审计索引，宽表本身与业务字段索引边界未变。
@@ -67,51 +67,61 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 ### 2.1 业务与数据正确性 —— 80/100
 
-**得分依据**：46 页签全量审计的 D1 读口全部 2xx、JSON 可解析、响应 ≤500KB；D2 计数对账一致（`org.roster` 50 = 50、`secretary.group-progress` 3 = 3、`party-committee.branches` 1 = 1）；C2 在 `:memory:` 临时库对非破坏性写口完成 create → 回读 → PATCH → 校验 → DELETE。既有活动报名去重、匿名票事务、活动删除级联与 DB 迁移 / 备份恢复测试仍有效。批次 538 补：G4 名册提案确认前重读 `developStage`（≠ `fromStage` ⇒ 409、非法枚举 ⇒ 422）；G5 党委副本同步前复核原件状态与下发范围（⇒ 409 不覆盖副本）；`publication_audits` v14 生成列 ＋ 索引；党委公开通知写口落地。
+**得分依据**：46 页签全量审计的 D1 读口全部 2xx、JSON 可解析、响应 ≤500KB；D2 计数对账一致 **仅 3 个**（`org.roster` 50 = 50、`secretary.group-progress` 3 = 3、`party-committee.branches` 1 = 1）；C2 只有 `:memory:` 临时库的手工往返一条（create → 回读 → PATCH → 校验 → DELETE），**46 页签 C2 实测 0 pass（34 skip / 12 exception）**。既有活动报名去重、匿名票事务、活动删除级联与 DB 迁移 / 备份恢复测试仍有效。G4 名册提案确认前重读 `developStage`（≠ `fromStage` ⇒ 409、非法枚举 ⇒ 422）；G5 党委副本同步前复核原件状态与下发范围（⇒ 409 不覆盖副本）；`publication_audits` 生成列 ＋ 索引；党委公开通知写口落地。
 
-**残项**：业务实体仍主要保存为 JSON 宽行；数据库不能替业务校验跨表引用或自动级联。表决名单服务端复算未闭合，见阻断风险 3。
+**批次 539 增量（`D-862`）**：① 待办「P0 漏提醒」修复——`server/routes/todo-groups.js` 的组织委员前置门由「有待办行」改为「有成员发展数据」，空 `todos` 库不再吞发展节点 / 半年考察提醒（`todo-groups-api` 新增空 `todos` 回归）；② 发展节点 / 半年考察 / 模块周期三类派生从服务端复刻迁入 `docs/src/core/domain/todo-derive.js` 单一源，服务端只 import 不再复刻；③ 纪检「考勤 / 考察待确认」改由服务端派生（`deriveAttendanceConfirmGroup` / `deriveInspectionConfirmGroup`，11 类组全部同源）；④ `count === items.length` 成为唯一计数口径，议程派生行数另计 `agendaCount`；⑤ 演示单据种子行（`todo_seed_*` / `mc-seed-*` / `mcr-seed-*`）纳入 `server/demo-data-guard.js` 的生产演示数据门。
 
-**本轮结论**：**79 → 80（+1）**。补的是「写入前重读事实 + 公开内容留痕可查」，不改业务规则。
+**失分依据与残项**：D2 样本只有 3 个计数，不能代表全量对账；C2 的 skip / exception 不计覆盖；`L-16` 表决名单服务端复算未闭（阻断风险 3）；业务实体仍主要保存为 JSON 宽行，数据库不能替业务校验跨表引用或自动级联。
 
-### 2.2 安全与权限 —— 78/100
+**需补证据**：D2 扩到全部计数页签并写明分母；C2 给可复跑配方（按页签逐个 pass，不允许整类 skip）；`voteConfig.voterIds` 重算口径落地。
 
-**得分依据**：`server/security/write-policy-matrix.mjs` 登记 **141 条**写路由，`known-risk` 清零；守卫断言 Express 运行期写路由 ≡ 矩阵，并用反例自证；`SESSION_TTL_HOURS` 缺省 3 小时；production 多支部拒绝启动；`npm run start:review` 隔离演示库。批次 538 三批证据：`security-hardening` **8/8**（G4 / G5 / L-09 派发位 403 / v14 生成列与索引 / 读口分页 / 公共下载限频 429）；`multi-branch-read-filter` **9 组**（双支部夹具证明 A 读不到 B）；`personal-password` **21/21**；上传门党委 201 / 普通成员 403。
+**本轮结论**：**79 → 80（+1）**。补的是「待办派生单源 + 漏提醒修复 + 计数口径唯一」三项可复跑回归；**81 不授予**：D2 / C2 覆盖未扩、`L-16` 未闭。
 
-**失分依据与残项**：共享口令仍作回退保留（个人密码已落地）；多支部读过滤未接线到生产读面，`ALLOW_MULTI_BRANCH` 仍关闭；`voteConfig.voterIds` 仍由客户端写入。
+### 2.2 安全与权限 —— 77/100
 
-**本轮结论**：**66 → 78（+12）**。补的是派发位 / 复核 / 限频 / 个人密码的可复跑判据；多支部读面未启用，故不到 80。
+**得分依据**：`server/security/write-policy-matrix.mjs` 登记 **141 条**写路由，`known-risk` 清零；守卫断言 Express 运行期写路由 ≡ 矩阵的登记面，并用反例自证；`SESSION_TTL_HOURS` 缺省 3 小时；production 多支部拒绝启动；`npm run start:review` 隔离演示库。`security-hardening` **8/8**（G4 / G5 / L-09 派发位 403 / 生成列与索引 / 读口分页 / 公共下载限频 429）；`multi-branch-read-filter` **9 组**（双支部夹具证明 A 读不到 B）；`personal-password` **21/21**；上传门党委 party-staff **201** / 普通成员 **403**（`server/test/security-hardening.test.mjs:304-324`）。**批次 539**：`write-policy-matrix.mjs:534-536` 把 `POST /api/v1/uploads` 登记为 `middleware: requireAuth + (party-staff | requireCommissioner)` / `roleGate: 支委层或 party-staff`，唯一机读源与运行期 `requireUploader` 同批一致（补上 `D-861` 的失分项）。
 
-### 2.3 最小三成本体验（含前端与交互） —— 74/100
+**失分依据与残项**：多支部读过滤未接线到生产读面，`ALLOW_MULTI_BRANCH` 仍关闭；`voteConfig.voterIds` 仍由客户端写入；共享口令仍作回退保留；`write-policy-matrix.test.mjs` 仍只断言路由登记与字段类型，未比对门函数 / 角色集合。
 
-**得分依据**：46 页签审计复跑 **P0 0 / P1 0 / P2 2 / exception 44**；F1–F8 全绿；M1–M3 与 4 个「独立对象池」例外在位。批次 538：C 波完成 2 条 B 项（`org.talent` 录入考察上提、`disc.attendance` 撤两级切换）＋ 院级内容动作收敛 ＋ 下发通知空态；F 波 5 个 C 页签完成 IA 三问（1 归档为 A、4 保留改 CTA）；H 波 5 个用户任务在 1440 / 390 双档 PASS，同批修复 `branch-doc` 与 `references` 院级过滤。
+**需补证据**：读过滤接线后复核 0 known-risk；补「门函数 / 角色集合 ≡ 矩阵」断言。
 
-**残项**：A 35 / B 11 / C 0（台账 §三）；6 个超 4 块页签登记例外；未登录资料查询页仍只给登录提示（公开资料在首页门厅可见）。
+**本轮结论**：**维持 77**。单源不一致已消除，但读面未启用、门函数断言未补，**78 不授予**。
 
-**本轮结论**：**68 → 74（+6）**；**75 暂不授予**——用户任务为自动走查、未获真人签收，且未登录资料查询页 GAP 未闭。
+### 2.3 最小三成本体验（含前端与交互） —— 77/100
+
+**得分依据**：46 页签审计复跑 **P0 0 / P1 0 / P2 2 / exception 44**；F1–F8 全绿；M1–M3 与 4 个「独立对象池」例外在位。**批次 539（`D-862`）**：① `secretary.work-map` 责任关系由主从两栏改**单列对象列表**——14 个模块逐行摊平，每行＝角色徽章 ＋ 工作项（14/600）＋ 负责人（12）＋ 一行截断说明（`title` 全文），停用项行尾给「发起启用议题」；行载体与分隔线走 `components/ui/list-row.js` 单源，≤640 时选中项展开整段说明；审计 `P0/P1/P2 = 0`（`M1` 3 块 ≤4、`M2` 无重复卡头、`M3` `.lf-bar` 0 条）。② `R2` 补上：未登录资料查询页不再只给「请先登录」，改由 `references.js` 消费匿名门厅读口 `loadPublicPortal`（只返回党委公开、未过期内容，不含支部名 / 成员字段），带匿名下载、失败重试与「去登录」附注。③ IA 三条落结论：`party-committee.dispatch`（3 块全 pass）、`leader.write`（`E1` 1 条 P2，其余 pass）、`org.member-flow`（全 pass），证据 `.ctx/evidence/2026-11-09/ia/`（P0 0 / P1 0 / P2 1 / exception 2）。④ `disc.review` 复盘页动作收敛，审计全 pass（P0/P1/P2 = 0）。
+
+**失分依据与残项**：① 5 个 B 项中 `party-committee.branches` **回退未做**——既有契约是「目录只创建 / 选择」，改动会越过契约边界；② `B11`（`org.talent` 录入考察沉底）仍为 B 类未动；③ **真人签收未完成**：用户任务仍是自动走查 ＋ 截图，按「证据强度」不计验收；④ A 35 / B 11 / C 0（台账 §三）；6 个超 4 块页签登记例外。
+
+**需补证据**：真人签收 5 个用户任务（签收人 ＋ 日期）、`B11` 卡头 CTA 落地、`party-committee.branches` 若要改须先改契约。
+
+**本轮结论**：**72 → 77（+5）**。补的是「work-map 单列 ＋ R2 公开资料 ＋ IA 三条 ＋ 复盘页收敛」四组可复核证据；**78 不授予**：真人签收缺失、`B11` 未动。
 
 ### 2.4 架构与可维护性（原「架构复杂度与变更成本」） —— 77/100
 
-**得分依据**：审计分层沿用；`write-policy-matrix` 为写权限唯一机读源，审计 C1、README 与守卫同源；多支部同实例设计稿落到 `ARCHITECTURE_EVOLUTION §十`（请求级支部上下文 / 四阶段）。批次 538：契约类在 `content/04_web_design/contracts/` 获得合法载体；测试分层由 `test-tier-registry.mjs` 单一源驱动四个 runner。
+**得分依据**：审计分层沿用；`write-policy-matrix` 为写权限唯一机读源，审计 C1、README 与守卫同源；多支部同实例设计稿落到 `ARCHITECTURE_EVOLUTION §十`（请求级支部上下文 / 四阶段）。契约类在 `content/04_web_design/contracts/` 获得合法载体；测试分层由 `test-tier-registry.mjs` 单一源驱动四个 runner。批次 539：11 类待办派生全部收进 `todo-derive.js` 叶子件，服务端与客户端同源 import，服务端不再复刻三类实现（删掉约 130 行复刻）。
 
 **成本与残项**：catalog / matrix / baseline 须同批维护；mock 与 API 双形态、活动内嵌数据、版本戳与行号守卫仍抬高跨层变更成本。
 
-**本轮结论**：**76 → 77（+1）**。补的是 runner 与档位单源；行号 / 版本戳维护成本未降。
+**本轮结论**：**维持 77**。补的是派生单源，但行号 / 版本戳维护成本未降、读面分层未动，**78 不授予**。
 
-### 2.5 测试与发布质量 —— 85/100
+### 2.5 测试与发布质量 —— 83/100
 
-**得分依据**：`workbench-audit-coverage::W1–W5` 常驻；`write-policy-matrix`（路由 ≡ 矩阵 + 反例）、`security-hardening`（G4/G5/L-09/限频/分页）、`session-ttl`、`run-mode` 均进 daily / guards 并登记 tier。批次 538 读数：daily **27 文件 / 207 断言 / 60.9s** 全绿；guards **99 文件 / 791 tests / 96.1s** 全绿；四层 runner 按 registry 单一源执行；CI `daily.yml` 接 `test:daily` 与 `deploy-verify`。
+**得分依据**：`workbench-audit-coverage::W1–W5` 常驻；`write-policy-matrix`（路由 ≡ 矩阵 + 反例）、`security-hardening`（G4/G5/L-09/限频/分页）、`session-ttl`、`run-mode` 均进 daily / guards 并登记 tier。批次 539 读数：daily **27 文件 / 210 断言 / 63.5s**；guards **99 文件全绿**；四层 runner 按 registry 单一源执行；CI `daily.yml` 接 `test:daily` 与 `deploy-verify`。
 
-**失分与残项**：审计脚本仍不进 daily；precommit / full 时长仍是发布风险；守卫证明形态不等价于业务输出正确。
+**失分与残项**：断言 207 → 210 是待办 P0 回归的净增（覆盖未缩），但 CI 两个 job 仍无实跑读数；审计脚本仍不进 daily；precommit / full 时长仍是发布风险；守卫证明形态不等价于业务输出正确。
 
-**本轮结论**：**83 → 85（+2）**。补的是分层 runner 可复跑与结果门禁达时。
+**需补证据**：CI 首跑绿（run id / 日志）、daily ↔ guards 移出清单逐条可核。
 
-### 2.6 运行、部署与跨组织复用 —— 74/100
+**本轮结论**：**维持 83**。`CLAUDE.md` 乙部读数已同批改准（294 → 210），旧的文档冲突消除；但 CI 未实跑，**84 不授予**。
 
-**得分依据**：副本库 **48 表 / 577 行** export → dry-run → apply 一致；生产空库首启补 6 角色账号后 `preflight-cutover --strict` **exit 0 / 警告 0**；`user_version` 拒绝降级；迁移前备份；`start:review` 隔离演示库；production 单支部断言。批次 538：`deploy/verify-linux.sh` 本地 Git Bash **5/6**（`bash -n` / `doctor` / `smoke` / `preflight` 过；`package` 因 msys `tar` 失败），PowerShell `package` 断言过；CI 增 `deploy-verify` job。
+### 2.6 运行、部署与跨组织复用 —— 76/100
 
-**残项**：`install.sh` / `install.ps1` / `update.sh` 未在 Linux 真机验证（L-02）；`deploy-verify` job 未实跑绿；附件 / 会话按 runbook 另搬；多支部读过滤未实现。
+**得分依据**：副本库 **48 表 / 577 行** export → dry-run → apply 一致；生产空库首启补 6 角色账号后 `preflight-cutover --strict` **exit 0 / 警告 0**；`user_version` 拒绝降级；迁移前备份；`start:review` 隔离演示库；production 单支部断言。**批次 539（`D-862`）**：先证伪 —— Git Bash 下 `deploy/package.mjs:273` 的 `execFileSync('tar')` 报 `status 2`，根因是 MSYS tar 把 `D:\…` 冒号视为远程主机；修法两处（`deploy/package.mjs:269-273` 切 `cwd=OUT_DIR` 只用相对文件名；`deploy/verify-linux.sh:42-48` 对 Windows 原生路径先 `cygpath -u`）。重跑 `VERIFY_TMPDIR=D:\…\.tmp bash deploy/verify-linux.sh` **6/6 通过 · 退出码 0**：shell 语法 3/3 · doctor（无拦路项）· 起服务 ＋ smoke --login · `preflight --strict`（schema v14 / users=7 / branches=1，阻断 0 / 警告 0）· package（460 文件 / 解包 12.9 MB / 包内 521 条目 / 路径黑名单与姓名口令泄露各 0 命中）；PowerShell 侧 package 回归退出 0。未放宽任何断言。
 
-**本轮结论**：**73 → 74（+1）**；**75 暂不授予**——CI job 未实跑绿、`package` 在 msys `tar` 未过；**80 需真机**。
+**残项**：GitHub Actions `deploy-verify` 未实跑（本机无 `gh`，本批不 commit / 不推送，无法给 run 链接）；`install.sh` / `install.ps1` / `update.sh` 未在 Linux 真机验证（L-02）；附件 / 会话按 runbook 另搬；多支部读过滤未实现。
+
+**本轮结论**：**74 → 76（+2）**；**77 / 80 暂不授予**：CI 未实跑绿、真机安装 / 升级未验。
 
 ### 2.7 七个月工程复盘：哪些是正常演进，哪些是真返工
 
@@ -296,7 +306,7 @@ Git 从 2026-03-14 至 2026-10-14 共 1,133 条提交记录；按提交日期分
 | 编号 | 残项 | 严重度 | 状态 | 下一动作 | 单一源指针 |
 |---|---|---|---|---|---|
 | L-01 | 生产空库 `--strict` 未实跑 | launch-blocker | 已关闭 | 2026-11-03 实跑：生产档空库首启补 6 个角色账号后，`preflight-cutover --strict` **exit 0 / 警告 0**；副本库 export → dry-run → apply 48 表 / 577 行一致 | `deploy/CUTOVER_RUNBOOK.md §5（L129-L131）`；`.ctx/SNAPSHOT.md` 批次 527「未决」③（L347）；本轮临时库读数见 `preflight` 输出 |
-| L-02 | `install.sh` / `install.ps1` / `update.sh` 未在真机验证 | post-launch | 待办 | **降级理由**：本机为 Windows 开发机，无法代替 Linux 测试机；首次部署前必须在测试机逐条跑安装与升级，核对脚本 ①–⑦ 输出与回滚提示。批次 538 已补容器可验证部分：`deploy/verify-linux.sh` 本地 Git Bash **5/6**（`bash -n` / `doctor` / `smoke` / `preflight` 过；`package` 因 msys `tar` 失败），PowerShell `package` 断言过，CI 增 `deploy-verify` job（未实跑绿） | `deploy/README.md` L50；`deploy/install.sh` 头注（L12）；`deploy/verify-linux.sh`；`.github/workflows/daily.yml` `deploy-verify` |
+| L-02 | `install.sh` / `install.ps1` / `update.sh` 未在真机验证 | post-launch | 待办 | **降级理由**：本机为 Windows 开发机，无法代替 Linux 测试机；首次部署前必须在测试机逐条跑安装与升级，核对脚本 ①–⑦ 输出与回滚提示。**容器可验证部分已 6/6**：`deploy/verify-linux.sh` 在本地 Git Bash 跑通 `bash -n` / `doctor` / `smoke` / `preflight --strict` / `package`，退出码 0（批次 539 修 `package.mjs` 的 msys `tar` 盘符问题 ＋ `cygpath -u` 转换；证据 `.ctx/evidence/2026-11-09/deploy-verify.md`）；PowerShell `package` 回归退出 0；GitHub Actions `deploy-verify` job 仍**未实跑绿** | `deploy/README.md` L50；`deploy/install.sh` 头注（L12）；`deploy/verify-linux.sh`；`.github/workflows/daily.yml` `deploy-verify`；`.ctx/evidence/2026-11-09/deploy-verify.md` |
 | L-03 | `attachments` / `sessions` 不随库导出 | launch-blocker | 已关闭 | **处置**：`sessions` 设计上不迁移（换轨后重新登录，避免旧 token 跨库有效）；`attachments` 按 runbook §6 用 robocopy / rsync 搬 `UPLOAD_DIR`，再跑 `preflight-cutover --uploads --strict`。本轮空附件目录 strict 已通过 | `deploy/CUTOVER_RUNBOOK.md §0（L32）`、`§6（L134-L151）` |
 | L-04 | `committeeBroadcasts` 仅存本机，须人工导 localStorage | launch-blocker | 已关闭 | **复核**：`export-all` 已包含 `committee_broadcasts` 表（本轮 0 行），库内数据随库迁移；`localOnly` 仅为前端脏判定兼容，不再要求逐设备手工导出。前端已停止新写该集合 | `server/scripts/export-all.mjs` L35 / L168；`docs/src/data/mock-adapter.js` L2387（停止写入说明） |
 | L-05 | review 档未硬拦「指向生产库」 | launch-blocker | 已关闭 | **处置**：新增 `npm run start:review`（`server/scripts/start-review.mjs`），缺省强制 `DB_PATH=server/data.review.db`；显式 `DB_PATH` 由操作者自行确认，文档写明不得指向生产库 | `server/scripts/start-review.mjs`；`README.md` L339；`deploy/README.md` L30-L33 |
@@ -306,7 +316,7 @@ Git 从 2026-03-14 至 2026-10-14 共 1,133 条提交记录；按提交日期分
 | L-09 | `issue-unread` 派发位未强校验 `assignee === issue.assignee` | post-launch | 已关闭 | 批次 538：请求 `assigneeId` ≠ 事项行 `assignee` 一律 **403**；回归在 `security-hardening` 第 3 条常驻 | `server/test/security-hardening.test.mjs`（L-09 用例）；`server/routes/resources/semantic-routes.js`；`server/security/write-policy-matrix.mjs` |
 | L-10 | 单实例多支部硬边界；服务端按支部读过滤未做 | post-launch | 在办 | **设计已出**（Architecture §十：请求级支部上下文 / 读口统一过滤 / 党委显式跨支部 / Phase 1–4）；`multi-branch-read-filter` **9 组**夹具已证明读口按支部过滤可行，但未接线到生产读面，开关仍关闭；Phase 1–2 完成前不得打开 `ALLOW_MULTI_BRANCH` | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §十（L150-L184）`；`server/test/multi-branch-read-filter.test.mjs`；`server/run-mode.js#L34-L48`；本文件 §四 P13 |
 | L-11 | 全支部共享一个 `LOGIN_PASSWORD`，无个人密码 | post-launch | 待办 | **会话过期已关闭**（`SESSION_TTL_HOURS` 缺省 3）；**个人密码已落地**（`personal-password` 21/21），共享口令作回退保留；上线仍用 systemd 注入强口令并定期更换；校外身份接入另立方案 | `server/test/personal-password.test.mjs`；`server/README.md §部署前必知限制 #3（L249）`；`server/routes/auth.js#L118-L141`；`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` A.2 第 2 条（L998） |
-| L-12 | 审计脚本不进 `test:daily`；precommit / full 时长仍是发布风险 | post-launch | 待办 | 保持「发布前 `audit-tabs --all`」为硬门，不把全量审计塞进 daily。批次 538 daily 已降至 **60.9s**（27 文件 / 207 断言），guards **96.1s**（99 文件 / 791 tests）；precommit 仍含域回归＋e2e，时长仍长 | 本文件 §二 2.5；`server/test-tier-registry.mjs`；`server/README.md`「测试耗时台账」 |
+| L-12 | 审计脚本不进 `test:daily`；precommit / full 时长仍是发布风险 | post-launch | 待办 | 保持「发布前 `audit-tabs --all`」为硬门，不把全量审计塞进 daily。批次 539 daily **63.5s**（27 文件 / 210 断言），guards **99 文件全绿**；precommit 仍含域回归＋e2e，时长仍长 | 本文件 §二 2.5；`server/test-tier-registry.mjs`；`server/README.md`「测试耗时台账」 |
 | L-13 | 页签 IA 未闭项：**A 35 / B 11 / C 0**（台账 §三）；6 个超 4 块页签登记例外 | backlog | 待办 | 按 `.ctx/evidence/2026-11-08/tab-review-ledger.md §四` 逐条排批；C 类 5 个页签的三问结论见台账 §六；先挑 2 条低风险 B 项（`org.talent` 录入考察上提、`disc.attendance` 撤两级切换），其余待支书裁定 | `.ctx/evidence/2026-11-08/tab-review-ledger.md §六 / §三`；`.ctx/evidence/2026-11-08/tab-audit/summary.md`；`content/04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md` L74 |
 | L-14 | 块停用是否同步阻断任务派生 / 通知 | backlog | 待办 | 先出方案定口径，再并入工作流批 | `content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md §8.1（L286）`、`§8.4（L331）`；本文件 §四 P10（L257） |
 | L-15 | 画布 UI（L4）与「按角色配置（块决定 tab）」 | backlog | 待办 | 新维度先出方案；与 `allowedPages` 身份门、tab 计数守卫一起评审 | `content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md §8.4（L331）`；`.ctx/REVIEW_QUEUE.md` H-24（L235） |
@@ -336,7 +346,7 @@ Git 从 2026-03-14 至 2026-10-14 共 1,133 条提交记录；按提交日期分
 
 ### 5.2 当前值（一屏看现状）
 
-- **六维（当前）**：业务与数据正确性 **80** · 安全与权限 **78** · 最小三成本体验（含前端与交互） **74** · 测试与发布质量 **85** · 架构与可维护性 **77** · 运行/部署/跨组织复用 **74**。**不计算平均总分**；高风险见 §一「阻断级风险」，逐维依据见 §二。
+- **六维（当前 · `D-862`）**：业务与数据正确性 **80** · 安全与权限 **77** · 最小三成本体验（含前端与交互） **77** · 测试与发布质量 **83** · 架构与可维护性 **77** · 运行/部署/跨组织复用 **76**。**不计算平均总分**；高风险见 §一「阻断级风险」，逐维依据见 §二；本轮加减分理由与「未授予」门槛见 §一 各维证据行。
 - **目录分层（当前 · 2026-09-29 批次 267 收官）**：`core/` **4 子域**（base 7 · domain 7 · boot 4 · session 4 = 22 件）· `data/` **新立**（4 适配器 ＋ `mock/` 15 件）· `services/` **5 域**（core 9 · member 9 · activity 12 · governance 11 · branch 8 = 49 件）· `components/` **7 域**（ui 13 · shell 6 · sections 2 · feedback 4 · record 11 · governance 13 · dashboard 4 = 53 件）· `capabilities/` **顶层 12 件**（2026-09-29 批次 268 增 `taskforce.js`） · `entries/` **3 类**（pages 15 · workspace 7 · tabs 68）· `workflow/` 8 件 · `config/` 1 件。**`modules/` 已消解**（能力声明上提顶层；3 件跨页件按判据归位：`branch-demo-nav` → `services/core/` · `references`/`help-catalog` → `components/sections/`）。落地方式与硬成本 ⇒ 见 §六 G2。
 - **测试规模**：**动态口径，不写死**——以 `server/test/` 实测为准（分档见 `server/README.md`「测试耗时台账」）。
 - **纪律与判据索引（当前）**：`§3.4` 收敛台账 **R13–R30 共 19 行**（含 `R28-附` / `R29` / `R30`）；`CLAUDE.md` 现行纪律 **R-68 ~ R-80**（真机同环境量测 · 不得以「等裁定」结束回合 · 授权声明可核验 · 异常面下沉动作级 · 守卫覆盖按接口逐维数 · 台账完备性三缺一 · 等待窗口须覆盖真实耗时 · 判据落在事实上而非手段上 · 增量而非绝对值 · 判据之间不得互相冒充 · 「不可达」只有两条出口 · 「成功」须确认落库 · 每个字段都要有判据）；自查问句 = `DATA_CONSISTENCY_CHECKLIST §0.1`（**现到二十七问**）；范本 = 同文件（**第六–第二十七**）；判例集 = `content/05_ai_coding/TEST_AND_VERIFICATION.md`。**逐条「哪一批增了哪一问 / 哪一范本」属沿革 ⇒ 见日志**。

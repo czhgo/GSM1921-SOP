@@ -1,0 +1,130 @@
+{
+  "generatedAt": "2026-11-09T14:11:54.829Z",
+  "base": "http://127.0.0.1:59690",
+  "dbMode": "memory",
+  "tabs": [
+    {
+      "key": "secretary.work-map",
+      "label": "支部分工",
+      "blocks": 3,
+      "findings": [
+        {
+          "key": "secretary.work-map",
+          "rule": "F1",
+          "severity": "P1",
+          "status": "pass",
+          "message": "顶层块基线 3 ≤ 4（DOM 实测 3，仅作复核线索）",
+          "evidence": {
+            "measured": 3,
+            "raw": 1,
+            "baseline": 3,
+            "blocks": [
+              "div.card rounded-xl p-4",
+              "div.card rounded-xl p-4",
+              "p.text-xs text-gray-500 mt-3"
+            ]
+          }
+        },
+        {
+          "key": "secretary.work-map",
+          "rule": "F2",
+          "severity": "P1",
+          "status": "pass",
+          "message": "无筛选条（.lf-bar）",
+          "evidence": {
+            "bars": 0
+          }
+        },
+        {
+          "key": "secretary.work-map",
+          "rule": "F3",
+          "severity": "P1",
+          "status": "pass",
+          "message": "无 input[list]/datalist；suggest 输入 ARIA 合规",
+          "evidence": {
+            "inputList": 0,
+            "datalist": 0,
+            "suggest": 0
+          }
+        },
+        {
+          "key": "secretary.work-map",
+          "rule": "F4",
+          "severity": "P1",
+          "status": "pass",
+          "message": "H1 0 / H2 1；标题序列 h2→h3→h4→h3",
+          "evidence": {
+            "headings": [
+              {
+                "level": 2,
+                "text": "支部分工"
+              },
+              {
+                "level": 3,
+                "text": "责任关系"
+              },
+              {
+                "level": 4,
+                "text": "支部党员大会"
+              },
+              {
+                "level": 3,
+                "text": "分工调整工具"
+              }
+            ],
+            "jumps": []
+          }
+        },
+        {
+          "key": "secretary.work-map",
+          "rule": "F5",
+          "severity": "P1",
+          "status": "pass",
+          "message": "0 个 section 均有名称，无嵌套",
+          "evidence": {
+            "sections": 0
+          }
+        },
+        {
+          "key": "secretary.work-map",
+          "rule": "F6",
+          "severity": "P2",
+          "status": "pass",
+          "message": "未发现 .empty-state 之外的空态文本",
+          "evidence": {
+            "hits": 0
+          }
+        },
+        {
+          "key": "secretary.work-map",
+          "rule": "F7",
+          "severity": "P1",
+          "status": "pass",
+          "message": "390 无横向溢出（390 ≤ 390 + 1）；长列表分页门槛通过",
+          "evidence": {
+            "scrollWidth": 390,
+            "innerWidth": 390
+          }
+        },
+        {
+          "key": "secretary.work-map",
+          "rule": "F8",
+          "severity": "P0",
+          "status": "pass",
+          "message": "pageerror 0 / console.error 0 / 4xx 0",
+          "evidence": {
+            "pageErrors": 0,
+            "consoleErrors": 0,
+            "http4xx": 0
+          }
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0,
+    "exceptions": 0
+  }
+}

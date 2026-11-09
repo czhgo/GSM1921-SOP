@@ -18,7 +18,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { initDb } from '../db.js';
 import { seedBaseline } from '../seed-baseline.js';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261108c';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261109a';
 import { createApp } from '../app.js';
 import { detectDemoSeedRows, demoGateDecision, enforceProductionDemoGate } from '../demo-data-guard.js';
 import { repairSeedRowsIfNeeded, readSeedMeta, writeSeedMeta } from '../seed-repair.js';
@@ -162,10 +162,32 @@ test('B6 生产启动闸门：空库基线不误伤；含演示种子行默认�
   dirty.prepare('INSERT OR REPLACE INTO users (id, data) VALUES (?, ?)').run(demoPerson.id, JSON.stringify(demoPerson));
   dirty.prepare('INSERT OR REPLACE INTO activities (id, data) VALUES (?, ?)')
     .run('act-1', JSON.stringify({ id: 'act-1', title: '演示活动', date: '2026-08-07', type: '党小组会' }));
+  // 批次 539：单据类演示种子 id 前缀（todo_seed_ / mc-seed- / mcr-seed-）同样必须被识别
+  const seedRows = [
+    ['todos', 'todo_seed_7'],
+    ['member_confirmations', 'mc-seed-1'],
+    ['member_change_requests', 'mcr-seed-roster'],
+  ];
+  for (const [table, id] of seedRows) {
+    dirty.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(id, JSON.stringify({ id }));
+  }
   const found = detectDemoSeedRows(dirty, { demoUserIds: demoIds });
   assert.deepEqual(found.demoUsers, [demoPerson.id], 'users 演示账号按 PEOPLE 支部成员识别');
   assert.deepEqual(found.seedActivities, ['act-1'], 'activities 演示种子 id 按 act-<短数字> 识别');
+  assert.deepEqual(found.seedTodos, ['todo_seed_7'], 'todos 演示种子 id 按 todo_seed_<数字> 识别');
+  assert.deepEqual(found.seedMemberConfirmations, ['mc-seed-1'], '名册确认按 mc-seed-<数字> 识别');
+  assert.deepEqual(found.seedMemberChangeRequests, ['mcr-seed-roster'], '议程派生申请按 mcr-seed-<字母> 识别');
   assert.equal(found.demo, true);
+  // 仅单据种子（无演示人员 / 活动）也必须判演示库（防「删了人员就当干净库」）
+  const seedOnly = initDb(':memory:');
+  seedBaseline(seedOnly);
+  seedOnly.prepare('INSERT OR REPLACE INTO todos (id, data) VALUES (?, ?)')
+    .run('todo_seed_8', JSON.stringify({ id: 'todo_seed_8' }));
+  const seedOnlyFound = detectDemoSeedRows(seedOnly, { demoUserIds: demoIds });
+  assert.equal(seedOnlyFound.demoUsers.length, 0);
+  assert.equal(seedOnlyFound.seedActivities.length, 0);
+  assert.equal(seedOnlyFound.demo, true, '仅含 todo_seed_8 的库仍须判为演示库');
+  seedOnly.close();
 
   assert.equal(demoGateDecision({ production: true, allowDemoData: false, ...found }).reason, 'demo-detected');
   assert.equal(demoGateDecision({ production: true, allowDemoData: true, ...found }).blocked, false, 'ALLOW_DEMO_DATA=1 ⇒ 放行');

@@ -11,16 +11,22 @@
 //    · `constants.js`（`isActivityEnded` / `RESIDENCE`，自身只依赖 `base/date.js`，双端可载）
 //    · `policy-defaults.js`（阈值单一源，双端可载）
 //    · `base/date.js`（本地日历日口径 `R-26③`）
+//    · `work-map.js` / `base/period.js`（模块周期判据的零依赖叶子件；批次 539 迁入既有三类时引入）
 //  业务域键在此声明（7 键子集），`services/governance/todo.js::REALTIME_GROUP_DOMAIN` 由此展开，
 //  不再各自维护一份映射。
 //
 //  施工单（Task 8）：服务端 `server/routes/todo-groups.js` 逐键改为 import 本文件同名函数，
 //  入参从 DB 取同形数据；对账测试 `server/test/todo-derive-parity.test.mjs` 逐键判绿。
+//  批次 539：既有三类（发展节点 / 半年考察 / 模块周期）与纪检确认队列一并迁入本文件，
+//  `services/governance/todo.js` 只做再导出，服务端不再复刻。
 // ════════════════════════════════════════════════════════════════
 
-import { isActivityEnded, RESIDENCE } from './constants.js?v=20261108c';
-import { POLICY_DEFAULTS } from './policy-defaults.js?v=20261108c';
-import { todayLocal, _fmtDate } from '../base/date.js?v=20261108c';
+import { isActivityEnded, RESIDENCE } from './constants.js?v=20261109a';
+import { POLICY_DEFAULTS } from './policy-defaults.js?v=20261109a';
+import { todayLocal, _fmtDate } from '../base/date.js?v=20261109a';
+// 模块周期单一源（零依赖叶子件；浏览器与 node 双端可载）
+import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from './work-map.js?v=20261109a';
+import { cyclePeriodLabel, cyclePeriodOf } from '../base/period.js?v=20261109a';
 
 /** 7 键实时组 → 业务域（单一源；`services/governance/todo.js` 展开引用） */
 export const DERIVE_GROUP_DOMAIN = {
@@ -230,7 +236,8 @@ export function deriveResolutionFollowupRemindGroup({ activities = [], today, gr
 /**
  * 「成员变更待确认」实时组（域=成员发展；支书台消费）。
  * 两条来源：`memberConfirmations`（名册报送，status=pending）+ `memberChangeRequests`（议程派生，
- *   status=pending-secretary）；`count` = 批量行总数（与 `buildMcBulkRows('secretary-confirm')` 同长）。
+ *   status=pending-secretary）。**count 唯一口径＝`items.length`（名册报送行）**；
+ *   议程派生行数只作展示补充 `agendaCount`（批量块由调用方渲染），不并入 count。
  * @param {Object} opts
  * @param {Array}  [opts.memberConfirmations]    名册报送确认队列
  * @param {Array}  [opts.memberChangeRequests]   议程派生成员变更申请
@@ -251,7 +258,7 @@ export function deriveMemberConfirmGroup({
     category: 'review',
     flow: '确认位唯一化（域内批量）：名册报送=支书确认生效/退回；议程派生（议程）审批通过项=支书确认更新阶段',
     kind: 'confirm',
-    count: rosterItems.length + agendaPending.length,
+    count: rosterItems.length,
     items: rosterItems,
     agendaCount: agendaPending.length,
     hideActionBtn: true,
@@ -380,6 +387,285 @@ export function deriveTaskforceAuthorizeGroup({
     flow: '专班创建 → 模块主责赋权 → 成员执行',
     kind: 'remind',
     deadline: _earliestDeadline(items),
+    count: items.length,
+    items,
+  };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  既有三类（发展节点 / 半年考察 / 模块周期）——2026-11-09 批次 539 从
+//  `services/governance/todo.js` 迁入；服务端与客户端同源 import，删除复刻。
+// ════════════════════════════════════════════════════════════════
+
+/** 日期 + N 天（'YYYY-MM-DD'，UTC 运算避免时区未同步；非法输入 → null）——与原 todo.js 口径逐字一致 */
+function _addDaysByCalendarUtc(dateStr, days) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(dateStr || ''));
+  if (!m) return null;
+  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]) + Number(days)));
+  return Number.isNaN(d.getTime()) ? null : _fmtDate(d);
+}
+
+/** 发展节点期满阈值（《发展党员工作细则》一年，制度裁决固定项；非可调参数） */
+export const DEVELOP_NODE_THRESHOLDS = { '积极分子': 365, '预备党员': 365 };
+
+/**
+ * 派生组织委员「发展节点提醒」实时组（域=成员发展）。
+ * @param {Object} opts
+ * @param {Array} [opts.members]    成员档案（含 developStage）
+ * @param {Object} [opts.overrides] 发展推进覆盖 { personId: { stage, entryDate } }（组织台同源）
+ * @param {string} [opts.today]     日期键 YYYY-MM-DD（缺省=今天）
+ * @returns {Object|null} 实时组；无期满成员 → null（不产生空组卡）
+ */
+export function buildDevelopNodeRemindGroup({ members = [], overrides = {}, today } = {}) {
+  const day = today || todayLocal();
+  const items = [];
+  for (const p of members || []) {
+    if (!p || !p.id) continue;
+    const ov = overrides[p.id] || {};
+    const stage = ov.stage || p.developStage;
+    const days = DEVELOP_NODE_THRESHOLDS[stage];
+    if (!days) continue;                       // 仅两类期满节点（发展对象/正式党员无期满动作）
+    const entryDate = ov.entryDate || p.entryDate || null;
+    if (!entryDate) continue;                  // 无阶段起始日期 → 不派生（避免误报）
+    const dueDate = _addDaysByCalendarUtc(entryDate, days);
+    if (!dueDate || dueDate > day) continue;   // 未满期
+    items.push({
+      id: `dev-${p.id}`,
+      personId: p.id,
+      name: p.name,
+      stage,
+      entryDate,
+      dueDate,
+      title: stage === '预备党员' ? `${p.name} 预备期满（应办转正）` : `${p.name} 培养考察期满（应转发展对象）`,
+    });
+  }
+  if (!items.length) return null;
+  return {
+    groupKey: 'org-commissioner:develop-node-remind',
+    actionKey: 'develop-node-remind',
+    domain: 'member-dev',
+    title: '发展节点提醒',
+    flow: '发展阶段进入期满 → 组织委员办理下一节点（积极分子→发展对象 / 预备党员→转正）',
+    count: items.length,
+    items,
+  };
+}
+
+/** 自然半年期键：'YYYY-H1'（01-01…06-30）/ 'YYYY-H2'（07-01…12-31）——制度固定，非可调参数 */
+export function halfYearPeriodOf(dateStr) {
+  const m = /^(\d{4})-(\d{2})/.exec(String(dateStr || ''));
+  if (!m) return null;
+  const month = Number(m[2]);
+  if (month < 1 || month > 12) return null;
+  return `${m[1]}-H${month <= 6 ? 1 : 2}`;
+}
+
+/**
+ * 派生「半年考察提醒」实时组（域=成员发展；组织委员台消费）。
+ * @param {Object} opts
+ * @param {Array} [opts.members]    成员档案（含 developStage）
+ * @param {Array} [opts.records]    考察记录（含 personId / recordedAt）
+ * @param {Object} [opts.overrides] 发展推进覆盖 { personId: { stage, entryDate } }（组织台同源，取 stage）
+ * @param {string} [opts.today]     日期键 YYYY-MM-DD（缺省=今天）
+ * @returns {Object|null} 实时组；无应提醒成员 → null（不产生空组卡）
+ */
+export function buildHalfYearInspectionRemindGroup({ members = [], records = [], overrides = {}, today } = {}) {
+  const day = today || todayLocal();
+  const period = halfYearPeriodOf(day);
+  if (!period) return null;
+  const covered = new Set();
+  for (const r of records || []) {
+    if (!r || !r.personId) continue;
+    if (halfYearPeriodOf(String(r.recordedAt || '').slice(0, 10)) === period) covered.add(r.personId);
+  }
+  const items = [];
+  for (const p of members || []) {
+    if (!p || !p.id) continue;
+    const stage = (overrides[p.id] || {}).stage || p.developStage;
+    if (!DEVELOP_NODE_THRESHOLDS[stage]) continue;   // 只在培养考察期（积极分子 / 预备党员）内提醒
+    if (covered.has(p.id)) continue;                 // 本半年已有考察记录 → 不提醒
+    items.push({
+      id: `halfyear-${p.id}`,
+      personId: p.id,
+      name: p.name,
+      stage,
+      period,
+      title: `${p.name} · 本半年考察意见待更新`,
+    });
+  }
+  if (!items.length) return null;
+  return {
+    groupKey: 'org-commissioner:half-year-inspection-remind',
+    actionKey: 'half-year-inspection-remind',
+    domain: 'member-dev',
+    title: `半年考察提醒（${period}）`,
+    flow: '考察意见半年一次（制度固定）→ 本半年内无考察记录 → 组织委员核对建档；考察记录的督办位仍在纪检台',
+    count: items.length,
+    items,
+  };
+}
+
+/** 周期提醒实时组的 actionKey（组卡 / 域标注 / 判据共用一处） */
+export const MODULE_CYCLE_ACTION_KEY = 'module-cycle-remind';
+
+/**
+ * 派生「本周期尚未开展」实时组（按模块周期；只列本主体主责的模块）。
+ * @param {Object} opts
+ * @param {Array}  [opts.activities] 全部活动（读 `type` / `date`；缺省＝[]）
+ * @param {Array}  [opts.subjectIds]  本台主体集（角色键 / 组织型主体 id；如 `['leader']`）
+ * @param {Record<string,{ownerType,ownerId}>|null} [opts.snapshot] 分工快照（缺省＝缺省分工兜底）
+ * @param {Array}  [opts.modules]     模块表（缺省＝`WORK_MAP_MODULES`；仅供判据注入）
+ * @param {string} [opts.today]       日期键 YYYY-MM-DD（缺省＝今天）
+ * @returns {Object|null} 实时组；无「本期未开展」的模块 → null（不产生空组卡）
+ */
+export function buildModuleCycleRemindGroup({ activities = [], subjectIds = [], snapshot = null, today, modules = WORK_MAP_MODULES } = {}) {
+  const ids = (Array.isArray(subjectIds) ? subjectIds : [subjectIds]).filter(Boolean);
+  if (!ids.length) return null;
+  // 快照接受「`config.workforce` 原样」或「`expandWorkforce` 展开后」——展开幂等，故一律再展开一次
+  const snap = expandWorkforce(snapshot);
+  const day = today || todayLocal();
+  if (!/^\d{4}-\d{2}/.test(String(day))) return null;
+  const items = [];
+  for (const m of (modules || [])) {
+    const cyc = m.cycle;
+    if (!cyc || !cyc.unit) continue;                       // 无制度固定周期 ⇒ 不派生（如实登记）
+    const owner = ownerOfModule(m.id, snap);
+    if (!owner || !ids.includes(owner.ownerId)) continue;  // 非本主体主责 / 已停用 ⇒ 不派生
+    const period = cyclePeriodOf(day, cyc.unit);
+    if (!period) continue;
+    const done = (activities || []).some((a) => {
+      if (!a || moduleIdOfActivity(a) !== m.id) return false;
+      const d = String(a.date || '').slice(0, 10);
+      return !!d && cyclePeriodOf(d, cyc.unit) === period;
+    });
+    if (done) continue;
+    items.push({
+      id: `cycle-${m.id}-${period}`,
+      moduleId: m.id,
+      moduleName: m.name,
+      period,
+      ownerType: owner.ownerType,
+      ownerId: owner.ownerId,
+      title: `${cyclePeriodLabel(period, cyc.unit)}的「${m.name}」尚未开展`,
+    });
+  }
+  if (!items.length) return null;
+  return {
+    groupKey: MODULE_CYCLE_ACTION_KEY,
+    actionKey: MODULE_CYCLE_ACTION_KEY,
+    domain: 'project',
+    title: '本周期尚未开展（支部分工模块）',
+    flow: '模块周期（母本可核者）→ 本期未见对应活动 → 主责人据此组织；不派任务、不改数据',
+    count: items.length,
+    items,
+  };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  纪检确认队列（2026-11-09 批次 539）：原在 `entries/tabs/disc/todo-tab.js` 客户端算，
+//  现收为纯函数（服务端派生 + mock 兜底共用），客户端只展示。
+// ════════════════════════════════════════════════════════════════
+
+/** 人员 id → 姓名（缺省回退 id） */
+function _nameMapOf(persons) {
+  const map = new Map();
+  for (const p of persons || []) {
+    if (p && p.id) map.set(p.id, p.name || p.id);
+  }
+  return map;
+}
+
+/**
+ * 「考勤待确认」实时组（域=考勤纪律；纪检台消费）。
+ * 判据（单一源 = `services/activity/attendance.js::isAttendancePendingConfirm`）：活跃活动 +
+ *   未落确认人 + 非出勤/已补 + 非打回回退态。
+ * @param {Object} opts
+ * @param {Array}  [opts.activities]        活动数组（读 id/archived）
+ * @param {Array}  [opts.attendanceRecords] 考勤记录（读 id/activityId/personId/status/confirmedBy/returnedBy）
+ * @param {Array}  [opts.persons]           人员档案（读 id/name）
+ * @param {string} [opts.groupKeyPrefix]    组键前缀（缺省 `disc-commissioner`）
+ * @returns {Object|null} 无待确认 → null
+ */
+export function deriveAttendanceConfirmGroup({
+  activities = [], attendanceRecords = [], persons = [], groupKeyPrefix = 'disc-commissioner',
+} = {}) {
+  const activeIds = new Set((activities || []).filter((a) => a && a.id && !a.archived).map((a) => a.id));
+  const nameOf = _nameMapOf(persons);
+  const items = (attendanceRecords || []).filter((r) => {
+    if (!r || !r.activityId || !activeIds.has(r.activityId)) return false;
+    if (r.confirmedBy) return false;                       // 已有确认人（含会议考勤录入即确认）
+    if (r.returnedBy) return false;                        // 打回回退态交上传方
+    return r.status !== 'present' && r.status !== 'made_up';
+  }).map((r) => {
+    const name = nameOf.get(r.personId) || r.personId || '';
+    return {
+      id: r.id,
+      activityId: r.activityId,
+      personId: r.personId,
+      name,
+      title: `确认考勤：${name}`,
+      sourceType: 'activity',
+      sourceId: r.activityId,
+    };
+  });
+  if (!items.length) return null;
+  return {
+    groupKey: `${groupKeyPrefix}:attendance-confirm`,
+    actionKey: 'attendance-confirm',
+    domain: 'attendance',
+    title: '考勤待确认',
+    category: 'review',
+    actionType: 'review',
+    flow: '考勤上传 → 纪检确认 → 考勤明细',
+    deadline: null,
+    count: items.length,
+    items,
+  };
+}
+
+/**
+ * 「考察待确认」实时组（域=考察；纪检台消费）。
+ * 判据（单一源 = `entries/tabs/disc/todo-tab.js` 原实现）：活跃活动（专班类保留）+
+ *   `status !== 'confirmed'` + 非打回回退态。
+ * @param {Object} opts
+ * @param {Array}  [opts.activities]        活动数组（读 id/archived）
+ * @param {Array}  [opts.inspectionRecords] 考察记录（读 id/activityId/personId/sourceType/status/returnedBy）
+ * @param {Array}  [opts.persons]           人员档案（读 id/name）
+ * @param {string} [opts.groupKeyPrefix]    组键前缀（缺省 `disc-commissioner`）
+ * @returns {Object|null} 无待确认 → null
+ */
+export function deriveInspectionConfirmGroup({
+  activities = [], inspectionRecords = [], persons = [], groupKeyPrefix = 'disc-commissioner',
+} = {}) {
+  const activeIds = new Set((activities || []).filter((a) => a && a.id && !a.archived).map((a) => a.id));
+  const nameOf = _nameMapOf(persons);
+  const items = (inspectionRecords || []).filter((r) => {
+    if (!r) return false;
+    const active = r.sourceType === 'taskforce' || activeIds.has(r.activityId);
+    if (!active) return false;
+    return r.status !== 'confirmed' && !r.returnedBy;
+  }).map((r) => {
+    const name = nameOf.get(r.personId) || r.personId || '';
+    return {
+      id: r.id,
+      activityId: r.activityId || '',
+      personId: r.personId,
+      name,
+      title: `确认考察：${name}`,
+      sourceType: 'activity',
+      sourceId: r.activityId || null,
+    };
+  });
+  if (!items.length) return null;
+  return {
+    groupKey: `${groupKeyPrefix}:inspection-confirm`,
+    actionKey: 'inspection-confirm',
+    domain: 'inspection',
+    title: '考察待确认',
+    category: 'review',
+    actionType: 'review',
+    flow: '纪检录入考察 → 纪检确认 → 组织建档',
+    deadline: null,
     count: items.length,
     items,
   };
