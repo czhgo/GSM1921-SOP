@@ -2,7 +2,7 @@
 title: "支书评议队列"
 type: audit_report
 role: "[工程师]+[AI]"
-last_updated: 2026-11-08
+last_updated: 2026-11-10
 status: active
 layer: reference
 related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
@@ -52,6 +52,10 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 | 卡片重合·必要性·顺序审计 | 卡级清单 × 同源冲突 × 可替代性 × 顺序认知 | 附录⑪ |
 | UI 审计 2026-11 | 空间 / 字号 / 脏乱 / 守卫空白四路 findings（已修 vs 已登记） | `.ctx/evidence/2026-11-07/ui-audit.md` |
 | 通知受众 gap 2026-11 | content 规定 ↔ 代码实现逐条对照（受众定义 / 必填 / 匿名 / 模板 / 名册） | `.ctx/evidence/2026-11-07/notice-audience-gap.md` |
+| 跳转契约 | 29 类动作 × 6 台落点登记；未命中 fail-closed（可见提示 ＋ 同义落点），禁 toast-only / 静默留页 / 整页 `?tab=` | `content/04_web_design/contracts/INTERACTION_AND_NAVIGATION_CONTRACT.md` |
+| 议程分类 | 来源 → 类型（决策 / 讨论 / 同步）→ 待议池同源纯函数；两端同源 import，服务端出 `agenda-candidates` | `content/04_web_design/contracts/AGENDA_DERIVATION_CONTRACT.md` |
+| 表格契约 | 载体四问 → `data-table` 三档列宽 / 行高 40 / `colspan` 插行详情 / 首列吸附 / 手写表棘轮 | `content/04_web_design/contracts/TABLE_COMPONENT_CONTRACT.md` |
+| 图标着色 | 出口只经 `icons.js`；色值只许 `currentColor` / `none` / `var(--token)`；状态色经 `--tint` 取 `-text` 档；hex 扫描含 `%23` | `design-system/DS_03_COMPONENTS.md §4.11.2` ＋ `server/test/icon-color-guard.test.mjs` |
 
 ### 附录 ① 反论评议
 

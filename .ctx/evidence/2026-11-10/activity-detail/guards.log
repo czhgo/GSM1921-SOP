@@ -1,0 +1,1537 @@
+﻿
+> gsm1921-sop-server@0.1.0 test:guards
+> node scripts/run-guards.mjs
+
+────────────────────────────────────────────────────────────────────────
+[guards] 99 个文件 · 2 片 · 片内并发 4
+────────────────────────────────────────────────────────────────────────
+[guards] 第 1/2 片（60 文件）
+✔ W1 `.card-head` 基准 nowrap，≤640 断点有 wrap 覆盖 (6.4933ms)
+✔ W2 `.card-head__title` 承担伸缩（flex:1 1 auto + min-width:0） (1.1829ms)
+✔ W3 `.card-head__aside` 不拆组（flex:0 0 auto + nowrap） (0.9907ms)
+✔ W4 按钮族保留 white-space:nowrap (4.2395ms)
+✔ W5 `.lf-bar` 仍可折行（SD-58 不被本守卫改坏） (1.4892ms)
+[activity-tone] 抽样：党课 → party-red/brand · 支委会 → party-red/brand · 党小组会 → party-red/brand · 支部党员大会 → party-red/brand · 组织生活会 → party-red/brand · 主题党日 → gold/gold · 理论学习 → gold/gold · 完全未登记的类别 → neutral/neutral
+✔ A1 非空转：activityTypeTone 是函数，8 个抽样类别返回预期 tone (11.2306ms)
+✔ A2 单一源：活动类别徽章不得直接写 neutral/info，例外逐条登记 (1610.3861ms)
+✔ A3 语义隔离：活动类别/状态路径不得出现 info，允许站点清单 ≡ 实测命中集 (207.5489ms)
+✔ A4 党建红：.badge--brand 与 [data-tone="party-red"] 用功能红 #CE1126，不得用 #B91C1C (14.9496ms)
+✔ A5 暗色分离：类别红/金与 danger/warning 逐值不同，badge--brand 不借状态色 (19.072ms)
+✔ 宣传台档案归档：不再提供「归档活动」按钮与写链 (10.2975ms)
+✔ 活动归档能力仍在支书 / 组织者侧（撤的是第二写口，不是能力） (14.0972ms)
+✔ D1 非空转：归档入口 / 归档页签 / 活动详情 / 定位工具四个文件都可读 (72.817ms)
+✔ D2 archive-entry.js：读 URLSearchParams 的 tab 与 id，tab 值域含三页签 (9.5547ms)
+✔ D3 prop/archive-tab.js：命中 focusActivityId 先展开折叠区，定位失败必须 showToast (6.4922ms)
+✔ D4 activity-entry.js：复盘不得再指向 tab=talent / tab=archive (7.5492ms)
+✔ D5 detail-anchor.js：逐级展开父链 <details>，不可见时返回 false (8.8976ms)
+✔ B1/B2 生产代码中的 br-b1 字面量除常量定义行外一律判红（注释行跳过） (5607.6206ms)
+✔ B3 非空转：扫描面有规模、常量定义仍在，且判据真会判（内存副本注入反例） (3687.2999ms)
+✔ G1 卡片末行：不得只有右对齐操作（带左侧信息的同行合法） (3627.0828ms)
+✖ G2 折叠头 summary：空内容 summary 宽 100% / 高 ≥44，标题行 ≥44 (2062.9881ms)
+✔ G3 hero 特例白名单：DS_05 登记居中；CSS/入口不得回退左对齐降级 (21.5483ms)
+✔ G4 嵌入形态不得再套卡：embedded 模板无 .card，insight-view 给两者传 embedded:true (13.5212ms)
+✔ U1 服务模块：采用 / 同步 / 强调通知 / canAdopt 导出且走服务端语义端点 (7.8401ms)
+✔ U2 详情页：院级 / 副本来源 / 采用 / 同步 / 强调通知 / 已采用只读横幅齐备 (9.1868ms)
+✔ U3 列表：支书台与成员台都有「院级」来源标识；成员台不得出现采用入口 (11.4882ms)
+✔ U4 副本版本落后提示与强调通知 24 小时限频判据在位 (5.5229ms)
+✔ U5 新增界面不引入裸 text-[13px]，新增块无硬编码 hex (19.515ms)
+✔ U6 采用统一二次确认：列表 strip 与详情页共用 modal.js::confirmAction，无确认不直写 (18.7936ms)
+✔ T1 页签注册：gov-content / 院级内容 / content-tab.js (7.5065ms)
+✔ T2 页签模块：存在、导出 renderContent、登记当前 tab (12.3669ms)
+✔ T3 两个子视图：活动 / 资料 与 ?subview= 协议 (5.2796ms)
+✔ T4 表单控件只经 forms.js 具名导出 (4.9791ms)
+✔ T5 无裸文本输入：<input> 仅复选框，且不手写 .input-flat (6.9153ms)
+✔ T6 api-adapter::committeeContent 覆盖活动与资料写口 (11.0601ms)
+✔ T7 下发页第三子视图「公开通知」：?subview=public、撰写 + 列表 + 撤下 (7.2029ms)
+✔ T8 读失败不回落 mock：分块结算 + 分支错误 + panel 空态重试 (5.5747ms)
+✔ M1 步骤条五词齐备：范围 → 议程 → 表态 → 截止 → 留存 (2.8798ms)
+✔ M2 主内容模板串内无超过 120 字的连续说明段 (3.1461ms)
+✔ M3 btn-accent 主按钮不超过 2 处（当前步只留一个） (0.761ms)
+✔ M4 议程行可见动作 ≤2（不出现第三个并列按钮） (1.0726ms)
+✔ T1 支委构成表与会议表走统一数据表 (3.3625ms)
+✔ T2 不再挂载全局「选人 → 选身份 → 确认」表单 (0.6542ms)
+✔ T3 模板串内无超过 120 字的连续说明段 (2.1435ms)
+✔ T4 五类支委身份词齐备 (0.5744ms)
+✔ T5 含「新建线上支委会」入口 (0.5695ms)
+✖ T6 帮助注释在两张表之后（说明后置） (2.5706ms)
+✔ T7 标题区只有一个主操作按钮，且行内不再出现 btn-ghost (0.911ms)
+✔ T8 委员表每行可见动作 ≤2：改派/补选 + 更多，撤销在菜单内 (0.9007ms)
+✔ C0 五档表与卡片栅格单一源在位 (4.98ms)
+✔ C1/C2 页面容器宽度只允许五档（About 冻结件豁免） (141.8344ms)
+✔ C3 反例：max-w-2xl（42rem）与 1320px 必须判红 (14.5762ms)
+✔ C4 非空转下限：扫描页面数 ≥ 20 (9.8213ms)
+✔ C5 守卫登记在 daily / guards 层（2026-11-08 批次 537 起按需跑，不得孤儿化） (16.1446ms)
+[折叠区口径登记] 共 41 个折叠区：与 help 有 ≥20 字重合（**疑似已定点**）0 个 · 疑似未定点 41 个（**人检清单**：判它是不是制度口径、help 有无同义段落）
+  · [人检] docs/src/components/governance/activity-progress.js → 「按承办范围查看活动；归档仍在活动详情按材料/考勤闸门办理。…」（29 字）
+  · [人检] docs/src/components/governance/branch-roster-import-panel.js → 「仅空支部可以整表导入。先下载现有成员档案模板，保留要迁入的成员行并删除其他行；核对预览后一次保存…」（158 字）
+  · [人检] docs/src/components/governance/notice-view.js → 「${list.map(rowHtml).join('')}…」（29 字）
+  · [人检] docs/src/components/governance/person-edit-modal.js → 「${fields.map((f)=>formRow(f.label,selfProfileCon…」（100 字）
+  · [人检] docs/src/components/governance/person-profile-sections.js → 「${body}…」（7 字）
+  · [人检] docs/src/components/governance/work-overview.js → 「${doneRows.length?listGroupHtml(doneRows):emptyS…」（68 字）
+  · [人检] docs/src/components/governance/workgroup-member-editor.js → 「${canEdit?`工作组分工${Object.entries(WORKGROUP_ROLE_…」（144 字）
+  · [人检] docs/src/components/governance/workgroup-member-editor.js → 「${activity?'旧成员镜像保留查看，核实后再纳入活动名单。':'专班不设一般参与者；旧记…」（167 字）
+  · [人检] docs/src/components/governance/workgroup-permissions.js → 「${Object.entries(templates).map(([role,keys])=>`…」（192 字）
+  · [人检] docs/src/components/record/todo-tab-shell.js → 「${rows}…」（7 字）
+  · [人检] docs/src/components/record/todo-tab-shell.js → 「${extraHtml}${unreadHtml}…」（25 字）
+  · [人检] docs/src/components/sections/help-catalog.js → 「常见任务${HELP_QUICK_TASKS.map((task)=>`${esc(task.l…」（66 字）
+  · [人检] docs/src/components/sections/references.js → 「${readPanel}…」（12 字）
+  · [人检] docs/src/components/sections/references.js → 「${histPanel}…」（12 字）
+  · [人检] docs/src/components/sections/references.js → 「${bodyHtml}…」（11 字）
+  · [人检] docs/src/components/ui/disclosure.js → 「${bodyHtml}…」（11 字）
+  · [人检] docs/src/entries/pages/activity-entry.js → 「汇报明细${renderReportInboxHtml({reports:visibleRepo…」（209 字）
+  · [人检] docs/src/entries/pages/activity-entry.js → 「${manageCards.join('')}…」（23 字）
+  · [人检] docs/src/entries/pages/activity-entry.js → 「汇报明细${renderReportInboxHtml({reports:visibleRepo…」（209 字）
+  · [人检] docs/src/entries/pages/person-entry.js → 「${hasResidenceNote?`当前备注${esc(String(member.resi…」（97 字）
+  · [人检] docs/src/entries/pages/person-entry.js → 「档案编号${textOrEmpty(member.studentId,EMPTY_TEXT)}…」（47 字）
+  · [人检] docs/src/entries/tabs/leader/members-low-frequency.js → 「${reviewBodyHtml}…」（17 字）
+  · [人检] docs/src/entries/tabs/leader/review-tab.js → 「${isExpanded&&rev?_renderReviewDetail(rev):''}…」（46 字）
+  · [人检] docs/src/entries/tabs/leader/write-tab.js → 「${OUTDOOR_CHECKLIST.map(x=>`${escHtml(x)}`).join…」（63 字）
+  · [人检] docs/src/entries/tabs/org/activity-calendar-tab.js → 「跨组只影响招募范围；活动始终落到承办党小组，跨党小组深度参与者由组织委员协调。此处只标记协调状态…」（71 字）
+  · [人检] docs/src/entries/tabs/org/activity-calendar-tab.js → 「历史活动缺少承办党小组。系统不猜测归属，请按实际补选；补选后任务、考察与汇报可按党小组汇总。${…」（59 字）
+  · [人检] docs/src/entries/tabs/org/roster-tab.js → 「支部应到${stats.expected}人${groupStats.map(x=>`${esc…」（224 字）
+  · [人检] docs/src/entries/tabs/org/roster-tab.js → 「从问卷后台「导出」表格后，整块复制（含表头行）粘贴到此框（另存为CSV后复制亦可）；首行须为列名…」（116 字）
+  · [人检] docs/src/entries/tabs/org/taskforce-tab.js → 「${intro}${blocks.map((blockId)=>``).join('')}…」（45 字）
+  · [人检] docs/src/entries/tabs/org/taskforce-tab.js → 「专班不设普通参与成员；旧记录保留查看，不计入成员与名额。${legacyRows.map((me…」（102 字）
+  · [人检] docs/src/entries/tabs/party-committee/party-config-tab.js → 「${bad.map((c)=>`${c.short||c.label}·${c.howto}`)…」（58 字）
+  · [人检] docs/src/entries/tabs/party-committee/party-config-tab.js → 「${data.codeHint||''}复制环境变量模板${esc(data.envTempla…」（52 字）
+  · [人检] docs/src/entries/tabs/prop/tasks-tab.js → 「${submitted.length===0?emptyStateHtml({text:'暂无已…」（130 字）
+  · [人检] docs/src/entries/tabs/prop/tasks-tab.js → 「类型*请选择类型${TASK_CREATE_TYPES.map(t=>`${t}`).join(…」（91 字）
+  · [人检] docs/src/entries/tabs/secretary/committee-meeting-tab.js → 「撤销…」（2 字）
+  · [人检] docs/src/entries/tabs/secretary/group-progress-tab.js → 「改名解散…」（4 字）
+  · [人检] docs/src/entries/tabs/secretary/group-progress-tab.js → 「改名解散…」（4 字）
+  · [人检] docs/src/entries/tabs/secretary/group-progress-tab.js → 「${rows.length?rows.map(_historyRowHtml).join('')…」（103 字）
+  · [人检] docs/src/entries/tabs/secretary/todo-tab.js → 「${safeChips.length?`自动解除：${safeChips.join('')}`:…」（102 字）
+  · [人检] docs/src/entries/tabs/shared/activity-calendar-tab.js → 「${PANEL_HTML}${opts.afterHtml||''}…」（34 字）
+  · [人检] docs/src/entries/tabs/visitor/review-tab.js → 「${bodyHtml}…」（11 字）
+[C8 结论] 「同义」机检不了（见文件头）：本守卫只登记 + 出人检清单，不判红；界面侧新增制度口径折叠区时，请同批在 help `#sec-copy-anchors` 加同义段落（或把它整段搬去 help 定点）。
+[文案字数守卫] 卡片导语候选 106 · 说明段候选 1716
+  · C1 卡片导语 >60：命中 0 条（基线 0，持平）· 文件 0（基线 0）
+  · C2 单段 >80：命中 5 条（基线 5，持平）· 文件 4（基线 4）
+  · C5 单句括注 ≥3：命中 3 条（基线 3，持平）· 文件 3（基线 3）
+  · C6 空态 >30：命中 3 条（基线 2，↑1）· 文件 3（基线 2）
+    C2 docs/src/components/governance/org-setup-wizard.js → 「新支部为空、支书席位空缺：勾选后创建时一并就地任命首任骨干——新任支书凭本人账号登录即可接管该支部（组织信息/模块/名册可在支书工作台与支部配置中继续完善）。任命对象来自现有成员（如跨支部兼任/调任）：若其在原支部任支委/组长，原支部对应席位将空缺（界面明示）；人员后续也可在成员管理/名单导入中补入新支部后再次调整。」
+    C2 docs/src/components/governance/org-setup-wizard.js → 「新支部为空：config默认全开、业务域为空、支书席位空缺——勾选上方「就地任命首任骨干」时随创建一并任命（已就地任命首任支书/组织委员者，创建后即建册、支书登录即可接管新支部）；不勾选则按原路径：创建后在下方分步填入组织信息/模块/分工，或按「换壳工作单」补数据。记录变更：config.configChangeHistory追加branch-created。」
+    C5 docs/src/components/governance/org-setup-wizard.js → 「新支部为空、支书席位空缺：勾选后创建时一并就地任命首任骨干——新任支书凭本人账号登录即可接管该支部（组织信息/模块/名册可在支书工作台与支部配置中继续完善）。任命对象来自现有成员（如跨支部兼任/调任）：若其在原支部任支委/组长，原支部对应席位将空缺（界面明示）；人员后续也可在成员管理/名单导入中补入新支部后再次调整。」
+    C6 docs/src/components/sections/references.js → 「暂无制度文本——可在「写入文件」中选择「制度文本」发布（支书/副支书）」
+    C6 docs/src/entries/pages/activity-entry.js → 「暂无报名名单·下一步：成员在本页「报名」视图报名，通过后在此列出」
+    C2 docs/src/entries/pages/settings-entry.js → 「提示：排序与恢复默认仅对当前账号（）生效，不影响支部默认顺序与他人。核心固定页签「」为全员必有，不可拖动、隐藏或排序；新页签由支部统一配置后出现，默认排于业务页签之后。」
+    C2 docs/src/entries/tabs/leader/attendance-tab.js → 「考勤上传：组织者上传→纪检委员确认→录入考勤明细。仅列本组党小组会与本人为组织者的活动（主题党日/组织生活会等）；党课/支部党员大会的上传位在纪检委员（纪检台「会议考勤录入」），支委会不考勤；组长非组织者=本组监督位，督促上传」
+    C5 docs/src/entries/tabs/leader/attendance-tab.js → 「本组（）应到人（组内党员−滞留剔除）。滞留者已在候选中标灰禁选（悬浮查看备注）：」
+    C6 docs/src/entries/tabs/secretary/report-up-tab.js → 「暂无上报记录·支部关键事项（发展节点/重要活动）上报后，党委批/驳结论将显示在这里」
+    C5 docs/src/services/branch/branch-doc.js → 「if(!isInstitutionManager(role))return{ok:false,reason:'制度文本仅限支书（含副支书）操作'};」
+    C2 docs/src/services/core/init-reset.js → 「[InitReset]?reset=init已初始化为「新支部初始态」：业务过程数据已清空（个独立业务键移除+主库业务域置空），白名单保留（账号/成员档案/支部配置/在册状态/主题/登录会话），正在刷新」
+[收基线提示] 把长说明改成「一行摘要 ＋ <details> ＋ help 深链」后，同批删基线条目 / 减计数，进度即前进；不得为变绿补条目。
+[界面复述制度母本] 命中 6 条（基线 7，↓1） · 文件 5（基线 5，持平）· 阈值 ≥20 字
+  · docs/src/components/governance/org-setup-wizard.js → 「模块/块组合、角色分工与组织档案（页眉/自述/主题」（25 字）
+  · docs/src/components/governance/org-setup-wizard.js → 「；日常分工调整请走支书台「支部分工」的支委会议题流程」（26 字）
+  · docs/src/components/sections/references.js → 「该制度当前已停用，以下为最近版本正文（仅供查阅）」（24 字）
+  · docs/src/core/domain/system-notice-templates.js → 「已报送支委会表决，表决通过后将开放招募（截止」（22 字）
+  · docs/src/entries/pages/settings-entry.js → 「未找到您所属支部——请先由党委在『支部管理』中确认归属」（27 字）
+  · docs/src/entries/tabs/secretary/report-up-tab.js → 「节点（确定积极分子/发展对象、接收预备党员、按期转正等」（27 字）
+[只报不判 · C7 原文母本 16 份 content/**.md] 命中 3 条：
+  docs/src/core/domain/work-map.js → 「发展党员的考察与材料准备、考察档案体系建立」（21 字）
+  docs/src/entries/pages/about-entry.js → 「纪检考察只在制度、议程或具体事项明确要求时办理」（23 字）
+  docs/src/entries/tabs/leader/write-tab.js → 「系统内可承载的（如宣传文稿），由深度参与者在网页上完成、产出由系统在后台同步；系统无法承载的」（46 字）
+[收基线提示] 把复述改成「一行 ＋ help 深链」后，同批从 BASELINE 删条目 / 减小计数，进度即前进；不得为变绿补条目。
+[docs 口径残留] B1 支部名扫描 344 文件 · 命中 0 处（mock 已排除）
+[docs 口径残留] B2 旧色名文件 1 个（登记例外 1 个）· 未登记命中 0 处
+✔ F1 非空转：折叠区抽取口径可用 + 折叠区 / 定点卡片规模达标 (17.0258ms)
+✔ F2 折叠区口径登记（只报不判 / C8 机检不了「同义」）：41 个折叠区 vs help 定点 20 字疑似重合 (9.4223ms)
+✔ E1 空态只从 empty-state.js 出：白名单外的手写空态命中数为 0 (2.6063ms)
+✔ E2 非空转：反例命中 / 负例不误伤 + 扫描面与组件规模达标 + 白名单无僵尸 (17.7373ms)
+✔ L1 面板/卡片导语 ≤60 字（基线 0 条 / 0 文件） (2.8393ms)
+✔ L2 单个连续说明段 ≤80 字（基线 5 条 / 4 文件） (2.0542ms)
+✔ L3 单句括注 ≤2 个（基线 3 条 / 3 文件） (1.6557ms)
+✖ L4 空态/错误态 ≤30 字（基线 2 条 / 2 文件） (6.2457ms)
+✔ L5 非空转：抽取口径可用（含 4 处阈值边界）+ 候选 / 基线规模达标 + 无僵尸登记 (56.8533ms)
+✔ L6 缩减进度：四类当前命中数与基线对照（逐条列出现存命中） (3.9764ms)
+✔ N1 界面复述制度母本：基线之外的「连续 ≥20 字重合」判红（基线 7 条 / 5 文件） (1.4124ms)
+✔ N2 逐文件 ratchet：某文件的重合条数不得高于基线（同一句再复述一遍也算新增） (1.6095ms)
+✔ N3 非空转：抽取口径可用（含 20/19 字边界）+ 基线规模达标 + 无僵尸登记 + 定点登记完整 + 深链可达 (2030.7501ms)
+✔ N4 缩减进度：当前重合条数 / 文件数与基线对照（另打印 C7 原文母本 content/** 口径） (2098.8863ms)
+✔ Z1「此地无银」自明句零命中：docs/src 不得出现替 UI 说话的多余说明 (4110.7734ms)
+✔ Z2 非空转：黑名单匹配器对植入样本必须命中 (0.7528ms)
+✔ S1 卡头副题只写「范围 + 约束」：操作指令命中数为 0（实测 31 条副题） (1.418ms)
+✔ S2 非空转：副题抽取口径可用（反例命中 / 负例不命中）+ 副题数 ≥ 15 (0.9544ms)
+✔ D1 用户可见渲染串不写死完整年月日：命中数为 0 (4.067ms)
+✔ D2 非空转：反例命中 / 注释与数据字段不误伤 + 扫描面达标 + mock 不在面内 (2.6563ms)
+✔ B1 支部名字面量：docs/**（排除 mock）命中数为 0 (156.2133ms)
+✔ B2 旧色名：docs/** 可见文案零残留（换组织向导 / 旧偏好映射登记为棘轮） (201.6363ms)
+✔ F1 页签失败态错误串：不暴露模块文件名 / 不含「请刷新」 (18.1825ms)
+✔ F2 模块失败分支带动作按钮，且按钮文案为「重新载入」 (2.7712ms)
+[零引用 CSS 类] 类选择器 875 个 · 零引用 11 个（台账 1 ＋ 动态白名单 10）
+[台账（允许存在的零引用类）] inline-full
+[动态白名单] motion-collapse · motion-press · ab-edge--task · ab-edge--info · ab-edge--file · ab-flow-line--task · ab-flow-line--info · ab-flow-line--file · lenis-smooth · lenis-stopped
+[不判红的零引用] lenis-smooth · lenis-stopped · ab-edge--task · ab-edge--info · ab-edge--file · ab-flow-line--task · ab-flow-line--info · ab-flow-line--file · motion-collapse · motion-press
+[收基线提示] 删零引用类后同批删 style-baseline.mjs 的 DEAD_SELECTOR_BASELINE 条目；不得为变绿补条目。
+✔ Z1 零引用类回归：现状之外出现「零引用且不在台账 / 动态白名单」的类 ⇒ 判红 (3712.17ms)
+✔ Z2 僵尸登记：台账 / 白名单里的类若已不存在于 CSS ⇒ 判红（台账只减不增） (777.6714ms)
+✔ Z3 非空转：抽取口径正 / 负例 ＋ 分类对表 ＋ 规模下限 ＋ 台账 / 白名单自洽 (6142.1543ms)
+✔ Z4 缩减进度：类选择器 / 零引用 / 台账 / 白名单当前计数 (3609.3851ms)
+[density] 组件内离档间距值 112 处（棘轮上限 113）
+[density] Tailwind 1.5/2.5/3.5：1005 处 / 99 文件（棘轮 1056 / 99）
+✔ D1 输入/下拉：40px 单档 + 34px 紧凑档（padding + 显式 line-height 推导） (2401.1351ms)
+✔ D2 按钮三档：36 / 32 / 28 由 padding + line-height 推导，主档不得用 min-height (115.1966ms)
+✔ D3 行型：单行 48 / 双行 56 / 紧凑 44 / 表格 40 / summary 40，且被实际消费 (4590.949ms)
+✔ D4 行内 28px 按钮命中区 ≥44px（伪元素扩展，不改视觉高度） (975.6694ms)
+✔ D5 间距：--space-* 恰五档；组件内离档值（2/6/10/14/20）只降不升 (8.1128ms)
+✔ D6 Tailwind 1.5/2.5/3.5 数值档只降不升 (3013.9941ms)
+✔ D7 页头说明→summary 8–12；标题→次级→描述 8 (5157.2455ms)
+✔ F1 拥有的文件中不得存在「catch 之后仍报成功」 (42.4121ms)
+✔ F2a 两个作用域互不污染：A 失败不影响 B 的成功判定 (2.4118ms)
+✔ F2b 作用域内的失败不进入全局兜底；全局兜底仍可用于无作用域写入 (13.325ms)
+✔ F2c 未显式传 scope 的写会归属当前活动作用域（持久化层登记即可受控） (0.8598ms)
+✔ F2d endWriteScope 幂等：重复关闭不抛、不破坏外层作用域 (0.6998ms)
+✔ F3a resolveToastOutcome 按 401/403/408/409/500 分级，不透出原始异常 (1.9621ms)
+✔ F3b showToast(success, …, { scope }) 在 scope 失败时 resolve 为失败文案 (4.1593ms)
+✔ F4a activity-entry：工作组保存失败不再报成功，成功后刷新 (5.4348ms)
+✔ F4b activity-materials：归档用动作作用域，失败文案走 describeWriteError (4.1353ms)
+✔ F4c issues.approveDraft：写入必须 trackWrite，不得只 console.warn (4.3156ms)
+✔ F4d roster-tab：部分失败只报一条汇总 error，不得同时报成功 (5.7638ms)
+✔ F4e workflow.engine：onEnter 抛错时结果不得是 success:true (4.7877ms)
+[field-shell-guard] F2 边框色 gold #A97A12 vs 白卡 3.83:1
+[field-shell-guard] F2 边框色 red #A32B24 vs 白卡 7.17:1
+[field-shell-guard] F2 边框色 orange #B45B33 vs 白卡 4.68:1
+[field-shell-guard] F2 边框色 green #2F6B4F vs 白卡 6.29:1
+[field-shell-guard] F2 边框色 cyan #0F6D7B vs 白卡 6.01:1
+[field-shell-guard] F2 边框色 blue #3D4E9C vs 白卡 7.59:1
+[field-shell-guard] F2 边框色 purple #6D5382 vs 白卡 6.54:1
+✔ F1 非空转：styles.css 可解析到 .input-flat 与 :focus-visible 规则 (5.4589ms)
+✔ F2 活动态：.input-flat:focus 边框切主题色，零 outline / 零 box-shadow (4.6028ms)
+✔ F3 键盘一致：.input-flat:focus-visible 与 :focus 同表现（只变边框、不出环） (5.2517ms)
+✔ F4 旧双环变量退场：.input-flat:focus 与暗色段均不引用 --focus-ring / --focus-halo (3.6159ms)
+✔ F5 禁用 / 只读分态：两者都存在且声明不同（禁用灰底 / 只读透明边） (3.3941ms)
+✔ F6 select 统一：本地增强 / data-cs-enhanced / .input-flat 全局增强，例外逐条登记 (2130.341ms)
+✔ R1 裸输入只减不增：逐文件不超过基线，未登记文件出现裸输入即红 (1717.7044ms)
+✔ R2 规模与单一源：总数 / 文件数不超基线，forms.js 仍导出布局中立控件 (1747.4724ms)
+✔ R3 反例自检：合成裸 input 必须判红，控件积木产物必须不命中 (1.3456ms)
+✔ R4 docs/src 原生 datalist 清零（list 属性 / datalist 标签） (1918.0355ms)
+✔ R5 suggestInput 产物：combobox ARIA 齐全、无 list 属性 (1.8319ms)
+✔ S1 筛选行与表格类族在 styles.css 单一源在位 (13.2718ms)
+✔ S2 统一检索引擎的分面：两形态（默认下拉；chip 须走 .chip-option 单一源） (5.9177ms)
+✔ S3 全站表格只用单一源类（.data-table） (3529.4621ms)
+✔ S4 表头/单元格重复声明不得回潮 (3250.5737ms)
+✔ S5 控件档位唯一：清 10px 下拉死规则 + 触发器不再补 32px (33.4253ms)
+✔ S6 筛选行分面胶囊只许经引擎 opt-in（页面不得自写 .chip-option） (3518.7017ms)
+✔ S7 自写搜索框须落在 .lf-kw（筛选行载体单一源） (4968.1871ms)
+✔ S8 分页控件单一源（禁借 chip 选中态） (4762.2063ms)
+✔ S9 选人载体：用 select 列人名的只允许「任命 / 指派到人」三处例外（详见 DESIGN_SYSTEM §4.13） (4151.6733ms)
+✔ S10 分页内置统一引擎（翻页控件单一源；调用点不得私自关掉分页） (3426.9626ms)
+✔ S11 翻页标记单一源：page-btn / page-num 只允许由 components/ui/pager.js 产出 (3147.5155ms)
+✔ S12 手写表格收敛台账：`<table` 只允许出现在登记在案的位置 (2848.3187ms)
+✔ D1 单档口径同源：全站只剩「40px 控件 / 13px 字」一套（2026-10-23 Task 6 抬档） (11.706ms)
+✔ D2 档位算式显式（内边距 + 显式行高 + 边框 = 40），禁靠 UA 或 CDN 工具类给行高 (14.5575ms)
+✔ D3 表格单档须直接声明到 th/td（禁只靠 <table> 继承，防 CDN 工具类压过） (10.4692ms)
+✔ S13 数据格不得挂小字类（text-xs / text-[1Npx] 只许出现在单元格内部） (3776.8473ms)
+✔ S14 筛选条两行布局：可折行、段内控件同排、reset 不独占整行 (43.485ms)
+✔ S15 四页真机 1440 筛选条高度 ≤96px（≤2 行） (11.9332ms)
+[DataAdapter] 数据源切换为: mock
+✔ F1 label for/id：四个重点表单的 label 与控件 id 成对 (6.1272ms)
+✔ F2 必填与字段错误：required/aria-required + 错误行 + aria 关联 + 聚焦首错 (0.7462ms)
+✔ F3 describeWriteError：按状态码分流且界面不出现 HTTP 数字 (2.3627ms)
+✔ F4 API / 调用点：服务端 body.error 优先，party-config / calendar 走统一文案 (0.6784ms)
+✔ F5 nudge 动词：每个场景都有 verb，标题按「本步一般由{who}{verb}」 (1.0182ms)
+✔ F6 表单按钮与浮窗退出：默认「保存」+ 150ms 淡出 + inert/焦点立即回还 (0.678ms)
+✔ F7 活动详情：7 处原生对话框已全部改为 openModal (0.8015ms)
+✔ F8 可点容器键盘可达：非原生容器必须 role=button + tabindex=0 且文件有 Enter/Space 处理 (82.1843ms)
+✔ F9 写口失败不得提示成功：先判返回值/捕获异常，成功 toast 在失败分支之后 (12.5666ms)
+✔ F10 日历默认月份由 now 派生：now=2026-10 / 2026-11 两个取值默认月随之变化 (2366.1628ms)
+✔ F11 mock 延迟单一源：默认 80ms ＋ 两条覆盖入口 ＋ 上限 5000ms，业务代码不得写死 600ms (46.1342ms)
+✔ F12 只读由权限派生：canWriteResource / readonlyMeta 角色矩阵＋4 处硬编码清零 (26.6689ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v14（本次应用 14 项）
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+✔ D01：recordedBy === actor 时确认/打回均拒绝，且不改记录 (280.4863ms)
+✔ D01：纪检/支书/副支书可确认并落 confirmedBy/confirmedAt；组织委员与普通成员不可确认 (4.3238ms)
+✔ D01：打回同样落 returnedBy/returnedAt（复用既有字段） (1.3604ms)
+✔ D06(b)：会议考勤上传后 recordedBy 为录入人，且不进入待确认队列 (7.3765ms)
+✔ D06(b)：对照——组织者上传（recordedBy:null）的异常记录才进待确认队列 (1.6411ms)
+✔ D04：auto 交接不派生接收方待办；confirm 两次结果一致且只有一条交接记录 (3.8029ms)
+✔ D04：material-shortage（真待办类）仍派生纪检待办 (2.0153ms)
+✔ D08：前端判据 / 服务端写门 / constants 角色集合同源，且含 org-commissioner (1.6889ms)
+✔ D08/D01 服务端：组织委员可 POST 考察，但不能确认（确认白名单 + 自确认禁令） (1070.0718ms)
+✔ D01 服务端：纪检自提交的考察，确认/打回均 403；支书/副支书可确认 (158.6671ms)
+[硬编码 hex 存量] 处数 806（基线 812，↓6） · 值 291（基线 291，持平） · 文件 44（基线 44，持平）
+[存量最重五项] docs/src/styles.css=388 · docs/src/core/domain/constants.js=195 · docs/src/about.css=50 · docs/help.html=48 · docs/src/components/sections/references.js=14
+[收基线提示] 删存量后同批删 style-baseline.mjs 对应值 / 减小 c，进度即前进；不得为变绿补条目。
+✔ H1 硬编码 hex 回归：现状之外的 (文件, 值) 判红（基线 291 值 / 44 文件 / 812 处） (1980.8049ms)
+✔ H2 处数 ratchet：逐文件 hex 处数不得高于基线（同一值复制到同文件也算新增） (2131.6192ms)
+✔ H3 非空转：抽取口径可用 + 基线规模达标 + 无僵尸登记 (3140.1784ms)
+✔ H4 缩减进度：当前存量与基线对照 (2356.9626ms)
+✔ H5 搬移例外台账：逐值对照 ＋ 不许借搬移加深色 ＋ 总量不得升（台账 2 条） (2512.548ms)
+✔ H6 主题色板例外：除 #FFFFFF 外，色板值只允许出现在 constants.js / styles.css (2961.8406ms)
+✔ H7 theme-color：每页恰一条，且等于 --party-red（about.html 冻结件除外） (477.7069ms)
+[hover] 5 个文件共 117 条 :hover 规则，未门控 0 条
+[hover] 检查 hover 规则体 117 条，非颜色反馈 0 条
+[hover] 规则分布：docs/src/styles.css=98 · docs/src/components/person-picker.css=9 · docs/src/about.css=3 · docs/help.html=7 · docs/login.html=0
+[hover] H8 cursor:pointer 规则 57 条 · 无状态且未登记 0 处（登记例外 3）
+[hover] H9 role=button 标签 28 个 · 缺 tabindex 0 处
+[hover] H11 可点行规则 34 条 · 违规 0 处
+✔ H1 全仓 :hover 规则必须由 @media (hover: hover) 门控 (76.1998ms)
+✔ H2 hover 反馈只改颜色：filter / opacity / transform / translate / box-shadow 计数为 0 (101.6287ms)
+✔ H3 页签与 summary 有三态；静态行/卡不假装可点 (30.9879ms)
+✔ H4 Tailwind hoverOnlyWhenSupported: true（触屏不触发 hover 工具类） (4.6374ms)
+✔ H5 非空转：hover 规则规模下限 (52.9947ms)
+✔ H6 按压配色三源：中性灰 / 主题 activeBg / 党建红 active (9.663ms)
+✔ H7 按压反馈唯一源：反馈档 + 1px 内阴影，且无位移 / 缩放 (10.3864ms)
+✔ H8 声明 cursor:pointer 的类必须有 :hover 或 :active（反例：只有光标没有状态） (72.8007ms)
+✔ H9 产出 role="button" 的组件必须同时产出 tabindex（或本身是原生 button / a） (4816.1269ms)
+✔ H10 空壳折叠热区不铺底色：.disclosure__summary（含 hover / active）背景必须透明 (29.6312ms)
+✔ H11 可点行：8px 圆角 + 主题 10% 淡底 + 选中 soft 底（状态左条计数为 0，含 4 条反例） (53.532ms)
+✔ I1 四件落盘：IA 矩阵 / 批判性审计 / 链接真值 / H21.3 协议 (43.849ms)
+✔ I2 协议含三问 / 数据适配功能 / 5 条 Boolean 规则 (8.7785ms)
+✔ I3 CLAUDE 含 H21.3 三问与 mock 可删改 (6.2436ms)
+✔ I4 矩阵非空转：tabs ≥ 60、links ≥ 30 (7.2934ms)
+✔ I5 审计报告覆盖六路编号；链接真值覆盖材料闭环与至少 10 条 (11.4731ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v14（本次应用 14 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v14（本次应用 14 项）
+✔ G1 mock 种子 / server 种子 / 反馈 JSON 不得出现 p* 人员 id (179.611ms)
+✔ G2 业务代码不得引用 LEGACY_PERSON_ID_MAP（仅迁移文件） (3159.9546ms)
+✔ G3 前端 legacy 映射只允许 data-adapter / mock-adapter 迁移路径引用 (3336.5637ms)
+✔ G4 PEOPLE 的 id 必须等于 studentId（学号/工号即主键） (0.7056ms)
+✔ G5 播种库 users.id = studentId；v7 幂等（全为学号时 mapped=0） (633.4898ms)
+[auth] 检测到旧 p* 人员 id 登录别名（仅迁移期兼容），会话已改存学号
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v14（本次应用 14 项）
+✔ G6 旧 p* 只作登录别名：会话与返回用户一律存学号，users 表不落 p* (662.6691ms)
+✔ G7 v7 迁移把旧库里的 users / 引用 / 会话一并换成学号 (92.4137ms)
+✔ L1 `.lf-bar` 的直接子元素只能是 `.lf-bar__row` (3522.3194ms)
+✔ L2 段位：至少 search；顺序 scope→search→facet→reset；纯范围例外恰 1 处 (3407.7028ms)
+✔ L3 反例：控件直塞 bar / 删掉 search 段，必须判红 (6.8598ms)
+✔ L4 非空转下限：`.lf-bar` 产出点 ≥ 12 (3140.1296ms)
+✔ L5 守卫登记在 daily / guards 层（2026-11-08 批次 537 起按需跑，不得孤儿化） (13.0195ms)
+[link] 检查 <a> 标签 280 个，蓝链接 0 个
+✔ L1 非空转：可扫描到前端源与 <a> 标签 (1946.1754ms)
+✔ L2 纯文本链接不得用 Tailwind 蓝作链接色（信息态/带底色的按钮型链接除外） (1786.1629ms)
+✔ L3 .link 单一源：色取 --color-link（→ softText），无下划线、600 字重 + 淡底 hover (10.3556ms)
+✔ L4 .text-accent 仍是等价别名（存量调用点依赖） (8.7703ms)
+✔ L5 蓝色文字类总量只降不升（覆盖 JS 动态 className） (1540.9605ms)
+✔ L6 帮助链接：.help-note__link 并入 --color-link，无下划线、600 字重 + 淡底 hover (8.5589ms)
+✔ L7 速查链接：a.qn-fn-* 颜色并入 --color-link，角色色只留边框 (17.6932ms)
+✔ L8 help / about 锚点不得用蓝色或角色色作链接色 (14.4506ms)
+✔ L1–L7 真实源码通过全部加载体验判据 (5.3693ms)
+✔ 骨架 HTML：3 条卡形 + 「正在加载…」+ 既有 data 标记 (0.8403ms)
+✔ L2 行为：快速渲染（<120ms）不闪骨架，直接淡入 (4.0074ms)
+✔ L2 行为：慢渲染（>120ms）出现骨架，完成后骨架移除并淡入 (348.7679ms)
+✔ 故障注入：删骨架 / 延迟归零 / 恢复压暗硬替换 / 删 reduced-motion ⇒ 逐条判红 (4.5921ms)
+✔ L7 页面跳转：进度条安装幂等，且在 node 环境静默跳过 (1.1133ms)
+[motion-guard] About 冻结件登记：21 条裸时长（只登记不改）
+[motion-guard] 过渡属性：background-color / border-color / box-shadow / color / grid-auto-rows / grid-template-rows / opacity / outline-color / transform / visibility
+[motion-guard] About 冻结件 JS 登记：0 处
+✔ M1 非空转：styles.css 解析到 ≥20 条 transition 声明 (3.6181ms)
+✔ M2 时长白名单：产品 CSS 只允许 var(--motion-*) / 0s，裸值逐条登记（About 全文件登记） (10.1912ms)
+✔ M3 属性白名单：不得过渡 all / 布局属性；例外逐条登记 (19.7257ms)
+✔ M4 三档令牌齐备且落在档内 (2.9817ms)
+✔ M5 reduced-motion：兜底块把 transition-delay / animation-delay 归零 (1.3949ms)
+✔ M6 可复用类：入场 / 折叠 / 按压三件套存在；scale 类已删除 (4.9069ms)
+✔ M7 反例：产品 CSS 的 keyframes 不得出现 rotateX / clip-path / 等比 scale() (18.3653ms)
+✔ M8 JS 内联：不得写裸毫秒 transition/animation（about-entry.js 冻结登记） (2050.6537ms)
+✔ M9 滚动：禁止裸 behavior:'smooth'，必须走 smoothScroll()（about-entry.js 冻结登记） (1893.0914ms)
+✔ M10 滚动出口唯一：除 helper / about-entry 外不得直调 scrollIntoView/scrollTo/scrollBy (1692.3441ms)
+✔ N1 可点容器子树内出现独立 button/a：未标记或未登记即判红 (1641.978ms)
+✔ N2 白名单双向一致：标记只出现在登记文件，登记文件必须真实带标记 (1765.2523ms)
+✔ N3 非空转：未标记嵌套判红、标记未登记判红、纯文本行判绿 (0.7061ms)
+✔ P0 页题单一源：renderTabHeader 产出 H2，字号 1.25rem (26.7095ms)
+✔ P1 每个 tab 的渲染模块都提供 H2（自身或登记共享件） (490.3685ms)
+✔ P2 登记共享件自身必须有 H2 (31.8531ms)
+✔ P3 卡头不得再用 H4 + 16px 冒充分区 (1709.5371ms)
+✔ P4 工作台静态壳不再输出页题：唯一 H2 由页签 renderTabHeader 提供 (27.6169ms)
+✔ P5 活动/专班详情 H3/H4 顺序合法：H4 不得先于 H3，汇报收件箱前先出 H3 (6.1137ms)
+✔ P6 党委台卡头不复述页签名：支部上报只在页签 H2 出现一次 (5.3032ms)
+✔ 治理页面使用受约束的流动版心和共享卡片节奏 (37.7511ms)
+✔ 党委台只有一个页面标题，页签内容不重复页面标题 (31.381ms)
+✔ 党委页签顺序为下发通知、院级内容、支部上报、支部管理（A05/A06 合并 + 批次 536 院级内容，四项） (11.342ms)
+✔ 党委页头不提供个人档案入口 (7.5494ms)
+✔ 党委页签名与页面身份一致（A05/A06 撤页后四项） (21.8035ms)
+✔ 党委三页共用页面骨架且不切换页面级版心 (29.4803ms)
+✔ 党委异常行有明确动作，页头不重复页签导航 (8.0689ms)
+✔ 党委二级切换使用从属样式 (29.212ms)
+✔ 党委页内标签具备面板关联与方向键切换 (19.6815ms)
+✔ 党委支部管理用表格比较同类支部数据 (19.6229ms)
+✔ 支部配置以紧凑导航切换单一活动面板 (34.385ms)
+✔ 支部配置用内容区范围胶囊承载当前支部，不再使用页面级眉题 (7.8713ms)
+✔ 窄屏折叠导航完整移出固定标题栏 (10.9457ms)
+✔ 支部只读名册提供可筛选分页的语义表格和独立活动区 (17.9335ms)
+✔ D1 选择人员不再输出姓氏头像框 (3.8365ms)
+✔ D2 行载体无完整边框，选中态不再写 border-color (2.9395ms)
+✔ D3 姓名 14px / 元信息 12px (0.768ms)
+✔ D4 行高 40px、内边距 4/12 (0.7227ms)
+✔ D5 搜索框 34px、党小组筛选 28px (0.9183ms)
+✔ C1 styles.css 卡式行单一源：thead 隐藏 / data-label / sticky 与 min-width 清零 (7.0334ms)
+✔ C2 打印恢复表格形态：@media print 覆盖卡式行 (1.908ms)
+✔ C3 手写卡式表：每个数据 td 都有 data-label（考勤汇总 / 党小组 / 条线） (4.4199ms)
+✔ C4 全站引擎表扫描：列数 ≥5 的表格配置必须 opt-in 卡式行，且每个数据 td 有 data-label (3695.7322ms)
+✔ C4b 引擎卡式表：成员流动 8 列 / 支委两表 5 列全覆盖 (8.1094ms)
+✔ C6 手写 data-table：静态表头 ≥5 列必须 data-responsive="cards" 且每格 data-label (2614.0182ms)
+✔ C5 矩阵卡式结构：同一张表 + data-label + rm-scroll，保留 — / sticky / 列上限 (2.6462ms)
+✔ C7 日历折叠卡（2026-10-27 Task 6.3）：40×40 摘要槽只留 chevron + aria-label，不塞整句 (43.336ms)
+[row-markup-guard] 手写行容器 1 处（棘轮上限 12）：
+    1  docs/src/entries/tabs/leader/members-tab.js
+✔ R1 手写行容器存量只降不升（基线 12） (1523.1962ms)
+✔ R2 list-row.js 存在并导出 listRowHtml / listGroupHtml (10.4604ms)
+✔ R3 七个复用模块文件均存在 (34.7348ms)
+✔ R4 DESIGN_SYSTEM §4.20.7/§4.20.8：三类行型与七个模块名齐备 (8.3287ms)
+[spacing-scale-guard] docs/src 自由间距值 0 个（棘轮上限 0）：
+
+[S5] styles.css 间距声明：令牌 89 条 · 非令牌 237 条（棘轮上限 239）
+[S6] 行内间距声明 540 条 / 属性 476 处 / 文件 25（棘轮上限 706 条）
+✔ S1 间距五档令牌：styles.css 存在且值为 4/8/12/16/24px (11.8238ms)
+✔ S2 自由间距值存量只降不升（基线 0） (1598.1967ms)
+✔ S3 新增四个复用模块不得出现自由间距值 (21.8213ms)
+✔ S4 DESIGN_SYSTEM §4.21：五档定义、组件族采用矩阵与禁止条款齐备 (9.0197ms)
+✔ S5 styles.css 非令牌间距声明只减不增（含反例自检） (14.4178ms)
+✔ S6 行内间距声明只减不增（含反例自检） (2645.9321ms)
+✔ S7 含行内间距的 style 属性只减不增 (2819.0138ms)
+[status-color] 文字档对比度实测：
+  success-text（亮 #047857 / 暗 #34D399）：白卡 5.48 · 页底 5.24 · 深卡 8.76 · 暗页 9.74
+  warning-text（亮 #92400E / 暗 #FCD34D）：白卡 7.09 · 页底 6.77 · 深卡 11.68 · 暗页 12.98
+  error-text（亮 #991B1B / 暗 #F87171）：白卡 8.31 · 页底 7.94 · 深卡 6.09 · 暗页 6.77
+  info-text（亮 #1D4ED8 / 暗 #60A5FA）：白卡 6.70 · 页底 6.40 · 深卡 6.63 · 暗页 7.36
+✔ S1 填充档只进徽章 / 圆点 / 左条 / 图例：出现在 color: 即红（含反例） (1615.956ms)
+✔ S2 文字档逐色对比度：亮（白卡 / 页底）与暗（深卡 / 暗页）均 ≥4.5:1 (11.6429ms)
+✔ S3 文档值 = 实现值：status 四族 / surface / identity（含旧值反例） (201.1326ms)
+[theme-palette] 对比度/彩度实测：
+  gold.light: soft 6.88 / ink 4.68 / strong-vs-card 4.68 / softBg-vs-white 1.11 / sat 82.2%
+  gold.dark: soft 9.18 / ink 6.98 / strong-vs-card 6.52 / softBg-vs-white 14.75 / sat 58.7%
+  red.light: soft 9.05 / ink 7.56 / strong-vs-card 7.56 / softBg-vs-white 1.13 / sat 64.0%
+  red.dark: soft 8.43 / ink 4.85 / strong-vs-card 4.26 / softBg-vs-white 14.87 / sat 59.5%
+  orange.light: soft 7.67 / ink 5.43 / strong-vs-card 5.43 / softBg-vs-white 1.12 / sat 60.2%
+  orange.dark: soft 8.57 / ink 4.64 / strong-vs-card 4.20 / softBg-vs-white 14.91 / sat 53.2%
+  green.light: soft 8.15 / ink 6.95 / strong-vs-card 6.95 / softBg-vs-white 1.11 / sat 39.9%
+  green.dark: soft 8.72 / ink 5.66 / strong-vs-card 5.03 / softBg-vs-white 14.69 / sat 33.0%
+  cyan.light: soft 8.22 / ink 6.91 / strong-vs-card 6.91 / softBg-vs-white 1.12 / sat 80.8%
+  cyan.dark: soft 8.30 / ink 5.13 / strong-vs-card 4.67 / softBg-vs-white 14.91 / sat 59.6%
+  blue.light: soft 9.33 / ink 8.64 / strong-vs-card 8.64 / softBg-vs-white 1.14 / sat 45.2%
+  blue.dark: soft 7.39 / ink 4.85 / strong-vs-card 4.25 / softBg-vs-white 14.84 / sat 56.1%
+  purple.light: soft 8.49 / ink 7.32 / strong-vs-card 7.32 / softBg-vs-white 1.13 / sat 23.2%
+  purple.dark: soft 7.43 / ink 4.79 / strong-vs-card 4.26 / softBg-vs-white 14.85 / sat 26.0%
+[theme-palette] strongHover 实测：
+  gold.light: hueΔ 0.29° / ink-hover 5.16 / hover≠bg true / hover≠active true
+  gold.dark: hueΔ 0.22° / ink-hover 6.29 / hover≠bg true / hover≠active true
+  red.light: hueΔ 0.26° / ink-hover 8.14 / hover≠bg true / hover≠active true
+  red.dark: hueΔ 0.26° / ink-hover 4.51 / hover≠bg true / hover≠active true
+  orange.light: hueΔ 0.10° / ink-hover 5.95 / hover≠bg true / hover≠active true
+  orange.dark: hueΔ 0.16° / ink-hover 4.50 / hover≠bg true / hover≠active true
+  green.light: hueΔ 0.06° / ink-hover 7.47 / hover≠bg true / hover≠active true
+  green.dark: hueΔ 0.36° / ink-hover 5.13 / hover≠bg true / hover≠active true
+  cyan.light: hueΔ 0.19° / ink-hover 7.43 / hover≠bg true / hover≠active true
+  cyan.dark: hueΔ 0.04° / ink-hover 4.64 / hover≠bg true / hover≠active true
+  blue.light: hueΔ 0.51° / ink-hover 9.27 / hover≠bg true / hover≠active true
+  blue.dark: hueΔ 0.05° / ink-hover 4.51 / hover≠bg true / hover≠active true
+  purple.light: hueΔ 0.52° / ink-hover 7.89 / hover≠bg true / hover≠active true
+  purple.dark: hueΔ 0.13° / ink-hover 4.50 / hover≠bg true / hover≠active true
+[theme-palette] T10 功能色对比度：功能红/亮徽章底 5.14:1 · 功能金/亮徽章底 4.58:1 · 功能红/暗徽章底 8.76:1 · 功能金/暗徽章底 10.49:1
+[theme-palette] T11 亮/暗背景：.workflow-state-phase #FEF2F2 → #4A000A · .cal-cell-mobile.has-tasks:active #FEF2F2 → #4A000A · .branch-config-nav [aria-current="page"] #FEF2F2 → #4A000A · .ref-download-btn #FEF2F2 → #4A000A · .ref-download-btn:hover #FEE2E2 → #7A0010 · .ref-doc-action-danger #FEF2F2 → #4A000A
+[theme-palette] T11 对比度：primary-200/深卡 3.49 · primary-300/primary-50 暗底 8.54 · identity 暗色/深卡 最低 6.09
+[theme-palette] T12 tailwind 镜像核对：44 对一致（party 15 / primary 11 / neutral 11 / surface 7）
+[theme-palette] T13 constants 镜像核对：44 对一致（ACCENT gold 18 + ROLE 26）
+✔ T1 结构：ACCENT_COLORS 恰 7 主题 × 亮/暗 × 9 个合法 hex token (6.0724ms)
+✔ T2 对比度与彩度：7 主题 × 亮/暗逐项达标 (2.9846ms)
+✔ T3 色板：ACCENT_PALETTE 恰 7 项、旧键退场且有别名回落 (1.3132ms)
+✔ T4 主题选择器：只列 7 项、每项 2 枚小样、消费 getAccentColors、无 hex 字面量 (6.3465ms)
+✔ T5 固定语义色分离：活动类别色 / 党徽金不读 --app-accent* (16.0453ms)
+✔ T6 strongHover：与 strongBg 同色相且不同值、与 strongInk ≥4.5:1、不得等于 activeBg (1.9568ms)
+✔ T7 strongHover 非空转：7 主题 × 亮/暗都真实存在，且注入 / 别名链齐备 (17.5867ms)
+✔ T8 功能色层：状态 / 类别 / 身份 / 语义别名齐备且身份色与 ROLE_COLORS 同值 (69.1375ms)
+✔ T9 僵尸 token 零消费者：12 个已删 token 在 docs 下不得再出现 (4362.1657ms)
+✔ T10 功能色分离：亮/暗齐备、与 danger/warning/主题 accent 不撞值、文字 ≥4.5:1 (22.67ms)
+✔ T11 暗色色阶：primary-50/100/200 与 identity 基础名全部有暗色值；6 个元素亮暗背景不同 (118.5213ms)
+✔ G1 styles.css：默认金 8 token 齐备；无 #F5C518 / brightness / 旧派生；固定语义色不动 (4.1902ms)
+✔ G2 constants.js：gold 主题 8 token 为手选 hex；accentButtonColors 查表 (2.2336ms)
+✔ G3 四个注入点都走 16 个原始变量（applyAccentThemeTokens / getAccentColors） (26.6415ms)
+✔ G4 内存样本：gold 实底白字 / red 实底白字 / 非法入参回落 gold (0.9146ms)
+✔ G5 浅底深字：不得直接用裸 var(--app-accent)；焦点环只用 --app-accent (61.7652ms)
+✔ T12 tailwind 镜像 = styles.css 权威：party / primary / neutral / surface 逐值相等（含反例） (274.2971ms)
+✔ T13 constants.js 镜像 = styles.css 权威：ACCENT_COLORS(gold) 全 token ＋ ROLE_COLORS 文字色（含反例） (111.5742ms)
+✔ R1-A：访客在全局键留下偏好后，新登录账号 person 无键 → 出厂默认不继承（不回退/不迁移写入） (7.6457ms)
+✔ R1-A：登录用户 set 只写 person 键，绝不材料化全局键 (1.4655ms)
+✔ R1-A：访客 set 只写全局键，get 读全局键；不产生任何 person 键 (1.689ms)
+✔ R1-A：2300010001 与 2400012349 偏好互不污染；切号后读回各自 person 键（2400012349 无键=默认） (1.1613ms)
+✔ resolveAppliedAccentRole：登录无覆盖 → 默认 gold；有覆盖 → 覆盖键；非法覆盖 → 默认 gold (2.2459ms)
+✔ node 环境安全：sync/DOM 依赖 API 有 typeof 守卫，调用不抛 (1.4338ms)
+✔ getAppliedAccentColors：登录 person 覆盖生效 / 无覆盖=默认金 / 非法覆盖回落默认金 (1.9595ms)
+✔ getAppliedAccentColors：访客全局覆盖优先 / 无覆盖回落默认金 (0.9024ms)
+✔ T1 判定器非空转：40×40 假元素必须判红，44×44 不得误伤 (3.8369ms)
+✔ T2 六类控件的命中区扩展规则存在，且只写伪元素尺寸（不改视觉） (5.0113ms)
+✔ T3 证据读数：视觉尺寸前后一致、命中区达标；不足 44 必须有相邻间距说明 (1.5737ms)
+✔ T4 相邻热区不重叠：各类别 2D 交集对数为 0 (0.7276ms)
+✔ T5 表单错误态：登录三态 + 设置向导三态均产出 aria-invalid 与 aria-describedby (1.0572ms)
+✔ T6 确认弹窗：Esc 可关 + 焦点回触发元素 + Tab 焦点困在面板内 + resolve(false) (0.6301ms)
+✔ T7 <44×44 数量只减不增，且六类控件不得回到 offender 名单 (3.9876ms)
+[非控件小字口径] 9px=0 · 10px=0（禁止档，上限 0） · 11px=46（档位表内 Overline 档，合规）
+[全站 text-[9/10/11px]（含非控件落点，仅进度口径）] 处数 46（基线 346，↓300） · 文件 9（基线 54，↓45） · 基线按值 {"text-[11px]":338,"text-[10px]":0}
+[口径单一源] DESIGN_SYSTEM §3.2 字号层级（最低档 Overline 11px）＋ §4.3 ④（禁用 10px/11px 控件字号）；禁止档清存量后**不得**把新档补进基线。
+[段落档位（<p>）] 站点 4（基线 6，↓2） · 文件 2（基线 2，持平） · 按值 {"11":4}（基线 {"9":0,"10":0,"11":6}）
+[全站 text-[9/10/11px]（含 <span>/<div> 标签落点，仅进度口径）] 处数 46 · 文件 9
+[口径单一源] DESIGN_SYSTEM §3.2 档位表（Overline 11px＝标签档）＋ §3.2.2（段落/导语＝Caption 12px 起）；9/10px 为档位表外禁止档。收基线后不得把新值补进基线。
+[控件小字] 站点 0（基线 0，持平） · 文件 0（基线 0，持平） · 按值 {}
+[全站 text-[9/10/11px]（含非控件落点，仅进度口径）] 处数 46（基线 346，↓300） · 文件 9（基线 54，↓45） · 基线按值 {"text-[11px]":338,"text-[10px]":0}
+[收基线提示] 清掉存量控件小字后同批删 style-baseline.mjs 对应条目 / 减小 c，进度即前进；不得为变绿补条目。
+[字号档位] 档位表内 2629 处 · 表外 47 处（基线 51，↓4） · 文件 9（基线 11）
+[字号档位 · 表外按值] {"8":1,"10":2,"17":3,"19":1,"21":1,"23":1,"27":1,"32":2,"12.8":7,"11.52":7,"11.2":17,"13.6":1,"12.48":1,"10.4":1,"9.6":1}
+[口径单一源] DS_02 §3.2.3 档位表；新增档位先改文档与 TYPE_TIER_ALLOWED，再清存量（只减不增）。
+✔ P1 禁止档回归：全站不得出现 text-[9px] / text-[10px]（档位表最低档＝Overline 11px） (2060.9423ms)
+✔ P2 非空转：抽取口径正/负例 ＋ 扫描面规模下限 ＋ 反例实测 (1927.0976ms)
+✔ P3 缩减进度：全站 9/10/11px 按档计数（9/10 禁止档须为 0；11px 只报） (2011.746ms)
+✔ T1 段落档位回归：`<p>` 上档位表外的 9/10px 判红；11px 基线之外新增判红（基线 6 处 / 2 文件） (2457.5722ms)
+✔ T2 处数 ratchet：逐文件 <p> 的 11px 站点数不得高于基线 (1899.6217ms)
+✔ T3 非空转：抽取口径正/负例 ＋ 台账规模自洽 ＋ 无僵尸登记 (2224.6996ms)
+✔ T4 缩减进度：段落口径与全站 9/10/11px 口径当前计数 (3550.2557ms)
+✔ 自称非空转：规则抽取正则能命中目标规则、且不误命中邻近规则 (3.9353ms)
+✔ P7 表头：`.data-table thead th` 为 0.8125rem 单档，不含 var(--text-sm) / 0.75rem (8.8925ms)
+✔ P7 首列：`.data-table tbody td:first-child` 为 0.8125rem 单档，不含 0.875rem (8.8077ms)
+✔ P7 真机判据不放宽：page-sweep.test.mjs 仍为 cellPx: 13 (5.7419ms)
+✔ T1 控件小字回归：基线之外的 (文件, 标签|小字类) 判红（基线 0 处 / 0 文件） (1740.415ms)
+✔ T2 处数 ratchet：逐文件控件小字站点数不得高于基线 (1912.3038ms)
+✔ T3 非空转：抽取口径可用 + 台账规模自洽（空台账 ⇒ 全站须为 0）+ 无僵尸登记 (4290.8922ms)
+✔ T4 缩减进度：控件口径与全站口径当前计数 (1856.613ms)
+✔ Q1 字号档位：档位表外的新 (文件, 值) 判红（新增字号必须落在档位表内） (1965.5665ms)
+✔ Q2 处数 ratchet：逐文件逐值的档位表外字号不得高于基线 (1843.6417ms)
+✔ Q3 非空转：抽取器正负例 ＋ 台账自洽 ＋ 文档档位齐备 ＋ 扫描面下限 (1922.5578ms)
+✔ Q4 缩减进度：档位表内 / 表外当前计数 (1702.4727ms)
+✔ Q5 折叠头单一语法：.disclosure__title 16/600/24，调用点不得再覆盖字号/标题字重 (14.3787ms)
+✖ Q6 text-xs 存量只减不增：处数 / 文件数不得高于基线 (1511.2176ms)
+✔ B1 四页重点不再出现旧动作按钮类 (19.5351ms)
+✔ B2 四页重点使用显式尺寸 btn-sm / btn-md (16.2271ms)
+✔ B3 tab / 页签 btn-tab 豁免：顶部 tab 文件不在本守卫统计面 (5.3296ms)
+✔ B4 非空转：四页重点确实含按钮标记 (13.6312ms)
+✔ B5 行内可见动作 ≤2：党小组 / 支委会每行 1 主 + 更多，危险动作在菜单内 (7.6883ms)
+✔ C1 DESIGN_SYSTEM 含颜色四问与逾期 / warning / error 口径 (8.9165ms)
+✔ C2 styles.css 含状态徽章变体（warning / success / info / accent），旧 state-badge 已收口 (9.7142ms)
+✔ C3 关键页面「逾期」附近不得使用 --functional-error (64.3322ms)
+✔ C4 §2.10 写明三个反例（整圈红边 / 功能色主按钮 / 主题色状态徽章） (5.7682ms)
+✔ C5 非空转：邻近判定在正 / 负样本上分别命中 / 不命中 (0.7451ms)
+✔ C6 工作台结论带：待处理 / 逾期指标只取功能色，出现 --app-accent 即红 (5.5336ms)
+✔ C7 待答复直达条：状态条取 info 功能色，不得再用角色主题色 (5.243ms)
+✔ C8 非空转：指标色与直达条判定在旧 / 新写法上分别判红 / 判绿 (1.205ms)
+[ui-contrast] K3 组名 softText/10% 淡底：gold.light 6.51:1 · gold.dark 9.93:1 · red.light 8.30:1 · red.dark 9.47:1 · orange.light 7.23:1 · orange.dark 9.27:1 · green.light 7.53:1 · green.dark 9.41:1 · cyan.light 7.65:1 · cyan.dark 8.89:1 · blue.light 8.72:1 · blue.dark 8.08:1 · purple.light 7.92:1 · purple.dark 8.08:1
+[ui-contrast] K6 warning 文字档：亮/白 7.09 · 亮/页 6.77 · 暗/卡 11.68 · 暗/页 12.98
+✔ K1 .badge--gold 深琥珀字 on #FEF9C3 ≥ 4.5:1（读 --badge-gold-* 令牌） (5.7981ms)
+✔ K2 选中页签文字走主题 softText（不再 color-mix 派生）且 ≥ 4.5:1 (1.0263ms)
+✔ K3 分组名全宽可见（12px / 10% 淡底无边框 / 主题 soft-text 亮暗 ≥4.5:1 / 3px / ≥24px），≤1280 只缩不隐藏 (7.4072ms)
+✔ K4 今天页「逾期」使用 warning，不再用 error (0.9812ms)
+✔ K5 .btn-tab.active 跟随主题色（soft 三件套，不再固定党建红） (1.0139ms)
+✔ K6 逾期文字档：--status-warning-text 亮/暗 ≥4.5:1，warning 只作填充 (5.0901ms)
+[ui-control-system-guard] SD-1 控件 200 个（白名单命中 person-picker-search:1 · help-search-input:1 · cs-search-input:1 · vote-note:2 · help-role-filter:1）
+[ui-control-system-guard] SD-2 solid 边框 98 条 · 带独立 border 的按钮 10 个
+[ui-control-system-guard] SD-3 border-radius 声明 133 条（4/6px 例外 0 条）
+[ui-control-system-guard] SD-4 <summary> 60 个 · list-none 例外 0 个
+[button-system-guard] 未命中档的 <button> 共 0 个（棘轮上限 0）：
+
+[ui-control-system-guard] T3-1 交互元素 746 个 · 内含标题 0 处
+[ui-control-system-guard] T3-2 details 文件 34 个 · 静态 aria-expanded 15 个
+[ui-control-system-guard] T3-3 details 文件 34 个 · 混用 0 处
+[ui-control-system-guard] T4-1 renderDisclosure 文件 4 个 · 手写折叠文件 33 个 · 混用 3 处（豁免 3）
+[button-system-guard] 未入语义族的 <button> 共 0 个（棘轮上限 0）；组件自有类豁免 31 个（-tab-btn / subtab / sidebar-footer-action / todo-more__item / metric-band__item / gp-group-card / modal-close-btn / tint-action）；主题预览卡 1 个：
+
+[button-system-guard] .btn-ghost 带内联实底的 <button> 共 0 个（棘轮上限 0）：
+
+[button-system-guard] 动作按钮族仍写尺寸工具类 354 个（棘轮上限 360；tab-btn / btn-tab 已排除）：
+   23  docs\src\entries\tabs\prop\archive-tab.js
+   21  docs\src\entries\tabs\org\taskforce-tab.js
+   17  docs\src\components\governance\org-setup-wizard.js
+   17  docs\src\entries\pages\settings-entry.js
+   17  docs\src\entries\tabs\secretary\feedback-tab.js
+   16  docs\src\entries\pages\activity-entry.js
+   15  docs\src\entries\tabs\disc\inspection-tab.js
+   13  docs\src\entries\tabs\secretary\todo-tab.js
+   12  docs\src\components\record\inspector.js
+   12  docs\src\entries\tabs\leader\write-tab.js
+   11  docs\src\entries\tabs\disc\attendance-tab.js
+   10  docs\src\entries\tabs\org\member-flow-tab.js
+    9  docs\src\components\feedback\issue-dispatch-view.js
+    8  docs\src\entries\tabs\prop\weekly-tab.js
+    7  docs\src\entries\tabs\secretary\calendar-tab.js
+    7  docs\src\entries\tabs\secretary\notification-tab.js
+    7  docs\src\entries\tabs\secretary\workforce-panel.js
+    6  docs\src\entries\tabs\org\roster-tab.js
+    6  docs\src\entries\tabs\secretary\group-progress-tab.js
+    5  docs\src\entries\tabs\leader\attendance-tab.js
+    5  docs\src\entries\tabs\party-committee\branches-tab.js
+    5  docs\src\entries\tabs\secretary\assign-tab.js
+    4  docs\src\components\governance\branch-roster-import-panel.js
+    4  docs\src\components\governance\signup-panel.js
+    4  docs\src\components\record\calendar.js
+    4  docs\src\components\sections\references.js
+    4  docs\src\entries\pages\thought-report-entry.js
+    3  docs\src\components\feedback\issue-detail.js
+    3  docs\src\components\governance\resolution-followup-manager.js
+    3  docs\src\entries\pages\branch-config-entry.js
+    3  docs\src\entries\pages\person-entry.js
+    3  docs\src\entries\tabs\leader\inspection-tab.js
+    3  docs\src\entries\tabs\org\activity-calendar-tab.js
+    3  docs\src\entries\tabs\org\inspection-tab.js
+    3  docs\src\entries\tabs\visitor\attendance-tab.js
+    3  docs\src\entries\tabs\visitor\projects-tab.js
+    2  docs\src\components\governance\organizer-transfer.js
+    2  docs\src\components\governance\person-edit-modal.js
+    2  docs\src\components\governance\person-profile-sections.js
+    2  docs\src\components\governance\workgroup-member-editor.js
+    2  docs\src\components\record\report-entry.js
+    2  docs\src\components\shell\tab-bar.js
+    2  docs\src\components\ui\form-shell.js
+    2  docs\src\components\ui\void-record.js
+    2  docs\src\entries\pages\activity-materials-entry.js
+    2  docs\src\entries\pages\branch-readonly-entry.js
+    2  docs\src\entries\pages\party-committee-meeting-entry.js
+    2  docs\src\entries\tabs\disc\review-tab.js
+    2  docs\src\entries\tabs\leader\members-tab.js
+    2  docs\src\entries\tabs\party-committee\dispatch-tab.js
+    2  docs\src\entries\tabs\party-committee\review-tab.js
+    2  docs\src\entries\tabs\prop\tasks-tab.js
+    2  docs\src\entries\tabs\secretary\overview-tab.js
+    2  docs\src\entries\tabs\secretary\report-up-tab.js
+    1  docs\src\components\feedback\issue-form.js
+    1  docs\src\components\feedback\issue-list.js
+    1  docs\src\components\feedback\reactions.js
+    1  docs\src\components\governance\activity-progress.js
+    1  docs\src\components\governance\handoff-inbox.js
+    1  docs\src\components\governance\member-change-panel.js
+    1  docs\src\components\governance\overview-dispatch-bar.js
+    1  docs\src\components\governance\workforce-duty-card.js
+    1  docs\src\components\record\activity-view.js
+    1  docs\src\components\record\taskforce-view.js
+    1  docs\src\components\shell\header.js
+    1  docs\src\components\shell\share-button.js
+    1  docs\src\components\shell\workspace-shell.js
+    1  docs\src\components\ui\modal.js
+    1  docs\src\entries\pages\archive-entry.js
+    1  docs\src\entries\tabs\org\talent-tab.js
+    1  docs\src\entries\tabs\party-committee\party-config-tab.js
+    1  docs\src\entries\tabs\prop\kanban-tab.js
+    1  docs\src\entries\tabs\visitor\activities-tab.js
+    1  docs\src\entries\tabs\visitor\inspection-tab.js
+    1  docs\src\entries\tabs\visitor\thought-report-tab.js
+    1  docs\src\services\governance\review.js
+[button-system-guard] 以 btn-ghost 作动作按钮的 <button> 共 4 个（棘轮上限 4）：
+    2  docs/src/components/ui/list-row.js
+    1  docs/src/entries/tabs/disc/attendance-tab.js
+    1  docs/src/entries/tabs/today/today-tab.js
+[ui-control-system-guard] V4 btn-ghost 仅剩非动作行载体 6 处（白名单 5 文件）
+[ui-control-system-guard] V5 .btn-text 5 个 · 「全部/查看/更多」3 个 · 浅色箭头 0 处
+[ui-control-system-guard] V6 图标按钮 9 个（44 命中组 4 类 + .btn-icon）
+[ui-control-system-guard] V7 亮色 hover #e5e7eb vs 卡片 #ffffff=1.24:1 · vs 页面 #fafaf5=1.18:1 · 暗色 hover #334155 vs 卡片 #141d2f=1.63:1 · vs 页面 #0b1220=1.81:1
+[ui-control-system-guard] FOCUS-1 规则块 1198 个 · 双环 0 处
+[ui-control-system-guard] FOCUS-2 焦点边框 #A97A12 vs 白卡 3.83:1 · vs 页面底 3.66:1
+[ui-control-system-guard] FOCUS-3 --status-success/白卡 2.54:1（大字不达标）· --neutral-800/白卡 14.68:1
+[ui-control-system-guard] FOCUS-4 反例判定：双层 3 处 · 输入 outline 1 处 · 按钮无环 1 处 · #FFD700 2 处 · #CE1126 2 处 · 行内工具类 3 处
+[ui-control-system-guard] FOCUS-4 焦点规则 46 条 · CSS 4 / JS 324 / HTML 18 · 违规 0 处
+[ui-control-system-guard] FOCUS-5 gold 亮 #A97A12 vs 白卡 3.83:1 · 暗 #E0B24C vs 深卡 8.54:1 · red 亮 #A32B24 vs 白卡 7.17:1 · 暗 #E0796F vs 深卡 5.72:1 · orange 亮 #B45B33 vs 白卡 4.68:1 · 暗 #E39B6F vs 深卡 7.37:1 · green 亮 #2F6B4F vs 白卡 6.29:1 · 暗 #7CC4A0 vs 深卡 8.23:1 · cyan 亮 #0F6D7B vs 白卡 6.01:1 · 暗 #63B8C7 vs 深卡 7.39:1 · blue 亮 #3D4E9C vs 白卡 7.59:1 · 暗 #8F9EDB vs 深卡 6.48:1 · purple 亮 #6D5382 vs 白卡 6.54:1 · 暗 #B79FCB vs 深卡 7.09:1
+[ui-control-system-guard] V9 表头规则 1198 条 · 带底色的表头 0 条
+✔ SD-1 控件类单一源：input/select/textarea 必须挂 .input-flat(.input-flat-sm)，且不得再写 ad-hoc 覆盖 (56.4119ms)
+✔ SD-2 边框必须有颜色：CSS 无「无颜色 solid」；按钮独立 border 必须同串带色类 (110.1156ms)
+✔ SD-3 控件圆角 8px：CSS 字面量不得出现 4px / 6px；.input-flat(-sm) 走 --radius-sm (75.9223ms)
+✔ SD-4 披露控件统一：全局移除 summary 三角，且 <summary> 上无 list-none 例外 (6.2427ms)
+✔ SD-6 浅主题底不显白：.btn-accent-soft 消费 soft 三件套（手选 hex，非 color-mix） (1.5161ms)
+✔ SD-9 页签组名可见：groupLabel 渲染为非空文本，且存在 .tab-group-sep (1.6321ms)
+✔ SD-10 正文字号下限：今天页 / 待办无 10/11px；--text-xs ≥ 0.75rem (1.3297ms)
+✔ B1 死字段：docs/src 不得引用已被移除的字段 (1546.7406ms)
+✔ B2 按钮尺寸档：<button> 必须命中四档之一（或命名族） (1697.279ms)
+✔ T3-1 交互元素内无标题：button / summary / role=button 内不得出现 h1..h6 或 role=heading (23.7583ms)
+✔ T3-2 折叠状态可静态回读：summary 必在 details 内；aria-expanded 必带 aria-controls (23.8618ms)
+✔ T3-3 同一文件同类折叠只用一种原语（菜单除外） (7.7234ms)
+✔ T4-1 同一文件只允许一种折叠头实现：renderDisclosure 与手写 details/summary 不混用 (12.4339ms)
+✔ B4 按钮族棘轮：未入语义族的 <button> 只许降不许升（「全面归一」的进度表） (2472.1091ms)
+✔ B5 族·语义一致：.btn-ghost 不得带内联实底（借文字族形状伪装实底） (1369.7913ms)
+✔ B6 按钮尺寸归一：标准 36px ＋ 紧凑 32px ＋ 小号 28px（padding + line-height 推导） (22.9473ms)
+✔ B7 族内不得再写尺寸：动作按钮族上的 text-*/py-*/px-*/h-* 只许降不许升（tab-btn / btn-tab 豁免） (1340.951ms)
+✔ B8 btn-ghost 作为动作按钮的存量只许降不许升（新代码不得使用） (1496.2725ms)
+✔ V1 容器语义：数字组单一语法 / section.card 必有可访问名 / list-row 四载体可区分 (13.4276ms)
+✔ V8 数字组全量：不得回潮竖排三段 / 组内不得内联 hex (28.8111ms)
+✔ V2 分组胶囊全宽可见：无 display:none 断点、高度 ≥24px、3px 直角、无边框 + 10% 淡底 (2.6357ms)
+✔ V3 关键表定列宽：wo-lines-table fixed ＋ colgroup 模板 ＋ 末列贴列尾 (4.2651ms)
+✔ V4 btn-ghost 不得用于动作按钮：只允许白名单内的非动作行载体 (38.7222ms)
+✔ V5 纯文字动作有静态线索：btn-text 600 字重 + 尾随箭头非 neutral-400 (58.1518ms)
+✔ V6 图标按钮：视觉 32×32，命中区 ≥44×44，且有无障碍名 (8.0744ms)
+✔ V7 可点行 hover：主题 10% 淡底；状态左条计数为 0，选中靠 soft 底（2026-11-04 改准） (7.8327ms)
+✔ FOCUS-1 焦点单环：同一选择器（块）不得同时出 :focus 的 box-shadow 环与 :focus-visible 的 outline 环 (3354.4367ms)
+✔ FOCUS-2 输入族只变边框色（零 outline / 零 box-shadow），且与 <select> 共用同一规则块 (3404.9106ms)
+✔ FOCUS-3 「考勤良好」数值不再用 --status-success（24px 大字 ≥3:1），绿色只留图标 (1.0029ms)
+✔ FOCUS-4 全量扫描：每控件最多一个焦点信号；输入族零 outline；按钮族必有环；焦点色无党徽金/党建红 (4407.6007ms)
+✔ FOCUS-5 七主题 base 焦点环：对白卡 #FFFFFF 与深卡 #141D2F 均 ≥3:1（逐色日志） (1.0434ms)
+✔ V9 表头去灰：`.data-table th` / `.data-table thead th` 不得声明 background（含反例） (1355.3335ms)
+✔ K1 触发器：id / aria-labelledby / combobox / haspopup / expanded / controls (5.4663ms)
+✔ K2 原生 select：tabIndex=-1 + aria-hidden，避免重复控件 (0.7901ms)
+✔ K3 listbox 选项可聚焦，方向键 / Home / End / Enter / Space / Esc 齐备 (0.7506ms)
+✔ K4 打开焦点进 listbox；Esc 关闭后归还触发器 (0.5387ms)
+✔ K5 选项键盘焦点可见（主题色 2px / offset 1px / 无光晕） (0.778ms)
+[ui-first-screen-order] 支书 · 全局概况 尚未迁移到 .help-note（页面顺序断言待后续 Task 9 收紧）
+[ui-first-screen-order] 支书 · 待办 尚未迁移到 .help-note（页面顺序断言待后续 Task 9 收紧）
+✔ F1 DESIGN_SYSTEM §10.5 首屏浏览顺序：四条规则 + 三条布尔条件 (9.1739ms)
+✔ F2 DESIGN_SYSTEM §10.6 10 个抽样页乱象登记齐备（4 已修 + 6 已审） (12.373ms)
+✔ F4 待办首屏：折叠条默认展开露 2 条待答复；未读通知二级折叠；「我的待办」紧随其后 (14.7826ms)
+✔ F5 党小组主从双栏：左栏组列表 + 右栏活动台账（日期 / 活动 / 复盘状态 / 应到·实到） (5.1844ms)
+✔ F3 四页重点主对象先于 help-note（党小组 / 支委会已迁移；概况 / 待办无 help-note） (15.4931ms)
+✔ F6 注册页签集合 ≡ TAB_BLOCK_BASELINE（45 条 · 双向相等） (30.4856ms)
+✔ F7 块数 > 4 的页签必须有非空 reason（登记例外，不得静默超限） (1.3137ms)
+✔ F8 反例：合成 blocks=5 无 reason 判红；合成注册页签缺基线判红 (0.7886ms)
+✔ F9 基线非空转：规模 ≥45、每条含数值 blocks 与 reason 字段 (0.8586ms)
+✔ F10 活动详情：对象头 + 事项轴，写口宿主与首屏块数守住 (7.4621ms)
+[ui-focus-ring] F2 亮色白环 vs 实底 strongBg #FFFFFF / #9A6B0F 4.68:1
+[ui-focus-ring] F2 暗色深墨环 vs 实底 strongBg #1E1503 / #C89A34 6.98:1
+[ui-focus-ring] F4 gold: light #A97A12 页 3.66 / 卡 3.83 · dark #E0B24C 页 9.49 / 卡 8.54
+[ui-focus-ring] F4 red: light #A32B24 页 6.85 / 卡 7.17 · dark #E0796F 页 6.36 / 卡 5.72
+[ui-focus-ring] F4 orange: light #B45B33 页 4.47 / 卡 4.68 · dark #E39B6F 页 8.19 / 卡 7.37
+[ui-focus-ring] F4 green: light #2F6B4F 页 6.01 / 卡 6.29 · dark #7CC4A0 页 9.15 / 卡 8.23
+[ui-focus-ring] F4 cyan: light #0F6D7B 页 5.74 / 卡 6.01 · dark #63B8C7 页 8.21 / 卡 7.39
+[ui-focus-ring] F4 blue: light #3D4E9C 页 7.25 / 卡 7.59 · dark #8F9EDB 页 7.21 / 卡 6.48
+[ui-focus-ring] F4 purple: light #6D5382 页 6.25 / 卡 6.54 · dark #B79FCB 页 7.88 / 卡 7.09
+[ui-focus-ring] F6 顶栏白环 #FFFFFF vs 深红 #7A0010 11.44:1
+[ui-focus-ring] F6 gold 主题色焦点环 vs 顶栏深红 2.99:1（已弃用）
+[ui-focus-ring] F6 red 主题色焦点环 vs 顶栏深红 1.60:1（已弃用）
+[ui-focus-ring] F6 orange 主题色焦点环 vs 顶栏深红 2.44:1（已弃用）
+[ui-focus-ring] F6 green 主题色焦点环 vs 顶栏深红 1.82:1（已弃用）
+[ui-focus-ring] F6 cyan 主题色焦点环 vs 顶栏深红 1.90:1（已弃用）
+[ui-focus-ring] F6 blue 主题色焦点环 vs 顶栏深红 1.51:1（已弃用）
+[ui-focus-ring] F6 purple 主题色焦点环 vs 顶栏深红 1.75:1（已弃用）
+✔ F1 唯一来源：--focus-ring / --focus-halo 已删除，焦点颜色只用 --app-accent (5.9674ms)
+✔ F2 全局控制器只声明一条 outline（2px 主题色 / offset 1px / 无 box-shadow） (4.6404ms)
+✔ F3 输入族：:focus 与 :focus-visible 同表现——只变边框色，不出环、不出阴影 (2.1653ms)
+✔ F4 对比度：七主题 × 亮/暗的主题色 vs 页面底 / 白卡 ≥ 3:1 (4.7531ms)
+✔ F5 非空转：对比度函数与规则抽取有正/负例 (0.6525ms)
+✔ F6 顶栏三按钮：深红底改用既有白色令牌（2px / offset 1px / 无 box-shadow），白环对 #7A0010 ≥3:1 (1.7531ms)
+✔ H1 DESIGN_SYSTEM §4.24 帮助注释存在且口径齐备 (7.7847ms)
+✔ H2 styles.css 定义 .help-note / .help-note__link (8.2883ms)
+✔ H3 党小组 / 支委会页面必须用 .help-note__link 链接 (9.3443ms)
+✔ D1 首页「完整日历」走 data-ws-tab 深链；工作组「查看全部」由分组组件生成 (7.4188ms)
+✔ D2 首页「完整日历」每台解析后的目标页签都命中该台注册 tab id (0.5607ms)
+✔ D3 「完整日历」落各台真实落点（2026-10-25 IA 62→45 改准） (0.8645ms)
+✔ D4 工作组「查看全部」按活动 / 专班两类分别落到真实页签或详情页 (7.0173ms)
+✔ D5 不再出现不存在的 tab=activities / tab=taskforce (0.803ms)
+✔ D6 main-entry.js 按角色消费 data-ws-tab-<page>，subview 只在 activities 上附加 (5.183ms)
+✔ D7 index 与 main-entry 共用同一活动版本戳（发版不写死版本号） (12.2733ms)
+✔ E1 首页抬头块：党徽 + 标题，位于统计卡之前；副标题已裁删 (3.5796ms)
+✔ E2 标题走专属 id，不用区块标题选择器误伤其他 H2 (0.6119ms)
+✔ E3 main-entry.js 引入 getHeaderTitle 并按 user 分支设置标题 (0.67ms)
+✔ E4 首页不硬编码示例支部名 (0.4687ms)
+✔ E5 非空转自检：正则正样本命中、负样本不命中 (1.2964ms)
+✔ E6 首页活动风采：一张照片都没有时不出 16:9 大图位，只留一行空态 +（有权限时）上传入口 (0.783ms)
+✔ E7 首页统计卡：图标在左＋数值/标签在右、栅格等高（无 min-height），不阴影不上浮 (3.7479ms)
+✔ E8 hero 特例：首页恒为居中整幅（DS_05 §10.5.1 白名单），不得回退左对齐降级 (1.7733ms)
+[ui-motion-guard] 卡片悬停阴影 / 上浮共 0 处（棘轮上限 0）：
+
+[ui-motion-guard] transition-all 共 0 处（棘轮上限 0）：
+
+✔ M1 卡片悬停不得上浮 / 加阴影：hover:shadow-* 与 hover:-translate-* 为零 (1737.6854ms)
+✔ M2 transition-all 只降不升（列表悬停不得过渡宽高 / 阴影） (1756.2139ms)
+✔ M3 非空转：扫描面覆盖页面源码，且显式过渡类仍存在 (1606.7371ms)
+✔ U1 日历小字：紧凑活动标签与任务标签均 ≥ 11px (16.3653ms)
+✔ U2 日历标签字色：固定 tone 类（tint-fill + data-tone），不再用文字 color-mix 压深 (8.1849ms)
+✔ U3 个人考勤空态：数值为「—」，不得再加第三行「本月无记录」 (8.9231ms)
+✔ U4 卡片 hover：默认无 hover 规则，只有 card--interactive 才给主题色边框与淡底 (17.0225ms)
+✔ U5 选人面板：向上展开有顶栏安全线；弹窗内不再叠第二层黑遮罩 (15.1763ms)
+✔ U6 活动风采：真图位、无渐变、无蓝 hover、无整卡上浮 (13.4551ms)
+✔ U7 活动风采卡可键盘触发 (10.0225ms)
+✔ U8 页标题层级：四页重点各一个 H2，卡头 H3，首页抬头块按裁定恢复 (34.8405ms)
+✖ U9 零值口径：真实的 0 显示为 0；不得出现 0/0 (7.6191ms)
+✔ U10 数字对齐与状态列去重：scope / is-numeric / is-redundant 齐备 (23.1171ms)
+✔ U11 DESIGN_SYSTEM 写入标题层级与零值口径 (11.495ms)
+✔ U12 卡片边界：党小组主从双栏两卡，活动台账单表不套外包卡 (14.8125ms)
+✔ F1 焦点陷阱：Tab / Shift+Tab 在面板内循环 (3.6675ms)
+✔ F2 打开锁 body 滚动，关闭恢复原值 (1.5287ms)
+✔ F3 Esc 关闭并回焦打开前的焦点 (1.0411ms)
+✔ F4 resize / orientationchange 重定位，390px 不出屏 (1.508ms)
+✔ F5 CSS 不使用 transition: all (2.3971ms)
+✔ P1 CLAUDE.md H40.2 只留触发与指针（不内嵌 10 问） (8.0228ms)
+✔ P2 温层清单：8 组齐备、每组带 DS 依据与「何时读」 (15.1291ms)
+✔ P3 两处互相指向（单一源关系可追溯） (13.6878ms)
+✔ P4 非空转：抽取出的两节正文均可达标 (29.8777ms)
+✔ P5 温层非空且含触发式任务表（UI 检查有落点） (6.897ms)
+✔ C1 主 CTA 不再混入深灰 #1F2937 (4.124ms)
+✔ C2 主 CTA 使用角色色令牌 (0.7964ms)
+✔ C3 实底/实底字查表：strongBg + strongInk（无 color-mix 压深） (1.6019ms)
+✔ R1 固定冗余句不得回潮：docs/** 全量源码零命中 (1989.4473ms)
+✔ R2 非空转：正样本命中、负样本不命中，且扫描面覆盖关键文件 (216.3021ms)
+✔ R1 list-row.js：rowType / data-row-type / action & display 分支齐备 (5.7365ms)
+✔ R2 styles.css：展示行 / 动作行无 pointer，且 hover 不变底 (12.0496ms)
+✔ R3 可交互行有 :focus-visible (7.8008ms)
+✔ R4 全站 transition: all 存量只降不升（基线 7） (1926.2126ms)
+✔ R5 非空转：transition 口径命中 all、不误命中具体属性 (0.8224ms)
+✔ S1 大字号：菜单四项都有字号覆盖（不再 11–12px 卡在 17px 触发器下） (5.5304ms)
+✔ S2 深色：选中项走主题 soft 三件套（亮/暗由 token 别名选边），不逐点覆盖 (1.6702ms)
+✔ S3 禁用：select.disabled 同步到触发器（disabled + aria-disabled），并监听属性变化 (1.0088ms)
+✔ S4 空态：0 选项时菜单渲染「暂无可选项」 (0.6437ms)
+✔ S5 分组禁用：optgroup.disabled 传递到标题与子项 (0.7374ms)
+✔ S6 非空转：选择器抽取正/负例 (0.5301ms)
+✔ T1 左右箭头与定位壳：tab-bar 输出 .ws-tab-shell / .ws-tab-arrow (3.5064ms)
+✔ T2 滚动行为：240px 平滑滚动 + scroll/resize 重算 (1.2409ms)
+✔ T3 样式：页签行流式箭头 / 右侧渐隐 (2.6934ms)
+✔ T5 键盘起点：激活页签只改 scrollLeft，不用元素级滚动定位 (1.1837ms)
+✔ T4 不改 tab 尺寸 / 选中态 / 顺序 (13.304ms)
+✔ T6 页签条分层（2026-10-27 Task 6.1）：组名行独立在上、页签行只放页签与箭头 (1.2537ms)
+✔ T7 分层样式（2026-10-27 Task 6.2）：组名行与页签行分列、1440 放开宽度、组名不隐藏 (2.2156ms)
+✔ ① 用户可见文案不得出现考核/机器话术（KPI · 以此计量 · 完成率） (1939.6049ms)
+✔ ② 落款与销项主语不得写死「支书」单一角色（副书同权：应含副支书） (1936.1688ms)
+✔ ③ 反馈指派与「我的处置」不得使用演示占位 ID（u_*），须取真实登录成员 personId (20.964ms)
+✔ ④ 通知消费端（NoticeStore.list）必须按受众/行动角色过滤——签发人不得收到自己下发的催办 (5.3486ms)
+✔ ⑥ showToast 调用约定：首参必须是类型（success|warn|error|info）——不得参数写反 (4063.052ms)
+✔ ⑦ 由 onSelect 渲染的「逐人输入行」必须保态（改选不得清空已填内容） (2644.4085ms)
+✔ ⑤ 思想汇报系统通知 authorize 按服务端表复算（不采信客户端自述 personId） (13.2897ms)
+✔ W1 三层骨架：结论带 / 工作分工表 / 待我处理标记齐备 (3.5725ms)
+✔ W2 删除独立「汇报」卡：不再出现 <h4>汇报</h4> (0.7778ms)
+✔ W3 六个 overview-tab 都走共享 renderWorkOverview (26.5001ms)
+✔ W4 六个角色键与四数齐备（四数同为数字卡） (8.6454ms)
+✔ W5 工作分工表列固定：工作分工 / 负责人 / 在办 / 逾期 / 待处理（R3-29 动作列并入待处理） (0.8518ms)
+✔ W6 复用模块与既有下钻仍在 (0.6868ms)
+✔ W7 390px：条线表横滑 + 首列 sticky (1.3628ms)
+✔ W8 结论带两种控件（数字卡形态）：筛选卡（aria-pressed）/ 滚动卡（锚点）；两段与动作列收敛 (1.7773ms)
+✔ W9 跳转统一：动作只经 goToWorkspaceTab，条线声明目标项，缺 id 在源页提示未定位 (1.3817ms)
+✔ W10 功能色：缺口 / 超期 / 缺勤取 status 文字档，纯计数 neutral-600，条线表无主题色文字 (1.4678ms)
+ℹ tests 471
+ℹ suites 0
+ℹ pass 466
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 95654.5501
+
+✖ failing tests:
+
+test at test\card-summary-hero-guard.test.mjs:104:1
+✖ G2 折叠头 summary：空内容 summary 宽 100% / 高 ≥44，标题行 ≥44 (2062.9881ms)
+  AssertionError [ERR_ASSERTION]: summary 内不得有可见文字（迁回标题）：
+  docs/src/entries/tabs/secretary/work-map-tab.js
+  + actual - expected
+  
+  + [
+  +   'docs/src/entries/tabs/secretary/work-map-tab.js'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///D:/GitHub/GSM1921-SOP/server/test/card-summary-hero-guard.test.mjs:120:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'docs/src/entries/tabs/secretary/work-map-tab.js' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\committee-tab-density.test.mjs:77:1
+✖ T6 帮助注释在两张表之后（说明后置） (2.5706ms)
+  AssertionError [ERR_ASSERTION]: 帮助注释应后置到两张表之后，不再压在标题下
+      at TestContext.<anonymous> (file:///D:/GitHub/GSM1921-SOP/server/test/committee-tab-density.test.mjs:81:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test\copy-guard.test.mjs:681:3
+✖ L4 空态/错误态 ≤30 字（基线 2 条 / 2 文件） (6.2457ms)
+  AssertionError [ERR_ASSERTION]: 空态/错误态超 30 字（DESIGN_SYSTEM §4.18 C6）——只写「为什么空 ＋ 下一步动作」：
+    docs/src/entries/pages/activity-entry.js → 「暂无报名名单·下一步：成员在本页「报名」视图报名，通过后在此列出」（32 字）
+  + actual - expected
+  
+  + [
+  +   'docs/src/entries/pages/activity-entry.js → 「暂无报名名单·下一步：成员在本页「报名」视图报名，通过后在此列出」（32 字）'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///D:/GitHub/GSM1921-SOP/server/test/copy-guard.test.mjs:687:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'docs/src/entries/pages/activity-entry.js → 「暂无报名名单·下一步：成员在本页「报名」视图报名，通过后在此列出」（32 字）' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\type-scale-guard.test.mjs:853:3
+✖ Q6 text-xs 存量只减不增：处数 / 文件数不得高于基线 (1511.2176ms)
+  AssertionError [ERR_ASSERTION]: text-xs 文件数 118 > 基线 116：不得向新文件扩散
+      at TestContext.<anonymous> (file:///D:/GitHub/GSM1921-SOP/server/test/type-scale-guard.test.mjs:862:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test\ui-phase2-urgent.test.mjs:170:1
+✖ U9 零值口径：真实的 0 显示为 0；不得出现 0/0 (7.6191ms)
+  AssertionError [ERR_ASSERTION]: 在办应直接输出数值（含 0）
+      at TestContext.<anonymous> (file:///D:/GitHub/GSM1921-SOP/server/test/ui-phase2-urgent.test.mjs:173:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '// role: [工程师]+[AI]\n// ════════════════════════════════════════════════════════════════\n//  components/governance/work-overview.js — 六个支部工作台「工作概况」唯一渲染源\n//  2026-10-18 支书拍定（工作台密度与组件重组 Task 7）：六台统一三层，不再有独立「汇报」卡。\n//    ① 结论带 data-wo-layer="summary"：四张数字卡（在办 / 逾期 / 待我处理 / 待答复或职责指标）；\n//       四项是可聚焦按钮，逾期/待我处理可筛选下方列表，在办/第四项滚到条线表\n// 2026-10-28 支书裁定「四个数恢复彩色图标点缀」：结论带与首页同构的四张卡\n//   （`.card` ＋ 图标块 ＋ 数字 24px 同色 ＋ 标签 12px；卡间距 `--space-4`，不加阴影）。\n//    ② 条线表 data-wo-layer="lines"：行=分工条线，列固定「工作分工 / 负责人 / 在办 / 逾期 / 待处理」；\n//       缺口与行内动作合并进「待处理」列（R3-29，6 列 → 5 列）\n//    ③ 待我处理 data-wo-layer="actions"：最多 3 条，每条标题 + 一句原因 + 一个动作；超出留一行「共 N 项 · 去待办」\n//  单一源关系：\n//    · 行 = components/ui/list-row.js；表 = components/ui/data-table.js（tableHeadHtml）；\n//      空态 = components/ui/empty-state.js；间距 = styles.css 的 .stack-* / .card-* / --space-*。\n//    · 数据沿用既有服务：TodoStore / IssueStore / filterActivitiesForViewer / TaskForceRecordStore /\n//      loadAttendance / loadInspection / loadMakeupTasks / listPendingByReceiver 等，不新造数据源。\n//  保留下钻：待办组→待办 tab；活动/专班→只读详情；文件外发→确认收到；汇报→「去我的处置」。\n//  本页除「四数卡的图标块」外不再使用 SVG 图标（支书 2026-08-10 裁定），类别仍用色点 + 文字区分。\n//  2026-11-10 批次 540 波次 5（`INTERACTION_AND_NAVIGATION_CONTRACT §二/§三`）：\n//    · 所有切页签的动作统一走 `goToWorkspaceTab(tab, {kind,id,section}, role)`（不再按 prefix 手写\n//      选择器点按钮）；「去活动管理 / 去待办」必须落到具体行 / 组，来源项缺 id 时在本页显式提示\n//      「未定位到具体条目」，不静默落到目标页顶；\n//    · 「待赋权」缺口直达该活动的详情页（赋权位在详情页，活动管理内只有预览）——direct 走既有的\n//      对象详情路由，不在本页另拼 URL。\n// ════════════════════════════════════════════════════════════════\n\nimport { showToast, flashHighlight, todayLocal, docAnchorHref, escHtml as esc, smoothScroll } from \'../../core/base/utils.js?v=20261109a\';\nimport { icon } from \'../../core/base/icons.js?v=20261109a\';\n// 批次 540 波次 5：切页签 / 缺项提示的唯一出口（契约 §二「不得只 toast、不得静默」）。\nimport { goToWorkspaceTab, showMissingItemNotice } from \'../../core/session/workspace-nav.js?v=20261109a\';\n// 批次 540 波次 5：「待赋权」direct 落点＝活动详情页（对象详情路由单一源）。\nimport { objectDetailHref } from \'../../core/domain/object-route.js?v=20261109a\';\nimport { resolveDocumentUrl } from \'../../core/base/page-url.js?v=20261109a\';\nimport { listRowHtml, listGroupHtml } from \'../ui/list-row.js?v=20261109a\';\nimport { tableHeadHtml } from \'../ui/data-table.js?v=20261109a\';\nimport { emptyStateHtml, renderSkeleton } from \'../ui/empty-state.js?v=20261109a\';\nimport { badgeHtml } from \'../ui/badges.js?v=20261109a\';\nimport { renderTabHeader, renderCardHeader } from \'../shell/page-frame.js?v=20261109a\';\nimport {\n  TodoStore, seedTodos, isTodoExpired, WORK_DOMAIN, WORK_DOMAIN_LABELS, TodoStatus,\n} from \'../../services/governance/todo.js?v=20261109a\';\nimport { IssueStore } from \'../../services/governance/issues.js?v=20261109a\';\nimport {\n  isActivityEnded, isActivityArchived, isActivityInProgress, ROLE_LABELS, PARTY_GROUP_LEADER_ROLES,\n  DASHBOARD_LIMITS,\n} from \'../../core/domain/constants.js?v=20261109a\';\nimport { loadActivities } from \'../../services/activity/activity.js?v=20261109a\';\nimport { filterActivitiesForViewer, resolveVisibleTargets } from \'../../services/core/visibility.js?v=20261109a\';\nimport { loadActiveAttendanceRecords } from \'../../services/activity/attendance.js?v=20261109a\';\nimport { loadInspectionRecords, getOverdueRecords } from \'../../services/activity/inspection.js?v=20261109a\';\nimport { loadMakeupTasks } from \'../../services/activity/makeup.js?v=20261109a\';\nimport { loadActiveActivityReviews, loadTaskforceReviews } from \'../../services/governance/review.js?v=20261109a\';\nimport { TaskForceRecordStore } from \'../../services/activity/taskforce.js?v=20261109a\';\nimport { listPendingByReceiver, confirmExternalDispatch } from \'../../services/activity/external-dispatch.js?v=20261109a\';\nimport { getPersonName } from \'../../services/member/person.js?v=20261109a\';\nimport { loadMemberProgress, REPORT_KIND } from \'../../services/member/member-progress.js?v=20261109a\';\nimport { AttendanceStatus, ReviewStatus, mockDB, isTaskforceActiveStatus } from \'../../core/domain/domain.js?v=20261109a\';\nimport { PROP_TASKS_SEED } from \'../../data/mock/prop.js?v=20261109a\';\nimport { getBranchIdOfPerson, getBranchWorkforce } from \'../../services/branch/branch.js?v=20261109a\';\n\n// 在办下钻详情目标（支书 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）\nlet _woDetail = null; // { kind: \'activity\' | \'taskforce\', id } | null\n// 结论带筛选状态：null | \'overdue\' | \'actions\'；按角色重置，避免跨工作台串用\nlet _metricFilter = null;\nlet _metricRole = null;\n\n// 批次 530（B-520-3）：内联动作条数改取展示上限单一源（DASHBOARD_LIMITS）。\nconst _MAX_INLINE = DASHBOARD_LIMITS.overviewInlineActions;\nconst _DONE_LIMIT = 5;\n/** 结论带指标色单一源（2026-11-01 批次 524 支书裁定）：指标与状态用功能色，动作 / 导航 / 选中态仍用主题色。\n *  pending = 待处理状态（待答复 / 待赋权 / 待归档 / 待补课 / 待汇报 / 组员汇报）；\n *  overdue = 逾期（warning 文字档）；normal = 纯计数（待办总数，不是状态；批次 540 波次 5 改 `--neutral-600`）。 */\nconst METRIC_TONE = {\n  pending: \'var(--status-info-text)\',\n  overdue: \'var(--status-warning-text)\',\n  normal: \'var(--neutral-600)\',\n};\n/** 「待我处理」分区标题（结论带上的第二枚指标改称「待办」，避免同一屏出现两遍「待我处理」）。 */\nconst ACTIONS_TITLE = \'待我处理\';\nconst LINE_COLUMNS = [\n  { label: \'工作分工\', className: \'wo-line-name\' },\n  { label: \'负责人\' },\n  { label: \'在办\', className: \'is-numeric\' },\n  { label: \'逾期\', className: \'is-numeric\' },\n  { label: \'待处理\' },\n];\n\n/** 角色中文名：visitor 在档案角色表里叫「普通参与者」，工作台口径统一称「普通成员」 */\nfunction _roleLabel(role) {\n  if (role === \'visitor\') return \'普通成员\';\n  return ROLE_LABELS[role] || role;\n}\n\nfunction _mergeStats(...parts) {\n  return parts.reduce((acc, part) => ({\n    active: acc.active + (part?.active || 0),\n    overdue: acc.overdue + (part?.overdue || 0),\n  }), { active: 0, overdue: 0 });\n}\n\n/** 待办聚合组 → 在办 / 逾期（组内逐条判定，逾期口径与待办页同源 isTodoExpired） */\nfunction _todoStats(groups, today) {\n  let active = 0;\n  let overdue = 0;\n  (groups || []).forEach((group) => {\n    active += group.count || (group.items || []).length || 1;\n    overdue += (group.items || []).filter((item) => isTodoExpired(item, today)).length;\n  });\n  return { active, overdue };\n}\n\nfunction _activityStats(activities, today) {\n  const list = activities || [];\n  return {\n    active: list.length,\n    overdue: list.filter((a) => a.date && a.date < today).length,\n  };\n}\n\nfunction _taskforceStats(taskforces, today) {\n  const list = taskforces || [];\n  return {\n    active: list.length,\n    overdue: list.filter((tf) => tf.deadline && tf.deadline < today).length,\n  };\n}\n\nfunction _groupDomain(group) {\n  return group?.domain || (group?.items || [])[0]?.domain || WORK_DOMAIN.NONE;\n}\n\nfunction _isTaskforceGroup(group) {\n  const key = String(group?.groupKey || \'\');\n  const actionKey = String(group?.actionKey || \'\');\n  return actionKey.startsWith(\'taskforce-\') || key.includes(\'taskforce\');\n}\n\nfunction _isGroupActivity(activity) {\n  return String(activity?.type || \'\').includes(\'党小组\');\n}\n\nfunction _gap(...parts) {\n  return parts.filter(Boolean).join(\' · \');\n}\n\nfunction _daysOverdue(deadline, today) {\n  if (!deadline || deadline >= today) return 0;\n  const end = new Date(`${deadline}T00:00:00`);\n  const now = new Date(`${today}T00:00:00`);\n  if (Number.isNaN(end.getTime()) || Number.isNaN(now.getTime())) return 1;\n  return Math.max(1, Math.round((now - end) / 86400000));\n}\n\n/** 四个数的统一形态：逾期与待办在前，在办退到第三位，第四数按职责替换。\n *  2026-10-20 R3-07：筛选类（逾期 / 待办）与滚动类（在办 / 第四项）在渲染上分成两种控件——\n *  筛选是 chip 按钮（有 aria-pressed），滚动是页内链接（原生锚点），不再让同款按钮干两种事。 */\nfunction _metrics(fourth) {\n  // 图标颜色只用既有语义 token：状态与计数取功能色（METRIC_TONE），在办 = 中性（过程量不争重心）；\n  // 图标不是唯一信息载体，标签仍在。\n  return [\n    { key: \'overdue\', kind: \'filter\', label: \'逾期\', icon: \'warning\', color: METRIC_TONE.overdue, value: (totals) => totals.overdue, warning: true, ariaLabel: \'筛选逾期待办\' },\n    // 「待办」只跳分区，不做第二套筛选：实际可筛的只有「逾期」一类（R3-07）。\n    { key: \'actions\', kind: \'scroll\', href: \'#wo-actions\', label: \'待办\', icon: \'list\', color: METRIC_TONE.normal, value: (totals) => totals.actions, ariaLabel: \'查看待办事项\' },\n    { key: \'active\', label: \'在办\', kind: \'scroll\', href: \'#wo-lines\', icon: \'flag\', color: METRIC_TONE.normal, value: (totals) => totals.active, ariaLabel: \'查看工作分工表\' },\n    { ...fourth, key: \'fourth\', kind: \'scroll\', href: \'#wo-lines\', ariaLabel: `查看${fourth.label}分工` },\n  ];\n}\n\n/**\n * 六台配置单一源：角色键 → { metrics, lines, lineOf(...) }。\n * lines 的顺序即条线表行序；某条线无数据时行仍保留（渲染为「—」）。\n */\nconst ROLE_OVERVIEW_CONFIG = {\n  secretary: {\n    metrics: _metrics({ label: \'待答复\', icon: \'message\', color: METRIC_TONE.pending, value: (totals) => totals.answer }),\n    lines: [\n      {\n        key: \'org\', label: \'组织\', ownerRole: \'org-commissioner\', tab: \'calendar\', actionLabel: \'活动管理\',\n        stats: (c) => _mergeStats(\n          _todoStats(c.todoGroups.filter((g) => {\n            const domain = _groupDomain(g);\n            return domain === WORK_DOMAIN.MEMBER_DEV\n              || (domain === WORK_DOMAIN.PROJECT && !_isTaskforceGroup(g));\n          }), c.today),\n          _activityStats(c.activities.filter((a) => !_isGroupActivity(a)), c.today),\n        ),\n        gap: (c) => c.pendingAuth ? `待赋权 ${c.pendingAuth} 个` : \'\',\n        // B06（2026-10-20）：原「待赋权 N 个」是纯文本，看得出缺口却无处可去。赋权的真实承载是\n        //   活动详情页（活动管理内只有预览）⇒ 缺口做成直达该活动详情的入口；不新增 tab。\n        //   批次 540 波次 5：`gapAction: \'auth\'` + `targetOf` 提供具体活动 id，缺 id 才提示未定位。\n        gapAction: \'auth\',\n        gapTab: \'calendar\',\n        targetOf: (c) => {\n          const pool = c.pendingAuthList && c.pendingAuthList.length ? c.pendingAuthList : c.activities;\n          const act = (pool || []).find((a) => !_isGroupActivity(a));\n          return act ? { kind: \'activity\', id: act.id } : null;\n        },\n      },\n      {\n        key: \'prop\', label: \'宣传\', ownerRole: \'prop-commissioner\', tab: \'todo\', actionLabel: \'待办\',\n        stats: (c) => _todoStats(c.todoGroups.filter((g) => _groupDomain(g) === WORK_DOMAIN.ARCHIVE), c.today),\n        gap: (c) => c.pendingArchive ? `待归档 ${c.pendingArchive} 个` : \'\',\n        // 批次 540 波次 5：「去待办」落到具体聚合组（同一 groupKey 由待办页定位）。\n        targetOf: (c) => {\n          const group = (c.todoGroups || []).find((g) => _groupDomain(g) === WORK_DOMAIN.ARCHIVE);\n          return group ? { kind: \'group\', id: group.groupKey } : null;\n        },\n      },\n      {\n        key: \'disc\', label:'... 40536 more characters,
+    expected: /\$\{row\.active\}<\/td>/,
+    operator: 'match',
+    diff: 'simple'
+  }
+[guards] 第 2/2 片（39 文件）
+[B2] 三件套整文件哈希：3 件一致
+[B3] 引用面定位片段：2 处一致
+[B4] 定位串命中：docs/src/core/domain/function-catalog.js · docs/help.html
+[B5] 反例：5 处逐个改动均判红 · 副本原样判绿 · 真实文件未动
+✔ B1 基线条目恰好 5 条：字段齐备 · 文件集合＝五个冻结位置（防漏项 / 换条） (4.5069ms)
+✔ B2 三件套整文件哈希 ≡ 基线（About 页面 / 样式 / 入口脚本一字不动） (37.8926ms)
+✔ B3 两处引用面定位片段 ≡ 基线（功能目录「关于」卡 · help 正文页面清单） (28.2869ms)
+✔ B4 非空转：每条定位串在真实文件里恰好命中 1 行且片段非空 (18.2897ms)
+✔ B5 反例：临时副本改动任一处必须判红（真实文件不动） (1370.601ms)
+✔ C1 H21 存在且位于 H30 之前（正文非空转） (10.6444ms)
+✔ C2 H20.2 有 H21 前置入口（多视角审查前置） (5.3872ms)
+✔ C3 H21 协议关键词齐备（独立审查 / 证据 / 汇总 / 裁定 / 落 spec / 复盘） (5.3321ms)
+✔ C4 判例与四轮路线图以指针下迁（H21 只留入口，细节在手册） (10.1613ms)
+✔ C5 详版手册九章齐备（PARALLEL_SKILL_AUDIT.md） (6.7637ms)
+✔ C6 05 索引已登记 PARALLEL_SKILL_AUDIT.md 且为 on-demand (6.6207ms)
+✔ C7 守卫已登记 daily / guards 层 (15.178ms)
+✔ CD1 contracts/*.md 逐份必备 type / status / version / owner / acceptance (63.3077ms)
+✔ CD2 非 contracts 文档不得声明 type: contract（白名单为空） (761.9844ms)
+✔ CD3 非空转：合格契约判绿；逐个缺字段必须判红 (1.5346ms)
+✔ ① `.ctx` 顶层只允许白名单项（10 项） (58.002ms)
+✔ ② 顶层不得回潮审计原文 / 脚本产物 / 历史草稿 (6.2731ms)
+✔ ③ 归档审计原文必须有正式文档或当月执行日志指针 (172.193ms)
+✔ ④ 生成类产物必须有对应脚本 (15.0955ms)
+✔ ⑤ ACTIVE_CONTEXT：≤300 行 / ≤30KB，frontmatter 齐全且保鲜 (20.8989ms)
+✔ ⑥ ACTIVE_RULINGS：≤150 行且含 §B 分域索引（规则正文不在 .ctx） (4.9126ms)
+✔ ⑦ SNAPSHOT：≤250 行且不再承载批次小结 (5.9664ms)
+✔ ⑧ CLAUDE.md：≤600 行 / ≤85KB；甲部引用框 ≤15 且不写历史 (65.1255ms)
+✔ ⑨ CLAUDE.md：乙部 ≤18 行且无历史叙述；丙部 ≤4 条且无已裁 (6.2521ms)
+✔ ⑩ CLAUDE.md H20.3 收尾：next_prompt 六要素与 commit 模板齐备（防收尾漏报） (4.2307ms)
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v14（本次应用 14 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v14（本次应用 14 项）
+✔ ① docs/src 不得出现 `|| 'pN'` 操作人兜底（P1-11） (1444.3047ms)
+✔ ② 不得写死支委名单 2400012354~2300010002（P1-09） (1492.5581ms)
+✔ ③ 不得用 generateId('p') 生成成员 id（P1-12） (1408.3161ms)
+✔ ④ 复盘/沉淀写口必须落稳定父键，不得只写 sourceName（P1-05/M1） (4.5764ms)
+✔ ⑤ mockDB 不新增只写不读集合（允许清单 + 理由，P1-26） (1613.2888ms)
+✔ ⑥ committeeBroadcasts 已停止写入（P1-26） (13.0492ms)
+✔ ⑦ 建表清单不新增只写不读集合（允许清单 + 理由，P1-26） (1522.1275ms)
+✔ ⑧ 分类完整性：mock 持久化键 / mockDB 键 / 物理表全部有归属（未分类即红） (10.7926ms)
+✔ ⑨ reset 分区：每个 mock 持久化键必须落在 init 的 keep 或 clear 分区 (0.69ms)
+✔ ⑩ init 空态真实性：工作组域 / attendanceRosters / 旧 weeklyReports 均被清空 (1.7704ms)
+✔ ⑪ API token no-op：init 档仍以 sessionStorage token 为执行边界 (4.9097ms)
+✔ ⑫ 清理安全：cleanup 默认 dry-run；--apply 只删孤儿附件 / 悬空附件行 / 旧备份，业务记录不动 (2943.0851ms)
+✔ ⑬ 重建边界：生产拒绝 demo、目标已存在拒绝、baseline 只写指定输出并写 seed_meta (10487.825ms)
+✔ ⑭ 档案归档单删联动物理文件（或保留仍被其他表引用的文件） (3.6877ms)
+✔ ⑮ 测试残留清理：ID 前缀 ＋ 标题/日期 双条件命中，真实业务行不动；默认 dry-run (2978.6874ms)
+✔ ⑯ cleanup 删除目标白名单不含任何业务表（业务数据永不自动删；含反例） (11.453ms)
+✔ D1 日期口径：应用面（docs/src ＋ server）不得用 UTC 切串取「今天」（R-26③） (9139.8812ms)
+✔ D2 非空转：本地口径单一源在位（前端零依赖叶子 ＋ 服务端单一源 ＋ constants 叶子不变量） (19.6008ms)
+[DataAdapter] 数据源切换为: mock
+✔ W1 单一窗口：DEMO_WINDOW 精确等于 2026-08-01~2026-11-30，伪日期被拒绝（含故障注入） (3.6387ms)
+✔ W2 所有 mock 日期字段落在窗口内；白名单例外逐条有理由 (9.8184ms)
+✔ W3 8/9/10/11 每月至少一场活动；11 月只 draft/published 且无考勤/复盘/归档 (5.2553ms)
+✔ W4 关键状态样本：复盘五态 / 考勤四态 / 专班三态 / 宣传·周期归档·外发·交接 (1.1012ms)
+✔ W5 级联顺序：考勤/活动考察/复盘不得早于所属活动日 (1.9618ms)
+✔ S1 各台及全站 tab 数与代码注册数组一致（help.html 两处 + README-server 总数） (120.3609ms)
+✔ S2 各台 tab 名称齐备；已删 / 已改名 tab 名不得在帮助页复现（§2.x 逐名 ＋ 全篇 `<td>` 旧名黑名单） (71.3928ms)
+✔ S3 分组名只有一套轴：支部角色台四组、党委台统一治理组（且「党建 / 反馈」组名不得回潮） (109.6232ms)
+✔ S4 旧界面名黑名单零命中（考勤总表 / 按人浏览 / 公邮） (2242.1687ms)
+✔ S5 数据五数：文档声明与代码实测一致（分口径，严禁互相代入） (31.0781ms)
+✔ S6 页面数：文档声明与 docs/ 实况一致（根页 + 工作台） (15.3678ms)
+✔ S7 单一源组件登记处：登记路径真实存在且至少被一处 import（防僵尸登记） (5415.0069ms)
+✔ S8 公邮（mailbox）废止防回潮：代码与数据侧零残留 (3876.2105ms)
+✔ S9 §0.2 总索引里的守卫引用必须真实存在（断言号不得写过时 / 写超前） (673.4261ms)
+✔ S10 §0.2 引用的守卫必须登记进 README 测试清单（防「守卫悄悄缺席」） (14.631ms)
+✔ S11 README 里的守卫断言号必须真实存在（口径同 S9，覆盖 README） (1040.9381ms)
+✔ S12 授权声明必须同行带可核验日期（防「注释伪造支书批」——Q-23-41） (5134.861ms)
+✔ S13 TIMESTAMPS 表行日期必须等于文件 frontmatter 的 last_updated（漂移即红灯） (6165.9852ms)
+✔ S14 可数事实对账：文档里的「枚举 / 计数」必须等于代码 / 数据的实然值 (677.1386ms)
+✔ S15 弱清单：有正当沿革 / 取值定义不清的枚举数字只登记（带基线，防僵尸与变松） (159.5597ms)
+✖ S16 守卫注册完整性：S 类测试文件必须登记在 daily / guards / precommit（防守卫孤儿化） (1398.9827ms)
+✔ S17 真机流 tab 名必须命中该台注册页签（漏改即红；带 path 者豁免） (57.0797ms)
+✔ S18 help.html §2.x 表行序必须等于台注册序（V-3 页签序；只核序） (46.6279ms)
+✔ S19 工作组概念口径：四个核心术语齐备、§G 开篇先讲载体、核心文档不回流「项目组」 (166.8868ms)
+✔ S20 设计权威文档：表格四类术语齐备；信息计算口径文件存在且五关键词齐全 (17.4531ms)
+✔ S21 考察依托工作组：制度 / 数据模型 / 信息计算三处口径一致 (16.7927ms)
+[docs-governance] §五 目录 27 个 · 标「有」README 18 个
+[H-T3] 结构性标签 257 处 · 命中术语表 25 处 · 未命中 142 个（已基线）· 扫描 80 文件
+✔ F1 「只加注、不刷日期」的痕迹：content/** 登记行的表行日期不得早于该行备注里的任何日期 (240.563ms)
+✖ F2 frontmatter.last_updated 不得早于该文件最后一次提交日（git；浅克隆会判红、无 git 只报不判） (9994.5337ms)
+✔ F3 非空转：freshnessProblems 正负例（相等→过 · 早于→红 · 干净且晚于→红 · dirty 且晚于→过） (0.9534ms)
+✔ N1 非空转：TIMESTAMPS 登记行可解析且规模不低于下限 (0.829ms)
+✔ N2 备注列总量预算：合计字数 ≤ 预算，且预算 ≤ 冻结高水位（只降不升） (0.6782ms)
+✔ N3 单格过长：实测命中集 ≡ 存量基线（0 条 · 只降不升） (0.6301ms)
+✔ N4 T-编号：实测命中集 ≡ 存量基线（0 条 · 只降不升） (0.9863ms)
+✔ N5 日期复述：实测命中集 ≡ 存量基线（0 条 · 只降不升） (1.0926ms)
+✔ N6 批次号罗列：实测命中集 ≡ 存量基线（0 条 · 只降不升） (1.2992ms)
+✔ N7 台账自检：**非空**清单互不相同（空表不参与比对 · 2026-10-05 支书核可收窄） (1.6448ms)
+✔ R1 每条 `文件:行号` 引用都指到真实位置（文件可解析 / 行号在范围内 / 区间非空） (6115.5057ms)
+✔ R2 引用后括注里的符号必须逐个出现在声明区间内（词边界匹配；例外仅 1 条且写明理由） (1243.1805ms)
+✔ R3 md 区间不得越到下一节（末个非空行不是标题；起点是标题时区间内无同级/更高级标题） (1418.3357ms)
+✔ R4 「零命中 / 检索不到消费点」类关键词取证仍成立（防取证过期） (9568.375ms)
+✔ R5 非空转：引用总数 / 被引文件数 / 带锚点引用数均有基线（防正则失效把守卫写成恒真） (1.1578ms)
+✔ R6 语义漂移防线：行为词型引用必须带可校验锚点（无锚即红）；弱引用清单有基线上下限 (3.2349ms)
+✔ G4 README 覆盖与 7 字段：§五 标「有」的目录必须真有 README，content/** README 七标题齐备 (143.2239ms)
+✔ G5 AGENTS.md：6 份均存在，含 6 段固定标题与可执行测试命令块 (50.5645ms)
+✔ G6 批次索引含最新批次行（替代 SNAPSHOT 5 行小结） (11.036ms)
+✔ G7 判例索引：每条 CASE 行都有「所属域」与「对应规范编号」 (5.9618ms)
+✔ G8 非空转下限：目录 ≥15 · AGENTS=6 · 判例 ≥15 · README 覆盖 ≥15 (4.5383ms)
+✔ G9 一 tab 一 H2：页签名不得在同一文件的卡头 H3 里逐字复述（卡头须带范围信息） (616.4604ms)
+✔ G10 卡头单一源：page-frame.js 导出 renderCardHeader，函数体含 h3 与 card-head__title (4.7217ms)
+✔ H-T1 并列组层级一致：分段同层 + 合法并列集 + 「其他党小组」独立区 + 各台 views 同判 (2982.9565ms)
+✔ H-T2 页签名覆盖段集合：含「活动」段的页签不得叫「专班动态」；上位页面名逐条豁免 (1143.6508ms)
+✔ H-T3 结构性标签登记：未命中术语表 / 合法别名且不在基线 ⇒ 红（基线只降不升） (1036.111ms)
+✔ H-T4 废弃写法零残留：docs/src/** 与 help.html 的用户可见文案命中即红（注释存量见基线） (3170.3828ms)
+✔ H-T5 术语单一源：TERMINOLOGY ≥18 条 9 字段齐；§19 与 sop/INDEX 只留指针；不得二次定义 (883.6212ms)
+✔ G11 根页地标：sidebar-main-content 外壳的 #main-content 必须是唯一 <main>（9 页逐一断言） (189.1477ms)
+✔ G12 当前状态类文档不得再出现「五编」/「Q-01…Q-21」（历史日志与 CLAUDE.md 历史句豁免） (98.5481ms)
+✔ G1/G2 相对 ESM 规格符的路径必须存在（字面量查文件；模板前缀查目录） (24463.7717ms)
+✔ G3 非空转：扫描面与抽取量有下限，且判据真会判（内存副本注入坏规格符，**不落盘**） (1712.4274ms)
+[L6] 渲染型 href/src 裸文件名：扫描 324 个 js / 238 处引用，其中裸名 6 处，不存在 0 处
+[L7] 非空转：js 324（下限 180）· 渲染引用 238（下限 100） · 已修样本 2 个（无裸名回退）
+✔ L6 裸文件名渲染 href/src：按 <base> 规则解析后目标必须真实存在（裸 x.html → docs/x.html） (1757.2012ms)
+✔ L7 非空转：抽取口径可用 + 抽取面规模达标 + 已修样本可判 (2139.2443ms)
+[localstorage-key-guard] 全仓键字面量归类（共 48 个键）：
+  · A 服务端权威：16 个 → gsm1921-attendance-appeals, gsm1921-feedback-migrated, gsm1921-feedback-submissions, gsm1921-inspection-appeals, gsm1921-issue-cache, gsm1921-issue-cache-v3, gsm1921-issue-cache-version, gsm1921-issue-unread-, gsm1921-member-confirmations, gsm1921-milestone-cache, gsm1921-residence-overrides, issue_reveals, sop_org_os_auth_audit, workflowos_branch_db_v1, workflowos_notices_v1, workflowos_taskforces_v1
+  · B 本机临时白名单：12 个 → gsm1921-accounts, gsm1921-base-data-preview, gsm1921-dev-stage-overrides, gsm1921-init-state, gsm1921-issue-drafts, gsm1921-issue-submitter-token, gsm1921-members-overlay, gsm1921-pending-writes-outbox, gsm1921-tab-selfheal-, gsm1921-workforce-draft, wizard-draft-, workflowos_leader_activity_draft
+  · C UI 偏好与会话：20 个 → cps-, gsm1921-api-token, gsm1921-login-user, gsm1921-pref-, gsm1921-remote-probe, gsm1921-session-snap, gsm1921-tab-id, sop_org_os_assigned_roles, sop_org_os_data_version, sop_org_os_session, table:cols:, workflowos_accent_role, workflowos_font_size, workflowos_tab_disc, workflowos_tab_leader, workflowos_tab_org, workflowos_tab_prop, workflowos_tab_secretary, workflowos_tab_visitor, workflowos_theme
+[MockAdapter] 本地备份缺集合版本或已过期（missing-versions），不作为权威，改从服务端重拉
+✔ L1 全仓 localStorage / sessionStorage 键字面量 ⊆ 已知映射（未登记即红） (8.3534ms)
+✔ L2 白名单非空转 + 无僵尸登记（映射里的每个键都得真在代码里出现） (1.046ms)
+✔ L3 抽取口径有基线（防正则失效 → 一个键都抽不到 → 断言恒真） (0.5449ms)
+✔ L4 全仓存储键必须落入四类清单（未登记 ⇒ unknown ⇒ 红） (0.9849ms)
+✔ L5 registry 不得有僵尸登记（精确键须真在代码出现；前缀须至少命中一个键） (0.8133ms)
+✔ L6 visual 键白名单：只允许主题 / 字号 / 强调色 / 页签顺序 / UI 偏好开关 (1.4725ms)
+✔ L7 业务读缓存备份必须带 `_versions` + `savedAt`，缺版本 / 过期 / 版本不一致 ⇒ 不得当权威 (7.3909ms)
+✔ L8 auth 键不得承载业务数据（token 只进 sessionStorage；auth 键与业务集合不相交） (1609.7309ms)
+✔ L9 故障注入：新增未登记键 / 删掉备份版本，都必须红 (1.9014ms)
+✔ L10 读口拒收缺版本 / 过期备份（restoreNicheCollections 返回 false，由调用方重拉） (990.317ms)
+✔ M1 _requestCancel 在提交中早退（四条关闭路径统一挂起） (4.2988ms)
+✔ M2 setModalBusy 设置 aria-busy，openFormModal 提交态调用它 (1.42ms)
+✔ M3 错误区与字段错误行使用 role="alert" (1.027ms)
+✔ M4 onSubmit 契约：仅显式 true / {ok:true} 关窗，undefined 不关 (1.6614ms)
+✔ M5 三处原生 prompt / confirm 已移除并改用统一浮窗 (17.4811ms)
+✔ M1 非空转自检：escHtml(...) 通过，裸用户数据必须被识别 (3.8428ms)
+✔ M2 openModal：title 以纯文本写入，不解释 HTML (1.2192ms)
+✔ M3 openFormModal：label / placeholder / value / option / 错误文本全部过 escHtml (1.4678ms)
+✔ G1 非空转自检：能截取调用，且能识别 body 内 / footer 内的提交按钮 (2.9019ms)
+✔ G2 modal.js：header 纯文本 / sticky footer / dvh / safe-area / onCancel 齐备 (2.3244ms)
+✔ G3 全站 openModal：提交按钮不得在 footerHtml 之外（白名单须写理由） (2777.631ms)
+✔ G4 成员档案浮窗：标题纯文本，完整档案入口在 body 内 (5.608ms)
+✔ G5 写入活动：取消 / Esc / 遮罩都清 pendingAuth (11.0501ms)
+✔ G6 非空转：hasFixedOverlay 能识别自建全屏层，且不误报普通 fixed 定位 (0.9991ms)
+✔ G7 浮层唯一实现：对话框不得自建全屏固定层（白名单须写理由） (2896.2998ms)
+✔ G8 R3-25 · B-500-2：浮窗不再渲染「制度参数 →」深链（能力与六处调用一并移除） (29.2616ms)
+✔ G9 通知删除：先 openModal 二次确认，确认后才 NoticeStore.remove（并说明联动删除待办） (5.1413ms)
+✔ G10 归档推进：不再自建 position:fixed / 380px 浮层，改走 openModal (6.0083ms)
+✔ D1 原生 confirm 清零：docs/src 不得再出现 window.confirm( / 裸 confirm( (2976.7931ms)
+✔ D2 三段式入口：modal.js 导出 confirmDanger，声明文本含「影响」「恢复」 (1.2714ms)
+✔ T1 字段类型：8 个已知类型原样透传，未知类型生产期回退 text（含反例） (3.2942ms)
+✔ E1 确认类浮窗 Esc 可取消：escCancel 开启且 Esc = finish(false)（含反例） (4.7524ms)
+✔ E2 关闭后焦点回到触发元素；Tab 焦点仍困在浮窗内 (3.0377ms)
+✔ E3 表单错误必须同时产出 aria-invalid 与 aria-describedby（含反例） (1.6419ms)
+[A1] About 导航链接：扫描 26 个 HTML，残留 0 处
+[A2] About 路由：扫描 324 个 JS，残留 0 处
+[A3] About 文档指针：扫描 2 个 Markdown，残留 0 处
+[A5] 非空转：HTML 26（下限 15）· JS 324（下限 180） · MD 2（下限 2）
+✔ A1 docs/**/*.html 不得再有 href 指向 about.html（侧边栏 / 帮助目录 / 正文） (331.8144ms)
+✔ A2 docs/src/**/*.js 不得渲染 about.html，也不得有 module: "about" 侧栏项 (1784.7339ms)
+✔ A3 docs/**/*.md 不得再登记 about.html / about-entry.js 指针 (245.6876ms)
+✔ A4 docs/about.html 文件仍存在且非空（撤路由 ≠ 删文件） (8.4812ms)
+✔ A5 非空转：抽取口径正/负样本可判 + 扫描面规模达标 (748.3493ms)
+[no-underline] 全站下划线 0 处（上限 0）
+✔ N1 非空转：扫描面规模 + 抽取口径正/负例 (5.7933ms)
+✔ N2 全站文本下划线清零（PENDING 台账之外为 0） (1646.1101ms)
+✔ N3 PENDING 台账：文件存在、写明持有者；只报处数不判红 (4105.1388ms)
+✔ N4 只降不升：全站下划线处数 ≤ 上限 (1962.2474ms)
+✔ F01–F03 深链消费：review / todo 均读 ctx.navTarget.hl，失败可见 (5.1625ms)
+✔ F02/F12 targetUrl 守卫：page 存在于 docs/，tab 存在于该角色能力注册 (63.5618ms)
+✔ F06 优先级与入口收口：非公告必须有坐标；所有通知入口先落 notice.html?id= (4.8755ms)
+✔ F04 成员变更通知：audience + actionRoles 均锁定支书/副支书，不广播 (2.705ms)
+✔ F05 作废裁决落点：按接收人角色生成本位工作台（不再固定支书台） (11.1228ms)
+✔ F07 待办深链：workspace/* 才拼 tab=todo，index.html 不带 tab；highlight 有消费 (0.6946ms)
+✔ F12 跨台落点：不得保留其他角色台的写死 URL；动态落点按接收人角色派生 (1.2048ms)
+✔ R1 入口矩阵：每个入口只声明一种 mode 并写理由，未知入口不得放行 (2.7838ms)
+✔ R2 落点：direct 直达详情页 / locate 同页定位但 href 仍指向完整页 (1.5149ms)
+✔ R3 门：缺 id / 跨支部拒绝；同支部与党委/组织员放行 (0.8375ms)
+✔ R4 已归档/终态只读：resolveObjectRoute.readOnly 与 activity-entry 写口门一致 (6.8185ms)
+✔ R5 生成点收口：docs/src 无裸详情 URL 生成，入口文件都走统一路由 (1701.2938ms)
+✔ R6 无空 id 可点：不得用 `|| ''` 拼详情链接 (1710.3637ms)
+✔ R7 可点节点可键盘：卡片/行带 role + tabindex + keydown（或原生 a/button） (30.4872ms)
+✔ R8 同一页只有一个完整详情落点：弹窗/预览保留并补「打开完整页」 (27.2658ms)
+✔ 党委支部目录只创建和选择；已有支部维护统一在所选支部配置上下文 (21.0844ms)
+✔ S 支部目录：活动/专班/通知三列 + 行内名册展开 (17.1906ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ① 数据键未变两次 memoizeRender：buildFn 仅执行 1 次且 container 内容未被覆盖（同 innerHTML） (3.5149ms)
+✔ ② 数据键变化两次 memoizeRender：buildFn 共 2 次且内容更新 (3.8686ms)
+✔ ③ 内容被外部清空（firstElementChild null）后同键再调 → 重建 (0.7287ms)
+✔ ④ marker：dataset.memoKey 残留但内容被异方整体替换（标记消失）→ 同键仍重建，防跨 tab 错留旧内容 (4.2285ms)
+✔ ⑤ calendar 视图缓存：同月同视图同数据仅 1 次网格重建；切月/切视图/数据变化重建 (6.3359ms)
+✔ ① 未写时连续两次 getDomainsWithGroups：结果一致（同引用）且内部聚合只执行一次 (42.2347ms)
+✔ ② create 后：getDomainsWithGroups 结果变化（新引用、计数 +1） (19.0226ms)
+✔ ③ complete 后：getDomainsWithGroups 结果变化（计数 +1，完成态排除） (13.7502ms)
+✔ ④ refreshExpiredStatus 实际变更后：结果变化（计数 +1，条目转 expired） (13.1046ms)
+✔ ⑤ mergeRealtimeDomains 消费同轮缓存基准且不污染共享缓存；未写再次调用同引用 (50.1107ms)
+✔ ① attendance：未写 tokenOf 不变；saveAttendanceRecords 写口后递增 (9.9272ms)
+✔ ② inspection：未写 tokenOf 不变；saveInspectionRecords 写口后递增 (8.3715ms)
+✔ ③ activityReview：未写 tokenOf 不变；addActivityReview 写口后递增 (8.4347ms)
+✔ ④ taskforce：未写 tokenOf 不变；TaskForceRecordStore.add 写口后递增 (7.1397ms)
+[MockAdapter] updateActivity 成功，id=act-p0
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 种子行修复：workgroups 更新 1 行（运行时字段保留；不补缺、不删旧）
+[MockAdapter] 无法映射的复合 id： act-p0
+[MockAdapter] 无法映射的复合 id： ag-p0
+[MockAdapter] 无法映射的复合 id： wg-activity-act-p0
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 无法映射的复合 id： act-p0
+[MockAdapter] 无法映射的复合 id： ag-p0
+[MockAdapter] 无法映射的复合 id： act-su-p0
+[MockAdapter] 无法映射的复合 id： wg-activity-act-p0
+[MockAdapter] 无法映射的复合 id： wg-activity-act-su-p0
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 无法映射的复合 id： act-p0
+[MockAdapter] 无法映射的复合 id： ag-p0
+[MockAdapter] 无法映射的复合 id： act-su-p0
+[MockAdapter] 无法映射的复合 id： wg-activity-act-p0
+[MockAdapter] 无法映射的复合 id： wg-activity-act-su-p0
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[MockAdapter] 无法映射的复合 id： wg-activity-act-p0
+[MockAdapter] 无法映射的复合 id： wg-activity-act-su-p0
+✔ ⑤ resolution：未写 tokenOf 不变；saveFollowups 写口后递增（决议=活动 agenda 内嵌） (2054.953ms)
+✔ ⑥ signup：未写 tokenOf 不变；SignupStore.apply 写口后递增 (23.5857ms)
+✔ ⑦ bumpToken 单调 + resetAllTokens 生效后全部归零、可重新 bump (11.2885ms)
+✔ ⑧ 聚合入口复合键缓存：未写同引用；attendance 写口后重算（computeAggregates / getOverview） (21.6861ms)
+✔ ① calendar 日索引：acts / viaTasksByDate 分组输出与逐格扫描同集合同序 (1.8433ms)
+✔ ② 考勤缺口（_aggAttendanceRemind Map 化）：缺口活动序与旧嵌套对偶实现一致 (13.0798ms)
+✔ ③ 报名索引（buildApprovedSignupIndex/approvedSignupHit）：与旧 _approvedSignup .some 全表判定等价 (1.5446ms)
+✔ ④ isTodoExpired：与旧四处判定等价（过期/到期当天/未来/完成/进行中/无 deadline/无 status 实时条目） (1.4562ms)
+✔ P1 平台品牌出现在首页 / 登录页 / 顶栏品牌判定源 (3.3285ms)
+✔ P2 首页有公共门厅容器与登录入口，工作台结构保留且排在其后 (1.0619ms)
+✔ P3 main-entry 按登录态分流，未登录不调用 loadWorkspaceData (1.6836ms)
+✔ P4 未登录品牌不落到具体支部名 (1.6429ms)
+✔ P5 门厅客户端只走匿名 /api/public/*（无鉴权头、8 秒超时） (1.9868ms)
+✔ P6 非空转：分流正则与演示支部名扫描能判出正 / 负例 (0.8528ms)
+✔ ① 白名单常量存在且与 spec 一致 (4.8423ms)
+✔ ② 静态扫描：投影函数体与 res.json 对象块不含敏感键 (4.413ms)
+✔ ③ 运行期毒行：投影只输出白名单键，敏感键一个不漏不出去 (1.614ms)
+✔ ④ 公开路由未引入鉴权：不出现 requireAuth / requireRole / Authorization (1.2489ms)
+[种子待办截止] 字面量 2 条：2026-11-15 / 2026-10-10；计算式 1 条（下限 2026-10-01）
+✔ G1 静态页 / 用户可见面无「演示 / 示例组织 / Mock」可见文案 (46.5416ms)
+✔ G2 十月两活动在册（act-36 党课 / act-37 红色徒步·纪念长征胜利 90 周年） (5.9871ms)
+✔ G3 种子待办无过去截止（SEED_TODOS 的日期型 deadline 不早于 2026-10-01） (7.221ms)
+✔ G4 静态托管形态自动判定（deploy.js 不再写死 server，两形态常量都在） (4.9326ms)
+✔ R1 名册首屏：1 个搜索 + 恰 3 个下拉（党小组 / 发展阶段 / 在册状态） (5.2775ms)
+✔ R2 不得回潮 4 组 chip：名册不得 opt-in chip / 自写胶囊 (0.6117ms)
+✔ R3 引擎两形态契约仍在（避免「删了 chip」时把 dropdown 一起删掉） (0.3541ms)
+✔ R4 390px 单列：由通用筛选行规则覆盖（不再保留名册专用第二套） (1.1984ms)
+✔ R5 守卫登记在 daily / guards 层（2026-11-08 批次 537 起按需跑，不得孤儿化） (14.2037ms)
+✔ R6 R3-17：待确认摘要不重复、pill title 只写「待支书确认」 (0.5738ms)
+✔ R7 R3-18：新增成员不写「推荐填写」，占位符只给例子 (0.6589ms)
+✔ R1 U-04 纪检考勤：无 window.prompt · 会议 label 关联 · 视图 aria-pressed (10.2527ms)
+✔ R2 U-05 专班管理：招募浮窗走通用 modal · 视图 aria-pressed · 折叠 aria-expanded (17.9977ms)
+✔ R3 U-09 项目分工空态：两个出口 + aria-pressed + 无 transition-all (10.4024ms)
+✔ R4 U-23 活动材料闭环：页面 / 入口 / 三步 / 复用既有写口 (48.9684ms)
+✔ R5 U-35 组长台「我的任务」：承载面 + 复用单一口径 + 已接线 (12.7576ms)
+✔ R3-U01 页签右侧动作（发布招募）在滚动容器之外 (14.3166ms)
+✔ R3-U03 页签模块加载/渲染失败落统一错误卡，可重试 (1.2628ms)
+✔ R3-D05 激活页签滚入视口（只改 scrollLeft，尊重减少动效偏好） (0.8466ms)
+✔ R3-F02 通知条目键盘守卫与铃铛未读数可读 (0.5799ms)
+✔ R3-U07 四类材料行恒显示，步骤条单调 (1.801ms)
+✔ R3-U08「今天」聚合失败显示错误态而非空态 (1.0146ms)
+✔ R3-F09 组长台卡点卡前置，无卡点一行绿提示 (0.8248ms)
+✔ R3-F10 活动行动作容器允许窄屏换行，标题区保持 min-w-0 (0.7118ms)
+✔ R4-F07 + R3-F03/B01 日历为空态/图例兜底，活动与日期格键盘可达 (2.7336ms)
+✔ R4-D07 DATA_MODEL 校准：41 字段 / 6 工作组域 + _seedVersion / personId / 状态优先级 (2.5198ms)
+[tab-bar] tab「boom」渲染异常 Error: boom
+    at Object.render (file:///D:/GitHub/GSM1921-SOP/server/test/runtime-tab-lifecycle-guard.test.mjs:142:62)
+    at _safeRender (file:///D:/GitHub/GSM1921-SOP/docs/src/components/shell/tab-bar.js?v=20261109a:839:22)
+    at Object.activate (file:///D:/GitHub/GSM1921-SOP/docs/src/components/shell/tab-bar.js?v=20261109a:1119:12)
+    at TestContext.<anonymous> (file:///D:/GitHub/GSM1921-SOP/server/test/runtime-tab-lifecycle-guard.test.mjs:146:13)
+    at Test.runInAsyncScope (node:async_hooks:227:14)
+    at Test.run (node:internal/test_runner/test:1306:25)
+    at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+    at Test.postRun (node:internal/test_runner/test:1447:19)
+    at Test.run (node:internal/test_runner/test:1372:12)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+✔ R1 壳必须传函数给 tab-bar（renderCtx 不是一次性常量） (5.1671ms)
+✔ R1 行为：切月 → 切走 → 切回，三个 tab 都拿到最新 state (7.6538ms)
+✔ R2 _renderCurrentTab 走 tab-bar 同一生命周期（清 marker / seq / 去重 / await） (1.3753ms)
+✔ R2 activate 返回 Promise，壳可等待首次渲染完成 (0.9183ms)
+✔ R3 陈旧写回先恢复上一快照，失败落错误卡（不留半截 DOM） (1.3636ms)
+✔ R3 行为：render 抛错时容器出现错误卡（不是空白 / 静默） (5.0949ms)
+✔ R4 loading 占位有 ≤8s 超时，超时停止动画并解除灰化 (1.1053ms)
+✔ R4 行为：渲染 promise 永不落定时超时移除占位并恢复可点 (1.8197ms)
+✔ R5 绑定标记不挂持久容器：改挂被重建元素自身 / 事件委托 (1.8421ms)
+✔ R6 页内 import / 节点缺失均有可见失败态（错误卡 + 重试或 toast） (2.6112ms)
+✔ R7 回退首个可见页签时必须给可见说明（不得点 A 亮 B 无提示） (1.5966ms)
+✔ P1 600ms 不再写死：默认 ≤120ms，可由 window.__MOCK_DELAY_MS / MOCK_DELAY_MS 覆盖 (912.2399ms)
+✔ P2 双 loadDB 收敛为一次：mock-adapter 页面级幂等锁（重复调用直接返回） (6.1514ms)
+✔ P3 首屏不阻塞：IssueStore/MilestoneStore 只发起不 await；版本过期才 reload (0.7491ms)
+✔ P4 hover 浮窗先读后写 + 阴影降档；全局扫描器只看新增节点 (0.7795ms)
+✔ P5 状态驱动刷新不阻塞 hover：后台渲染不铺占位 / 不置灰 (0.4815ms)
+✔ G1 canonical 集合：三分类不重不漏，直接流转仅 recruiting → active (4.9938ms)
+✔ G2 枚举单一源：授权/迁移/服务端写口均引用 domain.js，不本地再声明状态数组 (64.8551ms)
+✔ G3 无裸状态数组：应用面不得出现仅由状态字面量组成的数组 (6621.5425ms)
+✔ G4 mock 数据：专班派生状态必须落在 canonical 枚举内，生成的工作组状态同源 (5.4508ms)
+✔ G5 迁移映射：in_progress → active；未知状态不得原样复制（→ draft 只读待核） (1.0684ms)
+✔ G6 文档同步：DATA_MODEL.md 写明 canonical 集合与状态分离 (7.6375ms)
+✔ G7 支委会页签：会议状态不再本地判定，统一走 deriveMeetingStatus（批次 510 · SD-34） (5.9556ms)
+✔ G8 派生器单源：deriveActivityStatus / deriveMeetingStatus 必须导出，活动状态返回值 ⊆ 五态（批次 510 · SD-34） (5.9288ms)
+✔ G9 消息种类单一源：notice.js 导出 kindOf，kind 判定只认三种身份，规范化含 archivedBy（批次 510 · SD-34） (8.577ms)
+✔ S0 守卫自检：被测源文件非空且关键锚点可命中（防空转） (51.3795ms)
+✔ S1 待办窄屏：390 列表先于详情、未选中不渲染详情列，桌面仍双栏；选中滚入详情卡，详情卡 aria-live (9.716ms)
+✔ S2 专班卡：role=button / tabindex=0 / aria-label，Enter·Space 展开且不劫持卡内控件 (8.1296ms)
+✔ S3 概况标题：work-overview 支持 title 参数（默认「工作概况」），六台按身份传值 (36.3958ms)
+✔ S4 六台外壳：静态台名不再占 H2（唯一 H2 由页签提供）、版心不扩 (29.9286ms)
+✔ G1 分片池的应有全集 ≡ 磁盘上全部 e2e 文件（新增 e2e 未归片即红灯） (2403.3385ms)
+✔ G2 片内文件真实存在且确实是 e2e (2164.5801ms)
+✔ G3 分片互不重叠（同一文件只许出现在一片） (0.6886ms)
+✔ G4 非空转：片数 ≥2、每片非空、SHARD_PAGES 取值域 ≡ 真机流程里出现过的 page (1.7121ms)
+✔ 已撤页签不得回潮（含 2026-10-25 IA 62→45 的 17 项） (45.2644ms)
+✔ 旧 id 别名必须落到该台真实承接页（不白屏），且页内落点参数齐全 (73.0358ms)
+✔ 跨台迁移（支书成员流动 → 组织台）走页面级重定向，且落地带 legacy 说明 (5.4915ms)
+✔ 旧工作量展示明确标为历史分工并与结构化任务产出分开 (10.4772ms)
+✔ 专班成员的新产出进入结构化产出接口，历史贡献字段只读保留 (7.1036ms)
+✔ 专班详情五块折叠区（成员与授权 / 任务与产出 / 贡献核验 / 报名与记录 / 收尾与复盘），右侧抽屉浮出并标 aria-current (8.671ms)
+✔ 顶层区块收敛到 4：清单卡（一卡两视图 + 卡头筛选）→ 详情抽屉 → 赋权折叠 (12.4949ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v14（本次应用 14 项）
+[server] 已建立**最小组织基线**：支部 1 个（光华管理学院本科生党支部） ＋ 党委账号 1 名（党委组织员 / 学号 9000000001）；**未灌任何成员名单**（名单请走 IAAA 登录 + 支部确认，或党委台「支部管理 → 导入成员名册」）
+✖ I1 每个测试文件都登记 fixtureClass，四类取值合法 (23.0589ms)
+✔ I2 external-write 必须有临时库或 finally 清理证据（含故障注入） (4.3355ms)
+✔ I3 连 :3000 的测试必须标 external-*；测试源码不得指向 server/data.db (2775.3124ms)
+✔ I4 可运行检查：自托管临时库登录只写临时库，运行库 sessions / uploads 不增长 (768.1141ms)
+✖ T1 磁盘测试文件 ↔ 四层登记双向相等，且四层互不重叠 (12.3594ms)
+✔ T2 daily 不含 page-sweep / form-loop-sweep / 任何 *-e2e 重活 (1.1372ms)
+✖ T3 不 import playwright 的纯 node 测试必须在 daily / guards / precommit，不得在 weekly (1339.8362ms)
+✔ T4 daily / guards 文件数与断言预算不得高于登记值；daily 另有结果门禁上限 (587.7977ms)
+✔ T5 四个 runner 与 registry 对齐，且不含 cmd 专有语法 (17.6546ms)
+✔ T6 非空转：规模下限、reason 完备、比较器能判出人为差异 (9.6199ms)
+✔ T7 守卫台账标题数字与正文「现行 N 件」一致（含反例） (7.6954ms)
+[漏登记检测] 候选 111 处 · 未登记 3 处（基线 3）
+✔ V1 漏登记增量检测：候选校验点不得新增未登记（`R-73` 第 ③ 缺 · 只降不升） (2678.9335ms)
+✔ W1 catalog 45 项，键集合与 TAB_BLOCK_BASELINE 一致 (4.7394ms)
+✔ W2/W3 每页签有源码入口、至少 1 读口，写口有 gate、破坏性有 reason (310.9817ms)
+✔ W4 反例：缺页签 / 空 source / 写口无 gate 会被同一口径判红 (3.8195ms)
+✔ W5 旧 67 台账仅作档案存在，不再作为现行口径 (16.5771ms)
+✔ 周期归档界面按期次日期混合排序并显示冻结规则标签 (46.6089ms)
+✔ 书记概况统一三层：结论带 / 条线表 / 待我处理，不再保留三卡 (13.5551ms)
+✔ 党委支部配置按分区导航只显示当前配置面板 (13.9557ms)
+✔ 组织委员专班页只提供专班工作组与报名总表；活动进展迁至活动日历 (23.213ms)
+✔ 组织委员专班详情只保留共享工作组成员与授权编辑器；页底承接「项目赋权 · 专班」 (7.5317ms)
+✔ 已结束专班的成员与授权历史只读，待办联动写入完成后才刷新 (14.8373ms)
+✔ 党委支部筛选只纳入明确归属当前支部的记录，支部管理转义支部配置文本 (13.4745ms)
+✔ 党委选中支部后整页数据请求都带同一支部范围，未选择时不出现“全部明细”入口 (12.8668ms)
+✔ 党委支部管理只显示支部汇总，不展示个人身份和活动明细 (6.4406ms)
+✔ 党委未选支部时支部管理只显示目录与汇总，选中后才开放该支部配置操作 (7.4555ms)
+✔ 支部附件下载继承党委工作台所选支部，服务端下载不因缺少范围而误伤 (27.1509ms)
+✔ 专班卡片人数只汇总组织者与深度参与者，不读历史普通参与人 (7.7408ms)
+✔ 共享概况把支书实时派生组并入待办，待答复与答复收件箱同源 (4.9135ms)
+✔ 党委支部筛选与支部目录转义支部配置文本，避免存储型 XSS (15.7643ms)
+✔ 工作组结束入口不再保留绕过任务与产出闭合校验的直接归档按钮 (39.2812ms)
+✔ 专班招募创建走工作组语义 API，原始快照只承载后续可编辑字段 (14.721ms)
+✔ API 形态活动与专班创建走语义写口并合并服务端返回行 (14.4859ms)
+✔ 支委会批准收尾后统一工作组主记录同步为已结束 (8.764ms)
+✔ 工作组成员不再自动出现在纪检考察清单中 (15.3786ms)
+✔ 宣传看板只承接在办项目，归档统一落档案归档页 (8.2381ms)
+✔ 成员台组织者上传位以 scope=organizer 投影，个人考勤与考察记录在页首 (13.6415ms)
+✔ 组长台考勤/考察页的组织者投影只保留本人上传面，不渲染全组/全支部明细 (13.746ms)
+✔ 宣传任务页提供登记表单并写入 propTasks (7.2763ms)
+✔ 五台不再注册「我的处置」；承接页待办存在且复用 issue-dispatch-view（不再有第二套列表） (47.6194ms)
+✔ 知情查看分层：一级只「活动工作组 / 专班工作组」；其他党小组走独立区（三处无同层混排） (69.7453ms)
+✔ 党委待批复完整队列由支部上报页承担（治理总览已撤） (15.6352ms)
+✔ 支部管理待批复计数带 branchId 深链，按 secretaryId 恢复组织提醒 (7.3502ms)
+✔ 反馈管理只留反馈：列表与合并目标排除 kind=report (7.8126ms)
+✔ 工作概况汇报区只读：无提交入口，唯一动作跳待办「我经办的反馈」 (7.1801ms)
+✔ 今天页汇报行落到待办「待答复」，不再指向反馈/我的处置 (7.299ms)
+✔ 纯展示列表行只用分隔线，整卡可点的交互卡片仍保留外框 (53.7418ms)
+✔ 侧栏导航图标语义唯一：消息=mail、意见反馈=message，同一导航数组不得复用图标 (8.3372ms)
+✔ W1 通用资源端点（/api/v1/<资源名>）不得被 docs/src 直连 fetch (1169.2837ms)
+✔ W2 服务层写口对象的私有字段不得在 services/** 之外被赋值 (1273.2575ms)
+✔ W3 白名单自检：语义端点不得与资源名撞名，且不得被掏空 (2.7537ms)
+✔ W4 会话引导期例外自检：≤2 个文件，且只能只读 (7.7551ms)
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://guard.local
+[DataAdapter] init: API 模式，已从后端拉取数据到缓存
+[DataAdapter] 增量快照写穿失败（已保留本地备份，下次 flush 自动重试）： Error: 「agendaVotes」字段 position 没有语义端点，本次改动未同步
+    at _collectionError (file:///D:/GitHub/GSM1921-SOP/docs/src/data/data-adapter.js?v=20261109a:528:24)
+    at _flushSemanticCollections (file:///D:/GitHub/GSM1921-SOP/docs/src/data/data-adapter.js?v=20261109a:592:17)
+    at _flushSnapshot (file:///D:/GitHub/GSM1921-SOP/docs/src/data/data-adapter.js?v=20261109a:746:13)
+    at async Module.flushSnapshot (file:///D:/GitHub/GSM1921-SOP/docs/src/data/data-adapter.js?v=20261109a:816:3)
+    at async TestContext.<anonymous> (file:///D:/GitHub/GSM1921-SOP/server/test/write-truth-guard.test.mjs:249:9)
+    at async Test.run (node:internal/test_runner/test:1313:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+  type: 'UnsyncedCollectionError',
+  collections: [ 'agendaVotes' ],
+  outbox: true,
+  syncState: 'unsynced'
+}
+[DataAdapter] 增量快照写穿失败（已保留本地备份，下次 flush 自动重试）： Error: Failed to fetch
+    at Proxy.snapshot (file:///D:/GitHub/GSM1921-SOP/server/test/write-truth-guard.test.mjs:192:57)
+    at _flushSnapshot (file:///D:/GitHub/GSM1921-SOP/docs/src/data/data-adapter.js?v=20261109a:755:39)
+    at async Module.flushSnapshot (file:///D:/GitHub/GSM1921-SOP/docs/src/data/data-adapter.js?v=20261109a:816:3)
+    at async TestContext.<anonymous> (file:///D:/GitHub/GSM1921-SOP/server/test/write-truth-guard.test.mjs:267:9)
+    at async Test.run (node:internal/test_runner/test:1313:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+  type: 'NetworkError'
+}
+[DataAdapter] 数据源切换为: mock
+✔ A1 六个读口/种子口：api 形态有显式闸门，且闸门在种子常量之前 (187.8199ms)
+✔ A2 集合级单一源：SNAPSHOT_COVERED 与 _buildSnapshotPayload 逐键一致，local-only 标 temp (18.36ms)
+✔ A3 flush 必须按类别分流：语义端点 / 快照 / 本机 / 显式失败（无 agendaVotes 直通 resolve） (28.3702ms)
+✔ A4 outbox：持久键 / 重试 / 放弃三条路径在位 (11.7372ms)
+✔ B1 快照覆盖域：脏集合照常随 POST /snapshot 发出（带 _versions），并清掉 outbox (5.2902ms)
+✔ B2 非快照业务域：agendaVotes / memberChangeRequests 必须走语义端点，不得静默 resolve (2.9244ms)
+✔ B3 语义写域不支持的形状：带 collection 名显式失败并进入 outbox（成功提示会改报失败） (5.5865ms)
+✔ B4 快照写失败：进入 outbox + 「未同步」；重试成功后清空；放弃可移除 (5.6889ms)
+✔ B5 只应本机域：本地成功但显示「本机未同步」（registry 标 temp） (2.4079ms)
+ℹ tests 323
+ℹ suites 0
+ℹ pass 318
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 64592.4001
+
+✖ failing tests:
+
+test at test\doc-consistency.test.mjs:939:1
+✖ S16 守卫注册完整性：S 类测试文件必须登记在 daily / guards / precommit（防守卫孤儿化） (1398.9827ms)
+  AssertionError [ERR_ASSERTION]: 以下 S 类测试文件**未登记 daily / guards / precommit**（守卫孤儿化 ⇒ 从不自动运行）：
+    agenda-classify.test.mjs
+    icon-color-guard.test.mjs
+    table-contract-guard.test.mjs
+    todo-jump-contract.test.mjs
+    处置：在 `server/test-tier-registry.mjs` 登记 tier + reason（见 `CLAUDE.md H25`）。
+  + actual - expected
+  
+  + [
+  +   'agenda-classify.test.mjs',
+  +   'icon-color-guard.test.mjs',
+  +   'table-contract-guard.test.mjs',
+  +   'todo-jump-contract.test.mjs'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///D:/GitHub/GSM1921-SOP/server/test/doc-consistency.test.mjs:950:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'agenda-classify.test.mjs', 'icon-color-guard.test.mjs', 'table-contract-guard.test.mjs', 'todo-jump-contract.test.mjs' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\docs-governance-guard.test.mjs:181:1
+✖ F2 frontmatter.last_updated 不得早于该文件最后一次提交日（git；浅克隆会判红、无 git 只报不判） (9994.5337ms)
+  AssertionError [ERR_ASSERTION]: content/** 存在「改了但没刷卡」（或「日期超前」）：
+    content/02_institution/SYSTEM_ROLE_PERMISSION.md：frontmatter last_updated 写 2026-11-09，但该文件最后一次提交是 2026-11-10——改了没刷卡（「R-83」：提交后必刷 frontmatter，并同步 TIMESTAMPS 表行）
+  + actual - expected
+  
+  + [
+  +   'content/02_institution/SYSTEM_ROLE_PERMISSION.md：frontmatter last_updated 写 2026-11-09，但该文件最后一次提交是 2026-11-10——改了没刷卡（「R-83」：提交后必刷 frontmatter，并同步 TIMESTAMPS 表行）'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///D:/GitHub/GSM1921-SOP/server/test/docs-governance-guard.test.mjs:221:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'content/02_institution/SYSTEM_ROLE_PERMISSION.md：frontmatter last_updated 写 2026-11-09，但该文件最后一次提交是 2026-11-10——改了没刷卡（「R-83」：提交后必刷 frontmatter，并同步 TIMESTAMPS 表行）' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\test-isolation-guard.test.mjs:68:1
+✖ I1 每个测试文件都登记 fixtureClass，四类取值合法 (23.0589ms)
+  AssertionError [ERR_ASSERTION]: 以下测试解析不出合法 fixtureClass（memory / tmp / external-read / external-write）：
+    agenda-classify.test.mjs
+    icon-color-guard.test.mjs
+    table-contract-guard.test.mjs
+    todo-jump-contract.test.mjs
+  + actual - expected
+  
+  + [
+  +   'agenda-classify.test.mjs',
+  +   'icon-color-guard.test.mjs',
+  +   'table-contract-guard.test.mjs',
+  +   'todo-jump-contract.test.mjs'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///D:/GitHub/GSM1921-SOP/server/test/test-isolation-guard.test.mjs:72:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'agenda-classify.test.mjs', 'icon-color-guard.test.mjs', 'table-contract-guard.test.mjs', 'todo-jump-contract.test.mjs' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\test-tier-guard.test.mjs:37:1
+✖ T1 磁盘测试文件 ↔ 四层登记双向相等，且四层互不重叠 (12.3594ms)
+  AssertionError [ERR_ASSERTION]: 以下磁盘测试文件**未登记层级**（新增测试必须同批登记 registry）：
+    agenda-classify.test.mjs
+    icon-color-guard.test.mjs
+    table-contract-guard.test.mjs
+    todo-jump-contract.test.mjs
+  + actual - expected
+  
+  + [
+  +   'agenda-classify.test.mjs',
+  +   'icon-color-guard.test.mjs',
+  +   'table-contract-guard.test.mjs',
+  +   'todo-jump-contract.test.mjs'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///D:/GitHub/GSM1921-SOP/server/test/test-tier-guard.test.mjs:40:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'agenda-classify.test.mjs', 'icon-color-guard.test.mjs', 'table-contract-guard.test.mjs', 'todo-jump-contract.test.mjs' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\test-tier-guard.test.mjs:58:1
+✖ T3 不 import playwright 的纯 node 测试必须在 daily / guards / precommit，不得在 weekly (1339.8362ms)
+  AssertionError [ERR_ASSERTION]: 以下纯 node 测试**不在 daily / guards / precommit**（守卫孤儿化 / 被错误降层）：
+    agenda-classify.test.mjs
+    icon-color-guard.test.mjs
+    table-contract-guard.test.mjs
+    todo-jump-contract.test.mjs
+  + actual - expected
+  
+  + [
+  +   'agenda-classify.test.mjs',
+  +   'icon-color-guard.test.mjs',
+  +   'table-contract-guard.test.mjs',
+  +   'todo-jump-contract.test.mjs'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///D:/GitHub/GSM1921-SOP/server/test/test-tier-guard.test.mjs:67:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'agenda-classify.test.mjs', 'icon-color-guard.test.mjs', 'table-contract-guard.test.mjs', 'todo-jump-contract.test.mjs' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+────────────────────────────────────────────────────────────────────────
+[guards] 红（退出码 1） · 墙钟 160.9s

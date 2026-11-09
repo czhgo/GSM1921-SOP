@@ -2,7 +2,7 @@
 title: "设计系统 · 第三编 组件"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-08"
+last_updated: "2026-11-10"
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_RESPONSIVE.md, DS_06_LAYOUT_AND_DENSITY.md, ../../../docs/src/styles.css, CASES.md]
 ---
@@ -527,37 +527,52 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 
 ### 4.11 图标规范
 
-图标是组件的一种特殊形态，本节规定其格式与标准。
+图标是组件的一种特殊形态，本节规定其出口、色彩契约、尺寸与多色边界。
 
 #### 4.11.1 格式要求
 
-- **必须使用 SVG**（内联或 `<img>`）
-- **禁止使用**：Emoji（如 🔍 → `<svg>...</svg>`）、PNG 图标、Icon Font
+- 图标必须由 `docs/src/core/base/icons.js` 的 `icon(name, opts)` 产出；`<svg>` 生成点只允许出现在该文件（白名单 3 处，逐条写明理由）。
+- 组件不得内联 `<svg>`，不得用 CSS data-URI 拼图标（含 `%23` 编码的色值）。
+- 禁止使用：Emoji（如 🔍）、PNG 图标、Icon Font。
+- 图标是装饰性图形：默认 `aria-hidden="true"`；带 `aria-label` 的有名图形不得同时 `aria-hidden`。
 
-#### 4.11.2 SVG 图标标准
+#### 4.11.2 SVG 图标色彩契约
 
-| 属性 | 值 |
-|------|-----|
-| 尺寸 | `18px × 18px`（标准）/ `24px × 24px`（大图标） |
-| 描边 | `stroke="currentColor" stroke-width="2"` |
-| 填充 | `fill="none"`（线性图标）/ `fill="currentColor"`（实心图标） |
-| 圆角 | `stroke-linecap="round" stroke-linejoin="round"` |
+| 项 | 规则（布尔） | 判据 / 守卫 |
+|---|---|---|
+| 出口 | 图标只经 `icons.js`；`components` / `entries` / 样式里 `<svg`、`data:image/svg`、`createElementNS(…svg…)` 计数为 0（白名单 3 处除外） | `icon-color-guard::G1` |
+| 默认色 | `stroke` 默认 `currentColor`，颜色由**宿主文字色**继承；`fill` 默认 `none` | `icon-color-guard::G2` |
+| 显式色 | 确需传 `stroke` / `fill` 时，取值只许 `currentColor` / `none` / `var(--token)`；字面色值（hex / rgb / 色名）计数为 0 | `icon-color-guard::G2` |
+| 状态色 | 状态色只经 `--tint` 传入图标，且只在**计数 > 0 或状态成立**时出现；`--tint` 只收 `var(--token)` | `icon-color-guard::G3` |
+| 状态色档位 | 状态色取 `--status-*-text` 文字档；填充档（`--status-success|warning|error|info`）只进徽章 / 圆点 / 图例 / 左条，作图标笔触或数值时计数为 0 | `status-color-guard::S1` ＋ `icon-color-guard::G3` |
+| 主题色 | 主题色只用于选中态 / 主操作 / 本人标识；普通图标笔触取中性档或状态文字档 | `theme-palette-guard` |
+| 品牌色 | 党徽 / 插画才用品牌层（`--party-red` / `--party-gold`）；普通图标不取品牌色 | `theme-palette-guard::T5` |
+| 硬编码 | 图标相关代码内硬编码色值计数为 0，扫描含 data-URI 的 `%23` 形态 | `hex-hardcode-guard` ＋ `icon-color-guard::G4` |
+| 尺寸 | 尺寸由 CSS 类驱动（`w-4 h-4` 等）；`icon()` 传数字 `size` / `width` / `height` 的数量受白名单约束，逐条写明理由 | `icon-color-guard::G5` |
+
+**单色 / 双色 / 多色边界**
+
+- **单色（默认）**：线稿图标只有一条笔触色（`currentColor` 继承），实心图标只有一种填充色。
+- **双色（限用）**：同一图标内允许「笔触 ＋ 填充」两色，两色都取令牌（如 `currentColor` ＋ `var(--surface-card)`），第二色只用于挖空 / 底衬。
+- **多色（需登记）**：只允许出现在党徽与插画（品牌层）；普通图标出现三种以上色值即判红，确需多色须登记白名单并写明使用面。
+
+**图标不单独承担状态语义**
+
+图标不单独承担状态语义，须同时有文字标签（「已逾期」「未读 3 条」「已驳回」）；颜色只作加重，文字与形态承担识别。状态成立条件不满足时回落中性档，不留彩色空态。
+
+**守卫**：`server/test/icon-color-guard.test.mjs`（G1–G5）。状态色档位另见 `status-color-guard`，主题 / 品牌色另见 `theme-palette-guard`，硬编码存量另见 `hex-hardcode-guard`。
 
 #### 4.11.3 图标使用示例
 
-```html
-<!-- 内联 SVG（推荐） -->
-<button class="module-tab">
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-       stroke="currentColor" stroke-width="2"
-       stroke-linecap="round" stroke-linejoin="round">
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-    <line x1="16" y1="2" x2="16" y2="6"/>
-    <line x1="8" y1="2" x2="8" y2="6"/>
-    <line x1="3" y1="10" x2="21" y2="10"/>
-  </svg>
-  <span>工作台</span>
-</button>
+```js
+import { icon } from '../../core/base/icons.js';
+
+// 单色线稿：颜色随宿主文字色（按钮 / 列表行 / 徽章）
+icon('bell', { className: 'w-4 h-4' })
+
+// 有语义的状态色：只经 --tint 传入文字档，并配文字标签
+`<span class="stat-icon-tint" style="--tint:var(--status-error-text);" aria-hidden="true">${icon('warning', { className: 'w-5 h-5' })}</span>
+ <span class="stat-card__label">逾期 3 条</span>`
 ```
 
 ### 4.12 交互载体决策规范
@@ -1497,6 +1512,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 | SD-57 | 全部注册页签（7 台 × 45 页签） | 单页顶层区块 ≤4（页头不计）；同类同源必须合并进同一块；空态与列表二选一；块数 >4 必须在 `TAB_BLOCK_BASELINE` 写非空 `reason` | `ui-first-screen-order::F6–F9`（`style-baseline.mjs::TAB_BLOCK_BASELINE`，上限 `TAB_BLOCK_LIMIT = 4`） | 正文见 [DS_06 §二](DS_06_LAYOUT_AND_DENSITY.md) |
 | SD-58 | `.lf-bar` 及全部筛选条 | `.lf-bar` 不得 `flex-direction: column`；第 1 行「范围 / 时间 ＋ 搜索」，第 2 行「分面 ＋ 清除」；清除不得 `flex-basis: 100%` 独占一行；视图切换归页头 | `filter-row::S14`（结构，含反例）＋ `filter-row::S15`（四页真机 ≤2 行 / ≤96px） | 正文见 [DS_06 §二](DS_06_LAYOUT_AND_DENSITY.md) |
 | SD-59 | 搜索框与关键词自动补全（`suggestInput`） | 建议由自建下拉承载，输入框内无原生三角 / picker；`docs/src/**` 的 `list="` 与 `<datalist` 计数为 0；建议输入带 `role="combobox"` ＋ `aria-expanded` / `aria-controls` / `aria-activedescendant`，候选为 `listbox` | `field-shell-guard::R4`（原生 `list` / `<datalist>` 清零，含反例）＋ `field-shell-guard::R5`（ARIA 齐备、无 `list` 属性，含反例） | 正文见 [DS_06 §二](DS_06_LAYOUT_AND_DENSITY.md) |
+| SD-61 | 全部图标（`icons.js` 及其调用点） | 出口：`<svg` / `data:image/svg` / `createElementNS(…svg…)` 在 `icons.js` 之外计数为 0（白名单 3 处、逐条理由且须真实命中）；颜色：`icon()` 的 `stroke` / `fill` 只许 `currentColor` / `none` / `var(--token)`；状态色只经 `--tint` 且只取 `--status-*-text` 文字档，填充档作笔触或数值计数为 0；`--tint` 只收 `var(--token)`；SVG 片段色值禁 hex（含 data-URI 的 `%23`）；尺寸由 CSS 类驱动，数字 `size` / `width` / `height` 只在白名单内 | `icon-color-guard::G1–G5` ＋ `status-color-guard::S1` ＋ `theme-palette-guard` ＋ `hex-hardcode-guard` | CASE-DESIGN-030（边界句） |
 
 > **批次 513 口径（SD-48）**：本条只判四层边界，不重复各权威源——缓存键四类清单＝`docs/src/data/cache-registry.js`；种子逐表口径＝[DATA_SEED_CONTRACT.md](../data/DATA_SEED_CONTRACT.md)；演示窗口单一源＝`docs/src/data/mock/demo-window.js::DEMO_WINDOW`；测试分层＝`server/test-tier-registry.mjs` ＋ `server/scripts/cleanup.mjs --test-residue`；部署四开关（`APP_ENV` / `DISABLE_SEED` / `SEED_FALLBACK` / `ALLOW_DEMO_DATA`）与只读演练见 [DEPLOYMENT_GUIDE.md](../deploy/DEPLOYMENT_GUIDE.md)。
 
@@ -1517,6 +1533,8 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 > ① **SD-57** 管「一页几块」，基线 `TAB_BLOCK_BASELINE` 与 46 个注册页签双向相等；未登记页签即红，超限无 `reason` 即红。
 > ② **SD-58** 管「筛选条几行」，结构判据与真机读数分两条守卫（S14 / S15）；一页只有一个筛选条。
 > ③ **SD-59** 管「输入框有没有系统装饰」，`list="` 与 `<datalist` 全量清零；SD-56 中「补全只用原生 `<datalist>`」一句由本条取代，其余口径（控件出口、搜索框宽度、存量棘轮）继续有效。
+
+> **批次 540 口径（SD-61）**：本条把 §4.11 的**图标口径收成机器可判的五条**（出口 / 颜色 / 状态色档位 / hex 扫描 / 尺寸），正文仍以 §4.11.2 为准，本表只登记编号与守卫。三条边界须一并读：① **状态色档位**——填充档只进徽章 / 圆点 / 图例 / 左条，图标笔触与数值取 `-text` 档（`status-color-guard` 只认 `color:` 声明，`--tint` 这条链路由 G3 补判）；② **多色**——单色是默认形态，双色限「笔触 ＋ 填充」且两色取令牌，多色只留给党徽与插画并须登记；③ **不单独承担状态语义**——图标须同时有文字标签，状态条件不成立时回落中性档。存量迁移同批完成：`sidebar` / `header` / `person-picker` 的字面笔触改 `currentColor` 或令牌，`custom-select` / `archive-entry` 的内联 SVG 并回 `icons.js`，`person-picker.css` 的 data-URI 放大镜改为实体图标（`%239CA3AF` 退场）。
 
 ### 12.16 词表（2026-10-27 · 意见反馈 / 归档 / 活动）
 

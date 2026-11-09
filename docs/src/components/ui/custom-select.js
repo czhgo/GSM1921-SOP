@@ -17,15 +17,18 @@
 //   enhanceSelects 依 data-cs-enhanced 保持幂等。
 // ════════════════════════════════════════════════════════════════
 
-import { emptyStateHtml } from './empty-state.js?v=20261109a';
+import { emptyStateHtml } from './empty-state.js?v=20261110a';
+import { icon } from '../../core/base/icons.js?v=20261110a';
 
+// 图标单一源（批次 540：原本内联的 <svg> 迁到 icons.js，颜色仍走 currentColor，
+// 由 .cs-chevron / .cs-search-icon 的 color 决定；12px 为下拉触发器内的固定档，登记在 DS_03 §4.11.2 尺寸白名单）
 const ICON_CHEVRON =
-  '<svg class="cs-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+  icon('chevronDown', { className: 'cs-chevron', width: 12, height: 12, extra: ' aria-hidden="true"' });
 
 // 内嵌搜索（支书指令 2026-08-06）：选项数量超过阈值时，菜单顶部自动出现搜索框。
 // 适用所有「随时间增长、查找困难」的下拉（活动/专班/人员等），一次改造全站受益。
 const ICON_SEARCH =
-  '<svg class="cs-search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
+  icon('search', { className: 'cs-search-icon', width: 12, height: 12, extra: ' aria-hidden="true"' });
 const SEARCH_THRESHOLD = 10; // 选项数超过此值自动内嵌搜索
 
 // ── 全局浮层互斥（支书指令 2026-08-06）：任何下拉/色板浮层打开时，先自动收起其他已打开的浮层 ──

@@ -12,7 +12,10 @@
 //   F6 注册页签集合 ≡ TAB_BLOCK_BASELINE 键集合（双向相等；新增 / 删除页签未登记即红）；
 //   F7 块数 > TAB_BLOCK_LIMIT 的页签必须有非空 reason；
 //   F8 反例：合成 blocks=5 无 reason 判红、合成注册页签缺基线判红；
-//   F9 非空转：基线规模 ≥45、每条含数值 blocks 与 reason 字段。
+//   F9 非空转：基线规模 ≥45、每条含数值 blocks 与 reason 字段；
+//   F10 活动详情「对象头 + 事项轴」（2026-11-10 批次 540 波次 4）：主对象与主 CTA 先于参与段、
+//       段落顺序 参与 → 议程 → 收口 → 管理动作、源码级顶层块 ≤6、写口宿主与既有调用不因重排丢失、
+//       基本信息 390 单列（`grid-cols-1 sm:grid-cols-2`）、日期只在对象头出现一次。
 //
 // 运行：node --test server/test/ui-first-screen-order.test.mjs
 import { test } from 'node:test';
@@ -106,9 +109,10 @@ test('F5 党小组主从双栏：左栏组列表 + 右栏活动台账（日期 /
   assert.match(src, /function _groupDetailHtml/, '缺右栏组详情');
   assert.ok(!src.includes('_manageCardHtml'), '不得回退到独立「党小组清单」卡');
   assert.ok(!src.includes('>选择党小组<'), '不得回退到「选择党小组」独立卡');
-  // 活动台账列（合并原复盘状态 + 活动与考勤）
-  const head = src.slice(src.indexOf('<thead>'), src.indexOf('</thead>') + '</thead>'.length);
-  const cols = [...head.matchAll(/<th[^>]*>([\s\S]*?)<\/th>/g)].map((m) => m[1].replace(/<[^>]+>/g, '').trim());
+  // 活动台账列（合并原复盘状态 + 活动与考勤）；2026-11-10 批次 540 起列声明由 `LEDGER_COLUMNS`
+  //   交给 `renderDataTable`（表头 / colgroup 由组件产出），判据改为读列声明本身。
+  const colsBlock = /const LEDGER_COLUMNS = \[([\s\S]*?)\];/.exec(src)?.[1] || '';
+  const cols = [...colsBlock.matchAll(/label:\s*'([^']+)'/g)].map((m) => m[1]);
   assert.deepEqual(cols, ['日期', '活动', '复盘状态', '应到 · 实到'],
     `活动台账表头应为 4 列，实测 ${JSON.stringify(cols)}`);
   assert.ok(!src.includes('space-y-1.5 min-w-[180px]'),
@@ -222,3 +226,63 @@ test('F9 基线非空转：规模 ≥45、每条含数值 blocks 与 reason 字�
     assert.ok(Object.hasOwn(value, 'reason'), `${key} 缺 reason 字段（未超限可为空串）`);
   }
 });
+
+// ── F10 活动详情「对象头 + 事项轴」（2026-11-10 批次 540 波次 4 · A 方案）──
+// 判例：原详情页把报名 / 名单 / 应到 / 品牌 / 复盘要求 / 转交 / 强调 / 关报名 / 议程 / 汇报 / 分工
+//   并列成 14 个顶层块，首屏看不到主对象与主操作。本守卫钉住重排后的**结构契约**：
+//   段落顺序、写口宿主、390 单列、日期单点；真实读数（顶层块 / 截图）进
+//   `.ctx/evidence/2026-11-10/activity-detail/`。
+test('F10 活动详情：对象头 + 事项轴，写口宿主与首屏块数守住', () => {
+  const src = readFileSync(join(ROOT, 'docs', 'src', 'entries', 'pages', 'activity-entry.js'), 'utf8');
+  const start = src.indexOf('<!-- ① 对象头（批次 540 波次 4 · A 方案）');
+  assert.ok(start > 0, '未找到活动详情对象头注释：重排结构被写坏的征兆');
+  const end = src.indexOf('\n  `;', start);
+  assert.ok(end > start, '未找到活动详情模板终点');
+  const tpl = src.slice(start, end);
+  assert.ok(tpl.length > 2000, `活动详情模板抽取为空（${tpl.length} 字符），守卫会恒真`);
+
+  // 1) 主对象优先：标题 H2 与主 CTA 都先于「参与」段
+  const participation = tpl.indexOf('activity-participation-title');
+  assert.ok(participation > 0, '缺「参与」段');
+  const h2 = tpl.indexOf('font-title-cn');
+  const cta = tpl.indexOf('${_nextStepRowHtml(');
+  assert.ok(h2 > 0 && h2 < participation, '活动标题须在「参与」段之前（主对象优先）');
+  assert.ok(cta > 0 && cta < participation, '主 CTA（报名 / 材料）须在对象头内、先于「参与」段（首屏可见）');
+
+  // 2) 段落顺序：参与 → 议程 → 收口 → 管理动作（说明后置、动作收敛）
+  const seq = ['activity-participation-title', 'activity-agenda-title', 'activity-closure-title', '${manageSectionHtml}']
+    .map((key) => tpl.indexOf(key));
+  assert.ok(seq.every((i) => i >= 0),
+    `段落被删：缺 ${['参与', '议程', '收口', '管理动作'][seq.findIndex((i) => i < 0)]}`);
+  assert.deepEqual([...seq].sort((a, b) => a - b), seq,
+    '段落顺序应为 参与 → 议程 → 收口 → 管理动作（管理项不得插回主路径）');
+  assert.equal((src.match(/<details id="activity-manage-section"/g) || []).length, 1,
+    '页尾「管理动作」折叠块应恰有一个 details');
+
+  // 3) 源码级顶层块 ≤6（对象头 / 参与 / 议程 / 收口 / 管理动作；原为 14）
+  const topLevel = [...tpl.matchAll(/^ {4}<(section|div|details)\b/gm)].map((m) => m[1]);
+  assert.ok(topLevel.length <= 6, `顶层块 ${topLevel.length} 个（上限 6）：${topLevel.join(' / ')}`);
+
+  // 4) 收口四步：材料 · 考勤 · 复盘 · 归档
+  for (const step of ['材料', '考勤', '复盘', '归档']) {
+    assert.ok(src.includes(`label: '${step}'`), `收口 stepper 缺「${step}」步`);
+  }
+
+  // 5) 写口宿主与既有调用不得因重排丢失
+  for (const id of ['activity-signup-section', 'signup-close-btn', 'committee-emphasis-btn',
+    'work-assignments-host', 'workgroup-reports-summary', 'activity-manage-section']) {
+    assert.ok(src.includes(id), `重排后丢了宿主 / 钩子 #${id}`);
+  }
+  for (const call of ['renderSignupSection(', 'renderSignupList(', 'renderWorkgroupMemberEditor(',
+    'bindSignupEvents(', 'bindWorkgroupMemberEditor(', '_bindWorkAssignments(', '_closureStepperHtml(']) {
+    assert.ok(src.includes(call), `重排后丢了既有调用 ${call}`);
+  }
+
+  // 6) 390 单列：基本信息走 grid-cols-1 sm:grid-cols-2，不得残留裸两列
+  assert.match(tpl, /grid grid-cols-1 gap-3 sm:grid-cols-2/, '基本信息应为 grid-cols-1 sm:grid-cols-2（390 单列）');
+  assert.ok(!/class="grid grid-cols-2 /.test(tpl), '不得残留 390 强制两列的裸 grid-cols-2');
+
+  // 7) 日期单点：模板内只出现一次
+  assert.equal((tpl.match(/\$\{act\.date/g) || []).length, 1, '日期在详情模板中出现多次（应只在对象头一次）');
+});
+

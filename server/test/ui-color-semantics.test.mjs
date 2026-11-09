@@ -156,7 +156,8 @@ export function dispatchBarToneViolations(src) {
 
 test('C6 工作台结论带：待处理 / 逾期指标只取功能色，出现 --app-accent 即红', () => {
   const src = readFileSync(WORK_OVERVIEW, 'utf8');
-  assert.match(src, /const METRIC_TONE = \{\s*\n\s*pending:\s*'var\(--status-info-text\)',\s*\n\s*overdue:\s*'var\(--status-warning-text\)',\s*\n\s*normal:\s*'var\(--neutral-800\)',/,
+  // 2026-11-10 批次 540 波次 5：纯计数档由 `--neutral-800` 改准 `--neutral-600`（计数不争重心）。
+  assert.match(src, /const METRIC_TONE = \{\s*\n\s*pending:\s*'var\(--status-info-text\)',\s*\n\s*overdue:\s*'var\(--status-warning-text\)',\s*\n\s*normal:\s*'var\(--neutral-600\)',/,
     'work-overview.js 缺 METRIC_TONE 单一源（pending / overdue / normal 三档）');
   const sites = metricToneSites(src).filter((s) => isStatusMetricLabel(s.label));
   assert.ok(sites.length >= 8, `指标色抽取只命中 ${sites.length} 处（应 ≥8：逾期 / 待办 / 待答复 / 待赋权 / 待归档 / 待补课 / 组员汇报 / 待汇报）`);

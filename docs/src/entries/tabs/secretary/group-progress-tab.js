@@ -39,50 +39,51 @@
 //   ⚠ **只动渲染结构 / 分层与落点**，不改任何功能、权限判定与写口——DOM ID 全保留，真机流程不失配。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261109a';
-import { isApiMode } from '../../../services/core/runtime.js?v=20261109a';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261109a';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261109a';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261109a';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261109a';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20261109a';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261109a';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261109a';
-import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261109a';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261109a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261110a';
+import { isApiMode } from '../../../services/core/runtime.js?v=20261110a';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261110a';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261110a';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261110a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261110a';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20261110a';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261110a';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261110a';
+import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261110a';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261110a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员汇报（按人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261109a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261110a';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**不在本文件手写色值**（支书 2026-09-30：颜色是最好的信息展示方式）。
-import { activityTypeBadgeVariant, DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261109a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261109a'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261109a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261109a';
+import { activityTypeBadgeVariant, DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261110a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261110a'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { renderDataTable } from '../../../components/ui/data-table.js?v=20261110a'; // 活动台账表格单一出口（批次 540）
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261110a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261110a';
 // 党小组一等实体服务层（组清单 / 写口 / 权限门 / 留痕——组名唯一来源，禁本文件手写组名数组）
 import {
   loadPartyGroups, groupOptions, defaultGroupName, nextGroupSeq,
   addGroup, renameGroup, dissolveGroup, assignMemberToGroup, ungroupedMembers,
   canManagePartyGroups, listGroupHistory,
-} from '../../../services/member/party-group.js?v=20261109a';
+} from '../../../services/member/party-group.js?v=20261110a';
 import {
   listPartyGroups, countOpenReportsByGroup,
   groupActivitiesOf, GROUP_REVIEW_COLOR, groupLeadershipOf,
   groupReportRowsOf, reportRowStateOf,
-} from '../../../services/member/group-view.js?v=20261109a';
+} from '../../../services/member/group-view.js?v=20261110a';
 // 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①a（设党小组组长 / 副组长）由本 tab 左栏行内 /
 //   右栏头部「设 / 改组长」开同一面板（2026-10-04 批次 373 去冗余：撤独立「组长指派」块）；
 //   **情景①b 支委身份配置已按 2026-09-27 支书裁定迁「支委会」**；**情景②③ 项目赋权整卡按 2026-10-04
 //   批次 373 迁「活动管理」页**（`calendar-tab.js`）。
 //   实现单一源＝entries/tabs/secretary/assign-tab.js（该文件已不注册为 tab，仅余 mount* 分块）
 //   ⇒ **不新造第二套视觉/表单**，只把既有分块挂到本 tab 的落点。
-import { mountLeaderAssign, openLeaderAssignPanel } from './assign-tab.js?v=20261109a';
+import { mountLeaderAssign, openLeaderAssignPanel } from './assign-tab.js?v=20261110a';
 // Task 6：组员进展是跨对象聚合面 ⇒ 活动行直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261109a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261110a';
 
 // R2-17：缺省支部单一源 = core/domain/constants.js::DEFAULT_BRANCH_ID。
 
 // ── 模块级状态（随模块自持；tab 切走再回保持，页面刷新回退首组） ──
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261109a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261110a';
 let _selectedGroup = null;      // 当前选中党小组名（右栏详情）
 let _expandedReviewId = null;   // 已展开复盘详情活动 id（只读展开态）
 let _issuesLoaded = false;      // issues 权威源是否已加载（避免未载时徽标误显 0）
@@ -140,7 +141,7 @@ function _renderAll(container) {
       <div class="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start" data-gp-layout>
         ${_groupRailHtml(rows, selected, ungrouped, entities, canManage, issues, leaderAssign)}
         ${group
-          ? _groupDetailHtml(group, selected.id, canManage, members, branchId, activities, reviews, attRecords, history, leaderAssign)
+          ? _groupDetailHtml(group, selected.id, canManage, members, activities, history, leaderAssign)
           : _noGroupHintHtml()}
       </div>
     </div>`;
@@ -148,6 +149,7 @@ function _renderAll(container) {
   _bindEvents(container);
   _mountAssignBlocks(container); // 组长 / 副组长赋权面板宿主（左栏行内 / 右栏头部「设 / 改」触发）
   if (group) {
+    _mountLedger(container, group, members, branchId, activities, reviews, attRecords); // 活动台账（表格单一出口）
     // 汇报区唯一异步源：已缓存则先同步渲一行，未载以加载行占位后再增量填充
     if (_issuesLoaded) _renderReportsList(container.querySelector('#gp-reports'), group, issues, leaderAssign);
     _fillReports(container, group, members);
@@ -379,7 +381,7 @@ function _groupLeaderIdsOf(leaderAssign, groupName) {
 }
 
 // ── 右栏 ③ 组详情（头部 → 活动台账 → 组员汇报 → 变更记录） ──────
-function _groupDetailHtml(group, groupId, canManage, members, branchId, activities, reviews, attRecords, history, leaderAssign) {
+function _groupDetailHtml(group, groupId, canManage, members, activities, history, leaderAssign) {
   const assign = leaderAssign.get(group.groupName);
   const hasLeader = _groupLeaderIdsOf(leaderAssign, group.groupName).length > 0;
   const leaderLine = assign ? _leaderChipsHtml(assign, group.groupName, canManage) : '<span class="text-xs text-gray-500">未设置</span>';
@@ -406,7 +408,7 @@ function _groupDetailHtml(group, groupId, canManage, members, branchId, activiti
         </div>
       </div>
       <div id="gp-leader-assign-host"></div>
-      ${_ledgerSectionHtml(group, members, branchId, activities, reviews, attRecords)}
+      ${_ledgerSectionHtml(group, members, activities)}
       ${_reportsSectionHtml(hasLeader)}
       ${_historySectionHtml(history)}
     </div>`;
@@ -421,32 +423,28 @@ function _noGroupHintHtml() {
 }
 
 // ── ④ 活动台账（合并原「复盘状态」＋「活动与考勤」：同一活动只出现一行） ──
-function _ledgerSectionHtml(group, members, branchId, activities, reviews, attRecords) {
+// 2026-11-10 批次 540：手写 `<table>` 迁 `components/ui/data-table.js::renderDataTable`——
+//   列宽（日期 100px / 活动 1fr / 复盘 140px / 应到·实到 124px）走固定 colgroup 档：
+//   三个定宽列按**实测内容宽**给（复盘徽标 113 + 内边距 24；应到·实到 96 + 24；日期 74 + 24），
+//   活动列是唯一 `1fr` 余量列、也是唯一截断列（契约 §二：全表只许一列截断）。
+//   用 px 而非百分比：百分比在 641–768px 会把定宽列一起压窄，徽标与计数会被裁掉。
+// 契约：content/04_web_design/contracts/TABLE_COMPONENT_CONTRACT.md §二 / §三 / §四。
+const LEDGER_COLUMNS = [
+  { label: '日期', width: '100px' },
+  { label: '活动', width: '1fr', truncate: true },
+  { label: '复盘状态', width: '140px' },
+  { label: '应到 · 实到', width: '124px', numeric: true },
+];
+
+function _ledgerSectionHtml(group, members, activities) {
   const groupActs = groupActivitiesOf(activities, members, group.groupName); // date 降序
-  const revMap = new Map();
-  (reviews || []).forEach(r => { if (r && r.activityId) revMap.set(r.activityId, r); });
-  const shown = _ledgerAll ? groupActs : groupActs.slice(0, 6);
-  const today = todayLocal();
-  const rows = shown.length
-    ? shown.map(a => _ledgerRowHtml(a, revMap.get(a.id) || null, group, branchId, attRecords, today)).join('')
-    : emptyStateHtml({ variant: 'table', text: '暂无本组活动（组织者属本组时出现在此）', colspan: 4 });
   return `
     <div class="pt-3">
       <div class="flex items-center justify-between gap-2 mb-2">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">活动台账</h4>
-        <span class="text-xs text-gray-500">${groupActs.length} 场 · 按日期降序</span>
+        <span class="text-xs text-gray-500">${groupActs.length} 场</span>
       </div>
-      <table class="data-table" data-responsive="cards">
-        <thead>
-          <tr>
-            <th scope="col">日期</th>
-            <th scope="col">活动</th>
-            <th scope="col">复盘状态</th>
-            <th scope="col">应到 · 实到</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
+      <div id="gp-ledger"></div>
       ${groupActs.length > 6
         ? `<div class="mt-2">
             <button type="button" class="gp-ledger-more btn-outline btn-sm">${_ledgerAll ? '收起' : `查看全部（${groupActs.length}）`}</button>
@@ -456,27 +454,72 @@ function _ledgerSectionHtml(group, members, branchId, activities, reviews, attRe
     </div>`;
 }
 
+/** 活动台账挂载：行数据与列声明交给表格单一出口（检索 / 分页 / 横滚 / 列宽拖动由组件提供） */
+function _mountLedger(container, group, members, branchId, activities, reviews, attRecords) {
+  const host = container.querySelector('#gp-ledger');
+  if (!host) return;
+  const groupActs = groupActivitiesOf(activities, members, group.groupName); // date 降序
+  const revMap = new Map();
+  (reviews || []).forEach(r => { if (r && r.activityId) revMap.set(r.activityId, r); });
+  const shown = _ledgerAll ? groupActs : groupActs.slice(0, 6);
+  const today = todayLocal();
+  renderDataTable(host, {
+    stateKey: 'secretary-group-progress-ledger',
+    rows: shown,
+    rowHtml: (a) => _ledgerRowHtml(a, revMap.get(a.id) || null, group, branchId, attRecords, today),
+    columns: LEDGER_COLUMNS,
+    colSpan: 4,
+    // 行数即页长 ⇒ 页数恒为 1，引擎不出翻页控件（S10：调用点不得把 pageSize 传 0）。
+    // 「查看全部」由 `_ledgerAll` 控制显示行数，不再另起第二套翻页。
+    pageSize: shown.length || 1,
+    minRows: Infinity, // 计数只此一处：场次在卡头 meta，引擎不再补一行「共 N 条」
+    responsive: true,
+    scroll: { minWidth: '34rem' },
+    resizable: true,
+    emptyMessage: '暂无本组活动（组织者属本组时出现在此）',
+  });
+  // 复盘详情展开 / 收起（原生 details；toggle 不冒泡 ⇒ 元素级绑定，随每次重渲染重建即幂等）
+  host.querySelectorAll('.gp-review-toggle').forEach((d) => {
+    d.addEventListener('toggle', () => {
+      const next = d.open ? (d.dataset.actId || null) : null;
+      if (next === _expandedReviewId) return; // 重渲染带 open 属性时不重复触发
+      _expandedReviewId = next;
+      _renderAll(container);
+    });
+  });
+}
+
+/** 单行（含展开详情插行）：主值 13/500/neutral-800；次值 12/400/neutral-500；空值「—」neutral-400 */
 function _ledgerRowHtml(act, rev, group, branchId, attRecords, today) {
   const href = `./${objectDetailHref('activity', act.id, { entry: 'workspace-aggregate' })}`;
+  const detail = _expandedReviewId === act.id && rev ? _reviewDetailRowHtml(rev, act.id) : '';
   return `
     <tr>
-      <td data-label="日期" class="text-gray-500 whitespace-nowrap">${esc(act.date || '')}</td>
+      <td data-label="日期" class="font-medium text-gray-800 whitespace-nowrap">${act.date ? esc(act.date) : '<span class="text-xs text-gray-400">—</span>'}</td>
       <td data-label="活动">
         <span class="inline-flex items-center gap-2 min-w-0 max-w-full">
           ${badgeHtml(esc(act.type || '活动'), activityTypeBadgeVariant(act.type))}
-          <a href="${href}" class="text-gray-800 min-w-0 truncate hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看活动详情">${esc(act.title || '未命名')}</a>
+          <a href="${href}" class="font-medium text-gray-800 min-w-0 truncate hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看活动详情">${esc(act.title || '未命名')}</a>
         </span>
       </td>
       <td data-label="复盘状态">${_reviewStatusCellHtml(act, rev, today)}</td>
-      <td data-label="应到·实到" class="whitespace-nowrap">${_attendanceCellHtml(act, group, branchId, attRecords, today)}</td>
-    </tr>`;
+      <td data-label="应到·实到" class="is-numeric">${_attendanceCellHtml(act, group, branchId, attRecords, today)}</td>
+    </tr>
+    ${detail}`;
 }
 
-/** 复盘状态格：状态徽标；已复盘可原地展开复盘详情（沿用既有 `_reviewDetailHtml`，不新增口径）
- *  2026-11-04 Task 3.8：活动日期晚于今天 ⇒ 标「未开始 · 未到日期」，不再把「未提交」当成已逾期缺口。 */
+/** 展开详情插行（契约 §三）：`height:auto` + colspan 占满全行，不与数据格混排 */
+function _reviewDetailRowHtml(rev, actId) {
+  return `<tr class="dt-detail"><td colspan="4" id="gp-review-detail-${esc(actId)}">${_reviewDetailHtml(rev)}</td></tr>`;
+}
+
+/** 复盘状态格：状态徽标；已复盘可展开复盘详情（沿用既有 `_reviewDetailHtml`，不新增口径）
+ *  2026-11-04 Task 3.8：活动日期晚于今天 ⇒ 标「未开始 · 未到日期」，不再把「未提交」当成已逾期缺口。
+ *  2026-11-10 批次 540：展开改**插行**（见 `_reviewDetailRowHtml`）⇒ 开关仍是原生 `<details>` / `<summary>`，
+ *    但**详情不再放在 details 内**：details 只承担开关语义，明细由 colspan 插行渲染（契约 §三）。 */
 function _reviewStatusCellHtml(act, rev, today = todayLocal()) {
   if (act.date && today && act.date > today) {
-    return '<span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 shrink-0">未开始 · 未到日期</span>';
+    return '<span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 shrink-0 whitespace-nowrap">未开始 · 未到日期</span>';
   }
   const status = rev?.reviewStatus || ReviewStatus.NOT_SUBMITTED;
   const label = REVIEW_STATUS_LABELS[status] || '未提交';
@@ -485,23 +528,25 @@ function _reviewStatusCellHtml(act, rev, today = todayLocal()) {
   const expandable = !!rev && status !== ReviewStatus.NOT_SUBMITTED && status !== ReviewStatus.REJECTED;
   if (!expandable) return badge;
   const isExpanded = _expandedReviewId === act.id;
-  return `
-    <details class="gp-review-item gp-review-toggle" data-act-id="${esc(act.id)}"${isExpanded ? ' open' : ''}>
+  // 开关＝原生 `<details>` / `<summary>`（可聚焦、与页内其它折叠同一原语）；**详情不放在 details 内**——
+  //   详情由 `_reviewDetailRowHtml` 以 colspan 插行渲染，避免把明细塞进数据格（契约 §三）。
+  return `<details class="gp-review-toggle gp-review-item" data-act-id="${esc(act.id)}"${isExpanded ? ' open' : ''}>
       <summary class="inline-flex items-center gap-1.5">
         ${badge}<span class="text-xs text-gray-500">${isExpanded ? '收起' : '详情'}</span>
       </summary>
-      ${isExpanded ? _reviewDetailHtml(rev) : ''}
     </details>`;
 }
 
-/** 应到·实到：仅「党小组会」有；其余活动为「—」。口径同既有（roster 组口径应到 + attendance 实到） */
+/** 应到·实到：仅「党小组会」有；其余活动为「—」。口径同既有（roster 组口径应到 + attendance 实到）
+ *  2026-11-10 批次 540 灰字分层：有值＝主值档（13 / 500 / neutral-800）；空值「—」＝neutral-400。 */
 function _attendanceCellHtml(act, group, branchId, attRecords, today) {
-  if (act.type !== '党小组会' || !act.date || act.date > today) return '<span class="text-xs text-gray-500">—</span>';
+  if (act.type !== '党小组会' || !act.date || act.date > today) return '<span class="text-xs text-gray-400">—</span>';
   const expected = getMeetingRosterIds({ type: '党小组会', groupId: group.groupName, branchId }).length;
   const recs = (attRecords || []).filter(r => r.activityId === act.id);
-  if (!recs.length) return `<span class="text-xs text-gray-500 tabular-nums">应到 ${expected} · 实到 —</span>`;
+  const num = (v) => `<span class="font-medium text-gray-800 tabular-nums">${v}</span>`;
+  if (!recs.length) return `<span class="tabular-nums">应到 ${num(expected)} · 实到 <span class="text-xs text-gray-400">—</span></span>`;
   const present = recs.filter(r => r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP).length;
-  return `<span class="text-xs text-gray-600 tabular-nums">应到 ${expected} · 实到 ${present}</span>`;
+  return `<span class="tabular-nums">应到 ${num(expected)} · 实到 ${num(present)}</span>`;
 }
 
 // ── ⑤ 组员汇报（待答复；汇报区首拉异步填充后增量刷新） ───────────
@@ -702,15 +747,8 @@ function _bindEvents(container) {
     _renderAll(container);
   });
 
-  // 已复盘行展开/收起（只读 · 原生 details）：状态同步到 `_expandedReviewId` 后局部重渲染
-  container.querySelectorAll('.gp-review-toggle').forEach(toggle => {
-    toggle.addEventListener('toggle', () => {
-      const actId = toggle.closest('.gp-review-item')?.dataset.actId;
-      _expandedReviewId = toggle.open ? actId : null;
-      _renderAll(container);
-    });
-  });
-
+  // 已复盘行展开/收起（2026-11-10 批次 540）：详情为**插行**（`tr.dt-detail`），开关是原生 button
+  //   ⇒ 走容器级委托（表格行由引擎重绘，元素级监听会随 innerHTML 丢失），状态镜像到 `_expandedReviewId`。
   _bindDelegated(container);
 }
 
@@ -928,7 +966,7 @@ export function openActivityWriteEntry() {
   const topBtn = document.getElementById('ws-sec-write-btn');
   if (topBtn) { topBtn.click(); return; }
   // 顶栏未挂出（只读形态 / 顶栏尚未渲染）时不得静默无效：直接打开既有写入表单（单一写入口）。
-  import('./calendar-tab.js?v=20261109a')
+  import('./calendar-tab.js?v=20261110a')
     .then((m) => m.openActivityWriteForm())
     .catch((err) => console.warn('[group-progress] 打开写入活动表单失败：', err));
 }

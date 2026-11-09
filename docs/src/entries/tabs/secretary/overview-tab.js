@@ -9,23 +9,23 @@
 //（listPeriodicArchivesPendingReview / reviewPeriodicArchive / PERIODIC_ARCHIVE_REVIEW_STATUS），
 // 本页只做呈现与交互，不另写状态名、不改后端 API/数据模型/权限链。
 
-import { currentUserId, AuthStore } from '../../../services/core/auth.js?v=20261109a';
+import { currentUserId, AuthStore } from '../../../services/core/auth.js?v=20261110a';
 // 批次 524（C/D）：卡头权限约束由角色现算（insight 不在写角色表 ⇒ 恒只读）
-import { readonlyMeta } from '../../../core/domain/view-capability.js?v=20261109a';
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261109a';
+import { readonlyMeta } from '../../../core/domain/view-capability.js?v=20261110a';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261110a';
 import {
   listPeriodicArchivesPendingReview, reviewPeriodicArchive,
-} from '../../../services/governance/secretary-overview.js?v=20261109a';
-import { getPersonName } from '../../../services/member/person.js?v=20261109a';
-import { listRowHtml, listGroupHtml } from '../../../components/ui/list-row.js?v=20261109a';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261109a';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261109a';
+} from '../../../services/governance/secretary-overview.js?v=20261110a';
+import { getPersonName } from '../../../services/member/person.js?v=20261110a';
+import { listRowHtml, listGroupHtml } from '../../../components/ui/list-row.js?v=20261110a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261110a';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261110a';
 import {
-  showToast, flashHighlight, getBasePath, escHtml as esc, smoothScroll,
-} from '../../../core/base/utils.js?v=20261109a';
-import { renderCardHeader } from '../../../components/shell/page-frame.js?v=20261109a';
+  showToast, flashHighlight, escHtml as esc, smoothScroll,
+} from '../../../core/base/utils.js?v=20261110a';
+import { renderCardHeader } from '../../../components/shell/page-frame.js?v=20261110a';
 // 2026-10-25 Task 1.3：页内失败态（错误卡 + 重试）单一源，替代动态 import 无 catch 的静默失败。
-import { mountTabFailure } from '../../../components/shell/tab-bar.js?v=20261109a';
+import { mountTabFailure } from '../../../components/shell/tab-bar.js?v=20261110a';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -103,7 +103,7 @@ function _mountInsightCard(host, ctx = {}) {
     return;
   }
   // 2026-10-25 Task 1.3：动态 import 必须接住失败——原位错误卡 + 重试，不再只有 unhandledrejection。
-  import('../../../components/record/insight-view.js?v=20261109a').then((m) => m.renderInsightView(body, {
+  import('../../../components/record/insight-view.js?v=20261110a').then((m) => m.renderInsightView(body, {
     embedded: true,
     views: ['workgroup', 'taskforce'],
     defaultView: 'workgroup',
@@ -150,7 +150,9 @@ function _periodicReviewSectionHtml(reports) {
       : emptyStateHtml('暂无待审周期归档', {
         // C07（2026-10-20）：支书/副支书已不进宣传台（D-807④，跨台会被身份门弹回）——
         // 改为落本台待办（代归档口径），不再指向 prop.html。
-        actionHtml: `<a class="btn-outline btn-sm text-accent" href="${getBasePath()}workspace/secretary.html?tab=todo">去待办（代归档）<span aria-hidden="true">›</span></a>`,
+        // 2026-11-10 批次 540 波次 5：改为页签动作按钮（经 work-overview 的 data-wo-goto-tab 统一绑定
+        //   → `goToWorkspaceTab('todo')`），不再整页跳 `workspace/secretary.html?tab=todo`。
+        actionHtml: '<button type="button" class="btn-outline btn-sm text-accent" data-wo-goto-tab="todo">去待办（代归档）<span aria-hidden="true">›</span></button>',
       })}
   </section>`;
 }

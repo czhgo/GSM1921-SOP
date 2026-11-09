@@ -5,32 +5,33 @@
 //  职责单一：统计卡渲染 + 考勤明细弹窗（点击统计卡查看本月考勤）。
 // ════════════════════════════════════════════════════════════════
 
-import { NoticeStore } from '../../services/governance/notice.js?v=20261109a';
-import { _fmtDate, animateNumber } from '../../core/base/utils.js?v=20261109a';
-import { icon } from '../../core/base/icons.js?v=20261109a';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261110a';
+import { _fmtDate, animateNumber } from '../../core/base/utils.js?v=20261110a';
+import { icon } from '../../core/base/icons.js?v=20261110a';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261109a';
-import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261109a';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261110a';
+import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261110a';
 // R2-47：出勤率语义单一源——首页「个人考勤」按应到人次（不是按已录记录），未录显示「待录入」
-import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261109a';
+import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261110a';
 
 // 出勤率档位 → 既有语义色 token（服务层只给档位，颜色映射留在展示层）
+// 2026-11-10 批次 540：状态色一律取文字档 `--status-*-text`（`--tint` 与数值同源，填充档不承担文字 / 笔触，见 DS_03 §4.11.2）。
 const ATTENDANCE_TONE_COLOR = {
-  good: 'var(--status-success)',
+  good: 'var(--status-success-text)',
   watch: 'var(--status-warning-text)',
-  low: 'var(--status-error)',
+  low: 'var(--status-error-text)',
   pending: 'var(--neutral-500)',
 };
 // 2026-10-28：数值（24px 大字）与图标分两档色。--status-success 对白卡仅 2.54:1，
 //   大字要求 ≥3:1 ⇒「良好」档数值退回正文色 --neutral-800（对白卡 14.68:1），
 //   绿色只留在 `.stat-icon-tint` 的图标笔触上（装饰性、aria-hidden，不承担信息）。
-//   其余档位对白卡 ≥3:1（warning-text 7.09 / error 3.76 / neutral-500 4.83），数值与图标同色。
+//   其余档位对白卡 ≥4.5:1（文字档：warning-text 7.09 / error-text 8.31 / neutral-500 4.83），数值与图标同色。
 const ATTENDANCE_VALUE_COLOR = {
   ...ATTENDANCE_TONE_COLOR,
   good: 'var(--neutral-800)',
 };
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261109a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261110a';
 const ATTENDANCE_STATUS_DOT = {
   present:  { text: '出勤', cls: 'text-green-700', dot: 'var(--status-success)' },
   absent:   { text: '缺勤', cls: 'text-red-600',  dot: 'var(--status-error)' },
@@ -98,14 +99,15 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   //   卡片不再写 `min-height`——四张等高由 #dashboard-stats 的栅格 `align-items: stretch` 保证。
   //   2026-11-01（回线上口径）：卡片内边距统一 `p-4`（16px），标签仍取短标签（4 字）；
   //   卡内只保留「数值 / 标签」两行——空态由数值位「—」表达，不再追加第三行说明。
-  // 颜色 = 既有语义 token：活动信息蓝 / 专班琥珀文字档 / 未读错误红（0 条回落中性）/ 考勤按档位。
+  // 颜色 = 既有语义 token（一律文字档 `--status-*-text`：`--tint` 与数值同色，填充档不承担文字 / 笔触，
+  //   见 DS_03 §4.11.2 与 status-color-guard）：活动信息蓝 / 专班琥珀 / 未读错误红（0 条回落中性）/ 考勤按档位。
   const stats = [
-    { label: '本月活动', value: monthActivities.length, count: monthActivities.length, unit: '场', color: 'var(--status-info)', icon: 'calendarHero', interactive: false },
+    { label: '本月活动', value: monthActivities.length, count: monthActivities.length, unit: '场', color: 'var(--status-info-text)', icon: 'calendarHero', interactive: false },
     ...(activeTFs.length > 0
       ? [{ label: '活跃专班', value: activeTFs.length, count: activeTFs.length, unit: '个', color: 'var(--status-warning-text)', icon: 'usersGroup', interactive: false }]
       : []),
     { label: '未读通知', value: unreadNotices, count: unreadNotices, unit: '条',
-      color: unreadNotices > 0 ? 'var(--status-error)' : 'var(--neutral-500)', icon: 'bellHero', interactive: false },
+      color: unreadNotices > 0 ? 'var(--status-error-text)' : 'var(--neutral-500)', icon: 'bellHero', interactive: false },
     // 空态（P2-5）：没有记录不是「数据坏了」，而是本月应到场次为 0 这一事实——数值位显示「—」。
     // R2-47：有应到场次但一条都没录 → 同样显示「—」（未录不当成 0%）。
     { label: '个人考勤',

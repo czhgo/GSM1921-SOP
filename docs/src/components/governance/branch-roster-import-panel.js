@@ -1,9 +1,9 @@
-import { mockDB } from '../../core/domain/domain.js?v=20261109a';
-import { PersonStore } from '../../services/member/person.js?v=20261109a';
-import { getRosterStats } from '../../services/member/roster.js?v=20261109a';
-import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../services/member/branch-roster-import.js?v=20261109a';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261109a';
-import { icon } from '../../core/base/icons.js?v=20261109a';
+import { mockDB } from '../../core/domain/domain.js?v=20261110a';
+import { PersonStore } from '../../services/member/person.js?v=20261110a';
+import { getRosterStats } from '../../services/member/roster.js?v=20261110a';
+import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../services/member/branch-roster-import.js?v=20261110a';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261110a';
+import { icon } from '../../core/base/icons.js?v=20261110a';
 
 const drafts = new Map();
 
@@ -39,7 +39,7 @@ function draftHtml(branchId) {
   return `<div class="mt-3 border border-gray-200 bg-white p-3">
     <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="text-sm font-semibold">导入预览</h3><span class="text-xs text-gray-500">${esc(draft.fileName)} · 有效 ${draft.people.length} 条${draft.dropped ? ` · 忽略 ${draft.dropped} 条` : ''}</span></div>
     <div class="mt-3 stat-grid">
-      ${stat({ icon: 'usersGroup', tint: 'var(--status-info)', value: s.partyTotal, unit: '人', label: '在册党员', note: `正式 ${s.official} + 预备 ${s.probationary}` })}
+      ${stat({ icon: 'usersGroup', tint: 'var(--status-info-text)', value: s.partyTotal, unit: '人', label: '在册党员', note: `正式 ${s.official} + 预备 ${s.probationary}` })}
       ${stat({ icon: 'clock', tint: 'var(--status-warning-text)', value: s.detained, unit: '人', label: '滞留党员', note: '组织关系保留、通知照发' })}
       ${stat({ icon: 'usersGroup', tint: 'var(--app-accent-soft-text)', value: s.expected, unit: '人', label: '支部党员大会应到', note: `党员 ${s.partyTotal} − 滞留 ${s.detained}` })}
       ${stat({ icon: 'list', tint: 'var(--neutral-500)', value: groupCount, unit: '组', label: '各党小组会应到', note: groups || '—' })}

@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261109a');
+@import url('components/person-picker.css?v=20261110a');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -6240,6 +6240,93 @@ html.theme-dark .agg-count-badge {
 .data-table tbody tr {
   /* 2026-10-23 Task 6：表格行 40px 单一源（`min-height` 对 table-row 无效，改用 height）。 */
   height: var(--row-table);
+}
+
+/* ── 数据表结构档（2026-11-10 批次 540：契约 TABLE_COMPONENT_CONTRACT.md）──
+   只放结构类：横滚容器 / 首列吸附 / 密度 / 单列截断 / 列宽拖动柄 / 展开详情行；
+   视觉档（字号 / 字重 / 行线 / 悬停）仍归上方 `.data-table` 段，本段不改既有选择器。
+   选择器一律以引擎持有的 wrapper（`.lf-list.dt-*`）为起点：wrapper 跨内部重渲染不重建，
+   `<table>` 每次重建 ⇒ 结构类不得挂在 `<table>` 上（否则关键词 / 翻页后丢失）。 */
+.dt-scroll {
+  /* 宽表横滚单一出口：页面主体不横向溢出，滚动只发生在表格自身容器内。 */
+  max-width: 100%;
+  overflow-x: auto;
+  /* 断点按容器（不是视口）：同一张表在 320px 侧栏与通栏下判定不同。 */
+  container-type: inline-size;
+}
+.dt-scroll > .data-table {
+  min-width: var(--dt-min-width, 0);
+}
+/* 首列吸附（≥5 列宽表）：横滚时身份列常驻；底色取卡片面，避免透出后列内容。 */
+.dt--sticky-first > .data-table thead th:first-child,
+.dt--sticky-first > .data-table tbody td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface-card);
+}
+@media (hover: hover) {
+  .dt--sticky-first > .data-table tbody tr[data-interactive="true"]:hover td:first-child {
+    background: var(--surface-hover);
+  }
+}
+/* 密度档：默认 40（`.data-table tbody tr` 的 --row-table）；紧凑档 32 只服务多行台账。 */
+.dt--compact > .data-table tbody tr {
+  height: 32px;
+}
+.dt--compact > .data-table th,
+.dt--compact > .data-table td {
+  padding-left: var(--space-2);
+  padding-right: var(--space-2);
+}
+/* 单列截断（契约 §二：全表只许一列）：表头与单元格同标记，避免长值把定宽列撑破。 */
+.data-table .is-truncate {
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* 展开详情行（契约 §三）：`height:auto` ＋ colspan 插行；详情不塞进数据格内。 */
+.data-table tbody tr.dt-detail {
+  height: auto;
+}
+.data-table tbody tr.dt-detail > td {
+  padding: 0 var(--space-3) var(--space-3);
+  background: var(--surface-card);
+}
+/* 列宽拖动柄（契约 §五）：仅 ≥1024px；只出现在首列右分界与末列左分界。 */
+@media (min-width: 1024px) {
+  .dt--resizable > .data-table thead th {
+    position: relative;
+  }
+  .dt--resizable > .data-table thead th:first-child::after,
+  .dt--resizable > .data-table thead th:last-child::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    cursor: col-resize;
+  }
+  .dt--resizable > .data-table thead th:first-child::after { right: -4px; }
+  .dt--resizable > .data-table thead th:last-child::after { left: -4px; }
+}
+/* ≤640px 卡式行内：横滚最小宽与首列吸附清零，页面不得横向溢出（契约 §四）。 */
+@media (max-width: 640px) {
+  .dt-scroll > .data-table[data-responsive="cards"] {
+    min-width: 0;
+  }
+  .dt--sticky-first > .data-table[data-responsive="cards"] thead th:first-child,
+  .dt--sticky-first > .data-table[data-responsive="cards"] tbody td:first-child {
+    position: static;
+    background: transparent;
+  }
+}
+/* 容器断点（契约 §四「断点按容器」）：命中时与上方视口断点同口径复位。 */
+@container (max-width: 640px) {
+  .dt-scroll > .data-table[data-responsive="cards"] {
+    min-width: 0;
+  }
 }
 
 /* ── 结论带：一条横向带，不是四张 KPI 小卡（数值 24px/600 + 标签 12px）──

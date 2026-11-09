@@ -19,45 +19,94 @@
 //
 // 数据源装配：与 activity-entry.js / notice-entry.js 同款——有 API 会话时先切数据源并 init() 拉全量
 //   再渲染（`module-load.test.mjs::E2` 独立页装配断言要求）。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261109a';
-import { renderHeader } from '../../components/shell/header.js?v=20261109a';
-import { hydrateDataSource, notifyDataLoaded, getAdapter, persist } from '../../data/data-adapter.js?v=20261109a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261109a';
-import { mockDB } from '../../core/domain/domain.js?v=20261109a';
-import { AuthStore } from '../../services/core/auth.js?v=20261109a';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261109a';
-import { BranchService } from '../../services/core/runtime.js?v=20261109a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261109a';
-import { IssueStore } from '../../services/governance/issues.js?v=20261109a';
-import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261109a';
-import { fetchVotes, tallyForItem } from '../../services/activity/committee-vote.js?v=20261109a';
-import { agendaDecisionSource } from '../../services/activity/agenda-relations.js?v=20261109a';
-import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261109a';
-import { renderVoteSummary } from '../../components/governance/vote-summary-panel.js?v=20261109a';
-import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261109a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261110a';
+import { renderHeader } from '../../components/shell/header.js?v=20261110a';
+import { hydrateDataSource, notifyDataLoaded, getAdapter, persist } from '../../data/data-adapter.js?v=20261110a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261110a';
+import { mockDB } from '../../core/domain/domain.js?v=20261110a';
+import { AuthStore } from '../../services/core/auth.js?v=20261110a';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261110a';
+import { BranchService } from '../../services/core/runtime.js?v=20261110a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261110a';
+import { IssueStore } from '../../services/governance/issues.js?v=20261110a';
+import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261110a';
+import { fetchVotes, tallyForItem } from '../../services/activity/committee-vote.js?v=20261110a';
+import { agendaDecisionSource } from '../../services/activity/agenda-relations.js?v=20261110a';
+import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261110a';
+import { renderVoteSummary } from '../../components/governance/vote-summary-panel.js?v=20261110a';
+import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261110a';
 // 「拟上会」清单单一源（2026-09-21 批次 127 · `SOP-B-33` 取（乙）档）：本页的「提取议程」
 // 与写入活动的议程区块共用**同一张清单**（agenda-form.js::buildAgendaCandidates）——
 // 原按来源分两块的呈现（专班报送 / 意见反馈）已按乙档收为一张清单（不按来源各做导入口）。
-import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../tabs/secretary/agenda-form.js?v=20261109a';
-import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261109a';
+import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../tabs/secretary/agenda-form.js?v=20261110a';
+// 议程来源类型（2026-11-10 批次 540 波次 2）：类型 / 文案 / 应到范围的单一源＝
+//   `core/domain/agenda-classify.js`（与服务端 `GET /api/v1/committee/agenda-candidates` 同一函数）。
+import { classifyAgendaItem, isPartyMeetingPendingDoc, AGENDA_TYPE_BADGE_VARIANT } from '../../core/domain/agenda-classify.js?v=20261110a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261110a';
+import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261110a';
 // 党小组组长（含代组长）清单单一源——2026-09-23 支书裁定甲「支委扩大会…党小组组长（代组长）是可以
 //   打包的」；**不另造组长名单**（同 services/member/party-group.js 的组清单同源；组内无组长时由该源回落次选身份）
-import { listPartyGroups } from '../../services/member/group-view.js?v=20261109a';
-import { loadStageEntryDates } from '../../services/member/member-confirmation.js?v=20261109a';
+import { listPartyGroups } from '../../services/member/group-view.js?v=20261110a';
+import { loadStageEntryDates } from '../../services/member/member-confirmation.js?v=20261110a';
 // Task 6：会议记录页属于会议承载面，不是活动详情 ⇒ 活动出口走 direct 完整详情页。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261109a';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261110a';
 // 品牌认定提案（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）——判据单一源
-import { listBrandProposals } from '../../services/activity/activity.js?v=20261109a';
-import { showToast, escHtml as esc, todayLocal, getBasePath, smoothScroll } from '../../core/base/utils.js?v=20261109a';
-import { generateId } from '../../core/base/id.js?v=20261109a';
+import { listBrandProposals } from '../../services/activity/activity.js?v=20261110a';
+import { showToast, escHtml as esc, todayLocal, getBasePath, smoothScroll } from '../../core/base/utils.js?v=20261110a';
+import { generateId } from '../../core/base/id.js?v=20261110a';
 // 2026-10-24 批次 508：场次下拉是「随时间单调增长」的列表 ⇒ 接统一自定义下拉（搜索 / 近期置顶 / 分批）
-import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261109a';
+import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261110a';
 
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261109a';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261110a';
 renderSidebar('dashboard');
 renderHeader('dashboard');
 
 const ROOT = document.getElementById('pcm-content');
+
+// ── 议程来源类型（类型 / 文案 / 应到范围单一源 = core/domain/agenda-classify.js）──────────
+/** 「拟上会」清单分组 → 议程项 `sourceRef.kind`（唯一映射；勾入议程与「已在议程中」判重共用） */
+const CANDIDATE_REF_KIND = {
+  taskforce: 'taskforce-proposal', issue: 'issue', draftDoc: 'branch-doc',
+  partyVote: 'branch-doc', recommend: 'member', brand: 'activity',
+};
+
+/** 议程项 → { source, refId }（手写项返回 null；只认来源引用与既有 kinds，不猜） */
+function agendaSourceOf(item) {
+  const kinds = Array.isArray(item.kinds) ? item.kinds : [];
+  if (kinds.includes('brand-designation')) {
+    return { source: 'brand-proposal', refId: item.brandActivityId || (item.sourceRef && item.sourceRef.id) || '' };
+  }
+  if (kinds.includes('activity-approval')) {
+    return { source: 'activity-approval', refId: item.approvalActivityId || (item.sourceRef && item.sourceRef.id) || '' };
+  }
+  const ref = item.sourceRef;
+  if (!ref || !ref.id) return null;
+  if (ref.kind === 'branch-doc') {
+    const doc = (mockDB.branchDocs || []).find((d) => d && d.id === ref.id);
+    return { source: isPartyMeetingPendingDoc(doc) ? 'party-meeting-pending' : 'institution-draft', refId: ref.id };
+  }
+  const source = {
+    'taskforce-proposal': 'taskforce-pending',
+    issue: 'issue-committee',
+    member: 'activist-recommend',
+    activity: 'brand-proposal',
+  }[ref.kind];
+  return source ? { source, refId: ref.id } : null;
+}
+
+/** 议程项类型徽章（无来源引用 → 空串：手写项不判类型） */
+function agendaItemTypeBadgeHtml(item) {
+  const hit = agendaSourceOf(item);
+  if (!hit || !hit.refId) return '';
+  const c = classifyAgendaItem({ source: hit.source, ref: { id: hit.refId } });
+  return badgeHtml(esc(c.typeLabel), AGENDA_TYPE_BADGE_VARIANT[c.type] || 'neutral', { title: esc(c.expected) });
+}
+
+/** 清单行类型徽章（候选行自带 type / typeLabel，由 buildAgendaCandidates 给出） */
+function candidateTypeBadgeHtml(c) {
+  if (!c || !c.type) return '';
+  return badgeHtml(esc(c.typeLabel || ''), AGENDA_TYPE_BADGE_VARIANT[c.type] || 'neutral', { title: esc(c.expected || '') });
+}
 
 // ── 数据 hydrate（同 activity-entry.js：有 API 会话走 api 数据源 + init() 拉全量；失败即失败）──────────
 // P0-2（2026-09-23）：判定收敛到 data/data-adapter.js::hydrateDataSource（有 token 时不回退可写 mock）。
@@ -327,15 +376,14 @@ function extractSectionHtml(act, candidates = [], step = 1) {
   //   这里不呈现「加入本场议程」的入口——本次改动不得让新放行的这一类拿到它。
   if (!isCommitteeMember(AuthStore.getCurrentUser()?.personId)) return '';
   const usedRefs = new Set((act.agenda || []).filter((x) => x && x.sourceRef).map((x) => `${x.sourceRef.kind}:${x.sourceRef.id}`));
-  const refKindOf = { taskforce: 'taskforce-proposal', issue: 'issue', draftDoc: 'branch-doc', partyVote: 'branch-doc', recommend: 'member' };
   const row = (c) => {
-    const used = usedRefs.has(`${refKindOf[c.group]}:${c.refId}`);
+    const used = usedRefs.has(`${CANDIDATE_REF_KIND[c.group]}:${c.refId}`);
     return `
     <label class="flex items-start gap-2 p-2.5 rounded-lg border border-gray-100 ${used ? 'opacity-60' : 'hover:bg-surface-hover cursor-pointer'}">
       <input type="checkbox" class="pcm-cand mt-0.5" value="${esc(c.refId)}" data-group="${esc(c.group)}"${used ? ' disabled' : ''}>
       <span class="flex-1 min-w-0">
-        <span class="block text-xs font-medium text-gray-700">${esc(c.text)}</span>
-        <span class="block text-xs text-gray-500 mt-0.5">${esc(c.meta)}${used ? ' · 已在议程中' : ''}</span>
+        <span class="block text-body-sm font-medium text-gray-700">${candidateTypeBadgeHtml(c)} ${esc(c.text)}</span>
+        <span class="block text-body-sm text-gray-500 mt-0.5">${esc(c.meta)}${used ? ' · 已在议程中' : ''}</span>
       </span>
     </label>`;
   };
@@ -385,6 +433,7 @@ function agendaSectionHtml(act) {
           <div class="flex items-center gap-2 flex-wrap">
             <span class="text-sm font-medium text-gray-700">${esc(a.item)}</span>
             ${stepBadge(a)}
+            ${agendaItemTypeBadgeHtml(a)}
             ${a.result ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${a.result === 'passed' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">${a.result === 'passed' ? '已通过' : (a.result === 'partial' ? '部分通过' : '未通过')}</span>` : ''}
           </div>
           ${a.host || a.discussionAgendaItemId ? `<div class="text-xs text-gray-500 mt-0.5">${a.host ? `（主持人：${esc(a.host)}）` : ''}${a.discussionAgendaItemId ? `${a.host ? ' · ' : ''}对应讨论：${esc(items.find((item) => item.id === a.discussionAgendaItemId)?.item || '议程关系无效')}` : ''}</div>` : ''}
@@ -451,6 +500,7 @@ function resultSectionHtml(act, votes) {
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-gray-700">${esc(a.item)}</p>
             ${a.agendaStep === 'discussion' ? '<span class="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-xs font-medium text-indigo-700 bg-indigo-50">讨论项</span>' : (a.agendaStep === 'vote' ? '<span class="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-xs font-medium text-rose-700 bg-rose-50">表决项</span>' : '')}
+            ${agendaItemTypeBadgeHtml(a)}
             ${a.discussionAgendaItemId ? `<p class="text-body-sm text-gray-500 mt-1">对应讨论：${esc((act.agenda || []).find((item) => item.id === a.discussionAgendaItemId)?.item || '议程关系无效')}</p>` : ''}
             <p class="text-body-sm text-gray-500 mt-1">表态记录：${esc(detail)}</p>
             <p class="text-body-sm text-gray-500 mt-0.5">讨论结果：${esc(resultLabel)}${a.reportToPartyMeeting ? '（报送党员大会表决）' : ''}${recorder ? '（记录人 ' + esc(recorder) + '）' : ''}</p>
@@ -615,7 +665,6 @@ function bindExtract(act, candidates = []) {
   document.getElementById('pcm-extract')?.addEventListener('click', async (e) => {
     const btn = e.currentTarget;
     if (btn.dataset.processing === '1') return;
-    const refKindOf = { taskforce: 'taskforce-proposal', issue: 'issue', draftDoc: 'branch-doc', partyVote: 'branch-doc', recommend: 'member', brand: 'activity' };
     const picked = [];
     ROOT.querySelectorAll('.pcm-cand:checked').forEach((cb) => {
       const c = candidates.find((x) => x.group === cb.dataset.group && x.refId === cb.value);
@@ -626,7 +675,7 @@ function bindExtract(act, candidates = []) {
         item: c.item,
         host: c.host || '支书',
         kinds: c.kinds || [],
-        sourceRef: { kind: refKindOf[c.group], id: c.refId },
+        sourceRef: { kind: CANDIDATE_REF_KIND[c.group], id: c.refId },
       };
       // 类目自带的引用字段照搬（制度草案 → branchDocId；发展对象推荐 → 待讨论名单 + 目标阶段）：
       // 后者是「推荐为发展对象」那道门的议程侧（记录通过即为该人建成员变更申请，见 agenda-follow-up.js）

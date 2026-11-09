@@ -88,6 +88,8 @@ export const CACHE_KEY_PREFIXES = Object.freeze([
   { prefix: 'wizard-draft-', category: 'temp', note: '换组织向导未完成草稿（按支部一份）' },
   // 2026-11-01 批次 523：页签模块加载失败的「同会话自愈一次」标记（键含 tab.id，成功后即删）。
   { prefix: 'gsm1921-tab-selfheal-', category: 'temp', note: '页签失败自愈一次性标记（本会话一次，成功后清除）' },
+  // 2026-11-10 批次 540：数据表列宽拖动（`components/ui/data-table.js`，键 `table:cols:<stateKey>`）。
+  { prefix: 'table:cols:', category: 'visual', note: '表格列宽拖动偏好（逐表一份百分比数组，纯展示，可随时丢弃）' },
 ]);
 
 /**

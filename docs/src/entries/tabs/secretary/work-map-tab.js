@@ -1,37 +1,46 @@
 // role: [工程师]+[AI]
 // entries/tabs/secretary/work-map-tab.js — 支书工作台·支部分工 tab（L4 支部工作地图，2026-09-03）
-// 支书三重裁定落地：党建/党务二分取消、不设分类筐、平铺模块 + 按人 双视图。
+// 支书三重裁定落地：党建/党务二分取消、不设分类筐。
 // 2026-09-14 批次 35（支书裁定「矩阵推广到其它二元关系域」）：本页扩为三视图——
 //   平铺模块（原卡视图，承载 desc/子项/产出完整信息）+ 按人 / 按项目（「人 × 工作项」宽表，二者互为转置）。
 //   宽表默认「按人」（与全站考勤/考察宽表默认同口径）；矩阵一律走单一源 relation-matrix.js（勿自造 table/翻页/横向滚动）。
+// 2026-11-10 批次 540 波次 5（支书裁定「4 视图重叠」）：
+//   · 视图收 2——责任关系（默认）/ 关系矩阵。按项目是「按人」的转置（同一份数据、同一问句），删除；
+//     平铺模块的 desc / 子项 / 产出并入**选中行展开**，不再单占一套视图；
+//   · 关系矩阵降为折叠块（`details`，本视图内默认展开），不再是首屏并列主体；
+//   · 责任关系行 meta 拼「负责人 · 协作 · 产出」，协作方单一源＝`WORK_MAP_MODULES[].collaborators`（可缺省）；
+//   · 页根改 `.stack-page`（页头→卡 24px 由骨架给），删工具卡与页脚的 `mt-3` 手写间距；
+//   · 主责徽章改中性（主责是常态、不是状态），停用才用 warning。
 // 模块目录单一源 = core/domain/work-map.js（14 项既有工作形式；「三会一课」已于 2026-09-22 批次 145 按形式
 //   拆为 4 个模块）；分工快照 = config.workforce（缺省按 SOP 责任人列）。
 // M2（2026-09-03）：分工调整走支委会议题（panel = workforce-panel.js）——发起改派议题/跟踪表决/采纳生效。
-// R5（2026-09-28 批次 220）：读（看分工：平铺模块 / 按人 / 按项目）与写（分工调整工具）
+// R5（2026-09-28 批次 220）：读（看分工）与写（分工调整工具）
 //   分区——**写侧默认折叠**（`_toolOpen`，同 group-progress `_progressOpen` 体例），首屏只留读侧；展开后功能一字不减。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
-import { escHtml as esc, smoothScroll } from '../../../core/base/utils.js?v=20261109a';
-import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20261109a';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261109a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261109a';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20261109a';
-import { getPersonName } from '../../../services/member/person.js?v=20261109a';
+import { escHtml as esc, smoothScroll } from '../../../core/base/utils.js?v=20261110a';
+import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20261110a';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261110a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261110a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20261110a';
+import { getPersonName } from '../../../services/member/person.js?v=20261110a';
 // 人×工作项矩阵单一源（2026-09-14 批次 35）：按人 / 按项目 互为转置，勿自造表格与翻页
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261109a';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261110a';
 // 行载体与分隔线一律走 list-row.js（master 行）+ .list-group；数据口径与权限不变。
-import { listGroupHtml, listRowHtml } from '../../../components/ui/list-row.js?v=20261109a';
+import { listGroupHtml, listRowHtml } from '../../../components/ui/list-row.js?v=20261110a';
 // 责任关系（2026-11-09 批次 539 改单列对象列表）：14 个模块逐行摊平，每行＝角色徽章 +
 // 工作项（14/600）+ 负责人（12）+ 一行截断说明（title 全文）；停用项行尾「发起启用议题」。
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261109a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261110a';
 // 空态单一源（一句说明 + 一个下一步），与全局概况 / 周期归档卡同形
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261109a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261110a';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅支书/副支书可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20261109a';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20261110a';
 
 // 2026-10-18 脏专项 Task 17：默认落「责任关系表」——14 项模块是 1:1 分派，
-// 逐行读出「谁负责什么」比 14×N 的稀疏矩阵直接；矩阵（按人 / 按项目）保留为可选视图。
-let _view = 'relations'; // 视图：责任关系表 / 平铺模块 / 按人 / 按项目（同一会话内保持）
+// 逐行读出「谁负责什么」比 14×N 的稀疏矩阵直接；矩阵保留为可选视图。
+// 2026-11-10 批次 540 波次 5：视图 4 → 2（relations / matrix），`items`（按项目，矩阵转置）与
+//   `modules`（平铺模块，内容并入行展开）退场。
+let _view = 'relations'; // 视图：责任关系 / 关系矩阵（同一会话内保持）
 // R5（2026-09-28 批次 220）：分工调整工具（写）默认折叠——本 tab 主问「每项工作归谁负责？」＝看分工（读），
 //   分工调整（发起议题/跟踪/采纳）属「偶尔要用的工具」（判定＝一 tab 一问：「支部分工」混装读/写两件事，
 //   写侧折叠为按钮；原 MODULE_UI_DESIGN.md §四 规划稿已清出，出处见 .ctx/logs/archive/2026-09-DECISION_LOG.md）。折叠体例照本仓既有 `_progressOpen`（group-progress-tab.js）：模块级布尔 + 卡片 + 单钮，
@@ -52,72 +61,65 @@ function _ownerLabel(assign) {
   return ROLE_LABELS[assign.ownerId] || assign.ownerId;
 }
 
+/** 协作主体引用 → 显示名（角色键 / 组织型主体 id）；未登记返回原值 */
+function _subjectLabel(subjectId) {
+  if (!subjectId) return '';
+  return ORG_SUBJECT_LABELS[subjectId] || ROLE_LABELS[subjectId] || subjectId;
+}
+
 /** 主责是否为**上级组织**（如党委）——2026-09-30 批次 302 支书裁定：
  *  支部就是支部内务、不涉及党委 ⇒ 上级组织**不作为支部承担方**呈现（降级为中性「上级党委」标注）。 */
 function _isSuperiorOwner(assign) {
   return !!assign && assign.ownerType === 'org' && !isBranchOrgSubject(assign.ownerId);
 }
 
-/** 视图 A：14 模块平铺卡（无分组、无泳道、无连线） */
-function _modulesHtml(workforce) {
-  return `
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-      ${WORK_MAP_MODULES.map(m => {
-        const assign = workforce[m.id];
-        const superior = _isSuperiorOwner(assign);
-        const ownerCls = superior
-          ? 'bg-neutral-100 text-neutral-600'
-          : (assign.ownerId === 'secretary' || assign.ownerId === 'deputy-secretary' || assign.ownerType === 'org' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700');
-        const ownerText = superior ? `上级${_ownerLabel(assign)}` : _ownerLabel(assign);
-        const ownerTitle = superior ? '非支部分工：该事项由上级组织主导（支部侧按上级渠道对接），故不占支部承担方位' : `负责人：${_ownerLabel(assign)}`;
-        const chips = (m.sub || []).map(s => `
-          <span class="text-xs px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">${esc(s)}</span>`).join('');
-        const outputs = (m.outputs || []).map(o => `
-          <span class="text-xs px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-600">产出·${esc(o)}</span>`).join('');
-        return `
-        <div class="rounded-lg border border-gray-200 bg-white p-3.5 flex flex-col gap-2">
-          <div class="flex items-start justify-between gap-2">
-            <p class="font-title-cn text-sm font-bold text-gray-800">${esc(m.name)}</p>
-            <span class="shrink-0 text-xs px-2 py-0.5 rounded-full ${ownerCls}" title="${esc(ownerTitle)}">${esc(ownerText)}</span>
-          </div>
-          ${chips ? `<div class="flex flex-wrap gap-1">${chips}</div>` : ''}
-          <p class="text-xs text-gray-500 leading-5">${esc(m.desc)}</p>
-          ${outputs ? `<div class="flex flex-wrap gap-1 mt-auto pt-1">${outputs}</div>` : ''}
-        </div>`;
-      }).join('')}
-    </div>`;
-}
-
-/** 视图 A0：责任关系表（14 项工作 → 责任人 / 责任角色 / 责任说明）——
+/** 责任关系行数据（14 项工作 → 责任人 / 责任角色 / 责任说明 / 协作 / 产出）——
  *  2026-10-18 脏专项 Task 17：原矩阵缺「责任角色 / 责任说明」列，读者只看得到「主责」标记，
- *  读不出「谁负责什么」；本表把同一份 `getBranchWorkforce` 快照逐项摊平（不改数据、不改权限）。 */
+ *  读不出「谁负责什么」；本表把同一份 `getBranchWorkforce` 快照逐项摊平（不改数据、不改权限）。
+ *  2026-11-10 批次 540 波次 5：meta 拼「负责人 · 协作 · 产出」；协作方取 `WORK_MAP_MODULES[].collaborators`
+ *  （可缺省），产出取 `outputs`；两者都并入行内，平铺模块不再单独占一套视图。 */
 function _relationRows(workforce) {
   return WORK_MAP_MODULES.map((m) => {
     const assign = workforce[m.id];
     const superior = _isSuperiorOwner(assign);
     const disabled = !!assign && assign.ownerType === 'none';
+    const collaborators = (m.collaborators || []).map(_subjectLabel).filter(Boolean);
+    const outputs = (m.outputs || []).slice();
+    // A14：停用项不是「未指派」（那会让人以为是漏配）。明说「已停用 / 不开展」。
+    const owner = disabled ? _ownerLabel(assign) : (superior ? `上级${_ownerLabel(assign)}` : _ownerLabel(assign));
+    const meta = [
+      `负责人：${owner}`,
+      collaborators.length ? `协作：${collaborators.join('、')}` : '',
+      outputs.length ? `产出：${outputs.join('、')}` : '',
+    ].filter(Boolean).join(' · ');
     return {
       id: m.id,
       module: m.name,
-      // A14：停用项不是「未指派」（那会让人以为是漏配）。明说「已停用 / 不开展」。
-      owner: disabled ? _ownerLabel(assign) : (superior ? `上级${_ownerLabel(assign)}` : _ownerLabel(assign)),
+      owner,
       role: disabled ? '停用' : (superior ? '上级主导' : '主责'),
       note: disabled
         ? '本支部不开展该项工作方法；可由支书 / 副支书发起启用议题'
         : (superior ? '由上级组织主导，支部按上级渠道对接' : (m.desc || '')),
+      meta,
+      collaborators,
+      outputs,
+      sub: (m.sub || []).slice(),
       disabled,
     };
   });
 }
 
-/** 角色徽章（行首插槽）：主责＝主题 soft 档，停用 / 上级主导＝中性档；本页禁 SVG，只用文字。 */
+/** 角色徽章（行首插槽）：主责＝中性档（主责是常态，不是状态）；停用＝warning；上级主导＝中性档。
+ *  2026-11-10 批次 540 波次 5：主责由主题色改中性——主题色只留给动作 / 导航 / 选中态。本页禁 SVG，只用文字。 */
 function _roleBadgeHtml(role) {
-  const tone = role === '主责' ? 'badge--accent' : 'badge--neutral';
+  const tone = role === '停用' ? 'badge--warning' : 'badge--neutral';
   return `<span class="badge ${tone}">${esc(role)}</span>`;
 }
 
-/** 单行对象行：角色徽章 + 工作项（14/600）+ 负责人（12）+ 一行截断说明（title 全文）。
- *  停用项行尾「发起启用议题」（写口仍是既有分工调整面板）；非停用项无操作钮。 */
+/** 单行对象行：角色徽章 + 工作项（14/600）+ 负责人 / 协作 / 产出（12）+ 一行截断说明（title 全文）。
+ *  停用项行尾「发起启用议题」（写口仍是既有分工调整面板）；非停用项无操作钮。
+ *  2026-11-10 批次 540 波次 5：选中行不再出行内说明（改由紧随其后的展开块给全文），
+ *  避免 ≤640 的「选中展开」与展开块各出一份同样文字。 */
 function _relationRowHtml(row, selected, editable) {
   // A14：停用项的「发起启用议题」落点＝本页分工调整面板（复用既有写口，不新造表单）。
   const action = row.disabled
@@ -130,8 +132,8 @@ function _relationRowHtml(row, selected, editable) {
     className: 'wm-row',
     leading: _roleBadgeHtml(row.role),
     title: row.module,
-    meta: `负责人：${row.owner}`,
-    description: row.note,
+    meta: row.meta,
+    description: selected ? '' : row.note,
     trailing: action,
     dataAttrs: {
       'data-module': row.id,
@@ -141,7 +143,20 @@ function _relationRowHtml(row, selected, editable) {
   });
 }
 
-/** 责任关系单列列表：14 项工作逐行摊平（不分页、不内滚），行尾只在停用项给启用入口。 */
+/** 选中行展开：整段责任说明 + 子项 / 产出标签（原「平铺模块」承载的信息，2026-11-10 批次 540 波次 5 并入）。
+ *  与行同处一个 list-group：行间仍是同一条 hairline，不新增第二套行容器。 */
+function _relationDetailHtml(row) {
+  const chips = row.sub.map((s) => `<span class="text-xs px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-600">${esc(s)}</span>`).join('');
+  const outputs = row.outputs.map((o) => `<span class="text-xs px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-600">产出·${esc(o)}</span>`).join('');
+  const tags = [chips, outputs].filter(Boolean).join('');
+  return `<div class="px-4 pb-3 pt-0 text-body-sm" data-wm-expanded="${esc(row.id)}">
+    <p class="text-gray-700 whitespace-normal">${esc(row.note)}</p>
+    ${tags ? `<div class="flex flex-wrap gap-1 mt-1.5">${tags}</div>` : ''}
+  </div>`;
+}
+
+/** 责任关系单列列表：14 项工作逐行摊平（不分页、不内滚），行尾只在停用项给启用入口；
+ *  选中项紧随其后展开整段说明（≤640 的 CSS 同时把行内说明放开，两种宽度都能读全文）。 */
 function _relationsCardHtml(rows, editable) {
   const head = renderCardHeader({
     title: '分工清单',
@@ -151,32 +166,46 @@ function _relationsCardHtml(rows, editable) {
     return `<div class="card rounded-xl p-5" id="work-map-relations">
       ${head}
       ${emptyStateHtml('暂无分工数据', {
-        actionHtml: '<button type="button" class="btn-outline" data-wm-view="modules">先看平铺模块</button>',
+        actionHtml: '<button type="button" class="btn-outline" data-wm-view="matrix">先看关系矩阵</button>',
       })}
     </div>`;
   }
   const selectedId = rows.some((r) => r.id === _selectedModule) ? _selectedModule : null;
   _selectedModule = selectedId;
+  const rowHtml = [];
+  for (const r of rows) {
+    rowHtml.push(_relationRowHtml(r, r.id === selectedId, editable));
+    if (r.id === selectedId) rowHtml.push(_relationDetailHtml(r));
+  }
   return `<div class="card rounded-xl p-5" id="work-map-relations">
       ${head}
       <div id="wm-module-list">
-        ${listGroupHtml(rows.map((r) => _relationRowHtml(r, r.id === selectedId, editable)))}
+        ${listGroupHtml(rowHtml)}
       </div>
     </div>`;
 }
 
-/** 行交互：点 / Enter 选中（≤640 时选中项展开整段说明）；↑/↓ 逐项、Home/End 首末。
- *  master 行是 div[role=button]，行内按钮的点击 / 按键不连带改选中项。 */
+/** 行交互：点 / Enter 选中（选中行紧随其后展开整段说明）；↑/↓ 逐项、Home/End 首末。
+ *  master 行是 div[role=button]，行内按钮的点击 / 按键不连带改选中项。
+ *  2026-11-10 批次 540 波次 5：选中从「只改 data-selected」改为重渲染——展开块由 `_relationDetailHtml` 产出，
+ *  重渲染后焦点还给该行（键盘选中不丢位置）。 */
 function _bindRelations() {
   const list = document.getElementById('wm-module-list');
   if (!list) return;
-  const items = [...list.querySelectorAll('.wm-row')];
-  if (!items.length) return;
+  if (!list.querySelector('.wm-row')) return;
+  const rowsOf = () => [...list.querySelectorAll('.wm-row')];
   const select = (id) => {
+    if (!id || id === _selectedModule) return;
     _selectedModule = id;
-    items.forEach((it) => it.setAttribute('data-selected', it.dataset.module === id ? 'true' : 'false'));
+    renderContent();
+    setTimeout(() => {
+      document.querySelector(`.wm-row[data-module="${id}"]`)?.focus({ preventScroll: true });
+    }, 0);
   };
-  const focusAt = (idx) => items[Math.max(0, Math.min(items.length - 1, idx))]?.focus();
+  const focusAt = (idx) => {
+    const items = rowsOf();
+    items[Math.max(0, Math.min(items.length - 1, idx))]?.focus();
+  };
   list.addEventListener('click', (e) => {
     if (e.target.closest('.wm-reenable')) return;
     const item = e.target.closest('.wm-row');
@@ -184,7 +213,7 @@ function _bindRelations() {
   });
   list.addEventListener('keydown', (e) => {
     if (e.target.closest('.wm-reenable')) return;
-    const ids = items.map((it) => it.dataset.module);
+    const ids = rowsOf().map((it) => it.dataset.module);
     const idx = Math.max(0, ids.indexOf(_selectedModule));
     if (e.key === 'Enter' || e.key === ' ') {
       const item = e.target.closest('.wm-row');
@@ -204,7 +233,8 @@ function _bindRelations() {
   });
 }
 
-/** 视图 B/C：人 × 工作项宽表（按人＝行=负责人、列=工作项；按项目＝转置，行=工作项、列=负责人） */
+/** 视图 B：人 × 工作项宽表（行＝负责人、列＝工作项）。
+ *  2026-11-10 批次 540 波次 5：「按项目」是同一份矩阵的转置（同一问句的另一种排法）⇒ 删除，只保留按人。 */
 function _renderMatrix(workforce) {
   const host = document.getElementById('work-map-matrix');
   if (!host) return;
@@ -238,18 +268,19 @@ function _renderMatrix(workforce) {
 
   renderRelationMatrix(host, {
     stateKey: 'secretary-work-map-matrix',
-    mode: _view === 'items' ? 'byItem' : 'byPerson',
+    mode: 'byPerson',
     persons,
-    // 工作项维＝WORK_MAP_MODULES 模块目录原序（顺序即平铺视图 A 顺序，勿打乱）
+    // 工作项维＝WORK_MAP_MODULES 模块目录原序（顺序即模块目录顺序，勿打乱）
     items: WORK_MAP_MODULES.map(m => ({ id: m.id, title: m.name, sub: (m.sub || []).join('·') })),
     // 列上限 0＝不限：工作项是本支部 14 项固定目录（有界，单一源 core/domain/work-map.js），
     // 不随年份累积，故不需要矩阵缺省的「最近 6 项」封顶
     colLimit: 0,
     cell: (personKey, moduleId) => {
       const assign = workforce[moduleId];
-      // 命中该工作项负责人 → 「主责」徽标（朴素文本标记，本页禁 SVG）；否则 null → 组件渲染灰色「—」
+      // 命中该工作项负责人 → 「主责」徽标（朴素文本标记，本页禁 SVG）；否则 null → 组件渲染灰色「—」。
+      // 2026-11-10 批次 540 波次 5：主责徽标改中性（主责是常态，不是状态），与责任关系行同一口径。
       return `${assign.ownerType}:${assign.ownerId}` === personKey
-        ? '<span class="text-xs px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">主责</span>'
+        ? '<span class="text-xs px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-600">主责</span>'
         : null;
     },
     personLabel: '负责人',
@@ -258,13 +289,14 @@ function _renderMatrix(workforce) {
   });
 }
 
-/** R5：分工调整工具折叠壳（写侧）——首屏只留「看分工」（读侧：平铺模块 / 矩阵），
+/** R5：分工调整工具折叠壳（写侧）——首屏只留「看分工」（读侧：责任关系 / 关系矩阵），
  *  点「展开分工调整工具」才挂载 workforce-panel（发起议题 / 跟踪 / 采纳）。
- *  逐块判据：① 平铺模块 ② 按人 / 按项目宽表 均答本 tab 主问「每项工作归谁负责」＝**读者要看的结论**（保留首屏）；
- *  ③ 分工调整（发起支委会议题 / 跟踪表决 / 采纳生效）＝**偶尔要用的工具**（写操作）⇒ 折叠（不删、不降功能）。 */
+ *  逐块判据：① 责任关系清单 ② 关系矩阵（折叠） 均答本 tab 主问「每项工作归谁负责」＝**读者要看的结论**（保留首屏）；
+ *  ③ 分工调整（发起支委会议题 / 跟踪表决 / 采纳生效）＝**偶尔要用的工具**（写操作）⇒ 折叠（不删、不降功能）。
+ *  2026-11-10 批次 540 波次 5：卡间距交给 `.stack-page`（24px）⇒ 删去手写的 `mt-3`。 */
 function _toolFoldHtml() {
   return `
-    <div class="card rounded-xl p-4 mt-3" id="workforce-panel-card">
+    <div class="card rounded-xl p-4" id="workforce-panel-card">
       ${renderCardHeader({
         title: '分工调整工具',
         meta: '发起调整走支委会议题表决；跟踪与采纳亦在此',
@@ -293,31 +325,46 @@ export function renderContent() {
 
   // 视图分段＝`.btn-tab`（32px / 13px）＋ `.active` 单一源；不再在同排手写尺寸 / 边框 / 选中色。
   // 2026-10-31 支书补充：页头「标题在左、页签组在右」同行（原先页签独占下一行）。
+  // 2026-11-10 批次 540 波次 5：4 → 2（责任关系 / 关系矩阵）。
   const switchBar = `
     <div class="flex items-center gap-2 flex-wrap" role="group" aria-label="支部分工视图">
       ${[
         { key: 'relations', label: '责任关系' },
-        { key: 'modules', label: '平铺模块' },
-        { key: 'persons', label: '按人' },
-        { key: 'items', label: '按项目' },
+        { key: 'matrix', label: '关系矩阵' },
       ].map(t => `
         <button type="button"
           class="btn-tab ov-sub-tab${_view === t.key ? ' active' : ''}"
           data-wm-view="${t.key}" aria-pressed="${_view === t.key ? 'true' : 'false'}">${t.label}</button>`).join('')}
     </div>`;
   const relationRows = _relationRows(workforce);
-  const body = _view === 'modules'
-    ? _modulesHtml(workforce)
-    : _view === 'relations'
-      ? _relationsCardHtml(relationRows, editable)
-      : `<div id="work-map-matrix"></div>`;
+  // 关系矩阵＝折叠块（批次 540 波次 5）：折叠头走单一语法——卡内 H3（renderCardHeader）＋
+  //   空的 summary（chevron 热区，`aria-labelledby` 关联 H3），不再自写一段 summary 文案
+  //   （`.disclosure__summary` 是绝对定位的 40×40 热区，放文字会被裁掉）。
+  const matrixCard = `<div class="card rounded-xl p-5 disclosure-host" id="work-map-matrix-card">
+      ${renderCardHeader({
+        title: '关系矩阵',
+        titleId: 'wm-matrix-title',
+        meta: `${relationRows.length} 项 · 行＝负责人，列＝工作项`,
+      })}
+      <details class="disclosure" id="work-map-matrix-fold"${_view === 'matrix' ? ' open' : ''}>
+        <summary class="disclosure__summary" aria-labelledby="wm-matrix-title"></summary>
+        <div class="disclosure__body"><div id="work-map-matrix"></div></div>
+      </details>
+    </div>`;
+  const body = _view === 'matrix' ? matrixCard : _relationsCardHtml(relationRows, editable);
 
   // 说明后置（§10.5）：页面标题下不再压一段导语；分工口径放在主体与工具之后，全屏只留这一句。
-  root.innerHTML = `${renderTabHeader({ title: '支部分工', actions: switchBar })}${body}${editable ? _toolFoldHtml() : ''}<p class="text-xs text-gray-500 mt-3">分工由本支部自行调整，改派走支委会议题。</p>`;
-  // 责任关系（单列对象列表）/ 矩阵分别挂到各自宿主（_view → mode 映射在 _renderMatrix 内）
+  // 2026-11-10 批次 540 波次 5：页根改 `.stack-page`（页头 → 卡 24px 由骨架给），删页脚 `mt-3`。
+  root.innerHTML = `<div class="stack-page" data-wm-view-current="${esc(_view)}">
+    ${renderTabHeader({ title: '支部分工', actions: switchBar })}
+    ${body}
+    ${editable ? _toolFoldHtml() : ''}
+    <p class="text-xs text-gray-500">分工由本支部自行调整，改派走支委会议题。</p>
+  </div>`;
+  // 责任关系（单列对象列表）/ 矩阵分别挂到各自宿主
   if (_view === 'relations') _bindRelations();
-  if (_view === 'persons' || _view === 'items') _renderMatrix(workforce);
-  // 视图切换（纯排列切换，不换数据）；空态里的「先看平铺模块」同为 data-wm-view ⇒ 一并绑定
+  if (_view === 'matrix') _renderMatrix(workforce);
+  // 视图切换（纯排列切换，不换数据）；空态里的「先看关系矩阵」同为 data-wm-view ⇒ 一并绑定
   root.querySelectorAll('[data-wm-view]').forEach(btn => {
     btn.addEventListener('click', () => {
       _view = btn.dataset.wmView;

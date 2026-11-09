@@ -2,7 +2,7 @@
 title: "2026年11月决策日志"
 type: decision_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-09
+last_updated: 2026-11-10
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-DECISION_LOG.md, content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md, content/04_web_design/design-system/DS_03_COMPONENTS.md, content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md]
 ---
@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-862`，共 36 条**；下一条自 **`D-863`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-863`，共 37 条**；下一条自 **`D-864`**。
 
 ## 本月目录（2026-11）
 
@@ -56,6 +56,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 测试瘦身二阶段 + 安全 / 体验 / 部署梯度：六维 80/78/74/85/77/74 | `D-860` | 2026-11-08 | 已落（批次 538） |
 | 六维批判性修正：业务 80→79 · 安全 78→77 · 体验 74→72 · 测试 85→83（架构 77 / 部署 74 维持） | `D-861` | 2026-11-09 | 已落（批次 539） |
 | 批次 539 终评：待办计算化 + 分工页美学 + R2/IA + 部署 6/6；六维 80/77/77/83/77/76 | `D-862` | 2026-11-09 | 已落（批次 539） |
+| 批次 540 前端交互契约与议程 / 表格 / 详情重设计；六维 81/77/78/84/78/76 | `D-863` | 2026-11-10 | 已落（批次 540） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -303,5 +304,28 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 
 > **落点**：`.ctx/ENGINEERING_ASSESSMENT.md`（§一 六维与证据行 / 阻断风险注 / §二 2.1–2.6 / §四 L-02·L-12 / §5.2）、`.ctx/ACTIVE_CONTEXT.md`、`.ctx/ACTIVE_RULINGS.md §A`、`.ctx/logs/2026-11-EXECUTION_LOG.md`（批次 539）、`.ctx/logs/EXECUTION_LOG_INDEX.md`、`.ctx/TIMESTAMPS.md`、`CLAUDE.md` 乙部 `B-500-7b-2`、`.ctx/evidence/2026-11-09/*/summary.md`。**未改代码 / 测试 / 版本戳，未 commit。**
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-862`**（共 **36** 条）。
+## D-863 2026-11-10 — 批次 540：前端交互契约与议程 / 表格 / 详情重设计
+
+> **评议 → 裁定 → 落点**（支书 2026-11-10 要求「更新批次 540 判例、评分与台账」；只改文档 / 台账，不改代码、不 commit、不 bump）：
+> - **前端交互契约**：待办 / 今天的一行被点后必须发生什么写成契约——每个动作键声明 `mode`（`inline` / `switch` / `direct`）、`kind`、`label` 与六台 `roleOverrides`；`switch` 未命中本台页签时 **fail-closed**（内容区给「本台无该模块」＋ 同义落点），禁 toast-only、禁静默留页、禁整页 `?tab=`。29 类动作 × 6 台已登记，`todo-jump-contract` 全绿。
+> - **议程分类与待议池**：来源 → 类型（决策 / 讨论 / 同步）→ 待议池由一份纯函数算（`agenda-classify.js`，六类 ＋ 另纳入两类），客户端与服务端**同源 import**，服务端出 `GET /api/v1/committee/agenda-candidates`；`agenda-classify` 断言六类 × 四反例 × 两端逐项一致 × 双支部过滤。
+> - **表格契约**：同列同语义 ≥3 行走 `renderDataTable`；列宽三档、行高 40、`colspan` 插行详情、横滚与首列吸附、列宽拖动、灰字分层；手写 `<table>` 只减不增（`table-contract-guard::T1–T7`）。
+> - **详情与分工**：活动详情收为「对象头 → 信息 → 参与 → 议程 → 收口」四段，管理动作进页尾折叠；支部分工视图 4 → 2（责任关系 / 关系矩阵，「按项目」为转置故删除）。
+> - **图标着色**：图标只经 `icons.js`；色值只许 `currentColor` / `none` / `var(--token)`；状态色经 `--tint` 取 `-text` 档；hex 扫描含 data-URI 的 `%23`（`icon-color-guard::G1–G5`）。`sidebar` / `person-picker` / `custom-select` / `archive-entry` 四处字面色同批收口。
+> - **六维评分**：业务 **80 → 81**（议程链路同源分类，残项 `L-16` 未闭）；安全 **77**（本批不动写口与读面）；体验 **77 → 78**（跳转 / 议程 / 表格 / 详情 / 概况与分工 / SVG 六组落地，**80 不授予**：真人 5 任务签收未完成）；测试 **83 → 84**（daily 29 / 233 / 77.0s、guards 101 / 809，**85 不授予**：CI 未实跑）；架构 **77 → 78**（三份契约 ＋ 两处共享纯函数）；部署 **76**（无新增目标环境证据）。
+> - **未选方案**：① 把「自动走查 ＋ 双档截图」记作真人签收换体验 80（证据强度不足）；② 把本机分层读数记作 CI 已绿换测试 85（配置与本地等价都不计）；③ 为凑分把 `L-16` 表决名单重算顺手写进服务端（越出「只改台账」授权，且须支书先定口径）。三条均不取。
+> - **证据卡**：
+
+| AI 假设 | 人类意图 | 偏差类型 | 泛化规则 |
+|---|---|---|---|
+| 待办点不动时弹一句 toast 也算「有反馈」 | 点在待办行上，用户要的是「到得了」；本台没有该模块时必须给出同义落点 | 反馈当落点 | 交互契约按「点了之后必须发生什么」写；未命中一律 fail-closed ＋ 同义落点，toast 不作兜底 |
+| 同一事项在客户端判一次、服务端再判一次，各写一份类型即可 | 来源与类型只允许一份实现，两端 import 同一函数 | 双源并存 | 跨端派生必须同源 import；新增来源同批改契约、分类表与验收 |
+| 表格各页手写 `<table>` 更自由，样式可以局部调 | 同列同语义 ≥3 行必须走同一组件出口；列宽 / 行高 / 截断只许一套 | 局部自写当灵活 | 组件出口纪律（`H31`）适用于表格；手写存量按棘轮只减不增并带反例守卫 |
+| 详情页把信息全摊开就是「信息全」 | 首屏按事项轴分段，管理动作退到页尾；块数以「一眼看到主路径」为准 | 信息量当信息架构 | 块数判据同样适用于页面（详情页纳入 SD-57 同族）；超限部分折叠到页尾 |
+| 同一份数据多给几种排法，用户总能找到顺手的 | 同一问句的另一种排法不立新视图；转置、平铺、矩阵各留一套只会增加选择成本 | 排列当问句 | 视图数按「问句数」计；同一问句的另一种排法并入已有视图的行内展开 |
+| 图标用色只要「点缀色允许」就够了 | 同句后半要求「不单独承担状态语义，须同时有文字标签」 | 半句引用 | 带例外的规范须整句引完「允许 ＋ 例外 ＋ 兜底」（判例 `CASE-AI-009`） |
+
+> **落点**：`content/04_web_design/design-system/CASES.md`（CASE-DESIGN-036…041）、`content/05_ai_coding/CASES.md`（CASE-AI-009）、`content/03_doc_system/CASES_INDEX.md`（＋6 design / ＋1 ai，域入口计数同步）、`.ctx/REVIEW_QUEUE.md`（四条新检查要点）、`.ctx/ENGINEERING_ASSESSMENT.md`（§一 / §二 2.1–2.6 / §四 L-12 / §5.2）、`.ctx/ACTIVE_CONTEXT.md`、`.ctx/ACTIVE_RULINGS.md §A`、`.ctx/logs/2026-11-EXECUTION_LOG.md`（批次 540）、`.ctx/logs/EXECUTION_LOG_INDEX.md`、`.ctx/TIMESTAMPS.md`。**未改代码 / 测试 / 版本戳，未 commit。**
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-863`**（共 **37** 条）。
 

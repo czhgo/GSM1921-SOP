@@ -12,24 +12,30 @@
 //     应到 = `attendanceRosters` 冻结名单优先，无冻结时回落 `services/activity/vote-config.js::resolveVoterIds('committee')`
 //     并标注「实时」；两种口径不混算。
 //   · 表格 = components/ui/data-table.js（.data-table 单一源）；行内选人 = components/governance/pickers.js::PersonPicker。
-import { mockDB } from '../../../core/domain/domain.js?v=20261109a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261109a';
-import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261109a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261110a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261110a';
+import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261110a';
 import {
   listBranchCommissioners,
   appointBranchCommissioner,
   revokeBranchCommissioner,
-} from '../../../services/branch/appointment.js?v=20261109a';
-import { confirmDanger } from '../../../components/ui/modal.js?v=20261109a';
-import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261109a';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261109a';
-import { deriveMeetingStatus } from '../../../data/mock/derive.js?v=20261109a';
-import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261109a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261109a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261109a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261109a';
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261109a';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261109a';
+} from '../../../services/branch/appointment.js?v=20261110a';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261110a';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261110a';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261110a';
+import { deriveMeetingStatus } from '../../../data/mock/derive.js?v=20261110a';
+import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261110a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261110a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261110a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261110a';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261110a';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261110a';
+// 待议池（2026-11-10 批次 540 波次 2）：类型 / 文案 / 去重键 / 应到范围由服务端算（API 形态），
+// 分类函数与 mock 形态本地归集共用 `core/domain/agenda-classify.js`（同一判据、同一文案）。
+import { getAdapter, getDataSource } from '../../../data/data-adapter.js?v=20261110a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261110a';
+import { buildAgendaPool } from './agenda-form.js?v=20261110a';
+import { AGENDA_TYPES, AGENDA_TYPE_BADGE_VARIANT } from '../../../core/domain/agenda-classify.js?v=20261110a';
 
 /** 本支部 id（登录人归属；缺省 br-b1，与全仓同口径） */
 function branchId() {
@@ -236,6 +242,113 @@ function bindEvents(tc) {
   });
 }
 
+// ════════════════════════════════════════════════════════════════
+//  待议池（2026-11-10 批次 540 波次 2）
+// ════════════════════════════════════════════════════════════════
+// 口径契约 = `content/04_web_design/contracts/AGENDA_DERIVATION_CONTRACT.md`：
+//   · 服务端算去重 / 时效 / 类型 / 应到（`GET /api/v1/committee/agenda-candidates`）；
+//   · 本 tab 只做分组（决策 → 讨论 → 同步）、组内排序（待议天数长 → 短）与类型徽章；
+//   · mock 形态（未连服务端）用同一分类函数本地归集，并如实标注「应到未计算」——不伪造服务端读数。
+
+/** 归集序号：重渲染 / 切 tab 后旧请求的写回一律丢弃（避免旧数据盖新数据） */
+let _poolSeq = 0;
+
+/** 每组先呈现几条（其余在会议页提取；同屏文案密度见 `DS_06`） */
+const AGENDA_POOL_PREVIEW = 5;
+
+function agendaPoolRowHtml(p, showAttendee = true) {
+  const badge = badgeHtml(esc(p.typeLabel || ''), AGENDA_TYPE_BADGE_VARIANT[p.type] || 'neutral',
+    { title: esc(`${p.sourceLabel || ''}${p.expected ? ` · ${p.expected}` : ''}`) });
+  const attendee = p.attendees && typeof p.attendees === 'object' ? p.attendees.count : null;
+  // 来源名 / 说明只进徽章 title（同屏 20 行逐行复述来源即「同一句话说三遍」，`DESIGN_SYSTEM §4.18 C3`）
+  const bits = [
+    showAttendee && attendee !== null && attendee !== undefined ? `应到 ${attendee} 人` : '',
+    p.ageDays !== null && p.ageDays !== undefined ? `待议 ${p.ageDays} 天` : '',
+  ].filter(Boolean).join(' · ');
+  return `<li class="flex items-start gap-2 py-1">
+    <span class="flex-shrink-0">${badge}</span>
+    <span class="flex-1 min-w-0">
+      <span class="block text-body-sm text-gray-700">${esc(p.item)}</span>
+      ${bits ? `<span class="block text-body-sm text-gray-500">${esc(bits)}</span>` : ''}
+    </span>
+  </li>`;
+}
+
+/** 池主体：按类型分组（空组不渲）；整池为空给一行空态，不报错 */
+function agendaPoolHtml(pool, local) {
+  if (!pool.length) {
+    return emptyStateHtml({
+      text: '暂无可上会事项：新事项出现后自动进池。',
+      variant: 'inline',
+    });
+  }
+  const blocks = AGENDA_TYPES
+    .map((t) => ({
+      ...t,
+      list: pool.filter((p) => p.type === t.value).sort((a, b) => {
+        const ageA = Number.isFinite(Number(a.ageDays)) ? Number(a.ageDays) : -1;
+        const ageB = Number.isFinite(Number(b.ageDays)) ? Number(b.ageDays) : -1;
+        return ageB - ageA || String(a.refId).localeCompare(String(b.refId));
+      }),
+    }))
+    .filter((g) => g.list.length)
+    .map((g) => {
+      const shown = g.list.slice(0, AGENDA_POOL_PREVIEW);
+      const rest = g.list.length - shown.length;
+      // 同组应到一致 ⇒ 只在组头说一次（避免每行复述同一句）
+      const counts = new Set(g.list.map((p) => (p.attendees && typeof p.attendees === 'object' ? p.attendees.count : null)));
+      const uniform = counts.size === 1 ? [...counts][0] : null;
+      return `<div class="mt-2 first:mt-0">
+      <p class="text-body-sm text-gray-500">${esc(g.label)} · ${g.list.length}${uniform !== null ? `（应到 ${uniform} 人）` : ''}<span class="ml-1.5">${esc(g.hint)}</span></p>
+      <ul class="mt-1 space-y-0.5">${shown.map((p) => agendaPoolRowHtml(p, uniform === null)).join('')}</ul>
+      ${rest > 0 ? `<p class="text-body-sm text-gray-500 mt-1">另有 ${rest} 条，<a href="./party-committee-meeting.html" class="text-accent font-medium">去会议页提取</a>。</p>` : ''}
+    </div>`;
+    }).join('');
+  return `${blocks}${local
+    ? '<p class="text-body-sm text-gray-500 mt-2">本地预览（未连服务端）：类型与文案同一判据，应到名单未计算。</p>'
+    : ''}`;
+}
+
+/** mock 形态本地归集：各来源取既有出口，归集与分类走同一纯函数（不新造判据） */
+async function localAgendaPool() {
+  const [{ TaskForceRecordStore }, { IssueStore }, { loadStageEntryDates }, { listDocs, isAgendaDraftDoc }, { listBrandProposals }] = await Promise.all([
+    import('../../../services/activity/taskforce.js?v=20261110a'),
+    import('../../../services/governance/issues.js?v=20261110a'),
+    import('../../../services/member/member-confirmation.js?v=20261110a'),
+    import('../../../services/branch/branch-doc.js?v=20261110a'),
+    import('../../../services/activity/activity.js?v=20261110a'),
+  ]);
+  const src = { activities: mockDB.activities || [] };
+  try { src.taskforceProposals = TaskForceRecordStore.listCommitteeRequests(); } catch (e) { /* 少一类不阻断 */ }
+  try {
+    await IssueStore.loadAll();
+    src.issues = IssueStore.getAll().filter((i) => i.status === 'open' && !i.hidden && !i.mergedInto);
+  } catch (e) { /* 少一类不阻断 */ }
+  try { src.draftDocs = (await listDocs()).filter(isAgendaDraftDoc); } catch (e) { /* 少一类不阻断 */ }
+  try { src.members = PersonStore.getMembers(); } catch (e) { /* 少一类不阻断 */ }
+  try { src.stageEntries = loadStageEntryDates(); } catch (e) { /* 少一类不阻断 */ }
+  try { src.brandProposals = listBrandProposals(); } catch (e) { /* 少一类不阻断 */ }
+  return buildAgendaPool(src);
+}
+
+/** 填充待议池（API 形态读服务端汇总口；失败如实显示重试，不回退造数） */
+async function hydrateAgendaPool() {
+  const host = document.getElementById('cm-agenda-pool');
+  if (!host) return;
+  const seq = ++_poolSeq;
+  try {
+    const items = getDataSource() === 'api'
+      ? await getAdapter().agendaCandidates.list()
+      : await localAgendaPool();
+    if (seq !== _poolSeq) return;
+    host.innerHTML = agendaPoolHtml(Array.isArray(items) ? items : [], getDataSource() !== 'api');
+  } catch (e) {
+    console.warn('[committee-meeting-tab] 待议池加载失败：', e);
+    if (seq !== _poolSeq) return;
+    host.innerHTML = emptyStateHtml({ text: '待议池加载失败，请重试。', variant: 'inline' });
+  }
+}
+
 export function renderContent() {
   const tc = document.getElementById('secretary-tab-content');
   if (!tc) throw new Error('[committee-meeting-tab] 缺少内容容器 #secretary-tab-content');
@@ -251,6 +364,11 @@ export function renderContent() {
       <div class="card card--static rounded-xl card-standard stack-card">
         <h3 class="font-title-cn text-sm font-bold text-gray-700">支委构成</h3>
         <div id="cm-roster-table" class="overflow-x-auto"></div>
+      </div>
+      <div class="card card--static rounded-xl card-standard stack-card">
+        <h3 class="font-title-cn text-sm font-bold text-gray-700">待议池</h3>
+        <p class="text-body-sm text-gray-500 mt-1">该上支委会的事，按来源判定类型（决策 / 讨论 / 同步）。<a href="./party-committee-meeting.html" class="text-accent font-medium" title="到支委会会议页提取议程">去提取议程</a></p>
+        <div id="cm-agenda-pool" class="mt-2"><p class="text-body-sm text-gray-500">正在归集…</p></div>
       </div>
       <div class="card card--static rounded-xl card-standard stack-card">
         <h3 class="font-title-cn text-sm font-bold text-gray-700">支委会会议</h3>
@@ -293,4 +411,7 @@ export function renderContent() {
     responsive: true,
     emptyMessage: '暂无支委会会议',
   });
+
+  // 待议池异步填充（API 形态读服务端汇总口；不阻塞表格渲染）
+  hydrateAgendaPool();
 }

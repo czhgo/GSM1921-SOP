@@ -12,9 +12,9 @@ import {
   ORG_SUBJECT_IDS, ORG_SUBJECT_LABELS, BRANCH_ORG_SUBJECT_IDS, isOrgSubject, isBranchOrgSubject,
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_IDS, INSTITUTION_COLLECTIVE_SUBJECTS, institutionSubjectOfDomain,
   transferRowOf, transferTabDecision, TRANSFERABLE_TAB_ROWS,
-} from '../../docs/src/core/domain/work-map.js?v=20261109a';
-import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261109a';
-import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261109a';
+} from '../../docs/src/core/domain/work-map.js?v=20261110a';
+import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261110a';
+import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261110a';
 
 let server, base, token;
 
@@ -179,7 +179,7 @@ test('UI 责任关系单列列表：master 行承载工作项 / 负责人 / 角�
   assert.doesNotMatch(WORK_MAP_UI, /wm-split|wm-detail/, '左右两栏与右侧详情列已撤');
   assert.match(WORK_MAP_UI, /_roleBadgeHtml/, '每行须有角色徽章（主责 / 停用 / 上级主导）');
   assert.ok(WORK_MAP_UI.includes('负责人：'), '每行须给出负责人');
-  assert.match(WORK_MAP_UI, /description: row\.note/, '每行须有一行责任说明');
+  assert.match(WORK_MAP_UI, /description: selected \? '' : row\.note/, '每行须有一行责任说明（选中行改由展开块给全文）');
   assert.match(WORK_MAP_UI, /title: row\.note/, '说明须带 title 全文（行内截断）');
   assert.match(WORK_MAP_UI, /ArrowDown[\s\S]{0,200}ArrowUp/, '行间须支持 ↑ / ↓ 键盘移动');
   assert.match(WORK_MAP_UI, /wm-reenable/, '停用项须保留「发起启用议题」入口');
@@ -189,6 +189,49 @@ test('UI 责任关系单列列表：master 行承载工作项 / 负责人 / 角�
   assert.ok(!/pageSize\s*:\s*10/.test(WORK_MAP_UI), '不得保留 10 条分页');
   assert.match(WORK_MAP_UI, /暂无分工数据/, '须有明确空态');
   assert.doesNotMatch(WORK_MAP_UI, /title: '责任关系'/, '卡头不得逐字复述视图名「责任关系」（只留视图页签一处）');
+});
+
+// 2026-11-10 批次 540 波次 5：视图 4 → 2、协作 / 产出并入行、选中展开、页根骨架与徽章档位。
+test('UI 视图收 2：责任关系 / 关系矩阵；协作与产出入行 meta，选中行展开说明', () => {
+  // 视图按钮：2 枚，且不再保留「平铺模块 / 按项目」
+  assert.match(WORK_MAP_UI, /\{ key: 'relations', label: '责任关系' \},/, '须保留「责任关系」视图');
+  assert.match(WORK_MAP_UI, /\{ key: 'matrix', label: '关系矩阵' \},/, '「按人」须收为「关系矩阵」视图');
+  assert.doesNotMatch(WORK_MAP_UI, /key: 'modules'|label: '平铺模块'/, '「平铺模块」视图已并入行展开，不得回潮');
+  assert.doesNotMatch(WORK_MAP_UI, /key: 'items'|label: '按项目'/, '「按项目」是矩阵转置，已删除');
+  assert.doesNotMatch(WORK_MAP_UI, /_modulesHtml/, '平铺模块渲染函数已退场');
+  // 矩阵降为折叠块（details），不再是首屏并列主体
+  assert.match(WORK_MAP_UI, /<details class="disclosure" id="work-map-matrix-fold"/, '关系矩阵须为折叠块');
+  assert.match(WORK_MAP_UI, /mode: 'byPerson'/, '矩阵只剩按人一种排法');
+  assert.doesNotMatch(WORK_MAP_UI, /byItem/, '不得再输出转置矩阵');
+  // 行 meta：负责人 · 协作 · 产出（协作方单一源＝collaborators，可缺省）
+  assert.match(WORK_MAP_UI, /\(m\.collaborators \|\| \[\]\)/, '协作方须读模块目录的 collaborators');
+  assert.match(WORK_MAP_UI, /`协作：\$\{collaborators\.join\('、'\)\}`/, 'meta 须拼「协作：X」');
+  assert.match(WORK_MAP_UI, /`产出：\$\{outputs\.join\('、'\)\}`/, 'meta 须拼「产出：…」');
+  // 选中行展开：紧随选中行输出说明块（desc / 子项 / 产出），行数不变
+  assert.match(WORK_MAP_UI, /function _relationDetailHtml\(row\)/, '须有选中行展开块');
+  assert.match(WORK_MAP_UI, /if \(r\.id === selectedId\) rowHtml\.push\(_relationDetailHtml\(r\)\)/, '选中行须紧随展开');
+  assert.match(WORK_MAP_UI, /data-wm-expanded=/, '展开块须带可核标记');
+  // 页根骨架与间距：.stack-page（页头 → 卡 24px），删手写 mt-3
+  assert.match(WORK_MAP_UI, /<div class="stack-page" data-wm-view-current=/, '页根须改 .stack-page');
+  assert.doesNotMatch(WORK_MAP_UI, /p-4 mt-3/, '工具卡不得再手写 mt-3（间距由 .stack-page 给）');
+  assert.doesNotMatch(WORK_MAP_UI, /text-gray-500 mt-3/, '页脚不得再手写 mt-3');
+  // 徽章档位：主责中性，停用才 warning
+  assert.match(WORK_MAP_UI, /const tone = role === '停用' \? 'badge--warning' : 'badge--neutral';/,
+    '主责须中性档，停用才 warning');
+  assert.doesNotMatch(WORK_MAP_UI, /badge--accent/, '主责徽章不得再用主题色');
+});
+
+test('模块目录：collaborators 可缺省，填了的主体引用必须可解析（角色键 ∪ 组织型主体）', () => {
+  const subjects = new Set([...ROLE_KEYS, ...ORG_SUBJECT_IDS]);
+  const withCollab = WORK_MAP_MODULES.filter((m) => m.collaborators !== undefined);
+  assert.ok(withCollab.length >= 1, '至少一项模块须登记协作方（否则 meta 的「协作：」恒不出现）');
+  for (const m of withCollab) {
+    assert.ok(Array.isArray(m.collaborators), `模块「${m.id}」的 collaborators 须为数组`);
+    for (const id of m.collaborators) {
+      assert.ok(subjects.has(id), `模块「${m.id}」的协作方「${id}」既不在角色枚举、也不是组织型主体`);
+      assert.notEqual(id, m.defaultOwner, `模块「${m.id}」的协作方不得与主责同一主体`);
+    }
+  }
 });
 
 test('HTTP：支书 PATCH config.workforce 落库（净化生效），null 恢复默认', async () => {

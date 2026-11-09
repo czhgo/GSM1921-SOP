@@ -12,25 +12,27 @@
 //   · 读侧数据不动写（除页面跳转与考察录入外无其它保存/报送控件）。
 // 保留「人才库=只读画像、名册=档案维护」页内注释与引导文案。
 
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261109a';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261110a';
 // ⚠ 2026-10-01 批次 321（支书 V-10 取「乙：整页并入人才库」）：原「发展数据」tab 的**活动参与汇总**卡
 //   并入本页——「参与工作情况」正是**考察**的主体，支书原话「**考察就是维护人才库的过程！！**」。
-import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261109a';
+import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261110a';
 // R2-15（2026-10-20）：预备期月数改由制度参数派生（原 12/9 写死在本页）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261109a';
-import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261109a';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261109a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261110a';
+import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261110a';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261110a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
-import { getResidenceOf } from '../../../services/member/roster.js?v=20261109a';
+import { getResidenceOf } from '../../../services/member/roster.js?v=20261110a';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../../core/domain/constants.js?v=20261109a';
+import { RESIDENCE } from '../../../core/domain/constants.js?v=20261110a';
 // B5（2026-09-12）：搜索 + 阶段/党小组筛选已统一接入 components/ui/list-filter.js（分面枚举由引擎 auto 派生）
-import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261109a';
-import { escHtml as esc, getBasePath, smoothScroll } from '../../../core/base/utils.js?v=20261109a';
+import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261110a';
+import { escHtml as esc, getBasePath, smoothScroll, flashHighlight } from '../../../core/base/utils.js?v=20261110a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：成员卡列表接入关键词 + 分面（替代原手写三控件显隐过滤）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261109a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261109a';
-import { bindDisclosures } from '../../../components/ui/disclosure.js?v=20261109a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261110a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261110a';
+import { bindDisclosures } from '../../../components/ui/disclosure.js?v=20261110a';
+// 批次 540 波次 1：待办「考察 / 半年核对」跳转的定位目标（talent→inspection）
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261110a';
 
 // 发展阶段顺序（发展流程正向：入党申请人 → 积极分子 → 发展对象 → 预备党员 → 正式党员）
 const STAGE_ORDER = ['积极分子', '发展对象', '预备党员', '正式党员'];
@@ -327,6 +329,46 @@ export function renderContent(ctx) {
       body?.querySelector('#org-insp-tf-select')?.focus();
     });
   });
+  // 批次 540：待办跳转（考察 / 半年核对）落到本页——展开考察块并定位成员（缺 id 给显式提示）
+  _consumePendingTarget(container, ctx);
+}
+
+/** 页内定位提示（与待办壳同语法：`data-nav-target-missing`，一次只留一条） */
+function _pendingHint(container, text) {
+  if (!container) return;
+  container.querySelectorAll('[data-nav-target-missing]').forEach((el) => el.remove());
+  const hint = document.createElement('div');
+  hint.dataset.navTargetMissing = '1';
+  hint.setAttribute('role', 'status');
+  hint.className = 'card rounded-xl p-3 mb-4 text-xs text-amber-800 bg-amber-50 border border-amber-200';
+  hint.textContent = text;
+  container.prepend(hint);
+}
+
+/** 消费待办跳转目标（kind=inspection；talent→inspection 契约落点） */
+function _consumePendingTarget(container, ctx) {
+  const pending = PendingTarget.peek();
+  if (!pending || pending.tab !== 'talent') return;
+  const target = PendingTarget.consume();
+  const host = container.querySelector('#talent-insp-host');
+  const details = container.querySelector('#talent-insp');
+  if (!host || !details) {
+    _pendingHint(container, '未定位到具体条目（本页考察块未挂载）');
+    return;
+  }
+  details.open = true;
+  _mountInspection(container.querySelector('#talent-insp-body'), ctx).then(() => {
+    const row = target.id ? container.querySelector(`[data-roster-jump="${target.id}"]`) : null;
+    if (row) {
+      smoothScroll(row, { block: 'center' });
+      flashHighlight(row);
+      return;
+    }
+    smoothScroll(host, { block: 'start' });
+    _pendingHint(container, target.id
+      ? '未定位到具体条目（该成员可能已移出列表）；已展开「专班考察记录」。'
+      : '未定位到具体条目（本次跳转未带对象编号）；已展开「专班考察记录」。');
+  });
 }
 
 // 考察块的挂载 promise（同一体例只 import 一次；卡头 CTA 与折叠摘要共用）
@@ -336,7 +378,7 @@ function _mountInspection(body, ctx) {
   if (!body) return Promise.resolve();
   if (body.dataset.inspectionMounted === '1') return _inspMountPromise || Promise.resolve();
   body.dataset.inspectionMounted = '1';
-  _inspMountPromise = import('./inspection-tab.js?v=20261109a').then((m) => {
+  _inspMountPromise = import('./inspection-tab.js?v=20261110a').then((m) => {
     if (!body.isConnected) return;
     m.renderContent(ctx, body);
     _normalizeInspectionCopy(body);

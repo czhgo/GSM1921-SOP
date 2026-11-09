@@ -5,25 +5,27 @@
 // P-011 知情边界：看 ≠ 做——组长只知情与温和「了解进展」，答复由支书完成，不跳转他人工作台。
 // 本视图禁用 SVG 图标，类别用色点+文字区分。
 
-import { currentUserId } from '../../../services/core/auth.js?v=20261109a';
-import { lowFrequencyFoldsHtml } from './members-low-frequency.js?v=20261109a';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261109a';
-import { renderReportInboxHtml, bindReportInbox, filterReportsByScope } from '../../../components/record/reporting.js?v=20261109a';
+import { currentUserId } from '../../../services/core/auth.js?v=20261110a';
+import { lowFrequencyFoldsHtml } from './members-low-frequency.js?v=20261110a';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261110a';
+import { renderReportInboxHtml, bindReportInbox, filterReportsByScope } from '../../../components/record/reporting.js?v=20261110a';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定「改为服务端汇总」）：四项聚合口径下沉单一源
 // `services/member/member-progress.js`——api 态由**服务端**汇总接口计算、mock 态调**同一个**纯函数。
 // 故原先此处的四源直读与内联判定（TodoStore / TodoStatus / isTodoExpired / AttendanceStatus /
 // loadAttendanceRecords / loadActiveInspectionRecords）**全部移除**：判定逻辑不再在本文件出现。
-import { loadMemberProgress, blockersOf, REPORT_KIND } from '../../../services/member/member-progress.js?v=20261109a';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261109a';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261109a';
-import { showToast, getBasePath, escHtml as esc, todayLocal, smoothScroll } from '../../../core/base/utils.js?v=20261109a';
+import { loadMemberProgress, blockersOf, REPORT_KIND } from '../../../services/member/member-progress.js?v=20261110a';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261110a';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261110a';
+import { showToast, getBasePath, escHtml as esc, todayLocal, smoothScroll, flashHighlight } from '../../../core/base/utils.js?v=20261110a';
+// 批次 540 波次 1：待办跳转的成员 / 考察定位目标（leader members）
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261110a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261109a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261109a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261110a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261110a';
 // D8 裁决批二（2026-09-08）：本组活动复盘状态只读区块并入「组员进展」页（原独立「复盘状态」tab 已删）
-import { reviewStatusSectionHtml, reviewStatusCounts, bindReviewStatusSection } from './review-tab.js?v=20261109a';
+import { reviewStatusSectionHtml, reviewStatusCounts, bindReviewStatusSection } from './review-tab.js?v=20261110a';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261109a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261110a';
 
 // 模块级 ctx 缓存：重渲染（了解进展/行内答复后刷新）复用首次渲染的 accent
 let _ctx = null;
@@ -33,7 +35,7 @@ let _reviewFoldOpen = false;
 let _groupsFoldOpen = false;
 let _inspOpen = false;
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261109a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261110a';
 export async function renderContent(ctx) {
   _ctx = ctx || _ctx;
   const container = document.getElementById('leader-tab-content');
@@ -279,6 +281,42 @@ export async function renderContent(ctx) {
 
   // 材料页深链（2026-10-20）：复盘状态区渲染后把本场活动卡片滚到视野（其余行无活动锚点则静默）。
   focusActivityAnchor(container, ctx?.focusActivityId);
+  // 批次 540：待办跳转目标（member / inspection）——定位成员或展开「上传考察」
+  _consumePendingTarget(container);
+}
+
+/**
+ * 批次 540：消费待办跳转目标（leader members）。
+ *  · section=inspection → 展开「上传考察」区；
+ *  · 有 id → 定位该成员并高亮；缺 id / 未命中 → 页内显式提示（不静默）。
+ */
+function _consumePendingTarget(container) {
+  const pending = PendingTarget.peek();
+  if (!pending || pending.tab !== 'members') return;
+  const target = PendingTarget.consume();
+  if (target.section === 'inspection') {
+    const toggle = container.querySelector('#leader-insp-toggle');
+    if (toggle && toggle.getAttribute('aria-expanded') !== 'true') toggle.click();
+    if (!target.id) return;
+  }
+  const row = target.id
+    ? (container.querySelector(`[data-person-id="${target.id}"]`)
+      || container.querySelector(`tr[data-person-id="${target.id}"]`))
+    : null;
+  if (row) {
+    smoothScroll(row, { block: 'center' });
+    flashHighlight(row);
+    return;
+  }
+  container.querySelectorAll('[data-nav-target-missing]').forEach((el) => el.remove());
+  const hint = document.createElement('div');
+  hint.dataset.navTargetMissing = '1';
+  hint.setAttribute('role', 'status');
+  hint.className = 'card rounded-xl p-3 mb-4 text-xs text-amber-800 bg-amber-50 border border-amber-200';
+  hint.textContent = target.id
+    ? '未定位到具体条目（该组员可能已移出本组）。'
+    : '未定位到具体条目（本次跳转未带对象编号），已落到组员进展顶部。';
+  container.prepend(hint);
 }
 
 /** 2026-11-01 Task 7：折叠区保态 + 懒挂载。
@@ -296,7 +334,7 @@ function _bindFoldState(container, ctx) {
   const mountGroups = () => {
     if (!groupsHost || groupsHost.dataset.groupsMounted === '1' || !groupsHost.isConnected) return;
     groupsHost.dataset.groupsMounted = '1';
-    import('../../../components/record/other-groups-view.js?v=20261109a')
+    import('../../../components/record/other-groups-view.js?v=20261110a')
       .then((m) => { if (groupsHost.isConnected) m.renderOtherGroupsView(groupsHost); });
   };
   if (groupsFold) {
@@ -320,7 +358,7 @@ function _bindFoldState(container, ctx) {
   const mountInsp = () => {
     if (inspHost.dataset.inspMounted === '1' || !inspHost.isConnected) return;
     inspHost.dataset.inspMounted = '1';
-    import('./inspection-tab.js?v=20261109a').then((m) => {
+    import('./inspection-tab.js?v=20261110a').then((m) => {
       if (inspHost.isConnected) m.renderContent(ctx, inspHost);
     });
   };

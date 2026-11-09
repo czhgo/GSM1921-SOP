@@ -21,12 +21,12 @@
 //  `services/governance/todo.js` 只做再导出，服务端不再复刻。
 // ════════════════════════════════════════════════════════════════
 
-import { isActivityEnded, RESIDENCE } from './constants.js?v=20261109a';
-import { POLICY_DEFAULTS } from './policy-defaults.js?v=20261109a';
-import { todayLocal, _fmtDate } from '../base/date.js?v=20261109a';
+import { isActivityEnded, RESIDENCE } from './constants.js?v=20261110a';
+import { POLICY_DEFAULTS } from './policy-defaults.js?v=20261110a';
+import { todayLocal, _fmtDate } from '../base/date.js?v=20261110a';
 // 模块周期单一源（零依赖叶子件；浏览器与 node 双端可载）
-import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from './work-map.js?v=20261109a';
-import { cyclePeriodLabel, cyclePeriodOf } from '../base/period.js?v=20261109a';
+import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from './work-map.js?v=20261110a';
+import { cyclePeriodLabel, cyclePeriodOf } from '../base/period.js?v=20261110a';
 
 /** 7 键实时组 → 业务域（单一源；`services/governance/todo.js` 展开引用） */
 export const DERIVE_GROUP_DOMAIN = {

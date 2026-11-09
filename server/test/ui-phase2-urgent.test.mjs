@@ -170,7 +170,8 @@ test('U8 页标题层级：四页重点各一个 H2，卡头 H3，首页抬头�
 test('U9 零值口径：真实的 0 显示为 0；不得出现 0/0', () => {
   const src = read(OVERVIEW);
   assert.doesNotMatch(src, /row\.active \|\| '—'/, '在办 0 不得再用「—」代替');
-  assert.match(src, /\$\{row\.active\}<\/td>/, '在办应直接输出数值（含 0）');
+  // 2026-11-10 批次 540 波次 5：在办计数外套一层纯计数色（`--neutral-600`），数值仍直接输出（含 0）。
+  assert.match(src, /\$\{row\.active\}<\/span><\/td>/, '在办应直接输出数值（含 0）');
   // 2026-10-26 Task 3.3：零值是数据，不是装饰 ⇒ 由 `.wo-zero`（neutral-600）承担弱化，
   //   不再用 neutral-400（最浅中性色只留装饰）。判据从「字面 text-gray-400」改为「专用弱化类」。
   assert.match(src, /class="wo-zero">0</, '逾期 0 应显示弱化数字 0（.wo-zero）');

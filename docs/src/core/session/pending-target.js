@@ -16,11 +16,19 @@ let _pending = null;
 export const PendingTarget = {
   /**
    * 写入定位目标（切 tab 前调用；覆盖旧目标）
-   * @param {{ tab:string, kind:string, id?:string }|null} target
-   *   tab  — 目标 tab id（如 'todo'）；kind — 目标类型（如 'report'）；id — 目标项 id（可省略=落页顶）
+   * @param {{ tab:string, kind:string, id?:string, section?:string }|null} target
+   *   tab  — 目标 tab id（如 'todo'）；kind — 目标类型（如 'report'）；id — 目标项 id（可省略=落页顶）；
+   *   section — 目标页内的分区 id（如 growth 的 inspection / attendance 的 makeup；可省略）
    */
   set(target) {
-    _pending = target && target.tab ? { tab: target.tab, kind: target.kind || '', id: target.id || null } : null;
+    _pending = target && target.tab
+      ? {
+        tab: target.tab,
+        kind: target.kind || '',
+        id: target.id || null,
+        ...(target.section ? { section: target.section } : {}),
+      }
+      : null;
   },
 
   /** 读取但不消费（排查用；一般用 consume） */

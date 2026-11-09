@@ -97,7 +97,8 @@ test('U5 新增界面不引入裸 text-[13px]，新增块无硬编码 hex', () =
   const banner = between(entry, '${committeeActivity ? `', '${_nextStepRowHtml(');
   assert.ok(banner.length > 200, '抽取口径失效：详情横幅块为空（守卫会恒真）');
   assert.ok(!HEX_RE.test(banner), '详情横幅块不得写硬编码 hex');
-  const emphasisCard = between(entry, '${committeeCopy && canManageThisCopy', '<!-- 报名名单 -->');
+  // 批次 540 波次 4：强调通知卡收进页尾「管理动作」折叠，抽取口径改为「常量起点 → 按钮 id」。
+  const emphasisCard = between(entry, 'const emphasisCardHtml = committeeCopy && canManageThisCopy', 'id="committee-emphasis-btn"');
   assert.ok(emphasisCard.length > 100, '抽取口径失效：强调通知块为空');
   assert.ok(!HEX_RE.test(emphasisCard), '强调通知块不得写硬编码 hex');
 

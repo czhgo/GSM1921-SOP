@@ -2,7 +2,7 @@
 title: "设计系统 · 第一编 色彩与主题"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-08"
+last_updated: "2026-11-10"
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RESPONSIVE.md, ../../../docs/src/styles.css, CASES.md]
 ---
@@ -617,6 +617,7 @@ T2（soft/ink/strong/sat 全量读数）、G2（gold 逐值冻结）保持绿；
 
 **① 状态 4 色**（`--status-*`，见 §2.5）：success / warning / error / info。light / dark 各一套，
 暗色在 `html.theme-dark` 段重定义；`--functional-*` 仅为别名。
+**图标里的状态色**只经 `--tint` 传入，且取 `-text` 文字档（填充档作图标笔触或数值由守卫判红）；图标不单独承担状态语义，须同时有文字标签——口径见 [DS_03 §4.11.2](DS_03_COMPONENTS.md)（守卫 `icon-color-guard::G3`）。
 
 **② 类别 3 色**（固定语义，不随主题切换）
 

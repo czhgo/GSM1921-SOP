@@ -3,7 +3,7 @@ title: "现行有效裁定索引"
 type: rulings_index
 role: "[工程师]+[AI]"
 layer: reference
-last_updated: "2026-11-09"
+last_updated: "2026-11-10"
 status: active
 ---
 
@@ -21,7 +21,7 @@ status: active
 - **多支部同实例只到设计稿**：Phase 1–2（读口统一过滤 / 快照按支部）完成前不得打开 `ALLOW_MULTI_BRANCH`；上线坚持一实例一支部。（`D-849`）
 - **规则 / 判例 / 方法先进 content，再进 .ctx 索引**；`.ctx` 不再承担规则正文；`.ctx/ACTIVE_CONTEXT.md` 是唯一热投影（≤300 行 / ≤30KB）。（本批 `D-852`）
 - **阻断风险 1–5**：多支部读隔离、通用写口残留、表决名单重算、共享口令、SQLite 宽表；逐条证据见 `.ctx/ENGINEERING_ASSESSMENT.md §一`。（`D-851` 复核）
-- **六维评分口径**：只按证据加减分，不因「做了工具」自动加分；当前 80 / 77 / 77 / 83 / 77 / 76；加分只认实跑读数（配置、自动走查、文件数、本地等价不计满分）。（`D-862`）
+- **六维评分口径**：只按证据加减分，不因「做了工具」自动加分；当前 81 / 77 / 78 / 84 / 78 / 76；加分只认实跑读数（配置、自动走查、文件数、本地等价不计满分）。（`D-863`）
 - **审计五维口径**：F2 控件行数 ≤2、F4 H2 恰 1、F7 `hasPager()`、C1 矩阵判定、M1–M3 信息经济；唯一表见 `content/05_ai_coding/AUDIT_CANON.md`。（`D-842` / `D-843`）
 - **骨架 / 数据契约**：47 表单一源 `server/data/domain-contract.mjs`；`required` 只放两形态都成立的字段；换轨前必须跑 `preflight-cutover --strict`。（`D-844` / `D-845`）
 - **「拟上会」清单共六类**（专班报送 / 意见反馈 / 制度草案 / 发展对象推荐 / 支委会表决事项 / 品牌提案）；写议程时从一张清单勾选，不按来源各做导入。（`D-411` · `D-555` · `D-559`）→ `content/02_institution/sop/常见工作场景快速指南.md`
@@ -48,6 +48,7 @@ status: active
 | 十五、工作跟着岗位走 | `SYSTEM_ROLE_PERMISSION §9c` | `D-687` | 项目角色不落 `users.role` |
 | 十六、界面规范 | `content/04_web_design/design-system/DS_03_COMPONENTS.md` | `D-698` · `D-710` · `D-713` | 按钮四类两档、活动风采置顶 |
 | 十七、党委内容与公开门厅 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md §9a.1` ＋ `content/04_web_design/module/PUBLIC_ENTRANCE.md` | `D-858` | 党委内容域、`publishScope` 三档、`publication_audits` |
+| 十八、前端交互契约（跳转 / 议程 / 表格 / 图标） | `content/04_web_design/contracts/INTERACTION_AND_NAVIGATION_CONTRACT.md` · `AGENDA_DERIVATION_CONTRACT.md` · `TABLE_COMPONENT_CONTRACT.md` ＋ `design-system/DS_03 §4.11.2` | `D-863` | fail-closed 落点、来源→类型同源、表格单一出口、图标色值禁 hex |
 
 ## §C 系统配置类（属本代码库，不进 content）
 

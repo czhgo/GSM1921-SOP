@@ -2,13 +2,50 @@
 title: "2026年11月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-09
+last_updated: 2026-11-10
 status: active
 ---
 
 # 2026年11月执行日志
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
+
+## 批次 540（2026-11-10）· 前端交互契约与议程 / 表格 / 详情重设计
+
+### 为什么
+- 待办与今天页的一行点了之后没有稳定落点：本台没有目标模块时只弹一句 toast，用户停在原地；各台落点分支各写一份 `tabMap`。
+- 「哪些事该上会、按哪一档上会」在支书台写议程与党委会议页读摘要之间没有共同口径，服务端也没有汇总口。
+- `secretary.group-progress` 的活动台账手写 `<table>`，390 档横向溢出；列宽 / 行高 / 截断各页各写一套。
+- 活动详情首屏把 14 个并列块一次摊开，管理动作与参与动作同权；支部分工页 4 套视图里「按项目」是「按人」的转置。
+- 图标着色散成四路（`icons.js` 字面 hex、`sidebar` 行内 SVG、`person-picker` 的 CSS data-URI `%239CA3AF`、`custom-select` / `archive-entry` 内联 `<svg>`），hex 扫描漏掉 `%23` 形态。
+
+### 拿不准 / 取舍
+- **跳转**：取 fail-closed（未命中给可见提示 ＋ 同义落点），不接受「toast 也算反馈」；`inline` 与 `direct` 两类不套同义落点兜底。
+- **议程**：分类函数只给「建议议程步骤」，`agendaStep` 仍由支书在写入面板决定，避免自动落库把制度判断固化进代码。
+- **表格**：只登记三档列宽与「全表一列截断」，不把 `relation-matrix` 并进来（两维交叉仍走矩阵）。
+- **详情**：块数判据按「一眼看到主路径」；详情页不在 46 个注册页签内，故以双档真机读数复核，不另造自动守卫。
+- **图标**：`styles.css` 的既有 data-URI 由同批样式波次迁移，`icon-color-guard::G4` 不为此开口子。
+- 本批只改代码与台账，评分与判例同批落 `D-863`；不 bump 版本戳、不 commit。
+
+### 边界
+- 待办 29 类动作 × 6 台落点以契约与 `TODO_ACTIONS.roleOverrides` 为单一源，调用方不得另写落点分支。
+- 议程去重 / 时效 / 应到属服务端；客户端只做分组 / 排序 / 徽章。
+- 表格载体四问的「字段异构 ≤12 项」与「两行以内不起表」不动，避免把列表硬塞成表。
+- 分工视图收敛只针对「同一问句的另一种排法」；不同问句仍可各留一种视图。
+- About 冻结件与 `.lf-bar` 两行上限未动。
+
+### 读数
+- `npm run test:daily`：**29 文件 / 233 断言 / 77.0s** 全绿（较批次 539：文件 27 → 29，断言 210 → 233）。
+- `npm run test:guards`：**101 文件 / 809 tests / 133.7s** 全绿（较批次 539：99 文件）。
+- `node scripts/audit-tabs.mjs --all`：**46 页签 · P0 0 / P1 0 / P2 2 / exception 44**；`secretary.overview` / `calendar` / `committee-meeting` / `group-progress` / `work-map` 五页 P0 / P1 / P2 均 0；P2 两条仍是 `org.thought-review` 与 `visitor.attendance` 的 F6 空态（已人工确认）。证据 `.ctx/evidence/2026-11-10/tab-audit/summary.md`。
+- 真机取证：活动详情 1440 / 390 双档前后截图与 readings（`.ctx/evidence/2026-11-10/activity-detail/`）；概况与分工（`.ctx/evidence/2026-11-10/overview-workmap/`）；表格 1440 / 768 / 390 与拖动后（`.ctx/evidence/2026-11-10/table-540/`）。
+
+### 未完成
+- 体验 80：真人 5 任务签收未完成；`B11`（`org.talent` 录入考察沉底）仍为 B 类。
+- 测试 85：GitHub Actions `daily` / `deploy-verify` 两 job 仍未实跑。
+- 部署 77 / 80：`install.sh` / `install.ps1` / `update.sh` 未在 Linux 真机验证（`L-02`）。
+- `L-16` 表决名单服务端重算、多支部读过滤接线（`ALLOW_MULTI_BRANCH` 仍关闭）。
+- 三份新契约的 SD 编号待设计系统登记；版本戳未 bump（由主代理执行）；未 commit。
 
 ## 批次 539（2026-11-09）· 待办计算化、分工页美学与体验 / 部署提分
 

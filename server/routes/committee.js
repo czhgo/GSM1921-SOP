@@ -223,5 +223,102 @@ export function createCommitteeRouter(db) {
     res.json(merged);
   });
 
+  // ════════════════════════════════════════════════════════════════
+  //  支委会「待议池」候选（2026-11-10 批次 540 波次 2）
+  // ════════════════════════════════════════════════════════════════
+  // 口径契约：`content/04_web_design/contracts/AGENDA_DERIVATION_CONTRACT.md`。
+  // 分类 / 议程文案 / 去重键 / 应到范围一律来自 `docs/src/core/domain/agenda-classify.js`
+  //   （与前端 `agenda-form.js::buildAgendaPool` 同一函数 ⇒ 同一事项两端不得出现两种类型或两种文案）。
+  // 本端点只做三件服务端才准算的事：① 按支部 / 角色过滤；② 去重（同一来源同一记录只出现一次）；
+  //   ③ 应到名单与「待议天数」（跨人 / 跨设备必须一致的事实，见 `H32`）。
+  // 读权限＝支委层（待议池是支委会的工作面，非支委不呈现）。
+  // 本 router 挂在 `/api/v1` 下（见 app.js），故此处写全 `/committee/agenda-candidates`。
+  router.get('/committee/agenda-candidates', requireCommissioner(db), (req, res) => {
+    const requested = req.query.branchId ? String(req.query.branchId) : '';
+    const scopeDeny = branchSelectionError(req.actor, requested);
+    if (scopeDeny) return res.status(403).json({ error: scopeDeny });
+    const branchId = actorBranchId(req.actor) || requested;
+    if (!branchId) return res.status(400).json({ error: '党委读取支部待议池前须先选择支部（?branchId=）' });
+
+    const inBranch = (row) => !!row && (row.branchId || DEFAULT_BRANCH_ID) === branchId;
+    const users = listTable(db, 'users').filter(inBranch);
+    const committee = resolveCommitteeIds(users);
+    const committeeIds = committee.error ? [] : committee.ids.map(String);
+    const partyStages = POLICY_DEFAULTS.attendance.roster.partyStages;
+    const partyIds = users.filter((u) => partyStages.includes(u.developStage)).map((u) => String(u.id));
+
+    /** 应到：制度报送党员大会 → 支部党员大会；其余 → 支委会（与分类同一判据） */
+    const attendeesOf = (source) => {
+      const scope = agendaAttendeeScope(source);
+      const personIds = scope === 'branch-party-meeting' ? partyIds : committeeIds;
+      return { scope, count: personIds.length, personIds };
+    };
+
+    const seen = new Set();
+    const items = [];
+    const push = (source, ref, meta = '') => {
+      const { attendees: scope, ...rest } = classifyAgendaItem({ source, ref });
+      if (!rest.refId || seen.has(rest.dedupeKey)) return;
+      seen.add(rest.dedupeKey);
+      items.push({ ...rest, meta, attendees: attendeesOf(rest.source) });
+    };
+
+    // ① 专班事项（只收显式标明「待支委会表决」的报送；创建专班本身不在此列）
+    for (const row of listTable(db, 'taskforces').filter(inBranch)) {
+      const request = row.committeeRequest;
+      if (!request || request.status !== 'pending') continue;
+      push('taskforce-pending', { ...row, kind: request.kind },
+        `专班报送${request.by ? ` · 报送人 ${request.by}` : ''}${request.note ? ` · ${request.note}` : ''}`);
+    }
+
+    // ② 意见反馈（归口含支委会、未办结 / 未隐藏 / 未合并）
+    for (const row of listTable(db, 'issues').filter(inBranch)) {
+      if (row.status !== 'open' || row.hidden || row.mergedInto || !isCommitteeIssue(row)) continue;
+      push('issue-committee', row, `意见反馈 #${row.number || '—'}`);
+    }
+
+    // ③ 制度草案 / 待报送党员大会（同一判据 `isAgendaDraftDocCandidate`；党委行不进支部待议池）
+    for (const row of listTable(db, 'branch_docs').filter(inBranch)) {
+      if (row.ownerScope === 'committee' || !isAgendaDraftDocCandidate(row)) continue;
+      push('institution-draft', row, isPartyMeetingPendingDoc(row)
+        ? '制度（支委会已审议通过，待党员大会表决）'
+        : (isInstitutionDoc(row) ? '制度草案（待支委会审议）' : '制度草案（草案态支部文件）'));
+    }
+
+    // ④ 发展对象推荐（候选＝现为「积极分子」的本支部成员）
+    for (const row of users) {
+      if (row.developStage !== '积极分子') continue;
+      push('activist-recommend', row, '现为积极分子');
+    }
+
+    // ⑤ 品牌提案 / 活动批准 / 分工调整（活动实体自带的议题；判据同一源）
+    for (const row of listTable(db, 'activities').filter(inBranch)) {
+      if (isBrandProposalCandidate(row)) push('brand-proposal', row, '品牌认定提案');
+      if (isActivityApprovalCandidate(row)) push('activity-approval', row, '待批活动');
+      if (isAssignmentAdjustCandidate(row)) push('assignment-adjust', row, '分工调整议题');
+    }
+
+    const order = new Map(ALL_AGENDA_SOURCES.map((s, i) => [s.value, i]));
+    items.sort((a, b) => (order.get(a.source) ?? 99) - (order.get(b.source) ?? 99)
+      || String(a.refId).localeCompare(String(b.refId)));
+    res.json(items);
+  });
+
   return router;
 }
+
+// ⚠ 置尾保行号：`README-server.md` 以本文件 `:40-43` / `:56-92` / `:113-156` / `:161-177` 为取证靶点
+//   ⇒ 新增依赖写在文件末尾（import 声明被提升，语义不变；批次 540 波次 2 沿用 `routes/auth.js` 同法）。
+import {
+  classifyAgendaItem,
+  agendaAttendeeScope,
+  ALL_AGENDA_SOURCES,
+  isCommitteeIssue,
+  isAgendaDraftDocCandidate,
+  isInstitutionDoc,
+  isPartyMeetingPendingDoc,
+  isBrandProposalCandidate,
+  isActivityApprovalCandidate,
+  isAssignmentAdjustCandidate,
+} from '../../docs/src/core/domain/agenda-classify.js';
+import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js';

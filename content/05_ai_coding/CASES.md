@@ -2,7 +2,7 @@
 title: "AI 协作域判例库"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-08"
+last_updated: "2026-11-10"
 status: active
 related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -95,3 +95,15 @@ related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_
 - **守卫**：`ctx-hygiene-guard::⑧⑨`（层边界 / 温层 3–60 行 / 乙部 ≤18 行且无历史）＋ `claude-parallel-audit::C4`（判例下迁手册）＋ `ui-preflight-context::P5`（温层非空 + 触发表）。
 - **对应规范编号**：`CLAUDE.md H26` / `H50` ＋ `CONTEXT_MANAGEMENT.md` 三层模型。
 - **证据指针**：`CLAUDE.md`（`# 热层` / `# 温层` / `# 冷层`）· `server/test/ctx-hygiene-guard.test.mjs` · `.ctx/evidence/2026-11-07/ui-audit.md`。
+
+## CASE-AI-009 只引「点缀色」允许，漏引「不承担状态语义」
+
+- **编号**：CASE-AI-009
+- **样本（真实发生）**：批次 540 统一图标着色时，AI 逐条对照 `DESIGN_SYSTEM §一 原则 4`，抓到「**点缀色**（图标浅底 / 笔触 / 关键数值，每屏 1–2 处）不计入主色数量」，据此把彩色状态图标判为合规并放行；同一句后半「**不单独承担状态语义，须同时有文字标签**」没有被引用，若干只靠颜色区分的状态图标因此留在页面上。该句正是同批为 `CASE-DESIGN-030` 补写的边界，AI 读过该判例却没有读回它所指向的条文。
+- **AI 假设**：命中「允许」那半句即等于该条已读；后半句属于补充说明，可以在动手时略过；判例只教「别过度去色」，不会反过来约束用色。
+- **人类意图**：一条规范同时含「允许」与「约束」时，两句必须一起引；点缀色的前提是有文字标签，没有标签的颜色不享受这条豁免。
+- **泛化规则（结论）**：引用带例外的规范须同句引完「允许 ＋ 例外条件 ＋ 兜底」三段，只引前半句视为未读该条；判例只作边界，不得当条文用；改一条规范的边界句时，同批检查所有引用了旧边界的调用点。
+- **守卫**：`icon-color-guard::G3`（状态色只经 `--tint`，且只在计数 > 0 或状态成立时出现）＋ `status-color-guard::S1`（填充档不进图标笔触）。
+- **对应规范编号**：`DESIGN_SYSTEM.md §一 原则 4` ＋ SD-61（图标色彩契约，正文见 `DS_03_COMPONENTS.md §4.11.2`）
+- **边界**：本条只判「引用完整性」，不重开「图标能不能用色」；党徽 / 插画的多色仍按 §4.11.2 登记。`--tint` 的取值面由 `icon-color-guard::G3` 判，本条不另立色值白名单。
+- **证据指针**：`content/04_web_design/design-system/DESIGN_SYSTEM.md:67` · `content/04_web_design/design-system/DS_03_COMPONENTS.md:539-551,1537` · `content/04_web_design/design-system/CASES.md`（CASE-DESIGN-030 / CASE-DESIGN-041）· `server/test/icon-color-guard.test.mjs`。

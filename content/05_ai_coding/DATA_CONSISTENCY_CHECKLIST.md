@@ -269,6 +269,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | `gsm1921-api-token` / `gsm1921-login-user` / `gsm1921-tab-id` / `gsm1921-session-snap` | 会话·API token / 登录人 / 本标签页 ID / 会话快照 |
 | `sop_org_os_session` / `sop_org_os_data_version` / `cps-`（前缀） | 会话·跨页状态会话 / 数据版本 / 跨页单值参数前缀 |
 | `gsm1921-remote-probe` | UI 偏好·远端变更探测开关（`off`/`0`/`false`＝关） |
+| `table:cols:`（前缀） | UI 偏好·表格列宽拖动（`table:cols:<stateKey>` 逐表一份百分比数组；`components/ui/data-table.js`，批次 540） |
 | `sop_org_os_assigned_roles` | 历史遗留键·仅启动清理一次（`roles.js` 已无调用方） |
 
 > **新增键怎么办（判据即提示）**：① 若它的真相应当由服务端承载（可被他人 / 其他设备读到）⇒ **改为服务端权威**（照 `server/db.js::SEMANTIC_TABLES` + `server/routes/resources.js` 的「语义端点域」模板）；② 若它**确实只应在本机** ⇒ 登记进上表 B 档 + `server/test/localstorage-key-guard.test.mjs` 的同名映射，并写明「为什么不上服务端」。

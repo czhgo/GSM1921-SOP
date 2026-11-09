@@ -19,7 +19,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261109a';
+import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261110a';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');

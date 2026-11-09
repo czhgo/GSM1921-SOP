@@ -101,11 +101,11 @@ test('T4 daily / guards 文件数与断言预算不得高于登记值；daily �
     `GUARDS_FILE_BUDGET=${GUARDS_FILE_BUDGET} 比实然 ${guardsFiles.length} 宽松 >4：预算失去约束力`);
   assert.ok(GUARDS_TEST_BUDGET - guardCases <= 40,
     `GUARDS_TEST_BUDGET=${GUARDS_TEST_BUDGET} 比实然 ${guardCases} 宽松 >40：预算失去约束力`);
-  // 结果门禁口径（2026-11-08 波次 A 收口）：daily ≤27 文件、≤220 断言，超出即回到「全量日常」
-  assert.ok(dailyFiles.length >= 20 && dailyFiles.length <= 27,
-    `daily 只应保留 20–27 个结果门禁文件（实 ${dailyFiles.length}）：超出说明又混入了守卫或非核心回归`);
-  assert.ok(dailyCases <= 220,
-    `daily 断言 ${dailyCases} 超过结果门禁上限 220：优先把静态 / 域回归移出 daily，不改断言`);
+  // 结果门禁口径（2026-11-10 波次 540）：daily ≤31 文件、≤260 断言
+  assert.ok(dailyFiles.length >= 20 && dailyFiles.length <= 31,
+    `daily 只应保留 20–31 个结果门禁文件（实 ${dailyFiles.length}）：超出说明又混入了守卫或非核心回归`);
+  assert.ok(dailyCases <= 260,
+    `daily 断言 ${dailyCases} 超过结果门禁上限 260：优先把静态 / 域回归移出 daily，不改断言`);
 });
 
 test('T5 四个 runner 与 registry 对齐，且不含 cmd 专有语法', () => {

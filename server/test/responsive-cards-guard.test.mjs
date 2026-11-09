@@ -125,9 +125,11 @@ test('C3 手写卡式表：每个数据 td 都有 data-label（考勤汇总 / �
   const attMissingCols = attHeads.filter((h) => h && !attNorm.has(h));
   assert.deepEqual(attMissingCols, [], `考勤汇总 data-label 未覆盖表头列：${attMissingCols.join(' / ')}`);
 
-  // 2026-11-01 Task 4：党小组页改主从双栏，原「党小组清单」表撤；卡式行落在「活动台账」表
-  assert.match(GROUP, /<table class="data-table" data-responsive="cards">/, '活动台账须声明卡式行');
-  const groupChunk = slice(GROUP, 'function _ledgerRowHtml', 'function _reviewStatusCellHtml');
+  // 2026-11-01 Task 4：党小组页改主从双栏，原「党小组清单」表撤；卡式行落在「活动台账」表。
+  // 2026-11-10 批次 540：活动台账改由 `renderDataTable` 渲染 ⇒ 卡式行由 `responsive: true` 传给组件
+  //   （`<table data-responsive="cards">` 由引擎产出），td 的 `data-label` 仍由本页行模板提供。
+  assert.match(GROUP, /responsive:\s*true/, '活动台账须声明卡式行（responsive: true 交给 data-table）');
+  const groupChunk = slice(GROUP, 'function _ledgerRowHtml', 'function _reviewDetailRowHtml');
   assert.deepEqual(missingLabels(groupChunk), [], '活动台账存在未带 data-label 的数据 td');
   const groupLabels = labelsOf(groupChunk);
   for (const label of ['日期', '活动', '复盘状态', '应到·实到']) {

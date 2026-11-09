@@ -8,7 +8,7 @@
 // 设计源：DESIGN_SYSTEM §4.3（输入统一原则）+ web-interface-guidelines（Forms/Accessibility）
 // 演进：块画布 L3 的块 inputs 声明复用同一字段积木目录。
 // 批次 525（#4）：键盘选中项滚入视野走全站唯一滚动出口（motion-guard M10）。
-import { smoothScroll } from '../../core/base/utils.js?v=20261109a';
+import { smoothScroll } from '../../core/base/utils.js?v=20261110a';
 
 /** 标签行（for 关联控件 id；必填星号；可选 hint 描述） */
 export function labelHtml({ id, text, required = false, hint = '' } = {}) {

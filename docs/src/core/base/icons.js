@@ -6,7 +6,9 @@
 
 /**
  * 图标字典 — key 为语义名称，value 为 SVG inner HTML（不含 <svg> 标签）
- * 使用方式：icon('home', { className: 'w-[18px] h-[18px]' }) 或 icon('bell', { stroke: '#FFF', className: 'w-4 h-4' })
+ * 使用方式：icon('home', { className: 'w-[18px] h-[18px]' }) 或 icon('bell', { className: 'w-4 h-4', extra: ' aria-hidden="true"' })
+ * 颜色契约（DS_03 §4.11.2）：默认 stroke=currentColor，颜色由宿主文字色继承；
+ *   只在确有语义时才传 stroke/fill，取值只许 currentColor / none / var(--token)，不得写字面色值。
  *
  * 尺寸规范（CSS 类驱动，不硬编码 width/height）：
  *   xs  → w-3 h-3   (12px)  内联徽章、reaction 计数

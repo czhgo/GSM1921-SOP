@@ -48,31 +48,31 @@ globalThis.localStorage = makeStorage();
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261109a';
-import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261109a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261110a';
+import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261110a';
 // ── mock 形态语料（单一源；服务端 seed.js 亦从这些具名导出播种 ⇒ 两侧本应逐值相同）──
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261109a';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261109a';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261109a';
-import { SEED_MAKEUP_TASKS, SEED_SIGNUPS, SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261109a';
-import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261109a';
-import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261109a';
-import { BRANCHES } from '../../docs/src/data/mock/branches.js?v=20261109a';
-import { SEED_TASKS, SEED_ARCHIVE_RECORDS, SEED_REVIEW_REQUESTS } from '../../docs/src/data/mock/seed.js?v=20261109a';
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20261109a';
-import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20261109a';
-import { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261109a';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261110a';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261110a';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261110a';
+import { SEED_MAKEUP_TASKS, SEED_SIGNUPS, SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261110a';
+import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261110a';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261110a';
+import { BRANCHES } from '../../docs/src/data/mock/branches.js?v=20261110a';
+import { SEED_TASKS, SEED_ARCHIVE_RECORDS, SEED_REVIEW_REQUESTS } from '../../docs/src/data/mock/seed.js?v=20261110a';
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20261110a';
+import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20261110a';
+import { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261110a';
 import {
   SEED_EXTERNAL_DISPATCHES, SEED_APPOINTMENT_RECORDS,
   SEED_IMAGE_RECORDS, SEED_MEMBER_CHANGE_REQUESTS,
   SEED_WORKGROUP_TASKS, SEED_WORKGROUP_OUTPUTS,
-} from '../../docs/src/data/mock/auxiliary.js?v=20261109a';
-import { normalizeSeedActivitySeedRows, ensureLegacySourceWorkgroups, ensureDemoWorkgroupGrants } from '../../docs/src/data/workgroup-seed-sync.js?v=20261109a';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261109a';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261109a';
-import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261109a';
+} from '../../docs/src/data/mock/auxiliary.js?v=20261110a';
+import { normalizeSeedActivitySeedRows, ensureLegacySourceWorkgroups, ensureDemoWorkgroupGrants } from '../../docs/src/data/workgroup-seed-sync.js?v=20261110a';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261110a';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261110a';
+import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261110a';
 // `SEED_TODOS` 不在 `mock/**`（它是服务层常量，前端 seedTodos() 读的正是它）——服务端 seed.js 同源 import
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261109a';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261110a';
 
 // ════════════════════════════════════════════════════════════════
 //  B 类现场（api 形态）：内存服务 + 真登录取 token + init() 把服务端全量灌进 mockDB 缓存

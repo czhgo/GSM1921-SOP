@@ -3,16 +3,16 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261109a';
-import { getBasePath } from '../../core/base/utils.js?v=20261109a';
-import { icon } from '../../core/base/icons.js?v=20261109a';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261109a';
-import { badgeHtml } from '../ui/badges.js?v=20261109a';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261109a';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261110a';
+import { getBasePath } from '../../core/base/utils.js?v=20261110a';
+import { icon } from '../../core/base/icons.js?v=20261110a';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261110a';
+import { badgeHtml } from '../ui/badges.js?v=20261110a';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261110a';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261109a';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261110a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261109a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261110a';
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
 // （auth→runtime→mock→domain 全量约 50 模块），通知铃首次点击或 app 模式渲染后按需加载。
@@ -20,18 +20,18 @@ import { emptyStateHtml } from '../ui/empty-state.js?v=20261109a';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261109a');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261110a');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261109a');
+  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261110a');
   return _noticeModule;
 }
 // 2026-09-30 批次 297-2：跨台通用动作「一键汇报」收进顶栏唯一固定位 ⇒ 顶栏按需加载其入口模块
 // （与 auth / notice 同一策略：静态壳页不加载，app 模式渲染后加载，模块缓存后即时）
 let _reportEntryModule = null;
 function loadReportEntry() {
-  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261109a');
+  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261110a');
   return _reportEntryModule;
 }
 
@@ -226,10 +226,12 @@ function _loginEntryHTML() {
 function _notificationBellHTML() {
   // 角标由 _renderNotificationBadge() 在数据层加载后异步补充
   // （静态壳页不加载数据链 → 无角标；app 页渲染后即时补上，无感知延迟）
+  // 铃铛笔触取 `--app-accent-strong-ink-light`（七主题恒 #FFFFFF，顶栏深红底专用白，同 #app-header 焦点环口径）；
+  // 不能靠 currentColor 继承——宿主 `.btn-neutral` 的文字色是 --neutral-700，深红底上不可见。
   return `
     <div id="notification-bell" style="position:relative;">
       <button id="notif-btn" class="btn-neutral btn-icon header-icon-btn" aria-label="通知" aria-haspopup="true" aria-expanded="false" aria-controls="notif-dropdown" style="width:40px;height:40px;">
-        ${icon('bell', { stroke: '#FFFFFF', className: 'w-4 h-4', extra: ' aria-hidden="true"' })}
+        ${icon('bell', { stroke: 'var(--app-accent-strong-ink-light)', className: 'w-4 h-4', extra: ' aria-hidden="true"' })}
       </button>
       <div id="notif-dropdown" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;width:320px;background:var(--surface-card);border-radius:var(--radius-sm);box-shadow:var(--shadow-dropdown);z-index:100;overflow:hidden;border:1px solid var(--neutral-200);"></div>
     </div>

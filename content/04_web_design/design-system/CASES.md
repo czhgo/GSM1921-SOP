@@ -2,7 +2,7 @@
 title: "设计域判例库"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-08"
+last_updated: "2026-11-10"
 status: active
 related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -321,9 +321,9 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **AI 假设**：`DESIGN_SYSTEM §一 原则 4`「主色 ≤ 2 种，功能色仅用于状态指示」意味着彩色越少越合规；把「卡片数字」理解成去掉一切非文字的装饰；既然删了图标，守卫就该禁止它回来。
 - **人类意图**：「统一为卡片数字」指的是**四个数在版式上同级、同构**（都给卡片、都用同一套数字排版）；图标浅底与同色笔触是支书认可的既有表达，应一并保留。原则 4 约束的是**主色数量**与**功能色的状态语义**，不把彩色一概判为违规。
 - **泛化规则**：① 原则 4 的判据是「主色 ≤ 2 种 ＋ 功能色只承担状态」；**点缀色**（图标浅底 / 笔触 / 关键数值）单列，不计入主色数量、不承担状态语义，每屏 1–2 处（一组四数卡按一处计）。② 「统一 / 收敛」类指令先确认收敛的是**版式与排版**还是**色彩与图形**；不得以「更克制」为由删掉支书明确喜欢的视觉元素。③ 删掉元素的同时**收紧守卫**（反向断言）会把误读固化成规范，改结构前先核对该判据的原始裁定语境。④ 图标不得成为唯一信息载体——数值与标签必须仍在。
-- **守卫**：`ui-control-system-guard::V1`（四数卡由图标、数值、标签三段组成；无 `hover:shadow` / `-translate-y`）＋ `ui-home-hero::E7`（首页统计卡同构）＋ `theme-palette-guard`（图标色只取既有语义 token）＋ `hex-hardcode-guard`（`--tint` 由 CSS 派生，不写 hex）。
-- **对应规范编号**：§一 原则 4（色彩克制 · 点缀色）；关联 SD-46（主题色层与功能色层并列）。
-- **边界**：点缀色不承担状态语义——逾期 / 未读等状态仍由 `--status-warning-text` 等语义 token 与文字标签共同表达；以素净为主的页面不必强行补彩色，本判例只否定「把彩色一律判违规」的推论。深浅色由 `--tint` 混入 `--surface-card` 自动适配，不为暗色另写一套色值。
+- **守卫**：`ui-control-system-guard::V1`（四数卡由图标、数值、标签三段组成；无 `hover:shadow` / `-translate-y`）＋ `ui-home-hero::E7`（首页统计卡同构）＋ `theme-palette-guard`（图标色只取既有语义 token）＋ `hex-hardcode-guard`（`--tint` 由 CSS 派生，不写 hex）＋ `icon-color-guard::G3`（`--tint` 只收 `var(--token)`，状态色取 `-text` 档）。
+- **对应规范编号**：§一 原则 4（色彩克制 · 点缀色）；关联 SD-46（主题色层与功能色层并列）＋ SD-61（图标色彩契约，正文见 §4.11.2）。
+- **边界**：点缀色**不单独承担状态语义，须同时有文字标签**——逾期 / 未读等状态由 `--status-warning-text` 等**文字档**语义 token 与文字标签共同表达；填充档只作徽章 / 圆点 / 图例 / 左条，作图标笔触或数值由 `icon-color-guard::G3` 判红。以素净为主的页面不必强行补彩色，本判例只否定「把彩色一律判违规」的推论。深浅色由 `--tint` 混入 `--surface-card` 自动适配，不为暗色另写一套色值。
 - **证据指针**：`docs/src/components/dashboard/stats.js`（`stat-icon-tint` ＋ `--tint` ＋ 同色数值）；`docs/src/components/governance/work-overview.js`（四数卡同构）；`docs/src/styles.css` 的 `.stat-icon-tint`；`server/test/ui-control-system-guard.test.mjs`（V1）；`server/test/ui-home-hero.test.mjs`（E7）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 2026-10-28 Task 3。
 
 ## CASE-DESIGN-031 焦点修了两轮才查出「四套颜色 ＋ 全局 6px 光晕」
@@ -382,6 +382,78 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **边界**：支部名可在登录后的工作台、支部档案与党委选定支部后的只读视图出现；无会话的接口不返回支部名与成员字段；公开内容过期后匿名接口返回 404，呈现为「不存在」，不留「空列表」形状的空态；公开设置与审计的规范条文见 `SYSTEM_ROLE_PERMISSION.md §9a.1`，门厅的显示范围与验收判据见 `PUBLIC_ENTRANCE.md`。
 - **对应规范编号**：待登记（门厅版式与匿名字段白名单的 SD 编号待设计系统登记；已登记于 `.ctx/REVIEW_QUEUE.md` 归口待办）
 - **证据指针**：`content/04_web_design/module/PUBLIC_ENTRANCE.md`（§二 至 §六）· `content/02_institution/SYSTEM_ROLE_PERMISSION.md` §9a.1 · `docs/index.html` · `docs/src/entries/pages/main-entry.js`。
+
+---
+
+## CASE-DESIGN-036 待办跳转只弹提示不导航
+
+- **编号**：CASE-DESIGN-036
+- **场景（真实发生）**：六个工作台的待办里点一条「目标模块不在本台」的行（例如成员台点「党小组」类事项），旧 `workspace-nav` 只 `toast('info')` 提示一句就结束，页面停在原地，用户找不到落点；同一动作的目标页签各台另写一份 `tabMap`，少写一台就静默无反应。
+- **结论**：未命中目标页签时 fail-closed——内容区必须渲染可见提示「本台无该模块」，并给出「同义落点」按钮（工作概况 → 待办 → 今天，取本台第一个已注册者）；不得只弹 toast、不得静默留页、不得拼 `workspace/<role>.html?tab=` 整页跳转。29 类动作 × 6 台在 `TODO_ACTIONS.roleOverrides` 逐台登记，解析顺序由契约固定，调用方不得另写落点分支。
+- **边界**：`inline` 动作仍在行尾 / 浮窗完成（从只读页点进来时落到待办页该行）；`direct` 动作走对象详情，缺 id 给「未定位到具体条目」提示，两者不套「同义落点」这条兜底。
+- **对应规范编号**：SD 待登记（条文见 `contracts/INTERACTION_AND_NAVIGATION_CONTRACT.md §二`）；关联 SD-32（深链目标页必须消费参数）。
+- **守卫**：`todo-jump-contract`（29 类动作 × 6 台已注册、无 toast-only、缺 id 有显式提示、`PendingTarget` 已清理）＋ `todo-cross-role-safety`。
+- **证据指针**：`docs/src/core/session/workspace-nav.js:13,25-26,82-91`；`docs/src/core/domain/todo-actions.js`；`docs/src/components/record/todo-tab-shell.js`；`content/04_web_design/contracts/INTERACTION_AND_NAVIGATION_CONTRACT.md`；`server/test/todo-jump-contract.test.mjs`；`.ctx/evidence/2026-11-10/overview-workmap/findings.json`。
+
+---
+
+## CASE-DESIGN-037 议程来源与类型没有映射
+
+- **编号**：CASE-DESIGN-037
+- **场景（真实发生）**：`agenda-form` 的「拟上会」清单只列事项名，不带类型；同一事项在支书台写议程时标成「讨论」、在党委会议页读摘要时类型为空；服务端也没有汇总口。「哪些事该上会」与「按哪一档上会」靠人记。
+- **结论**：来源 → 类型 → 待议池由一份纯函数算（`agenda-classify.js::AGENDA_SOURCES` 六类，另纳入活动批准 / 分工调整两类），客户端与服务端同源 import；服务端出 `GET /api/v1/committee/agenda-candidates`。类型三值 决策 / 讨论 / 同步，`needDecision` 决定是否需要表态；新增来源必须同批改契约、分类表与验收项。
+- **边界**：分类函数只给「建议议程步骤」，写入时 `agendaStep` 仍由支书在写入面板决定，不得自动落库；去重 / 时效 / 应到属服务端算，客户端只做分组 / 排序 / 徽章。
+- **对应规范编号**：SD 待登记（条文见 `contracts/AGENDA_DERIVATION_CONTRACT.md §一–§三`）；关联 SD-34（状态只能有一套派生）。
+- **守卫**：`agenda-classify`（六类来源 × 四反例 × 服务端与客户端逐项一致 × 双支部过滤）。
+- **证据指针**：`docs/src/core/domain/agenda-classify.js:2-13,29-45`；`server/routes/committee.js:235-236`；`docs/src/entries/tabs/secretary/agenda-form.js`；`docs/src/entries/tabs/secretary/committee-meeting-tab.js`；`content/04_web_design/contracts/AGENDA_DERIVATION_CONTRACT.md`；`server/test/agenda-classify.test.mjs`。
+
+---
+
+## CASE-DESIGN-038 手写表格绕过 data-table
+
+- **编号**：CASE-DESIGN-038
+- **场景（真实发生）**：`secretary.group-progress` 的活动台账曾手写 `<table>`：列宽用百分比、无 `<colgroup>`、两列同时省略号截断，390 档整表横向溢出；同类手写表在别处还有多处，行高 / 列宽 / 截断各写一套。
+- **结论**：同列同语义 ≥3 行一律走 `renderDataTable`；列宽只取三档（内容 auto / 固定 `colgroup` / 最小 `min-width`），全表只允许一列截断且该列必须是 `1fr` 余量列；数据行高 40px，展开详情用 `colspan` 插行。手写 `<table>` 存量按棘轮只减不增。
+- **边界**：字段异构且 ≤12 项用列表 / 卡片；两维交叉用 `relation-matrix.js`，不套数据表；两行以内的数据不起表。
+- **对应规范编号**：SD 待登记（条文见 `contracts/TABLE_COMPONENT_CONTRACT.md §一–§四`）；关联 SD-44（宽表定列宽模板、末列不吃余量）。
+- **守卫**：`table-contract-guard::T1–T7`（契约字段 / 组件参数 / 宽表 colgroup / 手写表棘轮 / `td` 内 `text-xs` 计数 0 / 390 无溢出 / 反例自证）。
+- **证据指针**：`docs/src/components/ui/data-table.js`；`docs/src/entries/tabs/secretary/group-progress-tab.js:59,426,466`；`content/04_web_design/contracts/TABLE_COMPONENT_CONTRACT.md`；`server/test/table-contract-guard.test.mjs`；`.ctx/evidence/2026-11-10/table-540/`。
+
+---
+
+## CASE-DESIGN-039 活动详情首屏块数超限
+
+- **编号**：CASE-DESIGN-039
+- **场景（真实发生）**：活动详情首屏把对象头、基本信息、报名名单、参与三视图、工作分工、议程、收口、汇报明细、管理动作等 14 个并列块一次摊开，真机 1440 / 390 双档首屏都看不到主路径；管理动作与参与动作同权并列，正文被切成碎片。
+- **结论**：详情页按「对象头 → 信息 → 参与 → 议程 → 收口」四段组织，首屏并列块收为 6；管理动作进页尾折叠；议程段只出正文，分区标题由段级 H3 承担（同一学段不得出现两个同名标题）；汇报明细在收口段内展开。
+- **边界**：本条只管活动详情页的块结构；单块内的字段顺序与文案归模块设计；页签侧块数上限仍按 SD-57 与 `TAB_BLOCK_BASELINE` 判。
+- **对应规范编号**：SD-57（顶层区块 ≤4、超限须登记 reason；本条把「详情页」纳入同族判据，超限部分按页尾折叠处理）＋ SD-60（行动行排布，管理动作不占正文行）。
+- **守卫**：`ui-first-screen-order::F6–F9`（页签侧块数）＋ 真机读数（详情页不在 46 个注册页签内，不设自动守卫，须以双档截图与 readings 复核）。
+- **证据指针**：`docs/src/entries/pages/activity-entry.js:712,796,803`；`.ctx/evidence/2026-11-10/activity-detail/{before-1440,before-390,after-act-6-1440,after-act-6-390}.png`；同目录 `readings-act-*.json`；`audit-secretary-calendar.md`。
+
+---
+
+## CASE-DESIGN-040 视图重叠：同一问句的另一种排法又立一套视图
+
+- **编号**：CASE-DESIGN-040
+- **场景（真实发生）**：支部分工页曾有 4 套视图（平铺模块 / 按人 / 按项目 / 关系矩阵）。「按项目」是「按人」的转置（同一份数据、同一个问句）；平铺模块的 desc / 子项 / 产出与「按人」的行内信息重复。用户要先决定用哪套视图，才看得见「谁负责什么」。
+- **结论**：视图收 2——责任关系（默认）/ 关系矩阵。「按项目」删除（转置不算新问句）；平铺模块的 desc / 子项 / 产出并入选中行展开；关系矩阵降为折叠块（本视图内默认展开），不与首屏主体并列。
+- **边界**：同一数据的不同**问句**（「谁负责什么」与「某个工作项有谁」）允许各留一种视图；同一问句的另一种排法不立新视图。行内主责徽标取中性档，主题色只留给动作 / 导航 / 选中态。
+- **对应规范编号**：SD-46（功能色只小面积；主责是常态、不承担状态语义）＋ SD-57（首屏块数）；视图取舍按 `H21.3` 三问判。
+- **守卫**：`work-map`（视图键只允许 `relations` / `matrix`）＋ `audit-tabs --all` 的 `secretary.work-map`（3 块 · P0 / P1 / P2 均 0）。
+- **证据指针**：`docs/src/entries/tabs/secretary/work-map-tab.js:7-10,40-43,236-237,326-330`；`server/test/work-map.test.mjs`；`.ctx/evidence/2026-11-10/overview-workmap/`；`.ctx/evidence/2026-11-10/tab-audit/summary.md`。
+
+---
+
+## CASE-DESIGN-041 SVG 着色四来源与 data-URI 里的 hex
+
+- **编号**：CASE-DESIGN-041
+- **场景（真实发生）**：图标着色散成四路——`icons.js` 的 `stroke` 写字面 hex、`sidebar` 的行内 SVG 写死 `#9CA3AF`、`person-picker` 在 CSS data-URI 里写 `%239CA3AF`、`custom-select` / `archive-entry` 各自内联 `<svg>`。hex 扫描只看字面 `#RRGGBB`，URL 编码那一支整段漏过；同一枚放大镜在四处各写一份色。
+- **结论**：图标只经 `icons.js::icon()` 产出，颜色默认 `currentColor`、由宿主文字色继承；确需显式色时只许 `currentColor` / `none` / `var(--token)`。状态色只经 `--tint` 传入，且只取 `--status-*-text` 文字档；填充档只进徽章 / 圆点 / 图例 / 左条。SVG 片段禁 hex，扫描须含 data-URI 的 `%23` 形态；尺寸由 CSS 类驱动。
+- **边界**：党徽与插画才用品牌层（`--party-red` / `--party-gold`）；`feTurbulence` 噪点纹理属插画、无色值，按白名单登记；`styles.css` 的既有 data-URI 由同批样式波次迁移，不为此在守卫上开口子。
+- **对应规范编号**：SD-61（图标色彩契约，正文见 `DS_03_COMPONENTS.md §4.11.2`）＋ `§一 原则 4`（点缀色不单独承担状态语义）。
+- **守卫**：`icon-color-guard::G1–G5` ＋ `status-color-guard::S1` ＋ `hex-hardcode-guard`（含 `%23` 形态）＋ `theme-palette-guard`。
+- **证据指针**：`docs/src/core/base/icons.js`；`docs/src/components/shell/sidebar.js`；`docs/src/components/governance/person-picker.css`；`docs/src/styles.css`；`server/test/icon-color-guard.test.mjs:2,19-20,297,317-320`；`DS_03_COMPONENTS.md:539-551,1515,1537`。
 
 ---
 

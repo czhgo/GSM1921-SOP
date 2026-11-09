@@ -8,21 +8,21 @@
 //  · 读口单一源 = NoticeStore.listMessages；未读计数单一源 = NoticeStore.countUnread。
 //  · 可见性单一源 = canReadNotice（经 NoticeStore.list 受众门），本页不另写规则。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261109a';
-import { renderHeader } from '../../components/shell/header.js?v=20261109a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261110a';
+import { renderHeader } from '../../components/shell/header.js?v=20261110a';
 import {
   NoticeStore, sendDirectMessage, canSendDirectMessage, kindOf,
-} from '../../services/governance/notice.js?v=20261109a';
-import { AuthStore } from '../../services/core/auth.js?v=20261109a';
-import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261109a';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261109a';
-import { pagerHtml } from '../../components/ui/pager.js?v=20261109a';
-import { PersonPicker } from '../../components/governance/pickers.js?v=20261109a';
-import { messageSearchBarHtml } from '../../components/notice/message-search-bar.js?v=20261109a';
+} from '../../services/governance/notice.js?v=20261110a';
+import { AuthStore } from '../../services/core/auth.js?v=20261110a';
+import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261110a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261110a';
+import { pagerHtml } from '../../components/ui/pager.js?v=20261110a';
+import { PersonPicker } from '../../components/governance/pickers.js?v=20261110a';
+import { messageSearchBarHtml } from '../../components/notice/message-search-bar.js?v=20261110a';
 // S1（2026-09-12 通知详情页同款）：必须先完成数据 hydrate（loadDB / API init）再取数
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261109a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261109a';
-import { BranchService } from '../../services/core/runtime.js?v=20261109a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261110a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261110a';
+import { BranchService } from '../../services/core/runtime.js?v=20261110a';
 
 renderSidebar('messages');
 renderHeader('messages');

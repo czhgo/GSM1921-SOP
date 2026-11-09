@@ -7,17 +7,17 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261109a';
+import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261110a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../../services/member/person.js?v=20261109a';
+import { getPersonById } from '../../services/member/person.js?v=20261110a';
 // 党小组清单单一源（活组按 seq 升序；2026-09-14 批次 29 收敛——见文件头「党小组清单」说明）
-import { groupOptions } from '../../services/member/party-group.js?v=20261109a';
-import { icon } from '../../core/base/icons.js?v=20261109a';
-import { ROLE_LABELS, ACCENT_COLORS } from '../../core/domain/constants.js?v=20261109a';
+import { groupOptions } from '../../services/member/party-group.js?v=20261110a';
+import { icon } from '../../core/base/icons.js?v=20261110a';
+import { ROLE_LABELS, ACCENT_COLORS } from '../../core/domain/constants.js?v=20261110a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261109a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261110a';
 // ── 辅助：强调色 + 透明度 → CSS 颜色 ──────────────────────────
 // 2026-11-04 批次 534（Task 5.4）：渲染层彩色 rgba 清零，改用 color-mix（与 rgba 同值，纯 CSS 计算）。
 function hexToAlpha(color, alpha) {
@@ -346,10 +346,13 @@ export class PersonPicker {
       <div class="person-picker-header-row">
         <h4 class="person-picker-title ">选择人员</h4>
         <button type="button" class="btn-outline btn-icon person-picker-close-btn" aria-label="关闭">
-          ${icon('close', { stroke: '#6B7280', className: 'w-3.5 h-3.5', extra: ' aria-hidden="true"' })}
+          ${icon('close', { stroke: 'var(--neutral-500)', className: 'w-3.5 h-3.5', extra: ' aria-hidden="true"' })}
         </button>
       </div>
-      <input type="text" class="person-picker-search " placeholder="搜索姓名或学号…" aria-label="搜索人员" />
+      <div class="person-picker-search-wrap">
+        ${icon('search', { className: 'person-picker-search-icon', extra: ' aria-hidden="true"' })}
+        <input type="text" class="person-picker-search " placeholder="搜索姓名或学号…" aria-label="搜索人员" />
+      </div>
     `;
     panel.appendChild(header);
 

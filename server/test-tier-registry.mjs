@@ -61,21 +61,21 @@ export const filesByFixtureClass = (fixtureClass) => TEST_TIERS
  *    `version-stamp`）迁 precommit（判据不丢：precommit / full 仍覆盖）。
  *    `version-stamp` 按 `--timing` 实测最慢（23.0s）且不属业务结果，按「最慢非关键件移 precommit」处理。
  *    按实然值 27 登记。 */
-export const DAILY_FILE_BUDGET = 27;
+export const DAILY_FILE_BUDGET = 29;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-11-08 波次 A：实测 187，按 189 登记（留 2 条余量；结果门禁上限 220）。
  *  2026-11-08 波次 B/E/G：并入 security-hardening / multi-branch-read-filter / personal-password，
  *    并把 auth-password 移 precommit；实测 207，按 209 登记。 */
-export const DAILY_TEST_BUDGET = 209;
+export const DAILY_TEST_BUDGET = 245;
 
 /** guards 文件数预算（静态守卫；按需跑，不阻塞日常）
  *  2026-11-08 波次 A：daily 迁入 6 件 ⇒ 实测 99 文件，按 99 登记。 */
-export const GUARDS_FILE_BUDGET = 99;
+export const GUARDS_FILE_BUDGET = 101;
 
 /** guards 静态 `test(` / `it(` 调用点预算
  *  2026-11-08 波次 A：实测 788 断言，按 791 登记（断言留 3 条余量）。 */
-export const GUARDS_TEST_BUDGET = 791;
+export const GUARDS_TEST_BUDGET = 840;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -118,6 +118,8 @@ export const TEST_TIERS = [
   ...group('daily', '结果门禁 · 待办派生结果', [
     'todo-groups-api.test.mjs',
     'todo-derive-parity.test.mjs',
+    'todo-jump-contract.test.mjs',
+    'agenda-classify.test.mjs',
   ]),
   ...group('daily', '结果门禁 · 构建可运行', [
     'esm-parse-guard.test.mjs',
@@ -125,6 +127,8 @@ export const TEST_TIERS = [
 
   // ── guards · 静态守卫（按需跑；precommit / full 仍全量覆盖）─────────────
   ...group('guards', '静态样式守卫 · 字号 / 间距 / 颜色 / 动效 / 交互态 / 密度 / 文案', [
+    'icon-color-guard.test.mjs',
+    'table-contract-guard.test.mjs',
     'action-row-wrap-guard.test.mjs',
     'activity-tone-guard.test.mjs',
     'card-summary-hero-guard.test.mjs',

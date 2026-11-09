@@ -18,17 +18,17 @@
 // 时间口径：dateKey 由 now 按【本地时区】取 YYYY-MM-DD（勿用 toISOString——UTC 偏移跨日错位）。
 // ════════════════════════════════════════════════════════════════
 
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261109a';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261109a';
-import { mockDB } from '../../core/domain/domain.js?v=20261109a';
-import { getMeetingRosterIds, getEffectiveMembers, RESIDENCE_KEY } from '../member/roster.js?v=20261109a';
-import { TodoStore, TodoActionType, inferDomain, WORK_DOMAIN_LABELS } from './todo.js?v=20261109a';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261110a';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261110a';
+import { mockDB } from '../../core/domain/domain.js?v=20261110a';
+import { getMeetingRosterIds, getEffectiveMembers, RESIDENCE_KEY } from '../member/roster.js?v=20261110a';
+import { TodoStore, TodoActionType, inferDomain, WORK_DOMAIN_LABELS } from './todo.js?v=20261110a';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：「今天」的今日会议/我的分工
 // 同样按查看者角色收窄——待批活动不进非支委层的今日摘要（与各台列表同一判据）。
-import { filterActivitiesForViewer } from '../core/visibility.js?v=20261109a';
-import { tokenOf } from '../../core/base/version-token.js?v=20261109a'; // P1 消费方会话缓存失效（spec §三.4）
+import { filterActivitiesForViewer } from '../core/visibility.js?v=20261110a';
+import { tokenOf } from '../../core/base/version-token.js?v=20261110a'; // P1 消费方会话缓存失效（spec §三.4）
 // 成员基础数据预览键（仅作 raw 源指纹；person.js 读链叠加预览，见 org-base-data-preview）
-import { PREVIEW_KEY } from '../branch/org-base-data-preview.js?v=20261109a';
+import { PREVIEW_KEY } from '../branch/org-base-data-preview.js?v=20261110a';
 
 /**
  * 「今天有会」按应到口径判定的会议类型（R7-14 单一源 · call-time）：
@@ -136,8 +136,11 @@ export const TODO_ACTION_LABELS = {
  * @param {Date}   [params.now]    可注入的"现在"（缺省=系统当前时间；测试注入固定日期）
  * @returns {{date:string, hasMeeting:Array, overdue:Array, dueToday:Array, myDuties:Array, todoSummary:{total:number,overdue:number,dueToday:number}, byAction:Array, upcoming:Array}}
  *   **byAction**（2026-10-01 批次 320 立）：按**动作性质**分组的在办待办
- *     `[{actionType, label, count, items:[{id,title,deadline,domain,domainLabel}]}]`——只含非空组，
- *     组序＝ACTION_ORDER（审核 → 提交 → 赋权 → 参与 → 归档 → 阅读 → 追踪），组内截止升序、无截止殿后。
+ *     `[{actionType, label, count, items:[{id,title,deadline,domain,domainLabel,actionKey,sourceId}]}]`
+ *     ——只含非空组，组序＝ACTION_ORDER（审核 → 提交 → 赋权 → 参与 → 归档 → 阅读 → 追踪），
+ *     组内截止升序、无截止殿后。
+ *     `actionKey` / `sourceId`（2026-11-10 批次 540）：行点击按**动作级**走 `todo-actions.js` 契约
+ *     （`data-go="action"`），不再只给一个笼统的「去待办」；`id` 仍是待办本体 id（缺省定位兜底）。
  *     单一源：`TodoActionType` / `inferDomain` / `WORK_DOMAIN_LABELS`（services/governance/todo.js）。
  *   hasMeeting 项：{activityId, title, type, start}（start=活动 extras.time，无则 ''）
  *   overdue/dueToday 项：{id, title, deadline, action}（action=actionKey||actionType||''）
@@ -257,6 +260,9 @@ export function buildTodaySummary({ personId, role, now = new Date() } = {}) {
           deadline: t.deadline || '',
           domain: d,
           domainLabel: WORK_DOMAIN_LABELS[d] || '',
+          // 批次 540：动作级落点（今天页行点击按 actionKey 解析，不再一律「去待办」）
+          actionKey: t.actionKey || t.actionType || '',
+          sourceId: t.sourceId || '',
         });
       }
     }

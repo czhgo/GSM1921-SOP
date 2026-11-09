@@ -33,7 +33,7 @@ import { join } from 'node:path';
 import {
   CACHE_KEYS, CACHE_KEY_PREFIXES, CACHE_CATEGORIES, classifyCacheKey,
   validateBackupPayload, BACKUP_META, NICHE_COLLECTION_NAMES,
-} from '../../docs/src/data/cache-registry.js?v=20261109a';
+} from '../../docs/src/data/cache-registry.js?v=20261110a';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 
@@ -126,6 +126,9 @@ const UI_PREF_SESSION_PREFIXES = {
   'gsm1921-pref-': 'UI 偏好·个人偏好键空间（theme.js / preferences.js）',
   'cps-': '会话·跨页单值参数前缀（core/session/cross-page-state.js）',
   'workflowos_tab_': 'UI 偏好·工作台页签记忆（各 ws-*-entry.js 的 storageKey）',
+  // 2026-11-10 批次 540：数据表列宽拖动偏好（`table:cols:<stateKey>` 逐表一份百分比数组）。
+  //   只改本机呈现，不影响任何业务事实 ⇒ 不上服务端（components/ui/data-table.js）。
+  'table:cols:': 'UI 偏好·表格列宽拖动（components/ui/data-table.js；纯展示，可随时丢弃）',
 };
 
 /** 非存储键的常量例外（逐条给理由；`*_ACTION_KEY` 是业务动作键，不落存储） */
@@ -394,7 +397,7 @@ test('L10 读口拒收缺版本 / 过期备份（restoreNicheCollections 返回 
     get length() { return store.size; },
   };
   try {
-    const { restoreNicheCollections } = await import('../../docs/src/data/mock-adapter.js?v=20261109a');
+    const { restoreNicheCollections } = await import('../../docs/src/data/mock-adapter.js?v=20261110a');
     store.set('workflowos_branch_db_v1', JSON.stringify({ activities: [{ id: 'stale' }] }));
     assert.equal(restoreNicheCollections({ expectedVersions: { activities: 1 } }), false,
       '缺 `_versions` 的本地备份不得被采用（否则旧备份会被当成服务端权威）');

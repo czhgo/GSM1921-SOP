@@ -5,17 +5,17 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261109a';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261109a';
-import { _fmtDate, _currentYearMonth, showToast } from '../../core/base/utils.js?v=20261109a';
+import { getAppState, setState } from '../../core/base/state.js?v=20261110a';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261110a';
+import { _fmtDate, _currentYearMonth, showToast } from '../../core/base/utils.js?v=20261110a';
 // 2026-10-25 Task 1.3：节点缺失 / 页内失败统一走「错误卡 + 重试」单一源（tab-bar 同款）。
-import { mountTabFailure } from '../shell/tab-bar.js?v=20261109a';
-import { tokenOf } from '../../core/base/version-token.js?v=20261109a'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261109a';
+import { mountTabFailure } from '../shell/tab-bar.js?v=20261110a';
+import { tokenOf } from '../../core/base/version-token.js?v=20261110a'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261110a';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261109a';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261110a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261109a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261110a';
 // 月视图格子条数上限（批次 530 · B-520-3）：条数单一源＝core/domain/constants.js::DASHBOARD_LIMITS
 const MAX_DAY_ACTIVITIES = DASHBOARD_LIMITS.calendarDayActivities;
 const MAX_DAY_TASKS = DASHBOARD_LIMITS.calendarDayTasks;

@@ -5,16 +5,16 @@
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261109a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261109a';
-import { getPersonName } from '../../../services/member/person.js?v=20261109a';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261109a';
-import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261109a';
-import { showToast, escHtml as esc, fmtDt, describeWriteError } from '../../../core/base/utils.js?v=20261109a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261110a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261110a';
+import { getPersonName } from '../../../services/member/person.js?v=20261110a';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261110a';
+import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261110a';
+import { showToast, escHtml as esc, fmtDt, describeWriteError } from '../../../core/base/utils.js?v=20261110a';
 // 统一检索引擎（2026-09-14 批次 37）：上报记录列表接入关键词 + 状态分面 + 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261109a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261109a';
-import { icon } from '../../../core/base/icons.js?v=20261109a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261110a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261110a';
+import { icon } from '../../../core/base/icons.js?v=20261110a';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点', desc: '发展党员关键节点（确定积极分子/发展对象、接收预备党员、按期转正等）' },
@@ -76,8 +76,8 @@ function refreshStats(tc, branchId) {
   if (!stats) return;
   stats.innerHTML = [
     { v: n('pending'), l: '待党委批复', icon: 'clock', tint: 'var(--status-warning-text)' },
-    { v: n('approved'), l: '已批准', icon: 'check', tint: 'var(--status-success)' },
-    { v: n('rejected'), l: '已驳回', icon: 'close', tint: 'var(--status-error)' },
+    { v: n('approved'), l: '已批准', icon: 'check', tint: 'var(--status-success-text)' },
+    { v: n('rejected'), l: '已驳回', icon: 'close', tint: 'var(--status-error-text)' },
   ].map(x => `
     <div class="card rounded-xl p-3 stat-card">
       <span class="stat-icon-tint" style="--tint:${x.tint};" aria-hidden="true">${icon(x.icon, { strokeWidth: 1.8, className: 'w-5 h-5' })}</span>

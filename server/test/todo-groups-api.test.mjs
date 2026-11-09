@@ -255,7 +255,7 @@ test('⑧ 纪检台「考勤 / 考察待确认」由服务端派生，count === 
   assert.ok(keys.includes('inspection-confirm'), '纪检视图应产出考察待确认组');
   for (const g of body.groups) assert.equal(g.count, g.items.length, `${g.groupKey}.count === items.length`);
   // 客户端不再自行计算：服务端已接管键必须出现在壳的 SERVER_OWNED_ACTION_KEYS
-  const { SERVER_OWNED_ACTION_KEYS } = await import('../../docs/src/components/record/todo-tab-shell.js?v=20261109a');
+  const { SERVER_OWNED_ACTION_KEYS } = await import('../../docs/src/components/record/todo-tab-shell.js?v=20261110a');
   for (const key of ['attendance-confirm', 'inspection-confirm']) {
     assert.ok(SERVER_OWNED_ACTION_KEYS.has(key), `客户端壳应声明服务端已接管：${key}`);
   }

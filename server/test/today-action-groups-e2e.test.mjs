@@ -19,9 +19,9 @@ import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 // `D-787`（2026-10-05 · 9 → 6 合并）：业务域识别色的单一源 —— 非空转断言用它（现行**恰一键 `project`**）
-import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261109a';
+import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261110a';
 // `D-787`：6 类域值（色键须落其中）
-import { DOMAIN_ORDER } from '../../docs/src/services/governance/todo.js?v=20261109a';
+import { DOMAIN_ORDER } from '../../docs/src/services/governance/todo.js?v=20261110a';
 
 let server, base, browser;
 
@@ -70,7 +70,9 @@ test('S12 今天页左卡＝动作性质分组（七类）；旧「本岗待办�
       const card = [...wrap.querySelectorAll('section')].find((s) => s.textContent.includes('要办')) || wrap;
       const headRow = card?.querySelector(':scope > div');
       const headBtn = headRow?.querySelector('button[data-today-all="todo"]');
-      const rows = [...wrap.querySelectorAll('.today-go[data-go="todo"]')];
+      // 2026-11-10 批次 540：待办行改为动作级落点（`data-go="action"` ＋ actionKey/sourceId），
+      //   不再一律 `data-go="todo"`（汇报行仍是 `data-go="todo"` 带 reportId）。
+      const rows = [...wrap.querySelectorAll('.today-go[data-go="action"]')];
       // 组标题＝h4（_segHead）；取其文本与七类比对
       const h4s = [...card.querySelectorAll('h4')].map((h) => (h.textContent || '').replace(/\d+$/, '').trim());
       const groupLabels = h4s.filter((t) => labels.includes(t));
@@ -81,7 +83,7 @@ test('S12 今天页左卡＝动作性质分组（七类）；旧「本岗待办�
       // `D-787`（9 → 6 合并）后 `WORK_DOMAIN_COLORS` 暂空 ⇒ 现行**各域胶囊一律中性**（无 `data-domain`、
       //   无内联底色）；本探针仍按「有 `data-domain` 才要求底色」取数，供支书定色后同批复用。
       const domainChips = [...wrap.querySelectorAll('span[data-domain]')];
-      const chips = [...wrap.querySelectorAll('.today-go[data-go="todo"] span.rounded-full')]
+      const chips = [...wrap.querySelectorAll('.today-go[data-go="action"] span.rounded-full')]
         .filter((el) => domainLabels.includes((el.textContent || '').trim()));
       const hasInlineBg = (el) => (el.getAttribute('style') || '').includes('background:');
       return {

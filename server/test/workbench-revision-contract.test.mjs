@@ -412,7 +412,9 @@ test('工作概况汇报区只读：无提交入口，唯一动作跳待办「�
   assert.doesNotMatch(source, /wo-req-submit|data-report-submit|请填写汇报内容|renderFilteredList/, '概况不得保留汇报行内提交/校验载体');
   assert.match(source, /data-wo-go-dispatch/, '汇报摘要须给出唯一动作按钮');
   // 2026-10-25 Task 5：原「我的处置」页签已并入待办「我经办的反馈」区 ⇒ 落点改为待办 + 滚到该区。
-  assert.match(source, /data-\$\{prefix\}-tab="todo"/, '唯一动作须跳「待办」');
+  // 2026-11-10 批次 540 波次 5：切页签改走统一导航（`goToWorkspaceTab('todo', …)`），
+  //   不再按 prefix 点按钮；本条覆盖「唯一动作须跳待办」不变。
+  assert.match(source, /_switchTo\(role, 'todo'/, '唯一动作须跳「待办」（经统一导航出口）');
   assert.match(source, /ws-dispatch-section/, '落点须滚到「我经办的反馈」区');
 });
 

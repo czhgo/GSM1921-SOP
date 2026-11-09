@@ -2,7 +2,7 @@
 title: "设计系统（父索引）"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-08"
+last_updated: "2026-11-10"
 status: active
 related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RESPONSIVE.md, DS_05_MAP_AND_REFERENCE.md, DS_06_LAYOUT_AND_DENSITY.md, CASES.md, ../../../docs/src/styles.css, ../evolution/archive/DESIGN_METHODOLOGY.md, ../data/DATA_MODEL.md]
 ---
@@ -64,7 +64,7 @@ related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONEN
 2. **最小三成本（Min Cost First）**：任务流默认直接展示在工作台，不要求用户额外操作才能看到"我需要做什么"。包含三个维度：①**信息成本**——用户获取"我需要做什么"所需的信息搜寻成本，任务流默认直接展示；②**操作成本**——从"进入工作台"到"看到可执行事项"的点击/操作次数，进入即见，系统主动推送；③**适应学习成本**——新用户理解工作分工、工作任务、信息流运作方式的学习成本，通过系统设计本身自解释。适用于全系统所有角色工作台。
    - **知情权优先（裁定 2026-08-08）**：无职责不代表没有知情权。支委/角色即便业务上不负责活动/专班的操作（如纪检无专班职责、组织无活动 tab），仍有权查看其详情。凡首页跳转携带 `activityId`/`taskforceId`/`view=activities` 参数，各角色工作台均须有对应「查看」承载（激活相关 tab 或复用活动/专班查看组件），不得因"无职责"而丢弃参数、让用户信息成本升高。
 3. **哑光质感（Matte Aesthetic）**：背景采用低饱和中性色，拒绝高光/镜面反射/玻璃拟态
-4. **色彩克制（Color Restraint）**：每个页面主色 ≤ 2 种，功能色仅用于状态指示。**点缀色**（图标浅底 / 笔触 / 关键数值，每屏 1–2 处）不计入主色数量，也不承担状态语义；页面以素净为主，不等于禁止彩色点缀（判例：CASE-DESIGN-030）
+4. **色彩克制（Color Restraint）**：每个页面主色 ≤ 2 种，功能色仅用于状态指示。**点缀色**（图标浅底 / 笔触 / 关键数值，每屏 1–2 处）不计入主色数量，**不单独承担状态语义，须同时有文字标签**；页面以素净为主，不等于禁止彩色点缀（判例：CASE-DESIGN-030；图标口径见 `DS_03_COMPONENTS.md §4.11.2`）
 5. **动效适度（Motion Modesty）**：过渡动画 150-250ms，仅使用 opacity/transform（GPU 加速）
 6. **渐进增强（Progressive Enhancement）**：基础体验不依赖 backdrop-filter（低端设备友好）
 7. **同一套数据（One Source, Multi Entry）**：能够顺路产生的数据，尽可能不要单独填写，但可以保留多个入口——只要做到读取、写入、写出的数据是同一套数据。例如活动数据必然携带诸多副产物字段，赋权这类副产物应整合进活动数据流，而非另起一套与活动数据割裂的记录。可验证条件：`has_parent(entity, byproduct)` 且 `parent_record[byproduct] == 所有入口读取值` 视为通过；存在独立表/独立数组承载同类副产物数据 → 违反。（2026-08-02 确立）

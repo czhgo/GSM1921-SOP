@@ -2,33 +2,35 @@
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班），替代原单一列表
 // Task 3（2026-10-25）：`?tab=notice` 退役——消息有了唯一列表与「已归档」筛选，归档页只留活动、专班两栏。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261109a';
-import { renderHeader } from '../../components/shell/header.js?v=20261109a';
-import { BranchService } from '../../services/core/runtime.js?v=20261109a';
-import { mockDB, TaskforceStatus, TASKFORCE_TERMINAL_STATUSES } from '../../core/domain/domain.js?v=20261109a';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261109a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261109a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261109a';
-import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261109a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261110a';
+import { renderHeader } from '../../components/shell/header.js?v=20261110a';
+import { BranchService } from '../../services/core/runtime.js?v=20261110a';
+import { mockDB, TaskforceStatus, TASKFORCE_TERMINAL_STATUSES } from '../../core/domain/domain.js?v=20261110a';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261110a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261110a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261110a';
+import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261110a';
 // 活动「已结束」口径单一源（2026-09-13 收敛）：替代手写 status==='completed' || archived
 // 2026-10-24 批次 508：归档库的「已归档活动」改用 `isActivityArchived`（仅看 archived 软标记），
 //   与宣传台「档案归档」同口径——原 `isActivityEnded`（archived ∨ status==='completed'）会把
 //   **已结束但尚未归档**的活动也算进归档库，与同页其它两栏（专班/通知只收归档件）不一致。
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261109a';
-import { getBasePath, escHtml, showToast } from '../../core/base/utils.js?v=20261109a';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261110a';
+import { getBasePath, escHtml, showToast } from '../../core/base/utils.js?v=20261110a';
 // Task 6：归档弹窗是列表内预览（locate）⇒ 保留预览 + 「打开完整页」；深链校验归档终态。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261109a';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261109a';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261110a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261110a';
+// 图标单一源（批次 540：归档材料行的文件图标由内联 SVG 改为 icons.js）
+import { icon } from '../../core/base/icons.js?v=20261110a';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../components/ui/pager.js?v=20261109a';
-import { openModal } from '../../components/ui/modal.js?v=20261109a';
+import { pagerHtml } from '../../components/ui/pager.js?v=20261110a';
+import { openModal } from '../../components/ui/modal.js?v=20261110a';
 // 批次 87：本页必须先 hydrate API 数据源再渲染——与 activity.html（批次 83 修好后的标准形）同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下归档库读的是本地备份，
 // 服务端已归档的活动 / 专班 / 通知看不到。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261109a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261109a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261110a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261110a';
 
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261109a';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261110a';
 renderSidebar('archive');
 renderHeader('archive');
 
@@ -336,9 +338,7 @@ function _renderArchiveMaterials(activity) {
           const cb = catBadge[r.category] || catBadge.其他;
           return `
             <div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50 hover:bg-surface-hover transition-colors">
-              <svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-              </svg>
+              ${icon('fileText', { className: 'w-4 h-4 text-gray-500 flex-shrink-0', extra: ' aria-hidden="true"' })}
               <span class="text-sm text-gray-700 flex-1 truncate">${r.activityName || activity.title}${r.status === 'pending' ? '（待归档）' : ''}</span>
               ${badgeHtml(cb[1], cb[0])}
               <span class="text-xs text-gray-500">${r.archiveDate || ''} · 上传人：${escHtml(r.uploadedBy ? (getPersonName(r.uploadedBy) || r.uploadedBy) : '登记时未采集')}</span>

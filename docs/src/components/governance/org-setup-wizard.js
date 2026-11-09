@@ -16,40 +16,40 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261109a';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261109a';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors, ACCENT_PALETTE, normalizeAccentKey } from '../../core/domain/constants.js?v=20261109a';
-import { applyAccentThemeTokens } from '../../core/boot/theme.js?v=20261109a';
-import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261109a';
-import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261109a';
+import { mockDB } from '../../core/domain/domain.js?v=20261110a';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261110a';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors, ACCENT_PALETTE, normalizeAccentKey } from '../../core/domain/constants.js?v=20261110a';
+import { applyAccentThemeTokens } from '../../core/boot/theme.js?v=20261110a';
+import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261110a';
+import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261110a';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../capabilities/secretary-workspace.js?v=20261109a';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261109a';
+import '../../capabilities/secretary-workspace.js?v=20261110a';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261110a';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261109a';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261109a';
-import { icon } from '../../core/base/icons.js?v=20261109a';
-import { confirmDanger } from '../ui/modal.js?v=20261109a';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261109a';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261109a';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261110a';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261110a';
+import { icon } from '../../core/base/icons.js?v=20261110a';
+import { confirmDanger } from '../ui/modal.js?v=20261110a';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261110a';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261110a';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getBranchCapabilityPackageState, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, updateBranchCapabilityPackages, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson, ensureBranchConfigLoaded,
-} from '../../services/branch/branch.js?v=20261109a';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261109a';
+} from '../../services/branch/branch.js?v=20261110a';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261110a';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20261109a';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261109a';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261109a';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261109a';
+} from '../../services/branch/org-base-data-preview.js?v=20261110a';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261110a';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261110a';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261110a';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261109a';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261110a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261109a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261110a';
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
   { id: 1, label: '组织信息' },
@@ -554,7 +554,7 @@ function _baseDraftHtml(S, draft) {
         <span class="text-xs text-gray-500">有效 ${draft.people.length} 条${draft.dropped ? ` · 已忽略非法/白名单外 ${draft.dropped} 条` : ''}</span>
       </div>
       <div class="stat-grid">
-        ${_baseStatBox({ icon: 'usersGroup', tint: 'var(--status-info)', value: s.partyTotal, unit: '人', label: '在册党员', sub: `应到基数 · 正式 ${s.official} + 预备 ${s.probationary}` })}
+        ${_baseStatBox({ icon: 'usersGroup', tint: 'var(--status-info-text)', value: s.partyTotal, unit: '人', label: '在册党员', sub: `应到基数 · 正式 ${s.official} + 预备 ${s.probationary}` })}
         ${_baseStatBox({ icon: 'clock', tint: 'var(--status-warning-text)', value: s.detained, unit: '人', label: '滞留党员', sub: '组织关系保留、通知照发' })}
         ${_baseStatBox({ icon: 'usersGroup', tint: 'var(--app-accent-soft-text)', value: s.expected, valueColor: 'var(--status-error-text)', unit: '人', label: '支部党员大会应到', sub: `党员 ${s.partyTotal} − 滞留 ${s.detained}` })}
         ${_baseStatBox({ icon: 'list', tint: 'var(--neutral-500)', value: groupCount, unit: '组', label: '各党小组会应到', subHtml: groupParts || '—' })}

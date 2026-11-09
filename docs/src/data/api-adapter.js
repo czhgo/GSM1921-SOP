@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken, advanceVersionBaselineAfterWrite } from './data-adapter.js?v=20261109a';
+import { getApiBaseUrl, getAuthToken, advanceVersionBaselineAfterWrite } from './data-adapter.js?v=20261110a';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -662,6 +662,16 @@ export const ApiAdapter = {
 
     delete(id) {
       return _delete(`/api/v1/branchDocs/${id}`);
+    },
+  },
+
+  // 支委会「待议池」（2026-11-10 批次 540 波次 2）：只读汇总口，服务端按支部 / 角色过滤，
+  // 并算好去重键 / 类型 / 应到 / 待议天数（`H32` 服务端算业务事实）。
+  // 分类单一源 = docs/src/core/domain/agenda-classify.js（服务端同一函数）。
+  agendaCandidates: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/committee/agenda-candidates${query ? '?' + query : ''}`);
     },
   },
 

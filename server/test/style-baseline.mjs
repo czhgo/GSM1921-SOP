@@ -152,8 +152,8 @@ export const HEX_BASELINE = {
   'docs/src/components/governance/org-setup-wizard.js': { c: 7, v: [
       '#16a34a', '#ce1126', '#ef4444', '#ffd700',
   ] },
-  'docs/src/components/governance/person-picker.js': { c: 3, v: [
-      '#6b7280', '#ce1126',
+  'docs/src/components/governance/person-picker.js': { c: 2, v: [
+      '#ce1126',
   ] },
   'docs/src/components/governance/query-view.js': { c: 2, v: [
       '#3b82f6',
@@ -188,9 +188,8 @@ export const HEX_BASELINE = {
   'docs/src/components/ui/status-badge.js': { c: 1, v: [
       '#9ca3af',
   ] },
-  'docs/src/core/base/icons.js': { c: 1, v: [
-      '#fff',
-  ] },
+  // 2026-11-10 批次 540：`icons.js` 的 `stroke: '#FFF'` 示例删除（硬编码从唯一图标源向调用点传播的源），
+  //   该文件 hex 清零 ⇒ 按收基线纪律删除条目，文件数 45 → 44。
   'docs/src/core/base/utils.js': { c: 12, v: [
       '#16a34a', '#1f2937', '#3b82f6', '#ef4444', '#eff6ff', '#f0fdf4', '#fef2f2',
       '#fff',
@@ -416,7 +415,10 @@ export const HEX_TOTAL_BASELINE = 812;
 // ⚠ 2026-11-04 批次 534（Task 5.2 / 6.4）：`tailwind-config.js` 与 `activity-view.js` hex 清零
 //   ⇒ 删两条目，文件数 47 → **45**（与实况同值；H3 防呆下限同步下沉到 45）。
 //   同批值数 300 → **291**（tailwind 的 Tailwind 默认色残留退场）。
-export const HEX_FILE_BASELINE = 45;
+// ⚠ 2026-11-10 批次 540（SVG 色彩契约）：`icons.js` 的 `stroke: '#FFF'` 示例删除、`person-picker.js` 的
+//   `stroke: '#6B7280'` 改 `var(--neutral-500)` ⇒ 前者条目删除、后者 c 3 → 2；文件数 45 → **44**（与实况同值，
+//   H3 防呆下限同步下沉）。**不是放宽**：判红项仍是 H1（新增值）/ H2（处数上涨）/ 僵尸登记。
+export const HEX_FILE_BASELINE = 44;
 export const HEX_VALUE_BASELINE = 291;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。
