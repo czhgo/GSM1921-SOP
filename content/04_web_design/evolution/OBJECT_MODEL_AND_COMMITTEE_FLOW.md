@@ -42,7 +42,7 @@ related_files: [../data/DATA_MODEL.md, ../data/DATA_CONTRACT.md, ../../02_instit
 
 ### 1.3 支委会现状
 
-- 事项池 `GET /committee/agenda-candidates` 仅 `requireCommissioner` 可读，组长无提交口：[committee.js L236](../../../server/routes/committee.js#L236)。
+- 事项池 `GET /committee/agenda-candidates` 仅 `requireCommissioner` 可读（[committee.js L236](../../../server/routes/committee.js#L236)）。任何登录成员可经 `POST /issues` 提交意见反馈（写门 `self-service`，[write-policy-matrix.mjs L443-L446](../../../server/security/write-policy-matrix.mjs#L443-L446)），支委在候选池以 `issue-committee` 看到（[committee.js L282](../../../server/routes/committee.js#L282)）；该通道没有回执、状态、来源对象与期望时点，不能承担「支部级事项提案」。
 - 来源八类：六类基础 ＋ 活动批准 ＋ 分工调整（[agenda-classify.js L29-L45](../../../docs/src/core/domain/agenda-classify.js#L29-L45)）；四反例排除日常创建与交接（[L55-L58](../../../docs/src/core/domain/agenda-classify.js#L55-L58)）。
 - 表决以 `agenda_votes` 行承载；没有独立的「待上会事项」实体，也没有统一回执。
 - 截止／锁定限支书、副支书（[committee.js L205-L207](../../../server/routes/committee.js#L205-L207)）；决议无外发路由，文件头注只写到「记录决议」（[committee.js L1-L2](../../../server/routes/committee.js#L1-L2)）。
@@ -142,7 +142,7 @@ related_files: [../data/DATA_MODEL.md, ../data/DATA_CONTRACT.md, ../../02_instit
 
 | 事件 | 通知对象 | 渠道 | 现行对应 |
 |---|---|---|---|
-| 提交 / 受理 | 提案人 | 通知（`audiencePersons`） | 无 |
+| 提交 / 受理 | 提案人 | 通知（`audiencePersons`） | 仅意见反馈可提交，无回执 |
 | 排期 | 支委层 ＋ 提案人 | 通知（`committee` sentinel ＋ 到人） | 无 |
 | 决议 | 支委层 ＋ 提案人 ＋ 受影响人 | 通知 ＋ 议程结果 | 仅议程内可见 |
 | 归档 / 驳回 | 提案人 | 通知 ＋ 理由 | 无 |
