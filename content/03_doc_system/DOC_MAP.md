@@ -2,7 +2,7 @@
 title: "全局文档导航映射"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-08"
+last_updated: "2026-11-11"
 version: "2.6"
 status: active
 related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUEUE.md, .ctx/ENGINEERING_ASSESSMENT.md, content/insights/README.md]
@@ -132,6 +132,7 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | `content/04_web_design/module/SOP_WEBSITE_GUIDE.md` | [工程师]+[AI] | SOP 系统优化与同步指南 | CLAUDE.md H30.2 |
 | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` | [工程师]+[AI] | 部署与对外对接（系统形态速览 + 四条落地路径与决策矩阵 + 学校/党校对接总叙事与决策矩阵 + 认证与登录门控 + 微信协同与小程序 + 北大党校与智慧党建对接） | DATA_MODEL.md、SYSTEM_ROLE_PERMISSION.md、DESIGN_SYSTEM.md、ARCHITECTURE.md |
 | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md` | [工程师]+[AI] | 架构演进（2026-09-03 精简：组件化落地评估历史结论 + §八 拖拽编排远期愿景 + §九 性能与交付形态 + §十 多支部同实例与党委内容域〔Phase 1–4，开关保持关闭〕；评估承接见 .ctx/ENGINEERING_ASSESSMENT.md「工程化评估与改造行动线」） | .ctx/ENGINEERING_ASSESSMENT.md、DATA_MODEL.md、SOP_WEBSITE_GUIDE.md |
+| `content/04_web_design/evolution/OBJECT_MODEL_AND_COMMITTEE_FLOW.md` | [工程师]+[AI] | 对象模型与支委会议事流（`D-866` 已裁、未实现：三层挂靠判据、党小组组长权限矩阵、上会回执状态机、URL 无后缀方案） | DATA_MODEL.md、SYSTEM_ROLE_PERMISSION.md、COMMISSIONER_DUTY_FRAMEWORK.md |
 | `.ctx/ENGINEERING_ASSESSMENT.md`（2026-09-08 自 content/04_web_design/evolution 迁入 .ctx/；2026-09-09 更名自 MODULARIZATION_ASSESSMENT；逐批沿革由月度日志承接） | [工程师]+[AI] | 工程化评估与改造行动线——**回答「当前风险在哪里、下一步先改什么」**：业务与数据正确性、安全与权限、最小三成本体验、架构复杂度与变更成本、测试与发布质量、运行/部署/跨组织复用六维评分；**不设综合均分**，阻断风险单列。各维证据、残项和行动顺序以本文为准。 | ARCHITECTURE_EVOLUTION.md、CLAUDE.md、content/insights/README.md |
 | `.ctx/REVIEW_QUEUE.md`（2026-09-17 收敛：已闭环项迁入月度日志，本体只留未闭环；此前**未登记于本表**，2026-09-17 补登） | [工程师]+[AI] | 支书评议队列——**回答「哪些评议与裁定还没闭环」**：待裁 / 待登记 / 进行中 / 待落地事项 + W4 专项评议循环承接区（全局评估总表 / 评议方法总索引 / 附录 ①–⑪） | CLAUDE.md H60/H60.6、各批次执行日志 |
 | `content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md` | [工程师]+[AI] | 契约类：L3 工作流块封装契约 v1.1（块差异化三维度 + 契约总则 + manifest 字段定义；2026-09-03 定稿） | docs/src/workflow/blocks/*、server/test/block-*（契约源） |
@@ -297,7 +298,7 @@ insights 单文件膨胀后（10+ 章 / 1000+ 行），按**知识类型**拆分
 | `content/04_web_design/data/` | 数据模型与数据流 | 有 | 无 | `DATA_MODEL.md` | 否 |
 | `content/04_web_design/deploy/` | 部署路径、认证门控与对外对接 | 有 | 无 | `DEPLOYMENT_GUIDE.md` / `SERVER_DEPLOY_MANUAL.md` | 否 |
 | `content/04_web_design/module/` | 页面与模块设计、SOP-系统联动 | 有 | 无 | `SOP_WEBSITE_GUIDE.md`；其余为论证档案 | 否 |
-| `content/04_web_design/evolution/` | 架构演进、契约与设计方法论 | 有 | 无 | `WORKFLOW_BLOCK_CONTRACT.md` / `DESIGN_METHODOLOGY.md` | 否 |
+| `content/04_web_design/evolution/` | 架构演进、对象模型与议事流设计 | 有 | 无 | `ARCHITECTURE_EVOLUTION.md` / `OBJECT_MODEL_AND_COMMITTEE_FLOW.md` | 否 |
 | `content/05_ai_coding/` | AI 协作方法论五个分篇与 ai-coding 判例 | 有 | **有** | `README.md`（索引）＋五个分篇；判例 `CASES.md` | 否 |
 | `content/insights/` | 面向人的经验沉淀与学习入口 | 有 | 无 | 不承担规范；规范回 03 / 04 / 05 | 否 |
 | `docs/` | 前端实现（页面、组件、服务、样式、数据适配） | 有 | 无 | `content/04_web_design/**` ＋ `content/03_doc_system/ARCHITECTURE.md §十一` | 是（源码） |

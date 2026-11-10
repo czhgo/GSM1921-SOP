@@ -64,8 +64,8 @@ dynamic_role:
 | .ctx/logs/archive/2026-10/IA_LINK_TRUTH.md | 2026-10-19 | — | [工程师]+[AI] | IA 链接真值审计（角色 + 对象 + 步骤）；材料闭环逐角色落点表 + 真机读数（组长点考勤被弹回 leader.html）。 |
 | .ctx/logs/archive/2026-10/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/logs/archive/2026-10/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
-| .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-11-10 | — | [工程师]+[AI] | 日志索引 + 批次索引（509–541）。 |
-| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-10 | — | [工程师]+[AI] | 11 月执行日志（当月活跃）。 |
+| .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-11-11 | — | [工程师]+[AI] | 日志索引 + 批次索引（509–542）。 |
+| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-11 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，含批次 542）。 |
 | .ctx/logs/DECISION_LOG.md | 2026-11-11 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3828 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-03-EXECUTION_LOG.md | 2026-03-02 | 2026-07-31 | [工程师]+[AI] | 已归档 |
@@ -128,7 +128,7 @@ dynamic_role:
 | content/03_doc_system/USAGE_POLICY.md | 2026-09-15 | — | [工程师]+[AI] | 🗑️ 已删除（正文并入 `OPERATIONS_GUIDE.md`《运行与协作规范》**§19–§23**）。沿革见 `.ctx/logs/`。 |
 | content/03_doc_system/INFORMATION_COMPUTATION.md | 2026-11-08 | — | [工程师]+[AI] | 信息计算与呈现口径：通知可见性 / 铃铛 / 待办派生 / 概况 / 考勤五项；未统一项与待裁定分列。 |
 | content/03_doc_system/ARCHITECTURE.md | 2026-11-08 | — | [工程师]+[AI] | 核心架构与单一事实源（2026-09-25 三份合一） |
-| content/03_doc_system/DOC_MAP.md | 2026-11-08 | — | [工程师]+[AI] | 全局文档导航：五类载体索引 ＋ 目录作用表。 |
+| content/03_doc_system/DOC_MAP.md | 2026-11-11 | — | [工程师]+[AI] | 全局文档导航：五类载体索引 ＋ 目录作用表。 |
 | content/03_doc_system/TERMINOLOGY.md | 2026-11-08 | — | [工程师]+[AI] | 术语表（全仓唯一术语定义源）：20 条 × 9 字段；`OPERATIONS_GUIDE §19` 与 `sop/INDEX.md` 只留指针。 |
 | content/03_doc_system/SSOT_INDEX.md | 2026-09-15 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-25 批次 179（`P.16` 第三批）**：正文**整体并入** `content/03_doc_system/ARCHITECTURE.md` 的 **§十 单一事实源注册表与权威源治理**〔编号 **`10.1–10.6` 一字未改**〕⇒ **三份 → 一份**；顺带清旧债＝**本文件里 10 处 `DATA_FLOW.md`** 分两类处置〔**现行 SSOT 关系行 6 处**（`:46`/`:48`/`:57`/`:62`/`:63`/`:64`）**改准**为 `DATA_MODEL.md` 的 `§第二部分（数据流）` / `§3（参与者数据流设计）` / `§3.4（登录态说明）` · **带日期的迁移台账行 4 处**（`:166`/`:174`/`:175`/`:176`）**随整节「已迁移文件索引」按沿革删**〕＋ **同一文件内自相矛盾**（原 `:108` 一句并列两种 tab 组名）**收敛为现行四组**；`D-644`）（原：母本子本注册表；「已迁移文件索引」表 **30 行** ＋ Agent/Skill 配置（已迁出）节 **3 行** ＋ 审查顺序迁出注 **1 行** 随本次合并删去） |
 | content/03_doc_system/SERVICE_CATALOG.md | 2026-09-20 | — | [工程师]+[AI] | 🗑️ 已删除（正文并入 `ARCHITECTURE.md` **§十一 统一服务目录与角色-服务权限矩阵**）。沿革见 `.ctx/logs/`。 |
@@ -177,7 +177,8 @@ dynamic_role:
 | content/04_web_design/README.md | 2026-11-08 | — | [工程师]+[AI] | 04 目录索引（六子目录）。 |
 | content/04_web_design/contracts/README.md | 2026-11-10 | — | [工程师]+[AI] | 契约类索引（批次 540 登记表格组件契约） |
 | content/04_web_design/contracts/TABLE_COMPONENT_CONTRACT.md | 2026-11-10 | — | [工程师]+[AI] | 表格组件契约（载体判据 / 列宽三档 / 行高 40 与插行详情 / 横滚与首列吸附 / 列宽拖动 / 灰字四层）；守卫 `server/test/table-contract-guard.test.mjs`。 |
-| content/04_web_design/evolution/README.md | 2026-11-08 | — | [工程师]+[AI] | 演进入口索引 |
+| content/04_web_design/evolution/README.md | 2026-11-11 | — | [工程师]+[AI] | 演进入口索引（新增对象模型与议事流设计行） |
+| content/04_web_design/evolution/OBJECT_MODEL_AND_COMMITTEE_FLOW.md | 2026-11-11 | — | [工程师]+[AI] | 对象模型与支委会议事流设计（`D-866` 已裁、未实现）：三层挂靠判据、组长权限矩阵、上会回执状态机、URL 无后缀方案。 |
 | content/04_web_design/module/README.md | 2026-11-08 | — | [工程师]+[AI] | 模块设计索引 |
 
 ## content/05_ai_coding/ (AI 编码层)
@@ -270,7 +271,7 @@ dynamic_role:
 | content/03_doc_system/CASES_INDEX.md | 2026-11-11 | — | [工程师]+[AI] | 判例总索引（design 41 / data 1 / ai 9）。 |
 | server/test/docs-governance-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 文档治理守卫。 |
 | .ctx/README.md | 2026-11-03 | — | [工程师]+[AI] | 三层分职（active / reference / provenance）、准入判据、读取顺序、预算、冲突顺序与可复用资产索引。 |
-| .ctx/ACTIVE_CONTEXT.md | 2026-11-11 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-865`。 |
+| .ctx/ACTIVE_CONTEXT.md | 2026-11-11 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-866`。 |
 | server/test/link-color-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 链接色守卫。 |
 | server/test/activity-tone-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 活动类别守卫。 |
 | server/test/field-shell-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 字段外壳守卫。 |

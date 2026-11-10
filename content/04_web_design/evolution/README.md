@@ -2,7 +2,7 @@
 title: "设计演进入口（04/evolution/）"
 type: index
 role: "[工程师]+[AI]"
-last_updated: 2026-11-08
+last_updated: 2026-11-11
 status: active
 ---
 
@@ -29,6 +29,7 @@ status: active
 | 文件 | 一句话作用 | 权威源？（是/指针） |
 |---|---|---|
 | [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) | 架构演进：组件化评估的历史结论、工作流块拖拽编排远期愿景、性能与交付形态、§十 多支部同实例与党委内容域（Phase 1–4，开关保持关闭） | **是**——演进方向与阶段设计的权威；现行工程方向判断仍以 `.ctx/ENGINEERING_ASSESSMENT.md` 为准 |
+| [OBJECT_MODEL_AND_COMMITTEE_FLOW.md](OBJECT_MODEL_AND_COMMITTEE_FLOW.md) | 对象模型与支委会议事流：三层挂靠判据、党小组组长权限矩阵、上会回执状态机、URL 无后缀方案（`D-866` 已裁、未实现） | **是**——上述四项设计的方向权威；实现完成后回写 `DATA_MODEL` / `SYSTEM_ROLE_PERMISSION`，本文降为论证档案 |
 | `README.md` | 本目录索引（活跃愿景、archive 索引、旧路径重定向） | 指针 → 上述文件与各权威源 |
 
 ### 归档（`archive/`）
@@ -41,7 +42,7 @@ status: active
 
 ## 权威源与派生
 
-- **活跃愿景只有一份**：`ARCHITECTURE_EVOLUTION.md`；其 §八 与 §十 是仍在生效的设计，实施前不打开 `ALLOW_MULTI_BRANCH` 等开关。
+- **活跃愿景分工**：`ARCHITECTURE_EVOLUTION.md` 管架构与多支部演进；`OBJECT_MODEL_AND_COMMITTEE_FLOW.md` 管对象模型与议事流；两份的 §八 / §十 与「待裁」节是仍在生效的设计，实施前不打开 `ALLOW_MULTI_BRANCH` 等开关。
 - **archive 只留论证**：三份归档件不再承担现行权威，结论已落到代码与对应规范；引用它们时须同时给出权威源。
 - **契约不在本目录**：需「实现必须遵守」的结构与验收，一律进 [contracts/](../contracts/)。
 - **与 DESIGN_SYSTEM 的关系**：视觉、组件、动效与点击落点以 [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md) 为准；本目录与 archive 中「看起来像规范」的表述，未进 DESIGN_SYSTEM 或 DATA_MODEL 的只作论证参考。
