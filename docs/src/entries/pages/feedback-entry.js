@@ -13,6 +13,7 @@ import { ApiAdapter } from '../../data/api-adapter.js?v=20261110b';
 import { IssueStore } from '../../services/governance/issues.js?v=20261110b';
 import { MilestoneStore } from '../../services/governance/milestones.js?v=20261110b';
 import { showToast, getBasePath } from '../../core/base/utils.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 import { AuthStore } from '../../services/core/auth.js?v=20261110b';
 import { renderIssueList } from '../../components/feedback/issue-list.js?v=20261110b';
 import { renderIssueDetail } from '../../components/feedback/issue-detail.js?v=20261110b';
@@ -45,7 +46,7 @@ function getRouteParam(key) {
 async function initRoute() {
   const actor = AuthStore.getCurrentUser();
   if (!actor) {
-    window.location.replace(getBasePath() + 'login.html');
+    window.location.replace(pageHref(getBasePath() + 'login.html'));
     return;
   }
   if (actor.role === 'party-staff') {
@@ -76,7 +77,7 @@ async function initRoute() {
   } else if (isNew) {
     // L2 功能门控：提交反馈需登录（支书 2026-08-18 裁决），未登录跳登录页
     if (!AuthStore.getCurrentUser()) {
-      window.location.href = getBasePath() + 'login.html';
+      window.location.href = pageHref(getBasePath() + 'login.html');
       return;
     }
     showNewView();

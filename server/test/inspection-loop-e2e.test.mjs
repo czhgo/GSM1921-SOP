@@ -40,7 +40,7 @@ async function loginAs(sid, ws, tab = '组员进展', deepLink = '') {
   await page.fill('#student-id', sid);
   await page.fill('#password', '123456');
   await Promise.all([
-    page.waitForURL(`**/workspace/${ws}.html`, { timeout: 15000 }),
+    page.waitForURL(`**/workspace/${ws}`, { timeout: 15000 }),
     page.click('button[type="submit"]'),
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });

@@ -58,7 +58,7 @@ async function openWriteStep1(page) {
   await page.fill('#student-id', '2300010001');
   await page.fill('#password', '123456');
   await Promise.all([
-    page.waitForURL('**/workspace/secretary.html', { timeout: 10000 }),
+    page.waitForURL('**/workspace/secretary', { timeout: 10000 }),
     page.click('button[type="submit"]'),
   ]);
   await page.waitForFunction(() => [...document.querySelectorAll('.secretary-tab-btn')].some(b => b.textContent.includes('活动')), null, { timeout: 12000 });

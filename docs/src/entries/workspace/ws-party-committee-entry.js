@@ -11,6 +11,7 @@ import { loadActivities } from '../../services/activity/activity.js?v=20261110b'
 import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261110b';
 // 2026-10-24 批次 508：活动深链的显式落点（提示 + 跳活动详情）需要这两个工具出口
 import { showToast, getBasePath } from '../../core/base/utils.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 // Task 6：本台无活动承载面 ⇒ 跨页直达完整详情页（direct，objectDetailHref 统一出口）。
 import { objectDetailHref } from '../../core/domain/object-route.js?v=20261110b';
 // 副作用导入触发党委工作台能力注册（tab 清单）
@@ -34,7 +35,7 @@ await createWorkspaceShell({
     const href = objectDetailHref('activity', nav.actId, { entry: 'cross-page-deeplink' });
     if (!href) return false;
     showToast('info', '本台无活动页签，已转到活动详情');
-    window.location.assign(`${getBasePath()}${href}`);
+    window.location.assign(pageHref(`${getBasePath()}${href}`));
     return { tabId: 'review' };
   },
   loadOptions: {

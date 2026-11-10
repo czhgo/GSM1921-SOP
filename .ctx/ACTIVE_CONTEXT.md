@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: "2026-11-11"
 last_verified: "2026-11-11"
-latest_decision: "D-866"
+latest_decision: "D-867"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -22,7 +22,7 @@ status: active
 
 - **形态**：原生 ESM 多页应用 ＋ Node/Express ＋ better-sqlite3；页面 26 个（18 根页 ＋ 8 工作台/只读视图）；工作台 7 个（支书 / 组织 / 宣传 / 纪检 / 组长 / 成员 / 党委）；党委台 4 页签（下发通知 / 院级内容 / 支部上报 / 支部管理）。
   - source：`.ctx/SNAPSHOT.md §I/§III`。
-- **URL**：服务端已支持无后缀（`express.static extensions:['html']`；2026-11-11 实测 `GET /workspace/secretary` 200），站内链接仍带 `.html`；去后缀方案见 `content/04_web_design/evolution/OBJECT_MODEL_AND_COMMITTEE_FLOW.md §五`。
+- **URL**：无后缀已落地（`D-867`）：`pageHref()` 单源 ＋ `resolveDocumentUrl` ＋ 运行时 `link-normalize`；旧 `.html` 保持 200；真机登录后 URL＝`/workspace/secretary?tab=today`，站内 `.html` 锚点 0（`help` / `about` 除外）。
 - **数据**：业务表 48 张（34 资源 ＋ 8 语义 ＋ 6 工作组）；SQLite 宽表 `id + data(JSON)`；schema **v13**（新增 `publication_audits`，三张内容表加 `owner_scope` / `publish_scope` 生成列）；空库首启补最小组织基线（1 支部 ＋ 党委账号 ＋ 6 角色账号）。
   - source：`server/data/domain-contract.mjs`、`content/04_web_design/data/DATA_CONTRACT.md`。
 - **权限**：写入口权限矩阵 **141 条**（135 enforced / 4 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵；审计 C1 查矩阵 + 高风险抽样。
@@ -63,6 +63,7 @@ status: active
 - **批次 540 前端交互契约**：待办跳转未命中本台页签一律 fail-closed（可见提示「本台无该模块」＋ 同义落点），禁 toast-only；议程「来源 → 类型 → 待议池」两端同源 import；同列同语义 ≥3 行只走 `renderDataTable`；活动详情四段收口、分工视图 4 → 2；图标色值只许 `currentColor` / `none` / `var(--token)`，hex 扫描含 data-URI 的 `%23`。（`D-863`）→ `content/04_web_design/contracts/{INTERACTION_AND_NAVIGATION,AGENDA_DERIVATION,TABLE_COMPONENT}_CONTRACT.md`、`content/04_web_design/design-system/CASES.md` CASE-DESIGN-036…041、`DS_03 §4.11.2`。
 - **批次 541 P2 分拣与三条读面口径**：P2 按 A / B / C / D / E 五类分拣，B 类未写触发不得开工，C 类关闭不再复核；应到口径单一源＝`roster-eligibility.js`（滞留保留身份、应到剔除；已转出前置剔除），待办行读权限单一源＝`todo-read-policy.mjs`，公共门厅过期 / 缺失有效期一律 404 fail-closed，定向通知须同时比对支部。（`D-864`）→ `.ctx/evidence/2026-11-10/p2-cleanup-ledger.md`、`.ctx/REVIEW_QUEUE.md B-541-1…11`。
 - **产品对象模型与议事流**：三层为「党小组 → 活动 / 专班 → 工作组」，工作组不设指导支委；组长「组内全权 ＋ 支部提案」；上会「统一事项 ＋ 回执」，建会与决议只归支书 / 副支书；URL 取「去后缀 ＋ 兼容」，旧 `.html` 保持 200。（`D-866`）→ `content/04_web_design/evolution/OBJECT_MODEL_AND_COMMITTEE_FLOW.md`。
+- **三项子裁定 ＋ URL B 已落**：支部级专班存在（`taskforces.hostGroupId` 可空）；决议默认受众＝支委 ＋ 提案人 ＋ 受影响人；组长提案对全体支委可见；URL 由 `pageHref()` 单源＋运行时归一出清。（`D-867`）→ 设计稿 §五 / §七。
 
 ## §3 当前风险与下一步
 
@@ -90,7 +91,7 @@ status: active
 
 ### 下一批最该做的 3 件事
 
-1. **`D-866` 落地（支书优先级最高）**：按 URL B → 对象模型判据 → 提案 / 上会回执 → 建会权收口与决议广播的顺序实施；设计稿与待裁三项见 `content/04_web_design/evolution/OBJECT_MODEL_AND_COMMITTEE_FLOW.md`。
+1. **`D-866` 落地（支书优先级最高）**：URL B 已完成（`D-867`）；下一步按对象模型判据 → 提案 / 上会回执 → 建会权收口与决议广播推进；设计稿与已裁三项见 `content/04_web_design/evolution/OBJECT_MODEL_AND_COMMITTEE_FLOW.md`。
 2. **完整 Plan B 二期（`B-500-7b-2`）**：删客户端业务派生的默认路径 + 读面前置解耦 + 缓存 / 性能；前置（7 类对账 8/8、双支部夹具、daily 246 断言）已达，不以上线为前提。
 3. **首次部署前验证**：在 Linux 测试机跑 `install/update` + `preflight-cutover --strict`，把 `L-02` 关掉；多支部 Phase 1 顺延至上述两项之后。
 

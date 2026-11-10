@@ -109,7 +109,7 @@ test('党委选中支部后整页数据请求都带同一支部范围，未选�
   const filter = await read('../../docs/src/components/governance/branch-filter.js');
   const adapter = await read('../../docs/src/data/api-adapter.js');
   assert.match(filter, /url\.searchParams\.set\('branchId',/);
-  assert.match(filter, /window\.location\.assign\(url\.toString\(\)\)/);
+  assert.match(filter, /window\.location\.assign\((?:pageHref\()?url\.toString\(\)/);
   assert.match(filter, /选择支部查看明细/);
   assert.match(filter, /apiMode \? '选择支部查看明细' : `全部支部（\$\{branches\.length\}）`/);
   assert.match(adapter, /function _withSelectedBranch\(path\)/);

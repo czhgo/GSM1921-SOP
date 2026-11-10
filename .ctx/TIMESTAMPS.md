@@ -64,8 +64,8 @@ dynamic_role:
 | .ctx/logs/archive/2026-10/IA_LINK_TRUTH.md | 2026-10-19 | — | [工程师]+[AI] | IA 链接真值审计（角色 + 对象 + 步骤）；材料闭环逐角色落点表 + 真机读数（组长点考勤被弹回 leader.html）。 |
 | .ctx/logs/archive/2026-10/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/logs/archive/2026-10/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
-| .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-11-11 | — | [工程师]+[AI] | 日志索引 + 批次索引（509–542）。 |
-| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-11 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，含批次 542）。 |
+| .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-11-11 | — | [工程师]+[AI] | 日志索引 + 批次索引（509–543）。 |
+| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-11 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，含批次 542–543）。 |
 | .ctx/logs/DECISION_LOG.md | 2026-11-11 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3828 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-03-EXECUTION_LOG.md | 2026-03-02 | 2026-07-31 | [工程师]+[AI] | 已归档 |
@@ -82,7 +82,7 @@ dynamic_role:
 | .ctx/logs/archive/2026-09-EXECUTION_LOG.md | 2026-10-06 | 2026-10-06 | [工程师]+[AI] | 9 月执行日志（**已归档**）。**边界**：过程流水归 `git`；本文件**另承载「台账迁出附节」**——`R-` 表（`R-23`…`R-93` 全量纪律正文，**乙部表闭环即迁入此处**）＋ `TIMESTAMPS` 备注列历轮迁出的逐批沿革。**为什么**：`R-84`/`R-86`/`R-89` 的「各有其位」需要一个**稳定、不随月滚动**的落点。 |
 | .ctx/logs/2026-10-EXECUTION_LOG.md | 2026-10-27 | — | [工程师]+[AI] | 10 月执行日志（当月活跃；批次 336 换月建）。**边界**：只留「为什么 / 拿不准 / 边界 / 读数」（`H26.1`）；过程流水归 `git`，本文件不复述。 |
 | .ctx/logs/2026-10-DECISION_LOG.md | 2026-10-22 | — | [工程师]+[AI] | 10 月决策日志（**当月活跃 · 决议权威源**；2026-10-02 批次 336 换月建，自 9 月文件逐字迁入 `D-729`~`D-739`）。**边界**：每条裁定全文（追加、不改写）；过程归执行日志（`R-84`）。 |
-| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-11 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；当前 `D-827`…`D-865`。 |
+| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-11 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；当前 `D-827`…`D-867`。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_R10_DATA_LIFECYCLE.md | 2026-10-23 | — | [工程师]+[AI] | 第十轮数据生命周期审查（75 条；R10 四批的依据）。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_UI_R11.md | 2026-10-23 | — | [工程师]+[AI] | 第十一轮前端脏乱繁审查（P0/P1/P2 与 SD-1…SD-11）。 |
 | .ctx/logs/archive/2026-10/2026-10-R10_P3_CLOSURE.md | 2026-10-23 | — | [工程师]+[AI] | R10 P3 收口对账（R6 21 / R7 18 / 帮助注释 9）。 |
@@ -178,7 +178,7 @@ dynamic_role:
 | content/04_web_design/contracts/README.md | 2026-11-10 | — | [工程师]+[AI] | 契约类索引（批次 540 登记表格组件契约） |
 | content/04_web_design/contracts/TABLE_COMPONENT_CONTRACT.md | 2026-11-10 | — | [工程师]+[AI] | 表格组件契约（载体判据 / 列宽三档 / 行高 40 与插行详情 / 横滚与首列吸附 / 列宽拖动 / 灰字四层）；守卫 `server/test/table-contract-guard.test.mjs`。 |
 | content/04_web_design/evolution/README.md | 2026-11-11 | — | [工程师]+[AI] | 演进入口索引（新增对象模型与议事流设计行） |
-| content/04_web_design/evolution/OBJECT_MODEL_AND_COMMITTEE_FLOW.md | 2026-11-11 | — | [工程师]+[AI] | 对象模型与支委会议事流设计（`D-866` 已裁、未实现）：三层挂靠判据、组长权限矩阵、上会回执状态机、URL 无后缀方案。 |
+| content/04_web_design/evolution/OBJECT_MODEL_AND_COMMITTEE_FLOW.md | 2026-11-11 | — | [工程师]+[AI] | 对象模型与支委会议事流设计（`D-866`/`D-867`）：三层挂靠判据、组长权限矩阵、上会回执状态机、URL 无后缀（已实施）与三项子裁定。 |
 | content/04_web_design/module/README.md | 2026-11-08 | — | [工程师]+[AI] | 模块设计索引 |
 
 ## content/05_ai_coding/ (AI 编码层)
@@ -271,7 +271,7 @@ dynamic_role:
 | content/03_doc_system/CASES_INDEX.md | 2026-11-11 | — | [工程师]+[AI] | 判例总索引（design 41 / data 1 / ai 9）。 |
 | server/test/docs-governance-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 文档治理守卫。 |
 | .ctx/README.md | 2026-11-03 | — | [工程师]+[AI] | 三层分职（active / reference / provenance）、准入判据、读取顺序、预算、冲突顺序与可复用资产索引。 |
-| .ctx/ACTIVE_CONTEXT.md | 2026-11-11 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-866`。 |
+| .ctx/ACTIVE_CONTEXT.md | 2026-11-11 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-867`。 |
 | server/test/link-color-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 链接色守卫。 |
 | server/test/activity-tone-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 活动类别守卫。 |
 | server/test/field-shell-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 字段外壳守卫。 |
@@ -337,7 +337,8 @@ dynamic_role:
 | docs/src/core/domain/workgroup-policy.js | 2026-10-17 | — | [工程师]+[AI] | 工作组角色集合与活动/专班权限建议模板的共享策略单一源。 |
 | docs/src/core/base/icons.js | 2026-09-29 | — | [工程师]+[AI] | 图标系统（含 upload 上传图标） |
 | docs/src/core/base/id.js | 2026-09-29 | — | [工程师]+[AI] | UUID 发生器 |
-| docs/src/core/base/page-url.js | 2026-10-15 | — | [工程师]+[AI] | 站内页面 URL 单一解析：按 `document.baseURI` 保留工作台 `<base>` 与部署子路径，并安全设置查询参数。 |
+| docs/src/core/base/page-url.js | 2026-11-11 | — | [工程师]+[AI] | 站内页面 URL 单一解析：按 `document.baseURI` 保留工作台 `<base>` 与部署子路径，并安全设置查询参数；`pageHref()` 为去 `.html` 唯一变换（`D-867`）。 |
+| docs/src/core/base/link-normalize.js | 2026-11-11 | — | [工程师]+[AI] | 站内链接运行时归一：初始 DOM 与新增节点去 `.html`；`help` / `about` 冻结面跳过（`D-867`）。 |
 | docs/src/core/domain/policy-defaults.js | 2026-10-22 | — | [工程师]+[AI] | **（本批：G3-2 收口——新增 `POLICY_FIXED` 台账（12 条不可覆盖项：kind ＋ why ＋ src），消灭「未登记」第三态；26 叶键 ＝ 白名单 14 ＋ 固定台账 12，判据 `policy-config.test.mjs::R1–R3`）** **（2026-09-27 批次 211–212：路二 setting 可调性真缺陷修复——`POLICY_OVERRIDABLE` 白名单 **4 → 12 条**（新增 `attendance×3` / `review×2` / `makeup×3` / `thoughtReport×2`）；**域归属按母本**（时限类 / 补课范围与时限 → 纪检域、篇幅字数 → 组织域））** 业务默认值集中单一源（**2026-09-21 批次 132 补登**——本表原先无此行；本批 `attendance` 块：**新增 `noAttendanceTypes = ['支委会']`**、`meetingTypes` 去掉支委会、`recorderByType` 改准为「只列非组织者位类型」——**考勤上传位按会议类型分**，`D-558`） |
 | docs/src/core/base/state.js | 2026-09-29 | — | [工程师]+[AI] | 全局状态 |
 | docs/src/core/base/utils.js | 2026-10-05 | — | [工程师]+[AI] | 通用工具 |

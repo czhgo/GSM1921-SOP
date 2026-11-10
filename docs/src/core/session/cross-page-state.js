@@ -2,6 +2,7 @@
 // cross-page-state.js — 跨页面状态管理
 // 使用 sessionStorage 传递会话级状态，localStorage 传递持久数据
 // 第3轮 Task 8: 追加 setParam/getParam/clearParam 统一 URL params + sessionStorage 双轨
+import { pageHref } from '../base/page-url.js?v=20261110b';
 
 const SESSION_KEY = 'sop_org_os_session';
 const DATA_VERSION_KEY = 'sop_org_os_data_version';
@@ -44,7 +45,7 @@ export const CrossPageState = {
 
   navigateTo(page, extraState) {
     if (extraState) this.save({ ...this.load(), ...extraState });
-    window.location.href = page;
+    window.location.href = pageHref(page);
   },
 
   getDataVersion() {

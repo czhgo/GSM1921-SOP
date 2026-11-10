@@ -57,7 +57,7 @@ test('党委组织员登录直达党委工作台：台账见支部、可创建�
     await page.fill('#student-id', '9000000001');
     await page.fill('#password', '123456');
     await Promise.all([
-      page.waitForURL('**/workspace/party-committee.html', { timeout: 10000 }),
+      page.waitForURL('**/workspace/party-committee', { timeout: 10000 }),
       page.click('button[type="submit"]'),
     ]);
 
@@ -171,7 +171,7 @@ test('设置页主题选择器：7 项 × 2 枚小样，默认金，且与页面
     await page.fill('#student-id', '9000000001');
     await page.fill('#password', '123456');
     await Promise.all([
-      page.waitForURL('**/workspace/party-committee.html', { timeout: 10000 }),
+      page.waitForURL('**/workspace/party-committee', { timeout: 10000 }),
       page.click('button[type="submit"]'),
     ]);
     await page.goto(`${base}/settings.html#appearance`, { waitUntil: 'domcontentloaded' });
@@ -219,7 +219,7 @@ test('支部主题预设只做预览，不覆盖登录用户主题色', async ()
     await page.fill('#student-id', '2300010001'); // p_2300010001 支书
     await page.fill('#password', '123456');
     await Promise.all([
-      page.waitForURL('**/workspace/secretary.html', { timeout: 10000 }),
+      page.waitForURL('**/workspace/secretary', { timeout: 10000 }),
       page.click('button[type="submit"]'),
     ]);
     await page.goto(`${base}/settings.html#branch-info-wizard`, { waitUntil: 'domcontentloaded' });
@@ -248,7 +248,7 @@ test('P2 支书任命：任命宋佳宁(2400012349)为支书 → 2400012349 登�
     await page.fill('#student-id', '9000000001');
     await page.fill('#password', '123456');
     await Promise.all([
-      page.waitForURL('**/workspace/party-committee.html', { timeout: 10000 }),
+      page.waitForURL('**/workspace/party-committee', { timeout: 10000 }),
       page.click('button[type="submit"]'),
     ]);
     await page.waitForFunction(() => {
@@ -284,7 +284,7 @@ test('P2 支书任命：任命宋佳宁(2400012349)为支书 → 2400012349 登�
     await p_2400012349.fill('#student-id', '2400012349'); // p_2400012349 宋佳宁
     await p_2400012349.fill('#password', '123456');
     await Promise.all([
-      p_2400012349.waitForURL('**/workspace/secretary.html', { timeout: 10000 }),
+      p_2400012349.waitForURL('**/workspace/secretary', { timeout: 10000 }),
       p_2400012349.click('button[type="submit"]'),
     ]);
 
@@ -297,7 +297,7 @@ test('P2 支书任命：任命宋佳宁(2400012349)为支书 → 2400012349 登�
     await p_2300010001.fill('#student-id', '2300010001'); // p_2300010001 储子禾
     await p_2300010001.fill('#password', '123456');
     await Promise.all([
-      p_2300010001.waitForURL('**/workspace/visitor.html', { timeout: 10000 }),
+      p_2300010001.waitForURL('**/workspace/visitor', { timeout: 10000 }),
       p_2300010001.click('button[type="submit"]'),
     ]);
     await p_2400012349.close();
@@ -324,7 +324,7 @@ test('党委「查看该支部」进入独立只读视图：范围明确、无�
     await page.fill('#student-id', '9000000001');
     await page.fill('#password', '123456');
     await Promise.all([
-      page.waitForURL('**/workspace/party-committee.html', { timeout: 15000 }),
+      page.waitForURL('**/workspace/party-committee', { timeout: 15000 }),
       page.click('button[type="submit"]'),
     ]);
     assert.equal(
@@ -343,12 +343,12 @@ test('党委「查看该支部」进入独立只读视图：范围明确、无�
     });
     await page.waitForFunction(() => Boolean(document.querySelector('.branch-readonly-enter[data-branch-id="br-b1"]')), { timeout: 15000 });
     await Promise.all([
-      page.waitForURL('**/workspace/branch-readonly.html?branchId=br-b1', { timeout: 15000 }),
+      page.waitForURL('**/workspace/branch-readonly?branchId=br-b1', { timeout: 15000 }),
       page.evaluate(() => document.querySelector('.branch-readonly-enter[data-branch-id="br-b1"]').click()),
     ]);
 
     // 3. 页面保持党委身份并明确显示所选支部范围（2026-10-18：页面级眉题已移除，范围落在支部概况卡）
-    assert.match(page.url(), /\/workspace\/branch-readonly\.html\?branchId=br-b1$/);
+    assert.match(page.url(), /\/workspace\/branch-readonly\?branchId=br-b1$/);
     await waitForBodyText(page, '支部概况');
     await waitForBodyText(page, '光华管理学院本科生党支部');
     await waitForBodyText(page, '只读');

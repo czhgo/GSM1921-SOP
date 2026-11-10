@@ -10,6 +10,7 @@
 // ════════════════════════════════════════════════════════════════
 import { renderSidebar } from '../../components/shell/sidebar.js?v=20261110b';
 import { renderHeader } from '../../components/shell/header.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 import {
   NoticeStore, sendDirectMessage, canSendDirectMessage, kindOf,
 } from '../../services/governance/notice.js?v=20261110b';
@@ -47,7 +48,7 @@ let _picker = null;
 
 // `?open=` 是深链：直接进统一详情页（列表页不再各自解释对象落点）。
 if (_openParam) {
-  window.location.replace(`${getBasePath()}notice.html?id=${encodeURIComponent(_openParam)}`);
+  window.location.replace(pageHref(`${getBasePath()}notice.html?id=${encodeURIComponent(_openParam)}`));
 }
 
 /** hydrate：API 会话走 data-adapter init（服务端权威）；否则本地 loadDB（与 notice-entry 同款）。 */

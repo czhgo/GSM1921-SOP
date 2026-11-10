@@ -25,6 +25,7 @@ import { STATE, getAppState, setState, registerRenderCallback } from '../../core
 import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261110b';
 import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20261110b';
 import { flashHighlight, escHtml, showToast, smoothScroll } from '../../core/base/utils.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261110b';
 import { getCapabilities } from '../../core/boot/registry.js?v=20261110b';
 import { loadWorkspaceData } from '../../data/data-loader.js?v=20261110b';
@@ -518,7 +519,8 @@ export async function createWorkspaceShell(opts) {
     const _requestedId = _navTarget && _navTarget.tab ? _navTarget.tab : '';
     const _pageRedirect = _requestedId ? _legacyPageRedirects[_requestedId] : '';
     if (_pageRedirect) {
-      try { window.location.replace(_pageRedirect); } catch (_) { window.location = _pageRedirect; }
+      const _cleanRedirect = pageHref(_pageRedirect);
+      try { window.location.replace(_cleanRedirect); } catch (_) { window.location = _cleanRedirect; }
       return;
     }
 

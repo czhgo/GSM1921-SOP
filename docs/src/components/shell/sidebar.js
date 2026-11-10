@@ -15,9 +15,13 @@ import { getBasePath } from '../../core/base/utils.js?v=20261110b';
 import { icon } from '../../core/base/icons.js?v=20261110b';
 import { syncAppearanceForActiveUser } from '../../core/boot/theme.js?v=20261110b';
 import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261110b';
+import { installLinkNormalizer } from '../../core/base/link-normalize.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 
 // 外观键空间适配：页面壳加载即执行（全站每页均渲染 sidebar，天然覆盖公共页/工作台）
 syncAppearanceForActiveUser();
+// 站内链接去 `.html`（D-866 URL B）：随侧栏一次性安装，覆盖初始 DOM 与后续新增节点。
+installLinkNormalizer();
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染侧边栏：不预加载 auth 数据链
@@ -211,6 +215,6 @@ function _bindLogout(sidebar) {
   if (!btn) return;
   btn.addEventListener('click', () => {
     AuthStore.logout();
-    window.location.href = getBasePath() + 'login.html';
+    window.location.href = pageHref(getBasePath() + 'login.html');
   });
 }

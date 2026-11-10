@@ -6,6 +6,7 @@
 import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261110b';
 import { AuthStore } from '../../../services/core/auth.js?v=20261110b';
 import { showToast, getBasePath, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261110b';
+import { pageHref } from '../../../core/base/page-url.js?v=20261110b';
 import { badgeHtml } from '../../../components/ui/badges.js?v=20261110b';
 import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261110b';
 // 统一检索引擎（2026-09-14 批次 37）：已发布通知列表接入关键词（标题/正文）+ 分页
@@ -508,7 +509,7 @@ function renderNotificationList() {
       const row = e.target.closest('[data-notif-row="1"]');
       if (row) {
         e.stopPropagation();
-        window.location.href = `${getBasePath()}notice.html?id=${row.dataset.notifId}`;
+        window.location.href = pageHref(`${getBasePath()}notice.html?id=${row.dataset.notifId}`);
       }
     });
   }

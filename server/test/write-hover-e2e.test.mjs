@@ -37,7 +37,7 @@ test('写入向导 Step1：hover 色块不进入，click 色块（非文字按�
     await page.fill('#student-id', '2300010001');
     await page.fill('#password', '123456');
     await Promise.all([
-      page.waitForURL('**/workspace/secretary.html', { timeout: 10000 }),
+      page.waitForURL('**/workspace/secretary', { timeout: 10000 }),
       page.click('button[type="submit"]'),
     ]);
     // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑

@@ -86,23 +86,23 @@ test('R1 入口矩阵：每个入口只声明一种 mode 并写理由，未知�
   for (const entry of DIRECT_ENTRIES) assert.equal(OBJECT_ROUTE_ENTRIES[entry].mode, 'direct', `${entry} 应为 direct`);
   for (const entry of LOCATE_ENTRIES) assert.equal(OBJECT_ROUTE_ENTRIES[entry].mode, 'locate', `${entry} 应为 locate`);
   assert.equal(resolveObjectRoute({ type: 'activity', obj, viewer: view, entry: 'unknown' }).mode, 'none');
-  assert.equal(OBJECT_DETAIL_PAGES.activity, 'activity.html');
-  assert.equal(OBJECT_DETAIL_PAGES.taskforce, 'taskforce.html');
+  assert.equal(OBJECT_DETAIL_PAGES.activity, 'activity');
+  assert.equal(OBJECT_DETAIL_PAGES.taskforce, 'taskforce');
 });
 
 test('R2 落点：direct 直达详情页 / locate 同页定位但 href 仍指向完整页', () => {
   for (const entry of DIRECT_ENTRIES) {
     const route = resolveObjectRoute({ type: 'activity', obj, viewer: view, entry });
     assert.equal(route.mode, 'direct', `${entry} 应 direct`);
-    assert.equal(route.href, 'activity.html?id=act-1', `${entry} 的直达 href 不正确`);
+    assert.equal(route.href, 'activity?id=act-1', `${entry} 的直达 href 不正确`);
   }
   for (const entry of LOCATE_ENTRIES) {
     const route = resolveObjectRoute({ type: 'activity', obj, viewer: view, entry });
     assert.equal(route.mode, 'locate', `${entry} 应 locate`);
-    assert.equal(route.href, 'activity.html?id=act-1', `${entry} 的「打开完整页」href 不正确`);
+    assert.equal(route.href, 'activity?id=act-1', `${entry} 的「打开完整页」href 不正确`);
   }
   assert.equal(resolveObjectRoute({ type: 'taskforce', obj: { id: 'tf-1' }, viewer: view, entry: 'owner-workspace' }).href,
-    'taskforce.html?id=tf-1');
+    'taskforce?id=tf-1');
 });
 
 test('R3 门：缺 id / 跨支部拒绝；同支部与党委/组织员放行', () => {

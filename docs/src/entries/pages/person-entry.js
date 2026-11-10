@@ -36,6 +36,7 @@ import {
 import { ROLE_LABELS, RESIDENCE, EMPTY_TEXT, EMPTY_NOT_APPLICABLE } from '../../core/domain/constants.js?v=20261110b';
 import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261110b';
 import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 import { badgeHtml } from '../../components/ui/badges.js?v=20261110b';
 // 批次 87：本页必须先 hydrate API 数据源再渲染（成员档案读 + 编辑写）——与 activity.html 标准形同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下档案读的是本地备份，
@@ -66,7 +67,7 @@ const cardEl = document.getElementById('person-archive-card');
 const backBtn = document.getElementById('person-back-btn');
 backBtn?.addEventListener('click', () => {
   if (window.history.length > 1) window.history.back();
-  else window.location.href = getBasePath() + 'index.html';
+  else window.location.href = pageHref(getBasePath() + 'index.html');
 });
 
 const params = new URLSearchParams(window.location.search);

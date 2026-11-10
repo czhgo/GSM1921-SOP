@@ -71,7 +71,7 @@ test('产出块：支书停用宣传 → 组长活动详情无 publicity 按钮 
   const sec = await browser.newPage();
   blockRoutes(sec);
   await login(sec, '2300010001');
-  await sec.waitForURL('**/workspace/secretary.html', { timeout: 10000 });
+  await sec.waitForURL('**/workspace/secretary', { timeout: 10000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
   await sec.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261110b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await sec.evaluate(async () => {
@@ -84,7 +84,7 @@ test('产出块：支书停用宣传 → 组长活动详情无 publicity 按钮 
   const lead = await browser.newPage();
   blockRoutes(lead);
   await login(lead, '2400012345');
-  await lead.waitForURL('**/workspace/leader.html', { timeout: 10000 });
+  await lead.waitForURL('**/workspace/leader', { timeout: 10000 });
   // 2026-10-26 批次 513：登录后数据到达可能再渲染一次详情；试到有产出块写口的活动为止。
   let types = [];
   for (const id of ['act-37', 'act-21', 'act-26', 'act-3']) {
@@ -111,7 +111,7 @@ test('产出块：支书停用宣传 → 组长活动详情无 publicity 按钮 
   });
   await new Promise((r) => setTimeout(r, 1000));
   await lead.reload({ waitUntil: 'domcontentloaded' });
-  await lead.waitForURL('**/workspace/leader.html', { timeout: 10000 });
+  await lead.waitForURL('**/workspace/leader', { timeout: 10000 });
   // 2026-10-26 批次 513：分支配置在重载后异步到达；试到宣传块回归为止。
   let back = [];
   for (const id of ['act-37', 'act-21', 'act-26', 'act-3']) {

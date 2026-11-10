@@ -2,6 +2,7 @@
 // 党委只读查看支部：始终保留党委身份和显式 branchId 范围。
 import { getBranchById } from '../branch/branch.js?v=20261110b';
 import { showToast } from '../../core/base/utils.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 
 export function buildBranchReadOnlyUrl(branchId) {
   if (!branchId) return { ok: false, reason: '请先选择一个支部' };
@@ -9,7 +10,7 @@ export function buildBranchReadOnlyUrl(branchId) {
   if (!branch) return { ok: false, reason: '支部不存在或已停用' };
   return {
     ok: true,
-    url: `./workspace/branch-readonly.html?branchId=${encodeURIComponent(branchId)}`,
+    url: pageHref(`./workspace/branch-readonly.html?branchId=${encodeURIComponent(branchId)}`),
     branchName: branch.config?.headerTitle || branch.name || branchId,
   };
 }

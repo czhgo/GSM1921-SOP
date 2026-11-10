@@ -3,6 +3,7 @@
 
 import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261110b';
 import { showToast } from '../../core/base/utils.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 import { icon } from '../../core/base/icons.js?v=20261110b';
 import { badgeHtml } from '../ui/badges.js?v=20261110b';
 
@@ -118,7 +119,7 @@ export function renderIssueForm() {
     }
 
     showToast('success', anon ? '已匿名提交，待支书审核通过后公开' : '反馈已提交为草稿，待支书审核通过后公开');
-    window.location.href = './feedback.html';
+    window.location.href = pageHref('./feedback.html');
   });
 
   // 事项领域 → 建议归口 / 反馈时间实时提示（只呈现母本口径，不代填 / 不指派）：填写人当场看到这事「该往哪边走、大概多久有回音」

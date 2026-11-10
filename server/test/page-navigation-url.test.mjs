@@ -21,20 +21,20 @@ const leaderWorkspaceSource = readFileSync(new URL('../../docs/src/capabilities/
 test('workspace fallbacks resolve from document base to the site root', () => {
   const workspaceBase = 'http://127.0.0.1:3001/'; // workspace HTML <base href="../">
 
-  assert.equal(resolveDocumentUrl('login.html', { baseURI: workspaceBase }), `${workspaceBase}login.html`);
+  assert.equal(resolveDocumentUrl('login.html', { baseURI: workspaceBase }), `${workspaceBase}login`);
   assert.equal(
     resolveDocumentUrl('notice.html', { baseURI: workspaceBase, searchParams: { id: 'notice 1&2' } }),
-    `${workspaceBase}notice.html?id=notice+1%262`,
+    `${workspaceBase}notice?id=notice+1%262`,
   );
 });
 
 test('workspace fallbacks preserve a project deployment prefix', () => {
   const projectBase = 'https://example.org/GSM1921-SOP/'; // /workspace/*.html with <base href="../">
 
-  assert.equal(resolveDocumentUrl('login.html', { baseURI: projectBase }), `${projectBase}login.html`);
-  assert.equal(resolveDocumentUrl('notice.html', { baseURI: projectBase, searchParams: { id: 'n1' } }), `${projectBase}notice.html?id=n1`);
+  assert.equal(resolveDocumentUrl('login.html', { baseURI: projectBase }), `${projectBase}login`);
+  assert.equal(resolveDocumentUrl('notice.html', { baseURI: projectBase, searchParams: { id: 'n1' } }), `${projectBase}notice?id=n1`);
   for (const page of ['activity.html', 'taskforce.html']) {
-    assert.equal(resolveDocumentUrl(page, { baseURI: projectBase, searchParams: { id: 'item-1' } }), `${projectBase}${page}?id=item-1`);
+    assert.equal(resolveDocumentUrl(page, { baseURI: projectBase, searchParams: { id: 'item-1' } }), `${projectBase}${page.replace(/\.html$/, '')}?id=item-1`);
   }
 });
 

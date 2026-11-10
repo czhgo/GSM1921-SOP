@@ -7,6 +7,7 @@ import { icon } from '../../core/base/icons.js?v=20261110b';
 import { getPersonName } from '../../services/member/person.js?v=20261110b';
 import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261110b';
 import { badgeHtml } from '../ui/badges.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
 import { pagerHtml } from '../ui/pager.js?v=20261110b';
 
@@ -184,7 +185,7 @@ function bindEvents() {
     const url = new URL(window.location.href);
     url.searchParams.set('new', '1');
     url.searchParams.delete('id');
-    window.location.href = url.toString();
+    window.location.href = pageHref(url.toString());
   });
 
   bindListRegion();
@@ -231,7 +232,7 @@ function bindListRegion() {
       const url = new URL(window.location.href);
       url.searchParams.set('id', id);
       url.searchParams.delete('new');
-      window.location.href = url.toString();
+      window.location.href = pageHref(url.toString());
     };
     row.addEventListener('click', open);
     row.addEventListener('keydown', (e) => {

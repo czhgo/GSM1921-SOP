@@ -4,6 +4,7 @@
 
 import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261110b';
 import { getBasePath } from '../../core/base/utils.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 import { loadActivities } from '../../services/activity/activity.js?v=20261110b';
 import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261110b';
 import { seedTodos } from '../../services/governance/todo.js?v=20261110b';
@@ -29,7 +30,7 @@ await createWorkspaceShell({
       // 2026-10-20 批次 489（IA-A01 裁定）：纪检台已删除「知情查看」页签 ⇒ 专班深链改跳详情页，
       //   不再借只读页签落地。
       const href = objectDetailHref('taskforce', nav.tfId, { entry: 'cross-page-deeplink' });
-      if (href) window.location.href = getBasePath() + href;
+      if (href) window.location.href = pageHref(getBasePath() + href);
       return false;
     }
     // 活动：落考勤管理（纪检活动相关承载，现状即权限；activityId 直达该活动考勤）

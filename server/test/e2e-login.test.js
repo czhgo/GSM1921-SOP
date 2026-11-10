@@ -104,7 +104,7 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
     await page.fill('#student-id', '2300010001');
     await page.fill('#password', '123456');
     await Promise.all([
-      page.waitForURL('**/workspace/secretary.html', { timeout: 10000 }),
+      page.waitForURL('**/workspace/secretary', { timeout: 10000 }),
       page.click('button[type="submit"]'),
     ]);
 

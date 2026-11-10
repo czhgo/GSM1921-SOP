@@ -128,7 +128,7 @@ async function createSession(studentId, pageName) {
     await page.fill('#student-id', studentId);
     await page.fill('#password', '123456');
     await Promise.all([
-      page.waitForURL(`**/workspace/${pageName}.html`, { timeout: 30000 }),
+      page.waitForURL(`**/workspace/${pageName}`, { timeout: 30000 }),
       page.click('button[type="submit"]'),
     ]);
     try {

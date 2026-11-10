@@ -16,6 +16,7 @@ import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261110
 //   **已结束但尚未归档**的活动也算进归档库，与同页其它两栏（专班/通知只收归档件）不一致。
 import { isActivityArchived } from '../../core/domain/constants.js?v=20261110b';
 import { getBasePath, escHtml, showToast } from '../../core/base/utils.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 // Task 6：归档弹窗是列表内预览（locate）⇒ 保留预览 + 「打开完整页」；深链校验归档终态。
 import { objectDetailHref } from '../../core/domain/object-route.js?v=20261110b';
 import { badgeHtml } from '../../components/ui/badges.js?v=20261110b';
@@ -64,7 +65,7 @@ if (ARCHIVE_TABS.some(t => t.id === _tabParam)) _activeTab = _tabParam;
 const _focusArchiveId = _urlParams.get('id') || '';
 const _legacyNoticeTab = _tabParam === 'notice';
 if (_legacyNoticeTab) {
-  window.location.replace(`${getBasePath()}messages.html?filter=archived`);
+  window.location.replace(pageHref(`${getBasePath()}messages.html?filter=archived`));
 }
 
 const tabContainer = document.getElementById('archive-tabs');

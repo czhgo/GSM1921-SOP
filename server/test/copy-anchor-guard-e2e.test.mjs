@@ -88,7 +88,7 @@ async function loginAndOpenTab(page, studentId, workspace, tabLabel) {
   await page.fill('#student-id', studentId);
   await page.fill('#password', '123456');
   await Promise.all([
-    page.waitForURL(`**/workspace/${workspace}.html`, { timeout: 30000 }),
+    page.waitForURL(`**/workspace/${workspace}`, { timeout: 30000 }),
     page.click('button[type="submit"]'),
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 45000 });

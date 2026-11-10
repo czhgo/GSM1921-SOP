@@ -21,6 +21,7 @@ import { loadActivityReviews } from '../../services/governance/review.js?v=20261
 import { AuthStore } from '../../services/core/auth.js?v=20261110b';
 import { isActivityArchived } from '../../core/domain/constants.js?v=20261110b';
 import { getBasePath, escHtml as esc, showToast, describeWriteError, smoothScroll } from '../../core/base/utils.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261110b';
 // 材料页可见性单一源（C11）：与活动列表 / 详情页同判据，待批活动不能凭 id 被非支委层读到
 import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261110b';
@@ -54,11 +55,11 @@ backBtn?.addEventListener('click', () => {
   } catch (_) { /* 空 / 非法 referrer：走下方活动详情兜底 */ }
   if (activityId) {
     const href = objectDetailHref('activity', activityId, { entry: 'cross-page-deeplink' });
-    if (href) window.location.href = getBasePath() + href;
+    if (href) window.location.href = pageHref(getBasePath() + href);
     return;
   }
   if (window.history.length > 1) window.history.back();
-  else window.location.href = getBasePath() + 'index.html';
+  else window.location.href = pageHref(getBasePath() + 'index.html');
 });
 
 /** 归档失败原因（局部重渲染时保留，供「重试」旁展示） */

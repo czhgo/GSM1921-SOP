@@ -10,6 +10,7 @@
 
 import { icon } from '../../core/base/icons.js?v=20261110b';
 import { showToast, smoothScroll } from '../../core/base/utils.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
@@ -306,7 +307,7 @@ function _onRouteClick(event) {
   event.preventDefault();
   _showRouteProgress();
   _fadeOutPage();
-  window.setTimeout(() => { window.location.assign(url.href); }, _prefersReducedMotion() ? 0 : ROUTE_LEAVE_MS);
+  window.setTimeout(() => { window.location.assign(pageHref(url.href)); }, _prefersReducedMotion() ? 0 : ROUTE_LEAVE_MS);
 }
 
 let _routeHooked = false;

@@ -12,6 +12,7 @@ import { AuthStore } from '../../services/core/auth.js?v=20261110b';
 import { getBranchById, getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261110b';
 import { mountOrgSetupWizard } from '../../components/governance/org-setup-wizard.js?v=20261110b';
 import { renderSidebar } from '../../components/shell/sidebar.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 import { renderHeader } from '../../components/shell/header.js?v=20261110b';
 import { escHtml as esc } from '../../core/base/utils.js?v=20261110b';
 
@@ -46,7 +47,7 @@ if (!me) {
     AuthStore.devLogin(devRole);
     params.delete('dev');
     const qs = params.toString();
-    location.replace('./wizard.html' + (qs ? `?${qs}` : ''));
+    location.replace(pageHref('./wizard.html' + (qs ? `?${qs}` : '')));
   }
 }
 

@@ -11,7 +11,7 @@ import { IssueStore } from '../../services/governance/issues.js?v=20261110b';
 import { MilestoneStore } from '../../services/governance/milestones.js?v=20261110b';
 import { CrossPageState } from '../session/cross-page-state.js?v=20261110b';
 import { getBasePath } from '../base/utils.js?v=20261110b';
-import { resolveDocumentUrl } from '../base/page-url.js?v=20261110b';
+import { resolveDocumentUrl, pageHref } from '../base/page-url.js?v=20261110b';
 import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261110b';
 import { isBranchPendingUser } from '../domain/constants.js?v=20261110b';
 // 主题色解析（R1-A 点⑤，2026-09-09）：person-aware 渲染时取色——替代只读全局键的
@@ -257,7 +257,7 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
       const target = snapPage || memPage || 'visitor.html';
       // 基于当前 pathname 计算目标目录，避免依赖 <base> 的解析差异
       const dir = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
-      window.location.href = dir + target;
+      window.location.href = dir + pageHref(target);
       return { user: null };
     }
   }

@@ -1,5 +1,5 @@
 // role: [工程师]+[AI]
-// 组织委员工作台 Tab：**人才库**（2026-10-01 批次 321 改准：原「发展数据」整页并入本页）
+import { pageHref } from '../../../core/base/page-url.js?v=20261110b';
 //   · 支书 2026-10-01 裁「发展数据**整页并入人才库**」＋「**考察就是维护人才库的过程！！**」
 //     ＋「人才库是**长期维护**的系统（以考察数据为主）」⇒ 本页＝人才库卡片（全量在册成员、只读）
 //     ＋ **活动参与汇总**（＝参与工作情况，考察主体）。
@@ -304,7 +304,7 @@ export function renderContent(ctx) {
       if (e.target.closest('a')) return;
       const card = e.target.closest('.talent-card');
       if (card && card.dataset.rosterJump) {
-        window.location.href = getBasePath() + 'workspace/org.html?tab=roster&highlight=' + encodeURIComponent(card.dataset.rosterJump);
+        window.location.href = pageHref(getBasePath() + 'workspace/org.html?tab=roster&highlight=' + encodeURIComponent(card.dataset.rosterJump));
       }
     });
   }

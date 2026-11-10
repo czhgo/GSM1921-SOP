@@ -274,7 +274,7 @@ for (const w of WORKS) {
       await page.fill('#student-id', w.studentId);
       await page.fill('#password', '123456');
       await Promise.all([
-        page.waitForURL(`**/workspace/${w.page}.html`, { timeout: 30000 }),
+        page.waitForURL(`**/workspace/${w.page}`, { timeout: 30000 }),
         page.click('button[type="submit"]'),
       ]);
       await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 45000 });

@@ -8,6 +8,7 @@
 // 体例：筛选一律用**下拉**（禁 chip，规范 §筛选）；选择随模块自持（同 `list-filter` 的 `stateKey` 体例）
 //   ⇒ 页内重绘不丢选择。支部管理页自身就是支部目录，因此不重复挂筛选。
 import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 import { mockDB } from '../../core/domain/domain.js?v=20261110b';
 import { escHtml } from '../../core/base/utils.js?v=20261110b';
 
@@ -64,7 +65,7 @@ export function renderBranchFilter(host, { stateKey, onChange, tabId } = {}) {
       if (tabId) url.searchParams.set('tab', tabId);
       if (selected) url.searchParams.set('branchId', selected);
       else url.searchParams.delete('branchId');
-      window.location.assign(url.toString());
+      window.location.assign(pageHref(url.toString()));
       return;
     }
     // F11：mock 形态清除筛选时也删 URL 参数——否则下次重载又按 URL 旧值恢复出「清不掉」的筛选。

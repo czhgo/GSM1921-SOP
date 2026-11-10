@@ -13,6 +13,7 @@
 import { badgeHtml } from '../ui/badges.js?v=20261110b';
 import { openFormModal } from '../ui/modal.js?v=20261110b';
 import { showToast, getBasePath, todayLocal, escHtml } from '../../core/base/utils.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261110b';
 import { AuthStore } from '../../services/core/auth.js?v=20261110b';
 import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261110b';
@@ -152,7 +153,7 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
     item.addEventListener('click', (e) => {
       e.preventDefault();
       const id = item.dataset.noticeId;
-      if (id) window.location.href = `${getBasePath()}notice.html?id=${encodeURIComponent(id)}`;
+      if (id) window.location.href = pageHref(`${getBasePath()}notice.html?id=${encodeURIComponent(id)}`);
     });
   });
 }

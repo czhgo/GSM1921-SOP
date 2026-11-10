@@ -9,6 +9,11 @@ import { escHtml } from '../../core/base/utils.js?v=20261110b';
 import { DEPLOY_MODE } from '../../config/deploy.js?v=20261110b';
 
 import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261110b';
+import { installLinkNormalizer } from '../../core/base/link-normalize.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
+
+// 登录页不渲染侧栏：单独安装站内链接去 `.html`（D-866 URL B）。
+installLinkNormalizer();
 // C09（2026-10-20）：登录链接可带 `next`（目标页 URL）——登录成功后按 next 回跳，
 // 「未登录点活动 / 专班」不再只进工作台、丢掉原对象。只接受**同源** URL（防开放重定向），
 // 且 next 不得又指回登录页本身（防自循环）。
@@ -56,11 +61,11 @@ function _goToWorkspace(role) {
   const current = AuthStore.getCurrentUser();
   if (_NEXT_URL && !_IAAA_HASH && !isBranchPendingUser(current)) { window.location.href = _NEXT_URL; return; }
   const raw = AuthStore.getPageForRole('workspace', role);
-  const page = raw && !raw.endsWith('.html') ? raw + '.html' : raw;
+  const page = raw;
   if (page) {
-    window.location.href = `./workspace/${page}`;
+    window.location.href = pageHref(`./workspace/${page}`);
   } else {
-    window.location.href = './index.html';
+    window.location.href = pageHref('./index.html');
   }
 }
 

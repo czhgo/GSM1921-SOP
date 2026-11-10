@@ -163,9 +163,12 @@ related_files: [../data/DATA_MODEL.md, ../data/DATA_CONTRACT.md, ../../02_instit
 
 | 层 | 改什么 | 验收判据 |
 |---|---|---|
-| 静态链接 | `docs/**` 站内 `href` 去 `.html`；`about` / `help` 冻结件与外部链接除外 | 26 个入口页的站内链接不含 `.html` |
-| 生成层 | [page-url.js](../../../docs/src/core/base/page-url.js) 增 `pageHref(path)`，按 `URL_STYLE` 去后缀；`object-route.js` 与 `ROLE_PAGE_MAP` 走同一函数 | 全仓只有这一处做后缀变换 |
-| 守卫 | 页签审计、导航契约、文档链接检查同步允许无后缀，并新增「站内链接不得含 `.html`」断言 | 守卫全绿；旧断言不删 |
+| 生成层 | [page-url.js](../../../docs/src/core/base/page-url.js) 的 `pageHref()` 是唯一后缀变换；`resolveDocumentUrl()` 内联调用它 | 全仓只有这一处做后缀变换 |
+| 运行时归一 | [link-normalize.js](../../../docs/src/core/base/link-normalize.js) 对初始 DOM 与新增节点统一改写站内锚点；`help` / `about` 冻结面跳过 | 入口页站内链接不再出现 `.html` |
+| 重定向 | 登录、登出、深链、跨台重定向等 `location.href` / `replace()` 调用点统一经 `pageHref()` | 地址栏不出现 `.html` |
+| 守卫 | 页签审计、导航契约、链接检查同步允许无后缀 | 守卫全绿；旧断言不删，只改期望值 |
+
+> **实施状态（2026-11-11 批次 542）**：生成层、运行时归一与重定向已接线；静态 HTML 源文件不改，靠运行时归一覆盖。旧 `.html` 保持 200。尚未跑全量 `test:daily` / `test:guards` 终验。
 
 ### 5.3 兼容与回滚
 
@@ -191,10 +194,10 @@ related_files: [../data/DATA_MODEL.md, ../data/DATA_CONTRACT.md, ../../02_instit
 
 ---
 
-## 七、待裁
+## 七、已裁（`D-867`）
 
-| 问题 | 选项 | 推荐 | 影响 |
-|---|---|---|---|
-| 支部级专班是否存在 | A 存在（`hostGroupId=null`，承办方记为支委会） / B 不存在（专班必须挂党小组） | A | 决定 `taskforces.hostGroupId` 是否可空 |
-| 决议默认受众 | A 支委 ＋ 提案人 ＋ 受影响人 / B 全支部 | A | 决定通知默认 `audience` 与越读边界 |
-| 组长提案是否对全体支委可见 | A 统一池可见 / B 仅支书、副支书可见 | A | 决定事项池读权限与复核分工 |
+| 问题 | 裁定 | 影响 |
+|---|---|---|
+| 支部级专班是否存在 | 存在：`hostGroupId` 可空，承办方记为支委会 | `taskforces.hostGroupId` 可空；支部级专班与支部级活动同构 |
+| 决议默认受众 | 支委 ＋ 提案人 ＋ 受影响人 | 通知默认 `audience` 按此生成；全支部知悉须显式勾选 |
+| 组长提案可见性 | 全体支委可见（统一池） | 事项池读权限保持 `requireCommissioner`；组长只新增提交口 |

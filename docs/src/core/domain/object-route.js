@@ -14,10 +14,11 @@
 // ════════════════════════════════════════════════════════════════
 import { isTaskforceTerminalStatus } from './domain.js?v=20261110b';
 
-/** 对象类型 → 完整详情页（唯一两种承载面；不得在别处再拼第二套详情页） */
+/** 对象类型 → 完整详情页（唯一两种承载面；不得在别处再拼第二套详情页）
+ *  2026-11-11（D-866 URL B）：值去 `.html`；旧 `activity.html` / `taskforce.html` 仍由服务端 200 提供。 */
 export const OBJECT_DETAIL_PAGES = Object.freeze({
-  activity: 'activity.html',
-  taskforce: 'taskforce.html',
+  activity: 'activity',
+  taskforce: 'taskforce',
 });
 
 /** 可查看对象详情的特权角色：党委（party-staff）/ 组织员（org-commissioner） */

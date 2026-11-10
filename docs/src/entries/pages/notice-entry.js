@@ -10,6 +10,7 @@ import { renderSidebar } from '../../components/shell/sidebar.js?v=20261110b';
 import { renderHeader } from '../../components/shell/header.js?v=20261110b';
 import { NoticeStore, canReadNotice, kindOf, isArchivedFor, replyToMessage } from '../../services/governance/notice.js?v=20261110b';
 import { getBasePath, showToast, escHtml } from '../../core/base/utils.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 import { AuthStore } from '../../services/core/auth.js?v=20261110b';
 import { getPersonName } from '../../services/member/person.js?v=20261110b';
 import { badgeHtml } from '../../components/ui/badges.js?v=20261110b';
@@ -50,7 +51,7 @@ const cardEl = document.getElementById('notice-detail-card');
 const backBtn = document.getElementById('notice-back-btn');
 backBtn?.addEventListener('click', () => {
   if (window.history.length > 1) window.history.back();
-  else window.location.href = getBasePath() + 'messages.html';
+  else window.location.href = pageHref(getBasePath() + 'messages.html');
 });
 
 function _empty(html) {

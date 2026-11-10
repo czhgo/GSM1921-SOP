@@ -4,6 +4,7 @@
 
 import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261110b';
 import { flashHighlight, getBasePath, smoothScroll } from '../../core/base/utils.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 import { loadActivities } from '../../services/activity/activity.js?v=20261110b';
 import { SignupStore } from '../../services/activity/signup.js?v=20261110b';
 import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261110b';
@@ -31,7 +32,7 @@ await createWorkspaceShell({
     if (nav.tfId) {
       // 2026-10-20 批次 489（IA-A03 裁定）：组长台「知情查看」只出其他党小组段 ⇒ 专班深链改跳详情页。
       const href = objectDetailHref('taskforce', nav.tfId, { entry: 'cross-page-deeplink' });
-      if (href) window.location.href = getBasePath() + href;
+      if (href) window.location.href = pageHref(getBasePath() + href);
       return false;
     }
     // 活动：定位活动管理 + 直达该活动详情（B1-5 轮询定位：活动数据可能延迟到达）

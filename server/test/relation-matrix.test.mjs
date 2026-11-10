@@ -166,7 +166,7 @@ async function loginDisc() {
   await page.fill('#student-id', '2400012354');
   await page.fill('#password', '123456');
   await Promise.all([
-    page.waitForURL('**/workspace/disc.html', { timeout: 15000 }),
+    page.waitForURL('**/workspace/disc', { timeout: 15000 }),
     page.click('button[type="submit"]'),
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
@@ -190,7 +190,7 @@ async function loginOrg() {
   await page.fill('#student-id', '2400012355');
   await page.fill('#password', '123456');
   await Promise.all([
-    page.waitForURL('**/workspace/org.html', { timeout: 15000 }),
+    page.waitForURL('**/workspace/org', { timeout: 15000 }),
     page.click('button[type="submit"]'),
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
@@ -311,8 +311,8 @@ test('② 思想汇报例外清单真机：无矩阵 / 三组在位 / 完整记�
       return {
         matrix: !!root?.querySelector('.rm-root'),
         groups: heads.filter((t) => /^(未交|待初阅|待补充)/.test(t)),
-        personLinks: root?.querySelectorAll('a[href*="person.html"]')?.length ?? 0,
-        reportLinks: root?.querySelectorAll('a[href*="thought-report.html"]')?.length ?? 0,
+        personLinks: root?.querySelectorAll('a[href*="person"]')?.length ?? 0,
+        reportLinks: root?.querySelectorAll('a[href*="thought-report"]')?.length ?? 0,
         queue: !!root?.querySelector('#tr-queue-host'),
       };
     });

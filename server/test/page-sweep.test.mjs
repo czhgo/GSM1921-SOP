@@ -274,7 +274,7 @@ for (const w of WORKS) {
         await page.fill('#student-id', w.studentId);
         await page.fill('#password', '123456');
         await Promise.all([
-          page.waitForURL(`**/workspace/${w.page}.html`, { timeout: 30000 }),
+          page.waitForURL(`**/workspace/${w.page}`, { timeout: 30000 }),
           page.click('button[type="submit"]'),
         ]);
         try {
@@ -463,7 +463,7 @@ test('S20 tab 快速切换竞态：冷上下文连点全部 tab，内容不得�
       await page.fill('#student-id', w.studentId);
       await page.fill('#password', '123456');
       await Promise.all([
-        page.waitForURL(`**/workspace/${w.page}.html`, { timeout: 30000 }),
+        page.waitForURL(`**/workspace/${w.page}`, { timeout: 30000 }),
         page.click('button[type="submit"]'),
       ]);
       try {
@@ -519,7 +519,7 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「工作概
       await page.fill('#student-id', w.studentId);
       await page.fill('#password', '123456');
       await Promise.all([
-        page.waitForURL(`**/workspace/${w.page}.html`, { timeout: 30000 }),
+        page.waitForURL(`**/workspace/${w.page}`, { timeout: 30000 }),
         page.click('button[type="submit"]'),
       ]);
       try { await tabReady(); loggedIn = true; } catch (e) { if (attempt === 1) throw e; }

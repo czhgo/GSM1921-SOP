@@ -35,7 +35,7 @@ test('纪检批量确认默认不选，展开只保留显式选择，清空覆�
     await page.fill('#student-id', '2400012354'); // 纪检委员 2400012354
     await page.fill('#password', '123456');
     await Promise.all([
-      page.waitForURL('**/workspace/disc.html', { timeout: 15000 }),
+      page.waitForURL('**/workspace/disc', { timeout: 15000 }),
       page.click('button[type="submit"]'),
     ]);
 
@@ -88,7 +88,7 @@ test('党小组会考勤并入总表筛选视图并保持只读', async () => {
     await page.fill('#student-id', '2400012354');
     await page.fill('#password', '123456');
     await Promise.all([
-      page.waitForURL('**/workspace/disc.html', { timeout: 15000 }),
+      page.waitForURL('**/workspace/disc', { timeout: 15000 }),
       page.click('button[type="submit"]'),
     ]);
     await page.locator('.disc-tab-btn[data-disc-tab="attendance"]').click();

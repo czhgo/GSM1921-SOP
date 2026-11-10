@@ -31,6 +31,7 @@ import { canTransferOrganizer, openOrganizerTransfer, organizerOf } from '../../
 import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../../services/activity/activity.js?v=20261110b';
 import { loadActivityReviews } from '../../services/governance/review.js?v=20261110b';
 import { getBasePath, escHtml as esc, showToast, describeWriteError, smoothScroll } from '../../core/base/utils.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 import { getActivityTypeColors, usesFormalMeetingRoster, SECRETARY_AND_DEPUTY_ROLES, isPartyGroupLeaderRole, isActivityLive } from '../../core/domain/constants.js?v=20261110b';
 import { getAppState } from '../../core/base/state.js?v=20261110b';
 import { badgeHtml } from '../../components/ui/badges.js?v=20261110b';
@@ -205,7 +206,7 @@ const cardEl = document.getElementById('activity-detail-card') || document.getEl
 const backBtn = document.getElementById('activity-back-btn') || document.getElementById('taskforce-back-btn');
 backBtn?.addEventListener('click', () => {
   if (window.history.length > 1) window.history.back();
-  else window.location.href = getBasePath() + 'index.html';
+  else window.location.href = pageHref(getBasePath() + 'index.html');
 });
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();

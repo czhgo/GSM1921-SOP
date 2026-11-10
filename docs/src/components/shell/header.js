@@ -5,6 +5,7 @@
 
 import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261110b';
 import { getBasePath } from '../../core/base/utils.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 import { icon } from '../../core/base/icons.js?v=20261110b';
 import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261110b';
 import { badgeHtml } from '../ui/badges.js?v=20261110b';
@@ -472,7 +473,7 @@ function _bindNotificationBell(header) {
       dropdown.querySelectorAll('.notif-dropdown-item').forEach(item => {
         const open = () => {
           const id = item.dataset.noticeId;
-          if (id) window.location.href = `${getBasePath()}notice.html?id=${encodeURIComponent(id)}`;
+          if (id) window.location.href = pageHref(`${getBasePath()}notice.html?id=${encodeURIComponent(id)}`);
         };
         item.addEventListener('click', (ev) => {
           ev.stopPropagation();

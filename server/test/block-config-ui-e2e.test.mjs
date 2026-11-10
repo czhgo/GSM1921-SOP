@@ -43,7 +43,7 @@ async function loginParty(page) {
   await page.fill('#student-id', '9000000001');
   await page.fill('#password', '123456');
   await Promise.all([
-    page.waitForURL('**/workspace/party-committee.html', { timeout: 10000 }),
+    page.waitForURL('**/workspace/party-committee', { timeout: 10000 }),
     page.click('button[type="submit"]'),
   ]);
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑

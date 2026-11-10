@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-866`，共 40 条**；下一条自 **`D-867`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-867`，共 41 条**；下一条自 **`D-868`**。
 
 ## 本月目录（2026-11）
 
@@ -60,6 +60,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 批次 541 全仓漏网之鱼审计与 P2 统一清理；P2 台账 31 条五类分拣 · 六维 82/79/79/84/79/76 | `D-864` | 2026-11-10 | 已落（批次 541） |
 | 六维评分保守回调：81/78/78/83/78/76（三层关系与对象模型口径未统一、CI 未跑、P2 漂移） | `D-865` | 2026-11-11 | 已落（只改台账） |
 | 产品对象模型/组长权限/上会广播/URL 形态：党小组→活动/专班→工作组（无指导支委）· 组长组内全权+支部提案 · 统一上会事项+回执 · 去后缀+兼容 | `D-866` | 2026-11-11 | 已裁（待实现） |
+| 三项子裁定（支部级专班存在 / 决议受众含受影响人 / 组长提案全体支委可见）＋ URL B 实施（pageHref 单源＋运行时归一） | `D-867` | 2026-11-11 | 已落（URL）；子裁定待实现 |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -382,5 +383,16 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > - **未选方案**：工作组 B 活动容器 / C 统一 WorkItem；组长 B 提案＋支书发布 / C 共管；上会 B 只支委可报 / C 任何角色＋附议；URL A 只美化手输 / C 彻底 SPA。理由见 2026-11-11 产品调研：B/C 分别带来专班表合并、第二套报备、提案实体与迁移成本；A URL 不解决站内链接，C 会触发 26 页入口与冻结件重做。
 > - **落点**：待写产品设计稿（对象模型判据表、权限矩阵、上会状态机、URL 生成单一源）；本条目**未改代码 / 未 commit / 未 bump**。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-866`**（共 **40** 条）。
+## D-867 2026-11-11 — 三项子裁定 ＋ URL B 实施
+
+> **评议 → 裁定 → 落点**（支书 2026-11-11 三项追问的选择；URL 取「先做」）：
+> - **支部级专班**：存在。`taskforces.hostGroupId` 可空；支部级专班 `organizingScope='branch'`、`hostGroupId=null`，承办方记为支委会；与支部级活动同构。
+> - **决议默认受众**：支委层 ＋ 提案人 ＋ 受影响人；全支部知悉须由支书在记录决议时显式勾选。
+> - **组长提案可见性**：全体支委可见（统一事项池）；事项池读权限保持 `requireCommissioner`，组长只新增提交口。
+> - **URL B 实施**：`page-url.js::pageHref()` 为唯一后缀变换；`resolveDocumentUrl()` 内联调用；`object-route.js` 详情页去后缀；登录 / 登出 / 深链 / 跨台重定向等 `location` 调用统一经 `pageHref()`；`link-normalize.js` 在侧栏与登录页安装，对初始 DOM 与新增节点统一改写站内锚点。`help` / `about` 冻结面跳过；旧 `.html` 保持 200，不做 301；回滚只改 `URL_STYLE`。
+> - **未选方案**：① 只改静态 `href`（`docs` 内 375 处 / 100 文件，测试断言 751 处，分类成本与回归面过大）；② 301 到无后缀（地址栏仍显示 `.html` 的旧链接不会变短，且多一次跳转）；③ 彻底 SPA（越出本轮范围，触发 26 页入口重做）。
+> - **读数**：`test:guards` **101 文件全绿 / 101.8s**；`test:daily` **29 文件 / 246 断言 / 73.7s** 全绿；真机（Playwright）登录后 URL＝`http://localhost:3000/workspace/secretary?tab=today`，站内 `.html` 锚点剩余 **0**（`help` / `about` 除外）。
+> - **落点**：`docs/src/core/base/page-url.js`、`docs/src/core/base/link-normalize.js`（新）、`docs/src/core/domain/object-route.js`、`docs/src/components/shell/{sidebar,header,tab-bar,workspace-shell}.js`、`docs/src/entries/**` 重定向点、`server/test/**` 期望值；设计稿 `content/04_web_design/evolution/OBJECT_MODEL_AND_COMMITTEE_FLOW.md §五 / §七`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-867`**（共 **41** 条）。
 

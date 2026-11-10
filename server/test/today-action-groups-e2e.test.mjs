@@ -56,7 +56,7 @@ test('S12 今天页左卡＝动作性质分组（七类）；旧「本岗待办�
     await page.fill('#student-id', '2300010001');
     await page.fill('#password', '123456');
     await Promise.all([
-      page.waitForURL('**/workspace/secretary.html', { timeout: 12000 }),
+      page.waitForURL('**/workspace/secretary', { timeout: 12000 }),
       page.click('button[type="submit"]'),
     ]);
     // 登录默认落点即「今天」页；等本卡渲染完成
@@ -166,7 +166,7 @@ test('S13 今天页点待办行 → 待办页定位到对应聚合组（高亮�
     await page.fill('#student-id', '2300010001');
     await page.fill('#password', '123456');
     await Promise.all([
-      page.waitForURL('**/workspace/secretary.html', { timeout: 12000 }),
+      page.waitForURL('**/workspace/secretary', { timeout: 12000 }),
       page.click('button[type="submit"]'),
     ]);
     await page.waitForFunction(() => {

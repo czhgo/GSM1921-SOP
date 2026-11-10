@@ -212,7 +212,7 @@ test('真实拖拽：我的工作台页签尾部→靠前（DOM/持久化/reload
     await page.fill('#student-id', '2300010001');
     await page.fill('#password', '123456');
     await Promise.all([
-      page.waitForURL('**/workspace/secretary.html', { timeout: 15000 }),
+      page.waitForURL('**/workspace/secretary', { timeout: 15000 }),
       page.click('button[type="submit"]'),
     ]);
     // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑

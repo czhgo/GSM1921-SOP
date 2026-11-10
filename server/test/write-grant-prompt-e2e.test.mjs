@@ -52,7 +52,7 @@ async function login(page) {
   await page.fill('#student-id', '2300010001');
   await page.fill('#password', '123456');
   await Promise.all([
-    page.waitForURL('**/workspace/secretary.html', { timeout: 12000 }),
+    page.waitForURL('**/workspace/secretary', { timeout: 12000 }),
     page.click('button[type="submit"]'),
   ]);
 }

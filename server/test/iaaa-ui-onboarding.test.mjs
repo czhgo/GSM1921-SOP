@@ -103,8 +103,8 @@ test('U4–U5 待归属者被阻断层挡住；支部确认后「刷新确认状
 
     // U4 阻断层：待归属者进工作台 ⇒ 弹回登录页并带 need-branch
     await page.goto(`${base}/workspace/visitor.html`, { waitUntil: 'domcontentloaded' });
-    await page.waitForURL(/login\.html\?need-branch=1/, { timeout: 15000 });
-    assert.match(page.url(), /login\.html\?need-branch=1$/, 'U4 待归属者不得进入工作台');
+    await page.waitForURL(/login\?need-branch=1/, { timeout: 15000 });
+    assert.match(page.url(), /login\?need-branch=1$/, 'U4 待归属者不得进入工作台');
     await page.locator('#login-branch.visible').waitFor({ timeout: 10000 });
 
     // U5 支部确认（党委 9000000001 跨支部批）⇒ 刷新即放行
@@ -116,7 +116,7 @@ test('U4–U5 待归属者被阻断层挡住；支部确认后「刷新确认状
     assert.equal(ok.status, 200, `确认入站应 200，实测 ${ok.status}`);
 
     await page.locator('#branch-refresh').click();
-    await page.waitForURL(/workspace\/visitor\.html/, { timeout: 15000 });
-    assert.match(page.url(), /workspace\/visitor\.html/, 'U5 支部确认后应放行进入工作台');
+    await page.waitForURL(/workspace\/visitor(?:\.html)?$/, { timeout: 15000 });
+    assert.match(page.url(), /workspace\/visitor(?:\.html)?$/, 'U5 支部确认后应放行进入工作台');
   } finally { await ctx.close(); }
 });

@@ -314,7 +314,7 @@ test('A5 支部分工「去表决」落到支委会会议页且表态位在位�
       page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {}),
       page.locator('a:has-text("去表决")').first().click(),
     ]);
-    assert.ok(page.url().includes('/party-committee-meeting.html'), `应落到支委会会议页，实际 ${page.url()}`);
+    assert.ok(page.url().includes('/party-committee-meeting'), `应落到支委会会议页，实际 ${page.url()}`);
     await page.waitForSelector('.vote-panel', { timeout: 15000 });
     const tabTitle = await page.locator('h2').first().innerText();
     const voteText = await page.locator('.vote-panel').first().innerText();

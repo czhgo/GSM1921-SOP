@@ -24,6 +24,7 @@ import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?
 import { ApiAdapter } from '../../data/api-adapter.js?v=20261110b';
 import { getPersonName } from '../../services/member/person.js?v=20261110b';
 import { getBasePath, showToast, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261110b';
+import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 import { badgeHtml } from '../../components/ui/badges.js?v=20261110b';
 import {
   loadThoughtReports, listThoughtReportsByPerson, listThoughtReportsByPersonGrouped,
@@ -54,7 +55,7 @@ const cardEl = document.getElementById('tr-page-card');
 const backBtn = document.getElementById('tr-back-btn');
 backBtn?.addEventListener('click', () => {
   if (window.history.length > 1) window.history.back();
-  else window.location.href = getBasePath() + 'index.html';
+  else window.location.href = pageHref(getBasePath() + 'index.html');
 });
 
 const viewer = AuthStore.getCurrentUser();
