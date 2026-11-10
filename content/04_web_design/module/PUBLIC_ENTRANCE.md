@@ -2,7 +2,7 @@
 title: "学院党委公共门厅——未登录入口与公开内容（已裁定）"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-11-10
+last_updated: 2026-11-11
 status: approved-by-secretary
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md, content/04_web_design/design-system/CASES.md]
 ---
