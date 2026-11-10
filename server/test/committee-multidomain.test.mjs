@@ -244,6 +244,35 @@ test('院级资料：匿名公共门厅只见 public；撤下＝改范围并写�
 //  二、支部档案
 // ════════════════════════════════════════════════════════════════
 
+test('支部档案：activityId 必须是本支部活动（他支部 / 不存在 422，本支部 201）', async () => {
+  db.prepare('INSERT INTO activities (id, data) VALUES (?, ?)').run('act-b2-archive', JSON.stringify({
+    id: 'act-b2-archive', title: '第二支部活动', type: '主题党日', date: '2026-11-02',
+    branchId: 'br-b2', visibility: 'branch', status: 'published',
+  }));
+  db.prepare('INSERT INTO activities (id, data) VALUES (?, ?)').run('act-b1-archive', JSON.stringify({
+    id: 'act-b1-archive', title: '本支部活动', type: '主题党日', date: '2026-11-02',
+    branchId: 'br-b1', visibility: 'branch', status: 'published',
+  }));
+
+  const crossBranch = await request('pc-1', 'POST', 'committee/archive-records', {
+    branchId: 'br-b1', title: '引用他支部活动', category: '其他', activityId: 'act-b2-archive',
+  });
+  assert.equal(crossBranch.status, 422, '不得引用其他支部的活动');
+  assert.match(String(crossBranch.data.error), /不属于支部/);
+
+  const missing = await request('pc-1', 'POST', 'committee/archive-records', {
+    branchId: 'br-b1', title: '引用不存在活动', category: '其他', activityId: 'act-none',
+  });
+  assert.equal(missing.status, 422, '活动不存在须 422');
+
+  const ok = await request('pc-1', 'POST', 'committee/archive-records', {
+    branchId: 'br-b1', title: '引用本支部活动', category: '其他', activityId: 'act-b1-archive', activityName: '本支部活动',
+  });
+  assert.equal(ok.status, 201);
+  assert.equal(ok.data.activityId, 'act-b1-archive');
+  assert.equal(ok.data.activityName, '本支部活动');
+});
+
 test('支部档案：指定 branchId 写入成功；缺 branchId / 未知支部 / 缺字段 422；不改支部活动', async () => {
   const activity = {
     id: 'act-b1', title: '支部主题党日', type: '主题党日', date: '2026-11-01',
@@ -330,6 +359,12 @@ test('名册提案：创建起点 pending-org-approval；重复在途 409；from
     branchId: 'br-b1', personId: 'mem-1', fromStage: '积极分子', toStage: '正式党员',
   });
   assert.equal(duplicate.status, 409, '同 (branchId, personId) 在途提案须 409');
+
+  const badStage = await request('pc-1', 'POST', 'committee/roster-proposals', {
+    branchId: 'br-b1', personId: 'mem-1', fromStage: '积极分子', toStage: '神秘阶段',
+  });
+  assert.equal(badStage.status, 422, 'toStage 不在服务端白名单须 422');
+  assert.match(String(badStage.data.error), /toStage 非法/);
 
   const stale = await request('pc-1', 'POST', 'committee/roster-proposals', {
     branchId: 'br-b1', personId: 'mem-1', fromStage: '预备党员', toStage: '正式党员',

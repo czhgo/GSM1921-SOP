@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: "2026-11-10"
 last_verified: "2026-11-10"
-latest_decision: "D-863"
+latest_decision: "D-864"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -26,12 +26,12 @@ status: active
   - source：`server/data/domain-contract.mjs`、`content/04_web_design/data/DATA_CONTRACT.md`。
 - **权限**：写入口权限矩阵 **141 条**（135 enforced / 4 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵；审计 C1 查矩阵 + 高风险抽样。
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
-- **审计**：46 页签 **P0 0 / P1 0 / P2 2 / exception 44**；F1–F8 全绿；M1–M3 在位；`secretary.overview` / `calendar` / `committee-meeting` / `group-progress` / `work-map` 五页三档均 0。
-  - source：`.ctx/evidence/2026-11-10/tab-audit/summary.md`。
-- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **29 文件 / 233 断言 / 77.0s**（结果门禁）；guards **101 文件 / 809 tests / 133.7s**（静态守卫，按需）；precommit＝daily＋guards＋非核心域回归＋e2e（时长仍长）；weekly 2。四层 runner 按 registry 单一源执行；CI `daily.yml` 已接 `test:daily` 与 `deploy-verify`（两个 job 均未实跑绿）。
-  - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859 / §D-860 / §D-863`。
-- **工程评分（`D-863`）**：业务与数据 **81** · 安全与权限 **77** · 最小三成本 **78** · 测试与发布 **84** · 架构与可维护性 **78** · 运行部署 **76**；不设平均总分。
-  - source：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/logs/2026-11-DECISION_LOG.md §D-863`。
+- **审计**：46 页签 **P0 0 / P1 0 / P2 3 / exception 44**；F1–F8 全绿；M1–M3 在位；`secretary.overview` / `calendar` / `committee-meeting` / `group-progress` / `work-map` 五页三档均 0。P2 三条是 IA 块数基线漂移（`secretary.calendar` 10 vs 3 / `secretary.report-up` 14 vs 4 / `visitor.activities` 9 vs 3），登记 `L-22`，待支书裁定重基线；全量未取终摘要，P0 / P1 读数来自守卫代理报告。
+  - source：`.ctx/evidence/2026-11-10/tab-audit/summary.md`、`.ctx/evidence/2026-11-10/audit-fix/summary.md`。
+- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **29 文件 / 246 断言 / 101.6s**（结果门禁）；guards **101 文件 / 809 tests / 152.9s**（静态守卫，按需）；precommit＝daily＋guards＋非核心域回归＋e2e（时长仍长）；weekly 2。四层 runner 按 registry 单一源执行；CI `daily.yml` 已接 `test:daily` 与 `deploy-verify`（两个 job 均未实跑绿）。
+  - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859 / §D-860 / §D-863 / §D-864`。
+- **工程评分（`D-864`）**：业务与数据 **82** · 安全与权限 **79** · 最小三成本 **79** · 测试与发布 **84** · 架构与可维护性 **79** · 运行部署 **76**；不设平均总分。
+  - source：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/logs/2026-11-DECISION_LOG.md §D-864`。
 - **版本戳**：`20261110a`（`bump-version --check`：0 处陈旧，CODE_VERSION 一致）。
   - source：`docs/scripts/bump-version.mjs --check`。
 - **换轨**：副本 **48 表 / 577 行** export → dry-run → apply 一致；生产空库 `preflight-cutover --strict` exit 0 / 警告 0。
@@ -58,8 +58,9 @@ status: active
 - **CLAUDE 三层与通知受众**：温层恢复为「触发表 + H60–H80」，层边界 / 乙部去历史有守卫；系统通知无受众＝不可读、广播必须显式 `all`、未登录一律不可读；行动行按 SD-60 四类排布。（`D-857`）→ `CLAUDE.md`、`notice.js`、`DS_06 SD-60`、`action-row-wrap-guard`。
 - **党委内容域与公共门厅**：未登录只看党委公开内容（公开通知全文 / 活动摘要 / 公开资料），登录后看党委与支部并集；`public` 只归党委、必须带未来有效期并留痕 `publication_audits`；支部副本只改执行字段、手动同步。（`D-858`）→ `SYSTEM_ROLE_PERMISSION §9a.1`、`PUBLIC_ENTRANCE.md`、`server/routes/public-portal.js`。
 - **测试瘦身（结果优先、守卫按需）**：四层 daily / guards / precommit / weekly；daily 只留结果门禁（权限、会话、数据契约与迁移、核心业务结果、构建可运行），静态守卫迁 guards 按需跑；不删任何测试或断言，precommit / full 仍覆盖全部文件。（`D-859`）→ `server/test-tier-registry.mjs`、`server/scripts/run-{daily,guards,precommit,changed}.mjs`、`CLAUDE.md H25`。
-- **六维评分按 `D-862` 修正**：业务 80 · 安全 77 · 体验 77 · 测试 83 · 架构 77 · 部署 76；加分只认实跑读数，配置、自动走查、文件数、本地等价不计满分（部署 6/6 只作下限）。（`D-862`）→ `.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`。
+- **六维评分口径（`D-862`）与当前值（`D-864`）**：只按证据加减分，不因「做了工具」自动加分；当前 82 / 79 / 79 / 84 / 79 / 76；加分只认实跑读数，配置、自动走查、文件数、本地等价不计满分（部署 6/6 只作下限）。（`D-862` · `D-864`）→ `.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`。
 - **批次 540 前端交互契约**：待办跳转未命中本台页签一律 fail-closed（可见提示「本台无该模块」＋ 同义落点），禁 toast-only；议程「来源 → 类型 → 待议池」两端同源 import；同列同语义 ≥3 行只走 `renderDataTable`；活动详情四段收口、分工视图 4 → 2；图标色值只许 `currentColor` / `none` / `var(--token)`，hex 扫描含 data-URI 的 `%23`。（`D-863`）→ `content/04_web_design/contracts/{INTERACTION_AND_NAVIGATION,AGENDA_DERIVATION,TABLE_COMPONENT}_CONTRACT.md`、`content/04_web_design/design-system/CASES.md` CASE-DESIGN-036…041、`DS_03 §4.11.2`。
+- **批次 541 P2 分拣与三条读面口径**：P2 按 A / B / C / D / E 五类分拣，B 类未写触发不得开工，C 类关闭不再复核；应到口径单一源＝`roster-eligibility.js`（滞留保留身份、应到剔除；已转出前置剔除），待办行读权限单一源＝`todo-read-policy.mjs`，公共门厅过期 / 缺失有效期一律 404 fail-closed，定向通知须同时比对支部。（`D-864`）→ `.ctx/evidence/2026-11-10/p2-cleanup-ledger.md`、`.ctx/REVIEW_QUEUE.md B-541-1…11`。
 
 ## §3 当前风险与下一步
 
@@ -78,7 +79,7 @@ status: active
 - `L-10` 多支部读过滤未接线到生产读面（`multi-branch-read-filter` 9 组夹具已证明可行；设计已出，开关仍关闭）。
 - `L-11` 共享口令（个人密码已落地，共享口令作回退保留）。
 - `L-12` 审计脚本不进 daily（发布前硬门）；precommit / full 时长仍长。
-- `L-13` 页签 IA 未闭项 **A 35 / B 11 / C 0**；6 个超 4 块页签登记例外；按台账 §四 逐条排批（台账 `.ctx/evidence/2026-11-08/tab-review-ledger.md`）。
+- `L-13` 页签 IA 未闭项 **A 35 / B 11 / C 0**；6 个超 4 块页签登记例外；按台账 §四 逐条排批（台账 `.ctx/evidence/2026-11-08/tab-review-ledger.md`）。`L-22` 三处块数漂移（10 / 14 / 9 块 vs 登记 3 / 4 / 3）待支书裁定「按 DOM 实测重基线」，裁定前不改 `TAB_BLOCK_BASELINE`。
 - **公开内容与党委内容读面（`D-858`）**：未登录只读 `publishScope='public'` 且未过期的党委内容，过期即 404 fail-closed；党委内容只经服务端读口（`/committee/*` 与公开门厅），客户端不得本地派生可见性、不得带出支部名与成员字段。
 - `L-14` / `L-15` 块停用与画布 / 按角色配置（先出方案）。
 - `L-16` 表决名单重算待支书裁定。
@@ -88,7 +89,7 @@ status: active
 ### 下一批最该做的 3 件事
 
 1. **首次部署前验证**：在 Linux 测试机跑 `install/update` + `preflight-cutover --strict`，把 `L-02` 关掉。
-2. **完整 Plan B 二期（`B-500-7b-2`）**：删客户端业务派生的默认路径 + 读面前置解耦 + 缓存 / 性能；前置（7 类对账 8/8、双支部夹具、daily 210 断言）已达，不以上线为前提。
+2. **完整 Plan B 二期（`B-500-7b-2`）**：删客户端业务派生的默认路径 + 读面前置解耦 + 缓存 / 性能；前置（7 类对账 8/8、双支部夹具、daily 246 断言）已达，不以上线为前提。
 3. **多支部 Phase 1**：读口统一接入 `resourceRowsForActor`，双支部夹具证明 A 读不到 B；完成前不打开 `ALLOW_MULTI_BRANCH`。
 
 ## §4 文件地图（读什么 / 不读什么）

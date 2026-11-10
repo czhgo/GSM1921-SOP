@@ -14,16 +14,18 @@
 // 子视图协议：`?subview=activities|docs`（与 dispatch-tab 同协议；工作台壳不清该参数）。
 // 输入控件只经 components/ui/forms.js（具名导出）；目标支部复选框沿用 dispatch-tab 的既有写法。
 
-import { ACTIVITY_SUBTYPES } from '../../../core/domain/constants.js?v=20261110a';
-import { getAdapter, getDataSource, getApiBaseUrl, getAuthToken } from '../../../data/data-adapter.js?v=20261110a';
-import { textField, textareaField, selectField, dateField, fileField } from '../../../components/ui/forms.js?v=20261110a';
-import { emptyStateHtml, skeletonHtml } from '../../../components/ui/empty-state.js?v=20261110a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261110a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261110a';
-import { confirmDanger } from '../../../components/ui/modal.js?v=20261110a';
+import { ACTIVITY_SUBTYPES } from '../../../core/domain/constants.js?v=20261110b';
+import { getAdapter, getDataSource, getApiBaseUrl, getAuthToken } from '../../../data/data-adapter.js?v=20261110b';
+// 附件下载路径按党委已选支部拼 `branchId`（uploads.js 登录下载口同口径；与 archive-tab 同一实现）
+import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261110b';
+import { textField, textareaField, selectField, dateField, fileField } from '../../../components/ui/forms.js?v=20261110b';
+import { emptyStateHtml, skeletonHtml } from '../../../components/ui/empty-state.js?v=20261110b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261110b';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261110b';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261110b';
 // 菜单单一源（2026-11-08 波次 C）：行内动作收为「编辑 + 更多」，二级动作进 aria-haspopup 菜单。
-import { renderMenuButton, bindMenuButtons } from '../../../components/ui/menu-button.js?v=20261110a';
-import { showToast, escHtml as esc, smoothScroll } from '../../../core/base/utils.js?v=20261110a';
+import { renderMenuButton, bindMenuButtons } from '../../../components/ui/menu-button.js?v=20261110b';
+import { showToast, escHtml as esc, smoothScroll, downloadUrl } from '../../../core/base/utils.js?v=20261110b';
 
 const HOST_ID = 'party-committee-tab-content';
 const VIEW_ACTIVITIES = 'activities';
@@ -614,6 +616,11 @@ function docsHtml() {
     </div>`;
 }
 
+/** 资料是否有可下载附件（有 filePath / fileData 才出入口，避免点了必然失败的下载） */
+function documentDownloadable(row) {
+  return Boolean(row && (row.filePath || row.fileData));
+}
+
 function docRowHtml(row) {
   const scope = PUBLISH_LABELS[row.publishScope || 'login'] || row.publishScope;
   const title = row.title || '未命名资料';
@@ -631,6 +638,7 @@ function docRowHtml(row) {
           <p class="mt-1 text-sm text-gray-500">有效期：${esc(formatDay(row.publishExpiresAt))} · 上传：${esc(formatDay(row.uploadedAt))}</p>
         </div>
         <div class="card-head__actions" role="group" aria-label="「${esc(title)}」的操作">
+          ${documentDownloadable(row) ? `<button type="button" class="btn-outline btn-sm" data-doc-act="download" data-id="${esc(row.id)}">下载</button>` : ''}
           <button type="button" class="btn-outline btn-sm" data-doc-act="edit" data-id="${esc(row.id)}">编辑</button>
           <button type="button" class="btn-danger btn-sm" data-doc-act="withdraw" data-id="${esc(row.id)}" ${(row.publishScope || 'login') !== 'public' ? 'disabled' : ''}>撤下</button>
         </div>
@@ -727,8 +735,29 @@ function loadDocForEdit(row, host) {
 async function handleDocAction(button, host) {
   const row = findDocument(button.dataset.id);
   if (!row) return;
+  if (button.dataset.docAct === 'download') { await downloadDocument(row); return; }
   if (button.dataset.docAct === 'edit') { loadDocForEdit(row, host); return; }
   if (button.dataset.docAct === 'withdraw') { await withdrawDocument(row, host); }
+}
+
+/**
+ * 资料下载（2026-11-10 批次 541）：院级资料列表原先没有下载入口，登录口只能看不能取文件。
+ * 走 `uploads.js` 的登录下载口（`/api/v1/uploads/:name`）并按党委已选支部拼 `branchId`
+ * （与 `archive-tab.js` 同一实现 `withSelectedBranchScope`）；`fileData`（data URL）直下。
+ */
+async function downloadDocument(row) {
+  const name = row.fileName || row.title || 'download';
+  if (row.fileData) {
+    const ok = await downloadUrl(String(row.fileData), name);
+    if (!ok) showToast('error', '下载失败，请稍后重试');
+    return;
+  }
+  if (!row.filePath) { showToast('error', '该资料没有可下载的附件'); return; }
+  const token = getAuthToken();
+  const scoped = withSelectedBranchScope(String(row.filePath));
+  const url = /^https?:/i.test(scoped) ? scoped : `${getApiBaseUrl()}${scoped}`;
+  const ok = await downloadUrl(url, name, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  if (!ok) showToast('error', '下载失败：请确认附件仍存在且属于所选支部');
 }
 
 /** 文件本体先落 POST /api/v1/uploads，再把返回的元数据随资料行写入。 */

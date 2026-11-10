@@ -7,10 +7,13 @@
 // 2026-11-10 批次 540 波次 5（支书裁定「4 视图重叠」）：
 //   · 视图收 2——责任关系（默认）/ 关系矩阵。按项目是「按人」的转置（同一份数据、同一问句），删除；
 //     平铺模块的 desc / 子项 / 产出并入**选中行展开**，不再单占一套视图；
-//   · 关系矩阵降为折叠块（`details`，本视图内默认展开），不再是首屏并列主体；
 //   · 责任关系行 meta 拼「负责人 · 协作 · 产出」，协作方单一源＝`WORK_MAP_MODULES[].collaborators`（可缺省）；
+//   · 关系矩阵降为折叠块（`details`，本视图内默认展开），不再是首屏并列主体；
 //   · 页根改 `.stack-page`（页头→卡 24px 由骨架给），删工具卡与页脚的 `mt-3` 手写间距；
 //   · 主责徽章改中性（主责是常态、不是状态），停用才用 warning。
+// 2026-11-10 批次 541（前端美学 P1 · A-2/A-3）：
+//   · 负责人进**行首徽章位**（原来是「主责」徽标），meta 只留「协作 · 产出」并单行截断 ⇒ 行高 64–80 回到 48；
+//   · 常规行不再渲染「主责」徽标（主责是常态、不是状态）；只有停用（warning）与上级主导（中性）两种例外带徽标。
 // 模块目录单一源 = core/domain/work-map.js（14 项既有工作形式；「三会一课」已于 2026-09-22 批次 145 按形式
 //   拆为 4 个模块）；分工快照 = config.workforce（缺省按 SOP 责任人列）。
 // M2（2026-09-03）：分工调整走支委会议题（panel = workforce-panel.js）——发起改派议题/跟踪表决/采纳生效。
@@ -18,23 +21,23 @@
 //   分区——**写侧默认折叠**（`_toolOpen`，同 group-progress `_progressOpen` 体例），首屏只留读侧；展开后功能一字不减。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
-import { escHtml as esc, smoothScroll } from '../../../core/base/utils.js?v=20261110a';
-import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20261110a';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261110a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261110a';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20261110a';
-import { getPersonName } from '../../../services/member/person.js?v=20261110a';
+import { escHtml as esc, smoothScroll } from '../../../core/base/utils.js?v=20261110b';
+import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20261110b';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261110b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261110b';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20261110b';
+import { getPersonName } from '../../../services/member/person.js?v=20261110b';
 // 人×工作项矩阵单一源（2026-09-14 批次 35）：按人 / 按项目 互为转置，勿自造表格与翻页
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261110a';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261110b';
 // 行载体与分隔线一律走 list-row.js（master 行）+ .list-group；数据口径与权限不变。
-import { listGroupHtml, listRowHtml } from '../../../components/ui/list-row.js?v=20261110a';
+import { listGroupHtml, listRowHtml } from '../../../components/ui/list-row.js?v=20261110b';
 // 责任关系（2026-11-09 批次 539 改单列对象列表）：14 个模块逐行摊平，每行＝角色徽章 +
 // 工作项（14/600）+ 负责人（12）+ 一行截断说明（title 全文）；停用项行尾「发起启用议题」。
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261110a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261110b';
 // 空态单一源（一句说明 + 一个下一步），与全局概况 / 周期归档卡同形
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261110a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261110b';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅支书/副支书可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20261110a';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20261110b';
 
 // 2026-10-18 脏专项 Task 17：默认落「责任关系表」——14 项模块是 1:1 分派，
 // 逐行读出「谁负责什么」比 14×N 的稀疏矩阵直接；矩阵保留为可选视图。
@@ -76,8 +79,7 @@ function _isSuperiorOwner(assign) {
 /** 责任关系行数据（14 项工作 → 责任人 / 责任角色 / 责任说明 / 协作 / 产出）——
  *  2026-10-18 脏专项 Task 17：原矩阵缺「责任角色 / 责任说明」列，读者只看得到「主责」标记，
  *  读不出「谁负责什么」；本表把同一份 `getBranchWorkforce` 快照逐项摊平（不改数据、不改权限）。
- *  2026-11-10 批次 540 波次 5：meta 拼「负责人 · 协作 · 产出」；协作方取 `WORK_MAP_MODULES[].collaborators`
- *  （可缺省），产出取 `outputs`；两者都并入行内，平铺模块不再单独占一套视图。 */
+ *  2026-11-10 批次 541：负责人进徽章位，meta 只留「协作 · 产出」；说明不再进 meta（行高回到 48）。 */
 function _relationRows(workforce) {
   return WORK_MAP_MODULES.map((m) => {
     const assign = workforce[m.id];
@@ -88,7 +90,6 @@ function _relationRows(workforce) {
     // A14：停用项不是「未指派」（那会让人以为是漏配）。明说「已停用 / 不开展」。
     const owner = disabled ? _ownerLabel(assign) : (superior ? `上级${_ownerLabel(assign)}` : _ownerLabel(assign));
     const meta = [
-      `负责人：${owner}`,
       collaborators.length ? `协作：${collaborators.join('、')}` : '',
       outputs.length ? `产出：${outputs.join('、')}` : '',
     ].filter(Boolean).join(' · ');
@@ -109,17 +110,19 @@ function _relationRows(workforce) {
   });
 }
 
-/** 角色徽章（行首插槽）：主责＝中性档（主责是常态，不是状态）；停用＝warning；上级主导＝中性档。
- *  2026-11-10 批次 540 波次 5：主责由主题色改中性——主题色只留给动作 / 导航 / 选中态。本页禁 SVG，只用文字。 */
-function _roleBadgeHtml(role) {
-  const tone = role === '停用' ? 'badge--warning' : 'badge--neutral';
-  return `<span class="badge ${tone}">${esc(role)}</span>`;
+/** 行首徽章（责任人位）：常规行只出负责人名（中性）；停用 / 上级主导两个例外再带一枚例外徽标。
+ *  2026-11-10 批次 541：常规行不再渲染「主责」——主责是常态、不是状态；例外才需要态标。
+ *  本页禁 SVG，只用文字 + 既有 .badge 档。 */
+function _ownerBadgeHtml(row) {
+  if (row.disabled) return `<span class="badge badge--warning">停用</span>`;
+  const owner = `<span class="badge badge--neutral">${esc(row.owner)}</span>`;
+  if (row.role !== '上级主导') return owner;
+  return `<span class="flex items-center gap-1 flex-wrap">${owner}<span class="badge badge--neutral">上级主导</span></span>`;
 }
 
-/** 单行对象行：角色徽章 + 工作项（14/600）+ 负责人 / 协作 / 产出（12）+ 一行截断说明（title 全文）。
+/** 单行对象行：负责人徽章 + 工作项（14/600）+ 协作 / 产出（12，同行截断）；说明只进 title 与展开块。
  *  停用项行尾「发起启用议题」（写口仍是既有分工调整面板）；非停用项无操作钮。
- *  2026-11-10 批次 540 波次 5：选中行不再出行内说明（改由紧随其后的展开块给全文），
- *  避免 ≤640 的「选中展开」与展开块各出一份同样文字。 */
+ *  2026-11-10 批次 541：说明不再进行内（选中行紧随其后的展开块给全文）⇒ 行高由 64–80 回到 48。 */
 function _relationRowHtml(row, selected, editable) {
   // A14：停用项的「发起启用议题」落点＝本页分工调整面板（复用既有写口，不新造表单）。
   const action = row.disabled
@@ -130,10 +133,9 @@ function _relationRowHtml(row, selected, editable) {
   return listRowHtml({
     rowType: 'master',
     className: 'wm-row',
-    leading: _roleBadgeHtml(row.role),
+    leading: _ownerBadgeHtml(row),
     title: row.module,
     meta: row.meta,
-    description: selected ? '' : row.note,
     trailing: action,
     dataAttrs: {
       'data-module': row.id,

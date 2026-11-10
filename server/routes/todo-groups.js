@@ -9,8 +9,8 @@
 //  端点：GET /api/v1/todo-groups?role=<role>&personId=<id>
 //    · 只读 GET；鉴权沿用 `routes/resources/index.js` 的 router 级 `requireAuth` + 支部作用域
 //      （`branch-scope.js` 的 `actorBranchId` / `branchSelectionError`），本文件不新增任何写口。
-//    · 读权限门 = **与 `routes/resources/index.js::_canReadTodoRow` 同口径**（见下方 `canReadTodoRow`
-//      注释：该口径单一源在 index.js，本文件复刻同判据；口径变更必须两处同改）。
+//    · 读权限门 = **与 `routes/resources/index.js` 同一实现**（批次 541：判据本体抽到叶子件
+//      `routes/resources/todo-read-policy.mjs`，两端 import 同一函数；口径变更只改该叶子件）。
 //    · 本端点算 11 类实时组：三类「确定性复算」组（发展节点 / 半年考察 / 模块周期）、
 //      7 类实时组（考勤·考察队列、决议逾期、成员变更确认 / 审批、学期末滞留、支委专班赋权）
 //      ＋ 批次 539 增的纪检「考勤 / 考察待确认」两键 ⇒ `unsupported` 清空（客户端只展示）。
@@ -23,6 +23,8 @@
 import { requireAuth } from './auth.js';
 import { listTable } from './resources/store.js';
 import { actorBranchId, branchSelectionError } from './resources/branch-scope.js';
+// 待办行读权限单一源（读口 `GET /todos` 与派生口 `GET /todo-groups` 共用；批次 541）
+import { canReadTodoRow } from './resources/todo-read-policy.mjs';
 // 周期口径（月 / 季 / 半年 / 年）与模块目录：均为零依赖叶子件，服务端直导可载（与客户端同一份口径）
 import { expandWorkforce } from '../../docs/src/core/domain/work-map.js';
 import { DEFAULT_BRANCH_ID } from '../../docs/src/core/domain/constants.js';
@@ -43,6 +45,10 @@ import {
   buildModuleCycleRemindGroup,
 } from '../../docs/src/core/domain/todo-derive.js';
 import { today } from '../services/reporting.js';
+// 支部域参数（批次 541 · D-2）：净化唯一实现 = `services/branch/config-clean.js`（与前端同源）；
+//   合并唯一实现 = `policy-defaults.js::effectivePolicyWith`（不改全局 POLICY_DEFAULTS）。
+import { sanitizeConfigPolicyOverrides } from '../../docs/src/services/branch/config-clean.js';
+import { effectivePolicyWith } from '../../docs/src/core/domain/policy-defaults.js';
 
 // ── 业务域键（**单一源** = `docs/src/services/governance/todo.js::WORK_DOMAIN`）──────────────
 // 本文件只用域键做组归位标注，不参与任何写口；取值必须与前端一致（`D-787` 合并后 6 类 + NONE）。
@@ -71,18 +77,12 @@ const REALTIME_GROUP_DOMAIN = {
 };
 
 /**
- * 待办行读权限（**单一源** = `server/routes/resources/index.js::_canReadTodoRow`，逐字同口径）。
- * 该函数在 index.js 内是模块私有，本文件复刻同一判据，供本端点做「本人 / 本角色」范围校验；
- * **口径变更必须两处同改**（判定：`permission-gate` + `todo-groups-api` 绿）。
+ * 待办行读权限（**单一源** = `routes/resources/todo-read-policy.mjs`，本文件只再导出）。
+ * `routes/resources/index.js::_canReadTodoRow` 与本文件同 import 该叶子件 ⇒ 读口 / 派生口一个判据。
  * @param {{personId?:string, role?:string}} row 待办行或范围请求体
  * @param {{id:string, role:string}} actor 会话用户
  */
-export function canReadTodoRow(row, actor) {
-  if (!row || !actor) return false;
-  // 到人主责只给本人；角色待办按当前角色可见（与前端 TodoStore.getByRole 同口径）。
-  if (row.personId) return row.personId === actor.id;
-  return row.role === actor.role;
-}
+export { canReadTodoRow };
 
 /**
  * 业务域兼容推断（**单一源** = `todo.js::inferDomain`，同判据精简复刻）。
@@ -176,6 +176,20 @@ function _workforceOfBranch(db, branchId) {
   return expandWorkforce(config.workforce);
 }
 
+/**
+ * 支部**有效策略**（批次 541 · D-2）：出厂基准 + 该支部 `config.policyOverrides`（白名单净化后）。
+ * 同客户端 `branch.js::getEffectivePolicy` 两步同源（净化 = config-clean，合并 = effectivePolicyWith）
+ *   ⇒ 派生组的阈值 / 复核窗与客户端逐值一致，不得在此另写缺省字面量或第二套合并逻辑。
+ * @param {import('better-sqlite3').Database} db
+ * @param {string} branchId
+ * @returns {Object} 有效策略（独立副本，不改全局 POLICY_DEFAULTS）
+ */
+function _effectivePolicyOfBranch(db, branchId) {
+  const row = db.prepare('SELECT data FROM branches WHERE id = ?').get(String(branchId));
+  const config = row ? (JSON.parse(row.data).config || {}) : {};
+  return effectivePolicyWith(sanitizeConfigPolicyOverrides(config.policyOverrides));
+}
+
 // ── 组装配 ────────────────────────────────────────────────────────────────────
 
 /**
@@ -233,10 +247,11 @@ function _dedupeByGroupKey(groups) {
  * 7 类实时组（Task 8）：服务端只做「读 SQLite → 组装入参 → 按角色/人过滤」，
  * 派生判据全部走 `core/domain/todo-derive.js` 的同名纯函数（与客户端 / 对账测试同一份口径）。
  * @param {import('better-sqlite3').Database} db
- * @param {{actor:Object, role:string, personId:string, branchId:string}} scope
+ * @param {{actor:Object, role:string, personId:string, branchId:string, policy:Object}} scope
+ *   `policy`＝支部有效策略（缺省回退出厂基准，见 `_effectivePolicyOfBranch`）
  * @returns {Array} 原始组对象（未转响应载荷）
  */
-function _deriveRealtimeGroups(db, { actor, role, personId, branchId }) {
+function _deriveRealtimeGroups(db, { actor, role, personId, branchId, policy = effectivePolicyWith(null) }) {
   const day = today();
   const groups = [];
   const keys = Object.keys(REALTIME_GROUP_ROLES).filter((key) => REALTIME_GROUP_ROLES[key].includes(role));
@@ -249,6 +264,7 @@ function _deriveRealtimeGroups(db, { actor, role, personId, branchId }) {
       activities: rowsOf('activities'),
       attendanceRecords: rowsOf('attendances'),
       today: day,
+      policy: policy.attendance,
     });
     if (group) groups.push(group);
   }
@@ -258,6 +274,7 @@ function _deriveRealtimeGroups(db, { actor, role, personId, branchId }) {
       inspectionRecords: rowsOf('inspections'),
       persons: _membersOfBranch(db, branchId),
       today: day,
+      policy: policy.inspection,
       groupKeyPrefix: role === 'org-commissioner' ? 'org-commissioner' : 'secretary',
     });
     if (group) groups.push(group);
@@ -285,6 +302,7 @@ function _deriveRealtimeGroups(db, { actor, role, personId, branchId }) {
     const group = deriveSemesterDetainedRemindGroup({
       members: _membersOfBranch(db, branchId),
       today: day,
+      windows: policy.memberConfirmation.semesterDetainedWindows,
     });
     if (group) groups.push(group);
   }
@@ -332,6 +350,8 @@ function _deriveRealtimeGroups(db, { actor, role, personId, branchId }) {
 function _deriveGroups(db, { actor, role, personId, branchId }) {
   const day = today();
   const groups = [];
+  // 支部有效策略（同一请求只取一次）：派生阈值 / 复核窗口径与客户端 `getEffectivePolicy` 同源（D-2）
+  const policy = _effectivePolicyOfBranch(db, branchId);
   // ① ② 只在组织委员台派生（客户端单一源：`entries/tabs/org/todo-tab.js::_buildOrgRealtimeGroups`）
   //  2026-11-09 批次 539（P0 漏提醒）：前置门从「有待办行」改为「有成员发展数据」——
   //  待办行为空不得吞掉发展节点 / 半年考察提醒；无 developStage 数据时纯函数自身返回 null（不产空组）。
@@ -356,7 +376,7 @@ function _deriveGroups(db, { actor, role, personId, branchId }) {
   });
   if (cycle) groups.push(cycle);
   // ④ 7 类实时组（Task 8）：按角色归位，读面沿用支部作用域（详见 `_deriveRealtimeGroups`）
-  groups.push(..._deriveRealtimeGroups(db, { actor, role, personId, branchId }));
+  groups.push(..._deriveRealtimeGroups(db, { actor, role, personId, branchId, policy }));
   return groups.map(_groupPayload);
 }
 

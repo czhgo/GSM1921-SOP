@@ -203,10 +203,21 @@ export function collectDom(cfg) {
   });
 
   // F6：空态文本启发式（文本节点，最近容器无 .empty-state）
+  //   2026-11-10 批次 541：两类「不是空态」的文本排除（判据可布尔化，命中记入 emptyIgnored 供复核）：
+  //     ① 指标占位：`<指标名> —（<说明>）`（如「出勤 —（暂无应到名单）」）；
+  //     ② 分组提示：与同级标题（h1–h5）并排的 `<span>` 说明（如「本期没有记录」）。
   const hits = [];
+  const ignored = [];
   const seen = new Set();
   const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
   const re = /暂无|没有|还没有/;
+  const METRIC_PLACEHOLDER_RE = /^[^\u2014]{1,20}\u2014（[^）]{1,30}）$/;
+  const isMetricPlaceholder = (text) => METRIC_PLACEHOLDER_RE.test(text);
+  const isHeadingHint = (el) => {
+    if (!el || el.tagName !== 'SPAN') return false;
+    const row = el.parentElement;
+    return !!row && !!row.querySelector('h1, h2, h3, h4, h5');
+  };
   let node = walker.nextNode();
   while (node && hits.length < 12) {
     const text = (node.nodeValue || '').replace(/\s+/g, ' ').trim();
@@ -220,7 +231,10 @@ export function collectDom(cfg) {
         const sig = text.slice(0, 60) + ' @ ' + tag;
         if (!seen.has(sig)) {
           seen.add(sig);
-          hits.push({ text: text.slice(0, 60), tag, cls: clsOf(parent) });
+          const why = isMetricPlaceholder(text) ? 'metric-placeholder'
+            : (isHeadingHint(parent) ? 'heading-hint' : '');
+          if (why) ignored.push({ text: text.slice(0, 60), tag, cls: clsOf(parent), why });
+          else hits.push({ text: text.slice(0, 60), tag, cls: clsOf(parent) });
         }
       }
     }
@@ -256,6 +270,7 @@ export function collectDom(cfg) {
     sections,
     nestedSections,
     emptyHits: hits,
+    emptyIgnored: ignored,
     engineOverPage,
     tableOverPage,
   };

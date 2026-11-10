@@ -11,6 +11,8 @@
 //   ⑤ 缺 id / 未命中必须给「未定位到具体条目」显式提示；
 //   ⑥ `PendingTarget` 设置 → 消费后清空（一次性），且 `section` 随目标传递；
 //   ⑦ 五个目标页（talent / roster / attendance / members / growth）已接 PendingTarget 消费。
+//   ⑧ 批次 541 P0-1：今天页行点击的定位键＝聚合组键（`role:actionKey`），壳内补 id → groupKey 反查；
+//   ⑨ 批次 541 P0-2：支书考勤 / 考察复核落待办复核组，意见反馈页不得对非 review 深链误报「未找到反馈项」。
 //
 // ⚠ 本文件由主代理统一登记 `test-tier-registry.mjs`（本波次未登记，`test-tier-guard` 待主代理同批改准；
 //   登记前不要把它加进任何层，避免与主代理并行改动冲突）。
@@ -22,11 +24,14 @@ import { join } from 'node:path';
 
 import {
   TODO_ACTIONS, TODO_ACTION_AUDIT, TODO_ROLES, auditTodoActionTargets, resolveTodoAction,
-} from '../../docs/src/core/domain/todo-actions.js?v=20261110a';
+} from '../../docs/src/core/domain/todo-actions.js?v=20261110b';
 import {
   WORKSPACE_TAB_REGISTRY, hasWorkspaceTab, synonymWorkspaceTab,
-} from '../../docs/src/core/domain/workspace-tabs.js?v=20261110a';
-import { PendingTarget } from '../../docs/src/core/session/pending-target.js?v=20261110a';
+} from '../../docs/src/core/domain/workspace-tabs.js?v=20261110b';
+import {
+  NAV_MODULE_MISSING_TEXT, showNavFallback,
+} from '../../docs/src/core/session/workspace-nav.js?v=20261110b';
+import { PendingTarget } from '../../docs/src/core/session/pending-target.js?v=20261110b';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const SRC = join(ROOT, 'docs', 'src');
@@ -99,9 +104,12 @@ test('①b 六个角色均已有入口页签 today / todo / overview（同义落
 
 // ═══════════ ② 每个动作 × 六个角色：解析存在、落点已注册 ═══════════
 
-test('② 20+ 类动作 × 六角色：解析存在且 switch 落点已在本台注册', () => {
+test('② 动作表条数固定（30 类）× 六角色：解析存在且 switch 落点已在本台注册', () => {
   const keys = Object.keys(TODO_ACTIONS);
-  assert.ok(keys.length >= 20, `动作表只登记 ${keys.length} 类（契约件要求 ≥ 20 类）`);
+  // 批次 541 改准：精确等值锁死条数（原 `>= 20` 允许「悄悄删一条」，与契约「逐台登记、增删同批改」不符）。
+  //   29 → 30 的来历：批次 541 P0-2 补登 `inspection-review`（支书考察审核，历史 / 种子键）。
+  assert.equal(keys.length, 30, `动作表登记 ${keys.length} 类，基线 30 类：增删须同批改契约 §一 与 CASES 036`);
+  assert.equal(TODO_ROLES.length, 6, `六台角色键 ${TODO_ROLES.length} 个，基线 6 个：增删须同批改契约 §一 与能力注册表`);
   const problems = [];
   for (const key of keys) {
     for (const role of TODO_ROLES) {
@@ -161,6 +169,78 @@ test('②d 同义落点语义抽查：activity / member / group / notice 六台�
 
 // ═══════════ ③ 无 toast-only ═══════════
 
+/**
+ * 最小 DOM 桩（批次 541 · G-2）：只为**真渲一次** fail-closed 提示，不模拟浏览器。
+ * 够 `workspace-nav._contentHost` / `_renderNavNotice` 用：`querySelector` 取页签按钮、
+ * `getElementById` 取内容区、`createElement` + `appendChild` + `prepend` 造节点树。
+ */
+function installFakeDom() {
+  const node = (tag) => {
+    const attrs = {};
+    const data = {};
+    // `dataset.x = v` 在真 DOM 里等价于写 `data-x` 属性——桩件同样回写，断言才能落在属性上
+    const dataset = new Proxy(data, {
+      set(t, key, value) {
+        t[key] = String(value);
+        attrs[`data-${String(key).replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`] = String(value);
+        return true;
+      },
+    });
+    return {
+      tagName: String(tag).toUpperCase(),
+      children: [],
+      dataset,
+      attrs,
+      className: '',
+      textContent: '',
+      setAttribute(k, v) { attrs[k] = String(v); },
+      getAttribute(k) { return Object.hasOwn(attrs, k) ? attrs[k] : null; },
+      appendChild(child) { this.children.push(child); return child; },
+      prepend(child) { this.children.unshift(child); return child; },
+      addEventListener() {},
+      remove() {},
+      querySelectorAll() { return []; },
+    };
+  };
+  const host = node('div');
+  host.id = 'ws-tab-content';
+  const tabBtn = node('button');
+  tabBtn.setAttribute('data-ws-tab-btn', 'todo');
+  tabBtn.setAttribute('aria-controls', host.id);
+  const prev = globalThis.document;
+  globalThis.document = {
+    querySelector(sel) { return sel === '[data-ws-tab-btn]' ? tabBtn : null; },
+    getElementById(id) { return id === host.id ? host : null; },
+    createElement(tag) { return node(tag); },
+  };
+  return {
+    host,
+    restore() {
+      if (prev === undefined) delete globalThis.document;
+      else globalThis.document = prev;
+    },
+  };
+}
+
+/** 节点树里的全部文本（含自身 `textContent`） */
+function textsOf(node, out = []) {
+  if (!node) return out;
+  if (node.textContent) out.push(String(node.textContent));
+  for (const c of node.children || []) textsOf(c, out);
+  return out;
+}
+
+/** 按 `dataset` 键找节点（`dataset.key` 存在即为命中） */
+function findByDataset(node, key) {
+  if (!node) return null;
+  if (node.dataset && Object.hasOwn(node.dataset, key)) return node;
+  for (const c of node.children || []) {
+    const hit = findByDataset(c, key);
+    if (hit) return hit;
+  }
+  return null;
+}
+
 test('③ 统一导航不含 toast-only：workspace-nav 不引 showToast，失败一律可见提示', () => {
   const nav = read('core/session/workspace-nav.js');
   assert.doesNotMatch(nav, /showToast/, '导航层不得用 toast 作为失败兜底');
@@ -169,6 +249,29 @@ test('③ 统一导航不含 toast-only：workspace-nav 不引 showToast，失�
   assert.match(nav, /data-ws-nav-notice/, '失败提示须渲染到内容区（可见）');
   assert.match(nav, /synonymWorkspaceTab/, '失败提示须给同义落点');
   assert.match(nav, /export function executeTodoAction/, '动作执行须有统一出口');
+
+  // ③-dom（批次 541 · G-2）：静态串之外**真渲一次**节点树 —— 内容区必须拿到提示卡 ＋ 可点的同义落点，
+  //   且落点必须指向本台已注册页签（否则「给了按钮也点不到」仍是 fail-closed 失效）。
+  //   真机同款链路见 `server/test/today-action-groups-e2e.test.mjs`（本文件保持纯 node、不起服务、不引 playwright）。
+  const { host, restore } = installFakeDom();
+  try {
+    const rendered = showNavFallback({ tabId: 'kanban', role: 'secretary' });
+    assert.equal(rendered, true, '内容区有落点时 showNavFallback 必须真渲染（返回 true），不得只 console.warn');
+    const card = host.children[0];
+    assert.ok(card, '提示卡须 prepend 进内容区');
+    assert.equal(card.getAttribute('data-ws-nav-notice'), '1', '提示卡须带 data-ws-nav-notice 标记');
+    const texts = textsOf(card);
+    assert.ok(texts.some((t) => t.includes(NAV_MODULE_MISSING_TEXT)),
+      `提示主文须含「${NAV_MODULE_MISSING_TEXT}」；实得 ${JSON.stringify(texts)}`);
+    const go = findByDataset(card, 'wsNavFallbackGo');
+    assert.ok(go, '缺页签须在同屏给同义落点按钮（dataset.wsNavFallbackGo）');
+    const target = go.dataset.wsNavFallbackGo;
+    assert.ok(hasWorkspaceTab('secretary', target), `同义落点 ${target} 必须是本台已注册页签`);
+    assert.equal(target, synonymWorkspaceTab('secretary', 'kanban').tab, '同义落点须与 synonymWorkspaceTab 单一源一致');
+    assert.match(String(go.textContent), /^去/, '同义落点按钮文案须为「去<页签名>」');
+  } finally {
+    restore();
+  }
 });
 
 test('③b 六台待办页全部经 executeTodoAction；不再写「请处理：」类 toast 兜底', () => {
@@ -227,4 +330,59 @@ test('⑤ PendingTarget：set → consume 后清空；section 随目标传递；
   PendingTarget.set({ kind: 'report', id: 'x' });
   assert.equal(PendingTarget.peek(), null, '未给 tab 的目标不得写入');
   PendingTarget.clear();
+});
+
+// ═══════════ ⑥ 今天页 → 待办页：定位键＝聚合组键（批次 541 P0-1）═══════════
+// 病灶：今天行把「待办本体 id」当 PendingTarget.id，而待办页行键是 `role:actionKey` ⇒ 选择器永不命中。
+
+test('⑥ 今天页行点击传聚合组键（组 → 行唯一键），壳内补 id → groupKey 反查', () => {
+  const today = read('entries/tabs/today/today-tab.js');
+  assert.match(today, /data-group-key="\$\{esc\(it\.groupKey \|\| ''\)\}"/,
+    '今天页待办行须带聚合组键（待办页行键 role:actionKey）');
+  assert.match(today, /pendingId: groupKey/, 'switch 落点须以组键作 PendingTarget 定位键');
+  assert.match(today, /goToWorkspaceTab\('todo', \{ kind: 'todo', id: groupKey \|\| todoId \|\| null \}/,
+    'inline / 未登记动作落到待办时同样以组键定位');
+
+  const summary = read('services/governance/today-summary.js');
+  assert.match(summary, /groupKey: g\.groupKey \|\| ''/, 'byAction 项须带组键（否则今天页无键可传）');
+
+  const nav = read('core/session/workspace-nav.js');
+  assert.match(nav, /todo\.pendingId/, 'switch 落点须支持显式 pendingId（今天页传组键）');
+
+  const shell = read('components/record/todo-tab-shell.js');
+  assert.match(shell, /_findNavAnchor/, '壳内须有独立锚点查找（kind 锚点 → 组键反查）');
+  assert.match(shell, /_findNavAnchor\(container, matchedGroup\.groupKey, 'group'\)/,
+    '★ 壳内须做 id → groupKey 反查（条目 / 待办本体 id 也要落到所属组行）');
+});
+
+// ═══════════ ⑦ 支书考勤 / 考察落点（批次 541 P0-2）═══════════
+// 病灶：支书 attendance / inspection 覆盖到「意见反馈」且 kind=review，反馈页按 `data-issue-id` 找必然失败。
+
+test('⑦ 支书考勤 / 考察复核落待办复核组（不得误落意见反馈）', () => {
+  for (const [key, kind] of [
+    ['attendance-confirm', 'attendance'],
+    ['inspection-confirm', 'inspection'],
+    ['inspection-review', 'inspection'],
+  ]) {
+    const action = resolveTodoAction({ actionKey: key }, 'secretary');
+    assert.ok(action, `${key} × secretary：解析为空`);
+    assert.equal(action.kind, kind, `${key} × secretary：kind 须为 ${kind}`);
+    assert.notEqual(action.tab, 'feedback', `${key} × secretary：不得落意见反馈（该页只承载反馈项）`);
+    assert.equal(action.tab, 'todo', `${key} × secretary：落待办复核组`);
+    assert.ok(hasWorkspaceTab('secretary', action.tab), `${key} × secretary：${action.tab} 未注册`);
+  }
+  // 六台 roleOverrides 仍完整：每键除支书外五台显式覆盖（合计六台）
+  for (const key of ['attendance-confirm', 'inspection-confirm', 'inspection-review']) {
+    const overrides = TODO_ACTIONS[key].roleOverrides || {};
+    assert.equal(TODO_ROLES.filter((role) => overrides[role]).length, TODO_ROLES.length - 1,
+      `${key}：须保留五台显式覆盖（六台落点完整）`);
+  }
+});
+
+test('⑦b 意见反馈页：非 review 的深链不得误报「未找到反馈项」', () => {
+  const src = read('entries/tabs/secretary/feedback-tab.js');
+  assert.match(src, /navTarget\.kind === 'review'/, '反馈项定位须只认 review 语义');
+  assert.match(src, /navTarget\.kind !== 'review'/, '★ 非 review 深链须单列分支（不得复用「未找到反馈项」文案）');
+  const nonReviewBranch = src.slice(src.indexOf("navTarget.kind !== 'review'"));
+  assert.doesNotMatch(nonReviewBranch, /未找到对应反馈项/, '非 review 分支不得出现「未找到对应反馈项」');
 });

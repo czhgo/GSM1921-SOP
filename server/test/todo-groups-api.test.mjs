@@ -14,6 +14,17 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
+import { today } from '../services/reporting.js';
+// 客户端有效策略的同源两步（批次 541 · D-2）：净化 = config-clean（与 server 同 import）；合并 = effectivePolicyWith
+import { sanitizeConfigPolicyOverrides } from '../../docs/src/services/branch/config-clean.js?v=20261110b';
+import { effectivePolicyWith } from '../../docs/src/core/domain/policy-defaults.js?v=20261110b';
+// 标准答案（客户端纯派生）与服务端同一份函数：改阈值后条数必须同步变化（D-2 / D-3）
+import {
+  deriveAttendanceRemindGroup,
+  deriveInspectionRemindGroup,
+  deriveSemesterDetainedRemindGroup,
+  deriveInspectionConfirmGroup,
+} from '../../docs/src/core/domain/todo-derive.js?v=20261110b';
 
 const ORG_COMMISSIONER_ID = '2400012355'; // 高翔宇（组织委员，br-b1）
 const SECRETARY_ID = '2300010001';        // 储子禾（支书，br-b1）
@@ -255,7 +266,7 @@ test('⑧ 纪检台「考勤 / 考察待确认」由服务端派生，count === 
   assert.ok(keys.includes('inspection-confirm'), '纪检视图应产出考察待确认组');
   for (const g of body.groups) assert.equal(g.count, g.items.length, `${g.groupKey}.count === items.length`);
   // 客户端不再自行计算：服务端已接管键必须出现在壳的 SERVER_OWNED_ACTION_KEYS
-  const { SERVER_OWNED_ACTION_KEYS } = await import('../../docs/src/components/record/todo-tab-shell.js?v=20261110a');
+  const { SERVER_OWNED_ACTION_KEYS } = await import('../../docs/src/components/record/todo-tab-shell.js?v=20261110b');
   for (const key of ['attendance-confirm', 'inspection-confirm']) {
     assert.ok(SERVER_OWNED_ACTION_KEYS.has(key), `客户端壳应声明服务端已接管：${key}`);
   }
@@ -273,4 +284,158 @@ test('⑨ 计算单一源守卫：路由不得 import mockDB / SEED_TODOS；api 
   const leaked = body.groups.flatMap((g) => (g.items || []).map((it) => String(it.id))).filter((id) => demoIdRe.test(id));
   // 种子库本就有 mc-seed-1 / mcr-seed-roster（演示数据），本守卫只钉「路由自身不生成 todo_seed_*」
   assert.ok(!leaked.some((id) => id.startsWith('todo_seed_')), `API 派生不得凭空生成演示待办：${leaked.join(',')}`);
+});
+
+// ════════════════════════════════════════════════════════════════
+//  ⑩ P1（批次 541 · D-2）：支部 policyOverrides 必须注入服务端派生
+// ════════════════════════════════════════════════════════════════
+
+/** 本地日历日 ±N 天（'YYYY-MM-DD'；不用 toISOString，避免东八区回退一天） */
+function shiftDay(baseDay, n) {
+  const d = new Date(`${baseDay}T00:00:00`);
+  d.setDate(d.getDate() + n);
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
+test('⑩ 支部 policyOverrides 生效：改阈值后服务端组条数与客户端有效策略逐值一致（D-2）', async () => {
+  const app3 = createApp({ dbPath: ':memory:' });
+  const db3 = app3.locals.db;
+  await seedDatabase(db3);
+  const day = today();
+
+  // 两条「已结束、无考勤记录」的党课：5 天前 / 3 天前 ⇒ 默认阈值（1 天）两条都命中
+  const activities = [
+    { id: 'p-att-5', title: '五天前党课', type: '党课', status: 'completed', date: shiftDay(day, -5), branchId: 'br-b1' },
+    { id: 'p-att-3', title: '三天前党课', type: '党课', status: 'completed', date: shiftDay(day, -3), branchId: 'br-b1' },
+  ];
+  for (const a of activities) {
+    db3.prepare('INSERT OR REPLACE INTO activities (id, data) VALUES (?, ?)').run(a.id, JSON.stringify(a));
+  }
+  const members = () => db3.prepare('SELECT data FROM users').all().map((r) => JSON.parse(r.data))
+    .filter((u) => (u.branchId || 'br-b1') === 'br-b1' && u.transferOut !== true);
+  const db3Activities = () => db3.prepare('SELECT data FROM activities').all().map((r) => JSON.parse(r.data))
+    .filter((a) => (a.branchId || 'br-b1') === 'br-b1');
+  const db3Attendances = () => db3.prepare('SELECT data FROM attendances').all().map((r) => JSON.parse(r.data))
+    .filter((r) => (r.branchId || 'br-b1') === 'br-b1');
+  const inspectionRecords = () => db3.prepare('SELECT data FROM inspections').all().map((r) => JSON.parse(r.data))
+    .filter((r) => (r.branchId || 'br-b1') === 'br-b1');
+
+  /** 直接写支部 config.policyOverrides（本用例只核读侧生效，不跑配置写门） */
+  const setOverrides = (policyOverrides) => {
+    const row = db3.prepare('SELECT data FROM branches WHERE id = ?').get('br-b1');
+    const branch = JSON.parse(row.data);
+    branch.config = { ...(branch.config || {}), policyOverrides };
+    db3.prepare('INSERT OR REPLACE INTO branches (id, data) VALUES (?, ?)').run('br-b1', JSON.stringify(branch));
+  };
+
+  const app3Server = app3.listen(0);
+  const base3 = `http://127.0.0.1:${app3Server.address().port}`;
+  const pool = async () => {
+    const { token } = await loginAt(base3, SECRETARY_ID);
+    const res = await fetch(`${base3}/api/v1/todo-groups?role=secretary`, { headers: authHeaders(token) });
+    assert.equal(res.status, 200, 'GET /todo-groups 失败');
+    return res.json();
+  };
+  const groupOf = (body, key) => body.groups.find((g) => g.actionKey === key) || null;
+  const countOf = (body, key) => {
+    const g = groupOf(body, key);
+    return g ? g.count : null;
+  };
+
+  try {
+    // ① 缺省（无 overrides）：服务端条数 ＝ 客户端纯派生条数，且夹具两条都在命中集里
+    const defaultPolicy = effectivePolicyWith(sanitizeConfigPolicyOverrides(null));
+    const goldenDefault = deriveAttendanceRemindGroup({
+      activities: db3Activities(), attendanceRecords: db3Attendances(), today: day, policy: defaultPolicy.attendance,
+    });
+    const defaultIds = goldenDefault.items.map((it) => it.id);
+    assert.ok(defaultIds.includes('p-att-5') && defaultIds.includes('p-att-3'),
+      '默认阈值（1 天）下 5 / 3 天前的两条夹具都应命中');
+    const bodyDefault = await pool();
+    assert.equal(countOf(bodyDefault, 'attendance-remind'), goldenDefault.count,
+      '缺省阈值下服务端与客户端条数不一致（policy 未注入或注入错值）');
+
+    // ② 改支部阈值：考勤 → 4 天；考察 → 90 天；滞留复核窗 → 整年
+    const overrides = {
+      attendance: { entryRemindDays: 4 },
+      inspection: { overdueDays: 90 },
+      memberConfirmation: { semesterDetainedWindows: [[1, 1, 12, 31]] },
+    };
+    setOverrides(overrides);
+    const effective = effectivePolicyWith(sanitizeConfigPolicyOverrides(overrides));
+    assert.equal(effective.attendance.entryRemindDays, 4, '净化 + 合并后阈值应为 4（非出厂默认）');
+    const bodyAfter = await pool();
+
+    // ②-a 考勤：3 天前那条随阈值调高退出，条数与客户端同值且低于缺省（非恒等比较）
+    const goldenAttendance = deriveAttendanceRemindGroup({
+      activities: db3Activities(), attendanceRecords: db3Attendances(), today: day, policy: effective.attendance,
+    });
+    const afterIds = goldenAttendance.items.map((it) => it.id);
+    assert.ok(afterIds.includes('p-att-5'), '阈值 4 天时 5 天前那条仍应命中');
+    assert.ok(!afterIds.includes('p-att-3'), '阈值 4 天时 3 天前那条必须退出');
+    assert.equal(countOf(bodyAfter, 'attendance-remind'), goldenAttendance.count, '改阈值后服务端与客户端条数不一致');
+    assert.ok(countOf(bodyAfter, 'attendance-remind') < goldenDefault.count, '阈值调高后条数必须下降（防恒等假绿）');
+
+    // ②-b 考察：阈值 90 天下的超期集合与客户端同值
+    const goldenInspection = deriveInspectionRemindGroup({
+      inspectionRecords: inspectionRecords(), persons: members(), today: day, policy: effective.inspection,
+    });
+    assert.equal(countOf(bodyAfter, 'inspection-remind'), goldenInspection ? goldenInspection.count : null,
+      '考察超期阈值未按支部覆盖生效');
+
+    // ②-c 学期末滞留：整年复核窗下必须有组，且条数与客户端同值
+    const goldenSemester = deriveSemesterDetainedRemindGroup({
+      members: members(), today: day, windows: effective.memberConfirmation.semesterDetainedWindows,
+    });
+    assert.ok(goldenSemester && goldenSemester.count > 0, '整年窗 + 种子滞留成员应产出提醒组（夹具非空转）');
+    assert.equal(countOf(bodyAfter, 'semester-detained-remind'), goldenSemester.count,
+      '滞留复核窗未按支部覆盖生效');
+  } finally {
+    app3Server.closeAllConnections?.();
+    await new Promise((r) => app3Server.close(r));
+    db3.close();
+  }
+});
+
+// ════════════════════════════════════════════════════════════════
+//  ⑪ P1（批次 541 · D-3）：专班考察来源类型透传 + 落点非空
+// ════════════════════════════════════════════════════════════════
+
+test('⑪ 专班考察项：sourceType 透传 taskforce，落点 sourceId 非空（D-3）', async () => {
+  // 专班考察记录形态（组织台建档）：无 activityId，只有 workgroupId / taskforceId 快照
+  const db = app.locals.db;
+  db.prepare('INSERT OR REPLACE INTO inspections (id, data) VALUES (?, ?)').run('p-insp-tf-1', JSON.stringify({
+    id: 'p-insp-tf-1', branchId: 'br-b1', sourceType: 'taskforce', activityId: null,
+    workgroupId: 'wg-taskforce-p-tf-1', taskforceId: 'p-tf-1', sourceName: '测试专班',
+    personId: PARTICIPANT_ID, recordedBy: ORG_COMMISSIONER_ID,
+    recordedAt: '2026-10-01T00:00:00.000Z', status: 'pending',
+  }));
+
+  const { token } = await login(DISC_COMMISSIONER_ID);
+  const { status, body } = await fetchGroups(token, '?role=disc-commissioner');
+  assert.equal(status, 200);
+  const group = body.groups.find((g) => g.actionKey === 'inspection-confirm');
+  assert.ok(group, '纪检台应产出考察待确认组');
+  const item = group.items.find((it) => it.id === 'p-insp-tf-1');
+  assert.ok(item, '专班考察行应进待确认组');
+  assert.equal(item.sourceType, 'taskforce', 'sourceType 不得被压成 activity（否则跳转落到活动详情）');
+  assert.equal(item.sourceId, 'p-tf-1', '无 activityId 时落点应取专班 id（非空）');
+
+  // 纯函数同口径（不依赖端点）：活动型记录仍落活动 id（须给活跃活动，否则活动型记录被过滤）
+  const pure = deriveInspectionConfirmGroup({
+    activities: [{ id: 'act-x', archived: false }],
+    inspectionRecords: [
+      { id: 'p-tf', sourceType: 'taskforce', activityId: null, taskforceId: 'p-tf-1', personId: 'u1', status: 'pending' },
+      { id: 'p-act', sourceType: 'activity', activityId: 'act-x', personId: 'u1', status: 'pending' },
+    ],
+    persons: [],
+  });
+  const tf = pure.items.find((it) => it.id === 'p-tf');
+  const act = pure.items.find((it) => it.id === 'p-act');
+  assert.equal(tf.sourceType, 'taskforce');
+  assert.equal(tf.sourceId, 'p-tf-1');
+  assert.equal(act.sourceType, 'activity');
+  assert.equal(act.sourceId, 'act-x');
 });

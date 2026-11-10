@@ -380,7 +380,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **场景（真实发生）**：未登录首页曾按「默认支部工作台」渲染，登录页标题读取 `DEFAULT_BRANCH_ID` 的 `headerTitle || name`，未登录即可看到「光华管理学院本科生党支部」；同一屏还挂着统计卡、工作组、活动风采与通知角标。V-11 待裁期间（2026-11-07 批次 535）先做了通知读侧 fail-closed，未登录不再读站内通知；2026-11-08 支书裁定改为学院党委公共门厅（D-858）。
 - **结论**：未登录首页渲染学院党委公共门厅，品牌为党徽 ＋「光华管理学院党建平台」；公开面只出现党委公开通知全文、党委公开活动摘要、公开资料列表 / 详情 / 下载与登录入口。具体支部名、成员姓名、统计卡、工作组、活动风采与通知角标不进入未登录面。登录后回到工作台，活动 / 通知 / 资料按党委与支部并集展示。
 - **边界**：支部名可在登录后的工作台、支部档案与党委选定支部后的只读视图出现；无会话的接口不返回支部名与成员字段；公开内容过期后匿名接口返回 404，呈现为「不存在」，不留「空列表」形状的空态；公开设置与审计的规范条文见 `SYSTEM_ROLE_PERMISSION.md §9a.1`，门厅的显示范围与验收判据见 `PUBLIC_ENTRANCE.md`。
-- **对应规范编号**：待登记（门厅版式与匿名字段白名单的 SD 编号待设计系统登记；已登记于 `.ctx/REVIEW_QUEUE.md` 归口待办）
+- **对应规范编号**：SD-62（未登录公开面只出现党委公开内容，不出现支部名与成员字段；正文见 `content/04_web_design/module/PUBLIC_ENTRANCE.md §二–§六`）；关联 SD-32（深链目标页必须消费参数）。
 - **证据指针**：`content/04_web_design/module/PUBLIC_ENTRANCE.md`（§二 至 §六）· `content/02_institution/SYSTEM_ROLE_PERMISSION.md` §9a.1 · `docs/index.html` · `docs/src/entries/pages/main-entry.js`。
 
 ---
@@ -389,10 +389,10 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 
 - **编号**：CASE-DESIGN-036
 - **场景（真实发生）**：六个工作台的待办里点一条「目标模块不在本台」的行（例如成员台点「党小组」类事项），旧 `workspace-nav` 只 `toast('info')` 提示一句就结束，页面停在原地，用户找不到落点；同一动作的目标页签各台另写一份 `tabMap`，少写一台就静默无反应。
-- **结论**：未命中目标页签时 fail-closed——内容区必须渲染可见提示「本台无该模块」，并给出「同义落点」按钮（工作概况 → 待办 → 今天，取本台第一个已注册者）；不得只弹 toast、不得静默留页、不得拼 `workspace/<role>.html?tab=` 整页跳转。29 类动作 × 6 台在 `TODO_ACTIONS.roleOverrides` 逐台登记，解析顺序由契约固定，调用方不得另写落点分支。
+- **结论**：未命中目标页签时 fail-closed——内容区必须渲染可见提示「本台无该模块」，并给出「同义落点」按钮（工作概况 → 待办 → 今天，取本台第一个已注册者）；不得只弹 toast、不得静默留页、不得拼 `workspace/<role>.html?tab=` 整页跳转。30 类动作 × 6 台在 `TODO_ACTIONS.roleOverrides` 逐台登记，解析顺序由契约固定，调用方不得另写落点分支。
 - **边界**：`inline` 动作仍在行尾 / 浮窗完成（从只读页点进来时落到待办页该行）；`direct` 动作走对象详情，缺 id 给「未定位到具体条目」提示，两者不套「同义落点」这条兜底。
-- **对应规范编号**：SD 待登记（条文见 `contracts/INTERACTION_AND_NAVIGATION_CONTRACT.md §二`）；关联 SD-32（深链目标页必须消费参数）。
-- **守卫**：`todo-jump-contract`（29 类动作 × 6 台已注册、无 toast-only、缺 id 有显式提示、`PendingTarget` 已清理）＋ `todo-cross-role-safety`。
+- **对应规范编号**：SD-63（待办跳转三模式与未命中 fail-closed；正文见 `content/04_web_design/contracts/INTERACTION_AND_NAVIGATION_CONTRACT.md §二`）；关联 SD-32（深链目标页必须消费参数）。
+- **守卫**：`todo-jump-contract`（30 类动作 × 6 台已注册、无 toast-only、缺 id 有显式提示、`PendingTarget` 已清理、fail-closed 提示真渲一次）＋ `todo-cross-role-safety`。
 - **证据指针**：`docs/src/core/session/workspace-nav.js:13,25-26,82-91`；`docs/src/core/domain/todo-actions.js`；`docs/src/components/record/todo-tab-shell.js`；`content/04_web_design/contracts/INTERACTION_AND_NAVIGATION_CONTRACT.md`；`server/test/todo-jump-contract.test.mjs`；`.ctx/evidence/2026-11-10/overview-workmap/findings.json`。
 
 ---
@@ -403,7 +403,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **场景（真实发生）**：`agenda-form` 的「拟上会」清单只列事项名，不带类型；同一事项在支书台写议程时标成「讨论」、在党委会议页读摘要时类型为空；服务端也没有汇总口。「哪些事该上会」与「按哪一档上会」靠人记。
 - **结论**：来源 → 类型 → 待议池由一份纯函数算（`agenda-classify.js::AGENDA_SOURCES` 六类，另纳入活动批准 / 分工调整两类），客户端与服务端同源 import；服务端出 `GET /api/v1/committee/agenda-candidates`。类型三值 决策 / 讨论 / 同步，`needDecision` 决定是否需要表态；新增来源必须同批改契约、分类表与验收项。
 - **边界**：分类函数只给「建议议程步骤」，写入时 `agendaStep` 仍由支书在写入面板决定，不得自动落库；去重 / 时效 / 应到属服务端算，客户端只做分组 / 排序 / 徽章。
-- **对应规范编号**：SD 待登记（条文见 `contracts/AGENDA_DERIVATION_CONTRACT.md §一–§三`）；关联 SD-34（状态只能有一套派生）。
+- **对应规范编号**：SD-64（议程来源 → 类型 → 待议池同源分类；正文见 `content/04_web_design/contracts/AGENDA_DERIVATION_CONTRACT.md §一–§三`）；关联 SD-34（状态只能有一套派生）。
 - **守卫**：`agenda-classify`（六类来源 × 四反例 × 服务端与客户端逐项一致 × 双支部过滤）。
 - **证据指针**：`docs/src/core/domain/agenda-classify.js:2-13,29-45`；`server/routes/committee.js:235-236`；`docs/src/entries/tabs/secretary/agenda-form.js`；`docs/src/entries/tabs/secretary/committee-meeting-tab.js`；`content/04_web_design/contracts/AGENDA_DERIVATION_CONTRACT.md`；`server/test/agenda-classify.test.mjs`。
 
@@ -415,7 +415,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **场景（真实发生）**：`secretary.group-progress` 的活动台账曾手写 `<table>`：列宽用百分比、无 `<colgroup>`、两列同时省略号截断，390 档整表横向溢出；同类手写表在别处还有多处，行高 / 列宽 / 截断各写一套。
 - **结论**：同列同语义 ≥3 行一律走 `renderDataTable`；列宽只取三档（内容 auto / 固定 `colgroup` / 最小 `min-width`），全表只允许一列截断且该列必须是 `1fr` 余量列；数据行高 40px，展开详情用 `colspan` 插行。手写 `<table>` 存量按棘轮只减不增。
 - **边界**：字段异构且 ≤12 项用列表 / 卡片；两维交叉用 `relation-matrix.js`，不套数据表；两行以内的数据不起表。
-- **对应规范编号**：SD 待登记（条文见 `contracts/TABLE_COMPONENT_CONTRACT.md §一–§四`）；关联 SD-44（宽表定列宽模板、末列不吃余量）。
+- **对应规范编号**：SD-65（表格载体四问与 `data-table` 三档列宽、一表一截断列；正文见 `content/04_web_design/contracts/TABLE_COMPONENT_CONTRACT.md §一–§四`）；关联 SD-44（宽表定列宽模板、末列不吃余量）。
 - **守卫**：`table-contract-guard::T1–T7`（契约字段 / 组件参数 / 宽表 colgroup / 手写表棘轮 / `td` 内 `text-xs` 计数 0 / 390 无溢出 / 反例自证）。
 - **证据指针**：`docs/src/components/ui/data-table.js`；`docs/src/entries/tabs/secretary/group-progress-tab.js:59,426,466`；`content/04_web_design/contracts/TABLE_COMPONENT_CONTRACT.md`；`server/test/table-contract-guard.test.mjs`；`.ctx/evidence/2026-11-10/table-540/`。
 
@@ -428,7 +428,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **结论**：详情页按「对象头 → 信息 → 参与 → 议程 → 收口」四段组织，首屏并列块收为 6；管理动作进页尾折叠；议程段只出正文，分区标题由段级 H3 承担（同一学段不得出现两个同名标题）；汇报明细在收口段内展开。
 - **边界**：本条只管活动详情页的块结构；单块内的字段顺序与文案归模块设计；页签侧块数上限仍按 SD-57 与 `TAB_BLOCK_BASELINE` 判。
 - **对应规范编号**：SD-57（顶层区块 ≤4、超限须登记 reason；本条把「详情页」纳入同族判据，超限部分按页尾折叠处理）＋ SD-60（行动行排布，管理动作不占正文行）。
-- **守卫**：`ui-first-screen-order::F6–F9`（页签侧块数）＋ 真机读数（详情页不在 46 个注册页签内，不设自动守卫，须以双档截图与 readings 复核）。
+- **守卫**：`ui-first-screen-order::F6–F9`（页签侧块数）＋ `ui-first-screen-order::F10`（详情页结构契约：对象头 / 参与 / 议程 / 收口 / 管理动作五块、写口宿主与 390 单列）＋ 真机读数（`F10` 只判源码结构，视觉读数仍以双档截图复核）。
 - **证据指针**：`docs/src/entries/pages/activity-entry.js:712,796,803`；`.ctx/evidence/2026-11-10/activity-detail/{before-1440,before-390,after-act-6-1440,after-act-6-390}.png`；同目录 `readings-act-*.json`；`audit-secretary-calendar.md`。
 
 ---

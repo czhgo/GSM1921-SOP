@@ -27,7 +27,9 @@ import {
   AGENDA_INSTITUTION_PENDING_PARTY_MEETING,
   classifyAgendaItem,
   agendaDedupeKey,
-} from '../../docs/src/core/domain/agenda-classify.js?v=20261110a';
+} from '../../docs/src/core/domain/agenda-classify.js?v=20261110b';
+// D-1（批次 541）：应到人数必须等于名册统计应到 —— 两侧同一实现（`roster.js` 再导出 core 叶子件公式）
+import { computeRosterStats } from '../../docs/src/services/member/roster.js?v=20261110b';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
@@ -149,6 +151,20 @@ test('镜像常量与写侧单一源逐字相等（core 层不得 import service
     new RegExp(`INSTITUTION_PENDING_PARTY_MEETING = '${AGENDA_INSTITUTION_PENDING_PARTY_MEETING}'`));
 });
 
+test('G-7 支委会会议页只经 adapter.agendaCandidates 取数，不本地自判分类', () => {
+  // 批次 541：分类单一源在 `agenda-classify.js`（服务端同一函数）。页面若在本地调 `classifyAgendaItem`
+  //   或自持来源清单，就会出现「服务端一档、页面另一档」的第二套判定 ⇒ 两端逐字段一致（③）也就失去意义。
+  const tab = read('docs/src/entries/tabs/secretary/committee-meeting-tab.js');
+  assert.match(tab, /getAdapter\(\)\.agendaCandidates\.list\(\)/,
+    '会议页的待议池须经统一适配器取数（`getAdapter().agendaCandidates.list()`）');
+  assert.doesNotMatch(tab, /classifyAgendaItem\s*\(/,
+    '会议页不得在本地调分类函数自判；分类只由适配器 / 服务端给出');
+  assert.doesNotMatch(tab, /\bAGENDA_SOURCES\b|\bAGENDA_EXTRA_SOURCES\b/,
+    '会议页不得自持来源清单（单一源＝`agenda-classify.js`）');
+  // 展示层仍可用「类型枚举 / 徽章档」这两个只读映射（不参与分类判定）
+  assert.match(tab, /AGENDA_TYPE_BADGE_VARIANT/, '类型徽章档须复用 `agenda-classify.js` 的映射，不自写一份');
+});
+
 // ════════════════════════════════════════════════════════════════
 //  ② 四反例
 // ════════════════════════════════════════════════════════════════
@@ -208,6 +224,16 @@ before(async () => {
   put('activities', { id: 'act-brand-1', branchId: 'br-b1', title: '红色研学', status: 'published', brandProposal: FIXTURES[5].ref.brandProposal });
   put('activities', { id: 'act-approval-1', branchId: 'br-b1', title: '联合主题党日', status: 'pending-approval', approval: FIXTURES[6].ref.approval, type: '主题党日' });
   put('activities', { id: 'act-assign-1', branchId: 'br-b1', title: '支部分工调整：宣传 → 组织委员', status: 'published', type: '支委会', extras: FIXTURES[7].ref.extras });
+
+  // D-1 夹具（批次 541）：滞留支委 / 已转出党员 —— 两者都不得计入任何应到名单
+  put('users', {
+    id: 'agenda-detained-comm', studentId: 'agenda-detained-comm', name: '滞留支委', role: 'prop-commissioner',
+    branchId: 'br-b1', developStage: '正式党员', residenceStatus: '滞留', residenceNote: '外派一年',
+  });
+  put('users', {
+    id: 'agenda-tfout-1', studentId: 'agenda-tfout-1', name: '已转出党员', role: 'participant',
+    branchId: 'br-b1', developStage: '正式党员', transferOut: true,
+  });
 
   // br-b2 同形记录（用于双支部互不串池）
   put('branches', { id: 'br-b2', name: '本科第二党支部', type: '本科生', status: 'active' });
@@ -287,6 +313,32 @@ test('双支部互不串池：br-b2 记录不进 br-b1，br-b1 记录不进 br-b
   // br-b2 只有 1 名支委 ⇒ 应到 1
   const recommendB2 = b2.find((row) => row.source === 'activist-recommend');
   assert.equal(recommendB2.attendees.count, 1);
+});
+
+test('应到剔除滞留 / 已转出：两者都不进名单，人数与名册统计同源（D-1）', async () => {
+  const { body } = await fetchPool(tokenSecB1);
+  const committeeItem = body.find((row) => row.attendees.scope === 'committee');
+  const partyItem = body.find((row) => row.attendees.scope === 'branch-party-meeting');
+  assert.ok(committeeItem, '支委会事项应到样例缺失');
+  assert.ok(partyItem, '党员大会事项应到样例缺失');
+
+  for (const item of [committeeItem, partyItem]) {
+    assert.equal(item.attendees.count, item.attendees.personIds.length, `${item.source} count ≠ 名单人数`);
+    assert.ok(!item.attendees.personIds.includes('agenda-detained-comm'), `${item.source} 应到含滞留成员`);
+    assert.ok(!item.attendees.personIds.includes('agenda-tfout-1'), `${item.source} 应到含已转出成员`);
+  }
+
+  // 反空转：夹具确实在库里且是党员（否则「名单里本来就没他」可蒙混过关）
+  const rows = db.prepare('SELECT data FROM users').all().map((r) => JSON.parse(r.data))
+    .filter((u) => (u.branchId || 'br-b1') === 'br-b1');
+  assert.ok(rows.some((u) => u.id === 'agenda-detained-comm' && u.developStage === '正式党员'), '滞留党员夹具缺失');
+  assert.ok(rows.some((u) => u.id === 'agenda-tfout-1' && u.transferOut === true), '已转出党员夹具缺失');
+
+  // 同源：党员大会应到 ＝ 名册统计 expected（在册行先剔转出，滞留由统计口径剔除）
+  const stats = computeRosterStats(rows.filter((u) => u.transferOut !== true));
+  assert.equal(partyItem.attendees.count, stats.expected, '应到人数须等于名册统计应到（同一口径）');
+  assert.ok(stats.detained >= 1, '夹具应含党员滞留者（否则滞留剔除断言空转）');
+  assert.ok(committeeItem.attendees.count <= partyItem.attendees.count, '支委会应到不得超过党员大会应到');
 });
 
 test('权限：非支委 403；支部账号读他人支部 403；未登录 401', async () => {

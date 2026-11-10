@@ -7,18 +7,18 @@
 // 文案由 components/record/todo-list.js actionLabels 收敛为「去考勤管理/去考察管理」（跳管理页队列，
 // 确认唯一位=考勤管理/考察管理页），补课回执交接行=「去补课制度」跳转——本文件无逻辑改动。
 
-import { seedTodos } from '../../../services/governance/todo.js?v=20261110a';
-import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261110a';
+import { seedTodos } from '../../../services/governance/todo.js?v=20261110b';
+import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261110b';
 // 2026-11-01 批次 524（#7）：主行动落点由动作表声明，页签切换走统一导航（删写死 workspace URL）
 // 2026-11-10 批次 540 波次 1：失败落点由导航层给可见提示（不再只 toast）；分段预置后仍走同一出口。
-import { resolveTodoAction } from '../../../core/domain/todo-actions.js?v=20261110a';
-import { executeTodoAction } from '../../../core/session/workspace-nav.js?v=20261110a';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261110a';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261110a';
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261110a';
-import { PersonStore } from '../../../services/member/person.js?v=20261110a';
+import { resolveTodoAction } from '../../../core/domain/todo-actions.js?v=20261110b';
+import { executeTodoAction } from '../../../core/session/workspace-nav.js?v=20261110b';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261110b';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261110b';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261110b';
+import { PersonStore } from '../../../services/member/person.js?v=20261110b';
 // 「考勤 / 考察待确认」判据单一源（批次 539：服务端派生；mock / 失败兜底同源复用）
-import { deriveAttendanceConfirmGroup, deriveInspectionConfirmGroup } from '../../../core/domain/todo-derive.js?v=20261110a';
+import { deriveAttendanceConfirmGroup, deriveInspectionConfirmGroup } from '../../../core/domain/todo-derive.js?v=20261110b';
 
 // ── 纪检实时聚合组（2026-08-07 闭环化） ────────────────────────
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降，
@@ -53,7 +53,7 @@ function _handleTodoAction(todo) {
   const run = () => { executeTodoAction(todo, 'disc-commissioner'); };
   if (resolved && resolved.mode === 'switch' && resolved.section) {
     // 先置一级分段再切 tab（分段由 attendance-tab 模块级记忆，见其 focusSegment 导出）
-    import('../../../entries/tabs/disc/attendance-tab.js?v=20261110a')
+    import('../../../entries/tabs/disc/attendance-tab.js?v=20261110b')
       .then(m => { m.focusSegment(resolved.section); run(); })
       .catch(run);
     return;

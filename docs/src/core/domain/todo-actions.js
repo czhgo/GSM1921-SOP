@@ -23,7 +23,7 @@
 //  显式 `console.error`（不静默失效），并供 `server/test/todo-jump-contract.test.mjs` 判红。
 // ════════════════════════════════════════════════════════════════
 
-import { hasWorkspaceTab, WORKSPACE_TODO_ROLES } from './workspace-tabs.js?v=20261110a';
+import { hasWorkspaceTab, WORKSPACE_TODO_ROLES } from './workspace-tabs.js?v=20261110b';
 
 /** 六台待办角色键（单一源见 `workspace-tabs.js`；此处只做再导出，便于调用方一处 import） */
 export const TODO_ROLES = WORKSPACE_TODO_ROLES;
@@ -54,8 +54,10 @@ const LAND = {
     visitor: 'growth',
   },
   // 考察（录入 / 确认 / 追踪）
+  // 批次 541：支书台无考勤 / 考察页签（原映射落「意见反馈」——反馈页按 `data-issue-id` 找必然失败）。
+  //   支书侧考勤 / 考察复核承载在**待办页的复核组**（行尾 / 详情一键确认），故落 `todo` 并定位该组。
   inspection: {
-    secretary: 'feedback',
+    secretary: 'todo',
     'org-commissioner': 'talent',
     'prop-commissioner': 'overview',
     'disc-commissioner': 'inspection',
@@ -64,7 +66,7 @@ const LAND = {
   },
   // 考勤（确认 / 补课）
   attendance: {
-    secretary: 'feedback',
+    secretary: 'todo',
     'org-commissioner': 'overview',
     'prop-commissioner': 'overview',
     'disc-commissioner': 'attendance',
@@ -185,26 +187,31 @@ export const TODO_ACTIONS = {
   },
 
   // ══ 支书 / 纪检 · 复核类（动作承载于目标页队列；缺 id 落页顶并显式提示）══
+  // 批次 541：支书侧考勤 / 考察复核在待办页复核组就地确认——同义落点表已把 secretary 指向 `todo`，
+  //   不再单独覆盖为「意见反馈」（反馈页只承载反馈项，按 `data-issue-id` 找考勤 / 考察必然落空）。
   'attendance-confirm': {
     mode: 'switch',
     label: '去考勤管理',
     ..._landing(LAND.attendance, { kind: 'attendance' }),
-    // 支书侧考勤复核承载在「意见反馈」页（feedback 详情内一键确认）
-    roleOverrides: {
-      ..._landing(LAND.attendance, { kind: 'attendance' }).roleOverrides,
-      secretary: { tab: 'feedback', kind: 'review' },
-    },
   },
   'inspection-confirm': {
     mode: 'switch',
     label: '去考察管理',
     ..._landing(LAND.inspection, { kind: 'inspection' }),
-    roleOverrides: {
-      ..._landing(LAND.inspection, { kind: 'inspection' }).roleOverrides,
-      secretary: { tab: 'feedback', kind: 'review' },
-    },
   },
-  'review-confirm': { mode: 'switch', label: '去复核', ..._landing(LAND.review, { kind: 'review' }) },
+  // 支书 · 考察审核（历史 / 种子键 `inspection-review`；此前未登记 ⇒ 回退 actionType=review
+  //   被误落「意见反馈」）。与 `inspection-confirm` 同族，落考察复核组。
+  'inspection-review': {
+    mode: 'switch',
+    label: '去复核',
+    ..._landing(LAND.inspection, { kind: 'inspection' }),
+  },
+  // 支书复盘复核承载在待办复核组（feedback 只承载意见反馈，按 data-issue-id 找复盘必然落空）。
+  'review-confirm': {
+    mode: 'switch',
+    label: '去复核',
+    ..._landing({ ...LAND.review, secretary: 'todo' }, { kind: 'review' }),
+  },
   'archive-confirm': { mode: 'switch', label: '去复核', ..._landing(LAND.archive, { kind: 'activity' }) },
 
   // ══ 成员 / 专班待议 ══
@@ -288,10 +295,10 @@ export const TODO_ACTIONS = {
     mode: 'switch',
     label: '去补课',
     ..._landing(LAND.attendance, { kind: 'attendance', section: 'makeup', primaryRole: 'disc-commissioner' }),
-    // 支书侧补课链在「意见反馈」的考勤复核位；其余台按 LAND.attendance（组长 / 成员自有考勤页）
+    // 支书侧补课链在待办页的考勤复核组；其余台按 LAND.attendance（组长 / 成员自有考勤页）
     roleOverrides: {
       ..._landing(LAND.attendance, { kind: 'attendance', section: 'makeup', primaryRole: 'disc-commissioner' }).roleOverrides,
-      secretary: { tab: 'feedback', kind: 'review', section: 'makeup' },
+      secretary: { tab: 'todo', kind: 'attendance', section: 'makeup' },
     },
   },
 };

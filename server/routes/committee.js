@@ -241,16 +241,21 @@ export function createCommitteeRouter(db) {
     if (!branchId) return res.status(400).json({ error: '党委读取支部待议池前须先选择支部（?branchId=）' });
 
     const inBranch = (row) => !!row && (row.branchId || DEFAULT_BRANCH_ID) === branchId;
-    const users = listTable(db, 'users').filter(inBranch);
-    const committee = resolveCommitteeIds(users);
-    const committeeIds = committee.error ? [] : committee.ids.map(String);
-    const partyStages = POLICY_DEFAULTS.attendance.roster.partyStages;
-    const partyIds = users.filter((u) => partyStages.includes(u.developStage)).map((u) => String(u.id));
+    // 在册成员：已转出（`users.transferOut === true`）不属本支部在册名单，不进任何应到 ——
+    //   与 `GET /users` 读面（`index.js::resourceRowsForActor` 转出剔除）同口径。
+    const members = listTable(db, 'users').filter(inBranch).filter((u) => u && u.transferOut !== true);
+    const committee = resolveCommitteeIds(members);
+    // 应到资格＝名册口径（党员 ∧ 非滞留）：判据单一源 = `docs/src/core/domain/roster-eligibility.js`，
+    //   与名册统计 `computeRosterStats` 同一实现 ⇒ 滞留 / 转出成员不得计入应到（批次 541 · D-1）。
+    const eligibleIds = new Set(rosterEligibleIds(members, getRosterConfig()));
+    const committeeIds = (committee.error ? [] : committee.ids.map(String)).filter((id) => eligibleIds.has(id));
 
     /** 应到：制度报送党员大会 → 支部党员大会；其余 → 支委会（与分类同一判据） */
     const attendeesOf = (source) => {
       const scope = agendaAttendeeScope(source);
-      const personIds = scope === 'branch-party-meeting' ? partyIds : committeeIds;
+      const personIds = scope === 'branch-party-meeting'
+        ? members.map((u) => String(u.id)).filter((id) => eligibleIds.has(id))
+        : committeeIds;
       return { scope, count: personIds.length, personIds };
     };
 
@@ -285,8 +290,8 @@ export function createCommitteeRouter(db) {
         : (isInstitutionDoc(row) ? '制度草案（待支委会审议）' : '制度草案（草案态支部文件）'));
     }
 
-    // ④ 发展对象推荐（候选＝现为「积极分子」的本支部成员）
-    for (const row of users) {
+    // ④ 发展对象推荐（候选＝现为「积极分子」的本支部在册成员）
+    for (const row of members) {
       if (row.developStage !== '积极分子') continue;
       push('activist-recommend', row, '现为积极分子');
     }
@@ -321,4 +326,6 @@ import {
   isActivityApprovalCandidate,
   isAssignmentAdjustCandidate,
 } from '../../docs/src/core/domain/agenda-classify.js';
-import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js';
+// 应到资格判据单一源（批次 541 · D-1）：党员 ∧ 非滞留 的纯函数与名册统计共用同一实现
+//   （`docs/src/services/member/roster.js` 亦 import 本模块），故待议池应到与名册统计不得出现两套口径。
+import { getRosterConfig, rosterEligibleIds } from '../../docs/src/core/domain/roster-eligibility.js';

@@ -11,7 +11,8 @@
 //
 // 判据（DS_03 §4.11.2）：
 //   G1 SVG 生成点只在 `icons.js`：其余位置出现 `<svg` / `data:image/svg` / `createElementNS(…svg…)` 即红，
-//      白名单 3 处逐条给理由，且每条必须在当前源码里真实命中（防僵尸白名单）。
+//      白名单 2 处逐条给理由，且每条必须在当前源码里真实命中（防僵尸白名单）。
+//      白名单只免「生成点」（G1），不免「色值」（G4）——名单里的文件仍按 G4 扫 SVG 片段色值。
 //   G2 `icon()` 的 `stroke` / `fill` 字面量只许 `currentColor` / `none` / `var(--token)`。
 //   G3 `--tint` 只收令牌：① 字面值必须是 `var(--token)`（禁 hex / rgba / 裸色 / color-mix）；
 //      ② 状态**填充档**（`--status-success|warning|error|info`）不得进 `--tint`，也不得作 `tint:` / `color:`
@@ -41,15 +42,11 @@ const COLOR_WORD_RE = /^(?:currentColor|none|transparent)$/i;
 const SVG_PAINT_URL_RE = /^url\(#[^)]+\)$/i;
 
 /**
- * G1 白名单（3 处）：`icons.js` 之外仍会产生 SVG 的位置，逐条给理由。
- * 纪律：条目必须在当前源码里真实命中，否则本守卫判红（防「白名单只增不减、迟早变空头」）。
+ * G1 白名单（2 处）：`icons.js` 之外仍会产生 SVG 的位置，逐条给理由。
+ * 纪律：① 条目必须在当前源码里真实命中，否则本守卫判红（防「白名单只增不减、迟早变空头」）；
+ *       ② 白名单只免「SVG 生成点」（G1），**不免色值**——名单内文件的 SVG 片段仍按 G4 判（批次 541）。
  */
 export const SVG_SOURCE_WHITELIST = [
-  {
-    file: 'docs/src/styles.css',
-    reason: '① 注释块里的 `btn-icon` 用法示例（`<svg …>` 占位，不参与渲染）；② `.cs-trigger` 的原生 `select` 箭头是'
-      + ' data-URI SVG（`%3Csvg…stroke=\'%239CA3AF\'`）——styles.css 由同一批次的样式波次负责迁移，本波次不改该文件。',
-  },
   {
     file: 'docs/src/about.css',
     reason: '关于页暖纸 / 墨色噪点纹理由 `feTurbulence` data-URI 生成（非图标、无色值、无同名令牌），'
@@ -133,7 +130,7 @@ export function svgSourceHits(src) {
   return hits;
 }
 
-test('G1 SVG 生成点只在 icons.js（白名单 3 处，逐条理由且必须真实命中）', () => {
+test('G1 SVG 生成点只在 icons.js（白名单 2 处，逐条理由且必须真实命中）', () => {
   // 反例自证：三种写法都必须被判出
   assert.deepEqual(svgSourceHits("const x = '<svg viewBox=\"0 0 24 24\"></svg>';"), ['<svg'],
     '反例未命中：字面 <svg> 未被判出（G1 正则失效）');
@@ -324,14 +321,14 @@ test('G4 SVG 片段色值只许 currentColor / none / var(--token) / url(#id)，
   assert.deepEqual(svgPaintViolations('<svg stroke="var(--neutral-400)"></svg>'), [], '误伤：令牌被判红');
   assert.deepEqual(svgPaintViolations('<path stroke="url(#ab-grad-0)"/>'), [], '误伤：渐变引用被判红');
 
-  // 真实源码：非白名单文件的 SVG 片段必须无色值
-  const allow = new Set(SVG_SOURCE_WHITELIST.map((w) => w.file));
+  // 真实源码：`icons.js` 之外（**含 G1 白名单文件**）的 SVG 片段必须无色值。
+  //   白名单只豁免「生成点」这一条（G1），不豁免色值——否则把 hex 写进白名单文件即可绕过 G4。
   const offenders = [];
   for (const f of scanFiles()) {
-    if (allow.has(f) || f === ICONS) continue;
-    const src = stripComments(read(f));
-    const svgs = [...src.matchAll(/<svg\b[\s\S]*?<\/svg>/g)].map((m) => m[0]);
-    for (const payload of dataUriSvgPayloads(read(f))) svgs.push(payload);
+    if (f === ICONS) continue;
+    const clean = stripComments(read(f));
+    const svgs = [...clean.matchAll(/<svg\b[\s\S]*?<\/svg>/g)].map((m) => m[0]);
+    for (const payload of dataUriSvgPayloads(clean)) svgs.push(payload);
     for (const s of svgs) for (const v of svgPaintViolations(s)) offenders.push(`${f} → ${v}`);
   }
   assert.deepEqual(offenders, [],

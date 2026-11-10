@@ -799,7 +799,7 @@ test('G6 批次索引含最新批次行（替代 SNAPSHOT 5 行小结）', () =>
     '`.ctx/SNAPSHOT.md` 不应再承载批次小结（已改由 EXECUTION_LOG_INDEX 承接）');
 });
 
-test('G7 判例索引：每条 CASE 行都有「所属域」与「对应规范编号」', () => {
+test('G7 判例索引：每条 CASE 行都有「所属域」与「对应规范编号」，且不得写「待登记」', () => {
   const rows = read(CASES_INDEX).split(/\r?\n/).filter((l) => /^\|\s*CASE-/.test(l));
   assert.ok(rows.length >= 15, `判例总表只解析到 ${rows.length} 条 CASE 行（下限 15）：表格结构被写坏`);
   const problems = [];
@@ -809,8 +809,12 @@ test('G7 判例索引：每条 CASE 行都有「所属域」与「对应规范�
     if (c.length < 7) { problems.push(`${id} 列数不足（应 6 列，实 ${c.length - 2}）`); continue; }
     if (!c[3]) problems.push(`${id} 缺「所属域」`);
     if (!c[5]) problems.push(`${id} 缺「对应规范编号」`);
+    // 批次 541：判例索引不接受「待登记」——SD 编号到期未回填即红（`H10.4` 单一落点）
+    else if (/待登记/.test(c[5])) {
+      problems.push(`${id} 的「对应规范编号」仍写「待登记」（${c[5]}）：须在设计系统 §12.15 分配实际 SD 编号后回填`);
+    }
   }
-  assert.deepEqual(problems, [], `判例索引缺列：\n  ${problems.join('\n  ')}`);
+  assert.deepEqual(problems, [], `判例索引缺列 / 编号待登记：\n  ${problems.join('\n  ')}`);
 });
 
 test('G8 非空转下限：目录 ≥15 · AGENTS=6 · 判例 ≥15 · README 覆盖 ≥15', () => {

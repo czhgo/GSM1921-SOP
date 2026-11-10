@@ -73,3 +73,20 @@ export function getRow(db, table, id) {
 export function writeRow(db, table, row) {
   db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(row.id, JSON.stringify(row));
 }
+
+/**
+ * 公开面是否仍然有效（**单一源**：匿名公共门厅 `routes/public-portal.js` 与登录态读口
+ * `routes/resources/branch-scope.js` 共用本函数，勿写第二份）。
+ * fail-closed：`publishScope!=='public'`、`publishExpiresAt` 缺失 / 非法 / 已过期 ⇒ false。
+ * @param {Object} row 资源行（notices / activities / branchDocs 同形）
+ * @param {number} [now] 当前毫秒时间戳（缺省取 `Date.now()`）
+ * @returns {boolean}
+ */
+export function isPublicNow(row, now = Date.now()) {
+  if (!row || typeof row !== 'object') return false;
+  if (row.publishScope !== 'public') return false;
+  const raw = row.publishExpiresAt;
+  if (typeof raw !== 'string' || !raw.trim()) return false;
+  const ts = Date.parse(raw);
+  return Number.isFinite(ts) && ts > now;
+}

@@ -12,9 +12,9 @@ import {
   ORG_SUBJECT_IDS, ORG_SUBJECT_LABELS, BRANCH_ORG_SUBJECT_IDS, isOrgSubject, isBranchOrgSubject,
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_IDS, INSTITUTION_COLLECTIVE_SUBJECTS, institutionSubjectOfDomain,
   transferRowOf, transferTabDecision, TRANSFERABLE_TAB_ROWS,
-} from '../../docs/src/core/domain/work-map.js?v=20261110a';
-import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261110a';
-import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261110a';
+} from '../../docs/src/core/domain/work-map.js?v=20261110b';
+import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261110b';
+import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261110b';
 
 let server, base, token;
 
@@ -177,10 +177,14 @@ test('UI 责任关系单列列表：master 行承载工作项 / 负责人 / 角�
   assert.match(WORK_MAP_UI, /listGroupHtml\(/, '行间分隔线由 list-group 承担，不再手写行容器');
   assert.doesNotMatch(WORK_MAP_UI, /role="listbox"|role="option"/, '已改单列列表，不再走主从 listbox 语义');
   assert.doesNotMatch(WORK_MAP_UI, /wm-split|wm-detail/, '左右两栏与右侧详情列已撤');
-  assert.match(WORK_MAP_UI, /_roleBadgeHtml/, '每行须有角色徽章（主责 / 停用 / 上级主导）');
-  assert.ok(WORK_MAP_UI.includes('负责人：'), '每行须给出负责人');
-  assert.match(WORK_MAP_UI, /description: selected \? '' : row\.note/, '每行须有一行责任说明（选中行改由展开块给全文）');
-  assert.match(WORK_MAP_UI, /title: row\.note/, '说明须带 title 全文（行内截断）');
+  // 2026-11-10 批次 541（前端美学 P1）：负责人进**行首徽章位**，常规行不再出「主责」徽标；
+  //   行内说明退场（选中行由紧随其后的展开块给全文）⇒ 行高由 64–80 回到 48。
+  assert.match(WORK_MAP_UI, /function _ownerBadgeHtml\(row\)/, '每行须有负责人徽章（负责人名进徽章位）');
+  assert.match(WORK_MAP_UI, /leading: _ownerBadgeHtml\(row\)/, '行首插槽须出负责人徽章');
+  assert.match(WORK_MAP_UI, /_ownerBadgeHtml[\s\S]{0,200}badge--warning">停用/, '停用例外须用 warning 档');
+  assert.ok(!WORK_MAP_UI.includes('负责人：'), '负责人已进徽章位，meta 不得再复述「负责人：」');
+  assert.doesNotMatch(WORK_MAP_UI, /description: selected/, '行内不再出责任说明（选中行由展开块给全文）');
+  assert.match(WORK_MAP_UI, /title: row\.note/, '说明须带 title 全文');
   assert.match(WORK_MAP_UI, /ArrowDown[\s\S]{0,200}ArrowUp/, '行间须支持 ↑ / ↓ 键盘移动');
   assert.match(WORK_MAP_UI, /wm-reenable/, '停用项须保留「发起启用议题」入口');
   assert.ok(!WORK_MAP_UI.includes('每行读法'), '不得再复述表头读法');
@@ -215,10 +219,16 @@ test('UI 视图收 2：责任关系 / 关系矩阵；协作与产出入行 meta�
   assert.match(WORK_MAP_UI, /<div class="stack-page" data-wm-view-current=/, '页根须改 .stack-page');
   assert.doesNotMatch(WORK_MAP_UI, /p-4 mt-3/, '工具卡不得再手写 mt-3（间距由 .stack-page 给）');
   assert.doesNotMatch(WORK_MAP_UI, /text-gray-500 mt-3/, '页脚不得再手写 mt-3');
-  // 徽章档位：主责中性，停用才 warning
-  assert.match(WORK_MAP_UI, /const tone = role === '停用' \? 'badge--warning' : 'badge--neutral';/,
-    '主责须中性档，停用才 warning');
-  assert.doesNotMatch(WORK_MAP_UI, /badge--accent/, '主责徽章不得再用主题色');
+  // 徽章档位（2026-11-10 批次 541 改准）：常规行不渲染「主责」——主责是常态、不是状态；
+  //   只有停用（warning）与上级主导（中性）两个例外带徽标，且都不得用主题色。
+  const ownerBadgeFn = WORK_MAP_UI.slice(
+    WORK_MAP_UI.indexOf('function _ownerBadgeHtml'),
+    WORK_MAP_UI.indexOf('/** 单行对象行'),
+  );
+  assert.ok(ownerBadgeFn.length > 0, '抽不到 _ownerBadgeHtml 函数体（判据会恒绿）');
+  assert.doesNotMatch(ownerBadgeFn, /主责/, '常规行不得再渲染「主责」徽标');
+  assert.match(WORK_MAP_UI, /badge--warning">停用</, '停用例外须用 warning 档');
+  assert.doesNotMatch(WORK_MAP_UI, /badge--accent/, '例外徽章不得用主题色');
 });
 
 test('模块目录：collaborators 可缺省，填了的主体引用必须可解析（角色键 ∪ 组织型主体）', () => {

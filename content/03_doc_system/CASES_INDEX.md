@@ -58,10 +58,10 @@ related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-sy
 | CASE-DESIGN-032 | 判例修不完，原则才收敛；同类分支第三次就停手盘点，原则要能机检并带反例 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-27（P1）；关联 P2–P7 | 2026-10-29（M3 自检） |
 | CASE-DESIGN-033 | 左条退出界面信号：选中用 soft 底 ＋ 字重，状态 / 装饰左条清零 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-25（关联 SD-46 / §4.2） | 2026-11-04（批次 534） |
 | CASE-DESIGN-034 | 卡头按钮被机械分行：标题让位、aside 不拆组；换行发生在「组」一级才算问题 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-60（关联 SD-57 / SD-58） | 2026-11-07（批次 535） |
-| CASE-DESIGN-035 | 公共门厅未登录不出现支部名 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD 待登记（门厅版式与匿名字段白名单） | 2026-11-08（批次 536） |
-| CASE-DESIGN-036 | 待办跳转未命中须可见提示＋同义落点，不得只弹 toast | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD 待登记（导航契约 §二；关联 SD-32） | 2026-11-10（批次 540） |
-| CASE-DESIGN-037 | 议程来源→类型→待议池同源分类，两端不得各判 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD 待登记（议程契约 §一–§三；关联 SD-34） | 2026-11-10（批次 540） |
-| CASE-DESIGN-038 | 同列同语义 ≥3 行一律走 data-table，手写表只减不增 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD 待登记（表格契约 §一–§四；关联 SD-44） | 2026-11-10（批次 540） |
+| CASE-DESIGN-035 | 公共门厅未登录不出现支部名 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-62（门厅公开面与匿名字段白名单） | 2026-11-08（批次 536；SD 编号 2026-11-10 批次 541 回填） |
+| CASE-DESIGN-036 | 待办跳转未命中须可见提示＋同义落点，不得只弹 toast | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-63（导航契约 §二；关联 SD-32） | 2026-11-10（批次 540；SD 编号批次 541 回填） |
+| CASE-DESIGN-037 | 议程来源→类型→待议池同源分类，两端不得各判 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-64（议程契约 §一–§三；关联 SD-34） | 2026-11-10（批次 540；SD 编号批次 541 回填） |
+| CASE-DESIGN-038 | 同列同语义 ≥3 行一律走 data-table，手写表只减不增 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-65（表格契约 §一–§四；关联 SD-44） | 2026-11-10（批次 540；SD 编号批次 541 回填） |
 | CASE-DESIGN-039 | 活动详情首屏收四段，管理动作进页尾折叠 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-57 ＋ SD-60 | 2026-11-10（批次 540） |
 | CASE-DESIGN-040 | 同一问句的另一种排法不立新视图（分工 4→2） | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-46 ＋ SD-57 | 2026-11-10（批次 540） |
 | CASE-DESIGN-041 | 图标只经 icons.js，SVG 色值禁 hex（含 data-URI 的 %23） | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-61（正文 §4.11.2） | 2026-11-10（批次 540） |

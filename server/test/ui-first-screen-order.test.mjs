@@ -259,16 +259,37 @@ test('F10 活动详情：对象头 + 事项轴，写口宿主与首屏块数守�
   assert.equal((src.match(/<details id="activity-manage-section"/g) || []).length, 1,
     '页尾「管理动作」折叠块应恰有一个 details');
 
-  // 3) 源码级顶层块 ≤6（对象头 / 参与 / 议程 / 收口 / 管理动作；原为 14）
-  const topLevel = [...tpl.matchAll(/^ {4}<(section|div|details)\b/gm)].map((m) => m[1]);
-  assert.ok(topLevel.length <= 6, `顶层块 ${topLevel.length} 个（上限 6）：${topLevel.join(' / ')}`);
+  // 3) 顶层块按**结构化标记**计数（不靠缩进）：每个顶层块必须带可访问名称或结构 id，
+  //    这样模板重排 / 缩进变化不会让计数失真，新增一个裸块也会被数出来（批次 541 · G-8）。
+  const blockMarkers = [
+    ['对象头', /<section[^>]*aria-label="活动基本信息"/g],
+    ['参与', /<div[^>]*>\s*<h3 id="activity-participation-title"/g],
+    ['议程', /<section[^>]*aria-labelledby="activity-agenda-title"/g],
+    ['收口', /<section[^>]*aria-labelledby="activity-closure-title"/g],
+    ['管理动作', /<details id="activity-manage-section"/g],
+  ];
+  const counts = blockMarkers.map(([name, re]) => [name, (tpl.match(re) || []).length]);
+  for (const name of ['对象头', '参与', '收口']) {
+    assert.equal(counts.find(([n]) => n === name)[1], 1, `主路径块「${name}」应恰有一个（结构化标记缺失或重复）`);
+  }
+  for (const name of ['议程', '管理动作']) {
+    assert.ok(counts.find(([n]) => n === name)[1] <= 1, `可选块「${name}」最多一个`);
+  }
+  const topLevel = counts.reduce((sum, [, n]) => sum + n, 0);
+  assert.ok(topLevel <= 6, `顶层块 ${topLevel} 个（上限 6）：${counts.map(([n, c]) => `${n}×${c}`).join(' / ')}`);
+  assert.ok(topLevel >= 4, `顶层块只数到 ${topLevel} 个（下限 4）：结构化标记被写坏，本条会变成恒真`);
+  // 4) 每个 `<section>` 都必须有可访问名称（`aria-label` / `aria-labelledby`）——H40.3-1 同源
+  const sections = (tpl.match(/<section\b[^>]*>/g) || []);
+  const named = sections.filter((s) => /aria-label(?:ledby)?=/.test(s));
+  assert.equal(named.length, sections.length,
+    `活动详情有 ${sections.length - named.length} 个 <section> 缺可访问名称（aria-label / aria-labelledby）`);
 
-  // 4) 收口四步：材料 · 考勤 · 复盘 · 归档
+  // 5) 收口四步：材料 · 考勤 · 复盘 · 归档
   for (const step of ['材料', '考勤', '复盘', '归档']) {
     assert.ok(src.includes(`label: '${step}'`), `收口 stepper 缺「${step}」步`);
   }
 
-  // 5) 写口宿主与既有调用不得因重排丢失
+  // 6) 写口宿主与既有调用不得因重排丢失
   for (const id of ['activity-signup-section', 'signup-close-btn', 'committee-emphasis-btn',
     'work-assignments-host', 'workgroup-reports-summary', 'activity-manage-section']) {
     assert.ok(src.includes(id), `重排后丢了宿主 / 钩子 #${id}`);
@@ -278,11 +299,11 @@ test('F10 活动详情：对象头 + 事项轴，写口宿主与首屏块数守�
     assert.ok(src.includes(call), `重排后丢了既有调用 ${call}`);
   }
 
-  // 6) 390 单列：基本信息走 grid-cols-1 sm:grid-cols-2，不得残留裸两列
+  // 7) 390 单列：基本信息走 grid-cols-1 sm:grid-cols-2，不得残留裸两列
   assert.match(tpl, /grid grid-cols-1 gap-3 sm:grid-cols-2/, '基本信息应为 grid-cols-1 sm:grid-cols-2（390 单列）');
   assert.ok(!/class="grid grid-cols-2 /.test(tpl), '不得残留 390 强制两列的裸 grid-cols-2');
 
-  // 7) 日期单点：模板内只出现一次
+  // 8) 日期单点：模板内只出现一次
   assert.equal((tpl.match(/\$\{act\.date/g) || []).length, 1, '日期在详情模板中出现多次（应只在对象头一次）');
 });
 

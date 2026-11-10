@@ -531,7 +531,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 
 #### 4.11.1 格式要求
 
-- 图标必须由 `docs/src/core/base/icons.js` 的 `icon(name, opts)` 产出；`<svg>` 生成点只允许出现在该文件（白名单 3 处，逐条写明理由）。
+- 图标必须由 `docs/src/core/base/icons.js` 的 `icon(name, opts)` 产出；`<svg>` 生成点只允许出现在该文件（白名单 2 处，逐条写明理由；白名单只免「生成点」，不免色值）。
 - 组件不得内联 `<svg>`，不得用 CSS data-URI 拼图标（含 `%23` 编码的色值）。
 - 禁止使用：Emoji（如 🔍）、PNG 图标、Icon Font。
 - 图标是装饰性图形：默认 `aria-hidden="true"`；带 `aria-label` 的有名图形不得同时 `aria-hidden`。
@@ -540,7 +540,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 
 | 项 | 规则（布尔） | 判据 / 守卫 |
 |---|---|---|
-| 出口 | 图标只经 `icons.js`；`components` / `entries` / 样式里 `<svg`、`data:image/svg`、`createElementNS(…svg…)` 计数为 0（白名单 3 处除外） | `icon-color-guard::G1` |
+| 出口 | 图标只经 `icons.js`；`components` / `entries` / 样式里 `<svg`、`data:image/svg`、`createElementNS(…svg…)` 计数为 0（白名单 2 处除外；白名单只免生成点，SVG 片段色值仍按下一行判） | `icon-color-guard::G1` |
 | 默认色 | `stroke` 默认 `currentColor`，颜色由**宿主文字色**继承；`fill` 默认 `none` | `icon-color-guard::G2` |
 | 显式色 | 确需传 `stroke` / `fill` 时，取值只许 `currentColor` / `none` / `var(--token)`；字面色值（hex / rgb / 色名）计数为 0 | `icon-color-guard::G2` |
 | 状态色 | 状态色只经 `--tint` 传入图标，且只在**计数 > 0 或状态成立**时出现；`--tint` 只收 `var(--token)` | `icon-color-guard::G3` |
@@ -1512,7 +1512,11 @@ icon('bell', { className: 'w-4 h-4' })
 | SD-57 | 全部注册页签（7 台 × 45 页签） | 单页顶层区块 ≤4（页头不计）；同类同源必须合并进同一块；空态与列表二选一；块数 >4 必须在 `TAB_BLOCK_BASELINE` 写非空 `reason` | `ui-first-screen-order::F6–F9`（`style-baseline.mjs::TAB_BLOCK_BASELINE`，上限 `TAB_BLOCK_LIMIT = 4`） | 正文见 [DS_06 §二](DS_06_LAYOUT_AND_DENSITY.md) |
 | SD-58 | `.lf-bar` 及全部筛选条 | `.lf-bar` 不得 `flex-direction: column`；第 1 行「范围 / 时间 ＋ 搜索」，第 2 行「分面 ＋ 清除」；清除不得 `flex-basis: 100%` 独占一行；视图切换归页头 | `filter-row::S14`（结构，含反例）＋ `filter-row::S15`（四页真机 ≤2 行 / ≤96px） | 正文见 [DS_06 §二](DS_06_LAYOUT_AND_DENSITY.md) |
 | SD-59 | 搜索框与关键词自动补全（`suggestInput`） | 建议由自建下拉承载，输入框内无原生三角 / picker；`docs/src/**` 的 `list="` 与 `<datalist` 计数为 0；建议输入带 `role="combobox"` ＋ `aria-expanded` / `aria-controls` / `aria-activedescendant`，候选为 `listbox` | `field-shell-guard::R4`（原生 `list` / `<datalist>` 清零，含反例）＋ `field-shell-guard::R5`（ARIA 齐备、无 `list` 属性，含反例） | 正文见 [DS_06 §二](DS_06_LAYOUT_AND_DENSITY.md) |
-| SD-61 | 全部图标（`icons.js` 及其调用点） | 出口：`<svg` / `data:image/svg` / `createElementNS(…svg…)` 在 `icons.js` 之外计数为 0（白名单 3 处、逐条理由且须真实命中）；颜色：`icon()` 的 `stroke` / `fill` 只许 `currentColor` / `none` / `var(--token)`；状态色只经 `--tint` 且只取 `--status-*-text` 文字档，填充档作笔触或数值计数为 0；`--tint` 只收 `var(--token)`；SVG 片段色值禁 hex（含 data-URI 的 `%23`）；尺寸由 CSS 类驱动，数字 `size` / `width` / `height` 只在白名单内 | `icon-color-guard::G1–G5` ＋ `status-color-guard::S1` ＋ `theme-palette-guard` ＋ `hex-hardcode-guard` | CASE-DESIGN-030（边界句） |
+| SD-61 | 全部图标（`icons.js` 及其调用点） | 出口：`<svg` / `data:image/svg` / `createElementNS(…svg…)` 在 `icons.js` 之外计数为 0（白名单 2 处、逐条理由且须真实命中；白名单只免生成点，不免色值）；颜色：`icon()` 的 `stroke` / `fill` 只许 `currentColor` / `none` / `var(--token)`；状态色只经 `--tint` 且只取 `--status-*-text` 文字档，填充档作笔触或数值计数为 0；`--tint` 只收 `var(--token)`；SVG 片段色值禁 hex（含 data-URI 的 `%23`，白名单文件同样判）；尺寸由 CSS 类驱动，数字 `size` / `width` / `height` 只在白名单内 | `icon-color-guard::G1–G5` ＋ `status-color-guard::S1` ＋ `theme-palette-guard` ＋ `hex-hardcode-guard` | CASE-DESIGN-030（边界句） |
+| SD-62 | 未登录公共门厅（`docs/index.html` 与匿名接口） | 公开面只出党委公开通知全文 / 活动摘要 / 公开资料列表与详情 / 登录入口；支部名、成员姓名与学号、统计卡、工作组、活动风采、通知角标在未登录面计数为 0；匿名接口不返回支部名与成员字段；公开内容过期后匿名接口 404（呈现「不存在」，不留空列表形状的空态） | `public-brand-guard` ＋ `public-portal-leak-guard` ＋ `public-portal` ＋ `public-write-closure` | CASE-DESIGN-035（正文见 [PUBLIC_ENTRANCE.md](../module/PUBLIC_ENTRANCE.md) §二–§六） |
+| SD-63 | 待办 / 今天跳转（`workspace-nav.js` 与六台待办页） | 动作只有 inline / switch / direct 三模式；`switch` 目标页签必须在本台注册表内，未命中在内容区渲染「本台无该模块」＋同义落点按钮（toast-only / 静默留页 / 整页 `?tab=` 跳转计数为 0）；缺 id 一律「未定位到具体条目」；`PendingTarget` 消费后清空 | `todo-jump-contract`（30 类动作 × 6 台、无 toast-only、缺 id 显式提示、`PendingTarget` 一次性、fail-closed 提示真渲一次）＋ `todo-cross-role-safety` | CASE-DESIGN-036（正文见 [INTERACTION_AND_NAVIGATION_CONTRACT.md](../contracts/INTERACTION_AND_NAVIGATION_CONTRACT.md) §二） |
+| SD-64 | 支委会议程来源与类型（`agenda-classify.js` 及其消费面） | 来源 → 类型（决策 / 讨论 / 同步）→ 待议池由一份纯函数算，客户端与服务端同源 import；「六类 ＋ 另纳入两类」增删须同批改契约；客户端页面不得本地自判分类，只经 `adapter.agendaCandidates` 取数 | `agenda-classify`（来源表 / 四反例 / 两端逐字段一致 / 双支部过滤） | CASE-DESIGN-037（正文见 [AGENDA_DERIVATION_CONTRACT.md](../contracts/AGENDA_DERIVATION_CONTRACT.md) §一–§三） |
+| SD-65 | 表格载体（`data-table.js` 及其调用点） | 同列同语义 ≥3 行一律走 `renderDataTable`；列宽只三档（内容 auto / 固定 `colgroup` / 最小 `min-width`），全表只允许一列截断且该列是 `1fr` 余量列；数据行高 40px，展开详情用 `colspan` 插行；手写 `<table>` 存量按棘轮只减不增 | `table-contract-guard::T1–T7` | CASE-DESIGN-038（正文见 [TABLE_COMPONENT_CONTRACT.md](../contracts/TABLE_COMPONENT_CONTRACT.md) §一–§四） |
 
 > **批次 513 口径（SD-48）**：本条只判四层边界，不重复各权威源——缓存键四类清单＝`docs/src/data/cache-registry.js`；种子逐表口径＝[DATA_SEED_CONTRACT.md](../data/DATA_SEED_CONTRACT.md)；演示窗口单一源＝`docs/src/data/mock/demo-window.js::DEMO_WINDOW`；测试分层＝`server/test-tier-registry.mjs` ＋ `server/scripts/cleanup.mjs --test-residue`；部署四开关（`APP_ENV` / `DISABLE_SEED` / `SEED_FALLBACK` / `ALLOW_DEMO_DATA`）与只读演练见 [DEPLOYMENT_GUIDE.md](../deploy/DEPLOYMENT_GUIDE.md)。
 
@@ -1535,6 +1539,8 @@ icon('bell', { className: 'w-4 h-4' })
 > ③ **SD-59** 管「输入框有没有系统装饰」，`list="` 与 `<datalist` 全量清零；SD-56 中「补全只用原生 `<datalist>`」一句由本条取代，其余口径（控件出口、搜索框宽度、存量棘轮）继续有效。
 
 > **批次 540 口径（SD-61）**：本条把 §4.11 的**图标口径收成机器可判的五条**（出口 / 颜色 / 状态色档位 / hex 扫描 / 尺寸），正文仍以 §4.11.2 为准，本表只登记编号与守卫。三条边界须一并读：① **状态色档位**——填充档只进徽章 / 圆点 / 图例 / 左条，图标笔触与数值取 `-text` 档（`status-color-guard` 只认 `color:` 声明，`--tint` 这条链路由 G3 补判）；② **多色**——单色是默认形态，双色限「笔触 ＋ 填充」且两色取令牌，多色只留给党徽与插画并须登记；③ **不单独承担状态语义**——图标须同时有文字标签，状态条件不成立时回落中性档。存量迁移同批完成：`sidebar` / `header` / `person-picker` 的字面笔触改 `currentColor` 或令牌，`custom-select` / `archive-entry` 的内联 SVG 并回 `icons.js`，`person-picker.css` 的 data-URI 放大镜改为实体图标（`%239CA3AF` 退场）。
+
+> **批次 541 口径（SD-62…SD-65）**：四条把**已有契约的正文**登记为规范编号，条文本身不重写——判例 035–038 的「SD 待登记」由此回填，`docs-governance-guard::G7` 同批改为拒绝「待登记」。三条边界：① **SD-62** 只管「未登录面出什么」，公开设置与审计的后台口径归 `SYSTEM_ROLE_PERMISSION.md §9a.1`；② **SD-63 / SD-64 / SD-65** 的正文在 `contracts/*`（契约是母本，本表只登记编号与守卫），改判据须同批改契约与守卫；③ **白名单纪律通用化**——守卫白名单只豁免「生成点 / 存量登记」，不豁免「色值 / 判据」（SD-61 的 `%239CA3AF` 是首例：白名单文件里的 hex 也要判）。
 
 ### 12.16 词表（2026-10-27 · 意见反馈 / 归档 / 活动）
 

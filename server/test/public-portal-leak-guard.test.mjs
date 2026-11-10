@@ -162,6 +162,14 @@ test('③ 运行期毒行：投影只输出白名单键，敏感键一个不漏�
   assert.deepEqual(Object.keys(document).sort(), [...mod.PUBLIC_DOCUMENT_FIELDS].sort());
   assert.deepEqual(hitsSensitive(JSON.stringify(document)), []);
   assert.equal(document.downloadUrl, '/api/public/documents/poison/download', 'downloadUrl 由服务端计算，不取原行');
+
+  // 批次 541：无附件的公开资料不得出下载链（键保留、值 null），避免「点了必然 404」的入口
+  const noFile = mod.projectPublicDocument({ id: 'no-file', title: '无附件', fileName: 'none.txt' });
+  assert.equal(noFile.downloadUrl, null, '无 fileData / filePath ⇒ downloadUrl 必须为 null');
+  const pathOnly = mod.projectPublicDocument({ id: 'path-only', fileName: 'a.txt', filePath: '/api/v1/uploads/a.txt' });
+  assert.equal(pathOnly.downloadUrl, '/api/public/documents/path-only/download', '有 filePath ⇒ 仍出下载链');
+  const badBase64 = mod.projectPublicDocument({ id: 'bad-data', fileData: 'not-base64!!' });
+  assert.equal(badBase64.downloadUrl, null, '无法解码的 fileData 等同于无附件');
 });
 
 test('④ 公开路由未引入鉴权：不出现 requireAuth / requireRole / Authorization', () => {

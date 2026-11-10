@@ -19,9 +19,11 @@ import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 // `D-787`（2026-10-05 · 9 → 6 合并）：业务域识别色的单一源 —— 非空转断言用它（现行**恰一键 `project`**）
-import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261110a';
+import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261110b';
 // `D-787`：6 类域值（色键须落其中）
-import { DOMAIN_ORDER } from '../../docs/src/services/governance/todo.js?v=20261110a';
+import { DOMAIN_ORDER } from '../../docs/src/services/governance/todo.js?v=20261110b';
+// 批次 541 P0-1 / P0-2：行点击落点解析（与页面同一契约，不在测试里另写一张表）
+import { resolveTodoAction } from '../../docs/src/core/domain/todo-actions.js?v=20261110b';
 
 let server, base, browser;
 
@@ -146,5 +148,65 @@ test('S12 今天页左卡＝动作性质分组（七类）；旧「本岗待办�
       const c = WORK_DOMAIN_COLORS[k];
       assert.ok(c && c.bg && c.text && c.border, `域 ${k} 的色须齐备 bg / text / border（含深色三件套）`);
     }
+  } finally { await page.close(); }
+});
+
+// ── 批次 541 P0-1 / P0-2：今天行 → 待办页「定位到对应聚合组」真机件 ────────────────
+// 病灶（改前）：今天行把**待办本体 id** 当 PendingTarget.id，而待办页行键是 `role:actionKey`
+//   ⇒ 选择器永不命中，落页顶并显示「该条明细已处理或已移出列表」（事实错误）。
+// 判据：点行后必须落到待办页、对应聚合组拿到高亮类 `nav-flash-highlight`，且**不得**出现
+//   「未定位到具体条目」/「已移出列表」字样。
+test('S13 今天页点待办行 → 待办页定位到对应聚合组（高亮、无「未定位 / 已移出」误报）', async () => {
+  const page = await browser.newPage();
+  await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
+  await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
+  await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
+  try {
+    await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
+    await page.fill('#student-id', '2300010001');
+    await page.fill('#password', '123456');
+    await Promise.all([
+      page.waitForURL('**/workspace/secretary.html', { timeout: 12000 }),
+      page.click('button[type="submit"]'),
+    ]);
+    await page.waitForFunction(() => {
+      const w = document.querySelector('[data-ws-memo="today"]');
+      return !!w && w.textContent.includes('要办');
+    }, null, { timeout: 15000 });
+
+    // 取今天页的动作行（带聚合组键）；按同一契约在 Node 侧解析，挑「应落待办页」的那一行
+    const rows = await page.evaluate(() => [...document.querySelectorAll('.today-go[data-go="action"]')]
+      .map((b) => ({
+        actionKey: b.dataset.actionKey || '',
+        groupKey: b.dataset.groupKey || '',
+        todoId: b.dataset.todoId || '',
+        text: (b.textContent || '').replace(/\s+/g, ' ').trim(),
+      })));
+    const pick = rows.find((r) => {
+      if (!r.groupKey) return false;
+      const action = resolveTodoAction({ actionKey: r.actionKey }, 'secretary');
+      return !!action && action.mode === 'switch' && action.tab === 'todo';
+    });
+    assert.ok(pick, `今天页须有「落待办复核组」的动作行（定位键＝聚合组键）；实得 ${JSON.stringify(rows)}`);
+
+    await page.click(`.today-go[data-go="action"][data-group-key="${pick.groupKey}"]`);
+    // 待办页渲染 + 该组高亮（flashHighlight 类 2.8s 后自动移除，先等它出现）
+    await page.waitForSelector(`[data-group-key="${pick.groupKey}"].nav-flash-highlight`, { timeout: 15000 });
+
+    const probe = await page.evaluate((groupKey) => {
+      const shell = document.querySelector('[data-ws-memo="todo-shell"]');
+      const text = shell ? shell.textContent : document.body.textContent;
+      return {
+        hasShell: !!shell,
+        highlighted: !!document.querySelector(`[data-group-key="${groupKey}"].nav-flash-highlight`),
+        missingHint: text.includes('未定位到具体条目'),
+        removed: text.includes('已移出列表'),
+      };
+    }, pick.groupKey);
+
+    assert.ok(probe.hasShell, '点击今天行后须落到待办页（todo-shell）');
+    assert.ok(probe.highlighted, `★ 对应聚合组须高亮：${pick.groupKey}（${pick.text}）`);
+    assert.ok(!probe.missingHint, '命中后不得出现「未定位到具体条目」');
+    assert.ok(!probe.removed, '★ 命中后不得出现「已移出列表」字样（改前恒出现）');
   } finally { await page.close(); }
 });

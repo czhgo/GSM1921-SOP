@@ -5,24 +5,24 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261110a';
-import { generateId } from '../../core/base/id.js?v=20261110a';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken, adoptCollectionFromServer } from '../../data/data-adapter.js?v=20261110a';
-import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261110a';
-import { bumpToken } from '../../core/base/version-token.js?v=20261110a'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261110a';
-import { isInitStateActive } from '../core/init-reset.js?v=20261110a'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { todayLocal } from '../../core/base/utils.js?v=20261110a';
-import { AuthStore } from '../core/auth.js?v=20261110a';
-import {  getPersonById, getPersonName } from '../member/person.js?v=20261110a';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261110a';
+import { mockDB } from '../../core/domain/domain.js?v=20261110b';
+import { generateId } from '../../core/base/id.js?v=20261110b';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken, adoptCollectionFromServer } from '../../data/data-adapter.js?v=20261110b';
+import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261110b';
+import { bumpToken } from '../../core/base/version-token.js?v=20261110b'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261110b';
+import { isInitStateActive } from '../core/init-reset.js?v=20261110b'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { todayLocal } from '../../core/base/utils.js?v=20261110b';
+import { AuthStore } from '../core/auth.js?v=20261110b';
+import {  getPersonById, getPersonName } from '../member/person.js?v=20261110b';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261110b';
 // 组织者身份读取单一源（2026-09-19 批次 91 · SOP-B-17）——发布权随「被指定为该场组织者」动态获得
-import {  getOrganizedActivities } from '../activity/activity.js?v=20261110a';
+import {  getOrganizedActivities } from '../activity/activity.js?v=20261110b';
 import {
   NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
   NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
   DEFAULT_BRANCH_ID,
-} from '../../core/domain/constants.js?v=20261110a';
+} from '../../core/domain/constants.js?v=20261110b';
 
 // ════════════════════════════════════════════════════════════════
 //  消息对象模型（Task 3 · 2026-10-25）
@@ -201,19 +201,23 @@ function _noticeFromTodo(todo, id) {
 // ════════════════════════════════════════════════════════════════
 
 /**
- * 观看者上下文（list() 与 canReadNotice 共用）：角色 / 到人 personId / 发展阶段
+ * 观看者上下文（list() 与 canReadNotice 共用）：角色 / 到人 personId / 发展阶段 / 支部
  * 发展阶段从人员档案取（勿新增重依赖；getPersonById 已是本模块既有依赖）。
- * @param {{ role?:string, personId?:string }|null} user
- * @returns {{ role:string|null, personId:string|null, developStage:string|null }}
+ * 支部（批次 541 · S-2）：定向通知与「支委层兜底可读」都要比对支部；服务端可用 `branchId` 直接带，
+ * 前端缺省按人员档案取（取不到 ⇒ null，由调用方按缺省支部口径 fail-safe）。
+ * @param {{ role?:string, personId?:string, developStage?:string, branchId?:string|null }|null} user
+ * @returns {{ role:string|null, personId:string|null, developStage:string|null, branchId:string|null }}
  */
 function _noticeViewerCtx(user) {
-  if (!user) return { role: null, personId: null, developStage: null };
+  if (!user) return { role: null, personId: null, developStage: null, branchId: null };
   const personId = user.personId || null;
+  const person = personId ? getPersonById(personId) : null;
   return {
     role: user.role || null,
     personId,
     // 服务端复算受众时可直接带 developStage（避免拿前端 mockDB 人员表猜）；缺省仍按本地人员表取。
-    developStage: user.developStage || (personId ? (getPersonById(personId)?.developStage || null) : null),
+    developStage: user.developStage || (person ? (person.developStage || null) : null),
+    branchId: user.branchId || (person ? (person.branchId || null) : null),
   };
 }
 
@@ -268,6 +272,27 @@ function _audiencePersonsHit(n, ctx) {
 /** actionRoles 行动角色命中（既有口径，不改） */
 function _audienceActionRolesHit(n, ctx) {
   return !!(ctx.role && Array.isArray(n.actionRoles) && n.actionRoles.includes(ctx.role));
+}
+
+/**
+ * 该通知是否为**定向行**（批次 541 · S-2）：
+ *   到人定向（`audiencePersons`）/ 行动角色（`actionRoles`）/ 角色或发展阶段受众（sentinel roles·developStages、
+ *   裸角色键）都算定向——只有命中者（或发布者）可读，支委层身份不构成越读理由。
+ *   例外：`committee` sentinel 是「本支部支委层」通栏，不算定向（另由支部比对把关）。
+ * @param {Object} n 通知
+ * @returns {boolean}
+ */
+function _isTargetedNotice(n) {
+  if (Array.isArray(n.audiencePersons) && n.audiencePersons.length > 0) return true;
+  if (Array.isArray(n.actionRoles) && n.actionRoles.length > 0) return true;
+  const raw = n.audience;
+  const list = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+  return list.some((sentinel) => {
+    if (sentinel === 'committee') return false;
+    const def = NOTICE_AUDIENCE_SENTINELS[sentinel];
+    if (def) return def.broadcast !== true;
+    return true; // 未登记裸值 → 按角色键定向处理
+  });
 }
 
 /**
@@ -935,13 +960,13 @@ export const NoticeStore = {
  *   ④ 无受众：公告按支部广播兼容；系统通知无受众 → 不可读（不得当广播）；
  *   ⑤ 党委组织员（party-staff）可读党委级通知（source/audience 命中 committee）；
  *   ⑥ 发布者恒可读（签发人不应被自己的定向通知挡在门外）；
- *   ⑦ 支委层（BRANCH_COMMISSION_ROLES）可读（治理信息）；
+ *   ⑦ 支委层（BRANCH_COMMISSION_ROLES）可读**非定向行**且**同支部**的行（治理信息，批次 541 收窄）；
  *   ⑧ 命中受众（audience sentinel / 裸角色键 / audiencePersons / actionRoles）可读；
  *   ⑨ 其余不可读。
  * 判定复用 list() 受众门**同一套** sentinel 判定（_audienceHit 等，勿写第二套规则）。
  * 注：本函数与 getById() 分工——getById 只取数、本函数判可见性（详情页渲染前调用）。
  * @param {Object} notice 通知对象
- * @param {{ personId?:string, role?:string }|null} [viewer] 观看者；缺省取当前登录会话
+ * @param {{ personId?:string, role?:string, branchId?:string|null }|null} [viewer] 观看者；缺省取当前登录会话
  * @returns {boolean}
  */
 export function canReadNotice(notice, viewer) {
@@ -965,7 +990,14 @@ export function canReadNotice(notice, viewer) {
   if (ctx.role === 'party-staff'
     && (n.source === 'committee' || _audienceSentinelPresent(n, 'committee'))) return true;
   if (_isPublisher(n, ctx)) return true;                        // ⑥ 发布者恒可读
-  if (BRANCH_COMMISSION_ROLES.includes(ctx.role)) return true;  // ⑦ 支委层可读
+  // ⑦ 支委层兜底（批次 541 · S-2 改准）：**只对非定向行生效**，且须同支部。
+  //    定向行（到人 / 行动角色 / 角色受众）只有受众本人或发布者可读；否则支委层身份会把
+  //    「支部发给支书一人的定向通知」读走（越读）。支部比对与 list() 的 committee 受众门同口径。
+  if (BRANCH_COMMISSION_ROLES.includes(ctx.role) && !_isTargetedNotice(n)) {
+    const viewerBranch = ctx.branchId || DEFAULT_BRANCH_ID;
+    const noticeBranch = n.branchId || DEFAULT_BRANCH_ID;
+    if (String(noticeBranch) === String(viewerBranch)) return true;
+  }
   return _audiencePersonsHit(n, ctx)                            // ⑧ 命中受众可读
     || _audienceHit(n, ctx)
     || _audienceActionRolesHit(n, ctx);

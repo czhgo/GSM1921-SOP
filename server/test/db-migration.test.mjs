@@ -157,7 +157,7 @@ test('M7 v8/v10 活动组织落点：两档归一 / legacy 标记 / 补跨组招
     }));
 
     const applied = applyMigrations(db);
-    assert.deepEqual(applied.applied, [8, 9, 10, 11, 12, 13, 14], '应从 v7 补跑 v8…v14（v13 / v14 结构幂等）');
+    assert.deepEqual(applied.applied, [8, 9, 10, 11, 12, 13, 14, 15], '应从 v7 补跑 v8…v15（v13–v15 结构幂等）');
     const row = (id) => JSON.parse(db.prepare('SELECT data FROM activities WHERE id = ?').get(id).data);
     assert.equal(row('act-v8-legacy').organizingScope, 'party-group', '旧 cross-group 归一为 party-group');
     assert.equal(row('act-v8-legacy').legacyHostGroup, true, '无承办组 ⇒ legacy 标记，不猜测');
@@ -194,4 +194,36 @@ test('M6 非空转：迁移列表规模基线（防列表被清空导致守卫�
   assert.equal(SCHEMA_VERSION, Math.max(...MIGRATIONS.map((m) => m.version)), 'SCHEMA_VERSION 须＝列表最大版本');
   assert.ok(MIGRATIONS[0].tables && MIGRATIONS[0].tables.length >= 44,
     `v1 基线应登记 ≥44 张现状表（实得 ${MIGRATIONS[0].tables ? MIGRATIONS[0].tables.length : 0}）`);
+});
+
+test('M8 v15 党委在途提案部分唯一索引：存量重复置 cancelled（不删行）后建索引；重放幂等', () => {
+  const db = initDb(tempDbPath('v15'));
+  try {
+    const indexSql = () => db.prepare("SELECT sql FROM sqlite_master WHERE type='index' AND name='ux_mcr_committee_inflight'").get();
+    assert.ok(indexSql(), '全新库应已建 ux_mcr_committee_inflight');
+    assert.match(String(indexSql().sql), /WHERE/i, '必须是部分索引（带 WHERE）');
+
+    // 回退到 v14 并造两条「同一人在途党委提案」重复行（模拟存量脏数据）
+    db.exec('DROP INDEX ux_mcr_committee_inflight');
+    db.pragma('user_version = 14');
+    const put = (id, createdAt) => db.prepare('INSERT INTO member_change_requests (id, data) VALUES (?, ?)').run(id, JSON.stringify({
+      id, branchId: 'br-b1', personId: 'p-dup', source: 'committee-proposal',
+      status: 'pending-org-approval', createdAt,
+    }));
+    put('mcr-dup-1', '2026-11-01T00:00:00.000Z');
+    put('mcr-dup-2', '2026-11-02T00:00:00.000Z');
+
+    const applied = applyMigrations(db);
+    assert.deepEqual(applied.applied, [15], '应从 v14 只补 v15');
+    const rows = db.prepare("SELECT id, data FROM member_change_requests WHERE json_extract(data,'$.personId') = 'p-dup' ORDER BY id").all()
+      .map((r) => JSON.parse(r.data));
+    assert.equal(rows.length, 2, 'v15 去重不删行');
+    assert.equal(rows.find((r) => r.id === 'mcr-dup-1').status, 'pending-org-approval', '保留最早一条在途');
+    assert.equal(rows.find((r) => r.id === 'mcr-dup-2').status, 'cancelled', '重复条置 cancelled');
+    assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND name='ux_mcr_committee_inflight'").get(),
+      '去重后索引必须建成');
+
+    const again = applyMigrations(db);
+    assert.deepEqual(again.applied, [], '重复迁移不得再改写');
+  } finally { db.close(); }
 });

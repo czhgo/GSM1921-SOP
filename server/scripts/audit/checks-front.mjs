@@ -188,11 +188,14 @@ export async function runFrontChecks(ctx) {
   // ── F6 空态启发式（P2） ──────────────────────────────────────
   {
     const hits = dom.emptyHits || [];
+    const ignored = dom.emptyIgnored || [];
     if (!hits.length) {
-      findings.push(makeFinding(key, 'F6', 'pass', '未发现 .empty-state 之外的空态文本', { hits: 0 }));
+      findings.push(makeFinding(key, 'F6', 'pass',
+        `未发现 .empty-state 之外的空态文本（已排除分组提示 / 指标占位 ${ignored.length} 处）`,
+        { hits: 0, ignored }));
     } else {
       findings.push(makeFinding(key, 'F6', 'fail',
-        `${hits.length} 处空态文本不在 .empty-state 内（P2 待人工确认）`, { hits }));
+        `${hits.length} 处空态文本不在 .empty-state 内（P2 待人工确认）`, { hits, ignored }));
     }
   }
 

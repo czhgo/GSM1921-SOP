@@ -161,10 +161,10 @@ function _canReadInspectionRow(db, row, actor, read) {
 }
 
 function _canReadTodoRow(row, actor) {
-  if (!row || !actor) return false;
-  // 到人主责只给本人；角色待办按当前角色可见（与前端 TodoStore.getByRole 同口径）。
-  if (row.personId) return row.personId === actor.id;
-  return row.role === actor.role;
+  // 判据单一源 = `routes/resources/todo-read-policy.mjs`（批次 541：与 `routes/todo-groups.js` 同 import），
+  //   此处只保留函数别名，勿在本文件另写第二份判据；行数保持 6 行以不动 README 的 `文件:行号` 靶点。
+  //   import 声明置尾（ESM 提升）⇒ 上文行号零位移。
+  return canReadTodoRow(row, actor);
 }
 
 /** v11（批次 504）：可下推列白名单——只有这些集合允许用生成列/普通列在 SQL 侧过滤 */
@@ -1730,7 +1730,7 @@ function deleteActivityCascade(db, id) {
 function _projectResourceRowsExt(db, name, rows, actor) {
   if (name !== 'notices') return rows;
   const viewer = actor
-    ? { personId: actor.id, role: actor.role, developStage: actor.developStage }
+    ? { personId: actor.id, role: actor.role, developStage: actor.developStage, branchId: actor.branchId ?? null }
     : null;
   // Task 3（2026-10-25）：通知投影透传消息对象模型字段（kind / archivedBy），
   // 缺省按 kindOf 迁移、archivedBy 归一为数组——客户端不再各自补默认值。
@@ -1800,3 +1800,8 @@ function _publicFaceWriteDeny(actor, name, body) {
   }
   return { status: 400, error: '请走 /committee/notices 或 /committee/documents 发布口' };
 }
+
+// 待办行读权限单一源（批次 541）：`_canReadTodoRow` 只作别名，判据本体在同级叶子件，
+//   与 `routes/todo-groups.js` 同 import ⇒ 读口 / 派生口不得出现两套权限门。
+//   ⚠ 置尾 import（ESM 提升，语义等价）：不移动上文任何行号。
+import { canReadTodoRow } from './todo-read-policy.mjs';

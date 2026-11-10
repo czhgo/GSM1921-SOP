@@ -8,10 +8,10 @@
 // 深链：`?tab=growth&section=thought|inspection|review` 直接展开对应子区（旧 `?tab=thought-report|inspection|review`
 //   由工作台壳的 `_legacyTabAliases` 重定向到这里）。
 
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261110a';
-import { smoothScroll, flashHighlight } from '../../../core/base/utils.js?v=20261110a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261110b';
+import { smoothScroll, flashHighlight } from '../../../core/base/utils.js?v=20261110b';
 // 批次 540 波次 1：待办跳转的定位目标（visitor growth：考察 / 复盘 / 思想汇报子区）
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261110a';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261110b';
 
 const SECTIONS = [
   {
@@ -19,21 +19,21 @@ const SECTIONS = [
     aliases: ['thought-report', 'thought'],
     title: '思想汇报',
     meta: '按期次提交与回看；提交即入库归档。',
-    load: () => import('./thought-report-tab.js?v=20261110a'),
+    load: () => import('./thought-report-tab.js?v=20261110b'),
   },
   {
     key: 'inspection',
     aliases: ['inspection'],
     title: '我的考察',
     meta: '本人历次活动参与考察记录与申诉入口。',
-    load: () => import('./inspection-tab.js?v=20261110a'),
+    load: () => import('./inspection-tab.js?v=20261110b'),
   },
   {
     key: 'review',
     aliases: ['review'],
     title: '我的复盘',
     meta: '组织者 / 深度参与者提交复盘 → 纪检批注确认。',
-    load: () => import('./review-tab.js?v=20261110a'),
+    load: () => import('./review-tab.js?v=20261110b'),
   },
 ];
 

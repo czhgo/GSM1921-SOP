@@ -64,7 +64,7 @@ dynamic_role:
 | .ctx/logs/archive/2026-10/IA_LINK_TRUTH.md | 2026-10-19 | — | [工程师]+[AI] | IA 链接真值审计（角色 + 对象 + 步骤）；材料闭环逐角色落点表 + 真机读数（组长点考勤被弹回 leader.html）。 |
 | .ctx/logs/archive/2026-10/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/logs/archive/2026-10/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
-| .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-11-10 | — | [工程师]+[AI] | 日志索引 + 批次索引（509–540）。 |
+| .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-11-10 | — | [工程师]+[AI] | 日志索引 + 批次索引（509–541）。 |
 | .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-10 | — | [工程师]+[AI] | 11 月执行日志（当月活跃）。 |
 | .ctx/logs/DECISION_LOG.md | 2026-11-10 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3828 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
@@ -82,7 +82,7 @@ dynamic_role:
 | .ctx/logs/archive/2026-09-EXECUTION_LOG.md | 2026-10-06 | 2026-10-06 | [工程师]+[AI] | 9 月执行日志（**已归档**）。**边界**：过程流水归 `git`；本文件**另承载「台账迁出附节」**——`R-` 表（`R-23`…`R-93` 全量纪律正文，**乙部表闭环即迁入此处**）＋ `TIMESTAMPS` 备注列历轮迁出的逐批沿革。**为什么**：`R-84`/`R-86`/`R-89` 的「各有其位」需要一个**稳定、不随月滚动**的落点。 |
 | .ctx/logs/2026-10-EXECUTION_LOG.md | 2026-10-27 | — | [工程师]+[AI] | 10 月执行日志（当月活跃；批次 336 换月建）。**边界**：只留「为什么 / 拿不准 / 边界 / 读数」（`H26.1`）；过程流水归 `git`，本文件不复述。 |
 | .ctx/logs/2026-10-DECISION_LOG.md | 2026-10-22 | — | [工程师]+[AI] | 10 月决策日志（**当月活跃 · 决议权威源**；2026-10-02 批次 336 换月建，自 9 月文件逐字迁入 `D-729`~`D-739`）。**边界**：每条裁定全文（追加、不改写）；过程归执行日志（`R-84`）。 |
-| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-10 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；当前 `D-827`…`D-863`。 |
+| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-10 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；当前 `D-827`…`D-864`。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_R10_DATA_LIFECYCLE.md | 2026-10-23 | — | [工程师]+[AI] | 第十轮数据生命周期审查（75 条；R10 四批的依据）。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_UI_R11.md | 2026-10-23 | — | [工程师]+[AI] | 第十一轮前端脏乱繁审查（P0/P1/P2 与 SD-1…SD-11）。 |
 | .ctx/logs/archive/2026-10/2026-10-R10_P3_CLOSURE.md | 2026-10-23 | — | [工程师]+[AI] | R10 P3 收口对账（R6 21 / R7 18 / 帮助注释 9）。 |
@@ -113,7 +113,7 @@ dynamic_role:
 | content/02_institution/sop/INDEX.md | 2026-10-25 | — | [用户]+[AI] | SOP 导航（术语段只留 `TERMINOLOGY.md` 指针；常用场景行用途栏用「组织生活会以三会形式召开」写法）。沿革见 `.ctx/logs/`。 |
 | content/02_institution/sop/README.md | 2026-11-04 | — | [工程师]+[AI] | SOP 目录索引（维护触发器指向 `H30.1`）。 |
 | content/02_institution/sop/常见工作场景快速指南.md | 2026-10-22 | — | [用户]+[AI] | 常见工作场景快速指南（母本）：三会一课按同一套 9 环节；党课通知提前量**不设固定值**、由组织者把握；「组织生活会以三会形式召开」用从属写法。沿革见 `.ctx/logs/`。 |
-| content/02_institution/sop/支委与党小组定人定责定岗说明.md | 2026-10-18 | — | [用户]+[AI] | 定人定责定岗说明（母本）：第三党小组组长标注为「代组长」；§5.3 定岗表「制度建设」主导者＝支委会（可指定对应委员起草 / 修改）；条块交叉表复盘列用「宣传材料归档」。沿革见 `.ctx/logs/`。 |
+| content/02_institution/sop/支委与党小组定人定责定岗说明.md | 2026-11-10 | — | [用户]+[AI] | 定人定责定岗说明（母本）：第三党小组组长标注为「代组长」；§5.3 定岗表「制度建设」主导者＝支委会（可指定对应委员起草 / 修改）；条块交叉表复盘列用「宣传材料归档」。沿革见 `.ctx/logs/`。 |
 | content/02_institution/sop/宣传委员工作流程指南.md | 2026-10-25 | — | [用户]+[AI] | 宣传委员工作流程指南（母本）：引用改准至 `DATA_MODEL.md §2.9 消息`；照片墙 / 图片管理 / 周报自动生成与通知支书均**已实现**（反向过时说明已改准）；「最佳展示 / 档案备份分级」「拖拽至宣传子任务」由「未实现」改准为**设计方向**；周报步与项目看板步的留痕按钮名＝「标记已上报党建平台」（与归档页「标记已发送（微信 / 对外）」分开记）。沿革见 `.ctx/logs/`。 |
 | content/02_institution/sop/纪检委员工作流程指南.md | 2026-10-18 | — | [用户]+[AI] | 纪检委员工作流程指南（母本）：出勤率汇总 → **交支委会（不公示、不对外）**；考察同流程含**同款打回**（含申诉先核实）；会议考勤上传＝该场组织者，纪检管打包确认 / 总表 / 统计核对。沿革见 `.ctx/logs/`。 |
 | content/02_institution/sop/组织委员工作流程指南.md | 2026-10-22 | — | [用户]+[AI] | 组织委员工作流程指南（母本）：发展对象公示期＝**不少于五个工作日**（引上级《发展党员工作细则》第十三条）；「培养联系人考察记录」以纸质材料撰写、**系统内不设该栏**。沿革见 `.ctx/logs/`。 |
@@ -142,7 +142,7 @@ dynamic_role:
 | content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-11-10 | — | [工程师]+[AI] | 父索引：§一 设计哲学 ＋ 编目（原则 4 补「点缀色不单独承担状态语义」）。 |
 | content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md | 2026-11-10 | — | [工程师]+[AI] | 第一编 色彩与主题（§2.13 补图标状态色互指句）。 |
 | content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md | 2026-11-04 | — | [工程师]+[AI] | 第二编 排版与尺寸（增正文/说明边界与棘轮）。 |
-| content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-11-10 | — | [工程师]+[AI] | 第三编 组件；SD-1…SD-61（§4.11.2 SVG 图标色彩契约）。 |
+| content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-11-10 | — | [工程师]+[AI] | 第三编 组件；SD-1…SD-65（§4.11.2 SVG 图标色彩契约；SD-62…65 为门厅 / 跳转 / 议程 / 表格契约的编号登记）。 |
 | content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md | 2026-11-08 | — | [工程师]+[AI] | 第四编 交互与响应式（P10 三档动效令牌）。 |
 | content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md | 2026-11-08 | — | [工程师]+[AI] | 第五编 地图与速查。 |
 | content/04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md | 2026-11-08 | — | [工程师]+[AI] | 第六编 布局与密度：SD-57 页签密度 46。 |
@@ -158,9 +158,9 @@ dynamic_role:
 | content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md | 2026-11-08 | — | [工程师]+[AI] | 党委治理契约 |
 | content/04_web_design/evolution/archive/ROLE_PERMISSION_DESIGN.md | 2026-11-08 | — | [工程师]+[AI] | 权限收敛档案（2026-09-26 补行） |
 | content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md | 2026-11-08 | — | [工程师]+[AI] | 块封装契约（2026-09-26 补行） |
-| content/04_web_design/module/PUBLIC_ENTRANCE.md | 2026-11-08 | — | [工程师]+[AI] | 门厅设计已裁定 |
+| content/04_web_design/module/PUBLIC_ENTRANCE.md | 2026-11-10 | — | [工程师]+[AI] | 门厅设计已裁定（公开门厅的规范编号 2026-11-10 批次 541 回填为 SD-62）。 |
 | content/04_web_design/deploy/WECHAT_INTEGRATION.md | 2026-09-05 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§五 微信协同与小程序设计**〔内部 §一–§八 → 5.1–5.8〕⇒ **四份 → 一份**。（原：微信协同与小程序设计方案；§八 新增北大对接数据展示；小程序独立问题归位本文档。）沿革见 `.ctx/logs/`。 |
-| content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md | 2026-11-08 | — | [用户]+[AI] | **（现状）** 数据一致性检查清单（`§0` 真机 ↔ 文档逐项对账）。**边界**：本件只承载清单本体与判据，沿革入 `.ctx/logs/`。**为什么**：本列只写现状 / 边界 / 指针（`R-89`）。沿革已迁出（git 可溯）。 |
+| content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md | 2026-11-10 | — | [用户]+[AI] | **（现状）** 数据一致性检查清单（`§0` 真机 ↔ 文档逐项对账）。**边界**：本件只承载清单本体与判据，沿革入 `.ctx/logs/`。**为什么**：本列只写现状 / 边界 / 指针（`R-89`）。沿革已迁出（git 可溯）。 |
 | content/04_web_design/data/DATA_MODEL.md | 2026-11-08 | — | [工程师]+[AI] | 数据模型与数据流（静态 §2.x / 动态 §1·§3·§4）；§2.9 消息对象；§2.31 党委内容与公开发布（v13 生成列 / 部分唯一索引 / 发布留痕）。字段口径以 `DATA_CONTRACT.md` 为准，种子口径以 `DATA_SEED_CONTRACT.md` 为准。**边界**：字段级唯一权威；README-server 以行号引用本文件。 |
 | content/04_web_design/data/DATA_CONTRACT.md | 2026-11-08 | — | [工程师]+[AI] | 领域数据契约（48 表：34 资源 + 8 语义 + 6 工作组）；机读单一源 `server/data/domain-contract.mjs`。守卫 `server/test/data-contract.test.mjs`。 |
 | content/04_web_design/data/DATA_SEED_CONTRACT.md | 2026-10-27 | — | [工程师]+[AI] | 数据种子契约（四类口径 / 逐表必填 / v12 强约束）；守卫 `server/test/seed-contract-guard.test.mjs`。 |
@@ -270,7 +270,7 @@ dynamic_role:
 | content/03_doc_system/CASES_INDEX.md | 2026-11-10 | — | [工程师]+[AI] | 判例总索引（design 41 / data 1 / ai 9）。 |
 | server/test/docs-governance-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 文档治理守卫。 |
 | .ctx/README.md | 2026-11-03 | — | [工程师]+[AI] | 三层分职（active / reference / provenance）、准入判据、读取顺序、预算、冲突顺序与可复用资产索引。 |
-| .ctx/ACTIVE_CONTEXT.md | 2026-11-10 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-863`。 |
+| .ctx/ACTIVE_CONTEXT.md | 2026-11-10 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-864`。 |
 | server/test/link-color-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 链接色守卫。 |
 | server/test/activity-tone-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 活动类别守卫。 |
 | server/test/field-shell-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 字段外壳守卫。 |
@@ -577,7 +577,7 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| docs/src/styles.css | 2026-10-28 | — | [工程师]+[AI] | 全局样式单一源；批次 505 收敛控件/按钮/页签/指标带/summary 组件层（见 DESIGN_SYSTEM §十二）；2026-10-28 空态三形态补 `.empty-state--inline`。 |
+| docs/src/styles.css | 2026-11-10 | — | [工程师]+[AI] | 全局样式单一源；批次 505 收敛控件/按钮/页签/指标带/summary 组件层（见 DESIGN_SYSTEM §十二）；2026-10-28 空态三形态补 `.empty-state--inline`；2026-11-10 批次 541 原生 `select.input-flat` 的箭头由 data-URI 内联 hex 改纯 CSS 折线（取 `--neutral-400`，同色）。 |
 | docs/src/about.css | 2026-09-28 | — | [工程师]+[AI] | 关于页独立样式表（ab-* 内容区 ＋ 南西油墨宋 @font-face ＋ Tailwind 最小兜底，about.html 独占引用）。沿革见 `.ctx/logs/`。 |
 
 ### docs/scripts/

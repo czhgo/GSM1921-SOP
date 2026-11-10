@@ -16,11 +16,11 @@
 //   · direct：活动 / 专班 / 通知详情走 `object-route`（不经工作台页签）。
 // ════════════════════════════════════════════════════════════════
 
-import { PendingTarget } from './pending-target.js?v=20261110a';
-import { resolveTodoAction } from '../domain/todo-actions.js?v=20261110a';
-import { synonymWorkspaceTab, WORKSPACE_TAB_LABELS } from '../domain/workspace-tabs.js?v=20261110a';
-import { objectDetailHref } from '../domain/object-route.js?v=20261110a';
-import { resolveDocumentUrl } from '../base/page-url.js?v=20261110a';
+import { PendingTarget } from './pending-target.js?v=20261110b';
+import { resolveTodoAction } from '../domain/todo-actions.js?v=20261110b';
+import { synonymWorkspaceTab, WORKSPACE_TAB_LABELS } from '../domain/workspace-tabs.js?v=20261110b';
+import { objectDetailHref } from '../domain/object-route.js?v=20261110b';
+import { resolveDocumentUrl } from '../base/page-url.js?v=20261110b';
 
 /** fail-closed 提示主文（守卫按此字符串核对，不在调用点另写一套） */
 export const NAV_MODULE_MISSING_TEXT = '本台无该模块';
@@ -193,7 +193,11 @@ export function executeTodoAction(todo, role) {
     });
     return { action, ok: false };
   }
-  const id = todoTargetId(todo) || action.id || '';
+  // switch 定位键：显式 `pendingId`（今天页传聚合组键）优先；否则按待办对象 / 首条业务 id。
+  //   direct 只认对象本体 id（其下分支自取），不吃 pendingId。
+  const id = (action.mode === 'switch' && todo.pendingId)
+    ? String(todo.pendingId)
+    : (todoTargetId(todo) || action.id || '');
   if (action.mode === 'direct') {
     // direct 只认对象本体 id（活动 / 专班 / 通知来源）；不得用待办本体 id 冒充对象 id
     const href = _directHref(action, todo, _objectSourceIdOf(todo) || action.id || '');

@@ -12,30 +12,30 @@
 //     应到 = `attendanceRosters` 冻结名单优先，无冻结时回落 `services/activity/vote-config.js::resolveVoterIds('committee')`
 //     并标注「实时」；两种口径不混算。
 //   · 表格 = components/ui/data-table.js（.data-table 单一源）；行内选人 = components/governance/pickers.js::PersonPicker。
-import { mockDB } from '../../../core/domain/domain.js?v=20261110a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261110a';
-import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261110a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261110b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261110b';
+import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261110b';
 import {
   listBranchCommissioners,
   appointBranchCommissioner,
   revokeBranchCommissioner,
-} from '../../../services/branch/appointment.js?v=20261110a';
-import { confirmDanger } from '../../../components/ui/modal.js?v=20261110a';
-import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261110a';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261110a';
-import { deriveMeetingStatus } from '../../../data/mock/derive.js?v=20261110a';
-import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261110a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261110a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261110a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261110a';
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261110a';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261110a';
+} from '../../../services/branch/appointment.js?v=20261110b';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261110b';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261110b';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261110b';
+import { deriveMeetingStatus } from '../../../data/mock/derive.js?v=20261110b';
+import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261110b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261110b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261110b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261110b';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261110b';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261110b';
 // 待议池（2026-11-10 批次 540 波次 2）：类型 / 文案 / 去重键 / 应到范围由服务端算（API 形态），
 // 分类函数与 mock 形态本地归集共用 `core/domain/agenda-classify.js`（同一判据、同一文案）。
-import { getAdapter, getDataSource } from '../../../data/data-adapter.js?v=20261110a';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261110a';
-import { buildAgendaPool } from './agenda-form.js?v=20261110a';
-import { AGENDA_TYPES, AGENDA_TYPE_BADGE_VARIANT } from '../../../core/domain/agenda-classify.js?v=20261110a';
+import { getAdapter, getDataSource } from '../../../data/data-adapter.js?v=20261110b';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261110b';
+import { buildAgendaPool } from './agenda-form.js?v=20261110b';
+import { AGENDA_TYPES, AGENDA_TYPE_BADGE_VARIANT } from '../../../core/domain/agenda-classify.js?v=20261110b';
 
 /** 本支部 id（登录人归属；缺省 br-b1，与全仓同口径） */
 function branchId() {
@@ -82,12 +82,14 @@ function statusBadge(label, variant) {
 }
 
 /** 支委构成行：末列 1 主（改派 / 补选）+「更多（撤销）」，只在本行内展开选人面板，
- *  不再出现全局「选人 → 选身份 → 确认」表单 */
+ *  不再出现全局「选人 → 选身份 → 确认」表单。
+ *  2026-11-10 批次 541：来源并入身份注（「支书 · 党委配置」），操作列不再复述「党委配置」——
+ *  只在有写口（支部授予）的行出按钮，党委配置行留「—」。 */
 function rosterRowHtml(r, showStatus) {
   const vacant = !r.name;
   const personCell = vacant ? '<span class="text-gray-500">空缺</span>' : esc(r.name);
   const statusCell = vacant ? statusBadge('空缺', 'warning') : statusBadge('在任', 'neutral');
-  let action = '<span class="text-gray-500">党委配置</span>';
+  let action = '<span class="text-gray-500">—</span>';
   if (r.editable && !vacant) {
     // 1 主（改派）＋ 1 个「更多」；撤销进菜单（2026-10-19 Task 7）
     action = `<button type="button" class="btn-accent-soft btn-sm" data-cm-replace="${esc(r.role)}">改派</button>
@@ -102,8 +104,7 @@ function rosterRowHtml(r, showStatus) {
   }
   return `<tr>
     <td${vacant ? ' class="section-accent-left"' : ''} data-label="姓名">${personCell}</td>
-    <td data-label="身份">${esc(r.label)}</td>
-    <td data-label="来源">${esc(r.source)}</td>
+    <td data-label="身份">${esc(r.label)}<span class="ml-1 text-xs text-gray-500">${esc(r.source)}</span></td>
     <td${showStatus ? '' : ' class="is-redundant"'} data-label="状态">${statusCell}</td>
     <td data-label="操作" data-cm-cell="${esc(r.role)}"><div class="flex items-center gap-2">${action}</div></td>
   </tr>`;
@@ -312,11 +313,11 @@ function agendaPoolHtml(pool, local) {
 /** mock 形态本地归集：各来源取既有出口，归集与分类走同一纯函数（不新造判据） */
 async function localAgendaPool() {
   const [{ TaskForceRecordStore }, { IssueStore }, { loadStageEntryDates }, { listDocs, isAgendaDraftDoc }, { listBrandProposals }] = await Promise.all([
-    import('../../../services/activity/taskforce.js?v=20261110a'),
-    import('../../../services/governance/issues.js?v=20261110a'),
-    import('../../../services/member/member-confirmation.js?v=20261110a'),
-    import('../../../services/branch/branch-doc.js?v=20261110a'),
-    import('../../../services/activity/activity.js?v=20261110a'),
+    import('../../../services/activity/taskforce.js?v=20261110b'),
+    import('../../../services/governance/issues.js?v=20261110b'),
+    import('../../../services/member/member-confirmation.js?v=20261110b'),
+    import('../../../services/branch/branch-doc.js?v=20261110b'),
+    import('../../../services/activity/activity.js?v=20261110b'),
   ]);
   const src = { activities: mockDB.activities || [] };
   try { src.taskforceProposals = TaskForceRecordStore.listCommitteeRequests(); } catch (e) { /* 少一类不阻断 */ }
@@ -387,11 +388,11 @@ export function renderContent() {
     rows: roster,
     rowHtml: (r) => rosterRowHtml(r, showStatus),
     headHtml: tableHeadHtml([
-      { label: '姓名' }, { label: '身份' }, { label: '来源' },
+      { label: '姓名' }, { label: '身份' },
       { label: '状态', className: showStatus ? '' : 'is-redundant' },
       { label: '操作' },
     ]),
-    colSpan: 5,
+    colSpan: 4,
     pageSize: 0,
     responsive: true,
     emptyMessage: '暂无支委身份',

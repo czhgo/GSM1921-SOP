@@ -927,6 +927,56 @@ export const MIGRATIONS = [
       db.exec('CREATE INDEX IF NOT EXISTS idx_publication_audits_resource ON publication_audits(resource_type, resource_id)');
     },
   },
+  {
+    // v15（2026-11-10 批次 541 · P2 统一清理）：
+    //   `member_change_requests` 的「同支部同成员的党委在途提案」只允许一条——应用层
+    //   （`semantic-routes.js::POST /committee/roster-proposals`）已把查重与写入放进同一事务，
+    //   本部分唯一索引兜「多进程 / 并发」窗口。
+    //   ⚠ 只覆盖 `source='committee-proposal'` 的在途行：议程派生提案（`member.js`）按
+    //     `activityId + agendaItemId + personId` 防重，同一成员可有多条不同议程的在途申请，不得被本索引误伤。
+    //   幂等：先探测索引；存量重复（同一人在途多条党委提案）只保留最早一条，其余置 `cancelled`（不删行）。
+    version: 15,
+    name: 'member-change-requests-committee-inflight-unique',
+    tables: ['member_change_requests'],
+    up(db) {
+      const hasTable = (name) => !!db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(name);
+      if (!hasTable('member_change_requests')) return;
+      const indexName = 'ux_mcr_committee_inflight';
+      const hasIndex = !!db.prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?").get(indexName);
+      if (hasIndex) return;
+
+      const terminal = new Set(['completed', 'rejected', 'cancelled']);
+      // 存量去重：同一 (branchId, personId) 的在途党委提案只留最早一条，其余置 cancelled
+      const groups = new Map();
+      for (const row of db.prepare("SELECT id, data FROM member_change_requests WHERE json_extract(data,'$.source') = 'committee-proposal'").all()) {
+        let parsed;
+        try { parsed = JSON.parse(row.data); } catch { continue; }
+        if (!parsed || !parsed.branchId || !parsed.personId) continue;
+        if (terminal.has(String(parsed.status || ''))) continue;
+        const key = `${parsed.branchId}\u0000${parsed.personId}`;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push({ id: String(row.id), row: parsed });
+      }
+      let cancelled = 0;
+      for (const list of groups.values()) {
+        if (list.length < 2) continue;
+        const keep = [...list].sort((a, b) => String(a.row.createdAt || '').localeCompare(String(b.row.createdAt || ''))
+          || String(a.id).localeCompare(String(b.id)))[0];
+        for (const item of list) {
+          if (item.id === keep.id) continue;
+          const next = { ...item.row, status: 'cancelled', cancelledAt: new Date().toISOString(), cancelledReason: 'v15 去重：同成员在途党委提案只保留最早一条' };
+          db.prepare('UPDATE member_change_requests SET data = ? WHERE id = ?').run(JSON.stringify(next), item.id);
+          cancelled += 1;
+        }
+      }
+      if (cancelled) console.log(`[db] v15 名册提案去重：置 cancelled=${cancelled}`);
+
+      db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS ${indexName}
+        ON member_change_requests(json_extract(data,'$.branchId'), json_extract(data,'$.personId'))
+        WHERE json_extract(data,'$.source') = 'committee-proposal'
+          AND IFNULL(json_extract(data,'$.status'),'') NOT IN ('completed','rejected','cancelled')`);
+    },
+  },
 ];
 
 /** 迁移列表的最大版本（＝目标 schema 版本；守卫据此核 `user_version`，防「有迁移没跑」/「版本号被手改」） */

@@ -19,40 +19,40 @@
 // 视觉沿用 card/rounded 既有体系（四档列表渲染在 components/record/todo-list.js renderUrgencyTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261110a';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261110b';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261110a';
-import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261110a';
-import { badgeHtml } from '../ui/badges.js?v=20261110a';
-import { icon } from '../../core/base/icons.js?v=20261110a';
-import { showToast, escHtml, todayLocal, flashHighlight, getBasePath, smoothScroll } from '../../core/base/utils.js?v=20261110a';
-import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261110a';
-import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261110a';
-import { AuthStore } from '../../services/core/auth.js?v=20261110a';
-import { mockDB } from '../../core/domain/domain.js?v=20261110a';
-import { tokenOf } from '../../core/base/version-token.js?v=20261110a'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261110a';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261110a'; // P2 渲染守卫（spec §四.1）
-import { renderTabHeader } from '../shell/page-frame.js?v=20261110a'; // 页题单一源（H2）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261110b';
+import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261110b';
+import { badgeHtml } from '../ui/badges.js?v=20261110b';
+import { icon } from '../../core/base/icons.js?v=20261110b';
+import { showToast, escHtml, todayLocal, flashHighlight, getBasePath, smoothScroll } from '../../core/base/utils.js?v=20261110b';
+import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261110b';
+import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261110b';
+import { AuthStore } from '../../services/core/auth.js?v=20261110b';
+import { mockDB } from '../../core/domain/domain.js?v=20261110b';
+import { tokenOf } from '../../core/base/version-token.js?v=20261110b'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261110b';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261110b'; // P2 渲染守卫（spec §四.1）
+import { renderTabHeader } from '../shell/page-frame.js?v=20261110b'; // 页题单一源（H2）
 // 批次 540 波次 1：PendingTarget 消费下沉到本壳（report / member / group / inspection / attendance 统一），
 //   清理时机与「?highlight=」深链一致——渲染完成即一次性消费，重渲染不再残留。
-import { PendingTarget } from '../../core/session/pending-target.js?v=20261110a';
+import { PendingTarget } from '../../core/session/pending-target.js?v=20261110b';
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261110a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261110b';
 // 待办「实时派生组」服务端只读端点（批次 532 · B-500-7 最小 Plan B）：
 //   批次 534（B-500-7b-1 Task 9）起**服务端为默认来源**——api 形态取服务端派生组，客户端只做展示派生
 //   （分档 / 排序 / 格式化 / 筛选 / 折叠）；mock 形态 / 服务端读取失败才回落客户端派生（兜底）。
-import { getAdapter, getDataSource } from '../../data/data-adapter.js?v=20261110a';
+import { getAdapter, getDataSource } from '../../data/data-adapter.js?v=20261110b';
 // 7 键实时组映射（服务端 Task 8 同源消费）：用于声明「服务端已接管」的动作键集合
-import { DERIVE_GROUP_DOMAIN } from '../../core/domain/todo-derive.js?v=20261110a';
+import { DERIVE_GROUP_DOMAIN } from '../../core/domain/todo-derive.js?v=20261110b';
 
 // ── 「我经办的反馈」区（2026-10-25 IA 62→45 · spec Task 5）──────────────
 // 五台原「我的处置」页签已删（与待办同属「我的待处理」，只是对象为反馈）⇒ 并入本页成一段。
 // 实现单一源＝`components/feedback/issue-dispatch-view.js`（embedded 形态：不渲染第二张页头 H2，
 // 列表 / 详情 / 评论 / 提交处置结果一字未改，不复制第二套）。
 // 旧深链 `?tab=my-dispatch` 由工作台壳落 `todo&filter=dispatch`（本区据此滚到视野）。
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261110a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261110b';
 const DISPATCH_SECTION_BY_ROLE = {
   'org-commissioner': { roleKey: 'org-commissioner', opts: {} },
   'prop-commissioner': { roleKey: 'prop-commissioner', opts: {} },
@@ -317,6 +317,35 @@ function _insertTargetHint(container, text) {
 }
 
 /**
+ * 深链定位：按 kind / id 找 DOM 锚点（纯查找，不产生副作用；未命中返回 null）。
+ * 顺序＝业务锚点优先、`data-id` 兜底；同一个 id 在别的语义里串味时由业务锚点先命中。
+ * @param {HTMLElement} container 待办容器
+ * @param {string} id 深链 highlight 值
+ * @param {string} [kind] PendingTarget.kind（缺省＝全选择器兜底）
+ * @returns {HTMLElement|null}
+ */
+function _findNavAnchor(container, id, kind = '') {
+  const selectors = (PENDING_KIND_SELECTORS[kind] || PENDING_DEFAULT_SELECTORS)(id);
+  for (const sel of selectors) {
+    let target = null;
+    try { target = container.querySelector(sel); } catch (_) { target = null; }
+    if (target) return target;
+  }
+  return null;
+}
+
+/** 锚点命中后的落地：展开所在折叠区 + 滚动到视口中央 + 一次高亮 */
+function _settleNavAnchor(target) {
+  // 折叠区内的目标先展开（如页顶「待答复与未读通知」条、复盘收件箱）
+  const details = target.closest('details');
+  if (details && !details.open) details.open = true;
+  if (target.classList && target.classList.contains('hidden')) target.classList.remove('hidden');
+  const row = target.closest('[data-group-key]') || target;
+  smoothScroll(row, { block: 'center' });
+  flashHighlight(target);
+}
+
+/**
  * 深链定位执行（F03/F07 ＋ 批次 540 PendingTarget）：按 kind / id 找 DOM 锚点。
  * 命中 → 展开所在折叠区 + 滚动 + 闪烁；未命中 → 页内可见提示（不得静默落默认列表）。
  * @param {HTMLElement} container 待办容器
@@ -326,20 +355,9 @@ function _insertTargetHint(container, text) {
  * @returns {boolean} 是否命中
  */
 function _applyNavHighlight(container, id, matchedGroup, kind = '') {
-  const selectors = (PENDING_KIND_SELECTORS[kind] || PENDING_DEFAULT_SELECTORS)(id);
-  let target = null;
-  for (const sel of selectors) {
-    try { target = container.querySelector(sel); } catch (_) { target = null; }
-    if (target) break;
-  }
+  const target = _findNavAnchor(container, id, kind);
   if (target) {
-    // 折叠区内的目标先展开（如页顶「待答复与未读通知」条、复盘收件箱）
-    const details = target.closest('details');
-    if (details && !details.open) details.open = true;
-    if (target.classList && target.classList.contains('hidden')) target.classList.remove('hidden');
-    const row = target.closest('[data-group-key]') || target;
-    smoothScroll(row, { block: 'center' });
-    flashHighlight(target);
+    _settleNavAnchor(target);
     return true;
   }
   _insertTargetHint(container, matchedGroup
@@ -352,7 +370,8 @@ function _applyNavHighlight(container, id, matchedGroup, kind = '') {
  * PendingTarget 一次性消费（批次 540 波次 1·下沉到壳）：
  *   · 目标不属于本页（tab !== 'todo'）→ 原样留给目标页；
  *   · 缺 id → 落页顶并显示「未定位到具体条目」（契约 §二 末条：禁止静默、禁止只 toast）；
- *   · 有 id → 复用 `_applyNavHighlight`，未命中同样给显式提示。
+ *   · 有 id → 先按 kind 找业务锚点，再**壳内 `id → groupKey` 反查**（待办页以「组」为行：
+ *     组内条目 id / 待办本体 id 都收敛到所属组键再高亮）；未命中同样给显式提示。
  * 取后即清（`consume`），重渲染不再重复定位。
  */
 function _consumePendingTarget(container, allGroups) {
@@ -368,6 +387,17 @@ function _consumePendingTarget(container, allGroups) {
     || (allGroups || []).find(g => Array.isArray(g.items) && g.items.some(it => it && (it.id === target.id || it.groupKey === target.id)))
     || (allGroups || []).find(g => typeof g.bulkHtml === 'string' && g.bulkHtml.includes(target.id))
     || null;
+  // ① 业务锚点优先（report / member / group / inspection / attendance 各自的 DOM 语义）
+  let anchor = _findNavAnchor(container, target.id, target.kind);
+  // ② 反查兜底：条目 id → 所属聚合组键（今天页 / 待办页传组键时也在此收敛）
+  if (!anchor && matchedGroup && matchedGroup.groupKey) {
+    anchor = _findNavAnchor(container, matchedGroup.groupKey, 'group');
+  }
+  if (anchor) {
+    container.querySelectorAll('[data-nav-target-missing]').forEach((el) => el.remove());
+    _settleNavAnchor(anchor);
+    return true;
+  }
   _applyNavHighlight(container, target.id, matchedGroup, target.kind);
   return true;
 }
@@ -479,7 +509,7 @@ function _mountDispatchSection(container, role, ctx) {
     host.innerHTML = emptyStateHtml({ variant: 'panel', text: '请先登录后使用', actionHtml: `<a class="btn-outline" href="${getBasePath()}login.html">去登录</a>` });
     return;
   }
-  import('../feedback/issue-dispatch-view.js?v=20261110a').then((m) => {
+  import('../feedback/issue-dispatch-view.js?v=20261110b').then((m) => {
     if (!host.isConnected) return;
     host.innerHTML = m.renderMyDispatchTab(cfg.roleKey, uid, { ...cfg.opts, embedded: true });
     m.bindMyDispatchEvents(host, cfg.roleKey, uid, cfg.opts);

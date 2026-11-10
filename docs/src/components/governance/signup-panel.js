@@ -4,22 +4,22 @@
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
 //  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，支书 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../../services/activity/signup.js?v=20261110a';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261110a';
-import { getBasePath, showToast, todayLocal } from '../../core/base/utils.js?v=20261110a';
-import { badgeHtml } from '../ui/badges.js?v=20261110a';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../../services/activity/signup.js?v=20261110b';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261110b';
+import { getBasePath, showToast, todayLocal } from '../../core/base/utils.js?v=20261110b';
+import { badgeHtml } from '../ui/badges.js?v=20261110b';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 source.archived
-import { isActivityArchived, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261110a';
+import { isActivityArchived, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261110b';
 // 统一检索引擎（2026-09-14 批次 37）：报名名单（已通过）接入关键词 + 分页
-import { renderFilteredList } from '../ui/list-filter.js?v=20261110a';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261110b';
 // 批次 49 口径（「存好了才报成功」）：刷新前先等在途落库结算，见 _reloadAfterSettle
-import { settleWrites } from '../../core/session/pending-writes.js?v=20261110a';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20261110b';
 // 2026-10-03 批次 358（`D-751`）：报名记录「作废（软）」——弹窗**单一源** ＋ 支委层判据单一源
-import { openVoidModal } from '../ui/void-record.js?v=20261110a';
-import { AuthStore } from '../../services/core/auth.js?v=20261110a';
-import { usesFormalMeetingRoster } from '../../core/domain/constants.js?v=20261110a';
-import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261110a';
-import { confirmDanger } from '../ui/modal.js?v=20261110a';
+import { openVoidModal } from '../ui/void-record.js?v=20261110b';
+import { AuthStore } from '../../services/core/auth.js?v=20261110b';
+import { usesFormalMeetingRoster } from '../../core/domain/constants.js?v=20261110b';
+import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261110b';
+import { confirmDanger } from '../ui/modal.js?v=20261110b';
 
 /**
  * 落库结算后再整页刷新（2026-09-18 批次 83 · SOP-B-2）
@@ -109,12 +109,16 @@ export function renderSignupSection({ sourceType, sourceId, source, title, signu
         <a href="${getBasePath()}login.html" class="btn-accent btn-party-solid inline-block px-3 py-1.5 rounded-lg text-xs font-medium text-white" style="text-decoration:none;">去登录</a>
       </div>`;
   } else if (!mySignup) {
+    // 2026-11-10 批次 541：≤640 时「报名」整行下移右对齐——原先与 200px 输入 / 180px 下拉同行互挤，
+    //   390 宽下按钮被压成窄条。≥641 仍与输入同行（sm:w-auto 收回整行）。
     body = `
       <div class="flex items-start gap-3 flex-wrap">
         ${signupFields()}
-        <button id="signup-submit-btn" class="btn-accent inline-flex items-center gap-1 text-sm px-4 py-1.5 font-medium">
-          报名
-        </button>
+        <div class="flex w-full justify-end sm:w-auto sm:self-end">
+          <button id="signup-submit-btn" class="btn-accent inline-flex items-center gap-1 text-sm px-4 py-1.5 font-medium">
+            报名
+          </button>
+        </div>
       </div>`;
   } else if (mySignup.status === SignupStatus.APPROVED) {
     const onsiteStatus = requiresOnsiteChoice && ['organizer', 'deep'].includes(mySignup.role)
@@ -137,9 +141,11 @@ export function renderSignupSection({ sourceType, sourceId, source, title, signu
       <div class="flex items-start gap-3 flex-wrap">
         ${badgeHtml('已拒绝 · ' + roleLabel(mySignup.role, sourceType), 'danger')}
         ${signupFields('重新申请说明（选填）')}
-        <button id="signup-submit-btn" class="btn-accent inline-flex items-center gap-1 text-sm px-4 py-1.5 font-medium">
-          重新申请
-        </button>
+        <div class="flex w-full justify-end sm:w-auto sm:self-end">
+          <button id="signup-submit-btn" class="btn-accent inline-flex items-center gap-1 text-sm px-4 py-1.5 font-medium">
+            重新申请
+          </button>
+        </div>
       </div>`;
   }
 

@@ -7,6 +7,7 @@
 //     预算缺失 ⇒ 按「实测 p95 × 1.2，最低 50ms」生成内存预算（首轮，不写回源码）。
 //  E2 报告附「最慢 5 接口 / 最大 5 响应体」摘要（findings.meta + E2 evidence）。
 //  M1 顶层块 > 4 的页签：`TAB_BLOCK_BASELINE` 有非空 reason ⇒ exception；无理由 ⇒ P1。
+//     批次 541：另加「DOM 实测 vs 登记基线」漂移判据——差值超过一个密度上限（4 块）⇒ P2，须重核基线。
 //  M2 同页可见 H3 文本重复 ≥2 ⇒ P1（重复卡头）。
 //  M3 同页 `.lf-bar` 数 >1 ⇒ P1（先合并再谈行数）。
 //
@@ -16,6 +17,7 @@
 import { ENDPOINT_MAP } from './endpoint-map.mjs';
 import { MULTI_BAR_EXCEPTIONS } from './economy-exceptions.mjs';
 import { ensureSession, httpRequest, measurementsForTab, measureStats } from './checks-data.mjs';
+import { buildCollectDomProbe } from './dom-probe.mjs';
 import { TAB_BLOCK_BASELINE, TAB_BLOCK_LIMIT } from '../../test/style-baseline.mjs';
 import {
   budgetFor, budgetSource, generatedBudget, isOverBudget, perfSummary, MIN_P95_BUDGET_MS,
@@ -79,8 +81,23 @@ async function collectEconomyDom(ctx) {
   }
 }
 
-/** M1：本页顶层块是否超限、是否登记了理由（每页一条汇总） */
-function runEconomyM1(ctx, findings) {
+/** M1 的 DOM 实测顶层块数（复用 checks-front 同一 DOM 探针；无页面 / 未渲染 ⇒ null） */
+async function measureTopBlocks(ctx) {
+  if (!ctx.page) return null;
+  try {
+    // pageRows 仅影响探针里的 F7 长列表计数，本维度不用；与 checks-front 同口径取 10。
+    const dom = await ctx.page.evaluate(buildCollectDomProbe(), {
+      contentId: `${ctx.role}-tab-content`, pageRows: 10,
+    });
+    if (!dom || !dom.hasContent) return null;
+    return dom.blocks.length;
+  } catch {
+    return null;
+  }
+}
+
+/** M1：本页顶层块是否超限、是否登记了理由（每页一条汇总）＋ DOM 实测 vs 基线漂移判据 */
+async function runEconomyM1(ctx, findings) {
   const baseline = TAB_BLOCK_BASELINE[ctx.key] || {};
   const blocks = Number(baseline.blocks) || 0;
   const reason = String(baseline.reason || '').trim();
@@ -89,7 +106,12 @@ function runEconomyM1(ctx, findings) {
     .map(([key, value]) => ({
       key, blocks: Number(value.blocks), reason: String(value.reason || '').trim(),
     }));
-  const evidence = { key: ctx.key, blocks, limit: TAB_BLOCK_LIMIT, reason, oversize };
+  // 批次 541（L-07 / L-08）：基线是静态快照，登记后页面变胖仍会「凭理由通过」。
+  //   故补一条漂移判据：DOM 实测与登记值相差**超过一个密度上限**（TAB_BLOCK_LIMIT 块）⇒ 基线失真，须重核。
+  //   差额在 1–4 块内属同构卡 / 包装层计数误差，按既有校准不判红（checks-front F1 同口径）。
+  const measured = await measureTopBlocks(ctx);
+  const drift = measured === null ? null : measured - blocks;
+  const evidence = { key: ctx.key, blocks, measured, drift, limit: TAB_BLOCK_LIMIT, reason, oversize };
   if (blocks > TAB_BLOCK_LIMIT && !reason) {
     findings.push(finding(
       ctx, 'M1', 'P1', 'fail',
@@ -104,6 +126,12 @@ function runEconomyM1(ctx, findings) {
     findings.push(finding(
       ctx, 'M1', null, 'pass',
       `顶层块 ${blocks} ≤ ${TAB_BLOCK_LIMIT}（无超限例外）`, evidence,
+    ));
+  }
+  if (drift !== null && Math.abs(drift) > TAB_BLOCK_LIMIT) {
+    findings.push(finding(
+      ctx, 'M1', 'P2', 'fail',
+      `基线漂移：DOM 实测 ${measured} 块 vs 登记 ${blocks} 块（差 ${drift > 0 ? '+' : ''}${drift} > ${TAB_BLOCK_LIMIT}）——须重核 TAB_BLOCK_BASELINE['${ctx.key}']`, evidence,
     ));
   }
 }
@@ -227,7 +255,7 @@ export async function runEconomyChecks(ctx) {
   }
 
   // M 信息经济（不依赖登录会话，只读当前页签 DOM）
-  runEconomyM1(ctx, findings);
+  await runEconomyM1(ctx, findings);
   await runEconomyM23(ctx, findings);
   return findings;
 }

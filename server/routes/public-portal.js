@@ -21,7 +21,7 @@
 import express from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
-import { listTable, getRow } from './resources/store.js';
+import { listTable, getRow, isPublicNow } from './resources/store.js';
 import { writePublicationAudit } from './resources/publication-audit.js';
 import { UPLOAD_DIR } from './uploads.js';
 import { COMMITTEE_OWNER_ID } from '../../docs/src/core/domain/constants.js';
@@ -48,22 +48,52 @@ const DOCUMENT_DOWNLOAD_PATH = '/api/public/documents/';
 // 超限 429 `{ error:'too many requests', retryAfterMs }`，且**不写**留痕、不读文件。
 const DOWNLOAD_RATE_WINDOW_MS = 60_000;
 const DOWNLOAD_RATE_DEFAULT = 60;
+// 进程内 Map 必须有界：超过本上限时先清过期窗口、再按插入序淘汰最旧 IP（防伪造源地址把内存吃满）。
+const DOWNLOAD_RATE_MAX_IPS = 2048;
 /** ip ⇒ 窗口内命中时刻（毫秒） */
 const downloadHits = new Map();
+let downloadHitsPrunedAt = 0;
+
+/** 清掉窗口外的命中与空队列（只保留仍在窗口内的 IP） */
+function pruneDownloadHits(now) {
+  for (const [ip, hits] of downloadHits) {
+    const kept = hits.filter((ts) => now - ts < DOWNLOAD_RATE_WINDOW_MS);
+    if (kept.length) downloadHits.set(ip, kept);
+    else downloadHits.delete(ip);
+  }
+  downloadHitsPrunedAt = now;
+}
 
 function downloadRateLimit(req) {
   const raw = Number.parseInt(String(process.env.PUBLIC_DOWNLOAD_RATE_LIMIT ?? ''), 10);
   const max = Number.isFinite(raw) && raw > 0 ? raw : DOWNLOAD_RATE_DEFAULT;
   const now = Date.now();
   const ip = String(req.ip || (req.socket && req.socket.remoteAddress) || 'unknown');
+  // 每个窗口清一次过期项（常态开销 O(IP 数)，不随请求数增长）
+  if (now - downloadHitsPrunedAt >= DOWNLOAD_RATE_WINDOW_MS) pruneDownloadHits(now);
   const hits = (downloadHits.get(ip) || []).filter((ts) => now - ts < DOWNLOAD_RATE_WINDOW_MS);
   if (hits.length >= max) {
     downloadHits.set(ip, hits);
     return { retryAfterMs: Math.max(1, DOWNLOAD_RATE_WINDOW_MS - (now - hits[0])) };
   }
   hits.push(now);
+  if (!downloadHits.has(ip) && downloadHits.size >= DOWNLOAD_RATE_MAX_IPS) {
+    pruneDownloadHits(now);
+    // 仍然满：淘汰最先插入的 IP（Map 保持插入序）
+    while (downloadHits.size >= DOWNLOAD_RATE_MAX_IPS) {
+      const oldest = downloadHits.keys().next().value;
+      if (oldest === undefined) break;
+      downloadHits.delete(oldest);
+    }
+  }
   downloadHits.set(ip, hits);
   return null;
+}
+
+/** 测试钩子（不改运行行为）：当前限频表规模 / 主动清理过期项 */
+export const __downloadRateState = () => downloadHits.size;
+export function __pruneDownloadRateHits(now = Date.now()) {
+  pruneDownloadHits(now);
 }
 
 const CONTENT_TYPES = Object.freeze({
@@ -89,16 +119,8 @@ const CONTENT_TYPES = Object.freeze({
 const UPLOAD_ROOT = path.resolve(UPLOAD_DIR);
 const UPLOAD_URL_BASE = '/api/v1/uploads/';
 
-/** 发布范围 public 且未过期（缺失 / 非法时间一律 fail-closed） */
-function isPublicNow(row, now) {
-  if (!row || typeof row !== 'object') return false;
-  if (row.publishScope !== 'public') return false;
-  const raw = row.publishExpiresAt;
-  if (typeof raw !== 'string' || !raw.trim()) return false;
-  const ts = Date.parse(raw);
-  return Number.isFinite(ts) && ts > now;
-}
-
+// 发布范围 public 且未过期：判定函数单一源在 `resources/store.js::isPublicNow`
+// （登录态读口 `resources/branch-scope.js` 共用同一函数，杜绝「门厅已下架、登录列表仍可见」）。
 function isPublicNotice(row, now) {
   return isPublicNow(row, now) && row.branchId === COMMITTEE_OWNER_ID;
 }
@@ -148,6 +170,13 @@ function documentDownloadUrl(id) {
   return `${DOCUMENT_DOWNLOAD_PATH}${encodeURIComponent(String(id))}/download`;
 }
 
+/** 有可下发附件吗（能解码的 fileData 或非空 filePath）——无附件不给下载链，避免出现必然 404 的入口 */
+function hasDownloadableFile(row) {
+  if (!row || typeof row !== 'object') return false;
+  if (decodeFileData(row.fileData)) return true;
+  return typeof row.filePath === 'string' && row.filePath.trim() !== '';
+}
+
 // ── 响应投影（逐键白名单；导出供静态守卫直接喂「毒行」验证不漏字段）──────────
 export function projectPublicActivity(row) {
   return {
@@ -182,7 +211,8 @@ export function projectPublicDocument(row) {
     fileSize: row.fileSize ?? null,
     updatedAt: documentUpdatedAt(row),
     publishExpiresAt: row.publishExpiresAt ?? null,
-    downloadUrl: documentDownloadUrl(row.id),
+    // 批次 541：无附件不出下载链（键保留、值置 null；有附件才由服务端计算地址，不取原行）
+    downloadUrl: hasDownloadableFile(row) ? documentDownloadUrl(row.id) : null,
   };
 }
 

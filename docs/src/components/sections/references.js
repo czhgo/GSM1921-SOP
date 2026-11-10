@@ -1,32 +1,32 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../../core/base/icons.js?v=20261110a';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20261110a';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261110a';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261110a';
-import { AuthStore } from '../../services/core/auth.js?v=20261110a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261110a';
-import { PEOPLE } from '../../data/mock/people.js?v=20261110a';
+import { icon } from '../../core/base/icons.js?v=20261110b';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20261110b';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261110b';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261110b';
+import { AuthStore } from '../../services/core/auth.js?v=20261110b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261110b';
+import { PEOPLE } from '../../data/mock/people.js?v=20261110b';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 // 2026-09-21 批次 129：制度链（草案 → 支委会审议 → 现行版 / 退回修改）——草案态与修改口同源于该服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   updateInstitutionDraft, INSTITUTION_DRAFT, INSTITUTION_PENDING_PARTY_MEETING,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../../services/branch/branch-doc.js?v=20261110a';
+} from '../../services/branch/branch-doc.js?v=20261110b';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261110a';
-import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261110a';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261110b';
+import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261110b';
 // 制度内容（领域）→ 对应【主体】：判据单一源（2026-10-05 批次 378 · `SOP-B-25` 第 ② 项「按草案落地」）
 import {
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_LABELS, institutionSubjectOfDomain, ORG_SUBJECT_LABELS,
-} from '../../core/domain/work-map.js?v=20261110a';
-import { ROLE_LABELS, COMMITTEE_OWNER_ID } from '../../core/domain/constants.js?v=20261110a';
+} from '../../core/domain/work-map.js?v=20261110b';
+import { ROLE_LABELS, COMMITTEE_OWNER_ID } from '../../core/domain/constants.js?v=20261110b';
 // 未登录公共门厅读口（匿名 `/api/public/*`，只返回党委公开、未过期内容）——批次 539 R2
-import { loadPublicPortal, publicDocumentDownloadUrl } from '../../data/public-portal-client.js?v=20261110a';
+import { loadPublicPortal, publicDocumentDownloadUrl } from '../../data/public-portal-client.js?v=20261110b';
 
-import { emptyStateHtml, skeletonHtml } from '../ui/empty-state.js?v=20261110a';
+import { emptyStateHtml, skeletonHtml } from '../ui/empty-state.js?v=20261110b';
 /** 院级资料（党委自有内容）：登录后按 D-858 与本支部文件并集展示；写口仍只归党委。 */
 function _isCommitteeDoc(d) {
   return !!d && (d.ownerScope === 'committee' || d.branchId === COMMITTEE_OWNER_ID);
@@ -570,7 +570,9 @@ export class ReferencesModule {
           ${_formatIcon(d.format || _extFromName(d.fileName))}
           <div class="ref-doc-info">
             <span class="ref-doc-title">${_esc(d.title || d.fileName || '未命名文件')}</span>
-            <span class="ref-doc-meta">${_esc(statusText)}${_discussionLabel(d)}${d.desc || d.fileName ? ' · ' + _esc(d.desc || d.fileName || '') : ''}</span>
+            <!-- 2026-11-10 批次 541：meta 拆两行（状态 / 说明各占一行，12px），不再挤成一行截断 -->
+            <span class="ref-doc-meta">${_esc(statusText)}${_discussionLabel(d)}</span>
+            ${d.desc || d.fileName ? `<span class="ref-doc-meta">${_esc(d.desc || d.fileName || '')}</span>` : ''}
           </div>
         </div>
         <div class="ref-doc-right">
@@ -609,24 +611,26 @@ export class ReferencesModule {
       // 「待党员大会表决」态不出操作：下一步在支部党员大会议程上（既有会议议程），本列表不另开入口
     }
 
-    const metaParts = [];
-    if (isCurrent) metaParts.push(`制度文本 · 现行版 v${versionNo}`);
-    else if (isDraft) metaParts.push(d.reviewResult === 'rejected'
+    // 2026-11-10 批次 541：meta 拆两行——首行「状态 / 版本」，次行「领域 · 说明 · 更新时间 · 发布人」
+    const metaTop = [];
+    if (isCurrent) metaTop.push(`制度文本 · 现行版 v${versionNo}`);
+    else if (isDraft) metaTop.push(d.reviewResult === 'rejected'
       ? `制度文本 · 草案 v${versionNo}（支委会审议未通过，已退回修改）`
       : `制度文本 · 草案 v${versionNo}（待支委会审议）`);
-    else if (d.status === INSTITUTION_PENDING_PARTY_MEETING) metaParts.push(`制度文本 · v${versionNo}（支委会审议通过，待党员大会表决）`);
-    else metaParts.push(`制度文本 · 已停用（最近版本 v${versionNo}）`);
-    if (isDraft && d.reviewResult === 'rejected' && d.reviewNote) metaParts.push(`退回意见：${_esc(d.reviewNote)}`);
+    else if (d.status === INSTITUTION_PENDING_PARTY_MEETING) metaTop.push(`制度文本 · v${versionNo}（支委会审议通过，待党员大会表决）`);
+    else metaTop.push(`制度文本 · 已停用（最近版本 v${versionNo}）`);
+    const metaSub = [];
+    if (isDraft && d.reviewResult === 'rejected' && d.reviewNote) metaSub.push(`退回意见：${_esc(d.reviewNote)}`);
     // 制度内容（领域）→ 起草与监督主体（2026-10-05 批次 378 · 判据单一源 `work-map.js::INSTITUTION_DOMAINS`）
     const domLabel = d.domain && INSTITUTION_DOMAIN_LABELS[d.domain];
-    metaParts.push(domLabel
+    metaSub.push(domLabel
       ? `制度内容领域：${domLabel} · 起草与监督：${_subjectLabelOf(institutionSubjectOfDomain(d.domain))}`
       : '制度内容领域未登记（未定起草与监督主体）');
-    if (d.desc) metaParts.push(_esc(d.desc));
+    if (d.desc) metaSub.push(_esc(d.desc));
     const updTime = _fmtDateTime(d.updatedAt || d.uploadedAt);
-    if (updTime) metaParts.push(`更新于 ${updTime}`);
+    if (updTime) metaSub.push(`更新于 ${updTime}`);
     const pubName = _personName(d.versionBy || d.uploadedBy);
-    if (pubName) metaParts.push(`${pubName} 发布`);
+    if (pubName) metaSub.push(`${pubName} 发布`);
 
     const readPanel = ReferencesModule._renderInstitutionReadPanel(d);
     const histPanel = ReferencesModule._renderInstitutionHistoryPanel(d, isCurrent);
@@ -641,7 +645,8 @@ export class ReferencesModule {
                 <span class="ref-doc-title">${_esc(d.title || '未命名制度')}</span>
                 ${_institutionBadge(d)}
               </span>
-              <span class="ref-doc-meta">${metaParts.join(' · ')}</span>
+              <span class="ref-doc-meta">${metaTop.join(' · ')}</span>
+              <span class="ref-doc-meta">${metaSub.join(' · ')}</span>
             </div>
           </div>
           <div class="ref-doc-right">
@@ -857,7 +862,7 @@ export class ReferencesModule {
           <div>
             <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" id="ref-modal-file-label">${editing ? '替换文件（可选，不选则保留原文件）' : '选择文件 <span style="color:var(--status-error-text);">*</span>'}</label>
             <input id="ref-modal-file" type="file" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xlsx,.mp4"
-              class="block w-full text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" style="color:var(--neutral-600);" />
+              class="block w-full text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-[var(--app-accent-soft-bg)] file:text-[var(--app-accent-soft-text)] file:text-xs hover:file:bg-[var(--app-accent-active-bg)] transition-colors cursor-pointer" style="color:var(--neutral-600);" />
           </div>
           <div id="ref-modal-status" class="hidden text-xs rounded-lg px-3 py-2"></div>
         </div>`,

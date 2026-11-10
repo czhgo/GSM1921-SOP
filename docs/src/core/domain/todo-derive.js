@@ -21,12 +21,12 @@
 //  `services/governance/todo.js` 只做再导出，服务端不再复刻。
 // ════════════════════════════════════════════════════════════════
 
-import { isActivityEnded, RESIDENCE } from './constants.js?v=20261110a';
-import { POLICY_DEFAULTS } from './policy-defaults.js?v=20261110a';
-import { todayLocal, _fmtDate } from '../base/date.js?v=20261110a';
+import { isActivityEnded, RESIDENCE } from './constants.js?v=20261110b';
+import { POLICY_DEFAULTS } from './policy-defaults.js?v=20261110b';
+import { todayLocal, _fmtDate } from '../base/date.js?v=20261110b';
 // 模块周期单一源（零依赖叶子件；浏览器与 node 双端可载）
-import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from './work-map.js?v=20261110a';
-import { cyclePeriodLabel, cyclePeriodOf } from '../base/period.js?v=20261110a';
+import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from './work-map.js?v=20261110b';
+import { cyclePeriodLabel, cyclePeriodOf } from '../base/period.js?v=20261110b';
 
 /** 7 键实时组 → 业务域（单一源；`services/governance/todo.js` 展开引用） */
 export const DERIVE_GROUP_DOMAIN = {
@@ -652,8 +652,11 @@ export function deriveInspectionConfirmGroup({
       personId: r.personId,
       name,
       title: `确认考察：${name}`,
-      sourceType: 'activity',
-      sourceId: r.activityId || null,
+      // 来源类型**透传**（批次 541 · D-3）：专班考察 `sourceType='taskforce'` 原被压成 'activity'，
+      //   跳转层据此走活动详情 ⇒ 专班考察的去处错位。落点 id 优先活动，其次记录自带 sourceId，
+      //   再退专班 id（专班考察记录 `activityId: null`，只有 workgroupId/taskforceId 快照）。
+      sourceType: r.sourceType || 'activity',
+      sourceId: r.activityId || r.sourceId || r.taskforceId || r.workgroupId || null,
     };
   });
   if (!items.length) return null;

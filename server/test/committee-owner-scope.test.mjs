@@ -4,7 +4,7 @@
 //  覆盖：
 //   · activities：支部账号并集（本支部 + 面向本支部 / 全部的党委行）；已有副本时隐藏党委原件；
 //     党委未选支部只出党委行；党委选中支部出并集并标 `sourceScope` / `committeeAdopted`。
-//   · notices / branchDocs：登录态并集只收 login / public 的党委行；目标支部口径生效。
+//   · notices / branchDocs：登录态并集只收 login / **未过期** public 的党委行；目标支部口径生效。
 //   · 其他资源（users / tasks）维持支部隔离，不因本改动放宽。
 //   · 写门：支部账号写党委行被拒、党委组织员放行；党委新建党委行归 `pc-gsm`。
 //   · 快照：支部快照不得改写 / 删除党委行，merge 后党委行仍在。
@@ -89,11 +89,19 @@ before(() => {
   });
 
   // 资料：支部行 + 党委行（public / 仅支部范围）
+  // 批次 541 · S-1：public 须带未来有效期才算「未撤下」——缺有效期 / 已过期一律不进登录态并集
+  //（与匿名公共门厅 `store.js::isPublicNow` 同一判定），故此处显式给未来到期时间。
   write('branch_docs', { id: 'doc-b1', branchId: 'br-b1', title: '第一支部资料', category: '制度' });
   write('branch_docs', { id: 'doc-b2', branchId: 'br-b2', title: '第二支部资料', category: '制度' });
   write('branch_docs', {
     id: 'doc-pc-public', ownerScope: 'committee', branchId: 'pc-gsm', publishScope: 'public',
+    publishExpiresAt: '2099-01-01T00:00:00.000Z',
     title: '院级公开资料', category: '制度',
+  });
+  write('branch_docs', {
+    id: 'doc-pc-expired', ownerScope: 'committee', branchId: 'pc-gsm', publishScope: 'public',
+    publishExpiresAt: '2020-01-01T00:00:00.000Z',
+    title: '院级已过期公开资料', category: '制度',
   });
   write('branch_docs', {
     id: 'doc-pc-branch', ownerScope: 'committee', branchId: 'pc-gsm', publishScope: 'branch',
@@ -143,11 +151,13 @@ test('C-05 通知并集：支部行 + 登录可见党委行 + 目标支部党委
   assert.deepEqual(ids('notices', PARTY_STAFF, 'br-b1'), ['ntc-b1', 'ntc-pc-dispatch', 'ntc-pc-target-b1']);
 });
 
-test('C-06 资料并集：支部账号只收 login / public 的党委行', () => {
+test('C-06 资料并集：支部账号只收 login / 未过期 public 的党委行（过期 public 视同撤下）', () => {
   assert.deepEqual(ids('branchDocs', BRANCH_ACTOR), ['doc-b1', 'doc-pc-public']);
   assert.ok(!ids('branchDocs', BRANCH_ACTOR).includes('doc-pc-branch'));
-  assert.deepEqual(ids('branchDocs', PARTY_STAFF), ['doc-pc-branch', 'doc-pc-public']);
-  assert.deepEqual(ids('branchDocs', PARTY_STAFF, 'br-b1'), ['doc-b1', 'doc-pc-branch', 'doc-pc-public']);
+  assert.ok(!ids('branchDocs', BRANCH_ACTOR).includes('doc-pc-expired'), '★ 过期 public 党委资料不进支部登录列表');
+  // 党委管理口不受撤下影响：过期原件仍在（否则无法改期 / 重新公开）
+  assert.deepEqual(ids('branchDocs', PARTY_STAFF), ['doc-pc-branch', 'doc-pc-expired', 'doc-pc-public']);
+  assert.deepEqual(ids('branchDocs', PARTY_STAFF, 'br-b1'), ['doc-b1', 'doc-pc-branch', 'doc-pc-expired', 'doc-pc-public']);
 });
 
 test('C-07 其他资源维持支部隔离，不因本次并集放宽', () => {

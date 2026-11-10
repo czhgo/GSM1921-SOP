@@ -30,8 +30,8 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261110a';
-import { textInput, selectInput, suggestInput } from '../../docs/src/components/ui/form-field.js?v=20261110a';
+import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261110b';
+import { textInput, selectInput, suggestInput } from '../../docs/src/components/ui/form-field.js?v=20261110b';
 import {
   RAW_INPUT_BASELINE, RAW_INPUT_TOTAL_BASELINE, RAW_INPUT_FILE_BASELINE,
 } from './style-baseline.mjs';

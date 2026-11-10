@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { resolveDocumentUrl } from '../../docs/src/core/base/page-url.js?v=20261110a';
+import { resolveDocumentUrl } from '../../docs/src/core/base/page-url.js?v=20261110b';
 
 const adapterSource = readFileSync(new URL('../../docs/src/data/data-adapter.js', import.meta.url), 'utf8');
 const todaySource = readFileSync(new URL('../../docs/src/entries/tabs/today/today-tab.js', import.meta.url), 'utf8');
@@ -79,7 +79,7 @@ test('组长待办动作落点：每个目标都存在于 leader-workspace 的 t
   //   本判据改为「按 leader 解析出的目标页签仍必须真实存在」——不因换实现而放宽覆盖。
   // 2026-11-10 批次 540 波次 1：六台落点收口到 `executeTodoAction`（其内部即 resolveTodoAction ＋
   //   goToWorkspaceTab）⇒ 三种写法同属「走统一动作表 / 统一导航」，一并接受。
-  const { resolveTodoAction } = await import('../../docs/src/core/domain/todo-actions.js?v=20261110a');
+  const { resolveTodoAction } = await import('../../docs/src/core/domain/todo-actions.js?v=20261110b');
   assert.match(leaderTodoSource, /resolveTodoAction|goToWorkspaceTab|executeTodoAction/,
     '组长待办须走统一动作表 / 统一导航（不得回退到本页 tabMap）');
   const ids = ['authorize', 'review'].map((key) => resolveTodoAction({ actionType: key }, 'leader')?.tab).filter(Boolean);

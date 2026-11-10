@@ -1,11 +1,11 @@
 # 页签审计报告
 
-- 生成时间：2026-11-09T20:58:57.690Z
-- 耗时：170622 ms
-- 服务：http://127.0.0.1:49675
+- 生成时间：2026-11-10T13:28:15.328Z
+- 耗时：2248543 ms
+- 服务：http://127.0.0.1:53441
 - 数据库形态：memory（:memory: 临时库）
 - 页签数：46
-- 汇总：P0 0 / P1 0 / P2 2 · exception 44
+- 汇总：P0 0 / P1 0 / P2 8 · exception 44
 
 判据：P0/P1 本轮必改；P2 只进报告。已登记例外（exception）不计违规，但须复核理由是否仍成立。
 
@@ -28,7 +28,7 @@
 | 工作概况 `org.overview` | 6 | exception | pass | pass | pass | pass | pass | pass | pass |
 | 成员名册 `org.roster` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
 | 人才库 `org.talent` | 4 | pass | pass | pass | pass | pass | pass | pass | pass |
-| 思想汇报 `org.thought-review` | 2 | pass | pass | pass | pass | pass | fail(P2) | pass | pass |
+| 思想汇报 `org.thought-review` | 2 | pass | pass | pass | pass | pass | pass | pass | pass |
 | 专班管理 `org.taskforce` | 4 | pass | pass | pass | pass | pass | pass | pass | pass |
 | 成员流动 `org.member-flow` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
 | 今天 `prop.today` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
@@ -53,7 +53,7 @@
 | 工作概况 `visitor.overview` | 5 | exception | pass | pass | pass | pass | pass | pass | pass |
 | 活动动态 `visitor.activities` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
 | 项目分工 `visitor.projects` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
-| 考勤概况 `visitor.attendance` | 4 | pass | pass | pass | pass | pass | fail(P2) | pass | pass |
+| 考勤概况 `visitor.attendance` | 4 | pass | pass | pass | pass | pass | pass | pass | pass |
 | 我的成长 `visitor.growth` | 4 | pass | pass | pass | pass | pass | pass | pass | pass |
 | 下发通知 `party-committee.dispatch` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
 | 院级内容 `party-committee.gov-content` | 4 | pass | pass | pass | pass | pass | pass | pass | pass |
@@ -64,54 +64,54 @@
 
 ## 其他维度
 
-| 页签 | D1 | D2 | D3 | C1 | C2 | C3 | C4 | E1 | E2 | M1 | M2 | M3 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| `secretary.today` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
-| `secretary.todo` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
-| `secretary.overview` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
-| `secretary.calendar` | pass | — | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
-| `secretary.committee-meeting` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
-| `secretary.group-progress` | pass | pass | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
-| `secretary.notification` | pass | — | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
-| `secretary.report-up` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
-| `secretary.work-map` | pass | — | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
-| `secretary.feedback` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
-| `org.today` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
-| `org.todo` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
-| `org.overview` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
-| `org.roster` | pass | pass | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
-| `org.talent` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | exception |
-| `org.thought-review` | pass | — | pass | — | skip | pass | pass | pass | pass | pass | pass | pass |
-| `org.taskforce` | pass | — | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
-| `org.member-flow` | pass | — | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
-| `prop.today` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
-| `prop.todo` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
-| `prop.overview` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
-| `prop.kanban` | pass | — | pass | pass | exception | pass | pass | pass | pass | exception | pass | pass |
-| `prop.archive` | pass | — | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
-| `disc.today` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
-| `disc.todo` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
-| `disc.overview` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
-| `disc.attendance` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
-| `disc.review` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | exception |
-| `disc.inspection` | pass | — | pass | pass | exception | pass | pass | pass | pass | exception | pass | exception |
-| `leader.today` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
-| `leader.todo` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
-| `leader.overview` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
-| `leader.write` | pass | — | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
-| `leader.attendance` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
-| `leader.members` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | exception |
-| `visitor.today` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
-| `visitor.todo` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
-| `visitor.overview` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
-| `visitor.activities` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
-| `visitor.projects` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
-| `visitor.attendance` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
-| `visitor.growth` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
-| `party-committee.dispatch` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
-| `party-committee.gov-content` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
-| `party-committee.review` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
-| `party-committee.branches` | pass | pass | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
+| 页签 | D1 | D2 | D3 | D4 | C1 | C2 | C3 | C4 | E1 | E2 | M1 | M2 | M3 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `secretary.today` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `secretary.todo` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `secretary.overview` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `secretary.calendar` | pass | — | pass | — | pass | exception | pass | pass | pass | pass | fail(P2) | pass | pass |
+| `secretary.committee-meeting` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `secretary.group-progress` | pass | pass | pass | — | pass | exception | pass | pass | pass | pass | pass | pass | pass |
+| `secretary.notification` | pass | — | pass | — | pass | exception | pass | pass | pass | pass | pass | pass | pass |
+| `secretary.report-up` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | fail(P2) | pass | pass |
+| `secretary.work-map` | pass | — | pass | — | pass | exception | pass | pass | pass | pass | pass | pass | pass |
+| `secretary.feedback` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `org.today` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `org.todo` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `org.overview` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `org.roster` | pass | pass | pass | — | pass | exception | pass | pass | pass | pass | pass | pass | pass |
+| `org.talent` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | pass | pass | exception |
+| `org.thought-review` | pass | — | pass | — | — | skip | pass | pass | pass | pass | pass | pass | pass |
+| `org.taskforce` | pass | — | pass | — | pass | exception | pass | pass | pass | pass | pass | pass | pass |
+| `org.member-flow` | pass | — | pass | fail(P2) | pass | exception | pass | pass | fail(P2) | pass | pass | pass | pass |
+| `prop.today` | pass | — | pass | — | pass | skip | pass | pass | fail(P2) | pass | pass | pass | pass |
+| `prop.todo` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `prop.overview` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `prop.kanban` | pass | — | pass | — | pass | exception | pass | pass | pass | pass | exception | pass | pass |
+| `prop.archive` | pass | — | pass | — | pass | exception | pass | pass | pass | pass | pass | pass | pass |
+| `disc.today` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `disc.todo` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `disc.overview` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `disc.attendance` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `disc.review` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | pass | pass | exception |
+| `disc.inspection` | pass | — | pass | — | pass | exception | pass | pass | pass | pass | exception | pass | exception |
+| `leader.today` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `leader.todo` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `leader.overview` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `leader.write` | pass | — | pass | — | pass | exception | pass | pass | pass | pass | pass | pass | pass |
+| `leader.attendance` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `leader.members` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | pass | pass | exception |
+| `visitor.today` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `visitor.todo` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `visitor.overview` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `visitor.activities` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | fail(P2) | pass | pass |
+| `visitor.projects` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `visitor.attendance` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `visitor.growth` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `party-committee.dispatch` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `party-committee.gov-content` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `party-committee.review` | pass | — | pass | — | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `party-committee.branches` | pass | pass | pass | — | pass | exception | pass | pass | pass | pass | pass | pass | pass |
 
 ## 信息经济
 
@@ -120,11 +120,11 @@
 | `secretary.today` | pass | pass | pass |
 | `secretary.todo` | pass | pass | pass |
 | `secretary.overview` | exception | pass | pass |
-| `secretary.calendar` | pass | pass | pass |
+| `secretary.calendar` | fail(P2) | pass | pass |
 | `secretary.committee-meeting` | pass | pass | pass |
 | `secretary.group-progress` | pass | pass | pass |
 | `secretary.notification` | pass | pass | pass |
-| `secretary.report-up` | pass | pass | pass |
+| `secretary.report-up` | fail(P2) | pass | pass |
 | `secretary.work-map` | pass | pass | pass |
 | `secretary.feedback` | pass | pass | pass |
 | `org.today` | pass | pass | pass |
@@ -155,7 +155,7 @@
 | `visitor.today` | pass | pass | pass |
 | `visitor.todo` | exception | pass | pass |
 | `visitor.overview` | exception | pass | pass |
-| `visitor.activities` | pass | pass | pass |
+| `visitor.activities` | fail(P2) | pass | pass |
 | `visitor.projects` | pass | pass | pass |
 | `visitor.attendance` | pass | pass | pass |
 | `visitor.growth` | pass | pass | pass |
@@ -175,7 +175,7 @@
 - `secretary.overview` · M1：exception —— 顶层块 7 > 4，已登记例外：共享骨架 5 块（页头 / 结论带 / 条线表 / 待我处理 / 我已处理）+ 支书专属「周期归档待审核」「知情查看」两卡
 - `secretary.overview` · M2：pass —— 可见 H3 4 个，无重复卡头
 - `secretary.overview` · M3：pass —— .lf-bar 1 条（≤1）
-- `secretary.calendar` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
+- `secretary.calendar` · M1：fail —— 基线漂移：DOM 实测 10 块 vs 登记 3 块（差 +7 > 4）——须重核 TAB_BLOCK_BASELINE['secretary.calendar']
 - `secretary.calendar` · M2：pass —— 可见 H3 1 个，无重复卡头
 - `secretary.calendar` · M3：pass —— .lf-bar 1 条（≤1）
 - `secretary.committee-meeting` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
@@ -187,7 +187,7 @@
 - `secretary.notification` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
 - `secretary.notification` · M2：pass —— 可见 H3 2 个，无重复卡头
 - `secretary.notification` · M3：pass —— .lf-bar 1 条（≤1）
-- `secretary.report-up` · M1：pass —— 顶层块 4 ≤ 4（无超限例外）
+- `secretary.report-up` · M1：fail —— 基线漂移：DOM 实测 14 块 vs 登记 4 块（差 +10 > 4）——须重核 TAB_BLOCK_BASELINE['secretary.report-up']
 - `secretary.report-up` · M2：pass —— 可见 H3 0 个，无重复卡头
 - `secretary.report-up` · M3：pass —— .lf-bar 0 条（≤1）
 - `secretary.work-map` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
@@ -280,7 +280,7 @@
 - `visitor.overview` · M1：exception —— 顶层块 5 > 4，已登记例外：无页内折叠卡，但共享骨架本身 5 块（含「我已处理」折叠）
 - `visitor.overview` · M2：pass —— 可见 H3 2 个，无重复卡头
 - `visitor.overview` · M3：pass —— .lf-bar 0 条（≤1）
-- `visitor.activities` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
+- `visitor.activities` · M1：fail —— 基线漂移：DOM 实测 9 块 vs 登记 3 块（差 +6 > 4）——须重核 TAB_BLOCK_BASELINE['visitor.activities']
 - `visitor.activities` · M2：pass —— 可见 H3 0 个，无重复卡头
 - `visitor.activities` · M3：pass —— .lf-bar 0 条（≤1）
 - `visitor.projects` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
@@ -313,21 +313,63 @@
 
 （无）
 
-## P2（2）
+## P2（8）
 
-### org.thought-review · F6
+### org.member-flow · D4
 
-- key：`org.thought-review`
-- rule：`F6`
-- message：1 处空态文本不在 .empty-state 内（P2 待人工确认）
-- evidence：`{"hits":[{"text":"本期没有记录","tag":"span","cls":"text-xs text-gray-500"}]}`
+- key：`org.member-flow`
+- rule：`D4`
+- message：读口 GET /api/v1/memberFlows 超预算（p95 105ms / 2B）
+- evidence：`{"read":"GET /api/v1/memberFlows","stats":{"runs":5,"p50":13,"p95":105,"min":8,"max":105,"bytes":2},"budget":{"p95":50,"bytes":3},"budgetSource":"perf-baseline-tab"}`
 
-### visitor.attendance · F6
+### org.member-flow · D4
 
-- key：`visitor.attendance`
-- rule：`F6`
-- message：1 处空态文本不在 .empty-state 内（P2 待人工确认）
-- evidence：`{"hits":[{"text":"出勤 —（暂无应到名单）","tag":"div","cls":"text-xs font-medium text-gray-500"}]}`
+- key：`org.member-flow`
+- rule：`D4`
+- message：读口 GET /api/v1/partyGroups 超预算（p95 183ms / 899B）
+- evidence：`{"read":"GET /api/v1/partyGroups","stats":{"runs":5,"p50":30,"p95":183,"min":13,"max":183,"bytes":899},"budget":{"p95":50,"bytes":567},"budgetSource":"perf-baseline-tab"}`
+
+### org.member-flow · E1
+
+- key：`org.member-flow`
+- rule：`E1`
+- message：读口超预算 20%：GET /api/v1/memberFlows（p95 105ms vs 预算 50ms）
+- evidence：`{"endpoint":"GET /api/v1/memberFlows","stats":{"endpoint":"GET /api/v1/memberFlows","runs":5,"p50":13,"p95":105,"min":8,"max":105,"bytes":2},"budget":{"p95":50,"bytes":3},"budgetSource":"perf-baseline-tab"}`
+
+### org.member-flow · E1
+
+- key：`org.member-flow`
+- rule：`E1`
+- message：读口超预算 20%：GET /api/v1/partyGroups（p95 183ms vs 预算 50ms）
+- evidence：`{"endpoint":"GET /api/v1/partyGroups","stats":{"endpoint":"GET /api/v1/partyGroups","runs":5,"p50":30,"p95":183,"min":13,"max":183,"bytes":899},"budget":{"p95":50,"bytes":567},"budgetSource":"perf-baseline-tab"}`
+
+### prop.today · E1
+
+- key：`prop.today`
+- rule：`E1`
+- message：读口超预算 20%：GET /api/v1/users（p95 85ms vs 预算 50ms）
+- evidence：`{"endpoint":"GET /api/v1/users","stats":{"endpoint":"GET /api/v1/users","runs":5,"p50":48,"p95":85,"min":22,"max":85,"bytes":9892},"budget":{"p95":50,"bytes":11871},"budgetSource":"perf-baseline-tab"}`
+
+### secretary.calendar · M1
+
+- key：`secretary.calendar`
+- rule：`M1`
+- message：基线漂移：DOM 实测 10 块 vs 登记 3 块（差 +7 > 4）——须重核 TAB_BLOCK_BASELINE['secretary.calendar']
+- evidence：`{"key":"secretary.calendar","blocks":3,"measured":10,"drift":7,"limit":4,"reason":"","oversize":[{"key":"secretary.overview","blocks":7,"reason":"共享骨架 5 块（页头 / 结论带 / 条线表 / 待我处理 / 我已处理）+ 支书专属「周期归档待审核」「知情查看」两卡"},{"key":"org.todo","blocks":5,"reason":"页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"},{"key":"org.overview","blocks":6,"reason":"共享三层骨架 5 块 + 页内「活动日历」折叠卡（承接原活动日历页签）"},{"key":"prop.todo","blocks":5,"reason":"页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"},{"key":"prop.overview","blocks":6,"reason":"共享三层骨架 5 块 + 页内「活动日历」折叠卡"},{"key":"prop.kanban","blocks":5,"reason":"待启动 / 进行中 / 宣传任务三块主体之外，另有独立的「去档案归档」去向条与页头并列"},{"key":"disc.todo","blocks":5,"reason":"页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"},{"key":"disc.overview","blocks":6,"reason":"共享三层骨架 5 块 + 页内「活动日历」折叠卡"},{"key":"disc.attendance","blocks":6,"reason":"单一层级视图：分段条（考勤/补课）+ 待确认考勤 + 出勤申诉 + 会议考勤录入 + 考勤数据（矩阵/总表合卡），加页头共 6 块"},{"key":"disc.inspection","blocks":5,"reason":"督办清单 / 考察申诉 / 考察代录 / 考察总表四张功能卡并列（含页头 5 块）"},{"key":"leader.todo","blocks":5,"reason":"页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"},{"key":"leader.overview","blocks":6,"reason":"共享三层骨架 5 块 + 页内「活动日历」折叠卡"},{"key":"visitor.todo","blocks":5,"reason":"页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"},{"key":"visitor.overview","blocks":5,"reason":"无页内折叠卡，但共享骨架本身 5 块（含「我已处理」折叠）"}]}`
+
+### secretary.report-up · M1
+
+- key：`secretary.report-up`
+- rule：`M1`
+- message：基线漂移：DOM 实测 14 块 vs 登记 4 块（差 +10 > 4）——须重核 TAB_BLOCK_BASELINE['secretary.report-up']
+- evidence：`{"key":"secretary.report-up","blocks":4,"measured":14,"drift":10,"limit":4,"reason":"","oversize":[{"key":"secretary.overview","blocks":7,"reason":"共享骨架 5 块（页头 / 结论带 / 条线表 / 待我处理 / 我已处理）+ 支书专属「周期归档待审核」「知情查看」两卡"},{"key":"org.todo","blocks":5,"reason":"页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"},{"key":"org.overview","blocks":6,"reason":"共享三层骨架 5 块 + 页内「活动日历」折叠卡（承接原活动日历页签）"},{"key":"prop.todo","blocks":5,"reason":"页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"},{"key":"prop.overview","blocks":6,"reason":"共享三层骨架 5 块 + 页内「活动日历」折叠卡"},{"key":"prop.kanban","blocks":5,"reason":"待启动 / 进行中 / 宣传任务三块主体之外，另有独立的「去档案归档」去向条与页头并列"},{"key":"disc.todo","blocks":5,"reason":"页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"},{"key":"disc.overview","blocks":6,"reason":"共享三层骨架 5 块 + 页内「活动日历」折叠卡"},{"key":"disc.attendance","blocks":6,"reason":"单一层级视图：分段条（考勤/补课）+ 待确认考勤 + 出勤申诉 + 会议考勤录入 + 考勤数据（矩阵/总表合卡），加页头共 6 块"},{"key":"disc.inspection","blocks":5,"reason":"督办清单 / 考察申诉 / 考察代录 / 考察总表四张功能卡并列（含页头 5 块）"},{"key":"leader.todo","blocks":5,"reason":"页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"},{"key":"leader.overview","blocks":6,"reason":"共享三层骨架 5 块 + 页内「活动日历」折叠卡"},{"key":"visitor.todo","blocks":5,"reason":"页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"},{"key":"visitor.overview","blocks":5,"reason":"无页内折叠卡，但共享骨架本身 5 块（含「我已处理」折叠）"}]}`
+
+### visitor.activities · M1
+
+- key：`visitor.activities`
+- rule：`M1`
+- message：基线漂移：DOM 实测 9 块 vs 登记 3 块（差 +6 > 4）——须重核 TAB_BLOCK_BASELINE['visitor.activities']
+- evidence：`{"key":"visitor.activities","blocks":3,"measured":9,"drift":6,"limit":4,"reason":"","oversize":[{"key":"secretary.overview","blocks":7,"reason":"共享骨架 5 块（页头 / 结论带 / 条线表 / 待我处理 / 我已处理）+ 支书专属「周期归档待审核」「知情查看」两卡"},{"key":"org.todo","blocks":5,"reason":"页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"},{"key":"org.overview","blocks":6,"reason":"共享三层骨架 5 块 + 页内「活动日历」折叠卡（承接原活动日历页签）"},{"key":"prop.todo","blocks":5,"reason":"页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"},{"key":"prop.overview","blocks":6,"reason":"共享三层骨架 5 块 + 页内「活动日历」折叠卡"},{"key":"prop.kanban","blocks":5,"reason":"待启动 / 进行中 / 宣传任务三块主体之外，另有独立的「去档案归档」去向条与页头并列"},{"key":"disc.todo","blocks":5,"reason":"页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"},{"key":"disc.overview","blocks":6,"reason":"共享三层骨架 5 块 + 页内「活动日历」折叠卡"},{"key":"disc.attendance","blocks":6,"reason":"单一层级视图：分段条（考勤/补课）+ 待确认考勤 + 出勤申诉 + 会议考勤录入 + 考勤数据（矩阵/总表合卡），加页头共 6 块"},{"key":"disc.inspection","blocks":5,"reason":"督办清单 / 考察申诉 / 考察代录 / 考察总表四张功能卡并列（含页头 5 块）"},{"key":"leader.todo","blocks":5,"reason":"页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"},{"key":"leader.overview","blocks":6,"reason":"共享三层骨架 5 块 + 页内「活动日历」折叠卡"},{"key":"visitor.todo","blocks":5,"reason":"页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）"},{"key":"visitor.overview","blocks":5,"reason":"无页内折叠卡，但共享骨架本身 5 块（含「我已处理」折叠）"}]}`
 
 ## 例外登记（不计违规）（44）
 

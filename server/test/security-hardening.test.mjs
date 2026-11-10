@@ -25,6 +25,7 @@ const TMP_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'gsm-security-hardening-')
 process.env.UPLOAD_DIR = TMP_DIR;
 
 const { createApp } = await import('../app.js');
+const { __downloadRateState, __pruneDownloadRateHits } = await import('../routes/public-portal.js');
 
 const BRANCHES = [
   { id: 'br-b1', name: '本科第一党支部', type: '本科生', status: 'active', createdAt: '2026-01-01T00:00:00.000Z' },
@@ -321,4 +322,105 @@ test('上传门：党委可上传院级资料附件 201；普通成员仍 403', 
     body: form2,
   });
   assert.equal(asMember.status, 403, '普通成员上传应 403');
+});
+
+// ════════════════════════════════════════════════════════════════
+//  批次 541 P2 统一清理：下发状态门 / 限频表有界 / v15 提案唯一索引
+// ════════════════════════════════════════════════════════════════
+
+test('541-1 下发只收 published / ongoing 且未归档：草稿 / 已取消 / 已归档 409 且不写通知', async () => {
+  const noticeCount = (sourceId) => db.prepare(
+    "SELECT COUNT(*) AS c FROM notices WHERE json_extract(data,'$.sourceId') = ?",
+  ).get(String(sourceId)).c;
+
+  const draft = await request('pc-1', 'POST', 'committee/activities', {
+    id: 'act-541-draft', title: '草稿下发', type: '主题党日', date: '2026-12-10', status: 'draft',
+  });
+  assert.equal(draft.status, 201);
+  const draftDispatch = await request('pc-1', 'POST', 'committee/activities/act-541-draft/dispatch');
+  assert.equal(draftDispatch.status, 409, '草稿不得下发');
+  assert.match(String(draftDispatch.data.error), /不可下发/);
+  assert.equal(noticeCount('act-541-draft'), 0, '409 不得写通知');
+
+  const cancelled = await request('pc-1', 'POST', 'committee/activities', {
+    id: 'act-541-cancelled', title: '取消后下发', type: '主题党日', date: '2026-12-11', targetBranchIds: ['all'],
+  });
+  assert.equal(cancelled.status, 201);
+  assert.equal((await request('pc-1', 'POST', 'committee/activities/act-541-cancelled/cancel')).status, 200);
+  assert.equal((await request('pc-1', 'POST', 'committee/activities/act-541-cancelled/dispatch')).status, 409);
+  assert.equal(noticeCount('act-541-cancelled'), 0);
+
+  const archived = await request('pc-1', 'POST', 'committee/activities', {
+    id: 'act-541-archived', title: '归档后下发', type: '主题党日', date: '2026-12-12', targetBranchIds: ['all'],
+  });
+  assert.equal(archived.status, 201);
+  assert.equal((await request('pc-1', 'POST', 'committee/activities/act-541-archived/archive')).status, 200);
+  assert.equal((await request('pc-1', 'POST', 'committee/activities/act-541-archived/dispatch')).status, 409);
+  assert.equal(noticeCount('act-541-archived'), 0);
+
+  // 对照：published 未归档仍可下发
+  const ok = await request('pc-1', 'POST', 'committee/activities', {
+    id: 'act-541-published', title: '正常下发', type: '主题党日', date: '2026-12-13', targetBranchIds: ['all'],
+  });
+  assert.equal(ok.status, 201);
+  const dispatched = await request('pc-1', 'POST', 'committee/activities/act-541-published/dispatch');
+  assert.equal(dispatched.status, 200);
+  assert.equal(dispatched.data.created, 2, "'all' 展开为两个支部");
+});
+
+test('541-2 限频表有界：窗口过期后条目可清理（不随请求数无界增长）', async () => {
+  const fileData = `data:text/plain;base64,${Buffer.from('rate-prune').toString('base64')}`;
+  const created = await request('pc-1', 'POST', 'committee/documents', {
+    id: 'bd-rate-prune',
+    title: '限频清理资料',
+    summary: '公开摘要',
+    fileName: 'prune.txt',
+    format: 'txt',
+    fileData,
+    publishScope: 'public',
+    publishExpiresAt: futureIso(),
+  });
+  assert.equal(created.status, 201);
+
+  const download = await fetch(`${base}/api/public/documents/bd-rate-prune/download`);
+  assert.equal(download.status, 200);
+  assert.ok(__downloadRateState() >= 1, '一次下载后限频表应有本 IP 条目');
+
+  __pruneDownloadRateHits(Date.now() + 61 * 1000);
+  assert.equal(__downloadRateState(), 0, '窗口外条目必须被清理（Map 有界）');
+
+  // 清理后同 IP 可再次下载（计数从头开始，不因陈旧条目误判 429）
+  const again = await fetch(`${base}/api/public/documents/bd-rate-prune/download`);
+  assert.equal(again.status, 200);
+});
+
+test('541-3 v15：党委在途提案部分唯一索引存在；重复插入被拒，终态与议程派生提案不占位', () => {
+  const indexes = new Set(db.prepare("SELECT name FROM sqlite_master WHERE type = 'index'").all().map((row) => row.name));
+  assert.ok(indexes.has('ux_mcr_committee_inflight'), 'v15 缺部分唯一索引 ux_mcr_committee_inflight');
+
+  const base = {
+    branchId: 'br-b1', personId: 'mem-2', source: 'committee-proposal',
+    status: 'pending-org-approval', createdAt: '2026-11-10T00:00:00.000Z',
+  };
+  const put = (id, extra = {}) => db.prepare('INSERT INTO member_change_requests (id, data) VALUES (?, ?)')
+    .run(id, JSON.stringify({ id, ...base, ...extra }));
+
+  put('mcr-541-a');
+  assert.throws(() => put('mcr-541-b'), /UNIQUE constraint failed/, '同人在途第二条党委提案必须被索引拒绝');
+
+  db.prepare('UPDATE member_change_requests SET data = ? WHERE id = ?')
+    .run(JSON.stringify({ id: 'mcr-541-a', ...base, status: 'completed' }), 'mcr-541-a');
+  put('mcr-541-b'); // 终态不占位
+
+  // 议程派生提案（source≠committee-proposal）不受本索引约束：同人不同议程可多条在途
+  for (const id of ['mcr-541-agenda-1', 'mcr-541-agenda-2']) {
+    db.prepare('INSERT INTO member_change_requests (id, data) VALUES (?, ?)').run(id, JSON.stringify({
+      id, branchId: 'br-b1', personId: 'mem-2', activityId: 'act-x', agendaItemId: id,
+      source: 'agenda', status: 'pending-org-approval',
+    }));
+  }
+
+  for (const id of ['mcr-541-a', 'mcr-541-b', 'mcr-541-agenda-1', 'mcr-541-agenda-2']) {
+    db.prepare('DELETE FROM member_change_requests WHERE id = ?').run(id);
+  }
 });

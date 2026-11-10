@@ -32,12 +32,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261110a';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261110a';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261110a';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/index.js?v=20261110a';
-import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/domain/constants.js?v=20261110a';
-import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261110a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261110b';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261110b';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261110b';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/index.js?v=20261110b';
+import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/domain/constants.js?v=20261110b';
+import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261110b';
 
 // ── localStorage 内存桩 + sessionStorage 空桩（与 thought-report-panel.test.mjs 同做法）──
 // getCurrentUser 走 localStorage；A-11 防串扰仅在登录对象带 tabId 时才校验，本桩不带 tabId → 直取。
@@ -151,7 +151,7 @@ test('N5 getById 契约：按 id 取数不受可见性门限制（签发人也�
 //  N6 canReadNotice 读取权限规则
 // ════════════════════════════════════════════════════════════════
 
-test('N6 canReadNotice：发布者/支委层/命中受众可读；无关成员不可读；广播登录可读；无会话一律不可读', () => {
+test('N6 canReadNotice：发布者/命中受众可读；定向行不被支委层越读；广播登录可读；无会话一律不可读', () => {
   beginCase([]);
   const secretary = { personId: '2300010001', role: 'secretary' };
   const leader = { personId: '2400012345', role: 'leader' };
@@ -164,7 +164,8 @@ test('N6 canReadNotice：发布者/支委层/命中受众可读；无关成员�
   const toLeaders = { ...BASE, id: 'n6-leaders', audience: ['leaders'] };
   assert.equal(canReadNotice(toLeaders, leader), true, '命中受众（组长）可读');
   assert.equal(canReadNotice(toLeaders, member), false, '无关成员不可读');
-  assert.equal(canReadNotice(toLeaders, secretary), true, '支委层可读（治理信息）');
+  // 批次 541 · S-2：定向行只有受众本人 / 发布者可读；支委层身份不构成越读理由（与 list() 受众门 N2 同口径）
+  assert.equal(canReadNotice(toLeaders, secretary), false, '支委层不越读「发给党小组组长」的定向通知');
 
   const broadcast = { ...BASE, id: 'n6-all', audience: ['all'] };
   assert.equal(canReadNotice(broadcast, member), true, '广播登录成员可读');

@@ -907,6 +907,10 @@ export function registerExtraSemanticRoutes(router, db) {
     const source = readCommitteeActivity(req.params.id);
     if (source === null) return res.status(404).json({ error: '活动不存在' });
     if (source === false) return res.status(403).json({ error: '无权限：只能下发党委活动' });
+    // 批次 541：下发只收「可执行」原件——与采用（adopt）同口径；草稿 / 已取消 / 已归档不得下发。
+    if (source.archived === true || !ADOPTABLE_SOURCE_STATUSES.has(source.status)) {
+      return res.status(409).json({ error: `当前状态「${source.status || '未知'}」的党委活动不可下发` });
+    }
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     const resolved = resolveDispatchTargets(source, body.branchIds);
     if (resolved.error) return res.status(resolved.status).json({ error: resolved.error });
@@ -1342,6 +1346,17 @@ export function registerExtraSemanticRoutes(router, db) {
     if (!category) return res.status(422).json({ error: '缺少必要字段：category' });
     if (!title) return res.status(422).json({ error: '缺少必要字段：title' });
 
+    // 批次 541：`activityId` 必须是**本支部**的活动——党委档案只为该支部留痕，不得引用他支部 / 党委原件。
+    const activityId = body.activityId === undefined || body.activityId === null ? '' : String(body.activityId).trim();
+    if (activityId) {
+      const activity = getRow(db, 'activities', activityId);
+      if (!activity) return res.status(422).json({ error: `活动不存在：${activityId}` });
+      const activityBranch = String(activity.branchId || DEFAULT_BRANCH_ID);
+      if (activityBranch !== branchId) {
+        return res.status(422).json({ error: `活动 ${activityId} 不属于支部 ${branchId}（实际：${activityBranch}）` });
+      }
+    }
+
     const period = typeof body.period === 'string' ? body.period.trim() : '';
     const archiveDate = (typeof body.archiveDate === 'string' && body.archiveDate.trim())
       ? body.archiveDate.trim()
@@ -1380,8 +1395,10 @@ export function registerExtraSemanticRoutes(router, db) {
   });
 
   // ── 三、名册提案（只写 `member_change_requests` 起点；不直接改 `users.developStage`）──
-  // 非终态 ＝ 尚未 completed / rejected / cancelled；同 (branchId, personId) 只允许一条在途提案。
+  // 非终态 ＝ 尚未 completed / rejected / cancelled；同 (branchId, personId) 只允许一条在途「党委提案」。
   const MEMBER_CHANGE_TERMINAL_STATUSES = new Set(['completed', 'rejected', 'cancelled']);
+  // 与 db.js v15 部分唯一索引同口径（改这里必须同批改 v15 的 WHERE）
+  const MEMBER_CHANGE_TERMINAL_SQL = [...MEMBER_CHANGE_TERMINAL_STATUSES].map((s) => `'${s}'`).join(',');
 
   router.post('/committee/roster-proposals', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
@@ -1404,12 +1421,9 @@ export function registerExtraSemanticRoutes(router, db) {
     if ((user.developStage || '') !== fromStage) {
       return res.status(422).json({ error: `fromStage 与成员当前阶段不一致（当前：${user.developStage || '空'}）` });
     }
-    const existing = listTable(db, 'member_change_requests').find((row) => row
-      && String(row.branchId) === branchId
-      && String(row.personId) === personId
-      && !MEMBER_CHANGE_TERMINAL_STATUSES.has(row.status));
-    if (existing) {
-      return res.status(409).json({ error: '该成员已有在途的变更提案', id: existing.id });
+    // 批次 541：目标阶段必须落在服务端白名单（与 member.js 同一 `DEVELOP_STAGE_OPTIONS` 单一源）。
+    if (!DEVELOP_STAGE_OPTIONS.includes(toStage)) {
+      return res.status(422).json({ error: `toStage 非法：${toStage}（须为 ${DEVELOP_STAGE_OPTIONS.join(' / ')}）` });
     }
     const now = new Date().toISOString();
     const row = {
@@ -1426,7 +1440,33 @@ export function registerExtraSemanticRoutes(router, db) {
       createdBy: req.actor.id,
       createdAt: now,
     };
-    writeRow(db, 'member_change_requests', row);
+    // 批次 541：查重与写入同一事务；并发由 v15 部分唯一索引（在途党委提案）兜底。
+    // ⚠ 这里不得用 writeRow（INSERT OR REPLACE）——唯一索引冲突时它会静默替换既有在途提案。
+    const inflightSql = `SELECT id FROM member_change_requests
+      WHERE json_extract(data,'$.branchId') = ?
+        AND json_extract(data,'$.personId') = ?
+        AND json_extract(data,'$.source') = 'committee-proposal'
+        AND IFNULL(json_extract(data,'$.status'),'') NOT IN (${MEMBER_CHANGE_TERMINAL_SQL})
+      LIMIT 1`;
+    let conflictId = '';
+    try {
+      db.transaction(() => {
+        const existing = db.prepare(inflightSql).get(branchId, personId);
+        if (existing) { conflictId = String(existing.id); return; }
+        db.prepare('INSERT INTO member_change_requests (id, data) VALUES (?, ?)')
+          .run(row.id, JSON.stringify(row));
+      })();
+    } catch (error) {
+      if (/UNIQUE constraint failed/i.test(String(error && error.message))) {
+        const existing = db.prepare(inflightSql).get(branchId, personId);
+        conflictId = existing ? String(existing.id) : '';
+        return res.status(409).json({ error: '该成员已有在途的变更提案', ...(conflictId ? { id: conflictId } : {}) });
+      }
+      throw error;
+    }
+    if (conflictId) {
+      return res.status(409).json({ error: '该成员已有在途的变更提案', id: conflictId });
+    }
     res.status(201).json(row);
   });
 
@@ -1453,4 +1493,6 @@ import { workgroupIdFor } from '../../../docs/src/data/activity-workgroup-sync.j
 import { EMPHASIS_NOTICE_WINDOW_MS } from '../../../docs/src/core/domain/constants.js';
 // 党委公开通知写口的依赖（批次 537 波次 1 · G2；同样置尾追加）
 import { registerCommitteeNoticeRoutes } from './committee-notices.js';
+// 名册提案目标阶段白名单（批次 541；与 member.js 同一服务端枚举源）
+import { DEVELOP_STAGE_OPTIONS } from '../../../docs/src/services/branch/org-base-data-preview.js';
 

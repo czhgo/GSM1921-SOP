@@ -8,12 +8,12 @@
 //   反例锁死：若把该判据写成 ④ 之后的普通分支，`N1` 的「支委层他人不可读」立刻变红。
 // 覆盖（纯 node；`canReadNotice` 为纯函数，显式传 viewer 不依赖会话）：
 //   N1 站内信：发件人 ✓ / 收件人 ✓ / **支委层他人 ✗** / 无关成员 ✗ / 无会话 ✗
-//   N2 对照：普通通知既有口径未误伤（广播全员可读 · 按角色受众命中 · 支委层仍可读任意通知 · 非受众非支委仍拒）
+//   N2 对照：普通通知既有口径未误伤（广播全员可读 · 按角色受众命中 · **定向行不被支委层越读** · 非受众非支委仍拒）
 // 运行：node --test test/notice-message.test.mjs（server 目录）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { canReadNotice, kindOf, isArchivedFor } from '../../docs/src/services/governance/notice.js?v=20261110a';
+import { canReadNotice, kindOf, isArchivedFor } from '../../docs/src/services/governance/notice.js?v=20261110b';
 import { _snapshotNoticeMessageGateDeny, NOTICE_MESSAGE_DENY_MSG } from '../routes/resources/gates.js';
 
 const MSG = {
@@ -44,8 +44,8 @@ test('N2 对照：普通通知的既有可见性口径未被误伤', () => {
     '广播（all）→ 全员可读');
   assert.equal(canReadNotice({ id: 'n3', title: '给组织委员', audience: ['org-commissioner'], read: false }, OTHER_COMMITTEE), true,
     '按角色受众 → 命中');
-  assert.equal(canReadNotice({ id: 'n4', title: '给组长', audience: ['leader'], read: false }, OTHER_COMMITTEE), true,
-    '④「支委层可读任意通知」既有口径未改（普通通知仍可被支委层读到）');
+  assert.equal(canReadNotice({ id: 'n4', title: '给组长', audience: ['leader'], read: false }, OTHER_COMMITTEE), false,
+    '定向行（发给党小组组长）支委层他人不可读——批次 541 · S-2 改准：支委层兜底只对非定向行生效');
   assert.equal(canReadNotice({ id: 'n5', title: '给组长', audience: ['leader'], read: false }, BYSTANDER), false,
     '非受众、非支委 → 仍不可读（非恒真）');
 });

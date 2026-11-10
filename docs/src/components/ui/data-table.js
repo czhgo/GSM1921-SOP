@@ -13,8 +13,8 @@
 // 结构类一律挂在引擎持有的 `.lf-list`（wrapper，跨内部重渲染不重建）上，**不挂 <table>**——
 //   `<table>` 每次渲染都会重建，挂在上面的类与内联列宽会在关键词 / 分页变化后丢失。
 // 采用口径：末列动作由 rowHtml 提供；不得在调用方另写 <table> 或表头内边距。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261110a';
-import { renderFilteredList } from './list-filter.js?v=20261110a';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261110b';
+import { renderFilteredList } from './list-filter.js?v=20261110b';
 
 /** 列宽拖动持久化键前缀（契约 §五）：`table:cols:<key>` */
 const LS_PREFIX = 'table:cols:';

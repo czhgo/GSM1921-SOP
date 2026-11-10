@@ -1,15 +1,15 @@
 // Party dispatch reuses the notice domain; this page separates composing from sent history,
 // and (批次 537 波次 1) adds a committee-public notice subview backed by /committee/notices.
-import { mockDB } from '../../../core/domain/domain.js?v=20261110a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261110a';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261110a';
-import { textField, textareaField, selectField } from '../../../components/ui/forms.js?v=20261110a';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261110a';
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261110a';
-import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261110a';
-import { emptyStateHtml, skeletonHtml } from '../../../components/ui/empty-state.js?v=20261110a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261110a';
-import { getAdapter } from '../../../data/data-adapter.js?v=20261110a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261110b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261110b';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261110b';
+import { textField, textareaField, selectField } from '../../../components/ui/forms.js?v=20261110b';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261110b';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261110b';
+import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261110b';
+import { emptyStateHtml, skeletonHtml } from '../../../components/ui/empty-state.js?v=20261110b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261110b';
+import { getAdapter } from '../../../data/data-adapter.js?v=20261110b';
 
 const BRANCH_FILTER_STATE = 'pc-dispatch';
 const VIEW_COMPOSE = 'compose';

@@ -39,51 +39,51 @@
 //   ⚠ **只动渲染结构 / 分层与落点**，不改任何功能、权限判定与写口——DOM ID 全保留，真机流程不失配。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261110a';
-import { isApiMode } from '../../../services/core/runtime.js?v=20261110a';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261110a';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261110a';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261110a';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261110a';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20261110a';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261110a';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261110a';
-import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261110a';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261110a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261110b';
+import { isApiMode } from '../../../services/core/runtime.js?v=20261110b';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261110b';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261110b';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261110b';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261110b';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20261110b';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261110b';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261110b';
+import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261110b';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261110b';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员汇报（按人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261110a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261110b';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**不在本文件手写色值**（支书 2026-09-30：颜色是最好的信息展示方式）。
-import { activityTypeBadgeVariant, DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261110a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261110a'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { renderDataTable } from '../../../components/ui/data-table.js?v=20261110a'; // 活动台账表格单一出口（批次 540）
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261110a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261110a';
+import { activityTypeBadgeVariant, DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261110b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261110b'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { renderDataTable } from '../../../components/ui/data-table.js?v=20261110b'; // 活动台账表格单一出口（批次 540）
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261110b';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261110b';
 // 党小组一等实体服务层（组清单 / 写口 / 权限门 / 留痕——组名唯一来源，禁本文件手写组名数组）
 import {
   loadPartyGroups, groupOptions, defaultGroupName, nextGroupSeq,
   addGroup, renameGroup, dissolveGroup, assignMemberToGroup, ungroupedMembers,
   canManagePartyGroups, listGroupHistory,
-} from '../../../services/member/party-group.js?v=20261110a';
+} from '../../../services/member/party-group.js?v=20261110b';
 import {
   listPartyGroups, countOpenReportsByGroup,
   groupActivitiesOf, GROUP_REVIEW_COLOR, groupLeadershipOf,
   groupReportRowsOf, reportRowStateOf,
-} from '../../../services/member/group-view.js?v=20261110a';
+} from '../../../services/member/group-view.js?v=20261110b';
 // 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①a（设党小组组长 / 副组长）由本 tab 左栏行内 /
 //   右栏头部「设 / 改组长」开同一面板（2026-10-04 批次 373 去冗余：撤独立「组长指派」块）；
 //   **情景①b 支委身份配置已按 2026-09-27 支书裁定迁「支委会」**；**情景②③ 项目赋权整卡按 2026-10-04
 //   批次 373 迁「活动管理」页**（`calendar-tab.js`）。
 //   实现单一源＝entries/tabs/secretary/assign-tab.js（该文件已不注册为 tab，仅余 mount* 分块）
 //   ⇒ **不新造第二套视觉/表单**，只把既有分块挂到本 tab 的落点。
-import { mountLeaderAssign, openLeaderAssignPanel } from './assign-tab.js?v=20261110a';
+import { mountLeaderAssign, openLeaderAssignPanel } from './assign-tab.js?v=20261110b';
 // Task 6：组员进展是跨对象聚合面 ⇒ 活动行直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261110a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261110b';
 
 // R2-17：缺省支部单一源 = core/domain/constants.js::DEFAULT_BRANCH_ID。
 
 // ── 模块级状态（随模块自持；tab 切走再回保持，页面刷新回退首组） ──
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261110a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261110b';
 let _selectedGroup = null;      // 当前选中党小组名（右栏详情）
 let _expandedReviewId = null;   // 已展开复盘详情活动 id（只读展开态）
 let _issuesLoaded = false;      // issues 权威源是否已加载（避免未载时徽标误显 0）
@@ -261,7 +261,7 @@ function _ungroupedRowHtml(p, options, canAssign) {
 function _groupRailHtml(rows, selected, ungrouped, entities, canManage, issues, leaderAssign) {
   const dissolved = entities.filter(e => e.status !== 'active');
   return `
-    <aside class="card rounded-xl p-3 card--static min-w-0" aria-labelledby="gp-groups-title">
+    <aside class="card rounded-xl p-4 card--static min-w-0" aria-labelledby="gp-groups-title">
       ${renderCardHeader({ title: '党小组', titleId: 'gp-groups-title', meta: `${rows.length} 个在册` })}
       <div class="gp-group-list mt-2.5 flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:gap-1.5 lg:overflow-visible lg:pb-0">
         ${_ungroupedRailRowHtml(ungrouped, canManage)}
@@ -294,16 +294,18 @@ function _manageRowHtml(row, selected, issues, leaderAssign, canManage) {
   const stateCls = isActive
     ? 'bg-[var(--app-accent-soft-bg)]'
     : 'bg-white hover:bg-[var(--surface-hover)]';
+  // 2026-11-10 批次 541：N=0 不渲染「待答复」徽标——0 条是常态，不是待办（未加载仍给「…」占位）。
+  const openBadge = openCount === 0 ? '' : `
+          <span class="gp-open-badge text-xs px-1.5 py-0.5 rounded-full shrink-0 ${openCount ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}">
+            ${openCount === null ? '…' : `待答复 ${openCount}`}
+          </span>`;
   return `
     <div class="gp-group-row flex items-start gap-1 shrink-0 w-[236px] lg:w-auto">
       <button type="button" class="gp-group-card flex-1 min-w-0 text-left rounded-lg border px-2.5 py-2 transition-colors ${stateCls}"
         style="border-color:${borderColor};"
         data-group="${esc(row.name)}" aria-pressed="${isActive ? 'true' : 'false'}">
         <span class="flex items-center justify-between gap-2">
-          <span class="text-sm font-semibold text-gray-800 truncate">${esc(row.name)}</span>
-          <span class="gp-open-badge text-xs px-1.5 py-0.5 rounded-full shrink-0 ${openCount ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}">
-            ${openCount === null ? '…' : `待答复 ${openCount}`}
-          </span>
+          <span class="text-sm font-semibold text-gray-800 truncate">${esc(row.name)}</span>${openBadge}
         </span>
         <span class="block text-xs text-gray-500 mt-1 truncate">组长：${leaderText}</span>
         <span class="block text-xs text-gray-500 mt-0.5">党员 ${g.partyCount} 人 · 成员 ${g.memberCount} 人</span>
@@ -668,7 +670,9 @@ async function _fillReports(container, group, members) {
     const gName = badge.closest('.gp-group-card')?.dataset.group;
     const g = groups.find(x => x.groupName === gName);
     const n = g ? countOpenReportsByGroup(issues, g) : 0;
-    badge.textContent = `待答复 ${n}`;
+    // 2026-11-10 批次 541：N=0 不渲染徽标（与首次渲染同口径）——清零后隐藏，不显示「待答复 0」。
+    badge.hidden = n === 0;
+    if (n) badge.textContent = `待答复 ${n}`;
     badge.className = `gp-open-badge text-xs px-1.5 py-0.5 rounded-full ${n ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}`;
   });
 
@@ -966,7 +970,7 @@ export function openActivityWriteEntry() {
   const topBtn = document.getElementById('ws-sec-write-btn');
   if (topBtn) { topBtn.click(); return; }
   // 顶栏未挂出（只读形态 / 顶栏尚未渲染）时不得静默无效：直接打开既有写入表单（单一写入口）。
-  import('./calendar-tab.js?v=20261110a')
+  import('./calendar-tab.js?v=20261110b')
     .then((m) => m.openActivityWriteForm())
     .catch((err) => console.warn('[group-progress] 打开写入活动表单失败：', err));
 }

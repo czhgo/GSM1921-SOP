@@ -6,14 +6,15 @@
 //   F4 legacyUnscoped：仅发布者可读
 //   F5 模板：project-auth-granted 产出 audiencePersons；required 类均有受众
 //   F6 受众策略单一源：required / broadcast / conditional 分类齐备
+//   F7 定向行不被支委层越读；支委层兜底限本支部（批次 541 · S-2）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261110a';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261110a';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261110a';
-import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261110a';
-import { buildSystemNotice } from '../../docs/src/core/domain/system-notice-templates.js?v=20261110a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261110b';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261110b';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261110b';
+import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261110b';
+import { buildSystemNotice } from '../../docs/src/core/domain/system-notice-templates.js?v=20261110b';
 import { SYSTEM_NOTICE_AUDIENCE_POLICY, audiencePolicyOf } from '../system-notice-kinds.js';
 
 const _store = new Map();
@@ -114,4 +115,25 @@ test('F6 受众策略单一源：三档齐备且覆盖全部 kind', () => {
   assert.equal(audiencePolicyOf('project-auth-granted'), 'required');
   assert.equal(audiencePolicyOf('activity-created-broadcast'), 'broadcast');
   assert.equal(audiencePolicyOf('not-a-real-kind'), 'conditional', '未登记 kind 回落 conditional（读侧仍 fail-closed）');
+});
+
+// 批次 541 · S-2：支委层兜底只对「非定向行 · 同支部」生效；定向行只有受众本人 / 发布者可读。
+test('F7 定向行不被支委层越读；支委层兜底限本支部', () => {
+  const secretaryOnly = { ...BASE, id: 'f7-sec', audience: ['secretary'], branchId: 'br-b1' };
+  assert.equal(canReadNotice(secretaryOnly, { personId: '2400012355', role: 'org-commissioner', branchId: 'br-b1' }), false,
+    '★ 组织委员读不到「发给支书」的定向通知');
+  assert.equal(canReadNotice(secretaryOnly, { personId: '2300010001', role: 'secretary', branchId: 'br-b1' }), true,
+    '支书（受众本人）可读');
+
+  const toPerson = { ...BASE, id: 'f7-person', kind: 'system', audiencePersons: ['2400012349'], branchId: 'br-b1' };
+  assert.equal(canReadNotice(toPerson, { personId: '2400012349', role: 'participant', branchId: 'br-b1' }), true,
+    '到人定向：受众本人可读');
+  assert.equal(canReadNotice(toPerson, { personId: '2300010001', role: 'secretary', branchId: 'br-b1' }), false,
+    '★ 到人定向：支委层他人不可读');
+
+  const crossBranch = { ...BASE, id: 'f7-cross', audience: ['committee'], ownerScope: 'committee', branchId: 'br-b2' };
+  assert.equal(canReadNotice(crossBranch, { personId: '2400012355', role: 'org-commissioner', branchId: 'br-b1' }), false,
+    '★ 跨支部支委层不可读他支部的 committee 通栏通知');
+  assert.equal(canReadNotice(crossBranch, { personId: '2400012356', role: 'org-commissioner', branchId: 'br-b2' }), true,
+    '本支部支委层仍可读 committee 通栏（非定向行，兜底保留）');
 });

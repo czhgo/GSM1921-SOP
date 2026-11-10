@@ -1,6 +1,7 @@
 import { POLICY_DEFAULTS } from '../../../docs/src/core/domain/policy-defaults.js';
 import { isBranchPendingUser, isActivityInProgress, DEFAULT_BRANCH_ID, COMMITTEE_OWNER_ID, PUBLISH_SCOPES } from '../../../docs/src/core/domain/constants.js';
 import { TASKFORCE_ACTIVE_STATUSES } from '../../../docs/src/core/domain/domain.js';
+import { isPublicNow } from './store.js';
 
 const PARTY_STAFF = 'party-staff';
 const DEFAULT_BRANCH = DEFAULT_BRANCH_ID;
@@ -16,9 +17,23 @@ function isCommitteeRow(row) {
     && (row.ownerScope === 'committee' || row.branchId === COMMITTEE_OWNER);
 }
 
-/** 发布范围缺省 `branch`：只有 login / public 才允许进入登录态支部视野（过期判定只归匿名接口）。 */
-function isLoginVisible(row) {
-  return LOGIN_VISIBLE_SCOPES.has(row?.publishScope || 'branch');
+/**
+ * 发布范围缺省 `branch`：只有 login / public 才允许进入登录态支部视野。
+ * `public` 必须**未过期**（批次 541 · S-1）：过期即视同撤下——判定函数与匿名公共门厅同一源
+ * （`store.js::isPublicNow`），杜绝「门厅已 404、支部登录列表仍可见」。
+ */
+function isLoginVisible(row, now = Date.now()) {
+  const scope = row?.publishScope || 'branch';
+  if (!LOGIN_VISIBLE_SCOPES.has(scope)) return false;
+  return scope !== 'public' || isPublicNow(row, now);
+}
+
+/**
+ * 已过期的 public 行（批次 541 · S-1）：登录态视同**撤下**——不论它是否另有 `targetBranchIds` 下发口径，
+ * 支部登录列表一律不再出现；党委管理口（party-staff）仍见原件与留痕。
+ */
+function isWithdrawnPublic(row, now = Date.now()) {
+  return (row?.publishScope || 'branch') === 'public' && !isPublicNow(row, now);
 }
 
 /** 党委行目标支部：`['all']` 或显式包含该支部；缺目标字段视为不面向任何支部。 */
@@ -315,6 +330,7 @@ export function resourceRowsForActor(db, name, rows, actor, requestedBranchId, r
   if (AGGREGATE_PARENT[name]) return aggregateRows(db, name, rows, targetBranchId, reader);
   if (!targetBranchId) return rows;
   // 批次 536 Task 5：活动 / 通知 / 资料的读口由「仅本支部」改为「本支部 + 党委可见行」并集。
+  // 批次 541 · S-1：过期的 public 党委行对支部账号视同撤下（党委视角不受影响）。
   if (name === 'activities') {
     const branchRows = rows.filter((row) => !isCommitteeRow(row) && resourceBranchId(db, name, row, reader) === targetBranchId);
     // 本支部已有副本 ⇒ 列表隐藏党委原件（I2 / D-858 第 11 条）；党委视角仍出原件并标注是否已采用。
@@ -325,20 +341,27 @@ export function resourceRowsForActor(db, name, rows, actor, requestedBranchId, r
         ...row, sourceScope: 'committee', committeeAdopted: adopted.has(String(row.id)),
       }))]);
     }
-    return uniqueById([branchRows, committeeRows.filter((row) => !adopted.has(String(row.id)))]);
+    return uniqueById([branchRows, committeeRows.filter((row) => !adopted.has(String(row.id)) && !isWithdrawnPublic(row))]);
   }
   if (name === 'notices') {
+    const now = Date.now();
     const branchRows = rows.filter((row) => !isCommitteeRow(row) && resourceBranchId(db, name, row, reader) === targetBranchId);
-    const committeePublished = rows.filter((row) => row.branchId === COMMITTEE_OWNER && isLoginVisible(row));
+    const committeePublished = rows.filter((row) => row.branchId === COMMITTEE_OWNER && isLoginVisible(row, now));
     const committeeTargeted = rows.filter((row) => row.ownerScope === 'committee' && targetsBranch(row, targetBranchId));
     // 空受众 / 私信等受众判定仍归上层 `canReadNotice`，本层只决定「哪些行进入支部视野」。
-    return uniqueById([branchRows, ...(isPartyStaff ? [committeeTargeted] : [committeePublished, committeeTargeted])]);
+    return uniqueById([
+      branchRows,
+      ...(isPartyStaff
+        ? [committeeTargeted]
+        : [committeePublished, committeeTargeted.filter((row) => !isWithdrawnPublic(row, now))]),
+    ]);
   }
   if (name === 'branchDocs') {
+    const now = Date.now();
     const branchRows = rows.filter((row) => !isCommitteeRow(row) && resourceBranchId(db, name, row, reader) === targetBranchId);
     const committeeRows = isPartyStaff
       ? rows.filter(isCommitteeRow)
-      : rows.filter((row) => row.branchId === COMMITTEE_OWNER && isLoginVisible(row));
+      : rows.filter((row) => row.branchId === COMMITTEE_OWNER && isLoginVisible(row, now));
     return uniqueById([branchRows, committeeRows]);
   }
   if (name === 'todos') {

@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261110a');
+@import url('components/person-picker.css?v=20261110b');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -917,31 +917,29 @@ body {
   align-items: center;
   gap: var(--space-2);
 }
-/* 支部分工 · 责任关系（2026-11-09 批次 539）：单列对象列表——每行＝角色徽章 + 工作项
-   （14/600）+ 负责人（12）+ 一行截断说明；停用项行尾「发起启用议题」。
-   行高、分隔线、hover / 选中态全部由 .list-group / .list-row 承担（本段不重画）；
-   本段只做本页的截断与窄屏折叠，原先的左 260px 清单 / 右 600px 详情与内滚已撤。 */
-.wm-row .list-row__title {
+/* 支部分工 · 责任关系（2026-11-09 批次 539 立 · 2026-11-10 批次 541 改单行）：每行＝负责人徽章 +
+   工作项（14/600）+ 协作 / 产出（12）。行高、分隔线、hover / 选中态全部由 .list-group / .list-row 承担
+   （本段不重画）；本段只把标题与次级并作一行并各自截断 ⇒ 行高回到 --row-standard（48）。 */
+.wm-row .list-row__main {
+  flex-direction: row;
+  align-items: baseline;
+  gap: var(--space-2);
+  overflow: hidden;
+}
+.wm-row .list-row__title,
+.wm-row .list-row__meta {
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.wm-row .list-row__desc {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+/* 工作项名是身份，不参与让位（自身超宽时按 max-width 截断）；协作 / 产出吸收剩余宽度。 */
+.wm-row .list-row__title { flex: 0 0 auto; max-width: 100%; }
+.wm-row .list-row__meta { flex: 1 1 auto; }
 .wm-row__hint {
   flex-shrink: 0;
   font-size: var(--text-sm);
   color: var(--neutral-500);
-}
-@media (max-width: 640px) {
-  .wm-row .list-row__desc { display: none; }
-  .wm-row[data-selected="true"] .list-row__desc {
-    display: block;
-    white-space: normal;
-  }
 }
 .page-section-stack {
   display: flex;
@@ -1238,9 +1236,15 @@ select.input-flat {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  /* 2026-11-10 批次 541（icon-color-guard G4）：下拉箭头改由纯 CSS 折线绘制。
+     原实现是 data-URI SVG ＋ URL 编码内联 hex（`%239CA3AF`）——既绕开令牌也绕开 hex 扫描，
+     而 CSS 变量在 data-URI SVG 内不生效；折线两臂取 `--neutral-400`（与旧值同色）。 */
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--neutral-400) 50%),
+    linear-gradient(135deg, var(--neutral-400) 50%, transparent 50%);
+  background-position: calc(100% - 21px) center, calc(100% - 15px) center;
+  background-size: 6px 6px, 6px 6px;
   background-repeat: no-repeat;
-  background-position: right 10px center;
   padding: 8px 30px 8px 12px;
   cursor: pointer;
 }
@@ -3868,8 +3872,11 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   color: var(--neutral-800);
 }
 
+/* 2026-11-10 批次 541：文件行 meta 由 0.7rem（11.2px，档外）改 12px 档；内容已拆两行
+   （状态 / 说明各一行），长说明按容器宽度自然换行，不再挤成一行。 */
 .ref-doc-meta {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
+  line-height: 18px;
   color: var(--neutral-500);
 }
 

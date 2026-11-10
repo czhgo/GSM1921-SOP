@@ -174,7 +174,7 @@ test('C4 全站引擎表扫描：列数 ≥5 的表格配置必须 opt-in 卡式
   assert.ok(wide.length >= 9, `扫描到的 ≥5 列引擎表配置只有 ${wide.length} 个（基线 9）`);
 });
 
-test('C4b 引擎卡式表：成员流动 8 列 / 支委两表 5 列全覆盖', () => {
+test('C4b 引擎卡式表：成员流动 8 列 / 支委构成 4 列 / 支委会会议 5 列全覆盖', () => {
   assert.match(FLOW, /responsive: true/, '成员流动台账须 opt-in 卡式行');
   const flowChunk = slice(FLOW, 'function _flowRowHtml', '/** 未登记人员清单');
   assert.deepEqual(missingLabels(flowChunk), [], '成员流动台账存在未带 data-label 的数据 td');
@@ -197,7 +197,9 @@ test('C4b 引擎卡式表：成员流动 8 列 / 支委两表 5 列全覆盖', (
   const rosterChunk = slice(COMMITTEE, 'function rosterRowHtml', '/** 最近 8 场支委会');
   const meetingChunk = slice(COMMITTEE, 'function meetingRowHtml', '/** 行内选人实例');
   for (const [name, chunk, labels] of [
-    ['支委构成', rosterChunk, ['姓名', '身份', '来源', '状态', '操作']],
+    // 2026-11-10 批次 541：支委构成表「来源」列并入身份注（「支书 · 党委配置」），列数 5→4；
+    //   本守卫是表形状的镜像，同批改准（卡片模式的 data-label 仍逐格覆盖）。
+    ['支委构成', rosterChunk, ['姓名', '身份', '状态', '操作']],
     ['支委会会议', meetingChunk, ['日期', '议题', '状态', '应到', '操作']],
   ]) {
     assert.deepEqual(missingLabels(chunk), [], `${name}存在未带 data-label 的数据 td`);

@@ -5,14 +5,14 @@
 //  职责单一：统计卡渲染 + 考勤明细弹窗（点击统计卡查看本月考勤）。
 // ════════════════════════════════════════════════════════════════
 
-import { NoticeStore } from '../../services/governance/notice.js?v=20261110a';
-import { _fmtDate, animateNumber } from '../../core/base/utils.js?v=20261110a';
-import { icon } from '../../core/base/icons.js?v=20261110a';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261110b';
+import { _fmtDate, animateNumber } from '../../core/base/utils.js?v=20261110b';
+import { icon } from '../../core/base/icons.js?v=20261110b';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261110a';
-import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261110a';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261110b';
+import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261110b';
 // R2-47：出勤率语义单一源——首页「个人考勤」按应到人次（不是按已录记录），未录显示「待录入」
-import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261110a';
+import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261110b';
 
 // 出勤率档位 → 既有语义色 token（服务层只给档位，颜色映射留在展示层）
 // 2026-11-10 批次 540：状态色一律取文字档 `--status-*-text`（`--tint` 与数值同源，填充档不承担文字 / 笔触，见 DS_03 §4.11.2）。
@@ -31,7 +31,7 @@ const ATTENDANCE_VALUE_COLOR = {
   good: 'var(--neutral-800)',
 };
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261110a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261110b';
 const ATTENDANCE_STATUS_DOT = {
   present:  { text: '出勤', cls: 'text-green-700', dot: 'var(--status-success)' },
   absent:   { text: '缺勤', cls: 'text-red-600',  dot: 'var(--status-error)' },
