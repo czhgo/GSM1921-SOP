@@ -24,6 +24,7 @@ import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../..
 import { getAdapter } from '../../../data/data-adapter.js?v=20261110b';
 // 批次 524（F · 输入单一源）：recordFormShell ＋ 布局中立的控件积木（只出控件本体，不套 label / 外边距）
 import { recordFormShell, textInput, selectInput } from '../../../components/ui/forms.js?v=20261110b';
+import { listActiveGroups } from '../../../services/member/party-group.js?v=20261110b';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
 // U-05：招募浮窗原为手写 overlay/panel（无 dialog 语义 / 无焦点接管）→ 改走同一组件的 openModal。
 import { confirmNudge, confirmWriteWithoutGrant, openModal, closeModal, setModalBusy, confirmDanger } from '../../../components/ui/modal.js?v=20261110b';
@@ -395,6 +396,14 @@ export function renderContent(ctx) {
         persist();
         showToast('success', `专班「${tf.name}」已撤销并删除（保留删除留痕）`);
         setState({});
+        return;
+      }
+      // D-868：历史专班承办方待补 → 就地补选（一次性，补选后锁死）
+      const scopeFillBtn = e.target.closest('.tf-scope-fill-btn');
+      if (scopeFillBtn) {
+        const tfId = scopeFillBtn.dataset.tfId;
+        const tf = TaskForceRecordStore.getAll().find(r => r.id === tfId);
+        if (tf) _openTaskforceScopeFill(tf, ctx);
         return;
       }
       // 附录⑩ B批（R3-1）：被驳回专班（draft，表决未通过退回草稿）→ 修改后重新报送支委会表决
@@ -1532,13 +1541,21 @@ function _renderTfCard(t, statusLabel) {
       <button class="btn-danger tf-delete-btn text-xs px-3 py-1.5" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">${deleteText}</button>
     </div>`;
   }
+  const scopeLabel = t.organizingScope === 'branch'
+    ? '支部级（支委会）'
+    : (t.organizingScope === 'party-group'
+      ? (listActiveGroups().find((g) => g.id === t.hostGroupId)?.name || '党小组')
+      : '待补');
   return `
-    <div class="kanban-card p-4 rounded-xl bg-white cursor-pointer tf-store-card" data-tf-id="${t.id}" role="button" tabindex="0" aria-label="查看专班：${esc(t.name)}">
+    <div class="kanban-card p-4 rounded-xl bg-white cursor-pointer tf-store-card" data-tf-id="${t.id}" role="button" tabindex="0" aria-label="查看专班：${esc(t.name)}" data-nested-actions="true">
       <div class="flex items-start justify-between gap-2 mb-2">
         <span class="text-sm font-semibold text-gray-800 leading-snug">${t.name}</span>
         <span class="tint-pill" data-tone="${tone}">${badgeText}</span>
       </div>
       <p class="text-xs text-gray-500 mb-2 line-clamp-2">${t.task}</p>
+      <div class="text-xs text-gray-500 mb-2">承办方：${esc(scopeLabel)}${!t.organizingScope
+        ? ` <button type="button" class="btn-outline px-2 py-1 tf-scope-fill-btn" data-tf-id="${t.id}" onclick="event.stopPropagation();">补选</button>`
+        : ''}</div>
       <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
         <span>${filled}/${t.capacity}</span>
         ${t.deadline ? `<span>${t.deadline}</span>` : ''}
@@ -1581,6 +1598,21 @@ export function openRecruitForm(ctx) {
         <label for="rf-task" class="text-xs text-gray-500 mb-1.5 block font-medium">任务描述 <span class="text-red-600">*</span></label>
         <textarea id="rf-task" required rows="3" placeholder="描述专班的核心任务与目标" class="input-flat w-full" aria-describedby="rf-task-err"></textarea>
         <p id="rf-task-err" data-field-error hidden class="mt-1 text-xs text-red-600" role="alert"></p>
+      </div>
+
+      <div class="mb-3">
+        <label for="rf-scope" class="text-[11px] text-gray-500 mb-2 block font-medium">承办方 <span class="text-red-600">*</span></label>
+        ${selectInput({
+          id: 'rf-scope',
+          options: [
+            { value: '', label: '请选择承办方' },
+            { value: 'branch', label: '支部级（支委会）' },
+            ...listActiveGroups().map((g) => ({ value: `group:${g.id}`, label: g.name })),
+          ],
+          className: 'w-full',
+          attrs: 'required aria-describedby="rf-scope-err"',
+        })}
+        <p id="rf-scope-err" data-field-error hidden class="mt-1 text-body-sm text-red-600" role="alert"></p>
       </div>
 
       <div class="mb-3 rounded-lg border border-gray-200 p-3">
@@ -1735,6 +1767,43 @@ function _closeRecruitForm() {
   closeModal('recruit-form-modal');
 }
 
+/** D-868：历史专班承办方一次性补选（补选后服务端锁死）。 */
+function _openTaskforceScopeFill(tf, ctx) {
+  const options = [
+    { value: '', label: '请选择承办方' },
+    { value: 'branch', label: '支部级（支委会）' },
+    ...listActiveGroups().map((g) => ({ value: `group:${g.id}`, label: g.name })),
+  ];
+  openModal({
+    id: 'tf-scope-fill',
+    title: '补选专班承办方',
+    width: '480px',
+    bodyHtml: `
+      <p class="text-sm text-gray-700 mb-3">专班「${esc(tf.name)}」的承办方待补。补选后不可修改。</p>
+      <label for="tf-scope-fill-select" class="text-[11px] text-gray-500 mb-2 block font-medium">承办方 <span class="text-red-600">*</span></label>
+      ${selectInput({ id: 'tf-scope-fill-select', options, className: 'w-full' })}
+      <div class="flex justify-end gap-2 mt-4">
+        <button type="button" class="btn-outline" id="tf-scope-fill-cancel">取消</button>
+        <button type="button" class="btn-accent-soft" id="tf-scope-fill-save">保存</button>
+      </div>`,
+  });
+  document.getElementById('tf-scope-fill-cancel')?.addEventListener('click', () => closeModal('tf-scope-fill'));
+  document.getElementById('tf-scope-fill-save')?.addEventListener('click', () => {
+    const value = document.getElementById('tf-scope-fill-select')?.value || '';
+    if (!value) { showToast('error', '请选择承办方'); return; }
+    const updated = TaskForceRecordStore.update(tf.id, {
+      organizingScope: value === 'branch' ? 'branch' : 'party-group',
+      hostGroupId: value === 'branch' ? null : value.replace(/^group:/, ''),
+      scopeFilledBy: AuthStore.getCurrentUser()?.personId || null,
+      scopeFilledAt: new Date().toISOString(),
+    });
+    if (!updated) { showToast('error', '补选失败，请刷新后重试'); return; }
+    closeModal('tf-scope-fill');
+    showToast('success', '承办方已补选');
+    renderContent(ctx);
+  });
+}
+
 // ── 专班工作组发起（仅明确要求表决的事项才报送支委会） ──
 
 /** 字段级错误（就地）：错误文本贴到字段旁，并同时写 aria-invalid / aria-describedby（R5A-11） */
@@ -1752,6 +1821,7 @@ function _showRecruitFieldError(input, errId, msg) {
 async function _submitRecruitForm(ctx) {
   const name = document.getElementById('rf-name')?.value?.trim();
   const task = document.getElementById('rf-task')?.value?.trim();
+  const scopeValue = document.getElementById('rf-scope')?.value || '';
   const capacity = parseInt(document.getElementById('rf-capacity')?.value, 10);
   const deadline = document.getElementById('rf-deadline')?.value || '';
   const skills = document.getElementById('rf-skills')?.value?.trim() || '';
@@ -1769,6 +1839,7 @@ async function _submitRecruitForm(ctx) {
   // 校验必填项（失败留在浮窗内，返回 false 让按钮恢复）
   if (!name) return _showRecruitFieldError(document.getElementById('rf-name'), 'rf-name-err', '请填写专班名称');
   if (!task) return _showRecruitFieldError(document.getElementById('rf-task'), 'rf-task-err', '请填写任务描述');
+  if (!scopeValue) return _showRecruitFieldError(document.getElementById('rf-scope'), 'rf-scope-err', '请选择专班承办方');
   if (!capacity || capacity < 1 || capacity > 50) return _showRecruitFieldError(document.getElementById('rf-capacity'), 'rf-capacity-err', '请填写 1–50 之间的所需人数');
   if (!deadline) return _showRecruitFieldError(document.getElementById('rf-deadline'), 'rf-deadline-err', '请选择截止日期');
   if (requiresCommitteeVote && !governanceReason) return _showRecruitFieldError(document.getElementById('rf-governance-reason'), 'rf-governance-reason-err', '请写明要求支委会表决的制度或议程依据');
@@ -1794,6 +1865,8 @@ async function _submitRecruitForm(ctx) {
   const record = {
     name,
     task,
+    organizingScope: scopeValue === 'branch' ? 'branch' : 'party-group',
+    hostGroupId: scopeValue === 'branch' ? null : scopeValue.replace(/^group:/, ''),
     status: requiresCommitteeVote ? 'pending_review' : 'recruiting',
     manager: AuthStore.getCurrentUser()?.personId || null,
     initiator: AuthStore.getCurrentUser()?.personId || null,

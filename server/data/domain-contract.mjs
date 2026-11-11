@@ -296,6 +296,27 @@ const RESOURCE_CONTRACT = [
     notes: '运行时域（线上支委会表态）；演示种子为空。',
   },
   {
+    entity: 'committeeProposals', table: 'committee_proposals', mockCollection: 'committeeProposals',
+    required: [],
+    optional: ['id', 'branchId', 'title', 'reason', 'sourceType', 'sourceId', 'draft', 'suggestedType',
+      'expectedAt', 'proposedBy', 'proposedAt', 'status', 'decision', 'decidedBy', 'decidedAt',
+      'meetingActivityId', 'agendaItemId', 'affectedPersonIds', 'createdAt', 'updatedAt'],
+    enums: {
+      status: ['pending', 'queued', 'on-agenda', 'decided', 'closed', 'rejected'],
+      suggestedType: ['decision', 'discussion', 'sync'],
+      sourceType: ['activity', 'taskforce', 'member', 'institution'],
+    },
+    seedCount: 0, aliases: [],
+    notes: '运行时域（支委提案 / 统一上会事项）；演示种子为空，故不设 required（同 agenda_votes）。',
+  },
+  {
+    entity: 'committeeProposalEvents', table: 'committee_proposal_events', mockCollection: 'committeeProposalEvents',
+    required: [],
+    optional: ['id', 'branchId', 'proposalId', 'from', 'to', 'action', 'by', 'at', 'note'],
+    enums: {}, seedCount: 0, aliases: [],
+    notes: '运行时域（提案状态事件，只增不改）；演示种子为空，故不设 required。',
+  },
+  {
     entity: 'branches', table: 'branches', mockCollection: 'branches',
     required: ['id', 'name', 'type', 'status', 'createdAt'],
     optional: ['secretaryId', 'config', 'configChangeHistory'],

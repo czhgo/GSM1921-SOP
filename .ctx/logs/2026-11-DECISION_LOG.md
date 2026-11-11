@@ -2,7 +2,7 @@
 title: "2026年11月决策日志"
 type: decision_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-11
+last_updated: 2026-11-12
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-DECISION_LOG.md, content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md, content/04_web_design/design-system/DS_03_COMPONENTS.md, content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md]
 ---
@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-867`，共 41 条**；下一条自 **`D-868`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-870`，共 44 条**；下一条自 **`D-871`**。
 
 ## 本月目录（2026-11）
 
@@ -61,6 +61,9 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 六维评分保守回调：81/78/78/83/78/76（三层关系与对象模型口径未统一、CI 未跑、P2 漂移） | `D-865` | 2026-11-11 | 已落（只改台账） |
 | 产品对象模型/组长权限/上会广播/URL 形态：党小组→活动/专班→工作组（无指导支委）· 组长组内全权+支部提案 · 统一上会事项+回执 · 去后缀+兼容 | `D-866` | 2026-11-11 | 已裁（待实现） |
 | 三项子裁定（支部级专班存在 / 决议受众含受影响人 / 组长提案全体支委可见）＋ URL B 实施（pageHref 单源＋运行时归一） | `D-867` | 2026-11-11 | 已落（URL）；子裁定待实现 |
+| 对象模型落地：活动/专班并列、工作组执行载体、专班补承办方、专班不产生考勤 | `D-868` | 2026-11-11 | 已落（批次 545） |
+| 支委提案：统一上会事项、状态机、回执、议程接入 | `D-869` | 2026-11-11 | 已落（批次 546） |
+| 三台专项探查 P0 收口：提案↔议程单一事实 / 支委会写门 / 报表读口 / 宣传台只读 / 组长读门 / harness 补漏 | `D-870` | 2026-11-12 | 已落（批次 547） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -394,5 +397,37 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > - **读数**：`test:guards` **101 文件全绿 / 101.8s**；`test:daily` **29 文件 / 246 断言 / 73.7s** 全绿；真机（Playwright）登录后 URL＝`http://localhost:3000/workspace/secretary?tab=today`，站内 `.html` 锚点剩余 **0**（`help` / `about` 除外）。
 > - **落点**：`docs/src/core/base/page-url.js`、`docs/src/core/base/link-normalize.js`（新）、`docs/src/core/domain/object-route.js`、`docs/src/components/shell/{sidebar,header,tab-bar,workspace-shell}.js`、`docs/src/entries/**` 重定向点、`server/test/**` 期望值；设计稿 `content/04_web_design/evolution/OBJECT_MODEL_AND_COMMITTEE_FLOW.md §五 / §七`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-867`**（共 **41** 条）。
+## D-868 2026-11-11 — 对象模型落地（专班承办方 + 工作组挂靠唯一）
+
+> **评议 → 裁定 → 落点**（支书要求「研究清楚活动 / 专班 / 工作组关系」后实施）：
+> - **关系定案**：活动与专班是两类并列业务对象，互不挂靠；工作组是二者各自 1:1 的执行载体，不是第三类业务对象，也不是中间层；党小组是承办归属层。
+> - **专班补字段**：`organizingScope`（`party-group|branch|null`）、`hostGroupId`（条件必填）、`legacyScope`（历史缺省标记）、`scopeFilledBy/At`（补选留痕）。新记录必须显式选择承办方，不猜；历史缺省显示「待补」，由组织委员 / 支书一次性补选后锁死。
+> - **工作组挂靠**：`kind === sourceType`、`sourceId` 非空且指向同支部真实行；不新增 `activityId/taskforceId` 第二套键。
+> - **专班不产生考勤**：`work-map.js` 专班产出改为 `['考察','材料']`。
+> - **落点**：`content/04_web_design/data/DATA_MODEL.md §附二`、`server/routes/resources/workgroup-routes.js`、`server/routes/resources/index.js`、`docs/src/services/activity/taskforce.js`、`docs/src/entries/tabs/org/taskforce-tab.js`、`docs/src/core/domain/work-map.js`、`server/test/object-model-guard.test.mjs`。
+
+## D-869 2026-11-11 — 支委提案（统一上会事项）与回执
+
+> **评议 → 裁定 → 落点**：
+> - **实体**：新增 `committee_proposals` / `committee_proposal_events`（schema v16，运行时域，种子为空）。
+> - **状态机**：`pending → queued → on-agenda → decided → closed|rejected`；纯函数单一源 `docs/src/core/domain/committee-proposal.js`，非法迁移返回 `null`。
+> - **权限**：组长 / 副组长可提；支委可受理 / 驳回；支书 / 副支书可排期 / 决议 / 归档；来源对象与会议均须同支部。
+> - **议程**：只收 `queued` 提案，按现有「意见反馈」类落池，附 `proposalId/proposedBy`，不新增第九类。
+> - **回执**：6 个系统通知 kind；提交 → 支委层，受理 / 驳回 / 归档 → 提案人，排期 / 决议 → 支委层 ＋ 提案人 ＋ 受影响人。
+> - **决议回写**：`passed` 且无 `sourceId` 时生成同支部 `draft` 活动 / 专班并回指；已有对象不改状态，避免绕过既有审批门。
+> - **落点**：`server/routes/committee-proposals.js`（新）、`server/db.js` v16、`server/data/domain-contract.mjs`、`server/system-notice-kinds.js`、`server/routes/system-notices.js`、`server/routes/committee.js`、`docs/src/services/governance/committee-proposal.js`（新）、`docs/src/entries/tabs/{leader/overview-tab,secretary/committee-meeting-tab}.js`、`server/test/committee-proposal-{state,routes}.test.mjs`。
+
+## D-870 2026-11-12 — 三台专项探查 P0 收口
+
+> **评议 → 裁定 → 落点**：
+> - **提案 ↔ 议程单一事实**：`decide` 在事务内回写会议议程项 `result`；`recordAgendaResult` 对 `kinds:['proposal']` 只转发 `decide`，不二次写；排期幂等；`canRead` 纳入 `affectedPersonIds`。
+> - **支委会写门**：建会 / 改议程 / 记录决议仅支书 / 副支书（党委 `party-staff` 保留入口）；普通活动写权不动，进一步收紧留丙部。
+> - **报表读权**：`GET /report/export`、`GET /report/:domain` 收为支书 / 副支书 / 组织委员 / 党委；宣传与纪检委员不默认放开。
+> - **宣传台闭环权**：看板移除「确认完成」，活动结束权归组织者 / 支书；专班收尾提示保留。
+> - **组长进展读口**：组长仅本组、支委层看支部、其他角色 403；组归属单一源 `party-group-scope.js`。
+> - **Harness**：M7/M8 迁移期望由 `SCHEMA_VERSION` 派生；S6 台账行号全量同步；新增写门矩阵 evidence 行号守卫。
+> - **未选**：报表放开给全部支委（隐私面过大）；建会写门连普通活动一并收紧（误伤归档 / 议程链）；组长范围算法本批迁服务端（改动面过大，只先加读门）。
+> - **落点**：`server/routes/committee-proposals.js`、`resources/gates.js`、`resources/index.js`、`report.js`、`leader-progress.js`、`docs/src/services/activity/agenda-follow-up.js`、`docs/src/services/governance/committee-proposal.js`、`docs/src/entries/tabs/prop/kanban-tab.js`、`docs/src/core/domain/party-group-scope.js`（新）、`server/test/{committee-flow-guard,committee-meeting-gate,report-read-gate,leader-progress-gate,prop-kanban-scope,write-policy-evidence-guard}.test.mjs`（新）。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-870`**（共 **44** 条）。
 

@@ -12,7 +12,7 @@ related_files: [../data/DATA_MODEL.md, ../data/DATA_CONTRACT.md, ../../02_instit
 
 > **本文负责**：`D-866` 四项裁定的落地设计——三层对象模型判据、党小组组长权限矩阵、上会与回执状态机、URL 无后缀方案。
 > **本文不负责**：① 现行字段与表结构 → [DATA_MODEL.md](../data/DATA_MODEL.md)；② 角色权限键级定义 → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)；③ 逐批过程 → `.ctx/logs/`。
-> **状态**：已裁（`D-866`），未实现。实现完成后，判据表回写 `DATA_MODEL` / `SYSTEM_ROLE_PERMISSION`，本文降为论证档案。
+> **状态**：已实施——URL `D-867`、对象模型 `D-868`、提案与上会回执 `D-869`。§一 的「现状」保留为实施前取证；判据已回写 `DATA_MODEL` / `SYSTEM_ROLE_PERMISSION`。
 
 ---
 

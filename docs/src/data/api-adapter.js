@@ -1038,6 +1038,26 @@ export const ApiAdapter = {
     },
   },
 
+  // 2026-11-11 支委提案（D-869；语义端点，不进快照）
+  committeeProposals: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/committee/proposals${query ? '?' + query : ''}`);
+    },
+    get(id) {
+      return _get(`/api/v1/committee/proposals/${encodeURIComponent(id)}`);
+    },
+    create(data) {
+      return _post('/api/v1/committee/proposals', data);
+    },
+    update(id, data) {
+      return _request(`/api/v1/committee/proposals/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(data) });
+    },
+    events(id) {
+      return _get(`/api/v1/committee/proposals/${encodeURIComponent(id)}/events`);
+    },
+  },
+
   // 工作组成员、授权、任务、产出与应到名单均走语义 API，不进入全量快照。
   workgroups: {
     list(params = {}) {

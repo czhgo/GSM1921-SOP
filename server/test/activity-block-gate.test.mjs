@@ -141,14 +141,14 @@ test('G7 停止新建但允许在办活动完成；活动完成后只读保留',
 test('G8 停用专班能力后不再新建；在办工作组可办结，历史保留只读', async () => {
   setHiddenBlocks([]);
   const created = await api('POST', '/api/v1/taskforces', { body: {
-    id: `tf-blockgate-${++seq}`, name: '停用生命周期测试', task: '测试事项治理', status: 'active', members: [],
+    id: `tf-blockgate-${++seq}`, name: '停用生命周期测试', task: '测试事项治理', status: 'active', organizingScope: 'branch', hostGroupId: null, members: [],
   } });
   assert.equal(created.status, 201);
   const id = created.json.id;
 
   setHiddenBlocks(['taskforce']);
   const newGroup = await api('POST', '/api/v1/taskforces', { body: {
-    id: `tf-blockgate-${++seq}`, name: '停用后不应新建', task: '测试事项治理', status: 'active', members: [],
+    id: `tf-blockgate-${++seq}`, name: '停用后不应新建', task: '测试事项治理', status: 'active', organizingScope: 'branch', hostGroupId: null, members: [],
   } });
   assert.equal(newGroup.status, 403, '关闭能力后停止新建工作组');
 

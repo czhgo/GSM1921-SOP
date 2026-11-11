@@ -14,6 +14,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { DEFAULT_BRANCH_ID } from '../../docs/src/core/domain/constants.js';
+import { LEADER_ROLES, BRANCH_READ_ROLES, groupOf } from '../../docs/src/core/domain/party-group-scope.js';
 import { Router } from 'express';
 import { requireAuth } from './auth.js';
 import { aggregateMemberProgress } from '../../docs/src/services/member/member-progress.js';
@@ -85,11 +86,23 @@ export function createLeaderProgressRouter(db) {
     if (!personIds.length) {
       return res.status(400).json({ error: 'personIds 必填（逗号分隔的人员 id）' });
     }
+    // 读门（本批 P0-5）：组长只看本组；支委层 / 党委看支部；其他角色拒绝。
+    const isLeader = LEADER_ROLES.has(req.actor.role);
+    const isBranchReader = BRANCH_READ_ROLES.has(req.actor.role);
+    if (!isLeader && !isBranchReader) {
+      return res.status(403).json({ error: '无权限：仅党小组组长或支委层可查看成员进展' });
+    }
     const requestedUsers = usersByIds(db, personIds);
     if (personIds.some((personId) => {
       const user = requestedUsers.get(personId);
       return !user || (branchId && (user.branchId || DEFAULT_BRANCH_ID) !== branchId);
     })) return res.status(403).json({ error: '无权限：只能查看所选支部成员进展' });
+    if (isLeader) {
+      const actorUser = usersByIds(db, [req.actor.id]).get(req.actor.id) || req.actor;
+      const myGroup = groupOf(actorUser);
+      const crossGroup = personIds.filter((personId) => groupOf(requestedUsers.get(personId)) !== myGroup);
+      if (!myGroup || crossGroup.length) return res.status(403).json({ error: '无权限：只能查看本党小组成员进展' });
+    }
     const today = String(req.query.today || '').trim() || todayLocal();
     // 请求级预载：支部过滤时逐行解析的关联行（activities 等）只读一次表，四张表共用同一 reader
     const branchReader = createTableReader(db);

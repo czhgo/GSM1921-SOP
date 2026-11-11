@@ -48,11 +48,11 @@ const REQUIRED_WITHOUT_SEED_OK = new Map([
 ]);
 
 // ── ① 资源表覆盖 ────────────────────────────────────────────────
-test('C1 契约覆盖 34 资源表 + 8 语义表 + 6 工作组表（双向相等，无缺无幽灵）', () => {
+test('C1 契约覆盖 34 资源表 + 10 语义表 + 6 工作组表（双向相等，无缺无幽灵）', () => {
   assert.equal(RESOURCE_TABLES.length, 34, `db.js RESOURCE_TABLES 应为 34（实测 ${RESOURCE_TABLES.length}）`);
-  assert.equal(SEMANTIC_TABLES.length, 8, `db.js SEMANTIC_TABLES 应为 8（实测 ${SEMANTIC_TABLES.length}）`);
+  assert.equal(SEMANTIC_TABLES.length, 10, `db.js SEMANTIC_TABLES 应为 10（实测 ${SEMANTIC_TABLES.length}）`);
   assert.equal(WORKGROUP_TABLES.length, 6, `db.js WORKGROUP_TABLES 应为 6（实测 ${WORKGROUP_TABLES.length}）`);
-  assert.equal(new Set(ALL_TABLES).size, 48, '三张清单并集应为 48 表');
+  assert.equal(new Set(ALL_TABLES).size, 50, '三张清单并集应为 50 表');
 
   const contractTables = new Set(DOMAIN_CONTRACT.map((entry) => entry.table));
   for (const table of ALL_TABLES) {

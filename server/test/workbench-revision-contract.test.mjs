@@ -270,7 +270,9 @@ test('宣传看板只承接在办项目，归档统一落档案归档页', async
   assert.match(source, /\?tab=archive/, '归档出口统一落档案归档页签');
   assert.match(source, /去档案归档/);
   assert.doesNotMatch(source, /已完成并归档/);
-  assert.match(source, /已标记结束，待档案归档/);
+  // 本批 P0-4：宣传台不再闭环活动（结束权归组织者 / 支书）；专班收尾提示保留。
+  assert.doesNotMatch(source, /activity-complete-btn/, '看板不得再有「确认完成」按钮');
+  assert.match(source, /收尾由组织委员办理/);
 });
 
 test('成员台组织者上传位以 scope=organizer 投影，个人考勤与考察记录在页首', async () => {

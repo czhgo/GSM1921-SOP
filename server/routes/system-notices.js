@@ -37,12 +37,19 @@ const SOURCE_RESOURCE_BY_KIND = Object.freeze({
   'committee-dispatch': 'branches',
   'member-change-approved': 'memberChangeRequests',
   'todo-void-decided': 'todos',
+  'committee-proposal-submitted': 'committeeProposals',
+  'committee-proposal-accepted': 'committeeProposals',
+  'committee-proposal-rejected': 'committeeProposals',
+  'committee-proposal-scheduled': 'committeeProposals',
+  'committee-proposal-decided': 'committeeProposals',
+  'committee-proposal-closed': 'committeeProposals',
 });
 
 // Semantic records whose tables are outside the generic resource CRUD registry still need a
 // fixed source-table mapping so notice authorization can enforce branch ownership.
 const SEMANTIC_SOURCE_TABLES = Object.freeze({
   memberChangeRequests: 'member_change_requests',
+  committeeProposals: 'committee_proposals',
 });
 
 function sourceRow(db, resource, sourceId) {

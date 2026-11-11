@@ -2,13 +2,49 @@
 title: "2026年11月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-11
+last_updated: 2026-11-12
 status: active
 ---
 
 # 2026年11月执行日志
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
+
+## 批次 547（2026-11-12）· 三台专项探查 P0 收口（D-870）
+
+### 为什么
+- 4 路只读探查（组长台 / 支委会 / 支委台 / 裁定与 harness）＋主代理逐条复核，确认 6 组 P0：提案↔议程双轨、支委会写门过宽、报表读口越权、宣传台闭环越权、组长读口跨组、v16 迁移测试与守卫漏网。
+
+### 拿不准 / 取舍
+- **报表读权**取「支书 / 副支书 / 组织委员 / 党委」，宣传与纪检不默认放开；一处常量 `REPORT_READ_ROLES` 可调。
+- **建会写门**只收「支委会」类型，普通活动写权不动，避免误伤归档 / 议程编辑链；进一步收紧留丙部。
+- **组长范围**前端算法不本批迁服务端，只先加读门；避免一次改三张页签。
+- **S6 行号**用「最近命中」启发式同步；8 条指向空行 / 闭括号的 evidence 手改。
+
+### 边界
+- `form-loop-sweep` 真机仍有 `org-taskforce-{reject-reason,contribution,materials}` 与 `messages-compose` / `secretary-feedback` 失败；本批未定位完，登记下一批（需区分是否与对象模型改动相关）。
+- `precommit` 全量（含上述真机）本批未跑绿；`daily` / `guards` 两层已全绿。
+
+### 读数
+- `test:daily`：**29 文件 / 110.3s / 全绿**。
+- `test:guards`：**105 文件 / 130.2s / 全绿**。
+- 定向：`committee-flow-guard` 2、`committee-meeting-gate` 3、`report-read-gate` 2、`leader-progress-gate` 4、`prop-kanban-scope` 1、`write-policy-evidence-guard` 1、M7/M8 迁移 8、`permission-gate` + `records-endpoints` + `member-progress` 回归全绿；`form-loop-sweep::S6` 绿。
+- 真机：宣传台看板无「确认完成」；组长提案卡 / 支书提案池接口 200。
+
+### commit
+- 见本批 commit（`547｜三台 P0 收口…`）。
+
+## 批次 544–546（2026-11-11）· 服务恢复 / 对象模型 / 支委提案（补记）
+
+### 为什么
+- 会话中断后恢复服务与 C 盘安全清理（544）；落地 D-868 对象模型（545）与 D-869 支委提案上会（546）。
+
+### 读数
+- 新增 `object-model-guard` 5 项、`committee-proposal-state` 4 项、`committee-proposal-routes` 3 项；schema v16（提案两表）。
+- `daily` 246 断言 / `guards` 101 文件当时全绿。
+
+### commit
+- 见各批 commit（544 / 545 / 546）。
 
 ## 批次 543（2026-11-11）· URL 去后缀（D-867）
 

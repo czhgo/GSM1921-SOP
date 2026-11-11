@@ -16,6 +16,8 @@ export const MOCK_TASKFORCES = [
   {
     id: 'tf-001',
     branchId: DEFAULT_BRANCH_ID,
+    organizingScope: 'branch',
+    hostGroupId: null,
     name: '宣传专班（第二期）',
     task: '深度报道与专题视频制作 — 秋季学期系列主题活动宣传任务',
     manager: ORG_COMMISSIONER_ID,
@@ -43,6 +45,8 @@ export const MOCK_TASKFORCES = [
   {
     id: 'tf-002',
     branchId: DEFAULT_BRANCH_ID,
+    organizingScope: 'branch',
+    hostGroupId: null,
     name: 'SOP 系统维护专班',
     task: 'SOP 文档体系维护、系统同步更新、经验蒸馏记录',
     manager: ORG_COMMISSIONER_ID,
@@ -65,6 +69,8 @@ export const MOCK_TASKFORCES = [
   {
     id: 'tf-003',
     branchId: DEFAULT_BRANCH_ID,
+    organizingScope: 'branch',
+    hostGroupId: null,
     name: '五四主题党日筹备专班',
     task: '9月3日五四精神传承主题党日活动全流程筹备',
     manager: ORG_COMMISSIONER_ID,
@@ -83,6 +89,8 @@ export const MOCK_TASKFORCES = [
   {
     id: 'tf-004',
     branchId: DEFAULT_BRANCH_ID,
+    organizingScope: 'branch',
+    hostGroupId: null,
     name: '共建座谈对接专班',
     task: '校企共建座谈（光华 x 中信证券）对接与执行',
     manager: ORG_COMMISSIONER_ID,
@@ -99,6 +107,8 @@ export const MOCK_TASKFORCES = [
   {
     id: 'tf-005',
     branchId: DEFAULT_BRANCH_ID,
+    organizingScope: 'branch',
+    hostGroupId: null,
     name: '建党105周年筹备专班',
     task: '10月3日建党105周年主题党日大型活动筹备',
     manager: ORG_COMMISSIONER_ID,
@@ -116,6 +126,8 @@ export const MOCK_TASKFORCES = [
   {
     id: 'tf-006',
     branchId: DEFAULT_BRANCH_ID,
+    organizingScope: 'branch',
+    hostGroupId: null,
     name: '参访活动保障专班',
     task: '10月参访活动后勤保障与安全',
     manager: ORG_COMMISSIONER_ID,
@@ -131,6 +143,8 @@ export const MOCK_TASKFORCES = [
   {
     id: 'tf-007',
     branchId: DEFAULT_BRANCH_ID,
+    organizingScope: 'branch',
+    hostGroupId: null,
     name: '两会精神学习专班',
     task: '两会精神学习材料整理与分享',
     manager: ORG_COMMISSIONER_ID,
@@ -147,6 +161,8 @@ export const MOCK_TASKFORCES = [
   {
     id: 'tf-008',
     branchId: DEFAULT_BRANCH_ID,
+    organizingScope: 'branch',
+    hostGroupId: null,
     name: '九月活动档案整理专班',
     task: '九月活动归档整理、材料汇总与电子化',
     manager: ORG_COMMISSIONER_ID,

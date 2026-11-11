@@ -14,6 +14,8 @@ import { isInstitutionDoc, applyInstitutionAgendaResult } from '../branch/branch
 //   分支只做 IO，判据与状态迁移的单一源在 activity.js::applyBrandDesignationResult（纯函数）。
 import { commitBrandDesignationResult, commitActivityApprovalResult } from './activity.js?v=20261110b';
 import { agendaDecisionSource, validateAgendaStructure } from './agenda-relations.js?v=20261110b';
+// 支委提案（D-869）：会议记录结果即提案决议；写入单一源在 `CommitteeProposalStore`（API 走服务端同事务回写议程）。
+import { CommitteeProposalStore } from '../governance/committee-proposal.js?v=20261110b';
 
 function replaceById(records, record) {
   const index = records.findIndex((item) => item.id === record.id);
@@ -227,6 +229,15 @@ export async function recordAgendaResult({ activity, agendaItemId, result, perso
       by: actorId,
       at: now,
       agendaItemId: agendaItem.id,
+    });
+  }
+
+  // 支委提案（D-869）：会议记录的提案议程项结果即提案决议——写入单一源在服务端 `decide`
+  //   （API 形态同事务回写议程；mock 形态由 store 回写），本文件只转发，不另造第二套状态。
+  if (hasKind(decisionItem, 'proposal') && decisionItem.proposalId) {
+    await CommitteeProposalStore.update(decisionItem.proposalId, {
+      action: 'decide',
+      result: effectiveResult === 'passed' ? 'passed' : 'rejected',
     });
   }
 

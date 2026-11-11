@@ -247,6 +247,18 @@ export function hasWorkgroupPermission(db, workgroupId, personId, permissionKey)
     && Array.isArray(grant.permissionKeys) && grant.permissionKeys.includes(permissionKey));
 }
 
+/**
+ * 工作组挂靠形状校验（D-868）：`kind` / `sourceType` / `sourceId` 必须同时成立且一致。
+ * 不新增第二套挂靠键（activityId / taskforceId），避免两处各写一份。
+ * @returns {string|null}
+ */
+export function workgroupShapeDeny(workgroup) {
+  if (!workgroup || !['activity', 'taskforce'].includes(workgroup.kind)) return '工作组类型无效';
+  if (workgroup.sourceType !== workgroup.kind) return '工作组来源类型与类型不一致';
+  if (!String(workgroup.sourceId || '').trim()) return '工作组缺少业务来源';
+  return null;
+}
+
 export function canManageWorkgroup(db, actor, workgroup) {
   if (!actor || !workgroup || !workgroup.branchId || ownBranch(actor) !== workgroup.branchId) return false;
   if (SECRETARY.has(actor.role)) return true;
@@ -286,6 +298,60 @@ export function activityCreationDeny(db, actor, body) {
   if (SECRETARY.has(actor.role)) return null;
   if (isPartyGroupLeaderRole(actor.role) && group.name === actor.partyGroup) return null;
   return '无权限：非支部级活动须由支书 / 副书记或承办党小组组长创建';
+}
+
+/**
+ * 专班承办方校验（D-868）：新记录必须显式声明 `organizingScope`，不猜。
+ * - branch：hostGroupId 必须为空（承办方记为支委会）；
+ * - party-group：hostGroupId 必须指向同支部 active 党小组。
+ * @returns {string|null} 可懂错误文案
+ */
+export function taskforceScopeDeny(db, actor, body) {
+  if (!actor) return '操作者不存在';
+  const branchId = ownBranch(actor);
+  if (!branchId) return NO_BRANCH_MESSAGE;
+  const rawScope = body?.organizingScope;
+  if (rawScope !== ACTIVITY_SCOPES.BRANCH && rawScope !== ACTIVITY_SCOPES.PARTY_GROUP) {
+    return '专班必须选择承办方（支部级或党小组）';
+  }
+  const hostGroupId = body?.hostGroupId ? String(body.hostGroupId) : '';
+  if (rawScope === ACTIVITY_SCOPES.BRANCH) {
+    if (hostGroupId) return '支部级专班不指定承办党小组';
+    return null;
+  }
+  const group = hostGroupId ? groupOf(db, hostGroupId) : null;
+  if (!group || group.status !== 'active' || (group.branchId || DEFAULT_BRANCH_ID) !== branchId) {
+    return '专班承办党小组必须是本支部在册党小组';
+  }
+  return null;
+}
+
+/**
+ * 专班承办方 PATCH 门（D-868）：
+ *   · 已声明承办方 → 创建后不可改；
+ *   · 历史缺省 → 允许组织委员 / 支书 / 副支书一次性补选（null → 值），补选后锁死。
+ * @returns {string|null} 可懂错误文案
+ */
+export function taskforceScopePatchDeny(db, actor, previous, patch) {
+  const hasScope = previous?.organizingScope === ACTIVITY_SCOPES.BRANCH
+    || previous?.organizingScope === ACTIVITY_SCOPES.PARTY_GROUP;
+  const touches = patch && (Object.prototype.hasOwnProperty.call(patch, 'organizingScope')
+    || Object.prototype.hasOwnProperty.call(patch, 'hostGroupId'));
+  if (!touches) return null;
+  if (hasScope) {
+    const prevGroup = previous?.hostGroupId || null;
+    const nextGroup = Object.prototype.hasOwnProperty.call(patch, 'hostGroupId') ? (patch.hostGroupId || null) : prevGroup;
+    const nextScope = Object.prototype.hasOwnProperty.call(patch, 'organizingScope')
+      ? patch.organizingScope : previous.organizingScope;
+    if (nextScope !== previous.organizingScope || nextGroup !== prevGroup) {
+      return '专班承办方创建后不可修改';
+    }
+    return null;
+  }
+  if (actor?.role !== 'org-commissioner' && !SECRETARY.has(actor?.role)) {
+    return '无权限：补选专班承办方须由组织委员或支书操作';
+  }
+  return taskforceScopeDeny(db, actor, { ...previous, ...patch });
 }
 
 /**
@@ -432,6 +498,19 @@ export function snapshotScopeDeny(db, payload, actor, read) {
       if ((next.branchId || DEFAULT_BRANCH_ID) !== (previous.branchId || DEFAULT_BRANCH_ID)) return '无权限：工作组支部归属创建后不可修改';
       if (JSON.stringify(previous) !== JSON.stringify(next) && (previous.branchId || DEFAULT_BRANCH_ID) !== ownBranch(actor)) return '无权限：不能通过快照修改其他支部工作组';
       if ((next.workgroupId || workgroupIdFor('taskforce', next.id)) !== (previous.workgroupId || workgroupIdFor('taskforce', previous.id))) return '无权限：工作组关联创建后不可修改';
+      // D-868：专班承办方与活动同口径——创建后不可改；历史缺省允许一次性补选。
+      const prevScope = previous.organizingScope;
+      const nextScope = next.organizingScope;
+      if (prevScope && (prevScope !== nextScope || (previous.hostGroupId || null) !== (next.hostGroupId || null))) {
+        return '无权限：专班承办方创建后不可修改';
+      }
+      if (!prevScope && nextScope) {
+        if (!actor || !['org-commissioner', 'secretary', 'deputy-secretary'].includes(actor.role)) {
+          return '无权限：补选专班承办方须由组织委员或支书操作';
+        }
+        const scopeDeny = taskforceScopeDeny(db, actor, next);
+        if (scopeDeny) return scopeDeny;
+      }
       if (memberIdentity(previous.members) !== memberIdentity(next.members)) return '无权限：工作组成员须走成员语义接口调整';
       const transitionedToTerminal = isTaskforceTerminalStatus(next.status) && (!previous || previous.status !== next.status);
       if (!transitionedToTerminal) continue;
@@ -549,6 +628,8 @@ export function createActivityWorkgroup(db, actor, activity) {
   const id = workgroupIdFor('activity', activity.id);
   // R9 Task 4.3：建组字段与编辑 / 归档同源（同一投影函数），避免两处各写一份。
   const workgroup = activityWorkgroupUpdate(db, { ...activity, workgroupId: id }, actor.id);
+  const shapeDeny = workgroupShapeDeny(workgroup);
+  if (shapeDeny) return { ok: false, status: 400, error: shapeDeny };
   workgroup.createdBy = actor.id;
   workgroup.createdAt = activity.createdAt || new Date().toISOString();
   workgroup.migrationState = 'ready';
@@ -587,12 +668,18 @@ export function createActivityWorkgroup(db, actor, activity) {
 
 export function createTaskforceWorkgroup(db, actor, taskforce) {
   if (!ownBranch(actor)) return { ok: false, status: 403, error: NO_BRANCH_MESSAGE };
+  const scopeDeny = taskforceScopeDeny(db, actor, taskforce);
+  if (scopeDeny) return { ok: false, status: 400, error: scopeDeny };
   const id = workgroupIdFor('taskforce', taskforce.id);
   const workgroup = {
     id, branchId: ownBranch(actor), kind: 'taskforce', sourceType: 'taskforce', sourceId: taskforce.id,
     name: taskforce.name || taskforce.id, status: workgroupStatusForTaskforce(taskforce.status),
+    organizingScope: taskforce.organizingScope,
+    hostGroupId: taskforce.organizingScope === ACTIVITY_SCOPES.PARTY_GROUP ? (taskforce.hostGroupId || null) : null,
     createdBy: actor.id, createdAt: taskforce.createdAt || new Date().toISOString(), migrationState: 'ready',
   };
+  const shapeDeny = workgroupShapeDeny(workgroup);
+  if (shapeDeny) return { ok: false, status: 400, error: shapeDeny };
   const membership = validAssignments(db, actor, taskforce.members || []);
   if (!membership.ok) return membership;
   const run = db.transaction(() => {

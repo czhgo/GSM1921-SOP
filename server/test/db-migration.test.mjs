@@ -157,7 +157,8 @@ test('M7 v8/v10 活动组织落点：两档归一 / legacy 标记 / 补跨组招
     }));
 
     const applied = applyMigrations(db);
-    assert.deepEqual(applied.applied, [8, 9, 10, 11, 12, 13, 14, 15], '应从 v7 补跑 v8…v15（v13–v15 结构幂等）');
+    const expectedApplied = MIGRATIONS.filter((m) => m.version > 7).map((m) => m.version);
+    assert.deepEqual(applied.applied, expectedApplied, `应从 v7 补跑 v8…v${SCHEMA_VERSION}（版本后续新增须自动纳入，不写死）`);
     const row = (id) => JSON.parse(db.prepare('SELECT data FROM activities WHERE id = ?').get(id).data);
     assert.equal(row('act-v8-legacy').organizingScope, 'party-group', '旧 cross-group 归一为 party-group');
     assert.equal(row('act-v8-legacy').legacyHostGroup, true, '无承办组 ⇒ legacy 标记，不猜测');
@@ -214,7 +215,8 @@ test('M8 v15 党委在途提案部分唯一索引：存量重复置 cancelled（
     put('mcr-dup-2', '2026-11-02T00:00:00.000Z');
 
     const applied = applyMigrations(db);
-    assert.deepEqual(applied.applied, [15], '应从 v14 只补 v15');
+    const expectedApplied = MIGRATIONS.filter((m) => m.version > 14).map((m) => m.version);
+    assert.deepEqual(applied.applied, expectedApplied, `应从 v14 只补 v15…v${SCHEMA_VERSION}（版本后续新增须自动纳入，不写死）`);
     const rows = db.prepare("SELECT id, data FROM member_change_requests WHERE json_extract(data,'$.personId') = 'p-dup' ORDER BY id").all()
       .map((r) => JSON.parse(r.data));
     assert.equal(rows.length, 2, 'v15 去重不删行');

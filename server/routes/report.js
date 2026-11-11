@@ -5,11 +5,16 @@
 //  - POST /api/v1/report/trigger?branchId=   → 手动触发所选支部的独立推送
 //  认证：读取需会话 token；手动推送限党委组织员且必须选定单一支部，字段以平台侧映射表适配
 import { Router } from 'express';
-import { requireAuth, requireRole } from './auth.js';
+import { requireRole } from './auth.js';
 import {
   REPORT_DOMAINS, extractDomain, resolveWindow, toCsv, pushReport,
 } from '../services/reporting.js';
 import { actorBranchId, branchSelectionError, selectedBranchRequiredError } from './resources/branch-scope.js';
+import { SECRETARY_AND_DEPUTY_ROLES } from '../../docs/src/core/domain/constants.js';
+
+// 报表含 member / attendance / study 明细：读权取「支书 / 副支书 + 组织委员 + 党委」。
+// 宣传 / 纪检委员不默认放开；如支书另有取向，只改这一处。
+const REPORT_READ_ROLES = new Set([...SECRETARY_AND_DEPUTY_ROLES, 'org-commissioner', 'party-staff']);
 
 export function createReportRouter(db) {
   const router = Router();
@@ -29,7 +34,7 @@ export function createReportRouter(db) {
   });
 
   // CSV 导出——必须先于 /report/:domain 注册，避免 :domain 吞掉 'export'
-  router.get('/report/export', requireAuth(db), (req, res) => {
+  router.get('/report/export', requireRole(db, REPORT_READ_ROLES), (req, res) => {
     const scopeDeny = branchSelectionError(req.actor, req.query.branchId);
     if (scopeDeny) return res.status(403).json({ error: scopeDeny });
     const selectionRequired = selectedBranchRequiredError(req.actor, req.query.branchId);
@@ -47,7 +52,7 @@ export function createReportRouter(db) {
   });
 
   // JSON 拉取
-  router.get('/report/:domain', requireAuth(db), (req, res) => {
+  router.get('/report/:domain', requireRole(db, REPORT_READ_ROLES), (req, res) => {
     const scopeDeny = branchSelectionError(req.actor, req.query.branchId);
     if (scopeDeny) return res.status(403).json({ error: scopeDeny });
     const selectionRequired = selectedBranchRequiredError(req.actor, req.query.branchId);

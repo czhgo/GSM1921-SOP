@@ -539,7 +539,47 @@ const KINDS = {
     },
   },
 
-  // ── 业务记录作废已裁决（`CRUD-4`/`CRUD-6` · 补录#1；2026-10-05 批次 407 · 支书圈「新建通知 kind」）──
+  // ── 支委提案回执（D-869）──────────────────────────────────────
+  //   生成权仍在服务端：按 committee_proposals 行复算，不信客户端自述。
+  //   受众：提交 → 支委层；受理 / 驳回 / 归档 → 提案人；排期 / 决议 → 支委层 ＋ 提案人（＋ 受影响人）。
+  'committee-proposal-submitted': {
+    authorize({ actor, sourceId, db }) {
+      if (!actor || !sourceId) return false;
+      const row = rowOf(db, 'committee_proposals', sourceId);
+      return !!row && (row.proposedBy === actor.id || COMMITTEE_ROLE_SET.has(actor.role));
+    },
+  },
+  'committee-proposal-accepted': {
+    authorize({ actor, sourceId, db }) {
+      if (!actor || !sourceId || !COMMITTEE_ROLE_SET.has(actor.role)) return false;
+      return !!rowOf(db, 'committee_proposals', sourceId);
+    },
+  },
+  'committee-proposal-rejected': {
+    authorize({ actor, sourceId, db }) {
+      if (!actor || !sourceId || !COMMITTEE_ROLE_SET.has(actor.role)) return false;
+      return !!rowOf(db, 'committee_proposals', sourceId);
+    },
+  },
+  'committee-proposal-scheduled': {
+    authorize({ actor, sourceId, db }) {
+      if (!actor || !sourceId || !SECRETARY_DEPUTY_SET.has(actor.role)) return false;
+      return !!rowOf(db, 'committee_proposals', sourceId);
+    },
+  },
+  'committee-proposal-decided': {
+    authorize({ actor, sourceId, db }) {
+      if (!actor || !sourceId || !SECRETARY_DEPUTY_SET.has(actor.role)) return false;
+      return !!rowOf(db, 'committee_proposals', sourceId);
+    },
+  },
+  'committee-proposal-closed': {
+    authorize({ actor, sourceId, db }) {
+      if (!actor || !sourceId || !SECRETARY_DEPUTY_SET.has(actor.role)) return false;
+      return !!rowOf(db, 'committee_proposals', sourceId);
+    },
+  },
+
   // 场景：责任人 `requestVoid` → 支委层在支书台**确认**或**驳回**该**业务记录**作废申请后的**到人知会**
   //   （与 `todo-void-decided` 同口径；本条补的是「业务记录」那一面：原只发待办作废、记录作废无派生知会）。
   // 授权：① actor 为**支委层**（裁决动作的功能位）；② `payload.resource` 须在 `RESOURCE_TABLES` 内
@@ -569,6 +609,31 @@ const KINDS = {
     },
   },
 };
+
+// 提案回执的受众补全（D-869）：模板只负责文案与主受众，具体到人在这里按行复算。
+const PROPOSAL_NOTICE_KINDS = new Set([
+  'committee-proposal-submitted', 'committee-proposal-accepted', 'committee-proposal-rejected',
+  'committee-proposal-scheduled', 'committee-proposal-decided', 'committee-proposal-closed',
+]);
+for (const kind of PROPOSAL_NOTICE_KINDS) {
+  if (KINDS[kind].build) continue;
+  KINDS[kind].build = (ctx) => {
+    const p = rowOf(ctx.db, 'committee_proposals', ctx.sourceId) || {};
+    const built = buildSystemNotice(kind, {
+      ...payloadOf(ctx),
+      sourceId: ctx.sourceId,
+      proposalTitle: p.title || '',
+      proposerName: p.proposedBy ? personName(ctx.db, p.proposedBy) : '',
+      proposerRole: p.proposedBy ? (rowOf(ctx.db, 'users', p.proposedBy)?.role || '') : '',
+    });
+    const persons = new Set([...(built.audiencePersons || []), p.proposedBy]);
+    if (kind === 'committee-proposal-scheduled' || kind === 'committee-proposal-decided') {
+      for (const id of Array.isArray(p.affectedPersonIds) ? p.affectedPersonIds : []) persons.add(id);
+    }
+    const list = [...persons].filter(Boolean);
+    return { ...built, ...(list.length ? { audiencePersons: list } : {}) };
+  };
+}
 
 // 统一 build 包装：sourceId 由服务端注入并置于末位，杜绝客户端 payload 覆盖落点锚点。
 for (const [kind, def] of Object.entries(KINDS)) {

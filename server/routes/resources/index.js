@@ -33,11 +33,11 @@ import { canReadThoughtReport } from '../../../docs/src/services/governance/thou
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
 // T-209 全栈同步：补齐前端 mockDB 全部持久化域，使 API 模式全链路可用
 import { RESOURCE_TABLES, ID_PREFIX, listTable, getRow, writeRow } from './store.js';
-import { RESOURCE_WRITE_GATE, COMMISSIONER_WRITE_RESOURCES, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE, _assertActivityBlockEnabled, _assertWorkflowBlockEnabled, _assertCapabilityPackageEnabled, activityBlockDisabledMsg, workflowBlockDisabledMsg, _snapshotNoticeMessageGateDeny, _snapshotResourceWriteGateDeny, _retainUngatedSnapshotRows, _inspectionDecisionDeny, _inspectionSourceKeyDeny, _inspectionImmutableKeyDeny, _inspectionPersonMembershipDeny, aggregateSubRecordWriteDeny } from './gates.js';
+import { RESOURCE_WRITE_GATE, COMMISSIONER_WRITE_RESOURCES, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, assertCommitteeMeetingWrite, COMMITTEE_MEETING_DENY_MSG, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE, _assertActivityBlockEnabled, _assertWorkflowBlockEnabled, _assertCapabilityPackageEnabled, activityBlockDisabledMsg, workflowBlockDisabledMsg, _snapshotNoticeMessageGateDeny, _snapshotResourceWriteGateDeny, _retainUngatedSnapshotRows, _inspectionDecisionDeny, _inspectionSourceKeyDeny, _inspectionImmutableKeyDeny, _inspectionPersonMembershipDeny, aggregateSubRecordWriteDeny } from './gates.js';
 import { _activityApprovalGateDeny, _snapshotActivityApprovalGateDeny, _activityCreateGatePatch } from './approval-gates.js';
 import { _snapshotBaseVersions, _snapshotWrites, _snapshotMissingVersions, _allCollectionVersions, _snapshotVersionConflicts, _normalizeSnapshotAliases, recordSnapshotConflicts } from './snapshot-versions.js';
 import { registerExtraSemanticRoutes } from './semantic-routes.js'; import { registerTodoGroupRoutes } from '../todo-groups.js'; // 批次 532·B-500-7：待办实时派生的服务端只读端点（同行接入，保下文行号零位移）
-import { activityCreationDeny, activityOrganizerExceptionDeny, activityOperationAllowed, activityWorkgroupSyncUpdates, activityWorkgroupUpdate, approvedTaskforceDissolutionWorkgroups, attendanceWriteDeny, attendanceConfirmDeny, isAttendanceConfirmOnlyChange, createActivityWorkgroup, createTaskforceWorkgroup, snapshotScopeDeny, syncActivityWorkgroup, taskforceStatusWorkgroups } from './workgroup-routes.js';
+import { activityCreationDeny, activityOrganizerExceptionDeny, activityOperationAllowed, activityWorkgroupSyncUpdates, activityWorkgroupUpdate, approvedTaskforceDissolutionWorkgroups, attendanceWriteDeny, attendanceConfirmDeny, isAttendanceConfirmOnlyChange, createActivityWorkgroup, createTaskforceWorkgroup, snapshotScopeDeny, syncActivityWorkgroup, taskforceScopeDeny, taskforceScopePatchDeny, taskforceStatusWorkgroups } from './workgroup-routes.js';
 import { actorBranchId, aggregateWriteDeny, branchForNewResource, branchSelectionError, createTableReader, mergeAggregateBody, mergeScopedSnapshotWrites, recordBranchWriteDeny, requireAssignedBranch, resourceRowsForActor, resourceBranchId, scopedSnapshotWriteDeny } from './branch-scope.js';
 import { normalizeSignupCreate, normalizeSignupPatch, signupCreateDeny, signupSnapshotDeny } from './signup-write-guard.js';
 
@@ -450,6 +450,10 @@ export function createResourcesRouter(db) {
         if (name === 'activities' && !_assertActivityWrite(req.actor, row.type)) {
           return res.status(403).json({ error: ACTIVITY_WRITE_DENY_MSG });
         }
+        // 支委会写门（D-866）：建会只归支书 / 副支书（党委 party-staff 保留入口）。
+        if (name === 'activities' && !assertCommitteeMeetingWrite(req.actor, row)) {
+          return res.status(403).json({ error: COMMITTEE_MEETING_DENY_MSG });
+        }
         if (name === 'activities') {
           const scopeDeny = activityCreationDeny(db, req.actor, row);
           if (scopeDeny) return res.status(403).json({ error: scopeDeny });
@@ -524,6 +528,8 @@ export function createResourcesRouter(db) {
           const created = createActivityWorkgroup(db, req.actor, data);
           if (!created.ok) return res.status(created.status || 400).json({ error: created.error });
         } else if (name === 'taskforces') {
+          const scopeDeny = taskforceScopeDeny(db, req.actor, data);
+          if (scopeDeny) return res.status(400).json({ error: scopeDeny });
           const created = createTaskforceWorkgroup(db, req.actor, data);
           if (!created.ok) return res.status(created.status || 400).json({ error: created.error });
         } else {
@@ -677,6 +683,10 @@ export function createResourcesRouter(db) {
           }
         }
         const effType = (req.body && req.body.type) || prevRow.type;
+        // 支委会写门（D-866）：议程 / 决议 / 状态等任一改写只归支书 / 副支书。
+        if (!assertCommitteeMeetingWrite(req.actor, { ...prevRow, type: effType })) {
+          return res.status(403).json({ error: COMMITTEE_MEETING_DENY_MSG });
+        }
         const actorCanWriteType = !isPartyGroupLeaderRole(req.actor.role) || _assertActivityWrite(req.actor, effType);
         const gateDeny = actorCanWriteType && (activityOperationAllowed(db, req.actor, prevRow) || orgCommissionerLegacyFix)
           ? _activityApprovalGateDeny(prevRow, req.body, req.actor) : (ACTIVITY_WRITE_DENY_MSG + '；且须具备本活动范围内的明确操作权限');
@@ -736,6 +746,7 @@ export function createResourcesRouter(db) {
         }
       }
       let relatedWorkgroupUpdate = null;
+      let taskforceScopeFilled = false;
       if (name === 'taskforces') {
         const current = JSON.parse(existing.data);
         if (!_assertWorkflowBlockEnabled(db, req.actor, 'taskforce')
@@ -744,6 +755,16 @@ export function createResourcesRouter(db) {
         }
         if (req.actor.role !== 'org-commissioner' && req.actor.role !== 'secretary' && req.actor.role !== 'deputy-secretary') {
           return res.status(403).json({ error: '无权限：当前角色不能管理该工作组' });
+        }
+        const scopePatchDeny = taskforceScopePatchDeny(db, req.actor, current, req.body || {});
+        if (scopePatchDeny) return res.status(400).json({ error: scopePatchDeny });
+        taskforceScopeFilled = !current.organizingScope && !!req.body?.organizingScope;
+        if (taskforceScopeFilled) {
+          Object.assign(merged, {
+            scopeFilledBy: req.actor.id,
+            scopeFilledAt: new Date().toISOString(),
+          });
+          delete merged.legacyScope;
         }
         if (req.body?.status !== undefined && !isTaskforceStatus(req.body.status)) {
           return res.status(400).json({ error: '专班状态无效' });
@@ -798,13 +819,18 @@ export function createResourcesRouter(db) {
           req.body = { ...next, recordedBy: current.recordedBy, updatedBy: req.actor.id, updatedAt: new Date().toISOString() };
         }
       }
-      if (name === 'taskforces' && (merged.name !== JSON.parse(existing.data).name || merged.status !== JSON.parse(existing.data).status)) {
+      if (name === 'taskforces' && (merged.name !== JSON.parse(existing.data).name || merged.status !== JSON.parse(existing.data).status || taskforceScopeFilled)) {
         const workgroup = db.prepare('SELECT data FROM workgroups WHERE id = ?').get(merged.workgroupId || workgroupIdFor('taskforce', id));
         if (workgroup) {
           const currentGroup = JSON.parse(workgroup.data);
           relatedWorkgroupUpdate = {
             ...currentGroup, name: merged.name || currentGroup.name,
             status: workgroupStatusForTaskforce(merged.status || currentGroup.status),
+            ...(taskforceScopeFilled ? {
+              organizingScope: merged.organizingScope,
+              hostGroupId: merged.organizingScope === ACTIVITY_SCOPES.PARTY_GROUP ? (merged.hostGroupId || null) : null,
+              migrationState: 'ready',
+            } : {}),
             updatedBy: req.actor.id, updatedAt: new Date().toISOString(),
           };
         }
@@ -875,6 +901,9 @@ export function createResourcesRouter(db) {
         }
         if (activity && !_assertActivityBlockEnabled(db, req.actor, activity.type)) {
           return res.status(409).json({ error: '该能力包已停用：在办活动可继续办结，活动记录与历史关联数据须保留' });
+        }
+        if (activity && !assertCommitteeMeetingWrite(req.actor, activity)) {
+          return res.status(403).json({ error: COMMITTEE_MEETING_DENY_MSG });
         }
         if (activity && (!_assertActivityWrite(req.actor, activity.type)
           || !activityOperationAllowed(db, req.actor, activity, 'activity.delete'))) {

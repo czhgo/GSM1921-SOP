@@ -8,6 +8,7 @@ import { createUploadsRouter } from './routes/uploads.js';
 import { createReportRouter } from './routes/report.js';
 import { createMemberRouter } from './routes/member.js';
 import { createCommitteeRouter } from './routes/committee.js';
+import { createCommitteeProposalsRouter } from './routes/committee-proposals.js';
 import { createSystemNoticesRouter } from './routes/system-notices.js';
 import { createLeaderProgressRouter } from './routes/leader-progress.js';
 
@@ -43,6 +44,9 @@ export function createApp({ dbPath = ':memory:' } = {}) {
 
   // 线上支委会表态链路（异步表态 → 支书汇总/截止）
   app.use('/api/v1', createCommitteeRouter(app.locals.db));
+
+  // 支委提案（统一上会事项）与回执（D-869）
+  app.use('/api/v1', createCommitteeProposalsRouter(app.locals.db));
 
   app.use('/api/v1', createUploadsRouter(app.locals.db));
 

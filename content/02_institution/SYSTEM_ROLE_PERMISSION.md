@@ -2,7 +2,7 @@
 title: "系统角色权限矩阵（代码键级权威）"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-11-10
+last_updated: 2026-11-11
 status: active
 related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/constants.js, server/security/write-policy-matrix.mjs, content/04_web_design/module/PUBLIC_ENTRANCE.md]
 ---
@@ -348,3 +348,4 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 - **记录人必呈现**：考勤明细与导出均呈现记录人；记录时间可留存、不强调。（D-457）
 - **项目角色不落 `users.role`**：`organizer` / `deep` 写门拒收，只在具体活动 / 专班内生效；一人多岗权限取并集。（D-687）
 - **待人工**：D-442「专班发布招募即入待支委会表决」与组织委员指南「专班不必先经统一表决」口径不一致，未择边，待人工裁定。
+- **支委提案（D-869）**：党小组组长 / 副组长可提交本组来源提案；支委层可受理 / 驳回；支书 / 副支书可排期到本支部支委会、记录决议与归档。提案状态只经 `pending → queued → on-agenda → decided → closed|rejected`，不得跳级；建会与决议只归支书 / 副支书。回执发提案人，决议另发受影响人。

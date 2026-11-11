@@ -151,7 +151,8 @@ export const WORK_MAP_MODULES = [
   {
     id: 'taskforce', name: '专班', tier: 'method', defaultOwner: 'org-commissioner',
     desc: '专班全生命周期：创建-招募-运行-解散（组织委员最高优先级），负责人制',
-    outputs: ['考勤', '考察', '材料'],
+    // D-868：专班不产生考勤（考勤只挂活动）；产出只保留考察与材料。
+    outputs: ['考察', '材料'],
   },
   {
     id: 'joint-event', name: '共建活动', tier: 'method', defaultOwner: 'leader',

@@ -396,7 +396,7 @@ test('T2-③ issue_unread：置未读 → 新客户端读得到；销项后不�
 test('T2-④ auth_audit：追加留痕 → 支书新客户端读得到；非支委层读 403；同 id 幂等不重复落', async () => {
   const org = await freshClient('2400012355');
   const create = await org.post('/api/v1/taskforces', {
-    name: '授权审计端点测试', task: '核实成员变更后才允许留痕', status: 'recruiting', branchId: 'br-b1', members: [],
+    name: '授权审计端点测试', task: '核实成员变更后才允许留痕', status: 'recruiting', branchId: 'br-b1', organizingScope: 'branch', hostGroupId: null, members: [],
   });
   assert.equal(create.status, 201);
   const taskforce = await create.json();

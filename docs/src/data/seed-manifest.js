@@ -119,7 +119,7 @@ export const SEED_MANIFEST = [
     initTier: 'clear',
     seedOwnedFields: [
       'id', 'name', 'task', 'manager', 'initiator', 'capacity', 'deadline',
-      'activityId', 'createdAt',
+      'activityId', 'createdAt', 'organizingScope', 'hostGroupId',
     ],
     // R9 Task 4.1：members 由报名审核 / 成员语义接口与贡献填报写入（含 contributions），
     //   ⇒ 归运行时字段，种子修复不得整值回滚。
@@ -610,6 +610,8 @@ export const NON_SEED_TABLES = Object.freeze([
   'sessions', 'attachments', 'collection_versions', 'seed_meta',
   // 2026-11-08 批次 536：党委发布留痕（v13）——无演示种子，由发布 / 撤回 / 过期 / 支部采纳写入。
   'publication_audits',
+  // 2026-11-11 批次 546（D-869）：支委提案与状态事件（v16）——无演示种子，由提案提交 / 流转写入。
+  'committee_proposals', 'committee_proposal_events',
 ]);
 
 /**

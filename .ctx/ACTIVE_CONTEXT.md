@@ -3,9 +3,9 @@ title: "Active Context — 当前判断入口"
 type: active_context
 role: "[AI]"
 layer: active
-last_updated: "2026-11-11"
-last_verified: "2026-11-11"
-latest_decision: "D-867"
+last_updated: "2026-11-12"
+last_verified: "2026-11-12"
+latest_decision: "D-870"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -23,17 +23,17 @@ status: active
 - **形态**：原生 ESM 多页应用 ＋ Node/Express ＋ better-sqlite3；页面 26 个（18 根页 ＋ 8 工作台/只读视图）；工作台 7 个（支书 / 组织 / 宣传 / 纪检 / 组长 / 成员 / 党委）；党委台 4 页签（下发通知 / 院级内容 / 支部上报 / 支部管理）。
   - source：`.ctx/SNAPSHOT.md §I/§III`。
 - **URL**：无后缀已落地（`D-867`）：`pageHref()` 单源 ＋ `resolveDocumentUrl` ＋ 运行时 `link-normalize`；旧 `.html` 保持 200；真机登录后 URL＝`/workspace/secretary?tab=today`，站内 `.html` 锚点 0（`help` / `about` 除外）。
-- **数据**：业务表 48 张（34 资源 ＋ 8 语义 ＋ 6 工作组）；SQLite 宽表 `id + data(JSON)`；schema **v13**（新增 `publication_audits`，三张内容表加 `owner_scope` / `publish_scope` 生成列）；空库首启补最小组织基线（1 支部 ＋ 党委账号 ＋ 6 角色账号）。
+- **数据**：业务表 50 张（34 资源 ＋ 10 语义 ＋ 6 工作组；v16 新增 `committee_proposals` / `committee_proposal_events`）；SQLite 宽表 `id + data(JSON)`；schema **v16**（v13 新增 `publication_audits`，三张内容表加 `owner_scope` / `publish_scope` 生成列；v16 建支委提案两表）；空库首启补最小组织基线（1 支部 ＋ 党委账号 ＋ 6 角色账号）。
   - source：`server/data/domain-contract.mjs`、`content/04_web_design/data/DATA_CONTRACT.md`。
-- **权限**：写入口权限矩阵 **141 条**（135 enforced / 4 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵；审计 C1 查矩阵 + 高风险抽样。
+- **权限**：写入口权限矩阵 **143 条**（137 enforced / 4 self-service / 2 public / **0 known-risk**；v16 提案 POST/PATCH 两条已登记）；守卫断言运行期写路由 ≡ 矩阵；审计 C1 查矩阵 + 高风险抽样。
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
 - **审计**：46 页签 **P0 0 / P1 0 / P2 3 / exception 44**；F1–F8 全绿；M1–M3 在位；`secretary.overview` / `calendar` / `committee-meeting` / `group-progress` / `work-map` 五页三档均 0。P2 三条是 IA 块数基线漂移（`secretary.calendar` 10 vs 3 / `secretary.report-up` 14 vs 4 / `visitor.activities` 9 vs 3），登记 `L-22`，待支书裁定重基线；全量未取终摘要，P0 / P1 读数来自守卫代理报告。
   - source：`.ctx/evidence/2026-11-10/tab-audit/summary.md`、`.ctx/evidence/2026-11-10/audit-fix/summary.md`。
-- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **29 文件 / 246 断言 / 101.6s**（结果门禁）；guards **101 文件 / 809 tests / 166.3s**（静态守卫，按需）；precommit＝daily＋guards＋非核心域回归＋e2e（时长仍长）；weekly 2。四层 runner 按 registry 单一源执行；CI `daily.yml` 已接 `test:daily` 与 `deploy-verify`（两个 job 均未实跑绿）。
+- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **29 文件 / 246 断言 / 110.3s**（结果门禁）；guards **105 文件 / 842 tests / 130.2s**（静态守卫，按需）；precommit＝daily＋guards＋非核心域回归＋e2e（时长仍长）；weekly 2。四层 runner 按 registry 单一源执行；CI `daily.yml` 已接 `test:daily` 与 `deploy-verify`（两个 job 均未实跑绿）。
   - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859 / §D-860 / §D-863 / §D-864`。
 - **工程评分（`D-865`）**：业务与数据 **81** · 安全与权限 **78** · 最小三成本 **78** · 测试与发布 **83** · 架构与可维护性 **78** · 运行部署 **76**；不设平均总分。
   - source：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/logs/2026-11-DECISION_LOG.md §D-865`。
-- **版本戳**：`20261110a`（`bump-version --check`：0 处陈旧，CODE_VERSION 一致）。
+- **版本戳**：`20261110b`（`bump-version --check`：0 处陈旧，CODE_VERSION 一致）。
   - source：`docs/scripts/bump-version.mjs --check`。
 - **换轨**：副本 **48 表 / 577 行** export → dry-run → apply 一致；生产空库 `preflight-cutover --strict` exit 0 / 警告 0。
   - source：`deploy/CUTOVER_RUNBOOK.md`、`.ctx/evidence/2026-11-03/security/summary.md`。
@@ -64,6 +64,9 @@ status: active
 - **批次 541 P2 分拣与三条读面口径**：P2 按 A / B / C / D / E 五类分拣，B 类未写触发不得开工，C 类关闭不再复核；应到口径单一源＝`roster-eligibility.js`（滞留保留身份、应到剔除；已转出前置剔除），待办行读权限单一源＝`todo-read-policy.mjs`，公共门厅过期 / 缺失有效期一律 404 fail-closed，定向通知须同时比对支部。（`D-864`）→ `.ctx/evidence/2026-11-10/p2-cleanup-ledger.md`、`.ctx/REVIEW_QUEUE.md B-541-1…11`。
 - **产品对象模型与议事流**：三层为「党小组 → 活动 / 专班 → 工作组」，工作组不设指导支委；组长「组内全权 ＋ 支部提案」；上会「统一事项 ＋ 回执」，建会与决议只归支书 / 副支书；URL 取「去后缀 ＋ 兼容」，旧 `.html` 保持 200。（`D-866`）→ `content/04_web_design/evolution/OBJECT_MODEL_AND_COMMITTEE_FLOW.md`。
 - **三项子裁定 ＋ URL B 已落**：支部级专班存在（`taskforces.hostGroupId` 可空）；决议默认受众＝支委 ＋ 提案人 ＋ 受影响人；组长提案对全体支委可见；URL 由 `pageHref()` 单源＋运行时归一出清。（`D-867`）→ 设计稿 §五 / §七。
+- **对象模型已落**：活动与专班并列、互不挂靠；工作组是二者各自 1:1 执行载体；专班补 `organizingScope/hostGroupId`，新记录必选承办方，历史「待补」一次性补选；专班不产生考勤。（`D-868`）→ `DATA_MODEL §附二`、`workgroup-routes.js`、`taskforce-tab.js`。
+- **支委提案已落**：`committee_proposals` / 事件表（schema v16）；`pending → queued → on-agenda → decided → closed|rejected`；组长可提、支委受理、支书排期/决议；回执 6 类，决议可回写草案活动 / 专班。（`D-869`）→ `server/routes/committee-proposals.js`、`committee-proposal.js`。
+- **三台专项探查 P0 收口**：提案决议与议程同事务单一事实；支委会建会 / 议程结果仅支书 / 副支书；报表读口收为支书 / 副支书 / 组织委员 / 党委；宣传台看板只读不闭环活动；组长进展读口按角色 / 组收口；M7/M8 迁移期望改由 `SCHEMA_VERSION` 派生，新增写门矩阵 evidence 行号守卫。（`D-870`）→ `server/routes/{committee-proposals,report,leader-progress}.js`、`resources/gates.js`、`docs/src/core/domain/party-group-scope.js`。
 
 ## §3 当前风险与下一步
 
@@ -91,7 +94,7 @@ status: active
 
 ### 下一批最该做的 3 件事
 
-1. **`D-866` 落地（支书优先级最高）**：URL B 已完成（`D-867`）；下一步按对象模型判据 → 提案 / 上会回执 → 建会权收口与决议广播推进；设计稿与已裁三项见 `content/04_web_design/evolution/OBJECT_MODEL_AND_COMMITTEE_FLOW.md`。
+1. **`D-866`–`D-870` 已落地**：URL（`D-867`）、对象模型（`D-868`）、提案上会（`D-869`）、三台 P0 收口（`D-870`）已完成；下一步按 `L-10` / `L-16` / `L-22` 等台账推进，需支书裁定的项先列丙部。
 2. **完整 Plan B 二期（`B-500-7b-2`）**：删客户端业务派生的默认路径 + 读面前置解耦 + 缓存 / 性能；前置（7 类对账 8/8、双支部夹具、daily 246 断言）已达，不以上线为前提。
 3. **首次部署前验证**：在 Linux 测试机跑 `install/update` + `preflight-cutover --strict`，把 `L-02` 关掉；多支部 Phase 1 顺延至上述两项之后。
 

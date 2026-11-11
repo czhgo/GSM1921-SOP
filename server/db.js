@@ -176,10 +176,14 @@ export const SEMANTIC_TABLES = [
   // 授权审计留痕（端点见 resources.js「授权审计留痕」段）——原只存 localStorage 键 sop_org_os_auth_audit
   //   ⇒ 清缓存即留痕灭失。留痕的意义＝让「谁给谁赋了什么角色」这条治理承诺可被事后核对（只增不改）。
   'auth_audit',
-  // 工作组子域和应到名单快照不属于既有语义表；由 schema v3 迁移建立。
   // 2026-11-08 批次 536（党委内容与公开发布 · Task 1）：发布动作留痕（发布 / 撤回 / 过期 / 支部采纳），
   //   只增不改，演示种子为空；表结构由 schema v13 建立，读写口在后续任务接入。
   'publication_audits',
+  // 工作组子域和应到名单快照不属于既有语义表；由 schema v3 迁移建立。
+  // 2026-11-11 批次 546（D-869）：支委提案（统一上会事项）与状态事件。
+  //   只做运行时域，演示种子为空；不塞进通用资源 CRUD / 快照 payload。
+  'committee_proposals',
+  'committee_proposal_events',
 ];
 
 export const WORKGROUP_TABLES = Object.freeze([
@@ -975,6 +979,17 @@ export const MIGRATIONS = [
         ON member_change_requests(json_extract(data,'$.branchId'), json_extract(data,'$.personId'))
         WHERE json_extract(data,'$.source') = 'committee-proposal'
           AND IFNULL(json_extract(data,'$.status'),'') NOT IN ('completed','rejected','cancelled')`);
+    },
+  },
+  {
+    // v16（2026-11-11 批次 546 · D-869）：支委提案（统一上会事项）＋ 状态事件。
+    //   运行时域，演示种子为空；只建表，不改既有 JSON 行。
+    version: 16,
+    name: 'committee-proposals',
+    tables: ['committee_proposals', 'committee_proposal_events'],
+    up(db) {
+      db.exec('CREATE TABLE IF NOT EXISTS committee_proposals (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
+      db.exec('CREATE TABLE IF NOT EXISTS committee_proposal_events (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
     },
   },
 ];

@@ -393,6 +393,62 @@ const TEMPLATES = {
     targetType: 'record',
     targetId: sourceId,
   }),
+
+  // ── 支委提案回执（D-869） ──────────────────────────────────────
+  //   受众按动作分：提交 → 支委层；受理 / 驳回 / 归档 → 提案人；
+  //   排期 / 决议 → 支委层 ＋ 提案人（＋ 受影响人）。
+  'committee-proposal-submitted': ({ sourceId, proposalTitle, proposerName }) => pick({
+    title: '新的支部提案待受理',
+    content: `${proposerName || '党小组组长'} 提交了「${proposalTitle || '支部提案'}」，请支委会受理。`,
+    priority: 'normal',
+    audience: ['committee'],
+    targetType: 'committeeProposal',
+    targetId: sourceId,
+    targetUrl: 'workspace/secretary.html?tab=committee-meeting',
+  }),
+  'committee-proposal-accepted': ({ sourceId, proposalTitle, proposerRole }) => pick({
+    title: '支部提案已受理',
+    content: `你的提案「${proposalTitle || '支部提案'}」已由支委会受理，等待排期。`,
+    priority: 'normal',
+    audiencePersons: [],
+    targetType: 'committeeProposal',
+    targetId: sourceId,
+    targetUrl: `${workspacePageOf(proposerRole || 'leader')}?tab=overview&section=proposals`,
+  }),
+  'committee-proposal-rejected': ({ sourceId, proposalTitle, note, proposerRole }) => pick({
+    title: '支部提案未受理',
+    content: `你的提案「${proposalTitle || '支部提案'}」未受理${note ? `：${note}` : ''}。`,
+    priority: 'normal',
+    targetType: 'committeeProposal',
+    targetId: sourceId,
+    targetUrl: `${workspacePageOf(proposerRole || 'leader')}?tab=overview&section=proposals`,
+  }),
+  'committee-proposal-scheduled': ({ sourceId, proposalTitle, meetingTitle }) => pick({
+    title: '支部提案已排期',
+    content: `提案「${proposalTitle || '支部提案'}」已排入${meetingTitle ? `「${meetingTitle}」` : '支委会'}议程。`,
+    priority: 'normal',
+    audience: ['committee'],
+    targetType: 'committeeProposal',
+    targetId: sourceId,
+    targetUrl: 'workspace/secretary.html?tab=committee-meeting',
+  }),
+  'committee-proposal-decided': ({ sourceId, proposalTitle, decisionLabel, note }) => pick({
+    title: '支部提案已形成决议',
+    content: `提案「${proposalTitle || '支部提案'}」的决议为「${decisionLabel || '已记录'}」${note ? `：${note}` : ''}。`,
+    priority: 'normal',
+    audience: ['committee'],
+    targetType: 'committeeProposal',
+    targetId: sourceId,
+    targetUrl: 'workspace/secretary.html?tab=committee-meeting',
+  }),
+  'committee-proposal-closed': ({ sourceId, proposalTitle, proposerRole }) => pick({
+    title: '支部提案已归档',
+    content: `提案「${proposalTitle || '支部提案'}」已归档。`,
+    priority: 'normal',
+    targetType: 'committeeProposal',
+    targetId: sourceId,
+    targetUrl: `${workspacePageOf(proposerRole || 'leader')}?tab=overview&section=proposals`,
+  }),
 };
 
 /**

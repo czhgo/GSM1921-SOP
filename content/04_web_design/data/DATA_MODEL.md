@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.1"
-last_updated: "2026-11-08"
+last_updated: "2026-11-11"
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -1969,3 +1969,31 @@ KANBAN\_MOCKS（mock/kanban.js）作为独立硬编码的看板数据，与正�
 - **活动物理删除**：须连带清理关联数据，不留孤儿行。（D-812）
 - **服务端化判据**：清掉浏览器缓存后记录仍在，才算服务端化；只活在本机的域须进服务端表。（D-631/D-636）
 - **考勤浮窗**：默认带出报名者并保留调整空间；报名不设截止，本场组织者与支书 / 副支书可手动关闭（已报名者仍可取消）。（D-288/D-465/D-546）
+
+---
+
+## 附二：对象模型三层判据（2026-11-11 · `D-868`）
+
+> 本节只补判据与专班新增字段，不改上文既有表；活动与专班并列，工作组是二者各自的执行载体。
+
+| 层 | 对象 | 必填挂靠 | 数量判据 | 不承担 |
+|---|---|---|---|---|
+| 组织归属层 | 党小组 | 支部 | 一名成员只属于一个党小组 | 不承担活动 / 专班 / 工作组授权 |
+| 业务层 | 活动 / 专班 | 承办党小组 `hostGroupId`；支部级为 `null` | 每个业务对象只挂一个承办党小组 | 不承担成员授权 |
+| 执行层 | 工作组 | `kind` ＋ `sourceType` ＋ `sourceId` | 一个业务对象恰有一个主工作组；`kind === sourceType`；`sourceId` 指向同支部真实行 | 不承担组织归属；不设指导支委字段 |
+
+**专班补字段（JSON 宽行，无 DDL 变更）**
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `organizingScope` | `'party-group'\|'branch'\|null` | 新记录必填 | `branch`＝支部级专班，承办方记为支委会；`party-group`＝党小组承办 |
+| `hostGroupId` | `string\|null` | 条件必填 | `party-group` 必填且须同支部 active 党小组；`branch` 必须为 `null` |
+| `legacyScope` | `boolean` | 否 | 历史缺承办方的标记；补选后清除 |
+| `scopeFilledBy` / `scopeFilledAt` | `string` | 否 | 历史专班一次性补选的留痕 |
+
+**边界**：
+
+- 活动与专班互不挂靠；`taskforce.activityId` 只是旧兼容字段，不表达层级。
+- 工作组不是第三类业务对象；成员、授权、任务、产出都挂在工作组上。
+- 专班不产生考勤；考勤只挂活动，专班产出只保留考察与材料。
+- 历史专班缺承办方时置 `null` ＋ `legacyScope=true`，不猜归属；由组织委员 / 支书一次性补选。

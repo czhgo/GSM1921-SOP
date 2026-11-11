@@ -138,6 +138,19 @@ export function _assertActivityWrite(actor, effectiveType) {
   if (isPartyGroupLeaderRole(actor.role)) return LEADER_ACTIVITY_TYPES.has(effectiveType);
   return true;
 }
+
+// ── 支委会写门（D-866 · 本批 P0-2）──────────────────────────────
+//   建会 / 改议程 / 记录决议只归支书 / 副支书；党委侧 party-staff 保留既有入口。
+//   普通活动写权不动（避免误伤归档 / 议程编辑既有链路）；进一步收紧列入丙部待裁。
+const COMMITTEE_MEETING_TYPES = new Set(['支委会']);
+export function isCommitteeMeetingActivity(activity) {
+  return !!activity && (COMMITTEE_MEETING_TYPES.has(activity.type) || activity.scenarioId === 'branch-committee');
+}
+export function assertCommitteeMeetingWrite(actor, activity) {
+  if (!isCommitteeMeetingActivity(activity)) return true;
+  return !!actor && (SECRETARY_AND_DEPUTY_ROLE_SET.has(actor.role) || PARTY_STAFF_ROLE.has(actor.role));
+}
+export const COMMITTEE_MEETING_DENY_MSG = '无权限：支委会只能由支书 / 副支书建立，议程与决议也只能由支书 / 副支书记录';
 export function _ballotModeReject(voteConfig) {
   if (!voteConfig || typeof voteConfig !== 'object') return null;
   if (isAnonymousForced(voteConfig.optionSet) && voteConfig.ballotMode === 'named') {

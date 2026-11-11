@@ -282,6 +282,12 @@ export function createCommitteeRouter(db) {
       push('issue-committee', row, `意见反馈 #${row.number || '—'}`);
     }
 
+    // ②b 支委提案（D-869）：只收已受理、待排期的事项；按现有「意见反馈」类落池，不新增第九类
+    for (const row of listTable(db, 'committee_proposals').filter(inBranch)) {
+      if (row.status !== 'queued') continue;
+      push('issue-committee', row, `支部提案${row.proposedBy ? ` · 提案人 ${row.proposedBy}` : ''}`);
+    }
+
     // ③ 制度草案 / 待报送党员大会（同一判据 `isAgendaDraftDocCandidate`；党委行不进支部待议池）
     for (const row of listTable(db, 'branch_docs').filter(inBranch)) {
       if (row.ownerScope === 'committee' || !isAgendaDraftDocCandidate(row)) continue;

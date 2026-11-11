@@ -71,11 +71,11 @@ export const DAILY_TEST_BUDGET = 245;
 
 /** guards 文件数预算（静态守卫；按需跑，不阻塞日常）
  *  2026-11-08 波次 A：daily 迁入 6 件 ⇒ 实测 99 文件，按 99 登记。 */
-export const GUARDS_FILE_BUDGET = 101;
+export const GUARDS_FILE_BUDGET = 105;
 
 /** guards 静态 `test(` / `it(` 调用点预算
  *  2026-11-08 波次 A：实测 788 断言，按 791 登记（断言留 3 条余量）。 */
-export const GUARDS_TEST_BUDGET = 840;
+export const GUARDS_TEST_BUDGET = 842;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -202,6 +202,8 @@ export const TEST_TIERS = [
     'no-underline-guard.test.mjs',
     'notice-deeplink-guard.test.mjs',
     'object-route-guard.test.mjs',
+    'object-model-guard.test.mjs',
+    'committee-proposal-state.test.mjs',
     'party-branch-directory-context.test.mjs',
     'party-branch-directory-guard.test.mjs',
     'perf-guard.test.mjs',
@@ -219,9 +221,11 @@ export const TEST_TIERS = [
     'tab-alias-guard.test.mjs',
     'taskforce-history-copy.test.mjs',
     'validation-site-coverage.test.mjs',
+    'prop-kanban-scope.test.mjs',
     'workbench-audit-coverage.test.mjs',
     'workbench-revision-contract.test.mjs',
     'write-path-guard.test.mjs',
+    'write-policy-evidence-guard.test.mjs',
     'write-truth-guard.test.mjs',
   ]),
   ...group('guards', '静态文档 / 台账 / 行号 / 冻结件守卫', [
@@ -396,6 +400,11 @@ export const TEST_TIERS = [
     'e2e-login.test.js',
     'form-loop-sweep.test.mjs',
     'help-e2e.test.mjs',
+    'committee-proposal-routes.test.mjs',
+    'committee-flow-guard.test.mjs',
+    'committee-meeting-gate.test.mjs',
+    'leader-progress-gate.test.mjs',
+    'report-read-gate.test.mjs',
     'iaaa-ui-onboarding.test.mjs',
     'inspection-loop-e2e.test.mjs',
     'issue-anonymity.test.mjs',

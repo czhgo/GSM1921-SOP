@@ -155,6 +155,8 @@ const EXPECTED = {
  */
 const EXTRA_STRUCTURE_TABLES = ['image_records', 'member_change_requests', 'workgroup_tasks', 'workgroup_outputs'];
 const STRUCTURE_EXEMPT = {
+  committee_proposals: '运行时域（支委提案），演示种子为空；无 mock 同源行可逐值比对',
+  committee_proposal_events: '运行时域（提案状态事件，只增不改），演示种子为空；无 mock 同源行',
   experience_deposits: '运行时域（经验沉淀），演示种子为空；无 mock 同源行可逐值比对',
   file_space_records: '运行时域（文件空间），演示种子为空；无 mock 同源行',
   act_sub_records: '对象聚合域（__root__ 单行，mockDB 为对象非数组），无独立种子行',
@@ -265,7 +267,7 @@ const serverRows = (table) => db.prepare(`SELECT data FROM ${table}`).all().map(
 
 // ── S1 主判据：全表结构对照（白名单外漂移即红）──────────
 const STRUCTURE_TABLES = [...new Set([...SEED_MANIFEST.map((entry) => entry.table), ...EXTRA_STRUCTURE_TABLES])];
-test('S1 结构真值：48 表逐行比对字段集合 / 类型，输出多出 / 缺失 / 类型不符', () => {
+test('S1 结构真值：50 表逐行比对字段集合 / 类型，输出多出 / 缺失 / 类型不符', () => {
   const allProblems = [];
   const allowedHits = [];
   const lines = [];
@@ -320,13 +322,13 @@ test('S1 结构真值：48 表逐行比对字段集合 / 类型，输出多出 /
 });
 
 // ── S5（2026-11-02 批次 527）：覆盖全集 + 契约必填 / 枚举 ─────────
-test('S5 覆盖 48 表无静默跳过；契约 required / enums 与落库行一致（mock 独有形状也校验）', () => {
+test('S5 覆盖 50 表无静默跳过；契约 required / enums 与落库行一致（mock 独有形状也校验）', () => {
   const covered = new Set(STRUCTURE_TABLES);
   const exempt = new Set(Object.keys(STRUCTURE_EXEMPT));
   const all = new Set(ALL_STRUCTURE_TABLES);
 
   // ① 覆盖全集：每张表要么比对、要么豁免；两者不相交；无未登记项。
-  assert.equal(all.size, 48, `db.js 三张清单并集应为 48 表（实测 ${all.size}）`);
+  assert.equal(all.size, 50, `db.js 三张清单并集应为 50 表（实测 ${all.size}）`);
   for (const table of all) {
     assert.ok(covered.has(table) || exempt.has(table), `${table} 既未结构比对、也未登记 exempt（静默跳过）`);
     assert.ok(!(covered.has(table) && exempt.has(table)), `${table} 同时出现在比对面与 exempt 面`);
@@ -533,6 +535,8 @@ const ADAPTER_SURFACE = {
     // 无对应资源组。客户端在 mock 数据源下不调用该组（兼容期判据见 todo-tab-shell.js）。
     todoGroups: '待办实时派生只读视图（GET /todo-groups）；mock 形态由客户端派生，无资源组',
     committeeContent: '党委院级内容（活动/资料/下发）仅服务端模式；mock 形态不提供写入，前端在 mock 下不调用该组',
+    agendaCandidates: '支委会议程候选（GET /committee/agenda-candidates）仅服务端汇总口；mock 形态由 agenda-form 本地归集',
+    committeeProposals: '支委提案（D-869）仅服务端语义端点；mock 形态由 CommitteeProposalStore 落 mockDB',
   },
   /** 同名但方法面不同（apiOnly / mockOnly 两个方向都要写全） */
   methodDiff: {
