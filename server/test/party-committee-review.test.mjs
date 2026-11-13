@@ -159,7 +159,7 @@ test('P3 支部上报审批闭环：发展节点批准 + 活动报备驳回（�
 
   try {
     // ── ① 支书（储子禾 2300010001）登录支书工作台 → 上报党委 tab → 发起发展节点上报 ──
-    await loginAs(branchPage, { studentId: '2300010001', expectUrlPart: 'secretary.html' });
+    await loginAs(branchPage, { studentId: '2300010001', expectUrlPart: 'secretary' });
     await activateTab(branchPage, '上报党委');
     await waitForBodyText(branchPage, '发起上报'); // 上报党委面板帧已渲染（发起上报按钮）
     await submitRequest(branchPage, { type: 'develop-node', title: titleA, content: '发展党员关键节点需党委知悉。' });
@@ -168,7 +168,7 @@ test('P3 支部上报审批闭环：发展节点批准 + 活动报备驳回（�
     assert.ok(await waitForServerNotice('支部上报待批复', titleA), '提交上报应生成党委待批复通知');
 
     // ── ② 党委组织员（9000000001）登录党委工作台 → 支部上报 tab → 批准并带意见 ──
-    await loginAs(partyPage, { studentId: '9000000001', expectUrlPart: 'party-committee.html' });
+    await loginAs(partyPage, { studentId: '9000000001', expectUrlPart: 'party-committee' });
     await activateTab(partyPage, '支部上报');
     await waitForBodyText(partyPage, '党委逐项批复'); // 上报任务与党委决定在同一工作区
     await waitForBodyText(partyPage, titleA); // 待批复队列出现该上报

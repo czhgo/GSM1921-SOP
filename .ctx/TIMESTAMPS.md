@@ -2,7 +2,7 @@
 title: "文件时间戳注册表"
 type: audit_report
 role: "[工程师]+[AI]"
-last_updated: "2026-11-11"
+last_updated: "2026-11-14"
 status: active
 dynamic_role:
   maintenance: "[工程师]+[AI]"
@@ -37,7 +37,7 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| README.md | 2026-11-12 | — | [用户]+[AI] | 全站门面（定位 / 快速开始〔2026-10-07 批次 437 新增：三命令跑起来＋演示账号＋局域网免域名直连＋真实数据空库起步〕 / 页面与页签清单 / 支部分工覆盖面 / 测试与发版清单）；会议表决规则改为按场景说明，概况入口说明统一待处理队列；页签总数校准为 67。**边界**：逐枚页面与逐枚页签的权威源是 `README-server.md` §3.1–§3.2 与 `docs/help.html` §0 / §2，本件只给概览与入口。守卫清单列在此处是 `doc-consistency::S10` 的硬要求。沿革已迁出（git 可溯）。 |
+| README.md | 2026-11-14 | — | [用户]+[AI] | 全站门面（定位 / 快速开始〔2026-10-07 批次 437 新增：三命令跑起来＋演示账号＋局域网免域名直连＋真实数据空库起步〕 / 页面与页签清单 / 支部分工覆盖面 / 测试与发版清单）；会议表决规则改为按场景说明，概况入口说明统一待处理队列；页签总数校准为 67。**边界**：逐枚页面与逐枚页签的权威源是 `README-server.md` §3.1–§3.2 与 `docs/help.html` §0 / §2，本件只给概览与入口。守卫清单列在此处是 `doc-consistency::S10` 的硬要求。沿革已迁出（git 可溯）。 |
 | README-members.md | 2026-10-16 | — | [用户]+[AI] | 支部成员版说明；匿名反馈为登录后的支部内闭环，处置权不含揭名权（`D-824`）。 |
 | README-server.md | 2026-11-12 | — | [用户]+[AI] | 面向**外部后端对接团队**的对接说明书（背景 / 角色 / 板块 / 字段〔**指针**〕/ 部署 / 接口 / 已知限制）。**边界**：**字段级清单的唯一权威源＝母本 `content/04_web_design/data/DATA_MODEL.md`**——§4 只留「**指针 ＋ 后端增量**」（服务端专有表 ＋ 来源 C 字段 ＋ 行为口径），**不再逐表复刻**。正文 **≥370 处 `文件:行号` 引用**由 `doc-line-ref` 守卫常驻核对（行号随代码位移须**同批改签**）。本批同步工作组、考勤、逐支部上报与服务端授权审计说明，并改签引用。沿革见 `.ctx/logs/`。 |
 | CLAUDE.md | 2026-11-09 | — | [工程师]+[AI] | 宪法 + 路由：甲部（H10–H100）＋ 乙部（在办）＋ 丙部（待裁）。乙部只留在办；历史进 logs；细则进 content。 |
@@ -52,7 +52,7 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| .ctx/TIMESTAMPS.md | 2026-11-11 | — | [工程师]+[AI] | 文件时间戳注册表；备注列只写**现状 / 边界 / 指针**（`R-89`），逐批沿革见 `.ctx/logs/**`。 |
+| .ctx/TIMESTAMPS.md | 2026-11-14 | — | [工程师]+[AI] | 文件时间戳注册表；备注列只写**现状 / 边界 / 指针**（`R-89`），逐批沿革见 `.ctx/logs/**`。 |
 | .ctx/SNAPSHOT.md | 2026-11-08 | — | [AI] | 系统现状基线（reference）：只答「系统现在长什么样」；批次 509–528 小结已迁 `logs/EXECUTION_LOG_INDEX.md` 的批次索引表。 |
 | .ctx/ACTIVE_RULINGS.md | 2026-11-11 | — | [工程师]+[AI] | 现行有效裁定**索引**（reference）：只答「到哪找某条现行口径」；跨域摘要 + 18 领域索引，规则正文在 `content/01–05`。 |
 | .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-11 | — | [工程师]+[AI] | 工程评估与改造行动线：六维评分（当前 81/78/78/83/78/76，`D-865`）、七个月复盘、阻断风险、当前行动与专项台账；§四 另设「上线残项」单一台账；不设综合均分。 |
@@ -64,9 +64,9 @@ dynamic_role:
 | .ctx/logs/archive/2026-10/IA_LINK_TRUTH.md | 2026-10-19 | — | [工程师]+[AI] | IA 链接真值审计（角色 + 对象 + 步骤）；材料闭环逐角色落点表 + 真机读数（组长点考勤被弹回 leader.html）。 |
 | .ctx/logs/archive/2026-10/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/logs/archive/2026-10/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
-| .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-11-12 | — | [工程师]+[AI] | 日志索引 + 批次索引（509–547）。 |
-| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-12 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，含批次 542–547）。 |
-| .ctx/logs/DECISION_LOG.md | 2026-11-12 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3828 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
+| .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-11-14 | — | [工程师]+[AI] | 日志索引 + 批次索引（509–549）。 |
+| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-14 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，含批次 542–549）。 |
+| .ctx/logs/DECISION_LOG.md | 2026-11-13 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3828 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-03-EXECUTION_LOG.md | 2026-03-02 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-04-EXECUTION_LOG.md | 2026-04-01 | 2026-07-31 | [工程师]+[AI] | 已归档 |
@@ -82,7 +82,7 @@ dynamic_role:
 | .ctx/logs/archive/2026-09-EXECUTION_LOG.md | 2026-10-06 | 2026-10-06 | [工程师]+[AI] | 9 月执行日志（**已归档**）。**边界**：过程流水归 `git`；本文件**另承载「台账迁出附节」**——`R-` 表（`R-23`…`R-93` 全量纪律正文，**乙部表闭环即迁入此处**）＋ `TIMESTAMPS` 备注列历轮迁出的逐批沿革。**为什么**：`R-84`/`R-86`/`R-89` 的「各有其位」需要一个**稳定、不随月滚动**的落点。 |
 | .ctx/logs/2026-10-EXECUTION_LOG.md | 2026-10-27 | — | [工程师]+[AI] | 10 月执行日志（当月活跃；批次 336 换月建）。**边界**：只留「为什么 / 拿不准 / 边界 / 读数」（`H26.1`）；过程流水归 `git`，本文件不复述。 |
 | .ctx/logs/2026-10-DECISION_LOG.md | 2026-10-22 | — | [工程师]+[AI] | 10 月决策日志（**当月活跃 · 决议权威源**；2026-10-02 批次 336 换月建，自 9 月文件逐字迁入 `D-729`~`D-739`）。**边界**：每条裁定全文（追加、不改写）；过程归执行日志（`R-84`）。 |
-| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-12 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；当前 `D-827`…`D-870`。 |
+| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-13 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；当前 `D-827`…`D-873`。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_R10_DATA_LIFECYCLE.md | 2026-10-23 | — | [工程师]+[AI] | 第十轮数据生命周期审查（75 条；R10 四批的依据）。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_UI_R11.md | 2026-10-23 | — | [工程师]+[AI] | 第十一轮前端脏乱繁审查（P0/P1/P2 与 SD-1…SD-11）。 |
 | .ctx/logs/archive/2026-10/2026-10-R10_P3_CLOSURE.md | 2026-10-23 | — | [工程师]+[AI] | R10 P3 收口对账（R6 21 / R7 18 / 帮助注释 9）。 |
@@ -108,7 +108,7 @@ dynamic_role:
 | content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md | 2026-11-03 | — | [用户]+[AI] | 支部组织与委员体系（组织层级 / 委员职责矩阵 / 赋权三情景 / 上传与闭环分工）。**边界**：赋权入口与系统的对应关系以 `docs/src/core/domain/work-map.js` 与 `docs/src/entries/tabs/**` 实读为准；本件是母本，系统侧不得先于母本改。沿革已迁出（git 可溯）。 |
 | content/02_institution/FLAT_ORGANIZATION_DESIGN.md | 2026-09-22 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-26 批次 201**：正文**整体并入** `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` 的 **§G 组织者与深度参与者的扁平化设计**〔原一~八 → **G.1~G.8 逐字**；该文件**标题改《支部组织与委员体系》**〕⇒ **两份 → 一份**；`D-660`）（原：扁平化设计（**2026-09-22 批次 153 母本降级**：移去沿革注记 3 处——`:23`「（支书 2026-09-17 裁定）」· `:37`「（支书 2026-08-09 裁决：…）」→「（支书原话：…）」· 末尾「反论处置记录」整块 2 行移出；frontmatter 同步；`D-595`） |
 | content/02_institution/ROLE_CLASSIFICATION.md | 2026-09-05 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-26 批次 202**：**自 `02_institution` 迁入 `03_doc_system`**——正文**整体并入** `content/03_doc_system/OPERATIONS_GUIDE.md`《运行与协作规范》的 **§24–§31**〔原 §一 三分类定义 → §24 · §二 复合标记规则 → §25 · §三 目录到角色映射 → §26 · §四 协作方式 → §27 · §五 存储与读取机制 → §28 · §六 与现有文档的一致性 → §29 · §七 可扩展性评估 → §30 · §八 变更历史 → §31〕⇒ **该文件为「迁类 ＋ 并入」双动作**）（原：文件角色分类（2026-09-05 §九 系统角色权限矩阵拆出，本文档回归纯文件角色分类）） |
-| content/02_institution/SYSTEM_ROLE_PERMISSION.md | 2026-11-13 | — | [工程师]+[AI] | 角色 × 权限母本；含工作组事务保存/撤权边界与本人+本支部支委档案读取策略；末节补支委提案权限（D-869）。**边界**：可调制度项登记 `POLICY_OVERRIDABLE`；其余权限以本文件和服务端校验为准。 |
+| content/02_institution/SYSTEM_ROLE_PERMISSION.md | 2026-11-14 | — | [工程师]+[AI] | 角色 × 权限母本；含工作组事务保存/撤权边界与本人+本支部支委档案读取策略；末节补支委提案权限（D-869）。**边界**：可调制度项登记 `POLICY_OVERRIDABLE`；其余权限以本文件和服务端校验为准。 |
 | content/02_institution/README.md | 2026-10-24 | — | [用户]+[AI] | **（2026-09-26 批次 202：03《运行与协作规范》合并后引用 / 枚举改准〔「二、角色分类」表改「迁出登记」行 ＋ `ROLE_CLASSIFICATION.md` → `OPERATIONS_GUIDE.md §24–§31`〕；只改引用、`last_updated` 未刷〔`R-83` 债务〕；由同一批「另一路」落地）** **（2026-09-26 批次 201：`D-660` 引用改准〔`FLAT_ORGANIZATION_DESIGN.md` →《支部组织与委员体系》，`文件:行号` 形态只存在于 `.ctx/**`〕；只改引用、未改口径；由「另一路」落地，本表行日期按 `S13` 口径不刷）**  02_institution 目录索引（2026-09-05 拆述角色分类与系统角色权限矩阵）；**2026-09-22 批次 154**：SYSTEM_ROLE_PERMISSION 行的「（…；2026-09-05 自 ROLE_CLASSIFICATION.md §九 迁出）」降级（关键词未命中的同族，按受众分再扫抓出），`D-597` |
 | content/02_institution/sop/INDEX.md | 2026-10-25 | — | [用户]+[AI] | SOP 导航（术语段只留 `TERMINOLOGY.md` 指针；常用场景行用途栏用「组织生活会以三会形式召开」写法）。沿革见 `.ctx/logs/`。 |
 | content/02_institution/sop/README.md | 2026-11-04 | — | [工程师]+[AI] | SOP 目录索引（维护触发器指向 `H30.1`）。 |
@@ -161,7 +161,7 @@ dynamic_role:
 | content/04_web_design/module/PUBLIC_ENTRANCE.md | 2026-11-11 | — | [工程师]+[AI] | 门厅设计已裁定（公开门厅的规范编号 2026-11-10 批次 541 回填为 SD-62）。 |
 | content/04_web_design/deploy/WECHAT_INTEGRATION.md | 2026-09-05 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§五 微信协同与小程序设计**〔内部 §一–§八 → 5.1–5.8〕⇒ **四份 → 一份**。（原：微信协同与小程序设计方案；§八 新增北大对接数据展示；小程序独立问题归位本文档。）沿革见 `.ctx/logs/`。 |
 | content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md | 2026-11-11 | — | [用户]+[AI] | **（现状）** 数据一致性检查清单（`§0` 真机 ↔ 文档逐项对账）。**边界**：本件只承载清单本体与判据，沿革入 `.ctx/logs/`。**为什么**：本列只写现状 / 边界 / 指针（`R-89`）。沿革已迁出（git 可溯）。 |
-| content/04_web_design/data/DATA_MODEL.md | 2026-11-13 | — | [工程师]+[AI] | 数据模型与数据流（静态 §2.x / 动态 §1·§3·§4）；§2.9 消息对象；§2.31 党委内容与公开发布（v13 生成列 / 部分唯一索引 / 发布留痕）；附二 对象模型三层判据与专班承办字段（D-868）。字段口径以 `DATA_CONTRACT.md` 为准，种子口径以 `DATA_SEED_CONTRACT.md` 为准。**边界**：字段级唯一权威；README-server 以行号引用本文件。 |
+| content/04_web_design/data/DATA_MODEL.md | 2026-11-14 | — | [工程师]+[AI] | 数据模型与数据流（静态 §2.x / 动态 §1·§3·§4）；§2.9 消息对象；§2.31 党委内容与公开发布（v13 生成列 / 部分唯一索引 / 发布留痕）；附二 对象模型三层判据与专班承办字段（D-868）。字段口径以 `DATA_CONTRACT.md` 为准，种子口径以 `DATA_SEED_CONTRACT.md` 为准。**边界**：字段级唯一权威；README-server 以行号引用本文件。 |
 | content/04_web_design/data/DATA_CONTRACT.md | 2026-11-08 | — | [工程师]+[AI] | 领域数据契约（48 表：34 资源 + 8 语义 + 6 工作组）；机读单一源 `server/data/domain-contract.mjs`。守卫 `server/test/data-contract.test.mjs`。 |
 | content/04_web_design/data/DATA_SEED_CONTRACT.md | 2026-10-27 | — | [工程师]+[AI] | 数据种子契约（四类口径 / 逐表必填 / v12 强约束）；守卫 `server/test/seed-contract-guard.test.mjs`。 |
 | content/04_web_design/data/DATA_FLOW.md | 2026-09-23 | — | [工程师]+[AI] | 🗑️ 已删除（正文并入 `DATA_MODEL.md`《数据模型与数据流》）。沿革见 `.ctx/logs/`。 |
@@ -178,7 +178,7 @@ dynamic_role:
 | content/04_web_design/contracts/README.md | 2026-11-10 | — | [工程师]+[AI] | 契约类索引（批次 540 登记表格组件契约） |
 | content/04_web_design/contracts/TABLE_COMPONENT_CONTRACT.md | 2026-11-10 | — | [工程师]+[AI] | 表格组件契约（载体判据 / 列宽三档 / 行高 40 与插行详情 / 横滚与首列吸附 / 列宽拖动 / 灰字四层）；守卫 `server/test/table-contract-guard.test.mjs`。 |
 | content/04_web_design/evolution/README.md | 2026-11-11 | — | [工程师]+[AI] | 演进入口索引（新增对象模型与议事流设计行） |
-| content/04_web_design/evolution/OBJECT_MODEL_AND_COMMITTEE_FLOW.md | 2026-11-13 | — | [工程师]+[AI] | 对象模型与支委会议事流设计（`D-866`–`D-869`）：三层挂靠判据、组长权限矩阵、上会回执状态机、URL 无后缀；对象模型与提案上会已实施。 |
+| content/04_web_design/evolution/OBJECT_MODEL_AND_COMMITTEE_FLOW.md | 2026-11-14 | — | [工程师]+[AI] | 对象模型与支委会议事流设计（`D-866`–`D-869`）：三层挂靠判据、组长权限矩阵、上会回执状态机、URL 无后缀；对象模型与提案上会已实施。 |
 | content/04_web_design/module/README.md | 2026-11-08 | — | [工程师]+[AI] | 模块设计索引 |
 
 ## content/05_ai_coding/ (AI 编码层)
@@ -195,9 +195,9 @@ dynamic_role:
 | content/05_ai_coding/FILE_OPERATION_RULES.md | 2026-11-03 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。**2026-09-26 已清偿 `R-83` 债**：frontmatter 与表行同刷为该文件最后一次提交日 `2026-09-26`） 文件操作纪律 |
 | content/05_ai_coding/REVIEW_AND_EXPRESSION.md | 2026-10-24 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。**2026-09-26 已清偿 `R-83` 债**：frontmatter 与表行同刷为该文件最后一次提交日 `2026-09-26`） 评议与表达纪律 |
 | content/05_ai_coding/TEST_AND_VERIFICATION.md | 2026-11-03 | — | [工程师]+[AI] | 测试三层（daily/precommit/weekly）；2026-11-03 增两条判例（权限矩阵单一源 / 「保留+改进」反馈必须给出改动或证据）。 |
-| content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md | 2026-11-03 | — | [工程师]+[AI] | 页签审计手册（2026-11-02 建）：五维检查表、P0–P2、例外口径、怎么跑、怎么加检查与页签、报告字段；判据回链 DS_06 §五与 `audit/severity.mjs`。 |
+| content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md | 2026-11-14 | — | [工程师]+[AI] | 页签审计手册（2026-11-02 建）：五维检查表、P0–P2、例外口径、怎么跑、怎么加检查与页签、报告字段；判据回链 DS_06 §五与 `audit/severity.mjs`。 |
 | content/05_ai_coding/UI_REVIEW_CHECKLIST.md | 2026-11-08 | — | [工程师]+[AI] | 温层 UI 审查清单（2026-11-03 建）：按 8 组任务组织（版式密度 / 排版字号 / 颜色对比 / 交互无障碍 / 文案空态 / 响应式 / 动效 / 数据展示），每条带判据 + DS 节 / SD 编号 + 何时读；入口 `CLAUDE.md H40.2`。 |
-| content/05_ai_coding/AUDIT_CANON.md | 2026-11-03 | — | [工程师]+[AI] | 审计口径唯一表（2026-11-02 建）：四口径裁定（F2 控件行数 / F4 H2 恰 1 / F7 `hasPager()` / C1 `requireAuth` 例外）与 daily / precommit / audit 三档分工；判据回链 `audit/checks-*.mjs` 与 `TAB_AUDIT_PLAYBOOK.md`。 |
+| content/05_ai_coding/AUDIT_CANON.md | 2026-11-14 | — | [工程师]+[AI] | 审计口径唯一表（2026-11-02 建）：四口径裁定（F2 控件行数 / F4 H2 恰 1 / F7 `hasPager()` / C1 `requireAuth` 例外）与 daily / precommit / audit 三档分工；判据回链 `audit/checks-*.mjs` 与 `TAB_AUDIT_PLAYBOOK.md`。 |
 
 ## content/insights/ (经验沉淀)
 
@@ -271,7 +271,7 @@ dynamic_role:
 | content/03_doc_system/CASES_INDEX.md | 2026-11-11 | — | [工程师]+[AI] | 判例总索引（design 41 / data 1 / ai 9）。 |
 | server/test/docs-governance-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 文档治理守卫。 |
 | .ctx/README.md | 2026-11-03 | — | [工程师]+[AI] | 三层分职（active / reference / provenance）、准入判据、读取顺序、预算、冲突顺序与可复用资产索引。 |
-| .ctx/ACTIVE_CONTEXT.md | 2026-11-12 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-870`。 |
+| .ctx/ACTIVE_CONTEXT.md | 2026-11-14 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-873`。 |
 | server/test/link-color-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 链接色守卫。 |
 | server/test/activity-tone-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 活动类别守卫。 |
 | server/test/field-shell-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 字段外壳守卫。 |

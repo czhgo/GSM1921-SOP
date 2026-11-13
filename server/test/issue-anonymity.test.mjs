@@ -363,7 +363,9 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
   try {
     const page = await browser.newPage();
     await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
-    await page.goto(`${base}/index.html`, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    // 用静态文档页作宿主：不跑首页的数据装配（mock 水合会在本用例的异步等待期间重写 localStorage，
+    //   全量高负载下曾把「写链已落库 / 列表已渲染」误判为缺失）。同源页面即可 import 模块与读写 localStorage。
+    await page.goto(`${base}/help.html`, { waitUntil: 'domcontentloaded', timeout: 15000 });
     const out = await page.evaluate(async () => {
       const { IssueStore } = await import('/src/services/governance/issues.js?v=20261110b');
       const { PersonStore } = await import('/src/services/member/person.js?v=20261110b');
@@ -391,6 +393,9 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
       // 实名提交 → 同样仅本支部内可见
       const dReal = await IssueStore.submitIssue({ title: '实名-B', body: '内容B', scope: 'scenario', types: ['bug'], anonymous: false });
       const real = IssueStore.approveDraft(dReal.draftId);
+      // 持久化证据在**写链刚完成时**取样：后续动态 import / 首页其它模块的异步读回可能重写同一缓存键，
+      //   那不是本用例的被测行为（全量高负载下曾把「写链已落库」误判为未落库）。
+      const rawCachePersisted = localStorage.getItem('gsm1921-issue-cache-v3');
 
       // 常规出口脱敏（成员视角）
       const viaGetAll = IssueStore.getAll().find((i) => i.id === anon.id);
@@ -438,7 +443,7 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
       return {
         anon, real, viaGetAll, viaGetById, viaDrafts, asMember, asParty, asSecretary,
         asSecretaryHtml, asPartyHtml, listRowHtml, detailHtml, p5Name,
-        rawCache: localStorage.getItem('gsm1921-issue-cache-v3'),
+        rawCache: rawCachePersisted,
         rawDrafts: localStorage.getItem('gsm1921-issue-drafts'),
         legacyCacheVersion: localStorage.getItem('gsm1921-issue-cache-version'),
         tracesAfterReveal,

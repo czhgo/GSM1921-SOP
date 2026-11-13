@@ -2,7 +2,7 @@
 title: "2026年11月决策日志"
 type: decision_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-12
+last_updated: 2026-11-13
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-DECISION_LOG.md, content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md, content/04_web_design/design-system/DS_03_COMPONENTS.md, content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md]
 ---
@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-870`，共 44 条**；下一条自 **`D-871`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-873`，共 47 条**；下一条自 **`D-874`**。
 
 ## 本月目录（2026-11）
 
@@ -64,6 +64,9 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 对象模型落地：活动/专班并列、工作组执行载体、专班补承办方、专班不产生考勤 | `D-868` | 2026-11-11 | 已落（批次 545） |
 | 支委提案：统一上会事项、状态机、回执、议程接入 | `D-869` | 2026-11-11 | 已落（批次 546） |
 | 三台专项探查 P0 收口：提案↔议程单一事实 / 支委会写门 / 报表读口 / 宣传台只读 / 组长读门 / harness 补漏 | `D-870` | 2026-11-12 | 已落（批次 547） |
+| 547 边界闭环：专班折叠区真机流 / 消息页 import / issue-unread 清角标 | `D-871` | 2026-11-13 | 已落（批次 548） |
+| L-16 表决名单采「建会冻结快照」 | `D-872` | 2026-11-13 | 已裁（待实现） |
+| L-22 / B-541-1 三处 IA 块数按 DOM 实测重基线 | `D-873` | 2026-11-13 | 已裁（待实现） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -429,5 +432,21 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > - **未选**：报表放开给全部支委（隐私面过大）；建会写门连普通活动一并收紧（误伤归档 / 议程链）；组长范围算法本批迁服务端（改动面过大，只先加读门）。
 > - **落点**：`server/routes/committee-proposals.js`、`resources/gates.js`、`resources/index.js`、`report.js`、`leader-progress.js`、`docs/src/services/activity/agenda-follow-up.js`、`docs/src/services/governance/committee-proposal.js`、`docs/src/entries/tabs/prop/kanban-tab.js`、`docs/src/core/domain/party-group-scope.js`（新）、`server/test/{committee-flow-guard,committee-meeting-gate,report-read-gate,leader-progress-gate,prop-kanban-scope,write-policy-evidence-guard}.test.mjs`（新）。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-870`**（共 **44** 条）。
+## D-871 2026-11-13 — 547 边界闭环（真机流程 / 消息页 / issue-unread）
+
+> **评议 → 裁定 → 落点**：
+> - 专班三条真机流失败根因＝写块在默认收起的 `<details>` 内；修测试 `open` 链先点 `summary`，不改产品。
+> - `messages-entry.js` 使用 `emptyStateHtml` 漏 import，独立页抛 `pageerror`、写私信按钮不渲染；补 import。
+> - `issue-unread` 的 `secretary-review` 保留键此前只允许提交人 / 被指派人写；清支书角标是支书 / 副支书的读后动作 ⇒ 允许其写 `unread:false`，其余角色仍 403。
+> - 落点：`server/test/form-loop-registry.mjs`、`docs/src/entries/pages/messages-entry.js`、`server/routes/resources/semantic-routes.js`、`server/security/write-policy-matrix.mjs`、`server/test/issue-unread-gate.test.mjs`。
+
+## D-872 2026-11-13 — L-16 表决名单采「建会冻结快照」
+
+> **评议 → 裁定 → 落点**：支书在对话中裁定：建会时按 `users` + 组织归属算一次 `voteConfig.voterIds` 并冻结；会议期间不随组织变动，组织变动下次建会生效。**未选**：每次读时重算（同一会议名单前后可能变化，需处理已投票但失去资格的人）；冻结+变更重算（实现与审计最复杂）。落点：`server/routes/committee.js`（待实现）、`.ctx/REVIEW_QUEUE.md` `B-541-5`、`EA L-16`。
+
+## D-873 2026-11-13 — L-22 / B-541-1 三处 IA 块数按实测重基线
+
+> **评议 → 裁定 → 落点**：支书在对话中裁定：`secretary.calendar` 10 / `secretary.report-up` 14 / `visitor.activities` 9 按 DOM 实测重基线，改 `TAB_BLOCK_BASELINE` 三处并复核例外理由。**未选**：收拢 UI 到 3/4/3（改动面大、可能删有用入口）；分页签处理（需逐页评审）。落点：`server/test/style-baseline.mjs::TAB_BLOCK_BASELINE`（待实现）、`.ctx/REVIEW_QUEUE.md` `B-541-1`、`EA L-22`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-873`**（共 **47** 条）。
 

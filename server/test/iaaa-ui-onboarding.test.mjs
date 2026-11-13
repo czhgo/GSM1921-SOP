@@ -116,7 +116,7 @@ test('U4–U5 待归属者被阻断层挡住；支部确认后「刷新确认状
     assert.equal(ok.status, 200, `确认入站应 200，实测 ${ok.status}`);
 
     await page.locator('#branch-refresh').click();
-    await page.waitForURL(/workspace\/visitor(?:\.html)?$/, { timeout: 15000 });
-    assert.match(page.url(), /workspace\/visitor(?:\.html)?$/, 'U5 支部确认后应放行进入工作台');
+    await page.waitForURL(/workspace\/visitor(?:\.html)?(?:\?|$)/, { timeout: 15000 });
+    assert.match(page.url(), /workspace\/visitor(?:\.html)?(?:\?|$)/, 'U5 支部确认后应放行进入工作台');
   } finally { await ctx.close(); }
 });

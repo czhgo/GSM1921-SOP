@@ -317,7 +317,24 @@ const CARRIER_PROBE = (sel) => {
     // 文本取「控件本身（含 select 的 option 文本，＝列表条目在不在）+ 可见载体文本」两者并集
     return { visible: true, text: `${el.textContent || ''} ${proxy.textContent || ''}`.replace(/\s+/g, ' ').trim() };
   }
-  return { visible: false, text: '' };
+  // 诊断：载体存在但不可见时，给出最近的可解释祖先（折叠 details / display:none / visibility:hidden）。
+  // 目的：把「载体不在位」从“缺件”与“没展开”中区分开，避免把折叠区误判成 DOM 缺失。
+  let blocking = '';
+  for (const el of document.querySelectorAll(sel)) {
+    const details = el.closest('details:not([open])');
+    if (details) { blocking = `details:not([open])${details.id ? `#${details.id}` : ''}`; break; }
+    let n = el.parentElement;
+    while (n && n !== document.body) {
+      const s = getComputedStyle(n);
+      if (s.display === 'none' || s.visibility === 'hidden') {
+        blocking = `${n.tagName.toLowerCase()}${n.id ? `#${n.id}` : ''}（${s.display === 'none' ? 'display:none' : 'visibility:hidden'}）`;
+        break;
+      }
+      n = n.parentElement;
+    }
+    if (blocking) break;
+  }
+  return { visible: false, text: '', blocking };
 };
 
 async function runStep(page, step) {
@@ -595,8 +612,8 @@ async function sweepFlow(page, flow) {
       // 提示不符则后续状态不可信，停止该流程
       break;
     }
-    const { visible } = await page.evaluate(CARRIER_PROBE, e.carrier);
-    if (!visible) v.push(`【载体不在位】报「${e.msg}」但载体「${e.carrier}」不可见/不存在（${at}）`);
+    const { visible, blocking } = await page.evaluate(CARRIER_PROBE, e.carrier);
+    if (!visible) v.push(`【载体不在位】报「${e.msg}」但载体「${e.carrier}」不可见/不存在（${at}）${blocking ? `；最近阻断祖先：${blocking}` : ''}`);
     // satisfy 支持「多步」（2026-09-18 批次 83）：SOP-B-2 落地后，考勤表单会**默认选中本场报名者**
     //   ⇒ 「请选择参会人员」这一支不再天然可达，须在放行第一步（选定活动）之后再**清空**一次默认选中，
     //   否则本判据会**因默认值而静默失效**（绿得毫无证据）。数组形态与 submit[] 同规。

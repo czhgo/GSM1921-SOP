@@ -98,6 +98,18 @@ const SUBVIEW_TRIGGERS = [{ name: '矩阵·显示全部', sel: '[data-rm-toggle]
  *  → 故本次 2 条**全部删除**；本台账保持为空 = 「当前无已确认待修项」。 */
 const CARD_LIST_PENDING = [];
 
+/** **固定目录列表**（不是「待修」）：行数由单一源模块目录决定、不随业务数据累积 —— 分页无意义。
+ *  仍设硬上限：超过上限即说明目录膨胀或选择器误命中，照旧判红（例外带闸，见 `H27 E4`）。
+ *  当前唯一命中：支书台「支部分工」责任关系 14 行（`core/domain/work-map.js::WORK_MAP_MODULES` 固定目录）。 */
+const FIXED_CATALOG_LISTS = [
+  {
+    where: '支书台·支部分工',
+    sig: 'DIV|list-row wm-row',
+    max: 20,
+    why: '14 项工作模块目录（core/domain/work-map.js）固定，不随年份 / 业务数据增长',
+  },
+];
+
 /** 当前 tab 内容的 DOM 普查（纯只读断言，返回 {violations, stats, probe}） */
 const AUDIT = (cfg) => {
   const minRows = cfg.minRows;
@@ -221,6 +233,7 @@ const AUDIT = (cfg) => {
   //   台账随之清空（僵尸化检查会强制这条一致性）。
   //   任何**新出现**的同类即刻红灯 —— 这正是支书实报「还有表格没分页」的那一类。
   const pending = cfg.pending || [];
+  const fixed = cfg.fixed || [];
   const pendingSeen = [];
   const probe = [];
   document.querySelectorAll('div, ul, ol').forEach((el) => {
@@ -231,6 +244,13 @@ const AUDIT = (cfg) => {
     if (!kids.every((k) => sig(k) === sig(kids[0]))) return;
     if (hasPager(el)) return;
     if (!el.getBoundingClientRect().height) return;
+    const fixedHit = fixed.find((p) => sig(kids[0]).startsWith(p.sig));
+    if (fixedHit) {
+      if (kids.length > fixedHit.max) {
+        v.push({ rule: `P11 固定目录列表超出上限 ${fixedHit.max}（目录膨胀？）`, kids: kids.length, sig: sig(kids[0]).slice(0, 70), txt: txt(el).slice(0, 30) });
+      }
+      return;
+    }
     const hit = pending.find((p) => sig(kids[0]).startsWith(p.sig));
     if (hit) {
       pendingSeen.push(hit.sig);
@@ -315,7 +335,7 @@ for (const w of WORKS) {
       const audit = async (label, phase, countCarriers) => {
         const { violations, stats, probe, pendingSeen } = await page.evaluate(
           withSharedDomHelpers(AUDIT),
-          { minRows: MIN_ROWS, deck: DECK, pending: CARD_LIST_PENDING },
+          { minRows: MIN_ROWS, deck: DECK, pending: CARD_LIST_PENDING, fixed: FIXED_CATALOG_LISTS },
         );
         SWEEP.views += 1;
         SWEEP.matrixTransposed += stats.matrixTransposed || 0;
@@ -562,8 +582,8 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「工作概
 //    那 P1/P2/P3 就是**恒真**（查了个寂寞）。故断言普查确实覆盖到「本该分页」的样本。
 //    ⚠ 依赖顶层 test 串行执行（本仓 `npm test` 固定 `--test-concurrency=1`）。
 test('S1 普查非空转：确实覆盖到「本该分页的列表 / 矩阵人维 / 手写表格」样本', () => {
-  // 当前基线：45 个角色页签（2026-10-25 IA 62→45 后实测；单一源＝各台能力注册）。
-  const TAB_BASELINE = 45;
+  // 当前基线：46 个角色页签（2026-10-25 IA 62→45 后实测；2026-11 提案上会新增 1 页签；单一源＝各台能力注册）。
+  const TAB_BASELINE = 46;
   console.log(`[普查覆盖] tab=${SWEEP.tabs} 引擎列表=${SWEEP.lists}（其中总数>10 的 ${SWEEP.listsOverPage}）矩阵=${SWEEP.matrices} 手写表格=${SWEEP.tables}`);
   // 总数由注册表现算（逐台实测累积），而不是散落的历史门槛：
   const registeredTabs = Object.values(SWEEP.byPage).reduce((sum, n) => sum + n, 0);

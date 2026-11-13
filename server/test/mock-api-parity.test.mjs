@@ -71,6 +71,8 @@ import { normalizeSeedActivitySeedRows, ensureLegacySourceWorkgroups, ensureDemo
 import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261110b';
 import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261110b';
 import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261110b';
+// 通知读口自 R3-P1 起按受众投影（F-06）——对照源须用同一单一源谓词，才不会把「权限投影」判成「数据漂移」。
+import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261110b';
 // `SEED_TODOS` 不在 `mock/**`（它是服务层常量，前端 seedTodos() 读的正是它）——服务端 seed.js 同源 import
 import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261110b';
 
@@ -141,6 +143,11 @@ const DERIVED_SOURCES = {
 };
 applyDerivedFacts(DERIVED_SOURCES, { people: PEOPLE });
 
+/** 本文件登录账号（支书 2300010001）的通知读口视角——与服务端 `_projectResourceRowsExt` 同形。
+ *  `GET /notices` 按 `canReadNotice` 逐行投影：对照源必须同口径过滤，否则必然把定向 / 角色受众
+ *  视为「服务端缺行」；「全量是否播种」另由 P1 的 rawCount 断言守住。 */
+const NOTICE_VIEWER = { personId: '2300010001', role: 'secretary', developStage: 'formal', branchId: 'br-b1' };
+
 /**
  * 活动 / 专班：服务端播种前会过 `workgroup-seed-sync` 归一（组织落点 + 工作组镜像 + 演示授权），
  * 直接拿裸语料比会必然把「装配产物」判成漂移；此处照 `server/seed.js` 同一管线复现。
@@ -161,7 +168,7 @@ ensureDemoWorkgroupGrants(WORKGROUP_SEED);
 const TABLES = [
   // ── 10 张既有值对照（2026-10-27 批次 515）──
   { key: 'todos', resource: 'todos', source: SEED_TODOS, label: '待办（本批补种）', min: 1 },
-  { key: 'notices', resource: 'notices', source: DERIVED_SOURCES.notices, label: '通知（种子计数曾疑 12 vs 13）', min: 12 },
+  { key: 'notices', resource: 'notices', source: DERIVED_SOURCES.notices.filter((row) => canReadNotice(row, NOTICE_VIEWER)), label: '通知（受众投影后；种子计数曾疑 12 vs 13）', min: 9 },
   // 2026-10-23 批次 504（R10-C06）：删除支委会 act-27 的 8 条非法考勤 ⇒ 152 → 144；下限随之收至 140。
   { key: 'attendances', resource: 'attendances', source: DERIVED_SOURCES.attendances, label: '考勤（本批改 8 月 _ALL_PERSON_IDS）', min: 140 },
   { key: 'inspections', resource: 'inspections', source: DERIVED_SOURCES.inspections, label: '考察（id 跳过 insp-17）', min: 42 },
@@ -201,7 +208,12 @@ test('S0 形态：api 形态 + 有会话 token（前端缓存来自服务端，�
 });
 
 // ── P1 主判据：服务端表 ≡ mock 语料（逐值）——**这一路不受前端 SEED_FALLBACK 影响** ──
-test('P1 服务端表 ≡ mock 语料（逐表逐值）：GET 原始行与静态语料完全一致（＝服务端确已按同源播种）', async () => {
+test('P1 服务端表 ≡ mock 语料（逐表逐值）：GET 可见行与静态语料完全一致（＝服务端确已按同源播种）', async () => {
+  // 通知读口按受众投影（F-06）：`GET /notices` 只回本视角可见行。此处先核**全量确已落库**
+  //   （否则「不可见行没播种」会被投影掩盖），再用同一 `canReadNotice` 过滤语料做逐值对照。
+  const rawNoticeCount = _app.locals.db.prepare('SELECT COUNT(*) AS n FROM notices').get().n;
+  assert.equal(rawNoticeCount, MOCK_NOTICES.length,
+    `notices 全量播种应为 ${MOCK_NOTICES.length} 行（含受众不可见行），实测 ${rawNoticeCount}`);
   const problems = [];
   for (const t of TABLES) {
     const rows = await serverRows(t.resource);

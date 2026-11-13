@@ -3,7 +3,7 @@ title: "对象模型与支委会议事流——三层挂靠、组长权限、上
 type: design
 role: "[工程师]+[AI]"
 created: 2026-11-11
-last_updated: "2026-11-13"
+last_updated: "2026-11-14"
 status: active
 related_files: [../data/DATA_MODEL.md, ../data/DATA_CONTRACT.md, ../../02_institution/SYSTEM_ROLE_PERMISSION.md, ../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, ../../02_institution/sop/党小组组长工作手册.md, ARCHITECTURE_EVOLUTION.md, .ctx/logs/2026-11-DECISION_LOG.md]
 ---

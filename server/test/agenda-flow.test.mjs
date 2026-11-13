@@ -306,7 +306,7 @@ test('A5 支部分工「去表决」落到支委会会议页且表态位在位�
     const href = await page.locator('a:has-text("去表决")').first().getAttribute('href');
     console.log(`[A5] 「去表决」href = ${href}`);
     // ① 目标＝支委会会议页（带本次活动 id）
-    assert.match(href, /party-committee-meeting\.html\?id=/, '「去表决」应指向支委会会议页 ?id=<活动id>');
+    assert.match(href, /party-committee-meeting(?:\.html)?\?id=/, '「去表决」应指向支委会会议页 ?id=<活动id>');
     assert.ok(!href.includes('secretary.html?activityId='), '「去表决」不得再走支书台活动定位深链（会落到「活动管理」）');
 
     // ② 真机点它：落到支委会会议页

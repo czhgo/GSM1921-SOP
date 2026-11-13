@@ -111,7 +111,7 @@ test('产出块：支书停用宣传 → 组长活动详情无 publicity 按钮 
   });
   await new Promise((r) => setTimeout(r, 1000));
   await lead.reload({ waitUntil: 'domcontentloaded' });
-  await lead.waitForURL('**/workspace/leader', { timeout: 10000 });
+  await lead.waitForURL(/\/workspace\/leader/, { timeout: 10000 });
   // 2026-10-26 批次 513：分支配置在重载后异步到达；试到宣传块回归为止。
   let back = [];
   for (const id of ['act-37', 'act-21', 'act-26', 'act-3']) {

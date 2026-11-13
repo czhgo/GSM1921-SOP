@@ -116,6 +116,14 @@ test('A3 迁移在界面上真生效：说明行已缩成一行 ＋ 深链（导
   // 组长台「组员进展」tab：复盘状态区块导语 → #card-copy-review-submit（同一口径的第二个界面落点）
   const lead = await newPage();
   await loginAndOpenTab(lead, '2400012345', 'leader', '组员进展');
+  // 批次 523–526：复盘状态并入「组员进展」的低频折叠块（默认收起）；展开后再核深链与文案。
+  //   数据到达会整块重渲染 ⇒ 在 waitForFunction 里持续置 `open`，直到深链真的可见（防「开了又被重置」）。
+  await lead.waitForFunction(() => {
+    const fold = document.getElementById('leader-review-fold');
+    if (fold) fold.open = true;
+    const a = document.querySelector('a[href="./help.html#card-copy-review-submit"]');
+    return !!a && a.getBoundingClientRect().height > 0;
+  }, null, { timeout: 20000 });
   const link = lead.locator('a[href="./help.html#card-copy-review-submit"]');
   await link.first().waitFor({ timeout: 20000 });
   assert.equal(await link.count(), 1, '组长台「组员进展」tab 里应恰有 1 处深链 #card-copy-review-submit');

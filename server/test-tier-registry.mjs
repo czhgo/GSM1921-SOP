@@ -417,6 +417,7 @@ export const TEST_TIERS = [
     'multi-user-write.test.mjs',
     'online-committee.test.mjs',
     'page-sweep.test.mjs',
+    'page-error-smoke.test.mjs',
     'party-committee-dispatch.test.mjs',
     'party-committee-review.test.mjs',
     'party-committee.test.mjs',

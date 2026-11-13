@@ -56,7 +56,7 @@ test('线上支委会：支书发起→委员表态→支书截止→通知闭�
   //    故创建后立即同步本地 mockDB，保证快照与服务器一致。
   const secCtx = await browser.newContext();
   const secPage = await secCtx.newPage();
-  await login(secPage, '2300010001', '**/workspace/secretary.html');
+  await login(secPage, '2300010001', '**/workspace/secretary');
   const created = await secPage.evaluate(async () => {
     const { getAdapter } = await import('/src/data/data-adapter.js?v=20261110b');
     const act = await getAdapter().activities.create({
@@ -73,7 +73,7 @@ test('线上支委会：支书发起→委员表态→支书截止→通知闭�
   // 2. 组织委员登录表态（异议+附言），成功后触发支书汇总通知（NoticeStore.add）
   const orgCtx = await browser.newContext();
   const orgPage = await orgCtx.newPage();
-  await login(orgPage, '2400012355', '**/workspace/org.html');
+  await login(orgPage, '2400012355', '**/workspace/org');
   const { vote, notified } = await orgPage.evaluate(async ({ activityId }) => {
     // 同步本地缓存：服务器此刻必有该活动（支书已直写落库），补齐本地 mockDB
     // 防 submitVote 后通知 persist 的快照以过期缓存覆盖服务器活动

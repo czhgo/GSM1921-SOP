@@ -5,6 +5,7 @@
 import { mockDB } from '../../core/domain/domain.js?v=20261110b';
 import { getAdapter, getDataSource } from '../../data/data-adapter.js?v=20261110b';
 import { normalizeProposal, proposalTransition } from '../../core/domain/committee-proposal.js?v=20261110b';
+import { generateId } from '../../core/base/id.js?v=20261110b';
 
 const now = () => new Date().toISOString();
 
@@ -41,7 +42,7 @@ export const CommitteeProposalStore = {
     if (getDataSource() === 'api') return getAdapter().committeeProposals.create(input);
     const row = normalizeProposal({
       ...input,
-      id: `cp-${Date.now().toString(36)}`,
+      id: generateId('cp', '-'),
       status: 'pending',
       proposedAt: now(),
       createdAt: now(),
@@ -84,7 +85,7 @@ export const CommitteeProposalStore = {
     }
     if (!Array.isArray(mockDB.committeeProposalEvents)) mockDB.committeeProposalEvents = [];
     mockDB.committeeProposalEvents.push({
-      id: `cpe-${Date.now().toString(36)}`, branchId: next.branchId, proposalId: id,
+      id: generateId('cpe', '-'), branchId: next.branchId, proposalId: id,
       from, to, action: patch.action || '', by: patch.actorId || '', at: now(), note: patch.note || '',
     });
     return next;

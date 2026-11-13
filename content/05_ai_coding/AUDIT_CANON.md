@@ -2,7 +2,7 @@
 title: "审计口径唯一表——四口径裁定与档位分工"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-11-03"
+last_updated: "2026-11-14"
 status: active
 related_files: [TAB_AUDIT_PLAYBOOK.md, ../04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md, ../04_web_design/design-system/DS_03_COMPONENTS.md, ../../server/scripts/audit/checks-front.mjs, ../../server/scripts/audit/checks-data.mjs, ../../server/scripts/audit/checks-economy.mjs, ../../server/scripts/audit/dom-probe.mjs, ../../.ctx/ENGINEERING_ASSESSMENT.md]
 ---
@@ -31,7 +31,7 @@ related_files: [TAB_AUDIT_PLAYBOOK.md, ../04_web_design/design-system/DS_06_LAYO
 |---|---|---|
 | `server/scripts/audit/checks-crud.mjs::C1` | 当前页签视角：本角色读口是否 2xx；写口是否在权限矩阵登记、`status` 是否为 `known-risk` | 不追溯 `requireRole` 是否被降级、不判断写门是否变宽；默认不逐口发越权探针（需 `--probe-writes` 显式开启） |
 | `server/security/write-policy-matrix.mjs` + `server/test/write-policy-matrix.test.mjs` | 写口 method+path 是否与 Express 运行期路由**完全相等**；每行是否有 middleware / roleGate / ownership / fieldLocks / evidence；known-risk 是否有 reason / impact / riskRef | 不实际发请求、不替代 `permission-gate` 的角色集合比对 |
-| `permission-gate` / `r3-data-permission-regression` / `roles-sync` | 写门是否变宽、角色授权集合是否一致、`requireRole` 是否被降成 `requireAuth` | 不逐页签复跑 45 个页签的 UI 视角 |
+| `permission-gate` / `r3-data-permission-regression` / `roles-sync` | 写门是否变宽、角色授权集合是否一致、`requireRole` 是否被降成 `requireAuth` | 不逐页签复跑 46 个页签的 UI 视角 |
 
 **结论**：C1 的判据是**矩阵登记**而不是「中间件是否等于 `requireAuth`」；`signups` 等中间件为 `requireAuth`、真实判据在专用 guard 的写口按 `enforced` 记 pass。真实无角色/归属判据的写口在矩阵里登记为 `known-risk`，C1 只保留 `exception` 并回链 `.ctx/ENGINEERING_ASSESSMENT.md` 阻断风险编号。
 
@@ -39,7 +39,7 @@ related_files: [TAB_AUDIT_PLAYBOOK.md, ../04_web_design/design-system/DS_06_LAYO
 
 | 档位 | 负责什么（保留哪些棘轮） | 不负责什么 | 入口 |
 |---|---|---|---|
-| **daily** | 静态守卫与真机棘轮：`ui-first-screen-order::F6–F9`（块数基线）、`filter-row::S14`（结构）＋ `S15`（真机证据读数）、`field-shell-guard::R4–R5`、`workbench-audit-coverage::W1–W5`（catalog 完整性）、`page-sweep`（分页 / H2 / 尺规真机普查） | 不跑 45 页签的五维全量审计；不因审计口径调整而删断言 | `cd server; npm run test:daily` |
+| **daily** | 静态守卫与真机棘轮：`ui-first-screen-order::F6–F9`（块数基线）、`filter-row::S14`（结构）＋ `S15`（真机证据读数）、`field-shell-guard::R4–R5`、`workbench-audit-coverage::W1–W5`（catalog 完整性）、`page-sweep`（分页 / H2 / 尺规真机普查） | 不跑 46 页签的五维全量审计；不因审计口径调整而删断言 | `cd server; npm run test:daily` |
 | **precommit** | 真机与跨面回归：`records-endpoints`、`page-sweep` 等含 Playwright 的用例 | 不承担 daily 的秒级预算；不替代 audit 的报告层 | `cd server; npm run test:precommit`（或 `test:full`） |
 | **audit** | 只做**报告层**：F1–F8 / D1–D4 / C1–C4 / E1–E2 / M1–M3 逐页签评分卡与证据 | 不作为门禁、不替代 daily / precommit；`--base` 连共享库时写维度自动降级 | `cd server; node scripts/audit-tabs.mjs --tab <key>` |
 

@@ -1,15 +1,15 @@
 ---
-title: "页签审计手册——45 页签五维检查怎么跑、怎么判、怎么加"
+title: "页签审计手册——46 页签五维检查怎么跑、怎么判、怎么加"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-11-03"
+last_updated: "2026-11-14"
 status: active
 related_files: [../04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md, REVIEW_QUESTION_SET.md, ../../server/scripts/audit/catalog.mjs, ../../server/scripts/audit/endpoint-map.mjs, ../../.ctx/evidence/2026-11-02/tab-audit/summary-final.md]
 ---
 
 # 页签审计手册
 
-> **回答什么问题**：45 个页签的五维审计资产是什么、一条命令怎么跑、每一维怎么判、出现例外怎么记；新增页签或新增检查时，哪些表要同批补齐。
+> **回答什么问题**：46 个页签的五维审计资产是什么、一条命令怎么跑、每一维怎么判、出现例外怎么记；新增页签或新增检查时，哪些表要同批补齐。
 > **不回答什么**：布局与密度的规范条文 → [DS_06_LAYOUT_AND_DENSITY.md](../04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md)；审查问题集的五步法 → [REVIEW_QUESTION_SET.md](REVIEW_QUESTION_SET.md) Q-22；某一次全量报告的逐条证据 → `.ctx/evidence/2026-11-02/tab-audit/summary-final.md`。
 > **谁什么时候读**：[工程师]+[AI]；改页签、合并区块、改筛选条、改读口 / 写口之前，以及每次发布前的全量审计之前读。
 > **口径以 [AUDIT_CANON.md](AUDIT_CANON.md) 为准**：F2 / F4 / F7-D2 / C1 / F1 的唯一判据，以及 daily / precommit / audit 的分工都记在那里；本手册负责「怎么跑」。
@@ -30,14 +30,14 @@ related_files: [../04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md, REVI
 | 层 | 文件 | 作用 |
 |---|---|---|
 | 编排 | `server/scripts/audit-tabs.mjs` | 解析参数、起服务、登录、逐页签跑检查、汇总落盘 |
-| 目录 | `server/scripts/audit/catalog.mjs` | 45 页签的唯一清单；页签与源码入口从 `docs/src/capabilities/*-workspace.js` 解析，块数从 `server/test/style-baseline.mjs::TAB_BLOCK_BASELINE` 读取 |
+| 目录 | `server/scripts/audit/catalog.mjs` | 46 页签的唯一清单；页签与源码入口从 `docs/src/capabilities/*-workspace.js` 解析，块数从 `server/test/style-baseline.mjs::TAB_BLOCK_BASELINE` 读取 |
 | 映射 | `server/scripts/audit/endpoint-map.mjs` | 每个页签的读口、写口、权限门、计数对账规则、破坏性流程与理由 |
 | 判级 | `server/scripts/audit/severity.mjs` | 规则 → P0 / P1 / P2 的单一判定表 |
 | 检查 | `audit/checks-front.mjs`（F1–F8）、`checks-data.mjs`（D1–D4）、`checks-crud.mjs`（C1–C4）、`checks-economy.mjs`（E1–E2、M1–M3） | 五个维度的实际检查 |
 | 报告 | `audit/report.mjs` | JSON 评分卡 + Markdown 分组报告 + 截图路径 |
 | 基线 | `audit/perf-baseline.mjs` | 读口 p50 / p95 / bytes 预算，首轮按实测生成、之后只收紧 |
 
-一条命令即可跑完一个页签或全部 45 个页签。默认自起 `:memory:` 临时库（`createApp({ dbPath: ':memory:' })` ＋ `seedDatabase` ＋ 随机端口 ＋ Playwright Chromium），结束时关闭，不污染 `server/data.db`。用 `--base <url>` 复用已起的服务时，C2（CRUD）自动降级为 `skip`，原因写作 `shared-db`，不在共享演示库做写入。
+一条命令即可跑完一个页签或全部 46 个页签。默认自起 `:memory:` 临时库（`createApp({ dbPath: ':memory:' })` ＋ `seedDatabase` ＋ 随机端口 ＋ Playwright Chromium），结束时关闭，不污染 `server/data.db`。用 `--base <url>` 复用已起的服务时，C2（CRUD）自动降级为 `skip`，原因写作 `shared-db`，不在共享演示库做写入。
 
 审计脚本不进 `test:daily`；日常守卫是 `server/test/workbench-audit-coverage.test.mjs`（W1–W5）。
 
@@ -89,7 +89,7 @@ related_files: [../04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md, REVI
 ```powershell
 cd server
 
-# 1) 全量 45 页签，落 JSON + Markdown（截图同目录 shots/）
+# 1) 全量 46 页签，落 JSON + Markdown（截图同目录 shots/）
 node scripts/audit-tabs.mjs --all --md ../.ctx/evidence/2026-11-02/tab-audit/summary.md --json ../.ctx/evidence/2026-11-02/tab-audit/findings.json
 
 # 2) 单页签回归（修完一项后先跑这一条）
@@ -109,7 +109,7 @@ node scripts/audit-tabs.mjs --base http://localhost:3000 --tab org.taskforce --o
 - **加检查**：在对应 `checks-*.mjs` 里产出 `{ key, rule, severity, status, message, evidence }`；新规则编号同批登记到 `severity.mjs` 的 `RULE_SEVERITY`（未登记默认 P2）。若该检查对应已立规范，规范编号仍回 `DS_06` / `DS_03` 等篇目，本手册只记工具口径。
 - **加页签**：能力注册表（`docs/src/capabilities/*-workspace.js`）与 `TAB_BLOCK_BASELINE` 同批登记，`catalog.mjs` 自动跟随；`endpoint-map.mjs` 同批补 `read` / `write`（含 `gate`）/ `count` / `destructive`（含 `reason`）。缺这些项时 `workbench-audit-coverage` 的 W2/W3 判红。
 - **守卫 W1–W5**（`server/test/workbench-audit-coverage.test.mjs`）：
-  - W1 catalog 45 项，键集合 ≡ `TAB_BLOCK_BASELINE`；
+  - W1 catalog 46 项，键集合 ≡ `TAB_BLOCK_BASELINE`；
   - W2 每个页签有真实源码入口；
   - W3 每个页签至少 1 个读口，写口有 `gate`，`destructive` 有 `reason`；
   - W4 反例：缺页签 / 空 `source` / 写口无 `gate` 必须判红；
@@ -157,7 +157,7 @@ node scripts/audit-tabs.mjs --base http://localhost:3000 --tab org.taskforce --o
 | 资产 | 覆盖什么 | 与页签审计的分工 |
 |---|---|---|
 | `page-sweep` | 分页、控件档位 40/36px、数据格 13px、390 窄屏、深链与切换竞态 | 真机全站普查；审计复用其登录与遍历口径，只补「块数 / 筛选行 / 标题层级 / section / 空态」等页签级判据 |
-| `module-load` | 页签模块能否加载、首屏 `/api/v1/` 4xx 归零 | 审计的 F8 / D3 与其同口径，不重复导航 45 次 |
+| `module-load` | 页签模块能否加载、首屏 `/api/v1/` 4xx 归零 | 审计的 F8 / D3 与其同口径，不重复导航 46 次 |
 | `a11y-tree` | `section` 可访问名称、标题层级、ARIA 语义 | 审计 F4 / F5 与其同向；合成 DOM 反例由 `a11y-tree` 自检 |
 | `ui-first-screen-order` / `filter-row` / `field-shell-guard` | SD-57 / SD-58 / SD-59 的静态与真机守卫 | 审计是「按页签跑一遍」的运行时复核，规范判据仍在 DS_06 |
 | `REVIEW_QUESTION_SET.md` Q-22 | 页签密度与信息经济的五步审查法 | Q-22 管「人怎么审」，本手册管「工具怎么跑」 |

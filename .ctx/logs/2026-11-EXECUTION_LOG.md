@@ -2,13 +2,52 @@
 title: "2026年11月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-12
+last_updated: 2026-11-14
 status: active
 ---
 
 # 2026年11月执行日志
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
+
+## 批次 549（2026-11-14）· 提交前门禁闭环（收尾对账）
+
+### 为什么
+- `test:precommit` 自 541 起因口径前移未同步而积压红项：D-867（URL 去后缀）、D-868（专班必须显式承办方）、通知受众投影（F-06）、id 单一源（禁止 `Date.now()`）、页签数 45→46。
+
+### 拿不准 / 取舍
+- **专班夹具**：按 D-868「新记录必须显式声明承办方」补 `organizingScope:'branch'`，不放宽服务端默认。
+- **通知 P1/P2**：`GET /notices` 是受众投影，对照源改用同一 `canReadNotice` 过滤；另加 `COUNT(*)` 断言守住「不可见行也必须落库」，避免用投影掩盖漏种。
+- **P11 支书台支部分工**：14 项是 `WORK_MAP_MODULES` 固定目录，分页无意义；登记为「固定目录」例外并设 `max:20` 硬上限（超限即红），不走待修台账。
+- **issue-anonymity 真机**：mock 场景宿主页由首页改为静态 `help.html`，并把持久化取样点收在写链完成瞬间——消除首页水合在全量高负载下重写 localStorage 的竞态，断言未放宽。
+
+### 边界
+- 仅对齐存量守卫与夹具；未改业务读权、未启动 `B-500-7b-2`。`L-12` 时长风险仍在（本轮 precommit 墙钟 1939.8s）。
+
+### 读数
+- `test:precommit`：**341 绿 / 0 红 / 1 跳过 · 墙钟 1939.8s**（第 5 轮；前 4 轮逐项暴露并修复上述存量红）。
+- `test:daily`：246 断言 / 74.6s / 全绿；`test:guards`：346 断言 / 127.0s / 全绿。
+- `page-sweep`：tab=46、引擎列表 49（>10 的 13）、矩阵 2、手写表格 8；`doc-consistency` 21/21。
+
+### commit
+- 549 主记录（`git log --grep '549'`；hash 由 549a 补记）。
+
+## 批次 548（2026-11-13）· 547 边界闭环（D-871）
+
+### 为什么
+- 547 记录的真机失败：`org-taskforce-{reject-reason,contribution,materials}`（写块在默认收起的 `<details>` 内）、`messages-compose`（`emptyStateHtml` 漏 import）、`secretary-feedback`（`issue-unread` 清支书角标 403）。
+
+### 拿不准 / 取舍
+- 折叠区问题按「测试 `open` 链先点 `summary`」修，不改产品折叠默认；`issue-unread` 只放开支书 / 副支书清 `secretary-review` 角标，不放开支委全体。
+
+### 边界
+- `precommit` 时长风险仍在（`L-12`）；本轮不启动 `B-500-7b-2`。
+
+### 读数
+- `form-loop-sweep` 全量绿；`daily` 29 文件 / 82.1s；`guards` 105 文件 / 111.9s；`issue-unread-gate` 3 项；`page-error-smoke` 1 项。
+
+### commit
+- `db6c79f24`（548 主记录）。
 
 ## 批次 547（2026-11-12）· 三台专项探查 P0 收口（D-870）
 

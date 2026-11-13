@@ -31,9 +31,9 @@ const AG2 = 'av5-ag-2'; // 议题 2（并列存在，验证多议题）
 const TITLE = 'AV5线上支部党员大会E2E';
 
 const ACCOUNTS = {
-  2300010001: { studentId: '2300010001', target: '**/workspace/secretary.html' }, // 支书 储子禾
-  2400012349:  { studentId: '2400012349', target: '**/workspace/visitor.html' },    // 宋佳宁（正式党员 participant）
-  2500010010: { studentId: '2500010010', target: '**/workspace/visitor.html' },    // 曹雅婷（预备党员 participant）
+  2300010001: { studentId: '2300010001', target: '**/workspace/secretary' }, // 支书 储子禾
+  2400012349:  { studentId: '2400012349', target: '**/workspace/visitor' },    // 宋佳宁（正式党员 participant）
+  2500010010: { studentId: '2500010010', target: '**/workspace/visitor' },    // 曹雅婷（预备党员 participant）
 };
 
 before(async () => {

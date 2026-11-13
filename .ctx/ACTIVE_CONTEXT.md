@@ -3,9 +3,9 @@ title: "Active Context — 当前判断入口"
 type: active_context
 role: "[AI]"
 layer: active
-last_updated: "2026-11-12"
-last_verified: "2026-11-12"
-latest_decision: "D-870"
+last_updated: "2026-11-14"
+last_verified: "2026-11-14"
+latest_decision: "D-873"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -25,11 +25,11 @@ status: active
 - **URL**：无后缀已落地（`D-867`）：`pageHref()` 单源 ＋ `resolveDocumentUrl` ＋ 运行时 `link-normalize`；旧 `.html` 保持 200；真机登录后 URL＝`/workspace/secretary?tab=today`，站内 `.html` 锚点 0（`help` / `about` 除外）。
 - **数据**：业务表 50 张（34 资源 ＋ 10 语义 ＋ 6 工作组；v16 新增 `committee_proposals` / `committee_proposal_events`）；SQLite 宽表 `id + data(JSON)`；schema **v16**（v13 新增 `publication_audits`，三张内容表加 `owner_scope` / `publish_scope` 生成列；v16 建支委提案两表）；空库首启补最小组织基线（1 支部 ＋ 党委账号 ＋ 6 角色账号）。
   - source：`server/data/domain-contract.mjs`、`content/04_web_design/data/DATA_CONTRACT.md`。
-- **权限**：写入口权限矩阵 **143 条**（137 enforced / 4 self-service / 2 public / **0 known-risk**；v16 提案 POST/PATCH 两条已登记）；守卫断言运行期写路由 ≡ 矩阵；审计 C1 查矩阵 + 高风险抽样。
+- **权限**：写入口权限矩阵 **160 条**（154 enforced / 4 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵；审计 C1 查矩阵 + 高风险抽样。统计口径：`WRITE_POLICY_MATRIX` 按 `status` 计数（2026-11-13 实测）。
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
-- **审计**：46 页签 **P0 0 / P1 0 / P2 3 / exception 44**；F1–F8 全绿；M1–M3 在位；`secretary.overview` / `calendar` / `committee-meeting` / `group-progress` / `work-map` 五页三档均 0。P2 三条是 IA 块数基线漂移（`secretary.calendar` 10 vs 3 / `secretary.report-up` 14 vs 4 / `visitor.activities` 9 vs 3），登记 `L-22`，待支书裁定重基线；全量未取终摘要，P0 / P1 读数来自守卫代理报告。
-  - source：`.ctx/evidence/2026-11-10/tab-audit/summary.md`、`.ctx/evidence/2026-11-10/audit-fix/summary.md`。
-- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **29 文件 / 246 断言 / 110.3s**（结果门禁）；guards **105 文件 / 842 tests / 130.2s**（静态守卫，按需）；precommit＝daily＋guards＋非核心域回归＋e2e（时长仍长）；weekly 2。四层 runner 按 registry 单一源执行；CI `daily.yml` 已接 `test:daily` 与 `deploy-verify`（两个 job 均未实跑绿）。
+- **审计**：46 页签 **P0 0 / P1 0 / P2 8 / exception 44**；F1–F8 全绿；M1–M3 在位；`secretary.overview` / `calendar` / `committee-meeting` / `group-progress` / `work-map` 五页三档均 0。P2 中三处为 IA 块数漂移（`secretary.calendar` 10 vs 3 / `secretary.report-up` 14 vs 4 / `visitor.activities` 9 vs 3），已裁「按 DOM 实测重基线」（`D-873`），待实现；全量未取终摘要，P0 / P1 读数来自守卫代理报告。
+  - source：`.ctx/evidence/2026-11-10/tab-audit/summary.md`（P2 8 / exception 44）、`.ctx/evidence/2026-11-10/audit-fix/summary.md`。
+- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **29 文件 / 246 断言 / 74.6s**（结果门禁）；guards **105 文件 / 346 断言 / 127.0s**（静态守卫，按需）；precommit＝daily＋guards＋非核心域回归＋e2e，**2026-11-14 全绿：341 绿 / 0 红 / 1 跳过 · 墙钟 1939.8s**；weekly 2。四层 runner 按 registry 单一源执行；CI `daily.yml` 已接 `test:daily` 与 `deploy-verify`（两个 job 均未实跑绿）。
   - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859 / §D-860 / §D-863 / §D-864`。
 - **工程评分（`D-865`）**：业务与数据 **81** · 安全与权限 **78** · 最小三成本 **78** · 测试与发布 **83** · 架构与可维护性 **78** · 运行部署 **76**；不设平均总分。
   - source：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/logs/2026-11-DECISION_LOG.md §D-865`。
@@ -67,13 +67,16 @@ status: active
 - **对象模型已落**：活动与专班并列、互不挂靠；工作组是二者各自 1:1 执行载体；专班补 `organizingScope/hostGroupId`，新记录必选承办方，历史「待补」一次性补选；专班不产生考勤。（`D-868`）→ `DATA_MODEL §附二`、`workgroup-routes.js`、`taskforce-tab.js`。
 - **支委提案已落**：`committee_proposals` / 事件表（schema v16）；`pending → queued → on-agenda → decided → closed|rejected`；组长可提、支委受理、支书排期/决议；回执 6 类，决议可回写草案活动 / 专班。（`D-869`）→ `server/routes/committee-proposals.js`、`committee-proposal.js`。
 - **三台专项探查 P0 收口**：提案决议与议程同事务单一事实；支委会建会 / 议程结果仅支书 / 副支书；报表读口收为支书 / 副支书 / 组织委员 / 党委；宣传台看板只读不闭环活动；组长进展读口按角色 / 组收口；M7/M8 迁移期望改由 `SCHEMA_VERSION` 派生，新增写门矩阵 evidence 行号守卫。（`D-870`）→ `server/routes/{committee-proposals,report,leader-progress}.js`、`resources/gates.js`、`docs/src/core/domain/party-group-scope.js`。
+- **547 边界已闭环**：专班折叠区真机流补 `summary` 展开；消息页补 `emptyStateHtml` import；`issue-unread` 清 `secretary-review` 角标仅支书 / 副支书可写 `unread:false`（矩阵与回归测试同批）。（`D-871`）→ `form-loop-registry.mjs`、`messages-entry.js`、`semantic-routes.js`、`write-policy-matrix.mjs`、`issue-unread-gate.test.mjs`。
+- **L-16 已裁**：表决名单 `voteConfig.voterIds` 采「建会冻结快照」，会议期间不随组织变动；组织变动下次建会生效。（`D-872`）→ 待实现。
+- **L-22 / B-541-1 已裁**：三处 IA 块数按 DOM 实测重基线（10 / 14 / 9），改 `TAB_BLOCK_BASELINE` 排下一 UI 批。（`D-873`）→ 待实现。
 
 ## §3 当前风险与下一步
 
 ### 阻断级风险（5 条，逐条复核）
 
 1. **多支部同实例会跨支部读出数据**：读面未统一过滤；production 已硬拦多支部；设计见 `ARCHITECTURE_EVOLUTION §十`。**保留**。
-2. **通用写口权限**：矩阵 141 行 / 0 known-risk，6 条缺口已修；`issue-unread` 派发位已加 403 校验。**部分闭环**；残项：共享口令、多支部读过滤未接线。
+2. **通用写口权限**：矩阵 160 行 / 0 known-risk，6 条缺口已修；`issue-unread` 派发位已加 403 校验，清支书角标仅支书/副支书（`D-871`）。**部分闭环**；残项：共享口令、多支部读过滤未接线。
 3. **表决选民名单来自活动数据本身**：服务端未按场景重算 `voteConfig.voterIds`。**保留**。
 4. **共享口令**：会话已 3 小时过期，个人密码已落地（21/21）。**部分闭环**；共享口令作回退保留，生产用 systemd 注入强口令并定期更换。
 5. **SQLite JSON 宽表是规模边界**：无业务字段索引；万行级前评估 `MIGRATIONS v2`。**保留**。
@@ -94,8 +97,8 @@ status: active
 
 ### 下一批最该做的 3 件事
 
-1. **`D-866`–`D-870` 已落地**：URL（`D-867`）、对象模型（`D-868`）、提案上会（`D-869`）、三台 P0 收口（`D-870`）已完成；下一步按 `L-10` / `L-16` / `L-22` 等台账推进，需支书裁定的项先列丙部。
-2. **完整 Plan B 二期（`B-500-7b-2`）**：删客户端业务派生的默认路径 + 读面前置解耦 + 缓存 / 性能；前置（7 类对账 8/8、双支部夹具、daily 246 断言）已达，不以上线为前提。
+1. **`D-866`–`D-873` 已落地 / 已裁**：URL（`D-867`）、对象模型（`D-868`）、提案上会（`D-869`）、三台 P0 收口（`D-870`）、547 边界闭环（`D-871`）已落；L-16 建会冻结（`D-872`）与 L-22 按实测重基线（`D-873`）已裁待实现。
+2. **完整 Plan B 二期（`B-500-7b-2`）**：下一批启动；删客户端业务派生的默认路径 + 读面前置解耦 + 缓存 / 性能；前置（7 类对账 8/8、双支部夹具、daily 246 断言）已达，不以上线为前提。
 3. **首次部署前验证**：在 Linux 测试机跑 `install/update` + `preflight-cutover --strict`，把 `L-02` 关掉；多支部 Phase 1 顺延至上述两项之后。
 
 ## §4 文件地图（读什么 / 不读什么）

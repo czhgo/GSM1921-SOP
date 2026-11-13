@@ -181,7 +181,7 @@ test('G1 待办台不得直点角色页签按钮 / 不得写死 workspace URL（
   for (const rel of TODO_TAB_FILES) {
     const src = readFileSync(new URL(rel, import.meta.url), 'utf8');
     assert.equal(hasLegacyTabNav(src), false, `${rel} 仍存在旧式页签直点 / 写死 URL`);
-    assert.match(src, /goToWorkspaceTab\(/, `${rel} 必须走统一导航 helper`);
+    assert.match(src, /(?:executeTodoAction|goToWorkspaceTab)\(/, `${rel} 必须走统一导航 helper`);
   }
   // 反例：合成旧写法必须判红
   assert.equal(hasLegacyTabNav('document.querySelector(`.leader-tab-btn[data-leader-tab="${t}"]`).click();'), true);
@@ -211,7 +211,7 @@ test('G3 resolveTodoAction：actionKey 优先 / actionType 兜底 / 角色与 sc
   assert.equal(resolveTodoAction({ actionKey: 'no-such', actionType: 'no-such' }), null);
   assert.deepEqual(
     resolveTodoAction({ actionKey: 'archive-remind', actionType: 'submit' }),
-    { tab: 'calendar', label: '到活动管理处理', kind: 'activity' },
+    { mode: 'switch', tab: 'calendar', label: '到活动管理处理', kind: 'activity' },
     'actionKey 优先于 actionType',
   );
   assert.equal(resolveTodoAction({ actionKey: 'unknown', actionType: 'notify' }).tab, 'notification', 'actionType 兜底');
