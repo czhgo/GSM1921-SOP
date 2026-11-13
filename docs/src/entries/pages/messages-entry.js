@@ -17,6 +17,7 @@ import {
 import { AuthStore } from '../../services/core/auth.js?v=20261110b';
 import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261110b';
 import { badgeHtml } from '../../components/ui/badges.js?v=20261110b';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261110b';
 import { pagerHtml } from '../../components/ui/pager.js?v=20261110b';
 import { PersonPicker } from '../../components/governance/pickers.js?v=20261110b';
 import { messageSearchBarHtml } from '../../components/notice/message-search-bar.js?v=20261110b';

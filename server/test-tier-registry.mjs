@@ -405,6 +405,7 @@ export const TEST_TIERS = [
     'committee-meeting-gate.test.mjs',
     'leader-progress-gate.test.mjs',
     'report-read-gate.test.mjs',
+    'issue-unread-gate.test.mjs',
     'iaaa-ui-onboarding.test.mjs',
     'inspection-loop-e2e.test.mjs',
     'issue-anonymity.test.mjs',

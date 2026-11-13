@@ -440,9 +440,9 @@ export const VALIDATION_SITES = [
   //   三处均为「写私信」表单的字段级必填校验，**可机测**（真机流 `messages-compose-validate` 逐支验到）；
   //   校验次序刻意排为 **标题 → 正文 → 收件人** ⇒ 前两支**不依赖选人器**（真机流不需 openPicker）。
   //   回复区的「正文必填」**复用同一条文案**（同一口径，不另立第二处校验点）。
-  { file: SRC + 'entries/pages/messages-entry.js', line: 275, field: '标题', flow: 'messages/消息中心·写私信', machine: true, msg: '请填写标题' },
-  { file: SRC + 'entries/pages/messages-entry.js', line: 276, field: '正文', flow: 'messages/消息中心·写私信', machine: true, msg: '请填写正文' },
-  { file: SRC + 'entries/pages/messages-entry.js', line: 277, field: '收件人', flow: 'messages/消息中心·写私信', machine: true, msg: '请选择收件人' },
+  { file: SRC + 'entries/pages/messages-entry.js', line: 276, field: '标题', flow: 'messages/消息中心·写私信', machine: true, msg: '请填写标题' },
+  { file: SRC + 'entries/pages/messages-entry.js', line: 277, field: '正文', flow: 'messages/消息中心·写私信', machine: true, msg: '请填写正文' },
+  { file: SRC + 'entries/pages/messages-entry.js', line: 278, field: '收件人', flow: 'messages/消息中心·写私信', machine: true, msg: '请选择收件人' },
   // ── 独立页「消息详情」私信回复（Task 3 · 2026-10-25）────────────────────────
   //   回复框正文必填与「写私信」**同一文案同一口径**；本批不新增真机慢件（D-753），
   //   线程回复已由服务层单测（notice-message / notice-audience 扩展）覆盖。
@@ -1100,6 +1100,8 @@ export const MACHINE_FLOWS = [
     tab: '专班管理',
     open: [
       { click: '#tf-bucket-active .tf-store-card[data-tf-id="tf-002"]' },
+      // 详情页把写块收进默认收起的 `<details class="disclosure">`；先展开「贡献核验」再操作。
+      { click: 'section[aria-labelledby="tf-section-contrib"] summary.disclosure__summary' },
       { waitFor: '.tf-contrib-verify-btn[data-decision="reject"]' },
       { dialogAnswer: '' },
     ],
@@ -1192,6 +1194,7 @@ export const MACHINE_FLOWS = [
     tab: '专班管理',
     open: [
       { click: '#tf-bucket-active .tf-store-card' },
+      { click: 'section[aria-labelledby="tf-section-contrib"] summary.disclosure__summary' },
       { waitFor: '#btn-add-tf-contrib' },
     ],
     submit: [{ click: '#btn-add-tf-contrib' }],
@@ -1240,6 +1243,7 @@ export const MACHINE_FLOWS = [
     tab: '专班管理',
     open: [
       { click: '#tf-bucket-active .tf-store-card' },
+      { click: 'section[aria-labelledby="tf-section-close"] summary.disclosure__summary' },
       { click: '.sub-add-btn[data-type="materials"]' },
       { waitFor: '.record-save-btn' },
     ],
@@ -1357,6 +1361,7 @@ export const MACHINE_FLOWS = [
     //   本流程改测**本位承接面**——组织台「专班管理」页底的「项目赋权 · 专班」块（同一 assign-tab 实现）。
     tab: '专班管理',
     open: [
+      { click: '#tf-auth-block > summary' },
       { waitFor: '#confirm-tf-auth-btn' },
       { setValue: { selector: '#tf-project-select', value: '' } },
     ],
@@ -1738,9 +1743,9 @@ export const MACHINE_FLOWS = [
     ],
     submit: [{ click: '#msg-compose-send' }],
     expect: [
-      { file: SRC + 'entries/pages/messages-entry.js', line: 274, field: '标题', msg: '请填写标题', carrier: '#msg-compose-title', satisfy: { setValue: { selector: '#msg-compose-title', value: '（真机流程）标题' } } },
-      { file: SRC + 'entries/pages/messages-entry.js', line: 275, field: '正文', msg: '请填写正文', carrier: '#msg-compose-content', satisfy: { setValue: { selector: '#msg-compose-content', value: '（真机流程）正文' } } },
-      { file: SRC + 'entries/pages/messages-entry.js', line: 276, field: '收件人', msg: '请选择收件人', carrier: '#msg-composer-host .person-picker-trigger' },
+      { file: SRC + 'entries/pages/messages-entry.js', line: 276, field: '标题', msg: '请填写标题', carrier: '#msg-compose-title', satisfy: { setValue: { selector: '#msg-compose-title', value: '（真机流程）标题' } } },
+      { file: SRC + 'entries/pages/messages-entry.js', line: 277, field: '正文', msg: '请填写正文', carrier: '#msg-compose-content', satisfy: { setValue: { selector: '#msg-compose-content', value: '（真机流程）正文' } } },
+      { file: SRC + 'entries/pages/messages-entry.js', line: 278, field: '收件人', msg: '请选择收件人', carrier: '#msg-composer-host .person-picker-trigger' },
     ],
   },
 ];

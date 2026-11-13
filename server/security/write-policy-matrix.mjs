@@ -217,9 +217,9 @@ const NON_RESOURCE_ROWS = [
   },
   {
     method: 'POST', path: '/api/v1/issue-unread', resource: 'issueUnread',
-    middleware: 'requireAuth', roleGate: 'issueUnreadWriteDeny：本人 ∪ 派发位（支委层/党小组组长/党委，且派发位 assigneeId 须＝事项 assignee）∪ 事项当事人（secretary-review）', ownership: 'self/organizer',
+    middleware: 'requireAuth', roleGate: 'issueUnreadWriteDeny：本人 ∪ 派发位（支委层/党小组组长/党委，且派发位 assigneeId 须＝事项 assignee）∪ 事项当事人（secretary-review）；清 secretary-review 角标仅支书/副支书可写 unread:false', ownership: 'self/organizer',
     fieldLocks: ['assigneeId', 'issueId', 'unread'],
-    evidence: 'server/routes/resources/semantic-routes.js::issueUnreadWriteDeny; server/test/write-policy-gaps.test.mjs',
+    evidence: 'server/routes/resources/semantic-routes.js::issueUnreadWriteDeny; server/test/write-policy-gaps.test.mjs; server/test/issue-unread-gate.test.mjs',
     status: 'enforced',
   },
   {

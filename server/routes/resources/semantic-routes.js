@@ -122,7 +122,7 @@ export function registerExtraSemanticRoutes(router, db) {
    *     仅当服务端能读到该事项时，额外校验 `assignee` 与标记对象一致（防伪造指派）。
    * @returns {string|null} 403 文案；放行 → null
    */
-  const issueUnreadWriteDeny = (actor, assigneeId, issueId) => {
+  const issueUnreadWriteDeny = (actor, assigneeId, issueId, unread) => {
     if (!actor || !actor.id) return '未登录';
     const self = String(actor.id);
     if (String(assigneeId) === self) return null; // 本人标记本人（已读/未读）
@@ -132,8 +132,10 @@ export function registerExtraSemanticRoutes(router, db) {
       const actorBranch = actorBranchId(actor);
       if (actorBranch && issueBranch !== actorBranch) return '无权限：不能标记其他支部事项';
     }
-    // 角色保留键：只有事项提交人 / 被指派人可把「待终审」推给支书
+    // 角色保留键：只有事项提交人 / 被指派人可把「待终审」推给支书；
+    // 但「清掉支书自己的待办角标」是支书 / 副支书的读后动作，允许其写 `unread:false`。
     if (assigneeId === 'secretary-review') {
+      if (unread === false && SECRETARY_AND_DEPUTY_ROLE_SET.has(actor.role)) return null;
       if (!issue) return null; // 历史实现允许（汇报链的 issue 可能尚未同步），保持兼容
       return (String(issue.submittedBy || '') === self || String(issue.assignee || '') === self)
         ? null
@@ -177,7 +179,7 @@ export function registerExtraSemanticRoutes(router, db) {
     const rowBranchId = assignee ? (assignee.branchId || DEFAULT_BRANCH_ID) : (req.actor.branchId || null);
     if (!rowBranchId) return res.status(403).json({ error: '无权限：请先选择支部后再操作' });
     // Task 4：先判「谁能写这条未读」，再落库（支部归属另由 recordBranchWriteDeny 复核）
-    const unreadDeny = issueUnreadWriteDeny(req.actor, assigneeId, issueId);
+    const unreadDeny = issueUnreadWriteDeny(req.actor, assigneeId, issueId, body.unread);
     if (unreadDeny) return res.status(403).json({ error: unreadDeny });
     const prev = getRow(db, 'issue_unread', id) || {};
     const row = { ...prev, id, assigneeId, issueId, branchId: rowBranchId, unread: body.unread !== false, at: new Date().toISOString() };
