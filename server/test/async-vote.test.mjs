@@ -1,12 +1,18 @@
 // role: [工程师]+[AI]
 // server/test/async-vote.test.mjs — AV5 线上异步表决 E2E（支部党员大会真实 UI 表决 → 硬校验 → 通过）
-// 链路：支书创建线上党员大会（branch-party-meeting, formal + formal-only 12 应到 + quorumCheck）
+// 链路：支书创建线上党员大会（branch-party-meeting, formal + formal-only + quorumCheck）
 //   → 预备党员 2500010010（名单外）activity.html 只读（议程可见、无表决按钮、「仅应到表决人可表态」）+ API 403
-//   → 正式党员 2400012349 activity.html 点「赞成」→「已表态（无记名…）」（正式表决强制无记名，不展示个人选项）
+//   → 正式党员 2400012347 activity.html 点「赞成」→「已表态（无记名…）」（正式表决强制无记名，不展示个人选项）
 //     → 服务端登记参与记录 + tally → node fetch 校验落库（且响应无 personId→选项 映射）
-//   → 支书 inspector 汇总矩阵「应到 12 · 已表态 1」→ 记录「通过」被硬校验拦截（实到 1/12 < 6，toast 报错、不写 result）
-//   → node fetch 补足 2400012345/2400012346/2400012347/2400012348/2400012352/2400012353 赞成至实到 7/赞成(tally) 7（均 >6）→ 支书再记录「通过」成功
+//   → 支书 inspector 汇总矩阵「应到 10 · 已表态 1」→ 记录「通过」被硬校验拦截（实到 1/10 < 5，toast 报错、不写 result）
+//   → node fetch 补足 2400012345/2400012346/2400012348/2400012352/2400012354/2400012355 赞成至实到 7/赞成(tally) 7（均 >5）→ 支书再记录「通过」成功
 //   → node fetch 校验活动议程 result='passed'
+//
+// 名单口径（2026-11-14 批次 550 · D-872）：`voteConfig.voterIds` 由**服务端建会冻结**——
+//   按 users ＋ 组织归属算一次（剔除滞留、剔除已转出），客户端提交的列表不作数。
+//   故本场应到 = 10 名在册正式党员（历史快照含滞留 2400012349/2400012353 的旧样例不再适用于新建活动）。
+//   界面投票人因此由旧样例的滞留党员 2400012349 改为在册正式党员 2400012347；判据（名单内可投 / 名单外只读 + 403 /
+//   硬校验拦截 / 补足后通过）逐条保留，未删断言。
 //
 // 平台事实（实证）：
 // - activity.html（公共详情页）不经 bootstrap → 运行时为 mock 数据源，表态只落本地 mockDB；
@@ -23,16 +29,16 @@ import { seedDatabase } from '../seed.js';
 
 let server, base, browser;
 
-// 表决名单 = 12 名正式党员（mock act-31 创建时固化的快照口径——含滞留 2400012349/2400012353，历史快照不回改；
-//   新活动默认由 vote-config resolveVoterIds('formal-only') 现时生成，会按居住状态剔滞留）
-const FORMAL_IDS = ['2400012345', '2400012346', '2400012347', '2400012348', '2400012349', '2400012352', '2400012353', '2400012354', '2400012355', '2400012356', '2300010001', '2300010002'];
+// 表决名单（D-872 建会冻结）：在册正式党员 10 名——滞留 2400012349 / 2400012353 按名册口径剔除；
+//   服务端建会时按 users ＋ 组织归属重算并以服务端结果落库，本常量只作「本场应到」的期望值。
+const FORMAL_IDS = ['2400012345', '2400012346', '2400012347', '2400012348', '2400012352', '2400012354', '2400012355', '2400012356', '2300010001', '2300010002'];
 const AG1 = 'av5-ag-1'; // 议题 1（表决/记录决议对象）
 const AG2 = 'av5-ag-2'; // 议题 2（并列存在，验证多议题）
 const TITLE = 'AV5线上支部党员大会E2E';
 
 const ACCOUNTS = {
   2300010001: { studentId: '2300010001', target: '**/workspace/secretary' }, // 支书 储子禾
-  2400012349:  { studentId: '2400012349', target: '**/workspace/visitor' },    // 宋佳宁（正式党员 participant）
+  2400012347:  { studentId: '2400012347', target: '**/workspace/visitor' },    // 正式党员 participant（在册）
   2500010010: { studentId: '2500010010', target: '**/workspace/visitor' },    // 曹雅婷（预备党员 participant）
 };
 
@@ -115,7 +121,7 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
     return act;
   }, { title: TITLE, voterIds: FORMAL_IDS, ag1: AG1, ag2: AG2 });
   assert.ok(created && created.id, '活动创建成功（服务器落库）');
-  assert.equal(created.voteConfig.voterIds.length, 12, '应到名单应为 12 名正式党员');
+  assert.equal(created.voteConfig.voterIds.length, 10, '应到名单应为 10 名在册正式党员（滞留剔除）');
   assert.equal(created.voteConfig.quorumCheck, true, 'quorumCheck 应为 true');
   const actId = created.id;
   const item1 = created.agenda.find((x) => x.id === AG1);
@@ -165,12 +171,12 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
   await prepCtx.close();
 
   // ════════════════════════════════════════════════════════════════
-  // 3. 正式党员 2400012349：activity.html 对议题 1 点「赞成」→ 显示「已表态：赞成」（公共页 UI）
+  // 3. 正式党员 2400012347：activity.html 对议题 1 点「赞成」→ 显示「已表态：赞成」（公共页 UI）
   //    随后以同一身份在页面内 evaluate 调 submitVote 服务（切 api 数据源）登记服务器，
-  //    node fetch 校验 2400012349 approve 已落库
+  //    node fetch 校验 2400012347 approve 已落库
   // ════════════════════════════════════════════════════════════════
   const memberCtx = await browser.newContext();
-  const memberPage = await login(memberCtx, '2400012349');
+  const memberPage = await login(memberCtx, '2400012347');
   await memberPage.evaluate(async () => {
     const { persist } = await import('/src/data/data-adapter.js?v=20261110b');
     persist(); // 本地备份（含服务器 act-xxx）供 activity.html mock 恢复
@@ -192,7 +198,7 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
   assert.ok(p5UiText.includes('已表态（无记名'), `UI 应显示已表态（无记名），实际：${p5UiText}`);
   assert.equal(await memberPage.locator(`[data-vote-item-id="${AG1}"] .vote-note`).count(), 0, '无记名不提供附言输入（附言不落库）');
 
-  // 同页切 api 数据源后以 2400012349 身份经 submitVote 服务登记服务器（公共页 mock 不落服务器，见文件头注释）
+  // 同页切 api 数据源后以 2400012347 身份经 submitVote 服务登记服务器（公共页 mock 不落服务器，见文件头注释）
   const p5Row = await memberPage.evaluate(async ({ activityId, ag1 }) => {
     const token = sessionStorage.getItem('gsm1921-api-token');
     const { enableApiMode } = await import('/src/services/core/runtime.js?v=20261110b');
@@ -200,27 +206,27 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
     const { submitVote } = await import('/src/services/activity/committee-vote.js?v=20261110b');
     return submitVote({ activityId, agendaItemId: ag1, position: 'approve', note: '' });
   }, { activityId: actId, ag1: AG1 });
-  assert.equal(p5Row.personId, '2400012349', '服务端登记参与记录 personId 应为 2400012349');
+  assert.equal(p5Row.personId, '2400012347', '服务端登记参与记录 personId 应为 2400012347');
   assert.equal(p5Row.ballotMode, 'anonymous', '正式表决应为无记名（ballotMode=anonymous）');
   assert.equal(p5Row.position, undefined, '无记名不得回传逐人选项');
 
-  // node fetch 直连校验：GET /api/v1/agenda-votes 含 2400012349 参与记录 + tally（无逐人选项）
-  const p5Token = await apiLogin('2400012349');
+  // node fetch 直连校验：GET /api/v1/agenda-votes 含 2400012347 参与记录 + tally（无逐人选项）
+  const p5Token = await apiLogin('2400012347');
   const votesR = await fetch(`${base}/api/v1/agenda-votes?activityId=${actId}`, {
     headers: { Authorization: `Bearer ${p5Token}` },
   });
   assert.equal(votesR.status, 200);
   const votes = await votesR.json();
-  const mine = votes.filter((v) => v.personId === '2400012349' && v.agendaItemId === AG1);
-  assert.equal(mine.length, 1, '2400012349 参与记录应已落库');
+  const mine = votes.filter((v) => v.personId === '2400012347' && v.agendaItemId === AG1);
+  assert.equal(mine.length, 1, '2400012347 参与记录应已落库');
   assert.equal(mine[0].position, undefined, '无记名不得落逐人选项');
   assert.ok(!votes.some((v) => v.personId && v.position !== undefined), '任何 GET 响应都不得含 personId→选项 映射');
   assert.deepEqual((votes.find((v) => v.tally && v.agendaItemId === AG1) || {}).tally, { approve: 1 }, 'tally 应记 approve 1');
   await memberCtx.close();
 
   // ════════════════════════════════════════════════════════════════
-  // 4. 支书 secretary.html 打开该活动详情（inspector）：汇总矩阵「应到 12 · 已表态 1」；
-  //    记录「通过」被硬校验拦截（出席 1/12 < ceil(12/2)=6）→ error toast、不写 result
+  // 4. 支书 secretary.html 打开该活动详情（inspector）：汇总矩阵「应到 10 · 已表态 1」；
+  //    记录「通过」被硬校验拦截（出席 1/10 < ceil(10/2)=5）→ error toast、不写 result
   // ════════════════════════════════════════════════════════════════
   await secPage.goto(`${base}/workspace/secretary.html?activityId=${actId}`, { waitUntil: 'domcontentloaded' });
   // 兜底：URL 直达落点未在窗口内完成时，手动切活动管理 tab 并强制 detail 视图
@@ -237,7 +243,7 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
     await secPage.waitForSelector('#vote-summary-slot .vs-stat', { timeout: 12000 });
   }
   const statText = await secPage.locator('#vote-summary-slot .vs-stat').innerText();
-  assert.ok(statText.includes('应到 12 · 已表态 1'), `汇总矩阵应为「应到 12 · 已表态 1」，实际：${statText}`);
+  assert.ok(statText.includes('应到 10 · 已表态 1'), `汇总矩阵应为「应到 10 · 已表态 1」，实际：${statText}`);
   const summaryText = await secPage.locator('#vote-summary-slot').innerText();
   assert.ok(summaryText.includes('通过条件：出席'), 'formal + quorumCheck 应显示通过条件提示');
   assert.ok(summaryText.includes('赞成 1'), 'formal 票数统计应含赞成 1');
@@ -249,7 +255,7 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
   assert.ok(!/赞成|反对|弃权/.test(matrixText), `无记名矩阵不得显示逐人选项：${matrixText}`);
 
   // 批次 312：表态面板的「通行证」由**角色**改为**本场应到名单**（`isVoterOf`，角色无关）——
-  //   ① 支书在本场名单内（应到 12）⇒ 巡查面板上应出现可操作的「我的表态」表态位；
+  //   ① 支书在本场名单内（应到 10）⇒ 巡查面板上应出现可操作的「我的表态」表态位；
   //   ② 把本场 `voteConfig.voterIds` 清空重渲染 ⇒ 同一人（仍在支委层）**不再挂表态位**（角色不是通行证）。
   const votePanelText = await secPage.locator(`.vote-panel-slot[data-vote-agenda-id="${AG1}"]`).innerText().catch(() => '');
   assert.ok(votePanelText.includes('我的表态'), `应到名单内的支书应看到「我的表态」表态位，实际：${votePanelText}`);
@@ -276,7 +282,7 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
   await secPage.waitForFunction(
     () => {
       const t = document.querySelector('#toast-container');
-      return !!t && t.textContent.includes('过半数出席方可表决') && t.textContent.includes('当前 1/12');
+      return !!t && t.textContent.includes('过半数出席方可表决') && t.textContent.includes('当前 1/10');
     },
     null, { timeout: 10000 },
   );
@@ -293,10 +299,10 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
   assert.ok(ag1AfterBlock.result == null, '硬校验拦截时不得写入 result（实际 ' + String(ag1AfterBlock.result) + '）');
 
   // ════════════════════════════════════════════════════════════════
-  // 5. node fetch 以多个正式党员身份补表态（2400012345/2400012346/2400012347/2400012348/2400012352/2400012353 各 approve）
-  //    服务器：出席 7（≥6）、赞成 7（>6）→ 满足出席/赞成过半数硬校验
+  // 5. node fetch 以多个正式党员身份补表态（2400012345/2400012346/2400012348/2400012352/2400012354/2400012355 各 approve）
+  //    服务器：出席 7（>5）、赞成 7（>5）→ 满足出席/赞成过半数硬校验
   // ════════════════════════════════════════════════════════════════
-  for (const pid of ['2400012345', '2400012346', '2400012347', '2400012348', '2400012352', '2400012353']) {
+  for (const pid of ['2400012345', '2400012346', '2400012348', '2400012352', '2400012354', '2400012355']) {
     const token = await apiLogin(pid);
     const r = await fetch(`${base}/api/v1/agenda-votes`, {
       method: 'POST',
@@ -312,7 +318,7 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
   // 无记名：赞成取 tally 行（逐人选项不落库），实到取参与记录去重
   const approveCount = Number(((fullList.find((v) => v.tally && v.agendaItemId === AG1) || {}).tally || {}).approve) || 0;
   const presentCount = new Set(ag1Votes.filter((v) => v.personId).map((v) => v.personId)).size;
-  assert.equal(approveCount, 7, 'tally 赞成应为 7（2400012349 + 补 6）');
+  assert.equal(approveCount, 7, 'tally 赞成应为 7（2400012347 + 补 6）');
   assert.ok(presentCount >= 6, '实到（参与记录）应 ≥ 6');
   assert.ok(!fullList.some((v) => v.personId && v.position !== undefined), '补票后仍不得出现 personId→选项 映射');
 
@@ -330,7 +336,7 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
   const agendaText = await secPage.locator('#agenda-block').innerText();
   assert.ok(agendaText.includes('已通过'), '记录通过成功后议程应显示「已通过」徽章');
   const statAfter = await secPage.locator('#vote-summary-slot .vs-stat').innerText();
-  assert.ok(statAfter.includes('应到 12 · 已表态 7'), `通过后汇总应为已表态 7，实际：${statAfter}`);
+  assert.ok(statAfter.includes('应到 10 · 已表态 7'), `通过后汇总应为已表态 7，实际：${statAfter}`);
 
   // 等 updateActivity(600ms) + 防抖快照(800ms) 写穿服务器后，node fetch 校验活动快照
   await secPage.waitForTimeout(1800);

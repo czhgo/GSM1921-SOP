@@ -486,10 +486,10 @@ export function createResourcesRouter(db) {
         }
         // 运行时面（批次 274）：**支部停用该块 ⇒ 服务端硬执行**（契约 §8.1；默认零影响，只在显式停用后生效）
         if (name === 'activities' && !_assertActivityBlockEnabled(db, req.actor, row.type)) return res.status(403).json({ error: activityBlockDisabledMsg(row.type) });
-        // 计票方式强制校验（仅活动）：正式表决不得写 named
+        // 计票方式强制校验（仅活动）：正式表决不得写 named；D-872 同时建会冻结表决名单
         if (name === 'activities') {
-          const ballotErr = _ballotModeReject(row.voteConfig);
-          if (ballotErr) return res.status(400).json({ error: ballotErr });
+          const voteDeny = _activityVoteConfigDeny(db, row, req.actor);
+          if (voteDeny) return res.status(400).json({ error: voteDeny });
         }
         const id = row.id || `${ID_PREFIX[name] || 'x'}-${randomUUID().slice(0, 8)}`;
         if (db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id)) return res.status(409).json({ error: `记录 id 已存在：${id}` });
@@ -1830,7 +1830,26 @@ function _publicFaceWriteDeny(actor, name, body) {
   return { status: 400, error: '请走 /committee/notices 或 /committee/documents 发布口' };
 }
 
+// D-872（L-16）：建会冻结表决名单 ＋ 计票方式硬校验（仅活动）。
+//   裁定：建会时按 users ＋ 组织归属算一次 `voteConfig.voterIds` 并冻结；会议期间不随组织变动，
+//   组织变动下次建会生效。客户端提交的名单一律不作数（名单是跨人 / 跨设备必须一致的事实，`CLAUDE.md H32`）。
+//   算法归表决域 `routes/committee.js::resolveFrozenVoterIds`；本函数只做「写前改数 ＋ 返回 400 文案」。
+//   ⚠ 置尾：不移动上文行号（README-server.md 以本文件行号为取证靶点）。
+function _activityVoteConfigDeny(db, row, actor) {
+  if (!row.voteConfig) return null;
+  // 支部归属：本体还没落 branchId（POST 的 data 在其后才补），取「显式入参 → 写者支部 → 常量兜底」，
+  //   与同文件 `data.branchId` 的落库口径一致。
+  const frozen = resolveFrozenVoterIds(db, { ...row, branchId: row.branchId || (actor && actor.branchId) });
+  if (frozen.error) return frozen.error;
+  row.voteConfig = { ...row.voteConfig, voterIds: frozen.ids };
+  return _ballotModeReject(row.voteConfig);
+}
+
 // 待办行读权限单一源（批次 541）：`_canReadTodoRow` 只作别名，判据本体在同级叶子件，
 //   与 `routes/todo-groups.js` 同 import ⇒ 读口 / 派生口不得出现两套权限门。
 //   ⚠ 置尾 import（ESM 提升，语义等价）：不移动上文任何行号。
 import { canReadTodoRow } from './todo-read-policy.mjs';
+
+// D-872（L-16）：建会冻结表决名单——算法归表决域（`routes/committee.js`），本文件只调用。
+//   ⚠ 置尾 import（ESM 提升，语义等价）：不移动上文任何行号。
+import { resolveFrozenVoterIds } from '../committee.js';

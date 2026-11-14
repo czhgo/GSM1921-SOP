@@ -156,11 +156,9 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 
 | ID | 一句话 | 触发条件 | 权威指针 |
 |---|---|---|---|
-| B-541-1 | `secretary.calendar` / `secretary.report-up` / `visitor.activities` 三处 IA 块数漂移（DOM 实测 10 / 14 / 9 块，登记 3 / 4 / 3） | **已裁（D-873）**：按 DOM 实测重基线；当批改 `TAB_BLOCK_BASELINE` 三处并复核例外理由；待实现 | `.ctx/evidence/2026-11-10/tab-audit/summary.md §P2`；`server/test/style-baseline.mjs::TAB_BLOCK_BASELINE` |
 | B-541-2 | `L-13` 页签 IA 未闭项（A 35 / B 11 / C 0；6 个超 4 块页签已登记例外） | 支书从台账挑 2 条低风险 B 项（`org.talent` 录入考察上提、`disc.attendance` 撤两级切换）裁定后启动 | `.ctx/evidence/2026-11-08/tab-review-ledger.md §四 / §六` |
 | B-541-3 | `L-10` ＋ `B-536-1` 单实例多支部与服务端支部读过滤（开关 `ALLOW_MULTI_BRANCH` 仍关闭） | Phase 1–2 实施并验收通过后才可打开开关；「一实例一支部」上线不以此为前提 | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §十`；`server/test/multi-branch-read-filter.test.mjs` |
 | B-541-4 | `L-15` ＋ `H-24` 画布 UI 与「块决定 tab」（与 `allowedPages` 身份门、页签计数守卫相交） | 先出方案并经支书定稿后才编码；定稿前不排批 | `content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md §8.4` |
-| B-541-5 | `L-16` 表决 `voteConfig.voterIds` 由活动写入方固化，服务端未按场景重算 | **已裁（D-872）**：建会冻结快照（按 users + 组织归属算一次），会议期间不随组织变动；待实现 | `.ctx/ENGINEERING_ASSESSMENT.md §一 阻断级风险 3`；`server/routes/committee.js` |
 | B-541-6 | `L-17` SQLite JSON 宽表、无跨表外键、无业务字段索引 | 任一表行数接近万行，或真机出现慢查询读数（E1 类）时启动 `MIGRATIONS v2` 与索引评估；平时只登记 | `.ctx/ENGINEERING_ASSESSMENT.md §一 阻断级风险 5`；`server/README.md §部署前必知限制 #2` |
 | B-541-7 | `L-18` 单一源组件出口仍有零星散件（徽章 / 选择器等） | 下次改动到该组件域时同批收敛（一改具改）；未动到的散件不提前合并 | `.ctx/ENGINEERING_ASSESSMENT.md §3.3 复核保留` |
 | B-541-8 | `H-5` 评测分口径跨文件未同步（`DOC_MAP.md:124` 与 EA 不一致） | 支书定「标快照 vs 按现况改准」后当批改 4 处；未定前不动 | `content/03_doc_system/DOC_MAP.md`；`.ctx/ENGINEERING_ASSESSMENT.md §一` |

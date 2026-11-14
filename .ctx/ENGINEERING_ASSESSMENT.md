@@ -47,11 +47,11 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 ### 阻断级风险
 
-> **本轮复核（2026-11-08 批次 538 评分证据卡；2026-11-09 `D-862`、2026-11-10 `D-863` / `D-864` 按批次 539 / 540 / 541 实跑读数复核；2026-11-11 `D-865` 只做评分保守回调，风险结论未变）**：逐条标注「保留 / 部分闭环 / 闭环 / 新增」，闭环必须给证据。结论：第 2 条部分闭环（矩阵 141 行、0 known-risk、6 条缺口已修，`issue-unread` 派发位已加强校验；批次 539 已把上传门矩阵 `roleGate` 同批改准为 `party-staff | 支委层`；批次 541 未放宽任何写门）；第 4 条的会话过期已闭环，个人密码已落地、共享口令作回退保留；第 1、3、5 条保留（批次 541 只收紧过期 `public` 与定向通知两条读面，多支部读过滤与表决名单重算未动）。
+> **本轮复核（2026-11-08 批次 538 评分证据卡；2026-11-09 `D-862`、2026-11-10 `D-863` / `D-864` 按批次 539 / 540 / 541 实跑读数复核；2026-11-11 `D-865` 只做评分保守回调，风险结论未变；2026-11-14 批次 550 `D-872` 关闭第 3 条）**：逐条标注「保留 / 部分闭环 / 闭环 / 新增」，闭环必须给证据。结论：第 2 条部分闭环（矩阵 141 行、0 known-risk、6 条缺口已修，`issue-unread` 派发位已加强校验；批次 539 已把上传门矩阵 `roleGate` 同批改准为 `party-staff | 支委层`；批次 541 未放宽任何写门）；第 3 条闭环（批次 550 服务端建会冻结表决名单）；第 4 条的会话过期已闭环，个人密码已落地、共享口令作回退保留；第 1、5 条保留（批次 550 未动多支部读过滤与宽表边界）。
 
 1. **多支部共用一个服务实例会跨支部读出数据。** **保留**。服务器读面仍未统一按支部过滤；`multi-branch-read-filter` 9 组夹具只证明设计可行，`ALLOW_MULTI_BRANCH` 仍关闭；设计稿见 `ARCHITECTURE_EVOLUTION §十`。
 2. **多数通用写口只验证登录。** **部分闭环**。权限矩阵 141 行覆盖全部写路由，`known-risk` 清零；考勤删除、活动/专班子记录、`issue-unread`、快照聚合/考勤清空 6 条缺口已补服务端判据；增 G4 / G5 写入前复核与 `issue-unread` 派发位 403；批次 539 把上传门矩阵 `roleGate` 改准为 `party-staff | 支委层`，与运行期 `requireUploader` 同批。残项：共享口令、多支部读过滤未接线。
-3. **表决选民名单来自活动数据本身。** **保留**。创建/修改活动的服务端没有按场景从 users 和组织归属重算 `voteConfig.voterIds`；C2 只验证既有写口往返，不覆盖名单重算。
+3. **表决选民名单来自活动数据本身。** **闭环（2026-11-14 批次 550 · `D-872`）**。创建活动的服务端在写库前按 `users` ＋ 组织归属算一次 `voteConfig.voterIds` 并冻结（`resources/index.js::_activityVoteConfigDeny` → `committee.js::resolveFrozenVoterIds`），客户端提交的名单不作数；范围非法 fail-closed 400。会议期间不随组织变动，组织变动下次建会生效；历史快照不回改。回归：`agenda-votes.test.mjs`「建会冻结名单」＋ `async-vote.test.mjs`（应到 10 名在册正式党员）。
 4. **共用口令只适合受控部署。** **部分闭环**。会话已按 `SESSION_TTL_HOURS`（缺省 3 小时）过期；个人密码已落地（`personal-password` 21/21），共享口令仅作回退保留；生产用 systemd 注入强口令并定期更换。
 5. **SQLite JSON 宽表是规模边界。** **保留**。批次 538 只加 `publication_audits` 的 v14 生成列与审计索引，宽表本身与业务字段索引边界未变。
 
@@ -73,9 +73,9 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 **批次 541 增量（`D-864`）**：① 应到口径收成单一源 `docs/src/core/domain/roster-eligibility.js`——在册＝党员且（口径开启时）非滞留、已转出前置剔除；滞留保留身份 / 剔除应到 / 通知照发三条分别成判据，报备、考勤、考察、复盘同源 import；② 服务端待办组按该支部 `config.policyOverrides` 算有效策略（`server/routes/todo-groups.js`），与前端读侧 `applyBranchPolicyOverrides` 同源；③ 专班子记录 `sourceType` 由服务端定；④ P2 数据项修复：无附件不出下载链（键保留、值置 null）、提案迁移 v15 唯一、档案 422、枚举 422。
 
-**失分依据与残项**：工作组 / 活动 / 专班三层关系仍有口径冲突（专班是否独立成层、工作组与活动挂靠哪层未统一）；党小组台账判据与专班考勤口径未统一；D2 样本只有 3 个计数，不能代表全量对账；C2 的 skip / exception 不计覆盖；`L-16` 表决名单服务端复算未闭（阻断风险 3）；业务实体仍主要保存为 JSON 宽行，数据库不能替业务校验跨表引用或自动级联。
+**失分依据与残项**：工作组 / 活动 / 专班三层关系仍有口径冲突（专班是否独立成层、工作组与活动挂靠哪层未统一）；党小组台账判据与专班考勤口径未统一；D2 样本只有 3 个计数，不能代表全量对账；C2 的 skip / exception 不计覆盖；业务实体仍主要保存为 JSON 宽行，数据库不能替业务校验跨表引用或自动级联。（`L-16` 表决名单服务端复算已由批次 550 · `D-872` 闭合，不再计入残项。）
 
-**需补证据**：三层关系与党小组 / 专班口径各出一份判据表并落 content；D2 扩到全部计数页签并写明分母；C2 给可复跑配方（按页签逐个 pass，不允许整类 skip）；`voteConfig.voterIds` 重算口径落地。
+**需补证据**：三层关系与党小组 / 专班口径各出一份判据表并落 content；D2 扩到全部计数页签并写明分母；C2 给可复跑配方（按页签逐个 pass，不允许整类 skip）。
 
 **本轮结论**：**82 → 81（−1）**。批次 541 的增量（应到口径单源、服务端 `policyOverrides`、`sourceType`、四项 P2 数据修复）仍计在基线内，不撤销；回调的是三层关系与党小组 / 专班口径未统一、`L-16` 未闭、D2 / C2 覆盖未扩。**82 需补证据**：三层关系与党小组 / 专班口径判据表、D2 全量分母、C2 逐页签 pass。
 
@@ -83,7 +83,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 **得分依据**：`server/security/write-policy-matrix.mjs` 登记 **141 条**写路由，`known-risk` 清零；守卫断言 Express 运行期写路由 ≡ 矩阵的登记面，并用反例自证；`SESSION_TTL_HOURS` 缺省 3 小时；production 多支部拒绝启动；`npm run start:review` 隔离演示库。`security-hardening` **8/8**（G4 / G5 / L-09 派发位 403 / 生成列与索引 / 读口分页 / 公共下载限频 429）；`multi-branch-read-filter` **9 组**（双支部夹具证明 A 读不到 B）；`personal-password` **21/21**；上传门党委 party-staff **201** / 普通成员 **403**（`server/test/security-hardening.test.mjs:304-324`）。**批次 541（`D-864`）**：三条读面收紧，写门与矩阵一行未改。① 公共门厅 fail-closed——`publishExpiresAt` 缺失、非法或已过期一律视为不公开，且「不存在 / 非公开 / 已过期 / 无权」统一 404，不给探测差异（`server/routes/public-portal.js`，判定单一源 `resources/store.js::isPublicNow`）；② 定向通知与「支委层兜底可读」同时比对支部，`audience` 命中不再是充分条件（`docs/src/services/governance/notice.js`）；③ 待办行读权限收成单一源 `server/routes/resources/todo-read-policy.mjs`，页面不再各自判可见；④ 公共下载无附件不出链、限频表按窗口清理（防伪造源地址吃满内存），均带回归用例。
 
-**失分依据与残项**：多支部读过滤未接线到生产读面，`ALLOW_MULTI_BRANCH` 仍关闭；`voteConfig.voterIds` 仍由客户端写入；共享口令仍作回退保留；`write-policy-matrix.test.mjs` 仍只断言路由登记与字段类型，未比对门函数 / 角色集合。
+**失分依据与残项**：多支部读过滤未接线到生产读面，`ALLOW_MULTI_BRANCH` 仍关闭；`voteConfig.voterIds` 已改服务端建会冻结（批次 550 · `D-872`，该项残项消除，评分待下轮按实跑读数复核）；共享口令仍作回退保留；`write-policy-matrix.test.mjs` 仍只断言路由登记与字段类型，未比对门函数 / 角色集合。
 
 **需补证据**：读过滤接线后复核 0 known-risk；补「门函数 / 角色集合 ≡ 矩阵」断言。
 
@@ -319,12 +319,12 @@ Git 从 2026-03-14 至 2026-10-14 共 1,133 条提交记录；按提交日期分
 | L-13 ＋ `REVIEW_QUEUE` 页签口径（已合并） | 页签 IA 未闭项：**A 35 / B 11 / C 0**（台账 §三）；6 个超 4 块页签登记例外 | backlog | 待办 | 按 `.ctx/evidence/2026-11-08/tab-review-ledger.md §四` 逐条排批；C 类 5 个页签的三问结论见台账 §六；先挑 2 条低风险 B 项（`org.talent` 录入考察上提、`disc.attendance` 撤两级切换），其余待支书裁定。**原「归口待办」那条（41 个页签计数）已并入本行**；触发条件见 `.ctx/REVIEW_QUEUE.md` `B-541-2` | `.ctx/evidence/2026-11-08/tab-review-ledger.md §六 / §三`；`.ctx/evidence/2026-11-08/tab-audit/summary.md`；`.ctx/REVIEW_QUEUE.md` `B-541-2` |
 | L-14 | 块停用是否同步阻断任务派生 / 通知 | backlog | 待办 | 先出方案定口径，再并入工作流批 | `content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md §8.1（L286）`、`§8.4（L331）`；本文件 §四 P10（L257） |
 | L-15 ＋ `H-24`（已合并） | 画布 UI（L4）与「按角色配置（块决定 tab）」 | backlog | 待办 | 新维度先出方案；与 `allowedPages` 身份门、tab 计数守卫一起评审。**原 `H-24`（块决定 tab ＋ 画布拖拽）并入本行**；触发条件见 `.ctx/REVIEW_QUEUE.md` `B-541-4` | `content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md §8.4（L331）`；`.ctx/REVIEW_QUEUE.md` `B-541-4` |
-| L-16 ＋ 表决名单重算（已合并） | 表决 `voteConfig.voterIds` 由活动写入方固化，服务端未按场景重算（同 §一 阻断级风险 3，本行即该风险的唯一行动项） | backlog | 已裁待实现 | **已裁（D-872）**：采「建会冻结快照」——建会时按 users + 组织归属算一次并冻结，会议期间不随组织变动，组织变动下次建会生效；待实现 | 本文件 §一 阻断级风险 3（L51）；`server/routes/committee.js#L76-L97`；`.ctx/REVIEW_QUEUE.md` `B-541-5` |
+| L-16 ＋ 表决名单重算（已合并） | 表决 `voteConfig.voterIds` 由活动写入方固化，服务端未按场景重算（同 §一 阻断级风险 3，本行即该风险的唯一行动项） | backlog | 已关闭 | **已落（D-872，批次 550）**：服务端建会冻结快照——写库前按 users ＋ 组织归属算一次（剔滞留 / 已转出），客户端提交值不作数；范围非法 400；组织变动下次建会生效 | 本文件 §一 阻断级风险 3（L54）；`server/routes/committee.js#L355-L372`；`server/routes/resources/index.js#L1833-L1844`；`server/test/agenda-votes.test.mjs` |
 | L-17 ＋ 宽表索引（已合并） | SQLite JSON 宽表、无跨表外键、无业务字段索引（同 §一 阻断级风险 5，索引评估与本行同一事项） | backlog | 待办 | 任一表接近万行或出现慢查询读数时评估 `MIGRATIONS v2` 与索引；平时只登记；触发条件见 `.ctx/REVIEW_QUEUE.md` `B-541-6` | 本文件 §一 阻断级风险 5（L53）；`server/README.md §部署前必知限制 #2（L248）`；`.ctx/REVIEW_QUEUE.md` `B-541-6` |
 | L-18 | 单一源组件出口仍有零星散件；R2 复核保留、R10 / R11 观察 | backlog | 待办 | 按 §3.3 末清单逐项收敛；观察项不提前合并 | 本文件 §3.3 复核保留（L225-L234）、§四 P0·统一扎口（L242） |
 | L-19 | IAAA 前端三步（登录按钮 / 选支部层 / 待确认队列） | post-launch | 已关闭 | 2026-11-03 复核：三步均已在批次 277–278 落地；同步 `H-22` 状态 | `docs/src/entries/pages/login-entry.js#L298-L380`；`docs/src/entries/tabs/org/member-flow-tab.js#L137-L190`；`server/test/iaaa-onboarding.test.mjs` |
 | L-20 | 写入口 6 条 `known-risk` 未清零 | launch-blocker | 已关闭 | 2026-11-03 Task 4 已清零；矩阵当前无 `known-risk` 行，再出现须带 reason / impact / riskRef | `server/security/write-policy-matrix.mjs#L29-L33`、`#L180-L184`；`server/test/write-policy-matrix.test.mjs` |
-| L-22 | 三处页签 IA 块数漂移：`secretary.calendar` 10 / `secretary.report-up` 14 / `visitor.activities` 9 块（登记 3 / 4 / 3） | backlog | 已裁待实现 | **已裁（D-873）**：按 DOM 实测重基线（10 / 14 / 9），当批改 `TAB_BLOCK_BASELINE` 三处并复核例外理由；待实现 | `.ctx/evidence/2026-11-10/tab-audit/summary.md §P2`；`.ctx/REVIEW_QUEUE.md` `B-541-1`；`server/test/style-baseline.mjs::TAB_BLOCK_BASELINE` |
+| L-22 | 三处页签 IA 块数漂移：`secretary.calendar` 10 / `secretary.report-up` 14 / `visitor.activities` 9 块（登记 3 / 4 / 3） | backlog | 已关闭 | **已复核（D-874，批次 550）**：10 / 14 / 9 是 `dom-probe` 把行内叶子（`span` / SVG / `p`）计成顶层块的误报；探针改口径后实测 2 / 4 / 2（差额在页头口径），三处均 ≤ 4，按 `D-838` 保持 `TAB_BLOCK_BASELINE` 不改 | `.ctx/evidence/2026-11-14/d873-block-remeasure.md`；`server/scripts/audit/dom-probe.mjs` |
 
 **本批执行顺序**
 

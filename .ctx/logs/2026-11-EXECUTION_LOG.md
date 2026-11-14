@@ -10,6 +10,34 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 550（2026-11-14）· L-16 建会冻结表决名单、L-22 探针复核
+
+### 为什么
+- 落地 `D-872`（L-16 / 阻断级风险 3）：表决名单不能再由活动写入方决定——服务端建会时按 `users` ＋ 组织归属算一次并冻结。
+- 复核 `D-873`（L-22 / B-541-1）：登记「按 DOM 实测重基线 10 / 14 / 9」前先证伪。
+
+### 拿不准 / 取舍
+- **名单算在哪一层**：写库单一入口是 `createActivityWorkgroup`，但 import-branch 与党委活动副本也走它，历史快照会被重算（违反「历史快照不回改」）。故只在 `POST /activities` 在线建会路径冻结：`resources/index.js::_activityVoteConfigDeny`（置尾等行数替换，行号零漂移）＋ `committee.js::resolveFrozenVoterIds`。
+- **范围非法**：fail-closed 400（不回退客户端名单），与既有 AV3「活动带 voteConfig 即须完整合法」同口径；空名单仍由表态口 400 兜住。
+- **async-vote E2E 重锚**：新口径应到 = 10 名在册正式党员（滞留 2400012349/2400012353 剔除），原 UI 投票人正是滞留党员。按新规则把投票人换为在册 2400012347、应到 12→10、过半数阈值 6→5；判据（名单内可投 / 名单外只读 + 403 / 硬校验拦截 / 补足后通过）逐条保留，未删断言。
+- **D-873 前提不成立**：三处实测块逐条拆开是行内叶子（`span` / SVG `line`·`rect`·`circle` / 列表 `p`），探针把「无子元素节点」计成顶层块。支书上轮裁定选「先修探针再按真实块数复核」⇒ 改 `dom-probe` 计块口径，实测 2 / 4 / 2（差额在页头口径），基线不改，L-22 以探针误报关闭。
+- **客户端仍算一份名单**：`vote-config.js::resolveVoterIds` 保留——创建面板预填与展示要用；提交值不再作数（服务端覆盖），故本批不改客户端注释与版本戳。
+
+### 边界
+- 未改 PATCH 路径的 `voteConfig`（本裁定只约束「建会」；会议期间改名单另属变更重算，未选）。
+- 未重跑全量 `audit-tabs --all`；`audit-tabs` 本机登录在自起 memory 实例下超时（`#student-id` 30s 未出现），改用一次性 Playwright 脚本登录 3000 实跑探针量测，脚本与失败产物未入库。
+- 页码：`server/routes/resources/index.js` 采用等行数替换，未移动 README-server 行号引用；`committee.js` 新增段落置尾。
+
+### 读数
+- `test:agenda-votes`（含新增「建会冻结名单」）：**26 / 26** 全绿。
+- `test:async-vote` e2e：**1 / 1** 全绿（17.8s）。
+- `test:daily`：**246 / 246 全绿 · 92.4s**；`test:guards`：**346 / 346 全绿 · 130.6s**；`docs-governance` / `write-policy-evidence` 31 / 31 全绿。
+- 修后块数：`secretary.calendar` 2 · `secretary.report-up` 4 · `visitor.activities` 2（证据 `.ctx/evidence/2026-11-14/d873-block-remeasure.md`）。
+- `test:precommit`：**341 绿 / 0 红 / 1 跳过 · 墙钟 2070.7s**（含 guards 与 e2e；本批新增 1 条 daily 断言）。
+
+### commit
+- 见 `git log --grep="批次 550"`（主记录）。
+
 ## 批次 549（2026-11-14）· 提交前门禁闭环（收尾对账）
 
 ### 为什么

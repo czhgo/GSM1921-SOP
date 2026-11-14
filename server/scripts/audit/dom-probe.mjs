@@ -88,20 +88,19 @@ export function collectDom(cfg) {
   // 口径（2026-11-02 批次 526）：块 = 语义容器（section/aside/article/details/form/table/.card/.disclosure-host）；
   //   纯 div 包装层递归透明化，遇到第一个语义容器即停（其内部子块不再计入顶层）。
   //   这样不依赖 Tailwind 类白名单，也不会把卡内彩色子面板误算成顶层块。
+  // ⚠ 2026-11-14 批次 550（D-873）：实现与上述口径对齐——**行内叶子不再计为块**。
+  //   旧实现把「无子元素的行内节点」（`span` / `svg` / `p` 等）也 push 成块，
+  //   实测在 `secretary.calendar`（9 个图例行内 span）/ `visitor.activities`（8 个 SVG 节点）/
+  //   `secretary.report-up`（10 个列表行内 span/p）造出 10/14/9 的假读数；现改为：
+  //   ① 子树里只要出现语义容器，就只认语义容器；② 一个语义容器都没有时，把该容器整体算 1 块。
   const BLOCK_SELECTOR = 'section, aside, article, details, form, table, .card, .disclosure-host';
   const isSemanticBlock = (el) => {
     try { return el.matches(BLOCK_SELECTOR); } catch { return false; }
   };
-  const expandBlocks = (el, out, depth) => {
-    if (depth > 6 || isSemanticBlock(el)) {
-      out.push(el);
-      return;
-    }
+  const expandBlocks = (el, depth) => {
+    if (depth > 6 || isSemanticBlock(el)) return [el];
     const kids = [...el.children].filter(isVisible).filter((kid) => !kid.matches('.page-frame__header'));
-    if (!kids.length) {
-      out.push(el);
-      return;
-    }
+    if (!kids.length) return [el];
     // 重复兄弟（≥4 个同 tag+同 class）= 列表项，按 1 个「块种」计，避免把活动/成员列表的 12 张同构卡
     // 误算成 12 个顶层区块。
     const groups = new Map();
@@ -116,12 +115,15 @@ export function collectDom(cfg) {
       if (bucket.length >= 4) kept.push(bucket[0]);
       else kept.push(...bucket);
     }
-    for (const kid of kept) expandBlocks(kid, out, depth + 1);
+    const collected = [];
+    for (const kid of kept) collected.push(...expandBlocks(kid, depth + 1));
+    if (collected.some(isSemanticBlock)) return collected.filter(isSemanticBlock);
+    return [el];
   };
   const blockEls = [];
   for (const el of [...content.children]) {
     if (el.matches('header.page-frame__header, .page-frame__header') || !isVisible(el)) continue;
-    expandBlocks(el, blockEls, 0);
+    blockEls.push(...expandBlocks(el, 0));
   }
   const rawBlockCount = [...content.children]
     .filter((el) => !el.matches('header.page-frame__header, .page-frame__header') && isVisible(el)).length;

@@ -68,7 +68,7 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 | signupEnabled | boolean | 否 | `false` | 开放报名开关（SOP-B-2）：勾选后该活动可被报名；草稿态默认不可报名，须本字段为 `true` 才放开。**与下行的分工**：本字段＝写入活动时的「是否开放报名」，关闭动作见 `signupClosed` |
 | signupClosed | boolean | 否 | `false` | 本场报名是否已**手动关闭**（SOP-B-2 · 支书 2026-09-20 定案「不设截止，但组织者可手动关」）：置 `true` 后成员不能**新报**（判据单一出口 `services/activity/signup.js::_sourceOpen`），**已报名者仍可自行取消**；可关者＝**本场组织者（判据 `isActivityOrganizer`）＋ 支书/副支书**，入口在活动详情页报名区块旁。**不设「报名截止时点」字段** |
 | requireMakeup | boolean | 否 | `false` | 活动级「本次要求补课」（SOP-B-6）：党小组会等**不默认补课**的类型，勾选后才进补课名单（补课范围单一出口 `isMakeupRequired`） |
-| voteConfig | object\|null | 否 | null | 线上异步表决配置 `{mode, optionSet, ballotMode, voterScope, voterIds[], quorumCheck}`：决策类场景选「线上异步表决」时固化应到名单快照；**线下开会不写本字段**（读侧无此字段＝旧活动 / 线下） |
+| voteConfig | object\|null | 否 | null | 线上异步表决配置 `{mode, optionSet, ballotMode, voterScope, voterIds[], quorumCheck}`：决策类场景选「线上异步表决」时固化应到名单快照。**名单由服务端建会时算一次并冻结**（`D-872`：按 `users` ＋ 组织归属取范围、剔除滞留与已转出，客户端提交的 `voterIds` 不作数）；会议期间不随组织变动，组织变动下次建会生效；**线下开会不写本字段**（读侧无此字段＝旧活动 / 线下） |
 | isOutdoor | boolean | 否 | `false` | 是否外出（校外）活动——主题党日正交维度之二（见 §2.1.2）。写入后弹「外出提醒清单」（**是提醒、非必填、不作校验**） |
 | deepWorkMode | object | 否 | -- | 深参分工的完成方式（2026-09-23 批次 156）：形状 `{ [taskId]: 'in-system' \| 'offline' }`——写入活动时由组织者**逐项**勾选「系统内做 / 去线下做」，项＝该场景 SOP 任务链里 `executor==='deep'` 的节点（无深参项的场景不写本字段）；**缺省 / 非法值读侧一律按 `in-system`**（＝既有行为零变化）。单一源 `docs/src/services/activity/activity.js`（`DEEP_WORK_MODE` / `DEEP_WORK_MODE_LABEL` / `deepWorkModeOf`），写入位 `docs/src/entries/tabs/leader/write-tab.js`。 |
 | ownerScope | `'branch'`\|`'committee'` | 否 | 读侧缺省 `'branch'` | 内容归属（2026-11-08 批次 536）：`branch`＝支部自发；`committee`＝党委下发 / 党委自有。存量行不写本字段，读侧按 `branch` 处理 |

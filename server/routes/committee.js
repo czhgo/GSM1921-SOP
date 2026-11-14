@@ -335,3 +335,38 @@ import {
 // 应到资格判据单一源（批次 541 · D-1）：党员 ∧ 非滞留 的纯函数与名册统计共用同一实现
 //   （`docs/src/services/member/roster.js` 亦 import 本模块），故待议池应到与名册统计不得出现两套口径。
 import { getRosterConfig, rosterEligibleIds } from '../../docs/src/core/domain/roster-eligibility.js';
+
+// ════════════════════════════════════════════════════════════════
+//  D-872（L-16）：表决名单「建会冻结快照」——服务端按 users ＋ 组织归属算一次
+// ════════════════════════════════════════════════════════════════
+// 裁定（2026-11-13 支书）：建会时算一次 `voteConfig.voterIds` 并冻结；会议期间不随组织变动，
+//   组织变动下次建会生效。未选方案：每次读时重算（同一会议名单前后可能变化）、冻结 + 变更重算。
+// 为什么必须在服务端算：名单是「跨人 / 跨设备必须一致的事实」（`CLAUDE.md H32`），
+//   客户端提交什么都不能作数（`EA` 阻断级风险 3：名单来自活动数据本身）。
+// 口径与客户端 `docs/src/services/activity/vote-config.js::resolveVoterIds` 同源：
+//   本支部在册成员（`transferOut !== true`）→ 按 `voterScope` 取范围 → 剔除滞留
+//   （应到资格 = `roster-eligibility.js` 单一源；支委范围 = `resolveCommitteeIds` 单一源）。
+// 历史快照不回改：本函数只在建会（新建活动）时调用，既有活动的 `voteConfig.voterIds` 一律不动。
+/**
+ * @param {Object} db better-sqlite3 实例
+ * @param {{voteConfig?:{voterScope?:string}, branchId?:string}} activity 待落库的活动
+ * @returns {{ids:string[]}|{error:string}} 冻结名单；范围无效时 error（调用方 fail-closed 400）
+ */
+export function resolveFrozenVoterIds(db, activity) {
+  const scope = activity?.voteConfig?.voterScope;
+  const branchId = activity?.branchId || DEFAULT_BRANCH_ID;
+  const members = listTable(db, 'users').filter((u) => u && (u.branchId || DEFAULT_BRANCH_ID) === branchId);
+  const eligible = new Set(rosterEligibleIds(members, getRosterConfig()));
+  if (scope === 'committee') {
+    const committee = resolveCommitteeIds(members);
+    if (committee.error) return { error: committee.error };
+    return { ids: committee.ids.map(String).filter((id) => eligible.has(id)) };
+  }
+  if (scope === 'formal-only' || scope === 'formal-plus-prep') {
+    const stages = scope === 'formal-only' ? ['正式党员'] : ['正式党员', '预备党员'];
+    return {
+      ids: members.filter((u) => eligible.has(String(u.id)) && stages.includes(u.developStage)).map((u) => String(u.id)),
+    };
+  }
+  return { error: `表决范围无效：voterScope(${scope || '缺失'})，只支持 committee / formal-only / formal-plus-prep` };
+}
