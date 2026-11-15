@@ -123,7 +123,7 @@ status: active
   - **`test:daily`（结果门禁，每次改完必跑）**：服务启动 / 登录与会话 / 权限与写门 / 数据契约与迁移 / 核心业务结果（党委内容、公开门厅、名册、考勤、待办派生）/ 构建可运行。只回答「结果对不对」，不检查过程。
   - **`test:guards`（静态守卫，按需跑）**：样式 / 字号 / 间距 / 颜色 / 动效 / 结构 / 文案 / 文档 / 行号 / 页签密度。改样式或文档时跑；`test:changed` 按改动面自动选。
   - **`test:precommit`（提交前 / 发布前）**：daily ＋ guards ＋ 非核心域回归 ＋ Playwright e2e；缺 Playwright 明确报错，不跳层、不假绿。
-  - **`test:full`（发布前全量）**：`run-suite.mjs` 全目录。
+  - **`test:full`（发布前全量）**：`run-suite.mjs` 全目录；时限口径＝**分片后单片 ≤1200s**，夜间档（`nightly.yml` 按 `SWEEP_SHARD=1..4` 四片并行）分片执行，单次全量用时不再作放行依据。
 - **分层只决定「哪一层跑」，不决定「跑不跑」**：precommit / full 覆盖全部文件；不得以「不在 daily」为理由删测试、删断言或改 `skip`。
 - **验证顺序**：先定向跑改到的文件 → 改样式 / 文档补 `test:guards` → 收尾跑 `test:daily`；提交前 `test:precommit`；发布前 `test:full`。
 - **不以 GetDiagnostics 代替测试**；不以「模块能 import」代替行为验证。

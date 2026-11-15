@@ -88,7 +88,7 @@ node scripts/backup.mjs --out /srv/bak/20260923
   - **日常（改代码时）：`npm run test:daily`** —— 只跑**结果门禁**：服务启动 / 登录与会话 / 权限与写门 / 数据契约与迁移 / 核心业务结果（党委内容、公开门厅、名册、考勤、待办派生）/ 构建可运行。当前 **29 文件 / 246 断言**（2026-11-08 波次 A 由 43 文件收口，依据 `D-859`「结果优先、守卫按需」＋ 波次 A 瘦身计划：静态守卫迁 guards、非核心结果回归迁 precommit；2026-11-15 批次 553 读数）。分层只决定「哪一层跑」：precommit / full 仍覆盖全部文件，**没有任何测试或断言被删除**。
   - **静态守卫（按需）：`npm run test:guards`** —— 样式 / 字号 / 间距 / 颜色 / 动效 / 结构 / 文案 / 文档 / 行号 / 页签密度，共 **107 文件 / 824 断言**（2026-11-15 批次 553 读数：`474 ＋ 350`；registry 静态 `test()` 预算 848）。改样式或文档时跑；`npm run test:changed` 按 `git diff --name-only` 自动选（改 `docs/` → UI 守卫；改 `content/` → 文档守卫；改 `server/` → daily）。
   - **提交前 / 发布前：`npm run test:precommit`** —— 依次跑 daily → guards → precommit 层（非核心域回归 ＋ Playwright e2e）；**环境缺 Playwright 时明确报错退出 2，不跳层、不假绿**。
-  - **发布前全量：`npm run test:full`** —— `run-suite.mjs` 全目录（含 weekly 慢速普查 `click-cost` / `copy-screen-guard`）。
+  - **发布前全量：`npm run test:full`** —— `run-suite.mjs` 全目录（含 weekly 慢速普查 `click-cost` / `copy-screen-guard`）。**时限口径＝分片后单片 ≤1200s**；夜间档（`.github/workflows/nightly.yml`）按 `SWEEP_SHARD=1..4` 四片并行执行（`sweep-shard.mjs::parseShard` 只认单值与 `all`，不接受组合），单次全量约 23 分钟不再作放行依据。
   - ⚠ **日常档不含「形态断言」那几项**：`getRuntimeMode()` 形态断言落在 **P 类真机文件**（`form-loop-sweep` / `page-sweep` / `multi-user-write`），改到**真机交互 / 数据源形态 / 登录会话**时，直接跑 `test:precommit` 或用下面的**降频开关**定向跑真机。
   - **提交前收尾**：默认跑覆盖本批改动面的那一片 —— `$env:SWEEP_SHARD=<k>; npm test`（≤10 分钟）；`click-cost` / `mock-integrity` 要连 3000（**先 `npm start`，跑完停服**）；`b3-1-makeup-writeback` 已改为**自托管临时库副本**（`listen(0)`，不碰运行库、不需要外部服务）。⚠ **2026-10-05 支书令**：**全量档按 5–6 个 commit 累积一次**（见 `D-795`）。
 - **真机普查降频开关（2026-09-23 提速批·刀②，支书已放行「按 tab 降频」）**——只跑关心的 tab，不改任何判据、不缩任何台账基线：

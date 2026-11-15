@@ -114,5 +114,5 @@ const codes = await Promise.all(channels.map(([tag, list, env, conc]) => runChan
 const secs = ((Date.now() - t0) / 1000).toFixed(1);
 const ok = codes.every((c) => c === 0);
 console.log('─'.repeat(72));
-console.log(`[suite] 全通道完成（${channels.map(([t], i) => `${t}=${codes[i] === 0 ? '绿' : `红(${codes[i]})`}`).join(' · ')}）· 墙钟 ${secs}s（H25 时长纪律：分片 ≤900s / 全量 ≤1200s）`);
+console.log(`[suite] 全通道完成（${channels.map(([t], i) => `${t}=${codes[i] === 0 ? '绿' : `红(${codes[i]})`}`).join(' · ')}）· 墙钟 ${secs}s（H25 时限口径：分片单片 ≤1200s；夜间档四片并行）`);
 process.exit(ok ? 0 : 1);

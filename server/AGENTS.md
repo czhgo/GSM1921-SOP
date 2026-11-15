@@ -29,7 +29,7 @@ cd server; npm run test:daily
 cd server; npm run test:guards
 # 提交前 / 发布前（daily + guards + 域回归 + e2e）
 cd server; npm run test:precommit
-# 发布前全量（预算 ≤1200s；README 实测量级 ≈23 分钟）
+# 发布前全量（分片后单片 ≤1200s，夜间档分片执行；README 实测量级 ≈23 分钟）
 cd server; npm run test:full
 ```
 

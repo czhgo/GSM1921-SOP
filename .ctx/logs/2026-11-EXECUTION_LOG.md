@@ -10,6 +10,24 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 555（2026-11-15）· 交付门：依赖归零 ＋ CI 夜间分片（spec `close-six-dim-gaps` T1/T6）
+
+### 为什么
+- 安全维 68 分的主因是 4 条生产依赖漏洞；测试维 70 分的主因是 CI 只有 daily、全量 1489s 超 1200s 上限。本批清这两项。
+
+### 拿不准 / 取舍
+- **express 5 回滚**：升到 5.3.0 后 audit 已 0，但 `write-policy-matrix` 守卫以 Express 运行期路由表为真值（读 `app._router.stack` 的挂载路径），express 5 的 router 已删除挂载路径信息 ⇒ 守卫无法在不改真值源的前提下工作。按「先适配、超预算回滚该包」的裁定回滚 express 至 4.22.x，再用 `npm audit fix` 把 body-parser / proxy-addr / qs 升到修复版，同样归零。**这是真实技术债**：守卫绑定框架内部结构，阻塞大版本升级，已记入差距项。
+- **夜间分四片不拆两片**：`sweep-shard.mjs::parseShard` 只接受 `1..4` 或 `all`，`1,2` 会抛非法；四片并集 ≡ 全量由 `suite-shard` 守卫钉死，故改 matrix 四片，每片 ≤20 分钟。spec 的「两片」口径已同批改准。
+- **lockfile 混源**：`package-lock.json` 里 npmjs 与 npmmirror 的 `resolved` 并存（57 / 72 条），因 `--package-lock-only` 不改写既有条目；integrity 哈希在位，替换可检出，本轮不强行重生成，记为小债。
+
+### 边界
+- 未取得任何 CI run id（本地无远端，push 由支书操作）⇒ 「CI 已绿」不成立，只完成配置与静态校验。
+- 未跑 precommit / full（全量近 25 分钟，按夜间档执行）。
+
+### 读数
+- `npm audit --omit=dev --registry=https://registry.npmjs.org`：**0 vulnerabilities**（原 4：1 critical / 2 high / 1 moderate）。
+- `test:daily` **250 / 250 · 88.7s**；`test:guards` 全绿 **120.5s**；`suite-shard` / `test-tier-guard` / `docs-governance` / `doc-consistency` 静态校验全绿。
+
 ## 批次 554（2026-11-15）· 六维补齐 M1/M2 首批（spec `close-six-dim-gaps`）
 
 ### 为什么

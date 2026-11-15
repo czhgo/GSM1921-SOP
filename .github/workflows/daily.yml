@@ -9,6 +9,8 @@ on:
 jobs:
   daily:
     runs-on: ubuntu-latest
+    # 结果门禁实测 ≈90s（含 npm ci）；20 分钟只是防挂死，不是耗时目标
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: server
@@ -20,7 +22,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 仓库口径 Node ≥ 22（README.md:15 / DEPLOYMENT_GUIDE.md:46）；与 deploy-verify 同版本
+          node-version: 22
           cache: npm
           cache-dependency-path: server/package-lock.json
       - run: npm ci
@@ -36,6 +39,7 @@ jobs:
   # **不跑** systemd / root / 真机 install（那部分只能在测试机验证，见 deploy/README.md）。
   deploy-verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
     defaults:

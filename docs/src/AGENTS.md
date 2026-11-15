@@ -25,7 +25,7 @@ cd server; node --test test/field-shell-guard.test.mjs test/motion-guard.test.mj
 # 按改动面追加：改色板 → theme-palette-guard + hex-hardcode-guard；改焦点 → ui-focus-ring
 # 全量日常（实测 ≈150s，预算 ≤180s）
 cd server; npm run test:daily
-# 发布 / 大批改动（预算 ≤1200s；README 实测量级 ≈23 分钟，超预算先排除机器负载）
+# 发布 / 大批改动（分片后单片 ≤1200s，夜间档分片执行；README 实测量级 ≈23 分钟，超预算先排除机器负载）
 cd server; npm run test:full
 ```
 

@@ -1,0 +1,74 @@
+name: nightly
+
+# 全量档（`SWEEP_SHARD=all` ≡ `npm run test:full`）的夜间执行：**按片并行**。
+#
+# 为什么拆四个 job 而不是两个：
+#   `server/test/sweep-shard.mjs::parseShard` 只接受 `1..SHARD_COUNT`（SHARD_COUNT=4）或 `all`，
+#   传 `1,2` 这类组合会**显式报错**（不静默退回默认片）。故按脚本真实支持的取值域拆成四片，
+#   一片一个 job；「四片并集 ≡ 全部 e2e」由 `server/test/suite-shard.test.mjs` 机械钉死。
+# 时限口径：单片 ≤1200s（`CLAUDE.md H25`），故每个 job `timeout-minutes: 20`。
+# 失败即红：不设 `continue-on-error`，也不跳片。
+#
+# 片内同时跑「非 e2e 全量」（`run-suite.mjs` 的口径：非 e2e 每片都全跑），
+# 因此四片各自都是一次可独立复现的运行，不是「只跑 e2e 的四分之一」。
+
+on:
+  schedule:
+    # UTC 18:00 = 次日 02:00 Asia/Shanghai
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+
+jobs:
+  shard:
+    name: nightly · 片 ${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      # 一片红不取消其它三片：四片都要留下读数，红的片才有对照
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    defaults:
+      run:
+        working-directory: server
+    env:
+      DISABLE_PASSWORD_CHECK: '1'
+      DEMO_READONLY: '0'
+      SWEEP_SHARD: ${{ matrix.shard }}
+      PORT: '3000'
+      DB_PATH: ${{ github.workspace }}/server/ci-nightly.db
+      UPLOAD_DIR: ${{ github.workspace }}/server/ci-uploads
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # 仓库口径 Node ≥ 22（README.md:15 / DEPLOYMENT_GUIDE.md:46）
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - name: 安装 Playwright 浏览器（chromium）
+        run: npx playwright install --with-deps chromium
+      - name: 起服务（:3000）
+        # 片 1 的 click-cost 与片 4 的 mock-integrity 是 fixtureClass=external-read：
+        # 连 localhost:3000 只读审计（其余 e2e 自托管 listen(0)，不依赖本服务）。
+        # 四片统一起一次，口径一致、失败即红。
+        run: |
+          nohup node server.js > "$RUNNER_TEMP/nightly-server.log" 2>&1 &
+          for _ in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3000/api/v1/health > /dev/null 2>&1; then
+              echo "服务就绪"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "服务 60s 内未就绪"
+          cat "$RUNNER_TEMP/nightly-server.log"
+          exit 1
+      - name: 全量片 ${{ matrix.shard }}/4
+        # 不用 `npm test` / `npm run test:full`：其 scripts 用 Windows `set X=1&&` 语法，Linux 不可执行。
+        # 环境变量由上方 job env 提供，这里直接起分片启动器。
+        run: node run-suite.mjs
+      - name: 失败时打印服务日志
+        if: failure()
+        run: cat "$RUNNER_TEMP/nightly-server.log" || true

@@ -23,7 +23,7 @@
 cd server; node --test test/claude-parallel-audit.test.mjs test/doc-consistency.test.mjs test/docs-governance-guard.test.mjs
 # 全量日常（实测 ≈150s，预算 ≤180s）
 cd server; npm run test:daily
-# 发布前（预算 ≤1200s；README 实测量级 ≈23 分钟）
+# 发布前（分片后单片 ≤1200s，夜间档分片执行；README 实测量级 ≈23 分钟）
 cd server; npm run test:full
 ```
 
