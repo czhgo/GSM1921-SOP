@@ -10,6 +10,26 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 558（2026-11-15）· 党委台进入支部：只读、留痕、可退出（spec `close-six-dim-gaps` T14）
+
+### 为什么
+- 支书裁定「单支部就是多支部里 N=1 的情况」，并要党委台能进支部看。只读若不落在服务端，就只是界面上灰掉按钮，等于没有边界。
+
+### 拿不准 / 取舍
+- **只读强制放在服务端**：新增 `server/branch-view.js`，复用 `read-only.js` 的写方法与认证域判据；进入期间除留痕写口与认证域外一律 403 `{ error, readOnly:true }`。前端禁用只作可见性。
+- **留痕即状态**：一个 token 只允许一条未退出行（部分唯一索引），重复进入 409；退出置 `exited_at` 即恢复写能力。留痕行本身就是审计记录，不另建表。
+- **旁路必须收口**：`branch-config` 页原「查看支部只读视图」锚点绕过留痕与只读门，已改为走同一流程（写留痕 → 进只读视图 → 顶栏条一致），并加静态断言：全仓只读视图 URL 只允许两处出现且必须绑定共享流程，新旁路即红。
+- **N=1 摘要再次变更**：`viewContext:null` 进入契约，摘要按契约改准为 `d6622cf42c060838`。
+
+### 边界
+- 未在 Linux 真机验证；未跑 precommit / full；未做真人签收（T11）。
+- 只读期间「退出」是唯一允许的写；该例外已在矩阵与守卫中显式登记，未普遍放宽写门。
+
+### 读数
+- 只读实测：进入后 `POST /activities`、`PATCH /activities/:id`、`DELETE /todos/:id`、`PATCH /members/:id/profile` 均 403 且 body 含 `readOnly:true`；退出后本人自填恢复 200 并真实落库。
+- 写门矩阵 **160 → 162**（156 enforced / 4 self-service / 2 public / 0 known-risk），运行期路由 ≡ 矩阵。
+- `test:daily` **254 / 254 · 73.1s**；`test:guards` 全绿 **117.2s（109 文件 / 836）**；`branch-visit-readonly` **6 / 6**。
+
 ## 批次 557（2026-11-15）· 支部解析收敛与事实源守卫（spec `close-six-dim-gaps` T13/T15）
 
 ### 为什么

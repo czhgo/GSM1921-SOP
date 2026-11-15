@@ -23,9 +23,9 @@ status: active
 - **形态**：原生 ESM 多页应用 ＋ Node/Express ＋ better-sqlite3；页面 26 个（18 根页 ＋ 8 工作台/只读视图）；工作台 7 个（支书 / 组织 / 宣传 / 纪检 / 组长 / 成员 / 党委）；党委台 4 页签（下发通知 / 院级内容 / 支部上报 / 支部管理）。
   - source：`.ctx/SNAPSHOT.md §I/§III`。
 - **URL**：无后缀已落地（`D-867`）：`pageHref()` 单源 ＋ `resolveDocumentUrl` ＋ 运行时 `link-normalize`；旧 `.html` 保持 200；真机登录后 URL＝`/workspace/secretary?tab=today`，站内 `.html` 锚点 0（`help` / `about` 除外）。
-- **数据**：业务表 50 张（34 资源 ＋ 10 语义 ＋ 6 工作组；v16 新增 `committee_proposals` / `committee_proposal_events`）；SQLite 宽表 `id + data(JSON)`；schema **v16**（v13 新增 `publication_audits`，三张内容表加 `owner_scope` / `publish_scope` 生成列；v16 建支委提案两表）；空库首启补最小组织基线（1 支部 ＋ 党委账号 ＋ 6 角色账号）。
+- **数据**：业务表 50 张（34 资源 ＋ 10 语义 ＋ 6 工作组；v16 新增 `committee_proposals` / `committee_proposal_events`）；SQLite 宽表 `id + data(JSON)`；schema **v17**（v13 新增 `publication_audits`，三张内容表加 `owner_scope` / `publish_scope` 生成列；v16 建支委提案两表；v17 建 `branch_visits` 进入支部留痕）；空库首启补最小组织基线（1 支部 ＋ 党委账号 ＋ 6 角色账号）。
   - source：`server/data/domain-contract.mjs`、`content/04_web_design/data/DATA_CONTRACT.md`。
-- **权限**：写入口权限矩阵 **160 条**（154 enforced / 4 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵；审计 C1 查矩阵 + 高风险抽样。统计口径：`WRITE_POLICY_MATRIX` 按 `status` 计数（2026-11-13 实测）。
+- **权限**：写入口权限矩阵 **162 条**（156 enforced / 4 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵；审计 C1 查矩阵 + 高风险抽样。统计口径：`WRITE_POLICY_MATRIX` 按 `status` 计数（2026-11-15 实测；T14 新增进入 / 退出支部查看两写口）。
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
 - **六维（2026-11-15 批次 553 严格重评）**：业务 **76** / 安全 **68** / 体验 **72** / 测试 **70** / 架构 **72** / 部署 **65**，**均 <80 ⇒ 不满足 `H20.5` 合并门槛，未合并回 main**。硬扣分：生产依赖 1 critical / 2 high / 1 moderate；CI 仅 daily；full 1489s 超 1200s；Linux 真机未验；无 observability；a11y 无常驻守卫。
 - **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（2026-11-15 批次 554 实跑 191s，自起 `:memory:`）；审计工具已修复（URL 跟随无后缀 canonical、登录失败 `exit 2`），此前「P0 46」确认为工具类假警报。F1–F8 全绿；M1–M3 在位。

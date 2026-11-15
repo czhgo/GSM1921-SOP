@@ -2882,7 +2882,43 @@ export const MockAdapter = {
       });
     },
   },
+  // 2026-11-15 六维补齐 T14：党委台「进入某支部」只读查看（mock 形态投同形字段）。
+  //   结构必须与 `api-adapter.js::branchVisits` 一致（H32：禁前端自造标志）：
+  //   `{ branchId, branchName, enteredBy, visitId }` 或 `null`；一个会话只保留一条未退出记录。
+  branchVisits: {
+    async context() { return _mockBranchVisitContext ? { ..._mockBranchVisitContext } : null; },
+    enter(branchId) {
+      return _withDelay(() => {
+        const id = String(branchId || '').trim();
+        if (!id) throw Object.assign(new Error('请先选择一个支部'), { type: 'ValidationError' });
+        if (_mockBranchVisitContext) throw Object.assign(new Error('当前会话已在只读查看中，请先退出再进入其他支部'), { type: 'ConflictError', status: 409 });
+        const branch = (mockDB.branches || []).find((row) => row.id === id);
+        if (!branch) throw Object.assign(new Error(`支部不存在：${id}`), { type: 'NotFoundError', status: 404 });
+        const visitId = generateId('bv');
+        _mockBranchVisitContext = {
+          branchId: id,
+          branchName: branch.config?.headerTitle || branch.name || id,
+          enteredBy: 'mock-viewer',
+          visitId,
+        };
+        return { ..._mockBranchVisitContext, id: visitId };
+      });
+    },
+    exit(visitId) {
+      return _withDelay(() => {
+        const current = _mockBranchVisitContext;
+        if (!current || current.visitId !== String(visitId)) {
+          throw Object.assign(new Error('查看记录不存在或不属于本会话'), { type: 'NotFoundError', status: 404 });
+        }
+        _mockBranchVisitContext = null;
+        return { visitId: String(visitId), branchId: current.branchId, exitedAt: new Date().toISOString() };
+      });
+    },
+  },
 };
+
+/** mock 只读查看上下文（结构同服务端 `viewContext`；仅本页内存，刷新即清） */
+let _mockBranchVisitContext = null;
 
 /**
  * 仅恢复「非主服务端集合」到 mockDB（P1 写穿后调用）

@@ -1123,7 +1123,7 @@ export function createResourcesRouter(db) {
     for (const [name, table] of Object.entries(RESOURCE_TABLES)) {
       out[name] = _resourceRowsForActor(db, name, table, req.actor, req.query.branchId);
     }
-    res.json(out);
+    out.viewContext = viewContextForRequest(db, req); res.json(out);
   });
 
   // 全量快照写穿透：认证后整表替换（data-adapter persist() 的落库目标）。**P0-1（2026-09-23）**：
@@ -1878,3 +1878,7 @@ import { canReadTodoRow } from './todo-read-policy.mjs';
 // D-872（L-16）：建会冻结表决名单——算法归表决域（`routes/committee.js`），本文件只调用。
 //   ⚠ 置尾 import（ESM 提升，语义等价）：不移动上文任何行号。
 import { resolveFrozenVoterIds } from '../committee.js';
+
+// T14（2026-11-15）：`/bootstrap` 的党委进入支部上下文投影（只读门同源）。
+//   ⚠ 置尾 import（ESM 提升，语义等价）：不移动上文任何行号。
+import { viewContextForRequest } from '../../branch-view.js';

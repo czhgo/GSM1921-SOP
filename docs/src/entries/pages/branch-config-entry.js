@@ -15,6 +15,8 @@ import { PersonPicker } from '../../components/governance/pickers.js?v=20261110b
 import { escHtml as esc, showToast, getBasePath } from '../../core/base/utils.js?v=20261110b';
 import { renderSectionHeader } from '../../components/shell/page-frame.js?v=20261110b';
 import { confirmDanger } from '../../components/ui/modal.js?v=20261110b';
+// T14（2026-11-15）：支部只读入口与党委台目录共用同一进入流程（先写留痕、再进只读视图）。
+import { bindBranchReadOnlyButtons } from '../../services/core/branch-readonly-nav.js?v=20261110b';
 
 import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261110b';
 renderSidebar('workspace');
@@ -84,7 +86,7 @@ function renderControls() {
         </div>
         <div class="mt-4 flex flex-wrap gap-2">
           <button type="button" id="branch-status-action" class="btn-outline px-3 py-2 text-sm">${branch.status === 'inactive' ? '恢复支部' : '停用支部'}</button>
-          <a class="btn-outline inline-flex items-center px-3 py-2 text-sm" href="${getBasePath()}workspace/branch-readonly.html?branchId=${encodeURIComponent(branchId)}">查看支部只读视图</a>
+          <a class="btn-outline inline-flex items-center px-3 py-2 text-sm branch-readonly-enter" data-branch-id="${esc(branchId)}" href="${getBasePath()}workspace/branch-readonly.html?branchId=${encodeURIComponent(branchId)}">只读查看该支部</a>
         </div>
         <div class="mt-5 max-w-xl">
           <label class="block text-sm font-medium text-gray-800">任命支书</label>
@@ -112,6 +114,10 @@ function renderControls() {
     initialIds: branch.secretaryId ? [branch.secretaryId] : [],
   });
   secretaryPicker.render(controls.querySelector('#branch-secretary-picker'));
+
+  // T14：本页的只读入口与党委台目录共用同一进入流程（先写留痕、再进只读视图，
+  //   顶栏随之出现「正在查看 X 支部」）。不得保留「直接跳页」的第二条路径。
+  bindBranchReadOnlyButtons(controls);
 
   mountBranchRosterImport(rosterHost, { branchId, onChange: renderControls });
 

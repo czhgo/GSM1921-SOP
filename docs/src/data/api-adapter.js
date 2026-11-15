@@ -1142,6 +1142,23 @@ export const ApiAdapter = {
     },
   },
 
+  // 2026-11-15 六维补齐 T14：党委台「进入某支部」只读查看（留痕 ＋ 一键退出）。
+  //   服务端实现 = `server/routes/resources/semantic-routes.js`（POST / PATCH）；
+  //   只读强制在服务端 `server/branch-view.js::createBranchViewGuard`，本组只做门面（H32）。
+  //   `context()` 读 `GET /bootstrap` 的 `viewContext`（与后端同形投影；无进入记录 ⇒ null）。
+  branchVisits: {
+    async context() {
+      const payload = await _get('/api/v1/bootstrap');
+      return (payload && typeof payload === 'object' && payload.viewContext) || null;
+    },
+    enter(branchId) {
+      return _post('/api/v1/committee/branch-visits', { branchId: String(branchId) });
+    },
+    exit(id) {
+      return _patch(`/api/v1/committee/branch-visits/${encodeURIComponent(String(id))}`, {});
+    },
+  },
+
   // ════════════════════════════════════════════════════════════════
   //  2026-09-23 批次 163（T1）：三域补服务端对源 —— 语义端点组
   // ════════════════════════════════════════════════════════════════

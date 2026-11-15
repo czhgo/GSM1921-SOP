@@ -1483,6 +1483,60 @@ export function registerExtraSemanticRoutes(router, db) {
 
   // 批次 537 波次 1（G2）：党委公开通知写口 /committee/notices*（纯追加，不移动上文行号）
   registerCommitteeNoticeRoutes(router, db);
+
+  // ── 四、党委进入支部（只读查看 · 留痕 · 一键退出）（T14 · 2026-11-15）──
+  // 只读强制在服务端：`server/branch-view.js::createBranchViewGuard` 在 app 级挂载；
+  //   进入期间除本段「退出」PATCH 外，全部写方法 403 `{ error, readOnly: true }`。
+  // 留痕表 `branch_visits`（`server/db.js::MIGRATIONS` v17）；同 token 只允许一条未退出记录。
+  const branchVisitToken = (req) => String((req.session && req.session.token) || '');
+  const projectVisitContext = (id, branchId, branchName, enteredBy, visitId) => ({ id, branchId, branchName, enteredBy, visitId });
+
+  router.post('/committee/branch-visits', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const branchId = body.branchId ? String(body.branchId).trim() : '';
+    if (!branchId) return res.status(422).json({ error: '缺少必要字段：branchId' });
+    const branchRow = db.prepare('SELECT data FROM branches WHERE id = ?').get(branchId);
+    if (!branchRow) return res.status(422).json({ error: `支部不存在：${branchId}` });
+    const token = branchVisitToken(req);
+    // 一个 token 只允许一条未退出记录（v17 部分唯一索引兜并发 / 多标签窗口）
+    const active = db.prepare('SELECT id, branch_id FROM branch_visits WHERE token = ? AND exited_at IS NULL LIMIT 1').get(token);
+    if (active) {
+      return res.status(409).json({
+        error: '当前会话已在只读查看中，请先退出再进入其他支部',
+        activeVisitId: String(active.id), branchId: String(active.branch_id),
+      });
+    }
+    const branch = JSON.parse(branchRow.data);
+    const branchName = branch.config?.headerTitle || branch.name || branchId;
+    const enteredAt = new Date().toISOString();
+    const id = `bv-${randomUUID().slice(0, 8)}`;
+    const context = projectVisitContext(id, branchId, branchName, String(req.actor.id), id);
+    const row = { ...context, enteredAt, exitedAt: null, token };
+    try {
+      db.prepare('INSERT INTO branch_visits (id, branch_id, entered_by, entered_at, exited_at, token, data) VALUES (?, ?, ?, ?, ?, ?, ?)')
+        .run(id, branchId, row.enteredBy, enteredAt, null, token, JSON.stringify(row));
+    } catch (error) {
+      if (/UNIQUE constraint failed/i.test(String(error && error.message))) {
+        return res.status(409).json({ error: '当前会话已在只读查看中，请先退出再进入其他支部' });
+      }
+      throw error;
+    }
+    res.status(201).json(context);
+  });
+
+  // 退出：只允许本 token 创建的那条记录；已退出幂等拒绝（不重复改写留痕）
+  router.patch('/committee/branch-visits/:id', requireRole(db, PARTY_STAFF_ROLE), (req, res) => {
+    const row = db.prepare('SELECT * FROM branch_visits WHERE id = ?').get(String(req.params.id));
+    if (!row) return res.status(404).json({ error: '查看记录不存在' });
+    if (String(row.token) !== branchVisitToken(req)) return res.status(403).json({ error: '无权限：只能退出本会话创建的查看记录' });
+    if (row.exited_at) return res.status(409).json({ error: '该查看记录已退出', exitedAt: String(row.exited_at) });
+    const exitedAt = new Date().toISOString();
+    let data = {};
+    try { data = JSON.parse(row.data); } catch { data = {}; }
+    db.prepare('UPDATE branch_visits SET exited_at = ?, data = ? WHERE id = ?')
+      .run(exitedAt, JSON.stringify({ ...data, exitedAt }), String(row.id));
+    res.json({ visitId: String(row.id), branchId: String(row.branch_id), exitedAt });
+  });
 }
 
 // 党委内容写口的依赖（置尾追加：import 声明被提升，上文行号零漂移）

@@ -327,6 +327,9 @@ export const TEST_TIERS = [
     // 2026-11-15 六维补齐 T13：双支部五证结果夹具（读隔离 / 跨支部写拒绝 / N=1 等价 / 匿名归档 fail-closed / todo-groups 同判）。
     //   daily 硬上限 31 文件已满，按「precommit / full 仍覆盖」登记（判据不丢；新增当批先红后绿）。
     'multi-branch-five-proof.test.mjs',
+    // 2026-11-15 六维补齐 T14：党委进入支部只读 / 留痕 / 退出（403 readOnly 实测、留痕行、同 token 唯一、退出恢复）。
+    //   同 T13 口径：daily 31 文件上限已满，登记在 precommit（full 仍覆盖；不放宽预算）。
+    'branch-visit-readonly.test.mjs',
     'module-compose.test.mjs',
     'module-config.test.mjs',
     'module-cycle-remind.test.mjs',

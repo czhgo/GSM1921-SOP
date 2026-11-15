@@ -283,6 +283,7 @@ export async function renderHeader(activeModule, opts = {}) {
         <h1 class="font-title-cn" title="${headerTitle}"><span class="header-title-full">${headerTitle}</span><span class="header-title-short">${shortHeaderTitle}</span></h1>
       </div>
       <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
+        <span id="branch-view-slot"></span>
         ${role ? _roleLabelHTML(role) : _loginEntryHTML()}
         ${personId && role !== 'party-staff' ? `<a href="${getBasePath()}person.html" id="header-my-profile" class="header-action-btn" style="display:inline-flex;align-items:center;text-decoration:none;">我的档案</a>` : ''}
         <span id="header-cta-slot"></span>
@@ -298,6 +299,13 @@ export async function renderHeader(activeModule, opts = {}) {
 
   // app 模式：渲染后立即按需加载通知模块 → 计算未读角标（模块缓存后即时、无感知）
   if (!staticShell) {
+    // T14（2026-11-15）：党委进入支部只读查看时，顶栏常驻「正在查看 X 支部」＋ 一键退出。
+    //   只读本身由服务端强制；本处只渲染可见性，非党委身份不加载该模块。
+    if (role === 'party-staff') {
+      import('../../services/core/branch-view.js?v=20261110b')
+        .then((m) => m.renderBranchViewBanner(header, { role }))
+        .catch(() => {});
+    }
     loadNotice().then(() => _renderNotificationBadge()).catch(() => {});
     // 2026-09-30 批次 297-2（支书裁「页头只留 1 枚本台主 CTA；跨台通用动作收进全局固定位」）：
     //   「一键汇报」由「常驻 5 台页头」收成**全站唯一固定位**＝本顶栏；未登录（无 personId）不渲染。

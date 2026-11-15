@@ -29,7 +29,7 @@ export function createApp({ dbPath = ':memory:' } = {}) {
 
   app.use('/api/v1/auth', createAuthRouter(app.locals.db)); app.use('/api/v1/public', createPublicInfoRouter(app.locals.db)); app.use('/api/v1/health', createHealthRouter(app.locals.db, { metrics: app.locals.metrics, monitor: app.locals.healthMonitor })); // 未登录最小公开读口（见 routes/public-info.js）；**须在下方 resources 路由的统一鉴权中间件之前**挂载，否则会被 401 拦掉（本行原为单条 auth 挂载，保持行数不漂移以免 README-server 取证行号失效）；T2 深检查 `GET /api/v1/health/deep` 同行挂载（浅检查仍是上方 `:26` 的既有读口）；T3 指标 `GET /api/v1/health/metrics` 与告警监视器在同一行接入
 
-  app.use('/api/v1', createResourcesRouter(app.locals.db));
+  app.use('/api/v1', createBranchViewGuard(app.locals.db)); app.use('/api/v1', createResourcesRouter(app.locals.db)); // T14：党委进入支部后写口只读（留痕行在 branch_visits；退出 PATCH 与认证域放行）
 
   // 系统派生通知（R-22，2026-09-13）：POST /api/v1/system-notices —— 生成权在服务端，
   // 按 kind 注册表复算授权并生成文案，不再依赖客户端自述的 systemDerived 标记。
@@ -104,7 +104,7 @@ export function createApp({ dbPath = ':memory:' } = {}) {
 // ⚠ import 声明被提升，**置尾不影响语义**（与 `server.js` 同一手法）：目的是保住上方行号不漂。
 import { createIaaaRouter } from './routes/iaaa.js';
 import { createSetupRouter } from './routes/setup.js';
-import { createReadOnlyGuard } from './read-only.js';
+import { createReadOnlyGuard } from './read-only.js'; import { createBranchViewGuard } from './branch-view.js'; // T14：党委进入支部只读门（挂载点在 `:32` 同行追加）
 import { isProductionEnv } from './env.js';
 import { createBranchRosterRouter } from './routes/branch-roster.js';
 import { createPublicInfoRouter } from './routes/public-info.js';

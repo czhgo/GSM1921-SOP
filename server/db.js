@@ -992,6 +992,28 @@ export const MIGRATIONS = [
       db.exec('CREATE TABLE IF NOT EXISTS committee_proposal_events (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
     },
   },
+  {
+    // v17（2026-11-15 六维补齐 T14 · Q10/Q13/Q14）：党委台「进入某支部」留痕。
+    //   谁（entered_by）/ 何时（entered_at）/ 哪个支部（branch_id）/ 何时退出（exited_at）。
+    //   一 token 只允许一条未退出记录：部分唯一索引兜「并发 / 多标签重复进入」；
+    //   运行时域，演示种子为空；不改既有 JSON 行。
+    version: 17,
+    name: 'branch-visits',
+    tables: ['branch_visits'],
+    up(db) {
+      db.exec(`CREATE TABLE IF NOT EXISTS branch_visits (
+        id TEXT PRIMARY KEY,
+        branch_id TEXT NOT NULL,
+        entered_by TEXT NOT NULL,
+        entered_at TEXT NOT NULL,
+        exited_at TEXT,
+        token TEXT NOT NULL,
+        data TEXT NOT NULL
+      )`);
+      db.exec("CREATE UNIQUE INDEX IF NOT EXISTS ux_branch_visits_active_token ON branch_visits(token) WHERE exited_at IS NULL");
+      db.exec('CREATE INDEX IF NOT EXISTS idx_branch_visits_branch ON branch_visits(branch_id, entered_at)');
+    },
+  },
 ];
 
 /** 迁移列表的最大版本（＝目标 schema 版本；守卫据此核 `user_version`，防「有迁移没跑」/「版本号被手改」） */

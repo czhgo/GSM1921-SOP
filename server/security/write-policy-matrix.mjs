@@ -402,6 +402,21 @@ const NON_RESOURCE_ROWS = [
     status: 'enforced',
   },
   {
+    method: 'POST', path: '/api/v1/committee/branch-visits', resource: 'branchVisits',
+    middleware: 'requireRole(PARTY_STAFF_ROLE)', roleGate: 'party-staff', ownership: 'party-staff',
+    fieldLocks: ['id（服务端 bv-<uuid8>）', 'enteredBy/enteredAt（服务端会话 / 时钟）', 'token（服务端会话）',
+      '一个 token 只允许一条未退出记录（v17 部分唯一索引兜并发）'],
+    evidence: 'server/routes/resources/semantic-routes.js::registerExtraSemanticRoutes（党委进入支部留痕）; server/branch-view.js; server/test/branch-visit-readonly.test.mjs',
+    status: 'enforced',
+  },
+  {
+    method: 'PATCH', path: '/api/v1/committee/branch-visits/:id', resource: 'branchVisits',
+    middleware: 'requireRole(PARTY_STAFF_ROLE)', roleGate: 'party-staff；仅本会话 token 创建的留痕行', ownership: 'party-staff',
+    fieldLocks: ['exitedAt（服务端时钟）', '已退出记录幂等拒绝（不重复改写留痕）', '不得改写 branchId/enteredBy/enteredAt'],
+    evidence: 'server/routes/resources/semantic-routes.js::registerExtraSemanticRoutes（党委退出支部查看）; server/branch-view.js; server/test/branch-visit-readonly.test.mjs',
+    status: 'enforced',
+  },
+  {
     method: 'POST', path: '/api/v1/committee/proposals', resource: 'committeeProposals',
     middleware: 'requireAuth', roleGate: 'leader / deputy-leader 或支委层；来源对象须同支部', ownership: 'branch',
     fieldLocks: ['id / branchId / proposedBy / proposedAt / status / createdAt / updatedAt（服务端生成）',

@@ -185,7 +185,9 @@ test('② 跨支部写一律 403 且不产生部分写入（单行 / PATCH / 快
 // ── ③ N=1 等价（单支部基线固化）───────────────────────────────────────────
 // 单支部 `br-b1` 下的存量缺字段行：activities / notices 依赖历史兼容回落，users / todos / archiveRecords 不回落。
 // 摘要取 `/bootstrap` 全集合（确定性响应，无时间戳）；改造前后必须逐字节一致。
-const N1_BASELINE_DIGEST = 'a308adac0dae3cbd';
+// 2026-11-15 T14：`/bootstrap` 增加 `viewContext`（未进入支部时恒 null；读集合本身逐字节未变），
+//   故摘要按新契约改准一次：a308adac0dae3cbd → d6622cf42c060838。
+const N1_BASELINE_DIGEST = 'd6622cf42c060838';
 
 test('③ N=1（br-b1）读集合与 bootstrap 摘要与改造前一致', async () => {
   const app = createApp({ dbPath: ':memory:' });
