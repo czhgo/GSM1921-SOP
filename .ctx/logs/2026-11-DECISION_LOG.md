@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-874`，共 48 条**；下一条自 **`D-875`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-875`，共 49 条**；下一条自 **`D-876`**。
 
 ## 本月目录（2026-11）
 
@@ -68,6 +68,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | L-16 表决名单采「建会冻结快照」 | `D-872` | 2026-11-13 | 已落（批次 550） |
 | L-22 / B-541-1 三处 IA 块数按 DOM 实测重基线 | `D-873` | 2026-11-13 | 已复核（D-874：探针误报，基线不改） |
 | D-873 复核：三处块数 10/14/9 为探针误报，改探针计块口径、基线不改 | `D-874` | 2026-11-14 | 已落（批次 550） |
+| 提交 / 分支 / 台账三项纪律：单批 1–3 commit、日志不落 hash；达标后合并回 main；乙部 ≥80 门槛 | `D-875` | 2026-11-14 | 已落（批次 551） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -453,5 +454,9 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 
 > **评议 → 裁定 → 落点**：实现 D-873 前先证伪——`10 / 14 / 9` 逐条拆开是行内节点：`secretary.calendar` 10 = 9 个图例行内 `span` + 1 张卡；`visitor.activities` 9 = 8 个 SVG 节点（`line`/`rect`/`circle`）+ 1 张卡；`secretary.report-up` 14 = 3 张卡 + 1 个 `.disclosure-host` + 10 个列表行内 `span`/`p`。根因：`dom-probe.mjs::expandBlocks` 把「无子元素的行内叶子」也 push 成顶层块，与自身口径（块＝语义容器）不符。支书裁定「先修探针再按真实块数复核」→ 探针改为「子树有语义容器就只认语义容器；一个都没有时容器整体算 1 块」；修后实测 **2 / 4 / 2**（差额落在表头口径：基线含页头、探针排除页头），三处均 ≤ 4，按 `D-838` 保持 `TAB_BLOCK_BASELINE` 不改，L-22 / `B-541-1` 以「探针误报」关闭。**未选**：按字面登记 10/14/9（把行内元素固化成块定义，日后密度问题不告警）；只修探针不关 L-22（留僵尸条目）。落点：`server/scripts/audit/dom-probe.mjs`、`.ctx/evidence/2026-11-14/d873-block-remeasure.md`、`.ctx/ENGINEERING_ASSESSMENT.md §四 L-22`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-874`**（共 **48** 条）。
+## D-875 2026-11-14 — 提交 / 分支 / 台账三项纪律加固
+
+> **评议 → 裁定 → 落点**：支书指出三处 harness 缺口并裁定：① **提交粒度**——每批 1–3 个按逻辑拆分的 commit（学批次 515 / 516），禁止为回填 hash 追加第二个 commit；执行日志不落 commit hash，改动事实用 `git log --grep "批次 N｜"` 检索；收尾跑 `server/scripts/check-batch-commits.mjs` 自检。② **分支与合并**——`release/2026-11-launch` 自批次 523 累积、30 commit 领先 main 且无远端；取「达标后合并回 main」：合并门槛＝六维均 ≥80 ＋ `test:full` 绿 ＋ `audit-tabs --all` P0/P1=0 ＋ 支书确认；合并后回 main 直做，下一个发布点再开新分支；push 必须支书确认。③ **乙部门槛**——`B-500-7b-2` 与 `B-522-1` 标注「六维均 ≥80 后启动」（当前 81 / 78 / 78 / 83 / 78 / 76）。**未选**：立即合并（失去发布隔离、回滚粒度粗）；长期续用同一条 release 分支（main 长期滞后）；把 5 条 perf P2 升级为真问题（真机重测 p50 2–3ms、不复现）。落点：`CLAUDE.md H20.3 / H20.5 / H26.1 / 乙部`、`content/05_ai_coding/{DOCUMENT_GOVERNANCE,CONTEXT_MANAGEMENT}.md`、`server/scripts/check-batch-commits.mjs`、`.ctx/evidence/2026-11-14/p2-perf-recheck.md`、`.ctx/ACTIVE_CONTEXT.md §1 / §3`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-875`**（共 **49** 条）。
 

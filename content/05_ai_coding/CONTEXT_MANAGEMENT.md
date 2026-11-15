@@ -2,7 +2,7 @@
 title: "上下文管理与防失忆"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-04"
+last_updated: "2026-11-14"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/01_strategy/SECRETARY_DIRECTIVES.md]
 ---
@@ -181,7 +181,12 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/01
 
 **为什么操作日志和决策档案必须分离？** 因为它们的读者和用途完全不同。操作日志是"操作记录"，读者是下次接手的 AI，用途是恢复上下文；决策档案是"决策记录"，读者是决策人与执行人，用途是理解"为什么"。混在一起会导致：AI 读取时被决策分析干扰（信息过载），决策人查阅时被操作细节淹没。
 
-**commit message 是第一主记录（2026-11-03 批次 530）**：每批「改了什么」以 `git commit message` 为准，模板＝`批次号｜为什么｜改动面｜验证读数｜D/任务号`；`EXECUTION_LOG` 只写「为什么 / 拿不准 / 边界 / 读数 / commit hash」，不得复述逐文件 diff / 改动清单。改动事实用 `git show <hash>` / `git log --grep` 取回。这样只留一份可精确检索的事实源，日志不与之竞争；读者仍能由 hash 还原上下文。
+**commit message 是第一主记录（2026-11-03 批次 530）**：每批「改了什么」以 `git commit message` 为准，模板＝`批次号｜为什么｜改动面｜验证读数｜D/任务号`；`EXECUTION_LOG` 只写「为什么 / 拿不准 / 边界 / 读数」，不落 commit hash，不得复述逐文件 diff / 改动清单。改动事实用 `git log --grep "批次 N｜"` / `git show <hash>` 取回。这样只留一份可精确检索的事实源，日志不与之竞争；读者仍能由 commit 还原上下文。
+
+**恢复上下文：读 commit 先于读日志**。
+
+- `git log --oneline -5` 看最近批次；`git show --stat <hash>` 看改动面；按批次号追溯用 `git log --grep "批次 N｜"`。
+- 执行日志只补判断语境，改动事实以 commit 为准。
 
 **快照按需生成**：快照仅按需更新（大版本升级、用户指令、阶段收官），日常变更由日志承载——教训详情见原 insights §6.8。快照是重方案，日志是轻方案，日常用轻量方案。
 

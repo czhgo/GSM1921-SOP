@@ -2,7 +2,7 @@
 title: "CLAUDE — 项目宪法与路由"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-09"
+last_updated: "2026-11-14"
 status: active
 ---
 
@@ -51,8 +51,8 @@ status: active
 
 ### H20.3 收尾（每批必做）
 
-1. **commit 主记录**：本批至少一个 commit，message 按模板 `批次号｜为什么｜改动面｜验证读数｜D/任务号`；改动事实以 `git show <hash>` 为准（`H26.1`）。
-2. **执行日志**：只写「为什么 / 拿不准 / 边界 / 读数 / commit hash」，不复述逐文件 diff / 改动清单。
+1. **commit 主记录**：本批产出 1–3 个按逻辑拆分的 commit（按目录 / 层拆；能否干净拆分决定个数，禁止为凑数改 hunk）；message 按模板 `批次号｜为什么｜改动面｜验证读数｜D/任务号`，body 写关键验证命令与回滚方式；改动事实以 `git show <hash>` 为准（`H26.1`）。**禁止为回填 hash 追加第二个 commit**；收尾跑 `node server/scripts/check-batch-commits.mjs` 自检（不接入 daily）。
+2. **执行日志**：只写「为什么 / 拿不准 / 边界 / 读数」，不复述逐文件 diff / 改动清单，**不写 commit hash**；改动事实用 `git log --grep "批次 N｜"` 检索。
 3. **决策日志**：追加新 `D-xxx`（如有裁定）。
 4. **刷新投影**：`.ctx/ACTIVE_CONTEXT.md`（状态 / 风险 / 下一步 / `latest_decision`）；`.ctx/SNAPSHOT.md` 仅结构变化时更新；`.ctx/TIMESTAMPS.md` 登记改过的文件。
 5. **当场验证**：定向测试；发布前跑 `npm run test:daily` 与 `node scripts/audit-tabs.mjs --all`（P0/P1=0）。
@@ -73,6 +73,15 @@ status: active
 | **探索性** | 「看看 / 想想 / 有没有可能」 | 先给方案与证据，不直接改代码；可先做只读探查。 |
 | **命令性** | 「做 / 改 / 落地」 | 直接执行；遇边界写清，不反复请示。 |
 | **禁止性** | 「不要 / 不得 / 别」 | 视为硬约束；同族场景一并检查，不只改字面一处。 |
+
+### H20.5 分支与合并
+
+- **main 直做**：单文件勘误、纯文档 / 台账修正、单批可完成且无需外部评审的改动。
+- **必须开分支**：连续多批的发布准备、跨层（前端 ＋ 服务端 ＋ 契约）改动、需要 PR 评审或需保留回滚点的改动。
+- **合并门槛**（全部满足且支书确认）：六维评分均 ≥80；`test:full` 全绿；`audit-tabs --all` P0 / P1 = 0；工作树无意外改动。
+- **PR 正文五段**：批次范围 / 验证读数（daily、full）/ 换轨与审计读数 / 未闭环项 / 回滚方式。
+- **合并后回 main 直做**；下一个发布点再从 main 开新 release 分支，不长期续用同一条分支。
+- **push 必须支书确认**；禁止 force push main。
 
 ## H21. 多代理独立审查协议
 
@@ -124,7 +133,7 @@ status: active
 
 **H26 总则**：`.ctx` 是仓库，不是 active context；active context ＝ 本文件 + `.ctx/ACTIVE_CONTEXT.md`。规则 / 判例 / 方法正文进 `content/01–05`；`.ctx` 只留当前投影、索引与证据。
 
-**H26.1 日志分层。** **git commit message 是第一主记录**；`EXECUTION_LOG` 只写「为什么 / 拿不准 / 边界 / 读数 / commit hash」，不得复述逐文件 diff / 改动清单。改动事实用 `git show <hash>` / `git log --grep` 取回；message 模板见 `H20.3`。
+**H26.1 日志分层。** **git commit message 是第一主记录**；`EXECUTION_LOG` 只写「为什么 / 拿不准 / 边界 / 读数」，不得复述逐文件 diff / 改动清单，不落 commit hash。改动事实用 `git log --grep "批次 N｜"` / `git show <hash>` 取回；message 模板见 `H20.3`。
 
 **H26.2 一文件一问答。** 每个台账只答一个问题；完成即删，沿革归 git。`ACTIVE_RULINGS` 只做索引，不存规则正文。
 
@@ -297,7 +306,8 @@ status: active
 
 | 目标批次 | 条目 | 一句话 | 判据 / 出处 | 状态 |
 |---|---|---|---|---|
-| 后续 | B-500-7b-2 | 完整 Plan B 收尾：客户端业务派生摘除（默认路径已切服务端）＋ 读面前置解耦 ＋ 缓存 / 性能。**前置已达**：7 类对账 8/8、双支部夹具、daily 246 断言（结果门禁）全绿；**不以上线为前提**，测试门全绿即可启动 | `server/routes/todo-groups.js`、`docs/src/components/record/todo-tab-shell.js`、`server/test/todo-derive-parity.test.mjs` | 待启动 |
+| 评分达标后 | B-500-7b-2 | 完整 Plan B 收尾：客户端业务派生摘除（默认路径已切服务端）＋ 读面前置解耦 ＋ 缓存 / 性能。**前置已达**：7 类对账 8/8、双支部夹具、daily 246 断言（结果门禁）全绿；**不以上线为前提**，测试门全绿即可启动 | 六维均 ≥80 后启动（当前 81 / 78 / 78 / 83 / 78 / 76）；`server/routes/todo-groups.js`、`docs/src/components/record/todo-tab-shell.js`、`server/test/todo-derive-parity.test.mjs` | 待启动 |
+| 评分达标后 | B-522-1 | 低密度卡与空态页：低密度等尺寸卡按内容收窄 / 合并；「今天」「归档」首屏空白补最近动态与下一步动作（旧 spec harden-interface-quality Task 8） | 六维均 ≥80 后启动（当前 81 / 78 / 78 / 83 / 78 / 76）；台账见 `.trae/specs/harden-interface-quality/tasks.md` Task 8 指针 | 待启动 |
 
 # 丙部：待决策事项
 

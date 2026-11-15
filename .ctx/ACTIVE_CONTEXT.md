@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: "2026-11-14"
 last_verified: "2026-11-14"
-latest_decision: "D-874"
+latest_decision: "D-875"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -27,7 +27,7 @@ status: active
   - source：`server/data/domain-contract.mjs`、`content/04_web_design/data/DATA_CONTRACT.md`。
 - **权限**：写入口权限矩阵 **160 条**（154 enforced / 4 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵；审计 C1 查矩阵 + 高风险抽样。统计口径：`WRITE_POLICY_MATRIX` 按 `status` 计数（2026-11-13 实测）。
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
-- **审计**：46 页签 **P0 0 / P1 0 / P2 8（其中 3 条已复核为探针误报、当批关闭，下次全量应为 5）/ exception 44**；F1–F8 全绿；M1–M3 在位；`secretary.overview` / `calendar` / `committee-meeting` / `group-progress` / `work-map` 五页三档均 0。三处「IA 块数漂移」根因是 `dom-probe` 把行内 `span` / SVG 计成块（`D-874`）：探针改口径后实测 2 / 4 / 2，三处均 ≤ 4，`TAB_BLOCK_BASELINE` 不改；全量未取终摘要，P0 / P1 读数来自守卫代理报告。
+- **审计**：46 页签 **P0 0 / P1 0 / P2 8（3 条为探针误报已关闭、5 条 perf 重测不复现判环境噪声，当前真问题 P0 / P1 / P2 = 0）/ exception 44**；F1–F8 全绿；M1–M3 在位；`secretary.overview` / `calendar` / `committee-meeting` / `group-progress` / `work-map` 五页三档均 0。三处「IA 块数漂移」根因是 `dom-probe` 把行内 `span` / SVG 计成块（`D-874`）：修后实测 2 / 4 / 2，`TAB_BLOCK_BASELINE` 不改；perf P2 证据见 `.ctx/evidence/2026-11-14/p2-perf-recheck.md`；全量未取终摘要，P0 / P1 读数来自守卫代理报告。
   - source：`.ctx/evidence/2026-11-10/tab-audit/summary.md`（P2 8 / exception 44）、`.ctx/evidence/2026-11-10/audit-fix/summary.md`。
 - **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **29 文件 / 246 断言 / 74.6s**（结果门禁）；guards **105 文件 / 346 断言 / 127.0s**（静态守卫，按需）；precommit＝daily＋guards＋非核心域回归＋e2e，**2026-11-14 全绿：341 绿 / 0 红 / 1 跳过 · 墙钟 1939.8s**；weekly 2。四层 runner 按 registry 单一源执行；CI `daily.yml` 已接 `test:daily` 与 `deploy-verify`（两个 job 均未实跑绿）。
   - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859 / §D-860 / §D-863 / §D-864`。
@@ -98,8 +98,9 @@ status: active
 ### 下一批最该做的 3 件事
 
 1. **`D-866`–`D-874` 已落地**：URL（`D-867`）、对象模型（`D-868`）、提案上会（`D-869`）、三台 P0 收口（`D-870`）、547 边界闭环（`D-871`）、L-16 建会冻结（`D-872`）、L-22 探针复核关闭（`D-873` · `D-874`）均已完成。
-2. **完整 Plan B 二期（`B-500-7b-2`）**：下一批启动；删客户端业务派生的默认路径 + 读面前置解耦 + 缓存 / 性能；前置（7 类对账 8/8、双支部夹具、daily 246 断言）已达，不以上线为前提。
+2. **完整 Plan B 二期（`B-500-7b-2`）**：**六维均 ≥80 后启动**（当前 81 / 78 / 78 / 83 / 78 / 76）；删客户端业务派生的默认路径 + 读面前置解耦 + 缓存 / 性能；前置（7 类对账 8/8、双支部夹具、daily 246 断言）已满足，不以上线为前提。
 3. **首次部署前验证**：在 Linux 测试机跑 `install/update` + `preflight-cutover --strict`，把 `L-02` 关掉；多支部 Phase 1 顺延至上述两项之后。
+4. **分支与合并（`H20.5`）**：`release/2026-11-launch` 自批次 523 累积、30 commit 领先 main，**尚未推远端**（SSH host key 未授信、`gh` 未安装）；合并门槛＝六维均 ≥80 ＋ `test:full` 绿 ＋ P0/P1=0 ＋ 支书确认，达标前继续在分支累积。
 
 ## §4 文件地图（读什么 / 不读什么）
 
