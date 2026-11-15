@@ -2,7 +2,7 @@
 title: "2026年11月决策日志"
 type: decision_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-14
+last_updated: 2026-11-15
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-DECISION_LOG.md, content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md, content/04_web_design/design-system/DS_03_COMPONENTS.md, content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md]
 ---
@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-875`，共 49 条**；下一条自 **`D-876`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-876`，共 50 条**；下一条自 **`D-877`**。
 
 ## 本月目录（2026-11）
 
@@ -69,6 +69,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | L-22 / B-541-1 三处 IA 块数按 DOM 实测重基线 | `D-873` | 2026-11-13 | 已复核（D-874：探针误报，基线不改） |
 | D-873 复核：三处块数 10/14/9 为探针误报，改探针计块口径、基线不改 | `D-874` | 2026-11-14 | 已落（批次 550） |
 | 提交 / 分支 / 台账三项纪律：单批 1–3 commit、日志不落 hash；达标后合并回 main；乙部 ≥80 门槛 | `D-875` | 2026-11-14 | 已落（批次 551） |
+| 删活动保留报名 / 表决留痕行 + 活动快照 | `D-876` | 2026-11-15 | 已落（批次 552） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -458,5 +459,9 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 
 > **评议 → 裁定 → 落点**：支书指出三处 harness 缺口并裁定：① **提交粒度**——每批 1–3 个按逻辑拆分的 commit（学批次 515 / 516），禁止为回填 hash 追加第二个 commit；执行日志不落 commit hash，改动事实用 `git log --grep "批次 N｜"` 检索；收尾跑 `server/scripts/check-batch-commits.mjs` 自检。② **分支与合并**——`release/2026-11-launch` 自批次 523 累积、30 commit 领先 main 且无远端；取「达标后合并回 main」：合并门槛＝六维均 ≥80 ＋ `test:full` 绿 ＋ `audit-tabs --all` P0/P1=0 ＋ 支书确认；合并后回 main 直做，下一个发布点再开新分支；push 必须支书确认。③ **乙部门槛**——`B-500-7b-2` 与 `B-522-1` 标注「六维均 ≥80 后启动」（当前 81 / 78 / 78 / 83 / 78 / 76）。**未选**：立即合并（失去发布隔离、回滚粒度粗）；长期续用同一条 release 分支（main 长期滞后）；把 5 条 perf P2 升级为真问题（真机重测 p50 2–3ms、不复现）。落点：`CLAUDE.md H20.3 / H20.5 / H26.1 / 乙部`、`content/05_ai_coding/{DOCUMENT_GOVERNANCE,CONTEXT_MANAGEMENT}.md`、`server/scripts/check-batch-commits.mjs`、`.ctx/evidence/2026-11-14/p2-perf-recheck.md`、`.ctx/ACTIVE_CONTEXT.md §1 / §3`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-875`**（共 **49** 条）。
+## D-876 2026-11-15 — 删除活动保留报名 / 表决留痕行 + 活动快照
+
+> **评议 → 裁定 → 落点**：跨层专项发现活动删除事务级联物理删除 `signups` 与 `agenda_votes`，与既有判据「报名记录须保留；只能撤回 / 取消 / 作废，不得物理删除」冲突。支书裁定取「**保留留痕行 + 快照**」：删除活动时两类行不删，同事务写入 `activitySnapshot { id, title, date, type, scenarioId, deletedAt }`，活动本身仍可物理删除；匿名表决仍不得出现 `personId→选项` 映射。**未选**：禁止删除有记录的活动（支书误建时清理成本过高）；活动软删除（读口 / 导出 / 统计全要加过滤，改动面最大）。落点：`server/routes/resources/index.js::deleteActivityCascade`、`docs/src/data/mock-adapter.js`（前端 mock 同口径）、`README-server.md §5.5/§6.1`、`content/04_web_design/data/DATA_MODEL.md`、`server/test/activity-delete.test.mjs`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-876`**（共 **50** 条）。
 

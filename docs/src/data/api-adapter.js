@@ -781,8 +781,15 @@ export const ApiAdapter = {
 
   users: {
     // `includeTransferredOut`：治理侧读「历史行」（移出成员）时显式请求；默认在册名册不含移出行（F-08）。
+    // `branchId`：党委未选支部时服务端对支部明细返回空表（server/routes/resources/branch-scope.js::resourceRowsForActor）；
+    //   支部管理行内名册（branches-tab.js::ensureBranchMembersLoaded）按支部逐个读取 ⇒ 支部参数必须透传到 query，
+    //   否则党委视角拿到的永远是空名册。
     list(params = {}) {
-      return _get(`/api/v1/users${params && params.includeTransferredOut ? '?includeTransferredOut=1' : ''}`);
+      const query = new URLSearchParams();
+      if (params && params.includeTransferredOut) query.set('includeTransferredOut', '1');
+      if (params && params.branchId) query.set('branchId', String(params.branchId));
+      const serialized = query.toString();
+      return _get(`/api/v1/users${serialized ? '?' + serialized : ''}`);
     },
     // 2026-09-06 立项⑥ A波：users 双形态写口补齐（server RESOURCE_TABLES 通用 CRUD 已存在：
     // POST /api/v1/users / PATCH /users/:id / DELETE /users/:id，party-staff 门）

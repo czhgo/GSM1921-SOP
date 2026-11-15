@@ -8,11 +8,11 @@
 //  数据源：
 //    auth.js AUTHORIZE_CHAIN（赋权链 → L1 条线可见性投影）
 //    SYSTEM_ROLE_PERMISSION.md §9b 常设角色权限矩阵（view_all → 数据维度投影）
-//    data/mock/people.js partyGroup（党小组 → 块块关系：组长看本组组员）
+//    data/mock/people.js partyGroup（党小组 → 块块关系：组长看本组组员）——经成员档案门面读取
 //  核心："看 ≠ 做"——可见性只决定"能看到什么维度"，不授予任何操作权。
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE } from '../../data/mock/people.js?v=20261110b';
+import { PersonStore } from '../member/person.js?v=20261110b'; // 名册走门面（H32：api 形态读服务端缓存，不直连 mock/people.js 静态种子）
 import { TaskForceRecordStore } from '../activity/taskforce.js?v=20261110b';
 import { loadActivities, isPendingApprovalActivity, isActivityOrganizerIn } from '../activity/activity.js?v=20261110b';
 import { BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261110b';
@@ -102,15 +102,18 @@ export function resolveVisibleTargets(viewerRole, viewerPersonId) {
   const cfg = ROLE_VISIBILITY[viewerRole];
   if (!cfg || cfg.targets.length === 0) return [];
 
+  // 名册每次现读（成员增删 / 移出 / 党小组调整即时生效）；api 形态由 PersonStore 内部读服务端同步缓存。
+  const roster = PersonStore.getMembers();
+
   let targets = [];
   if (cfg.targets === 'all') {
     // L2 全局：全部人员（不包含自己，L0 自我独立处理）
-    targets = PEOPLE.map(p => ({ personId: p.id, name: p.name, role: _roleOf(p), partyGroup: p.partyGroup || '', relation: '全局' }));
+    targets = roster.map(p => ({ personId: p.id, name: p.name, role: _roleOf(p), partyGroup: p.partyGroup || '', relation: '全局' }));
   } else if (cfg.targets === 'own-group') {
     // 块块：与组长同党小组的其他成员（不含组长本人）
-    const me = PEOPLE.find(p => p.id === viewerPersonId);
+    const me = roster.find(p => p.id === viewerPersonId);
     const group = me ? me.partyGroup : '';
-    targets = PEOPLE
+    targets = roster
       .filter(p => p.id !== viewerPersonId && (p.partyGroup || '') === group)
       .map(p => ({ personId: p.id, name: p.name, role: _roleOf(p), partyGroup: p.partyGroup || '', relation: '本组组员' }));
   } else {
@@ -124,7 +127,7 @@ export function resolveVisibleTargets(viewerRole, viewerPersonId) {
     });
     // 常设角色兜底（如组织委员看其他委员等场景，当前矩阵无此需求，保留扩展位）
     targets = [...merged.values()].map(x => {
-      const p = PEOPLE.find(pp => pp.id === x.personId);
+      const p = roster.find(pp => pp.id === x.personId);
       return {
         personId: x.personId,
         name: p ? p.name : x.personId,

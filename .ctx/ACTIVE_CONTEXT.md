@@ -3,9 +3,9 @@ title: "Active Context — 当前判断入口"
 type: active_context
 role: "[AI]"
 layer: active
-last_updated: "2026-11-14"
-last_verified: "2026-11-14"
-latest_decision: "D-875"
+last_updated: "2026-11-15"
+last_verified: "2026-11-15"
+latest_decision: "D-876"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -69,6 +69,7 @@ status: active
 - **三台专项探查 P0 收口**：提案决议与议程同事务单一事实；支委会建会 / 议程结果仅支书 / 副支书；报表读口收为支书 / 副支书 / 组织委员 / 党委；宣传台看板只读不闭环活动；组长进展读口按角色 / 组收口；M7/M8 迁移期望改由 `SCHEMA_VERSION` 派生，新增写门矩阵 evidence 行号守卫。（`D-870`）→ `server/routes/{committee-proposals,report,leader-progress}.js`、`resources/gates.js`、`docs/src/core/domain/party-group-scope.js`。
 - **547 边界已闭环**：专班折叠区真机流补 `summary` 展开；消息页补 `emptyStateHtml` import；`issue-unread` 清 `secretary-review` 角标仅支书 / 副支书可写 `unread:false`（矩阵与回归测试同批）。（`D-871`）→ `form-loop-registry.mjs`、`messages-entry.js`、`semantic-routes.js`、`write-policy-matrix.mjs`、`issue-unread-gate.test.mjs`。
 - **L-16 已落**：表决名单 `voteConfig.voterIds` 由服务端建会冻结——写库前按 `users` ＋ 组织归属算一次（剔滞留 / 已转出），客户端提交值不作数；会议期间不随组织变动，组织变动下次建会生效。（`D-872`）→ `server/routes/committee.js::resolveFrozenVoterIds`、`server/test/agenda-votes.test.mjs`。
+- **删活动留痕（D-876）**：报名与表决行保留 ＋ `activitySnapshot`（标题 / 日期 / 类型 / 场景 / deletedAt）；匿名表决仍无个人选项映射；前端 mock 同口径。→ `server/routes/resources/index.js`、`docs/src/data/mock-adapter.js`。
 - **L-22 / B-541-1 已复核关闭**：三处「10 / 14 / 9 块」是 `dom-probe` 把行内叶子计成块的误报；探针改口径后实测 2 / 4 / 2，基线不改。（`D-873` · `D-874`）→ `server/scripts/audit/dom-probe.mjs`、`.ctx/evidence/2026-11-14/d873-block-remeasure.md`。
 
 ## §3 当前风险与下一步
@@ -101,6 +102,7 @@ status: active
 2. **完整 Plan B 二期（`B-500-7b-2`）**：**六维均 ≥80 后启动**（当前 81 / 78 / 78 / 83 / 78 / 76）；删客户端业务派生的默认路径 + 读面前置解耦 + 缓存 / 性能；前置（7 类对账 8/8、双支部夹具、daily 246 断言）已满足，不以上线为前提。
 3. **首次部署前验证**：在 Linux 测试机跑 `install/update` + `preflight-cutover --strict`，把 `L-02` 关掉；多支部 Phase 1 顺延至上述两项之后。
 4. **分支与合并（`H20.5`）**：`release/2026-11-launch` 自批次 523 累积、30 commit 领先 main，**尚未推远端**（SSH host key 未授信、`gh` 未安装）；合并门槛＝六维均 ≥80 ＋ `test:full` 绿 ＋ P0/P1=0 ＋ 支书确认，达标前继续在分支累积。
+5. **跨层专项（批次 552）**：计算 / 全栈 / 后端 / 前端四域扫 20 条，修 14 处（含 mock 同口径）；P2 余 6 条已登记 `REVIEW_QUEUE`（带触发条件）。证据 `.ctx/evidence/2026-11-15/cross-layer-audit.md`。
 
 ## §4 文件地图（读什么 / 不读什么）
 

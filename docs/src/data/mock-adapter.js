@@ -1187,6 +1187,8 @@ export const MockAdapter = {
     delete(id) {
       return _withDelay(() => {
         const prev = mockDB.activities.length;
+        // D-876（2026-11-15）：报名与表决留痕不得物理删除——先取活动快照，删后仍保留行。
+        const removed = mockDB.activities.find(a => a.id === id);
         mockDB.activities = mockDB.activities.filter(a => a.id !== id);
         if (mockDB.activities.length === prev) throw Object.assign(new Error(`活动 ${id} 不存在`), { type: 'NotFoundError' });
         // 2026-08-27 T-283 生命周期修复：彻底删除活动须联动清理全部子记录（与 mock.js 同构）
@@ -1194,10 +1196,20 @@ export const MockAdapter = {
           if (Array.isArray(mockDB[key])) mockDB[key] = mockDB[key].filter(x =>
             x.activityId !== id && !(key === 'fileSpaceRecords' && x.sourceType === 'activity' && x.sourceId === id));
         }
-        if (Array.isArray(mockDB.signups)) mockDB.signups = mockDB.signups.filter(s => !(s.sourceType === 'activity' && s.sourceId === id));
+        const snapshot = removed ? {
+          id: removed.id,
+          title: removed.title || null,
+          date: removed.date || null,
+          type: removed.type || null,
+          scenarioId: removed.scenarioId || null,
+          deletedAt: new Date().toISOString(),
+        } : null;
+        if (snapshot && Array.isArray(mockDB.signups)) mockDB.signups = mockDB.signups.map(s =>
+          (s.sourceType === 'activity' && s.sourceId === id) ? { ...s, activitySnapshot: snapshot } : s);
         if (Array.isArray(mockDB.notices)) mockDB.notices = mockDB.notices.filter(n => !(n.targetType === 'activity' && n.targetId === id));
         if (Array.isArray(mockDB.todos)) mockDB.todos = mockDB.todos.filter(t => !(t.sourceType === 'activity' && t.sourceId === id));
-        if (Array.isArray(mockDB.agendaVotes)) mockDB.agendaVotes = mockDB.agendaVotes.filter(v => v.activityId !== id);
+        if (snapshot && Array.isArray(mockDB.agendaVotes)) mockDB.agendaVotes = mockDB.agendaVotes.map(v =>
+          v.activityId === id ? { ...v, activitySnapshot: snapshot } : v);
         // R9 Task 4.3：删除活动 = 同一投影下的工作组移除（含成员 / 授权 / 任务 / 产出）。
         const deletedWorkgroups = activityWorkgroupIdsForDelete(mockDB.workgroups, id);
         mockDB.workgroupMembers = mockDB.workgroupMembers.filter(m => !deletedWorkgroups.has(m.workgroupId));

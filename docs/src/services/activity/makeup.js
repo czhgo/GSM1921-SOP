@@ -24,6 +24,7 @@ import { getPersonById } from '../member/person.js?v=20261110b';
 import { loadAttendanceRecords, saveAttendanceRecords } from './attendance.js?v=20261110b';
 import { findActivityById } from './activity.js?v=20261110b';
 import { generateId } from '../../core/base/id.js?v=20261110b';
+import { todayLocal, _fmtDate } from '../../core/base/date.js?v=20261110b';
 
 /**
  * 制度硬要求补课类型（补课范围判据的**单一出口／call-time**）——支部级可调。
@@ -124,6 +125,14 @@ function addMakeupTask(task) {
   saveMakeupTasks(tasks);
 }
 
+/** 本地日历日 + N 天（`YYYY-MM-DD`；非法输入 → null）——截止日按本地日算，不用 UTC 回切 */
+function _addLocalDays(dateStr, days) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(dateStr || ''));
+  if (!m) return null;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]) + Number(days));
+  return _fmtDate(d);
+}
+
 /**
  * 自动生成补课任务
  * 在考勤确认时触发，为「该场活动在补课范围内、且判据成立」的缺勤/请假人员生成补课任务。
@@ -145,9 +154,8 @@ export function autoGenerateMakeupTask(attendanceRecord) {
   if (tasks.some(t => t.personId === personId && t.activityId === activityId)) return;
 
   const person = getPersonById(personId);
-  const absentDate = activity.date || new Date().toISOString().split('T')[0];
-  const deadline = new Date(absentDate);
-  deadline.setDate(deadline.getDate() + makeupDeadlineDays());
+  const absentDate = activity.date || todayLocal();
+  const deadline = _addLocalDays(absentDate, makeupDeadlineDays());
 
   const task = {
     id: generateId('mk'),
@@ -157,7 +165,7 @@ export function autoGenerateMakeupTask(attendanceRecord) {
     activityName: activity.title || activity.name,
     personName: person ? person.name : personId,
     absentDate,
-    deadline: deadline.toISOString().split('T')[0],
+    deadline,
     status: 'pending',
     // 生成即「要求补课」（范围判据已收敛）：走进名单的一律必修
     isMandatory: true,

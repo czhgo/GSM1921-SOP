@@ -52,7 +52,7 @@ import {
 } from '../../docs/src/services/member/member-confirmation.js?v=20261110b';
 // ⑪ 2026-09-27「补入口」批：补课范围/时限 call-time 消费点（makeup.js 读 POLICY_DEFAULTS）
 import {
-  makeupDefaultActivityTypes, makeupDeadlineDays, isMakeupRequired,
+  makeupDefaultActivityTypes, makeupDeadlineDays, isMakeupRequired, autoGenerateMakeupTask,
 } from '../../docs/src/services/activity/makeup.js?v=20261110b';
 import {
   leaderSemesterReportTermKey, isLeaderSemesterRemindWindow,
@@ -776,4 +776,18 @@ test('⑬ R7-33 复盘超期现算：未提交 / 已打回按期限判；已提�
     { today: '2026-07-30', policy }), false, '已确认不判超期');
   assert.equal(isReviewOverdue({ ...notSubmitted, submittedAt: '2026-07-20T10:00:00Z', reviewStatus: '已打回' },
     { today: '2026-07-30', policy }), true, '已打回且未重交 ⇒ 超期');
+});
+
+// ── 补课截止日按本地日（跨层正确性 1.3）─────────────────────────────
+test('补课截止日 = 活动日 + 7 天（本地日）：2026-06-30 → 2026-07-07', () => {
+  beginMockCase();
+  const activity = { id: 'act-mk-localday', title: '补课本日口径', date: '2026-06-30', type: '支部党员大会' };
+  mockDB.activities = [activity];
+  mockDB.makeupTasks = [];
+  const task = autoGenerateMakeupTask({
+    id: 'att-mk-localday', activityId: activity.id, personId: '2400012345', status: 'absent',
+  });
+  assert.ok(task, '缺席 + 制度补课类型 ⇒ 生成补课任务');
+  assert.equal(task.absentDate, '2026-06-30');
+  assert.equal(task.deadline, '2026-07-07', '截止日按本地日 T+7，不得因 UTC 回切早一天');
 });

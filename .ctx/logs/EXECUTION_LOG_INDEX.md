@@ -3,7 +3,7 @@ title: "Agent Execution Ledger — Index & Redirect"
 type: log_index
 owner: "Org OS Agent 集群"
 role: "[工程师]+[AI]"
-last_updated: "2026-11-14"
+last_updated: "2026-11-15"
 status: active
 ---
 
@@ -70,6 +70,7 @@ status: active
 | 549 | 2026-11-14 | 提交前门禁闭环：存量守卫与 D-867/D-868 口径对齐（URL 去后缀 / 专班承办方 / 通知受众投影 / id 单一源 / P11 固定目录），precommit 341 绿 0 红 |
 | 550 | 2026-11-14 | L-16 建会冻结表决名单（D-872）；L-22 复核为 dom-probe 探针误报、基线不改（D-873/D-874） |
 | 551 | 2026-11-14 | 提交 / 分支 / 台账三项纪律加固（D-875）：单批 1–3 commit、日志不落 hash、H20.5 合并门槛、P2 证据化清账、乙部 ≥80 门槛 |
+| 552 | 2026-11-15 | 跨层正确性专项：计算口径 4、全栈 2、后端 3、前端 a11y 4，mock 同口径；P2 余 6 条登记（D-876） |
 
 ## 轮转规则
 

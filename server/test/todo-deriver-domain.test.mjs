@@ -29,6 +29,7 @@ import {
   LifecycleTodoDeriver, VisitorTodoDeriver, NoticeTodoDeriver,
   REALTIME_GROUP_DOMAIN, realtimeGroupDomainOf,
   buildDevelopNodeRemindGroup,
+  buildHalfYearInspectionRemindGroup,
 } from '../../docs/src/services/governance/todo.js?v=20261110b';
 import { HandoffStore } from '../../docs/src/services/governance/handoff.js?v=20261110b';
 import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261110b';
@@ -344,4 +345,17 @@ test('⑨ 发展节点提醒：培养考察期满/预备期满派生组织委员
   // 幂等：无期满/空输入 → null（不产生空组卡，避免重复提醒）
   assert.equal(buildDevelopNodeRemindGroup({ members, overrides: { 2400012347: overrides['2400012347'] }, today }), null);
   assert.equal(buildDevelopNodeRemindGroup({ members: [], overrides: {}, today }), null);
+});
+
+// ── 半年考察按本地日归期（跨层正确性 1.2）────────────────────────────
+test('半年考察口径按本地日：本地 7/1 00:30（UTC 仍是 6/30）的记录归入下半年', () => {
+  // 构造「本地 2026-07-01 00:30」：其 ISO（UTC）串落在 2026-06-30T16:30Z
+  const recordedAt = new Date(2026, 6, 1, 0, 30).toISOString();
+  const members = [{ id: 'p-hy', name: '边界成员', developStage: '积极分子' }];
+  const group = buildHalfYearInspectionRemindGroup({
+    members,
+    records: [{ id: 'r-hy', personId: 'p-hy', recordedAt }],
+    today: '2026-10-01', // H2
+  });
+  assert.equal(group, null, '本地 7/1 记录已覆盖 H2，不得按 UTC 6/30 误判为未考察');
 });

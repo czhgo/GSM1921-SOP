@@ -80,7 +80,8 @@ export function createApp({ dbPath = ':memory:' } = {}) {
       return res.status(413).json({ error: '文件超过大小限制' });
     }
     console.error('[server] 未处理错误:', err);
-    res.status(500).json({ error: err.message || '服务器内部错误' });
+    // 对外固定通用文案：内部错误串（SQL / 路径 / 堆栈片段）只进服务端日志，不回传客户端。
+    res.status(500).json({ error: '服务器内部错误' });
   });
 
   // IAAA 统一身份认证入站链路（2026-09-29 批次 271）：**必须挂在这里**——上方每一行（`:22`/`:23`/`:25`/`:27`/

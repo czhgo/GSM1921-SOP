@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.1"
-last_updated: "2026-11-14"
+last_updated: "2026-11-15"
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -1911,12 +1911,12 @@ KANBAN\_MOCKS（mock/kanban.js）作为独立硬编码的看板数据，与正�
 
 | 表（集合） | 字段 | 类别 / 说明 |
 |---|---|---|
-| `signups` | `id, sourceType, sourceId, personId, role, status, createdAt, reviewedBy, reviewedAt, cancelledAt, cancelledBy, note` | 业务；支部由 `sourceId` 父行派生，不单独存 `branchId` |
+| `signups` | `id, sourceType, sourceId, personId, role, status, createdAt, reviewedBy, reviewedAt, cancelledAt, cancelledBy, note, activitySnapshot?` | 业务；支部由 `sourceId` 父行派生，不单独存 `branchId`。`activitySnapshot`＝活动删除后保留的留痕快照（`{id,title,date,type,scenarioId,deletedAt}`，`D-876`） |
 | `prop_tasks` | `id, branchId, source, sourceRole?, sourceOrg?, type, summary, status, createdAt` | 业务；`source` 展示快照，`sourceRole/sourceOrg` 为稳定键 |
 | `external_dispatches` | `id, branchId, refType, refLabel, senderId, senderName, receiverRole, note, sentAt, confirmedAt` | 业务；`refLabel` 展示，确认时间运行时 |
 | `member_change_requests` | `id, branchId, personId, fromStage, toStage, meetingResult, activityId, agendaItemId, status, approvedAt, approvedBy, confirmedAt, confirmedBy` | 运行时/派生；来源＝议程结果 |
 | `committee_broadcasts` | `id, branchId, requestId, recipientId, status, broadcastAt, read` | **v12 恒只读**；通用 POST/PATCH/DELETE 返回 409 |
-| `agenda_votes` | 记名：`id, branchId, activityId, agendaItemId, personId, position, note, updatedAt`；无记名：`id=avt-..., branchId, activityId, agendaItemId, ballotMode:'anonymous', tally, updatedAt` | 运行时；逐人选项只在记名制落库 |
+| `agenda_votes` | 记名：`id, branchId, activityId, agendaItemId, personId, position, note, updatedAt`；无记名：`id=avt-..., branchId, activityId, agendaItemId, ballotMode:'anonymous', tally, updatedAt`；两类均可带 `activitySnapshot?` | 运行时；逐人选项只在记名制落库。活动删除后行保留，只写 `activitySnapshot` 快照（`D-876`），匿名行仍不写人→选项映射 |
 | `attendance_rosters` | `id, branchId, activityId, personIds[], frozen, version, frozenBy, frozenAt` | 运行时；一活动一行 |
 | `handoffs` | `id, branchId, type, from, to, refType, refLabel, refId, note, status, createdAt, confirmedAt, confirmedBy` | 语义端点；`from/to` 由 `type` 派生 |
 | `member_confirmations` | `id, branchId, kind, personId, action, from, to, note, by, status, decidedBy, decidedAt, rejectNote, createdAt` | 语义端点 |
@@ -1966,7 +1966,7 @@ KANBAN\_MOCKS（mock/kanban.js）作为独立硬编码的看板数据，与正�
 - **制度报送开关**：不勾＝支委会通过即现行版；勾＝转「待党员大会表决」，通过后才成现行版。（D-341/D-555）
 - **活动参与汇总**：以人为第一列。（D-396）
 - **意见反馈 `replyHint`**：随事项领域呈现反馈时间，只呈现、不改流转、不设催办门。（D-598）
-- **活动物理删除**：须连带清理关联数据，不留孤儿行。（D-812）
+- **活动物理删除**：须连带清理关联数据，不留孤儿行；报名与表决属历史留痕，不随活动删除，只写活动快照。（D-812/D-876）
 - **服务端化判据**：清掉浏览器缓存后记录仍在，才算服务端化；只活在本机的域须进服务端表。（D-631/D-636）
 - **考勤浮窗**：默认带出报名者并保留调整空间；报名不设截止，本场组织者与支书 / 副支书可手动关闭（已报名者仍可取消）。（D-288/D-465/D-546）
 

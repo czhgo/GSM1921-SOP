@@ -23,6 +23,18 @@ import { renderRelationMatrix } from '../ui/relation-matrix.js?v=20261110b';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 
+/**
+ * quorumCheck 通过条件提示（跨层正确性 1.4）：与 `agenda-follow-up.js::quorumBlockMessage`
+ * 的执行判据一致——出席（已表态，含弃权）需 > 应到/2、赞成需 > 应到/2，
+ * 两者的最小整数均 = `Math.floor(total / 2) + 1`（不是 ceil(total/2)）。
+ * @param {number} total 应到（有表决权）人数
+ * @returns {string} 提示文案（HTML 片段，`>` 已转义）
+ */
+export function quorumConditionHint(total) {
+  const need = Math.floor(total / 2) + 1;
+  return `通过条件：出席 &gt; 应到/2 且 ≥ ${need} 人，赞成同样 ≥ ${need} 人（出席含弃权）`;
+}
+
 export async function renderVoteSummary(container, { activity, committeeMembers, canLock }) {
   const votes = await fetchVotes(activity.id);
   const locked = activity.votesLocked === true;
@@ -47,12 +59,11 @@ export async function renderVoteSummary(container, { activity, committeeMembers,
     const parts = options.map((p) => `${labelOf(p)} ${Number(tally[p]) || 0}`).join(' · ');
     tallyHtml = `<div class="vs-tally">票数统计：${parts} · 已表态 ${votedCount}/${total}${anonymous ? ' · 无记名（不展示个人选项）' : ''}</div>`;
   }
-  // quorumCheck（支部党员大会硬校验）时显示通过条件提示（spec §四：出席 ≥ ceil(应到/2)，赞成 > 应到/2）
+  // quorumCheck（支部党员大会硬校验）时显示通过条件提示（与 agenda-follow-up 判据同口径：
+  //   出席 / 赞成均需 > 应到/2，即 ≥ floor(应到/2)+1）
   let quorumHtml = '';
   if (quorumCheck) {
-    const needPresent = Math.ceil(total / 2);
-    const needApprove = Math.floor(total / 2) + 1; // > 应到/2 的最小整数
-    quorumHtml = `<div class="vs-quorum">通过条件：出席（已表态，含弃权）需 ≥ ${needPresent}/${total}，通过需赞成 &gt; 应到/2（≥ ${needApprove} 人）</div>`;
+    quorumHtml = `<div class="vs-quorum">${quorumConditionHint(total)}</div>`;
   }
 
   // R2-2 决议「待落实」区（仅含已记录「通过」的议程；支书/副支书可管理——canLock 副书同权 2026-09-13）

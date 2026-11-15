@@ -2,7 +2,7 @@
 title: "文档治理与一改具改"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-11-14
+last_updated: 2026-11-15
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/03_doc_system/ARCHITECTURE.md]
 ---

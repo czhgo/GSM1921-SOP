@@ -213,9 +213,11 @@ export function renderContent(ctx) {
         // 实体条目可点（2026-09-12 支书裁定）：成员卡 = 成员实体 → 点击 1 跳直达「成员名册」并高亮该成员
         //（复用既有深链 workspace/org.html?tab=roster&highlight=<personId>，与 development-tab「去名册发起变更」同源）
         // 2026-09-13：卡内姓名改为真实 <a>（档案页）——HTML 不允许 <a> 嵌套，故整卡跳转改由下方事件委托承担
+        // 2026-11-15 Task 4.2：整卡补 role="button" / tabindex="0" / aria-label 与 Enter·Space；
+        //   卡内含姓名 <a>（档案页）⇒ 带 data-nested-actions 标记（嵌套交互白名单同批登记）。
         return `
           <div class="p-3 rounded-xl bg-white border border-gray-50 hover:border-gray-100 transition-colors">
-            <div class="talent-card block cursor-pointer" data-roster-jump="${esc(p.id)}" title="查看成员档案（成员名册）">
+            <div class="talent-card block cursor-pointer" data-roster-jump="${esc(p.id)}" role="button" tabindex="0" aria-label="查看成员名册并高亮：${esc(getPersonName(p.id))}" title="查看成员档案（成员名册）" data-nested-actions="true">
               <div class="flex items-center gap-2 flex-wrap">
                 <a href="${archiveHref}" class="text-sm font-semibold text-gray-800 hover:text-accent transition-colors" title="查看完整档案">${esc(getPersonName(p.id))}</a>
                 <span class="tint-pill" data-tone="${stageTone}">${esc(p.developStage || STAGE_OTHER)}</span>
@@ -294,6 +296,9 @@ export function renderContent(ctx) {
   //   在位），不再用持久容器 `#org-tab-content` 上的 dataset 标记 ⇒ 离开再回来新控件仍有监听。
   const talentList = container.querySelector('#talent-list');
   if (talentList) {
+    const jumpToRoster = (personId) => {
+      window.location.href = pageHref(getBasePath() + 'workspace/org.html?tab=roster&highlight=' + encodeURIComponent(personId));
+    };
     talentList.addEventListener('click', (e) => {
       const btn = e.target.closest('.talent-person-jump');
       if (btn && btn.dataset.personId) {
@@ -304,8 +309,18 @@ export function renderContent(ctx) {
       if (e.target.closest('a')) return;
       const card = e.target.closest('.talent-card');
       if (card && card.dataset.rosterJump) {
-        window.location.href = pageHref(getBasePath() + 'workspace/org.html?tab=roster&highlight=' + encodeURIComponent(card.dataset.rosterJump));
+        jumpToRoster(card.dataset.rosterJump);
       }
+    });
+    // 键盘同权（Task 4.2）：整卡 role="button"，Enter / Space 与点击同路；
+    //   卡内链接 / 按钮自行处理，不由整卡劫持。
+    talentList.addEventListener('keydown', (e) => {
+      if (e.target.closest('a,button,input,textarea,select')) return;
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const card = e.target.closest('.talent-card');
+      if (!card || !card.dataset.rosterJump) return;
+      e.preventDefault();
+      jumpToRoster(card.dataset.rosterJump);
     });
   }
 

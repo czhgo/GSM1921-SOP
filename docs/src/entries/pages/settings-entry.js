@@ -1120,13 +1120,15 @@ function activityApprovalCardHtml(branch, P) {
         ${badgeHtml(`${esc(roleLabel)} · 本支部可调`, 'info')}
       </div>
       <p class="text-xs text-gray-500 mb-4">开启后活动须批准才能推进。</p>
-      <div class="kv-row">
-        <dt>批准门档位</dt>
-        <dd>
-          <select id="pol-approval-mode" class="input-flat text-xs w-56">${opts}</select>
-          <div class="text-xs text-gray-500 mt-1">制度默认：关闭 · 当前${hasOverride ? '已按本支部调整值生效' : '为制度默认（关闭）'}。</div>
-        </dd>
-      </div>
+      <dl class="kv-list">
+        <div class="kv-row">
+          <dt>批准门档位</dt>
+          <dd>
+            <select id="pol-approval-mode" class="input-flat text-xs w-56" aria-label="批准门档位">${opts}</select>
+            <div class="text-xs text-gray-500 mt-1">制度默认：关闭 · 当前${hasOverride ? '已按本支部调整值生效' : '为制度默认（关闭）'}。</div>
+          </dd>
+        </div>
+      </dl>
       <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
         <button type="button" class="btn-accent text-xs px-3 py-1.5" data-approval-save>保存</button>
         <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" data-approval-reset ${hasOverride ? '' : 'disabled'}>恢复默认</button>
@@ -1146,13 +1148,15 @@ function periodicArchivePolicyCardHtml(branch, P) {
         ${badgeHtml('支部制度参数', 'info')}
       </div>
       <p class="text-xs text-gray-500 mb-3">调整只影响之后新建和提交的期次，已提交记录保留原规则。</p>
-      <div class="kv-row">
-        <dt>归档周期</dt>
-        <dd><select id="pol-archive-unit" class="input-flat text-xs w-56">
-          <option value="week" ${unit === 'week' ? 'selected' : ''}>按周</option>
-          <option value="month" ${unit === 'month' ? 'selected' : ''}>按自然月</option>
-        </select></dd>
-      </div>
+      <dl class="kv-list">
+        <div class="kv-row">
+          <dt>归档周期</dt>
+          <dd><select id="pol-archive-unit" class="input-flat text-xs w-56" aria-label="归档周期">
+            <option value="week" ${unit === 'week' ? 'selected' : ''}>按周</option>
+            <option value="month" ${unit === 'month' ? 'selected' : ''}>按自然月</option>
+          </select></dd>
+        </div>
+      </dl>
       <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
         <button type="button" class="btn-accent text-xs px-3 py-1.5" data-archive-policy-save>保存</button>
         <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" data-archive-policy-reset ${hasOverride ? '' : 'disabled'}>恢复默认</button>

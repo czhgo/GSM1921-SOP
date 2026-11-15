@@ -1651,11 +1651,16 @@ export function createResourcesRouter(db) {
   return router;
 }
 
-/** 活动物理删除事务：级联清理业务记录、附件引用与子记录聚合键，并推进快照集合版本。 */
+/** 活动物理删除事务：级联清理业务记录、附件引用与子记录聚合键，并推进快照集合版本。
+ *  D-876（2026-11-15 支书裁定）：报名与表决属历史留痕，不随活动物理删除——在同一事务内
+ *  给每行写 `activitySnapshot`（标题 / 日期 / 类型 / 场景 / 删除时间）；匿名表决只加快照。 */
 function deleteActivityCascade(db, id) {
   return db.transaction(() => {
-    const info = db.prepare('DELETE FROM activities WHERE id = ?').run(id);
-    if (!info.changes) return { found: false, versions: {}, filePaths: [] };
+    const existingRow = db.prepare('SELECT data FROM activities WHERE id = ?').get(id);
+    if (!existingRow) return { found: false, versions: {}, filePaths: [] };
+    const existing = JSON.parse(existingRow.data);
+    const deletedAt = new Date().toISOString();
+    db.prepare('DELETE FROM activities WHERE id = ?').run(id);
 
     const changed = new Set(['activities']);
     const filePaths = new Set();
@@ -1670,19 +1675,39 @@ function deleteActivityCascade(db, id) {
       }
       if (count && collection) changed.add(collection);
     };
+    // 保留型子记录（D-876）：只补活动快照，不动其它字段；匿名表决仍不写 personId→选项映射。
+    const stampActivitySnapshot = (tableName, collection, predicate) => {
+      const snapshot = {
+        id: existing.id ?? id,
+        title: existing.title ?? null,
+        date: existing.date ?? null,
+        type: existing.type ?? null,
+        scenarioId: existing.scenarioId ?? null,
+        deletedAt,
+      };
+      let count = 0;
+      for (const row of db.prepare(`SELECT id, data FROM ${tableName}`).all()) {
+        const data = JSON.parse(row.data);
+        if (!predicate(data)) continue;
+        db.prepare(`UPDATE ${tableName} SET data = ? WHERE id = ?`)
+          .run(JSON.stringify({ ...data, activitySnapshot: snapshot }), row.id);
+        count++;
+      }
+      if (count && collection) changed.add(collection);
+    };
 
     for (const [tableName, collection] of [
       ['tasks', 'tasks'], ['attendances', 'attendances'], ['inspections', 'inspections'],
       ['assignments', 'assignments'], ['activity_reviews', 'activityReviews'], ['makeup_tasks', 'makeupTasks'],
     ]) deleteMatching(tableName, collection, (row) => row.activityId === id);
-    deleteMatching('signups', 'signups', (row) => row.sourceType === 'activity' && row.sourceId === id);
+    stampActivitySnapshot('signups', 'signups', (row) => row.sourceType === 'activity' && row.sourceId === id);
     deleteMatching('notices', 'notices', (row) => row.targetType === 'activity' && row.targetId === id);
     deleteMatching('todos', 'todos', (row) => row.sourceType === 'activity' && row.sourceId === id);
     deleteMatching('archive_records', 'archiveRecords', (row) => row.activityId === id);
     deleteMatching('file_space_records', 'fileSpaceRecords', (row) =>
       row.activityId === id || (row.sourceType === 'activity' && row.sourceId === id));
     deleteMatching('image_records', 'imageRecords', (row) => row.activityId === id);
-    deleteMatching('agenda_votes', null, (row) => row.activityId === id);
+    stampActivitySnapshot('agenda_votes', null, (row) => row.activityId === id);
 
     // 活动工作组随活动删除；它自己的成员、授权、任务、产出与冻结名单一并清理。
     // 其他工作组的任务/产出仍属于原工作组，只解除已删除活动的引用，保留历史记录。

@@ -119,6 +119,8 @@ export function renderContent(ctx) {
       ? (total > 0 ? '出勤 —（待录入）' : '出勤 —（暂无应到名单）')
       : `出勤 ${present}/${total} · ${rate}%${summary.unrecorded > 0 ? `（未录 ${summary.unrecorded} 人）` : ''}`;
     const rateCls = rate === null ? 'text-gray-500' : rateColor;
+    // 跨层正确性 1.1：党小组会缺小组归属时服务层按支部在册应到计分母，卡上给出提示（不新造区块）
+    const fallbackNote = summary && summary.rosterFallback ? ' · 缺小组归属，按支部应到计' : '';
     const myRecord = meId ? records.find(r => r.personId === meId) : null;
     // R7-33：超期按「活动日 + 补课时限」现算（不再读记录上的 overdue 快照）
     const myOverdue = !!myRecord && isAttendanceOverdue({ ...myRecord, date: myRecord.date || act.date });
@@ -129,7 +131,7 @@ export function renderContent(ctx) {
         <div class="flex items-center justify-between p-3">
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-gray-800">${act.title}</p>
-            <p class="text-xs text-gray-500">${act.date}</p>
+            <p class="text-xs text-gray-500">${act.date}${fallbackNote}</p>
           </div>
           <div class="text-xs font-medium ${rateCls}">${rateText}</div>
         </div>

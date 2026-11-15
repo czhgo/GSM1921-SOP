@@ -37,7 +37,7 @@ after(async () => {
   if (server) await new Promise((resolve) => server.close(resolve));
 });
 
-test('删除活动会原子清理所有活动关联数据并保留其他活动子记录', async () => {
+test('删除活动会原子清理关联数据、保留报名与表决留痕并保留其他活动子记录', async () => {
   const id = 'act-delete-cascade';
   const other = 'act-delete-keep';
   put('activities', id, { id, type: '支委会', title: '待删除' });
@@ -81,7 +81,7 @@ test('删除活动会原子清理所有活动关联数据并保留其他活动�
   const result = await response.json();
   assert.equal(result.id, id);
   for (const [table, rowId] of [['activities', id], ...linkedRows,
-    ['signups', `signup-${id}`], ['notices', `notice-${id}`], ['todos', `todo-${id}`],
+    ['notices', `notice-${id}`], ['todos', `todo-${id}`],
     ['archive_records', `archive-${id}`], ['file_space_records', `file-${id}`], ['image_records', `image-${id}`],
     ['workgroups', `wg-activity-${id}`], ['workgroup_members', `wgm-${id}-2400012346`], ['workgroup_grants', `wgg-${id}-2400012346`],
     ['workgroup_tasks', `wgt-${id}`], ['workgroup_outputs', `wgo-${id}`], ['attendance_rosters', `atr-${id}`]]) {
@@ -89,8 +89,28 @@ test('删除活动会原子清理所有活动关联数据并保留其他活动�
   }
   assert.equal(JSON.parse(db.prepare("SELECT data FROM workgroup_tasks WHERE id = 'wgt-keep'").get().data).activityId, null);
   assert.equal(JSON.parse(db.prepare("SELECT data FROM workgroup_outputs WHERE id = 'wgo-keep'").get().data).activityId, null);
-  assert.equal(db.prepare('SELECT data FROM agenda_votes').all()
-    .filter((row) => JSON.parse(row.data).activityId === id).length, 0);
+  // D-876：报名与表决不随活动物理删除，保留留痕并写活动快照
+  const signupRow = JSON.parse(db.prepare("SELECT data FROM signups WHERE id = ?").get(`signup-${id}`).data);
+  assert.equal(signupRow.sourceId, id);
+  assert.equal(signupRow.activitySnapshot.id, id);
+  assert.equal(signupRow.activitySnapshot.title, '待删除');
+  assert.equal(signupRow.activitySnapshot.date, null);
+  assert.equal(signupRow.activitySnapshot.type, '支委会');
+  assert.equal(signupRow.activitySnapshot.scenarioId, null);
+  assert.ok(signupRow.activitySnapshot.deletedAt, '快照应带删除时间');
+  const voteRows = db.prepare('SELECT data FROM agenda_votes').all()
+    .map((row) => JSON.parse(row.data)).filter((row) => row.activityId === id);
+  assert.deepEqual(voteRows.map((row) => row.id).sort(), [`avp-${id}`, `avt-${id}`]);
+  for (const vote of voteRows) {
+    assert.equal(vote.activitySnapshot.id, id);
+    assert.equal(vote.activitySnapshot.title, '待删除');
+    assert.equal(vote.activitySnapshot.type, '支委会');
+  }
+  const anonymousVote = voteRows.find((row) => row.id === `avt-${id}`);
+  assert.equal(anonymousVote.ballotMode, 'anonymous');
+  assert.equal(anonymousVote.personId, undefined, '匿名表决不得写 personId');
+  assert.equal(anonymousVote.position, undefined, '匿名表决不得写逐人选项映射');
+  assert.deepEqual(anonymousVote.tally, { approve: 1 });
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM attachments WHERE id = ?').get(`attachment-${id}`).n, 0);
   for (const collection of ['activities', 'tasks', 'attendances', 'inspections', 'assignments', 'activityReviews', 'makeupTasks', 'signups', 'notices', 'todos', 'archiveRecords', 'fileSpaceRecords', 'imageRecords', 'actSubRecords']) {
     assert.ok(result.versions[collection] > 0, `${collection} version should advance`);
@@ -106,15 +126,19 @@ test('关联记录删除失败时活动及已处理子记录全部回滚', async
   put('activities', id, { id, type: '支委会', title: '回滚验证' });
   put('tasks', `task-${id}`, { id: `task-${id}`, activityId: id });
   put('agenda_votes', `avp-${id}`, { id: `avp-${id}`, activityId: id, agendaItemId: 'a1', personId: '2400012347', position: 'approve' });
-  db.exec(`CREATE TRIGGER fail_activity_vote_delete BEFORE DELETE ON agenda_votes
-    WHEN OLD.id = 'avp-${id}' BEGIN SELECT RAISE(ABORT, 'forced child delete failure'); END`);
+  db.exec(`CREATE TRIGGER fail_activity_task_delete BEFORE DELETE ON tasks
+    WHEN OLD.id = 'task-${id}' BEGIN SELECT RAISE(ABORT, 'forced child delete failure'); END`);
   try {
     const response = await removeActivity(id);
     assert.equal(response.status, 500);
     assert.ok(db.prepare('SELECT id FROM activities WHERE id = ?').get(id));
     assert.ok(db.prepare('SELECT id FROM tasks WHERE id = ?').get(`task-${id}`));
     assert.ok(db.prepare('SELECT id FROM agenda_votes WHERE id = ?').get(`avp-${id}`));
+    // 3.3：500 只回通用文案，内部错误串不外泄
+    const body = await response.json();
+    assert.equal(body.error, '服务器内部错误');
+    assert.ok(!JSON.stringify(body).includes('forced child delete failure'));
   } finally {
-    db.exec('DROP TRIGGER IF EXISTS fail_activity_vote_delete');
+    db.exec('DROP TRIGGER IF EXISTS fail_activity_task_delete');
   }
 });

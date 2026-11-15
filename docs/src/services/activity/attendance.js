@@ -657,6 +657,25 @@ export function listActivityParticipationByPerson(records) {
 }
 
 /**
+ * 活动语境下的会议应到名单（R2-46 ＋ 跨层正确性 1.1）：党小组会优先 `hostGroup`，
+ * 其次组织者所属党小组；两者皆缺时**不返回空集**，回退「支部在册应到」（口径单一源仍是
+ * `roster-eligibility`），否则分母只剩实际到场 ⇒ 覆盖率恒 100%。
+ * 与 `getMeetingRoster` 的分工：那里缺小组语境返回空是 picker「不猜测全支部」的既有语义，不放宽。
+ * @param {Object} activity 活动（读 type / hostGroup / organizer / branchId）
+ * @returns {{ids:string[], fallback:boolean}} fallback=true 表示按支部应到计
+ */
+function _meetingRosterIdsOf(activity) {
+  const branchId = activity.branchId || undefined;
+  const groupId = activity.type === '党小组会'
+    ? (activity.hostGroup || getPersonById(activity.organizer)?.partyGroup || '')
+    : undefined;
+  if (activity.type === '党小组会' && !groupId) {
+    return { ids: getMeetingRosterIds({ branchId }), fallback: true };
+  }
+  return { ids: getMeetingRosterIds({ type: activity.type, groupId, branchId }), fallback: false };
+}
+
+/**
  * 出勤率汇总（SOP-B-35 / `D-412`，2026-09-18 批次 85）：**按场次（活动）**汇总本月出勤率——
  * 出勤含「已补」；线上参会不计出席（记请假）——口径与全站各处一致（单一源，勿在页面另算）。
  * 供纪检台「导出出勤率汇总（支委会内部）」与支书台「偏低提示」同一读口消费。
@@ -679,16 +698,15 @@ export function summarizeAttendanceByActivity({ month, records, rosterSnapshots 
     const snapshot = snapshots.find((row) => row.activityId === a.id && row.frozen === true);
     let expectedIds;
     let rosterFrozen = !!snapshot;
+    let rosterFallback = false;
     if (snapshot) {
       expectedIds = new Set(Array.isArray(snapshot.personIds) ? snapshot.personIds.map(String) : []);
     } else {
       // R2-46：未冻结名单的活动也不能把「实际到场」当分母（会恒等于 100%）。
-      // 回退到支部在册应到名单（党小组会按本组），再叠加主题党日报名口径——与 freeze 时同源。
-      const groupId = a.type === '党小组会'
-        ? (a.hostGroup || getPersonById(a.organizer)?.partyGroup || '')
-        : undefined;
-      const original = getMeetingRosterIds({ type: a.type, groupId, branchId: a.branchId || undefined });
-      expectedIds = new Set(deriveExpectedRosterIds({ activity: a, originalPersonIds: original, signups }).map(String));
+      // 回退到支部在册应到名单（党小组会按本组；缺小组归属时按支部），再叠加主题党日报名口径——与 freeze 时同源。
+      const source = _meetingRosterIdsOf(a);
+      rosterFallback = source.fallback;
+      expectedIds = new Set(deriveExpectedRosterIds({ activity: a, originalPersonIds: source.ids, signups }).map(String));
     }
     const actualIds = new Set([...recordByPerson.values()]
       .filter((record) => record.status === AttendanceStatus.PRESENT || record.status === AttendanceStatus.MADE_UP)
@@ -704,7 +722,7 @@ export function summarizeAttendanceByActivity({ month, records, rosterSnapshots 
     rows.push({
       activityId: a.id, activity: a.title, date: a.date || '', type: a.type || '',
       total: rosterIds.size, present, leave, absent, unrecorded, coverage,
-      rosterFrozen, estimate: !rosterFrozen,
+      rosterFrozen, rosterFallback, estimate: !rosterFrozen,
       rate: Math.round((present / rosterIds.size) * 100),
     });
   }
@@ -786,11 +804,8 @@ export function summarizePersonAttendanceByRoster({ personId, month } = {}) {
     if (snapshot) {
       expectedIds = new Set(Array.isArray(snapshot.personIds) ? snapshot.personIds.map(String) : []);
     } else {
-      const groupId = a.type === '党小组会'
-        ? (a.hostGroup || getPersonById(a.organizer)?.partyGroup || '')
-        : undefined;
-      const original = getMeetingRosterIds({ type: a.type, groupId, branchId: a.branchId || undefined });
-      expectedIds = new Set(deriveExpectedRosterIds({ activity: a, originalPersonIds: original, signups }).map(String));
+      const source = _meetingRosterIdsOf(a);
+      expectedIds = new Set(deriveExpectedRosterIds({ activity: a, originalPersonIds: source.ids, signups }).map(String));
     }
     if (!expectedIds.has(String(personId))) continue;
     total += 1;

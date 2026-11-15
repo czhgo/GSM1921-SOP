@@ -1188,7 +1188,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 11 | **邮件通道当前恒不生效** | 收件人从成员档案 `email` 字段读取，而**示例数据没有 `email` 字段** → 全部静默跳过（补上字段后自动生效，无需改代码） | `server/services/mailer.js:93-106`、`server/services/mailer-hooks.js:41` |
 | 12 | **上报按支部隔离** | 党委手动触发须选定支部，且只能向该支部单独配置的接收端推送；每日任务按已配置支部逐个发送，不存在全局 webhook 回退 | `server/routes/report.js`、`server/services/reporting.js` |
 | 13 | **附件下载需登录 ＋ 支部隔离** | `POST /api/v1/uploads` **＝支委层**（`requireCommissioner`）；`GET /api/v1/uploads/:name` 需要登录、只取 basename（防路径穿越），并按**上传人所属支部**做隔离（党委跨支部可见；无记录 404）。⚠ 隔离判据是「**上传人现在所属支部**」——`attachments` 表**无支部字段**，故同一人换支部后其历史附件会跟着换支部 | `server/routes/uploads.js:69`、`:88-100` |
-| 14 | **删除活动会级联删除子数据** | 删活动在同一 SQLite 事务中清理任务、考勤、考察、分工、复盘、补课、报名、通知、待办、归档/文件/图片记录、议题表态和活动子记录；关联附件仅在无其他记录引用时物理删除。集合版本同步递增；操作**不可撤销** | `server/routes/resources/index.js:674-737` |
+| 14 | **删除活动会级联清理子数据，报名与表决保留留痕** | 删活动在同一 SQLite 事务中清理任务、考勤、考察、分工、复盘、补课、通知、待办、归档/文件/图片记录和活动子记录；**报名（`signups`）与议题表态（`agenda_votes`）不物理删除**，只写 `activitySnapshot`（标题 / 日期 / 类型 / 场景 / 删除时间）留痕，匿名表决仍不写人→选项映射（`D-876`）。关联附件仅在无其他记录引用时物理删除。集合版本同步递增；操作**不可撤销** | `server/routes/resources/index.js:1657-1773` |
 | 15 | **配置写留痕上限 100 条** | 超出后裁剪最早条目（低频可回滚，历史不改写） | `server/routes/resources/index.js:14,437-442` |
 | 16 | **支委名单按角色派生（已撤销硬编码）** | 原 `COMMITTEE_IDS = ['p10'…'p14']` 已删除；支委名单由 `getCommitteeIds / resolveCommitteeIds` 从 users 的 `secretary / deputy-secretary / org-commissioner / prop-commissioner / disc-commissioner` 派生。**无支委角色时 fail-closed**（旧活动表决名单返回空并告警），不再用假人兜底 | `docs/src/core/domain/constants.js:230-243`、`server/routes/member.js:111`、`server/routes/committee.js:89` |
 | 17 | **默认支部 id 硬编码兜底** | 大量读写在 `branchId` 缺省时回退常量 `'br-b1'`（示例支部 id）；真实部署若用别的 id，须保证所有写入都带 `branchId` | `server/routes/resources/gates.js:50`、`server/routes/resources/index.js:514,562-563`、`server/routes/member.js:189,216` |
@@ -1299,7 +1299,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | GET | `/api/v1/<资源名>` | 列资源记录（JSON 数组） | 需登录（29 个资源名一律；未登录 401。`/api/v1/issues` 是独立语义端点，同样需登录并按支部过滤，见 §4.16） |
 | POST | `/api/v1/<资源名>` | 新建单条；缺 `id` 时服务端生成 | 需登录（`branchDocs` 例外＝支委门）+ 资源写角色门（若有） |
 | PATCH | `/api/v1/<资源名>/:id` | 局部合并更新 | 同上 |
-| DELETE | `/api/v1/<资源名>/:id` | 删除（文件类资源联动删物理文件；删活动级联删子记录） | 同上 |
+| DELETE | `/api/v1/<资源名>/:id` | 删除（文件类资源联动删物理文件；删活动级联清理子记录，报名 / 表决保留留痕） | 同上 |
 
 **资源名 ↔ 表名 ↔ id 前缀（29 个）**：
 

@@ -20,17 +20,22 @@ export function createReportRouter(db) {
   const router = Router();
 
   // 手动触发推送（推送模式）：党委须先选定一个支部，推送仍只含该支部明细。
-  router.post('/report/trigger', requireRole(db, new Set(['party-staff'])), async (req, res) => {
-    const scopeDeny = branchSelectionError(req.actor, req.query.branchId);
-    if (scopeDeny) return res.status(403).json({ error: scopeDeny });
-    const selectionRequired = selectedBranchRequiredError(req.actor, req.query.branchId);
-    if (selectionRequired) return res.status(400).json({ error: selectionRequired });
-    const { from, to } = resolveWindow(req.query);
-    const result = await pushReport(db, { from, to, branchId: req.query.branchId });
-    if (!result.pushed) {
-      return res.status(409).json(result); // 409：未配置 webhook（拉取模式指引）
+  // Express 4 不接管 async 拒绝（不 catch 会挂起请求）⇒ 统一 next(err) 交给错误中间件。
+  router.post('/report/trigger', requireRole(db, new Set(['party-staff'])), async (req, res, next) => {
+    try {
+      const scopeDeny = branchSelectionError(req.actor, req.query.branchId);
+      if (scopeDeny) return res.status(403).json({ error: scopeDeny });
+      const selectionRequired = selectedBranchRequiredError(req.actor, req.query.branchId);
+      if (selectionRequired) return res.status(400).json({ error: selectionRequired });
+      const { from, to } = resolveWindow(req.query);
+      const result = await pushReport(db, { from, to, branchId: req.query.branchId });
+      if (!result.pushed) {
+        return res.status(409).json(result); // 409：未配置 webhook（拉取模式指引）
+      }
+      res.json({ pushed: true, from: result.from, to: result.to, attempt: result.attempt, counts: result.counts });
+    } catch (e) {
+      next(e);
     }
-    res.json({ pushed: true, from: result.from, to: result.to, attempt: result.attempt, counts: result.counts });
   });
 
   // CSV 导出——必须先于 /report/:domain 注册，避免 :domain 吞掉 'export'

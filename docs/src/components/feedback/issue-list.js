@@ -92,7 +92,7 @@ export function renderIssueList() {
           </select>
         </div>
         <div class="lf-bar__row" data-seg="search">
-          <input type="text" id="filter-keyword" placeholder="搜索标题/正文" value="${_filterState.keyword}" class="input-flat text-xs lf-kw">
+          <input type="text" id="filter-keyword" placeholder="搜索标题/正文" aria-label="搜索反馈" value="${_filterState.keyword}" class="input-flat text-xs lf-kw">
         </div>
         <div class="lf-bar__row" data-seg="facet" data-break-before="1">
           <select id="filter-status" class="input-flat text-xs lf-select" aria-label="状态筛选">

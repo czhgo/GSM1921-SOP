@@ -2,13 +2,39 @@
 title: "2026年11月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-14
+last_updated: 2026-11-15
 status: active
 ---
 
 # 2026年11月执行日志
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
+
+## 批次 552（2026-11-15）· 跨层正确性专项（计算 / 全栈 / 后端 / 前端）
+
+### 为什么
+- 台账已清（乙部仅两项受 ≥80 门槛、REVIEW_QUEUE 十条均带触发、审计真问题 P0/P1/P2=0）⇒ 转四域专项。
+- 四路独立扫描 20 条候选，按「错值 > 崩溃 > 写失败 > 体验」取 14 条本批修，其余 6 条带触发登记。
+
+### 拿不准 / 取舍
+- **删活动留痕**属制度取向 ⇒ 请支书裁定，取「保留留痕行 ＋ 活动快照」（`D-876`）；未选「禁止删除有记录活动」与「活动软删除」。
+- **党小组会缺小组语境**：`getMeetingRoster` 的「空集防猜测」是 picker 口径（有测试守），故回退放在**活动语境层**，不改名册公共函数。
+- **visibility 数据源**：只换数据源（`PersonStore`），不动可见性派生算法；组长 `own-group` 仍按党小组名匹配，多支部同名组未加支部过滤（属 `L-10` 范围）。
+- **前端 mock 同口径**：后端留痕规则若只在服务端，mock 形态会继续删 → 同批改 `mock-adapter`，避免两形态分叉。
+- **a11y `role=button` 卡内含链接**：按 `nested-interaction-guard` 既有放行机制登记白名单（带 reason、缺陷基线 14 不变），未放宽判据。
+
+### 边界
+- 未合并回 main、未 push；未改 `?v=`（日常提交不 bump）。
+- 未做：分页形状统一、名册 PATCH body 校验、gunzip 上限、通知幂等、报名唯一索引、概况逾期单一源（均登记 `REVIEW_QUEUE B-552-1…6`）。
+- 全量 `audit-tabs --all` 未跑（发布前硬门）。
+
+### 读数
+- 定向：`activity-delete` 2/2 · `report` 9/9 · `meeting-attendance-rules` ＋ `attendance-roster-union` ＋ `todo-deriver-domain` 19/19 · `agenda-quorum` 11/11 · `member-roster-api-read` ＋ `mock-api-parity` ＋ `roster-ui-logic` 16/16。
+- 守卫：`docs-governance` 30/30 · `form-loop-sweep::S6` 1/1 · `nested-interaction` 白名单登记后全绿。
+- 收尾：`test:daily` **246/246 · 59.4s**；`test:guards` **全绿 · 100.8s**。
+
+### commit
+- 按 `H20.3` 提交 1–2 个逻辑 commit，无 hash 回填；改动事实见 `git log --grep "批次 552｜"`。
 
 ## 批次 551（2026-11-14）· 提交 / 分支 / 台账三项纪律加固
 

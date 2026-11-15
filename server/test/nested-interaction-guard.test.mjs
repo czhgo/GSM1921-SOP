@@ -68,6 +68,13 @@ const NESTED_WHITELIST = new Map([
     defectSet: false,
     reason: '反馈行整卡可点 + 提交人 tip 按钮；行点击见到 [data-tip] 即返回，按钮键盘可达',
   }],
+  // 2026-11-15 Task 4.2：人才库成员卡整卡可点（跳名册并高亮）+ 卡内姓名链接（档案页）；
+  //   卡点击见到 <a> 即返回，卡 keydown 跳过内层链接 / 控件，两层键盘各自可达。
+  ['docs/src/entries/tabs/org/talent-tab.js', {
+    runtimeHits: 1,
+    defectSet: false,
+    reason: '成员卡整卡可点 + 卡内姓名链接；点击与键盘均优先内层 <a>，不抢跳',
+  }],
 ]);
 
 const EXPECTED_DEFECT_HITS = 14;

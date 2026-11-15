@@ -13,7 +13,7 @@ export function messageSearchBarHtml(q) {
   return `
     <div class="lf-bar mb-3">
       <div class="lf-bar__row" data-seg="search">
-        <input id="msg-search" type="search" class="input-flat text-xs lf-kw" placeholder="搜索标题 / 正文 / 对方姓名" value="${esc(q)}" />
+        <input id="msg-search" type="search" class="input-flat text-xs lf-kw" placeholder="搜索标题 / 正文 / 对方姓名" aria-label="搜索消息" value="${esc(q)}" />
       </div>
     </div>`;
 }

@@ -56,6 +56,21 @@ function _daysBetween(dateStr1, dateStr2) {
   return Math.floor((d2 - d1) / (24 * 60 * 60 * 1000));
 }
 
+/**
+ * 时间戳 / ISO 串 → **本地**日历日 `YYYY-MM-DD`（跨层正确性 1.2）。
+ * 直接切 ISO 前 10 位取的是 UTC 日：本地 00:00–08:00 会落到前一天（半年划分随之错档）。
+ * 已是 date-only 的串本身即日历日，原样返回；带时间的串经 `new Date` 本地口径格式化。
+ * @param {string|null|undefined} value
+ * @returns {string|null}
+ */
+function _localDayOf(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const d = new Date(raw);
+  return Number.isNaN(d.getTime()) ? null : _fmtDate(d);
+}
+
 /** 组内最早 deadline（与 `SecretaryTodoDeriver._mkGroup` 同口径；无 → null） */
 function _earliestDeadline(items) {
   let deadline = null;
@@ -144,7 +159,7 @@ export function deriveInspectionRemindGroup({
     return (now - t) > threshold;
   });
   const items = overdue.map((r) => {
-    const date = r.recordedAt ? String(r.recordedAt).slice(0, 10) : null;
+    const date = _localDayOf(r.recordedAt);
     return {
       id: r.id,
       inspectionId: r.id,
@@ -476,7 +491,7 @@ export function buildHalfYearInspectionRemindGroup({ members = [], records = [],
   const covered = new Set();
   for (const r of records || []) {
     if (!r || !r.personId) continue;
-    if (halfYearPeriodOf(String(r.recordedAt || '').slice(0, 10)) === period) covered.add(r.personId);
+    if (halfYearPeriodOf(_localDayOf(r.recordedAt)) === period) covered.add(r.personId);
   }
   const items = [];
   for (const p of members || []) {

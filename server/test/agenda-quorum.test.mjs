@@ -12,6 +12,7 @@ import assert from 'node:assert/strict';
 import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261110b';
 import { recordAgendaResultForActivity } from '../../docs/src/services/activity/agenda-follow-up.js?v=20261110b';
 import { defaultVoteConfig } from '../../docs/src/services/activity/vote-config.js?v=20261110b';
+import { quorumConditionHint } from '../../docs/src/components/governance/vote-summary-panel.js?v=20261110b';
 
 const ACT_ID = 'act-quorum';
 const AGENDA_ITEM_ID = 'a1';
@@ -158,4 +159,12 @@ test('无记名：实到按参与记录判定（出席不足拦截，含可督�
       && e.message.includes('过半数出席方可表决（当前 1/4 已表态）')
       && e.message.includes('可督促未表态党员表态'),
   );
+});
+
+// ── 汇总卡提示 ↔ 执行判据同口径（跨层正确性 1.4）─────────────────────
+test('通过条件提示与执行判据一致：应到 6 人 ⇒ 出席 / 赞成均需 ≥ 4（> 应到/2）', () => {
+  const hint = quorumConditionHint(6);
+  assert.equal((hint.match(/≥ 4 人/g) || []).length, 2, '两处门槛都是 ≥4（floor(6/2)+1）');
+  assert.ok(!/≥ 3/.test(hint), '不得沿用 ceil(6/2)=3 的旧口径');
+  assert.match(quorumConditionHint(10), /≥ 6 人/g, '偶数应到同样取 floor(total/2)+1');
 });
