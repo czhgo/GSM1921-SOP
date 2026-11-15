@@ -23,7 +23,7 @@ import { TAB_CATALOG, CATALOG_BY_KEY, assertCatalogIntegrity } from './audit/cat
 import { runFrontChecks } from './audit/checks-front.mjs';
 import { writeReport, summarize } from './audit/report.mjs';
 import {
-  ACCOUNTS, startAuditServer, apiLogin, login, openTab, shot,
+  ACCOUNTS, startAuditServer, apiLogin, login, openTab, shot, workspaceTabUrl,
 } from './audit/harness.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -98,7 +98,10 @@ function parseDims(raw) {
   return dims;
 }
 
-/** 预登录全部角色（失败不阻断；缺 token 由下游检查自行降级） */
+/** 登录失败即中止审计（fail-loud）：不得把登录失败折算成每个页签的 F0 / P0 */
+class LoginAbort extends Error {}
+
+/** 预登录全部角色（**任一失败即中止**；缺 token 不得由下游检查静默降级） */
 async function collectTokens(base, timeout) {
   const tokens = {};
   const users = {};
@@ -108,7 +111,7 @@ async function collectTokens(base, timeout) {
       tokens[role] = session.token;
       users[role] = session.user;
     } catch (e) {
-      console.log(`[audit-tabs] ${role} API 登录失败（D/C/E 可能降级）：${e.message}`);
+      throw new LoginAbort(`${role} / ${ACCOUNTS[role]?.studentId || '?'} API 登录失败：${String(e?.message || e).split('\n')[0]}`);
     }
   }
   return { tokens, users };
@@ -200,6 +203,7 @@ async function main() {
   let tokens = {};
   let users = {};
   let browser = null;
+  let aborted = null;
 
   try {
     if (!base) {
@@ -240,12 +244,11 @@ async function main() {
         if (url.includes('/api/v1/') && status >= 400 && status < 500) stability.http4xx.push({ status, url });
       });
 
-      let loggedIn = true;
       try {
         await login(page, base, role, args.timeout);
       } catch (e) {
-        loggedIn = false;
-        console.error(`[audit-tabs] ${role} 登录失败：${e.message.split('\n')[0]}`);
+        // fail-loud：浏览器登录失败同样中止，不写 F0 / P0（批次 543 URL 去后缀曾把超时写成假 P0 46）。
+        throw new LoginAbort(`${role} / ${ACCOUNTS[role]?.studentId || '?'} 浏览器登录失败：${String(e?.message || e).split('\n')[0]}`);
       }
 
       for (const item of items) {
@@ -254,19 +257,8 @@ async function main() {
         const narrowShot = join(shotsDir, `${key}.390.png`);
         stability = freshStability();
 
-        if (!loggedIn) {
-          findings.push({
-            key, rule: 'F0', severity: 'P0', status: 'fail',
-            message: `${ACCOUNTS[role]?.label || role} 登录失败，页签无法审计`,
-            evidence: { role, tab, base },
-          });
-          findings.push(...skipFrontFindings(key, '登录失败，未打开页签'));
-          for (const driver of drivers) for (const dim of driver.dims) findings.push(skipFinding(key, `${dim}0`, '登录失败，未执行该维度'));
-          continue;
-        }
-
         let opened = false;
-        let url = `${base}/workspace/${role}.html?tab=${encodeURIComponent(tab)}`;
+        let url = workspaceTabUrl(base, role, tab);
         try {
           url = await openTab(page, base, role, tab, args.timeout);
           await page.setViewportSize({ width: 1440, height: 900 });
@@ -365,33 +357,42 @@ async function main() {
       await context.close();
     }
   } catch (e) {
-    // 失败也要落盘：为尚未产出结果的页签补一条 F0 异常
-    const message = String(e?.message || e).split('\n')[0];
-    for (const item of targets) {
-      if (!findings.some((finding) => finding.key === item.key)) {
-        findings.push({ key: item.key, rule: 'F0', severity: 'P0', status: 'exception', message: `审计中断：${message}`, evidence: null });
+    if (e instanceof LoginAbort) {
+      // 登录失败 = 环境 / 账号问题，不是页签缺陷：不落 findings、不写报告，退出码 2。
+      aborted = e;
+      console.error(`[audit-tabs] ✗ fail-loud：${e.message}`);
+      console.error('[audit-tabs] 登录失败即中止（exit 2）。此前的「F0 / P0 46」是把登录超时折算成每页签 P0，判据已废弃。');
+    } else {
+      // 失败也要落盘：为尚未产出结果的页签补一条 F0 异常
+      const message = String(e?.message || e).split('\n')[0];
+      for (const item of targets) {
+        if (!findings.some((finding) => finding.key === item.key)) {
+          findings.push({ key: item.key, rule: 'F0', severity: 'P0', status: 'exception', message: `审计中断：${message}`, evidence: null });
+        }
       }
+      console.error(`[audit-tabs] 运行异常：${message}`);
     }
-    console.error(`[audit-tabs] 运行异常：${message}`);
   } finally {
     if (browser) await browser.close().catch(() => {});
     if (local) await local.close().catch(() => {});
 
-    const run = {
-      generatedAt,
-      durationMs: Date.now() - startedAtMs,
-      base,
-      dbMode,
-      tabs: targets.map((item) => ({ key: item.key, label: item.label, blocks: item.blocks })),
-    };
-    const written = writeReport(findings, { mdPath, jsonPath, run });
-    const summary = summarize(findings);
-    console.log(`[audit-tabs] summary P0 ${summary.P0} / P1 ${summary.P1} / P2 ${summary.P2} · exception ${summary.exceptions}`);
-    console.log(`[audit-tabs] json → ${written.jsonPath}`);
-    console.log(`[audit-tabs] md   → ${written.mdPath}`);
-    console.log(`[audit-tabs] shots → ${shotsDir}`);
+    if (!aborted) {
+      const run = {
+        generatedAt,
+        durationMs: Date.now() - startedAtMs,
+        base,
+        dbMode,
+        tabs: targets.map((item) => ({ key: item.key, label: item.label, blocks: item.blocks })),
+      };
+      const written = writeReport(findings, { mdPath, jsonPath, run });
+      const summary = summarize(findings);
+      console.log(`[audit-tabs] summary P0 ${summary.P0} / P1 ${summary.P1} / P2 ${summary.P2} · exception ${summary.exceptions}`);
+      console.log(`[audit-tabs] json → ${written.jsonPath}`);
+      console.log(`[audit-tabs] md   → ${written.mdPath}`);
+      console.log(`[audit-tabs] shots → ${shotsDir}`);
+    }
   }
-  return 0;
+  return aborted ? 2 : 0;
 }
 
 main().then((code) => {

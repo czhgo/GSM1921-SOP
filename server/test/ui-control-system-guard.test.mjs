@@ -1294,7 +1294,10 @@ test('V5 纯文字动作有静态线索：btn-text 600 字重 + 尾随箭头非 
       bareTextActions.push(`${f.rel}:${lineOf(f.code, m.index)} class="${cls.trim()}" → ${text.slice(0, 16)}`);
     }
   }
-  assert.ok(labelActions >= 3, `只扫描到 ${labelActions} 个「全部/查看/更多」动作（下限 3）：V5 口径被写坏`);
+  // 2026-11-15 `close-six-dim-gaps` T8：今天页空态撤掉「全部 ›」（空态只留唯一动作「看待办」），
+  //   全站「全部/查看/更多」类纯文字动作由 3 处降为 2 处 ⇒ 样本下限按实际收基线 3 → 2。
+  //   判红口径（裸类必须为 0）一字未动；两处样本仍足以证明扫描器在工作。
+  assert.ok(labelActions >= 2, `只扫描到 ${labelActions} 个「全部/查看/更多」动作（下限 2）：V5 口径被写坏`);
   assert.deepEqual(bareTextActions, [],
     `纯文字动作必须挂 .btn-text（600 字重 + 主题色）或 .link，不得用裸类：\n  ${bareTextActions.join('\n  ')}`);
 

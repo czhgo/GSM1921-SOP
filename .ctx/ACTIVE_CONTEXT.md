@@ -28,9 +28,9 @@ status: active
 - **权限**：写入口权限矩阵 **160 条**（154 enforced / 4 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵；审计 C1 查矩阵 + 高风险抽样。统计口径：`WRITE_POLICY_MATRIX` 按 `status` 计数（2026-11-13 实测）。
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
 - **六维（2026-11-15 批次 553 严格重评）**：业务 **76** / 安全 **68** / 体验 **72** / 测试 **70** / 架构 **72** / 部署 **65**，**均 <80 ⇒ 不满足 `H20.5` 合并门槛，未合并回 main**。硬扣分：生产依赖 1 critical / 2 high / 1 moderate；CI 仅 daily；full 1489s 超 1200s；Linux 真机未验；无 observability；a11y 无常驻守卫。
-- **审计**：46 页签 **P0 0 / P1 0 / P2 8（3 条为探针误报已关闭、5 条 perf 重测不复现判环境噪声，当前真问题 P0 / P1 / P2 = 0）/ exception 44**；F1–F8 全绿；M1–M3 在位；`secretary.overview` / `calendar` / `committee-meeting` / `group-progress` / `work-map` 五页三档均 0。三处「IA 块数漂移」根因是 `dom-probe` 把行内 `span` / SVG 计成块（`D-874`）：修后实测 2 / 4 / 2，`TAB_BLOCK_BASELINE` 不改；perf P2 证据见 `.ctx/evidence/2026-11-14/p2-perf-recheck.md`；全量未取终摘要，P0 / P1 读数来自守卫代理报告。
-  - source：`.ctx/evidence/2026-11-10/tab-audit/summary.md`（P2 8 / exception 44）、`.ctx/evidence/2026-11-10/audit-fix/summary.md`。
-- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **29 文件 / 246 断言 / 70.8s**（结果门禁）；guards **107 文件 / 824 断言 / 113.7s**（静态守卫，按需，2026-11-15 批次 553 读数）；precommit＝daily＋guards＋非核心域回归＋e2e，**2026-11-14 全绿：341 绿 / 0 红 / 1 跳过 · 墙钟 1939.8s**；weekly 2。四层 runner 按 registry 单一源执行；CI `daily.yml` 已接 `test:daily` 与 `deploy-verify`（两个 job 均未实跑绿）。
+- **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（2026-11-15 批次 554 实跑 191s，自起 `:memory:`）；审计工具已修复（URL 跟随无后缀 canonical、登录失败 `exit 2`），此前「P0 46」确认为工具类假警报。F1–F8 全绿；M1–M3 在位。
+  - source：`.ctx/evidence/2026-11-15/tab-audit/summary.md`（原始截图与 findings.json 可重跑再生，未入库）。
+- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **30 文件 / 250 断言 / 88.6s**（结果门禁）；guards **108 文件 / 832 断言 / 114.8s**（静态守卫，按需，2026-11-15 批次 554 读数）；precommit＝daily＋guards＋非核心域回归＋e2e，**2026-11-14 全绿：341 绿 / 0 红 / 1 跳过 · 墙钟 1939.8s**；weekly 2。四层 runner 按 registry 单一源执行；CI `daily.yml` 已接 `test:daily` 与 `deploy-verify`（两个 job 均未实跑绿）。
   - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859 / §D-860 / §D-863 / §D-864`。
 - **工程评分（`D-877`，2026-11-15 严格重评）**：业务与数据 **76** · 安全与权限 **68** · 最小三成本 **72** · 测试与发布 **70** · 架构与可维护性 **72** · 运行部署 **65**；不设平均总分。
   - source：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/logs/2026-11-DECISION_LOG.md §D-877`。

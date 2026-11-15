@@ -266,7 +266,7 @@ function _threadHtml(n) {
   return `
     <div class="space-y-2 mb-4" data-thread-id="${escHtml(n.id)}">${bubbles}</div>
     <div class="flex items-end gap-2">
-      <textarea id="notice-reply-input" class="input-flat w-full" rows="3" maxlength="2000" placeholder="回复 ${escHtml(_personNameOf(n.fromPersonId) || '对方')}"></textarea>
+      <textarea id="notice-reply-input" class="input-flat w-full" rows="3" maxlength="2000" aria-label="回复内容" placeholder="回复 ${escHtml(_personNameOf(n.fromPersonId) || '对方')}"></textarea>
       <button type="button" id="notice-reply-btn" class="btn-accent flex-shrink-0">回复</button>
     </div>
     <p class="help-note mt-2">回复只你与对方可见，并在原信下接成一线。</p>`;

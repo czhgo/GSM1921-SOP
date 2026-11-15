@@ -266,7 +266,7 @@ node --input-type=module -e "import Database from 'better-sqlite3'; import { PEO
 
 ⇒ systemd / PM2 / 容器**停止时请发 SIGTERM**（`systemctl stop` / `pm2 stop` / `docker stop` 默认就是它），**不要用 SIGKILL**，否则在途写入会被硬切断。
 
-⚠ **如实登记（未做）**：**未处理**排程中的定时任务（随进程退出中断、下次启动重新排期）；**未做** readiness / liveness 分离探针（存活探针仍只有 `GET /api/v1/health`）。
+⚠ **如实登记**：**未处理**排程中的定时任务（随进程退出中断、下次启动重新排期）；探针已分两级——浅 `GET /api/v1/health`（`{ok:true}`）、深 `GET /api/v1/health/deep`（库可读 / `user_version` / 备份目录可写，失败 → 503，见 `routes/health.js`）。
 
 ---
 

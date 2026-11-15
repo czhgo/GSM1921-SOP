@@ -684,3 +684,7 @@ const INDEX = new Map(WRITE_POLICY_MATRIX.map((row) => [`${row.method.toUpperCas
 export function matrixFor(method, path) {
   return INDEX.get(`${String(method || '').toUpperCase()} ${normalizePath(path)}`);
 }
+
+// ── 只读口不进本矩阵（矩阵只登记写方法）─────────────────────────────────────
+// T2（2026-11-15）新增 `GET /api/v1/health/deep`：只读检查，无写门可登记；矩阵守卫按
+// Express 写路由集合做双向相等断言，不因新增 GET 判红。行为判据＝`server/test/observability.test.mjs`。

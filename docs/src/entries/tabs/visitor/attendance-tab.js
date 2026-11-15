@@ -135,10 +135,10 @@ export function renderContent(ctx) {
           </div>
           <div class="text-xs font-medium ${rateCls}">${rateText}</div>
         </div>
-        <div class="flex flex-wrap items-center gap-2 px-3 pb-3">
-          <button type="button" class="btn-neutral visitor-att-detail-btn text-xs px-2.5 py-1" data-act-id="${act.id}" aria-expanded="false" aria-controls="visitor-att-detail-${act.id}" style="cursor:pointer;">查看个人明细</button>
-          ${myMakeup ? `<button type="button" class="btn-accent-soft visitor-att-makeup-btn text-xs px-2.5 py-1" data-act-id="${act.id}" style="cursor:pointer;">${myMakeup.proofContent ? '修改补课说明' : '去补课 · 提交补课说明'}</button>` : ''}
-          ${(!myRecord || myRecord.status === AttendanceStatus.ABSENT) ? `<button type="button" class="btn-accent-soft visitor-att-appeal-btn text-xs px-2.5 py-1" data-act-id="${act.id}" style="cursor:pointer;">我参加了但没记上</button>` : ''}
+        <div class="visitor-att-actions flex flex-wrap items-center gap-2 px-3 pb-3">
+          <button type="button" class="btn-neutral visitor-att-detail-btn text-[13px] px-2.5 py-1" data-act-id="${act.id}" aria-expanded="false" aria-controls="visitor-att-detail-${act.id}" style="cursor:pointer;">查看个人明细</button>
+          ${myMakeup ? `<button type="button" class="btn-accent-soft visitor-att-makeup-btn text-[13px] px-2.5 py-1" data-act-id="${act.id}" style="cursor:pointer;">${myMakeup.proofContent ? '修改补课说明' : '去补课 · 提交补课说明'}</button>` : ''}
+          ${(!myRecord || myRecord.status === AttendanceStatus.ABSENT) ? `<button type="button" class="btn-accent-soft visitor-att-appeal-btn text-[13px] px-2.5 py-1" data-act-id="${act.id}" style="cursor:pointer;">我参加了但没记上</button>` : ''}
         </div>
         <div id="visitor-att-detail-${act.id}" class="visitor-att-detail px-3 pb-3 pt-1 border-t border-gray-50" data-att-detail="${act.id}" hidden>
           <div class="text-[12px] text-gray-600 space-y-0.5">

@@ -20,14 +20,14 @@ export function createApp({ dbPath = ':memory:' } = {}) {
   // 2026-09-01 快照 gzip：/api/v1/snapshot 用 raw body（快照 payload 全量 25 域 ~66KB，
   // 前端压缩后传输；路由内手动 gunzip + parse）。须在 express.json 之前挂载，否则 gzip
   // 二进制会被 json parser 误解析。
-  app.use('/api/v1/snapshot', express.raw({ type: '*/*', limit: '4mb' }));
+  app.use(createRequestLogger()); app.use('/api/v1/snapshot', express.raw({ type: '*/*', limit: '4mb' })); // T2：请求 id ＋ 结构化日志（脱敏）最先挂载，后续 403/5xx 也能凭 id 串起（见 services/logger.js）；不新增行以保 README-server 取证行号
   app.use(compression({ threshold: 1024 })); app.use(express.json({ limit: '2mb' })); app.use(createReadOnlyGuard()); // READ_ONLY=1 ⇒ 业务写口统一 403（认证域放行；见 read-only.js）；压缩只处理 >1KB 响应
 
   app.get('/api/v1/health', (req, res) => res.json({ ok: true }));
 
   app.locals.db = initDb(dbPath);
 
-  app.use('/api/v1/auth', createAuthRouter(app.locals.db)); app.use('/api/v1/public', createPublicInfoRouter(app.locals.db)); // 未登录最小公开读口（见 routes/public-info.js）；**须在下方 resources 路由的统一鉴权中间件之前**挂载，否则会被 401 拦掉（本行原为单条 auth 挂载，保持行数不漂移以免 README-server 取证行号失效）
+  app.use('/api/v1/auth', createAuthRouter(app.locals.db)); app.use('/api/v1/public', createPublicInfoRouter(app.locals.db)); app.use('/api/v1/health', createHealthRouter(app.locals.db)); // 未登录最小公开读口（见 routes/public-info.js）；**须在下方 resources 路由的统一鉴权中间件之前**挂载，否则会被 401 拦掉（本行原为单条 auth 挂载，保持行数不漂移以免 README-server 取证行号失效）；T2 深检查 `GET /api/v1/health/deep` 同行挂载（浅检查仍是上方 `:26` 的既有读口）
 
   app.use('/api/v1', createResourcesRouter(app.locals.db));
 
@@ -79,7 +79,7 @@ export function createApp({ dbPath = ':memory:' } = {}) {
     if (err && err.code === 'LIMIT_FILE_SIZE') {
       return res.status(413).json({ error: '文件超过大小限制' });
     }
-    console.error('[server] 未处理错误:', err);
+    console.error(`[server] 未处理错误 requestId=${req.requestId || '-'}:`, err); // T2：凭请求 id 串起 5xx（访问日志同一 id；见 services/logger.js）
     // 对外固定通用文案：内部错误串（SQL / 路径 / 堆栈片段）只进服务端日志，不回传客户端。
     res.status(500).json({ error: '服务器内部错误' });
   });
@@ -110,3 +110,6 @@ import { createBranchRosterRouter } from './routes/branch-roster.js';
 import { createPublicInfoRouter } from './routes/public-info.js';
 import { createPublicPortalRouter } from './routes/public-portal.js';
 import compression from 'compression';
+// T2 可观测底座（2026-11-15）：请求日志与深健康检查；调用点在上方 `:23` / `:30`（同行追加，不新增行）。
+import { createRequestLogger } from './services/logger.js';
+import { createHealthRouter } from './routes/health.js';

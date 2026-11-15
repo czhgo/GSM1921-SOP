@@ -126,13 +126,24 @@ function _archiveRow({ type, id, title, badge = '', meta }) {
 }
 
 // ── 活动归档 ──
+/** 归档库全空态（`close-six-dim-gaps` T8 · DESIGN_SYSTEM §12.16 词表）：
+ *  一句现状「归档库暂无活动」＋ **唯一动作「搜索归档内容」**；动作只聚焦页头既有 `#archive-search`，
+ *  不新增路由、不新造筛选器。活动 / 专班两栏共用同一空态（同属「归档库」这一对象）。 */
+function _archiveEmptyHtml() {
+  return emptyStateHtml({
+    text: '归档库暂无活动',
+    variant: 'panel',
+    actionHtml: '<button type="button" class="btn-outline" data-archive-focus-search>搜索归档内容</button>',
+  });
+}
+
 function renderActivityArchive() {
   const all = loadActivities()
     .filter(a => isActivityArchived(a))
     .sort((a, b) => (b.date || '').localeCompare(a.date || '')); // 新日期在前
 
   if (all.length === 0) {
-    contentContainer.innerHTML = emptyStateHtml({ text: "暂无归档内容", variant: 'panel' });
+    contentContainer.innerHTML = _archiveEmptyHtml();
     return;
   }
   const filtered = all.filter(a => _matchesQuery(a.title, a.date, a.type, (getPersonById(a.organizer) || {}).name));
@@ -168,7 +179,7 @@ function renderTaskforceArchive() {
     .sort((a, b) => (b.deadline || b.createdAt || '').localeCompare(a.deadline || a.createdAt || '')); // 新日期在前
 
   if (all.length === 0) {
-    contentContainer.innerHTML = emptyStateHtml({ text: "暂无归档内容", variant: 'panel' });
+    contentContainer.innerHTML = _archiveEmptyHtml();
     return;
   }
   const filtered = all.filter(tf => _matchesQuery(tf.name, tf.createdAt, tf.deadline, (getPersonById(tf.initiator) || {}).name));
@@ -404,6 +415,11 @@ function _renderTaskforceDetail(tf) {
 
 // 事件委托：分页按钮 / 点击归档条目弹出详情浮窗
 contentContainer?.addEventListener('click', (e) => {
+  // 空态唯一动作「搜索归档内容」：只聚焦页头既有检索框（T8：不新增路由 / 不另造筛选器）
+  if (e.target.closest('[data-archive-focus-search]')) {
+    archiveSearch?.focus();
+    return;
+  }
   // 分页翻页（每页 10 条，控件标记由 pagerHtml 单一源产出）
   const pageBtn = e.target.closest('[data-lf-page]');
   if (pageBtn) {

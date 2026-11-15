@@ -21,6 +21,10 @@ import { TAB_BLOCK_BASELINE } from './style-baseline.mjs';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 
+// 页签审计工具的 URL 规则：必须跟随站内页面单一源 `docs/src/core/base/page-url.js`（D-866 URL B）。
+const HARNESS_SRC = readFileSync(join(ROOT, 'server', 'scripts', 'audit', 'harness.mjs'), 'utf8');
+const AUDIT_TABS_SRC = readFileSync(join(ROOT, 'server', 'scripts', 'audit-tabs.mjs'), 'utf8');
+
 /** 缺陷扫描（纯函数，供正例与反例共用） */
 function findDefects(catalog, endpoints) {
   const issues = [];
@@ -63,4 +67,22 @@ test('W5 旧 67 台账仅作档案存在，不再作为现行口径', () => {
   assert.ok(existsSync(archived), '历史台账应保留在归档目录');
   const text = readFileSync(archived, 'utf8');
   assert.match(text, /角色与页签/, '历史台账内容保持原样（只读档案）');
+});
+
+test('W6 audit-tabs 的页面 URL 跟随 canonical 单一源（page-url.js），不再硬编码 .html', () => {
+  // ① harness 必须从单一源取后缀规则，并经 `pageHref()` 派生页面路径
+  assert.match(HARNESS_SRC, /import\s*\{[^}]*pageHref[^}]*\}\s*from\s*['"][^'"]*core\/base\/page-url\.js['"]/,
+    'harness 必须 import page-url.js 的 pageHref（不得另写后缀规则）');
+  assert.match(HARNESS_SRC, /pageHref\(/, 'harness 的页面路径须经 pageHref() 派生');
+  assert.match(HARNESS_SRC, /waitForURL\(workspaceGlob/, '登录期望 URL 须由 workspacePagePath() 派生的 glob 决定');
+  assert.match(HARNESS_SRC, /const url = workspaceTabUrl\(base, role, tab\)/, 'openTab 须经 workspaceTabUrl() 拼深链');
+  // ② 反例防线：不得再出现把 `.html` 直接拼进 URL 的写法
+  assert.doesNotMatch(HARNESS_SRC, /\$\{base\}\/workspace\/\$\{role\}\.html/,
+    'harness 仍硬编码 workspace/<role>.html（批次 543 去后缀后会再次全部超时）');
+  assert.doesNotMatch(AUDIT_TABS_SRC, /\$\{base\}\/workspace\/\$\{role\}\.html/,
+    'audit-tabs 仍硬编码 workspace/<role>.html');
+  // ③ 登录失败必须 fail-loud：中止审计且退出码 2，不得折算成每页签 F0
+  assert.match(AUDIT_TABS_SRC, /class LoginAbort extends Error/, '缺少登录失败中止类型');
+  assert.match(AUDIT_TABS_SRC, /return aborted \? 2 : 0/, '登录失败必须以退出码 2 结束');
+  assert.doesNotMatch(AUDIT_TABS_SRC, /登录失败，页签无法审计/, '登录失败不得写成每页签 F0/P0 结论');
 });

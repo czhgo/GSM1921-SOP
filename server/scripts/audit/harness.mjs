@@ -15,6 +15,9 @@ import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { createApp } from '../../app.js';
 import { seedDatabase } from '../../seed.js';
+// 站内页面 URL 单一源（2026-11-11 · D-866 URL B）：默认去 `.html`。
+// 本文件不得另写后缀规则——`waitForURL` / `openTab` 的 URL 一律经 `pageHref()` 派生。
+import { pageHref } from '../../../docs/src/core/base/page-url.js';
 
 /** 七个演示账号（页签审计 / 真机普查的单一源） */
 export const ACCOUNTS = Object.freeze({
@@ -34,6 +37,25 @@ export const LOGIN_PASSWORD = '123456';
 export const ACCOUNT_IDS = Object.freeze(Object.fromEntries(
   Object.entries(ACCOUNTS).map(([role, account]) => [role, account.studentId]),
 ));
+
+/** 站内页面路径：一律经 `pageHref()` ⇒ 跟随 `page-url.js::URL_STYLE`（默认无后缀） */
+export const sitePath = (path) => pageHref(path);
+
+/** 工作台页面路径（role 形如 `secretary` / `party-committee`） */
+export const workspacePagePath = (role) => sitePath(`workspace/${role}.html`);
+
+/**
+ * 工作台深链（含 ?tab=）。审计工具只经本函数拼页面 URL，不得手写后缀。
+ * @param {string} base
+ * @param {string} role
+ * @param {string} [tab]
+ */
+export function workspaceTabUrl(base, role, tab) {
+  const root = String(base).replace(/\/+$/, '');
+  const page = workspacePagePath(role);
+  if (!tab) return `${root}/${page}`;
+  return `${root}/${page}?tab=${encodeURIComponent(tab)}`;
+}
 
 /**
  * 起一个审计用本地服务。
@@ -94,15 +116,19 @@ export async function apiLogin(base, role, timeout = 8000) {
 export async function login(page, base, role, timeout = 30000) {
   const account = ACCOUNTS[role];
   if (!account) throw new Error(`未知工作台：${role}`);
+  const root = String(base).replace(/\/+$/, '');
+  // 登录后落地页由 `login-entry.js` 经 `pageHref()` 派生 ⇒ 期望 URL 必须同源派生，
+  // 否则批次 543 去后缀后这里会等 `**.html` 直到 30s 超时（假 P0 46 的来源）。
+  const workspaceGlob = `**/${workspacePagePath(role)}**`;
   let lastError;
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
-      await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded', timeout });
+      await page.goto(`${root}/${sitePath('login.html')}`, { waitUntil: 'domcontentloaded', timeout });
       await page.waitForSelector('#student-id', { timeout });
       await page.fill('#student-id', account.studentId);
       await page.fill('#password', LOGIN_PASSWORD);
       await Promise.all([
-        page.waitForURL(`**/workspace/${role}.html**`, { timeout }),
+        page.waitForURL(workspaceGlob, { timeout }),
         page.click('button[type="submit"]'),
       ]);
       await page.waitForFunction(() => document.querySelectorAll('[data-ws-tab-btn]').length > 0, null, { timeout });
@@ -126,7 +152,7 @@ export async function login(page, base, role, timeout = 30000) {
  */
 export async function openTab(page, base, role, tab, timeout = 30000) {
   const contentId = `${role}-tab-content`;
-  const url = `${base}/workspace/${role}.html?tab=${encodeURIComponent(tab)}`;
+  const url = workspaceTabUrl(base, role, tab);
   let lastError;
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {

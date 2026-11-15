@@ -7284,3 +7284,35 @@ textarea::placeholder {
 /* 待办行「更多」：命中区已由 `.list-row__trailing .btn-sm::after` 提供（44×44），
    此处只登记结论，避免重复第二套规则。 */
 
+/* ═══════════════════════════════════════════════════════════════
+   移动端三任务命中区 ≥44（2026-11-15 · close-six-dim-gaps T9）
+   ── 通知回执 / 表决投票 / 查看考勤：≤640 只把命中高度抬到 44（min-height），
+      不改颜色 / 圆角 / 边框 / 间距；这三处是触屏主操作，44 即目标视觉尺寸，
+      不再用伪元素向下隐藏扩展（比 44 小的视觉按钮会与相邻可点元素抢热区）。
+   ── 交互文字统一控件单档 13px（0.8125rem）：行内档 `.btn-sm` 的 12px 在这三处抬到 13px。
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  /* 表决投票：`.vote-btn` / `.vote-submit` 视觉 36（8+8+18+2）⇒ 抬到 44 */
+  .vote-btn,
+  .vote-submit {
+    min-height: 44px;
+  }
+  .vote-submit {
+    font-size: 0.8125rem !important;
+  }
+  /* 看通知并回执：返回（`.btn-sm` 12px/28）＋ 线上参会下拉 ＋ 确认收到 */
+  #notice-back-btn,
+  [data-notice-receipt] .btn-accent-soft,
+  #notice-online-attend {
+    min-height: 44px;
+  }
+  #notice-back-btn {
+    font-size: 0.8125rem !important;
+  }
+  /* 查看考勤：行内三个动作（查看个人明细 / 去补课 / 我参加了但没记上） */
+  .visitor-att-actions .btn-neutral,
+  .visitor-att-actions .btn-accent-soft {
+    min-height: 44px;
+  }
+}
+

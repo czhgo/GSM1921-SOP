@@ -1,5 +1,5 @@
 ---
-title: "守卫清点与合并台账（72 → 77 → 66 件）"
+title: "守卫清点与合并台账（72 → 77 → 67 件）"
 type: guide
 role: "[工程师]+[AI]"
 last_updated: "2026-11-15"
@@ -16,7 +16,7 @@ status: active
 > `test-tier-registry.mjs::countTestCases` 同口径）；覆盖文件数＝文件内出现的源码 / 文档路径字面量去重数（**粗估**，
 > 不等于运行时真正读取的文件数）；近 3 批＝`2026-10-EXECUTION_LOG.md` 的批次 506/507/508 段内是否出现该守卫名。
 
-## 一、清点总表（合并后现行 66 件）
+## 一、清点总表（合并后现行 67 件）
 
 > **批次 510（2026-10-25）**：未新增 / 删除 guard 文件；本批只做**扩展**，明细见 §七。
 > **批次 511（2026-10-25）**：仍为 68 件（H-T1…H-T5 / T3-1…T4-1 落在既有文件），明细见 §八。
@@ -27,12 +27,13 @@ status: active
 > **批次 514（2026-10-27）**：新增 **3 件**——`no-underline-guard`（4 条）、`loading-experience-guard`（6 条）、
 > `no-about-route-guard`（5 条）；件数 74 → **77**，明细见 §十一。
 
-> 合并前实点 **72 件**（批次 509 口径）。下表逐行按实读校准后，现行 **66 件 / 552 条**（批次 516 把 17 件并为 4 件，断言数不变；2026-10-28 美学专项 Task 7 按实读校准 `copy-guard` 14→16、`modal-guard` 22→20，合计仍 527 条；2026-10-28 B-500-4 结案 `data-lifecycle-guard` 15→16 ⇒ 528 条；2026-10-28 前端设计审查 `modal-guard` 增 T1 ⇒ 529 条；2026-10-28 空态全站收口 `copy-guard` 增 E1/E2 ⇒ 531 条；2026-10-28 硬编码审计 `copy-guard` 增 D1/D2、`frontend-foundations-guard` 增 F10 ⇒ 534 条；2026-10-28 批次 520 焦点与可点性收口 `ui-control-system-guard` 增 FOCUS-4/5、`hover-state-guard` 增 H8/H9、`copy-guard` 增 B1/B2 ⇒ 540 条；2026-10-29 About 冻结件新增 `about-freeze-guard` 5 条 ⇒ 545 条）；另有已合并的
+> 合并前实点 **72 件**（批次 509 口径）。下表逐行按实读校准后，现行 **67 件 / 554 条**（批次 516 把 17 件并为 4 件，断言数不变；2026-10-28 美学专项 Task 7 按实读校准 `copy-guard` 14→16、`modal-guard` 22→20，合计仍 527 条；2026-10-28 B-500-4 结案 `data-lifecycle-guard` 15→16 ⇒ 528 条；2026-10-28 前端设计审查 `modal-guard` 增 T1 ⇒ 529 条；2026-10-28 空态全站收口 `copy-guard` 增 E1/E2 ⇒ 531 条；2026-10-28 硬编码审计 `copy-guard` 增 D1/D2、`frontend-foundations-guard` 增 F10 ⇒ 534 条；2026-10-28 批次 520 焦点与可点性收口 `ui-control-system-guard` 增 FOCUS-4/5、`hover-state-guard` 增 H8/H9、`copy-guard` 增 B1/B2 ⇒ 540 条；2026-10-29 About 冻结件新增 `about-freeze-guard` 5 条 ⇒ 545 条；2026-11-15 `close-six-dim-gaps` T10 新增 `a11y-guard` 2 条 ⇒ 554 条）；另有已合并的
 > 5 件（`frontmatter-freshness` / `timestamps-note-guard` / `doc-line-ref` / `gold-accent-guard` /
 > `button-system-guard`，25 条）不在表内、不计入本表合计。
 
 | 文件 | 检查对象 | 断言数 | 覆盖文件数（粗估） | 近 3 批是否命中 | 与谁重叠 |
 |---|---|---:|---:|---|---|
+| `a11y-guard.test.mjs` | 页面 / 组件（可访问性静态底线：按钮链接名称 / 表单标签关联 / section 有名不嵌套 / role=tab 属性 / role=button 键盘可达 / 图标钮 aria-label） | 2 | 329 | 是 | `a11y-tree`（真机 AX）、`hover-state-guard::H11`、`field-shell-guard` |
 | `about-freeze-guard.test.mjs` | 页面 / 文档（About 独立冻结件：三件套整文件哈希 ＋ 功能目录「关于」卡 / help 正文页面清单的定位片段） | 5 | 5 | 是 | `no-about-route-guard`、`hex-hardcode-guard` |
 | `activity-tone-guard.test.mjs` | 数据 / 活动类别 tone | 5 | 20 | 是 | `ui-color-semantics`、`theme-palette-guard`（颜色语义） |
 | `archive-action-guard.test.mjs` | 数据 / 归档写链 | 2 | 3 | — | `archive-record-write`、`write-path-guard` |

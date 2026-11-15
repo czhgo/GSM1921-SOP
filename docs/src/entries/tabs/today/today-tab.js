@@ -465,21 +465,22 @@ function _upcomingRows(s) {
     `data-go="activity" data-act-id="${esc(u.activityId)}" title="${esc(u.title || '')}"`));
 }
 
-/** 全空 → **一张卡：一行说明 + 单一主 CTA**（看日历）。
+/** 全空 → **一张卡：一句现状 + 唯一动作「看待办」**（`close-six-dim-gaps` T8）。
  *  2026-10-27 Task 6.4（脏乱繁 · 空态）：原「今天要办 / 日程」两卡各示一句空态、右卡尾部再放
- *    「写入活动 / 看日历」两枚入口 ⇒ 首屏两张等权大卡 + 两个下一步。现合并为一张卡的一行说明；
- *    卡头「全部 ›」与常规态同一处次级导航（不是主 CTA），主 CTA 仍只一枚。
- *    卡内「写入活动」与顶栏 CTA 重复，已删（顶栏保留）。 */
+ *    「写入活动 / 看日历」两枚入口 ⇒ 首屏两张等权大卡 + 两个下一步。现合并为一张卡的一行说明。
+ *  2026-11-15 T8（DESIGN_SYSTEM §4.18 C6 / §12.16）：空态只留**一枚动作**——原「全部 ›」＋「看日历」
+ *    两个并列出口撤掉，改为「看待办」；动作走统一导航契约 `workspace-nav.goToWorkspaceTab`，
+ *    不依赖调用方是否传 `onNav`（未传时不会变死链）。 */
 function _allEmptyHtml() {
   return `
     <div class="card rounded-xl p-5" data-today-empty>
-      <div class="flex items-center justify-between">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">要办</h3>
-        <button type="button" class="btn-text today-all flex-shrink-0 text-xs" data-today-all="todo">全部 ›</button>
-      </div>
-      <div class="flex flex-wrap items-center gap-3 py-4">
-        ${emptyStateHtml({ text: '今天暂无待办与安排', variant: 'inline', className: 'flex-1 min-w-0' })}
-        <button type="button" class="btn-outline today-go flex items-center justify-center gap-2" data-go="calendar">看日历</button>
+      <h3 class="font-title-cn text-base font-semibold text-gray-800">要办</h3>
+      <div class="py-4">
+        ${emptyStateHtml({
+          text: '今天暂无待办与安排',
+          variant: 'inline',
+          actionHtml: '<button type="button" class="btn-outline" data-today-empty-go="todo">看待办</button>',
+        })}
       </div>
     </div>`;
 }
@@ -729,6 +730,10 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
         if (typeof onNav !== 'function') return;
         onNav(btn.dataset.todayAll === 'todo' ? 'todo' : 'activities');
       });
+    });
+    // 空态唯一动作「看待办」：走统一导航契约（六台均注册 todo 页签；未命中时由 goToWorkspaceTab 给可见提示）
+    container.querySelector('[data-today-empty-go]')?.addEventListener('click', () => {
+      goToWorkspaceTab('todo', null, role);
     });
     // 待处理汇报**异步注入「审核」组**（与顶栏「一键汇报」角标同一集合；无组则动态建组）
     _fillPendingReports(container, personId, onNav);

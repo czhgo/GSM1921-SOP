@@ -355,8 +355,11 @@ export function renderContent(ctx) {
   }
 
   // 上传材料按钮（attachments 双模式：mock base64 / server multipart）
-  container.querySelector('#archive-upload-btn')?.addEventListener('click', () => {
-    _showArchiveUploadModal(ctx);
+  // 2026-11-15 T8：卡头 `#archive-upload-btn` 与空态「上传材料」共用同一写口（同一次 _showArchiveUploadModal）
+  container.querySelectorAll('#archive-upload-btn, [data-archive-upload-action]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      _showArchiveUploadModal(ctx);
+    });
   });
 
   // 材料页深链（2026-10-20）：本场活动的归档行 / 待归档卡滚到视野。
@@ -535,11 +538,17 @@ function _renderTodoCard({ endedUnarchived, publicityDrafts, pendingArchives, ac
 }
 
 /** 归档待办分段内容（2026-10-24 批次 508 的全局空态并入本卡）：
- *  某段为 0 时仍给该段空态说明；三段全空给全局空态（去向＝已归档记录在下方折叠区）。 */
+ *  某段为 0 时仍给该段空态说明；三段全空给全局空态（去向＝已归档记录在下方折叠区）。
+ *  2026-11-15 T8（`close-six-dim-gaps`）：全局空态改为「一句现状 ＋ 唯一动作」——动作复用卡头既有的
+ *    「上传材料」（同一 `_showArchiveUploadModal`，不新开写口）；**不新增块**（本页首屏已到 SD-57 上限 4 块）。 */
 function _renderTodoPanel({ endedUnarchived, publicityDrafts, pendingArchives, actionFacesEmpty }) {
   if (actionFacesEmpty) {
     return `<div data-archive-empty role="status">
-      ${emptyStateHtml({ text: '暂无可归档内容 · 已归档记录在下方折叠区', variant: 'panel' })}
+      ${emptyStateHtml({
+        text: '暂无可归档内容 · 可先上传材料',
+        variant: 'panel',
+        actionHtml: '<button type="button" class="btn-outline" data-archive-upload-action>上传材料</button>',
+      })}
     </div>`;
   }
   if (_todoSegment === 'draft') {

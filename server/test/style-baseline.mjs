@@ -518,8 +518,11 @@ export const SMALL_TEXT_BY_VALUE_BASELINE = {"text-[11px]":338,"text-[10px]":0};
  *  静态页 `docs/*.html` 不计入。
  *  判据：**正文段**上迁 13px（`.text-body-sm`）；标签 / meta / 计数 / 一行说明保持 12px。
  *  批次 533 实测 1771 处 / 116 文件（上批迁 18 + 本批迁 23 处正文段；同批新增表单错误等 20 处小字）。
+ *  2026-11-15 `close-six-dim-gaps` T9（移动端三任务）：`entries/tabs/visitor/attendance-tab.js` 的
+ *    三个行内动作（查看个人明细 / 去补课 / 我参加了但没记上）由 `text-xs` 改控件单档 `text-[13px]`
+ *    ⇒ 全站实测 **1756 处 / 116 文件**，按「收基线＝同批下调」改准（只降不升）。
  *  后续批次迁出正文段后**同批下调**本基线；不得为变绿上调。 */
-export const TEXT_XS_BASELINE = { total: 1771, files: 116 };
+export const TEXT_XS_BASELINE = { total: 1756, files: 116 };
 
 /** 「段落/导语档」基线（2026-09-27 文本档位统一批，给 `text-tier-guard.test.mjs` 消费）
  *  `文件 → { c: 处数, v: 出现档位（px） }`

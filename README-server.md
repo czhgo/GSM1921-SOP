@@ -313,7 +313,7 @@
 
 | 门 | 含义 | 谁用 |
 |---|---|---|
-| （无门） | **完全公开**，不需要 token | 仅 `GET /api/v1/health`；意见反馈列表另需登录并按支部过滤 |
+| （无门） | **完全公开**，不需要 token | `GET /api/v1/health`（浅检查）与 `GET /api/v1/health/deep`（深检查：库可读 / 迁移版本 / 备份目录可写）；意见反馈列表另需登录并按支部过滤 |
 | `requireAuth` | 需要有效 token（登录即可） | **29 个通用资源名的 `GET /<资源名>` 列表读**与 `GET /api/v1/bootstrap`；绝大多数写口与 `/snapshot`、`/report/*`、`/leader/member-progress`、`GET /uploads/:name`（另＋支部隔离） |
 | `requireCommissioner` | 支委层（支书/副支书/组织/宣传/纪检） | `branchDocs` 的通用写口；成员变更申请创建；**`POST /api/v1/uploads`** |
 | `requireRole(...)` | 指定角色集 | 成员变更审批/确认、名册语义端点、表决截止、意见反馈处置（**支委层**：`BRANCH_COMMISSION_ROLES`）、品牌认定**取消**口（支委层） |
@@ -1281,7 +1281,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 ## §6 接口一览
 
 > **基础路径**：`/api/v1`（认证路由挂在 `/api/v1/auth`）。**认证方式**：`Authorization: Bearer <token>`（token 由登录接口签发）。
-> **数量口径（展开后总路由数）**：显式声明的路由 126 条＝126 ＋ 115 ＝ 241 条；`router.*` 声明 **128 条**，其中 **4 条在通用资源循环里**（29 个资源名，见 §6.2），循环展开 115 条；`server/app.js` 的 2 条公开辅助路由（不含 Express 中间件）。
+> **数量口径（展开后总路由数）**：显式声明的路由 127 条＝127 ＋ 115 ＝ 242 条；`router.*` 声明 **129 条**，其中 **4 条在通用资源循环里**（29 个资源名，见 §6.2），循环展开 115 条；`server/app.js` 的 2 条公开辅助路由（不含 Express 中间件）。
 > **未登录可读的最小公开口**：`GET /api/v1/public/branch-name`（`server/routes/public-info.js`）——只返回支部显示名一个字段（`config.headerTitle` 优先，回退 `name`，读不到回「本支部」），供登录页抬头与帮助页在登录前显示本实例支部名；响应 `Cache-Control: no-store`，不返回 id / 成员 / 配置等任何其它字段。
 
 ### 6.1 认证（`server/routes/auth.js`）
@@ -1435,7 +1435,8 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 
 | 方法 | 路径 | 用途 | 权限门 |
 |---|---|---|---|
-| GET | `/api/v1/health` | 健康检查 → `{ok:true}` | **无门（公开）** |
+| GET | `/api/v1/health` | 浅检查（进程与依赖已加载）→ `{ok:true}` | **无门（公开）** |
+| GET | `/api/v1/health/deep` | 深检查：库可读 / `user_version` 迁移版本 / 备份目录可写；任一项失败 → **503** `{ok:false,status:'degraded'}` | **无门（公开）** |
 | GET | `/src/config/deploy.js` | **由服务端动态注入**：返回 `export const DEPLOY_MODE = "server";`（前端据此判断「有后端/无门面页」） | 无门（公开） |
 
 ### 6.13 语义端点：三委数据交接 / 成员变更确认队列 / 批次里程碑（`server/routes/resources/index.js`）

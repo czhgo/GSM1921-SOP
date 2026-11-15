@@ -100,7 +100,7 @@ import { formatRunModeLine, enforceSingleBranch } from './run-mode.js';
 // 做法：收到信号 ⇒ ① 停止接新连接（`httpServer.close()`）② 等在途连接结束（**上限 5s**，到点强行退出）
 //   ③ 关库 ④ 退出码 0。**不改任何业务行为、不新增依赖**。
 // 边界（如实登记）：**未处理**「排程中的定时任务」——它随进程退出而中断（下次启动会重新排期）；
-//   **未做** readiness/liveness 分离探针（存活探针仍只有 `GET /api/v1/health`，见 `app.js`）。
+//   **探针**：已分开浅 `GET /api/v1/health` / 深 `GET /api/v1/health/deep`（库 / 迁移版本 / 备份目录，见 `routes/health.js`）。
 // ⚠ 本段必须留在文件末尾：上方 `:12-18` / `:21` / `:22-23` 是 `README-server.md` 的取证靶点。
 let _closing = false;
 for (const sig of ['SIGTERM', 'SIGINT']) {
