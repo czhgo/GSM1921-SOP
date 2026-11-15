@@ -22,12 +22,11 @@
 
 import { requireAuth } from './auth.js';
 import { listTable } from './resources/store.js';
-import { actorBranchId, branchSelectionError } from './resources/branch-scope.js';
+import { branchSelectionError, createTableReader, resolveBranchIdForActor, resolveRowBranchId, resourceRowsForActor } from './resources/branch-scope.js';
 // 待办行读权限单一源（读口 `GET /todos` 与派生口 `GET /todo-groups` 共用；批次 541）
 import { canReadTodoRow } from './resources/todo-read-policy.mjs';
 // 周期口径（月 / 季 / 半年 / 年）与模块目录：均为零依赖叶子件，服务端直导可载（与客户端同一份口径）
 import { expandWorkforce } from '../../docs/src/core/domain/work-map.js';
-import { DEFAULT_BRANCH_ID } from '../../docs/src/core/domain/constants.js';
 // 实时组纯派生**单一源**（零业务依赖叶子件；浏览器与 node 同源 import）
 import {
   DERIVE_GROUP_DOMAIN,
@@ -133,31 +132,44 @@ export function realtimeGroupDomainOf(group) {
 
 // ── 读面（支部作用域）─────────────────────────────────────────────────────────────
 
-/** 本次请求的支部口径：本人支部；党委选了支部用所选支部；解析不出回落缺省支部（同 `actorBranchId` 口径） */
-function _scopeBranchId(actor, requestedBranchId) {
-  return actorBranchId(actor) || (requestedBranchId ? String(requestedBranchId) : DEFAULT_BRANCH_ID);
-}
+/**
+ * 本次请求的支部口径（**单一源** = `branch-scope.js::resolveBranchIdForActor`，T13 · 2026-11-15）：
+ *   本人支部；党委选了支部用所选支部；无支部上下文 ⇒ `null`（fail-closed，不再回落缺省支部）。
+ */
+const _scopeBranchId = (actor, requestedBranchId) => resolveBranchIdForActor(actor, requestedBranchId);
 
-/** 支部归属判据：与 `branch-scope.js::resourceBranchId` 同口径（历史缺字段按缺省支部） */
-function _belongsTo(row, branchId) {
-  return !!row && (row.branchId || DEFAULT_BRANCH_ID) === branchId;
+/** 表名 → 资源名（`branch-scope.js::resolveRowBranchId` 的判定键；未列出的表按同名处理） */
+const RESOURCE_NAME_OF_TABLE = Object.freeze({
+  member_confirmations: 'memberConfirmations',
+  member_change_requests: 'memberChangeRequests',
+});
+
+/**
+ * 支部归属判据（**单一源** = `branch-scope.js::resolveRowBranchId`，T13 · 2026-11-15）：
+ *   与 `GET /todos` / 通用资源读口同一解析；解析不出（null）即不属任何支部，不再按缺省支部计入。
+ */
+function _belongsTo(db, table, row, branchId, reader) {
+  if (!row || branchId == null) return false;
+  return resolveRowBranchId(db, RESOURCE_NAME_OF_TABLE[table] || table, row, reader) === branchId;
 }
 
 /**
  * 「本人 / 本角色」待办读面（**与 `GET /todos` 同口径**：支部作用域 → `canReadTodoRow`）。
+ * Task 13 起直接复用读口同一函数 `resourceRowsForActor`（含 `branchLegacy` 兼容期规则），
+ *   不再用 `_belongsTo` 复刻一套支部判定（10.7-3/4 两套判据即由此消除）。
  * 用途：成员发展类派生含他人姓名与阶段，只对**本角色确有待办读面**的调用者计算；
  *   读面为空 ⇒ 本节派生返回空，客户端回落自身派生（兼容期可见结果不变）。
  * Task 8 起，本读面同时供 `taskforce-authorize` 实时组装配（只筛选已持久化行，不新造待办）。
  */
 function _visibleTodos(db, actor, branchId) {
-  return listTable(db, 'todos')
-    .filter((row) => _belongsTo(row, branchId))
+  return resourceRowsForActor(db, 'todos', listTable(db, 'todos'), actor, branchId, createTableReader(db))
     .filter((row) => canReadTodoRow(row, actor));
 }
 
 /** 分支机构成员档案（与 `PersonStore.getMembers()` 的 api 形态同口径：排除已转出） */
 function _membersOfBranch(db, branchId) {
-  return listTable(db, 'users').filter((row) => row && row.transferOut !== true && _belongsTo(row, branchId));
+  const reader = createTableReader(db);
+  return listTable(db, 'users').filter((row) => row && row.transferOut !== true && _belongsTo(db, 'users', row, branchId, reader));
 }
 
 /** 「进入当前阶段日期」派生态（单一源 = 成员档案字段 `developStageSince`，同 `member-confirmation.js::loadStageEntryDates`） */
@@ -257,7 +269,8 @@ function _deriveRealtimeGroups(db, { actor, role, personId, branchId, policy = e
   const keys = Object.keys(REALTIME_GROUP_ROLES).filter((key) => REALTIME_GROUP_ROLES[key].includes(role));
   if (!keys.length) return groups;
   const has = (key) => keys.includes(key);
-  const rowsOf = (table) => listTable(db, table).filter((row) => _belongsTo(row, branchId));
+  const reader = createTableReader(db); // 请求内复用（同一次派生只读一遍表）
+  const rowsOf = (table) => listTable(db, table).filter((row) => _belongsTo(db, table, row, branchId, reader));
 
   if (has('attendance-remind')) {
     const group = deriveAttendanceRemindGroup({
@@ -360,7 +373,8 @@ function _deriveGroups(db, { actor, role, personId, branchId }) {
     const hasDevelopData = members.some((m) => m && (m.developStage || m.developStageSince));
     if (hasDevelopData) {
       const overrides = _stageEntryDates(members);
-      const records = listTable(db, 'inspections').filter((row) => _belongsTo(row, branchId));
+      const reader = createTableReader(db);
+      const records = listTable(db, 'inspections').filter((row) => _belongsTo(db, 'inspections', row, branchId, reader));
       const dev = buildDevelopNodeRemindGroup({ members, overrides, today: day });
       if (dev) groups.push(dev);
       const halfYear = buildHalfYearInspectionRemindGroup({ members, records, overrides, today: day });
@@ -368,8 +382,9 @@ function _deriveGroups(db, { actor, role, personId, branchId }) {
     }
   }
   // ③ 各台通用（客户端单一源：`components/record/todo-tab-shell.js::_moduleCycleGroupsFor`）
+  const cycleReader = createTableReader(db);
   const cycle = buildModuleCycleRemindGroup({
-    activities: listTable(db, 'activities').filter((row) => _belongsTo(row, branchId)),
+    activities: listTable(db, 'activities').filter((row) => _belongsTo(db, 'activities', row, branchId, cycleReader)),
     subjectIds: [role, personId].filter(Boolean),
     snapshot: _workforceOfBranch(db, branchId),
     today: day,

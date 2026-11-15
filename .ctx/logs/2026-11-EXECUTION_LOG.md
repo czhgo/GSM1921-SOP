@@ -10,6 +10,26 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 557（2026-11-15）· 支部解析收敛与事实源守卫（spec `close-six-dim-gaps` T13/T15）
+
+### 为什么
+- 多支部要按「N=1 是特例」成立，关键不是再加过滤，而是让**支部解析只有一个出口**；否则每处各写一份回落，隔离与 N=1 等价都无法保证。
+- 上一批摸底发现「匿名归档读出两支部行」与「`todo-groups` / `todos` 支部判定不一致」，两条都是真实越读/不一致，属必修。
+
+### 拿不准 / 取舍
+- **fail-closed 优先于兼容**：无支部上下文时不再回落 `br-b1`，改为只放行「公开且未过期的党委行」；历史兼容域收进 12 条白名单（逐条 reason）。本批未引爆存量断言，说明白名单覆盖住了真实兼容面。
+- **不做一次性全仓替换**：`|| DEFAULT_BRANCH(_ID)` 全仓 190 处 / 50 文件，本批只收敛核心入口（`branch-scope` / `todo-groups` / `report`），其余 87 处 / 13 文件（routes）与 77 处 / 30 文件（docs）留后续，清单写进 `ARCHITECTURE_EVOLUTION §10.10`。
+- **N=1 基线读数变更**：`/bootstrap` 摘要由 `4c42b6029aaf4d2e` 变为 `a308adac0dae3cbd`，原因是 556 批新增健康/指标域进入 bootstrap；本条基线在本批改造前后**逐字节一致**，等价性成立。
+- **`mock-api-parity-structure::S4`**：T3 新增的 `opsHealth` 属服务端只读口，mock 无真实进程可观测，按白名单登记并写理由（未放宽判据）。
+
+### 边界
+- 未做党委「进入支部」只读门（T14，下一批）；未在 Linux 真机验证；未跑 precommit / full。
+- 行号引用校验扩到 `content/**` 后登记 26 条存量失效基线（只减不增）。
+
+### 读数
+- 五证夹具 **6 / 6**：读隔离、跨支部写拒绝、N=1 等价、匿名归档 fail-closed（改前返回 `ar-a,ar-b`，改后 `[]`）、`todo-groups` 与 `todos` 同判。
+- `test:daily` **254 / 254 · 88.1s**；`test:guards` 全绿 **120.5s（109 文件 / 836）**；定向 `mock-api-parity-structure` / `five-proof` / `branch-resolve` **16 / 16**。
+
 ## 批次 556（2026-11-15）· 可运维闭环 ＋ 多支部判定定稿（spec `close-six-dim-gaps` T3/T4/T12）
 
 ### 为什么

@@ -9,7 +9,7 @@ import { requireRole } from './auth.js';
 import {
   REPORT_DOMAINS, extractDomain, resolveWindow, toCsv, pushReport,
 } from '../services/reporting.js';
-import { actorBranchId, branchSelectionError, selectedBranchRequiredError } from './resources/branch-scope.js';
+import { branchSelectionError, resolveBranchIdForActor, selectedBranchRequiredError } from './resources/branch-scope.js';
 import { SECRETARY_AND_DEPUTY_ROLES } from '../../docs/src/core/domain/constants.js';
 
 // 报表含 member / attendance / study 明细：读权取「支书 / 副支书 + 组织委员 + 党委」。
@@ -49,7 +49,7 @@ export function createReportRouter(db) {
       return res.status(400).json({ error: `未知数据域：${domain}（可选 ${Object.keys(REPORT_DOMAINS).join('/')}）` });
     }
     const { from, to } = resolveWindow(req.query);
-    const rows = extractDomain(db, domain, from, to, { branchId: actorBranchId(req.actor) || req.query.branchId || null });
+    const rows = extractDomain(db, domain, from, to, { branchId: resolveBranchIdForActor(req.actor, req.query.branchId) });
     const csv = `\uFEFF${toCsv(rows)}`; // UTF-8 BOM：Excel 中文兼容
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="${domain}-${to}.csv"`);
@@ -67,7 +67,7 @@ export function createReportRouter(db) {
       return res.status(400).json({ error: `未知数据域：${domain}（可选 ${Object.keys(REPORT_DOMAINS).join('/')}）` });
     }
     const { from, to } = resolveWindow(req.query);
-    const items = extractDomain(db, domain, from, to, { branchId: actorBranchId(req.actor) || req.query.branchId || null });
+    const items = extractDomain(db, domain, from, to, { branchId: resolveBranchIdForActor(req.actor, req.query.branchId) });
     res.json({
       domain,
       label: REPORT_DOMAINS[domain].label,

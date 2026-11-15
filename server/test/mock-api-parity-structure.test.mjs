@@ -537,6 +537,9 @@ const ADAPTER_SURFACE = {
     committeeContent: '党委院级内容（活动/资料/下发）仅服务端模式；mock 形态不提供写入，前端在 mock 下不调用该组',
     agendaCandidates: '支委会议程候选（GET /committee/agenda-candidates）仅服务端汇总口；mock 形态由 agenda-form 本地归集',
     committeeProposals: '支委提案（D-869）仅服务端语义端点；mock 形态由 CommitteeProposalStore 落 mockDB',
+    // 2026-11-15 批次 556（close-six-dim-gaps T3）：运维健康为服务端只读观测口；mock 形态无真实进程与库，
+    // 前端在 mock 数据源下不调用该组（党委台健康卡按「无运维数据」降级展示）。
+    opsHealth: '运维健康（GET /health/deep 与 /health/metrics）仅服务端；mock 形态无真实进程/库可观测',
   },
   /** 同名但方法面不同（apiOnly / mockOnly 两个方向都要写全） */
   methodDiff: {

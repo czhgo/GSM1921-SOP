@@ -11,6 +11,30 @@ const COMMITTEE_OWNER = COMMITTEE_OWNER_ID;
 // 发布范围只认三档（单一源 PUBLISH_SCOPES）；`branch` 不进入登录态并集，只有 login / public 进入。
 const LOGIN_VISIBLE_SCOPES = new Set(PUBLISH_SCOPES.filter((scope) => scope !== 'branch'));
 
+/**
+ * 历史兼容域：缺 `branchId` 的存量行仍归缺省支部（T13 · 2026-11-15 · 依据 `ARCHITECTURE_EVOLUTION §10.9` 步 1）。
+ *
+ * 为什么需要白名单：多支部改造前的存量行没有 `branchId`，N=1 部署下必须仍可见
+ *   （`§10.8-③` 五条读集合与 bootstrap 摘要逐字节不变）；枚举白名单而不「一律回落」，
+ *   是为了让**未登记的新域**缺字段时 fail-closed，不再被静默并入 `br-b1`。
+ * 纪律：每条必须写明存量证据（reason）；守卫 `branch-resolve-single-source-guard` 按本表核对，
+ *   新增条目须同批给出证据，删除条目须同批确认该域已无缺字段行。
+ */
+export const LEGACY_DEFAULT_BRANCH_FALLBACK = Object.freeze({
+  activities: '§10.8-③ 基线：历史活动无 branchId，支部视图仍须可见（act-1）',
+  notices: '§10.8-③ 基线：历史通知无 branchId，支部视图仍须可见（ntc-1）',
+  branchDocs: '院级 / 支部资料与通知同并集读口，存量行无 branchId',
+  taskforces: '与活动同历史口径：存量专班行无 branchId',
+  tasks: 'seed 实测 8/8 无 branchId（按 activityId 派生归属，解析不到时归缺省支部）',
+  assignments: 'seed 实测 5/5 无 branchId（活动分工行，同上）',
+  makeupTasks: 'seed 实测 1/1 无 branchId（补课任务行，同上）',
+  imageRecords: 'seed 实测 2/2 无 branchId（照片元数据随活动）',
+  signups: 'seed 实测 7/7 无 branchId（报名行按 sourceId 解析，缺 source 时归缺省支部）',
+  activityReviews: 'seed 实测 11/11 无 branchId（活动复盘随活动）',
+  taskforceReviews: 'seed 实测 2/2 无 branchId（专班复盘随专班）',
+  thoughtReports: 'seed 实测 5/5 无 branchId（思想汇报按提交人投影，无活动链可解析）',
+});
+
 /** 党委自有行：显式 `ownerScope='committee'`，或归属党委伪支部（缺省 ownerScope 的存量行按 branch 处理）。 */
 function isCommitteeRow(row) {
   return Boolean(row) && typeof row === 'object'
@@ -187,7 +211,7 @@ function linkedBranch(db, name, row, reader) {
   if (['activity', 'taskforce'].includes(row.sourceType) && row.sourceId) {
     const sourceTable = row.sourceType === 'activity' ? 'activities' : 'taskforces';
     const source = get(db, sourceTable, row.sourceId, reader);
-    if (source) return resourceBranchId(db, sourceTable, source, reader);
+    if (source) return resolveRowBranchId(db, sourceTable, source, reader);
   }
   const activityId = row.activityId || (name === 'activities' ? null : null);
   if (activityId) {
@@ -199,7 +223,7 @@ function linkedBranch(db, name, row, reader) {
     //   其余资源保持原口径（R10-D14 另批）。
     if (activity) {
       return name === 'archiveRecords'
-        ? (activity.branchId || resourceBranchId(db, 'activities', activity, reader))
+        ? (activity.branchId || resolveRowBranchId(db, 'activities', activity, reader))
         : (activity.branchId || DEFAULT_BRANCH);
     }
   }
@@ -222,7 +246,7 @@ function linkedBranch(db, name, row, reader) {
   }
   if (name === 'committee_broadcasts' || name === 'committeeBroadcasts') {
     const request = get(db, 'member_change_requests', row.requestId, reader);
-    if (request) return resourceBranchId(db, 'memberChangeRequests', request, reader);
+    if (request) return resolveRowBranchId(db, 'memberChangeRequests', request, reader);
   }
   if (name === 'auth_audit' || name === 'authAudit') {
     if (row.scopeRef && get(db, 'branches', row.scopeRef, reader)) return row.scopeRef;
@@ -244,7 +268,12 @@ function linkedBranch(db, name, row, reader) {
   return null;
 }
 
-export function resourceBranchId(db, name, row, reader) {
+/**
+ * 行级支部归属（**解析唯一入口**，T13 · 2026-11-15）：显式 `branchId` → 关联业务记录 → 历史兼容回落。
+ * 缺字段回落只对本文件 `LEGACY_DEFAULT_BRANCH_FALLBACK` 登记的域放行；未登记域解析不出即 `null`
+ *   （fail-closed：不再静默并入 `br-b1`，该行只对党委可见）。
+ */
+export function resolveRowBranchId(db, name, row, reader) {
   if (!row || typeof row !== 'object') return null;
   if (name === 'branches') return row.id || null;
   if (name === 'users') return row.branchId || null;
@@ -252,7 +281,7 @@ export function resourceBranchId(db, name, row, reader) {
     const table = row.sourceType === 'activity' ? 'activities' : 'taskforces';
     const source = get(db, table, row.sourceId, reader);
     if (!source) return null;
-    const sourceBranch = resourceBranchId(db, table, source, reader);
+    const sourceBranch = resolveRowBranchId(db, table, source, reader);
     return row.branchId && row.branchId !== sourceBranch ? null : sourceBranch;
   }
 
@@ -261,13 +290,17 @@ export function resourceBranchId(db, name, row, reader) {
   if (direct && linked && direct !== linked) return null;
   if (direct) return direct;
   // v11（批次 504）：待办不得回落缺省支部——解析不出就是 NULL（待归属），
-  //   读口按兼容期规则决定可见性；其余集合本轮保留原兜底（R10-D14 另批）。
+  //   读口按兼容期规则决定可见性。
   if (name === 'todos') return linked || null;
   // 2026-10-24 批次 508：归档记录同样不回落缺省支部——自身无 branchId、activityId 也解析不出归属时
   //   返回 null（未归属），该行只对党委可见（见 resourceRowsForActor），支部账号一概不可见。
   if (name === 'archiveRecords') return linked || null;
-  return linked || DEFAULT_BRANCH;
+  const legacyFallback = LEGACY_DEFAULT_BRANCH_FALLBACK[name] ? DEFAULT_BRANCH : null;
+  return linked || legacyFallback;
 }
+
+/** 兼容旧名（T13 起解析入口统一为 `resolveRowBranchId`；新代码一律用新名）。 */
+export const resourceBranchId = resolveRowBranchId;
 
 export function branchForNewResource(db, name, row, actor) {
   const resolved = row?.branchId || linkedBranch(db, name, row || {});
@@ -277,9 +310,20 @@ export function branchForNewResource(db, name, row, actor) {
   return actorBranchId(actor);
 }
 
-function selectedBranch(actor, requestedBranchId) {
+/**
+ * 请求级支部上下文（**解析唯一入口**，T13 · 2026-11-15）。
+ * 规则：本人支部优先（支部账号只读本支部，跨支部参数已由 `branchSelectionError` 前置拒）；党委 / 匿名取显式
+ *   `?branchId=`；两者都没有 ⇒ `null`（fail-closed，**不再**回落缺省支部；读口按无上下文口径决定可见集）。
+ * @param {Object|null} actor 会话用户（匿名）为 null
+ * @param {string} [requestedBranchId] 请求显式支部（`?branchId=`）
+ * @returns {string|null}
+ */
+export function resolveBranchIdForActor(actor, requestedBranchId) {
   const own = actorBranchId(actor);
-  return own || requestedBranchId || null;
+  if (own) return own;
+  // 匿名请求不认查询参数：`?branchId=` 是已登录调用方的选择，不构成匿名调用方的支部上下文。
+  if (!actor) return null;
+  return requestedBranchId ? String(requestedBranchId) : null;
 }
 
 function aggregateRows(db, name, rows, targetBranchId, reader) {
@@ -290,7 +334,7 @@ function aggregateRows(db, name, rows, targetBranchId, reader) {
   if (!targetBranchId) return [{ ...root, body: {} }];
   const body = Object.fromEntries(Object.entries(root.body).filter(([id]) => {
     const parentRow = get(db, parentTable, id, reader);
-    return parentRow && resourceBranchId(db, parentName, parentRow, reader) === targetBranchId;
+    return parentRow && resolveRowBranchId(db, parentName, parentRow, reader) === targetBranchId;
   }));
   return [{ ...root, body }];
 }
@@ -300,8 +344,17 @@ function aggregateRows(db, name, rows, targetBranchId, reader) {
  *   缺省时按行点查（旧口径）。**不得**跨请求共享。
  */
 export function resourceRowsForActor(db, name, rows, actor, requestedBranchId, reader) {
-  const targetBranchId = selectedBranch(actor, requestedBranchId);
+  const targetBranchId = resolveBranchIdForActor(actor, requestedBranchId);
   const isPartyStaff = actor?.role === PARTY_STAFF;
+  if (!targetBranchId && !isPartyStaff) {
+    // T13 · 2026-11-15（§10.9 步 3 / 10.7-1）：**无支部上下文失败关闭**——匿名公共归档读口
+    //   此前 `if (!targetBranchId) return rows;` 把 A / B 两支支部行一并返回（实测 `ar-a,ar-b`）。
+    //   现只放行「显式 `publishScope='public'` 且未过期的党委行」；支部业务行一律不出。
+    if (AGGREGATE_PARENT[name]) return aggregateRows(db, name, rows, null, reader);
+    if (name === 'branches') return [];
+    const now = Date.now();
+    return rows.filter((row) => isCommitteeRow(row) && isPublicNow(row, now));
+  }
   if (isPartyStaff && !targetBranchId) {
     if (name === 'branches') {
       return rows.map((row) => projectBranchDirectoryRow(db, row, null));
@@ -320,7 +373,7 @@ export function resourceRowsForActor(db, name, rows, actor, requestedBranchId, r
     // 全部待批复上报，否则「支部上报」页恒空（P3 党委后台闭环，party-committee-review P3）。
     if (name === 'reviewRequests') return rows;
     // 2026-10-24 批次 508：未归属支部的归档记录「只对党委可见」——党委未选支部时给出这批待归属行。
-    if (name === 'archiveRecords') return rows.filter((row) => resourceBranchId(db, name, row, reader) === null);
+    if (name === 'archiveRecords') return rows.filter((row) => resolveRowBranchId(db, name, row, reader) === null);
     if (AGGREGATE_PARENT[name]) return aggregateRows(db, name, rows, null, reader);
     return [];
   }
@@ -328,11 +381,11 @@ export function resourceRowsForActor(db, name, rows, actor, requestedBranchId, r
     return rows.map((row) => projectBranchDirectoryRow(db, row, targetBranchId));
   }
   if (AGGREGATE_PARENT[name]) return aggregateRows(db, name, rows, targetBranchId, reader);
-  if (!targetBranchId) return rows;
+  // 此处 targetBranchId 必非空：党委未选支部走上方分支，匿名 / 无支部上下文在上方失败关闭。
   // 批次 536 Task 5：活动 / 通知 / 资料的读口由「仅本支部」改为「本支部 + 党委可见行」并集。
   // 批次 541 · S-1：过期的 public 党委行对支部账号视同撤下（党委视角不受影响）。
   if (name === 'activities') {
-    const branchRows = rows.filter((row) => !isCommitteeRow(row) && resourceBranchId(db, name, row, reader) === targetBranchId);
+    const branchRows = rows.filter((row) => !isCommitteeRow(row) && resolveRowBranchId(db, name, row, reader) === targetBranchId);
     // 本支部已有副本 ⇒ 列表隐藏党委原件（I2 / D-858 第 11 条）；党委视角仍出原件并标注是否已采用。
     const adopted = new Set(branchRows.filter((row) => row.sourceActivityId).map((row) => String(row.sourceActivityId)));
     const committeeRows = rows.filter((row) => isCommitteeRow(row) && targetsBranch(row, targetBranchId));
@@ -345,7 +398,7 @@ export function resourceRowsForActor(db, name, rows, actor, requestedBranchId, r
   }
   if (name === 'notices') {
     const now = Date.now();
-    const branchRows = rows.filter((row) => !isCommitteeRow(row) && resourceBranchId(db, name, row, reader) === targetBranchId);
+    const branchRows = rows.filter((row) => !isCommitteeRow(row) && resolveRowBranchId(db, name, row, reader) === targetBranchId);
     const committeePublished = rows.filter((row) => row.branchId === COMMITTEE_OWNER && isLoginVisible(row, now));
     const committeeTargeted = rows.filter((row) => row.ownerScope === 'committee' && targetsBranch(row, targetBranchId));
     // 空受众 / 私信等受众判定仍归上层 `canReadNotice`，本层只决定「哪些行进入支部视野」。
@@ -358,7 +411,7 @@ export function resourceRowsForActor(db, name, rows, actor, requestedBranchId, r
   }
   if (name === 'branchDocs') {
     const now = Date.now();
-    const branchRows = rows.filter((row) => !isCommitteeRow(row) && resourceBranchId(db, name, row, reader) === targetBranchId);
+    const branchRows = rows.filter((row) => !isCommitteeRow(row) && resolveRowBranchId(db, name, row, reader) === targetBranchId);
     const committeeRows = isPartyStaff
       ? rows.filter(isCommitteeRow)
       : rows.filter((row) => row.branchId === COMMITTEE_OWNER && isLoginVisible(row, now));
@@ -368,23 +421,23 @@ export function resourceRowsForActor(db, name, rows, actor, requestedBranchId, r
     // v11 兼容期：branchId=NULL 的旧待办只给本人或同角色看一个周期，并标 branchLegacy。
     return rows
       .filter((row) => {
-        const branchId = resourceBranchId(db, name, row, reader);
+        const branchId = resolveRowBranchId(db, name, row, reader);
         if (branchId === targetBranchId) return true;
         if (branchId !== null) return false;
         if (row.personId) return String(row.personId) === String(actor?.id);
         return !!row.role && row.role === actor?.role;
       })
-      .map((row) => (resourceBranchId(db, name, row, reader) === null ? { ...row, branchLegacy: true } : row));
+      .map((row) => (resolveRowBranchId(db, name, row, reader) === null ? { ...row, branchLegacy: true } : row));
   }
   // 2026-10-24 批次 508：归档记录读口——选中支部时给出「本支部 + 未归属（仅党委）」；
   //   支部账号的 targetBranchId 恒非空且不会命中 null，故未归属行对支部账号不可见。
   if (name === 'archiveRecords') {
     return rows.filter((row) => {
-      const branchId = resourceBranchId(db, name, row, reader);
+      const branchId = resolveRowBranchId(db, name, row, reader);
       return branchId === targetBranchId || (actor?.role === PARTY_STAFF && branchId === null);
     });
   }
-  return rows.filter((row) => resourceBranchId(db, name, row, reader) === targetBranchId);
+  return rows.filter((row) => resolveRowBranchId(db, name, row, reader) === targetBranchId);
 }
 
 export function recordBranchWriteDeny(db, name, row, actor, { requireBranch = true } = {}) {
@@ -396,7 +449,7 @@ export function recordBranchWriteDeny(db, name, row, actor, { requireBranch = tr
   const own = actorBranchId(actor);
   const linked = linkedBranch(db, name, row || {});
   const requested = row?.branchId || linked || own;
-  const resolved = resourceBranchId(db, name, row);
+  const resolved = resolveRowBranchId(db, name, row);
   if (own && resolved !== own) return '无权限：不能读取或写入其他支部记录';
   if (own && requested && requested !== own) return '无权限：不能读取或写入其他支部记录';
   if (row?.branchId && linked && row.branchId !== linked) return '记录的支部归属与其关联业务记录不一致';
@@ -416,7 +469,7 @@ export function scopedSnapshotWriteDeny(db, payload, actor, reader) {
       const [parentTable] = AGGREGATE_PARENT[name];
       for (const id of Object.keys(root?.body || {})) {
         const parent = get(db, parentTable, id, read);
-        if (!parent || resourceBranchId(db, name === 'actSubRecords' ? 'activities' : 'taskforces', parent, read) !== own) {
+        if (!parent || resolveRowBranchId(db, name === 'actSubRecords' ? 'activities' : 'taskforces', parent, read) !== own) {
           return '无权限：聚合子记录只能写入本支部所属业务记录';
         }
       }
@@ -427,7 +480,7 @@ export function scopedSnapshotWriteDeny(db, payload, actor, reader) {
       const previous = row.id ? get(db, nameToTable(name), row.id, read) : null;
       // 批次 536 Task 5：党委行不归支部——支部整表快照既不得改写，也不得删除党委内容。
       if (isCommitteeRow(row) || isCommitteeRow(previous)) return '无权限：不能通过快照触碰党委内容';
-      if (previous && resourceBranchId(db, name, previous, read) !== own) return '无权限：不能通过快照触碰其他支部记录';
+      if (previous && resolveRowBranchId(db, name, previous, read) !== own) return '无权限：不能通过快照触碰其他支部记录';
       if (previous && row.branchId && previous.branchId && row.branchId !== previous.branchId) return '支部归属创建后不可修改';
       const linked = linkedBranch(db, name, row, read);
       if (row.branchId && row.branchId !== own) return '无权限：快照只能写入当前支部记录';
@@ -446,7 +499,7 @@ export function aggregateWriteDeny(db, name, body, actor) {
   const parentName = name === 'actSubRecords' ? 'activities' : 'taskforces';
   for (const id of Object.keys(body)) {
     const parent = get(db, parentTable, id);
-    if (!parent || resourceBranchId(db, parentName, parent) !== own) {
+    if (!parent || resolveRowBranchId(db, parentName, parent) !== own) {
       return '无权限：聚合子记录只能写入本支部所属业务记录';
     }
   }
@@ -460,7 +513,7 @@ export function mergeAggregateBody(db, name, currentBody, incomingBody, actor) {
   const parentName = name === 'actSubRecords' ? 'activities' : 'taskforces';
   const retained = Object.fromEntries(Object.entries(currentBody || {}).filter(([id]) => {
     const parent = get(db, parentTable, id);
-    return !parent || resourceBranchId(db, parentName, parent) !== own;
+    return !parent || resolveRowBranchId(db, parentName, parent) !== own;
   }));
   return { ...retained, ...(incomingBody || {}) };
 }
@@ -479,15 +532,15 @@ export function mergeScopedSnapshotWrites(db, writes, actor, reader) {
       const nextRoot = rows.find((row) => row.id === '__root__') || { id: '__root__', body: {} };
       const retained = Object.fromEntries(Object.entries(root.body || {}).filter(([id]) => {
         const parent = get(db, parentTable, id, read);
-        return !parent || resourceBranchId(db, name === 'actSubRecords' ? 'activities' : 'taskforces', parent, read) !== own;
+        return !parent || resolveRowBranchId(db, name === 'actSubRecords' ? 'activities' : 'taskforces', parent, read) !== own;
       }));
       return { ...write, rows: [{ ...root, ...nextRoot, body: { ...retained, ...(nextRoot.body || {}) } }] };
     }
     const retained = current.filter((row) => {
-      // 批次 536 Task 5：党委行恒保留——缺 branchId 的党委行经 resourceBranchId 会回落默认支部，
-      //   只按 `resourceBranchId !== own` 判会把党委内容误删，故先显式判 ownerScope / pc-gsm。
+      // 批次 536 Task 5：党委行恒保留——缺 branchId 的党委行经 resolveRowBranchId 会回落默认支部，
+      //   只按 `resolveRowBranchId !== own` 判会把党委内容误删，故先显式判 ownerScope / pc-gsm。
       if (isCommitteeRow(row)) return true;
-      return resourceBranchId(db, name, row, read) !== own;
+      return resolveRowBranchId(db, name, row, read) !== own;
     });
     // 存量行保持原样（不额外补 branchId）：否则首次正常保存会把整集合标成「已修改」，
     // 令逐行写门把历史行（如「支委会不考勤」的旧考勤）重新校验并误拒。新建行才归当前支部。

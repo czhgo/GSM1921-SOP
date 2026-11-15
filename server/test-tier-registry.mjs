@@ -80,13 +80,17 @@ export const DAILY_TEST_BUDGET = 252;
 /** guards 文件数预算（静态守卫；按需跑，不阻塞日常）
  *  2026-11-08 波次 A：daily 迁入 6 件 ⇒ 实测 99 文件，按 99 登记。
  *  2026-11-15 `close-six-dim-gaps` T10：新增 `a11y-guard.test.mjs`（可访问性常驻静态守卫），
- *    实然 108 文件；按 111 登记——同批可能还有其它守卫件并入，留 ≤4 文件余量（`test-tier-guard::T4`）。 */
+ *    实然 108 文件；按 111 登记——同批可能还有其它守卫件并入，留 ≤4 文件余量（`test-tier-guard::T4`）。
+ *  2026-11-15 `close-six-dim-gaps` T15：新增 `branch-resolve-single-source-guard.test.mjs`（支部解析单源 ＋
+ *    存量回落基线），实然 109 文件；111 仍在余量内（差 2 ≤4），**不上调**（放宽预算＝失去约束力）。 */
 export const GUARDS_FILE_BUDGET = 111;
 
 /** guards 静态 `test(` / `it(` 调用点预算
  *  2026-11-08 波次 A：实测 788 断言，按 791 登记（断言留 3 条余量）。
  *  2026-11-15 `close-six-dim-gaps` T10：`a11y-guard` 增 2 条静态 `test(` 调用点（扫描面自检 ＋ 六条判据合并一项），
- *    实然 824；按 860 登记——同批可能有其它守卫断言并入，留 ≤40 条余量（`test-tier-guard::T4`）。 */
+ *    实然 824；按 860 登记——同批可能有其它守卫断言并入，留 ≤40 条余量（`test-tier-guard::T4`）。
+ *  2026-11-15 `close-six-dim-gaps` T15：新增单源守卫 3 条 ＋ `docs-governance-guard` R7（content/** 行号扩面）1 条，
+ *    实然 828；860 仍在余量内（差 32 ≤40），**不上调**。 */
 export const GUARDS_TEST_BUDGET = 860;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
@@ -199,6 +203,8 @@ export const TEST_TIERS = [
     'archive-action-guard.test.mjs',
     'archive-deeplink-guard.test.mjs',
     'branch-id-literal-guard.test.mjs',
+    // 2026-11-15 六维补齐 T15：支部解析单源（server/routes 新增 `|| DEFAULT_BRANCH(_ID)` 即红；存量按文件基线只减不增）
+    'branch-resolve-single-source-guard.test.mjs',
     'committee-adoption-ui.test.mjs',
     'committee-content-tab.test.mjs',
     'dead-selector-guard.test.mjs',
@@ -318,6 +324,9 @@ export const TEST_TIERS = [
     'mock-api-parity-structure.test.mjs',
     'mock-api-parity.test.mjs',
     'mock-multi-branch.test.mjs',
+    // 2026-11-15 六维补齐 T13：双支部五证结果夹具（读隔离 / 跨支部写拒绝 / N=1 等价 / 匿名归档 fail-closed / todo-groups 同判）。
+    //   daily 硬上限 31 文件已满，按「precommit / full 仍覆盖」登记（判据不丢；新增当批先红后绿）。
+    'multi-branch-five-proof.test.mjs',
     'module-compose.test.mjs',
     'module-config.test.mjs',
     'module-cycle-remind.test.mjs',

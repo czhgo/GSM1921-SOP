@@ -1,8 +1,8 @@
 ---
-title: "守卫清点与合并台账（72 → 77 → 67 件）"
+title: "守卫清点与合并台账（72 → 77 → 68 件）"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-11-15"
+last_updated: "2026-11-16"
 status: active
 ---
 
@@ -16,7 +16,7 @@ status: active
 > `test-tier-registry.mjs::countTestCases` 同口径）；覆盖文件数＝文件内出现的源码 / 文档路径字面量去重数（**粗估**，
 > 不等于运行时真正读取的文件数）；近 3 批＝`2026-10-EXECUTION_LOG.md` 的批次 506/507/508 段内是否出现该守卫名。
 
-## 一、清点总表（合并后现行 67 件）
+## 一、清点总表（合并后现行 68 件）
 
 > **批次 510（2026-10-25）**：未新增 / 删除 guard 文件；本批只做**扩展**，明细见 §七。
 > **批次 511（2026-10-25）**：仍为 68 件（H-T1…H-T5 / T3-1…T4-1 落在既有文件），明细见 §八。
@@ -27,7 +27,7 @@ status: active
 > **批次 514（2026-10-27）**：新增 **3 件**——`no-underline-guard`（4 条）、`loading-experience-guard`（6 条）、
 > `no-about-route-guard`（5 条）；件数 74 → **77**，明细见 §十一。
 
-> 合并前实点 **72 件**（批次 509 口径）。下表逐行按实读校准后，现行 **67 件 / 554 条**（批次 516 把 17 件并为 4 件，断言数不变；2026-10-28 美学专项 Task 7 按实读校准 `copy-guard` 14→16、`modal-guard` 22→20，合计仍 527 条；2026-10-28 B-500-4 结案 `data-lifecycle-guard` 15→16 ⇒ 528 条；2026-10-28 前端设计审查 `modal-guard` 增 T1 ⇒ 529 条；2026-10-28 空态全站收口 `copy-guard` 增 E1/E2 ⇒ 531 条；2026-10-28 硬编码审计 `copy-guard` 增 D1/D2、`frontend-foundations-guard` 增 F10 ⇒ 534 条；2026-10-28 批次 520 焦点与可点性收口 `ui-control-system-guard` 增 FOCUS-4/5、`hover-state-guard` 增 H8/H9、`copy-guard` 增 B1/B2 ⇒ 540 条；2026-10-29 About 冻结件新增 `about-freeze-guard` 5 条 ⇒ 545 条；2026-11-15 `close-six-dim-gaps` T10 新增 `a11y-guard` 2 条 ⇒ 554 条）；另有已合并的
+> 合并前实点 **72 件**（批次 509 口径）。下表逐行按实读校准后，现行 **68 件 / 557 条**（批次 516 把 17 件并为 4 件，断言数不变；2026-10-28 美学专项 Task 7 按实读校准 `copy-guard` 14→16、`modal-guard` 22→20，合计仍 527 条；2026-10-28 B-500-4 结案 `data-lifecycle-guard` 15→16 ⇒ 528 条；2026-10-28 前端设计审查 `modal-guard` 增 T1 ⇒ 529 条；2026-10-28 空态全站收口 `copy-guard` 增 E1/E2 ⇒ 531 条；2026-10-28 硬编码审计 `copy-guard` 增 D1/D2、`frontend-foundations-guard` 增 F10 ⇒ 534 条；2026-10-28 批次 520 焦点与可点性收口 `ui-control-system-guard` 增 FOCUS-4/5、`hover-state-guard` 增 H8/H9、`copy-guard` 增 B1/B2 ⇒ 540 条；2026-10-29 About 冻结件新增 `about-freeze-guard` 5 条 ⇒ 545 条；2026-11-15 `close-six-dim-gaps` T10 新增 `a11y-guard` 2 条 ⇒ 554 条；2026-11-15 `close-six-dim-gaps` T15 新增 `branch-resolve-single-source-guard` 3 条 ⇒ 557 条）；另有已合并的
 > 5 件（`frontmatter-freshness` / `timestamps-note-guard` / `doc-line-ref` / `gold-accent-guard` /
 > `button-system-guard`，25 条）不在表内、不计入本表合计。
 
@@ -106,6 +106,7 @@ status: active
 | `workbench-revision-contract.test.mjs` | 页面 / 契约（工作台改版） | 32 | 45 | 是 | `workbench-audit-coverage`、`ui-first-screen-order` |
 | `write-path-guard.test.mjs` | 数据 / 写链 | 4 | 3 | — | `pending-writes`、`feedback-integrity`、`write-truth-guard` |
 | `write-truth-guard.test.mjs` | 数据（写成功可证 / 去 mock 回退） | 9 | 13 | — | `localstorage-key-guard`、`pending-writes`、`mock-api-parity` |
+| `branch-resolve-single-source-guard.test.mjs` | 数据 / 路由（支部解析单源：`server/routes/**` 新增 `\|\| DEFAULT_BRANCH(_ID)` 即红；存量按文件基线只减不增；历史兼容白名单每条须有 reason） | 3 | 15 | 是 | `branch-id-literal-guard`（字面量）、`branch-resource-isolation`（读隔离结果）、`multi-branch-five-proof`（五证） |
 
 ## 二、本次合并掉的文件（5 → 3 个保留件）
 

@@ -508,10 +508,15 @@ function anchorIn(seg, id) {
 }
 
 /** 逐行抽出全部引用（含短式），并记下「引用后紧跟的括注」供二级判据用 */
-function collectRefs() {
-  const lines = read(TARGET).split(/\r?\n/);
+function collectRefsFrom(text, source = 'README-server.md', { skipFences = false } = {}) {
+  const lines = text.split(/\r?\n/);
   const refs = [];
+  let inFence = false;
   lines.forEach((line, i) => {
+    // T15：`content/**` 扩面时跳过围栏代码块（代码示例里的 `文件:行号` 不是取证引用）；
+    //   README-server 保持原口径（不跳围栏），既有 R1–R6 基线一字不动。
+    if (skipFences && /^\s*```/.test(line)) { inFence = !inFence; return; }
+    if (skipFences && inFence) return;
     const evs = [...line.matchAll(FULL_REF)].map((m) => ({ kind: '全式', file: m[1], ranges: parseRanges(m[2]), at: m.index, len: m[0].length }));
     for (const s of line.matchAll(SHORT_REF)) {
       if (evs.some((e) => s.index >= e.at && s.index < e.at + e.len)) continue; // 完整引用内部的冒号
@@ -527,12 +532,16 @@ function collectRefs() {
         .replace(/^`/, '').replace(/`$/, '')
         .split(/[。；]/)[0];
       refs.push({
-        readmeLine: i + 1, kind: e.kind, file: e.file, ranges: e.ranges, tail,
+        source, readmeLine: i + 1, kind: e.kind, file: e.file, ranges: e.ranges, tail,
         key: `${e.file}:${e.ranges.map((r) => (r.a === r.b ? String(r.a) : `${r.a}-${r.b}`)).join(',')}`,
       });
     });
   });
   return refs;
+}
+
+function collectRefs() {
+  return collectRefsFrom(read(TARGET));
 }
 
 const REFS = collectRefs();
@@ -697,6 +706,100 @@ test('R6 语义漂移防线：行为词型引用必须带可校验锚点（无�
   const weak = REFS.filter((r) => anchorsOf(r.tail).length === 0);
   assert.ok(weak.length >= 250, `无锚（弱）引用只剩 ${weak.length} 条（下限 250：批次 147 实测 348）：解析口径被改坏，R2 / R6 会变成恒真`);
   assert.ok(weak.length <= 400, `无锚（弱）引用涨到 ${weak.length} 条（上限 400：批次 147 实测 348）：括注里的可校验锚点在缩水——本批只允许逐个补锚、不许成批变弱`);
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// 三·补：`content/**` 行号引用扩面（T15 · 2026-11-15）
+// ═════════════════════════════════════════════════════════════════════════════
+//
+// 病灶（`ARCHITECTURE_EVOLUTION §10` / spec「行号引用漂移」）：`content/**` 里的 `文件:行号` 取证引用
+//   此前无任何机检，插行后指到空行或越界也无人发现。本节**复用 R1–R3 同一套解析**（不另写一份），
+//   对 `content/**` 全部 `.md` 做「文件可解析 / 行号在范围内 / 区间非空」三项硬判。
+// 存量：扩面当批实测 26 条既有失效引用，按 `CONTENT_REF_BASELINE` 登记（只减不增；修一条删一条）。
+
+/** `content/**` 全部引用（同一解析器；跳过围栏代码块——代码示例不是取证引用） */
+function collectContentRefs() {
+  const out = [];
+  (function walk(dir) {
+    for (const n of readdirSync(dir)) {
+      const f = join(dir, n);
+      if (statSync(f).isDirectory()) { walk(f); continue; }
+      if (!n.endsWith('.md')) continue;
+      out.push(...collectRefsFrom(read(f), relative(ROOT, f).replace(/\\/g, '/'), { skipFences: true }));
+    }
+  })(join(ROOT, 'content'));
+  return out;
+}
+
+const CONTENT_REFS = collectContentRefs();
+
+/** 存量失效引用基线（键＝`文档路径:引用所在行 引用键`；只减不增，修复后须同批删除） */
+const CONTENT_REF_BASELINE = [
+  'content/03_doc_system/OPERATIONS_GUIDE.md:236 BRANCH_WORK_MAP.md:423',
+  'content/03_doc_system/OPERATIONS_GUIDE.md:236 SECRETARY_DIRECTIVES.md:408',
+  'content/03_doc_system/OPERATIONS_GUIDE.md:238 OPERATIONS_GUIDE.md:1716',
+  'content/03_doc_system/OPERATIONS_GUIDE.md:238 content/02_institution/README.md:14',
+  'content/03_doc_system/TERMINOLOGY.md:36 content/01_strategy/SECRETARY_DIRECTIVES.md:302',
+  'content/03_doc_system/TERMINOLOGY.md:52 content/04_web_design/data/DATA_MODEL.md:1234',
+  'content/04_web_design/design-system/CASES.md:420 docs/src/entries/tabs/secretary/group-progress-tab.js:59,426,466',
+  'content/04_web_design/design-system/CASES.md:432 docs/src/entries/pages/activity-entry.js:712,796,803',
+  'content/04_web_design/design-system/CASES.md:72 server/test/ui-focus-ring.test.mjs:63,109',
+  'content/04_web_design/design-system/DS_03_COMPONENTS.md:1143 entries/tabs/disc/inspection-tab.js:267',
+  'content/04_web_design/design-system/DS_03_COMPONENTS.md:1155 components/governance/org-setup-wizard.js:1250,1287,1567',
+  'content/04_web_design/design-system/DS_03_COMPONENTS.md:1162 entries/tabs/org/member-flow-tab.js:419,487',
+  'content/04_web_design/design-system/DS_03_COMPONENTS.md:1164 entries/tabs/secretary/todo-tab.js:924,957',
+  'content/04_web_design/design-system/DS_03_COMPONENTS.md:1165 entries/tabs/secretary/overview-tab.js:184',
+  'content/04_web_design/design-system/DS_03_COMPONENTS.md:1168 entries/tabs/secretary/todo-tab.js:844',
+  'content/04_web_design/design-system/DS_03_COMPONENTS.md:1175 entries/tabs/disc/inspection-tab.js:281,299',
+  'content/04_web_design/design-system/DS_03_COMPONENTS.md:1176 data/api-adapter.js:919,1017',
+  'content/04_web_design/design-system/DS_03_COMPONENTS.md:513 docs/src/entries/tabs/party-committee/monitor-tab.js:32',
+  'content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md:79 entries/tabs/visitor/activities-tab.js:58,61,215',
+  'content/04_web_design/evolution/archive/BRANCH_WORK_MAP.md:153 server/test/work-map.test.mjs:36',
+  'content/04_web_design/evolution/archive/ROLE_PERMISSION_DESIGN.md:32 auth.js:114-116',
+  'content/05_ai_coding/GUARD_INVENTORY.md:186 README.md:198',
+  'content/05_ai_coding/GUARD_INVENTORY.md:186 content/README.md:24',
+  'content/05_ai_coding/GUARD_INVENTORY.md:331 ACTIVE_RULINGS.md:225',
+  'content/05_ai_coding/GUARD_INVENTORY.md:332 ACTIVE_RULINGS.md:216',
+  'content/05_ai_coding/REVIEW_AND_EXPRESSION.md:254 .ctx/SNAPSHOT.md:11',
+];
+
+/** 单条引用的问题（空串＝合格）；与 R1 同一判据，供 R7 与自检共用 */
+function contentRefProblem(r) {
+  const abs = resolveRef(r.file);
+  if (!abs) return '文件解析不到（既不在仓库内按该路径存在，也不是唯一 basename）';
+  const src = read(abs).split(/\r?\n/);
+  for (const g of r.ranges) {
+    if (g.a < 1 || g.b < g.a) return `行号区间非法（${g.a}-${g.b}）`;
+    if (g.b > src.length) return `行号越界（该文件实 ${src.length} 行，引用到 ${g.b}）`;
+    if (!src.slice(g.a - 1, g.b).some((s) => s.trim())) return `指向空行（区间 ${g.a}-${g.b} 全是空行）`;
+  }
+  return '';
+}
+
+test('R7 `content/**` 的 `文件:行号` 引用指到真实位置（存量 26 条按基线只减不增）', () => {
+  // 非空转：扩面后必须有规模，否则判据可能被扫描面写坏
+  assert.ok(CONTENT_REFS.length >= 150,
+    `只解析到 ${CONTENT_REFS.length} 条 content/** 引用（基线 150：T15 扩面实测 195）：扫描面被改坏，本节会变成恒真`);
+
+  const violations = new Map();
+  for (const r of CONTENT_REFS) {
+    const problem = contentRefProblem(r);
+    if (problem) violations.set(`${r.source}:${r.readmeLine} ${r.key}`, problem);
+  }
+
+  const base = new Set(CONTENT_REF_BASELINE);
+  const fresh = [...violations.entries()].filter(([k]) => !base.has(k)).map(([k, v]) => `${k} → ${v}`);
+  assert.deepEqual(fresh, [],
+    `content/** 的 \`文件:行号\` 引用失效（新增 / 漂移；请改行号或改准引用）：\n  ${fresh.join('\n  ')}`);
+
+  const healed = [...base].filter((k) => !violations.has(k));
+  assert.deepEqual(healed, [],
+    `以下基线引用已不再失效（已修复或引用被删除）：请同批从 CONTENT_REF_BASELINE 删除（只减不增）：\n  ${healed.join('\n  ')}`);
+
+  // 反例：真实文件的越界引用必须被判出（证明判据不是恒真）
+  const probe = collectRefsFrom('见 `server/app.js:999999`。', 'content/probe.md')[0];
+  assert.ok(probe, '自检引用未被解析出来');
+  assert.match(contentRefProblem(probe), /行号越界/, '注入的越界引用未被判出 ⇒ 判据恒真');
 });
 
 // ═════════════════════════════════════════════════════════════════════════════

@@ -3,7 +3,7 @@ title: "架构演进——组件化落地评估与轻量插件化设计"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-22
-last_updated: "2026-11-15"
+last_updated: "2026-11-16"
 status: active
 related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../module/PUBLIC_ENTRANCE.md, ../../03_doc_system/ARCHITECTURE.md, ../../05_ai_coding/README.md]
 ---
@@ -294,6 +294,32 @@ related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../mod
 | 匿名归档读口收紧（步 3） | `archive-record-write`、`public-portal`、`public-write-closure`、`mock-api-parity`、`data-lifecycle-guard` |
 | view 只读门（步 4） | `write-policy-gaps`、`write-truth-guard`、`permission-gate`、`r3-data-permission-regression`、`security-redteam` |
 | 待议池 | 丙部当前无相关待裁；在办项影响面涉及 `B-500-7b-2`（待办派生单源），施工前须先确认其前置读数不因步 2 变化 |
+
+### 10.10 T13 / T15 施工进度（2026-11-15 本批收口）
+
+> **本节回答**：`§10.9` 的五步做到哪一步、改了哪些文件、还剩哪些文件按「逐文件」节奏继续。判据＝双支部五证夹具全绿（`server/test/multi-branch-five-proof.test.mjs`）＋ 单源守卫绿（`server/test/branch-resolve-single-source-guard.test.mjs`）。
+
+**已完成（本批）**
+
+| 步 | 文件 | 改法 |
+|---|---|---|
+| 1 | `server/routes/resources/branch-scope.js` | 新增 `resolveRowBranchId`（行级）与 `resolveBranchIdForActor`（请求级）两个解析入口；缺字段回落改为 `LEGACY_DEFAULT_BRANCH_FALLBACK` 白名单（每条带 reason）；未登记域解析不出即 `null` |
+| 2 | `server/routes/todo-groups.js` | 删 `_scopeBranchId` / `_belongsTo` 自带判据，改调上表两个函数；`_visibleTodos` 直接复用 `resourceRowsForActor`（与 `GET /todos` 同判） |
+| 3 | `server/routes/resources/branch-scope.js` | 删 `!targetBranchId ⇒ return rows` 失败开放；匿名 / 无支部上下文只放行 `publishScope='public'` 且未过期的党委行 |
+| 3 | `server/routes/report.js` | 三处 `actorBranchId(...) \|\| req.query.branchId \|\| null` 收敛为 `resolveBranchIdForActor`（口径不变） |
+| 5 | `server/test/branch-resolve-single-source-guard.test.mjs` | 常驻守卫：`server/routes/**` 新增 `\|\| DEFAULT_BRANCH(_ID)` 即红，存量按文件基线只减不增 |
+| 5 | `server/test/docs-governance-guard.test.mjs` | 行号引用校验扩面到 `content/**`（复用 R1 同一解析；存量 26 条失效引用登记基线，只减不增） |
+
+**未完成（后续批次；按文件逐条替换，不一次性改全仓）**
+
+| 面 | 现状 | 处理 |
+|---|---|---|
+| `server/routes/**` 其余回落 | 13 文件 / 87 处（含 `branch-scope.js` 自身 7 处历史口径） | 按 `branch-resolve-single-source-guard::BRANCH_FALLBACK_BASELINE` 逐文件递减；改一处同批减一处 |
+| `docs/**` 回落 | 77 处 / 30 文件（页面侧投影） | 未经本批改动；待服务端读面收敛后另批 |
+| 步 4 党委 view 只读门 | 未做（T14） | 新增 `server/branch-view.js` 后同批登记 `write-policy-matrix` 141 → 143 |
+| `branch-roster.js::branchHasHistory` | SQL `IFNULL(..., 缺省支部)` 仍按缺省支部计历史（10.7-5） | 随 `branch-roster.js` 的 2 处回落一起改 |
+
+**读数（本批实测）**：五证夹具 6/6 绿（含 N=1 bootstrap 摘要 `a308adac0dae3cbd` 与改造前一致）；`test:daily` 254 断言全绿（31 文件 / 87.8s）；单源守卫 3 条绿；`content/**` 行号扩面 R7 绿（195 条引用 / 26 条存量基线）。
 
 ---
 
