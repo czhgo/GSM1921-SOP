@@ -2,7 +2,7 @@
 title: "CLAUDE — 项目宪法与路由"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-14"
+last_updated: "2026-11-15"
 status: active
 ---
 
@@ -51,7 +51,7 @@ status: active
 
 ### H20.3 收尾（每批必做）
 
-1. **commit 主记录**：本批产出 1–3 个按逻辑拆分的 commit（按目录 / 层拆；能否干净拆分决定个数，禁止为凑数改 hunk）；message 按模板 `批次号｜为什么｜改动面｜验证读数｜D/任务号`，body 写关键验证命令与回滚方式；改动事实以 `git show <hash>` 为准（`H26.1`）。**禁止为回填 hash 追加第二个 commit**；收尾跑 `node server/scripts/check-batch-commits.mjs` 自检（不接入 daily）。
+1. **commit 主记录**：默认**一批一条** commit；确需拆分时最多两条（跨批或独立回滚点），第二条必须以 `批次 N 续：…` / `批次 N 更正：…` 开头，**不得出现两条都以 `批次 N｜` 开头**。message 按模板 `批次 N｜为什么｜改动面｜验证读数｜D/任务号`，body 写关键验证命令与回滚方式；改动事实以 `git show <hash>` 为准（`H26.1`）。**禁止为回填 hash 追加第二个 commit**；收尾跑 `node server/scripts/check-batch-commits.mjs` 自检（不接入 daily）。
 2. **执行日志**：只写「为什么 / 拿不准 / 边界 / 读数」，不复述逐文件 diff / 改动清单，**不写 commit hash**；改动事实用 `git log --grep "批次 N｜"` 检索。
 3. **决策日志**：追加新 `D-xxx`（如有裁定）。
 4. **刷新投影**：`.ctx/ACTIVE_CONTEXT.md`（状态 / 风险 / 下一步 / `latest_decision`）；`.ctx/SNAPSHOT.md` 仅结构变化时更新；`.ctx/TIMESTAMPS.md` 登记改过的文件。
@@ -306,8 +306,8 @@ status: active
 
 | 目标批次 | 条目 | 一句话 | 判据 / 出处 | 状态 |
 |---|---|---|---|---|
-| 评分达标后 | B-500-7b-2 | 完整 Plan B 收尾：客户端业务派生摘除（默认路径已切服务端）＋ 读面前置解耦 ＋ 缓存 / 性能。**前置已达**：7 类对账 8/8、双支部夹具、daily 246 断言（结果门禁）全绿；**不以上线为前提**，测试门全绿即可启动 | 六维均 ≥80 后启动（当前 81 / 78 / 78 / 83 / 78 / 76）；`server/routes/todo-groups.js`、`docs/src/components/record/todo-tab-shell.js`、`server/test/todo-derive-parity.test.mjs` | 待启动 |
-| 评分达标后 | B-522-1 | 低密度卡与空态页：低密度等尺寸卡按内容收窄 / 合并；「今天」「归档」首屏空白补最近动态与下一步动作（旧 spec harden-interface-quality Task 8） | 六维均 ≥80 后启动（当前 81 / 78 / 78 / 83 / 78 / 76）；台账见 `.trae/specs/harden-interface-quality/tasks.md` Task 8 指针 | 待启动 |
+| 评分达标后 | B-500-7b-2 | 完整 Plan B 收尾：客户端业务派生摘除（默认路径已切服务端）＋ 读面前置解耦 ＋ 缓存 / 性能。**前置已达**：7 类对账 8/8、双支部夹具、daily 246 断言（结果门禁）全绿；**不以上线为前提**，测试门全绿即可启动 | 六维均 ≥80 后启动（2026-11-15 批次 553 重评：76 / 68 / 72 / 70 / 72 / 65，均未达标）；`server/routes/todo-groups.js`、`docs/src/components/record/todo-tab-shell.js`、`server/test/todo-derive-parity.test.mjs` | 待启动 |
+| 评分达标后 | B-522-1 | 低密度卡与空态页：低密度等尺寸卡按内容收窄 / 合并；「今天」「归档」首屏空白补最近动态与下一步动作（旧 spec harden-interface-quality Task 8） | 六维均 ≥80 后启动（2026-11-15 批次 553 重评：76 / 68 / 72 / 70 / 72 / 65，均未达标）；台账见 `.trae/specs/harden-interface-quality/tasks.md` Task 8 指针 | 待启动 |
 
 # 丙部：待决策事项
 

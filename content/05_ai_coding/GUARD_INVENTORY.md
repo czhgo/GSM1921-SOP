@@ -2,7 +2,7 @@
 title: "守卫清点与合并台账（72 → 77 → 66 件）"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-11-08"
+last_updated: "2026-11-15"
 status: active
 ---
 
@@ -385,4 +385,15 @@ status: active
 
 > **口径**：F1 以 `TAB_BLOCK_BASELINE` 登记为准，DOM measured 仅复核；C1 的 `requireAuth` 通用写口记 `exception`（系统性风险，回链 `ENGINEERING_ASSESSMENT` 阻断风险 2）；C2 在 `:memory:` 临时库做 create → 回读 → PATCH → 校验 → DELETE，破坏性流程不真删并记 `exception` ＋ `reason`；E1 只在 p95 或 bytes 超预算比例时报 P2。全量 45 页签口径为 **P0 0 / P1 0 / P2 4 / exception 29**。
 > **指针**：使用手册 `content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md`；规范映射 `DS_06_LAYOUT_AND_DENSITY.md` §五。
+
+## 十二、2026-11-15 批次 553 新增 / 扩展（以 `test-tier-registry.mjs` 为准）
+
+| 守卫 | 本批变更 | 断言数 | 覆盖 / 非空转 |
+|---|---|---:|---|
+| `mock-import-guard.test.mjs` | **新增**：`services/**` 与 `components/**` 不得 `import { … PEOPLE … } from data/mock/(people|index)`（`H32`）；白名单 6 处逐条给理由 | 2 | 扫描 ≥120 文件；命中原 `visibility.js` / `secretary-overview.js` |
+| `roster-denominator-guard.test.mjs` | **新增**：党小组会缺小组语境时，分母必须回退支部在册、覆盖率不得恒 100% | 1 | 与 `getMeetingRosterIds` 同源断言 |
+| `date-canon-guard.test.mjs` | **扩展 D1b**：禁止 `toISOString().split('T')[0]`（测试夹具除外） | +1 | 扫描 ≥180 文件 |
+
+> **件数口径**：本表历史总表停在 66 件，已滞后；**现行件数与断言数以 `server/test-tier-registry.mjs` 为唯一事实源**（本批 `guardsFiles` ＝ 107 文件、`GUARDS_TEST_BUDGET` ＝ 848）。本批未逐行重算历史总表，避免制造第二份计数。
+
 

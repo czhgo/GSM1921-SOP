@@ -207,11 +207,12 @@ export function deleteActivity(id) {
     if (!existed) {
       throw Object.assign(new Error(`活动 ${id} 不存在`), { type: 'NotFoundError' });
     }
+    const target = mockDB.activities.find(a => a.id === id);
     const apiMode = getDataSource() === 'api';
     if (apiMode) await getAdapter().activities.delete(id);
     mockDB.activities = mockDB.activities.filter(a => a.id !== id);
     bumpToken('activity'); // P0：活动删除写口 bump
-    const changedCollections = _purgeActivityChildren(id);
+    const changedCollections = _purgeActivityChildren(id, target);
     if (apiMode) {
       // 后端 DELETE 已原子清理服务器数据；此处只留本地备份，再按服务端权威数据刷新缓存/版本基线。
       MockAdapter.saveDB();
@@ -225,7 +226,7 @@ export function deleteActivity(id) {
 }
 
 /** 清理活动的全部关联子记录并返回被修改的数据域。 */
-function _purgeActivityChildren(activityId) {
+function _purgeActivityChildren(activityId, target) {
   const changed = new Set();
   for (const key of ['tasks', 'attendances', 'inspections', 'assignments', 'activityReviews', 'makeupTasks', 'archiveRecords', 'fileSpaceRecords', 'imageRecords']) {
     if (Array.isArray(mockDB[key])) {
@@ -245,10 +246,29 @@ function _purgeActivityChildren(activityId) {
       changed.add(key);
     }
   };
-  filterChanged('signups', (s) => s.sourceType === 'activity' && s.sourceId === activityId);
+  // D-876（2026-11-15）：报名与表决留痕不得物理删除——保留行并写活动快照。
+  const snapshot = target ? {
+    id: target.id,
+    title: target.title || null,
+    date: target.date || null,
+    type: target.type || null,
+    scenarioId: target.scenarioId || null,
+    deletedAt: new Date().toISOString(),
+  } : null;
+  const stampSnapshot = (key, predicate) => {
+    if (!snapshot || !Array.isArray(mockDB[key])) return;
+    let hit = false;
+    mockDB[key] = mockDB[key].map((row) => {
+      if (!predicate(row)) return row;
+      hit = true;
+      return { ...row, activitySnapshot: snapshot };
+    });
+    if (hit) changed.add(key);
+  };
+  stampSnapshot('signups', (s) => s.sourceType === 'activity' && s.sourceId === activityId);
   filterChanged('notices', (n) => n.targetType === 'activity' && n.targetId === activityId);
   filterChanged('todos', (t) => t.sourceType === 'activity' && t.sourceId === activityId);
-  filterChanged('agendaVotes', (v) => v.activityId === activityId);
+  stampSnapshot('agendaVotes', (v) => v.activityId === activityId);
   // R9 Task 4.3：删除活动 = 工作组按同一投影移除（成员 / 授权 / 任务 / 产出一并清理；
   //   其他工作组里仅解除 activityId 引用，历史保留）。
   const workgroupIds = activityWorkgroupIdsForDelete(mockDB.workgroups, activityId);

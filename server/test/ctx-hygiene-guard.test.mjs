@@ -238,7 +238,7 @@ test('⑩ CLAUDE.md H20.3 收尾：next_prompt 六要素与 commit 模板齐备�
     ['commit hash', 'next_prompt ⑥：本批 commit hash'],
     ['未输出 next_prompt 视为工作未完成', '缺「未输出 next_prompt 视为工作未完成」硬约束'],
     ['丙部有未决', '缺「丙部有未决必须逐条列出」'],
-    ['批次号｜为什么｜改动面｜验证读数', '缺 commit message 模板（批次号｜为什么｜改动面｜验证读数｜D/任务号）'],
+    ['批次 N｜为什么｜改动面｜验证读数', '缺 commit message 模板（批次 N｜为什么｜改动面｜验证读数｜D/任务号）'],
   ];
   for (const [needle, desc] of required) {
     assert.ok(section.includes(needle), `H20.3 缺 ${desc}（关键词「${needle}」）`);

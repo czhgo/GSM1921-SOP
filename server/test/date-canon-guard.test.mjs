@@ -25,6 +25,8 @@ const ROOT = join(import.meta.dirname, '..', '..');
 const SELF = join(import.meta.dirname, 'date-canon-guard.test.mjs');
 // ⚠ 目标串**拼接**而成：本文件自身不得出现该字面（否则自命中）
 const RE = new RegExp('toISOString\\(\\)\\.slice\\(0,\\s*' + '10\\)');
+// D1b（2026-11-15 批次 553）：同族逃逸——`toISOString().split('T')[0]`
+const RE_SPLIT = new RegExp('toISOString\\(\\)\\.' + "split\\('T'\\)");
 
 function walk(dir, out = []) {
   for (const n of readdirSync(dir)) {
@@ -52,6 +54,25 @@ test('D1 日期口径：应用面（docs/src ＋ server）不得用 UTC 切串�
   assert.deepEqual(hits, [], '应用面仍在用 UTC 切串取「今天」——应改为本地口径'
     + '（前端 `core/base/date.js::todayLocal()`；服务端 `services/reporting.js::today()` / `fmtLocal()`）：\n  '
     + hits.join('\n  '));
+});
+
+test('D1b 日期口径：应用面不得用 toISOString().split 取日（批次 553 补漏）', () => {
+  const hits = [];
+  let scanned = 0;
+  for (const dir of [join(ROOT, 'docs', 'src'), join(ROOT, 'server')]) {
+    for (const f of walk(dir)) {
+      if (f === SELF) continue;
+      // server/test/** 允许用 UTC 构造夹具日期（不是应用口径）
+      if (f.includes(`${join('server', 'test')}`)) continue;
+      scanned += 1;
+      readFileSync(f, 'utf8').split(/\r?\n/).forEach((line, i) => {
+        if (line.trim().startsWith('//')) return;
+        if (RE_SPLIT.test(line)) hits.push(`${f.slice(ROOT.length + 1).replace(/\\/g, '/')}:${i + 1}`);
+      });
+    }
+  }
+  assert.ok(scanned >= 180, `只扫到 ${scanned} 个文件（基线 180）：扫描面被写坏，D1b 会变恒真`);
+  assert.deepEqual(hits, [], '应用面仍在用 toISOString().split 取「今天」——应改为本地口径：\n  ' + hits.join('\n  '));
 });
 
 test('D2 非空转：本地口径单一源在位（前端零依赖叶子 ＋ 服务端单一源 ＋ constants 叶子不变量）', () => {

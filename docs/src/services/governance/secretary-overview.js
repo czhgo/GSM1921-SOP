@@ -15,8 +15,7 @@ import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20
 import { NoticeStore } from './notice.js?v=20261110b';
 import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20261110b';
 import { tokenOf } from '../../core/base/version-token.js?v=20261110b'; // P0 域缓存失效（spec §二.3/§二.4）
-import { PEOPLE } from '../../data/mock/index.js?v=20261110b';
-import { getPersonById } from '../member/person.js?v=20261110b';
+import { getPersonById, PersonStore } from '../member/person.js?v=20261110b';
 import { ROLE_LABELS, isActivityEnded, isActivityArchived, isActivityInProgress } from '../../core/domain/constants.js?v=20261110b';
 import { mockDB, AttendanceStatus, ReviewStatus, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261110b';
 import { persist } from '../../data/data-adapter.js?v=20261110b'; // 周期归档审核写口落盘（SOP-B-40 ②）
@@ -168,7 +167,7 @@ export const SecretaryOverviewStore = {
 
     const result = this.PERSON_ROLES.map(cfg => {
       const role = cfg.role;
-      const people = PEOPLE.filter(p => p.role === role);
+      const people = PersonStore.getMembers().filter(p => p.role === role);
       const personIds = people.map(p => p.id);
       const personIdSet = new Set(personIds);
 
@@ -287,7 +286,7 @@ export const SecretaryOverviewStore = {
     // 各阶段全量人数（50 人规模，2026-08-01 口径修正：按人员库全量统计，非"有考察记录者"）
     // 2026-08-01 身份四阶段：申请人并入积极分子，无独立 applicant 档
     const stageCounts = { activist: 0, target: 0, probationary: 0, full: 0 };
-    for (const p of PEOPLE) {
+    for (const p of PersonStore.getMembers()) {
       const stage = p.developStage;
       if (stage === '积极分子') stageCounts.activist++;
       else if (stage === '发展对象') stageCounts.target++;
@@ -524,7 +523,7 @@ export const SecretaryTodoDeriver = {
     //   （判据＝原 `getOverdueRecords` 逐条：pending + 未打回 + 距今 > overdueDays）。
     const group = deriveInspectionRemindGroup({
       inspectionRecords: loadInspectionRecords(),
-      persons: PEOPLE,
+      persons: PersonStore.getMembers(),
       today: _today(),
     });
     return group ? [group] : [];

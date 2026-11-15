@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-876`，共 50 条**；下一条自 **`D-877`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-877`，共 51 条**；下一条自 **`D-878`**。
 
 ## 本月目录（2026-11）
 
@@ -70,6 +70,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | D-873 复核：三处块数 10/14/9 为探针误报，改探针计块口径、基线不改 | `D-874` | 2026-11-14 | 已落（批次 550） |
 | 提交 / 分支 / 台账三项纪律：单批 1–3 commit、日志不落 hash；达标后合并回 main；乙部 ≥80 门槛 | `D-875` | 2026-11-14 | 已落（批次 551） |
 | 删活动保留报名 / 表决留痕行 + 活动快照 | `D-876` | 2026-11-15 | 已落（批次 552） |
+| 六维按行业基线严格重评：76 / 68 / 72 / 70 / 72 / 65，均 <80 ⇒ 不合并 | `D-877` | 2026-11-15 | 已落（批次 553） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -463,5 +464,9 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 
 > **评议 → 裁定 → 落点**：跨层专项发现活动删除事务级联物理删除 `signups` 与 `agenda_votes`，与既有判据「报名记录须保留；只能撤回 / 取消 / 作废，不得物理删除」冲突。支书裁定取「**保留留痕行 + 快照**」：删除活动时两类行不删，同事务写入 `activitySnapshot { id, title, date, type, scenarioId, deletedAt }`，活动本身仍可物理删除；匿名表决仍不得出现 `personId→选项` 映射。**未选**：禁止删除有记录的活动（支书误建时清理成本过高）；活动软删除（读口 / 导出 / 统计全要加过滤，改动面最大）。落点：`server/routes/resources/index.js::deleteActivityCascade`、`docs/src/data/mock-adapter.js`（前端 mock 同口径）、`README-server.md §5.5/§6.1`、`content/04_web_design/data/DATA_MODEL.md`、`server/test/activity-delete.test.mjs`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-876`**（共 **50** 条）。
+## D-877 2026-11-15 — 六维按行业基线严格重评（门槛不降，本批不合并）
+
+> **评议 → 裁定 → 落点**：支书令「重新探查评分，用行业要求约束，做到批判性、严格、不过度自信，该下调就下调；门槛不降」。按 `ENGINEERING_ASSESSMENT §一 行业基线` 重打：业务 **76**（81→76）、安全 **68**（78→68）、体验 **72**（78→72）、测试 **70**（83→70）、架构 **72**（78→72）、部署 **65**（76→65），**六维均 <80 ⇒ 不满足 `H20.5`，未合并回 main**。硬扣分：`npm audit --omit=dev` 4 条（1 critical `proxy-addr` / 2 high `body-parser`·`nodemailer` / 1 moderate `qs`）；CI 仅 `daily.yml`（precommit/full/audit 未进 CI）；`test:full` 1489s > H25 1200s；`L-02` Linux 真机未验；无 observability；无 a11y 常驻守卫；双算派生未摘（`B-500-7b-2`）。**未选**：维持旧分（掩盖 critical 依赖与 CI 缺口）；为凑合并门槛上调（违背支书「该降就降」）。落点：`ENGINEERING_ASSESSMENT §一/§二`、`.ctx/ACTIVE_CONTEXT.md §1/§3`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-877`**（共 **51** 条）。
 

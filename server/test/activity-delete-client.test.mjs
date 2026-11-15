@@ -48,7 +48,7 @@ test('API 模式的活动删除使用服务端级联删除端点', async () => {
   }
 });
 
-test('mock 模式的活动删除清除报名、表决、补充记录和关联业务域', async () => {
+test('mock 模式的活动删除清除关联业务域，但保留报名与表决留痕（D-876）', async () => {
   const id = 'act-delete-mock';
   const other = 'act-keep-mock';
   const keys = ['activities', 'tasks', 'attendances', 'inspections', 'assignments', 'activityReviews',
@@ -71,10 +71,14 @@ test('mock 模式的活动删除清除报名、表决、补充记录和关联业
     for (const key of ['tasks', 'attendances', 'inspections', 'assignments', 'activityReviews', 'makeupTasks', 'archiveRecords', 'fileSpaceRecords', 'imageRecords']) {
       assert.deepEqual(mockDB[key].map((row) => row.activityId), [other], `${key} should retain only the unrelated activity`);
     }
-    assert.deepEqual(mockDB.signups.map((row) => row.sourceId), [other]);
+    const keptSignups = mockDB.signups.filter((row) => row.sourceId === id);
+    assert.equal(keptSignups.length, 1, '报名留痕应保留');
+    assert.equal(keptSignups[0].activitySnapshot?.id, id, '报名留痕应带活动快照');
     assert.deepEqual(mockDB.notices.map((row) => row.targetId), [other]);
     assert.deepEqual(mockDB.todos.map((row) => row.sourceId), [other]);
-    assert.deepEqual(mockDB.agendaVotes.map((row) => row.activityId), [other]);
+    const keptVotes = mockDB.agendaVotes.filter((row) => row.activityId === id);
+    assert.equal(keptVotes.length, 1, '表决留痕应保留');
+    assert.equal(keptVotes[0].activitySnapshot?.id, id, '表决留痕应带活动快照');
     assert.deepEqual(Object.keys(mockDB.actSubRecords), [other]);
   } finally {
     for (const key of keys) mockDB[key] = previous[key];
@@ -96,7 +100,11 @@ test('MockAdapter 活动删除接口与 BranchService 保持相同级联口径',
   try {
     await MockAdapter.activities.delete(id);
     assert.deepEqual(mockDB.activities, []);
-    for (const key of keys.slice(1, -1)) assert.deepEqual(mockDB[key], [], `${key} should be removed`);
+    for (const key of ['todos', 'archiveRecords', 'fileSpaceRecords', 'imageRecords']) {
+      assert.deepEqual(mockDB[key], [], `${key} should be removed`);
+    }
+    assert.equal(mockDB.agendaVotes.length, 1, 'agendaVotes should be kept（D-876 留痕）');
+    assert.equal(mockDB.agendaVotes[0].activitySnapshot?.id, id, 'agendaVotes 应带 activitySnapshot');
     assert.deepEqual(mockDB.actSubRecords, {});
   } finally {
     for (const key of keys) mockDB[key] = previous[key];

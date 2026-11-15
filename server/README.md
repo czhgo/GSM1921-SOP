@@ -85,8 +85,8 @@ node scripts/backup.mjs --out /srv/bak/20260923
 - **全量跑**：`npm run test:full`（＝`SWEEP_SHARD=all`，含 weekly 慢速普查；**不再等价 `test:precommit`**——后者按四层依次跑 daily → guards → precommit 域回归 ＋ e2e，不含 weekly）——脚本注入 `DISABLE_PASSWORD_CHECK=1` 后执行 `node --test --test-concurrency=1`，自动发现 `server/test/` 下全部 `*.test.{js,mjs}`。纯 node 部分沙箱环境即可运行；浏览器类/E2E（Playwright）需在常规终端运行（依赖见下文 Playwright 条）。**发布前 / 大批改动跑。** ⚠ **降频（2026-10-05 支书令；同日改准为 5–6）**：「跑全量 probe 一定要减少频率，否则效率太低」⇒ **全量不必每批跑，按 5–6 个 commit 累积一次**；其间每批只跑「**覆盖本批改动面的分片**（`$env:SWEEP_SHARD=<k>; npm test`）＋ `npm run test:guards`」。
 - **子集回归**：`npm run test:core`（核心流程：议程/表决、成员变更、多端写入、模块加载、帮助 E2E 等）与 `npm run test:fast`（基础单元 + 目录/链接审计等快速项）按子集加速回归，文件清单见 `server/package.json` 的 scripts。
 - **四层测试（2026-11-08 批次 537 支书裁定「结果优先、守卫按需」）**——分层单一源＝`server/test-tier-registry.mjs`，runner 统一走 `scripts/tier-runner.mjs`（跨平台，环境变量在 runner 内注入，不再用 `set X=1&&`）：
-  - **日常（改代码时）：`npm run test:daily`** —— 只跑**结果门禁**：服务启动 / 登录与会话 / 权限与写门 / 数据契约与迁移 / 核心业务结果（党委内容、公开门厅、名册、考勤、待办派生）/ 构建可运行。当前 **27 文件 / 207 断言**（2026-11-08 波次 A 由 43 文件收口，依据 `D-859`「结果优先、守卫按需」＋ 波次 A 瘦身计划：静态守卫迁 guards、非核心结果回归迁 precommit）。分层只决定「哪一层跑」：precommit / full 仍覆盖全部文件，**没有任何测试或断言被删除**。
-  - **静态守卫（按需）：`npm run test:guards`** —— 样式 / 字号 / 间距 / 颜色 / 动效 / 结构 / 文案 / 文档 / 行号 / 页签密度，共 **99 文件 / 791 断言**。改样式或文档时跑；`npm run test:changed` 按 `git diff --name-only` 自动选（改 `docs/` → UI 守卫；改 `content/` → 文档守卫；改 `server/` → daily）。
+  - **日常（改代码时）：`npm run test:daily`** —— 只跑**结果门禁**：服务启动 / 登录与会话 / 权限与写门 / 数据契约与迁移 / 核心业务结果（党委内容、公开门厅、名册、考勤、待办派生）/ 构建可运行。当前 **29 文件 / 246 断言**（2026-11-08 波次 A 由 43 文件收口，依据 `D-859`「结果优先、守卫按需」＋ 波次 A 瘦身计划：静态守卫迁 guards、非核心结果回归迁 precommit；2026-11-15 批次 553 读数）。分层只决定「哪一层跑」：precommit / full 仍覆盖全部文件，**没有任何测试或断言被删除**。
+  - **静态守卫（按需）：`npm run test:guards`** —— 样式 / 字号 / 间距 / 颜色 / 动效 / 结构 / 文案 / 文档 / 行号 / 页签密度，共 **107 文件 / 824 断言**（2026-11-15 批次 553 读数：`474 ＋ 350`；registry 静态 `test()` 预算 848）。改样式或文档时跑；`npm run test:changed` 按 `git diff --name-only` 自动选（改 `docs/` → UI 守卫；改 `content/` → 文档守卫；改 `server/` → daily）。
   - **提交前 / 发布前：`npm run test:precommit`** —— 依次跑 daily → guards → precommit 层（非核心域回归 ＋ Playwright e2e）；**环境缺 Playwright 时明确报错退出 2，不跳层、不假绿**。
   - **发布前全量：`npm run test:full`** —— `run-suite.mjs` 全目录（含 weekly 慢速普查 `click-cost` / `copy-screen-guard`）。
   - ⚠ **日常档不含「形态断言」那几项**：`getRuntimeMode()` 形态断言落在 **P 类真机文件**（`form-loop-sweep` / `page-sweep` / `multi-user-write`），改到**真机交互 / 数据源形态 / 登录会话**时，直接跑 `test:precommit` 或用下面的**降频开关**定向跑真机。
@@ -117,8 +117,8 @@ node scripts/backup.mjs --out /srv/bak/20260923
   |---|---|---|---|
   | `npm run test:fast` | 23 文件 / **102 项** | **≈35 秒** | 基础单元 ＋ 全站目录 / 链接 / 文案 / 数据库守卫；改文档或小改后先跑 |
   | `npm run test:core` | 8 文件 / **36 项** | **≈96 秒** | 议程 / 表决、成员变更、多端写入、模块加载、帮助 E2E；改核心流程 |
-  | `npm run test:daily` | **27 文件 / 207 断言** | **≈61 秒**（并发 4；2026-11-08 波次 A 三次取样 60.9 / 67.8 / 61.2 秒） | **结果门禁**：运行 / 登录 / 权限 / 写门 / 数据契约 / 迁移 / 核心业务结果；**改代码时的日常档** |
-  | `npm run test:guards` | **99 文件 / 791 断言** | **≈90–120 秒**（并发 4） | **静态守卫**：样式 / 字号 / 颜色 / 动效 / 结构 / 文案 / 文档 / 行号 / 页签密度；**改样式 / 文档时跑** |
+  | `npm run test:daily` | **29 文件 / 246 断言** | **≈70 秒**（并发 4；2026-11-08 波次 A 三次取样 60.9 / 67.8 / 61.2 秒） | **结果门禁**：运行 / 登录 / 权限 / 写门 / 数据契约 / 迁移 / 核心业务结果；**改代码时的日常档** |
+  | `npm run test:guards` | **107 文件 / 824 断言** | **≈114 秒**（并发 4） | **静态守卫**：样式 / 字号 / 颜色 / 动效 / 结构 / 文案 / 文档 / 行号 / 页签密度；**改样式 / 文档时跑** |
   | `npm run test:precommit` | daily ＋ guards ＋ 域回归 ＋ **36 个 e2e** | **≈20–25 分钟**（e2e 串行） | **提交前 / 发布前**；缺 Playwright 明确报错（退出 2），不跳层 |
   | `npm test`（**分片档**） | 非 e2e 全量 ＋ 本片 e2e | **425–510 秒（≈7–8.5 分钟）** | **单片墙钟 ≤10 分钟**；默认片 1，`SWEEP_SHARD` 选片；**收尾按改动面选片**。**2026-10-03 四片实测**：773 / 780 / 806 / 782 项，**全绿** |
   | `npm run test:full`（全量） | 全目录（含 weekly 普查） | **≈23 分钟** | 含 **38 个 e2e 文件**（含两个真机普查）＋ 两个需 3000 服务的文件（`b3-1` 已自托管）；**发布前 / 大批改动跑** |

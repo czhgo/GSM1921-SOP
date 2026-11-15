@@ -71,11 +71,11 @@ export const DAILY_TEST_BUDGET = 245;
 
 /** guards 文件数预算（静态守卫；按需跑，不阻塞日常）
  *  2026-11-08 波次 A：daily 迁入 6 件 ⇒ 实测 99 文件，按 99 登记。 */
-export const GUARDS_FILE_BUDGET = 105;
+export const GUARDS_FILE_BUDGET = 107;
 
 /** guards 静态 `test(` / `it(` 调用点预算
  *  2026-11-08 波次 A：实测 788 断言，按 791 登记（断言留 3 条余量）。 */
-export const GUARDS_TEST_BUDGET = 842;
+export const GUARDS_TEST_BUDGET = 848;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -236,6 +236,8 @@ export const TEST_TIERS = [
     'ctx-hygiene-guard.test.mjs',
     'data-lifecycle-guard.test.mjs',
     'date-canon-guard.test.mjs',
+    'mock-import-guard.test.mjs',
+    'roster-denominator-guard.test.mjs',
     'demo-window-guard.test.mjs',
     'doc-consistency.test.mjs',
     'docs-governance-guard.test.mjs',
