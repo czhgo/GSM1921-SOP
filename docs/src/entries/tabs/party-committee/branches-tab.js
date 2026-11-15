@@ -7,6 +7,8 @@ import { PersonStore } from '../../../services/member/person.js?v=20261110b';
 import { createBranch } from '../../../services/branch/branch.js?v=20261110b';
 import { getRosterStats } from '../../../services/member/roster.js?v=20261110b';
 import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261110b';
+// T3：运维健康读数失败时按既有单一源翻译成一句人话（`workbench-revision-contract` 钉住上一行 import 形态，故单列一行）
+import { describeWriteError } from '../../../core/base/utils.js?v=20261110b';
 import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261110b';
 import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261110b';
 import { DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261110b';
@@ -81,6 +83,78 @@ function branchRosterRow(branchId) {
   row.dataset.branchRosterFor = branchId;
   row.innerHTML = `<td colspan="10" class="bg-gray-50 p-3">${renderBranchRosterRows(branchId)}</td>`;
   return row;
+}
+
+/**
+ * 运维健康读数（T3 · 六维补齐 M1「坏了能查」）。
+ * 数据只经 `api-adapter` 门面（`H32`）：浅检查 / 深检查 / 最小指标集三读口。
+ * 深检查失败时服务端回 503，门面抛出的错误带 `.body`（含降级项），据此展示原因而不是只说「加载失败」。
+ */
+const OPS_CHECK_LABELS = {
+  'db-read': '数据库可读',
+  'schema-version': '迁移版本',
+  'backup-dir-writable': '备份目录可写',
+};
+
+function formatHealthTime(iso) {
+  if (!iso) return '';
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? '' : date.toLocaleString('zh-CN', { hour12: false });
+}
+
+/** 检查 id → 人话（未知 id 原样显示，不隐藏异常） */
+function checkLabel(id) {
+  return OPS_CHECK_LABELS[id] || id || '未知检查项';
+}
+
+function healthRow(label, ok, note = '') {
+  const tone = ok ? 'text-green-700' : 'text-amber-800';
+  return `<li class="flex items-start gap-2 py-1"><span class="${tone}">${ok ? '正常' : '异常'}</span>`
+    + `<span class="text-gray-700">${esc(label)}</span>`
+    + `${note ? `<span class="text-gray-500">${esc(note)}</span>` : ''}</li>`;
+}
+
+async function renderOpsHealth(host) {
+  if (!host) return;
+  if (getDataSource() !== 'api') {
+    host.innerHTML = '<p class="text-sm text-gray-600">运维健康读数仅在服务端形态可用；当前使用演示数据。</p>';
+    return;
+  }
+  host.innerHTML = '<p class="text-sm text-gray-600">正在读取健康状态…</p>';
+  const adapter = getAdapter();
+  const [shallowRes, deepRes, metricsRes] = await Promise.allSettled([
+    adapter.opsHealth.shallow(),
+    adapter.opsHealth.deep(),
+    adapter.opsHealth.metrics(),
+  ]);
+  const shallow = shallowRes.status === 'fulfilled' ? shallowRes.value : null;
+  // 503 也带完整读数（`{ok:false,status:'degraded',checks}`），从错误体里取回
+  const deep = deepRes.status === 'fulfilled' ? deepRes.value : (deepRes.reason?.body || null);
+  const metrics = metricsRes.status === 'fulfilled' ? metricsRes.value : null;
+  if (!deep && !metrics) {
+    const reason = deepRes.status === 'rejected' ? describeWriteError(deepRes.reason) : '服务暂不可用';
+    host.innerHTML = `<p class="text-sm text-red-700" role="alert">读取失败：${esc(reason)}</p>`;
+    return;
+  }
+
+  const deepOk = !!deep?.ok;
+  const checks = Array.isArray(deep?.checks) ? deep.checks : [];
+  const lastBackupAt = metrics?.lastBackupAt || deep?.lastBackupAt || '';
+  const requests = metrics?.requests || null;
+  host.innerHTML = `
+    <p class="text-sm font-semibold ${deepOk ? 'text-green-700' : 'text-amber-800'}">
+      ${deepOk ? '当前运行正常' : '当前存在异常（同一故障 30 分钟内只提醒一次）'}</p>
+    <ul class="mt-2 text-sm">
+      ${healthRow('浅检查 · 进程与依赖', shallow?.ok === true, shallow ? '' : '未取到')}
+      ${checks.map((check) => healthRow(
+        checkLabel(check.id),
+        !!check.ok,
+        check.id === 'schema-version' && deep?.schemaVersion ? `v${deep.schemaVersion}` : (check.ok ? '' : (check.error || '')),
+      )).join('')}
+      <li class="flex items-start gap-2 py-1"><span class="${lastBackupAt ? 'text-gray-700' : 'text-amber-800'}">${lastBackupAt ? '最近备份' : '尚无备份'}</span>
+        <span class="text-gray-500">${esc(lastBackupAt ? formatHealthTime(lastBackupAt) : '按部署清单执行一次备份后这里会有时间')}</span></li>
+    </ul>
+    ${requests ? `<p class="mt-2 text-body-sm text-gray-600">本次启动以来 API 请求 ${requests.total} 次 · 5xx ${requests.serverErrors} 次 · 平均 ${requests.avgDurationMs} ms</p>` : ''}`;
 }
 
 async function toggleBranchRoster(button) {
@@ -173,6 +247,15 @@ export async function renderContent() {
         }).join('')}
         </tbody></table></div>` : `<p class="mt-4 py-8 text-sm text-gray-600" role="status">尚无支部。创建支部后，再进入其配置页完成组织设置。</p>`}
       </section>
+      <section class="card p-5" aria-label="运维健康">
+        ${renderSectionHeader({
+          title: '运维健康',
+          description: '服务进程、数据库与备份目录的当前状态；异常时向支书发站内通知与邮件。',
+          actions: '<button id="pc-ops-health-refresh" type="button" class="btn-outline px-3 py-2 text-sm">重新检查</button>',
+          level: 3,
+        })}
+        <div id="pc-ops-health-body" class="mt-3" role="status" aria-live="polite"></div>
+      </section>
     </div>`;
 
   // 支部筛选（A05 自「支部动态」迁入）：选中后只出该支部的目录行；变更即重渲本页。
@@ -219,6 +302,11 @@ export async function renderContent() {
       if (button) void toggleBranchRoster(button);
     });
   }
+
+  // 运维健康读数（T3）：进页自动读一次；「重新检查」重读（不重渲整页，保留目录滚动位置）。
+  const healthBody = el.querySelector('#pc-ops-health-body');
+  void renderOpsHealth(healthBody);
+  el.querySelector('#pc-ops-health-refresh')?.addEventListener('click', () => { void renderOpsHealth(healthBody); });
 
   // 从目录打开独立党委只读支部视图；支书工作台不再承担跨角色下钻。
   bindBranchReadOnlyButtons(el);

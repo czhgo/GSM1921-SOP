@@ -3,7 +3,7 @@ title: "架构演进——组件化落地评估与轻量插件化设计"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-22
-last_updated: "2026-11-08"
+last_updated: "2026-11-15"
 status: active
 related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../module/PUBLIC_ENTRANCE.md, ../../03_doc_system/ARCHITECTURE.md, ../../05_ai_coding/README.md]
 ---
@@ -196,6 +196,104 @@ related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../mod
 - 不为党委内容域另建一套活动表；党委活动与支部活动同表，由 `ownerScope` 区分。
 
 > **决策待办**：Phase 2 之后「党委跨支部读取是否需要独立页面 / 入口，还是仅 API 参数」仍留给支书裁定，该决定影响党委工作台的 IA。开关打开本身另需支书裁定与部署放行，本节不预设时间。
+
+### 10.6 判定点清单（T12 设计定稿 · 2026-11-15）
+
+> **本节回答**：一次请求的行，按什么判定它「属于哪个支部 / 是否允许跨支部 / 与支部无关」。每条给 `文件:函数` 锚点与现状，T13 只按本节施工，不再另立判据。
+> **判据形态**：每类都能布尔化——「这条读口返回的行是否全部经 `branch-scope` 解析并等于请求支部」「这条写口是否对外支部行返回 403」。锚点写函数名，不写行号（行号随插行漂移）。
+
+**（a）必须按 `branchId` 过滤的域**
+
+| 域 | 判据落点（`文件:函数`） | 现状 |
+|---|---|---|
+| 全部通用资源集合（`RESOURCE_TABLES` 全表） | `server/routes/resources/index.js::_resourceRowsForActor` → `server/routes/resources/branch-scope.js::resourceRowsForActor` | 已接线；例外见 10.7-1 |
+| 活动 / 通知 / 支部资料（本支部 ＋ 党委可见行并集） | `branch-scope.js::resourceRowsForActor`（`isCommitteeRow` / `targetsBranch` / `isLoginVisible` / `isWithdrawnPublic`） | 已接线 |
+| 待办 `todos`（含 `branchLegacy` 兼容期） | `branch-scope.js::resourceBranchId`（`name === 'todos'` 分支）＋ `resourceRowsForActor`（todos 分支） | 已接线；与 `todo-groups` 判据不同（10.7-3/4） |
+| 归档记录 `archiveRecords`（未归属只给党委） | `branch-scope.js::resourceBranchId` ＋ `resourceRowsForActor`（archiveRecords 分支） | 支部读口已接线；匿名读口失守（10.7-1） |
+| 聚合子记录 `actSubRecords` / `tfSubRecords` | `branch-scope.js::aggregateRows` / `aggregateWriteDeny` / `mergeAggregateBody` | 已接线（读写同判据） |
+| 考勤 / 考察行级叠加 | `resources/index.js::_canReadAttendanceRow` / `_canReadInspectionRow` | 已接线（人物 / 组织者维度，支部维度由集合层承担） |
+| 支部名册 | `server/routes/branch-roster.js::PUT /branches/:id/roster`（`cleanMemberRow` 固定路径支部） | 已接线；历史判定见 10.7-5 |
+| 工作组域（6 表） | `server/routes/resources/workgroup-routes.js::ownBranch` ＋ 各 `(row.branchId \|\| DEFAULT_BRANCH_ID)` 比对 | 已接线，字面兜底 26 处 |
+| 待办组派生 | `server/routes/todo-groups.js::_scopeBranchId` / `_belongsTo` / `_visibleTodos` / `_membersOfBranch` / `rowsOf` | 已接线，自成一套判据（10.7-3/4） |
+| 报表四域 | `server/routes/report.js` ＋ `server/services/reporting.js::extractDomain({ branchId })` | 已接线；党委未选支部时 null 语义见 10.7-7 |
+| 申诉 / 议题 / 名册变更等语义读口 | `server/routes/resources/semantic-routes.js::readScoped`、`server/routes/member.js::GET /member-change-requests`、`server/routes/committee.js`（agenda_votes） | 已接线（同一 helper） |
+| 快照写穿 | `branch-scope.js::scopedSnapshotWriteDeny` / `mergeScopedSnapshotWrites`；`resources/index.js::_retainRowScopedSnapshotRows` | 已接线 |
+
+**（b）本职跨支部的域**
+
+| 域 | 判据落点 | 现状 |
+|---|---|---|
+| 支部目录与支部统计 | `branch-scope.js::projectBranchDirectoryRow` / `branchSummary`（`branches` 读口，党委未选支部给目录投影） | 已接线 |
+| 支部上报审批 `reviewRequests` | `resourceRowsForActor`（党委未选支部时返回全部待批复） | 已接线（本职跨支部） |
+| 党委活动 / 院级资料管理 | `semantic-routes.js::GET /committee/activities`、`GET /committee/documents`（`ownerScope === 'committee'`） | 已接线 |
+| 党委档案读取 | `semantic-routes.js::GET /committee/archive-records`（`?branchId=` 可选过滤） | 已接线；不传参即全量 |
+| 党委名册提案 | `semantic-routes.js::POST /committee/roster-proposals`（`body.branchId` 必填校验） | 已接线 |
+| 任命档案 | `semantic-routes.js` 任命链（`appointment_records`） | 已接线 |
+| 发布留痕 | `semantic-routes.js::GET /publication-audits`（全量只增不改） | 已接线 |
+| 报表触发 / 导出 | `report.js::POST /report/trigger`、`GET /report/export`（党委须先选支部：`selectedBranchRequiredError`） | 已接线 |
+| 党委下发通知 | `branch-scope.js::isCommitteeRow` 分支（`source === 'committee'` / `branchId === pc-gsm`） | 已接线 |
+
+**（c）无支部维度的域**
+
+| 域 | 判据落点 | 说明 |
+|---|---|---|
+| 里程碑 `milestones` | `semantic-routes.js::GET /milestones`（直接 `listTable`） | 内容单一源 `docs/data/milestones.json`，无支部字段 |
+| 会话 `sessions` / 上传元数据 `attachments` | `server/db.js::SCHEMA` | 按人 / 会话，不按支部 |
+| 集合版本号 `collection_versions` | `server/db.js` | 乐观锁元表 |
+| 认证域 `/api/v1/auth/**` | `server/routes/auth.js` ＋ `server/read-only.js::isAuthPath` | 登录 / 登出不算业务写 |
+| 匿名公开门厅的字段投影 | `server/routes/public-portal.js`（字段白名单） | 只出 `publishScope='public'` 且未过期行，按白名单裁字段 |
+
+### 10.7 现状缺失与失败开放点（探针证据）
+
+> 「失败开放」指缺字段或取不到支部上下文时放行，不拒绝。T13 的每条改动都要先指明它关掉哪一条。
+
+| 编号 | 位置 | 现象 | 判定 |
+|---|---|---|---|
+| 1 | `branch-scope.js::resourceRowsForActor`（`if (!targetBranchId) return rows;`） | 无支部上下文（匿名 / 待归属）直接返回全表 | 失败开放。实测无 token `GET /archiveRecords` 返回 `ar-a,ar-b`（跨支部） |
+| 2 | `branch-scope.js::resourceBranchId` 末尾 `return linked \|\| DEFAULT_BRANCH;` | 缺 `branchId` 的存量行归默认支部 | 多支部下把未归属行并入 `br-b1`；全仓 `\|\| DEFAULT_BRANCH(_ID)` 实测 **190 处 / 50 文件**（server 113/20、docs 77/30），线索所记「109 处 / 18 文件」未复现，最接近的是 server 面 113/20 |
+| 3 | `todo-groups.js::_scopeBranchId` | `actorBranchId(actor) \|\| requested \|\| DEFAULT_BRANCH_ID`，比 `branch-scope.js::selectedBranch` 多一层默认回落 | 两套判据；党委未选支部时口径分歧 |
+| 4 | `todo-groups.js::_belongsTo` | `(row.branchId \|\| DEFAULT_BRANCH_ID) === branchId`；`resourceBranchId('todos')` 用 `linked \|\| null` | 同一行两判（实测见 10.8-⑤） |
+| 5 | `branch-roster.js::branchHasHistory` | SQL `IFNULL(json_extract(data,'$.branchId'),'<默认支部>')` 计历史 | 缺字段按默认支部算，删除支部前校验会误判 |
+| 6 | `semantic-routes.js::GET /committee/*` 系列 | 不传 `?branchId=` 时全量返回 | 本职跨支部，可接受；缺留痕 |
+| 7 | `report.js` 三处 `actorBranchId(actor) \|\| req.query.branchId \|\| null` | 党委未选支部时 `branchId = null` | `extractDomain` 的 null 语义须在 T13 前确认（是否等价全量） |
+| 8 | 无 view 上下文 | `/committee/enter-branch` 返回 404；党委选支部后 `PATCH /branches/br-a/config` 返回 200，响应无 `readOnly` 字段 | 「进入支部只读」尚未存在（Q10 未落地） |
+
+### 10.8 双支部夹具摸底（一次性探针 · 不落仓库文件）
+
+> 方法：`:memory:` 库 ＋ `createApp` ＋ 真实 HTTP 登录；每次跑完删除探针目录，不写运行库 `server/data.db`。
+
+| 证 | 结论 | 证据 |
+|---|---|---|
+| ① A 支部读不到 B 支部行 | **成立** | 甲支书 / 甲成员在 `/activities` `/notices` `/branchDocs` `/users` `/tasks` `/todos` `/archiveRecords` `/todo-groups` `/bootstrap` 9 个读口 0 泄漏；对照乙支书可见 `act-b` |
+| ①补 匿名归档读口 | **不成立（跨支部可见）** | 无 token `GET /archiveRecords` 返回 `ar-a,ar-b`；根因 10.7-1 |
+| ② 跨支部写被拒 | **成立** | 单行 `POST /activities` = 403；`PATCH /activities/act-b` = 403；快照含 B 行 = 403（`不能通过快照触碰其他支部记录`）；聚合父键 `PATCH /actSubRecords/__root__`（body 含 `act-b`）= 403；B 行未被改写 |
+| ③ N=1 读集合与快照串不变 | **成立（基线已固化）** | 单支部 `br-b1` 下缺 `branchId` 行的可见性：`/activities:[act-1]`、`/notices:[ntc-1]`、`/users:[6100000001,6100000002]`（缺字段的 `6100000003` 不可见）、`/todos:[todo-1,todo-2]`（`todo-2` 走 `branchLegacy`）、`/archiveRecords:[]`（缺字段行对支部不可见）；`/bootstrap` 29 集合摘要 `4c42b6029aaf4d2e`；空快照 `POST /snapshot` = 204。**T13 改造后必须复跑同一夹具，摘要逐字节一致** |
+| ④ 党委 view 内写被拒 | **不成立** | 党委 `?branchId=br-a` 读 200，随后 `PATCH /branches/br-a/config` = 200（配置写入成功），响应无 `readOnly`；`/committee/enter-branch` = 404 |
+| ⑤ `todo-groups` 与 `todos` 同判 | **不成立** | 无 `branchId` 但 `sourceId=act-a` 的 `todo-lk`：`/todos` 可见 = true，`/todo-groups` 可见 = false；显式 `branchId=br-a` 的 `todo-ctl` 两处均可见 = true |
+
+**覆盖范围**：读口 9 个、写口 4 类（单行 / 快照 / 聚合 / 配置）、N=1 与 N=2 两套库。**未覆盖**：工作组 6 表、上传口、公开门厅、`?page` 分页路径、`party-staff` 写支部业务行的全部矩阵项。
+
+### 10.9 T13 施工顺序与前置断言
+
+> 顺序按「先定判据、再动使用方、最后加门」。每步单独可回归，前一步不绿不进下一步。
+
+| 步 | 改哪里 | 前置断言（进下一步的门） |
+|---|---|---|
+| 1 | `branch-scope.js`：把「缺字段回落默认支部」抽成显式策略（保留 `todos` / `archiveRecords` 的 `null` 口径），新增 `resolveRowBranchId` 作为统一入口 | 10.8-③ 基线摘要 `4c42b6029aaf4d2e` 与五条读集合逐字节不变 |
+| 2 | `todo-groups.js`：删 `_scopeBranchId` / `_belongsTo`，改用 `branch-scope` 两个函数（`actorBranchId` ＋ `resourceBranchId`） | 10.8-⑤ 由「不成立」转「成立」；`todo-groups-api` / `todo-derive-parity` / `todo-branch-attribution` 全绿 |
+| 3 | `resources/index.js`：`_resourceRowsForActor` 去掉 `!targetBranchId ⇒ return rows`，改为「无支部上下文只放行 `publishScope='public'` 且未过期的党委行」 | 匿名 `GET /archiveRecords` 不再含他支部行；`archive-record-write` / `public-portal` / `data-lifecycle-guard` 绿 |
+| 4 | 新增 `server/branch-view.js`（仿 `read-only.js::createReadOnlyGuard` 的挂载位置与响应形状），党委进入支部写口统一 403 `{ readOnly: true }` | `write-policy-matrix` 141 → 143 条同批登记；`write-policy-gaps` / `permission-gate` / `r3-data-permission-regression` 绿 |
+| 5 | 新增常驻守卫：支部解析只经 `branch-scope` 两个函数，新增 `\|\| DEFAULT_BRANCH` 判红 | `test:guards` 绿；既有 190 处按文件基线只减不增 |
+
+**会引爆存量断言的改动（同批必须一起改）**
+
+| 改动 | 受影响断言（实测文件 / 规模） |
+|---|---|
+| 待办判据收敛（步 2） | `todo-groups-api`（20 处 `br-b1`）、`todo-derive-parity` ＋ `test/fixtures/todo-derive/golden.json`、`todo-realtime-source`、`todo-branch-attribution`、`workbench-revision-contract`、`mock-api-parity-structure` |
+| 默认支部回落改策略（步 1） | **108 个测试文件 / 769 处 `br-b1`**；重点 `branch-roster-import`、`branch-affiliation`、`branch-id-literal-guard`、`data-contract`、`seed-contract-guard`、`db-migration`、`workgroup-api`（34）、`permission-gate`（32）、`branch-config-audit`（31） |
+| 匿名归档读口收紧（步 3） | `archive-record-write`、`public-portal`、`public-write-closure`、`mock-api-parity`、`data-lifecycle-guard` |
+| view 只读门（步 4） | `write-policy-gaps`、`write-truth-guard`、`permission-gate`、`r3-data-permission-regression`、`security-redteam` |
+| 待议池 | 丙部当前无相关待裁；在办项影响面涉及 `B-500-7b-2`（待办派生单源），施工前须先确认其前置读数不因步 2 变化 |
 
 ---
 

@@ -1,0 +1,20 @@
+# gsm-backup.timer —— 每日 03:30 触发 gsm-backup.service（T4，2026-11-15）
+#
+#   sudo cp deploy/systemd/gsm-backup.service deploy/systemd/gsm-backup.timer /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now gsm-backup.timer
+#   systemctl list-timers gsm-backup.timer
+#
+# Persistent=true：机器在 03:30 关机 ⇒ 开机后补跑一次（不会漏备份）。
+# RandomizedDelaySec：与业务定时任务（03:00 批量上报）错开，避免整点争抢磁盘。
+
+[Unit]
+Description=每日 03:30 触发备份（错过后开机补跑）
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+RandomizedDelaySec=300
+Persistent=true
+Unit=gsm-backup.service
+
+[Install]
+WantedBy=timers.target

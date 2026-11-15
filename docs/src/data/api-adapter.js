@@ -1127,6 +1127,21 @@ export const ApiAdapter = {
     },
   },
 
+  // 2026-11-15 六维补齐 T3：党委台「支部管理」页的运维健康读数（只读 GET，无写门）。
+  //   服务端实现 = `server/routes/health.js`；页面只经本门面取数（`CLAUDE.md H32`：不直连 fetch）。
+  //   `deep()` 在任一项检查失败时返回 503 —— `_request` 会抛错并带 `.body`，调用方按 body 展示降级原因。
+  opsHealth: {
+    shallow() {
+      return _get('/api/v1/health');
+    },
+    deep() {
+      return _get('/api/v1/health/deep');
+    },
+    metrics() {
+      return _get('/api/v1/health/metrics');
+    },
+  },
+
   // ════════════════════════════════════════════════════════════════
   //  2026-09-23 批次 163（T1）：三域补服务端对源 —— 语义端点组
   // ════════════════════════════════════════════════════════════════

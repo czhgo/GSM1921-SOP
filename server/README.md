@@ -59,6 +59,9 @@ node scripts/backup.mjs --out /srv/bak/20260923
   3. 用备份的 `uploads/` 覆盖 `UPLOAD_DIR` 目录（保留原目录权限）；
   4. 启动服务，看启动日志的 `[server] 自检 · users 计数=…` 确认数据已回来。
 - 定时备份建议：用系统计划任务（Windows 任务计划程序 / cron）每日调用 `scripts/backup.ps1`（或 `node scripts/backup.mjs`），并把 `server/backups/` 之外的副本另存到别的磁盘或对象存储。
+- **每日自动巡跑（T4，2026-11-15）**：现成入口三份，按环境选一份——Windows `scripts/backup-daily.ps1`（每日备份 + 保留最近 N 份 + 失败写 `server/.backup-errors.log`）、Linux `deploy/systemd/gsm-backup.service` ＋ `gsm-backup.timer`、无 systemd 时 `deploy/backup-cron.example`。装法见 `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` §A.2.4。
+- **备份状态读口**：每次 `backup.mjs` 运行后覆盖写 `server/.backup-status.json`（`lastRunAt / ok / error / path`）。**先看 `ok` 与 `lastRunAt`（超 24 小时＝巡跑没跑起来），再看 `path` 下的 `backup.json` 与 `data.db` 是否成对存在。** 该文件是健康页与告警的唯一读口。
+- **恢复演练（T4）**：`node scripts/restore-drill.mjs` —— 在线备份 → 恢复到临时目录 → `listen(0)` 启动 → `PRAGMA integrity_check` ＋ 逐表行数与清单核对，全程不动运行库，失败退出码 1。演练读数记入 `.ctx/evidence/<日期>/restore-drill.md`。
 - **恢复演练（2026-09-25，已可复现）**：`server/test/backup-restore.test.mjs` 在临时库造数据 → **真跑** `scripts/backup.mjs` 真实入口（child process）→ 破坏原库 → 恢复到**新路径** → 断言 `PRAGMA integrity_check=ok` + 行 / 字段逐值一致 + 附件还原。**实测**（本机）：未 checkpoint 的 `data.db-wal` = **696312 B** 时，`db.backup()` 副本 `users` **3 行齐全**（含 WAL 内容）；而**只拷主文件**的副本里 `users` 表**根本不存在**（0 行）——这正是「不能 `copy data.db`」的实证。
 
 ### 库结构版本与迁移（2026-09-25）

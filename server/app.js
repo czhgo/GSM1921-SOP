@@ -20,14 +20,14 @@ export function createApp({ dbPath = ':memory:' } = {}) {
   // 2026-09-01 快照 gzip：/api/v1/snapshot 用 raw body（快照 payload 全量 25 域 ~66KB，
   // 前端压缩后传输；路由内手动 gunzip + parse）。须在 express.json 之前挂载，否则 gzip
   // 二进制会被 json parser 误解析。
-  app.use(createRequestLogger()); app.use('/api/v1/snapshot', express.raw({ type: '*/*', limit: '4mb' })); // T2：请求 id ＋ 结构化日志（脱敏）最先挂载，后续 403/5xx 也能凭 id 串起（见 services/logger.js）；不新增行以保 README-server 取证行号
+  app.use(createRequestLogger()); app.use(createMetricsMiddleware(() => app.locals.metrics)); app.use('/api/v1/snapshot', express.raw({ type: '*/*', limit: '4mb' })); // T2：请求 id ＋ 结构化日志（脱敏）最先挂载，后续 403/5xx 也能凭 id 串起（见 services/logger.js）；T3：同一行追加最小指标计数（services/metrics.js）；不新增行以保 README-server 取证行号
   app.use(compression({ threshold: 1024 })); app.use(express.json({ limit: '2mb' })); app.use(createReadOnlyGuard()); // READ_ONLY=1 ⇒ 业务写口统一 403（认证域放行；见 read-only.js）；压缩只处理 >1KB 响应
 
   app.get('/api/v1/health', (req, res) => res.json({ ok: true }));
 
-  app.locals.db = initDb(dbPath);
+  app.locals.db = initDb(dbPath); app.locals.metrics = createMetrics(); app.locals.healthMonitor = createHealthMonitor({ db: app.locals.db, metrics: app.locals.metrics }); // T3：指标累加器 ＋ 深检查告警监视器（同一行追加，不新增行）
 
-  app.use('/api/v1/auth', createAuthRouter(app.locals.db)); app.use('/api/v1/public', createPublicInfoRouter(app.locals.db)); app.use('/api/v1/health', createHealthRouter(app.locals.db)); // 未登录最小公开读口（见 routes/public-info.js）；**须在下方 resources 路由的统一鉴权中间件之前**挂载，否则会被 401 拦掉（本行原为单条 auth 挂载，保持行数不漂移以免 README-server 取证行号失效）；T2 深检查 `GET /api/v1/health/deep` 同行挂载（浅检查仍是上方 `:26` 的既有读口）
+  app.use('/api/v1/auth', createAuthRouter(app.locals.db)); app.use('/api/v1/public', createPublicInfoRouter(app.locals.db)); app.use('/api/v1/health', createHealthRouter(app.locals.db, { metrics: app.locals.metrics, monitor: app.locals.healthMonitor })); // 未登录最小公开读口（见 routes/public-info.js）；**须在下方 resources 路由的统一鉴权中间件之前**挂载，否则会被 401 拦掉（本行原为单条 auth 挂载，保持行数不漂移以免 README-server 取证行号失效）；T2 深检查 `GET /api/v1/health/deep` 同行挂载（浅检查仍是上方 `:26` 的既有读口）；T3 指标 `GET /api/v1/health/metrics` 与告警监视器在同一行接入
 
   app.use('/api/v1', createResourcesRouter(app.locals.db));
 
@@ -113,3 +113,6 @@ import compression from 'compression';
 // T2 可观测底座（2026-11-15）：请求日志与深健康检查；调用点在上方 `:23` / `:30`（同行追加，不新增行）。
 import { createRequestLogger } from './services/logger.js';
 import { createHealthRouter } from './routes/health.js';
+// T3 运维读数与告警（2026-11-15）：最小指标集 ＋ 深检查告警；调用点在上方 `:23` / `:28` / `:30`（同行追加，不新增行）。
+import { createMetrics, createMetricsMiddleware } from './services/metrics.js';
+import { createHealthMonitor } from './services/health-alerts.js';

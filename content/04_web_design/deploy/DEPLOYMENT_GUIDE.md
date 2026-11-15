@@ -3,7 +3,7 @@ title: "部署与对外对接"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-19
-last_updated: "2026-11-03"
+last_updated: "2026-11-15"
 status: active
 related_files: [docs/src/data/data-adapter.js, docs/src/data/api-adapter.js, docs/src/services/core/runtime.js, docs/src/config/deploy.js, docs/src/core/boot/bootstrap.js, docs/src/components/shell/sidebar.js, docs/src/components/shell/header.js, docs/login.html, docs/src/services/core/auth.js, server/server.js, server/app.js, server/db.js, server/routes/auth.js, server/routes/resources.js, server/routes/uploads.js]
 ---
@@ -1086,6 +1086,44 @@ pm2 logs gsm1921              # 日志
 - **库完整性 / 迁移纪律 / 备份恢复**：`server/test/db-integrity-guard.test.mjs`（`G1–G6`）· `db-migration.test.mjs`（`M1–M6`）· `backup-restore.test.mjs`——上线前跑一次作回归基线。
 
 **判定「不加」的三条理由**：① 已有公开 `/api/v1/health`，够做存活探针；② 「深度检查」（探库可写 / 队列积压）需改 `server/` 业务代码，超出「只补部署文档」的范围，且单进程 ＋ SQLite 形态下收益低；③ 真正的自检需求（库内是否只有真人、结构是否对齐）**已由启动日志与上述守卫覆盖**。若日后改多实例 / 多库，再按需加「就绪探针（readiness）」，代价＝新增一条只读路由 ＋ 一条守卫用例。
+
+### A.2.4 备份自动巡跑与「如何看备份状态」（T4，2026-11-15）
+
+**自动巡跑＝每天跑脚本，不靠人记得。** 三份现成入口，按部署环境选一份装（不要同时装 cron 与 systemd timer）：
+
+| 环境 | 装什么 | 怎么做 |
+|---|---|---|
+| Linux（推荐） | `deploy/systemd/gsm-backup.service` ＋ `gsm-backup.timer` | 拷到 `/etc/systemd/system/` → `systemctl daemon-reload && systemctl enable --now gsm-backup.timer`；`Systemd*` 单元里改 `User` 与 `/opt/gsm1921` 两处 |
+| Linux（无 systemd） | `deploy/backup-cron.example` | 拷到 `/etc/cron.d/gsm1921-backup`（`chmod 644`），改账号 / 目录 / 时间三处 |
+| Windows | `server\scripts\backup-daily.ps1` | 任务计划程序每日 03:30 调用（示例命令见该脚本头注释）；保留最近 N 份（`-Keep`，缺省 14），失败写 `server\.backup-errors.log` |
+
+三者都最终调用 `scripts/backup.mjs`：SQLite **在线备份**（含 WAL 的一致性快照，不需停服）＋ `uploads/` 整目录 ＋ 备份当场自检。
+
+**如何看备份状态（三个读口，按「先看结论、再找证据」的顺序）**
+
+1. **结论**：`server/.backup-status.json` —— 每次 `backup.mjs` 运行后都会被覆盖写入，字段固定四项：
+
+   | 字段 | 含义 | 判据 |
+   |---|---|---|
+   | `lastRunAt` | 本次运行时间（UTC，ISO 8601） | 距现在超过 **24 小时** ⇒ 巡跑没跑起来（先查定时器 / 计划任务是否启用） |
+   | `ok` | 本次是否成功 | 必须为 `true`；`false` 即失败，原因看 `error` |
+   | `error` | 失败原因（成功时为 `null`） | 失败时整段可读文本，含具体路径 |
+   | `path` | 本次备份目录（失败且未建目录时为 `null`） | 目录内应有 `data.db` ＋ `backup.json`（＋ `uploads/`） |
+
+2. **证据**：`server/backups/<时间戳>/backup.json` —— 备份清单（`tables` 逐表行数、`uploads` 文件数、`sha256`、`user_version`、`seed_version`）。**「有目录」不等于「备份可用」，清单与 `data.db` 必须在同一目录里成对出现。**
+3. **过程**：Linux 看 `journalctl -u gsm-backup.service -n 50`（systemd）或 `server/backups/backup.log`（cron）；Windows 看 `server\.backup-errors.log`。
+
+> 该状态文件是健康页与告警的**唯一读口**（T3 消费）；巡跑失败会先落 `ok:false` 再退出，不会只留在日志里。
+
+**恢复演练（证明备份真能用，不是「文件还在」）**
+
+```bash
+cd server
+node scripts/restore-drill.mjs          # 在线备份 → 恢复到临时目录 → listen(0) 启动 → integrity ＋ 逐表行数核对
+node scripts/restore-drill.mjs --keep   # 保留临时目录排障
+```
+
+演练**只读运行库**（备份源由 `backup.mjs` 现做，不直接拷 `data.db`），任一步失败**退出码 1**。上线前 / 换轨前后 / 迁移后各跑一次，读数记入 `.ctx/evidence/<日期>/restore-drill.md`。真正的「覆盖现有库」仍按 A.2 第 7 条（`scripts/restore.mjs`，须停服）。
 
 ### A.3 风险与依赖
 

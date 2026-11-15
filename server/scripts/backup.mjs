@@ -15,6 +15,7 @@
 //   node scripts/backup.mjs --out D:\bak\20260923  # 指定备份目录
 //   node scripts/backup.mjs --db D:\x\data.db --uploads D:\x\uploads --out D:\bak
 // 退出码：0 = 备份成功（含「附件目录为空已跳过」）；1 = 失败（信息可读，不静默）。
+// 每次运行都把结果写到 `server/.backup-status.json`（lastRunAt / ok / error / path），供健康页与告警读取。
 // 恢复步骤见 server/README.md「备份与恢复」一节（停服 → 替换 → 启动）。
 // ════════════════════════════════════════════════════════════════
 import fs from 'node:fs';
@@ -65,6 +66,24 @@ function dirStats(dir) {
 
 const stamp = () => new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0, 19);
 
+// 最近一次备份结果（固定位置；T3 的健康页 / 告警只读此文件取「上次备份时间与成败」）
+const STATUS_FILE = path.join(SERVER_DIR, '.backup-status.json');
+
+function writeStatus(payload) {
+  try {
+    fs.writeFileSync(STATUS_FILE, `${JSON.stringify({ lastRunAt: new Date().toISOString(), ...payload }, null, 2)}\n`);
+  } catch (e) {
+    console.error(`[backup] ⚠ 状态文件写入失败（不影响本次备份结论）：${e.message}`);
+  }
+}
+
+/** 统一失败出口：先落状态（ok:false）再退出，确保巡跑失败不会只留在日志里 */
+function fail(message, extra = {}) {
+  writeStatus({ ok: false, error: message, path: extra.path || null });
+  console.error(message);
+  process.exit(1);
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const dbPath = path.resolve(args.db || process.env.DB_PATH || path.join(SERVER_DIR, 'data.db'));
@@ -74,8 +93,7 @@ async function main() {
 
   console.log('[backup] 数据库：', dbPath);
   if (!fs.existsSync(dbPath)) {
-    console.error(`[backup] ✖ 数据库文件不存在：${dbPath}\n        请用 --db <路径> 指定，或先设 DB_PATH（与 server.js 同口径）。`);
-    process.exit(1);
+    fail(`[backup] ✖ 数据库文件不存在：${dbPath}\n        请用 --db <路径> 指定，或先设 DB_PATH（与 server.js 同口径）。`);
   }
   fs.mkdirSync(outDir, { recursive: true });
 
@@ -83,8 +101,7 @@ async function main() {
   try {
     ({ default: Database } = await import('better-sqlite3'));
   } catch (e) {
-    console.error(`[backup] ✖ 未安装 better-sqlite3（请在 server/ 目录下先 npm install）：${e.message}`);
-    process.exit(1);
+    fail(`[backup] ✖ 未安装 better-sqlite3（请在 server/ 目录下先 npm install）：${e.message}`, { path: outDir });
   }
 
   // ① 库：SQLite 在线备份（含 WAL 内容的一致性快照；不需停服）
@@ -124,16 +141,14 @@ async function main() {
       check.close();
     }
   } catch (e) {
-    console.error(`[backup] ✖ 备份副本无法打开/校验失败：${e.message}`);
-    process.exit(1);
+    fail(`[backup] ✖ 备份副本无法打开/校验失败：${e.message}`, { path: outDir });
   }
   // 校验连接会在副本旁留下 -wal/-shm（副本是 WAL 模式的库）⇒ 清掉，让备份目录只有干净的单文件
   for (const suffix of ['-wal', '-shm']) {
     try { fs.rmSync(dbTarget + suffix, { force: true }); } catch (_) { /* 忽略 */ }
   }
   if (String(integrity).toLowerCase() !== 'ok') {
-    console.error(`[backup] ✖ 备份副本完整性检查未通过（integrity_check = ${integrity}），请勿把它当作有效备份。`);
-    process.exit(1);
+    fail(`[backup] ✖ 备份副本完整性检查未通过（integrity_check = ${integrity}），请勿把它当作有效备份。`, { path: outDir });
   }
 
   // ③ 附件目录：整目录复制（不存在/为空 ⇒ 优雅跳过，不报错）
@@ -163,6 +178,20 @@ async function main() {
   };
   fs.writeFileSync(path.join(outDir, 'backup.json'), JSON.stringify(manifest, null, 2));
 
+  writeStatus({
+    ok: true,
+    error: null,
+    path: outDir,
+    database: 'data.db',
+    dbBytes,
+    integrity,
+    users: usersCount,
+    tables: Object.keys(tableCounts).length,
+    schemaVersion: userVersion,
+    uploadsFiles: src.files,
+    sha256,
+  });
+
   console.log('[backup] ✔ 备份完成');
   console.log(`[backup]   备份目录：${outDir}`);
   console.log(`[backup]   数据库  ：data.db（${sizeText(dbBytes)}）· integrity_check=${integrity} · users=${usersCount} 行 · schema v${userVersion} · seed=${seedVersion ?? '未登记'}`);
@@ -173,6 +202,8 @@ async function main() {
 }
 
 main().catch((e) => {
-  console.error('[backup] ✖ 备份失败：', e && e.message ? e.message : e);
+  const message = `[backup] ✖ 备份失败：${e && e.message ? e.message : e}`;
+  writeStatus({ ok: false, error: message, path: null });
+  console.error(message);
   process.exit(1);
 });

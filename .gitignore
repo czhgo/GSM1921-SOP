@@ -21,6 +21,11 @@ server/data.db
 server/data.*.db*
 server/uploads/
 server/debug.log
+# 备份产物与巡跑状态（T4：每日备份 → backups/；状态 / 错误日志供健康页与告警读取）
+server/backups/
+server/.backup-status.json
+server/.backup-errors.log
+server/.tmp-restore-drill/
 
 # Build output (project uses ESM directly, no bundler needed)
 docs/dist

@@ -688,3 +688,5 @@ export function matrixFor(method, path) {
 // ── 只读口不进本矩阵（矩阵只登记写方法）─────────────────────────────────────
 // T2（2026-11-15）新增 `GET /api/v1/health/deep`：只读检查，无写门可登记；矩阵守卫按
 // Express 写路由集合做双向相等断言，不因新增 GET 判红。行为判据＝`server/test/observability.test.mjs`。
+// T3（2026-11-15）新增 `GET /api/v1/health/metrics` 与深检查告警：指标只读；告警由服务端直接落
+// `notices` 表（不经 HTTP 写口）⇒ **无新增写口**，矩阵不增行。行为判据＝`server/test/health-alerts.test.mjs`。
