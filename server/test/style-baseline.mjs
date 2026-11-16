@@ -521,8 +521,11 @@ export const SMALL_TEXT_BY_VALUE_BASELINE = {"text-[11px]":338,"text-[10px]":0};
  *  2026-11-15 `close-six-dim-gaps` T9（移动端三任务）：`entries/tabs/visitor/attendance-tab.js` 的
  *    三个行内动作（查看个人明细 / 去补课 / 我参加了但没记上）由 `text-xs` 改控件单档 `text-[13px]`
  *    ⇒ 全站实测 **1756 处 / 116 文件**，按「收基线＝同批下调」改准（只降不升）。
+ *  2026-11-16 `polish-shell-and-display-truth` T2（页签 44 ＋ 13px）：`components/shell/tab-bar.js`
+ *    的页签文字由 `text-xs` 改正文档 `.text-body-sm`（13px）⇒ 全站实测 **1755 处 / 116 文件**，
+ *    同批下调（只降不升）。
  *  后续批次迁出正文段后**同批下调**本基线；不得为变绿上调。 */
-export const TEXT_XS_BASELINE = { total: 1756, files: 116 };
+export const TEXT_XS_BASELINE = { total: 1755, files: 116 };
 
 /** 「段落/导语档」基线（2026-09-27 文本档位统一批，给 `text-tier-guard.test.mjs` 消费）
  *  `文件 → { c: 处数, v: 出现档位（px） }`

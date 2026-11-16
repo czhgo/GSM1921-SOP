@@ -109,9 +109,10 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
     { label: '未读通知', value: unreadNotices, count: unreadNotices, unit: '条',
       color: unreadNotices > 0 ? 'var(--status-error-text)' : 'var(--neutral-500)', icon: 'bellHero', interactive: false },
     // 空态（P2-5）：没有记录不是「数据坏了」，而是本月应到场次为 0 这一事实——数值位显示「—」。
-    // R2-47：有应到场次但一条都没录 → 同样显示「—」（未录不当成 0%）。
+    // R2-47 / T7（2026-11-16 统一口径）：有应到场次但一条都没录 → 与页面 / 导出一致显示「待录入」
+    //   （不是 0%，也不是「—」——「—」只表示本月没有应到场次）。
     { label: '个人考勤',
-      value: myTotal > 0 && myRate !== null ? `${myPresent}/${myTotal}` : '—',
+      value: myTotal > 0 ? (myRate === null ? '待录入' : `${myPresent}/${myTotal}`) : '—',
       unit: '', color: ATTENDANCE_TONE_COLOR[myTone], valueColor: ATTENDANCE_VALUE_COLOR[myTone],
       icon: 'clipboard', interactive: true,
       title: '分母＝本月应到场次（应到人次口径；未录场次单列「待录入」）' },

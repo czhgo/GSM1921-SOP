@@ -4,12 +4,14 @@
 // ════════════════════════════════════════════════════════════════
 
 import { hasPendingWrites, settleScope, settleWrites } from '../session/pending-writes.js?v=20261110b';
+import { fmtLocalDateTime } from './date.js?v=20261110b';
 
 // ── 日期格式化 ─────────────────────────────────────────────────
 // R-26③（2026-10-05 批次 388）：日期口径单一源下沉到**零依赖叶子** `core/base/date.js`
 //   （`core/domain/constants.js` 这类「被全站 import 且要求双端可载」的件只能引零依赖件；
 //   而 `utils.js` 牵 `core/session/pending-writes.js`）⇒ 此处**转出**，既有 `from '…/utils.js'` 调用点不变。
 export { _fmtDate, todayLocal } from './date.js?v=20261110b';
+export { fmtLocalDate, fmtLocalDateTime } from './date.js?v=20261110b';
 
 export function _fmtChinese(d) {
   const DN = ['日','一','二','三','四','五','六'];
@@ -22,10 +24,18 @@ export function _currentYearMonth(now = new Date()) {
   return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0');
 }
 
-/** ISO 时间串 → 'YYYY-MM-DD HH:mm'（去 T 分隔；空值返回 ''） */
+/**
+ * ISO 时间串 / Date → **本地** 'YYYY-MM-DD HH:mm'（去 T 分隔；空值返回 ''）。
+ * 2026-11-16 `polish-shell-and-display-truth` T5：原实现直接截 UTC 串前 16 位
+ *   ⇒ 本地 00:00–08:00 写入的时间戳会显示成**前一天** 16:xx。现按本地时区取年月日时分
+ *   （单一源 `core/base/date.js::fmtLocalDateTime`）。
+ * 纯日期串（`YYYY-MM-DD`，无时间部分）原样返回；不可解析的输入退回旧截断形态。
+ */
 export function fmtDt(iso) {
   if (!iso) return '';
-  return String(iso).slice(0, 16).replace('T', ' ');
+  const s = typeof iso === 'string' ? iso.trim() : '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  return fmtLocalDateTime(iso) || String(iso).slice(0, 16).replace('T', ' ');
 }
 
 // ── HTML 转义（innerHTML 渲染前统一出口，防存储型 XSS）─────────

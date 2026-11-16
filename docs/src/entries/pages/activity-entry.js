@@ -30,7 +30,7 @@ import { canTransferOrganizer, openOrganizerTransfer, organizerOf } from '../../
 // 判据与写口单一源 = services/activity/activity.js；另有「交回状态」须读该场复盘记录（services/governance/review.js）。
 import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../../services/activity/activity.js?v=20261110b';
 import { loadActivityReviews } from '../../services/governance/review.js?v=20261110b';
-import { getBasePath, escHtml as esc, showToast, describeWriteError, smoothScroll } from '../../core/base/utils.js?v=20261110b';
+import { getBasePath, escHtml as esc, showToast, describeWriteError, smoothScroll, fmtLocalDate } from '../../core/base/utils.js?v=20261110b';
 import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 import { getActivityTypeColors, usesFormalMeetingRoster, SECRETARY_AND_DEPUTY_ROLES, isPartyGroupLeaderRole, isActivityLive } from '../../core/domain/constants.js?v=20261110b';
 import { getAppState } from '../../core/base/state.js?v=20261110b';
@@ -1312,7 +1312,7 @@ async function renderTaskforce(tf) {
             <span class="rounded-full bg-white px-2 py-0.5 text-xs text-gray-500">${record.returnedBy ? '已打回' : (record.status === 'confirmed' ? '已确认' : '待确认')}</span>
           </div>
           ${record.content || record.role ? `<p class="mt-1 whitespace-pre-wrap text-body-sm text-gray-600">${esc(record.content || record.role)}</p>` : ''}
-          <p class="mt-1 text-xs text-gray-500">记录人：${esc(getPersonById(record.recordedBy)?.name || record.recordedBy || '—')}${record.recordedAt ? ` · ${esc(String(record.recordedAt).slice(0, 10))}` : ''}</p>
+          <p class="mt-1 text-xs text-gray-500">记录人：${esc(getPersonById(record.recordedBy)?.name || record.recordedBy || '—')}${record.recordedAt ? ` · ${esc(fmtLocalDate(record.recordedAt))}` : ''}</p>
         </li>`).join('')}</ul>` : emptyStateHtml({ variant: 'inline', text: '暂无工作考察记录', className: 'mt-2' })}
     </section>
   `;

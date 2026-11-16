@@ -13,7 +13,7 @@ import { loadInspectionRecords, getOverdueRecords } from '../activity/inspection
 import { TaskForceRecordStore } from '../activity/taskforce.js?v=20261110b';
 import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20261110b';
 import { NoticeStore } from './notice.js?v=20261110b';
-import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20261110b';
+import { TodoStore, seedTodos, TodoCategory, TodoActionType, TodoStatus, isTodoExpired, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20261110b';
 import { tokenOf } from '../../core/base/version-token.js?v=20261110b'; // P0 域缓存失效（spec §二.3/§二.4）
 import { getPersonById, PersonStore } from '../member/person.js?v=20261110b';
 import { ROLE_LABELS, isActivityEnded, isActivityArchived, isActivityInProgress } from '../../core/domain/constants.js?v=20261110b';
@@ -23,7 +23,7 @@ import { persist } from '../../data/data-adapter.js?v=20261110b'; // 周期归�
 // 勿再写字面量（attendance.entryRemindDays/summaryDeadlineDays · inspection.overdueDays ·
 // review.overdueDays/deadlineDays——读侧注入后自动跟随域覆盖值）
 import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261110b';
-import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261110b';
+import { todayLocal, _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261110b';
 // 待办派生单一源（零依赖叶子件；服务端 Task 8 同源消费，见 `server/routes/todo-groups.js`）
 import { deriveAttendanceRemindGroup, deriveInspectionRemindGroup } from '../../core/domain/todo-derive.js?v=20261110b';
 
@@ -36,9 +36,9 @@ function _today() {
   return todayLocal();
 }
 
-/** 当前年月字符串 YYYY-MM */
+/** 当前年月字符串 YYYY-MM（本地口径：本地 12-01 早上仍是「12 月」，不得用 UTC 切串） */
 function _thisMonth() {
-  return new Date().toISOString().slice(0, 7);
+  return _currentYearMonth();
 }
 
 /** 日期偏移（返回 YYYY-MM-DD） */
@@ -103,6 +103,17 @@ function _personFp() {
   return `${_pair('activity', mockDB.activities)},${_pair('taskforce', mockDB.taskforces)},todo:${tokenOf('todo')},day:${_today()}`;
 }
 
+/**
+ * 「已过截止」判定 —— 截止日已过、但按 `isTodoExpired` **不计逾期**的那一类（当前即「进行中」）；
+ * 与「逾期」互斥（逾期 = `isTodoExpired` 为真）。逾期口径单一源 = `todo.js::isTodoExpired`；
+ * 消费点 = 按人视图 `getPersonOverview().pastDeadlineCount` ＋ 支书全局概况结论带（`work-overview.js`）。
+ */
+export function isPastDeadlineOnly(todo, today) {
+  if (!todo || !todo.deadline) return false;
+  if (todo.status === TodoStatus.COMPLETED) return false;
+  return todo.deadline < today && !isTodoExpired(todo, today);
+}
+
 // ════════════════════════════════════════════════════════════════
 //  SecretaryOverviewStore — 四维度概况聚合
 // ════════════════════════════════════════════════════════════════
@@ -149,7 +160,7 @@ export const SecretaryOverviewStore = {
    * 其后以复合键缓存（活动/专班 token+长度 + todo token + 日期；⚠️ 返回值只读契约）。
    * @returns {Array<{
    *   role:string, label:string, personIds:string[], names:string,
-   *   todoCount:number, overdueCount:number, todoGroups:Array,
+   *   todoCount:number, overdueCount:number, pastDeadlineCount:number, todoGroups:Array,
    *   activities:Array<{id,title,date,status}>,
    *   taskforces:Array<{id,name,status,deadline,relation}>,
    *   url:string
@@ -174,8 +185,14 @@ export const SecretaryOverviewStore = {
       // ① 未完成待办（按业务动作聚合，同跳转目标合并为一条）
       const todoGroups = TodoStore.getGroupedByAction(role);
       const todoCount = todoGroups.reduce((s, g) => s + g.count, 0);
+      // 逾期口径单一源 = `todo.js::isTodoExpired`（排除 in_progress、认 expired 显式态）；
+      // 不再自算 `deadline < today`——那会把进行中的待办误计为逾期。
       const overdueCount = todoGroups.reduce((s, g) => s + g.items.filter(it =>
-        it.deadline && it.deadline < today
+        isTodoExpired(it, today)
+      ).length, 0);
+      // 已过截止（单列，不与「逾期」混）：截止日已过、但按 isTodoExpired 不计逾期（当前即进行中）。
+      const pastDeadlineCount = todoGroups.reduce((s, g) => s + g.items.filter(it =>
+        isPastDeadlineOnly(it, today)
       ).length, 0);
 
       // ② 在办活动：统一判据 isActivityInProgress（排除草稿/已取消/已结束）；本人为组织者或项目成员
@@ -204,6 +221,7 @@ export const SecretaryOverviewStore = {
         names: people.map(p => p.name).join('、'),
         todoCount,
         overdueCount,
+        pastDeadlineCount,
         todoGroups,
         activities: relatedActivities.map(a => ({ id: a.id, title: a.title, date: a.date, status: a.status })),
         taskforces: relatedTaskforces,

@@ -216,7 +216,7 @@ export async function init() {
   } else {
     // API 模式：拉取所有资源并填充 mockDB 缓存
     try {
-      await _loadCollectionVersions(adapter); // P0-1：取集合版本基线（乐观锁）——不可得即抛（不静默降级）
+      adapter.beginHydrate?.(); await _loadCollectionVersions(adapter); // 水合窗口开启（本路径是唯一全量灌库口；见 api-adapter.js::beginHydrate）＋ P0-1：取集合版本基线（乐观锁）——不可得即抛（不静默降级）
       const [
         users, activities, tasks, attendances, inspections,
         taskforces, notices, todos, assignments,
@@ -347,7 +347,7 @@ export async function init() {
       _captureBase(mockDB);
       // T1（批次 163）：**三域语义端点拉取先于解锁**——`_loaded === true` 是「缓存已完整」的可观测判据
       //   （真机用例据此等待 init 完成；若拉取在解锁之后，读侧会撞上「缓存尚未填完」的窗口）。
-      await _loadAuxCollections(mockDB); mockDB._loaded = true;
+      await _loadAuxCollections(mockDB); mockDB._loaded = true; adapter.endHydrate?.(); // 灌库完成即关窗：其后一切读口回 2000 上限 + X-Has-More
       // ── Task 3（2026-10-26）：api 形态**禁止**空表回退演示种子 ─────────────────────────
       // 原状：服务端 seed 仅覆盖部分表，attendances/inspections/todos 在 API 形态为空时
       //   回退本地 mock 种子（受 `SEED_FALLBACK` 控制）。这会把演示行带进真实界面，并可能被
@@ -358,7 +358,7 @@ export async function init() {
       // 2026-09-02 增量快照：以「init 拉取完成态」为基线，flush 只上传与基线有差异的集合
       // （回退种子亦计入基线 → 不会自动污染服务器，契合 Z5 注释语义；见上方竞态修复）
     } catch (e) {
-      console.error('[DataAdapter] init: API 模式初始化失败：', e);
+      console.error('[DataAdapter] init: API 模式初始化失败：', e); adapter.endHydrate?.(); // 失败路径也关窗（不让标记泄漏到后续读口）
       throw e;
     }
   }

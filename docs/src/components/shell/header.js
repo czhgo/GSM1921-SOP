@@ -231,7 +231,7 @@ function _notificationBellHTML() {
   // 不能靠 currentColor 继承——宿主 `.btn-neutral` 的文字色是 --neutral-700，深红底上不可见。
   return `
     <div id="notification-bell" style="position:relative;">
-      <button id="notif-btn" class="btn-neutral btn-icon header-icon-btn" aria-label="通知" aria-haspopup="true" aria-expanded="false" aria-controls="notif-dropdown" style="width:40px;height:40px;">
+      <button id="notif-btn" class="btn-neutral btn-icon header-icon-btn" aria-label="通知" aria-haspopup="true" aria-expanded="false" aria-controls="notif-dropdown">
         ${icon('bell', { stroke: 'var(--app-accent-strong-ink-light)', className: 'w-4 h-4', extra: ' aria-hidden="true"' })}
       </button>
       <div id="notif-dropdown" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;width:320px;background:var(--surface-card);border-radius:var(--radius-sm);box-shadow:var(--shadow-dropdown);z-index:100;overflow:hidden;border:1px solid var(--neutral-200);"></div>

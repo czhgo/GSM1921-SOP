@@ -109,7 +109,9 @@ export function renderContent(ctx) {
     const summary = rosterByAct.get(act.id);
     const present = summary ? summary.present : 0;
     const total = summary ? summary.total : 0;
-    const rate = summary && summary.coverage > 0 ? summary.rate : null;
+    // T7（2026-11-16）：未录 = 该场一条考勤记录都没有（`ratePending`），与首页 / 导出同一判据；
+    //   旧写法用覆盖率百分比取整判 0，出勤 1/300 这类场景会被误判成「待录入」。
+    const rate = summary && !summary.ratePending ? summary.rate : null;
     const tone = attendanceRateTone(rate);
     const rateColor = tone === 'good' ? 'text-green-700'
       : tone === 'watch' ? 'text-amber-700'

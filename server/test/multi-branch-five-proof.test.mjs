@@ -8,13 +8,18 @@
 //     ③ N=1 等价：单支部 `br-b1` 下读集合与 bootstrap 摘要逐字节不变（存量缺字段行的可见性不变）；
 //     ④ 匿名归档 fail-closed：无 token `GET /archiveRecords` 不得返回任何支部行（10.7-1 病灶）；
 //     ⑤ `todo-groups` 与 `todos` 支部判定一致：同一行两处可见性相同（10.7-3/4 病灶）。
+//     ⑥⑦⑧（T11）：待归属账号（`branchId` 显式为 null）上传 / 下载 / 申诉 / 派生待办一律 403，
+//       且不落跨支部数据（不得回落到默认支部 `br-b1`）。
 //
 // 边界：`ALLOW_MULTI_BRANCH` 保持关闭（本文件不读也不改该开关）；库为 `:memory:`，不落运行库。
 // ════════════════════════════════════════════════════════════════
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { createApp } from '../app.js';
+import { UPLOAD_DIR } from '../routes/uploads.js';
 
 const BRANCHES = [
   {
@@ -66,6 +71,11 @@ const LEGACY_TODO = {
 const dbWrite = (db) => (table, row) => db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`)
   .run(row.id, JSON.stringify(row));
 
+/** T11 夹具：IAAA 建号后**待归属**账号（`branchId` 显式为 null）——支委角色，用于证明「有角色也不得出支部上下文」 */
+const PENDING_USER = {
+  id: '7300000001', studentId: '7300000001', name: '待归属组织委员', role: 'org-commissioner', branchId: null, developStage: '正式党员',
+};
+
 // ── N=2 夹具（① ② ⑤）──────────────────────────────────────────────────────
 let app2;
 let server2;
@@ -88,10 +98,12 @@ before(async () => {
     for (const row of fixture.archiveRecords) write('archive_records', row);
   }
   write('todos', LEGACY_TODO);
+  write('users', PENDING_USER); // T11：待归属账号（branchId=null）
 
   server2 = app2.listen(0);
   base2 = `http://127.0.0.1:${server2.address().port}/api/v1`;
-  for (const personId of BRANCHES.flatMap((branch) => Object.values(branch.people))) {
+  const loginIds = [...BRANCHES.flatMap((branch) => Object.values(branch.people)), PENDING_USER.id];
+  for (const personId of loginIds) {
     const response = await fetch(`${base2}/auth/login`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ personId, password: '123456' }),
@@ -277,4 +289,58 @@ test('⑤ 存量待办在 todos 与 todo-groups 同判（同一行两处可见�
   const group = groups.body.groups.find((row) => row.groupKey === 'org-commissioner:taskforce-authorize');
   assert.ok(group, '同一行必须由 /todo-groups 派生出（两处支部判定不一致＝10.7-3/4 病灶）');
   assert.ok(group.items.some((row) => row.id === LEGACY_TODO.id), '派生组内必须含该存量待办');
+});
+
+// ── ⑥⑦⑧ T11：待归属账号三处 fail-closed（`branchId` 显式为 null，不得回落默认支部）──
+const pendingToken = () => tokens.get(PENDING_USER.id);
+
+test('⑥ 待归属账号上传 / 下载附件 → 403（不落 attachments 行、不返回文件内容）', async () => {
+  const before = db2.prepare('SELECT COUNT(*) AS n FROM attachments').get().n;
+  const form = new FormData();
+  form.set('file', new Blob(['pending-upload'], { type: 'application/pdf' }), 'pending.pdf');
+  const upload = await fetch(`${base2}/uploads`, {
+    method: 'POST', headers: { Authorization: `Bearer ${pendingToken()}` }, body: form,
+  });
+  assert.equal(upload.status, 403, '待归属账号上传附件必须 403');
+  assert.equal(db2.prepare('SELECT COUNT(*) AS n FROM attachments').get().n, before, '拒绝上传时不得写入附件元数据');
+
+  const name = `pending-branch-${Date.now()}.pdf`;
+  const rel = `/api/v1/uploads/${name}`;
+  const fullPath = path.join(UPLOAD_DIR, name);
+  fs.writeFileSync(fullPath, 'pending-download-check');
+  db2.prepare('INSERT INTO attachments (id, filename, path, size, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?)')
+    .run(`attachment-${name}`, name, rel, 22, BRANCHES[0].people.org, new Date().toISOString());
+  try {
+    const download = await request(PENDING_USER.id, `/uploads/${name}`);
+    assert.equal(download.response.status, 403, '待归属账号下载附件必须 403（不得回落默认支部）');
+    assert.ok(!String(download.body).includes('pending-download-check'), '403 响应不得带出文件内容');
+    // 非空转：同支部正式账号可下载 ⇒ 403 来自「待归属」判定，而非附件不存在
+    const ownerDownload = await request(BRANCHES[0].people.org, `/uploads/${name}`);
+    assert.equal(ownerDownload.response.status, 200);
+    assert.equal(ownerDownload.body, 'pending-download-check');
+  } finally {
+    db2.prepare('DELETE FROM attachments WHERE path = ?').run(rel);
+    fs.rmSync(fullPath, { force: true });
+  }
+});
+
+test('⑦ 待归属账号提交申诉 → 403 且申诉表行数不变', async () => {
+  const before = db2.prepare('SELECT COUNT(*) AS n FROM attendance_appeals').get().n;
+  const { response } = await post(PENDING_USER.id, '/attendance-appeals', {
+    personId: PENDING_USER.id, activityId: 'act-a', note: '待归属账号跨支部申诉',
+  });
+  assert.equal(response.status, 403, '待归属账号提交申诉必须 403');
+  assert.equal(db2.prepare('SELECT COUNT(*) AS n FROM attendance_appeals').get().n, before, '拒绝时不得新增申诉行');
+});
+
+test('⑧ 待归属账号替他人派生跨支部待办 → 403 且不落待办行', async () => {
+  const before = db2.prepare('SELECT COUNT(*) AS n FROM todos').get().n;
+  const { response } = await post(PENDING_USER.id, '/todos', {
+    id: 'todo-pending-derive', actionKey: 'signup-review', actionType: 'review',
+    personId: BRANCHES[0].people.org, role: 'org-commissioner', title: '跨支部派生待办', status: 'pending',
+    sourceType: 'activity', sourceId: 'act-a',
+  });
+  assert.equal(response.status, 403, '待归属账号不得替他人派生待办');
+  assert.equal(db2.prepare('SELECT COUNT(*) AS n FROM todos').get().n, before, '拒绝时不得新增待办行');
+  assert.equal(db2.prepare('SELECT COUNT(*) AS n FROM todos WHERE id = ?').get('todo-pending-derive').n, 0);
 });

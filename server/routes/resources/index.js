@@ -32,7 +32,7 @@ import { canReadThoughtReport } from '../../../docs/src/services/governance/thou
 // 资源名 → 表名映射（与 data-adapter 的分组名对齐）
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
 // T-209 全栈同步：补齐前端 mockDB 全部持久化域，使 API 模式全链路可用
-import { RESOURCE_TABLES, ID_PREFIX, listTable, getRow, writeRow } from './store.js';
+import { RESOURCE_TABLES, ID_PREFIX, listTable, getRow, writeRow } from './store.js'; import { LIST_PAGE_ROW_LIMIT, validateResourceWrite, hydrateReadMode } from './write-validation.js'; // T12：通用写口字段校验 + 列表硬上限 + 水合整集合标记（同行接入，保下文行号零位移）
 import { RESOURCE_WRITE_GATE, COMMISSIONER_WRITE_RESOURCES, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, assertCommitteeMeetingWrite, COMMITTEE_MEETING_DENY_MSG, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE, _assertActivityBlockEnabled, _assertWorkflowBlockEnabled, _assertCapabilityPackageEnabled, activityBlockDisabledMsg, workflowBlockDisabledMsg, _snapshotNoticeMessageGateDeny, _snapshotResourceWriteGateDeny, _retainUngatedSnapshotRows, _inspectionDecisionDeny, _inspectionSourceKeyDeny, _inspectionImmutableKeyDeny, _inspectionPersonMembershipDeny, aggregateSubRecordWriteDeny } from './gates.js';
 import { _activityApprovalGateDeny, _snapshotActivityApprovalGateDeny, _activityCreateGatePatch } from './approval-gates.js';
 import { _snapshotBaseVersions, _snapshotWrites, _snapshotMissingVersions, _allCollectionVersions, _snapshotVersionConflicts, _normalizeSnapshotAliases, recordSnapshotConflicts } from './snapshot-versions.js';
@@ -222,7 +222,7 @@ function _listRowsWithPushdown(db, name, table, query = {}, opts = {}) {
 
 /** 游标分页（`(updated_at,id)` 倒序；不用 OFFSET）；无 `page` 时调用方保持整表返回 */
 function _paginateRows(rows, query = {}) {
-  const pageSize = Math.max(1, Math.min(200, Number(query.pageSize) || 20));
+  const pageSize = Math.max(1, Math.min(LIST_PAGE_ROW_LIMIT, Number(query.pageSize) || 20)); // T12：pageSize 硬上限 2000（与未分页上限同一常量）
   const keyOf = (row) => `${row.updatedAt || row.updated_at || row.createdAt || row.created_at || ''}|${row.id || ''}`;
   const sorted = [...rows].sort((a, b) => keyOf(b).localeCompare(keyOf(a)));
   let start = 0;
@@ -237,7 +237,7 @@ function _paginateRows(rows, query = {}) {
   const slice = sorted.slice(start, start + pageSize);
   const nextCursor = slice.length === pageSize
     ? Buffer.from(keyOf(slice[slice.length - 1]), 'utf8').toString('base64') : null;
-  return { rows: slice, total: sorted.length, pageSize, nextCursor };
+  return { rows: slice, total: sorted.length, pageSize, nextCursor, hasMore: start + slice.length < sorted.length };
 }
 
 /** R10-D09（批次 504）：快照写穿的考察留痕必须由服务端复算，不能采信客户端。 */
@@ -361,11 +361,11 @@ export function createResourcesRouter(db) {
         query: req.query, includeTransferredOut: req.query.includeTransferredOut, publicArchive,
       });
       if (publicArchive) res.set('X-Data-Mode', 'public-archive');
-      // v11 可选分页：带 page 才分页；不带 page 仍是原数组（旧客户端不受影响）。
-      if (req.query.page !== undefined || req.query.cursor !== undefined) {
-        return res.json(_paginateRows(rows, req.query));
-      }
-      return res.json(rows);
+      // v11 可选分页：带 page 才分页；不带 page 仍是原数组（旧客户端不受影响）。T12：未分页最多 LIST_PAGE_ROW_LIMIT 行，非静默截断——响应头 X-Total-Count / X-Has-More 给出可判定信号（body 形状不变）；`hydrate=1` / `X-Hydrate: 1` 仅登录后返回整集合、不 slice（只供客户端 init() 全量灌库，见 write-validation.js::hydrateReadMode）。
+      const hydrate = hydrateReadMode(req, name, rows.length); if (hydrate === 'deny') return res.status(403).json({ error: '水合读口须登录后使用' });
+      res.set('X-Total-Count', String(rows.length)).set('X-Has-More', hydrate === 'allow' ? 'false' : rows.length > LIST_PAGE_ROW_LIMIT ? 'true' : 'false');
+      if (hydrate === 'allow') return res.json(rows); if (req.query.page !== undefined || req.query.cursor !== undefined) return res.json(_paginateRows(rows, req.query));
+      const limited = rows.slice(0, LIST_PAGE_ROW_LIMIT); return res.json(limited);
     });
   }
 
@@ -490,7 +490,7 @@ export function createResourcesRouter(db) {
         if (name === 'activities') {
           const voteDeny = _activityVoteConfigDeny(db, row, req.actor);
           if (voteDeny) return res.status(400).json({ error: voteDeny });
-        }
+        } const writeInvalid = validateResourceWrite(name, row, 'post'); if (writeInvalid) return res.status(422).json({ error: writeInvalid }); // T12：通用写口字段校验（写门之后；失败不落库）
         const id = row.id || `${ID_PREFIX[name] || 'x'}-${randomUUID().slice(0, 8)}`;
         if (db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id)) return res.status(409).json({ error: `记录 id 已存在：${id}` });
         const data = {
@@ -847,7 +847,7 @@ export function createResourcesRouter(db) {
         relatedWorkgroupUpdate = activityWorkgroupUpdate(db, merged, req.actor.id);
         // 历史「待补承办组」补选完成后，工作组迁移态同步转 ready（其余编辑保留既有迁移态）。
         if (relatedWorkgroupUpdate && legacyHostGroupCompleted) relatedWorkgroupUpdate.migrationState = 'ready';
-      }
+      } const patchInvalid = validateResourceWrite(name, req.body, 'patch'); if (patchInvalid) return res.status(422).json({ error: patchInvalid }); // T12：通用写口字段校验（既有语义校验之后；失败不落库）
       const save = db.transaction(() => {
         db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(id, JSON.stringify(merged));
         if (relatedWorkgroupUpdate) {

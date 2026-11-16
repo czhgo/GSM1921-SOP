@@ -52,3 +52,41 @@ test('党小组会缺小组归属（无 hostGroup 且组织者无 partyGroup）�
     mockDB.attendanceRosters = previous.attendanceRosters;
   }
 });
+
+// ── T7（2026-11-16 支书裁定）：未录 ≠ 全员缺勤 ──────────────────────────
+test('T7 该场一条考勤记录都没有 ⇒ ratePending=true（页面 / 首页「待录入」、导出单元格留空）', () => {
+  const previous = { activities: mockDB.activities, attendances: mockDB.attendances, attendanceRosters: mockDB.attendanceRosters };
+  mockDB.activities = [{ id: 'act-t7-pending', title: '未录考勤的场次', date: '2026-11-10', type: '主题党日' }];
+  const rosters = [{ activityId: 'act-t7-pending', personIds: ['2400012345', '2400012346'], frozen: true }];
+  try {
+    const result = summarizeAttendanceByActivity({ records: [], rosterSnapshots: rosters });
+    assert.equal(result.rows.length, 1);
+    assert.equal(result.rows[0].ratePending, true, '无任何记录 ⇒ 未录（展示「待录入」、导出留空不写 0%）');
+    assert.equal(result.rows[0].coverage, 0);
+    assert.equal(result.recordedTotal, 0, '本月合计行同理留空（导出按 recordedTotal 判）');
+  } finally {
+    mockDB.activities = previous.activities;
+    mockDB.attendances = previous.attendances;
+    mockDB.attendanceRosters = previous.attendanceRosters;
+  }
+});
+
+test('T7 有考勤记录但全员缺席 ⇒ ratePending=false 且 rate=0（未录不得一刀切成缺勤，也不得反推）', () => {
+  const previous = { activities: mockDB.activities, attendances: mockDB.attendances, attendanceRosters: mockDB.attendanceRosters };
+  mockDB.activities = [{ id: 'act-t7-all-absent', title: '全员缺席的场次', date: '2026-11-11', type: '主题党日' }];
+  const rosters = [{ activityId: 'act-t7-all-absent', personIds: ['2400012345', '2400012346'], frozen: true }];
+  const records = [
+    { id: 't7a', activityId: 'act-t7-all-absent', personId: '2400012345', status: 'absent' },
+    { id: 't7b', activityId: 'act-t7-all-absent', personId: '2400012346', status: 'absent' },
+  ];
+  try {
+    const result = summarizeAttendanceByActivity({ records, rosterSnapshots: rosters });
+    assert.equal(result.rows[0].ratePending, false, '已有考勤记录 ⇒ 不是「未录」');
+    assert.equal(result.rows[0].rate, 0, '全员缺勤按 0% 显示（区别于「待录入」）');
+    assert.equal(result.rows[0].coverage, 100);
+  } finally {
+    mockDB.activities = previous.activities;
+    mockDB.attendances = previous.attendances;
+    mockDB.attendanceRosters = previous.attendanceRosters;
+  }
+});

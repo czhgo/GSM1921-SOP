@@ -64,8 +64,9 @@ test('T5 键盘起点：激活页签只改 scrollLeft，不用元素级滚动定
 });
 
 test('T4 不改 tab 尺寸 / 选中态 / 顺序', () => {
-  // 页签按钮模板保持原尺寸档（shrink-0 min-h-9 px-4 py-2 text-xs）。
-  assert.match(TAB_BAR, /shrink-0 min-h-9 px-4 py-2 text-xs font-medium rounded-lg transition-colors/,
+  // 页签按钮模板保持「单一尺寸口径」：2026-11-16 批次 557（spec polish-shell-and-display-truth T2）
+  //   支书批准视觉高 36 → 44（min-h-11）＋ 字号 12px → 13px（.text-body-sm）。
+  assert.match(TAB_BAR, /shrink-0 min-h-11 px-4 py-2 text-body-sm font-medium rounded-lg transition-colors/,
     '页签按钮尺寸/样式模板被改动');
   // `.btn-tab` 已是 32px / 13px 档（2026-10-23 Task 6：页签与 .btn-ghost 同属紧凑档，
   //  高度 = 4+4 padding + 22 line-height + 2 边框 = 32，不再用 min-height 撑高）。
@@ -76,10 +77,12 @@ test('T4 不改 tab 尺寸 / 选中态 / 顺序', () => {
   assert.ok(btnTab, '未找到 .btn-tab 的 32px 尺寸档（padding 4px 8px + line-height 22px）');
   assert.match(btnTab.body, /font-size:\s*13px\s*!important/, '.btn-tab 字号应保持 13px');
   assert.doesNotMatch(btnTab.body, /min-height/, '.btn-tab 不得再用 min-height 撑高');
-  // tab 按钮本身不应新增尺寸工具类（滚动箭头不是 tab）。
+  // tab 按钮本身不应再新增固定高度 / 内边距 / 字号档（滚动箭头不是 tab）；
+  //   高度只由 `min-h-11` 承担，故按「整枚类令牌」判，不把 `min-h-11` 里的 `h-11` 当固定高度。
   const tabBtnLine = TAB_BAR.split('\n').find((line) => line.includes('tab-btn${activeClass}')) || '';
   assert.ok(tabBtnLine, '未找到页签按钮模板');
-  assert.doesNotMatch(tabBtnLine, /\b(h-10|h-11|h-12|py-3|text-sm)\b/, '页签按钮被加了新的尺寸工具类');
+  assert.doesNotMatch(tabBtnLine, /(?:^|\s)(h-10|h-11|h-12|py-3|text-sm)\b/,
+    '页签按钮被加了固定高度 / 新字号档（尺寸只走 min-h-11 ＋ .text-body-sm）');
 });
 
 test('T6 页签条分层（2026-10-27 Task 6.1）：组名行独立在上、页签行只放页签与箭头', () => {

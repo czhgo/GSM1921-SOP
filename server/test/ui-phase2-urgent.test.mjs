@@ -44,11 +44,13 @@ test('U3 个人考勤空态：数值为「—」，不得再加第三行「本�
   // 2026-11-01 批次 523 支书裁定（对照线上 czhgo.github.io 同款）：数字卡只保留「数值 / 标签」两行，
   //   无记录由数值位「—」表达（与线上一致），第三行注记被删除——它把四张卡从 78px 撑到 96px。
   //   判据同时保留「空态不得改成 0 / 空白」的旧意图，并反向断言注记不得回潮。
+  // 2026-11-16 T7（支书裁定「未录统一待录入」）：本月**有应到场次但一条未录** → 数值位显示「待录入」；
+  //   「—」只留给「本月没有应到场次」。判据随之改准（仍是逐字匹配，不放宽「不得改成 0 / 空白」）。
   const src = read('docs/src/components/dashboard/stats.js');
   assert.doesNotMatch(src, /本月无记录/, '空态不得再加第三行「本月无记录」（数值位「—」即表达）');
   assert.doesNotMatch(src, /stat-card__note/, '首页数字卡不得渲染 .stat-card__note 第三行');
-  assert.match(src, /value:\s*myTotal > 0(?: && myRate !== null)? \? `\$\{myPresent\}\/\$\{myTotal\}` : '—'/,
-    '空态数值应保持「—」，不得改成 0 或空白');
+  assert.match(src, /value: myTotal > 0 \? \(myRate === null \? '待录入' : `\$\{myPresent\}\/\$\{myTotal\}`\) : '—'/,
+    '无应到场次显示「—」；有应到场次但未录显示「待录入」——不得改成 0 或空白');
   // 反例自检：旧写法必须被同一口径判红（防断言空转）。
   assert.match("note: myTotal === 0 ? '本月无记录' : '',", /本月无记录/);
   assert.match('<p class="text-xs stat-card__note">x</p>', /stat-card__note/);

@@ -478,7 +478,9 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
     //   使 `button-system-guard::B4` 的字面扫描能认出这是「组件自有类」并豁免（见该守卫 COMPONENT_STATE_EXEMPT）。
     // 2026-11-01 批次 524（#7）：追加通用导航属性 `data-ws-tab-btn`——待办跳转改由
     //   core/session/workspace-nav.js 统一按此属性点击，各台不再复制 `.<role>-tab-btn[data-…]` 选择器。
-    return `${sepHtml}<button type="button" id="${prefix}-tab-${id}" role="tab" aria-selected="${isActive ? 'true' : 'false'}" aria-controls="${contentId}" tabindex="${isActive ? 0 : -1}" class="${prefix}-tab-btn tab-btn${activeClass} shrink-0 min-h-9 px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}" data-ws-tab-btn="${id}"${activeStyle}>${label}</button>`;
+    // 2026-11-16 批次 557：页签视觉高 36 → 44（min-h-11）、字号 12px → 13px（`.text-body-sm`＝13px 既有档）。
+    //   热区仍由 styles.css `.tab-btn::after` 的 44×44 承担；46 页签在 375 下仍单行横滑（flex-nowrap 未改）。
+    return `${sepHtml}<button type="button" id="${prefix}-tab-${id}" role="tab" aria-selected="${isActive ? 'true' : 'false'}" aria-controls="${contentId}" tabindex="${isActive ? 0 : -1}" class="${prefix}-tab-btn tab-btn${activeClass} shrink-0 min-h-11 px-4 py-2 text-body-sm font-medium rounded-lg transition-colors" ${dataAttr}="${id}" data-ws-tab-btn="${id}"${activeStyle}>${label}</button>`;
 
   }).join('\n');
 

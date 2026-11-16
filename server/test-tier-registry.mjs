@@ -82,7 +82,9 @@ export const DAILY_TEST_BUDGET = 252;
  *  2026-11-15 `close-six-dim-gaps` T10：新增 `a11y-guard.test.mjs`（可访问性常驻静态守卫），
  *    实然 108 文件；按 111 登记——同批可能还有其它守卫件并入，留 ≤4 文件余量（`test-tier-guard::T4`）。
  *  2026-11-15 `close-six-dim-gaps` T15：新增 `branch-resolve-single-source-guard.test.mjs`（支部解析单源 ＋
- *    存量回落基线），实然 109 文件；111 仍在余量内（差 2 ≤4），**不上调**（放宽预算＝失去约束力）。 */
+ *    存量回落基线），实然 109 文件；111 仍在余量内（差 2 ≤4），**不上调**（放宽预算＝失去约束力）。
+ *  2026-11-16 polish-shell T12：新增 `resource-write-validation-guard.test.mjs`（通用写口字段校验 ＋ 列表硬上限），
+ *    实然 110 文件；111 仍在余量内（差 1），**不上调**。 */
 export const GUARDS_FILE_BUDGET = 111;
 
 /** guards 静态 `test(` / `it(` 调用点预算
@@ -90,7 +92,11 @@ export const GUARDS_FILE_BUDGET = 111;
  *  2026-11-15 `close-six-dim-gaps` T10：`a11y-guard` 增 2 条静态 `test(` 调用点（扫描面自检 ＋ 六条判据合并一项），
  *    实然 824；按 860 登记——同批可能有其它守卫断言并入，留 ≤40 条余量（`test-tier-guard::T4`）。
  *  2026-11-15 `close-six-dim-gaps` T15：新增单源守卫 3 条 ＋ `docs-governance-guard` R7（content/** 行号扩面）1 条，
- *    实然 828；860 仍在余量内（差 32 ≤40），**不上调**。 */
+ *    实然 828；860 仍在余量内（差 32 ≤40），**不上调**。
+ *  2026-11-16 `polish-shell-and-display-truth` T10：`date-canon-guard` 增 D1c（`slice(0,10)` 取 ISO 日 ＋ 45 条存量基线），
+ *    实然 829；860 仍在余量内（差 31 ≤40），**不上调**（放宽预算＝失去约束力）。
+ *  2026-11-16 `polish-shell-and-display-truth` T12：新增 `resource-write-validation-guard` 5 条
+ *    （覆盖声明 / 单一源 / 接线 / 行为 / 非空转），实然 834；860 仍在余量内（差 26），**不上调**。 */
 export const GUARDS_TEST_BUDGET = 860;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
@@ -247,6 +253,8 @@ export const TEST_TIERS = [
     'workbench-audit-coverage.test.mjs',
     'workbench-revision-contract.test.mjs',
     'write-path-guard.test.mjs',
+    // 2026-11-16 T12：通用资源写口字段校验（乱码 status / 超长 title / 非法日期 → 422）＋ 列表硬上限 500
+    'resource-write-validation-guard.test.mjs',
     'write-policy-evidence-guard.test.mjs',
     'write-truth-guard.test.mjs',
   ]),
@@ -283,6 +291,8 @@ export const TEST_TIERS = [
     'agenda-closure-core.test.mjs',
     'agenda-editing.test.mjs',
     'agenda-follow-up.test.mjs',
+    // 2026-11-16 polish-shell T8：+4 条（冻结分母 / 已转出单列 / 在册判据 / 支委总数缓存版本戳）。
+    //   precommit 层无预算常量（T4 只核 daily / guards），同批不占 daily 断言额度。
     'agenda-quorum.test.mjs',
     'agenda-relations.test.mjs',
     'agenda-votes.test.mjs',
@@ -406,6 +416,7 @@ export const TEST_TIERS = [
   ...group('precommit', '原 daily 业务回归（波次 A 降频：进 precommit 保留判据，不占日常墙钟）', [
     'activity-creation-transaction.test.mjs',
     'attendance-batch.test.mjs',
+    // 2026-11-16 polish-shell T7：+2 条（未录 ratePending / 全员缺席仍按 0%）。同 T8：precommit 无预算常量。
     'attendance-roster-union.test.mjs',
     'branch-roster-import.test.mjs',
     'inspection-workgroup-key.test.mjs',

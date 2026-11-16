@@ -9,8 +9,10 @@
 //   committeeMembers.length。矩阵成员由调用方传入（有 voteConfig → voterIds 映射人员；无 → 权威支委名单
 //   resolveVoterIds('committee')，过滤见 inspector.js；server/routes/committee.js 旧活动
 //   回退名单同样按 users.role 派生（P1-09，勿再本地罗列支委成员）。选项集/标签权威 = vote-config.js OPTION_SETS（勿再本地硬编码）
-import { fetchVotes, lockVotes, votedCountOf, tallyOf } from '../../services/activity/committee-vote.js?v=20261110b';
-import { optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261110b';
+// T8（2026-11-16 支书裁定）：**分母保持开会时冻结的 voterIds**（不改成实时应到）；开会后转出 / 滞留的成员
+//   从未表态人数中移出，单列「已转出，不计」（判据 = vote-config.js::isVoterOutOfRoster，只用人员档案既有事实）。
+import { fetchVotes, lockVotes, votedCountOf, tallyOf, ballotsOf } from '../../services/activity/committee-vote.js?v=20261110b';
+import { optionSetOf, isAnonymousActivity, isVoterOutOfRoster } from '../../services/activity/vote-config.js?v=20261110b';
 import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261110b';
 // R2-2（2026-09-06）：决议「待落实」跟进管理器（记录决议视图内勾选/保存/销项；本文件保留原版本串——
 //   唯一引用方 components/record/inspector.js 属禁改文件无法同步 ?v=，改动经子模块新版本串保证取新代码）
@@ -35,6 +37,27 @@ export function quorumConditionHint(total) {
   return `通过条件：出席 &gt; 应到/2 且 ≥ ${need} 人，赞成同样 ≥ ${need} 人（出席含弃权）`;
 }
 
+/**
+ * 冻结应到名单的现状分类（T8，2026-11-16 支书裁定）：
+ *   · 分母 = 开会时冻结的 `voteConfig.voterIds`（不改成实时应到）；
+ *   · 开会后「已转出 / 滞留」且尚未表态的成员，从「未表态」移出、单列「已转出，不计」。
+ * 纯函数（判据由调用方注入 `excludedOf`，便于单独验证计数）；不含任何颜色 / DOM。
+ * @param {{voterIds:string[], votedIds:string[], excludedOf:(id:string)=>boolean}} params
+ * @returns {{total:number, voted:number, pending:number, excluded:string[]}}
+ */
+export function frozenVoterCounts({ voterIds, votedIds, excludedOf }) {
+  const roster = Array.isArray(voterIds) ? voterIds : [];
+  const voted = new Set(Array.isArray(votedIds) ? votedIds : []);
+  const excluded = roster.filter((id) => !voted.has(id) && excludedOf(id));
+  return {
+    total: roster.length,
+    voted: voted.size,
+    // 已表态（含不在名单内的历史票）不减分母；未表态 = 冻结名单 − 已表态 − 已转出/滞留
+    pending: Math.max(0, roster.length - voted.size - excluded.length),
+    excluded,
+  };
+}
+
 export async function renderVoteSummary(container, { activity, committeeMembers, canLock }) {
   const votes = await fetchVotes(activity.id);
   const locked = activity.votesLocked === true;
@@ -44,7 +67,16 @@ export async function renderVoteSummary(container, { activity, committeeMembers,
   const anonymous = isAnonymousActivity(activity);
   const votedCount = votedCountOf(votes);
   // 应到总数：voteConfig.voterIds（创建时固化应到名单）优先；旧活动/线下无 voteConfig → committeeMembers.length
-  const total = activity.voteConfig?.voterIds?.length ?? committeeMembers.length;
+  // T8（2026-11-16）：分母 = 开会时冻结的名单，不改成实时应到；开会后转出 / 滞留者只从未表态里移出。
+  const frozenIds = Array.isArray(activity.voteConfig?.voterIds)
+    ? activity.voteConfig.voterIds
+    : committeeMembers.map((m) => m.id);
+  const total = frozenIds.length;
+  const rosterCounts = frozenVoterCounts({
+    voterIds: frozenIds,
+    votedIds: ballotsOf(votes).map((v) => v.personId),
+    excludedOf: isVoterOutOfRoster,
+  });
   const os = optionSetOf(activity);
   const optionSet = activity.voteConfig?.optionSet;
   const labelOf = (pos) => (os.labels && os.labels[pos]) || pos;
@@ -73,9 +105,12 @@ export async function renderVoteSummary(container, { activity, committeeMembers,
     <div class="vote-summary">
       <div class="vs-head">
         <strong>表态汇总</strong>
-        <span class="vs-stat" title="应到＝有表决权党员（预备党员无表决权）">应到 ${total} · 已表态 ${votedCount} · 未表态 ${total - votedCount}</span>
+        <span class="vs-stat" title="应到＝有表决权党员（预备党员无表决权）；分母为开会时冻结名单，不随成员变动回改">应到 ${total} · 已表态 ${votedCount} · 未表态 ${rosterCounts.pending}</span>
         ${locked ? '<span class="vs-locked">已截止</span>' : (canLock === true ? '<button class="btn-outline vs-lock" type="button">截止表态</button>' : '<span class="text-xs text-gray-500">截止表态由支书/副支书操作</span>')}
       </div>
+      ${rosterCounts.excluded.length > 0
+        ? `<div class="vs-stat">已转出，不计 ${rosterCounts.excluded.length}<span title="开会后转出 / 滞留的成员已不可能再表态，不计入未表态；应到总数仍为开会时冻结名单">（含转出与滞留；不影响应到分母）</span></div>`
+        : ''}
       ${tallyHtml}
       ${quorumHtml}
       <!-- 批次 39：表态矩阵并入单一源「人 × 项目」矩阵（relation-matrix）——行＝议题、列＝应到成员，

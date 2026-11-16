@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { requireAuth, requireCommissioner } from './auth.js';
-import { selectedBranchRequiredError } from './resources/branch-scope.js';
+import { requireAssignedBranch, selectedBranchRequiredError } from './resources/branch-scope.js';
 // 党委角色单一源（勿手写）：下载做支部隔离时，党委（组织级、不属任何支部）跨支部可见
 import { DEFAULT_BRANCH_ID, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS } from '../../docs/src/core/domain/constants.js';
 
@@ -66,6 +66,10 @@ export function createUploadsRouter(db) {
   const router = Router();
   const requireAuthGate = requireAuth(db);
   const requireCommissionerGate = requireCommissioner(db);
+  // T11（2026-11-16）：待归属账号（`branchId` 显式为 null，判据单一源 `branch-scope.js::requireAssignedBranch`）
+  //   没有支部上下文 ⇒ 上传 / 下载一律 403；不得回落到默认支部后放行。
+  //   上传门放在 multer 之前，拒绝时不落盘、不写 attachments 行。
+  const assignedBranchGuard = requireAssignedBranch();
   // 上传门：支委层或党委（党委需要上传院级资料）；普通成员仍拒绝。
   const requireUploader = (req, res, next) => requireAuthGate(req, res, (err) => {
     if (err) return next(err);
@@ -76,7 +80,7 @@ export function createUploadsRouter(db) {
   // 上传写口（2026-09-18 批次 80 · 风险-⑤ 收紧）：原仅 requireAuth ⇒ 任一登录成员可上传。
   // 现按既有附件写口口径收（COMMISSIONER_WRITE，server/routes/resources.js:196 的同一支委门）＝支委层；
   // 2026-11-08 波次 H：党委可上传院级资料，故放行 party-staff（普通成员仍 403）。
-  router.post('/uploads', requireUploader, upload.single('file'), (req, res) => {
+  router.post('/uploads', requireUploader, assignedBranchGuard, upload.single('file'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: '文件类型不支持或为空' });
     const meta = {
       id: randomUUID(),
@@ -95,14 +99,17 @@ export function createUploadsRouter(db) {
   // 受保护静态访问：仅登录用户可下载 + 支部隔离（2026-09-18 批次 80 · 风险-⑤）。
   // 附件表无支部字段，故按「上传人所属支部」判（users.branchId，缺省 'br-b1'，与 resources.js 同口径）；
   // 党委必须选择支部，且只能下载所选支部上传人名下的附件。
-  router.get('/uploads/:name', requireAuth(db), (req, res) => {
+  router.get('/uploads/:name', requireAuth(db), assignedBranchGuard, (req, res) => {
     const safe = path.basename(req.params.name);
     const rel = `/api/v1/uploads/${safe}`;
     const row = db.prepare('SELECT uploaded_by FROM attachments WHERE path = ?').get(rel);
     if (!row) return res.status(404).json({ error: '附件不存在' });
     const actor = req.actor;
     const ownerRow = db.prepare('SELECT data FROM users WHERE id = ?').get(row.uploaded_by);
-    const ownerBranch = (ownerRow ? JSON.parse(ownerRow.data).branchId : null) || DEFAULT_BRANCH_ID;
+    const owner = ownerRow ? JSON.parse(ownerRow.data) : null;
+    // T11（2026-11-16）：上传人 `branchId` 显式为 null（待归属）⇒ 归属为 null，不得按缺省支部下发；
+    //   只有历史缺字段（undefined）才按存量口径回落 br-b1（与 `branch-scope.js::actorBranchId` 同判据）。
+    const ownerBranch = owner && owner.branchId === null ? null : ((owner ? owner.branchId : undefined) || DEFAULT_BRANCH_ID);
     if (PARTY_STAFF_ROLE_SET.has(actor.role)) {
       const selectionRequired = selectedBranchRequiredError(actor, req.query.branchId);
       if (selectionRequired) return res.status(400).json({ error: selectionRequired });

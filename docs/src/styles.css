@@ -2475,8 +2475,10 @@ a.text-accent {
 .header-action-btn {
   font-size: 0.75rem;
   color: rgba(255,255,255,0.85);
-  /* 2026-10-23 Task 6：页面档 36px = 8+8+18+2，删除 min-height 撑高写法。 */
-  padding: 8px 10px;
+  /* 2026-11-16 批次 557：页面档 44px = 12+12+18+2（此前 36px = 8+8+18+2）。
+     高度仍由 padding + 显式行高 + 边框推导，不用 min-height 撑高；
+     族类组合（`.btn-outline.header-action-btn` 等）由文件末尾「组件级例外」段的 !important 接管。 */
+  padding: 12px 10px;
   line-height: 18px;
   display: inline-flex;
   align-items: center;
@@ -2499,10 +2501,10 @@ a.text-accent {
 
 /* 顶栏图标按钮（铃铛）：与 `.header-action-btn` 同口径（白透底 / 细边 / 三态）。
    2026-10-28 Task 4：此前背景与描边写在元素内联样式里，`.btn-neutral:hover` 被内联压掉
-   ⇒ hover / active 全不可见。改为类承担后三态恢复，尺寸仍 40×40。 */
+   ⇒ hover / active 全不可见。改为类承担后三态恢复。
+   2026-11-16 批次 557：尺寸 40 → 44 写到文件末尾「组件级例外」段（`.btn-icon.header-icon-btn`），
+   因为 `.btn-icon` 在本段之后定义，同特异性会压回 32×32；本段只留外观。 */
 .header-icon-btn {
-  width: 40px;
-  height: 40px;
   border-radius: var(--radius-sm);
   background-color: rgba(255,255,255,0.1);
   border: 1.5px solid rgba(255,255,255,0.25);
@@ -2528,8 +2530,9 @@ a.text-accent {
 }
 
 .hamburger-btn {
-  width: 40px;
-  height: 40px;
+  /* 2026-11-16 批次 557：40 → 44（与顶栏动作 / 图标钮同档）。 */
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-sm);
   background-color: rgba(255,255,255,0.1);
   border: 1.5px solid rgba(255,255,255,0.25);
@@ -2676,15 +2679,16 @@ a.text-accent {
 }
 
 /* 页脚动作（帮助/关于/设置/登录/退出）：单一视觉源。
-   2026-10-18 支书复核「原先的设置最舒服」——恢复历史间距（padding 4px 8px、gap 6px、行间 2px），
-   仅把 0.7rem 提到 12px 下限；不再设 28/36px 的强制行高。 */
+   2026-10-18 支书复核「原先的设置最舒服」——恢复历史间距（gap 6px、行间 2px）；
+   2026-11-16 批次 557：22.4 高 / 12px → 44 高 / 13px（12+12+20 = 44；触控热区与顶栏同档）。
+   高度仍由 padding + 显式行高推导，不用 min-height 撑高。 */
 .sidebar-footer-action {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 8px;
-  font-size: 12px;
-  line-height: 1.2;
+  padding: 12px 8px;
+  font-size: 13px;
+  line-height: 20px;
   color: var(--neutral-500);
   text-decoration: none;
   border: none;
@@ -3014,6 +3018,11 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
    · 键盘 `:focus-visible` 与全局按钮同口径。 */
 .tab-btn {
   border: 1px solid transparent;
+  /* 2026-11-16 批次 557：视觉高 44（`min-h-11`）时文字必须在中间——按钮默认按行盒在顶部排，
+     44 高会留下底部空白；行内 flex 居中不改变横向排布与页签顺序。 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   /* 2026-10-23 批次 507：按压时长改走 --transition-press（180ms），并把内阴影纳入过渡。 */
   transition: background-color var(--transition-press), border-color var(--transition-press), color var(--transition-press), box-shadow var(--transition-press);
 }
@@ -4199,8 +4208,9 @@ summary:focus-visible,
   }
 
   .hamburger-btn {
-    width: 36px;
-    height: 36px;
+    /* 2026-11-16 批次 557：移动档 36 → 44（与桌面同档，不再只改移动端分叉）。 */
+    width: 44px;
+    height: 44px;
   }
 
   .header-title h1 {
@@ -7161,14 +7171,22 @@ textarea::placeholder {
 }
 
 /* 组件级例外（沿用组件**既有已裁定的尺寸口径**，字号仍随归一为 13px；颜色 / hover 不动）：
-   ① 顶栏动作 `.header-action-btn`：页面档 36px（8+8+18+2）。
-   ② 筛选行 `.lf-btn`：页面档 36px × 13px，与同排 40px 控件基线对齐（高度按位置分级，
+   ① 顶栏动作 `.header-action-btn`：44px（12+12+18+2；2026-11-16 批次 557 由 36 提到 44）。
+      族类组合（`.btn-outline.header-action-btn` / `.btn-ghost.header-action-btn`）由尺寸归一
+      段的 !important 压着，故本段同用 !important，靠文件顺序接管。
+   ② 顶栏图标钮 `.btn-icon.header-icon-btn`：44×44（覆盖 `.btn-icon` 的 32×32 与已删除的内联 40）。
+      视觉与命中区同尺寸，不再另写伪元素。
+   ③ 筛选行 `.lf-btn`：页面档 36px × 13px，与同排 40px 控件基线对齐（高度按位置分级，
       不再为对齐输入框而改成 40）。
       内边距保持 10px。 */
-.btn-ghost.header-action-btn {
-  padding: 8px 10px !important;
+.header-action-btn {
+  padding: 12px 10px !important;
   font-size: 13px !important;
   line-height: 18px !important;
+}
+.btn-icon.header-icon-btn {
+  width: 44px !important;
+  height: 44px !important;
 }
 
 /* 相对颜色兼容（2026-10-27 批次 516 · B-515-5）：老内核不支持 rgb(from ...) 时退回既有 soft 底；

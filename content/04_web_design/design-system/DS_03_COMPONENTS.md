@@ -2,7 +2,7 @@
 title: "设计系统 · 第三编 组件"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-11"
+last_updated: "2026-11-16"
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_RESPONSIVE.md, DS_06_LAYOUT_AND_DENSITY.md, ../../../docs/src/styles.css, CASES.md]
 ---
@@ -141,7 +141,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 - **没有第五种「文字按钮」**：行内动作一律有**可见边界**（描边或淡底）；纯导航 / 帮助用 `<a>` 链接，不用 `<button>`。`btn-ghost` 不再作为动作按钮类型（存量只降不升）。
 - **默认尺寸两档**：常规 **32px**（`.btn-md`，四类动作按钮默认）；紧凑 **28px**（`.btn-sm`，行内紧凑动作）。`.btn-md` 只是常规尺寸别名，**不是独立视觉族**。
 - **页签 / 分段控件**用 `.btn-tab`（30px），**不计入动作按钮**。
-- **工作台 tab 豁免**：支书 / 组织 / 宣传 / 纪检 / 组长 / 成员六台顶部 tab（`tab-btn` / 作为页签使用的 `btn-tab`）**保持现状**，不改尺寸、底色、选中态。
+- **工作台 tab 豁免（2026-11-16 批次 557 改准）**：支书 / 组织 / 宣传 / 纪检 / 组长 / 成员六台顶部 tab（`tab-btn` / 作为页签使用的 `btn-tab`）**不并入四类动作按钮**；视觉高 **44px**（`min-h-11`）、字号 **13px**（`.text-body-sm`），不改底色与选中态。尺寸单一源＝`styles.css .tab-btn`，命中区由 `.tab-btn::after` 提供 44×44。
 
 ### 4.2 卡片（Card）
 
@@ -1288,6 +1288,7 @@ icon('bell', { className: 'w-4 h-4' })
 - 每个分组（**含首组**）渲染可见组名：12px / 主题 soft-text / 3px 直角 / 600 字重 / 0.5px 字距，主题色 **10% 淡底**（`--app-accent-tint`，由 `--app-accent` 按 `rgb(from … / 10%)` 派生）、**无边框**，`min-height:24px`；组间 `.tab-group-sep` 为 1px × 14px 竖线。
 - 选中页签与组名必须**一眼可分**：选中页签＝solid soft 底（`--app-accent-soft-bg`）＋ 主题色 `--app-accent` 1px 描边 ＋ 700 字重；组名＝10% 淡底 ＋ 无边框 ＋ 600 字重（细则与对比证据见 SD-50）。
 - ≤1280px 只缩小内边距、不隐藏组名、不把字号下探到 11px；任何断点都不得让页签换行或遮挡末页签。
+- 尺寸（2026-11-16 批次 557）：页签文字 **13px**（`.text-body-sm`），视觉高 **44px**（`min-h-11` ＋ `.tab-btn` 行内居中），命中区由 `.tab-btn::after` 提供 44×44；两档一致，不做「只改移动端」分叉。
 - 规范编号：**SD-50**（现行视觉构成）/ SD-47（3px / 600 / 0.5px / 12px / ≥24px 仍有效，底色与描边两条已由 SD-50 取代）/ SD-36（非按钮语义）/ SD-42（全宽可见）；`.tab-group-label` 同时是 SD-3「胶囊 999px」的**唯一登记例外**。判例：CASE-DESIGN-020 / 025 / 026。
 
 ### 12.4 今天页 / 待办
@@ -1315,6 +1316,10 @@ icon('bell', { className: 'w-4 h-4' })
 | 页面/弹窗按钮（accent/outline/danger/neutral/md） | 36px | 8 + 8 + 18 + 2 |
 | 卡片/页签按钮（ghost/tab） | 32px | 4 + 4 + 22 + 2 |
 | 行内按钮（sm/action） | 28px | 4 + 4 + 18 + 2；命中区 44px |
+| 顶栏动作 `.header-action-btn` | 44px | 12 + 12 + 18 + 2（2026-11-16 批次 557，由 36 提到 44） |
+| 顶栏图标钮 `.btn-icon.header-icon-btn` / `.hamburger-btn` | 44px | 视觉即命中区；汉堡移动档同 44（不再 36） |
+| 工作台页签 `.tab-btn` | 44px | `min-h-11` ＋ 行内居中；字号 13px；命中区 44×44（`::after`） |
+| 侧栏页脚动作 `.sidebar-footer-action` | 44px | 12 + 12 + 20（无边框）；字号 13px（2026-11-16 批次 557，由 22.4 提到 44） |
 | 列表单行 / 双行 / 紧凑行 | 48 / 56 / 44px | 语义行型 |
 | 表格行 | 40px | 不再写无效的 `tr{min-height}` |
 | `summary` | ≥40px | 命中区 |

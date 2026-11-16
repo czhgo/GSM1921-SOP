@@ -7,7 +7,7 @@
 import { randomUUID } from 'node:crypto';
 import { requireAuth, requireRole } from '../auth.js';
 import { HANDOFF_TYPES as HANDOFF_TYPES_SRC, AUTO_CONFIRM_TYPES } from '../../../docs/src/services/governance/handoff.js';
-import { BRANCH_COMMISSION_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES, BRANCH_COMMISSIONER_FALLBACK_ROLE, branchCommissionerWriteDeny, PARTY_GROUP_LEADER_ROLES, SECRETARY_AND_DEPUTY_ROLES, DEFAULT_BRANCH_ID } from '../../../docs/src/core/domain/constants.js';
+import { BRANCH_COMMISSION_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES, BRANCH_COMMISSIONER_FALLBACK_ROLE, branchCommissionerWriteDeny, PARTY_GROUP_LEADER_ROLES, SECRETARY_AND_DEPUTY_ROLES, DEFAULT_BRANCH_ID, isBranchPendingUser } from '../../../docs/src/core/domain/constants.js';
 import { listTable, getRow, writeRow } from './store.js';
 import { ORG_COMMISSIONER_ROLE_SET, PARTY_STAFF_ROLE, SECRETARY_AND_DEPUTY_ROLE_SET } from './gates.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
@@ -49,6 +49,12 @@ export function registerExtraSemanticRoutes(router, db) {
   };
   // 申诉提交（当事人本人；防冒名：personId 必须＝登录人）
   const submitAppeal = (req, res, table, idPrefix) => {
+    // T11（2026-11-16）：待归属账号（`branchId` 显式为 null）没有支部上下文 ⇒ fail-closed，
+    //   不提交申诉、不读 `activityId` 指向的活动行。理由：缺支部时 `recordBranchWriteDeny` 的
+    //   `own` 为 null，支部归属与 activityId 归属校验全部失效，行会落到默认支部。
+    if (isBranchPendingUser(req.actor)) {
+      return res.status(403).json({ error: '无权限：账号尚未归属支部，请先选择支部并等待支部确认' });
+    }
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     const personId = body.personId ? String(body.personId) : '';
     const activityId = body.activityId ? String(body.activityId) : '';
@@ -58,7 +64,7 @@ export function registerExtraSemanticRoutes(router, db) {
     if (db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id)) return res.status(409).json({ error: '该申诉 id 已存在' });
     const row = {
       id,
-      branchId: req.actor.branchId || DEFAULT_BRANCH_ID,
+      branchId: actorBranchId(req.actor) || DEFAULT_BRANCH_ID,
       personId,
       activityId,
       note: typeof body.note === 'string' ? body.note.trim() : '',

@@ -46,7 +46,7 @@ import { skeletonHtml } from '../../../components/ui/empty-state.js?v=20261110b'
 import { pagerHtml } from '../../../components/ui/pager.js?v=20261110b';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
 import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261110b';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261110b';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, _currentYearMonth, escHtml as esc, getBasePath, flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261110b';
 import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261110b';
 // 批次 540 波次 1：待办跳转的考勤记录定位目标（attendance→record）
 import { PendingTarget } from '../../../core/session/pending-target.js?v=20261110b';
@@ -493,12 +493,16 @@ export function renderContent(ctx) {
   // 支书 2026-09-20 定案（批次 116）：公示的范围与对象＝**支委会 ＋ 当事人本人**——**不对全支部公示、不对外**；
   // 本导出件供支委会内部使用；当事人本人只在自己的成员台「考勤概况」看**自己的**出勤率（`summarizePersonAttendance`）。
   container.querySelector('.att-rate-export-btn')?.addEventListener('click', () => {
-    const month = new Date().toISOString().slice(0, 7); // YYYY-MM
+    const month = _currentYearMonth(); // YYYY-MM（本地年月：本地 12-01 早上仍是「12 月」，不得用 UTC 切串）
     const sum = summarizeAttendanceByActivity({ month });
-    const rows = sum.rows.map(r => [r.activity, r.date, r.type, r.total, r.present, r.leave, r.absent, `${r.rate}%`]);
-    rows.push(['本月合计', '', '', sum.total, sum.presentTotal, '', '', `${sum.rate}%`]);
-    downloadCSV(`出勤率汇总_支委会内部_${month}.csv`, ['活动', '日期', '类别', '应记人次', '出勤（含已补）', '请假', '缺勤', '出勤率'], rows);
-    showToast('success', `本月出勤率汇总已导出（支委会内部使用，${sum.rows.length} 场 · 合计 ${sum.rate}%）`);
+    // T7（2026-11-16）：未录场次（该场一条考勤记录都没有）的出勤率单元格**留空**，不写 0%——
+    //   与页面 / 首页「待录入」同一判据（`ratePending`）；本月合计行同理（`recordedTotal === 0`）。
+    const cells = sum.rows.map(r => [r.activity, r.date, r.type, r.total, r.present, r.leave, r.absent,
+      r.ratePending ? '' : `${r.rate}%`]);
+    cells.push(['本月合计', '', '', sum.total, sum.presentTotal, '', '',
+      sum.recordedTotal > 0 ? `${sum.rate}%` : '']);
+    downloadCSV(`出勤率汇总_支委会内部_${month}.csv`, ['活动', '日期', '类别', '应记人次', '出勤（含已补）', '请假', '缺勤', '出勤率'], cells);
+    showToast('success', `本月出勤率汇总已导出（支委会内部使用，${sum.rows.length} 场 · 合计 ${sum.recordedTotal > 0 ? `${sum.rate}%` : '待录入'}）`);
   });
   container.querySelector('.att-handoff-btn')?.addEventListener('click', () => {
     // D04：考勤统计是 auto 类交接——发起即送达，不再有「待接收」。

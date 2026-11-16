@@ -416,6 +416,11 @@ const TIERS = [
   { id: '档3/34px', hit: (c) => /\btext-xs\b/.test(c) && /\bpy-2\b/.test(c) },
   { id: '档4/34px', hit: (c) => /\btext-sm\b/.test(c) && (/\bpy-1\.5\b/.test(c) || /py-\[7px\]/.test(c)) },
   { id: '命名族', hit: (c) => /\b(btn-md|btn-tab|btn-accent)\b/.test(c) },
+  // 档6/44px 工作台页签（2026-11-16 批次 557 支书批准 · spec polish-shell-and-display-truth T2）：
+  //   顶部页签视觉高 44（`min-h-11`）＋ 13px 正文（`.text-body-sm`）；尺寸与命中区单一源＝
+  //   `styles.css .tab-btn`（`::after` 44×44），不属四档动作按钮。判据同时要求 `tab-btn` 与
+  //   `min-h-11`，任意其它按钮再多写 `min-h-11` 也不会被本档放行。
+  { id: '档6/44px 页签', hit: (c) => /\btab-btn\b/.test(c) && /\bmin-h-11\b/.test(c) },
   // 档5＝**U5b（2026-09-07 支书批准）**：**低频操作钮**（导出 / 打印 / 分页）统一 **32px**，
   //   与分页钮 / 下拉**同高同 border 家族**（见 `disc/attendance-tab.js` 同处注释）。**在force，勿归位**。
   { id: '档5/32px 低频', hit: (c) => /\bh-8\b/.test(c) },

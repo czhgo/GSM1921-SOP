@@ -2,7 +2,7 @@
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
 import { icon } from '../../core/base/icons.js?v=20261110b';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20261110b';
+import { getBasePath, showToast, fmtLocalDateTime } from '../../core/base/utils.js?v=20261110b';
 import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261110b';
 import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261110b';
 import { AuthStore } from '../../services/core/auth.js?v=20261110b';
@@ -178,13 +178,10 @@ function _isInstitutionDoc(d) {
   return !!d && d.purpose === 'institution';
 }
 
-/** ISO 时间 → 本地 'YYYY-MM-DD HH:mm' */
+/** ISO 时间 → 本地 'YYYY-MM-DD HH:mm'（单一源 core/base/date.js::fmtLocalDateTime） */
 function _fmtDateTime(iso) {
   if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return String(iso).slice(0, 16);
-  const p = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  return fmtLocalDateTime(iso) || String(iso).slice(0, 16);
 }
 
 /** 发布人 personId → 姓名（种子外人员回退 id） */

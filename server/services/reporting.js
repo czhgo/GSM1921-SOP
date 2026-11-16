@@ -23,16 +23,40 @@ function listTable(db, table) {
   return db.prepare(`SELECT data FROM ${table}`).all().map(r => JSON.parse(r.data));
 }
 
+// 上报口径时区固定为支部所在地（Asia/Shanghai）：切日不跟随服务器进程时区，也不用 UTC。
+// 为什么：本地 00:00–08:00 录入的时间戳按 UTC 切会落到**前一天**，03:00 推送的窗口与导出的日期列都会偏一天。
+const REPORT_TIME_ZONE = 'Asia/Shanghai';
+const _zoneDayFormatter = new Intl.DateTimeFormat('en-US', {
+  timeZone: REPORT_TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit',
+});
+
+/** Date → Asia/Shanghai 日历日 `YYYY-MM-DD` */
+function _zoneDay(date) {
+  const parts = _zoneDayFormatter.formatToParts(date);
+  const pick = (type) => (parts.find((p) => p.type === type) || {}).value || '';
+  return `${pick('year')}-${pick('month')}-${pick('day')}`;
+}
+
 /** 本地日历日 `YYYY-MM-DD`（服务端日期口径单一源；R-26③：禁再用 UTC 切串取「今天」） */
 export function fmtLocal(d) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
+  const date = d instanceof Date ? d : new Date(d);
+  return Number.isNaN(date.getTime()) ? '' : _zoneDay(date);
+}
+
+/**
+ * 任意时间戳 / 日期串 → 上报口径本地日 `YYYY-MM-DD`。
+ * 纯 `YYYY-MM-DD` 原样返回（活动 date 等日期型字段）；ISO datetime 按 Asia/Shanghai 切日。
+ */
+export function localDay(value) {
+  if (value === null || value === undefined || value === '') return '';
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value).slice(0, 10);
+  return _zoneDay(date);
 }
 
 export function today() { return fmtLocal(new Date()); }
-export function daysAgo(n) { const d = new Date(); d.setDate(d.getDate() - n); return fmtLocal(d); }
+export function daysAgo(n) { return fmtLocal(new Date(Date.now() - n * 86_400_000)); }
 
 // from/to 窗口（YYYY-MM-DD；from 缺省近 7 天，to 缺省今天）——部署文档 §6.5
 export function resolveWindow(query = {}) {
@@ -40,8 +64,9 @@ export function resolveWindow(query = {}) {
 }
 
 // 主日期字段落窗判断：member 无日期字段不过滤（全量）
+// 一律先归一到上报口径本地日（Asia/Shanghai）再比 —— 本地 00:00–08:00 的时间戳按 UTC 切会落到前一天。
 function inWindow(value, from, to) {
-  const d = String(value || '').slice(0, 10);
+  const d = localDay(value);
   if (!d) return true;
   return (!from || d >= from) && (!to || d <= to);
 }
@@ -115,6 +140,9 @@ export function extractDomain(db, domain, from, to, { branchId = null } = {}) {
         attendanceStatus: r.status,
         recorder: r.recordedBy ? nameOf(r.recordedBy) : '',
         confirmed: '是',
+        // 日期列（追加在末尾，不改既有列序）：与窗口同一口径的本地日（Asia/Shanghai），
+        // 避免人工导入平台时按 UTC 切出前一天。
+        date: localDay(r[cfg.dateField]),
       }));
   }
 

@@ -9,7 +9,7 @@ import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } fro
 import { loadActivities } from '../../../services/activity/activity.js?v=20261110b';
 // R7-33：复盘「超期」按「活动日 + 复盘提交期限（policy）」现算，不再直读记录上的 overdue 快照
 import { isReviewOverdue } from '../../../core/domain/policy-defaults.js?v=20261110b';
-import { showToast, escHtml } from '../../../core/base/utils.js?v=20261110b';
+import { showToast, escHtml, fmtLocalDate } from '../../../core/base/utils.js?v=20261110b';
 import { openFormModal, openModal, closeModal } from '../../../components/ui/modal.js?v=20261110b';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：经验沉淀「作废（软）」——统一写口 ＋ 支委层判据
 import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261110b';
@@ -104,7 +104,7 @@ function depositRecordRowHtml(d) {
     <div class="p-3 rounded-xl bg-white transition-colors flex items-start justify-between gap-3">
       <div class="min-w-0">
         <p class="text-sm font-medium text-gray-800 truncate">${escHtml(d.title || '未命名沉淀')}</p>
-        <p class="text-xs text-gray-500 mt-0.5 truncate">来源活动：${escHtml(d.sourceName || '—')} · 记录于 ${escHtml((d.createdAt || '').slice(0, 10) || '—')}</p>
+        <p class="text-xs text-gray-500 mt-0.5 truncate">来源活动：${escHtml(d.sourceName || '—')} · 记录于 ${escHtml(fmtLocalDate(d.createdAt) || '—')}</p>
       </div>
       <div class="flex items-center gap-2 flex-shrink-0">
         ${d.voidPending && !d.voided
@@ -283,7 +283,7 @@ export function renderContent(ctx) {
       rows: activeDeposits.map(d => ({
         ...d,
         activity: d.sourceName || d.title || '',
-        date: (d.createdAt || '').slice(0, 10),
+        date: fmtLocalDate(d.createdAt),
         type: d.scenario || '',
       })),
       keyword: _rvKeyword,

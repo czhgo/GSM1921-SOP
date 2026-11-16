@@ -609,7 +609,7 @@
 
 **出勤状态枚举**：`present` 出席 / `absent` 缺席（触发补课机制）/ `leave` 请假 / `made_up` 已补。**请假分事假 / 病假两档在 `absenceReason` 上区分**（时效（事假提前 1 天 / 病假可事后补）**只提示、不校验、不拦提交**）。标因可选项单一源 `docs/src/core/domain/policy-defaults.js:90-94`（`attendance.reasons`，新增须支书裁决）。
 **来源 C · `secretaryConfirmedAt`**（`string`（ISO），可选）：**支书复核标记**——支书台待办「一键确认」写入即销项；**无此字段＝未复核**（§4.6 / §4.17 同名同义）。
-**依据**：`content/04_web_design/data/DATA_MODEL.md:338-401`、`docs/src/core/domain/domain.js:92-108`、`docs/src/core/domain/policy-defaults.js:73-87`、`docs/src/services/governance/secretary-overview.js:582`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:1059`（写）。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:338-401`、`docs/src/core/domain/domain.js:92-108`、`docs/src/core/domain/policy-defaults.js:73-87`、`docs/src/services/governance/secretary-overview.js:586`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:1059`（写）。
 
 ### 4.6 考察记录（InspectionRecord）
 
@@ -618,7 +618,7 @@
 > 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **来源 C · `secretaryConfirmedAt`**（`string`（ISO），可选）：见 §4.5（对「已纪检确认」的考察写此销项）。
-**依据**：`content/04_web_design/data/DATA_MODEL.md:341-355`、`docs/src/core/domain/domain.js:166-178`、`docs/src/services/governance/secretary-overview.js:581`（读）、`docs/src/entries/tabs/secretary/todo-tab.js:1047`（写）。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:341-355`、`docs/src/core/domain/domain.js:166-178`、`docs/src/services/governance/secretary-overview.js:593`（读）、`docs/src/entries/tabs/secretary/todo-tab.js:1047`（写）。
 
 ### 4.7 分工记录（AssignmentRecord）
 
@@ -728,7 +728,7 @@
 
 **复盘状态枚举（中文值，落库即中文）**：`未提交` → `已上传` → `批注中` → `已确认` / `已打回`（打回后可重新提交回 `已上传`）。
 **来源 C · `secretaryConfirmedAt`**（`string`（ISO），可选）：见 §4.5（支书台「一键确认」对「已确认 / 已打回」之外的待办销项）。
-**依据**：`content/04_web_design/data/DATA_MODEL.md:709-745`、`docs/src/core/domain/domain.js:125-144`、`docs/src/services/governance/secretary-overview.js:588`（读）、`docs/src/entries/tabs/secretary/todo-tab.js:732`（写）。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:709-745`、`docs/src/core/domain/domain.js:125-144`、`docs/src/services/governance/secretary-overview.js:600`（读）、`docs/src/entries/tabs/secretary/todo-tab.js:732`（写）。
 
 ### 4.18 周期归档提交记录（PeriodicArchiveSubmission）
 
@@ -1086,7 +1086,7 @@
 | platformReportedBy | string | 否 | 上报留痕·操作人 personId（与 `platformReportedAt` 同步写入） |
 
 **服务端种子**：**有**（`server/seed.js:65` 从 `docs/src/data/mock/seed.js::SEED_ARCHIVE_RECORDS` 播种 3 条）。
-**依据**：`docs/src/data/mock/seed.js:36-45`、`docs/src/entries/tabs/prop/archive-tab.js:1029-1098`（运行时新建：`_handleArchiveUpload`）、`docs/src/entries/tabs/prop/archive-tab.js:695-714`（党建平台留痕位：`_markPlatformReported` 写、`_renderPlatformCell` 读）、`docs/src/services/governance/secretary-overview.js:589`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:1059`（写）、`server/seed.js:65`、`server/routes/resources/store.js:30,56`。
+**依据**：`docs/src/data/mock/seed.js:36-45`、`docs/src/entries/tabs/prop/archive-tab.js:1029-1098`（运行时新建：`_handleArchiveUpload`）、`docs/src/entries/tabs/prop/archive-tab.js:695-714`（党建平台留痕位：`_markPlatformReported` 写、`_renderPlatformCell` 读）、`docs/src/services/governance/secretary-overview.js:607`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:1059`（写）、`server/seed.js:65`、`server/routes/resources/store.js:30,56`。
 
 ---
 

@@ -8,7 +8,7 @@ import { AuthStore } from '../core/auth.js?v=20261110b';
 import { NoticeStore } from '../governance/notice.js?v=20261110b';
 import { resolveVoterIds } from './vote-config.js?v=20261110b';
 // 域写版本戳（2026-09-30 批次 304）：表态 / 截止都是**源写**，须 bump 供消费方（今天页「待我表态」等）失效重算。
-import { bumpToken } from '../../core/base/version-token.js?v=20261110b';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261110b';
 
 // 支委总数（通知文案「已有 N/M 位委员表态」的分母）
 // 单一源化（2026-09-02）：改引权威名单 vote-config.js resolveVoterIds('committee')
@@ -17,12 +17,19 @@ import { bumpToken } from '../../core/base/version-token.js?v=20261110b';
 // 2026-09-06 附录⑩ B批：改为惰性求值（首用缓存）——resolveVoterIds 内部访问 AuthStore，
 //   顶层立即执行会在模块环初始化期（auth→taskforce→workforce→committee-vote）命中
 //   「AuthStore before initialization」；运行期首次调用时 AuthStore 已就绪。
-let _committeeTotalCache;
-function committeeTotal() {
-  if (_committeeTotalCache === undefined) {
-    _committeeTotalCache = resolveVoterIds('committee').length;
+// T8（2026-11-16）：缓存**按版本戳失效**——成员变动（person 写口 `bumpToken('member')`）或本人表态 /
+//   截止（`bumpToken('agendaVotes')`）后，下一次读取即重算；不用 TTL 猜（改选 / 转出后旧分母会继续
+//   出现在支书通知里，且无法用时间界限定何时过期）。
+let _committeeTotalCache = null; // { version:string, total:number }
+const _committeeTotalVersion = () => `member:${tokenOf('member')}|votes:${tokenOf('agendaVotes')}`;
+
+/** 支委总数（当前在册支委名单长度；带版本戳缓存，成员变动 / 表态后自动重算） */
+export function committeeTotalCount() {
+  const version = _committeeTotalVersion();
+  if (!_committeeTotalCache || _committeeTotalCache.version !== version) {
+    _committeeTotalCache = { version, total: resolveVoterIds('committee').length };
   }
-  return _committeeTotalCache;
+  return _committeeTotalCache.total;
 }
 
 // 通知去重（2026-09-02）：submitVote 幂等 upsert 下改票/多议题/重提会重复触发
@@ -40,7 +47,7 @@ async function notifySecretaryProgress(activityId) {
     const notified = notifiedCountByActivity.get(activityId) || 0;
     if (n > notified) {
       // R-22（2026-09-13）：系统派生通知改由服务端生成（表决进度计数由服务端读表态复算）
-      NoticeStore.addSystem('committee-vote-progress', activityId, { voted: n, total: committeeTotal() });
+      NoticeStore.addSystem('committee-vote-progress', activityId, { voted: n, total: committeeTotalCount() });
       notifiedCountByActivity.set(activityId, n);
     }
   } catch (e) {

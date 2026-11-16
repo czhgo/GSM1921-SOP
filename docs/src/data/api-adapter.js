@@ -47,7 +47,7 @@ async function _gzip(str) {
 async function _request(path, options = {}) {
   const url = `${getApiBaseUrl()}${path}`;
   const headers = {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json', ...(_hydrateDepth > 0 ? { 'X-Hydrate': '1' } : null), // 水合窗口（仅 init 全量灌库）：服务端整集合不截断（行数不变：保 README-server 的行号取证）
     ...options.headers,
   };
   const token = getAuthToken();
@@ -1262,4 +1262,14 @@ export const ApiAdapter = {
       return _post(`/api/v1/auth-audit${query}`, body);
     },
   },
+
+  // ── 水合窗口（2026-11-16 · 列表上限 2000 ＋ 全量灌库不截断）────────────────────
+  // 只有 `data-adapter.js::init()` 的 from-server 灌库路径开窗；窗口内 GET 带 `X-Hydrate: 1`，
+  //   服务端按「已登录 ⇒ 整集合不截断」返回（`server/routes/resources/write-validation.js::hydrateReadMode`）。
+  // 窗口外的一切读口仍是 2000 上限 ＋ `X-Has-More`，标记不放大普通读面。
+  beginHydrate() { _hydrateDepth += 1; },
+  endHydrate() { _hydrateDepth = Math.max(0, _hydrateDepth - 1); },
 };
+
+/** 水合窗口深度（0 ＝ 关；只在 `_request` 里被读，声明可在对象之后——调用发生在模块求值完成后） */
+let _hydrateDepth = 0;

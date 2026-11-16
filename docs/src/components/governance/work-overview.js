@@ -495,6 +495,7 @@ async function _renderOverviewContent(container, { role, personId, accent = '#B9
     active: lineRows.reduce((sum, row) => sum + row.active, 0),
     overdue: lineRows.reduce((sum, row) => sum + row.overdue, 0),
     actions: 0,
+    pastDeadline: ctx.pastDeadlineCount, // 「已过截止」只支书概况给值（其余角色 undefined ⇒ 不渲染该行）
     pendingAuth: ctx.pendingAuth,
     pendingArchive: ctx.pendingArchive,
     makeupPending: ctx.makeupPending,
@@ -580,14 +581,24 @@ async function _renderOverviewContent(container, { role, personId, accent = '#B9
     meta: `完成于 ${String(todo.completedAt || '').slice(0, 10)}`,
   }));
 
+  // 「已过截止」口径行（批次 561）：支书概况在结论带内补一行「已过截止 N」——
+  //   与「逾期」同一口径家族（截止日已过）但不计入逾期（进行中），0 也照常显示（口径存在即让用户知道）。
+  //   落点是结论带自身的整宽说明行（grid-column:1/-1），不进数字卡：卡片判据锁定「数值 + 标签两行」。
+  const bandNote = Number.isFinite(totals.pastDeadline)
+    ? `已过截止 ${totals.pastDeadline}（进行中待办，未计入逾期）`
+    : '';
+
   container.innerHTML = `
     <div class="stack-page" data-wo-role="${esc(role)}">
 
       ${renderTabHeader({ title })}
 
-      <section class="metric-band metric-band--interactive metric-band--cards" data-wo-layer="summary" aria-label="工作概况结论">
-        ${summaryHtml}
-      </section>
+      <div class="stack-section" data-wo-layer="summary-group">
+        <section class="metric-band metric-band--interactive metric-band--cards" data-wo-layer="summary" aria-label="工作概况结论">
+          ${summaryHtml}
+        </section>
+        ${bandNote ? `<p class="text-sm text-gray-500" style="margin: 0;" data-wo-layer="summary-note">${esc(bandNote)}</p>` : ''}
+      </div>
 
       <div id="wo-lines" class="card rounded-xl card-standard stack-section card--static" data-wo-layer="lines">
         ${renderCardHeader({ title: '工作分工' })}
@@ -659,6 +670,11 @@ async function _buildContext(role, personId, today, config) {
     const seen = new Set(ctx.todoGroups.map((group) => group.groupKey));
     ctx.todoGroups = [...ctx.todoGroups, ...realtime.filter((group) => !seen.has(group.groupKey))];
     ctx.overview = secretary.SecretaryOverviewStore.getOverview();
+    // 「已过截止」：与「逾期」同一 todo 口径族（截止日已过但按 isTodoExpired 不计逾期）。
+    //   谓词单一源 = secretary-overview.js::isPastDeadlineOnly（按人视图 pastDeadlineCount 同源）；
+    //   统计面取本台 ctx.todoGroups（含实时派生组），与结论带「逾期」的 todo 面一致。0 也显示。
+    ctx.pastDeadlineCount = (ctx.todoGroups || []).reduce((sum, group) => sum
+      + (group.items || []).filter((item) => secretary.isPastDeadlineOnly(item, today)).length, 0);
     // U-01：「待我处理」并入周期归档待审数。口径单一源 =
     //   services/governance/secretary-overview.js::listPeriodicArchivesPendingReview
     //   （同一函数亦供 overview-tab 的「周期归档待审核」卡；本处只取待审计数/明细，不另立判据）。

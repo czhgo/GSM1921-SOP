@@ -12,7 +12,7 @@ import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?
 import { bumpToken } from '../../core/base/version-token.js?v=20261110b'; // P0 域缓存失效（spec §二.3）
 import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261110b';
 import { isInitStateActive } from '../core/init-reset.js?v=20261110b'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { todayLocal } from '../../core/base/utils.js?v=20261110b';
+import { todayLocal, fmtLocalDate } from '../../core/base/utils.js?v=20261110b';
 import { AuthStore } from '../core/auth.js?v=20261110b';
 import {  getPersonById, getPersonName } from '../member/person.js?v=20261110b';
 import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261110b';
@@ -185,7 +185,7 @@ function _noticeFromTodo(todo, id) {
     title: todo.title || '通知',
     content: todo.description || '',
     priority: todo.priority || 'normal',
-    publishDate: String(todo.createdAt || '').slice(0, 10) || null,
+    publishDate: fmtLocalDate(todo.createdAt) || null,
     expireDate: todo.deadline || null,
     read: todo.status === TodoStatus.COMPLETED,
     targetModule: (todo.actionData && todo.actionData.targetModule) || null,

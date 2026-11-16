@@ -24,3 +24,34 @@ export function _fmtDate(d) {
 
 /** 「今天」的**本地**日历日 `YYYY-MM-DD`（R-26③ 单一源；**禁**用 UTC 切串取「今天」） */
 export function todayLocal() { return _fmtDate(new Date()); }
+
+/** 输入归一：Date / ISO 串 → Date（空值 / 不可解析 → null） */
+function _toDate(v) {
+  if (v instanceof Date) return Number.isNaN(v.getTime()) ? null : v;
+  if (v == null || v === '') return null;
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/**
+ * ISO 时间串 / Date → **本地**日历日 `YYYY-MM-DD`（空值 / 不可解析返回 ''）。
+ * 2026-11-16 `polish-shell-and-display-truth` T5：替代各处 `String(x).slice(0, 10)`（UTC 日）——
+ *   本地 00:00–08:00 写入的时间戳切 UTC 串会落到**前一天**。
+ *   纯日期串（`YYYY-MM-DD`）本身即日历日，原样返回（不经 `new Date` 的 UTC 零点换算）。
+ */
+export function fmtLocalDate(v) {
+  const s = typeof v === 'string' ? v.trim() : '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const d = _toDate(v);
+  return d ? _fmtDate(d) : '';
+}
+
+/**
+ * ISO 时间串 / Date → **本地** `YYYY-MM-DD HH:mm`（空值 / 不可解析返回 ''）。
+ * 2026-11-16 T5：替代 `String(iso).slice(0, 16)`（UTC 串直切）——本地 00:30 提交显示当天 00:30。
+ */
+export function fmtLocalDateTime(v) {
+  const d = _toDate(v);
+  if (!d) return '';
+  return _fmtDate(d) + ' ' + _pad(d.getHours()) + ':' + _pad(d.getMinutes());
+}

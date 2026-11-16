@@ -12,7 +12,7 @@ import { loadActivities, getOrganizedActivities } from '../../../services/activi
 import { badgeHtml } from '../../../components/ui/badges.js?v=20261110b';
 import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261110b';
 
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261110b';
+import { showToast, escHtml as esc, getBasePath, fmtLocalDate } from '../../../core/base/utils.js?v=20261110b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261110b';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
@@ -151,7 +151,7 @@ export function renderContent(ctx, host) {
     const levelLabel = LEVEL_LABEL[r.level] || r.level;
     const levelTone = LEVEL_TONE[r.level] || 'neutral';
     const sourceTitle = r.activityTitle || r.sourceName || '—';
-    const recordedDate = r.recordedAt ? r.recordedAt.slice(0, 10) : '—';
+    const recordedDate = fmtLocalDate(r.recordedAt) || '—';
 
     return `
       <div class="p-3 rounded-lg bg-white" data-act-id="${r.activityId || ''}">

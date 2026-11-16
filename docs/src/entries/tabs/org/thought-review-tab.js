@@ -18,7 +18,7 @@
 import { listAllThoughtReports, comparePeriodDesc, periodOf } from '../../../services/governance/thought-report.js?v=20261110b';
 import { getPersonName, liveMembers } from '../../../services/member/person.js?v=20261110b';
 import { AuthStore } from '../../../services/core/auth.js?v=20261110b';
-import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261110b';
+import { escHtml as esc, getBasePath, fmtLocalDate } from '../../../core/base/utils.js?v=20261110b';
 import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261110b';
 import { listRowHtml } from '../../../components/ui/list-row.js?v=20261110b';
 // 例外清单仍是按人表：接统一引擎只为**分页**（无关键词 / 无分面时引擎自动不渲染检索条）。
@@ -111,7 +111,7 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（本 tab 不�
       return {
         personId,
         name: getPersonName(personId) || latest.personName || personId,
-        meta: `${currentPeriod} · 提交 ${String(latest.submittedAt || '').slice(0, 10)}${list.length > 1 ? ` · 共 ${list.length} 篇` : ''}`,
+        meta: `${currentPeriod} · 提交 ${fmtLocalDate(latest.submittedAt)}${list.length > 1 ? ` · 共 ${list.length} 篇` : ''}`,
         reportId: list.length === 1 ? latest.id : '',
       };
     });

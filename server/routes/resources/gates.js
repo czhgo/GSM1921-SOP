@@ -5,7 +5,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { requireAuth, requireCommissioner } from '../auth.js';
-import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, ORG_COMMISSIONER_ROLES, INSPECTION_WRITE_ROLES, INSPECTION_CONFIRM_ROLES, branchCommissionerWriteDeny, isAnonymousForced, PARTY_GROUP_LEADER_ROLES, isPartyGroupLeaderRole, DEFAULT_BRANCH_ID, LEADER_CREATABLE_ACTIVITY_TYPES } from '../../../docs/src/core/domain/constants.js';
+import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, ORG_COMMISSIONER_ROLES, INSPECTION_WRITE_ROLES, INSPECTION_CONFIRM_ROLES, branchCommissionerWriteDeny, isAnonymousForced, PARTY_GROUP_LEADER_ROLES, isPartyGroupLeaderRole, DEFAULT_BRANCH_ID, LEADER_CREATABLE_ACTIVITY_TYPES, isBranchPendingUser } from '../../../docs/src/core/domain/constants.js';
 import { RESOURCE_TABLES, listTable } from './store.js';
 import { actorBranchId, createTableReader, resourceBranchId } from './branch-scope.js';
 import { CAPABILITY_PACKAGES } from '../../../docs/src/core/domain/capability-packages.js';
@@ -746,7 +746,12 @@ function _assertResourceWriteTail(need, db, actor, method, body, targetId) {
     //         不能借它改他人已有待办的推进状态）。
     //   边界：`patch` / `delete` 仍只归本人 / 本角色，他人不得替其推进或销项。
     const isPost = method === 'post';
+    // T11（2026-11-16）：待归属账号（`branchId` 显式为 null）没有支部上下文 ⇒ 不得替他人生成派生待办：
+    //   缺支部时 `own` 为 null，下方旧判据 `!own || …` 会把任意支部来源的派生行放行。
+    //   本人待办（personId / role 等于本人）仍按原口径放行。
+    const branchPending = isBranchPendingUser(actor);
     const canDeriveForOthers = isPost
+      && !branchPending
       && !!actor.role
       && (BRANCH_COMMITTEE_ROLES.has(actor.role) || PARTY_STAFF_ROLE.has(actor.role));
     const SOURCE_TABLE = { notice: 'notices', activity: 'activities', taskforce: 'taskforces' };
@@ -757,7 +762,7 @@ function _assertResourceWriteTail(need, db, actor, method, body, targetId) {
         let src = null;
         try { src = JSON.parse(found.data); } catch { src = null; }
         const own = actorBranchId(actor);
-        derivedFromSource = !!src && (!own || (src.branchId || DEFAULT_BRANCH_ID) === own);
+        derivedFromSource = !!src && !!own && (src.branchId || DEFAULT_BRANCH_ID) === own;
       }
     }
     const mayCreateForOthers = canDeriveForOthers || derivedFromSource;

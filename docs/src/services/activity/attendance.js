@@ -680,7 +680,8 @@ function _meetingRosterIdsOf(activity) {
  * 出勤含「已补」；线上参会不计出席（记请假）——口径与全站各处一致（单一源，勿在页面另算）。
  * 供纪检台「导出出勤率汇总（支委会内部）」与支书台「偏低提示」同一读口消费。
  * @param {{month?:string, records?:Array}} [params] month 形如 '2026-09'（缺省 = 全部活动）
- * @returns {{month:string, rows:Array<Object>, total:number, presentTotal:number, rate:number}}
+ * @returns {{month:string, rows:Array<Object>, total:number, presentTotal:number, recordedTotal:number,
+ *   coverage:number, rate:number}} `rows[].ratePending=true` 表示该场未录（展示「待录入」、导出留空）
  */
 export function summarizeAttendanceByActivity({ month, records, rosterSnapshots } = {}) {
   const src = records || loadActiveAttendanceRecords();
@@ -723,7 +724,12 @@ export function summarizeAttendanceByActivity({ month, records, rosterSnapshots 
       activityId: a.id, activity: a.title, date: a.date || '', type: a.type || '',
       total: rosterIds.size, present, leave, absent, unrecorded, coverage,
       rosterFrozen, rosterFallback, estimate: !rosterFrozen,
+      // T7（2026-11-16 支书裁定）：未录 ≠ 全员缺勤——「该场一条考勤记录都没有」时展示层写「待录入」、
+      //   导出单元格留空。判据只用既有事实（本场已录人数 = counted.length），不新造字段。
+      //   `rate` 仍保持数字 0：`roster-denominator-guard::R1` 的既有断言口径是「未录不得显示 100%」，
+      //   不得拿 null 顶替；展示层一律以 `ratePending` 判「待录入」。
       rate: Math.round((present / rosterIds.size) * 100),
+      ratePending: counted.length === 0,
     });
   }
   rows.sort((x, y) => (y.date || '').localeCompare(x.date || ''));
