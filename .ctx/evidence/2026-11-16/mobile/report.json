@@ -1,0 +1,320 @@
+{
+  "base": "http://127.0.0.1:3000",
+  "viewport": "375x812",
+  "tasks": {
+    "notice": {
+      "id": "notice-101",
+      "status": 200,
+      "vw": 375,
+      "docScrollWidth": 375,
+      "horizontalScroll": false,
+      "ctrlCount": 16,
+      "smallTargets": [
+        {
+          "tag": "a",
+          "text": "跳到主要内容",
+          "w": 1,
+          "h": 1,
+          "font": 15
+        },
+        {
+          "tag": "button",
+          "text": "打开导航菜单",
+          "w": 36,
+          "h": 36,
+          "font": 13
+        },
+        {
+          "tag": "button",
+          "text": "一键汇报",
+          "w": 66,
+          "h": 36,
+          "font": 13
+        },
+        {
+          "tag": "button",
+          "text": "通知",
+          "w": 40,
+          "h": 40,
+          "font": 13
+        },
+        {
+          "tag": "a",
+          "text": "我的档案",
+          "w": 343,
+          "h": 22,
+          "font": 12
+        },
+        {
+          "tag": "a",
+          "text": "帮助",
+          "w": 343,
+          "h": 22,
+          "font": 12
+        },
+        {
+          "tag": "a",
+          "text": "设置",
+          "w": 343,
+          "h": 22,
+          "font": 12
+        },
+        {
+          "tag": "button",
+          "text": "退出登录",
+          "w": 82,
+          "h": 22,
+          "font": 12
+        },
+        {
+          "tag": "button",
+          "text": "归档",
+          "w": 48,
+          "h": 36,
+          "font": 13
+        }
+      ],
+      "smallTargetCount": 9,
+      "minFont": 12,
+      "overflows": [],
+      "receipts": [
+        {
+          "text": "← 返回",
+          "w": 60,
+          "h": 44
+        }
+      ]
+    },
+    "vote": {
+      "id": "act-6",
+      "activities": 38,
+      "agendas": 6,
+      "vw": 375,
+      "docScrollWidth": 375,
+      "horizontalScroll": false,
+      "ctrlCount": 20,
+      "smallTargets": [
+        {
+          "tag": "a",
+          "text": "跳到主要内容",
+          "w": 1,
+          "h": 1,
+          "font": 15
+        },
+        {
+          "tag": "button",
+          "text": "打开导航菜单",
+          "w": 36,
+          "h": 36,
+          "font": 13
+        },
+        {
+          "tag": "button",
+          "text": "一键汇报",
+          "w": 66,
+          "h": 36,
+          "font": 13
+        },
+        {
+          "tag": "button",
+          "text": "通知",
+          "w": 40,
+          "h": 40,
+          "font": 13
+        },
+        {
+          "tag": "a",
+          "text": "我的档案",
+          "w": 343,
+          "h": 22,
+          "font": 12
+        },
+        {
+          "tag": "a",
+          "text": "帮助",
+          "w": 343,
+          "h": 22,
+          "font": 12
+        },
+        {
+          "tag": "a",
+          "text": "设置",
+          "w": 343,
+          "h": 22,
+          "font": 12
+        },
+        {
+          "tag": "button",
+          "text": "退出登录",
+          "w": 82,
+          "h": 22,
+          "font": 12
+        },
+        {
+          "tag": "button",
+          "text": "← 返回",
+          "w": 57,
+          "h": 28,
+          "font": 12
+        },
+        {
+          "tag": "button",
+          "text": "复制链接",
+          "w": 74,
+          "h": 36,
+          "font": 13
+        },
+        {
+          "tag": "a",
+          "text": "会议议程",
+          "w": 66,
+          "h": 28,
+          "font": 12
+        },
+        {
+          "tag": "button",
+          "text": "报名名单",
+          "w": 80,
+          "h": 39,
+          "font": 14
+        }
+      ],
+      "smallTargetCount": 14,
+      "minFont": 12,
+      "overflows": [],
+      "voteButtons": [],
+      "panelPresent": false,
+      "panelTop": null
+    },
+    "attendance": {
+      "vw": 375,
+      "docScrollWidth": 375,
+      "horizontalScroll": false,
+      "ctrlCount": 32,
+      "smallTargets": [
+        {
+          "tag": "a",
+          "text": "跳到主要内容",
+          "w": 1,
+          "h": 1,
+          "font": 15
+        },
+        {
+          "tag": "button",
+          "text": "打开导航菜单",
+          "w": 36,
+          "h": 36,
+          "font": 13
+        },
+        {
+          "tag": "button",
+          "text": "一键汇报",
+          "w": 66,
+          "h": 36,
+          "font": 13
+        },
+        {
+          "tag": "button",
+          "text": "通知",
+          "w": 40,
+          "h": 40,
+          "font": 13
+        },
+        {
+          "tag": "a",
+          "text": "我的档案",
+          "w": 343,
+          "h": 22,
+          "font": 12
+        },
+        {
+          "tag": "a",
+          "text": "帮助",
+          "w": 343,
+          "h": 22,
+          "font": 12
+        },
+        {
+          "tag": "a",
+          "text": "设置",
+          "w": 343,
+          "h": 22,
+          "font": 12
+        },
+        {
+          "tag": "button",
+          "text": "退出登录",
+          "w": 82,
+          "h": 22,
+          "font": 12
+        },
+        {
+          "tag": "button",
+          "text": "今天",
+          "w": 58,
+          "h": 36,
+          "font": 12
+        },
+        {
+          "tag": "button",
+          "text": "待办",
+          "w": 58,
+          "h": 36,
+          "font": 12
+        },
+        {
+          "tag": "button",
+          "text": "工作概况",
+          "w": 82,
+          "h": 36,
+          "font": 12
+        },
+        {
+          "tag": "button",
+          "text": "活动动态",
+          "w": 82,
+          "h": 36,
+          "font": 12
+        }
+      ],
+      "smallTargetCount": 17,
+      "minFont": 12,
+      "overflows": [
+        {
+          "tag": "div",
+          "cls": "flex flex-nowrap gap-2 shrink-0",
+          "right": 607,
+          "w": 591
+        },
+        {
+          "tag": "button",
+          "cls": "visitor-tab-btn tab-btn shrink-0 min-h-9 px-4 py-2 text-xs f",
+          "right": 427,
+          "w": 82
+        },
+        {
+          "tag": "button",
+          "cls": "visitor-tab-btn tab-btn shrink-0 min-h-9 px-4 py-2 text-xs f",
+          "right": 517,
+          "w": 82
+        },
+        {
+          "tag": "button",
+          "cls": "visitor-tab-btn tab-btn shrink-0 min-h-9 px-4 py-2 text-xs f",
+          "right": 607,
+          "w": 82
+        }
+      ],
+      "table": false,
+      "tabbar": {
+        "found": true,
+        "cls": "flex flex-nowrap gap-2 shrink-0",
+        "scrollWidth": 591,
+        "clientWidth": 591,
+        "overflowX": "visible",
+        "canScroll": false
+      }
+    }
+  },
+  "errors": []
+}
