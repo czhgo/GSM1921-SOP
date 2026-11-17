@@ -54,7 +54,8 @@ async function signup(personId, sourceType, sourceId, role, extra = {}) {
 
 async function review(signupId, approve) {
   return fetch(`${base}/signups/${encodeURIComponent(signupId)}`, {
-    method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokens['2300010001']}` },
+    // 批次 564：整行写口要求 If-Match；本例只验报名审核语义，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+    method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokens['2300010001']}`, 'If-Match': '*' },
     body: JSON.stringify({ status: approve ? 'approved' : 'rejected' }),
   });
 }
@@ -71,7 +72,7 @@ test('主题党日组织者/深度参与者必须选择线下；普通参与者�
   assert.equal(onsite.body.onsite, true);
   assert.equal((await review(onsite.body.id, true)).status, 200);
   const mutateChoice = await fetch(`${base}/signups/${encodeURIComponent(onsite.body.id)}`, {
-    method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokens['2400012346']}` },
+    method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokens['2400012346']}`, 'If-Match': '*' },
     body: JSON.stringify({ onsite: false }),
   });
   assert.equal(mutateChoice.status, 403, '报名时选择的线下意向不可事后覆盖');

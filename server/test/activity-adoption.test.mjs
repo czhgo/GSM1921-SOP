@@ -61,7 +61,8 @@ after(() => {
 async function request(personId, method, path, body) {
   const response = await fetch(`${base}/api/v1/${path}`, {
     method,
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokens[personId]}` },
+    // 批次 564：整行写口要求 If-Match；本例只验权限 / 内容锁定，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokens[personId]}`, ...(method === 'PATCH' ? { 'If-Match': '*' } : {}) },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
   const data = response.status === 204 ? null : await response.json();

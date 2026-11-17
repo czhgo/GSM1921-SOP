@@ -3,9 +3,9 @@ title: "院系党委后台——支部多实例两级治理设计定案"
 type: contract
 role: "[工程师]+[AI]"
 created: 2026-09-02
-last_updated: 2026-11-08
+last_updated: 2026-11-17
 status: approved-by-secretary
-version: "1.0"
+version: "1.1"
 owner: "支书（契约裁决）；[工程师]+[AI]（维护）"
 acceptance: "两级治理范围与公开审计由 SYSTEM_ROLE_PERMISSION §9a.1 与 party-committee 测试组共同验收，未过则不视为落地"
 related_files: [docs/src/core/domain/domain.js, docs/src/data/mock/people.js, docs/src/data/mock/accounts.js, server/seed.js, server/db.js, docs/src/data/data-adapter.js, docs/src/core/domain/constants.js, docs/src/services/core/auth.js, docs/src/capabilities/, ../module/PUBLIC_ENTRANCE.md, ../../02_institution/SYSTEM_ROLE_PERMISSION.md]
@@ -134,6 +134,7 @@ related_files: [docs/src/core/domain/domain.js, docs/src/data/mock/people.js, do
 - **回滚原语（2026-09-09 审计内核 cc1cde66 已落地）**：`rollbackBranchConfig` 单键写回（定位 history 条目把 `from` 原样经同一写口写回；跨键/聚合条目如 `branch-created`/`config-copied` 拒绝回滚）——回滚本身再追加一条 `{ what:'rollback', from: 现值, to: 回滚值 }`，**历史不改写**（审计不可变）。UI：设置 → 支部治理「配置变更记录」只读列表（人/时间/键/前后值/why，支书/副/party-staff 可见）可对单键条目「回滚此更改」（confirm 后执行）。「恢复默认」= 写 null / 删键的语义化回滚。
 - **why / 历史上限（同上审计内核落地）**：写口支持可选 `opts.why` 透传留痕（放行依据编号回填，见放行程序④）；history 裁剪保留最近 100 条（`CONFIG_HISTORY_MAX`）。
 - **不对称明示（设计意图，非缺漏）**：① 个人偏好层**无留痕**——只存本机键、不进 config 历史（本人即时偏好，不打扰他人）；② 制度刚性层源码变更**无 config 留痕**——改动落在 **git 版本历史**而非运行时 configChangeHistory（config 留痕只覆盖支部 config 域，不含源码字面量变更）。
+- **写口版本约束（2026-11-17 批次 564）**：整行写口必须带 `If-Match: <该行当前 updatedAt>`——通用 `PATCH /api/v1/<资源>/:id`、`PATCH /api/v1/branches/:id/config`、`PATCH /api/v1/issues/:id` 同一口径。缺头且行内已有 `updatedAt` ⇒ `428 PRECONDITION_REQUIRED`（不写库）；头值与库内值不等 ⇒ `409 VERSION_CONFLICT` 且响应带 `latest`（服务端当前整行）；`If-Match: *` 表示显式强制写。客户端取戳与注入的单点是 `docs/src/data/api-adapter.js`（行版本表），表单文件不各写一套；actionKey 型状态机端点（申诉处置 / 发布范围 / 结束来访 / 评审决议 / 配置回滚）不加强制版本头。验收：`server/test/if-match.test.mjs`。
 
 #### 与内容接缝（在线可改 vs 仓库文件）
 

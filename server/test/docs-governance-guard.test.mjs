@@ -750,7 +750,6 @@ const CONTENT_REF_BASELINE = [
   'content/04_web_design/design-system/DS_03_COMPONENTS.md:1165 entries/tabs/secretary/overview-tab.js:184',
   'content/04_web_design/design-system/DS_03_COMPONENTS.md:1168 entries/tabs/secretary/todo-tab.js:844',
   'content/04_web_design/design-system/DS_03_COMPONENTS.md:1175 entries/tabs/disc/inspection-tab.js:281,299',
-  'content/04_web_design/design-system/DS_03_COMPONENTS.md:1176 data/api-adapter.js:919,1017',
   'content/04_web_design/design-system/DS_03_COMPONENTS.md:513 docs/src/entries/tabs/party-committee/monitor-tab.js:32',
   'content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md:79 entries/tabs/visitor/activities-tab.js:58,61,215',
   'content/04_web_design/evolution/archive/BRANCH_WORK_MAP.md:153 server/test/work-map.test.mjs:36',

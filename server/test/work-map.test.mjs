@@ -247,7 +247,8 @@ test('模块目录：collaborators 可缺省，填了的主体引用必须可解
 test('HTTP：支书 PATCH config.workforce 落库（净化生效），null 恢复默认', async () => {
   const put = await fetch(`${base}/api/v1/branches/br-b1/config`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    // 批次 564：整行写口要求 If-Match；本例只验 workforce 净化，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'If-Match': '*' },
     body: JSON.stringify({
       config: {
         workforce: {
@@ -265,7 +266,7 @@ test('HTTP：支书 PATCH config.workforce 落库（净化生效），null 恢�
 
   const reset = await fetch(`${base}/api/v1/branches/br-b1/config`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'If-Match': '*' },
     body: JSON.stringify({ config: { workforce: null } }),
   });
   assert.equal(reset.status, 200);

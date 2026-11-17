@@ -40,7 +40,8 @@ async function login(personId) {
 }
 
 function authHeaders(token) {
-  return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+  // 批次 564：整行写口要求 If-Match；本文件只验权限门，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+  return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'If-Match': '*' };
 }
 
 test('资源写角色门：治理档案写仅限 party-staff，支部成员一律 403', async () => {

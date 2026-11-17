@@ -178,7 +178,8 @@ test('API ①′处置不清真身：支书反复 PATCH 后库里仍保留匿名
   for (const [i, patch] of patches.entries()) {
     const res = await fetch(`${base}/api/v1/issues/${created.id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sec}` },
+      // 批次 564：整行写口要求 If-Match；本例只验真身不被回写擦掉，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sec}`, 'If-Match': '*' },
       body: JSON.stringify(patch),
     });
     assert.equal(res.status, 200, `第 ${i + 1} 次处置应成功`);

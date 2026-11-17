@@ -293,8 +293,9 @@ test('api ⑦：server users 通用 CRUD 落库断言（POST 新增 / PATCH 更�
   assert.ok((await getUsers(staffToken)).some(u => u.id === 'p60'), '落库：GET 列表含新增');
 
   // update（PATCH 局部合并）：只写 name（党委不得直接改阶段，见下一条）
+  // 批次 564：整行写口要求 If-Match；本例只验落库，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
   const patch = await fetch(`${base}/api/v1/users/p60`, {
-    method: 'PATCH', headers: auth(staffToken), body: JSON.stringify({ name: '测试成员六十·改' }),
+    method: 'PATCH', headers: { ...auth(staffToken), 'If-Match': '*' }, body: JSON.stringify({ name: '测试成员六十·改' }),
   });
   assert.equal(patch.status, 200);
   const patched = await patch.json();

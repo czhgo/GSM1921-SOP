@@ -40,7 +40,8 @@ async function apiLogin(personId) {
 async function patchBlocks(token, blocks) {
   const res = await fetch(`${base}/api/v1/branches/br-b1/config`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    // 批次 564：整行写口要求 If-Match；本例只验块入口守卫，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'If-Match': '*' },
     body: JSON.stringify({ config: { blocks } }),
   });
   assert.equal(res.status, 200);

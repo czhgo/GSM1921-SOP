@@ -1173,7 +1173,7 @@ icon('bell', { className: 'w-4 h-4' })
 |---|---|---|
 | `components/shell/sidebar.js:210`（退出登录） | 无确认面 | 非破坏性动作：只结束本机会话，不改任何业务数据，重新登录即回 |
 | 打回 / 退回原因的原生 `prompt`（`entries/tabs/disc/inspection-tab.js:281,299`、`entries/tabs/org/taskforce-tab.js:889`、`entries/tabs/prop/archive-tab.js:263` 等） | 原生 prompt | 属**录入面**（必填原因），不在确认面判据内，且文案已说明后续走向；本轮范围只收 `confirm(`，`prompt` 收口另批 |
-| `data/api-adapter.js:919,1017`、`data/mock-adapter.js:2385` 的 `.confirm(id)` | 非对话框 | 业务方法名（交接 / 变更确认），与浏览器原生对话框无关，不适用 SD-53 |
+| `data/api-adapter.js:1077,1249`、`data/mock-adapter.js:2385` 的 `.confirm(id)` | 非对话框 | 业务方法名（交接 / 变更确认），与浏览器原生对话框无关，不适用 SD-53 |
 
 
 ### 4.28 筛选形态选择（2026-10-20 立 · 阈值来自名册判例）

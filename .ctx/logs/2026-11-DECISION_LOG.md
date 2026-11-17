@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-879`，共 53 条**；下一条自 **`D-880`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-880`，共 54 条**；下一条自 **`D-881`**。
 
 ## 本月目录（2026-11）
 
@@ -73,6 +73,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 六维按行业基线严格重评：76 / 68 / 72 / 70 / 72 / 65，均 <80 ⇒ 不合并 | `D-877` | 2026-11-15 | 已落（批次 553） |
 | 六维补齐后重评：78 / 78 / 78 / 74 / 76 / 74，仍 <80 ⇒ 继续不合并；四条硬缺口列出 | `D-878` | 2026-11-15 | 已落（批次 559） |
 | 壳层全局 44px＋13px；八条数字口径；三处越权；列表 2000＋水合不截断；六维 79/79/80/75/77/74 仍不合并 | `D-879` | 2026-11-16 | 已落（批次 561） |
+| 字段错配五项＋契约以实现为准＋XSS/上报校验＋写路径 updatedAt＋全资源 If-Match＋help 全量对齐；六维 81/80/81/76/78/74 仍不合并 | `D-880` | 2026-11-17 | 已落（批次 562–564） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -478,5 +479,9 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 
 > **评议 → 裁定 → 落点**：支书自查指出「页头与页签命中区偏小、侧栏与页签 12px」，并令其后的全栈探查继续找出可改进点。三路取证后逐条请支书裁定：壳层**全局**（页头 / 页签 / 侧栏页脚两档 44px＋13px，卡片与表格分批）；计算**八条全修**；三处支部越权**本轮一并堵**；列表**硬上限 2000 ＋ 水合不截断**（支书质疑 500 过小：200 人支部年考勤约 6000 行）。业务口径四条另裁：未录＝「待录入」且导出留空、表决分母保持冻结并单列「已转出，不计」、`in_progress` 不计逾期但单列「已过截止」、上报按本地日＋CSV 日期列。**落点**：`docs/src/styles.css`、`components/shell/tab-bar.js`、`core/base/date.js`、`services/governance/secretary-overview.js`、`services/activity/{attendance,vote-config,committee-vote}.js`、`server/services/reporting.js`、`server/routes/{uploads.js,resources/{index,gates,semantic-routes,write-validation}.js}`、`server/test/{date-canon-guard,multi-branch-five-proof,resource-write-validation-guard}`。**结论**：六维 **79 / 79 / 80 / 75 / 77 / 74**，仍有四维 <80（架构 77 / 测试 75 / 部署 74 / 业务·安全 79）⇒ **继续不合并**。**未选**：只改移动端（两档分叉）；统一 500（数据截断风险）；把「已转出」按实时应到重算（表决结果不可回溯）。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-879`**（共 **53** 条）。
+## D-880 2026-11-17 — 字段错配 / 安全边界 / help / 乐观锁：六维 81 / 80 / 81 / 76 / 78 / 74（仍不合并）
+
+> **评议 → 裁定 → 落点**：支书令「继续查前端、后端、计算与显示逻辑，特别是姓名写成学号这类张冠李戴；更新 help 对齐前沿能力」。三路只读审计（字段错配 / help / 全栈逻辑）后逐条请支书裁定：① 五项字段错配**全修并加契约字段守卫**；② 契约枚举冲突**以实现为准改契约**（`branches: active|inactive`、工作组成员 `active|removed`）；③ 并发整行覆盖做**全资源 `If-Match`**（缺头 428 / 过期 409＋`latest`），`updatedAt` 打底取**应用层回填＋写路径统一**（不加 schema 列）；④ 批次拆为 **562（正确性与安全）/ 563（help）/ 564（乐观锁）** 三条 commit；⑤ help **功能/流程优先、技术压后**；⑥ 三项偏好（空态下一步、门厅截断提示、跨组口径服务端化）全部纳入。**落点**：`docs/src/services/{governance/todo,member/person,governance/issues}.js`、`components/record/{report-inbox,report-entry,other-groups-view,insight-view,todo-tab-shell}.js`、`data/{api-adapter,data-adapter}.js`、`server/data/domain-contract.mjs`、`server/routes/{report,public-portal}.js`、`server/routes/resources/{index,semantic-routes,write-validation}.js`、`server/db.js`（`backfillUpdatedAt`）、`server/server.js`、`docs/help.html`、`server/test/{contract-field-usage-guard,if-match}.test.mjs`。**结论**：六维 **81 / 80 / 81 / 76 / 78 / 74**，仍有三维 <80（测试 76 / 架构 78 / 部署 74）⇒ **继续不合并**。读数：daily **32 文件 / 259 断言 / 100.5s**；guards **111 文件 / 381 项 / 153.3s** 全绿；`If-Match` 真机三态 428 / 409＋`latest` / 200；跨组汇总 32/10、0/0、4/1（实到 ≤ 应到）。**未选**：只修显示可见错配（契约枚举暗雷保留）；以契约为准改实现（历史行迁移成本）；只加 `updatedAt` 不加锁（并发丢字段仍在）；help 只修错不补能力（帮助页继续落后）。**边界**：动作型语义 PATCH 与聚合根行不强制 `If-Match`（由状态机留痕与集合级 `_versions` 承担）；`test:full`、CI run id、Linux 真机仍未补。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-880`**（共 **54** 条）。
 

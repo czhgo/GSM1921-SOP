@@ -64,8 +64,11 @@ export const filesByFixtureClass = (fixtureClass) => TEST_TIERS
  *  2026-11-15 六维补齐 T2：新增 `observability`（结构化日志脱敏 ＋ 浅/深健康检查为结果门禁）⇒
  *    实测 30 文件，按 30 登记。
  *  2026-11-15 六维补齐 T3：新增 `health-alerts`（深检查 503 / 告警 30 分钟去重 / 恢复通知为结果门禁）⇒
- *    实测 31 文件，按 31 登记（结果门禁上限 31，已到顶）。 */
-export const DAILY_FILE_BUDGET = 31;
+ *    实测 31 文件，按 31 登记（结果门禁上限 31，已到顶）。
+ *  2026-11-17 批次 564（`repair-field-mismatch-and-refresh-help` Task 18）：新增 `if-match`（全资源乐观锁 428 / 409 /
+ *    200 / `If-Match: *` / `backfillUpdatedAt` 幂等为结果门禁——写口能否拦住并发覆盖是「结果对不对」而非过程检查）⇒
+ *    实测 32 文件，按 32 登记（上限随本批 +1）。 */
+export const DAILY_FILE_BUDGET = 32;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-11-08 波次 A：实测 187，按 189 登记（留 2 条余量；结果门禁上限 220）。
@@ -74,8 +77,10 @@ export const DAILY_FILE_BUDGET = 31;
  *  2026-11-15 六维补齐 T2：新增 `observability` 4 条断言（脱敏 / 5xx 串联 / 两级健康 / 反例）⇒
  *    实测 247，按 248 登记（留 1 条余量）。
  *  2026-11-15 六维补齐 T3：新增 `health-alerts` 4 条断言（成功＋指标 / 失败 503＋告警 / 30 分钟去重 / 恢复）⇒
- *    实测 251，按 252 登记（留 1 条余量）。 */
-export const DAILY_TEST_BUDGET = 252;
+ *    实测 251，按 252 登记（留 1 条余量）。
+ *  2026-11-17 批次 564（If-Match 结果门禁）：新增 `if-match` 5 条断言（无头 428 / 过期 409＋latest / 当前 200 且戳前进 /
+ *    `If-Match: *` 200 / 回填幂等无空戳）⇒ 实测 257，按 260 登记（留 3 条余量，上限随本批 +8）。 */
+export const DAILY_TEST_BUDGET = 260;
 
 /** guards 文件数预算（静态守卫；按需跑，不阻塞日常）
  *  2026-11-08 波次 A：daily 迁入 6 件 ⇒ 实测 99 文件，按 99 登记。
@@ -120,6 +125,8 @@ export const TEST_TIERS = [
     'observability.test.mjs',
     // 2026-11-15 六维补齐 T3：深检查 503 / 最小指标集 / 告警去重与恢复通知（结果门禁）
     'health-alerts.test.mjs',
+    // 2026-11-17 批次 564：全资源 If-Match（无头 428 / 过期 409＋latest / 当前 200 / 强制写 / 回填幂等）
+    'if-match.test.mjs',
   ]),
   ...group('daily', '结果门禁 · 数据契约 / 迁移 / 种子结果', [
     'data-contract.test.mjs',

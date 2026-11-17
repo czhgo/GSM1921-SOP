@@ -2,7 +2,7 @@
 title: "契约类文档目录（04/contracts/）"
 type: index
 role: "[工程师]+[AI]"
-last_updated: 2026-11-10
+last_updated: 2026-11-17
 status: active
 ---
 
@@ -27,7 +27,7 @@ status: active
 | 文件 | 契约内容 | 状态 | 版本 | owner | 验收判据 |
 |---|---|---|---|---|---|
 | [WORKFLOW_BLOCK_CONTRACT.md](WORKFLOW_BLOCK_CONTRACT.md) | L3 工作流块封装契约：块差异化三维度、契约总则、`block manifest` 字段规格与取值校验 | active | 1.1 | 支书（契约裁决）；[工程师]+[AI]（维护） | `server/test/block-manifest.test.mjs`、`server/test/module-compose.test.mjs` 绿 |
-| [PARTY_COMMITTEE_DESIGN.md](PARTY_COMMITTEE_DESIGN.md) | 院系党委 → 支部多实例两级治理契约：两级组织模型、配置写权分层、公开与审计边界、分期验收 | approved-by-secretary | 1.0 | 支书（契约裁决）；[工程师]+[AI]（维护） | `SYSTEM_ROLE_PERMISSION §9a.1` ＋ `server/test/party-committee*.test.mjs` 绿 |
+| [PARTY_COMMITTEE_DESIGN.md](PARTY_COMMITTEE_DESIGN.md) | 院系党委 → 支部多实例两级治理契约：两级组织模型、配置写权分层、整行写口 `If-Match` 版本约束、公开与审计边界、分期验收 | approved-by-secretary | 1.1 | 支书（契约裁决）；[工程师]+[AI]（维护） | `SYSTEM_ROLE_PERMISSION §9a.1` ＋ `server/test/party-committee*.test.mjs` 绿 |
 | [INTERACTION_AND_NAVIGATION_CONTRACT.md](INTERACTION_AND_NAVIGATION_CONTRACT.md) | 待办 / 今天跳转与就地动作契约：`actionKey` 三模式（inline / switch / direct）、六台页签覆盖、fail-closed 与缺 id 提示、PendingTarget 一次性清理 | active | 1.0 | 支书（契约裁决）；[工程师]+[AI]（维护） | `server/test/todo-jump-contract.test.mjs`、`server/test/todo-cross-role-safety.test.mjs` 绿 |
 | [AGENDA_DERIVATION_CONTRACT.md](AGENDA_DERIVATION_CONTRACT.md) | 支委会议程来源分类与待议池契约：六类来源与另纳入两类、类型三值与四反例、服务端与客户端计算分工、`GET /api/v1/committee/agenda-candidates` 字段 | active | 1.0.0 | 支书（契约裁决）；[工程师]+[AI]（维护） | `server/test/agenda-classify.test.mjs` 绿 |
 | [TABLE_COMPONENT_CONTRACT.md](TABLE_COMPONENT_CONTRACT.md) | 表格组件（`renderDataTable`）契约：载体判据（≥3 行 / ≤12 项）、列宽三档（auto / colgroup% / min-width）、行高 40 与 colspan 插行详情、`.dt-scroll` 横滚与 ≥5 列首列吸附、≥1024px 列宽拖动与 `localStorage['table:cols:<key>']`、灰字四层 | active | 1.0.0 | 支书（契约裁决）；[工程师]+[AI]（维护） | `server/test/table-contract-guard.test.mjs` 绿 |

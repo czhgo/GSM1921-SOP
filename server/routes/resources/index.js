@@ -847,7 +847,7 @@ export function createResourcesRouter(db) {
         relatedWorkgroupUpdate = activityWorkgroupUpdate(db, merged, req.actor.id);
         // 历史「待补承办组」补选完成后，工作组迁移态同步转 ready（其余编辑保留既有迁移态）。
         if (relatedWorkgroupUpdate && legacyHostGroupCompleted) relatedWorkgroupUpdate.migrationState = 'ready';
-      } const patchInvalid = validateResourceWrite(name, req.body, 'patch'); if (patchInvalid) return res.status(422).json({ error: patchInvalid }); merged.updatedAt = new Date().toISOString(); // T12：通用写口字段校验（既有语义校验之后；失败不落库）／Task 8：写路径统一盖 updatedAt
+      } const patchInvalid = validateResourceWrite(name, req.body, 'patch'); if (patchInvalid) return res.status(422).json({ error: patchInvalid }); const rowVersionDeny = ['actSubRecords', 'tfSubRecords'].includes(name) ? null : _assertRowVersion(previousRecord, req); if (rowVersionDeny) return res.status(rowVersionDeny.status).json(rowVersionDeny.body); merged.updatedAt = new Date().toISOString(); // T12：通用写口字段校验（既有语义校验之后；失败不落库）／Task 8：写路径统一盖 updatedAt／批次 564 Task 16：If-Match 置于全部业务门之后（越权仍得 403 / 400，不因缺版本头改判）
       const save = db.transaction(() => {
         db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(id, JSON.stringify(merged));
         if (relatedWorkgroupUpdate) {
@@ -1239,7 +1239,7 @@ export function createResourcesRouter(db) {
     if (!fullRights && (hasModules || hasBlocks || hasWorkforce || hasOrg || hasCapabilityPackages || !hasPolicy)) {
       return res.status(403).json({ error: '无权限：域负责人仅可配置本域参数（config.policyOverrides）' });
     }
-    const prevConfig = { ...(branch.config || {}) };
+    const prevConfig = { ...(branch.config || {}) }; const configVersionDeny = _assertRowVersion(branch, req); if (configVersionDeny) return res.status(configVersionDeny.status).json(configVersionDeny.body); // 批次 564 Task 16：配置行走同一把锁（缺 If-Match ⇒ 428，过期 ⇒ 409＋latest）
     const nextConfig = { ...prevConfig };
     if (hasModules) {
       const m = cfg.modules;
@@ -1371,7 +1371,7 @@ export function createResourcesRouter(db) {
     }
     nextConfig.configChangeHistory = history.length > CONFIG_HISTORY_MAX ? history.slice(-CONFIG_HISTORY_MAX) : history;
 
-    branch.config = nextConfig;
+    branch.config = nextConfig; branch.updatedAt = new Date().toISOString(); // 批次 564 Task 16：配置写推进版本戳（否则 If-Match 永远拦不住第二次并发写）
     db.prepare('UPDATE branches SET data = ? WHERE id = ?').run(JSON.stringify(branch), branch.id);
     bumpCollectionVersion(db, 'branches');
     res.json(branch);
@@ -1425,7 +1425,7 @@ export function createResourcesRouter(db) {
       [entry.what]: revert,
       configChangeHistory: history.length > CONFIG_HISTORY_MAX ? history.slice(-CONFIG_HISTORY_MAX) : history,
     };
-    branch.config = nextConfig;
+    branch.config = nextConfig; branch.updatedAt = new Date().toISOString(); // 批次 564 Task 16：回滚同属配置写，推进版本戳（不让回滚成为绕过 If-Match 的后门）
     db.prepare('UPDATE branches SET data = ? WHERE id = ?').run(JSON.stringify(branch), branch.id);
     bumpCollectionVersion(db, 'branches');
     res.json(branch);
@@ -1637,11 +1637,12 @@ export function createResourcesRouter(db) {
     if (!ownBranchId || (issue.branchId || DEFAULT_BRANCH_ID) !== ownBranchId) {
       return res.status(403).json({ error: '无权限：不能处置其他支部的反馈' });
     }
+    const issueVersionDeny = _assertRowVersion(issue, req); if (issueVersionDeny) return res.status(issueVersionDeny.status).json(issueVersionDeny.body); // 批次 564 Task 16：处置行走同一把锁（支部门之后判，越权仍得 403）
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     for (const k of ISSUE_MUTABLE_KEYS) {
       if (Object.prototype.hasOwnProperty.call(body, k)) issue[k] = body[k];
     }
-    db.prepare('INSERT OR REPLACE INTO issues (id, data) VALUES (?, ?)').run(issue.id, JSON.stringify(issue));
+    issue.updatedAt = new Date().toISOString(); db.prepare('INSERT OR REPLACE INTO issues (id, data) VALUES (?, ?)').run(issue.id, JSON.stringify(issue)); // 批次 564 Task 16：处置写推进版本戳（否则 If-Match 永远拦不住第二次并发处置）
     res.json(sanitizeIssue(issue));
   });
   router.get('/snapshot/versions', requireAuth(db), (req, res) => {
@@ -1882,3 +1883,27 @@ import { resolveFrozenVoterIds } from '../committee.js';
 // T14（2026-11-15）：`/bootstrap` 的党委进入支部上下文投影（只读门同源）。
 //   ⚠ 置尾 import（ESM 提升，语义等价）：不移动上文任何行号。
 import { viewContextForRequest } from '../../branch-view.js';
+
+// ════════════════════════════════════════════════════════════════
+//  全资源乐观锁（批次 564 · `repair-field-mismatch-and-refresh-help` Task 16）
+// ════════════════════════════════════════════════════════════════
+// 口径：PATCH 写库前比对 `If-Match` 与库内 `updatedAt`——
+//   · 缺头且行内已有 `updatedAt` ⇒ 428 `PRECONDITION_REQUIRED`（不写库；客户端须先读到该行版本）；
+//   · 头值与库值都给出且不等 ⇒ 409 `VERSION_CONFLICT`，带 `latest`（服务端当前整行，供前端就地刷新）；
+//   · `If-Match: *` ⇒ 显式强制写；行内无 `updatedAt`（历史库 / 回填前）⇒ 放行，不得 500。
+// 为什么单点注入：版本只在读口拿得到，写口在 `api-adapter.js::_request` 统一注入 ⇒ 表单文件零改动。
+// 边界：聚合根行（`actSubRecords` / `tfSubRecords` 的 `__root__` 单行）不带按行版本，调用侧跳过——
+//   这两域的并发由快照 `_versions` 集合锁拦（同一套锁的另一层）。
+function _assertRowVersion(existingData, req) {
+  const current = existingData && typeof existingData === 'object' ? existingData.updatedAt : undefined;
+  if (!current) return null; // 历史行无版本戳：放行（`db.js::backfillUpdatedAt` 幂等补齐，启动后即有）
+  const ifMatch = String(req.get('If-Match') || '').trim();
+  if (!ifMatch) {
+    return { status: 428, body: { error: '缺少 If-Match：请携带该行当前 updatedAt', code: 'PRECONDITION_REQUIRED' } };
+  }
+  if (ifMatch === '*') return null;
+  if (ifMatch !== current) {
+    return { status: 409, body: { error: '该记录已被他人修改，请刷新后重试', code: 'VERSION_CONFLICT', latest: existingData } };
+  }
+  return null;
+}

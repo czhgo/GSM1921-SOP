@@ -399,7 +399,8 @@ async function _login(personId) {
 }
 async function _patchConfig(token, body) {
   return fetch(`${_httpBase}/api/v1/branches/br-b1/config`, {
-    method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    // 批次 564：整行写口要求 If-Match；本文件只验域参数写权与净化，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+    method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'If-Match': '*' },
     body: JSON.stringify(body),
   });
 }
@@ -529,7 +530,7 @@ test('⑨ HTTP：服务端门——待批活动改状态必须带批准语义且
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ organizingScope: 'party-group', hostGroupId: 'pg-1', hostGroup: '第一党小组', ...body }),
   });
   const patch = (token, id, body) => fetch(`${_httpBase}/api/v1/activities/${id}`, {
-    method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body),
+    method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'If-Match': '*' }, body: JSON.stringify(body),
   });
   // 造一条「待批」活动（档位＝secretary，由支书写入）
   const mk = await post(sec, {

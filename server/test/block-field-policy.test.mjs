@@ -38,7 +38,8 @@ async function login(personId) {
   return res.json();
 }
 function auth(token) {
-  return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+  // 批次 564：整行写口要求 If-Match；本文件只验配置写权与净化，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+  return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'If-Match': '*' };
 }
 async function patchConfig(token, body) {
   return fetch(`${base}/api/v1/branches/br-b1/config`, {

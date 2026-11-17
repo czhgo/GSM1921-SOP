@@ -59,7 +59,8 @@ async function login(personId) {
   assert.equal(res.status, 200, `登录失败 ${personId}`);
   return res.json();
 }
-const headers = (token) => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token}` });
+// 批次 564：整行写口要求 If-Match；本文件只验确认/打回状态机，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+const headers = (token) => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'If-Match': '*' });
 
 // ── D01 服务层：确认/打回白名单 + 自确认禁令 ─────────────────────────────
 function freshInspection(recordedBy = '2400012354', id = 'insp-d01') {

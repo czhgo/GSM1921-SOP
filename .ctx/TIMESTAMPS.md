@@ -156,7 +156,7 @@ dynamic_role:
 | content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md | 2026-11-16 | — | [工程师]+[AI] | 架构演进（组件化评估、轻量插件化设计、迭代机制、§八 画布愿景、§九 性能与交付形态方案 ＋ §9.3 版本戳成本收益、§十 多支部同实例设计稿 ＋ §10.6–10.9 判定点清单 / 失败开放点 / 双支部夹具摸底 / T13 施工顺序）。**边界**：「操作位收口」以 `PARTY_COMMITTEE_DESIGN.md` 为准。 |
 | content/04_web_design/evolution/archive/BRANCH_WORK_MAP.md | 2026-11-08 | — | [工程师]+[AI] | 支部工作地图档案（2026-10-28 页签命名改准） |
 | content/04_web_design/evolution/archive/DESIGN_METHODOLOGY.md | 2026-11-08 | — | [工程师]+[AI] | 方法论档案（2026-09-26 补行） |
-| content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md | 2026-11-08 | — | [工程师]+[AI] | 党委治理契约 |
+| content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md | 2026-11-17 | — | [工程师]+[AI] | 党委治理契约 |
 | content/04_web_design/evolution/archive/ROLE_PERMISSION_DESIGN.md | 2026-11-08 | — | [工程师]+[AI] | 权限收敛档案（2026-09-26 补行） |
 | content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md | 2026-11-08 | — | [工程师]+[AI] | 块封装契约（2026-09-26 补行） |
 | content/04_web_design/module/PUBLIC_ENTRANCE.md | 2026-11-11 | — | [工程师]+[AI] | 门厅设计已裁定（公开门厅的规范编号 2026-11-10 批次 541 回填为 SD-62）。 |
@@ -176,7 +176,7 @@ dynamic_role:
 | content/04_web_design/deploy/AUTHENTICATION_MODEL.md | 2026-09-05 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§四 认证与登录门控**〔内部 §一–§八 → 4.1–4.8〕⇒ **四份 → 一份**。（原：部署与认证场景模型：5 场景两轴正交 ＋ 侧边栏统一 ＋ 登录门控四层。）沿革见 `.ctx/logs/`。 |
 | content/04_web_design/SCHOOL_IT_DEPLOYMENT.md | 2026-08-27 | — | [工程师]+[AI] | 🗑️ 已删除（计算中心对接全案已并入 DEPLOYMENT_GUIDE §三） |
 | content/04_web_design/README.md | 2026-11-08 | — | [工程师]+[AI] | 04 目录索引（六子目录）。 |
-| content/04_web_design/contracts/README.md | 2026-11-10 | — | [工程师]+[AI] | 契约类索引（批次 540 登记表格组件契约） |
+| content/04_web_design/contracts/README.md | 2026-11-17 | — | [工程师]+[AI] | 契约类索引 |
 | content/04_web_design/contracts/TABLE_COMPONENT_CONTRACT.md | 2026-11-10 | — | [工程师]+[AI] | 表格组件契约（载体判据 / 列宽三档 / 行高 40 与插行详情 / 横滚与首列吸附 / 列宽拖动 / 灰字四层）；守卫 `server/test/table-contract-guard.test.mjs`。 |
 | content/04_web_design/evolution/README.md | 2026-11-11 | — | [工程师]+[AI] | 演进入口索引（新增对象模型与议事流设计行） |
 | content/04_web_design/evolution/OBJECT_MODEL_AND_COMMITTEE_FLOW.md | 2026-11-14 | — | [工程师]+[AI] | 对象模型与支委会议事流设计（`D-866`–`D-869`）：三层挂靠判据、组长权限矩阵、上会回执状态机、URL 无后缀；对象模型与提案上会已实施。 |
@@ -226,7 +226,7 @@ dynamic_role:
 | server/routes/auth.js | 2026-09-14 | — | [工程师]+[AI] | 登录/token/me |
 | server/routes/member.js | 2026-10-22 | — | [工程师]+[AI] | 成员与个人档案语义接口；档案只读端点按本人/本支部支委策略投影。 |
 | server/routes/committee.js | 2026-11-14 | — | [工程师]+[AI] | 议题投票写口；匿名参与记录与 tally 原子提交、重复提交事务内幂等。**2026-11-14 批次 550（D-872）**：新增 `resolveFrozenVoterIds`——建会冻结表决名单（按 users ＋ 组织归属取范围、剔滞留 / 已转出），置尾不动既有行号。 |
-| server/routes/resources/index.js | 2026-11-15 | — | [工程师]+[AI] | 资源路由装配；活动删除保留报名与表决留痕（`D-876`）、其余子记录事务清理，并返回集合版本。**2026-11-14 批次 550（D-872）**：`POST /activities` 写库前冻结表决名单；**批次 552**：`D-876` 留痕口径。
+| server/routes/resources/index.js | 2026-11-17 | — | [工程师]+[AI] | 资源路由装配；活动删除保留报名与表决留痕（`D-876`）、其余子记录事务清理，并返回集合版本。**2026-11-14 批次 550（D-872）**：`POST /activities` 写库前冻结表决名单；**批次 552**：`D-876` 留痕口径。
 | server/routes/resources/branch-scope.js | 2026-10-16 | — | [工程师]+[AI] | 通用资源、关联记录、分支查询与快照写入的服务端支部范围判定；局部快照保留其他支部数据。 |
 | server/routes/resources/workgroup-routes.js | 2026-10-23 | — | [工程师]+[AI] | 工作组语义 API；成员与权限全量替换在单事务内校验、写入并更新集合版本；正式名单与工作组成员分开，撤员撤权留痕。 |
 | server/routes/resources/signup-write-guard.js | 2026-10-17 | — | [工程师]+[AI] | 报名创建/状态转换/快照统一校验；主题党日线下选择、普通参与默认线下，正式会议使用名单不开放报名。 |
@@ -236,6 +236,7 @@ dynamic_role:
 | server/services/logger.js | 2026-11-15 | — | [工程师]+[AI] | 结构化请求日志（请求 id / 路由 / 状态 / 耗时 / 错误类别）＋ 口令、token、personId 脱敏；`node:test` 下默认静默，`REQUEST_LOG=1` 打开。 |
 | server/routes/health.js | 2026-11-15 | — | [工程师]+[AI] | `GET /api/v1/health/deep` 深健康检查（库可读 / `user_version` / 备份目录可写），失败 503；浅检查走既有 `/api/v1/health`。 |
 | server/test/observability.test.mjs | 2026-11-15 | — | [工程师]+[AI] | 可观测结果门禁：日志脱敏、5xx 与请求 id 串联、浅/深健康、反例（备份目录不可写即 503）。 |
+| server/test/if-match.test.mjs | 2026-11-17 | — | [工程师]+[AI] | 乐观锁结果门禁：428 / 409＋latest / 200 / 强制写 / 回填幂等。 |
 | server/test/a11y-guard.test.mjs | 2026-11-15 | — | [工程师]+[AI] | 可访问性常驻静态守卫：可访问名 / 表单标签关联 / `section` 有名不嵌套 / `role=tab` 关联 / `role=button` 键盘可达 / 图标钮 `aria-label`；存量走 `a11y-baseline.mjs` 只减不增。 |
 | server/test/*.test.js | 2026-08-03 | — | [工程师]+[AI] | 单元测试套件（auth/db/resources/seed/skeleton/snapshot/uploads/report/e2e-login） |
 | server/test/*.test.mjs | 2026-10-22 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（5729 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」；**2026-09-29 批次 253 二次迁出**：本会话各批新增的 5 条短注一并迁入同节（`R-89` 只降不升）；本列只写**现状 / 边界 / 为什么**）** |
@@ -332,9 +333,9 @@ dynamic_role:
 | docs/src/core/domain/constants.js | 2026-10-22 | — | [工程师]+[AI] | 静态常量；新增正式会议名单单一判据 `usesFormalMeetingRoster()`，覆盖三会一课与组织生活会。既有色彩单一源与行号引用约束保持。 |
 | docs/src/core/session/cross-page-state.js | 2026-09-29 | — | [工程师]+[AI] | 跨页状态（版本化 `CODE_VERSION`；`docs/scripts/bump-version.mjs` 每次 bump 自增，**勿手改**）。沿革见 `.ctx/logs/`。 |
 | docs/src/data/data-loader.js | 2026-09-29 | — | [工程师]+[AI] | 数据加载 |
-| docs/src/data/data-adapter.js | 2026-10-23 | — | [工程师]+[AI] | **（现状）** 数据源切换与装配（mock / api 双形态同一契约）。**边界**：装配标记 / 回退块的口径以源码注释为准，本列不复述。**为什么**：沿革入 `.ctx/logs/`（`R-89`）。沿革已迁出（git 可溯）。 |
+| docs/src/data/data-adapter.js | 2026-11-17 | — | [工程师]+[AI] | **（现状）** 数据源切换与装配（mock / api 双形态同一契约）。**边界**：装配标记 / 回退块的口径以源码注释为准，本列不复述。**为什么**：沿革入 `.ctx/logs/`（`R-89`）。沿革已迁出（git 可溯）。 |
 | docs/src/core/session/login-snapshot.js | 2026-09-29 | — | [工程师]+[AI] | 登录快照轻量读取（零依赖，静态页登录态感知壳用） |
-| docs/src/data/api-adapter.js | 2026-10-23 | — | [工程师]+[AI] | API REST 适配器；批次 504 直连写后推进版本基线。 |
+| docs/src/data/api-adapter.js | 2026-11-17 | — | [工程师]+[AI] | API REST 适配器；批次 504 直连写后推进版本基线。 |
 | docs/src/data/mock-adapter.js | 2026-10-23 | — | [工程师]+[AI] | Mock 模式适配器；旧活动/专班种子幂等建立工作组映射，成员和授权批量保存与 API 对齐。 |
 | docs/src/data/workgroup-seed-sync.js | 2026-10-23 | — | [工程师]+[AI] | 旧 mock 活动/专班工作组兼容映射；冲突关联不猜测，清除错误链接并待核。 |
 | docs/src/core/domain/domain.js | 2026-10-23 | — | [工程师]+[AI] | 领域模型（2026-09-21 批次 120：`ImageRecord` typedef 按现状改准——文件存上传接口 `filePath` 或旧形态 `base64`，**行数守恒**） |

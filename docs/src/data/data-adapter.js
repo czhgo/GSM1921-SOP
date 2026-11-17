@@ -216,6 +216,12 @@ export async function init() {
   } else {
     // API 模式：拉取所有资源并填充 mockDB 缓存
     try {
+      const rowVersionApi = await import('./api-adapter.js?v=20261110b'); // 批次 564 Task 17：行版本回路（动态导入，避免与 api-adapter 形成静态循环依赖）
+      _recordRowVersions = rowVersionApi.recordRowVersions;
+      rowVersionApi.onVersionConflict(async (name) => {
+        const cache = _cachedMockDB;
+        if (cache && name) await _refreshCollections([name], cache, { notify: false });
+      });
       adapter.beginHydrate?.(); await _loadCollectionVersions(adapter); // 水合窗口开启（本路径是唯一全量灌库口；见 api-adapter.js::beginHydrate）＋ P0-1：取集合版本基线（乐观锁）——不可得即抛（不静默降级）
       const [
         users, activities, tasks, attendances, inspections,
@@ -344,6 +350,7 @@ export async function init() {
       //   判「无脏集合」⇒ 防抖 flush **不发 POST**、写入静默滞留内存（实测：推入后 3s 零 POST、本地数组完好、
       //   无整页重载）；同一机理也覆盖其后的 `SEED_FALLBACK` 回退块（内含 `await import`）。改准＝移到
       //   **与上文 25 个 payload 域同一同步块**（`_loadAuxCollections` 只碰不进快照 payload 的语义域）⇒ 基线逐键不变。
+      _recordAllRowVersions(mockDB); // 批次 564 Task 17：装载完成后登记每行 updatedAt（写口据此注入 If-Match）
       _captureBase(mockDB);
       // T1（批次 163）：**三域语义端点拉取先于解锁**——`_loaded === true` 是「缓存已完整」的可观测判据
       //   （真机用例据此等待 init 完成；若拉取在解锁之后，读侧会撞上「缓存尚未填完」的窗口）。
@@ -460,6 +467,15 @@ const SNAPSHOT_DEBOUNCE_MS = 800;
 /** domain.js mockDB 的缓存引用（init()/_flushSnapshot 加载后回写）：
  *  供 pagehide 同步冲刷使用——卸载期间动态 import 的 await 会挂起，无法异步取数 */
 let _cachedMockDB = null;
+
+/** 行版本登记入口（批次 564 Task 17）：`init()` 里从 `api-adapter.js` 动态取到后赋值，缺省为 null（mock 形态零影响） */
+let _recordRowVersions = null;
+
+/** 把缓存里每个数组集合的行版本登记进 `ROWS`（装载完成后一次调用；非数组域自动跳过） */
+function _recordAllRowVersions(mockDB) {
+  if (!_recordRowVersions || !mockDB) return;
+  for (const [name, rows] of Object.entries(mockDB)) _recordRowVersions(name, rows);
+}
 
 /**
  * 聚合域解包（T-209 全栈同步）：actSubRecords/tfSubRecords 在服务端
@@ -1020,6 +1036,7 @@ function _commitVersions(keys, resp) {
 
 /** 把「服务端拉回来的某集合」写回 mockDB（聚合域按 __root__ 单行解包，与 init() 同一口径） */
 function _assignCollection(mockDB, name, rows) {
+  _recordRowVersions?.(name, rows); // 批次 564 Task 17：重拉后刷新该集合的行版本（冲突恢复 / 远端探测共用这里）
   if (name === 'actSubRecords' || name === 'tfSubRecords') {
     mockDB[name] = _unwrapRootRows(rows, {});
     return;
@@ -1312,7 +1329,7 @@ async function _loadAuxCollections(mockDB) {
       const service = group.split('.').reduce((value, part) => value?.[part], adapter);
       if (!service || typeof service[method] !== 'function') return;
       const rows = await service[method]();
-      if (Array.isArray(rows)) mockDB[key] = rows;
+      if (Array.isArray(rows)) { mockDB[key] = rows; _recordRowVersions?.(key, rows); } // 批次 564 Task 17：语义域同样登记行版本
     } catch (e) {
       console.warn(`[DataAdapter] init: ${group} 拉取失败，保留本地值：`, e);
     }
@@ -1429,6 +1446,7 @@ async function _refreshCollections(names, mockDB, opts = {}) {
   let versionResp = null;
   try { versionResp = await adapter.versions(); } catch (err) { console.warn('[DataAdapter] 集合重拉：版本基线重取失败（保持旧值，下次上传会再拒一次）：', err); }
   const refreshed = [];
+  adapter.beginHydrate?.(); // 批次 564 Task 17.3：重拉按**整集合**取（否则 2000 行上限会截断，本地缓存被截断版覆盖 ⇒ 下次快照删掉尾部行）
   for (const name of names) {
     const group = adapter[name];
     if (!group || typeof group.list !== 'function') continue; // 无独立读口 ⇒ 跳过（不谎报「已刷新」）
@@ -1439,6 +1457,7 @@ async function _refreshCollections(names, mockDB, opts = {}) {
       console.warn(`[DataAdapter] 集合重拉：${name} 失败（保持本地数据，不推进基线）：`, err);
     }
   }
+  adapter.endHydrate?.();
   if (refreshed.length) {
     _commitBase(mockDB, refreshed);
     const next = versionResp && versionResp.versions;
