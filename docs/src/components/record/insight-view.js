@@ -33,10 +33,13 @@ let _consumedHighlight = null;
 const SEG_LABEL = { workgroup: '活动工作组', taskforce: '专班工作组' };
 const SEG_TYPES = ['workgroup', 'taskforce'];
 
-/** 分段钮激活态同步：与 `.btn-tab.active` 同一选中态单一源（theme soft 三件套）。 */
+/** 分段钮激活态同步：与 `.btn-tab.active` 同一选中态单一源（theme soft 三件套）；
+ *  按钮型分段同时更新 `aria-pressed`（读屏可识别当前段）。 */
 function _syncSegBtns(container, view) {
   container.querySelectorAll('.insight-view-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.iview === view);
+    const on = btn.dataset.iview === view;
+    btn.classList.toggle('active', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
 }
 
@@ -96,7 +99,7 @@ export function renderInsightView(container, opts = {}) {
     container.innerHTML = `
       ${opts.embedded ? '' : renderTabHeader({ title: opts.title || '知情查看' })}
       <div class="flex items-center gap-2 mb-3" role="group" aria-label="工作组对象切换">
-        ${ALLOWED.map((v) => `<button type="button" class="btn-tab insight-view-btn" data-iview="${v}">${SEG_LABEL[v]}</button>`).join('')}
+        ${ALLOWED.map((v) => `<button type="button" class="btn-tab insight-view-btn" data-iview="${v}" aria-pressed="${v === view ? 'true' : 'false'}">${SEG_LABEL[v]}</button>`).join('')}
       </div>
       <div id="insight-seg-body"></div>
       ${opts.groupSection ? `<div class="mt-4 pt-4 border-t border-[var(--color-border-subtle)]" id="insight-group-section">

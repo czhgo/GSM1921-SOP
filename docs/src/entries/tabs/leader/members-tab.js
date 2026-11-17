@@ -47,7 +47,14 @@ export async function renderContent(ctx) {
     container.innerHTML = `${renderTabHeader({ title: '组员进展' })}<div class="card rounded-xl p-5 text-center"><p class="text-xs text-gray-500">—（登录态已失效，请重新登录）</p></div>`;
     return;
   }
-  await IssueStore.loadAll();
+  // 汇报数据读口：加载失败不得静默成空（Task 7）——收件箱改显「加载失败，重试」。
+  let reportsError = '';
+  try {
+    await IssueStore.loadAll();
+  } catch (error) {
+    console.warn('[leader-members] 汇报数据加载失败：', error);
+    reportsError = '加载失败，重试';
+  }
   const today = todayLocal();
 
   const targets = resolveVisibleTargets('leader', myPersonId);
@@ -244,12 +251,12 @@ export async function renderContent(ctx) {
           colSpan: 6,
           responsive: true,
           headHtml: `<tr>
-                <th>姓名</th>
-                <th>在办 / 超期</th>
-                <th>考勤</th>
-                <th>考察</th>
-                <th>汇报</th>
-                <th>阶段</th>
+                <th scope="col">姓名</th>
+                <th scope="col">在办 / 超期</th>
+                <th scope="col">考勤</th>
+                <th scope="col">考察</th>
+                <th scope="col">汇报</th>
+                <th scope="col">阶段</th>
               </tr>`,
         },
         rowHtml: progressRowHtml,

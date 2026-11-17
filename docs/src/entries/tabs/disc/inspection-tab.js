@@ -138,11 +138,11 @@ export function renderContent(ctx) {
       colSpan: 6,
       responsive: true,
       headHtml: `<tr>
-            <th>姓名</th>
-            <th>所属党小组</th>
-            <th>未闭环</th>
-            <th>超期</th>
-            <th>最近记录人</th><th>操作</th>
+            <th scope="col">姓名</th>
+            <th scope="col">所属党小组</th>
+            <th scope="col">未闭环</th>
+            <th scope="col">超期</th>
+            <th scope="col">最近记录人</th><th scope="col">操作</th>
           </tr>`,
     },
     rowHtml: (s) => `
@@ -219,13 +219,13 @@ export function renderContent(ctx) {
         colSpan: 7,
         responsive: true,
         headHtml: `<tr>
-            <th>姓名</th>
-            <th>来源</th>
-            <th>类别</th>
-            <th>内容</th>
-            <th>记录人</th>
-            <th>状态</th>
-            <th>操作</th>
+            <th scope="col">姓名</th>
+            <th scope="col">来源</th>
+            <th scope="col">类别</th>
+            <th scope="col">内容</th>
+            <th scope="col">记录人</th>
+            <th scope="col">状态</th>
+            <th scope="col">操作</th>
           </tr>`,
       },
       rowHtml: (i) => {

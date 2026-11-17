@@ -21,7 +21,7 @@
 
 import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261110b';
 import { AuthStore } from '../../services/core/auth.js?v=20261110b';
-import { showToast, getBasePath } from '../../core/base/utils.js?v=20261110b';
+import { showToast, getBasePath, escHtml } from '../../core/base/utils.js?v=20261110b';
 import { getPersonName } from '../../services/member/person.js?v=20261110b';
 import { loadActivities } from '../../services/activity/activity.js?v=20261110b';
 import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261110b';
@@ -104,7 +104,14 @@ function _contextReportTarget() {
 
 /** 打开汇报弹窗（预加载 issues 权威源，避免覆盖本地缓存） */
 async function openReportModal() {
-  await IssueStore.loadAll();
+  try {
+    await IssueStore.loadAll();
+  } catch (e) {
+    // 权威源加载失败不得静默开窗（那会把「加载失败」显示成「无可关联事项」）
+    console.warn('[report-entry] 汇报数据加载失败：', e);
+    showToast('error', '加载失败，请重试');
+    return;
+  }
   const MODAL_ID = 'report-entry';
   const me = AuthStore.getCurrentUser();
   const targets = _reportTargets();
@@ -113,15 +120,16 @@ async function openReportModal() {
     ? targets.find(t => t.sourceType === ctx.sourceType && t.sourceId === ctx.sourceId)
     : null;
   const canReportUp = !!me && SECRETARY_AND_DEPUTY_ROLES.includes(me.role);
+  // 活动 / 专班标题是用户可控文本：进 <option> 必须转义（否则标题里的 `</option><img onerror=…>` 会被解析）。
   const optionsHtml = [
     '<option value="">（不关联，个人汇报）</option>',
     targets.some(t => t.sourceType === 'activity')
       ? `<optgroup label="活动">${targets.filter(t => t.sourceType === 'activity')
-          .map(t => `<option value="${t.workgroupId}"${preselected && preselected.workgroupId === t.workgroupId ? ' selected' : ''}>${t.label}</option>`).join('')}</optgroup>`
+          .map(t => `<option value="${escHtml(t.workgroupId)}"${preselected && preselected.workgroupId === t.workgroupId ? ' selected' : ''}>${escHtml(t.label)}</option>`).join('')}</optgroup>`
       : '',
     targets.some(t => t.sourceType === 'taskforce')
       ? `<optgroup label="专班">${targets.filter(t => t.sourceType === 'taskforce')
-          .map(t => `<option value="${t.workgroupId}"${preselected && preselected.workgroupId === t.workgroupId ? ' selected' : ''}>${t.label}</option>`).join('')}</optgroup>`
+          .map(t => `<option value="${escHtml(t.workgroupId)}"${preselected && preselected.workgroupId === t.workgroupId ? ' selected' : ''}>${escHtml(t.label)}</option>`).join('')}</optgroup>`
       : '',
   ].join('');
 

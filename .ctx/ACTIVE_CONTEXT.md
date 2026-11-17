@@ -1,9 +1,9 @@
-﻿---
+---
 title: "Active Context — 当前判断入口"
 type: active_context
 role: "[AI]"
 layer: active
-last_updated: "2026-11-15"
+last_updated: 2026-11-17
 last_verified: "2026-11-15"
 latest_decision: "D-879"
 budget: "≤300 行 / ≤30KB"
@@ -30,7 +30,7 @@ status: active
 - **六维（2026-11-16 批次 561 重评）**：业务 **79** / 安全 **79** / 体验 **80** / 测试 **75** / 架构 **77** / 部署 **74**，**仍有四维 <80 ⇒ 继续不合并**。本批补齐：壳层 44px＋13px（两档）、八条数字口径、三处待归属越权、写口校验与列表上限。已补齐：依赖 audit 0、匿名归档越读修复、支部解析 fail-closed、服务端只读进入支部、日志/健康/指标/告警、恢复演练、审计工具修复与空态/移动端/a11y 守卫。仍缺：共享口令回退、CI 无 run id 与安全扫描、full 未重跑、Linux 真机未验、routes 87 处回落未清、真机签收未完成。
 - **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（2026-11-15 批次 554 实跑 191s，自起 `:memory:`）；审计工具已修复（URL 跟随无后缀 canonical、登录失败 `exit 2`），此前「P0 46」确认为工具类假警报。F1–F8 全绿；M1–M3 在位。
   - source：`.ctx/evidence/2026-11-15/tab-audit/summary.md`（原始截图与 findings.json 可重跑再生，未入库）。
-- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **31 文件 / 254 断言 / 99.5s**（结果门禁）；guards **110 文件 / 842 断言 / 165.0s**（静态守卫，按需，2026-11-16 批次 561 读数）；precommit＝daily＋guards＋非核心域回归＋e2e，**2026-11-14 全绿：341 绿 / 0 红 / 1 跳过 · 墙钟 1939.8s**；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
+- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **31 文件 / 254 断言 / 72.6s**（结果门禁）；guards **111 文件 / 381 项全绿 / 115.8s**（静态守卫，按需，2026-11-17 批次 562 读数）；precommit＝daily＋guards＋非核心域回归＋e2e，**2026-11-14 全绿：341 绿 / 0 红 / 1 跳过 · 墙钟 1939.8s**；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
   - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859 / §D-860 / §D-863 / §D-864`。
 - **工程评分（`D-878`，2026-11-15 补齐后重评）**：业务与数据 **78** · 安全与权限 **78** · 最小三成本 **78** · 测试与发布 **74** · 架构与可维护性 **76** · 运行部署 **74**；不设平均总分；仍均 <80。
   - source：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/logs/2026-11-DECISION_LOG.md §D-878`。

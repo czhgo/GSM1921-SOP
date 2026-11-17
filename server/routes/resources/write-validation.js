@@ -156,8 +156,8 @@ function checkEnum(field, value, spec) {
   return null;
 }
 
-/** 判定 `YYYY-MM-DD` 日期字段；返回错误文案或 null */
-function checkDate(field, value) {
+/** 判定 `YYYY-MM-DD` 日期字段；返回错误文案或 null（导出：上报窗口 / 归档日期同用一条判据） */
+export function checkDate(field, value) {
   if (typeof value !== 'string' || !DATE_RE.test(value) || !Number.isFinite(Date.parse(`${value}T00:00:00Z`))) {
     return `${field} 须为 YYYY-MM-DD 且可解析`;
   }

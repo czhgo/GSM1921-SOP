@@ -75,7 +75,13 @@ export function beginOverviewShell(el) {
  */
 export async function countOwnPendingReports(personId) {
   if (!personId) return 0;
-  await IssueStore.loadAll();
+  try {
+    await IssueStore.loadAll();
+  } catch (err) {
+    // 加载失败不挂直达条：返回 0 使条收起（不显示「0 条」误导，也不阻断概况渲染）
+    console.warn('[overview-dispatch-bar] 待答复计数加载失败：', err);
+    return 0;
+  }
   const requests = IssueStore.getReportRequestsFor(personId);
   const openMine = IssueStore.getMyReports(personId).filter(r => r.status === 'open');
   return requests.length + openMine.length;

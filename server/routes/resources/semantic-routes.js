@@ -561,8 +561,7 @@ export function registerExtraSemanticRoutes(router, db) {
       personId,
       action,
       to,
-      status: 'pending',
-      decidedBy: null,
+      status: 'pending', decidedBy: null, createdAt: new Date().toISOString(),
       decidedAt: null,
       rejectNote: '',
     };
@@ -1366,9 +1365,9 @@ export function registerExtraSemanticRoutes(router, db) {
     }
 
     const period = typeof body.period === 'string' ? body.period.trim() : '';
-    const archiveDate = (typeof body.archiveDate === 'string' && body.archiveDate.trim())
-      ? body.archiveDate.trim()
-      : (/^\d{4}-\d{2}-\d{2}$/.test(period) ? period : todayLocal());
+    const explicitArchiveDate = (typeof body.archiveDate === 'string' && body.archiveDate.trim()) ? body.archiveDate.trim() : '';
+    if (explicitArchiveDate) { const archiveDateInvalid = checkDate('archiveDate', explicitArchiveDate); if (archiveDateInvalid) return res.status(422).json({ error: archiveDateInvalid }); }
+    const archiveDate = explicitArchiveDate || (/^\d{4}-\d{2}-\d{2}$/.test(period) ? period : todayLocal());
     const now = new Date().toISOString();
     const row = {
       id: body.id ? String(body.id) : `ar-${randomUUID().slice(0, 8)}`,
@@ -1543,6 +1542,54 @@ export function registerExtraSemanticRoutes(router, db) {
       .run(exitedAt, JSON.stringify({ ...data, exitedAt }), String(row.id));
     res.json({ visitId: String(row.id), branchId: String(row.branch_id), exitedAt });
   });
+
+  // ── 跨组「应到 / 实到」只读汇总（批次 562 · Task 10；`H32` 计数只在服务端算）──────────
+  // 为什么：支书台「其他党小组」只读卡原先逐组用 roster ＋ 考勤现算，与服务端应到口径可能漂移。
+  // 口径单一源：`core/domain/roster-eligibility.js::rosterEligibleIds`（与支委会应到同一公式）。
+  // 与前端同口径的两处细节：① 只统计 `type=党小组会` 且 `date ≤ 今天`；② 未录考勤的场次不计入分子分母。
+  const GROUP_SUMMARY_ROLE_SET = new Set([...SECRETARY_AND_DEPUTY_ROLE_SET, ...ORG_COMMISSIONER_ROLE_SET, 'disc-commissioner']);
+  router.get('/group-attendance-summary', requireRole(db, GROUP_SUMMARY_ROLE_SET), (req, res) => {
+    const branchId = actorBranchId(req.actor);
+    if (!branchId) return res.status(403).json({ error: '无权限：账号尚未归属支部' });
+    const branchOf = (name, row) => resourceBranchId(db, name, row);
+    const readRows = (name, table) => db.prepare(`SELECT data FROM ${table}`).all().map((r) => JSON.parse(r.data))
+      .filter((row) => branchOf(name, row) === branchId);
+    const users = readRows('users', 'users');
+    const groups = readRows('partyGroups', 'party_groups')
+      .filter((g) => g.status === 'active')
+      .sort((a, b) => (Number(a.seq) || 0) - (Number(b.seq) || 0));
+    const today = todayLocal();
+    // 归属判据与前端 `services/member/group-view.js::isGroupActivity` 同源：organizer 属本组，
+    //   排除已取消 / 已归档；再看 `type=党小组会` 且 `date ≤ 今天`（与卡片「活动数 / 复盘」同一集合）。
+    const groupOfPerson = new Map(users.map((u) => [u.id, u.partyGroup]));
+    const meetings = readRows('activities', 'activities').filter((a) => a.type === '党小组会'
+      && String(a.date || '') <= today
+      && a.status !== 'cancelled' && !a.archived);
+    const recordsByActivity = new Map();
+    for (const record of readRows('attendances', 'attendances')) {
+      if (!recordsByActivity.has(record.activityId)) recordsByActivity.set(record.activityId, []);
+      recordsByActivity.get(record.activityId).push(record);
+    }
+    const items = groups.map((group) => {
+      const groupMeetings = meetings.filter((a) => groupOfPerson.get(a.organizer) === group.name);
+      const eligibleIds = rosterEligibleIds(users.filter((u) => u.partyGroup === group.name));
+      const eligibleSet = new Set(eligibleIds);
+      let expected = 0;
+      let present = 0;
+      for (const meeting of groupMeetings) {
+        const records = recordsByActivity.get(meeting.id) || [];
+        if (!records.length) continue;
+        expected += eligibleIds.length;
+        // 实到只认「应到名单内且在册一人一次」：同一人多行取一次；名单外记录不计入（否则会出现实到 > 应到）
+        const attended = new Set(records
+          .filter((r) => (r.status === 'present' || r.status === 'made_up') && eligibleSet.has(String(r.personId)))
+          .map((r) => String(r.personId)));
+        present += attended.size;
+      }
+      return { groupId: group.id, groupName: group.name, meetings: groupMeetings.length, expected, present };
+    });
+    res.json({ branchId, asOf: today, items });
+  });
 }
 
 // 党委内容写口的依赖（置尾追加：import 声明被提升，上文行号零漂移）
@@ -1557,4 +1604,10 @@ import { EMPHASIS_NOTICE_WINDOW_MS } from '../../../docs/src/core/domain/constan
 import { registerCommitteeNoticeRoutes } from './committee-notices.js';
 // 名册提案目标阶段白名单（批次 541；与 member.js 同一服务端枚举源）
 import { DEVELOP_STAGE_OPTIONS } from '../../../docs/src/services/branch/org-base-data-preview.js';
+// 日期校验单一源（Task 6：显式 archiveDate 与通用写口同一判据；置尾追加，避开既有行号靶点）
+import { checkDate } from './write-validation.js';
+// 应到口径单一源（批次 562 · Task 10：跨组汇总与 `routes/committee.js` 应到同一公式；置尾追加）
+import { rosterEligibleIds } from '../../../docs/src/core/domain/roster-eligibility.js';
+// 支部解析单一源（批次 562 · Task 10：跨组汇总读口不自行回落缺省支部；置尾追加）
+import { resourceBranchId } from './branch-scope.js';
 

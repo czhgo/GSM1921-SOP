@@ -91,6 +91,8 @@ function _payloadKey(role, scope) {
  * @param {string} [opts.emptyMsg] — 空态文案
  * @param {boolean} [opts.embedded] — 嵌入折叠条时为 true：不画独立卡片与标题，只出检索宿主
  * @param {number} [opts.embeddedLimit=2] — 仅 embedded 生效：首屏只露前 N 条待答复，其余经「查看全部待答复」展开
+ * @param {string} [opts.errorMsg] — 权威源加载失败时的说明（非空即渲染「加载失败，重试」＋重试按钮，
+ *   不显示「暂无待答复」空态——加载失败不等于没有汇报）
  * @returns {string}
  */
 export function renderReportInboxHtml({
@@ -103,14 +105,33 @@ export function renderReportInboxHtml({
   emptyMsg = '暂无待答复汇报',
   embedded = false,
   embeddedLimit = 2,
+  errorMsg = '',
 } = {}) {
+  const stripHeader = '<p class="text-xs font-medium text-gray-500 pt-2 pb-1">待答复</p>';
+  const cardHeaderHtml = (subtitleText) => `
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="font-title-cn text-sm font-bold text-gray-800">${escHtml(title)}</h4>
+        <span class="text-xs text-gray-500">${escHtml(subtitleText)}</span>
+      </div>`;
+  if (errorMsg) {
+    _rowUi.clear();
+    const failureBox = emptyStateHtml({
+      variant: 'inline',
+      text: errorMsg,
+      actionHtml: '<button type="button" class="btn-outline btn-sm" data-rep-inbox-retry>重试</button>',
+    });
+    if (embedded) return `
+      <div class="todo-strip__section">${stripHeader}${failureBox}</div>`;
+    return `
+    <div class="card rounded-xl p-4 mb-4">${cardHeaderHtml(subtitle || '汇报答复')}${failureBox}</div>`;
+  }
   const list = filterReportsByScope(reports, scope || {});
   const payloadKey = _payloadKey(role, scope);
   // 2026-09-08 顶卡排布统一：空态并入统一形态（text-xs text-gray-500 py-1），
   // 保留绿色圆点「已全部答复」语义（不突兀：与相邻卡空态行同高，无底色整条）
   const emptyBox = `
     <p class="text-xs text-gray-500 py-1 flex items-center gap-1.5">
-      <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> ${emptyMsg}
+      <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> ${escHtml(emptyMsg)}
     </p>`;
 
   if (!list.length) {
@@ -118,13 +139,7 @@ export function renderReportInboxHtml({
     _embeddedExpanded.delete(payloadKey); // 无待答复：下次有汇报时回到默认「只露前 2 条」
     if (embedded) return ''; // 折叠条内无待答复 → 不占位（条内还有未读通知行）
     return `
-      <div class="card rounded-xl p-4 mb-4">
-        <div class="flex items-center justify-between mb-3">
-          <h4 class="font-title-cn text-sm font-bold text-gray-800">${title}</h4>
-          <span class="text-xs text-gray-500">${subtitle || '汇报答复'}</span>
-        </div>
-        ${emptyBox}
-      </div>`;
+      <div class="card rounded-xl p-4 mb-4">${cardHeaderHtml(subtitle || '汇报答复')}${emptyBox}</div>`;
   }
 
   // 问题优先排序：卡点 → 请示 → 进度；待答复（resultPending）优先于待处理
@@ -155,7 +170,7 @@ export function renderReportInboxHtml({
     const hiddenCount = sorted.length - visibleCount;
     return `
       <div class="todo-strip__section">
-        <p class="text-xs font-medium text-gray-500 pt-2 pb-1">待答复</p>
+        ${stripHeader}
         <div id="rep-inbox-list-host"></div>
         ${hiddenCount > 0 ? `
           <div class="rep-inbox-more pt-1">
@@ -165,11 +180,7 @@ export function renderReportInboxHtml({
   }
 
   return `
-    <div class="card rounded-xl p-4 mb-4">
-      <div class="flex items-center justify-between mb-3">
-        <h4 class="font-title-cn text-sm font-bold text-gray-800">${title}</h4>
-        <span class="text-xs text-gray-500">${subtitle || `${sorted.length} 条待答复`}</span>
-      </div>
+    <div class="card rounded-xl p-4 mb-4">${cardHeaderHtml(subtitle || `${sorted.length} 条待答复`)}
       <div id="rep-inbox-list-host"></div>
     </div>`;
 }
@@ -178,7 +189,7 @@ export function renderReportInboxHtml({
  *  @param {string} [draft] E-3：重建前收集的该行未提交草稿（作为输入框初值回填） */
 function _renderInboxDetail(r, accent, draft = '') {
   const requesterNote = r.requestedBy && r.requestedNote
-    ? `<div class="rounded-lg p-2 bg-blue-50 mt-2"><p class="text-xs text-blue-700">请汇报：${r.requestedNote}</p></div>`
+    ? `<div class="rounded-lg p-2 bg-blue-50 mt-2"><p class="text-xs text-blue-700">请汇报：${escHtml(r.requestedNote)}</p></div>`
     : '';
   const comments = (r.comments || []).filter(c => !c.hidden).map(c => {
     const icon = c.kind === 'dispatch' ? '→' : c.kind === 'reply' ? '答'
@@ -189,18 +200,18 @@ function _renderInboxDetail(r, accent, draft = '') {
     return `
       <div class="rounded-lg p-2 ${bg}"${bgDark}>
         <div class="flex items-center gap-1.5 mb-1">
-          <span class="text-xs font-medium text-gray-700">${icon} ${getPersonName(c.author) || '匿名'}</span>
+          <span class="text-xs font-medium text-gray-700">${icon} ${escHtml(getPersonName(c.author) || '匿名')}</span>
           ${c.kind === 'reply' ? badgeHtml('正式答复', 'neutral') : ''}
-          <span class="text-xs text-gray-500">${c.createdAt}</span>
+          <span class="text-xs text-gray-500">${escHtml(c.createdAt)}</span>
         </div>
-        <p class="text-body-sm text-gray-600 whitespace-pre-wrap">${c.body}</p>
+        <p class="text-body-sm text-gray-600 whitespace-pre-wrap">${escHtml(c.body)}</p>
       </div>`;
   }).join('');
   const timeline = comments || emptyStateHtml({ text: "暂无对话", variant: 'inline' });
 
   return `
     ${r.sourceName ? `<p class="text-xs text-gray-500 mt-2">关联：${escHtml(r.sourceName)}</p>` : ''}
-    ${r.body ? `<p class="text-body-sm text-gray-600 whitespace-pre-wrap mt-2">${r.body}</p>` : ''}
+    ${r.body ? `<p class="text-body-sm text-gray-600 whitespace-pre-wrap mt-2">${escHtml(r.body)}</p>` : ''}
     ${requesterNote}
     <div class="space-y-2 mt-2">${timeline}</div>
     ${r.status === 'open' ? `
@@ -218,9 +229,15 @@ function _renderInboxDetail(r, accent, draft = '') {
  * @param {string} opts.role       — 答复人角色键
  * @param {{ workgroupId?: string|null, partyGroup?: string|null }} [opts.scope] — 与 render 相同的汇总范围
  * @param {Function} [opts.onAnswered] — 答复完成后回调（重渲染）
+ * @param {Function} [opts.onRetry] — 加载失败态「重试」按钮回调（由调用方重新拉取权威源并重渲染）
  */
-export function bindReportInbox(container, { role = 'secretary', scope = null, onAnswered = () => {} } = {}) {
+export function bindReportInbox(container, { role = 'secretary', scope = null, onAnswered = () => {}, onRetry = null } = {}) {
   if (!container) return;
+  // 加载失败态：错误卡由 renderReportInboxHtml 产出，重试动作交给调用方
+  container.querySelector('[data-rep-inbox-retry]')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (typeof onRetry === 'function') onRetry();
+  });
   const payloadKey = _payloadKey(role, scope);
   /** E-3：读/写某行模块态（不存在则按默认建） */
   const rowState = (id) => {
@@ -267,9 +284,9 @@ export function bindReportInbox(container, { role = 'secretary', scope = null, o
         <div class="notice-row px-3">
           <span class="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style="background:${catColor};" title="${cat}" role="img" aria-label="${cat}"></span>
           <div class="notice-row__main">
-            <p class="notice-row__title">${r.title}</p>
+            <p class="notice-row__title">${escHtml(r.title)}</p>
             <p class="notice-row__meta flex items-center gap-2 min-w-0">
-              <span class="truncate">${metaParts.join(' · ')}</span>
+              <span class="truncate">${escHtml(metaParts.join(' · '))}</span>
               ${badgeHtml(ds.label, badgeVariant, { extraClass: 'flex-shrink-0' })}
             </p>
           </div>

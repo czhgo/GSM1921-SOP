@@ -429,7 +429,7 @@ function _urgencySummaryHtml(summary) {
   const pending = Number(summary.pending) || 0;
   const later = Math.max(0, pending - overdue - today - week);
   return `
-    <div class="stat-grid mb-4" role="group" aria-label="待办摘要">
+    <div class="stat-grid mb-4" role="group" aria-label="待办摘要" aria-live="polite">
       ${item('warning', 'var(--status-warning-text)', '逾期', overdue, overdueTone)}
       ${item('clock', 'var(--status-info-text)', '今日', today, '')}
       ${item('calendar', 'var(--app-accent-soft-text)', '本周', week, '')}

@@ -1146,8 +1146,8 @@ function _tfSubTableHtml(type, items, readOnly) {
     table: {
       responsive: true,
       headHtml: `<tr>
-            ${fields.map(f => `<th>${f.label}</th>`).join('')}
-            ${readOnly ? '' : '<th class="w-12">操作</th>'}
+            ${fields.map(f => `<th scope="col">${f.label}</th>`).join('')}
+            ${readOnly ? '' : '<th scope="col" class="w-12">操作</th>'}
           </tr>`,
       colSpan: fields.length + (readOnly ? 0 : 1),
     },

@@ -304,7 +304,13 @@ export const IssueStore = {
       } catch (e) {
         console.warn('[IssueStore] API 形态加载反馈失败：', e);
         _issuesCache = [];
-        return [];
+        // 2026-11-17 批次 553（`repair-field-mismatch-and-refresh-help` Task 7）：原实现吞错返回 []
+        //   ⇒ 读面把「加载失败」显示成「暂无汇报」。现抛出可识别错误（name 前缀 + message 前缀），
+        //   由读面区分「失败」与「确实没有」，显式给「加载失败，重试」。
+        const err = new Error(`[IssueStore.loadAll] 意见反馈加载失败：${(e && e.message) ? e.message : String(e)}`);
+        err.name = 'IssueLoadError';
+        err.cause = e;
+        throw err;
       }
     }
     // 加载意见域时顺手迁除旧草稿中的身份字段；浏览器本地存储不是受保护后台。

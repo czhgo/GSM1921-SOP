@@ -306,22 +306,30 @@ export function createPublicPortalRouter(db) {
     const now = Date.now();
     const limit = parseLimit(req.query.limit);
 
-    const notices = sortDesc(
+    const noticeRows = sortDesc(
       rowsOf(db, 'notices').filter((row) => isPublicNotice(row, now)),
       (row) => timeOf(row.publishDate),
-    ).slice(0, limit).map(projectPublicNotice);
+    );
+    const notices = noticeRows.slice(0, limit).map(projectPublicNotice);
 
-    const activities = sortDesc(
+    const activityRows = sortDesc(
       rowsOf(db, 'activities').filter((row) => isPublicActivity(row, now)),
       (row) => timeOf(row.date),
-    ).slice(0, limit).map(projectPublicActivity);
+    );
+    const activities = activityRows.slice(0, limit).map(projectPublicActivity);
 
-    const documents = sortDesc(
+    const documentRows = sortDesc(
       rowsOf(db, 'branch_docs').filter((row) => isPublicDocument(row, now)),
       (row) => timeOf(documentUpdatedAt(row)),
-    ).slice(0, limit).map(projectPublicDocument);
+    );
+    const documents = documentRows.slice(0, limit).map(projectPublicDocument);
 
-    res.json({ notices, activities, documents });
+    // 截断提示（批次 562 · Task 10）：任一块被 limit 截掉即 hasMore=true；既有字段形状不变。
+    const hasMore = noticeRows.length > notices.length
+      || activityRows.length > activities.length
+      || documentRows.length > documents.length;
+
+    res.json({ notices, activities, documents, hasMore });
   });
 
   router.get('/notices/:id', (req, res) => {

@@ -157,7 +157,14 @@ export async function loadMemberProgress({ personIds = [], today } = {}) {
       import('../activity/inspection.js?v=20261110b'),
       import('../governance/issues.js?v=20261110b'),
     ]);
-  if (typeof IssueStore.loadAll === 'function') await IssueStore.loadAll();
+  if (typeof IssueStore.loadAll === 'function') {
+    try {
+      await IssueStore.loadAll();
+    } catch (err) {
+      // 反馈权威源失败不阻断整组聚合（H32：仅用已拉取数据兜底；读面另显「加载失败，重试」）
+      console.warn('[member-progress] 反馈数据加载失败：', err);
+    }
+  }
   const rows = aggregateMemberProgress({
     persons: personIds.map((personId) => ({ personId })),
     todos: TodoStore.getAll(),

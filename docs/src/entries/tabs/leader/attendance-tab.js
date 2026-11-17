@@ -257,12 +257,12 @@ export function renderContent(ctx, host, opts = {}) {
         colSpan: 6,
         responsive: true,
         headHtml: `<tr>
-              <th>姓名</th>
-              <th>学号</th>
-              <th>党小组</th>
-              <th>活动</th>
-              <th>状态</th>
-              <th>确认状态</th>
+              <th scope="col">姓名</th>
+              <th scope="col">学号</th>
+              <th scope="col">党小组</th>
+              <th scope="col">活动</th>
+              <th scope="col">状态</th>
+              <th scope="col">确认状态</th>
             </tr>`,
       },
       // 状态色按 statusKey（英文枚举）判定——attendanceToLong 的 status 为中文标签

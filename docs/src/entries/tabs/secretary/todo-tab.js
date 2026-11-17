@@ -73,6 +73,8 @@ function _accentColors() {
 
 // ── 模块级渲染缓存（onBeforeRender 预载 / 顶部自定义区共用） ─────
 let _pendingReports = [];
+// Task 7：反馈权威源加载失败时置说明（收件箱显「加载失败，重试」，不显「暂无待答复」）
+let _reportsError = '';
 
 // ════════════════════════════════════════════════════════════════
 //  共享壳接线（IA-C1 Task4：未读通知条 + 9 业务域折组；原手写双栏大列表结构移除）
@@ -132,6 +134,7 @@ function _extraTopHtml() {
     role: 'secretary',
     accent: _accentColors().accent,
     emptyMsg: '暂无待答复汇报',
+    errorMsg: _reportsError,
     embedded: true,
   });
 }
@@ -404,7 +407,15 @@ const _tab = createTodoTab({
     // P0 去重：refreshExpiredStatus 已由壳 renderContent 统一调用（本 tab 不再重复执行）。
     seedTodos();
     // 待答复汇报（支书 2026-08-10 裁定：答复类置顶待办）——预加载 issues 权威源
-    await IssueStore.loadAll();
+    try {
+      await IssueStore.loadAll();
+      _reportsError = '';
+    } catch (err) {
+      // Task 7：加载失败不得静默成空（否则收件箱显示「暂无待答复」）。
+      console.warn('[secretary-todo] 待答复汇报加载失败：', err);
+      _reportsError = '加载失败，重试';
+    }
+    // 失败时取已拉取缓存（H32：兜底不造事实，无缓存即空）
     _pendingReports = IssueStore.getSecretaryPendingReports();
     // 2026-09-08 顶卡同步化：成员变更确认请求预载（mock 600ms 延迟 → 缓存 → _extraTopHtml 同步产物；
     // 本地签名未变则秒回，变才 await 拉取——守卫命中路径不额外加延迟）
@@ -414,7 +425,7 @@ const _tab = createTodoTab({
   extraTopCount: () => _pendingReports.length,
   bindExtras: (container, ctx, api) => {
     bindCommitteeTfEvents(container, api);
-    bindReportInbox(container, { role: 'secretary', onAnswered: () => api.renderContent() });
+    bindReportInbox(container, { role: 'secretary', onAnswered: () => api.renderContent(), onRetry: () => api.renderContent() });
     bindTodoDetailExtras(container, api);
     // 2026-09-08 裁决批一（D1/D3）：域内批量块绑定（全选/计数/批量确认 + onDone 重渲染）
     bindMcBulk(container, { mode: 'secretary-confirm', onDone: () => api.renderContent() });

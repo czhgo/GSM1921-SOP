@@ -68,7 +68,7 @@ const MEMBER_CHANGE_ACTIONS = ['developStage', 'residence', 'transferOut'];
 const MEMBER_CONFIRM_STATUSES = ['pending', 'approved', 'rejected'];
 const APPEAL_STATUSES = ['pending', 'approved', 'rejected'];
 const BRANCH_TYPES = ['本科生', '研究生', '教职工', '党委'];
-const BRANCH_STATUSES = Object.values({ ACTIVE: 'active', ARCHIVED: 'archived' });
+const BRANCH_STATUSES = Object.values({ ACTIVE: 'active', INACTIVE: 'inactive' });
 const REVIEW_REQUEST_TYPES = ['develop-node', 'activity-report'];
 const REVIEW_REQUEST_STATUSES = ['pending', 'approved', 'rejected'];
 
@@ -450,7 +450,8 @@ const WORKGROUP_CONTRACT = [
     entity: 'workgroupMembers', table: 'workgroup_members', mockCollection: 'workgroupMembers',
     required: ['id', 'branchId', 'workgroupId', 'personId', 'role', 'status', 'createdAt'],
     optional: ['migratedFromLegacy', 'createdBy', 'crossGroup', 'coordinatedBy'],
-    enums: { role: ['organizer', 'deep', 'participant'], status: ['active', 'inactive'] },
+    // 写口实写 `removed`（`workgroup-routes.js::837,993`）⇒ 成员态枚举与写值同源，不再登记 `inactive`。
+    enums: { role: ['organizer', 'deep', 'participant'], status: ['active', 'removed'] },
     seedCount: 103, aliases: [],
   },
   {

@@ -1404,16 +1404,16 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx, 
     <div class="overflow-x-auto">
       <table class="data-table" data-responsive="cards">
         <thead><tr>
-          <th>姓名</th>
-          ${showCols.studentId ? '<th>学号</th>' : ''}
-          ${showCols.developStage ? '<th>发展阶段</th>' : ''}
-          ${showCols.partyGroup ? '<th>所属党小组</th>' : ''}
-          <th>活动</th>
-          ${showCols.type ? '<th>类别</th>' : ''}
-          <th>状态</th>
-          ${groupMeetingView ? '<th>备注（标因/补录）</th>' : ''}
-          <th>确认人</th>
-          <th>操作</th>
+          <th scope="col">姓名</th>
+          ${showCols.studentId ? '<th scope="col">学号</th>' : ''}
+          ${showCols.developStage ? '<th scope="col">发展阶段</th>' : ''}
+          ${showCols.partyGroup ? '<th scope="col">所属党小组</th>' : ''}
+          <th scope="col">活动</th>
+          ${showCols.type ? '<th scope="col">类别</th>' : ''}
+          <th scope="col">状态</th>
+          ${groupMeetingView ? '<th scope="col">备注（标因/补录）</th>' : ''}
+          <th scope="col">确认人</th>
+          <th scope="col">操作</th>
         </tr></thead>
         <tbody>${pageRows.length ? pageRows.map(a => {
           const rec = allRecords.find(r => r.id === a.id);

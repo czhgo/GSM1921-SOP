@@ -658,7 +658,7 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
           <button type="button" class="btn-text today-all flex-shrink-0 text-xs" data-today-all="todo">全部 ›</button>
         </div>
         <div data-today-groups class="space-y-5">${actionGroupsHtml}</div>
-        ${actionGroupsHtml ? '' : `<div data-today-empty>${emptyStateHtml({ text: '今天暂无待办', variant: 'inline', className: 'px-1 py-2' })}</div>`}
+        ${actionGroupsHtml ? '' : `<div data-today-empty>${emptyStateHtml({ text: '今天暂无待办', variant: 'inline', className: 'px-1 py-2', actionHtml: '<button type="button" class="btn-outline" data-today-empty-go="todo">看待办</button>' })}</div>`}
       </div>`;
     // 右卡「日程」（B02）：今天与未来 7 天同属一条时间轴 ⇒ 合成一张卡、一个段头（日期与时间同占行首固定宽列），
     //   同屏只保留一个卡头与一个空态；「看日历」只读入口挂卡头右侧，原「今天 / 接下来」两个同名段头合并，

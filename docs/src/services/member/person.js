@@ -564,7 +564,9 @@ const PERSON_REF_TABLES = [
   ['workgroupTasks', '工作组任务', ['assigneeId', 'createdBy']],
   ['workgroupOutputs', '工作组产出', ['submittedBy', 'createdBy']],
   ['attendanceRosters', '应到名单', ['frozenBy'], ['personIds']],
-  ['todos', '待办', ['assigneeId', 'createdBy']],
+  // 2026-11-17 批次 553 更正：待办到人字段是 `personId`（服务端 `routes/leader-progress.js:116`
+  //   按 `json_extract(data,'$.personId')` 预筛）；原登记 `assigneeId` / `createdBy` 非本域字段 ⇒ 引用漏判。
+  ['todos', '待办', ['personId']],
   ['notices', '通知', ['createdBy', 'publisherId', 'fromPersonId'], ['audiencePersons']],
   ['reviewRequests', '支部上报', ['submittedBy', 'decidedBy']],
   ['memberFlows', '成员流动台账', ['personId', 'by', 'revokedBy']],
@@ -577,7 +579,9 @@ const PERSON_REF_TABLES = [
   ['authAudit', '授权审计', ['targetPersonId', 'authorizedBy']],
   ['attendanceAppeals', '考勤申诉', ['personId', 'decidedBy', 'handledBy']],
   ['inspectionAppeals', '考察申诉', ['personId', 'decidedBy', 'handledBy']],
-  ['handoffs', '三委交接', ['from', 'to', 'ownerId', 'confirmedBy']],
+  // `handoffs`（三委交接）**不登记**：其 `from` / `to` 是**角色键**（`HANDOFF_TYPES` 派生，如
+  //   `disc-commissioner`），`confirmedBy` 同样记角色键（服务端 `semantic-routes.js:532` 按角色比较），
+  //   整行没有人 id 字段 ⇒ 与人员 id 比对恒不命中，登记只会造成「看似覆盖、实际漏判」。
   ['committeeBroadcasts', '支委广播', ['recipientId']],
   ['agendaVotes', '支委会表态', ['personId']],
   ['signups', '报名记录', ['personId', 'reviewedBy']],

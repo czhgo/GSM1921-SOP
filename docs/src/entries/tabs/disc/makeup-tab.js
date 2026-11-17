@@ -112,12 +112,12 @@ export function renderContent(containerEl) {
       colSpan: 6,
       responsive: true,
       headHtml: `<tr>
-              <th>姓名</th>
-              <th>缺席活动</th>
-              <th>补课方式</th>
-              <th>截止日期</th>
-              <th>状态</th>
-              <th>操作</th>
+              <th scope="col">姓名</th>
+              <th scope="col">缺席活动</th>
+              <th scope="col">补课方式</th>
+              <th scope="col">截止日期</th>
+              <th scope="col">状态</th>
+              <th scope="col">操作</th>
             </tr>`,
     },
     rowHtml,

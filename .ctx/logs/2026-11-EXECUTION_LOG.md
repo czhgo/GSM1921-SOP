@@ -2,13 +2,37 @@
 title: "2026年11月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-15
+last_updated: 2026-11-17
 status: active
 ---
 
 # 2026年11月执行日志
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
+
+## 批次 562（2026-11-17）· 字段错配 ＋ 安全边界 ＋ a11y（spec `repair-field-mismatch-and-refresh-help`）
+
+### 为什么
+- 支书要求继续查前端 / 后端 / 计算 / 显示逻辑，明确指出「姓名写成学号」这类张冠李戴；三路只读审计给出 5 项确认错配、2 处未转义 innerHTML、上报与归档参数不校验、并发整行覆盖、约 65 处裸 `<th>`。
+- `help.html` 落后于现行能力（9 处过时、10 项缺失），支书要求本轮一并刷新并「面向人而非面向机器」重排（help 排到 563）。
+
+### 拿不准 / 取舍
+- **契约枚举**：`branches.status` 契约写 `archived`、写口与界面判 `inactive`；工作组成员契约写 `inactive`、写口写 `removed`。裁定「以实现为准改契约」，不动写口与界面，避免历史行迁移。
+- **`updatedAt` 打底**：先放进 `initDb`，`db-migration` 测试按整行形状断言即红 ⇒ 改到 `server.js` 启动时执行（幂等、只补空值），测试库不受影响。
+- **跨组应到 / 实到**：首版按 `hostGroup` 归属，得到「实到 52 > 应到 32」；核对发现前端口径是「organizer 属本组」，且 demo 库 `act-26` 一条党小组会录了 50 人考勤。改为与 `isGroupActivity` 同源，并把实到限定为「应到名单内、一人一次」——数字转为 32 / 10，异常数据不再放大成错误比例。
+- **字段守卫**：首版做「全前端按实体扫描」，误报 500+ 条（模块名、聚合对象同名）。降为四条可布尔化的回归断言（契约枚举、幽灵字段零出现、引用表字段、时间双读兼容），不追求覆盖全部读取。
+- **a11y 表头**：改完 `scope="col"` 后 `responsive-cards-guard` 因只认裸 `<th>` 判红 ⇒ 改守卫解析容忍属性，判据仍是「列数一致 + 覆盖」。
+
+### 边界
+- 本批只做 562；help 刷新与全资源 `If-Match` 分别在 563 / 564。
+- 未做：前端逐表单改 `If-Match`（564 在 `api-adapter` 单点注入）。
+- 顺带修复两处既有红灯：`DS_03_COMPONENTS.md` 批次 561 漏刷 frontmatter；`.ctx` 三份文件带 BOM 导致「无 frontmatter」误判。
+
+### 读数
+- `test:daily` **254 / 254**；`test:guards` **111 文件 / 全绿（381 项）**；`docs-governance` / `doc-consistency` 各 31 / 21 项全绿。
+- 新端点 `GET /api/v1/group-attendance-summary` 实测：第一 32 / 10、第二 0 / 0、第三 4 / 1（实到 ≤ 应到）。
+- 上报窗口 `from=2026-13-01` 实测 422；`Content-Disposition` 只接白名单日期。
+- 启动回填：demo 库 `updatedAt` 补 391 行。
 
 ## 批次 561（2026-11-16）· 壳层顺手与「数字说真话」（spec `polish-shell-and-display-truth`）
 

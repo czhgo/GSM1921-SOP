@@ -13,7 +13,7 @@ import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261110b
 // 待批活动状态值单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：待批活动**不是**「待参与」的活动
 // ——它还没获批（与 `draft` 同待遇），不为它派生「参与活动」待办（也免得从待办标题把没批的活动漏出去）。
 import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261110b';
-import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261110b';
+import { todayLocal, _fmtDate, fmtLocalDate } from '../../core/base/utils.js?v=20261110b';
 import { DEFAULT_BRANCH_ID, isActivityEnded } from '../../core/domain/constants.js?v=20261110b';
 import { AuthStore } from '../core/auth.js?v=20261110b';
 // 周期键（月/季/半年/年）与「模块周期」单一源（2026-10-06 批次 423 · `R-29⑤` · `D-804`）——
@@ -1284,12 +1284,14 @@ export const LifecycleTodoDeriver = {
 
     return TodoStore.createBatch([{
       title: `为专班「${taskforce.name || '未命名'}」赋权组织者/深度参与者`,
-      description: `专班周期：${taskforce.startDate || '?'} ~ ${taskforce.endDate || '?'}. 请选择人员授予组织者或深度参与者角色。`,
+      // 契约（server/data/domain-contract.mjs taskforces 段）只有 `deadline` / `createdAt`；
+      //   原读 `startDate` / `endDate` 属字段漂移 ⇒ 描述恒为「? ~ ?」、截止恒 null。
+      description: `专班周期：${fmtLocalDate(taskforce.createdAt) || '未设定'} ~ ${fmtLocalDate(taskforce.deadline) || '未设定'}. 请选择人员授予组织者或深度参与者角色。`,
       role: to.role,
       personId: to.personId,
       category: TodoCategory.AUTH,
       priority: 'urgent',
-      deadline: taskforce.startDate || null,
+      deadline: taskforce.deadline || null,
       sourceType: TodoSourceType.TASKFORCE,
       sourceId: taskforce.id,
       actionType: TodoActionType.AUTHORIZE,

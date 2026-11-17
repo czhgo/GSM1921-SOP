@@ -392,8 +392,14 @@ async function renderActivity(id) {
     cardEl.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">活动不存在。请返回活动列表重新选择。</p>';
     return;
   }
-  // 汇总面读口：与列表同一受众投影（`IssueStore` 内部 _visibleIssues）；失败时为空，下方空态如实显示 —。
-  await IssueStore.loadAll();
+  // 汇总面读口：与列表同一受众投影（`IssueStore` 内部 _visibleIssues）；加载失败时显示明确失败态（不静默成空，Task 7）。
+  let reportsError = '';
+  try {
+    await IssueStore.loadAll();
+  } catch (error) {
+    console.warn('[activity-entry] 汇报数据加载失败：', error);
+    reportsError = '加载失败，重试';
+  }
 
   const typeColor = ACTIVITY_TYPE_COLORS[act.type] || { color: '#6B7280' };
   // 活动类型标签色：金系用深金 text（浅底可读），红系回退 dot（_ACTIVITY_TYPE_BASE 无 color 字段）
@@ -542,8 +548,9 @@ async function renderActivity(id) {
           reports: visibleReports,
           scope: { workgroupId },
           title: '本工作组汇报',
-          subtitle: `${workgroupReports.length} 条待答复`,
+          subtitle: reportsError ? '' : `${workgroupReports.length} 条待答复`,
           role: reportInboxRole,
+          errorMsg: reportsError,
           emptyMsg: '本工作组暂无汇报 · 下一步：工作组组织者可在「我经办的反馈」发起汇报，或请成员就本事项汇报',
         })}
       </div>
@@ -916,6 +923,7 @@ async function renderActivity(id) {
       role: reportInboxRole,
       scope: { workgroupId },
       onAnswered: () => renderActivity(act.id),
+      onRetry: () => renderActivity(act.id),
     });
   }
   bindWorkgroupMemberEditor(cardEl, { onSaved: async () => {
@@ -1202,8 +1210,14 @@ async function renderTaskforce(tf) {
   const isClosedTaskforce = isTaskforceTerminalStatus(tf.status);
   const storedMembers = mockDB.workgroupMembers.filter((row) => row.workgroupId === workgroupId && row.status !== 'removed');
   const members = storedMembers.length ? workgroupMembers(storedMembers) : workgroupMembers(allMemberRows);
-  // 本工作组汇报汇总（批次 500 · B-499-2）：与活动详情同一读口与同一范围过滤。
-  await IssueStore.loadAll();
+  // 本工作组汇报汇总（批次 500 · B-499-2）：与活动详情同一读口与同一范围过滤；加载失败显示失败态（Task 7）。
+  let reportsError = '';
+  try {
+    await IssueStore.loadAll();
+  } catch (error) {
+    console.warn('[activity-entry] 专班汇报数据加载失败：', error);
+    reportsError = '加载失败，重试';
+  }
   const isCommittee = !!currentUser && AuthStore.isCommissioner(currentUser.role);
   const reportInboxRole = currentUser?.role || 'participant';
   const visibleReports = IssueStore.getVisibleReports();
@@ -1221,8 +1235,9 @@ async function renderTaskforce(tf) {
           reports: visibleReports,
           scope: { workgroupId },
           title: '本工作组汇报',
-          subtitle: `${workgroupReports.length} 条待答复`,
+          subtitle: reportsError ? '' : `${workgroupReports.length} 条待答复`,
           role: reportInboxRole,
+          errorMsg: reportsError,
           emptyMsg: '本工作组暂无汇报 · 下一步：工作组组织者可在「我经办的反馈」发起汇报，或请成员就本事项汇报',
         })}
       </div>
@@ -1323,6 +1338,7 @@ async function renderTaskforce(tf) {
       role: reportInboxRole,
       scope: { workgroupId },
       onAnswered: () => renderTaskforce(tf),
+      onRetry: () => renderTaskforce(tf),
     });
   }
   bindWorkgroupMemberEditor(cardEl, { onSaved: async () => {

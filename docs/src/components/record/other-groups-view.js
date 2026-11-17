@@ -25,6 +25,7 @@ import { loadInspectionRecords } from '../../services/activity/inspection.js?v=2
 import { getMeetingRosterIds } from '../../services/member/roster.js?v=20261110b';
 import { AttendanceStatus } from '../../core/domain/domain.js?v=20261110b';
 import { escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261110b';
+import { getAdapter, getDataSource } from '../../data/data-adapter.js?v=20261110b';
 
 import { emptyStateHtml } from '../ui/empty-state.js?v=20261110b';
 /**
@@ -45,8 +46,20 @@ export async function renderOtherGroupsView(container) {
     issues = IssueStore.getAll();
   } catch (_) { issues = IssueStore.getAll() || []; }
 
+  // 跨组应到 / 实到（Task 10）：优先取服务端只读汇总（`H32` 计数只在服务端算）；
+  //   演示数据源或接口失败时回落「同一份已拉取数据」的本地累加（兜底不造事实）。
+  let summaryByGroup = null;
+  if (getDataSource() === 'api') {
+    try {
+      const summary = await getAdapter().groupAttendanceSummary.get();
+      summaryByGroup = new Map((summary.items || []).map((item) => [item.groupName, item]));
+    } catch (err) {
+      console.warn('[other-groups-view] 跨组应到汇总加载失败，回落本地累加：', err);
+    }
+  }
+
   const ctx = {
-    members, issues, branchId,
+    members, issues, branchId, summaryByGroup,
     activities: loadActivities(),
     reviews: loadActivityReviews(),
     attRecords: loadAttendanceRecords(),
@@ -69,16 +82,27 @@ function _cardHtml(g, ctx) {
   const groupActs = groupActivitiesOf(activities, members, g.groupName);
   const { pending, completed } = reviewBucketOf(groupActs, reviews);
 
-  // 已发生党小组会 应到 / 实到（口径与支书台「本组活动与考勤概览」同源：roster 应到 + attendance 实到）
-  const today = todayLocal();
-  const metActs = groupActs.filter(a => a.type === '党小组会' && a.date <= today);
+  // 已发生党小组会 应到 / 实到（口径单一源：服务端 `group-attendance-summary` 与 `roster-eligibility` 同源）
+  const summary = ctx.summaryByGroup?.get(g.groupName) || null;
   let expected = 0;
   let present = 0;
-  for (const a of metActs) {
-    const recs = attRecords.filter(r => r.activityId === a.id);
-    if (!recs.length) continue;
-    expected += getMeetingRosterIds({ type: '党小组会', groupId: g.groupName, branchId }).length;
-    present += recs.filter(r => r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP).length;
+  if (summary) {
+    expected = Number(summary.expected) || 0;
+    present = Number(summary.present) || 0;
+  } else {
+    const today = todayLocal();
+    const metActs = groupActs.filter(a => a.type === '党小组会' && a.date <= today && a.status !== 'cancelled' && !a.archived);
+    for (const a of metActs) {
+      const recs = attRecords.filter(r => r.activityId === a.id);
+      if (!recs.length) continue;
+      const eligible = getMeetingRosterIds({ type: '党小组会', groupId: g.groupName, branchId });
+      const eligibleSet = new Set(eligible.map(String));
+      expected += eligible.length;
+      // 实到只认应到名单内的在册人员，一人一次（与服务端端点同口径）
+      present += new Set(recs
+        .filter(r => (r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP) && eligibleSet.has(String(r.personId)))
+        .map(r => String(r.personId))).size;
+    }
   }
 
   // 考察汇总：本组活动上的考察记录（判据与 groupActivitiesOf 同源——organizer 属本组）

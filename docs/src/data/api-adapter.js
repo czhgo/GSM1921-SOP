@@ -1127,6 +1127,13 @@ export const ApiAdapter = {
     },
   },
 
+  // 2026-11-17 批次 562（Task 10）：跨组「应到 / 实到」只读汇总。
+  //   服务端实现 = `server/routes/resources/semantic-routes.js`（GET /api/v1/group-attendance-summary）；
+  //   口径单一源 = `core/domain/roster-eligibility.js`；前端不再逐组现算（`H32` 计数只在服务端算）。
+  groupAttendanceSummary: {
+    get() { return _get('/api/v1/group-attendance-summary'); },
+  },
+
   // 2026-11-15 六维补齐 T3：党委台「支部管理」页的运维健康读数（只读 GET，无写门）。
   //   服务端实现 = `server/routes/health.js`；页面只经本门面取数（`CLAUDE.md H32`：不直连 fetch）。
   //   `deep()` 在任一项检查失败时返回 503 —— `_request` 会抛错并带 `.body`，调用方按 body 展示降级原因。

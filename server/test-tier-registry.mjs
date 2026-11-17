@@ -257,6 +257,8 @@ export const TEST_TIERS = [
     'resource-write-validation-guard.test.mjs',
     'write-policy-evidence-guard.test.mjs',
     'write-truth-guard.test.mjs',
+    // 2026-11-17 批次 562（`repair-field-mismatch-and-refresh-help` Task 4）：前端字段读取 ≡ 数据契约
+    'contract-field-usage-guard.test.mjs',
   ]),
   ...group('guards', '静态可访问性守卫（可访问名 / 表单标签 / section / tab / role=button / 图标钮）', [
     // 2026-11-15 `close-six-dim-gaps` T10：六条可静态判定的 a11y 底线，存量按 a11y-baseline 只减不增

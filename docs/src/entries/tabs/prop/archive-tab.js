@@ -560,7 +560,12 @@ function _renderTodoPanel({ endedUnarchived, publicityDrafts, pendingArchives, a
     if (!pendingArchives.length) return emptyStateHtml({ text: '暂无归档缺口（已归档活动均已补齐宣传材料）', variant: 'inline', className: 'py-3' });
     return `<div class="space-y-2" id="archive-pending-list">${pendingArchives.filter(isActivityArchived).map(_pendingArchiveRowHtml).join('')}</div>`;
   }
-  if (!endedUnarchived.length) return emptyStateHtml({ text: '暂无待归档活动', variant: 'inline', className: 'py-3' });
+  if (!endedUnarchived.length) return emptyStateHtml({
+    text: '暂无待归档活动',
+    variant: 'inline',
+    className: 'py-3',
+    actionHtml: '<button type="button" class="btn-outline" data-archive-upload-action>上传材料</button>',
+  });
   return `<p class="text-xs text-gray-500 mb-2">活动归档由支书或本场组织者办理；此处只提示材料是否已补齐。</p>
     <div id="archive-ended-list"></div>`;
 }

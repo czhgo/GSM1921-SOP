@@ -223,7 +223,7 @@ function _listRowsWithPushdown(db, name, table, query = {}, opts = {}) {
 /** 游标分页（`(updated_at,id)` 倒序；不用 OFFSET）；无 `page` 时调用方保持整表返回 */
 function _paginateRows(rows, query = {}) {
   const pageSize = Math.max(1, Math.min(LIST_PAGE_ROW_LIMIT, Number(query.pageSize) || 20)); // T12：pageSize 硬上限 2000（与未分页上限同一常量）
-  const keyOf = (row) => `${row.updatedAt || row.updated_at || row.createdAt || row.created_at || ''}|${row.id || ''}`;
+  const keyOf = (row) => `${row.updatedAt || row.updated_at || row.createdAt || row.created_at || '0'}|${row.id || ''}`; // Task 8：缺时戳用 `0` 前缀（< 所有 `20xx` 时戳）⇒ 倒序时恒排在时戳行之后，行内按 id 稳定
   const sorted = [...rows].sort((a, b) => keyOf(b).localeCompare(keyOf(a)));
   let start = 0;
   if (query.cursor) {
@@ -491,7 +491,7 @@ export function createResourcesRouter(db) {
           const voteDeny = _activityVoteConfigDeny(db, row, req.actor);
           if (voteDeny) return res.status(400).json({ error: voteDeny });
         } const writeInvalid = validateResourceWrite(name, row, 'post'); if (writeInvalid) return res.status(422).json({ error: writeInvalid }); // T12：通用写口字段校验（写门之后；失败不落库）
-        const id = row.id || `${ID_PREFIX[name] || 'x'}-${randomUUID().slice(0, 8)}`;
+        const id = row.id || `${ID_PREFIX[name] || 'x'}-${randomUUID().slice(0, 8)}`; const nowIso = new Date().toISOString();
         if (db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id)) return res.status(409).json({ error: `记录 id 已存在：${id}` });
         const data = {
           ...row,
@@ -518,7 +518,7 @@ export function createResourcesRouter(db) {
           // 考察记录人由会话决定（R4-D05：普通成员只可写自己组织的场次，不得代署记录人）
           ...(name === 'inspections' ? { recordedBy: req.actor.id } : null),
           ...(name === 'periodicArchives' ? { branchId: req.actor.branchId || DEFAULT_BRANCH_ID } : null),
-          id,
+          id, updatedAt: nowIso,
         };
         if (name === 'periodicArchives') {
           delete data.archivePolicySnapshot;
@@ -847,7 +847,7 @@ export function createResourcesRouter(db) {
         relatedWorkgroupUpdate = activityWorkgroupUpdate(db, merged, req.actor.id);
         // 历史「待补承办组」补选完成后，工作组迁移态同步转 ready（其余编辑保留既有迁移态）。
         if (relatedWorkgroupUpdate && legacyHostGroupCompleted) relatedWorkgroupUpdate.migrationState = 'ready';
-      } const patchInvalid = validateResourceWrite(name, req.body, 'patch'); if (patchInvalid) return res.status(422).json({ error: patchInvalid }); // T12：通用写口字段校验（既有语义校验之后；失败不落库）
+      } const patchInvalid = validateResourceWrite(name, req.body, 'patch'); if (patchInvalid) return res.status(422).json({ error: patchInvalid }); merged.updatedAt = new Date().toISOString(); // T12：通用写口字段校验（既有语义校验之后；失败不落库）／Task 8：写路径统一盖 updatedAt
       const save = db.transaction(() => {
         db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(id, JSON.stringify(merged));
         if (relatedWorkgroupUpdate) {

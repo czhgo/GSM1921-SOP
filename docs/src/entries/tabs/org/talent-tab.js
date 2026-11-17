@@ -138,11 +138,11 @@ function _participationCardHtml(part) {
 
 function _participationHeadHtml(types) {
   return `<tr>
-            <th>姓名</th>
-            <th>学号</th>
-            <th>所属党小组</th>
-            ${types.map(t => `<th>${esc(t)}</th>`).join('')}
-            <th>合计</th>
+            <th scope="col">姓名</th>
+            <th scope="col">学号</th>
+            <th scope="col">所属党小组</th>
+            ${types.map(t => `<th scope="col">${esc(t)}</th>`).join('')}
+            <th scope="col">合计</th>
           </tr>`;
 }
 

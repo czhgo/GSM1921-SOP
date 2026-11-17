@@ -193,10 +193,10 @@ export function renderContent(ctx, host, opts = {}) {
         colSpan: 4,
         responsive: true,
         headHtml: `<tr>
-              <th>姓名</th>
-              <th>活动</th>
-              <th>考察内容</th>
-              <th>确认状态</th>
+              <th scope="col">姓名</th>
+              <th scope="col">活动</th>
+              <th scope="col">考察内容</th>
+              <th scope="col">确认状态</th>
             </tr>`,
       },
       rowHtml: (i) => {

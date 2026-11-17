@@ -1086,7 +1086,7 @@
 | platformReportedBy | string | 否 | 上报留痕·操作人 personId（与 `platformReportedAt` 同步写入） |
 
 **服务端种子**：**有**（`server/seed.js:65` 从 `docs/src/data/mock/seed.js::SEED_ARCHIVE_RECORDS` 播种 3 条）。
-**依据**：`docs/src/data/mock/seed.js:36-45`、`docs/src/entries/tabs/prop/archive-tab.js:1029-1098`（运行时新建：`_handleArchiveUpload`）、`docs/src/entries/tabs/prop/archive-tab.js:695-714`（党建平台留痕位：`_markPlatformReported` 写、`_renderPlatformCell` 读）、`docs/src/services/governance/secretary-overview.js:607`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:1059`（写）、`server/seed.js:65`、`server/routes/resources/store.js:30,56`。
+**依据**：`docs/src/data/mock/seed.js:36-45`、`docs/src/entries/tabs/prop/archive-tab.js:1034-1103`（运行时新建：`_handleArchiveUpload`）、`docs/src/entries/tabs/prop/archive-tab.js:700-719`（党建平台留痕位：`_markPlatformReported` 写、`_renderPlatformCell` 读）、`docs/src/services/governance/secretary-overview.js:607`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:1059`（写）、`server/seed.js:65`、`server/routes/resources/store.js:30,56`。
 
 ---
 
@@ -1281,7 +1281,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 ## §6 接口一览
 
 > **基础路径**：`/api/v1`（认证路由挂在 `/api/v1/auth`）。**认证方式**：`Authorization: Bearer <token>`（token 由登录接口签发）。
-> **数量口径（展开后总路由数）**：显式声明的路由 130 条＝130 ＋ 115 ＝ 245 条；`router.*` 声明 **132 条**，其中 **4 条在通用资源循环里**（29 个资源名，见 §6.2），循环展开 115 条；`server/app.js` 的 2 条公开辅助路由（不含 Express 中间件）。
+> **数量口径（展开后总路由数）**：显式声明的路由 131 条＝131 ＋ 115 ＝ 246 条；`router.*` 声明 **133 条**，其中 **4 条在通用资源循环里**（29 个资源名，见 §6.2），循环展开 115 条；`server/app.js` 的 2 条公开辅助路由（不含 Express 中间件）。
 > **未登录可读的最小公开口**：`GET /api/v1/public/branch-name`（`server/routes/public-info.js`）——只返回支部显示名一个字段（`config.headerTitle` 优先，回退 `name`，读不到回「本支部」），供登录页抬头与帮助页在登录前显示本实例支部名；响应 `Cache-Control: no-store`，不返回 id / 成员 / 配置等任何其它字段。
 
 ### 6.1 认证（`server/routes/auth.js`）

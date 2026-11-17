@@ -149,11 +149,11 @@ export function renderContent(ctx, container) {
       colSpan: 5,
       responsive: true,
       headHtml: `<tr>
-            <th>姓名</th>
-            <th>专班</th>
-            <th>标签</th>
-            <th>考察内容</th>
-            <th>状态</th>
+            <th scope="col">姓名</th>
+            <th scope="col">专班</th>
+            <th scope="col">标签</th>
+            <th scope="col">考察内容</th>
+            <th scope="col">状态</th>
           </tr>`,
     },
     rowHtml: (i) => `

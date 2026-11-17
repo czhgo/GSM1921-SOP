@@ -1,6 +1,6 @@
 // server/server.js — 入口：初始化数据库，空库自动导入种子，启动服务
 import { createApp } from './app.js';
-import { initDb } from './db.js';
+import { initDb, backfillUpdatedAt } from './db.js';
 import { seedDatabase } from './seed.js';
 import { startScheduler } from './services/reporting.js';
 import { fileURLToPath } from 'node:url';
@@ -11,7 +11,7 @@ const DB_PATH = process.env.DB_PATH || fileURLToPath(new URL('./data.db', import
 // **2026-09-23 P0-4**：生产形态（isProductionEnv）**默认不播种**——比「忘了设 DISABLE_SEED 就灌进 50 人演示支部」更安全。
 const SEED_DISABLED = process.env.DISABLE_SEED === '1' || isProductionEnv();
 if (isProductionEnv() && !process.env.LOGIN_PASSWORD) { console.error('[server] ⛔ 启动被拒：生产形态（APP_ENV=production / NODE_ENV=production）必须显式设置 LOGIN_PASSWORD（所有账号共用该口令，缺省口令不得上线）。请设置该环境变量后重启。'); process.exit(1); } // P0-3：生产形态必须显式设 LOGIN_PASSWORD（全站账号共用该口令）⇒ 未设则启动即拒
-const db = initDb(DB_PATH); await enforceProductionDemoGate(db); // Task 7.1：生产形态含演示种子行 ⇒ 默认拒绝启动；ALLOW_DEMO_DATA=1 才放行（说明见文件末）
+const db = initDb(DB_PATH); backfillUpdatedAt(db); await enforceProductionDemoGate(db); // Task 7.1：生产形态含演示种子行 ⇒ 默认拒绝启动；ALLOW_DEMO_DATA=1 才放行（说明见文件末）；批次 562：启动回填 updatedAt（幂等，仅补空值）
 // B-499-8（2026-10-21）：既有库跟随种子版本——applyMigrations 之后比较 seed_meta.seed_version，
 // 不一致时在事务内**只修复既有 seed id**（不插入缺失、不删除 orphan、保留运行时字段）。
 // 用内联 import：上方 `:12-18` / `:21` / `:22-23` 是 README-server.md 的取证靶点，尽量少动行。

@@ -1640,3 +1640,32 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 const SERVER_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
+
+// ════════════════════════════════════════════════════════════════
+//  v17+ 数据回填（2026-11-17 批次 562 · `repair-field-mismatch-and-refresh-help` Task 8）
+// ════════════════════════════════════════════════════════════════
+// 为什么：游标分页排序键与全资源 If-Match（Task 564）都以 `updatedAt` 为基准；历史行缺该字段会让
+//   排序退化为 id 序、让并发校验没有可比对的版本。口径：只补空值（幂等），取 `createdAt`，
+//   无 `createdAt` 则取启动时刻；**不新增列、不抬 schema 版本**，重复启动不改变已有值。
+export function backfillUpdatedAt(db, at = new Date().toISOString()) {
+  const tables = [...RESOURCE_TABLES, ...SEMANTIC_TABLES].filter((t) => !RETIRED_RESOURCE_TABLES.has(t));
+  let patched = 0;
+  const run = db.transaction(() => {
+    for (const table of tables) {
+      const rows = db.prepare(`SELECT id, data FROM ${table}`).all();
+      if (!rows.length) continue;
+      const update = db.prepare(`UPDATE ${table} SET data = ? WHERE id = ?`);
+      for (const row of rows) {
+        let data;
+        try { data = JSON.parse(row.data); } catch { continue; }
+        if (!data || typeof data !== 'object' || Array.isArray(data)) continue;
+        if (data.updatedAt) continue;
+        update.run(JSON.stringify({ ...data, updatedAt: data.createdAt || at }), row.id);
+        patched += 1;
+      }
+    }
+  });
+  run();
+  if (patched) console.log(`[db] ✔ 回填 updatedAt：${patched} 行`);
+  return patched;
+}

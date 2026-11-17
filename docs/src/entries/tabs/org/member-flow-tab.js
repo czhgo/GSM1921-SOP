@@ -234,9 +234,9 @@ function _renderFlowBody() {
     enrollYear: colHasValue('enrollYear'),
     note: colHasValue('note'),
   };
-  const heads = ['<th>类型</th>', '<th>姓名</th>',
-    showCols.studentId ? '<th>学号</th>' : '', showCols.enrollYear ? '<th>届别</th>' : '',
-    '<th>日期</th>', '<th>经手人</th>', showCols.note ? '<th>备注</th>' : '', '<th>操作</th>'].filter(Boolean).join('');
+  const heads = ['<th scope="col">类型</th>', '<th scope="col">姓名</th>',
+    showCols.studentId ? '<th scope="col">学号</th>' : '', showCols.enrollYear ? '<th scope="col">届别</th>' : '',
+    '<th scope="col">日期</th>', '<th scope="col">经手人</th>', showCols.note ? '<th scope="col">备注</th>' : '', '<th scope="col">操作</th>'].filter(Boolean).join('');
   renderFilteredList(tableHost, {
     stateKey: 'org-member-flow-table',
     rows: flows,

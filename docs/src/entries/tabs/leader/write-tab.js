@@ -317,7 +317,7 @@ export function renderContent(ctx) {
           emptyMessage: '暂无记录',
           table: {
             responsive: true,
-            headHtml: `<tr>${cfg.fields.map(f => `<th>${f.label}</th>`).join('')}${effectiveReadOnly ? '' : '<th class="w-12">操作</th>'}</tr>`,
+            headHtml: `<tr>${cfg.fields.map(f => `<th scope="col">${f.label}</th>`).join('')}${effectiveReadOnly ? '' : '<th scope="col" class="w-12">操作</th>'}</tr>`,
             colSpan: cfg.fields.length + (effectiveReadOnly ? 0 : 1),
           },
           rowHtml: (item) => {

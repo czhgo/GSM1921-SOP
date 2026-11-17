@@ -101,7 +101,7 @@ export function buildMcBulkRows(mode = 'secretary-confirm') {
     to: r.to || '',
     meta: MC_ACTION_LABEL[r.action] || (r.kind === 'transferOut' ? '移出' : '变更'),
     byName: r.by ? (getPersonName(r.by) || r.by) : '组织委员',
-    at: r.at || '',
+    at: r.createdAt ?? r.at ?? '',
   }));
   return [...agenda, ...roster];
 }
