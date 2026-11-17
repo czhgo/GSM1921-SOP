@@ -272,7 +272,7 @@ dynamic_role:
 | server/test/hover-state-guard.test.mjs | 2026-11-04 | — | [工程师]+[AI] | 交互三态守卫。 |
 | content/05_ai_coding/REVIEW_QUESTION_SET.md | 2026-11-03 | — | [工程师]+[AI] | 审查问题集：Q-01…Q-22（Q-22 为页签密度与信息经济的审查方法，执行工具指向 `TAB_AUDIT_PLAYBOOK.md`）。 |
 | content/05_ai_coding/QUESTION_HIT_MATRIX.md | 2026-11-03 | — | [工程师]+[AI] | 历史命中矩阵；Q-22 列新立，36 行历史记 `—`。 |
-| content/05_ai_coding/GUARD_INVENTORY.md | 2026-11-16 | — | [工程师]+[AI] | 守卫台账；历史总表停 66 件（已滞后），现行件数以 `test-tier-registry.mjs` 为准；§十二 记 2026-11-15 新增 `mock-import-guard` / `roster-denominator-guard` 与 `date-canon` D1b。 |
+| content/05_ai_coding/GUARD_INVENTORY.md | 2026-11-16 | — | [工程师]+[AI] | 守卫台账；历史总表停 66 件（已滞后），现行件数以 `test-tier-registry.mjs` 为准。 |
 | content/03_doc_system/CASES_INDEX.md | 2026-11-11 | — | [工程师]+[AI] | 判例总索引（design 41 / data 1 / ai 9）。 |
 | server/test/docs-governance-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 文档治理守卫。 |
 | server/test/contract-field-usage-guard.test.mjs | 2026-11-17 | — | [工程师]+[AI] | 契约字段 / 枚举 / 幽灵字段回归守卫（guards 层）。 |
@@ -310,7 +310,7 @@ dynamic_role:
 | docs/archive.html | 2026-09-24 | — | [用户]+[AI] | 归档页；**2026-09-24**：批次 171 skip link，**批次 177** 卡片内边距 `p-6` → `p-5`（`.card` 收敛，`D-643`） |
 | docs/branch-config.html | 2026-10-18 | — | [工程师]+[AI] | 党委所选支部配置页；分区导航一次呈现一个设置面板，并保留引导向导入口。 |
 | docs/feedback.html | 2026-07-31 | — | [用户]+[AI] | 反馈页 |
-| docs/help.html | 2026-10-28 | — | [用户]+[AI] | 全站帮助页：保留章节阅读，新增章节正文搜索、摘要直达、角色筛选和任务入口；同步书记统一待处理队列与异常/督办分层，口径仍以代码与裁定为准。四组页签名改准为「总览 / 我的职责 / 协作与知情 / 制度与答复」；2026-10-28 支书台页签改称「意见反馈」。 |
+| docs/help.html | 2026-11-17 | — | [用户]+[AI] | 全站帮助页：章节正文搜索、摘要直达、角色筛选、任务入口；口径以代码与裁定为准。2026-11-17：全量对齐现行能力（进入支部只读 / 提案流 / 服务端待办 / 门厅留痕 / 运维 / 四层测试 / 上报四域 / 无后缀 URL），新增「我能做什么」、技术章压缩。 |
 | docs/notice.html | 2026-09-24 | — | [用户]+[AI] | 通知页；**2026-09-24**：批次 171 skip link，**批次 177** 卡片内边距 `p-8` → `p-5`（`.card` 收敛，`D-643`） |
 | docs/messages.html | 2026-10-03 | — | [工程师]+[AI] | 「我的私信」独立页（收件＋发件一屏 · 方向徽标 · 筛选胶囊 · 未读计数 · 展开即已读 · 就地回复成线 · 写私信按发送权显隐 —— 批次 353）。 |
 | docs/search.html | 2026-07-31 | — | [用户]+[AI] | 搜索页 |
@@ -567,7 +567,7 @@ dynamic_role:
 | docs/src/capabilities/visitor-workspace.js | 2026-10-04 | — | [工程师]+[AI] | 成员工作台能力声明（tab 清单自注册，scope='workspace:visitor'）。沿革见 `.ctx/logs/`。 |
 | docs/src/capabilities/taskforce.js | 2026-09-29 | — | [工程师]+[AI] | 专班运行能力声明（自注册；**2026-09-29 批次 268：解析 `REVIEW_QUEUE H-10` 推荐档 ①——把 `taskforce` 落成真能力 ⇒ 契约 §二「blockId 与 capability / scenario id 一一对应」恢复唯一口径，`block-manifest::S5` 的例外台账**清零**） |
 | docs/src/components/sections/help-catalog.js | 2026-10-14 | — | [工程师]+[AI] | Help 全文搜索索引、摘要、角色筛选与常见任务入口。 |
-| docs/src/components/sections/help-navigation.js | 2026-10-14 | — | [工程师]+[AI] | Help 章节目录、角色和任务入口的共享元数据。 |
+| docs/src/components/sections/help-navigation.js | 2026-11-17 | — | [工程师]+[AI] | Help 章节目录、角色和任务入口的共享元数据；目录 11→14。 |
 | docs/src/components/sections/references.js | 2026-10-05 | — | [工程师]+[AI] | 资料查询模块（制度行按状态分档：草案 / 已退回 / 待党员大会表决 / 现行版 / 停用；草案行有「修改草案」操作、成员侧只见现行版）。沿革见 `.ctx/logs/`。 |
 
 ### docs/src/workflow/ (工作流层)

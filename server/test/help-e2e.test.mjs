@@ -152,8 +152,10 @@ test('390 帮助页：无整页横溢 + 章节折叠 + 页首目录与搜索保�
   assert.ok(metrics.scroll <= 390, `390 整页横溢：scrollWidth=${metrics.scroll}`);
   assert.ok(metrics.pRight <= 390, `390 正文被裁：右边界 ${metrics.pRight}`);
 
-  // 2. 目录在页首且不消失（11 章目录项全部由 help-catalog 渲染）
-  assert.equal(await page.locator('.help-toc-item').count(), 11, '390 目录项应保留 11 条');
+  // 2. 目录在页首且不消失（14 章目录项全部由 help-catalog 渲染）
+  //    2026-11-17：目录由 11 条增至 14 条——新增「我能做什么」，并补「附 口径定点」（界面深链落点）
+  //    与「图 功能地图」（原只在页内有锚点、目录里没有入口）两个既有深链目标。判据语义不变。
+  assert.equal(await page.locator('.help-toc-item').count(), 14, '390 目录项应保留 14 条');
   assert.ok(await page.locator('#help-toc-slot .help-toc').isVisible(), '390 页首目录不可见');
 
   // 3. 章节折叠：0–8 编号章均为 <details>；默认收起，点击标题展开

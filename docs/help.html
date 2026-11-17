@@ -331,14 +331,30 @@
           登录后按身份直达对应工作台，工作内容都收在工作台内——读第 1 章知道通用规则，再翻第 2 章自己那台的小节即可动手。
         </p>
 
-        <!-- 0.1 全站页面清单 -->
-        <h3 class="doc-h3"><span class="doc-h3-badge">0.1</span>全站页面清单</h3>
-        <p class="doc-p">「谁能进」里的“公共”指未登录也可浏览（登录后可见更多本人相关数据）；工作台须登录（未登录访问自动跳登录页）。点击页面名可直达。</p>
+        <!-- 0.1 按角色找入口 -->
+        <h3 class="doc-h3"><span class="doc-h3-badge">0.1</span>按角色找入口（谁从哪进）</h3>
+        <p class="doc-p">先认自己的身份，再按表进页面：<strong>登录后</strong>系统按角色直达对应工作台，具体工作都在台内页签里；<strong>未登录</strong>只能看公共门厅与公共页。站内地址默认不带 <code>.html</code>（如 <code>./about</code>），旧写法 <code>about.html</code> 同样能打开。页面与页签总数以 <code>docs/</code> 实测为准（当前实测 26 页 / 46 个页签）。</p>
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead><tr><th style="width:17%;">你的身份</th><th style="width:24%;">登录直达</th><th style="width:15%;">页签导览</th><th>进门先做什么</th></tr></thead>
+            <tbody>
+              <tr><td>支书 / 副支书（共台）</td><td><a href="./workspace/secretary.html">支书工作台</a></td><td>（10 个 tab，见 2.1）</td><td>①「今天」看待办与近期会议 → ②「待办」逐条处理 → ③「我的职责」写活动 / 支委会 / 通知发布 / 上报党委</td></tr>
+              <tr><td>组织委员</td><td><a href="./workspace/org.html">组织委员工作台</a></td><td>（8 个 tab，见 2.2）</td><td>①「待办」看成员变更与数据接收 → ②「成员名册 / 人才库」维护人 → ③「专班管理」统筹专班</td></tr>
+              <tr><td>宣传委员</td><td><a href="./workspace/prop.html">宣传委员工作台</a></td><td>（5 个 tab，见 2.3）</td><td>①「待办」看归档宣传提醒 → ②「项目看板」接宣传任务 → ③「档案归档」交材料与周期归档</td></tr>
+              <tr><td>纪检委员</td><td><a href="./workspace/disc.html">纪检委员工作台</a></td><td>（6 个 tab，见 2.4）</td><td>①「待办」看考勤 / 考察确认 → ②「考勤管理」录考勤、发起补课 → ③「复盘 / 考察管理」评议与确认</td></tr>
+              <tr><td>党小组组长</td><td><a href="./workspace/leader.html">党小组组长工作台</a></td><td>（6 个 tab，见 2.5）</td><td>①「待办」处理本组事项 → ②「本组活动」写活动、录本组考勤 → ③「组员进展」答复组员汇报</td></tr>
+              <tr><td>普通成员 / 组织者 / 深度参与者</td><td><a href="./workspace/visitor.html">成员工作台</a></td><td>（7 个 tab，见 2.6）</td><td>①「活动动态」报名 → ②「项目分工」认领任务、填报产出 → ③「我的成长」交思想汇报 / 复盘</td></tr>
+              <tr><td>党委组织员</td><td><a href="./workspace/party-committee.html">党委工作台</a></td><td>（4 个 tab，见 2.7）</td><td>①「支部上报」逐项批复 → ②「院级内容」发布公开内容 → ③「支部管理」选支部进配置页或只读视图</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="doc-p" style="margin-top:20px;"><strong>页面清单（按页面看是什么、谁能进）。</strong>「谁能进」里的“公共”指未登录也可浏览（登录后可见更多本人相关数据）；工作台须登录（未登录访问自动跳登录页）。点击页面名可直达。</p>
         <div class="doc-table-wrap">
           <table class="doc-table">
             <thead><tr><th style="width:17%;">页面</th><th style="width:36%;">是什么</th><th style="width:20%;">谁能进</th><th>怎么到达</th></tr></thead>
             <tbody>
-              <tr><td><a href="./index.html">首页</a></td><td>支部活动日历 / 近期活动 / 通知与招募一览；「工作组进展」卡分<strong>活动工作组</strong>与<strong>专班工作组</strong>两组，逐行显示成员数与任务完成数；登录后显示本人待办与角色区块</td><td>公共</td><td>站点入口；侧边栏「首页」</td></tr>
+              <tr><td><a href="./index">首页</a></td><td><strong>未登录＝公共门厅</strong>：品牌与登录入口 ＋ 院内重要通知全文 ＋ 近期活动摘要 ＋ 公开资料下载（只来自党委已公开、未过期的内容）；<strong>登录后</strong>换成工作台仪表盘：支部活动日历 / 近期活动 / 提醒与招募、「工作组进展」卡分<strong>活动工作组</strong>与<strong>专班工作组</strong>两组并显示成员数与任务完成数，另显示本人待办与角色区块</td><td>公共</td><td>站点入口；侧边栏「首页」</td></tr>
               <tr><td><a href="./login.html">登录</a></td><td>账号登录（开发模式卡见 0.3）</td><td>所有人</td><td>顶栏 / 侧栏「登录」按钮；访问需登录页面自动跳转</td></tr>
               <tr><td><a href="./search.html">资料查询</a></td><td>官方制度文件与支部文件检索；已归档支部文件标注讨论来源</td><td>公共</td><td>侧边栏「资料查询」</td></tr>
               <tr><td><a href="./archive.html">归档库</a></td><td>历届已归档工作成果的浏览与检索</td><td>公共</td><td>侧边栏「归档库」</td></tr>
@@ -349,17 +365,14 @@
               <tr><td><a href="./party-committee-meeting.html">支委会会议页</a></td><td>线上召开支委会的会议页：选线上召开 → 定本场参会范围（默认支委层，可改为支委扩大会、选定扩大到谁）→ 提取议程 → 表态 → 支书汇总截止 → 留存并查阅讨论结果。效力口径：<strong>线上与线下完全同等效力</strong>（线上表决与线上记录的讨论结果即终局，不需线下追认）</td><td>需登录，且须<strong>在本支部支委名单内</strong>（支书 / 副支书 / 组织委员 / 宣传委员 / 纪检委员）<strong>或被某场支委会扩大到</strong>——支委看<strong>全部</strong>支委会场次；<strong>被扩大的人只看得到扩大到他的那些场次，并在该场表态</strong>；两者皆非者只呈现「你在支委会会议页没有可见的会议」</td><td>支书台「我的职责」段「支委会」页签 →「机构构成」段授予 / 撤销支委身份、或「打开支委会会议页 →」；支委与被扩大的人也可直接访问</td></tr>
               <tr><td><a href="./thought-report.html">思想汇报阅读</a></td><td>单篇思想汇报的<strong>长文阅读页</strong>：期次 / 提交人 / 状态 / 字数 + 正文 + 审阅留痕；篇幅少于 1200 字的会标「触发警告审阅」<strong>（只给提交人本人看；不影响提交与归档）</strong>；组织委员可就地<strong>打回要求本人补充</strong>，本人被<strong>打回后</strong>可就地改后重交；也可按人聚合（<code>?personId=</code>）看某人全部期次</td><td>需登录；<strong>仅本人与支委层</strong>可读</td><td>成员台「我的成长 · 思想汇报」/ 组织台「思想汇报」列表点击某篇；通知深链</td></tr>
               <tr><td><a href="./person.html">成员档案</a></td><td>单个成员的<strong>完整档案页</strong>：基础档案 / 在册管理与变更留痕 / 关联概览（思想汇报、活动、专班、考勤、考察计数）；组织委员 / 支书 / 副支书可打开「档案编辑」模态（含<strong>代录自我描述</strong>）；<strong>本人</strong>可在此填 / 改「<strong>自我描述</strong>」（问卷字段）</td><td>需登录</td><td>各「第一列是人」的表格点击姓名或「编辑」入口</td></tr>
-              <tr><td><a href="./feedback.html">意见反馈</a></td><td>提交建议与问题，支书反馈并跟进处理</td><td>页面公共；提交需登录</td><td>侧边栏「意见反馈」</td></tr>
+              <tr><td><a href="./feedback">意见反馈</a></td><td>支部内部提交建议与问题（可勾匿名）；<strong>处置权在支委层</strong>——支书 / 副支书 / 组织 / 宣传 / 纪检委员可批复、评论、指派、关闭、隐藏、合并，普通成员与党小组组长只提交本人反馈并答复；草稿公开前由支书 / 副支书审核</td><td>页面公共；提交与处置需登录</td><td>侧边栏「意见反馈」；支书台「制度与答复」段「意见反馈」</td></tr>
               <tr><td><a href="./help.html">帮助（本页）</a></td><td>系统说明书：目录树 + 搜索 + 章节讲解 + 功能地图</td><td>公共</td><td>侧边栏「帮助」</td></tr>
               <tr><td><a href="./settings.html">设置</a></td><td>设置中心：外观（字号 / 明暗主题 / 主题色）、我的工作台页签顺序、支部治理（按登录角色分区，见本表下方说明）</td><td>公共可进；分区随登录角色显隐</td><td>侧边栏右下角「设置」</td></tr>
               <tr><td><a href="./wizard.html">换组织向导</a></td><td>换组织 / 初始化：组织信息、模块组合、角色分工、换壳工作单、验证与重置（30 分钟跑起来）</td><td>党委组织员（明确选定支部）/ 现任支书、副支书（本支部，副书同权）</td><td>支部设置页提供日常分区配置与可选引导入口；设置中心为支书 / 副支书的本支部入口（分步说明见第 6 章 6.2）</td></tr>
-              <tr><td><a href="./workspace/secretary.html">支书工作台</a></td><td>支书 / 副支书共台的全部工作视图（10 个 tab，见 2.1）</td><td>支书 / 副支书</td><td>登录后自动直达；侧边栏「工作台」按身份直达</td></tr>
-              <tr><td><a href="./workspace/org.html">组织委员工作台</a></td><td>组织委员全部工作视图（8 个 tab，见 2.2）</td><td>组织委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
-              <tr><td><a href="./workspace/prop.html">宣传委员工作台</a></td><td>宣传委员全部工作视图（5 个 tab，见 2.3）</td><td>宣传委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
-              <tr><td><a href="./workspace/disc.html">纪检委员工作台</a></td><td>纪检委员全部工作视图（6 个 tab，见 2.4）</td><td>纪检委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
-              <tr><td><a href="./workspace/leader.html">党小组组长工作台</a></td><td>组长全部工作视图（6 个 tab，见 2.5）</td><td>党小组组长</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
-              <tr><td><a href="./workspace/visitor.html">成员工作台</a></td><td>成员全部工作视图（7 个 tab，见 2.6）</td><td>普通成员；组织者 / 深度参与者被赋权后在本台承担对应操作</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
-              <tr><td><a href="./workspace/party-committee.html">党委工作台</a></td><td>全院支部治理视图（4 个 tab，见 2.7）——组织级，不属于任一支部</td><td>党委组织员（party-staff）</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
+              <tr><td><a href="./activity-materials">材料与归档</a></td><td>单个活动的材料页：材料清单、上传与下载、归档状态；待批活动不对非支委层可见（不存在与无权同一提示）</td><td>需登录</td><td>活动详情页材料入口；工作台活动行</td></tr>
+              <tr><td><a href="./about">关于</a></td><td>关于本系统：理念与出处（独立文档页，内容按既定基线保留）</td><td>公共</td><td>侧边栏「关于」</td></tr>
+              <tr><td><a href="./branch-config">支部配置</a></td><td>单个支部的独立配置页：组织信息、成员名册、模块组合与分工、换组织引导入口；地址形如 <code>branch-config?branchId={支部ID}</code>，不默认打开首支部</td><td>党委组织员（从支部管理目录选定支部进入）/ 支书 / 副支书（经设置进入本支部）</td><td>党委台「支部管理」→ 选支部 →「支部设置」；设置 → 支部治理 → 支部信息与向导</td></tr>
+              <tr><td><a href="./workspace/branch-readonly">支部只读视图</a></td><td>党委「进入支部」后的只读浏览视图：支部概况、成员与活动等按目录分区查看，<strong>不提供任何写口</strong>；顶栏常驻「正在查看 X 支部」与一键退出，进入 / 退出均写 <code>branch_visits</code> 留痕</td><td>党委组织员（须先选定一个支部）</td><td>党委台「支部管理」行内「只读查看该支部」；支部配置页同项按钮</td></tr>
             </tbody>
           </table>
         </div>
@@ -404,6 +417,25 @@
         </div>
       </details>
 
+      <!-- ========== 我能做什么（按角色给入口与三步动作） ========== -->
+      <section class="doc-card" id="sec-can-do" data-toc-id="sec-can-do" aria-labelledby="sec-can-do-title">
+        <h2 class="doc-h2" id="sec-can-do-title">我能做什么</h2>
+        <hr class="doc-divider">
+        <p class="doc-p doc-lead">按自己的身份看这三步：每步都写清「在哪一页、点哪个入口、做完之后系统自己会发生什么」。页面入口见 0.1，台内页签清单见第 2 章，具体做法见第 3 章。</p>
+        <div class="doc-minis">
+          <div class="doc-mini"><h4>支书 / 副支书</h4><p>①「今天」看待办与近期会议 → ②「待办」逐条处理（按业务域折组，每张卡带「去处理」直达操作位）→ ③「我的职责」写活动与会议议程、开支委会、发通知、上报党委。</p></div>
+          <div class="doc-mini"><h4>组织委员</h4><p>①「待办」看成员变更与数据接收 → ②「成员名册 / 人才库」维护人在册状态与发展阶段 → ③「专班管理」发起专班、定人定责、核验产出。</p></div>
+          <div class="doc-mini"><h4>宣传委员</h4><p>①「待办」看归档宣传提醒 → ②「项目看板」接宣传任务并提交素材 → ③「档案归档」交活动 / 专班材料，按支部制度做周期归档。</p></div>
+          <div class="doc-mini"><h4>纪检委员</h4><p>①「待办」看考勤与考察确认 → ②「考勤管理」录考勤、对缺勤发起补课 → ③「复盘」评议活动 / 专班复盘、「考察管理」确认考察并交组织建档。</p></div>
+          <div class="doc-mini"><h4>党小组组长</h4><p>①「待办」处理本组事项 → ②「本组活动」写本组活动、按应到名单录考勤 → ③「组员进展」答复组员汇报、只读查看本组复盘与考察。</p></div>
+          <div class="doc-mini"><h4>普通成员 / 组织者 / 深度参与者</h4><p>①「活动动态」报名参会 → ②「项目分工」认领任务、填报本人产出；被赋权后交活动复盘 → ③「我的成长」交思想汇报、看本人考察与考勤。</p></div>
+          <div class="doc-mini"><h4>党委组织员</h4><p>①「支部上报」逐项批复支部上报 → ②「院级内容」发布公开活动与院级资料 → ③「支部管理」选支部进配置页，或「只读查看该支部」进入只读视图。</p></div>
+          <div class="doc-mini"><h4>未登录访客</h4><p>在首页公共门厅看党委公开的通知全文、活动摘要与公开资料下载；点「登录」按账号进入本人工作台。</p></div>
+        </div>
+        <p class="doc-note"><strong>三条通用规则</strong>：待办只做「提醒 ＋ 跳转」，操作一律落在对应 tab 或详情页；写没写成以服务端返回为准，按钮显隐只是提示；日期统一按本地时区，本月＝本月 1 日起，该录而未录的显示为「待录入」，已过截止日期的单列为「逾期」。</p>
+      </section>
+
+
       <!-- ========== 第1章 快速上手 ========== -->
       <details class="doc-card help-chapter" id="sec-quickstart" data-toc-id="sec-quickstart">
         <summary class="help-chapter-summary" aria-labelledby="sec-quickstart-title"><span class="doc-h2"><span class="doc-num">1</span>快速上手</span></summary>
@@ -428,6 +460,7 @@
         <ul class="doc-list">
           <li><strong>「今天」置首（登录落点）</strong>：当天到期 / 逾期与近期会议、分工的速览。行内「到期 / 逾期」点击直接去待办处理；「会议 / 分工」点击进对应活动详情；「全部」跳到本台承载活动的 tab。</li>
           <li><strong>「待办」＝ 页顶「未读通知 N 条」轻量条 + 业务域折组</strong>：页顶点开逐条阅读、读后即消；下方待办按工作类型折组——项目（会务 · 活动 · 专班）/ 考勤纪律 / 考察 / 成员发展 / 上报与汇报（决议上报 · 汇报反馈）/ 归档宣传。每条待办卡片写明<strong>「做什么」并带「去处理」跳转</strong>——点按钮直达负责该事的 tab 或详情页（这就是“处理在哪做”的提示），做完自动消。支书 / 纪检等不保存的实时提醒也会并入对应域。卡片行内的「催办」入口一般由<strong>组织委员</strong>发起（材料催缴与审核督办归组织委员）——支书 / 副支书有权催办，但一般不越俎代庖；操作人不是他时，提交前弹确认窗——必须点按钮才能关闭，点「仍由我继续」才放行。</li>
+          <li><strong>「待办」由服务端派生、客户端只读</strong>：七类实时组（考勤提醒 / 考察提醒 / 决议跟进 / 成员变更确认 / 成员审批 / 学期滞留复核 / 专班赋权）＋ 考勤确认、考察确认两条确认组，全部在服务端按本支部数据实算，页面只读结果、不自己造数。组键未登记到当前页签的一律不渲染（fail-closed）——「这台页签上没有这张卡」＝该角色不承担这件事。</li>
           <li><strong>「工作概况」按任务层次呈现</strong>：各角色按职责查看汇报、卡点与在办；支书台「全局概况」以统一待处理队列为主，将待决定/确认与异常/督办分开，责任线概况、指标和趋势可按需展开。</li>
           <li><strong>「我的职责」组各域 tab</strong>：该角色的职责操作都在这组里（写活动、考勤、考察、归档……具体见第 2 章逐台表）。</li>
           <li><strong>「我经办的反馈」</strong>：你经手的反馈 / 上报及处理记录（组织 / 宣传 / 纪检 / 组长 / 成员五台已并入各自「待办」页；支书台为「意见反馈」，党委台无此区）。</li>
@@ -716,7 +749,7 @@
           <h3 class="help-card-title">支委会会议页（可见范围 · 参会范围 · 效力口径）</h3>
           <p class="help-card-desc"><strong>可见范围：</strong>支委会会议页对本支部支委开放全部场次；被扩大进某场支委会（支委扩大会）的人也能进本页，但只看得到「扩大到你的」那一场，并在该场按应到名单表态。<strong>参会范围：</strong>支委会与支委扩大会都是法人性质，同一场支委会可按需扩大到谁：默认支委层，勾「扩大会」后逐位选或一键勾全体党小组组长（代组长）；名单复用该场活动的应到名单字段（voteConfig.voterIds，与线上表态门同口径），不新增字段。</p>
           <ul class="doc-list" style="margin-top:8px;">
-            <li><strong>效力</strong>：线上表决与线上记录的讨论结果即终局（2026-09-20 定案），不必线下追认；同源派生的可见范围 / 缺席处理 / 任务合流三条仍待支书确认，确认前本页只如实呈现、不代作判定。</li>
+            <li><strong>效力</strong>：线上表决与线上记录的讨论结果即终局（2026-09-20 定案），不必线下追认；可见范围以本场应到名单为准，缺席者不计入出席、按实际表态统计，会后任务随该场活动 SOP 节点派生。</li>
             <li><strong>相关</strong>：§2.7 党委工作台；活动域「支委会 / 线上异步表决」。</li>
           </ul>
         </div>
@@ -733,7 +766,7 @@
           <h3 class="help-card-title">补课（哪些会议要补 · 记录怎么归档）</h3>
           <p class="help-card-desc"><strong>补课范围：</strong>缺勤 / 请假的支部党员大会与党课须在 7 日内补课（T+7），由纪检委员确认完成；支委会不补课，主题党日不强制，党小组会按该场「要求补课」勾选进入名单；请假且线上参会不补课。<strong>归档：</strong>补课记录随考勤一并归档，随「提交考勤统计至支委会」交付。</p>
           <ul class="doc-list" style="margin-top:8px;">
-            <li><strong>相关</strong>：§2.4 纪检委员工作台「补课管理」行；考勤口径见本页 #card-copy-attendance-record。</li>
+            <li><strong>相关</strong>：§2.4 纪检委员工作台「考勤管理」页签的「补课」分段（补课不是独立页签）；考勤口径见本页 #card-copy-attendance-record。</li>
           </ul>
         </div>
       </section>
@@ -829,6 +862,21 @@
           <p class="help-card-desc" style="margin-top:8px;"><span class="doc-tag doc-tag--ok">自动</span>出勤 / 已补 = 源头审校自动确认（不进纪检队列）；异常（缺勤 / 请假）自动生成补课任务（防重复：同人同活动已有任务即跳过）并进入纪检「待确认考勤」队列；本页下方同步展示本组待补课人员名单。</p>
           <p class="help-card-desc"><span class="doc-tag doc-tag--warn">退回 / 注意</span>同人同活动已有已确认记录 → 重复上传跳过（不可覆盖）；待纪检复核的异常记录改状态须走纪检确认界面，上传侧直改被拦截；纪检台对党小组会考勤只读掌握（不代传、不审改）。</p>
         </div>
+
+        <div class="help-card" id="card-dom31-proposal" data-search="支委提案 提案池 受理 排期 记录决议 归档 回执 组长提案 pending queued on-agenda decided closed rejected 撤回 不得跳级 拟上会">
+          <h4 class="help-card-title">支部提案池（谁提 · 谁受理 · 状态怎么走）</h4>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>支书 / 副支书台「支委会」tab 的「支部提案池」——受理、排期、记录决议都在这里；提案人从本组 / 本条线入口提交（提交后进同一张池子）。</p>
+          <p class="help-card-desc"><strong>谁来用：</strong>提案人＝党小组组长 / 副组长（本组来源事项）与支委层；受理 / 驳回＝支委层；排期到本场支委会与记录决议＝支书 / 副支书；提交通知对应受理人，排期回执发提案人，决议另发受影响人。</p>
+          <p class="help-card-desc" style="margin-top:10px;"><strong>状态怎么走（不得跳级、不得回退）：</strong></p>
+          <ul class="doc-list" style="margin-top:6px;">
+            <li><strong>pending</strong> 已提交待受理 → <strong>queued</strong> 已受理待排期（受理前与受理后都可驳回为 <strong>rejected</strong>）。</li>
+            <li><strong>queued</strong> 排期到某场支委会 → <strong>on-agenda</strong>（进入该场议程，成为会议条目之一）。</li>
+            <li><strong>on-agenda</strong> 会上记录决议 → <strong>decided</strong>，办结后 <strong>closed</strong>；撤回只允许在 pending / queued。</li>
+          </ul>
+          <p class="help-card-desc" style="margin-top:8px;"><span class="doc-tag doc-tag--ok">自动</span>每次流转都写一条状态事件（谁 / 何时 / 从什么状态到什么状态），提案人与相关人按类别收到回执；决议可回写为草案活动或专班的前置结论。</p>
+          <p class="help-card-desc"><span class="doc-tag doc-tag--warn">注意</span>非法迁移（跳级 / 回退）被服务端拒绝；判定单一源＝<code>docs/src/core/domain/committee-proposal.js</code> 的状态机，客户端与服务端同引这一份。</p>
+        </div>
+
 
         <!-- 3.2 活动/项目 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">3.2</span>活动 / 项目（主题党日）</h3>
@@ -1007,15 +1055,15 @@
 
         <div class="help-card" id="card-dom35-pipeline" data-search="成员发展 发展党员 发展数据 管线 积极分子 发展对象 预备党员 正式党员 推进 转正">
           <h4 class="help-card-title">发展管线推进</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>组织台 →「我的职责」段「发展数据」。</p>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>组织台 →「我的职责」段「人才库」（原「发展数据」页签已并入人才库，工作台不再单列）。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>组织委员（发展管线追踪与推进）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.9375rem;line-height:1.75;color:var(--neutral-600);margin:2px 0;">看管线概览：积极分子 → 发展对象 → 预备党员 → 正式党员 四段人数与候选人卡片（每卡：姓名 / 党小组 / 进入当前阶段日期 / 考察 N 条 / 思想汇报已归档 N 篇）。</li>
-            <li style="font-size:0.9375rem;line-height:1.75;color:var(--neutral-600);margin:2px 0;">按阶段筛选；对候选人点「推进至下一阶段」→ 确认。其中<strong>「积极分子 → 发展对象」这一步须先经支委会讨论通过</strong>（讨论挂在既有支委会会议议程上）——讨论通过后才可发起阶段变更。</li>
+            <li style="font-size:0.9375rem;line-height:1.75;color:var(--neutral-600);margin:2px 0;">按阶段 / 党小组 / 角色筛选，点姓名或提示行进<strong>个人总表</strong>办理阶段变更（本页只读画像，不代改）；其中<strong>「积极分子 → 发展对象」这一步须先经支委会讨论通过</strong>（讨论挂在既有支委会会议议程上）——讨论通过后才可发起阶段变更。</li>
           </ol>
-          <p class="help-card-desc" style="margin-top:8px;"><span class="doc-tag doc-tag--ok">自动</span>推进即更新阶段与「进入当前阶段」日期并写入发展档案，卡片与管线计数即时刷新；正式党员段显示「已转正」；考察条数、思想汇报归档数随各域写库自动归集到卡片（不再在此页展开全文，详细查看去组织台「思想汇报」/ 人才库）。大会 / 支委会「待讨论名单」记录通过自动生成的成员变更申请，在组织台「待办」页「成员变更审批」区逐条处理（通过 → 广播全体支委 → 支书确认 → 阶段更新）。</p>
-          <p class="help-card-desc"><span class="doc-tag doc-tag--warn">注意</span>正式确认（阶段变更生效 + 应到名单联动）以「成员名册」行内变更经支书确认为准（见 3.5 成员名册）；本页推进面向发展管线日常追踪，两处同读一份人员档案。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span class="doc-tag doc-tag--ok">自动</span>阶段变更在个人总表提交、经支书「确认生效」后落地：更新「进入当前阶段」日期并写入发展档案，卡片与四段计数即时刷新；正式党员段显示「已转正」；考察条数、思想汇报归档数随各域写库自动归集到卡片（详细查看去组织台「思想汇报」/ 个人档案）。大会 / 支委会「待讨论名单」记录通过自动生成的成员变更申请，在组织台「待办」页「成员变更审批」区逐条处理（通过 → 广播全体支委 → 支书确认 → 阶段更新）。</p>
+          <p class="help-card-desc"><span class="doc-tag doc-tag--warn">注意</span>正式确认（阶段变更生效 ＋ 应到名单联动）一律以支书确认为准（见 3.5 成员名册）；本页只做发展管线的日常追踪与筛选，与名册、个人总表同读一份人员档案。</p>
         </div>
 
         <div class="help-card" id="card-dom35-thought" data-search="成员发展 思想汇报 提交 入库 归档 篇幅 警告审阅 打回 重交 组织委员">
@@ -1172,7 +1220,7 @@
 
         <!-- 3.7 决议上报 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">3.7</span>决议上报</h3>
-        <p class="doc-p">决议上报域的工作分两条流程：<strong>① 会议决议「待落实」跟踪</strong>——会议记录「通过」的决议可登记待落实项 → 自动生成责任人跟进待办（到期当天催办）→ 逾期自动进支书工作台待办督办 → 支书/副支书销项；<strong>② 支部关键事项上报党委</strong>——支书台「上报党委」发起（发展节点 / 活动报备）→ 党委工作台「支部上报」逐项批复（驳回必带意见）→ 结论回传支部侧本页。处理位提示：决议落实写在活动详情页记录决议视图（支书/副支书）；上报在支书台「对接党委」段「上报党委」，党委侧在「党委治理」组的「支部上报」处理（组织级；党委台全量操作见第 5 章 5.1）。</p>
+        <p class="doc-p">决议上报域的工作分两条流程：<strong>① 会议决议「待落实」跟踪</strong>——会议记录「通过」的决议可登记待落实项 → 自动生成责任人跟进待办（到期当天催办）→ 逾期自动进支书工作台待办督办 → 支书/副支书销项；<strong>② 支部关键事项上报党委</strong>——支书台「我的职责」段「上报党委」发起（发展节点 / 活动报备）→ 党委工作台「支部上报」逐项批复（驳回必带意见）→ 结论回传支部侧本页。处理位提示：决议落实写在活动详情页记录决议视图（支书/副支书）；上报在支书台「我的职责」段「上报党委」，党委侧在「党委治理」组「支部上报」处理（组织级；党委台页签概览见 §2.7、操作要点见 §6.1）。</p>
 
         <div class="help-card" id="card-dom37-resolution" data-search="决议 落实 待落实 责任人 时限 跟进待办 到期催办 逾期 支书督办 销项 恢复 决议落实逾期">
           <h4 class="help-card-title">会议决议落实（登记待落实 → 责任人跟进 → 逾期支书督办 → 销项）</h4>
@@ -1190,7 +1238,7 @@
 
         <div class="help-card" id="card-dom37-report-up" data-search="决议上报 上报党委 发展节点 活动报备 支书 发起上报 待党委批复 已批准 已驳回">
           <h4 class="help-card-title">上报党委（支书发起 · 支部侧）</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>支书 / 副支书台「对接党委」段「上报党委」（本页顶部统计：待党委批复 / 已批准 / 已驳回）。</p>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>支书 / 副支书台「我的职责」段「上报党委」（本页顶部统计：待党委批复 / 已批准 / 已驳回）。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>支书 / 副支书（支部上报出口）；党委批复结论回传本页展示（党委侧操作见下条）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
@@ -1213,6 +1261,19 @@
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span class="doc-tag doc-tag--ok">自动</span>结论（批准 / 驳回 · 处理人 · 时间 · 意见）回传支部侧「上报党委」页；已处理历史在本页「已处理」区留存可查。</p>
           <p class="help-card-desc"><span class="doc-tag doc-tag--warn">退回 / 注意</span>驳回未填意见被拦（提示填写，便于支部知悉整改方向）；组织级角色不参与支部匿名反馈闭环（见 D-824），党委工作台没有反馈列表或揭名入口。</p>
+        </div>
+
+        <div class="help-card" id="card-dom37-report-export" data-search="数据上报 导出 CSV JSON 拉取 四域 活动 成员 考勤 学习 上报窗口 from to 支书 组织委员 党委组织员 推送 webhook 平台对接 部署">
+          <h4 class="help-card-title">数据上报出口（四域 · CSV 导出 / JSON 拉取）</h4>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>在哪：</strong>不挂在页面按钮上，走服务端上报出口——按数据域拉 JSON 或导出 CSV，供平台对接或人工导表（部署侧的接口地址与配置见部署指南「数据上报」节）。</p>
+          <p class="help-card-desc"><strong>谁来用：</strong>读权白名单＝支书 / 副支书、组织委员、党委组织员；宣传委员与纪检委员默认不放开。</p>
+          <p class="help-card-desc" style="margin-top:10px;"><strong>怎么判：</strong></p>
+          <ul class="doc-list" style="margin-top:6px;">
+            <li><strong>四个数据域</strong>：活动（activity）、成员（member）、考勤（attendance）、学习（study）——域写成别的值一律报错并列出可选值。</li>
+            <li><strong>上报窗口</strong>：起止日期用 <code>YYYY-MM-DD</code>，且起不得晚于止；不填则按默认窗口取数。</li>
+            <li><strong>导出的表</strong>：CSV 带 UTF-8 BOM，Excel 直接打开中文不乱码；范围始终限定在本支部（党委须先选定一个支部）。</li>
+            <li><strong>手动推送</strong>：仅党委组织员、且必须先选定单一支部；未配置推送地址时返回「未配置」提示并按拉取模式处理。</li>
+          </ul>
         </div>
 
         <!-- 3.8 归档与宣传 -->
@@ -1305,7 +1366,7 @@
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.9375rem;line-height:1.75;color:var(--neutral-600);margin:2px 0;">点「一键汇报」→ 选分类：进度 / 卡点 / 请示 → 填正文（必填）→「发出汇报」→ 入支书「待答复收件箱」。</li>
             <li style="font-size:0.9375rem;line-height:1.75;color:var(--neutral-600);margin:2px 0;">支书在收件箱对每条行内「正式答复」发回（答复类置顶支书待办）。</li>
-            <li style="font-size:0.9375rem;line-height:1.75;color:var(--neutral-600);margin:2px 0;">汇报人在「我的处置 · 我发起的汇报」/「工作概况」看到答复 → 详情内点「确认已收到答复」→ 该汇报办结（记录：发出 / 答复 / 确认，含时间线）。</li>
+            <li style="font-size:0.9375rem;line-height:1.75;color:var(--neutral-600);margin:2px 0;">汇报人在「待办 · 我经办的反馈」区的「我发起的汇报」块（或「工作概况」）看到答复 → 详情内点「确认已收到答复」→ 该汇报办结（记录：发出 / 答复 / 确认，含时间线）。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span class="doc-tag doc-tag--ok">自动</span>发起即通知支书（待答复收件箱 + 高亮）；支书答复发回 → 汇报人「一键汇报」角标 +1；成员视角汇报状态徽章：待答复 / 待汇报 / 进行中 / 卡点上报中。</p>
           <p class="help-card-desc"><span class="doc-tag doc-tag--warn">退回 / 注意</span>汇报正文必填；未答复不自动关闭；卡点类（blocked）汇报在收件与组长卡点区以问题优先置顶。</p>
@@ -1318,7 +1379,7 @@
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.9375rem;line-height:1.75;color:var(--neutral-600);margin:2px 0;">支书 / 组长在卡点行点「了解进展」（请求自动带上该卡点事项）→ 生成请汇报请求。</li>
-            <li style="font-size:0.9375rem;line-height:1.75;color:var(--neutral-600);margin:2px 0;">被请人在「我的处置 · XX请汇报」区看到请求（事项 + 时间）→ 行内填汇报内容 →「汇报」即发回。</li>
+            <li style="font-size:0.9375rem;line-height:1.75;color:var(--neutral-600);margin:2px 0;">被请人在「待办 · 我经办的反馈」区的「XX请汇报」块看到请求（事项 + 时间）→ 行内填汇报内容 →「汇报」即发回。</li>
             <li style="font-size:0.9375rem;line-height:1.75;color:var(--neutral-600);margin:2px 0;">支书 / 组长在收件箱正式答复 → 汇报人确认收到 → 即办结（流程同上条双向汇报）。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span class="doc-tag doc-tag--ok">自动</span>发起即给被请人「待办」（我经办的反馈区）角标 +1（未读）；请求与回应全程记录（发起人 / 事项 / 时间 / 回应 / 答复）。</p>
@@ -1663,7 +1724,7 @@
         <div class="help-card" id="card-chain-report-up" data-search="业务链路 上报党委 发起上报 发展节点 活动报备 党委批复 批准 驳回 意见 结论回传 上报审批">
           <h4 class="help-card-title">支部上报 → 党委批复 / 驳回 → 结论回传支部</h4>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
-            <li style="font-size:0.9375rem;line-height:1.75;color:var(--neutral-600);margin:2px 0;">起点 · 发起：支书台「对接党委」段「上报党委」→「+ 发起上报」选事项类型（发展节点 / 活动报备）+ 标题 + 说明 → 提交，自动同步党委工作台「支部上报」的待批复视图。</li>
+            <li style="font-size:0.9375rem;line-height:1.75;color:var(--neutral-600);margin:2px 0;">起点 · 发起：支书台「我的职责」段「上报党委」→「+ 发起上报」选事项类型（发展节点 / 活动报备）+ 标题 + 说明 → 提交，自动同步党委工作台「支部上报」的待批复视图。</li>
             <li style="font-size:0.9375rem;line-height:1.75;color:var(--neutral-600);margin:2px 0;">党委批复：党委组织员在党委工作台「支部上报」逐项处理——「批准」（可附指导意见）或「驳回」（必填意见），操作见 6.1 表；已处理历史在党委台留存可查。</li>
             <li style="font-size:0.9375rem;line-height:1.75;color:var(--neutral-600);margin:2px 0;">结论回传：支部侧「上报党委」列表自动刷新状态与结论（处理人 / 时间 / 意见）；获批事项按对应链路继续（如发展节点推进，接 5.5）；被驳回按意见整改后可在获批范围内重报。</li>
           </ol>
@@ -1706,6 +1767,32 @@
             </table>
           </div>
           <p class="help-card-desc" style="margin-top:8px;">党委台不设「我经办的反馈」区——组织级角色的处置位即上述治理 tab 本身；下发通知与支部上报构成党委 ↔ 支部双向通道（下发 → 支委收件；上报 → 党委接收后回复支部）。院级内容承载党委自有活动与院级资料，活动可下发支部书记采用。账号与角色定位见 0.2 / 0.3。</p>
+        </div>
+
+        <div class="help-card" id="card-admin-branch-visit" data-search="进入支部 只读查看 支部只读视图 branch-readonly 留痕 branch_visits 退出 一键退出 正在查看 党委组织员 只读门 403 选定支部">
+          <h4 class="help-card-title">党委「进入支部」只读查看（怎么进 · 只读边界 · 留痕）</h4>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>谁用：</strong>党委组织员；必须先选定一个支部（不选定就不进，避免默认落到首个支部）。</p>
+          <p class="help-card-desc"><strong>在哪进：</strong>党委台「支部管理」目录行内「只读查看该支部」；支部配置页也有同一按钮。</p>
+          <p class="help-card-desc" style="margin-top:10px;"><strong>怎么判：</strong></p>
+          <ul class="doc-list" style="margin-top:6px;">
+            <li><strong>只读不可写</strong>：进入后按目录分区浏览支部概况、成员与活动，<strong>不提供任何写口</strong>——写请求由服务端统一拒绝，不靠界面隐藏按钮。</li>
+            <li><strong>一眼看得出在谁的支部</strong>：顶栏常驻「正在查看 X 支部」与「退出」，退出即回到党委台。</li>
+            <li><strong>进入留痕</strong>：每次进入写一条 <code>branch_visits</code>（谁 / 何时 / 哪个支部），退出写退出时间；同一会话只允许一条未退出记录，留痕不删改。</li>
+            <li><strong>不借用支书台</strong>：查看支部一律走只读视图，不切换到支书工作台，避免误以为拿到了支部写权。</li>
+          </ul>
+        </div>
+
+        <div class="help-card" id="card-admin-public-portal" data-search="公共门厅 未登录 公开发布 public 有效期 摘要 publication_audits 留痕 404 过期 撤回 院级内容 党委 公开活动 公开资料">
+          <h4 class="help-card-title">公共门厅（未登录看什么 · 公开怎么发 · 过期怎么算）</h4>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>谁用：</strong>发布＝党委组织员（党委台「院级内容」）；阅读＝未登录访客（首页公共门厅）。</p>
+          <p class="help-card-desc"><strong>在哪：</strong>党委台「院级内容」把活动 / 资料的公开范围设为 public 并填有效期；未登录首页显示重要通知全文、近期活动摘要与公开资料下载。</p>
+          <p class="help-card-desc" style="margin-top:10px;"><strong>怎么判：</strong></p>
+          <ul class="doc-list" style="margin-top:6px;">
+            <li><strong>public 只归党委</strong>：支部内容不能自行对未登录公开；支部采用党委内容时只改执行字段。</li>
+            <li><strong>必须带未来有效期</strong>：公开可见须填摘要与一个尚未到期的时限；缺有效期即视为未公开。</li>
+            <li><strong>过期与缺失一律不公开</strong>：已过期、有效期缺失或非法时按不公开处理，访问统一返回同一「不存在」结果，不给出「存在但无权看」的差别。</li>
+            <li><strong>留痕</strong>：发布、撤回、过期与支部采纳都写 <code>publication_audits</code>，可查谁在何时把哪条内容放到了什么可见范围。</li>
+          </ul>
         </div>
 
         <!-- 6.2 支部配置向导 -->
@@ -1787,33 +1874,29 @@
           系统采用「静态前端 + Node 一体化后端」：界面在浏览器渲染，后端同源提供登录认证与数据持久化。以下分层讲清代码与制度的关系。
         </p>
 
-        <!-- 8.1 分层结构 -->
-        <h3 class="doc-h3"><span class="doc-h3-badge">8.1</span>分层结构</h3>
-        <div class="doc-table-wrap">
-          <table class="doc-table">
-            <thead><tr><th style="width:16%;">层</th><th style="width:42%;">位置</th><th>职责</th></tr></thead>
-            <tbody>
-              <tr><td>前台（页面）</td><td>docs/（根页面 + 工作台，页面清单以 docs/ 实测为准）</td><td>页面骨架，零硬编码逻辑</td></tr>
-              <tr><td>中台（逻辑）</td><td>docs/src/entries/ + components/ + core/ + capabilities/</td><td>角色面板路由、视图切换、DOM 渲染、能力注册</td></tr>
-              <tr><td>后台（服务层）</td><td>docs/src/services/ + data/（含 data/mock/）</td><td>数据 CRUD、权限计算、持久化</td></tr>
-              <tr><td>后端（server/）</td><td>server/（Express + better-sqlite3 单进程）</td><td>同源托管静态页面 + /api/v1 REST（登录认证 / 资源表读写 / 附件上传 / 快照持久化）</td></tr>
-              <tr><td>母本层</td><td>content/02_institution/sop/</td><td>所有代码逻辑的制度来源</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="doc-p" style="margin-top:18px;"><strong>页面与角色划分：</strong>全站页面分为根页面与角色工作台（页面清单以 docs/ 实测为准，与第 0 章 0.1 清单一致）。工作台按角色共台 / 归并：支书与副支书共用支书工作台、组织者与深度参与者归入成员工作台、党委组织员专用党委工作台（组织级，不属于任一支部）——不因角色增页。</p>
-        <p class="doc-p" style="margin-top:14px;"><strong>「制度文本 → 代码」的来源：</strong>代码不是凭空设计——content/02_institution/sop/ 下的支书 / 组织 / 宣传 / 纪检 / 组长工作指南与流程 SOP 是各功能与工作流块的<strong>制度母本</strong>：活动 SOP 节点、专班表决门槛、补课与应到名单等规则都来自这些文本（第 7 章「制度即代码」）；支部文件里的「制度文本」另有线上现行版 / 历史版本，见 3.8 资料查询。</p>
-
-        <!-- 8.2 技术栈与运行方式 -->
-        <h3 class="doc-h3"><span class="doc-h3-badge">8.2</span>技术栈与运行方式</h3>
+        <!-- 8.1 五层与技术栈 -->
+        <h3 class="doc-h3"><span class="doc-h3-badge">8.1</span>五层与技术栈</h3>
         <ul class="doc-list">
-          <li>静态前端 + Node 一体化后端 — 本地完整运行：进入 server/ 目录执行 <code>npm start</code>，浏览器访问即全链路使用（登录 → API → 数据持久化）；docs/ 亦可独立静态托管（只读浏览形态，数据存浏览器本地，重置档位见 6.3）</li>
-          <li>ES Modules — 无构建工具、零打包依赖</li>
-          <li>Tailwind CSS CDN — 原子化样式引擎</li>
-          <li>REST API（/api/v1）— 登录认证、资源表读写、附件上传、快照持久化</li>
-          <li>Custom Events — 组件间解耦通信</li>
-          <li>多页面应用（MPA）— 各页面为独立 HTML</li>
+          <li><strong>前台</strong>（docs/）：根页面与各角色工作台，只写页面骨架与布局。</li>
+          <li><strong>中台</strong>（docs/src/entries · components · core · capabilities）：角色面板路由、视图切换、渲染与能力注册。</li>
+          <li><strong>服务层</strong>（docs/src/services · data）：读写门面、权限计算；界面不直接碰存储。</li>
+          <li><strong>后端</strong>（server/）：同源托管页面 ＋ REST 接口（登录认证 / 资源读写 / 附件 / 快照）；跨人跨设备的业务事实在服务端算。</li>
+          <li><strong>母本</strong>（content/02_institution/sop/）：活动 SOP 节点、表决门槛、补课与应到名单等规则的制度来源。</li>
         </ul>
+        <p class="doc-p" style="margin-top:14px;"><strong>技术栈一行：</strong>静态前端 ＋ Node 一体化后端（ES Modules、无构建工具；Tailwind CDN；REST /api/v1；better-sqlite3 单进程）；本地完整运行进入 server/ 执行 <code>npm start</code>。站内地址默认去掉 <code>.html</code> 后缀，后缀变换只经 <code>pageHref()</code> 一处，旧 <code>.html</code> 写法仍返回 200。页面与角色划分按「根页面 ＋ 角色工作台」（页面清单以 docs/ 实测为准）：副支书与支书共台，组织者 / 深度参与者归入成员工作台，党委组织员专用党委工作台。</p>
+
+        <div class="help-card" id="card-tech-ops" data-search="运维 健康检查 health deep metrics 指标 结构化日志 请求 id 告警 备份 恢复演练 backup 四层测试 daily guards precommit full 结果优先 守卫按需">
+          <h4 class="help-card-title">运行与运维（怎么知道它还好 · 坏了怎么查）</h4>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>谁用：</strong>部署与维护负责人；普通使用者只需在出问题时报一句「现象 ＋ 时间」。</p>
+          <ul class="doc-list" style="margin-top:6px;">
+            <li><strong>健康检查</strong>：浅检查只看进程与依赖是否已加载；深检查看库可读、迁移版本与备份目录可写，失败即报不可用。</li>
+            <li><strong>指标</strong>：请求总数、5xx 数、平均耗时、最近一次备份时间与深检查状态，一屏可读。</li>
+            <li><strong>结构化日志</strong>：每个请求带请求 id，访问日志与错误记录共用同一个 id——报障时给出 id 即可串起整条链路；敏感字段脱敏。</li>
+            <li><strong>告警</strong>：深检查状态翻转时自动发站内通知（并尝试邮件），不必有人盯页面。</li>
+            <li><strong>备份与恢复演练</strong>：用 server 目录下的备份脚本按时间戳整包备库与附件，建议每日定时并另存异地；恢复演练在同一脚本的还原步骤上跑一遍副本再动正式库——库处于 WAL 模式时不要直接拷库文件。</li>
+            <li><strong>四层测试口径</strong>：daily 是结果门禁（每次改完必跑）、guards 是静态守卫（改样式 / 文档时按需跑）、precommit 用于提交前与发布前、full 用于发布前全量。结果优先、守卫按需，缺一层不算验过。</li>
+          </ul>
+        </div>
       </details>
 
       <!-- ========== 免责声明 ========== -->
