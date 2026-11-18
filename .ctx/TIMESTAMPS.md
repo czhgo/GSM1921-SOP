@@ -2,7 +2,7 @@
 title: "文件时间戳注册表"
 type: audit_report
 role: "[工程师]+[AI]"
-last_updated: "2026-11-18"
+last_updated: "2026-11-19"
 status: active
 dynamic_role:
   maintenance: "[工程师]+[AI]"
@@ -40,7 +40,7 @@ dynamic_role:
 | README.md | 2026-11-14 | — | [用户]+[AI] | 全站门面（定位 / 快速开始〔2026-10-07 批次 437 新增：三命令跑起来＋演示账号＋局域网免域名直连＋真实数据空库起步〕 / 页面与页签清单 / 支部分工覆盖面 / 测试与发版清单）；会议表决规则改为按场景说明，概况入口说明统一待处理队列；页签总数校准为 67。**边界**：逐枚页面与逐枚页签的权威源是 `README-server.md` §3.1–§3.2 与 `docs/help.html` §0 / §2，本件只给概览与入口。守卫清单列在此处是 `doc-consistency::S10` 的硬要求。沿革已迁出（git 可溯）。 |
 | README-members.md | 2026-10-16 | — | [用户]+[AI] | 支部成员版说明；匿名反馈为登录后的支部内闭环，处置权不含揭名权（`D-824`）。 |
 | README-server.md | 2026-11-15 | — | [用户]+[AI] | 面向**外部后端对接团队**的对接说明书（背景 / 角色 / 板块 / 字段〔**指针**〕/ 部署 / 接口 / 已知限制）。**边界**：**字段级清单的唯一权威源＝母本 `content/04_web_design/data/DATA_MODEL.md`**——§4 只留「**指针 ＋ 后端增量**」（服务端专有表 ＋ 来源 C 字段 ＋ 行为口径），**不再逐表复刻**。正文 **≥370 处 `文件:行号` 引用**由 `doc-line-ref` 守卫常驻核对（行号随代码位移须**同批改签**）。本批同步工作组、考勤、逐支部上报与服务端授权审计说明，并改签引用。沿革见 `.ctx/logs/`。 |
-| CLAUDE.md | 2026-11-18 | — | [工程师]+[AI] | 宪法 + 路由：甲部（H10–H100）＋ 乙部（在办）＋ 丙部（待裁）。乙部只留在办；历史进 logs；细则进 content。**批次 551**：日志不落 hash、新增 H20.5；**批次 553**：H20.3 改为「一批一条 commit」、第二条须带「续 / 更正」。 |
+| CLAUDE.md | 2026-11-19 | — | [工程师]+[AI] | 宪法 + 路由：甲部（H10–H100）＋ 乙部（在办）＋ 丙部（待裁）。乙部只留在办；历史进 logs；细则进 content。**批次 551**：日志不落 hash、新增 H20.5；**批次 553**：H20.3 改为「一批一条 commit」、第二条须带「续 / 更正」。 |
 | CHECKLIST.md | — | — | — | 🗑️ 已删除（迁移至 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md） |
 | LICENSE | 2026-05-18 | — | [用户] | 开源许可 |
 | .gitignore | 2026-09-10 | — | [工具] | Git 忽略 |
@@ -52,10 +52,10 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| .ctx/TIMESTAMPS.md | 2026-11-18 | — | [工程师]+[AI] | 文件时间戳注册表；备注列只写**现状 / 边界 / 指针**（`R-89`），逐批沿革见 `.ctx/logs/**`。 |
+| .ctx/TIMESTAMPS.md | 2026-11-19 | — | [工程师]+[AI] | 文件时间戳注册表；备注列只写**现状 / 边界 / 指针**（`R-89`），逐批沿革见 `.ctx/logs/**`。 |
 | .ctx/SNAPSHOT.md | 2026-11-08 | — | [AI] | 系统现状基线（reference）：只答「系统现在长什么样」；批次 509–528 小结已迁 `logs/EXECUTION_LOG_INDEX.md` 的批次索引表。 |
-| .ctx/ACTIVE_RULINGS.md | 2026-11-18 | — | [工程师]+[AI] | 现行有效裁定**索引**（reference）：只答「到哪找某条现行口径」；跨域摘要 + 18 领域索引，规则正文在 `content/01–05`。 |
-| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-18 | — | [工程师]+[AI] | 工程评估与改造行动线：六维评分（当前 81/80/81/76/78/74，`D-880`）、七个月复盘、阻断风险、当前行动与专项台账；§四 另设「上线残项」单一台账；不设综合均分。 |
+| .ctx/ACTIVE_RULINGS.md | 2026-11-19 | — | [工程师]+[AI] | 现行有效裁定**索引**（reference）：只答「到哪找某条现行口径」；跨域摘要 + 18 领域索引，规则正文在 `content/01–05`。 |
+| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-19 | — | [工程师]+[AI] | 工程评估与改造行动线：六维评分（当前 80/78/79/73/76/71，`D-883`）、七个月复盘、阻断风险、当前行动与专项台账；§四 另设「上线残项」单一台账；不设综合均分。 |
 | .ctx/REVIEW_QUEUE.md | 2026-11-18 | — | [工程师]+[AI] | 支书评议队列（reference）：只答「要评议什么 ＋ 评议怎么做」；过程 / 已闭环不留。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND1_WORKBENCH_STRUCTURE.md | 2026-10-19 | — | [工程师]+[AI] | Round 1 工作台结构审计报告（53 条 triage + 三路审查 + 共识/分歧/裁定 + 证据门）；修复 spec 落盘后可归档或删除。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND2_MINIMUM_THREE_COSTS.md | 2026-10-19 | — | [工程师]+[AI] | Round 2 最小三成本审查报告（better-layout / better-accessibility / better-writing 三路独立审查 + 共识/分歧/归属）。本批修项见 `.trae/specs/audit-round2-minimum-three-costs`。 |
@@ -64,9 +64,9 @@ dynamic_role:
 | .ctx/logs/archive/2026-10/IA_LINK_TRUTH.md | 2026-10-19 | — | [工程师]+[AI] | IA 链接真值审计（角色 + 对象 + 步骤）；材料闭环逐角色落点表 + 真机读数（组长点考勤被弹回 leader.html）。 |
 | .ctx/logs/archive/2026-10/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/logs/archive/2026-10/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
-| .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-11-18 | — | [工程师]+[AI] | 日志索引 + 批次索引（509–565）。 |
-| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-18 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，含批次 542–565）。 |
-| .ctx/logs/DECISION_LOG.md | 2026-11-15 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3828 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
+| .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-11-19 | — | [工程师]+[AI] | 日志索引 + 批次索引（509–568）。 |
+| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-19 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，含批次 542–568）。 |
+| .ctx/logs/DECISION_LOG.md | 2026-11-19 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3828 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-03-EXECUTION_LOG.md | 2026-03-02 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-04-EXECUTION_LOG.md | 2026-04-01 | 2026-07-31 | [工程师]+[AI] | 已归档 |
@@ -82,7 +82,7 @@ dynamic_role:
 | .ctx/logs/archive/2026-09-EXECUTION_LOG.md | 2026-10-06 | 2026-10-06 | [工程师]+[AI] | 9 月执行日志（**已归档**）。**边界**：过程流水归 `git`；本文件**另承载「台账迁出附节」**——`R-` 表（`R-23`…`R-93` 全量纪律正文，**乙部表闭环即迁入此处**）＋ `TIMESTAMPS` 备注列历轮迁出的逐批沿革。**为什么**：`R-84`/`R-86`/`R-89` 的「各有其位」需要一个**稳定、不随月滚动**的落点。 |
 | .ctx/logs/2026-10-EXECUTION_LOG.md | 2026-10-27 | — | [工程师]+[AI] | 10 月执行日志（当月活跃；批次 336 换月建）。**边界**：只留「为什么 / 拿不准 / 边界 / 读数」（`H26.1`）；过程流水归 `git`，本文件不复述。 |
 | .ctx/logs/2026-10-DECISION_LOG.md | 2026-10-22 | — | [工程师]+[AI] | 10 月决策日志（**当月活跃 · 决议权威源**；2026-10-02 批次 336 换月建，自 9 月文件逐字迁入 `D-729`~`D-739`）。**边界**：每条裁定全文（追加、不改写）；过程归执行日志（`R-84`）。 |
-| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-17 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；当前 `D-827`…`D-880`。 |
+| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-19 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；当前 `D-827`…`D-883`。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_R10_DATA_LIFECYCLE.md | 2026-10-23 | — | [工程师]+[AI] | 第十轮数据生命周期审查（75 条；R10 四批的依据）。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_UI_R11.md | 2026-10-23 | — | [工程师]+[AI] | 第十一轮前端脏乱繁审查（P0/P1/P2 与 SD-1…SD-11）。 |
 | .ctx/logs/archive/2026-10/2026-10-R10_P3_CLOSURE.md | 2026-10-23 | — | [工程师]+[AI] | R10 P3 收口对账（R6 21 / R7 18 / 帮助注释 9）。 |
@@ -278,7 +278,7 @@ dynamic_role:
 | server/test/docs-governance-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 文档治理守卫。 |
 | server/test/contract-field-usage-guard.test.mjs | 2026-11-17 | — | [工程师]+[AI] | 契约字段 / 枚举 / 幽灵字段回归守卫（guards 层）。 |
 | .ctx/README.md | 2026-11-03 | — | [工程师]+[AI] | 三层分职（active / reference / provenance）、准入判据、读取顺序、预算、冲突顺序与可复用资产索引。 |
-| .ctx/ACTIVE_CONTEXT.md | 2026-11-18 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-880`。 |
+| .ctx/ACTIVE_CONTEXT.md | 2026-11-19 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-883`。 |
 | server/test/link-color-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 链接色守卫。 |
 | server/test/activity-tone-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 活动类别守卫。 |
 | server/test/field-shell-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 字段外壳守卫。 |

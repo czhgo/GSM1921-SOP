@@ -2,7 +2,7 @@
 title: "CLAUDE — 项目宪法与路由"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-18"
+last_updated: "2026-11-19"
 status: active
 ---
 
@@ -142,6 +142,8 @@ status: active
 > 历史锚点（守卫 `docs-governance::G12` 依赖）：批次 521 将设计系统分编为父索引 ＋ 五编；该句只作历史事实保留，不构成现行规则。
 
 **H26.4 Active Context 预算与冲突。** `.ctx/ACTIVE_CONTEXT.md` ≤300 行 / ≤30KB；`latest_decision` 必须 ≥ 当月决策日志末条；冲突顺序＝当月 `DECISION_LOG` ＞ `ACTIVE_CONTEXT` ＞ `content` 权威 ＞ `SNAPSHOT` ＞ `ENGINEERING_ASSESSMENT` ＞ `logs` / `evidence`。
+
+**H26.5 历史值隔离。** 同一指标在 active 文件（本文件、`.ctx/ACTIVE_CONTEXT.md`）与 reference 台账（`.ctx/ACTIVE_RULINGS.md`、`.ctx/ENGINEERING_ASSESSMENT.md`）只写**一个当前值 ＋ `D-xxx` 指针**；不得写「历史 / 旧值 / A → B」形式的旧读数，历史值只进 `.ctx/logs/` 与 git。守卫 `ctx-hygiene-guard::⑪`（历史标记与评分元组同行即红；六维元组每文件至多一处；`ENGINEERING_ASSESSMENT §一` 不得再开「重评 / 旧评分」小节）。
 
 ## H27. AI 逃逸捕捉
 
@@ -306,8 +308,11 @@ status: active
 
 | 目标批次 | 条目 | 一句话 | 判据 / 出处 | 状态 |
 |---|---|---|---|---|
-| 评分达标后 | B-500-7b-2 | 完整 Plan B 收尾：客户端业务派生摘除（默认路径已切服务端）＋ 读面前置解耦 ＋ 缓存 / 性能。**前置已达**：7 类对账 8/8、双支部夹具、daily 259 断言（结果门禁）全绿；**不以上线为前提**，测试门全绿即可启动 | 六维均 ≥80 后启动（`D-880` 2026-11-17：81 / 80 / 81 / 76 / 78 / 74，三维 <80）；`server/routes/todo-groups.js`、`docs/src/components/record/todo-tab-shell.js`、`server/test/todo-derive-parity.test.mjs` | 待启动 |
-| 评分达标后 | B-522-1 | 低密度卡与空态页：低密度等尺寸卡按内容收窄 / 合并；「今天」「归档」首屏空白补最近动态与下一步动作（旧 spec harden-interface-quality Task 8） | 六维均 ≥80 后启动（`D-880` 2026-11-17：81 / 80 / 81 / 76 / 78 / 74，三维 <80）；台账见 `.trae/specs/harden-interface-quality/tasks.md` Task 8 指针 | 待启动 |
+| 评分达标后 | B-500-7b-2 | 完整 Plan B 收尾：客户端业务派生摘除（默认路径已切服务端）＋ 读面前置解耦 ＋ 缓存 / 性能。**前置已达**：7 类对账 8/8、双支部夹具、daily 断言（结果门禁）全绿；**不以上线为前提**，测试门全绿即可启动 | 六维均 ≥80 后启动（当前值见 `.ctx/ACTIVE_CONTEXT.md §1`）；`server/routes/todo-groups.js`、`docs/src/components/record/todo-tab-shell.js`、`server/test/todo-derive-parity.test.mjs` | 待启动 |
+| 评分达标后 | B-522-1 | 低密度卡与空态页：低密度等尺寸卡按内容收窄 / 合并；「今天」「归档」首屏空白补最近动态与下一步动作（旧 spec harden-interface-quality Task 8） | 六维均 ≥80 后启动（当前值见 `.ctx/ACTIVE_CONTEXT.md §1`）；台账见 `.trae/specs/harden-interface-quality/tasks.md` Task 8 指针 | 待启动 |
+| 批次 569 | B-568-1 | 多支部框架隔离：按 `D-882` 审计矩阵逐条修（表 `branchId` 覆盖 / 通用与专用读口过滤 / 会话支部绑定 / 缓存与快照命名空间）；有既有规则即修，无规则进丙部 | 审计结论 `D-882`；`ARCHITECTURE_EVOLUTION §十` | 待启动 |
+| 批次 569 | B-568-2 | 换轨前置：生产路径拒绝共享口令回退；`preflight-cutover` 缺个人密码即告警 / 阻断；runbook 写清「个人密码 100%」 | `D-882`；`deploy/CUTOVER_RUNBOOK.md` | 待启动 |
+| 批次 569 | B-568-3 | 性能两项：`/portal` SQL 投影排除附件正文 ＋ 下载同源限频；考察行级权限 id 集下推 SQL | `D-882`（P-4 取乙）；`server/routes/leader-progress.js` 先例 | 待启动 |
 
 # 丙部：待决策事项
 
@@ -315,7 +320,5 @@ status: active
 
 | ID | 问题 | 选项 | 推荐 | 影响 |
 |---|---|---|---|---|
-| P-1 | 多支部同实例上线形态未定（`L-10` 读过滤是否升 P1） | 甲 一实例一支部（维持 `D-849`）／乙 多支部同实例（本批接线读过滤）／丙 只做通用读口＋设计稿 | 甲 | 决定 `ALLOW_MULTI_BRANCH` 何时打开；乙会牵动全部专用读口与测试夹具 |
-| P-2 | 共享口令回退何时退出（`L-11`） | 甲 保留到上线后首个稳定版／乙 本批移除（生产必须个人密码）／丙 保留但强制生产注入强口令并加告警 | 甲＋丙 | 决定初始化账号流程与生产部署口令注入方式 |
-| P-3 | 44 条审计例外中两条 C2（仅清探针行 / 无 CRUD 配方）如何归类 | 甲 同归「驱动跳过」（现行）／乙 拆为「无配方」第三类并单列 | 甲 | 只影响复核台账精度，不影响 P0/P1 判据 |
-| P-4 | 两项性能风险现在做还是等触发：`/portal` 附件全表解析、考察行级权限 N+1 | 甲 等触发（门户出现大附件读数 / 考察破千）／乙 本批改 SQL 投影与下推 | 甲 | 乙会改读口 SQL 与缓存键，需同步快照与测试 |
+
+> 当前无待裁事项。`P-1…P-4` 四项裁定已归档为 `D-882`（多支部转架构审计 / 生产只走个人密码 / 例外归甲 / 性能取乙），后续行动落乙部 `B-568-1…3`。

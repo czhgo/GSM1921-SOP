@@ -3,7 +3,7 @@ title: "现行有效裁定索引"
 type: rulings_index
 role: "[工程师]+[AI]"
 layer: reference
-last_updated: "2026-11-18"
+last_updated: "2026-11-19"
 status: active
 ---
 
@@ -21,11 +21,14 @@ status: active
 - **多支部同实例只到设计稿**：Phase 1–2（读口统一过滤 / 快照按支部）完成前不得打开 `ALLOW_MULTI_BRANCH`；上线坚持一实例一支部。（`D-849`）
 - **规则 / 判例 / 方法先进 content，再进 .ctx 索引**；`.ctx` 不再承担规则正文；`.ctx/ACTIVE_CONTEXT.md` 是唯一热投影（≤300 行 / ≤30KB）。（本批 `D-852`）
 - **阻断风险 1–5**：多支部读隔离、通用写口残留、表决名单重算、共享口令、SQLite 宽表；逐条证据见 `.ctx/ENGINEERING_ASSESSMENT.md §一`。（`D-851` 复核）
-- **六维评分口径**：只按证据加减分，不因「做了工具」自动加分；当前 81 / 80 / 81 / 76 / 78 / 74；加分只认实跑读数（配置、自动走查、文件数、本地等价不计满分）。（`D-862` · `D-880`；历史 `D-865` 81 / 78 / 78 / 83 / 78 / 76）
+- **六维评分口径与当前值**：只按证据加减分，不因「做了工具」自动加分；当前 80 / 78 / 79 / 73 / 76 / 71（六维均 <80 ⇒ 不合并）；同一指标只留一个当前值 ＋ `D-xxx`。（`D-862` · `D-883`）
 - **审计五维口径**：F2 控件行数 ≤2、F4 H2 恰 1、F7 `hasPager()`、C1 矩阵判定、M1–M3 信息经济；唯一表见 `content/05_ai_coding/AUDIT_CANON.md`。（`D-842` / `D-843`）
-- **骨架 / 数据契约**：47 表单一源 `server/data/domain-contract.mjs`；`required` 只放两形态都成立的字段；换轨前必须跑 `preflight-cutover --strict`。（`D-844` / `D-845`）
+- **骨架 / 数据契约**：50 表单一源 `server/data/domain-contract.mjs`；`required` 只放两形态都成立的字段；换轨前必须跑 `preflight-cutover --strict`。（`D-844` / `D-845`）
 - **「拟上会」清单共六类**（专班报送 / 意见反馈 / 制度草案 / 发展对象推荐 / 支委会表决事项 / 品牌提案）；写议程时从一张清单勾选，不按来源各做导入。（`D-411` · `D-555` · `D-559`）→ `content/02_institution/sop/常见工作场景快速指南.md`
 - **上线残项单一台账**：`.ctx/ENGINEERING_ASSESSMENT.md §四` 的 `L-01…L-22`；不再另设平行清单。（`D-850`）
+- **多支部＝框架隔离问题**：读 / 写 / 报表面已收口，四条 P0 框架缺口在（集合版本键 / 身份模型 / 公共门厅 / 附件归属）；`L-10` 维持 post-launch 不升 P1，缺口由 `B-568-1` 承载。（`D-882`）
+- **换轨只走个人密码**：生产与换轨路径必须个人密码；共享口令仅演示，不得作为生产回退；`preflight-cutover` 缺个人密码即告警 / 阻断。（`D-882`）
+- **历史值隔离**：active 与 reference 台账同一指标只留一个当前值 ＋ `D-xxx`，历史值只进 `.ctx/logs/` 与 git；守卫 `ctx-hygiene-guard::⑪`。（`D-883` · `H26.5`）
 
 ## §B 分域索引（规则正文在 content）
 

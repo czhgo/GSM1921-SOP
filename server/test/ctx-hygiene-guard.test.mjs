@@ -244,3 +244,36 @@ test('⑩ CLAUDE.md H20.3 收尾：next_prompt 六要素与 commit 模板齐备�
     assert.ok(section.includes(needle), `H20.3 缺 ${desc}（关键词「${needle}」）`);
   }
 });
+
+test('⑪ active / reference 台账只留当前值：历史读数不得回潮（H26.5）', () => {
+  // 病灶：同一指标在 active / reference 里同时写「当前值」与「历史值 / A → B」，
+  //   新会话无法判断哪个是现行读数，容易把旧分当现值引用（支书 2026-11-19 批注）。
+  // 判据：① 一行里同时出现「历史 / 旧值 / 旧评分 / 沿革 / 回调」与六维评分元组即红；
+  //   ② 六维评分元组每份文件至多一处（只留当前值）；
+  //   ③ `ENGINEERING_ASSESSMENT §一` 不得再开「重评 / 旧评分」小节（逐批评分论证只进日志）。
+  const FILES = ['CLAUDE.md', '.ctx/ACTIVE_CONTEXT.md', '.ctx/ACTIVE_RULINGS.md', '.ctx/ENGINEERING_ASSESSMENT.md'];
+  const HISTORICAL = /历史|旧值|旧评分|沿革|回调/;
+  const SIX_TUPLE_LINE = /\d{2}\s*\/\s*\d{2}\s*\/\s*\d{2}\s*\/\s*\d{2}\s*\/\s*\d{2}\s*\/\s*\d{2}/;
+  const SIX_TUPLE = /\d{2}\s*\/\s*\d{2}\s*\/\s*\d{2}\s*\/\s*\d{2}\s*\/\s*\d{2}\s*\/\s*\d{2}/g;
+  const offenders = [];
+  const tupleCounts = {};
+  for (const rel of FILES) {
+    const src = readFileSync(join(ROOT, rel), 'utf8');
+    tupleCounts[rel] = (src.match(SIX_TUPLE) || []).length;
+    src.split(/\r?\n/).forEach((line, i) => {
+      if (HISTORICAL.test(line) && SIX_TUPLE_LINE.test(line)) offenders.push(`${rel}:${i + 1}`);
+    });
+  }
+  assert.deepEqual(offenders, [],
+    `以下行同时含历史标记与读数（历史值只进 .ctx/logs，本行只留当前值 ＋ D-xxx）：\n  ${offenders.join('\n  ')}`);
+  const duplicated = Object.entries(tupleCounts).filter(([, n]) => n > 1).map(([rel, n]) => `${rel}（${n} 处）`);
+  assert.deepEqual(duplicated, [], `六维元组每份文件只允许一处当前值，实测：${duplicated.join(' / ')}`);
+
+  const ea = readFileSync(join(ROOT, '.ctx/ENGINEERING_ASSESSMENT.md'), 'utf8');
+  const start = ea.indexOf('## 一、');
+  const end = ea.indexOf('## 二、');
+  assert.ok(start >= 0 && end > start, 'ENGINEERING_ASSESSMENT 缺 `## 一、` / `## 二、` 分界');
+  const staleSections = [...ea.slice(start, end).matchAll(/^### .*(?:重评|旧评分).*$/gm)].map((m) => m[0]);
+  assert.deepEqual(staleSections, [],
+    `ENGINEERING_ASSESSMENT §一 仍留历史小节（逐批评分论证应只进 .ctx/logs）：${staleSections.join(' / ')}`);
+});

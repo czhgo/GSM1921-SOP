@@ -2,7 +2,7 @@
 title: "2026年11月决策日志"
 type: decision_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-17
+last_updated: 2026-11-19
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-DECISION_LOG.md, content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md, content/04_web_design/design-system/DS_03_COMPONENTS.md, content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md]
 ---
@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-881`，共 55 条**；下一条自 **`D-882`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-883`，共 57 条**；下一条自 **`D-884`**。
 
 ## 本月目录（2026-11）
 
@@ -75,6 +75,8 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 壳层全局 44px＋13px；八条数字口径；三处越权；列表 2000＋水合不截断；六维 79/79/80/75/77/74 仍不合并 | `D-879` | 2026-11-16 | 已落（批次 561） |
 | 字段错配五项＋契约以实现为准＋XSS/上报校验＋写路径 updatedAt＋全资源 If-Match＋help 全量对齐；六维 81/80/81/76/78/74 仍不合并 | `D-880` | 2026-11-17 | 已落（批次 562–564） |
 | 审计 P0 清零（驱动补 If-Match＋守卫）＋ B-552 四项（含 v18 报名唯一索引）＋ 全栈专项修复；六维 82/80/82/76/79/74 仍不合并 | `D-881` | 2026-11-18 | 已落（批次 565–567） |
+| 丙部四项裁定落盘：多支部转架构隔离审计（四条 P0 框架缺口）、生产与换轨只走个人密码、例外归甲、性能取乙 | `D-882` | 2026-11-19 | 已落（批次 568） |
+| 六维保守重校 80/78/79/73/76/71（六维均 <80）＋ 历史值隔离 `H26.5` ＋ active / reference 台账清理 | `D-883` | 2026-11-19 | 已落（批次 568） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -488,5 +490,26 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 
 > **评议 → 裁定 → 落点**：支书令「再查全仓待办与 P0/P1/P2 是否真问题；有判例按判例，无判例就问；无急件则做前端 / 后端 / 全栈 / 计算专项」。盘点结论：唯一阻断是**本仓自己引入的审计 P0 23**（564 上 If-Match 后驱动仍发裸 PATCH）。两项无既有判例事项经支书裁定：① 报名查重**加 v18 唯一索引＋保留最早一条、其余标 `duplicateOf` 不删**；② 44 条审计例外**发布前同批复核＋三类归档**。其余按既有规则处理：`D-849` 一实例一支部（L-10 不升 P1）、`L-11` 共享口令维持回退、`H30` 一改具改（台账三套值统一）、`H25` full 红项分诊（环境 / 陈旧 / 真回归）。**落点**：`server/scripts/audit/{checks-crud,checks-data}.mjs`、`server/test/audit-write-version-guard.test.mjs`、`server/db.js`（v18）、`server/routes/resources/{index,semantic-routes,signup-write-guard,write-validation}.js`、`server/routes/{committee,committee-proposals,system-notices,leader-progress,uploads}.js`、`docs/src/{data/api-adapter,services/activity/attendance,components/record/report-inbox,components/governance/activity-progress,components/ui/list-filter,core/base/utils}.js`、`content/04_web_design/data/{DATA_CONTRACT,DATA_MODEL}.md`、`.ctx/evidence/2026-11-18/`。**结论**：六维 **82 / 80 / 82 / 76 / 79 / 74**，仍有三维 <80 ⇒ **继续不合并**。读数：daily **261 / 127.0s**；guards **112 文件 / 385 项 / 158.0s**；`audit-tabs` **P0 0 / P1 0 / P2 2 / exception 44**；`test:full` 1779s（红项已逐文件分诊修复，未整体重跑）。**未选**：只修 P0 不做专项（支书要求推进）；把性能两项（门户附件全表解析、考察 N+1）一并重写（无判据、改动面大，登记触发条件）；把例外复核做成每日守卫（支书记已裁定不新增）。**边界**：`test:full` 与 CI run id、Linux 真机仍未补。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-881`**（共 **55** 条）。
+## D-882 2026-11-19 — 丙部四项裁定落盘（多支部转架构审计 / 生产只走个人密码 / 例外归类 / 性能取乙）
+
+> **评议 → 裁定 → 落点**：支书令「丙部直接在对话框问、给足上下文、落盘后清理 CLAUDE」。四项逐条询问并获裁定：
+> - **P-1（多支部）**：支书原话「这还是接入 mock 数据阶段下的考虑对吗？……我们的系统【架构】（框架而不是内容）是否隔离好了多支部？」⇒ 议题从「产品档位」转为**架构级多支部隔离审计**（只读取证，26 条 `file:line`）。结论：**读 / 写 / 报表面已收口**（`server/routes/resources/branch-scope.js:346-441`、`:305-311`、`:443-458`；`server/routes/report.js:80`；`server/routes/todo-groups.js:164`；`server/routes/leader-progress.js:85-106`），通用读口未登记域 fail-closed（`branch-scope.js:298`），双支部夹具在位（`server/test/multi-branch-five-proof.test.mjs:24-60`、30 个测试文件用 `br-b2`）。**但仍存在四条 P0 框架缺口**：① 集合版本键无支部维度——`collection_versions(name PRIMARY KEY)` 全局键（`server/db.js:69`、`server/routes/resources/snapshot-versions.js:84-104`），两支部互相触发 409 并泄露写入节奏；② 身份模型单支部——`sessions` 无支部列（`db.js:47-51`）、`users.branchId` 单值（`domain-contract.mjs:88`）、每请求现取（`auth.js:45-47`），无兼跨支部路径；③ 公共门厅只认党委 owner（`server/routes/public-portal.js:125,136`、`server/routes/public-info.js:35`）；④ 附件表无支部列（`db.js:52-59`），下载按上传人当前支部反推（`uploads.js:113-127`），归属随人员变动漂移。**P1**：12 域 `br-b1` 白名单回落且显式 `branchId:null` 也走回落（`branch-scope.js:23-36`、`:288-299`）；路由内 `|| DEFAULT_BRANCH_ID` 实测 **85 处 / 12 文件**（既有「87 处」口径须复核）；约 44 表无 DB 级下推；`publication_audits` 无支部列。**裁定**：`L-10` 维持 post-launch、不升 P1（一实例一支部下无风险），缺口由 `B-568-1` 承载；`ALLOW_MULTI_BRANCH` 开关条件不变（`D-849`）。
+> - **P-2（共享口令）**：支书原话「真实采用一定是用个人密码！我期待的是统一数据倒闸换轨，应该为倒闸换轨做好准备」⇒ **生产与换轨路径只用个人密码**，共享口令仅演示；补齐换轨前置检查与 runbook（缺个人密码即告警 / 阻断），`B-568-2`。
+> - **P-3（审计例外归类）**：取 **甲**——两条 C2 同归「驱动跳过」，台账不再拆第三类。
+> - **P-4（两项性能）**：取 **乙**——本批做 `/portal` SQL 投影（排除附件正文，接下载同源限频）与考察行级权限 id 集下推（照 `server/routes/leader-progress.js:85-106` 先例），`B-568-3`。
+> **未选**：P-1 按产品档位只在甲 / 乙 / 丙间选（支书已把问题提到框架层，档位选择回答不了）；P-2 保留共享口令到上线后稳定版（与「换轨只用个人密码」冲突）；P-3 拆「无配方」第三类（只影响台账精度）；P-4 等触发（支书已定本批做）。**落点**：`CLAUDE.md` 乙部 `B-568-1…3`、丙部清空；`.ctx/ACTIVE_CONTEXT.md`；`.ctx/ENGINEERING_ASSESSMENT.md §四 L-10 / L-11`。
+
+## D-883 2026-11-19 — 六维保守重校（80 / 78 / 79 / 73 / 76 / 71）＋ 历史值隔离规则 `H26.5`
+
+> **评议 → 裁定 → 落点**：支书批注「对于评分一定不要过于乐观！保持谨慎！」。按同一证据、按未闭项折算重校，**只下调不上调**：业务 **82 → 80**、安全 **80 → 78**、体验 **82 → 79**、测试 **76 → 73**、架构 **79 → 76**、部署 **74 → 71**；六维均 <80 ⇒ 继续不合并（门槛不降）。
+> - **业务 80**：审计 P0 已清零、读口全 2xx 属实；但 D2 计数对账仅 3 页签、C2 写口往返 0 pass、三层（党小组 / 活动·专班 / 工作组）判据表仍未落 content、宽表无业务索引。原 82 把「工具与一次性修复」计成了「业务正确性成熟」。
+> - **安全 78**：矩阵 162 条 / 0 known-risk、个人密码 21/21 属实；但多支部四条 P0 框架缺口在（`D-882`）、共享口令回退仍在、CI 两个 job 无 run id、矩阵未断言门函数 ≡ 角色集合。原 80 未扣「框架层未隔离」。
+> - **体验 79**：46 页签 P0/P1 = 0 属实；但 44 条 exception 无固定复核节奏、真人 5 任务签收未做、`B-522-1` 低密度卡与空态未做、a11y 存量未清。原 82 以自动走查替代真人验收。
+> - **测试 73**：daily 261 / guards 385 全绿属实；但 `test:full` 1779s 红项修复后**未整体重跑**、CI 无 run id、Linux 真机未验、无覆盖率、flake 无隔离。原 76 距行业基线仍差四项。
+> - **架构 76**：三条单一源与四个测试 runner 属实；但路由回落实测 85 处、双算派生未摘、多支部请求级上下文未建、express 5 被守卫耦合阻塞、无类型检查。原 79 未扣多支部框架缺口。
+> - **部署 71**：`verify-linux` 6/6、空库 `preflight --strict` exit 0 属实；但 `L-02` 真机未验、`deploy-verify` 无 run id、timer 未实触发、告警外部送达未验、单节点 SQLite、附件与会话手工搬、共享口令不得进生产。原 74 只靠容器等价读数。
+> **同批立规**：`CLAUDE.md` 新增 **`H26.5` 历史值隔离**——active 与 reference 台账同一指标只留一个当前值 ＋ `D-xxx` 指针，历史值只进 `.ctx/logs/` 与 git；守卫 `ctx-hygiene-guard::⑪`（历史标记与评分元组同行即红、六维元组每文件至多一处、`ENGINEERING_ASSESSMENT §一` 不得再开「重评 / 旧评分」小节）。**清理**：`ACTIVE_CONTEXT` 三处旧元组、`ACTIVE_RULINGS` 旧元组与「47 表」、`ENGINEERING_ASSESSMENT §一` 五个「重评」小节与「旧评分」段迁出（正文保留在 `D-877…D-881`），§二 六个小标题同步当前值。
+> **未选**：维持 82 / 80 / 82 / 76 / 79 / 74（与未闭项不符，支书已明确批注）；为凑合并门槛上调（违背「该降就降」）；把六维改成一个总分（`D-862` 已禁平均）。**落点**：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/ACTIVE_CONTEXT.md §1 / §2`、`.ctx/ACTIVE_RULINGS.md §A`、`CLAUDE.md H26.5`、`server/test/ctx-hygiene-guard.test.mjs::⑪`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-883`**（共 **57** 条）。
 
