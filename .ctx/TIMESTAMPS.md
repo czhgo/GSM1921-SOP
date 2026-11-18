@@ -39,7 +39,7 @@ dynamic_role:
 |---------|-------------|--------|------|------|
 | README.md | 2026-11-14 | — | [用户]+[AI] | 全站门面（定位 / 快速开始〔2026-10-07 批次 437 新增：三命令跑起来＋演示账号＋局域网免域名直连＋真实数据空库起步〕 / 页面与页签清单 / 支部分工覆盖面 / 测试与发版清单）；会议表决规则改为按场景说明，概况入口说明统一待处理队列；页签总数校准为 67。**边界**：逐枚页面与逐枚页签的权威源是 `README-server.md` §3.1–§3.2 与 `docs/help.html` §0 / §2，本件只给概览与入口。守卫清单列在此处是 `doc-consistency::S10` 的硬要求。沿革已迁出（git 可溯）。 |
 | README-members.md | 2026-10-16 | — | [用户]+[AI] | 支部成员版说明；匿名反馈为登录后的支部内闭环，处置权不含揭名权（`D-824`）。 |
-| README-server.md | 2026-11-15 | — | [用户]+[AI] | 面向**外部后端对接团队**的对接说明书（背景 / 角色 / 板块 / 字段〔**指针**〕/ 部署 / 接口 / 已知限制）。**边界**：**字段级清单的唯一权威源＝母本 `content/04_web_design/data/DATA_MODEL.md`**——§4 只留「**指针 ＋ 后端增量**」（服务端专有表 ＋ 来源 C 字段 ＋ 行为口径），**不再逐表复刻**。正文 **≥370 处 `文件:行号` 引用**由 `doc-line-ref` 守卫常驻核对（行号随代码位移须**同批改签**）。本批同步工作组、考勤、逐支部上报与服务端授权审计说明，并改签引用。沿革见 `.ctx/logs/`。 |
+| README-server.md | 2026-11-19 | — | [用户]+[AI] | 面向**外部后端对接团队**的对接说明书（背景 / 角色 / 板块 / 字段〔**指针**〕/ 部署 / 接口 / 已知限制）。**边界**：**字段级清单的唯一权威源＝母本 `content/04_web_design/data/DATA_MODEL.md`**——§4 只留「**指针 ＋ 后端增量**」（服务端专有表 ＋ 来源 C 字段 ＋ 行为口径），**不再逐表复刻**。正文 **≥370 处 `文件:行号` 引用**由 `doc-line-ref` 守卫常驻核对（行号随代码位移须**同批改签**）。本批同步工作组、考勤、逐支部上报与服务端授权审计说明，并改签引用。沿革见 `.ctx/logs/`。 |
 | CLAUDE.md | 2026-11-19 | — | [工程师]+[AI] | 宪法 + 路由：甲部（H10–H100）＋ 乙部（在办）＋ 丙部（待裁）。乙部只留在办；历史进 logs；细则进 content。**批次 551**：日志不落 hash、新增 H20.5；**批次 553**：H20.3 改为「一批一条 commit」、第二条须带「续 / 更正」。 |
 | CHECKLIST.md | — | — | — | 🗑️ 已删除（迁移至 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md） |
 | LICENSE | 2026-05-18 | — | [用户] | 开源许可 |
@@ -223,10 +223,10 @@ dynamic_role:
 | server/app.js | 2026-11-15 | — | [工程师]+[AI] | createApp 工厂 + JSON 错误中间件。**批次 552**：500 对外改固定通用文案，细节只进 `console.error`；批次 234 的资源路由切分（`createResourcesRouter`）保持不变。 |
 | server/db.js | 2026-10-23 | — | [工程师]+[AI] | 当前 schema v12：v12 删 `issue_reveals`、contributions 规范化、四组唯一索引、`todos.branch_id` 生成列；v3 工作组与应到名单迁移及冻结 v1 基线规则见代码与执行日志。 |
 | server/seed.js | 2026-10-23 | — | [工程师]+[AI] | **（2026-09-28 批次 234 去冗余：删去本文件内两个「逐字复刻」常量 `SEED_WEEKLY_REPORTS` / `SEED_PROP_TASKS`，改为从**内容单一源** `docs/src/data/mock/prop.js` 同源 import〔UI 侧 `prop/weekly-tab.js` / `prop/tasks-tab.js` 亦改读同一份〕；**播种表与条数一字未变**）** 复用前端 mock 导入种子（**2026-09-25 批次 192：DB 空表补演示种子**——**播种 15 张**〔`attendances` 154 · `inspections` 42 · `activity_reviews` 11 · `taskforce_reviews` 2 · `thought_reports` 5 · `weekly_reports` 4 · `prop_tasks` 8 · `external_dispatches` 2 · `handoffs` 2 · `member_confirmations` 1 · `attendance_appeals` 1 · `inspection_appeals` 1 · `issue_unread` 2 · `auth_audit` 1 · `appointment_records` 1〕；**不播 11 / 跳过 3 见 `D-653`**；空表 **30 → 14** · 全库 **322 → 559** · 幂等 `idempotent: true` · 引用自洽 `problems: []`；**未新增 `MIGRATIONS`**）；**2026-09-25 批次 198（`D-658`）：`seedDatabase()` 末尾补 `todos` 播种段**（从 `docs/src/services/governance/todo.js::SEED_TODOS` **同源**播种 **2 条**；幂等＝`DELETE` ＋ 整表 `INSERT`、开关语义一字未改；**由「另一路」落地，本表行改注**（日期仍 `2026-09-25`）） |
-| server/routes/auth.js | 2026-11-19 | — | [工程师]+[AI] | 登录/token/me。**批次 569（`D-882`）**：生产形态拒绝共享口令回退（无个人密码即 401）。 |
+| server/routes/auth.js | 2026-11-19 | — | [工程师]+[AI] | 登录/token/me。 |
 | server/routes/member.js | 2026-10-22 | — | [工程师]+[AI] | 成员与个人档案语义接口；档案只读端点按本人/本支部支委策略投影。 |
 | server/routes/committee.js | 2026-11-14 | — | [工程师]+[AI] | 议题投票写口；匿名参与记录与 tally 原子提交、重复提交事务内幂等。**2026-11-14 批次 550（D-872）**：新增 `resolveFrozenVoterIds`——建会冻结表决名单（按 users ＋ 组织归属取范围、剔滞留 / 已转出），置尾不动既有行号。 |
-| server/routes/resources/index.js | 2026-11-19 | — | [工程师]+[AI] | 资源路由装配；活动删除保留报名与表决留痕（`D-876`）、其余子记录事务清理，并返回集合版本。**2026-11-14 批次 550（D-872）**：`POST /activities` 写库前冻结表决名单；**批次 552**：`D-876` 留痕口径；**批次 569（`D-882`）**：考察行级读每请求上下文（活动 id 集一次 IN ＋ 专班组织者集合一次算）。
+| server/routes/resources/index.js | 2026-11-19 | — | [工程师]+[AI] | 资源路由装配；活动删除保留报名与表决留痕（`D-876`）、其余子记录事务清理，并返回集合版本。**2026-11-14 批次 550（D-872）**：`POST /activities` 写库前冻结表决名单；**批次 552**：`D-876` 留痕口径；批次 569 考察读改请求级缓存。
 | server/routes/resources/branch-scope.js | 2026-10-16 | — | [工程师]+[AI] | 通用资源、关联记录、分支查询与快照写入的服务端支部范围判定；局部快照保留其他支部数据。 |
 | server/routes/resources/workgroup-routes.js | 2026-10-23 | — | [工程师]+[AI] | 工作组语义 API；成员与权限全量替换在单事务内校验、写入并更新集合版本；正式名单与工作组成员分开，撤员撤权留痕。 |
 | server/routes/resources/signup-write-guard.js | 2026-10-17 | — | [工程师]+[AI] | 报名创建/状态转换/快照统一校验；主题党日线下选择、普通参与默认线下，正式会议使用名单不开放报名。 |
