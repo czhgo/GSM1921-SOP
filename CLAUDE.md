@@ -310,9 +310,7 @@ status: active
 |---|---|---|---|---|
 | 评分达标后 | B-500-7b-2 | 完整 Plan B 收尾：客户端业务派生摘除（默认路径已切服务端）＋ 读面前置解耦 ＋ 缓存 / 性能。**前置已达**：7 类对账 8/8、双支部夹具、daily 断言（结果门禁）全绿；**不以上线为前提**，测试门全绿即可启动 | 六维均 ≥80 后启动（当前值见 `.ctx/ACTIVE_CONTEXT.md §1`）；`server/routes/todo-groups.js`、`docs/src/components/record/todo-tab-shell.js`、`server/test/todo-derive-parity.test.mjs` | 待启动 |
 | 评分达标后 | B-522-1 | 低密度卡与空态页：低密度等尺寸卡按内容收窄 / 合并；「今天」「归档」首屏空白补最近动态与下一步动作（旧 spec harden-interface-quality Task 8） | 六维均 ≥80 后启动（当前值见 `.ctx/ACTIVE_CONTEXT.md §1`）；台账见 `.trae/specs/harden-interface-quality/tasks.md` Task 8 指针 | 待启动 |
-| 批次 569 | B-568-1 | 多支部框架隔离：按 `D-882` 审计矩阵逐条修（表 `branchId` 覆盖 / 通用与专用读口过滤 / 会话支部绑定 / 缓存与快照命名空间）；有既有规则即修，无规则进丙部 | 审计结论 `D-882`；`ARCHITECTURE_EVOLUTION §十` | 待启动 |
-| 批次 569 | B-568-2 | 换轨前置：生产路径拒绝共享口令回退；`preflight-cutover` 缺个人密码即告警 / 阻断；runbook 写清「个人密码 100%」 | `D-882`；`deploy/CUTOVER_RUNBOOK.md` | 待启动 |
-| 批次 569 | B-568-3 | 性能两项：`/portal` SQL 投影排除附件正文 ＋ 下载同源限频；考察行级权限 id 集下推 SQL | `D-882`（P-4 取乙）；`server/routes/leader-progress.js` 先例 | 待启动 |
+| 批次 570 | B-568-1 | 多支部框架隔离：按 `D-882` 审计矩阵逐条修（表 `branchId` 覆盖 / 通用与专用读口过滤 / 会话支部绑定 / 缓存与快照命名空间）；有既有规则即修，无规则进丙部 | 审计结论 `D-882`；`ARCHITECTURE_EVOLUTION §十` | 待启动 |
 
 # 丙部：待决策事项
 
