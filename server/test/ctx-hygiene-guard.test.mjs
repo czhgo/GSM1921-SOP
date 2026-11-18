@@ -277,3 +277,30 @@ test('⑪ active / reference 台账只留当前值：历史读数不得回潮（
   assert.deepEqual(staleSections, [],
     `ENGINEERING_ASSESSMENT §一 仍留历史小节（逐批评分论证应只进 .ctx/logs）：${staleSections.join(' / ')}`);
 });
+
+test('⑫ 六维当前值在 active / reference 三处必须一致（防同一评分多值）', () => {
+  // 病灶：`D-881` 前后曾出现「§一 表格 82/80/82…、§二 标题 81/80/81…、ACTIVE_CONTEXT D-880 旧值」并存，
+  //   新会话任取一处当现值 ⇒ 评分口径漂移（支书 2026-11-19 批注「不要过于乐观」）。
+  // 判据：ACTIVE_CONTEXT §1、ACTIVE_RULINGS §A、ENGINEERING_ASSESSMENT §5.2 三处解析出的六维数字必须逐个相等。
+  const six = (src, re, label) => {
+    const m = src.match(re);
+    assert.ok(m, `解析不到 ${label} 的六维当前值（格式被改坏或漏写）`);
+    return m.slice(1, 7).map(Number);
+  };
+  const active = readFileSync(join(CTX, 'ACTIVE_CONTEXT.md'), 'utf8');
+  const rulings = readFileSync(join(CTX, 'ACTIVE_RULINGS.md'), 'utf8');
+  const ea = readFileSync(join(CTX, 'ENGINEERING_ASSESSMENT.md'), 'utf8');
+  const fromActive = six(active,
+    /业务 \*\*(\d+)\*\* \/ 安全 \*\*(\d+)\*\* \/ 体验 \*\*(\d+)\*\* \/ 测试 \*\*(\d+)\*\* \/ 架构 \*\*(\d+)\*\* \/ 部署 \*\*(\d+)\*\*/,
+    'ACTIVE_CONTEXT §1');
+  const fromRulings = six(rulings,
+    /当前 (\d+) \/ (\d+) \/ (\d+) \/ (\d+) \/ (\d+) \/ (\d+)/,
+    'ACTIVE_RULINGS §A');
+  const fromAssessment = six(ea,
+    /业务与数据正确性 \*\*(\d+)\*\* · 安全与权限 \*\*(\d+)\*\* · 最小三成本体验（含前端与交互） \*\*(\d+)\*\* · 测试与发布质量 \*\*(\d+)\*\* · 架构与可维护性 \*\*(\d+)\*\* · 运行\/部署\/跨组织复用 \*\*(\d+)\*\*/,
+    'ENGINEERING_ASSESSMENT §5.2');
+  assert.deepEqual(fromRulings, fromActive,
+    `ACTIVE_RULINGS 六维当前值 ${fromRulings.join('/')} ≠ ACTIVE_CONTEXT ${fromActive.join('/')}`);
+  assert.deepEqual(fromAssessment, fromActive,
+    `ENGINEERING_ASSESSMENT §5.2 六维当前值 ${fromAssessment.join('/')} ≠ ACTIVE_CONTEXT ${fromActive.join('/')}`);
+});
