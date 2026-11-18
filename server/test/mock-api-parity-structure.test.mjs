@@ -534,6 +534,9 @@ const ADAPTER_SURFACE = {
     // 2026-11-03 批次 533（B-500-7 最小 Plan B）：服务端只读派生视图；mock 形态继续走客户端派生，
     // 无对应资源组。客户端在 mock 数据源下不调用该组（兼容期判据见 todo-tab-shell.js）。
     todoGroups: '待办实时派生只读视图（GET /todo-groups）；mock 形态由客户端派生，无资源组',
+    // 2026-11-17 批次 562（Task 10）：跨组「应到 / 实到」服务端只读汇总（GET /group-attendance-summary）；
+    // mock 形态由 other-groups-view 用同一份已拉取数据本地累加（该页在 mock 数据源下不调用本组）。
+    groupAttendanceSummary: '跨组考勤汇总只读视图（GET /group-attendance-summary）；mock 形态由客户端本地累加，无资源组',
     committeeContent: '党委院级内容（活动/资料/下发）仅服务端模式；mock 形态不提供写入，前端在 mock 下不调用该组',
     agendaCandidates: '支委会议程候选（GET /committee/agenda-candidates）仅服务端汇总口；mock 形态由 agenda-form 本地归集',
     committeeProposals: '支委提案（D-869）仅服务端语义端点；mock 形态由 CommitteeProposalStore 落 mockDB',

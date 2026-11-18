@@ -1,4 +1,4 @@
-﻿# Decision Ledger — 决策历史索引
+﻿﻿# Decision Ledger — 决策历史索引
 
 > 决策日志已按月拆分为独立文件，本文件仅作为索引入口。
 

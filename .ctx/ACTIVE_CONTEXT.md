@@ -3,8 +3,8 @@ title: "Active Context — 当前判断入口"
 type: active_context
 role: "[AI]"
 layer: active
-last_updated: 2026-11-17
-last_verified: "2026-11-17"
+last_updated: 2026-11-18
+last_verified: "2026-11-18"
 latest_decision: "D-880"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
@@ -60,7 +60,7 @@ status: active
 - **CLAUDE 三层与通知受众**：温层恢复为「触发表 + H60–H80」，层边界 / 乙部去历史有守卫；系统通知无受众＝不可读、广播必须显式 `all`、未登录一律不可读；行动行按 SD-60 四类排布。（`D-857`）→ `CLAUDE.md`、`notice.js`、`DS_06 SD-60`、`action-row-wrap-guard`。
 - **党委内容域与公共门厅**：未登录只看党委公开内容（公开通知全文 / 活动摘要 / 公开资料），登录后看党委与支部并集；`public` 只归党委、必须带未来有效期并留痕 `publication_audits`；支部副本只改执行字段、手动同步。（`D-858`）→ `SYSTEM_ROLE_PERMISSION §9a.1`、`PUBLIC_ENTRANCE.md`、`server/routes/public-portal.js`。
 - **测试瘦身（结果优先、守卫按需）**：四层 daily / guards / precommit / weekly；daily 只留结果门禁（权限、会话、数据契约与迁移、核心业务结果、构建可运行），静态守卫迁 guards 按需跑；不删任何测试或断言，precommit / full 仍覆盖全部文件。（`D-859`）→ `server/test-tier-registry.mjs`、`server/scripts/run-{daily,guards,precommit,changed}.mjs`、`CLAUDE.md H25`。
-- **六维评分口径（`D-862`）与当前值（`D-865`）**：只按证据加减分，不因「做了工具」自动加分；当前 81 / 78 / 78 / 83 / 78 / 76；加分只认实跑读数，配置、自动走查、文件数、本地等价不计满分（部署 6/6 只作下限）；`D-865` 保守回调的理由与需补证据逐维写在评估文件。（`D-862` · `D-865`）→ `.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`。
+- **六维评分口径（`D-862`）与当前值（`D-880`）**：只按证据加减分，不因「做了工具」自动加分；当前 81 / 80 / 81 / 76 / 78 / 74；历史（`D-865`）81 / 78 / 78 / 83 / 78 / 76。加分只认实跑读数，配置、自动走查、文件数、本地等价不计满分（部署 6/6 只作下限）。→ `.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`。
 - **批次 540 前端交互契约**：待办跳转未命中本台页签一律 fail-closed（可见提示「本台无该模块」＋ 同义落点），禁 toast-only；议程「来源 → 类型 → 待议池」两端同源 import；同列同语义 ≥3 行只走 `renderDataTable`；活动详情四段收口、分工视图 4 → 2；图标色值只许 `currentColor` / `none` / `var(--token)`，hex 扫描含 data-URI 的 `%23`。（`D-863`）→ `content/04_web_design/contracts/{INTERACTION_AND_NAVIGATION,AGENDA_DERIVATION,TABLE_COMPONENT}_CONTRACT.md`、`content/04_web_design/design-system/CASES.md` CASE-DESIGN-036…041、`DS_03 §4.11.2`。
 - **批次 541 P2 分拣与三条读面口径**：P2 按 A / B / C / D / E 五类分拣，B 类未写触发不得开工，C 类关闭不再复核；应到口径单一源＝`roster-eligibility.js`（滞留保留身份、应到剔除；已转出前置剔除），待办行读权限单一源＝`todo-read-policy.mjs`，公共门厅过期 / 缺失有效期一律 404 fail-closed，定向通知须同时比对支部。（`D-864`）→ `.ctx/evidence/2026-11-10/p2-cleanup-ledger.md`、`.ctx/REVIEW_QUEUE.md B-541-1…11`。
 - **产品对象模型与议事流**：三层为「党小组 → 活动 / 专班 → 工作组」，工作组不设指导支委；组长「组内全权 ＋ 支部提案」；上会「统一事项 ＋ 回执」，建会与决议只归支书 / 副支书；URL 取「去后缀 ＋ 兼容」，旧 `.html` 保持 200。（`D-866`）→ `content/04_web_design/evolution/OBJECT_MODEL_AND_COMMITTEE_FLOW.md`。
@@ -78,7 +78,7 @@ status: active
 ### 阻断级风险（5 条，逐条复核）
 
 1. **多支部同实例会跨支部读出数据**：读面未统一过滤；production 已硬拦多支部；设计见 `ARCHITECTURE_EVOLUTION §十`。**保留**。
-2. **通用写口权限**：矩阵 160 行 / 0 known-risk，6 条缺口已修；`issue-unread` 派发位已加 403 校验，清支书角标仅支书/副支书（`D-871`）。**部分闭环**；残项：共享口令、多支部读过滤未接线。
+2. **通用写口权限**：矩阵 **162 条** / 0 known-risk，6 条缺口已修；`issue-unread` 派发位已加 403 校验，清支书角标仅支书/副支书（`D-871`）。**部分闭环**；残项：共享口令、多支部读过滤未接线。
 3. **表决选民名单来自活动数据本身**：服务端已改为建会时按 `users` ＋ 组织归属计算并冻结（`D-872`），客户端提交值不作数。**闭环**。
 4. **共享口令**：会话已 3 小时过期，个人密码已落地（21/21）。**部分闭环**；共享口令作回退保留，生产用 systemd 注入强口令并定期更换。
 5. **SQLite JSON 宽表是规模边界**：无业务字段索引；万行级前评估 `MIGRATIONS v2`。**保留**。
@@ -90,17 +90,16 @@ status: active
 - `L-10` 多支部读过滤未接线到生产读面（`multi-branch-read-filter` 9 组夹具已证明可行；设计已出，开关仍关闭）。
 - `L-11` 共享口令（个人密码已落地，共享口令作回退保留）。
 - `L-12` 审计脚本不进 daily（发布前硬门）；precommit / full 时长仍长。
-- `L-13` 页签 IA 未闭项 **A 35 / B 11 / C 0**；6 个超 4 块页签登记例外；按台账 §四 逐条排批（台账 `.ctx/evidence/2026-11-08/tab-review-ledger.md`）。`L-22` 三处块数「漂移」已复核为探针误报（`D-874`），`TAB_BLOCK_BASELINE` 不改、已关闭。
+- `L-13` 页签 IA 未闭项 **A 35 / B 11 / C 0**；6 个超 4 块页签登记例外；按台账 §四 逐条排批（台账 `.ctx/evidence/2026-11-08/tab-review-ledger.md`）。
 - **公开内容与党委内容读面（`D-858`）**：未登录只读 `publishScope='public'` 且未过期的党委内容，过期即 404 fail-closed；党委内容只经服务端读口（`/committee/*` 与公开门厅），客户端不得本地派生可见性、不得带出支部名与成员字段。
 - `L-14` / `L-15` 块停用与画布 / 按角色配置（先出方案）。
-- `L-16` 已关闭（服务端建会冻结表决名单，`D-872`）。
 - `L-17` 宽表与索引。
 - `L-18` 组件出口散件。
 
 ### 下一批最该做的 3 件事
 
 1. **`D-866`–`D-874` 已落地**：URL（`D-867`）、对象模型（`D-868`）、提案上会（`D-869`）、三台 P0 收口（`D-870`）、547 边界闭环（`D-871`）、L-16 建会冻结（`D-872`）、L-22 探针复核关闭（`D-873` · `D-874`）均已完成。
-2. **完整 Plan B 二期（`B-500-7b-2`）**：**六维均 ≥80 后启动**（当前 76 / 68 / 72 / 70 / 72 / 65，均未达标）；删客户端业务派生的默认路径 + 读面前置解耦 + 缓存 / 性能；前置（7 类对账 8/8、双支部夹具、daily 246 断言）已满足，不以上线为前提。
+2. **完整 Plan B 二期（`B-500-7b-2`）**：**六维均 ≥80 后启动**（`D-880` 现为 81 / 80 / 81 / 76 / 78 / 74，三维 <80；历史 `D-877` 批次 553 为 76 / 68 / 72 / 70 / 72 / 65）；删客户端业务派生的默认路径 + 读面前置解耦 + 缓存 / 性能；前置（7 类对账 8/8、双支部夹具、daily 259 断言）已满足，不以上线为前提。
 3. **首次部署前验证**：在 Linux 测试机跑 `install/update` + `preflight-cutover --strict`，把 `L-02` 关掉；多支部 Phase 1 顺延至上述两项之后。
 4. **分支与合并（`H20.5`）**：`release/2026-11-launch` 自批次 523 累积、30 commit 领先 main，**尚未推远端**（SSH host key 未授信、`gh` 未安装）；合并门槛＝六维均 ≥80 ＋ `test:full` 绿 ＋ P0/P1=0 ＋ 支书确认，达标前继续在分支累积。
 5. **跨层专项（批次 552）**：计算 / 全栈 / 后端 / 前端四域扫 20 条，修 14 处（含 mock 同口径）；P2 余 6 条已登记 `REVIEW_QUEUE`（带触发条件）。证据 `.ctx/evidence/2026-11-15/cross-layer-audit.md`。

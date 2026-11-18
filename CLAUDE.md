@@ -2,7 +2,7 @@
 title: "CLAUDE — 项目宪法与路由"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-15"
+last_updated: "2026-11-18"
 status: active
 ---
 
@@ -306,8 +306,8 @@ status: active
 
 | 目标批次 | 条目 | 一句话 | 判据 / 出处 | 状态 |
 |---|---|---|---|---|
-| 评分达标后 | B-500-7b-2 | 完整 Plan B 收尾：客户端业务派生摘除（默认路径已切服务端）＋ 读面前置解耦 ＋ 缓存 / 性能。**前置已达**：7 类对账 8/8、双支部夹具、daily 246 断言（结果门禁）全绿；**不以上线为前提**，测试门全绿即可启动 | 六维均 ≥80 后启动（2026-11-15 批次 553 重评：76 / 68 / 72 / 70 / 72 / 65，均未达标）；`server/routes/todo-groups.js`、`docs/src/components/record/todo-tab-shell.js`、`server/test/todo-derive-parity.test.mjs` | 待启动 |
-| 评分达标后 | B-522-1 | 低密度卡与空态页：低密度等尺寸卡按内容收窄 / 合并；「今天」「归档」首屏空白补最近动态与下一步动作（旧 spec harden-interface-quality Task 8） | 六维均 ≥80 后启动（2026-11-15 批次 553 重评：76 / 68 / 72 / 70 / 72 / 65，均未达标）；台账见 `.trae/specs/harden-interface-quality/tasks.md` Task 8 指针 | 待启动 |
+| 评分达标后 | B-500-7b-2 | 完整 Plan B 收尾：客户端业务派生摘除（默认路径已切服务端）＋ 读面前置解耦 ＋ 缓存 / 性能。**前置已达**：7 类对账 8/8、双支部夹具、daily 259 断言（结果门禁）全绿；**不以上线为前提**，测试门全绿即可启动 | 六维均 ≥80 后启动（`D-880` 2026-11-17：81 / 80 / 81 / 76 / 78 / 74，三维 <80）；`server/routes/todo-groups.js`、`docs/src/components/record/todo-tab-shell.js`、`server/test/todo-derive-parity.test.mjs` | 待启动 |
+| 评分达标后 | B-522-1 | 低密度卡与空态页：低密度等尺寸卡按内容收窄 / 合并；「今天」「归档」首屏空白补最近动态与下一步动作（旧 spec harden-interface-quality Task 8） | 六维均 ≥80 后启动（`D-880` 2026-11-17：81 / 80 / 81 / 76 / 78 / 74，三维 <80）；台账见 `.trae/specs/harden-interface-quality/tasks.md` Task 8 指针 | 待启动 |
 
 # 丙部：待决策事项
 

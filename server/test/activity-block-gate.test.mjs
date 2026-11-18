@@ -28,7 +28,12 @@ const PARTY_LABEL = SCENARIO_LABELS['theme-party'];   // 主题党日（别名�
 const api = async (method, path, { body, tok } = {}) => {
   const r = await fetch(BASE + path, {
     method,
-    headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...((tok || token) ? { Authorization: `Bearer ${tok || token}` } : {}) },
+    // 批次 564：整行写口要求 If-Match；本文件只验块入口门，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+    headers: {
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+      ...((tok || token) ? { Authorization: `Bearer ${tok || token}` } : {}),
+      ...(method === 'PATCH' ? { 'If-Match': '*' } : {}),
+    },
     body: body ? JSON.stringify(body) : undefined,
   });
   const text = await r.text();

@@ -2,7 +2,7 @@
 title: "契约类文档目录（04/contracts/）"
 type: index
 role: "[工程师]+[AI]"
-last_updated: 2026-11-17
+last_updated: 2026-11-18
 status: active
 ---
 

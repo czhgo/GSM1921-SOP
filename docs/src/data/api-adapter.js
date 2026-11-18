@@ -929,7 +929,10 @@ export const ApiAdapter = {
   branches: {
     list(params = {}) {
       const query = new URLSearchParams(params).toString();
-      return _get(`/api/v1/branches${query ? '?' + query : ''}`);
+      // 批次 564 补：`?branchId=` 定向读支部整行（党委向导 `ensureBranchConfigLoaded`）同样是「本机读到的
+      //   该行 updatedAt」⇒ 必须登记，否则其后 PATCH /branches/:id/config 无戳可带，服务端一律 428。
+      return _get(`/api/v1/branches${query ? '?' + query : ''}`)
+        .then((rows) => { recordRowVersions('branches', rows); return rows; });
     },
 
     create(data) {

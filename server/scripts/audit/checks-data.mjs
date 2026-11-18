@@ -73,12 +73,14 @@ export async function ensureSession(ctx, role = ctx.role) {
   return session;
 }
 
-/** 统一 HTTP 探针：返回状态、文本、JSON、字节数、耗时 */
-export async function httpRequest(base, path, { method = 'GET', token, body, timeout = 8000 } = {}) {
+/** 统一 HTTP 探针：返回状态、文本、JSON、字节数、耗时
+ *  `headers` 供单行写口附带 `If-Match`（批次 564 起 PATCH 缺版本头 428）；缺省不带额外头。 */
+export async function httpRequest(base, path, { method = 'GET', token, body, timeout = 8000, headers: extraHeaders = null } = {}) {
   const url = `${base.replace(/\/$/, '')}${path}`;
   const headers = {};
   if (token) headers.Authorization = `Bearer ${token}`;
   if (body !== undefined) headers['Content-Type'] = 'application/json';
+  if (extraHeaders) Object.assign(headers, extraHeaders);
   const started = performance.now();
   let res;
   try {

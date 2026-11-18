@@ -2,13 +2,35 @@
 title: "2026年11月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-17
+last_updated: 2026-11-18
 status: active
 ---
 
 # 2026年11月执行日志
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
+
+## 批次 565（2026-11-18）· 审计 P0 回归修复 ＋ 台账同一事实 ＋ full 红项分诊
+
+### 为什么
+- 批次 564 给通用 PATCH 加 `If-Match` 后，审计驱动仍发裸 PATCH ⇒ `audit-tabs --all` 实测 **P0 23**（全为预期 428），踩了发布硬门。
+- 六维 / 矩阵 / 读数在四处台账各留旧值；`B-552-6` 指针失效；3 份 content 漏刷卡；两份旧 spec 已实施但未勾选。
+
+### 拿不准 / 取舍
+- 审计驱动改走统一助手 `patchRow`（读该行 `updatedAt`，取不到用 `*`）：**审计语义不动**，只补版本头；另加 `audit-write-version-guard` 防再犯。
+- `test:full` 首次跑与 4.5 分钟页签审计并发，红项先按 `H25` 逐文件单跑再判定：**node 5 个文件为真回归（428）**、e2e 2 个为真回归（同一根因）、click-cost / mock-integrity 为环境类（服务未起 / 并发），link/S6 为陈旧台账。
+- **真回归根因**：`api-adapter.branches.list` 定向读整行后未登记行版本 ⇒ 配置向导重进页面后任何保存都 428（生产同样中招）。修在单点 `recordRowVersions('branches', rows)`。
+- `D-865` 回调段（L-16 / L-22 旧述）留历史；P2 按 `D-874` 改 0；乙部无多余行。
+
+### 边界
+- `test:full` **未整体重跑**（1779s，红项已逐文件转绿）；发布前需再跑一次整体 full。
+- 页签审计 P2 由 0 → 2（activities p95 62/66ms vs 50ms），发生在 full 并发期间，判为读数噪音、未处理。
+
+### 读数
+- 审计：P0 **0** / P1 **0** / P2 2 / exception 44 · 272.4s（修复前 P0 23）。
+- `test:full` 1779.0s（H25 单片 ≤1200s 不满足，夜间四片口径维持）；三通道各 1 红已分诊：node 5 文件 + e2e 2 文件真回归已修、2 文件环境类、link/S6 陈旧台账已改准。
+- `test:daily` **259 断言**全绿；`test:guards` **112 文件 / 384 项 / 131.5s** 全绿。
+- 台账：六维统一 `D-880`、矩阵 162 条；两份旧 spec 勾选完成。
 
 ## 批次 564（2026-11-17）· 全资源乐观锁 ＋ 六维重评（spec `repair-field-mismatch-and-refresh-help`）
 

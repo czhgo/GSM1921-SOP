@@ -89,8 +89,10 @@ export const DAILY_TEST_BUDGET = 260;
  *  2026-11-15 `close-six-dim-gaps` T15：新增 `branch-resolve-single-source-guard.test.mjs`（支部解析单源 ＋
  *    存量回落基线），实然 109 文件；111 仍在余量内（差 2 ≤4），**不上调**（放宽预算＝失去约束力）。
  *  2026-11-16 polish-shell T12：新增 `resource-write-validation-guard.test.mjs`（通用写口字段校验 ＋ 列表硬上限），
- *    实然 110 文件；111 仍在余量内（差 1），**不上调**。 */
-export const GUARDS_FILE_BUDGET = 111;
+ *    实然 110 文件；111 仍在余量内（差 1），**不上调**。
+ *  2026-11-18 批次 565：新增 `audit-write-version-guard.test.mjs`（审计驱动 PATCH 必带 If-Match），
+ *    实然 112 文件（本批 +1）；按 112 登记（差 0；再增守卫须先降存量或显式上调）。 */
+export const GUARDS_FILE_BUDGET = 112;
 
 /** guards 静态 `test(` / `it(` 调用点预算
  *  2026-11-08 波次 A：实测 788 断言，按 791 登记（断言留 3 条余量）。
@@ -101,7 +103,9 @@ export const GUARDS_FILE_BUDGET = 111;
  *  2026-11-16 `polish-shell-and-display-truth` T10：`date-canon-guard` 增 D1c（`slice(0,10)` 取 ISO 日 ＋ 45 条存量基线），
  *    实然 829；860 仍在余量内（差 31 ≤40），**不上调**（放宽预算＝失去约束力）。
  *  2026-11-16 `polish-shell-and-display-truth` T12：新增 `resource-write-validation-guard` 5 条
- *    （覆盖声明 / 单一源 / 接线 / 行为 / 非空转），实然 834；860 仍在余量内（差 26），**不上调**。 */
+ *    （覆盖声明 / 单一源 / 接线 / 行为 / 非空转），实然 834；860 仍在余量内（差 26），**不上调**。
+ *  2026-11-18 批次 565：新增 `audit-write-version-guard` 3 条（PATCH 必带 If-Match / 助手接线 / 反例自证），
+ *    实然 837；860 仍在余量内（差 23），**不上调**。 */
 export const GUARDS_TEST_BUDGET = 860;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
@@ -266,6 +270,8 @@ export const TEST_TIERS = [
     'write-truth-guard.test.mjs',
     // 2026-11-17 批次 562（`repair-field-mismatch-and-refresh-help` Task 4）：前端字段读取 ≡ 数据契约
     'contract-field-usage-guard.test.mjs',
+    // 2026-11-18 批次 565：审计驱动的单行 PATCH 必须带 If-Match（裸调用判红；助手 patchRow 自带版本头）
+    'audit-write-version-guard.test.mjs',
   ]),
   ...group('guards', '静态可访问性守卫（可访问名 / 表单标签 / section / tab / role=button / 图标钮）', [
     // 2026-11-15 `close-six-dim-gaps` T10：六条可静态判定的 a11y 底线，存量按 a11y-baseline 只减不增

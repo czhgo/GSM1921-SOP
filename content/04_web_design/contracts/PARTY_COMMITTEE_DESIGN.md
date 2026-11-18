@@ -3,7 +3,7 @@ title: "院系党委后台——支部多实例两级治理设计定案"
 type: contract
 role: "[工程师]+[AI]"
 created: 2026-09-02
-last_updated: 2026-11-17
+last_updated: 2026-11-18
 status: approved-by-secretary
 version: "1.1"
 owner: "支书（契约裁决）；[工程师]+[AI]（维护）"

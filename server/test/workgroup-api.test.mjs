@@ -32,7 +32,12 @@ after(() => {
 async function request(path, personId, method = 'GET', body) {
   const response = await fetch(`${base}/api/v1/${path}`, {
     method,
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokens[personId]}` },
+    // 批次 564：整行写口要求 If-Match；本文件只验成员/授权/专班语义，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${tokens[personId]}`,
+      ...(method === 'PATCH' ? { 'If-Match': '*' } : {}),
+    },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
   const contentType = response.headers.get('content-type') || '';

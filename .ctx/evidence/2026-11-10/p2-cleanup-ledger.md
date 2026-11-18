@@ -50,7 +50,7 @@ related_files: [.ctx/REVIEW_QUEUE.md, .ctx/ENGINEERING_ASSESSMENT.md, CLAUDE.md]
 
 | # | 项 | 事实（证据） | 触发条件 |
 |---|---|---|---|
-| B-1 | 三处 IA 块数漂移 | DOM 实测 `secretary.calendar` 10 / `secretary.report-up` 14 / `visitor.activities` 9 块，登记 3 / 4 / 3（`.ctx/evidence/2026-11-10/tab-audit/summary.md §P2`） | 支书裁定「按 DOM 实测重基线」后当批改 `TAB_BLOCK_BASELINE` 三处；裁定前不得盲改 |
+| B-1 | 三处 IA 块数漂移 | DOM 实测 `secretary.calendar` 10 / `secretary.report-up` 14 / `visitor.activities` 9 块，登记 3 / 4 / 3（`.ctx/evidence/2026-11-10/tab-audit/summary.md §P2`） | **已关闭（`D-874`）**：10 / 14 / 9 为 `dom-probe` 把行内叶子计成块的误报，探针改口径后实测 2 / 4 / 2，`TAB_BLOCK_BASELINE` 不改 |
 | B-2 | `L-13` 页签 IA 未闭项 | A 35 / B 11 / C 0；6 个超 4 块页签已登记例外（`.ctx/evidence/2026-11-08/tab-review-ledger.md`） | 支书挑 2 条低风险 B 项（`org.talent` 录入考察上提、`disc.attendance` 撤两级切换）裁定后启动 |
 | B-3 | `L-10` ＋ `B-536-1` 多支部 | 读过滤夹具 9 组已过，未接线到生产读面；开关仍关闭 | Phase 1–2 实施并验收通过后才可打开 `ALLOW_MULTI_BRANCH` |
 | B-4 | `L-15` ＋ `H-24` 画布 / 块决定 tab | 仅登记、未出方案；与 `allowedPages` 身份门及页签计数守卫相交 | 方案定稿并经支书确认后编码 |

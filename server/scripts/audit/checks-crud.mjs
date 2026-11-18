@@ -6,6 +6,8 @@
 //     known-risk ⇒ exception + riskRef；enforced/self-service/public ⇒ pass）。
 //     默认不逐口重探；显式 `--probe-writes` 才对 visitor 发一次最小请求（2xx 且矩阵非 known-risk/自助 ⇒ P0）。
 //  C2 非 destructive 写口在 :memory: 库做 create → GET 回读 → PATCH → GET 校验 → DELETE
+//     单行 PATCH 一律经 `patchRow`（带该行 `updatedAt` 作 `If-Match`；缺头才兜底 `*`），
+//     否则服务端 428 会把正常往返记成 P0（2026-11-18 批次 565 回归修复）。
 //     请求体来自 CRUD_RECIPES（人工核对的最小合法形状）；无配方 ⇒ skip + 原因（不得假绿）
 //     destructive 写口只创建「本次探针」并清理探针，不触碰存量，记 exception + reason
 //     `dbMode !== 'memory'`（共享 3000 演示库）一律 skip，绝不写入
@@ -206,6 +208,32 @@ async function listRows(ctx, path, token) {
   const json = res.json;
   const rows = Array.isArray(json) ? json : (Array.isArray(json?.rows) ? json.rows : null);
   return { res, rows };
+}
+
+/**
+ * 单行 PATCH 统一出口（批次 565）：批次 564 起通用 PATCH 缺 `If-Match` 返回 428、版本不符返回 409。
+ * 版本取值顺序：调用方已回读到的该行 `updatedAt` → 现读该行 → 兜底 `If-Match: *`（行无版本戳时服务端放行）。
+ * 审计脚本内不得再写裸 `method: 'PATCH'` 调用（守卫 `audit-write-version-guard`）。
+ * @param {object} ctx 审计上下文（base / timeout）
+ * @param {string} path 单行路径（`/api/v1/<resource>/<id>`）
+ * @param {object} body PATCH 请求体
+ * @param {{ token?: string, updatedAt?: string }} [options]
+ */
+async function patchRow(ctx, path, body, { token, updatedAt } = {}) {
+  let version = updatedAt || null;
+  if (!version) {
+    const segments = String(path).split('/');
+    const rowId = decodeURIComponent(segments.pop() || '');
+    const { rows } = await listRows(ctx, segments.join('/'), token);
+    version = rows?.find((row) => String(row?.id) === rowId)?.updatedAt || null;
+  }
+  return httpRequest(ctx.base, path, {
+    method: 'PATCH',
+    token,
+    body,
+    timeout: ctx.timeout,
+    headers: { 'If-Match': version ? String(version) : '*' },
+  });
 }
 
 /** 列表首行 id 缓存：`base::role::resource → id`（同一轮审计只取一次） */
@@ -482,15 +510,16 @@ async function runC2(ctx, entry) {
       createdIds.set(resource, id);
 
       const read1 = await listRows(ctx, recipe.list, session.token);
-      steps.push({ step: 'read-after-create', status: read1.res.status, found: !!read1.rows?.some((row) => String(row.id) === String(id)) });
-      if (!read1.rows?.some((row) => String(row.id) === String(id))) { fatal = 'create 后 GET 不到该行'; throw new Error(fatal); }
+      const createdRow = read1.rows?.find((row) => String(row.id) === String(id)) || null;
+      steps.push({ step: 'read-after-create', status: read1.res.status, found: !!createdRow });
+      if (!createdRow) { fatal = 'create 后 GET 不到该行'; throw new Error(fatal); }
 
       if (!patchWrite) {
         steps.push({ step: 'patch', status: 'skip:no-update' });
       } else {
         const patchPath = await resolveWritePath(ctx, entry, patchWrite, session, createdIds);
-        const patched = await httpRequest(ctx.base, patchPath, {
-          method: 'PATCH', token: session.token, body: recipe.patch, timeout: ctx.timeout,
+        const patched = await patchRow(ctx, patchPath, recipe.patch, {
+          token: session.token, updatedAt: createdRow.updatedAt,
         });
         steps.push({ step: 'patch', status: patched.status, endpoint: `PATCH ${patchWrite.path}` });
         if ([401, 403].includes(patched.status)) {
