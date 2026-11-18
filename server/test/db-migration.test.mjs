@@ -189,6 +189,50 @@ test('M7 v8/v10 活动组织落点：两档归一 / legacy 标记 / 补跨组招
   } finally { db.close(); }
 });
 
+test('M9 v18 报名有效行部分唯一索引：重复行标 duplicateOf（不删行 / 不改 status），重放幂等', () => {
+  const db = initDb(tempDbPath('v18'));
+  try {
+    const indexSql = () => db.prepare("SELECT sql FROM sqlite_master WHERE type='index' AND name='idx_signups_active_unique'").get();
+    assert.ok(indexSql(), '全新库应已建 idx_signups_active_unique');
+    assert.match(String(indexSql().sql), /WHERE/i, '必须是部分索引（带 WHERE）');
+
+    // 回退到 v17 并造 3 条同人同活动的有效报名（模拟存量脏数据）＋ 1 条作废行
+    db.exec('DROP INDEX idx_signups_active_unique');
+    db.pragma('user_version = 17');
+    const before = db.prepare('SELECT COUNT(*) AS n FROM signups').get().n;
+    const put = (id, extra) => db.prepare('INSERT INTO signups (id, data) VALUES (?, ?)').run(id, JSON.stringify({
+      id, sourceType: 'activity', sourceId: 'act-dup', personId: 'p-dup', role: 'participant', status: 'approved', ...extra,
+    }));
+    put('su-dup-2', { createdAt: '2026-11-02T00:00:00.000Z' });
+    put('su-dup-1', { createdAt: '2026-11-01T00:00:00.000Z' });
+    put('su-dup-voided', { createdAt: '2026-10-01T00:00:00.000Z', voided: { reason: '重复', confirmedBy: 'u1' } });
+    put('su-dup-3', { createdAt: undefined, id: 'su-dup-3' }); // 缺 createdAt ⇒ 用 id 排序
+
+    const applied = applyMigrations(db);
+    assert.deepEqual(applied.applied, MIGRATIONS.filter((m) => m.version > 17).map((m) => m.version),
+      '应从 v17 只补 v18…v最新（版本后续新增须自动纳入，不写死）');
+    const rows = db.prepare("SELECT id, data FROM signups WHERE json_extract(data,'$.personId') = 'p-dup' ORDER BY id").all()
+      .map((r) => ({ id: r.id, ...JSON.parse(r.data) }));
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM signups').get().n, before + 4, 'v18 处置不得删行');
+    const kept = rows.filter((r) => r.duplicateOf === undefined && !r.voided);
+    assert.deepEqual(kept.map((r) => r.id), ['su-dup-1'], '每组保留 createdAt 最早一条（作废行不参与判重）');
+    for (const row of rows.filter((r) => r.id !== 'su-dup-1' && r.id !== 'su-dup-voided')) {
+      assert.equal(row.duplicateOf, 'su-dup-1', `${row.id} 应标 duplicateOf=su-dup-1`);
+      assert.ok(row.duplicateMarkedAt, `${row.id} 应带 duplicateMarkedAt`);
+      assert.equal(row.status, 'approved', 'v18 不改 status');
+    }
+    assert.equal(rows.find((r) => r.id === 'su-dup-voided').duplicateOf, undefined, '作废行不参与判重');
+    assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND name='idx_signups_active_unique'").get(),
+      '处置后索引必须建成');
+
+    const snapshot = db.prepare('SELECT id, data FROM signups ORDER BY id').all().map((r) => r.data);
+    const again = applyMigrations(db);
+    assert.deepEqual(again.applied, [], '重复迁移不得再改写');
+    assert.deepEqual(db.prepare('SELECT id, data FROM signups ORDER BY id').all().map((r) => r.data), snapshot,
+      'v18 重放零改写（duplicateMarkedAt 不刷新）');
+  } finally { db.close(); }
+});
+
 test('M6 非空转：迁移列表规模基线（防列表被清空导致守卫恒真）', () => {
   assert.ok(MIGRATIONS.length >= 1, `迁移列表为空（基线 ≥1）`);
   assert.ok(SCHEMA_VERSION >= 1, `SCHEMA_VERSION=${SCHEMA_VERSION}（基线 ≥1）`);

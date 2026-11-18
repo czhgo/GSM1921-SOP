@@ -32,14 +32,14 @@ import { canReadThoughtReport } from '../../../docs/src/services/governance/thou
 // 资源名 → 表名映射（与 data-adapter 的分组名对齐）
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
 // T-209 全栈同步：补齐前端 mockDB 全部持久化域，使 API 模式全链路可用
-import { RESOURCE_TABLES, ID_PREFIX, listTable, getRow, writeRow } from './store.js'; import { LIST_PAGE_ROW_LIMIT, validateResourceWrite, hydrateReadMode } from './write-validation.js'; // T12：通用写口字段校验 + 列表硬上限 + 水合整集合标记（同行接入，保下文行号零位移）
+import { RESOURCE_TABLES, ID_PREFIX, listTable, getRow, writeRow } from './store.js'; import { LIST_PAGE_ROW_LIMIT, SNAPSHOT_GUNZIP_MAX_BYTES, validateResourceWrite, hydrateReadMode } from './write-validation.js'; // T12：通用写口字段校验 + 列表硬上限 + 水合整集合标记（同行接入，保下文行号零位移）；B-552-4：快照解压上限同在此处
 import { RESOURCE_WRITE_GATE, COMMISSIONER_WRITE_RESOURCES, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, assertCommitteeMeetingWrite, COMMITTEE_MEETING_DENY_MSG, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE, _assertActivityBlockEnabled, _assertWorkflowBlockEnabled, _assertCapabilityPackageEnabled, activityBlockDisabledMsg, workflowBlockDisabledMsg, _snapshotNoticeMessageGateDeny, _snapshotResourceWriteGateDeny, _retainUngatedSnapshotRows, _inspectionDecisionDeny, _inspectionSourceKeyDeny, _inspectionImmutableKeyDeny, _inspectionPersonMembershipDeny, aggregateSubRecordWriteDeny } from './gates.js';
 import { _activityApprovalGateDeny, _snapshotActivityApprovalGateDeny, _activityCreateGatePatch } from './approval-gates.js';
 import { _snapshotBaseVersions, _snapshotWrites, _snapshotMissingVersions, _allCollectionVersions, _snapshotVersionConflicts, _normalizeSnapshotAliases, recordSnapshotConflicts } from './snapshot-versions.js';
 import { registerExtraSemanticRoutes } from './semantic-routes.js'; import { registerTodoGroupRoutes } from '../todo-groups.js'; // 批次 532·B-500-7：待办实时派生的服务端只读端点（同行接入，保下文行号零位移）
 import { activityCreationDeny, activityOrganizerExceptionDeny, activityOperationAllowed, activityWorkgroupSyncUpdates, activityWorkgroupUpdate, approvedTaskforceDissolutionWorkgroups, attendanceWriteDeny, attendanceConfirmDeny, isAttendanceConfirmOnlyChange, createActivityWorkgroup, createTaskforceWorkgroup, snapshotScopeDeny, syncActivityWorkgroup, taskforceScopeDeny, taskforceScopePatchDeny, taskforceStatusWorkgroups } from './workgroup-routes.js';
 import { actorBranchId, aggregateWriteDeny, branchForNewResource, branchSelectionError, createTableReader, mergeAggregateBody, mergeScopedSnapshotWrites, recordBranchWriteDeny, requireAssignedBranch, resourceRowsForActor, resourceBranchId, scopedSnapshotWriteDeny } from './branch-scope.js';
-import { normalizeSignupCreate, normalizeSignupPatch, signupCreateDeny, signupSnapshotDeny } from './signup-write-guard.js';
+import { DUPLICATE_SIGNUP_MSG, insertSignupRow, normalizeSignupCreate, normalizeSignupPatch, signupCreateDeny, signupSnapshotDeny } from './signup-write-guard.js';
 
 function _archiveSnapshotForActor(db, actor, submittedAt, report = {}) {
   let branchId = actor?.branchId || null;
@@ -417,7 +417,7 @@ export function createResourcesRouter(db) {
         }
         if (name === 'signups') {
           const deny = signupCreateDeny(db, req.actor, row);
-          if (deny) return res.status(403).json({ error: deny });
+          if (deny) return res.status(deny === DUPLICATE_SIGNUP_MSG ? 409 : 403).json({ error: deny }); // B-552-6：重复报名回 409（文案不变）
           row = normalizeSignupCreate(db, req.actor, row);
         }
         if (['actSubRecords', 'tfSubRecords'].includes(name)) {
@@ -533,7 +533,7 @@ export function createResourcesRouter(db) {
           const created = createTaskforceWorkgroup(db, req.actor, data);
           if (!created.ok) return res.status(created.status || 400).json({ error: created.error });
         } else {
-          db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(id, JSON.stringify(data));
+          if (name === 'signups') insertSignupRow(db, id, data); else db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(id, JSON.stringify(data)); // B-552-6：报名用裸 INSERT，冲突抛 409（INSERT OR REPLACE 会静默替换冲突行）
         }
         // 邮件双通道（部署文档 §五）：通知发布/待办提醒/反馈汇报触发邮件，异步 fire-and-forget，
         // 失败/未配置均不影响站内功能（降级不阻断）
@@ -1130,14 +1130,14 @@ export function createResourcesRouter(db) {
   // ① 逐集合乐观锁——payload._versions（集合名→基线版本）与服务端 collection_versions 比对，不一致 ⇒ **409 + conflicts**（不覆盖）；**payload 里出现但 `_versions` 里没有的集合 ⇒ 整批 428（不再无条件写）**。② 全部集合替换 + 版本 +1 在**同一事务**内（要么全成、要么全不动）；带 `_versions` ⇒ 200 + `{versions}`，未带（且 payload 无集合）⇒ 204。
   // 2026-09-01：支持 gzip 压缩体（前端 CompressionStream 压缩，规避大 payload 传输限制）；兼容未压缩 JSON（server-base.test.mjs 等直连用例；批次 48 由 snapshot.test.js 等五件合并而来）。
   router.post('/snapshot', requireAuth(db), (req, res) => {
-    let payload = req.body;
+    let payload = req.body; if (Buffer.isBuffer(req.body) && req.body.length > SNAPSHOT_GUNZIP_MAX_BYTES) return res.status(413).json({ error: '快照请求体解压后超过 20MB 上限，已拒绝' }); // B-552-4：解析层可能已 inflate ⇒ 路由再按解压后字节数判一次（20MB）
     try {
       if (req.headers['content-encoding'] === 'gzip') {
         try {
-          payload = JSON.parse(gunzipSync(req.body).toString('utf8'));
+          payload = JSON.parse(gunzipSync(req.body, { maxOutputLength: SNAPSHOT_GUNZIP_MAX_BYTES }).toString('utf8'));
         } catch (e) {
-          // 沙箱代理（TRAE）会自动解压 gzip 请求体但保留 Content-Encoding 头：
-          // 服务器收到的是已解压 JSON，gunzip 必然失败 → 回退直接 parse。
+          if (e && e.code === 'ERR_BUFFER_TOO_LARGE') return res.status(413).json({ error: '快照请求体解压后超过 20MB 上限，已拒绝' }); // B-552-4
+          // 沙箱代理（TRAE）会自动解压 gzip 请求体但保留 Content-Encoding 头：服务器收到的是已解压 JSON，gunzip 必然失败 → 回退直接 parse。
           payload = JSON.parse(req.body.toString('utf8'));
         }
       } else if (Buffer.isBuffer(req.body)) {

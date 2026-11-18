@@ -20,7 +20,7 @@ export function createApp({ dbPath = ':memory:' } = {}) {
   // 2026-09-01 快照 gzip：/api/v1/snapshot 用 raw body（快照 payload 全量 25 域 ~66KB，
   // 前端压缩后传输；路由内手动 gunzip + parse）。须在 express.json 之前挂载，否则 gzip
   // 二进制会被 json parser 误解析。
-  app.use(createRequestLogger()); app.use(createMetricsMiddleware(() => app.locals.metrics)); app.use('/api/v1/snapshot', express.raw({ type: '*/*', limit: '4mb' })); // T2：请求 id ＋ 结构化日志（脱敏）最先挂载，后续 403/5xx 也能凭 id 串起（见 services/logger.js）；T3：同一行追加最小指标计数（services/metrics.js）；不新增行以保 README-server 取证行号
+  app.use(createRequestLogger()); app.use(createMetricsMiddleware(() => app.locals.metrics)); app.use('/api/v1/snapshot', express.raw({ type: '*/*', limit: '24mb' })); // T2：请求 id ＋ 结构化日志（脱敏）最先挂载，后续 403/5xx 也能凭 id 串起（见 services/logger.js）；T3：同一行追加最小指标计数（services/metrics.js）；不新增行以保 README-server 取证行号；B-552-4：请求体上限抬到 24MB（预留传输开销），解压后 20MB 上限由路由内判据负责
   app.use(compression({ threshold: 1024 })); app.use(express.json({ limit: '2mb' })); app.use(createReadOnlyGuard()); // READ_ONLY=1 ⇒ 业务写口统一 403（认证域放行；见 read-only.js）；压缩只处理 >1KB 响应
 
   app.get('/api/v1/health', (req, res) => res.json({ ok: true }));

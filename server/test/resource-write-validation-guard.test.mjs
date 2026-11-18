@@ -23,6 +23,7 @@ import {
   LIST_PAGE_ROW_LIMIT, RESOURCE_WRITE_VALIDATION, RESOURCE_WRITE_VALIDATION_EXEMPTIONS,
   TITLE_MAX_LENGTH, validateResourceWrite,
 } from '../routes/resources/write-validation.js';
+import { normalizeListPayload } from '../../docs/src/data/api-adapter.js?v=20261110b';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
@@ -125,4 +126,21 @@ test('G5 非空转：G1 覆盖判定对“漏声明”的假集合判红，对�
   assert.deepEqual(dup.duplicated, ['alpha'], '双重声明未被判出 ⇒ G1 半边失效');
   const ok = coverageGaps(['alpha', 'beta'], fakeValidation, fakeExemptions);
   assert.deepEqual(ok, { missing: [], duplicated: [] }, '完整声明被误判 ⇒ 判据过严');
+});
+
+test('G6 列表响应形状归一（B-552-2）：分页对象在读口归一为数组，非列表端点不被误伤', () => {
+  const adapterSrc = read('docs/src/data/api-adapter.js');
+  assert.match(adapterSrc, /_isResourceListPath\(path\) \? normalizeListPayload\(payload\) : payload/,
+    'api-adapter 的 `_get` 未在读口应用列表形状归一');
+  assert.match(adapterSrc, /Array\.isArray\(payload\.rows\) && typeof payload\.total === 'number'/,
+    '归一只认服务端分页对象（`rows` 数组 ＋ 数字 `total`），不得按 `items` 误伤对象端点');
+
+  assert.deepEqual(normalizeListPayload([{ id: 'a' }]), [{ id: 'a' }], '裸数组须原样返回');
+  assert.deepEqual(
+    normalizeListPayload({ rows: [{ id: 'a' }], total: 1, pageSize: 20, nextCursor: null, hasMore: false }),
+    [{ id: 'a' }], '分页对象须归一为 `rows` 数组',
+  );
+  const objectEndpoint = { branchId: 'br-b1', asOf: '2026-11-18', items: [{ id: 'g' }] };
+  assert.equal(normalizeListPayload(objectEndpoint), objectEndpoint, '非分页对象（如 group-attendance-summary）不得被拆包');
+  assert.equal(normalizeListPayload(null), null, '空响应须原样返回');
 });

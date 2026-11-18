@@ -37,6 +37,9 @@ import { writeJsonLine } from '../../services/logger.js';
 /** 列表读口未显式分页时的硬上限（超过不静默截断：响应头 `X-Total-Count` / `X-Has-More` 给出信号） */
 export const LIST_PAGE_ROW_LIMIT = 2000;
 
+/** 快照请求体 gzip **解压后**上限（B-552-4；与上传上限同量级，超限 ⇒ 413） */
+export const SNAPSHOT_GUNZIP_MAX_BYTES = 20 * 1024 * 1024;
+
 /** 水合整集合读口标记：`?hydrate=1` 或请求头 `X-Hydrate: 1`（**仅登录后有效**；只供客户端 `init()` 全量灌库） */
 export const HYDRATE_MARKER = 'hydrate';
 export const HYDRATE_HEADER = 'x-hydrate';

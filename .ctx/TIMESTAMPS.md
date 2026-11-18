@@ -163,7 +163,7 @@ dynamic_role:
 | content/04_web_design/deploy/WECHAT_INTEGRATION.md | 2026-09-05 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§五 微信协同与小程序设计**〔内部 §一–§八 → 5.1–5.8〕⇒ **四份 → 一份**。（原：微信协同与小程序设计方案；§八 新增北大对接数据展示；小程序独立问题归位本文档。）沿革见 `.ctx/logs/`。 |
 | content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md | 2026-11-11 | — | [用户]+[AI] | **（现状）** 数据一致性检查清单（`§0` 真机 ↔ 文档逐项对账）。**边界**：本件只承载清单本体与判据，沿革入 `.ctx/logs/`。**为什么**：本列只写现状 / 边界 / 指针（`R-89`）。沿革已迁出（git 可溯）。 |
 | content/04_web_design/data/DATA_MODEL.md | 2026-11-15 | — | [工程师]+[AI] | 数据模型与数据流（静态 §2.x / 动态 §1·§3·§4）；§2.9 消息对象；§2.31 党委内容与公开发布（v13 生成列 / 部分唯一索引 / 发布留痕）；附二 对象模型三层判据与专班承办字段（D-868）；§2.1 `voteConfig` 名单由服务端建会冻结（D-872）。字段口径以 `DATA_CONTRACT.md` 为准，种子口径以 `DATA_SEED_CONTRACT.md` 为准。**边界**：字段级唯一权威；README-server 以行号引用本文件。 |
-| content/04_web_design/data/DATA_CONTRACT.md | 2026-11-08 | — | [工程师]+[AI] | 领域数据契约（48 表：34 资源 + 8 语义 + 6 工作组）；机读单一源 `server/data/domain-contract.mjs`。守卫 `server/test/data-contract.test.mjs`。 |
+| content/04_web_design/data/DATA_CONTRACT.md | 2026-11-18 | — | [工程师]+[AI] | 领域数据契约（48 表：34 资源 + 8 语义 + 6 工作组）；机读单一源 `server/data/domain-contract.mjs`；v18 补 `signups` 有效报名唯一约束说明。守卫 `server/test/data-contract.test.mjs`。 |
 | content/04_web_design/data/DATA_SEED_CONTRACT.md | 2026-10-27 | — | [工程师]+[AI] | 数据种子契约（四类口径 / 逐表必填 / v12 强约束）；守卫 `server/test/seed-contract-guard.test.mjs`。 |
 | content/04_web_design/data/DATA_FLOW.md | 2026-09-23 | — | [工程师]+[AI] | 🗑️ 已删除（正文并入 `DATA_MODEL.md`《数据模型与数据流》）。沿革见 `.ctx/logs/`。 |
 | content/04_web_design/data/DATA_ARCHITECTURE.md | 2026-09-03 | — | [工程师]+[AI] | 🗑️ 已删除（正文已拆分至 DATA_MODEL / DATA_FLOW） |
@@ -171,7 +171,7 @@ dynamic_role:
 | content/04_web_design/module/MODULE_UI_DESIGN.md | 2026-10-30 | — | [工程师]+[AI] | 模块界面设计（§一 总览 / §二 党建 Tab / §三 日历 / §四 全站 Tab 总方案＝2026-09-27 规划稿）；四组页签名改准为「总览 / 我的职责 / 协作与知情 / 制度与答复」。**边界**：§四.2 已升为 `DESIGN_SYSTEM.md §4.10.1` 正式条文（单一源）；§四 的逐台 tab 清单是**当日快照**，活口径以 `docs/src/capabilities/*-workspace.js` 为单一源（门控对账在 `doc-consistency::S1`）。沿革已迁出（git 可溯）。 |
 | content/04_web_design/module/SOP_WEBSITE_GUIDE.md | 2026-10-30 | — | [工程师]+[AI] | SOP-系统联动方法（无人称文体）。**边界**：相关引用指向 `content/03_doc_system/OPERATIONS_GUIDE.md`。沿革见 `.ctx/logs/`。 |
 | content/04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 会议议程与资料查询设计 |
-| content/04_web_design/deploy/DEPLOYMENT_GUIDE.md | 2026-11-16 | — | [工程师]+[AI] | **部署**手册（环境 / 起服务 / 发版 / 回滚）；报告推送按支部独立配置接收端。**边界**：只讲部署，**不含**权限模型（那在 `AUTHENTICATION_MODEL.md`）与运行协作（`OPERATIONS_GUIDE.md`）；**为什么**：三件分工不重叠，避免同一件事两处写法漂移。沿革见执行日志「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 322）」。 |
+| content/04_web_design/deploy/DEPLOYMENT_GUIDE.md | 2026-11-18 | — | [工程师]+[AI] | **部署**手册（环境 / 起服务 / 发版 / 回滚）；报告推送按支部独立配置接收端；A.2.5 为发布前审计与例外复核口径。**边界**：只讲部署，**不含**权限模型（那在 `AUTHENTICATION_MODEL.md`）与运行协作（`OPERATIONS_GUIDE.md`）。 |
 | content/04_web_design/deploy/SERVER_DEPLOY_MANUAL.md | 2026-10-07 | — | [支书]+[运维执行人] | **服务器逐键部署手册**（支书版，2026-10-07 批次 439 新建）：名词卡片（堡垒机/sudo/防火墙/systemd/SFTP/冒烟）＋六步操作（探机 → 防火墙申请填单模板 → SFTP 上传 → 有/无 sudo 双路线安装 → 设口令启动体检 → 空库换壳起步）＋日常三招与出错对照表＋安全两件事。**边界**：只管「做」；「为什么/总览/回滚深度」在 `DEPLOYMENT_GUIDE.md`（姊妹篇互指）。
 | content/04_web_design/deploy/AUTHENTICATION_MODEL.md | 2026-09-05 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§四 认证与登录门控**〔内部 §一–§八 → 4.1–4.8〕⇒ **四份 → 一份**。（原：部署与认证场景模型：5 场景两轴正交 ＋ 侧边栏统一 ＋ 登录门控四层。）沿革见 `.ctx/logs/`。 |
 | content/04_web_design/SCHOOL_IT_DEPLOYMENT.md | 2026-08-27 | — | [工程师]+[AI] | 🗑️ 已删除（计算中心对接全案已并入 DEPLOYMENT_GUIDE §三） |
@@ -289,7 +289,7 @@ dynamic_role:
 | server/run-suite.mjs | 2026-10-03 | — | [工程师]+[AI] | 测试分片启动器：按 `SWEEP_SHARD` 选片（非 e2e 每片全跑 ＋ 本片 e2e），透传退出码。 |
 | server/test/sweep-shard.mjs | 2026-10-03 | — | [工程师]+[AI] | 测试分片单源（片数 / 各片工作台 / 各片 e2e 文件）；四片并集 ≡ 全量由 `suite-shard` 守卫钉死。 |
 | server/test/probe*.mjs | — | — | — | 🗑️ 已删除（T-280 B1 临时探针，定位完成清理） |
-| server/README.md | 2026-11-15 | — | [工程师]+[AI] | 后端安装 / 启动 / 测试 / 部署对接说明，含测试耗时台账与 DOM 基线两张实测表；对外接口以 `README-server.md` 为准。**批次 553**：档位计数改准（daily 29 文件 / 246 断言、guards 107 文件 / 824 断言）。 |
+| server/README.md | 2026-11-18 | — | [工程师]+[AI] | 后端安装 / 启动 / 测试 / 部署对接说明，含测试耗时台账与 DOM 基线两张实测表；测试说明指向部署手册 §A.2.5 发布前审计。**边界**：对外接口以 `README-server.md` 为准。 |
 | server/test/perf-guard.test.mjs | 2026-10-27 | — | [工程师]+[AI] | 性能守卫归并件（渲染预算 / 待办聚合缓存 / 版本令牌 / 索引等价，22 条）。 |
 | server/test/copy-guard.test.mjs | 2026-10-28 | — | [工程师]+[AI] | 文案守卫归并件（折叠 / 长度 / 母本 / 自明性 / 卡头副题，16 条）。 |
 | server/test/type-scale-guard.test.mjs | 2026-10-27 | — | [工程师]+[AI] | 字号守卫归并件（小字 / 段落档 / 表格字号 / 控件字号，15 条）。 |

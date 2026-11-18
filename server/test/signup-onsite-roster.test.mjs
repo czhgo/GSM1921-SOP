@@ -134,3 +134,29 @@ test('三会一课应到名单不受活动报名角色影响', () => {
 test('signup API writes and roster merge preserve SQLite integrity', () => {
   assert.equal(db.prepare('PRAGMA integrity_check').get().integrity_check, 'ok');
 });
+
+test('B-552-6 并发两条 POST 同人同活动 ⇒ 一条 201、一条 409；DB 唯一索引兜底', async () => {
+  db.prepare('INSERT INTO activities (id, data) VALUES (?, ?)').run('act-signup-unique', JSON.stringify({
+    id: 'act-signup-unique', title: '报名唯一性测试', type: '主题党日', date: '2099-10-17', status: 'published',
+    branchId: 'br-b1', organizer: '2300010001', assignments: [],
+  }));
+  const post = (id) => fetch(`${base}/signups`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokens['2400012348']}` },
+    body: JSON.stringify({ id, sourceType: 'activity', sourceId: 'act-signup-unique', personId: '2400012348', role: 'participant' }),
+  });
+  const [first, second] = await Promise.all([post('su-unique-a'), post('su-unique-b')]);
+  const statuses = [first.status, second.status].sort();
+  assert.deepEqual(statuses, [201, 409], `应一条 201、一条 409（实测 ${statuses.join(' / ')}）`);
+  const rejected = first.status === 409 ? first : second;
+  assert.equal((await rejected.json()).error, '您已报名，请勿重复提交');
+  const rows = db.prepare("SELECT id FROM signups WHERE json_extract(data,'$.sourceId') = 'act-signup-unique'").all();
+  assert.equal(rows.length, 1, '同人同活动只保留一条报名');
+
+  // DB 层兜底：绕过应用层直接插入同键有效行必须被 v18 唯一索引拒绝
+  assert.throws(() => db.prepare('INSERT INTO signups (id, data) VALUES (?, ?)').run('su-unique-direct', JSON.stringify({
+    id: 'su-unique-direct', sourceType: 'activity', sourceId: 'act-signup-unique', personId: '2400012348',
+    role: 'participant', status: 'approved', createdAt: '2026-11-18T00:00:00.000Z',
+  })), /UNIQUE constraint failed/, 'DB 层重复报名必须被唯一索引拦下');
+});
+

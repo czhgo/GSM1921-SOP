@@ -167,11 +167,11 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 | B-541-11 | `H-12` / `H-18` 观察项：全量档 ① 项与目录搬迁三类静默盲区 | 真机复跑稳定红 ⇒ 按「稳定红＝真缺陷」升 P1；否则保持观察，不新立守卫 | `.ctx/REVIEW_QUEUE.md` 代码健康评审 `H-12` / `H-18` |
 | B-547-2 | `org/todo-tab.js:209` 注释「列入下一批待办」无 ID；纪检侧催办位改造未开工 | 触发：改到纪检催办位 / 待办派生时同批登记为正式任务或删除该注释；未触发前只观察 | `docs/src/entries/tabs/org/todo-tab.js:209` |
 | B-552-1 | `secretary-overview.js` 逾期数自算 `deadline < today`，绕过 `isTodoExpired`（同屏两个逾期数可能不等）；**已闭环**——逾期口径已改走 `isTodoExpired`，反证 `docs/src/services/governance/secretary-overview.js:189-191` | 下次改概况逾期统计时按单一源收口 | `docs/src/services/governance/secretary-overview.js` |
-| B-552-2 | list 响应形状二义：无分页返回数组、有分页返回 `{rows,total}`，适配器原样转发 | 首个分页调用点出现前统一形状 | `docs/src/data/api-adapter.js`；`server/routes/resources/index.js` |
+| B-552-2 | list 响应形状二义；**已闭环（批次 566 · `api-adapter` 读口 `normalizeListPayload` 归一）** | 首个分页调用点出现前统一形状 | `docs/src/data/api-adapter.js` |
 | B-552-3 | 名册写口发空 `{}` / 非党委带 `branchId` ⇒ 400，本地已乐观记录 | 下次改名册保存 / 角色配置时校验 body | `docs/src/services/member/person.js` |
-| B-552-4 | `/snapshot` 的 `gunzipSync` 无解压上限（压缩体 4MB，解压后可放大） | 快照接口改造或出现异常内存读数时加限制 | `server/routes/resources/index.js` |
-| B-552-5 | 系统通知无幂等键，超时重发 / 双击会重复落库并重复推送 | 通知发送改造时加入幂等键 | `server/routes/system-notices.js` |
-| B-552-6 | 报名查重只在应用层，无唯一索引；状态：批次 566 处理中（唯一索引待批次 566 落地） | 迁移 v2 或出现并发重复读数时补索引 | `server/routes/resources/signup-write-guard.js:93` |
+| B-552-4 | `/snapshot` 解压上限；**已闭环（批次 566 · 20MB 上限，超限 413）** | 快照接口改造或出现异常内存读数时加限制 | `server/routes/resources/index.js`、`write-validation.js` |
+| B-552-5 | 系统通知幂等；**已闭环（批次 566 · 可选 `eventKey`，同键返回既有记录）** | 通知发送改造时加入幂等键 | `server/routes/system-notices.js` |
+| B-552-6 | 报名查重只在应用层，无唯一索引；**已闭环（批次 566 · schema v18 部分唯一索引，重复行保留最早并标 `duplicateOf`）** | 迁移 v2 或出现并发重复读数时补索引 | `server/routes/resources/signup-write-guard.js:93`、`server/db.js`（v18） |
 
 ### SOP-B-14（已落地，余一项待确认）副组长共享组长工作台
 

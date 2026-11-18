@@ -161,6 +161,25 @@ async function _request(path, options = {}) {
   return response.json();
 }
 
+/**
+ * B-552-2（2026-11-18 批次 566）：`GET /api/v1/:resource` 的列表响应形状归一。
+ * 同一读口两种形状：默认（不传 `page` / `cursor`）返回裸数组；带分页参数时返回
+ * `{ rows, total, pageSize, nextCursor, hasMore }`。归一点选**读口**而非服务端：
+ * 服务端改成恒为对象会让 `init()` 水合与既有数组消费者（data-adapter 集合替换）同时失效。
+ * @param {any} payload 服务端 JSON
+ * @returns {any} 分页对象取 `rows`；其余（裸数组 / 非分页对象）原样返回
+ */
+export function normalizeListPayload(payload) {
+  if (Array.isArray(payload)) return payload;
+  if (payload && typeof payload === 'object' && Array.isArray(payload.rows) && typeof payload.total === 'number') return payload.rows;
+  return payload;
+}
+
+/** 单段资源列表读口（`/api/v1/<name>`）：只有这一类 GET 应用列表形状归一 */
+function _isResourceListPath(path) {
+  return /^\/api\/v1\/[A-Za-z][A-Za-z0-9]*$/.test(String(path || '').split('?')[0]);
+}
+
 /** 为党委已选中的支部附加统一读取范围，避免各资源漏传 branchId。 */
 function _withSelectedBranch(path) {
   if (typeof window === 'undefined') return path;
@@ -185,8 +204,10 @@ export function withSelectedBranchScope(path) {
 }
 
 /** GET 请求 */
-function _get(path) {
-  return _request(_withSelectedBranch(path), { method: 'GET' });
+async function _get(path) {
+  const payload = await _request(_withSelectedBranch(path), { method: 'GET' });
+  // B-552-2：资源列表读口归一（分页对象 → 数组），非列表端点原样返回
+  return _isResourceListPath(path) ? normalizeListPayload(payload) : payload;
 }
 
 /** POST 请求 */

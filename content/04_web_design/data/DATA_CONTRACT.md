@@ -3,7 +3,7 @@ title: "领域数据契约（单一源）"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: "2026-11-08"
+last_updated: "2026-11-18"
 status: active
 related_files: [content/04_web_design/data/DATA_MODEL.md, content/04_web_design/data/DATA_SEED_CONTRACT.md, server/data/domain-contract.mjs]
 ---
@@ -52,6 +52,8 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/04_web_design/
 | partyGroups | party_groups | partyGroups | id/branchId/name/seq/status/createdAt | status | 4 | — |
 | memberFlows | member_flows | memberFlows | —（运行时域） | — | 0 | — |
 | issueReveals | issue_reveals | — | —（**deprecated**） | — | 0 | — |
+
+**`signups` 有效报名唯一约束（schema v18）**：有效报名（`voided` 缺失 / `null` / `false`，且 `status ∈ {approved,pending}`，且无 `duplicateOf`）按 `sourceType + sourceId + personId` 受部分唯一索引 `idx_signups_active_unique` 约束；历史重复行由 v18 迁移保留 `createdAt` 最早一条，其余行写 `duplicateOf` / `duplicateMarkedAt`（不删行、不改 `status`）；服务端落库冲突统一回 409「您已报名，请勿重复提交」。
 
 **党委内容与公开发布的新增 optional 字段**（2026-11-08 批次 536；枚举取自 `docs/src/core/domain/constants.js` 单一源，机读同源 `domain-contract.mjs`）：
 

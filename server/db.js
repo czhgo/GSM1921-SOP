@@ -1014,6 +1014,59 @@ export const MIGRATIONS = [
       db.exec('CREATE INDEX IF NOT EXISTS idx_branch_visits_branch ON branch_visits(branch_id, entered_at)');
     },
   },
+  {
+    // v18（2026-11-18 批次 566 · B-552-6）：报名唯一性下沉到 DB（此前只在应用层 `signupCreateDeny` 查重，
+    //   并发提交 / 绕过应用层写口时仍可产生重复报名）。
+    //   ① 重复行处置（不删行、不改 status）：按 sourceType + sourceId + personId 分组，只对「voided 不为 true
+    //      且 status ∈ {approved,pending} 且未标 duplicateOf」的行判重；每组按 createdAt（缺失用 id）保留最早一条，
+    //      其余行在 JSON 里写 `duplicateOf: <保留行 id>` 与 `duplicateMarkedAt`。
+    //   ② 部分唯一索引 `idx_signups_active_unique`：只约束「有效且非重复台账」的报名行。
+    version: 18,
+    name: 'signups-active-unique',
+    tables: ['signups'],
+    up(db) {
+      const rows = db.prepare('SELECT id, data FROM signups').all()
+        .map((raw) => ({ id: String(raw.id), row: JSON.parse(raw.data) }));
+      const groups = new Map();
+      for (const item of rows) {
+        const row = item.row || {};
+        if (row.duplicateOf) continue;
+        if (row.voided) continue;
+        if (!['approved', 'pending'].includes(row.status)) continue;
+        if (row.sourceType == null || row.sourceId == null || row.personId == null) continue;
+        const key = `${row.sourceType}\u0000${row.sourceId}\u0000${row.personId}`;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(item);
+      }
+      const markedAt = new Date().toISOString();
+      let marked = 0;
+      for (const list of groups.values()) {
+        if (list.length < 2) continue;
+        const keep = [...list].sort((a, b) => String(a.row.createdAt || a.id).localeCompare(String(b.row.createdAt || b.id))
+          || a.id.localeCompare(b.id))[0];
+        for (const item of list) {
+          if (item.id === keep.id) continue;
+          const next = { ...item.row, duplicateOf: keep.id, duplicateMarkedAt: markedAt };
+          db.prepare('UPDATE signups SET data = ? WHERE id = ?').run(JSON.stringify(next), item.id);
+          marked += 1;
+        }
+      }
+      if (marked) console.log(`[db] v18 报名重复行处置：标记 duplicateOf=${marked}（不删行、不改 status）`);
+      // 「作废」判定与迁移内的 JS `row.voided` 真值语义一致：缺失 / null / false / 0 / 空串＝未作废，
+      // 其余（`true` 或软作废留痕对象）＝已作废、不进唯一索引（作废行是可重新报名的证据行）。
+      const voidedIsFalsy = `(json_type(data,'$.voided') IS NULL
+          OR json_type(data,'$.voided') = 'null' OR json_type(data,'$.voided') = 'false'
+          OR (json_type(data,'$.voided') = 'integer' AND json_extract(data,'$.voided') = 0)
+          OR (json_type(data,'$.voided') = 'text' AND json_extract(data,'$.voided') = ''))`;
+      db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_signups_active_unique
+        ON signups (
+          json_extract(data,'$.sourceType'), json_extract(data,'$.sourceId'), json_extract(data,'$.personId')
+        )
+        WHERE json_extract(data,'$.duplicateOf') IS NULL
+          AND ${voidedIsFalsy}
+          AND json_extract(data,'$.status') IN ('approved','pending')`);
+    },
+  },
 ];
 
 /** 迁移列表的最大版本（＝目标 schema 版本；守卫据此核 `user_version`，防「有迁移没跑」/「版本号被手改」） */

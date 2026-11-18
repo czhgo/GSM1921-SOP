@@ -77,6 +77,9 @@ function sourceAndPersonDeny(db, actor, signup, { creating = false, requireOwner
   return null;
 }
 
+/** 重复报名的统一文案（应用层查重与 DB 唯一约束兜底共用一处，B-552-6） */
+export const DUPLICATE_SIGNUP_MSG = '您已报名，请勿重复提交';
+
 export function signupCreateDeny(db, actor, signup) {
   const identityDeny = sourceAndPersonDeny(db, actor, signup, { creating: true });
   if (identityDeny) return identityDeny;
@@ -90,8 +93,26 @@ export function signupCreateDeny(db, actor, signup) {
   const duplicates = db.prepare('SELECT data FROM signups').all().map((row) => JSON.parse(row.data));
   if (duplicates.some((row) => !row.voided && row.sourceType === signup.sourceType
     && row.sourceId === signup.sourceId && row.personId === signup.personId
-    && ['approved', 'pending'].includes(row.status))) return '您已报名，请勿重复提交';
+    && ['approved', 'pending'].includes(row.status))) return DUPLICATE_SIGNUP_MSG;
   return null;
+}
+
+/**
+ * 报名单行落库（B-552-6）：应用层查重之后仍可能并发穿过 ⇒ 这里用**裸 `INSERT`**
+ * （`INSERT OR REPLACE` 会静默替换冲突行、等于绕开唯一索引），由 v18 部分唯一索引
+ * `idx_signups_active_unique` 拦下重复；唯一冲突转成 409 业务错误（文案同上）。
+ */
+export function insertSignupRow(db, id, data) {
+  try {
+    db.prepare('INSERT INTO signups (id, data) VALUES (?, ?)').run(id, JSON.stringify(data));
+  } catch (e) {
+    if (/UNIQUE constraint failed/i.test(String(e && e.message))) {
+      const error = new Error(DUPLICATE_SIGNUP_MSG);
+      error.status = 409;
+      throw error;
+    }
+    throw e;
+  }
 }
 
 export function normalizeSignupCreate(db, actor, signup) {

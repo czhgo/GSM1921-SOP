@@ -3,7 +3,7 @@ title: "部署与对外对接"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-19
-last_updated: "2026-11-16"
+last_updated: "2026-11-18"
 status: active
 related_files: [docs/src/data/data-adapter.js, docs/src/data/api-adapter.js, docs/src/services/core/runtime.js, docs/src/config/deploy.js, docs/src/core/boot/bootstrap.js, docs/src/components/shell/sidebar.js, docs/src/components/shell/header.js, docs/login.html, docs/src/services/core/auth.js, server/server.js, server/app.js, server/db.js, server/routes/auth.js, server/routes/resources.js, server/routes/uploads.js]
 ---
@@ -1124,6 +1124,35 @@ node scripts/restore-drill.mjs --keep   # 保留临时目录排障
 ```
 
 演练**只读运行库**（备份源由 `backup.mjs` 现做，不直接拷 `data.db`），任一步失败**退出码 1**。上线前 / 换轨前后 / 迁移后各跑一次，读数记入 `.ctx/evidence/<日期>/restore-drill.md`。真正的「覆盖现有库」仍按 A.2 第 7 条（`scripts/restore.mjs`，须停服）。
+
+### A.2.5 发布前审计与例外复核
+
+**命令**（仓库根 → `server/`，自起 `:memory:` 实例 + seed + 随机端口，约 4–5 分钟）：
+
+```powershell
+cd server
+node scripts/audit-tabs.mjs --all
+```
+
+需要留档时加输出口（**落 `.ctx/evidence/<日期>/`**；临时重跑可写到仓库外临时目录，`findings.json` 与截图不提交进仓库）：
+
+```powershell
+node scripts/audit-tabs.mjs --all `
+  --json ../.ctx/evidence/2026-11-18/tab-audit-after/findings.json `
+  --md   ../.ctx/evidence/2026-11-18/tab-audit-after/summary.md
+```
+
+**判据**：`P0 = 0`、`P1 = 0` 才可发布；P2 只进报告，不阻断。`exception` 不计违规，但**必须同批复核理由是否仍成立**。
+
+**例外同批复核与三类归档**：审计每次会带出若干 `exception`（破坏性写口的探针跳过、块数 / 筛选条基线例外、驱动执行异常）。归档口径固定三类：
+
+| 类型 | 判据 | 处置 |
+|---|---|---|
+| 驱动跳过 | C2 destructive 写口未真删存量，只做写门证明或自带探针清理 | 复核该写口仍为破坏性、无安全 CRUD 配方 |
+| 维度例外 | F1 / M1 块数基线 >4 或 M3 同页两条筛选条，且登记了理由 | 复核页面结构未变；改实现或下调基线后同批删条目 |
+| 环境 / 执行异常 | 驱动加载失败 / 执行异常 / 页面 DOM 读不到 | 按真回归优先取证，不得直接登记为例外 |
+
+**证据落点**：`.ctx/evidence/YYYY-MM-DD/tab-audit-exceptions.md`——表头写命令 / 日期 / 页签数 / P0·P1·P2·exception 计数，逐条列「页签 / 维度 / 类型 / 理由 / 下次复核动作」，三类各给计数小计，合计必须等于 summary 的 `exception` 数。
 
 ### A.3 风险与依赖
 

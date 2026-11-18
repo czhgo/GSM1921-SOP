@@ -192,6 +192,17 @@ export function createSystemNoticesRouter(db) {
       return res.status(403).json({ error: '无权限：不能为其他支部触发系统通知' });
     }
 
+    // B-552-5（2026-11-18 批次 566）：幂等键——调用方可选 `eventKey`；同一 `eventKey`（同一支部）重复投递
+    //   只保留一条并返回既有记录（200，不新增）。无 `eventKey` 时行为不变。
+    const eventKey = typeof body.eventKey === 'string' ? body.eventKey.trim() : '';
+    const eventScopeBranchId = sourceBranchId || ownBranch || null;
+    if (eventKey) {
+      const existing = db.prepare("SELECT data FROM notices WHERE json_extract(data,'$.eventKey') = ?").all(eventKey)
+        .map((raw) => JSON.parse(raw.data))
+        .find((row) => (row.branchId || null) === eventScopeBranchId);
+      if (existing) return res.status(200).json(existing);
+    }
+
     let built;
     try {
       built = def.build(ctx);
@@ -214,6 +225,7 @@ export function createSystemNoticesRouter(db) {
     const notice = normalizeSystemNotice({
       ...built,
       ...((sourceBranchId || ownBranch) ? { branchId: sourceBranchId || ownBranch } : {}),
+      ...(eventKey ? { eventKey } : {}),
       id,
       publishDate: todayLocal(),
     });
