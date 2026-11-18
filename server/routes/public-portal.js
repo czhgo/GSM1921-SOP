@@ -21,7 +21,7 @@
 import express from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
-import { listTable, getRow, isPublicNow } from './resources/store.js';
+import { getRow, isPublicNow } from './resources/store.js';
 import { writePublicationAudit } from './resources/publication-audit.js';
 import { UPLOAD_DIR } from './uploads.js';
 import { COMMITTEE_OWNER_ID } from '../../docs/src/core/domain/constants.js';
@@ -177,6 +177,33 @@ function hasDownloadableFile(row) {
   return typeof row.filePath === 'string' && row.filePath.trim() !== '';
 }
 
+// ── 列表 SQL 投影（2026-11-19 · `D-882`）────────────────────────────────
+// 病例：`/portal` 原用 `listTable` 全表 JSON 解析，`branch_docs` 的 `fileData`（base64 / data URL）
+//   随每次列表读进入 Node 内存；资料一多即整表搬运。改为 SQL 侧只取白名单键，
+//   `fileData` 只算「是否可下载」布尔（`fileDataOk`），正文 `bodyText` 只走单条详情。
+// 边界：宽表仍是 `id + data(JSON)`，DB 层仍逐行读 JSON；列式下推需 `MIGRATIONS v2`（`L-17`）。
+const LIST_PROJECTION = Object.freeze({
+  notices: ['id', 'title', 'content', 'priority', 'publishDate', 'publishExpiresAt', 'publishScope', 'branchId'],
+  activities: ['id', 'title', 'type', 'date', 'location', 'publicSummary', 'publishExpiresAt', 'publishScope', 'ownerScope', 'archived', 'status'],
+  branch_docs: ['id', 'title', 'summary', 'publicSummary', 'desc', 'format', 'fileName', 'fileSize',
+    'updatedAt', 'uploadedAt', 'versionAt', 'publishExpiresAt', 'publishScope', 'branchId', 'filePath'],
+});
+
+/** `fileData` 可下载性（与 `decodeFileData` 同口径的 SQL 近似：data URL，或 base64 字符集且非空） */
+const FILE_DATA_OK_SQL = `CASE
+  WHEN json_extract(data, '$.fileData') IS NULL THEN 0
+  WHEN trim(json_extract(data, '$.fileData')) = '' THEN 0
+  WHEN json_extract(data, '$.fileData') LIKE 'data:%' AND instr(json_extract(data, '$.fileData'), ',') > 0 THEN 1
+  WHEN json_extract(data, '$.fileData') NOT GLOB '*[^A-Za-z0-9+/=' || char(9) || char(10) || char(13) || ' ]*'
+    AND length(trim(json_extract(data, '$.fileData'))) >= 8 THEN 1
+  ELSE 0 END AS "fileDataOk"`;
+
+function listPublicProjected(db, table) {
+  const cols = LIST_PROJECTION[table].map((key) => `json_extract(data, '$.${key}') AS "${key}"`).join(', ');
+  const extra = table === 'branch_docs' ? `, ${FILE_DATA_OK_SQL}` : '';
+  return db.prepare(`SELECT ${cols}${extra} FROM ${table}`).all();
+}
+
 // ── 响应投影（逐键白名单；导出供静态守卫直接喂「毒行」验证不漏字段）──────────
 export function projectPublicActivity(row) {
   return {
@@ -201,7 +228,10 @@ export function projectPublicNotice(row) {
   };
 }
 
-export function projectPublicDocument(row) {
+export function projectPublicDocument(row, opts = {}) {
+  const downloadable = opts.fileDataDownloadable === undefined
+    ? hasDownloadableFile(row)
+    : (opts.fileDataDownloadable === true || (typeof row.filePath === 'string' && row.filePath.trim() !== ''));
   return {
     id: row.id,
     title: row.title ?? null,
@@ -212,7 +242,7 @@ export function projectPublicDocument(row) {
     updatedAt: documentUpdatedAt(row),
     publishExpiresAt: row.publishExpiresAt ?? null,
     // 批次 541：无附件不出下载链（键保留、值置 null；有附件才由服务端计算地址，不取原行）
-    downloadUrl: hasDownloadableFile(row) ? documentDownloadUrl(row.id) : null,
+    downloadUrl: downloadable ? documentDownloadUrl(row.id) : null,
   };
 }
 
@@ -288,14 +318,6 @@ function readRow(db, table, id) {
   }
 }
 
-function rowsOf(db, table) {
-  try {
-    return listTable(db, table);
-  } catch {
-    return [];
-  }
-}
-
 export function createPublicPortalRouter(db) {
   const router = express.Router();
 
@@ -307,22 +329,26 @@ export function createPublicPortalRouter(db) {
     const limit = parseLimit(req.query.limit);
 
     const noticeRows = sortDesc(
-      rowsOf(db, 'notices').filter((row) => isPublicNotice(row, now)),
+      listPublicProjected(db, 'notices').filter((row) => isPublicNotice(row, now)),
       (row) => timeOf(row.publishDate),
     );
     const notices = noticeRows.slice(0, limit).map(projectPublicNotice);
 
+    // `json_extract` 把 JSON 布尔取成 1/0 ⇒ 归一回 boolean，保证 `isPublicActivity` 的 `!== true` 判据不变。
     const activityRows = sortDesc(
-      rowsOf(db, 'activities').filter((row) => isPublicActivity(row, now)),
+      listPublicProjected(db, 'activities')
+        .map((row) => ({ ...row, archived: row.archived === 1 || row.archived === true }))
+        .filter((row) => isPublicActivity(row, now)),
       (row) => timeOf(row.date),
     );
     const activities = activityRows.slice(0, limit).map(projectPublicActivity);
 
     const documentRows = sortDesc(
-      rowsOf(db, 'branch_docs').filter((row) => isPublicDocument(row, now)),
+      listPublicProjected(db, 'branch_docs').filter((row) => isPublicDocument(row, now)),
       (row) => timeOf(documentUpdatedAt(row)),
     );
-    const documents = documentRows.slice(0, limit).map(projectPublicDocument);
+    const documents = documentRows.slice(0, limit)
+      .map((row) => projectPublicDocument(row, { fileDataDownloadable: Number(row.fileDataOk) === 1 }));
 
     // 截断提示（批次 562 · Task 10）：任一块被 limit 截掉即 hasMore=true；既有字段形状不变。
     const hasMore = noticeRows.length > notices.length

@@ -15,6 +15,7 @@
 //       `--strict` 升为阻断（真实换轨**必须** `--strict` 且零残留）；
 //    ⑥ 孤儿外键：users→branches、activities→branch、attendances→activity/person；
 //    ⑦ 附件一致性：attachments 记录必须有对应物理文件（缺失=阻断）；uploads 里无记录的孤儿文件=警告。
+//    ⑧ 个人密码覆盖：未设 `passwordHash` 的账号=警告（生产形态共享口令已禁用，`--strict` 下即阻断）。
 //
 //  输出：阻断（⛔）与警告（⚠）清单；**有阻断即 exit 1**；`--strict` 时警告也致 exit 1。
 //  处置见 deploy/CUTOVER_RUNBOOK.md。
@@ -26,6 +27,7 @@ import {
   SCHEMA_VERSION, RESOURCE_TABLES, SEMANTIC_TABLES, WORKGROUP_TABLES, RETIRED_RESOURCE_TABLES,
 } from '../db.js';
 import { detectDemoSeedRows, loadDemoUserIds } from '../demo-data-guard.js';
+import { isPasswordHash } from '../security/password.mjs';
 
 const SERVER_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RUNBOOK = 'deploy/CUTOVER_RUNBOOK.md';
@@ -137,6 +139,14 @@ async function main() {
     const missingRoles = REQUIRED_ROLES.filter((r) => !presentRoles.has(r));
     if (usersCount > 0 && missingRoles.length) {
       warn(`生产最小角色账号不全：缺 ${missingRoles.join('、')}（生产首启会自动补；已有库请手工确认）`);
+    }
+
+    // ⑧ 个人密码覆盖（`D-882`：生产与换轨只走个人密码，共享口令回退已禁用）
+    const missingPersonal = users.filter((u) => !isPasswordHash(u.passwordHash));
+    if (missingPersonal.length) {
+      warn(`未设个人密码 ${missingPersonal.length} / ${users.length} 名（生产形态共享口令已禁用，这些账号将无法登录）：`
+        + `${missingPersonal.slice(0, 5).map((u) => u.id).join(', ')}${missingPersonal.length > 5 ? ' …' : ''}`
+        + '；处置：node scripts/set-password.mjs <personId>');
     }
 
     // ⑤ 演示数据残留（默认警告；--strict 阻断）

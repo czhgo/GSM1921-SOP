@@ -80,6 +80,21 @@ test('旧库兼容：无 passwordHash 的用户仍可用共享口令登录', asy
   assert.ok(r.data.token);
 });
 
+test('生产形态拒绝共享口令回退：无个人密码用户共享口令登录 401（D-882）', async () => {
+  const prevApp = process.env.APP_ENV;
+  const prevPwd = process.env.LOGIN_PASSWORD;
+  process.env.APP_ENV = 'production';
+  process.env.LOGIN_PASSWORD = SHARED;
+  try {
+    const r = await login({ personId: legacyUser, password: SHARED });
+    assert.equal(r.status, 401, '生产形态不得用共享口令登录未设个人密码的账号');
+    assert.equal(r.data.error, '口令错误');
+  } finally {
+    if (prevApp === undefined) delete process.env.APP_ENV; else process.env.APP_ENV = prevApp;
+    if (prevPwd === undefined) delete process.env.LOGIN_PASSWORD; else process.env.LOGIN_PASSWORD = prevPwd;
+  }
+});
+
 test('个人密码优先：hash 用户用个人密码登录 200，响应不含 passwordHash', async () => {
   const r = await login({ personId: hashedUser, password: PERSONAL });
   assert.equal(r.status, 200);

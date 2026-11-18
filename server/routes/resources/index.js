@@ -127,8 +127,22 @@ function _activityPartyGroup(db, activity, read) {
 }
 
 /** 专班组织者（R4-D04：只按 workgroupId → workgroups.sourceId → taskforces 反查，不再按名称匹配） */
-function _isTaskforceOrganizerByWorkgroupId(db, workgroupId, actorId) {
+function _isTaskforceOrganizerByWorkgroupId(db, workgroupId, actorId, ctx) {
   if (!workgroupId || !actorId) return false;
+  // D-882 性能：同一请求内专班组织者集合只算一次（原实现每行两次全表扫描＝N+1）。
+  if (ctx) {
+    if (!ctx.taskforceOrganizerGroups) {
+      const groups = listTable(db, 'workgroups').filter((row) => row.kind === 'taskforce');
+      const organized = new Set(listTable(db, 'taskforces')
+        .filter((row) => Array.isArray(row.members)
+          && row.members.some((member) => member?.personId === actorId && member.role === 'organizer'))
+        .map((row) => String(row.id)));
+      ctx.taskforceOrganizerGroups = new Set(groups
+        .filter((group) => group.sourceId && organized.has(String(group.sourceId)))
+        .map((group) => String(group.id)));
+    }
+    return ctx.taskforceOrganizerGroups.has(String(workgroupId));
+  }
   const group = listTable(db, 'workgroups').find((row) => row.id === workgroupId && row.kind === 'taskforce');
   const taskforceId = group?.sourceId || null;
   if (!taskforceId) return false;
@@ -148,16 +162,36 @@ function _canReadAttendanceRow(db, row, actor, read) {
     && _activityPartyGroup(db, activity, read) === actor.partyGroup;
 }
 
-function _canReadInspectionRow(db, row, actor, read) {
+function _canReadInspectionRow(db, row, actor, read, ctx) {
   if (!row || !actor) return false;
   if (row.personId === actor.id || row.recordedBy === actor.id) return true;
-  if (row.sourceType === 'taskforce') return _isTaskforceOrganizerByWorkgroupId(db, row.workgroupId, actor.id);
-  const activity = _activityRow(db, row.activityId, read);
+  if (row.sourceType === 'taskforce') return _isTaskforceOrganizerByWorkgroupId(db, row.workgroupId, actor.id, ctx);
+  // D-882 性能：列表路径预取活动 id 集（一次 IN 查询），不再逐行单查。
+  const activity = ctx && ctx.activityById
+    ? (ctx.activityById.get(String(row.activityId)) || null)
+    : _activityRow(db, row.activityId, read);
   if (!activity) return false;
   if (_isActivityOrganizer(activity, actor.id)) return true;
   return isPartyGroupLeaderRole(actor.role)
     && !!actor.partyGroup
     && _activityPartyGroup(db, activity, read) === actor.partyGroup;
+}
+
+/** 考察行级读的每请求上下文：活动 id 集一次取回 ＋ 专班组织者集合惰性一次算（`D-882`） */
+function _buildInspectionReadContext(db, rows, read) {
+  const ids = [...new Set(rows.map((row) => row && row.activityId).filter(Boolean).map(String))];
+  let activityById = null;
+  if (!read && ids.length) {
+    activityById = new Map();
+    for (let i = 0; i < ids.length; i += 200) {
+      const chunk = ids.slice(i, i + 200);
+      const found = db.prepare(`SELECT id, data FROM activities WHERE id IN (${chunk.map(() => '?').join(',')})`).all(...chunk);
+      for (const row of found) {
+        try { activityById.set(String(row.id), JSON.parse(row.data)); } catch { /* 坏行按不可见处理 */ }
+      }
+    }
+  }
+  return { activityById, taskforceOrganizerGroups: null };
 }
 
 function _canReadTodoRow(row, actor) {
@@ -275,7 +309,10 @@ function _resourceRowsForActor(db, name, table, actor, requestedBranchId, opts =
   // R4-F04：非支委层的行级投影（本人 / 本场组织者 / 本组组长）。
   if (!_hasFullRead(actor)) {
     if (name === 'attendances') rows = rows.filter((row) => _canReadAttendanceRow(db, row, actor, read));
-    if (name === 'inspections') rows = rows.filter((row) => _canReadInspectionRow(db, row, actor, read));
+    if (name === 'inspections') {
+      const ctx = _buildInspectionReadContext(db, rows, read);
+      rows = rows.filter((row) => _canReadInspectionRow(db, row, actor, read, ctx));
+    }
     if (name === 'todos') rows = rows.filter((row) => _canReadTodoRow(row, actor));
   }
   if (name !== 'users') return _projectResourceRowsExt(db, name, rows, actor);
@@ -1812,11 +1849,11 @@ function _projectResourceRowsExt(db, name, rows, actor) {
 /** 行级读投影集合：非支委层快照写穿时，保留「本次未出现且本人不可见」的存量行 */
 const ROW_PROJECTED_SNAPSHOT_COLLECTIONS = new Set(['todos', 'thoughtReports', 'attendances', 'inspections']);
 
-function _canReadProjectedRow(db, name, row, actor, read) {
+function _canReadProjectedRow(db, name, row, actor, read, ctx) {
   if (name === 'todos') return _canReadTodoRow(row, actor);
   if (name === 'thoughtReports') return canReadThoughtReport(row, { personId: actor?.id, role: actor?.role });
   if (name === 'attendances') return _canReadAttendanceRow(db, row, actor, read);
-  if (name === 'inspections') return _canReadInspectionRow(db, row, actor, read);
+  if (name === 'inspections') return _canReadInspectionRow(db, row, actor, read, ctx);
   return true;
 }
 
@@ -1825,6 +1862,7 @@ export function _retainRowScopedSnapshotRows(db, writes, actor, reader) {
   const own = actorBranchId(actor);
   if (!own) return writes;
   const read = reader || createTableReader(db);
+  const ctx = {}; // 每请求共享：专班组织者集合只算一次（`D-882`）
   return writes.map((write) => {
     const { name, table, rows } = write;
     if (!ROW_PROJECTED_SNAPSHOT_COLLECTIONS.has(name)) return write;
@@ -1832,7 +1870,7 @@ export function _retainRowScopedSnapshotRows(db, writes, actor, reader) {
     const retained = read.rows(table).filter((row) => row && row.id
       && !incoming.has(String(row.id))
       && resourceBranchId(db, name, row, read) === own
-      && !_canReadProjectedRow(db, name, row, actor, read));
+      && !_canReadProjectedRow(db, name, row, actor, read, ctx));
     return retained.length ? { ...write, rows: [...rows, ...retained] } : write;
   });
 }

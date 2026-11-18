@@ -146,13 +146,21 @@ function _sessionExpired(db, session) {
 // ════════════════════════════════════════════════════════════════
 //  登录口令判定（波次 G · 2026-11-08：个人密码优先，共享口令回退）
 //  · 个人密码优先：`users.data.passwordHash` 为合法散列 ⇒ **只**校验个人密码，失败即拒，不回退共享口令。
-//  · 旧库 / 未设置（字段缺失或空串）⇒ 回退支部统一口令 `loginPasswordOk()`（LOGIN_PASSWORD / 非生产 '123456'）。
+//  · 旧库 / 未设置（字段缺失或空串）⇒ 非生产回退支部统一口令 `loginPasswordOk()`（LOGIN_PASSWORD / '123456'）；
+//    **生产形态不回退**（`D-882`），直接拒并提示用 `scripts/set-password.mjs` 设个人密码。
 //  · 字段存在但格式非法 ⇒ fail-closed（按口令错误处理并告警），不静默降级到共享口令。
 //  · 逃逸门 `DISABLE_PASSWORD_CHECK=1`（仅非生产）仍在调用方先判，本函数不会被执行。
 // ════════════════════════════════════════════════════════════════
 function loginPasswordForUser(password, user) {
   const stored = user && user.passwordHash;
-  if (stored === undefined || stored === null || stored === '') return loginPasswordOk(password);
+  if (stored === undefined || stored === null || stored === '') {
+    // 生产形态不认共享口令回退（`D-882`：换轨只用个人密码）；未设个人密码即拒，并提示重置路径。
+    if (isProductionEnv()) {
+      console.warn('[auth] 生产形态拒绝共享口令回退：该账号未设置个人密码（用 scripts/set-password.mjs 设置后再登录）');
+      return false;
+    }
+    return loginPasswordOk(password);
+  }
   if (!isPasswordHash(stored)) {
     console.warn('[auth] 用户口令散列格式非法，已按口令错误处理（请用 scripts/set-password.mjs 重置）');
     return false;

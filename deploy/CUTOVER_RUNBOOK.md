@@ -2,7 +2,7 @@
 title: "数据换轨 Runbook（export-all / import-all / preflight-cutover）"
 type: runbook
 role: "[运维执行人]+[工程师]"
-last_updated: 2026-11-02
+last_updated: 2026-11-19
 status: active
 ---
 
@@ -200,7 +200,18 @@ copy(localStorage.getItem('workflowos_branch_db_v1'))   // 整库读缓存（含
 
 ---
 
-## 9. 命令速查
+## 9. 个人密码 100%（换轨前置）
+
+> 裁定 `D-882`：**生产与换轨路径只走个人密码**。共享口令 `LOGIN_PASSWORD` 仅供本地演示；生产形态下未设个人密码的账号**直接拒绝登录**（`server/routes/auth.js::loginPasswordForUser`）。
+
+1. **换轨前逐账号设置个人密码**：`cd server; node scripts/set-password.mjs <personId>`（生产形态执行）。
+2. **体检**：`node scripts/preflight-cutover.mjs --db <目标库> --strict`。⑧ 项会列出未设个人密码的账号数；`--strict` 下警告即阻断，必须为 **0** 才能换轨。
+3. **确认共享口令人为不可用**：生产环境仍设 `LOGIN_PASSWORD` 作为启动门槛（`server.js` 缺它拒绝启动），但它**不再是可登录口令**；不要把它写进任何交接文档作为成员登录方式。
+4. **回滚边界**：回滚到旧版本代码时，共享口令回退会重新生效——回滚窗口内必须同步轮换 `LOGIN_PASSWORD`，并记录在换轨记录里。
+
+---
+
+## 10. 命令速查
 
 ```powershell
 cd server
@@ -224,7 +235,7 @@ node scripts/rebuild-demo.mjs --mode baseline --out <新库>
 
 ---
 
-## 10. 失败处置
+## 11. 失败处置
 
 | 现象 | 处置 |
 |---|---|

@@ -10,6 +10,22 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 569（2026-11-19）· 换轨前置与两项性能（B-568-2 / B-568-3）
+
+### 为什么
+- 支书 `P-2`：真实采用只用个人密码，换轨要先做好准备；`P-4` 取乙：两项性能本批做。
+
+### 拿不准
+- 生产禁共享口令后，未设个人密码的旧账号会直接无法登录：用 preflight ⑧ ＋ runbook「换轨前逐账号 `set-password`」兜住，未做自动回填（默认口令不可猜）。
+- `/portal` 仍逐行读 JSON 宽表（`fileData` 只在 SQL 侧算布尔）；列式化需 `MIGRATIONS v2`（`L-17`），本批不做。
+
+### 边界
+- `fileDataOk` 是 `decodeFileData` 的 SQL 近似：data URL 命中，或 base64 字符集且长度 ≥8；单条详情仍走精确解码。
+- 考察读权限语义不变（本人 / 建档人 / 场次组织者 / 本组组长），只把 N+1 改成每请求一次。
+
+### 读数
+- `personal-password` 9/9（新增「生产拒绝共享口令」1 条）；`public-portal*` / `public-brand` / `committee-multidomain` / `leader-progress` 26/26；`inspection-write-gate` / `round3-4-security` / `permission-gate` / `todo-deriver-domain` 39/39（需 `DISABLE_PASSWORD_CHECK=1`）。
+
 ## 批次 568（2026-11-19）· 丙部落盘 ＋ 六维保守重校 ＋ 历史值隔离
 
 ### 为什么
