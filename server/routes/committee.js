@@ -12,6 +12,9 @@ import { requireAuth, requireRole, requireCommissioner } from './auth.js';
 import { DEFAULT_BRANCH_ID, SECRETARY_AND_DEPUTY_ROLES as SECRETARY_DEPUTY_ROLE_KEYS, resolveCommitteeIds, ballotModeOfActivity } from '../../docs/src/core/domain/constants.js';
 import { validateAgendaVoteTarget } from '../../docs/src/services/activity/agenda-relations.js';
 import { actorBranchId, branchSelectionError, resourceRowsForActor } from './resources/branch-scope.js';
+import { checkDate } from './resources/write-validation.js';
+import { bumpCollectionVersion } from '../db.js';
+import { today as todayLocal } from '../services/reporting.js';
 
 // 支委白名单 = 旧活动回退白名单（P1-09，2026-10-20）：按当前 users.role 派生，不再维护 id 快照；
 // 权威名单 = 活动 voteConfig.voterIds（前端创建活动时经 vote-config 固化写入活动）；
@@ -207,8 +210,11 @@ export function createCommitteeRouter(db) {
   router.post('/agenda-votes/lock', requireRole(db, SECRETARY_AND_DEPUTY_ROLES), (req, res) => {
     const { activityId, votesLocked, voteDeadline } = req.body || {};
     if (!activityId) return res.status(400).json({ error: '缺少 activityId' });
-    if (voteDeadline !== undefined && (typeof voteDeadline !== 'string' || !voteDeadline.trim())) {
-      return res.status(400).json({ error: 'voteDeadline 须为非空字符串' });
+    // 截止串必须有日期语义（`YYYY-MM-DD` 且不早于今天）；非法值 422，不落库。
+    if (voteDeadline !== undefined) {
+      const invalidDeadline = checkDate('voteDeadline', voteDeadline);
+      if (invalidDeadline) return res.status(422).json({ error: invalidDeadline });
+      if (voteDeadline < todayLocal()) return res.status(422).json({ error: 'voteDeadline 不得早于今天' });
     }
     const act = getRow(db, 'activities', activityId);
     if (!act) return res.status(404).json({ error: '活动不存在' });
@@ -220,6 +226,7 @@ export function createCommitteeRouter(db) {
       ...(voteDeadline ? { voteDeadline } : {}),
     };
     writeRow(db, 'activities', merged);
+    bumpCollectionVersion(db, 'activities'); // R10-D02：语义写口必须推进集合版本
     res.json(merged);
   });
 

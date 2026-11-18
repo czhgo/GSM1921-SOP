@@ -270,7 +270,7 @@ function _objectOptions() {
   if (_objectType === 'taskforce') {
     return TaskForceRecordStore.getAll()
       .filter(tf => tf && tf.status !== TaskforceStatus.DISSOLVED)
-      .sort((a, b) => (b.deadline || b.createdAt || '').localeCompare(a.deadline || a.createdAt || ''))
+      .sort((a, b) => { const keyOf = (x) => x.deadline || x.createdAt || ''; return keyOf(b).localeCompare(keyOf(a)); }) // 单一 sortKey，两栏各自回退会破坏传递性
       .map(tf => ({ id: tf.id, label: `${tf.name || '未命名专班'}（${tf.deadline || '未排期'}）` }));
   }
   return _meetingActivityOptions().map(a => ({ id: a.id, label: `${a.title}（${a.date || '未排期'} · ${a.type}）` }));

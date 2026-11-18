@@ -387,7 +387,7 @@ test('转交组织者通知（批次 330 裁）：支委层可触发且项目名
 
 // C-2 方案 B（2026-09-11 支书批）：名册成员变更确认链「支书阶段写入」语义端点权限边界
 // POST /api/v1/members/:id/develop-stage —— 仅支书（SECRETARY_ROLES）+ 同支部；字段仅 developStage。
-test('成员变更确认链阶段端点：支书/副支书本支部 200 且落库；非支书侧 403；跨支部 403；白名单/枚举 400', async () => {
+test('成员变更确认链阶段端点：支书/副支书本支部 200 且落库；非支书侧 403；跨支部 403；白名单/枚举 422', async () => {
   const { token: secToken } = await login('2300010001');      // br-b1 支书
   const { token: depToken } = await login('2300010002');      // br-b1 副支书（副书同权 2026-09-11）
   const { token: orgToken } = await login('2400012355');      // br-b1 组织委员（非支书侧）
@@ -453,28 +453,28 @@ test('成员变更确认链阶段端点：支书/副支书本支部 200 且落�
   });
   assert.equal(crossDep.status, 403, '副支书不得推进异支部成员阶段');
 
-  // ④ 字段白名单硬挡：含 role/branchId → 400（支书/副支书同挡）
+  // ④ 字段白名单硬挡：含 role/branchId → 422（字段值不合法；支书/副支书同挡）
   const roleInj = await fetch(`${base}/api/v1/members/2400012345/develop-stage`, {
     method: 'POST', headers: authHeaders(secToken),
     body: JSON.stringify({ developStage: '正式党员', role: 'secretary' }),
   });
-  assert.equal(roleInj.status, 400, '含治理字段 role 一律 400');
+  assert.equal(roleInj.status, 422, '含治理字段 role 一律 422');
   const brInj = await fetch(`${base}/api/v1/members/2400012345/develop-stage`, {
     method: 'POST', headers: authHeaders(secToken),
     body: JSON.stringify({ developStage: '正式党员', branchId: 'br-x' }),
   });
-  assert.equal(brInj.status, 400, '含治理字段 branchId 一律 400');
+  assert.equal(brInj.status, 422, '含治理字段 branchId 一律 422');
   const depInj = await fetch(`${base}/api/v1/members/2400012345/develop-stage`, {
     method: 'POST', headers: authHeaders(depToken),
     body: JSON.stringify({ developStage: '正式党员', role: 'secretary' }),
   });
-  assert.equal(depInj.status, 400, '副支书注入 role 亦 400');
+  assert.equal(depInj.status, 422, '副支书注入 role 亦 422');
 
-  // ⑤ 枚举外阶段 → 400；成员不存在 → 404（支书 token 已过门）
+  // ⑤ 枚举外阶段 → 422；成员不存在 → 404（支书 token 已过门）
   const badStage = await fetch(`${base}/api/v1/members/2400012345/develop-stage`, {
     method: 'POST', headers: authHeaders(secToken), body: JSON.stringify({ developStage: '神秘阶段' }),
   });
-  assert.equal(badStage.status, 400);
+  assert.equal(badStage.status, 422);
   const ghost = await fetch(`${base}/api/v1/members/p_ghost/develop-stage`, {
     method: 'POST', headers: authHeaders(secToken), body: JSON.stringify({ developStage: '预备党员' }),
   });

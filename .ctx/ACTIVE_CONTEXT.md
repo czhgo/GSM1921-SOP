@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: 2026-11-18
 last_verified: "2026-11-18"
-latest_decision: "D-880"
+latest_decision: "D-881"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -27,13 +27,13 @@ status: active
   - source：`server/data/domain-contract.mjs`、`content/04_web_design/data/DATA_CONTRACT.md`。
 - **权限**：写入口权限矩阵 **162 条**（156 enforced / 4 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵；审计 C1 查矩阵 + 高风险抽样。统计口径：`WRITE_POLICY_MATRIX` 按 `status` 计数（2026-11-15 实测；T14 新增进入 / 退出支部查看两写口）。
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
-- **六维（2026-11-17 批次 562–564 重评 `D-880`）**：业务 **81** / 安全 **80** / 体验 **81** / 测试 **76** / 架构 **78** / 部署 **74**，**仍有三维（测试 / 架构 / 部署）<80 ⇒ 继续不合并**。本批补齐：五项字段错配、契约枚举以实现为准、两处存储型 XSS、上报与归档参数校验、写路径统一 `updatedAt`、全资源 `If-Match`（428/409）、约 65 处表头 `scope`、跨组汇总服务端化、help 全量对齐。仍缺：共享口令回退（L-11）、多支部读过滤未接线（L-10）、CI 无 run id、full 未重跑、Linux 真机未验（L-02）、routes 87 处回落、真人签收未完成。
+- **六维（2026-11-18 批次 565–567 重评 `D-881`）**：业务 **82** / 安全 **80** / 体验 **82** / 测试 **76** / 架构 **79** / 部署 **74**，**仍有三维（测试 / 架构 / 部署）<80 ⇒ 继续不合并**。本批补齐：审计 P0 清零（驱动补 If-Match ＋ 守卫）、集合版本键与 7 处 bump、v18 报名唯一索引与 `duplicateOf` 读侧、B-552 四项、前端 11 项显示/交互修复、契约 50 表对齐。仍缺：共享口令回退（L-11）、多支部读过滤（L-10）、CI 无 run id、`test:full` 未整体重跑（1779s 读数）、Linux 真机未验（L-02）、routes 87 处回落、门户附件与考察 N+1 两项性能、真人签收未完成。
 - **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（2026-11-15 批次 554 实跑 191s，自起 `:memory:`）；审计工具已修复（URL 跟随无后缀 canonical、登录失败 `exit 2`），此前「P0 46」确认为工具类假警报。F1–F8 全绿；M1–M3 在位。
   - source：`.ctx/evidence/2026-11-15/tab-audit/summary.md`（原始截图与 findings.json 可重跑再生，未入库）。
-- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **32 文件 / 259 断言 / 100.5s**（结果门禁）；guards **111 文件 / 381 项全绿 / 153.3s**（静态守卫，按需，2026-11-17 批次 564 读数）；precommit＝daily＋guards＋非核心域回归＋e2e，**2026-11-14 全绿：341 绿 / 0 红 / 1 跳过 · 墙钟 1939.8s**；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
+- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **32 文件 / 261 断言 / 127.0s**（结果门禁）；guards **112 文件 / 385 项全绿 / 158.0s**（静态守卫，按需，2026-11-18 批次 567 读数）；precommit＝daily＋guards＋非核心域回归＋e2e，**2026-11-14 全绿：341 绿 / 0 红 / 1 跳过 · 墙钟 1939.8s**；`test:full` 2026-11-18 实测 **1779.0s**（三通道各 1 红已逐文件分诊并修复，未整体重跑）；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
   - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859 / §D-860 / §D-863 / §D-864`。
-- **工程评分（`D-880`，2026-11-17 批次 562–564 重评）**：业务与数据 **81** · 安全与权限 **80** · 最小三成本 **81** · 测试与发布 **76** · 架构与可维护性 **78** · 运行部署 **74**；不设平均总分；仍有三维 <80。
-  - source：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/logs/2026-11-DECISION_LOG.md §D-880`。
+- **工程评分（`D-881`，2026-11-18 批次 565–567 重评）**：业务与数据 **82** · 安全与权限 **80** · 最小三成本 **82** · 测试与发布 **76** · 架构与可维护性 **79** · 运行部署 **74**；不设平均总分；仍有三维 <80。
+  - source：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/logs/2026-11-DECISION_LOG.md §D-881`。
 - **版本戳**：`20261110b`（`bump-version --check`：0 处陈旧，CODE_VERSION 一致）。
   - source：`docs/scripts/bump-version.mjs --check`。
 - **换轨**：副本 **48 表 / 577 行** export → dry-run → apply 一致；生产空库 `preflight-cutover --strict` exit 0 / 警告 0。

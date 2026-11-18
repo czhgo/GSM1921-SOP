@@ -71,6 +71,8 @@ export function describeWriteError(err) {
     if (status === 403) return reason ? `当前账号无权办理：${reason}` : '当前账号无权办理';
     if (status === 404) return '记录不存在或已删除';
     if (status === 409) return '已被他人更新，请刷新后重试';
+    if (status === 413) return '文件过大，请压缩后重试';
+    if (status === 422) return '填写内容不符合要求，请检查';
     if (status === 428) return '页面版本过旧，请刷新';
     if (status === 408 || status >= 500) return '服务暂时不可用，请稍后重试';
     if (!status && (e.type === 'NetworkError' || e.name === 'TypeError'

@@ -21,6 +21,10 @@ import { aggregateMemberProgress } from '../../docs/src/services/member/member-p
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
 import { today as todayLocal } from '../services/reporting.js';
 import { actorBranchId, branchSelectionError, createTableReader, resourceRowsForActor, selectedBranchRequiredError } from './resources/branch-scope.js';
+import { checkDate } from './resources/write-validation.js';
+
+/** `personIds` 上限：一次汇总的人数上限，超出即 422（防单请求拉全支部做重复聚合） */
+const PERSON_IDS_MAX = 200;
 
 // ── 读口（2026-11-01 性能批：personId 集下推 SQL 预筛）────────────────────────
 // 原状：`SELECT data FROM <table>` 四表全读 → JS 按 personId 过滤（O(全表)，随数据量线性劣化）。
@@ -86,6 +90,9 @@ export function createLeaderProgressRouter(db) {
     if (!personIds.length) {
       return res.status(400).json({ error: 'personIds 必填（逗号分隔的人员 id）' });
     }
+    if (personIds.length > PERSON_IDS_MAX) {
+      return res.status(422).json({ error: `personIds 最多 ${PERSON_IDS_MAX} 个` });
+    }
     // 读门（本批 P0-5）：组长只看本组；支委层 / 党委看支部；其他角色拒绝。
     const isLeader = LEADER_ROLES.has(req.actor.role);
     const isBranchReader = BRANCH_READ_ROLES.has(req.actor.role);
@@ -103,7 +110,16 @@ export function createLeaderProgressRouter(db) {
       const crossGroup = personIds.filter((personId) => groupOf(requestedUsers.get(personId)) !== myGroup);
       if (!myGroup || crossGroup.length) return res.status(403).json({ error: '无权限：只能查看本党小组成员进展' });
     }
-    const today = String(req.query.today || '').trim() || todayLocal();
+    // 「今天」可由调用方给定，但必须是有日期语义的 `YYYY-MM-DD` 且与服务端当日相差 ≤1 天（防他端时区 / 手改口径判定超期）。
+    const requestedToday = String(req.query.today || '').trim();
+    if (requestedToday) {
+      const invalidToday = checkDate('today', requestedToday);
+      if (invalidToday) return res.status(422).json({ error: invalidToday });
+      const serverToday = todayLocal();
+      const driftDays = Math.abs(Date.parse(`${requestedToday}T00:00:00Z`) - Date.parse(`${serverToday}T00:00:00Z`)) / 86400000;
+      if (driftDays > 1) return res.status(422).json({ error: 'today 与服务端当日相差不得超过 1 天' });
+    }
+    const today = requestedToday || todayLocal();
     // 请求级预载：支部过滤时逐行解析的关联行（activities 等）只读一次表，四张表共用同一 reader
     const branchReader = createTableReader(db);
     /** personId 集预筛 → 支部过滤（口径全在 branch-scope，本文件不重写） */

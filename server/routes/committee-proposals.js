@@ -237,6 +237,7 @@ export function createCommitteeProposalsRouter(db) {
         };
         agenda.push(agendaItem);
         put(db, 'activities', { ...meeting, agenda, updatedAt: now() });
+        bumpCollectionVersion(db, 'activities');
         updated = { ...updated, meetingActivityId: meeting.id, agendaItemId: agendaItem.id };
       }
       if (action === 'decide') {
@@ -267,6 +268,8 @@ export function createCommitteeProposalsRouter(db) {
             });
             if (!created.ok) throw Object.assign(new Error(created.error), { status: created.status || 400 });
             createdSource = id;
+            bumpCollectionVersion(db, 'activities');
+            bumpCollectionVersion(db, 'workgroups');
           } else {
             const id = `tf-${randomUUID().slice(0, 8)}`;
             const created = createTaskforceWorkgroup(db, req.actor, {
@@ -284,6 +287,8 @@ export function createCommitteeProposalsRouter(db) {
             });
             if (!created.ok) throw Object.assign(new Error(created.error), { status: created.status || 400 });
             createdSource = id;
+            bumpCollectionVersion(db, 'taskforces');
+            bumpCollectionVersion(db, 'workgroups');
           }
           updated = { ...updated, sourceId: createdSource };
         }
@@ -297,6 +302,7 @@ export function createCommitteeProposalsRouter(db) {
                 : item
             ));
             put(db, 'activities', { ...meeting, agenda, updatedAt: now() });
+            bumpCollectionVersion(db, 'activities');
           }
         }
       }

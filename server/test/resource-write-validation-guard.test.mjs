@@ -132,14 +132,20 @@ test('G6 列表响应形状归一（B-552-2）：分页对象在读口归一为�
   const adapterSrc = read('docs/src/data/api-adapter.js');
   assert.match(adapterSrc, /_isResourceListPath\(path\) \? normalizeListPayload\(payload\) : payload/,
     'api-adapter 的 `_get` 未在读口应用列表形状归一');
-  assert.match(adapterSrc, /Array\.isArray\(payload\.rows\) && typeof payload\.total === 'number'/,
-    '归一只认服务端分页对象（`rows` 数组 ＋ 数字 `total`），不得按 `items` 误伤对象端点');
+  assert.match(adapterSrc, /Array\.isArray\(payload\.rows\)/,
+    '归一判据须只看 `rows` 是否为数组（游标分页不带数字 `total`）');
+  assert.doesNotMatch(adapterSrc, /typeof payload\.total === 'number'/,
+    '不得再以数字 `total` 为前提，否则游标分支（rows ＋ nextCursor ＋ hasMore）会被漏掉');
 
   assert.deepEqual(normalizeListPayload([{ id: 'a' }]), [{ id: 'a' }], '裸数组须原样返回');
-  assert.deepEqual(
-    normalizeListPayload({ rows: [{ id: 'a' }], total: 1, pageSize: 20, nextCursor: null, hasMore: false }),
-    [{ id: 'a' }], '分页对象须归一为 `rows` 数组',
-  );
+  const paged = normalizeListPayload({ rows: [{ id: 'a' }], total: 1, pageSize: 20, nextCursor: null, hasMore: false });
+  assert.deepEqual([...paged], [{ id: 'a' }], '分页对象须归一为 `rows` 数组');
+  assert.equal(paged.nextCursor, null, '`nextCursor` 须保留在归一结果上（不丢元信息）');
+  assert.equal(paged.hasMore, false, '`hasMore` 须保留在归一结果上（不丢元信息）');
+  const cursorOnly = normalizeListPayload({ rows: [{ id: 'b' }], nextCursor: 'c2', hasMore: true });
+  assert.deepEqual([...cursorOnly], [{ id: 'b' }], '游标分支（无数字 `total`）也须归一为数组');
+  assert.equal(cursorOnly.nextCursor, 'c2', '游标分支的 `nextCursor` 须保留');
+  assert.equal(cursorOnly.hasMore, true, '游标分支的 `hasMore` 须保留');
   const objectEndpoint = { branchId: 'br-b1', asOf: '2026-11-18', items: [{ id: 'g' }] };
   assert.equal(normalizeListPayload(objectEndpoint), objectEndpoint, '非分页对象（如 group-attendance-summary）不得被拆包');
   assert.equal(normalizeListPayload(null), null, '空响应须原样返回');

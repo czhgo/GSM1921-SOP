@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-880`，共 54 条**；下一条自 **`D-881`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-881`，共 55 条**；下一条自 **`D-882`**。
 
 ## 本月目录（2026-11）
 
@@ -74,6 +74,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 六维补齐后重评：78 / 78 / 78 / 74 / 76 / 74，仍 <80 ⇒ 继续不合并；四条硬缺口列出 | `D-878` | 2026-11-15 | 已落（批次 559） |
 | 壳层全局 44px＋13px；八条数字口径；三处越权；列表 2000＋水合不截断；六维 79/79/80/75/77/74 仍不合并 | `D-879` | 2026-11-16 | 已落（批次 561） |
 | 字段错配五项＋契约以实现为准＋XSS/上报校验＋写路径 updatedAt＋全资源 If-Match＋help 全量对齐；六维 81/80/81/76/78/74 仍不合并 | `D-880` | 2026-11-17 | 已落（批次 562–564） |
+| 审计 P0 清零（驱动补 If-Match＋守卫）＋ B-552 四项（含 v18 报名唯一索引）＋ 全栈专项修复；六维 82/80/82/76/79/74 仍不合并 | `D-881` | 2026-11-18 | 已落（批次 565–567） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -483,5 +484,9 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 
 > **评议 → 裁定 → 落点**：支书令「继续查前端、后端、计算与显示逻辑，特别是姓名写成学号这类张冠李戴；更新 help 对齐前沿能力」。三路只读审计（字段错配 / help / 全栈逻辑）后逐条请支书裁定：① 五项字段错配**全修并加契约字段守卫**；② 契约枚举冲突**以实现为准改契约**（`branches: active|inactive`、工作组成员 `active|removed`）；③ 并发整行覆盖做**全资源 `If-Match`**（缺头 428 / 过期 409＋`latest`），`updatedAt` 打底取**应用层回填＋写路径统一**（不加 schema 列）；④ 批次拆为 **562（正确性与安全）/ 563（help）/ 564（乐观锁）** 三条 commit；⑤ help **功能/流程优先、技术压后**；⑥ 三项偏好（空态下一步、门厅截断提示、跨组口径服务端化）全部纳入。**落点**：`docs/src/services/{governance/todo,member/person,governance/issues}.js`、`components/record/{report-inbox,report-entry,other-groups-view,insight-view,todo-tab-shell}.js`、`data/{api-adapter,data-adapter}.js`、`server/data/domain-contract.mjs`、`server/routes/{report,public-portal}.js`、`server/routes/resources/{index,semantic-routes,write-validation}.js`、`server/db.js`（`backfillUpdatedAt`）、`server/server.js`、`docs/help.html`、`server/test/{contract-field-usage-guard,if-match}.test.mjs`。**结论**：六维 **81 / 80 / 81 / 76 / 78 / 74**，仍有三维 <80（测试 76 / 架构 78 / 部署 74）⇒ **继续不合并**。读数：daily **32 文件 / 259 断言 / 100.5s**；guards **111 文件 / 381 项 / 153.3s** 全绿；`If-Match` 真机三态 428 / 409＋`latest` / 200；跨组汇总 32/10、0/0、4/1（实到 ≤ 应到）。**未选**：只修显示可见错配（契约枚举暗雷保留）；以契约为准改实现（历史行迁移成本）；只加 `updatedAt` 不加锁（并发丢字段仍在）；help 只修错不补能力（帮助页继续落后）。**边界**：动作型语义 PATCH 与聚合根行不强制 `If-Match`（由状态机留痕与集合级 `_versions` 承担）；`test:full`、CI run id、Linux 真机仍未补。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-880`**（共 **54** 条）。
+## D-881 2026-11-18 — 审计 P0 清零 / B-552 / 全栈专项：六维 82 / 80 / 82 / 76 / 79 / 74（仍不合并）
+
+> **评议 → 裁定 → 落点**：支书令「再查全仓待办与 P0/P1/P2 是否真问题；有判例按判例，无判例就问；无急件则做前端 / 后端 / 全栈 / 计算专项」。盘点结论：唯一阻断是**本仓自己引入的审计 P0 23**（564 上 If-Match 后驱动仍发裸 PATCH）。两项无既有判例事项经支书裁定：① 报名查重**加 v18 唯一索引＋保留最早一条、其余标 `duplicateOf` 不删**；② 44 条审计例外**发布前同批复核＋三类归档**。其余按既有规则处理：`D-849` 一实例一支部（L-10 不升 P1）、`L-11` 共享口令维持回退、`H30` 一改具改（台账三套值统一）、`H25` full 红项分诊（环境 / 陈旧 / 真回归）。**落点**：`server/scripts/audit/{checks-crud,checks-data}.mjs`、`server/test/audit-write-version-guard.test.mjs`、`server/db.js`（v18）、`server/routes/resources/{index,semantic-routes,signup-write-guard,write-validation}.js`、`server/routes/{committee,committee-proposals,system-notices,leader-progress,uploads}.js`、`docs/src/{data/api-adapter,services/activity/attendance,components/record/report-inbox,components/governance/activity-progress,components/ui/list-filter,core/base/utils}.js`、`content/04_web_design/data/{DATA_CONTRACT,DATA_MODEL}.md`、`.ctx/evidence/2026-11-18/`。**结论**：六维 **82 / 80 / 82 / 76 / 79 / 74**，仍有三维 <80 ⇒ **继续不合并**。读数：daily **261 / 127.0s**；guards **112 文件 / 385 项 / 158.0s**；`audit-tabs` **P0 0 / P1 0 / P2 2 / exception 44**；`test:full` 1779s（红项已逐文件分诊修复，未整体重跑）。**未选**：只修 P0 不做专项（支书要求推进）；把性能两项（门户附件全表解析、考察 N+1）一并重写（无判据、改动面大，登记触发条件）；把例外复核做成每日守卫（支书记已裁定不新增）。**边界**：`test:full` 与 CI run id、Linux 真机仍未补。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-881`**（共 **55** 条）。
 

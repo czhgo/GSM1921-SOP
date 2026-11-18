@@ -462,13 +462,13 @@ const NON_RESOURCE_ROWS = [
     method: 'PATCH', path: '/api/v1/branches/:id/config', resource: 'branches',
     middleware: 'requireAuth', roleGate: 'party-staff / 本支部支书·副支书；域负责人仅本域 policyOverrides', ownership: 'branch',
     fieldLocks: ['config.modules/blocks/capabilityPackages（域负责人不可写）', 'configChangeHistory（服务端追加）'],
-    evidence: 'server/routes/resources/index.js#L1156-L1176; server/test/branch-config-audit.test.mjs', status: 'enforced',
+    evidence: 'server/routes/resources/index.js#L1211-L1230; server/test/branch-config-audit.test.mjs', status: 'enforced',
   },
   {
     method: 'PATCH', path: '/api/v1/branches/:id/config/rollback', resource: 'branches',
     middleware: 'requireAuth', roleGate: 'party-staff / 本支部支书·副支书', ownership: 'branch',
     fieldLocks: ['CONFIG_ROLLBACK_KEYS（单键白名单）', 'configChangeHistory（服务端追加回滚行）'],
-    evidence: 'server/routes/resources/index.js#L1341-L1352', status: 'enforced',
+    evidence: 'server/routes/resources/index.js#L1396-L1408', status: 'enforced',
   },
   {
     method: 'POST', path: '/api/v1/issues', resource: 'issues',
@@ -480,7 +480,7 @@ const NON_RESOURCE_ROWS = [
     method: 'PATCH', path: '/api/v1/issues/:id', resource: 'issues',
     middleware: 'requireRole(ISSUE_DISPOSITION_SET)', roleGate: '支委层处置位 + 同支部', ownership: 'branch',
     fieldLocks: ['白名单字段局部合并（不擦匿名真身）'],
-    evidence: 'server/routes/resources/index.js#L1588', status: 'enforced',
+    evidence: 'server/routes/resources/index.js#L1643', status: 'enforced',
   },
 
   // ── resources/workgroup-routes.js ───────────────────────────────
@@ -536,7 +536,7 @@ const NON_RESOURCE_ROWS = [
     method: 'POST', path: '/api/v1/workgroups/:id/outputs', resource: 'workgroupOutputs',
     middleware: 'requireAuth', roleGate: 'canManageWorkgroup ∪ output.submit', ownership: 'organizer',
     fieldLocks: ['submittedBy/submittedAt（服务端会话）'],
-    evidence: 'server/routes/resources/workgroup-routes.js#L1099-L1103', status: 'enforced',
+    evidence: 'server/routes/resources/workgroup-routes.js#L1200-L1204', status: 'enforced',
   },
   {
     method: 'POST', path: '/api/v1/taskforces/:id/dissolution', resource: 'taskforces',
@@ -591,17 +591,17 @@ const NON_RESOURCE_ROWS = [
   {
     method: 'POST', path: '/api/v1/agenda-votes', resource: 'agendaVotes',
     middleware: 'requireAuth', roleGate: 'voterIds 名单 + 同支部 + 未锁定', ownership: 'self', fieldLocks: ['ballotMode（制度强制）', 'position（选项枚举）'],
-    evidence: 'server/routes/committee.js#L58-L109; server/test/agenda-votes.test.mjs', status: 'enforced',
+    evidence: 'server/routes/committee.js#L61-L112; server/test/agenda-votes.test.mjs', status: 'enforced',
   },
   {
     method: 'POST', path: '/api/v1/agenda-votes/:id/annotate', resource: 'agendaVotes',
     middleware: 'requireCommissioner', roleGate: '支委层', ownership: 'branch', fieldLocks: ['批注字段（服务端追加）'],
-    evidence: 'server/routes/committee.js#L186', status: 'enforced',
+    evidence: 'server/routes/committee.js#L189', status: 'enforced',
   },
   {
     method: 'POST', path: '/api/v1/agenda-votes/lock', resource: 'agendaVotes',
     middleware: 'requireRole(SECRETARY_AND_DEPUTY_ROLES)', roleGate: '支书/副支书', ownership: 'branch', fieldLocks: ['votesLocked/lockedBy/lockedAt（服务端会话）'],
-    evidence: 'server/routes/committee.js#L207', status: 'enforced',
+    evidence: 'server/routes/committee.js#L210', status: 'enforced',
   },
   {
     method: 'POST', path: '/api/v1/member-change-requests', resource: 'memberChangeRequests',

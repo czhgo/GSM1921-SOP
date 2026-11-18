@@ -162,6 +162,13 @@ export function renderFilteredList(container, cfg) {
   // 表格模式：class 作用于 <table>（.data-table 单一源）；列表模式：作用于行容器
   listEl.className = config.table ? 'lf-list' : 'lf-list ' + config.listClass;
 
+  /** 清空本表查询态（关键词 / 分面 / 页码）：检索条不可见时旧筛选不得继续生效 */
+  function _resetQuery() {
+    st.q = '';
+    st.facets = {};
+    st.page = 1;
+  }
+
   /** 分面解析：auto = 首现序派生；取值 ≤1 种 → 该维度隐藏（空维度不占位） */
   function resolveFacets() {
     return config.facets
@@ -190,7 +197,8 @@ export function renderFilteredList(container, cfg) {
       barEl.hidden = true; barEl.innerHTML = ''; return;
     }
     barEl.hidden = !visible;
-    if (!visible) { barEl.innerHTML = ''; return; }
+    // 行数不足隐藏检索条 ⇒ 同步清空查询态：否则没有可见入口的旧关键词 / 分面仍在过滤结果。
+    if (!visible) { _resetQuery(); barEl.innerHTML = ''; return; }
     // 自动补全（批次 524 · #9 引入；批次 525 · #4 去原生 datalist）：`keyword.suggestions` 非空时
     //   走 `suggestInput` 自建列表（无 `list` 属性 ⇒ 输入框内不再出现 UA picker 三角）。
     //   suggestions 可为数组或 `(rows) => string[]`；去重、截断 50 条，显示最多 8 条。

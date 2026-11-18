@@ -251,17 +251,17 @@ export function createMemberRouter(db) {
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     const forbidden = DEVELOP_STAGE_FORBIDDEN.find((k) => Object.prototype.hasOwnProperty.call(body, k));
     if (forbidden) {
-      return res.status(400).json({ error: `字段 ${forbidden} 不在白名单（本端点仅可写 developStage）` });
+      return res.status(422).json({ error: `字段 ${forbidden} 不在白名单（本端点仅可写 developStage）` });
     }
     const toStage = body.developStage;
     if (typeof toStage !== 'string' || !DEVELOP_STAGE_OPTIONS.includes(toStage)) {
-      return res.status(400).json({ error: `developStage 须为：${DEVELOP_STAGE_OPTIONS.join(' / ')}` });
+      return res.status(422).json({ error: `developStage 须为：${DEVELOP_STAGE_OPTIONS.join(' / ')}` });
     }
     // developStageSince（进入当前阶段日期）：可选随行落档（2026-09-28 服务端化——原为本机
-    // localStorage 覆盖档案 gsm1921-dev-stage-overrides，跨设备不可读）。非 'YYYY-MM-DD' ⇒ 400。
+    // localStorage 覆盖档案 gsm1921-dev-stage-overrides，跨设备不可读）。非 'YYYY-MM-DD' ⇒ 422。
     const since = body.developStageSince;
     if (since !== undefined && since !== null && !/^\d{4}-\d{2}-\d{2}$/.test(String(since))) {
-      return res.status(400).json({ error: "developStageSince 须为 'YYYY-MM-DD'" });
+      return res.status(422).json({ error: "developStageSince 须为 'YYYY-MM-DD'" });
     }
     const userRow = db.prepare('SELECT data FROM users WHERE id = ?').get(req.params.id);
     if (!userRow) return res.status(404).json({ error: '成员不存在' });

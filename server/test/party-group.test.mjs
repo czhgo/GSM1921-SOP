@@ -9,6 +9,8 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createApp } from '../app.js';
+import { seedDatabase } from '../seed.js';
 
 const V = '?v=20261110b';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -215,5 +217,33 @@ test('D6 写权口径：支书/副支书可管理，其余不可', () => {
   assert.equal(pgMod.canManagePartyGroups('deputy-secretary'), true);
   for (const role of ['org-commissioner', 'prop-commissoner', 'disc-commissoner', 'leader', 'participant']) {
     assert.equal(pgMod.canManagePartyGroups(role), false, `${role} 不得管理党小组`);
+  }
+});
+
+test('D7 通用 POST /partyGroups：同支部同名活组 ⇒ 409（裸 INSERT，不得静默替换既有行）', async () => {
+  const app = createApp({ dbPath: ':memory:' });
+  await seedDatabase(app.locals.db);
+  const server = app.listen(0);
+  const base = `http://127.0.0.1:${server.address().port}`;
+  try {
+    const login = await fetch(`${base}/api/v1/auth/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ personId: '2300010001', password: '123456' }),
+    });
+    const token = (await login.json()).token;
+    const post = (body) => fetch(`${base}/api/v1/partyGroups`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    });
+    const first = await post({ id: 'pg-dup-a', name: '重名测试党小组', branchId: 'br-b1', status: 'active', seq: 88 });
+    assert.equal(first.status, 201, '首次创建应 201');
+    const second = await post({ id: 'pg-dup-b', name: '重名测试党小组', branchId: 'br-b1', status: 'active', seq: 89 });
+    assert.equal(second.status, 409, '同名活组必须 409，不得静默替换既有行');
+    const rows = app.locals.db.prepare("SELECT id FROM party_groups WHERE json_extract(data,'$.name') = '重名测试党小组'").all();
+    assert.deepEqual(rows.map((r) => r.id), ['pg-dup-a'], '既有行必须原样保留');
+  } finally {
+    server.closeAllConnections?.();
+    await new Promise((resolve) => server.close(resolve));
   }
 });

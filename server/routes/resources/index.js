@@ -532,6 +532,17 @@ export function createResourcesRouter(db) {
           if (scopeDeny) return res.status(400).json({ error: scopeDeny });
           const created = createTaskforceWorkgroup(db, req.actor, data);
           if (!created.ok) return res.status(created.status || 400).json({ error: created.error });
+        } else if (name === 'partyGroups') {
+          // 同名活党小组有部分唯一索引（db.js `ux_party_groups_branch_name`）：裸 INSERT，
+          // 唯一冲突回 409，不得用 `INSERT OR REPLACE` 静默替换既有行（判例 signup-write-guard.js:105-116）。
+          try {
+            db.prepare(`INSERT INTO ${table} (id, data) VALUES (?, ?)`).run(id, JSON.stringify(data));
+          } catch (e) {
+            if (/UNIQUE constraint failed/i.test(String(e && e.message))) {
+              return res.status(409).json({ error: '同一支部已存在同名党小组（请改名或先解散原组）' });
+            }
+            throw e;
+          }
         } else {
           if (name === 'signups') insertSignupRow(db, id, data); else db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(id, JSON.stringify(data)); // B-552-6：报名用裸 INSERT，冲突抛 409（INSERT OR REPLACE 会静默替换冲突行）
         }

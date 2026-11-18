@@ -91,7 +91,7 @@ export function signupCreateDeny(db, actor, signup) {
     return '无权限：新报名不能携带审核或作废留痕';
   }
   const duplicates = db.prepare('SELECT data FROM signups').all().map((row) => JSON.parse(row.data));
-  if (duplicates.some((row) => !row.voided && row.sourceType === signup.sourceType
+  if (duplicates.some((row) => !row.voided && !row.duplicateOf && row.sourceType === signup.sourceType
     && row.sourceId === signup.sourceId && row.personId === signup.personId
     && ['approved', 'pending'].includes(row.status))) return DUPLICATE_SIGNUP_MSG;
   return null;
@@ -228,7 +228,8 @@ export function signupSnapshotDeny(db, rows, actor) {
   }
   const active = new Set();
   for (const row of normalized) {
-    if (row.voided || !['approved', 'pending'].includes(row.status)) continue;
+    // v18 重复台账行（duplicateOf）不是有效报名：快照回写不得因此判成「两条有效报名」。
+    if (row.duplicateOf || row.voided || !['approved', 'pending'].includes(row.status)) continue;
     const key = `${row.sourceType}\u0000${row.sourceId}\u0000${row.personId}`;
     if (active.has(key)) return { error: '同一人员对同一活动或专班只能保留一条有效报名' };
     active.add(key);

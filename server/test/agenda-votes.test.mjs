@@ -12,6 +12,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
+import { daysAgo } from '../services/reporting.js';
 
 let server, base, db;
 let tokenSec, tokenOrg, tokenMember;
@@ -387,6 +388,23 @@ test('活动创建：formal + ballotMode=named → 400；formal + anonymous → 
     body: JSON.stringify({ voteConfig: { ...base_.voteConfig, ballotMode: 'named' } }),
   });
   assert.equal(patch.status, 400, 'PATCH 改为 named 应 400');
+});
+
+// ===== 截止串必须有日期语义：非 YYYY-MM-DD / 早于今天 ⇒ 422（2026-11-18 批次 567）=====
+test('lock 的 voteDeadline：非日期串 / 早于今天 ⇒ 422；合法日期 200', async () => {
+  const lock = (body) => fetch(`${base}/api/v1/agenda-votes/lock`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenSec}` },
+    body: JSON.stringify({ activityId: 'act-27', ...body }),
+  });
+  const notDate = await lock({ voteDeadline: '下周三' });
+  assert.equal(notDate.status, 422, '非 YYYY-MM-DD ⇒ 422');
+  const past = await lock({ voteDeadline: '2000-01-01' });
+  assert.equal(past.status, 422, '早于今天 ⇒ 422');
+  // 服务端本地口径的「明天」（不得用 UTC 切串取日，见 date-canon-guard）
+  const tomorrow = daysAgo(-1);
+  const ok = await lock({ voteDeadline: tomorrow });
+  assert.equal(ok.status, 200);
+  assert.equal((await ok.json()).voteDeadline, tomorrow);
 });
 
 // ===== D-872（L-16）：建会冻结表决名单——服务端按 users ＋ 组织归属算一次，客户端名单不作数 =====

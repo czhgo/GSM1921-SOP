@@ -499,10 +499,11 @@ export function renderContent(ctx) {
     //   与页面 / 首页「待录入」同一判据（`ratePending`）；本月合计行同理（`recordedTotal === 0`）。
     const cells = sum.rows.map(r => [r.activity, r.date, r.type, r.total, r.present, r.leave, r.absent,
       r.ratePending ? '' : `${r.rate}%`]);
+    // 合计率分母＝已录人次（`recordedRate`）：完全未录的场次已在单元格留空，不再拉低合计率。
     cells.push(['本月合计', '', '', sum.total, sum.presentTotal, '', '',
-      sum.recordedTotal > 0 ? `${sum.rate}%` : '']);
+      sum.recordedTotal > 0 ? `${sum.recordedRate}%` : '']);
     downloadCSV(`出勤率汇总_支委会内部_${month}.csv`, ['活动', '日期', '类别', '应记人次', '出勤（含已补）', '请假', '缺勤', '出勤率'], cells);
-    showToast('success', `本月出勤率汇总已导出（支委会内部使用，${sum.rows.length} 场 · 合计 ${sum.recordedTotal > 0 ? `${sum.rate}%` : '待录入'}）`);
+    showToast('success', `本月出勤率汇总已导出（支委会内部使用，${sum.rows.length} 场 · 合计 ${sum.recordedTotal > 0 ? `${sum.recordedRate}%` : '待录入'}）`);
   });
   container.querySelector('.att-handoff-btn')?.addEventListener('click', () => {
     // D04：考勤统计是 auto 类交接——发起即送达，不再有「待接收」。

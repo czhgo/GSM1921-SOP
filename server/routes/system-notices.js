@@ -200,7 +200,15 @@ export function createSystemNoticesRouter(db) {
       const existing = db.prepare("SELECT data FROM notices WHERE json_extract(data,'$.eventKey') = ?").all(eventKey)
         .map((raw) => JSON.parse(raw.data))
         .find((row) => (row.branchId || null) === eventScopeBranchId);
-      if (existing) return res.status(200).json(existing);
+      if (existing) {
+        // 幂等键必须指向同一通知类型与同一来源：不匹配时 409 报错，不得把旧记录当成本次结果返回。
+        // 来源 id 以落库坐标 `targetId` 为准（模板由 sourceId 派生 targetId；`sourceId` 字段本身不落库）。
+        const existingSourceId = existing.sourceId ?? existing.targetId ?? '';
+        if (existing.systemKind !== kind || String(existingSourceId) !== String(ctx.sourceId ?? '')) {
+          return res.status(409).json({ error: `eventKey 已用于其他通知（kind=${existing.systemKind || '—'}）` });
+        }
+        return res.status(200).json(existing);
+      }
     }
 
     let built;

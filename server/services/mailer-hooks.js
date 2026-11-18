@@ -41,6 +41,7 @@ function noticeRecipients(db, notice) {
     }
     for (const s of db.prepare('SELECT data FROM signups').all()) {
       const row = JSON.parse(s.data);
+      if (row.duplicateOf) continue; // v18 重复台账行不算有效报名
       if (row.sourceType === 'activity' && row.sourceId === notice.targetId) ids.add(row.personId);
     }
     return [...ids];

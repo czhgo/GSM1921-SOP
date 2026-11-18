@@ -1065,6 +1065,8 @@ export const MIGRATIONS = [
         WHERE json_extract(data,'$.duplicateOf') IS NULL
           AND ${voidedIsFalsy}
           AND json_extract(data,'$.status') IN ('approved','pending')`);
+      // 迁移改了报名行（标 duplicateOf）⇒ 必须推进集合版本，清缓存设备才不会沿旧 baseline 整表回写、把标记冲掉。
+      bumpCollectionVersion(db, 'signups');
     },
   },
 ];

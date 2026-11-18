@@ -166,12 +166,20 @@ async function _request(path, options = {}) {
  * 同一读口两种形状：默认（不传 `page` / `cursor`）返回裸数组；带分页参数时返回
  * `{ rows, total, pageSize, nextCursor, hasMore }`。归一点选**读口**而非服务端：
  * 服务端改成恒为对象会让 `init()` 水合与既有数组消费者（data-adapter 集合替换）同时失效。
+ * 判据只看 `rows` 是否为数组：游标分页（`{ rows, nextCursor, hasMore }`）不带数字 `total`，
+ * 旧判据会把游标分支原样漏给数组消费者。归一为 `rows` 数组，并把 `nextCursor` / `hasMore`
+ * 挂在同一数组上（元信息不丢，调用方仍可 `Array.isArray`）。
  * @param {any} payload 服务端 JSON
  * @returns {any} 分页对象取 `rows`；其余（裸数组 / 非分页对象）原样返回
  */
 export function normalizeListPayload(payload) {
   if (Array.isArray(payload)) return payload;
-  if (payload && typeof payload === 'object' && Array.isArray(payload.rows) && typeof payload.total === 'number') return payload.rows;
+  if (payload && typeof payload === 'object' && Array.isArray(payload.rows)) {
+    const rows = payload.rows;
+    if (payload.nextCursor !== undefined) rows.nextCursor = payload.nextCursor;
+    if (payload.hasMore !== undefined) rows.hasMore = payload.hasMore;
+    return rows;
+  }
   return payload;
 }
 

@@ -57,7 +57,10 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => cb(null, `${randomUUID()}${ALLOWED[file.mimetype] || ''}`),
 });
 const upload = multer({ storage, limits: { fileSize: MAX_SIZE }, fileFilter: (req, file, cb) => {
-  cb(null, Boolean(ALLOWED[file.mimetype]));
+  const allowed = Boolean(ALLOWED[file.mimetype]);
+  // 类型不支持 ≠ 空文件：记下被拒的 mime，路由据此回 415（空请求 / 未选文件仍 400）
+  if (!allowed) req.unsupportedFileType = file.mimetype || '';
+  cb(null, allowed);
 } });
 
 const PARTY_STAFF_ROLE_SET = new Set(PARTY_STAFF_KEYS);
@@ -81,7 +84,12 @@ export function createUploadsRouter(db) {
   // 现按既有附件写口口径收（COMMISSIONER_WRITE，server/routes/resources.js:196 的同一支委门）＝支委层；
   // 2026-11-08 波次 H：党委可上传院级资料，故放行 party-staff（普通成员仍 403）。
   router.post('/uploads', requireUploader, assignedBranchGuard, upload.single('file'), (req, res) => {
-    if (!req.file) return res.status(400).json({ error: '文件类型不支持或为空' });
+    if (!req.file) {
+      if (req.unsupportedFileType !== undefined) {
+        return res.status(415).json({ error: `不支持的文件类型：${req.unsupportedFileType || '未知'}` });
+      }
+      return res.status(400).json({ error: '文件为空或未选择文件' });
+    }
     const meta = {
       id: randomUUID(),
       filename: decodeOriginalName(req.file.originalname),

@@ -681,7 +681,8 @@ function _meetingRosterIdsOf(activity) {
  * 供纪检台「导出出勤率汇总（支委会内部）」与支书台「偏低提示」同一读口消费。
  * @param {{month?:string, records?:Array}} [params] month 形如 '2026-09'（缺省 = 全部活动）
  * @returns {{month:string, rows:Array<Object>, total:number, presentTotal:number, recordedTotal:number,
- *   coverage:number, rate:number}} `rows[].ratePending=true` 表示该场未录（展示「待录入」、导出留空）
+ *   coverage:number, rate:number, recordedRate:number}} `rows[].ratePending=true` 表示该场未录（展示「待录入」、导出留空）；
+ *   `rate` 按应到人次（概况口径），`recordedRate` 按已录人次（月末合计导出件口径）
  */
 export function summarizeAttendanceByActivity({ month, records, rosterSnapshots } = {}) {
   const src = records || loadActiveAttendanceRecords();
@@ -739,7 +740,12 @@ export function summarizeAttendanceByActivity({ month, records, rosterSnapshots 
   return {
     month: month || '', rows, total, presentTotal, recordedTotal,
     coverage: total > 0 ? Math.round((recordedTotal / total) * 100) : 0,
+    // 两个合计率，分母各自声明（H32）：
+    //   · `rate` ＝ 出勤 / **应到人次**（支书概况 R2-47 口径，未录视为未出勤，不得按已录算 100%）；
+    //   · `recordedRate` ＝ 出勤 / **已录人次**（批次 567：月末合计导出件用，与单元格「未录留空」一致，
+    //     完全未录的场次不拉低合计率；`recordedTotal === 0` 时导出留空，不写本值）。
     rate: total > 0 ? Math.round((presentTotal / total) * 100) : 0,
+    recordedRate: recordedTotal > 0 ? Math.round((presentTotal / recordedTotal) * 100) : 0,
   };
 }
 

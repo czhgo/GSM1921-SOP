@@ -208,9 +208,12 @@ test('M9 v18 报名有效行部分唯一索引：重复行标 duplicateOf（不�
     put('su-dup-voided', { createdAt: '2026-10-01T00:00:00.000Z', voided: { reason: '重复', confirmedBy: 'u1' } });
     put('su-dup-3', { createdAt: undefined, id: 'su-dup-3' }); // 缺 createdAt ⇒ 用 id 排序
 
+    const signupsVersionBefore = (db.prepare("SELECT version FROM collection_versions WHERE name = 'signups'").get() || {}).version || 0;
     const applied = applyMigrations(db);
     assert.deepEqual(applied.applied, MIGRATIONS.filter((m) => m.version > 17).map((m) => m.version),
       '应从 v17 只补 v18…v最新（版本后续新增须自动纳入，不写死）');
+    assert.ok(((db.prepare("SELECT version FROM collection_versions WHERE name = 'signups'").get() || {}).version || 0) > signupsVersionBefore,
+      'v18 迁移须推进 signups 集合版本（清缓存设备不得沿用旧 baseline 整表回写冲掉 duplicateOf）');
     const rows = db.prepare("SELECT id, data FROM signups WHERE json_extract(data,'$.personId') = 'p-dup' ORDER BY id").all()
       .map((r) => ({ id: r.id, ...JSON.parse(r.data) }));
     assert.equal(db.prepare('SELECT COUNT(*) AS n FROM signups').get().n, before + 4, 'v18 处置不得删行');

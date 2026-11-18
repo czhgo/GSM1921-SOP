@@ -649,7 +649,16 @@ export function createActivityWorkgroup(db, actor, activity) {
   // 2026-10-21 批次 499：兼容镜像 assignments 与成员主源同形（含 crossGroup/coordinatedBy）。
   activity.assignments = membership.value;
   const run = db.transaction(() => {
-    put(db, 'activities', activity);
+    // 活动行用裸 INSERT：`db.js` 的 `idx_activities_source_branch`（支部 × 党委原件）是部分唯一索引，
+    // `INSERT OR REPLACE` 会静默替换冲突副本；唯一冲突转 409（判例 signup-write-guard.js:105-116）。
+    try {
+      db.prepare('INSERT INTO activities (id, data) VALUES (?, ?)').run(activity.id, JSON.stringify(activity));
+    } catch (e) {
+      if (/UNIQUE constraint failed/i.test(String(e && e.message))) {
+        throw Object.assign(new Error('同一支部对同一党委活动只能保留一条副本'), { uniqueConflict: true });
+      }
+      throw e;
+    }
     put(db, 'workgroups', workgroup);
     for (const member of members) {
       const row = {
@@ -662,7 +671,12 @@ export function createActivityWorkgroup(db, actor, activity) {
       put(db, 'workgroup_members', row);
     }
   });
-  run();
+  try {
+    run();
+  } catch (e) {
+    if (e && e.uniqueConflict) return { ok: false, status: 409, error: e.message };
+    throw e;
+  }
   return { ok: true, workgroup };
 }
 

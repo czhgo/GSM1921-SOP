@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.1"
-last_updated: "2026-11-15"
+last_updated: "2026-11-18"
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -1321,14 +1321,14 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 **发布留痕 (publication_audits)**
 
-> 发布 / 撤回 / 过期 / 支部采纳的逐次留痕；只增不改，演示种子为空。表结构 `publication_audits (id, data)`。
+> 发布 / 撤回 / 改期 / 公开下载的逐次留痕；只增不改，演示种子为空。表结构 `publication_audits (id, data)`。
 
 | 字段名 | 类型 | 必填 | 说明 |
 |---|---|---|---|
 | id | string | 是 | 留痕 id |
-| resourceType | string | 是 | 被操作的资源类型（activity / notice / branchDoc） |
+| resourceType | string | 是 | 被操作的资源类型（`activity` / `notice` / `document`） |
 | resourceId | string | 是 | 被操作的资源 id |
-| action | string | 是 | 动作（publish / unpublish / expire / adopt） |
+| action | string | 是 | 动作（`publish` / `unpublish` / `update-scope` / `download`） |
 | at | string (ISO) | 是 | 动作时间 |
 | actorId | string | 否 | 操作人 personId |
 | actorRole | string | 否 | 操作人角色键 |

@@ -11,7 +11,7 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/04_web_design/
 # 领域数据契约（单一源）
 
 > **机读单一源**：[`server/data/domain-contract.mjs`](../../../server/data/domain-contract.mjs)；表清单再取自 [`server/db.js`](../../../server/db.js) 的 `RESOURCE_TABLES / SEMANTIC_TABLES / WORKGROUP_TABLES`。本文件是它的人读版，**不另立第二份口径**：字段 / 必填 / 枚举 / 种子计数有冲突时，以 `domain-contract.mjs` 为准（守卫 `server/test/data-contract.test.mjs`）。
-> **范围**：34 张资源表 + 8 张语义表 + 6 张工作组表 = **48 表**。`seedCount`＝`server/seed.js` 首启播种后的行数（0＝无演示种子 / 运行时域）。
+> **范围**：34 张资源表 + 10 张语义表 + 6 张工作组表 = **50 表**（`branch_visits` 为 schema v17 迁移表，不在三清单内，单独登记于 §三 末）。`seedCount`＝`server/seed.js` 首启播种后的行数（0＝无演示种子 / 运行时域）。
 > **口径**：`required`＝首启落库行必须出现的字段；`optional`＝功能可产生、也可不产生；`derived`＝运行时现算（种子只写事实）；`aliases`＝读时别名（**不双写**）。
 
 ## 一、资源表（34）
@@ -53,7 +53,7 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/04_web_design/
 | memberFlows | member_flows | memberFlows | —（运行时域） | — | 0 | — |
 | issueReveals | issue_reveals | — | —（**deprecated**） | — | 0 | — |
 
-**`signups` 有效报名唯一约束（schema v18）**：有效报名（`voided` 缺失 / `null` / `false`，且 `status ∈ {approved,pending}`，且无 `duplicateOf`）按 `sourceType + sourceId + personId` 受部分唯一索引 `idx_signups_active_unique` 约束；历史重复行由 v18 迁移保留 `createdAt` 最早一条，其余行写 `duplicateOf` / `duplicateMarkedAt`（不删行、不改 `status`）；服务端落库冲突统一回 409「您已报名，请勿重复提交」。
+**`signups` 有效报名唯一约束（schema v18）**：有效报名（`voided` 缺失 / `null` / `false`，且 `status ∈ {approved,pending}`，且无 `duplicateOf`）按 `sourceType + sourceId + personId` 受部分唯一索引 `idx_signups_active_unique` 约束；历史重复行由 v18 迁移保留 `createdAt` 最早一条，其余行写 `duplicateOf` / `duplicateMarkedAt`（不删行、不改 `status`）；服务端落库冲突统一回 409「您已报名，请勿重复提交」。活动物理删除时（`D-876`），保留的报名行另写 `activitySnapshot` 留痕快照（`{id,title,date,type,scenarioId,deletedAt}`）。
 
 **党委内容与公开发布的新增 optional 字段**（2026-11-08 批次 536；枚举取自 `docs/src/core/domain/constants.js` 单一源，机读同源 `domain-contract.mjs`）：
 
@@ -63,7 +63,7 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/04_web_design/
 | notices | publishScope / publishExpiresAt / publicSummary | publishScope（branch·login·public） |
 | branch_docs | ownerScope / publishScope / publishExpiresAt / publicSummary / summary | ownerScope（branch·committee）·publishScope（branch·login·public） |
 
-## 二、语义表（8）
+## 二、语义表（10）
 
 | 实体 | 表 | mock 集合 | 必填（required） | 枚举（enums） | 种子数 | 别名 |
 |---|---|---|---|---|---:|---|
@@ -75,8 +75,12 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/04_web_design/
 | issueUnread | issue_unread | — | id/assigneeId/issueId/unread | — | 2 | — |
 | authAudit | auth_audit | — | id/targetPersonId/role/authorizedBy/authorizedAt/action/branchId | action | 1 | — |
 | publicationAudits | publication_audits | publication_audits | id/resourceType/resourceId/action/at | — | 0 | — |
+| committeeProposals | committee_proposals | committeeProposals | —（运行时域，无 required） | status·suggestedType·sourceType | 0 | — |
+| committeeProposalEvents | committee_proposal_events | committeeProposalEvents | —（运行时域，无 required） | — | 0 | — |
 
-> `publication_audits` 为发布动作留痕表：`required` 非空但无演示种子（`seedCount: 0`），写入由发布 / 撤回 / 过期 / 支部采纳动作产生；守卫按 `REQUIRED_WITHOUT_SEED_OK` 显式登记放行理由（见 `server/test/data-contract.test.mjs`）。
+> `publication_audits` 为发布动作留痕表：`required` 非空但无演示种子（`seedCount: 0`），写入由发布 / 撤回 / 改期 / 公开下载动作产生；守卫按 `REQUIRED_WITHOUT_SEED_OK` 显式登记放行理由（见 `server/test/data-contract.test.mjs`）。
+>
+> `committee_proposals` / `committee_proposal_events`（schema v16 · `D-869`）：运行时域、演示种子为空、v16 只建表无二级索引（按 `id` 直查）。提案关键字段：`id / branchId / title / reason / sourceType / sourceId / draft / suggestedType / expectedAt / proposedBy / proposedAt / status / decision / decidedBy / decidedAt / meetingActivityId / agendaItemId / affectedPersonIds / createdAt / updatedAt`；状态 / 类型 / 来源枚举的单一源＝`docs/src/core/domain/committee-proposal.js`（`PROPOSAL_STATUSES / PROPOSAL_TYPES / PROPOSAL_SOURCE_TYPES`），服务端与前端同引。事件行只增不改，关键字段 `id / branchId / proposalId / from / to / action / by / at / note`。
 
 ## 三、工作组表（6）
 
@@ -88,6 +92,8 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/04_web_design/
 | workgroupTasks | workgroup_tasks | workgroupTasks | id/branchId/workgroupId/title/status/createdAt | status | 2 | — |
 | workgroupOutputs | workgroup_outputs | workgroupOutputs | id/branchId/workgroupId/title/submittedBy/submittedAt/status | status | 1 | — |
 | attendanceRosters | attendance_rosters | attendanceRosters | —（运行时域） | — | 0 | — |
+
+**`branch_visits`（schema v17 迁移表 · 不入三清单）**：党委台「进入支部」只读留痕，运行时域、演示种子为空。字段 `id / branch_id / entered_by / entered_at / exited_at / token`（另有 JSON 列 `data`）；关键约束＝部分唯一索引 `ux_branch_visits_active_token`（`token` 且 `exited_at IS NULL`，一 token 只允许一条未退出记录）＋ 读口索引 `idx_branch_visits_branch (branch_id, entered_at)`。表由 `server/db.js::MIGRATIONS` v17 建立，不经通用资源 CRUD / 快照写穿，故不进 `domain-contract.mjs` 三清单；机检口径见 `server/test/db-integrity-guard.test.mjs` 的建表基线。
 
 ## 四、本批（批次 527 · Wave 2）修准的 10 处漂移
 

@@ -334,6 +334,17 @@ test('支部档案：指定 branchId 写入成功；缺 branchId / 未知支部 
   assert.equal(denied.status, 403, '支部账号不得经党委写口补录档案');
 });
 
+test('支部档案：写口推进 `archiveRecords` 集合版本（键名与客户端 baseline 同名）', async () => {
+  const versionOf = (name) => (db.prepare('SELECT version FROM collection_versions WHERE name = ?').get(name) || {}).version || 0;
+  const before = versionOf('archiveRecords');
+  const created = await request('pc-1', 'POST', 'committee/archive-records', {
+    branchId: 'br-b1', title: '版本推进验证', category: '其他',
+  });
+  assert.equal(created.status, 201);
+  assert.ok(versionOf('archiveRecords') > before, '写档案必须推进 archiveRecords 版本');
+  assert.equal(versionOf('archive_records'), 0, '不得再 bump 错位键 archive_records（整表快照会删掉该行）');
+});
+
 // ════════════════════════════════════════════════════════════════
 //  三、名册提案
 // ════════════════════════════════════════════════════════════════

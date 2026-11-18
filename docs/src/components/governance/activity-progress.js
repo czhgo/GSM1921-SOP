@@ -15,12 +15,14 @@
 import { BranchService } from '../../services/core/runtime.js?v=20261110b';
 import { persist } from '../../data/data-adapter.js?v=20261110b';
 import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261110b';
-import { isActivityEnded } from '../../core/domain/constants.js?v=20261110b';
+import { getAppState } from '../../core/base/state.js?v=20261110b';
+// 活动生命周期展示态单一源 = components/record/inspector.js（排除终态场景勿再用 isActivityEnded，
+//   见 constants.js 生命周期条与 list-filter.js::activityFacets 同源写法）。
+import { deriveActivityLifecycleStatus, activityLifecycleBadgeHtml } from '../record/inspector.js?v=20261110b';
 // A03：组织者判据与活动详情同源——工作组主源优先，项目角色行次之，`organizer` 仅兜底。
 import { mockDB } from '../../core/domain/domain.js?v=20261110b';
 import { confirmDanger } from '../ui/modal.js?v=20261110b';
 import { getPersonName } from '../../services/member/person.js?v=20261110b';
-import { badgeHtml } from '../ui/badges.js?v=20261110b';
 import { renderQueryView } from './query-view.js?v=20261110b';
 
 /**
@@ -32,7 +34,14 @@ export function renderActivityProgress(host, { activities = [], accent, onChange
   if (!host) return;
   const typeOptions = [...new Set(activities.map((a) => a.type).filter(Boolean))]
     .map((t) => ({ value: t, label: t }));
-  const queryData = activities.map((a) => ({ ...a, ended: String(isActivityEnded(a)) }));
+  // 生命周期展示态单一源（inspector）：执行完毕且产出齐备＝已执行，缺产出＝待归档；
+  //   范围段「已结束」= 这三种终态，不再用存储态谓词 isActivityEnded 另判一套。
+  const tasks = getAppState()?.tasks || [];
+  const ENDED_LIFECYCLES = ['executed', 'pending_archive', 'archived'];
+  const queryData = activities.map((a) => {
+    const lifecycle = deriveActivityLifecycleStatus(a, tasks);
+    return { ...a, lifecycle, ended: String(ENDED_LIFECYCLES.includes(lifecycle)) };
+  });
 
   host.innerHTML = `
     <details class="card rounded-xl p-5" id="org-activity-progress-card">
@@ -63,7 +72,7 @@ export function renderActivityProgress(host, { activities = [], accent, onChange
     ],
     data: queryData,
     renderRow: (a) => {
-      const ended = isActivityEnded(a);
+      const ended = String(a.ended) === 'true';
       const scopeLabel = a.organizingScope === 'branch' ? '支部级' : `承办党小组：${a.hostGroup || '待补'}`;
       const recruitLabel = a.recruitmentScope === 'cross-group' ? ' · 跨组招募（组织委员协调）' : '';
       const workgroupId = a.workgroupId || `wg-activity-${a.id}`;
@@ -89,7 +98,7 @@ export function renderActivityProgress(host, { activities = [], accent, onChange
             <div class="text-xs text-gray-500 mt-1">${scopeLabel}${recruitLabel} · 组织者：${organizers.length ? organizers.map((id) => getPersonName(id)).join('、') : '待指定'} · 深度参与 ${deepCount} 人</div>
           </div>
           <div class="flex items-center gap-2">
-            ${ended ? badgeHtml('已结束', 'neutral') : badgeHtml('进行中', 'success')}
+            ${activityLifecycleBadgeHtml(a, tasks)}
             <a href="./activity-materials.html?id=${encodeURIComponent(a.id)}" class="text-xs text-accent" title="材料清单 → 上传/核对 → 提交归档">材料与归档</a>
             ${ended ? '' : `<button type="button" class="btn-accent-soft track-complete-btn text-xs px-3 py-1.5" data-act-id="${esc(a.id)}">标记完成</button>`}
           </div>

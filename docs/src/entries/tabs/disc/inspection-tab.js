@@ -389,11 +389,11 @@ export function renderContent(ctx) {
   container.querySelector('.insp-export-btn')?.addEventListener('click', () => {
     const stamp = _fmtDate(new Date());
     if (currentView === 'long') {
-      // 与引擎同口径复算当前筛选结果（关键词 + 来源类别 + 状态）
+      // 与引擎同口径复算当前筛选结果（关键词 + 来源类别 + 状态）；列与内容同屏（屏上无「参与层级」⇒ 导出也删）
       const st = longHandle ? longHandle.state : null;
       const rows = longRows.filter(r => _matchLongRow(r, st))
-        .map(i => [i.name, i.source, i.sourceType, i.level, i.role || i.content, i.recordedByName || '', statusLabelOf(i)]);
-      downloadCSV(`考察总表_${stamp}.csv`, ['姓名', '来源', '类别', '参与层级', '内容/角色', '记录人', '状态'], rows);
+        .map(i => [i.name, i.source, i.sourceType === '活动' ? '活动' : '专班', i.content || i.role, i.recordedByName || '', statusLabelOf(i)]);
+      downloadCSV(`考察总表_${stamp}.csv`, ['姓名', '来源', '类别', '内容', '记录人', '状态'], rows);
     } else {
       // 宽表「所见即所得」：列随矩阵当前列上限（未展开＝最近 6 项），行随姓名检索；按项目视图导出转置后的形态
       const searchEl = document.getElementById('insp-search-input');

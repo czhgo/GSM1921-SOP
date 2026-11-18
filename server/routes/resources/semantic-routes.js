@@ -728,6 +728,7 @@ export function registerExtraSemanticRoutes(router, db) {
     if (publishError) return res.status(422).json({ error: publishError });
 
     writeRow(db, 'activities', row);
+    bumpCollectionVersion(db, 'activities'); // R10-D02：语义写口必须推进集合版本
     writePublicationAudit(db, {
       resourceType: 'activity',
       resourceId: row.id,
@@ -769,6 +770,7 @@ export function registerExtraSemanticRoutes(router, db) {
     }
 
     writeRow(db, 'activities', next);
+    bumpCollectionVersion(db, 'activities');
     const change = committeePublicationChange(prev, next);
     if (change) {
       writePublicationAudit(db, {
@@ -791,6 +793,7 @@ export function registerExtraSemanticRoutes(router, db) {
     if (row.status === 'cancelled') return res.json(row);
     const next = { ...row, status: 'cancelled', cancelledAt: new Date().toISOString() };
     writeRow(db, 'activities', next);
+    bumpCollectionVersion(db, 'activities');
     res.json(next);
   });
 
@@ -802,6 +805,7 @@ export function registerExtraSemanticRoutes(router, db) {
     if (row.archived === true) return res.json(row);
     const next = { ...row, archived: true, archivedAt: new Date().toISOString() };
     writeRow(db, 'activities', next);
+    bumpCollectionVersion(db, 'activities');
     res.json(next);
   });
 
@@ -824,6 +828,7 @@ export function registerExtraSemanticRoutes(router, db) {
     if (publishError) return res.status(422).json({ error: publishError });
 
     writeRow(db, 'activities', next);
+    bumpCollectionVersion(db, 'activities');
     const change = committeePublicationChange(prev, next);
     if (change) {
       writePublicationAudit(db, {
@@ -1388,7 +1393,8 @@ export function registerExtraSemanticRoutes(router, db) {
     if (period) row.period = period;
 
     writeRow(db, 'archive_records', row);
-    bumpCollectionVersion(db, 'archive_records');
+    // R10-D02：集合版本键与客户端 baseline 同名（`archiveRecords`，见 index.js 归档动作），否则整表快照会删掉本行。
+    bumpCollectionVersion(db, 'archiveRecords');
     res.status(201).json(row);
   });
 

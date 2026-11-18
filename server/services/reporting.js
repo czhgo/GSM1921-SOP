@@ -103,7 +103,7 @@ export function extractDomain(db, domain, from, to, { branchId = null } = {}) {
     const signups = listTable(db, 'signups');
     const approvedSignupPeopleByActivity = new Map();
     for (const signup of signups) {
-      if (signup.sourceType !== 'activity' || signup.status !== 'approved' || signup.voided || !signup.personId) continue;
+      if (signup.sourceType !== 'activity' || signup.status !== 'approved' || signup.voided || signup.duplicateOf || !signup.personId) continue;
       if (!approvedSignupPeopleByActivity.has(signup.sourceId)) approvedSignupPeopleByActivity.set(signup.sourceId, new Set());
       approvedSignupPeopleByActivity.get(signup.sourceId).add(signup.personId);
     }
@@ -278,6 +278,7 @@ export function checkMeetingReminders(db) {
     if (act.reminderSentAt) continue;
     const personIds = new Set((act.assignments || []).map(a => a.personId));
     for (const s of listTable(db, 'signups')) {
+      if (s.duplicateOf) continue;
       if (s.sourceType === 'activity' && s.sourceId === act.id) personIds.add(s.personId);
     }
     // 成员档案邮箱字段预留：暂无邮箱则整条跳过（站内功能不受影响）

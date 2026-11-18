@@ -176,7 +176,8 @@ function renderTaskforceArchive() {
   const all = TaskForceRecordStore.getAll()
     // R10-B14：终态集单一源；归档页按现状**显式排除已解散**（dissolved 有独立留痕面，不混入「已归档专班」）。
     .filter(tf => TASKFORCE_TERMINAL_STATUSES.includes(tf.status) && tf.status !== TaskforceStatus.DISSOLVED)
-    .sort((a, b) => (b.deadline || b.createdAt || '').localeCompare(a.deadline || a.createdAt || '')); // 新日期在前
+    // 先取单一 sortKey（deadline 优先、缺则 createdAt）再比较：两栏各自回退会破坏传递性
+    .sort((a, b) => { const keyOf = (x) => x.deadline || x.createdAt || ''; return keyOf(b).localeCompare(keyOf(a)); }); // 新日期在前
 
   if (all.length === 0) {
     contentContainer.innerHTML = _archiveEmptyHtml();

@@ -26,8 +26,8 @@ import { badgeHtml } from '../ui/badges.js?v=20261110b';
 // renderReportInboxHtml 依态输出展开态与输入框初值，重建后即回填。
 // 答复成功的行草稿清零（保留展开态以便直接看到时间线新答复），被答复/关闭的行
 // 自然移出列表后状态随之清掉。跨复用方（todo-tab/members-tab）共享同一模块态，
-// 同一 reportId 不会同屏出现在两个容器，无串扰。
-const _rowUi = new Map(); // reportId → { open: boolean, draft: string }
+// 同一 reportId 可能同屏出现在两份收件箱（跨 scope）⇒ 键为 payloadKey::reportId，各清各的。
+const _rowUi = new Map(); // payloadKey::reportId → { open: boolean, draft: string }
 
 // 引擎行数据交接（2026-09-14 批次 37）：行由统一检索引擎渲染，而引擎须 DOM 就位后才可挂载
 //（render 出 HTML 串 → 调用方 innerHTML → bind 才拿到容器）。bind 侧调用方只传 role，拿不到 reports，
@@ -113,8 +113,9 @@ export function renderReportInboxHtml({
         <h4 class="font-title-cn text-sm font-bold text-gray-800">${escHtml(title)}</h4>
         <span class="text-xs text-gray-500">${escHtml(subtitleText)}</span>
       </div>`;
+  const payloadKey = _payloadKey(role, scope);
   if (errorMsg) {
-    _rowUi.clear();
+    _clearRowUi(payloadKey);
     const failureBox = emptyStateHtml({
       variant: 'inline',
       text: errorMsg,
@@ -126,7 +127,6 @@ export function renderReportInboxHtml({
     <div class="card rounded-xl p-4 mb-4">${cardHeaderHtml(subtitle || '汇报答复')}${failureBox}</div>`;
   }
   const list = filterReportsByScope(reports, scope || {});
-  const payloadKey = _payloadKey(role, scope);
   // 2026-09-08 顶卡排布统一：空态并入统一形态（text-xs text-gray-500 py-1），
   // 保留绿色圆点「已全部答复」语义（不突兀：与相邻卡空态行同高，无底色整条）
   const emptyBox = `
@@ -135,7 +135,7 @@ export function renderReportInboxHtml({
     </p>`;
 
   if (!list.length) {
-    _rowUi.clear(); // 无行可展示：清模块态，防陈旧草稿/展开态残留下次渲染
+    _clearRowUi(payloadKey); // 无行可展示：只清本 payload 的模块态，不误伤另一份收件箱
     _embeddedExpanded.delete(payloadKey); // 无待答复：下次有汇报时回到默认「只露前 2 条」
     if (embedded) return ''; // 折叠条内无待答复 → 不占位（条内还有未读通知行）
     return `
@@ -155,8 +155,8 @@ export function renderReportInboxHtml({
   });
   // E-3：状态只跟随仍在列表中的行（被关闭/答复移出的行其草稿/展开态一并清掉）
   {
-    const alive = new Set(sorted.map(r => r.id));
-    for (const k of _rowUi.keys()) if (!alive.has(k)) _rowUi.delete(k);
+    const alive = new Set(sorted.map(r => _rowKey(payloadKey, r.id)));
+    for (const k of _rowUi.keys()) if (k.startsWith(_rowKeyPrefix(payloadKey)) && !alive.has(k)) _rowUi.delete(k);
   }
 
   // 行内容迁至统一检索引擎（rowHtml 见 bindReportInbox——引擎须 DOM 就位后才可挂载）；
@@ -234,15 +234,15 @@ function _renderInboxDetail(r, accent, draft = '') {
 export function bindReportInbox(container, { role = 'secretary', scope = null, onAnswered = () => {}, onRetry = null } = {}) {
   if (!container) return;
   // 加载失败态：错误卡由 renderReportInboxHtml 产出，重试动作交给调用方
-  container.querySelector('[data-rep-inbox-retry]')?.addEventListener('click', (e) => {
+  container.querySelectorAll('[data-rep-inbox-retry]').forEach((btn) => btn.addEventListener('click', (e) => {
     e.preventDefault();
     if (typeof onRetry === 'function') onRetry();
-  });
+  }));
   const payloadKey = _payloadKey(role, scope);
   /** E-3：读/写某行模块态（不存在则按默认建） */
   const rowState = (id) => {
-    let s = _rowUi.get(id);
-    if (!s) { s = { open: false, draft: '' }; _rowUi.set(id, s); }
+    let s = _rowUi.get(_rowKey(payloadKey, id));
+    if (!s) { s = { open: false, draft: '' }; _rowUi.set(_rowKey(payloadKey, id), s); }
     return s;
   };
   // 待答复汇报列表接统一检索引擎（行 HTML 原样迁为 rowHtml；关键词 事项/汇报人，分页由引擎内置）。
@@ -277,7 +277,7 @@ export function bindReportInbox(container, { role = 'secretary', scope = null, o
           r.submittedAt || '—',
         ].filter(Boolean);
         // E-3：模块态回填（引擎重绘后仍保持展开/输入；只保留仍在列表中的行）
-        const ui = _rowUi.get(r.id);
+        const ui = _rowUi.get(_rowKey(payloadKey, r.id));
         const rowOpen = !!(ui && ui.open);
         return `
       <div class="rounded-lg border ${r.reportCategory === 'blocked' ? 'border-red-200' : 'border-gray-100'} overflow-hidden">
@@ -348,4 +348,20 @@ export function bindReportInbox(container, { role = 'secretary', scope = null, o
     if (!inp) return;
     rowState(inp.id.slice('rep-inbox-input-'.length)).draft = inp.value;
   });
+}
+
+/** 行模块态的键前缀（同一 scope 一份收件箱；不同 scope 的同 reportId 互不覆盖） */
+function _rowKeyPrefix(payloadKey) {
+  return `${payloadKey}::`;
+}
+
+/** 行模块态键：payloadKey::reportId */
+function _rowKey(payloadKey, reportId) {
+  return `${_rowKeyPrefix(payloadKey)}${reportId}`;
+}
+
+/** 只清本 payload 的行模块态（另一份收件箱的草稿 / 展开态保留） */
+function _clearRowUi(payloadKey) {
+  const prefix = _rowKeyPrefix(payloadKey);
+  for (const k of _rowUi.keys()) if (k.startsWith(prefix)) _rowUi.delete(k);
 }

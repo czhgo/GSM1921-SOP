@@ -16,7 +16,9 @@ function _mockRows() {
 
 function _canRead(role, personId, row) {
   return ['secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner'].includes(role)
-    || String(row.proposedBy) === String(personId);
+    || String(row.proposedBy) === String(personId)
+    // 与服务端 canRead 取齐：被影响人也可见（affectedPersonIds 由 normalizeProposal 统一为字符串）
+    || (Array.isArray(row.affectedPersonIds) && row.affectedPersonIds.includes(String(personId)));
 }
 
 export const CommitteeProposalStore = {

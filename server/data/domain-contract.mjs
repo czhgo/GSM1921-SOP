@@ -3,7 +3,7 @@
 //  server/data/domain-contract.mjs —— 领域契约**单一源**（2026-11-02 批次 527 · Wave 2）
 // ════════════════════════════════════════════════════════════════
 // 由来（审计简并计划 `2026-11-02-audit-consolidation-and-cutover.md` §三 Wave 2）：
-//   现状有 34 张资源表 / 8 张语义表 / 6 张工作组表，字段「必填 / 枚举 / 种子计数 / 别名」
+//   现状有 34 张资源表 / 10 张语义表 / 6 张工作组表，字段「必填 / 枚举 / 种子计数 / 别名」
 //   分散在 DATA_MODEL.md、seed-manifest.js、各处服务层与测试里，同一口径多处维护 ⇒ 必然漂移。
 // 本文件是**人读契约与机检契约的同一份数据**：
 //   · `content/04_web_design/data/DATA_CONTRACT.md` 由本文件逐条誊写（人读版）；
@@ -30,6 +30,10 @@ import {
   TaskStatus, TaskforceStatus, AttendanceStatus, ReviewStatus, OutputStatus,
   WORKGROUP_STATUSES,
 } from '../../docs/src/core/domain/domain.js';
+// 支委提案状态 / 类型 / 来源：单一源在纯领域常量（服务端与前端同引；本契约不另抄字面量）。
+import {
+  PROPOSAL_STATUSES, PROPOSAL_TYPES, PROPOSAL_SOURCE_TYPES,
+} from '../../docs/src/core/domain/committee-proposal.js';
 
 export const RESOURCE_TABLES = Object.freeze([...DB_RESOURCE_TABLES]);
 export const SEMANTIC_TABLES = Object.freeze([...DB_SEMANTIC_TABLES]);
@@ -206,7 +210,10 @@ const RESOURCE_CONTRACT = [
   {
     entity: 'signups', table: 'signups', mockCollection: 'signups',
     required: ['id', 'sourceType', 'sourceId', 'personId', 'role', 'status', 'createdAt'],
-    optional: ['note', 'reviewedBy', 'reviewedAt', 'cancelledAt', 'cancelledBy'],
+    // v18（2026-11-18 批次 566）实写：重复行台账 `duplicateOf / duplicateMarkedAt`、作废位 `voided`；
+    // 活动物理删除后保留留痕 `activitySnapshot`（D-876）。四者都只在特定动作下出现 ⇒ 只进 optional。
+    optional: ['note', 'reviewedBy', 'reviewedAt', 'cancelledAt', 'cancelledBy',
+      'duplicateOf', 'duplicateMarkedAt', 'voided', 'activitySnapshot'],
     enums: { status: SIGNUP_STATUSES, sourceType: ['activity', 'taskforce'] },
     seedCount: 7, aliases: [],
   },
@@ -296,27 +303,6 @@ const RESOURCE_CONTRACT = [
     notes: '运行时域（线上支委会表态）；演示种子为空。',
   },
   {
-    entity: 'committeeProposals', table: 'committee_proposals', mockCollection: 'committeeProposals',
-    required: [],
-    optional: ['id', 'branchId', 'title', 'reason', 'sourceType', 'sourceId', 'draft', 'suggestedType',
-      'expectedAt', 'proposedBy', 'proposedAt', 'status', 'decision', 'decidedBy', 'decidedAt',
-      'meetingActivityId', 'agendaItemId', 'affectedPersonIds', 'createdAt', 'updatedAt'],
-    enums: {
-      status: ['pending', 'queued', 'on-agenda', 'decided', 'closed', 'rejected'],
-      suggestedType: ['decision', 'discussion', 'sync'],
-      sourceType: ['activity', 'taskforce', 'member', 'institution'],
-    },
-    seedCount: 0, aliases: [],
-    notes: '运行时域（支委提案 / 统一上会事项）；演示种子为空，故不设 required（同 agenda_votes）。',
-  },
-  {
-    entity: 'committeeProposalEvents', table: 'committee_proposal_events', mockCollection: 'committeeProposalEvents',
-    required: [],
-    optional: ['id', 'branchId', 'proposalId', 'from', 'to', 'action', 'by', 'at', 'note'],
-    enums: {}, seedCount: 0, aliases: [],
-    notes: '运行时域（提案状态事件，只增不改）；演示种子为空，故不设 required。',
-  },
-  {
     entity: 'branches', table: 'branches', mockCollection: 'branches',
     required: ['id', 'name', 'type', 'status', 'createdAt'],
     optional: ['secretaryId', 'config', 'configChangeHistory'],
@@ -343,7 +329,8 @@ const RESOURCE_CONTRACT = [
     optional: ['kind', 'reportCategory', 'assignee', 'assigneeRole', 'dispatchHistory', 'milestone',
       'hidden', 'mergedInto', 'resultPending', 'reactions', 'mentions', 'references', 'comments',
       'participants', 'commentCount', 'anonymous', '_realPersonId', 'tokenHash'],
-    enums: { status: ['open', 'processing', 'resolved', 'closed'], scope: ['scenario', 'report'],
+    // 写口只产生 open / closed（新建 open、处置 closed；UI 标签单一源 constants.js::ISSUE_STATUS_LABELS 同两值）。
+    enums: { status: ['open', 'closed'], scope: ['scenario', 'report'],
       kind: ['report'] },
     seedCount: 6, aliases: [],
   },
@@ -376,7 +363,7 @@ const RESOURCE_CONTRACT = [
   },
 ];
 
-/** 8 张语义表（`db.js::SEMANTIC_TABLES`）——最小契约；无 mock 持久化键者标 null。 */
+/** 10 张语义表（`db.js::SEMANTIC_TABLES`）——最小契约；无 mock 持久化键者标 null。 */
 const SEMANTIC_CONTRACT = [
   {
     entity: 'handoffs', table: 'handoffs', mockCollection: 'handoffs',
@@ -428,12 +415,36 @@ const SEMANTIC_CONTRACT = [
     seedCount: 1, aliases: [],
   },
   {
-    // 2026-11-08 批次 536（党委内容与公开发布 Task 1）：发布 / 撤回 / 过期 / 支部采纳的留痕。
+    // 2026-11-08 批次 536（党委内容与公开发布 Task 1）：发布 / 撤回 / 改期 / 公开下载的留痕
+    // （resourceType = activity / notice / document；action = publish / unpublish / update-scope / download）。
     // 只增不改、无演示种子（由发布动作写入）。
     entity: 'publication_audits', table: 'publication_audits', mockCollection: 'publication_audits',
     required: ['id', 'resourceType', 'resourceId', 'action', 'at'],
     optional: ['actorId', 'actorRole', 'anonymous', 'oldValue', 'newValue', 'note'],
     seedCount: 0, aliases: [],
+  },
+  {
+    // 2026-11-11 批次 546（D-869）：支委提案（统一上会事项）；运行时域、演示种子为空。
+    // 状态 / 类型 / 来源枚举取自纯领域单一源 `docs/src/core/domain/committee-proposal.js`。
+    entity: 'committeeProposals', table: 'committee_proposals', mockCollection: 'committeeProposals',
+    required: [],
+    optional: ['id', 'branchId', 'title', 'reason', 'sourceType', 'sourceId', 'draft', 'suggestedType',
+      'expectedAt', 'proposedBy', 'proposedAt', 'status', 'decision', 'decidedBy', 'decidedAt',
+      'meetingActivityId', 'agendaItemId', 'affectedPersonIds', 'createdAt', 'updatedAt'],
+    enums: {
+      status: PROPOSAL_STATUSES,
+      suggestedType: PROPOSAL_TYPES,
+      sourceType: PROPOSAL_SOURCE_TYPES,
+    },
+    seedCount: 0, aliases: [],
+    notes: '运行时域（支委提案 / 统一上会事项）；演示种子为空，故不设 required（同 agenda_votes）。',
+  },
+  {
+    entity: 'committeeProposalEvents', table: 'committee_proposal_events', mockCollection: 'committeeProposalEvents',
+    required: [],
+    optional: ['id', 'branchId', 'proposalId', 'from', 'to', 'action', 'by', 'at', 'note'],
+    enums: {}, seedCount: 0, aliases: [],
+    notes: '运行时域（提案状态事件，只增不改）；演示种子为空，故不设 required。',
   },
 ];
 
@@ -458,7 +469,9 @@ const WORKGROUP_CONTRACT = [
     entity: 'workgroupGrants', table: 'workgroup_grants', mockCollection: 'workgroupGrants',
     required: ['id', 'branchId', 'workgroupId', 'personId', 'templateKey', 'status', 'grantedBy', 'grantedAt'],
     optional: ['permissionKeys', 'reason', 'revokedBy', 'revokedAt'],
-    enums: { templateKey: ['organizer', 'deep', 'participant', 'custom'], status: ['active', 'revoked'] },
+    // 模板键单一源＝`docs/src/core/domain/workgroup-policy.js::WORKGROUP_PERMISSION_TEMPLATES_BY_KIND`
+    // （只有 organizer / deep）；写口对未知模板直接 400，故契约不登记 participant / custom。
+    enums: { templateKey: ['organizer', 'deep'], status: ['active', 'revoked'] },
     seedCount: 2, aliases: [],
   },
   {
@@ -484,7 +497,7 @@ const WORKGROUP_CONTRACT = [
   },
 ];
 
-/** 全量契约（48 表：34 资源 + 8 语义 + 6 工作组） */
+/** 全量契约（50 表：34 资源 + 10 语义 + 6 工作组；`branch_visits` 属 v17 迁移表，不入三清单） */
 export const DOMAIN_CONTRACT = Object.freeze(
   [...RESOURCE_CONTRACT, ...SEMANTIC_CONTRACT, ...WORKGROUP_CONTRACT].map((entry) => Object.freeze({
     optional: [], derived: [], aliases: [], enums: {}, ...entry,

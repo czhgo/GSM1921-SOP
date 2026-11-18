@@ -71,7 +71,8 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const monthActivities = activities.filter(a => (a.date || '').startsWith(thisMonth) && !isActivityArchived(a));
   const activeTFs = taskforces.filter(t => isTaskforceActiveStatus(t.status));
-  const unreadNotices = NoticeStore.list({ activeOnly: true }).filter(n => !n.read).length;
+  // 未读计数单一源 = NoticeStore.countUnread（消息中心 / 侧栏角标 / 顶栏铃铛同一读数）
+  const unreadNotices = NoticeStore.countUnread(user?.personId || null);
 
   const userPersonId = user?.personId;
   // R2-47（2026-10-20）：原口径 = (出勤+已补) / 本月**已录记录数**——只录 3 条全勤也显示 100%，

@@ -81,8 +81,10 @@ export const DAILY_FILE_BUDGET = 32;
  *  2026-11-17 批次 564（If-Match 结果门禁）：新增 `if-match` 5 条断言（无头 428 / 过期 409＋latest / 当前 200 且戳前进 /
  *    `If-Match: *` 200 / 回填幂等无空戳）⇒ 实测 257，按 260 登记（留 3 条余量，上限随本批 +8）。
  *  2026-11-18 批次 566（B-552-6）：`db-migration` 增 M9（v18 报名唯一索引：重复行标 duplicateOf / 不删行 / 重放幂等）
- *    ⇒ 实测 260，预算维持 260（差 0；再增断言须先降存量或显式上调）。 */
-export const DAILY_TEST_BUDGET = 260;
+ *    ⇒ 实测 260，预算维持 260（差 0；再增断言须先降存量或显式上调）。
+ *  2026-11-18 批次 567（R10-D02 集合版本 ＋ v18 版本推进）：`db-migration` M9 增「v18 推进 signups 版本」1 条、
+ *    `committee-multidomain` 增「档案写口推进 archiveRecords 版本键」1 条 ⇒ 静态调用点实测 258，按 262 登记（留 4 条余量）。 */
+export const DAILY_TEST_BUDGET = 262;
 
 /** guards 文件数预算（静态守卫；按需跑，不阻塞日常）
  *  2026-11-08 波次 A：daily 迁入 6 件 ⇒ 实测 99 文件，按 99 登记。
