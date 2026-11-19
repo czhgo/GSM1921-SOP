@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: 2026-11-19
 last_verified: "2026-11-19"
-latest_decision: "D-887"
+latest_decision: "D-888"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -23,14 +23,14 @@ status: active
 - **形态**：原生 ESM 多页应用 ＋ Node/Express ＋ better-sqlite3；页面 26 个（18 根页 ＋ 8 工作台/只读视图）；工作台 7 个（支书 / 组织 / 宣传 / 纪检 / 组长 / 成员 / 党委）；党委台 4 页签（下发通知 / 院级内容 / 支部上报 / 支部管理）。
   - source：`.ctx/SNAPSHOT.md §I/§III`。
 - **URL**：无后缀已落地（`D-867`）：`pageHref()` 单源 ＋ `resolveDocumentUrl` ＋ 运行时 `link-normalize`；旧 `.html` 保持 200；真机登录后 URL＝`/workspace/secretary?tab=today`，站内 `.html` 锚点 0（`help` / `about` 除外）。
-- **数据**：业务表 50 张（34 资源 ＋ 10 语义 ＋ 6 工作组；v16 新增 `committee_proposals` / `committee_proposal_events`）；SQLite 宽表 `id + data(JSON)`；schema **v18**（v13 新增 `publication_audits`，三张内容表加 `owner_scope` / `publish_scope` 生成列；v16 建支委提案两表；v17 建 `branch_visits` 进入支部留痕；v18 报名有效行部分唯一索引 `idx_signups_active_unique`，存量重复行标 `duplicateOf` 不删行）；空库首启补最小组织基线（1 支部 ＋ 党委账号 ＋ 6 角色账号）。
+- **数据**：业务表 50 张（34 资源 ＋ 10 语义 ＋ 6 工作组；v16 新增 `committee_proposals` / `committee_proposal_events`）；SQLite 宽表 `id + data(JSON)`；schema **v19**（v13 新增 `publication_audits`，三张内容表加 `owner_scope` / `publish_scope` 生成列；v16 建支委提案两表；v17 建 `branch_visits` 进入支部留痕；v18 报名有效行部分唯一索引；v19 多支部键级隔离：`collection_versions` 复合主键 `(branch_id,name)`、`sessions.branch_id`、`attachments.branch_id`）；空库首启补最小组织基线（1 支部 ＋ 党委账号 ＋ 6 角色账号）。
   - source：`server/data/domain-contract.mjs`、`content/04_web_design/data/DATA_CONTRACT.md`。
 - **权限**：写入口权限矩阵 **162 条**（156 enforced / 4 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵；审计 C1 查矩阵 + 高风险抽样。统计口径：`WRITE_POLICY_MATRIX` 按 `status` 计数（2026-11-15 实测；T14 新增进入 / 退出支部查看两写口）。
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
 - **六维（`D-883` 保守重校，2026-11-19）**：业务 **80** / 安全 **78** / 体验 **79** / 测试 **73** / 架构 **76** / 部署 **71**，**六维均 <80 ⇒ 继续不合并**。未闭：多支部四条 P0 框架缺口（集合版本键 / 身份模型 / 公共门厅 / 附件归属，见 `D-882`）、CI 无 run id、`test:full` 未整体重跑、Linux 真机未验（L-02）、D2 计数对账仅 3 页签、C2 写口往返 0 pass、真人签收未完成。
 - **审计**：46 页签 **P0 0 / P1 0 / P2 2 / exception 44**（2026-11-18 批次 565 实跑）；审计工具已修复（URL 跟随无后缀 canonical、登录失败 `exit 2`）。F1–F8 全绿；M1–M3 在位。
   - source：`.ctx/evidence/2026-11-18/tab-audit-after/summary.md`（原始截图与 findings.json 可重跑再生，未入库）。
-- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **32 文件 / 264 断言 / 127.8s**（结果门禁，2026-11-19 批次 575 读数）；guards **117 文件**（registry 登记；静态调用点 847 / 预算 860；E4 真机装配已扩到 8 页、属 precommit 层）；precommit＝daily＋guards＋非核心域回归＋e2e；`test:full` 最近读数 **1779.0s**（三通道各 1 红已逐文件分诊并修复，**未整体重跑**）；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
+- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **32 文件 / 264 断言 / 109.4s**（结果门禁，2026-11-19 批次 576 读数）；guards **117 文件**（registry 登记；静态调用点 847 / 预算 860；E4 真机装配已扩到 8 页、属 precommit 层）；precommit＝daily＋guards＋非核心域回归＋e2e；`test:full` 最近读数 **1779.0s**（三通道各 1 红已逐文件分诊并修复，**未整体重跑**）；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
   - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859 / §D-860 / §D-863 / §D-864`。
 - **工程评分（`D-883`，2026-11-19 保守重校）**：业务与数据 **80** · 安全与权限 **78** · 最小三成本 **79** · 测试与发布 **73** · 架构与可维护性 **76** · 运行部署 **71**；不设平均总分；六维均 <80。
   - source：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/logs/2026-11-DECISION_LOG.md §D-883`。
@@ -101,7 +101,7 @@ status: active
 
 ### 下一批任务
 
-1. **批次 576–577**：`B-568-1` 多支部框架隔离四条 P0（`D-882`）：schema v19（`collection_versions` 复合主键加支部维度 / `sessions.branch_id` / `attachments.branch_id`）＋ 公共门厅与附件归属支部化。
+1. **批次 577**：`B-568-1` 余项——公共门厅按支部出内容（`public-portal.js` ＋ 前端读口）＋ 更新 `ARCHITECTURE_EVOLUTION §十` / `DATA_MODEL` 的 v19 列说明，随后 `B-568-1` 出表。
 2. **批次 578**：sample-diff 8.1–8.5 ＋ spec 回勾 ＋ 六维严格重评（不上调）。
 3. **分支与合并（`H20.5`）**：`release/2026-11-launch` 尚未推远端（SSH host key 未授信、`gh` 未安装）；合并门槛＝六维均 ≥80 ＋ `test:full` 绿 ＋ P0/P1=0 ＋ 支书确认，达标前继续在分支累积。
 

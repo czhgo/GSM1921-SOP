@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-887`，共 61 条**；下一条自 **`D-888`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-888`，共 62 条**；下一条自 **`D-889`**。
 
 ## 本月目录（2026-11）
 
@@ -81,6 +81,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 待裁清零：12 条口径裁定（收敛门 / 提交基线 / B-14/17/18/25/27/31/33/44 / F-4 / F-5⑥ / B-541-8 / H-16） | `D-885` | 2026-11-19 | 已落（批次 573） |
 | 制度草案按主体派生待办 ＋ 改派换人；组织者分配的工作进「我的任务」；组长台承载面复核为已落地；种子补 `executor` | `D-886` | 2026-11-19 | 已落（批次 574） |
 | 发展对象服务端硬门（无决议 422）＋ 一年考察期可配置；E4 扩到独立页；名册写口前置校验；issues 补 `domain`；L-13 两条复核关闭 | `D-887` | 2026-11-19 | 已落（批次 575） |
+| 多支部键级隔离：schema v19（集合版本复合主键 / `sessions.branch_id` / `attachments.branch_id`）＋ 会话固化支部 ＋ 版本按支部读写 | `D-888` | 2026-11-19 | 已落（批次 576） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -571,5 +572,16 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **边界**：讨论门只管「积极分子 → 发展对象」这一步；`developStageSince` 缺失即 422（提示补起始日）。
 > **落点**：`server/routes/member.js`、`docs/src/core/domain/policy-defaults.js`、`docs/src/entries/pages/settings-entry.js`、`docs/src/services/member/person.js`、`docs/src/entries/tabs/org/todo-tab.js`、`content/04_web_design/data/DATA_MODEL.md`、`content/03_doc_system/TERMINOLOGY.md`、`README-server.md`、`server/test/{permission-gate,module-load,roster-write-precheck,docs-governance-guard}.test.mjs`、`server/test-tier-registry.mjs`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-887`**（共 **61** 条）。
+## D-888 2026-11-19 — 多支部键级隔离：schema v19 ＋ 会话固化支部 ＋ 版本按支部（批次 576）
+
+> **评议 → 裁定 → 落点**：按计划批次 576 清 `B-568-1` 的键级三条（版本键 / 会话支部 / 附件归属）。
+> - **schema v19（`multi-branch-keys`）**：① `collection_versions` 重建为 `(branch_id, name)` 复合主键，旧行按 `br-b1` 灌入；② `sessions` 加 `branch_id`（登录固化，历史空列回落用户支部）；③ `attachments` 加 `branch_id`（上传固化，历史空值回退上传人现支部）。
+> - **版本读写按支部**：`readCollectionVersions` / `bumpCollectionVersion` / `replaceCollectionsAtomic` / `_allCollectionVersions` / `_snapshotVersionConflicts` 全部带 `branchId`（缺省 `br-b1`）；快照与 `/snapshot/versions` 取 `actorBranchId(req.actor) || ?branchId || br-b1` ⇒ 两支部各自 bump，不再互触 409。
+> - **附件下载**：优先读记录 `branch_id`；空值（v19 前的历史行）回退上传人现支部，保持旧口径。
+> - **迁移期兼容**：v18 仍会调 `bumpCollectionVersion` 而当时表无支部列 ⇒ 读/写函数先探测列存在，无列走旧 SQL（迁移顺序不被破坏）。
+> **未选**：给 `attachments` 直接写 NOT NULL（历史行无法回填，取可空 ＋ 读侧回退）；版本键用 `branch||name` 单列字符串（复合主键更直观、SQL 索引直接可用）；会话缺失支部时按请求现取（违反「不得每请求现取」，取回落一次并在登录固化）。
+> **边界**：单支部 `br-b1` 行为逐字节不变；`ALLOW_MULTI_BRANCH` 仍关闭，生产仍一实例一支部。
+> **落点**：`server/db.js`（v19 / 版本函数）、`server/routes/resources/snapshot-versions.js`、`server/routes/resources/index.js`、`server/routes/auth.js`、`server/routes/uploads.js`、`server/test/multi-branch-five-proof.test.mjs`、`README-server.md`（两处行号改签）。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-888`**（共 **62** 条）。
 

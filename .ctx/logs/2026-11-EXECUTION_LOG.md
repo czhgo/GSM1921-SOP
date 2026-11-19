@@ -10,6 +10,25 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 576（2026-11-19）· schema v19：多支部键级隔离（版本键 / 会话 / 附件）
+
+### 为什么
+- 计划批次 576：`B-568-1` 四条 P0 的前三条（集合版本键无支部维度、会话无支部、附件无支部列）。
+
+### 拿不准 / 取舍
+- **迁移期顺序**：v18 会调 `bumpCollectionVersion`，而当时表尚无 `branch_id`；读/写函数改为**先探测列**，无列走旧 SQL，避免迁移自锁。
+- **历史会话**：`sessions.branch_id` 为空 ⇒ 读侧回落用户支部一次；登录时固化，后续不再每请求现取。
+- **历史附件**：`attachments.branch_id` 为空 ⇒ 下载回退「上传人现支部」（旧口径）；仅新上传固化。
+- **快照支部来源**：`actorBranchId(req.actor) || ?branchId || br-b1`；党委未选支部时按默认支部，不放开跨支部版本。
+
+### 边界
+- `ALLOW_MULTI_BRANCH` 仍关闭；生产仍一实例一支部。单支部 `br-b1` 行为逐字节不变（迁移把旧版本行灌入 br-b1）。
+- 公共门厅支部化（`public-portal.js`）留批次 577。
+
+### 读数
+- daily：**全绿 / 109.4s**；定向 `db-migration` / `db-integrity` / `if-match` / `multi-branch-*` / `branch-resource-isolation` / `public-portal` **57/57**；`multi-branch-five-proof` 10/10（含「两支部版本互不影响」新用例）。
+- `docs-governance`：`db.js` 两处行号引用同批改签（`SCHEMA_VERSION` 1118、`SEMANTIC_TABLES` 178-182），31/31。
+
 ## 批次 575（2026-11-19）· 发展对象硬门 ＋ E4 扩面 ＋ 名册前置校验 ＋ issues domain
 
 ### 为什么

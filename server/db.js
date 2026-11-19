@@ -97,20 +97,37 @@ export function replaceCollection(db, table, rows) {
 /** 集合版本号表名（乐观锁；关系表，与 sessions/attachments 同类——**不动既有业务表结构**） */
 export const COLLECTION_VERSIONS_TABLE = 'collection_versions';
 
-/** 读全部集合版本（无行 ⇒ 0：该集合的「首次上传」服务端基线） */
-export function readCollectionVersions(db) {
+/** 版本表是否已有支部列（v19 之前＝无；迁移期 v18 仍会调用本组函数） */
+function _collectionVersionsHaveBranch(db) {
+  try {
+    return db.prepare(`PRAGMA table_info(${COLLECTION_VERSIONS_TABLE})`).all().some((c) => c.name === 'branch_id');
+  } catch (_) { return false; }
+}
+
+/** 读全部集合版本（无行 ⇒ 0：该集合的「首次上传」服务端基线）。`branchId` 缺省＝部署默认支部 */
+export function readCollectionVersions(db, branchId = DEFAULT_BRANCH_ID) {
   const out = {};
-  for (const r of db.prepare(`SELECT name, version FROM ${COLLECTION_VERSIONS_TABLE}`).all()) {
+  if (!_collectionVersionsHaveBranch(db)) {
+    for (const r of db.prepare(`SELECT name, version FROM ${COLLECTION_VERSIONS_TABLE}`).all()) out[r.name] = r.version;
+    return out;
+  }
+  for (const r of db.prepare(`SELECT name, version FROM ${COLLECTION_VERSIONS_TABLE} WHERE branch_id = ?`).all(branchId)) {
     out[r.name] = r.version;
   }
   return out;
 }
 
 /** 单集合版本 +1（**须在调用方事务内**；无行 ⇒ 以 0 为基线），返回新版本 */
-export function bumpCollectionVersion(db, name) {
-  const row = db.prepare(`SELECT version FROM ${COLLECTION_VERSIONS_TABLE} WHERE name = ?`).get(name);
+export function bumpCollectionVersion(db, name, branchId = DEFAULT_BRANCH_ID) {
+  if (!_collectionVersionsHaveBranch(db)) {
+    const row = db.prepare(`SELECT version FROM ${COLLECTION_VERSIONS_TABLE} WHERE name = ?`).get(name);
+    const next = (row ? row.version : 0) + 1;
+    db.prepare(`INSERT OR REPLACE INTO ${COLLECTION_VERSIONS_TABLE} (name, version) VALUES (?, ?)`).run(name, next);
+    return next;
+  }
+  const row = db.prepare(`SELECT version FROM ${COLLECTION_VERSIONS_TABLE} WHERE branch_id = ? AND name = ?`).get(branchId, name);
   const next = (row ? row.version : 0) + 1;
-  db.prepare(`INSERT OR REPLACE INTO ${COLLECTION_VERSIONS_TABLE} (name, version) VALUES (?, ?)`).run(name, next);
+  db.prepare(`INSERT OR REPLACE INTO ${COLLECTION_VERSIONS_TABLE} (branch_id, name, version) VALUES (?, ?, ?)`).run(branchId, name, next);
   return next;
 }
 
@@ -121,18 +138,18 @@ export function bumpCollectionVersion(db, name) {
  * @param {Array<{name:string, table:string, rows:Array}>} writes 本次要写的集合（name = 快照 payload 键）
  * @returns {Object<string, number>} 各集合写后的新版本号
  */
-export function replaceCollectionsAtomic(db, writes, { workgroups = [] } = {}) {
+export function replaceCollectionsAtomic(db, writes, { workgroups = [], branchId = DEFAULT_BRANCH_ID } = {}) {
   const run = db.transaction((items, relatedWorkgroups) => {
     const versions = {};
     for (const it of items) {
       replaceCollection(db, it.table, it.rows);
-      versions[it.name] = bumpCollectionVersion(db, it.name);
+      versions[it.name] = bumpCollectionVersion(db, it.name, branchId);
     }
     for (const workgroup of relatedWorkgroups) {
       db.prepare('INSERT OR REPLACE INTO workgroups (id, data) VALUES (?, ?)')
         .run(workgroup.id, JSON.stringify(workgroup));
     }
-    if (relatedWorkgroups.length > 0) bumpCollectionVersion(db, 'workgroups');
+    if (relatedWorkgroups.length > 0) bumpCollectionVersion(db, 'workgroups', branchId);
     // v11 影子表随快照整表重建（非权威源；只在快照覆盖活动/专班时执行）
     if (items.some((it) => ['activities', 'taskforces'].includes(it.name))) rebuildShadowTables(db);
     return versions;
@@ -1067,6 +1084,32 @@ export const MIGRATIONS = [
           AND json_extract(data,'$.status') IN ('approved','pending')`);
       // 迁移改了报名行（标 duplicateOf）⇒ 必须推进集合版本，清缓存设备才不会沿旧 baseline 整表回写、把标记冲掉。
       bumpCollectionVersion(db, 'signups');
+    },
+  },
+  {
+    // v19（2026-11-19 批次 576 · `D-888` / `B-568-1`）：多支部框架隔离的三处**键级**缺口。
+    //   ① `collection_versions` 原是全局 `name` 主键 ⇒ 两支部互触 409；重建为 `(branch_id, name)` 复合主键，
+    //      旧行按部署默认支部 `br-b1` 灌入（单支部行为逐字节一致）。
+    //   ② `sessions` 加 `branch_id`：登录时固化身份支部；历史行为空 ⇒ 读侧回落 `users.branchId`。
+    //   ③ `attachments` 加 `branch_id`：上传时固化归属支部；历史行为空 ⇒ 下载侧沿用「按上传人现支部」兼容。
+    version: 19,
+    name: 'multi-branch-keys',
+    tables: ['collection_versions', 'sessions', 'attachments'],
+    up(db) {
+      const legacy = db.prepare(`SELECT name, version FROM ${COLLECTION_VERSIONS_TABLE}`).all();
+      db.exec(`CREATE TABLE IF NOT EXISTS collection_versions__v19 (
+        branch_id TEXT NOT NULL DEFAULT '${DEFAULT_BRANCH_ID}',
+        name TEXT NOT NULL,
+        version INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (branch_id, name)
+      )`);
+      const ins = db.prepare('INSERT OR REPLACE INTO collection_versions__v19 (branch_id, name, version) VALUES (?, ?, ?)');
+      for (const row of legacy) ins.run(DEFAULT_BRANCH_ID, row.name, row.version);
+      db.exec('DROP TABLE collection_versions');
+      db.exec('ALTER TABLE collection_versions__v19 RENAME TO collection_versions');
+      const columnsOf = (table) => db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name);
+      if (!columnsOf('sessions').includes('branch_id')) db.exec('ALTER TABLE sessions ADD COLUMN branch_id TEXT');
+      if (!columnsOf('attachments').includes('branch_id')) db.exec('ALTER TABLE attachments ADD COLUMN branch_id TEXT');
     },
   },
 ];

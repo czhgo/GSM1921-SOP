@@ -5,6 +5,8 @@
 
 import { replaceCollectionsAtomic, readCollectionVersions, recordSnapshotConflict } from '../../db.js';
 import { RESOURCE_TABLES } from './store.js';
+// 多支部（批次 576 · `D-888`）：集合版本按支部隔离；缺省＝部署默认支部
+import { DEFAULT_BRANCH_ID } from '../../../docs/src/core/domain/constants.js';
 
 // ════════════════════════════════════════════════════════════════
 //  快照写穿的**集合版本号（乐观锁）**协议（2026-09-23 P0-1 · 支书裁定「六项 P0 全做」）
@@ -81,16 +83,16 @@ export function _snapshotMissingVersions(payload, baseVersions) {
 }
 
 /** 集合版本全集（未出现过的集合补 0）——前端 init() 取基线用，保证「每个集合都有基线」 */
-export function _allCollectionVersions(db) {
-  const stored = readCollectionVersions(db);
+export function _allCollectionVersions(db, branchId = DEFAULT_BRANCH_ID) {
+  const stored = readCollectionVersions(db, branchId);
   const out = {};
   for (const name of Object.keys(RESOURCE_TABLES)) out[name] = stored[name] || 0;
   return out;
 }
 
 /** 逐集合版本比对：返回冲突清单（空数组＝无冲突）。缺版本的集合由 `_snapshotMissingVersions` 先挡（428） */
-export function _snapshotVersionConflicts(db, payload, baseVersions) {
-  const stored = readCollectionVersions(db);
+export function _snapshotVersionConflicts(db, payload, baseVersions, branchId = DEFAULT_BRANCH_ID) {
+  const stored = readCollectionVersions(db, branchId);
   const conflicts = [];
   for (const w of _snapshotWrites(payload)) {
     if (!Object.prototype.hasOwnProperty.call(baseVersions, w.name)) continue;

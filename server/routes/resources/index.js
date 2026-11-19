@@ -1226,7 +1226,7 @@ export function createResourcesRouter(db) {
     if (snapshotDeny) return res.status(403).json({ error: snapshotDeny });
     const baseVersions = _snapshotBaseVersions(payload);
     const missing = _snapshotMissingVersions(payload, baseVersions); if (missing.length) return res.status(428).json({ error: '快照被拒：payload 里的集合未随 `_versions` 给出基线版本（见本文件末「快照写穿的集合版本号协议」）', missingVersions: missing });
-    if (baseVersions) { const conflicts = _snapshotVersionConflicts(db, payload, baseVersions); if (conflicts.length) { recordSnapshotConflicts(db, conflicts); return res.status(409).json({ error: '数据已被他人更新，本次写入未生效（版本冲突，请刷新后重试）', conflicts }); } }
+    if (baseVersions) { const conflicts = _snapshotVersionConflicts(db, payload, baseVersions, actorBranchId(req.actor) || req.query.branchId || DEFAULT_BRANCH_ID); if (conflicts.length) { recordSnapshotConflicts(db, conflicts); return res.status(409).json({ error: '数据已被他人更新，本次写入未生效（版本冲突，请刷新后重试）', conflicts }); } }
     const writes = _forceInspectionRecorders(db, snapshotWrites, req.actor, read);
     _freezeArchiveSnapshots(db, writes, req.actor);
     const workgroupUpdates = [
@@ -1235,7 +1235,7 @@ export function createResourcesRouter(db) {
       // R9 Task 4.3：活动改名 / 组织落点变化 / 归档随快照写穿同步到活动工作组（前端编辑走 persist 快照）
       ...activityWorkgroupSyncUpdates(db, validationPayload, req.actor, read),
     ];
-    const nextVersions = replaceCollectionsAtomic(db, writes, { workgroups: workgroupUpdates });
+    const nextVersions = replaceCollectionsAtomic(db, writes, { workgroups: workgroupUpdates, branchId: actorBranchId(req.actor) || req.query.branchId || DEFAULT_BRANCH_ID });
     return baseVersions ? res.json({ versions: nextVersions }) : res.status(204).end();
   });
 
@@ -1694,7 +1694,7 @@ export function createResourcesRouter(db) {
     res.json(sanitizeIssue(issue));
   });
   router.get('/snapshot/versions', requireAuth(db), (req, res) => {
-    const versions = _allCollectionVersions(db);
+    const versions = _allCollectionVersions(db, actorBranchId(req.actor) || req.query.branchId || DEFAULT_BRANCH_ID);
     res.json({ versions: { ...versions, weeklyReports: versions.periodicArchives } });
   }); registerExtraSemanticRoutes(router, db); registerTodoGroupRoutes(router, db); // P0-1 集合版本基线查询（前端 init() 取基线；返回全集，未出现过的集合＝0）；2026-09-24 批次 169 追加申诉/未读/审计三组语义端点（函数体置文件末，保上文行号）
   return router;

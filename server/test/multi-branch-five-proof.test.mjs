@@ -20,6 +20,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createApp } from '../app.js';
 import { UPLOAD_DIR } from '../routes/uploads.js';
+import { initDb, readCollectionVersions, bumpCollectionVersion } from '../db.js';
 
 const BRANCHES = [
   {
@@ -343,4 +344,18 @@ test('⑧ 待归属账号替他人派生跨支部待办 → 403 且不落待办�
   assert.equal(response.status, 403, '待归属账号不得替他人派生待办');
   assert.equal(db2.prepare('SELECT COUNT(*) AS n FROM todos').get().n, before, '拒绝时不得新增待办行');
   assert.equal(db2.prepare('SELECT COUNT(*) AS n FROM todos WHERE id = ?').get('todo-pending-derive').n, 0);
+});
+
+// 集合版本键按支部隔离（2026-11-19 批次 576 · `D-888` / `B-568-1` ①）：
+//   两支部各自 bump 同一集合 ⇒ 版本互不影响、不互相触发 409；`branch_id` 由 schema v19 固化。
+test('集合版本按支部隔离：两支部同一集合各自 bump 互不影响', () => {
+  const db = initDb(':memory:');
+  assert.equal(readCollectionVersions(db, 'br-a').activities || 0, 0);
+  assert.equal(readCollectionVersions(db, 'br-b').activities || 0, 0);
+  bumpCollectionVersion(db, 'activities', 'br-a');
+  bumpCollectionVersion(db, 'activities', 'br-a');
+  bumpCollectionVersion(db, 'activities', 'br-b');
+  assert.equal(readCollectionVersions(db, 'br-a').activities, 2);
+  assert.equal(readCollectionVersions(db, 'br-b').activities, 1, '支部间版本互不影响');
+  db.close();
 });

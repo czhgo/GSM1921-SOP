@@ -99,18 +99,21 @@ export function createUploadsRouter(db) {
       uploadedBy: req.session.person_id,
       uploadedAt: new Date().toISOString(),
     };
-    db.prepare('INSERT INTO attachments (id, filename, path, size, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?)')
-      .run(meta.id, meta.filename, meta.path, meta.size, meta.uploadedBy, meta.uploadedAt);
+    // 多支部（批次 576 · `D-888`）：上传即固化归属支部；党委可显式选支部，支部账号取自身支部。
+    const uploadBranchId = req.query.branchId
+      || (req.actor.branchId === null ? null : (req.actor.branchId || DEFAULT_BRANCH_ID));
+    db.prepare('INSERT INTO attachments (id, filename, path, size, uploaded_by, uploaded_at, branch_id) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run(meta.id, meta.filename, meta.path, meta.size, meta.uploadedBy, meta.uploadedAt, uploadBranchId);
     res.status(201).json(meta);
   });
 
   // 受保护静态访问：仅登录用户可下载 + 支部隔离（2026-09-18 批次 80 · 风险-⑤）。
-  // 附件表无支部字段，故按「上传人所属支部」判（users.branchId，缺省 'br-b1'，与 resources.js 同口径）；
-  // 党委必须选择支部，且只能下载所选支部上传人名下的附件。
+  // 归属判定（批次 576 · `D-888`）：**优先读附件行固化的 `branch_id`**；历史行空值才回落
+  //   「按上传人现支部」（users.branchId，缺省 'br-b1'，与 resources.js 同口径）。
   router.get('/uploads/:name', requireAuth(db), assignedBranchGuard, (req, res) => {
     const safe = path.basename(req.params.name);
     const rel = `/api/v1/uploads/${safe}`;
-    const row = db.prepare('SELECT uploaded_by FROM attachments WHERE path = ?').get(rel);
+    const row = db.prepare('SELECT uploaded_by, branch_id FROM attachments WHERE path = ?').get(rel);
     if (!row) return res.status(404).json({ error: '附件不存在' });
     const actor = req.actor;
     const ownerRow = db.prepare('SELECT data FROM users WHERE id = ?').get(row.uploaded_by);
@@ -118,13 +121,15 @@ export function createUploadsRouter(db) {
     // T11（2026-11-16）：上传人 `branchId` 显式为 null（待归属）⇒ 归属为 null，不得按缺省支部下发；
     //   只有历史缺字段（undefined）才按存量口径回落 br-b1（与 `branch-scope.js::actorBranchId` 同判据）。
     const ownerBranch = owner && owner.branchId === null ? null : ((owner ? owner.branchId : undefined) || DEFAULT_BRANCH_ID);
+    // 行内支部为空 ⇒ 历史行（v19 之前的附件）⇒ 回落到传人现支部；显式值是上传时固化的归属
+    const ownerBranchResolved = row.branch_id ? row.branch_id : ownerBranch;
     if (PARTY_STAFF_ROLE_SET.has(actor.role)) {
       const selectionRequired = selectedBranchRequiredError(actor, req.query.branchId);
       if (selectionRequired) return res.status(400).json({ error: selectionRequired });
-      if (String(req.query.branchId) !== ownerBranch) return res.status(403).json({ error: '无权限：附件不属于所选支部' });
+      if (String(req.query.branchId) !== ownerBranchResolved) return res.status(403).json({ error: '无权限：附件不属于所选支部' });
     } else {
       const actorBranch = actor.branchId || DEFAULT_BRANCH_ID;
-      if (ownerBranch !== actorBranch) return res.status(403).json({ error: '无权限：该附件不属于本支部' });
+      if (ownerBranchResolved !== actorBranch) return res.status(403).json({ error: '无权限：该附件不属于本支部' });
     }
     res.sendFile(path.join(UPLOAD_DIR, safe));
   });
