@@ -736,10 +736,13 @@ export const AuthStore = {
    * 整组同步项目角色（活动详情 / 专班详情内联编辑共用）
    * 三合一：写主源（全量覆盖 organizer/deep，保留 participant 等其它角色）+
    * 追加快照（新增 grant / 移除 revoke）+ 通知。
-   * @param {{ scopeRef: string, assignments: Array<{personId:string, role:string}>, actorId?: string }} opts
+   * @param {{ scopeRef: string, assignments: Array<{personId:string, role:string}>, actorId?: string,
+   *   notifyRemovedOrganizers?: boolean }} opts
+   *   `notifyRemovedOrganizers`（缺省 true）：解除组织者指定时是否补「更正」通知；
+   *   「转交」路径自己发 `organizer-transferred`，须传 false 防双发。
    * @returns {Promise<{ added: number, removed: number }>}
    */
-  async syncProjectRoles({ scopeRef, assignments = [], actorId, permissionKeysByRole = {} }) {
+  async syncProjectRoles({ scopeRef, assignments = [], actorId, permissionKeysByRole = {}, notifyRemovedOrganizers = true }) {
     if (!scopeRef) return { added: 0, removed: 0 };
     const desired = [...new Map(assignments
       .filter((x) => x.personId && (x.role === 'organizer' || x.role === 'deep'))
@@ -806,6 +809,26 @@ export const AuthStore = {
     _appendAuditEntries(scopeRef, actorId, added, 'grant');
     added.forEach(x => _notifyProjectAuth(scopeRef, actorId, x.personId, x.role));
     _appendAuditEntries(scopeRef, actorId, removed, 'revoke');
+
+    // 解除组织者指定补一条「更正」通知（`D-885` / SOP-B-17）：被移除的组织者不再拥有本场
+    //   通知发布权与组织职责，须被告知；受众到人定向、不派生待办。转交路径（有接手人）由
+    //   `organizer-transfer.js` 发 `organizer-transferred`，故那里传 `notifyRemovedOrganizers:false`，避免双发。
+    if (notifyRemovedOrganizers) {
+      for (const row of removed) {
+        if (row.role !== 'organizer') continue;
+        try {
+          NoticeStore.addSystem('organizer-designation-corrected', scopeRef, {
+            removedPersonId: row.personId,
+            removedName: getPersonName(row.personId) || row.personId,
+            byName: actorId ? (getPersonName(actorId) || actorId) : '',
+            label: activity ? '活动' : '专班',
+            subjectName: (activity && activity.title) || (tf && tf.name) || '',
+          });
+        } catch (e) {
+          console.warn('[AuthStore] 组织者解除通知失败：', e);
+        }
+      }
+    }
 
     return { added: added.length, removed: removed.length };
   },

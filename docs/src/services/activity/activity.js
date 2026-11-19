@@ -223,9 +223,13 @@ export function listMyProjectTasks(personId) {
     if (isActivityOrganizerIn(a, personId)) roles.push('organizer');
     if (Array.isArray(a.assignments) && a.assignments.some(x => x && x.personId === personId && x.role === 'deep')) roles.push('deep');
     if (roles.length === 0) continue;
+    // 组织者本人的那份任务随活动完成自动销项（`D-885` / SOP-B-31）：活动已完结（完成 / 取消 / 归档）后，
+    //   组织者这一步不再出现在「我的任务」；读侧派生、不写任务行（活动状态本身由 `mock/derive.js` 按日期派生）。
+    const activityClosed = a.archived === true || a.status === 'completed' || a.status === 'cancelled';
     for (const t of tasks) {
       if (!t || t.activityId !== a.id) continue;
       if (!roles.includes(t.executor)) continue;
+      if (activityClosed && t.executor === 'organizer') continue;
       out.push({ task: t, activity: a, projectRole: t.executor });
     }
   }
@@ -717,25 +721,30 @@ export function rejectActivity({ activityId, by, role, mode, note } = {}) {
 //   · 「提请支委会表决」⇒ 在**本活动上**挂一条 `kinds:['activity-approval']` 的议程项 ＋ 支委会档 voteConfig
 //     （应到名单＝`vote-config.js::resolveVoterIds('committee')` 固化快照）⇒ **不改状态、不发布**；
 //   · 支委层在活动页按既有表态组件表态（记名/无记名由既有 ballotMode 规则定）；
-//   · 支书在该议程项上「记录通过 / 未通过」（既有结果记录链）⇒ 通过 ⇒ **发布**；未通过 ⇒ **终止**。
+//   · 支书在该议程项上「记录通过 / 未通过」（既有结果记录链）⇒ 通过 ⇒ **发布**；未通过 ⇒ **退回待批**（状态不变，留退回意见；可再提请）。
 // ⚠ 为什么把表决挂在**本活动**而不是另开一场支委会会议：① 另开会议会把**待批活动的标题**写进一场全员可见的
 //   会议议程，等于把「还没批就传出去了」换个地方泄露；② 本活动对支委层可见（批准门收窄口径）⇒ 支委层本就
 //   看得到、投得了票；③ 不新增活动生命周期与清理面。⇒ 表决机制（议程 ＋ voteConfig ＋ 表态 ＋ 结果记录）
 //   一字未改地复用，只是**载体取活动自身**。
-// ⚠ 「未通过」走**终止**而非退回待批：与支书档「不批准则终止」（母本 `常见工作场景快速指南.md:245`）同一
-//   口径，且免「未过就无限挂着」；退回意见留在 `approval.note`。
+// ⚠ 「未通过」走**退回待批**（`D-885` / SOP-F-4）：活动状态留在 pending-approval，退回意见留在 `approval.note`，
+//   组织者修改后可再次提请；支书档仍按母本「不批准则终止」（`常见工作场景快速指南.md:245`）不变。
 // ⚠ 判据与写口单一源即本段，勿在页面另写第二份。
 // ⚠ 本段置于文件末尾（批次 132 行号纪律）：不改动上文任何行号，README-server.md 的行号引用不漂移。
 
 /** 承载「活动批准」表决的议程项类型标记（`agenda[].kinds`；与 `brand-designation` 同族） */
 export const ACTIVITY_APPROVAL_AGENDA_KIND = 'activity-approval';
 
-/** 本活动上承载批准表决的议程项（无 → null） */
+/**
+ * 本活动上承载批准表决的议程项（无 → null）。
+ * 只取**尚未出结果**的那一条：未通过退回待批后，已出结果的旧议程项留作历史，
+ * 组织者修改后可再次提请（新议程项），不会因旧结论卡死（`D-885` / SOP-F-4）。
+ */
 export function activityApprovalAgendaItemOf(activity) {
   const agenda = activity && Array.isArray(activity.agenda) ? activity.agenda : [];
-  return agenda.find((it) => it && Array.isArray(it.kinds)
+  return agenda.filter((it) => it && Array.isArray(it.kinds)
     && it.kinds.includes(ACTIVITY_APPROVAL_AGENDA_KIND)
-    && it.approvalActivityId === activity.id) || null;
+    && it.approvalActivityId === activity.id
+    && !it.result).slice(-1)[0] || null;
 }
 
 /** 本活动的批准表决现况（未提请 → null；已提请 → `{agendaItemId, result, decided}`） */
@@ -786,7 +795,7 @@ export async function openCommitteeVoteForActivity({ activityId, by, role, mode 
  * 议程结果 → 活动批准状态迁移（**纯函数**；判据与状态迁移的唯一落点，由
  * `services/activity/agenda-follow-up.js::recordAgendaResult` 的 `activity-approval` 分支调用，IO 在那边做）。
  * 只在「活动处于待批 **且** 档位＝branch-committee」时生效（别的档不经表决 ⇒ 本函数不动）。
- * 通过 ⇒ **发布**（`published` ＋ `approval.state='approved'`）；未通过 ⇒ **终止**（`cancelled` ＋ `'rejected'`）。
+ * 通过 ⇒ **发布**（`published` ＋ `approval.state='approved'`）；未通过 ⇒ **退回待批**（状态不变 ＋ `'rejected'`）。
  * @param {Object} p
  * @param {Object} p.activity 目标活动（当前的待批活动）
  * @param {'passed'|'rejected'|'partial'} p.decision 本次记录的议程结果
@@ -805,7 +814,10 @@ export function applyActivityApprovalResult({ activity, decision, by = null, at 
     voteAgendaItemId: agendaItemId || activity.approval.voteAgendaItemId || null,
   };
   if (decision !== 'passed') {
-    return { ok: true, patch: { status: 'cancelled', approval: { ...trail, state: 'rejected' } } };
+    // 退回待批（`D-885` / SOP-F-4）：状态**留在待批**，只留退回意见与结论；
+    //   承载本次表决的议程项保留为历史（`activityApprovalAgendaItemOf` 只认未出结果的项），
+    //   组织者修改后可再次提请新一次表决。
+    return { ok: true, patch: { status: PENDING_APPROVAL_STATUS, approval: { ...trail, state: 'rejected' } } };
   }
   return { ok: true, patch: { status: 'published', approval: { ...trail, state: 'approved' } } };
 }

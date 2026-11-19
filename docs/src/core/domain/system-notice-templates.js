@@ -354,6 +354,18 @@ const TEMPLATES = {
     //   对非成员角色会被身份门弹回且永不生效，删除死链。
   }),
 
+  // ── 组织者指定已解除（2026-11-19 批次 573 · `D-885` / SOP-B-17）──────────
+  // 场景：角色编辑里**解除**组织者指定（无接手人）⇒ 给被解除者本人发「更正」。
+  // 受众＝到人定向（只发本人）；不派生待办；与「组织者已变更」（有接手人）分列。
+  'organizer-designation-corrected': ({ sourceId, removedPersonId, projectName, removedName, byName, label, targetType }) => pick({
+    title: '组织者指定已解除',
+    content: `更正：「${projectName}」已解除 ${removedName || '你'} 的组织者指定${byName ? `（办理：${byName}）` : ''}；你不再是该${label || '项目'}的组织者，本场通知发布权随之收回。如有未了事项，请与现任组织者交接。`,
+    priority: 'normal',
+    audiencePersons: removedPersonId ? [removedPersonId] : undefined,
+    targetType,
+    targetId: sourceId,
+  }),
+
   // ── 待办作废已裁决（`#1`/`D-742`；2026-10-02 批次 340 · 支书裁「支书如果不认为能取消 /
   //    即使取消也要让相关委员知情，知道管理上可以优化」）─────────────────────────────
   // 场景：责任人 `requestVoid` → 支书/副支书在支书台待办**确认**或**驳回**该作废申请后的**知会**。

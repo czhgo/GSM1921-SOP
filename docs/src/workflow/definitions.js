@@ -54,7 +54,7 @@ const DRAFT = (timeoutHours = SLA_HOURS.DRAFT_SHORT) => ({
 
 const PENDING_EXPANDED = (timeoutHours = SLA_HOURS.PENDING_EXPANDED_SHORT) => ({
   name: 'PENDING_EXPANDED',
-  label: '待支委扩大会讨论',
+  label: '待支委会审议',
   allowedTransitions: ['APPROVED', 'DRAFT'],
   timeoutHours,
   metadata: { phase: '审批', editable: false },
@@ -62,7 +62,7 @@ const PENDING_EXPANDED = (timeoutHours = SLA_HOURS.PENDING_EXPANDED_SHORT) => ({
 
 const APPROVED = (timeoutHours = SLA_HOURS.APPROVED_SHORT) => ({
   name: 'APPROVED',
-  label: '已审批',
+  label: '已审议',
   allowedTransitions: ['PREPARING', 'GROUP_FORMING', 'DRAFT'],
   timeoutHours,
   metadata: { phase: '审批', editable: true },

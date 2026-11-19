@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: 2026-11-19
 last_verified: "2026-11-19"
-latest_decision: "D-884"
+latest_decision: "D-885"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -30,7 +30,7 @@ status: active
 - **六维（`D-883` 保守重校，2026-11-19）**：业务 **80** / 安全 **78** / 体验 **79** / 测试 **73** / 架构 **76** / 部署 **71**，**六维均 <80 ⇒ 继续不合并**。未闭：多支部四条 P0 框架缺口（集合版本键 / 身份模型 / 公共门厅 / 附件归属，见 `D-882`）、CI 无 run id、`test:full` 未整体重跑、Linux 真机未验（L-02）、D2 计数对账仅 3 页签、C2 写口往返 0 pass、真人签收未完成。
 - **审计**：46 页签 **P0 0 / P1 0 / P2 2 / exception 44**（2026-11-18 批次 565 实跑）；审计工具已修复（URL 跟随无后缀 canonical、登录失败 `exit 2`）。F1–F8 全绿；M1–M3 在位。
   - source：`.ctx/evidence/2026-11-18/tab-audit-after/summary.md`（原始截图与 findings.json 可重跑再生，未入库）。
-- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **32 文件 / 262 断言 / 113.4s**（结果门禁，2026-11-19 批次 569 读数）；guards **112 文件 / 385 项（runner 口径） / 158.0s**（静态守卫，按需；registry 的静态调用点预算为 837 / 860，两者不是同一指标）；precommit＝daily＋guards＋非核心域回归＋e2e；`test:full` 最近读数 **1779.0s**（三通道各 1 红已逐文件分诊并修复，**未整体重跑**）；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
+- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **32 文件 / 263 断言 / 129.3s**（结果门禁，2026-11-19 批次 573 读数）；guards **112 文件**（静态守卫，按需；预算单一口径＝registry 的静态调用点 860，本批实然 839，仍在余量内；上轮实测 ≈158s）；precommit＝daily＋guards＋非核心域回归＋e2e；`test:full` 最近读数 **1779.0s**（三通道各 1 红已逐文件分诊并修复，**未整体重跑**）；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
   - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859 / §D-860 / §D-863 / §D-864`。
 - **工程评分（`D-883`，2026-11-19 保守重校）**：业务与数据 **80** · 安全与权限 **78** · 最小三成本 **79** · 测试与发布 **73** · 架构与可维护性 **76** · 运行部署 **71**；不设平均总分；六维均 <80。
   - source：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/logs/2026-11-DECISION_LOG.md §D-883`。
@@ -72,6 +72,7 @@ status: active
 - **L-16 已落**：表决名单 `voteConfig.voterIds` 由服务端建会冻结——写库前按 `users` ＋ 组织归属算一次（剔滞留 / 已转出），客户端提交值不作数；会议期间不随组织变动，组织变动下次建会生效。（`D-872`）→ `server/routes/committee.js::resolveFrozenVoterIds`、`server/test/agenda-votes.test.mjs`。
 - **删活动留痕（D-876）**：报名与表决行保留 ＋ `activitySnapshot`（标题 / 日期 / 类型 / 场景 / deletedAt）；匿名表决仍无个人选项映射；前端 mock 同口径。→ `server/routes/resources/index.js`、`docs/src/data/mock-adapter.js`。
 - **L-22 / B-541-1 已复核关闭**：三处「10 / 14 / 9 块」是 `dom-probe` 把行内叶子计成块的误报；探针改口径后实测 2 / 4 / 2，基线不改。（`D-873` · `D-874`）→ `server/scripts/audit/dom-probe.mjs`、`.ctx/evidence/2026-11-14/d873-block-remeasure.md`。
+- **待裁清零（`D-885`，批次 573）**：12 条口径一次落盘并代码化——副组长＝独立身份键只共享工作台；解除组织者补「更正」通知（新 kind `organizer-designation-corrected`）；工作流标签＝待支委会审议 / 已审议；支委会档「未通过」＝退回待批；组织者任务随活动完成自动销项；制度草案按领域派生待办 ＋ 改派（批次 574）；`SOP-B-33` / `SOP-F-5-⑥` 裁定不做；`SOP-B-27` / `SOP-B-44` 进 Phase 3。→ `SYSTEM_ROLE_PERMISSION §9a0`、`system-notice-kinds.js`、`definitions.js`、`DATA_MODEL §状态表`、`activity.js`、`G1` 守卫。
 
 ## §3 当前风险与下一步
 
@@ -96,10 +97,13 @@ status: active
 - `L-17` 宽表与索引。
 - `L-18` 组件出口散件。
 
-### 下一批任务（乙部 `B-568-1`）
+### 下一批任务
 
-1. **`B-568-1` 多支部框架隔离**（`D-882`）：四条 P0——集合版本键加支部维度（`db.js:69`、`snapshot-versions.js:84-104`）、身份模型（`sessions` / `users.branchId`）、公共门厅按支部出内容（`public-portal.js:125,136`）、附件归属固化支部（`db.js:52-59`、`uploads.js:113-127`）。
-2. **分支与合并（`H20.5`）**：`release/2026-11-launch` 尚未推远端（SSH host key 未授信、`gh` 未安装）；合并门槛＝六维均 ≥80 ＋ `test:full` 绿 ＋ P0/P1=0 ＋ 支书确认，达标前继续在分支累积。
+1. **批次 574**：`SOP-B-25` 两项（按制度领域派生对应主体待办 ＋ 草案改派写口）＋ `SOP-B-31` 三项余项；先夹具后实现，补 daily 用例。
+2. **批次 575–576**：`B-568-1` 多支部框架隔离四条 P0（`D-882`）：集合版本键加支部维度（`db.js:69`、`snapshot-versions.js:84-104`）＋ 会话 / 账号支部绑定；公共门厅按支部出内容（`public-portal.js:125,136`）＋ 附件归属固化支部（`db.js:52-59`、`uploads.js:113-127`）。
+3. **批次 577**：`SOP-B-27` 服务端硬门 ＋ 一年考察期；`SOP-B-44` 运行时装配守卫；`B-552-3` / `SOP-B-32` / `B-547-2` / `L-13` 默认两条。
+4. **批次 578**：sample-diff 8.1–8.5 ＋ spec 回勾 ＋ 六维严格重评（不上调）。
+5. **分支与合并（`H20.5`）**：`release/2026-11-launch` 尚未推远端（SSH host key 未授信、`gh` 未安装）；合并门槛＝六维均 ≥80 ＋ `test:full` 绿 ＋ P0/P1=0 ＋ 支书确认，达标前继续在分支累积。
 
 ## §4 文件地图（读什么 / 不读什么）
 

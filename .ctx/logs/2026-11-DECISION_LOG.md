@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-884`，共 58 条**；下一条自 **`D-885`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-885`，共 59 条**；下一条自 **`D-886`**。
 
 ## 本月目录（2026-11）
 
@@ -78,6 +78,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 丙部四项裁定落盘：多支部转架构隔离审计（四条 P0 框架缺口）、生产与换轨只走个人密码、例外归甲、性能取乙 | `D-882` | 2026-11-19 | 已落（批次 568） |
 | 六维保守重校 80/78/79/73/76/71（六维均 <80）＋ 历史值隔离 `H26.5` ＋ active / reference 台账清理 | `D-883` | 2026-11-19 | 已落（批次 568） |
 | 一次清仓：硬冲突 4＋软冲突 9 清零、G1/G2 守卫、spec 噪声 525→0、历史提交基线、`H10.8` / 先裁后清 / CASE-AI-010 | `D-884` | 2026-11-19 | 已落（批次 572） |
+| 待裁清零：12 条口径裁定（收敛门 / 提交基线 / B-14/17/18/25/27/31/33/44 / F-4 / F-5⑥ / B-541-8 / H-16） | `D-885` | 2026-11-19 | 已落（批次 573） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -523,5 +524,26 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **未选**：一次性把 15 个 spec 的 525 处子项全部回勾（会产生大量未经核对的假勾）；只清文档不建守卫（下轮必复发）；把历史 6 条 commit 追补改写（违反 `H26.1`）。
 > **落点**：`CLAUDE.md`（`H10.8` / `H25` / `H30` / `H20.3`）、`server/README.md`、`content/05_ai_coding/{DOCUMENT_GOVERNANCE,AUDIT_CANON,TAB_AUDIT_PLAYBOOK,GUARD_INVENTORY,CASES}.md`、`content/03_doc_system/CASES_INDEX.md`、`content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md`、`server/test/{single-fact-consistency,spec-task-consistency}.test.mjs`、`server/test-tier-registry.mjs`、`.ctx/{ACTIVE_CONTEXT,ACTIVE_RULINGS,ENGINEERING_ASSESSMENT,SNAPSHOT,AGENTS}.md`、`.trae/specs/**` 回勾。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-884`**（共 **58** 条）。
+## D-885 2026-11-19 — 待裁清零：12 条口径裁定落盘并代码化（批次 573）
+
+> **评议 → 裁定 → 落点**：支书令「待裁先 grill 裁定、落盘到 plan 再执行」。`repo-convergence-and-rule-completeness.md §二 F` 的 12 条已在三轮 grilling 中逐条裁定，本批全部落盘并落点：
+> - **收敛门**：`B-500-7b-2` / `B-522-1` **严格保留「六维 ≥80 才启动」**；未选「改成阶段门 / 先做后补分」——门一降，合并判定就失效。
+> - **提交自检**：`check-batch-commits` 设历史基线，`--limit 1` 为收尾门禁；未选「追补改写历史 6 条 message」（违反 `H26.1`）。
+> - **SOP-B-14**：副组长为**独立身份键**（`deputy-leader` ≠ `leader`），只共享工作台；未选「身份键合一」（会让两人共用账号、无法各自留痕）。
+> - **SOP-B-17**：解除组织者指定时补一条**「更正」通知**；未选「只收权、不通知」（原组织者会继续按旧分工行事）。
+> - **SOP-B-18**：工作流状态标签改**「待支委会审议 / 已审议」**；未选「保留支委扩大会旧称」（与现行会议类型不一致）。
+> - **SOP-B-25**：**两项都做**——按制度领域派生对应主体待办 ＋ 草案改派写口；未选「只做派生」（改派仍靠线下口头）。
+> - **SOP-B-27**：进入「发展对象」必须有支委会提案/决议，否则 422；一年考察期默认拦截、可配置放行；未选「只留前端同码门」（直调 API 可绕）。
+> - **SOP-B-33**：**不补**「清单全空」夹具（演示库不可达）；未选「专门造空支部」（为一次性点检改种子）。
+> - **SOP-B-44**：本阶段补「运行时真装配」守卫（`getDataSource()==='api'`）；未选「继续只守源码调用」（假装配无法发现）。
+> - **SOP-F-4**：支委会档**未通过＝退回待批**（不终止）；未选「维持终止」（一次否决即锁死，组织者只能重建活动）。
+> - **SOP-F-5-⑥**：取 **① 不做**（培养联系人考察记录仍按人去纪检查考察总表）；未选②③（新增入口无制度依据）。
+> - **SOP-B-31**：组织者本人任务**随活动完成自动销项**；未选「组织者手工确认」（多一步且易滞留）。
+> - **B-541-8 / H-16**：按现况改准——`DOC_MAP` EA 行已无旧评分数字（本批复核确认），`OPERATIONS_GUIDE` 术语指针对齐 `README-members §八`；未选「标快照」（快照会把旧口径永久化）。
+>
+> **同批闭环（规则/文档）**：`SOP-B-14` 写入 `SYSTEM_ROLE_PERMISSION.md §9a0`；`SOP-B-18` 同步 `definitions.js` 与 `DATA_MODEL.md` 状态表；`G1` 增「工作流标签 ≡ DATA_MODEL ＋ 旧标签零命中」断言。
+> **边界**：`SOP-B-33` / `SOP-F-5-⑥` 裁定为「不做」，只在 `REVIEW_QUEUE` 留一行并删除，不再进乙部。
+> **落点**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md`、`content/03_doc_system/OPERATIONS_GUIDE.md`、`content/04_web_design/data/DATA_MODEL.md`、`docs/src/workflow/definitions.js`、`server/test/single-fact-consistency.test.mjs`、`.ctx/REVIEW_QUEUE.md`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-885`**（共 **59** 条）。
 

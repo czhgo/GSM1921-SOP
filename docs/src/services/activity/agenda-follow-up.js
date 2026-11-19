@@ -219,7 +219,7 @@ export async function recordAgendaResult({ activity, agendaItemId, result, perso
   }
 
   // 活动批准门·支委会档（2026-09-22 批次 151 · 支书裁定「复用线上表决」）：本活动上承载批准表决的议程项
-  //   记录结果 ⇒ 通过 ⇒ 该活动**发布**；未通过 ⇒ **终止**（母本「不批准则终止」同一口径）。
+  //   记录结果 ⇒ 通过 ⇒ 该活动**发布**；未通过 ⇒ **退回待批**（状态留在 pending-approval，可再次提请；`D-885`）。
   //   判据与状态迁移的单一源在 `services/activity/activity.js::applyActivityApprovalResult`（纯函数）；
   //   落库走 `commitActivityApprovalResult`（活动主源单点改写 ＋ persist ⇒ mock/api 同码，与品牌认定同法）。
   if (hasKind(decisionItem, 'activity-approval') && decisionItem.approvalActivityId) {

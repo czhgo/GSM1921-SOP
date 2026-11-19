@@ -509,6 +509,40 @@ const KINDS = {
     },
   },
 
+  // ── 组织者指定已解除（2026-11-19 批次 573 · `D-885` / SOP-B-17）──────────────
+  // 场景：角色编辑里**解除**某人的组织者指定（无接手人）⇒ 补一条「更正」通知给被解除者本人：
+  //   他不再是该场组织者，本场通知发布权随之收回。与 `organizer-transferred` 分列——
+  //   那条是「有接手人」的转交；本条是「无接手人」的解除，文案不同，不能混用。
+  // 授权：① 支委层（角色编辑的功能位）；② 党小组组长（本组活动角色编辑的既有功能位）；
+  //      ③ 被解除者本人（受众恒为本人，只伤及自己）。
+  // 展示值：项目名按表复算（`activities.title` / `taskforces.name`），人名按名册复算。
+  'organizer-designation-corrected': {
+    authorize({ actor, sourceId, payload, db }) {
+      if (!actor) return false;
+      if (!rowOf(db, 'activities', sourceId) && !rowOf(db, 'taskforces', sourceId)) return false;
+      const removed = payloadOf({ payload }).removedPersonId;
+      if (COMMITTEE_ROLE_SET.has(actor.role)) return true;
+      if (isPartyGroupLeaderRole(actor.role)) return true;
+      return !!removed && removed === actor.id;
+    },
+    build(ctx) {
+      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
+      const act = rowOf(ctx.db, 'activities', ctx.sourceId);
+      const tf = rowOf(ctx.db, 'taskforces', ctx.sourceId);
+      if (act) {
+        vars.label = '活动';
+        vars.targetType = 'activity';
+        if (act.title) vars.projectName = act.title;
+      } else if (tf) {
+        vars.label = '专班';
+        vars.targetType = 'taskforce';
+        if (tf.name) vars.projectName = tf.name;
+      }
+      if (!vars.projectName && vars.subjectName) vars.projectName = vars.subjectName;
+      return buildSystemNotice('organizer-designation-corrected', vars);
+    },
+  },
+
   // ── 待办作废已裁决（`#1`/`D-742`；2026-10-02 批次 340）────────────────────
   // 场景：责任人 `requestVoid` → 支书/副支书在支书台确认或驳回该作废申请后的**站内知会**
   //   （支书 2026-10-02 语：「支书如果不认为这个待办能取消，或者说即使取消也要让某个委员知情，
@@ -675,6 +709,7 @@ export const SYSTEM_NOTICE_AUDIENCE_POLICY = Object.freeze({
   'makeup-remind': 'conditional',
   'committee-dispatch': 'conditional',
   'organizer-transferred': 'conditional',
+  'organizer-designation-corrected': 'conditional',
   'todo-void-decided': 'conditional',
   'record-void-decided': 'conditional',
 });

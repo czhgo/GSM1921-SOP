@@ -10,6 +10,29 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 573（2026-11-19）· 待裁清零：D-885 落盘 ＋ 五件代码化 ＋ 队列收口
+
+### 为什么
+- 支书令「待裁先 grill 裁定、落盘到 plan 再执行」。计划 §二 F 的 12 条已在三轮 grilling 中逐条裁定，本批不再重复询问，直接落盘（`D-885`）并落到代码 / 文档。
+
+### 拿不准 / 取舍
+- **SOP-F-4「退回待批」还要能再提请**：只把状态留在 `pending-approval` 不够——已出结果的旧议程项会让 `openCommitteeVoteForActivity` 幂等返回、无法二次表决。取「`activityApprovalAgendaItemOf` 只认未出结果的项」，旧项留作历史，不删记录。
+- **「更正」通知是否双发**：转交路径（有接手人）已发 `organizer-transferred`，故 `syncProjectRoles` 增加 `notifyRemovedOrganizers` 开关，转交处传 false；解除路径（无接手人）发新 kind `organizer-designation-corrected`。
+- **副组长身份键**：母本 §9a0 原句已隐含「共享工作台」，本批只补「独立账号键、不合并账号」一句，不改任何键集。
+- **工作流标签**：`PENDING_EXPANDED` / `APPROVED` 两枚标签同时改 `definitions.js` 与 `DATA_MODEL.md`，并由 G1 增断言（旧标签在 `docs/src/workflow` 与 `content` 零命中；通知文案里的「成员变更已审批」不属同一事实，排除扫描面）。
+- **组织者任务销项**：活动状态由 `mock/derive.js` 按日期派生、并无「标记完成」写口 ⇒ 取**读侧派生**（已完结活动的组织者任务不再出现在「我的任务」），不写任务行。
+- **SOP-B-25 两项未在本批做**：派生待办要新 `TodoSourceType` ＋ 跳转落点映射，改派要新写口与 UI，属独立可回滚面 ⇒ 按计划挪到批次 574，本批不半接线（避免留下点了没反应的待办）。
+
+### 边界
+- `SOP-B-33` / `SOP-F-5-⑥` 裁定「不做」，只在 `D-885` 留理由并从 `REVIEW_QUEUE` 删除，不入乙部。
+- `SOP-B-27` / `SOP-B-44` 仍留队列，指向批次 577。
+- `README-server` 的 kind 数 31→32 与 `system-notice-kinds.js` 行号引用同批改签；`activity.js:730-831` 区间随批注增行平移。
+
+### 读数
+- daily：**32 文件 / 263 断言 / 129.3s** 全绿。
+- 定向：`permission-gate` 15/15、`policy-config` 33/33、`single-fact-consistency` 4/4、`doc-consistency` 21/21、`notice-deeplink-guard` 7/7、`docs-governance/ctx-hygiene/test-tier/frontmatter` 50/50。
+- guards 静态调用点：837 → 839（预算 860，不上调）。
+
 ## 批次 572（2026-11-19）· 一次清仓：冲突清零 ＋ G1/G2 守卫 ＋ 台账噪声归零
 
 ### 为什么

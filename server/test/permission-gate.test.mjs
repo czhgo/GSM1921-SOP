@@ -385,6 +385,40 @@ test('转交组织者通知（批次 330 裁）：支委层可触发且项目名
   assert.equal(ghostRes.status, 403, '服务端无该活动 → 403');
 });
 
+// 批次 573（2026-11-19 · `D-885` / SOP-B-17）：**解除**组织者指定（无接手人）⇒ 给被解除者发「更正」
+//   —— 服务端 kind `organizer-designation-corrected`（与「转交」分列，防两种语义混用）
+test('解除组织者指定通知（D-885）：支委层可触发且项目名按表复算；非支委且非本人 403；对象不存在 403', async () => {
+  const { token: secTok } = await login('2300010001');  // 支书（支委层 → 可触发）
+  const { token: memTok } = await login('2400012347');   // 普通成员（非支委）
+
+  const okRes = await fetch(`${base}/api/v1/system-notices`, {
+    method: 'POST', headers: authHeaders(secTok),
+    body: JSON.stringify({
+      kind: 'organizer-designation-corrected', sourceId: 'act-6',
+      payload: { removedPersonId: '2400012345', projectName: '伪造项目名', removedName: '甲' },
+    }),
+  });
+  assert.equal(okRes.status, 201, '支委层可发「组织者指定已解除」更正');
+  const notice = await okRes.json();
+  assert.equal(notice.title, '组织者指定已解除');
+  assert.deepEqual(notice.audiencePersons, ['2400012345'], '受众＝到人定向（被解除者本人）');
+  assert.equal(notice.audience, undefined, '不设角色广播');
+  assert.ok(String(notice.content).includes(ACT6_TITLE), '项目名按表复算（不采信 payload 伪造值）');
+  assert.equal(notice.targetType, 'activity', '活动 → targetType=activity');
+
+  const denyRes = await fetch(`${base}/api/v1/system-notices`, {
+    method: 'POST', headers: authHeaders(memTok),
+    body: JSON.stringify({ kind: 'organizer-designation-corrected', sourceId: 'act-6', payload: { removedPersonId: '2400012345' } }),
+  });
+  assert.equal(denyRes.status, 403, '普通成员不得给他人生成该更正');
+
+  const ghostRes = await fetch(`${base}/api/v1/system-notices`, {
+    method: 'POST', headers: authHeaders(secTok),
+    body: JSON.stringify({ kind: 'organizer-designation-corrected', sourceId: 'act-does-not-exist', payload: { removedPersonId: '2400012345' } }),
+  });
+  assert.equal(ghostRes.status, 403, '服务端无该活动 → 403');
+});
+
 // C-2 方案 B（2026-09-11 支书批）：名册成员变更确认链「支书阶段写入」语义端点权限边界
 // POST /api/v1/members/:id/develop-stage —— 仅支书（SECRETARY_ROLES）+ 同支部；字段仅 developStage。
 test('成员变更确认链阶段端点：支书/副支书本支部 200 且落库；非支书侧 403；跨支部 403；白名单/枚举 422', async () => {

@@ -2,7 +2,7 @@
 title: "运行与协作规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-08"
+last_updated: "2026-11-19"
 version: "4.2"
 status: active
 merged_from:
@@ -1658,7 +1658,7 @@ AI 对支书原话的展开，目标是**吃透支书精神后用自己的语言
 
 ### 内部黑话（真自造词，离开仓库读不懂）
 
-- **L1-L4 阶段号**：工作流「代码化 → 可拖拽化」演进的推进层级号——L1 能力目录化 → L2 支部组合化 → L3 块封装契约 → L4 拖拽编排（L5 块分享复用）；说「做到 L3」即指推进到该层（[ARCHITECTURE_EVOLUTION.md §八](../04_web_design/evolution/ARCHITECTURE_EVOLUTION.md) 8.2 目标分层表；愿景总述见根 [README.md](../../README.md)「开源项目目标」）
+- **L1-L4 阶段号**：工作流「代码化 → 可拖拽化」演进的推进层级号——L1 能力目录化 → L2 支部组合化 → L3 块封装契约 → L4 拖拽编排（L5 块分享复用）；说「做到 L3」即指推进到该层（[ARCHITECTURE_EVOLUTION.md §八](../04_web_design/evolution/ARCHITECTURE_EVOLUTION.md) 8.2 目标分层表；愿景总述见 [README-members.md 八、迭代路线图](../../README-members.md#八迭代路线图)）
 - **T-/D-/P- 编号体系**：全仓前缀编号——T 是任务（CLAUDE.md 乙部条目 / 执行日志条目），D 是决策（`.ctx/logs/` 决策日志，全局递增），P 是待决策问题（CLAUDE.md 丙部）或支书论断索引（[SECRETARY_DIRECTIVES.md](../01_strategy/SECRETARY_DIRECTIVES.md) 附录 P-001…）；看到前缀即知去哪个权威处查（生命周期见 [CLAUDE.md](../../CLAUDE.md) H50，编号规则总表见 [§9](#9-编号命名规则)）
 - **H 编号**：根 [CLAUDE.md](../../CLAUDE.md) 甲部规则条编号（H10~H100，按约束力分热/温/冷三层、10 递增预留）；「H30 一改具改」即引用该文件的第 30 号条款（编号语义对照见 [§9.1](#91-甲部-harness-编号体系)）
 - **block manifest（旧词）**：工作流块元数据/封装契约的旧称，已改名并独立成文 [WORKFLOW_BLOCK_CONTRACT.md](../04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md)（L3 块封装契约 v1.1，契约类，规范效力见 `contracts/README.md`）；「manifest」现仅指该契约内的块元数据载体字段，不再代指整份契约

@@ -69,3 +69,59 @@ test('G1 反例自证：篡改任一计数必须报 mismatch', () => {
   const found = factMismatches(forged);
   assert.ok(found.length >= 3, `反例未被拦住，只报 ${found.length} 处：${found.join(' / ')}`);
 });
+
+// ════════════════════════════════════════════════════════════════
+//  工作流状态标签单一源（2026-11-19 批次 573 · `D-885` / SOP-B-18）
+//  病灶：状态机标签一处写「待支委扩大会讨论 / 已审批」、数据模型另写一套 ⇒ 读者无法判断哪个是现行口径。
+//  判据：`definitions.js` 与 `DATA_MODEL.md` 的两枚标签必须同值；旧标签在 docs / content 零命中。
+//  反例自证：喂入被篡改的标签必须报 mismatch（防写成恒真）。
+// ════════════════════════════════════════════════════════════════
+const WORKFLOW_LABEL_PAIRS = Object.freeze([
+  ['PENDING_EXPANDED', '待支委会审议'],
+  ['APPROVED', '已审议'],
+]);
+const LEGACY_WORKFLOW_LABELS = Object.freeze(['待支委扩大会讨论', '已审批']);
+
+function _walkFiles(dir, out = []) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) _walkFiles(full, out);
+    else if (/\.(md|js|mjs|html)$/.test(entry.name)) out.push(full);
+  }
+  return out;
+}
+
+/** 纯比较：返回标签不一致 / 旧标签残留清单（空数组＝通过）。 */
+export function workflowLabelMismatches(pairs = WORKFLOW_LABEL_PAIRS, legacy = LEGACY_WORKFLOW_LABELS) {
+  const defs = read('docs/src/workflow/definitions.js');
+  const model = read('content/04_web_design/data/DATA_MODEL.md');
+  const out = [];
+  for (const [state, label] of pairs) {
+    const defHit = new RegExp(`name: '${state}',\\s*\\n\\s*label: '([^']+)'`).exec(defs);
+    if (!defHit) out.push(`definitions.js 缺状态 ${state}`);
+    else if (defHit[1] !== label) out.push(`definitions.js ${state} 标签=${defHit[1]}，应为 ${label}`);
+    if (!model.includes(`| ${state} | ${label} |`)) out.push(`DATA_MODEL.md 缺 ${state} → ${label}`);
+  }
+  // 旧标签扫描面＝状态机定义域（workflow）与规范正文（content）；
+  // 不扫无关通知文案（如「成员变更已审批通过」是另一件事，不在本判据内）。
+  const roots = ['docs/src/workflow', 'content'].map((rel) => join(ROOT, rel));
+  for (const root of roots) {
+    for (const file of _walkFiles(root)) {
+      const text = readFileSync(file, 'utf8');
+      for (const old of legacy) {
+        if (text.includes(old)) out.push(`${file.slice(ROOT.length + 1)} 仍含旧标签「${old}」`);
+      }
+    }
+  }
+  return out;
+}
+
+test('G1 工作流状态标签：definitions.js ≡ DATA_MODEL，旧标签在 docs/src 与 content 零命中', () => {
+  assert.deepEqual(workflowLabelMismatches(), [], '工作流状态标签多处并存（先改 definitions.js 与 DATA_MODEL）');
+});
+
+test('G1 反例自证：篡改工作流标签必须报 mismatch', () => {
+  const forged = [['PENDING_EXPANDED', '待支委扩大会讨论']];
+  const found = workflowLabelMismatches(forged, ['待支委会审议']);
+  assert.ok(found.length >= 2, `反例未被拦住，只报 ${found.length} 处：${found.join(' / ')}`);
+});

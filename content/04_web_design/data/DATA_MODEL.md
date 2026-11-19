@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.1"
-last_updated: "2026-11-18"
+last_updated: "2026-11-19"
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -640,8 +640,8 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | 状态名 | 中文标签 | 所属阶段 | 可编辑 | 超时(h) |
 |---|---|---|---|---|
 | DRAFT | 草稿 | 策划 | 是 | 168 (短期) / 336 (长期) |
-| PENDING_EXPANDED | 待支委扩大会讨论 | 审批 | 否 | 48 (短期) / 96 (长期) |
-| APPROVED | 已审批 | 审批 | 是 | 72 (短期) / 168 (长期) |
+| PENDING_EXPANDED | 待支委会审议 | 审批 | 否 | 48 (短期) / 96 (长期) |
+| APPROVED | 已审议 | 审批 | 是 | 72 (短期) / 168 (长期) |
 | PREPARING | 筹备中 | 筹备 | 是 | 72 |
 | IN_PROGRESS | 进行中 | 实施 | 是 | 36 |
 | COMPLETED | 已完成 | 收尾 | 是 | 96 (短期) / 168 (长期) |

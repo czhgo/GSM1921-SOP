@@ -99,7 +99,11 @@ export async function transferOrganizer({ subject, scopeRef, toPersonId, actorId
     ...proj.filter(x => x.role !== 'organizer' && x.personId !== toPersonId),
     { personId: toPersonId, role: 'organizer' },
   ];
-  const r = await AuthStore.syncProjectRoles({ scopeRef, assignments: next, actorId });
+  const r = await AuthStore.syncProjectRoles({
+    scopeRef, assignments: next, actorId,
+    // 本路径随后发 `organizer-transferred`（有接手人）⇒ 关掉解除组织者的「更正」通知，防双发（`D-885`）
+    notifyRemovedOrganizers: false,
+  });
   if (!r || (r.added === 0 && r.removed === 0)) return { ok: false, reason: 'no-change' };
   // 做事即销待办（口径同两处既有「保存角色」）：本对象的赋权待办随之销掉。
   TodoStore.completeBySource(subject === 'taskforce' ? TodoSourceType.TASKFORCE : TodoSourceType.ACTIVITY, scopeRef);

@@ -487,7 +487,7 @@ test('⑨ 待批可见性：只支委层可见；非待批活动恒可见（关�
   assert.deepEqual(filterActivitiesForViewer(plain, 'participant'), plain);
 });
 
-test('⑨ 支委会档：提请表决＝挂 activity-approval 议程项＋支委会档 voteConfig；通过⇒发布、未通过⇒终止', async () => {
+test('⑨ 支委会档：提请表决＝挂 activity-approval 议程项＋支委会档 voteConfig；通过⇒发布、未通过⇒退回待批', async () => {
   beginMockCase();
   mockDB.activities = [{
     id: 'act-ap1', title: '共建活动', status: PENDING_APPROVAL_STATUS,
@@ -513,11 +513,19 @@ test('⑨ 支委会档：提请表决＝挂 activity-approval 议程项＋支委
   assert.equal(pass.ok, true);
   assert.equal(pass.patch.status, 'published');
   assert.equal(pass.patch.approval.state, 'approved');
-  // 未通过 ⇒ 终止
+  // 未通过 ⇒ 退回待批（`D-885` / SOP-F-4）：状态不变、留退回结论
   const fail = applyActivityApprovalResult({ activity: act, decision: 'rejected', by: '2300010001' });
   assert.equal(fail.ok, true);
-  assert.equal(fail.patch.status, 'cancelled');
+  assert.equal(fail.patch.status, PENDING_APPROVAL_STATUS, '未通过＝退回待批，不终止');
   assert.equal(fail.patch.approval.state, 'rejected');
+  // 退回后：已出结论的旧的议程项留作历史，不再充当「待表决项」⇒ 可再次提请
+  const afterReject = {
+    ...act,
+    status: fail.patch.status,
+    approval: fail.patch.approval,
+    agenda: act.agenda.map((x) => (x.id === vote.agendaItemId ? { ...x, result: 'rejected' } : x)),
+  };
+  assert.equal(activityApprovalVoteOf(afterReject), null, '退回后旧议程项不再充当待表决项（可重新提请）');
   // 非待批 / 非支委会档 ⇒ 本段不动（别的路径不误伤）
   assert.equal(applyActivityApprovalResult({ activity: { status: 'published', approval: { mode: 'branch-committee' } } }).ok, false);
   assert.equal(applyActivityApprovalResult({ activity: { status: PENDING_APPROVAL_STATUS, approval: { mode: 'secretary' } } }).ok, false);

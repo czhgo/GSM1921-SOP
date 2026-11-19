@@ -727,7 +727,9 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
   eq('「拟上会」清单类数', 'ACTIVE_RULINGS.md §A「拟上会清单共 N 类」', cn(m(lineWith(read(RULINGS), /^- .*「拟上会」清单共/), /共\s*([\d一二两三四五六七八九十]+)\s*类/)), agendaReal,
     `系统 group 取值＝${[...agendaGroups].sort().join(' / ')}`);
   eq('「拟上会」清单类数', 'docs/help.html §3.1 括注列举', enumCount(lineWith(help, /「拟上会」清单<\/strong>里勾/)), agendaReal);
-  eq('「拟上会」清单类数', 'REVIEW_QUEUE.md `SOP-B-33`「现为 N 类」', cn(m(lineWith(read(QUEUE), /^> \*\*已闭环\*\*：裁定 `D-552`/), /现为\s*([\d一二两三四五六七八九十]+)\s*类/)), agendaReal);
+  // 原锚点＝REVIEW_QUEUE 的 `SOP-B-33` 段；2026-11-19 批次 573（`D-885`）该段按 `H50.1` 关闭删除，
+  //   类数的事实落回契约正文（`AGENDA_DERIVATION_CONTRACT.md §二` 标题即「六类来源」）——契约是这条枚举的权威家。
+  eq('「拟上会」清单类数', 'AGENDA_DERIVATION_CONTRACT.md §二 标题', cn(m(lineWith(read(join(ROOT, 'content', '04_web_design', 'contracts', 'AGENDA_DERIVATION_CONTRACT.md')), /^## 二、/), /^## 二、([\d一二两三四五六七八九十]+)类来源/)), agendaReal);
 
   // ⑤ ACTIVE_RULINGS 口径行数（权威＝该文件 `^- ` 实测）——**2026-10-06 批次 413：文首不再写死行数**
   //    （逐批增量句已删、口径行数以本表实读为准；`H26.2` ＋ `D-663`「规模面不许写人手维护的整数」）
@@ -833,7 +835,10 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
   assert.match(q, /## 附录：W4 专项评议循环承接区/, 'REVIEW_QUEUE.md 缺「W4 专项评议循环承接区」（队列的 (a) 类：机制描述 ＋ 支书复用检查项）');
   assert.match(q, /## 未闭环/, 'REVIEW_QUEUE.md 缺「未闭环」节（`H26.2`：队列只留未闭环）');
   const qSections = (q.match(/^### SOP-/gm) || []).length;
-  assert.ok(qSections >= 8, `REVIEW_QUEUE.md 只解析到 ${qSections} 个 \`### SOP-*\` 命题节（下限 8）：解析失效或队列被误清空`);
+  // 下限是**非空转地板**（防整份被清空 / 解析失效），不是目标数：
+  //   2026-11-19 批次 573（`D-885`）按 `H50.1` 删除 3 条已裁「不做」/ 已闭环命题（B-14 / B-17 / B-18 / B-33 / F-4 / F-5），
+  //   实然 6 节（B-25 / B-27 / B-31 / B-32 / B-44 / C-76·C-78）⇒ 地板由 8 调为 5（留 1 节余量，再删须同批说明）。
+  assert.ok(qSections >= 5, `REVIEW_QUEUE.md 只解析到 ${qSections} 个 \`### SOP-*\` 命题节（下限 5）：解析失效或队列被误清空`);
 
   // ⑬ 真机台账规模（权威＝`server/test/form-loop-registry.mjs` 的**条目行**；2026-09-28 批次 240 · 收 `H-4`）
   //    病灶（`H-4`）：README 自述「95 处校验点 / 91 条可自动化 / 4 条非自动化」是**旧口径的定格**——
