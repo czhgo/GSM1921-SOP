@@ -95,8 +95,10 @@ export const DAILY_TEST_BUDGET = 262;
  *  2026-11-16 polish-shell T12：新增 `resource-write-validation-guard.test.mjs`（通用写口字段校验 ＋ 列表硬上限），
  *    实然 110 文件；111 仍在余量内（差 1），**不上调**。
  *  2026-11-18 批次 565：新增 `audit-write-version-guard.test.mjs`（审计驱动 PATCH 必带 If-Match），
- *    实然 112 文件（本批 +1）；按 112 登记（差 0；再增守卫须先降存量或显式上调）。 */
-export const GUARDS_FILE_BUDGET = 112;
+ *    实然 112 文件（本批 +1）；按 112 登记（差 0；再增守卫须先降存量或显式上调）。
+ *  2026-11-19 批次 572：新增 `single-fact-consistency`（单值事实 G1）与 `spec-task-consistency`
+ *    （spec 台账噪声 G2），实然 114 文件；按 114 登记（差 0）。 */
+export const GUARDS_FILE_BUDGET = 114;
 
 /** guards 静态 `test(` / `it(` 调用点预算
  *  2026-11-08 波次 A：实测 788 断言，按 791 登记（断言留 3 条余量）。
@@ -294,6 +296,9 @@ export const TEST_TIERS = [
     'demo-window-guard.test.mjs',
     'doc-consistency.test.mjs',
     'docs-governance-guard.test.mjs',
+    // 2026-11-19 批次 572：单值事实跨文件一致 ＋ spec 台账噪声棘轮（G1 / G2）
+    'single-fact-consistency.test.mjs',
+    'spec-task-consistency.test.mjs',
   ]),
 
   // ── precommit · 非核心域回归（提交前 / 发布前覆盖；进 daily 会拖长日常）─────

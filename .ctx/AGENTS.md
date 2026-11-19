@@ -22,7 +22,7 @@
 ```powershell
 # 定向（纯 node，秒级）
 cd server; node --test test/ctx-hygiene-guard.test.mjs test/docs-governance-guard.test.mjs test/doc-consistency.test.mjs
-# 已知：ctx-hygiene ① 当前为绿（顶层 9 项 = 白名单 9 项）；其余项应绿
+# 已知：ctx-hygiene ① 当前为绿（顶层 10 项 = 白名单 10 项）；其余项应绿
 # 全量日常（实测 ≈150s，预算 ≤180s）
 cd server; npm run test:daily
 # 发布前（预算 ≤1200s；README 实测量级 ≈23 分钟）

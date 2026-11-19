@@ -2,7 +2,7 @@
 title: "审计口径唯一表——四口径裁定与档位分工"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-11-14"
+last_updated: "2026-11-19"
 status: active
 related_files: [TAB_AUDIT_PLAYBOOK.md, ../04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md, ../04_web_design/design-system/DS_03_COMPONENTS.md, ../../server/scripts/audit/checks-front.mjs, ../../server/scripts/audit/checks-data.mjs, ../../server/scripts/audit/checks-economy.mjs, ../../server/scripts/audit/dom-probe.mjs, ../../.ctx/ENGINEERING_ASSESSMENT.md]
 ---
@@ -39,7 +39,7 @@ related_files: [TAB_AUDIT_PLAYBOOK.md, ../04_web_design/design-system/DS_06_LAYO
 
 | 档位 | 负责什么（保留哪些棘轮） | 不负责什么 | 入口 |
 |---|---|---|---|
-| **daily** | 静态守卫与真机棘轮：`ui-first-screen-order::F6–F9`（块数基线）、`filter-row::S14`（结构）＋ `S15`（真机证据读数）、`field-shell-guard::R4–R5`、`workbench-audit-coverage::W1–W5`（catalog 完整性）、`page-sweep`（分页 / H2 / 尺规真机普查） | 不跑 46 页签的五维全量审计；不因审计口径调整而删断言 | `cd server; npm run test:daily` |
+| **daily** | 静态守卫与真机棘轮：`ui-first-screen-order::F6–F10`（块数基线）、`filter-row::S14`（结构）＋ `S15`（真机证据读数）、`field-shell-guard::R4–R5`、`workbench-audit-coverage::W1–W5`（catalog 完整性）、`page-sweep`（分页 / H2 / 尺规真机普查） | 不跑 46 页签的五维全量审计；不因审计口径调整而删断言 | `cd server; npm run test:daily` |
 | **precommit** | 真机与跨面回归：`records-endpoints`、`page-sweep` 等含 Playwright 的用例 | 不承担 daily 的秒级预算；不替代 audit 的报告层 | `cd server; npm run test:precommit`（或 `test:full`） |
 | **audit** | 只做**报告层**：F1–F8 / D1–D4 / C1–C4 / E1–E2 / M1–M3 逐页签评分卡与证据 | 不作为门禁、不替代 daily / precommit；`--base` 连共享库时写维度自动降级 | `cd server; node scripts/audit-tabs.mjs --tab <key>` |
 

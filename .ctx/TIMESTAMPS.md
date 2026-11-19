@@ -53,7 +53,7 @@ dynamic_role:
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
 | .ctx/TIMESTAMPS.md | 2026-11-19 | — | [工程师]+[AI] | 文件时间戳注册表；备注列只写**现状 / 边界 / 指针**（`R-89`），逐批沿革见 `.ctx/logs/**`。 |
-| .ctx/SNAPSHOT.md | 2026-11-08 | — | [AI] | 系统现状基线（reference）：只答「系统现在长什么样」；批次 509–528 小结已迁 `logs/EXECUTION_LOG_INDEX.md` 的批次索引表。 |
+| .ctx/SNAPSHOT.md | 2026-11-19 | — | [AI] | 系统现状基线（reference）：只答「系统现在长什么样」；批次 509–528 小结已迁 `logs/EXECUTION_LOG_INDEX.md` 的批次索引表。 |
 | .ctx/ACTIVE_RULINGS.md | 2026-11-19 | — | [工程师]+[AI] | 现行有效裁定**索引**（reference）：只答「到哪找某条现行口径」；跨域摘要 + 18 领域索引，规则正文在 `content/01–05`。 |
 | .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-19 | — | [工程师]+[AI] | 工程评估与改造行动线：六维评分（当前 80/78/79/73/76/71，`D-883`）、七个月复盘、阻断风险、当前行动与专项台账；§四 另设「上线残项」单一台账；不设综合均分。 |
 | .ctx/REVIEW_QUEUE.md | 2026-11-18 | — | [工程师]+[AI] | 支书评议队列（reference）：只答「要评议什么 ＋ 评议怎么做」；过程 / 已闭环不留。 |
@@ -156,7 +156,7 @@ dynamic_role:
 | content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md | 2026-11-16 | — | [工程师]+[AI] | 架构演进（组件化评估、轻量插件化设计、迭代机制、§八 画布愿景、§九 性能与交付形态方案 ＋ §9.3 版本戳成本收益、§十 多支部同实例设计稿 ＋ §10.6–10.9 判定点清单 / 失败开放点 / 双支部夹具摸底 / T13 施工顺序）。**边界**：「操作位收口」以 `PARTY_COMMITTEE_DESIGN.md` 为准。 |
 | content/04_web_design/evolution/archive/BRANCH_WORK_MAP.md | 2026-11-08 | — | [工程师]+[AI] | 支部工作地图档案（2026-10-28 页签命名改准） |
 | content/04_web_design/evolution/archive/DESIGN_METHODOLOGY.md | 2026-11-08 | — | [工程师]+[AI] | 方法论档案（2026-09-26 补行） |
-| content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md | 2026-11-18 | — | [工程师]+[AI] | 党委治理契约 |
+| content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md | 2026-11-19 | — | [工程师]+[AI] | 党委治理契约 |
 | content/04_web_design/evolution/archive/ROLE_PERMISSION_DESIGN.md | 2026-11-08 | — | [工程师]+[AI] | 权限收敛档案（2026-09-26 补行） |
 | content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md | 2026-11-08 | — | [工程师]+[AI] | 块封装契约（2026-09-26 补行） |
 | content/04_web_design/module/PUBLIC_ENTRANCE.md | 2026-11-11 | — | [工程师]+[AI] | 门厅设计已裁定（公开门厅的规范编号 2026-11-10 批次 541 回填为 SD-62）。 |
@@ -190,15 +190,15 @@ dynamic_role:
 | content/05_ai_coding/README.md | 2026-11-03 | — | [工程师]+[AI] | 05_ai_coding 目录索引（含 `TAB_AUDIT_PLAYBOOK.md` 行）。 |
 | content/05_ai_coding/AGENTS.md | 2026-11-01 | — | [工程师]+[AI] | 05 目录协作说明：Q 范围 Q-01…Q-22、分层裁决与验证命令。 |
 | content/05_ai_coding/PARALLEL_SKILL_AUDIT.md | 2026-11-03 | — | [工程师]+[AI] | 多代理独立审查操作手册（H21 详版）：问题集 Q-01…Q-22 → 分 lens → 汇总 → 裁定；§11 IA 审查、§14 SKILL 路由。 |
-| content/05_ai_coding/CASES.md | 2026-11-10 | — | [工程师]+[AI] | AI 协作判例库。 |
+| content/05_ai_coding/CASES.md | 2026-11-19 | — | [工程师]+[AI] | AI 协作判例库。 |
 | content/05_ai_coding/CONTEXT_MANAGEMENT.md | 2026-11-15 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。**2026-09-26 已清偿 `R-83` 债**：frontmatter 与表行同刷为该文件最后一次提交日 `2026-09-26`） 上下文管理与防失忆 |
-| content/05_ai_coding/DOCUMENT_GOVERNANCE.md | 2026-11-15 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 文档治理与一改具改 |
+| content/05_ai_coding/DOCUMENT_GOVERNANCE.md | 2026-11-19 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 文档治理与一改具改 |
 | content/05_ai_coding/FILE_OPERATION_RULES.md | 2026-11-03 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。**2026-09-26 已清偿 `R-83` 债**：frontmatter 与表行同刷为该文件最后一次提交日 `2026-09-26`） 文件操作纪律 |
 | content/05_ai_coding/REVIEW_AND_EXPRESSION.md | 2026-10-24 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。**2026-09-26 已清偿 `R-83` 债**：frontmatter 与表行同刷为该文件最后一次提交日 `2026-09-26`） 评议与表达纪律 |
 | content/05_ai_coding/TEST_AND_VERIFICATION.md | 2026-11-03 | — | [工程师]+[AI] | 测试三层（daily/precommit/weekly）；2026-11-03 增两条判例（权限矩阵单一源 / 「保留+改进」反馈必须给出改动或证据）。 |
-| content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md | 2026-11-14 | — | [工程师]+[AI] | 页签审计手册（2026-11-02 建）：五维检查表、P0–P2、例外口径、怎么跑、怎么加检查与页签、报告字段；判据回链 DS_06 §五与 `audit/severity.mjs`。 |
+| content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md | 2026-11-19 | — | [工程师]+[AI] | 页签审计手册（2026-11-02 建）：五维检查表、P0–P2、例外口径、怎么跑、怎么加检查与页签、报告字段；判据回链 DS_06 §五与 `audit/severity.mjs`。 |
 | content/05_ai_coding/UI_REVIEW_CHECKLIST.md | 2026-11-08 | — | [工程师]+[AI] | 温层 UI 审查清单（2026-11-03 建）：按 8 组任务组织（版式密度 / 排版字号 / 颜色对比 / 交互无障碍 / 文案空态 / 响应式 / 动效 / 数据展示），每条带判据 + DS 节 / SD 编号 + 何时读；入口 `CLAUDE.md H40.2`。 |
-| content/05_ai_coding/AUDIT_CANON.md | 2026-11-14 | — | [工程师]+[AI] | 审计口径唯一表（2026-11-02 建）：四口径裁定（F2 控件行数 / F4 H2 恰 1 / F7 `hasPager()` / C1 `requireAuth` 例外）与 daily / precommit / audit 三档分工；判据回链 `audit/checks-*.mjs` 与 `TAB_AUDIT_PLAYBOOK.md`。 |
+| content/05_ai_coding/AUDIT_CANON.md | 2026-11-19 | — | [工程师]+[AI] | 审计口径唯一表（2026-11-02 建）：四口径裁定（F2 控件行数 / F4 H2 恰 1 / F7 `hasPager()` / C1 `requireAuth` 例外）与 daily / precommit / audit 三档分工；判据回链 `audit/checks-*.mjs` 与 `TAB_AUDIT_PLAYBOOK.md`。 |
 
 ## content/insights/ (经验沉淀)
 
@@ -273,8 +273,8 @@ dynamic_role:
 | server/test/hover-state-guard.test.mjs | 2026-11-04 | — | [工程师]+[AI] | 交互三态守卫。 |
 | content/05_ai_coding/REVIEW_QUESTION_SET.md | 2026-11-03 | — | [工程师]+[AI] | 审查问题集：Q-01…Q-22（Q-22 为页签密度与信息经济的审查方法，执行工具指向 `TAB_AUDIT_PLAYBOOK.md`）。 |
 | content/05_ai_coding/QUESTION_HIT_MATRIX.md | 2026-11-03 | — | [工程师]+[AI] | 历史命中矩阵；Q-22 列新立，36 行历史记 `—`。 |
-| content/05_ai_coding/GUARD_INVENTORY.md | 2026-11-16 | — | [工程师]+[AI] | 守卫台账；历史总表停 66 件（已滞后），现行件数以 `test-tier-registry.mjs` 为准。 |
-| content/03_doc_system/CASES_INDEX.md | 2026-11-11 | — | [工程师]+[AI] | 判例总索引（design 41 / data 1 / ai 9）。 |
+| content/05_ai_coding/GUARD_INVENTORY.md | 2026-11-19 | — | [工程师]+[AI] | 守卫台账；历史总表停 66 件（已滞后），现行件数以 `test-tier-registry.mjs` 为准。 |
+| content/03_doc_system/CASES_INDEX.md | 2026-11-19 | — | [工程师]+[AI] | 判例总索引（design 41 / data 1 / ai 9）。 |
 | server/test/docs-governance-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 文档治理守卫。 |
 | server/test/contract-field-usage-guard.test.mjs | 2026-11-17 | — | [工程师]+[AI] | 契约字段 / 枚举 / 幽灵字段回归守卫（guards 层）。 |
 | .ctx/README.md | 2026-11-03 | — | [工程师]+[AI] | 三层分职（active / reference / provenance）、准入判据、读取顺序、预算、冲突顺序与可复用资产索引。 |
@@ -289,7 +289,7 @@ dynamic_role:
 | server/run-suite.mjs | 2026-10-03 | — | [工程师]+[AI] | 测试分片启动器：按 `SWEEP_SHARD` 选片（非 e2e 每片全跑 ＋ 本片 e2e），透传退出码。 |
 | server/test/sweep-shard.mjs | 2026-10-03 | — | [工程师]+[AI] | 测试分片单源（片数 / 各片工作台 / 各片 e2e 文件）；四片并集 ≡ 全量由 `suite-shard` 守卫钉死。 |
 | server/test/probe*.mjs | — | — | — | 🗑️ 已删除（T-280 B1 临时探针，定位完成清理） |
-| server/README.md | 2026-11-18 | — | [工程师]+[AI] | 后端安装 / 启动 / 测试 / 部署对接说明，含测试耗时台账与 DOM 基线两张实测表；测试说明指向部署手册 §A.2.5 发布前审计。**边界**：对外接口以 `README-server.md` 为准。 |
+| server/README.md | 2026-11-19 | — | [工程师]+[AI] | 后端安装 / 启动 / 测试 / 部署对接说明，含测试耗时台账与 DOM 基线两张实测表；测试说明指向部署手册 §A.2.5 发布前审计。**边界**：对外接口以 `README-server.md` 为准。 |
 | server/test/perf-guard.test.mjs | 2026-10-27 | — | [工程师]+[AI] | 性能守卫归并件（渲染预算 / 待办聚合缓存 / 版本令牌 / 索引等价，22 条）。 |
 | server/test/copy-guard.test.mjs | 2026-10-28 | — | [工程师]+[AI] | 文案守卫归并件（折叠 / 长度 / 母本 / 自明性 / 卡头副题，16 条）。 |
 | server/test/type-scale-guard.test.mjs | 2026-10-27 | — | [工程师]+[AI] | 字号守卫归并件（小字 / 段落档 / 表格字号 / 控件字号，15 条）。 |

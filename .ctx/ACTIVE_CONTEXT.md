@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: 2026-11-19
 last_verified: "2026-11-19"
-latest_decision: "D-883"
+latest_decision: "D-884"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -27,10 +27,10 @@ status: active
   - source：`server/data/domain-contract.mjs`、`content/04_web_design/data/DATA_CONTRACT.md`。
 - **权限**：写入口权限矩阵 **162 条**（156 enforced / 4 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵；审计 C1 查矩阵 + 高风险抽样。统计口径：`WRITE_POLICY_MATRIX` 按 `status` 计数（2026-11-15 实测；T14 新增进入 / 退出支部查看两写口）。
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
-- **六维（`D-883` 保守重校，2026-11-19）**：业务 **80** / 安全 **78** / 体验 **79** / 测试 **73** / 架构 **76** / 部署 **71**，**六维均 <80 ⇒ 继续不合并**。未闭：多支部四条 P0 框架缺口（集合版本键 / 身份模型 / 公共门厅 / 附件归属，见 `D-882`）、共享口令回退（L-11）、CI 无 run id、`test:full` 未整体重跑、Linux 真机未验（L-02）、D2 计数对账仅 3 页签、C2 写口往返 0 pass、真人签收未完成。
+- **六维（`D-883` 保守重校，2026-11-19）**：业务 **80** / 安全 **78** / 体验 **79** / 测试 **73** / 架构 **76** / 部署 **71**，**六维均 <80 ⇒ 继续不合并**。未闭：多支部四条 P0 框架缺口（集合版本键 / 身份模型 / 公共门厅 / 附件归属，见 `D-882`）、CI 无 run id、`test:full` 未整体重跑、Linux 真机未验（L-02）、D2 计数对账仅 3 页签、C2 写口往返 0 pass、真人签收未完成。
 - **审计**：46 页签 **P0 0 / P1 0 / P2 2 / exception 44**（2026-11-18 批次 565 实跑）；审计工具已修复（URL 跟随无后缀 canonical、登录失败 `exit 2`）。F1–F8 全绿；M1–M3 在位。
-  - source：`.ctx/evidence/2026-11-15/tab-audit/summary.md`（原始截图与 findings.json 可重跑再生，未入库）。
-- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **32 文件 / 262 断言 / 113.4s**（结果门禁，2026-11-19 批次 569 读数）；guards **112 文件 / 385 项全绿 / 158.0s**（静态守卫，按需）；precommit＝daily＋guards＋非核心域回归＋e2e；`test:full` 最近读数 **1779.0s**（三通道各 1 红已逐文件分诊并修复，**未整体重跑**）；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
+  - source：`.ctx/evidence/2026-11-18/tab-audit-after/summary.md`（原始截图与 findings.json 可重跑再生，未入库）。
+- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **32 文件 / 262 断言 / 113.4s**（结果门禁，2026-11-19 批次 569 读数）；guards **112 文件 / 385 项（runner 口径） / 158.0s**（静态守卫，按需；registry 的静态调用点预算为 837 / 860，两者不是同一指标）；precommit＝daily＋guards＋非核心域回归＋e2e；`test:full` 最近读数 **1779.0s**（三通道各 1 红已逐文件分诊并修复，**未整体重跑**）；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
   - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859 / §D-860 / §D-863 / §D-864`。
 - **工程评分（`D-883`，2026-11-19 保守重校）**：业务与数据 **80** · 安全与权限 **78** · 最小三成本 **79** · 测试与发布 **73** · 架构与可维护性 **76** · 运行部署 **71**；不设平均总分；六维均 <80。
   - source：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/logs/2026-11-DECISION_LOG.md §D-883`。
@@ -78,9 +78,9 @@ status: active
 ### 阻断级风险（5 条，逐条复核）
 
 1. **多支部同实例会跨支部读出数据**：读面未统一过滤；production 已硬拦多支部；设计见 `ARCHITECTURE_EVOLUTION §十`。**保留**。
-2. **通用写口权限**：矩阵 **162 条** / 0 known-risk，6 条缺口已修；`issue-unread` 派发位已加 403 校验，清支书角标仅支书/副支书（`D-871`）。**部分闭环**；残项：共享口令、多支部读过滤未接线。
+2. **通用写口权限**：矩阵 **162 条** / 0 known-risk，6 条缺口已修；`issue-unread` 派发位已加 403 校验，清支书角标仅支书/副支书（`D-871`）。**部分闭环**；残项：多支部读过滤未接线。
 3. **表决选民名单来自活动数据本身**：服务端已改为建会时按 `users` ＋ 组织归属计算并冻结（`D-872`），客户端提交值不作数。**闭环**。
-4. **共享口令**：会话已 3 小时过期，个人密码已落地（21/21）。**部分闭环**；共享口令作回退保留，生产用 systemd 注入强口令并定期更换。
+4. **共享口令**：会话已 3 小时过期，个人密码已落地（21/21）。**部分闭环**；生产形态已拒绝共享口令回退（`D-882`，569 实现），共享口令仅非生产演示；`preflight-cutover` ⑧ 检查个人密码覆盖。
 5. **SQLite JSON 宽表是规模边界**：无业务字段索引；万行级前评估 `MIGRATIONS v2`。**保留**。
 
 ### 上线残项中仍 open 的（详见 `.ctx/ENGINEERING_ASSESSMENT.md §四`）

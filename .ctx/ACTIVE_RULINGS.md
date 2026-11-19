@@ -62,7 +62,7 @@ status: active
 | review 库 | `server/data.review.db` | `server/scripts/start-review.mjs` |
 | 生产单支部 | `ALLOW_MULTI_BRANCH=1` 才允许多支部 | `server/run-mode.js` |
 | 写入口矩阵 | 162 条（156 enforced / 4 self-service / 2 public / 0 known-risk） | `server/security/write-policy-matrix.mjs` |
-| 页签块基线 | 14 个 >4 块页签有 reason | `server/test/style-baseline.mjs::TAB_BLOCK_BASELINE` |
+| 页签块基线 | 基线分母 14 个 >4 块页签（含页头 / SD-57 口径）；实际超限例外 6 个 | `server/test/style-baseline.mjs::TAB_BLOCK_BASELINE` |
 
 ## §D 迁移说明
 

@@ -2,7 +2,7 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-11-08"
+last_updated: "2026-11-19"
 status: "ACTIVE"
 layer: reference
 date: "2026-10-23"
@@ -41,7 +41,7 @@ GSM1921-SOP/
 │   ├── activity.html           ← 活动/专班详情公共页（议程恒定渲染 + 表决端 + 通知直达锚点）
 │   ├── party-committee-meeting.html ← 支委会会议页（线上召开：提取议程 / 委员线上表态 / 汇总截止 / 留存并查阅讨论结果；批次 105 / D-526）
 │   ├── taskforce.html          ← 专班详情公共页
-│   ├── settings.html           ← 设置中心（侧边栏右下「设置」入口：外观/我的工作台/支部治理·按登录角色分区，15 根页之一）
+│   ├── settings.html           ← 设置中心（侧边栏右下「设置」入口：外观/我的工作台/支部治理·按登录角色分区，**15 个独立页入口之一**；文件层根页 18 个）
 │   ├── thought-report.html     ← 思想汇报独立阅读页（三模式：?id= 单篇 / ?personId= 按人 / 无参＝提示未指定对象）
 │   ├── person.html             ← 成员档案页（完整档案/在册留痕/关联概览计数，?id=<personId> 打开）
 │   ├── wizard.html             ← 换组织向导（独立 URL 页，支书限本支部/党委任意）

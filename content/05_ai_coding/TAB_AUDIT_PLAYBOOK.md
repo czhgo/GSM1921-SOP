@@ -2,7 +2,7 @@
 title: "页签审计手册——46 页签五维检查怎么跑、怎么判、怎么加"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-11-14"
+last_updated: "2026-11-19"
 status: active
 related_files: [../04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md, REVIEW_QUESTION_SET.md, ../../server/scripts/audit/catalog.mjs, ../../server/scripts/audit/endpoint-map.mjs, ../../.ctx/evidence/2026-11-02/tab-audit/summary-final.md]
 ---
@@ -47,7 +47,7 @@ related_files: [../04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md, REVI
 
 | 维度 | 检查项 | 判据（摘要） | 规范编号 | 守卫 / 脚本 | 级别 |
 |---|---|---|---|---|---|
-| F 前端 | F1 顶层块数 | 页头之外的直接可见内容块 ≤4；>4 且 `TAB_BLOCK_BASELINE` 有非空 `reason` ⇒ exception；`reason` 为空 ⇒ P1 | SD-57 | `ui-first-screen-order::F6–F9` ＋ `audit-tabs::F1` | P1 |
+| F 前端 | F1 顶层块数 | 页头之外的直接可见内容块 ≤4；>4 且 `TAB_BLOCK_BASELINE` 有非空 `reason` ⇒ exception；`reason` 为空 ⇒ P1 | SD-57 | `ui-first-screen-order::F6–F10` ＋ `audit-tabs::F1` | P1 |
 | F 前端 | F2 筛选条 | `.lf-bar` 的控件行数 ≤2（按控件 top ±4px 聚簇，不按固定像素）；非 `column`；`reset` 不占整行 | SD-58 | `filter-row::S14–S15` ＋ `audit-tabs::F2` | P1 |
 | F 前端 | F3 输入装饰 | `input[list]` / `<datalist>` 计数为 0；建议输入带 `role="combobox"` 与配套 ARIA | SD-59 | `field-shell-guard::R4–R5` ＋ `audit-tabs::F3` | P1 |
 | F 前端 | F4 标题层级 | 可见 H1 = 0、H2 恰好 1；H3 前有 H2、H4 前有 H3，跳级即问题 | 非 SD：标题层级 | `page-title-guard::P4–P6` ＋ `audit-tabs::F4` | P1 |
@@ -82,7 +82,7 @@ related_files: [../04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md, REVI
 - **F1 以基线登记为准。** `TAB_BLOCK_BASELINE` 里有非空 `reason` 的 >4 块页签记 `exception`；DOM measured 只作复核线索，不因 measured ≠ baseline 判红（同构列表卡会因条件块显隐而变数）。
 - **C2 破坏性流程不真删。** 解散 / 归档 / 删除活动等只在本次探针行上做软回滚，或仅做静态写门证明；报告记 `exception` ＋ `reason`。
 - **C1 已知风险以矩阵为准。** 写口判据查 `server/security/write-policy-matrix.mjs`：只有矩阵行 `status=known-risk` 才记 `exception` 并回链其 `reason` / `impact` / `riskRef`（现行编号 `.ctx/ENGINEERING_ASSESSMENT.md` 阻断风险 2）；`enforced` / `self-service` / `public` 记 pass。矩阵未登记写口一律 P0，不再按中间件字符串猜门。
-- 全量报告口径为 **P0 0 / P1 0 / P2 4 / exception 29**；29 条例外＝F1 14（>4 块已登记理由）、C2 12（破坏性流程不真删）、C1（矩阵登记为 known-risk 的页签写口）。C1 的具体条数随矩阵行变化，报告以矩阵 `status` 为准。
+- 全量报告口径为 **P0 = 0 / P1 = 0 / P2 全部登记 / exception 全部有理由**（不再写死条数，当前读数见 `.ctx/evidence/2026-11-18/tab-audit-after/summary.md`）。例外来源：F1 超 4 块但 `TAB_BLOCK_BASELINE` 有理由、C2 破坏性流程不真删、C1 矩阵登记为 known-risk 的写口；C1 条数随矩阵行变化，报告以矩阵 `status` 为准。
 
 ## 三、怎么跑
 

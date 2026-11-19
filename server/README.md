@@ -260,9 +260,9 @@ node --input-type=module -e "import Database from 'better-sqlite3'; import { PEO
 
 | # | 限制 | 对部署的含义 |
 |---|---|---|
-| 1 | **各业务动作的角色写权限按矩阵逐口登记** | 资源级角色门见 `RESOURCE_WRITE_GATE`，活动、专班工作组、考勤等另有专门业务写门；`server/security/write-policy-matrix.mjs` 是唯一机读矩阵（141 行，`known-risk` 0），新增写口未登记即由 `write-policy-matrix` 判红。仍不应把“矩阵已覆盖”理解成“所有角色写权已按业务最终统一” |
+| 1 | **各业务动作的角色写权限按矩阵逐口登记** | 资源级角色门见 `RESOURCE_WRITE_GATE`，活动、专班工作组、考勤等另有专门业务写门；`server/security/write-policy-matrix.mjs` 是唯一机读矩阵（162 行，`known-risk` 0），新增写口未登记即由 `write-policy-matrix` 判红。仍不应把“矩阵已覆盖”理解成“所有角色写权已按业务最终统一” |
 | 2 | **无业务字段索引** | 全库是 `(id TEXT PRIMARY KEY, data TEXT)` 宽表：`id` 有主键索引，**`data` 内字段无索引**、读路径一律取全表在 JS 里 `JSON.parse`。⇒ 数据量上到**万行级**前应先评估再优化（属**性能债**，非功能缺陷；本批**只登记未改**） |
-| 3 | **token 3 小时过期 / 无刷新** · **个人密码优先、共享口令回退** | 会话超过 `SESSION_TTL_HOURS`（缺省 3，可调）即失效并要求重新登录。口令分两级：用户设了个人密码（`users.data.passwordHash`）⇒ 只认个人密码、失败不回退；未设 ⇒ 回退支部统一口令 `LOGIN_PASSWORD`（生产未设 ⇒ 启动即拒）。个人密码用 `cd server; npm run set-password -- <学号>` 设置（scrypt 散列，旧库无需回填）。见 `README-server.md §7.1 #5 / #6` |
+| 3 | **token 3 小时过期 / 无刷新** · **个人密码优先；生产不回退共享口令** | 会话超过 `SESSION_TTL_HOURS`（缺省 3，可调）即失效并要求重新登录。口令分两级：用户设了个人密码（`users.data.passwordHash`）⇒ 只认个人密码、失败不回退；**生产形态**未设个人密码 ⇒ 拒绝登录（不回退共享口令，`D-882`）；非生产（本地演示 / 测试）才回退支部统一口令 `LOGIN_PASSWORD`。生产启动仍要求显式设置 `LOGIN_PASSWORD`（未设 ⇒ 拒绝启动），但它不再作为可登录口令。个人密码用 `cd server; npm run set-password -- <学号>` 设置（scrypt 散列，旧库无需回填）。见 `README-server.md §7.1 #5 / #6` |
 
 ### 优雅关闭（2026-09-29 批次 268 新增）
 

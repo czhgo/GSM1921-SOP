@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-883`，共 57 条**；下一条自 **`D-884`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-884`，共 58 条**；下一条自 **`D-885`**。
 
 ## 本月目录（2026-11）
 
@@ -77,6 +77,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 审计 P0 清零（驱动补 If-Match＋守卫）＋ B-552 四项（含 v18 报名唯一索引）＋ 全栈专项修复；六维 82/80/82/76/79/74 仍不合并 | `D-881` | 2026-11-18 | 已落（批次 565–567） |
 | 丙部四项裁定落盘：多支部转架构隔离审计（四条 P0 框架缺口）、生产与换轨只走个人密码、例外归甲、性能取乙 | `D-882` | 2026-11-19 | 已落（批次 568） |
 | 六维保守重校 80/78/79/73/76/71（六维均 <80）＋ 历史值隔离 `H26.5` ＋ active / reference 台账清理 | `D-883` | 2026-11-19 | 已落（批次 568） |
+| 一次清仓：硬冲突 4＋软冲突 9 清零、G1/G2 守卫、spec 噪声 525→0、历史提交基线、`H10.8` / 先裁后清 / CASE-AI-010 | `D-884` | 2026-11-19 | 已落（批次 572） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -511,5 +512,16 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **同批立规**：`CLAUDE.md` 新增 **`H26.5` 历史值隔离**——active 与 reference 台账同一指标只留一个当前值 ＋ `D-xxx` 指针，历史值只进 `.ctx/logs/` 与 git；守卫 `ctx-hygiene-guard::⑪`（历史标记与评分元组同行即红、六维元组每文件至多一处、`ENGINEERING_ASSESSMENT §一` 不得再开「重评 / 旧评分」小节）。**清理**：`ACTIVE_CONTEXT` 三处旧元组、`ACTIVE_RULINGS` 旧元组与「47 表」、`ENGINEERING_ASSESSMENT §一` 五个「重评」小节与「旧评分」段迁出（正文保留在 `D-877…D-881`），§二 六个小标题同步当前值。
 > **未选**：维持 82 / 80 / 82 / 76 / 79 / 74（与未闭项不符，支书已明确批注）；为凑合并门槛上调（违背「该降就降」）；把六维改成一个总分（`D-862` 已禁平均）。**落点**：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/ACTIVE_CONTEXT.md §1 / §2`、`.ctx/ACTIVE_RULINGS.md §A`、`CLAUDE.md H26.5`、`server/test/ctx-hygiene-guard.test.mjs::⑪`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-883`**（共 **57** 条）。
+## D-884 2026-11-19 — 一次清仓：规则硬冲突 4 条＋软冲突 9 条清零，G1/G2 守卫与历史基线
+
+> **评议 → 裁定 → 落点**：支书令「一次查清全仓待办 / P0/P1/P2；有规则按规则，无规则先 grill；原则、规则、判例要完备且无冲突；先解冲突、再清余毒；按阶段执行并清理 active context」。三路只读审计（spec 未勾 / 代码残留与数量 / 规则冲突）后，按 `H30` 先裁后清：
+> - **硬冲突 4**：① 四层名称以 `test-tier-registry.mjs` 单一源为准 ⇒ `daily/guards/precommit/weekly`，`test:full` 改为「跨层全量 runner」；② 生产共享口令以 `D-882` 为准 ⇒ `ACTIVE_CONTEXT` / `EA L-11` / `server/README` 改「生产不回退，仅非生产演示」；③ commit 上限以 `H20.3` 为准 ⇒ `DOCUMENT_GOVERNANCE` 改「最多两条」；④ 矩阵条数以代码为准 ⇒ `server/README` 141 → 162。
+> - **软冲突 9**：审计 canon / playbook / guard inventory 不再写死 P2 与 exception 条数（改指 evidence）；>4 块页签拆成「基线分母 14 / 实际超限 6」；guards 区分「runner 项数 385」与「静态调用点预算 837/860」；`.ctx` 白名单 9→10；党委台页签 5→4；`26=18+8` 与 `15 独立页入口` 加口径标签；EA 旧「809→335」删除；`F6–F9`→`F6–F10`；`45`→`46`。
+> - **新守卫**：`single-fact-consistency::G1`（矩阵 / 表数 / 页签 / 党委台页签 / 白名单 / 四层名 ≡ 代码，含反例自证）、`spec-task-consistency::G2`（父项已勾而子项未勾的台账噪声，历史 525 处按「checklist 回勾 ＋ 错父项改 `[ ]`」清零后基线置空，只减不增）。
+> - **提交自检**：支书裁定「设历史基线」——`check-batch-commits --limit 1` 为收尾门禁；`--limit >1` 只作历史体检，历史 6 条告警不追罚、不改写 message。
+> - **规则与判例**：新增 `H10.8`（特例三档：有规则 / 有原则无细则 / 无原则→丙部 grill）、`H30`「先裁后清」；新增 `CASE-AI-010`（同一指标多值并存）。
+> **未选**：一次性把 15 个 spec 的 525 处子项全部回勾（会产生大量未经核对的假勾）；只清文档不建守卫（下轮必复发）；把历史 6 条 commit 追补改写（违反 `H26.1`）。
+> **落点**：`CLAUDE.md`（`H10.8` / `H25` / `H30` / `H20.3`）、`server/README.md`、`content/05_ai_coding/{DOCUMENT_GOVERNANCE,AUDIT_CANON,TAB_AUDIT_PLAYBOOK,GUARD_INVENTORY,CASES}.md`、`content/03_doc_system/CASES_INDEX.md`、`content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md`、`server/test/{single-fact-consistency,spec-task-consistency}.test.mjs`、`server/test-tier-registry.mjs`、`.ctx/{ACTIVE_CONTEXT,ACTIVE_RULINGS,ENGINEERING_ASSESSMENT,SNAPSHOT,AGENTS}.md`、`.trae/specs/**` 回勾。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-884`**（共 **58** 条）。
 

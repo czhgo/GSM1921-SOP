@@ -365,7 +365,7 @@
 ### 3.2 各工作台页签（共 46 个）
 
 > 登记方式：每台由「能力注册表」声明页签清单（单一源 `docs/src/capabilities/*-workspace.js`）。分组轴只有一套：**支部角色台＝总览 / 我的职责 / 协作与知情 / 制度与答复**；**党委台四个日常页签统一归入「党委治理」**。带 ★ 的为核心页签（固定显示、不可隐藏、不参与排序）。
-> 2026-10-25 IA 62→45：每台删/降的页签均已落到「页内区 / 折叠卡 / 泳道」，**旧深链由工作台壳 `_legacyTabAliases` / `_legacyPageRedirects` 重定向并给 toast**（对照表见 `content/04_web_design/PRODUCT_IA.md` 附录）。
+> 2026-10-25 IA 62→45（**当时口径；2026-11 现为 46，以 §3.2 为准**）：每台删/降的页签均已落到「页内区 / 折叠卡 / 泳道」，**旧深链由工作台壳 `_legacyTabAliases` / `_legacyPageRedirects` 重定向并给 toast**（对照表见 `content/04_web_design/PRODUCT_IA.md` 附录）。
 
 #### 3.2.1 支书工作台（`secretary.html`，支书与副支书共台）— 10 个
 

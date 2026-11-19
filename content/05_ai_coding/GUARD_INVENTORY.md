@@ -2,7 +2,7 @@
 title: "守卫清点与合并台账（72 → 77 → 68 件）"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-11-16"
+last_updated: "2026-11-19"
 status: active
 ---
 
@@ -385,7 +385,7 @@ status: active
 | `workbench-audit-coverage` | **W1** catalog 45 项，键集合 ≡ `TAB_BLOCK_BASELINE`（`assertCatalogIntegrity`）；**W2** 每个页签有真实源码入口；**W3** 至少 1 个读口、写口有 `gate`、`destructive` 有 `reason`；**W4** 缺页签 / 空 `source` / 写口无 `gate` 的反例必须判红；**W5** 旧 67 台账只作归档存在（不再断言其内容） | 4 | 是 |
 | `server/scripts/audit-tabs.mjs` ＋ `server/scripts/audit/*` | **审计资产（非 guard 文件）**：`catalog.mjs`（45 页签 ＋ 源码入口）、`endpoint-map.mjs`（读口 / 写口 / gate / count / destructive reason）、`checks-front`（F1–F8）、`checks-data`（D1–D4）、`checks-crud`（C1–C4）、`checks-economy`（E1–E2、M1–M3）、`severity.mjs`、`report.mjs`、`perf-baseline.mjs`；命令 `node scripts/audit-tabs.mjs --all|--tab <role.tab>|--base <url>` | — | 是 |
 
-> **口径**：F1 以 `TAB_BLOCK_BASELINE` 登记为准，DOM measured 仅复核；C1 的 `requireAuth` 通用写口记 `exception`（系统性风险，回链 `ENGINEERING_ASSESSMENT` 阻断风险 2）；C2 在 `:memory:` 临时库做 create → 回读 → PATCH → 校验 → DELETE，破坏性流程不真删并记 `exception` ＋ `reason`；E1 只在 p95 或 bytes 超预算比例时报 P2。全量 45 页签口径为 **P0 0 / P1 0 / P2 4 / exception 29**。
+> **口径**：F1 以 `TAB_BLOCK_BASELINE` 登记为准，DOM measured 仅复核；C1 的 `requireAuth` 通用写口记 `exception`（系统性风险，回链 `ENGINEERING_ASSESSMENT` 阻断风险 2）；C2 在 `:memory:` 临时库做 create → 回读 → PATCH → 校验 → DELETE，破坏性流程不真删并记 `exception` ＋ `reason`；E1 只在 p95 或 bytes 超预算比例时报 P2。全量 46 页签的口径为 **P0 = 0 / P1 = 0 / P2 全部登记 / exception 全部有理由**（当前读数见 `.ctx/evidence/2026-11-18/tab-audit-after/summary.md`，不在本文件写死条数）。
 > **指针**：使用手册 `content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md`；规范映射 `DS_06_LAYOUT_AND_DENSITY.md` §五。
 
 ## 十二、2026-11-15 批次 553 新增 / 扩展（以 `test-tier-registry.mjs` 为准）

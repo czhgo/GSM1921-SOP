@@ -2,7 +2,7 @@
 title: "文档治理与一改具改"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-11-15
+last_updated: "2026-11-19"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -260,7 +260,7 @@ setActiveRole 参数从 `setActiveRole(role)` 变为 `setActiveRole(module, role
 4. **去重**：同一事实只允许一个权威源；`ACTIVE_CONTEXT` 只做投影并带 source 指针，不复制全量规则。
 5. **保鲜**：`ACTIVE_CONTEXT.latest_decision` 必须 ≥ 当月决策日志最后一条 `D-xxx`；`ACTIVE_RULINGS` 必须含分域索引。
 
-**日志分层（2026-11-03 批次 530）**：每批「改了什么」的第一主记录是 `git commit message`（模板：`批次号｜为什么｜改动面｜验证读数｜D/任务号`）；`EXECUTION_LOG` 只写「为什么 / 拿不准 / 边界 / 读数」，不落 commit hash，不得复述逐文件 diff / 改动清单。判断口径：日志里出现逐文件改动清单 ⇒ 改动事实应回 commit message，日志只留判断语境。提交粒度：每批 1–3 个按逻辑拆分的 commit，禁止为回填 hash 追加第二个 commit；PR 正文五段见 `CLAUDE.md H20.5`。
+**日志分层（2026-11-03 批次 530）**：每批「改了什么」的第一主记录是 `git commit message`（模板：`批次号｜为什么｜改动面｜验证读数｜D/任务号`）；`EXECUTION_LOG` 只写「为什么 / 拿不准 / 边界 / 读数」，不落 commit hash，不得复述逐文件 diff / 改动清单。判断口径：日志里出现逐文件改动清单 ⇒ 改动事实应回 commit message，日志只留判断语境。提交粒度：每批**最多两条**（第二条须以「批次 N 续：/ 更正：」开头），禁止为回填 hash 追加第二个 commit；PR 正文五段见 `CLAUDE.md H20.5`。
 
 **Boolean 条件**：`.ctx` 顶层新增文件未命中 `CLAUDE.md H26.3` 白名单，或规则正文出现在 `.ctx` 顶层 → `ctx-hygiene-guard` 判红。
 

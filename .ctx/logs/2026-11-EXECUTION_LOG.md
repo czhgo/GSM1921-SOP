@@ -10,6 +10,24 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 572（2026-11-19）· 一次清仓：冲突清零 ＋ G1/G2 守卫 ＋ 台账噪声归零
+
+### 为什么
+- 支书令「一次查清全仓待办与 P0/P1/P2；有规则按规则、无规则 grill；先解冲突再清余毒；按阶段执行并清理 active context」。三路只读审计共 32 处疑似真待办、4 条硬冲突、9 条软冲突、spec 父勾子未勾 525 处。
+
+### 拿不准
+- 四层名称取 registry 而非 `CLAUDE` 原句（registry 自述单一源）；`test:full` 改述为「跨层全量 runner」。
+- spec 525 处不逐条假勾：改为「按 checklist 回勾 ＋ 错父项改 `[ ]`（harden-launch Task 1/8/9、close T6）」后噪声归零，再由 G2 守住。
+- 历史 6 条 commit 只设基线（`--limit 1` 门禁），不改写 message、不追补 commit。
+
+### 边界
+- 只改 active / reference 与守卫；`.ctx/logs` 历史数值不动；六维不上调。
+- G1 只判单值事实，不判规则是否合理；G2 只判台账噪声，不判任务是否该做。
+
+### 读数
+- 服务：`npm run start:review` :3000，`GET /api/v1/health` **200 `{"ok":true}`**；内置浏览器门厅 **PASS**（标题「光华管理学院党建平台」、登录入口 3 处、重要通知 4 条、公开资料可下载、无 error 级日志）。
+- 定向：`single-fact-consistency` **2/2**（含反例自证）、`spec-task-consistency` **3/3**（基线 {}）、`ctx-hygiene` / `doc-consistency` / `docs-governance` / `test-tier` 见同批定向结果。
+
 ## 批次 571（2026-11-19）· 同一事实：六维三处一致性守卫 ＋ 当前读数刷新
 
 ### 为什么

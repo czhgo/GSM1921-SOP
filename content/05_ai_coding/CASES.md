@@ -2,7 +2,7 @@
 title: "AI 协作域判例库"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-10"
+last_updated: "2026-11-19"
 status: active
 related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -107,3 +107,15 @@ related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_
 - **对应规范编号**：`DESIGN_SYSTEM.md §一 原则 4` ＋ SD-61（图标色彩契约，正文见 `DS_03_COMPONENTS.md §4.11.2`）
 - **边界**：本条只判「引用完整性」，不重开「图标能不能用色」；党徽 / 插画的多色仍按 §4.11.2 登记。`--tint` 的取值面由 `icon-color-guard::G3` 判，本条不另立色值白名单。
 - **证据指针**：`content/04_web_design/design-system/DESIGN_SYSTEM.md:67` · `content/04_web_design/design-system/DS_03_COMPONENTS.md:539-551,1537` · `content/04_web_design/design-system/CASES.md`（CASE-DESIGN-030 / CASE-DESIGN-041）· `server/test/icon-color-guard.test.mjs`。
+
+## CASE-AI-010 同一指标多值并存：台账各写一个「当前值」
+
+- **编号**：CASE-AI-010
+- **样本（真实发生）**：批次 565–567 后，`ACTIVE_CONTEXT §1` 写 81/80/81…、`ACTIVE_RULINGS §A` 带历史 81/78…、`ENGINEERING_ASSESSMENT §一` 表格写 82/80/82…、§二 六个标题写 81/80/81…；`server/README.md` 矩阵写 141 而行数实为 162；党委台页签一处 4、一处 5。每轮“重新检查”都会再发现同一批漂移。
+- **AI 假设**：只要有一处写对就够；历史值留着便于对照；文档改一处即可，其余下次再说。
+- **人类意图**：同一事实只允许**一个当前值 ＋ `D-xxx`**；历史值只进 `.ctx/logs/` 与 git；跨文件必须机检，不靠人眼。
+- **泛化规则（结论）**：任何“当前值”类事实（评分、条数、页签数、白名单、层名、口令口径）必须有代码或证据单一源，并在 active/reference 台账逐处相等；改一处必须在同批改完全部引用（`H30` 先裁后清）。
+- **守卫**：`ctx-hygiene-guard::⑪`（历史值不得回潮 / 每文件至多一个六维元组 / EA §一 不再开「重评」小节）＋ `::⑫`（三处六维一致）＋ `single-fact-consistency::G1`（矩阵 / 表 / 页签 / 白名单 / 四层名 ≡ 代码）＋ `spec-task-consistency::G2`（spec 台账噪声只减不增）。
+- **对应规范编号**：`CLAUDE.md H26.5` · `H30`（先裁后清）· `H20.3`（check-batch-commits 基线）；`content/05_ai_coding/DOCUMENT_GOVERNANCE.md`「去重 / 日志分层」。
+- **边界**：只判「当前值多值」，不判分数是否合理；历史值本身保留在 `.ctx/logs/` 与 git，不删除。
+- **证据指针**：`D-883` · `D-884` · `.ctx/ACTIVE_CONTEXT.md §1` · `server/test/{ctx-hygiene-guard,single-fact-consistency,spec-task-consistency}.test.mjs`。
