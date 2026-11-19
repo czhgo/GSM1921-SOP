@@ -206,7 +206,8 @@ export const { renderContent } = createTodoTab({
   //   **组织委员不承担这条链的任何动作**——它只是「考勤统计交支委会」的接收建档方（事实留痕，不设回执动作）。
   //   ⇒ 本处**不再渲染任何补课类卡片 / 按钮**（`extraTopHtml` 已撤）。
   //   `handoff` 的 `material-shortage` 类型定义与纪检侧消费端**暂留原状**（服务端仍可接收该型；
-  //   `records-endpoints` 用它当「仍 pending 的交接」夹具）⇒ **「纪检侧催办位」的改造列入下一批待办**，与本次同裁定一起做。
+  //   `records-endpoints` 用它当「仍 pending 的交接」夹具）⇒ **「纪检侧催办位」的改造已登记为
+  //   `.ctx/REVIEW_QUEUE.md B-547-2`**（触发条件＝改到纪检催办位 / 待办派生时同批处理）。
   bindExtras: (container, ctx) => {
     // 2026-09-08 裁决批一（D1/D3）：成员变更批量块（勾选 → 「通过 N 项」 → 广播全体支委 + 重渲染）
     bindMcBulk(container, { mode: 'org-approve', onDone: () => renderContent(ctx) });

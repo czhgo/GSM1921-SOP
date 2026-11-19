@@ -75,6 +75,28 @@ export function renamePersonRefs(value, from, to) {
   return value;
 }
 
+/** 支部可调参数：积极分子 → 发展对象最短考察月数（缺省 12；0＝不设期限）（`D-887` / `SOP-B-27`） */
+function policyActivistMinMonths(db, branchId) {
+  try {
+    const row = db.prepare('SELECT data FROM branches WHERE id = ?').get(branchId);
+    const cfg = row ? JSON.parse(row.data).config : null;
+    const v = cfg && cfg.policyOverrides && cfg.policyOverrides.member
+      && cfg.policyOverrides.member.activistMinMonths;
+    return (Number.isInteger(v) && v >= 0 && v <= 60) ? v : 12;
+  } catch (_) { return 12; }
+}
+
+/** 整月差（`YYYY-MM-DD` → 今天）；非法日期 → null */
+function fullMonthsBetween(ymd, now) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(ymd || ''));
+  if (!m) return null;
+  const y = Number(m[1]); const mo = Number(m[2]); const d = Number(m[3]);
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+  let months = (now.getFullYear() - y) * 12 + (now.getMonth() + 1 - mo);
+  if (now.getDate() < d) months -= 1;
+  return months;
+}
+
 export function createMemberRouter(db) {
   const router = Router();
 
@@ -270,6 +292,31 @@ export function createMemberRouter(db) {
     const targetBranch = branchOf(user);
     if (!myBranch || myBranch !== targetBranch) {
       return res.status(403).json({ error: '无权限：仅可推进本支部成员的发展阶段' });
+    }
+    // ── 「推荐为发展对象」服务端硬门（`D-887` / `SOP-B-27`）──────────────────────────
+    //  ① 讨论前置：进入「发展对象」前须存在支委会讨论通过留痕（`member_change_requests`
+    //    该人 `toStage='发展对象' && meetingResult='passed'`，由 `recordAgendaResult` 只对通过者建）；
+    //  ② 一年考察期：默认满 `member.activistMinMonths`（12）个月，0 ＝ 不设期限（支部可调）。
+    //  ⚠ 只管「进入发展对象」这一步；已是发展对象 / 其它阶段推进不受此门影响。
+    if (toStage === '发展对象' && user.developStage !== '发展对象') {
+      const passed = listTable(db, 'member_change_requests').some((r) => r
+        && String(r.personId) === String(req.params.id)
+        && String(r.toStage || '') === '发展对象'
+        && r.meetingResult === 'passed'
+        && !['rejected', 'cancelled'].includes(String(r.status || '')));
+      if (!passed) {
+        return res.status(422).json({ error: '推荐为发展对象须先经支委会讨论通过（把该成员加入支委会「待讨论名单」并记录通过后再推进）' });
+      }
+      const minMonths = policyActivistMinMonths(db, myBranch);
+      if (minMonths > 0) {
+        const stageSince = since || user.developStageSince;
+        if (!stageSince) return res.status(422).json({ error: '缺少积极分子阶段起始日（developStageSince），无法核验培养考察期' });
+        const full = fullMonthsBetween(String(stageSince), new Date());
+        if (full === null) return res.status(422).json({ error: 'developStageSince 须为 YYYY-MM-DD' });
+        if (full < minMonths) {
+          return res.status(422).json({ error: `培养考察期未满：须满 ${minMonths} 个月（自积极分子阶段起始日算起）` });
+        }
+      }
     }
     const merged = { ...user, developStage: toStage };
     if (since) merged.developStageSince = String(since);

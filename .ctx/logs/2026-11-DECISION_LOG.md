@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-886`，共 60 条**；下一条自 **`D-887`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-887`，共 61 条**；下一条自 **`D-888`**。
 
 ## 本月目录（2026-11）
 
@@ -80,6 +80,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 一次清仓：硬冲突 4＋软冲突 9 清零、G1/G2 守卫、spec 噪声 525→0、历史提交基线、`H10.8` / 先裁后清 / CASE-AI-010 | `D-884` | 2026-11-19 | 已落（批次 572） |
 | 待裁清零：12 条口径裁定（收敛门 / 提交基线 / B-14/17/18/25/27/31/33/44 / F-4 / F-5⑥ / B-541-8 / H-16） | `D-885` | 2026-11-19 | 已落（批次 573） |
 | 制度草案按主体派生待办 ＋ 改派换人；组织者分配的工作进「我的任务」；组长台承载面复核为已落地；种子补 `executor` | `D-886` | 2026-11-19 | 已落（批次 574） |
+| 发展对象服务端硬门（无决议 422）＋ 一年考察期可配置；E4 扩到独立页；名册写口前置校验；issues 补 `domain`；L-13 两条复核关闭 | `D-887` | 2026-11-19 | 已落（批次 575） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -557,5 +558,18 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **边界**：草案待办是**按角色的提醒**，不参与实时组统计；活动完结后组织者分配的工作同样不列出（避免陈旧条）。
 > **落点**：`docs/src/services/governance/todo.js`、`docs/src/services/branch/branch-doc.js`、`docs/src/services/activity/agenda-follow-up.js`、`docs/src/services/activity/activity.js`、`docs/src/core/domain/todo-actions.js`、`docs/src/components/record/todo-jump.js`、`docs/src/entries/tabs/{visitor/projects-tab,leader/my-tasks-section}.js`、`docs/src/data/mock/seed.js`、`server/test/{institution-todo-derive,my-project-tasks,todo-jump-contract}.test.mjs`、`content/04_web_design/design-system/CASES.md`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-886`**（共 **60** 条）。
+## D-887 2026-11-19 — 发展对象服务端硬门 ＋ 考察期可配置；E4 扩面；名册写口前置校验（批次 575）
+
+> **评议 → 裁定 → 落点**：按计划批次 575 清 `SOP-B-27` / `SOP-B-44` / `B-552-3` / `SOP-B-32` / `B-547-2` / `L-13`。
+> - **SOP-B-27 服务端硬门**：`POST /members/:id/develop-stage` 进入「发展对象」前必须存在支委会讨论通过留痕（`member_change_requests` 该人 `toStage='发展对象' && meetingResult='passed'`），否则 422；一年考察期＝`member.activistMinMonths`（默认 12，登记 `POLICY_OVERRIDABLE` 组织域，0 ＝ 不设期限），缺起始日 / 未满均 422。
+> - **SOP-B-44 运行时守卫扩面**：`E4` 样本由 3 个工作台扩到「3 工作台 ＋ 5 独立页（activity / notice / messages / archive / person）」，判据不变（运行时 `dataset.dataSource === 'api'`、首屏 `/api/v1/` 4xx 归零）。
+> - **B-552-3 名册写口前置校验**：空补丁（`{}` / 仅 id）直接返回「没有可保存的字段」，不发请求；非党委的 `role` / `branchId` 先剔除，剔除后为空同样不发请求（根因：名册行带 `branchId` 会撞 party-staff 门）。
+> - **SOP-B-32**：`DATA_MODEL §2.16` issues 表补 `domain` 行（枚举单一源 `ISSUE_DOMAINS`）；同批平移 `README-server.md` 20 处 `DATA_MODEL.md` 行号引用与 `TERMINOLOGY.md` 两处。
+> - **B-547-2**：`org/todo-tab.js:209` 注释改为指向 `.ctx/REVIEW_QUEUE.md B-547-2`（触发条件写明）。
+> - **L-13**：复核 `org.talent`（卡头 CTA）与 `disc.attendance`（单一层级视图）均已在 2026-11-08 波次 C 落地 ⇒ 台账 A 35/B 11 → **A 37/B 9**，两条未闭项标「已闭环」，不写代码。
+> **未选**：讨论门按「提案即可」放宽（与 `D-553` 前置口径冲突）；考察期无起始日时默认放行（无法证明满一年，取拒）；E4 另立新文件（同一守卫、同一判据，避免第二套装配断言）；为 `domain` 行重排 DATA_MODEL（只为加一行，取表内插入 ＋ 行号平移）。
+> **边界**：讨论门只管「积极分子 → 发展对象」这一步；`developStageSince` 缺失即 422（提示补起始日）。
+> **落点**：`server/routes/member.js`、`docs/src/core/domain/policy-defaults.js`、`docs/src/entries/pages/settings-entry.js`、`docs/src/services/member/person.js`、`docs/src/entries/tabs/org/todo-tab.js`、`content/04_web_design/data/DATA_MODEL.md`、`content/03_doc_system/TERMINOLOGY.md`、`README-server.md`、`server/test/{permission-gate,module-load,roster-write-precheck,docs-governance-guard}.test.mjs`、`server/test-tier-registry.mjs`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-887`**（共 **61** 条）。
 

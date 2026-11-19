@@ -43,7 +43,7 @@
 | 12 | `org.todo` | 待办 `org-workspace.js:62` | `audit-1103:27`（M1 exception） | 只登记 | `org/todo-tab.js`；审计 pass；5 块已登记例外 | — | A | — |
 | 13 | `org.overview` | 工作概况 `org-workspace.js:64` | `audit-1103:28`（M1 exception） | 只登记 | `org/overview-tab.js`；审计 pass；6 块已登记例外 | — | A | — |
 | 14 | `org.roster` | 成员名册 `org-workspace.js:82` | `IA:48`（B12） | 改了 | 统计进卡头记录 `.ctx/logs/2026-10-EXECUTION_LOG.md:2947`；`audit-1103:29` pass | — | A | — |
-| 15 | `org.talent` | 人才库 `org-workspace.js:83` | `IA:47`（B11）+ `IA:90`（E03） | 排批 | `entries/tabs/org/talent-tab.js:300-317`（录入考察仍在页底折叠；参与汇总居中） | B11 + E03 | B | — |
+| 15 | `org.talent` | 人才库 `org-workspace.js:83` | `IA:47`（B11）+ `IA:90`（E03） | 已落地（复核：2026-11-08 波次 C） | `entries/tabs/org/talent-tab.js:9-11,237-253`（「录入考察」已提为**卡头主 CTA**，一次点击展开并挂载既有 `inspection-tab.js`） | — | A | — |
 | 16 | `org.thought-review` | 思想汇报 `org-workspace.js:86` | `audit-1103:31`、`:312-317`（F6 P2） | 只登记 | 审计 pass；P2 已人工确认为页签分组提示（L-07） | —（P2 登记，不改 UI） | A | — |
 | 17 | `org.taskforce` | 专班管理 `org-workspace.js:87` | `IA:82`（D12 组织侧） | 只登记 | `entries/tabs/org/taskforce-tab.js:1342-1378`（复盘提交 → 纪检批注闭环）；审计 pass | — | A | — |
 | 18 | `org.member-flow` | 成员流动 `org-workspace.js:92` | `audit-1103:33`（F1–F8）+ §六 F-3 | 排批（改 CTA） | `member-flow-tab.js`；审计 pass；3 块 `style-baseline:836` | F-3 对账提示无出口 | B | F-3 保留＋改 CTA |
@@ -55,7 +55,7 @@
 | 24 | `disc.today` | 今天 `disc-workspace.js:32` | `IA:37-38`（B01/B02，同源） | 改了 | `today-tab.js:414`、`:624`；审计 pass | — | A | — |
 | 25 | `disc.todo` | 待办 `disc-workspace.js:57` | `audit-1103:40`（M1 exception） | 只登记 | `disc/todo-tab.js`；审计 pass；5 块已登记例外 | — | A | — |
 | 26 | `disc.overview` | 工作概况 `disc-workspace.js:59` | `audit-1103:41`（M1 exception） | 只登记 | `disc/overview-tab.js`；审计 pass；6 块已登记例外 | — | A | — |
-| 27 | `disc.attendance` | 考勤管理 `disc-workspace.js:64` | `IA:92`（E05）+ `audit-1103:42` | 排批 | `entries/tabs/disc/attendance-tab.js:85`、`:145`（工作视图两级切换仍在）；D07 已落地 `:668` | E05；6 块 > 4 | B | — |
+| 27 | `disc.attendance` | 考勤管理 `disc-workspace.js:64` | `IA:92`（E05）+ `audit-1103:42` | 已落地（复核：2026-11-08 波次 C） | `entries/tabs/disc/attendance-tab.js:4-16,73-74,206`（二级视图已撤，单一层级：确认 → 申诉 → 会议录入 → 矩阵/总表顺读） | — | A | — |
 | 28 | `disc.review` | 复盘 `disc-workspace.js:68` | `IA:46`（B10）、`:72`（D02）、`:82`（D12） | 改 B10 / 排批 D | `entries/tabs/disc/review-tab.js:235-239`（两张并列卡并成一张「复盘监督」） | D02 打回态；D12 派发 / 回显 | B | — |
 | 29 | `disc.inspection` | 考察管理 `disc-workspace.js:69` | `IA:79`（D09）+ `audit-1103:44` | 排批 | `entries/tabs/disc/inspection-tab.js:423-427`（提交即送达，D04 口径） | D09；5 块 > 4、2 条筛选条 | B | — |
 | 30 | `leader.today` | 今天 `leader-workspace.js:37` | `IA:37-38`（B01/B02，同源） | 改了 | `today-tab.js:414`、`:624`；审计 pass | — | A | — |
@@ -81,22 +81,23 @@
 | 口径 | 数 | 页签 |
 |---|---|---|
 | 总页签 | **46** | — |
-| A 已完成 | **35** | 1、2、4、5、6、7、9、10、11、12、13、14、16、17、19、20、21、22、23、24、25、26、30、31、32、34、35、36、37、38、39、40、41、42、44 |
-| B 有未闭项 | **11** | 3 支书全局概况 · 8 上报党委 · 15 人才库 · 18 成员流动 · 27 纪检考勤 · 28 复盘 · 29 考察管理 · 33 本组活动 · 43 下发通知 · 45 支部上报 · 46 支部管理 |
+| A 已完成 | **37** | 1、2、4、5、6、7、9、10、11、12、13、14、15、16、17、19、20、21、22、23、24、25、26、27、30、31、32、34、35、36、37、38、39、40、41、42、44 |
+| B 有未闭项 | **9** | 3 支书全局概况 · 8 上报党委 · 18 成员流动 · 28 复盘 · 29 考察管理 · 33 本组活动 · 43 下发通知 · 45 支部上报 · 46 支部管理 |
 | C 从未做 IA 三问 | **0** | —（波次 F 补评：5、8、18、33、43 已分别落 §六 F-1…F-5） |
 | 超 4 块（登记例外） | **6** | 3 全局概况 7 · 13 / 21 / 26 / 32 各台工作概况 6 · 27 纪检考勤 6 |
 
 > **2026-11-09 复核（`D-861`）**：逐行分类实测 **A 35 / B 11 / 总 46**，与本表一致；`B11`（`org.talent` 录入考察沉底）仍未动，维持 B 类，本轮体验分下调据此计入。
+> **2026-11-19 复核（`D-887`）**：`org.talent` 与 `disc.attendance` 两项经代码取证**已在 2026-11-08 波次 C 落地**（`talent-tab.js:9-11,237-253` 卡头 CTA；`attendance-tab.js:4-16,73-74,206` 单一层级视图）⇒ 两类由 B 改 A：**A 37 / B 9 / C 0**。L-13 的「默认两条」据此关闭。
 
-## 四、未闭项清单（14 条，带 file:line）
+## 四、未闭项清单（原 14 条；3–5 已于 2026-11-08 波次 C 闭环，余 11 条）
 
 | # | 页签 | 未闭项 | 证据 |
 |---|---|---|---|
 | 1 | `secretary.overview` | IA-E01：首屏 4 个历史统计字段，支书查活动仍 2 屏 | `IA:88`；`overview-tab.js:49` |
 | 2 | `secretary.overview` | 顶层 7 块 > 4，仅登记例外未收敛 | `style-baseline.mjs:804-807`；`audit-1103:377` |
-| 3 | `org.talent` | IA-B11：纯展示「参与汇总」居中，写动作「录入考察」沉底 | `IA:47`；`talent-tab.js:300-317` |
-| 4 | `org.talent` | IA-E03：组织录入考察 2 点击 / 写动作折叠，未到卡头 CTA | `IA:90`；`talent-tab.js:306-317` |
-| 5 | `disc.attendance` | IA-E05：考勤工作视图保留两级切换 | `IA:92`；`attendance-tab.js:85`、`:145` |
+| 3 | `org.talent` | ~~IA-B11：纯展示「参与汇总」居中，写动作「录入考察」沉底~~ **已闭环（2026-11-08 波次 C）** | `talent-tab.js:237-253`（卡头 CTA） |
+| 4 | `org.talent` | ~~IA-E03：组织录入考察 2 点击 / 写动作折叠，未到卡头 CTA~~ **已闭环（同上）** | `talent-tab.js:9-11` |
+| 5 | `disc.attendance` | ~~IA-E05：考勤工作视图保留两级切换~~ **已闭环（2026-11-08 波次 C）** | `attendance-tab.js:4-16,73-74,206` |
 | 6 | `disc.review` | IA-D02：打回态未全台统一，纪检侧只有 toast | `IA:72`；`review-tab.js:506` |
 | 7 | `disc.review` | IA-D12：专班复盘派发通知 / 待办与组织台回显未闭环验证 | `IA:82`；`taskforce-tab.js:1342-1378` |
 | 8 | `disc.inspection` | IA-D09：考察交接接收方只拿到专班类一半 | `IA:79`；`inspection-tab.js:423-427` |

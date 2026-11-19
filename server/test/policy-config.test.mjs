@@ -157,7 +157,7 @@ test('① policy-defaults 批4：新节结构与默认值（memberConfirmation/l
   //   组长域＝leader；支书域＝activityApproval。
   assert.deepEqual(
     POLICY_OVERRIDE_SECTIONS,
-    ['archive', 'inspection', 'memberConfirmation', 'leader', 'activityApproval', 'attendance', 'review', 'makeup', 'thoughtReport'],
+    ['archive', 'inspection', 'memberConfirmation', 'member', 'leader', 'activityApproval', 'attendance', 'review', 'makeup', 'thoughtReport'],
   );
 });
 
@@ -297,7 +297,7 @@ test('④ 角色守卫：支书/副/party-staff 全量；纪检/组织/组长仅
   assert.equal(perm({ personId: '2300010002', role: 'deputy-secretary' }).ok, true, '副书同权');
   assert.equal(perm({ personId: '9000000001', role: 'party-staff' }).ok, true);
   assert.deepEqual(perm({ personId: '2400012354', role: 'disc-commissioner' }).scope, ['inspection', 'attendance', 'review', 'makeup'], '纪检域＝考察超期 / 考勤与复盘时限 / 补课范围与时限');
-  assert.deepEqual(perm({ personId: '2400012355', role: 'org-commissioner' }).scope, ['memberConfirmation', 'thoughtReport']);
+  assert.deepEqual(perm({ personId: '2400012355', role: 'org-commissioner' }).scope, ['memberConfirmation', 'member', 'thoughtReport'], '组织域＝滞留复核窗口 / 发展党员考察期 / 思想汇报篇幅');
   assert.deepEqual(perm({ personId: '2400012345', role: 'leader' }).scope, ['leader']);
   assert.equal(perm({ personId: '2400012347', role: 'participant' }).ok, false, '普通成员无权');
 });

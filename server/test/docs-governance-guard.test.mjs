@@ -740,7 +740,6 @@ const CONTENT_REF_BASELINE = [
   'content/03_doc_system/OPERATIONS_GUIDE.md:238 OPERATIONS_GUIDE.md:1716',
   'content/03_doc_system/OPERATIONS_GUIDE.md:238 content/02_institution/README.md:14',
   'content/03_doc_system/TERMINOLOGY.md:36 content/01_strategy/SECRETARY_DIRECTIVES.md:302',
-  'content/03_doc_system/TERMINOLOGY.md:52 content/04_web_design/data/DATA_MODEL.md:1234',
   'content/04_web_design/design-system/CASES.md:420 docs/src/entries/tabs/secretary/group-progress-tab.js:59,426,466',
   'content/04_web_design/design-system/CASES.md:72 server/test/ui-focus-ring.test.mjs:63,109',
   'content/04_web_design/design-system/DS_03_COMPONENTS.md:1143 entries/tabs/disc/inspection-tab.js:267',

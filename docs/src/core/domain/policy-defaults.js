@@ -144,6 +144,10 @@ const _FACTORY = {
       completeMonths: 12,
       prepMonths: 9,
     },
+    // 积极分子 → 发展对象的最短培养考察期（`D-887` / `SOP-B-27`）：默认 12 个月，
+    //   由服务端 `POST /members/:id/develop-stage` 硬校验（进入「发展对象」时）；0 ＝ 不设期限（可配置放行）。
+    //   登记 `POLICY_OVERRIDABLE`（组织域）⇒ 组织委员可在设置中心改。
+    activistMinMonths: 12,
   },
   review: {
     // 复盘提交提醒阈值（支书台自动提醒：活动结束 >overdueDays 天仍无复盘 → 提醒组织者提交）
@@ -237,6 +241,8 @@ export const POLICY_OVERRIDABLE = [
   { path: ['archive', 'periodic', 'unit'], type: 'enum', values: ['week', 'month'], domain: 'secretary' },
   { path: ['inspection', 'overdueDays'], type: 'int', min: 1, max: 90, domain: 'disc-commissioner' },
   { path: ['memberConfirmation', 'semesterDetainedWindows'], type: 'windows', domain: 'org-commissioner' },
+  // 发展党员：积极分子 → 发展对象的最短培养考察期（月；0＝不设期限）（`D-887` / `SOP-B-27`）
+  { path: ['member', 'activistMinMonths'], type: 'int', min: 0, max: 60, domain: 'org-commissioner' },
   { path: ['leader', 'semesterReportReminder', 'enabled'], type: 'boolean', domain: 'leader' },
   // 活动批准门（2026-09-22 批次 150）：支部级可调制度参数，归支书域（支书/副支书/party-staff 可改）。
   { path: ['activityApproval', 'mode'], type: 'enum', values: ['off', 'secretary', 'branch-committee'], domain: 'secretary' },

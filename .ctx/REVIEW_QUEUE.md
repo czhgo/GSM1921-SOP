@@ -156,35 +156,19 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 
 | ID | 一句话 | 触发条件 | 权威指针 |
 |---|---|---|---|
-| B-541-2 | `L-13` 页签 IA 未闭项（A 35 / B 11 / C 0；6 个超 4 块页签已登记例外） | 支书从台账挑 2 条低风险 B 项（`org.talent` 录入考察上提、`disc.attendance` 撤两级切换）裁定后启动 | `.ctx/evidence/2026-11-08/tab-review-ledger.md §四 / §六` |
+| B-541-2 | `L-13` 页签 IA 未闭项（A 37 / B 9 / C 0；6 个超 4 块页签已登记例外） | 剩余 B 项按台账逐条排批；默认两条已于波次 C 落地（`D-887`） | `.ctx/evidence/2026-11-08/tab-review-ledger.md §四 / §六` |
 | B-541-3 | `L-10` ＋ `B-536-1` 单实例多支部与服务端支部读过滤（开关 `ALLOW_MULTI_BRANCH` 仍关闭） | Phase 1–2 实施并验收通过后才可打开开关；「一实例一支部」上线不以此为前提 | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §十`；`server/test/multi-branch-read-filter.test.mjs` |
 | B-541-4 | `L-15` ＋ `H-24` 画布 UI 与「块决定 tab」（与 `allowedPages` 身份门、页签计数守卫相交） | 先出方案并经支书定稿后才编码；定稿前不排批 | `content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md §8.4` |
 | B-541-6 | `L-17` SQLite JSON 宽表、无跨表外键、无业务字段索引 | 任一表行数接近万行，或真机出现慢查询读数（E1 类）时启动 `MIGRATIONS v2` 与索引评估；平时只登记 | `.ctx/ENGINEERING_ASSESSMENT.md §一 阻断级风险 5`；`server/README.md §部署前必知限制 #2` |
 | B-541-7 | `L-18` 单一源组件出口仍有零星散件（徽章 / 选择器等） | 下次改动到该组件域时同批收敛（一改具改）；未动到的散件不提前合并 | `.ctx/ENGINEERING_ASSESSMENT.md §3.3 复核保留` |
 | B-541-10 | `H-20` 部署形态余项（`server/package.json` Windows 专有语法；表达式索引无落点） | ② `package.json` 到「跨平台发布」批时改；③ 与服务端读过滤同批（见 B-541-3） | `.ctx/REVIEW_QUEUE.md` 代码健康评审 `H-20`；`server/package.json` |
 | B-541-11 | `H-12` / `H-18` 观察项：全量档 ① 项与目录搬迁三类静默盲区 | 真机复跑稳定红 ⇒ 按「稳定红＝真缺陷」升 P1；否则保持观察，不新立守卫 | `.ctx/REVIEW_QUEUE.md` 代码健康评审 `H-12` / `H-18` |
-| B-547-2 | `org/todo-tab.js:209` 注释「列入下一批待办」无 ID；纪检侧催办位改造未开工 | 触发：改到纪检催办位 / 待办派生时同批登记为正式任务或删除该注释；未触发前只观察 | `docs/src/entries/tabs/org/todo-tab.js:209` |
+| B-552-3 | 名册写口发空 `{}` / 非党委带 `branchId` ⇒ 400，本地已乐观记录；**已闭环（批次 575 · `D-887` 前置校验，空补丁 / 治理字段不发请求）** | 下次改名册保存 / 角色配置时复跑 `roster-write-precheck` | `docs/src/services/member/person.js` |
 | B-552-1 | `secretary-overview.js` 逾期数自算 `deadline < today`，绕过 `isTodoExpired`（同屏两个逾期数可能不等）；**已闭环**——逾期口径已改走 `isTodoExpired`，反证 `docs/src/services/governance/secretary-overview.js:189-191` | 下次改概况逾期统计时按单一源收口 | `docs/src/services/governance/secretary-overview.js` |
 | B-552-2 | list 响应形状二义；**已闭环（批次 566 · `api-adapter` 读口 `normalizeListPayload` 归一）** | 首个分页调用点出现前统一形状 | `docs/src/data/api-adapter.js` |
-| B-552-3 | 名册写口发空 `{}` / 非党委带 `branchId` ⇒ 400，本地已乐观记录 | 下次改名册保存 / 角色配置时校验 body | `docs/src/services/member/person.js` |
 | B-552-4 | `/snapshot` 解压上限；**已闭环（批次 566 · 20MB 上限，超限 413）** | 快照接口改造或出现异常内存读数时加限制 | `server/routes/resources/index.js`、`write-validation.js` |
 | B-552-5 | 系统通知幂等；**已闭环（批次 566 · 可选 `eventKey`，同键返回既有记录）** | 通知发送改造时加入幂等键 | `server/routes/system-notices.js` |
 | B-552-6 | 报名查重只在应用层，无唯一索引；**已闭环（批次 566 · schema v18 部分唯一索引，重复行保留最早并标 `duplicateOf`）** | 迁移 v2 或出现并发重复读数时补索引 | `server/routes/resources/signup-write-guard.js:93`、`server/db.js`（v18） |
-
-### SOP-B-27（已落地，余两项未做）推荐发展对象须支委会讨论
-
-- ⚠ 未做：① **服务端独立门**（前端同码，直调 API 可绕）；② 「一年以上培养考察期」未做成拦人判据（`D-553`）。
-- **触发**：改到「推荐发展对象」写口或考察期判据时当批补服务端门与拦人判据。
-
-### SOP-B-32（已落地，余一项未做）意见「类型」与「事项领域」分设
-
-- ⚠ 未做：`content/04_web_design/data/DATA_MODEL.md` 的 issues 字段表**未补 `domain` 行**（须与 `README-server.md` 行号同批平移，`D-551`）。
-- **触发**：下次改 `DATA_MODEL.md` issues 段时同批补 `domain` 行并平移 `README-server.md` 行号。
-
-### SOP-B-44（已落地，余一项未做）独立页数据源装配守卫
-
-- ⚠ 未做：**方案 B / C**——现有守卫只守「源码里有装配调用」，不守「运行时真装配成功」（`getDataSource()==='api'` 那一维仍无守卫，`D-502`）。
-- **触发**：批次 577（Phase 3）按 `D-885`「本阶段补运行时装配守卫」实施。
 
 ### SOP-C-76 / SOP-C-78（降为登记，未推进）
 

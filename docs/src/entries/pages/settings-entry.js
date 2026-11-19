@@ -969,7 +969,7 @@ function bindBranchOrderDnD(panel) {
 //   当前生效覆盖 = branch.config.policyOverrides；保存后写入 config（留痕同 configChangeHistory）。
 const DOMAIN_CARD_META = {
   'domain-disc': { role: 'disc-commissioner', roleLabel: '纪检委员', sections: ['inspection', 'attendance', 'review', 'makeup'], sectionLabel: '纪检域' },
-  'domain-org': { role: 'org-commissioner', roleLabel: '组织委员', sections: ['memberConfirmation', 'thoughtReport'], sectionLabel: '组织域' },
+  'domain-org': { role: 'org-commissioner', roleLabel: '组织委员', sections: ['memberConfirmation', 'thoughtReport', 'member'], sectionLabel: '组织域' },
   'domain-leader': { role: 'leader', roleLabel: '党小组组长', sections: ['leader'], sectionLabel: '组长域' },
 };
 const LOCKED_POLICY_ROLES = new Set(['secretary', 'deputy-secretary']); // 制度锁定展示 = 支书/副视角
@@ -1323,6 +1323,9 @@ function domainCardHtml(meta, branch, P) {
     const wSoft = policyRange(['thoughtReport', 'wordSoftMin']) || { min: 100, max: 10000 };
     const cHint = (Number.isInteger(po.thoughtReport?.wordHint) ? po.thoughtReport.wordHint : P.thoughtReport.wordHint);
     const cSoft = (Number.isInteger(po.thoughtReport?.wordSoftMin) ? po.thoughtReport.wordSoftMin : P.thoughtReport.wordSoftMin);
+    // 积极分子 → 发展对象最短考察期（`D-887` / `SOP-B-27`；0＝不设期限）
+    const mA = policyRange(['member', 'activistMinMonths']) || { min: 0, max: 60 };
+    const cAct = (Number.isInteger(po.member?.activistMinMonths) ? po.member.activistMinMonths : P.member.activistMinMonths);
     return `
       <div class="card rounded-xl p-5">
         <div class="flex items-center gap-2.5 mb-2">
@@ -1341,6 +1344,13 @@ function domainCardHtml(meta, branch, P) {
                 <span class="text-xs text-gray-500 w-9 shrink-0">第二段</span>
                 ${num(w2[0], 'pol-org-2-sm', 'month')}<span class="text-xs text-gray-500">月</span>${num(w2[1], 'pol-org-2-sd')}<span class="text-xs text-gray-500">日 ～</span>${num(w2[2], 'pol-org-2-em', 'month')}<span class="text-xs text-gray-500">月</span>${num(w2[3], 'pol-org-2-ed')}<span class="text-xs text-gray-500">日</span><span class="text-xs text-gray-500">（跨年）</span>
               </div>
+            </dd>
+          </div>
+          <div class="kv-row">
+            <dt>入发展对象前最短考察</dt>
+            <dd class="flex items-center gap-2">
+              <input type="number" id="pol-org-activist-months" class="input-flat text-xs w-24 text-center" min="${mA.min}" max="${mA.max}" value="${cAct}" inputmode="numeric">
+              <span class="text-xs text-gray-600">个月（0 ＝ 不设期限）</span>
             </dd>
           </div>
           <div class="kv-row">
@@ -1469,9 +1479,13 @@ function _readDomainPatch(meta, panel) {
     const softRg = policyRange(['thoughtReport', 'wordSoftMin']) || { min: 100, max: 10000 };
     if (!(hint >= hintRg.min && hint <= hintRg.max)) { showPolicyStatus(panel, `建议篇幅请输入 ${hintRg.min}–${hintRg.max} 之间的整数。`, true); return null; }
     if (!(soft >= softRg.min && soft <= softRg.max)) { showPolicyStatus(panel, `警告审阅线请输入 ${softRg.min}–${softRg.max} 之间的整数。`, true); return null; }
+    const actRg = policyRange(['member', 'activistMinMonths']) || { min: 0, max: 60 };
+    const act = read('pol-org-activist-months');
+    if (!(act >= actRg.min && act <= actRg.max)) { showPolicyStatus(panel, `最短考察月数请输入 ${actRg.min}–${actRg.max} 之间的整数。`, true); return null; }
     return {
       memberConfirmation: { semesterDetainedWindows: windows },
       thoughtReport: { wordHint: hint, wordSoftMin: soft },
+      member: { activistMinMonths: act },
     };
   }
   const el = panel.querySelector('#pol-leader-enabled');

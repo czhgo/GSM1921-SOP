@@ -802,6 +802,24 @@ function _pick(obj, keys) {
 
 async function _apiSaveMember(updates, opts = {}) {
   try {
+    // 前置校验（`D-887` / `B-552-3`）：空补丁不发请求；非党委不得写治理字段（role / branchId）。
+    //   病根：名册行列里带着 branchId 一起提交 ⇒ 走 users.update 被 403/400；空补丁则白发一次请求。
+    //   ⚠ 当前角色直读登录快照（与 `branch-doc.js::_currentPersonId` 同法）——不走 AuthStore，
+    //     避免 member → auth → member 的静态环，也避免引入 auth 的运行时初始化副作用。
+    let role = '';
+    try {
+      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('gsm1921-login-user') : null;
+      role = raw ? (JSON.parse(raw).role || '') : '';
+    } catch (_) { role = ''; }
+    const isPartyStaff = role === 'party-staff';
+    const cleaned = { ...updates };
+    if (!isPartyStaff) {
+      delete cleaned.role;
+      delete cleaned.branchId;
+    }
+    const writableKeys = Object.keys(cleaned).filter((k) => k !== 'id');
+    if (writableKeys.length === 0) return { ok: false, reason: '没有可保存的字段' };
+    updates = cleaned;
     const users = await _apiAdapterUsers();
     const members = await _apiAdapterMembers();
     // 存在性判定须含「已移出」历史行：否则撤销流出 / 补丁会被误判为新增并撞主键。

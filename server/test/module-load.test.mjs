@@ -178,12 +178,19 @@ test('E3 分层方向：服务层不得 import 组件（服务层不产 UI；组
 //    `data/data-adapter.js::setDataSource`（**唯一漏斗**，mock/api 两条分支都写），跨实例可读。
 //  ⚠ 非空转（本项的承重反证）：标记必须是**运行时写的**，不是 HTML 里的静态属性——
 //    故同时断言 `about.html` 的 HTML 源里没有静态 `data-source`，且该页实测标记 ≠ 'api'。
-test('E4 真机装配：登录后 3 类角色的工作台页在真实浏览器里真的装配成 api', async () => {
+test('E4 真机装配：登录后工作台页与 5 个独立页在真实浏览器里真的装配成 api', async () => {
   // 抽样取自 `docs/src/data/mock/accounts.js`（单一源）——personId 写在这里但**须真实存在**，否则红
+  // 2026-11-19 批次 575（`D-887` / `SOP-B-44` 余项）：样本由「3 个工作台」扩到「工作台 ＋ 5 个独立页」——
+  //   独立页此前只有 E2 的**静态**装配断言；`hydrateDataSource` 早退 / 模块实例分裂会静默退回 mock。
   const SAMPLES = [
     { label: '支书台', page: '/workspace/secretary.html', personId: '2300010001' },
     { label: '纪检台', page: '/workspace/disc.html', personId: '2400012354' },
     { label: '组长台', page: '/workspace/leader.html', personId: '2400012345' },
+    { label: '活动详情页', page: '/activity.html?id=act-1', personId: '2400012345' },
+    { label: '通知页', page: '/notice.html', personId: '2400012345' },
+    { label: '消息中心', page: '/messages.html', personId: '2400012345' },
+    { label: '资料归档页', page: '/archive.html', personId: '2400012345' },
+    { label: '个人总表', page: '/person.html?id=2400012345', personId: '2400012345' },
   ];
   for (const s of SAMPLES) {
     assert.ok(MOCK_ACCOUNTS.some((a) => a.personId === s.personId),

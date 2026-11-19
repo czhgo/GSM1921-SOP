@@ -691,6 +691,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | id / number | string / number | 唯一标识符（前缀 `issue-`）/ 自增序号（GitHub Issue 风格 `#N` 展示） |
 | title / body | string | 标题 / 正文（痛点与建议详细描述） |
 | scope | `'permanent'\|'global'\|'role'\|'scenario'` | 影响范围：底层架构/全局规则/支委分工/特定场景 |
+| domain | `'institution'\|'activity'\|'workflow'\|'other'` \| null | 事项领域（`SOP-B-32`）：只给建议归口、不自动派单；枚举单一源＝`docs/src/services/governance/issues.js::ISSUE_DOMAINS` |
 | types | string[] | 类型标签（如 `bug`） |
 | status | `'open'\|'closed'` | 开放 / 关闭 |
 | closedReason / closedAt | `'completed'\|'duplicate'\|'wontfix'\|'not_planned'` / string\|null | 关闭原因 / 关闭时间 |

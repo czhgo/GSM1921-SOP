@@ -2,7 +2,7 @@
 title: "术语表（全仓唯一术语定义源）"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-11-08
+last_updated: 2026-11-19
 version: "0.1"
 status: active
 related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/03_doc_system/ARCHITECTURE.md, content/04_web_design/data/DATA_MODEL.md]
@@ -38,7 +38,7 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, content/02_institutio
 | 工作组 | 活动 / 专班业务记录之上的**协作结构**，承载组织者、深度参与者、任务、产出与授权；**不是独立业务对象** | collaboration-structure | 上位＝无（依附活动 / 专班）；下位＝活动工作组 / 专班工作组 | {活动工作组, 专班工作组}（同属工作组，按对象分） | 「项目组」；「协作组」；把「工作组」与「专班」并列 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md:193`、`content/03_doc_system/ARCHITECTURE.md:38`、`content/04_web_design/data/DATA_MODEL.md:264` | `WorkGroup` / `WORKGROUP_STATUSES` / `mockDB.workgroups` | 无 |
 | 活动工作组 | **随活动创建**的工作组，负责该活动的组织与深度参与；`kind='activity'` | collaboration-structure | 上位＝工作组；下位＝无 | {活动工作组, 专班工作组} | 「活动组」；把活动工作组当作独立业务对象 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:46`、`content/04_web_design/data/DATA_MODEL.md:264` | `WorkGroup.kind='activity'` | 无 |
 | 专班工作组 | **围绕专班事项 / 任务 / 产出**建立的工作组；`kind='taskforce'` | collaboration-structure | 上位＝工作组；下位＝无 | {活动工作组, 专班工作组} | 把专班工作组直接叫「专班」；「专班负责人」 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:47`、`content/04_web_design/data/DATA_MODEL.md:264` | `WorkGroup.kind='taskforce'` | 无 |
-| 党小组 | 支部内按成员分布划分的**组织单元**（块块），由组长 / 副组长负责；不是工作组 | org-unit | 上位＝支部；下位＝组员 | {第一党小组, 第二党小组, …}（同层组织单元）；**不得与工作组 / 专班同排** | 「其他组」（作一级并列标签）；与工作组同排 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:40`、`content/04_web_design/data/DATA_MODEL.md:1152` | `PartyGroup` / `mockDB.partyGroups` / `hostGroupId` | 组（仅页内简称，不作并列标签） |
+| 党小组 | 支部内按成员分布划分的**组织单元**（块块），由组长 / 副组长负责；不是工作组 | org-unit | 上位＝支部；下位＝组员 | {第一党小组, 第二党小组, …}（同层组织单元）；**不得与工作组 / 专班同排** | 「其他组」（作一级并列标签）；与工作组同排 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:40`、`content/04_web_design/data/DATA_MODEL.md:1153` | `PartyGroup` / `mockDB.partyGroups` / `hostGroupId` | 组（仅页内简称，不作并列标签） |
 | 组织者 | 工作组成员角色：协商分工、协调与责任记录；与深度参与者并列 | collaboration-structure | 上位＝工作组成员；下位＝无 | {组织者, 深度参与者} | 「负责人」；「专班负责人」；「项目负责人」 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:48`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:36` | `organizer` / `PROJECT_ROLES` | 项目组织者（旧称，保留于历史文本） |
 | 深度参与者 | 工作组成员角色：承担约定执行工作；与组织者并列 | collaboration-structure | 上位＝工作组成员；下位＝无 | {组织者, 深度参与者} | 与「普通参与者」混用（后者＝活动报名者 / 专班入组申请者） | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:48`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:36` | `deep` / `PROJECT_ROLES` | 无 |
 | 分工 | 工作组内「谁承担哪项任务、哪部分执行」的约定与记录；由组织者协商并留痕 | process | 上位＝工作组协作；下位＝任务 / 产出 | {分工, 任务, 产出, 授权} | 「职责分工表」（指系统外台账）；把分工等同授权 | `content/04_web_design/data/DATA_MODEL.md:407`、`content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:425` | `AssignmentRecord` / `WorkGroupTask` / `assigneeId` | 工作分工 |
@@ -49,7 +49,7 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, content/02_institutio
 | 产出块 | 活动产出记录的类别块（考勤 / 考察 / 宣传 / 材料），由支部 `config.blocks` 启停与排序 | process | 上位＝活动产出记录；下位＝考勤 / 考察 / 宣传 / 材料 | {流程块, 产出块}；{考勤, 考察, 宣传, 材料} | 「交付物块」；「产出模块」 | `docs/src/core/domain/constants.js:941`、`content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md:79` | `OUTPUT_BLOCK_DEFS` / `config.blocks` | 产出记录块 |
 | 授权 | 对某人授予某项**系统权限键**的行为与记录（可撤销、可审计，留授权人 / 时间 / 权限键） | process | 上位＝权限管理；下位＝权限键 | {授权, 成员关系}（分离，不可互推） | 「赋权」（除既有专名「常设赋权」）；把授权等同于成员关系 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md:200` | `WorkGroupGrant` / `permissionKeys` / `AuthStore.authorize` | 系统授权；项目授权（限定对象时）；常设赋权（专名，限党小组组长 / 支委身份） |
 | 报名 | **活动**一般参与者参加活动的登记；不产生工作组成员身份，也不适用于专班 | process | 上位＝活动参与；下位＝无 | {报名, 工作组成员}（不同集合） | 「专班报名」（专班场景写「入组申请」）；把报名当工作组招募 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md:206`、`content/04_web_design/data/DATA_MODEL.md:68` | `signups` / `activity-signup` / `signupEnabled` | 活动报名 |
-| 会议 | 以议事 / 学习为内容的**活动的形态标签**（三会一课、支委会等）；是活动的下位形态，不是与活动并列的业务对象 | business-object（形态） | 上位＝活动；下位＝支部党员大会 / 支委会 / 党小组会 / 党课 | {支部党员大会, 支委会, 党小组会, 党课} | 「会议活动」；把会议与活动作同义替换 | `content/04_web_design/data/DATA_MODEL.md:34`、`content/04_web_design/data/DATA_MODEL.md:1234` | `deriveMeetingStatus` / `votesLocked` | 会议类活动（限定说明时） |
+| 会议 | 以议事 / 学习为内容的**活动的形态标签**（三会一课、支委会等）；是活动的下位形态，不是与活动并列的业务对象 | business-object（形态） | 上位＝活动；下位＝支部党员大会 / 支委会 / 党小组会 / 党课 | {支部党员大会, 支委会, 党小组会, 党课} | 「会议活动」；把会议与活动作同义替换 | `content/04_web_design/data/DATA_MODEL.md:34`、`content/04_web_design/data/DATA_MODEL.md:1240` | `deriveMeetingStatus` / `votesLocked` | 会议类活动（限定说明时） |
 | 我的成长 | 成员台承载「思想汇报 / 我的考察 / 我的复盘」三类成长记录与提交口的**页内分区名**（2026-10-25 IA 45 批由三个页签合并）；不是新的业务对象 | process | 上位＝成员工作台；下位＝思想汇报 / 我的考察 / 我的复盘 | {思想汇报, 我的考察, 我的复盘} | 「成长中心」；把它当作与思想汇报并列的业务对象 | `docs/src/entries/tabs/visitor/growth-tab.js`、`content/04_web_design/PRODUCT_IA.md` | `growth` / `data-growth-section` | 无 |
 | 我经办的反馈 | 各台待办页承载「待我处理 / 我已处理」反馈与汇报收件处理的**页内分区名**（2026-10-25 IA 45 批由五台「我的处置」页签并入）；不是新页签 | process | 上位＝待办；下位＝待我处理 / 我已处理 | {待办, 我经办的反馈}（分区归属，不与页签同排） | 「我的处置」（页签名，已废止）；把该分区当作独立页签 | `docs/src/components/record/todo-tab-shell.js`、`docs/src/components/feedback/issue-dispatch-view.js` | `ws-dispatch-section` / `filter=dispatch` | 反馈处置（限定说明时） |
 

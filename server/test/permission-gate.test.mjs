@@ -419,6 +419,42 @@ test('解除组织者指定通知（D-885）：支委层可触发且项目名按
   assert.equal(ghostRes.status, 403, '服务端无该活动 → 403');
 });
 
+// 批次 575（2026-11-19 · `D-887` / `SOP-B-27`）：进入「发展对象」的服务端硬门
+//   ① 无支委会讨论通过留痕 ⇒ 422；② 有留痕但培养考察期未满（默认 12 个月）⇒ 422；③ 有留痕且满期 ⇒ 200。
+test('推荐发展对象服务端硬门（D-887）：无决议 422 / 未满一年 422 / 满一年 200', async () => {
+  const { token } = await login('2300010001'); // 支书
+  const postStage = (body) => fetch(`${base}/api/v1/members/2400012345/develop-stage`, {
+    method: 'POST', headers: authHeaders(token), body: JSON.stringify(body),
+  });
+  const monthsAgo = (n) => {
+    const d = new Date(); d.setMonth(d.getMonth() - n);
+    return d.toISOString().slice(0, 10);
+  };
+
+  // ① 无讨论留痕 ⇒ 422
+  const noRecord = await postStage({ developStage: '发展对象', developStageSince: monthsAgo(20) });
+  assert.equal(noRecord.status, 422, '无支委会讨论通过留痕必须拒绝');
+
+  // 造一条「讨论通过」留痕（服务端口径：recordAgendaResult 只对通过者建，meetingResult=passed）
+  const rec = await fetch(`${base}/api/v1/member-change-requests`, {
+    method: 'POST', headers: authHeaders(token),
+    body: JSON.stringify({
+      activityId: 'act-6', agendaItemId: 'ag-gate-test', personId: '2400012345',
+      fromStage: '积极分子', toStage: '发展对象', meetingResult: 'passed',
+    }),
+  });
+  assert.ok([200, 201].includes(rec.status), `讨论留痕应可写入，实测 ${rec.status}`);
+
+  // ② 有留痕但未满 12 个月 ⇒ 422
+  const tooShort = await postStage({ developStage: '发展对象', developStageSince: monthsAgo(1) });
+  assert.equal(tooShort.status, 422, '培养考察期未满必须拒绝');
+
+  // ③ 有留痕且满 12 个月 ⇒ 200
+  const ok = await postStage({ developStage: '发展对象', developStageSince: monthsAgo(13) });
+  assert.equal(ok.status, 200, '有决议且满一年应放行');
+  assert.equal((await ok.json()).developStage, '发展对象');
+});
+
 // C-2 方案 B（2026-09-11 支书批）：名册成员变更确认链「支书阶段写入」语义端点权限边界
 // POST /api/v1/members/:id/develop-stage —— 仅支书（SECRETARY_ROLES）+ 同支部；字段仅 developStage。
 test('成员变更确认链阶段端点：支书/副支书本支部 200 且落库；非支书侧 403；跨支部 403；白名单/枚举 422', async () => {

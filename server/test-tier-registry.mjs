@@ -99,8 +99,9 @@ export const DAILY_TEST_BUDGET = 262;
  *  2026-11-19 批次 572：新增 `single-fact-consistency`（单值事实 G1）与 `spec-task-consistency`
  *    （spec 台账噪声 G2），实然 114 文件；按 114 登记（差 0）。
  *  2026-11-19 批次 574：新增 `institution-todo-derive`（制度草案 → 对应主体待办）与
- *    `my-project-tasks`（我的任务项目身份派生），实然 116 文件；按 116 登记（差 0）。 */
-export const GUARDS_FILE_BUDGET = 116;
+ *    `my-project-tasks`（我的任务项目身份派生），实然 116 文件；按 116 登记（差 0）。
+ *  2026-11-19 批次 575：新增 `roster-write-precheck`（名册写口前置校验），实然 117 文件；按 117 登记（差 0）。 */
+export const GUARDS_FILE_BUDGET = 117;
 
 /** guards 静态 `test(` / `it(` 调用点预算
  *  2026-11-08 波次 A：实测 788 断言，按 791 登记（断言留 3 条余量）。
@@ -304,6 +305,8 @@ export const TEST_TIERS = [
     // 2026-11-19 批次 574（`D-886`）：制度草案待办派生 / 我的任务按项目身份派生（SOP-B-25 / SOP-B-31）
     'institution-todo-derive.test.mjs',
     'my-project-tasks.test.mjs',
+    // 2026-11-19 批次 575（`D-887` / B-552-3）：名册写口空补丁 / 治理字段前置校验
+    'roster-write-precheck.test.mjs',
   ]),
 
   // ── precommit · 非核心域回归（提交前 / 发布前覆盖；进 daily 会拖长日常）─────
