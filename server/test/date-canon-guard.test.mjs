@@ -102,7 +102,6 @@ const SLICE10_BASELINE = Object.freeze({
   'docs/src/components/record/inspector.js:859': '显示 brandDesignatedAt（品牌活动说明）',
   'docs/src/components/sections/help-catalog.js:180': '列表截断（uniqueHits 取前 10；非日期）',
   'docs/src/components/sections/references.js:530': '显示 updatedAt（参考卡副题）',
-  'docs/src/core/domain/policy-defaults.js:454': '键归一化（String(base) 截前 10 字符）',
   'docs/src/core/domain/todo-derive.js:553': '日期键归一化（比较用）',
   'docs/src/data/mock-adapter.js:1122': 'targetDate 取 ISO 日（mock 适配回退分支）',
   'docs/src/entries/pages/activity-entry.js:568': '显示 brandDesignatedAt（品牌认定说明）',

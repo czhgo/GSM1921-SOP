@@ -48,7 +48,6 @@ export const BRANCH_FALLBACK_BASELINE = Object.freeze({
   'server/routes/resources/semantic-routes.js': 9,
   'server/routes/resources/signup-write-guard.js': 1,
   'server/routes/resources/workgroup-routes.js': 24,
-  'server/routes/uploads.js': 2,
 });
 
 /** 扫描面：`server/routes/**` 全部 `.js`（递归；跳过 node_modules 与测试目录） */

@@ -23,6 +23,7 @@ import { escHtml as esc } from '../../core/base/utils.js?v=20261110b';
 // 2026-10-24 批次 508：支部制度参数区仍有原生 `select.input-flat`（活动批准门 / 归档周期）
 //   ⇒ 渲染后统一接入统一自定义下拉（同全站 S2 下拉口径）
 import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261110b';
+import { textInput } from '../../components/ui/forms.js?v=20261110b';
 import { confirmDanger } from '../../components/ui/modal.js?v=20261110b';
 import { getCapabilities } from '../../core/boot/registry.js?v=20261110b';
 import {
@@ -1349,7 +1350,7 @@ function domainCardHtml(meta, branch, P) {
           <div class="kv-row">
             <dt>入发展对象前最短考察</dt>
             <dd class="flex items-center gap-2">
-              <input type="number" id="pol-org-activist-months" class="input-flat text-xs w-24 text-center" min="${mA.min}" max="${mA.max}" value="${cAct}" inputmode="numeric">
+              ${textInput({ id: 'pol-org-activist-months', type: 'number', value: String(cAct), ariaLabel: '入发展对象前最短考察月数', className: 'w-24 text-center', attrs: `min="${mA.min}" max="${mA.max}" inputmode="numeric"` })}
               <span class="text-xs text-gray-600">个月（0 ＝ 不设期限）</span>
             </dd>
           </div>

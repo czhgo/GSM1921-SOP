@@ -8,7 +8,8 @@ import { fileURLToPath } from 'node:url';
 import { requireAuth, requireCommissioner } from './auth.js';
 import { requireAssignedBranch, selectedBranchRequiredError } from './resources/branch-scope.js';
 // 党委角色单一源（勿手写）：下载做支部隔离时，党委（组织级、不属任何支部）跨支部可见
-import { DEFAULT_BRANCH_ID, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS } from '../../docs/src/core/domain/constants.js';
+import { PARTY_STAFF_ROLE as PARTY_STAFF_KEYS } from '../../docs/src/core/domain/constants.js';
+import { branchOrDefault } from './resources/branch-scope.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // 上传目录（2026-09-18 批次 80 · P1-③）：可由 env UPLOAD_DIR 配置；缺省值不变＝server/uploads。
@@ -100,8 +101,7 @@ export function createUploadsRouter(db) {
       uploadedAt: new Date().toISOString(),
     };
     // 多支部（批次 576 · `D-888`）：上传即固化归属支部；党委可显式选支部，支部账号取自身支部。
-    const uploadBranchId = req.query.branchId
-      || (req.actor.branchId === null ? null : (req.actor.branchId || DEFAULT_BRANCH_ID));
+    const uploadBranchId = req.query.branchId || branchOrDefault(req.actor.branchId);
     db.prepare('INSERT INTO attachments (id, filename, path, size, uploaded_by, uploaded_at, branch_id) VALUES (?, ?, ?, ?, ?, ?, ?)')
       .run(meta.id, meta.filename, meta.path, meta.size, meta.uploadedBy, meta.uploadedAt, uploadBranchId);
     res.status(201).json(meta);
@@ -120,7 +120,7 @@ export function createUploadsRouter(db) {
     const owner = ownerRow ? JSON.parse(ownerRow.data) : null;
     // T11（2026-11-16）：上传人 `branchId` 显式为 null（待归属）⇒ 归属为 null，不得按缺省支部下发；
     //   只有历史缺字段（undefined）才按存量口径回落 br-b1（与 `branch-scope.js::actorBranchId` 同判据）。
-    const ownerBranch = owner && owner.branchId === null ? null : ((owner ? owner.branchId : undefined) || DEFAULT_BRANCH_ID);
+    const ownerBranch = owner && owner.branchId === null ? null : branchOrDefault(owner ? owner.branchId : undefined);
     // 行内支部为空 ⇒ 历史行（v19 之前的附件）⇒ 回落到传人现支部；显式值是上传时固化的归属
     const ownerBranchResolved = row.branch_id ? row.branch_id : ownerBranch;
     if (PARTY_STAFF_ROLE_SET.has(actor.role)) {
@@ -128,7 +128,7 @@ export function createUploadsRouter(db) {
       if (selectionRequired) return res.status(400).json({ error: selectionRequired });
       if (String(req.query.branchId) !== ownerBranchResolved) return res.status(403).json({ error: '无权限：附件不属于所选支部' });
     } else {
-      const actorBranch = actor.branchId || DEFAULT_BRANCH_ID;
+      const actorBranch = branchOrDefault(actor.branchId);
       if (ownerBranchResolved !== actorBranch) return res.status(403).json({ error: '无权限：该附件不属于本支部' });
     }
     res.sendFile(path.join(UPLOAD_DIR, safe));

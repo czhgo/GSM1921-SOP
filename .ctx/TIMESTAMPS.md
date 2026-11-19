@@ -55,7 +55,7 @@ dynamic_role:
 | .ctx/TIMESTAMPS.md | 2026-11-19 | — | [工程师]+[AI] | 文件时间戳注册表；备注列只写**现状 / 边界 / 指针**（`R-89`），逐批沿革见 `.ctx/logs/**`。 |
 | .ctx/SNAPSHOT.md | 2026-11-19 | — | [AI] | 系统现状基线（reference）：只答「系统现在长什么样」；批次 509–528 小结已迁 `logs/EXECUTION_LOG_INDEX.md` 的批次索引表。 |
 | .ctx/ACTIVE_RULINGS.md | 2026-11-19 | — | [工程师]+[AI] | 现行有效裁定**索引**（reference）：只答「到哪找某条现行口径」；跨域摘要 + 18 领域索引，规则正文在 `content/01–05`。 |
-| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-19 | — | [工程师]+[AI] | 工程评估与改造行动线：六维评分（当前 80/78/79/73/76/71，`D-883`）、七个月复盘、阻断风险、当前行动与专项台账；§四 另设「上线残项」单一台账；不设综合均分。 |
+| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-19 | — | [工程师]+[AI] | 工程评估与改造行动线：六维评分（当前 80/78/79/73/76/71，`D-890` 复核未变）、七个月复盘、阻断风险、当前行动与专项台账；§四 另设「上线残项」单一台账；不设综合均分。 |
 | .ctx/REVIEW_QUEUE.md | 2026-11-19 | — | [工程师]+[AI] | 支书评议队列（reference）：只答「要评议什么 ＋ 评议怎么做」；过程 / 已闭环不留。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND1_WORKBENCH_STRUCTURE.md | 2026-10-19 | — | [工程师]+[AI] | Round 1 工作台结构审计报告（53 条 triage + 三路审查 + 共识/分歧/裁定 + 证据门）；修复 spec 落盘后可归档或删除。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND2_MINIMUM_THREE_COSTS.md | 2026-10-19 | — | [工程师]+[AI] | Round 2 最小三成本审查报告（better-layout / better-accessibility / better-writing 三路独立审查 + 共识/分歧/归属）。本批修项见 `.trae/specs/audit-round2-minimum-three-costs`。 |
@@ -65,7 +65,7 @@ dynamic_role:
 | .ctx/logs/archive/2026-10/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/logs/archive/2026-10/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-11-19 | — | [工程师]+[AI] | 日志索引 + 批次索引（509–568）。 |
-| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-19 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，含批次 542–573）。 |
+| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-19 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，含批次 542–578）。 |
 | .ctx/logs/DECISION_LOG.md | 2026-11-19 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3828 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-03-EXECUTION_LOG.md | 2026-03-02 | 2026-07-31 | [工程师]+[AI] | 已归档 |
@@ -82,7 +82,7 @@ dynamic_role:
 | .ctx/logs/archive/2026-09-EXECUTION_LOG.md | 2026-10-06 | 2026-10-06 | [工程师]+[AI] | 9 月执行日志（**已归档**）。**边界**：过程流水归 `git`；本文件**另承载「台账迁出附节」**——`R-` 表（`R-23`…`R-93` 全量纪律正文，**乙部表闭环即迁入此处**）＋ `TIMESTAMPS` 备注列历轮迁出的逐批沿革。**为什么**：`R-84`/`R-86`/`R-89` 的「各有其位」需要一个**稳定、不随月滚动**的落点。 |
 | .ctx/logs/2026-10-EXECUTION_LOG.md | 2026-10-27 | — | [工程师]+[AI] | 10 月执行日志（当月活跃；批次 336 换月建）。**边界**：只留「为什么 / 拿不准 / 边界 / 读数」（`H26.1`）；过程流水归 `git`，本文件不复述。 |
 | .ctx/logs/2026-10-DECISION_LOG.md | 2026-10-22 | — | [工程师]+[AI] | 10 月决策日志（**当月活跃 · 决议权威源**；2026-10-02 批次 336 换月建，自 9 月文件逐字迁入 `D-729`~`D-739`）。**边界**：每条裁定全文（追加、不改写）；过程归执行日志（`R-84`）。 |
-| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-19 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；当前 `D-827`…`D-885`。 |
+| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-19 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；当前 `D-827`…`D-890`。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_R10_DATA_LIFECYCLE.md | 2026-10-23 | — | [工程师]+[AI] | 第十轮数据生命周期审查（75 条；R10 四批的依据）。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_UI_R11.md | 2026-10-23 | — | [工程师]+[AI] | 第十一轮前端脏乱繁审查（P0/P1/P2 与 SD-1…SD-11）。 |
 | .ctx/logs/archive/2026-10/2026-10-R10_P3_CLOSURE.md | 2026-10-23 | — | [工程师]+[AI] | R10 P3 收口对账（R6 21 / R7 18 / 帮助注释 9）。 |
@@ -195,7 +195,7 @@ dynamic_role:
 | content/05_ai_coding/DOCUMENT_GOVERNANCE.md | 2026-11-19 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 文档治理与一改具改 |
 | content/05_ai_coding/FILE_OPERATION_RULES.md | 2026-11-03 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。**2026-09-26 已清偿 `R-83` 债**：frontmatter 与表行同刷为该文件最后一次提交日 `2026-09-26`） 文件操作纪律 |
 | content/05_ai_coding/REVIEW_AND_EXPRESSION.md | 2026-10-24 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。**2026-09-26 已清偿 `R-83` 债**：frontmatter 与表行同刷为该文件最后一次提交日 `2026-09-26`） 评议与表达纪律 |
-| content/05_ai_coding/TEST_AND_VERIFICATION.md | 2026-11-03 | — | [工程师]+[AI] | 测试三层（daily/precommit/weekly）；2026-11-03 增两条判例（权限矩阵单一源 / 「保留+改进」反馈必须给出改动或证据）。 |
+| content/05_ai_coding/TEST_AND_VERIFICATION.md | 2026-11-19 | — | [工程师]+[AI] | 测试三层（daily/precommit/weekly）；2026-11-03 增两条判例；2026-11-19 增 sample-diff 四条判例（缺证据即拒等）。 |
 | content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md | 2026-11-19 | — | [工程师]+[AI] | 页签审计手册（2026-11-02 建）：五维检查表、P0–P2、例外口径、怎么跑、怎么加检查与页签、报告字段；判据回链 DS_06 §五与 `audit/severity.mjs`。 |
 | content/05_ai_coding/UI_REVIEW_CHECKLIST.md | 2026-11-08 | — | [工程师]+[AI] | 温层 UI 审查清单（2026-11-03 建）：按 8 组任务组织（版式密度 / 排版字号 / 颜色对比 / 交互无障碍 / 文案空态 / 响应式 / 动效 / 数据展示），每条带判据 + DS 节 / SD 编号 + 何时读；入口 `CLAUDE.md H40.2`。 |
 | content/05_ai_coding/AUDIT_CANON.md | 2026-11-19 | — | [工程师]+[AI] | 审计口径唯一表（2026-11-02 建）：四口径裁定（F2 控件行数 / F4 H2 恰 1 / F7 `hasPager()` / C1 `requireAuth` 例外）与 daily / precommit / audit 三档分工；判据回链 `audit/checks-*.mjs` 与 `TAB_AUDIT_PLAYBOOK.md`。 |
@@ -223,15 +223,15 @@ dynamic_role:
 | server/app.js | 2026-11-15 | — | [工程师]+[AI] | createApp 工厂 + JSON 错误中间件。**批次 552**：500 对外改固定通用文案，细节只进 `console.error`；批次 234 的资源路由切分（`createResourcesRouter`）保持不变。 |
 | server/db.js | 2026-10-23 | — | [工程师]+[AI] | 当前 schema v12：v12 删 `issue_reveals`、contributions 规范化、四组唯一索引、`todos.branch_id` 生成列；v3 工作组与应到名单迁移及冻结 v1 基线规则见代码与执行日志。 |
 | server/seed.js | 2026-10-23 | — | [工程师]+[AI] | **（2026-09-28 批次 234 去冗余：删去本文件内两个「逐字复刻」常量 `SEED_WEEKLY_REPORTS` / `SEED_PROP_TASKS`，改为从**内容单一源** `docs/src/data/mock/prop.js` 同源 import〔UI 侧 `prop/weekly-tab.js` / `prop/tasks-tab.js` 亦改读同一份〕；**播种表与条数一字未变**）** 复用前端 mock 导入种子（**2026-09-25 批次 192：DB 空表补演示种子**——**播种 15 张**〔`attendances` 154 · `inspections` 42 · `activity_reviews` 11 · `taskforce_reviews` 2 · `thought_reports` 5 · `weekly_reports` 4 · `prop_tasks` 8 · `external_dispatches` 2 · `handoffs` 2 · `member_confirmations` 1 · `attendance_appeals` 1 · `inspection_appeals` 1 · `issue_unread` 2 · `auth_audit` 1 · `appointment_records` 1〕；**不播 11 / 跳过 3 见 `D-653`**；空表 **30 → 14** · 全库 **322 → 559** · 幂等 `idempotent: true` · 引用自洽 `problems: []`；**未新增 `MIGRATIONS`**）；**2026-09-25 批次 198（`D-658`）：`seedDatabase()` 末尾补 `todos` 播种段**（从 `docs/src/services/governance/todo.js::SEED_TODOS` **同源**播种 **2 条**；幂等＝`DELETE` ＋ 整表 `INSERT`、开关语义一字未改；**由「另一路」落地，本表行改注**（日期仍 `2026-09-25`）） |
-| server/routes/auth.js | 2026-11-19 | — | [工程师]+[AI] | 登录/token/me。 |
-| server/routes/member.js | 2026-10-22 | — | [工程师]+[AI] | 成员与个人档案语义接口；档案只读端点按本人/本支部支委策略投影。 |
+| server/routes/auth.js | 2026-11-19 | — | [工程师]+[AI] | 登录/token/me；登录固化 `sessions.branch_id`（待归属 null 保留，历史空列读侧回落）。 |
+| server/routes/member.js | 2026-11-19 | — | [工程师]+[AI] | 成员与个人档案语义接口；发展对象硬门（支委会讨论留痕 ＋ 最短考察期）与迁移写口校验。 |
 | server/routes/committee.js | 2026-11-14 | — | [工程师]+[AI] | 议题投票写口；匿名参与记录与 tally 原子提交、重复提交事务内幂等。**2026-11-14 批次 550（D-872）**：新增 `resolveFrozenVoterIds`——建会冻结表决名单（按 users ＋ 组织归属取范围、剔滞留 / 已转出），置尾不动既有行号。 |
-| server/routes/resources/index.js | 2026-11-19 | — | [工程师]+[AI] | 资源路由装配；活动删除保留报名与表决留痕（`D-876`）、其余子记录事务清理，并返回集合版本。**2026-11-14 批次 550（D-872）**：`POST /activities` 写库前冻结表决名单；**批次 552**：`D-876` 留痕口径；批次 569 考察读改请求级缓存。
-| server/routes/resources/branch-scope.js | 2026-10-16 | — | [工程师]+[AI] | 通用资源、关联记录、分支查询与快照写入的服务端支部范围判定；局部快照保留其他支部数据。 |
+| server/routes/resources/index.js | 2026-11-19 | — | [工程师]+[AI] | 资源路由装配；活动删除保留报名与表决留痕（`D-876`）、其余子记录事务清理，并返回集合版本。**2026-11-14 批次 550（D-872）**：`POST /activities` 写库前冻结表决名单；**批次 552**：`D-876` 留痕口径；批次 569 考察读改请求级缓存；批次 578 版本读写走 `resolveVersionBranchId`（按支部命名空间）。
+| server/routes/resources/branch-scope.js | 2026-11-19 | — | [工程师]+[AI] | 服务端支部范围判定（行级 / 请求级 / 版本命名空间单一入口）；局部快照保留其他支部数据。 |
 | server/routes/resources/workgroup-routes.js | 2026-10-23 | — | [工程师]+[AI] | 工作组语义 API；成员与权限全量替换在单事务内校验、写入并更新集合版本；正式名单与工作组成员分开，撤员撤权留痕。 |
 | server/routes/resources/signup-write-guard.js | 2026-10-17 | — | [工程师]+[AI] | 报名创建/状态转换/快照统一校验；主题党日线下选择、普通参与默认线下，正式会议使用名单不开放报名。 |
 | server/routes/resources.js | 2026-09-28 | — | [工程师]+[AI] | 🗑️ **已拆分**（2026-09-28 批次 234）：原 1301 行单文件按内聚拆为 `server/routes/resources/` **六件**——装配在 `index.js`，写门在 `gates.js` / `approval-gates.js`，其余按域。**边界**：本行留**删除抄录**，不再指向活文件（`S13` 认此写法）。 |
-| server/routes/uploads.js | 2026-08-24 | — | [工程师]+[AI] | 附件上传（jpg/png/pdf/docx/xlsx，≤10MB） |
+| server/routes/uploads.js | 2026-11-19 | — | [工程师]+[AI] | 附件上传（jpg/png/pdf/docx/xlsx，≤10MB）；上传固化支部归属，下载按行内支部（历史空值回退上传人支部）。 |
 | server/services/reporting.js | 2026-10-14 | — | [工程师]+[AI] | 报表活动人数：分配成员与已通过、未作废报名按 `personId` 去重并集；每日 webhook 按支部配置与投递。 |
 | server/services/logger.js | 2026-11-15 | — | [工程师]+[AI] | 结构化请求日志（请求 id / 路由 / 状态 / 耗时 / 错误类别）＋ 口令、token、personId 脱敏；`node:test` 下默认静默，`REQUEST_LOG=1` 打开。 |
 | server/routes/health.js | 2026-11-15 | — | [工程师]+[AI] | `GET /api/v1/health/deep` 深健康检查（库可读 / `user_version` / 备份目录可写），失败 503；浅检查走既有 `/api/v1/health`。 |
@@ -278,7 +278,7 @@ dynamic_role:
 | server/test/docs-governance-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 文档治理守卫。 |
 | server/test/contract-field-usage-guard.test.mjs | 2026-11-17 | — | [工程师]+[AI] | 契约字段 / 枚举 / 幽灵字段回归守卫（guards 层）。 |
 | .ctx/README.md | 2026-11-03 | — | [工程师]+[AI] | 三层分职（active / reference / provenance）、准入判据、读取顺序、预算、冲突顺序与可复用资产索引。 |
-| .ctx/ACTIVE_CONTEXT.md | 2026-11-19 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-883`。 |
+| .ctx/ACTIVE_CONTEXT.md | 2026-11-19 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-890`。 |
 | server/test/link-color-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 链接色守卫。 |
 | server/test/activity-tone-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 活动类别守卫。 |
 | server/test/field-shell-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 字段外壳守卫。 |
@@ -346,7 +346,7 @@ dynamic_role:
 | docs/src/core/base/id.js | 2026-09-29 | — | [工程师]+[AI] | UUID 发生器 |
 | docs/src/core/base/page-url.js | 2026-11-11 | — | [工程师]+[AI] | 站内页面 URL 单一解析：按 `document.baseURI` 保留工作台 `<base>` 与部署子路径，并安全设置查询参数；`pageHref()` 为去 `.html` 唯一变换（`D-867`）。 |
 | docs/src/core/base/link-normalize.js | 2026-11-11 | — | [工程师]+[AI] | 站内链接运行时归一：初始 DOM 与新增节点去 `.html`；`help` / `about` 冻结面跳过（`D-867`）。 |
-| docs/src/core/domain/policy-defaults.js | 2026-10-22 | — | [工程师]+[AI] | **（本批：G3-2 收口——新增 `POLICY_FIXED` 台账（12 条不可覆盖项：kind ＋ why ＋ src），消灭「未登记」第三态；26 叶键 ＝ 白名单 14 ＋ 固定台账 12，判据 `policy-config.test.mjs::R1–R3`）** **（2026-09-27 批次 211–212：路二 setting 可调性真缺陷修复——`POLICY_OVERRIDABLE` 白名单 **4 → 12 条**（新增 `attendance×3` / `review×2` / `makeup×3` / `thoughtReport×2`）；**域归属按母本**（时限类 / 补课范围与时限 → 纪检域、篇幅字数 → 组织域））** 业务默认值集中单一源（**2026-09-21 批次 132 补登**——本表原先无此行；本批 `attendance` 块：**新增 `noAttendanceTypes = ['支委会']`**、`meetingTypes` 去掉支委会、`recorderByType` 改准为「只列非组织者位类型」——**考勤上传位按会议类型分**，`D-558`） |
+| docs/src/core/domain/policy-defaults.js | 2026-11-19 | — | [工程师]+[AI] | 业务默认值单一源（POLICY_DEFAULTS / POLICY_OVERRIDABLE / POLICY_FIXED）；2026-11-19 增 member.activistMinMonths（默认 12，0＝不设期限）与日期键正则取前缀。 |
 | docs/src/core/base/state.js | 2026-09-29 | — | [工程师]+[AI] | 全局状态 |
 | docs/src/core/base/utils.js | 2026-10-05 | — | [工程师]+[AI] | 通用工具 |
 | docs/src/core/domain/work-map.js | 2026-10-06 | — | [工程师]+[AI] | 支部工作地图的**代码单一源**：`WORK_MAP_MODULES`（**14 个模块**）＋ 组织型主体注册表（`ORG_SUBJECTS`）。**模块 `cycle` 取值**：先按母本填（党小组会 / 主题党日）、后按支书裁「**先不做周期提醒**」撤去（机制在位、一行即启；沿革见执行日志）。**边界**：**模块数的现状声明点在 `BRANCH_WORK_MAP.md`**（`doc-consistency::S14` 第 4 读的锚点，2026-10-01 批次 314 由乙部行改锚至此）；本文件**只出数据、不出声明**。**为什么**：模块目录是「支部有哪些必办」的单一源。沿革见执行日志「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 322）」。 |
@@ -396,7 +396,7 @@ dynamic_role:
 | docs/src/entries/pages/branch-readonly-entry.js | 2026-10-18 | — | [工程师]+[AI] | 党委支部只读下钻；名册按本支部过滤、搜索与分页。 |
 | docs/src/entries/pages/activity-entry.js | 2026-10-22 | — | [工程师]+[AI] | 活动/专班详情入口；正式会议名单与工作组/普通报名分开，分享页按登录和支部范围遮蔽姓名，专班历史 participant 标为待核。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/pages/taskforce-entry.js | 2026-10-17 | — | [工程师]+[AI] | 专班详情页；成员数只含组织者/深度参与者，旧 participant 行只读待核展示。 |
-| docs/src/entries/pages/settings-entry.js | 2026-10-22 | — | [工程师]+[AI] | 设置页入口（外观 / 我的工作台 / 支部治理三档；制度参数只读卡含个人档案查阅范围）。沿革见 `.ctx/logs/2026-10-EXECUTION_LOG.md`。 |
+| docs/src/entries/pages/settings-entry.js | 2026-11-19 | — | [工程师]+[AI] | 设置页入口（外观 / 我的工作台 / 支部治理三档）；制度参数卡含个人档案查阅范围、发展对象最短考察期（经 `forms.textInput`）。 |
 | docs/src/entries/pages/person-entry.js | 2026-10-22 | — | [工程师]+[AI] | 个人档案本人/组织字段分层、语义读取与授权编辑入口。 |
 | docs/src/entries/pages/feedback-entry.js | 2026-07-31 | — | [工程师]+[AI] | 反馈页入口 |
 | docs/src/entries/pages/help-entry.js | 2026-10-14 | — | [工程师]+[AI] | 帮助页入口；章节目录、角色与任务入口共用导航元数据。 |

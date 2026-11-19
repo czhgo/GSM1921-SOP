@@ -457,7 +457,7 @@ function _addDays(dateKey, n) {
 function _recordDateKey(record) {
   const r = record || {};
   const base = r.date || r.activityDate || r.recordedAt || r.submittedAt || r.createdAt || '';
-  const key = String(base).slice(0, 10);
+  const key = (String(base).match(/^\d{4}-\d{2}-\d{2}/) || [''])[0];
   return /^\d{4}-\d{2}-\d{2}$/.test(key) ? key : '';
 }
 

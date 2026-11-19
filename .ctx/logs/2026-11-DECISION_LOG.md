@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-889`，共 63 条**；下一条自 **`D-890`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-890`，共 64 条**；下一条自 **`D-891`**。
 
 ## 本月目录（2026-11）
 
@@ -83,6 +83,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 发展对象服务端硬门（无决议 422）＋ 一年考察期可配置；E4 扩到独立页；名册写口前置校验；issues 补 `domain`；L-13 两条复核关闭 | `D-887` | 2026-11-19 | 已落（批次 575） |
 | 多支部键级隔离：schema v19（集合版本复合主键 / `sessions.branch_id` / `attachments.branch_id`）＋ 会话固化支部 ＋ 版本按支部读写 | `D-888` | 2026-11-19 | 已落（批次 576） |
 | 公共门厅支部维度（`?branchId=` 可选，缺省不变）＋ v19 列说明；`B-568-1` 四条 P0 全清并出表 | `D-889` | 2026-11-19 | 已落（批次 577） |
+| sample-diff 8.1–8.5 收口：六条样本支书全取保留 ＋ 四条可布尔化口径入判例；本批无代码、六维不加分 | `D-890` | 2026-11-19 | 已落（批次 578） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -594,5 +595,19 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **边界**：`ALLOW_MULTI_BRANCH` 仍关闭；生产仍一实例一支部；前端门厅客户端不传 `branchId` 时行为不变。
 > **落点**：`server/routes/public-portal.js`、`server/test/public-portal.test.mjs`、`content/04_web_design/data/DATA_MODEL.md`（附三）、`CLAUDE.md` 乙部/丙部脚注、`.ctx/ACTIVE_CONTEXT.md`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-889`**（共 **63** 条）。
+## D-890 2026-11-19 — sample-diff 8.1–8.5 收口：六条样本全取保留 ＋ 四条口径入判例（批次 578）
+
+> **评议 → 裁定 → 落点**：按计划批次 578 完成分层抽样与支书逐样本裁定；同批按 `H25` 修复 guards 暴露的 574–577 遗留红项（不 skip、不删断言）。
+> - **8.1 分层**：高风险面取全量——权限矩阵（162 条 ≡ 运行期写路由）、`/snapshot` 与集合版本门、会话 TTL、production 多支部启动断言，由定向测试与守卫断言核查；低风险文档 / 台账按 574–577 合计 44 个改动文件抽 3 条（≈7%）。
+> - **8.2 第一轮（设计口径，全取推荐）**：① `SOP-B-27` 缺 `developStageSince` 维持 422 硬拦；② 公共门厅未带 `?branchId=` 保持现行为（只党委内容，`D-858` 不动）；③ 活动完结后组织者分配项一并不列出。
+> - **8.2 第二轮（低风险文档，3/44）**：① 副组长独立身份键保留——支书追问「遗留键」所指，经说明 `commissioner` / `initiator` 两个兼容键与组长 / 副组长无关（两人同用组长台），未提异议，按保留记录；② `DATA_MODEL` issues 表 `domain` 行保留；③ `README-server` 20 处 `DATA_MODEL.md` 行号机械平移保留。
+> - **8.3 / 8.4 泛化**：四条可布尔化口径写入 `content/05_ai_coding/TEST_AND_VERIFICATION.md`（缺证据即拒 / 缺省可见性冻结 / 派生随来源终止 / 提问自解释）；逐条比对既有规则无冲突，按 `H10.8` 第一档执行，无需另裁。
+> - **8.5 下轮应用**：本批内以「按规则回查本轮六条裁定」执行，Top-5 命中 5/5，另记 1 次表达偏差（遗留键未先给定义）并已改正，详见执行日志批次 578。
+> - **同批修复（guards 门禁）**：① 写门矩阵 `member.js` / `auth.js` evidence 行号漂移（10 处）改指实际 handler；② 回落单一源——新增 `branchOrDefault` / `resolveVersionBranchId`，收口 `auth` / `uploads` / `resources` 三文件四处，删 `BRANCH_FALLBACK_BASELINE` 的 uploads 僵尸条目；③ 设置页考察期输入改走 `forms.textInput`（裸输入 / a11y / `text-xs` 三守卫同批归零）；④ `policy-defaults` 日期键改正则取前缀，删 D1c 僵尸基线；⑤ `permission-gate` 测试日期改本地口径；⑥ guards 静态调用点按实然 861 登记、daily 上限与 `DAILY_TEST_BUDGET=262` 取齐；⑦ `roster-write-precheck` 三用例合并为一（断言不减）。
+> **偏差记录**：spec 8.2 原文「一次一个样本」，实际按「一轮 ≤3 问、两轮共 6 样本」执行；判据（逐条记录保留 / 改 / 拒与理由）未降，偏差在此登记。
+> **未选**：把「遗留键」当缺陷单独立项（无运行期影响，只增噪声）；为低风险文档再抽第三轮（3/44 已落在 5–10% 区间）；把 guards 红项改 `skip` 或上调预算掩盖（`H25` 禁止）；本批借「做了审查」加分（无新业务证据，六维维持）。
+> **边界**：除上述守卫收口外不改业务行为；多支部版本隔离与门厅缺省可见性语义不变。
+> **落点**：`content/05_ai_coding/TEST_AND_VERIFICATION.md`、`.trae/specs/harden-launch-and-permissions/tasks.md`（8.1–8.5 回勾）、`.ctx/ENGINEERING_ASSESSMENT.md`、`.ctx/ACTIVE_CONTEXT.md`、`server/security/write-policy-matrix.mjs`、`server/routes/{auth,uploads}.js`、`server/routes/resources/{index,branch-scope}.js`、`docs/src/entries/pages/settings-entry.js`、`docs/src/core/domain/policy-defaults.js`、`server/{test-tier-registry.mjs,test/{test-tier-guard,branch-resolve-single-source-guard,date-canon-guard,permission-gate,roster-write-precheck}.test.mjs}`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-890`**（共 **64** 条）。
 

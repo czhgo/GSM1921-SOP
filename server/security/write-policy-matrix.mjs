@@ -555,12 +555,12 @@ const NON_RESOURCE_ROWS = [
   {
     method: 'POST', path: '/api/v1/auth/login', resource: 'auth',
     middleware: 'none', roleGate: 'public（口令校验）', ownership: 'none', fieldLocks: [],
-    evidence: 'server/routes/auth.js#L23; server/test/auth-password.test.mjs', status: 'public',
+    evidence: 'server/routes/auth.js#L24; server/test/auth-password.test.mjs', status: 'public',
   },
   {
     method: 'POST', path: '/api/v1/auth/logout', resource: 'auth',
     middleware: 'none', roleGate: 'public（仅清会话）', ownership: 'none', fieldLocks: [],
-    evidence: 'server/routes/auth.js#L50', status: 'public',
+    evidence: 'server/routes/auth.js#L53', status: 'public',
   },
   {
     method: 'POST', path: '/api/v1/uploads', resource: 'uploads',
@@ -606,62 +606,62 @@ const NON_RESOURCE_ROWS = [
   {
     method: 'POST', path: '/api/v1/member-change-requests', resource: 'memberChangeRequests',
     middleware: 'requireCommissioner', roleGate: '支委层', ownership: 'branch', fieldLocks: ['status（服务端置 pending）'],
-    evidence: 'server/routes/member.js#L108; server/test/member-confirmation.test.mjs', status: 'enforced',
+    evidence: 'server/routes/member.js#L130; server/test/member-confirmation.test.mjs', status: 'enforced',
   },
   {
     method: 'POST', path: '/api/v1/member-change-requests/:id/approve', resource: 'memberChangeRequests',
     middleware: 'requireRole(ORG_COMMISSIONER_ROLES)', roleGate: '组织委员', ownership: 'branch', fieldLocks: ['approvedBy/At（服务端会话）'],
-    evidence: 'server/routes/member.js#L143', status: 'enforced',
+    evidence: 'server/routes/member.js#L165', status: 'enforced',
   },
   {
     method: 'POST', path: '/api/v1/member-change-requests/:id/confirm', resource: 'memberChangeRequests',
     middleware: 'requireRole(SECRETARY_AND_DEPUTY_ROLES)', roleGate: '支书/副支书', ownership: 'branch', fieldLocks: ['confirmedBy/At（服务端会话）'],
-    evidence: 'server/routes/member.js#L166', status: 'enforced',
+    evidence: 'server/routes/member.js#L188', status: 'enforced',
   },
   {
     method: 'POST', path: '/api/v1/member-change-requests/:id/annotate', resource: 'memberChangeRequests',
     middleware: 'requireCommissioner', roleGate: '支委层', ownership: 'branch', fieldLocks: ['批注字段（服务端追加）'],
-    evidence: 'server/routes/member.js#L214', status: 'enforced',
+    evidence: 'server/routes/member.js#L236', status: 'enforced',
   },
   {
     method: 'PATCH', path: '/api/v1/members/:id/profile', resource: 'users',
     middleware: 'requireAuth', roleGate: '组织委员 ∪ 本人（字段白名单不同）+ 同支部', ownership: 'self', fieldLocks: ['PROFILE_FIELDS（组织委员）', 'SELF_WRITE_FIELDS（本人）', 'selfProfile（服务端净化）'],
-    evidence: 'server/routes/member.js#L406-L441; server/test/self-profile.test.mjs', status: 'enforced',
+    evidence: 'server/routes/member.js#L453-L519; server/test/self-profile.test.mjs', status: 'enforced',
   },
   {
     method: 'POST', path: '/api/v1/members', resource: 'users',
     middleware: 'requireRole(ORG_COMMISSIONER_ROLES)', roleGate: '组织委员', ownership: 'branch', fieldLocks: ['role（固定 participant）', 'branchId（服务端会话）'],
-    evidence: 'server/routes/member.js#L464', status: 'enforced',
+    evidence: 'server/routes/member.js#L521', status: 'enforced',
   },
   {
     method: 'POST', path: '/api/v1/members/intake', resource: 'users',
     middleware: 'requireRole(MEMBER_FLOW_ROLES)', roleGate: '组织委员 + 支书/副支书', ownership: 'branch', fieldLocks: ['role（固定 participant）', 'branchId（服务端会话）'],
-    evidence: 'server/routes/member.js#L465; server/test/member-flow.test.mjs', status: 'enforced',
+    evidence: 'server/routes/member.js#L522; server/test/member-flow.test.mjs', status: 'enforced',
   },
   {
     method: 'POST', path: '/api/v1/members/:id/transfer-out', resource: 'users',
     middleware: 'requireRole(TRANSFER_OUT_ROLES)', roleGate: '组织委员 / 支书 / 副支书 + 同支部', ownership: 'branch', fieldLocks: ['transferOut/removedBy/At（服务端会话）'],
-    evidence: 'server/routes/member.js#L468-L483', status: 'enforced',
+    evidence: 'server/routes/member.js#L525-L545', status: 'enforced',
   },
   {
     method: 'POST', path: '/api/v1/members/:id/undo-transfer-out', resource: 'users',
     middleware: 'requireRole(TRANSFER_OUT_ROLES)', roleGate: '组织委员 / 支书 / 副支书 + 同支部', ownership: 'branch', fieldLocks: ['transferOut（清除软标记）'],
-    evidence: 'server/routes/member.js#L489', status: 'enforced',
+    evidence: 'server/routes/member.js#L546', status: 'enforced',
   },
   {
     method: 'POST', path: '/api/v1/members/:id/develop-stage', resource: 'users',
     middleware: 'requireRole(SECRETARY_AND_DEPUTY_ROLES)', roleGate: '支书/副支书', ownership: 'branch', fieldLocks: ['developStage（枚举）'],
-    evidence: 'server/routes/member.js#L241', status: 'enforced',
+    evidence: 'server/routes/member.js#L272', status: 'enforced',
   },
   {
     method: 'POST', path: '/api/v1/members/:id/account-rename', resource: 'users',
     middleware: 'requireRole(PARTY_STAFF_ROLES)', roleGate: 'party-staff', ownership: 'party-staff', fieldLocks: ['studentId（唯一业务键）'],
-    evidence: 'server/routes/member.js#L333; server/test/account-rename.test.mjs', status: 'enforced',
+    evidence: 'server/routes/member.js#L389; server/test/account-rename.test.mjs', status: 'enforced',
   },
   {
     method: 'POST', path: '/api/v1/members/:id/residence-status', resource: 'users',
     middleware: 'requireRole(SECRETARY_AND_DEPUTY_ROLES)', roleGate: '支书/副支书', ownership: 'branch', fieldLocks: ['residenceStatus（枚举）'],
-    evidence: 'server/routes/member.js#L385', status: 'enforced',
+    evidence: 'server/routes/member.js#L432', status: 'enforced',
   },
   {
     method: 'POST', path: '/api/v1/report/trigger', resource: 'report',

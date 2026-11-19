@@ -10,6 +10,30 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 578（2026-11-19）· sample-diff 8.1–8.5 收口 ＋ guards 遗留红项全修
+
+### 为什么
+- 计划批次 578：把 Task 8 抽样审查闭合、回勾 spec、六维复核。
+- 跑 `test:guards` 时暴露 574–577 遗留 7 类红（行号漂移 / 回落地增 / 裸输入 / a11y / `text-xs` / 日期口径 / 预算），按 `H25` 不得改 `skip`、不得删断言 ⇒ 同批修复。
+
+### 拿不准 / 取舍
+- **样本轮次**：spec 原文「一次一个样本」，实际按「一轮 ≤3 问、两轮共 6 样本」执行；判据未降，偏差写入 `D-890`。
+- **遗留键提问**：第一轮把 `commissioner` / `initiator` 当标签抛出，支书无法判断所指；第二轮补定义后无异议 ⇒ 提炼为「提问自解释」判例。
+- **回落地增**：`auth` / `uploads` / `resources` 的 `|| DEFAULT_BRANCH` 不抬高基线，改为 `branch-scope.js` 的 `branchOrDefault` / `resolveVersionBranchId` 两个单一入口。
+- **budget**：guards 静态调用点实然 861 按 861 登记（余量 0）；daily 上限与 `DAILY_TEST_BUDGET=262` 取齐；`roster-write-precheck` 三用例合并为一，覆盖不减。
+- **加分**：本批无新业务证据 ⇒ 六维维持 80/78/79/73/76/71，不做「做了审查」的加分。
+
+### 边界
+- 高风险面（矩阵 / snapshot / 会话 / 生产断言）取全量核查，不是抽样；低风险只抽 3/44（≈7%）。
+- 8.5 的「下一轮」在本批内以「按规则回查本轮裁定」执行。
+- 除守卫收口外不改业务行为；门厅缺省可见性与多支部版本隔离语义不变。
+
+### 读数
+- Top-5 稀疏检索：命中 5/5 —— ①权限判据落在真实行为（矩阵守卫＋定向测试）②保留项给检查证据（三条）③缺证据即拒（B-27 缺起始日 422）④缺省可见性冻结（门厅不带 `branchId` 不变）⑤派生随来源终止（完结活动分配项不列）。另记 1 次表达偏差（遗留键未先给定义）已改正。
+- 定向：`branch-resolve` / `field-shell` / `type-scale` / `a11y` / `date-canon` / `test-tier` / `write-policy-evidence` / `docs-governance` / `doc-consistency` / `ctx-hygiene` / `roster-write-precheck` **119/119**。
+- `docs-governance` + `doc-consistency` + `ctx-hygiene` + `single-fact`：**68/68**。
+- guards：**117 文件 · 全绿 · 144.8s**；daily：**32 文件 / 265 断言 · 全绿 · 111.1s**。
+
 ## 批次 577（2026-11-19）· 公共门厅支部维度 ＋ `B-568-1` 出表
 
 ### 为什么

@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: 2026-11-19
 last_verified: "2026-11-19"
-latest_decision: "D-889"
+latest_decision: "D-890"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -27,10 +27,10 @@ status: active
   - source：`server/data/domain-contract.mjs`、`content/04_web_design/data/DATA_CONTRACT.md`。
 - **权限**：写入口权限矩阵 **162 条**（156 enforced / 4 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵；审计 C1 查矩阵 + 高风险抽样。统计口径：`WRITE_POLICY_MATRIX` 按 `status` 计数（2026-11-15 实测；T14 新增进入 / 退出支部查看两写口）。
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
-- **六维（`D-883` 保守重校，2026-11-19）**：业务 **80** / 安全 **78** / 体验 **79** / 测试 **73** / 架构 **76** / 部署 **71**，**六维均 <80 ⇒ 继续不合并**。未闭：CI 无 run id、`test:full` 未整体重跑、Linux 真机未验（L-02）、D2 计数对账仅 3 页签、C2 写口往返 0 pass、真人签收未完成。
+- **六维（`D-883` 重校，批次 578 · `D-890` 复核未变）**：业务 **80** / 安全 **78** / 体验 **79** / 测试 **73** / 架构 **76** / 部署 **71**，**六维均 <80 ⇒ 继续不合并**。未闭：CI 无 run id、`test:full` 未整体重跑、Linux 真机未验（L-02）、D2 计数对账仅 3 页签、C2 写口往返 0 pass、真人签收未完成。
 - **审计**：46 页签 **P0 0 / P1 0 / P2 2 / exception 44**（2026-11-18 批次 565 实跑）；审计工具已修复（URL 跟随无后缀 canonical、登录失败 `exit 2`）。F1–F8 全绿；M1–M3 在位。
   - source：`.ctx/evidence/2026-11-18/tab-audit-after/summary.md`（原始截图与 findings.json 可重跑再生，未入库）。
-- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **32 文件 / 264 断言 / 109.4s**（结果门禁，2026-11-19 批次 576 读数）；guards **117 文件**（registry 登记；静态调用点 847 / 预算 860；E4 真机装配已扩到 8 页、属 precommit 层）；precommit＝daily＋guards＋非核心域回归＋e2e；`test:full` 最近读数 **1779.0s**（三通道各 1 红已逐文件分诊并修复，**未整体重跑**）；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
+- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **32 文件 / 265 断言 / 111.1s**（结果门禁，2026-11-19 批次 578 读数）；guards **117 文件**（registry 登记；静态调用点 859 / 预算 861；E4 真机装配已扩到 8 页、属 precommit 层）；precommit＝daily＋guards＋非核心域回归＋e2e；`test:full` 最近读数 **1779.0s**（三通道各 1 红已逐文件分诊并修复，**未整体重跑**）；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
   - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859 / §D-860 / §D-863 / §D-864`。
 - **工程评分（`D-883`，2026-11-19 保守重校）**：业务与数据 **80** · 安全与权限 **78** · 最小三成本 **79** · 测试与发布 **73** · 架构与可维护性 **76** · 运行部署 **71**；不设平均总分；六维均 <80。
   - source：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/logs/2026-11-DECISION_LOG.md §D-883`。
@@ -75,6 +75,7 @@ status: active
 - **待裁清零（`D-885`，批次 573）**：12 条口径一次落盘并代码化——副组长＝独立身份键只共享工作台；解除组织者补「更正」通知（新 kind `organizer-designation-corrected`）；工作流标签＝待支委会审议 / 已审议；支委会档「未通过」＝退回待批；组织者任务随活动完成自动销项；制度草案按领域派生待办 ＋ 改派（批次 574）；`SOP-B-33` / `SOP-F-5-⑥` 裁定不做；`SOP-B-27` / `SOP-B-44` 进 Phase 3。→ `SYSTEM_ROLE_PERMISSION §9a0`、`system-notice-kinds.js`、`definitions.js`、`DATA_MODEL §状态表`、`activity.js`、`G1` 守卫。
 - **制度与任务派生（`D-886`，批次 574）**：制度草案按「领域 → 主体」派生推进待办，改领域即换主体（先撤旧条再派生）；组织者分配的「工作分工」进「我的任务」，完成即回写工作分工；演示种子补 `executor`；组长台「我的任务」复核为已落地（U-35）。→ `todo.js::InstitutionTodoDeriver`、`branch-doc.js`、`activity.js`、`leader/my-tasks-section.js`。
 - **发展对象硬门（`D-887`，批次 575）**：进入「发展对象」必须存在支委会讨论通过留痕，否则 422；积极分子最短考察期 `member.activistMinMonths`（默认 12，0＝不设期限，组织域可调）。→ `server/routes/member.js`、`policy-defaults.js`、`settings-entry.js`。
+- **sample-diff 收口（`D-890`，批次 578）**：六条样本支书全取保留；四条可布尔化口径入判例——缺证据即拒 / 缺省可见性冻结 / 派生随来源终止 / 提问自解释；本批无代码、六维不加分。→ `content/05_ai_coding/TEST_AND_VERIFICATION.md`。
 
 ## §3 当前风险与下一步
 
@@ -101,8 +102,9 @@ status: active
 
 ### 下一批任务
 
-1. **批次 578**：sample-diff 8.1–8.5 ＋ spec 回勾 ＋ 六维严格重评（不上调）。
-2. **分支与合并（`H20.5`）**：`release/2026-11-launch` 尚未推远端（SSH host key 未授信、`gh` 未安装）；合并门槛＝六维均 ≥80 ＋ `test:full` 绿 ＋ P0/P1=0 ＋ 支书确认，达标前继续在分支累积。
+1. **分支与合并（`H20.5`）**：`release/2026-11-launch` 尚未推远端（SSH host key 未授信、`gh` 未安装）；合并门槛＝六维均 ≥80 ＋ `test:full` 绿 ＋ P0/P1=0 ＋ 支书确认，达标前继续在分支累积。无条件未完成项已清零（批次 574–578）。
+2. **评分门任务（六维 ≥80 后启动）**：`B-500-7b-2`（Plan B 收尾）、`B-522-1`（低密度卡与空态页）。
+3. **外部 / 真人清单**：Linux 真机 L-02、CI run id、push / PR、SMTP、真机三任务、签收、timer。
 
 ## §4 文件地图（读什么 / 不读什么）
 

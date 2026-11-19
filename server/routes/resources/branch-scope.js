@@ -145,6 +145,26 @@ export function actorBranchId(actor) {
 }
 
 /**
+ * 用户支部（含党委）：显式 `null` 保持 null（待归属）；缺字段按历史口径回落缺省支部。
+ * 供登录会话固化 / 上传写口等「N=1 兼容」场景复用，避免在路由里散写 `|| DEFAULT_BRANCH`。
+ */
+export function branchOrDefault(branchId) {
+  if (branchId === null) return null;
+  return branchId ? String(branchId) : DEFAULT_BRANCH;
+}
+
+/**
+ * 集合版本命名空间（快照 / `/snapshot/versions`）：本人支部 → 显式 `?branchId=` → 缺省支部。
+ * 单一入口，避免在路由层各写一份回落。
+ */
+export function resolveVersionBranchId(actor, requestedBranchId) {
+  const own = actorBranchId(actor);
+  if (own) return own;
+  const requested = requestedBranchId ? String(requestedBranchId) : '';
+  return requested ? requested : DEFAULT_BRANCH;
+}
+
+/**
  * 资源路由的支部归属门（R4-B02）：非党委账号且 branchId 显式为 null ⇒ 一律 403。
  * IAAA 的选支部/待确认端点挂在独立 router（/auth/iaaa），不经过本中间件。
  */

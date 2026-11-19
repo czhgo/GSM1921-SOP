@@ -114,8 +114,11 @@ export const GUARDS_FILE_BUDGET = 117;
  *  2026-11-16 `polish-shell-and-display-truth` T12：新增 `resource-write-validation-guard` 5 条
  *    （覆盖声明 / 单一源 / 接线 / 行为 / 非空转），实然 834；860 仍在余量内（差 26），**不上调**。
  *  2026-11-18 批次 565：新增 `audit-write-version-guard` 3 条（PATCH 必带 If-Match / 助手接线 / 反例自证），
- *    实然 837；860 仍在余量内（差 23），**不上调**。 */
-export const GUARDS_TEST_BUDGET = 860;
+ *    实然 837；860 仍在余量内（差 23），**不上调**。
+ *  2026-11-19 批次 578：574–577 新增守卫用例累计（`institution-todo-derive` / `my-project-tasks` /
+ *    `roster-write-precheck` / `multi-branch-five-proof` / `public-portal` 扩面），实然 861；
+ *    按 861 登记（余量 0，此后不得再上调）。 */
+export const GUARDS_TEST_BUDGET = 861;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 

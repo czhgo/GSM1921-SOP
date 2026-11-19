@@ -48,7 +48,8 @@ function loginAs(role) {
   localStorage.setItem('gsm1921-login-user', JSON.stringify({ personId: '2400012345', role }));
 }
 
-test('空补丁不发请求：{} / 仅 id 均返回「没有可保存的字段」', async () => {
+test('名册写口前置校验：空补丁不发请求 / 非党委治理字段剔除 / 党委照旧可写', async () => {
+  // ── ① 空补丁（{} / 仅 id）⇒ 直接返回，不发任何请求 ──
   loginAs('org-commissioner');
   const calls = installFakeApiAdapter();
   assert.equal(getDataSource(), 'api', '前置校验用例须在 api 形态下跑');
@@ -60,18 +61,16 @@ test('空补丁不发请求：{} / 仅 id 均返回「没有可保存的字段�
   assert.equal(b.ok, false, `仅 id 应判空，实测 ${JSON.stringify(b)}`);
   assert.match(b.reason, /没有可保存的字段/);
   assert.deepEqual(calls, { usersList: 0, usersUpdate: 0 }, '前置校验失败不得发任何请求');
-});
 
-test('非党委带 branchId / role：治理字段被剔除；剔除后为空不发请求', async () => {
+  // ── ② 非党委带 branchId / role ⇒ 治理字段被剔除；剔除后为空不发请求 ──
   loginAs('org-commissioner');
-  const calls = installFakeApiAdapter();
+  const calls2 = installFakeApiAdapter();
   const r = await PersonStore.saveMember({ id: '2400012345', branchId: 'br-b1', role: 'participant' });
   assert.equal(r.ok, false);
   assert.match(r.reason, /没有可保存的字段/);
-  assert.equal(calls.usersUpdate, 0, '不得把治理字段发往 users.update（否则 403/400）');
-});
+  assert.equal(calls2.usersUpdate, 0, '不得把治理字段发往 users.update（否则 403/400）');
 
-test('党委（party-staff）照旧可写治理字段', async () => {
+  // ── ③ 党委（party-staff）照旧可写治理字段 ──
   loginAs('party-staff');
   installFakeApiAdapter();
   const seen = [];
@@ -84,8 +83,8 @@ test('党委（party-staff）照旧可写治理字段', async () => {
     return { ok: true, status: 200, json: async () => payload };
   };
   try {
-    const r = await PersonStore.saveMember({ id: '2400012345', branchId: 'br-b1' });
-    assert.equal(r.ok, true, `党委写治理字段应成功，实测：${JSON.stringify(r)}`);
+    const r2 = await PersonStore.saveMember({ id: '2400012345', branchId: 'br-b1' });
+    assert.equal(r2.ok, true, `党委写治理字段应成功，实测：${JSON.stringify(r2)}`);
     const gov = seen.find((s) => s.url.includes('/api/v1/users/2400012345'));
     assert.ok(gov, '党委写治理字段应发 PATCH /users/:id');
     assert.match(gov.body, /branchId/, '党委路径不得剔除 branchId');

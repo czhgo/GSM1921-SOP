@@ -103,10 +103,12 @@ test('T4 daily / guards 文件数与断言预算不得高于登记值；daily �
     `GUARDS_TEST_BUDGET=${GUARDS_TEST_BUDGET} 比实然 ${guardCases} 宽松 >40：预算失去约束力`);
   // 结果门禁口径（2026-11-10 波次 540）；2026-11-17 批次 564 上调到 32 文件 / 260 断言
   //   （新增 `if-match`：全资源乐观锁的 428 / 409 / 200 / 强制写 / 回填幂等属「结果对不对」，理由见 registry 常量注释）
+  // 2026-11-19 批次 575 / 577：发展对象硬门（permission-gate）＋ 门厅支部维度（public-portal）各 +1，
+  //   实然 262；与 registry `DAILY_TEST_BUDGET=262` 取齐（上限只随结果门禁用例同步，不因静态守卫上调）。
   assert.ok(dailyFiles.length >= 20 && dailyFiles.length <= 32,
     `daily 只应保留 20–32 个结果门禁文件（实 ${dailyFiles.length}）：超出说明又混入了守卫或非核心回归`);
-  assert.ok(dailyCases <= 260,
-    `daily 断言 ${dailyCases} 超过结果门禁上限 260：优先把静态 / 域回归移出 daily，不改断言`);
+  assert.ok(dailyCases <= 262,
+    `daily 断言 ${dailyCases} 超过结果门禁上限 262：优先把静态 / 域回归移出 daily，不改断言`);
 });
 
 test('T5 四个 runner 与 registry 对齐，且不含 cmd 专有语法', () => {

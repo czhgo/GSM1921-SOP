@@ -2,7 +2,8 @@
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/domain/constants.js（前端 AuthStore.isCommissioner 同源，勿另写）
-import { BRANCH_COMMISSION_ROLES, DEFAULT_BRANCH_ID } from '../../docs/src/core/domain/constants.js';
+import { BRANCH_COMMISSION_ROLES } from '../../docs/src/core/domain/constants.js';
+import { branchOrDefault } from './resources/branch-scope.js';
 
 // ── 登录口令校验（2026-09-03 P1b 运行安全；2026-09-23 P0-3 生产硬挡）────────────────
 // 原状：POST /login 仅凭 personId 发 token——多人/计算中心部署时任何知道学号者可冒名登录。
@@ -43,7 +44,7 @@ export function createAuthRouter(db) {
     if (user.transferOut === true) return res.status(401).json({ error: '账号已停用（该成员已流出）' });
     const token = randomUUID();
     // 多支部（批次 576 · `D-888`）：登录时固化身份支部（待归属 null 保留 null；历史会话空列 ⇒ 读侧回落用户支部）
-    const sessionBranch = user.branchId === null ? null : (user.branchId || DEFAULT_BRANCH_ID);
+    const sessionBranch = branchOrDefault(user.branchId);
     db.prepare('INSERT INTO sessions (token, person_id, created_at, branch_id) VALUES (?, ?, ?, ?)')
       .run(token, personId, new Date().toISOString(), sessionBranch);
     res.json({ token, user: stripPasswordHash(user) });

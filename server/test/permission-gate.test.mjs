@@ -428,7 +428,8 @@ test('推荐发展对象服务端硬门（D-887）：无决议 422 / 未满一�
   });
   const monthsAgo = (n) => {
     const d = new Date(); d.setMonth(d.getMonth() - n);
-    return d.toISOString().slice(0, 10);
+    const pad = (x) => String(x).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   };
 
   // ① 无讨论留痕 ⇒ 422
