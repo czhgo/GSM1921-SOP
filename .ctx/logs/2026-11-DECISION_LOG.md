@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-885`，共 59 条**；下一条自 **`D-886`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-886`，共 60 条**；下一条自 **`D-887`**。
 
 ## 本月目录（2026-11）
 
@@ -79,6 +79,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 六维保守重校 80/78/79/73/76/71（六维均 <80）＋ 历史值隔离 `H26.5` ＋ active / reference 台账清理 | `D-883` | 2026-11-19 | 已落（批次 568） |
 | 一次清仓：硬冲突 4＋软冲突 9 清零、G1/G2 守卫、spec 噪声 525→0、历史提交基线、`H10.8` / 先裁后清 / CASE-AI-010 | `D-884` | 2026-11-19 | 已落（批次 572） |
 | 待裁清零：12 条口径裁定（收敛门 / 提交基线 / B-14/17/18/25/27/31/33/44 / F-4 / F-5⑥ / B-541-8 / H-16） | `D-885` | 2026-11-19 | 已落（批次 573） |
+| 制度草案按主体派生待办 ＋ 改派换人；组织者分配的工作进「我的任务」；组长台承载面复核为已落地；种子补 `executor` | `D-886` | 2026-11-19 | 已落（批次 574） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -545,5 +546,16 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **边界**：`SOP-B-33` / `SOP-F-5-⑥` 裁定为「不做」，只在 `REVIEW_QUEUE` 留一行并删除，不再进乙部。
 > **落点**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md`、`content/03_doc_system/OPERATIONS_GUIDE.md`、`content/04_web_design/data/DATA_MODEL.md`、`docs/src/workflow/definitions.js`、`server/test/single-fact-consistency.test.mjs`、`.ctx/REVIEW_QUEUE.md`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-885`**（共 **59** 条）。
+## D-886 2026-11-19 — 制度草案按主体派生待办 ＋ 改派换人；组织者分配进「我的任务」（批次 574）
+
+> **评议 → 裁定 → 落点**：按计划 §三「批次 574」实施 `SOP-B-25` ①② 与 `SOP-B-31` ①③；`SOP-B-31` ② 复核为已落地（`leader/my-tasks-section.js`，2026-10-19 U-35），本批不重写。
+> - **SOP-B-25 ①**：制度草案（`purpose='institution' && status='draft'`）按**既有**「领域 → 主体」判据（`work-map.js::institutionSubjectOfDomain`，不另写映射）派生一条推进待办；领域未登记 ⇒ 支书。派生链在 `todo.js::InstitutionTodoDeriver`。
+> - **SOP-B-25 ②（改派）**：沿用草案编辑面已有的「制度内容领域」写口（`updateInstitutionDraft({domain})`）；保存后**先撤旧条、再按新领域派生** ⇒ 待办随主体换人，不新造审批流。
+> - **SOP-B-31 ①**：活动「工作分工」（`assignments` 表）里指派给本人的具体工作也进「我的任务」，行 id 前缀 `wa:`；勾掉复用工作分工写口（`updateWorkAssignment`）。
+> - **SOP-B-31 ③**：演示种子 `SEED_TASKS` 每行补 `executor`（`organizer`/`deep`）；服务端播种同源生效。
+> - **未选**：为改派新建一套审批流（既有领域写口已足够）；为「我的任务」新增页签（改 46 页签口径与 tab 审计基数，收益不抵成本）；服务端接管该派生（与 `LifecycleTodoDeriver` 同层属提醒类，服务端 `todo-groups` 只接管实时组）。
+> **边界**：草案待办是**按角色的提醒**，不参与实时组统计；活动完结后组织者分配的工作同样不列出（避免陈旧条）。
+> **落点**：`docs/src/services/governance/todo.js`、`docs/src/services/branch/branch-doc.js`、`docs/src/services/activity/agenda-follow-up.js`、`docs/src/services/activity/activity.js`、`docs/src/core/domain/todo-actions.js`、`docs/src/components/record/todo-jump.js`、`docs/src/entries/tabs/{visitor/projects-tab,leader/my-tasks-section}.js`、`docs/src/data/mock/seed.js`、`server/test/{institution-todo-derive,my-project-tasks,todo-jump-contract}.test.mjs`、`content/04_web_design/design-system/CASES.md`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-886`**（共 **60** 条）。
 

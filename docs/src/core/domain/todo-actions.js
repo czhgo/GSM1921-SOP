@@ -161,6 +161,10 @@ function _landing(tabMap, { kind = '', section = '', primaryRole = 'secretary' }
 }
 
 export const TODO_ACTIONS = {
+  // ══ 制度草案（2026-11-19 批次 574 · `D-886`）：资料查询页（支部文件）不是任何工作台的页签
+  //   ⇒ 走 direct（由 `components/record/todo-jump.js::tryDirectJump` 直达 `references.html`）。
+  'institution-draft': { mode: 'direct', tab: '', label: '去修改草案', kind: '' },
+
   // ══ 支书 · 提醒类（落活动管理；其余台按同义落点）══
   'archive-remind': { mode: 'switch', label: '到活动管理处理', ..._landing(LAND.activity, { kind: 'activity' }) },
   'review-remind': { mode: 'switch', label: '到活动管理处理', ..._landing(LAND.activity, { kind: 'activity' }) },

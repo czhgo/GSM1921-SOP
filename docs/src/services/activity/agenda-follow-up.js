@@ -9,7 +9,7 @@ import { fetchVotesStrict, presentIdsForItem, tallyForItem } from './committee-v
 import { PersonStore } from '../member/person.js?v=20261110b';
 // 制度链（2026-09-21 批次 129 · `SOP-B-25` 第 ① 项 / `SOP-B-26`）：议程项结果的「制度」分支只做 IO，
 //   判据与状态迁移的单一源在 branch-doc.js::applyInstitutionAgendaResult（纯函数，本文件不复制状态名）。
-import { isInstitutionDoc, applyInstitutionAgendaResult } from '../branch/branch-doc.js?v=20261110b';
+import { isInstitutionDoc, applyInstitutionAgendaResult, syncInstitutionTodoForDoc } from '../branch/branch-doc.js?v=20261110b';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）：议程项结果的 `brand-designation`
 //   分支只做 IO，判据与状态迁移的单一源在 activity.js::applyBrandDesignationResult（纯函数）。
 import { commitBrandDesignationResult, commitActivityApprovalResult } from './activity.js?v=20261110b';
@@ -189,6 +189,8 @@ export async function recordAgendaResult({ activity, agendaItemId, result, perso
     if (inst && inst.ok) {
       const updated = await adapter.branchDocs.update(doc.id, inst.patch);
       db.branchDocs = replaceById(db.branchDocs || [], updated);
+      // 制度草案待办随审议结果同步（`D-886` / `SOP-B-25`）：未通过（仍草案）保活；通过 / 待党员大会 ⇒ 撤条
+      await syncInstitutionTodoForDoc(updated, { retireFirst: true });
     } else if (effectiveResult === 'passed' && !onChain) {
       const archived = await adapter.branchDocs.update(decisionItem.branchDocId, {
         status: 'archived',

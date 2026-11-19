@@ -54,6 +54,26 @@ function _boundBranchId(personId) {
 }
 
 /**
+ * 制度草案 → 对应主体待办同步（`D-886` / `SOP-B-25` ①：派生；②：改派随主体换人）。
+ * 派生判据与幂等全在 `services/governance/todo.js::InstitutionTodoDeriver`（单一源，勿在此另写映射）。
+ * ⚠ 动态 import：`todo.js` 反向依赖活动/成员服务，静态引入会把制度写口拖进那条依赖链。
+ * ⚠ 失败只告警：待办是附带提醒，不得阻断制度写口。
+ * @param {Object} doc 写入后的制度行
+ * @param {{retireFirst?:boolean}} [opts] 改派＝先撤旧条再派生新条
+ */
+export async function syncInstitutionTodoForDoc(doc, opts = {}) {
+  if (!doc || !doc.id) return;
+  try {
+    const { InstitutionTodoDeriver } = await import('../governance/todo.js?v=20261110b');
+    if (opts.retireFirst) InstitutionTodoDeriver.retireForDoc(doc.id);
+    if (doc.status === INSTITUTION_DRAFT) InstitutionTodoDeriver.deriveFromDraft(doc);
+    else InstitutionTodoDeriver.retireForDoc(doc.id);
+  } catch (e) {
+    console.warn('[branch-doc] 制度草案待办同步失败：', e);
+  }
+}
+
+/**
  * 写入支部文件（新建 / 编辑普通文件）
  * @param {Object} opts
  * @param {string} [opts.id]       存在 = 编辑（仅普通文件；制度文本编辑请走 publishNewVersion）
@@ -120,6 +140,8 @@ export async function saveDoc(opts = {}) {
         versionAt: now,
         versionNote: note || '', domain: opts.domain || null,
       });
+      // 草案 → 对应主体待办（`D-886`：按制度内容领域派生；现行版不派生）
+      await syncInstitutionTodoForDoc(created);
       return { ok: true, doc: created };
     }
     // 新建普通文件：维持既有文件语义（status draft=会前草案，资料查询现状不变）
@@ -550,6 +572,8 @@ export async function updateInstitutionDraft(opts = {}) {
       patch.fileData = opts.fileData || null;
     }
     const updated = await getAdapter().branchDocs.update(id, patch);
+    // 改派（改「制度内容领域」）⇒ 旧主体条撤除、新主体条派生（`D-886` / `SOP-B-25` ②）
+    await syncInstitutionTodoForDoc(updated, { retireFirst: true });
     return { ok: true, doc: updated };
   } catch (e) {
     return { ok: false, reason: (e && e.message) ? e.message : '修改草案失败' };

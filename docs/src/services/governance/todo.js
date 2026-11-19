@@ -19,7 +19,7 @@ import { AuthStore } from '../core/auth.js?v=20261110b';
 // 周期键（月/季/半年/年）与「模块周期」单一源（2026-10-06 批次 423 · `R-29⑤` · `D-804`）——
 //   周期任务的**来源**＝`work-map.js::WORK_MAP_MODULES[].cycle`（不另立第二份映射，`D-803②`）。
 //   （2026-11-09 批次 539：周期提醒派生已迁 `core/domain/todo-derive.js`，本文件不再直接消费周期键。）
-import { expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261110b';
+import { expandWorkforce, ownerOfModule, moduleIdOfActivity, institutionSubjectOfDomain } from '../../core/domain/work-map.js?v=20261110b';
 // 7 键实时组域键单一源（零依赖叶子件；服务端 Task 8 同源消费）
 import { DERIVE_GROUP_DOMAIN } from '../../core/domain/todo-derive.js?v=20261110b';
 // R10-B03：种子待办截止 = 活动日 + 制度复盘/归档时限（单一源），不存死日期字面量。
@@ -357,6 +357,8 @@ export const TodoSourceType = {
   ACTIVITY: 'activity',
   TASKFORCE: 'taskforce',
   MANUAL: 'manual',
+  // 制度草案（2026-11-19 批次 574 · `D-886` / `SOP-B-25` ①）：草案 → 对应主体待办
+  INSTITUTION: 'institution',
 };
 
 // ── 待办行动类型枚举 ──────────────────────────────────────────
@@ -1235,6 +1237,60 @@ function _authzRecipient(fallbackRole, moduleId, snapshot) {
   // 组织型主体（支委会 / 党委 / 支委扩大会）不是登录身份 ⇒ 无台可落，回退固定角色
   return { role: fallbackRole, personId: null, ownerType: owner.ownerType, ownerId: owner.ownerId };
 }
+
+// ════════════════════════════════════════════════════════════════
+//  制度草案 → 对应主体待办（2026-11-19 批次 574 · `D-886` / `SOP-B-25` ①）
+//  口径：制度草案（`purpose='institution' && status='draft'`）按「制度内容领域 → 对应主体」
+//    的**既有判据**（`core/domain/work-map.js::institutionSubjectOfDomain`，勿另写映射）派生一条
+//    推进待办，收件人＝该领域的对应主体（角色键）；领域未登记 ⇒ 落支书。
+//  改派（`SOP-B-25` ②）：草案编辑面改「制度内容领域」后，`branch-doc.js` 先撤旧条再按新领域派生
+//    ⇒ 待办随主体换人，不改任何审批流。
+//  销项：草案离开草案态（审议通过 / 报送党员大会）即撤除派生条（与其他派生同法：来源消失则条消失）。
+// ⚠ 边界：本条属「按人 / 按角色的提醒」，与既有 `LifecycleTodoDeriver` 同层（客户端派生）；
+//    服务端 `todo-groups` 只接管实时组，本条不在其面内。
+// ════════════════════════════════════════════════════════════════
+export const InstitutionTodoDeriver = {
+  /**
+   * 草案 → 待办载荷（**纯函数**；不是草案 / 非草案态 → null）。
+   * @param {Object} doc 支部文件行（`purpose='institution'`）
+   * @returns {Object|null}
+   */
+  payloadFor(doc) {
+    if (!doc || doc.purpose !== 'institution' || doc.status !== 'draft') return null;
+    const role = institutionSubjectOfDomain(doc.domain) || 'secretary';
+    return {
+      title: `推进制度草案「${doc.title || '未命名制度'}」`,
+      description: '请按制度内容领域的分工起草与监督；定稿后提交支委会审议。',
+      role,
+      category: TodoCategory.SUBMIT,
+      priority: 'normal',
+      deadline: null,
+      sourceType: TodoSourceType.INSTITUTION,
+      sourceId: doc.id,
+      actionType: TodoActionType.SUBMIT,
+      actionKey: 'institution-draft',
+      actionData: { scope: 'institution', sourceId: doc.id, sourceName: doc.title || '' },
+      flow: '制度草案 → 对应主体起草与监督 → 支委会审议',
+    };
+  },
+
+  /** 按草案派生（幂等：同草案已有未完成条 ⇒ 不重复追加） */
+  deriveFromDraft(doc) {
+    const payload = this.payloadFor(doc);
+    if (!payload) return [];
+    const dup = TodoStore.getBySource(TodoSourceType.INSTITUTION, doc.id)
+      .some((t) => !t.voided && t.status !== TodoStatus.COMPLETED
+        && (t.actionKey || t.actionType) === 'institution-draft');
+    if (dup) return [];
+    return TodoStore.createBatch([payload]);
+  },
+
+  /** 草案离开草案态 / 改派时撤除旧派生条（派生提醒随来源变化，不保留悬空条） */
+  retireForDoc(docId) {
+    if (!docId) return;
+    TodoStore.deleteBySource(TodoSourceType.INSTITUTION, docId);
+  },
+};
 
 export const LifecycleTodoDeriver = {
   /**

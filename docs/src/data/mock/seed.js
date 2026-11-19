@@ -8,17 +8,19 @@
 //  并钳制于 [活动日前 1 天, 活动日]；signups（su-001~007）日期均在演示窗口内，保持不变。
 
 // ── 任务种子（关联活动，时间随活动重排） ────────────────────
+// `executor`（`D-886` / SOP-B-31 ③）：SOP 任务节点的承担人——`'organizer'` / `'deep'`。
+//   缺它就进不了「我的任务」（`services/activity/activity.js::listMyProjectTasks` 按项目内身份筛）。
 import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261110b';
 import { _fmtDate, todayLocal } from '../../core/base/date.js?v=20261110b';
 export const SEED_TASKS = [
-  { id: 'tsk-001', activityId: 'act-1', title: '预定会议室并通知参会人员', status: 'completed', createdAt: '2026-08-07T08:00:00Z' },
-  { id: 'tsk-002', activityId: 'act-1', title: '整理会议记录并归档', status: 'completed', createdAt: '2026-08-07T08:00:00Z' },
-  { id: 'tsk-003', activityId: 'act-3', title: '准备学习材料（两会精神解读）', status: 'completed', createdAt: '2026-08-08T08:00:00Z' },
-  { id: 'tsk-004', activityId: 'act-3', title: '撰写活动总结', status: 'completed', createdAt: '2026-08-08T08:00:00Z' },
-  { id: 'tsk-005', activityId: 'act-5', title: '联系共建单位确认参访安排', status: 'completed', createdAt: '2026-08-12T08:00:00Z' },
-  { id: 'tsk-006', activityId: 'act-5', title: '安排车辆和午餐', status: 'completed', createdAt: '2026-08-12T08:00:00Z' },
-  { id: 'tsk-007', activityId: 'act-10', title: '准备主题党日方案', status: 'completed', createdAt: '2026-09-02T08:00:00Z' },
-  { id: 'tsk-008', activityId: 'act-10', title: '收集参与者反馈', status: 'completed', createdAt: '2026-09-02T08:00:00Z' },
+  { id: 'tsk-001', activityId: 'act-1', title: '预定会议室并通知参会人员', status: 'completed', executor: 'organizer', createdAt: '2026-08-07T08:00:00Z' },
+  { id: 'tsk-002', activityId: 'act-1', title: '整理会议记录并归档', status: 'completed', executor: 'organizer', createdAt: '2026-08-07T08:00:00Z' },
+  { id: 'tsk-003', activityId: 'act-3', title: '准备学习材料（两会精神解读）', status: 'completed', executor: 'organizer', createdAt: '2026-08-08T08:00:00Z' },
+  { id: 'tsk-004', activityId: 'act-3', title: '撰写活动总结', status: 'completed', executor: 'deep', createdAt: '2026-08-08T08:00:00Z' },
+  { id: 'tsk-005', activityId: 'act-5', title: '联系共建单位确认参访安排', status: 'completed', executor: 'organizer', createdAt: '2026-08-12T08:00:00Z' },
+  { id: 'tsk-006', activityId: 'act-5', title: '安排车辆和午餐', status: 'completed', executor: 'organizer', createdAt: '2026-08-12T08:00:00Z' },
+  { id: 'tsk-007', activityId: 'act-10', title: '准备主题党日方案', status: 'completed', executor: 'organizer', createdAt: '2026-09-02T08:00:00Z' },
+  { id: 'tsk-008', activityId: 'act-10', title: '收集参与者反馈', status: 'completed', executor: 'deep', createdAt: '2026-09-02T08:00:00Z' },
 ];
 
 // ── 分工种子（组织者分配，时间随活动重排） ──────────────────

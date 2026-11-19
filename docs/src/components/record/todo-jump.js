@@ -8,6 +8,11 @@ import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261110b';
 import { objectDetailHref } from '../../core/domain/object-route.js?v=20261110b';
 
 export function tryDirectJump(todo) {
+  // 制度草案待办（`D-886` / `SOP-B-25`）：资料查询页不是任何工作台页签 ⇒ 直达 `references.html`
+  if (todo.actionKey === 'institution-draft') {
+    window.location.href = resolveDocumentUrl('references.html');
+    return true;
+  }
   // 通知阅读待办（T-234 F1）：直达通知详情页（聚合时取首条 noticeId）
   const firstNotice = (todo.items && todo.items[0]) || todo;
   if (firstNotice.sourceType === 'notice' && (firstNotice.actionData?.noticeId || todo.actionData?.noticeId)) {

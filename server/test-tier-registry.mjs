@@ -97,8 +97,10 @@ export const DAILY_TEST_BUDGET = 262;
  *  2026-11-18 批次 565：新增 `audit-write-version-guard.test.mjs`（审计驱动 PATCH 必带 If-Match），
  *    实然 112 文件（本批 +1）；按 112 登记（差 0；再增守卫须先降存量或显式上调）。
  *  2026-11-19 批次 572：新增 `single-fact-consistency`（单值事实 G1）与 `spec-task-consistency`
- *    （spec 台账噪声 G2），实然 114 文件；按 114 登记（差 0）。 */
-export const GUARDS_FILE_BUDGET = 114;
+ *    （spec 台账噪声 G2），实然 114 文件；按 114 登记（差 0）。
+ *  2026-11-19 批次 574：新增 `institution-todo-derive`（制度草案 → 对应主体待办）与
+ *    `my-project-tasks`（我的任务项目身份派生），实然 116 文件；按 116 登记（差 0）。 */
+export const GUARDS_FILE_BUDGET = 116;
 
 /** guards 静态 `test(` / `it(` 调用点预算
  *  2026-11-08 波次 A：实测 788 断言，按 791 登记（断言留 3 条余量）。
@@ -299,6 +301,9 @@ export const TEST_TIERS = [
     // 2026-11-19 批次 572：单值事实跨文件一致 ＋ spec 台账噪声棘轮（G1 / G2）
     'single-fact-consistency.test.mjs',
     'spec-task-consistency.test.mjs',
+    // 2026-11-19 批次 574（`D-886`）：制度草案待办派生 / 我的任务按项目身份派生（SOP-B-25 / SOP-B-31）
+    'institution-todo-derive.test.mjs',
+    'my-project-tasks.test.mjs',
   ]),
 
   // ── precommit · 非核心域回归（提交前 / 发布前覆盖；进 daily 会拖长日常）─────

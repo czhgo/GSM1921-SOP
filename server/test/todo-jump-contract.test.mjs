@@ -104,11 +104,12 @@ test('①b 六个角色均已有入口页签 today / todo / overview（同义落
 
 // ═══════════ ② 每个动作 × 六个角色：解析存在、落点已注册 ═══════════
 
-test('② 动作表条数固定（30 类）× 六角色：解析存在且 switch 落点已在本台注册', () => {
+test('② 动作表条数固定（31 类）× 六角色：解析存在且 switch 落点已在本台注册', () => {
   const keys = Object.keys(TODO_ACTIONS);
   // 批次 541 改准：精确等值锁死条数（原 `>= 20` 允许「悄悄删一条」，与契约「逐台登记、增删同批改」不符）。
   //   29 → 30 的来历：批次 541 P0-2 补登 `inspection-review`（支书考察审核，历史 / 种子键）。
-  assert.equal(keys.length, 30, `动作表登记 ${keys.length} 类，基线 30 类：增删须同批改契约 §一 与 CASES 036`);
+  //   30 → 31 的来历：批次 574（`D-886`）补登 `institution-draft`（制度草案 → 资料查询页，direct）。
+  assert.equal(keys.length, 31, `动作表登记 ${keys.length} 类，基线 31 类：增删须同批改契约 §一 与 CASES 036`);
   assert.equal(TODO_ROLES.length, 6, `六台角色键 ${TODO_ROLES.length} 个，基线 6 个：增删须同批改契约 §一 与能力注册表`);
   const problems = [];
   for (const key of keys) {

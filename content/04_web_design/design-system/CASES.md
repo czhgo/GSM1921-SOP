@@ -2,7 +2,7 @@
 title: "设计域判例库"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-17"
+last_updated: "2026-11-19"
 status: active
 related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -389,10 +389,10 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 
 - **编号**：CASE-DESIGN-036
 - **场景（真实发生）**：六个工作台的待办里点一条「目标模块不在本台」的行（例如成员台点「党小组」类事项），旧 `workspace-nav` 只 `toast('info')` 提示一句就结束，页面停在原地，用户找不到落点；同一动作的目标页签各台另写一份 `tabMap`，少写一台就静默无反应。
-- **结论**：未命中目标页签时 fail-closed——内容区必须渲染可见提示「本台无该模块」，并给出「同义落点」按钮（工作概况 → 待办 → 今天，取本台第一个已注册者）；不得只弹 toast、不得静默留页、不得拼 `workspace/<role>.html?tab=` 整页跳转。30 类动作 × 6 台在 `TODO_ACTIONS.roleOverrides` 逐台登记，解析顺序由契约固定，调用方不得另写落点分支。
+- **结论**：未命中目标页签时 fail-closed——内容区必须渲染可见提示「本台无该模块」，并给出「同义落点」按钮（工作概况 → 待办 → 今天，取本台第一个已注册者）；不得只弹 toast、不得静默留页、不得拼 `workspace/<role>.html?tab=` 整页跳转。31 类动作 × 6 台在 `TODO_ACTIONS.roleOverrides` 逐台登记，解析顺序由契约固定，调用方不得另写落点分支。
 - **边界**：`inline` 动作仍在行尾 / 浮窗完成（从只读页点进来时落到待办页该行）；`direct` 动作走对象详情，缺 id 给「未定位到具体条目」提示，两者不套「同义落点」这条兜底。
 - **对应规范编号**：SD-63（待办跳转三模式与未命中 fail-closed；正文见 `content/04_web_design/contracts/INTERACTION_AND_NAVIGATION_CONTRACT.md §二`）；关联 SD-32（深链目标页必须消费参数）。
-- **守卫**：`todo-jump-contract`（30 类动作 × 6 台已注册、无 toast-only、缺 id 有显式提示、`PendingTarget` 已清理、fail-closed 提示真渲一次）＋ `todo-cross-role-safety`。
+- **守卫**：`todo-jump-contract`（31 类动作 × 6 台已注册、无 toast-only、缺 id 有显式提示、`PendingTarget` 已清理、fail-closed 提示真渲一次）＋ `todo-cross-role-safety`。
 - **证据指针**：`docs/src/core/session/workspace-nav.js:13,25-26,82-91`；`docs/src/core/domain/todo-actions.js`；`docs/src/components/record/todo-tab-shell.js`；`content/04_web_design/contracts/INTERACTION_AND_NAVIGATION_CONTRACT.md`；`server/test/todo-jump-contract.test.mjs`；`.ctx/evidence/2026-11-10/overview-workmap/findings.json`。
 
 ---

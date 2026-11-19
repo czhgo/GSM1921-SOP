@@ -217,6 +217,7 @@ export function deepWorkModeOf(activity, taskId) {
 export function listMyProjectTasks(personId) {
   if (!personId) return [];
   const tasks = Array.isArray(mockDB.tasks) ? mockDB.tasks : [];
+  const assignments = Array.isArray(mockDB.assignments) ? mockDB.assignments : [];
   const out = [];
   for (const a of loadActivities()) {
     const roles = [];
@@ -231,6 +232,29 @@ export function listMyProjectTasks(personId) {
       if (!roles.includes(t.executor)) continue;
       if (activityClosed && t.executor === 'organizer') continue;
       out.push({ task: t, activity: a, projectRole: t.executor });
+    }
+    // 深参任务来源＝组织者分配（`D-886` / SOP-B-31 ①）：活动「工作分工」表（`assignments`）里
+    //   指派给本人的具体工作，也是「我的任务」；行 id 前缀 `wa:` 以区别于 SOP 任务节点
+    //   （数据形状单一源＝`services/activity/work-assignment.js::listWorkAssignments`，此处只读行、不另立判据）。
+    if (activityClosed) continue;
+    for (const row of assignments) {
+      if (!row || row.activityId !== a.id || row.assigneeId !== personId) continue;
+      if (row.status === 'completed') continue;
+      out.push({
+        task: {
+          id: `wa:${row.id}`,
+          title: row.workName || '未命名工作',
+          description: row.workDescription || '',
+          status: row.status || 'pending',
+          date: row.ddl || '',
+          ddl: row.ddl || '',
+          activityId: a.id,
+          executor: 'deep',
+        },
+        activity: a,
+        projectRole: 'deep',
+        source: 'assignment',
+      });
     }
   }
   return out;
@@ -602,12 +626,18 @@ export function withdrawReviewRequest({ activityId, by, role } = {}) {
  * 本人勾掉「我的任务」里的一步（勾掉即关闭）。
  * @param {string} personId
  * @param {string} taskId
- * @returns {{ok: boolean, reason?: string, task?: Object}}
+ * @returns {Promise<{ok: boolean, reason?: string, task?: Object}>}
  */
-export function completeMyProjectTask(personId, taskId) {
+export async function completeMyProjectTask(personId, taskId) {
   if (!personId || !taskId) return { ok: false, reason: 'invalid' };
   const mine = listMyProjectTasks(personId).find((x) => x.task && x.task.id === taskId);
   if (!mine) return { ok: false, reason: 'not-mine' }; // 不担这一步 ⇒ 勾不了
+  // 组织者分配的具体工作（`D-886` / SOP-B-31 ①）：写口复用「工作分工」既有 CRUD（单一源）
+  if (String(taskId).startsWith('wa:')) {
+    const { updateWorkAssignment } = await import('./work-assignment.js?v=20261110b');
+    const row = await updateWorkAssignment(String(taskId).slice(3), { status: 'completed' });
+    return row ? { ok: true, task: mine.task } : { ok: false, reason: 'update-failed' };
+  }
   if (mine.task.status === 'completed') return { ok: true, task: mine.task }; // 幂等
   let updated = null;
   mockDB.tasks = (Array.isArray(mockDB.tasks) ? mockDB.tasks : []).map((t) => {

@@ -38,7 +38,7 @@ function _myTasks(personId) {
       role: x.projectRole,
       status: x.task.status || 'pending',
       date: x.task.date || x.activity.date || '',
-      deepMode: x.projectRole === 'deep' ? deepWorkModeOf(x.activity, x.task.taskId) : null,
+      deepMode: (x.projectRole === 'deep' && x.source !== 'assignment') ? deepWorkModeOf(x.activity, x.task.taskId) : null,
     }));
 }
 
@@ -105,11 +105,11 @@ export function bindMyTasksSection(container, personId, { onChange } = {}) {
   const host = container.querySelector('#leader-my-tasks');
   if (!host || host.dataset.myTasksBound === '1') return;
   host.dataset.myTasksBound = '1';
-  host.addEventListener('click', (e) => {
+  host.addEventListener('click', async (e) => {
     const btn = e.target.closest('[data-my-task-complete]');
     if (!btn) return;
     e.stopPropagation();
-    const res = completeMyProjectTask(personId, btn.dataset.myTaskComplete);
+    const res = await completeMyProjectTask(personId, btn.dataset.myTaskComplete);
     if (!res.ok) { showToast('error', '该任务不在你名下，无法勾掉'); return; }
     showToast('success', '已完成该任务');
     if (typeof onChange === 'function') onChange();

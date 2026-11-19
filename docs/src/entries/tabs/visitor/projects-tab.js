@@ -272,7 +272,7 @@ export function renderContent(ctx) {
 
   // 卡片点击直达详情页（T-304 第5轮 P8 专班报名可达性 / D7 活动卡一致行为）：
   // 事件委托挂在 host 上——引擎筛选/翻页会重绘行，行内直接绑定会失效
-  host.addEventListener('click', (e) => {
+  host.addEventListener('click', async (e) => {
     // U-09：空态出口（data-proj-subview）与顶部子视图钮同一落点（空态不成为死胡同）
     const subBtn = e.target.closest('[data-proj-subview]');
     if (subBtn) { goSubView(subBtn.dataset.projSubview); return; }
@@ -281,7 +281,7 @@ export function renderContent(ctx) {
     const doneBtn = e.target.closest('[data-complete-task]');
     if (doneBtn) {
       e.stopPropagation();
-      const r = completeMyProjectTask(currentUserId, doneBtn.dataset.completeTask);
+      const r = await completeMyProjectTask(currentUserId, doneBtn.dataset.completeTask);
       if (r.ok) renderList();
       return;
     }
