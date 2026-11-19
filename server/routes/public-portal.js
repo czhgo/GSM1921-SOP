@@ -121,19 +121,22 @@ const UPLOAD_URL_BASE = '/api/v1/uploads/';
 
 // 发布范围 public 且未过期：判定函数单一源在 `resources/store.js::isPublicNow`
 // （登录态读口 `resources/branch-scope.js` 共用同一函数，杜绝「门厅已下架、登录列表仍可见」）。
-function isPublicNotice(row, now) {
-  return isPublicNow(row, now) && row.branchId === COMMITTEE_OWNER_ID;
+// 多支部（批次 577 · `D-889` / `B-568-1` ③）：未带 `?branchId=` ⇒ 现行为（只党委内容，逐字节不变）；
+// 带了支部 ⇒ 党委内容 ∪ 该支部 `public` 且未过期内容。
+function isPublicNotice(row, now, branchId = null) {
+  if (!isPublicNow(row, now)) return false;
+  return row.branchId === COMMITTEE_OWNER_ID || (!!branchId && row.branchId === branchId);
 }
 
-function isPublicActivity(row, now) {
-  return isPublicNow(row, now)
-    && row.ownerScope === 'committee'
-    && row.archived !== true
-    && row.status === 'published';
+function isPublicActivity(row, now, branchId = null) {
+  if (!isPublicNow(row, now) || row.archived === true || row.status !== 'published') return false;
+  if (row.ownerScope === 'committee') return true;
+  return !!branchId && row.branchId === branchId;
 }
 
-function isPublicDocument(row, now) {
-  return isPublicNow(row, now) && row.branchId === COMMITTEE_OWNER_ID;
+function isPublicDocument(row, now, branchId = null) {
+  if (!isPublicNow(row, now)) return false;
+  return row.branchId === COMMITTEE_OWNER_ID || (!!branchId && row.branchId === branchId);
 }
 
 /** 时间戳（非法 / 缺失 ⇒ 0，排到末位；只影响展示顺序，不影响是否公开） */
@@ -322,6 +325,8 @@ export function createPublicPortalRouter(db) {
   const router = express.Router();
 
   const notFound = (res) => res.status(404).json(NOT_FOUND_BODY);
+  // 可选支部维度（批次 577）：只在显式带 `?branchId=` 时生效；缺省完全保持「只党委内容」
+  const branchQueryOf = (req) => (typeof req.query.branchId === 'string' && req.query.branchId ? req.query.branchId : null);
 
   router.get('/portal', (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
@@ -329,7 +334,7 @@ export function createPublicPortalRouter(db) {
     const limit = parseLimit(req.query.limit);
 
     const noticeRows = sortDesc(
-      listPublicProjected(db, 'notices').filter((row) => isPublicNotice(row, now)),
+      listPublicProjected(db, 'notices').filter((row) => isPublicNotice(row, now, branchQueryOf(req))),
       (row) => timeOf(row.publishDate),
     );
     const notices = noticeRows.slice(0, limit).map(projectPublicNotice);
@@ -338,13 +343,13 @@ export function createPublicPortalRouter(db) {
     const activityRows = sortDesc(
       listPublicProjected(db, 'activities')
         .map((row) => ({ ...row, archived: row.archived === 1 || row.archived === true }))
-        .filter((row) => isPublicActivity(row, now)),
+        .filter((row) => isPublicActivity(row, now, branchQueryOf(req))),
       (row) => timeOf(row.date),
     );
     const activities = activityRows.slice(0, limit).map(projectPublicActivity);
 
     const documentRows = sortDesc(
-      listPublicProjected(db, 'branch_docs').filter((row) => isPublicDocument(row, now)),
+      listPublicProjected(db, 'branch_docs').filter((row) => isPublicDocument(row, now, branchQueryOf(req))),
       (row) => timeOf(documentUpdatedAt(row)),
     );
     const documents = documentRows.slice(0, limit)
@@ -361,21 +366,21 @@ export function createPublicPortalRouter(db) {
   router.get('/notices/:id', (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     const row = readRow(db, 'notices', req.params.id);
-    if (!isPublicNotice(row, Date.now())) return notFound(res);
+    if (!isPublicNotice(row, Date.now(), branchQueryOf(req))) return notFound(res);
     res.json(projectPublicNotice(row));
   });
 
   router.get('/activities/:id', (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     const row = readRow(db, 'activities', req.params.id);
-    if (!isPublicActivity(row, Date.now())) return notFound(res);
+    if (!isPublicActivity(row, Date.now(), branchQueryOf(req))) return notFound(res);
     res.json(projectPublicActivity(row));
   });
 
   router.get('/documents/:id', (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     const row = readRow(db, 'branch_docs', req.params.id);
-    if (!isPublicDocument(row, Date.now())) return notFound(res);
+    if (!isPublicDocument(row, Date.now(), branchQueryOf(req))) return notFound(res);
     res.json({
       ...projectPublicDocument(row),
       bodyText: typeof row.bodyText === 'string' ? row.bodyText : '',
@@ -390,7 +395,7 @@ export function createPublicPortalRouter(db) {
       return res.status(429).json({ error: 'too many requests', retryAfterMs: limited.retryAfterMs });
     }
     const row = readRow(db, 'branch_docs', req.params.id);
-    if (!isPublicDocument(row, Date.now())) return notFound(res);
+    if (!isPublicDocument(row, Date.now(), branchQueryOf(req))) return notFound(res);
 
     const fileName = safeDownloadName(row);
     const disposition = contentDisposition(fileName);

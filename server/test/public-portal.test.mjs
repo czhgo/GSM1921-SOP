@@ -349,3 +349,18 @@ test('⑦ 越界 filePath（绝对路径越界 / `..` 穿越 / 无附件）一�
   }
   assert.equal(auditRows().length, beforeCount, '未成功下载不得写审计');
 });
+
+// 多支部（2026-11-19 批次 577 · `D-889` / `B-568-1` ③）：
+//   未带 `?branchId=` ⇒ 现行为（支部 public 内容不出现）；带支部 ⇒ 党委内容 ∪ 该支部 public 内容。
+test('公共门厅按支部：缺省只党委内容；?branchId= 时并入该支部 public 内容（列表与详情同判）', async () => {
+  const plain = await (await fetch(`${base}/api/public/portal`)).json();
+  assert.ok(!plain.notices.some((n) => n.id === 'ntc-branch'), '缺省不得出现支部内容');
+
+  const scoped = await (await fetch(`${base}/api/public/portal?branchId=br-b1`)).json();
+  assert.ok(scoped.notices.some((n) => n.id === 'ntc-branch'), '带支部时应并入该支部 public 通知');
+  assert.ok(scoped.notices.some((n) => n.id === 'ntc-pub'), '党委内容仍在（并集，不替换）');
+
+  assert.equal((await fetch(`${base}/api/public/notices/ntc-branch`)).status, 404, '缺省详情 404');
+  assert.equal((await fetch(`${base}/api/public/notices/ntc-branch?branchId=br-b1`)).status, 200, '带支部详情 200');
+  assert.equal((await fetch(`${base}/api/public/notices/ntc-branch?branchId=br-b2`)).status, 404, '异支部仍 404');
+});

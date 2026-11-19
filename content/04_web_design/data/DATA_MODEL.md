@@ -1998,3 +1998,10 @@ KANBAN\_MOCKS（mock/kanban.js）作为独立硬编码的看板数据，与正�
 - 工作组不是第三类业务对象；成员、授权、任务、产出都挂在工作组上。
 - 专班不产生考勤；考勤只挂活动，专班产出只保留考察与材料。
 - 历史专班缺承办方时置 `null` ＋ `legacyScope=true`，不猜归属；由组织委员 / 支书一次性补选。
+
+**附三：多支部键级列（schema v19 · `D-888` / `D-889`）**
+
+- `collection_versions`：复合主键 `(branch_id, name)`；集合乐观锁按支部独立，旧行迁入 `br-b1`。
+- `sessions.branch_id`：登录时固化身份支部；历史会话为空 ⇒ 读侧回落 `users.branchId`。
+- `attachments.branch_id`：上传时固化归属支部；历史行为空 ⇒ 下载回退「上传人现支部」。
+- 公共门厅：`/api/public/portal?branchId=` 可选；缺省只党委内容，带支部时与党委内容取并集。

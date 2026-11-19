@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-888`，共 62 条**；下一条自 **`D-889`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-889`，共 63 条**；下一条自 **`D-890`**。
 
 ## 本月目录（2026-11）
 
@@ -82,6 +82,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 制度草案按主体派生待办 ＋ 改派换人；组织者分配的工作进「我的任务」；组长台承载面复核为已落地；种子补 `executor` | `D-886` | 2026-11-19 | 已落（批次 574） |
 | 发展对象服务端硬门（无决议 422）＋ 一年考察期可配置；E4 扩到独立页；名册写口前置校验；issues 补 `domain`；L-13 两条复核关闭 | `D-887` | 2026-11-19 | 已落（批次 575） |
 | 多支部键级隔离：schema v19（集合版本复合主键 / `sessions.branch_id` / `attachments.branch_id`）＋ 会话固化支部 ＋ 版本按支部读写 | `D-888` | 2026-11-19 | 已落（批次 576） |
+| 公共门厅支部维度（`?branchId=` 可选，缺省不变）＋ v19 列说明；`B-568-1` 四条 P0 全清并出表 | `D-889` | 2026-11-19 | 已落（批次 577） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -583,5 +584,15 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **边界**：单支部 `br-b1` 行为逐字节不变；`ALLOW_MULTI_BRANCH` 仍关闭，生产仍一实例一支部。
 > **落点**：`server/db.js`（v19 / 版本函数）、`server/routes/resources/snapshot-versions.js`、`server/routes/resources/index.js`、`server/routes/auth.js`、`server/routes/uploads.js`、`server/test/multi-branch-five-proof.test.mjs`、`README-server.md`（两处行号改签）。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-888`**（共 **62** 条）。
+## D-889 2026-11-19 — 公共门厅支部维度；`B-568-1` 四条 P0 全清并出表（批次 577）
+
+> **评议 → 裁定 → 落点**：按计划批次 577 清 `B-568-1` 最后一条（公共门厅），并把四条 P0 收口。
+> - **门厅支部维度**：`/api/public/portal`、`/notices/:id`、`/activities/:id`、`/documents/:id`、`/documents/:id/download` 接受可选 `?branchId=`；未带 ⇒ 现行为逐字节不变（只党委内容）；带上 ⇒ 党委内容 ∪ 该支部 `public` 且未过期内容。判定函数仍单一源（`isPublicNow`）。
+> - **附件**：上一批已把归属固化到行内 `branch_id`；本批仅补文档口径。
+> - **收口**：`DATA_MODEL` 附三记录 v19 三列与门厅参数；`CLAUDE` 乙部删除 `B-568-1`，丙部脚注改为「已落地并出表」；`ACTIVE_CONTEXT` 数据/风险/下一批同步。
+> **未选**：门厅强制支部段（无登录时不知道看哪个支部，且现行为是上线口径）；把支部 `login` 范围内容也放进匿名门厅（`D-858` 已限定匿名只读 `public`）。
+> **边界**：`ALLOW_MULTI_BRANCH` 仍关闭；生产仍一实例一支部；前端门厅客户端不传 `branchId` 时行为不变。
+> **落点**：`server/routes/public-portal.js`、`server/test/public-portal.test.mjs`、`content/04_web_design/data/DATA_MODEL.md`（附三）、`CLAUDE.md` 乙部/丙部脚注、`.ctx/ACTIVE_CONTEXT.md`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-889`**（共 **63** 条）。
 
