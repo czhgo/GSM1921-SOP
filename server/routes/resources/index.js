@@ -39,6 +39,7 @@ import { _snapshotBaseVersions, _snapshotWrites, _snapshotMissingVersions, _allC
 import { registerExtraSemanticRoutes } from './semantic-routes.js'; import { registerTodoGroupRoutes } from '../todo-groups.js'; // 批次 532·B-500-7：待办实时派生的服务端只读端点（同行接入，保下文行号零位移）
 import { activityCreationDeny, activityOrganizerExceptionDeny, activityOperationAllowed, activityWorkgroupSyncUpdates, activityWorkgroupUpdate, approvedTaskforceDissolutionWorkgroups, attendanceWriteDeny, attendanceConfirmDeny, isAttendanceConfirmOnlyChange, createActivityWorkgroup, createTaskforceWorkgroup, snapshotScopeDeny, syncActivityWorkgroup, taskforceScopeDeny, taskforceScopePatchDeny, taskforceStatusWorkgroups } from './workgroup-routes.js';
 import { actorBranchId, aggregateWriteDeny, branchForNewResource, branchSelectionError, createTableReader, mergeAggregateBody, mergeScopedSnapshotWrites, recordBranchWriteDeny, requireAssignedBranch, resolveVersionBranchId, resourceRowsForActor, resourceBranchId, scopedSnapshotWriteDeny } from './branch-scope.js';
+import { deputyActionAllowed, deputyActionDenyReason } from './deputy-policy.js';
 import { DUPLICATE_SIGNUP_MSG, insertSignupRow, normalizeSignupCreate, normalizeSignupPatch, signupCreateDeny, signupSnapshotDeny } from './signup-write-guard.js';
 
 function _archiveSnapshotForActor(db, actor, submittedAt, report = {}) {
@@ -1263,6 +1264,10 @@ export function createResourcesRouter(db) {
       domainSections = DOMAIN_SECTIONS_BY_ROLE[actor.role] || [];
     }
     const fullRights = isStaff || isSecretary || isDeputyHere;
+    // 副支书操作权（2026-11-20 批次 579）：branchConfig 被支部参数关闭时，副支书不得改支部配置。
+    if (isDeputyHere && !deputyActionAllowed(db, actor, 'branchConfig')) {
+      return res.status(403).json({ error: deputyActionDenyReason('branchConfig') });
+    }
     if (!fullRights && !domainSections.length) {
       return res.status(403).json({ error: '无权限：仅本支部现任支书/副支书或党委组织员可配置（域负责人仅可改本域参数）' });
     }
@@ -1439,6 +1444,9 @@ export function createResourcesRouter(db) {
     const isStaff = actor.role === 'party-staff';
     const isSecretary = !!branch.secretaryId && actor.id === branch.secretaryId;
     const isDeputyHere = actor.role === 'deputy-secretary' && (actor.branchId || DEFAULT_BRANCH_ID) === branch.id;
+    if (isDeputyHere && !deputyActionAllowed(db, actor, 'branchConfig')) {
+      return res.status(403).json({ error: deputyActionDenyReason('branchConfig') });
+    }
     if (!(isStaff || isSecretary || isDeputyHere)) {
       return res.status(403).json({ error: '无权限：仅本支部现任支书/副支书或党委组织员可回滚配置' });
     }

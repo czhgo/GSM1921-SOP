@@ -7,6 +7,7 @@
 
 import { setState, STATE, getAppState } from '../../core/base/state.js?v=20261110b';
 import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION, TASK_STATUS_TONE } from '../../core/domain/constants.js?v=20261110b';
+import { secretaryActionAllowed } from '../../core/domain/deputy-capability.js?v=20261110b';
 import { _fmtChinese, showToast, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261110b';
 import { icon } from '../../core/base/icons.js?v=20261110b';
 import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261110b';
@@ -646,7 +647,9 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   const themeClass   = ROLE_THEME_CLASS[managementRole] || '';
   const isArchived   = activity.archived === true;
   const _user = AuthStore.getCurrentUser();
-  const isSecretary = !!_user && SECRETARY_ROLES.includes(_user.role); // 支书专属（单一源 constants.js::SECRETARY_ROLES）——活动信息编辑等仍归支书；品牌认定已归支委层（见下方 isCommittee）
+  // 主责在支书；副支书能否代操作活动信息编辑由支部参数 `role.deputySecretary`（activityEdit）决定（批次 579）
+  const isSecretary = !!_user && (SECRETARY_ROLES.includes(_user.role)
+    || (_user.role === 'deputy-secretary' && secretaryActionAllowed({ role: _user.role, action: 'activityEdit' })));
   // 支书/副支书可查看表态汇总（2026-09-01 线上支委会 Task4：支书端汇总矩阵+截止）
   const isSecretaryOrDeputy = !!_user && (_user.role === 'secretary' || _user.role === 'deputy-secretary');
   // 支委集合（支书/副支书/组织/宣传/纪检）→ 表态面板可见（AuthStore.isCommissioner 与 auth.js 授权语义一致）

@@ -23,7 +23,8 @@ import { escHtml as esc } from '../../core/base/utils.js?v=20261110b';
 // 2026-10-24 批次 508：支部制度参数区仍有原生 `select.input-flat`（活动批准门 / 归档周期）
 //   ⇒ 渲染后统一接入统一自定义下拉（同全站 S2 下拉口径）
 import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261110b';
-import { textInput } from '../../components/ui/forms.js?v=20261110b';
+import { textInput, selectInput } from '../../components/ui/forms.js?v=20261110b';
+import { normalizeDeputyPolicy, DEPUTY_ACTIONS, DEPUTY_ACTION_LABELS } from '../../core/domain/deputy-capability.js?v=20261110b';
 import { confirmDanger } from '../../components/ui/modal.js?v=20261110b';
 import { getCapabilities } from '../../core/boot/registry.js?v=20261110b';
 import {
@@ -1100,7 +1101,55 @@ function branchPolicyLockedCardHtml(branch) {
 function branchPolicySectionHtml(branch) {
   return branchPolicyLockedCardHtml(branch)
     + activityApprovalCardHtml(branch, POLICY_DEFAULTS)
+    + deputyPolicyCardHtml(branch)
     + periodicArchivePolicyCardHtml(branch, POLICY_DEFAULTS);
+}
+
+/** 副支书操作权（2026-11-20 批次 579）：主责在支书，本卡只开关副支书能否代操作。 */
+function deputyPolicyCardHtml(branch) {
+  const { role } = _session;
+  const roleLabel = role === 'deputy-secretary' ? '副支书' : '支书';
+  const po = _overridesOf(branch);
+  const raw = po.role?.deputySecretary;
+  const p = normalizeDeputyPolicy(raw);
+  const hasOverride = !!raw;
+  const modes = [
+    ['full', '同权（四类均可代操作）'],
+    ['standard', '仅日常执行（四类均不可代操作）'],
+    ['custom', '自定义（逐项开关）'],
+  ];
+  const opts = modes.map(([v, label]) => ({ value: v, label }));
+  const checks = DEPUTY_ACTIONS.map((action) => `
+    <label class="flex items-center gap-2 text-[13px] text-gray-600">
+      <input type="checkbox" data-deputy-allow="${action}" ${p.allow[action] ? 'checked' : ''} ${p.mode === 'custom' ? '' : 'disabled'}>
+      <span>${DEPUTY_ACTION_LABELS[action]}</span>
+    </label>`).join('');
+  return `
+    <div class="card rounded-xl p-5">
+      <div class="flex items-center gap-2.5 mb-2">
+        <h3 class="font-title-cn text-base font-bold text-gray-800">副支书操作权</h3>
+        ${badgeHtml(`${esc(roleLabel)} · 本支部可调`, 'neutral')}
+      </div>
+      <p class="text-[13px] text-gray-500 mb-4">主责仍在支书：任务、提醒、统计与逾期归属不随本项变化；本项只决定副支书能否代操作下列四类动作。</p>
+      <dl class="kv-list">
+        <div class="kv-row">
+          <dt>代操作档位</dt>
+          <dd>
+            ${selectInput({ id: 'pol-deputy-mode', options: opts, value: p.mode, ariaLabel: '副支书代操作档位', className: 'w-64' })}
+            <div class="text-[13px] text-gray-500 mt-1">制度默认：同权 · 当前${hasOverride ? '已按本支部调整值生效' : '为制度默认（同权）'}。</div>
+          </dd>
+        </div>
+        <div class="kv-row">
+          <dt>逐项开关</dt>
+          <dd class="space-y-1.5">${checks}</dd>
+        </div>
+      </dl>
+      <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
+        <button type="button" class="btn-accent text-[13px] px-3 py-1.5" data-deputy-save>保存</button>
+        <button type="button" class="btn-accent-soft text-[13px] px-3 py-1.5 disabled:opacity-45" data-deputy-reset ${hasOverride ? '' : 'disabled'}>恢复默认</button>
+      </div>
+      <p class="status-line" data-pol-status aria-live="polite"></p>
+    </div>`;
 }
 
 function activityApprovalCardHtml(branch, P) {
@@ -1227,6 +1276,49 @@ async function runActivityApprovalAction(panel, action) {
     if (_currentSectionId === 'branch-policy-params') showPolicyStatus(panel, '保存失败，请刷新后重试。', true);
   }
 }
+
+/**
+ * 保存 / 恢复默认副支书操作权（2026-11-20 批次 579）。
+ * 写 `role.deputySecretary`；主责不随参数变化（任务 / 提醒 / 统计仍归支书）。
+ */
+async function runDeputyPolicyAction(panel, action) {
+  const { role, personId } = _session;
+  if (!personId) return;
+  const modeSel = panel.querySelector('#pol-deputy-mode');
+  const mode = modeSel ? modeSel.value : 'full';
+  if (action === 'save' && !['full', 'standard', 'custom'].includes(mode)) {
+    showPolicyStatus(panel, '档位取值非法。', true);
+    return;
+  }
+  const allow = {};
+  for (const actionKey of DEPUTY_ACTIONS) {
+    const box = panel.querySelector(`[data-deputy-allow="${actionKey}"]`);
+    allow[actionKey] = box ? box.checked : true;
+  }
+  const patch = action === 'reset'
+    ? { role: null }
+    : { role: { deputySecretary: { mode, allow } } };
+  const seq = ++_govSeq;
+  try {
+    const br = await import('../../services/branch/branch.js?v=20261110b');
+    const res = await br.savePolicyOverrides(_govBranchId, patch, { actor: { personId, role } });
+    if (!res.ok) {
+      if (_currentSectionId === 'branch-policy-params') showPolicyStatus(panel, res.reason || '保存失败（无权限或参数非法）。', true);
+      return;
+    }
+    if (_currentSectionId !== 'branch-policy-params' || seq !== _govSeq) return;
+    const branch = br.getBranchById(_govBranchId);
+    panel.innerHTML = branchPolicySectionHtml(branch);
+    bindPolicyPanel(panel);
+    showPolicyStatus(panel, action === 'reset'
+      ? '已恢复制度默认（同权）。'
+      : (res.changed ? '已保存 —— 副支书代操作范围随参数生效（下次加载生效）。' : '档位与当前一致，无需保存。'));
+  } catch (e) {
+    console.warn('[settings] 副支书操作权保存失败', e);
+    if (_currentSectionId === 'branch-policy-params') showPolicyStatus(panel, '保存失败，请刷新后重试。', true);
+  }
+}
+
 
 // ── 域参数卡（L2 编辑 · 纪检/组织/组长各自可见）───────────────────────
 function _overridesOf(branch) {
@@ -1545,6 +1637,16 @@ function bindPolicyPanel(panel) {
     if (archiveSave) { runPeriodicArchivePolicyAction(panel, 'save'); return; }
     const archiveReset = e.target.closest('button[data-archive-policy-reset]');
     if (archiveReset) runPeriodicArchivePolicyAction(panel, 'reset');
+    const deputySave = e.target.closest('button[data-deputy-save]');
+    if (deputySave) { runDeputyPolicyAction(panel, 'save'); return; }
+    const deputyReset = e.target.closest('button[data-deputy-reset]');
+    if (deputyReset) runDeputyPolicyAction(panel, 'reset');
+  });
+  panel.addEventListener('change', (e) => {
+    if (e.target && e.target.id === 'pol-deputy-mode') {
+      const custom = e.target.value === 'custom';
+      panel.querySelectorAll('[data-deputy-allow]').forEach((box) => { box.disabled = !custom; });
+    }
   });
 }
 

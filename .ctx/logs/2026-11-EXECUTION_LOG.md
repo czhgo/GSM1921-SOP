@@ -2,13 +2,33 @@
 title: "2026年11月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-19
+last_updated: 2026-11-20
 status: active
 ---
 
 # 2026年11月执行日志
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
+
+## 批次 579（2026-11-20）· 副支书操作权三档参数（主责仍在支书）
+
+### 为什么
+- 支书 2026-11-20 补充：副书记与副书记的关系同组长/副组长，但「很多主责还都是支书的」，且希望不同权做成可更改参数。
+
+### 拿不准 / 取舍
+- **主责 vs 操作权**：参数只回答「副支书能否代操作」，任务 / 提醒 / 统计 / 逾期仍按 `secretary` 派生；不把主责随参数转给副支书。
+- **参数形态**：取三档 `full`（默认，同权）/ `standard`（四类均不可代操作）/ `custom`（逐项），避免全量角色矩阵与权限矩阵单源冲突。
+- **服务端接线**：显式端点用 `requireSecretaryAction`（rosterStage / branchConfig）；通用写口用 `deputyResourceDeny`（activities / 全支部 notices）；其余角色口径不变。
+- **默认 full**：上线行为与改造前一致；改档后才收紧。
+
+### 边界
+- 共享面（概况 / 待办组 / 向导入口）副支书可见；支书专属清单仍保留并写注释。
+- `party-staff` 与其他角色口径不变。
+
+### 读数
+- 定向 `deputy-policy` / `policy-config` / `write-policy-matrix` / `write-policy-evidence` / `roles-sync` **45/45**。
+- `permission-gate` / `branch-config-audit` / `member-confirmation` / `self-profile` / `roster-write-precheck` **50/50**。
+- daily **32 文件 / 265 断言 / 114.8s** 全绿。
 
 ## 批次 578（2026-11-19）· sample-diff 8.1–8.5 收口 ＋ guards 遗留红项全修
 

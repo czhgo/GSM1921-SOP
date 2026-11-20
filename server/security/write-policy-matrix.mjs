@@ -460,15 +460,15 @@ const NON_RESOURCE_ROWS = [
   },
   {
     method: 'PATCH', path: '/api/v1/branches/:id/config', resource: 'branches',
-    middleware: 'requireAuth', roleGate: 'party-staff / 本支部支书·副支书；域负责人仅本域 policyOverrides', ownership: 'branch',
+    middleware: 'requireAuth', roleGate: 'party-staff / 本支部支书；副支书按 role.deputySecretary.branchConfig；域负责人仅本域 policyOverrides', ownership: 'branch',
     fieldLocks: ['config.modules/blocks/capabilityPackages（域负责人不可写）', 'configChangeHistory（服务端追加）'],
-    evidence: 'server/routes/resources/index.js#L1211-L1230; server/test/branch-config-audit.test.mjs', status: 'enforced',
+    evidence: 'server/routes/resources/index.js#L1248; server/test/branch-config-audit.test.mjs', status: 'enforced',
   },
   {
     method: 'PATCH', path: '/api/v1/branches/:id/config/rollback', resource: 'branches',
     middleware: 'requireAuth', roleGate: 'party-staff / 本支部支书·副支书', ownership: 'branch',
     fieldLocks: ['CONFIG_ROLLBACK_KEYS（单键白名单）', 'configChangeHistory（服务端追加回滚行）'],
-    evidence: 'server/routes/resources/index.js#L1396-L1408', status: 'enforced',
+    evidence: 'server/routes/resources/index.js#L1438', status: 'enforced',
   },
   {
     method: 'POST', path: '/api/v1/issues', resource: 'issues',
@@ -615,7 +615,7 @@ const NON_RESOURCE_ROWS = [
   },
   {
     method: 'POST', path: '/api/v1/member-change-requests/:id/confirm', resource: 'memberChangeRequests',
-    middleware: 'requireRole(SECRETARY_AND_DEPUTY_ROLES)', roleGate: '支书/副支书', ownership: 'branch', fieldLocks: ['confirmedBy/At（服务端会话）'],
+    middleware: "requireSecretaryAction(db, 'rosterStage')", roleGate: '支书；副支书按 role.deputySecretary.rosterStage', ownership: 'branch', fieldLocks: ['confirmedBy/At（服务端会话）'],
     evidence: 'server/routes/member.js#L188', status: 'enforced',
   },
   {
@@ -650,7 +650,7 @@ const NON_RESOURCE_ROWS = [
   },
   {
     method: 'POST', path: '/api/v1/members/:id/develop-stage', resource: 'users',
-    middleware: 'requireRole(SECRETARY_AND_DEPUTY_ROLES)', roleGate: '支书/副支书', ownership: 'branch', fieldLocks: ['developStage（枚举）'],
+    middleware: "requireSecretaryAction(db, 'rosterStage')", roleGate: '支书；副支书按 role.deputySecretary.rosterStage', ownership: 'branch', fieldLocks: ['developStage（枚举）'],
     evidence: 'server/routes/member.js#L272', status: 'enforced',
   },
   {
@@ -660,7 +660,7 @@ const NON_RESOURCE_ROWS = [
   },
   {
     method: 'POST', path: '/api/v1/members/:id/residence-status', resource: 'users',
-    middleware: 'requireRole(SECRETARY_AND_DEPUTY_ROLES)', roleGate: '支书/副支书', ownership: 'branch', fieldLocks: ['residenceStatus（枚举）'],
+    middleware: "requireSecretaryAction(db, 'rosterStage')", roleGate: '支书；副支书按 role.deputySecretary.rosterStage', ownership: 'branch', fieldLocks: ['residenceStatus（枚举）'],
     evidence: 'server/routes/member.js#L432', status: 'enforced',
   },
   {

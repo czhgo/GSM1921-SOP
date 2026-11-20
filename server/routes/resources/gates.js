@@ -8,6 +8,7 @@ import { requireAuth, requireCommissioner } from '../auth.js';
 import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, ORG_COMMISSIONER_ROLES, INSPECTION_WRITE_ROLES, INSPECTION_CONFIRM_ROLES, branchCommissionerWriteDeny, isAnonymousForced, PARTY_GROUP_LEADER_ROLES, isPartyGroupLeaderRole, DEFAULT_BRANCH_ID, LEADER_CREATABLE_ACTIVITY_TYPES, isBranchPendingUser } from '../../../docs/src/core/domain/constants.js';
 import { RESOURCE_TABLES, listTable } from './store.js';
 import { actorBranchId, createTableReader, resourceBranchId } from './branch-scope.js';
+import { deputyResourceDeny } from './deputy-policy.js';
 import { CAPABILITY_PACKAGES } from '../../../docs/src/core/domain/capability-packages.js';
 
 // ── P3 上线前收紧（2026-09-03，design §7 登记项落地）：资源级写角色门 ──────────
@@ -78,6 +79,11 @@ function _noticePublishAllowed(db, actor, notice) {
 
 /** 资源写角色门判定（在 requireAuth 之后、handler 内调用；未设门资源一律放行） */
 export function _assertResourceWrite(actor, name, method, body, targetId, db) {
+  // 副支书操作权（2026-11-20 批次 579）：只收紧 deputy 的四类主责动作，其余角色口径不变。
+  if (db) {
+    const deputyDeny = deputyResourceDeny(db, actor, name, method, body);
+    if (deputyDeny) return false;
+  }
   const gate = RESOURCE_WRITE_GATE[name];
   if (!gate) return true; // 未设门：由既有 writeAuth（requireAuth / requireCommissioner）把关
   const need = typeof gate === 'string' ? gate : gate[method];

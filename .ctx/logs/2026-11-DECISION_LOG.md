@@ -2,7 +2,7 @@
 title: "2026年11月决策日志"
 type: decision_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-19
+last_updated: 2026-11-20
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-DECISION_LOG.md, content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md, content/04_web_design/design-system/DS_03_COMPONENTS.md, content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md]
 ---
@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-890`，共 64 条**；下一条自 **`D-891`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-891`，共 65 条**；下一条自 **`D-892`**。
 
 ## 本月目录（2026-11）
 
@@ -84,6 +84,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 多支部键级隔离：schema v19（集合版本复合主键 / `sessions.branch_id` / `attachments.branch_id`）＋ 会话固化支部 ＋ 版本按支部读写 | `D-888` | 2026-11-19 | 已落（批次 576） |
 | 公共门厅支部维度（`?branchId=` 可选，缺省不变）＋ v19 列说明；`B-568-1` 四条 P0 全清并出表 | `D-889` | 2026-11-19 | 已落（批次 577） |
 | sample-diff 8.1–8.5 收口：六条样本支书全取保留 ＋ 四条可布尔化口径入判例；本批无代码、六维不加分 | `D-890` | 2026-11-19 | 已落（批次 578） |
+| 副支书操作权三档参数（full/standard/custom × 四类动作）；主责仍在支书，参数只决定能否代操作 | `D-891` | 2026-11-20 | 已落（批次 579） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -609,5 +610,18 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **边界**：除上述守卫收口外不改业务行为；多支部版本隔离与门厅缺省可见性语义不变。
 > **落点**：`content/05_ai_coding/TEST_AND_VERIFICATION.md`、`.trae/specs/harden-launch-and-permissions/tasks.md`（8.1–8.5 回勾）、`.ctx/ENGINEERING_ASSESSMENT.md`、`.ctx/ACTIVE_CONTEXT.md`、`server/security/write-policy-matrix.mjs`、`server/routes/{auth,uploads}.js`、`server/routes/resources/{index,branch-scope}.js`、`docs/src/entries/pages/settings-entry.js`、`docs/src/core/domain/policy-defaults.js`、`server/{test-tier-registry.mjs,test/{test-tier-guard,branch-resolve-single-source-guard,date-canon-guard,permission-gate,roster-write-precheck}.test.mjs}`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-890`**（共 **64** 条）。
+## D-891 2026-11-20 — 副支书操作权三档参数：主责仍在支书（批次 579）
+
+> **评议 → 裁定 → 落点**：支书 2026-11-20 裁定「副书记或许确实有地方不同权，设计为可更改的参数」；补充口径「很多主责还都是支书的」。
+> - **关系**：副支书是独立账号键（`deputy-secretary` ≠ `secretary`），与支书同页同台；主责归支书，任务 / 提醒 / 统计 / 逾期优先打给支书，无支书才回落副支书。
+> - **参数**：`POLICY_DEFAULTS.role.deputySecretary`（`full` 默认 / `standard` / `custom` + 四个 `allow` 布尔），登记 `POLICY_OVERRIDABLE`（支书域）。参数只决定副支书能否代操作，不转移主责。
+> - **四类动作**：`activityEdit`（活动信息编辑与发布）· `branchNotice`（全支部通知发布）· `rosterStage`（名册阶段推进与确认）· `branchConfig`（制度参数与支部配置）。
+> - **单一判据**：前端 `docs/src/core/domain/deputy-capability.js`；服务端 `server/routes/resources/deputy-policy.js`（`requireSecretaryAction` + `deputyResourceDeny`）；设置中心「支部治理 · 支部制度参数 · 副支书操作权」三档下拉 + `custom` 四项开关。
+> - **接线**：`member.js` 的 confirm / develop-stage / residence-status 改用 `requireSecretaryAction(...,'rosterStage')`；`resources/index.js` 的 config 与 rollback 用 `branchConfig`；`gates.js` 对 deputy 的 activities / 全支部 notices 收紧；`inspector.js` 的活动信息编辑改用 `activityEdit`。
+> - **共享面修复**：`work-overview.js` 的概况 / 待办组 / 待批计数纳入副支书；`wizard-entry.js` 副支书可进本支部向导；正职优先回落规则保持。
+> **未选**：全量角色 × 动作矩阵（与权限矩阵单源、守卫、审计冲突）；默认 `standard`（会改变上线现状）；把主责随参数转给副支书（支书明确否证）。
+> **边界**：默认 `full` ＝ 与改造前行为一致；party-staff 与其他角色口径不变；主责仍按 `secretary` 派生。
+> **落点**：`docs/src/core/domain/{policy-defaults,deputy-capability}.js`、`server/routes/resources/deputy-policy.js`、`server/routes/{member.js,routes/resources/{index,gates}}.js`、`docs/src/{components/governance/work-overview.js,components/record/inspector.js,entries/pages/{settings-entry,wizard-entry}.js}`、`server/test/deputy-policy.test.mjs`、`server/security/write-policy-matrix.mjs`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-891`**（共 **65** 条）。
 

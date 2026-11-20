@@ -42,7 +42,7 @@ import {
 import { IssueStore } from '../../services/governance/issues.js?v=20261110b';
 import {
   isActivityEnded, isActivityArchived, isActivityInProgress, ROLE_LABELS, PARTY_GROUP_LEADER_ROLES,
-  DASHBOARD_LIMITS,
+  SECRETARY_AND_DEPUTY_ROLES, DASHBOARD_LIMITS,
 } from '../../core/domain/constants.js?v=20261110b';
 import { loadActivities } from '../../services/activity/activity.js?v=20261110b';
 import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261110b';
@@ -664,7 +664,7 @@ async function _buildContext(role, personId, today, config) {
   };
 
   // 支书：概况维度 + 实时派生组（与待办页同源）
-  if (role === 'secretary') {
+  if (SECRETARY_AND_DEPUTY_ROLES.includes(role)) {
     const secretary = await import('../../services/governance/secretary-overview.js?v=20261110b');
     const realtime = secretary.SecretaryTodoDeriver.computeAggregates();
     const seen = new Set(ctx.todoGroups.map((group) => group.groupKey));
@@ -704,10 +704,10 @@ async function _buildContext(role, personId, today, config) {
   ctx.pendingAuthList = allActivities.filter((activity) => isActivityInProgress(activity)
     && activity.direction === 'bottom-up'
     && !(activity.assignments || []).some((item) => item.role === 'organizer'));
-  ctx.pendingAuth = role === 'secretary'
+  ctx.pendingAuth = SECRETARY_AND_DEPUTY_ROLES.includes(role)
     ? (ctx.overview?.activity?.pendingAuth || ctx.pendingAuthList.length)
     : ctx.pendingAuthList.length;
-  ctx.pendingArchive = role === 'secretary'
+  ctx.pendingArchive = SECRETARY_AND_DEPUTY_ROLES.includes(role)
     ? (ctx.overview?.propaganda?.pendingArchive || 0)
     : allActivities.filter((activity) => isActivityEnded(activity) && !isActivityArchived(activity)).length;
   ctx.recruitingTaskforces = allTaskforces.filter((tf) => tf.status === 'recruiting').length;
@@ -753,12 +753,12 @@ async function _buildContext(role, personId, today, config) {
   const requests = IssueStore.getReportRequestsFor(personId);
   const mineReports = IssueStore.getMyReports(personId).filter((report) => report.status === 'open');
   const openGap = mineReports.filter((report) => report.resultPending).length;
-  const secretaryPending = role === 'secretary' ? IssueStore.getSecretaryPendingReports().length : 0;
+  const secretaryPending = SECRETARY_AND_DEPUTY_ROLES.includes(role) ? IssueStore.getSecretaryPendingReports().length : 0;
   ctx.reports = {
     requests,
     mine: mineReports,
     openGap,
-    answerCount: role === 'secretary' ? secretaryPending : openGap,
+    answerCount: SECRETARY_AND_DEPUTY_ROLES.includes(role) ? secretaryPending : openGap,
   };
   ctx.reportPending = requests.length + mineReports.length;
   ctx.reportAnswerGap = openGap;

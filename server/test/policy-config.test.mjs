@@ -157,7 +157,7 @@ test('① policy-defaults 批4：新节结构与默认值（memberConfirmation/l
   //   组长域＝leader；支书域＝activityApproval。
   assert.deepEqual(
     POLICY_OVERRIDE_SECTIONS,
-    ['archive', 'inspection', 'memberConfirmation', 'member', 'leader', 'activityApproval', 'attendance', 'review', 'makeup', 'thoughtReport'],
+    ['archive', 'inspection', 'memberConfirmation', 'member', 'role', 'leader', 'activityApproval', 'attendance', 'review', 'makeup', 'thoughtReport'],
   );
 });
 

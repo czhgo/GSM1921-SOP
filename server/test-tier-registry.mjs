@@ -100,8 +100,9 @@ export const DAILY_TEST_BUDGET = 262;
  *    （spec 台账噪声 G2），实然 114 文件；按 114 登记（差 0）。
  *  2026-11-19 批次 574：新增 `institution-todo-derive`（制度草案 → 对应主体待办）与
  *    `my-project-tasks`（我的任务项目身份派生），实然 116 文件；按 116 登记（差 0）。
- *  2026-11-19 批次 575：新增 `roster-write-precheck`（名册写口前置校验），实然 117 文件；按 117 登记（差 0）。 */
-export const GUARDS_FILE_BUDGET = 117;
+ *  2026-11-19 批次 575：新增 `roster-write-precheck`（名册写口前置校验），实然 117 文件；按 117 登记（差 0）。
+ *  2026-11-20 批次 579：新增 `deputy-policy`（副支书操作权 / 正副职字面量基线），实然 118 文件；按 118 登记（差 0）。 */
+export const GUARDS_FILE_BUDGET = 118;
 
 /** guards 静态 `test(` / `it(` 调用点预算
  *  2026-11-08 波次 A：实测 788 断言，按 791 登记（断言留 3 条余量）。
@@ -117,8 +118,10 @@ export const GUARDS_FILE_BUDGET = 117;
  *    实然 837；860 仍在余量内（差 23），**不上调**。
  *  2026-11-19 批次 578：574–577 新增守卫用例累计（`institution-todo-derive` / `my-project-tasks` /
  *    `roster-write-precheck` / `multi-branch-five-proof` / `public-portal` 扩面），实然 861；
- *    按 861 登记（余量 0，此后不得再上调）。 */
-export const GUARDS_TEST_BUDGET = 861;
+ *    按 861 登记（余量 0，此后不得再上调）。
+ *  2026-11-20 批次 579：新增 `deputy-policy` 3 条（三档语义 / 服务端读参数 / 正副职基线），实然 864；
+ *    按 864 登记（余量 0）。 */
+export const GUARDS_TEST_BUDGET = 864;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -310,6 +313,8 @@ export const TEST_TIERS = [
     'my-project-tasks.test.mjs',
     // 2026-11-19 批次 575（`D-887` / B-552-3）：名册写口空补丁 / 治理字段前置校验
     'roster-write-precheck.test.mjs',
+    // 2026-11-20 批次 579：副支书操作权三档参数 / 正副职字面量基线
+    'deputy-policy.test.mjs',
   ]),
 
   // ── precommit · 非核心域回归（提交前 / 发布前覆盖；进 daily 会拖长日常）─────

@@ -5,6 +5,7 @@
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { requireAuth, requireRole, requireCommissioner } from './auth.js';
+import { requireSecretaryAction } from './resources/deputy-policy.js';
 // P2c（2026-09-03）：角色/支委名单单一源 = docs/src/core/domain/constants.js（勿手写）
 // Q-21-3（2026-09-13）：在册状态枚举 RESIDENCE 同源 = constants.js（原先经 org-base-data-preview 转出，
 //   而 preview 与 roster 各持一份同值字面量；现全站唯一源）
@@ -35,9 +36,6 @@ import { actorBranchId, branchSelectionError, selectedBranchRequiredError, recor
 const ORG_COMMISSIONER_ROLES = new Set(ORG_COMMISSIONER_ROLE_KEYS);
 // 成员流动登记角色集（组织委员 + 支书/副支书；单一源 constants.js，勿手写）
 const MEMBER_FLOW_ROLES = new Set(MEMBER_FLOW_ROLE_KEYS);
-// 副书同权（2026-09-11 支书裁定）：支书侧写链共享集合（单一源 constants.js，勿手写两套）——
-// 名册阶段/在册镜像、移出确认、成员变更确认（本文件 confirm）一律复用本集合。
-const SECRETARY_AND_DEPUTY_ROLES = new Set(SECRETARY_DEPUTY_ROLE_KEYS);
 
 function listTable(db, table) {
   return db.prepare(`SELECT data FROM ${table}`).all().map((r) => JSON.parse(r.data));
@@ -182,10 +180,9 @@ export function createMemberRouter(db) {
   });
 
   // ── 支书/副支书确认 → 更新成员发展阶段（users.developStage）──
-  // 副书同权（2026-09-11 支书裁定）：确认端点一并纳入，复用 SECRETARY_AND_DEPUTY_ROLES
-  // （与名册阶段/在册镜像、移出确认同口径，不在支书侧写链内再造第二套集合）。
+  // 主责在支书；副支书能否代操作由支部参数 `role.deputySecretary`（rosterStage）决定（批次 579）。
   // 同支部校验（与 develop-stage / residence-status 等支书侧写端点同口径）：跨支部一律 403。
-  router.post('/member-change-requests/:id/confirm', requireRole(db, SECRETARY_AND_DEPUTY_ROLES), (req, res) => {
+  router.post('/member-change-requests/:id/confirm', requireSecretaryAction(db, 'rosterStage'), (req, res) => {
     const existing = getRow(db, 'member_change_requests', req.params.id);
     if (!existing) return res.status(404).json({ error: '申请不存在' });
     if (recordBranchWriteDeny(db, 'member_change_requests', existing, req.actor, { requireBranch: false })) return res.status(403).json({ error: '无权限：不能确认其他支部的申请' });
@@ -269,7 +266,7 @@ export function createMemberRouter(db) {
   //   · 直接写 users.developStage，不触碰 resources.js 的 users 写权矩阵。
   // 返回：200 { ...updatedUser }（单条成员对象，与其它写端点一致）；错误 400/401/403/404 { error }。
   const DEVELOP_STAGE_FORBIDDEN = ['role', 'branchId'];
-  router.post('/members/:id/develop-stage', requireRole(db, SECRETARY_AND_DEPUTY_ROLES), (req, res) => {
+  router.post('/members/:id/develop-stage', requireSecretaryAction(db, 'rosterStage'), (req, res) => {
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     const forbidden = DEVELOP_STAGE_FORBIDDEN.find((k) => Object.prototype.hasOwnProperty.call(body, k));
     if (forbidden) {
@@ -429,7 +426,7 @@ export function createMemberRouter(db) {
   });
 
   // ① 在册状态镜像：成员变更确认链支书/副支书确认生效 → 写 residenceStatus/Note/History（副书同权 + 同支部）
-  router.post('/members/:id/residence-status', requireRole(db, SECRETARY_AND_DEPUTY_ROLES), (req, res) => {
+  router.post('/members/:id/residence-status', requireSecretaryAction(db, 'rosterStage'), (req, res) => {
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     const bad = firstOutside(body, RESIDENCE_FIELDS);
     if (bad) return res.status(400).json({ error: `字段 ${bad} 不在白名单（本端点仅可写 ${RESIDENCE_FIELDS.join(' / ')}）` });
