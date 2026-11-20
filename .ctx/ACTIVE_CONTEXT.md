@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: 2026-11-20
 last_verified: "2026-11-20"
-latest_decision: "D-893"
+latest_decision: "D-895"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -27,12 +27,12 @@ status: active
   - source：`server/data/domain-contract.mjs`、`content/04_web_design/data/DATA_CONTRACT.md`。
 - **权限**：写入口权限矩阵 **162 条**（156 enforced / 4 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵；审计 C1 查矩阵 + 高风险抽样。统计口径：`WRITE_POLICY_MATRIX` 按 `status` 计数（2026-11-15 实测；T14 新增进入 / 退出支部查看两写口）。
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
-- **六维（`D-883` 重校，批次 578 · `D-890` 复核未变）**：业务 **80** / 安全 **78** / 体验 **79** / 测试 **73** / 架构 **76** / 部署 **71**，**六维均 <80 ⇒ 继续不合并**。未闭：CI 无 run id、`test:full` 未整体重跑、Linux 真机未验（L-02）、D2 计数对账仅 3 页签、C2 写口往返 0 pass、真人签收未完成。
-- **审计**：46 页签 **P0 0 / P1 0 / P2 2 / exception 44**（2026-11-18 批次 565 实跑）；审计工具已修复（URL 跟随无后缀 canonical、登录失败 `exit 2`）。F1–F8 全绿；M1–M3 在位。
-  - source：`.ctx/evidence/2026-11-18/tab-audit-after/summary.md`（原始截图与 findings.json 可重跑再生，未入库）。
-- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **32 文件 / 265 断言 / 111.1s**（结果门禁，2026-11-19 批次 578 读数）；guards **117 文件**（registry 登记；静态调用点 859 / 预算 861；E4 真机装配已扩到 8 页、属 precommit 层）；precommit＝daily＋guards＋非核心域回归＋e2e；`test:full` 最近读数 **1779.0s**（三通道各 1 红已逐文件分诊并修复，**未整体重跑**）；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
+- **六维（`D-883` 重校，批次 585 · `D-895` 复核未变）**：业务 **80** / 安全 **78** / 体验 **79** / 测试 **73** / 架构 **76** / 部署 **71**；**只作诊断，不单独阻断本机合并**（`D-894` 两段门槛）。未闭：CI 无 run id、`test:full` 未整体重跑、Linux 真机未验（L-02）、D2 计数对账仅 3 页签、C2 写口往返 0 pass、真人签收未完成。
+- **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（2026-11-20 批次 585 实跑）；审计工具已修复（URL 跟随无后缀 canonical、登录失败 `exit 2`）。F1–F8 全绿；M1–M3 在位。
+  - source：`.ctx/evidence/2026-11-20/tab-audit/summary.md`（原始截图与 findings.json 可重跑再生，未入库）。
+- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **32 文件 / 265 断言 / 116.0s**（结果门禁，2026-11-20 批次 585 读数）；guards **121 文件**（registry 登记；静态调用点 873 / 预算 873；E4 真机装配已扩到 8 页、属 precommit 层）；precommit＝daily＋guards＋非核心域回归＋e2e；`test:full` 最近读数 **1779.0s**（三通道各 1 红已逐文件分诊并修复，**未整体重跑**）；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
   - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859 / §D-860 / §D-863 / §D-864`。
-- **工程评分（`D-883`，2026-11-19 保守重校）**：业务与数据 **80** · 安全与权限 **78** · 最小三成本 **79** · 测试与发布 **73** · 架构与可维护性 **76** · 运行部署 **71**；不设平均总分；六维均 <80。
+- **工程评分（`D-883`，2026-11-19 保守重校）**：业务与数据 **80** · 安全与权限 **78** · 最小三成本 **79** · 测试与发布 **73** · 架构与可维护性 **76** · 运行部署 **71**；不设平均总分；分数只作诊断（`D-894`）。
   - source：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/logs/2026-11-DECISION_LOG.md §D-883`。
 - **版本戳**：`20261110b`（`bump-version --check`：0 处陈旧，CODE_VERSION 一致）。
   - source：`docs/scripts/bump-version.mjs --check`。
@@ -79,6 +79,7 @@ status: active
 - **副支书操作权参数（`D-891`，批次 579）**：副支书与支书同页同台、独立账号键；**主责归支书**，任务 / 提醒 / 统计不随参数变化。四类主责动作（活动编辑 / 全支部通知 / 名册阶段 / 支部配置）的操作权由 `role.deputySecretary` 三档（`full` 默认 / `standard` / `custom`）决定；设置中心可改。→ `docs/src/core/domain/deputy-capability.js`、`server/routes/resources/deputy-policy.js`。
 - **全仓历史目标对账（`D-892`，批次 580）**：作废 / 删除 12 项（B-3、F-3/4/5、B-8/9、L-08/11/12/16、B-541-11/H-12/H-18）；重规划 6 项（L-10 逐读口取证、L-02/CI/签收归外部门、L-14/15 合并、L-17 可测阈值）；`B-522-1` / `B-500-7b-2` 改单项证据门；跨平台脚本改 `scripts/with-env.mjs`。→ `.ctx/evidence/2026-11-20/backlog-reconcile.md`。
 - **前端美学收口（`D-893`，批次 581）**：卡厚度统一 16/12（`.card-standard` / `.card-compact`，`p-5` 退出卡内边距）；手写卡头 600；状态色统一 `--status-warning-text` 并删暗色僵尸补丁；假徽章 / 灰底卡 / 越档 / 无名 section 同批修；新增 `card-consistency-guard`。未做：`renderCardHeader` 全量迁移、`B-522-1` 低密度页。
+- **评分即资产与两段门槛（`D-894`，批次 584）**：`H80` 增第 6 条——评分必须产出「对象 / 证据 / 结论 / 改进项 / 复评触发」，开工先检索 `EA §5.2` 资产索引；`H20.5` 合并门槛拆本机门 / 外部门，六维 <80 只作诊断；新增 `evaluation-asset-guard`（2.1–2.6 改进项指针 ＋ 资产索引 ＋ 两段门槛 ＋ 反例）。→ `.ctx/ENGINEERING_ASSESSMENT.md §5.2`、`server/test/evaluation-asset-guard.test.mjs`。
 
 ## §3 当前风险与下一步
 
@@ -102,7 +103,7 @@ status: active
 
 ### 下一批任务
 
-1. **分支与合并（`H20.5`）**：`release/2026-11-launch` 尚未推远端（SSH host key 未授信、`gh` 未安装）；合并门槛＝六维均 ≥80 ＋ `test:full` 绿 ＋ P0/P1=0 ＋ 支书确认，达标前继续在分支累积。无条件未完成项已清零（批次 574–579）。
+1. **分支与合并（`H20.5` 两段门槛 · `D-894`）**：`release/2026-11-launch` 尚未推远端（SSH host key 未授信、`gh` 未安装）。**本机门**＝`test:daily` ＋ `test:guards` 绿、`audit-tabs --all` P0/P1=0、工作树无意外改动、六维诊断表已刷新，＋支书确认即可合并；**外部门**＝Linux 真机 `L-02`、CI run id、真人签收、SMTP 实投，只阻断上线。六维 <80 只作诊断。
 2. **单项证据门任务**：`B-522-1`（并入批次 582–583 前端美学；清单 8 页覆盖率 100%）、`B-500-7b-2`（批次 584 后；客户端兜底调用数 = 0 + 7 类对账 8/8）。
 3. **外部 / 真人清单**：Linux 真机 L-02、CI run id、push / PR、SMTP、真机三任务、签收、timer。
 
