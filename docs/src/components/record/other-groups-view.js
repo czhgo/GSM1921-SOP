@@ -13,21 +13,22 @@
 import {
   listPartyGroups, countOpenReportsByGroup, groupReportRowsOf, reportRowStateOf,
   groupActivitiesOf, reviewBucketOf,
-} from '../../services/member/group-view.js?v=20261110b';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261110b';
-import { AuthStore } from '../../services/core/auth.js?v=20261110b';
-import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261110b';
-import { IssueStore } from '../../services/governance/issues.js?v=20261110b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261110b';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261110b';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261110b';
-import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261110b';
-import { getMeetingRosterIds } from '../../services/member/roster.js?v=20261110b';
-import { AttendanceStatus } from '../../core/domain/domain.js?v=20261110b';
-import { escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261110b';
-import { getAdapter, getDataSource } from '../../data/data-adapter.js?v=20261110b';
+} from '../../services/member/group-view.js?v=20261120a';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261120a';
+import { badgeHtml } from '../ui/badges.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261120a';
+import { IssueStore } from '../../services/governance/issues.js?v=20261120a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261120a';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261120a';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261120a';
+import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261120a';
+import { getMeetingRosterIds } from '../../services/member/roster.js?v=20261120a';
+import { AttendanceStatus } from '../../core/domain/domain.js?v=20261120a';
+import { escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261120a';
+import { getAdapter, getDataSource } from '../../data/data-adapter.js?v=20261120a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261110b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261120a';
 /**
  * 渲染「其他组」只读一览（本支部内除「我所属组」外的所有组，逐组一卡）。
  * @param {HTMLElement} container — `insight-view` 的 `#insight-seg-body`（每次换新节点）
@@ -138,6 +139,6 @@ function _reportRowHtml(r) {
     <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-gray-50/60">
       <span class="text-xs text-gray-800 shrink-0">${esc(getPersonName(r.submittedBy) || '匿名')}</span>
       <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${esc(r.title || '')}</span>
-      <span class="text-xs px-1.5 py-0.5 rounded-full ${st.cls} shrink-0">${st.label}</span>
+      ${badgeHtml(st.label, st.tone)}
     </div>`;
 }

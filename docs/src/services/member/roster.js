@@ -24,23 +24,23 @@
 // 消费点：纪检会议考勤录入（disc attendance-tab 候选与全选）、成员档案维护 UI、支书复核卡。
 // ════════════════════════════════════════════════════════════════
 
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261110b';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261120a';
 
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（本模块原先自持一份与
 //   org-base-data-preview 同值的副本，两处维护；现统一 import 叶子模块，防循环依赖见该文件注释）。
-import { RESIDENCE } from '../../core/domain/constants.js?v=20261110b';
-import { PersonStore } from './person.js?v=20261110b';
+import { RESIDENCE } from '../../core/domain/constants.js?v=20261120a';
+import { PersonStore } from './person.js?v=20261120a';
 // 双形态判定（mock/api）：api 形态下在册状态以服务端 users 行为权威，本模块不再读 localStorage 覆盖
 //   （2026-09-24 批次 169）。data-adapter 为零静态业务依赖的叶子模块（仅 import pending-writes）⇒ 无环。
-import { getDataSource } from '../../data/data-adapter.js?v=20261110b';
-import { mockDB } from '../../core/domain/domain.js?v=20261110b';
+import { getDataSource } from '../../data/data-adapter.js?v=20261120a';
+import { mockDB } from '../../core/domain/domain.js?v=20261120a';
 // 应到资格判据单一源（批次 541 · D-1）：党员 ∧ 非滞留（转出者前置剔除）的纯函数在 core 叶子件，
 //   服务端 `routes/committee.js` 与本模块同源 import ⇒ 名册统计与待议池应到不得出现两套口径。
 import {
   isRosterPartyMember,
   isRosterEligibleRow,
   computeRosterStats as computeRosterStatsOf,
-} from '../../core/domain/roster-eligibility.js?v=20261110b';
+} from '../../core/domain/roster-eligibility.js?v=20261120a';
 
 /** 运行期覆盖的 localStorage 键（组织委员维护写入；与 members UI / 纪检表单同源读取；
  *  ⚠ **仅 mock 形态生效**——api 形态本键恒不被读写，在册状态以服务端 users 行为单一权威） */

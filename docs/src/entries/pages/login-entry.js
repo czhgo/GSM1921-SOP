@@ -2,15 +2,15 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../../services/core/auth.js?v=20261110b';
-import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261110b';
-import { escHtml } from '../../core/base/utils.js?v=20261110b';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261120a';
+import { escHtml } from '../../core/base/utils.js?v=20261120a';
 // Task 2.1（2026-10-26）：服务端优先登录——静态托管 / 显式开发模式才走本地账号层。
-import { DEPLOY_MODE } from '../../config/deploy.js?v=20261110b';
+import { DEPLOY_MODE } from '../../config/deploy.js?v=20261120a';
 
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261110b';
-import { installLinkNormalizer } from '../../core/base/link-normalize.js?v=20261110b';
-import { pageHref } from '../../core/base/page-url.js?v=20261110b';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261120a';
+import { installLinkNormalizer } from '../../core/base/link-normalize.js?v=20261120a';
+import { pageHref } from '../../core/base/page-url.js?v=20261120a';
 
 // 登录页不渲染侧栏：单独安装站内链接去 `.html`（D-866 URL B）。
 installLinkNormalizer();

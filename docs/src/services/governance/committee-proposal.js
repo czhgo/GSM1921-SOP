@@ -2,10 +2,10 @@
 // services/governance/committee-proposal.js — 支委提案前端门面（D-869）
 //   API 形态：全部走 /api/v1/committee/proposals（服务端权威）；
 //   mock 形态：落 mockDB.committeeProposals，字段与服务端同形，供演示与离线浏览。
-import { mockDB } from '../../core/domain/domain.js?v=20261110b';
-import { getAdapter, getDataSource } from '../../data/data-adapter.js?v=20261110b';
-import { normalizeProposal, proposalTransition } from '../../core/domain/committee-proposal.js?v=20261110b';
-import { generateId } from '../../core/base/id.js?v=20261110b';
+import { mockDB } from '../../core/domain/domain.js?v=20261120a';
+import { getAdapter, getDataSource } from '../../data/data-adapter.js?v=20261120a';
+import { normalizeProposal, proposalTransition } from '../../core/domain/committee-proposal.js?v=20261120a';
+import { generateId } from '../../core/base/id.js?v=20261120a';
 
 const now = () => new Date().toISOString();
 

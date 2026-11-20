@@ -1,9 +1,9 @@
 // 活动考勤率按冻结原应到名单与实际到场名单的去重并集计算。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261110b';
-import { summarizeAttendanceByActivity } from '../../docs/src/services/activity/attendance.js?v=20261110b';
-import { getMeetingRosterIds } from '../../docs/src/services/member/roster.js?v=20261110b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261120a';
+import { summarizeAttendanceByActivity } from '../../docs/src/services/activity/attendance.js?v=20261120a';
+import { getMeetingRosterIds } from '../../docs/src/services/member/roster.js?v=20261120a';
 
 test('考勤分母是冻结原应到与实际到场的去重并集，重复考勤行不重复计数', () => {
   const previous = { activities: mockDB.activities, attendances: mockDB.attendances, attendanceRosters: mockDB.attendanceRosters };

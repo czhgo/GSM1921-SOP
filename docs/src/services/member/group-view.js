@@ -23,10 +23,10 @@
 //   localStorage 仅在成员档案读链内部以 typeof 守卫惰性访问 → 浏览器 / Node 双端可载（单测直导）。
 // ════════════════════════════════════════════════════════════════
 
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261110b';
-import { PersonStore } from './person.js?v=20261110b';
-import { isPartyMember } from './roster.js?v=20261110b';
-import { ReviewStatus } from '../../core/domain/domain.js?v=20261110b';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261120a';
+import { PersonStore } from './person.js?v=20261120a';
+import { isPartyMember } from './roster.js?v=20261120a';
+import { ReviewStatus } from '../../core/domain/domain.js?v=20261120a';
 
 /**
  * 支部内党小组清单（数据驱动：成员档案 partyGroup 聚合，缺省走 PersonStore 当前档案）
@@ -114,16 +114,17 @@ export function groupReportRowsOf(allIssues, group, limit = 8) {
     .slice(0, limit);
 }
 
-/** 汇报行派生状态（组长已答复 / 待答复 / 待汇报 / 卡点 / 已办结）——判据单一源（同上，随批次 373 上移）。 */
+/** 汇报行派生状态（组长已答复 / 待答复 / 待汇报 / 卡点 / 已办结）——判据单一源（同上，随批次 373 上移）。
+ *  tone 供 `badgeHtml` 使用；不得返回 Tailwind 调色板类（状态文字只走 `--status-*-text`）。 */
 export function reportRowStateOf(issue) {
-  if (issue.status === 'closed') return { label: '已办结', cls: 'bg-gray-100 text-gray-600' };
+  if (issue.status === 'closed') return { label: '已办结', tone: 'neutral' };
   const hasLeaderReply = (issue.comments || []).some(c => !c.hidden && c.kind === 'reply' && c.authorRole === 'leader');
-  if (hasLeaderReply) return { label: '组长已答复', cls: 'bg-green-100 text-green-700' };
+  if (hasLeaderReply) return { label: '组长已答复', tone: 'success' };
   // 上级（支书/组长）「了解进展」请求行：尚未回应 → 待汇报；组员/被请人已回应(resultPending) → 待答复
-  if (issue.requestedBy && !issue.resultPending) return { label: '待汇报', cls: 'bg-blue-100 text-blue-700' };
-  if (issue.resultPending) return { label: '待答复', cls: 'bg-amber-100 text-[var(--status-warning-text)]' };
-  if (issue.reportCategory === 'blocked') return { label: '卡点上报', cls: 'bg-red-100 text-red-700' };
-  return { label: '待答复', cls: 'bg-amber-100 text-[var(--status-warning-text)]' };
+  if (issue.requestedBy && !issue.resultPending) return { label: '待汇报', tone: 'info' };
+  if (issue.resultPending) return { label: '待答复', tone: 'warning' };
+  if (issue.reportCategory === 'blocked') return { label: '卡点上报', tone: 'danger' };
+  return { label: '待答复', tone: 'warning' };
 }
 
 /** 取组内「组员」id 集（组长视角口径：组长看本组其他成员；无组长组 = 全组成员） */
@@ -188,11 +189,11 @@ export function reviewBucketOf(groupActs, reviews) {
   return { pending, completed };
 }
 
-/** 复盘行状态徽标配色（组长台 review-tab 同表） */
-export const GROUP_REVIEW_COLOR = {
-  [ReviewStatus.NOT_SUBMITTED]: 'bg-red-100 text-red-700',
-  [ReviewStatus.UPLOADED]: 'bg-orange-100 text-orange-700',
-  [ReviewStatus.ANNOTATING]: 'bg-blue-100 text-blue-700',
-  [ReviewStatus.CONFIRMED]: 'bg-green-100 text-green-700',
-  [ReviewStatus.REJECTED]: 'bg-red-100 text-red-700',
+/** 复盘行状态徽标色调（组长台 review-tab 同表）；`badgeHtml` 的唯一 tone 来源 */
+export const GROUP_REVIEW_TONE = {
+  [ReviewStatus.NOT_SUBMITTED]: 'danger',
+  [ReviewStatus.UPLOADED]: 'warning',
+  [ReviewStatus.ANNOTATING]: 'info',
+  [ReviewStatus.CONFIRMED]: 'success',
+  [ReviewStatus.REJECTED]: 'danger',
 };

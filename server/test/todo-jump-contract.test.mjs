@@ -24,14 +24,14 @@ import { join } from 'node:path';
 
 import {
   TODO_ACTIONS, TODO_ACTION_AUDIT, TODO_ROLES, auditTodoActionTargets, resolveTodoAction,
-} from '../../docs/src/core/domain/todo-actions.js?v=20261110b';
+} from '../../docs/src/core/domain/todo-actions.js?v=20261120a';
 import {
   WORKSPACE_TAB_REGISTRY, hasWorkspaceTab, synonymWorkspaceTab,
-} from '../../docs/src/core/domain/workspace-tabs.js?v=20261110b';
+} from '../../docs/src/core/domain/workspace-tabs.js?v=20261120a';
 import {
   NAV_MODULE_MISSING_TEXT, showNavFallback,
-} from '../../docs/src/core/session/workspace-nav.js?v=20261110b';
-import { PendingTarget } from '../../docs/src/core/session/pending-target.js?v=20261110b';
+} from '../../docs/src/core/session/workspace-nav.js?v=20261120a';
+import { PendingTarget } from '../../docs/src/core/session/pending-target.js?v=20261120a';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const SRC = join(ROOT, 'docs', 'src');

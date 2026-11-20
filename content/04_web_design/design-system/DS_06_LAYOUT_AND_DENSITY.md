@@ -2,7 +2,7 @@
 title: "设计系统 · 第六编 布局与密度"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-08"
+last_updated: "2026-11-21"
 status: active
 related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RESPONSIVE.md, DS_05_MAP_AND_REFERENCE.md, DESIGN_SYSTEM.md, ../PRODUCT_IA.md, ../../../docs/src/styles.css, ../../05_ai_coding/TAB_AUDIT_PLAYBOOK.md]
 ---
@@ -40,6 +40,8 @@ related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONEN
 | 登记 | 块数 > 4 的页签必须在 `TAB_BLOCK_BASELINE` 的 `reason` 写明「为什么不能合并」；未登记即红 |
 
 > **口径**：「顶层区块」＝用户能看见的独立内容块（页头之外），条件块按结构计、在 `reason` 里注明。页头（页签名 / 范围 / 主操作）不计入四块。合并优先于新增：两块同源数据先合成一块的两种视图，而不是并排两块。
+
+> **低密度卡与空态（2026-11-21 批次 588 · B-522-1）**：等尺寸数字卡按内容收窄（`.stat-grid--content` / `.metric-band--cards--content`，剩余空间留给同排次要信息）；日历 31 格按行等宽属网格语义特例，不计入低密度卡；空态页必须给「最近 3 条动态 ＋ 1 条下一步动作」，且并入既有块（不新增顶层块）。
 
 ### SD-58 筛选条两行
 

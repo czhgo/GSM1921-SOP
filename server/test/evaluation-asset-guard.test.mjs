@@ -61,6 +61,13 @@ test('③ CLAUDE H20.5 合并门槛为两段（本机门 / 外部门）', () => 
   assert.match(body, /外部门/, 'H20.5 必须保留「外部门」');
 });
 
+test('③b H80-6 要求 commit body 写「资产命中」（批次 589 机检）', () => {
+  const start = CLAUDE.indexOf('## H80');
+  const body = CLAUDE.slice(start, CLAUDE.indexOf('# 冷层', start));
+  assert.match(body, /资产命中/, 'H80-6 必须写明 commit body 的「资产命中：」要求');
+  assert.match(body, /check-batch-commits/, 'H80-6 必须指向 check-batch-commits 机检');
+});
+
 test('④ 反例自证：删掉 2.4 的改进项指针，①必须判红', () => {
   const broken = EA.replace(/(### 2\.4[^\n]*\n(?:.|\n)*?)\*\*下一改进项\*\*[^\n]*\n/, '$1');
   assert.notEqual(broken, EA, '反例构造失败：未删除 2.4 的改进项行');

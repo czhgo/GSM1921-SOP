@@ -5,17 +5,17 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261110b';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261110b';
-import { _fmtDate, _currentYearMonth, showToast } from '../../core/base/utils.js?v=20261110b';
+import { getAppState, setState } from '../../core/base/state.js?v=20261120a';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261120a';
+import { _fmtDate, _currentYearMonth, showToast } from '../../core/base/utils.js?v=20261120a';
 // 2026-10-25 Task 1.3：节点缺失 / 页内失败统一走「错误卡 + 重试」单一源（tab-bar 同款）。
-import { mountTabFailure } from '../shell/tab-bar.js?v=20261110b';
-import { tokenOf } from '../../core/base/version-token.js?v=20261110b'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261110b';
+import { mountTabFailure } from '../shell/tab-bar.js?v=20261120a';
+import { tokenOf } from '../../core/base/version-token.js?v=20261120a'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261120a';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261110b';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261120a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261110b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261120a';
 // 月视图格子条数上限（批次 530 · B-520-3）：条数单一源＝core/domain/constants.js::DASHBOARD_LIMITS
 const MAX_DAY_ACTIVITIES = DASHBOARD_LIMITS.calendarDayActivities;
 const MAX_DAY_TASKS = DASHBOARD_LIMITS.calendarDayTasks;
@@ -405,8 +405,8 @@ function _renderWeekView(grid, activeActivities, tasks, month, state) {
   html += `<span class=" text-sm font-bold text-gray-700">${weekStart.getFullYear()}年 第${_getWeekNumber(weekStart)}周</span>`;
   // UI-A（2026-09-07）：成对导航连体按钮回退圆角档（保留 h-8 同高、中缝 1px；rounded-l/r-full→lg）
   html += `<div class="inline-flex items-center">`;
-  html += `<button id="cal-week-prev" class="btn-outline h-8 px-3.5 rounded-l-lg text-xs font-medium">上一周</button>`;
-  html += `<button id="cal-week-next" class="btn-outline h-8 px-3.5 rounded-r-lg text-xs font-medium">下一周</button>`;
+  html += `<button id="cal-week-prev" class="btn-outline btn-sm rounded-l-lg">上一周</button>`;
+  html += `<button id="cal-week-next" class="btn-outline btn-sm rounded-r-lg">下一周</button>`;
   html += `</div></div>`;
 
   html += `<div role="grid" aria-label="周视图活动日历" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">`;
@@ -476,8 +476,8 @@ function _renderDayView(grid, activeActivities, tasks, month, state) {
   html += `<span class=" text-sm font-bold text-gray-700">${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 周${WEEKDAY[d.getDay()]}</span>`;
   // UI-A（2026-09-07）：成对导航连体按钮回退圆角档（保留 h-8 同高、中缝 1px；rounded-l/r-full→lg）
   html += `<div class="inline-flex items-center">`;
-  html += `<button id="cal-day-prev" class="btn-outline h-8 px-3.5 rounded-l-lg text-xs font-medium">前一天</button>`;
-  html += `<button id="cal-day-next" class="btn-outline h-8 px-3.5 rounded-r-lg text-xs font-medium">后一天</button>`;
+  html += `<button id="cal-day-prev" class="btn-outline btn-sm rounded-l-lg">前一天</button>`;
+  html += `<button id="cal-day-next" class="btn-outline btn-sm rounded-r-lg">后一天</button>`;
   html += `</div></div>`;
 
   if (dayActivities.length === 0 && allTasks.length === 0) {

@@ -1,4 +1,4 @@
-﻿# README-server · 后端对接说明书（GSM1921-SOP）
+# README-server · 后端对接说明书（GSM1921-SOP）
 
 > **本文是什么**：面向**外部后端对接团队**（学校计算中心 / 承建方 / 后续接手维护者）的**对接说明书**——把系统的**背景、角色、功能板块、字段（指针）、部署、接口、已知限制**逐项讲清，**基本**不需要先读本仓其它文件就能看懂。⚠ **一处例外**：**字段级清单**（字段名 / 类型 / 必填 / 说明）的**唯一权威源是母本 `content/04_web_design/data/DATA_MODEL.md`**——§4 **不再**逐表复刻，只留**指针 ＋ 后端增量**（见 §4.0）。
 >
@@ -1086,7 +1086,7 @@
 | platformReportedBy | string | 否 | 上报留痕·操作人 personId（与 `platformReportedAt` 同步写入） |
 
 **服务端种子**：**有**（`server/seed.js:65` 从 `docs/src/data/mock/seed.js::SEED_ARCHIVE_RECORDS` 播种 3 条）。
-**依据**：`docs/src/data/mock/seed.js:36-45`、`docs/src/entries/tabs/prop/archive-tab.js:1034-1103`（运行时新建：`_handleArchiveUpload`）、`docs/src/entries/tabs/prop/archive-tab.js:700-719`（党建平台留痕位：`_markPlatformReported` 写、`_renderPlatformCell` 读）、`docs/src/services/governance/secretary-overview.js:607`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:1059`（写）、`server/seed.js:65`、`server/routes/resources/store.js:30,56`。
+**依据**：`docs/src/data/mock/seed.js:36-45`、`docs/src/entries/tabs/prop/archive-tab.js:1101-1170`（运行时新建：`_handleArchiveUpload`）、`docs/src/entries/tabs/prop/archive-tab.js:727-746`（党建平台留痕位：`_markPlatformReported` 写、`_renderPlatformCell` 读）、`docs/src/services/governance/secretary-overview.js:607`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:1059`（写）、`server/seed.js:65`、`server/routes/resources/store.js:30,56`。
 
 ---
 

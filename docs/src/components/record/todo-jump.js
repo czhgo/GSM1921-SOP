@@ -3,9 +3,9 @@
 // 2026-09-04 模块化扎口：org/leader/prop/visitor/secretary 五份 todo-tab 曾各自复制同源段，现收敛于此。
 // 兼容聚合卡（items[0] 取首条）与单条待办；命中并执行跳转返回 true，未命中返回 false（交调用方继续 tabMap 处理）。
 
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261110b';
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261120a';
 // Task 6：待办对象跳转走统一详情路由（入口不在对象所属工作台 ⇒ direct）。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261110b';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261120a';
 
 export function tryDirectJump(todo) {
   // 制度草案待办（`D-886` / `SOP-B-25`）：资料查询页不是任何工作台页签 ⇒ 直达 `references.html`

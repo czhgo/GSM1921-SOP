@@ -13,7 +13,7 @@ import { join, relative } from 'node:path';
 const ROOT = join(import.meta.dirname, '..', '..');
 const SRC = join(ROOT, 'docs', 'src');
 const FREE_SPACING_BASELINE = 1245;
-const DARK_TEXT_BASELINE = 23;
+const DARK_TEXT_BASELINE = 22;
 
 function walk(dir, out = []) {
   for (const name of readdirSync(dir)) {
@@ -54,7 +54,7 @@ test('① 间距工具类只允许 1/2/3/4/6 档；自由间距只减不增', ()
     `自由间距已显著下降（${total} < 基线 ${FREE_SPACING_BASELINE} − 40）：请同批下调基线，保持棘轮只减不增`);
 });
 
-test('② 暗色 Tailwind 补丁只减不增（当前 23 条）', () => {
+test('② 暗色 Tailwind 补丁只减不增（当前 22 条）', () => {
   const css = readFileSync(join(SRC, 'styles.css'), 'utf8');
   const count = (css.match(/html\.theme-dark\s+\.text-[a-z0-9-]+\s*\{/g) || []).length;
   assert.ok(count <= DARK_TEXT_BASELINE, `暗色 Tailwind 补丁 ${count} 超过基线 ${DARK_TEXT_BASELINE}；新代码请用 --status-*-text / --neutral-*`);

@@ -7,16 +7,16 @@
 // 顶部直达条属重复动作 ⇒ 外壳不再挂条，只保留骨架占位。
 // U3（2026-09-07）：先 beginOverviewShell 骨架/槽位占位 → 原地渲染概况（不推挤正文）。
 
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261110b';
-import { currentUserId } from '../../../services/core/auth.js?v=20261110b';
-import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261110b';
-import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261110b';
-import { CommitteeProposalStore } from '../../../services/governance/committee-proposal.js?v=20261110b';
-import { PROPOSAL_STATUS_LABELS, PROPOSAL_TYPE_LABELS, PROPOSAL_SOURCE_LABELS } from '../../../core/domain/committee-proposal.js?v=20261110b';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261110b';
-import { textInput, selectInput, textareaField } from '../../../components/ui/forms.js?v=20261110b';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261110b';
-import { showToast, escHtml } from '../../../core/base/utils.js?v=20261110b';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261120a';
+import { currentUserId } from '../../../services/core/auth.js?v=20261120a';
+import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261120a';
+import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261120a';
+import { CommitteeProposalStore } from '../../../services/governance/committee-proposal.js?v=20261120a';
+import { PROPOSAL_STATUS_LABELS, PROPOSAL_TYPE_LABELS, PROPOSAL_SOURCE_LABELS } from '../../../core/domain/committee-proposal.js?v=20261120a';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261120a';
+import { textInput, selectInput, textareaField } from '../../../components/ui/forms.js?v=20261120a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261120a';
+import { showToast, escHtml } from '../../../core/base/utils.js?v=20261120a';
 
 
 function _badge(status) {

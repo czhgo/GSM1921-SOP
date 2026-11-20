@@ -5,25 +5,26 @@
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261110b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261110b';
-import { getPersonName } from '../../../services/member/person.js?v=20261110b';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261110b';
-import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261110b';
-import { showToast, escHtml as esc, fmtDt, describeWriteError } from '../../../core/base/utils.js?v=20261110b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261120a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261120a';
+import { getPersonName } from '../../../services/member/person.js?v=20261120a';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261120a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261120a';
+import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261120a';
+import { showToast, escHtml as esc, fmtDt, describeWriteError } from '../../../core/base/utils.js?v=20261120a';
 // 统一检索引擎（2026-09-14 批次 37）：上报记录列表接入关键词 + 状态分面 + 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261110b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261110b';
-import { icon } from '../../../core/base/icons.js?v=20261110b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261120a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261120a';
+import { icon } from '../../../core/base/icons.js?v=20261120a';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点', desc: '发展党员关键节点（确定积极分子/发展对象、接收预备党员、按期转正等）' },
   'activity-report': { label: '活动报备', desc: '重要活动/主题党日等需党委知悉的重大事项' },
 };
 const STATUS_META = {
-  pending: { label: '待党委批复', cls: 'bg-amber-50 text-[var(--status-warning-text)]' },
-  approved: { label: '已批准', cls: 'bg-green-50 text-green-700' },
-  rejected: { label: '已驳回', cls: 'bg-gray-100 text-gray-600' },
+  pending: { label: '待党委批复', tone: 'warning' },
+  approved: { label: '已批准', tone: 'success' },
+  rejected: { label: '已驳回', tone: 'neutral' },
 };
 
 // HTML 转义/日期格式化统一走 core/base/utils.js（escHtml/fmtDt，2026-09-03 去重收口）
@@ -177,12 +178,12 @@ function renderList(tc, branchId) {
     emptyMessage: '暂无上报记录 · 支部关键事项（发展节点/重要活动）上报后，党委批/驳结论将显示在这里',
     rowHtml: (r) => {
       const t = TYPE_META[r.type] || { label: r.type || '上报' };
-      const s = STATUS_META[r.status] || { label: r.status, cls: 'bg-gray-100 text-gray-600' };
+      const s = STATUS_META[r.status] || { label: r.status, tone: 'neutral' };
       return `
       <div class="rounded-lg border border-gray-200 bg-white p-4" data-rq-id="${esc(r.id)}">
         <div class="flex items-center gap-2 flex-wrap mb-1.5">
-          <span class="text-xs px-2 py-0.5 rounded-full ${r.type === 'develop-node' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-600'}">${t.label}</span>
-          <span class="text-xs px-2 py-0.5 rounded-full ${s.cls}">${s.label}</span>
+          ${badgeHtml(t.label, r.type === 'develop-node' ? 'danger' : 'info')}
+          ${badgeHtml(s.label, s.tone)}
           <span class="text-xs text-gray-500 ml-auto">${esc(getPersonName(r.submittedBy) || r.submittedBy)} · ${fmtDt(r.createdAt)}</span>
         </div>
         <p class="text-sm font-medium text-gray-800">${esc(r.title)}</p>

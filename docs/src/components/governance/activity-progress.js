@@ -12,18 +12,18 @@
 //   也绕过了支书台归档前的材料 / 考勤闸门。本次不新增第二套归档写口（归档仍走活动详情的材料闸门），
 //   文案与提示只说「标记完成」，不再声称「完成即归档」。
 
-import { BranchService } from '../../services/core/runtime.js?v=20261110b';
-import { persist } from '../../data/data-adapter.js?v=20261110b';
-import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261110b';
-import { getAppState } from '../../core/base/state.js?v=20261110b';
+import { BranchService } from '../../services/core/runtime.js?v=20261120a';
+import { persist } from '../../data/data-adapter.js?v=20261120a';
+import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261120a';
+import { getAppState } from '../../core/base/state.js?v=20261120a';
 // 活动生命周期展示态单一源 = components/record/inspector.js（排除终态场景勿再用 isActivityEnded，
 //   见 constants.js 生命周期条与 list-filter.js::activityFacets 同源写法）。
-import { deriveActivityLifecycleStatus, activityLifecycleBadgeHtml } from '../record/inspector.js?v=20261110b';
+import { deriveActivityLifecycleStatus, activityLifecycleBadgeHtml } from '../record/inspector.js?v=20261120a';
 // A03：组织者判据与活动详情同源——工作组主源优先，项目角色行次之，`organizer` 仅兜底。
-import { mockDB } from '../../core/domain/domain.js?v=20261110b';
-import { confirmDanger } from '../ui/modal.js?v=20261110b';
-import { getPersonName } from '../../services/member/person.js?v=20261110b';
-import { renderQueryView } from './query-view.js?v=20261110b';
+import { mockDB } from '../../core/domain/domain.js?v=20261120a';
+import { confirmDanger } from '../ui/modal.js?v=20261120a';
+import { getPersonName } from '../../services/member/person.js?v=20261120a';
+import { renderQueryView } from './query-view.js?v=20261120a';
 
 /**
  * 渲染活动进展分段（全部活动查询 + 材料出口 + 标记完成）。

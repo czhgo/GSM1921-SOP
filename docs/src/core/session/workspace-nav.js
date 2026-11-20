@@ -16,11 +16,11 @@
 //   · direct：活动 / 专班 / 通知详情走 `object-route`（不经工作台页签）。
 // ════════════════════════════════════════════════════════════════
 
-import { PendingTarget } from './pending-target.js?v=20261110b';
-import { resolveTodoAction } from '../domain/todo-actions.js?v=20261110b';
-import { synonymWorkspaceTab, WORKSPACE_TAB_LABELS } from '../domain/workspace-tabs.js?v=20261110b';
-import { objectDetailHref } from '../domain/object-route.js?v=20261110b';
-import { resolveDocumentUrl } from '../base/page-url.js?v=20261110b';
+import { PendingTarget } from './pending-target.js?v=20261120a';
+import { resolveTodoAction } from '../domain/todo-actions.js?v=20261120a';
+import { synonymWorkspaceTab, WORKSPACE_TAB_LABELS } from '../domain/workspace-tabs.js?v=20261120a';
+import { objectDetailHref } from '../domain/object-route.js?v=20261120a';
+import { resolveDocumentUrl } from '../base/page-url.js?v=20261120a';
 
 /** fail-closed 提示主文（守卫按此字符串核对，不在调用点另写一套） */
 export const NAV_MODULE_MISSING_TEXT = '本台无该模块';

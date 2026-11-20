@@ -10,8 +10,8 @@
 // ── 任务种子（关联活动，时间随活动重排） ────────────────────
 // `executor`（`D-886` / SOP-B-31 ③）：SOP 任务节点的承担人——`'organizer'` / `'deep'`。
 //   缺它就进不了「我的任务」（`services/activity/activity.js::listMyProjectTasks` 按项目内身份筛）。
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261110b';
-import { _fmtDate, todayLocal } from '../../core/base/date.js?v=20261110b';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261120a';
+import { _fmtDate, todayLocal } from '../../core/base/date.js?v=20261120a';
 export const SEED_TASKS = [
   { id: 'tsk-001', activityId: 'act-1', title: '预定会议室并通知参会人员', status: 'completed', executor: 'organizer', createdAt: '2026-08-07T08:00:00Z' },
   { id: 'tsk-002', activityId: 'act-1', title: '整理会议记录并归档', status: 'completed', executor: 'organizer', createdAt: '2026-08-07T08:00:00Z' },

@@ -13,8 +13,8 @@
 // 滞留状态口径：调用方传「合并后的居住状态」（客户端 `getResidenceOf` 覆盖优先；服务端读 users 行原字段）。
 // ════════════════════════════════════════════════════════════════
 
-import { POLICY_DEFAULTS } from './policy-defaults.js?v=20261110b';
-import { RESIDENCE } from './constants.js?v=20261110b';
+import { POLICY_DEFAULTS } from './policy-defaults.js?v=20261120a';
+import { RESIDENCE } from './constants.js?v=20261120a';
 
 /** 应到名单口径配置（派生导出 = policy-defaults attendance.roster，勿在业务层写新字面量） */
 export function getRosterConfig() {

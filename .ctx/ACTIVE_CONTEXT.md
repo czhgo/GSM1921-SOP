@@ -3,9 +3,9 @@ title: "Active Context — 当前判断入口"
 type: active_context
 role: "[AI]"
 layer: active
-last_updated: 2026-11-20
-last_verified: "2026-11-20"
-latest_decision: "D-896"
+last_updated: 2026-11-21
+last_verified: "2026-11-21"
+latest_decision: "D-899"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -27,14 +27,14 @@ status: active
   - source：`server/data/domain-contract.mjs`、`content/04_web_design/data/DATA_CONTRACT.md`。
 - **权限**：写入口权限矩阵 **162 条**（156 enforced / 4 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵；审计 C1 查矩阵 + 高风险抽样。统计口径：`WRITE_POLICY_MATRIX` 按 `status` 计数（2026-11-15 实测；T14 新增进入 / 退出支部查看两写口）。
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
-- **六维（`D-883` 重校，批次 585 · `D-895` 复核未变）**：业务 **80** / 安全 **78** / 体验 **79** / 测试 **73** / 架构 **76** / 部署 **71**；**只作诊断，不单独阻断本机合并**（`D-894` 两段门槛）。未闭：CI 无 run id、`test:full` 未整体重跑、Linux 真机未验（L-02）、D2 计数对账仅 3 页签、C2 写口往返 0 pass、真人签收未完成。
-- **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（2026-11-20 批次 585 实跑）；审计工具已修复（URL 跟随无后缀 canonical、登录失败 `exit 2`）。F1–F8 全绿；M1–M3 在位。
-  - source：`.ctx/evidence/2026-11-20/tab-audit/summary.md`（原始截图与 findings.json 可重跑再生，未入库）。
-- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **32 文件 / 265 断言 / 116.0s**（结果门禁，2026-11-20 批次 585 读数）；guards **121 文件**（registry 登记；静态调用点 873 / 预算 873；E4 真机装配已扩到 8 页、属 precommit 层）；precommit＝daily＋guards＋非核心域回归＋e2e；`test:full` 最近读数 **1779.0s**（三通道各 1 红已逐文件分诊并修复，**未整体重跑**）；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
+- **六维（`D-883` 重校，批次 589 · `D-899` 复核未变）**：业务 **80** / 安全 **78** / 体验 **79** / 测试 **73** / 架构 **76** / 部署 **71**；**只作诊断，不单独阻断本机合并**（`D-894` 两段门槛）。未闭：CI 无 run id、`test:full` 未整体重跑、Linux 真机未验（L-02）、D2 计数对账仅 3 页签、C2 写口往返 0 pass、真人签收未完成。
+- **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（2026-11-21 批次 589 实跑）；审计工具已修复（URL 跟随无后缀 canonical、登录失败 `exit 2`）。F1–F8 全绿；M1–M3 在位。
+  - source：`.ctx/evidence/2026-11-21/tab-audit/summary.md`（原始截图与 findings.json 可重跑再生，未入库）。
+- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **32 文件 / 265 断言 / 106.8s**（结果门禁，2026-11-21 批次 589 读数）；guards **125 文件**（registry 登记；静态调用点 884 / 预算 884；E4 真机装配已扩到 8 页、属 precommit 层）；precommit＝daily＋guards＋非核心域回归＋e2e；`test:full` 最近读数 **1779.0s**（三通道各 1 红已逐文件分诊并修复，**未整体重跑**）；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
   - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859 / §D-860 / §D-863 / §D-864`。
 - **工程评分（`D-883`，2026-11-19 保守重校）**：业务与数据 **80** · 安全与权限 **78** · 最小三成本 **79** · 测试与发布 **73** · 架构与可维护性 **76** · 运行部署 **71**；不设平均总分；分数只作诊断（`D-894`）。
   - source：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/logs/2026-11-DECISION_LOG.md §D-883`。
-- **版本戳**：`20261110b`（`bump-version --check`：0 处陈旧，CODE_VERSION 一致）。
+- **版本戳**：`20261120a`（`bump-version --check`：0 处陈旧，CODE_VERSION 一致）。
   - source：`docs/scripts/bump-version.mjs --check`。
 - **换轨**：生产空库 `preflight-cutover --strict` exit 0 / 警告 0；契约现为 50 表，正式换轨前按 runbook 重跑 export → dry-run → apply 并落 evidence（`D-845`）；生产路径只走个人密码（`D-882`）。
   - source：`deploy/CUTOVER_RUNBOOK.md`、`.ctx/evidence/2026-11-03/security/summary.md`。
@@ -78,9 +78,12 @@ status: active
 - **sample-diff 收口（`D-890`，批次 578）**：六条样本支书全取保留；四条可布尔化口径入判例——缺证据即拒 / 缺省可见性冻结 / 派生随来源终止 / 提问自解释；本批无代码、六维不加分。→ `content/05_ai_coding/TEST_AND_VERIFICATION.md`。
 - **副支书操作权参数（`D-891`，批次 579）**：副支书与支书同页同台、独立账号键；**主责归支书**，任务 / 提醒 / 统计不随参数变化。四类主责动作（活动编辑 / 全支部通知 / 名册阶段 / 支部配置）的操作权由 `role.deputySecretary` 三档（`full` 默认 / `standard` / `custom`）决定；设置中心可改。→ `docs/src/core/domain/deputy-capability.js`、`server/routes/resources/deputy-policy.js`。
 - **全仓历史目标对账（`D-892`，批次 580）**：作废 / 删除 12 项（B-3、F-3/4/5、B-8/9、L-08/11/12/16、B-541-11/H-12/H-18）；重规划 6 项（L-10 逐读口取证、L-02/CI/签收归外部门、L-14/15 合并、L-17 可测阈值）；`B-522-1` / `B-500-7b-2` 改单项证据门；跨平台脚本改 `scripts/with-env.mjs`。→ `.ctx/evidence/2026-11-20/backlog-reconcile.md`。
-- **前端美学收口（`D-893`，批次 581）**：卡厚度统一 16/12（`.card-standard` / `.card-compact`，`p-5` 退出卡内边距）；手写卡头 600；状态色统一 `--status-warning-text` 并删暗色僵尸补丁；假徽章 / 灰底卡 / 越档 / 无名 section 同批修；新增 `card-consistency-guard`。卡头全量迁移已在批次 586 补齐（`D-896`）；`B-522-1` 低密度页仍未做。
+- **前端美学收口（`D-893`，批次 581）**：卡厚度统一 16/12（`.card-standard` / `.card-compact`，`p-5` 退出卡内边距）；手写卡头 600；状态色统一 `--status-warning-text` 并删暗色僵尸补丁；假徽章 / 灰底卡 / 越档 / 无名 section 同批修；新增 `card-consistency-guard`。卡头全量迁移已在批次 586 补齐（`D-896`）；`B-522-1` 低密度页已在批次 588 收口（`D-898`）。
 - **评分即资产与两段门槛（`D-894`，批次 584）**：`H80` 增第 6 条——评分必须产出「对象 / 证据 / 结论 / 改进项 / 复评触发」，开工先检索 `EA §5.2` 资产索引；`H20.5` 合并门槛拆本机门 / 外部门，六维 <80 只作诊断；新增 `evaluation-asset-guard`（2.1–2.6 改进项指针 ＋ 资产索引 ＋ 两段门槛 ＋ 反例）。→ `.ctx/ENGINEERING_ASSESSMENT.md §5.2`、`server/test/evaluation-asset-guard.test.mjs`。
 - **卡头单源收口（`D-896`，批次 586）**：70 处页面级 / 面板级卡头（29 文件）改 `renderCardHeader`，内嵌面板走 `variant:'panel'`（14/600，`.card-head--panel`）；`docs/src` 手写卡头 H3 归零，`card-consistency-guard::②` 锁死（静态页 `search.html` 白名单）；真机设置 / 今天 / 活动详情三页 PASS。→ `docs/src/components/shell/page-frame.js`、`docs/src/styles.css`。
+- **前端存量清零（`D-897`，批次 587）**：调色板状态色按文件棘轮只减不增（286 处基线，本轮目标文件清零）；假徽章改 `badgeHtml`；日历翻页 `h-8` 改 `.btn-sm`；新增 `status-palette-text-guard` / `badge-single-source-guard` / `button-height-guard`。→ `docs/src/**`（10 文件）、`server/test/*-guard.test.mjs`。
+- **B-522-1 低密度与空态（`D-898`，批次 588）**：首页 / 概况数字卡按内容收窄（`.stat-grid--content` / `.metric-band--cards--content`，真机四卡 133.6–157.6px）；日历 31 格登记特例；今天页并入「最近动态 3 条 ＋ 下一步」，首屏空白 0.715 → 0；归档空态补「最近归档 ＋ 下一步」（演示库非空未触发）。→ `docs/src/{styles.css,services/governance/today-summary.js,entries/tabs/today/today-tab.js,entries/tabs/prop/archive-tab.js}`。
+- **兜底仪表与资产命中（`D-899`，批次 589）**：`todo-tab-shell` 增兜底计数 ＋ `window.__TODO_DERIVE_FALLBACK__`；新增 `todo-derive-instrument-guard`（ok 路径不调用 7 类 builder、`UNSUPPORTED_GROUP_KEYS` 为空）；`check-batch-commits` 强制 body 写「资产命中：<EA §x / D-xxx>」；乙部删除 C-3 / C-4 / B-522-1 / B-500-7b-2。→ `server/scripts/check-batch-commits.mjs`、`CLAUDE.md`。
 
 ## §3 当前风险与下一步
 
@@ -105,7 +108,7 @@ status: active
 ### 下一批任务
 
 1. **分支与合并（`H20.5` 两段门槛 · `D-894`）**：`release/2026-11-launch` 尚未推远端（SSH host key 未授信、`gh` 未安装）。**本机门**＝`test:daily` ＋ `test:guards` 绿、`audit-tabs --all` P0/P1=0、工作树无意外改动、六维诊断表已刷新，＋支书确认即可合并；**外部门**＝Linux 真机 `L-02`、CI run id、真人签收、SMTP 实投，只阻断上线。六维 <80 只作诊断。
-2. **单项证据门任务**：`B-522-1`（并入批次 582–583 前端美学；清单 8 页覆盖率 100%）、`B-500-7b-2`（批次 584 后；客户端兜底调用数 = 0 + 7 类对账 8/8）。
+2. **单项证据门任务**：已清零——`B-522-1`（批次 588 · 8 页读数见 `.ctx/evidence/2026-11-21/density-8pages.md`）、`B-500-7b-2`（批次 589 · 兜底仪表 ＋ 7 类对账守卫）。
 3. **外部 / 真人清单**：Linux 真机 L-02、CI run id、push / PR、SMTP、真机三任务、签收、timer。
 
 ## §4 文件地图（读什么 / 不读什么）

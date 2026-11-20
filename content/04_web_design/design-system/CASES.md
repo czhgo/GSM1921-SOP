@@ -2,7 +2,7 @@
 title: "设计域判例库"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-20"
+last_updated: "2026-11-21"
 status: active
 related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -453,7 +453,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **边界**：党徽与插画才用品牌层（`--party-red` / `--party-gold`）；`feTurbulence` 噪点纹理属插画、无色值，按白名单登记；`styles.css` 的既有 data-URI 由同批样式波次迁移，不为此在守卫上开口子。
 - **对应规范编号**：SD-61（图标色彩契约，正文见 `DS_03_COMPONENTS.md §4.11.2`）＋ `§一 原则 4`（点缀色不单独承担状态语义）。
 - **守卫**：`icon-color-guard::G1–G5` ＋ `status-color-guard::S1` ＋ `hex-hardcode-guard`（含 `%23` 形态）＋ `theme-palette-guard`。
-- **证据指针**：`docs/src/core/base/icons.js`；`docs/src/components/shell/sidebar.js`；`docs/src/components/governance/person-picker.css`；`docs/src/styles.css`；`server/test/icon-color-guard.test.mjs:2,19-20,297,317-320`；`DS_03_COMPONENTS.md:540-552,1516,1538`。
+- **证据指针**：`docs/src/core/base/icons.js`；`docs/src/components/shell/sidebar.js`；`docs/src/components/governance/person-picker.css`；`docs/src/styles.css`；`server/test/icon-color-guard.test.mjs:2,19-20,297,317-320`；`DS_03_COMPONENTS.md:544-556,1520,1542`。
 
 ---
 

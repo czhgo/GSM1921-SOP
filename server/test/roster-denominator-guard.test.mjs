@@ -10,9 +10,9 @@
 //   R2 非空转：同一场景下 `getMeetingRosterIds({ branchId })` 必须与 total 一致（回退口径同源）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261110b';
-import { summarizeAttendanceByActivity } from '../../docs/src/services/activity/attendance.js?v=20261110b';
-import { getMeetingRosterIds } from '../../docs/src/services/member/roster.js?v=20261110b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261120a';
+import { summarizeAttendanceByActivity } from '../../docs/src/services/activity/attendance.js?v=20261120a';
+import { getMeetingRosterIds } from '../../docs/src/services/member/roster.js?v=20261120a';
 
 test('R1 党小组会缺小组语境 ⇒ 分母回退支部在册，不得等于实际到场', () => {
   const prev = {

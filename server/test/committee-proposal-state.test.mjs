@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   proposalTransition, normalizeProposal, isProposalOpen, PROPOSAL_STATUSES,
-} from '../../docs/src/core/domain/committee-proposal.js?v=20261110b';
+} from '../../docs/src/core/domain/committee-proposal.js?v=20261120a';
 
 test('合法迁移链：pending → queued → on-agenda → decided → closed', () => {
   assert.equal(proposalTransition('pending', 'accept'), 'queued');

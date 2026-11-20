@@ -23,7 +23,7 @@ import {
   LIST_PAGE_ROW_LIMIT, RESOURCE_WRITE_VALIDATION, RESOURCE_WRITE_VALIDATION_EXEMPTIONS,
   TITLE_MAX_LENGTH, validateResourceWrite,
 } from '../routes/resources/write-validation.js';
-import { normalizeListPayload } from '../../docs/src/data/api-adapter.js?v=20261110b';
+import { normalizeListPayload } from '../../docs/src/data/api-adapter.js?v=20261120a';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');

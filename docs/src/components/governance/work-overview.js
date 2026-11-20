@@ -24,39 +24,39 @@
 //      对象详情路由，不在本页另拼 URL。
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight, todayLocal, docAnchorHref, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261110b';
-import { icon } from '../../core/base/icons.js?v=20261110b';
+import { showToast, flashHighlight, todayLocal, docAnchorHref, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261120a';
+import { icon } from '../../core/base/icons.js?v=20261120a';
 // 批次 540 波次 5：切页签 / 缺项提示的唯一出口（契约 §二「不得只 toast、不得静默」）。
-import { goToWorkspaceTab, showMissingItemNotice } from '../../core/session/workspace-nav.js?v=20261110b';
+import { goToWorkspaceTab, showMissingItemNotice } from '../../core/session/workspace-nav.js?v=20261120a';
 // 批次 540 波次 5：「待赋权」direct 落点＝活动详情页（对象详情路由单一源）。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261110b';
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261110b';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261110b';
-import { tableHeadHtml } from '../ui/data-table.js?v=20261110b';
-import { emptyStateHtml, renderSkeleton } from '../ui/empty-state.js?v=20261110b';
-import { badgeHtml } from '../ui/badges.js?v=20261110b';
-import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261110b';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261120a';
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261120a';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261120a';
+import { tableHeadHtml } from '../ui/data-table.js?v=20261120a';
+import { emptyStateHtml, renderSkeleton } from '../ui/empty-state.js?v=20261120a';
+import { badgeHtml } from '../ui/badges.js?v=20261120a';
+import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261120a';
 import {
   TodoStore, seedTodos, isTodoExpired, WORK_DOMAIN, WORK_DOMAIN_LABELS, TodoStatus,
-} from '../../services/governance/todo.js?v=20261110b';
-import { IssueStore } from '../../services/governance/issues.js?v=20261110b';
+} from '../../services/governance/todo.js?v=20261120a';
+import { IssueStore } from '../../services/governance/issues.js?v=20261120a';
 import {
   isActivityEnded, isActivityArchived, isActivityInProgress, ROLE_LABELS, PARTY_GROUP_LEADER_ROLES,
   SECRETARY_AND_DEPUTY_ROLES, DASHBOARD_LIMITS,
-} from '../../core/domain/constants.js?v=20261110b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261110b';
-import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261110b';
-import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261110b';
-import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261110b';
-import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261110b';
-import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261110b';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261110b';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261110b';
-import { getPersonName } from '../../services/member/person.js?v=20261110b';
-import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261110b';
-import { AttendanceStatus, ReviewStatus, mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261110b';
-import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261110b';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261110b';
+} from '../../core/domain/constants.js?v=20261120a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261120a';
+import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261120a';
+import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261120a';
+import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261120a';
+import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261120a';
+import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261120a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261120a';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261120a';
+import { getPersonName } from '../../services/member/person.js?v=20261120a';
+import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261120a';
+import { AttendanceStatus, ReviewStatus, mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261120a';
+import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261120a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261120a';
 
 // 在办下钻详情目标（支书 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -594,7 +594,7 @@ async function _renderOverviewContent(container, { role, personId, accent = '#B9
       ${renderTabHeader({ title })}
 
       <div class="stack-section" data-wo-layer="summary-group">
-        <section class="metric-band metric-band--interactive metric-band--cards" data-wo-layer="summary" aria-label="工作概况结论">
+        <section class="metric-band metric-band--interactive metric-band--cards metric-band--cards--content" data-wo-layer="summary" aria-label="工作概况结论">
           ${summaryHtml}
         </section>
         ${bandNote ? `<p class="text-sm text-gray-500" style="margin: 0;" data-wo-layer="summary-note">${esc(bandNote)}</p>` : ''}
@@ -665,7 +665,7 @@ async function _buildContext(role, personId, today, config) {
 
   // 支书：概况维度 + 实时派生组（与待办页同源）
   if (SECRETARY_AND_DEPUTY_ROLES.includes(role)) {
-    const secretary = await import('../../services/governance/secretary-overview.js?v=20261110b');
+    const secretary = await import('../../services/governance/secretary-overview.js?v=20261120a');
     const realtime = secretary.SecretaryTodoDeriver.computeAggregates();
     const seen = new Set(ctx.todoGroups.map((group) => group.groupKey));
     ctx.todoGroups = [...ctx.todoGroups, ...realtime.filter((group) => !seen.has(group.groupKey))];
@@ -1112,7 +1112,7 @@ function _bindWorkOverviewEvents(container, role, personId, rerender) {
       const tab = btn.dataset.woGotoTab;
       if (btn.dataset.woSegment === 'makeup') {
         try {
-          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261110b');
+          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261120a');
           module.focusSegment?.('makeup');
         } catch (_) { /* 分段记忆失败时仍进考勤页 */ }
       }
@@ -1143,10 +1143,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('../record/activity-view.js?v=20261110b');
+    const { renderActivityView } = await import('../record/activity-view.js?v=20261120a');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261110b');
+    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261120a');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

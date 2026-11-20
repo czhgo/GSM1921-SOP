@@ -21,7 +21,7 @@ import {
   DOMAIN_CONTRACT, ENTITY_BY_TABLE, ENTITY_BY_NAME,
   aliasMemberChangeRow, validateEntityRows,
 } from '../data/domain-contract.mjs';
-import { COMMITTEE_OWNER_ID } from '../../docs/src/core/domain/constants.js?v=20261110b';
+import { COMMITTEE_OWNER_ID } from '../../docs/src/core/domain/constants.js?v=20261120a';
 
 let app;
 let db;

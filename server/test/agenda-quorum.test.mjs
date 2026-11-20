@@ -9,12 +9,12 @@
 // 运行：node --test server/test/agenda-quorum.test.mjs
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261110b';
-import { recordAgendaResultForActivity } from '../../docs/src/services/activity/agenda-follow-up.js?v=20261110b';
-import { defaultVoteConfig, isVoterOutOfRoster } from '../../docs/src/services/activity/vote-config.js?v=20261110b';
-import { quorumConditionHint, frozenVoterCounts } from '../../docs/src/components/governance/vote-summary-panel.js?v=20261110b';
-import { committeeTotalCount } from '../../docs/src/services/activity/committee-vote.js?v=20261110b';
-import { bumpToken } from '../../docs/src/core/base/version-token.js?v=20261110b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261120a';
+import { recordAgendaResultForActivity } from '../../docs/src/services/activity/agenda-follow-up.js?v=20261120a';
+import { defaultVoteConfig, isVoterOutOfRoster } from '../../docs/src/services/activity/vote-config.js?v=20261120a';
+import { quorumConditionHint, frozenVoterCounts } from '../../docs/src/components/governance/vote-summary-panel.js?v=20261120a';
+import { committeeTotalCount } from '../../docs/src/services/activity/committee-vote.js?v=20261120a';
+import { bumpToken } from '../../docs/src/core/base/version-token.js?v=20261120a';
 
 const ACT_ID = 'act-quorum';
 const AGENDA_ITEM_ID = 'a1';

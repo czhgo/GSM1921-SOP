@@ -19,11 +19,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261110b';
-import { PersonStore } from '../../docs/src/services/member/person.js?v=20261110b';
-import { setDataSource, getDataSource } from '../../docs/src/data/data-adapter.js?v=20261110b';
-import { ApiAdapter } from '../../docs/src/data/api-adapter.js?v=20261110b';
-import { resolveVisibleTargets } from '../../docs/src/services/core/visibility.js?v=20261110b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261120a';
+import { PersonStore } from '../../docs/src/services/member/person.js?v=20261120a';
+import { setDataSource, getDataSource } from '../../docs/src/data/data-adapter.js?v=20261120a';
+import { ApiAdapter } from '../../docs/src/data/api-adapter.js?v=20261120a';
+import { resolveVisibleTargets } from '../../docs/src/services/core/visibility.js?v=20261120a';
 
 // ── localStorage 内存桩（person.js 惰性访问）────────────────────────────
 const _store = new Map();

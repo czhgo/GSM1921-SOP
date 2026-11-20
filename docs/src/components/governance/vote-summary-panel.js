@@ -11,17 +11,17 @@
 //   回退名单同样按 users.role 派生（P1-09，勿再本地罗列支委成员）。选项集/标签权威 = vote-config.js OPTION_SETS（勿再本地硬编码）
 // T8（2026-11-16 支书裁定）：**分母保持开会时冻结的 voterIds**（不改成实时应到）；开会后转出 / 滞留的成员
 //   从未表态人数中移出，单列「已转出，不计」（判据 = vote-config.js::isVoterOutOfRoster，只用人员档案既有事实）。
-import { fetchVotes, lockVotes, votedCountOf, tallyOf, ballotsOf } from '../../services/activity/committee-vote.js?v=20261110b';
-import { optionSetOf, isAnonymousActivity, isVoterOutOfRoster } from '../../services/activity/vote-config.js?v=20261110b';
-import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261110b';
+import { fetchVotes, lockVotes, votedCountOf, tallyOf, ballotsOf } from '../../services/activity/committee-vote.js?v=20261120a';
+import { optionSetOf, isAnonymousActivity, isVoterOutOfRoster } from '../../services/activity/vote-config.js?v=20261120a';
+import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261120a';
 // R2-2（2026-09-06）：决议「待落实」跟进管理器（记录决议视图内勾选/保存/销项；本文件保留原版本串——
 //   唯一引用方 components/record/inspector.js 属禁改文件无法同步 ?v=，改动经子模块新版本串保证取新代码）
-import { loadActivities } from '../../services/activity/activity.js?v=20261110b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261120a';
 import {
   resolutionFollowupSectionHtml, bindResolutionFollowupSection,
-} from './resolution-followup-manager.js?v=20261110b';
+} from './resolution-followup-manager.js?v=20261120a';
 // 批次 39：表态矩阵并入单一源「人 × 项目」矩阵（原 .vs-matrix 自建实现撤除，Q-23-18 收敛）
-import { renderRelationMatrix } from '../ui/relation-matrix.js?v=20261110b';
+import { renderRelationMatrix } from '../ui/relation-matrix.js?v=20261120a';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 

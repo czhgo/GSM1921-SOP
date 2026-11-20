@@ -23,7 +23,7 @@
 //  显式 `console.error`（不静默失效），并供 `server/test/todo-jump-contract.test.mjs` 判红。
 // ════════════════════════════════════════════════════════════════
 
-import { hasWorkspaceTab, WORKSPACE_TODO_ROLES } from './workspace-tabs.js?v=20261110b';
+import { hasWorkspaceTab, WORKSPACE_TODO_ROLES } from './workspace-tabs.js?v=20261120a';
 
 /** 六台待办角色键（单一源见 `workspace-tabs.js`；此处只做再导出，便于调用方一处 import） */
 export const TODO_ROLES = WORKSPACE_TODO_ROLES;

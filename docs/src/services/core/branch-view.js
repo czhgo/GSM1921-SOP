@@ -10,10 +10,10 @@
 //   · 所有读写只经 `getAdapter().branchVisits`（api / mock 两形态同形），不在页面自造标志；
 //   · 顶栏常驻条由 `components/shell/header.js` 在党委身份下调用本模块渲染。
 
-import { getAdapter } from '../../data/data-adapter.js?v=20261110b';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261110b';
-import { escHtml as esc, getBasePath, showToast } from '../../core/base/utils.js?v=20261110b';
-import { pageHref } from '../../core/base/page-url.js?v=20261110b';
+import { getAdapter } from '../../data/data-adapter.js?v=20261120a';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261120a';
+import { escHtml as esc, getBasePath, showToast } from '../../core/base/utils.js?v=20261120a';
+import { pageHref } from '../../core/base/page-url.js?v=20261120a';
 
 function describeError(error) {
   return String(error?.body?.error || error?.message || '服务暂不可用');

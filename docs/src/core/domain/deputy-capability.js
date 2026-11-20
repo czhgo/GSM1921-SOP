@@ -11,7 +11,7 @@
 //
 // 单一源：服务端 `server/routes/resources/deputy-policy.js` 复用同一 mode / allow 语义，
 //   前端不得另写第二套判断（guard: `server/test/deputy-policy.test.mjs`）。
-import { POLICY_DEFAULTS } from './policy-defaults.js';
+import { POLICY_DEFAULTS } from './policy-defaults.js?v=20261120a';
 
 export const DEPUTY_ACTIONS = Object.freeze([
   'activityEdit', 'branchNotice', 'rosterStage', 'branchConfig',

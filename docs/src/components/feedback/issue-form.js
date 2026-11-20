@@ -1,11 +1,11 @@
 // role: [工程师]+[AI]
 // issue-form.js — 反馈新建表单
 
-import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261110b';
-import { showToast } from '../../core/base/utils.js?v=20261110b';
-import { pageHref } from '../../core/base/page-url.js?v=20261110b';
-import { icon } from '../../core/base/icons.js?v=20261110b';
-import { badgeHtml } from '../ui/badges.js?v=20261110b';
+import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261120a';
+import { showToast } from '../../core/base/utils.js?v=20261120a';
+import { pageHref } from '../../core/base/page-url.js?v=20261120a';
+import { icon } from '../../core/base/icons.js?v=20261120a';
+import { badgeHtml } from '../ui/badges.js?v=20261120a';
 
 const SCOPE_OPTIONS = [
   { value: 'permanent', label: '底层架构' },
@@ -39,25 +39,25 @@ export function renderIssueForm() {
 
       <div class="space-y-4">
         <div>
-          <label for="form-title" class="text-xs text-gray-500 mb-1.5 block font-medium">标题 <span class="text-red-600">*</span></label>
+          <label for="form-title" class="text-xs text-gray-500 mb-1.5 block font-medium">标题 <span class="text-[var(--status-error-text)]">*</span></label>
           <input type="text" id="form-title" class="input-flat w-full font-sans" placeholder="如：报名名单与实际不符" aria-required="true">
         </div>
 
         <div>
-          <label for="form-body" class="text-xs text-gray-500 mb-1.5 block font-medium">正文 <span class="text-red-600">*</span></label>
+          <label for="form-body" class="text-xs text-gray-500 mb-1.5 block font-medium">正文 <span class="text-[var(--status-error-text)]">*</span></label>
           <textarea id="form-body" rows="6" class="input-flat w-full font-sans" placeholder="如：活动名称 + 时间 + 具体情况" aria-required="true"></textarea>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label for="form-scope" class="text-xs text-gray-500 mb-1.5 block font-medium">范围（单选）<span class="text-red-600">*</span></label>
+            <label for="form-scope" class="text-xs text-gray-500 mb-1.5 block font-medium">范围（单选）<span class="text-[var(--status-error-text)]">*</span></label>
             <select id="form-scope" class="input-flat w-full font-sans" aria-required="true">
               ${SCOPE_OPTIONS.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
             </select>
           </div>
 
           <div>
-            <label id="form-type-label" class="text-xs text-gray-500 mb-1.5 block font-medium">类型（多选）<span class="text-red-600">*</span></label>
+            <label id="form-type-label" class="text-xs text-gray-500 mb-1.5 block font-medium">类型（多选）<span class="text-[var(--status-error-text)]">*</span></label>
             <div class="space-y-1" role="group" aria-labelledby="form-type-label" aria-required="true">
               ${TYPE_OPTIONS.map(t => `
                 <label class="flex items-center gap-2 text-xs cursor-pointer font-sans">
@@ -70,7 +70,7 @@ export function renderIssueForm() {
         </div>
 
         <div>
-          <label for="form-domain" class="text-xs text-gray-500 mb-1.5 block font-medium">事项领域（单选）<span class="text-red-600">*</span></label>
+          <label for="form-domain" class="text-xs text-gray-500 mb-1.5 block font-medium">事项领域（单选）<span class="text-[var(--status-error-text)]">*</span></label>
           <select id="form-domain" class="input-flat w-full font-sans" aria-required="true">
             <option value="">请选择事项领域</option>
             ${ISSUE_DOMAINS.map(d => `<option value="${d.value}">${d.label}</option>`).join('')}

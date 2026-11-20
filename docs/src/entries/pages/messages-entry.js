@@ -8,23 +8,23 @@
 //  · 读口单一源 = NoticeStore.listMessages；未读计数单一源 = NoticeStore.countUnread。
 //  · 可见性单一源 = canReadNotice（经 NoticeStore.list 受众门），本页不另写规则。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261110b';
-import { renderHeader } from '../../components/shell/header.js?v=20261110b';
-import { pageHref } from '../../core/base/page-url.js?v=20261110b';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261120a';
+import { renderHeader } from '../../components/shell/header.js?v=20261120a';
+import { pageHref } from '../../core/base/page-url.js?v=20261120a';
 import {
   NoticeStore, sendDirectMessage, canSendDirectMessage, kindOf,
-} from '../../services/governance/notice.js?v=20261110b';
-import { AuthStore } from '../../services/core/auth.js?v=20261110b';
-import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261110b';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261110b';
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261110b';
-import { pagerHtml } from '../../components/ui/pager.js?v=20261110b';
-import { PersonPicker } from '../../components/governance/pickers.js?v=20261110b';
-import { messageSearchBarHtml } from '../../components/notice/message-search-bar.js?v=20261110b';
+} from '../../services/governance/notice.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261120a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261120a';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261120a';
+import { pagerHtml } from '../../components/ui/pager.js?v=20261120a';
+import { PersonPicker } from '../../components/governance/pickers.js?v=20261120a';
+import { messageSearchBarHtml } from '../../components/notice/message-search-bar.js?v=20261120a';
 // S1（2026-09-12 通知详情页同款）：必须先完成数据 hydrate（loadDB / API init）再取数
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261110b';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261110b';
-import { BranchService } from '../../services/core/runtime.js?v=20261110b';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261120a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261120a';
+import { BranchService } from '../../services/core/runtime.js?v=20261120a';
 
 renderSidebar('messages');
 renderHeader('messages');

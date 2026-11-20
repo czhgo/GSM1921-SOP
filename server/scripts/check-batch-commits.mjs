@@ -1,10 +1,12 @@
 // role: [工程师]+[AI]
 // server/scripts/check-batch-commits.mjs — 批次提交 message 自检
 //
-// 判据（CLAUDE.md H20.3 / H20.5）：
+// 判据（CLAUDE.md H20.3 / H20.5 / H80-6）：
 //   - **一批一条** commit；确需拆分时最多两条，第二条必须以「批次 N 续：/ 更正：」开头。
 //   - message 五段式：批次 N｜为什么｜改动面｜验证读数｜D/任务号（历史里也有 `551｜` 与半角 |）。
 //   - 禁止为「把 hash 回填到执行日志」而追加第二个 commit。
+//   - **资产命中**（H80-6）：body 必须有一行 `资产命中：…`，且至少列一个 `EA §` 或 `D-xxx`，
+//     防止下一轮重复探查同一结论。
 //
 // 只检查「批次号开头」的提交；非批次号风格的历史提交一律跳过，避免误伤。
 // 默认（--limit 1）检查 HEAD 与 HEAD~1：五段、回填、同批重复三项都判红。
@@ -21,6 +23,7 @@ const USAGE = `用法：node scripts/check-batch-commits.mjs [--limit <N>] [--he
   --help       打印本用法
 
 判据：批次号开头的提交，message 必须五段（批次 N｜为什么｜改动面｜验证读数｜D/任务号）；
+body 必须写「资产命中：<EA §x / D-xxx>」（H80-6，避免重复探查）；
 带 a 后缀且含「回填 / 补记」的提交视为 hash 回填 commit，应并入主记录；
 同一批不得出现两条都以「批次 N｜」开头的提交（第二条须用「批次 N 续：/ 更正：」）。`;
 
@@ -49,7 +52,7 @@ if (!Number.isInteger(limit) || limit < 1) {
 
 // 多取一条，供「HEAD 与父提交同批」判定
 const fetchCount = limit + 1;
-const raw = execFileSync('git', ['log', `-n${fetchCount}`, '--pretty=format:%H%x1f%s%x1e'], {
+const raw = execFileSync('git', ['log', `-n${fetchCount}`, '--pretty=format:%H%x1f%s%x1f%b%x1e'], {
   cwd: ROOT,
   encoding: 'utf8',
 });
@@ -59,8 +62,8 @@ const commits = raw
   .map((record) => record.trim())
   .filter(Boolean)
   .map((record) => {
-    const [hash, subject] = record.split('\x1f');
-    return { hash, subject: subject ?? '' };
+    const [hash, subject, body] = record.split('\x1f');
+    return { hash, subject: subject ?? '', body: body ?? '' };
   });
 
 // 兼容两种前缀：新规范「批次 551｜」与历史「551｜」
@@ -79,7 +82,7 @@ const warnings = [];
 const checked = commits.slice(0, limit);
 
 for (let i = 0; i < checked.length; i += 1) {
-  const { hash, subject } = checked[i];
+  const { hash, subject, body } = checked[i];
   const batch = batchOf(subject);
   if (!batch) continue;
   // 默认（--limit 1）为收尾门禁，判红；历史体检（--limit >1）只告警，不追罚存量
@@ -93,6 +96,14 @@ for (let i = 0; i < checked.length; i += 1) {
   const segments = subject.split(/[｜|]/);
   if (segments.length !== 5) {
     bucket.push({ hash, subject, reason: `message 不足五段（实际 ${segments.length} 段）` });
+  }
+
+  // 资产命中（H80-6）：body 必须有一行 `资产命中：`，且至少列一个 EA § / D-xxx
+  const assetLine = String(body).split(/\r?\n/).find((line) => line.trim().startsWith('资产命中：'));
+  if (!assetLine) {
+    bucket.push({ hash, subject, reason: 'body 缺「资产命中：」行（H80-6）' });
+  } else if (!/(?:EA\s*§|D-\d{3})/.test(assetLine)) {
+    bucket.push({ hash, subject, reason: '「资产命中：」须至少列一个 EA §x 或 D-xxx' });
   }
 
   // 同批重复：与父提交批次号相同，且父 / 本提交都不是「续 / 更正」

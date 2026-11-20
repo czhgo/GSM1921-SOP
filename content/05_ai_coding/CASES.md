@@ -2,7 +2,7 @@
 title: "AI 协作域判例库"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-19"
+last_updated: "2026-11-21"
 status: active
 related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -106,7 +106,7 @@ related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_
 - **守卫**：`icon-color-guard::G3`（状态色只经 `--tint`，且只在计数 > 0 或状态成立时出现）＋ `status-color-guard::S1`（填充档不进图标笔触）。
 - **对应规范编号**：`DESIGN_SYSTEM.md §一 原则 4` ＋ SD-61（图标色彩契约，正文见 `DS_03_COMPONENTS.md §4.11.2`）
 - **边界**：本条只判「引用完整性」，不重开「图标能不能用色」；党徽 / 插画的多色仍按 §4.11.2 登记。`--tint` 的取值面由 `icon-color-guard::G3` 判，本条不另立色值白名单。
-- **证据指针**：`content/04_web_design/design-system/DESIGN_SYSTEM.md:67` · `content/04_web_design/design-system/DS_03_COMPONENTS.md:540-552,1538` · `content/04_web_design/design-system/CASES.md`（CASE-DESIGN-030 / CASE-DESIGN-041）· `server/test/icon-color-guard.test.mjs`。
+- **证据指针**：`content/04_web_design/design-system/DESIGN_SYSTEM.md:67` · `content/04_web_design/design-system/DS_03_COMPONENTS.md:544-556,1542` · `content/04_web_design/design-system/CASES.md`（CASE-DESIGN-030 / CASE-DESIGN-041）· `server/test/icon-color-guard.test.mjs`。
 
 ## CASE-AI-010 同一指标多值并存：台账各写一个「当前值」
 

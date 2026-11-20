@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
-const V = '?v=20261110b';
+const V = '?v=20261120a';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const CAP_DIR = join(SRC_DIR, 'capabilities');

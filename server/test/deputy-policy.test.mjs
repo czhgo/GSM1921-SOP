@@ -13,10 +13,10 @@ import { join, relative } from 'node:path';
 
 import {
   ROLE_KEYS, ROLE_PAGE_MAP, SECRETARY_AND_DEPUTY_ROLES,
-} from '../../docs/src/core/domain/constants.js';
+} from '../../docs/src/core/domain/constants.js?v=20261120a';
 import {
   normalizeDeputyPolicy, secretaryActionAllowed, DEPUTY_ACTIONS,
-} from '../../docs/src/core/domain/deputy-capability.js';
+} from '../../docs/src/core/domain/deputy-capability.js?v=20261120a';
 import {
   deputyPolicyOf, deputyActionAllowed, deputyResourceDeny, requireSecretaryAction,
 } from '../routes/resources/deputy-policy.js';

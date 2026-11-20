@@ -10,11 +10,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261110b';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261110b';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261110b';
-import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261110b';
-import { buildSystemNotice } from '../../docs/src/core/domain/system-notice-templates.js?v=20261110b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261120a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261120a';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261120a';
+import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261120a';
+import { buildSystemNotice } from '../../docs/src/core/domain/system-notice-templates.js?v=20261120a';
 import { SYSTEM_NOTICE_AUDIENCE_POLICY, audiencePolicyOf } from '../system-notice-kinds.js';
 
 const _store = new Map();

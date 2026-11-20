@@ -7,8 +7,8 @@
 // 运行：node --test test/roster-write-precheck.test.mjs（server 目录）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { registerApiAdapter, setDataSource, getDataSource } from '../../docs/src/data/data-adapter.js?v=20261110b';
-import { PersonStore } from '../../docs/src/services/member/person.js?v=20261110b';
+import { registerApiAdapter, setDataSource, getDataSource } from '../../docs/src/data/data-adapter.js?v=20261120a';
+import { PersonStore } from '../../docs/src/services/member/person.js?v=20261120a';
 
 const _store = new Map();
 globalThis.localStorage = {

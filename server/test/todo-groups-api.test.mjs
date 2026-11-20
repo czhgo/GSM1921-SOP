@@ -16,15 +16,15 @@ import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 import { today } from '../services/reporting.js';
 // 客户端有效策略的同源两步（批次 541 · D-2）：净化 = config-clean（与 server 同 import）；合并 = effectivePolicyWith
-import { sanitizeConfigPolicyOverrides } from '../../docs/src/services/branch/config-clean.js?v=20261110b';
-import { effectivePolicyWith } from '../../docs/src/core/domain/policy-defaults.js?v=20261110b';
+import { sanitizeConfigPolicyOverrides } from '../../docs/src/services/branch/config-clean.js?v=20261120a';
+import { effectivePolicyWith } from '../../docs/src/core/domain/policy-defaults.js?v=20261120a';
 // 标准答案（客户端纯派生）与服务端同一份函数：改阈值后条数必须同步变化（D-2 / D-3）
 import {
   deriveAttendanceRemindGroup,
   deriveInspectionRemindGroup,
   deriveSemesterDetainedRemindGroup,
   deriveInspectionConfirmGroup,
-} from '../../docs/src/core/domain/todo-derive.js?v=20261110b';
+} from '../../docs/src/core/domain/todo-derive.js?v=20261120a';
 
 const ORG_COMMISSIONER_ID = '2400012355'; // 高翔宇（组织委员，br-b1）
 const SECRETARY_ID = '2300010001';        // 储子禾（支书，br-b1）
@@ -266,7 +266,7 @@ test('⑧ 纪检台「考勤 / 考察待确认」由服务端派生，count === 
   assert.ok(keys.includes('inspection-confirm'), '纪检视图应产出考察待确认组');
   for (const g of body.groups) assert.equal(g.count, g.items.length, `${g.groupKey}.count === items.length`);
   // 客户端不再自行计算：服务端已接管键必须出现在壳的 SERVER_OWNED_ACTION_KEYS
-  const { SERVER_OWNED_ACTION_KEYS } = await import('../../docs/src/components/record/todo-tab-shell.js?v=20261110b');
+  const { SERVER_OWNED_ACTION_KEYS } = await import('../../docs/src/components/record/todo-tab-shell.js?v=20261120a');
   for (const key of ['attendance-confirm', 'inspection-confirm']) {
     assert.ok(SERVER_OWNED_ACTION_KEYS.has(key), `客户端壳应声明服务端已接管：${key}`);
   }

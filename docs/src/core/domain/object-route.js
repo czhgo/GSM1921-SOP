@@ -12,7 +12,7 @@
 //
 //  纯函数（无 DOM / 不读 Store）：viewer 与 obj 由调用方传入；调用方自行用 AuthStore 取值。
 // ════════════════════════════════════════════════════════════════
-import { isTaskforceTerminalStatus } from './domain.js?v=20261110b';
+import { isTaskforceTerminalStatus } from './domain.js?v=20261120a';
 
 /** 对象类型 → 完整详情页（唯一两种承载面；不得在别处再拼第二套详情页）
  *  2026-11-11（D-866 URL B）：值去 `.html`；旧 `activity.html` / `taskforce.html` 仍由服务端 200 提供。 */

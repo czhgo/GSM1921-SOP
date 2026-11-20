@@ -2,36 +2,36 @@
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班），替代原单一列表
 // Task 3（2026-10-25）：`?tab=notice` 退役——消息有了唯一列表与「已归档」筛选，归档页只留活动、专班两栏。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261110b';
-import { renderHeader } from '../../components/shell/header.js?v=20261110b';
-import { BranchService } from '../../services/core/runtime.js?v=20261110b';
-import { mockDB, TaskforceStatus, TASKFORCE_TERMINAL_STATUSES } from '../../core/domain/domain.js?v=20261110b';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261110b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261110b';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261110b';
-import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261110b';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261120a';
+import { renderHeader } from '../../components/shell/header.js?v=20261120a';
+import { BranchService } from '../../services/core/runtime.js?v=20261120a';
+import { mockDB, TaskforceStatus, TASKFORCE_TERMINAL_STATUSES } from '../../core/domain/domain.js?v=20261120a';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261120a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261120a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261120a';
+import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261120a';
 // 活动「已结束」口径单一源（2026-09-13 收敛）：替代手写 status==='completed' || archived
 // 2026-10-24 批次 508：归档库的「已归档活动」改用 `isActivityArchived`（仅看 archived 软标记），
 //   与宣传台「档案归档」同口径——原 `isActivityEnded`（archived ∨ status==='completed'）会把
 //   **已结束但尚未归档**的活动也算进归档库，与同页其它两栏（专班/通知只收归档件）不一致。
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261110b';
-import { getBasePath, escHtml, showToast } from '../../core/base/utils.js?v=20261110b';
-import { pageHref } from '../../core/base/page-url.js?v=20261110b';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261120a';
+import { getBasePath, escHtml, showToast } from '../../core/base/utils.js?v=20261120a';
+import { pageHref } from '../../core/base/page-url.js?v=20261120a';
 // Task 6：归档弹窗是列表内预览（locate）⇒ 保留预览 + 「打开完整页」；深链校验归档终态。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261110b';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261110b';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261120a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261120a';
 // 图标单一源（批次 540：归档材料行的文件图标由内联 SVG 改为 icons.js）
-import { icon } from '../../core/base/icons.js?v=20261110b';
+import { icon } from '../../core/base/icons.js?v=20261120a';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../components/ui/pager.js?v=20261110b';
-import { openModal } from '../../components/ui/modal.js?v=20261110b';
+import { pagerHtml } from '../../components/ui/pager.js?v=20261120a';
+import { openModal } from '../../components/ui/modal.js?v=20261120a';
 // 批次 87：本页必须先 hydrate API 数据源再渲染——与 activity.html（批次 83 修好后的标准形）同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下归档库读的是本地备份，
 // 服务端已归档的活动 / 专班 / 通知看不到。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261110b';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261110b';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261120a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261120a';
 
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261110b';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261120a';
 renderSidebar('archive');
 renderHeader('archive');
 

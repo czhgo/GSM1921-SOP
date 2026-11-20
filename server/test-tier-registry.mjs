@@ -104,8 +104,10 @@ export const DAILY_TEST_BUDGET = 262;
  *  2026-11-20 批次 579：新增 `deputy-policy`（副支书操作权 / 正副职字面量基线），实然 118 文件；按 118 登记（差 0）。
  *  2026-11-20 批次 581：新增 `card-consistency-guard`（卡厚度 / 卡头字重），实然 119 文件；按 119 登记（差 0）。
  *  2026-11-20 批次 581 续：新增 `spacing-ratchet-guard`（间距 / 暗色补丁棘轮），实然 120 文件；按 120 登记（差 0）。
- *  2026-11-20 批次 584：新增 `evaluation-asset-guard`（改进项指针 / 资产索引 / 两段门槛），实然 121 文件；按 121 登记（差 0）。 */
-export const GUARDS_FILE_BUDGET = 121;
+ *  2026-11-20 批次 584：新增 `evaluation-asset-guard`（改进项指针 / 资产索引 / 两段门槛），实然 121 文件；按 121 登记（差 0）。
+ *  2026-11-21 批次 587：新增 `status-palette-text-guard` / `badge-single-source-guard` / `button-height-guard`，实然 124 文件；按 124 登记（差 0）。
+ *  2026-11-21 批次 589：新增 `todo-derive-instrument-guard`（派生兜底仪表 / 7 类对账全绿），实然 125 文件；按 125 登记（差 0）。 */
+export const GUARDS_FILE_BUDGET = 125;
 
 /** guards 静态 `test(` / `it(` 调用点预算
  *  2026-11-08 波次 A：实测 788 断言，按 791 登记（断言留 3 条余量）。
@@ -126,8 +128,10 @@ export const GUARDS_FILE_BUDGET = 121;
  *    按 864 登记（余量 0）。
  *  2026-11-20 批次 581：新增 `card-consistency-guard` 3 条，实然 867；按 867 登记（余量 0）。
  *  2026-11-20 批次 581 续：新增 `spacing-ratchet-guard` 2 条，实然 869；按 869 登记（余量 0）。
- *  2026-11-20 批次 584：新增 `evaluation-asset-guard` 4 条，实然 873；按 873 登记（余量 0）。 */
-export const GUARDS_TEST_BUDGET = 873;
+ *  2026-11-20 批次 584：新增 `evaluation-asset-guard` 4 条，实然 873；按 873 登记（余量 0）。
+ *  2026-11-21 批次 587：新增 `status-palette-text-guard` 3 条 ＋ `badge-single-source-guard` 2 条 ＋ `button-height-guard` 2 条，实然 880；按 880 登记（余量 0）。
+ *  2026-11-21 批次 589：新增 `todo-derive-instrument-guard` 3 条 ＋ `evaluation-asset-guard` 增 1 条，实然 884；按 884 登记（余量 0）。 */
+export const GUARDS_TEST_BUDGET = 884;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -327,6 +331,12 @@ export const TEST_TIERS = [
     'spacing-ratchet-guard.test.mjs',
     // 2026-11-20 批次 584：评分即资产（改进项指针 / 资产索引 / 两段门槛）
     'evaluation-asset-guard.test.mjs',
+    // 2026-11-21 批次 587：调色板状态文字 / 徽章单源 / h-8 档位
+    'status-palette-text-guard.test.mjs',
+    'badge-single-source-guard.test.mjs',
+    'button-height-guard.test.mjs',
+    // 2026-11-21 批次 589：派生兜底仪表 + 7 类对账全绿
+    'todo-derive-instrument-guard.test.mjs',
   ]),
 
   // ── precommit · 非核心域回归（提交前 / 发布前覆盖；进 daily 会拖长日常）─────

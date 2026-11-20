@@ -14,18 +14,18 @@
 // 子视图协议：`?subview=activities|docs`（与 dispatch-tab 同协议；工作台壳不清该参数）。
 // 输入控件只经 components/ui/forms.js（具名导出）；目标支部复选框沿用 dispatch-tab 的既有写法。
 
-import { ACTIVITY_SUBTYPES } from '../../../core/domain/constants.js?v=20261110b';
-import { getAdapter, getDataSource, getApiBaseUrl, getAuthToken } from '../../../data/data-adapter.js?v=20261110b';
+import { ACTIVITY_SUBTYPES } from '../../../core/domain/constants.js?v=20261120a';
+import { getAdapter, getDataSource, getApiBaseUrl, getAuthToken } from '../../../data/data-adapter.js?v=20261120a';
 // 附件下载路径按党委已选支部拼 `branchId`（uploads.js 登录下载口同口径；与 archive-tab 同一实现）
-import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261110b';
-import { textField, textareaField, selectField, dateField, fileField } from '../../../components/ui/forms.js?v=20261110b';
-import { emptyStateHtml, skeletonHtml } from '../../../components/ui/empty-state.js?v=20261110b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261110b';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261110b';
-import { confirmDanger } from '../../../components/ui/modal.js?v=20261110b';
+import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261120a';
+import { textField, textareaField, selectField, dateField, fileField } from '../../../components/ui/forms.js?v=20261120a';
+import { emptyStateHtml, skeletonHtml } from '../../../components/ui/empty-state.js?v=20261120a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261120a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261120a';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261120a';
 // 菜单单一源（2026-11-08 波次 C）：行内动作收为「编辑 + 更多」，二级动作进 aria-haspopup 菜单。
-import { renderMenuButton, bindMenuButtons } from '../../../components/ui/menu-button.js?v=20261110b';
-import { showToast, escHtml as esc, smoothScroll, downloadUrl } from '../../../core/base/utils.js?v=20261110b';
+import { renderMenuButton, bindMenuButtons } from '../../../components/ui/menu-button.js?v=20261120a';
+import { showToast, escHtml as esc, smoothScroll, downloadUrl } from '../../../core/base/utils.js?v=20261120a';
 
 const HOST_ID = 'party-committee-tab-content';
 const VIEW_ACTIVITIES = 'activities';

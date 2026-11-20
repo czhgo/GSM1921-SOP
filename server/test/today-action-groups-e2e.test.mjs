@@ -19,11 +19,11 @@ import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 // `D-787`（2026-10-05 · 9 → 6 合并）：业务域识别色的单一源 —— 非空转断言用它（现行**恰一键 `project`**）
-import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261110b';
+import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261120a';
 // `D-787`：6 类域值（色键须落其中）
-import { DOMAIN_ORDER } from '../../docs/src/services/governance/todo.js?v=20261110b';
+import { DOMAIN_ORDER } from '../../docs/src/services/governance/todo.js?v=20261120a';
 // 批次 541 P0-1 / P0-2：行点击落点解析（与页面同一契约，不在测试里另写一张表）
-import { resolveTodoAction } from '../../docs/src/core/domain/todo-actions.js?v=20261110b';
+import { resolveTodoAction } from '../../docs/src/core/domain/todo-actions.js?v=20261120a';
 
 let server, base, browser;
 

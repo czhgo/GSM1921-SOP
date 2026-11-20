@@ -8,7 +8,7 @@
 //   · 本文件只引零依赖叶子 `core/domain/constants.js`（取缺省支部 id），**不引 person.js**：
 //     org-base-data-preview.js 派生组枚举时直接 import 本文件（不依赖 person.js，防 person→preview→party-group 成环）。
 
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261110b';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261120a';
 // 2026-11-02 批次 527（数据契约 Wave 2）：createdAt 统一 ISO；补 1 条 dissolved 样本——
 // 原种子三组全 active、createdAt 为裸日期（'2026-09-01'），与契约「ISO 时间」及
 // 「解散组保留历史」两条口径都无样本。dissolved 组不入活组清单（listActiveGroups 过滤 status）。

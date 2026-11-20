@@ -12,37 +12,37 @@
 //     应到 = `attendanceRosters` 冻结名单优先，无冻结时回落 `services/activity/vote-config.js::resolveVoterIds('committee')`
 //     并标注「实时」；两种口径不混算。
 //   · 表格 = components/ui/data-table.js（.data-table 单一源）；行内选人 = components/governance/pickers.js::PersonPicker。
-import { mockDB } from '../../../core/domain/domain.js?v=20261110b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261110b';
-import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261110b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261120a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261120a';
+import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261120a';
 import {
   listBranchCommissioners,
   appointBranchCommissioner,
   revokeBranchCommissioner,
-} from '../../../services/branch/appointment.js?v=20261110b';
-import { confirmDanger, openModal, closeModal } from '../../../components/ui/modal.js?v=20261110b';
-import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261110b';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261110b';
-import { deriveMeetingStatus } from '../../../data/mock/derive.js?v=20261110b';
-import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261110b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261110b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261110b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261110b';
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261110b';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261110b';
+} from '../../../services/branch/appointment.js?v=20261120a';
+import { confirmDanger, openModal, closeModal } from '../../../components/ui/modal.js?v=20261120a';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261120a';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261120a';
+import { deriveMeetingStatus } from '../../../data/mock/derive.js?v=20261120a';
+import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261120a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261120a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261120a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261120a';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261120a';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261120a';
 // 待议池（2026-11-10 批次 540 波次 2）：类型 / 文案 / 去重键 / 应到范围由服务端算（API 形态），
 // 分类函数与 mock 形态本地归集共用 `core/domain/agenda-classify.js`（同一判据、同一文案）。
-import { getAdapter, getDataSource } from '../../../data/data-adapter.js?v=20261110b';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261110b';
-import { buildAgendaPool } from './agenda-form.js?v=20261110b';
-import { AGENDA_TYPES, AGENDA_TYPE_BADGE_VARIANT } from '../../../core/domain/agenda-classify.js?v=20261110b';
-import { CommitteeProposalStore } from '../../../services/governance/committee-proposal.js?v=20261110b';
+import { getAdapter, getDataSource } from '../../../data/data-adapter.js?v=20261120a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261120a';
+import { buildAgendaPool } from './agenda-form.js?v=20261120a';
+import { AGENDA_TYPES, AGENDA_TYPE_BADGE_VARIANT } from '../../../core/domain/agenda-classify.js?v=20261120a';
+import { CommitteeProposalStore } from '../../../services/governance/committee-proposal.js?v=20261120a';
 import {
   PROPOSAL_STATUS_LABELS, PROPOSAL_TYPE_LABELS, PROPOSAL_SOURCE_LABELS,
-} from '../../../core/domain/committee-proposal.js?v=20261110b';
-import { selectInput, textareaField } from '../../../components/ui/forms.js?v=20261110b';
+} from '../../../core/domain/committee-proposal.js?v=20261120a';
+import { selectInput, textareaField } from '../../../components/ui/forms.js?v=20261120a';
 
-import { renderCardHeader } from '../../../components/shell/page-frame.js';
+import { renderCardHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 /** 本支部 id（登录人归属；缺省 br-b1，与全仓同口径） */
 function branchId() {
   const me = getPersonById(AuthStore.getCurrentUser()?.personId);
@@ -319,11 +319,11 @@ function agendaPoolHtml(pool, local) {
 /** mock 形态本地归集：各来源取既有出口，归集与分类走同一纯函数（不新造判据） */
 async function localAgendaPool() {
   const [{ TaskForceRecordStore }, { IssueStore }, { loadStageEntryDates }, { listDocs, isAgendaDraftDoc }, { listBrandProposals }] = await Promise.all([
-    import('../../../services/activity/taskforce.js?v=20261110b'),
-    import('../../../services/governance/issues.js?v=20261110b'),
-    import('../../../services/member/member-confirmation.js?v=20261110b'),
-    import('../../../services/branch/branch-doc.js?v=20261110b'),
-    import('../../../services/activity/activity.js?v=20261110b'),
+    import('../../../services/activity/taskforce.js?v=20261120a'),
+    import('../../../services/governance/issues.js?v=20261120a'),
+    import('../../../services/member/member-confirmation.js?v=20261120a'),
+    import('../../../services/branch/branch-doc.js?v=20261120a'),
+    import('../../../services/activity/activity.js?v=20261120a'),
   ]);
   const src = { activities: mockDB.activities || [] };
   try { src.taskforceProposals = TaskForceRecordStore.listCommitteeRequests(); } catch (e) { /* 少一类不阻断 */ }

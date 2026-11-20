@@ -2,7 +2,7 @@
 title: "2026年11月决策日志"
 type: decision_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-20
+last_updated: 2026-11-21
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-DECISION_LOG.md, content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md, content/04_web_design/design-system/DS_03_COMPONENTS.md, content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md]
 ---
@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-896`，共 70 条**；下一条自 **`D-897`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-899`，共 73 条**；下一条自 **`D-900`**。
 
 ## 本月目录（2026-11）
 
@@ -90,6 +90,9 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 评分即资产（H80 第 6 条）＋ 合并门槛两段（本机门 / 外部门）＋ EA 评价资产索引 | `D-894` | 2026-11-20 | 已落（批次 584） |
 | 六维复核维持 80/78/79/73/76/71；审计 P2 归零、guards 121/873 | `D-895` | 2026-11-20 | 已落（批次 585） |
 | 卡头单源收口：70 处迁移 `renderCardHeader` ＋ `variant:'panel'`；手写卡头 H3 归零 | `D-896` | 2026-11-20 | 已落（批次 586） |
+| 前端存量清零：调色板状态色 / 假徽章 / 越档 h-8；三道守卫（调色板 / 徽章单源 / h-8） | `D-897` | 2026-11-21 | 已落（批次 587） |
+| B-522-1：数字卡按内容收窄；日历网格登记特例；今天/归档空态补最近动态与下一步 | `D-898` | 2026-11-21 | 已落（批次 588） |
+| B-500-7b-2：兜底 instrument ＋ 7 类对账守卫；commit body 强制「资产命中」机检 | `D-899` | 2026-11-21 | 已落（批次 589） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -685,5 +688,41 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：guards **121 文件 / 873 用例**全绿；daily **265 断言 / 122.8s** 全绿；真机设置 / 今天 / 活动详情三页 PASS（标题单行、右侧不重叠不溢出、无横向滚动）。
 > **落点**：`docs/src/components/shell/page-frame.js`、`docs/src/styles.css`、`docs/src/**`（29 文件）、`server/test/{card-consistency-guard,page-title-guard,ui-first-screen-order,copy-guard,date-canon-guard}.test.mjs`、`content/04_web_design/design-system/{DS_03_COMPONENTS,CASES}.md`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-896`**（共 **70** 条）。
+## D-897 2026-11-21 — 前端存量清零：调色板状态色 / 假徽章 / 越档 h-8（批次 587）
+
+> **评议 → 裁定 → 落点**：支书「有规则的没有遵照规则；特例没有遵照特例」；本轮独立探查取证 286 处调色板文字、38 文件手拼徽章、8 处 h-8。
+> - **状态文字**：出勤三态、必填星号、错误态、备注、条件提示改 `--status-*-text`；`group-view` 的 `{label,cls}` 改 `{label,tone}`，四处消费点统一 `badgeHtml`；`report-up` 本地 STATUS_META 同步改 tone。
+> - **假徽章**：组织向导 2 处、成员变更面板 2 处、复盘 / 汇报状态胶囊改 `badgeHtml`。
+> - **h-8**：日历周 / 日前后翻页 4 处改 `.btn-sm`；只保留「图标关闭 / 低频上传 / 导出 CSV」白名单。
+> - **守卫**：`status-palette-text-guard`（按文件棘轮 286 处只减不增 ＋ 卡不得挂调色板底）、`badge-single-source-guard`（38 文件基线只减不增）、`button-height-guard`（h-8 白名单）。
+> **未选**：一次性清空全部 286 处调色板文字（语义映射风险高、批次过大）；把 `about.css` 纳入扫描（冻结件）。
+> **边界**：`styles.css` 暗色补丁表与静态页 `search.html` 不在守卫扫描面；灰底卡本轮实测已为 0。
+> **读数**：三道新守卫 7/7 绿；`module-load` E1/E5 绿；真机首页数字卡收窄后无横向溢出。
+> **落点**：`docs/src/**`（10 文件）、`server/test/{status-palette-text-guard,badge-single-source-guard,button-height-guard}.test.mjs`、`DS_03 §4.21.2`。
+
+## D-898 2026-11-21 — B-522-1：低密度卡收窄与空态补内容（批次 588）
+
+> **评议 → 裁定 → 落点**：支书裁定「只改真正低密度的 3 类等尺寸卡 ＋ 给今天/归档补最近动态与下一步」。
+> - **数字卡收窄**：新增 `.stat-grid--content` / `.metric-band--cards--content`（`auto-fit minmax(0,max-content)` ＋ `justify-content:start`），只挂首页四数与概况结论带；≤1024 回落两列等宽。真机首页四卡 133.6–157.6px，不再等分铺满。
+> - **日历特例**：月历 31 格登记为网格语义特例（`DS_03 §4.21.2` ＋ `DS_06 SD-57`），不计入低密度卡。
+> - **今天页**：`today-summary` 增 `recent`（过去 3 条可见活动，同一可见性单一源）；「要办」卡尾并入「最近动态」＋「下一步：<动作组> · N 项」，不新增顶层块。
+> - **归档页**：空态补「最近归档 3 条 ＋ 下一步：补齐材料后可归档」，数据取本页 `archiveRecords`。
+> - **证据门**：`.ctx/evidence/2026-11-21/density-8pages.md` 8 页逐页读数；归档空态因演示库待归档 34 未触发，如实登记为源级核验。
+> **未选**：8 页逐页重排；只收卡片不补内容。
+> **读数**：今天页首屏空白 0.715 → 0（内容越过视口 124px，信息量增加）；首页 / 概况栅格同源；`ui-first-screen-order` 块数不变。
+> **落点**：`docs/src/{styles.css,components/dashboard/stats.js,components/governance/work-overview.js,entries/tabs/today/today-tab.js,entries/tabs/prop/archive-tab.js,services/governance/today-summary.js}`、`docs/index.html`、`DS_03` / `DS_06`。
+
+## D-899 2026-11-21 — B-500-7b-2：兜底 instrument ＋ 资产命中机检（批次 589）
+
+> **评议 → 裁定 → 落点**：支书裁定「保留失败兜底，但把兜底调用数变成可核读数」，并要求「复用评价知识写成 Harness 规则」再加一层机检。
+> - **instrument**：`todo-tab-shell` 增 `_deriveFallbackCount`（仅失败 / mock 分支自增一次）＋ `window.__TODO_DERIVE_FALLBACK__` 只读 getter。
+> - **守卫** `todo-derive-instrument-guard`：ok 分支必须 `skipActionKeys`、自增只一处且在 ok return 之后、`UNSUPPORTED_GROUP_KEYS` 必须为空（7 类对账全绿）、反例自证。
+> - **Harness**：`check-batch-commits` 增「body 必须有 `资产命中：` 行，且至少一个 `EA §` / `D-xxx`」；`CLAUDE H80-6` 同步一句；`evaluation-asset-guard` 增 1 条断言。
+> - **乙部**：`C-3`（无判据）删除；`C-4` 随 587 完成删除；`B-522-1` / `B-500-7b-2` 按单项证据门完成即删；`C-5` 保留棘轮。
+> **未选**：删除客户端派生兜底（失败即整块不可用）；只加计数不加守卫。
+> **边界**：真机读数以「服务端 ok 路径页面正常渲染服务端组」为准，instrument 的 0 调用由守卫静态锁定；归档空态未取到真机渲染证据（演示库非空）。
+> **读数**：`todo-derive-instrument-guard` 3/3、`evaluation-asset-guard` 5/5、`test-tier-guard` 7/7 绿；`check-batch-commits --limit 1` 对缺「资产命中」判红（反例）。
+> **落点**：`docs/src/components/record/todo-tab-shell.js`、`server/test/{todo-derive-instrument-guard,evaluation-asset-guard}.test.mjs`、`server/scripts/check-batch-commits.mjs`、`CLAUDE.md`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-899`**（共 **73** 条）。
 

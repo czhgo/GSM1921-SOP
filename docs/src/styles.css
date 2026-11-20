@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261110b');
+@import url('components/person-picker.css?v=20261120a');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -5302,7 +5302,6 @@ html.theme-dark [style*="--acc-dot-dark"] {
   html.theme-dark .bg-violet-50    { background-color: rgba(167, 139, 250, 0.10) !important; }
   html.theme-dark .bg-emerald-50   { background-color: rgba(52, 211, 153, 0.10) !important; }
   html.theme-dark .bg-red-50\/40   { background-color: rgba(239, 68, 68, 0.06) !important; }
-  html.theme-dark .text-orange-500 { color: #FB923C !important; }
   html.theme-dark .text-blue-500   { color: var(--status-info-text) !important; }
   html.theme-dark .text-red-700    { color: #FCA5A5 !important; }
   html.theme-dark .text-orange-700 { color: #FDBA74 !important; }
@@ -6479,6 +6478,21 @@ button.metric-band__item--filter.is-active {
 @media (max-width: 1024px) {
   .stat-grid--3 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+/* 按内容收窄（2026-11-21 批次 588 · B-522-1）：数字卡不铺满整行，剩余空间留给同排次要信息；
+   ≤1024 回落两列等宽（与基础栅格同断点）。只作用于显式挂 --content 的两处：首页四数与概况结论带。 */
+.stat-grid--content,
+.metric-band--cards--content {
+  grid-template-columns: repeat(auto-fit, minmax(0, max-content));
+  justify-content: start;
+  align-items: start;
+}
+@media (max-width: 1024px) {
+  .stat-grid--content,
+  .metric-band--cards--content {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
   }
 }
 .metric-band--cards {

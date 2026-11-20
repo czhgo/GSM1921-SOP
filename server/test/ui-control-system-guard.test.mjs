@@ -29,7 +29,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261110b';
+import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261120a';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -956,7 +956,7 @@ test('V1 容器语义：数字组单一语法 / section.card 必有可访问名 
   //    全站数字组＝图标块在左（.stat-icon-tint 40×40、浅底由 --tint 派生）＋ .stat-card__body
   //    （.stat-card__value / .stat-card__label 两行在右）。卡片不自带尺寸：不得再有
   //    `flex-direction: column` 与写死的 `min-height`；列数与等高交给栅格 `align-items: stretch`。
-  assert.match(WORK_OVERVIEW, /<section class="metric-band metric-band--interactive metric-band--cards"/,
+  assert.match(WORK_OVERVIEW, /<section class="metric-band metric-band--interactive metric-band--cards(?: metric-band--cards--content)?"/,
     '工作概况结论带须为 .metric-band--interactive.metric-band--cards（四张数字卡，含可点 button/a）');
   assert.match(CSS, /\.metric-band--cards\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/,
     'styles.css 缺 .metric-band--cards 的四列卡网格');

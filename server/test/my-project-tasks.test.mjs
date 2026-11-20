@@ -10,11 +10,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261110b';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261110b';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261110b';
-import { listMyProjectTasks, completeMyProjectTask } from '../../docs/src/services/activity/activity.js?v=20261110b';
-import { SEED_TASKS } from '../../docs/src/data/mock/seed.js?v=20261110b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261120a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261120a';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261120a';
+import { listMyProjectTasks, completeMyProjectTask } from '../../docs/src/services/activity/activity.js?v=20261120a';
+import { SEED_TASKS } from '../../docs/src/data/mock/seed.js?v=20261120a';
 
 const _store = new Map();
 globalThis.localStorage = {

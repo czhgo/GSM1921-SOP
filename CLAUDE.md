@@ -2,7 +2,7 @@
 title: "CLAUDE — 项目宪法与路由"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-20"
+last_updated: "2026-11-21"
 status: active
 ---
 
@@ -271,7 +271,7 @@ status: active
 3. 规则写入 `content/05_ai_coding/TEST_AND_VERIFICATION.md` 或 `CLAUDE.md` 对应 H 节；
 4. 与既有规则冲突时先问支书，不静默覆盖；
 5. 下一轮按 Top-5 稀疏检索应用，并报告命中。
-6. **评分即资产**（2026-11-20 支书裁定）：每次评分 / 评价必须同时产出「评价对象、证据 `file:line`、结论、**可执行改进项**、复评触发条件」；当前值进 `ENGINEERING_ASSESSMENT §一/§二/§5.2`，过程读数进 `.ctx/evidence/`，可复用判例进 `TEST_AND_VERIFICATION.md`。**开工前先按 Top-5 稀疏检索已有评价资产**，命中写进 `next_prompt`，不得重复探查同一结论；**无新证据不得重评**，分数变化必须附新读数。
+6. **评分即资产**（2026-11-20 支书裁定）：每次评分 / 评价必须同时产出「评价对象、证据 `file:line`、结论、**可执行改进项**、复评触发条件」；当前值进 `ENGINEERING_ASSESSMENT §一/§二/§5.2`，过程读数进 `.ctx/evidence/`，可复用判例进 `TEST_AND_VERIFICATION.md`。**开工前先按 Top-5 稀疏检索已有评价资产**，命中写进 `next_prompt`，不得重复探查同一结论；**无新证据不得重评**，分数变化必须附新读数。**commit body 必须写「资产命中：<EA §x / D-xxx>」**，由 `server/scripts/check-batch-commits.mjs` 机检（批次 589）。
 
 # 冷层：按需参考
 
@@ -302,8 +302,6 @@ status: active
 
 | ID | 事项 | 判据 / 出处 | 状态 |
 |---|---|---|---|
-| C-3 | 经验沉淀：从日志提炼可复用模式写入 insights | `H30` + `OPERATIONS_GUIDE §10.1` | 在办 |
-| C-4 | 视觉体验持续优化：颜色 / 卡片 / 排序审校 | `DESIGN_SYSTEM` §12.11–§12.14 | 在办 |
 | C-5 | 字号 / 颜色棘轮续迁：`text-xs` 正文段上迁 13px、help.html 可令牌化色继续迁 | `style-baseline::TEXT_XS_BASELINE` / `HEX_BASELINE['docs/help.html']` | 在办 |
 
 ## 评议待办 · 执行型（H60.7 归口）
@@ -315,8 +313,6 @@ status: active
 
 | 目标批次 | 条目 | 一句话 | 判据 / 出处 | 状态 |
 |---|---|---|---|---|
-| 批次 582–583 | B-522-1 | 低密度卡与空态页：低密度等尺寸卡按内容收窄 / 合并；「今天」「归档」首屏空白补最近动态与下一步动作（旧 spec harden-interface-quality Task 8）。**单项证据门**：清单 8 页的低密度卡与空态覆盖率 100%，不再等六维全局 ≥80 | 并入批次 582–583 前端美学 P1/P2；台账见 `.trae/specs/harden-interface-quality/tasks.md` Task 8 指针 | 在办 |
-| 批次 584 后 | B-500-7b-2 | 完整 Plan B 收尾：客户端业务派生摘除（默认路径已切服务端）＋ 读面前置解耦 ＋ 缓存 / 性能。**单项证据门**：客户端业务派生兜底调用数 = 0（instrument 计数）且 7 类对账仍 8/8 | 判据见本条；`server/routes/todo-groups.js`、`docs/src/components/record/todo-tab-shell.js`、`server/test/todo-derive-parity.test.mjs` | 待启动 |
 
 # 丙部：待决策事项
 

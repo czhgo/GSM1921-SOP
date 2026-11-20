@@ -1,8 +1,8 @@
 // role: [工程师]+[AI]
 // 党委只读查看支部：始终保留党委身份和显式 branchId 范围。
-import { getBranchById } from '../branch/branch.js?v=20261110b';
-import { showToast } from '../../core/base/utils.js?v=20261110b';
-import { pageHref } from '../../core/base/page-url.js?v=20261110b';
+import { getBranchById } from '../branch/branch.js?v=20261120a';
+import { showToast } from '../../core/base/utils.js?v=20261120a';
+import { pageHref } from '../../core/base/page-url.js?v=20261120a';
 
 export function buildBranchReadOnlyUrl(branchId) {
   if (!branchId) return { ok: false, reason: '请先选择一个支部' };
@@ -24,7 +24,7 @@ export async function openBranchReadOnly(branchId) {
   // T14（2026-11-15）：进入前先写一条服务端留痕；留痕失败不阻断只读视图本身（该页无写口），
   //   但服务端只读门不会生效——失败时明确提示，不静默降级。
   try {
-    const { enterBranchView } = await import('./branch-view.js?v=20261110b');
+    const { enterBranchView } = await import('./branch-view.js?v=20261120a');
     const entered = await enterBranchView(branchId);
     if (!entered.ok) {
       showToast('error', `无法进入只读查看：${entered.reason}`);

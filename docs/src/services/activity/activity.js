@@ -4,12 +4,12 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus, isActivityClosed } from '../../core/domain/domain.js?v=20261110b';
-import { persist, getDataSource } from '../../data/data-adapter.js?v=20261110b';
-import { bumpToken } from '../../core/base/version-token.js?v=20261110b';
-import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES, PARTY_GROUP_LEADER_ROLES } from '../../core/domain/constants.js?v=20261110b';
-import { ACTIVITIES } from '../../data/mock/index.js?v=20261110b';
-import { isInitStateActive } from '../core/init-reset.js?v=20261110b'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { mockDB, ReviewStatus, isActivityClosed } from '../../core/domain/domain.js?v=20261120a';
+import { persist, getDataSource } from '../../data/data-adapter.js?v=20261120a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261120a';
+import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES, PARTY_GROUP_LEADER_ROLES } from '../../core/domain/constants.js?v=20261120a';
+import { ACTIVITIES } from '../../data/mock/index.js?v=20261120a';
+import { isInitStateActive } from '../core/init-reset.js?v=20261120a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {
@@ -634,7 +634,7 @@ export async function completeMyProjectTask(personId, taskId) {
   if (!mine) return { ok: false, reason: 'not-mine' }; // 不担这一步 ⇒ 勾不了
   // 组织者分配的具体工作（`D-886` / SOP-B-31 ①）：写口复用「工作分工」既有 CRUD（单一源）
   if (String(taskId).startsWith('wa:')) {
-    const { updateWorkAssignment } = await import('./work-assignment.js?v=20261110b');
+    const { updateWorkAssignment } = await import('./work-assignment.js?v=20261120a');
     const row = await updateWorkAssignment(String(taskId).slice(3), { status: 'completed' });
     return row ? { ok: true, task: mine.task } : { ok: false, reason: 'update-failed' };
   }
@@ -798,8 +798,8 @@ export async function openCommitteeVoteForActivity({ activityId, by, role, mode 
   if (existing) return { ok: true, already: true, agendaItemId: existing.id };
   // 动态引入（不改本文件行号；表决配置与 id 生成的单一源仍在各自模块，不在此另写一套）
   const [{ defaultVoteConfig, resolveVoterIds }, { generateId }] = await Promise.all([
-    import('./vote-config.js?v=20261110b'),
-    import('../../core/base/id.js?v=20261110b'),
+    import('./vote-config.js?v=20261120a'),
+    import('../../core/base/id.js?v=20261120a'),
   ]);
   const agendaItemId = generateId('ag');
   const at = new Date().toISOString();

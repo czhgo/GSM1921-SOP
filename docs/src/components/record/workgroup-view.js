@@ -13,21 +13,21 @@
 //   · 只读：**不渲染任何写入口**（无增删成员 / 授权 / 编辑控件），办事一律回活动详情；
 //   · 行结构＝`components/ui/list-row.js::listRowHtml`（nav 行，整行可点）；检索 / 翻页＝`ui/list-filter.js`；
 //     空态＝`ui/empty-state.js`（一句话 + 一个下一步）；状态＝`ui/badge.js` 展示徽章族。
-import { mockDB } from '../../core/domain/domain.js?v=20261110b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261110b';
-import { getPersonName } from '../../services/member/person.js?v=20261110b';
-import { AuthStore } from '../../services/core/auth.js?v=20261110b';
-import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261110b';
-import { listRowHtml } from '../ui/list-row.js?v=20261110b';
-import { renderFilteredList } from '../ui/list-filter.js?v=20261110b';
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261110b';
-import { badgeHtml } from '../ui/badges.js?v=20261110b';
-import { renderCardHeader } from '../shell/page-frame.js?v=20261110b';
-import { flashHighlight, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261110b';
+import { mockDB } from '../../core/domain/domain.js?v=20261120a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261120a';
+import { getPersonName } from '../../services/member/person.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261120a';
+import { listRowHtml } from '../ui/list-row.js?v=20261120a';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261120a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261120a';
+import { badgeHtml } from '../ui/badges.js?v=20261120a';
+import { renderCardHeader } from '../shell/page-frame.js?v=20261120a';
+import { flashHighlight, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261120a';
 // 批次 524（D）：只读由权限派生，不再写死「· 只读」字符串
-import { readonlyMeta } from '../../core/domain/view-capability.js?v=20261110b';
+import { readonlyMeta } from '../../core/domain/view-capability.js?v=20261120a';
 // Task 6：工作组行 → 所属活动完整详情页（direct）；缺 id 时不给 href。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261110b';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261120a';
 
 // 工作组状态 → 文案 / 色调（活动工作组只会出现 active / archived，其余键沿用统一状态词）
 const STATUS_META = {

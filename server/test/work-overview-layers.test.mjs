@@ -78,7 +78,7 @@ test('W4 六个角色键与四数齐备（四数同为数字卡）', () => {
   assert.doesNotMatch(OVERVIEW, /metric-band__value--muted/, '四数同级数字卡：不得回潮 muted 数值档');
   assert.doesNotMatch(STYLES, /\.metric-band__value--muted\s*\{/, 'styles.css 不得保留 muted 数值档（四数同级）');
   // 四数落点＝卡网格：父级 .metric-band--cards，两条渲染分支（筛选 / 滚动）都取同一套卡面类。
-  assert.match(OVERVIEW, /<section class="metric-band metric-band--interactive metric-band--cards"/,
+  assert.match(OVERVIEW, /<section class="metric-band metric-band--interactive metric-band--cards(?: metric-band--cards--content)?"/,
     '结论带须为四列卡网格 .metric-band--cards');
   assert.match(OVERVIEW, /<button type="button" class="card card--interactive stat-card metric-band__item metric-band__item--filter/,
     '筛选类指标须渲染为数字卡（.card + .stat-card + .metric-band__item）');

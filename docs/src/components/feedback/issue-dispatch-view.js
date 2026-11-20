@@ -11,13 +11,13 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫：issue-branch.test.mjs（结构层）。
 // ════════════════════════════════════════════════════════════════
 
-import { renderFilteredList } from '../ui/list-filter.js?v=20261110b';
-import { renderTabHeader } from '../shell/page-frame.js?v=20261110b';
-import { escHtml, showToast } from '../../core/base/utils.js?v=20261110b';
-import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261110b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261120a';
+import { renderTabHeader } from '../shell/page-frame.js?v=20261120a';
+import { escHtml, showToast } from '../../core/base/utils.js?v=20261120a';
+import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261120a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261110b';
-import { renderCardHeader } from '../shell/page-frame.js';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261120a';
+import { renderCardHeader } from '../shell/page-frame.js?v=20261120a';
 // ════════════════════════════════════════════════════════════════
 //  「我的处置」Tab 渲染工具（各角色工作台复用）
 //  2026-07-30 新增：被指派人视角的反馈列表+详情+评论/提交处置结果
@@ -197,7 +197,7 @@ function _reportRequestRowHtml(r) {
             <input type="text" id="report-req-input-${r.id}" class="input-flat flex-1" placeholder="填写汇报内容" aria-describedby="report-req-err-${r.id}">
             <button data-mydispatch-action="submit-report" data-issue-id="${r.id}" class="btn-accent-soft text-xs px-3 py-2 flex-shrink-0">汇报</button>
           </div>
-          <p id="report-req-err-${r.id}" data-field-error hidden class="mt-1 text-xs text-red-600" role="alert"></p>
+          <p id="report-req-err-${r.id}" data-field-error hidden class="mt-1 text-xs text-[var(--status-error-text)]" role="alert"></p>
         </div>`;
 }
 
@@ -212,7 +212,7 @@ function _assignedIssueRowHtml(issue, userId) {
             <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>
           </div>
           <p class="text-sm text-gray-800 font-medium">${issue.title}</p>
-          ${dispatchNote?.note ? `<p class="text-body-sm text-blue-600 mt-1">支书备注：${dispatchNote.note}</p>` : ''}
+          ${dispatchNote?.note ? `<p class="text-body-sm text-[var(--status-info-text)] mt-1">支书备注：${dispatchNote.note}</p>` : ''}
           <div class="text-xs text-gray-500 mt-1">${_displayName(issue.submittedBy)} · ${issue.submittedAt} · ${issue.commentCount || 0} 评论</div>
         </div>`;
 }
@@ -295,7 +295,7 @@ function _renderMyReportDetail(issueId, role, userId, container, opts = {}) {
     html += `<div class="flex items-center gap-2">`;
     html += `<input type="text" id="mydispatch-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论" aria-describedby="mydispatch-comment-err">`;
     html += `<button data-mydispatch-action="comment" class="btn-neutral text-xs px-3 py-2">评论</button>`;
-    html += `</div><p id="mydispatch-comment-err" data-field-error hidden class="mt-1 text-xs text-red-600" role="alert"></p></div>`;
+    html += `</div><p id="mydispatch-comment-err" data-field-error hidden class="mt-1 text-xs text-[var(--status-error-text)]" role="alert"></p></div>`;
   }
   html += `</div>`;
 
@@ -373,7 +373,7 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
     html += `<input type="text" id="mydispatch-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论" aria-describedby="mydispatch-comment-err">`;
     html += `<button data-mydispatch-action="comment" class="btn-neutral text-xs px-3 py-2">评论</button>`;
     html += `<button data-mydispatch-action="submit-result" class="btn-accent-soft text-xs px-3 py-2">提交处置结果</button>`;
-    html += `</div><p id="mydispatch-comment-err" data-field-error hidden class="mt-1 text-xs text-red-600" role="alert"></p></div>`;
+    html += `</div><p id="mydispatch-comment-err" data-field-error hidden class="mt-1 text-xs text-[var(--status-error-text)]" role="alert"></p></div>`;
   }
   html += `</div>`;
 

@@ -2,7 +2,7 @@
 title: "设计系统 · 第三编 组件"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-20"
+last_updated: "2026-11-21"
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_RESPONSIVE.md, DS_06_LAYOUT_AND_DENSITY.md, ../../../docs/src/styles.css, CASES.md]
 ---
@@ -999,6 +999,10 @@ icon('bell', { className: 'w-4 h-4' })
 同屏出现标准卡与紧凑卡时，厚度只允许差一档（16 与 12）；不出现第三种厚度。
 页面骨架工具类：`.stack-page`（24）→ `.stack-section`（16）→ `.stack-card`（12）；
 行内小间距用 `.gap-inline`（4）。
+
+**状态文字禁止 Tailwind 调色板（2026-11-21 批次 587）**：状态 / 提示 / 错误 / 必填星号一律 `--status-*-text` 或 `--neutral-*`；不得写 `text-(amber|green|red|blue|emerald|rose|orange)-<n>`。卡片不得挂调色板底色（`bg-*-50/100`），一律白底 ＋ hairline。徽章只从 `badgeHtml` 出。判据：`status-palette-text-guard` ＋ `badge-single-source-guard`（存量按文件基线只减不增）。
+
+**日历日期格特例（2026-11-21 批次 588）**：月历 31 格按行等宽（每格 3 字），属网格语义必需，**不计入低密度卡**；密度审计与「按内容收窄」判据一律豁免该网格。
 
 **数字卡不另立厚度档（2026-11-01 批次 523 立）**：数字卡（`.stat-card`）＝**两行**（数值 ＋ 标签），
 无记录时数值位显示「—」，**不得加第三行注记**（如「本月无记录」）；卡内边距只由调用点 `p-4`（16px）给出，

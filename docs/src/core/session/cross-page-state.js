@@ -2,7 +2,7 @@
 // cross-page-state.js — 跨页面状态管理
 // 使用 sessionStorage 传递会话级状态，localStorage 传递持久数据
 // 第3轮 Task 8: 追加 setParam/getParam/clearParam 统一 URL params + sessionStorage 双轨
-import { pageHref } from '../base/page-url.js?v=20261110b';
+import { pageHref } from '../base/page-url.js?v=20261120a';
 
 const SESSION_KEY = 'sop_org_os_session';
 const DATA_VERSION_KEY = 'sop_org_os_data_version';
@@ -14,7 +14,7 @@ const CPS_PREFIX = 'cps-';  // 单值参数前缀，与 SESSION_KEY 区隔
  * 每次更新 docs/src 下的 mock/服务代码时，将本常量 +1，所有页面首次打开会自动刷新一次加载新模块。
  * 自检逻辑见 bootstrapPage()。
  */
-const CODE_VERSION = 513; // 由 docs/scripts/bump-version.mjs 每次 bump 自增（勿手改；当前基线见 .ctx/SNAPSHOT.md）；旧 tab 持旧 ES 模块时据此自检并自动刷新一次 [stamp:20261110b]
+const CODE_VERSION = 514; // 由 docs/scripts/bump-version.mjs 每次 bump 自增（勿手改；当前基线见 .ctx/SNAPSHOT.md）；旧 tab 持旧 ES 模块时据此自检并自动刷新一次 [stamp:20261120a]
 
 export const CrossPageState = {
   save(session) {

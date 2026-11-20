@@ -27,9 +27,9 @@ import {
   AGENDA_INSTITUTION_PENDING_PARTY_MEETING,
   classifyAgendaItem,
   agendaDedupeKey,
-} from '../../docs/src/core/domain/agenda-classify.js?v=20261110b';
+} from '../../docs/src/core/domain/agenda-classify.js?v=20261120a';
 // D-1（批次 541）：应到人数必须等于名册统计应到 —— 两侧同一实现（`roster.js` 再导出 core 叶子件公式）
-import { computeRosterStats } from '../../docs/src/services/member/roster.js?v=20261110b';
+import { computeRosterStats } from '../../docs/src/services/member/roster.js?v=20261120a';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');

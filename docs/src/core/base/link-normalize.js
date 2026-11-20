@@ -9,7 +9,7 @@
 //    · 旧 `.html` 仍由服务端 200 提供；本文件不改地址栏，不做 301。
 //    · 回滚：`page-url.js::URL_STYLE` 改为 `'html'`，本文件随之不生效。
 // ════════════════════════════════════════════════════════════════
-import { pageHref } from './page-url.js?v=20261110b';
+import { pageHref } from './page-url.js?v=20261120a';
 
 /** 冻结面：作为链接目标或当前页面时不改 */
 const FROZEN = /\/(?:help|about)\.html(?:[?#]|$)/i;

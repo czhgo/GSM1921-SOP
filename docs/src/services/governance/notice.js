@@ -5,24 +5,24 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261110b';
-import { generateId } from '../../core/base/id.js?v=20261110b';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken, adoptCollectionFromServer } from '../../data/data-adapter.js?v=20261110b';
-import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261110b';
-import { bumpToken } from '../../core/base/version-token.js?v=20261110b'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261110b';
-import { isInitStateActive } from '../core/init-reset.js?v=20261110b'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { todayLocal, fmtLocalDate } from '../../core/base/utils.js?v=20261110b';
-import { AuthStore } from '../core/auth.js?v=20261110b';
-import {  getPersonById, getPersonName } from '../member/person.js?v=20261110b';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261110b';
+import { mockDB } from '../../core/domain/domain.js?v=20261120a';
+import { generateId } from '../../core/base/id.js?v=20261120a';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken, adoptCollectionFromServer } from '../../data/data-adapter.js?v=20261120a';
+import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261120a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261120a'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261120a';
+import { isInitStateActive } from '../core/init-reset.js?v=20261120a'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { todayLocal, fmtLocalDate } from '../../core/base/utils.js?v=20261120a';
+import { AuthStore } from '../core/auth.js?v=20261120a';
+import {  getPersonById, getPersonName } from '../member/person.js?v=20261120a';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261120a';
 // 组织者身份读取单一源（2026-09-19 批次 91 · SOP-B-17）——发布权随「被指定为该场组织者」动态获得
-import {  getOrganizedActivities } from '../activity/activity.js?v=20261110b';
+import {  getOrganizedActivities } from '../activity/activity.js?v=20261120a';
 import {
   NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
   NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
   DEFAULT_BRANCH_ID,
-} from '../../core/domain/constants.js?v=20261110b';
+} from '../../core/domain/constants.js?v=20261120a';
 
 // ════════════════════════════════════════════════════════════════
 //  消息对象模型（Task 3 · 2026-10-25）

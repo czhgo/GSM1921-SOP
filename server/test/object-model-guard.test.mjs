@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 const workgroupRoutes = readFileSync(new URL('../routes/resources/workgroup-routes.js', import.meta.url), 'utf8');
 const resourceRoutes = readFileSync(new URL('../routes/resources/index.js', import.meta.url), 'utf8');
 const dataModel = readFileSync(new URL('../../content/04_web_design/data/DATA_MODEL.md', import.meta.url), 'utf8');
-const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261110b');
+const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261120a');
 
 test('O1 工作组挂靠形状：kind / sourceType / sourceId 三字段一致且创建点过校验', () => {
   assert.match(workgroupRoutes, /export function workgroupShapeDeny/, '缺少 workgroupShapeDeny 单一校验');
