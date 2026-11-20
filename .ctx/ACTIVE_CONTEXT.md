@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: 2026-11-20
 last_verified: "2026-11-20"
-latest_decision: "D-891"
+latest_decision: "D-892"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -77,6 +77,7 @@ status: active
 - **发展对象硬门（`D-887`，批次 575）**：进入「发展对象」必须存在支委会讨论通过留痕，否则 422；积极分子最短考察期 `member.activistMinMonths`（默认 12，0＝不设期限，组织域可调）。→ `server/routes/member.js`、`policy-defaults.js`、`settings-entry.js`。
 - **sample-diff 收口（`D-890`，批次 578）**：六条样本支书全取保留；四条可布尔化口径入判例——缺证据即拒 / 缺省可见性冻结 / 派生随来源终止 / 提问自解释；本批无代码、六维不加分。→ `content/05_ai_coding/TEST_AND_VERIFICATION.md`。
 - **副支书操作权参数（`D-891`，批次 579）**：副支书与支书同页同台、独立账号键；**主责归支书**，任务 / 提醒 / 统计不随参数变化。四类主责动作（活动编辑 / 全支部通知 / 名册阶段 / 支部配置）的操作权由 `role.deputySecretary` 三档（`full` 默认 / `standard` / `custom`）决定；设置中心可改。→ `docs/src/core/domain/deputy-capability.js`、`server/routes/resources/deputy-policy.js`。
+- **全仓历史目标对账（`D-892`，批次 580）**：作废 / 删除 12 项（B-3、F-3/4/5、B-8/9、L-08/11/12/16、B-541-11/H-12/H-18）；重规划 6 项（L-10 逐读口取证、L-02/CI/签收归外部门、L-14/15 合并、L-17 可测阈值）；`B-522-1` / `B-500-7b-2` 改单项证据门；跨平台脚本改 `scripts/with-env.mjs`。→ `.ctx/evidence/2026-11-20/backlog-reconcile.md`。
 
 ## §3 当前风险与下一步
 
@@ -90,21 +91,18 @@ status: active
 
 ### 上线残项中仍 open 的（详见 `.ctx/ENGINEERING_ASSESSMENT.md §四`）
 
-- `L-02` `install.sh` / `install.ps1` / `update.sh` 未在 Linux 真机验证；容器可验证部分 `deploy/verify-linux.sh` **6/6**（批次 539 修 `package` 的 msys `tar` 盘符问题 ＋ `cygpath -u`，证据 `.ctx/evidence/2026-11-09/deploy-verify.md`），CI `deploy-verify` job 未实跑绿。
-- `L-08` 44 条 exception 无固定复核节奏（每次全量审计同批复核）。
-- `L-10` 多支部读过滤未接线到生产读面（`multi-branch-read-filter` 9 组夹具已证明可行；设计已出，开关仍关闭）。
-- `L-11` 共享口令（个人密码已落地，共享口令作回退保留）。
-- `L-12` 审计脚本不进 daily（发布前硬门）；precommit / full 时长仍长。
-- `L-13` 页签 IA 未闭项 **A 37 / B 9 / C 0**；6 个超 4 块页签登记例外；默认两条（`org.talent` 录入考察、`disc.attendance` 两级切换）已复核为波次 C 落地（`D-887`）。
+- `L-02`（**外部门**）`install.sh` / `install.ps1` / `update.sh` 未在 Linux 真机验证；容器可验证部分 `deploy/verify-linux.sh` **6/6**，CI `deploy-verify` job 未实跑；由支书授权后一次性补齐，不阻断本机合并。
+- `L-10` 读口已统一走 `resourceRowsForActor`；余「逐读口取证 ＋ `ALLOW_MULTI_BRANCH` 开关演练」，开关仍关闭。
+- `L-13` 页签 IA 未闭项 **A 37 / B 9 / C 0**；6 个超 4 块页签登记例外；默认两条已复核为波次 C 落地（`D-887`）。
 - **公开内容与党委内容读面（`D-858`）**：未登录只读 `publishScope='public'` 且未过期的党委内容，过期即 404 fail-closed；党委内容只经服务端读口（`/committee/*` 与公开门厅），客户端不得本地派生可见性、不得带出支部名与成员字段。
-- `L-14` / `L-15` 块停用与画布 / 按角色配置（先出方案）。
-- `L-17` 宽表与索引。
+- `L-14` / `L-15` 工作流块停用与画布：先出方案，未出方案前不排执行状态。
+- `L-17` 宽表与索引：单表 ≥ 1 万行或 p95 查询 > 200ms 触发评估。
 - `L-18` 组件出口散件。
 
 ### 下一批任务
 
-1. **分支与合并（`H20.5`）**：`release/2026-11-launch` 尚未推远端（SSH host key 未授信、`gh` 未安装）；合并门槛＝六维均 ≥80 ＋ `test:full` 绿 ＋ P0/P1=0 ＋ 支书确认，达标前继续在分支累积。无条件未完成项已清零（批次 574–578）。
-2. **评分门任务（六维 ≥80 后启动）**：`B-500-7b-2`（Plan B 收尾）、`B-522-1`（低密度卡与空态页）。
+1. **分支与合并（`H20.5`）**：`release/2026-11-launch` 尚未推远端（SSH host key 未授信、`gh` 未安装）；合并门槛＝六维均 ≥80 ＋ `test:full` 绿 ＋ P0/P1=0 ＋ 支书确认，达标前继续在分支累积。无条件未完成项已清零（批次 574–579）。
+2. **单项证据门任务**：`B-522-1`（并入批次 582–583 前端美学；清单 8 页覆盖率 100%）、`B-500-7b-2`（批次 584 后；客户端兜底调用数 = 0 + 7 类对账 8/8）。
 3. **外部 / 真人清单**：Linux 真机 L-02、CI run id、push / PR、SMTP、真机三任务、签收、timer。
 
 ## §4 文件地图（读什么 / 不读什么）

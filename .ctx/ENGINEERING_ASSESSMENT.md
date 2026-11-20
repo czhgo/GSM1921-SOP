@@ -3,7 +3,7 @@ title: "工程化评估与改造行动线"
 type: audit_report
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: 2026-11-19
+last_updated: 2026-11-20
 status: active
 layer: reference
 related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md, content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/04_web_design/deploy/DEPLOYMENT_GUIDE.md, .ctx/REVIEW_QUEUE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/insights/README.md, content/insights/工程与AI协作的全栈实践.md, server/README.md, docs/help.html]
@@ -311,17 +311,12 @@ Git 从 2026-03-14 至 2026-10-14 共 1,133 条提交记录；按提交日期分
 
 | 编号 | 残项 | 严重度 | 状态 | 下一动作 | 单一源指针 |
 |---|---|---|---|---|---|
-| L-02 | `install.sh` / `install.ps1` / `update.sh` 未在真机验证 | post-launch | 待办 | **降级理由**：本机为 Windows 开发机，无法代替 Linux 测试机；首次部署前必须在测试机逐条跑安装与升级，核对脚本 ①–⑦ 输出与回滚提示。**容器可验证部分已 6/6**：`deploy/verify-linux.sh` 在本地 Git Bash 跑通 `bash -n` / `doctor` / `smoke` / `preflight --strict` / `package`，退出码 0（批次 539 修 `package.mjs` 的 msys `tar` 盘符问题 ＋ `cygpath -u` 转换；证据 `.ctx/evidence/2026-11-09/deploy-verify.md`）；PowerShell `package` 回归退出 0；GitHub Actions `deploy-verify` job 仍**未实跑绿** | `deploy/README.md` L50；`deploy/install.sh` 头注（L12）；`deploy/verify-linux.sh`；`.github/workflows/daily.yml` `deploy-verify`；`.ctx/evidence/2026-11-09/deploy-verify.md` |
-| L-08 | 44 条 exception 无固定复核节奏 | post-launch | 待办 | 每次 `audit-tabs --all` 同批复核例外理由是否仍成立；失效即删登记并修 | `.ctx/evidence/2026-11-10/tab-audit/summary.md` L8、`§例外登记（L374）` |
+| L-02 | `install.sh` / `install.ps1` / `update.sh` 未在真机验证 | 外部门 | 待办 | **已移入外部门**（批次 580）：容器可验证部分 6/6（`deploy/verify-linux.sh`）；Linux 真机与 CI run id 由支书授权后一次性补齐，不阻断本机合并 | `deploy/README.md` L50；`deploy/install.sh` 头注（L12）；`deploy/verify-linux.sh`；`.ctx/evidence/2026-11-09/deploy-verify.md` |
 | L-09 | `issue-unread` 派发位未强校验 `assignee === issue.assignee` | post-launch | 已关闭 | 批次 538：请求 `assigneeId` ≠ 事项行 `assignee` 一律 **403**；回归在 `security-hardening` 第 3 条常驻 | `server/test/security-hardening.test.mjs`（L-09 用例）；`server/routes/resources/semantic-routes.js`；`server/security/write-policy-matrix.mjs` |
-| L-10 ＋ `B-536-1`（已合并） | 单实例多支部硬边界；服务端按支部读过滤未做（`ALLOW_MULTI_BRANCH` 开关同步条件并入本行） | post-launch | 在办 | **设计已出**（Architecture §十：请求级支部上下文 / 读口统一过滤 / 党委显式跨支部 / Phase 1–4）；`multi-branch-read-filter` **9 组**夹具已证明读口按支部过滤可行，但未接线到生产读面，开关仍关闭。**开关条件（原 `B-536-1`）**：Phase 1–2 实施并验收通过前不打开 `ALLOW_MULTI_BRANCH`；当前只补设计。**触发**：Phase 1–2 验收通过后当批打开并接线 | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §十（L150-L184）`；`server/test/multi-branch-read-filter.test.mjs`；`server/run-mode.js#L34-L48`；本文件 §四 P13 |
-| L-11 | 全支部共享一个 `LOGIN_PASSWORD`，无个人密码 | post-launch | 已关闭 | **个人密码已落地**（`personal-password` 21/21）；**生产形态已拒绝共享口令回退**（`D-882`，`auth.js::loginPasswordForUser`）；`preflight-cutover` ⑧ 检查个人密码覆盖；共享口令仅非生产演示 | `server/test/personal-password.test.mjs`；`server/routes/auth.js`；`server/scripts/preflight-cutover.mjs`；`deploy/CUTOVER_RUNBOOK.md §9` |
-| L-12 | 审计脚本不进 `test:daily`；precommit / full 时长仍是发布风险 | post-launch | 待办 | 保持「发布前 `audit-tabs --all`」为硬门，不把全量审计塞进 daily。2026-11-19 daily **32 文件 / 262 断言 / 113.4s**，guards **112 文件 / 385 项 / 158.0s** 全绿；precommit 仍含域回归＋e2e，时长仍长 | 本文件 §二 2.5；`server/test-tier-registry.mjs`；`server/README.md`「测试耗时台账」 |
-| L-13 ＋ `REVIEW_QUEUE` 页签口径（已合并） | 页签 IA 未闭项：**A 35 / B 11 / C 0**（台账 §三）；6 个超 4 块页签登记例外 | backlog | 待办 | 按 `.ctx/evidence/2026-11-08/tab-review-ledger.md §四` 逐条排批；C 类 5 个页签的三问结论见台账 §六；先挑 2 条低风险 B 项（`org.talent` 录入考察上提、`disc.attendance` 撤两级切换），其余待支书裁定。**原「归口待办」那条（41 个页签计数）已并入本行**；触发条件见 `.ctx/REVIEW_QUEUE.md` `B-541-2` | `.ctx/evidence/2026-11-08/tab-review-ledger.md §六 / §三`；`.ctx/evidence/2026-11-08/tab-audit/summary.md`；`.ctx/REVIEW_QUEUE.md` `B-541-2` |
-| L-14 | 块停用是否同步阻断任务派生 / 通知 | backlog | 待办 | 先出方案定口径，再并入工作流批 | `content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md §8.1（L286）`、`§8.4（L331）`；本文件 §四 P10（L257） |
-| L-15 ＋ `H-24`（已合并） | 画布 UI（L4）与「按角色配置（块决定 tab）」 | backlog | 待办 | 新维度先出方案；与 `allowedPages` 身份门、tab 计数守卫一起评审。**原 `H-24`（块决定 tab ＋ 画布拖拽）并入本行**；触发条件见 `.ctx/REVIEW_QUEUE.md` `B-541-4` | `content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md §8.4（L331）`；`.ctx/REVIEW_QUEUE.md` `B-541-4` |
-| L-16 ＋ 表决名单重算（已合并） | 表决 `voteConfig.voterIds` 由活动写入方固化，服务端未按场景重算（同 §一 阻断级风险 3，本行即该风险的唯一行动项） | backlog | 已关闭 | **已落（D-872，批次 550）**：服务端建会冻结快照——写库前按 users ＋ 组织归属算一次（剔滞留 / 已转出），客户端提交值不作数；范围非法 400；组织变动下次建会生效 | 本文件 §一 阻断级风险 3（L54）；`server/routes/committee.js#L355-L372`；`server/routes/resources/index.js#L1833-L1844`；`server/test/agenda-votes.test.mjs` |
-| L-17 ＋ 宽表索引（已合并） | SQLite JSON 宽表、无跨表外键、无业务字段索引（同 §一 阻断级风险 5，索引评估与本行同一事项） | backlog | 待办 | 任一表接近万行或出现慢查询读数时评估 `MIGRATIONS v2` 与索引；平时只登记；触发条件见 `.ctx/REVIEW_QUEUE.md` `B-541-6` | 本文件 §一 阻断级风险 5（L53）；`server/README.md §部署前必知限制 #2（L248）`；`.ctx/REVIEW_QUEUE.md` `B-541-6` |
+| L-10 ＋ `B-536-1`（已合并） | 单实例多支部硬边界；服务端按支部读过滤 | post-launch | 在办 | **读口已统一走 `resourceRowsForActor`**（`resources/index.js`、`committee.js`、`member.js`、`todo-groups.js`）；下一步是**逐读口取证 ＋ `ALLOW_MULTI_BRANCH` 开关演练**，不再笼统写「未接线」。开关条件：Phase 1–2 验收通过前不打开 | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §十`；`server/test/multi-branch-read-filter.test.mjs`；`server/run-mode.js` |
+| L-13 ＋ `REVIEW_QUEUE` 页签口径（已合并） | 页签 IA 未闭项：**A 37 / B 9 / C 0**（台账 §三）；6 个超 4 块页签登记例外 | backlog | 待办 | 按 `.ctx/evidence/2026-11-08/tab-review-ledger.md §四` 逐条排批；先挑低风险 B 项（F-2 / D09 等）；触发条件见 `REVIEW_QUEUE` `B-541-2` | `.ctx/evidence/2026-11-08/tab-review-ledger.md §六 / §三`；`.ctx/REVIEW_QUEUE.md` `B-541-2` |
+| L-14 / L-15（已合并） | 工作流块停用是否阻断任务派生 / 通知；画布 UI 与「块决定 tab」 | backlog | 待办 | **先出方案**（做不做、与 `allowedPages` 身份门关系），未出方案前不排执行状态 | `content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md §8.1 / §8.4`；`.ctx/REVIEW_QUEUE.md` `B-541-4` |
+| L-17 ＋ 宽表索引（已合并） | SQLite JSON 宽表、无跨表外键、无业务字段索引 | backlog | 待办 | **可测阈值**：单表 ≥ 1 万行或 p95 查询 > 200ms 时评估 `MIGRATIONS v2` 与索引；平时只登记 | 本文件 §一 阻断级风险 5；`server/README.md §部署前必知限制 #2`；`.ctx/REVIEW_QUEUE.md` `B-541-6` |
 | L-18 | 单一源组件出口仍有零星散件；R2 复核保留、R10 / R11 观察 | backlog | 待办 | 按 §3.3 末清单逐项收敛；观察项不提前合并 | 本文件 §3.3 复核保留（L225-L234）、§四 P0·统一扎口（L242） |
 | L-19 | IAAA 前端三步（登录按钮 / 选支部层 / 待确认队列） | post-launch | 已关闭 | 2026-11-03 复核：三步均已在批次 277–278 落地；同步 `H-22` 状态 | `docs/src/entries/pages/login-entry.js#L298-L380`；`docs/src/entries/tabs/org/member-flow-tab.js#L137-L190`；`server/test/iaaa-onboarding.test.mjs` |
 | L-20 | 写入口 6 条 `known-risk` 未清零 | launch-blocker | 已关闭 | 2026-11-03 Task 4 已清零；矩阵当前无 `known-risk` 行，再出现须带 reason / impact / riskRef | `server/security/write-policy-matrix.mjs#L29-L33`、`#L180-L184`；`server/test/write-policy-matrix.test.mjs` |
@@ -330,8 +325,8 @@ Git 从 2026-03-14 至 2026-10-14 共 1,133 条提交记录；按提交日期分
 **本批执行顺序**
 
 1. **本次 spec 关闭的 launch-blocker**：生产空库 `--strict`（L-01）· 会话不迁移 ＋ 附件按 runbook 搬（L-03）· 表随库导出不再要求手工导 localStorage（L-04）· `npm run start:review` 强制独立库（L-05）· 考勤删除门 ＋ 快照红队回归（L-06）；均已在 2026-11-03 任务 6 关闭或给出可复跑证据。**批次 541 起这些已关闭项按「已关闭只留最近 3 条」从本表移出，证据与分拣结论见 `.ctx/evidence/2026-11-10/p2-cleanup-ledger.md`。**
-2. **明确降级为 post-launch**：L-02 降级（本机为 Windows 开发机，无法代替 Linux 测试机；首次部署前必须在测试机验证 install / update）；L-10 依据 spec 关键假设 3「上线＝一实例一支部」；L-11 的会话过期已在本批关闭，剩余共享口令属受控部署、由 systemd 注入强口令。其余 post-launch：F6 三处空态经复核是误报（已关闭，见台账 C-1）；L-08 属审计节奏而非缺陷（台账 E-1）；L-09 已收窄到派发位且做支部校验；L-12 是发布时长权衡。
-3. **backlog 只登记**：L-13（页签 IA 未闭项，按台账排批）、L-14 / L-15（工作流新维度先出方案）、L-16（表决名单需支书裁定）、L-17（宽表与索引）、L-18（组件出口散件）、L-22（三处 IA 块数漂移，待「按实测重基线」裁定）；均不排入本批。
+2. **外部门（不阻断本机合并）**：L-02（Linux 真机 install / update）、CI run id、真人签收、SMTP 实投；由支书授权后一次性补齐。已关闭项（会话过期、共享口令回退、审计节奏等）已从本表移出，证据见 `.ctx/evidence/2026-11-10/p2-cleanup-ledger.md`。
+3. **backlog 只登记**：L-13（页签 IA 未闭项，按台账排批）、L-14 / L-15（工作流新维度先出方案）、L-17（宽表与索引，可测阈值）、L-18（组件出口散件）、L-22（已复核关闭，仅留证据）；均不排入本批。
 4. **口径**：本表只归总残项与顺序，不改 §一 / §二 / §五 的评分与论证；每条下一动作均落到可定位文件与小节 / 行号，不写「见上文」。
 
 ---

@@ -2,7 +2,7 @@
 title: "CLAUDE — 项目宪法与路由"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-19"
+last_updated: "2026-11-20"
 status: active
 ---
 
@@ -312,8 +312,8 @@ status: active
 
 | 目标批次 | 条目 | 一句话 | 判据 / 出处 | 状态 |
 |---|---|---|---|---|
-| 评分达标后 | B-500-7b-2 | 完整 Plan B 收尾：客户端业务派生摘除（默认路径已切服务端）＋ 读面前置解耦 ＋ 缓存 / 性能。**前置已达**：7 类对账 8/8、双支部夹具、daily 断言（结果门禁）全绿；**不以上线为前提**，测试门全绿即可启动 | 六维均 ≥80 后启动（当前值见 `.ctx/ACTIVE_CONTEXT.md §1`）；`server/routes/todo-groups.js`、`docs/src/components/record/todo-tab-shell.js`、`server/test/todo-derive-parity.test.mjs` | 待启动 |
-| 评分达标后 | B-522-1 | 低密度卡与空态页：低密度等尺寸卡按内容收窄 / 合并；「今天」「归档」首屏空白补最近动态与下一步动作（旧 spec harden-interface-quality Task 8） | 六维均 ≥80 后启动（当前值见 `.ctx/ACTIVE_CONTEXT.md §1`）；台账见 `.trae/specs/harden-interface-quality/tasks.md` Task 8 指针 | 待启动 |
+| 批次 582–583 | B-522-1 | 低密度卡与空态页：低密度等尺寸卡按内容收窄 / 合并；「今天」「归档」首屏空白补最近动态与下一步动作（旧 spec harden-interface-quality Task 8）。**单项证据门**：清单 8 页的低密度卡与空态覆盖率 100%，不再等六维全局 ≥80 | 并入批次 582–583 前端美学 P1/P2；台账见 `.trae/specs/harden-interface-quality/tasks.md` Task 8 指针 | 在办 |
+| 批次 584 后 | B-500-7b-2 | 完整 Plan B 收尾：客户端业务派生摘除（默认路径已切服务端）＋ 读面前置解耦 ＋ 缓存 / 性能。**单项证据门**：客户端业务派生兜底调用数 = 0（instrument 计数）且 7 类对账仍 8/8 | 判据见本条；`server/routes/todo-groups.js`、`docs/src/components/record/todo-tab-shell.js`、`server/test/todo-derive-parity.test.mjs` | 待启动 |
 
 # 丙部：待决策事项
 

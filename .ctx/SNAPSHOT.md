@@ -2,7 +2,7 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-11-19"
+last_updated: "2026-11-20"
 status: "ACTIVE"
 layer: reference
 date: "2026-10-23"
@@ -91,7 +91,7 @@ GSM1921-SOP/
     └── logs/                   ← 执行日志+决策日志（临时 spec 受管区 .trae/specs 用后即删，禁入 content）
 ```
 
-> **schema v13（2026-11-08 批次 536 实测，`initDb(':memory:')` 读数）**：当前 **53 张表**（v1 基线 ＋ 影子子表 `agenda_items` / `taskforce_contributions`；v12 已 DROP `issue_reveals`；v13 新建 `publication_audits`，并给 `activities` / `notices` / `branch_docs` 加 `owner_scope` / `publish_scope` 生成列与部分唯一索引）；业务表 **48 张（34 资源 ＋ 8 语义 ＋ 6 工作组）**；五张热表有 generated VIRTUAL 列（不是 STORED）与复合索引；`todos.branch_id` 为生成列。**影子子表不是权威源**——读写仍走 JSON 主表，切表判据见 `content/04_web_design/data/DATA_MODEL.md §2.3.2` 与 `server/scripts/schema-split-readiness.mjs`。
+> **schema v19（2026-11-20 批次 580 改准）**：v13 生成列 ＋ v16 提案两表 ＋ v17 `branch_visits` ＋ v18 报名唯一索引 ＋ v19 多支部键级（`collection_versions(branch_id,name)` / `sessions.branch_id` / `attachments.branch_id`）；业务表 **50 张（34 资源 ＋ 10 语义 ＋ 6 工作组）**。当前总表数以 `initDb(':memory:')` 实测为准。**影子子表不是权威源**——读写仍走 JSON 主表，切表判据见 `content/04_web_design/data/DATA_MODEL.md §2.3.2` 与 `server/scripts/schema-split-readiness.mjs`。
 >
 > **数据表现状（台账标注 · 2026-09-25 批次 190，系 `.ctx` 侧登记、**未改 `server/**`**）**：`server/data.db` 实有 **45 张表**、全库 **317 行**；其中 **30 张为空表**——**仅结构先行、数据尚未落地**（逐表清单见下句）。**⚠ 本注记的性质＝台账标注**：这些表**有结构、有读写口**（多为既有上传 / 留痕 / 申诉 / 服务端化链的承载位），**不代表功能不可用**——**这不是缺陷、也未被「修复」**（**只是把结构现状写清**）。同批另两条**本就建议不动**，一并说明：**单写者**（better-sqlite3 同步、单进程；WAL 只救读、不救写）· **附件走磁盘**（`uploads/` 落文件、库里只存路径，当前方向正确）。
 >

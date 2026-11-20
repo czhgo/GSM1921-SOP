@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-891`，共 65 条**；下一条自 **`D-892`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-892`，共 66 条**；下一条自 **`D-893`**。
 
 ## 本月目录（2026-11）
 
@@ -85,6 +85,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 公共门厅支部维度（`?branchId=` 可选，缺省不变）＋ v19 列说明；`B-568-1` 四条 P0 全清并出表 | `D-889` | 2026-11-19 | 已落（批次 577） |
 | sample-diff 8.1–8.5 收口：六条样本支书全取保留 ＋ 四条可布尔化口径入判例；本批无代码、六维不加分 | `D-890` | 2026-11-19 | 已落（批次 578） |
 | 副支书操作权三档参数（full/standard/custom × 四类动作）；主责仍在支书，参数只决定能否代操作 | `D-891` | 2026-11-20 | 已落（批次 579） |
+| 全仓历史目标对账：作废 12 项、重规划 6 项、单项证据门；跨平台脚本包装 | `D-892` | 2026-11-20 | 已落（批次 580） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -623,5 +624,17 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **边界**：默认 `full` ＝ 与改造前行为一致；party-staff 与其他角色口径不变；主责仍按 `secretary` 派生。
 > **落点**：`docs/src/core/domain/{policy-defaults,deputy-capability}.js`、`server/routes/resources/deputy-policy.js`、`server/routes/{member.js,routes/resources/{index,gates}}.js`、`docs/src/{components/governance/work-overview.js,components/record/inspector.js,entries/pages/{settings-entry,wizard-entry}.js}`、`server/test/deputy-policy.test.mjs`、`server/security/write-policy-matrix.mjs`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-891`**（共 **65** 条）。
+## D-892 2026-11-20 — 全仓历史目标对账：作废 12 项、重规划 6 项、单项证据门（批次 580）
+
+> **评议 → 裁定 → 落点**：按支书「不要局限乙部，放眼全仓库历史登记」的要求，完成只读盘点并落台账。
+> - **作废 / 删除**：`B-3`（活动材料页已存在）、`F-3/F-4/F-5`（批次 539 已落地）、`B-8/B-9`（前提消失）、`L-08/L-11/L-12/L-16`（EA 已关闭或已定策）、`B-541-11/H-12/H-18`（3 批无触发）。
+> - **重规划**：`L-10` 改「逐读口取证 + 开关演练」；`L-02` / CI run id / 真人签收移入外部门；`L-14/L-15` 合并为「先出方案」；`L-17` 改可测阈值（≥1 万行或 p95 >200ms）。
+> - **单项证据门**：`B-522-1`（清单 8 页覆盖率 100%，并入批次 582–583）、`B-500-7b-2`（客户端兜底调用数 = 0 + 7 类对账 8/8，批次 584 后）；取消「六维 ≥80 才启动」。
+> - **同一事实**：`L-13` 统一 A 37 / B 9 / C 0；`EA` guards 读数取当前值；`SNAPSHOT` 改 schema v19 / 业务 50 表。
+> - **跨平台脚本**：`server/package.json` 的 `set X=1&&` 改 `scripts/with-env.mjs`（node 实现，不新增依赖）。
+> **未选**：保留观察项（无触发判据只会继续膨胀）；等六维全局 ≥80（与涨分互锁）；把「外部门」继续挂本机待办。
+> **边界**：只改台账与脚本包装，不改业务行为；已关闭项证据仍在 `p2-cleanup-ledger.md` 与 git。
+> **落点**：`.ctx/evidence/2026-11-20/backlog-reconcile.md`、`.ctx/REVIEW_QUEUE.md`、`.ctx/ENGINEERING_ASSESSMENT.md §四`、`.ctx/SNAPSHOT.md`、`.ctx/ACTIVE_CONTEXT.md`、`CLAUDE.md` 乙部、`server/package.json`、`server/scripts/with-env.mjs`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-892`**（共 **66** 条）。
 

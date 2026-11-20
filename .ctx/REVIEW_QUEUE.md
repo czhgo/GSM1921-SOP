@@ -2,7 +2,7 @@
 title: "支书评议队列"
 type: audit_report
 role: "[工程师]+[AI]"
-last_updated: 2026-11-19
+last_updated: 2026-11-20
 status: active
 layer: reference
 related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
@@ -157,12 +157,11 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 | ID | 一句话 | 触发条件 | 权威指针 |
 |---|---|---|---|
 | B-541-2 | `L-13` 页签 IA 未闭项（A 37 / B 9 / C 0；6 个超 4 块页签已登记例外） | 剩余 B 项按台账逐条排批；默认两条已于波次 C 落地（`D-887`） | `.ctx/evidence/2026-11-08/tab-review-ledger.md §四 / §六` |
-| B-541-3 | `L-10` ＋ `B-536-1` 单实例多支部与服务端支部读过滤（开关 `ALLOW_MULTI_BRANCH` 仍关闭） | Phase 1–2 实施并验收通过后才可打开开关；「一实例一支部」上线不以此为前提 | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §十`；`server/test/multi-branch-read-filter.test.mjs` |
+| B-541-3 | `L-10` ＋ `B-536-1` 单实例多支部与服务端支部读过滤（开关 `ALLOW_MULTI_BRANCH` 仍关闭） | 读口已统一走 `resourceRowsForActor`；下一步逐读口取证 ＋ 开关演练；Phase 1–2 验收通过后才打开开关 | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §十`；`server/test/multi-branch-read-filter.test.mjs` |
 | B-541-4 | `L-15` ＋ `H-24` 画布 UI 与「块决定 tab」（与 `allowedPages` 身份门、页签计数守卫相交） | 先出方案并经支书定稿后才编码；定稿前不排批 | `content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md §8.4` |
 | B-541-6 | `L-17` SQLite JSON 宽表、无跨表外键、无业务字段索引 | 任一表行数接近万行，或真机出现慢查询读数（E1 类）时启动 `MIGRATIONS v2` 与索引评估；平时只登记 | `.ctx/ENGINEERING_ASSESSMENT.md §一 阻断级风险 5`；`server/README.md §部署前必知限制 #2` |
 | B-541-7 | `L-18` 单一源组件出口仍有零星散件（徽章 / 选择器等） | 下次改动到该组件域时同批收敛（一改具改）；未动到的散件不提前合并 | `.ctx/ENGINEERING_ASSESSMENT.md §3.3 复核保留` |
 | B-541-10 | `H-20` 部署形态余项（`server/package.json` Windows 专有语法；表达式索引无落点） | ② `package.json` 到「跨平台发布」批时改；③ 与服务端读过滤同批（见 B-541-3） | `.ctx/REVIEW_QUEUE.md` 代码健康评审 `H-20`；`server/package.json` |
-| B-541-11 | `H-12` / `H-18` 观察项：全量档 ① 项与目录搬迁三类静默盲区 | 真机复跑稳定红 ⇒ 按「稳定红＝真缺陷」升 P1；否则保持观察，不新立守卫 | `.ctx/REVIEW_QUEUE.md` 代码健康评审 `H-12` / `H-18` |
 | B-552-3 | 名册写口发空 `{}` / 非党委带 `branchId` ⇒ 400，本地已乐观记录；**已闭环（批次 575 · `D-887` 前置校验，空补丁 / 治理字段不发请求）** | 下次改名册保存 / 角色配置时复跑 `roster-write-precheck` | `docs/src/services/member/person.js` |
 | B-552-1 | `secretary-overview.js` 逾期数自算 `deadline < today`，绕过 `isTodoExpired`（同屏两个逾期数可能不等）；**已闭环**——逾期口径已改走 `isTodoExpired`，反证 `docs/src/services/governance/secretary-overview.js:189-191` | 下次改概况逾期统计时按单一源收口 | `docs/src/services/governance/secretary-overview.js` |
 | B-552-2 | list 响应形状二义；**已闭环（批次 566 · `api-adapter` 读口 `normalizeListPayload` 归一）** | 首个分页调用点出现前统一形状 | `docs/src/data/api-adapter.js` |
@@ -181,7 +180,6 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 
 | 条目 | 一句话 | 触发条件 |
 |---|---|---|
-| `B-3` | 「活动材料闭环」建议页从未建；其余 7 条「立表时待确认」均已闭环 | 支书裁定「建该页」后当批做；未裁定不入乙部 |
 | chips 启停证据 | 产出块「chips 启停 → 保存」的 UI 路径无真机证据 | 下次动产出块表单时补一条真机流程，或写明「不覆盖」理由 |
 | `Q-23-9` | `getMembers()` 在 api 形态只返回静态种子、不含 server 新建成员 | 随「服务器权威读回归」批一并处理（与 B-541-3 同族） |
 | `Q-23-44` | 成功路径覆盖 6 条，`machine:true` 占比仍低 | 按「先高频」继续分批补；新增写口登记时同批补真机流程 |
@@ -198,4 +196,4 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 
 > **2026-11-10 批次 541 分拣**（依据 `.ctx/evidence/2026-11-10/p2-cleanup-ledger.md`）：
 > ① **已办结 / 关闭（C 误报 · D 重复或已被守卫覆盖 · E 非工程任务）**：`H-8`（同名文件维持现状）、`H-9`（组合体检假绿已修，判例锁在 `block-orchestration::O1`）、`H-11`（manifest「表单条目」轴口径已定 `D-679`，并入工作流批）、`H-14`（`dataset.dataSource` 读法边界，判例已入注释）、`H-15`（拖拽长期红根因＝动态 import 少一层 `../`，已修且 `import-path-guard` 已补）、`H-19`（`ws-org` 12 tab 已修）、`H-21` / `H-22`（IAAA 前端承载面已由 `L-19` 收口）。
-> ② **仍在办（B 类）**：`H-5` / `H-12` / `H-16` / `H-18` / `H-20` / `H-24` 已并入 §未闭环（`B-541-8`…`B-541-11`），触发条件见该表；`H-7` 保持观察（`form-loop-registry` 只防缩水与漏覆盖，加「漏登记」臂只报不判）。
+> ② **仍在办（B 类）**：`H-5` / `H-16` / `H-20` / `H-24` 已并入 §未闭环（`B-541-8` 等），触发条件见该表；`H-12` / `H-18` 观察项已按批次 580 删除（无触发判据、3 批未复现）；`H-7` 保持观察（`form-loop-registry` 只防缩水与漏覆盖，加「漏登记」臂只报不判）。
