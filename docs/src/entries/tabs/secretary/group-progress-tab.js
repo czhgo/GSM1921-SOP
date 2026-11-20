@@ -296,7 +296,7 @@ function _manageRowHtml(row, selected, issues, leaderAssign, canManage) {
     : 'bg-white hover:bg-[var(--surface-hover)]';
   // 2026-11-10 批次 541：N=0 不渲染「待答复」徽标——0 条是常态，不是待办（未加载仍给「…」占位）。
   const openBadge = openCount === 0 ? '' : `
-          <span class="gp-open-badge text-xs px-1.5 py-0.5 rounded-full shrink-0 ${openCount ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}">
+          <span class="gp-open-badge text-xs px-1.5 py-0.5 rounded-full shrink-0 ${openCount ? 'bg-amber-100 text-[var(--status-warning-text)]' : 'bg-gray-100 text-gray-600'}">
             ${openCount === null ? '…' : `待答复 ${openCount}`}
           </span>`;
   return `
@@ -419,7 +419,7 @@ function _groupDetailHtml(group, groupId, canManage, members, activities, histor
 /** 右栏空态（支部尚无在册党小组时） */
 function _noGroupHintHtml() {
   return `
-    <div class="card rounded-xl p-5 card--static min-w-0" id="gp-detail">
+    <div class="card rounded-xl card-standard card--static min-w-0" id="gp-detail">
       ${emptyStateHtml({ variant: 'panel', text: '支部暂无党小组 · 下一步：在左栏「+ 新建党小组」建立第一组' })}
     </div>`;
 }
@@ -497,7 +497,7 @@ function _ledgerRowHtml(act, rev, group, branchId, attRecords, today) {
   const detail = _expandedReviewId === act.id && rev ? _reviewDetailRowHtml(rev, act.id) : '';
   return `
     <tr>
-      <td data-label="日期" class="font-medium text-gray-800 whitespace-nowrap">${act.date ? esc(act.date) : '<span class="text-xs text-gray-400">—</span>'}</td>
+      <td data-label="日期" class="font-medium text-gray-800 whitespace-nowrap">${act.date ? esc(act.date) : '<span class="text-xs text-gray-500">—</span>'}</td>
       <td data-label="活动">
         <span class="inline-flex items-center gap-2 min-w-0 max-w-full">
           ${badgeHtml(esc(act.type || '活动'), activityTypeBadgeVariant(act.type))}
@@ -542,11 +542,11 @@ function _reviewStatusCellHtml(act, rev, today = todayLocal()) {
 /** 应到·实到：仅「党小组会」有；其余活动为「—」。口径同既有（roster 组口径应到 + attendance 实到）
  *  2026-11-10 批次 540 灰字分层：有值＝主值档（13 / 500 / neutral-800）；空值「—」＝neutral-400。 */
 function _attendanceCellHtml(act, group, branchId, attRecords, today) {
-  if (act.type !== '党小组会' || !act.date || act.date > today) return '<span class="text-xs text-gray-400">—</span>';
+  if (act.type !== '党小组会' || !act.date || act.date > today) return '<span class="text-xs text-gray-500">—</span>';
   const expected = getMeetingRosterIds({ type: '党小组会', groupId: group.groupName, branchId }).length;
   const recs = (attRecords || []).filter(r => r.activityId === act.id);
   const num = (v) => `<span class="font-medium text-gray-800 tabular-nums">${v}</span>`;
-  if (!recs.length) return `<span class="tabular-nums">应到 ${num(expected)} · 实到 <span class="text-xs text-gray-400">—</span></span>`;
+  if (!recs.length) return `<span class="tabular-nums">应到 ${num(expected)} · 实到 <span class="text-xs text-gray-500">—</span></span>`;
   const present = recs.filter(r => r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP).length;
   return `<span class="tabular-nums">应到 ${num(expected)} · 实到 ${num(present)}</span>`;
 }
@@ -580,7 +580,7 @@ function _renderReportsError(container) {
   if (!listEl) return;
   listEl.innerHTML = `
     <div class="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-amber-50 border border-amber-100">
-      <span class="text-xs text-amber-800">组员汇报加载失败</span>
+      <span class="text-xs text-[var(--status-warning-text)]">组员汇报加载失败</span>
       <button type="button" class="gp-reports-retry btn-outline btn-sm">重试</button>
     </div>`;
 }
@@ -673,7 +673,7 @@ async function _fillReports(container, group, members) {
     // 2026-11-10 批次 541：N=0 不渲染徽标（与首次渲染同口径）——清零后隐藏，不显示「待答复 0」。
     badge.hidden = n === 0;
     if (n) badge.textContent = `待答复 ${n}`;
-    badge.className = `gp-open-badge text-xs px-1.5 py-0.5 rounded-full ${n ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}`;
+    badge.className = `gp-open-badge text-xs px-1.5 py-0.5 rounded-full ${n ? 'bg-amber-100 text-[var(--status-warning-text)]' : 'bg-gray-100 text-gray-600'}`;
   });
 
   const listEl = container.querySelector('#gp-reports');
@@ -720,8 +720,8 @@ function _reviewDetailHtml(rev) {
     <div class="mt-3 pt-3 border-t border-gray-100">
       <div class="text-xs text-gray-600 p-2 bg-gray-50 rounded-lg border border-gray-100 whitespace-pre-wrap">${esc(rev.reviewContent || '')}</div>
       ${issues.length ? `<div class="mt-2 p-2 rounded-lg border border-amber-100 bg-amber-50">
-        <div class="text-xs text-amber-700 font-bold mb-1">提出的真问题（${issues.length}）</div>
-        <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-700">· ${esc(i)}</li>`).join('')}</ul>
+        <div class="text-xs text-[var(--status-warning-text)] font-bold mb-1">提出的真问题（${issues.length}）</div>
+        <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-[var(--status-warning-text)]">· ${esc(i)}</li>`).join('')}</ul>
       </div>` : ''}
       ${rev.submittedAt ? `<div class="text-xs text-gray-500 mt-1">提交时间：${esc(String(rev.submittedAt).slice(0, 16).replace('T', ' '))}</div>` : ''}
       ${rev.annotation ? `

@@ -475,7 +475,7 @@ function _showCloseBlockModal(activity, missing) {
 /** 议程结果徽章文案/配色（S-1：新增 partial=部分通过） */
 const AGENDA_RESULT_META = {
   passed:   { label: '已通过',   cls: 'text-green-700 bg-green-50' },
-  partial:  { label: '部分通过', cls: 'text-amber-700 bg-amber-50' },
+  partial:  { label: '部分通过', cls: 'text-[var(--status-warning-text)] bg-amber-50' },
   rejected: { label: '未通过',   cls: 'text-red-700 bg-red-50' },
 };
 
@@ -494,7 +494,7 @@ function _agendaTypeBadges(a) {
     // 故不存在跨支部泄漏；且为同步渲染路径（改异步需重构渲染链）。豁免 listDocs 接线，保持不过滤。
     const doc = (mockDB.branchDocs || []).find(d => d.id === a.branchDocId);
     const docLabel = doc ? (doc.title || doc.fileName || '未命名草案') : '（草案已删除）';
-    badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-amber-700 bg-amber-50">讨论文件：${docLabel}</span>`);
+    badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-[var(--status-warning-text)] bg-amber-50">讨论文件：${docLabel}</span>`);
     // SOP-B-13 第 4 项（D-305）：草案还在时给一条只读提示，不提供第二个材料库入口
     if (doc) {
       badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-gray-600 bg-gray-100" title="过程材料（试点意见 / 征求意见 / 修改说明）随草案归档，本处只作数量提示">已附材料 ${_draftMaterialCount(doc)} 件</span>`);
@@ -504,7 +504,7 @@ function _agendaTypeBadges(a) {
   if (isKind('brand-designation')) {
     const target = (mockDB.activities || []).find(x => x.id === a.brandActivityId);
     const targetLabel = target ? (target.title || target.id) : '（活动已删除）';
-    badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-amber-700 bg-amber-50">品牌认定：${esc(targetLabel)}</span>`);
+    badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-[var(--status-warning-text)] bg-amber-50">品牌认定：${esc(targetLabel)}</span>`);
   }
   if (isKind('attendee-list') || isKind('member-change')) {
     const personIds = Array.isArray(a.personIds) ? a.personIds : (a.personId ? [a.personId] : []);
@@ -1330,7 +1330,7 @@ function _startAgendaEdit(activity, cardsEl, tasks, managementRole) {
             <input type="text" class="agenda-edit-host input-flat w-24 text-xs" value="${a.host}" placeholder="主持人">
             <button type="button" class="btn-danger btn-icon agenda-edit-del shrink-0" aria-label="删除该议程" title="删除该议程（连同其讨论文件/待讨论名单配置）">✕</button>
           </div>
-          ${_hasStructuredCfg(a) || _hasAgendaStep(a) ? `<div class="agenda-edit-ext text-xs text-amber-700 pl-1 mt-0.5 leading-snug" title="议程业务配置、步骤关系及已记录结果将原样保留，本次仅可修改议题/主持人文本">${_hasAgendaStep(a) ? (a.agendaStep === 'discussion' ? '讨论项' : '表决项及其关联') : '讨论文件/待讨论名单配置'}将原样保留</div>` : ''}
+          ${_hasStructuredCfg(a) || _hasAgendaStep(a) ? `<div class="agenda-edit-ext text-xs text-[var(--status-warning-text)] pl-1 mt-0.5 leading-snug" title="议程业务配置、步骤关系及已记录结果将原样保留，本次仅可修改议题/主持人文本">${_hasAgendaStep(a) ? (a.agendaStep === 'discussion' ? '讨论项' : '表决项及其关联') : '讨论文件/待讨论名单配置'}将原样保留</div>` : ''}
         </div>`).join('');
       list.querySelectorAll('.agenda-edit-del').forEach((btn) => {
         btn.addEventListener('click', () => {

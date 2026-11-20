@@ -1170,19 +1170,19 @@ export function deriveIssueDisplayState(issue) {
     }
     // 成员已提交汇报内容，等待支书答复 → 待答复
     if (issue.resultPending) {
-      return { key: 'pending-review', label: '待答复', badgeClass: 'bg-amber-100 text-amber-700' };
+      return { key: 'pending-review', label: '待答复', badgeClass: 'bg-amber-100 text-[var(--status-warning-text)]' };
     }
     return { key: 'open', label: '进行中', badgeClass: 'bg-green-100 text-green-700' };
   }
   // 开放中分支（意见反馈）
   if (issue.resultPending) {
-    return { key: 'pending-review', label: '待终审', badgeClass: 'bg-amber-100 text-amber-700' };
+    return { key: 'pending-review', label: '待终审', badgeClass: 'bg-amber-100 text-[var(--status-warning-text)]' };
   }
   if (issue.assignee) {
     // 有指派人，且评论时间线中存在 kind='result' 但 resultPending 还未触发（理论上不会）— 简化为「处置中」
     const hasResult = (issue.comments || []).some(c => c.kind === 'result');
     if (hasResult) {
-      return { key: 'pending-review', label: '待终审', badgeClass: 'bg-amber-100 text-amber-700' };
+      return { key: 'pending-review', label: '待终审', badgeClass: 'bg-amber-100 text-[var(--status-warning-text)]' };
     }
     return { key: 'assigned', label: '已指派', badgeClass: 'bg-blue-100 text-blue-700' };
   }

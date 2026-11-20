@@ -35,7 +35,7 @@ function _activePropTasks() {
 const TASK_STATUS_FLOW = { pending: 'in_progress', in_progress: 'submitted' };
 const TASK_STATUS_LABEL = { pending: '待接收', in_progress: '进行中', submitted: '已提交' };
 const TASK_STATUS_STYLE = {
-  pending: 'bg-amber-50 text-amber-700 border-amber-200',
+  pending: 'bg-amber-50 text-[var(--status-warning-text)] border-amber-200',
   in_progress: 'bg-blue-50 text-blue-700 border-blue-200',
   submitted: 'bg-green-50 text-green-700 border-green-200',
 };

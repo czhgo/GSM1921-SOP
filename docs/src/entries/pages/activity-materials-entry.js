@@ -163,12 +163,12 @@ function render() {
 
     <section class="mt-6" aria-labelledby="materials-check-title">
       <h3 id="materials-check-title" class="text-sm font-semibold text-gray-800 mb-2">② 核对材料</h3>
-      <div class="rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-3 text-xs text-gray-600 leading-6">
+      <div class="rounded-xl border border-gray-100 bg-white px-4 py-3 text-xs text-gray-600 leading-6">
         ${esc(resolveMaterialRoleNote({ role: me.role, isOrganizer }))}
         三类核心材料（宣传材料 / 考勤 / 考察）齐全后即可提交归档；归档后仍可补交材料。
       </div>
       <div class="mt-2 flex flex-wrap items-center gap-3">
-        <span class="text-xs ${coreReady ? 'text-green-700' : 'text-amber-700'}">
+        <span class="text-xs ${coreReady ? 'text-green-700' : 'text-[var(--status-warning-text)]'}">
           ${coreReady ? '核心材料已齐（宣传材料 / 考勤 / 考察）。' : `核心材料待补：${_missingText({ photos, attendance, inspections })}`}
         </span>
         ${archived ? '' : '<button type="button" id="materials-check-done-btn" class="btn-outline btn-sm">核对完成，去提交归档</button>'}
@@ -178,7 +178,7 @@ function render() {
     <section class="mt-6" id="materials-archive-section" aria-labelledby="materials-archive-title">
       <h3 id="materials-archive-title" class="text-sm font-semibold text-gray-800 mb-2">③ 提交归档</h3>
       ${archived ? `
-        <div class="rounded-xl border border-green-100 bg-green-50/60 px-4 py-3">
+        <div class="rounded-xl border border-green-100 bg-white px-4 py-3">
           <p class="text-sm text-green-800">本场已归档。</p>
           <p class="text-body-sm text-gray-600 mt-1">归档记录 ${archiveRecords.length} 条（宣传台材料归档）；补交材料仍走宣传台。</p>
         </div>` : `
@@ -236,7 +236,7 @@ function _materialRowHtml({ label, count, unit, hint, href, handoff = '', extra 
       <div class="min-w-0">
         <div class="flex items-center gap-2">
           <span class="text-sm font-medium text-gray-800">${esc(label)}</span>
-          <span class="text-xs px-1.5 py-0.5 rounded-full ${ready ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}">${ready ? `已收 ${count} ${unit}` : '待补'}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${ready ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-[var(--status-warning-text)]'}">${ready ? `已收 ${count} ${unit}` : '待补'}</span>
           ${extra}
         </div>
         <p class="text-xs text-gray-500 mt-0.5">${esc(hint)}</p>
@@ -258,7 +258,7 @@ function _confirmArchive(act, materials) {
   const missing = _missingText(materials);
   const bodyHtml = `
     ${missing
-      ? `<p class="text-body-sm text-amber-700 leading-6">以下核心材料仍缺：<b>${esc(missing)}</b>。归档后仍可在宣传台补交材料。</p>`
+      ? `<p class="text-body-sm text-[var(--status-warning-text)] leading-6">以下核心材料仍缺：<b>${esc(missing)}</b>。归档后仍可在宣传台补交材料。</p>`
       : '<p class="text-body-sm text-green-700 leading-6">核心材料已齐（宣传材料 / 考勤 / 考察）。</p>'}`;
   openModal({
     id: 'materials-archive-confirm',

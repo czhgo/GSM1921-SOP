@@ -27,7 +27,7 @@ import { selectInput } from '../../../components/ui/forms.js?v=20261110b';
 const FEEDBACK_TAB_HTML = `
   ${renderTabHeader({ title: '意见反馈' })}
   <!-- 列表面板 -->
-  <div id="issue-list-panel" class="card rounded-xl p-5">
+  <div id="issue-list-panel" class="card rounded-xl card-standard">
     ${renderCardHeader({
       title: '反馈列表',
       meta: '本支部 · 全部反馈',
@@ -389,7 +389,7 @@ function renderIssueDetail(issueId) {
   const ds = deriveIssueDisplayState(issue);
   const assigneeLabel = issue.assigneeRole ? ROLE_LABELS[issue.assigneeRole] || issue.assigneeRole : '未指派';
 
-  let html = `<div class="card rounded-xl p-5">`;
+  let html = `<div class="card rounded-xl card-standard">`;
 
   // ── Header：返回按钮 + 编号 + 状态徽章 + 操作按钮 ──
   html += `<div class="flex items-center justify-between mb-4">`;

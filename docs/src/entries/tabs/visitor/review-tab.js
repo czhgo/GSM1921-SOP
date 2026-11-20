@@ -110,7 +110,7 @@ export function renderContent(ctx, host) {
     // 判据单一源＝services/activity/activity.js（本页不另写）。⚠ 不提供任何「已交回后自行更新」入口。
     const req = reviewRequestOf(act);
     const reqBadge = req
-      ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700" title="支委会要求：${(req.note || '').replace(/"/g, '&quot;')}">支委会要求</span>`
+      ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-[var(--status-warning-text)]" title="支委会要求：${(req.note || '').replace(/"/g, '&quot;')}">支委会要求</span>`
       : '';
     // A03：组织者展示同走派生列表；无组织者时明确「未指定」（不渲染成「—」）。
     const orgIds = _organizerIdsOf(act);
@@ -147,9 +147,9 @@ export function renderContent(ctx, host) {
 
   container.innerHTML = `
     ${host ? '' : renderTabHeader({ title: '我的复盘', description: '组织者 / 深度参与者提交复盘 → 纪检批注确认 → 活动办结。' })}
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-sm font-bold text-gray-700">复盘清单（待复盘 ${pending.length} · 已复盘 ${completed.length}）</h3>
+        <h3 class="font-title-cn text-sm font-semibold text-gray-700">复盘清单（待复盘 ${pending.length} · 已复盘 ${completed.length}）</h3>
         <span class="text-xs text-gray-500">我担任组织者/深度参与者的活动 · 提交人即组织者</span>
       </div>
       <div class="text-xs text-gray-500 mb-4">提交活动复盘总结 → 纪检委员批注/确认 → 活动办结</div>
@@ -253,8 +253,8 @@ function _renderReviewDetail(rev) {
     <div class="mt-3 pt-3 border-t border-gray-100">
       <div class="text-xs text-gray-600 p-2 bg-gray-50 rounded-lg border border-gray-100">${rev.reviewContent || ''}</div>
       ${issues.length ? `<div class="mt-2 p-2 rounded-lg border border-amber-200">
-        <div class="flex items-center gap-1.5 text-xs text-amber-700 font-bold mb-1"><span class="w-1.5 h-1.5 rounded-full" style="background:var(--status-warning);"></span>提出的真问题（${issues.length}）</div>
-        <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-700">· ${i}</li>`).join('')}</ul>
+        <div class="flex items-center gap-1.5 text-xs text-[var(--status-warning-text)] font-bold mb-1"><span class="w-1.5 h-1.5 rounded-full" style="background:var(--status-warning);"></span>提出的真问题（${issues.length}）</div>
+        <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-[var(--status-warning-text)]">· ${i}</li>`).join('')}</ul>
       </div>` : ''}
       ${rev.submittedAt ? `<div class="text-xs text-gray-500 mt-1">提交时间：${rev.submittedAt.slice(0, 16).replace('T', ' ')}</div>` : ''}
       ${rev.annotation ? `

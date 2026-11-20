@@ -61,7 +61,7 @@ const ARCHIVE_CATEGORY_STYLE = {
 };
 const ARCHIVE_STATUS_LABEL = { pending: '待归档', in_progress: '归档中', archived: '已归档' };
 const ARCHIVE_STATUS_STYLE = {
-  pending: 'bg-amber-50 text-amber-700 border-amber-200',
+  pending: 'bg-amber-50 text-[var(--status-warning-text)] border-amber-200',
   in_progress: 'bg-blue-50 text-blue-700 border-blue-200',
   archived: 'bg-green-50 text-green-700 border-green-200',
 };
@@ -473,7 +473,7 @@ function _galleryRowHtml(a) {
         ${_activityLinkHtml(a.id, 'flex-1 min-w-0', `
           <div class="text-sm font-medium text-gray-800 truncate">${escHtml(a.title || '未命名活动')}</div>
           <span class="text-xs text-gray-500">${escHtml(a.date || '—')} <span class="text-accent" aria-hidden="true">→</span></span>`, a.title || '未命名活动')}
-        ${on ? `<button type="button" class="btn-outline gallery-pin-btn text-xs px-3 py-1.5 rounded-lg border transition-colors flex-shrink-0 ${pinned ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' : 'bg-white text-gray-600 border-gray-200 hover:bg-surface-hover'}"
+        ${on ? `<button type="button" class="btn-outline gallery-pin-btn text-xs px-3 py-1.5 rounded-lg border transition-colors flex-shrink-0 ${pinned ? 'bg-amber-50 text-[var(--status-warning-text)] border-amber-200 hover:bg-amber-100' : 'bg-white text-gray-600 border-gray-200 hover:bg-surface-hover'}"
                 data-activity-id="${escHtml(a.id)}" data-on="${pinned ? 'true' : 'false'}">${pinned ? '取消置顶' : '置顶'}</button>` : ''}
         <button type="button" class="btn-outline gallery-feature-btn text-xs px-3 py-1.5 rounded-lg border transition-colors flex-shrink-0 ${btnCls}"
                 data-activity-id="${escHtml(a.id)}" data-on="${on ? 'true' : 'false'}">${on ? '撤下' : '收录到活动风采'}</button>
@@ -578,7 +578,7 @@ function _endedUnarchivedCardHtml(a) {
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-gray-800 truncate">${escHtml(a.title || '未命名活动')}</span>
             ${a.type ? badgeHtml(escHtml(a.type), activityTypeBadgeVariant(a.type)) : ''}
-            <span class="text-xs px-1.5 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200 shrink-0">已结束·未归档</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-full border bg-amber-50 text-[var(--status-warning-text)] border-amber-200 shrink-0">已结束·未归档</span>
           </div>
           <span class="text-xs text-gray-500">活动日期：${escHtml(a.date || '—')} <span class="text-accent" aria-hidden="true">→</span></span>`, '查看活动详情')}
       </div>`;
@@ -614,7 +614,7 @@ function _pendingArchiveRowHtml(a) {
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-gray-800 truncate">${escHtml(a.title || '未命名活动')}</span>
             ${typeLabel}
-            <span class="text-xs px-1.5 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200 shrink-0">待归档</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-full border bg-amber-50 text-[var(--status-warning-text)] border-amber-200 shrink-0">待归档</span>
           </div>
           <span class="text-xs text-gray-500">活动日期：${escHtml(dateLabel)} · 宣传材料未提交（归档缺口） <span class="text-accent" aria-hidden="true">→</span></span>`, '查看活动详情')}
       </div>`;
@@ -681,7 +681,7 @@ function _renderDispatchCell(r) {
   }
   const latest = recs[recs.length - 1];
   const confirmed = recs.some(d => d.confirmedAt);
-  const badge = `<span class="text-xs px-1.5 py-0.5 rounded-full border shrink-0 ${confirmed ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}">${confirmed ? '已确认收到' : '已外发·待确认'}</span>`;
+  const badge = `<span class="text-xs px-1.5 py-0.5 rounded-full border shrink-0 ${confirmed ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-[var(--status-warning-text)] border-amber-200'}">${confirmed ? '已确认收到' : '已外发·待确认'}</span>`;
   const voidKey = latest.voidPending && !latest.voided
     ? '<span class="text-xs text-gray-500">待支委会确认</span>'
     : `<button class="btn-action btn-action-gray archive-dispatch-void-btn" data-ed-id="${escHtml(latest.id)}" title="软作废：该外发记录出列（发送方与接收方同时不再显示）、留痕可回查；支委可直接作废，其余人报支委会确认" style="cursor:pointer;">作废</button>`;
@@ -828,7 +828,7 @@ function _showArchiveAdvancePopover(record, _triggerBtn, ctx) {
     });
     bodyHtml += `</div>`;
     bodyHtml += `<div class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 mb-4">`;
-    bodyHtml += `<p class="text-[12px] text-amber-700">提示：未全部勾选也可推进状态，但请确保后续补齐。</p>`;
+    bodyHtml += `<p class="text-[12px] text-[var(--status-warning-text)]">提示：未全部勾选也可推进状态，但请确保后续补齐。</p>`;
     bodyHtml += `</div>`;
   } else {
     bodyHtml += `<p class="text-xs text-gray-600 mb-3">确认将以下条目归档？归档后将从待处理列表移除。</p>`;
@@ -937,7 +937,7 @@ function _showArchiveUploadModal(ctx) {
             class="block w-full text-xs text-gray-600 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" />
           <div id="upload-preview" class="mt-2 space-y-1.5"></div>
         </div>
-        <div class="rounded-lg px-3 py-2 text-xs leading-relaxed ${apiMode ? 'bg-teal-50 text-teal-700 border border-teal-100' : 'bg-amber-50 text-amber-700 border border-amber-100'}">
+        <div class="rounded-lg px-3 py-2 text-xs leading-relaxed ${apiMode ? 'bg-teal-50 text-teal-700 border border-teal-100' : 'bg-amber-50 text-[var(--status-warning-text)] border border-amber-100'}">
           ${apiMode
             ? '服务端模式：文件落服务器磁盘（jpg/png/pdf/doc/docx/xlsx/mp4，单文件 ≤' + maxMB + 'MB），元数据写入文件空间记录，产出物区同步可见。'
             : '本地模式：文件以 base64 存入本地存储（单文件 ≤' + maxMB + 'MB），刷新不丢失；产出物区/关闭校验同步可见。'}
@@ -1044,7 +1044,7 @@ function _promptExternalDispatch(activityId, activityName, ctx, onSent) {
     size: 'md',
     bodyHtml: `
       <div class="space-y-3.5">
-        <div class="rounded-lg px-3 py-2 text-xs leading-relaxed bg-amber-50 text-amber-700 border border-amber-100">
+        <div class="rounded-lg px-3 py-2 text-xs leading-relaxed bg-amber-50 text-[var(--status-warning-text)] border border-amber-100">
           宣传材料已归档到系统。若还需通过<b>微信</b>把文件发给对方确认（如新闻稿送支书审核），
           请在此标记「已外发」——对方收到后会在其工作台确认，形成可审计记录（谁 / 何时 / 发给谁 / 何时确认）。
         </div>

@@ -65,13 +65,13 @@ export function renderContent(ctx, host) {
   // 只渲染「由我组织」的活动 / 本人负责的专班，不再整页复用组长台的全支部视图。
   tc.innerHTML = `
     ${host ? '' : renderTabHeader({ title: '我的考察', description: '本人历次活动参与考察记录与申诉入口。' })}
-    <div class="card rounded-xl p-5 mb-3 flex items-center gap-4">
+    <div class="card rounded-xl card-standard mb-3 flex items-center gap-4">
       <div class="flex-1">
         <p class="text-sm font-semibold text-gray-800">我的考察记录</p>
         <p class="text-xs text-gray-500 mt-0.5">共 ${total} 条 · 已确认 ${confirmed} · 待确认 ${pending}</p>
       </div>
     </div>
-    <div class="card rounded-xl p-5 mb-3">
+    <div class="card rounded-xl card-standard mb-3">
       <p class="text-sm font-medium text-gray-800">我参与了但没记上？</p>
       <p class="text-xs text-gray-500 mt-0.5 mb-2">选一场活动并说明情况，提交给纪检委员——纪检<b>先核实</b>，属实再由活动组织方补录（与考勤申诉同一套做法）</p>
       <div class="flex flex-wrap items-center gap-2">

@@ -214,7 +214,7 @@ function renderShellDenied() {
   const role = AuthStore.getCurrentUser()?.role;
   const page = AuthStore.getPageForRole('workspace', role) || 'visitor.html';
   ROOT.innerHTML = `
-    <div class="card rounded-xl p-5 text-center">
+    <div class="card rounded-xl card-standard text-center">
       <p class="font-title-cn text-base font-bold text-gray-800">你在支委会会议页没有可见的会议</p>
       <p class="help-note mt-2">你不在此页可见范围内。<a href="./help.html#card-copy-pcm-scope" class="help-note__link">见帮助 · 支委会页可见范围</a></p>
       <p class="text-sm mt-4"><a href="./workspace/${esc(page)}" class="text-accent">← 返回我的工作台</a></p>
@@ -230,7 +230,7 @@ function renderOutOfScope(actId) {
     ? `${act ? `「${esc(act.title || '未命名会议')}」（${esc(act.date || '—')}）` : '该场次'}的应到名单里没有你——你不在本支部支委名单内，按「只能看到扩大到他的支委会」的口径，本场不进你的列表、也不能打开；请回到你被扩大到的那几场。`
     : '本页只列支委会（含支委扩大会）场次；该场次不在其中，因此不在此打开。请从上方列表选择要看的支委会场次。';
   ROOT.innerHTML = `
-    <div class="card rounded-xl p-5 text-center">
+    <div class="card rounded-xl card-standard text-center">
       <p class="font-title-cn text-base font-bold text-gray-800">${title}</p>
       <p class="text-sm text-gray-500 mt-2">${why}</p>
       <p class="text-sm mt-4"><a href="./party-committee-meeting.html" class="text-accent">← 回到你可见的支委会场次</a></p>
@@ -260,7 +260,7 @@ function selectSectionHtml(hasMeeting) {
     return `<option value="${esc(a.id)}"${a.id === currentId ? ' selected' : ''}${i < 5 ? ' data-recent="true"' : ''}>${esc(a.date || '—')} · ${esc(a.title || '未命名')}（${tag}）</option>`;
   }).join('');
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <p class="text-sm font-semibold text-gray-700 mb-3">范围 · 选一场支委会</p>
       <div class="flex flex-wrap items-end gap-2">
         <label class="text-xs text-gray-500">现有支委会场次
@@ -320,7 +320,7 @@ function scopeSectionHtml(act, step) {
   const rangeText = `当前应到 ${voterIds.length || committee.length} 人 ＝ 支委 ${committee.length} 人`
     + (expandedIds.length ? ` ＋ 扩大到 ${expandedIds.length} 人（${expandedIds.map((id) => getPersonName(id) || id).join('、')}）` : '');
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <p class="text-sm font-semibold text-gray-700 mb-1">范围 · 本场参会范围</p>
       <p class="help-note mb-3"><a href="./help.html#card-copy-pcm-scope" class="help-note__link">见帮助 · 支委会页可见范围</a></p>
       ${editable ? `
@@ -398,7 +398,7 @@ function extractSectionHtml(act, candidates = [], step = 1) {
     }).join('')
     : emptyStateHtml({ text: "暂无可上会事项。", variant: 'inline' });
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <p class="text-sm font-semibold text-gray-700 mb-1">提取议程</p>
       <p class="help-note mb-3">勾选后加入本场议程，不改动来源本身。<a href="./help.html#card-dom31-vote" class="help-note__link">见帮助 · 线上异步表决</a></p>
       <div class="space-y-3">${groupsHtml}</div>
@@ -420,7 +420,7 @@ function agendaSectionHtml(act) {
     : (a.agendaStep === 'vote' ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-rose-700 bg-rose-50">表决项</span>' : '');
   if (!items.length) {
     return `
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-xl card-standard">
         <p class="text-sm font-semibold text-gray-700 mb-1">表态 · 议程与表态</p>
         <p class="text-sm text-gray-500">本场议程为空：先在上一步提取议程。</p>
       </div>`;
@@ -444,7 +444,7 @@ function agendaSectionHtml(act) {
         : (a.id ? `<div class="vote-widget-slot mt-2" data-vote-item-id="${esc(a.id)}"></div>` : '<div class="text-xs text-gray-500 mt-2">该条无表决编号，仅作议程记录。</div>')}
     </div>`).join('');
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <p class="text-sm font-semibold text-gray-700 mb-1">表态 · 议程与表态</p>
       <p class="help-note mb-3">${canVote ? '你是本场应到表决人，可就表决项表态。<a href="./help.html#card-dom31-vote" class="help-note__link">见帮助 · 线上异步表决</a>' : '你不在本场应到表决名单内，以下为只读议程。'}</p>
       <div class="space-y-3">${rows}</div>
@@ -455,7 +455,7 @@ function agendaSectionHtml(act) {
 function summarySectionHtml(act) {
   if (!isSecretaryOrDeputy()) return '';
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <p class="text-sm font-semibold text-gray-700 mb-1">截止 · 汇总与截止</p>
       <div id="pcm-summary"></div>
     </div>`;
@@ -514,7 +514,7 @@ function resultSectionHtml(act, votes) {
       </div>`;
   }).join('') : emptyStateHtml({ text: "本场暂无带编号的议程，暂无可查阅的讨论结果。", variant: 'inline' });
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <p class="text-sm font-semibold text-gray-700 mb-1">留存 · 讨论结果</p>
       <p class="help-note mb-3"><a href="./help.html#card-copy-pcm-scope" class="help-note__link">见帮助 · 支委会页可见范围</a></p>
       <div class="space-y-3" id="pcm-result">${body}</div>
@@ -547,8 +547,8 @@ async function render() {
   const step = currentStepOf(act, votes);
 
   const currentBlock = !act
-    ? `<div class="card rounded-xl p-5">${emptyStateHtml({ text: '暂无支委会场次：可在上方新建一场线上支委会', variant: 'panel' })}</div>`
-    : `<div class="card rounded-xl p-5">
+    ? `<div class="card rounded-xl card-standard">${emptyStateHtml({ text: '暂无支委会场次：可在上方新建一场线上支委会', variant: 'panel' })}</div>`
+    : `<div class="card rounded-xl card-standard">
          <div class="flex items-start justify-between gap-3 flex-wrap">
            <div class="min-w-0">
              <p class="font-title-cn text-base font-bold text-gray-800">${esc(act.title || '未命名会议')}</p>
@@ -556,7 +556,7 @@ async function render() {
            </div>
            <a href="./${objectDetailHref('activity', act.id, { entry: 'cross-page-deeplink' })}" class="text-xs text-accent flex-shrink-0">活动详情 →</a>
          </div>
-         ${isAsync(act) ? '' : '<p class="text-body-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mt-3">本场未启用线上表决配置：如需委员线上表态，可在「活动管理」写入线上异步表决，或上方新建一场线上支委会。</p>'}
+         ${isAsync(act) ? '' : '<p class="text-body-sm text-[var(--status-warning-text)] bg-amber-50 rounded-lg px-3 py-2 mt-3">本场未启用线上表决配置：如需委员线上表态，可在「活动管理」写入线上异步表决，或上方新建一场线上支委会。</p>'}
        </div>
        ${isAsync(act) ? scopeSectionHtml(act, step) : ''}
        ${extractSectionHtml(act, candidates, step)}
@@ -570,7 +570,7 @@ async function render() {
   const page = AuthStore.getPageForRole('workspace', me.role) || 'visitor.html';
   ROOT.innerHTML = `
     <div class="space-y-5">
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-xl card-standard">
         <div class="flex items-start justify-between gap-3 flex-wrap">
           <div class="min-w-0">
             <h2 class="font-title-cn text-xl font-bold text-gray-800">支委会会议（线上召开）</h2>

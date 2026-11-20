@@ -53,7 +53,7 @@ export function renderContent(ctx) {
   tc.innerHTML = `
     ${renderTabHeader({ title: '考勤概况', description: '本月我的出勤率与活动出勤明细。' })}
     <div id="visitor-att-mine"></div>
-    <div class="card rounded-xl p-5"><div id="visitor-att-list"></div></div>
+    <div class="card rounded-xl card-standard"><div id="visitor-att-list"></div></div>
     ${myOrgActs.length ? `
     <div class="mt-4">
       <div class="text-xs text-gray-500 mb-1.5">由我组织的活动 · 考勤上传位</div>
@@ -80,18 +80,18 @@ export function renderContent(ctx) {
     const hint = POLICY_DEFAULTS.attendance.lowRateHint;
     const mineTone = attendanceRateTone(mine.rate);
     const mineRateCls = mineTone === 'good' ? 'text-green-700'
-      : mineTone === 'watch' ? 'text-amber-700'
+      : mineTone === 'watch' ? 'text-[var(--status-warning-text)]'
       : mineTone === 'low' ? 'text-red-600' : 'text-gray-500';
     const mineRateText = mine.rate === null ? '待录入' : `${mine.rate}%`;
     mineEl.innerHTML = meId && mine.total > 0
-      ? `<div class="card rounded-xl p-5 mb-3">
+      ? `<div class="card rounded-xl card-standard mb-3">
           <div class="flex items-center justify-between flex-wrap gap-2">
             <p class="text-sm font-medium text-gray-800">本月我的出勤率</p>
             <p class="text-sm font-semibold ${mineRateCls}">${mineRateText}</p>
           </div>
           <p class="text-xs text-gray-500 mt-1">出勤 ${mine.present}/${mine.total}（应到人次口径；出勤含已补${mine.unrecorded > 0 ? ` · 未录 ${mine.unrecorded} 场` : ''}）${mine.rate !== null && mine.rate < hint ? ` · 低于提示线 ${hint}%，仅作提示、不触发任何处置` : ''}</p>
         </div>`
-      : `<div class="card rounded-xl p-5 mb-3">
+      : `<div class="card rounded-xl card-standard mb-3">
           <p class="text-sm font-medium text-gray-800">本月我的出勤率</p>
           ${emptyStateHtml({ variant: 'panel', text: '本月暂无你的考勤记录 · 下一步：活动组织者上传考勤后在此显示' })}
         </div>`;
@@ -114,7 +114,7 @@ export function renderContent(ctx) {
     const rate = summary && !summary.ratePending ? summary.rate : null;
     const tone = attendanceRateTone(rate);
     const rateColor = tone === 'good' ? 'text-green-700'
-      : tone === 'watch' ? 'text-amber-700'
+      : tone === 'watch' ? 'text-[var(--status-warning-text)]'
       : tone === 'low' ? 'text-red-600' : 'text-gray-500';
     // C3（2026-09-12）：分母为 0 或尚未录入时不再显示「0/0 · 0%」（语义错误）——中性占位。
     const rateText = rate === null

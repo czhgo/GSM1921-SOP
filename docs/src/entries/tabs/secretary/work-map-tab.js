@@ -165,7 +165,7 @@ function _relationsCardHtml(rows, editable) {
     meta: `${rows.length} 项 · 一项一名主责`,
   });
   if (!rows.length) {
-    return `<div class="card rounded-xl p-5" id="work-map-relations">
+    return `<div class="card rounded-xl card-standard" id="work-map-relations">
       ${head}
       ${emptyStateHtml('暂无分工数据', {
         actionHtml: '<button type="button" class="btn-outline" data-wm-view="matrix">先看关系矩阵</button>',
@@ -179,7 +179,7 @@ function _relationsCardHtml(rows, editable) {
     rowHtml.push(_relationRowHtml(r, r.id === selectedId, editable));
     if (r.id === selectedId) rowHtml.push(_relationDetailHtml(r));
   }
-  return `<div class="card rounded-xl p-5" id="work-map-relations">
+  return `<div class="card rounded-xl card-standard" id="work-map-relations">
       ${head}
       <div id="wm-module-list">
         ${listGroupHtml(rowHtml)}
@@ -342,7 +342,7 @@ export function renderContent() {
   // 关系矩阵＝折叠块（批次 540 波次 5）：折叠头走单一语法——卡内 H3（renderCardHeader）＋
   //   空的 summary（chevron 热区，`aria-labelledby` 关联 H3），不再自写一段 summary 文案
   //   （`.disclosure__summary` 是绝对定位的 40×40 热区，放文字会被裁掉）。
-  const matrixCard = `<div class="card rounded-xl p-5 disclosure-host" id="work-map-matrix-card">
+  const matrixCard = `<div class="card rounded-xl card-standard disclosure-host" id="work-map-matrix-card">
       ${renderCardHeader({
         title: '关系矩阵',
         titleId: 'wm-matrix-title',

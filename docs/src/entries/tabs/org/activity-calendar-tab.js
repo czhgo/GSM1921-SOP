@@ -89,7 +89,7 @@ function _renderOrgRecruitmentPanel(host, activities) {
       </div>`).join('') : emptyStateHtml({ text: '所有活动都已落到责任党小组', variant: 'inline' });
 
   host.innerHTML = `
-    <details class="card rounded-xl p-5 mb-4" id="org-recruitment-card">
+    <details class="card rounded-xl card-standard mb-4" id="org-recruitment-card">
       <summary class="cursor-pointer select-none flex flex-wrap items-baseline gap-x-2">
         <span class="font-title-cn text-base font-semibold text-gray-800">跨组招募待协调</span>
         <span class="text-xs text-gray-500 tabular-nums">${recruitRows.length} 项</span>
@@ -97,7 +97,7 @@ function _renderOrgRecruitmentPanel(host, activities) {
       <p class="text-xs text-gray-500 mt-3 mb-3">跨组只影响招募范围；活动始终落到承办党小组，跨党小组深度参与者由组织委员协调。此处只标记协调状态，不授予活动写权。</p>
       <div class="space-y-2">${recruitHtml}</div>
     </details>
-    <details class="card rounded-xl p-5 mb-4" id="org-legacy-host-card"${legacyRows.length ? ' open' : ''}>
+    <details class="card rounded-xl card-standard mb-4" id="org-legacy-host-card"${legacyRows.length ? ' open' : ''}>
       <summary class="cursor-pointer select-none flex flex-wrap items-baseline gap-x-2">
         <span class="font-title-cn text-base font-semibold text-gray-800">待补承办党小组</span>
         <span class="text-xs text-gray-500 tabular-nums">${legacyRows.length} 项</span>

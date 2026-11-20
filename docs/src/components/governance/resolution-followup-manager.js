@@ -51,7 +51,7 @@ function _cardHtml(activity, item, { canManage }) {
   const followups = Array.isArray(item.followups) ? item.followups : [];
   const doneCount = followups.filter((f) => f.status === FOLLOWUP_STATUS.COMPLETED).length;
   const chip = followups.length > 0
-    ? `<span class="text-xs px-1.5 py-0.5 rounded-full ${doneCount === followups.length ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">落实 ${doneCount}/${followups.length}</span>`
+    ? `<span class="text-xs px-1.5 py-0.5 rounded-full ${doneCount === followups.length ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-[var(--status-warning-text)]'}">落实 ${doneCount}/${followups.length}</span>`
     : '';
   const rows = followups.length > 0
     ? followups.map((f) => _rowHtml(f, { canManage })).join('')

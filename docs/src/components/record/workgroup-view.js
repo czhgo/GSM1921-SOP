@@ -144,14 +144,14 @@ export function renderWorkgroupView(container, opts = {}) {
   //   独立形态仍保留卡 + 卡头，权限约束由角色现算（可写不显示、不可写才显示「只读」）。
   const scopeMeta = ['本支部', readonlyMeta('workgroup', user)].filter(Boolean).join(' · ');
   const embeddedHtml = `${locateFailed
-    ? '<p class="mt-2 text-xs text-amber-700" role="status">未找到对应的活动工作组（可能已归档或不属于本支部）。</p>'
+    ? '<p class="mt-2 text-xs text-[var(--status-warning-text)]" role="status">未找到对应的活动工作组（可能已归档或不属于本支部）。</p>'
     : ''}
       <div id="wgv-list" class="mt-3"></div>`;
   container.innerHTML = opts.embedded === true ? embeddedHtml : `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       ${renderCardHeader({ title: '活动工作组', meta: scopeMeta })}
       ${locateFailed
-        ? '<p class="mt-2 text-xs text-amber-700" role="status">未找到对应的活动工作组（可能已归档或不属于本支部）。</p>'
+        ? '<p class="mt-2 text-xs text-[var(--status-warning-text)]" role="status">未找到对应的活动工作组（可能已归档或不属于本支部）。</p>'
         : ''}
       <div id="wgv-list" class="mt-3"></div>
     </div>`;

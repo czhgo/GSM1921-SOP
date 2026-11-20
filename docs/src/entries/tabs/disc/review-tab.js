@@ -190,13 +190,13 @@ export function renderContent(ctx) {
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="text-xs px-1.5 py-0.5 rounded-full ${reviewColor[r.reviewStatus] || 'bg-gray-100 text-gray-600'}">${r.reviewStatus}</span>
-                  ${r.reviewStatus === '已确认' ? `<span class="text-xs px-1.5 py-0.5 rounded-full ${hasDeposit(r) ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${hasDeposit(r) ? '已沉淀' : '未沉淀'}</span>` : ''}
+                  ${r.reviewStatus === '已确认' ? `<span class="text-xs px-1.5 py-0.5 rounded-full ${hasDeposit(r) ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-[var(--status-warning-text)]'}">${hasDeposit(r) ? '已沉淀' : '未沉淀'}</span>` : ''}
                 </div>
               </div>
               ${r.reviewContent ? `<div class="text-xs text-gray-600 mb-2 p-2 bg-white rounded-lg border border-gray-100">${r.reviewContent}</div>` : ''}
               ${(r.issues && r.issues.length) ? `<div class="mb-2 p-2 rounded-lg border border-amber-100 bg-amber-50">
-                <div class="text-[11px] text-amber-700 font-bold mb-0.5">提出的真问题（${r.issues.length}）</div>
-                <ul class="space-y-0.5">${r.issues.map(i => `<li class="text-xs text-amber-700">· ${i}</li>`).join('')}</ul>
+                <div class="text-[11px] text-[var(--status-warning-text)] font-bold mb-0.5">提出的真问题（${r.issues.length}）</div>
+                <ul class="space-y-0.5">${r.issues.map(i => `<li class="text-xs text-[var(--status-warning-text)]">· ${i}</li>`).join('')}</ul>
               </div>` : ''}
               <div class="flex gap-2">
                 ${r.reviewStatus === ReviewStatus.UPLOADED ? `
@@ -223,7 +223,7 @@ export function renderContent(ctx) {
   container.innerHTML = `
     ${renderTabHeader({ title: '复盘', description: '活动流程监督与复盘处理；确认后的复盘在此记录经验沉淀。' })}
     <div class="space-y-4">
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-xl card-standard">
         <div class="flex items-center justify-between gap-2 mb-3">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">待处理</h3>
           ${(_batchModeOn || reviewData.some(r => r.reviewStatus === ReviewStatus.ANNOTATING)) ? `
@@ -245,7 +245,7 @@ export function renderContent(ctx) {
           <div id="disc-review-items-list"></div>
         </section>
       </div>
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-xl card-standard">
         <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">已沉淀</h3>
         <div class="text-xs text-gray-500 mb-3">${activeDeposits.length} 条；作废＝软作废（出列、留痕可回查）</div>
         <div id="disc-review-deposit-record-list"></div>

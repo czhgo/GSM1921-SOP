@@ -63,11 +63,11 @@ export function renderContent(ctx, host) {
 
     tc.innerHTML = `
       ${host ? '' : renderTabHeader({ title: '思想汇报', description: '按期次提交与回看；提交即入库归档。' })}
-      <div class="card rounded-xl p-5 mb-3">
+      <div class="card rounded-xl card-standard mb-3">
         <p class="text-sm font-semibold text-gray-800">我的思想汇报</p>
         <p class="text-xs text-gray-500 mt-0.5">已提交 ${total} 篇</p>
       </div>
-      <div class="card rounded-xl p-5 mb-3">
+      <div class="card rounded-xl card-standard mb-3">
         <p class="text-xs font-medium text-gray-600 mb-2">提交思想汇报</p>
         <div class="flex items-center gap-2 mb-2">
           <span class="text-xs text-gray-500 flex-shrink-0">期次</span>
@@ -103,7 +103,7 @@ export function renderContent(ctx, host) {
                   <span class="text-xs text-gray-500 flex-shrink-0">${_dateTime(r.submittedAt)}</span>
                   <span class="text-xs text-gray-500 tabular-nums flex-shrink-0">${wc.count} 字</span>
                   ${wc.level === 'short'
-                    ? '<span class="text-xs text-amber-700 flex-shrink-0">篇幅不足</span>'
+                    ? '<span class="text-xs text-[var(--status-warning-text)] flex-shrink-0">篇幅不足</span>'
                     : ''}
                   ${_statusBadgeHtml(_effStatus(r))}
                 </a>`;

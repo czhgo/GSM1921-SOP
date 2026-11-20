@@ -50,13 +50,13 @@ function _sortedReports() {
 
 const WEEKLY_STATUS_LABEL = { draft: '草稿', submitted: '已报送' };
 const WEEKLY_STATUS_STYLE = {
-  draft: 'bg-amber-50 text-amber-700 border-amber-200',
+  draft: 'bg-amber-50 text-[var(--status-warning-text)] border-amber-200',
   submitted: 'bg-green-50 text-green-700 border-green-200',
 };
 const WEEKLY_REVIEW_STYLE = {
   pending: 'bg-sky-50 text-sky-700 border-sky-200',
   approved: 'bg-green-50 text-green-700 border-green-200',
-  returned: 'bg-amber-50 text-amber-700 border-amber-200',
+  returned: 'bg-amber-50 text-[var(--status-warning-text)] border-amber-200',
 };
 
 // ── 自动生成报送内容（SOP-B-40 ②，2026-09-19 批次 94）──────────────
@@ -94,7 +94,7 @@ export function renderContent(ctx, host = null) {
 
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
-      <div class="lg:col-span-2 card rounded-xl p-5">
+      <div class="lg:col-span-2 card rounded-xl card-standard">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2">
             ${icon('pencil', { className: 'w-4 h-4 text-blue-600' })}
@@ -136,7 +136,7 @@ export function renderContent(ctx, host = null) {
         </div>
       </div>
 
-      <div class="lg:col-span-3 card rounded-xl p-5">
+      <div class="lg:col-span-3 card rounded-xl card-standard">
         <div class="flex items-center gap-2 mb-3">
           ${icon('clock', { className: 'w-4 h-4 text-gray-500' })}
           <h4 class="text-sm font-bold text-gray-700">归档记录</h4>
@@ -318,6 +318,6 @@ function _renderWeeklyReportItem(report) {
         </div>
       </div>
       ${report.content ? `<div id="weekly-detail-${report.id}" class="weekly-detail-content mt-2 p-2.5 rounded-lg bg-gray-50 text-xs text-gray-600 whitespace-pre-line" hidden>${report.content}</div>` : emptyStateHtml({ text: '暂无内容', variant: 'inline', className: 'mt-1' })}
-      ${reviewStatus === 'returned' && report.reviewNote ? `<p class="text-xs text-amber-700 mt-1">支书退回说明：${report.reviewNote}</p>` : ''}
+      ${reviewStatus === 'returned' && report.reviewNote ? `<p class="text-xs text-[var(--status-warning-text)] mt-1">支书退回说明：${report.reviewNote}</p>` : ''}
     </div>`;
 }

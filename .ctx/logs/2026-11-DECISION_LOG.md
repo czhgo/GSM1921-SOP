@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-892`，共 66 条**；下一条自 **`D-893`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-893`，共 67 条**；下一条自 **`D-894`**。
 
 ## 本月目录（2026-11）
 
@@ -86,6 +86,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | sample-diff 8.1–8.5 收口：六条样本支书全取保留 ＋ 四条可布尔化口径入判例；本批无代码、六维不加分 | `D-890` | 2026-11-19 | 已落（批次 578） |
 | 副支书操作权三档参数（full/standard/custom × 四类动作）；主责仍在支书，参数只决定能否代操作 | `D-891` | 2026-11-20 | 已落（批次 579） |
 | 全仓历史目标对账：作废 12 项、重规划 6 项、单项证据门；跨平台脚本包装 | `D-892` | 2026-11-20 | 已落（批次 580） |
+| 前端美学 P0+P1+P2 一次收口：卡厚度 16/12、卡头 600、状态色令牌、越档与灰底卡 | `D-893` | 2026-11-20 | 已落（批次 581） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -636,5 +637,17 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **边界**：只改台账与脚本包装，不改业务行为；已关闭项证据仍在 `p2-cleanup-ledger.md` 与 git。
 > **落点**：`.ctx/evidence/2026-11-20/backlog-reconcile.md`、`.ctx/REVIEW_QUEUE.md`、`.ctx/ENGINEERING_ASSESSMENT.md §四`、`.ctx/SNAPSHOT.md`、`.ctx/ACTIVE_CONTEXT.md`、`CLAUDE.md` 乙部、`server/package.json`、`server/scripts/with-env.mjs`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-892`**（共 **66** 条）。
+## D-893 2026-11-20 — 前端美学 P0+P1+P2 一次收口：卡厚度 / 卡头 / 状态色 / 越档（批次 581）
+
+> **评议 → 裁定 → 落点**：支书 2026-11-20「前端美学 P0+P1+P2 一次做完」。原计划分 581–583 三批，因同一批文件被机械替换覆盖，合并为一批执行（偏差登记）。
+> - **P0 卡厚度**：`DS_03 §4.2 / §4.21.2` 统一为 `.card-standard` 16 / `.card-compact` 12；`p-5` 退出卡内边距；60 个文件 137 处 `card … p-5` 机械替换为 `card … card-standard`；新增 `card-consistency-guard`（卡内边距 / 手写 H3 / 两个出口）。
+> - **P0 卡头**：27 处手写 `<h3 class="… font-bold …">` 统一为 `font-semibold`（16/600）；守卫禁止再出现 `font-bold` 手写卡头。⚠ `renderCardHeader` 全量迁移未做（27 处仍手写），登记为后续。
+> - **P1**：`text-amber-800` 25 处 + `text-amber-700` 全量改 `text-[var(--status-warning-text)]`（并删暗色僵尸补丁）；`party-committee/review-tab` 删本地 `STATUS_META`、三枚假徽章改 `badgeHtml`、`ring-2` 高亮改 1px 主题边、`rounded-md` 改 `rounded-lg`；三处无名 `<section>` 补 `aria-labelledby` 并降 `p-4`；专班阶段胶囊两处改 `badgeHtml`（去内联 hex）；3 处数字卡 `p-3` → `p-4`；设置页 3px 左条删除；纪检导出 / 打印 / 提交按钮去 `h-8`；`gray-400` 说明字改 `gray-500`；活动 / 资料 / 日历灰底卡改白底。
+> - **P2**：今天页计数改 `--neutral-800`、整卡主题淡底撤除；`cs-search-input` 改 13px / 34px；两处单行条卡 `py-3` → `py-2.5`；「请刷新重试」改「请稍后重试」。
+> **未选**：把守卫基线抬高掩盖存量；跳过 B-522-1 的低密度页整改（该项仍未完成，保留单项证据门）。
+> **边界**：`text-amber-700` 全量替换后删除暗色补丁；`taskforce-tab` hex 清零 ⇒ `HEX_FILE_BASELINE` 44 → 43；`party-workbench-layout` 断言更新为新卡厚度口径。
+> **读数**：guards **119 文件 / 867 用例 / 145.8s** 全绿；`module-load` **5/5**；daily **32 文件 / 265 断言 / 113.0s**。
+> **落点**：`content/04_web_design/design-system/DS_03_COMPONENTS.md`、`docs/src/**`（约 100 文件）、`server/test/card-consistency-guard.test.mjs`、`server/test/party-workbench-layout.test.mjs`、`server/test/{style-baseline,hex-hardcode-guard}.mjs`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-893`**（共 **67** 条）。
 

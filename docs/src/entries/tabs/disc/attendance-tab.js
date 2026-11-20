@@ -686,7 +686,7 @@ function _buildQueueHTML(items, returnedRecs, leaveCount, absentCount, overdueCo
         <div class="flex gap-3 text-xs">
           <span class="text-gray-600">请假 <span class="font-bold text-orange-700">${leaveCount}</span></span>
           <span class="text-gray-600">缺勤 <span class="font-bold text-red-700">${absentCount}</span></span>
-          <span class="text-gray-600">超期 <span class="font-bold text-amber-700">${overdueCount}</span></span>
+          <span class="text-gray-600">超期 <span class="font-bold text-[var(--status-warning-text)]">${overdueCount}</span></span>
           ${autoConfirmedCount > 0 ? `<span class="text-gray-500">出勤已录入 <span class="font-bold text-green-700">${autoConfirmedCount}</span></span>` : ''}
         </div>
       </div>
@@ -817,7 +817,7 @@ function _consumePendingTarget(container) {
   const hint = document.createElement('div');
   hint.dataset.navTargetMissing = '1';
   hint.setAttribute('role', 'status');
-  hint.className = 'card rounded-xl p-3 mb-4 text-xs text-amber-800 bg-amber-50 border border-amber-200';
+  hint.className = 'card rounded-xl p-3 mb-4 text-xs text-[var(--status-warning-text)] bg-amber-50 border border-amber-200';
   hint.textContent = target.id
     ? '未定位到具体条目（该考勤记录可能已确认或不在待确认队列）。'
     : '未定位到具体条目（本次跳转未带记录编号），已落到考勤管理顶部。';
@@ -896,7 +896,7 @@ function _buildAppealCardHTML(pendingAppeals, returnedAppeals, actById, accent, 
         </div>
         <div class="text-xs text-gray-500 truncate mt-0.5">${act ? esc(act.title) : '活动已下架'}${act?.date ? ' · ' + act.date : ''}</div>
         ${a.note ? `<div class="text-xs text-gray-600 mt-0.5">申诉说明：${esc(a.note)}</div>` : ''}
-        ${a.returnNote ? `<div class="text-xs text-amber-700 mt-0.5">打回说明：${esc(a.returnNote)}</div>` : ''}
+        ${a.returnNote ? `<div class="text-xs text-[var(--status-warning-text)] mt-0.5">打回说明：${esc(a.returnNote)}</div>` : ''}
       </div>
       ${canAct ? `<span class="flex items-center gap-2 flex-shrink-0">
         <button type="button" class="btn-accent-soft att-appeal-return text-xs px-3 py-1.5" data-appeal-id="${a.id}" style="cursor:pointer">核实属实，打回组织者</button>
@@ -1015,7 +1015,7 @@ function _renderDiscMeetRosterHint() {
   const K = stats.expected;
   const L = _meetMakeupIds.size;
   hintEl.innerHTML = `
-    <span>应到 <b class="text-gray-600">${K}</b> 人 · 滞留到场补录 <b class="text-amber-700">${L}</b> 人 · 实际应到 <b class="text-gray-800">${K + L}</b> 人</span>
+    <span>应到 <b class="text-gray-600">${K}</b> 人 · 滞留到场补录 <b class="text-[var(--status-warning-text)]">${L}</b> 人 · 实际应到 <b class="text-gray-800">${K + L}</b> 人</span>
     <span class="block mt-1">${_meetSignupHintHtml()}</span>`;
 }
 
@@ -1055,7 +1055,7 @@ function _renderDiscMeetDetainedMakeup() {
           title="${esc(p.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">
           <input type="checkbox" id="disc-meet-makeup-${p.id}" ${checked ? 'checked' : ''} class="accent-amber-600" style="cursor:pointer;">
           <span class="text-xs font-medium text-gray-700">${esc(p.name)}</span>
-          <span class="text-xs px-1 py-0.5 rounded bg-amber-100 text-amber-700 align-middle">滞留</span>
+          <span class="text-xs px-1 py-0.5 rounded bg-amber-100 text-[var(--status-warning-text)] align-middle">滞留</span>
           ${checked ? badgeHtml('滞留·到场', 'warning') : ''}
         </label>`;
       }).join('')}
@@ -1159,7 +1159,7 @@ function _renderDiscMeetStatusRows(selectedIds) {
             })}
             <span class="reason-note-${pid} text-xs text-gray-500 whitespace-nowrap" title="时效提示（不是校验，不拦提交）">${esc(absenceReasonNote(reasonValue))}</span>
           </span>
-          ${preStatus ? '<span class="text-xs text-amber-700 whitespace-nowrap">已录·更正</span>' : ''}
+          ${preStatus ? '<span class="text-xs text-[var(--status-warning-text)] whitespace-nowrap">已录·更正</span>' : ''}
         </div>`;
       }).join('')}
     </div>`;
@@ -1221,7 +1221,7 @@ function _buildDataCardHTML(matrixModel, allRecords, longData, filterActivityId)
             <button type="button" class="btn-outline btn-sm att-handoff-btn">提交考勤统计至支委会</button>`;
 
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       ${renderCardHeader({ title: '考勤数据', meta: headMeta, actions: headActions })}
       <div class="text-xs text-gray-500 mb-3">留痕台账 · 不提供删除（更正 / 打回走状态）</div>
       <!-- 共用筛选条（DS_06 SD-58 · 两行上限）：范围在上、关键词与分面在下，清除不独占一行 -->
@@ -1310,7 +1310,7 @@ function _renderMatrix(matrixView, matrixModel, actById, allRecords, ctx, accent
   const cellHtml = (personId, activityId) => {
     const state = matrixModel.cell(personId, activityId);
     if (state.kind === 'unrecorded') {
-      return '<span class="text-xs font-medium text-amber-700" title="该成员在冻结应到名单中，尚未录入考勤">未录</span>';
+      return '<span class="text-xs font-medium text-[var(--status-warning-text)]" title="该成员在冻结应到名单中，尚未录入考勤">未录</span>';
     }
     if (state.kind === 'not-applicable') {
       return '<span class="text-xs text-gray-500" title="该成员不在本场冻结应到名单中">非应</span>';
@@ -1441,11 +1441,11 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx, 
             ${showCols.type ? `<td class="text-gray-600" data-label="类别"${a.type ? '' : ` title="${SNAPSHOT_TITLE}"`}>${a.type || '—'}</td>` : ''}
             <td data-label="状态"><span class="${statusColor}">${a.status}</span>${a.onlineAttend ? '<span class="ml-1 text-xs px-1 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200 align-middle" title="线上参会：不计入出席（记「请假」），只免补课（D-293）">线上参会</span>' : ''}</td>
             ${groupMeetingView ? `<td class="text-gray-500" data-label="备注（标因/补录）">${groupMeetingNote}</td>` : ''}
-            <td class="text-gray-500" data-label="确认人">${returned ? '<span class="text-amber-700" title="已打回，待活动组织方重新确认">已打回</span>' : (autoConfirmed ? '<span class="text-green-700">自动确认</span>' : (isPending ? '<span class="text-orange-700">待确认</span>' : `<span class="text-green-700">${a.confirmer}</span>`))}</td>
+            <td class="text-gray-500" data-label="确认人">${returned ? '<span class="text-[var(--status-warning-text)]" title="已打回，待活动组织方重新确认">已打回</span>' : (autoConfirmed ? '<span class="text-green-700">自动确认</span>' : (isPending ? '<span class="text-orange-700">待确认</span>' : `<span class="text-green-700">${a.confirmer}</span>`))}</td>
             <td data-label="操作">${groupMeetingView && a.type === '党小组会'
               ? '<span class="text-xs text-gray-500" aria-label="只读">只读</span>'
               : (returned
-              ? '<span class="text-xs text-amber-700" title="已打回，待活动组织方重新确认">已打回 · 待组织方重新确认</span>'
+              ? '<span class="text-xs text-[var(--status-warning-text)]" title="已打回，待活动组织方重新确认">已打回 · 待组织方重新确认</span>'
               : (isPending && !autoConfirmed
               ? `<button class="btn-outline att-jump-queue text-xs px-2.5 py-1" data-record-id="${a.id}" style="cursor:pointer;" title="到「待确认考勤」队列确认该条">去打包确认</button>`
               : (canReturn

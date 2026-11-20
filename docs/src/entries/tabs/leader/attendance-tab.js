@@ -176,7 +176,7 @@ export function renderContent(ctx, host, opts = {}) {
 
   container.innerHTML = `
     ${renderTabHeader({ title: '考勤管理', description: isOrganizerScope ? '由我组织的活动考勤上传位。' : '组织者上传 → 纪检委员确认 → 录入考勤明细。' })}
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">${isOrganizerScope ? '考勤上传位' : '考勤管理'}</h3>
         <button class="btn-md" id="btn-leader-upload-att" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);border:1px solid var(--app-accent-soft-border);">${_attFormVisible ? '收起表单' : '上传考勤表单'}</button>
@@ -553,10 +553,10 @@ function _renderAttRosterHint(activity, rosterCtx, myGroup) {
   const chips = detained.length === 0
     ? '<span class="text-gray-500">无滞留成员</span>'
     : detained.map(p => `
-      <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 align-middle"
+      <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-50 text-[var(--status-warning-text)] border border-amber-200 align-middle"
         title="${esc(p.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">${esc(p.name)} · 滞留</span>`).join(' ');
   hintEl.innerHTML = `
-    <span>本组（${esc(myGroup)}）应到 <b class="text-gray-600">${stats.expected}</b> 人（组内党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}）。滞留者已在候选中<b class="text-amber-700">标灰禁选</b>（悬浮查看备注）：${chips}</span>`;
+    <span>本组（${esc(myGroup)}）应到 <b class="text-gray-600">${stats.expected}</b> 人（组内党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}）。滞留者已在候选中<b class="text-[var(--status-warning-text)]">标灰禁选</b>（悬浮查看备注）：${chips}</span>`;
 }
 
 function _renderAttStatusRows(selectedIds) {

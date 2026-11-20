@@ -187,7 +187,7 @@ export function renderContent(ctx) {
   container.innerHTML = `
     ${renderTabHeader({ title: '本组活动', description: '创建本组活动并登记责任 / 产出；支部级活动只读。' })}
     ${myTasksSectionHtml(_me?.personId || '')}
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       ${renderCardHeader({
         title: '活动清单',
         meta: '本组创建 / 承办可写入 · 支部级只读',
@@ -198,10 +198,10 @@ export function renderContent(ctx) {
       </div>
       <div class="mt-4 pt-3 border-t border-gray-100">
         <div id="leader-activity-lists">
-          <div class="flex items-center justify-between mb-2"><h3 class="font-title-cn text-sm font-bold text-gray-700">本组创建 / 承办</h3><span class="text-xs text-gray-500">可写入 · ${writableActs.length} 条</span></div>
+          <div class="flex items-center justify-between mb-2"><h3 class="font-title-cn text-sm font-semibold text-gray-700">本组创建 / 承办</h3><span class="text-xs text-gray-500">可写入 · ${writableActs.length} 条</span></div>
           <div class="space-y-2" id="leader-activity-list"></div>
           <div class="mt-4 pt-3 border-t border-dashed border-gray-100">
-            <div class="flex items-center justify-between mb-2"><h3 class="font-title-cn text-sm font-bold text-gray-700">可见活动（只读）</h3><span class="text-xs text-gray-500">支部级 / 定向下发 · ${readonlyActs.length} 条</span></div>
+            <div class="flex items-center justify-between mb-2"><h3 class="font-title-cn text-sm font-semibold text-gray-700">可见活动（只读）</h3><span class="text-xs text-gray-500">支部级 / 定向下发 · ${readonlyActs.length} 条</span></div>
             <div class="space-y-2" id="leader-activity-readonly-list"></div>
           </div>
         </div>
@@ -300,7 +300,7 @@ export function renderContent(ctx) {
               ${effectiveReadOnly
                 // 批次 539（F-4）：只读指引给出可点击落点——考勤／考察均有本台承载页；
                 //   深链沿用壳既有 `?tab=` / `?section=` 协议（inspection 已并入组员进展的「上传考察」段）。
-                ? `<span class="text-xs text-amber-700 text-right">${type === 'attendance'
+                ? `<span class="text-xs text-[var(--status-warning-text)] text-right">${type === 'attendance'
                   ? `考勤请到<a class="text-accent font-medium hover:opacity-80" href="${getBasePath()}workspace/leader.html?tab=attendance">「考勤管理」</a>录入`
                   : type === 'inspection'
                     ? `考察请到<a class="text-accent font-medium hover:opacity-80" href="${getBasePath()}workspace/leader.html?tab=members&section=inspection">「考察管理」</a>录入`
@@ -808,7 +808,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
             <div class="text-[12px] text-gray-500 mb-1">组织者（默认组长本人，可改）</div>
             <div id="dt-org-picker"></div>
             <!-- 2026-10-21 批次 499：组织者一般本组；他组同志须留说明（软提示，不阻断） -->
-            <p id="dt-org-cross-hint" class="text-xs text-amber-700 mt-1 hidden">组织者一般由本党小组承担；已选他组同志，请填写说明。</p>
+            <p id="dt-org-cross-hint" class="text-xs text-[var(--status-warning-text)] mt-1 hidden">组织者一般由本党小组承担；已选他组同志，请填写说明。</p>
             <div id="dt-org-exception-slot" class="mt-1 hidden">
               <input type="text" id="dt-org-exception" class="input-flat w-full text-xs" placeholder="组织者跨组说明（将随活动留存）" value="${escHtml(dtDraft.organizerExceptionReason || '')}">
             </div>
@@ -817,7 +817,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
             <div class="text-[12px] text-gray-500 mb-1">深度参与者 <span class="text-gray-500">（选填）</span></div>
             <div id="dt-deep-picker"></div>
             <!-- 2026-10-21 批次 499：跨党小组深参须由组织委员协调，提交时自动标记跨组招募 -->
-            <p id="dt-deep-cross-hint" class="text-xs text-amber-700 mt-1 hidden"></p>
+            <p id="dt-deep-cross-hint" class="text-xs text-[var(--status-warning-text)] mt-1 hidden"></p>
           </div>
         </div>
         ${renderWorkgroupPermissionEditor('activity-create')}

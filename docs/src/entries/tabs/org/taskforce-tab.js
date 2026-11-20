@@ -520,7 +520,7 @@ function _tfContribStatusOf(c) {
   if (c.verifiedStatus === 'rejected') {
     return `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-700">已退回${c.rejectNote ? ' · ' + c.rejectNote : ''}</span>`;
   }
-  return '<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">待核</span>';
+  return '<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-amber-50 text-[var(--status-warning-text)]">待核</span>';
 }
 
 /** 抽屉 Esc 关闭（只挂一次；有浮窗时让浮窗先处理，避免 Esc 双层关闭）。 */
@@ -604,8 +604,8 @@ function _openTfDetail(tfId, ctx, triggerEl = null) {
     </div>
     <div class="text-[13px] leading-5 text-gray-500">工作组成员：${_tfAssignsOf(tf).map(m => getPersonName(m.personId)).join('、') || '暂无'}</div>
     ${legacyRows.length ? `<details class="mt-2 rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-2">
-      <summary class="cursor-pointer text-xs font-medium text-amber-800">历史普通参与记录待核（${legacyRows.length}）</summary>
-      <p class="mt-1 text-xs text-amber-800">专班不设普通参与成员；旧记录保留查看，不计入成员与名额。</p>
+      <summary class="cursor-pointer text-xs font-medium text-[var(--status-warning-text)]">历史普通参与记录待核（${legacyRows.length}）</summary>
+      <p class="mt-1 text-xs text-[var(--status-warning-text)]">专班不设普通参与成员；旧记录保留查看，不计入成员与名额。</p>
       <p class="mt-1 text-xs text-gray-600">${legacyRows.map((member) => esc(getPersonName(member.personId))).join('、')}</p>
     </details>` : ''}
 
@@ -728,7 +728,7 @@ async function _tfRenderTasksBlock(panel, tf, ctx = {}) {
         </div>
         ${tf.status === 'active' ? `<div class="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 py-2">
           <p class="text-xs text-gray-600">${pendingDissolution ? '收尾事项已提交支委会，等待表决。' : closureReady ? '任务与产出均已闭合，可以结束工作组。' : '全部任务与产出闭合后，才可以结束工作组。'}</p>
-          ${pendingDissolution ? '<span class="text-[11px] text-amber-700">待事项表决</span>' : `<button type="button" id="btn-dissolve-tf" class="btn-md btn-md-red" ${closureReady ? '' : 'disabled title="请先闭合全部登记任务与产出"'}>结束工作组</button>`}
+          ${pendingDissolution ? '<span class="text-[11px] text-[var(--status-warning-text)]">待事项表决</span>' : `<button type="button" id="btn-dissolve-tf" class="btn-md btn-md-red" ${closureReady ? '' : 'disabled title="请先闭合全部登记任务与产出"'}>结束工作组</button>`}
         </div>` : ''}
         ${tf.status === 'active' && (packageEnabled || unfinishedTasks.length > 0) ? `<form id="tf-new-output-form" class="mt-2 grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto_auto] gap-2">
           <label class="sr-only" for="tf-new-output-title">新增产出名称</label>
@@ -744,7 +744,7 @@ async function _tfRenderTasksBlock(panel, tf, ctx = {}) {
           })}
           <button class="btn-outline px-3 py-1.5 text-xs" type="submit">登记产出</button>
         </form>` : ''}
-        ${tf.status === 'active' && !packageEnabled ? `<p class="mt-2 text-xs text-amber-700">本支部已停用专班工作组：不再登记新任务；可完成既有任务，并为在办任务登记收尾产出。${needsPurposeRepair ? '该历史工作组缺少主任务，请核对原记录后补登记。' : ''}</p>` : ''}
+        ${tf.status === 'active' && !packageEnabled ? `<p class="mt-2 text-xs text-[var(--status-warning-text)]">本支部已停用专班工作组：不再登记新任务；可完成既有任务，并为在办任务登记收尾产出。${needsPurposeRepair ? '该历史工作组缺少主任务，请核对原记录后补登记。' : ''}</p>` : ''}
       </section>`;
     mount.querySelector('#tf-new-task-form')?.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -867,7 +867,7 @@ function _tfRenderWorkBlock(panel, tf) {
     const tfPendReq = (tf.committeeRequest && tf.committeeRequest.status === 'pending') ? tf.committeeRequest : null;
     html += (tfPendReq && tfPendReq.kind === 'dissolve')
       ? `<div class="mb-2 flex items-center justify-end gap-2">
-          <span class="text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-700">待事项表决</span>
+          <span class="text-xs px-2 py-1 rounded-full bg-amber-50 text-[var(--status-warning-text)]">待事项表决</span>
           <span class="text-xs text-gray-500">${tfPendReq.by ? getPersonName(tfPendReq.by) : '组织委员'} ${String(tfPendReq.at || '').slice(0, 16).replace('T', ' ')} 已报送支委会表决</span>
         </div>`
       : '';
@@ -1092,7 +1092,7 @@ function _tfRenderSignupBlock(panel, tf, ctx) {
         ${s.note ? `<span class="text-[11px] text-gray-500 truncate max-w-[120px]">${esc(s.note)}</span>` : ''}
         ${s._pendingRow
           ? `<span class="ml-auto flex items-center gap-1.5">
-              ${s.role === 'participant' ? '<span class="text-[11px] text-amber-700">历史身份待核，不得转为成员</span>' : '<button class="btn-tab tf-signup-review-btn px-2.5 py-1" data-signup-id="' + esc(s.id) + '" data-approve="1" style="background:var(--status-success);">通过</button>'}
+              ${s.role === 'participant' ? '<span class="text-[11px] text-[var(--status-warning-text)]">历史身份待核，不得转为成员</span>' : '<button class="btn-tab tf-signup-review-btn px-2.5 py-1" data-signup-id="' + esc(s.id) + '" data-approve="1" style="background:var(--status-success);">通过</button>'}
               <button class="btn-tab tf-signup-review-btn px-2.5 py-1" data-signup-id="${esc(s.id)}" data-approve="0">拒绝</button>
             </span>`
           : badgeHtml('已通过', 'success')}
@@ -1138,7 +1138,7 @@ function _tfSubTableHtml(type, items, readOnly) {
       <div class="flex items-center justify-between gap-2 mb-1.5">
         <h5 class="text-xs font-bold font-title-cn tint-text" data-tone="${tone}">${label} (${items.length})</h5>
         ${readOnly
-          ? '<span class="text-[11px] text-amber-700 text-right">专班考察请统一到组织台『人才库』页底「录入考察」录入</span>'
+          ? '<span class="text-[11px] text-[var(--status-warning-text)] text-right">专班考察请统一到组织台『人才库』页底「录入考察」录入</span>'
           : `<button class="tint-action sub-add-btn text-xs px-3 py-1.5" data-tone="${tone}" data-type="${type}">+ 添加</button>`}
       </div>
       <div id="tf-sub-host-${type}"></div>
@@ -1277,7 +1277,7 @@ function _tfRenderProgressBlock(panel, tf, ctx) {
   const fmtTpAt = (iso) => (iso || '').slice(0, 16).replace('T', ' ') || '-';
   const tfProgressRows = tfProgressList.map(p => {
     const stageTag = p.stage
-      ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#10B98115;color:#0D9488;">${p.stage}</span>`
+      ? badgeHtml(esc(p.stage), 'success')
       : '';
     // 本人可删：仅填报人本人可见删除入口（旧数据无 by 时给组织委员兜底可删）
     const canDel = currentUserId && (!p.by || p.by === currentUserId);
@@ -1366,7 +1366,7 @@ function _tfRenderReviewBlock(panel, tf, ctx) {
           <span class="text-xs px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">已提交</span>
         </div>
         <p class="text-body-sm text-gray-600">${tfReviewRecord.reviewContent || '（已提交，待纪检委员批注）'}</p>
-        ${tfReviewRecord.issues?.length ? `<p class="text-[11px] text-amber-700 mt-1">问题：${tfReviewRecord.issues.join('；')}</p>` : ''}
+        ${tfReviewRecord.issues?.length ? `<p class="text-[11px] text-[var(--status-warning-text)] mt-1">问题：${tfReviewRecord.issues.join('；')}</p>` : ''}
       </div>`;
     return;
   }
@@ -1375,7 +1375,7 @@ function _tfRenderReviewBlock(panel, tf, ctx) {
     <div class="mt-3">
       <div class="flex items-center justify-between mb-2">
         <h4 class="font-title-cn text-sm font-semibold text-gray-700">专班复盘</h4>
-        <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">未提交</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-[var(--status-warning-text)]">未提交</span>
       </div>
       <textarea id="tf-review-content" rows="3" placeholder="专班任务完成情况、工作成果与不足" class="input-flat w-full resize-none"></textarea>
       <div class="flex items-center gap-2 mt-2">

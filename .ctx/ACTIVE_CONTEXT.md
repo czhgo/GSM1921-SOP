@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: 2026-11-20
 last_verified: "2026-11-20"
-latest_decision: "D-892"
+latest_decision: "D-893"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -78,6 +78,7 @@ status: active
 - **sample-diff 收口（`D-890`，批次 578）**：六条样本支书全取保留；四条可布尔化口径入判例——缺证据即拒 / 缺省可见性冻结 / 派生随来源终止 / 提问自解释；本批无代码、六维不加分。→ `content/05_ai_coding/TEST_AND_VERIFICATION.md`。
 - **副支书操作权参数（`D-891`，批次 579）**：副支书与支书同页同台、独立账号键；**主责归支书**，任务 / 提醒 / 统计不随参数变化。四类主责动作（活动编辑 / 全支部通知 / 名册阶段 / 支部配置）的操作权由 `role.deputySecretary` 三档（`full` 默认 / `standard` / `custom`）决定；设置中心可改。→ `docs/src/core/domain/deputy-capability.js`、`server/routes/resources/deputy-policy.js`。
 - **全仓历史目标对账（`D-892`，批次 580）**：作废 / 删除 12 项（B-3、F-3/4/5、B-8/9、L-08/11/12/16、B-541-11/H-12/H-18）；重规划 6 项（L-10 逐读口取证、L-02/CI/签收归外部门、L-14/15 合并、L-17 可测阈值）；`B-522-1` / `B-500-7b-2` 改单项证据门；跨平台脚本改 `scripts/with-env.mjs`。→ `.ctx/evidence/2026-11-20/backlog-reconcile.md`。
+- **前端美学收口（`D-893`，批次 581）**：卡厚度统一 16/12（`.card-standard` / `.card-compact`，`p-5` 退出卡内边距）；手写卡头 600；状态色统一 `--status-warning-text` 并删暗色僵尸补丁；假徽章 / 灰底卡 / 越档 / 无名 section 同批修；新增 `card-consistency-guard`。未做：`renderCardHeader` 全量迁移、`B-522-1` 低密度页。
 
 ## §3 当前风险与下一步
 

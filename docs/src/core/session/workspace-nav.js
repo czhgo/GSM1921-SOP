@@ -54,9 +54,9 @@ function _renderNavNotice({ message, hint = '', fallback = null } = {}) {
   const card = document.createElement('div');
   card.dataset.wsNavNotice = '1';
   card.setAttribute('role', 'alert');
-  card.className = 'card rounded-xl px-4 py-3 mb-3';
+  card.className = 'card rounded-xl px-4 py-2.5 mb-3';
   const main = document.createElement('p');
-  main.className = 'text-body-sm text-amber-700';
+  main.className = 'text-body-sm text-[var(--status-warning-text)]';
   main.textContent = message;
   card.appendChild(main);
   if (hint) {

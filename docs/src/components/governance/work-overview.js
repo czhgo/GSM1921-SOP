@@ -453,7 +453,7 @@ export async function renderWorkOverview(container, opts) {
     await _renderOverviewContent(container, opts);
   } catch (error) {
     console.warn('[work-overview] 工作概况加载失败：', error);
-    container.innerHTML = emptyStateHtml('工作概况加载失败，请刷新重试');
+    container.innerHTML = emptyStateHtml('工作概况加载失败，请稍后重试');
   }
 }
 

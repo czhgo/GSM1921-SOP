@@ -69,7 +69,7 @@ function renderControls() {
   if (wizardLink) wizardLink.href = `${getBasePath()}wizard.html?branch=${encodeURIComponent(branchId)}`;
 
   controls.innerHTML = `
-    <div class="card p-5">
+    <div class="card card-standard">
     <div class="mb-4">
       ${renderSectionHeader({
         title: '组织与任期',

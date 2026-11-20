@@ -19,7 +19,7 @@ function actorId() {
 // 数字组单一语法（2026-10-29 P2）：图标块在左、数值/标签在右；卡片不自带尺寸，列数交给 .stat-grid。
 // note 允许带已转义的 HTML（「各党小组会应到」的逐组明细由调用方拼好）。
 function stat({ icon: iconName, tint, value, unit, label, note }) {
-  return `<div class="card rounded-xl p-3 stat-card">
+  return `<div class="card rounded-xl p-4 stat-card">
     <span class="stat-icon-tint" style="--tint:${tint};" aria-hidden="true">${icon(iconName, { strokeWidth: 1.8, className: 'w-5 h-5' })}</span>
     <div class="stat-card__body">
       <p class="stat-card__value">${value}${unit ? `<span class="stat-card__unit">${unit}</span>` : ''}</p>

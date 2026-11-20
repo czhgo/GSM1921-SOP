@@ -63,12 +63,12 @@ export function renderMyDispatchTab(role, userId, opts = {}) {
     description: '支部派发的汇报与反馈在此处理；处理结果可回看。',
   });
   html += `<div class="space-y-4">`;
-  html += `<div class="card rounded-xl p-5">`;
-  html += `<h3 class="font-title-cn text-sm font-bold text-gray-700 mb-2">待我处理 <span class="tabular-nums text-gray-500">${pendingRows.length}</span></h3>`;
+  html += `<div class="card rounded-xl card-standard">`;
+  html += `<h3 class="font-title-cn text-sm font-semibold text-gray-700 mb-2">待我处理 <span class="tabular-nums text-gray-500">${pendingRows.length}</span></h3>`;
   html += `<div id="mydispatch-pending-host"></div>`;
   html += `</div>`;
-  html += `<div class="card rounded-xl p-5">`;
-  html += `<h3 class="font-title-cn text-sm font-bold text-gray-700 mb-2">我已处理 <span class="tabular-nums text-gray-500">${doneRows.length}</span></h3>`;
+  html += `<div class="card rounded-xl card-standard">`;
+  html += `<h3 class="font-title-cn text-sm font-semibold text-gray-700 mb-2">我已处理 <span class="tabular-nums text-gray-500">${doneRows.length}</span></h3>`;
   // R3-08：原 100 字令牌机制说明移 help，界面只留一句可执行提示。
   html += `<p class="text-body-sm text-gray-500 mb-2">可回看本设备提交或参与的反馈；换设备后需重新认领。<a href="./help.html#card-dom39-my-dispatch" class="text-accent">帮助</a></p>`;
   html += `<div id="mydispatch-done-host"></div>`;
@@ -251,7 +251,7 @@ function _renderMyReportDetail(issueId, role, userId, container, opts = {}) {
   const ds = deriveIssueDisplayState(issue);
   const hasReply = (issue.comments || []).some(c => c.kind === 'reply');
 
-  let html = `<div class="card rounded-xl p-5">`;
+  let html = `<div class="card rounded-xl card-standard">`;
   html += `<button data-mydispatch-action="back" class="btn-outline btn-sm text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
@@ -333,7 +333,7 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
   IssueNotify.markRead(userId, issueId);
   const ds = deriveIssueDisplayState(issue);
 
-  let html = `<div class="card rounded-xl p-5">`;
+  let html = `<div class="card rounded-xl card-standard">`;
   html += `<button data-mydispatch-action="back" class="btn-outline btn-sm text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
@@ -419,7 +419,7 @@ function _renderMyIssueDetail(issueId, role, userId, container) {
   IssueNotify.markRead(userId, issueId);
   const ds = deriveIssueDisplayState(issue);
 
-  let html = `<div class="card rounded-xl p-5">`;
+  let html = `<div class="card rounded-xl card-standard">`;
   html += `<button data-mydispatch-action="back" class="btn-outline btn-sm text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;

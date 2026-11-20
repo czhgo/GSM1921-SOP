@@ -41,7 +41,7 @@ const SECTIONS = [
 function _sectionHtml(section, open) {
   const id = `growth-${section.key}`;
   return `
-    <div class="card rounded-xl p-5 disclosure-host">
+    <div class="card rounded-xl card-standard disclosure-host">
       <h3 class="disclosure__title" id="${id}-title">${section.title}<span class="disclosure__meta">${section.meta}</span></h3>
       <details class="disclosure" id="${id}"${open ? ' open' : ''} data-growth-section="${section.key}">
         <summary class="disclosure__summary" aria-labelledby="${id}-title"></summary>
@@ -124,7 +124,7 @@ function _settlePendingTarget(container, target, sectionKey) {
     const hint = document.createElement('div');
     hint.dataset.navTargetMissing = '1';
     hint.setAttribute('role', 'status');
-    hint.className = 'card rounded-xl p-3 mb-4 text-xs text-amber-800 bg-amber-50 border border-amber-200';
+    hint.className = 'card rounded-xl p-3 mb-4 text-xs text-[var(--status-warning-text)] bg-amber-50 border border-amber-200';
     hint.textContent = target.id
       ? '未定位到具体条目（该记录可能已归档或已移出列表）。'
       : '未定位到具体条目（本次跳转未带对象编号），已落到「我的成长」顶部。';

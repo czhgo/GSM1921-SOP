@@ -119,7 +119,7 @@ export function renderMcBulkRowsHtml(rows, { mode = 'secretary-confirm', accent 
   const verb = mode === 'org-approve' ? '通过' : '确认';
   const sourceBadge = (s) => (s === 'agenda'
     ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 flex-shrink-0">议程</span>'
-    : '<span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 flex-shrink-0">名册</span>');
+    : '<span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-[var(--status-warning-text)] flex-shrink-0">名册</span>');
   const rowsHtml = list.map(r => `
     <label class="flex items-center gap-2 px-1 py-1.5 rounded-lg hover:bg-white transition-colors cursor-pointer" data-mcb-row data-mc-request-id="${esc(r.id)}">
       <input type="checkbox" class="mcb-check checkbox-accent shrink-0" data-mcb-source="${r.source}" data-mcb-id="${esc(r.id)}" />

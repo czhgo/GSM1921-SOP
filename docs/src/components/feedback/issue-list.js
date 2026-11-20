@@ -75,7 +75,7 @@ export function renderIssueList() {
   const pageItems = filtered.slice((_pageState - 1) * PAGE_SIZE, _pageState * PAGE_SIZE);
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5 mb-4">
+    <div class="card rounded-xl card-standard mb-4">
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">全部意见反馈 <span class="text-xs font-normal text-gray-500">开放中 ${counts.open} · 已关闭 ${counts.closed}</span></h3>
         ${canCreate ? `<button id="btn-new-issue" class="btn-accent text-sm px-4 py-1.5 font-medium">提交意见反馈</button>` : ''}

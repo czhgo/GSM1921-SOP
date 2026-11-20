@@ -12,6 +12,7 @@ import { mockDB } from '../../../core/domain/domain.js?v=20261110b';
 import { AuthStore } from '../../../services/core/auth.js?v=20261110b';
 import { getPersonName } from '../../../services/member/person.js?v=20261110b';
 import { getBranchById } from '../../../services/branch/branch.js?v=20261110b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261110b';
 import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261110b';
 import { showToast, escHtml as esc, fmtDt, smoothScroll } from '../../../core/base/utils.js?v=20261110b';
 // 统一检索引擎（2026-09-14 批次 37）：待批复 / 已处理两区各接一个实例（关键词 + 类型/状态分面 + 分页）
@@ -40,9 +41,9 @@ const TYPE_META = {
   'activity-report': { label: '活动报备' },
 };
 const STATUS_META = {
-  pending: { label: '待批复', cls: 'bg-amber-50 text-amber-700' },
-  approved: { label: '已批准', cls: 'bg-green-50 text-green-700' },
-  rejected: { label: '已驳回', cls: 'bg-gray-100 text-gray-600' },
+  pending: { label: '待批复', variant: 'warning' },
+  approved: { label: '已批准', variant: 'success' },
+  rejected: { label: '已驳回', variant: 'neutral' },
 };
 
 // HTML 转义/日期格式化统一走 core/base/utils.js（escHtml/fmtDt，2026-09-03 去重收口）
@@ -75,7 +76,7 @@ export function renderContent(ctx = {}) {
     ${renderTabHeader({ title: '支部上报', description: '党委逐项批复，决定和意见会回传提交支部。' })}
     <div class="page-section-stack">
       <!-- 2026-10-27 Task 5：卡头不再复述页签名——页签「支部上报」已是本页唯一 H2。 -->
-      <div class="card p-5">
+      <div class="card card-standard">
       <div id="pc-review-hl-hint" class="mt-4" role="status" aria-live="polite"></div>
       <div id="pc-review-branch-filter" class="mb-4 mt-4"></div>
       <div class="subtabs" role="tablist" aria-label="上报状态">
@@ -184,7 +185,7 @@ export function renderContent(ctx = {}) {
       const exists = listReviewRequests({}).some((row) => row.id === highlightId);
       const hint = el.querySelector('#pc-review-hl-hint');
       if (hint) {
-        hint.innerHTML = `<div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">未找到该上报（可能已处理）${exists ? '，或不在当前支部筛选内' : ''}。</div>`;
+        hint.innerHTML = `<div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-[var(--status-warning-text)]">未找到该上报（可能已处理）${exists ? '，或不在当前支部筛选内' : ''}。</div>`;
       }
     }
   }
@@ -193,13 +194,13 @@ export function renderContent(ctx = {}) {
 /** 单条上报行；决定、理由和回传结果在同一对象内连贯呈现。 */
 function cardHtml(r, highlighted = false) {
   const t = TYPE_META[r.type] || { label: r.type || '上报' };
-  const s = STATUS_META[r.status] || { label: r.status, cls: 'bg-gray-100 text-gray-600' };
+  const s = STATUS_META[r.status] || { label: r.status, variant: 'neutral' };
   return `
-    <article class="py-4 ${highlighted ? 'rounded-md bg-amber-50/50 px-3 ring-2 ring-amber-300' : ''}" data-rq-card="${esc(r.id)}" data-rq-status="${r.status}">
+    <article class="py-4 ${highlighted ? 'rounded-lg border border-[var(--primary-300)] bg-[var(--primary-50)] px-3' : ''}" data-rq-card="${esc(r.id)}" data-rq-status="${r.status}">
       <div class="flex items-center gap-2 flex-wrap mb-1.5">
-        <span class="text-xs px-2 py-0.5 rounded-full bg-gray-50 border border-gray-200 text-gray-500">${esc(branchName(r.branchId))}</span>
-        <span class="text-xs px-2 py-0.5 rounded-full ${r.type === 'develop-node' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-600'}">${t.label}</span>
-        <span class="text-xs px-2 py-0.5 rounded-full ${s.cls}">${s.label}</span>
+        ${badgeHtml(esc(branchName(r.branchId)), 'neutral')}
+        ${badgeHtml(t.label, r.type === 'develop-node' ? 'danger' : 'info')}
+        ${badgeHtml(s.label, s.variant)}
       </div>
       <p class="text-sm font-medium text-gray-800">${esc(r.title)}</p>
       <p class="text-xs text-gray-500 mt-1 leading-5 whitespace-pre-wrap">${esc(r.content)}</p>

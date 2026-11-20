@@ -220,8 +220,8 @@ function _renderReviewDetail(rev) {
     <div class="mt-3 pt-3 border-t border-gray-100">
       <div class="text-xs text-gray-600 p-2 bg-gray-50 rounded-lg border border-gray-100">${rev.reviewContent || ''}</div>
       ${issues.length ? `<div class="mt-2 p-2 rounded-lg border border-amber-100 bg-amber-50">
-        <div class="text-xs text-amber-700 font-bold mb-1">提出的真问题（${issues.length}）</div>
-        <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-700">· ${i}</li>`).join('')}</ul>
+        <div class="text-xs text-[var(--status-warning-text)] font-bold mb-1">提出的真问题（${issues.length}）</div>
+        <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-[var(--status-warning-text)]">· ${i}</li>`).join('')}</ul>
       </div>` : ''}
       ${rev.submittedAt ? `<div class="text-xs text-gray-500 mt-1">提交时间：${rev.submittedAt.slice(0, 16).replace('T', ' ')}</div>` : ''}
       ${rev.annotation ? `

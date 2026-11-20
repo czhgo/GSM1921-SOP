@@ -139,7 +139,7 @@ export function renderContent(ctx) {
   tc.innerHTML = `
     ${renderTabHeader({ title: '项目分工', description: '我的任务 / 我的分工 / 全局分工；同一份事实的三种切法。' })}
     ${subTabsHtml}
-    <div class="card rounded-xl p-5"><div id="visitor-proj-host"></div><div id="visitor-proj-detail" class="hidden mt-4"></div></div>
+    <div class="card rounded-xl card-standard"><div id="visitor-proj-host"></div><div id="visitor-proj-detail" class="hidden mt-4"></div></div>
   `;
   const host = tc.querySelector('#visitor-proj-host');
 
@@ -408,7 +408,7 @@ function _renderTaskCard(r, statusLabel, statusClass) {
   const done = r.status === 'completed';
   const offline = r.deepMode === DEEP_WORK_MODE.OFFLINE;
   const modeChip = r.deepMode
-    ? `<span class="text-xs px-1.5 py-0.5 rounded-full border flex-shrink-0 ${offline ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}" title="${offline ? '组织者已在写入活动时标为「去线下做」——线下（微信等）完成，由组织者确认完成，不进系统产出链' : '组织者已在写入活动时标为「系统内做」——在本页完成，产出由系统后台同步'}">${DEEP_WORK_MODE_LABEL[r.deepMode]}</span>`
+    ? `<span class="text-xs px-1.5 py-0.5 rounded-full border flex-shrink-0 ${offline ? 'bg-amber-50 text-[var(--status-warning-text)] border-amber-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}" title="${offline ? '组织者已在写入活动时标为「去线下做」——线下（微信等）完成，由组织者确认完成，不进系统产出链' : '组织者已在写入活动时标为「系统内做」——在本页完成，产出由系统后台同步'}">${DEEP_WORK_MODE_LABEL[r.deepMode]}</span>`
     : '';
   // 2026-10-19 恢复半透明主题底体例：勾掉＝推进任务关闭的高频行内动作。
   return `
@@ -452,7 +452,7 @@ function _renderProjectCard(project, currentUserId) {
     <div class="visitor-proj-card p-3 rounded-xl bg-white border border-transparent cursor-pointer hover:border-[var(--color-border-strong)] hover:bg-[var(--surface-hover)] active:bg-[var(--surface-active)] active:border-[var(--app-accent)] transition-colors" role="button" tabindex="0" aria-label="查看${project.type}：${esc(project.name)}" data-tf-id="${project.type === '专班' ? project.id : ''}" data-act-id="${project.type === '活动' ? project.id : ''}">
       <div class="flex items-center justify-between mb-1.5">
         <div class="flex items-center gap-2 min-w-0">
-          <span class="text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 border ${project.type === '活动' ? 'text-red-700 border-red-200' : 'text-amber-700 border-amber-200'}">${project.typeBadge}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 border ${project.type === '活动' ? 'text-red-700 border-red-200' : 'text-[var(--status-warning-text)] border-amber-200'}">${project.typeBadge}</span>
           <p class="text-sm font-medium text-gray-800 truncate">${project.name}</p>
         </div>
         <span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${project.statusColor}">${project.status}</span>

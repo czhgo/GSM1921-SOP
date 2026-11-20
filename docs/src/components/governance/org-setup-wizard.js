@@ -308,7 +308,7 @@ function _render(S) {
         ${_headHtml(S, branch, org, isStaff)}
         <div class="org-config-layout">
           <nav class="org-config-steps" aria-label="业务配置步骤">${_stepperHtml(S)}</nav>
-          <div class="org-config-content"><div class="card p-5 org-config-step-panel"><div class="space-y-4">${stepContent}</div></div></div>
+          <div class="org-config-content"><div class="card card-standard org-config-step-panel"><div class="space-y-4">${stepContent}</div></div></div>
         </div>
       </section>`
     : `${_headHtml(S, branch, org, isStaff)}${_stepperHtml(S)}<div class="space-y-4">${stepContent}</div>`;
@@ -351,7 +351,7 @@ function _deniedHtml(S) {
   return `<div class="rounded-xl border border-gray-200 bg-white p-6 max-w-xl">
     <p class="font-title-cn text-sm font-bold text-gray-800">无配置权限</p>
     <p class="text-xs text-gray-500 mt-1">换组织向导的配置权限：仅 <b>本支部现任支书/副支书</b>（副书同权）可配置自己的支部（config 写口校验同 branch 服务既有语义）。</p>
-    <p class="text-xs text-amber-700 mt-2">${esc(reason || '当前账号无支部配置权限')}</p>
+    <p class="text-xs text-[var(--status-warning-text)] mt-2">${esc(reason || '当前账号无支部配置权限')}</p>
     <p class="text-xs text-gray-500 mt-3">如需使用向导：以 <b>本支部现任支书/副支书</b>账号登录。</p>
   </div>`;
 }
@@ -445,7 +445,7 @@ function _createPanelHtml(S, isStaff) {
       </div>`
     : `
       <div class="rounded-lg border border-amber-200 bg-amber-50/60 p-2.5">
-        <p class="text-xs text-amber-700">当前没有可任命的现役成员（已剔除滞留党员）——请先经下方「成员名册预览」导入成员名单，或到成员管理补入成员后，再创建支部并就地任命首任骨干。</p>
+        <p class="text-xs text-[var(--status-warning-text)]">当前没有可任命的现役成员（已剔除滞留党员）——请先经下方「成员名册预览」导入成员名单，或到成员管理补入成员后，再创建支部并就地任命首任骨干。</p>
       </div>`;
   return `
     <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 space-y-2">
@@ -511,7 +511,7 @@ function _basePanelHtml(S) {
     <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 mt-2.5 space-y-2">
       <p class="text-xs font-semibold text-gray-700">成员基础数据预览 <span class="text-xs font-normal text-gray-500">（本地预览：仅覆盖姓名/党小组归属/发展阶段/在校·滞留，不改动已保存数据）</span></p>
       <p class="text-xs text-gray-500">下载「成员名单模板」→ 按真实名册改 JSON → 「导入名单(JSON)预览」：应到人数与党员分布即时变化；「清除预览」回到初始名册。</p>
-      <p class="text-xs text-amber-700">注意：业务历史（活动/考勤/议程/专班等）仍关联历史成员；需人工替换的项见「换壳工作单」。</p>
+      <p class="text-xs text-[var(--status-warning-text)]">注意：业务历史（活动/考勤/议程/专班等）仍关联历史成员；需人工替换的项见「换壳工作单」。</p>
       <div class="flex flex-wrap items-center gap-2">
         <button type="button" data-wz-act="download-base-template" class="btn-outline ${subtle}">下载成员名单模板</button>
         <button type="button" data-wz-act="import-base" class="btn-outline ${subtle}">导入名单(JSON)预览</button>
@@ -531,7 +531,7 @@ function _basePanelHtml(S) {
  *  卡片不自带尺寸，列数交给 .stat-grid。sub 走纯文本转义，subHtml 走已拼好的转义片段。 */
 function _baseStatBox({ icon: iconName, tint, value, valueColor, unit, label, sub, subHtml }) {
   const note = subHtml || (sub ? esc(sub) : '');
-  return `<div class="card rounded-xl p-3 stat-card">
+  return `<div class="card rounded-xl p-4 stat-card">
     <span class="stat-icon-tint" style="--tint:${tint};" aria-hidden="true">${icon(iconName, { strokeWidth: 1.8, className: 'w-5 h-5' })}</span>
     <div class="stat-card__body">
       <p class="stat-card__value"${valueColor ? ` style="color:${valueColor};"` : ''}>${value}${unit ? `<span class="stat-card__unit">${unit}</span>` : ''}</p>
@@ -656,7 +656,7 @@ function _step1Html(S, branch, org, isStaff) {
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <label class="flex flex-col gap-1 text-xs text-gray-500">
-          支部名称（官方名）${canEditName ? '' : '<span class="text-xs text-amber-700">党委管理，支书只读</span>'}
+          支部名称（官方名）${canEditName ? '' : '<span class="text-xs text-[var(--status-warning-text)]">党委管理，支书只读</span>'}
           <input id="wz-org-name" type="text" value="${esc(org.name)}" placeholder="支部官方名" ${canEditName ? '' : 'disabled'}
             class="input-flat w-full ${canEditName ? '' : 'bg-gray-50 text-gray-500'}">
         </label>
@@ -764,7 +764,7 @@ function _step2Html(S, branch, isStaff = false) {
     <div class="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
       <div class="flex items-center justify-between">
         <p class="text-xs font-bold text-gray-700">② 模块 / 块组合</p>
-        <span class="text-xs ${isStaff ? 'text-amber-700' : 'text-gray-500'}">${locked ? '先选目标支部；未选支部时本页只读' : (isStaff ? '党委代配置（留痕），支部可覆盖；点击开关 → 保存本步' : '对支部工作台成员「下次进入」生效；点击开关 → 保存本步')}</span>
+        <span class="text-xs ${isStaff ? 'text-[var(--status-warning-text)]' : 'text-gray-500'}">${locked ? '先选目标支部；未选支部时本页只读' : (isStaff ? '党委代配置（留痕），支部可覆盖；点击开关 → 保存本步' : '对支部工作台成员「下次进入」生效；点击开关 → 保存本步')}</span>
       </div>
       <div>
         <p class="text-xs font-bold text-gray-600 mb-1.5">业务模块 <span class="text-xs font-normal text-gray-500">（支书工作台 tab；核心组固定不可关）</span></p>

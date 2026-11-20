@@ -158,7 +158,7 @@ function composeHtml(state) {
   const branches = mockDB.branches || [];
   const selected = new Set(state.branchIds || []);
   return `
-    <div class="card page-section page-section--form p-5">
+    <div class="card page-section page-section--form card-standard">
       ${renderSectionHeader({ titleId: 'dispatch-compose-title', title: '撰写一条党委通知', description: '通知送达所选支部的支委层；收件人在通知铃铛中查看。', level: 3 })}
       <fieldset id="dispatch-branches" class="mt-4">
         <legend class="text-sm font-medium text-gray-800">目标支部 <span class="text-red-700">*</span></legend>
@@ -251,14 +251,14 @@ function historyHtml() {
     .slice()
     .sort((a, b) => String(b.publishDate || '').localeCompare(String(a.publishDate || ''))), BRANCH_FILTER_STATE);
   return `
-    <section id="dispatch-history" aria-label="党委通知发送记录" class="card p-5">
+    <section id="dispatch-history" aria-label="党委通知发送记录" class="card card-standard">
       ${renderSectionHeader({ title: '发送记录', level: 3 })}
       <div id="pc-dispatch-branch-filter" class="mb-3 mt-4"></div>
       ${rows.length ? `<ol class="divide-y divide-gray-200 border-y border-gray-200">
         ${rows.map((notice) => `
           <li class="py-4">
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <span class="text-xs font-medium ${notice.priority === 'urgent' ? 'text-amber-800' : 'text-blue-800'}">${notice.priority === 'urgent' ? '紧急' : '重要'}</span>
+              <span class="text-xs font-medium ${notice.priority === 'urgent' ? 'text-[var(--status-warning-text)]' : 'text-blue-800'}">${notice.priority === 'urgent' ? '紧急' : '重要'}</span>
               <span class="text-xs text-gray-600">${esc(notice.branchName || notice.branchId || '支部')}</span>
               <time class="ml-auto text-xs tabular-nums text-gray-500">${esc(notice.publishDate || '')}</time>
             </div>
@@ -278,12 +278,12 @@ function publicHtml() {
   const state = publicDraft || {};
   return `
     <div class="space-y-4">
-      <section class="card p-5" aria-label="党委公开通知列表">
+      <section class="card card-standard" aria-label="党委公开通知列表">
         ${renderSectionHeader({ title: '已发布公开通知', level: 3 })}
         <p class="mt-1 text-sm text-gray-600">「公开」范围会进入未登录公共门厅，到期自动下线；「登录可见」只对登录成员展示。</p>
         <div class="mt-3">${publicListHtml()}</div>
       </section>
-      <div class="card page-section page-section--form p-5">
+      <div class="card page-section page-section--form card-standard">
         ${renderSectionHeader({ titleId: 'public-notice-compose-title', title: '撰写一条党委公开通知', description: '归属、受众与发布时间由服务端固定；公开范围须设置未来有效期。', level: 3 })}
         <div class="mt-4 space-y-3">
           ${textField({ id: 'public-notice-title', label: '标题', required: true, value: state.title || '', placeholder: '通知主题', autocomplete: 'off' })}
@@ -329,7 +329,7 @@ function publicNoticeRowHtml(row) {
   return `
     <div class="py-3" data-public-id="${esc(row.id)}">
       <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <span class="text-body-sm font-medium ${row.priority === 'urgent' ? 'text-amber-800' : 'text-blue-800'}">${row.priority === 'urgent' ? '紧急' : '重要'}</span>
+        <span class="text-body-sm font-medium ${row.priority === 'urgent' ? 'text-[var(--status-warning-text)]' : 'text-blue-800'}">${row.priority === 'urgent' ? '紧急' : '重要'}</span>
         ${badgeHtml(isPublic ? '公开' : '登录可见', isPublic ? 'brand' : 'neutral')}
         <time class="text-body-sm tabular-nums text-gray-500">${esc(row.publishDate || '')}</time>
         ${isPublic ? `<button type="button" class="btn-outline btn-sm ml-auto" data-public-withdraw="${esc(row.id)}">撤下公开</button>` : ''}

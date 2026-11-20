@@ -1905,13 +1905,14 @@ a.text-accent {
 .cs-search-input {
   flex: 1;
   min-width: 0;
-  padding: 6px 8px;
+  padding: 8px 12px;
   border: 1px solid var(--neutral-200);
   border-radius: var(--radius-sm);
   outline: none;
   outline-width: 0;
   background: var(--neutral-0);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
+  min-height: 34px;
   color: var(--neutral-800);
   transition: border-color var(--transition-fast);
 }
@@ -5305,7 +5306,6 @@ html.theme-dark [style*="--acc-dot-dark"] {
   html.theme-dark .text-orange-700 { color: #FDBA74 !important; }
   html.theme-dark .text-green-700  { color: #86EFAC !important; }
   html.theme-dark .text-blue-700   { color: #93C5FD !important; }
-  html.theme-dark .text-amber-700  { color: #FCD34D !important; }
   html.theme-dark .text-yellow-700 { color: #FDE047 !important; }
   html.theme-dark .text-purple-700 { color: #D8B4FE !important; }
   html.theme-dark .text-rose-700   { color: #FDA4AF !important; }

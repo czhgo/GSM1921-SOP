@@ -52,8 +52,8 @@ async function initRoute() {
   if (actor.role === 'party-staff') {
     const main = document.getElementById('main-content');
     if (main) main.innerHTML = `
-      <section class="max-w-2xl mx-auto mt-12 rounded-lg border border-gray-200 bg-white p-6 text-center">
-        <h2 class="font-title-cn text-lg font-bold text-gray-800">此事项在支部内处理</h2>
+      <section class="max-w-2xl mx-auto mt-12 rounded-lg border border-gray-200 bg-white p-4 text-center" aria-labelledby="feedback-party-staff-title">
+        <h2 id="feedback-party-staff-title" class="font-title-cn text-lg font-semibold text-gray-800">此事项在支部内处理</h2>
         <p class="mt-2 text-sm text-gray-600">匿名反馈不是向党委上报的入口。党委工作台不读取反馈内容或提交人身份。</p>
       </section>`;
     return;

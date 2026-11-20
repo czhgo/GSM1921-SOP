@@ -41,7 +41,7 @@ function _unreadCount() {
 /** 角标 HTML（**深红底 ⇒ 党徽金底 ＋ 深字**，与顶栏铃铛角标同一口径；`≥10` 收敛 `9+`） */
 function _badgeHtml(unread) {
   if (!(unread > 0)) return '';
-  return `<span class="report-entry-badge text-amber-800" aria-label="待处理汇报 ${unread} 条">${unread > 9 ? '9+' : unread}</span>`;
+  return `<span class="report-entry-badge text-[var(--status-warning-text)]" aria-label="待处理汇报 ${unread} 条">${unread > 9 ? '9+' : unread}</span>`;
 }
 
 /**

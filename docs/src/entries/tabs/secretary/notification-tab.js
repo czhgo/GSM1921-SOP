@@ -27,7 +27,7 @@ import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261
 
 const NOTIFICATION_TAB_HTML = `
   ${renderTabHeader({ title: '通知发布' })}
-  <div class="card rounded-xl p-5 mb-6">
+  <div class="card rounded-xl card-standard mb-6">
     <div class="flex items-center justify-between mb-1">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">发布通知</h3>
       <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">动作</span>
@@ -37,7 +37,7 @@ const NOTIFICATION_TAB_HTML = `
     <p class="text-xs text-gray-500 mb-4">本页负责<strong>发布动作 + 已发布台账</strong>：发出即入下方列表，可查看 / 编辑 / 删除；阅读状态在通知铃铛与通知详情中体现，不做按人催读。</p>
     <div id="notification-form-area"></div>
   </div>
-  <div class="card rounded-xl p-5">
+  <div class="card rounded-xl card-standard">
     <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">已发布通知</h3>
     <div id="notification-list-area"></div>
   </div>

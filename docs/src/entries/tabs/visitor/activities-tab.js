@@ -197,7 +197,7 @@ export function renderContent(ctx) {
         </button>
       </div>
     </div>
-    <div class="card rounded-xl p-5"><div id="visitor-act-view" role="tabpanel" tabindex="0" aria-labelledby="visitor-view-tab-list"></div></div>
+    <div class="card rounded-xl card-standard"><div id="visitor-act-view" role="tabpanel" tabindex="0" aria-labelledby="visitor-view-tab-list"></div></div>
   `;
   _paintViewButtons(tc, 'list');
 

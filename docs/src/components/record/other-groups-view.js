@@ -69,7 +69,7 @@ export async function renderOtherGroupsView(container) {
 
   container.innerHTML = groups.length
     ? `<div class="space-y-3">${groups.map(g => _cardHtml(g, ctx)).join('')}</div>`
-    : `<div class="card rounded-xl p-5">
+    : `<div class="card rounded-xl card-standard">
          ${emptyStateHtml({ variant: 'panel', text: `支部暂无其他党小组${myGroup ? `（你所在：「${myGroup}」）` : ''}` })}
        </div>`;
 }
@@ -117,10 +117,10 @@ function _cardHtml(g, ctx) {
         <span class="text-xs text-gray-500">党员 ${g.partyCount} · 成员 ${g.memberCount}${g.leaderId ? ' · 组长 ' + esc(getPersonName(g.leaderId)) : ' · 未设组长'}</span>
       </div>
       <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-600 mb-2.5">
-        <span>待答复汇报 <span class="font-semibold ${openCount ? 'text-amber-700' : 'text-gray-700'}">${openCount}</span></span>
+        <span>待答复汇报 <span class="font-semibold ${openCount ? 'text-[var(--status-warning-text)]' : 'text-gray-700'}">${openCount}</span></span>
         <span>待复盘 <span class="font-semibold">${pending.length}</span> · 已复盘 <span class="font-semibold">${completed.length}</span></span>
         <span>党小组会 应到 <span class="font-semibold">${expected}</span> · 实到 <span class="font-semibold">${present}</span></span>
-        <span>考察 <span class="font-semibold">${groupInsp.length}</span> 条${inspPending ? ` · <span class="text-amber-700">待确认 ${inspPending}</span>` : ''}</span>
+        <span>考察 <span class="font-semibold">${groupInsp.length}</span> 条${inspPending ? ` · <span class="text-[var(--status-warning-text)]">待确认 ${inspPending}</span>` : ''}</span>
       </div>
       <div class="pt-2 border-t border-gray-100">
         <div class="text-xs font-bold text-gray-600 mb-1">组员进展（只读）</div>

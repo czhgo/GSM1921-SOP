@@ -121,9 +121,9 @@ export function reportRowStateOf(issue) {
   if (hasLeaderReply) return { label: '组长已答复', cls: 'bg-green-100 text-green-700' };
   // 上级（支书/组长）「了解进展」请求行：尚未回应 → 待汇报；组员/被请人已回应(resultPending) → 待答复
   if (issue.requestedBy && !issue.resultPending) return { label: '待汇报', cls: 'bg-blue-100 text-blue-700' };
-  if (issue.resultPending) return { label: '待答复', cls: 'bg-amber-100 text-amber-700' };
+  if (issue.resultPending) return { label: '待答复', cls: 'bg-amber-100 text-[var(--status-warning-text)]' };
   if (issue.reportCategory === 'blocked') return { label: '卡点上报', cls: 'bg-red-100 text-red-700' };
-  return { label: '待答复', cls: 'bg-amber-100 text-amber-700' };
+  return { label: '待答复', cls: 'bg-amber-100 text-[var(--status-warning-text)]' };
 }
 
 /** 取组内「组员」id 集（组长视角口径：组长看本组其他成员；无组长组 = 全组成员） */

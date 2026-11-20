@@ -49,7 +49,7 @@ function _reportHref(reportId) {
 /** 单行：姓名 + 期次/时间 + 状态 + 「查看 / 档案」两个出口（list-row 单一源） */
 function _rowHtml({ personId, name, meta, statusText, reportId }) {
   const status = statusText
-    ? `<span class="text-xs text-amber-700">${esc(statusText)}</span>`
+    ? `<span class="text-xs text-[var(--status-warning-text)]">${esc(statusText)}</span>`
     : '';
   return listRowHtml({
     rowType: 'action',
@@ -68,7 +68,7 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（本 tab 不�
 
   const user = AuthStore.getCurrentUser();
   if (!user) {
-    container.innerHTML = `${renderTabHeader({ title: '思想汇报' })}<div class="card rounded-xl p-5">${emptyStateHtml({ variant: 'panel', text: '请先登录后使用', actionHtml: `<a class="btn-outline" href="${getBasePath()}login.html">去登录</a>` })}</div>`;
+    container.innerHTML = `${renderTabHeader({ title: '思想汇报' })}<div class="card rounded-xl card-standard">${emptyStateHtml({ variant: 'panel', text: '请先登录后使用', actionHtml: `<a class="btn-outline" href="${getBasePath()}login.html">去登录</a>` })}</div>`;
     return;
   }
   // 防御：非组织委员不渲染。角色键一律走 ROLE_LABELS（R3-04：不得把 `secretary` 原样抛给用户）。
@@ -76,7 +76,7 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（本 tab 不�
     const roleName = ROLE_LABELS[user.role] || '当前身份';
     container.innerHTML = `
       ${renderTabHeader({ title: '思想汇报' })}
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-xl card-standard">
         ${emptyStateHtml({ variant: 'panel', text: `无权限：仅组织委员可审阅思想汇报（当前身份：${roleName}）` })}
       </div>`;
     return;
@@ -133,7 +133,7 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（本 tab 不�
 
   container.innerHTML = `
     ${renderTabHeader({ title: '思想汇报', description: '本期未交、待初阅与待补充的例外清单。' })}
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center justify-between flex-wrap gap-2">
         <div class="min-w-0">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">思想汇报例外</h3>

@@ -112,7 +112,7 @@ function residenceSelect(current) {
 /** 「立即生效」小标（档案属性直改；浅底语义类，非可点击控件） */
 const TAG_INSTANT = '<span class="text-[11px] px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-100 whitespace-nowrap flex-shrink-0">立即生效</span>';
 /** 「报支书确认」小标（制度链；与名册「待确认」小标同源语义） */
-const TAG_CONFIRM = '<span class="text-[11px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-100 whitespace-nowrap flex-shrink-0">报支书确认</span>';
+const TAG_CONFIRM = '<span class="text-[11px] px-1.5 py-0.5 rounded bg-amber-50 text-[var(--status-warning-text)] border border-amber-100 whitespace-nowrap flex-shrink-0">报支书确认</span>';
 
 /** 字段分组容器：统一用 fieldset（浮窗体例 §body 分组），不再各写卡片 */
 function groupBox({ title, desc, rows }) {
@@ -261,7 +261,7 @@ export function openPersonEditModal(opts = {}) {
   //    发展阶段 / 在册状态 / 在册备注 在下方可改区已有控件，不再重复一遍）。
   //    selfOnly（本人自助）时这些字段对本人均不可改，故完整展示。
   const residenceStatusHtml = isDetained
-    ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-amber-700 bg-amber-50">${esc(RESIDENCE.DETAINED)}</span>`
+    ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-[var(--status-warning-text)] bg-amber-50">${esc(RESIDENCE.DETAINED)}</span>`
     : `<span class="text-gray-800">${esc(member.residenceStatus || RESIDENCE.CAMPUS)}</span>`;
   const readonlyAll = [
     archiveRow({ label: '姓名', valueHtml: esc(member.name || '—'), field: 'name', highlight: hits('name') }),

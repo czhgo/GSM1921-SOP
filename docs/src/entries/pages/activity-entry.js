@@ -383,7 +383,7 @@ async function renderActivity(id) {
           <h2 class="font-title-cn text-xl font-bold text-gray-800 leading-snug">${esc(copyRow.title || '院级活动')}</h2>
         </div>
         <p class="text-sm text-gray-500">${esc(copyRow.date || '—')}${copyRow.location ? ' · ' + esc(copyRow.location) : ''}</p>
-        <div class="mt-3 rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-2.5" role="note">
+        <div class="mt-3 rounded-xl border border-gray-100 bg-white px-4 py-2.5" role="note">
           <p class="text-body-sm leading-6 text-gray-600">本支部已采用，请在支部副本中维护执行信息。</p>
           ${copyHref ? `<a class="mt-1 inline-block text-body-sm font-medium text-accent focus-ring rounded" href="${getBasePath()}${copyHref}">打开支部副本 →</a>` : ''}
         </div>`;
@@ -577,7 +577,7 @@ async function renderActivity(id) {
     brandCardHtml = `
     <!-- 品牌认定（支委会事项；2026-09-21 批次 132）：提案 → 支委会审议通过后确定。
          本块是给**不在支书台**的支委（组织/宣传/纪检委员）与党小组组长的落点；普通成员与访客看不到该动作。 -->
-    <div class="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50/60 px-5 py-3">
+    <div class="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-white px-5 py-3">
       <span class="text-xs text-gray-500">${stateText}</span>
       ${action}
     </div>`;
@@ -603,7 +603,7 @@ async function renderActivity(id) {
     reviewRequestCardHtml = `
     <!-- 追加复盘要求（2026-09-21 批次 135 · 裁定二）：支委会额外要求组织者复盘 ⇒ 进活动关闭判据，
          只判到「交回」不到「确认」；三会一课不适用；组织者仍走成员端「我的复盘」那张既有表单。 -->
-    <div class="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50/60 px-5 py-3">
+    <div class="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-white px-5 py-3">
       <span class="text-xs text-gray-500">${stateText}</span>
       ${action}
     </div>`;
@@ -621,14 +621,14 @@ async function renderActivity(id) {
     transferCardHtml = `
     <!-- 转交组织者（2026-10-01 批次 327 · SOP-G-2-②）：选定接手人即生效；留痕在两处——
          本场 assignments 主源 ＋ 既有角色变更审计（谁转给谁 / 何时）。 -->
-    <div class="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50/60 px-5 py-3">
+    <div class="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-white px-5 py-3">
       <span class="text-xs text-gray-500">转交组织者：选定接手人后立即生效（原组织者退出、新人接手）；更换会记入本场角色变更留痕</span>
       <button id="organizer-transfer-btn" class="btn-outline text-xs px-3 py-1.5 flex-shrink-0" style="cursor:pointer;">转交组织者</button>
     </div>`;
   } else if (canInitiateTransfer && !organizerId && canEditMembers) {
     transferCardHtml = `
     <!-- A03：无组织者 → 走既有成员编辑指定（不提供必然失败的「转交」） -->
-    <div class="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50/60 px-5 py-3">
+    <div class="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-white px-5 py-3">
       <span class="text-xs text-gray-500">本场尚未指定组织者：在下方「活动工作组成员」把一人设为组织者即可</span>
       <button id="organizer-designate-btn" class="btn-outline flex-shrink-0" style="cursor:pointer;">指定组织者</button>
     </div>`;
@@ -670,7 +670,7 @@ async function renderActivity(id) {
     <!-- 议程与表决（AV4.5：线上异步表决） -->
     <div id="async-vote-section">
       <p class="mb-3 flex items-center gap-2 flex-wrap text-xs text-gray-500">逐条表态
-        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium text-amber-700 bg-amber-50">线上异步表决</span>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium text-[var(--status-warning-text)] bg-amber-50">线上异步表决</span>
       </p>
       <div class="space-y-3">
         ${agendaList.map((a, i) => `
@@ -726,7 +726,7 @@ async function renderActivity(id) {
   // 参与三视图：报名（可报名时）/ 报名名单 / 应到名单（正式会议）或成员与分工。
   //   三者在同一位次切换，不再各自占一段；写口宿主 `#activity-signup-section` 原样保留。
   const noNameCountsHtml = `
-    <div class="rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-3">
+    <div class="rounded-xl border border-gray-100 bg-white px-4 py-3">
       <p class="text-sm font-semibold text-gray-800">活动人员概况</p>
       <p class="mt-1 text-xs text-gray-600">工作组：组织者 ${workgroupRoleCounts.organizer} 人、深度参与者 ${workgroupRoleCounts.deep} 人；已通过报名 ${approvedSignupCount} 人；待审核 ${pendingSignupCount} 人。</p>
       <p class="mt-1 text-xs text-gray-500">当前无权查看人员名单。</p>
@@ -789,13 +789,13 @@ async function renderActivity(id) {
   const emphasisCardHtml = committeeCopy && canManageThisCopy && !archivedReadOnly ? `
     <!-- 强调通知（批次 534 · Task 4）：本支部副本上由支书 / 副支书发送，受众＝支部内全体党员；
          同一（支部, 党委活动）24 小时内最多一条（EMPHASIS_NOTICE_WINDOW_MS 单一源）。 -->
-    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50/60 px-5 py-3">
+    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-100 bg-white px-5 py-3">
       <span class="text-xs text-gray-500">强调通知：向本支部全体党员推送一条提醒；同一活动 24 小时内最多一条${emphasisMs > 0 ? ` · ${Math.ceil(emphasisMs / 3600000)} 小时后可再次发送` : ''}</span>
       <button type="button" id="committee-emphasis-btn" class="btn-accent btn-sm flex-shrink-0"${emphasisMs > 0 ? ' disabled' : ''}>${emphasisMs > 0 ? `${Math.ceil(emphasisMs / 3600000)} 小时后可再次发送` : '发送强调通知'}</button>
     </div>` : '';
   const closeSignupCardHtml = canCloseSignup ? `
     <!-- 报名管理（批次 123）：只对本场组织者 / 支书呈现，非组织者看不到该动作 -->
-    <div class="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50/60 px-5 py-3">
+    <div class="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-white px-5 py-3">
       <span class="text-xs text-gray-500">报名管理</span>
       <button id="signup-close-btn" class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">关闭报名</button>
     </div>` : '';
@@ -827,7 +827,7 @@ async function renderActivity(id) {
       ${committeeActivity ? `
       <!-- 党委活动（院级内容 · 批次 534 · Task 9）：目标支部说明 + 未采用时的「采用到本支部」；
            已有副本 ⇒ 只读横幅（本支部清单不再显示原件，直达时只看不改）。 -->
-      <div class="mt-3 rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-2.5" role="note">
+      <div class="mt-3 rounded-xl border border-gray-100 bg-white px-4 py-2.5" role="note">
         <p class="text-xs leading-6 text-gray-600">院级活动（党委下发） · 目标支部：${esc(targetBranchText)}。采用后生成本支部副本，日期 / 地点 / 承办党小组 / 报名 / 考勤等执行信息在副本中维护；原件内容以党委为准。</p>
         ${committeeSourceLocked
           ? `<p class="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-600">本支部已采用，请在支部副本中维护执行信息。${adoptedCopyHref ? `<a class="text-accent font-medium focus-ring rounded" href="${getBasePath()}${adoptedCopyHref}">打开支部副本 →</a>` : ''}</p>`
@@ -837,7 +837,7 @@ async function renderActivity(id) {
       </div>` : ''}
       ${committeeCopy ? `
       <!-- 党委活动副本（批次 534 · Task 9）：版本提示 + 手动同步（只覆盖内容字段，执行字段保留）。 -->
-      <div class="mt-3 rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-2.5" role="note">
+      <div class="mt-3 rounded-xl border border-gray-100 bg-white px-4 py-2.5" role="note">
         <p class="text-xs leading-6 text-gray-600">源自党委活动${copySource ? `「${esc(copySource.title || copySource.id)}」` : ''} · ${copySource
           ? `副本内容版本 v${Number(act.sourceVersion) || 1}${copyOutdated ? ` · 党委已更新至 v${Number(copySource.contentVersion) || 1}` : ' · 已与党委同步'}`
           : `副本内容版本 v${Number(act.sourceVersion) || 1} · 党委原件版本由党委端维护`}。</p>
@@ -1404,7 +1404,7 @@ function _waRowHtml(row, canManage, canRevealNames = true) {
   const who = row.assigneeId ? (canRevealNames ? (getPersonById(row.assigneeId)?.name || row.assigneeId) : '负责人已登记') : '未指定';
   const st = WORK_ASSIGNMENT_STATUS_LABELS[row.status] || row.status;
   const stClass = row.status === WORK_ASSIGNMENT_STATUS.COMPLETED ? 'text-green-700 bg-green-50'
-    : (row.status === WORK_ASSIGNMENT_STATUS.IN_PROGRESS ? 'text-blue-700 bg-blue-50' : 'text-amber-700 bg-amber-50');
+    : (row.status === WORK_ASSIGNMENT_STATUS.IN_PROGRESS ? 'text-blue-700 bg-blue-50' : 'text-[var(--status-warning-text)] bg-amber-50');
   return `
     <div class="flex items-start gap-2.5 py-2 border-b border-gray-50" data-wa-row="${esc(row.id)}">
       <span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${stClass}">${esc(st)}</span>

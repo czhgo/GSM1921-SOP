@@ -264,7 +264,7 @@ function _consumePendingTarget(container) {
   const hint = document.createElement('div');
   hint.dataset.navTargetMissing = '1';
   hint.setAttribute('role', 'status');
-  hint.className = 'card rounded-xl p-3 mb-4 text-xs text-amber-800 bg-amber-50 border border-amber-200';
+  hint.className = 'card rounded-xl p-3 mb-4 text-xs text-[var(--status-warning-text)] bg-amber-50 border border-amber-200';
   hint.textContent = target.id
     ? '未定位到具体条目（该成员可能已移出本支部名册）。'
     : '未定位到具体条目（本次跳转未带对象编号），已落到成员名册顶部。';
@@ -302,7 +302,7 @@ function _rowHtml(p, pend) {
       </td>
       <td data-label="在册状态" class="min-w-0">
         <div class="flex flex-col gap-0.5 min-w-0">
-          <span class="text-xs truncate ${detained ? 'text-amber-700' : 'text-gray-800'}">${esc(rs.residenceStatus)}</span>
+          <span class="text-xs truncate ${detained ? 'text-[var(--status-warning-text)]' : 'text-gray-800'}">${esc(rs.residenceStatus)}</span>
           ${resPend ? _pendingPill('在册状态·待确认', '待支书确认') : ''}
         </div>
       </td>
@@ -401,7 +401,7 @@ function _spPreviewHtml(r) {
     const meta = SP_STATUS[row.status] || SP_STATUS.unmatched;
     const who = row.name || row.studentId || '—';
     const problems = (row.problems || []).length
-      ? `<span class="text-xs text-amber-700">${esc(row.problems.join('；'))}</span>`
+      ? `<span class="text-xs text-[var(--status-warning-text)]">${esc(row.problems.join('；'))}</span>`
       : '<span class="text-xs text-gray-500">—</span>';
     return `
       <div class="grid grid-cols-1 gap-1 md:gap-2 py-1.5 border-b border-gray-50 last:border-b-0 md:items-center md:[grid-template-columns:minmax(96px,1.2fr)_1fr_72px_72px_2fr]">

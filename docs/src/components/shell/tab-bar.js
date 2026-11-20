@@ -148,7 +148,7 @@ export const TAB_RELOAD_LABEL = '重新载入';
  *  数据刷新失败 渲染同一张卡；重试按钮标记 `data-ws-tab-retry`，绑定由各自调用方负责）。 */
 export function tabErrorCardHtml(message = '这个页签暂时没加载出来', { action = 'retry' } = {}) {
   return `
-      <div class="card rounded-xl p-6 text-center" data-ws-tab-error role="alert">
+      <div class="card rounded-xl card-standard text-center" data-ws-tab-error role="alert">
         <p class="text-sm text-gray-600">${message}</p>
         ${action === 'reload' ? `<button type="button" class="btn-outline text-xs px-3 py-1.5 mt-3" data-ws-tab-reload>${TAB_RELOAD_LABEL}</button>` : '<button type="button" class="btn-outline text-xs px-3 py-1.5 mt-3" data-ws-tab-retry>重试</button>'}
       </div>`;

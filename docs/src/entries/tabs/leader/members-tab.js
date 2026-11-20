@@ -44,7 +44,7 @@ export async function renderContent(ctx) {
   const myPersonId = currentUserId();
   // P1-11：失效会话不再回落到固定的旧演示组长；本组读口显示 —，避免把党委组织员（空党小组）误当组员。
   if (!myPersonId) {
-    container.innerHTML = `${renderTabHeader({ title: '组员进展' })}<div class="card rounded-xl p-5 text-center"><p class="text-xs text-gray-500">—（登录态已失效，请重新登录）</p></div>`;
+    container.innerHTML = `${renderTabHeader({ title: '组员进展' })}<div class="card rounded-xl card-standard text-center"><p class="text-xs text-gray-500">—（登录态已失效，请重新登录）</p></div>`;
     return;
   }
   // 汇报数据读口：加载失败不得静默成空（Task 7）——收件箱改显「加载失败，重试」。
@@ -61,7 +61,7 @@ export async function renderContent(ctx) {
   if (!targets.length) {
     container.innerHTML = `
       ${renderTabHeader({ title: '组员进展' })}
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-xl card-standard">
         ${emptyStateHtml({ variant: 'panel', text: '本党小组暂无其他组员可查看 · 下一步：请联系组织委员核对成员档案中的党小组归属' })}
       </div>`;
     return;
@@ -74,7 +74,7 @@ export async function renderContent(ctx) {
   const progress = await loadMemberProgress({ personIds: targets.map(t => t.personId), today });
   const aggOf = new Map(progress.rows.map(r => [r.personId, r]));
   const REPORT_CLASS = {
-    [REPORT_KIND.PENDING_ANSWER]: 'text-amber-700 font-medium',
+    [REPORT_KIND.PENDING_ANSWER]: 'text-[var(--status-warning-text)] font-medium',
     [REPORT_KIND.BLOCKED]: 'text-red-600 font-medium',
     [REPORT_KIND.REPORTING]: 'text-blue-600',
     [REPORT_KIND.REQUESTED]: 'text-blue-500',
@@ -133,7 +133,7 @@ export async function renderContent(ctx) {
       <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(getPersonName(r.personId))}</a></td>
       <td data-label="在办 / 超期" class="text-gray-600 tabular-nums">${r.active}${r.overdue ? ` · <span class="text-red-600 font-medium">超期 ${r.overdue}</span>` : ''}</td>
       <td data-label="考勤" class="text-gray-600 tabular-nums ${r.absent ? 'text-red-600 font-medium' : ''}">缺勤 ${r.absent}</td>
-      <td data-label="考察" class="text-gray-600 tabular-nums ${r.inspPending ? 'text-amber-700 font-medium' : ''}">待确认 ${r.inspPending}</td>
+      <td data-label="考察" class="text-gray-600 tabular-nums ${r.inspPending ? 'text-[var(--status-warning-text)] font-medium' : ''}">待确认 ${r.inspPending}</td>
       <td data-label="汇报" class="${r.reportClass}">${r.reportState}</td>
       <td data-label="阶段" class="text-gray-600">${esc(r.developStage || '—')}</td>
     </tr>`;
@@ -319,7 +319,7 @@ function _consumePendingTarget(container) {
   const hint = document.createElement('div');
   hint.dataset.navTargetMissing = '1';
   hint.setAttribute('role', 'status');
-  hint.className = 'card rounded-xl p-3 mb-4 text-xs text-amber-800 bg-amber-50 border border-amber-200';
+  hint.className = 'card rounded-xl p-3 mb-4 text-xs text-[var(--status-warning-text)] bg-amber-50 border border-amber-200';
   hint.textContent = target.id
     ? '未定位到具体条目（该组员可能已移出本组）。'
     : '未定位到具体条目（本次跳转未带对象编号），已落到组员进展顶部。';

@@ -47,7 +47,7 @@ export function renderActivityView(container, opts = {}) {
     container.dataset.avInited = '1';
     const scopeMeta = ['全支部', readonlyMeta('activity', AuthStore.getCurrentUser())].filter(Boolean).join(' · ');
     container.innerHTML = `
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-xl card-standard">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">活动查看</h3>
           <div class="flex items-center gap-3">
@@ -167,7 +167,7 @@ function _renderDetail(state, activities, tasks, highlightId, readonly = false) 
   };
   const agendaHtml = agendaList.length === 0 ? '' : `
     <div class="pt-3 border-t border-gray-100">
-      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2 flex items-center gap-1.5 flex-wrap">会议议程${isAsyncVote ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-amber-700 bg-amber-50">线上异步表决</span>' : (readonly && voteAgenda.length ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-gray-600 bg-gray-100">只读查看</span>' : '')}</h5>
+      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2 flex items-center gap-1.5 flex-wrap">会议议程${isAsyncVote ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-[var(--status-warning-text)] bg-amber-50">线上异步表决</span>' : (readonly && voteAgenda.length ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-gray-600 bg-gray-100">只读查看</span>' : '')}</h5>
       <ol id="av-agenda-list" class="space-y-1.5">
         ${agendaList.map((a, i) => `
           <li class="flex items-start gap-1.5 text-xs">

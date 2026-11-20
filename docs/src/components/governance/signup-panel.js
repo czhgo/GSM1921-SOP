@@ -185,7 +185,7 @@ export function renderSignupList({ sourceType, sourceId, source, signups, myId }
           ${s.note ? `<span class="text-xs text-gray-500 truncate max-w-[140px]">${s.note}</span>` : ''}
           <span class="ml-auto flex items-center gap-2">
             ${sourceType === 'taskforce' && s.role === 'participant'
-              ? '<span class="text-xs text-amber-700">历史记录待核，不能转为工作组成员</span>'
+              ? '<span class="text-xs text-[var(--status-warning-text)]">历史记录待核，不能转为工作组成员</span>'
               : '<button class="btn-tab signup-review-btn text-xs px-3 py-1.5 font-medium" data-signup-id="' + s.id + '" data-approve="1" style="background:var(--status-success);">通过</button>'}
             <button class="btn-tab signup-review-btn text-xs px-3 py-1.5 font-medium" data-signup-id="${s.id}" data-approve="0">拒绝</button>
           </span>

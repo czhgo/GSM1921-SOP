@@ -225,7 +225,7 @@ test('H3 非空转：抽取口径可用 + 基线规模达标 + 无僵尸登记',
   //   hex 清零 ⇒ 文件数 47 → **45**、处数 1433 → **818**（HEX_TOTAL_BASELINE 改为随实况同步）；
   //   防呆下限随实况下沉（47→45 / 1400→800）。**不是放宽**：判红项仍是 H1（新增值）/ H2（处数上涨）/
   //   下方僵尸登记——下限只防「台账被悄悄删空」。
-  assert.ok(HEX_FILE_BASELINE >= 44 && files.length >= 44, `hex 基线文件数过少（实测 ${files.length} / 声明 ${HEX_FILE_BASELINE}，下限 44）`);
+  assert.ok(HEX_FILE_BASELINE >= 42 && files.length >= 42, `hex 基线文件数过少（实测 ${files.length} / 声明 ${HEX_FILE_BASELINE}，下限 42）`);
   assert.ok(HEX_TOTAL_BASELINE >= 800, `hex 基线处数过少（声明 ${HEX_TOTAL_BASELINE}，下限 800）`);
   assert.ok(HEX_VALUE_BASELINE >= 280, `hex 基线值数过少（声明 ${HEX_VALUE_BASELINE}，下限 280）`);
   assert.equal(files.length, HEX_FILE_BASELINE, '基线条目数与声明的文件数不一致（台账被改动须同步声明值）');

@@ -253,7 +253,7 @@ function _openDelegateArchiveModal() {
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-gray-800 truncate">${esc(a.title || '未命名活动')}</span>
             ${a.type ? badgeHtml(esc(a.type), activityTypeBadgeVariant(a.type)) : ''}
-            <span class="text-xs px-1.5 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200 shrink-0">已结束·待归档</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-full border bg-amber-50 text-[var(--status-warning-text)] border-amber-200 shrink-0">已结束·待归档</span>
           </div>
           <span class="text-xs text-gray-500">活动日期：${esc(a.date || '—')} <span class="text-accent" aria-hidden="true">→</span></span>
         </a>
@@ -267,7 +267,7 @@ function _openDelegateArchiveModal() {
         <a href="./${objectDetailHref('activity', a.id, { entry: 'todo' })}" class="flex-1 min-w-0 hover:bg-[var(--surface-hover)] transition-colors" title="查看活动详情">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-gray-800 truncate">${esc(a.title || '未命名活动')}</span>
-            <span class="text-xs px-1.5 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200 shrink-0">待补材料</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-full border bg-amber-50 text-[var(--status-warning-text)] border-amber-200 shrink-0">待补材料</span>
           </div>
           <span class="text-xs text-gray-500">已归档 · 宣传材料未提交（归档缺口） <span class="text-accent" aria-hidden="true">→</span></span>
         </a>
@@ -742,7 +742,7 @@ function _mcReqCard(req) {
   const action = req.action;
   const kindLabel = MC_ACTION_LABEL[action] || (req.kind === 'transferOut' ? '移出' : '变更');
   const kindCls = action === 'developStage' ? 'bg-sky-50 text-sky-700'
-    : action === 'residence' ? 'bg-amber-50 text-amber-700'
+    : action === 'residence' ? 'bg-amber-50 text-[var(--status-warning-text)]'
     : 'bg-red-50 text-red-700';
   const byName = req.by ? (getPersonName(req.by) || req.by) : '组织委员';
   const atText = String(req.at || '').slice(0, 16).replace('T', ' ');
@@ -1156,7 +1156,7 @@ function _committeeTfRowHtml(req, act) {
   const byName = req.by ? getPersonName(req.by) : '组织委员';
   const atText = String(req.at || '').slice(0, 16).replace('T', ' ');
   const ops = act
-    ? `<span class="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 flex-shrink-0">已排入表决</span>
+    ? `<span class="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-[var(--status-warning-text)] flex-shrink-0">已排入表决</span>
        <button type="button" class="btn-accent-soft btn-sm tf-cr-result flex-shrink-0" data-tf-id="${req.id}" data-activity-id="${act.id}">查看表决结果并生效</button>`
     : `<button type="button" class="btn-accent-soft btn-sm tf-cr-arrange flex-shrink-0" data-tf-id="${req.id}" data-kind="${req.kind}">排入支委会表决</button>`;
   return `
@@ -1232,7 +1232,7 @@ async function _openTfDecisionModal(req, activityId, api) {
       <p class="text-xs text-gray-500 mb-3">表决活动：线上支委会（${kindLabel}专班议案）</p>
       <div class="rounded-lg bg-gray-50 p-3 text-xs space-y-1.5">
         <p class="text-gray-700">${sumLine}</p>
-        <p class="font-medium ${status === 'passed' ? 'text-green-700' : status === 'failed' ? 'text-red-600' : 'text-amber-700'}">结论：${conclusion}</p>
+        <p class="font-medium ${status === 'passed' ? 'text-green-700' : status === 'failed' ? 'text-red-600' : 'text-[var(--status-warning-text)]'}">结论：${conclusion}</p>
         ${status === 'pending'
           ? '<p class="text-gray-500">判据（R2-3）：应到严格超过 2/3 出席且无反对（弃权允许）。未达标请等待委员表态/截止后再查看。</p>'
           : '<p class="text-gray-500">确认后按此结论生效：' + (status === 'passed'

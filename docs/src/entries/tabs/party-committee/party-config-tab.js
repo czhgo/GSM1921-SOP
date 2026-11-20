@@ -76,7 +76,7 @@ async function renderDeployPanel(host) {
       </ul>
 
       ${bad.length ? `<details class="rounded border border-amber-200 bg-amber-50 p-3">
-        <summary class="text-xs font-bold text-amber-800 cursor-pointer">逐项怎么改（${bad.length}）</summary>
+        <summary class="text-xs font-bold text-[var(--status-warning-text)] cursor-pointer">逐项怎么改（${bad.length}）</summary>
         <ol class="text-xs text-amber-900 mt-1 list-decimal pl-5 space-y-1">
           ${bad.map((c) => `<li><b>${c.short || c.label}</b> · ${c.howto}</li>`).join('')}
         </ol></details>` : ''}

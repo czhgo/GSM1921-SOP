@@ -108,7 +108,7 @@ function checkLabel(id) {
 }
 
 function healthRow(label, ok, note = '') {
-  const tone = ok ? 'text-green-700' : 'text-amber-800';
+  const tone = ok ? 'text-green-700' : 'text-[var(--status-warning-text)]';
   return `<li class="flex items-start gap-2 py-1"><span class="${tone}">${ok ? '正常' : '异常'}</span>`
     + `<span class="text-gray-700">${esc(label)}</span>`
     + `${note ? `<span class="text-gray-500">${esc(note)}</span>` : ''}</li>`;
@@ -142,7 +142,7 @@ async function renderOpsHealth(host) {
   const lastBackupAt = metrics?.lastBackupAt || deep?.lastBackupAt || '';
   const requests = metrics?.requests || null;
   host.innerHTML = `
-    <p class="text-sm font-semibold ${deepOk ? 'text-green-700' : 'text-amber-800'}">
+    <p class="text-sm font-semibold ${deepOk ? 'text-green-700' : 'text-[var(--status-warning-text)]'}">
       ${deepOk ? '当前运行正常' : '当前存在异常（同一故障 30 分钟内只提醒一次）'}</p>
     <ul class="mt-2 text-sm">
       ${healthRow('浅检查 · 进程与依赖', shallow?.ok === true, shallow ? '' : '未取到')}
@@ -151,7 +151,7 @@ async function renderOpsHealth(host) {
         !!check.ok,
         check.id === 'schema-version' && deep?.schemaVersion ? `v${deep.schemaVersion}` : (check.ok ? '' : (check.error || '')),
       )).join('')}
-      <li class="flex items-start gap-2 py-1"><span class="${lastBackupAt ? 'text-gray-700' : 'text-amber-800'}">${lastBackupAt ? '最近备份' : '尚无备份'}</span>
+      <li class="flex items-start gap-2 py-1"><span class="${lastBackupAt ? 'text-gray-700' : 'text-[var(--status-warning-text)]'}">${lastBackupAt ? '最近备份' : '尚无备份'}</span>
         <span class="text-gray-500">${esc(lastBackupAt ? formatHealthTime(lastBackupAt) : '按部署清单执行一次备份后这里会有时间')}</span></li>
     </ul>
     ${requests ? `<p class="mt-2 text-body-sm text-gray-600">本次启动以来 API 请求 ${requests.total} 次 · 5xx ${requests.serverErrors} 次 · 平均 ${requests.avgDurationMs} ms</p>` : ''}`;
@@ -194,7 +194,7 @@ export async function renderContent() {
   el.innerHTML = `
     ${renderTabHeader({ title: '支部管理', description: '全院支部目录、运行状态与维护入口。' })}
     <div class="page-section-stack">
-      <section class="card p-5" aria-label="支部目录">
+      <section class="card card-standard" aria-label="支部目录">
       ${renderSectionHeader({
         title: '支部目录',
         description: `${branches.length} 个支部`,
@@ -230,7 +230,7 @@ export async function renderContent() {
           // A05：待批复数量列（与旧「支部动态」同口径：pending 按 branchId 计数，链接带支部筛选）。
           const pendingCount = pendingRequests.filter((request) => request.branchId === bid).length;
           const pendingCell = pendingCount
-            ? `<a class="font-semibold text-amber-800 hover:text-accent" href="${getBasePath()}workspace/party-committee.html?tab=review&amp;branchId=${encodeURIComponent(bid)}" title="查看该支部待批复上报">${pendingCount} 项</a>`
+            ? `<a class="font-semibold text-[var(--status-warning-text)] hover:text-accent" href="${getBasePath()}workspace/party-committee.html?tab=review&amp;branchId=${encodeURIComponent(bid)}" title="查看该支部待批复上报">${pendingCount} 项</a>`
             : '<span class="text-gray-500">0 项</span>';
           // 2026-10-18 繁专项（Top 8）：组织提醒按目录行 `secretaryId` 判断（服务端目录投影已补该字段），
           //   不再被 `summaryOnly` 抑制；口径＝运行中且未任命支书（A06 治理总览撤页后，原「组织待补」只此一处）。
@@ -241,13 +241,13 @@ export async function renderContent() {
             <td data-label="成员" class="tabular-nums">${memberCount}${memberCount === '—' ? '' : ' 人'}</td><td data-label="在册党员" class="tabular-nums">${partyCount}${partyCount === '—' ? '' : ' 人'}</td>
             <td data-label="活动" class="tabular-nums">${activityText}</td><td data-label="专班" class="tabular-nums">${taskforceText}</td><td data-label="通知" class="tabular-nums">${noticeText}</td>
             <td data-label="待批复" class="tabular-nums">${pendingCell}</td>
-            <td data-label="组织提醒">${missingSecretary ? '<span class="text-sm text-amber-800">待任命支书</span>' : '<span class="text-sm text-gray-500">—</span>'}</td>
+            <td data-label="组织提醒">${missingSecretary ? '<span class="text-sm text-[var(--status-warning-text)]">待任命支书</span>' : '<span class="text-sm text-gray-500">—</span>'}</td>
             <td data-label="操作"><div class="flex flex-wrap gap-2"><button type="button" class="btn-outline whitespace-nowrap px-3 py-2 text-sm" data-branch-roster-toggle data-branch-id="${esc(bid)}" aria-expanded="false" aria-controls="branch-roster-${esc(bid)}">名册</button><a class="btn-accent inline-flex whitespace-nowrap px-3 py-2 text-sm font-medium" href="${configureUrl}">支部设置</a><button type="button" class="btn-outline branch-readonly-enter whitespace-nowrap px-3 py-2 text-sm" data-branch-id="${esc(bid)}">只读查看</button></div></td>
           </tr>`;
         }).join('')}
         </tbody></table></div>` : `<p class="mt-4 py-8 text-sm text-gray-600" role="status">尚无支部。创建支部后，再进入其配置页完成组织设置。</p>`}
       </section>
-      <section class="card p-5" aria-label="运维健康">
+      <section class="card card-standard" aria-label="运维健康">
         ${renderSectionHeader({
           title: '运维健康',
           description: '服务进程、数据库与备份目录的当前状态；异常时向支书发站内通知与邮件。',

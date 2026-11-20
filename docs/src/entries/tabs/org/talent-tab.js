@@ -52,7 +52,7 @@ const STAGE_OTHER = '未标注';
 function _residenceChipHtml(p) {
   const rs = getResidenceOf(p);
   if (rs.residenceStatus !== RESIDENCE.DETAINED) return '';
-  return `<span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100" title="${esc(rs.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">滞留</span>`;
+  return `<span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-[var(--status-warning-text)] border border-amber-100" title="${esc(rs.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">滞留</span>`;
 }
 
 /** 文本截断（发展观察摘要行用） */
@@ -88,7 +88,7 @@ function _devTips(person, counts, ctx) {
   const mc = ctx.pendingByPerson.get(person.id);
   if (mc) {
     tips.push({
-      cls: 'bg-amber-50 text-amber-700 border border-amber-100',
+      cls: 'bg-amber-50 text-[var(--status-warning-text)] border border-amber-100',
       text: `${mc.action === 'residence' ? '在册状态' : '发展阶段'}变更待支书确认（${mc.from || ''} → ${mc.to || ''}）`,
     });
   }
@@ -128,7 +128,7 @@ function _devTips(person, counts, ctx) {
 
 function _participationCardHtml(part) {
   return `
-    <div class="card rounded-xl p-5 mt-4">
+    <div class="card rounded-xl card-standard mt-4">
       ${renderCardHeader({ title: '活动参与汇总', meta: `${part.rows.length} 人 · 按人员查看` })}
       <div class="overflow-x-auto"><div id="org-part-list"></div></div>
       <p class="text-xs text-gray-500 mt-2 mb-0">参与＝出勤 / 已补；请假 / 缺勤不计。</p>
@@ -242,13 +242,13 @@ export function renderContent(ctx) {
 
   container.innerHTML = `
     ${renderTabHeader({ title: '人才库', description: '成员发展观察、考察摘要与活动参与汇总。' })}
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       ${renderCardHeader({
         title: '成员发展',
         meta: `<span>成员 <span class="tabular-nums font-medium text-gray-700">${people.length}</span> 人</span>
           <span>考察摘要 <span class="tabular-nums font-medium text-gray-700">${inspections.filter(r => r && r.personId).length}</span> 条</span>
           <span>思想汇报已归档 <span class="tabular-nums font-medium text-gray-700">${thoughts.filter(t => t && t.personId).length}</span> 篇</span>
-          <span>发展提示 <span class="tabular-nums font-medium ${tipCount > 0 ? 'text-amber-700' : 'text-gray-700'}">${tipCount}</span> 人</span>`,
+          <span>发展提示 <span class="tabular-nums font-medium ${tipCount > 0 ? 'text-[var(--status-warning-text)]' : 'text-gray-700'}">${tipCount}</span> 人</span>`,
         actions: inspCtaHtml,
       })}
       <!-- 2026-10-01 批次 315（支书 V-9 取甲「全删」）：本块原为「人才库 = 发展观察（只读画像）…本页读侧数据不动写」
@@ -355,7 +355,7 @@ function _pendingHint(container, text) {
   const hint = document.createElement('div');
   hint.dataset.navTargetMissing = '1';
   hint.setAttribute('role', 'status');
-  hint.className = 'card rounded-xl p-3 mb-4 text-xs text-amber-800 bg-amber-50 border border-amber-200';
+  hint.className = 'card rounded-xl p-3 mb-4 text-xs text-[var(--status-warning-text)] bg-amber-50 border border-amber-200';
   hint.textContent = text;
   container.prepend(hint);
 }
@@ -408,7 +408,7 @@ function _renderInspectionSlot(container, ctx) {
   // 2026-11-08 波次 C：主入口已提到「成员发展」卡头 CTA；本块标题改「专班考察记录」，
   //   承担「查已有考察 + 就地补录」的档案面，不再与卡头 CTA 争夺同一入口措辞。
   host.innerHTML = `
-    <div class="card rounded-xl p-5 disclosure-host">
+    <div class="card rounded-xl card-standard disclosure-host">
       <h3 class="disclosure__title" id="talent-insp-title">专班考察记录</h3>
       <details class="disclosure" id="talent-insp">
         <summary class="disclosure__summary" id="talent-insp-toggle" aria-labelledby="talent-insp-title"></summary>

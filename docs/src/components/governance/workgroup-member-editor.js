@@ -15,7 +15,7 @@ function renderMemberRow(member, grant, kind, canEdit) {
   // 2026-10-21 批次 499：成员行显示所属党小组，跨组深参一眼可辨（跨组由组织委员协调）
   const partyGroup = person?.partyGroup || '';
   const groupLabel = partyGroup
-    ? `<span class="text-[11px] text-gray-500">${esc(partyGroup)}</span>${member.crossGroup ? '<span class="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] text-amber-800">跨组</span>' : ''}`
+    ? `<span class="text-[11px] text-gray-500">${esc(partyGroup)}</span>${member.crossGroup ? '<span class="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] text-[var(--status-warning-text)]">跨组</span>' : ''}`
     : '';
   const role = member.role === 'organizer' ? 'organizer' : 'deep';
   const templates = workgroupPermissionTemplates(kind);

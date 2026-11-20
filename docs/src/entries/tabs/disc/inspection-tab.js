@@ -80,7 +80,7 @@ export function renderContent(ctx) {
     ${_buildSupervisionCardHTML(supervisionRows, returnedRecs)}
     ${_buildAppealCardHTML(pendingAppeals, returnedAppeals)}
     ${_buildInspectionProxyCardHTML(proxyActivities)}
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div class="flex items-center gap-2">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">考察总表</h3>
@@ -100,10 +100,10 @@ export function renderContent(ctx) {
           </div>
           <!-- 2026-08-28 T-304 A 档下载闭环：考察总表导出 CSV + 打印 -->
           <!-- U5b（2026-09-07）：低频操作钮统一 32px 圆角（与下拉/胶囊同 32px 档，hover 统一 bg-gray-50） -->
-          <button class="btn-outline insp-export-btn h-8 px-3 text-xs font-medium">导出 CSV</button>
-          <button class="btn-outline insp-print-btn h-8 px-3 text-xs font-medium">打印</button>
+          <button class="btn-outline insp-export-btn px-3 text-xs font-medium">导出 CSV</button>
+          <button class="btn-outline insp-print-btn px-3 text-xs font-medium">打印</button>
           <!-- 2026-08-29 T-304 C2 数据交接协议：纪检→组织 考察记录提交 -->
-          <button class="btn-outline insp-handoff-btn h-8 px-3 text-xs font-medium">提交考察至支委会</button>
+          <button class="btn-outline insp-handoff-btn px-3 text-xs font-medium">提交考察至支委会</button>
           ${HandoffStore.hasFor('inspection-report', 'inspection') ? '<span class="text-xs text-teal-600 font-medium">已自动送达</span>' : ''}
         </div>
       </div>
@@ -237,7 +237,7 @@ export function renderContent(ctx) {
         const decisionDeny = inspectionConfirmDenyReason(actorId, i);
         const isSelfRecorded = !!i.recordedBy && i.recordedBy === actorId;
         const rowBg = isReturned ? 'bg-amber-50/40' : isOverdue ? 'bg-red-50/40' : isPending ? 'bg-orange-50/30' : '';
-        const statusCls = isReturned ? 'bg-amber-100 text-amber-700' : (isOverdue ? statusColor.overdue : statusColor[i.status] || 'bg-gray-100 text-gray-600');
+        const statusCls = isReturned ? 'bg-amber-100 text-[var(--status-warning-text)]' : (isOverdue ? statusColor.overdue : statusColor[i.status] || 'bg-gray-100 text-gray-600');
         return `
             <tr data-act-id="${esc(i.activityId || '')}" data-insp-record-id="${esc(i.id)}" data-insp-person-id="${esc(i.personId)}"${rowBg ? ` class="${rowBg}"` : ''}>
               <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
@@ -247,7 +247,7 @@ export function renderContent(ctx) {
               <td data-label="记录人" class="text-gray-600"${i.recordedByName ? '' : ' title="登记时未采集（历史导入）"'}>${i.recordedByName ? esc(i.recordedByName) : '登记时未采集（历史导入）'}</td>
               <td data-label="状态"><span class="px-1.5 py-0.5 rounded-full text-xs ${statusCls}">${statusLabelOf(i)}</span></td>
               <td data-label="操作">${isReturned
-                ? '<span class="text-xs text-amber-700" title="已打回，待上传方重新确认（修改痕迹留存）">已打回 · 待上传方确认</span>'
+                ? '<span class="text-xs text-[var(--status-warning-text)]" title="已打回，待上传方重新确认（修改痕迹留存）">已打回 · 待上传方确认</span>'
                 : (i.status === 'confirmed'
                   ? `<span class="text-xs text-green-700 mr-2"${i.confirmedBy ? ` title="确认人：${esc(getPersonName(i.confirmedBy))}"` : ''}>已确认</span>${decisionDeny
                     ? `<button type="button" class="btn-outline text-xs px-2.5 py-1" disabled title="${esc(decisionDeny)}；请由其他支委处理">打回</button>`
@@ -663,7 +663,7 @@ function _buildAppealCardHTML(pendingAppeals, returnedAppeals) {
         <span class="flex-1 min-w-0">
           <span class="block text-xs text-gray-600 truncate" title="${esc(title)}">${a.activityId ? `<a class="text-accent" href="./${objectDetailHref('activity', a.activityId, { entry: 'workspace-aggregate' })}">${esc(title)}</a>` : esc(title)}</span>
           ${a.note ? `<span class="block text-xs text-gray-500 truncate">申诉说明：${esc(a.note)}</span>` : ''}
-          ${a.returnNote ? `<span class="block text-xs text-amber-700 truncate">打回说明：${esc(a.returnNote)}</span>` : ''}
+          ${a.returnNote ? `<span class="block text-xs text-[var(--status-warning-text)] truncate">打回说明：${esc(a.returnNote)}</span>` : ''}
         </span>
         ${actionable ? `
           <button type="button" class="btn-action-amber insp-appeal-return text-xs px-3 py-1.5 flex-shrink-0" data-appeal-id="${a.id}">核实属实，打回上传方</button>

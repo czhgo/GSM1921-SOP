@@ -250,9 +250,6 @@ export const HEX_BASELINE = {
       '#0e7490', '#10b981', '#3b82f6', '#475569', '#6b7280', '#ce1126', '#d1d5db',
       '#e5e7eb',
   ] },
-  'docs/src/entries/tabs/org/taskforce-tab.js': { c: 2, v: [
-      '#0d9488', '#10b98115',
-  ] },
   'docs/src/entries/tabs/prop/archive-tab.js': { c: 1, v: [
       '#999',
   ] },
@@ -330,7 +327,7 @@ export const HEX_BASELINE = {
 //   H4 的缩减读数以「上一批基线」为参照，不再固定盯 2025 起点。
 //   H3 的防呆下限随实况下沉（文件 47→45、处数 1400→800）；**不是放宽**——真正的判红项是
 //   H1（新增值）/ H2（处数上涨）/ 僵尸登记，本下限只防「台账被悄悄删空」。
-export const HEX_TOTAL_BASELINE = 812;
+export const HEX_TOTAL_BASELINE = 810;
 // 93 → 92（2026-09-25）：`docs/settings.html` 整体重做后其硬编码 hex 清零 ⇒ 该条目按收基线纪律删除，
 //   条目数随之 −1（H3 要求「基线条目数 ＝ 声明文件数」，两处必须同步动）。
 //   `HEX_TOTAL_BASELINE` **有意保持 2025**：它是「存量起点」，H4 会据此显示 ↓15 的缩减进度（该文件真少了 15 处）。
@@ -418,7 +415,7 @@ export const HEX_TOTAL_BASELINE = 812;
 // ⚠ 2026-11-10 批次 540（SVG 色彩契约）：`icons.js` 的 `stroke: '#FFF'` 示例删除、`person-picker.js` 的
 //   `stroke: '#6B7280'` 改 `var(--neutral-500)` ⇒ 前者条目删除、后者 c 3 → 2；文件数 45 → **44**（与实况同值，
 //   H3 防呆下限同步下沉）。**不是放宽**：判红项仍是 H1（新增值）/ H2（处数上涨）/ 僵尸登记。
-export const HEX_FILE_BASELINE = 44;
+export const HEX_FILE_BASELINE = 43;
 export const HEX_VALUE_BASELINE = 291;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。

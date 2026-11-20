@@ -62,7 +62,7 @@ const PANEL_HTML = `
 
 const TAB_HTML = `
   ${renderTabHeader({ title: '活动日历', description: '月 / 周 / 日 / 列表四视图。' })}
-  <div class="card rounded-xl p-5">${PANEL_HTML}</div>
+  <div class="card rounded-xl card-standard">${PANEL_HTML}</div>
 `;
 
 /**

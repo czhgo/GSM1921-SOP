@@ -79,7 +79,6 @@ import { objectDetailHref } from '../../../core/domain/object-route.js?v=2026111
 import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261110b';
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';
-const ACCENT_BG = 'var(--app-accent-soft-bg)';
 
 // ── P2 渲染守卫（2026-09-07 · spec §四.1）────────────────────────
 // 今天卡为「读多写少」只读聚合视图：buildTodaySummary 内部已有 P0/P1 缓存，本守卫省的
@@ -149,7 +148,7 @@ function _segHead(title, n = null, allKind = '') {
 
 /** 段头数字（仅 n>0 显示）：13px/500——**下级计数不得大于组标题**（层级：标题 14 > 计数 13） */
 function _count(n) {
-  return n > 0 ? `<span class="text-[13px] font-medium ml-2 tabular-nums" style="color:var(--app-accent-soft-text);">${n}</span>` : '';
+  return n > 0 ? `<span class="text-[13px] font-medium ml-2 tabular-nums" style="color:var(--neutral-800);">${n}</span>` : '';
 }
 
 /** 清单行（行式载体）：行首 6px 状态圆点（`bar`＝圆点色）。
@@ -196,8 +195,8 @@ function _todoEntry(it, today) {
   // 逾期＝warning（与待办同源）；error 只留给阻断 / 失败。
   const bar = overdue ? 'var(--status-warning)'
     : dueToday ? 'var(--status-warning)' : 'var(--neutral-400)';
-  const titleCls = overdue ? 'text-amber-700 font-medium' : 'text-gray-800';
-  const metaCls = overdue ? 'text-amber-700 font-medium' : 'text-gray-500';
+  const titleCls = overdue ? 'text-[var(--status-warning-text)] font-medium' : 'text-gray-800';
+  const metaCls = overdue ? 'text-[var(--status-warning-text)] font-medium' : 'text-gray-500';
   // 2026-11-04 Task 3.7：早于今天的件必须标「逾期」，与「今日到期」的日期同屏时可区分——
   //   日期本身保留完整 ISO（行内 tabular-nums 不变，真机件按它核对截止 ≤ 今天），
   //   逾期 / 今日只在日期前加状态标签（不靠颜色单独承载信息）。
@@ -473,7 +472,7 @@ function _upcomingRows(s) {
  *    不依赖调用方是否传 `onNav`（未传时不会变死链）。 */
 function _allEmptyHtml() {
   return `
-    <div class="card rounded-xl p-5" data-today-empty>
+    <div class="card rounded-xl card-standard" data-today-empty>
       <h3 class="font-title-cn text-base font-semibold text-gray-800">要办</h3>
       <div class="py-4">
         ${emptyStateHtml({
@@ -541,7 +540,7 @@ function _leaderSemesterRemindHtml(personId) {
   const key = _lsrMarkKey(personId);
   if (!key || _lsrGet(key)) return ''; // 本学年同窗已提醒过
   return `
-    <div class="card rounded-xl p-4" style="background:${ACCENT_BG};" data-leader-sem-remind="1">
+    <div class="card rounded-xl p-4" data-leader-sem-remind="1">
       <div class="flex items-start gap-3">
         <span class="flex-none w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--surface-card);color:var(--app-accent-soft-text);">${icon('bell', { className: 'icon-base w-4 h-4' })}</span>
         <div class="flex-1 min-w-0">
@@ -642,7 +641,7 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
     const actionGroupsHtml = _actionGroupsBlock(summary);
     const leftCard = summaryError
       ? `
-      <div class="lg:col-span-2 card rounded-xl p-5 space-y-5 min-w-0">
+      <div class="lg:col-span-2 card rounded-xl card-standard space-y-5 min-w-0">
         <div class="flex items-center justify-between">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">要办</h3>
         </div>
@@ -652,7 +651,7 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
         </div>
       </div>`
       : `
-      <div class="lg:col-span-2 card rounded-xl p-5 space-y-5 min-w-0">
+      <div class="lg:col-span-2 card rounded-xl card-standard space-y-5 min-w-0">
         <div class="flex items-center justify-between">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">要办</h3>
           <button type="button" class="btn-text today-all flex-shrink-0 text-xs" data-today-all="todo">全部 ›</button>
@@ -669,7 +668,7 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
       : '';
     const rightCard = `
       <div class="lg:col-span-1 space-y-5 min-w-0">
-        <div class="card rounded-xl p-5 space-y-5">
+        <div class="card rounded-xl card-standard space-y-5">
           <div class="flex items-center justify-between gap-2">
             <h3 class="font-title-cn text-base font-semibold text-gray-800">日程</h3>
             ${_calendarEntryHtml()}

@@ -216,7 +216,7 @@ async function render() {
   const pendingCountText = pending.length ? `待支书确认 ${pending.length} 项` : '暂无待确认';
   const pendingLineHtml = pending.map((request) => {
     const label = MC_ACTION_LABEL[request.action] || '状态变更';
-    return `<span class="block text-xs text-amber-700">${esc(label)}：${esc(request.from || '—')} → ${esc(request.to || '—')}</span>`;
+    return `<span class="block text-xs text-[var(--status-warning-text)]">${esc(label)}：${esc(request.from || '—')} → ${esc(request.to || '—')}</span>`;
   }).join('');
 
   const residenceLabel = residenceText(member);

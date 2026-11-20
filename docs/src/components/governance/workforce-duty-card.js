@@ -94,7 +94,7 @@ export function dutyCardHtml(prefix) {
     <div class="card rounded-xl p-4">
       <div class="flex items-center gap-2 mb-2">
         <p class="font-title-cn text-sm font-bold text-gray-800">支部安排 · 我的分工</p>
-        <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">经支委会议题生效</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-[var(--status-warning-text)] border border-amber-100">经支委会议题生效</span>
       </div>
       <div class="flex flex-wrap gap-1.5">${chips}</div>
     </div>`;

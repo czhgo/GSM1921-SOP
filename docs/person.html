@@ -35,7 +35,7 @@
          避免 hydrate / 档案读取期间出现 0 高空白卡；person-entry 渲染完成或报错时置 aria-busy="false"。
          批次 530（B-518-2）：骨架形状单一源＝`components/ui/empty-state.js::skeletonHtml`
          （`.skeleton-block` ＋ `.skeleton-line`）——页面内不得再手写 bg-gray-100/animate-pulse 堆叠。 -->
-    <div id="person-archive-card" class="card rounded-xl p-5" aria-busy="true">
+    <div id="person-archive-card" class="card rounded-xl card-standard" aria-busy="true">
       <div data-person-skeleton class="skeleton-block" aria-hidden="true">
         <div class="skeleton-line h-6 w-40 animate-pulse"></div>
         <div class="skeleton-line h-4 w-full animate-pulse"></div>

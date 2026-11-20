@@ -34,7 +34,7 @@ export function renderIssueForm() {
       </a>
     </div>
 
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <h2 class="font-title-cn text-lg font-bold text-gray-800 mb-4">新建反馈</h2>
 
       <div class="space-y-4">

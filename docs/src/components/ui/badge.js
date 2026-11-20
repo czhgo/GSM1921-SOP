@@ -8,12 +8,12 @@
 // warning / neutral 两个变体的原字色对比不足 4.5（≈4.4 边界）⇒ 各自再加深一档至 AA。
 // ⚠ 2026-10-02 批次 337（支书评 `#9`「为什么没有复用日历中的红色和金色」）：**brand / gold 不再挂内联字色**——
 //   `brand` 已按语义改回**党建红**（`styles.css`：浅红底 ＋ `var(--party-red)` 字，对比 ≥ AA）；
-//   `gold` 用其自身底 ＋ 深琥珀字（同样 ≥ AA）；**原先两者都挂 `text-amber-800`**
+//   `gold` 用其自身底 ＋ 深琥珀字（同样 ≥ AA）；**原先两者都挂 `text-[var(--status-warning-text)]`**
 //   ⇒ 把红 / 金两色**盖成同一色**（这正是支书看到「另起炉灶」的直接原因）。
 //   深色模式由 html.theme-dark .badge--* 高优先级规则接管，不受此覆盖影响。
 const BADGE_VARIANT_CLASS = {
   success: 'badge--success',
-  warning: 'badge--warning text-amber-800',
+  warning: 'badge--warning text-[var(--status-warning-text)]',
   danger: 'badge--danger',
   info: 'badge--info',
   neutral: 'badge--neutral text-gray-600',

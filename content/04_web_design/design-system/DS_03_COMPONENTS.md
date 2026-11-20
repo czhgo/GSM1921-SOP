@@ -2,7 +2,7 @@
 title: "设计系统 · 第三编 组件"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-18"
+last_updated: "2026-11-20"
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_RESPONSIVE.md, DS_06_LAYOUT_AND_DENSITY.md, ../../../docs/src/styles.css, CASES.md]
 ---
@@ -154,15 +154,15 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 | 圆角 | `border-radius: 12px`（`--radius-md`） |
 | 阴影 | 无（扁平化，边框分隔） |
 | 悬停 | 默认不变色；确需整卡点击的卡加 `.card--interactive`，悬停 `border-color: var(--primary-300)`，不移位 |
-| 内边距 | `padding: 20px`（标准档），`padding: 16px`（紧凑档） |
+| 内边距 | `padding: 16px`（标准档 `.card-standard`），`padding: 12px`（紧凑档 `.card-compact`） |
 
 > CSS 实现见 `docs/src/styles.css`（`.card` 的圆角为 `var(--radius-md)` = 12px）。禁止：`backdrop-filter`、`box-shadow`、`transform`。
 > **交互声明（2026-10-19）**：卡片默认是**展示卡**，`.card:hover` 不变色；确需整卡点击的卡显式加 `.card--interactive`（`cursor:pointer` + hover `border-color` 加深）。`.card--static` 保留为兼容标记，不改变展示卡外观。
 > **卡头排布（2026-11-07 · SD-60）**：① 标题让位——`.card-head__title` 取 `flex:1 1 auto; min-width:0`，允许自身换行；② aside 不拆组——`.card-head__aside` 取 `flex:0 0 auto`，meta 与 actions 不得被拆到两行；③ 单枚低价值按钮并入右对齐，不单独占一行；≥641px 卡头不换行，≤640px 才允许 aside 掉行。判例：CASE-DESIGN-034。
-> **内边距两档适用**：**标准档 20px** 用于页面级主卡片；**紧凑档 16px** 用于页内从属容器。局部例外见 §4.3「工作台内嵌面板」与 §4.9「日历图例容器」。
+> **内边距两档适用（2026-11-20 批次 581 改准）**：**标准档 16px**（`.card-standard`）用于页面级主卡片；**紧凑档 12px**（`.card-compact`）用于页内从属容器。`p-5`（20px）不再作为卡内边距；局部例外见 §4.3「工作台内嵌面板」与 §4.9「日历图例容器」。
 > **结构性例外（不加卡片内边距；2026-09-24 按实现口径登记，三类之外不得再出现第四种取值）**：① **卡内自带分区**（看板列卡 / 折叠卡：卡内区头 `px-4 py-3` + 内容块各管内边距）用 `p-0` + `overflow-hidden`；② **纯容器卡**（弹窗卡 / 折叠容器：子块各管内边距）不挂内边距类；③ **单行条卡**（骨架条 / 待办折叠条 / 交接条）用 `px-4 py-2.5`，使条高与同行 38px 控件档对齐。
-> **越档值收敛方向**：`p-6`(24px) / `p-8`(32px) → 标准档 `p-5`(20px)；`p-3`(12px) / `p-3.5`(14px) → 紧凑档 `p-4`(16px)（即「越档值归到最近档」，禁止为凑数把已属两档的 `p-4`/`p-5` 再压小）。
-> **数字卡（2026-10-28 支书裁定）**：首页四数（`docs/src/components/dashboard/stats.js`）与六台工作概况结论带（`docs/src/components/governance/work-overview.js`）统一为**卡片数字**——卡面复用 `.card`（12px 圆角、1px 描边、无阴影、紧凑档 16px 内边距），卡内为「图标块 `.stat-icon-tint`（浅底 ＋ 同色笔触，点缀色）＋ 数字 `.metric-band__value`（24px/600）＋ 标签 `.metric-band__label`（12px / `--neutral-500`）」；工作台沿用 `.metric-band--cards` 把「横向带」改为四列卡网格（卡间距 `--space-4`，≤640px 两列），逾期仍按 `.metric-band__value--warning`（`--status-warning-text`）着色。两处共用同一套类，禁止另造第二套卡片。
+> **越档值收敛方向（2026-11-20 批次 581 改准）**：卡内边距只允许 `.card-standard`（16px）与 `.card-compact`（12px）两个出口；`p-5`(20) / `p-6`(24) / `p-8`(32) → `.card-standard`，`p-3`(12) 属紧凑档可直接用 `.card-compact`；禁止把 `p-5` 直接挂在 `.card` 上。
+> **数字卡（2026-10-28 支书裁定）**：首页四数（`docs/src/components/dashboard/stats.js`）与六台工作概况结论带（`docs/src/components/governance/work-overview.js`）统一为**卡片数字**——卡面复用 `.card`（12px 圆角、1px 描边、无阴影、标准档 16px 内边距），卡内为「图标块 `.stat-icon-tint`（浅底 ＋ 同色笔触，点缀色）＋ 数字 `.metric-band__value`（24px/600）＋ 标签 `.metric-band__label`（12px / `--neutral-500`）」；工作台沿用 `.metric-band--cards` 把「横向带」改为四列卡网格（卡间距 `--space-4`，≤640px 两列），逾期仍按 `.metric-band__value--warning`（`--status-warning-text`）着色。两处共用同一套类，禁止另造第二套卡片。
 > **点缀色作数值（2026-10-28）**：点缀色作数值时**必须满足大字 3:1**（`.metric-band__value` 为 24px/600 ⇒ WCAG 大字档 3:1），**否则退回正文色 `--neutral-800`，只留图标着彩色**。实测：`--status-success` 对白卡 2.54:1 ⇒「个人考勤」的「良好」档数值用 `--neutral-800`（14.68:1）、绿色只留在 `.stat-icon-tint`（`aria-hidden` 装饰件）；其余档位 warning-text 7.09 / error 3.76 / neutral-500 4.83 均 ≥3:1，数值与图标同色。
 
 #### 列表项白底原则

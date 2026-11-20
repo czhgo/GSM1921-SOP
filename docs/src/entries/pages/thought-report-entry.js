@@ -159,7 +159,7 @@ function renderSingleView(rec) {
   //   该标记**只在提交人本人（isSelf）看自己的汇报时**出现——支委层（含组织委员 / 支书）在此页
   //   读他人的汇报时**看不到任何「篇幅不足」标记**（组织侧不经手篇幅这件事）。
   const shortMarkHtml = (isSelf && wc.level === 'short')
-    ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200" title="${esc(wc.hint)}">篇幅不足 ${wc.count} 字 · 触发警告审阅</span>`
+    ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-[var(--status-warning-text)] border border-amber-200" title="${esc(wc.hint)}">篇幅不足 ${wc.count} 字 · 触发警告审阅</span>`
     : '';
 
   // 操作区（按权限显隐，均调用服务层函数）

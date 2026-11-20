@@ -77,7 +77,7 @@ export function renderContent(ctx, container) {
   const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-orange-100 text-orange-700' };
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">专班事项考察记录</h3>
         <button class="btn-md" id="btn-org-upload-insp" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);border:1px solid var(--app-accent-soft-border);">${_orgInspFormVisible ? '收起表单' : '录入事项考察'}</button>
@@ -189,7 +189,7 @@ export function renderContent(ctx, container) {
       // 行列分隔线提升可读性，不再用高饱和实底+白字）
       const statusBadge = rec.status === 'confirmed'
         ? '<span class="px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">已确认</span>'
-        : '<span class="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">待确认</span>';
+        : '<span class="px-1.5 py-0.5 rounded-full bg-amber-100 text-[var(--status-warning-text)] font-medium">待确认</span>';
       detailEl.innerHTML = `
         <div class="rounded-lg p-3" style="background:var(--neutral-50);border:1px solid var(--neutral-200);">
           <div class="flex items-center justify-between mb-2 pb-2" style="border-bottom:1px solid var(--neutral-200);">

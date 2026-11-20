@@ -15,7 +15,7 @@ export function renderContent(ctx) {
   const personId = currentUserId();
   // 失效会话不猜人（P1-11）：读口显式显示 —，不再回落到固定参与者 p5。
   if (!personId) {
-    el.innerHTML = '<div class="card rounded-xl p-5 text-center"><p class="text-xs text-gray-500">—（登录态已失效，请重新登录）</p></div>';
+    el.innerHTML = '<div class="card rounded-xl card-standard text-center"><p class="text-xs text-gray-500">—（登录态已失效，请重新登录）</p></div>';
     return null;
   }
   beginOverviewShell(el);

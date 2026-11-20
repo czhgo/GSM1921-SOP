@@ -181,8 +181,8 @@ function shapeCardHtml() {
     ['归属依据', esc(shape.segmentLabel)],
   ].map(([k, v]) => `<div class="kv-row"><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join('');
   return `
-    <div class="card rounded-xl p-5 mt-4">
-      <h3 class="font-title-cn text-base font-bold text-gray-800 mb-2">当前归属</h3>
+    <div class="card rounded-xl card-standard mt-4">
+      <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-2">当前归属</h3>
       <dl class="kv-list">${rows}</dl>
     </div>`;
 }
@@ -227,9 +227,9 @@ function renderPanel(panel) {
       ? '外观偏好随当前账号保存，切换登录人互不影响；未登录访客的外观保存在本浏览器。'
       : '当前为访客浏览：外观偏好保存在本浏览器；登录后外观将随账号独立保存。';
     panel.innerHTML = `
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-xl card-standard">
         <div class="flex items-center gap-2.5 mb-2">
-          <h3 class="font-title-cn text-base font-bold text-gray-800">外观</h3>
+          <h3 class="font-title-cn text-base font-semibold text-gray-800">外观</h3>
           ${badgeHtml('即时生效', 'success')}
         </div>
         <p class="text-xs text-gray-500 mb-4">字号、明暗主题与主题色的个人偏好设置 —— 保存后全站即时生效。</p>
@@ -262,9 +262,9 @@ function renderPanel(panel) {
   }
 
   panel.innerHTML = `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center gap-2.5 mb-2">
-        <h3 class="font-title-cn text-base font-bold text-gray-800">${meta.title}</h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">${meta.title}</h3>
         ${meta.badge ? badgeHtml(meta.badge, 'neutral') : ''}
       </div>
       <p class="text-xs text-gray-500 mb-4">${meta.desc}</p>
@@ -349,7 +349,7 @@ function mywsCardHtml(model) {
       ${isMine ? `<button type="button" class="btn-action ${actCls}" data-myws="restore-row" data-id="${id}" title="恢复该行默认位置" aria-label="恢复 ${tab.label || id} 默认位置">${icon('undo', { className: 'icon-base w-4 h-4' })}</button>` : ''}`;
     const gripCls = locked
       ? 'shrink-0 flex items-center text-gray-300 cursor-not-allowed'
-      : 'shrink-0 flex items-center text-gray-400 cursor-grab active:cursor-grabbing touch-none';
+      : 'shrink-0 flex items-center text-gray-500 cursor-grab active:cursor-grabbing touch-none';
     return `
       <li class="myws-row${locked ? ' is-locked' : ''}" draggable="${!locked}" data-id="${id}" data-locked="${locked ? '1' : '0'}">
         <span class="${gripCls}" title="${locked ? '核心固定，不可拖动' : '拖拽排序'}">${icon('grip', { className: 'icon-base w-4 h-4' })}</span>
@@ -360,9 +360,9 @@ function mywsCardHtml(model) {
       </li>`;
   }).join('');
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center gap-2.5 mb-2">
-        <h3 class="font-title-cn text-base font-bold text-gray-800">我的工作台</h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">我的工作台</h3>
         <span class="ml-auto flex items-center gap-2">
           <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" data-myws="reset-all" title="恢复全部默认（清除本账号顺序调整）" ${hasPref ? '' : 'disabled'}>${icon('undo', { className: 'icon-base w-[13px] h-[13px]' })}恢复全部默认</button>
         </span>
@@ -375,7 +375,7 @@ function mywsCardHtml(model) {
 }
 
 function mywsEmptyHtml(text) {
-  return `<div class="card rounded-xl p-5"><h3 class="font-title-cn text-base font-bold text-gray-800">我的工作台</h3><p class="text-xs text-gray-500 mt-2 mb-0">${text}</p></div>`;
+  return `<div class="card rounded-xl card-standard"><h3 class="font-title-cn text-base font-semibold text-gray-800">我的工作台</h3><p class="text-xs text-gray-500 mt-2 mb-0">${text}</p></div>`;
 }
 
 function showMywsStatus(panel, msg, isErr = false) {
@@ -515,7 +515,7 @@ let _bwsModel = null;  // 工作台默认顺序当前渲染模型（行操作/�
 const GOV_ROLES = new Set(['secretary', 'deputy-secretary']); // 支部治理分组可见角色（与 buildGroups 同源）
 
 function govEmptyHtml(text) {
-  return `<div class="card rounded-xl p-5"><h3 class="font-title-cn text-base font-bold text-gray-800">支部治理</h3><p class="text-xs text-gray-500 mt-2 mb-0">${text}</p></div>`;
+  return `<div class="card rounded-xl card-standard"><h3 class="font-title-cn text-base font-semibold text-gray-800">支部治理</h3><p class="text-xs text-gray-500 mt-2 mb-0">${text}</p></div>`;
 }
 
 /** 区块分发：支部信息与向导 / 工作台默认顺序 */
@@ -570,9 +570,9 @@ function renderBranchInfoCard(panel, br, branch) {
     ['支部自述', org.desc || '—'],
   ].map(([k, v]) => `<div class="kv-row"><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('');
   panel.innerHTML = `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center gap-2.5 mb-2">
-        <h3 class="font-title-cn text-base font-bold text-gray-800">支部信息与向导</h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">支部信息与向导</h3>
         ${badgeHtml('档案 · 只读展示', 'neutral')}
       </div>
       <p class="text-xs text-gray-500 mb-4">支部基础档案只读展示（名称等治理字段归党委管理）；需要调整支部信息 / 模块组合 / 分工 / 术语时，打开换组织向导 —— 每步保存即时生效并记录变更。</p>
@@ -581,7 +581,7 @@ function renderBranchInfoCard(panel, br, branch) {
         <b>改名 / 改自述，去哪改</b>：官方名与类别归党委（党委台「支部管理」）；页眉名、自述、主题与模块组合在本页「打开换组织向导」内改。
       </div>
     </div>
-    <div class="card rounded-xl p-4 mt-4 flex flex-col sm:flex-row sm:items-center gap-3.5 border-l-[3px] border-l-[var(--party-red)]">
+    <div class="card rounded-xl p-4 mt-4 flex flex-col sm:flex-row sm:items-center gap-3.5">
       <span class="w-[42px] h-[42px] shrink-0 flex items-center justify-center rounded-xl bg-[var(--app-accent-soft-bg)] text-[var(--app-accent-soft-text)]">${icon('flag', { className: 'icon-base w-5 h-5' })}</span>
       <div class="flex-1 min-w-0">
         <b class="block text-sm text-gray-800 leading-snug">换组织向导（支部信息 / 模块组合 / 分工 / 术语）</b>
@@ -687,9 +687,9 @@ function renderConfigHistorySection(panel, br, branch, statusMsg) {
     ? [...history].slice(-CONFIG_HISTORY_DISPLAY_MAX).reverse().map(_cfgHistoryRowHtml).join('')
     : emptyStateHtml({ text: "暂无配置变更记录", variant: 'inline' });
   panel.innerHTML = `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center gap-2.5 mb-2">
-        <h3 class="font-title-cn text-base font-bold text-gray-800">配置变更记录</h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">配置变更记录</h3>
         ${badgeHtml(`${esc(roleLabel)} · 本支部 · 审计`, 'neutral')}
       </div>
       <p class="text-xs text-gray-500 mb-4">每次保存自动记账（谁 / 何时 / 改了哪一项 / 前后值 / 依据）；单键改动可回滚，回滚本身再记一条。迁移前记录无操作人。</p>
@@ -793,7 +793,7 @@ function branchOrderCardHtml(model) {
       <button type="button" class="btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover:text-gray-900 disabled:opacity-30" data-bws="move" data-id="${id}" data-dir="1" title="下移" aria-label="下移 ${tab.label || id}" ${bizIdx === bizLen - 1 ? 'disabled' : ''}>${icon('chevronDown', { className: 'icon-base w-4 h-4' })}</button>`;
     const gripCls = locked
       ? 'shrink-0 flex items-center text-gray-300 cursor-not-allowed'
-      : 'shrink-0 flex items-center text-gray-400 cursor-grab active:cursor-grabbing touch-none';
+      : 'shrink-0 flex items-center text-gray-500 cursor-grab active:cursor-grabbing touch-none';
     return `
       <li class="myws-row${locked ? ' is-locked' : ''}" draggable="${!locked}" data-id="${id}" data-locked="${locked ? '1' : '0'}">
         <span class="${gripCls}" title="${locked ? '核心固定，不可拖动' : '拖拽排序'}">${icon('grip', { className: 'icon-base w-4 h-4' })}</span>
@@ -806,16 +806,16 @@ function branchOrderCardHtml(model) {
   const modulesNull = !model.modules;
   const dirty = !sameIdOrder(model.bizIds, model.savedDisplay);
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center gap-2.5 mb-2">
-        <h3 class="font-title-cn text-base font-bold text-gray-800">工作台默认顺序</h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">工作台默认顺序</h3>
         <span class="ml-auto flex items-center gap-2">
           <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" data-bws="reset-all" title="恢复系统默认顺序（默认全开 + 注册序）" ${modulesNull ? 'disabled' : ''}>${icon('undo', { className: 'icon-base w-[13px] h-[13px]' })}恢复默认</button>
           <button type="button" class="btn-accent text-xs px-3 py-1.5" data-bws="save" title="保存为支部默认顺序" ${dirty ? '' : 'disabled'}>保存</button>
         </span>
       </div>
       <p class="text-xs text-gray-500 mb-4">${roleLabel}设定支部工作台默认页签顺序 —— 保存后<strong>全体成员下一刷新按新默认</strong>；成员仍可在「个人设置 → 我的工作台」做个人调整。</p>
-      <div class="hint-box mb-3">${icon('bell', { className: 'icon-base w-3.5 h-3.5 mt-0.5 text-gray-400' })}<span>影响全体成员：此处变更写入支部默认配置，全员工作台随之生效；行徽标「默认」表示与当前支部默认一致，「调整中」表示有未保存的位置调整。</span></div>
+      <div class="hint-box mb-3">${icon('bell', { className: 'icon-base w-3.5 h-3.5 mt-0.5 text-gray-500' })}<span>影响全体成员：此处变更写入支部默认配置，全员工作台随之生效；行徽标「默认」表示与当前支部默认一致，「调整中」表示有未保存的位置调整。</span></div>
       <ul class="myws-list" data-bws-list="1">${rows}</ul>
       <p class="status-line" data-bws-status aria-live="polite"></p>
       ${coreHint ? `<div class="hint-box mt-3.5">${coreHint}</div>` : ''}
@@ -977,7 +977,7 @@ const DOMAIN_CARD_META = {
 const LOCKED_POLICY_ROLES = new Set(['secretary', 'deputy-secretary']); // 制度锁定展示 = 支书/副视角
 
 function policyEmptyHtml(title, text) {
-  return `<div class="card rounded-xl p-5"><h3 class="font-title-cn text-base font-bold text-gray-800">${title}</h3><p class="text-xs text-gray-500 mt-2 mb-0">${text}</p></div>`;
+  return `<div class="card rounded-xl card-standard"><h3 class="font-title-cn text-base font-semibold text-gray-800">${title}</h3><p class="text-xs text-gray-500 mt-2 mb-0">${text}</p></div>`;
 }
 
 /** 统一入口：支部制度参数（支书/副）/ 域参数卡（域负责人）——可见角色不匹配给提示 */
@@ -1069,9 +1069,9 @@ function branchPolicyLockedCardHtml(branch) {
     ['请假/缺席标因', `<span class="flex flex-wrap gap-1.5 pt-0.5">${reasonChips}</span>`],
   ].map(([k, v]) => `<div class="kv-row"><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join('');
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center gap-2.5 mb-2">
-        <h3 class="font-title-cn text-base font-bold text-gray-800">支部制度参数</h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">支部制度参数</h3>
         ${badgeHtml('制度默认 · 只读', 'neutral')}
       </div>
       <p class="text-xs text-gray-500 mb-4">下面制度项的当前取值集中摆出，供核对；本卡不放控件，改动要走制度裁决与放行程序（见下）。</p>
@@ -1125,9 +1125,9 @@ function deputyPolicyCardHtml(branch) {
       <span>${DEPUTY_ACTION_LABELS[action]}</span>
     </label>`).join('');
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center gap-2.5 mb-2">
-        <h3 class="font-title-cn text-base font-bold text-gray-800">副支书操作权</h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">副支书操作权</h3>
         ${badgeHtml(`${esc(roleLabel)} · 本支部可调`, 'neutral')}
       </div>
       <p class="text-[13px] text-gray-500 mb-4">主责仍在支书：任务、提醒、统计与逾期归属不随本项变化；本项只决定副支书能否代操作下列四类动作。</p>
@@ -1164,9 +1164,9 @@ function activityApprovalCardHtml(branch, P) {
   const opts = ACTIVITY_APPROVAL_MODES.map(m =>
     `<option value="${m}" ${m === cur ? 'selected' : ''}>${esc(ACTIVITY_APPROVAL_MODE_LABELS[m] || m)}</option>`).join('');
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center gap-2.5 mb-2">
-        <h3 class="font-title-cn text-base font-bold text-gray-800">活动批准门</h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">活动批准门</h3>
         ${badgeHtml(`${esc(roleLabel)} · 本支部可调`, 'info')}
       </div>
       <p class="text-xs text-gray-500 mb-4">开启后活动须批准才能推进。</p>
@@ -1192,9 +1192,9 @@ function periodicArchivePolicyCardHtml(branch, P) {
   const unit = po.archive?.periodic?.unit || P.archive.periodic.unit;
   const hasOverride = !!po.archive?.periodic?.unit;
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center gap-2.5 mb-2">
-        <h3 class="font-title-cn text-base font-bold text-gray-800">周期归档规则</h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">周期归档规则</h3>
         ${badgeHtml('支部制度参数', 'info')}
       </div>
       <p class="text-xs text-gray-500 mb-3">调整只影响之后新建和提交的期次，已提交记录保留原规则。</p>
@@ -1370,9 +1370,9 @@ function domainCardHtml(meta, branch, P) {
           </dd>
         </div>`;
     return `
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-xl card-standard">
         <div class="flex items-center gap-2.5 mb-2">
-          <h3 class="font-title-cn text-base font-bold text-gray-800">纪检职责参数</h3>
+          <h3 class="font-title-cn text-base font-semibold text-gray-800">纪检职责参数</h3>
           ${badgeHtml(`${esc(meta.roleLabel)} 可调`, 'info')}
         </div>
         <p class="text-xs text-gray-500 mb-4">考察超期、考勤与复盘时限、补课范围与时限。保存后：纪检台判定、支书台提醒与补课判据同源生效。</p>
@@ -1420,9 +1420,9 @@ function domainCardHtml(meta, branch, P) {
     const mA = policyRange(['member', 'activistMinMonths']) || { min: 0, max: 60 };
     const cAct = (Number.isInteger(po.member?.activistMinMonths) ? po.member.activistMinMonths : P.member.activistMinMonths);
     return `
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-xl card-standard">
         <div class="flex items-center gap-2.5 mb-2">
-          <h3 class="font-title-cn text-base font-bold text-gray-800">组织职责参数</h3>
+          <h3 class="font-title-cn text-base font-semibold text-gray-800">组织职责参数</h3>
           ${badgeHtml(`${esc(meta.roleLabel)} 可调`, 'info')}
         </div>
         <div class="space-y-3">
@@ -1474,9 +1474,9 @@ function domainCardHtml(meta, branch, P) {
   const defOn = !!P.leader.semesterReportReminder?.enabled;
   const curOn = typeof po.leader?.semesterReportReminder?.enabled === 'boolean' ? po.leader.semesterReportReminder.enabled : defOn;
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center gap-2.5 mb-2">
-        <h3 class="font-title-cn text-base font-bold text-gray-800">组长职责参数</h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">组长职责参数</h3>
         ${badgeHtml(`${esc(meta.roleLabel)} 可调`, 'info')}
       </div>
       <p class="text-xs text-gray-500 mb-4">学期组员进展自动归集提醒：每学期开学周（3 月 / 9 月首周）在组长工作台提醒一次「逐人归集本组组员进展」。频率固定学期制。</p>

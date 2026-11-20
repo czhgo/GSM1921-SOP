@@ -147,7 +147,7 @@ test('支部配置以紧凑导航切换单一活动面板', async () => {
   assert.match(styles, /#branch-secretary-picker \.person-picker-trigger\s*\{\s*width:\s*100%/);
   assert.match(page, /data-config-panel/);
   assert.match(entry, /panel\.hidden/);
-  assert.match(wizard, /card p-5 org-config-step-panel/);
+  assert.match(wizard, /card card-standard org-config-step-panel/);
   assert.match(wizard, /aria-label="业务配置步骤"/);
   assert.match(styles, /org-config-step-panel > \.space-y-4 > \.rounded-xl\.border/);
 });

@@ -23,8 +23,8 @@ const PAGE_SIZE = 25;
 function message(title, body, role = 'status') {
   if (!host) return;
   host.setAttribute('aria-busy', 'false');
-  host.innerHTML = `<section class="max-w-2xl rounded-xl border border-gray-200 bg-white p-6" role="${role}">
-    <h1 class="font-title-cn text-lg font-bold text-gray-900">${esc(title)}</h1>
+  host.innerHTML = `<section class="max-w-2xl rounded-xl border border-gray-200 bg-white p-4" role="${role}" aria-labelledby="branch-readonly-title">
+    <h1 id="branch-readonly-title" class="font-title-cn text-lg font-semibold text-gray-900">${esc(title)}</h1>
     <p class="mt-2 text-sm leading-6 text-gray-600">${esc(body)}</p>
     <a class="btn-outline mt-4 inline-flex px-3 py-2 text-sm" href="${getBasePath()}workspace/party-committee.html">返回党委工作台</a>
   </section>`;
@@ -66,7 +66,7 @@ async function render() {
         actions: `<a class="btn-outline inline-flex shrink-0 px-3 py-2 text-sm" href="${getBasePath()}workspace/party-committee.html?tab=branches">返回支部台账</a>`,
       })}
 
-      <section id="branch-overview" class="card p-5" aria-labelledby="branch-state-heading">
+      <section id="branch-overview" class="card card-standard" aria-labelledby="branch-state-heading">
         <div class="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p class="text-xs text-gray-500">${esc(branch.type || '支部')} · 支书：${esc(secretaryName)}</p>
@@ -84,7 +84,7 @@ async function render() {
         <a href="${esc(docAnchorHref('#branch-overview'))}">概况</a><a href="${esc(docAnchorHref('#branch-roster'))}">名册</a><a href="${esc(docAnchorHref('#branch-activities'))}">活动</a>
       </nav>
 
-      <section id="branch-roster" class="card p-5" aria-labelledby="branch-members-heading">
+      <section id="branch-roster" class="card card-standard" aria-labelledby="branch-members-heading">
         <div class="flex flex-wrap items-baseline justify-between gap-2">
           <div><h2 id="branch-members-heading" class="font-title-cn text-base font-bold text-gray-900">成员名册</h2></div>
           <span id="branch-member-count" class="text-sm tabular-nums text-gray-600">${rows.length} 人</span>
@@ -107,7 +107,7 @@ async function render() {
         </div>
       </section>
 
-      <section id="branch-activities" class="card p-5" aria-labelledby="branch-activity-heading">
+      <section id="branch-activities" class="card card-standard" aria-labelledby="branch-activity-heading">
         <div class="flex flex-wrap items-baseline justify-between gap-2"><div><h2 id="branch-activity-heading" class="font-title-cn text-base font-bold text-gray-900">活动动态</h2></div><span class="text-sm text-gray-600">${branchActivities.length} 项</span></div>
         ${branchActivities.length ? `<ol class="mt-4 divide-y divide-gray-200 border-y border-gray-200">
           ${branchActivities.slice(0, 10).map((activity) => `<li class="grid grid-cols-[6rem_minmax(0,1fr)_auto] items-baseline gap-3 py-3">

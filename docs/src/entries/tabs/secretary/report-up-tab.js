@@ -21,7 +21,7 @@ const TYPE_META = {
   'activity-report': { label: '活动报备', desc: '重要活动/主题党日等需党委知悉的重大事项' },
 };
 const STATUS_META = {
-  pending: { label: '待党委批复', cls: 'bg-amber-50 text-amber-700' },
+  pending: { label: '待党委批复', cls: 'bg-amber-50 text-[var(--status-warning-text)]' },
   approved: { label: '已批准', cls: 'bg-green-50 text-green-700' },
   rejected: { label: '已驳回', cls: 'bg-gray-100 text-gray-600' },
 };
@@ -79,7 +79,7 @@ function refreshStats(tc, branchId) {
     { v: n('approved'), l: '已批准', icon: 'check', tint: 'var(--status-success-text)' },
     { v: n('rejected'), l: '已驳回', icon: 'close', tint: 'var(--status-error-text)' },
   ].map(x => `
-    <div class="card rounded-xl p-3 stat-card">
+    <div class="card rounded-xl p-4 stat-card">
       <span class="stat-icon-tint" style="--tint:${x.tint};" aria-hidden="true">${icon(x.icon, { strokeWidth: 1.8, className: 'w-5 h-5' })}</span>
       <div class="stat-card__body">
         <p class="stat-card__value">${x.v}</p>

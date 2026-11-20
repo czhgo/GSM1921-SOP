@@ -227,13 +227,13 @@ function paint(host) {
 
 function panelHtml() {
   if (state.error) {
-    return `<div class="card p-5" role="alert">
+    return `<div class="card card-standard" role="alert">
       <p class="text-sm text-gray-700">加载失败：${esc(state.error)}</p>
       <div class="mt-3"><button type="button" class="btn-outline btn-sm" data-content-retry>重试</button></div>
     </div>`;
   }
   if (state.loading) {
-    return `<div class="card p-5">${skeletonHtml(4, { variant: 'list', ariaText: '正在加载院级内容…' })}</div>`;
+    return `<div class="card card-standard">${skeletonHtml(4, { variant: 'list', ariaText: '正在加载院级内容…' })}</div>`;
   }
   return state.subview === VIEW_ACTIVITIES ? activitiesHtml() : docsHtml();
 }
@@ -277,7 +277,7 @@ function activitiesHtml() {
   const rows = state.activities;
   if (state.activitiesError) {
     return `
-      <div class="card p-5">
+      <div class="card card-standard">
         ${renderCardHeader({ title: '党委活动', titleId: 'pc-content-activity-list', meta: '加载失败' })}
         ${emptyStateHtml({
           variant: 'panel',
@@ -288,7 +288,7 @@ function activitiesHtml() {
   }
   return `
     <div class="space-y-4">
-      <div class="card p-5">
+      <div class="card card-standard">
         ${renderCardHeader({ title: '党委活动', titleId: 'pc-content-activity-list', meta: `${rows.length} 条` })}
         ${rows.length
           ? `<div class="divide-y divide-gray-200 border-y border-gray-200">${rows.map(activityRowHtml).join('')}</div>`
@@ -355,7 +355,7 @@ function activityFormHtml() {
     ? '<button type="button" class="btn-outline btn-sm" data-activity-form="cancel-edit">取消编辑</button>'
     : '';
   return `
-    <div class="card p-5" id="pc-content-activity-form-card">
+    <div class="card card-standard" id="pc-content-activity-form-card">
       ${renderCardHeader({ title: editing ? '编辑党委活动' : '撰写党委活动', titleId: 'pc-content-activity-form', actions: headActions })}
       <div id="pc-content-activity-form">
         ${textField({ id: 'pc-activity-title', label: '标题', required: true, value: draft.title || '', placeholder: '活动主题', autocomplete: 'off' })}
@@ -595,7 +595,7 @@ function docsHtml() {
   const rows = state.documents;
   if (state.documentsError) {
     return `
-      <div class="card p-5">
+      <div class="card card-standard">
         ${renderCardHeader({ title: '院级资料', titleId: 'pc-content-doc-list', meta: '加载失败' })}
         ${emptyStateHtml({
           variant: 'panel',
@@ -606,7 +606,7 @@ function docsHtml() {
   }
   return `
     <div class="space-y-4">
-      <div class="card p-5">
+      <div class="card card-standard">
         ${renderCardHeader({ title: '院级资料', titleId: 'pc-content-doc-list', meta: `${rows.length} 条` })}
         ${rows.length
           ? `<div class="divide-y divide-gray-200 border-y border-gray-200">${rows.map(docRowHtml).join('')}</div>`
@@ -653,7 +653,7 @@ function docFormHtml() {
     ? '<button type="button" class="btn-outline btn-sm" data-doc-form="cancel-edit">取消编辑</button>'
     : '';
   return `
-    <div class="card p-5" id="pc-content-doc-form-card">
+    <div class="card card-standard" id="pc-content-doc-form-card">
       ${renderCardHeader({ title: editing ? '编辑院级资料' : '上传院级资料', titleId: 'pc-content-doc-form', actions: headActions })}
       <div id="pc-content-doc-form">
         ${textField({ id: 'pc-doc-title', label: '标题', required: true, value: draft.title || '', placeholder: '资料名称', autocomplete: 'off' })}

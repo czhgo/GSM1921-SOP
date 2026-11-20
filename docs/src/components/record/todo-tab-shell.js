@@ -311,7 +311,7 @@ function _insertTargetHint(container, text) {
   const hint = document.createElement('div');
   hint.dataset.navTargetMissing = '1';
   hint.setAttribute('role', 'status');
-  hint.className = 'card rounded-xl p-3 mb-4 text-xs text-amber-800 bg-amber-50 border border-amber-200';
+  hint.className = 'card rounded-xl p-3 mb-4 text-xs text-[var(--status-warning-text)] bg-amber-50 border border-amber-200';
   hint.textContent = text;
   container.prepend(hint);
 }
@@ -489,7 +489,7 @@ function _urgencySummaryHtml(summary) {
  */
 function _dispatchSectionHtml(role) {
   if (!DISPATCH_SECTION_BY_ROLE[role]) return '';
-  return `<div class="card rounded-xl p-5 mt-4 card--static" id="ws-dispatch-section"
+  return `<div class="card rounded-xl card-standard mt-4 card--static" id="ws-dispatch-section"
     data-todo-dispatch="1">
     <div class="flex items-center justify-between mb-2">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">我经办的反馈</h3>
@@ -569,11 +569,11 @@ export function createTodoTab(opts) {
     const row = '<div class="h-9 rounded-lg bg-gray-100 animate-pulse"></div>';
     return `
       <div data-ws-todo-skeleton class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-2 card rounded-xl p-5" style="min-height:340px;">
+        <div class="lg:col-span-2 card rounded-xl card-standard" style="min-height:340px;">
           <div class="h-4 w-20 rounded bg-gray-100 animate-pulse mb-4"></div>
           <div class="space-y-2">${row}${row}${row}${row}${row}</div>
         </div>
-        <div class="lg:col-span-1 card rounded-xl p-5" style="min-height:220px;">
+        <div class="lg:col-span-1 card rounded-xl card-standard" style="min-height:220px;">
           <div class="h-4 w-12 rounded bg-gray-100 animate-pulse mb-4"></div>
           <div class="h-24 rounded-lg bg-gray-100 animate-pulse"></div>
         </div>
@@ -907,13 +907,13 @@ export function createTodoTab(opts) {
       const hasAnyGroup = urgency.sections.some(s => s.groups.length > 0);
       const realtimeNoticeHtml = realtimeError
         ? `<div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 mb-3 flex items-center justify-between gap-3" role="status" data-ws-todo-realtime-notice>
-            <span class="text-xs text-amber-800">${escHtml(realtimeError)}${hasAnyGroup ? '，已按本地数据展示' : '，请重试'}</span>
+            <span class="text-xs text-[var(--status-warning-text)]">${escHtml(realtimeError)}${hasAnyGroup ? '，已按本地数据展示' : '，请重试'}</span>
             <button type="button" class="btn-outline btn-sm" data-ws-todo-retry>重试</button>
           </div>`
         : '';
 
       const listCardHtml = `
-        <div class="card rounded-xl p-5 card--static">
+        <div class="card rounded-xl card-standard card--static">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
           </div>
@@ -923,7 +923,7 @@ export function createTodoTab(opts) {
         </div>`;
 
       const detailCardHtml = `
-        <div class="card rounded-xl p-5 lg:sticky lg:top-20 card--static" data-ws-todo-detail aria-live="polite">
+        <div class="card rounded-xl card-standard lg:sticky lg:top-20 card--static" data-ws-todo-detail aria-live="polite">
           <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">${detailTitle}</h3>
           ${detailHtml}
         </div>`;

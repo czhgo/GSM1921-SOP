@@ -137,9 +137,9 @@ function _renderOrganizingScopeSection(scenarioId) {
     placeholder: '组织者一般由承办党小组承担，请说明本次由他组同志承担的原因',
     className: 'w-full',
   });
-  html += `<p class="text-xs text-amber-700 mt-1">组织者一般由本组承担；确需他组同志时，说明将随活动留存（不阻断）。</p>`;
+  html += `<p class="text-xs text-[var(--status-warning-text)] mt-1">组织者一般由本组承担；确需他组同志时，说明将随活动留存（不阻断）。</p>`;
   html += `</div>`;
-  html += `<p id="wp-cross-deep-note" class="text-xs text-amber-700 mt-2${cross.deep.length ? '' : ' hidden'}">${cross.deep.length ? `已在名单中的跨组深参：${cross.deep.map((p) => esc(p.name || p.id)).join('、')}——提交后由组织台「跨组招募待协调」跟进。` : ''}</p>`;
+  html += `<p id="wp-cross-deep-note" class="text-xs text-[var(--status-warning-text)] mt-2${cross.deep.length ? '' : ' hidden'}">${cross.deep.length ? `已在名单中的跨组深参：${cross.deep.map((p) => esc(p.name || p.id)).join('、')}——提交后由组织台「跨组招募待协调」跟进。` : ''}</p>`;
   html += `</div>`;
   return html;
 }
@@ -295,7 +295,7 @@ const CALENDAR_TAB_HTML = `
   <!-- F-18：取数失败不再只落 console——页面内可见错误条（role=status，复用既有提示样式） -->
   <div id="cal-data-error" role="status" hidden></div>
   <!-- 活动日历（2026-08-05：「写入活动」并入日历卡片头部，删除原独立活动写入卡片） -->
-  <div class="card rounded-xl p-5 mb-4">
+  <div class="card rounded-xl card-standard mb-4">
     <!-- 2026-10-01 批次 317（支书 V-3「功能钮提台顶栏全局固定位」）：原在本行的「写入活动」按钮
          已提到顶栏（ws-secretary-entry.js 经 header.js 的 mountHeaderCta 挂载）；
          id ws-sec-write-btn 一字未改 ⇒ 台账 / 守卫 / 真机选择器零改签。
@@ -921,7 +921,7 @@ function renderFormStep() {
     html += `<div class="mb-3 card rounded-xl p-4">`;
     html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">会议议程 <span class="text-gray-500">（选填；类型可多选）</span></label>`;
     html += `<button type="button" data-action="agenda-candidates-toggle" class="btn-outline mb-2 text-xs px-3 py-1.5">从拟上会清单勾选</button>`;
-    html += `<div id="wp-agenda-candidates" class="hidden mb-2 rounded-lg border border-gray-100 bg-gray-50/60 p-2.5"></div>`;
+    html += `<div id="wp-agenda-candidates" class="hidden mb-2 rounded-lg border border-gray-100 bg-white p-2.5"></div>`;
     html += `<div id="wp-agenda-list" class="space-y-2">`;
     // 初始 1 行空议程（HTML 内嵌，减少首条输入点击；添加/删除由 bindWritePanelEvents 事件处理）
     html += _agendaRowHTML();
@@ -2042,7 +2042,7 @@ function _renderCommitteeStrip() {
   }
   host.hidden = false;
   host.innerHTML = `
-    <div class="rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-3">
+    <div class="rounded-xl border border-gray-100 bg-white px-4 py-3">
       <p class="text-xs text-gray-600 mb-2">院级活动待采用 <span class="tabular-nums">${pending.length}</span></p>
       <div class="space-y-2">
         ${pending.map((a) => `

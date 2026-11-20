@@ -44,7 +44,7 @@ export function renderActivityProgress(host, { activities = [], accent, onChange
   });
 
   host.innerHTML = `
-    <details class="card rounded-xl p-5" id="org-activity-progress-card">
+    <details class="card rounded-xl card-standard" id="org-activity-progress-card">
       <summary class="cursor-pointer select-none flex flex-wrap items-baseline gap-x-2">
         <span class="font-title-cn text-base font-semibold text-gray-800">活动进展</span>
         <span class="text-xs text-gray-500 tabular-nums">${activities.length} 项</span>

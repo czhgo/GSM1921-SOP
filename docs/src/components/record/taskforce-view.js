@@ -76,7 +76,7 @@ export function renderTaskforceView(container, opts = {}) {
         <div id="tfv-list"></div>
         <div id="tfv-detail" class="hidden mt-4"></div>`;
     container.innerHTML = opts.embedded === true ? embeddedHtml : `
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-xl card-standard">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">专班查看</h3>
           <span class="text-xs text-gray-500">${scopeMeta}</span>
@@ -91,7 +91,7 @@ export function renderTaskforceView(container, opts = {}) {
           </div>
         </div>
         <div id="tfv-list"></div>
-        <div id="tfv-detail" class="hidden card rounded-xl p-5 mt-4"></div>
+        <div id="tfv-detail" class="hidden card rounded-xl card-standard mt-4"></div>
       </div>`;
   }
 
@@ -217,7 +217,7 @@ function _contribTagOf(c) {
   if (c.verifiedStatus === 'rejected') {
     return `<span class="ml-1 inline-block align-middle text-xs px-1.5 py-0.5 rounded-full bg-red-50 text-red-700">已退回${c.rejectNote ? ' · ' + esc(c.rejectNote) : ''}</span>`;
   }
-  return '<span class="ml-1 inline-block align-middle text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">待核</span>';
+  return '<span class="ml-1 inline-block align-middle text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-[var(--status-warning-text)]">待核</span>';
 }
 
 /** 只读详情：基本信息 + 历史分工 + 工作产出 */
@@ -373,7 +373,7 @@ async function _renderTfDetail(container, tf, highlightId) {
             <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:var(--status-success);"></span>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
-                ${p.stage ? `<span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#10B98115;color:#0D9488;">${esc(p.stage)}</span>` : ''}
+                ${p.stage ? badgeHtml(esc(p.stage), 'success') : ''}
                 <span class="text-xs text-gray-500">${esc((p.at || '').slice(0, 16).replace('T', ' '))}</span>
                 <span class="text-xs text-gray-500">${p.by ? (canRevealNames ? esc(getPersonName(p.by)) : '成员') : ''}</span>
               </div>
@@ -415,6 +415,6 @@ async function _renderTfDetail(container, tf, highlightId) {
  */
 export async function renderTaskforceDetailPanel(host, tf, opts = {}) {
   if (!host || !tf) return;
-  if (!host.querySelector('#tfv-detail')) host.innerHTML = '<div id="tfv-detail" class="hidden card rounded-xl p-5"></div>';
+  if (!host.querySelector('#tfv-detail')) host.innerHTML = '<div id="tfv-detail" class="hidden card rounded-xl card-standard"></div>';
   await _renderTfDetail(host, tf, opts.highlightId || null);
 }

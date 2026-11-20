@@ -121,7 +121,7 @@ function _renderCapabilityDenied(containerId, { capId, scope, role }) {
   const root = document.getElementById(containerId);
   if (!root) return;
   root.innerHTML = `
-    <div class="card rounded-xl p-6 max-w-xl">
+    <div class="card rounded-xl card-standard max-w-xl">
       <h2 class="font-title-cn text-base font-bold text-gray-800 mb-2">该工作台未对你的身份开放</h2>
       <p class="text-xs text-gray-600 leading-relaxed mb-1">你的身份不在该工作台的可达角色内，页面未渲染。</p>
       <p class="text-xs text-gray-500">如需访问，请联系管理员调整你的身份或工作台组合。</p>
@@ -617,8 +617,8 @@ export async function createWorkspaceShell(opts) {
     if (!container || container.querySelector('[data-ws-tab-notice]')) return;
     console.warn(`[ws-shell] ?tab=${requestedTab} 不在本台可见页签（含别名解析后），已回退默认页签并显示提示`);
     const fallbackTab = tabs.some(t => t && t.id === 'today') ? 'today' : (tabs[0] && tabs[0].id);
-    const html = `<div data-ws-tab-notice role="status" class="card rounded-xl px-4 py-3 mb-3 flex items-center justify-between gap-3 flex-wrap">
-      <p class="text-xs text-amber-700">该页签已调整或对本角色不可用。</p>
+    const html = `<div data-ws-tab-notice role="status" class="card rounded-xl px-4 py-2.5 mb-3 flex items-center justify-between gap-3 flex-wrap">
+      <p class="text-xs text-[var(--status-warning-text)]">该页签已调整或对本角色不可用。</p>
       <button type="button" class="btn-outline text-xs px-3 py-1.5" data-ws-tab-notice-home style="cursor:pointer;">回今天</button>
     </div>`;
     const contentEl = container.querySelector(`#${prefix}-tab-content`);
