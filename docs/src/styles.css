@@ -886,6 +886,8 @@ body {
   flex: 1 1 auto;
   min-width: 0;
 }
+/* 内嵌面板卡头（2026-11-20 批次 586）：与页面级卡头同出口，字级小一档、底距紧一档 */
+.card-head--panel { margin-bottom: var(--space-2); }
 .card-head__aside {
   display: flex;
   flex-wrap: nowrap;

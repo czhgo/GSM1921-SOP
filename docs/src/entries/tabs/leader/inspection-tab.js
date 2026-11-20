@@ -29,6 +29,7 @@ import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=2
 // Task 6：考察表活动列是跨对象行 ⇒ 直达完整详情页（direct）。
 import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261110b';
 
+import { renderCardHeader } from '../../../components/shell/page-frame.js';
 // 私有状态（随模块自持，不污染入口）
 let _inspFormVisible = false;
 let _inspPickerInstance = null;
@@ -142,14 +143,14 @@ export function renderContent(ctx, host, opts = {}) {
     ${renderTabHeader({ title: '考察管理', description: isOrganizerScope ? '由我组织的活动与本组考察上传位。' : '仅本组活动：组织者上传 → 纪检委员确认。' })}
     <div class="card rounded-xl card-standard">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">${isOrganizerScope ? '考察上传位' : '考察管理'}</h3>
+        ${renderCardHeader({ title: isOrganizerScope ? '考察上传位' : '考察管理' })}
         <button class="btn-md" id="btn-leader-upload-insp" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);border:1px solid var(--app-accent-soft-border);">${_inspFormVisible ? '收起表单' : '上传考察表单'}</button>
       </div>
       <div class="help-note mb-3"><a href="./help.html#card-dom34-upload" class="help-note__link">见帮助 · 考察上传</a></div>
       ${formHtml}
       ${isOrganizerScope ? '' : `
       <div class="${_inspFormVisible ? 'mt-4 pt-3 border-t border-gray-100' : ''}">
-        <div class="flex items-center justify-between mb-2"><h3 class="font-title-cn text-sm font-semibold text-gray-700">本组活动考察明细</h3><span class="text-xs text-gray-500">仅本组活动 · ${inspRows.length} 条</span></div>
+        ${renderCardHeader({ title: `本组活动考察明细`, meta: `<span class="text-xs text-gray-500">仅本组活动 · ${inspRows.length} 条</span>`, variant: 'panel' })}
         <div class="overflow-x-auto"><div id="insp-list-host"></div></div>
       </div>`}
       ${pendingConfirm.length > 0 ? `

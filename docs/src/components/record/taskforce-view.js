@@ -24,6 +24,7 @@ import { objectDetailHref } from '../../core/domain/object-route.js?v=20261110b'
 import { emptyStateHtml } from '../ui/empty-state.js?v=20261110b';
 // 批次 525（#4）：搜索建议走自建 suggestInput（原生 datalist 会在输入框内画 UA picker 三角）。
 import { suggestInput } from '../ui/forms.js?v=20261110b';
+import { renderCardHeader } from '../shell/page-frame.js';
 // 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
 const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };
 // 专班状态 → 固定语义 tone（不随主题）
@@ -78,7 +79,7 @@ export function renderTaskforceView(container, opts = {}) {
     container.innerHTML = opts.embedded === true ? embeddedHtml : `
       <div class="card rounded-xl card-standard">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">专班查看</h3>
+          ${renderCardHeader({ title: `专班查看` })}
           <span class="text-xs text-gray-500">${scopeMeta}</span>
         </div>
         <!-- P3 四段：本面只有检索；重置随检索提供（清除关键词后恢复全量） -->

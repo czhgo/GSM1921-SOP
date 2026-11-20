@@ -682,7 +682,7 @@ function _buildQueueHTML(items, returnedRecs, leaveCount, absentCount, overdueCo
   return `
     <div id="att-queue" class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">待确认考勤</h3>
+        ${renderCardHeader({ title: `待确认考勤` })}
         <div class="flex gap-3 text-xs">
           <span class="text-gray-600">请假 <span class="font-bold text-orange-700">${leaveCount}</span></span>
           <span class="text-gray-600">缺勤 <span class="font-bold text-red-700">${absentCount}</span></span>
@@ -907,7 +907,7 @@ function _buildAppealCardHTML(pendingAppeals, returnedAppeals, actById, accent, 
   return `
     <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">出勤申诉（待核实）</h3>
+        ${renderCardHeader({ title: `出勤申诉（待核实）` })}
         <span class="text-xs text-gray-500">同学反映「我参加了但没记上」→ 先核实，属实的交活动组织方确认</span>
       </div>
       <div class="space-y-1.5">
@@ -971,7 +971,7 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
   return `
     <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">会议考勤录入（党课 / 支部党员大会：纪检上传位）</h3>
+        ${renderCardHeader({ title: `会议考勤录入（党课 / 支部党员大会：纪检上传位）` })}
         ${toggleBtn}
       </div>
       ${body}

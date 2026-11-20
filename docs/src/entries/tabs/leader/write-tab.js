@@ -198,10 +198,10 @@ export function renderContent(ctx) {
       </div>
       <div class="mt-4 pt-3 border-t border-gray-100">
         <div id="leader-activity-lists">
-          <div class="flex items-center justify-between mb-2"><h3 class="font-title-cn text-sm font-semibold text-gray-700">本组创建 / 承办</h3><span class="text-xs text-gray-500">可写入 · ${writableActs.length} 条</span></div>
+          ${renderCardHeader({ title: `本组创建 / 承办`, meta: `<span class="text-xs text-gray-500">可写入 · ${writableActs.length} 条</span>`, variant: 'panel' })}
           <div class="space-y-2" id="leader-activity-list"></div>
           <div class="mt-4 pt-3 border-t border-dashed border-gray-100">
-            <div class="flex items-center justify-between mb-2"><h3 class="font-title-cn text-sm font-semibold text-gray-700">可见活动（只读）</h3><span class="text-xs text-gray-500">支部级 / 定向下发 · ${readonlyActs.length} 条</span></div>
+            ${renderCardHeader({ title: `可见活动（只读）`, meta: `<span class="text-xs text-gray-500">支部级 / 定向下发 · ${readonlyActs.length} 条</span>`, variant: 'panel' })}
             <div class="space-y-2" id="leader-activity-readonly-list"></div>
           </div>
         </div>

@@ -2,7 +2,7 @@
 title: "设计域判例库"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-19"
+last_updated: "2026-11-20"
 status: active
 related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -429,7 +429,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **边界**：本条只管活动详情页的块结构；单块内的字段顺序与文案归模块设计；页签侧块数上限仍按 SD-57 与 `TAB_BLOCK_BASELINE` 判。
 - **对应规范编号**：SD-57（顶层区块 ≤4、超限须登记 reason；本条把「详情页」纳入同族判据，超限部分按页尾折叠处理）＋ SD-60（行动行排布，管理动作不占正文行）。
 - **守卫**：`ui-first-screen-order::F6–F9`（页签侧块数）＋ `ui-first-screen-order::F10`（详情页结构契约：对象头 / 参与 / 议程 / 收口 / 管理动作五块、写口宿主与 390 单列）＋ 真机读数（`F10` 只判源码结构，视觉读数仍以双档截图复核）。
-- **证据指针**：`docs/src/entries/pages/activity-entry.js:720,803,810`；`.ctx/evidence/2026-11-10/activity-detail/{before-1440,before-390,after-act-6-1440,after-act-6-390}.png`；同目录 `readings-act-*.json`；`audit-secretary-calendar.md`。
+- **证据指针**：`docs/src/entries/pages/activity-entry.js:721,804,811`；`.ctx/evidence/2026-11-10/activity-detail/{before-1440,before-390,after-act-6-1440,after-act-6-390}.png`；同目录 `readings-act-*.json`；`audit-secretary-calendar.md`。
 
 ---
 
@@ -453,7 +453,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **边界**：党徽与插画才用品牌层（`--party-red` / `--party-gold`）；`feTurbulence` 噪点纹理属插画、无色值，按白名单登记；`styles.css` 的既有 data-URI 由同批样式波次迁移，不为此在守卫上开口子。
 - **对应规范编号**：SD-61（图标色彩契约，正文见 `DS_03_COMPONENTS.md §4.11.2`）＋ `§一 原则 4`（点缀色不单独承担状态语义）。
 - **守卫**：`icon-color-guard::G1–G5` ＋ `status-color-guard::S1` ＋ `hex-hardcode-guard`（含 `%23` 形态）＋ `theme-palette-guard`。
-- **证据指针**：`docs/src/core/base/icons.js`；`docs/src/components/shell/sidebar.js`；`docs/src/components/governance/person-picker.css`；`docs/src/styles.css`；`server/test/icon-color-guard.test.mjs:2,19-20,297,317-320`；`DS_03_COMPONENTS.md:539-551,1515,1537`。
+- **证据指针**：`docs/src/core/base/icons.js`；`docs/src/components/shell/sidebar.js`；`docs/src/components/governance/person-picker.css`；`docs/src/styles.css`；`server/test/icon-color-guard.test.mjs:2,19-20,297,317-320`；`DS_03_COMPONENTS.md:540-552,1516,1538`。
 
 ---
 

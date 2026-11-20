@@ -26,6 +26,7 @@ import { renderFilteredList } from '../../../components/ui/list-filter.js?v=2026
 import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261110b';
 
 import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261110b';
+import { renderCardHeader } from '../../../components/shell/page-frame.js';
 const STATUS_LABEL = {
   needs_revision: '已打回 · 待补充',
   archived: '已入库',
@@ -136,7 +137,7 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（本 tab 不�
     <div class="card rounded-xl card-standard">
       <div class="flex items-center justify-between flex-wrap gap-2">
         <div class="min-w-0">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">思想汇报例外</h3>
+          ${renderCardHeader({ title: `思想汇报例外` })}
           <p class="mt-0.5 text-xs text-gray-500">${esc(currentPeriod)} · 需处理 ${total} 项</p>
         </div>
         <span class="text-xs text-gray-500">完整记录见各行「档案」</span>

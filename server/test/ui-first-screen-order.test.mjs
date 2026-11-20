@@ -96,7 +96,7 @@ test('F4 待办首屏：折叠条默认展开露 2 条待答复；未读通知�
   assert.ok(stripBody.includes('${extraHtml}') && stripBody.includes('${unreadHtml}'),
     '展开区应同时承载待答复收件箱与未读通知行');
   const stripInsert = src.indexOf('${stripHtml}');
-  const mainObject = src.indexOf('>我的待办</h3>');
+  const mainObject = src.indexOf('title: `我的待办`');
   assert.ok(stripInsert >= 0 && mainObject > stripInsert,
     '首屏顺序：折叠条先于「我的待办」');
 });

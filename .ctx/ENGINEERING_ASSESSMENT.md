@@ -105,7 +105,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 **需补证据**：真人签收 5 个用户任务（签收人 ＋ 日期）、`party-committee.branches` 若要改须先改契约。
 
-**下一改进项**：`B-522-1` 低密度卡与空态页（判据：清单 8 页覆盖率 100%，不再等全局分数），落点 `.trae/specs/harden-interface-quality/tasks.md` Task 8 ＋ 对应页；`renderCardHeader` 全量迁移（判据：`docs/src` 内 `text-base font-bold` 的 `<h3>` 计数 = 0，`card-consistency-guard` 白名单清零）。复评触发：8 页覆盖率出读数、或守卫白名单下降。
+**下一改进项**：`B-522-1` 低密度卡与空态页（判据：清单 8 页覆盖率 100%，不再等全局分数），落点 `.trae/specs/harden-interface-quality/tasks.md` Task 8 ＋ 对应页。卡头单源已于批次 586 收口（`card-consistency-guard::②`：`docs/src` 手写卡头 `<h3>` = 0）。复评触发：8 页覆盖率出读数。
 
 
 ### 2.4 架构与可维护性（原「架构复杂度与变更成本」） —— 76/100
@@ -364,11 +364,11 @@ Git 从 2026-03-14 至 2026-10-14 共 1,133 条提交记录；按提交日期分
 |---|---|---|
 | 业务与数据正确性 | §2.1 得分依据 ＋ `D-864` / `D-886` / `D-887`；`.ctx/evidence/2026-11-20/backlog-reconcile.md` | 三层关系判据表 → `contracts/PARTY_COMMITTEE_DESIGN.md`；D2 / C2 扩面 → `B-500-7b-2` |
 | 安全与权限 | §2.2 ＋ `write-policy-matrix` 162 条 ＋ `multi-branch-read-filter` 9 组 | 门函数 / 角色集合 ≡ 矩阵断言；`B-541-3` 逐读口取证 ＋ 开关演练 |
-| 最小三成本体验 | §2.3 ＋ 46 页签审计读数 ＋ `.ctx/evidence/2026-11-10/p2-cleanup-ledger.md` | `B-522-1` 8 页覆盖率 100%；`renderCardHeader` 迁移后 `<h3>` 手写计数 = 0 |
+| 最小三成本体验 | §2.3 ＋ 46 页签审计读数 ＋ `.ctx/evidence/2026-11-10/p2-cleanup-ledger.md` | `B-522-1` 8 页覆盖率 100%（卡头已单源，手写 H3 = 0） |
 | 测试与发布质量 | §2.5 读数（daily 265 / guards 文件 × 用例）＋ `test-tier-registry.mjs` | CI run id 归外部门；`evaluation-asset-guard` 锁住本节指针 |
 | 架构与可维护性 | §2.4 ＋ `D-888` 键级隔离 ＋ 三份契约 | 对象模型判据表（与 2.1 同落点）；`B-541-7` 组件散件随改动收敛 |
 | 运行、部署与跨组织复用 | §2.6 ＋ 批次 527 换轨读数 ＋ `deploy/verify-linux.sh` 6/6 | `L-02` 真机三步 ＋ `deploy-verify` run id（外部门） |
-| 前端美学专项 | `D-893` ＋ `card-consistency-guard` / `spacing-ratchet-guard` 基线 | 卡头单源全量迁移；`p-5` 卡内边距计数 = 0（守卫已锁） |
+| 前端美学专项 | `D-893` ＋ `D-896` ＋ `card-consistency-guard` / `spacing-ratchet-guard` 基线 | `B-522-1` 低密度页；`p-5` 卡内边距计数 = 0（守卫已锁） |
 | 台账与投影 | `ACTIVE_CONTEXT §3` ＋ `REVIEW_QUEUE` ＋ `.ctx/TIMESTAMPS.md` | 已作废项不得在任何 open 列表复现（批次 580 `D-892` 对账结论） |
 
 ### 5.3 一页指针（找什么去哪里，不在本文件复述）

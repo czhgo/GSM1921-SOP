@@ -18,6 +18,7 @@ import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261110
 // Task 6：我的任务行跨项目 ⇒ 活动详情直达（direct）；缺 id 不渲染链接。
 import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261110b';
 
+import { renderCardHeader } from '../../../components/shell/page-frame.js';
 const STATUS_LABEL = { pending: '待办', in_progress: '进行中', completed: '已完成' };
 const STATUS_CLASS = {
   pending: 'bg-amber-50 text-[var(--status-warning-text)]',
@@ -58,7 +59,7 @@ export function myTasksSectionHtml(personId) {
   return `
     <div class="card rounded-xl p-4 mb-4" id="leader-my-tasks">
       <div class="flex items-center justify-between mb-1">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">我的任务</h3>
+        ${renderCardHeader({ title: `我的任务` })}
         <span class="text-xs text-gray-500">按项目身份分配 · ${rows.length} 项</span>
       </div>
       <p class="text-xs text-gray-500 mb-3">这里只列按项目身份派给你的任务；其他待办请到「待办」页查看。</p>

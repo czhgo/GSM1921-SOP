@@ -80,6 +80,7 @@ import { IssueStore } from '../../services/governance/issues.js?v=20261110b';
 import { renderReportInboxHtml, bindReportInbox, filterReportsByScope } from '../../components/record/reporting.js?v=20261110b';
 
 import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261110b';
+import { renderCardHeader } from '../../components/shell/page-frame.js';
 renderSidebar('dashboard');
 renderHeader('dashboard');
 
@@ -542,7 +543,7 @@ async function renderActivity(id) {
     <details class="mt-4" id="workgroup-reports-summary">
       <summary class="cursor-pointer select-none text-sm font-semibold text-gray-800">本工作组汇报汇总 <span class="tabular-nums text-gray-500">${workgroupReports.length}</span></summary>
       <!-- 2026-10-27 Task 5：先出 H3 再进汇报收件箱（其卡头是 H4），避免 H4 先于 H3。 -->
-      <h3 class="mt-2 text-sm font-semibold text-gray-800">汇报明细</h3>
+      ${renderCardHeader({ title: `汇报明细`, variant: 'panel' })}
       <div class="mt-2">
         ${renderReportInboxHtml({
           reports: visibleReports,
@@ -745,7 +746,7 @@ async function renderActivity(id) {
   const rosterViewHtml = formalRoster
     ? `<!-- 三会一课使用明确应到名单（冻结快照优先 / 未冻结按 roster 现算），不显示活动报名和工作组分工编辑 -->
     <div>
-      <h3 class="text-sm font-semibold text-gray-700 mb-3">应到名单（${assignments.length}）${frozenRoster ? '<span class="ml-2 text-[11px] font-normal text-gray-500">已冻结</span>' : '<span class="ml-2 text-[11px] font-normal text-gray-500">未冻结 · 按当前在册现算</span>'}</h3>
+      ${renderCardHeader({ title: `应到名单（${assignments.length}）`, meta: `<span class="ml-2 text-[11px] font-normal text-gray-500">${frozenRoster ? '已冻结' : '未冻结 · 按当前在册现算'}</span>`, variant: 'panel' })}
       ${assignments.length === 0
         ? emptyStateHtml({ variant: 'inline', text: '暂无应到名单' })
         : !canRevealMemberNames
@@ -1229,7 +1230,7 @@ async function renderTaskforce(tf) {
     <details class="mt-4 border-t border-gray-100 pt-4" id="workgroup-reports-summary">
       <summary class="cursor-pointer select-none text-sm font-semibold text-gray-800">本工作组汇报汇总 <span class="tabular-nums text-gray-500">${workgroupReports.length}</span></summary>
       <!-- 2026-10-27 Task 5：先出 H3 再进汇报收件箱（其卡头是 H4），避免 H4 先于 H3。 -->
-      <h3 class="mt-2 text-sm font-semibold text-gray-800">汇报明细</h3>
+      ${renderCardHeader({ title: `汇报明细`, variant: 'panel' })}
       <div class="mt-2">
         ${renderReportInboxHtml({
           reports: visibleReports,
@@ -1299,7 +1300,7 @@ async function renderTaskforce(tf) {
     ${isClosedTaskforce ? '<p class="mb-2 text-xs text-gray-500">工作组已结束，成员与授权记录只读保留。</p>' : ''}
     ${canRevealMemberNames
       ? renderWorkgroupMemberEditor({ workgroupId, kind: 'taskforce', canEdit: canManageMembers && grantsLoaded, members, grants, legacyRows })
-      : `<section class="mt-4 border-t border-gray-100 pt-4" aria-label="专班工作组成员数量"><h3 class="text-sm font-semibold text-gray-800">工作组成员</h3><p class="mt-1 text-xs text-gray-600">组织者 ${members.filter((row) => row.role === 'organizer').length} 人、深度参与者 ${members.filter((row) => row.role === 'deep').length} 人；专班成员仅登记工作分工，不纳入活动报名或考勤。</p><p class="mt-1 text-xs text-gray-500">当前无权查看人员名单。</p></section>`}
+      : `<section class="mt-4 border-t border-gray-100 pt-4" aria-label="专班工作组成员数量">${renderCardHeader({ title: `工作组成员`, variant: 'panel' })}<p class="mt-1 text-xs text-gray-600">组织者 ${members.filter((row) => row.role === 'organizer').length} 人、深度参与者 ${members.filter((row) => row.role === 'deep').length} 人；专班成员仅登记工作分工，不纳入活动报名或考勤。</p><p class="mt-1 text-xs text-gray-500">当前无权查看人员名单。</p></section>`}
     ${grantsError ? `<p class="mt-2 text-xs text-red-700" role="status">${esc(grantsError)}。为避免覆盖现有授权，成员编辑暂不可用。</p>` : ''}
 
     <section class="mt-4 border-t border-gray-100 pt-4" aria-labelledby="taskforce-work-title">
@@ -1426,7 +1427,7 @@ function _renderWorkAssignments(rows, canManage, canRevealNames = true) {
   const formOpen = _waEditing === 'new';
   return `
     <div class="flex items-center justify-between mb-2">
-      <h3 class="text-sm font-semibold text-gray-700">工作分工（${rows.length}）</h3>
+      ${renderCardHeader({ title: `工作分工（${rows.length}）`, variant: 'panel' })}
       ${canManage && !formOpen ? '<button type="button" class="btn-tab wa-new-btn text-xs px-3 py-1.5" style="cursor:pointer;">新增分工</button>' : ''}
     </div>
     ${formOpen ? _waFormHtml(null) : ''}

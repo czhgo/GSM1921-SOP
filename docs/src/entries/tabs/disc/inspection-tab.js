@@ -35,6 +35,7 @@ import { objectDetailHref } from '../../../core/domain/object-route.js?v=2026111
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
 import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261110b';
 
+import { renderCardHeader } from '../../../components/shell/page-frame.js';
 // 考察代录表单状态（随模块自持，不污染入口；与组长 / 组织台考察上传同规）
 let _discInspFormVisible = false;
 let _discInspPickerInstance = null;
@@ -83,7 +84,7 @@ export function renderContent(ctx) {
     <div class="card rounded-xl card-standard">
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div class="flex items-center gap-2">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">考察总表</h3>
+          ${renderCardHeader({ title: `考察总表` })}
           ${overdueRecords.length > 0
             ? badgeHtml(`${overdueRecords.length} 条超期`, 'danger', { title: `以下考察记录已超过${overdueDays}天未确认，请尽快处理` })
             : ''}
@@ -511,7 +512,7 @@ function _buildInspectionProxyCardHTML(activities = []) {
   return `
     <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">考察代录（代上传方录入）</h3>
+        ${renderCardHeader({ title: `考察代录（代上传方录入）` })}
         <button id="btn-disc-upload-insp" class="btn-outline h-8 px-3 text-xs font-medium">${_discInspFormVisible ? '收起表单' : '代录考察表单'}</button>
       </div>
       <div class="text-xs text-gray-500 leading-5 mb-3">代录后进入下方考察总表「待确认」。</div>
@@ -636,7 +637,7 @@ function _buildSupervisionCardHTML(rows, returnedRecs = []) {
   return `
     <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">督办清单（未闭环 / 超期）</h3>
+        ${renderCardHeader({ title: `督办清单（未闭环 / 超期）` })}
         <div class="flex gap-3 text-xs">
           <span class="text-gray-600">待督办 <span class="font-bold text-orange-700">${rows.length}</span> 人</span>
           <span class="text-gray-600">超期 <span class="font-bold text-red-700">${overdueCount}</span></span>
@@ -674,7 +675,7 @@ function _buildAppealCardHTML(pendingAppeals, returnedAppeals) {
   return `
     <div class="card rounded-xl p-4 mb-4" id="insp-appeal-card">
       <div class="flex items-center justify-between mb-2">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">考察申诉（待核实）</h3>
+        ${renderCardHeader({ title: `考察申诉（待核实）` })}
         <span class="text-xs text-gray-500">同学报「我参与了但没记上」——纪检<b>先核实</b>，属实再打回上传方</span>
       </div>
       ${pendingAppeals.length > 0

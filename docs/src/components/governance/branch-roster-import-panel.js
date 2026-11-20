@@ -5,6 +5,7 @@ import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../services/
 import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261110b';
 import { icon } from '../../core/base/icons.js?v=20261110b';
 
+import { renderCardHeader } from '../shell/page-frame.js';
 const drafts = new Map();
 
 function actorId() {
@@ -37,7 +38,7 @@ function draftHtml(branchId) {
     `<span class="whitespace-nowrap">${esc(name)} <b>${value.expected}</b> <span class="text-xs text-gray-500">/ 在册 ${value.partyTotal}</span></span>`).join(' · ');
   const groupCount = Object.keys(s.perGroup || {}).length;
   return `<div class="mt-3 border border-gray-200 bg-white p-3">
-    <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="text-sm font-semibold">导入预览</h3><span class="text-xs text-gray-500">${esc(draft.fileName)} · 有效 ${draft.people.length} 条${draft.dropped ? ` · 忽略 ${draft.dropped} 条` : ''}</span></div>
+    ${renderCardHeader({ title: `导入预览`, meta: `<span class="text-xs text-gray-500">${esc(draft.fileName)} · 有效 ${draft.people.length} 条${draft.dropped ? ` · 忽略 ${draft.dropped} 条` : ''}</span>`, variant: 'panel' })}
     <div class="mt-3 stat-grid">
       ${stat({ icon: 'usersGroup', tint: 'var(--status-info-text)', value: s.partyTotal, unit: '人', label: '在册党员', note: `正式 ${s.official} + 预备 ${s.probationary}` })}
       ${stat({ icon: 'clock', tint: 'var(--status-warning-text)', value: s.detained, unit: '人', label: '滞留党员', note: '组织关系保留、通知照发' })}

@@ -53,6 +53,7 @@ import { DERIVE_GROUP_DOMAIN } from '../../core/domain/todo-derive.js?v=20261110
 // 列表 / 详情 / 评论 / 提交处置结果一字未改，不复制第二套）。
 // 旧深链 `?tab=my-dispatch` 由工作台壳落 `todo&filter=dispatch`（本区据此滚到视野）。
 import { emptyStateHtml } from '../ui/empty-state.js?v=20261110b';
+import { renderCardHeader } from '../shell/page-frame.js';
 const DISPATCH_SECTION_BY_ROLE = {
   'org-commissioner': { roleKey: 'org-commissioner', opts: {} },
   'prop-commissioner': { roleKey: 'prop-commissioner', opts: {} },
@@ -492,7 +493,7 @@ function _dispatchSectionHtml(role) {
   return `<div class="card rounded-xl card-standard mt-4 card--static" id="ws-dispatch-section"
     data-todo-dispatch="1">
     <div class="flex items-center justify-between mb-2">
-      <h3 class="font-title-cn text-base font-semibold text-gray-800">我经办的反馈</h3>
+      ${renderCardHeader({ title: `我经办的反馈` })}
     </div>
     <p class="text-xs text-gray-500 mb-3">支部派发的汇报与反馈在此处理；处理结果可回看。</p>
     <div id="ws-dispatch-host"></div>
@@ -915,7 +916,7 @@ export function createTodoTab(opts) {
       const listCardHtml = `
         <div class="card rounded-xl card-standard card--static">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
+            ${renderCardHeader({ title: `我的待办` })}
           </div>
           ${realtimeNoticeHtml}
           ${_urgencySummaryHtml(urgency.summary)}
@@ -924,7 +925,7 @@ export function createTodoTab(opts) {
 
       const detailCardHtml = `
         <div class="card rounded-xl card-standard lg:sticky lg:top-20 card--static" data-ws-todo-detail aria-live="polite">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">${detailTitle}</h3>
+          ${renderCardHeader({ title: detailTitle })}
           ${detailHtml}
         </div>`;
 

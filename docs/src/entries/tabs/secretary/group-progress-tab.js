@@ -391,7 +391,7 @@ function _groupDetailHtml(group, groupId, canManage, members, activities, histor
     <div class="card rounded-xl p-4 card--static min-w-0" id="gp-detail">
       <div class="flex items-start justify-between gap-3 pb-3 border-b border-gray-100">
         <div class="min-w-0">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800 truncate" id="gp-detail-title">${esc(group.groupName)}</h3>
+          ${renderCardHeader({ title: group.groupName, titleId: 'gp-detail-title' })}
           <div class="flex items-center gap-x-2 gap-y-1 flex-wrap mt-1">
             ${leaderLine}
           </div>

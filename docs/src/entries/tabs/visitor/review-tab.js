@@ -23,6 +23,7 @@ import { renderFilteredList, activityKeyword, activityFacets } from '../../../co
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 status!=='cancelled' && !archived
 import { isActivityLive } from '../../../core/domain/constants.js?v=20261110b';
 
+import { renderCardHeader } from '../../../components/shell/page-frame.js';
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;
 
@@ -149,7 +150,7 @@ export function renderContent(ctx, host) {
     ${host ? '' : renderTabHeader({ title: '我的复盘', description: '组织者 / 深度参与者提交复盘 → 纪检批注确认 → 活动办结。' })}
     <div class="card rounded-xl card-standard">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-sm font-semibold text-gray-700">复盘清单（待复盘 ${pending.length} · 已复盘 ${completed.length}）</h3>
+        ${renderCardHeader({ title: `复盘清单（待复盘 ${pending.length} · 已复盘 ${completed.length}）`, variant: 'panel' })}
         <span class="text-xs text-gray-500">我担任组织者/深度参与者的活动 · 提交人即组织者</span>
       </div>
       <div class="text-xs text-gray-500 mb-4">提交活动复盘总结 → 纪检委员批注/确认 → 活动办结</div>

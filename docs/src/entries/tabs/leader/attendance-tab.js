@@ -47,6 +47,7 @@ import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=2
 // Task 6：考勤表活动列是跨对象行 ⇒ 直达完整详情页（direct）。
 import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261110b';
 
+import { renderCardHeader } from '../../../components/shell/page-frame.js';
 // 私有状态（随模块自持，不污染入口）
 let _attFormVisible = false;
 let _attPickerInstance = null;
@@ -178,7 +179,7 @@ export function renderContent(ctx, host, opts = {}) {
     ${renderTabHeader({ title: '考勤管理', description: isOrganizerScope ? '由我组织的活动考勤上传位。' : '组织者上传 → 纪检委员确认 → 录入考勤明细。' })}
     <div class="card rounded-xl card-standard">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">${isOrganizerScope ? '考勤上传位' : '考勤管理'}</h3>
+        ${renderCardHeader({ title: isOrganizerScope ? '考勤上传位' : '考勤管理' })}
         <button class="btn-md" id="btn-leader-upload-att" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);border:1px solid var(--app-accent-soft-border);">${_attFormVisible ? '收起表单' : '上传考勤表单'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">${isOrganizerScope

@@ -26,6 +26,7 @@ import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=2
 // Task 6：复盘监督是跨对象列表 ⇒ 活动行直达完整详情页（direct）。
 import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261110b';
 
+import { renderCardHeader } from '../../../components/shell/page-frame.js';
 // ── 超期提醒真实触达（2026-09-10）───────────────────────────────
 // 依据：纪检委员工作流程指南 §3.1「超时确认后可触发邮件提醒」、党小组组长工作手册
 //   「超期未提交考勤/考察/复盘时，纪检委员会通过邮件提醒你」。
@@ -225,7 +226,7 @@ export function renderContent(ctx) {
     <div class="space-y-4">
       <div class="card rounded-xl card-standard">
         <div class="flex items-center justify-between gap-2 mb-3">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">待处理</h3>
+          ${renderCardHeader({ title: `待处理` })}
           ${(_batchModeOn || reviewData.some(r => r.reviewStatus === ReviewStatus.ANNOTATING)) ? `
           <button class="btn-action btn-action-gray js-batch-toggle" style="cursor:pointer;">${_batchModeOn ? '退出批量模式' : '批量确认'}</button>` : ''}
         </div>
@@ -246,7 +247,7 @@ export function renderContent(ctx) {
         </section>
       </div>
       <div class="card rounded-xl card-standard">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">已沉淀</h3>
+        ${renderCardHeader({ title: `已沉淀` })}
         <div class="text-xs text-gray-500 mb-3">${activeDeposits.length} 条；作废＝软作废（出列、留痕可回查）</div>
         <div id="disc-review-deposit-record-list"></div>
       </div>

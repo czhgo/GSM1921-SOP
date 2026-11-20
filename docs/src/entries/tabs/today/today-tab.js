@@ -77,6 +77,7 @@ import { executeTodoAction, goToWorkspaceTab } from '../../../core/session/works
 import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261110b';
 
 import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261110b';
+import { renderCardHeader } from '../../../components/shell/page-frame.js';
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';
 
@@ -473,7 +474,7 @@ function _upcomingRows(s) {
 function _allEmptyHtml() {
   return `
     <div class="card rounded-xl card-standard" data-today-empty>
-      <h3 class="font-title-cn text-base font-semibold text-gray-800">要办</h3>
+      ${renderCardHeader({ title: `要办` })}
       <div class="py-4">
         ${emptyStateHtml({
           text: '今天暂无待办与安排',
@@ -643,7 +644,7 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
       ? `
       <div class="lg:col-span-2 card rounded-xl card-standard space-y-5 min-w-0">
         <div class="flex items-center justify-between">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">要办</h3>
+          ${renderCardHeader({ title: `要办` })}
         </div>
         <div class="text-center py-8" data-today-error role="alert">
           <p class="text-sm text-gray-600">今天的汇总暂时读取失败</p>
@@ -653,7 +654,7 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
       : `
       <div class="lg:col-span-2 card rounded-xl card-standard space-y-5 min-w-0">
         <div class="flex items-center justify-between">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">要办</h3>
+          ${renderCardHeader({ title: `要办` })}
           <button type="button" class="btn-text today-all flex-shrink-0 text-xs" data-today-all="todo">全部 ›</button>
         </div>
         <div data-today-groups class="space-y-5">${actionGroupsHtml}</div>
@@ -670,7 +671,7 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
       <div class="lg:col-span-1 space-y-5 min-w-0">
         <div class="card rounded-xl card-standard space-y-5">
           <div class="flex items-center justify-between gap-2">
-            <h3 class="font-title-cn text-base font-semibold text-gray-800">日程</h3>
+            ${renderCardHeader({ title: `日程` })}
             ${_calendarEntryHtml()}
           </div>
           ${scheduleBlocks || emptyStateHtml({ text: '今天暂无安排', variant: 'inline', className: 'px-1 py-2' })}

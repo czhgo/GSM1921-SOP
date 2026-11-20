@@ -13,6 +13,7 @@ import { badgeHtml } from '../ui/badges.js?v=20261110b';
 import { openFormModal } from '../ui/modal.js?v=20261110b';
 
 import { emptyStateHtml } from '../ui/empty-state.js?v=20261110b';
+import { renderCardHeader } from '../shell/page-frame.js';
 const SCOPE_LABELS = {
   permanent: '底层架构',
   global: '全局通用',
@@ -110,7 +111,7 @@ export function renderIssueDetail(issueId) {
 
           <!-- 评论 timeline -->
           <div class="mt-6 pt-4 border-t border-gray-100">
-            <h3 class="font-title-cn text-sm font-semibold text-gray-700 mb-3">评论 (${issue.commentCount || 0})</h3>
+            ${renderCardHeader({ title: `评论 (${issue.commentCount || 0})`, variant: 'panel' })}
             <div class="space-y-3">
               ${(issue.comments || []).map(c => renderComment(c, canManage, issue.id)).join('') || emptyStateHtml({ text: '暂无评论', variant: 'inline', className: 'font-sans' })}
             </div>

@@ -21,6 +21,7 @@ import { usesFormalMeetingRoster } from '../../core/domain/constants.js?v=202611
 import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261110b';
 import { confirmDanger } from '../ui/modal.js?v=20261110b';
 
+import { renderCardHeader } from '../shell/page-frame.js';
 /**
  * 落库结算后再整页刷新（2026-09-18 批次 83 · SOP-B-2）
  * 病灶（真机实测）：原实现是 `setTimeout(() => location.reload(), 400)` —— 而 `persist()` 在 API
@@ -151,7 +152,7 @@ export function renderSignupSection({ sourceType, sourceId, source, title, signu
 
   return `
     <div class="rounded-xl border border-red-100 bg-red-50/40 p-5 mb-6">
-      <h3 class="text-sm font-semibold text-gray-700 mb-3">${sourceType === 'taskforce' ? '申请加入专班工作组' : '报名参与'}</h3>
+      ${renderCardHeader({ title: sourceType === 'taskforce' ? '申请加入专班工作组' : '报名参与', variant: 'panel' })}
       ${body}
       ${onsiteChoice}
     </div>
@@ -211,7 +212,7 @@ export function renderSignupList({ sourceType, sourceId, source, signups, myId }
 
   return `
     <div>
-      <h3 class="text-sm font-semibold text-gray-700 mb-3">报名名单（${approvedList.length}）</h3>
+      ${renderCardHeader({ title: `报名名单（${approvedList.length}）`, variant: 'panel' })}
       ${onsiteSummary}
       <div data-signup-list-host></div>
       ${pendingRows}

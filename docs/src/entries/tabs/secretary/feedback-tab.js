@@ -407,7 +407,7 @@ function renderIssueDetail(issueId) {
   html += `</div></div>`;
 
   // ── 标题 ──
-  html += `<h3 class="text-base font-semibold text-gray-800 mb-2">${issue.title}</h3>`;
+  html += `${renderCardHeader({ title: issue.title })}`;
 
   // ── 正文 ──
   if (issue.body) {

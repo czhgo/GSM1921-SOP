@@ -42,6 +42,7 @@ import {
 } from '../../../core/domain/committee-proposal.js?v=20261110b';
 import { selectInput, textareaField } from '../../../components/ui/forms.js?v=20261110b';
 
+import { renderCardHeader } from '../../../components/shell/page-frame.js';
 /** 本支部 id（登录人归属；缺省 br-b1，与全仓同口径） */
 function branchId() {
   const me = getPersonById(AuthStore.getCurrentUser()?.personId);
@@ -498,21 +499,21 @@ export function renderContent() {
         actions: '<a href="./party-committee-meeting.html?action=new" class="btn-accent" style="text-decoration:none;">新建线上支委会 →</a>',
       })}
       <div class="card card--static rounded-xl card-standard stack-card">
-        <h3 class="font-title-cn text-sm font-semibold text-gray-700">支委构成</h3>
+        ${renderCardHeader({ title: `支委构成`, variant: 'panel' })}
         <div id="cm-roster-table" class="overflow-x-auto"></div>
       </div>
       <div class="card card--static rounded-xl card-standard stack-card">
-        <h3 class="font-title-cn text-sm font-semibold text-gray-700">待议池</h3>
+        ${renderCardHeader({ title: `待议池`, variant: 'panel' })}
         <p class="text-body-sm text-gray-500 mt-1">该上支委会的事，按来源判定类型（决策 / 讨论 / 同步）。<a href="./party-committee-meeting.html" class="text-accent font-medium" title="到支委会会议页提取议程">去提取议程</a></p>
         <div id="cm-agenda-pool" class="mt-2"><p class="text-body-sm text-gray-500">正在归集…</p></div>
       </div>
       <div class="card card--static rounded-xl card-standard stack-card">
-        <h3 class="font-title-cn text-sm font-semibold text-gray-700">支部提案</h3>
+        ${renderCardHeader({ title: `支部提案`, variant: 'panel' })}
         <p class="text-body-sm text-gray-500 mt-1">组长的支部级事项在这里受理、排期与决议；回执自动发提案人。</p>
         <div id="cm-proposal-pool" class="mt-2"><p class="text-body-sm text-gray-500">正在加载…</p></div>
       </div>
       <div class="card card--static rounded-xl card-standard stack-card">
-        <h3 class="font-title-cn text-sm font-semibold text-gray-700">支委会会议</h3>
+        ${renderCardHeader({ title: `支委会会议`, variant: 'panel' })}
         <div id="cm-meeting-table" class="overflow-x-auto"></div>
       </div>
       <p class="help-note">授予、改派与撤销的完整口径与权限边界，详见<a href="./help.html#card-copy-pcm-scope" class="help-note__link" title="见帮助：支委身份的授予、改派与撤销">帮助 · 支委身份</a>。</p>

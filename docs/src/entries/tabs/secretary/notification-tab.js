@@ -25,11 +25,12 @@ import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-na
 import { PersonPicker } from '../../../components/governance/pickers.js?v=20261110b';
 import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261110b';
 
+import { renderCardHeader } from '../../../components/shell/page-frame.js';
 const NOTIFICATION_TAB_HTML = `
   ${renderTabHeader({ title: '通知发布' })}
   <div class="card rounded-xl card-standard mb-6">
     <div class="flex items-center justify-between mb-1">
-      <h3 class="font-title-cn text-base font-semibold text-gray-800">发布通知</h3>
+      ${renderCardHeader({ title: `发布通知` })}
       <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">动作</span>
     </div>
     <!-- 2026-10-04 批次 373 · 支书 #10「页内导语写明动作属性」：本页保名，页内点明它是「动作」而非对象台账 -->
@@ -38,7 +39,7 @@ const NOTIFICATION_TAB_HTML = `
     <div id="notification-form-area"></div>
   </div>
   <div class="card rounded-xl card-standard">
-    <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">已发布通知</h3>
+    ${renderCardHeader({ title: `已发布通知` })}
     <div id="notification-list-area"></div>
   </div>
 `;

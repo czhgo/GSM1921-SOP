@@ -149,7 +149,7 @@ test('P5 活动/专班详情 H3/H4 顺序合法：H4 不得先于 H3，汇报收
   if (firstH4 >= 0) {
     assert.ok(firstH3 < firstH4, 'activity-entry.js 出现 H4 先于 H3（应先出分区 H3，再进卡头 H4）');
   }
-  assert.match(src, /<h3[^>]*>汇报明细<\/h3>[\s\S]{0,400}renderReportInboxHtml\(/,
+  assert.match(src, /renderCardHeader\(\{\s*title:\s*`汇报明细`[\s\S]{0,400}renderReportInboxHtml\(/,
     '汇报收件箱（卡头 H4）前须先出 H3「汇报明细」，不得 H4 先于 H3');
   // 内部语：原始 act-* / tf-* 不再作为正文徽章；只允许出现在复制链接的 title 里。
   assert.doesNotMatch(src, /<span class="text-xs text-gray-500">\$\{(?:act|tf)\.id\}<\/span>/,

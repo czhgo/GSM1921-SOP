@@ -9,6 +9,7 @@ import { EMPTY_TEXT } from '../../core/domain/constants.js?v=20261110b';
 import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261110b';
 
 import { emptyStateHtml } from '../ui/empty-state.js?v=20261110b';
+import { renderCardHeader } from '../shell/page-frame.js';
 /** 15 个自述字段的展示子组（顺序＝展开后的阅读顺序；键集≡SELF_PROFILE_FIELDS） */
 export const SELF_PROFILE_GROUPS = [
   { title: '基本信息', keys: ['phone', 'grade', 'major'] },
@@ -116,7 +117,7 @@ function fieldRowHtml(field, selfProfile) {
 
 function groupHtml(group, selfProfile) {
   return `<section class="mt-4 first:mt-0" aria-label="${esc(group.title)}">
-    <h3 class="text-sm font-semibold text-gray-700">${esc(group.title)}</h3>
+    ${renderCardHeader({ title: group.title, variant: 'panel' })}
     <dl class="mt-1 grid grid-cols-1 gap-x-6 sm:grid-cols-2">
       ${group.keys.map((key) => fieldRowHtml(FIELD_BY_KEY.get(key), selfProfile)).join('')}
     </dl>

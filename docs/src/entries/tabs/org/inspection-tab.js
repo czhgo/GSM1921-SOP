@@ -21,6 +21,7 @@ import { mockDB } from '../../../core/domain/domain.js?v=20261110b';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：考察明细表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
 import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261110b';
 
+import { renderCardHeader } from '../../../components/shell/page-frame.js';
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
 let _orgInspPickerInstance = null;
@@ -79,7 +80,7 @@ export function renderContent(ctx, container) {
   container.innerHTML = `
     <div class="card rounded-xl card-standard">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">专班事项考察记录</h3>
+        ${renderCardHeader({ title: `专班事项考察记录` })}
         <button class="btn-md" id="btn-org-upload-insp" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);border:1px solid var(--app-accent-soft-border);">${_orgInspFormVisible ? '收起表单' : '录入事项考察'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">仅为制度、议程或事项明确要求的专班录入考察；工作组成员名单不会自动生成考察名单。提交后由纪检委员确认。</div>

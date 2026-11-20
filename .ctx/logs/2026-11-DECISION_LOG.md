@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-895`，共 69 条**；下一条自 **`D-896`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-896`，共 70 条**；下一条自 **`D-897`**。
 
 ## 本月目录（2026-11）
 
@@ -89,6 +89,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 前端美学 P0+P1+P2 一次收口：卡厚度 16/12、卡头 600、状态色令牌、越档与灰底卡 | `D-893` | 2026-11-20 | 已落（批次 581） |
 | 评分即资产（H80 第 6 条）＋ 合并门槛两段（本机门 / 外部门）＋ EA 评价资产索引 | `D-894` | 2026-11-20 | 已落（批次 584） |
 | 六维复核维持 80/78/79/73/76/71；审计 P2 归零、guards 121/873 | `D-895` | 2026-11-20 | 已落（批次 585） |
+| 卡头单源收口：70 处迁移 `renderCardHeader` ＋ `variant:'panel'`；手写卡头 H3 归零 | `D-896` | 2026-11-20 | 已落（批次 586） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -663,8 +664,6 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：定向 `evaluation-asset-guard` ＋ `test-tier-guard` ＋ `spacing-ratchet-guard` **13/13** 绿；guards 预算 121 文件 / 873 用例。
 > **落点**：`CLAUDE.md`（H20.5 / H80）、`.ctx/ENGINEERING_ASSESSMENT.md`（§二 / §5.2）、`server/test/evaluation-asset-guard.test.mjs`、`server/test-tier-registry.mjs`、`.ctx/ACTIVE_CONTEXT.md`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-895`**（共 **69** 条）。
-
 ## D-895 2026-11-20 — 六维复核维持 ＋ 批次 579–585 收尾（批次 585）
 
 > **评议 → 裁定 → 落点**：按 `H80` 第 6 条「评分即资产」，只用批次 579–585 新证据复核，不自造分数。
@@ -673,4 +672,18 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > - **单项证据门未达**：`B-522-1`（8 页覆盖率 100%）、`B-500-7b-2`（客户端兜底调用数 = 0）均未启动，保留在乙部；`renderCardHeader` 全量迁移同列改进项。
 > **未选**：因 P2 归零上调体验分（O-1 门：分数变化必须有新证据，且 P2 归零只证明审计口径内无项，真人签收仍缺）。
 > **落点**：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §2.5 / §5.2`、`.ctx/ACTIVE_CONTEXT.md`、`.ctx/TIMESTAMPS.md`、`.ctx/evidence/2026-11-20/tab-audit/summary.md`。
+
+## D-896 2026-11-20 — 卡头单源收口：70 处迁移 renderCardHeader（批次 586）
+
+> **评议 → 裁定 → 落点**：计划 §五 美学验收要求「卡头只从 `renderCardHeader` 出」，批次 581 只统一字重未迁移出口；支书要求计划工作全部落地。
+> - **迁移**：`docs/src` 70 处页面级 / 面板级卡头（29 文件，含内嵌面板与「标题 + 徽章 / 计数」同排写法）改 `renderCardHeader`；同排副题 / 徽章 / 按钮收进 `meta` / `actions`。
+> - **面板档**：`renderCardHeader` 增 `variant: 'panel'`（14px / 600，`.card-head--panel`，底距 `--space-2`），避免另造第二套卡头。
+> - **守卫**：`card-consistency-guard::②` 改为「`docs/src` 不得出现 `text-base|text-sm` + `font-semibold` 的手写卡头 H3」；静态页 `docs/search.html` 单列白名单（无法装配模块）。
+> - **连带**：`page-title-guard::P5`、`ui-first-screen-order::F4` 断言改认 `renderCardHeader({ title: … })`；`copy-guard` 导语候选由 100 降 95，下限下调 90（只有标题的卡片不再产字面文本块）；`activity-entry` 行号 +1 引起 `CASES` / `DS_03` / `date-canon` 基线改签。
+> **未选**：保留手写卡头并放宽守卫；把 `help.html` / `about.html` 纳入迁移（前者为文档页独立字级，后者冻结件）。
+> **边界**：静态页 `docs/search.html` 3 处卡头保留手写（无 JS 装配）；`B-522-1` 低密度卡与空态仍待内容 / IA 决策，不在本批。
+> **读数**：guards **121 文件 / 873 用例**全绿；daily **265 断言 / 122.8s** 全绿；真机设置 / 今天 / 活动详情三页 PASS（标题单行、右侧不重叠不溢出、无横向滚动）。
+> **落点**：`docs/src/components/shell/page-frame.js`、`docs/src/styles.css`、`docs/src/**`（29 文件）、`server/test/{card-consistency-guard,page-title-guard,ui-first-screen-order,copy-guard,date-canon-guard}.test.mjs`、`content/04_web_design/design-system/{DS_03_COMPONENTS,CASES}.md`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-896`**（共 **70** 条）。
 

@@ -34,6 +34,7 @@ import {
 } from '../../services/governance/thought-report.js?v=20261110b';
 
 import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261110b';
+import { renderCardHeader } from '../../components/shell/page-frame.js';
 renderSidebar('dashboard');
 renderHeader('dashboard');
 
@@ -143,7 +144,7 @@ function renderSingleView(rec) {
   const history = Array.isArray(rec.reviewHistory) ? rec.reviewHistory : [];
   const historyHtml = history.length === 0 ? '' : `
     <div class="mt-8 pt-6 border-t border-gray-100">
-      <h3 class="text-sm font-semibold text-gray-700 mb-2">审阅留痕</h3>
+      ${renderCardHeader({ title: `审阅留痕`, variant: 'panel' })}
       <div class="space-y-1.5">
         ${history.map(h => `
           <div class="text-xs text-gray-600">
@@ -205,7 +206,7 @@ function renderSingleView(rec) {
     .filter(g => g.items.length > 0);
   const othersHtml = otherGroups.length === 0 ? '' : `
     <div class="mt-8 pt-6 border-t border-gray-100">
-      <h3 class="text-sm font-semibold text-gray-700 mb-3">同一人的其他思想汇报</h3>
+      ${renderCardHeader({ title: `同一人的其他思想汇报`, variant: 'panel' })}
       ${otherGroups.map(g => `
         <div class="mb-3 last:mb-0">
           <p class="text-xs text-gray-500 mb-1">${esc(g.label)} · ${g.items.length} 篇</p>

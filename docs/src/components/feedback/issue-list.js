@@ -12,6 +12,7 @@ import { pageHref } from '../../core/base/page-url.js?v=20261110b';
 import { pagerHtml } from '../ui/pager.js?v=20261110b';
 
 import { emptyStateHtml } from '../ui/empty-state.js?v=20261110b';
+import { renderCardHeader } from '../shell/page-frame.js';
 export const SCOPE_LABELS = {
   permanent: '底层架构',
   global: '全局通用',
@@ -76,10 +77,7 @@ export function renderIssueList() {
 
   container.innerHTML = `
     <div class="card rounded-xl card-standard mb-4">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">全部意见反馈 <span class="text-xs font-normal text-gray-500">开放中 ${counts.open} · 已关闭 ${counts.closed}</span></h3>
-        ${canCreate ? `<button id="btn-new-issue" class="btn-accent text-sm px-4 py-1.5 font-medium">提交意见反馈</button>` : ''}
-      </div>
+      ${renderCardHeader({ title: '全部意见反馈', meta: `<span class="text-xs font-normal text-gray-500">开放中 ${counts.open} · 已关闭 ${counts.closed}</span>`, actions: canCreate ? `<button id="btn-new-issue" class="btn-accent text-sm px-4 py-1.5 font-medium">提交意见反馈</button>` : '' })}
 
       <!-- 筛选行（P3 四段：范围 → 检索 → 分面 → 重置；载体 styles.css::.lf-bar/.lf-bar__row；
            批次 525 · #2 定版两行：第 1 行＝范围＋搜索，第 2 行＝分面＋清除；

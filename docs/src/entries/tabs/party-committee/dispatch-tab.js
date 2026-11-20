@@ -11,6 +11,7 @@ import { emptyStateHtml, skeletonHtml } from '../../../components/ui/empty-state
 import { badgeHtml } from '../../../components/ui/badges.js?v=20261110b';
 import { getAdapter } from '../../../data/data-adapter.js?v=20261110b';
 
+import { renderCardHeader } from '../../../components/shell/page-frame.js';
 const BRANCH_FILTER_STATE = 'pc-dispatch';
 const VIEW_COMPOSE = 'compose';
 const VIEW_HISTORY = 'history';
@@ -262,7 +263,7 @@ function historyHtml() {
               <span class="text-xs text-gray-600">${esc(notice.branchName || notice.branchId || '支部')}</span>
               <time class="ml-auto text-xs tabular-nums text-gray-500">${esc(notice.publishDate || '')}</time>
             </div>
-            <h3 class="mt-1 text-sm font-semibold text-gray-900">${esc(notice.title || '无标题')}</h3>
+            ${renderCardHeader({ title: notice.title || '无标题', variant: 'panel' })}
             <p class="mt-1 whitespace-pre-wrap text-sm leading-6 text-gray-700">${esc(notice.content || '')}</p>
           </li>`).join('')}
       </ol>` : emptyStateHtml({ variant: 'inline', text: '当前筛选下没有已发送通知' })}
@@ -334,7 +335,7 @@ function publicNoticeRowHtml(row) {
         <time class="text-body-sm tabular-nums text-gray-500">${esc(row.publishDate || '')}</time>
         ${isPublic ? `<button type="button" class="btn-outline btn-sm ml-auto" data-public-withdraw="${esc(row.id)}">撤下公开</button>` : ''}
       </div>
-      <h3 class="mt-1 text-sm font-semibold text-gray-900">${esc(title)}</h3>
+      ${renderCardHeader({ title: title, variant: 'panel' })}
       <p class="mt-1 whitespace-pre-wrap text-sm leading-6 text-gray-700">${esc(row.content || '')}</p>
       ${isPublic && row.publishExpiresAt ? `<p class="mt-1 text-body-sm text-gray-500">公开到期：${esc(String(row.publishExpiresAt).slice(0, 10))}</p>` : ''}
     </div>`;

@@ -635,8 +635,10 @@ await (async () => {
   const BASE_C6_FILES = 2;
   const BASE_C6_TOTAL = 2;
 
-  /** 「导语候选」下限（非空转：L1 若一个卡片都认不出 ⇒ 恒真） */
-  const LEAD_CANDIDATE_FLOOR = 100;
+  /** 「导语候选」下限（非空转：L1 若一个卡片都认不出 ⇒ 恒真）
+   *  2026-11-20 批次 586：卡头统一走 `renderCardHeader` 后，「只有标题」的卡片不再产生字面文本块，
+   *  候选由 100 降到 95；下限按实测下调到 90（仍能识别口径失效）。 */
+  const LEAD_CANDIDATE_FLOOR = 90;
   /** 「说明段」候选下限（非空转：L2/L3 若抽取口径失效 ⇒ 恒真） */
   const BLOCK_CANDIDATE_FLOOR = 1000;
 

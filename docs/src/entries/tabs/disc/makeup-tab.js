@@ -25,6 +25,7 @@ import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261110b
 //   故真机流 `disc-makeup-void-reason` 的选择器一字未改
 import { openVoidModal } from '../../../components/ui/void-record.js?v=20261110b';
 
+import { renderCardHeader } from '../../../components/shell/page-frame.js';
 /**
  * @param {HTMLElement} [containerEl] — 挂载容器（缺省本台 tab 内容容器）。
  *   2026-09-15 支书裁定「补课并入考勤管理」后，本模块作为「考勤管理」tab 的「补课」分段子块，
@@ -85,7 +86,7 @@ export function renderContent(containerEl) {
       })}
       <div class="card rounded-xl card-standard">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">补课任务</h3>
+          ${renderCardHeader({ title: `补课任务` })}
           <div class="flex gap-4 text-xs">
             <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-500"></span><span class="text-gray-600">待补课</span><span class="font-bold text-orange-700">${pendingTasks.length}</span></div>
             <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span><span class="text-gray-600">已超期</span><span class="font-bold text-red-700">${overdueTasks.length}</span></div>

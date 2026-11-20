@@ -32,6 +32,7 @@ const ATTENDANCE_VALUE_COLOR = {
 };
 
 import { emptyStateHtml } from '../ui/empty-state.js?v=20261110b';
+import { renderCardHeader } from '../shell/page-frame.js';
 const ATTENDANCE_STATUS_DOT = {
   present:  { text: '出勤', cls: 'text-green-700', dot: 'var(--status-success)' },
   absent:   { text: '缺勤', cls: 'text-red-600',  dot: 'var(--status-error)' },
@@ -196,7 +197,7 @@ function _bindAttendancePopover(activities, attendanceRecords, thisMonth, user) 
 
       popover.innerHTML = `
         <div class="flex items-center justify-between mb-2 pb-2 border-b border-gray-100">
-          <h3 class="font-title-cn text-sm font-semibold text-gray-800">我的本月考勤</h3>
+          ${renderCardHeader({ title: `我的本月考勤`, variant: 'panel' })}
           <span class="text-xs text-gray-500">${myRecords.length} 条记录</span>
         </div>
         <div class="max-h-64 overflow-y-auto">${listHTML}</div>

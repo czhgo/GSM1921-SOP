@@ -3,7 +3,8 @@
 //
 // 判据（`DS_03 §4.2 / §4.21.2`，2026-11-20 改准）：
 //   ① 卡内边距只允许 `.card-standard`（16）/ `.card-compact`（12）；`p-5` / `p-6` / `p-8` 不得直接挂在 `.card` 上；
-//   ② 手写 `<h3 class="… font-bold …">` 一律改 `font-semibold`（页面卡头 16/600；内嵌面板由 `.card-head--panel` 承担）；
+//   ② 卡头只从 `page-frame.js::renderCardHeader` 出：`docs/src` 不得再手写页面级 / 面板级卡头 `<h3>`；
+//      `docs/search.html` 为静态页（无模块装配），单列白名单；
 //   ③ `.card-standard` / `.card-compact` 两个出口必须在 `styles.css` 定义（防止只改调用点、出口消失）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -41,15 +42,22 @@ test('① 卡内边距只走 card-standard / card-compact，不再直接挂 p-5 
   assert.deepEqual(bad, [], `卡内边距越档（改用 card-standard / card-compact）：\n  ${bad.join('\n  ')}`);
 });
 
-test('② 手写卡头 H3 一律 font-semibold（16/600）', () => {
+// 静态页无法装配模块（`search.html`）；其余一律走 `renderCardHeader`。
+const STATIC_ALLOW = new Set(['docs/search.html']);
+
+test('② 卡头只从 renderCardHeader 出：不得再手写页面级 / 面板级卡头 H3', () => {
   const bad = [];
   for (const file of files) {
+    if (rel(file) === 'docs/src/components/shell/page-frame.js') continue;
+    if (STATIC_ALLOW.has(rel(file))) continue;
     const src = readFileSync(file, 'utf8');
     for (const m of src.matchAll(/<h3 class="([^"]*)"/g)) {
-      if (/\bfont-bold\b/.test(m[1])) bad.push(`${rel(file)} → ${m[1]}`);
+      const cls = m[1];
+      if (!/(text-base|text-sm)/.test(cls) || !/font-semibold/.test(cls)) continue;
+      bad.push(`${rel(file)} → ${cls}`);
     }
   }
-  assert.deepEqual(bad, [], `手写 H3 仍用 font-bold（应为 font-semibold）：\n  ${bad.join('\n  ')}`);
+  assert.deepEqual(bad, [], `手写卡头仍未迁移到 renderCardHeader（页面级 / variant:'panel'）：\n  ${bad.join('\n  ')}`);
 });
 
 test('③ 两个卡厚度出口必须在 styles.css 定义', () => {

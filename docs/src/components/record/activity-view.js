@@ -20,6 +20,7 @@ import { renderVoteWidget } from '../governance/vote-widget.js?v=20261110b';
 // Task 6：本组件常驻「工作概况」页内预览 ⇒ locate：保留预览 + 「打开完整页」。
 import { objectDetailHref } from '../../core/domain/object-route.js?v=20261110b';
 
+import { renderCardHeader } from '../shell/page-frame.js';
 // 任务状态元数据（状态点 + 文案，轻量自包含，避免依赖 status-badge 全家桶）
 // 2026-11-04 批次 534（Task 6.4）：三态色单一源＝constants.js::TASK_STATUS_TONE（值逐字不变）。
 const _TASK_STATUS_META = TASK_STATUS_TONE;
@@ -49,7 +50,7 @@ export function renderActivityView(container, opts = {}) {
     container.innerHTML = `
       <div class="card rounded-xl card-standard">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">活动查看</h3>
+          ${renderCardHeader({ title: `活动查看` })}
           <div class="flex items-center gap-3">
             <span class="text-xs text-gray-500">${scopeMeta}</span>
             <button class="btn-outline av-export-btn h-8 px-3.5 inline-flex items-center gap-1.5 text-xs font-medium">导出 CSV</button>
