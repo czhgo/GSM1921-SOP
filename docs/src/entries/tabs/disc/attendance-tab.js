@@ -46,7 +46,7 @@ import { skeletonHtml } from '../../../components/ui/empty-state.js?v=20261120a'
 import { pagerHtml } from '../../../components/ui/pager.js?v=20261120a';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
 import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261120a';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, _currentYearMonth, escHtml as esc, getBasePath, flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261120a';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, _currentYearMonth, escHtml as esc, getBasePath, flashHighlight, smoothScroll, describeWriteError } from '../../../core/base/utils.js?v=20261120a';
 import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 // 批次 540 波次 1：待办跳转的考勤记录定位目标（attendance→record）
 import { PendingTarget } from '../../../core/session/pending-target.js?v=20261120a';
@@ -407,7 +407,8 @@ export function renderContent(ctx) {
     try {
       await freezeExpectedRosterForActivity(activityId);
     } catch (error) {
-      showToast('error', `应到名单未能冻结，考勤未提交：${error.message || '请重试'}`);
+      console.warn('[attendance] 应到名单冻结失败：', error);
+      showToast('error', `应到名单未能冻结，考勤未提交：${describeWriteError(error)}`);
       return;
     }
 
@@ -644,10 +645,7 @@ function _buildQueueHTML(items, returnedRecs, leaveCount, absentCount, overdueCo
         </div>`;
   };
   const listHtml = total === 0
-    ? `<div class="py-5 text-center">
-        <div class="text-sm font-medium text-gray-700 mb-1">无待处理异常 ✓</div>
-        <div class="text-xs text-gray-500">出勤/已补已源头审校自动确认${autoConfirmedCount > 0 ? `（${autoConfirmedCount} 条）` : ''}，缺勤/请假已全部处理；会议考勤录入即确认，不会回落到本队列</div>
-      </div>`
+    ? `<div class="py-2">${emptyStateHtml({ text: '无待处理异常，无需操作', variant: 'inline' })}</div>`
     : `<div class="space-y-1.5">${visible.map(rowHtml).join('')}
       ${total > QUEUE_VISIBLE ? `
         <button id="att-queue-more" class="btn-outline w-full text-xs py-2">
@@ -1203,9 +1201,7 @@ function _buildDataCardHTML(matrixModel, allRecords, longData, filterActivityId)
   const acts = matrixModel.activities
     .filter(a => isActivityLive(a))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  const actOptions = acts
-    .map(a => `<option value="${a.id}" ${filterActivityId === a.id ? 'selected' : ''}>${a.title}（${a.date}）</option>`)
-    .join('');
+  const actOptions = acts.map(a => ({ value: a.id, label: `${a.title}（${a.date}）` }));
   const total = longData.length;
   // 待确认 = 仅异常（缺勤/请假）未确认；出勤/已补源头审校自动确认不计入
   const totalPending = allRecords.filter(isAttendancePendingConfirm).length;
@@ -1214,7 +1210,7 @@ function _buildDataCardHTML(matrixModel, allRecords, longData, filterActivityId)
   const headMeta = `<span>共 <span class="tabular-nums font-medium text-gray-700">${total}</span> 条</span>
           <span>待确认 <span class="tabular-nums font-medium text-orange-700">${totalPending}</span> 条</span>
           ${totalAuto > 0 ? `<span>已录入 <span class="tabular-nums font-medium text-green-700">${totalAuto}</span> 条</span>` : ''}
-          ${HandoffStore.hasFor('attendance-archival', 'attendance') ? '<span class="text-teal-600 font-medium">已自动送达</span>' : ''}`;
+          ${HandoffStore.hasFor('attendance-archival', 'attendance') ? '<span class="text-[var(--status-success-text)] font-medium">已自动送达</span>' : ''}`;
   const headActions = `<button type="button" class="btn-outline btn-sm att-export-btn">导出 CSV</button>
             <button type="button" class="btn-outline btn-sm att-rate-export-btn" title="本月各场出勤率汇总，供支委会内部使用（不公示、不对外；SOP-B-35）">导出出勤率汇总（支委会内部）</button>
             <button type="button" class="btn-outline btn-sm att-print-btn">打印</button>
@@ -1227,10 +1223,13 @@ function _buildDataCardHTML(matrixModel, allRecords, longData, filterActivityId)
       <!-- 共用筛选条（DS_06 SD-58 · 两行上限）：范围在上、关键词与分面在下，清除不独占一行 -->
       <div class="lf-bar mb-3">
         <div class="lf-bar__row" data-seg="scope">
-          <select id="att-activity-select" class="input-flat text-xs lf-select">
-            <option value="">活动：全部</option>
-            ${actOptions}
-          </select>
+          ${selectInput({
+            id: 'att-activity-select',
+            options: [{ value: '', label: '活动：全部' }, ...actOptions],
+            value: filterActivityId || '',
+            ariaLabel: '活动筛选',
+            className: 'lf-select',
+          })}
           <span class="lf-range">
             ${textInput({ id: 'att-filter-from', type: 'date', attrs: 'title="时间区间：起始日期"' })}
             <span class="text-xs text-gray-500">至</span>

@@ -88,8 +88,8 @@ export function renderContent(containerEl) {
         <div class="flex items-center justify-between mb-3">
           ${renderCardHeader({ title: `补课任务` })}
           <div class="flex gap-4 text-xs">
-            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-500"></span><span class="text-gray-600">待补课</span><span class="font-bold text-orange-700">${pendingTasks.length}</span></div>
-            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span><span class="text-gray-600">已超期</span><span class="font-bold text-red-700">${overdueTasks.length}</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[var(--status-warning)]"></span><span class="text-gray-600">待补课</span><span class="font-bold text-[var(--status-warning-text)]">${pendingTasks.length}</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[var(--status-error)]"></span><span class="text-gray-600">已超期</span><span class="font-bold text-[var(--status-error-text)]">${overdueTasks.length}</span></div>
           </div>
         </div>
         <p class="help-note mb-2">${makeupScopeHint()}<a href="./help.html#card-copy-makeup-scope" class="help-note__link">见帮助 · 补课范围与归档</a></p>

@@ -352,7 +352,12 @@ async function hydrateAgendaPool() {
   } catch (e) {
     console.warn('[committee-meeting-tab] 待议池加载失败：', e);
     if (seq !== _poolSeq) return;
-    host.innerHTML = emptyStateHtml({ text: '待议池加载失败，请重试。', variant: 'inline' });
+    host.innerHTML = emptyStateHtml({
+      text: '待议池加载失败',
+      variant: 'inline',
+      actionHtml: '<button type="button" class="btn-outline" data-cm-pool-retry>重新载入</button>',
+    });
+    host.querySelector('[data-cm-pool-retry]')?.addEventListener('click', () => hydrateAgendaPool());
   }
 }
 
@@ -482,7 +487,12 @@ async function hydrateProposalPool() {
     });
   } catch (e) {
     console.warn('[committee-meeting-tab] 提案池加载失败：', e);
-    host.innerHTML = emptyStateHtml({ text: '提案池加载失败，请重试。', variant: 'inline' });
+    host.innerHTML = emptyStateHtml({
+      text: '提案池加载失败',
+      variant: 'inline',
+      actionHtml: '<button type="button" class="btn-outline" data-cm-proposal-retry>重新载入</button>',
+    });
+    host.querySelector('[data-cm-proposal-retry]')?.addEventListener('click', () => hydrateProposalPool());
   }
 }
 

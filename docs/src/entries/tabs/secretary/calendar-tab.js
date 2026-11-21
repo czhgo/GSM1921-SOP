@@ -1248,7 +1248,9 @@ async function _hydrateDraftDocs(row) {
     if (hint) hint.classList.toggle('hidden', drafts.length > 0);
   } catch (e) {
     _reportCalendarDataError('[calendar] 会前草案加载失败', e);
-    select.innerHTML = '<option value="">草案加载失败</option>';
+    // 失败态给可操作重试：下拉只剩一行，点选即重读（Enter / Space 同样触发 click）
+    select.innerHTML = '<option value="">草案加载失败，点此重试</option>';
+    select.onclick = () => { select.onclick = null; _hydrateDraftDocs(row); };
   }
 }
 

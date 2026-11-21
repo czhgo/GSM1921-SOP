@@ -453,7 +453,12 @@ export async function renderWorkOverview(container, opts) {
     await _renderOverviewContent(container, opts);
   } catch (error) {
     console.warn('[work-overview] 工作概况加载失败：', error);
-    container.innerHTML = emptyStateHtml('工作概况加载失败，请稍后重试');
+    container.innerHTML = emptyStateHtml({
+      text: '工作概况加载失败',
+      variant: 'panel',
+      actionHtml: '<button type="button" class="btn-outline" data-wo-retry>重新载入</button>',
+    });
+    container.querySelector('[data-wo-retry]')?.addEventListener('click', () => window.location.reload());
   }
 }
 

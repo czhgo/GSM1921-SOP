@@ -21,7 +21,7 @@ import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=202611
 import { getPersonName } from '../../../services/member/person.js?v=20261120a';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——登记流入的「党小组」选项
 import { groupOptions } from '../../../services/member/party-group.js?v=20261120a';
-import { showToast, escHtml as esc, todayLocal, getBasePath } from '../../../core/base/utils.js?v=20261120a';
+import { showToast, escHtml as esc, todayLocal, getBasePath, describeWriteError } from '../../../core/base/utils.js?v=20261120a';
 import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261120a';
 import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261120a';
 // 统一检索引擎（表格统一化批次 A）：台账表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
@@ -170,7 +170,7 @@ async function _loadIaaaPending() {
   try {
     const r = await fetch(`${getApiBaseUrl()}/api/v1/auth/iaaa/pending`, { headers: { Authorization: `Bearer ${token}` } });
     if (r.status === 403) { host.innerHTML = '<p class="text-xs text-gray-500">仅支书 / 副支书 / 组织委员可确认入站。</p>'; return; }
-    if (!r.ok) throw new Error('HTTP ' + r.status);
+    if (!r.ok) throw Object.assign(new Error('pending list failed'), { status: r.status });
     const rows = await r.json();
     if (!Array.isArray(rows) || !rows.length) { host.innerHTML = emptyStateHtml({ text: "暂无待确认的入站申请。", variant: 'inline' }); return; }
     host.innerHTML = `<div class="space-y-2">${rows.map((u) => `
@@ -182,7 +182,13 @@ async function _loadIaaaPending() {
         </span>
       </div>`).join('')}</div>`;
   } catch (e) {
-    host.innerHTML = `<p class="text-xs text-red-600">待确认清单加载失败：${esc(e && e.message ? e.message : '')}</p>`;
+    console.warn('[member-flow] 待确认清单加载失败：', e);
+    host.innerHTML = emptyStateHtml({
+      text: '待确认清单加载失败',
+      variant: 'inline',
+      actionHtml: '<button type="button" class="btn-outline" data-iaaa-retry>重新载入</button>',
+    });
+    host.querySelector('[data-iaaa-retry]')?.addEventListener('click', () => _loadIaaaPending());
   }
 }
 
@@ -195,11 +201,11 @@ async function _decideIaaaPending(personId, verb) {
       method: 'POST', headers: { Authorization: `Bearer ${token}` },
     });
     const j = await r.json().catch(() => null);
-    if (!r.ok) throw new Error((j && j.error) || ('HTTP ' + r.status));
+    if (!r.ok) throw Object.assign(new Error((j && j.error) || 'decide failed'), { status: r.status, body: j });
     showToast('success', verb === 'approve' ? '已确认入站' : '已驳回');
     _loadIaaaPending();
   } catch (e) {
-    showToast('error', '处理失败：' + (e && e.message ? e.message : ''));
+    showToast('error', '处理失败：' + describeWriteError(e));
   }
 }
 

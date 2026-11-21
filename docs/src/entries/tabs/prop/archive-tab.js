@@ -54,16 +54,16 @@ function _loadArchiveRecords() {
 }
 
 const ARCHIVE_CATEGORY_STYLE = {
-  '新闻稿': 'bg-rose-50 text-rose-700',
-  '照片': 'bg-sky-50 text-sky-700',
-  '视频': 'bg-violet-50 text-violet-700',
-  '其他': 'bg-gray-50 text-gray-600',
+  '新闻稿': 'bg-[var(--neutral-50)] text-gray-700',
+  '照片': 'bg-[var(--neutral-50)] text-gray-700',
+  '视频': 'bg-[var(--neutral-50)] text-gray-700',
+  '其他': 'bg-[var(--neutral-50)] text-gray-600',
 };
 const ARCHIVE_STATUS_LABEL = { pending: '待归档', in_progress: '归档中', archived: '已归档' };
 const ARCHIVE_STATUS_STYLE = {
-  pending: 'bg-amber-50 text-[var(--status-warning-text)] border-amber-200',
-  in_progress: 'bg-blue-50 text-blue-700 border-blue-200',
-  archived: 'bg-green-50 text-green-700 border-green-200',
+  pending: 'bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] border-[var(--badge-warning-border)]',
+  in_progress: 'bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] border-[var(--badge-info-border)]',
+  archived: 'bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] border-[var(--badge-success-border)]',
 };
 
 // ── 材料标准数据 ──
@@ -640,7 +640,6 @@ function _pendingArchiveRowHtml(a) {
 
 /** 单条归档记录行（第一列 = 活动名；行内操作按钮经 #archive-list 容器委托绑定，筛选重渲染后仍有效） */
 function _archiveRowHtml(r) {
-  const catStyle = ARCHIVE_CATEGORY_STYLE[r.category] || 'bg-gray-50 text-gray-600';
   const statusStyle = ARCHIVE_STATUS_STYLE[r.status];
   const isFinal = r.status === 'archived';
   const isInProgress = r.status === 'in_progress';
@@ -674,7 +673,7 @@ function _archiveRowHtml(r) {
   const titleBlock = `
       <div class="flex items-center gap-2 mb-0.5">
         <span class="text-sm font-medium text-gray-800 truncate">${r.activityName}</span>
-        <span class="text-xs px-1.5 py-0.5 rounded-full ${catStyle} shrink-0">${r.category}</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full ${ARCHIVE_CATEGORY_STYLE[r.category] || ARCHIVE_CATEGORY_STYLE['其他']} shrink-0">${r.category}</span>
         <span class="text-xs px-1.5 py-0.5 rounded-full border ${statusStyle} shrink-0">${ARCHIVE_STATUS_LABEL[r.status]}</span>
         ${progressHtml}${doneHtml}
         <span class="ml-auto text-accent" aria-hidden="true">→</span>

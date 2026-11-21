@@ -153,7 +153,7 @@ function render() {
     <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
       <div class="flex items-center gap-2">
         <h2 class="font-title-cn text-xl font-bold text-gray-800">消息</h2>
-        <span class="text-xs px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">共 ${list.total} 条${unread ? ` · 未读 ${unread}` : ''}</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-[var(--color-border-subtle)]">共 ${list.total} 条${unread ? ` · 未读 ${unread}` : ''}</span>
       </div>
       <div class="flex items-center gap-2">
         ${unread ? '<button type="button" id="msg-mark-all" class="btn-outline">全部已读</button>' : ''}

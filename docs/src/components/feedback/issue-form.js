@@ -2,7 +2,7 @@
 // issue-form.js — 反馈新建表单
 
 import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261120a';
-import { showToast } from '../../core/base/utils.js?v=20261120a';
+import { showToast, describeWriteError } from '../../core/base/utils.js?v=20261120a';
 import { pageHref } from '../../core/base/page-url.js?v=20261120a';
 import { icon } from '../../core/base/icons.js?v=20261120a';
 import { badgeHtml } from '../ui/badges.js?v=20261120a';
@@ -123,7 +123,7 @@ export function renderIssueForm() {
     } catch (e) {
       submitBtn.disabled = false;
       submitBtn.textContent = submitLabel;
-      showToast('error', '提交失败：' + (e?.message || '网络错误'));
+      showToast('error', '提交失败：' + describeWriteError(e));
       return;
     }
 

@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-899`，共 73 条**；下一条自 **`D-900`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-900`，共 74 条**；下一条自 **`D-901`**。
 
 ## 本月目录（2026-11）
 
@@ -93,6 +93,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 前端存量清零：调色板状态色 / 假徽章 / 越档 h-8；三道守卫（调色板 / 徽章单源 / h-8） | `D-897` | 2026-11-21 | 已落（批次 587） |
 | B-522-1：数字卡按内容收窄；日历网格登记特例；今天/归档空态补最近动态与下一步 | `D-898` | 2026-11-21 | 已落（批次 588） |
 | B-500-7b-2：兜底 instrument ＋ 7 类对账守卫；commit body 强制「资产命中」机检 | `D-899` | 2026-11-21 | 已落（批次 589） |
+| 前端一致性收口：两条表单 SD（SD-66/67）＋ 错误态可操作化 ＋ 行高压准 | `D-900` | 2026-11-21 | 已落（批次 590） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -724,5 +725,16 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：`todo-derive-instrument-guard` 3/3、`evaluation-asset-guard` 5/5、`test-tier-guard` 7/7 绿；`check-batch-commits --limit 1` 对缺「资产命中」判红（反例）。
 > **落点**：`docs/src/components/record/todo-tab-shell.js`、`server/test/{todo-derive-instrument-guard,evaluation-asset-guard}.test.mjs`、`server/scripts/check-batch-commits.mjs`、`CLAUDE.md`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-899`**（共 **73** 条）。
+## D-900 2026-11-21 — 前端一致性收口：两条表单 SD ＋ 错误态可操作化（批次 590）
+
+> **评议 → 裁定 → 落点**（两轮 grill 六项）：① 议程项 / 发起 / 讨论项徽章统一改 `badgeHtml(..., 'info')`，暗色不再挂 indigo；② 全仓清账分三阶段（590 前端一致性 → 591 清账与 Harness）；③ 堵「留尾巴」采用「新规则 ＋ 守卫」，规则正文进阶段 591；④ 外部门四项单列 `EA §四`，不混入乙部；⑤ 旧计划 9 个未勾项逐条对账后归档；⑥ 两项「有原则无细则」（必填语义 / 筛选行可访问名）先补 SD 再改代码并给守卫。
+> - **SD-66 / SD-67**：`required:true` ⇒ 控件 `required` ＋ `aria-required`，错误行 `role="alert"` ＋ `aria-describedby` ＋ `aria-invalid`；筛选行控件必须有 `<label for>` 或 `aria-label`，首项文本不充当名字。判例 `CASE-DESIGN-042` / `043`；守卫 `form-field-guard`（4 条，含反例自证）。
+> - **错误态可操作化**：专班登记任务 / 成员流动待确认 / 支委会待议池与提案池 / 会前草案下拉 / 工作概况 —— 失败一律给「重新载入」或点选重试，不透 `error.message` 与 HTTP 状态码；`person-edit-modal` 的失败原因留在浮窗内（`#pe-save-err`）。
+> - **行高端口改准**：`DS_03 §4.21.1` 由 32/40/48 改为 **44/48/56**，与 `styles.css:297-299` 与 SD-15 一改具改。
+> **未选**：保留 `status-badge` 自建菜单（改为就地补 `aria-expanded/controls` ＋ 方向键，不引入 `menu-button` 的第二套视觉）；一次性清空调色板（维持按文件棘轮）。
+> **边界**：删 `html.theme-dark` 的 `purple/rose` 4 条僵尸补丁后，dark 补丁计数下降；`stats.js` hex 清零按收基线纪律删条目（文件数 43 → 42）；`ui-control-system-guard` 控件面下限 200 → 199（考勤下拉改走 `selectInput`）。
+> **读数**：guards **126 文件 / 888 断言全绿（146.1s）**；daily **265 / 120.3s**；真机两页 PASS（反馈页三态骨架＋列表；支书台支委会待议池渲染，控制台 0 error）。
+> **落点**：`docs/src/**`（约 40 文件）、`content/04_web_design/design-system/{DS_03_COMPONENTS,CASES}.md`、`content/03_doc_system/CASES_INDEX.md`、`server/test/{form-field-guard,style-baseline,terminology-baseline,docs-governance-guard,date-canon-guard,ui-control-system-guard,test-tier-registry}`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-900`**（共 **74** 条）。
 

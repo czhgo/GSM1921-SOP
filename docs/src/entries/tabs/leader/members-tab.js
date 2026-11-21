@@ -62,7 +62,7 @@ export async function renderContent(ctx) {
     container.innerHTML = `
       ${renderTabHeader({ title: '组员进展' })}
       <div class="card rounded-xl card-standard">
-        ${emptyStateHtml({ variant: 'panel', text: '本党小组暂无其他组员可查看 · 下一步：请联系组织委员核对成员档案中的党小组归属' })}
+        ${emptyStateHtml({ variant: 'panel', text: '本组暂无其他组员' })}
       </div>`;
     return;
   }
@@ -75,9 +75,9 @@ export async function renderContent(ctx) {
   const aggOf = new Map(progress.rows.map(r => [r.personId, r]));
   const REPORT_CLASS = {
     [REPORT_KIND.PENDING_ANSWER]: 'text-[var(--status-warning-text)] font-medium',
-    [REPORT_KIND.BLOCKED]: 'text-red-600 font-medium',
-    [REPORT_KIND.REPORTING]: 'text-blue-600',
-    [REPORT_KIND.REQUESTED]: 'text-blue-500',
+    [REPORT_KIND.BLOCKED]: 'text-[var(--status-error-text)] font-medium',
+    [REPORT_KIND.REPORTING]: 'text-[var(--status-info-text)]',
+    [REPORT_KIND.REQUESTED]: 'text-[var(--status-info-text)]',
     [REPORT_KIND.NONE]: 'text-gray-500',
   };
 
@@ -211,6 +211,16 @@ export async function renderContent(ctx) {
   const blockersHost = container.querySelector('#leader-blockers-list');
   const progressHost = container.querySelector('#leader-progress-list');
 
+  // 汇报读口失败不得静默成空（批次 590 · UI ⑤.1）：顶部给可重试提示，收件箱保持「加载失败」态。
+  if (reportsError) {
+    const strip = document.createElement('div');
+    strip.className = 'card rounded-xl card-standard mb-3 flex items-center justify-between gap-2';
+    strip.innerHTML = `<span class="text-xs text-[var(--status-error-text)]">汇报数据加载失败</span>
+      <button type="button" class="btn-outline btn-sm" data-retry-reports>重新载入</button>`;
+    container.prepend(strip);
+    strip.querySelector('[data-retry-reports]').addEventListener('click', () => renderContent(_ctx));
+  }
+
   // 2026-11-01 Task 7：段内切换只渲染当前段 ⇒ 全页同时只保留一条筛选条。
   // 两个 stateKey 各自保持关键词 / 分面 / 页码，切回原段不丢筛选。
   const renderSegment = (seg) => {
@@ -221,8 +231,8 @@ export async function renderContent(ctx) {
     if (_membersSeg === 'blockers') {
       if (blockersHost) {
         if (blockers.length === 0) {
-          blockersHost.innerHTML = `<div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
-             <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 本组无卡点，全部正常
+          blockersHost.innerHTML = `<div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-[var(--neutral-50)] text-[var(--status-success-text)] text-xs">
+             <span class="w-2 h-2 rounded-full bg-[var(--status-success)] flex-shrink-0"></span> 本组无卡点，全部正常
            </div>`;
         } else {
           // 卡点区接引擎（批次 47-H）：行数达门槛出检索条 + 分页

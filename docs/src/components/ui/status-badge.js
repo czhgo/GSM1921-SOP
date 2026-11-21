@@ -21,7 +21,7 @@ const VIEWPORT_PADDING = 8;
 export function statusBadgeHtml(status, { statuses, disabled = false, attrs = '' }) {
   const def = statuses[status] || { label: status, color: '#9CA3AF' };
   return `
-    <span class="status-badge" data-status-badge data-status="${status}" ${disabled ? 'data-disabled="1"' : ''} ${attrs} style="--sb-color:${def.color};" role="button" tabindex="${disabled ? '-1' : '0'}" aria-label="状态：${def.label}，点击修改">
+    <span class="status-badge" data-status-badge data-status="${status}" ${disabled ? 'data-disabled="1"' : ''} ${attrs} style="--sb-color:${def.color};" role="button" tabindex="${disabled ? '-1' : '0'}" aria-haspopup="menu" aria-expanded="false" aria-controls="status-badge-menu" aria-label="状态：${def.label}，点击修改">
       <span class="status-badge-dot"></span>
       <span class="status-badge-label">${def.label}</span>
       ${disabled ? '' : icon('chevronDown', { className: 'w-2.5 h-2.5 status-badge-chevron' })}
@@ -51,16 +51,20 @@ export function bindStatusBadge(badgeEl, { statuses, onChange }) {
   });
 }
 
-// ── 悬浮选择器（clamp 边界定位，参照 A-02/notice.js 弹窗定位经验） ──
+// ── 悬浮选择器（clamp 边界定位；2026-11-21 批次 590：补齐 aria-expanded / 焦点进入菜单 / 方向键）
+//   注：未直接复用 `menu-button.js`——该组件自带触发器与视觉，套在此行内徽章上会改变卡内形态；
+//   这里按 SD-38 的判据（aria 可回读 ＋ 焦点进菜单 ＋ 方向键 ＋ Esc 归还焦点）逐条对齐。
 function _openStatusPopover(anchor, statuses, onChange) {
   const rect = anchor.getBoundingClientRect();
   const current = anchor.dataset.status;
+  const menuId = 'status-badge-menu';
 
   const popover = document.createElement('div');
   popover.className = 'status-badge-popover';
+  popover.id = menuId;
   popover.setAttribute('role', 'menu');
   popover.innerHTML = Object.entries(statuses).map(([value, def]) => `
-    <button type="button" class="btn-tab status-badge-option${value === current ? ' is-active' : ''}" data-value="${value}" role="menuitem" style="--sb-color:${def.color};">
+    <button type="button" class="btn-tab status-badge-option${value === current ? ' is-active' : ''}" data-value="${value}" role="menuitem" tabindex="-1" style="--sb-color:${def.color};">
       <span class="status-badge-dot"></span>
       <span>${def.label}</span>
       ${value === current ? icon('check', { className: 'w-3 h-3 status-badge-check' }) : ''}
@@ -68,6 +72,8 @@ function _openStatusPopover(anchor, statuses, onChange) {
   `).join('');
 
   document.body.appendChild(popover);
+  anchor.setAttribute('aria-expanded', 'true');
+  anchor.setAttribute('aria-controls', menuId);
 
   // clamp 边界定位：优先下方，空间不足翻到上方；左右不溢出视口
   const popRect = popover.getBoundingClientRect();
@@ -82,16 +88,35 @@ function _openStatusPopover(anchor, statuses, onChange) {
   popover.style.left = `${left}px`;
   popover.classList.add('is-visible');
 
-  const close = () => {
+  const close = (restoreFocus = false) => {
     popover.remove();
-    document.removeEventListener('keydown', onEsc);
+    anchor.setAttribute('aria-expanded', 'false');
+    anchor.removeAttribute('aria-controls');
+    document.removeEventListener('keydown', onKeydown);
+    if (restoreFocus) anchor.focus();
   };
-  const onEsc = (e) => { if (e.key === 'Escape') close(); };
+  const options = () => [...popover.querySelectorAll('.status-badge-option')];
+  const onKeydown = (e) => {
+    const list = options();
+    const idx = list.indexOf(document.activeElement);
+    if (e.key === 'Escape') { e.preventDefault(); close(true); return; }
+    if (e.key === 'Tab') { close(false); return; }
+    if (!list.length) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const next = e.key === 'ArrowDown' ? (idx + 1 + list.length) % list.length : (idx - 1 + list.length) % list.length;
+      list[next].focus();
+    } else if (e.key === 'Home') { e.preventDefault(); list[0].focus(); }
+    else if (e.key === 'End') { e.preventDefault(); list[list.length - 1].focus(); }
+  };
   // 延迟绑定避免触发同一点击事件导致立刻关闭
   setTimeout(() => document.addEventListener('click', (e) => {
-    if (!popover.contains(e.target) && !anchor.contains(e.target)) close();
+    if (!popover.contains(e.target) && !anchor.contains(e.target)) close(false);
   }), 0);
-  document.addEventListener('keydown', onEsc);
+  document.addEventListener('keydown', onKeydown);
+  // 焦点进入菜单：键盘用户可直接用方向键选择
+  const active = options().find((btn) => btn.classList.contains('is-active')) || options()[0];
+  if (active) active.focus();
 
   popover.querySelectorAll('.status-badge-option').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -103,7 +128,7 @@ function _openStatusPopover(anchor, statuses, onChange) {
         const labelEl = anchor.querySelector('.status-badge-label');
         if (labelEl) labelEl.textContent = def.label;
       }
-      close();
+      close(true);
       if (typeof onChange === 'function') onChange(value);
     });
   });
@@ -111,5 +136,9 @@ function _openStatusPopover(anchor, statuses, onChange) {
 
 /** 关闭当前打开的悬浮选择器 */
 function _closeStatusPopover() {
+  document.querySelectorAll('[data-status-badge][aria-expanded="true"]').forEach((el) => {
+    el.setAttribute('aria-expanded', 'false');
+    el.removeAttribute('aria-controls');
+  });
   document.querySelector('.status-badge-popover')?.remove();
 }

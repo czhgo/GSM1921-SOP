@@ -462,7 +462,7 @@ function _showCloseBlockModal(activity, missing) {
     bodyHtml: `
       <p class="text-body-sm text-gray-500 mb-3">以下产出未齐，补齐后方可关闭：</p>
       <ul class="space-y-1.5">
-        ${missing.map(m => `<li class="text-xs text-red-600 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0"></span>${esc(m)}</li>`).join('')}
+        ${missing.map(m => `<li class="text-xs text-[var(--status-error-text)] flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-[var(--status-error)] flex-shrink-0"></span>${esc(m)}</li>`).join('')}
       </ul>`,
     footerHtml: `<button type="button" data-modal-cancel="activity-close-block" class="btn-accent text-sm px-4 py-1.5">知道了</button>`,
   });
@@ -752,8 +752,8 @@ function renderInspectorDetail(activity, tasks, managementRole) {
       const decisionSource = agendaDecisionSource(activity.agenda, a);
       const typeBadges = _agendaTypeBadges(decisionSource);
       const agendaStepBadge = a.agendaStep === 'discussion'
-        ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-indigo-700 bg-indigo-50">讨论项</span>'
-        : (a.agendaStep === 'vote' ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-rose-700 bg-rose-50">表决项</span>' : '');
+        ? badgeHtml('讨论项', 'info')
+        : (a.agendaStep === 'vote' ? badgeHtml('表决项', 'warning') : '');
       const relatedDiscussion = a.discussionAgendaItemId
         ? activity.agenda.find((item) => item.id === a.discussionAgendaItemId) : null;
       const stepNote = a.agendaStep === 'discussion'

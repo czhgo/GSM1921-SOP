@@ -194,7 +194,7 @@ export async function mountWorkforcePanel(branchId, hostEl) {
     const date = (draft && draft.date) || _today();
     const note = (draft && draft.note) || '';
     wrap.innerHTML = `
-      <div class="rounded-xl border border-dashed border-red-200 bg-red-50/40 p-3.5 flex flex-col gap-2.5">
+      <div class="rounded-xl border border-dashed border-red-200 bg-red-50/40 p-4 flex flex-col gap-2.5">
         <div class="flex items-center gap-2">
           <p class="font-title-cn text-sm font-bold text-gray-800">发起支部分工调整</p>
           ${badgeHtml('需经支委会议题表决后生效', 'danger')}

@@ -36,7 +36,7 @@ import { renderCardHeader } from '../shell/page-frame.js?v=20261120a';
 const ATTENDANCE_STATUS_DOT = {
   present:  { text: '出勤', cls: 'text-[var(--status-success-text)]', dot: 'var(--status-success)' },
   absent:   { text: '缺勤', cls: 'text-[var(--status-error-text)]',  dot: 'var(--status-error)' },
-  leave:    { text: '请假', cls: 'text-[var(--status-warning-text)]', dot: '#F97316' },
+  leave:    { text: '请假', cls: 'text-[var(--status-warning-text)]', dot: 'var(--status-warning)' },
   made_up:  { text: '已补', cls: 'text-[var(--status-info-text)]', dot: 'var(--status-info)' },
 };
 

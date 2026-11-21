@@ -5295,8 +5295,6 @@ html.theme-dark [style*="--acc-dot-dark"] {
   html.theme-dark .bg-amber-50     { background-color: rgba(251, 191, 36, 0.10) !important; }
   html.theme-dark .bg-blue-50      { background-color: rgba(96, 165, 250, 0.10) !important; }
   html.theme-dark .bg-green-50     { background-color: rgba(52, 211, 153, 0.10) !important; }
-  html.theme-dark .bg-purple-50    { background-color: rgba(192, 132, 252, 0.10) !important; }
-  html.theme-dark .bg-rose-50      { background-color: rgba(244, 114, 182, 0.10) !important; }
   html.theme-dark .bg-sky-50       { background-color: rgba(56, 189, 248, 0.10) !important; }
   html.theme-dark .bg-teal-50      { background-color: rgba(45, 212, 191, 0.10) !important; }
   html.theme-dark .bg-violet-50    { background-color: rgba(167, 139, 250, 0.10) !important; }
@@ -5308,8 +5306,6 @@ html.theme-dark [style*="--acc-dot-dark"] {
   html.theme-dark .text-green-700  { color: #86EFAC !important; }
   html.theme-dark .text-blue-700   { color: #93C5FD !important; }
   html.theme-dark .text-yellow-700 { color: #FDE047 !important; }
-  html.theme-dark .text-purple-700 { color: #D8B4FE !important; }
-  html.theme-dark .text-rose-700   { color: #FDA4AF !important; }
   html.theme-dark .text-sky-700    { color: #7DD3FC !important; }
   html.theme-dark .text-teal-700   { color: #5EEAD4 !important; }
   html.theme-dark .text-violet-700 { color: #C4B5FD !important; }

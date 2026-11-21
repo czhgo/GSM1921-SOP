@@ -151,7 +151,7 @@ export function renderSignupSection({ sourceType, sourceId, source, title, signu
   }
 
   return `
-    <div class="rounded-xl border border-red-100 bg-red-50/40 p-5 mb-6">
+    <div class="card card-standard mb-6">
       ${renderCardHeader({ title: sourceType === 'taskforce' ? '申请加入专班工作组' : '报名参与', variant: 'panel' })}
       ${body}
       ${onsiteChoice}

@@ -457,6 +457,30 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 
 ---
 
+## CASE-DESIGN-042 必填只写了星号：控件与错误行都没有无障碍语义
+
+- **编号**：CASE-DESIGN-042
+- **场景（真实发生）**：`components/ui/form-field.js` 的 `textField / textareaField / selectField` 里，`required: true` 只让标签多一个星号；控件本体没有 `required` 也没有 `aria-required`。错误行 `<p>` 无 `role="alert"`，控件无 `aria-invalid` / `aria-describedby`，错误边用被禁的 `border-red-400`。反馈表单在空姓名提交时，读屏用户只听到「姓名」，听不到「必填」与错误原因。
+- **结论**：`required: true` 必须在控件上产出 `required` 与 `aria-required="true"`；标签星号标 `aria-hidden="true"`（星号是视觉冗余，不进朗读）；错误行必须 `role="alert"` 且 id 为 `{控件 id}-err`，控件用 `aria-describedby` 指向它并置 `aria-invalid="true"`；错误边取 `--status-error`，不得用调色板类。
+- **边界**：登录页自建字段保留自有实现，但同等四件（required / aria-required / role=alert / aria-describedby）必须齐；只读展示字段不参与本判据；非必填字段不得因同组有必填而误加语义。
+- **对应规范编号**：SD-66（必填语义，正文见 `DS_03_COMPONENTS.md §4.3`）。
+- **守卫**：`form-field-guard::T1 / T2 / T4`。
+- **证据指针**：`docs/src/components/ui/form-field.js:14-26,37-56`；`server/test/form-field-guard.test.mjs`；`DS_03_COMPONENTS.md §4.3`。
+
+---
+
+## CASE-DESIGN-043 筛选行下拉没有名字，靠首项文本充当可访问名
+
+- **编号**：CASE-DESIGN-043
+- **场景（真实发生）**：考勤数据卡的筛选行里，活动下拉手写 `<select id="att-activity-select">`，首项「活动：全部」被当成名字；同屏还有状态、类型两个下拉，读屏时三个控件都只念当前值，分不出哪一个在筛什么。当前值变化后「名字」也跟着变。
+- **结论**：筛选行每个控件必须有字段级可访问名——`<label for>` 或 `aria-label`；首项文本与当前值都不承担名字。原生下拉一律经 `forms.js::selectInput({ ariaLabel })` 产出，不再手写裸 `<select>`。
+- **边界**：多选 chip 组用 `role="group"` ＋ `aria-label` 命名整组；关键词输入用 `aria-label`（「搜索姓名或活动」）；清除钮用按钮自身文本，不另加 aria-label。
+- **对应规范编号**：SD-67（筛选行字段级可访问名，正文见 `DS_03_COMPONENTS.md §4.3`）。
+- **守卫**：`form-field-guard::T3`。
+- **证据指针**：`docs/src/entries/tabs/disc/attendance-tab.js:1225-1231`；`docs/src/components/ui/form-field.js:95-100`；`server/test/form-field-guard.test.mjs`。
+
+---
+
 ## 数据域判例（data）
 
 > 本区承载 `CASE-DATA-*`：判据是「数据真相」而非视觉，但因同源于设计系统评审、且需与 SD-48 双向指针，正文与 design 域同放本文件；总目录仍见 [CASES_INDEX.md](../../03_doc_system/CASES_INDEX.md)。

@@ -139,7 +139,7 @@ export const STRUCTURAL_LABEL_BASELINE = [
   { label: '纪检委员（留档）', reason: '选项文案：归档留档角色' },
   { label: '— 选择状态 —', reason: '选项文案：下拉占位' },
   { label: '加载会前草案…', reason: '选项文案：加载态占位' },
-  { label: '草案加载失败', reason: '选项文案：失败态提示' },
+  { label: '草案加载失败，点此重试', reason: '选项文案：失败态提示（点选即重读）' },
   { label: '出勤', reason: '选项文案：考勤状态枚举值' },
   { label: '缺勤', reason: '选项文案：考勤状态枚举值' },
   { label: '请假', reason: '选项文案：考勤状态枚举值' },

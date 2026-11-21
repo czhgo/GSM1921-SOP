@@ -105,7 +105,7 @@ export function renderContent(ctx) {
           <button class="btn-outline insp-print-btn px-3 text-xs font-medium">打印</button>
           <!-- 2026-08-29 T-304 C2 数据交接协议：纪检→组织 考察记录提交 -->
           <button class="btn-outline insp-handoff-btn px-3 text-xs font-medium">提交考察至支委会</button>
-          ${HandoffStore.hasFor('inspection-report', 'inspection') ? '<span class="text-xs text-teal-600 font-medium">已自动送达</span>' : ''}
+          ${HandoffStore.hasFor('inspection-report', 'inspection') ? '<span class="text-xs text-[var(--status-success-text)] font-medium">已自动送达</span>' : ''}
         </div>
       </div>
       <div class="text-xs text-gray-500 mb-3">纪检委员管理考察记录，党小组组长/组织委员上传 → 纪检确认 → 录入考察总表</div>

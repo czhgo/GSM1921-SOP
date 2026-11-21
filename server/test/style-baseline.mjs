@@ -139,10 +139,6 @@ export const HEX_BASELINE = {
   'docs/src/components/dashboard/gallery.js': { c: 1, v: [
       '#6b7280',
   ] },
-  'docs/src/components/dashboard/stats.js': { c: 15, v: [
-      '#059669', '#3b82f6', '#94a3b8', '#9ca3af', '#d1d5db', '#d97706', '#dc2626',
-      '#f59e0b', '#f97316',
-  ] },
   'docs/src/components/governance/member-change-panel.js': { c: 1, v: [
       '#b91c1c',
   ] },
@@ -415,7 +411,9 @@ export const HEX_TOTAL_BASELINE = 810;
 // ⚠ 2026-11-10 批次 540（SVG 色彩契约）：`icons.js` 的 `stroke: '#FFF'` 示例删除、`person-picker.js` 的
 //   `stroke: '#6B7280'` 改 `var(--neutral-500)` ⇒ 前者条目删除、后者 c 3 → 2；文件数 45 → **44**（与实况同值，
 //   H3 防呆下限同步下沉）。**不是放宽**：判红项仍是 H1（新增值）/ H2（处数上涨）/ 僵尸登记。
-export const HEX_FILE_BASELINE = 43;
+// ⚠ 2026-11-21 批次 591（P2 清零）：`dashboard/stats.js` 的 15 处内联色全部改 `--status-*` / `--neutral-*`
+//   ⇒ 该文件 hex 清零，按收基线纪律删条目，文件数 43 → **42**（与实况同值；H3 防呆下限同步下沉）。
+export const HEX_FILE_BASELINE = 42;
 export const HEX_VALUE_BASELINE = 291;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。

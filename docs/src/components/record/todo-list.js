@@ -190,7 +190,7 @@ function _renderUrgencyRow(prefix, g, opts, today, selectedTodoId) {
 
   // 批量块（成员确认等）跟在组行之后，保持原有勾选批量与逐项详情并行
   return g.bulkHtml
-    ? `${row}<div class="${prefix}-todo-bulk rounded-b-lg bg-gray-50/40">${g.bulkHtml}</div>`
+    ? `${row}<div class="${prefix}-todo-bulk rounded-b-lg bg-[var(--neutral-50)]">${g.bulkHtml}</div>`
     : row;
 }
 

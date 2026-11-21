@@ -686,7 +686,7 @@ function renderVoidConfirmDetail(group) {
     const atText = String(vp.at || '').slice(0, 16).replace('T', ' ');
     const roleLabel = ROLE_LABELS[t.role] || t.role || '';
     return `
-      <div class="rounded-lg border border-gray-100 bg-gray-50/40 p-2.5 space-y-1.5" data-void-card="${esc(t.id)}" data-void-label="${esc(t.title || '未命名待办')}">
+      <div class="rounded-lg border border-gray-100 bg-[var(--neutral-50)] p-2.5 space-y-1.5" data-void-card="${esc(t.id)}" data-void-label="${esc(t.title || '未命名待办')}">
         <div class="flex items-center gap-1.5 flex-wrap">
           <span class="text-sm font-medium text-gray-800">${esc(t.title || '未命名待办')}</span>
           ${roleLabel ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 flex-shrink-0">${esc(roleLabel)}</span>` : ''}
@@ -741,15 +741,15 @@ function renderMemberConfirmDetail(group) {
 function _mcReqCard(req) {
   const action = req.action;
   const kindLabel = MC_ACTION_LABEL[action] || (req.kind === 'transferOut' ? '移出' : '变更');
-  const kindCls = action === 'developStage' ? 'bg-sky-50 text-sky-700'
-    : action === 'residence' ? 'bg-amber-50 text-[var(--status-warning-text)]'
-    : 'bg-red-50 text-red-700';
+  const kindTone = action === 'developStage' ? 'info'
+    : action === 'residence' ? 'warning'
+    : 'danger';
   const byName = req.by ? (getPersonName(req.by) || req.by) : '组织委员';
   const atText = String(req.at || '').slice(0, 16).replace('T', ' ');
   return `
-    <div class="rounded-lg border border-gray-100 bg-gray-50/40 p-2.5 space-y-1.5" data-mc-card="${esc(req.id)}">
+    <div class="rounded-lg border border-gray-100 bg-[var(--neutral-50)] p-2.5 space-y-1.5" data-mc-card="${esc(req.id)}">
       <div class="flex items-center gap-1.5 flex-wrap">
-        <span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${kindCls}">${kindLabel}</span>
+        ${badgeHtml(kindLabel, kindTone)}
         <span class="text-sm font-medium text-gray-800">${esc(req.name || req.personId)}</span>
         <span class="text-xs text-gray-500 ml-auto">${esc(byName)} · ${atText}</span>
       </div>
@@ -1150,9 +1150,7 @@ function expandAssignPanelForTodo(todo) {
 /** 单行：类型徽标（发起/解散）+ 专班名/任务摘要/报送人/报送时间 + 操作 */
 function _committeeTfRowHtml(req, act) {
   const kindLabel = req.kind === 'dissolve' ? '解散' : '发起';
-  const kindCls = req.kind === 'dissolve'
-    ? 'bg-gray-100 text-gray-600'
-    : 'bg-indigo-50 text-indigo-600';
+  const kindTone = req.kind === 'dissolve' ? 'neutral' : 'info';
   const byName = req.by ? getPersonName(req.by) : '组织委员';
   const atText = String(req.at || '').slice(0, 16).replace('T', ' ');
   const ops = act
@@ -1160,9 +1158,9 @@ function _committeeTfRowHtml(req, act) {
        <button type="button" class="btn-accent-soft btn-sm tf-cr-result flex-shrink-0" data-tf-id="${req.id}" data-activity-id="${act.id}">查看表决结果并生效</button>`
     : `<button type="button" class="btn-accent-soft btn-sm tf-cr-arrange flex-shrink-0" data-tf-id="${req.id}" data-kind="${req.kind}">排入支委会表决</button>`;
   return `
-    <div class="rounded-xl border border-gray-100 bg-gray-50/40 p-3">
+    <div class="rounded-xl border border-gray-100 bg-[var(--neutral-50)] p-3">
       <div class="flex items-start gap-2">
-        <span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${kindCls}">${kindLabel}</span>
+        ${badgeHtml(kindLabel, kindTone)}
         <div class="flex-1 min-w-0">
           <p class="font-title-cn text-sm font-bold text-gray-800 truncate">${req.name || '未命名专班'}</p>
           ${req.task ? `<p class="text-xs text-gray-500 truncate mt-0.5">${req.task}</p>` : ''}

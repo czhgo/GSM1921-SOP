@@ -294,7 +294,7 @@ function _renderWeeklyReportItem(report) {
   // 平台上报留痕（SOP-B-40 ③）：只留痕，不对接（对接方为外部）
   const platformHtml = isSubmitted
     ? (report.platformReportedAt
-        ? `<span class="text-xs px-1.5 py-0.5 rounded-full border bg-violet-50 text-violet-700 border-violet-200" title="上报留痕：${(report.platformReportedAt || '').slice(0, 16).replace('T', ' ')}">已上报党建平台</span>`
+        ? `<span class="text-xs px-1.5 py-0.5 rounded-full border bg-violet-50 text-violet-700 border-[var(--color-border-subtle)]" title="上报留痕：${(report.platformReportedAt || '').slice(0, 16).replace('T', ' ')}">已上报党建平台</span>`
         : `<button class="btn-outline weekly-platform-btn text-xs px-2.5 py-1" data-id="${report.id}" style="cursor:pointer;">标记已上报党建平台</button>`)
     : '';
   const periodLabel = report.archivePolicySnapshot?.periodLabel || report.periodLabel || report.week || '未命名期次';

@@ -32,7 +32,7 @@ import { getPersonById, getPersonName } from '../../../services/member/person.js
 import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261120a';
 import { generateId } from '../../../core/base/id.js?v=20261120a';
 import { badgeHtml } from '../../../components/ui/badges.js?v=20261120a';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261120a';
+import { showToast, escHtml as esc, getBasePath, describeWriteError } from '../../../core/base/utils.js?v=20261120a';
 // ③批（支书 2026-09-06）：党小组会考勤候选 = 本组应到名单（党员非滞留）；
 // 滞留者「可见但不可选」（灰态 + 「滞留」徽标 + title 备注，同纪检口径）
 import { getMeetingRosterCandidates, getRosterStats } from '../../../services/member/roster.js?v=20261120a';
@@ -487,7 +487,8 @@ function _initAttForm(container, eligibleActivities, ctx, opts = {}) {
     try {
       await freezeExpectedRosterForActivity(activityId);
     } catch (error) {
-      showToast('error', `应到名单未能冻结，考勤未提交：${error.message || '请重试'}`);
+      console.warn('[leader-attendance] 应到名单冻结失败：', error);
+      showToast('error', `应到名单未能冻结，考勤未提交：${describeWriteError(error)}`);
       return;
     }
 

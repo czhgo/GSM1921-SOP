@@ -134,6 +134,13 @@ const INFO_EXCEPTIONS = [
   { file: 'docs/src/components/record/todo-tab-shell.js', snippet: "in_progress: 'info',", reason: '待办进行中（非活动状态）' },
   { file: 'docs/src/entries/tabs/secretary/todo-tab.js', snippet: "in_progress: 'info',", reason: '待办进行中（非活动状态）' },
   { file: 'docs/src/entries/tabs/prop/archive-tab.js', snippet: 'data-tone="info"', reason: '归档材料文件图标标注（非活动类别 / 状态）' },
+  // 2026-11-21 批次 590（D-900）：支书裁定议程项 / 发起类徽章统一走 info 功能色；
+  //   这些是「议程步 / 成员变更类别 / 专班发起」语义，不是活动类别色，登记为受控例外。
+  { file: 'docs/src/components/record/inspector.js', snippet: "badgeHtml('讨论项', 'info')", reason: '议程步：讨论项（非活动类别）' },
+  { file: 'docs/src/components/record/activity-view.js', snippet: "badgeHtml('讨论项', 'info')", reason: '议程步：讨论项（非活动类别）' },
+  { file: 'docs/src/entries/pages/activity-entry.js', snippet: "badgeHtml('讨论项', 'info')", reason: '议程步：讨论项（非活动类别）' },
+  { file: 'docs/src/entries/tabs/secretary/todo-tab.js', snippet: "const kindTone = action === 'developStage' ? 'info'", reason: '议程步：成员变更类别（发展节点）' },
+  { file: 'docs/src/entries/tabs/secretary/todo-tab.js', snippet: "const kindTone = req.kind === 'dissolve' ? 'neutral' : 'info';", reason: '议程步：专班发起（非活动类别）' },
   // 2026-10-26 Task 4：宣传看板最后 3 处 info（类别徽章 + 两个分组标题）已迁移
   //   （类别走 activityTypeBadgeVariant、标题改 neutral）⇒ 白名单条目按僵尸规则删除。
 ];
@@ -267,7 +274,7 @@ test('A3 语义隔离：活动类别/状态路径不得出现 info，允许站�
     used.set(ex, used.get(ex) + 1);
   }
   assert.deepEqual(unmatched, [],
-    `活动类别 / 状态路径出现未登记的 info（允许的只有：通知重要 / 已发布 / 待汇报 / 建议选修 / 配置标注 + 已登记例外）：\n  ${unmatched.join('\n  ')}`);
+    `活动类别 / 状态路径出现未登记的 info（允许的只有：通知重要 / 已发布 / 待汇报 / 建议选修 / 配置标注 / 议程步 + 已登记例外）：\n  ${unmatched.join('\n  ')}`);
 
   const zombieOrCountMismatch = INFO_EXCEPTIONS.filter((e) => used.get(e) !== (e.count || 1))
     .map((e) => `${e.file} ${e.snippet}（期望 ${e.count || 1} 处，实测 ${used.get(e)} 处；${e.reason}）`);
@@ -276,8 +283,8 @@ test('A3 语义隔离：活动类别/状态路径不得出现 info，允许站�
 
   // 4) 非空转：五类允许语义都真实存在（不是只登记不消费）
   const reasons = new Set(INFO_EXCEPTIONS.map((e) => e.reason));
-  for (const family of ['通知重要', '已发布', '待汇报', '建议选修', '配置标注']) {
-    assert.ok([...reasons].some((r) => r.startsWith(family)), `允许 info 的五类语义缺「${family}」（白名单不完整）`);
+  for (const family of ['通知重要', '已发布', '待汇报', '建议选修', '配置标注', '议程步']) {
+    assert.ok([...reasons].some((r) => r.startsWith(family)), `允许 info 的六类语义缺「${family}」（白名单不完整）`);
   }
 });
 

@@ -12,16 +12,19 @@ import { join, relative } from 'node:path';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const SRC = join(ROOT, 'docs', 'src');
-const RE_CLASS = /class="([^"]*rounded-full[^"]*)"/g;
+const RE_CLASS = /class="([^"]*rounded(?:-full)?\b[^"]*)"/g;
 
-/** 存量基线（2026-11-21 批次 587 实测 38 文件；只减不增）。 */
+/** 存量基线（2026-11-21 批次 590 实测 43 文件；只减不增）。 */
 export const HAND_BADGE_BASELINE = new Set([
   'docs/src/components/feedback/issue-dispatch-view.js',
   'docs/src/components/feedback/reactions.js',
   'docs/src/components/governance/org-setup-wizard.js',
+  'docs/src/components/governance/person-edit-modal.js',
   'docs/src/components/governance/resolution-followup-manager.js',
   'docs/src/components/governance/workforce-duty-card.js',
   'docs/src/components/governance/workgroup-member-editor.js',
+  'docs/src/components/record/activity-view.js',
+  'docs/src/components/record/inspector.js',
   'docs/src/components/record/taskforce-view.js',
   'docs/src/entries/pages/activity-entry.js',
   'docs/src/entries/pages/activity-materials-entry.js',
@@ -51,6 +54,8 @@ export const HAND_BADGE_BASELINE = new Set([
   'docs/src/entries/tabs/secretary/notification-tab.js',
   'docs/src/entries/tabs/secretary/report-up-tab.js',
   'docs/src/entries/tabs/secretary/todo-tab.js',
+  'docs/src/entries/tabs/secretary/work-map-tab.js',
+  'docs/src/entries/tabs/secretary/workforce-panel.js',
   'docs/src/entries/tabs/visitor/inspection-tab.js',
   'docs/src/entries/tabs/visitor/projects-tab.js',
   'docs/src/entries/tabs/visitor/review-tab.js',

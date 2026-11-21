@@ -10,6 +10,26 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 590（2026-11-21）· 前端一致性收口：P0/P1 ＋ 规则内 P2 ＋ SD-66/67（D-900）
+
+### 为什么
+- 支书指出「报告挤牙膏、乙部留尾巴」，要求按阶段做完再报；前端一致性按两个独立 lens 的取证逐条修。
+
+### 拿不准 / 取舍
+- **阶段 A 与 B 同树完成**：两类改动落在同一批文件（`taskforce-tab` / `styles.css` / `form-field` 同时承载 P1 与 P2），拆两条 commit 会出现「单条不过守卫」的中间态 ⇒ 合并为本批一条提交；清账与 Harness 留作下一批。
+- **`status-badge` 菜单**：未改复用 `menu-button.js`（会改变行内徽章形态），按 SD-38 判据就地补 `aria-expanded/aria-controls` 与方向键；偏差已在计划文件记录。
+- **考勤活动下拉**：改 `selectInput({ ariaLabel })` 后字面控件少 1 个，`ui-control-system-guard` 的控件面下限 200 → 199（非空转能力不变）。
+- **暗色僵尸补丁**：删 `bg-purple-50` / `bg-rose-50` / `text-purple-700` / `text-rose-700` 四条后 `Z1` 归零；`stats.js` hex 清零按收基线纪律删条（文件数 43 → 42）。
+
+### 边界
+- 登录页自建字段保留自有实现（只补一致性注释）；`about.html` 冻结件不动。
+- 两份 tab-audit 只保留 `summary.md`，截图与 `findings.json` 按既有口径不入库（可重跑再生）。
+
+### 读数
+- guards：126 文件 / 888 断言全绿（146.1s）；daily：265 / 120.3s。
+- 真机：反馈页（骨架 → 列表，控制台 0 error）PASS；支书台支委会待议池渲染 PASS。
+- 文档守卫：`docs-governance-guard` 31/31（R7 行号漂移 7 条已随 DS_03 插行改准、1 条愈合条目已删）。
+
 ## 批次 589（2026-11-21）· B-500-7b-2 兜底 instrument ＋ 资产命中机检（D-899）
 
 ### 为什么

@@ -71,7 +71,7 @@ function _rowHtml(r) {
   const done = r.status === 'completed';
   const offline = r.deepMode === DEEP_WORK_MODE.OFFLINE;
   const modeChip = r.deepMode
-    ? `<span class="text-xs px-1.5 py-0.5 rounded-full border flex-shrink-0 ${offline ? 'bg-amber-50 text-[var(--status-warning-text)] border-amber-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}" title="${offline ? '组织者已标为「去线下做」——线下完成，由组织者确认' : '组织者已标为「系统内做」——完成后由系统同步产出'}">${DEEP_WORK_MODE_LABEL[r.deepMode]}</span>`
+    ? `<span class="text-xs px-1.5 py-0.5 rounded-full border flex-shrink-0 ${offline ? 'bg-amber-50 text-[var(--status-warning-text)] border-amber-100' : 'bg-emerald-50 text-emerald-700 border-[var(--color-border-subtle)]'}" title="${offline ? '组织者已标为「去线下做」——线下完成，由组织者确认' : '组织者已标为「系统内做」——完成后由系统同步产出'}">${DEEP_WORK_MODE_LABEL[r.deepMode]}</span>`
     : '';
   return `
     <div class="flex items-center justify-between gap-3 rounded-xl bg-white border border-gray-100 px-3 py-2.5">

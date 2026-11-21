@@ -30,6 +30,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { openModal, closeModal, setModalBusy } from '../ui/modal.js?v=20261120a';
+import { badgeHtml } from '../ui/badges.js?v=20261120a';
 // 批次 524（F · 输入单一源）：布局中立的控件积木（只出控件本体，不套 label / 外边距）
 import { textInput, selectInput } from '../ui/forms.js?v=20261120a';
 import { PersonStore } from '../../services/member/person.js?v=20261120a';
@@ -38,7 +39,7 @@ import { getBranchById } from '../../services/branch/branch.js?v=20261120a';
 import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/domain/constants.js?v=20261120a';
 import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20261120a';
 import { AuthStore } from '../../services/core/auth.js?v=20261120a';
-import { showToast, escHtml as esc, getBasePath, todayLocal, describeWriteError } from '../../core/base/utils.js?v=20261120a';
+import { showToast, escHtml as esc, getBasePath, todayLocal, describeWriteError, smoothScroll } from '../../core/base/utils.js?v=20261120a';
 // `D-788`（2026-10-05 · `V-10b`）：成员「自我描述」字段模型（**零依赖叶子**）——表单控件由它逐字段生成（单一源）
 import {
   SELF_PROFILE_FIELDS, sanitizeSelfProfile,
@@ -110,9 +111,9 @@ function residenceSelect(current) {
 }
 
 /** 「立即生效」小标（档案属性直改；浅底语义类，非可点击控件） */
-const TAG_INSTANT = '<span class="text-[11px] px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-100 whitespace-nowrap flex-shrink-0">立即生效</span>';
+const TAG_INSTANT = badgeHtml('立即生效', 'info');
 /** 「报支书确认」小标（制度链；与名册「待确认」小标同源语义） */
-const TAG_CONFIRM = '<span class="text-[11px] px-1.5 py-0.5 rounded bg-amber-50 text-[var(--status-warning-text)] border border-amber-100 whitespace-nowrap flex-shrink-0">报支书确认</span>';
+const TAG_CONFIRM = badgeHtml('报支书确认', 'warning');
 
 /** 字段分组容器：统一用 fieldset（浮窗体例 §body 分组），不再各写卡片 */
 function groupBox({ title, desc, rows }) {
@@ -143,6 +144,21 @@ function _showPersonEditError(input, errId, msg) {
     if (typeof input.focus === 'function') input.focus();
   }
   return false;
+}
+
+/** 浮窗级错误（M-6）：固定错误位承载「为什么没保存」，不随 toast 消失，也不关浮窗 */
+function _showSaveError(msg) {
+  const el = document.getElementById('pe-save-err');
+  if (!el) return;
+  el.textContent = msg;
+  el.hidden = false;
+  smoothScroll(el, { block: 'nearest' });
+}
+
+/** 清空浮窗级错误（每次保存开始前调用，避免旧错留在屏上） */
+function _clearSaveError() {
+  const el = document.getElementById('pe-save-err');
+  if (el) { el.textContent = ''; el.hidden = true; }
 }
 
 /** 今日日期键 'YYYY-MM-DD'（阶段推进「进入当前阶段日期」默认值；submitMemberChange 缺省亦为今日） */
@@ -286,6 +302,7 @@ export function openPersonEditModal(opts = {}) {
   //    ⚠ `selfOnly`（本人自助）：只出「自我描述」一组；其余组与治理字段说明不出（本人无权写）。
   const formHtml = `
     <form id="${MODAL_ID}-form">
+      <p id="pe-save-err" data-save-error hidden class="mb-3 text-xs text-[var(--status-error-text)]" role="alert"></p>
       ${selfOnly ? '' : groupBox({
         title: '档案资料 · 立即生效',
         rows: [
@@ -414,6 +431,7 @@ export function openPersonEditModal(opts = {}) {
     const resStatusChanged = 'residenceStatus' in patch;
 
     setSaving(true);
+    _clearSaveError();
 
     // ① 立即生效组：档案属性直改（失败不关闭，便于修正后重试）
     let savedMember = member;
@@ -427,7 +445,7 @@ export function openPersonEditModal(opts = {}) {
       }
       if (!r || !r.ok) {
         setSaving(false);
-        showToast('error', r?.reason || '保存未完成，请稍后重试');
+        _showSaveError(r?.reason || '保存未完成，请稍后重试');
         return;
       }
       savedMember = r.member || { ...member, ...instantPatch };
@@ -458,7 +476,7 @@ export function openPersonEditModal(opts = {}) {
 
     // 失败时只报失败、不报成功（同一次保存不得同时弹 error 与 success），浮窗保留便于修正。
     if (errors.length) {
-      showToast('error', errors.join('；'));
+      _showSaveError(errors.join('；'));
       if (savedCount > 0 && typeof opts.onSaved === 'function') {
         try { opts.onSaved(savedMember); } catch (err) { console.warn('[person-edit-modal] onSaved 回调异常：', err); }
       }

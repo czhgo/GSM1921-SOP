@@ -499,7 +499,7 @@ export function renderContent(ctx) {
                 const isPublicityAuthor = type === 'publicity' && key === 'author';
                 const required = key === 'title' || key === 'name' || isPublicityAuthor;
                 const prefill = isPublicityAuthor ? (PersonStore.getById(currentUserId())?.name || '') : '';
-                return `<input class="f-${key} input-flat w-full mb-2" placeholder="${label}${required ? '（必填）' : '（选填）'}" value="${escHtml(prefill)}">`;
+                return `<input class="f-${key} input-flat w-full mb-2" aria-label="${label}${required ? '（必填）' : '（选填）'}" placeholder="${label}${required ? '（必填）' : '（选填）'}"${required ? ' required aria-required="true"' : ''} value="${escHtml(prefill)}">`;
               }).join('')}`,
           });
 

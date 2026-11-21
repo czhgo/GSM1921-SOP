@@ -15,7 +15,7 @@ import { NoticeStore } from '../../../services/governance/notice.js?v=20261120a'
 import { mockDB, ReviewStatus, isTaskforceTerminalStatus, isTaskforceActiveStatus, TASKFORCE_TERMINAL_STATUSES, TASK_TERMINAL_STATUSES, OUTPUT_TERMINAL_STATUSES } from '../../../core/domain/domain.js?v=20261120a'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
 import { persist } from '../../../data/data-adapter.js?v=20261120a';
 import { settleWrites } from '../../../core/session/pending-writes.js?v=20261120a';
-import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261120a';
+import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight, smoothScroll, describeWriteError } from '../../../core/base/utils.js?v=20261120a';
 import { generateId } from '../../../core/base/id.js?v=20261120a';
 import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261120a';
 import { PersonPicker } from '../../../components/governance/pickers.js?v=20261120a';
@@ -759,7 +759,7 @@ async function _tfRenderTasksBlock(panel, tf, ctx = {}) {
         _refreshTfBlock('tf-sec-tasks');
       } catch (error) {
         button.disabled = false;
-        showToast('error', error?.message || '任务登记失败');
+        showToast('error', `任务登记失败：${describeWriteError(error)}`);
       }
     });
     mount.querySelector('#tf-new-output-form')?.addEventListener('submit', async (event) => {
@@ -776,7 +776,7 @@ async function _tfRenderTasksBlock(panel, tf, ctx = {}) {
         _refreshTfBlock('tf-sec-tasks');
       } catch (error) {
         button.disabled = false;
-        showToast('error', error?.message || '产出登记失败');
+        showToast('error', `产出登记失败：${describeWriteError(error)}`);
       }
     });
     mount.querySelectorAll('.tf-task-status-btn').forEach((button) => button.addEventListener('click', async () => {
@@ -787,13 +787,19 @@ async function _tfRenderTasksBlock(panel, tf, ctx = {}) {
         _refreshTfBlock('tf-sec-tasks');
       } catch (error) {
         button.disabled = false;
-        showToast('error', error?.message || '任务状态更新失败');
+        showToast('error', `任务状态更新失败：${describeWriteError(error)}`);
       }
     }));
     mount.querySelector('#btn-dissolve-tf')?.addEventListener('click', () => _showTaskforceDissolutionDialog(tf));
   } catch (error) {
     if (_tfOpenId !== tf.id || !mount.isConnected) return;
-    mount.innerHTML = `<div class="mt-4 border-t border-gray-100 pt-3 text-xs text-red-600">登记任务读取失败：${esc(error?.message || '请稍后重试')}</div>`;
+    console.warn('[taskforce-tab] 登记任务读取失败：', error);
+    mount.innerHTML = emptyStateHtml({
+      text: '登记任务读取失败',
+      variant: 'inline',
+      actionHtml: '<button type="button" class="btn-outline" data-tf-tasks-retry>重新载入</button>',
+    });
+    mount.querySelector('[data-tf-tasks-retry]')?.addEventListener('click', () => _refreshTfBlock('tf-sec-tasks'));
   }
 }
 
@@ -1214,9 +1220,9 @@ function _tfRenderSubsBlock(panel, tf, ctx) {
         accent,
         accentBorder,
         body: `
-          ${textInput({ className: 'f-name w-full mb-2', placeholder: '材料名称（必填）' })}
-          ${textInput({ className: 'f-author w-full mb-2', placeholder: '提交人（选填）' })}
-          ${textInput({ className: 'f-note w-full mb-2', placeholder: '备注（选填）' })}`,
+          ${textInput({ className: 'f-name w-full mb-2', placeholder: '材料名称（必填）', ariaLabel: '材料名称（必填）', attrs: 'required aria-required="true"' })}
+          ${textInput({ className: 'f-author w-full mb-2', placeholder: '提交人（选填）', ariaLabel: '提交人（选填）' })}
+          ${textInput({ className: 'f-note w-full mb-2', placeholder: '备注（选填）', ariaLabel: '备注（选填）' })}`,
       });
       panelEl.insertAdjacentHTML('beforeend', formHtml);
       const form = panelEl.querySelector('.record-form-shell');

@@ -275,8 +275,8 @@ async function render() {
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-1.5">
-          ${isSelf ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700">本人</span>' : ''}
-          ${isPartyStaff ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">党委只读</span>' : ''}
+          ${isSelf ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--app-accent-soft-bg)] text-[var(--app-accent-soft-text)] border border-[var(--app-accent-soft-border)]">本人</span>' : ''}
+          ${isPartyStaff ? badgeHtml('党委只读', 'neutral') : ''}
           ${isPartyStaff ? '<button type="button" id="person-rename-btn" class="btn-outline">重命名账号</button>' : ''}
         </div>
       </div>

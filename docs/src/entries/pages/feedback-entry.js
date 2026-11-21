@@ -120,6 +120,25 @@ window.__issueRouter = { showListView, showDetailView, showNewView };
     await initRoute();
     return;
   }
-  await _hydrateData();
-  initRoute();
+  // 首屏三态（2026-11-21 批次 590 · UI ⑤.1）：先出骨架，成功再渲染；失败落可重试错误态。
+  const listHost = document.getElementById('issue-list-container');
+  if (listHost) {
+    listHost.setAttribute('aria-busy', 'true');
+    listHost.innerHTML = `<div class="space-y-3" data-feedback-skeleton>${[72, 72, 72].map((h) => `<div class="rounded-lg bg-gray-100 animate-pulse" style="height:${h}px"></div>`).join('')}</div>`;
+  }
+  try {
+    await _hydrateData();
+    if (listHost) { listHost.removeAttribute('aria-busy'); listHost.innerHTML = ''; }
+    await initRoute();
+  } catch (err) {
+    console.error('[feedback] 首屏数据加载失败：', err);
+    if (listHost) {
+      listHost.removeAttribute('aria-busy');
+      listHost.innerHTML = `<div class="card card-standard flex items-center justify-between gap-2" role="alert">
+        <span class="text-sm text-[var(--status-error-text)]">意见反馈加载失败</span>
+        <button type="button" class="btn-outline btn-sm" data-feedback-retry>重新载入</button>
+      </div>`;
+      listHost.querySelector('[data-feedback-retry]')?.addEventListener('click', () => window.location.reload());
+    }
+  }
 })();

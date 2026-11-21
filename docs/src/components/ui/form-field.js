@@ -12,12 +12,17 @@ import { smoothScroll } from '../../core/base/utils.js?v=20261120a';
 
 /** 标签行（for 关联控件 id；必填星号；可选 hint 描述） */
 export function labelHtml({ id, text, required = false, hint = '' } = {}) {
-  return `<label for="${id}" class="text-xs text-gray-500 mb-1.5 block font-medium">${text}${required ? ' <span class="text-red-600">*</span>' : ''}</label>${hint ? `<p class="text-xs text-gray-500 mb-1.5 -mt-1">${hint}</p>` : ''}`;
+  return `<label for="${id}" class="text-xs text-gray-500 mb-1.5 block font-medium">${text}${required ? ' <span class="text-[var(--status-error-text)]" aria-hidden="true">*</span>' : ''}</label>${hint ? `<p class="text-xs text-gray-500 mb-1.5 -mt-1">${hint}</p>` : ''}`;
 }
 
-/** 错误行（aria-describedby 关联到控件 id-err） */
+/** 错误行（aria-describedby 关联到控件 id-err；role=alert 与浮窗同档） */
 export function errorHtml(id, error) {
-  return error ? `<p class="text-xs text-red-600 mt-1" id="${id}-err">${error}</p>` : '';
+  return error ? `<p class="text-xs text-[var(--status-error-text)] mt-1" id="${id}-err" role="alert">${error}</p>` : '';
+}
+
+/** 必填 / 报错语义（2026-11-21 批次 590 · DS_03 §4.3 必填语义）：控件侧统一产出 */
+function _a11yAttrs(required, error) {
+  return `${required ? ' required aria-required="true"' : ''}${error ? ' aria-invalid="true"' : ''}`;
 }
 
 function _fieldShell({ id, label, required, hint, error, control }) {
@@ -31,14 +36,14 @@ function _esc(s) {
 /** 单行文本字段 */
 export function textField({ id, label, value = '', placeholder = '请输入…', required = false, hint = '', error = '', name = '', autocomplete = 'off', compact = false, type = 'text' }) {
   const cls = compact ? 'input-flat w-full' : 'input-flat w-full';
-  const control = `<input type="${type}" id="${id}" name="${name || id}" autocomplete="${autocomplete}" class="${cls}${error ? ' border-red-400' : ''}" value="${_esc(value)}" placeholder="${placeholder}${placeholder.endsWith('…') ? '' : '…'}"${error ? ` aria-describedby="${id}-err"` : ''}>`;
+  const control = `<input type="${type}" id="${id}" name="${name || id}" autocomplete="${autocomplete}" class="${cls}${error ? ' border-[var(--status-error)]' : ''}" value="${_esc(value)}" placeholder="${placeholder}${placeholder.endsWith('…') ? '' : '…'}"${_a11yAttrs(required, error)}${error ? ` aria-describedby="${id}-err"` : ''}>`;
   return _fieldShell({ id, label, required, hint, error, control });
 }
 
 /** 多行文本字段 */
 export function textareaField({ id, label, value = '', placeholder = '请输入…', rows = 3, required = false, hint = '', error = '', name = '', compact = false }) {
   const cls = compact ? 'input-flat w-full resize-none' : 'input-flat w-full resize-none';
-  const control = `<textarea id="${id}" name="${name || id}" autocomplete="off" class="${cls}${error ? ' border-red-400' : ''}" rows="${rows}" placeholder="${placeholder}${placeholder.endsWith('…') ? '' : '…'}"${error ? ` aria-describedby="${id}-err"` : ''}>${_esc(value)}</textarea>`;
+  const control = `<textarea id="${id}" name="${name || id}" autocomplete="off" class="${cls}${error ? ' border-[var(--status-error)]' : ''}" rows="${rows}" placeholder="${placeholder}${placeholder.endsWith('…') ? '' : '…'}"${_a11yAttrs(required, error)}${error ? ` aria-describedby="${id}-err"` : ''}>${_esc(value)}</textarea>`;
   return _fieldShell({ id, label, required, hint, error, control });
 }
 
@@ -46,7 +51,7 @@ export function textareaField({ id, label, value = '', placeholder = '请输入�
 export function selectField({ id, label, options = [], value = '', required = false, hint = '', error = '', name = '', compact = false, placeholder = '' }) {
   const cls = compact ? 'input-flat w-full' : 'input-flat w-full';
   const opts = placeholder ? `<option value="">${placeholder}</option>` : '';
-  const control = `<select id="${id}" name="${name || id}" class="${cls}${error ? ' border-red-400' : ''}"${error ? ` aria-describedby="${id}-err"` : ''}>${opts}${options.map(o => `<option value="${o.value}" ${String(o.value) === String(value) ? 'selected' : ''}>${o.label}</option>`).join('')}</select>`;
+  const control = `<select id="${id}" name="${name || id}" class="${cls}${error ? ' border-[var(--status-error)]' : ''}"${_a11yAttrs(required, error)}${error ? ` aria-describedby="${id}-err"` : ''}>${opts}${options.map(o => `<option value="${o.value}" ${String(o.value) === String(value) ? 'selected' : ''}>${o.label}</option>`).join('')}</select>`;
   return _fieldShell({ id, label, required, hint, error, control });
 }
 

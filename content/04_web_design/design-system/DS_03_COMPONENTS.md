@@ -9,7 +9,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 
 # 第三编 组件
 
-> **回答什么问题**：某类组件长什么样、有哪些强制结构；组件层执行口径（SD-1…SD-59，SD-57…59 见 [DS_06](DS_06_LAYOUT_AND_DENSITY.md)）落到哪一条；筛选条、数字组这类「同类只有一个语法」的结构长什么样。
+> **回答什么问题**：某类组件长什么样、有哪些强制结构；组件层执行口径（SD-1…SD-67，SD-57…59 见 [DS_06](DS_06_LAYOUT_AND_DENSITY.md)）落到哪一条；筛选条、数字组这类「同类只有一个语法」的结构长什么样。
 > **不回答什么**：颜色怎么选 → [DS_01_COLOR_AND_THEME.md](DS_01_COLOR_AND_THEME.md)；字号与页面宽度 → [DS_02_TYPE_AND_SIZE.md](DS_02_TYPE_AND_SIZE.md)；悬停 / 按下 / 聚焦与窄屏 → [DS_04_INTERACTION_AND_RESPONSIVE.md](DS_04_INTERACTION_AND_RESPONSIVE.md)；判例 → [CASES.md](CASES.md)。
 > **谁什么时候读**：[工程师]+[AI]；写组件、改组件交互态、加筛选条或数字卡、核对 SD 编号与守卫映射之前读本篇。
 
@@ -268,6 +268,12 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 > ⑤ 同一 tab 内同一层级（工具条筛选/表单正文）的控件必须同档同字号——并档后此项自动成立；
 > ⑥ **高度算式显式**：控件高 = 上下内边距 + **显式行高** + 边框，五处载体（输入框 / 原生下拉 / 增强下拉触发器 × 带不带 `.text-xs` 类名）同一算式——`10+10+16+2 = 38px`。**行高必须由 `docs/src/styles.css` 声明，不得靠 UA 默认或 Tailwind CDN 的 `text-*` 工具类提供**。守卫 `server/test/filter-row.test.mjs::D1 / D2`。
 > ⑦ **表格正文与筛选器/表单同档**：`.data-table` 字号 13px、行高 1.25rem（行高 20px + 上下内边距 8px = 36px 行高）；Caption/徽标（`text-xs` 12px）不在本口径内，仍可用于状态徽标等附注文字。
+
+#### 必填语义与字段级可访问名（2026-11-21 批次 591 立 · SD-66 / SD-67）
+
+**SD-66 必填语义（字段级）**：`required: true` 的字段必须同时满足四条——① 控件出 `required` 与 `aria-required="true"`；② 标签星号标 `aria-hidden="true"`（视觉冗余不进朗读）；③ 报错行 `role="alert"` 且 id 为 `{控件 id}-err`，控件以 `aria-describedby` 指向它并置 `aria-invalid="true"`；④ 错误边取 `--status-error`，不得用调色板类。唯一出口＝`components/ui/forms.js`（`textField` / `textareaField` / `selectField` 共用 `_a11yAttrs`）。判例：`CASE-DESIGN-042`。守卫：`form-field-guard::T1 / T2 / T4`。
+
+**SD-67 筛选行字段级可访问名**：筛选行每个控件必须有字段级可访问名——`<label for>` 或 `aria-label`；首项文本（「活动：全部」）与当前值都不承担名字。原生下拉一律经 `forms.js::selectInput({ ariaLabel })` 产出，不得手写裸 `<select>`。多选 chip 组用 `role="group"` ＋ `aria-label` 命名整组。判例：`CASE-DESIGN-043`。守卫：`form-field-guard::T3`。
 
 #### 筛选行规范（2026-09-14 支书裁定）
 
@@ -979,7 +985,7 @@ icon('bell', { className: 'w-4 h-4' })
 | 4 | `--space-4` | 16px | 标准卡内边距与区块间距 |
 | 6 | `--space-6` | 24px | 页面区块间距 |
 
-行高另有语义档：`--row-compact`（32px）/ `--row-standard`（40px）/ `--row-comfortable`（48px）。
+行高另有语义档：`--row-compact`（44px）/ `--row-standard`（48px）/ `--row-comfortable`（56px）。
 字号不另造第二套：标题 14px、次级 12px 复用既有 `--text-base` / `--text-sm`。
 
 #### 4.21.2 组件采用矩阵（每个组件族只取一个档位）

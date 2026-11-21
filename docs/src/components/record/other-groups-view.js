@@ -42,10 +42,15 @@ export async function renderOtherGroupsView(container) {
   const myGroup = (PersonStore.getById(me.personId) || {}).partyGroup || null;
 
   let issues = [];
+  let issuesError = '';
   try {
     await IssueStore.loadAll();
     issues = IssueStore.getAll();
-  } catch (_) { issues = IssueStore.getAll() || []; }
+  } catch (err) {
+    console.warn('[other-groups-view] 汇报数据加载失败：', err);
+    issuesError = '汇报数据加载失败';
+    issues = IssueStore.getAll() || [];
+  }
 
   // 跨组应到 / 实到（Task 10）：优先取服务端只读汇总（`H32` 计数只在服务端算）；
   //   演示数据源或接口失败时回落「同一份已拉取数据」的本地累加（兜底不造事实）。
@@ -68,11 +73,19 @@ export async function renderOtherGroupsView(container) {
   };
   const groups = listPartyGroups({ members, branchId }).filter(g => g.groupName !== myGroup);
 
-  container.innerHTML = groups.length
+  const errStrip = issuesError
+    ? `<div class="card rounded-xl card-standard flex items-center justify-between gap-2 mb-3">
+         <span class="text-sm text-[var(--status-error-text)]">${issuesError}</span>
+         <button type="button" class="btn-outline btn-sm" data-og-retry>重新载入</button>
+       </div>`
+    : '';
+  container.innerHTML = `${errStrip}${groups.length
     ? `<div class="space-y-3">${groups.map(g => _cardHtml(g, ctx)).join('')}</div>`
     : `<div class="card rounded-xl card-standard">
          ${emptyStateHtml({ variant: 'panel', text: `支部暂无其他党小组${myGroup ? `（你所在：「${myGroup}」）` : ''}` })}
-       </div>`;
+       </div>`}`;
+  const retryBtn = container.querySelector('[data-og-retry]');
+  if (retryBtn) retryBtn.addEventListener('click', () => renderOtherGroupsView(container));
 }
 
 /** 单组只读卡（组长 / 党员数 · 待答复汇报 · 复盘状态 · 活动与考勤 · 考察汇总 · 组员进展摘要） */

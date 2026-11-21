@@ -151,7 +151,7 @@ related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONEN
 | 点哪里去哪、可点击性规范、承载面唯一性 | DS_05 | §10.1–§10.7 |
 | 首屏浏览顺序（主对象优先、说明后置） | DS_05 | §10.5 |
 | 帮助注释与界面文案规范 | DS_03 | §4.24 / §4.18 |
-| 组件层执行口径 SD-1…SD-65（SD-57…59 见 DS_06；SD-62…65 正文在 `contracts/*` 与 `module/*`） | DS_03 / DS_06 | §12.1–§12.16 / §二 |
+| 组件层执行口径 SD-1…SD-67（SD-57…59 见 DS_06；SD-62…65 正文在 `contracts/*` 与 `module/*`；SD-66…67 正文在 DS_03 §4.3） | DS_03 / DS_06 | §12.1–§12.16 / §二 / §4.3 |
 | 未登录公开面出什么（门厅、匿名字段白名单） | DS_03 §12.15（SD-62）＋ `module/PUBLIC_ENTRANCE.md` | §二–§六 |
 | 待办 / 今天点击去哪、未命中怎么办 | DS_03 §12.15（SD-63）＋ `contracts/INTERACTION_AND_NAVIGATION_CONTRACT.md` | §一–§二 |
 | 「拟上会」事项按哪一档上会 | DS_03 §12.15（SD-64）＋ `contracts/AGENDA_DERIVATION_CONTRACT.md` | §一–§三 |

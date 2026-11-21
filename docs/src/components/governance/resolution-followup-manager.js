@@ -67,7 +67,7 @@ function _cardHtml(activity, item, { canManage }) {
       <p class="text-body-sm text-gray-500">保存即生成责任人跟进待办：到期当天可见（催办），逾期自动进支书工作台待办督办。</p>
     </div>` : '';
   return `
-    <div class="fu-card rounded-xl border border-gray-200 bg-white p-3.5 mt-3" data-activity-id="${esc(activity.id)}" data-item-id="${esc(item.id)}">
+    <div class="fu-card rounded-xl border border-gray-200 bg-white p-4 mt-3" data-activity-id="${esc(activity.id)}" data-item-id="${esc(item.id)}">
       <div class="flex items-center gap-2 mb-2 flex-wrap">
         <p class="font-title-cn text-xs font-bold text-gray-800">决议落实：${esc(item.item || '(未命名议题)')}</p>
         ${chip}

@@ -35,15 +35,15 @@ function _activePropTasks() {
 const TASK_STATUS_FLOW = { pending: 'in_progress', in_progress: 'submitted' };
 const TASK_STATUS_LABEL = { pending: '待接收', in_progress: '进行中', submitted: '已提交' };
 const TASK_STATUS_STYLE = {
-  pending: 'bg-amber-50 text-[var(--status-warning-text)] border-amber-200',
-  in_progress: 'bg-blue-50 text-blue-700 border-blue-200',
-  submitted: 'bg-green-50 text-green-700 border-green-200',
+  pending: 'bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] border-[var(--badge-warning-border)]',
+  in_progress: 'bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] border-[var(--badge-info-border)]',
+  submitted: 'bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] border-[var(--badge-success-border)]',
 };
 const TASK_TYPE_STYLE = {
-  '素材归档': 'bg-purple-50 text-purple-700',
-  '新闻稿': 'bg-rose-50 text-rose-700',
-  '推送排版': 'bg-sky-50 text-sky-700',
-  '周期归档': 'bg-teal-50 text-teal-700',
+  '素材归档': 'bg-[var(--neutral-50)] text-gray-700',
+  '新闻稿': 'bg-[var(--neutral-50)] text-gray-700',
+  '推送排版': 'bg-[var(--neutral-50)] text-gray-700',
+  '周期归档': 'bg-[var(--neutral-50)] text-gray-700',
 };
 // 登记表单可选的类型（与任务卡胶囊样式同一套取值）
 const TASK_CREATE_TYPES = ['素材归档', '新闻稿', '推送排版', '周期归档'];
@@ -242,7 +242,7 @@ function _renderTaskCard(task, activityMap = new Map()) {
     : '';
   // 批次 358（`D-751`）：行内「作废（软）」键（软作废 · 留痕 · 默认列表出列；原因必填在弹窗单一源里）
   const voidBtn = `<button class="btn-outline btn-sm prop-task-void-btn mt-1" data-task-id="${task.id}">作废</button>`;
-  const typeStyle = TASK_TYPE_STYLE[task.type] || 'bg-gray-50 text-gray-700';
+  const typeStyle = TASK_TYPE_STYLE[task.type] || 'bg-[var(--neutral-50)] text-gray-700';
   const statusStyle = TASK_STATUS_STYLE[task.status];
   const activity = task.activityId ? activityMap.get(task.activityId) : null;
   const related = activity ? ` · 关联：${escHtml(activity.title || '未命名活动')}` : '';

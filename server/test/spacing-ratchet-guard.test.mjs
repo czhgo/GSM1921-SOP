@@ -12,7 +12,7 @@ import { join, relative } from 'node:path';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const SRC = join(ROOT, 'docs', 'src');
-const FREE_SPACING_BASELINE = 1245;
+const FREE_SPACING_BASELINE = 1192;
 const DARK_TEXT_BASELINE = 22;
 
 function walk(dir, out = []) {

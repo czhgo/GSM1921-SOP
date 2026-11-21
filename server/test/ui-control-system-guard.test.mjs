@@ -171,7 +171,9 @@ test('SD-1 控件类单一源：input/select/textarea 必须挂 .input-flat(.inp
   }
 
   // 非空转：控件面必须够大（口径写坏 / 面被截断 ⇒ 断言恒真）
-  assert.ok(total >= 200, `扫描到的控件只有 ${total} 个（下限 200）：SD-1 的扫描面被写坏`);
+  // 2026-11-21 批次 591：考勤筛选行活动下拉由裸 `<select>` 改为 `selectInput(...)`（SD-67），
+  //   字面控件少 1 个 ⇒ 下限随实测下调 1（仍远高于「面被截断」的量级，非空转能力不变）。
+  assert.ok(total >= 199, `扫描到的控件只有 ${total} 个（下限 199）：SD-1 的扫描面被写坏`);
   // 白名单本身就是口径的一部分：每条至少命中一次，否则是僵尸白名单
   for (const [token, n] of whitelistHits) {
     assert.ok(n >= 1, `SD-1 白名单「${token}」一次都没命中（僵尸白名单，应删或改判据）`);

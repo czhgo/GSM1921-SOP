@@ -416,8 +416,8 @@ function agendaSectionHtml(act) {
   const canVote = !!me && voterIds.includes(me.personId);
   const items = (act.agenda || []).filter((a) => a && a.item);
   const stepBadge = (a) => a.agendaStep === 'discussion'
-    ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-indigo-700 bg-indigo-50">讨论项</span>'
-    : (a.agendaStep === 'vote' ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-rose-700 bg-rose-50">表决项</span>' : '');
+    ? badgeHtml('讨论项', 'info')
+    : (a.agendaStep === 'vote' ? badgeHtml('表决项', 'warning') : '');
   if (!items.length) {
     return `
       <div class="card rounded-xl card-standard">
@@ -426,7 +426,7 @@ function agendaSectionHtml(act) {
       </div>`;
   }
   const rows = items.map((a, i) => `
-    <div class="rounded-xl border border-gray-100 p-3.5">
+    <div class="rounded-xl border border-gray-100 p-4">
       <div class="flex items-start gap-2 text-sm">
         <span class="text-xs text-gray-500 flex-shrink-0 w-5 pt-0.5">${i + 1}.</span>
         <div class="flex-1 min-w-0">
@@ -494,12 +494,12 @@ function resultSectionHtml(act, votes) {
     // （母本「在审议时确定」）——判据单一源在 branch-doc.js::isInstitutionDraftAgendaItem。
     const instDraft = canRecord && !isDiscussion && isInstitutionDraftAgendaItem(decisionSource, mockDB.branchDocs || []);
     return `
-      <div class="rounded-xl border border-gray-100 p-3.5">
+      <div class="rounded-xl border border-gray-100 p-4">
         <div class="flex items-start gap-2">
           <span class="text-xs text-gray-500 flex-shrink-0 w-5 pt-0.5">${i + 1}.</span>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-gray-700">${esc(a.item)}</p>
-            ${a.agendaStep === 'discussion' ? '<span class="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-xs font-medium text-indigo-700 bg-indigo-50">讨论项</span>' : (a.agendaStep === 'vote' ? '<span class="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-xs font-medium text-rose-700 bg-rose-50">表决项</span>' : '')}
+            ${a.agendaStep === 'discussion' ? badgeHtml('讨论项', 'info') : (a.agendaStep === 'vote' ? badgeHtml('表决项', 'warning') : '')}
             ${agendaItemTypeBadgeHtml(a)}
             ${a.discussionAgendaItemId ? `<p class="text-body-sm text-gray-500 mt-1">对应讨论：${esc((act.agenda || []).find((item) => item.id === a.discussionAgendaItemId)?.item || '议程关系无效')}</p>` : ''}
             <p class="text-body-sm text-gray-500 mt-1">表态记录：${esc(detail)}</p>

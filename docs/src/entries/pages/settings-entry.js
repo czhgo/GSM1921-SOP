@@ -576,7 +576,7 @@ function renderBranchInfoCard(panel, br, branch) {
         <b>改名 / 改自述，去哪改</b>：官方名与类别归党委（党委台「支部管理」）；页眉名、自述、主题与模块组合在本页「打开换组织向导」内改。
       </div>
     </div>
-    <div class="card rounded-xl p-4 mt-4 flex flex-col sm:flex-row sm:items-center gap-3.5">
+    <div class="card rounded-xl p-4 mt-4 flex flex-col sm:flex-row sm:items-center gap-4">
       <span class="w-[42px] h-[42px] shrink-0 flex items-center justify-center rounded-xl bg-[var(--app-accent-soft-bg)] text-[var(--app-accent-soft-text)]">${icon('flag', { className: 'icon-base w-5 h-5' })}</span>
       <div class="flex-1 min-w-0">
         <b class="block text-sm text-gray-800 leading-snug">换组织向导（支部信息 / 模块组合 / 分工 / 术语）</b>

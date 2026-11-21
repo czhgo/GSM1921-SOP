@@ -1181,10 +1181,8 @@ export function renderDataSourceError(detail, opts = {}) {
   });
   box.appendChild(title); box.appendChild(p1); box.appendChild(p2); box.appendChild(btn);
   if (detail) {
-    const d = document.createElement('p');
-    d.textContent = `技术详情：${detail}`;
-    d.style.cssText = 'font-size:0.75rem;color:var(--neutral-400);margin:0.75rem 0 0;word-break:break-word';
-    box.appendChild(d);
+    // 2026-11-21 批次 591：原始异常只进控制台，不再作为「技术详情」展示给终端用户（DS_04 §5.9）
+    try { console.error('[data-source]', detail); } catch (_) { /* 忽略 */ }
   }
   wrap.appendChild(box);
   document.body.appendChild(wrap);

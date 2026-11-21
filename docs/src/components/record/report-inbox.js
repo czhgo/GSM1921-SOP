@@ -131,7 +131,7 @@ export function renderReportInboxHtml({
   // 保留绿色圆点「已全部答复」语义（不突兀：与相邻卡空态行同高，无底色整条）
   const emptyBox = `
     <p class="text-xs text-gray-500 py-1 flex items-center gap-1.5">
-      <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> ${escHtml(emptyMsg)}
+      <span class="w-2 h-2 rounded-full bg-[var(--status-success)] flex-shrink-0"></span> ${escHtml(emptyMsg)}
     </p>`;
 
   if (!list.length) {

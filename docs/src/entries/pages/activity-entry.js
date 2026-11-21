@@ -655,11 +655,11 @@ async function renderActivity(id) {
   const voteAgenda = agendaList.filter(a => a && a.id && a.agendaStep !== 'discussion');
   const isAsyncVote = !readOnly && !!currentUser && act.voteConfig?.mode === 'async' && voteAgenda.length > 0;
   const agendaResultBadge = (r) => (r
-    ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium ${r === 'passed' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">${r === 'passed' ? '已通过' : '未通过'}</span>`
+    ? badgeHtml(r === 'passed' ? '已通过' : '未通过', r === 'passed' ? 'success' : 'danger')
     : '');
   const agendaStepBadge = (a) => a.agendaStep === 'discussion'
-    ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-indigo-700 bg-indigo-50">讨论项</span>'
-    : (a.agendaStep === 'vote' ? '<span class="tint-fill inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium" data-tone="red">表决项</span>' : '');
+    ? badgeHtml('讨论项', 'info')
+    : (a.agendaStep === 'vote' ? badgeHtml('表决项', 'warning') : '');
   const relatedDiscussionLabel = (a) => {
     const discussion = a.discussionAgendaItemId ? agendaList.find((item) => item.id === a.discussionAgendaItemId) : null;
     return discussion ? `对应讨论：${esc(discussion.item)}` : '';

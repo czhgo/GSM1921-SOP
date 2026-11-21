@@ -387,6 +387,15 @@ async function _fillPendingReports(container, personId, onNav) {
       .map(id => IssueStore.getById(id)).filter(Boolean).slice(0, 3);
   } catch (err) {
     console.warn('[today-tab] 待处理汇报读取失败：', err);
+    // 读口失败不得静默成空（批次 590 · UI ⑤.1）：给可重试提示，不伪装成「无汇报」。
+    const strip = document.createElement('div');
+    strip.className = 'px-1 py-2 flex items-center gap-2';
+    strip.innerHTML = '<span class="text-xs text-[var(--status-error-text)]">汇报加载失败</span><button type="button" class="btn-outline btn-sm">重试</button>';
+    strip.querySelector('button').addEventListener('click', () => {
+      strip.remove();
+      _hydrateReportRows(groupsHost, personId);
+    });
+    groupsHost.appendChild(strip);
     return;
   }
   if (!issues.length) return;
