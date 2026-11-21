@@ -1,4 +1,4 @@
-﻿﻿# Checklist
+# Checklist
 
 ## 状态语言
 

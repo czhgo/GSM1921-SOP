@@ -38,7 +38,9 @@ const SNAPSHOT = join(ROOT, '.ctx', 'SNAPSHOT.md');
 const README = join(ROOT, 'README.md');
 const README_SERVER = join(ROOT, 'README-server.md');
 
-const read = (f) => readFileSync(f, 'utf8');
+// 单个 BOM 是编码标记（`.ctx` 与部分 content 文件自带），不是正文；解析前统一剥掉，
+//   否则 `^---` 锚点失效会把「有 frontmatter」误判成「无 frontmatter」（2026-11-21 批次 593 修）。
+const read = (f) => readFileSync(f, 'utf8').replace(/^\uFEFF/, '');
 
 /** 遍历目录下的 .js / .mjs（守卫扫描用） */
 function walkJs(dir, out = []) {

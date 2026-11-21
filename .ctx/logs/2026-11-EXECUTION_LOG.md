@@ -10,7 +10,27 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 593（2026-11-21）· 状态复原 ＋ BOM 唯一性守卫（D-903）
+
+### 为什么
+- 23:48–23:49 一批写入把 4 个文件改回旧值并累加 BOM，另 59 个文件被改成 CRLF；工作树不可信，必须先复原。
+
+### 拿不准 / 取舍
+- **只 checkout 不 reset**：先逐文件看 `git diff`（两处 `DECISION_LOG` 索引行仍是 75 条 / `D-901`、`TIMESTAMPS` 末行被截断、BOM 1→3），确认无新内容后 `git checkout -- <4 文件>`，再 `git checkout -- .` 清 59 条行尾噪声。
+- **存量 BOM 一并归一**：守卫首次运行即抓出 10 个存量文件带 2–8 个 BOM（`tab-loading.css`、`.ctx/logs/archive/2026-10/specs/**` 8 份、`backup.ps1` 8 个）；统一为「`.ps1` 留单 BOM，其余 0 BOM」。
+- **`doc-consistency` 的 `read()` 剥单 BOM**：否则 S13 把有 frontmatter 的 `.ctx` 两行判成「无 frontmatter」。
+
+### 边界
+- 不把 BOM 一律禁用（PowerShell 5.1 读非 ASCII `.ps1` 需要单 BOM）。
+- 不把 59 条 CRLF 噪声提交成「行尾归一」（`core.autocrlf=true` 下无内容差异，提交只会污染 blame）。
+
+### 读数
+- 复原后 `git status --porcelain` = 0；`ACTIVE_CONTEXT` 头部 = `EF BB BF 2D 2D 2D`。
+- `bom-and-eol-guard` 3/3；doc-consistency 21/21、ctx-hygiene 12/12、docs-governance 31/31、test-tier 7/7（74/74）；daily **265 / 118.4s**。
+
 ## 批次 592（2026-11-21）· 前端 lens 清账（D-902）
+
+
 
 ### 为什么
 - 支书要求前端单独用 parallel agents 对照既有原则 / 规则 / 判例查不一致；两个 lens 报 20 条，裁定「19 条一次修完」。

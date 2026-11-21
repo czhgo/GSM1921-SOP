@@ -1,4 +1,4 @@
-﻿﻿# Checklist
+# Checklist
 
 ## 色板
 

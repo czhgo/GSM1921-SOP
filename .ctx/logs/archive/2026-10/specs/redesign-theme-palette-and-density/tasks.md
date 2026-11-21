@@ -1,4 +1,4 @@
-﻿﻿# Tasks
+# Tasks
 
 > 实施顺序：先定色板（设计任务）→ 数据与注入 → CSS/JS 消费方 → 主题预览 → 密度与间距 → 交互态 → 触屏底线 → 守卫与三次验证。
 > 设计任务必须使用 `frontend-design`、`better-colors`、`web-design-guidelines`；先出表、再写代码。

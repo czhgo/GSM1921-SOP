@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-902`，共 76 条**；下一条自 **`D-903`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-903`，共 77 条**；下一条自 **`D-904`**。
 
 ## 本月目录（2026-11）
 
@@ -96,6 +96,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 前端一致性收口：两条表单 SD（SD-66/67）＋ 错误态可操作化 ＋ 行高压准 | `D-900` | 2026-11-21 | 已落（批次 590） |
 | 清账门 H50.3 ＋ `open-items-guard`；外部门单列 EA §四；旧计划归档；service:ensure | `D-901` | 2026-11-21 | 已落（批次 591） |
 | 前端 lens 清账：16 条按规则修、1 条冻结、3 条不成立；表态单一写口（服务端待裁） | `D-902` | 2026-11-21 | 已落（批次 592） |
+| 工作树复原（4 文件回 HEAD）＋ BOM 唯一性守卫；存量 10 文件 BOM 归一 | `D-903` | 2026-11-21 | 已落（批次 593） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -763,5 +764,16 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：guards **127 文件 / 893 断言全绿（140.2s）**；daily **265 / 108.5s**；`localstorage-key-guard` 删 `gsm1921-issue-cache` 僵尸登记后 10/10。
 > **落点**：`docs/src/**`（约 15 文件）、`server/test/localstorage-key-guard.test.mjs`、`docs/src/data/cache-registry.js`、`.ctx/REVIEW_QUEUE.md`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-902`**（共 **76** 条）。
+## D-903 2026-11-21 — 工作树复原与 BOM 唯一性守卫（批次 593）
+
+> **事实 → 裁定 → 落点**：23:48–23:49 一批写入把 4 个文件改成旧值并累加 BOM（`ACTIVE_CONTEXT` / `backup-daily.ps1` 各 3 个 BOM；`TIMESTAMPS` / `DECISION_LOG` 回退到 `D-901`；`TIMESTAMPS` 末行被截断），另有 59 个文件被改成 CRLF（无内容差异），同批 `server/test/**` 整批重写。
+> - **裁定**：以 HEAD（`725591797`，`D-902`）为唯一正确版本；只对 4 个文件 `git checkout`，再 `git checkout -- .` 清行尾噪声；不做 `reset --hard`、不做 `git clean`。
+> - **实测**：复原后 `git status --porcelain` = 0；`ACTIVE_CONTEXT` 头部回到单 BOM ＋ `---`。
+> - **根因与防复发**：PowerShell `Set-Content -Encoding UTF8` 反复重写会累加 BOM（本次在 10 个存量文件里也测到 2–8 个 BOM：`tab-loading.css`、`.ctx/logs/archive/2026-10/specs/**` 8 份、`server/scripts/backup.ps1` 8 个）。新增 `bom-and-eol-guard`（3 条：BOM 唯一性 / frontmatter 锚点 / 反例自证），并把存量 10 个文件统一为「`.ps1` 保留单 BOM，其余 0 BOM」。
+> - **顺手修**：`doc-consistency` 的 `read()` 不剥单 BOM，导致 S13 把有 frontmatter 的 `.ctx` 文件误判为「无 frontmatter」（2 行红）；改为解析前剥掉可选单 BOM。
+> **未选**：把 BOM 一律禁用（PowerShell 5.1 读非 ASCII `.ps1` 需要单 BOM）；把 CRLF 噪声提交成一次「行尾归一」（会污染 blame，且 `core.autocrlf=true` 下无内容差异）。
+> **读数**：`bom-and-eol-guard` 3/3；`doc-consistency` 21/21、`ctx-hygiene` 12/12、`docs-governance` 31/31、`test-tier-guard` 7/7（74/74 合计）；daily **265 / 118.4s**。
+> **落点**：`server/test/bom-and-eol-guard.test.mjs`、`server/test/doc-consistency.test.mjs`、`server/test-tier-registry.mjs`（128 文件 / 896 断言）、10 个存量 BOM 文件。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-903`**（共 **77** 条）。
 
