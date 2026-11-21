@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: 2026-11-21
 last_verified: "2026-11-21"
-latest_decision: "D-903"
+latest_decision: "D-904"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -30,7 +30,7 @@ status: active
 - **六维（`D-883` 重校，批次 589 · `D-899` 复核未变）**：业务 **80** / 安全 **78** / 体验 **79** / 测试 **73** / 架构 **76** / 部署 **71**；**只作诊断，不单独阻断本机合并**（`D-894` 两段门槛）。未闭：CI 无 run id、`test:full` 未整体重跑、Linux 真机未验（L-02）、D2 计数对账仅 3 页签、C2 写口往返 0 pass、真人签收未完成。
 - **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（2026-11-21 批次 589 实跑）；审计工具已修复（URL 跟随无后缀 canonical、登录失败 `exit 2`）。F1–F8 全绿；M1–M3 在位。
   - source：`.ctx/evidence/2026-11-21/tab-audit/summary.md`（原始截图与 findings.json 可重跑再生，未入库）。
-- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **32 文件 / 265 断言 / 108.5s**（结果门禁，2026-11-21 批次 592 读数）；guards **127 文件**（registry 登记；静态调用点 893 / 预算 893；E4 真机装配已扩到 8 页、属 precommit 层）；precommit＝daily＋guards＋非核心域回归＋e2e；`test:full` 最近读数 **1779.0s**（三通道各 1 红已逐文件分诊并修复，**未整体重跑**）；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
+- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **32 文件 / 265 断言 / 108.5s**（结果门禁，2026-11-21 批次 592 读数）；guards **128 文件**（registry 登记；静态调用点 898 / 预算 898；E4 真机装配已扩到 8 页、属 precommit 层）；precommit＝daily＋guards＋非核心域回归＋e2e；`test:full` 最近读数 **1779.0s**（三通道各 1 红已逐文件分诊并修复，**未整体重跑**）；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
   - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859 / §D-860 / §D-863 / §D-864`。
 - **工程评分（`D-883`，2026-11-19 保守重校）**：业务与数据 **80** · 安全与权限 **78** · 最小三成本 **79** · 测试与发布 **73** · 架构与可维护性 **76** · 运行部署 **71**；不设平均总分；分数只作诊断（`D-894`）。
   - source：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/logs/2026-11-DECISION_LOG.md §D-883`。
@@ -87,6 +87,8 @@ status: active
 - **前端一致性收口（`D-900`，批次 590）**：议程项 / 发起 / 讨论项徽章统一 `badgeHtml(..., 'info')`；错误态一律可操作（重试 / 点选重读）且不透 HTTP 码；`person-edit-modal` 失败原因留在浮窗；新增 SD-66 必填语义 / SD-67 筛选行可访问名 ＋ `CASE-DESIGN-042/043` ＋ `form-field-guard`；`DS_03 §4.21.1` 行高压准 44/48/56。→ `docs/src/**`、`DS_03 §4.3`、`server/test/form-field-guard.test.mjs`。
 - **清账门与防留尾巴（`D-901`，批次 591）**：`CLAUDE H50.3` 立「计划收尾清账门」（四类 open 源四态处置）；新增 `open-items-guard`（REVIEW_QUEUE 无「已闭环」行 / 乙部四要素 / 计划未勾项须 parked 或 archived / EA 外部门四项列全 / 反例自证）；`EA §四` 增「外部门」单表（L-02 / CI / 签收 / SMTP，责任人均为支书）；旧计划 9 项核验逐条结论后 `status: archived`；`npm run service:ensure`（停服 4s 内恢复 200，H20.1 第 0 步）。→ `CLAUDE.md`、`.ctx/ENGINEERING_ASSESSMENT.md`、`server/scripts/ensure-service.mjs`、`server/test/open-items-guard.test.mjs`。
 - **前端 lens 清账（`D-902`，批次 592）**：两个独立 lens 报 20 条 → 按规则修 16 条（手拼徽章、tone 矛盾、令牌底、动作按钮族、H32 预载失败重试、表态单一写口、赋权双跳转、可访问名、日历浮层 dialog）；About 冻结件 1 条不动；3 条判不成立（既有裁定 / 误报）。→ `docs/src/**`、`REVIEW_QUEUE B-592-1`（表态上服务端待裁）。
+- **工作树复原与 BOM 守卫（`D-903`，批次 593）**：23:48 一批写入把 4 文件改回旧值并累加 BOM、59 文件改 CRLF ⇒ 以 HEAD 为唯一正确版本（只 `checkout`，不 `reset --hard`）；新增 `bom-and-eol-guard`（BOM 唯一性 / frontmatter 锚点 / 反例），存量 10 文件 BOM 归一（`.ps1` 留单 BOM）。→ `server/test/bom-and-eol-guard.test.mjs`、`server/test-tier-registry.mjs`。
+- **`.trae` 宣称对账（`D-904`，批次 594）**：`.trae` 被 gitignore、不可回滚 ⇒ 结论就地写回；24 份计划 ＋ 18 个 spec 按四态（已实现 / 已被覆盖 / 外部门 / 作废）逐条判定并 `status: archived`；24 行未勾项逐行 `concluded`；`open-items-guard` 增 ⑥⑦（归档件仍留无结论未勾项即红 ＋ 反例）。→ `.trae/**`、`server/test/open-items-guard.test.mjs`。
 
 ## §3 当前风险与下一步
 

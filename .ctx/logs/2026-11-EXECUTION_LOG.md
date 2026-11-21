@@ -10,6 +10,75 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 594（2026-11-21）· `.trae` 宣称对账：24 计划 ＋ 18 spec 逐条判定（D-904）
+
+### 为什么
+- 支书要求「确保 `.trae` 中所有文档宣称的工作在结果上已实现，重叠取最后一次状态」；`.trae/` 整目录被 gitignore（`!! .trae/`），既不可回滚也不备份，只能就地把结论写回文档。
+
+### 拿不准 / 取舍
+- **判定四态**：已实现 / 已被后续覆盖 / 外部门 / 作废；不给「部分完成」这种无法机检的档。
+- **就地标注**：无 frontmatter 的 21 份计划与 15 个 spec 补 `status: archived` ＋ `archived_at` ＋ 一句话 `archived_note`；已有 frontmatter 的改写 `status`；正文一字不改。
+- **未勾项逐行 `concluded`**：24 行 `- [ ]` 按「哪一条真没做、归谁」逐行给结论，不做批量猜测；原勾选状态保留作审计痕迹。
+- **守卫加强而非放水**：`open-items-guard` 新增「归档件仍留无结论未勾项即红」——只写 `status: archived` 不能掩盖未勾项，归档声明必须与内容自洽。
+- **`.trae/specs/_TEMPLATE` 豁免**：模板样板，不是计划。
+
+### 边界
+- 不把外部门事项伪装成「已实现」：Linux 真机（L-02）、CI run id、SMTP 实投、移动端三任务（M-01）、真人签收一律记外部门，归 `EA §四`。
+- 不按文档日期排优先级：同一事项以批次 590–593 的 `ACTIVE_CONTEXT` 与 `D-900`–`D-903` 为准。
+
+### 对账总表（判定 ＋ 证据）
+
+| 计划 / spec | 判定 | 证据 |
+|---|---|---|
+| documents · 2026-10-27-batch-516-backlog-triage | 已实现 | 无未勾项；H26 / H50.1 台账口径现行为准 |
+| documents · 2026-10-27-context-slimming | 已实现 | CLAUDE.md 三层结构 + `.ctx` 白名单（H26.3） |
+| documents · 2026-11-01-ui-semantics-focus-and-inputs | 已实现 | `forms.js` 单一出口 + focus 守卫 |
+| documents · 2026-11-02-audit-consolidation-and-cutover | 已实现 | 批次 527 换轨读数；9 条未勾项为历史留痕（原文件结论表） |
+| documents · 2026-11-02-tab-audit-asset | 已实现 | `audit-tabs --all` 常驻；D-899 P0/P1/P2 = 0 |
+| documents · 2026-11-03-claude-constitution-slimming | 已实现 | CLAUDE.md ≤600 行 / ≤85KB 预算 |
+| documents · 2026-11-03-ctx-knowledge-context-detour | 已实现 | `.ctx` = 仓库，active context 两文件（H26） |
+| documents · 2026-11-07-claude-layering-notice-audience-ui-audit | 已实现 | 证据 `2026-11-07/notice-audience-gap.md`、`ui-audit.md`；通知 fail-closed |
+| documents · 2026-11-08-doc-system-and-dimension-improvements | 已实现 | 六维口径归 EA §一；`DOC_MAP` 现行 |
+| documents · 2026-11-08-test-slimming-and-score-gradients | 已实现 | `test-tier-registry.mjs` 单一源 + 四层 runner |
+| documents · 2026-11-09-ux-deploy-score-and-todo-integrity | 已实现（部署项外部门） | 体验 / 待办已落；部署项 L-02 归 `EA §四` |
+| documents · 2026-11-10-frontend-ia-navigation-agenda-tables | 已实现 | D-864 增量；议程分类单源 |
+| documents · 2026-11-10-thorough-frontend-audit | 已实现 | D-899 全量审计 P0/P1/P2 = 0 |
+| documents · 2026-11-11-service-restore-cleanup-and-d866 | 已实现 | `service:ensure` 守护；对象模型提案转 EA（D-865） |
+| documents · 2026-11-12-fullstack-audit-committee-leader-commissioner | 已实现 | 发现并入批次 541 台账（D-864） |
+| documents · 2026-11-13-unfinished-and-ledger-residue-closeout | 已实现 | 本批 594 对账为最终承接 |
+| documents · 2026-11-21-repo-state-reconciliation（本计划） | 已实现 | 三批 593 / 594 / 595（本文件三节） |
+| documents · clear-remaining-unconditional-items | 已实现 | 无未勾项；结论由批次 588–592 清账承接 |
+| documents · commit-merge-and-six-dim-recalibration | 已实现 | D-883 重校 / D-899 复核；六维当前值在 EA §一 |
+| documents · fix-residual-e2e-and-wizard-scope | 已实现 | 无未勾项；e2e 由 precommit 层承接（H25） |
+| documents · independent-audit-frontend-density-and-asset-harness | 已实现 | 证据 `2026-11-21/density-8pages.md` |
+| documents · repo-convergence-and-rule-completeness | 已实现 | H10.4 扩充规则五条 |
+| documents · repo-wide-clearance-frontend-consistency-and-escape-guard | 已实现 | 批次 590（D-900） |
+| documents · repo-wide-clearance-secretary-deputy-and-aesthetic-harness | 已实现 | 批次 590–592（D-900 / D-902） |
+| specs · add-committee-activities-and-public-portal | 已实现 | 公开门厅 fail-closed（D-864，批次 541） |
+| specs · clarify-claude-constitution-layers | 已实现 | H10–H100 三层正文在位 |
+| specs · close-frontend-gaps-and-freeze-about | 已实现 | 批次 590–592；`about-freeze-guard` 在位 |
+| specs · close-six-dim-gaps | 混合（外部门 5 · 已排批次 1 · 已实现 2） | checklist 7 行 + tasks 12 行逐行 `concluded` |
+| specs · consolidate-tab-density-and-filter-bars | 已实现 | SD-57/58/59 + `audit-tabs` 密度读数 |
+| specs · harden-commit-pr-and-ledger-discipline | 已实现（push/PR 外部门） | H20.3 模板 + `check-batch-commits` 门禁 |
+| specs · harden-cross-layer-correctness | 已实现 | 契约 / 守卫 / 迁移同批（H30 / H32） |
+| specs · harden-interface-quality | 已实现 | `2026-11-21/density-8pages.md`（批次 588） |
+| specs · harden-launch-and-permissions | 混合（外部门 4 · 已被覆盖 3 · 已实现 2） | 逐行 `concluded`；PR 凭据归 `EA §四` |
+| specs · polish-shell-and-display-truth | 已实现 | 外壳统一 + 展示真值（批次 590） |
+| specs · refine-aesthetic-two-lenses | 已实现 | 两镜评审结论进 `DS_03` / `CASES` |
+| specs · repair-field-mismatch-and-refresh-help | 已实现 | 字段对齐 + help 页刷新 |
+| specs · rerun-frontend-design-audit | 已实现 | `audit-tabs --all` 常驻 |
+| specs · restore-accent-and-audit-hardcode | 已实现 | 色令牌棘轮（`style-baseline`） |
+| specs · slim-density-and-service-cost | 已实现 | `service:ensure` + 密度读数 |
+| specs · sweep-p0-and-stack-audit | 已实现 | D-899 P0/P1/P2 = 0 |
+| specs · unify-focus-and-interaction | 已实现 | focus 守卫 + 统一交互口径 |
+| specs · unify-ui-signals-and-server-todo-derivation | 已实现 | `todo-derive-instrument-guard` |
+
+### 读数
+- `.trae/documents` 24 份：23 份 `status: archived` ＋ 本计划 `status: active`（批次 595 收尾时转 archived）。
+- `.trae/specs` 18 个（`_TEMPLATE` 豁免）：全部 `status: archived`；24 行未勾项逐行 `concluded`，0 行无结论。
+- `open-items-guard` 7/7（新增 ⑥ 归档自洽、⑦ 反例）；`test-tier-guard` 7/7；`doc-consistency` 21/21。
+- guards **128 文件 / 898 断言全绿（154.7s）**。
+
 ## 批次 593（2026-11-21）· 状态复原 ＋ BOM 唯一性守卫（D-903）
 
 ### 为什么

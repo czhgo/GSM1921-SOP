@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-903`，共 77 条**；下一条自 **`D-904`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-904`，共 78 条**；下一条自 **`D-905`**。
 
 ## 本月目录（2026-11）
 
@@ -97,6 +97,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 清账门 H50.3 ＋ `open-items-guard`；外部门单列 EA §四；旧计划归档；service:ensure | `D-901` | 2026-11-21 | 已落（批次 591） |
 | 前端 lens 清账：16 条按规则修、1 条冻结、3 条不成立；表态单一写口（服务端待裁） | `D-902` | 2026-11-21 | 已落（批次 592） |
 | 工作树复原（4 文件回 HEAD）＋ BOM 唯一性守卫；存量 10 文件 BOM 归一 | `D-903` | 2026-11-21 | 已落（批次 593） |
+| `.trae` 宣称对账：24 计划 ＋ 18 spec 逐条判定；归档件未勾项须逐行 `concluded` | `D-904` | 2026-11-21 | 已落（批次 594） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -775,5 +776,16 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：`bom-and-eol-guard` 3/3；`doc-consistency` 21/21、`ctx-hygiene` 12/12、`docs-governance` 31/31、`test-tier-guard` 7/7（74/74 合计）；daily **265 / 118.4s**。
 > **落点**：`server/test/bom-and-eol-guard.test.mjs`、`server/test/doc-consistency.test.mjs`、`server/test-tier-registry.mjs`（128 文件 / 896 断言）、10 个存量 BOM 文件。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-903`**（共 **77** 条）。
+## D-904 2026-11-21 — `.trae` 宣称对账：判定四态 ＋ 归档自洽守卫（批次 594）
+
+> **评议 → 裁定 → 落点**：支书要求「`.trae` 所有文档宣称的工作在结果上已实现，重叠取最后一次状态」⇒ `.trae/` 被 gitignore、不可回滚也不备份，结论只能就地写回。
+> - **裁定**：判定只用四态（已实现 / 已被后续覆盖 / 外部门 / 作废）；优先级按批次 590–593 的 `ACTIVE_CONTEXT` 与 `D-900`–`D-903`，不按文档日期。
+> - **就地标注**：24 份计划（23 归档 ＋ 本计划 active 至 595）＋ 18 个 spec 全部补 `status: archived` ＋ `archived_at` ＋ 一句话 `archived_note`；正文不改。
+> - **未勾项逐行 `concluded`**：24 行 `- [ ]` 逐行给结论（外部门 5 类：L-02 / CI run id / SMTP / M-01 / 真人签收；已排批次：precommit；已实现 2 项；已被覆盖 3 项），保留原勾选状态作审计痕迹。
+> - **守卫加强**：`open-items-guard` 新增 ⑥「已归档 spec 仍留无结论未勾项即红」＋ ⑦ 反例——归档声明必须与内容自洽，不能靠加 `status` 掩盖未勾项。
+> **未选**：按文档日期排优先级（会与 D-900–D-903 的现行结论冲突）；删正文未勾项（破坏审计痕迹）。
+> **读数**：`open-items-guard` 7/7；guards **128 文件 / 898 断言全绿（154.7s）**；`doc-consistency` 21/21。
+> **落点**：`.trae/documents/**`（24）、`.trae/specs/**`（18 × 3 文件）、`server/test/open-items-guard.test.mjs`、`server/test-tier-registry.mjs`（898）、本文件与执行日志批次 594 节。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-904`**（共 **78** 条）。
 

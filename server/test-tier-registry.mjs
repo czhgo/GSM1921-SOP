@@ -132,8 +132,9 @@ export const GUARDS_FILE_BUDGET = 128;
  *  2026-11-21 批次 587：新增 `status-palette-text-guard` 3 条 ＋ `badge-single-source-guard` 2 条 ＋ `button-height-guard` 2 条，实然 880；按 880 登记（余量 0）。
  *  2026-11-21 批次 589：新增 `todo-derive-instrument-guard` 3 条 ＋ `evaluation-asset-guard` 增 1 条，实然 884；按 884 登记（余量 0）。
  *  2026-11-21 批次 591：新增 `form-field-guard` 4 条（必填语义 / 报错语义 / 字段级可访问名 / 反例自证）＋ `open-items-guard` 5 条（清账门四类 open 源 ＋ 反例自证），实然 893；按 893 登记（余量 0）。
- *  2026-11-21 批次 593：新增 `bom-and-eol-guard` 3 条（BOM 唯一性 / frontmatter 锚点 / 反例自证），实然 896；按 896 登记（余量 0）。 */
-export const GUARDS_TEST_BUDGET = 896;
+ *  2026-11-21 批次 593：新增 `bom-and-eol-guard` 3 条（BOM 唯一性 / frontmatter 锚点 / 反例自证），实然 896；按 896 登记（余量 0）。
+ *  2026-11-21 批次 594：`open-items-guard` 扩扫 `.trae/specs/**` 并增 2 条（归档件未勾项逐行 concluded ／ 反例自证），实然 898；按 898 登记（余量 0）。 */
+export const GUARDS_TEST_BUDGET = 898;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -341,7 +342,7 @@ export const TEST_TIERS = [
     'todo-derive-instrument-guard.test.mjs',
     // 2026-11-21 批次 591：表单必填 / 报错 / 字段级可访问名（SD-66 / SD-67）
     'form-field-guard.test.mjs',
-    // 2026-11-21 批次 591：计划收尾清账门（H50.3 四类 open 源 ＋ 反例自证）
+    // 2026-11-21 批次 591 / 594：计划收尾清账门（H50.3 四类 open 源 ＋ `.trae/specs` 归档自洽 ＋ 反例自证）
     'open-items-guard.test.mjs',
     // 2026-11-21 批次 593：文件头 BOM 唯一性 ＋ frontmatter 锚点
     'bom-and-eol-guard.test.mjs',

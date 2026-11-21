@@ -6,7 +6,9 @@
 //   ② `CLAUDE.md` 乙部：每条必须有「ID / 一句话 / 判据或出处 / 状态」四要素，状态 ∈ {在办, 待触发}，`待触发` 必须写触发条件；
 //   ③ `.trae/documents/*.md`：有 `- [ ]` 时必须含 `<!-- parked: D-xxx -->` 或 frontmatter `status: archived`；
 //   ④ `.ctx/ENGINEERING_ASSESSMENT.md §四`：必须有「外部门」小节，且 L-02 / CI / 签收 / SMTP 四项列全；
-//   ⑤ 反例自证：把合格样本改坏后，同一判据必须判红（守卫不是空转）。
+//   ⑤ 反例自证：把合格样本改坏后，同一判据必须判红（守卫不是空转）；
+//   ⑥ `.trae/specs/**/{checklist,tasks}.md`（排除 `_TEMPLATE`）：已标 `status: archived` 的文件不得留有「无结论的未勾项」
+//      ——归档声明与未勾项必须自洽，每行 `- [ ]` 需带 `<!-- concluded: … -->`（2026-11-21 批次 594）。
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -27,6 +29,15 @@ function yiBuProblem(row) {
   }
   if (cells.slice(0, 3).some((c) => !c)) return `四要素有空格：${row.slice(0, 60)}`;
   return '';
+}
+
+/** spec 归档与未勾项是否自洽（T6 / T5 共用）：返回不合格原因，空串＝合格 */
+function specUndisposed(text) {
+  const unchecked = text.split('\n').filter((l) => l.startsWith('- [ ]'));
+  if (!unchecked.length) return '';
+  if (!/^---[\s\S]*?status:\s*archived[\s\S]*?---/.test(text)) return ''; // 在办 spec 不拦
+  const missing = unchecked.filter((l) => !/<!--\s*concluded:/.test(l));
+  return missing.length ? `${missing.length} 行未 concluded：${missing[0].slice(0, 50)}` : '';
 }
 
 /** 计划文件是否已处置（T3 / T5 共用） */
@@ -87,4 +98,29 @@ test('⑤ 反例自证：改坏的样本必须判红', () => {
   assert.equal(planDisposed('---\nstatus: archived\n---\n- [ ] 未勾'), true);
   assert.equal(planDisposed('<!-- parked: D-900 -->\n- [ ] 未勾'), true);
   assert.equal(planDisposed('- [ ] 未勾且无处置'), false);
+});
+
+test('⑥ .trae/specs 已归档件的未勾项必须逐行 concluded', () => {
+  const base = path.join(ROOT, '.trae', 'specs');
+  const bad = [];
+  for (const dir of readdirSync(base, { withFileTypes: true })) {
+    if (!dir.isDirectory() || dir.name === '_TEMPLATE') continue;
+    for (const fname of ['checklist.md', 'tasks.md']) {
+      let text;
+      try {
+        text = readFileSync(path.join(base, dir.name, fname), 'utf8');
+      } catch {
+        continue;
+      }
+      const problem = specUndisposed(text);
+      if (problem) bad.push(`${dir.name}/${fname}：${problem}`);
+    }
+  }
+  assert.deepEqual(bad, [], `归档 spec 留有未结论项：\n  ${bad.join('\n  ')}`);
+});
+
+test('⑦ 反例自证：spec 归档件改坏后必须判红', () => {
+  assert.equal(specUndisposed('---\nstatus: archived\n---\n- [ ] 未勾 <!-- concluded: 外部门 -->'), '');
+  assert.equal(specUndisposed('---\nstatus: archived\n---\n- [ ] 未勾'), '1 行未 concluded：- [ ] 未勾');
+  assert.equal(specUndisposed('---\nstatus: active\n---\n- [ ] 在办未勾'), '', '在办 spec 不应被判红');
 });
