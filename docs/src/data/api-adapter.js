@@ -849,6 +849,7 @@ export const ApiAdapter = {
   //   GET /issues: 未登录 401、支部账号只读本支部、党委返回空列表（保持 bootstrap 兼容）
   //   POST /issues: 仅支部账号可提交，branchId 由服务端按会话确定
   //   PATCH /issues/:id: 支委层处置，并校验反馈属于操作者支部
+  //   POST /issues/:id/reactions: 按人表态（只写本人；出口只回计数与 myReactions，D-906）
   //   /issues/reveal: 兼容端点保留但始终拒绝；不得把反馈当作向党委上报的渠道
   //   正式表决「真无记名」仍是独立数据边界。
   issues: {
@@ -863,6 +864,11 @@ export const ApiAdapter = {
 
     update(id, patch) {
       return _patch(`/api/v1/issues/${id}`, patch);
+    },
+
+    /** 表态：按人存、只本人可撤（D-906）；服务端只回 `reactionCounts` / `myReactions`。 */
+    toggleReaction(id, key) {
+      return _post(`/api/v1/issues/${id}/reactions`, { key });
     },
 
     /** 历史兼容端点；按 D-824 当前所有揭名请求均由服务端拒绝。 */

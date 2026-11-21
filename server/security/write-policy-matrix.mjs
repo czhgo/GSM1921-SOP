@@ -482,6 +482,12 @@ const NON_RESOURCE_ROWS = [
     fieldLocks: ['白名单字段局部合并（不擦匿名真身）'],
     evidence: 'server/routes/resources/index.js#L1643', status: 'enforced',
   },
+  {
+    method: 'POST', path: '/api/v1/issues/:id/reactions', resource: 'issues',
+    middleware: 'requireAuth', roleGate: '登录成员 + 同支部 + 可读该反馈；只写本人表态', ownership: 'self',
+    fieldLocks: ['reactions（只增删本人 personId）', '出口只回计数与 myReactions，不回传 personId 数组'],
+    evidence: 'server/routes/resources/index.js#L1704-L1738; server/test/issue-reactions.test.mjs', status: 'self-service',
+  },
 
   // ── resources/workgroup-routes.js ───────────────────────────────
   {

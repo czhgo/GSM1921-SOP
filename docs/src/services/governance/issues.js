@@ -209,6 +209,20 @@ function _currentPersonId() {
   return AuthStore.getCurrentUser()?.personId || '匿名';
 }
 
+/** 表态展示派生（与服务端出口同口径）：只算计数与「我的表态」，不读他人 personId。 */
+const REACTION_KEYS = ['thumbsUp', 'thumbsDown', 'eyes', 'hooray'];
+function _recomputeReactionView(issue, personId) {
+  const counts = {};
+  const mine = [];
+  for (const k of REACTION_KEYS) {
+    const arr = Array.isArray(issue.reactions?.[k]) ? issue.reactions[k] : [];
+    counts[k] = arr.length;
+    if (personId && arr.includes(personId)) mine.push(k);
+  }
+  issue.reactionCounts = counts;
+  issue.myReactions = mine;
+}
+
 // ── 支部归属（支部内闭环）───────────────────────────────────────────────
 // 未登录或党委账号没有支部反馈访问权；支部账号按所属支部过滤，服务端对读写再次执行范围校验。
 function _viewerId() {
@@ -672,23 +686,47 @@ export const IssueStore = {
   },
 
   /**
-   * 表态（赞同 / 反对 / 关注 / 庆祝）唯一写口：mock 形态落本域缓存并即时刷新。
+   * 表态（赞同 / 反对 / 关注 / 庆祝）唯一写口：mock 形态落本域缓存；api 形态写服务端。
    * 组件不得直接改 issue 对象或写 localStorage（H32：UI 只经数据层）。
-   * ⚠ 边界：`PATCH /issues/:id` 是支委处置门，普通成员的表态暂不写服务端（刷新后回落）；
-   *   「表态是否上服务端」属权限取向，登记 `REVIEW_QUEUE B-592-1` 待支书裁。
+   * 2026-11-22 批次 596 · `D-906`：按人存、只本人可撤；服务端出口只回
+   * `reactionCounts` / `myReactions`（不回传 personId 数组，匿名反馈不得反查表态人）。
+   * 失败回滚乐观更新并抛可读错误（H32 兜底不造事实）。
    * @param {string} issueId
    * @param {'thumbsUp'|'thumbsDown'|'eyes'|'hooray'} key
-   * @returns {object|null} 更新后的 issue（已脱敏）
+   * @returns {Promise<object|null>} 更新后的 issue（已脱敏）
    */
-  toggleReaction(issueId, key) {
+  async toggleReaction(issueId, key) {
     const issue = _rawById(issueId);
     if (!issue || !key) return null;
     const me = _currentPersonId();
+    const prevReactions = JSON.parse(JSON.stringify(issue.reactions || {}));
+    const prevCounts = issue.reactionCounts ? { ...issue.reactionCounts } : null;
+    const prevMine = Array.isArray(issue.myReactions) ? [...issue.myReactions] : null;
     if (!issue.reactions || typeof issue.reactions !== 'object') issue.reactions = {};
     const list = Array.isArray(issue.reactions[key]) ? issue.reactions[key] : [];
     const idx = list.indexOf(me);
     if (idx >= 0) list.splice(idx, 1); else list.push(me);
     issue.reactions[key] = list;
+    _recomputeReactionView(issue, me);
+    if (_isApiMode()) {
+      try {
+        const res = await getAdapter().issues.toggleReaction(issueId, key);
+        if (res && res.reactionCounts && typeof res.reactionCounts === 'object') issue.reactionCounts = res.reactionCounts;
+        if (res && Array.isArray(res.myReactions)) issue.myReactions = res.myReactions;
+        // 服务端为权威：不回传 personId 数组，本地也不再保留（避免二次展示身份）
+        delete issue.reactions;
+      } catch (e) {
+        issue.reactions = prevReactions;
+        if (prevCounts) issue.reactionCounts = prevCounts; else delete issue.reactionCounts;
+        if (prevMine) issue.myReactions = prevMine; else delete issue.myReactions;
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+        _noteIssueChange();
+        const err = new Error(`[IssueStore.toggleReaction] 表态未保存：${(e && e.message) ? e.message : String(e)}`);
+        err.name = 'IssueReactionError';
+        err.cause = e;
+        throw err;
+      }
+    }
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
     _noteIssueChange(); // 表态 → 写版本 +1（列表 / 详情同步刷新）
     return _sanitizeIssue(issue);

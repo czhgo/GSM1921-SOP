@@ -162,7 +162,6 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 | B-541-6 | `L-17` SQLite JSON 宽表、无跨表外键、无业务字段索引 | 任一表行数接近万行，或真机出现慢查询读数（E1 类）时启动 `MIGRATIONS v2` 与索引评估；平时只登记 | `.ctx/ENGINEERING_ASSESSMENT.md §一 阻断级风险 5`；`server/README.md §部署前必知限制 #2` |
 | B-541-7 | `L-18` 单一源组件出口仍有零星散件（徽章 / 选择器等） | 下次改动到该组件域时同批收敛（一改具改）；未动到的散件不提前合并 | `.ctx/ENGINEERING_ASSESSMENT.md §3.3 复核保留` |
 | B-541-10 | `H-20` 部署形态余项（`server/package.json` Windows 专有语法；表达式索引无落点） | ② `package.json` 到「跨平台发布」批时改；③ 与服务端读过滤同批（见 B-541-3） | `.ctx/REVIEW_QUEUE.md` 代码健康评审 `H-20`；`server/package.json` |
-| B-592-1 | 意见反馈「表态」在 api 形态只改本机缓存、刷新后回落服务端（`PATCH /issues/:id` 是支委处置门，普通成员不可写） | 需支书裁「表态是否上服务端、谁可写」后再加写口；未裁前不新增端点 | `docs/src/services/governance/issues.js::toggleReaction` |
 
 ### SOP-C-76 / SOP-C-78（降为登记，未推进）
 

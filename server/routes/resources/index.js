@@ -1515,7 +1515,25 @@ export function createResourcesRouter(db) {
     for (const k of ISSUE_IDENTITY_KEYS) delete out[k];
     return out;
   };
-  const listIssues = () => listTable(db, 'issues').map(sanitizeIssue);
+  const ISSUE_REACTION_KEYS = new Set(['thumbsUp', 'thumbsDown', 'eyes', 'hooray']);
+  // 表态出口（2026-11-22 批次 596 · D-906）：只回「计数 ＋ 我的表态」。
+  // 原样回传 `reactions` 会把表态人 personId 暴露给同支部任何读者（匿名反馈可就此刻反查），故一律剥掉。
+  const publicIssueView = (rec, viewerPersonId) => {
+    const out = sanitizeIssue(rec);
+    const raw = (rec && typeof rec.reactions === 'object' && rec.reactions) ? rec.reactions : {};
+    const reactionCounts = {};
+    const myReactions = [];
+    for (const k of ISSUE_REACTION_KEYS) {
+      const arr = Array.isArray(raw[k]) ? raw[k] : [];
+      reactionCounts[k] = arr.length;
+      if (viewerPersonId && arr.includes(viewerPersonId)) myReactions.push(k);
+    }
+    delete out.reactions;
+    out.reactionCounts = reactionCounts;
+    out.myReactions = myReactions;
+    return out;
+  };
+  const listIssues = (viewerPersonId) => listTable(db, 'issues').map((rec) => publicIssueView(rec, viewerPersonId));
   // 处置可写字段白名单（不可写 submittedBy/anonymous/tokenHash/id/number/title/body/scope/types 等身份与内容字段）
   const ISSUE_MUTABLE_KEYS = [
     'status', 'closedReason', 'closedAt', 'assignee', 'assigneeRole', 'dispatchHistory',
@@ -1559,6 +1577,8 @@ export function createResourcesRouter(db) {
     };
   };
 
+  const issueBranchId = (issue) => (issue && issue.branchId) || DEFAULT_BRANCH_ID; // 反馈支部归属单一解析（读取 / 表态共用）
+
   router.get('/issues', requireAuth(db), (req, res) => {
     const deny = branchSelectionError(req.actor, req.query.branchId);
     if (deny) return res.status(403).json({ error: deny });
@@ -1571,7 +1591,7 @@ export function createResourcesRouter(db) {
     const viewer = { personId: req.actor?.id || null, role: req.actor?.role || null };
     const access = issueAudienceContext(viewer, branchId);
     // 支部边界统一走 `resourceRowsForActor`（与通用读口同一 helper），不再在本处另写过滤。
-    return res.json(resourceRowsForActor(db, 'issues', listIssues(), req.actor, req.query.branchId).filter((row) => canReadIssue(row, viewer, access)));
+    return res.json(resourceRowsForActor(db, 'issues', listIssues(viewer.personId), req.actor, req.query.branchId).filter((row) => canReadIssue(row, viewer, access)));
   });
 
   // D-824：任何角色均没有系统揭名入口。保留此兼容路径以便旧客户端得到明确拒绝；
@@ -1676,7 +1696,7 @@ export function createResourcesRouter(db) {
       tokenHash,
     };
     db.prepare('INSERT OR REPLACE INTO issues (id, data) VALUES (?, ?)').run(id, JSON.stringify(record));
-    res.status(201).json(sanitizeIssue(record));
+    res.status(201).json(publicIssueView(record, actor.id));
   });
 
   // 处置/回复（支委会＝支委层；2026-09-21 批次 126 · D-550 由「仅支书」放开）：白名单字段局部合并；处置结果随公开 issue 一并可见
@@ -1690,7 +1710,7 @@ export function createResourcesRouter(db) {
     if (!row) return res.status(404).json({ error: 'not found' });
     const issue = JSON.parse(row.data); // 原始记录（含真身键，不得在此脱敏）
     const ownBranchId = actorBranchId(req.actor);
-    if (!ownBranchId || (issue.branchId || DEFAULT_BRANCH_ID) !== ownBranchId) {
+    if (!ownBranchId || issueBranchId(issue) !== ownBranchId) {
       return res.status(403).json({ error: '无权限：不能处置其他支部的反馈' });
     }
     const issueVersionDeny = _assertRowVersion(issue, req); if (issueVersionDeny) return res.status(issueVersionDeny.status).json(issueVersionDeny.body); // 批次 564 Task 16：处置行走同一把锁（支部门之后判，越权仍得 403）
@@ -1699,7 +1719,41 @@ export function createResourcesRouter(db) {
       if (Object.prototype.hasOwnProperty.call(body, k)) issue[k] = body[k];
     }
     issue.updatedAt = new Date().toISOString(); db.prepare('INSERT OR REPLACE INTO issues (id, data) VALUES (?, ?)').run(issue.id, JSON.stringify(issue)); // 批次 564 Task 16：处置写推进版本戳（否则 If-Match 永远拦不住第二次并发处置）
-    res.json(sanitizeIssue(issue));
+    res.json(publicIssueView(issue, req.actor?.id || null));
+  });
+  // 表态（点赞 / 附议）＝按人存、只本人可撤（2026-11-22 批次 596 · D-906）。
+  // 出口只回「计数 ＋ 我的表态」——**永不回传 personId 数组**（匿名反馈不得借表态反查表态人）。
+  router.post('/issues/:id/reactions', requireAuth(db), (req, res) => {
+    const row = db.prepare('SELECT data FROM issues WHERE id = ?').get(req.params.id);
+    if (!row) return res.status(404).json({ error: 'not found' });
+    const issue = JSON.parse(row.data); // 原始记录（含真身键，不得在此脱敏）
+    const ownBranchId = actorBranchId(req.actor);
+    if (!ownBranchId || issueBranchId(issue) !== ownBranchId) {
+      return res.status(403).json({ error: '无权限：不能对他支部反馈表态' });
+    }
+    const viewer = { personId: req.actor?.id || null, role: req.actor?.role || null };
+    if (!canReadIssue(issue, viewer, issueAudienceContext(viewer, ownBranchId))) {
+      return res.status(403).json({ error: '无权限：看不到该反馈' });
+    }
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const key = typeof body.key === 'string' ? body.key : '';
+    if (!ISSUE_REACTION_KEYS.has(key)) return res.status(422).json({ error: '表态类型非法' });
+    const me = viewer.personId;
+    if (!issue.reactions || typeof issue.reactions !== 'object') issue.reactions = {};
+    const list = Array.isArray(issue.reactions[key]) ? issue.reactions[key] : [];
+    const idx = list.indexOf(me);
+    if (idx >= 0) list.splice(idx, 1); else list.push(me);
+    issue.reactions[key] = list;
+    issue.updatedAt = new Date().toISOString();
+    db.prepare('INSERT OR REPLACE INTO issues (id, data) VALUES (?, ?)').run(issue.id, JSON.stringify(issue));
+    const reactionCounts = {};
+    const myReactions = [];
+    for (const k of ISSUE_REACTION_KEYS) {
+      const arr = Array.isArray(issue.reactions[k]) ? issue.reactions[k] : [];
+      reactionCounts[k] = arr.length;
+      if (arr.includes(me)) myReactions.push(k);
+    }
+    res.json({ id: issue.id, reactionCounts, myReactions, updatedAt: issue.updatedAt });
   });
   router.get('/snapshot/versions', requireAuth(db), (req, res) => {
     const versions = _allCollectionVersions(db, resolveVersionBranchId(req.actor, req.query.branchId));

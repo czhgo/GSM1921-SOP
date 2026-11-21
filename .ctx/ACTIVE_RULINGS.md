@@ -61,7 +61,7 @@ status: active
 | 会话有效期 | 3 小时（`SESSION_TTL_HOURS`） | `server/routes/auth.js` |
 | review 库 | `server/data.review.db` | `server/scripts/start-review.mjs` |
 | 生产单支部 | `ALLOW_MULTI_BRANCH=1` 才允许多支部 | `server/run-mode.js` |
-| 写入口矩阵 | 162 条（156 enforced / 4 self-service / 2 public / 0 known-risk） | `server/security/write-policy-matrix.mjs` |
+| 写入口矩阵 | 163 条（156 enforced / 5 self-service / 2 public / 0 known-risk） | `server/security/write-policy-matrix.mjs` |
 | 页签块基线 | 基线分母 14 个 >4 块页签（含页头 / SD-57 口径）；实际超限例外 6 个 | `server/test/style-baseline.mjs::TAB_BLOCK_BASELINE` |
 
 ## §D 迁移说明

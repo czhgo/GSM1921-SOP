@@ -2,7 +2,7 @@
 title: "2026年11月决策日志"
 type: decision_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-21
+last_updated: 2026-11-22
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-DECISION_LOG.md, content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md, content/04_web_design/design-system/DS_03_COMPONENTS.md, content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md]
 ---
@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-905`，共 79 条**；下一条自 **`D-906`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-906`，共 80 条**；下一条自 **`D-907`**。
 
 ## 本月目录（2026-11）
 
@@ -99,6 +99,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 工作树复原（4 文件回 HEAD）＋ BOM 唯一性守卫；存量 10 文件 BOM 归一 | `D-903` | 2026-11-21 | 已落（批次 593） |
 | `.trae` 宣称对账：24 计划 ＋ 18 spec 逐条判定；归档件未勾项须逐行 `concluded` | `D-904` | 2026-11-21 | 已落（批次 594） |
 | evidence 准入（H26.3a）：只留被引用读数；99.1MB→114KB；外部门补 M-01 | `D-905` | 2026-11-21 | 已落（批次 595） |
+| 表态上服务端：按人存、只本人可撤、匿名单向隐藏；矩阵 163 | `D-906` | 2026-11-22 | 已落（批次 596） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -801,5 +802,17 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：`evidence-hygiene-guard` 4/4；`open-items-guard` 7/7；guards **129 文件 / 902 断言全绿（173.7s）**；daily **265 / 128.9s**。
 > **落点**：`.ctx/evidence/**`（1272 → 12）、`CLAUDE.md H26.3a`、`.ctx/README.md`、`.ctx/ENGINEERING_ASSESSMENT.md §四`、`server/test/evidence-hygiene-guard.test.mjs`、`server/test-tier-registry.mjs`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-905`**（共 **79** 条）。
+## D-906 2026-11-22 — 意见反馈「表态」上服务端：按人存、匿名单向隐藏（批次 596）
+
+> **评议 → 裁定 → 落点**：支书对 `B-592-1` 裁定「上服务端，按人存」⇒ 普通成员的表态不再只落本机缓存。
+> - **写口**：`POST /api/v1/issues/:id/reactions`（`requireAuth`；同支部 + 可读该反馈；只增删本人 personId）。
+> - **出口**：只回 `reactionCounts` 与 `myReactions`；`reactions` 原始 personId 数组**一律不出库**——匿名反馈不得借表态反查（与 `_realPersonId` 同口径）。
+> - **不放宽原门**：`PATCH /issues/:id` 仍只支委层处置；成员直调 403。
+> - **矩阵**：162 → 163（156 enforced / 5 self-service / 2 public / 0 known-risk）。
+> - **前端**：`IssueStore.toggleReaction` 改 async（乐观更新 + 失败回滚 + 可读错误）；`reactions.js` / `issue-list.js` 只读计数与我的表态。
+> **未选**：取消表态（支书选保留并按人存）；把表态并入 `PATCH /issues/:id`（会放宽处置门）。
+> **读数**：`issue-reactions.test.mjs` 4/4（toggle / 出口无身份 / 401 / PATCH 403）；`write-policy-matrix` 与 `permission-gate` 全绿。
+> **落点**：`server/routes/resources/index.js`、`server/security/write-policy-matrix.mjs`、`docs/src/{services/governance/issues.js,data/api-adapter.js,components/feedback/reactions.js,components/feedback/issue-list.js}`、`server/test/issue-reactions.test.mjs`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-906`**（共 **80** 条）。
 

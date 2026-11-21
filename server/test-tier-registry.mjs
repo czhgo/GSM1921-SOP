@@ -400,6 +400,9 @@ export const TEST_TIERS = [
     'issue-branch-policy.test.mjs',
     'issue-branch.test.mjs',
     'issue-mock-identity.test.mjs',
+    // 2026-11-22 批次 596：表态上服务端（按人存 / 出口不出身份 / 处置门未放宽）。
+    //   precommit 层无预算常量（T4 只核 daily / guards），同批不占 daily 断言额度。
+    'issue-reactions.test.mjs',
     'material-link-truth.test.mjs',
     'meeting-attendance-rules.test.mjs',
     'member-confirmation.test.mjs',

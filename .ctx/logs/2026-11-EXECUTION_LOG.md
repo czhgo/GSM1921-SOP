@@ -2,13 +2,33 @@
 title: "2026年11月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-21
+last_updated: 2026-11-22
 status: active
 ---
 
 # 2026年11月执行日志
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
+
+## 批次 596（2026-11-22）· 表态上服务端：按人存、匿名单向隐藏（D-906）
+
+### 为什么
+- `REVIEW_QUEUE B-592-1` 挂了 4 个批次：api 形态下成员表态只改本机缓存、刷新即回落，属「看似可用、实际不闭环」。支书 2026-11-22 裁定「上服务端，按人存」。
+
+### 拿不准 / 取舍
+- **出口不回传身份**：`issues.reactions` 是 personId 数组；原样回传会让同支部任何读者看到谁点了什么（匿名反馈可就此刻反查）。裁定为「库内按人存、出口只回计数与 `myReactions`」，与 `_realPersonId` 同口径。
+- **测试分层**：表态不属核心业务结果，放 precommit（T4 只核 daily / guards，precommit 无预算），避免 daily 继续变长；计划里原写的「guards 129→130 / 902→906」按守卫语义修正为不占 guards 预算。
+- **前端乐观更新 + 回滚**：失败不静默——回滚本地并抛 `IssueReactionError`，组件给「表态未保存，请重试」。
+
+### 边界
+- 不放宽 `PATCH /issues/:id`（仍支委层处置）；矩阵只新增 self-service 一条（162→163：156 / 5 / 2）。
+- mock 形态保持本地 toggle（演示库无服务端）；`reactions.js` / `issue-list.js` 两形态都只读计数与我的表态。
+
+### 读数
+- `issue-reactions.test.mjs` **4/4**（toggle 加后撤 / 出口无 personId / 未登录 401 / 成员 PATCH 403）。
+- `write-policy-matrix` / `permission-gate` / `test-tier-guard` 同跑 **31/31**。
+- 矩阵实然：**163 条**（156 enforced / 5 self-service / 2 public / 0 known-risk）。
+- guards **129 文件 / 902 断言全绿（138.3s）**；daily **265 / 107.1s**。
 
 ## 批次 595（2026-11-21）· 证据准入 ＋ 瘦身 99.1MB→217KB ＋ 外部门补 M-01（D-905）
 

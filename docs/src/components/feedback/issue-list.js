@@ -144,11 +144,15 @@ function renderIssueRow(issue) {
     ? badgeHtml('开放中', 'warning')
     : badgeHtml(`已关闭 · ${ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || '已解决'}`, 'neutral');
 
-  const reactions = Object.entries(issue.reactions || {}).filter(([_, list]) => list.length > 0).map(([type, list]) => {
-    const iconName = { thumbsUp: 'thumbsUp', thumbsDown: 'thumbsDown', eyes: 'eyes', hooray: 'hooray' }[type];
-    const iconHTML = iconName ? icon(iconName, { className: 'w-3 h-3' }) : '·';
-    return `<span class="text-xs text-gray-500 inline-flex items-center gap-0.5">${iconHTML}${list.length}</span>`;
-  }).join(' ');
+  const reactionCounts = issue.reactionCounts && typeof issue.reactionCounts === 'object' ? issue.reactionCounts : null;
+  const reactions = (reactionCounts
+    ? Object.entries(reactionCounts)
+    : Object.entries(issue.reactions || {}).map(([type, list]) => [type, Array.isArray(list) ? list.length : 0]))
+    .filter(([, count]) => count > 0).map(([type, count]) => {
+      const iconName = { thumbsUp: 'thumbsUp', thumbsDown: 'thumbsDown', eyes: 'eyes', hooray: 'hooray' }[type];
+      const iconHTML = iconName ? icon(iconName, { className: 'w-3 h-3' }) : '·';
+      return `<span class="text-xs text-gray-500 inline-flex items-center gap-0.5">${iconHTML}${count}</span>`;
+    }).join(' ');
 
   return `
     <div class="issue-row p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-[var(--surface-hover)] cursor-pointer transition-colors focus-ring" data-issue-id="${issue.id}" role="button" tabindex="0" aria-label="查看反馈 #${issue.number ?? '—'} ${issue.title || '(无标题)'}">

@@ -3,9 +3,9 @@ title: "Active Context — 当前判断入口"
 type: active_context
 role: "[AI]"
 layer: active
-last_updated: 2026-11-21
-last_verified: "2026-11-21"
-latest_decision: "D-905"
+last_updated: 2026-11-22
+last_verified: "2026-11-22"
+latest_decision: "D-906"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -25,7 +25,7 @@ status: active
 - **URL**：无后缀已落地（`D-867`）：`pageHref()` 单源 ＋ `resolveDocumentUrl` ＋ 运行时 `link-normalize`；旧 `.html` 保持 200；真机登录后 URL＝`/workspace/secretary?tab=today`，站内 `.html` 锚点 0（`help` / `about` 除外）。
 - **数据**：业务表 50 张（34 资源 ＋ 10 语义 ＋ 6 工作组）；SQLite 宽表 `id + data(JSON)`；schema **v19**（v13 生成列 / v16 提案两表 / v17 `branch_visits` / v18 报名唯一索引 / v19 多支部键级：`collection_versions(branch_id,name)`、`sessions.branch_id`、`attachments.branch_id`）；空库首启补最小组织基线。
   - source：`server/data/domain-contract.mjs`、`content/04_web_design/data/DATA_CONTRACT.md`。
-- **权限**：写入口权限矩阵 **162 条**（156 enforced / 4 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵；审计 C1 查矩阵 + 高风险抽样。统计口径：`WRITE_POLICY_MATRIX` 按 `status` 计数（2026-11-15 实测；T14 新增进入 / 退出支部查看两写口）。
+- **权限**：写入口权限矩阵 **163 条**（156 enforced / 5 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵；审计 C1 查矩阵 + 高风险抽样。统计口径：`WRITE_POLICY_MATRIX` 按 `status` 计数（2026-11-15 实测；T14 新增进入 / 退出支部查看两写口）。
   - source：`server/security/write-policy-matrix.mjs`、`content/05_ai_coding/AUDIT_CANON.md`。
 - **六维（`D-883` 重校，批次 589 · `D-899` 复核未变）**：业务 **80** / 安全 **78** / 体验 **79** / 测试 **73** / 架构 **76** / 部署 **71**；**只作诊断，不单独阻断本机合并**（`D-894` 两段门槛）。未闭：CI 无 run id、`test:full` 未整体重跑、Linux 真机未验（L-02）、D2 计数对账仅 3 页签、C2 写口往返 0 pass、真人签收未完成。
 - **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（2026-11-21 批次 589 实跑）；审计工具已修复（URL 跟随无后缀 canonical、登录失败 `exit 2`）。F1–F8 全绿；M1–M3 在位。
@@ -86,17 +86,18 @@ status: active
 - **兜底仪表与资产命中（`D-899`，批次 589）**：`todo-tab-shell` 增兜底计数 ＋ `window.__TODO_DERIVE_FALLBACK__`；新增 `todo-derive-instrument-guard`（ok 路径不调用 7 类 builder、`UNSUPPORTED_GROUP_KEYS` 为空）；`check-batch-commits` 强制 body 写「资产命中：<EA §x / D-xxx>」；乙部删除 C-3 / C-4 / B-522-1 / B-500-7b-2。→ `server/scripts/check-batch-commits.mjs`、`CLAUDE.md`。
 - **前端一致性收口（`D-900`，批次 590）**：议程项 / 发起 / 讨论项徽章统一 `badgeHtml(..., 'info')`；错误态一律可操作（重试 / 点选重读）且不透 HTTP 码；`person-edit-modal` 失败原因留在浮窗；新增 SD-66 必填语义 / SD-67 筛选行可访问名 ＋ `CASE-DESIGN-042/043` ＋ `form-field-guard`；`DS_03 §4.21.1` 行高压准 44/48/56。→ `docs/src/**`、`DS_03 §4.3`、`server/test/form-field-guard.test.mjs`。
 - **清账门与防留尾巴（`D-901`，批次 591）**：`CLAUDE H50.3` 立「计划收尾清账门」（四类 open 源四态处置）；新增 `open-items-guard`（REVIEW_QUEUE 无「已闭环」行 / 乙部四要素 / 计划未勾项须 parked 或 archived / EA 外部门四项列全 / 反例自证）；`EA §四` 增「外部门」单表（L-02 / CI / 签收 / SMTP，责任人均为支书）；旧计划 9 项核验逐条结论后 `status: archived`；`npm run service:ensure`（停服 4s 内恢复 200，H20.1 第 0 步）。→ `CLAUDE.md`、`.ctx/ENGINEERING_ASSESSMENT.md`、`server/scripts/ensure-service.mjs`、`server/test/open-items-guard.test.mjs`。
-- **前端 lens 清账（`D-902`，批次 592）**：两个独立 lens 报 20 条 → 按规则修 16 条（手拼徽章、tone 矛盾、令牌底、动作按钮族、H32 预载失败重试、表态单一写口、赋权双跳转、可访问名、日历浮层 dialog）；About 冻结件 1 条不动；3 条判不成立（既有裁定 / 误报）。→ `docs/src/**`、`REVIEW_QUEUE B-592-1`（表态上服务端待裁）。
+- **前端 lens 清账（`D-902`，批次 592）**：两个独立 lens 报 20 条 → 按规则修 16 条（手拼徽章、tone 矛盾、令牌底、动作按钮族、H32 预载失败重试、表态单一写口、赋权双跳转、可访问名、日历浮层 dialog）；About 冻结件 1 条不动；3 条判不成立（既有裁定 / 误报）。→ `docs/src/**`、`REVIEW_QUEUE B-592-1`（表态已按 `D-906` 上服务端，队列项已删）。
 - **工作树复原与 BOM 守卫（`D-903`，批次 593）**：23:48 一批写入把 4 文件改回旧值并累加 BOM、59 文件改 CRLF ⇒ 以 HEAD 为唯一正确版本（只 `checkout`，不 `reset --hard`）；新增 `bom-and-eol-guard`（BOM 唯一性 / frontmatter 锚点 / 反例），存量 10 文件 BOM 归一（`.ps1` 留单 BOM）。→ `server/test/bom-and-eol-guard.test.mjs`、`server/test-tier-registry.mjs`。
 - **`.trae` 宣称对账（`D-904`，批次 594）**：`.trae` 被 gitignore、不可回滚 ⇒ 结论就地写回；24 份计划 ＋ 18 个 spec 按四态（已实现 / 已被覆盖 / 外部门 / 作废）逐条判定并 `status: archived`；24 行未勾项逐行 `concluded`；`open-items-guard` 增 ⑥⑦（归档件仍留无结论未勾项即红 ＋ 反例）。→ `.trae/**`、`server/test/open-items-guard.test.mjs`。
 - **证据准入与瘦身（`D-905`，批次 595）**：`.ctx/evidence` 只留被台账引用或被守卫消费的读数（99.1 MB / 1272 文件 → 217 KB / 12 文件）；新增 `H26.3a` ＋ `evidence-hygiene-guard`（禁截图 / 压缩包、双向引用、单文件 ≤256 KB、反例）；`EA §四` 外部门补 `M-01`（移动端三任务）。→ `.ctx/evidence/**`、`CLAUDE.md H26.3a`、`server/test/evidence-hygiene-guard.test.mjs`。
+- **表态上服务端（`D-906`，批次 596）**：意见反馈「表态」按人存、只本人可撤；`POST /issues/:id/reactions` 出口只回 `reactionCounts` / `myReactions`，匿名反馈不回传表态人；`PATCH /issues/:id` 仍只支委层。→ `server/routes/resources/index.js`、`docs/src/services/governance/issues.js`。
 
 ## §3 当前风险与下一步
 
 ### 阻断级风险（5 条，逐条复核）
 
 1. **多支部同实例会跨支部读出数据**：读面未统一过滤；production 已硬拦多支部。四条框架缺口已按 `D-888` / `D-889` 落地（版本键 / 会话 / 附件 / 门厅支部维度），`ALLOW_MULTI_BRANCH` 仍关闭。**框架层闭环，开关未开**。
-2. **通用写口权限**：矩阵 **162 条** / 0 known-risk，6 条缺口已修；`issue-unread` 派发位已加 403 校验，清支书角标仅支书/副支书（`D-871`）。**闭环**（多支部框架缺口已按 `D-889` 落地）。
+2. **通用写口权限**：矩阵 **163 条** / 0 known-risk，6 条缺口已修；`issue-unread` 派发位已加 403 校验，清支书角标仅支书/副支书（`D-871`）。**闭环**（多支部框架缺口已按 `D-889` 落地）。
 3. **表决选民名单来自活动数据本身**：服务端已改为建会时按 `users` ＋ 组织归属计算并冻结（`D-872`），客户端提交值不作数。**闭环**。
 4. **共享口令**：会话已 3 小时过期，个人密码已落地（21/21）。**部分闭环**；生产形态已拒绝共享口令回退（`D-882`，569 实现），共享口令仅非生产演示；`preflight-cutover` ⑧ 检查个人密码覆盖。
 5. **SQLite JSON 宽表是规模边界**：无业务字段索引；万行级前评估 `MIGRATIONS v2`。**保留**。
