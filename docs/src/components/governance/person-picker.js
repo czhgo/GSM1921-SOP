@@ -208,6 +208,10 @@ export class PersonPicker {
     btn.type = 'button';
     btn.className = 'person-picker-trigger ';
     btn.setAttribute('aria-expanded', 'false');
+    // SD-66 同族：aria-expanded 必须与 aria-controls 成对（面板 id 每实例唯一，同页可挂多个选人器）。
+    if (!this._panelId) this._panelId = `pp-panel-${Math.random().toString(36).slice(2, 8)}`;
+    btn.setAttribute('aria-haspopup', 'dialog');
+    btn.setAttribute('aria-controls', this._panelId);
 
     if (hasSelection) {
       if (this._mode === 'multi') {
@@ -332,6 +336,7 @@ export class PersonPicker {
     // 面板主体（dialog 语义 + modal 焦点管理）
     const panel = document.createElement('div');
     panel.className = 'person-picker-panel card rounded-xl shadow-xl';
+    if (this._panelId) panel.id = this._panelId;
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-modal', 'true');
     panel.setAttribute('aria-label', '选择人员');

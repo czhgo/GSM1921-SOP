@@ -1103,9 +1103,15 @@ function handleTodoAction(todo, ctx) {
     jumpToCalendar(todo);
     return;
   }
-  // 2026-11-01 批次 524（#7）：落点与按钮文案统一由 todo-actions.js 声明；
-  //   authorize 的活动/专班分流写在动作表 scopeOverrides，不在本文件写 if。
+  // 2026-11-01 批次 524（#7）：落点与按钮文案统一由 todo-actions.js 声明。
   // 2026-11-10 批次 540：失败落点由导航层给可见提示（不再只 toast）。
+  // 2026-11-21 批次 592：赋权的活动 / 专班两个 scope 落**跨页或对象详情**，由 expandAssignPanelForTodo 单独落点；
+  //   先执行动作表会先切日历页再被改写（双跳转）⇒ 这两支直接走展开函数，不再调 executeTodoAction。
+  const _assignScope = todo.actionData?.scope;
+  if (todo.actionType === 'authorize' && (_assignScope === 'activity' || _assignScope === 'taskforce')) {
+    expandAssignPanelForTodo(todo);
+    return;
+  }
   const { action, ok } = executeTodoAction(todo, 'secretary');
   if (!ok || !action) return;
   // t5c：切 tab 后自动展开目标面板（最小三成本——行动按钮一次直达可操作状态）

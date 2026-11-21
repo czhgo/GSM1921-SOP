@@ -384,7 +384,7 @@ async function renderActivity(id) {
           <h2 class="font-title-cn text-xl font-bold text-gray-800 leading-snug">${esc(copyRow.title || '院级活动')}</h2>
         </div>
         <p class="text-sm text-gray-500">${esc(copyRow.date || '—')}${copyRow.location ? ' · ' + esc(copyRow.location) : ''}</p>
-        <div class="mt-3 rounded-xl border border-gray-100 bg-white px-4 py-2.5" role="note">
+        <div class="mt-3 rounded-xl border border-gray-100 bg-white px-4 py-3" role="note">
           <p class="text-body-sm leading-6 text-gray-600">本支部已采用，请在支部副本中维护执行信息。</p>
           ${copyHref ? `<a class="mt-1 inline-block text-body-sm font-medium text-accent focus-ring rounded" href="${getBasePath()}${copyHref}">打开支部副本 →</a>` : ''}
         </div>`;
@@ -751,8 +751,8 @@ async function renderActivity(id) {
         ? emptyStateHtml({ variant: 'inline', text: '暂无应到名单' })
         : !canRevealMemberNames
           ? `<p class="text-sm text-gray-600">应到名单 ${assignments.length} 人。登录并进入所属支部后可查看姓名。</p>`
-          : `<div class="flex flex-wrap gap-2.5">${assignments.map(x => `
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50">
+          : `<div class="flex flex-wrap gap-2">${assignments.map(x => `
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-gray-50">
               <span class="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:${typeColor.color};">${(getPersonById(x.personId)?.name || '?').slice(0, 1)}</span>
               <span class="text-xs font-medium text-gray-700">${esc(getPersonById(x.personId)?.name || x.personId)}</span>
             </span>`).join('')}</div>`}
@@ -812,7 +812,7 @@ async function renderActivity(id) {
     <!-- ① 对象头（批次 540 波次 4 · A 方案）：标题 / 状态 / 日期地点 / 基本信息 / 主 CTA 同一块；
          日期只在这里出现一次（不再另起「时间」磁贴重复）。 -->
     <section class="mb-5 pb-5 border-b border-gray-100" aria-label="活动基本信息">
-      <div class="flex items-center gap-2.5 mb-2 flex-wrap">
+      <div class="flex items-center gap-2 mb-2 flex-wrap">
         ${statusBadge(act, 'act')}
         <span class="tint-pill" data-tone="${tagTone}">${act.type || '活动'}</span>
         ${committeeActivity ? badgeHtml('院级', 'brand') : ''}
@@ -828,7 +828,7 @@ async function renderActivity(id) {
       ${committeeActivity ? `
       <!-- 党委活动（院级内容 · 批次 534 · Task 9）：目标支部说明 + 未采用时的「采用到本支部」；
            已有副本 ⇒ 只读横幅（本支部清单不再显示原件，直达时只看不改）。 -->
-      <div class="mt-3 rounded-xl border border-gray-100 bg-white px-4 py-2.5" role="note">
+      <div class="mt-3 rounded-xl border border-gray-100 bg-white px-4 py-3" role="note">
         <p class="text-xs leading-6 text-gray-600">院级活动（党委下发） · 目标支部：${esc(targetBranchText)}。采用后生成本支部副本，日期 / 地点 / 承办党小组 / 报名 / 考勤等执行信息在副本中维护；原件内容以党委为准。</p>
         ${committeeSourceLocked
           ? `<p class="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-600">本支部已采用，请在支部副本中维护执行信息。${adoptedCopyHref ? `<a class="text-accent font-medium focus-ring rounded" href="${getBasePath()}${adoptedCopyHref}">打开支部副本 →</a>` : ''}</p>`
@@ -838,7 +838,7 @@ async function renderActivity(id) {
       </div>` : ''}
       ${committeeCopy ? `
       <!-- 党委活动副本（批次 534 · Task 9）：版本提示 + 手动同步（只覆盖内容字段，执行字段保留）。 -->
-      <div class="mt-3 rounded-xl border border-gray-100 bg-white px-4 py-2.5" role="note">
+      <div class="mt-3 rounded-xl border border-gray-100 bg-white px-4 py-3" role="note">
         <p class="text-xs leading-6 text-gray-600">源自党委活动${copySource ? `「${esc(copySource.title || copySource.id)}」` : ''} · ${copySource
           ? `副本内容版本 v${Number(act.sourceVersion) || 1}${copyOutdated ? ` · 党委已更新至 v${Number(copySource.contentVersion) || 1}` : ' · 已与党委同步'}`
           : `副本内容版本 v${Number(act.sourceVersion) || 1} · 党委原件版本由党委端维护`}。</p>
@@ -1280,9 +1280,9 @@ async function renderTaskforce(tf) {
   cardEl.innerHTML = `
     <!-- 标题区 -->
     <div class="mb-5 pb-5 border-b border-gray-100">
-      <div class="flex items-center gap-2.5 mb-2 flex-wrap">
+      <div class="flex items-center gap-2 mb-2 flex-wrap">
         ${statusBadge(tf, 'tf')}
-        <span class="tint-fill inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium" data-tone="purple">专班</span>
+        <span class="tint-fill inline-flex items-center px-3 py-1 rounded-full text-xs font-medium" data-tone="purple">专班</span>
         <span class="ml-auto" title="对象编号 ${esc(tf.id)} · 复制本页链接">${renderShareButtonHtml()}</span>
       </div>
       <h2 class="font-title-cn text-xl font-bold text-gray-800 leading-snug">${esc(tf.name || '未命名专班')}</h2>
@@ -1407,7 +1407,7 @@ function _waRowHtml(row, canManage, canRevealNames = true) {
   const stClass = row.status === WORK_ASSIGNMENT_STATUS.COMPLETED ? 'text-green-700 bg-green-50'
     : (row.status === WORK_ASSIGNMENT_STATUS.IN_PROGRESS ? 'text-blue-700 bg-blue-50' : 'text-[var(--status-warning-text)] bg-amber-50');
   return `
-    <div class="flex items-start gap-2.5 py-2 border-b border-gray-50" data-wa-row="${esc(row.id)}">
+    <div class="flex items-start gap-2 py-2 border-b border-gray-50" data-wa-row="${esc(row.id)}">
       <span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${stClass}">${esc(st)}</span>
       <div class="min-w-0 flex-1">
         <p class="text-sm font-medium text-gray-800 truncate">${esc(row.workName)}</p>

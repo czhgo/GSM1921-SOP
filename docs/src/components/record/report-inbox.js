@@ -189,13 +189,16 @@ export function renderReportInboxHtml({
  *  @param {string} [draft] E-3：重建前收集的该行未提交草稿（作为输入框初值回填） */
 function _renderInboxDetail(r, accent, draft = '') {
   const requesterNote = r.requestedBy && r.requestedNote
-    ? `<div class="rounded-lg p-2 bg-blue-50 mt-2"><p class="text-xs text-blue-700">请汇报：${escHtml(r.requestedNote)}</p></div>`
+    ? `<div class="rounded-lg p-3 bg-white border border-[var(--neutral-200)] mt-2"><p class="text-xs text-[var(--status-warning-text)]">请汇报：${escHtml(r.requestedNote)}</p></div>`
     : '';
   const comments = (r.comments || []).filter(c => !c.hidden).map(c => {
     const icon = c.kind === 'dispatch' ? '→' : c.kind === 'reply' ? '答'
       : c.kind === 'result' ? '✓' : c.kind === 'verdict' ? '★' : '';
-    const bg = c.kind === 'reply' ? 'bg-gray-50' : c.kind === 'result' ? 'bg-green-50'
-      : c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
+    // 底色按语义取令牌（深色自动跟随）；不用调色板浅底。
+    const bg = c.kind === 'reply' ? 'bg-[var(--neutral-50)]'
+      : c.kind === 'result' ? 'bg-[var(--badge-success-bg)]'
+        : c.kind === 'dispatch' ? 'bg-[var(--badge-info-bg)]'
+          : c.kind === 'verdict' ? 'bg-[var(--badge-warning-bg)]' : 'bg-[var(--neutral-50)]';
     const bgDark = '';
     return `
       <div class="rounded-lg p-2 ${bg}"${bgDark}>

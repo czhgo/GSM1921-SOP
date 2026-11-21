@@ -232,11 +232,9 @@ export const TODO_ACTIONS = {
     mode: 'switch',
     label: '去处理',
     ..._landing(LAND.group, { kind: 'group' }),
-    // 支书：情景②③ 项目赋权按对象归位 ⇒ 活动/专班赋权落活动管理（不落党小组页）
-    scopeOverrides: {
-      activity: { tab: 'calendar', kind: 'activity' },
-      taskforce: { tab: 'calendar', kind: 'group' },
-    },
+    // 支书：情景②③ 项目赋权按对象归位（活动详情 / 组织台专班块）是**跨页 / 对象详情**落点，
+    //   由 `entries/tabs/secretary/todo-tab.js::expandAssignPanelForTodo` 单一负责；
+    //   本表不再声明 scopeOverrides——否则同一动作会先切日历页、再被改写，形成双跳转。
   },
   write: { mode: 'switch', label: '去写入活动', ..._landing(LAND.write, { kind: 'activity' }) },
   review: {

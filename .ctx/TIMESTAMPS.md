@@ -1,4 +1,4 @@
----
+﻿---
 title: "文件时间戳注册表"
 type: audit_report
 role: "[工程师]+[AI]"
@@ -280,7 +280,7 @@ dynamic_role:
 | server/test/docs-governance-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 文档治理守卫。 |
 | server/test/contract-field-usage-guard.test.mjs | 2026-11-17 | — | [工程师]+[AI] | 契约字段 / 枚举 / 幽灵字段回归守卫（guards 层）。 |
 | .ctx/README.md | 2026-11-03 | — | [工程师]+[AI] | 三层分职（active / reference / provenance）、准入判据、读取顺序、预算、冲突顺序与可复用资产索引。 |
-| .ctx/ACTIVE_CONTEXT.md | 2026-11-21 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-901`。 |
+| .ctx/ACTIVE_CONTEXT.md | 2026-11-21 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-902`。 |
 | server/test/link-color-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 链接色守卫。 |
 | server/test/activity-tone-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 活动类别守卫。 |
 | server/test/field-shell-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 字段外壳守卫。 |
@@ -710,3 +710,4 @@ dynamic_role:
 | docs/src/services/handover.js | 2026-08-06 | T-224 废除数据交接 |
 | docs/assets/vendor/gsap.min.js | 2026-09-29 | **零引用死资产**：支书 2026-08-14 裁决「gsap 是最大的害群之马」后 `about.html` 已删其引用（页面改 CSS `animation-timeline: view()` + 原生滚动，`DESIGN_SYSTEM.md` 已立「规避 JS 动画库」口径）；全仓 grep `gsap` 仅剩该关闭注释与历史日志 ⇒ 删（**72,214 B**；批次 265） |
 | docs/assets/vendor/ScrollTrigger.min.js | 2026-09-29 | 同上（随 `gsap.min.js` 同批删；**43,380 B**；批次 265） |
+

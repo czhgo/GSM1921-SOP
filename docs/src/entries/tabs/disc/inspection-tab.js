@@ -513,7 +513,7 @@ function _buildInspectionProxyCardHTML(activities = []) {
     <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
         ${renderCardHeader({ title: `考察代录（代上传方录入）` })}
-        <button id="btn-disc-upload-insp" class="btn-outline h-8 px-3 text-xs font-medium">${_discInspFormVisible ? '收起表单' : '代录考察表单'}</button>
+        <button id="btn-disc-upload-insp" class="btn-outline btn-sm">${_discInspFormVisible ? '收起表单' : '代录考察表单'}</button>
       </div>
       <div class="text-xs text-gray-500 leading-5 mb-3">代录后进入下方考察总表「待确认」。</div>
       ${formHtml}
@@ -630,7 +630,7 @@ function _buildSupervisionCardHTML(rows, returnedRecs = []) {
               <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#94A3B8"></span>
               <span class="text-xs text-gray-700 flex-shrink-0">${esc(getPersonName(r.personId))}</span>
               <span class="text-xs text-gray-500 flex-1 truncate">${esc(inspectionToLong([r])[0].source || '—')}${r.returnReason ? ` · ${esc(r.returnReason)}` : ''}</span>
-              ${badgeHtml('已打回', 'info')}
+              ${badgeHtml('已打回', 'warning')}
             </div>`).join('')}
         </div>
       </div>`;

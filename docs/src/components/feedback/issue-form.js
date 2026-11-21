@@ -62,7 +62,7 @@ export function renderIssueForm() {
               ${TYPE_OPTIONS.map(t => `
                 <label class="flex items-center gap-2 text-xs cursor-pointer font-sans">
                   <input type="checkbox" name="form-type" value="${t.value}" class="rounded">
-                  <span class="badge badge--${t.badge}">${t.label}</span>
+                  ${badgeHtml(t.label, t.badge)}
                 </label>
               `).join('')}
             </div>

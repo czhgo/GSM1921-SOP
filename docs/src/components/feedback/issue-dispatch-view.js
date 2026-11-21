@@ -440,8 +440,12 @@ function _renderMyIssueDetail(issueId, role, userId, container) {
   } else {
     comments.forEach(c => {
       const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'reply' ? '答' : c.kind === 'verdict' ? '★' : '';
-      const kindBg = c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'result' ? 'bg-green-50' : c.kind === 'reply' ? 'bg-red-50/70' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
-      html += `<div class="rounded-lg p-2.5 ${kindBg}">`;
+      // 底色按语义取令牌（浅色 → 深色自动跟随）：分派＝info，结论＝success，正式答复＝中性，判定＝warning。
+      const kindBg = c.kind === 'dispatch' ? 'bg-[var(--badge-info-bg)]'
+        : c.kind === 'result' ? 'bg-[var(--badge-success-bg)]'
+          : c.kind === 'reply' ? 'bg-[var(--neutral-50)]'
+            : c.kind === 'verdict' ? 'bg-[var(--badge-warning-bg)]' : 'bg-[var(--neutral-50)]';
+      html += `<div class="rounded-lg p-3 ${kindBg}">`;
       html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${_displayName(c.author)}</span>`;
       if (c.kind === 'reply') {
         html += `<span class="text-xs px-1 py-0.5 rounded font-medium ml-1" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);">正式答复</span>`;

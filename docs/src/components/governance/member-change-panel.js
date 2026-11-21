@@ -26,6 +26,7 @@ import { bumpToken } from '../../core/base/version-token.js?v=20261120a';
 import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261120a';
 import { loadActivities } from '../../services/activity/activity.js?v=20261120a';
 import { badgeHtml } from '../ui/badges.js?v=20261120a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261120a';
 import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261120a';
 import { NoticeStore } from '../../services/governance/notice.js?v=20261120a';
 import { currentUserId } from '../../services/core/auth.js?v=20261120a';
@@ -35,7 +36,7 @@ import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '.
 const _pendingStatusOf = (mode) => (mode === 'org-approve' ? 'pending-org-approval' : 'pending-secretary');
 
 // ── 请求列表模块级缓存（预载 → buildRealtimeGroups 同步产物；见头注） ──────
-const _cache = { loaded: false, requests: [] };
+const _cache = { loaded: false, requests: [], error: '' };
 
 function _sigOf(rows) {
   const arr = Array.isArray(rows) ? rows : [];
@@ -51,9 +52,12 @@ export async function preloadMemberChangeRequests() {
   if (_cache.loaded && _sigOf(live) === _sigOf(_cache.requests)) return _cache.requests;
   try {
     _cache.requests = await getAdapter().memberChangeRequests.list();
+    _cache.error = '';
   } catch (e) {
     console.warn('[member-change-panel] 申请列表加载失败：', e);
+    // H32：失败不造事实——把错误态留给渲染层显式提示 + 重试，不得静默成「无待办」。
     _cache.requests = [];
+    _cache.error = '成员变更申请加载失败';
   }
   _cache.loaded = true;
   return _cache.requests;
@@ -116,11 +120,18 @@ export function buildMcBulkRows(mode = 'secretary-confirm') {
  */
 export function renderMcBulkRowsHtml(rows, { mode = 'secretary-confirm', accent = '#B91C1C' } = {}) {
   const list = Array.isArray(rows) ? rows : [];
-  if (list.length === 0) return '';
+  const errHtml = _cache.error
+    ? `<div data-mcb-panel="${mode}">${emptyStateHtml({
+      text: _cache.error,
+      variant: 'inline',
+      actionHtml: '<button type="button" class="btn-outline" data-mcb-retry>重新载入</button>',
+    })}</div>`
+    : '';
+  if (list.length === 0) return errHtml;
   const verb = mode === 'org-approve' ? '通过' : '确认';
   const sourceBadge = (s) => (s === 'agenda'
     ? badgeHtml('议程', 'info')
-    : badgeHtml('名册', 'warning'));
+    : badgeHtml('名册', 'neutral'));
   const rowsHtml = list.map(r => `
     <label class="flex items-center gap-2 px-1 py-1.5 rounded-lg hover:bg-white transition-colors cursor-pointer" data-mcb-row data-mc-request-id="${esc(r.id)}">
       <input type="checkbox" class="mcb-check checkbox-accent shrink-0" data-mcb-source="${r.source}" data-mcb-id="${esc(r.id)}" />
@@ -135,7 +146,7 @@ export function renderMcBulkRowsHtml(rows, { mode = 'secretary-confirm', accent 
         <span class="block text-xs text-gray-500 truncate w-full">${esc(r.meta || '')}${r.byName ? ` · ${esc(r.byName)}` : ''}${r.at ? ` · ${String(r.at).slice(0, 16).replace('T', ' ')}` : ''}</span>
       </span>
     </label>`).join('');
-  return `
+  return `${errHtml}
     <div class="px-2.5 py-2 space-y-0.5" data-mcb-panel="${mode}">
       <div class="flex items-center justify-between pb-1 border-b border-gray-100 mb-1">
         <label class="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer select-none">
@@ -160,6 +171,14 @@ export function renderMcBulkRowsHtml(rows, { mode = 'secretary-confirm', accent 
  * @param {{mode:string, onDone?:()=>void}} opts
  */
 export function bindMcBulk(container, { mode = 'secretary-confirm', onDone } = {}) {
+  const retry = container?.querySelector(`[data-mcb-panel="${mode}"] [data-mcb-retry]`);
+  if (retry) {
+    retry.addEventListener('click', async () => {
+      retry.disabled = true;
+      await preloadMemberChangeRequests();
+      onDone?.();
+    });
+  }
   const panel = container?.querySelector(`[data-mcb-panel="${mode}"]`);
   if (!panel) return;
   const verb = mode === 'org-approve' ? '通过' : '确认';

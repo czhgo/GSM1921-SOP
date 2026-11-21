@@ -860,12 +860,24 @@ function _showMobileDayDetail(dateKey, activeActivities, tasks, state) {
     }
   }
 
+  const prevFocus = document.activeElement;
   panel.innerHTML = html;
+  // 2026-11-21 批次 592（DS_03 §4.27）：移动端日详情是浮层 ⇒ 补 dialog 语义、Esc 关闭与关闭后回焦。
+  panel.setAttribute('role', 'dialog');
+  panel.setAttribute('aria-modal', 'true');
+  panel.setAttribute('aria-label', '当日详情');
   panel.classList.add('visible');
 
-  document.getElementById('cal-mobile-detail-close')?.addEventListener('click', () => {
+  const closeDetail = () => {
     panel.classList.remove('visible');
     document.querySelectorAll('.cal-cell-mobile.selected').forEach(c => c.classList.remove('selected'));
+    if (prevFocus && typeof prevFocus.focus === 'function' && prevFocus.isConnected) prevFocus.focus();
+  };
+  const closeBtn = document.getElementById('cal-mobile-detail-close');
+  closeBtn?.addEventListener('click', closeDetail);
+  closeBtn?.focus();
+  panel.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { e.stopPropagation(); closeDetail(); }
   });
 }
 

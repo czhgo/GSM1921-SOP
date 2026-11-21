@@ -671,7 +671,7 @@ function _buildQueueHTML(items, returnedRecs, leaveCount, absentCount, overdueCo
                 <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#94A3B8"></span>
                 <span class="text-xs text-gray-700 flex-shrink-0">${esc(getPersonName(r.personId))}</span>
                 <span class="text-xs text-gray-500 flex-1 truncate">${act ? esc(act.title) : '活动已下架'}${r.returnReason ? ` · ${esc(r.returnReason)}` : ''}</span>
-                ${badgeHtml('已打回', 'info')}
+                ${badgeHtml('已打回', 'warning')}
               </div>`;
             }).join('')}
           </div>
@@ -1429,7 +1429,7 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx, 
           const groupMeetingNote = rec?.detainedMakeup
             ? badgeHtml('滞留·到场', 'warning')
             : (rec?.absenceReason ? esc(absenceReasonLabel(rec.absenceReason)) : '<span class="text-gray-500">—</span>');
-          const statusColor = a.status === AttendanceStatus.PRESENT ? 'text-green-700' : a.status === AttendanceStatus.ABSENT ? 'text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'text-teal-700' : 'text-orange-700';
+          const statusColor = a.status === AttendanceStatus.PRESENT ? 'text-green-700' : a.status === AttendanceStatus.ABSENT ? 'text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'text-[var(--status-success-text)]' : 'text-orange-700';
           return `
           <tr>
             <td class="font-medium text-gray-800" data-label="姓名"><a href="${getBasePath()}person.html?id=${encodeURIComponent(a.personId)}" class="hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${a.name}</a></td>

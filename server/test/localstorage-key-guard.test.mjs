@@ -73,7 +73,6 @@ const SERVER_AUTHORITATIVE = {
   'gsm1921-inspection-appeals': '考察申诉队列；服务端表 inspection_appeals（2026-09-24 批次 169；services/activity/inspection.js）',
   'sop_org_os_auth_audit': '授权审计留痕；服务端表 auth_audit（2026-09-24 批次 169；services/core/auth.js）',
   'gsm1921-issue-cache-v3': '意见反馈读缓存；服务端 issues 表为权威（services/governance/issues.js）',
-  'gsm1921-issue-cache': '意见反馈旧缓存键（历史版本；reactions.js 仍写、init-reset 清除）——真相同上游 issues 表',
   'gsm1921-issue-cache-version': '上条缓存的版本号（缓存失效用，非数据本体）',
   'gsm1921-feedback-migrated': '反馈迁移标记（一次性迁移用；迁移的是种子，非用户数据）',
   'gsm1921-feedback-submissions': '旧版反馈本地提交件（迁移源；migrateFeedbackSubmissions 处理后清除）',

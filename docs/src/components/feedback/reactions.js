@@ -3,7 +3,6 @@
 
 import { IssueStore } from '../../services/governance/issues.js?v=20261120a';
 import { AuthStore } from '../../services/core/auth.js?v=20261120a';
-import { showToast } from '../../core/base/utils.js?v=20261120a';
 import { icon } from '../../core/base/icons.js?v=20261120a';
 
 // 固定语义色（不随主题）：赞同=成功 / 反对=危险 / 关注=信息 / 庆祝=提醒
@@ -47,25 +46,9 @@ export function bindReactions() {
     btn.addEventListener('click', () => {
       const issueId = btn.dataset.issueId;
       const reactionKey = btn.dataset.reaction;
-      const issue = IssueStore.getById(issueId);
+      // 单一写口：组件不直接改 issue 对象、不直接写 localStorage（H32）。
+      const issue = IssueStore.toggleReaction(issueId, reactionKey);
       if (!issue) return;
-
-      const currentUserId = _currentPersonId();
-      const list = issue.reactions[reactionKey] || [];
-      const idx = list.indexOf(currentUserId);
-
-      if (idx >= 0) {
-        // 取消表态
-        list.splice(idx, 1);
-      } else {
-        // 添加表态（草稿，需支书审核后真正合并——但反应是即时的，直接生效）
-        list.push(currentUserId);
-      }
-      issue.reactions[reactionKey] = list;
-
-      try {
-        localStorage.setItem('gsm1921-issue-cache', JSON.stringify(IssueStore.getAll()));
-      } catch {}
 
       // 局部刷新反应区
       const container = document.querySelector(`[data-reactions-for="${issueId}"]`);

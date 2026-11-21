@@ -10,6 +10,25 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 592（2026-11-21）· 前端 lens 清账（D-902）
+
+### 为什么
+- 支书要求前端单独用 parallel agents 对照既有原则 / 规则 / 判例查不一致；两个 lens 报 20 条，裁定「19 条一次修完」。
+
+### 拿不准 / 取舍
+- **3 条判不成立**：`feedback-tab` 用 `badgeVariantClass` 已属徽章单源；`activity-entry` 无「只读查看」胶囊（lens 行号指向模态页脚）；考勤行键盘落点＝原生复选框，属 2026-11-04 Task 3.1 既有裁定，不重开。
+- **1 条不修**：`about-entry.js` 死按钮属 About 冻结面（`about-freeze-guard` 优先）。
+- **表态（reactions）**：收进 `IssueStore.toggleReaction` 单一写口后，api 形态仍只改本机缓存——`PATCH /issues/:id` 是支委处置门，改权限面须支书裁 ⇒ 登记 `B-592-1`，本批不新增端点。
+- **赋权双跳转**：从动作表删 `authorize.scopeOverrides`（活动 / 专班属跨页或对象详情），单一路径交给 `expandAssignPanelForTodo`。
+
+### 边界
+- 真机点赞验证 BLOCKED-BY-ENV：沙箱在新命令结束时回收 detached 子进程，服务无法跨工具会话驻留；以「login / feedback 页面与 reactions、issues 两个模块 200」＋ guards/daily 代替。
+- `gsm1921-issue-cache` 因 reactions 收口成为僵尸登记，从 `cache-registry` 与 L2 白名单删除（键仍在 init-reset / mock-adapter 的清理数组里）。
+
+### 读数
+- guards：127 文件 / 893 断言全绿（140.2s）；daily：265 / 108.5s；`localstorage-key-guard` 10/10。
+- 服务探测：`/login.html` / `/feedback.html` / `reactions.js` / `issues.js` 均 200。
+
 ## 批次 591（2026-11-21）· 清账门与防留尾巴（D-901）
 
 ### 为什么

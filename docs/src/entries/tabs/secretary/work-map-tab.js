@@ -36,6 +36,7 @@ import { listGroupHtml, listRowHtml } from '../../../components/ui/list-row.js?v
 import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 // 空态单一源（一句说明 + 一个下一步），与全局概况 / 周期归档卡同形
 import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261120a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261120a';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅支书/副支书可见
 import { mountWorkforcePanel } from './workforce-panel.js?v=20261120a';
 
@@ -114,10 +115,10 @@ function _relationRows(workforce) {
  *  2026-11-10 批次 541：常规行不再渲染「主责」——主责是常态、不是状态；例外才需要态标。
  *  本页禁 SVG，只用文字 + 既有 .badge 档。 */
 function _ownerBadgeHtml(row) {
-  if (row.disabled) return `<span class="badge badge--warning">停用</span>`;
-  const owner = `<span class="badge badge--neutral">${esc(row.owner)}</span>`;
+  if (row.disabled) return badgeHtml('停用', 'warning');
+  const owner = badgeHtml(esc(row.owner), 'neutral');
   if (row.role !== '上级主导') return owner;
-  return `<span class="flex items-center gap-1 flex-wrap">${owner}<span class="badge badge--neutral">上级主导</span></span>`;
+  return `<span class="flex items-center gap-1 flex-wrap">${owner}${badgeHtml('上级主导', 'neutral')}</span>`;
 }
 
 /** 单行对象行：负责人徽章 + 工作项（14/600）+ 协作 / 产出（12，同行截断）；说明只进 title 与展开块。

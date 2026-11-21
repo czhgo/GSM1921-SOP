@@ -85,7 +85,7 @@ export function renderIssueDetail(issueId) {
           <div class="flex items-center gap-2 mb-3">
             <span class="text-xs text-gray-500 font-mono">#${issue.number}</span>
             ${issue.status === 'open'
-              ? badgeHtml('开放中', 'success')
+              ? badgeHtml('开放中', 'warning')
               : badgeHtml(`已关闭 · ${ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || '已解决'}`, 'neutral')
             }
           </div>

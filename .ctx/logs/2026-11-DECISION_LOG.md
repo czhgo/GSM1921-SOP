@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-901`，共 75 条**；下一条自 **`D-902`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-902`，共 76 条**；下一条自 **`D-903`**。
 
 ## 本月目录（2026-11）
 
@@ -95,6 +95,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | B-500-7b-2：兜底 instrument ＋ 7 类对账守卫；commit body 强制「资产命中」机检 | `D-899` | 2026-11-21 | 已落（批次 589） |
 | 前端一致性收口：两条表单 SD（SD-66/67）＋ 错误态可操作化 ＋ 行高压准 | `D-900` | 2026-11-21 | 已落（批次 590） |
 | 清账门 H50.3 ＋ `open-items-guard`；外部门单列 EA §四；旧计划归档；service:ensure | `D-901` | 2026-11-21 | 已落（批次 591） |
+| 前端 lens 清账：16 条按规则修、1 条冻结、3 条不成立；表态单一写口（服务端待裁） | `D-902` | 2026-11-21 | 已落（批次 592） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -751,5 +752,16 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：`open-items-guard` 5/5 绿（含反例自证）；`test-tier-guard` 7/7（registry 127 文件 / 893 断言）；`service:ensure` 停服 → 4s 恢复 200。
 > **落点**：`CLAUDE.md`（H20.1 / H50.3）、`.ctx/ENGINEERING_ASSESSMENT.md §四`、`.ctx/REVIEW_QUEUE.md`、`.trae/documents/2026-11-02-audit-consolidation-and-cutover.md`、`server/scripts/ensure-service.mjs`、`server/package.json`、`server/test/open-items-guard.test.mjs`、`server/test-tier-registry.mjs`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-901`**（共 **75** 条）。
+## D-902 2026-11-21 — 前端 lens 清账：20 条不一致逐条落（批次 592）
+
+> **评议 → 裁定 → 落点**：支书要求「前端单独用 parallel agents 对照既有原则 / 规则 / 判例查不一致，报后按授意修」。两个独立 lens（视觉 / 交互与数据真值）各出一份带 `file:line` 的报告，支书裁定「19 条一次修完」。
+> - **按规则修 16 条**：手拼徽章 → `badgeHtml`（work-map / assign / issue-form）；「已打回」tone 统一 warning；「开放中」success → warning；正式答复与汇报块改令牌底；专班通过 / 拒绝改 `btn-accent-soft` / `btn-outline`；成员变更预载失败补错误态＋重试（H32）；表态收进 `IssueStore.toggleReaction` 单一写口；赋权待办双跳转改单一路径；名册来源徽章 neutral；未读统一 warning；`p-2.5` / `gap-2.5` 归 12 / 8 档；考勤「已补」改 success 令牌；person-picker 补 `aria-controls`；references 三个 `label` 补 `for`；消息撰写框补 `aria-label`；日历移动端日详情补 dialog 语义 + Esc + 回焦。
+> - **不修 1 条（冻结件）**：`about-entry.js` 的 `role=button` 死按钮属 `about-freeze-guard` 冻结面，冻结优先。
+> - **判为不成立 3 条**：`feedback-tab` 用 `badgeVariantClass` 已属徽章单源；`activity-entry` 无「只读查看」胶囊；考勤行键盘落点=原生复选框属 2026-11-04 Task 3.1 既有裁定（不重开）。
+> **未选**：给表态新增服务端写口（`PATCH /issues/:id` 是支委处置门，改权限面须支书裁）⇒ 登记 `REVIEW_QUEUE B-592-1`，未裁前不加端点。
+> **边界**：`toggleReaction` 在 api 形态仍只改本机缓存（刷新回落），已在代码注释与队列双处写明；真机点赞验证受沙箱进程回收限制（BLOCKED-BY-ENV），以「页面与两个模块 200 ＋ guards/daily 全绿」代替。
+> **读数**：guards **127 文件 / 893 断言全绿（140.2s）**；daily **265 / 108.5s**；`localstorage-key-guard` 删 `gsm1921-issue-cache` 僵尸登记后 10/10。
+> **落点**：`docs/src/**`（约 15 文件）、`server/test/localstorage-key-guard.test.mjs`、`docs/src/data/cache-registry.js`、`.ctx/REVIEW_QUEUE.md`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-902`**（共 **76** 条）。
 

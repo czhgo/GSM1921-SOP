@@ -1098,8 +1098,8 @@ function _tfRenderSignupBlock(panel, tf, ctx) {
         ${s.note ? `<span class="text-[11px] text-gray-500 truncate max-w-[120px]">${esc(s.note)}</span>` : ''}
         ${s._pendingRow
           ? `<span class="ml-auto flex items-center gap-1.5">
-              ${s.role === 'participant' ? '<span class="text-[11px] text-[var(--status-warning-text)]">历史身份待核，不得转为成员</span>' : '<button class="btn-tab tf-signup-review-btn px-2.5 py-1" data-signup-id="' + esc(s.id) + '" data-approve="1" style="background:var(--status-success);">通过</button>'}
-              <button class="btn-tab tf-signup-review-btn px-2.5 py-1" data-signup-id="${esc(s.id)}" data-approve="0">拒绝</button>
+              ${s.role === 'participant' ? '<span class="text-[11px] text-[var(--status-warning-text)]">历史身份待核，不得转为成员</span>' : '<button type="button" class="btn-accent-soft btn-sm tf-signup-review-btn" data-signup-id="' + esc(s.id) + '" data-approve="1">通过</button>'}
+              <button type="button" class="btn-outline btn-sm tf-signup-review-btn" data-signup-id="${esc(s.id)}" data-approve="0">拒绝</button>
             </span>`
           : badgeHtml('已通过', 'success')}
       </div>`,

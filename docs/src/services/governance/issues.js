@@ -672,6 +672,29 @@ export const IssueStore = {
   },
 
   /**
+   * 表态（赞同 / 反对 / 关注 / 庆祝）唯一写口：mock 形态落本域缓存并即时刷新。
+   * 组件不得直接改 issue 对象或写 localStorage（H32：UI 只经数据层）。
+   * ⚠ 边界：`PATCH /issues/:id` 是支委处置门，普通成员的表态暂不写服务端（刷新后回落）；
+   *   「表态是否上服务端」属权限取向，登记 `REVIEW_QUEUE B-592-1` 待支书裁。
+   * @param {string} issueId
+   * @param {'thumbsUp'|'thumbsDown'|'eyes'|'hooray'} key
+   * @returns {object|null} 更新后的 issue（已脱敏）
+   */
+  toggleReaction(issueId, key) {
+    const issue = _rawById(issueId);
+    if (!issue || !key) return null;
+    const me = _currentPersonId();
+    if (!issue.reactions || typeof issue.reactions !== 'object') issue.reactions = {};
+    const list = Array.isArray(issue.reactions[key]) ? issue.reactions[key] : [];
+    const idx = list.indexOf(me);
+    if (idx >= 0) list.splice(idx, 1); else list.push(me);
+    issue.reactions[key] = list;
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // 表态 → 写版本 +1（列表 / 详情同步刷新）
+    return _sanitizeIssue(issue);
+  },
+
+  /**
    * 添加评论 / 批复 / 处置结果
    * @param {string} issueId
    * @param {string} author       personId

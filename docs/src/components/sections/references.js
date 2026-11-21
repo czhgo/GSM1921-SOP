@@ -848,7 +848,7 @@ export class ReferencesModule {
         <div class="space-y-3.5">
           ${purposeSelectHtml}
           <div>
-            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--status-error-text);">*</span></label>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-title">标题 <span style="color:var(--status-error-text);">*</span></label>
             <input id="ref-modal-title" class="input-flat w-full" placeholder="如：积极分子考察表模板 / 支部例会制度" value="${editing ? _esc(editing.title || '') : ''}" />
           </div>
           <div>
@@ -857,7 +857,7 @@ export class ReferencesModule {
           </div>
           ${instBoxHtml}
           <div>
-            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" id="ref-modal-file-label">${editing ? '替换文件（可选，不选则保留原文件）' : '选择文件 <span style="color:var(--status-error-text);">*</span>'}</label>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" id="ref-modal-file-label" for="ref-modal-file">${editing ? '替换文件（可选，不选则保留原文件）' : '选择文件 <span style="color:var(--status-error-text);">*</span>'}</label>
             <input id="ref-modal-file" type="file" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xlsx,.mp4"
               class="block w-full text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-[var(--app-accent-soft-bg)] file:text-[var(--app-accent-soft-text)] file:text-xs hover:file:bg-[var(--app-accent-active-bg)] transition-colors cursor-pointer" style="color:var(--neutral-600);" />
           </div>
@@ -984,7 +984,7 @@ export class ReferencesModule {
       bodyHtml: `
         <div class="space-y-3.5">
           <div>
-            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--status-error-text);">*</span></label>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-pub-title">标题 <span style="color:var(--status-error-text);">*</span></label>
             <input id="ref-pub-title" class="input-flat w-full" value="${_esc(doc.title || '')}" />
           </div>
           <div>

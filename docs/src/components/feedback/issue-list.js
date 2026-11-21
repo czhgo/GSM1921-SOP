@@ -141,7 +141,7 @@ function renderIssueRow(issue) {
   ).join('');
 
   const statusBadge = issue.status === 'open'
-    ? badgeHtml('开放中', 'success')
+    ? badgeHtml('开放中', 'warning')
     : badgeHtml(`已关闭 · ${ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || '已解决'}`, 'neutral');
 
   const reactions = Object.entries(issue.reactions || {}).filter(([_, list]) => list.length > 0).map(([type, list]) => {
