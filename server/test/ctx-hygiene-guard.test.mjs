@@ -101,8 +101,11 @@ test('⑤ ACTIVE_CONTEXT：≤300 行 / ≤30KB，frontmatter 齐全且保鲜', 
   const lines = src.split(/\r?\n/).length;
   const bytes = Buffer.byteLength(src, 'utf8');
   assert.ok(lines <= 300, `ACTIVE_CONTEXT 行数 ${lines} > 300：先把细节降级到 reference`);
-  assert.ok(bytes <= 30 * 1024, `ACTIVE_CONTEXT 字节 ${bytes} > 30KB：先把细节降级到 reference`);
+  assert.ok(bytes <= 16 * 1024, `ACTIVE_CONTEXT 字节 ${bytes} > 16KB：section §1–§5 只留当前投影，细节降级到 reference`);
   assert.match(src, /^layer:\s*active/m, 'ACTIVE_CONTEXT frontmatter 缺 `layer: active`');
+  const sec2 = src.slice(src.indexOf('## §2'), src.indexOf('## §3'));
+  const bullets = sec2.split(/\r?\n/).filter((l) => /^\d+\.\s/.test(l)).length;
+  assert.ok(bullets > 0 && bullets <= 14, `ACTIVE_CONTEXT §2 现行裁定摘要 ${bullets} 条（>14）：只留仍影响下一步的；其余正文在 DECISION_LOG / content`);
   assert.match(src, /^last_verified:\s*"?\d{4}-\d{2}-\d{2}"?/m, 'ACTIVE_CONTEXT frontmatter 缺 `last_verified`');
   assert.match(src, /^budget:\s*".*?"/m, 'ACTIVE_CONTEXT frontmatter 缺 `budget`');
   const latest = src.match(/^latest_decision:\s*"?D-(\d+)"?/m);
@@ -131,10 +134,10 @@ test('⑥ ACTIVE_RULINGS：≤150 行且含 §B 分域索引（规则正文不�
   assert.ok(indexRows >= 16, `ACTIVE_RULINGS 分域索引只解析到 ${indexRows} 行（下限 16）：分域表被写坏或漏项`);
 });
 
-test('⑦ SNAPSHOT：≤250 行且不再承载批次小结', () => {
+test('⑦ SNAPSHOT：≤150 行且不再承载批次小结', () => {
   const src = readFileSync(join(CTX, 'SNAPSHOT.md'), 'utf8');
   const lines = src.split(/\r?\n/).length;
-  assert.ok(lines <= 250, `SNAPSHOT 行数 ${lines} > 250：批次小结应迁 EXECUTION_LOG_INDEX，SNAPSHOT 只留现状`);
+  assert.ok(lines <= 150, `SNAPSHOT 行数 ${lines} > 150：批次小结应迁 EXECUTION_LOG_INDEX，SNAPSHOT 只留现状`);
   const batchSections = (src.match(/^## 批次 \d+ 小结/mg) || []).length;
   assert.equal(batchSections, 0, `SNAPSHOT 仍有 ${batchSections} 段批次小结：已改由 EXECUTION_LOG_INDEX 承接`);
 });

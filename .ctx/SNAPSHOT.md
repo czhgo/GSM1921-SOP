@@ -2,7 +2,7 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-11-20"
+last_updated: "2026-11-22"
 status: "ACTIVE"
 layer: reference
 date: "2026-10-23"
@@ -24,78 +24,16 @@ version: "v62"
 
 ```text
 GSM1921-SOP/
-├── README.md                   ← 对外门面（**通用化**：引擎/模板 + 各组织自有部署 + 起源故事；**功能地图置顶**于 `<!--FUNC-MAP:ANCHOR-->` 后）
-├── README-members.md           ← 支部成员版（地图改为链接根 README；九章正文保留）
-├── LICENSE / CONTRIBUTING.md   ← 开源 License + 贡献指南（**2026-09-28 批次 236 新增 §六「发版（语义化 release）」**）
-├── CHANGELOG.md                ← 变更日志（Keep a Changelog 体例；**只记「对使用者可见的变更」**——逐批沿革归 `.ctx/logs/**`；起点＝首次语义化发版 `0.1.0` 2026-09-28、不回溯补记）
-├── CLAUDE.md                   ← 上下文入口（甲部 H10-H100 约束力三层 + H60 提问准则 + 乙部执行 + 丙部待决策）
-├── docs/                       ← 前端代码层（根 HTML + workspace/ 工作台 + ESM 模块化源码；页面实测 26=18 根+8 工作台/只读视图，清单见 §III，以 docs/ 实况为准）
-│   ├── index.html              ← 主页入口（未登录＝学院党委公共门厅：公开通知全文 / 活动摘要 / 公开资料 ＋ 登录入口；登录后为通知/招募/日历/待办四组件）
-│   ├── notice.html             ← 通知独立页（含「党委下发」红标）
-│   ├── about.html              ← 支部的故事
-│   ├── archive.html            ← 归档库
-│   ├── search.html             ← 资料查询（支部文件唯一上传入口）
-│   ├── feedback.html           ← 意见反馈
-│   ├── help.html               ← 系统说明书（功能地图 + 搜索，FUNCTION_CATALOG 驱动）
-│   ├── login.html              ← 登录页（演示卡直达角色工作台）
-│   ├── activity.html           ← 活动/专班详情公共页（议程恒定渲染 + 表决端 + 通知直达锚点）
-│   ├── party-committee-meeting.html ← 支委会会议页（线上召开：提取议程 / 委员线上表态 / 汇总截止 / 留存并查阅讨论结果；批次 105 / D-526）
-│   ├── taskforce.html          ← 专班详情公共页
-│   ├── settings.html           ← 设置中心（侧边栏右下「设置」入口：外观/我的工作台/支部治理·按登录角色分区，**15 个独立页入口之一**；文件层根页 18 个）
-│   ├── thought-report.html     ← 思想汇报独立阅读页（三模式：?id= 单篇 / ?personId= 按人 / 无参＝提示未指定对象）
-│   ├── person.html             ← 成员档案页（完整档案/在册留痕/关联概览计数，?id=<personId> 打开）
-│   ├── wizard.html             ← 换组织向导（独立 URL 页，支书限本支部/党委任意）
-│   ├── workspace/              ← 角色工作台页面（7 个 HTML，工作台+待办合一）
-│   │   ├── secretary.html      ← 支书工作台（支书/副支书共用：活动写入+分工调整+issue 管理+通知发布+上报党委+待办；英文 key `secretary`=代码标识，中文一律「支书」）
-│   │   ├── leader.html         ← 党小组组长工作台（活动管理+考勤上传+考察上传+组员进展+待办）
-│   │   ├── org.html            ← 组织委员工作台（考察上传+专班管理+人才库+发展党员+待办）
-│   │   ├── prop.html           ← 宣传委员工作台（宣传任务+项目看板+档案归档+周期归档+待办）
-│   │   ├── disc.html           ← 纪检委员工作台（考勤管理（含补课分段）+监督复盘+考察管理+知情查看+待办）
-│   │   ├── visitor.html        ← 成员工作台（含思想汇报提交/待办）
-│   │   └── party-committee.html← 党委工作台（党委组织员·全院支部治理，组织级角色非支部角色）
-│   ├── scripts/                ← bump-version.mjs（版本串纪律）/ gen-function-mermaid.mjs（README 图生成+防止未同步的情况）/ version-next.mjs（**版本与发版治理**纯函数单一源）/ release.mjs（**发版单一入口**：默认预演 · 按变更类别语义化升号 · CHANGELOG↔package.json↔tag 三处取齐 · 打 tag 不 push；2026-09-28 批次 236）
-│   └── src/                    ← ESM 模块化源码
-│       ├── entries/            ← 页面入口（**2026-09-28 按判据分三类**：`pages/` 独立页入口 15 · `workspace/` 角色工作台薄壳入口 7 · `tabs/` 各台业务 tab）
-│       ├── components/         ← 共享组件（**2026-09-28 目录分层**：`dashboard/` · `ui/`（基础件与库：badges/forms/modal/custom-select/pager/list-filter/relation-matrix…）· `shell/`（页面外壳：header/sidebar/tab-bar/workspace-shell…）· `feedback/`（反馈域）· `record/`（实体视图：activity-view/taskforce-view/insight-view/todo-*/report-*/inspector…）· `governance/`（治理与人员面板：person-picker/vote-*/member-change-panel/work-overview…））
-│       ├── core/               ← 内核（**2026-09-29 批次 267 分四子域**：`base/` 零依赖基础件 · `domain/` 领域口径与单一源清单 · `boot/` 启动装配与页面骨架 · `session/` 会话级跨页轻量状态）
-│       ├── data/               ← 数据形态层（**2026-09-29 批次 267 新立**）：`data-adapter`（门面）· `api-adapter` · `mock-adapter`（禁改）· `data-loader` ＋ `mock/`（演示数据种子）
-│       ├── services/           ← 服务层（**2026-09-28 目录分层**：`core/`（底座与横切：auth/roles/runtime/mock/preferences/visibility/init-reset/accounts）· `member/`（person/roster/member-flow/member-confirmation/party-group…）· `activity/`（activity/attendance/inspection/makeup/signup/taskforce/agenda-*/vote-config/decision-tree…）· `governance/`（issues/review/handoff/thought-report/notice/todo…）· `branch/`（branch/branch-doc/config-clean/org-config-package/appointment/workforce…））
-│       ├── data/mock/          ← Mock 演示数据（people/branches/activities/attendance 等种子文件 + index；数据窗口 2026-07~09；**`prop.js`＝周期归档 / 宣传任务种子单一源，UI 侧与服务端同源导入**，2026-09-28 批次 234）
-│       ├── capabilities/       ← 能力声明（**2026-09-29 批次 267 由 `modules/capabilities/` 上提为顶层**，12 件；与 `entries/` 对称：入口薄壳 ↔ 能力声明）
-│       ├── components/sections/ ← 页级板块渲染器（**2026-09-29 批次 267 新立**：`help-catalog` help 页目录树/章节卡片 · `references` 资料查询板块）
-│       ├── workflow/           ← 工作流引擎（engine/renderer/sop/sopData + blocks/ 块契约 manifests〔**6 块**：试点 2 ＋ 2026-09-29 批次 248 铺开的三会一课 4〕 + **`blocks/orchestration.js`＝通用编排内核**：范围过滤 / 组合校验 / 稳定拓扑序 / 编译为既有 definition 形状的纯数据；2026-09-28 批次 239）
-│       └── styles.css          ← 全局样式
-├── server/                     ← Node 一体化后端（Express + better-sqlite3，同源静态 + /api/v1 REST）
-│   ├── server.js               ← 启动入口（DISABLE_SEED=1 env 支持）
-│   ├── app.js                  ← createApp 工厂 + JSON 错误中间件
-│   ├── db.js                   ← 资源表 34（以 RESOURCE_TABLES 单一事实源为准；含 2026-09-17 匿名核查留痕表 issue_reveals；2026-10-02 批次 342 删死表 compliance_references）+ sessions/attachments
-│   ├── seed.js                 ← 复用前端 mock 导入种子
-│   ├── routes/                 ← auth / **resources/**（2026-09-28 批次 234 按内聚切分为**六件**：`index` 装配+通用 CRUD / `gates` 写门 / `approval-gates` 批准门 / `snapshot-versions` 版本协议 / `store` 表访问原语 / `semantic-routes` 语义端点）/ uploads / report / member / committee
-│   ├── services/               ← mailer.js（SMTP 双通道）+ mailer-hooks.js（事件钩子）+ reporting.js（四域上报）
-│   ├── test/                   ← 测试文件（.test.js/.test.mjs 混合，数量随目录增长；全量 npm test——命令见 CLAUDE.md H25；2026-09-05 起不再维护固定计数）
-│   └── data.db                 ← SQLite 单文件库（运行时产物）
-├── content/
-│   ├── 01_strategy/            ← [用户] 战略路线层（DEVELOPMENT_PATH + SECRETARY_DIRECTIVES（支书原话 P-001~P-016 基线，原 SECRETARY_PRONOUNCEMENTS 更名）+ references/）
-│   ├── 02_institution/         ← [用户] 组织制度层（sop/ + COMMISSIONER_DUTY_FRAMEWORK + SYSTEM_ROLE_PERMISSION；原 FLAT_ORGANIZATION_DESIGN 已于 2026-09-26 批次 201 并入 COMMISSIONER_DUTY_FRAMEWORK §G、原 ROLE_CLASSIFICATION 已于 2026-09-26 批次 202 迁入 03_doc_system/OPERATIONS_GUIDE.md §24–§31）
-│   ├── 03_doc_system/          ← [工程师] 系统治理层（ARCHITECTURE《架构与单一事实源》+ OPERATIONS_GUIDE《运行与协作规范》+ DOC_MAP ＋ `工作模板/`；**2026-09-26 批次 202 四份合一后**，原 `PROCESS_GUIDE` / `USAGE_POLICY` 与自 02 迁入的 `ROLE_CLASSIFICATION` **已并入 `OPERATIONS_GUIDE.md`**（§15–§18 / §19–§23 / §24–§31）并删除；**2026-09-25 批次 179 三份合一后**，原 `SSOT_INDEX` / `SERVICE_CATALOG` **已并入 `ARCHITECTURE.md` 的 §十 / §十一**）
-│   ├── 04_web_design/          ← [工程师] 设计理念层（data/ deploy/ design-system/ evolution/ module/ contracts/ 六子目录；DESIGN_SYSTEM/SOP_WEBSITE_GUIDE/contracts/PARTY_COMMITTEE_DESIGN 等；**2026-11-08 批次 537 载体契约化**：契约进 `contracts/`，已落地方案进 `evolution/archive/`，`evolution/` 只留 `ARCHITECTURE_EVOLUTION`）
-│   ├── 05_ai_coding/           ← [工程师] AI编码层（DOCUMENT_GOVERNANCE / CONTEXT_MANAGEMENT / REVIEW_AND_EXPRESSION / TEST_AND_VERIFICATION 等分篇）
-│   ├── insights/               ← [用户]+[AI] 经验沉淀（党支部管理与实务经验沉淀.md + README）
-│   └── README.md
-└── .ctx/                       ← [AI]/[工程师]+[AI] 审计底座
-    ├── SNAPSHOT.md             ← 当前基线快照
-    ├── ENGINEERING_ASSESSMENT.md  ← 工程化评估与改造行动线（原 MODULARIZATION_ASSESSMENT；2026-09-08 自 content/04_web_design/evolution 迁入、2026-09-09 更名：评估职能归审计底座）
-    ├── REVIEW_QUEUE.md         ← 支书评议队列（W4 专项附录 + 检查要点库）
-    ├── TIMESTAMPS.md           ← 文件时间戳注册表
-    ├── snapshots/              ← 历史快照归档
-    └── logs/                   ← 执行日志+决策日志（临时 spec 受管区 .trae/specs 用后即删，禁入 content）
+├── README*.md / CLAUDE.md / CHANGELOG.md / CONTRIBUTING.md / LICENSE
+├── docs/           前端：26 页（18 根 + 8 工作台/只读视图）· src/（entries 3 类 · components 6 域 · core 4 子域 · data · services 5 域 · capabilities · workflow · styles.css）
+├── server/         Node/Express + better-sqlite3：routes/（resources 六件 + 语义）· services · security · scripts · test（四层）
+├── content/01–05   战略 / 制度 / 文档体系 / 设计·数据·部署 / AI 方法
+├── deploy/         打包 · 安装 · 升级 · 换轨 runbook
+└── .ctx/           active / reference / provenance（见 .ctx/README.md）
 ```
 
-> **schema v19（2026-11-20 批次 580 改准）**：v13 生成列 ＋ v16 提案两表 ＋ v17 `branch_visits` ＋ v18 报名唯一索引 ＋ v19 多支部键级（`collection_versions(branch_id,name)` / `sessions.branch_id` / `attachments.branch_id`）；业务表 **50 张（34 资源 ＋ 10 语义 ＋ 6 工作组）**。当前总表数以 `initDb(':memory:')` 实测为准。**影子子表不是权威源**——读写仍走 JSON 主表，切表判据见 `content/04_web_design/data/DATA_MODEL.md §2.3.2` 与 `server/scripts/schema-split-readiness.mjs`。
->
-> **数据表现状（台账标注 · 2026-09-25 批次 190，系 `.ctx` 侧登记、**未改 `server/**`**）**：`server/data.db` 实有 **45 张表**、全库 **317 行**；其中 **30 张为空表**——**仅结构先行、数据尚未落地**（逐表清单见下句）。**⚠ 本注记的性质＝台账标注**：这些表**有结构、有读写口**（多为既有上传 / 留痕 / 申诉 / 服务端化链的承载位），**不代表功能不可用**——**这不是缺陷、也未被「修复」**（**只是把结构现状写清**）。同批另两条**本就建议不动**，一并说明：**单写者**（better-sqlite3 同步、单进程；WAL 只救读、不救写）· **附件走磁盘**（`uploads/` 落文件、库里只存路径，当前方向正确）。
->
-> **27 张「结构先行、暂无数据」的表（逐表清单，照录上一批后端实测；2026-10-02 批次 342 删 `compliance_references` ⇒ 30 → 29；schema v4 将 `weekly_reports` 迁入有数据的通用周期归档表，空表 29 → 28；schema v12 DROP `issue_reveals` ⇒ 28 → 27）**：`act_sub_records` · `activity_reviews` · `agenda_votes` · `appointment_records` · `attachments` · `attendance_appeals` · `attendances` · `auth_audit` · `branch_docs` · `collection_versions` · `committee_broadcasts` · `experience_deposits` · `external_dispatches` · `file_space_records` · `handoffs` · `image_records` · `inspection_appeals` · `inspections` · `issue_unread` · `member_change_requests` · `member_confirmations` · `member_flows` · `milestones` · `prop_tasks` · `taskforce_reviews` · `tf_sub_records` · `thought_reports`。
+> 逐文件清单见 §III（页面）与 `content/03_doc_system/DOC_MAP.md`；本树不逐文件复述。
+> **数据五数**：资源表 34 · 语义表 10 · 工作组表 6 · 业务表 50 · schema v19（source：`server/data/domain-contract.mjs`）。
 
 ## II. 分层架构（D-218 正交维度模型）
 
@@ -117,44 +55,9 @@ GSM1921-SOP/
 
 ## III. 核心文件清单
 
-### 治理文件
-
-| 文件 | 状态 | 说明 |
-|------|------|------|
-| `CLAUDE.md` | ✅ | 上下文入口：甲部(H10-H100 约束力三层)+乙部(执行)+丙部(待决策)；H60 含「向支书提问准则」 |
-| `content/03_doc_system/ARCHITECTURE.md` | ✅ | 《架构与单一事实源》（分层架构 + 仓库结构 + 数据模型 + 变更流水线 ＋ **§十 母本注册表 / 同步触发矩阵** ＋ **§十一 统一服务目录（服务清单 + 角色权限矩阵）**；**2026-09-25 批次 179 三份合一**：原 `SSOT_INDEX.md` / `SERVICE_CATALOG.md` 两份并入本文件并删除） |
-| `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | ✅ | 系统角色权限矩阵（角色键全表 §9a0 + 权限矩阵/赋权链，代码键级权威） |
-
-### 前端页面（HTML 实测 26 个：18 根 + 8 工作台/只读视图；以 docs/ 实况为准——清单以 `docs/*.html` 与 `docs/workspace/*.html` 实测为准）
-
-| 页面 | 类型 | 说明 |
-|------|------|------|
-| `index.html` | 入口 | 主页（未登录＝学院党委公共门厅：党委公开通知全文 / 活动摘要 / 公开资料 ＋ 登录入口；登录后为通知/招募/日历/待办） |
-| `notice.html` | 独立 | 通知独立页（含「党委下发」红标） |
-| `messages.html` | 独立 | 我的私信（站内信收件箱：收件 ＋ 发件一屏、就地回复成线；**仅收发双方可见**） |
-| `help.html` | 独立 | 系统说明书（功能地图+搜索） |
-| `login.html` | 独立 | 登录页（演示卡直达角色工作台） |
-| `about.html` | 独立 | 支部的故事（角色体系+发展路径可视化） |
-| `archive.html` | 独立 | 归档库 |
-| `search.html` | 独立 | 资料查询（支部文件唯一上传入口） |
-| `feedback.html` | 独立 | 意见反馈 |
-| `activity.html` | 公共页 | 活动/专班详情（议程区+表决端+通知直达锚点） |
-| `activity-materials.html` | 公共页 | 活动材料闭环（单场活动：材料清单 → 上传/核对 → 提交归档；复用 imageRecords / 考勤 / 考察 / 复盘与 archiveActivity） |
-| `party-committee-meeting.html` | 公共页 | 支委会会议页（线上召开：选线上召开 / 提取议程（专班报送·意见反馈）/ 委员线上表态 / 支书汇总截止（votesLocked）/ 留存并查阅讨论结果；仅支委可进，批次 105 / D-526） |
-| `taskforce.html` | 公共页 | 专班详情 |
-| `wizard.html` | 公共页 | 换组织向导（支书限本支部/党委任意/他角色无权限卡） |
-| `branch-config.html` | 党委配置页 | 党委组织员在明确选择支部后维护该支部组织信息、名册和配置分区 |
-| `settings.html` | 独立 | 设置中心（侧边栏右下「设置」入口：外观=人人可用/我的工作台=登录用户/支部治理=支书+副支书（副书同权，含支部信息与向导/工作台默认顺序/支部制度参数只读+配置变更记录回滚）+纪检/组织/组长「域参数」卡（各管本域）；访客仅见外观；登录无归属显示「未绑定支部」提示） |
-| `person.html` | 独立 | 成员档案页（完整档案/在册留痕/关联概览计数，`?id=<personId>` 打开） |
-| `thought-report.html` | 独立 | 思想汇报独立阅读页（三模式：`?id=` 单篇 / `?personId=` 按人 / 无参＝提示未指定对象） |
-| `workspace/secretary.html` | 子页面 | 支书工作台（支书/副支书共用；活动写入+分工调整+issue 管理+通知发布+上报党委+待办；英文 key `secretary`=代码标识，中文一律「支书」） |
-| `workspace/leader.html` | 子页面 | 党小组组长工作台（活动管理+考勤上传+考察上传+组员进展+待办） |
-| `workspace/org.html` | 子页面 | 组织委员工作台（考察上传+专班管理+人才库+发展党员+待办） |
-| `workspace/prop.html` | 子页面 | 宣传委员工作台（宣传任务+项目看板+档案归档+周期归档+待办） |
-| `workspace/disc.html` | 子页面 | 纪检委员工作台（考勤管理（含补课分段）+监督复盘+考察管理+知情查看+待办） |
-| `workspace/visitor.html` | 子页面 | 成员工作台（活动动态+专班进展+个人考勤+思想汇报提交+日历/列表切换+待办） |
-| `workspace/party-committee.html` | 子页面 | 党委工作台（党委组织员：4 页签＝下发通知 / 院级内容 / 支部上报 / 支部管理） |
-| `workspace/branch-readonly.html` | 只读下钻 | 党委组织员在明确选择支部后查看该支部成员与活动；保留党委身份，不进入支书工作台 |
+- **治理文件**：`CLAUDE.md`（甲 / 乙 / 丙三部）、`content/03_doc_system/ARCHITECTURE.md`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md`。
+- **前端页面实测 26=18 根+8 工作台（以 docs/ 实况为准）**：18 根（`index.html / notice.html / messages.html / help.html / login.html / about.html / archive.html / search.html / feedback.html / activity.html / activity-materials.html / party-committee-meeting.html / taskforce.html / wizard.html / branch-config.html / settings.html / person.html / thought-report.html`）＋ 8 工作台 / 只读视图（`workspace/` 7 ＋ 只读项目视图 1）。
+- **逐页职责**：`docs/help.html §2` 与 `content/03_doc_system/DOC_MAP.md`（本文件不复述）。
 
 ## IV. 核心理论
 
@@ -180,18 +83,14 @@ GSM1921-SOP/
 
 ## V. 权限矩阵摘要
 
-| 角色 | 工作台（功能分区+待办合一） |
-|------|--------------------------|
-| 支书（支书） | 支书工作台（活动写入+专班发起+分工调整（常设赋权，票决采纳）+反馈/issue+通知发布+上报党委+待办；支书专属操作收敛 SECRETARY_ROLES） |
-| 副支书（副支书） | 共用支书工作台（支书专属操作除外；上报党委可发起） |
-| 组织委员 | 专班建设（招募统筹·定人定责定岗）+专班发起+考察上传+人才库（含滞留维护）+发展党员+待办 |
-| 宣传委员 | 宣传任务+项目看板+档案归档+周期归档+待办 |
-| 纪检委员 | 考勤管理（会议类批量录入+纪检更正+应到口径 roster 单源，含补课分段；**党课 / 支部党员大会的上传位在此**；支委会不考勤）+考察管理+复盘（原「活动监督复盘」）+知情查看+待办 |
-| 党小组组长 | 块块活动管理+活动写入+考勤上传（**该场组织者位**：党小组会 / 组织生活会 / 主题党日）+考察上传+组员进展（含本组复盘状态只读）+待办 |
-| 参与者（普通参与者） | 成员工作台（个人视角：查看支委工作成果+个人考勤+思想汇报+待办） |
-| 党委组织员（党委级·不属于支部） | 党委工作台（全院支部台账+支部管理（新建/改名/任命）+上报审批+下发通知+支部配置） |
+| 角色 | 工作台 |
+|------|--------|
+| 支书 / 副支书 | 支书工作台（同页同台；四类主责动作按 `D-891` 三档） |
+| 组织 / 宣传 / 纪检委员 | 各自工作台（职责见母本 §9） |
+| 党小组组长 / 副组长 | 组长工作台（同台；任务优先组长） |
+| 成员 / 党委组织员 | 成员工作台 / 党委工作台 |
 
-> 角色键/矩阵全量权威：`docs/src/core/domain/constants.js` ROLE_KEYS/ROLE_LABELS/ROLE_PAGE_MAP + SYSTEM_ROLE_PERMISSION.md + `ARCHITECTURE.md §十一（统一服务目录与角色-服务权限矩阵）`（原 `SERVICE_CATALOG.md`；2026-09-25 批次 179 并入）；可见性/操作权按赋权链计算（P-015 按人视图），支书工作台中文一律「支书」。
+> 逐角色职责与权限键全集：`content/02_institution/SYSTEM_ROLE_PERMISSION.md §9` ＋ `docs/src/core/domain/constants.js`。
 
 ## VI. 版本里程碑
 

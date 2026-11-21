@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-906`，共 80 条**；下一条自 **`D-907`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-907`，共 81 条**；下一条自 **`D-908`**。
 
 ## 本月目录（2026-11）
 
@@ -100,6 +100,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | `.trae` 宣称对账：24 计划 ＋ 18 spec 逐条判定；归档件未勾项须逐行 `concluded` | `D-904` | 2026-11-21 | 已落（批次 594） |
 | evidence 准入（H26.3a）：只留被引用读数；99.1MB→114KB；外部门补 M-01 | `D-905` | 2026-11-21 | 已落（批次 595） |
 | 表态上服务端：按人存、只本人可撤、匿名单向隐藏；矩阵 163 | `D-906` | 2026-11-22 | 已落（批次 596） |
+| `.ctx` 瘦身：同一事实只出现一次；ACTIVE_CONTEXT §2 收到 12 条、EA 91→44KB、TIMESTAMPS 备注迁日志 | `D-907` | 2026-11-22 | 已落（批次 597） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -814,5 +815,18 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：`issue-reactions.test.mjs` 4/4（toggle / 出口无身份 / 401 / PATCH 403）；`write-policy-matrix` 与 `permission-gate` 全绿。
 > **落点**：`server/routes/resources/index.js`、`server/security/write-policy-matrix.mjs`、`docs/src/{services/governance/issues.js,data/api-adapter.js,components/feedback/reactions.js,components/feedback/issue-list.js}`、`server/test/issue-reactions.test.mjs`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-906`**（共 **80** 条）。
+## D-907 2026-11-22 — `.ctx` 瘦身：同一事实只出现一次（批次 597）
+
+> **评议 → 裁定 → 落点**：支书要求「`.ctx` 必须瘦身，非极重要 / 不影响执行的信息只出现一次」⇒ 删除镜像与逐批沿革，只留当前投影与指针。
+> - **ACTIVE_CONTEXT**：§2 由 46 条收到 **12 条**（只留仍影响下一步的）；§1 合并重复的六维 / 评分两条；27.1 KB → **7.8 KB**。
+> - **EA**：§二 每维只留「证据 2–3 句 ＋ 下一改进项」（`evaluation-asset-guard` 依赖保留）；§一 表格压到 2 句；P0–P14 总账改一行指针；`L` 表只留未闭；§六改状态表；91.1 KB → **44 KB**。
+> - **DECISION_LOG 索引**：2026-09 / 2026-11 巨型概要压为条数 ＋ 主题词；145.4 KB → **4.2 KB**。
+> - **TIMESTAMPS**：>80 字备注逐字迁 `.ctx/logs/2026-11-EXECUTION_LOG.md` 附节；纯代码行不再逐条登记（git 为准）；113.1 KB → **49 KB / 216 登记行**；预算 31,400 → **9,000**（只降）。
+> - **SNAPSHOT**：§I 树 / §III 页面表降为摘要＋指针；28 KB → **10.7 KB**。**EXECUTION_LOG_INDEX** 删逐条索引：34.4 → **11 KB**。**REVIEW_QUEUE** 删「全局评估总表」镜像、附录压表：17.2 → **9.8 KB**。
+> - **守卫**：`ctx-hygiene ⑤` 增「§2 ≤14 条 ＋ ≤16KB」；`⑦` SNAPSHOT 250 → **150 行**。
+> **未选**：删 10 月日志（唯一历史，保留）；删 `TIMESTAMPS` 行到 200 以下（`S13` 登记面下限）；把规则正文搬进 `.ctx`（`H26.3` 禁止）。
+> **读数**：`.ctx` 顶层 8 文件 **293.9 KB → 140 KB**（TIMESTAMPS 保留 216 行以过 `S13 ≥200` / `N1 ≥210`）；`ctx-hygiene` / `doc-consistency` / `docs-governance` / `evaluation-asset` / `open-items` 同跑 **76/76**。
+> **落点**：`.ctx/{ACTIVE_CONTEXT,ENGINEERING_ASSESSMENT,TIMESTAMPS,SNAPSHOT,REVIEW_QUEUE}.md`、`.ctx/logs/{DECISION_LOG,EXECUTION_LOG_INDEX,2026-11-EXECUTION_LOG}.md`、`server/test/{ctx-hygiene-guard,timestamps-note-baseline}.mjs`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-907`**（共 **81** 条）。
 
