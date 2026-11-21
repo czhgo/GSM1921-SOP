@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-900`，共 74 条**；下一条自 **`D-901`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-901`，共 75 条**；下一条自 **`D-902`**。
 
 ## 本月目录（2026-11）
 
@@ -94,6 +94,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | B-522-1：数字卡按内容收窄；日历网格登记特例；今天/归档空态补最近动态与下一步 | `D-898` | 2026-11-21 | 已落（批次 588） |
 | B-500-7b-2：兜底 instrument ＋ 7 类对账守卫；commit body 强制「资产命中」机检 | `D-899` | 2026-11-21 | 已落（批次 589） |
 | 前端一致性收口：两条表单 SD（SD-66/67）＋ 错误态可操作化 ＋ 行高压准 | `D-900` | 2026-11-21 | 已落（批次 590） |
+| 清账门 H50.3 ＋ `open-items-guard`；外部门单列 EA §四；旧计划归档；service:ensure | `D-901` | 2026-11-21 | 已落（批次 591） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -736,5 +737,19 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：guards **126 文件 / 888 断言全绿（146.1s）**；daily **265 / 120.3s**；真机两页 PASS（反馈页三态骨架＋列表；支书台支委会待议池渲染，控制台 0 error）。
 > **落点**：`docs/src/**`（约 40 文件）、`content/04_web_design/design-system/{DS_03_COMPONENTS,CASES}.md`、`content/03_doc_system/CASES_INDEX.md`、`server/test/{form-field-guard,style-baseline,terminology-baseline,docs-governance-guard,date-canon-guard,ui-control-system-guard,test-tier-registry}`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-900`**（共 **74** 条）。
+## D-901 2026-11-21 — 清账门：把「留尾巴」做成机检（批次 591）
+
+> **评议 → 裁定 → 落点**：支书追问「乙部还有未完成工作，为什么计划不统一完成、是否是 AI 逃逸」⇒ 根因是四条 open 源（乙部 / `REVIEW_QUEUE` / 计划未勾项 / `EA §四`）没有统一的收尾口径，AI 每批只清眼前那一类。
+> - **规则**：`CLAUDE.md` 甲部新增 `H50.3 计划收尾清账门`——每份计划验收必须附清账表，处置四类 open 源；每条只落「已闭环 / 已排批次 / 明确作废 / 外部门」四态之一。
+> - **机检**：新增 `open-items-guard`（5 条）——① `REVIEW_QUEUE` 表行不得出现「已闭环」；② 乙部每条四要素齐且状态 ∈ {在办, 待触发}，`待触发` 必带触发条件；③ `.trae/documents/*.md` 有 `- [ ]` 时须 `<!-- parked: D-xxx -->` 或 `status: archived`；④ `EA §四` 必须有「外部门」小节并列出 L-02 / CI / 签收 / SMTP；⑤ 反例自证。
+> - **外部门单列**：`EA §四` 新增「外部门（不阻断本机合并）」表——L-02 Linux 真机 / CI run id / 真人签收 / SMTP 实投，责任人统一为支书；乙部、计划清账表、`next_prompt` 只引用不复制。
+> - **旧计划归档**：`.trae/documents/2026-11-02-audit-consolidation-and-cutover.md` 9 个未勾项逐条给出结论（均为「已完成」并附现行证据）后标 `status: archived`。
+> - **服务守护**：新增 `server/scripts/ensure-service.mjs` ＋ `npm run service:ensure`，`H20.1` 增第 0 步；实测停服后 4s 恢复到 200。
+> - **台账清理**：`REVIEW_QUEUE` 删 `B-552-1…6` 六条已闭环行。
+> **未选**：只加规则不加守卫（会重复出现「规则在、执行靠自觉」）；把外部门混进乙部（`H50.1` 明令假任务不入表）。
+> **边界**：`open-items-guard` 只判结构不判语义（判不了「结论是否真的成立」）；计划文件的 `- [ ]` 允许保留，只要整体已 archived 或逐项 parked。
+> **读数**：`open-items-guard` 5/5 绿（含反例自证）；`test-tier-guard` 7/7（registry 127 文件 / 893 断言）；`service:ensure` 停服 → 4s 恢复 200。
+> **落点**：`CLAUDE.md`（H20.1 / H50.3）、`.ctx/ENGINEERING_ASSESSMENT.md §四`、`.ctx/REVIEW_QUEUE.md`、`.trae/documents/2026-11-02-audit-consolidation-and-cutover.md`、`server/scripts/ensure-service.mjs`、`server/package.json`、`server/test/open-items-guard.test.mjs`、`server/test-tier-registry.mjs`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-901`**（共 **75** 条）。
 

@@ -10,6 +10,25 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 591（2026-11-21）· 清账门与防留尾巴（D-901）
+
+### 为什么
+- 支书追问「乙部还有未完成项，为什么计划不统一完成、是不是 AI 逃逸」；根因是四类 open 源没有统一收尾口径。
+
+### 拿不准 / 取舍
+- **守卫边界**：`open-items-guard` 只判结构（四要素 / 状态取值 / 未勾项处置 / 外部门四项），不判「结论是否真的成立」——语义仍靠人读。
+- **计划未勾项**：保留 `- [ ]` 历史工作分解，只要求整篇 `status: archived` 或逐项 `<!-- parked: D-xxx -->`，不强制回勾（回勾会与 `spec-task-consistency` 基线冲突）。
+- **服务守护**：不用 `AbortSignal.timeout`（Windows 退出时触发 libuv async 断言），改 `AbortController` ＋ `clearTimeout` 自然退出。
+- **REVIEW_QUEUE**：`B-552-1…6` 六条已闭环行整行删除，沿革归 git（H50.1 同族口径）。
+
+### 边界
+- 外部门四项只登记 `EA §四`，乙部 / 计划清账表 / `next_prompt` 只引用不复制。
+- 旧计划归档不改写正文结论，只加「九项核验结论」表与 frontmatter。
+
+### 读数
+- `open-items-guard` 5/5（含反例自证）；`test-tier-guard` 7/7（registry 127 文件 / 893 断言）。
+- `npm run service:ensure`：在线 → 200；停服后再跑 4s 内恢复 200（新进程 pid 23888）。
+
 ## 批次 590（2026-11-21）· 前端一致性收口：P0/P1 ＋ 规则内 P2 ＋ SD-66/67（D-900）
 
 ### 为什么

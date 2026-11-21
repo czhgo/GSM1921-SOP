@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "start:review": "node scripts/start-review.mjs",
+    "service:ensure": "node scripts/ensure-service.mjs",
     "set-password": "node scripts/set-password.mjs",
     "test": "node scripts/with-env.mjs DISABLE_PASSWORD_CHECK=1 DEMO_READONLY=0 node run-suite.mjs",
     "test:full": "node scripts/with-env.mjs DISABLE_PASSWORD_CHECK=1 DEMO_READONLY=0 SWEEP_SHARD=all node run-suite.mjs",

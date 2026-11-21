@@ -333,6 +333,18 @@ Git 从 2026-03-14 至 2026-10-14 共 1,133 条提交记录；按提交日期分
 | L-20 | 写入口 6 条 `known-risk` 未清零 | launch-blocker | 已关闭 | 2026-11-03 Task 4 已清零；矩阵当前无 `known-risk` 行，再出现须带 reason / impact / riskRef | `server/security/write-policy-matrix.mjs#L29-L33`、`#L180-L184`；`server/test/write-policy-matrix.test.mjs` |
 | L-22 | 三处页签 IA 块数漂移：`secretary.calendar` 10 / `secretary.report-up` 14 / `visitor.activities` 9 块（登记 3 / 4 / 3） | backlog | 已关闭 | **已复核（D-874，批次 550）**：10 / 14 / 9 是 `dom-probe` 把行内叶子（`span` / SVG / `p`）计成顶层块的误报；探针改口径后实测 2 / 4 / 2（差额在页头口径），三处均 ≤ 4，按 `D-838` 保持 `TAB_BLOCK_BASELINE` 不改 | `.ctx/evidence/2026-11-14/d873-block-remeasure.md`；`server/scripts/audit/dom-probe.mjs` |
 
+### 外部门（不阻断本机合并 · 单一台账）
+
+> **性质**：需要仓库外的人 / 机器 / 账号才能证明的事项。**不阻断本机合并**（`CLAUDE.md H20.5` 两段门槛 · `D-894`），只阻断上线；乙部、计划清账表、`next_prompt` 一律**只引用本表，不复制**（`open-items-guard` 机检四项列全）。
+> **责任人口径**：四项的责任人都是支书（授权与外部协调），AI 只准备命令、证据模板与判据。
+
+| 编号 | 事项 | 责任人 | 证据口径 | 复评触发 |
+|---|---|---|---|---|
+| L-02 | Linux 真机跑 `install.sh` / `install.ps1`（WSL 或测试机）/ `update.sh` | 支书授权，AI 出命令 | 三条脚本各自退出码 0 ＋ 安装后 `/login.html` 200 ＋ 附件目录可写；容器侧已 6/6（`deploy/verify-linux.sh`） | 每次改动 `deploy/**` 或发布包白名单后 |
+| CI | 首次 GitHub Actions run id（daily ＋ nightly 四片） | 支书提供仓库访问 | run id ＋ 结论；**无 run id 不得称已绿** | 首次 push 后；此后每次 workflow 改动 |
+| 签收 | 真人（支书 / 支委）在 review 档完整走一遍上线路径并签收 | 支书 | 签收记录（日期 ＋ 账号 ＋ 走过页面清单）写 `.ctx/evidence/` | 每轮候选发布前 |
+| SMTP | 真实邮件服务器实投（非 mock） | 支书提供凭据 | 一封实投成功的邮件 ＋ 服务端日志行；失败样本各一类（超时 / 认证失败） | 邮件通道配置或 `mailer*` 改动后 |
+
 **本批执行顺序**
 
 1. **本次 spec 关闭的 launch-blocker**：生产空库 `--strict`（L-01）· 会话不迁移 ＋ 附件按 runbook 搬（L-03）· 表随库导出不再要求手工导 localStorage（L-04）· `npm run start:review` 强制独立库（L-05）· 考勤删除门 ＋ 快照红队回归（L-06）；均已在 2026-11-03 任务 6 关闭或给出可复跑证据。**批次 541 起这些已关闭项按「已关闭只留最近 3 条」从本表移出，证据与分拣结论见 `.ctx/evidence/2026-11-10/p2-cleanup-ledger.md`。**

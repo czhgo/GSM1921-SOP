@@ -38,6 +38,7 @@ status: active
 
 ### H20.1 审查（每次启动时必做）
 
+0. 跑 `cd server; npm run service:ensure`：探测 `http://127.0.0.1:3000/login.html`，非 200 时自动以 detached 方式拉起 `npm run start:review`（最多等 30s）。服务不可用不得继续需要真机的步骤。
 1. 读取 `.ctx/ACTIVE_CONTEXT.md`（当前状态 / 当前判断 / 下一步）。
 2. 阅读本文件甲部约束与乙部在办项。
 3. 需要系统形态 / 文件时间时再读 `.ctx/SNAPSHOT.md` / `.ctx/TIMESTAMPS.md`（reference，按需）。
@@ -218,6 +219,13 @@ status: active
 - 触发：AI 拿不定主意，或发现需人类判断的产品 / 制度取向；
 - 写法：问题 + 选项 + 推荐 + 影响；
 - 裁定后：决策日志归档 → 执行 → 从丙部删除。
+
+**H50.3 计划收尾清账门。**
+
+- 每份计划的验收必须附「清账表」，处置四类 open 源：① 本文件乙部；② `.ctx/REVIEW_QUEUE.md`；③ `.trae/documents/**` 未勾项；④ `.ctx/ENGINEERING_ASSESSMENT.md §四` 专项。
+- 每条只能落四态之一：**已闭环**（删行）、**已排批次**（有判据与目标批次）、**明确作废**（写理由）、**外部门**（归 `EA §四` 外部门表）。
+- 四类之外不得留「口头待办」；计划报「已完成」时清账表缺一即视为未完成。
+- 守卫 `open-items-guard`：`REVIEW_QUEUE` 无「已闭环」行、乙部每条四要素齐、计划未勾项须 `<!-- parked: D-xxx -->` 或 `status: archived`、`EA §四` 外部门四项列全，且反例自证。
 
 # 温层：修改时必读
 

@@ -107,7 +107,7 @@ export const DAILY_TEST_BUDGET = 262;
  *  2026-11-20 批次 584：新增 `evaluation-asset-guard`（改进项指针 / 资产索引 / 两段门槛），实然 121 文件；按 121 登记（差 0）。
  *  2026-11-21 批次 587：新增 `status-palette-text-guard` / `badge-single-source-guard` / `button-height-guard`，实然 124 文件；按 124 登记（差 0）。
  *  2026-11-21 批次 589：新增 `todo-derive-instrument-guard`（派生兜底仪表 / 7 类对账全绿），实然 125 文件；按 125 登记（差 0）。 */
-export const GUARDS_FILE_BUDGET = 126;
+export const GUARDS_FILE_BUDGET = 127;
 
 /** guards 静态 `test(` / `it(` 调用点预算
  *  2026-11-08 波次 A：实测 788 断言，按 791 登记（断言留 3 条余量）。
@@ -131,8 +131,8 @@ export const GUARDS_FILE_BUDGET = 126;
  *  2026-11-20 批次 584：新增 `evaluation-asset-guard` 4 条，实然 873；按 873 登记（余量 0）。
  *  2026-11-21 批次 587：新增 `status-palette-text-guard` 3 条 ＋ `badge-single-source-guard` 2 条 ＋ `button-height-guard` 2 条，实然 880；按 880 登记（余量 0）。
  *  2026-11-21 批次 589：新增 `todo-derive-instrument-guard` 3 条 ＋ `evaluation-asset-guard` 增 1 条，实然 884；按 884 登记（余量 0）。
- *  2026-11-21 批次 591：新增 `form-field-guard` 4 条（必填语义 / 报错语义 / 字段级可访问名 / 反例自证），实然 888；按 888 登记（余量 0）。 */
-export const GUARDS_TEST_BUDGET = 888;
+ *  2026-11-21 批次 591：新增 `form-field-guard` 4 条（必填语义 / 报错语义 / 字段级可访问名 / 反例自证）＋ `open-items-guard` 5 条（清账门四类 open 源 ＋ 反例自证），实然 893；按 893 登记（余量 0）。 */
+export const GUARDS_TEST_BUDGET = 893;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -340,6 +340,8 @@ export const TEST_TIERS = [
     'todo-derive-instrument-guard.test.mjs',
     // 2026-11-21 批次 591：表单必填 / 报错 / 字段级可访问名（SD-66 / SD-67）
     'form-field-guard.test.mjs',
+    // 2026-11-21 批次 591：计划收尾清账门（H50.3 四类 open 源 ＋ 反例自证）
+    'open-items-guard.test.mjs',
   ]),
 
   // ── precommit · 非核心域回归（提交前 / 发布前覆盖；进 daily 会拖长日常）─────

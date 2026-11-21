@@ -2,7 +2,7 @@
 title: "支书评议队列"
 type: audit_report
 role: "[工程师]+[AI]"
-last_updated: 2026-11-20
+last_updated: 2026-11-21
 status: active
 layer: reference
 related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
@@ -162,12 +162,6 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 | B-541-6 | `L-17` SQLite JSON 宽表、无跨表外键、无业务字段索引 | 任一表行数接近万行，或真机出现慢查询读数（E1 类）时启动 `MIGRATIONS v2` 与索引评估；平时只登记 | `.ctx/ENGINEERING_ASSESSMENT.md §一 阻断级风险 5`；`server/README.md §部署前必知限制 #2` |
 | B-541-7 | `L-18` 单一源组件出口仍有零星散件（徽章 / 选择器等） | 下次改动到该组件域时同批收敛（一改具改）；未动到的散件不提前合并 | `.ctx/ENGINEERING_ASSESSMENT.md §3.3 复核保留` |
 | B-541-10 | `H-20` 部署形态余项（`server/package.json` Windows 专有语法；表达式索引无落点） | ② `package.json` 到「跨平台发布」批时改；③ 与服务端读过滤同批（见 B-541-3） | `.ctx/REVIEW_QUEUE.md` 代码健康评审 `H-20`；`server/package.json` |
-| B-552-3 | 名册写口发空 `{}` / 非党委带 `branchId` ⇒ 400，本地已乐观记录；**已闭环（批次 575 · `D-887` 前置校验，空补丁 / 治理字段不发请求）** | 下次改名册保存 / 角色配置时复跑 `roster-write-precheck` | `docs/src/services/member/person.js` |
-| B-552-1 | `secretary-overview.js` 逾期数自算 `deadline < today`，绕过 `isTodoExpired`（同屏两个逾期数可能不等）；**已闭环**——逾期口径已改走 `isTodoExpired`，反证 `docs/src/services/governance/secretary-overview.js:189-191` | 下次改概况逾期统计时按单一源收口 | `docs/src/services/governance/secretary-overview.js` |
-| B-552-2 | list 响应形状二义；**已闭环（批次 566 · `api-adapter` 读口 `normalizeListPayload` 归一）** | 首个分页调用点出现前统一形状 | `docs/src/data/api-adapter.js` |
-| B-552-4 | `/snapshot` 解压上限；**已闭环（批次 566 · 20MB 上限，超限 413）** | 快照接口改造或出现异常内存读数时加限制 | `server/routes/resources/index.js`、`write-validation.js` |
-| B-552-5 | 系统通知幂等；**已闭环（批次 566 · 可选 `eventKey`，同键返回既有记录）** | 通知发送改造时加入幂等键 | `server/routes/system-notices.js` |
-| B-552-6 | 报名查重只在应用层，无唯一索引；**已闭环（批次 566 · schema v18 部分唯一索引，重复行保留最早并标 `duplicateOf`）** | 迁移 v2 或出现并发重复读数时补索引 | `server/routes/resources/signup-write-guard.js:93`、`server/db.js`（v18） |
 
 ### SOP-C-76 / SOP-C-78（降为登记，未推进）
 

@@ -56,7 +56,7 @@ dynamic_role:
 | .ctx/SNAPSHOT.md | 2026-11-20 | — | [AI] | 系统现状基线（reference）：只答「系统现在长什么样」；schema v19 / 业务 50 表。 |
 | .ctx/ACTIVE_RULINGS.md | 2026-11-19 | — | [工程师]+[AI] | 现行有效裁定**索引**（reference）：只答「到哪找某条现行口径」；跨域摘要 + 18 领域索引，规则正文在 `content/01–05`。 |
 | .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-21 | — | [工程师]+[AI] | 工程评估与改造行动线：六维评分（当前 80/78/79/73/76/71，`D-895` 复核未变）、阻断风险、行动与上线残项；§5.2 评价资产索引 ＋ §二 各维「下一改进项」；不设综合均分。 |
-| .ctx/REVIEW_QUEUE.md | 2026-11-20 | — | [工程师]+[AI] | 支书评议队列（reference）：只答「要评议什么 ＋ 评议怎么做」；已闭环项删除（`D-892`）。 |
+| .ctx/REVIEW_QUEUE.md | 2026-11-21 | — | [工程师]+[AI] | 支书评议队列（reference）：只答「要评议什么 ＋ 评议怎么做」；已闭环项删除（`D-892` / `D-901` 删 `B-552-1…6`）。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND1_WORKBENCH_STRUCTURE.md | 2026-10-19 | — | [工程师]+[AI] | Round 1 工作台结构审计报告（53 条 triage + 三路审查 + 共识/分歧/裁定 + 证据门）；修复 spec 落盘后可归档或删除。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND2_MINIMUM_THREE_COSTS.md | 2026-10-19 | — | [工程师]+[AI] | Round 2 最小三成本审查报告（better-layout / better-accessibility / better-writing 三路独立审查 + 共识/分歧/归属）。本批修项见 `.trae/specs/audit-round2-minimum-three-costs`。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND3_4_COMBINED.md | 2026-10-19 | — | [工程师]+[AI] | Round 3+4 合并审查报告（六路 lens + 共识/分歧/待裁定 + batch 1/2A/2B/2C 归属）。修复入口 `.trae/specs/restore-homepage-brand-and-gold`。 |
@@ -140,7 +140,7 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-11-11 | — | [工程师]+[AI] | 父索引：§一 设计哲学 ＋ 编目（原则 4 补「点缀色不单独承担状态语义」）。 |
+| content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-11-21 | — | [工程师]+[AI] | 父索引：§一 设计哲学 ＋ 编目（原则 4 补「点缀色不单独承担状态语义」）。 |
 | content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md | 2026-11-10 | — | [工程师]+[AI] | 第一编 色彩与主题（§2.13 补图标状态色互指句）。 |
 | content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md | 2026-11-04 | — | [工程师]+[AI] | 第二编 排版与尺寸（增正文/说明边界与棘轮）。 |
 | content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-11-21 | — | [工程师]+[AI] | 第三编 组件；2026-11-20 卡厚度改准为 16 / 12 两档（`.card-standard` / `.card-compact`），`p-5` 退出卡内边距；卡头只从 `renderCardHeader` 出（面板 `variant:'panel'`，批次 586）。 |
@@ -280,7 +280,7 @@ dynamic_role:
 | server/test/docs-governance-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 文档治理守卫。 |
 | server/test/contract-field-usage-guard.test.mjs | 2026-11-17 | — | [工程师]+[AI] | 契约字段 / 枚举 / 幽灵字段回归守卫（guards 层）。 |
 | .ctx/README.md | 2026-11-03 | — | [工程师]+[AI] | 三层分职（active / reference / provenance）、准入判据、读取顺序、预算、冲突顺序与可复用资产索引。 |
-| .ctx/ACTIVE_CONTEXT.md | 2026-11-21 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-900`。 |
+| .ctx/ACTIVE_CONTEXT.md | 2026-11-21 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-901`。 |
 | server/test/link-color-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 链接色守卫。 |
 | server/test/activity-tone-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 活动类别守卫。 |
 | server/test/field-shell-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 字段外壳守卫。 |
