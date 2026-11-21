@@ -5,6 +5,7 @@
 //   ① `.ctx/REVIEW_QUEUE.md`：不得出现「已闭环」行（闭环即删，沿革归 git）；
 //   ② `CLAUDE.md` 乙部：每条必须有「ID / 一句话 / 判据或出处 / 状态」四要素，状态 ∈ {在办, 待触发}，`待触发` 必须写触发条件；
 //   ③ `.trae/documents/*.md`：有 `- [ ]` 时必须含 `<!-- parked: D-xxx -->` 或 frontmatter `status: archived`；
+//      已归档件仍留 `- [ ]` 时，每行须带 `<!-- concluded: … -->`（与 specs ⑥ 同口径）；
 //   ④ `.ctx/ENGINEERING_ASSESSMENT.md §四`：必须有「外部门」小节，且 L-02 / CI / 签收 / SMTP / M-01 五项列全；
 //   ⑤ 反例自证：把合格样本改坏后，同一判据必须判红（守卫不是空转）；
 //   ⑥ `.trae/specs/**/{checklist,tasks}.md`（排除 `_TEMPLATE`）：已标 `status: archived` 的文件不得留有「无结论的未勾项」
@@ -65,14 +66,17 @@ test('② CLAUDE 乙部每条四要素齐，状态 ∈ {在办, 待触发}', () 
   assert.deepEqual(bad, [], `乙部行不合格：\n  ${bad.join('\n  ')}`);
 });
 
-test('③ .trae/documents 有未勾项 ⇒ 必须 parked 或 archived', () => {
+test('③ .trae/documents 有未勾项 ⇒ 必须 parked 或 archived，且归档件逐行 concluded', () => {
   const dir = path.join(ROOT, '.trae', 'documents');
   const bad = [];
   for (const name of readdirSync(dir).filter((n) => n.endsWith('.md'))) {
     const text = readFileSync(path.join(dir, name), 'utf8');
-    if (/^- \[ \]/m.test(text) && !planDisposed(text)) bad.push(name);
+    if (!/^- \[ \]/m.test(text)) continue;
+    if (!planDisposed(text)) { bad.push(name); continue; }
+    const problem = specUndisposed(text);
+    if (problem) bad.push(`${name}：${problem}`);
   }
-  assert.deepEqual(bad, [], `含未勾项却未处置（加 <!-- parked: D-xxx --> 或 status: archived）：${bad.join(', ')}`);
+  assert.deepEqual(bad, [], `含未勾项却未处置（加 <!-- parked: D-xxx --> 或 status: archived；归档件须逐行 concluded）：${bad.join(', ')}`);
 });
 
 test('④ EA §四 外部门小节列全 L-02 / CI / 签收 / SMTP / M-01', () => {

@@ -10,6 +10,25 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 598（2026-11-22）· `.trae` 收尾与过程件清零（D-908）
+
+### 为什么
+- `.trae` 只剩一处「归档了但未逐行结论」：`2026-11-02-audit-consolidation-and-cutover.md` 的 9 行 `- [ ]` 只有节末结论表；支书要求「所有宣称在结果上已实现」。
+- 过程件仍有 `.trae-html-share-packages/` 10 个 zip（6.5 MB）与 `.tmp` 临时脚本。
+
+### 拿不准 / 取舍
+- **守卫先加强再补结论**：`open-items-guard ③` 对 documents 复用 specs ⑥——归档件仍留未勾项时每行必须有 `concluded`；避免「只标 archived 就算结论」。
+- **分享包删除**：仓库内无生成入口，支书 2026-11-22 裁定删除；需要时用外部分享工具重新导出。
+
+### 边界
+- `.trae` 被 gitignore、不可回滚；本批只加 `concluded` 注释，不动正文。
+- 审计截图写入 `.tmp/shots`，跑完即删，不进 `.ctx/evidence`（`H26.3a`）。
+
+### 读数
+- `open-items-guard` **7/7**；guards **129 文件 / 902 断言全绿（138.9s）**；daily **265 / 107.4s**。
+- `audit-tabs --all`：**P0 0 / P1 0 / P2 0 · exception 44**（46 页签）。
+- 过程件：`.tmp` **0 文件**；`.trae-html-share-packages/` 已删除；`.browsers/**/*.log` 0。
+
 ## 批次 597（2026-11-22）· `.ctx` 瘦身：同一事实只出现一次（D-907）
 
 ### 为什么
