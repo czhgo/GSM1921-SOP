@@ -99,7 +99,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 ### 2.3 最小三成本体验（含前端与交互） —— 79/100
 
-**得分依据**：46 页签审计 **P0 0 / P1 0 / P2 0 / exception 44**（2026-11-21 `D-899` 实跑）；F1–F8 全绿；M1–M3 与 4 个「独立对象池」例外在位。**批次 587–589**：调色板状态色 / 假徽章 / 越档 h-8 清零（三守卫只减不增）；首页/概况数字卡按内容收窄；今天页并入「最近动态 3 条 ＋ 下一步」（首屏空白 0.715 → 0）；归档空态补「最近归档 ＋ 下一步」（演示库非空未触发）；日历 31 格登记特例。**未做 / 未闭**：`party-committee.branches` 因契约回退；真人 5 任务签收仍未完成；`L-22` 三处块数已在 `D-874` 复核为探针误报。**批次 540（`D-863`）**：① 待办跳转 fail-closed——未命中本台页签时在内容区渲染「本台无该模块」＋ 同义落点按钮，29 类动作 × 6 台在 `TODO_ACTIONS.roleOverrides` 逐台登记，`todo-jump-contract` 断言无 toast-only / 无静默留页 / 缺 id 有显式提示；② 支委会待议池按「来源 → 类型 → 待议池」呈现（`agenda-classify.js` 单一源），议程摘要的类型徽章同源，`secretary.committee-meeting` 审计 3 块 · P0/P1/P2 = 0；③ `secretary.group-progress` 活动台账由手写 `<table>` 迁 `renderDataTable`，宽表 `colgroup` ＋ 首列吸附 ＋ 列宽拖动，`table-contract-guard::T1–T7` 全绿（含 390 无溢出、手写表棘轮）；④ 活动详情按「对象头 → 信息 → 参与 → 议程 → 收口」四段收口，管理动作进页尾折叠，真机 1440 / 390 双档留证（`.ctx/evidence/2026-11-10/activity-detail/`）；⑤ 全局概况跳转与信息色、支部分工视图 4 → 2（责任关系 / 关系矩阵）、h2 间距与协作 / 产出并入行内，`secretary.work-map` 审计 3 块 · P0/P1/P2 = 0；⑥ SVG 着色统一（`sidebar` / `person-picker` / `custom-select` / `archive-entry` 四处字面色改 `currentColor` 或令牌，data-URI 的 `%239CA3AF` 退场），`icon-color-guard::G1–G5` 全绿。全量审计本轮未取终摘要（超时），P0 / P1 读数取自守卫代理报告；P2 三条为 IA 块数基线漂移（`L-22`）。**批次 541（`D-864`）**：① 「今天」页一行定位键改用聚合组键 `groupKey`——待办页行键是 `role:actionKey`，用待办本体 id 定位不到行（`docs/src/entries/tabs/today/today-tab.js`）；② 支书台考勤 / 考察 / 复盘补同义落点，支书台无该页签时不再回退到「意见反馈」（`docs/src/core/domain/todo-actions.js`）；③ P2 台账 **A 类 11 条**修完：`icon-color-guard` 白名单只免生成点（判据不再被整文件跳过）、`styles.css` 的 data-URI 内联 hex 改纯 CSS 折线、判例「守卫」栏与 `ui-first-screen-order::F10` 对齐、SD-62…SD-65 回填、跳转契约改精确等值并补最小 DOM 真渲、首屏块数改结构化标记计数、议程页禁本地自判、队列六类口径改准、两处文档 `last_updated` 刷卡、`README-server.md` 行号改签。
+**得分依据**：46 页签审计 **P0 0 / P1 0 / P2 0 / exception 44**（2026-11-21 `D-899` 实跑）；F1–F8 全绿；M1–M3 与 4 个「独立对象池」例外在位。**批次 587–589**：调色板状态色 / 假徽章 / 越档 h-8 清零（三守卫只减不增）；首页/概况数字卡按内容收窄；今天页并入「最近动态 3 条 ＋ 下一步」（首屏空白 0.715 → 0）；归档空态补「最近归档 ＋ 下一步」（演示库非空未触发）；日历 31 格登记特例。**未做 / 未闭**：`party-committee.branches` 因契约回退；真人 5 任务签收仍未完成；`L-22` 三处块数已在 `D-874` 复核为探针误报。**批次 540（`D-863`）**：① 待办跳转 fail-closed——未命中本台页签时在内容区渲染「本台无该模块」＋ 同义落点按钮，29 类动作 × 6 台在 `TODO_ACTIONS.roleOverrides` 逐台登记，`todo-jump-contract` 断言无 toast-only / 无静默留页 / 缺 id 有显式提示；② 支委会待议池按「来源 → 类型 → 待议池」呈现（`agenda-classify.js` 单一源），议程摘要的类型徽章同源，`secretary.committee-meeting` 审计 3 块 · P0/P1/P2 = 0；③ `secretary.group-progress` 活动台账由手写 `<table>` 迁 `renderDataTable`，宽表 `colgroup` ＋ 首列吸附 ＋ 列宽拖动，`table-contract-guard::T1–T7` 全绿（含 390 无溢出、手写表棘轮）；④ 活动详情按「对象头 → 信息 → 参与 → 议程 → 收口」四段收口，管理动作进页尾折叠，真机 1440 / 390 双档实测通过（截图不留库，读数见本行）；⑤ 全局概况跳转与信息色、支部分工视图 4 → 2（责任关系 / 关系矩阵）、h2 间距与协作 / 产出并入行内，`secretary.work-map` 审计 3 块 · P0/P1/P2 = 0；⑥ SVG 着色统一（`sidebar` / `person-picker` / `custom-select` / `archive-entry` 四处字面色改 `currentColor` 或令牌，data-URI 的 `%239CA3AF` 退场），`icon-color-guard::G1–G5` 全绿。全量审计本轮未取终摘要（超时），P0 / P1 读数取自守卫代理报告；P2 三条为 IA 块数基线漂移（`L-22`）。**批次 541（`D-864`）**：① 「今天」页一行定位键改用聚合组键 `groupKey`——待办页行键是 `role:actionKey`，用待办本体 id 定位不到行（`docs/src/entries/tabs/today/today-tab.js`）；② 支书台考勤 / 考察 / 复盘补同义落点，支书台无该页签时不再回退到「意见反馈」（`docs/src/core/domain/todo-actions.js`）；③ P2 台账 **A 类 11 条**修完：`icon-color-guard` 白名单只免生成点（判据不再被整文件跳过）、`styles.css` 的 data-URI 内联 hex 改纯 CSS 折线、判例「守卫」栏与 `ui-first-screen-order::F10` 对齐、SD-62…SD-65 回填、跳转契约改精确等值并补最小 DOM 真渲、首屏块数改结构化标记计数、议程页禁本地自判、队列六类口径改准、两处文档 `last_updated` 刷卡、`README-server.md` 行号改签。
 
 **失分依据与残项**：① `party-committee.branches` **回退未做**——既有契约是「目录只创建 / 选择」，改动会越过契约边界；② **真人签收未完成**：用户任务仍是自动走查 ＋ 截图，按「证据强度」不计验收；③ `L-22` 三处块数已在 `D-874` 复核为探针误报，基线不改；④ A 37 / B 9 / C 0（页签 IA 台账 §三）；6 个超 4 块页签登记例外。
 
@@ -335,8 +335,8 @@ Git 从 2026-03-14 至 2026-10-14 共 1,133 条提交记录；按提交日期分
 
 ### 外部门（不阻断本机合并 · 单一台账）
 
-> **性质**：需要仓库外的人 / 机器 / 账号才能证明的事项。**不阻断本机合并**（`CLAUDE.md H20.5` 两段门槛 · `D-894`），只阻断上线；乙部、计划清账表、`next_prompt` 一律**只引用本表，不复制**（`open-items-guard` 机检四项列全）。
-> **责任人口径**：四项的责任人都是支书（授权与外部协调），AI 只准备命令、证据模板与判据。
+> **性质**：需要仓库外的人 / 机器 / 账号才能证明的事项。**不阻断本机合并**（`CLAUDE.md H20.5` 两段门槛 · `D-894`），只阻断上线；乙部、计划清账表、`next_prompt` 一律**只引用本表，不复制**（`open-items-guard` 机检五项列全）。
+> **责任人口径**：五项的责任人都是支书（授权与外部协调），AI 只准备命令、证据模板与判据。
 
 | 编号 | 事项 | 责任人 | 证据口径 | 复评触发 |
 |---|---|---|---|---|
@@ -344,11 +344,12 @@ Git 从 2026-03-14 至 2026-10-14 共 1,133 条提交记录；按提交日期分
 | CI | 首次 GitHub Actions run id（daily ＋ nightly 四片） | 支书提供仓库访问 | run id ＋ 结论；**无 run id 不得称已绿** | 首次 push 后；此后每次 workflow 改动 |
 | 签收 | 真人（支书 / 支委）在 review 档完整走一遍上线路径并签收 | 支书 | 签收记录（日期 ＋ 账号 ＋ 走过页面清单）写 `.ctx/evidence/` | 每轮候选发布前 |
 | SMTP | 真实邮件服务器实投（非 mock） | 支书提供凭据 | 一封实投成功的邮件 ＋ 服务端日志行；失败样本各一类（超时 / 认证失败） | 邮件通道配置或 `mailer*` 改动后 |
+| M-01 | 移动端三任务：看通知并回执 / 表决投票 / 查看考勤（375 / 390 两档） | 支书提供真机 | 三任务各走通一次；无横向滚动、可交互文字 ≥13px、命中区 ≥44。AI 仿真 375 三任务已过（命中区 44，批次 552 读数，不计真人验收） | 每次改动移动端布局或 `.vote-btn` 命中区后 |
 
 **本批执行顺序**
 
 1. **本次 spec 关闭的 launch-blocker**：生产空库 `--strict`（L-01）· 会话不迁移 ＋ 附件按 runbook 搬（L-03）· 表随库导出不再要求手工导 localStorage（L-04）· `npm run start:review` 强制独立库（L-05）· 考勤删除门 ＋ 快照红队回归（L-06）；均已在 2026-11-03 任务 6 关闭或给出可复跑证据。**批次 541 起这些已关闭项按「已关闭只留最近 3 条」从本表移出，证据与分拣结论见 `.ctx/evidence/2026-11-10/p2-cleanup-ledger.md`。**
-2. **外部门（不阻断本机合并）**：L-02（Linux 真机 install / update）、CI run id、真人签收、SMTP 实投；由支书授权后一次性补齐。已关闭项（会话过期、共享口令回退、审计节奏等）已从本表移出，证据见 `.ctx/evidence/2026-11-10/p2-cleanup-ledger.md`。
+2. **外部门（不阻断本机合并）**：L-02（Linux 真机 install / update）、CI run id、真人签收、SMTP 实投、M-01（移动端三任务）；由支书授权后一次性补齐。已关闭项（会话过期、共享口令回退、审计节奏等）已从本表移出，证据见 `.ctx/evidence/2026-11-10/p2-cleanup-ledger.md`。
 3. **backlog 只登记**：L-13（页签 IA 未闭项，按台账排批）、L-14 / L-15（工作流新维度先出方案）、L-17（宽表与索引，可测阈值）、L-18（组件出口散件）、L-22（已复核关闭，仅留证据）；均不排入本批。
 4. **口径**：本表只归总残项与顺序，不改 §一 / §二 / §五 的评分与论证；每条下一动作均落到可定位文件与小节 / 行号，不写「见上文」。
 

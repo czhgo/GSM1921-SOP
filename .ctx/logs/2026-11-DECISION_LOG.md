@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-904`，共 78 条**；下一条自 **`D-905`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-905`，共 79 条**；下一条自 **`D-906`**。
 
 ## 本月目录（2026-11）
 
@@ -98,6 +98,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 前端 lens 清账：16 条按规则修、1 条冻结、3 条不成立；表态单一写口（服务端待裁） | `D-902` | 2026-11-21 | 已落（批次 592） |
 | 工作树复原（4 文件回 HEAD）＋ BOM 唯一性守卫；存量 10 文件 BOM 归一 | `D-903` | 2026-11-21 | 已落（批次 593） |
 | `.trae` 宣称对账：24 计划 ＋ 18 spec 逐条判定；归档件未勾项须逐行 `concluded` | `D-904` | 2026-11-21 | 已落（批次 594） |
+| evidence 准入（H26.3a）：只留被引用读数；99.1MB→114KB；外部门补 M-01 | `D-905` | 2026-11-21 | 已落（批次 595） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -787,5 +788,18 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：`open-items-guard` 7/7；guards **128 文件 / 898 断言全绿（154.7s）**；`doc-consistency` 21/21。
 > **落点**：`.trae/documents/**`（24）、`.trae/specs/**`（18 × 3 文件）、`server/test/open-items-guard.test.mjs`、`server/test-tier-registry.mjs`（898）、本文件与执行日志批次 594 节。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-904`**（共 **78** 条）。
+## D-905 2026-11-21 — evidence 准入：只留被引用的读数（批次 595）
+
+> **评议 → 裁定 → 落点**：支书两次明确「不是完整备份到 evidence，evidence 也要一起清理，留下真正重要的信息、知识、智慧；历史 evidence 不再重要」⇒ 证据库的职能从「全量留档」改为「只存被 active 台账引用的读数」。
+> - **裁定**：`CLAUDE.md` 新增 `H26.3a`——`.ctx/evidence/` 只存被 active 台账引用或被守卫 / 脚本消费的 `.md` / 小型 `.json`；不存截图、压缩包、原始日志；读数转写进 `DECISION_LOG` / `EA` / `ACTIVE_CONTEXT` 后原始件即删，需要时重跑再生。
+> - **执行**：删前抽查并转写 6 组读数（恢复演练 / 跨层扫描 / perf 重测 / 页签例外 / 移动端仿真 / 用户任务走查），再整目录 `git rm`；保留 10 份被台账引用的 `.md`，另恢复 2 份被守卫消费的 fixture（`touch-forms.json` / `batch525-filter.json`）。结果 **1272 文件 / 99.1 MB → 12 文件 / 217 KB**。
+> - **同批清引用**：`EA` 里 `2026-11-10/activity-detail/` 目录引用改为文字结论（双档实测通过），避免守卫判「引用不存在的证据」。
+> - **守卫**：新增 `evidence-hygiene-guard`（4 条：禁 png/jpg/zip ／ 台账双向引用 ／ 单文件 ≤256 KB ／ 反例自证），登记 129 文件 / 902 断言。
+> - **外部门**：`EA §四` 补 `M-01`（移动端三任务：回执 / 表决 / 查考勤），`open-items-guard::④` 机检项 4 → 5；AI 375 仿真通过只作下限，不计真人验收。
+> **未选**：把证据全量搬到归档目录（支书明确不备份）；保留 `findings.json` 与截图（可重跑再生）；删 `.trae-html-share-packages/*.zip`（仓库内无生成入口，保留并记一行）。
+> **边界**：运行态 `server/backups/`、`server/data*.db*`、`server/uploads/` 不属过程件，保留。
+> **读数**：`evidence-hygiene-guard` 4/4；`open-items-guard` 7/7；guards **129 文件 / 902 断言全绿（173.7s）**；daily **265 / 128.9s**。
+> **落点**：`.ctx/evidence/**`（1272 → 12）、`CLAUDE.md H26.3a`、`.ctx/README.md`、`.ctx/ENGINEERING_ASSESSMENT.md §四`、`server/test/evidence-hygiene-guard.test.mjs`、`server/test-tier-registry.mjs`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-905`**（共 **79** 条）。
 

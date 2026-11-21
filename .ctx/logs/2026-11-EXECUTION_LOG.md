@@ -10,6 +10,36 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 595（2026-11-21）· 证据准入 ＋ 瘦身 99.1MB→217KB ＋ 外部门补 M-01（D-905）
+
+### 为什么
+- 支书两次明确：**不向 evidence 备份**；evidence 本身要瘦身，只留「真正重要的信息 / 知识 / 智慧」，历史 evidence 不再重要。active 台账只引用 11 条路径，其中 `2026-11-10/activity-detail/` 是 22 张 PNG 目录 —— 1272 文件 / 99.1 MB 里绝大多数是截图、`findings.json` 与真机日志。
+
+### 拿不准 / 取舍
+- **先转写后删除**：删前抽查 5 份「看起来有独立结论」的 md（恢复演练 / 跨层扫描 / perf 重测 / 页签例外 / 移动端仿真），把读数逐条转写进本批读数（见下），再整目录删。
+- **保留口径 = 被引用的读数**：其余一律 `git rm`；需要时重跑再生（`audit-tabs --all`、`restore-drill.mjs`、真机仿真）。**守卫消费的 fixture 例外**：`touch-forms.json`（99 KB）与 `batch525-filter.json`（2 KB）是 `touch-target` / `S15` 的输入，删了直接判红 ⇒ 删后按首次 guards 红项恢复，并把「被守卫 / 脚本消费」写进准入口径。
+- **写成规则而非一次性清理**：新增 `CLAUDE.md H26.3a` ＋ `.ctx/README.md` 准入句 ＋ `evidence-hygiene-guard`（4 条），否则下一轮又会堆回 99 MB。
+- **`.trae-html-share-packages/*.zip` 保留**：10 个页面分享包（约 6.5 MB），仓库内无生成入口（外部分享工具产物），按计划「入口缺失则保留并记一行」处理。
+- **外部门补 `M-01`**：移动端三任务此前只散落在 spec 未勾项里，本批并入 `EA §四` 单一台账，`open-items-guard` 机检项同步 4 → 5。
+
+### 边界
+- 不删运行态：`server/backups/`、`server/data*.db*`、`server/.backup-status.json`、`server/uploads/` 一律保留。
+- 删证据的同批改引用：`EA` 里 `2026-11-10/activity-detail/` 目录引用改成文字结论，避免 `evidence-hygiene-guard::②` 判「引用不存在的证据」。
+- AI 仿真不计真人验收：375 三任务通过只作 M-01 的下限证据。
+
+### 读数
+- `.ctx/evidence`：**1272 文件 / 99.1 MB → 12 文件 / 217 KB**（10 份被 active 台账引用的 `.md` ＋ 2 份守卫 fixture 读数）。
+- 过程件清理：`.tmp/hit-area-audit{,2}.{mjs,json}` 4 个、`server/.browsers/**/debug.log` 2 个；`.trae-html-share-packages/*.zip` 10 个保留（无生成入口）。
+- `evidence-hygiene-guard` 4/4；`open-items-guard` 7/7（外部门 5 项）。
+- **证据瘦身前转写的读数**：
+  - 恢复演练（T4，2026-11-15 实跑）：`data.db` 844.0 KB / sha256 `55400f6c…0319be` / 57 表逐表一致 / 附件 9 文件 / `user_version=16`；演练副本演练后已删。
+  - 跨层扫描（批次 552）：四域 20 条候选 → 14 修（C1–C4 计算、F1–F3 全栈、B1–B3 后端等）/ 6 条登记带触发。
+  - P2 perf 重测（2026-11-14）：5 条 perf P2（`memberFlows` p95 105ms、`partyGroups` 183ms、`users` 85ms）5 次重测不复现（p95 68 / 2 / 4ms），判环境噪声关闭。
+  - 页签例外（2026-11-18）：46 页签 / P0 0 / P1 0 / P2 2 / exception 44，逐条理由已复核；复核口径＝只判 P0 / P1，例外只复核理由。
+  - 移动端仿真（2026-11-16，375×812 DPR3）：三任务均无横向滚动、命中区 44、交互字号 13；页签栏 `overflow-x:auto` 可横滑；不计真人签收。
+  - 用户任务走查（2026-11-08）：5 任务 4/5；任务 5 未登录资料查询页只给「请先登录」属 `D-858` 设计口径，不计 GAP；自动走查不计真人签收。
+- guards **129 文件 / 902 断言全绿（173.7s）**；daily **265 / 128.9s**。
+
 ## 批次 594（2026-11-21）· `.trae` 宣称对账：24 计划 ＋ 18 spec 逐条判定（D-904）
 
 ### 为什么

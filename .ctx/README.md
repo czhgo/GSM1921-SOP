@@ -2,7 +2,7 @@
 title: ".ctx 上下文仓库：三层分职与准入规则"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-11-03"
+last_updated: "2026-11-21"
 status: active
 ---
 
@@ -17,7 +17,9 @@ status: active
 |---|---|---|---|---|
 | **active（热）** | `CLAUDE.md` ／ `.ctx/ACTIVE_CONTEXT.md` | 当前状态、当前判断、下一步动作、读取地图 | 每批 / 每条新裁定 | **每次会话必读** |
 | **reference（温）** | `SNAPSHOT.md` ／ `ACTIVE_RULINGS.md` ／ `ENGINEERING_ASSESSMENT.md` ／ `REVIEW_QUEUE.md` ／ `TIMESTAMPS.md` | 系统形态、规则索引、评分证据、待评议、机器元数据 | 按批 / 按裁定 / 按文件 | 按需读，不默认全读 |
-| **provenance（冷）** | `logs/` ／ `evidence/` | 执行 / 决策 / 审计原文；截图与读数 | 追加 | 只追溯时读；不改写历史 |
+| **provenance（冷）** | `logs/` ／ `evidence/` | 执行 / 决策 / 审计原文；被 active 台账引用的读数 | 追加 | 只追溯时读；不改写历史 |
+
+> **evidence 准入（`CLAUDE.md H26.3a`）**：只存被 active 台账引用或被守卫 / 脚本消费的读数（`.md` / 小型 `.json`）；不存截图、压缩包与原始日志；读数转写进 `DECISION_LOG` / `EA` / `ACTIVE_CONTEXT` 后原始件即删，需要时重跑再生（守卫 `evidence-hygiene-guard`）。
 
 > **判据**：只有「**当前状态 / 当前判断**」有资格进 active；「**规则 / 判例 / 方法**」进 `content/01–05`；「**原始证据**」进 `evidence/`；「**过程流水**」进 `logs/`；「**何时动过**」进 `TIMESTAMPS.md`。
 
@@ -35,7 +37,7 @@ status: active
 | 系统形态 / 页面 / 表清单 | `.ctx/SNAPSHOT.md`（reference） |
 | 评分 / 阻断风险 / 行动线 | `.ctx/ENGINEERING_ASSESSMENT.md`（reference） |
 | 待评议 / 待裁 | `.ctx/REVIEW_QUEUE.md`（reference） |
-| 原始截图 / 读数 / 真机日志 | `.ctx/evidence/YYYY-MM-DD/`（provenance） |
+| 被引用的读数 / 真机结论 | `.ctx/evidence/YYYY-MM-DD/`（provenance；截图与原始日志不留库） |
 | 执行 / 决策 / 审计原文 | `.ctx/logs/`（provenance） |
 
 **禁止**：把规则正文写进 `.ctx` 顶层；把一次性证据写进 `ACTIVE_CONTEXT`；把已闭环待办留在 `REVIEW_QUEUE`；把历史论证塞进 `SNAPSHOT`。

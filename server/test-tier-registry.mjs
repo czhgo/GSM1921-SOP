@@ -106,8 +106,9 @@ export const DAILY_TEST_BUDGET = 262;
  *  2026-11-20 批次 581 续：新增 `spacing-ratchet-guard`（间距 / 暗色补丁棘轮），实然 120 文件；按 120 登记（差 0）。
  *  2026-11-20 批次 584：新增 `evaluation-asset-guard`（改进项指针 / 资产索引 / 两段门槛），实然 121 文件；按 121 登记（差 0）。
  *  2026-11-21 批次 587：新增 `status-palette-text-guard` / `badge-single-source-guard` / `button-height-guard`，实然 124 文件；按 124 登记（差 0）。
- *  2026-11-21 批次 589：新增 `todo-derive-instrument-guard`（派生兜底仪表 / 7 类对账全绿），实然 127 文件；按 127 登记（差 0）。 */
-export const GUARDS_FILE_BUDGET = 128;
+ *  2026-11-21 批次 589：新增 `todo-derive-instrument-guard`（派生兜底仪表 / 7 类对账全绿），实然 127 文件；按 127 登记（差 0）。
+ *  2026-11-21 批次 591–595：新增 `form-field-guard` / `open-items-guard` / `bom-and-eol-guard` / `evidence-hygiene-guard`，实然 129 文件；按 129 登记（差 0）。 */
+export const GUARDS_FILE_BUDGET = 129;
 
 /** guards 静态 `test(` / `it(` 调用点预算
  *  2026-11-08 波次 A：实测 788 断言，按 791 登记（断言留 3 条余量）。
@@ -133,8 +134,9 @@ export const GUARDS_FILE_BUDGET = 128;
  *  2026-11-21 批次 589：新增 `todo-derive-instrument-guard` 3 条 ＋ `evaluation-asset-guard` 增 1 条，实然 884；按 884 登记（余量 0）。
  *  2026-11-21 批次 591：新增 `form-field-guard` 4 条（必填语义 / 报错语义 / 字段级可访问名 / 反例自证）＋ `open-items-guard` 5 条（清账门四类 open 源 ＋ 反例自证），实然 893；按 893 登记（余量 0）。
  *  2026-11-21 批次 593：新增 `bom-and-eol-guard` 3 条（BOM 唯一性 / frontmatter 锚点 / 反例自证），实然 896；按 896 登记（余量 0）。
- *  2026-11-21 批次 594：`open-items-guard` 扩扫 `.trae/specs/**` 并增 2 条（归档件未勾项逐行 concluded ／ 反例自证），实然 898；按 898 登记（余量 0）。 */
-export const GUARDS_TEST_BUDGET = 898;
+ *  2026-11-21 批次 594：`open-items-guard` 扩扫 `.trae/specs/**` 并增 2 条（归档件未勾项逐行 concluded ／ 反例自证），实然 898；按 898 登记（余量 0）。
+ *  2026-11-21 批次 595：新增 `evidence-hygiene-guard` 4 条（禁截图 / 压缩包 ／ 台账双向引用 ／ 单文件 ≤256KB ／ 反例自证），实然 902；按 902 登记（余量 0）。 */
+export const GUARDS_TEST_BUDGET = 902;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -346,6 +348,8 @@ export const TEST_TIERS = [
     'open-items-guard.test.mjs',
     // 2026-11-21 批次 593：文件头 BOM 唯一性 ＋ frontmatter 锚点
     'bom-and-eol-guard.test.mjs',
+    // 2026-11-21 批次 595：证据库准入（只存被引用的读数，禁截图 / 压缩包）
+    'evidence-hygiene-guard.test.mjs',
   ]),
 
   // ── precommit · 非核心域回归（提交前 / 发布前覆盖；进 daily 会拖长日常）─────

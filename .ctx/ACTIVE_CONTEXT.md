@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: 2026-11-21
 last_verified: "2026-11-21"
-latest_decision: "D-904"
+latest_decision: "D-905"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -30,7 +30,7 @@ status: active
 - **六维（`D-883` 重校，批次 589 · `D-899` 复核未变）**：业务 **80** / 安全 **78** / 体验 **79** / 测试 **73** / 架构 **76** / 部署 **71**；**只作诊断，不单独阻断本机合并**（`D-894` 两段门槛）。未闭：CI 无 run id、`test:full` 未整体重跑、Linux 真机未验（L-02）、D2 计数对账仅 3 页签、C2 写口往返 0 pass、真人签收未完成。
 - **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（2026-11-21 批次 589 实跑）；审计工具已修复（URL 跟随无后缀 canonical、登录失败 `exit 2`）。F1–F8 全绿；M1–M3 在位。
   - source：`.ctx/evidence/2026-11-21/tab-audit/summary.md`（原始截图与 findings.json 可重跑再生，未入库）。
-- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **32 文件 / 265 断言 / 108.5s**（结果门禁，2026-11-21 批次 592 读数）；guards **128 文件**（registry 登记；静态调用点 898 / 预算 898；E4 真机装配已扩到 8 页、属 precommit 层）；precommit＝daily＋guards＋非核心域回归＋e2e；`test:full` 最近读数 **1779.0s**（三通道各 1 红已逐文件分诊并修复，**未整体重跑**）；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
+- **测试（四层，`D-859` / `D-860` / `D-863`）**：daily **32 文件 / 265 断言 / 108.5s**（结果门禁，2026-11-21 批次 592 读数）；guards **129 文件**（registry 登记；静态调用点 902 / 预算 902；E4 真机装配已扩到 8 页、属 precommit 层）；precommit＝daily＋guards＋非核心域回归＋e2e；`test:full` 最近读数 **1779.0s**（三通道各 1 红已逐文件分诊并修复，**未整体重跑**）；weekly 2。四层 runner 按 registry 单一源执行；CI 已配置 daily ＋ nightly 四片矩阵（**尚无 run id，不得称已绿**）。
   - source：`server/test-tier-registry.mjs`、`.ctx/logs/2026-11-DECISION_LOG.md §D-859 / §D-860 / §D-863 / §D-864`。
 - **工程评分（`D-883`，2026-11-19 保守重校）**：业务与数据 **80** · 安全与权限 **78** · 最小三成本 **79** · 测试与发布 **73** · 架构与可维护性 **76** · 运行部署 **71**；不设平均总分；分数只作诊断（`D-894`）。
   - source：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/logs/2026-11-DECISION_LOG.md §D-883`。
@@ -89,6 +89,7 @@ status: active
 - **前端 lens 清账（`D-902`，批次 592）**：两个独立 lens 报 20 条 → 按规则修 16 条（手拼徽章、tone 矛盾、令牌底、动作按钮族、H32 预载失败重试、表态单一写口、赋权双跳转、可访问名、日历浮层 dialog）；About 冻结件 1 条不动；3 条判不成立（既有裁定 / 误报）。→ `docs/src/**`、`REVIEW_QUEUE B-592-1`（表态上服务端待裁）。
 - **工作树复原与 BOM 守卫（`D-903`，批次 593）**：23:48 一批写入把 4 文件改回旧值并累加 BOM、59 文件改 CRLF ⇒ 以 HEAD 为唯一正确版本（只 `checkout`，不 `reset --hard`）；新增 `bom-and-eol-guard`（BOM 唯一性 / frontmatter 锚点 / 反例），存量 10 文件 BOM 归一（`.ps1` 留单 BOM）。→ `server/test/bom-and-eol-guard.test.mjs`、`server/test-tier-registry.mjs`。
 - **`.trae` 宣称对账（`D-904`，批次 594）**：`.trae` 被 gitignore、不可回滚 ⇒ 结论就地写回；24 份计划 ＋ 18 个 spec 按四态（已实现 / 已被覆盖 / 外部门 / 作废）逐条判定并 `status: archived`；24 行未勾项逐行 `concluded`；`open-items-guard` 增 ⑥⑦（归档件仍留无结论未勾项即红 ＋ 反例）。→ `.trae/**`、`server/test/open-items-guard.test.mjs`。
+- **证据准入与瘦身（`D-905`，批次 595）**：`.ctx/evidence` 只留被台账引用或被守卫消费的读数（99.1 MB / 1272 文件 → 217 KB / 12 文件）；新增 `H26.3a` ＋ `evidence-hygiene-guard`（禁截图 / 压缩包、双向引用、单文件 ≤256 KB、反例）；`EA §四` 外部门补 `M-01`（移动端三任务）。→ `.ctx/evidence/**`、`CLAUDE.md H26.3a`、`server/test/evidence-hygiene-guard.test.mjs`。
 
 ## §3 当前风险与下一步
 
@@ -103,6 +104,7 @@ status: active
 ### 上线残项中仍 open 的（详见 `.ctx/ENGINEERING_ASSESSMENT.md §四`）
 
 - `L-02`（**外部门**）`install.sh` / `install.ps1` / `update.sh` 未在 Linux 真机验证；容器可验证部分 `deploy/verify-linux.sh` **6/6**，CI `deploy-verify` job 未实跑；由支书授权后一次性补齐，不阻断本机合并。
+- `M-01`（**外部门**）移动端三任务（回执 / 表决 / 查考勤）真人真机未验；AI 仿真 375 三任务已过（命中区 44，批次 552），不计真人验收。
 - `L-10` 读口已统一走 `resourceRowsForActor`；余「逐读口取证 ＋ `ALLOW_MULTI_BRANCH` 开关演练」，开关仍关闭。
 - `L-13` 页签 IA 未闭项 **A 37 / B 9 / C 0**；6 个超 4 块页签登记例外；默认两条已复核为波次 C 落地（`D-887`）。
 - **公开内容与党委内容读面（`D-858`）**：未登录只读 `publishScope='public'` 且未过期的党委内容，过期即 404 fail-closed；党委内容只经服务端读口（`/committee/*` 与公开门厅），客户端不得本地派生可见性、不得带出支部名与成员字段。
@@ -129,7 +131,7 @@ status: active
 | reference | `.ctx/REVIEW_QUEUE.md` | 每批开工前扫未闭环 | 已闭环（已删） |
 | reference | `.ctx/TIMESTAMPS.md` | 收尾核对 / 改文件后 | 叙述 |
 | provenance | `.ctx/logs/YYYY-MM-*.md` | 追溯成因 / 裁定原文 | 不用于日常决策 |
-| provenance | `.ctx/evidence/YYYY-MM-DD/` | 复核真机读数 / 截图 | 不用于日常决策 |
+| provenance | `.ctx/evidence/YYYY-MM-DD/` | 复核被引用读数（只存 `.md` / 小型 `.json`） | 不用于日常决策 |
 | knowledge | `content/01–05` | 按任务类型读 | 不重复 .ctx 状态 |
 
 ## §5 保鲜与冲突

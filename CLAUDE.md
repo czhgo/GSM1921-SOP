@@ -147,6 +147,8 @@ status: active
 
 > 历史锚点（守卫 `docs-governance::G12` 依赖）：批次 521 将设计系统分编为父索引 ＋ 五编；该句只作历史事实保留，不构成现行规则。
 
+**H26.3a evidence 准入。** `.ctx/evidence/` 只存被 active 台账引用或被守卫 / 脚本消费的读数（`.md` / 小型 `.json`）；不存截图、压缩包与原始日志；读数转写进 `DECISION_LOG` / `EA` / `ACTIVE_CONTEXT` 后原始件即删，需要时重跑再生。守卫 `evidence-hygiene-guard`。
+
 **H26.4 Active Context 预算与冲突。** `.ctx/ACTIVE_CONTEXT.md` ≤300 行 / ≤30KB；`latest_decision` 必须 ≥ 当月决策日志末条；冲突顺序＝当月 `DECISION_LOG` ＞ `ACTIVE_CONTEXT` ＞ `content` 权威 ＞ `SNAPSHOT` ＞ `ENGINEERING_ASSESSMENT` ＞ `logs` / `evidence`。
 
 **H26.5 历史值隔离。** 同一指标在 active 文件（本文件、`.ctx/ACTIVE_CONTEXT.md`）与 reference 台账（`.ctx/ACTIVE_RULINGS.md`、`.ctx/ENGINEERING_ASSESSMENT.md`）只写**一个当前值 ＋ `D-xxx` 指针**；不得写「历史 / 旧值 / A → B」形式的旧读数，历史值只进 `.ctx/logs/` 与 git。守卫 `ctx-hygiene-guard::⑪`（历史标记与评分元组同行即红；六维元组每文件至多一处；`ENGINEERING_ASSESSMENT §一` 不得再开「重评 / 旧评分」小节）。
