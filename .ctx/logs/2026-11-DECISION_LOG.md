@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-908`，共 82 条**；下一条自 **`D-909`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-909`，共 83 条**；下一条自 **`D-910`**。
 
 ## 本月目录（2026-11）
 
@@ -102,6 +102,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 表态上服务端：按人存、只本人可撤、匿名单向隐藏；矩阵 163 | `D-906` | 2026-11-22 | 已落（批次 596） |
 | `.ctx` 瘦身：同一事实只出现一次；ACTIVE_CONTEXT §2 收到 12 条、EA 91→44KB、TIMESTAMPS 备注迁日志 | `D-907` | 2026-11-22 | 已落（批次 597） |
 | `.trae` 收尾：归档件逐行结论；分享包删除；过程件清零；终验 P0/P1/P2=0 | `D-908` | 2026-11-22 | 已落（批次 598） |
+| `.trae` 清零：documents 25 ＋ specs 18 删除；守卫改「若存在则查」 | `D-909` | 2026-11-22 | 已落（批次 599） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -839,5 +840,15 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：guards **129 文件 / 902 断言全绿（138.9s）**；daily **265 / 107.4s**；`audit-tabs --all` **P0 0 / P1 0 / P2 0 / exception 44**；`.tmp` 0 文件。
 > **落点**：`.trae/documents/2026-11-02-audit-consolidation-and-cutover.md`、`server/test/open-items-guard.test.mjs`、`.trae-html-share-packages/`（删除）。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-908`**（共 **82** 条）。
+## D-909 2026-11-22 — `.trae` 清零与守卫解耦（批次 599）
+
+> **评议 → 裁定 → 落点**：支书问「`.trae` 的 spec 和 documents 还有残存价值吗？没有可删除」⇒ 全部已归档且未勾项全有结论，结论已在 `.ctx/logs`，保留只剩维护成本。
+> - **删除**：`.trae/documents`（25）与 `.trae/specs`（18）整目录删除；`.trae` 被 gitignore，不可回滚，删除前结论已写入执行日志批次 599 节。
+> - **守卫解耦**：`open-items-guard ③` 改「若 `.trae/**` 存在则校验 archived ＋ 逐行 `concluded`」；删 ⑥ 与 `spec-task-consistency`（3 条）；4 文件 7 处注释出处改「历史 spec（已删）」。
+> - **规则改准**：`CLAUDE.md H50.3` ③ 「`.trae/**`（如存在）」；守卫说明同步外部门五项。
+> **未选**：保留 `.trae` 作审计痕迹（支书裁定删）；为删除再加备份（`H26.3a` 不备份过程件）。
+> **读数**：guards **129/902 → 128/898**；`.trae` 文件数 43 → 0。
+> **落点**：`.trae/**`（删除）、`server/test/open-items-guard.test.mjs`、`server/test-tier-registry.mjs`、`CLAUDE.md H50.3`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-909`**（共 **83** 条）。
 

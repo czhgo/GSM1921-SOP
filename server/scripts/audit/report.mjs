@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // audit/report.mjs — 审计报告落盘（JSON 评分卡 + Markdown 分组报告）
 //
-// 契约（`.trae/documents/2026-11-02-tab-audit-asset.md` §3.1）：
+// 契约（`历史计划（已删）` §3.1）：
 //   findings.json = { generatedAt, base, dbMode, tabs:[{key,label,blocks,findings:[...]}],
 //                     summary:{P0,P1,P2,exceptions} }
 //   summary.md    = 顶部评分卡（每页签 F1–F8 的 pass/fail/exception）+ 按 P0/P1/P2 分组的问题与证据

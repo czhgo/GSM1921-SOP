@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // ui-phase2-urgent.test.mjs — Phase 2 急救四项 + 首页活动风采真图位守卫（2026-10-19）
 //
-// 判据来源：`.trae/specs/phase2-home-and-urgent-fixes/spec.md`。
+// 判据来源：`历史 spec（已删）`。
 // 本文件只做静态回归：防止「已修的四项」被后续批次悄悄改回旧形态。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

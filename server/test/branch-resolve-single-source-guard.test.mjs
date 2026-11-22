@@ -2,7 +2,7 @@
 // ════════════════════════════════════════════════════════════════
 //  server/test/branch-resolve-single-source-guard.test.mjs —— 支部解析单源守卫（T15 · 2026-11-15）
 // ════════════════════════════════════════════════════════════════
-// 由来：`.trae/specs/close-six-dim-gaps/spec.md`「事实源守卫」＋ tasks.md T15；设计见
+// 由来：`历史 spec（已删）`「事实源守卫」＋ tasks.md T15；设计见
 //   `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §10.6–10.9`（步 5：派生单源守卫常驻）。
 //
 // 病灶：支部解析曾有两套判据＋散落的 `|| DEFAULT_BRANCH` / `|| DEFAULT_BRANCH_ID` 回落，

@@ -224,10 +224,10 @@ status: active
 
 **H50.3 计划收尾清账门。**
 
-- 每份计划的验收必须附「清账表」，处置四类 open 源：① 本文件乙部；② `.ctx/REVIEW_QUEUE.md`；③ `.trae/documents/**` 未勾项；④ `.ctx/ENGINEERING_ASSESSMENT.md §四` 专项。
+- 每份计划的验收必须附「清账表」，处置四类 open 源：① 本文件乙部；② `.ctx/REVIEW_QUEUE.md`；③ `.trae/**` 未勾项（**如存在**；2026-11-22 `D-909` 起 `.trae` 已清零，守卫按「若存在则查」）；④ `.ctx/ENGINEERING_ASSESSMENT.md §四` 专项。
 - 每条只能落四态之一：**已闭环**（删行）、**已排批次**（有判据与目标批次）、**明确作废**（写理由）、**外部门**（归 `EA §四` 外部门表）。
 - 四类之外不得留「口头待办」；计划报「已完成」时清账表缺一即视为未完成。
-- 守卫 `open-items-guard`：`REVIEW_QUEUE` 无「已闭环」行、乙部每条四要素齐、计划未勾项须 `<!-- parked: D-xxx -->` 或 `status: archived`、`EA §四` 外部门四项列全，且反例自证。
+- 守卫 `open-items-guard`：`REVIEW_QUEUE` 无「已闭环」行、乙部每条四要素齐、`.trae/**`（如存在）未勾项须 `<!-- parked: D-xxx -->` 或归档逐行 `concluded`、`EA §四` 外部门五项列全，且反例自证。
 
 # 温层：修改时必读
 

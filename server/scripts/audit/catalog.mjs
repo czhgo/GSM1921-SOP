@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // audit/catalog.mjs — 页签审计目录（批次 526 · Wave 1-A）
 //
-// 口径见 `.trae/documents/2026-11-02-tab-audit-asset.md` §3.2：
+// 口径见 `历史计划（已删）` §3.2：
 //   · 页签清单**只从** `docs/src/capabilities/*-workspace.js` 读取（不在本文件手写第二份）；
 //   · `blocks` 只从 `server/test/style-baseline.mjs::TAB_BLOCK_BASELINE` 读取；
 //   · 启动时校验：46 项、键集合与 `TAB_BLOCK_BASELINE` 双向相等，否则抛错。

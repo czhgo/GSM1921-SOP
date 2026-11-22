@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // runtime-tab-lifecycle-guard.test.mjs — Tab 运行时正确性守卫（2026-10-25 Task 1）
 //
-// 判据来源：`.trae/specs/restore-visual-hierarchy-and-runtime/spec.md`
+// 判据来源：`历史 spec（已删）`
 //   「Requirement: Tab 渲染生命周期」「Requirement: 绑定幂等」＋ checklist「运行时正确性」节。
 //
 // 覆盖 5 条根因（逐条非空转）：

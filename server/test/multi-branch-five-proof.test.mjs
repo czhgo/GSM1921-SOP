@@ -1,6 +1,6 @@
 // server/test/multi-branch-five-proof.test.mjs — T13 双支部「五证」结果夹具（先红后绿）
 // ════════════════════════════════════════════════════════════════
-// 由来：`.trae/specs/close-six-dim-gaps/spec.md`「多支部隔离（N=1 为特例）」＋ tasks.md T13；
+// 由来：`历史 spec（已删）`「多支部隔离（N=1 为特例）」＋ tasks.md T13；
 //   设计定稿见 `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §10.6–10.9`（判定点 /
 //   失败开放点 / 施工顺序）。本文件把五证固化成可复跑的结果断言，**先于实现落地**：
 //     ① 读隔离：A 支部读不到 B 支部任何行；

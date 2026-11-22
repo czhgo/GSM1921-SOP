@@ -14,7 +14,7 @@ await (async () => {
 
   // role: [工程师]+[AI]
   // server/test/perf-render-guard.test.mjs — P2 提速批护栏：渲染守卫与视图缓存（2026-09-07）
-  // 依据：.trae/specs/2026-09-07-perf/spec.md §四（P2 渲染守卫：数据未变时聚合页跳过整链
+  // 依据：历史 spec（已删） §四（P2 渲染守卫：数据未变时聚合页跳过整链
   //       重算与整卡重建；行为差异零、状态安全）与 §五（渲染守卫：buildFn 计数 / 状态保留）。
   // 覆盖（桩容器对象模拟 container dataset/firstElementChild/innerHTML；helper 无 DOM 直导）：
   //   ① 数据键未变两次 memoizeRender → buildFn 仅执行 1 次，且 container 内容未被覆盖
@@ -213,7 +213,7 @@ await (async () => {
 
   // role: [工程师]+[AI]
   // server/test/perf-todo-agg-cache.test.mjs — P0 提速批护栏：TodoStore 聚合级 memo 失效正确性（2026-09-07）
-  // 依据：.trae/specs/2026-09-07-perf/spec.md §二.1/§五（一致性护栏：写→读必须变化、未写→复用）
+  // 依据：历史 spec（已删） §二.1/§五（一致性护栏：写→读必须变化、未写→复用）
   // 覆盖（member-persist 桩做法；seed 用 TodoStore.create 构造记录）：
   //   ① 未写时连续两次 getDomainsWithGroups：结果一致（同引用）且内部聚合只执行一次
   //     （TodoStore._aggCacheStats.aggregateRuns 计数不变）
@@ -406,7 +406,7 @@ await (async () => {
 
   // role: [工程师]+[AI]
   // server/test/perf-version-token.test.mjs — P0 提速批护栏：域写版本戳 bump 正确性（2026-09-07）
-  // 依据：.trae/specs/2026-09-07-perf/spec.md §二.3/§五（version-token 域缓存：各域写口至少一条
+  // 依据：历史 spec（已删） §二.3/§五（version-token 域缓存：各域写口至少一条
   // 「写 → tokenOf 递增 / 聚合读数变化；未写 → tokenOf 不变」+ resetAllTokens 生效）
   // 覆盖（member-persist 桩做法）：
   //   attendance / inspection / activityReview / taskforce / resolution / signup
@@ -588,7 +588,7 @@ await (async () => {
 
   // role: [工程师]+[AI]
   // server/test/perf-index-equivalence.test.mjs — P1 索引降复杂度·等价断言（2026-09-07）
-  // 依据：.trae/specs/2026-09-07-perf/spec.md §三（P1 索引降复杂度）与 §五（等价测试）
+  // 依据：历史 spec（已删） §三（P1 索引降复杂度）与 §五（等价测试）
   // 目的：P1 各「预建 Map/分组查表」改造与改造前逐格扫描 / 逐条 .some 输出严格等价——
   //   ① calendar 日索引（buildCalendarDayIndex）：分组输出 == 逐格扫描（同 data 同结果集合+保序）
   //   ② 考勤缺口 Map（SecretaryTodoDeriver._aggAttendanceRemind）：缺口活动序 == 旧嵌套

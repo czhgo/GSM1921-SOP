@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // loading-experience-guard.test.mjs — 加载体验守卫（2026-10-27 · refine-ui-three-lenses 阶段三 Task 10）
 //
-// 判据来源：`.trae/specs/refine-ui-three-lenses/spec.md`「Requirement: 加载守卫」＋ checklist
+// 判据来源：`历史 spec（已删）`「Requirement: 加载守卫」＋ checklist
 //   「页签切换超过 120ms 出现 skeleton + “正在加载”／新内容 150–200ms 交叉淡入／总等待 ≤1s／
 //    不再整块 opacity 压暗 + 插加载行硬替换／页面跳转有顶部进度条或内容 skeleton／
 //    prefers-reduced-motion 只淡入 80ms 无位移、skeleton 与文案保留」。

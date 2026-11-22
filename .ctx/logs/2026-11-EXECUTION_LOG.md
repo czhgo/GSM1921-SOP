@@ -10,6 +10,26 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 599（2026-11-22）· `.trae` 清零与守卫解耦（D-909）
+
+### 为什么
+- `.trae/documents`（25 份）与 `.trae/specs`（18 个）已全部归档、未勾项全部有结论；结论已归位本日志与 `DECISION_LOG`（`D-903`–`D-908`），继续维护只剩成本。支书 2026-11-22 裁定「全部删除」。
+- 守卫仍把 `.trae` 目录当 open 源，删除后必须先解耦，否则 `open-items-guard` 会因 `ENOENT` 假红。
+
+### 拿不准 / 取舍
+- **守卫不空转**：③ 改为「**若目录存在**则按 archived ＋ 逐行 `concluded` 校验」，并用内存样本反例自证；⑥ 与 ③ 合并，`spec-task-consistency`（唯一作用是 specs ↔ tasks 对齐）整份删除。
+- **注释出处**：4 个测试 / 脚本里 7 处 `.trae/specs|documents/*` 路径改为「历史 spec（已删）」，保留一句判据；`audit-tabs.mjs` 同步。
+- **规则改准**：`CLAUDE.md H50.3` ③ 改「`.trae/**`（如存在）」；守卫说明同步为「归档逐行 concluded / 外部门五项」。
+
+### 边界
+- `.trae` 被 gitignore、不可回滚：删除前把结论写入本节；**此后 `.trae` 已清零**（需要原文只能靠回收站）。
+- 不删除 `.ctx/logs` 中任何历史；`D-903`–`D-909` 保留完整判定链。
+
+### 读数
+- `.trae`：documents **25 → 0**、specs **18 → 0**。
+- guards：**129 文件 / 902 断言 → 128 / 898**（删 `spec-task-consistency` 3 条 ＋ `open-items-guard ⑥` 1 条）。
+- 定向：`open-items-guard` / `test-tier-guard` **13/13**；全量 guards **128 文件 / 898 断言全绿（157.4s）**；daily **265 / 108.2s**。
+
 ## 批次 598（2026-11-22）· `.trae` 收尾与过程件清零（D-908）
 
 ### 为什么

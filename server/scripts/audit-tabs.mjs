@@ -2,7 +2,7 @@
 // role: [工程师]+[AI]
 // scripts/audit-tabs.mjs — 页签审计编排器（批次 526 · Wave 1-A）
 //
-// 口径见 `.trae/documents/2026-11-02-tab-audit-asset.md` §3.1：
+// 口径见 `历史计划（已删）` §3.1：
 //   一条命令跑一个 / 全部页签，输出 JSON 评分卡 + Markdown 报告 + 1440/390 截图。
 //   默认自起 `:memory:` 实例（seedDatabase + 随机端口，不污染演示库）；`--base` 复用已起服务。
 // 维度：

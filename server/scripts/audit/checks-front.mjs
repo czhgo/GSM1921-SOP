@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // audit/checks-front.mjs — F1–F8 前端维度检查（批次 526 · Wave 1-A）
 //
-// 口径见 `.trae/documents/2026-11-02-tab-audit-asset.md` §3.3：
+// 口径见 `历史计划（已删）` §3.3：
 //   F1 顶层块数 ≤4；>4 且 `TAB_BLOCK_BASELINE[key].reason` 非空 ⇒ exception，为空 ⇒ P1；
 //      DOM 实测与基线块数不一致 ⇒ P1。
 //   F2 `.lf-bar` **控件行数 ≤ 2**（按控件 top ±4px 聚簇计数，不看绝对高度）、非 column、

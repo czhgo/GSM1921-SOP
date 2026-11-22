@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // server/test/todo-deriver-domain.test.mjs — IA 收敛 C1 Task2：所有 TodoStore 派生点补
 // 「稳定 actionKey + 准确 domain（含会务 scenarioId）」归属表（2026-09-07）
-// 依据：.trae/specs/2026-09-06-ia-todo-cards/plan-c1.md Task2 + spec.md 三节映射
+// 依据：历史 spec（已删） Task2 + spec.md 三节映射
 // 现状（Task1 已落 _buildTodo 兜底 domain 推断）：本批断言各派生动作后 todo.domain 归属
 // 正确且稳定 actionKey 存在——
 //   ① 活动创建 → leader authorize 待办 domain 按 scenarioId 分（三会→会务、theme-party→活动/项目）

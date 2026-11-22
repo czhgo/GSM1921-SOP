@@ -4,12 +4,10 @@
 // 判据（H50.3）：计划报「已完成」时，四类 open 源必须各有结论，不得留「口头待办」。
 //   ① `.ctx/REVIEW_QUEUE.md`：不得出现「已闭环」行（闭环即删，沿革归 git）；
 //   ② `CLAUDE.md` 乙部：每条必须有「ID / 一句话 / 判据或出处 / 状态」四要素，状态 ∈ {在办, 待触发}，`待触发` 必须写触发条件；
-//   ③ `.trae/documents/*.md`：有 `- [ ]` 时必须含 `<!-- parked: D-xxx -->` 或 frontmatter `status: archived`；
-//      已归档件仍留 `- [ ]` 时，每行须带 `<!-- concluded: … -->`（与 specs ⑥ 同口径）；
+//   ③ `.trae/{documents,specs}`（**如存在**）：有 `- [ ]` 时必须含 `<!-- parked: D-xxx -->`、
+//      或已 `status: archived` 且每行带 `<!-- concluded: … -->`；目录不存在时跳过扫描（2026-11-22 批次 599 `.trae` 已清零）；
 //   ④ `.ctx/ENGINEERING_ASSESSMENT.md §四`：必须有「外部门」小节，且 L-02 / CI / 签收 / SMTP / M-01 五项列全；
-//   ⑤ 反例自证：把合格样本改坏后，同一判据必须判红（守卫不是空转）；
-//   ⑥ `.trae/specs/**/{checklist,tasks}.md`（排除 `_TEMPLATE`）：已标 `status: archived` 的文件不得留有「无结论的未勾项」
-//      ——归档声明与未勾项必须自洽，每行 `- [ ]` 需带 `<!-- concluded: … -->`（2026-11-21 批次 594）。
+//   ⑤ 反例自证：把合格样本改坏后，同一判据必须判红（守卫不是空转）。
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -66,17 +64,37 @@ test('② CLAUDE 乙部每条四要素齐，状态 ∈ {在办, 待触发}', () 
   assert.deepEqual(bad, [], `乙部行不合格：\n  ${bad.join('\n  ')}`);
 });
 
-test('③ .trae/documents 有未勾项 ⇒ 必须 parked 或 archived，且归档件逐行 concluded', () => {
-  const dir = path.join(ROOT, '.trae', 'documents');
+test('③ .trae 若存在：有未勾项 ⇒ 必须 parked 或 archived，且归档件逐行 concluded', () => {
   const bad = [];
-  for (const name of readdirSync(dir).filter((n) => n.endsWith('.md'))) {
-    const text = readFileSync(path.join(dir, name), 'utf8');
-    if (!/^- \[ \]/m.test(text)) continue;
-    if (!planDisposed(text)) { bad.push(name); continue; }
-    const problem = specUndisposed(text);
-    if (problem) bad.push(`${name}：${problem}`);
-  }
-  assert.deepEqual(bad, [], `含未勾项却未处置（加 <!-- parked: D-xxx --> 或 status: archived；归档件须逐行 concluded）：${bad.join(', ')}`);
+  const scanDocs = () => {
+    const dir = path.join(ROOT, '.trae', 'documents');
+    let names;
+    try { names = readdirSync(dir).filter((n) => n.endsWith('.md')); } catch { return; }
+    for (const name of names) {
+      const text = readFileSync(path.join(dir, name), 'utf8');
+      if (!/^- \[ \]/m.test(text)) continue;
+      if (!planDisposed(text)) { bad.push(`documents/${name}`); continue; }
+      const problem = specUndisposed(text);
+      if (problem) bad.push(`documents/${name}：${problem}`);
+    }
+  };
+  const scanSpecs = () => {
+    const base = path.join(ROOT, '.trae', 'specs');
+    let dirs;
+    try { dirs = readdirSync(base, { withFileTypes: true }); } catch { return; }
+    for (const dir of dirs) {
+      if (!dir.isDirectory() || dir.name === '_TEMPLATE') continue;
+      for (const fname of ['checklist.md', 'tasks.md']) {
+        let text;
+        try { text = readFileSync(path.join(base, dir.name, fname), 'utf8'); } catch { continue; }
+        const problem = specUndisposed(text);
+        if (problem) bad.push(`specs/${dir.name}/${fname}：${problem}`);
+      }
+    }
+  };
+  scanDocs();
+  scanSpecs();
+  assert.deepEqual(bad, [], `含未勾项却未处置（parked / archived ＋ 逐行 concluded）：${bad.join(', ')}`);
 });
 
 test('④ EA §四 外部门小节列全 L-02 / CI / 签收 / SMTP / M-01', () => {
@@ -102,25 +120,6 @@ test('⑤ 反例自证：改坏的样本必须判红', () => {
   assert.equal(planDisposed('---\nstatus: archived\n---\n- [ ] 未勾'), true);
   assert.equal(planDisposed('<!-- parked: D-900 -->\n- [ ] 未勾'), true);
   assert.equal(planDisposed('- [ ] 未勾且无处置'), false);
-});
-
-test('⑥ .trae/specs 已归档件的未勾项必须逐行 concluded', () => {
-  const base = path.join(ROOT, '.trae', 'specs');
-  const bad = [];
-  for (const dir of readdirSync(base, { withFileTypes: true })) {
-    if (!dir.isDirectory() || dir.name === '_TEMPLATE') continue;
-    for (const fname of ['checklist.md', 'tasks.md']) {
-      let text;
-      try {
-        text = readFileSync(path.join(base, dir.name, fname), 'utf8');
-      } catch {
-        continue;
-      }
-      const problem = specUndisposed(text);
-      if (problem) bad.push(`${dir.name}/${fname}：${problem}`);
-    }
-  }
-  assert.deepEqual(bad, [], `归档 spec 留有未结论项：\n  ${bad.join('\n  ')}`);
 });
 
 test('⑦ 反例自证：spec 归档件改坏后必须判红', () => {

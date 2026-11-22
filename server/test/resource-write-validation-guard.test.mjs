@@ -1,6 +1,6 @@
 // server/test/resource-write-validation-guard.test.mjs — 通用资源写口字段校验 ＋ 列表硬上限守卫（T12 · 2026-11-16）
 //
-// 判据（spec `.trae/specs/polish-shell-and-display-truth/tasks.md` T12）：
+// 判据（spec `历史 spec（已删）` T12）：
 //   G1 覆盖声明：`RESOURCE_TABLES` 的每个通用资源，要么在 `RESOURCE_WRITE_VALIDATION` 有字段校验，
 //      要么在 `RESOURCE_WRITE_VALIDATION_EXEMPTIONS` 有非空理由（**不得两者都无 / 两者都有**）
 //      ⇒ 新增通用资源必须“声明校验或显式豁免”，不能静默漏过。
