@@ -21,9 +21,9 @@
 ## 验证命令
 ```powershell
 # 定向（改规范 / 判例后先跑，纯 node）
-cd server; node --test test/doc-consistency.test.mjs test/docs-governance-guard.test.mjs test/contract-doc-guard.test.mjs test/theme-palette-guard.test.mjs test/hex-hardcode-guard.test.mjs
+cd server; node --test test/doc-consistency.test.mjs test/doc-lifecycle-guard.test.mjs test/contract-doc-guard.test.mjs test/color-ratchet-guard.test.mjs test/color-ratchet-guard.test.mjs
 # 改密度 / 交互 / 动效时追加
-cd server; node --test test/density-spacing-guard.test.mjs test/hover-state-guard.test.mjs test/motion-guard.test.mjs
+cd server; node --test test/style-ratchet-guard.test.mjs test/style-ratchet-guard.test.mjs test/style-ratchet-guard.test.mjs
 # 全量日常（实测 ≈150s，预算 ≤180s）
 cd server; npm run test:daily
 # 发布前（预算 ≤1200s；README 实测量级 ≈23 分钟）

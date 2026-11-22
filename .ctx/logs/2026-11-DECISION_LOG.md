@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-909`，共 83 条**；下一条自 **`D-910`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-910`，共 84 条**；下一条自 **`D-911`**。
 
 ## 本月目录（2026-11）
 
@@ -103,6 +103,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | `.ctx` 瘦身：同一事实只出现一次；ACTIVE_CONTEXT §2 收到 12 条、EA 91→44KB、TIMESTAMPS 备注迁日志 | `D-907` | 2026-11-22 | 已落（批次 597） |
 | `.trae` 收尾：归档件逐行结论；分享包删除；过程件清零；终验 P0/P1/P2=0 | `D-908` | 2026-11-22 | 已落（批次 598） |
 | `.trae` 清零：documents 25 ＋ specs 18 删除；守卫改「若存在则查」 | `D-909` | 2026-11-22 | 已落（批次 599） |
+| 守卫三层收敛：probe:stage ＋ 52 源件并 5 件；预算软告警 | `D-910` | 2026-11-22 | 已落（批次 600） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -249,7 +250,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > - **B-500-1 第五轮 P2/P3**：**全量对账**——逐条对现行代码机检，仍命中的修掉，已消失的留证据；本批关账。
 > - **B-515-6 真缺陷与 e2e**：**9 条 precommit e2e 必须全部跑通**，不得留到发布前；4 条真缺陷中 2 条经探针证伪（写链已改资源 API / 权限判据已含 `deputy-leader`），向导校验与待批复种子补齐。
 > - **B-515-5 / B-522-2 长期棘轮**：各迁一批（`text-xs` 23 处 · help.html 532 → 167 处），同批建 / 收紧守卫棘轮（`TEXT_XS_BASELINE`、help.html 从 `allowNew` 改 `false`），两条转持续任务 `C-5` 并移出乙部。
-> - 判据 / 落点：`CLAUDE.md 乙部`、`server/test/type-scale-guard.test.mjs::Q6`、`server/test/hex-hardcode-guard.test.mjs::H7`、`content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md §3.2.2`。
+> - 判据 / 落点：`CLAUDE.md 乙部`、`server/test/style-ratchet-guard.test.mjs::Q6`、`server/test/color-ratchet-guard.test.mjs::H7`、`content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md §3.2.2`。
 
 ## D-856 2026-11-04 — 界面信号统一、颜色单一权威与完整 Plan B 一期
 
@@ -263,7 +264,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 ## D-857 2026-11-07 — CLAUDE 三层恢复、通知受众 fail-closed 与 SD-60 行动行
 
 > **评议 → 裁定 → 落点**（支书 `/plan` 三项要求后裁定，批次 535）：
-> - **CLAUDE 三层**：温层从 0 行恢复为「触发式任务表 + H60–H80」；热层 H10–H50、冷层 H90–H100；乙部删除批次历史叙述，完成项整行删除。守卫新增层边界、温层 3–60 行、乙部 ≤18 行且无「已核实完成 / 已清出」、触发表指针 `existsSync`。落 `CLAUDE.md`、`server/test/ctx-hygiene-guard.test.mjs`、`server/test/claude-parallel-audit.test.mjs::C4`、`server/test/ui-preflight-context.test.mjs::P5`。
+> - **CLAUDE 三层**：温层从 0 行恢复为「触发式任务表 + H60–H80」；热层 H10–H50、冷层 H90–H100；乙部删除批次历史叙述，完成项整行删除。守卫新增层边界、温层 3–60 行、乙部 ≤18 行且无「已核实完成 / 已清出」、触发表指针 `existsSync`。落 `CLAUDE.md`、`server/test/doc-lifecycle-guard.test.mjs`、`server/test/claude-parallel-audit.test.mjs::C4`、`server/test/ui-preflight-context.test.mjs::P5`。
 > - **通知受众 fail-closed**：系统通知无受众＝不可读；广播必须显式 `audience:['all']`；未登录一律不可读；`project-auth-granted` 定向到被赋权人且授权人姓名由服务端按名册复算；存量迁移标 `legacyUnscoped`。落 `docs/src/services/governance/notice.js`、`server/system-notice-kinds.js`、`server/routes/system-notices.js`、`server/scripts/migrate-notice-audience.mjs`、`server/test/notice-audience-failclosed.test.mjs`。
 > - **UI 行动行**：SD-60 四类排布（长组件伸缩 / 多短按钮 / 单枚低价值 / 筛选条），`.card-head` ≥641 不换行、标题让位、aside 不拆组；新增 `action-row-wrap-guard`。落 `DS_06 §二`、`DS_03 §4.2`、`docs/src/styles.css`、`CASE-DESIGN-034`。
 > - **未登录公共入口**：只研究不改；三方向（A 最小收紧 / B 学院级入口 / C 公共门户）落 `content/04_web_design/evolution/PUBLIC_ENTRANCE.md`，进丙部 V-11 待裁。
@@ -535,7 +536,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > - **架构 76**：三条单一源与四个测试 runner 属实；但路由回落实测 85 处、双算派生未摘、多支部请求级上下文未建、express 5 被守卫耦合阻塞、无类型检查。原 79 未扣多支部框架缺口。
 > - **部署 71**：`verify-linux` 6/6、空库 `preflight --strict` exit 0 属实；但 `L-02` 真机未验、`deploy-verify` 无 run id、timer 未实触发、告警外部送达未验、单节点 SQLite、附件与会话手工搬、共享口令不得进生产。原 74 只靠容器等价读数。
 > **同批立规**：`CLAUDE.md` 新增 **`H26.5` 历史值隔离**——active 与 reference 台账同一指标只留一个当前值 ＋ `D-xxx` 指针，历史值只进 `.ctx/logs/` 与 git；守卫 `ctx-hygiene-guard::⑪`（历史标记与评分元组同行即红、六维元组每文件至多一处、`ENGINEERING_ASSESSMENT §一` 不得再开「重评 / 旧评分」小节）。**清理**：`ACTIVE_CONTEXT` 三处旧元组、`ACTIVE_RULINGS` 旧元组与「47 表」、`ENGINEERING_ASSESSMENT §一` 五个「重评」小节与「旧评分」段迁出（正文保留在 `D-877…D-881`），§二 六个小标题同步当前值。
-> **未选**：维持 82 / 80 / 82 / 76 / 79 / 74（与未闭项不符，支书已明确批注）；为凑合并门槛上调（违背「该降就降」）；把六维改成一个总分（`D-862` 已禁平均）。**落点**：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/ACTIVE_CONTEXT.md §1 / §2`、`.ctx/ACTIVE_RULINGS.md §A`、`CLAUDE.md H26.5`、`server/test/ctx-hygiene-guard.test.mjs::⑪`。
+> **未选**：维持 82 / 80 / 82 / 76 / 79 / 74（与未闭项不符，支书已明确批注）；为凑合并门槛上调（违背「该降就降」）；把六维改成一个总分（`D-862` 已禁平均）。**落点**：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`、`.ctx/ACTIVE_CONTEXT.md §1 / §2`、`.ctx/ACTIVE_RULINGS.md §A`、`CLAUDE.md H26.5`、`server/test/doc-lifecycle-guard.test.mjs::⑪`。
 
 ## D-884 2026-11-19 — 一次清仓：规则硬冲突 4 条＋软冲突 9 条清零，G1/G2 守卫与历史基线
 
@@ -663,7 +664,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **未选**：把守卫基线抬高掩盖存量；跳过 B-522-1 的低密度页整改（该项仍未完成，保留单项证据门）。
 > **边界**：`text-amber-700` 全量替换后删除暗色补丁；`taskforce-tab` hex 清零 ⇒ `HEX_FILE_BASELINE` 44 → 43；`party-workbench-layout` 断言更新为新卡厚度口径。
 > **读数**：guards **119 文件 / 867 用例 / 145.8s** 全绿；`module-load` **5/5**；daily **32 文件 / 265 断言 / 113.0s**。
-> **落点**：`content/04_web_design/design-system/DS_03_COMPONENTS.md`、`docs/src/**`（约 100 文件）、`server/test/card-consistency-guard.test.mjs`、`server/test/party-workbench-layout.test.mjs`、`server/test/{style-baseline,hex-hardcode-guard}.mjs`。
+> **落点**：`content/04_web_design/design-system/DS_03_COMPONENTS.md`、`docs/src/**`（约 100 文件）、`server/test/style-ratchet-guard.test.mjs`、`server/test/party-workbench-layout.test.mjs`、`server/test/{style-baseline,hex-hardcode-guard}.mjs`。
 
 ## D-894 2026-11-20 — 评分即资产 ＋ 合并门槛两段（批次 584）
 
@@ -757,7 +758,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **未选**：只加规则不加守卫（会重复出现「规则在、执行靠自觉」）；把外部门混进乙部（`H50.1` 明令假任务不入表）。
 > **边界**：`open-items-guard` 只判结构不判语义（判不了「结论是否真的成立」）；计划文件的 `- [ ]` 允许保留，只要整体已 archived 或逐项 parked。
 > **读数**：`open-items-guard` 5/5 绿（含反例自证）；`test-tier-guard` 7/7（registry 127 文件 / 893 断言）；`service:ensure` 停服 → 4s 恢复 200。
-> **落点**：`CLAUDE.md`（H20.1 / H50.3）、`.ctx/ENGINEERING_ASSESSMENT.md §四`、`.ctx/REVIEW_QUEUE.md`、`.trae/documents/2026-11-02-audit-consolidation-and-cutover.md`、`server/scripts/ensure-service.mjs`、`server/package.json`、`server/test/open-items-guard.test.mjs`、`server/test-tier-registry.mjs`。
+> **落点**：`CLAUDE.md`（H20.1 / H50.3）、`.ctx/ENGINEERING_ASSESSMENT.md §四`、`.ctx/REVIEW_QUEUE.md`、`.trae/documents/2026-11-02-audit-consolidation-and-cutover.md`、`server/scripts/ensure-service.mjs`、`server/package.json`、`server/test/doc-lifecycle-guard.test.mjs`、`server/test-tier-registry.mjs`。
 
 ## D-902 2026-11-21 — 前端 lens 清账：20 条不一致逐条落（批次 592）
 
@@ -768,7 +769,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **未选**：给表态新增服务端写口（`PATCH /issues/:id` 是支委处置门，改权限面须支书裁）⇒ 登记 `REVIEW_QUEUE B-592-1`，未裁前不加端点。
 > **边界**：`toggleReaction` 在 api 形态仍只改本机缓存（刷新回落），已在代码注释与队列双处写明；真机点赞验证受沙箱进程回收限制（BLOCKED-BY-ENV），以「页面与两个模块 200 ＋ guards/daily 全绿」代替。
 > **读数**：guards **127 文件 / 893 断言全绿（140.2s）**；daily **265 / 108.5s**；`localstorage-key-guard` 删 `gsm1921-issue-cache` 僵尸登记后 10/10。
-> **落点**：`docs/src/**`（约 15 文件）、`server/test/localstorage-key-guard.test.mjs`、`docs/src/data/cache-registry.js`、`.ctx/REVIEW_QUEUE.md`。
+> **落点**：`docs/src/**`（约 15 文件）、`server/test/navigation-guard.test.mjs`、`docs/src/data/cache-registry.js`、`.ctx/REVIEW_QUEUE.md`。
 
 ## D-903 2026-11-21 — 工作树复原与 BOM 唯一性守卫（批次 593）
 
@@ -790,7 +791,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > - **守卫加强**：`open-items-guard` 新增 ⑥「已归档 spec 仍留无结论未勾项即红」＋ ⑦ 反例——归档声明必须与内容自洽，不能靠加 `status` 掩盖未勾项。
 > **未选**：按文档日期排优先级（会与 D-900–D-903 的现行结论冲突）；删正文未勾项（破坏审计痕迹）。
 > **读数**：`open-items-guard` 7/7；guards **128 文件 / 898 断言全绿（154.7s）**；`doc-consistency` 21/21。
-> **落点**：`.trae/documents/**`（24）、`.trae/specs/**`（18 × 3 文件）、`server/test/open-items-guard.test.mjs`、`server/test-tier-registry.mjs`（898）、本文件与执行日志批次 594 节。
+> **落点**：`.trae/documents/**`（24）、`.trae/specs/**`（18 × 3 文件）、`server/test/doc-lifecycle-guard.test.mjs`、`server/test-tier-registry.mjs`（898）、本文件与执行日志批次 594 节。
 
 ## D-905 2026-11-21 — evidence 准入：只留被引用的读数（批次 595）
 
@@ -803,7 +804,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **未选**：把证据全量搬到归档目录（支书明确不备份）；保留 `findings.json` 与截图（可重跑再生）；删 `.trae-html-share-packages/*.zip`（仓库内无生成入口，保留并记一行）。
 > **边界**：运行态 `server/backups/`、`server/data*.db*`、`server/uploads/` 不属过程件，保留。
 > **读数**：`evidence-hygiene-guard` 4/4；`open-items-guard` 7/7；guards **129 文件 / 902 断言全绿（173.7s）**；daily **265 / 128.9s**。
-> **落点**：`.ctx/evidence/**`（1272 → 12）、`CLAUDE.md H26.3a`、`.ctx/README.md`、`.ctx/ENGINEERING_ASSESSMENT.md §四`、`server/test/evidence-hygiene-guard.test.mjs`、`server/test-tier-registry.mjs`。
+> **落点**：`.ctx/evidence/**`（1272 → 12）、`CLAUDE.md H26.3a`、`.ctx/README.md`、`.ctx/ENGINEERING_ASSESSMENT.md §四`、`server/test/doc-lifecycle-guard.test.mjs`、`server/test-tier-registry.mjs`。
 
 ## D-906 2026-11-22 — 意见反馈「表态」上服务端：按人存、匿名单向隐藏（批次 596）
 
@@ -838,7 +839,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > - **过程件**：删除 `.trae-html-share-packages/`（10 个 zip / 6.5 MB，仓库内无生成入口）；`.tmp/` 清空；`.browsers/**/*.log` 已为 0。
 > **未选**：保留分享包（支书裁定删）；把 `.trae` 标 `status: archived` 当作结论（守卫已不允许）。
 > **读数**：guards **129 文件 / 902 断言全绿（138.9s）**；daily **265 / 107.4s**；`audit-tabs --all` **P0 0 / P1 0 / P2 0 / exception 44**；`.tmp` 0 文件。
-> **落点**：`.trae/documents/2026-11-02-audit-consolidation-and-cutover.md`、`server/test/open-items-guard.test.mjs`、`.trae-html-share-packages/`（删除）。
+> **落点**：`.trae/documents/2026-11-02-audit-consolidation-and-cutover.md`、`server/test/doc-lifecycle-guard.test.mjs`、`.trae-html-share-packages/`（删除）。
 
 ## D-909 2026-11-22 — `.trae` 清零与守卫解耦（批次 599）
 
@@ -848,7 +849,19 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > - **规则改准**：`CLAUDE.md H50.3` ③ 「`.trae/**`（如存在）」；守卫说明同步外部门五项。
 > **未选**：保留 `.trae` 作审计痕迹（支书裁定删）；为删除再加备份（`H26.3a` 不备份过程件）。
 > **读数**：guards **129/902 → 128/898**；`.trae` 文件数 43 → 0。
-> **落点**：`.trae/**`（删除）、`server/test/open-items-guard.test.mjs`、`server/test-tier-registry.mjs`、`CLAUDE.md H50.3`。
+> **落点**：`.trae/**`（删除）、`server/test/doc-lifecycle-guard.test.mjs`、`server/test-tier-registry.mjs`、`CLAUDE.md H50.3`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-909`**（共 **83** 条）。
+## D-910 2026-11-22 — 守卫三层收敛：探针优先、归并不删断言（批次 600）
+
+> **评议 → 裁定 → 落点**：支书「守卫最重要的是探测，其次才是改错；太多守卫容易因硬编码过拟合」⇒ 采三层：结果探针 / 语义守卫 / 样式棘轮归并件。
+> - **探针**：`npm run probe:stage` 只报 6 步断点（服务 / 核心页 / 写口 / 契约表 / docs 链接 / 层计数），不维护白名单。
+> - **归并**：52 个样式 / 文档 / 导航类守卫 → 5 个（`doc-lifecycle` / `style-ratchet` / `color-ratchet` / `component-ratchet` / `navigation`），源件包进独立块作用域，断言逐条保留。
+> - **预算**：`test-tier-guard` 改软告警（超登记值 WARN，超 25% 才红）；`H25` 增「新增守卫先并入归并件」。
+> - **引用**：29 个 md 的守卫名 / 断言号前缀批量改指归并件，`§0.2` 与 README 测试清单同批对齐。
+> **未选**：删断言到 ≤600（会丢覆盖）；保留 52 个源件（文件数不降）。
+> **偏差**：目标 ≤80 文件实到 **81**；断言仍 **898**（未删）；guards 墙钟 157s→260s。
+> **读数**：`probe:stage` 6/6；guards 81 文件 / 898 断言全绿（260.5s）；daily 265 全绿；`doc-consistency` 21/21。
+> **落点**：`server/test/{doc-lifecycle,style-ratchet,color-ratchet,component-ratchet,navigation}-guard.test.mjs`、`server/scripts/probe-stage.mjs`、`server/test-tier-registry.mjs`、`server/test/test-tier-guard.test.mjs`、`CLAUDE.md H25`、`content/**` 29 文件引用。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-910`**（共 **84** 条）。
 

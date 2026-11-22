@@ -18,7 +18,7 @@
 - Affected code:
   - `docs/src/styles.css`（令牌、`.link`、press 规则）
   - `docs/src/**/*.js`、`docs/index.html`（链接色迁移，约 43 文件）
-  - `server/test/link-color-guard.test.mjs`（新增）、`server/test/hover-state-guard.test.mjs`（增补）
+  - `server/test/color-ratchet-guard.test.mjs`（新增）、`server/test/style-ratchet-guard.test.mjs`（增补）
   - `content/04_web_design/design-system/DESIGN_SYSTEM.md`
 
 ## ADDED Requirements

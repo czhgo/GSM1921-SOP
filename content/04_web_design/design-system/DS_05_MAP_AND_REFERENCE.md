@@ -151,7 +151,7 @@ related_files: [DESIGN_SYSTEM.md, DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.
 | H-4 | **白名单边界** | 仅首页这一处可复制「居中 hero」；其它页面 / 卡片不得以本特例为由新增居中大标题 |
 | H-5 | **数字卡不进白名单** | 首页四张数字卡（`.stat-card`）不因本节获得居中 / 大标题待遇；hero 只含党徽 ＋ 标题，数字卡与结论带不得并入 `#dashboard-hero`（卡高与行数见 `DS_03_COMPONENTS.md` §4.21.2） |
 
-守卫：`server/test/card-summary-hero-guard.test.mjs` 的 hero-center-whitelist 组（反例：改回左对齐即判红）。
+守卫：`server/test/style-ratchet-guard.test.mjs` 的 hero-center-whitelist 组（反例：改回左对齐即判红）。
 
 ### 10.6 10 个抽样页乱象登记（已迁出）
 

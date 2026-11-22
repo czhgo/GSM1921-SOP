@@ -2029,7 +2029,7 @@ $body
 - **未闭环余项**：① 周期提醒**只接线组长台**（支书台 / 组织台等未接）；② **支部改派尚未接到三个派生点**（`services/core/mock.js::createActivity` · `data/mock-adapter.js` 两处 · `services/activity/taskforce.js::add` —— 未传 `opts.snapshot`，按**缺省分工**解析，已正确但改派不生效）；③ **「到人」主责**今仍回退角色、`personId` 仅作定向（待 `TodoStore` 增按人索引面）。
 - **服务端仍无派生器**：`todos` 只有通用 CRUD ⇒ **API 形态下赋权待办仍不在服务端派生**（**既有形态、非本批引入**）。
 - **周期取值面窄是事实、不是遗漏**：只两个模块有可核母本 ⇒ 若要扩面，**须支书给定频次与出处**（一行即可填）。
-- **一改具改**：`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 两条校验点 ＋ `CLAUDE.md` 乙部 `R-29` 行 ＋ `server/test/localstorage-key-guard.test.mjs` 例外表 ＋ 戳 `20261005m → 20261006a`（`docs/src/**` 已改 ⇒ **必 bump**）。
+- **一改具改**：`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 两条校验点 ＋ `CLAUDE.md` 乙部 `R-29` 行 ＋ `server/test/navigation-guard.test.mjs` 例外表 ＋ 戳 `20261005m → 20261006a`（`docs/src/**` 已改 ⇒ **必 bump**）。
 
 ### 五、真机验证（自包含 `createApp(:memory:)` ＋ 真登录 p1 ＝ 组长罗文杰 / 学号 2400012345；探针跑完即删、未留盘）
 
@@ -3857,7 +3857,7 @@ $body
 
 ### 三、读数
 
-- **定向**：`node --test test/docs-governance-guard.test.mjs test/doc-consistency.test.mjs test/catalog-sync.test.mjs test/ui-control-system-guard.test.mjs test/frontend-foundations-guard.test.mjs` ＝ **82 / 82 绿**（docs-governance 28 ＋ catalog-sync 6 ＋ doc-consistency 21 ＋ ui-control 18 ＋ frontend-foundations 9）。
+- **定向**：`node --test test/doc-lifecycle-guard.test.mjs test/doc-consistency.test.mjs test/catalog-sync.test.mjs test/component-ratchet-guard.test.mjs test/frontend-foundations-guard.test.mjs` ＝ **82 / 82 绿**（docs-governance 28 ＋ catalog-sync 6 ＋ doc-consistency 21 ＋ ui-control 18 ＋ frontend-foundations 9）。
 - **术语 Harness 实测**：H-T3 结构性标签 **234** 处、命中术语表 **22** 处、未命中 **131** 个（全部已在基线，只降不升）、扫描 **78** 文件；H-T4 用户可见文案零命中；H-T5 术语表 **20** 条 × 9 字段齐，`§19` 与 `sop/INDEX.md` 只含指针。
 - **组件 Harness 实测**：T3-1 交互元素 **675** 个、内含标题 **0** 处；T3-2 `details` 文件 **32** 个、静态 `aria-expanded` **13** 个；T3-3 `details` 文件 **32** 个、混用 **0** 处；T4-1 `renderDisclosure` 文件 **4** 个、手写折叠 **32** 个、混用 **3** 处（**3 处豁免**）。
 - **IA 对账**：`catalog-sync::T6` 通过——IA 地图 **45** 条、逐台集合与注册表相等（支书 10 / 组织 8 / 宣传 5 / 纪检 6 / 组长 6 / 成员 7 / 党委 3）。
@@ -3913,7 +3913,7 @@ $body
 
 ### 三、读数
 
-- **定向（本批终态，2026-10-26）**：`node --test test/docs-governance-guard.test.mjs test/doc-consistency.test.mjs test/runtime-tab-lifecycle-guard.test.mjs test/object-route-guard.test.mjs test/theme-palette-guard.test.mjs test/ui-control-system-guard.test.mjs` ＝ **112 / 112 绿**，`duration_ms 5442.43`（≈5.44s）。静态 `test(` 调用点 **109** 条；`N3–N6` 由 `for (const c of CHECKS)` 循环生成 4 条 ⇒ 运行 **112**。逐件：docs-governance 25 · doc-consistency 21 · runtime-tab-lifecycle 16 · object-route 8 · theme-palette 14 · ui-control 25。
+- **定向（本批终态，2026-10-26）**：`node --test test/doc-lifecycle-guard.test.mjs test/doc-consistency.test.mjs test/runtime-tab-lifecycle-guard.test.mjs test/object-route-guard.test.mjs test/color-ratchet-guard.test.mjs test/component-ratchet-guard.test.mjs` ＝ **112 / 112 绿**，`duration_ms 5442.43`（≈5.44s）。静态 `test(` 调用点 **109** 条；`N3–N6` 由 `for (const c of CHECKS)` 循环生成 4 条 ⇒ 运行 **112**。逐件：docs-governance 25 · doc-consistency 21 · runtime-tab-lifecycle 16 · object-route 8 · theme-palette 14 · ui-control 25。
 - **daily（终态）**：`npm run test:daily` ＝ **1561 / 1561 绿**（69.97s；bump 后复跑 1561 / 1561）。
 - **全量三通道（最终）**：`SWEEP_SHARD=all` ＝ **[node] 1563 / 1563 绿**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 179 / 179 绿**；墙钟 **986.2s**（≤1200s）。
   （首跑 e2e-B 4 红：copy-screen 基线、台账行号 39 处、leader 建活动 409、今天页探针节点竞态；逐条修复后第二轮全绿。）
@@ -3983,7 +3983,7 @@ $body
 
 ### 三、读数
 
-- **定向（终态）**：`node --test test/docs-governance-guard.test.mjs test/doc-consistency.test.mjs test/seed-contract-guard.test.mjs test/test-isolation-guard.test.mjs test/write-truth-guard.test.mjs test/demo-window-guard.test.mjs test/ui-contrast-guard.test.mjs test/ui-control-system-guard.test.mjs` ＝ **107 / 107 绿**，`duration_ms 9744.80`（≈9.74s）。逐件：docs-governance 28（静态 25 条；`N3–N6` 循环展开 4 条 ⇒ 运行 28）· doc-consistency 21 · seed-contract 10 · test-isolation 4 · write-truth 9 · demo-window 5 · ui-contrast 5 · ui-control 25。
+- **定向（终态）**：`node --test test/doc-lifecycle-guard.test.mjs test/doc-consistency.test.mjs test/seed-contract-guard.test.mjs test/test-isolation-guard.test.mjs test/write-truth-guard.test.mjs test/demo-window-guard.test.mjs test/color-ratchet-guard.test.mjs test/component-ratchet-guard.test.mjs` ＝ **107 / 107 绿**，`duration_ms 9744.80`（≈9.74s）。逐件：docs-governance 28（静态 25 条；`N3–N6` 循环展开 4 条 ⇒ 运行 28）· doc-consistency 21 · seed-contract 10 · test-isolation 4 · write-truth 9 · demo-window 5 · ui-contrast 5 · ui-control 25。
 - **daily（终态）**：`npm run test:daily` ＝ **1608 / 1608 绿**（93.8s；0 cancelled / 0 skipped）。
 - **胶囊**：亮色 softText vs softBg **6.88:1**、暗色 **9.18:1**；描边对页面底约 **2.43:1**；五档宽度（390 / 768 / 1024 / 1280 / 1440）全宽可见，`min-height 24px`、`border-radius 3px`、`font-weight 600`、`letter-spacing 0.5px`。
 - **运行库（v12）**：`user_version = 12`、表 **52** 张（`issue_reveals` 已删）；活动 **38** 条——8 月 **18** / 9 月 **9** / 10 月 **8** / 11 月 **3**（`published / published / draft`）；11 月活动考勤 **0**、复盘 **0**。
@@ -4047,7 +4047,7 @@ $body
 
 ### 三、读数
 
-- **定向（终态）**：`node --test test/docs-governance-guard.test.mjs test/doc-consistency.test.mjs test/no-underline-guard.test.mjs test/loading-experience-guard.test.mjs test/no-about-route-guard.test.mjs` ＝ **64 / 64 绿**，`duration_ms 5975.93`（≈5.98s；多次连跑 5.9–6.0s）。
+- **定向（终态）**：`node --test test/doc-lifecycle-guard.test.mjs test/doc-consistency.test.mjs test/style-ratchet-guard.test.mjs test/loading-experience-guard.test.mjs test/navigation-guard.test.mjs` ＝ **64 / 64 绿**，`duration_ms 5975.93`（≈5.98s；多次连跑 5.9–6.0s）。
 - **daily（终态）**：`npm run test:daily` ＝ **1634 / 1634 绿**（63.75s；0 cancelled / 0 skipped / 0 fail）。**与主代理交接口径 1636 差 2 条**，本日志以本次实跑为准（两次连跑同为 1634）。
 - **全量三通道（收尾实测）**：`SWEEP_SHARD=all` ＝ **[node] 1636 / 1636 绿**、**[e2e-A] 94 / 94 绿**、**[e2e-B] 147 过 ＋ 1 skip**；墙钟 **837.3s**（≤1200s）。
 - **胶囊 / 页签**：组名 `--app-accent-tint` 10% 淡底、无边框、3px、12px/600/0.5px、24px；选中页签 solid soft ＋ accent 1px 描边 ＋ 700；390 见「还有 N 个」，1440 十签全见。

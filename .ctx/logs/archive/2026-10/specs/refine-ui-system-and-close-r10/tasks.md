@@ -69,7 +69,7 @@
   - [x] SubTask 11.5 同步 `TIMESTAMPS`、`CLAUDE.md` frontmatter；`doc-consistency` / `ctx-hygiene-guard` / `timestamps-note-guard` 全绿。
 
 - [x] Task 12: 守卫、三次验证与交付
-  - [x] SubTask 12.1 新增 `ui-control-system-guard.test.mjs`：SD-1/2/3/4/6/9/10 的静态断言（控件类白名单、无 `currentColor` 边框、圆角档、summary 全局规则、无「白底主题字」按钮、首组组名、无 10/11px）；登记 `test-tier-registry` 与 `test:daily`。
+  - [x] SubTask 12.1 新增 `component-ratchet-guard.test.mjs`：SD-1/2/3/4/6/9/10 的静态断言（控件类白名单、无 `currentColor` 边框、圆角档、summary 全局规则、无「白底主题字」按钮、首组组名、无 10/11px）；登记 `test-tier-registry` 与 `test:daily`。
   - [x] SubTask 12.2 第 1 次（定向）：`ui-control-system-guard`、`feedback-integrity`、`form-loop-sweep`（限定相关 tab）、`page-sweep`（secretary/org/prop/visitor）、`data-lifecycle-guard`、`schema-split-shadow`、`doc-line-ref`、`doc-consistency`、`ctx-hygiene-guard`。
   - [x] SubTask 12.3 第 2 次：`npm run test:daily` 全绿。
   - [x] SubTask 12.4 第 3 次：`SWEEP_SHARD=all` 三通道 0 失败（红项只单跑失败文件诊断）。

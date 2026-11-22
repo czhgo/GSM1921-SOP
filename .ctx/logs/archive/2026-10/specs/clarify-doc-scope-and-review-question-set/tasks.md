@@ -46,7 +46,7 @@
   - [x] SubTask 6.5 输出 `content/05_ai_coding/GUARD_INVENTORY.md`（清点表 + 合并记录 + 目标数量 + 后续批次清单），作为长期维护基线。
 
 - [x] Task 7: 只加 1 个新守卫
-  - [x] SubTask 7.1 新增 `server/test/docs-governance-guard.test.mjs`，一次覆盖：README 覆盖与必填字段、6 个 AGENTS 存在与命令块、规范侧不含判例正文（抽样白名单）、`SNAPSHOT` 有本批小结段、`CASES_INDEX` 每条判例有归属域。
+  - [x] SubTask 7.1 新增 `server/test/doc-lifecycle-guard.test.mjs`，一次覆盖：README 覆盖与必填字段、6 个 AGENTS 存在与命令块、规范侧不含判例正文（抽样白名单）、`SNAPSHOT` 有本批小结段、`CASES_INDEX` 每条判例有归属域。
   - [x] SubTask 7.2 登记 `test-tier-registry.mjs` 与 `package.json::test:daily`；说明「为何不拆成 3 个守卫」（避免守卫生殖）。
   - [x] SubTask 7.3 非空转：目录数、AGENTS 数、判例数、小结段数四类下限断言。
 

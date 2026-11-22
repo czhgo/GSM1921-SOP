@@ -94,7 +94,7 @@ related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_
 - **泛化规则（结论）**：结构规则必须有结构守卫——热/温/冷区间、每层允许的 H 节、温层非空、单节配额、乙部无历史叙述、触发表指针 `existsSync`；新增规则同批删等量旧行或降为指针。
 - **守卫**：`ctx-hygiene-guard::⑧⑨`（层边界 / 温层 3–60 行 / 乙部 ≤18 行且无历史）＋ `claude-parallel-audit::C4`（判例下迁手册）＋ `ui-preflight-context::P5`（温层非空 + 触发表）。
 - **对应规范编号**：`CLAUDE.md H26` / `H50` ＋ `CONTEXT_MANAGEMENT.md` 三层模型。
-- **证据指针**：`CLAUDE.md`（`# 热层` / `# 温层` / `# 冷层`）· `server/test/ctx-hygiene-guard.test.mjs` · `.ctx/evidence/2026-11-07/ui-audit.md`。
+- **证据指针**：`CLAUDE.md`（`# 热层` / `# 温层` / `# 冷层`）· `server/test/doc-lifecycle-guard.test.mjs` · `.ctx/evidence/2026-11-07/ui-audit.md`。
 
 ## CASE-AI-009 只引「点缀色」允许，漏引「不承担状态语义」
 
@@ -106,7 +106,7 @@ related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_
 - **守卫**：`icon-color-guard::G3`（状态色只经 `--tint`，且只在计数 > 0 或状态成立时出现）＋ `status-color-guard::S1`（填充档不进图标笔触）。
 - **对应规范编号**：`DESIGN_SYSTEM.md §一 原则 4` ＋ SD-61（图标色彩契约，正文见 `DS_03_COMPONENTS.md §4.11.2`）
 - **边界**：本条只判「引用完整性」，不重开「图标能不能用色」；党徽 / 插画的多色仍按 §4.11.2 登记。`--tint` 的取值面由 `icon-color-guard::G3` 判，本条不另立色值白名单。
-- **证据指针**：`content/04_web_design/design-system/DESIGN_SYSTEM.md:67` · `content/04_web_design/design-system/DS_03_COMPONENTS.md:544-556,1542` · `content/04_web_design/design-system/CASES.md`（CASE-DESIGN-030 / CASE-DESIGN-041）· `server/test/icon-color-guard.test.mjs`。
+- **证据指针**：`content/04_web_design/design-system/DESIGN_SYSTEM.md:67` · `content/04_web_design/design-system/DS_03_COMPONENTS.md:544-556,1542` · `content/04_web_design/design-system/CASES.md`（CASE-DESIGN-030 / CASE-DESIGN-041）· `server/test/color-ratchet-guard.test.mjs`。
 
 ## CASE-AI-010 同一指标多值并存：台账各写一个「当前值」
 

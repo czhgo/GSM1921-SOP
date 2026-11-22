@@ -177,7 +177,7 @@ related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/
 >
 > - **页面清单 / 导航**：本文件的页签表（46 项）与旧页签重定向表均不含 About；侧边栏、help 目录、README 的入口已删除。
 > - **文件保留**：`docs/about.html` 与 `docs/src/entries/pages/about-entry.js` 仍在仓库中，供历史外链直达；**不再新增**指向它的 href / `module: 'about'` 侧栏项 / 文档登记指针。
-> - **判据与守卫**：`no-about-route-guard::A1–A4`（HTML 零链接 / JS 零路由与侧栏项 / Markdown 零指针 / 文件仍存在且非空）；判例边界见 [CASES.md](design-system/CASES.md) CASE-DESIGN-026。**守卫只覆盖上列四项，不扫功能目录与 help 正文**——那两处属独立件，刻意不判。**冻结件内容基线**另由 `server/test/about-freeze-guard.test.mjs` 承担（5 处：三件套整文件哈希 ＋ 功能目录「关于」卡 / help 正文页面清单的定位片段，改动即红）。
+> - **判据与守卫**：`no-about-route-guard::A1–A4`（HTML 零链接 / JS 零路由与侧栏项 / Markdown 零指针 / 文件仍存在且非空）；判例边界见 [CASES.md](design-system/CASES.md) CASE-DESIGN-026。**守卫只覆盖上列四项，不扫功能目录与 help 正文**——那两处属独立件，刻意不判。**冻结件内容基线**另由 `server/test/component-ratchet-guard.test.mjs` 承担（5 处：三件套整文件哈希 ＋ 功能目录「关于」卡 / help 正文页面清单的定位片段，改动即红）。
 > - **后续**：若要恢复「关于」入口，须同时补页面清单、导航、help 落点与守卫白名单，不得只加回一个链接。
 
 ## 详情路由矩阵（派生附录，检查用 · 2026-10-26）

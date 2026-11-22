@@ -291,7 +291,7 @@ help 页面重构 Phase 4 叙述语言精简中，识别出三类容易被忽略
 | 纪律 | 触发条件 | 唯一落点 | 检查方式 |
 |---|---|---|---|
 | `H30.1` 一改具改 | 术语 / 制度 / 编号 / 路径变更 | 全仓相关引用 + 母本 / 子本同步 | 全仓 Grep 零残留 + `H40` 第 3 项 + `doc-consistency` / `link-integrity` 守卫 |
-| `H40` 第 6 项（文件时间戳，配 `R-83`） | 任何有 frontmatter 的文件被修改 | 文件 `last_updated` + `.ctx/TIMESTAMPS.md` 表行 | `server/test/docs-governance-guard.test.mjs` + `timestamps-note-guard` |
+| `H40` 第 6 项（文件时间戳，配 `R-83`） | 任何有 frontmatter 的文件被修改 | 文件 `last_updated` + `.ctx/TIMESTAMPS.md` 表行 | `server/test/doc-lifecycle-guard.test.mjs` + `timestamps-note-guard` |
 
 **三件套缺失（2 例）**
 

@@ -16,7 +16,7 @@
   - [x] SubTask 2.7 `content/insights/工程与AI协作的全栈实践.md` 补「审计产物不是知识」
 
 - [x] Task 3: 守卫与验证
-  - [x] SubTask 3.1 新增 `server/test/ctx-hygiene-guard.test.mjs`（白名单 / 顶层禁入 / 归档指针 / 生成脚本）
+  - [x] SubTask 3.1 新增 `server/test/doc-lifecycle-guard.test.mjs`（白名单 / 顶层禁入 / 归档指针 / 生成脚本）
   - [x] SubTask 3.2 登记 `server/package.json` 的 `test:daily`
   - [x] SubTask 3.3 跑 `doc-consistency` / `doc-line-ref` / `timestamps-note-guard` / `frontmatter-freshness` / `ia-critical-guard` / `workbench-audit-coverage` / `ctx-hygiene-guard`
   - [x] SubTask 3.4 跑 `npm run test:daily`，0 断言失败

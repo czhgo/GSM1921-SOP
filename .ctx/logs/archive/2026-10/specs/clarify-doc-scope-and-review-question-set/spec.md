@@ -28,7 +28,7 @@
   - `content/05_ai_coding/`（`REVIEW_QUESTION_SET.md`、`REVIEW_AND_EXPRESSION.md` 增「漏项原因」、`PARALLEL_SKILL_AUDIT.md` 前置步骤）
   - `.ctx/`（新增 `README.md`、`AGENTS.md`；`SNAPSHOT.md` 恢复为阶段小结；`EXECUTION_LOG_INDEX.md` 增「已被 content 吸收」列）
   - 11 个新 README ＋ 6 个 `AGENTS.md`
-  - `server/test/`（新增 1 个 `docs-governance-guard.test.mjs`；合并/删除一批重复守卫）
+  - `server/test/`（新增 1 个 `doc-lifecycle-guard.test.mjs`；合并/删除一批重复守卫）
 
 ## ADDED Requirements
 

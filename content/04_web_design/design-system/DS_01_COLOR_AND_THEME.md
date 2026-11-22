@@ -285,7 +285,7 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RES
 - **首页统计卡四相语义色·定稿**（2026-08-10 两次裁定，最终版）：本月活动用蓝 `#3B82F6`（信息/载体）、活跃专班用亮金 `#F59E0B`（琥珀金，**参考工作台 tab 亮色呈现——底色必须是亮的：浅金底+亮金字**）、未读通知用红 `#DC2626`（待处理/告警语义）、我的考勤用绿/琥珀/红（状态语义，考勤三色称"很好"保留）——红蓝亮金三原色 + 考勤状态色的平衡组合。
 - **主题色应用范围在工作台内可适当放宽**（2026-08-08）：工作台内 tab 激活态与强调色挂靠主题色；侧边栏选择器统一命名「**主题选择**」（浅色/深色模式与颜色选择同一排）。**每个角色 tab 各有各的主题色渲染**（`bootstrapPage → resolveAccentRole` 支持自选覆盖，2026-08-08 三审强调）。
 - **「金」主题色即主题党日胶囊**（2026-08-08 四审定稿，原话"金色就应该和主题党日的胶囊颜色一致，那个我觉得很漂亮！"）：`ACCENT_COLORS.participant` 增配 `bg/border` 覆盖字段（亮金底 `rgba(255,215,0,0.12)` + 金黄字 `#A16207` + 亮金边框 `rgba(255,215,0,0.35)`），`getAccentColors` 优先消费覆盖；侧边栏色板「金」色块显示亮金 `#FFD700`。文字色仍守金黄 `#A16207` 保对比度（2026-08-10 裁定"再黄一点"），金不再因对比度牵制而变色。
-- **存量收敛**：状态层现存约 69 处硬编码 Tailwind 类（`bg-green-50 border-green-200` / `bg-amber-50` / `bg-blue-50` / `#3B82F6` 等）本期**不动**，后续按本表逐项收敛，新增代码必须按四层分类取色。**硬编码 hex 的回归防线**＝守卫 `server/test/hex-hardcode-guard.test.mjs`：现存项按「文件 × 值」进基线（`server/test/style-baseline.mjs`），**新增即红**；删存量后同批收基线（删值 / 减计数），进度自动前进。
+- **存量收敛**：状态层现存约 69 处硬编码 Tailwind 类（`bg-green-50 border-green-200` / `bg-amber-50` / `bg-blue-50` / `#3B82F6` 等）本期**不动**，后续按本表逐项收敛，新增代码必须按四层分类取色。**硬编码 hex 的回归防线**＝守卫 `server/test/color-ratchet-guard.test.mjs`：现存项按「文件 × 值」进基线（`server/test/style-baseline.mjs`），**新增即红**；删存量后同批收基线（删值 / 减计数），进度自动前进。
 
 **语义动作类与颜色对应法则（2026-08-08 指令 #1/#4）**：
 
@@ -345,7 +345,7 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RES
 `--functional-error` 只保留给**阻断 / 失败 / 删除 / 驳回**。原文保留为历史表述，现行口径以 §2.10 为准。
 
 **「同一角色只用一种令牌」的可判口径**：上表任一行内，同一语义层**不得混用**其它行的令牌，也不得用裸 hex / rgba
-替代（除本表另行登记的 `--acc-*-dark` 内联派生）。守卫：`server/test/hex-hardcode-guard.test.mjs`（H1/H2 挡
+替代（除本表另行登记的 `--acc-*-dark` 内联派生）。守卫：`server/test/color-ratchet-guard.test.mjs`（H1/H2 挡
 **新增硬编码 hex**；⚠ 边界——它**只数字面量、不判「角色用错色」**，那一半见下）。
 **⚠ 「哪些角色该随主题色」的现行权威＝§4.1 的「2026-10-01 支书裁定（判据·甲）」**：**只有三类随主题**
 （**主操作 / 选中态 / 本人标识**），**功能色四态与活动类别色一律固定**；本节上表「主题色 / 强调色」行的
@@ -604,7 +604,7 @@ origin 的「主题色字」在绿 / 天蓝 / 雾紫 / 亮蓝上只有 2.09 / 2.
 `components/shell/appearance-controls.js`（7 项选择器）、`components/shell/tab-bar.js` / `components/ui/*`（读别名）、
 `docs/src/styles.css`（默认金两套 + 别名）。
 
-**不改值的证明**：`node --test test/theme-palette-guard.test.mjs` 的 T1（7×2×9=126 个合法 hex）、
+**不改值的证明**：`node --test test/color-ratchet-guard.test.mjs` 的 T1（7×2×9=126 个合法 hex）、
 T2（soft/ink/strong/sat 全量读数）、G2（gold 逐值冻结）保持绿；Task 4 diff 只新增 `--status-*`、
 `--color-category-*`、`--color-identity-*`、`--color-link`、`--color-text-*`、`--color-border-*`，未触碰 `ACCENT_COLORS`。
 

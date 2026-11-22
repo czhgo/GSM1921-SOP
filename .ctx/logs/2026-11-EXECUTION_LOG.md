@@ -10,6 +10,29 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 600（2026-11-22）· 守卫三层收敛：探针 ＋ 归并（D-910）
+
+### 为什么
+- 守卫层 128 文件 / 898 断言，多数是逐文件 grep + 硬编码计数/白名单；支书要求「守卫首先探测阶段结果」，避免硬编码过拟合。
+- 实测：52 个样式 / 文档 / 导航类守卫可归并为 5 个分组件（已有 `type-scale-guard` 的现成归并范式：独立 async 块 ＋ 动态导入）。
+
+### 拿不准 / 取舍
+- **先探针后细节**：新增 `npm run probe:stage`（6 步：服务 200 / 6 核心页 / 写口未登录 401 / 契约 50 表 / docs 相对链接 / 层计数），只报断点，不维护白名单。
+- **归并不删断言**：52 个源件包进 5 个归并件的独立块作用域（`doc-lifecycle` / `style-ratchet` / `color-ratchet` / `component-ratchet` / `navigation`），断言名与横幅保留；迁移后先逐组跑绿再删源件。
+- **预算软告警**：`test-tier-guard` 对 guards 文件/断言超登记值只打印 `[budget]` WARN，超 25% 才红；`CLAUDE.md H25` 同步「新增守卫先并入归并件」。
+- **引用一改具改**：`content/**`、两份 README、`.ctx` 共 29 个文件里的守卫文件名（含 `::断言号` 前缀）批量改指归并件；`DATA_CONSISTENCY §0.2` 与 README 测试清单同批对齐（S9/S10/S11 绿）。
+- **未达成项**：目标「≤80 文件 / ≤600 断言」实到 **81 文件 / 898 断言**——文件数受 52→5 的整数结果限制；断言数**未删**（守住「归并不删断言」），代价是 guards 墙钟 157s→260s。下一步若要继续降，需按「重复判据」逐条裁并，不在本批。
+
+### 边界
+- 只动 guards 层；daily / precommit / 语义守卫（权限、契约、名册、待办、门厅、表决）不动。
+- `S13 ≥200 行` 与 `N1 ≥ROWS_MIN` 保留：它们是「解析非空转」下限，不是内容计数，软化成告警会让 N3–N6 变恒真。
+- `test-isolation` memory 类下限 120 → 80（随文件数下降同步，判据仍是规模非空转）。
+
+### 读数
+- guards：**128 文件 / 898 断言 → 81 文件 / 898 断言**；`probe:stage` **6/6 PASS**；全量 guards **全绿（260.5s）**；daily **265 全绿**。
+- 归并：doc 4→1（53 条）、style 15→1、color 10→1、component 15→1、nav 8→1；`test:fast` 清单同步（42→37 项）。
+- 文档引用：29 个 md 改指归并件；`doc-consistency` **21/21**。
+
 ## 批次 599（2026-11-22）· `.trae` 清零与守卫解耦（D-909）
 
 ### 为什么
@@ -1618,7 +1641,7 @@ V-11 裁定（`D-858`）后需要党委内容域与公共门厅。「未登录�
 | server/routes/resources.js | 🗑️ **已拆分**（2026-09-28 批次 234）：原 1301 行单文件按内聚拆为 `server/routes/resources/` **六件**——装配在 `index.js`，写门在 `gates.js` / `approval-gates.js`，其余按域。**边界**：本行留**删除抄录**，不再指向活文件（`S13` 认此写法）。 |
 | server/services/logger.js | 结构化请求日志（请求 id / 路由 / 状态 / 耗时 / 错误类别）＋ 口令、token、personId 脱敏；`node:test` 下默认静默，`REQUEST_LOG=1` 打开。 |
 | server/routes/health.js | `GET /api/v1/health/deep` 深健康检查（库可读 / `user_version` / 备份目录可写），失败 503；浅检查走既有 `/api/v1/health`。 |
-| server/test/a11y-guard.test.mjs | 可访问性常驻静态守卫：可访问名 / 表单标签关联 / `section` 有名不嵌套 / `role=tab` 关联 / `role=button` 键盘可达 / 图标钮 `aria-label`；存量走 `a11y-baseline.mjs` 只减不增。 |
+| server/test/component-ratchet-guard.test.mjs | 可访问性常驻静态守卫：可访问名 / 表单标签关联 / `section` 有名不嵌套 / `role=tab` 关联 / `role=button` 键盘可达 / 图标钮 `aria-label`；存量走 `a11y-baseline.mjs` 只减不增。 |
 | server/test/*.test.mjs | **（批次 236：沿革已整段迁出**——本行的逐批沿革（5729 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」；**2026-09-29 批次 253 二次迁出**：本会话各批新增的 5 条短注一并迁入同节（`R-89` 只降不升）；本列只写**现状 / 边界 / 为什么**）** |
 | server/test/style-baseline.mjs | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3832 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
 | .ctx/README.md | 三层分职（active / reference / provenance）、准入判据、读取顺序、预算、冲突顺序与可复用资产索引；evidence 准入（`D-905`）。 |

@@ -152,8 +152,8 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | R13 版本号推导单一源（同日只允许前进）+ server-test 补戳「缓存键语境」单一源 + **发版一致性**（CHANGELOG ↔ `server/package.json` ↔ tag 取齐；发版走单一入口 `docs/scripts/release.mjs`，默认预演） | `docs/scripts/version-next.mjs`（`nextVersionFor`/`isForward`/`isCommentLine`/`isCacheKeyLine`/`stampTestFileContent`/`cacheKeyStamps` ＋ 批次 236 新增 `nextSemver`/`isSemverForward`/`parseChangelog`/`classifyChanges`）· `docs/scripts/release.mjs` · `CHANGELOG.md` | `version-stamp.test.mjs::S1–S7 + D1–D11`（`S7` 真 spawn 预演并独立复算版本号逐字比对） | 已闭环 | `.ctx/ENGINEERING_ASSESSMENT.md §3.4 R13` |
 | R14/R21/R22 分页与翻页标记单一源（调用点不得私自关；手写 `<table>` 收敛台账） | `components/ui/list-filter.js`（引擎内置分页）· `components/ui/pager.js::pagerHtml` | `filter-row.test.mjs::S10–S12` | 已闭环 | `§3.4 R14 / R21 / R22` |
 | R17 表格类族与控件档位算式显式（单档 38px × 13px；**正文须直接声明到 th/td**、**数据格禁挂小字类**） | `docs/src/styles.css`（`.data-table` / `.data-table th,td` / `.lf-*` / `.page-btn`） | `filter-row.test.mjs::S1–S13 + D1–D3` | 已闭环 | `§3.4 R17` · `REVIEW_QUEUE Q-23-12 / Q-23-15 / Q-23-38` |
-| 「硬编码 hex」存量回归：`DS_01_COLOR_AND_THEME.md §2.8` 四层分类取色，**新增即红** · 逐文件处数 ratchet · 搬移例外台账（人工声明 + 逐值对照） | `docs/src/styles.css :root` 取色令牌 · `DS_01_COLOR_AND_THEME.md §2.8` | `hex-hardcode-guard.test.mjs::H1–H5` | 已闭环（存量 1957 处 / 168 值 / 92 文件；存量起点 2025 ⇒ ↓68） | `DS_01_COLOR_AND_THEME.md §2.8` · `server/test/style-baseline.mjs` |
-| 「控件小字」存量回归：`DS_03_COMPONENTS.md §4.3` 控件字号**单档 13px**，禁控件挂 `text-[11px]/[10px]/[9px]`（新增即红 · 逐文件站点数 ratchet） | `DS_03_COMPONENTS.md §4.3` | `type-scale-guard.test.mjs::T1–T4` | 已闭环（控件 9 处 / 3 文件；全站 `text-[9/10/11px]` 367 处为进度口径） | `DS_03_COMPONENTS.md §4.3` · `server/test/style-baseline.mjs` |
+| 「硬编码 hex」存量回归：`DS_01_COLOR_AND_THEME.md §2.8` 四层分类取色，**新增即红** · 逐文件处数 ratchet · 搬移例外台账（人工声明 + 逐值对照） | `docs/src/styles.css :root` 取色令牌 · `DS_01_COLOR_AND_THEME.md §2.8` | `color-ratchet-guard.test.mjs::H1–H5` | 已闭环（存量 1957 处 / 168 值 / 92 文件；存量起点 2025 ⇒ ↓68） | `DS_01_COLOR_AND_THEME.md §2.8` · `server/test/style-baseline.mjs` |
+| 「控件小字」存量回归：`DS_03_COMPONENTS.md §4.3` 控件字号**单档 13px**，禁控件挂 `text-[11px]/[10px]/[9px]`（新增即红 · 逐文件站点数 ratchet） | `DS_03_COMPONENTS.md §4.3` | `style-ratchet-guard.test.mjs::T1–T4` | 已闭环（控件 9 处 / 3 文件；全站 `text-[9/10/11px]` 367 处为进度口径） | `DS_03_COMPONENTS.md §4.3` · `server/test/style-baseline.mjs` |
 | R18 选人载体语义两分（选名单成员走 PersonPicker；任命/指派到人允许下拉） | `content/04_web_design/design-system/DS_03_COMPONENTS.md §4.13` | `filter-row.test.mjs::S9` | 已闭环（例外登记 4 处） | `§3.4 R18` · `REVIEW_QUEUE Q-23-13` |
 | R15/R23/R24/R25 人×项目矩阵单一源（互为转置 / 项目维封顶 6 / 人维分页 / 只给挂载点不吞语义） | `components/ui/relation-matrix.js` | `relation-matrix.test.mjs::S1–S6 + 真机①②` | 已闭环 | `§3.4 R15 / R23 / R24 / R25` · `DS_03_COMPONENTS.md §4.10` |
 | R16 党小组活组清单单一源（禁字面量 / 模块加载期派生快照 / 种子枚举代跑） | `services/member/party-group.js::groupOptions()` | `party-group.test.mjs::S1–S4` | 已闭环 | `§3.4 R16` |
@@ -183,13 +183,13 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 表单闭环真机普查台账（校验点不得漏 / 不得有僵尸条目） | `server/test/form-loop-registry.mjs` | `form-loop-sweep.test.mjs::S0–S4` | 已闭环 | `server/test/form-loop-registry.mjs` |
 | 编辑完整性：`docs/src` 全模块可加载 | 本文件 §编辑完整性校验 | `module-load.test.mjs::E1` | 已闭环 | 本文件 §编辑完整性校验 |
 | 链接完整性四层（静态 / JS 导航 / HTTP / 登录态） | 本文件 §链接完整性校验 | `link-integrity.test.mjs::L1–L5` | 已闭环 | 本文件 §链接完整性校验 |
-| 链接完整性·补：**JS 渲染型 href/src 的「裸文件名」**按所在页 `<base>` 规则解析后须指向真实文件（工作台页 `<base href="../">` ⇒ 裸 `x.html` 落到站点根 `docs/x.html`；两种页面基准都汇到 `docs/` ⇒ 与宿主页面无关） | `docs/workspace/*.html` 的 `<base href="../">` · `docs/src/core/base/utils.js::getBasePath` | `link-target-guard.test.mjs::L6–L7` | 已闭环 | 本文件 §链接完整性校验 |
+| 链接完整性·补：**JS 渲染型 href/src 的「裸文件名」**按所在页 `<base>` 规则解析后须指向真实文件（工作台页 `<base href="../">` ⇒ 裸 `x.html` 落到站点根 `docs/x.html`；两种页面基准都汇到 `docs/` ⇒ 与宿主页面无关） | `docs/workspace/*.html` 的 `<base href="../">` · `docs/src/core/base/utils.js::getBasePath` | `navigation-guard.test.mjs::L6–L7` | 已闭环 | 本文件 §链接完整性校验 |
 | 清单类同步（功能目录结构 / 链路键集 / 功能地图 / 表决枚举 / 官方制度链接） | `docs/src/core/domain/function-catalog.js` · `mermaid-sources.js` · `vote-config.js` · `components/sections/references.js` | `catalog-sync.test.mjs::T1–T5`（批次 47-F 五件并一） | 已闭环 | `README.md` 顶部功能地图 · `REVIEW_QUEUE` 批次 47-F |
 | 高频操作点击成本（进入工作台 → 可执行事项 ≤2 跳） | 本文件 §编辑完整性校验 | `click-cost.test.mjs::C1–C5` | 已闭环 | 本文件 §编辑完整性校验 |
 | Mock 数据完整性（引用 / 字段 / id / 类型 / 生命周期） | `docs/src/data/mock/*` | `mock-integrity.test.mjs::M1–M2` | 已闭环 | 本文件 §1–§15 |
 | 前端持久化域 ↔ server 表对账口径（分五口径，严禁互相代入） | `docs/src/core/domain/domain.js::mockDB` · `server/db.js::RESOURCE_TABLES` | `doc-consistency.test.mjs::S5` | 已闭环 | 本文件 §跨类别同源校验 · `§3.4 R26` |
-| `README-server.md` 的「`文件:行号`」取证引用逐条指向真实位置（含短式 `:192` / 逗号续列 / md 区间不越节 / 「零命中」类关键词取证仍成立 / 行为词型引用须带可校验锚点） | `README-server.md` 的**383 处**引用 · `docs/src/**` 行为词 | `docs-governance-guard.test.mjs::R1–R6` | 已闭环（**换说法机检不了** ⇒ 该半落 `CLAUDE.md R-87` 纪律） | `CLAUDE.md R-87` · 本文件 §链接完整性校验 |
-| `R-83`「改过文件必须刷 `frontmatter.last_updated`」的机检件（表行日期 ↔ frontmatter ↔ 该文件最后一次提交日） | `.ctx/TIMESTAMPS.md` · 各 `content/**` frontmatter | `docs-governance-guard.test.mjs::F1–F3`（`F1` git-free · `F2` git〔浅克隆判红、无 git 只报不判〕） | 已闭环（⚠ **`F2` 现存 9 处红**——9 份 `content/**` 的 `last_updated` 早于其最后提交日，属 `content/**` 授权面外、待另路面收） | `CLAUDE.md R-83` · `.ctx/TIMESTAMPS.md` |
+| `README-server.md` 的「`文件:行号`」取证引用逐条指向真实位置（含短式 `:192` / 逗号续列 / md 区间不越节 / 「零命中」类关键词取证仍成立 / 行为词型引用须带可校验锚点） | `README-server.md` 的**383 处**引用 · `docs/src/**` 行为词 | `doc-lifecycle-guard.test.mjs::R1–R6` | 已闭环（**换说法机检不了** ⇒ 该半落 `CLAUDE.md R-87` 纪律） | `CLAUDE.md R-87` · 本文件 §链接完整性校验 |
+| `R-83`「改过文件必须刷 `frontmatter.last_updated`」的机检件（表行日期 ↔ frontmatter ↔ 该文件最后一次提交日） | `.ctx/TIMESTAMPS.md` · 各 `content/**` frontmatter | `doc-lifecycle-guard.test.mjs::F1–F3`（`F1` git-free · `F2` git〔浅克隆判红、无 git 只报不判〕） | 已闭环（⚠ **`F2` 现存 9 处红**——9 份 `content/**` 的 `last_updated` 早于其最后提交日，属 `content/**` 授权面外、待另路面收） | `CLAUDE.md R-83` · `.ctx/TIMESTAMPS.md` |
 | 界面文案与制度母本「**连续 ≥20 字重合即红**」（制度原文不进界面，改写成一行 ＋ `docs/help.html` 深链） | `DS_03_COMPONENTS.md §4.18 C7` · `docs/src/**` 界面文本 | `copy-guard.test.mjs::N1–N4` | 已闭环（基线 **11 条 / 9 文件**） | `DS_03_COMPONENTS.md §4.18` |
 | 界面文案长度存量回归（卡片导语 ≤60 字 · 单段 ≤80 字 · 单句括注 ≤2 个 · 空态 ≤30 字） | `DS_03_COMPONENTS.md §4.18 C1/C2/C5/C6` | `copy-guard.test.mjs::L1–L6` | 已闭环（**源码静态近似**、逐类基线 ratchet；`L6` 只报不判） | `DS_03_COMPONENTS.md §4.18` |
 | 同屏复述（归一化后 ≥15 字块出现 ≥2 次）与每屏「文案 ÷ 控件」比值（≤12；12–20 须登记；>20 记待改造） | `DS_03_COMPONENTS.md §4.18 C3/C4` | `copy-screen-guard.test.mjs::M1–M4` | 已闭环（**真机** 7 台 × 默认视图，自起自停） | `DS_03_COMPONENTS.md §4.18` |
@@ -203,8 +203,8 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 数据库结构变更必须走**版本化迁移**（`PRAGMA user_version` ＋ 有序 `MIGRATIONS`；新建库 / 幂等可重入 / 既有库兼容 / 失败回滚 / 失败不吞） | `server/db.js`（`MIGRATIONS` / `SCHEMA_VERSION` / `applyMigrations`） | `db-migration.test.mjs::M1–M6` | 已闭环 | `.ctx/ACTIVE_RULINGS.md`（`D-650`） |
 | SQLite 备份一律用 `db.backup()`、**绝不直接 `copy` 主文件**（WAL 尾部会丢）——备份 → 破坏 → 恢复到新路径演练 | `server/scripts/backup.mjs`（在线备份 API） | `backup-restore.test.mjs::B1` | 已闭环（真 spawn 备份脚本 ＋ 反证「只 `copy` 丢 WAL 尾」） | `.ctx/ACTIVE_RULINGS.md`（`D-650`） |
 | 数据库完整性 / 版本自检 ＋ 「**新增结构须写 migration**」纪律（`ALTER TABLE` 只许出现在 migration 段内） | `server/db.js`（`validateMigrations` · v1 冻结基线 45 表） | `db-integrity-guard.test.mjs::G1–G6` | 已闭环 | `.ctx/ACTIVE_RULINGS.md`（`D-650`） |
-| 浏览器存储键必须登记（键 ⊆ 三档白名单：服务端权威 / 本机临时 / UI 偏好与会话；**新键未登记即红**） | 本文件 **§0.3 浏览器存储键白名单**（守卫的镜像；**改表即改守卫映射、两处同批动**） | `localstorage-key-guard.test.mjs::L1–L3` | 已闭环 | 本文件 §0.3 |
-| **台账备注列预算**（备注只写「现状 / 边界 / 为什么」；逐批沿革一律进 `.ctx/logs/**`——**新增即红、只降不升**） | `.ctx/TIMESTAMPS.md` 备注列 · 存量台账 `server/test/timestamps-note-baseline.mjs` · 纪律 `CLAUDE.md R-89` | `docs-governance-guard.test.mjs::N1–N7` | 已闭环（存量 **174 条**待专项批收敛；放宽基线＝越权项） | `CLAUDE.md R-89` |
+| 浏览器存储键必须登记（键 ⊆ 三档白名单：服务端权威 / 本机临时 / UI 偏好与会话；**新键未登记即红**） | 本文件 **§0.3 浏览器存储键白名单**（守卫的镜像；**改表即改守卫映射、两处同批动**） | `navigation-guard.test.mjs::L1–L3` | 已闭环 | 本文件 §0.3 |
+| **台账备注列预算**（备注只写「现状 / 边界 / 为什么」；逐批沿革一律进 `.ctx/logs/**`——**新增即红、只降不升**） | `.ctx/TIMESTAMPS.md` 备注列 · 存量台账 `server/test/timestamps-note-baseline.mjs` · 纪律 `CLAUDE.md R-89` | `doc-lifecycle-guard.test.mjs::N1–N7` | 已闭环（存量 **174 条**待专项批收敛；放宽基线＝越权项） | `CLAUDE.md R-89` |
 | **日期口径统一到本地**（应用面不得用「`new Date()` ＋ `toISOString()` 切前 10 位」取「今天」——那是 **UTC**，Asia/Shanghai 00:00–08:00 会把「今天」判成昨天） | 前端零依赖叶子 `docs/src/core/base/date.js`（`todayLocal`）· 服务端单一源 `server/services/reporting.js`（`today` / `fmtLocal`）· 纪律 `CLAUDE.md R-26`③ | `date-canon-guard.test.mjs::D1–D2` | 已闭环（**应用面归零**；`docs/scripts/**` / `deploy/**` 发版工具链**不在射程**、如实登记） | `CLAUDE.md R-26` |
 
 **使用说明**
@@ -218,7 +218,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ## 0.3 浏览器存储键白名单（2026-09-24 批次 169，支书逐字「不能什么都依靠浏览器缓存」）
 
 > **一句话**：全仓每一个 `localStorage` / `sessionStorage` 键都必须落进下面**三档之一**；**新键未登记即红灯**。
-> **机器判据**＝`server/test/localstorage-key-guard.test.mjs`（纯 node，断言 L1–L3）：枚举全仓键字面量、逐键归类、
+> **机器判据**＝`server/test/navigation-guard.test.mjs`（纯 node，断言 L1–L3）：枚举全仓键字面量、逐键归类、
 > 命中未登记键时给出「请登记到白名单或改为服务端权威」的提示。**本表是它的镜像**（改表即改守卫映射，两处同批动）。
 > **三档口径**：
 > - **A 服务端权威**（server-authoritative）：该键的真相在服务端表 / 快照，本机键只是镜像 / 缓存 / mock 形态的对应物；**清了不丢数据**（或只是回到服务端值）。
@@ -272,7 +272,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | `table:cols:`（前缀） | UI 偏好·表格列宽拖动（`table:cols:<stateKey>` 逐表一份百分比数组；`components/ui/data-table.js`，批次 540） |
 | `sop_org_os_assigned_roles` | 历史遗留键·仅启动清理一次（`roles.js` 已无调用方） |
 
-> **新增键怎么办（判据即提示）**：① 若它的真相应当由服务端承载（可被他人 / 其他设备读到）⇒ **改为服务端权威**（照 `server/db.js::SEMANTIC_TABLES` + `server/routes/resources.js` 的「语义端点域」模板）；② 若它**确实只应在本机** ⇒ 登记进上表 B 档 + `server/test/localstorage-key-guard.test.mjs` 的同名映射，并写明「为什么不上服务端」。
+> **新增键怎么办（判据即提示）**：① 若它的真相应当由服务端承载（可被他人 / 其他设备读到）⇒ **改为服务端权威**（照 `server/db.js::SEMANTIC_TABLES` + `server/routes/resources.js` 的「语义端点域」模板）；② 若它**确实只应在本机** ⇒ 登记进上表 B 档 + `server/test/navigation-guard.test.mjs` 的同名映射，并写明「为什么不上服务端」。
 
 ---
 

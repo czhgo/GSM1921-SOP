@@ -47,7 +47,7 @@ status: active
 
 - **判据：** 每个颜色是否只承担「行动 / 状态 / 身份 / 结构」之一；主题色、活动类别色、链接色、按压色是否各有唯一来源，互不借用？
 - **真实反例：** 批次 507 `--surface-active` 取党建红浅底 `#FEE2E2`，约 20 个中性组件的 `:active` 共用它，点任何中性按钮都闪红（`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 507 §一）；批次 508 `login.html:63` 的 `.login-btn:hover` 把深色实底刷成 `#F3F4F6`；R5-C 审计发现「逾期」在今天页是 error 红、在待办是 warning 琥珀（`.ctx/logs/archive/2026-10/AUDIT_R5_C_FRONTEND_DESIGN.md` C-05）。
-- **机检守卫：** `theme-palette-guard.test.mjs`、`link-color-guard.test.mjs`、`hover-state-guard.test.mjs`、`ui-contrast-guard.test.mjs`、`activity-tone-guard.test.mjs`。
+- **机检守卫：** `color-ratchet-guard.test.mjs`、`color-ratchet-guard.test.mjs`、`style-ratchet-guard.test.mjs`、`color-ratchet-guard.test.mjs`、`activity-tone-guard.test.mjs`。
 - **误报边界：** 党徽金 `#FFD700`、三会一课党建红 `#CE1126` 等固定语义色不随主题变化，不算混用；`badge--info` 的信息态蓝允许保留。
 - **来源轮次：** `redesign-theme-palette-and-density`、`restore-homepage-brand-and-gold`、`unify-link-and-press-states`、`unify-field-shell-and-interaction-states`、`polish-workbench-visual-language`；批次 506、507、508。
 
@@ -55,7 +55,7 @@ status: active
 
 - **判据：** 页签名、页内标题、对象名、数据口径是否指向同一对象与同一范围？
 - **真实反例：** `upgrade-workbench-page-quality` 中页签叫「支部监控台账」、页内叫「支部动态」；R5-C 审计发现今天页分区标题「活动管理」与页签「活动管理」同名不同义（C-17）；R8 真机发现页内 H2 与页签完全同名但不承担新的范围或权限信息（`.ctx/logs/archive/2026-10/2026-10-AUDIT_R8_THREE_COSTS.md` §三-4）。
-- **机检守卫：** `page-title-guard.test.mjs`、`doc-consistency.test.mjs`、`workbench-revision-contract.test.mjs`；人工检查点：抽一台工作台，从页签栏读到页内标题，确认没有第二个同级页面标题。
+- **机检守卫：** `navigation-guard.test.mjs`、`doc-consistency.test.mjs`、`workbench-revision-contract.test.mjs`；人工检查点：抽一台工作台，从页签栏读到页内标题，确认没有第二个同级页面标题。
 - **误报边界：** 页内 H2 与页签同名且承担范围/权限说明时允许；但不得逐字重复页签名而无新信息。
 - **来源轮次：** `upgrade-workbench-page-quality`、`audit-round3-modals-and-ia`、`run-round8-9-audits-and-polish`；批次 502、508。
 
@@ -75,7 +75,7 @@ status: active
 
 - **判据：** `hover` / `active` / `selected` / `focus-visible` 是否各有专用令牌，且「选中」不由 hover 或 active 令牌表达？
 - **真实反例：** 批次 508 待办选中行 `#F3F4F6`、日历选中格 `#E5E7EB`、二级页签近黑，三种「选中」三种灰（`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 508 §六样本 1）；批次 507 中性按钮 `:active` 复用党建红；批次 506 hover 仍用 `filter/opacity`，且无 `@media (hover:hover)` 门控。
-- **机检守卫：** `hover-state-guard.test.mjs`、`ui-control-system-guard.test.mjs`、`ui-motion-guard.test.mjs`。
+- **机检守卫：** `style-ratchet-guard.test.mjs`、`component-ratchet-guard.test.mjs`、`style-ratchet-guard.test.mjs`。
 - **误报边界：** 侧边栏选中保留浅灰是批次 508 明确裁定的唯一豁免；信息态按钮 hover 只改颜色不算混用。
 - **来源轮次：** `redesign-theme-palette-and-density`、`unify-link-and-press-states`、`unify-field-shell-and-interaction-states`；批次 506、507、508。
 
@@ -83,7 +83,7 @@ status: active
 
 - **判据：** 加载 / 空 / 失败 / 只读 / 禁用是否各有独立可见态；失败分支之后是否仍会出现成功提示？
 - **真实反例：** R8 真机纪检确认考勤 `POST /snapshot` 返回 403，界面当场乐观更新为 14 条，toast 只写「未保存成功，请稍后重试」，刷新回滚到 15 条（`.ctx/logs/archive/2026-10/2026-10-AUDIT_R8_THREE_COSTS.md` §二 B）；R11 审计发现 `activity-entry.js:657-660` catch 后仍报成功（`.ctx/logs/archive/2026-10/2026-10-AUDIT_UI_R11.md` P0-03）；`unify-field-shell-and-interaction-states` 中 `archive.html` 点击归档后是空页。
-- **机检守卫：** `feedback-integrity.test.mjs`、`modal-contract.test.mjs`、`field-shell-guard.test.mjs`、`frontend-foundations-guard.test.mjs`（F9 写口失败不得提示成功）。
+- **机检守卫：** `feedback-integrity.test.mjs`、`modal-contract.test.mjs`、`component-ratchet-guard.test.mjs`、`frontend-foundations-guard.test.mjs`（F9 写口失败不得提示成功）。
 - **误报边界：** 纯本地偏好保存不需要远端失败态；确认弹窗的「取消」不是失败；后端异步投递允许短延迟，但页面必须显示「处理中」。
 - **来源轮次：** `refine-ui-system-and-close-r10`、`unify-field-shell-and-interaction-states`、`run-round8-9-audits-and-polish`；批次 505、508。
 
@@ -91,7 +91,7 @@ status: active
 
 - **判据：** 选中 / 展开 / 必填 / 错误 / 当前页能否从 DOM 语义（`aria-selected`、`aria-pressed`、`aria-expanded`、`aria-invalid`、`aria-current`）静态读出，而非只靠 class 或颜色？
 - **真实反例：** R5-A 审计发现考勤分段钮、受众 chip 只切换 class，无 `aria-pressed`（`.ctx/logs/archive/2026-10/AUDIT_R5_A_WEB_GUIDELINES.md` R5A-20/21）；R8 真机从待办跳到考勤后 `document.activeElement = BODY`、命中高亮为空；Round 2 L-B07 校验失败只弹 toast，无 `aria-invalid` 与字段关联。
-- **机检守卫：** `a11y-tree.test.mjs`、`field-shell-guard.test.mjs`、`modal-contract.test.mjs`；人工检查点：只用键盘 + 读屏走一遍本轮主任务。
+- **机检守卫：** `a11y-tree.test.mjs`、`component-ratchet-guard.test.mjs`、`modal-contract.test.mjs`；人工检查点：只用键盘 + 读屏走一遍本轮主任务。
 - **误报边界：** 纯展示行不需要 `aria-selected`；原生 `checkbox` 的 `checked` 已足够，不强制自定义 `aria-checked`。
 - **来源轮次：** `round1-workbench-structure-remediation`、`audit-round2-minimum-three-costs`、`refine-interface-and-unify-student-id`、`unify-field-shell-and-interaction-states`；批次 484、487、492、508。
 
@@ -103,7 +103,7 @@ status: active
 
 - **判据：** 每个可点入口是否指向「该角色 + 该对象 + 该步骤」的真实承载面；没有承载面时是否不渲染入口？
 - **真实反例：** IA 审计材料页「考勤」一律链 `disc.html?tab=attendance`，组长组织者被弹回 `leader.html` 且丢失 tab/对象（`.ctx/logs/archive/2026-10/AUDIT_IA_CRITICAL.md` §一 C01）；批次 508 活动详情「复盘」落到 `talent/archive` 假入口；批次 498 宣传台原「归档活动」动作被撤，因为母本只给宣传委员材料归档。
-- **机检守卫：** `material-link-truth.test.mjs`、`link-integrity.test.mjs`、`link-target-guard.test.mjs`、`archive-action-guard.test.mjs`。
+- **机检守卫：** `material-link-truth.test.mjs`、`link-integrity.test.mjs`、`navigation-guard.test.mjs`、`archive-action-guard.test.mjs`。
 - **误报边界：** 同一对象面向不同角色可以有不同落点，不算多入口；`null` 行渲染纯文本交接不是死链。
 - **来源轮次：** `audit-information-architecture-critical`、`ia-critical-remediation`、`report-parent-and-issue-projection`、`unify-field-shell-and-interaction-states`；批次 488、489、498、508。
 
@@ -111,7 +111,7 @@ status: active
 
 - **判据：** URL 中的 `tab` / `id` / `activityId` / `highlight` / `focusActivityId` 等参数是否被目标页读取并消费；定位失败是否有可见提示？
 - **真实反例：** IA 审计发现 `review&highlight=<rq>` 先被壳清参，页面读 URL 恒空（`AUDIT_IA_CRITICAL.md` §一 F01）；批次 508 `archive.html` 不读任何 URL 参数，`?tab=`、`?id=` 均落默认；R8 待办不带记录 id，落地后需人工二次定位。
-- **机检守卫：** `notice-deeplink-guard.test.mjs`、`archive-deeplink-guard.test.mjs`、`ui-home-deeplink.test.mjs`、`link-integrity.test.mjs`。
+- **机检守卫：** `navigation-guard.test.mjs`、`navigation-guard.test.mjs`、`navigation-guard.test.mjs`、`link-integrity.test.mjs`。
 - **误报边界：** 明确声明为展示快照的 `sourceName` 不要求可定位；参数缺失时回默认 tab 可接受，但不得静默声称「已定位」。
 - **来源轮次：** `ia-critical-remediation`、`close-special-projects-batch-500`、`unify-field-shell-and-interaction-states`；批次 489、500、508。
 
@@ -139,7 +139,7 @@ status: active
 
 - **判据：** 对话框 / 列表行 / 表格 / 按钮 / 下拉 / 空态是否只走共享组件；是否存在第二实现或手写同类结构？
 - **真实反例：** 批次 497 发现 `docs/src` 仍有 12 处自建浮层 / 7 文件，而唯一浮窗守卫只扫 `openModal(`，白名单为空造成「零例外」假绿（`consolidate-modal-surface`）；R11 审计发现 `.input-flat-sm` 只有 padding/font/radius，无背景、无描边、无 focus（P0-01）；R5-B 审计发现破坏性确认有原生 `confirm`、`modal.js`、自建 popover 三套载体（F-08）。
-- **机检守卫：** `ui-modal-form-guard.test.mjs`、`ui-control-system-guard.test.mjs`、`row-markup-guard.test.mjs`、`responsive-cards-guard.test.mjs`。
+- **机检守卫：** `ui-modal-form-guard.test.mjs`、`component-ratchet-guard.test.mjs`、`style-ratchet-guard.test.mjs`、`style-ratchet-guard.test.mjs`。
 - **误报边界：** 明确非对话框固定层（toast、同步横幅、锚定 popover）允许不进 `openModal`，但必须进白名单并写理由；表格引擎与手写业务表可按数据形状分流，但同类结构不得有两种写法。
 - **来源轮次：** `consolidate-modal-surface`、`refine-ui-system-and-close-r10`、`redesign-theme-palette-and-density`、`rebuild-workbench-density-and-composition`；批次 497、505、506。
 
@@ -147,7 +147,7 @@ status: active
 
 - **判据：** 是否还有不可达状态、只写不读字段、零引用类/变量、幽灵账号、已完成条目滞留、过期台账？
 - **真实反例：** 批次 506 `taskforce-view.js::_renderTfCard` 仍引用已删常量 `STATUS_COLOR`，整个 tab 渲染抛 `ReferenceError` 退化成空白（`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 506 §四）；R7-30 `mockDB.users` 仍有 11 条 `u_*` 幽灵账号并进「人员全集」；批次 505 `CLAUDE.md` 乙部滞留 10 条已完成条目。
-- **机检守卫：** `dead-selector-guard.test.mjs`、`ctx-hygiene-guard.test.mjs`、`data-lifecycle-guard.test.mjs`、`ui-redundancy-guard.test.mjs`。
+- **机检守卫：** `style-ratchet-guard.test.mjs`、`doc-lifecycle-guard.test.mjs`、`data-lifecycle-guard.test.mjs`、`ui-redundancy-guard.test.mjs`。
 - **误报边界：** 迁移期 legacy 字段、旧 id 登录别名为兼容保留，必须写期限；历史只读留痕不算死数据。
 - **来源轮次：** `slim-ctx-audit-artifacts`、`refine-ui-system-and-close-r10`、`redesign-theme-palette-and-density`、`advance-r10-data-lifecycle`；批次 505、506、507。
 
@@ -163,7 +163,7 @@ status: active
 
 - **判据：** 规范 / 判例 / 索引 / 过程记录是否各归其位；守卫是否非空转、证据是否可复现、是否以「类名存在」或「留人工」冒充完成？
 - **真实反例：** `clarify-doc-scope-and-review-question-set` 指出 `DESIGN_SYSTEM` 把 SD 规则、论证、历史判例、操作步骤写在同一节；批次 497 的守卫只扫 `openModal(` 造成「零例外」假绿；批次 504 如实登记「非单一绿跑取证」；批次 485 把读屏复核从「留人工」改为 Chromium 可访问性树断言。
-- **机检守卫：** `doc-consistency.test.mjs`、`docs-governance-guard.test.mjs`、`ctx-hygiene-guard.test.mjs`、`workbench-audit-coverage.test.mjs`、`test-tier-guard.test.mjs`。
+- **机检守卫：** `doc-consistency.test.mjs`、`doc-lifecycle-guard.test.mjs`、`doc-lifecycle-guard.test.mjs`、`workbench-audit-coverage.test.mjs`、`test-tier-guard.test.mjs`。
 - **误报边界：** 判例库允许写边界说明，但不得产生新的 SHALL；无法机检的语义判断可以走人工检查点，但必须写清检查人、样本与结论，不得只写「留人工」。
 - **来源轮次：** `clarify-doc-scope-and-review-question-set`、`slim-ctx-audit-artifacts`、`plan-four-round-audit-program`、`consolidate-modal-surface`；批次 497、504、505。
 
@@ -177,7 +177,7 @@ status: active
 
 - **判据：** 归档入口是否落到有内容且消费参数的承载面；点击后是否只是空页、默认页或「找不到」？
 - **真实反例：** 批次 508 用户从活动详情点「去归档」带 `focusActivityId`，落到 `archive.html` 后既不展开折叠区也不高亮，页面根本不读 URL 参数（`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 508 §一、§六样本 4）。
-- **机检守卫：** `archive-deeplink-guard.test.mjs`、`link-integrity.test.mjs`。
+- **机检守卫：** `navigation-guard.test.mjs`、`link-integrity.test.mjs`。
 - **误报边界：** 归档库本身为空是合法空态，只要有「暂无归档 + 下一步」；有内容但目标行不可见才是空壳。
 - **来源轮次：** `unify-field-shell-and-interaction-states`、`audit-information-architecture-critical`；批次 508。
 
@@ -185,7 +185,7 @@ status: active
 
 - **判据：** 深色或实底按钮 hover 是否同色相加深，而不是被中性灰/浅灰覆盖？
 - **真实反例：** 批次 508 `login.html:63` 的 `.login-btn:hover` 把深色实底刷成 `#F3F4F6`，白字浮在浅灰上（`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 508 §一）；R11 审计同时发现「主题色变体」文字统一落到近黑 `#1F2937`（P1-04）。
-- **机检守卫：** `hover-state-guard.test.mjs`、`theme-palette-guard.test.mjs`。
+- **机检守卫：** `style-ratchet-guard.test.mjs`、`color-ratchet-guard.test.mjs`。
 - **误报边界：** 浅色主题的金底按钮用深色字，hover 同色相加深不算变灰；禁用态灰底不算 hover。
 - **来源轮次：** `unify-field-shell-and-interaction-states`、`redesign-theme-palette-and-density`；批次 508。
 
@@ -193,7 +193,7 @@ status: active
 
 - **判据：** 同一页面的跳转链接是否只有一种链接色；蓝色是否只承担信息态？
 - **真实反例：** 批次 507 首页「查看全部 →」用主题色、「完整日历 →」用蓝色；全仓 `<a>` 上 Tailwind 蓝 132 处 / 43 文件，而 `text-accent` 只有 18 处（`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 507 §一）。
-- **机检守卫：** `link-color-guard.test.mjs`（L1–L5）。
+- **机检守卫：** `color-ratchet-guard.test.mjs`（L1–L5）。
 - **误报边界：** `badge--info`、状态点、`bg-blue-*` 的信息态蓝保留；带底色的按钮型链接不算文字链接。
 - **来源轮次：** `unify-link-and-press-states`；批次 507。
 
@@ -209,7 +209,7 @@ status: active
 
 - **判据：** 同一用户对象（消息 / 待办 / 通知 / 私信）是否只有一个列表承载面、一个全貌承载面与一套状态机；是否存在页面级兜底把点击导向「首页 / 工作台」而不是对象本身？
 - **真实反例：** 本轮 `rebuild-notification-and-data-truth`：消息被拆成公告、系统通知、私信三种投递源与四个承载面（`notice.html` / `messages.html` / `archive.html?tab=notice` / 铃铛下拉），并存三套已读语义、两套归档语义；点击会议通知落工作台首页（`targetModule:'workspace'` ＋ `resolveNoticeUrl` 的 `direct` 直跳，`docs/src/services/governance/notice.js` 旧实现）。
-- **机检守卫：** `notice-deeplink-guard.test.mjs`（入口收口 / 坐标必填 / 无 `direct` 直跳 / 无 `resolveNoticeUrl` 导出）、`notice-audience.test.mjs`（N13–N16 逐人状态）、`notice-message.test.mjs`（N5 模型纯函数）；人工检查点：列出该对象的全部入口与列表页，确认只有一个列表、一个全貌，点击均先落全貌。
+- **机检守卫：** `navigation-guard.test.mjs`（入口收口 / 坐标必填 / 无 `direct` 直跳 / 无 `resolveNoticeUrl` 导出）、`notice-audience.test.mjs`（N13–N16 逐人状态）、`notice-message.test.mjs`（N5 模型纯函数）；人工检查点：列出该对象的全部入口与列表页，确认只有一个列表、一个全貌，点击均先落全貌。
 - **误报边界：** 同一对象面向不同角色可以有不同入口（铃铛 / 侧栏 / 首页卡），但必须指向同一列表或全貌；展示型摘要卡不算第二承载面；系统归档与用户归档是两个状态，不是两个承载面；待办的聚合组与被聚合对象不算同一对象。
 - **来源轮次：** `rebuild-notification-and-data-truth`；批次 510。
 

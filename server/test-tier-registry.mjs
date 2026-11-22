@@ -108,7 +108,7 @@ export const DAILY_TEST_BUDGET = 262;
  *  2026-11-21 批次 587：新增 `status-palette-text-guard` / `badge-single-source-guard` / `button-height-guard`，实然 124 文件；按 124 登记（差 0）。
  *  2026-11-21 批次 589：新增 `todo-derive-instrument-guard`（派生兜底仪表 / 7 类对账全绿），实然 127 文件；按 127 登记（差 0）。
  *  2026-11-21 批次 591–595：新增 `form-field-guard` / `open-items-guard` / `bom-and-eol-guard` / `evidence-hygiene-guard`，实然 129 文件；按 129 登记（差 0）。 */
-export const GUARDS_FILE_BUDGET = 128;
+export const GUARDS_FILE_BUDGET = 81;
 
 /** guards 静态 `test(` / `it(` 调用点预算
  *  2026-11-08 波次 A：实测 788 断言，按 791 登记（断言留 3 条余量）。
@@ -195,30 +195,16 @@ export const TEST_TIERS = [
 
   // ── guards · 静态守卫（按需跑；precommit / full 仍全量覆盖）─────────────
   ...group('guards', '静态样式守卫 · 字号 / 间距 / 颜色 / 动效 / 交互态 / 密度 / 文案', [
-    'icon-color-guard.test.mjs',
+    // 2026-11-22 批次 600：守卫归并件（每组独立块作用域，断言数不减）
+    'doc-lifecycle-guard.test.mjs',
+    'style-ratchet-guard.test.mjs',
+    'color-ratchet-guard.test.mjs',
+    'component-ratchet-guard.test.mjs',
+    'navigation-guard.test.mjs',
     'table-contract-guard.test.mjs',
-    'action-row-wrap-guard.test.mjs',
     'activity-tone-guard.test.mjs',
-    'card-summary-hero-guard.test.mjs',
-    'container-width-guard.test.mjs',
-    'density-spacing-guard.test.mjs',
-    'field-shell-guard.test.mjs',
-    'hex-hardcode-guard.test.mjs',
-    'hover-state-guard.test.mjs',
     'lf-bar-structure-guard.test.mjs',
-    'link-color-guard.test.mjs',
     'loading-experience-guard.test.mjs',
-    'motion-guard.test.mjs',
-    'nested-interaction-guard.test.mjs',
-    'page-title-guard.test.mjs',
-    'responsive-cards-guard.test.mjs',
-    'row-markup-guard.test.mjs',
-    'spacing-scale-guard.test.mjs',
-    'status-color-guard.test.mjs',
-    'theme-palette-guard.test.mjs',
-    'theme-pref.test.mjs',
-    'touch-target-guard.test.mjs',
-    'type-scale-guard.test.mjs',
     'ux-guard.test.mjs',
     'copy-guard.test.mjs',
     'filter-row.test.mjs',
@@ -227,35 +213,22 @@ export const TEST_TIERS = [
     'person-picker-density.test.mjs',
     'party-workbench-layout.test.mjs',
     'work-overview-layers.test.mjs',
-    'ui-button-four-types.test.mjs',
-    'ui-color-semantics.test.mjs',
-    'ui-contrast-guard.test.mjs',
-    'ui-control-system-guard.test.mjs',
-    'ui-custom-select.test.mjs',
     'ui-first-screen-order.test.mjs',
-    'ui-focus-ring.test.mjs',
     'ui-help-note.test.mjs',
-    'ui-home-deeplink.test.mjs',
     'ui-home-hero.test.mjs',
-    'ui-motion-guard.test.mjs',
     'ui-phase2-urgent.test.mjs',
-    'ui-picker-focus.test.mjs',
     'ui-preflight-context.test.mjs',
-    'ui-primary-cta-color.test.mjs',
     'ui-redundancy-guard.test.mjs',
     'ui-row-interaction.test.mjs',
-    'ui-select-appearance-guard.test.mjs',
     'ui-tab-overflow.test.mjs',
   ]),
   ...group('guards', '静态结构 / UI / 路由 / 写链结构守卫', [
     'archive-action-guard.test.mjs',
-    'archive-deeplink-guard.test.mjs',
     'branch-id-literal-guard.test.mjs',
     // 2026-11-15 六维补齐 T15：支部解析单源（server/routes 新增 `|| DEFAULT_BRANCH(_ID)` 即红；存量按文件基线只减不增）
     'branch-resolve-single-source-guard.test.mjs',
     'committee-adoption-ui.test.mjs',
     'committee-content-tab.test.mjs',
-    'dead-selector-guard.test.mjs',
     'feedback-integrity.test.mjs',
     'frontend-foundations-guard.test.mjs',
     'handoff-state-guard.test.mjs',
@@ -265,12 +238,6 @@ export const TEST_TIERS = [
     'import-path-guard.test.mjs',
     'test-isolation-guard.test.mjs',
     'test-tier-guard.test.mjs',
-    'link-target-guard.test.mjs',
-    'localstorage-key-guard.test.mjs',
-    'modal-guard.test.mjs',
-    'no-about-route-guard.test.mjs',
-    'no-underline-guard.test.mjs',
-    'notice-deeplink-guard.test.mjs',
     'object-route-guard.test.mjs',
     'object-model-guard.test.mjs',
     'committee-proposal-state.test.mjs',
@@ -278,7 +245,6 @@ export const TEST_TIERS = [
     'party-branch-directory-guard.test.mjs',
     'perf-guard.test.mjs',
     // 2026-11-08 波次 A：daily 迁入（公开面品牌 / 泄露静态扫描）
-    'public-brand-guard.test.mjs',
     'public-portal-leak-guard.test.mjs',
     'publicity-static-guard.test.mjs',
     'roster-filter-guard.test.mjs',
@@ -306,21 +272,17 @@ export const TEST_TIERS = [
   ]),
   ...group('guards', '静态可访问性守卫（可访问名 / 表单标签 / section / tab / role=button / 图标钮）', [
     // 2026-11-15 `close-six-dim-gaps` T10：六条可静态判定的 a11y 底线，存量按 a11y-baseline 只减不增
-    'a11y-guard.test.mjs',
   ]),
   ...group('guards', '静态文档 / 台账 / 行号 / 冻结件守卫', [
-    'about-freeze-guard.test.mjs',
     'claude-parallel-audit.test.mjs',
     // 2026-11-08 波次 A：daily 迁入（测试与契约文档一致性）
     'contract-doc-guard.test.mjs',
-    'ctx-hygiene-guard.test.mjs',
     'data-lifecycle-guard.test.mjs',
     'date-canon-guard.test.mjs',
     'mock-import-guard.test.mjs',
     'roster-denominator-guard.test.mjs',
     'demo-window-guard.test.mjs',
     'doc-consistency.test.mjs',
-    'docs-governance-guard.test.mjs',
     // 2026-11-19 批次 572：单值事实跨文件一致（G1）；spec 台账噪声棘轮已于批次 599 随 `.trae` 清零删除
     'single-fact-consistency.test.mjs',
     // 2026-11-19 批次 574（`D-886`）：制度草案待办派生 / 我的任务按项目身份派生（SOP-B-25 / SOP-B-31）
@@ -331,25 +293,17 @@ export const TEST_TIERS = [
     // 2026-11-20 批次 579：副支书操作权三档参数 / 正副职字面量基线
     'deputy-policy.test.mjs',
     // 2026-11-20 批次 581：卡厚度与卡头字重（card-standard / card-compact / H3 600）
-    'card-consistency-guard.test.mjs',
     // 2026-11-20 批次 581 续：间距档位与暗色补丁棘轮
-    'spacing-ratchet-guard.test.mjs',
     // 2026-11-20 批次 584：评分即资产（改进项指针 / 资产索引 / 两段门槛）
     'evaluation-asset-guard.test.mjs',
     // 2026-11-21 批次 587：调色板状态文字 / 徽章单源 / h-8 档位
-    'status-palette-text-guard.test.mjs',
-    'badge-single-source-guard.test.mjs',
-    'button-height-guard.test.mjs',
     // 2026-11-21 批次 589：派生兜底仪表 + 7 类对账全绿
     'todo-derive-instrument-guard.test.mjs',
     // 2026-11-21 批次 591：表单必填 / 报错 / 字段级可访问名（SD-66 / SD-67）
-    'form-field-guard.test.mjs',
     // 2026-11-21 批次 591 / 594：计划收尾清账门（H50.3 四类 open 源 ＋ `.trae/specs` 归档自洽 ＋ 反例自证）
-    'open-items-guard.test.mjs',
     // 2026-11-21 批次 593：文件头 BOM 唯一性 ＋ frontmatter 锚点
     'bom-and-eol-guard.test.mjs',
     // 2026-11-21 批次 595：证据库准入（只存被引用的读数，禁截图 / 压缩包）
-    'evidence-hygiene-guard.test.mjs',
   ]),
 
   // ── precommit · 非核心域回归（提交前 / 发布前覆盖；进 daily 会拖长日常）─────

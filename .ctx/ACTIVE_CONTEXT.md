@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: 2026-11-22
 last_verified: "2026-11-22"
-latest_decision: "D-909"
+latest_decision: "D-910"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -26,7 +26,7 @@ status: active
 - **权限**：写入口矩阵 **163 条**（156 enforced / 5 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵。source：`server/security/write-policy-matrix.mjs`。
 - **六维（`D-883` 重校 · `D-899` 复核未变）**：业务 **80** / 安全 **78** / 体验 **79** / 测试 **73** / 架构 **76** / 部署 **71**；只作诊断，不单独阻断合并（`D-894`）。
 - **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（`D-899` 实跑）。source：`.ctx/evidence/2026-11-21/tab-audit/summary.md`。
-- **测试（四层）**：daily **32 文件 / 265 断言**；guards **129 文件 / 902 断言**；precommit 与 full 覆盖全量。source：`server/test-tier-registry.mjs`。
+- **测试（四层）**：daily **32 文件 / 265 断言**；guards **81 文件 / 898 断言**（52 源件已并 5 件，预算软告警）；`npm run probe:stage` 6 步断点探针。source：`server/test-tier-registry.mjs`。
 - **换轨**：`preflight-cutover --strict` exit 0；契约 50 表；生产只走个人密码（`D-882`）。source：`deploy/CUTOVER_RUNBOOK.md`。
 
 ## §2 现行裁定摘要（只留仍影响下一步）

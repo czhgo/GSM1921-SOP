@@ -567,7 +567,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 
 图标不单独承担状态语义，须同时有文字标签（「已逾期」「未读 3 条」「已驳回」）；颜色只作加重，文字与形态承担识别。状态成立条件不满足时回落中性档，不留彩色空态。
 
-**守卫**：`server/test/icon-color-guard.test.mjs`（G1–G5）。状态色档位另见 `status-color-guard`，主题 / 品牌色另见 `theme-palette-guard`，硬编码存量另见 `hex-hardcode-guard`。
+**守卫**：`server/test/color-ratchet-guard.test.mjs`（G1–G5）。状态色档位另见 `status-color-guard`，主题 / 品牌色另见 `theme-palette-guard`，硬编码存量另见 `hex-hardcode-guard`。
 
 #### 4.11.3 图标使用示例
 
@@ -1020,7 +1020,7 @@ icon('bell', { className: 'w-4 h-4' })
 1. 新代码不得出现 `p-[14px]`、`gap-[10px]`、`mt-[6px]` 一类自由间距值；只能引用 `--space-*` 或本表的语义类。
 2. 不得用行内 `style="padding: …"` 绕开档位；组件样式只写在 `styles.css`。
 3. 不得为单个页面新增第六档；确需新档时先改本节与令牌，再改页面。
-4. 存量自由值按抽样清单分批迁移；守卫 `server/test/spacing-scale-guard.test.mjs` 按「只降不升」基线看住总量。
+4. 存量自由值按抽样清单分批迁移；守卫 `server/test/style-ratchet-guard.test.mjs` 按「只降不升」基线看住总量。
 
 > **关联**：§4.1 按钮 · §4.2 卡片 · §4.10 数据展示 · §4.20 表格与列表 · `docs/src/styles.css`（令牌单一源）
 
@@ -1261,7 +1261,7 @@ icon('bell', { className: 'w-4 h-4' })
 ## 十二、组件层执行口径（2026-10-23 批次 505 · 现行）
 
 > 本节是支书 2026-10-23 九条 UI 判例的执行口径；与 §3.2 / §4.1 / §4.3 的旧尺寸表冲突时，**以本节为准**（旧表保留作沿革）。
-> 机检＝`server/test/ui-control-system-guard.test.mjs`；真机抽检＝`page-sweep`。
+> 机检＝`server/test/component-ratchet-guard.test.mjs`；真机抽检＝`page-sweep`。
 
 ### 12.1 控件（唯一源）
 

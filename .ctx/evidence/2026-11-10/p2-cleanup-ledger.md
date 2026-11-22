@@ -32,7 +32,7 @@ related_files: [.ctx/REVIEW_QUEUE.md, .ctx/ENGINEERING_ASSESSMENT.md, CLAUDE.md]
 
 | # | 项 | 病灶（证据） | 本批处置 |
 |---|---|---|---|
-| A-1 | `icon-color-guard` 白名单越权 | 白名单按**整文件**跳过 G4，白名单文件里的 hex 永不判红（`server/test/icon-color-guard.test.mjs` 旧 G4 循环 `allow.has(f) → continue`） | 白名单只免「生成点」（G1）；G4 改为扫全部文件（`icons.js` 除外） |
+| A-1 | `icon-color-guard` 白名单越权 | 白名单按**整文件**跳过 G4，白名单文件里的 hex 永不判红（`server/test/color-ratchet-guard.test.mjs` 旧 G4 循环 `allow.has(f) → continue`） | 白名单只免「生成点」（G1）；G4 改为扫全部文件（`icons.js` 除外） |
 | A-2 | `styles.css` 的 data-URI 内联 hex | `select.input-flat` 的箭头用 `stroke='%239CA3AF'`，绕开令牌也绕开 hex 扫描（CSS 变量在 data-URI SVG 内不生效） | 改纯 CSS 折线，两臂取 `var(--neutral-400)`（与旧值同色）；白名单条目删除（3 处 → 2 处） |
 | A-3 | 判例与守卫互相矛盾 | `CASES.md` CASE-DESIGN-039 写「详情页不设自动守卫」，而 `ui-first-screen-order::F10` 已常驻 | 判例「守卫」栏改准，写入 `F10` 与「F10 只判源码结构、视觉仍看双档截图」的边界 |
 | A-4 | 判例四条「SD 待登记」 | 035 / 036 / 037 / 038 无规范编号，守卫也不拦 | 分配 SD-62…SD-65（DS_03 §12.15 登记）并回填判例与索引；`docs-governance::G7` 改为拒绝「待登记」 |
@@ -88,7 +88,7 @@ related_files: [.ctx/REVIEW_QUEUE.md, .ctx/ENGINEERING_ASSESSMENT.md, CLAUDE.md]
 
 ## 七、本批验证读数
 
-- 定向：`cd server; node --test test/icon-color-guard.test.mjs test/todo-jump-contract.test.mjs test/ui-first-screen-order.test.mjs test/agenda-classify.test.mjs test/db-migration.test.mjs test/docs-governance-guard.test.mjs test/doc-consistency.test.mjs`
+- 定向：`cd server; node --test test/color-ratchet-guard.test.mjs test/todo-jump-contract.test.mjs test/ui-first-screen-order.test.mjs test/agenda-classify.test.mjs test/db-migration.test.mjs test/doc-lifecycle-guard.test.mjs test/doc-consistency.test.mjs`
 - 结果见批次 541 收尾报告（本文件只登记分拣，不复述测试输出）。
 
 ## 八、最终统计（批次 541 收口）

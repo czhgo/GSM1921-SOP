@@ -4,7 +4,7 @@ type: design
 role: "[工程师]+[AI]"
 last_updated: "2026-11-04"
 status: active
-related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.css, ../../../server/test/type-scale-guard.test.mjs, ../../../server/test/spacing-scale-guard.test.mjs]
+related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.css, ../../../server/test/style-ratchet-guard.test.mjs, ../../../server/test/style-ratchet-guard.test.mjs]
 ---
 
 # 第二编 排版与尺寸
@@ -129,7 +129,7 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.
 
 > **统计口径**：扫 `docs/src` 下全部 `.css` 的 `font-size`（`var(--text-*)` 按 `styles.css :root` 解析为 px）
 > ＋ `docs` 下全部 `.js/.mjs` 的 `text-*` 工具类、`text-[Npx]` 与行内 `font-size`。
-> 扫描 / 断言单一源＝`server/test/type-scale-guard.test.mjs`（源件 5）；存量台账＝`server/test/style-baseline.mjs::TYPE_TIER_BASELINE`。
+> 扫描 / 断言单一源＝`server/test/style-ratchet-guard.test.mjs`（源件 5）；存量台账＝`server/test/style-baseline.mjs::TYPE_TIER_BASELINE`。
 > **本表只登记现状，不调整任何字号数值**（渲染结果与登记前逐像素一致）。
 
 | 值 | docs/src 全部 .css | docs/**/*.js | 合计 | 判读 |
@@ -217,8 +217,8 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.
    - 间距裸值 → `SPACING_NON_TOKEN_BASELINE` / `SPACING_INLINE_DECL_BASELINE` / `SPACING_INLINE_ATTR_BASELINE`
      （只减不增；本期**不做批量替换**，避免改变渲染）。
 
-**守卫**：`server/test/type-scale-guard.test.mjs`（Q1 新增表外字号即红 / Q2 处数棘轮）
-＋ `server/test/spacing-scale-guard.test.mjs`（S5 非令牌声明 / S6 行内声明 / S7 行内属性）。
+**守卫**：`server/test/style-ratchet-guard.test.mjs`（Q1 新增表外字号即红 / Q2 处数棘轮）
+＋ `server/test/style-ratchet-guard.test.mjs`（S5 非令牌声明 / S6 行内声明 / S7 行内属性）。
 
 ### 3.3 排版规则
 

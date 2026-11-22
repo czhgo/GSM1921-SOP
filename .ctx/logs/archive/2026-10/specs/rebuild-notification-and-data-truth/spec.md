@@ -29,7 +29,7 @@
   - 数据：`docs/src/data/mock/**`、`docs/src/data/seed-manifest.js`、`server/seed.js`、`server/routes/resources/index.js`、`server/routes/system-notices.js`
   - 视觉：`docs/src/entries/tabs/secretary/work-map-tab.js`、`docs/src/components/shell/tab-bar.js`、`docs/src/components/shell/page-frame.js`、`docs/src/styles.css`、`docs/src/capabilities/*-workspace.js`
   - 知情查看：`docs/src/components/record/insight-view.js`、新增 `docs/src/components/record/workgroup-view.js`
-  - 守卫：`server/test/notice-deeplink-guard.test.mjs`、`notice-audience.test.mjs`、`notice-message.test.mjs`、`state-enum-guard.test.mjs`、`mock-api-parity-structure.test.mjs`、`ui-control-system-guard.test.mjs`、`docs-governance-guard.test.mjs`
+  - 守卫：`server/test/navigation-guard.test.mjs`、`notice-audience.test.mjs`、`notice-message.test.mjs`、`state-enum-guard.test.mjs`、`mock-api-parity-structure.test.mjs`、`component-ratchet-guard.test.mjs`、`doc-lifecycle-guard.test.mjs`
 
 ## ADDED Requirements
 

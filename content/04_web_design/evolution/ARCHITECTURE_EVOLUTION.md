@@ -308,7 +308,7 @@ related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../mod
 | 3 | `server/routes/resources/branch-scope.js` | 删 `!targetBranchId ⇒ return rows` 失败开放；匿名 / 无支部上下文只放行 `publishScope='public'` 且未过期的党委行 |
 | 3 | `server/routes/report.js` | 三处 `actorBranchId(...) \|\| req.query.branchId \|\| null` 收敛为 `resolveBranchIdForActor`（口径不变） |
 | 5 | `server/test/branch-resolve-single-source-guard.test.mjs` | 常驻守卫：`server/routes/**` 新增 `\|\| DEFAULT_BRANCH(_ID)` 即红，存量按文件基线只减不增 |
-| 5 | `server/test/docs-governance-guard.test.mjs` | 行号引用校验扩面到 `content/**`（复用 R1 同一解析；存量 26 条失效引用登记基线，只减不增） |
+| 5 | `server/test/doc-lifecycle-guard.test.mjs` | 行号引用校验扩面到 `content/**`（复用 R1 同一解析；存量 26 条失效引用登记基线，只减不增） |
 
 **未完成（后续批次；按文件逐条替换，不一次性改全仓）**
 
