@@ -138,8 +138,12 @@ export const GUARDS_FILE_BUDGET = 81;
  *  2026-11-21 批次 594：`open-items-guard` 扩扫 `.trae/specs/**` 并增 2 条（归档件未勾项逐行 concluded ／ 反例自证），实然 898；按 898 登记（余量 0）。
  *  2026-11-21 批次 595：新增 `evidence-hygiene-guard` 4 条（禁截图 / 压缩包 ／ 台账双向引用 ／ 单文件 ≤256KB ／ 反例自证），实然 902；按 902 登记（余量 0）。
  *  2026-11-22 批次 599：`.trae` 清零——删 `spec-task-consistency`（3 条）＋ `open-items-guard ⑥`（1 条），实然 898；按 898 登记（余量 0）。
- *  2026-11-23 批次 604：`write-policy-matrix` 增 1（门名处理分支）＋ `evaluation-asset-guard` 增 1（EA 读数 ≡ registry）＋ `single-fact-consistency` 增 1（对象挂靠单一源），实然 901；按 901 登记（余量 0）。 */
-export const GUARDS_TEST_BUDGET = 901;
+ *  2026-11-23 批次 604：`write-policy-matrix` 增 1（门名处理分支）＋ `evaluation-asset-guard` 增 1（EA 读数 ≡ registry）＋ `single-fact-consistency` 增 1（对象挂靠单一源）。
+ *  2026-11-23 批次 604 续：**改正登记漂移**——批次 604 写「实然 901」，复核实测为 **898**（多记 3 条）；
+ *    本批新源件 16 `viewport-and-touch-guard` 5 条（顶栏避让 / 触控 / 滚动隔离 / 触控高亮 / 图片尺寸，每条带反例）
+ *    ＋ `doc-lifecycle-guard` 源件 5 `guard-citation-guard` 2 条（文档引用的守卫文件必须存在 ＋ 反例自证）
+ *    ⇒ 实测 **905**；按 905 登记（余量 0）。 */
+export const GUARDS_TEST_BUDGET = 905;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 

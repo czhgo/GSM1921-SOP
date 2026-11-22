@@ -26,7 +26,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | 业务与数据正确性 | **77 / 100** | 46 页签 D1 读口全 2xx；换轨逐表行数与 sha256 一致（批次 527，契约 50 表）；应到口径单一源 `roster-eligibility.js`、待办读权限 `todo-read-policy.mjs`；议程分类两端同源。残项：三层关系口径未统一、D2 仅 3 页签、C2 0 pass。 |
 | 安全与权限 | **75 / 100** | 矩阵 **163 条**（156 enforced / 5 self-service / 2 public / 0 known-risk），守卫断言运行期路由 ≡ 矩阵；会话 3 小时；production 单支部；public 门厅 fail-closed；`security-hardening` 8/8、`multi-branch-read-filter` 9 组、个人密码 21/21。残项：多支部读过滤未接线、共享口令仅非生产回退、CI 无 run id。 |
 | 最小三成本体验（含前端与交互） | **74 / 100** | 46 页签 **P0 0 / P1 0 / P2 0 / exception 44**；F1–F8 全绿；跳转 fail-closed、活动详情四段、卡头单源、三份前端契约。残项：真人 5 任务签收未完成、页签 IA A 37 / B 9 / C 0、6 个超 4 块页签登记例外；本批实测顶栏同族漏改一次（`CASE-DESIGN-044`）。 |
-| 测试与发布质量 | **69 / 100** | daily **32 文件 / 266 断言**；guards **81 文件 / 901 断言**；四层 runner 由 registry 单一源驱动。残项：CI 两个 job 无 run id、`test:full` 自批次 553 未整体重跑、审计脚本不进 daily；本批实测评分台账测试读数漂移未被守卫拦住。 |
+| 测试与发布质量 | **69 / 100** | daily **32 文件 / 266 断言**；guards **81 文件 / 905 断言**；四层 runner 由 registry 单一源驱动。残项：CI 两个 job 无 run id、`test:full` 自批次 553 未整体重跑、审计脚本不进 daily；批次 604 登记值 901 系多记 3 条（实测 898），批次 604 续已改正并加 7 条收口守卫。 |
 | 架构与可维护性（原「架构复杂度与变更成本」） | **73 / 100** | `write-policy-matrix` 为写权限唯一机读源；契约落 `content/04_web_design/contracts/`；四层 runner 单源。残项：对象模型边界未定（三层关系判据表待落）、双适配器 / 版本戳 / 行号守卫抬高跨层成本；壳层尺寸规则散在三段（基础 / 移动 / 组件例外），易漏改。 |
 | 运行、部署与跨组织复用 | **67 / 100** | 换轨逐表 sha256 一致（批次 527）；生产空库 `preflight-cutover --strict` exit 0 / 警告 0；迁移前备份；`start:review` 独立库；`deploy/verify-linux.sh` 6/6。残项：`L-02` 真机未验、`deploy-verify` 无 run id、附件 / 会话按 runbook 另搬。 |
 
@@ -89,7 +89,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 ### 2.5 测试与发布质量 —— 69/100
 
-**证据**：daily **32 文件 / 266 断言**；guards **81 文件 / 901 断言**；`workbench-audit-coverage::W1–W5` 常驻；`write-policy-matrix`（路由 ≡ 矩阵 + 门名处理分支 + 反例）、`security-hardening`、`session-ttl`、`run-mode` 均登记 tier；四层 runner 按 registry 单一源执行；`daily.yml` 已接 `test:daily` 与 `deploy-verify`；`evaluation-asset-guard::⑤` 把 EA 测试读数锁到 registry（批次 604 立）；`style-ratchet-guard::S5` 曾拦下新增非令牌间距（批次 603）。
+**证据**：daily **32 文件 / 266 断言**；guards **81 文件 / 905 断言**；`workbench-audit-coverage::W1–W5` 常驻；`write-policy-matrix`（路由 ≡ 矩阵 + 门名处理分支 + 反例）、`security-hardening`、`session-ttl`、`run-mode` 均登记 tier；四层 runner 按 registry 单一源执行；`daily.yml` 已接 `test:daily` 与 `deploy-verify`；`evaluation-asset-guard::⑤` 把 EA 测试读数锁到 registry（批次 604 立）；`component-ratchet-guard` 新源件 16 `viewport-and-touch-guard` 把外部准则五条写成带反例的验收判据（批次 604 续）；`doc-lifecycle-guard` 源件 5 `guard-citation-guard` 断言「文档引用的守卫文件必须存在」（批次 604 续，修掉 21 处归并后悬空引用）；`style-ratchet-guard::S5` 曾拦下新增非令牌间距（批次 603）。
 **残项**：CI 两个 job 未实跑（无 run id）；`test:full` 自批次 553 未整体重跑；审计脚本仍不进 daily；precommit / full 时长仍是发布风险。
 **下一改进项**（`B-603-4`）：EA 读数 ≡ registry 已收口（`evaluation-asset-guard::⑤`，改一处即红）；余 CI 两个 job 实跑归**外部门**（判据：run id ＋ 日志，与 2.6 的 `L-02` 同批，由支书授权推送后一次性补齐）；审计脚本入 daily 前先给耗时读数。复评触发：CI 出 run id、或 guards 预算变更。
 
@@ -265,7 +265,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | 业务与数据正确性 | §2.1 得分依据 ＋ `D-864` / `D-886` / `D-887`；`.ctx/evidence/2026-11-20/backlog-reconcile.md` | 三层挂靠已收口：定义只在 `OBJECT_MODEL §2.1`、指针在 `PARTY_COMMITTEE_DESIGN §2.7`（`single-fact-consistency::⑥`）；余 D2 / C2 扩面（`B-500-7b-2`） |
 | 安全与权限 | §2.2 ＋ `write-policy-matrix` 163 条 ＋ `multi-branch-read-filter` 9 组 | 门名处理分支已收口（`write-policy-matrix` R2）；余 `B-541-3` 逐读口取证 ＋ 开关演练 |
 | 最小三成本体验 | §2.3 ＋ 46 页签审计读数 ＋ `.ctx/evidence/2026-11-21/density-8pages.md` | 不设数字目标：调色板状态文字（291 处 / 56 文件）与手拼徽章（43 文件）逐文件不超基线、不出现新文件（`B-603-3`） |
-| 测试与发布质量 | §2.5 读数（daily 266 / guards 81 文件 / 901 断言）＋ `test-tier-registry.mjs` | EA 读数 ≡ registry 已收口（`evaluation-asset-guard::⑤`）；余 CI run id（外部门） |
+| 测试与发布质量 | §2.5 读数（daily 266 / guards 81 文件 / 905 断言）＋ `test-tier-registry.mjs` | EA 读数 ≡ registry 已收口（`evaluation-asset-guard::⑤`）；余 CI run id（外部门） |
 | 架构与可维护性 | §2.4 ＋ `D-888` 键级隔离 ＋ 三份契约 | 对象模型单一源已收口（同 2.1）；余 `B-541-7` 组件散件随改动收敛 |
 | 运行、部署与跨组织复用 | §2.6 ＋ 批次 527 换轨读数 ＋ `deploy/verify-linux.sh` 6/6 | `L-02` 真机三步 ＋ `deploy-verify` run id（外部门） |
 | 前端美学专项 | `D-893` ＋ `D-896`~`D-898` ＋ `card-consistency-guard` / `spacing-ratchet-guard` / 三份新守卫基线 | 不设数字目标；逐文件不超基线、不出现新文件；8 页读数复尺 |

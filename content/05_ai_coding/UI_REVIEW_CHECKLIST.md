@@ -97,19 +97,24 @@ status: active
 
 | 准则族 | 我们的落点 | 状态 |
 |---|---|---|
-| 可访问性（可访问名 / 语义 HTML / 标题不跳级 / skip link） | `a11y-tree` · `navigation-guard::P0` · 审计 F4 / F5 · `CLAUDE.md H40.3-1` | 已覆盖 |
+| 可访问性（可访问名 / 语义 HTML / 标题不跳级 / skip link） | `a11y-tree` · `navigation-guard::P0` · `component-ratchet-guard`（源件 14 a11y-guard）· 审计 F4 / F5 · `CLAUDE.md H40.3-1` | 已覆盖 |
 | 焦点可见 | `component-ratchet-guard::FOCUS-1/2/3`；全局 `button/a/summary/[role=*]` 2px 环 | 已覆盖（输入族为特例：只变边框色，`FOCUS-2`） |
-| 表单（label / autocomplete / inputmode / 错误就近 / 首次错误聚焦 / 占位省略号） | `field-shell-guard` · `form-field-guard` · `forms.js`；登录四件齐 | 已覆盖 |
-| 动效（reduced-motion / 只动 transform·opacity / 禁 `transition: all`） | `motion-guard::M1–M10` ＋ `styles.css` 全局 reduced-motion 兜底 | 已覆盖 |
+| 表单（label / autocomplete / inputmode / 错误就近 / 首次错误聚焦 / 占位省略号） | `component-ratchet-guard`（源件 4 field-shell / 5 form-field）· `forms.js`；登录四件齐 | 已覆盖 |
+| 动效（reduced-motion / 只动 transform·opacity / 禁 `transition: all`） | `style-ratchet-guard`（源件 12/13 motion-guard）＋ `styles.css` 全局 reduced-motion 兜底 | 已覆盖 |
 | 排版（省略号 `…` / 数字 `tabular-nums` / 标题折行） | `copy-guard`；`tabular-nums` 84 处；`text-wrap: balance` 未采用 | 部分：`text-wrap` 记为特例 |
-| 图片尺寸（width/height） | 本批补 `index.html` 两枚党徽（48 / 56）；其余 `<img>` 由类与容器约束 | 已覆盖（本批补 2 处） |
+| 图片尺寸（width/height / alt） | `component-ratchet-guard::TC-5`：静态页 `<img>` 必须 alt ＋ 数值 width/height；JS 模板必须 alt（尺寸可由固定尺寸类承担）。本批把 help / login 两处内联 style 归一为属性 | 已覆盖（机检） |
 | 图片延迟加载（below-fold `loading="lazy"`） | 活动照片按需渲染；未逐图标注 | 待触发（列表 >50 项时同批加） |
 | 深色主题（`color-scheme` / `theme-color`） | `core/boot/theme.js` 同步 `colorScheme`；每页 `theme-color`（H7 守卫） | 已覆盖 |
-| 触控（命中区 ≥44） | `touch-target-audit` ＋ `component-ratchet-guard::T3` | 已覆盖 |
+| 粘性头避让（不遮聚焦元素 / 锚点目标） | `component-ratchet-guard::TC-1`：`html { scroll-padding-top }` ≡ `#app-header { height }` 逐值比对 | 已覆盖（机检） |
+| 触控（命中区 ≥44 / 双击缩放 / 系统高亮） | `touch-target-audit` ＋ `component-ratchet-guard::T3`；`TC-2` 九类可交互控件 `touch-action: manipulation`；`TC-4` `-webkit-tap-highlight-color: transparent` | 已覆盖（机检） |
+| 滚动隔离（模态 / 抽屉不串联页面滚动） | `component-ratchet-guard::TC-3`：`.modal-body` 与 `.sidebar-nav` 均 `overscroll-behavior: contain` | 已覆盖（机检） |
+| 页面回弹抑制（`html { overscroll-behavior: none }`） | **不采用**：会连带关掉移动端下拉刷新与横向滑动返回；抽屉 / 模态已在容器内 contain | 特例（不采纳） |
+| 安全区（`env(safe-area-inset-*)`） | 模态 footer 已吃 `safe-area-inset-bottom`；顶栏为横向满铺且左右留白 16px，无全屏横屏布局 | 部分：仅模态需要（特例） |
+| `translate="no"`（品牌 / 代码词不被浏览器翻译） | **不采用**：站点为中文单语、无自动翻译入口；出现外文机器翻译需求再补 | 特例（不采纳） |
 | 导航与深链（URL 反映状态 / `<a>` 导航 / 破坏性动作确认） | `INTERACTION_AND_NAVIGATION_CONTRACT` · `navigation-guard` · `todo-actions` | 已覆盖 |
 | 日期 / 数字格式化（`Intl.*`） | **不采用**：统一走 `date-canon-guard` 的本地时区口径（`D-780`），`Intl` 的 zh-CN 输出不稳定 | 特例（不采纳） |
 | 文案（主动语态 / 标题式 / 数字用阿拉伯） | `copy-guard` · `DS_03 §4.18` | 已覆盖 |
 | 内联 `onclick` | `docs/src` 8 处仅 `event.stopPropagation()`（按钮内，不是 div 伪按钮）；未启 CSP | 特例（保留，不作缺陷） |
 | `text-wrap: balance` 标题 | 未采用：中文标题短、折行由容器与省略号承担；改动需真机复核 | 特例（不采纳） |
 
-探查方法：按规则表逐族 grep ＋ 实读关键文件（help / index / login / secretary 壳层 / 表格组件）；findings 与修正在 `D-914`。
+探查方法：按规则表逐族 grep ＋ 实读关键文件（help / index / login / secretary 壳层 / 表格组件）。批次 604 首轮修正两处；批次 604 续把「粘性头避让 / 触控 / 滚动隔离 / 触控高亮 / 图片尺寸」五条落成 `component-ratchet-guard::TC-1…TC-5` 机检（每条带反例自证），并改正批次 604 的 guards 断言登记多记 3 条。findings 与修正在 `D-914`。

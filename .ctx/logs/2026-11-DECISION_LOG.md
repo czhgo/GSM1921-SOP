@@ -909,5 +909,17 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：daily **32 文件 / 266 断言全绿（124.2s）**；guards **81 文件全绿（182.2s）**；`probe:stage` 6/6；专项断言新增 3 条（矩阵门名 / EA 读数 / 对象单一源）均带反例自证。
 > **落点**：`CLAUDE.md`（H25 ＋ 乙部）；`.ctx/{ACTIVE_CONTEXT,ENGINEERING_ASSESSMENT,REVIEW_QUEUE,TIMESTAMPS}.md`；`content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md`；`content/05_ai_coding/UI_REVIEW_CHECKLIST.md`；`docs/{help,index}.html`；`server/test/{write-policy-matrix,evaluation-asset-guard,single-fact-consistency}.test.mjs`。
 
+> **续（批次 604 续）**：外部准则里能布尔化的五条落成机检，并入 `component-ratchet-guard` 源件 16
+> `viewport-and-touch-guard`（每条带反例）：`TC-1` `scroll-padding-top ≡ #app-header height`（`html` 补 56px 后逐值比对）；
+> `TC-2` `touch-action: manipulation` 覆盖九类可交互控件；`TC-3` `.sidebar-nav` 与 `.modal-body` 双 `overscroll-behavior: contain`；
+> `TC-4` `-webkit-tap-highlight-color: transparent`；`TC-5` 静态页 `<img>` 必须 alt ＋ 数值宽高、JS 模板必须 alt。
+> 同批改正登记漂移：批次 604 写 guards「实然 901」，实测 **898**（多记 3 条）⇒ 本批实测 **905**（含新增 7 条）并同步 registry / EA / ACTIVE_CONTEXT。
+> 二次探查（规则指针可靠性）：D-910 归并后 21 处文档仍引用已不存在的守卫文件名（`docs/src/AGENTS.md` 验证命令、`server/README.md` 清单、DS_02 / DS_03 / Q 集）⇒ 全部改为归并件名 ＋ 源件号；
+> 新守卫 `doc-lifecycle-guard` 源件 5 `guard-citation-guard`（GC-1 引用即存在 / GC-2 反例；归并对照台账 `GUARD_INVENTORY.md` 豁免）。
+> **读数**：`component-ratchet-guard` 129 条全绿；`doc-lifecycle-guard` 55 条全绿（GC-1 扫 94 个 `.md`、0 悬空）；真机（Playwright 390×844）`touch-action: manipulation`、`tap-highlight rgba(0,0,0,0)`、
+> `scroll-padding-top: 56px`、无横向溢出、控制台 0 error、首 Tab 落 skip link 且 `outline: solid`；guards **81 文件 / 905 断言全绿**、daily **32 / 266 全绿**。
+> **落点**：`docs/src/styles.css`（`html` 两声明）；`docs/{help,login}.html`（党徽尺寸归一为属性）；`content/05_ai_coding/UI_REVIEW_CHECKLIST.md` ⑨；
+> `server/test/{component-ratchet-guard.test.mjs,doc-lifecycle-guard.test.mjs,test-tier-registry.mjs}`；`docs/src/AGENTS.md`；`server/README.md`；`content/04_web_design/design-system/{DS_02_TYPE_AND_SIZE,DS_03_COMPONENTS}.md`；`content/05_ai_coding/{REVIEW_QUESTION_SET,TEST_AND_VERIFICATION}.md`；`.ctx/{ENGINEERING_ASSESSMENT,ACTIVE_CONTEXT,TIMESTAMPS}.md`。
+
 > **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-914`**（共 **88** 条）。
 

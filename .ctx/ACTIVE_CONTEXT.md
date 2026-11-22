@@ -26,7 +26,7 @@ status: active
 - **权限**：写入口矩阵 **163 条**（156 enforced / 5 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵。source：`server/security/write-policy-matrix.mjs`。
 - **六维（`D-913` 重评）**：业务 **77** / 安全 **75** / 体验 **74** / 测试 **69** / 架构 **73** / 部署 **67**；只作诊断，不单独阻断合并（`D-894`）。
 - **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（批次 603 实跑 239.7s，同值；source：`.ctx/evidence/2026-11-21/tab-audit/summary.md`）。
-- **测试（四层）**：daily **32 文件 / 266 断言**；guards **81 文件 / 901 断言**（52 源件已并 5 件，预算软告警）；`npm run probe:stage` 6 步断点探针。source：`server/test-tier-registry.mjs`。
+- **测试（四层）**：daily **32 文件 / 266 断言**；guards **81 文件 / 905 断言**（52 源件已并 5 件，预算软告警）；`npm run probe:stage` 6 步断点探针。source：`server/test-tier-registry.mjs`。
 - **换轨**：`preflight-cutover --strict` exit 0；契约 50 表；生产只走个人密码（`D-882`）。source：`deploy/CUTOVER_RUNBOOK.md`。
 
 ## §2 现行裁定摘要（只留仍影响下一步）

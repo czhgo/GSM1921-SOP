@@ -588,6 +588,14 @@ summary:not(.disclosure__summary):active {
 html {
   font-size: 16px;
   scroll-behavior: smooth;
+  /* 2026-11-23 批次 604（D-914 外部准则探查）：`#app-header` 是 fixed 且恒高 56px，
+     锚点跳转 / 键盘聚焦滚动会把目标顶到标题栏下（粘性头遮住聚焦元素）。
+     scroll-padding-top 与 #app-header 的 height 同值，由 component-ratchet-guard::TC-1 逐值比对，
+     改高度必须两处同改。 */
+  scroll-padding-top: 56px;
+  /* 触控高亮：默认半透明蓝与党建红壳层撞色；点击反馈由各控件 :active 档承担（不靠系统高亮）。
+     外部准则要求「显式设定」而非继承浏览器默认。 */
+  -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
   -moz-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -2675,6 +2683,8 @@ a.text-accent {
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;
+  /* 2026-11-23 批次 604（D-914）：抽屉内滚动不串联到页面（外部准则探查）。 */
+  overscroll-behavior: contain;
 }
 
 .sidebar-footer {
@@ -4043,6 +4053,20 @@ summary:focus-visible,
   outline: 2px solid var(--app-accent);
   outline-offset: 1px;
   box-shadow: none;
+}
+
+/* 触控：可交互控件取消双击缩放延迟（2026-11-23 批次 604 外部准则探查 · D-914）。
+   `manipulation` 只禁双击缩放，单指滚动 / 捏合仍可用；拖拽面若需自有手势再单独覆盖。 */
+button,
+a[href],
+summary,
+[role="button"],
+[role="tab"],
+[role="option"],
+input,
+select,
+textarea {
+  touch-action: manipulation;
 }
 
 /* 控件底色本身即主题色实底时（.btn-accent / .btn-danger-solid / 实底 status-badge），

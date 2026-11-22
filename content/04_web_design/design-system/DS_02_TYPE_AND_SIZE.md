@@ -2,7 +2,7 @@
 title: "设计系统 · 第二编 排版与尺寸"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-11-22
+last_updated: 2026-11-23
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.css, ../../../server/test/style-ratchet-guard.test.mjs, ../../../server/test/style-ratchet-guard.test.mjs]
 ---
@@ -56,7 +56,7 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.
 
 #### 3.2.1 非控件小字口径（2026-09-26 立 · 据本表推导 · 可判）
 
-**口径**（单一源守卫＝`server/test/small-text-guard.test.mjs`）：
+**口径**（单一源守卫＝`server/test/style-ratchet-guard.test.mjs`，源件 1 type-scale）：
 
 | 档 | 判定 | 依据 |
 |----|------|------|
@@ -122,7 +122,7 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.
 
 **Overline 形态判据（可机检的一半）**：`text-[11px]` 是 **Overline（标签）档**，只许出现在**标签**上
 （同标签 class 同时具备 600 字重、或 `tracking-*` / `uppercase` 之一）；
-**`<p>` 段落（说明 / 导语）不得用 11px**（应取 Caption 12px）。守卫：`server/test/text-tier-guard.test.mjs`
+**`<p>` 段落（说明 / 导语）不得用 11px**（应取 Caption 12px）。守卫：`server/test/style-ratchet-guard.test.mjs`（源件 1 type-scale）
 （判红面＝`<p>` 上的 9/10/11px；`<span>`/`<div>` 上 11px 形态可能合法、只计进度）。
 
 #### 3.2.3 全站实测字号档位（2026-10-31 登记 · 只登记不改值）

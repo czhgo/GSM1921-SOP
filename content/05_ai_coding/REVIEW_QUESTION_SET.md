@@ -2,7 +2,7 @@
 title: "审查问题集 v1——从 36 个 spec 与 42 个批次倒查出的可复用判据"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: 2026-11-22
+last_updated: 2026-11-23
 status: active
 ---
 
@@ -31,7 +31,7 @@ status: active
 
 - **判据：** 同一动作 / 对象 / 状态，在页签、按钮、标题、提示、能力注册与代码常量中是否只有一个用户可见名称，并且只从一个入口触发？
 - **真实反例：** 批次 508 纪检同一「确认考勤」同时出现「打包确认」「一次确认所选」「去考勤管理」「去处理」四种叫法（`.ctx/logs/archive/2026-10/2026-10-AUDIT_R8_THREE_COSTS.md` §二 B）；批次 502 页面写「跨组承办」而制度口径是「跨组招募」（`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 502）；`polish-workbench-visual-language` 中分组名「知情查看」与组内页签「知情查看」逐字相同。
-- **机检守卫：** `copy-master-guard.test.mjs`、`copy-screen-guard.test.mjs`（同义句/重复词基线）；人工检查点：用能力注册表逐台对照页签、页内标题、按钮文案。
+- **机检守卫：** `copy-guard.test.mjs`（源件「母本 / 自明性」）、`copy-screen-guard.test.mjs`（同义句/重复词基线）；人工检查点：用能力注册表逐台对照页签、页内标题、按钮文案。
 - **误报边界：** 六台同名「工作概况」「待办」是同一语义的不同权限面，不算多名称；同一动作面向不同角色给不同落点也不违反本条（落点问题归 Q-09）。
 - **来源轮次：** `audit-round2-minimum-three-costs`、`polish-workbench-visual-language`、`run-round6-7-audits-and-cross-group-hosting`、`run-round8-9-audits-and-polish`；批次 502、503、508。
 
@@ -127,7 +127,7 @@ status: active
 
 - **判据：** 空态是否「一句状态 + 至多一个下一步」；失败是否可见、可重试、保留输入；破坏性动作是否有确认或回执？
 - **真实反例：** R5-B 审计统计 46 处 `emptyMessage`，只有 3 处给下一步（`.ctx/logs/archive/2026-10/AUDIT_R5_B_DESIGN_TASTE.md` F-04）；R5-A 审计发现通知删除单击即物理删除，无确认无撤销（R5A-07）；R5-B 审计发现原生 `confirm/prompt` 仍 45 处，与自有 modal 并存（F-08）。
-- **机检守卫：** `feedback-integrity.test.mjs`、`modal-contract.test.mjs`、`modal-escape-guard.test.mjs`、`copy-screen-guard.test.mjs`；人工检查点：空态页与失败路径各走一遍。
+- **机检守卫：** `feedback-integrity.test.mjs`、`modal-contract.test.mjs`、`component-ratchet-guard.test.mjs`（源件「modal」）、`copy-screen-guard.test.mjs`；人工检查点：空态页与失败路径各走一遍。
 - **误报边界：** 纯展示空表可只写「无记录」；破坏性确认已由 `openModal` 统一时，不要求每个动作再写长文案，但必须保留后果句。
 - **来源轮次：** `phase2-home-and-urgent-fixes`、`round1-workbench-structure-remediation`、`consolidate-modal-surface`、`refine-ui-system-and-close-r10`；批次 484、485、497、505。
 
@@ -139,7 +139,7 @@ status: active
 
 - **判据：** 对话框 / 列表行 / 表格 / 按钮 / 下拉 / 空态是否只走共享组件；是否存在第二实现或手写同类结构？
 - **真实反例：** 批次 497 发现 `docs/src` 仍有 12 处自建浮层 / 7 文件，而唯一浮窗守卫只扫 `openModal(`，白名单为空造成「零例外」假绿（`consolidate-modal-surface`）；R11 审计发现 `.input-flat-sm` 只有 padding/font/radius，无背景、无描边、无 focus（P0-01）；R5-B 审计发现破坏性确认有原生 `confirm`、`modal.js`、自建 popover 三套载体（F-08）。
-- **机检守卫：** `ui-modal-form-guard.test.mjs`、`component-ratchet-guard.test.mjs`、`style-ratchet-guard.test.mjs`、`style-ratchet-guard.test.mjs`。
+- **机检守卫：** `component-ratchet-guard.test.mjs`（源件「modal」）、`style-ratchet-guard.test.mjs`（源件 12/13 motion）。
 - **误报边界：** 明确非对话框固定层（toast、同步横幅、锚定 popover）允许不进 `openModal`，但必须进白名单并写理由；表格引擎与手写业务表可按数据形状分流，但同类结构不得有两种写法。
 - **来源轮次：** `consolidate-modal-surface`、`refine-ui-system-and-close-r10`、`redesign-theme-palette-and-density`、`rebuild-workbench-density-and-composition`；批次 497、505、506。
 

@@ -2063,3 +2063,86 @@ await (async () => {
   });
 
 })();
+
+// ═══ 源件 5：guard-citation-guard ═══
+await (async () => {
+  // role: [工程师]+[AI]
+  // guard-citation-guard — 文档里引用的守卫文件必须真实存在（2026-11-23 批次 604 续 · D-914）
+  //
+  // 为什么：`D-910` 把 52 个源件并成 5 个归并件后，文档（`docs/src/AGENTS.md` 的验证命令、`server/README.md`
+  //   的守卫清单、DS_02 / DS_03 的「守卫」指针）仍引用旧文件名。读者照抄
+  //   `node --test test/field-shell-guard.test.mjs` 会直接 ENOENT——规则写着「有守卫」，实际跑不起来，判据失效。
+  //
+  // GC-1：`docs/**/*.md`、`server/README.md`、`content/**/*.md`、根 `*.md` 中的 `xxx-guard.test.mjs` /
+  //   `xxx-guard-e2e.test.mjs` 引用，必须能在 `server/test/` 找到同名文件。归并对照台账
+  //   `content/05_ai_coding/GUARD_INVENTORY.md` 例外（其职责就是记录「旧名 → 归并件」）。
+  // GC-2：反例自证——注入 `field-shell-guard.test.mjs` 必须判红；合规 `component-ratchet-guard.test.mjs` 不误伤。
+  const { test } = await import('node:test');
+  const assert = (await import('node:assert/strict')).default;
+  const { readFileSync, readdirSync, existsSync, statSync } = await import('node:fs');
+  const { join, relative } = await import('node:path');
+  const ROOT = join(import.meta.dirname, '..', '..');
+  const TEST_DIR = join(ROOT, 'server', 'test');
+  /** 归并对照台账：本来就该出现旧文件名，豁免 */
+  const EXEMPT = new Set(['content/05_ai_coding/GUARD_INVENTORY.md']);
+  const CITE_RE = /([a-z0-9][a-z0-9-]*-guard(?:-e2e)?)\.test\.mjs/g;
+
+  /** 扫描面：docs/**、content/**、server/README.md、根 *.md（不含 .ctx/logs 历史） */
+  function mdFiles() {
+    const out = [];
+    const walk = (dir) => {
+      for (const e of readdirSync(dir, { withFileTypes: true })) {
+        if (['node_modules', '.git', 'assets', 'vendor'].includes(e.name)) continue;
+        const p = join(dir, e.name);
+        if (e.isDirectory()) walk(p);
+        else if (e.name.endsWith('.md')) out.push(p);
+      }
+    };
+    for (const dir of [join(ROOT, 'docs'), join(ROOT, 'content')]) if (existsSync(dir)) walk(dir);
+    const serverReadme = join(ROOT, 'server', 'README.md');
+    if (existsSync(serverReadme)) out.push(serverReadme);
+    for (const n of readdirSync(ROOT)) {
+      if (n.endsWith('.md') && statSync(join(ROOT, n)).isFile()) out.push(join(ROOT, n));
+    }
+    return out.sort();
+  }
+
+  /** 纯函数：返回不存在的引用清单（file:line → 名字） */
+  function missingCitations(entries) {
+    const bad = [];
+    for (const { file, text } of entries) {
+      if (EXEMPT.has(file)) continue;
+      const lines = text.split(/\r?\n/);
+      lines.forEach((line, i) => {
+        for (const m of line.matchAll(CITE_RE)) {
+          const name = m[1];
+          if (!existsSync(join(TEST_DIR, `${name}.test.mjs`)) && !existsSync(join(TEST_DIR, `${name}.test.js`))) {
+            bad.push(`${file}:${i + 1} → test/${name}.test.mjs`);
+          }
+        }
+      });
+    }
+    return bad;
+  }
+
+  test('GC-1 文档引用的守卫文件必须存在（归并后旧名不得冒充可运行文件）', () => {
+    const entries = mdFiles().map((abs) => ({
+      file: relative(ROOT, abs).replace(/\\/g, '/'),
+      text: readFileSync(abs, 'utf8'),
+    }));
+    const bad = missingCitations(entries);
+    assert.deepEqual(bad, [],
+      `以下引用指向不存在的守卫文件（照抄会 ENOENT）：\n  ${bad.join('\n  ')}\n`
+      + '处理：改成归并件名 ＋ 源件号（如 `style-ratchet-guard.test.mjs`（源件 12 motion））。');
+    assert.ok(entries.length >= 40, `扫描面只剩 ${entries.length} 个 .md：判据失去对照面`);
+    console.log(`[GC-1] 守卫引用：${entries.length} 个 .md，0 处悬空`);
+  });
+
+  test('GC-2 反例自证：旧名判红、归并件名不误伤', () => {
+    const badEntries = [{ file: 'content/probe.md', text: '判定：node --test test/field-shell-guard.test.mjs' }];
+    assert.equal(missingCitations(badEntries).length, 1, 'GC-2 反例失效：旧名未判红');
+    const okEntries = [{ file: 'content/probe.md', text: '判定：node --test test/component-ratchet-guard.test.mjs' }];
+    assert.deepEqual(missingCitations(okEntries), [], 'GC-2 反例误伤：合规归并件名被判红');
+  });
+
+})();

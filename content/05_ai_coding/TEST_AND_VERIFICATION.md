@@ -2,7 +2,7 @@
 title: "测试验证纪律"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-20"
+last_updated: "2026-11-23"
 status: active
 related_files: [CLAUDE.md, DATA_CONSISTENCY_CHECKLIST.md, content/03_doc_system/OPERATIONS_GUIDE.md, docs/scripts/bump-version.mjs]
 ---
@@ -271,7 +271,7 @@ UI-2 通知点击响应修复时，首次基于"函数名直观判断"将 click 
 
 | 守卫 | 守什么（形态 / 状态） | 判据示例（可在源码或 DOM 上计数） | 现有落点 |
 |---|---|---|---|
-| 浮窗 | 三段结构、footer sticky、`85dvh`、四条关闭路径 reset | 提交按钮不在 `.modal-body` 内；`title` 不含 HTML；Esc / 遮罩 / × 均调用 reset | `modal-escape-guard.test.mjs`（转义部分）；形态部分待补 |
+| 浮窗 | 三段结构、footer sticky、`85dvh`、四条关闭路径 reset | 提交按钮不在 `.modal-body` 内；`title` 不含 HTML；Esc / 遮罩 / × 均调用 reset | `component-ratchet-guard.test.mjs`（源件「modal」转义部分）；形态部分待补 |
 | 筛选 | 引擎单一源与阈值 | `.lf-bar` 内页面自写 chip 计数 = 0；同页筛选控件 > 6 且无下拉 ⇒ 红；表格 > 8 行无搜索 ⇒ 红 | `filter-row.test.mjs::S2/S6/S7`、`list-filter-chip-e2e.test.mjs` |
 | 承载面 | 一个对象一个完整内容面 | 同一对象 id 的完整正文 / 字段清单节点计数 ≤ 1；次级入口只出现链接 + 摘要；第二写口计数 = 0 | 待建（对象级路由表或 `data-carrier` 标记） |
 

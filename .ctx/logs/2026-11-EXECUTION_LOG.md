@@ -32,6 +32,31 @@ status: active
 - findings：`help.html` 焦点注释与 `FOCUS-2` 矛盾（改准）；`index.html` 两枚党徽缺 `width/height`（补 48 / 56）；`UI_REVIEW_CHECKLIST ⑨` 逐族对照 14 行（已覆盖 9 / 特例 3 / 待触发 1）。
 - daily **32 文件 / 266 断言全绿（124.2s）**；guards **81 文件全绿（182.2s）**；`probe:stage` 6/6。
 
+### 批次 604 续 · 外部准则五条落成机检（同 `D-914`）
+
+#### 为什么
+- 首轮把外部准则写进 `UI_REVIEW_CHECKLIST ⑨` 只是文档；支书要求「能收尾的工作必须有明确验收标准的守卫」。五条能布尔化的项必须变成机检，且能拦住「改一处忘另一处」。
+
+#### 拿不准 / 取舍
+- **登记漂移**：批次 604 在 registry 写「guards 实然 901」，复核实测为 **898**（多记 3 条）；`evaluation-asset-guard::⑤` 只校 EA ↔ registry 常量，管不到「常量 ↔ 实测」。本批改正为实测值并加 7 条新断言（TC-1…TC-5 ＋ GC-1/GC-2）⇒ **905**。
+- **图片判据边界**：静态页（`docs/*.html`）要求 `alt` ＋ 数值 `width`/`height`（防 CLS）；JS 模板只要求 `alt`（尺寸可由固定尺寸类承担，逐条追容器会把判据变成易碎的近似）。注释里的 `<img>` 示例先剥注释再扫，避免误红。
+- **不新增判例**：五条是外部准则的工程默认，不是支书裁定的产品特例；`CASES.md` 每条必须挂 `SD-xx`，硬造编号会让判例越权产生规范效力。
+
+#### 边界
+- 不改布局与交互行为；`scroll-padding-top`、`tap-highlight`、两处党徽尺寸写法属纯增量 / 归一。
+- 不新增守卫文件：并入 `component-ratchet-guard` 源件 16（`D-910`）。
+
+#### 二次探查 · 规则指针可靠性（同批同 `D-914`）
+- **为什么**：支书要求「原则、规则、判例都是清晰可靠」。D-910 把 52 个源件并成 5 个归并件后，`docs/src/AGENTS.md` 的验证命令仍写 `test/field-shell-guard.test.mjs` / `test/motion-guard.test.mjs`，`server/README.md` 与 DS_02 / DS_03 / Q 集仍引用 8 个已不存在的守卫文件名——照抄会 ENOENT，规则写着「有守卫」实际跑不起来。
+- **拿不准 / 取舍**：改 21 处引用而不是保留旧名；`GUARD_INVENTORY.md` 的「旧名 → 归并件」对照表**豁免**（它的职责就是记录归并）。`ui-control-system-guard` 等**源件名**不算悬空（归并件内保留源件横幅，grep 可定位），只要求 `.test.mjs` 文件名存在。
+- **落点**：`docs/src/AGENTS.md`（4 处）；`server/README.md`（6 类）；`DS_02`（2）、`DS_03`（2）、`REVIEW_QUESTION_SET`（3）、`TEST_AND_VERIFICATION`（1）；新守卫 `doc-lifecycle-guard` 源件 5 `guard-citation-guard`（GC-1 引用即存在 ＋ GC-2 反例）。
+- **读数**：GC-1 扫 94 个 `.md`、0 处悬空；`doc-lifecycle-guard` 55 条全绿。
+
+#### 读数
+- `component-ratchet-guard` 129 条全绿；新五条日志：`TC-1 height=56px ≡ scroll-padding-top=56px` · `TC-2 覆盖 9 选择器` · `TC-3 .sidebar-nav/.modal-body 均 contain` · `TC-4 transparent` · `TC-5 静态页 18 个 · JS 模板 alt 全绿`。
+- 真机（Playwright，390×844，login 与 index）：`touch-action: manipulation` 生效于按钮与链接；`-webkit-tap-highlight-color: rgba(0,0,0,0)`；`scroll-padding-top: 56px`；无横向溢出；login 党徽 `attr 56 / rendered 56`；控制台 0 error；首 Tab 落「跳到主要内容」且 `outline: solid`。
+- guards **81 文件 / 905 断言全绿（无预算告警）**；daily **32 文件 / 266 断言全绿**。
+
 ## 批次 603（2026-11-22）· 顶栏控件梯（判例＋特例）＋ 六维批判重评（D-913）
 
 ### 为什么

@@ -142,8 +142,8 @@ dynamic_role:
 | --------- | ------------- | -------- | ------ | ------ |
 | content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-11-22 | — | [工程师]+[AI] | 父索引：§一 设计哲学 ＋ 编目（SD-1…SD-68）；2026-11-22 批次 603 增 SD-68 指针。 |
 | content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md | 2026-11-22 | — | [工程师]+[AI] | 第一编 色彩与主题（§2.13 补图标状态色互指句）。 |
-| content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md | 2026-11-22 | — | [工程师]+[AI] | 第二编 排版与尺寸（增正文/说明边界与棘轮）。 |
-| content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-11-22 | — | [工程师]+[AI] | 第三编 组件；2026-11-22 批次 603 增 SD-68 壳层两档（顶栏 36/44、页脚 22.4/44）；卡厚度 16 / 12 两档 |
+| content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md | 2026-11-23 | — | [工程师]+[AI] | 第二编 排版与尺寸（增正文/说明边界与棘轮）；2026-11-23 批次 604 续守卫指针改归并件名（`GC-1`）。 |
+| content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-11-23 | — | [工程师]+[AI] | 第三编 组件；2026-11-22 批次 603 增 SD-68 壳层两档（顶栏 36/44、页脚 22.4/44）；卡厚度 16 / 12 两档；604 续守卫指针改归并件名（`GC-1`） |
 | content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md | 2026-11-08 | — | [工程师]+[AI] | 第四编 交互与响应式（P10 三档动效令牌）。 |
 | content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md | 2026-11-22 | — | [工程师]+[AI] | 第五编 地图与速查。 |
 | content/04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md | 2026-11-21 | — | [工程师]+[AI] | 第六编 布局与密度：SD-57 页签密度 46。 |
@@ -195,9 +195,9 @@ dynamic_role:
 | content/05_ai_coding/DOCUMENT_GOVERNANCE.md | 2026-11-19 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒  |
 | content/05_ai_coding/FILE_OPERATION_RULES.md | 2026-11-03 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。* |
 | content/05_ai_coding/REVIEW_AND_EXPRESSION.md | 2026-11-22 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。* |
-| content/05_ai_coding/TEST_AND_VERIFICATION.md | 2026-11-20 | — | [工程师]+[AI] | 测试三层（daily/precommit/weekly）；2026-11-03 增两条判例；2026-11-19 增 sample-diff 四条判例（缺证据即 |
+| content/05_ai_coding/TEST_AND_VERIFICATION.md | 2026-11-23 | — | [工程师]+[AI] | 测试三层（daily/precommit/weekly）；2026-11-03 增两条判例；2026-11-19 增 sample-diff 四条判例；604 续浮窗守卫指针改归并件名（`GC-1`） |
 | content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md | 2026-11-19 | — | [工程师]+[AI] | 页签审计手册（2026-11-02 建）：五维检查表、P0–P2、例外口径、怎么跑、怎么加检查与页签、报告字段；判据回链 DS_06 §五与 `audit/se |
-| content/05_ai_coding/UI_REVIEW_CHECKLIST.md | 2026-11-23 | — | [工程师]+[AI] | 温层 UI 审查清单：8 组任务；2026-11-23 批次 604 增 ⑨ 外部准则对照附录（`D-914`） |
+| content/05_ai_coding/UI_REVIEW_CHECKLIST.md | 2026-11-23 | — | [工程师]+[AI] | 温层 UI 审查清单：8 组任务；2026-11-23 批次 604 增 ⑨ 外部准则对照附录、604 续把五条落成 `TC-1…TC-5` 机检（`D-914`） |
 | content/05_ai_coding/AUDIT_CANON.md | 2026-11-19 | — | [工程师]+[AI] | 审计口径唯一表（2026-11-02 建）：四口径裁定（F2 控件行数 / F4 H2 恰 1 / F7 `hasPager()` / C1 `requireA |
 
 ## content/insights/ (经验沉淀)
@@ -220,13 +220,13 @@ dynamic_role:
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 | --------- | ------------- | -------- | ------ | ------ |
 | server/routes/resources/index.js | 2026-11-19 | — | [工程师]+[AI] | 资源路由装配；活动删除保留报名与表决留痕（`D-876`）、其余子记录事务清理，并返回集合版本。**2026-11-14 批次 550（D-872）**：`POST /activities` 写库前冻结表决名单；**批次 552**：`D-876` 留痕口径；批次 569 考察读改请求级缓存；批次 578 版本读写走 `resolveVersionBranchId`（按支部命名空间）。
-| content/05_ai_coding/REVIEW_QUESTION_SET.md | 2026-11-22 | — | [工程师]+[AI] | 审查问题集：Q-01…Q-22（Q-22 为页签密度与信息经济的审查方法，执行工具指向 `TAB_AUDIT_PLAYBOOK.md`）。 |
+| content/05_ai_coding/REVIEW_QUESTION_SET.md | 2026-11-23 | — | [工程师]+[AI] | 审查问题集：Q-01…Q-22（Q-22 为页签密度与信息经济的审查方法，执行工具指向 `TAB_AUDIT_PLAYBOOK.md`）；604 续 Q-01/12/13 守卫指针改归并件名（`GC-1`） |
 | content/05_ai_coding/QUESTION_HIT_MATRIX.md | 2026-11-03 | — | [工程师]+[AI] | 历史命中矩阵；Q-22 列新立，36 行历史记 `—`。 |
 | content/05_ai_coding/GUARD_INVENTORY.md | 2026-11-22 | — | [工程师]+[AI] | 守卫台账；历史总表停 66 件（已滞后），现行件数以 `test-tier-registry.mjs` 为准。 |
 | content/03_doc_system/CASES_INDEX.md | 2026-11-22 | — | [工程师]+[AI] | 判例总索引（design 44 / data 1 / ai 9）；2026-11-22 批次 603 登记 CASE-DESIGN-044（顶栏控件梯）。 |
 | .ctx/README.md | 2026-11-21 | — | [工程师]+[AI] | 见日志批次 597 |
 | .ctx/ACTIVE_CONTEXT.md | 2026-11-23 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-914`。 |
-| server/README.md | 2026-11-19 | — | [工程师]+[AI] | 见日志批次 597 |
+| server/README.md | 2026-11-23 | — | [工程师]+[AI] | 服务端说明；604 续守卫清单旧文件名改归并件名（`GC-1`） |
 | server/package.json | 2026-11-20 | — | [工程师]+[AI] |  |
 | server/package-lock.json | 2026-08-30 | — | [工具] |  |
 | server/.gitignore | 2026-09-01 | — | [工具] |  |
@@ -239,12 +239,12 @@ dynamic_role:
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 | --------- | ------------- | -------- | ------ | ------ |
 | docs/index.html | 2026-11-23 | — | [用户]+[AI] | 首页；2026-11-23 批次 604 两枚党徽补 width/height（48 / 56） |
-| docs/login.html | 2026-10-22 | — | [用户]+[AI] |  |
+| docs/login.html | 2026-11-23 | — | [用户]+[AI] | 登录页；2026-11-23 批次 604 续党徽尺寸由内联 style 归一为 width/height 属性（`TC-5`） |
 | docs/about.html | 2026-08-12 | — | [用户]+[AI] |  |
 | docs/archive.html | 2026-09-24 | — | [用户]+[AI] |  |
 | docs/branch-config.html | 2026-10-18 | — | [工程师]+[AI] |  |
 | docs/feedback.html | 2026-07-31 | — | [用户]+[AI] |  |
-| docs/help.html | 2026-11-23 | — | [用户]+[AI] | 帮助页；2026-11-23 批次 604 焦点注释改准（输入族只变边框色，`FOCUS-2`） |
+| docs/help.html | 2026-11-23 | — | [用户]+[AI] | 帮助页；2026-11-23 批次 604 焦点注释改准（输入族只变边框色，`FOCUS-2`）；604 续党徽尺寸归一为属性（`TC-5`） |
 | docs/notice.html | 2026-09-24 | — | [用户]+[AI] |  |
 | docs/messages.html | 2026-10-03 | — | [工程师]+[AI] |  |
 | docs/search.html | 2026-07-31 | — | [用户]+[AI] |  |
@@ -328,7 +328,7 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 | --------- | ------------- | -------- | ------ | ------ |
-| docs/src/styles.css | 2026-11-22 | — | [工程师]+[AI] | 全站样式单一源；SD-68 壳层两档（`D-913`） |
+| docs/src/styles.css | 2026-11-23 | — | [工程师]+[AI] | 全站样式单一源；批次 603 SD-68 壳层两档；批次 604 补 `touch-action` / 抽屉 `overscroll-behavior`（`D-914`） |
 | docs/src/about.css | 2026-09-28 | — | [工程师]+[AI] |  |
 
 ### docs/scripts/

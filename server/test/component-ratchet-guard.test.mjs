@@ -4726,3 +4726,202 @@ await (async () => {
   });
 
 })();
+
+// ═══ 源件 16：viewport-and-touch-guard ═══
+await (async () => {
+  // role: [工程师]+[AI]
+  // viewport-and-touch-guard — 外部准则（Web Interface Guidelines）里五条能布尔化的收口项（2026-11-23 批次 604 · D-914）
+  //
+  // 为什么有本守卫：批次 604 用 web-design-guidelines 做外部准则探查时，发现「粘性头遮住聚焦元素」
+  //   「<img> 尺寸三种写法并存」这类只在真机上才看得见的漏网。文档写进 `UI_REVIEW_CHECKLIST ⑨`
+  //   不算收口——没有机检就会下一次改动又漏回去。本组把五条写成可布尔判定的验收标准：
+  //   TC-1 固定顶栏避让：`html` 的 `scroll-padding-top` 必须等于 `#app-header` 的 `height`（逐值比对）。
+  //   TC-2 触控：至少一条 `touch-action: manipulation` 规则覆盖九类可交互控件。
+  //   TC-3 滚动隔离：`.sidebar-nav`（抽屉）与 `.modal-body`（模态体）都声明 `overscroll-behavior: contain`。
+  //   TC-4 触控高亮显式设定：`html` 必须声明 `-webkit-tap-highlight-color: transparent`。
+  //   TC-5 图片：`docs/*.html` 的 `<img>` 必须有 `alt` ＋ 数值 `width`/`height`（hidden 除外）；
+  //        `docs/src/**/*.js` 的 `<img>` 必须有 `alt`（尺寸可由固定尺寸类承担）。
+  // 五条都带反例自检（改坏 ⇒ 必须判红），证明判定器不是恒绿。
+  const { test } = await import('node:test');
+  const assert = (await import('node:assert/strict')).default;
+  const { readFileSync, readdirSync } = await import('node:fs');
+  const { join, relative } = await import('node:path');
+  const ROOT = join(import.meta.dirname, '..', '..');
+  const CSS = join(ROOT, 'docs', 'src', 'styles.css');
+  const DOCS = join(ROOT, 'docs');
+
+  /** 剥 CSS 注释（注释里的示例不得计入判据） */
+  const stripCssComments = (s) => String(s).replace(/\/\*[\s\S]*?\*\//g, '');
+
+  /** 剥 JS 注释（块注释 ＋ 整行 / 行尾注释；`https://` 不被误剥） */
+  const stripJsComments = (s) => String(s)
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/.*$/gm, '$1');
+
+  /** 顶层规则块 `{selector, body}`（进入 `@media` 时整块跳过；本组判据只针对顶层规则） */
+  function ruleBlocks(css) {
+    const src = stripCssComments(css);
+    const out = [];
+    let i = 0;
+    let selStart = 0;
+    while (i < src.length) {
+      const ch = src[i];
+      if (ch === '{') {
+        const selector = src.slice(selStart, i).split('}').pop().trim().replace(/\s+/g, ' ');
+        let depth = 1;
+        let j = i + 1;
+        while (j < src.length && depth > 0) {
+          if (src[j] === '{') depth += 1;
+          else if (src[j] === '}') depth -= 1;
+          j += 1;
+        }
+        out.push({ selector, body: src.slice(i + 1, j - 1) });
+        i = j;
+        selStart = j;
+        continue;
+      }
+      if (ch === '}') selStart = i + 1;
+      i += 1;
+    }
+    return out;
+  }
+
+  /** 取某选择器的全部规则体（选择器逐字相等） */
+  const bodiesOf = (blocks, selector) => blocks.filter((b) => b.selector === selector).map((b) => b.body);
+
+  /** 取规则体里某声明的值（最后一条生效；无则 null） */
+  function declValue(body, prop) {
+    const re = new RegExp(`(?:^|[;{\\s])${prop.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\s*:\\s*([^;}]+)`, 'g');
+    let v = null;
+    let m;
+    while ((m = re.exec(body)) !== null) v = m[1].trim();
+    return v;
+  }
+
+  const CSS_SRC = readFileSync(CSS, 'utf8');
+  const BLOCKS = ruleBlocks(CSS_SRC);
+
+  /** TC-1 纯函数：返回 `{header, pad}`（px 数值）；缺声明为 null */
+  function headerScrollPair(css) {
+    const blocks = ruleBlocks(css);
+    const headerBody = bodiesOf(blocks, '#app-header').join(';');
+    const htmlBody = bodiesOf(blocks, 'html').join(';');
+    const px = (v) => (v && /^(\d+(?:\.\d+)?)px$/.test(v) ? Number(v.slice(0, -2)) : null);
+    return {
+      header: px(declValue(headerBody, 'height')),
+      pad: px(declValue(htmlBody, 'scroll-padding-top')),
+    };
+  }
+
+  test('TC-1 固定顶栏避让：html 的 scroll-padding-top ≡ #app-header 的 height（逐值比对）', () => {
+    const { header, pad } = headerScrollPair(CSS_SRC);
+    assert.ok(header > 0, '#app-header 的 height 未解析到数值：判据失去对照面');
+    assert.equal(pad, header,
+      `scroll-padding-top=${pad} 与 #app-header height=${header} 不等：锚点 / 聚焦滚动会被固定顶栏遮住；`
+      + '两处必须同值（改高度同批改 scroll-padding-top）');
+    const bad = CSS_SRC.replace(/scroll-padding-top:\s*\d+(?:\.\d+)?px/, 'scroll-padding-top: 0px');
+    assert.notDeepEqual(headerScrollPair(bad), { header, pad: header }, 'TC-1 反例失效：改坏 scroll-padding-top 未判红');
+    console.log(`[TC-1] 顶栏避让：height=${header}px ≡ scroll-padding-top=${pad}px`);
+  });
+
+  const TOUCH_REQUIRED = ['button', 'a[href]', 'summary', '[role=button]', '[role=tab]', '[role=option]', 'input', 'select', 'textarea'];
+
+  /** TC-2 纯函数：覆盖 `touch-action: manipulation` 的控件（选择器去引号归一） */
+  function touchCovered(css) {
+    const covered = new Set();
+    for (const b of ruleBlocks(css)) {
+      if (!/touch-action\s*:\s*manipulation/.test(b.body)) continue;
+      for (const raw of b.selector.split(',')) {
+        covered.add(raw.trim().replace(/"/g, '').replace(/'/g, '').replace(/\s+/g, ' '));
+      }
+    }
+    return covered;
+  }
+
+  test('TC-2 触控：touch-action: manipulation 覆盖九类可交互控件（缺一即红）', () => {
+    const covered = touchCovered(CSS_SRC);
+    const missing = TOUCH_REQUIRED.filter((s) => !covered.has(s));
+    assert.deepEqual(missing, [],
+      `touch-action: manipulation 未覆盖：${missing.join(' / ')}（双击缩放延迟会回来）`);
+    const bad = CSS_SRC.replace(/button,\s*\n?\s*a\[href\][\s\S]{0,400}?touch-action:\s*manipulation/, 'button { touch-action: manipulation }');
+    assert.deepEqual([...touchCovered(bad)].filter((s) => TOUCH_REQUIRED.includes(s)).length >= TOUCH_REQUIRED.length, false,
+      'TC-2 反例失效：删掉控件选择器未判红');
+    console.log(`[TC-2] 触控：覆盖 ${covered.size} 个选择器（要求 ≥ ${TOUCH_REQUIRED.length}）`);
+  });
+
+  test('TC-3 滚动隔离：抽屉 .sidebar-nav 与模态体 .modal-body 都 contain（不串联页面滚动）', () => {
+    for (const sel of ['.sidebar-nav', '.modal-body']) {
+      const bodies = bodiesOf(BLOCKS, sel);
+      assert.ok(bodies.length > 0, `${sel} 规则块缺失：判据失去对照面`);
+      assert.ok(bodies.some((b) => /overscroll-behavior\s*:\s*contain/.test(b)),
+        `${sel} 缺 overscroll-behavior: contain（内层滚到底会带动页面滚动）`);
+      const bad = CSS_SRC.replace(new RegExp(`(\\${sel}\\s*\\{[^}]*?)overscroll-behavior:\\s*contain`, 'g'), '$1');
+      assert.equal(/overscroll-behavior\s*:\s*contain/.test(bodiesOf(ruleBlocks(bad), sel).join(';')), false,
+        `TC-3 反例失效：从 ${sel} 删掉 contain 未判红`);
+    }
+    console.log('[TC-3] 滚动隔离：.sidebar-nav · .modal-body 均 contain');
+  });
+
+  test('TC-4 触控高亮显式设定：html 声明 -webkit-tap-highlight-color: transparent', () => {
+    const htmlBody = bodiesOf(BLOCKS, 'html').join(';');
+    const v = declValue(htmlBody, '-webkit-tap-highlight-color');
+    assert.equal(v, 'transparent',
+      `-webkit-tap-highlight-color=${v}：必须显式设为 transparent（默认系统蓝与党建红壳层撞色）`);
+    const bad = CSS_SRC.replace(/\s*-webkit-tap-highlight-color:\s*transparent;?/, '');
+    assert.equal(declValue(bodiesOf(ruleBlocks(bad), 'html').join(';'), '-webkit-tap-highlight-color'), null,
+      'TC-4 反例失效：删掉声明未判红');
+    console.log('[TC-4] 触控高亮：transparent（显式设定）');
+  });
+
+  /** TC-5 纯函数：图片判据 → 问题清单 */
+  function imageProblems(html, { requireDims }) {
+    const problems = [];
+    const re = /<img\b((?:"[^"]*"|'[^']*'|[^>"'])*)>/gi;
+    let m;
+    while ((m = re.exec(html)) !== null) {
+      const attrs = m[1] || '';
+      const get = (name) => {
+        const hit = new RegExp(`(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`).exec(attrs);
+        return hit ? (hit[1] ?? hit[2] ?? '') : null;
+      };
+      const line = html.slice(0, m.index).split('\n').length;
+      if (get('alt') === null) problems.push(`${line}:<img> 缺 alt`);
+      if (!requireDims || get('hidden') !== null) continue;
+      for (const dim of ['width', 'height']) {
+        const v = get(dim);
+        if (v === null || !/^\d+$/.test(v.trim())) problems.push(`${line}:<img> 缺数值 ${dim}（防 CLS）`);
+      }
+    }
+    return problems;
+  }
+
+  test('TC-5 图片：静态页 <img> 必须有 alt ＋ 数值 width/height；JS 模板必须有 alt', () => {
+    const pages = readdirSync(DOCS).filter((n) => n.endsWith('.html')).sort();
+    const pageProblems = pages.flatMap((n) => imageProblems(readFileSync(join(DOCS, n), 'utf8'), { requireDims: true })
+      .map((p) => `docs/${n}:${p}`));
+    assert.deepEqual(pageProblems, [], `静态页图片判据不满足：\n${pageProblems.join('\n')}`);
+
+    const jsProblems = [];
+    const walkSrc = (dir) => {
+      for (const e of readdirSync(dir, { withFileTypes: true })) {
+        if (['mock', 'vendor', 'node_modules'].includes(e.name)) continue;
+        const p = join(dir, e.name);
+        if (e.isDirectory()) walkSrc(p);
+        else if (/\.(js|mjs)$/.test(e.name)) {
+          for (const p2 of imageProblems(stripJsComments(readFileSync(p, 'utf8')), { requireDims: false })) {
+            jsProblems.push(`${relative(ROOT, p).replace(/\\/g, '/')}:${p2}`);
+          }
+        }
+      }
+    };
+    walkSrc(join(DOCS, 'src'));
+    assert.deepEqual(jsProblems, [], `JS 模板图片缺 alt：\n${jsProblems.join('\n')}`);
+
+    assert.equal(imageProblems('<img src="a.png" class="x">', { requireDims: true }).length, 3,
+      'TC-5 反例失效：缺 alt / width / height 未全部判红');
+    assert.deepEqual(imageProblems('<img src="a.png" alt="" width="48" height="48">', { requireDims: true }), [],
+      'TC-5 反例误伤：合规 <img> 被判红');
+    console.log(`[TC-5] 图片：静态页 ${pages.length} 个 · JS 模板 alt 全绿`);
+  });
+
+})();

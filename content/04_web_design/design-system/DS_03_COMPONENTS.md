@@ -2,7 +2,7 @@
 title: "设计系统 · 第三编 组件"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-11-22
+last_updated: 2026-11-23
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_RESPONSIVE.md, DS_06_LAYOUT_AND_DENSITY.md, ../../../docs/src/styles.css, CASES.md]
 ---
@@ -264,7 +264,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 > ① **唯一档位**——正文 13px、控件 38px：`input-flat` / `input-flat text-xs`（`.text-xs` 只是历史类名，**不再是更小一档**）/ 原生与增强下拉 / `.lf-btn` / `.data-table` 正文，全部同档；表格内嵌 `.input-flat-sm` 仅保留较小内边距（6px 12px），字号同档 13px；
 > ② **禁止**「自制 Tailwind 控件」再出现（`rounded-lg border border-gray-200 px-2 py-1.5 text-xs bg-white` 一类）；
 > ③ **禁止**在 `input-flat` 上叠尺寸类（`py-1.5` / `p-2` / `text-sm` / `rounded-lg`）——会覆盖单一源口径；
-> ④ **禁止** `text-[11px]`/`text-[10px]` 控件字号（与规范 Caption 档冲突）；现存项登记为基线，**新增即红**——守卫 `server/test/control-font-guard.test.mjs`（含 `text-[9px]`：§4.3 原文未点名 9px，按同一条「控件单档 13px」纳入，全站现存 0 处）；
+> ④ **禁止** `text-[11px]`/`text-[10px]` 控件字号（与规范 Caption 档冲突）；现存项登记为基线，**新增即红**——守卫 `server/test/style-ratchet-guard.test.mjs`（源件 1 type-scale；含 `text-[9px]`：§4.3 原文未点名 9px，按同一条「控件单档 13px」纳入，全站现存 0 处）；
 > ⑤ 同一 tab 内同一层级（工具条筛选/表单正文）的控件必须同档同字号——并档后此项自动成立；
 > ⑥ **高度算式显式**：控件高 = 上下内边距 + **显式行高** + 边框，五处载体（输入框 / 原生下拉 / 增强下拉触发器 × 带不带 `.text-xs` 类名）同一算式——`10+10+16+2 = 38px`。**行高必须由 `docs/src/styles.css` 声明，不得靠 UA 默认或 Tailwind CDN 的 `text-*` 工具类提供**。守卫 `server/test/filter-row.test.mjs::D1 / D2`。
 > ⑦ **表格正文与筛选器/表单同档**：`.data-table` 字号 13px、行高 1.25rem（行高 20px + 上下内边距 8px = 36px 行高）；Caption/徽标（`text-xs` 12px）不在本口径内，仍可用于状态徽标等附注文字。
@@ -663,7 +663,7 @@ icon('bell', { className: 'w-4 h-4' })
 #### 少说一句：UI 自明则不必多言（2026-09-29 立 · 支书裁定）
 
 - **原则**（支书逐字）：「**此地无银三百两。你的显示、功能已经是最好的说明了。干嘛多此一举？** 你要全仓库检查 **if the UI can tell itself, you needn't use the tedious expressions.**」⇒ 凡**界面已自明**之事（可见范围、字段含义、去哪个页面看），**一律不再用文字解释**。
-- **禁句**（零容忍，机检 ＝ `server/test/self-evident-copy-guard.test.mjs`）：「你只会看到」·「无需调试器」·「此地无银」·「一目了然」·「显而易见」·「顾名思义」·「如你所见」。
+- **禁句**（零容忍，机检 ＝ `server/test/copy-guard.test.mjs`，源件「自明性」）：「你只会看到」·「无需调试器」·「此地无银」·「一目了然」·「显而易见」·「顾名思义」·「如你所见」。
 - **边界（防误伤）**：泛词（「注意」「说明」）**不入表**——它们大量出现在代码注释里；入表词必须「注释里也不该出现」。
 - **已清落点（本批）**：`settings-entry.js` 的「分区随登录身份显示——你只会看到与本人身份相关的区」（左下栏本就只发该身份的区）· 「『顶栏那个组织名从哪来』在这里摊开：…无需调试器即可自查」（下方 `kv-list` 已逐项列出）。
 
