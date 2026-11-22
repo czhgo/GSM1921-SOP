@@ -10,7 +10,26 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
-## 批次 601（2026-11-22）· docs 抽公共：help 内联资源外抽（D-911）
+## 批次 602（2026-11-22）· backlog 复核与 C-5 状态（D-912）
+
+### 为什么
+- 计划要求逐条判定 `B-541-*`；`C-5` 是持续棘轮，需要给出当前存量与下一步，而不是无限期挂账。
+
+### 拿不准 / 取舍
+- **`B-541-10` 作废**：复查 `server/package.json`，全部脚本是 `node scripts/*.mjs`（含 `with-env.mjs`），无 PowerShell / Windows 专有语法；表达式索引已并入 `B-541-6`。按 `H50.3` 写明理由并删行。
+- **`B-541-2/3/4/6/7` 保持触发制**：读过滤、画布 UI、宽表阈值、组件散件都等触发条件；本批未到，不提前开工（`D-912` 复核行已写进 `REVIEW_QUEUE`）。
+- **`C-5` 未收口**：`docs/` 下 `text-xs` 存量 **1709 处**，一次批量上迁会同时冲击字号守卫、密度读数与视觉验收；本批只做存量读数与策略固定（按文件棘轮、先正文段后辅助标签），**继续留在乙部在办**。
+
+### 边界
+- 不改 UI 代码；不调低任何样式基线。
+- 外部门 5 项（L-02 / CI / 签收 / SMTP / M-01）仍待支书授权，不在本批伪装完成。
+
+### 读数
+- `REVIEW_QUEUE`：B 类 6 条 → **5 条**（`B-541-10` 作废删行）；复核结论已写。
+- `text-xs`：**1709 处**（`docs/**/*.html|js`），作为 `C-5` 下一批的起点读数。
+- 终验：guards **81 文件 / 898 断言全绿（161.1s）**；daily **265 全绿**；29 个 content 文件按 `R-83` 刷卡（frontmatter ＋ TIMESTAMPS 行 = 2026-11-22）。
+
+## 批次 601（2026-11-22）· help 外抽评估（已撤回，D-911）
 
 ### 为什么
 - `docs/help.html` 315KB，其中内联 `<style>` 25.9KB ＋ 内联 `<script>` 1.6KB；与页面逻辑混在一个文件，改样式要动整页。
@@ -25,8 +44,9 @@ status: active
 - 版本戳沿用 `20261120a`（本批非发布）。
 
 ### 读数
-- `docs/help.html` **315KB → 287.9KB**；新增 `docs/src/help.css` 25.4KB、`docs/src/help.js` 1.6KB。
-- `doc-consistency` / `validation-site-coverage` / `ui-help-note` 同跑 **25/25**。
+- 尝试外抽：`help.html` 315→287.9KB；但 `style-ratchet` / `component-ratchet` 的 3 条判据（hover 规模、`80rem` 反例、`.help-search-input:focus`）与滚动收口**写死扫描 `docs/help.html`**，外抽后逐条判红。
+- **处置：撤回外抽**（`help.html` 恢复内联，删除 `help.css` / `help.js`）。按「守卫是探测、不因实现调整放宽判据」的原则，不为外抽改守卫；改列 backlog：待这三条判据改成「按目录扫描」后再做外抽。
+- 复测 `style-ratchet` / `component-ratchet` **222/222**。
 
 ## 批次 600（2026-11-22）· 守卫三层收敛：探针 ＋ 归并（D-910）
 

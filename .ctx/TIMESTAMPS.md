@@ -141,19 +141,19 @@ dynamic_role:
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 | --------- | ------------- | -------- | ------ | ------ |
 | content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-11-21 | — | [工程师]+[AI] | 父索引：§一 设计哲学 ＋ 编目（原则 4 补「点缀色不单独承担状态语义」）。 |
-| content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md | 2026-11-10 | — | [工程师]+[AI] | 第一编 色彩与主题（§2.13 补图标状态色互指句）。 |
-| content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md | 2026-11-04 | — | [工程师]+[AI] | 第二编 排版与尺寸（增正文/说明边界与棘轮）。 |
-| content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-11-21 | — | [工程师]+[AI] | 第三编 组件；2026-11-20 卡厚度改准为 16 / 12 两档（`.card-standard` / `.card-compact`），`p-5` 退出 |
+| content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md | 2026-11-22 | — | [工程师]+[AI] | 第一编 色彩与主题（§2.13 补图标状态色互指句）。 |
+| content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md | 2026-11-22 | — | [工程师]+[AI] | 第二编 排版与尺寸（增正文/说明边界与棘轮）。 |
+| content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-11-22 | — | [工程师]+[AI] | 第三编 组件；2026-11-20 卡厚度改准为 16 / 12 两档（`.card-standard` / `.card-compact`），`p-5` 退出 |
 | content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md | 2026-11-08 | — | [工程师]+[AI] | 第四编 交互与响应式（P10 三档动效令牌）。 |
-| content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md | 2026-11-08 | — | [工程师]+[AI] | 第五编 地图与速查。 |
+| content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md | 2026-11-22 | — | [工程师]+[AI] | 第五编 地图与速查。 |
 | content/04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md | 2026-11-21 | — | [工程师]+[AI] | 第六编 布局与密度：SD-57 页签密度 46。 |
 | content/04_web_design/design-system/README.md | 2026-11-03 | — | [工程师]+[AI] | 设计系统目录索引；文件清单含 DS_06，权威源指向 DESIGN_SYSTEM.md。 |
-| content/04_web_design/design-system/CASES.md | 2026-11-21 | — | [工程师]+[AI] | 设计＋数据域判例库：CASE-DESIGN-020…041、CASE-DATA-001（030 边界句改准；036 证据指针随卡头迁移改签）。 |
+| content/04_web_design/design-system/CASES.md | 2026-11-22 | — | [工程师]+[AI] | 设计＋数据域判例库：CASE-DESIGN-020…041、CASE-DATA-001（030 边界句改准；036 证据指针随卡头迁移改签）。 |
 | content/04_web_design/design-system/COLOR_SYSTEM.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的  |
 | content/04_web_design/design-system/COMPONENT_SPEC.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-24 批次 172**：正文**整体并入** `content/04_web_design/design-syste |
 | content/04_web_design/module/ABOUT_PAGE_DESIGN.md | 2026-10-05 | — | [工程师]+[AI] | 见日志批次 597 |
 | content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md | 2026-09-20 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§六 |
-| content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md | 2026-11-16 | — | [工程师]+[AI] | 见日志批次 597 |
+| content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md | 2026-11-22 | — | [工程师]+[AI] | 见日志批次 597 |
 | content/04_web_design/evolution/archive/BRANCH_WORK_MAP.md | 2026-11-08 | — | [工程师]+[AI] | 支部工作地图档案（2026-10-28 页签命名改准） |
 | content/04_web_design/evolution/archive/DESIGN_METHODOLOGY.md | 2026-11-08 | — | [工程师]+[AI] | 方法论档案（2026-09-26 补行） |
 | content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md | 2026-11-19 | — | [工程师]+[AI] | 党委治理契约 |
@@ -161,13 +161,13 @@ dynamic_role:
 | content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md | 2026-11-08 | — | [工程师]+[AI] | 块封装契约（2026-09-26 补行） |
 | content/04_web_design/module/PUBLIC_ENTRANCE.md | 2026-11-11 | — | [工程师]+[AI] | 门厅设计已裁定（公开门厅的规范编号 2026-11-10 批次 541 回填为 SD-62）。 |
 | content/04_web_design/deploy/WECHAT_INTEGRATION.md | 2026-09-05 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§五 |
-| content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md | 2026-11-11 | — | [用户]+[AI] | 见日志批次 597 |
+| content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md | 2026-11-22 | — | [用户]+[AI] | 见日志批次 597 |
 | content/04_web_design/data/DATA_MODEL.md | 2026-11-19 | — | [工程师]+[AI] | 见日志批次 597 |
 | content/04_web_design/data/DATA_CONTRACT.md | 2026-11-18 | — | [工程师]+[AI] | 见日志批次 597 |
 | content/04_web_design/data/DATA_SEED_CONTRACT.md | 2026-10-27 | — | [工程师]+[AI] | 数据种子契约（四类口径 / 逐表必填 / v12 强约束）；守卫 `server/test/seed-contract-guard.test.mjs`。 |
 | content/04_web_design/data/DATA_FLOW.md | 2026-09-23 | — | [工程师]+[AI] | 🗑️ 已删除（正文并入 `DATA_MODEL.md`《数据模型与数据流》）。沿革见 `.ctx/logs/`。 |
 | content/04_web_design/data/DATA_ARCHITECTURE.md | 2026-09-03 | — | [工程师]+[AI] | 🗑️ 已删除（正文已拆分至 DATA_MODEL / DATA_FLOW） |
-| content/04_web_design/PRODUCT_IA.md | 2026-11-08 | — | [工程师]+[AI] | 见日志批次 597 |
+| content/04_web_design/PRODUCT_IA.md | 2026-11-22 | — | [工程师]+[AI] | 见日志批次 597 |
 | content/04_web_design/module/MODULE_UI_DESIGN.md | 2026-10-30 | — | [工程师]+[AI] | 模块界面设计（§一 总览 / §二 党建 Tab / §三 日历 / §四 全站 Tab 总方案＝2026-09-27 规划稿）；四组页签名改准为「总览 / 我 |
 | content/04_web_design/module/SOP_WEBSITE_GUIDE.md | 2026-10-30 | — | [工程师]+[AI] | 见日志批次 597 |
 | content/04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒  |
@@ -190,11 +190,11 @@ dynamic_role:
 | content/05_ai_coding/README.md | 2026-11-03 | — | [工程师]+[AI] | 05_ai_coding 目录索引（含 `TAB_AUDIT_PLAYBOOK.md` 行）。 |
 | content/05_ai_coding/AGENTS.md | 2026-11-01 | — | [工程师]+[AI] | 05 目录协作说明：Q 范围 Q-01…Q-22、分层裁决与验证命令。 |
 | content/05_ai_coding/PARALLEL_SKILL_AUDIT.md | 2026-11-03 | — | [工程师]+[AI] | 多代理独立审查操作手册（H21 详版）：问题集 Q-01…Q-22 → 分 lens → 汇总 → 裁定；§11 IA 审查、§14 SKILL 路由。 |
-| content/05_ai_coding/CASES.md | 2026-11-21 | — | [工程师]+[AI] | AI 协作判例库。 |
+| content/05_ai_coding/CASES.md | 2026-11-22 | — | [工程师]+[AI] | AI 协作判例库。 |
 | content/05_ai_coding/CONTEXT_MANAGEMENT.md | 2026-11-15 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。* |
 | content/05_ai_coding/DOCUMENT_GOVERNANCE.md | 2026-11-19 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒  |
 | content/05_ai_coding/FILE_OPERATION_RULES.md | 2026-11-03 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。* |
-| content/05_ai_coding/REVIEW_AND_EXPRESSION.md | 2026-10-24 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。* |
+| content/05_ai_coding/REVIEW_AND_EXPRESSION.md | 2026-11-22 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。* |
 | content/05_ai_coding/TEST_AND_VERIFICATION.md | 2026-11-20 | — | [工程师]+[AI] | 测试三层（daily/precommit/weekly）；2026-11-03 增两条判例；2026-11-19 增 sample-diff 四条判例（缺证据即 |
 | content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md | 2026-11-19 | — | [工程师]+[AI] | 页签审计手册（2026-11-02 建）：五维检查表、P0–P2、例外口径、怎么跑、怎么加检查与页签、报告字段；判据回链 DS_06 §五与 `audit/se |
 | content/05_ai_coding/UI_REVIEW_CHECKLIST.md | 2026-11-08 | — | [工程师]+[AI] | 温层 UI 审查清单（2026-11-03 建）：按 8 组任务组织（版式密度 / 排版字号 / 颜色对比 / 交互无障碍 / 文案空态 / 响应式 / 动效  |
@@ -220,9 +220,9 @@ dynamic_role:
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 | --------- | ------------- | -------- | ------ | ------ |
 | server/routes/resources/index.js | 2026-11-19 | — | [工程师]+[AI] | 资源路由装配；活动删除保留报名与表决留痕（`D-876`）、其余子记录事务清理，并返回集合版本。**2026-11-14 批次 550（D-872）**：`POST /activities` 写库前冻结表决名单；**批次 552**：`D-876` 留痕口径；批次 569 考察读改请求级缓存；批次 578 版本读写走 `resolveVersionBranchId`（按支部命名空间）。
-| content/05_ai_coding/REVIEW_QUESTION_SET.md | 2026-11-03 | — | [工程师]+[AI] | 审查问题集：Q-01…Q-22（Q-22 为页签密度与信息经济的审查方法，执行工具指向 `TAB_AUDIT_PLAYBOOK.md`）。 |
+| content/05_ai_coding/REVIEW_QUESTION_SET.md | 2026-11-22 | — | [工程师]+[AI] | 审查问题集：Q-01…Q-22（Q-22 为页签密度与信息经济的审查方法，执行工具指向 `TAB_AUDIT_PLAYBOOK.md`）。 |
 | content/05_ai_coding/QUESTION_HIT_MATRIX.md | 2026-11-03 | — | [工程师]+[AI] | 历史命中矩阵；Q-22 列新立，36 行历史记 `—`。 |
-| content/05_ai_coding/GUARD_INVENTORY.md | 2026-11-19 | — | [工程师]+[AI] | 守卫台账；历史总表停 66 件（已滞后），现行件数以 `test-tier-registry.mjs` 为准。 |
+| content/05_ai_coding/GUARD_INVENTORY.md | 2026-11-22 | — | [工程师]+[AI] | 守卫台账；历史总表停 66 件（已滞后），现行件数以 `test-tier-registry.mjs` 为准。 |
 | content/03_doc_system/CASES_INDEX.md | 2026-11-21 | — | [工程师]+[AI] | 判例总索引（design 43 / data 1 / ai 9）；CASE-DESIGN-042 / 043 于批次 590 登记。 |
 | .ctx/README.md | 2026-11-21 | — | [工程师]+[AI] | 见日志批次 597 |
 | .ctx/ACTIVE_CONTEXT.md | 2026-11-22 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-906`。 |

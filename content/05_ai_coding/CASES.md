@@ -2,7 +2,7 @@
 title: "AI 协作域判例库"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-21"
+last_updated: 2026-11-22
 status: active
 related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---

@@ -75,7 +75,10 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 | B-541-4 | `L-15` ＋ `H-24` 画布 UI 与「块决定 tab」（与 `allowedPages` 身份门、页签计数守卫相交） | 先出方案并经支书定稿后才编码；定稿前不排批 | `content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md §8.4` |
 | B-541-6 | `L-17` SQLite JSON 宽表、无跨表外键、无业务字段索引 | 任一表行数接近万行，或真机出现慢查询读数（E1 类）时启动 `MIGRATIONS v2` 与索引评估；平时只登记 | `.ctx/ENGINEERING_ASSESSMENT.md §一 阻断级风险 5`；`server/README.md §部署前必知限制 #2` |
 | B-541-7 | `L-18` 单一源组件出口仍有零星散件（徽章 / 选择器等） | 下次改动到该组件域时同批收敛（一改具改）；未动到的散件不提前合并 | `.ctx/ENGINEERING_ASSESSMENT.md §3.3 复核保留` |
-| B-541-10 | `H-20` 部署形态余项（`server/package.json` Windows 专有语法；表达式索引无落点） | ② `package.json` 到「跨平台发布」批时改；③ 与服务端读过滤同批（见 B-541-3） | `.ctx/REVIEW_QUEUE.md` 代码健康评审 `H-20`；`server/package.json` |
+
+> **2026-11-22 `D-912` 复核**：`B-541-2/3/4/6/7` 触发条件均未到，保持登记、不提前开工。`B-541-10` **作废**：复查 `server/package.json` 全部为 `node scripts/*.mjs` 调用，无 PowerShell / Windows 专有语法；表达式索引已并入 `B-541-6`。
+>
+> **新增登记（`D-911`）**：`help.html` 内联样式 / 脚本外抽待「样式守卫扫描面目录化」后再做——当前 `style-ratchet` / `component-ratchet` 有 3 条判据写死扫 `docs/help.html`，外抽即红。
 
 ### SOP-C-76 / SOP-C-78（降为登记，未推进）
 

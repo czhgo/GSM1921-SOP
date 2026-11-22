@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: 2026-11-22
 last_verified: "2026-11-22"
-latest_decision: "D-911"
+latest_decision: "D-912"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -66,7 +66,7 @@ status: active
 
 ### 下一批任务
 
-1. **持续棘轮**：`C-5`（`text-xs` 正文段上迁 13px、`help.html` 可令牌化色继续迁）。
+1. **持续棘轮**：`C-5`（`docs/**` 的 `text-xs` 存量 **1709 处**；下一批按「先正文段、后辅助标签、逐文件棘轮」推进；`help` 色令牌同批）。
 2. **外部门**：`EA §四` 五项（L-02 / CI run id / 真人签收 / SMTP 实投 / M-01），支书授权后一次性补齐。
 3. **backlog（触发即做）**：`L-13`、`L-14`·`L-15`、`L-17`、`L-18`；触发条件见 `EA §四` 与 `REVIEW_QUEUE B-541-*`。
 

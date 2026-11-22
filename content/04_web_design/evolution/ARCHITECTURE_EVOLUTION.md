@@ -3,7 +3,7 @@ title: "架构演进——组件化落地评估与轻量插件化设计"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-22
-last_updated: "2026-11-16"
+last_updated: 2026-11-22
 status: active
 related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../module/PUBLIC_ENTRANCE.md, ../../03_doc_system/ARCHITECTURE.md, ../../05_ai_coding/README.md]
 ---

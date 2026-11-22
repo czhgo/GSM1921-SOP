@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-911`，共 85 条**；下一条自 **`D-912`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-912`，共 86 条**；下一条自 **`D-913`**。
 
 ## 本月目录（2026-11）
 
@@ -104,7 +104,8 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | `.trae` 收尾：归档件逐行结论；分享包删除；过程件清零；终验 P0/P1/P2=0 | `D-908` | 2026-11-22 | 已落（批次 598） |
 | `.trae` 清零：documents 25 ＋ specs 18 删除；守卫改「若存在则查」 | `D-909` | 2026-11-22 | 已落（批次 599） |
 | 守卫三层收敛：probe:stage ＋ 52 源件并 5 件；预算软告警 | `D-910` | 2026-11-22 | 已落（批次 600） |
-| help 内联资源外抽（315→288KB）；content 去重经核查后不做删改 | `D-911` | 2026-11-22 | 已落（批次 601） |
+| help 外抽尝试后撤回（守卫写死扫描面）；content 去重经核查不做删改 | `D-911` | 2026-11-22 | 已落（批次 601） |
+| backlog 复核：`B-541-10` 作废、其余保持触发；`C-5` 存量 1709 继续在办 | `D-912` | 2026-11-22 | 已落（批次 602） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -864,15 +865,26 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：`probe:stage` 6/6；guards 81 文件 / 898 断言全绿（260.5s）；daily 265 全绿；`doc-consistency` 21/21。
 > **落点**：`server/test/{doc-lifecycle,style-ratchet,color-ratchet,component-ratchet,navigation}-guard.test.mjs`、`server/scripts/probe-stage.mjs`、`server/test-tier-registry.mjs`、`server/test/test-tier-guard.test.mjs`、`CLAUDE.md H25`、`content/**` 29 文件引用。
 
-## D-911 2026-11-22 — docs 抽公共：help 内联资源外抽（批次 601）
+## D-911 2026-11-22 — help 外抽评估：撤回并转 backlog（批次 601）
 
 > **评议 → 裁定 → 落点**：`help.html` 315KB 把样式 / 脚本与正文混在一起 ⇒ 只搬不改，抽 `docs/src/help.{css,js}`，页面换 `<link>` / `<script src>`。
 > - **移出**：`<style>` 25.9KB → `help.css`；内联 `<script>` 1.6KB → `help.js`；带 `?v=20261120a`。
 > - **content 去重缩小范围**：`SD-57` 等为跨文档引用（非重复定义）；`OPERATIONS_GUIDE §19`（规则）与 `TERMINOLOGY.md`（词条）职责不同 ⇒ 不删不改。
-> **未选**：删 help 章节（会破 `validation-site-coverage` 覆盖）；大改 README 步骤段（收益低）。
-> **偏差**：未达「content −20%」目标，只在 help 上取得 −27KB；原因记为「真正重复的是内联资源，不是制度正文」。
-> **读数**：`help.html` 315→287.9KB；相关守卫 25/25。
-> **落点**：`docs/help.html`、`docs/src/help.css`、`docs/src/help.js`。
+> **未选**：删 help 章节（会破 `validation-site-coverage` 覆盖）；改守卫扫描面以便外抽（违背「实现不改判据」）。
+> **结果：外抽撤回**——`help.html` 恢复内联，`help.css` / `help.js` 删除；3 条样式判据写死扫 `docs/help.html`，按「探测优先、不为实现改判据」原则留给 backlog（判据改成按目录扫描后再做）。
+> **偏差**：content −20% 与 help −27KB 均未达成；本批只留下「外抽会触发哪些硬编码扫描面」这一结论。
+> **读数**：`help.html` 315KB（回原状）；`style-ratchet` / `component-ratchet` 222/222。
+> **落点**：`docs/help.html`（已恢复）；backlog 记「help 外抽待守卫扫描面目录化」。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-911`**（共 **85** 条）。
+## D-912 2026-11-22 — backlog 复核与 C-5 状态（批次 602）
+
+> **评议 → 裁定 → 落点**：支书要求「完成所有剩余工作」⇒ 先把可判定的 backlog 逐条落态，再把真正未完成的 `C-5` 以存量读数固定。
+> - **B-541-10 作废**：`server/package.json` 全部为 `node scripts/*.mjs`，无 PowerShell / Windows 专有语法；表达式索引并入 `B-541-6`。按 `H50.3` 写理由并删行。
+> - **B-541-2/3/4/6/7 保持触发**：读过滤 / 画布 UI / 宽表阈值 / 组件散件均未到触发条件；复核结论写 `REVIEW_QUEUE`。
+> - **C-5 继续在办**：`docs/**` 的 `text-xs` 存量 **1709 处**；一次批量上迁会同时冲击字号 / 密度 / 视觉验收，下一批按「先正文段、后辅助标签、逐文件棘轮」推进。
+> **未选**：本批强行批量替换 `text-xs`（风险高、无真机读数）；把外部门伪装完成。
+> **读数**：`REVIEW_QUEUE` B 类 6 → 5；`text-xs` 1709；guards 81/898 全绿（161.1s）；daily 265 全绿。
+> **落点**：`.ctx/REVIEW_QUEUE.md`、`.ctx/ACTIVE_CONTEXT.md §3`、`content/**` 12 文件刷卡。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-912`**（共 **86** 条）。
 
