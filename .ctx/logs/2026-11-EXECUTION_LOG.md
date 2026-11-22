@@ -10,6 +10,24 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 601（2026-11-22）· docs 抽公共：help 内联资源外抽（D-911）
+
+### 为什么
+- `docs/help.html` 315KB，其中内联 `<style>` 25.9KB ＋ 内联 `<script>` 1.6KB；与页面逻辑混在一个文件，改样式要动整页。
+
+### 拿不准 / 取舍
+- **只搬不改**：样式与脚本逐字搬进 `docs/src/help.css` / `docs/src/help.js`，`<style>` 换 `<link>`、内联脚本换 `<script src>`，带 `?v=20261120a`；页面结构与文案零改动。
+- **content 去重经核查后缩小范围**：`SD-57` 等 16 处是**引用**（DOC_MAP / 检查清单 / 审计手册各指一次），不是重复定义；`OPERATIONS_GUIDE §19` 是「术语使用规则」，与 `TERMINOLOGY.md`（词条定义）职责不同。两项均**不做删改**，避免把规则拆散。
+- 因此本批**未达「content 文本 −20%」目标**：真正重复的是 help 内联资源（已抽）与 README 步骤段（改动面大、收益低），后者留待下一次触碰时同批收敛。
+
+### 边界
+- 不删 help 任何章节；不改变 `ui-help-note` / `validation-site-coverage` 的判据。
+- 版本戳沿用 `20261120a`（本批非发布）。
+
+### 读数
+- `docs/help.html` **315KB → 287.9KB**；新增 `docs/src/help.css` 25.4KB、`docs/src/help.js` 1.6KB。
+- `doc-consistency` / `validation-site-coverage` / `ui-help-note` 同跑 **25/25**。
+
 ## 批次 600（2026-11-22）· 守卫三层收敛：探针 ＋ 归并（D-910）
 
 ### 为什么
