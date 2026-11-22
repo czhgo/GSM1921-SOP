@@ -13,12 +13,15 @@
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { createApp } from '../app.js';
 import {
   WRITE_POLICY_MATRIX,
   WRITE_POLICY_STATUSES,
   matrixFor,
 } from '../security/write-policy-matrix.mjs';
+import { RESOURCE_WRITE_GATE } from '../routes/resources/gates.js';
 
 const WRITE_METHODS = new Set(['post', 'patch', 'delete', 'put']);
 const ROUTE_KEYS = new Set();
@@ -135,4 +138,39 @@ test('反例自证：未登记路由 / 删除矩阵行都会判红（不改生�
   const deletedDiff = compareRouteSets([...ROUTE_KEYS], clonedMatrix);
   assert.deepEqual(deletedDiff.missing, [keyOf(removed)]);
   assert.deepEqual(deletedDiff.extra, []);
+});
+
+/**
+ * 门名 → 处理分支必须一一对上。
+ * 病灶：`RESOURCE_WRITE_GATE` 里拼错一个门名（如 `branch-committee` 写成 `branch-commitee`），
+ *   `_assertResourceWrite` 走不到任何分支，落到 tail 末尾的 deny-by-default ⇒ 该资源**永远 403**；
+ *   这不是越权，但会让功能整块失效，且现有「路由 ≡ 矩阵」断言完全看不见。
+ * 判据：矩阵里出现的每个门名，必须在 gates.js 里有 `need === '<门名>'` 的处理分支。
+ * 反例自证：把一个不存在的门名塞进克隆集合，必须被判为 unhandled。
+ */
+const ROOT = join(import.meta.dirname, '..', '..');
+const GATES_SRC = readFileSync(join(ROOT, 'server', 'routes', 'resources', 'gates.js'), 'utf8');
+
+/** 纯函数：返回没有处理分支的门名（便于反例自证） */
+export function unhandledGates(names, src = GATES_SRC) {
+  const handled = new Set([...src.matchAll(/need\s*===\s*'([^']+)'/g)].map((m) => m[1]));
+  return [...new Set(names)].filter((name) => !handled.has(name)).sort();
+}
+
+function gateNamesOf(obj) {
+  const names = [];
+  for (const value of Object.values(obj)) {
+    if (typeof value === 'string') names.push(value);
+    else if (value && typeof value === 'object') names.push(...Object.values(value));
+  }
+  return names;
+}
+
+test('矩阵门名都有真实处理分支（防「拼错门名 ⇒ 该资源永远 403」）', () => {
+  const names = gateNamesOf(RESOURCE_WRITE_GATE);
+  assert.ok(names.length >= 10, `只解析到 ${names.length} 个门名（下限 10）：抽取面被写坏`);
+  assert.deepEqual(unhandledGates(names), [],
+    `RESOURCE_WRITE_GATE 中以下门名在 gates.js 无处理分支：${unhandledGates(names).join(' / ')}`);
+  // 反例自证：伪造门名必须判红
+  assert.deepEqual(unhandledGates(['__not_a_gate__']), ['__not_a_gate__'], '反例未判红：未处理门名被放过');
 });

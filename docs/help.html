@@ -167,8 +167,8 @@
     .help-search-field { position:relative; display:block; width:100%; min-width:0; }
     .help-search-label,.help-role-label { display:block; margin-bottom:6px; color:var(--neutral-700); font-size:0.8125rem; font-weight:650; }
     /* 2026-10-23 R11：搜索框并入控件单一口径（38px / 13px / 8px 圆角 / 1px 中性描边）；
-       2026-10-28（焦点单环）：焦点环与 .input-flat / <select> 同宽同色同偏移（2px 主题色 / offset 1px），
-       只保留这一条实线环，不再叠 box-shadow 环。 */
+       2026-10-28（焦点单环）→ 2026-11-23 改准：输入族焦点**只把边框切到主题色**（--app-accent），
+       不出 outline / box-shadow 环，与 .input-flat / <select> 共用 FOCUS-2 口径（边框对比度 ≥3:1）。 */
     .help-search-input { width:100%; border:1px solid var(--neutral-200); border-radius:var(--radius-sm); padding:10px 16px; font-size:13px; line-height:1rem; background:var(--surface-card); color:var(--neutral-900); outline:none; outline-width:0; transition:border-color .15s, box-shadow .15s; }
     .help-search-input::placeholder { color:var(--neutral-500); }
     /* 2026-10-29 P1：输入族（搜索框 / 角色筛选）聚焦只变边框色，不出环。 */

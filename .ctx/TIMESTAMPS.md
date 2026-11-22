@@ -2,7 +2,7 @@
 title: "文件时间戳注册表"
 type: audit_report
 role: "[工程师]+[AI]"
-last_updated: "2026-11-22"
+last_updated: "2026-11-23"
 status: active
 dynamic_role:
   maintenance: "[工程师]+[AI]"
@@ -40,7 +40,7 @@ dynamic_role:
 | README.md | 2026-11-14 | — | [用户]+[AI] | 见日志批次 597 |
 | README-members.md | 2026-10-16 | — | [用户]+[AI] | 支部成员版说明；匿名反馈为登录后的支部内闭环，处置权不含揭名权（`D-824`）。 |
 | README-server.md | 2026-11-21 | — | [用户]+[AI] | 见日志批次 597 |
-| CLAUDE.md | 2026-11-21 | — | [工程师]+[AI] | 见日志批次 597 |
+| CLAUDE.md | 2026-11-23 | — | [工程师]+[AI] | 宪法＋路由；2026-11-23 批次 604：H25 定义「棘轮＝只减不增基线」、乙部删 `C-5`（`D-914`） |
 | CHECKLIST.md | — | — | — | 🗑️ 已删除（迁移至 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md） |
 | LICENSE | 2026-05-18 | — | [用户] |  |
 | .gitignore | 2026-09-10 | — | [工具] |  |
@@ -52,11 +52,11 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 | --------- | ------------- | -------- | ------ | ------ |
-| .ctx/TIMESTAMPS.md | 2026-11-22 | — | [工程师]+[AI] | 文件时间戳注册表；备注列只写**现状 / 边界 / 指针**（`R-89`）；纯代码行（`.js` / `.mjs`）不再逐条登记，改动日以 git 为准（批次 597）。 |
+| .ctx/TIMESTAMPS.md | 2026-11-23 | — | [工程师]+[AI] | 文件时间戳注册表；备注列只写**现状 / 边界 / 指针**（`R-89`）；纯代码行（`.js` / `.mjs`）不再逐条登记，改动日以 git 为准（批次 597）。 |
 | .ctx/SNAPSHOT.md | 2026-11-22 | — | [AI] | 系统现状基线（reference）：只答「系统现在长什么样」；schema v19 / 业务 50 表。 |
 | .ctx/ACTIVE_RULINGS.md | 2026-11-22 | — | [工程师]+[AI] | 现行有效裁定**索引**（reference）：只答「到哪找某条现行口径」；跨域摘要 + 18 领域索引，规则正文在 `content/01–05`。 |
-| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-22 | — | [工程师]+[AI] | 见日志批次 603（六维 77/75/74/69/73/67，`D-913`） |
-| .ctx/REVIEW_QUEUE.md | 2026-11-22 | — | [工程师]+[AI] | 支书评议队列（reference）：只答「要评议什么 ＋ 评议怎么做」；已闭环项删除（`D-892` / `D-901` 删 `B-552-1…6`）。 |
+| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-23 | — | [工程师]+[AI] | 见日志批次 604（六维维持 77/75/74/69/73/67；`D-914` 收口四项改进项） |
+| .ctx/REVIEW_QUEUE.md | 2026-11-23 | — | [工程师]+[AI] | 支书评议队列（reference）：只答「要评议什么 ＋ 评议怎么做」；2026-11-23 批次 604「手写表棘轮」改人话。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND1_WORKBENCH_STRUCTURE.md | 2026-10-19 | — | [工程师]+[AI] | Round 1 工作台结构审计报告（53 条 triage + 三路审查 + 共识/分歧/裁定 + 证据门）；修复 spec 落盘后可归档或删除。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND2_MINIMUM_THREE_COSTS.md | 2026-10-19 | — | [工程师]+[AI] | 见日志批次 597 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND3_4_COMBINED.md | 2026-10-19 | — | [工程师]+[AI] | 见日志批次 597 |
@@ -156,7 +156,7 @@ dynamic_role:
 | content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md | 2026-11-22 | — | [工程师]+[AI] | 见日志批次 597 |
 | content/04_web_design/evolution/archive/BRANCH_WORK_MAP.md | 2026-11-08 | — | [工程师]+[AI] | 支部工作地图档案（2026-10-28 页签命名改准） |
 | content/04_web_design/evolution/archive/DESIGN_METHODOLOGY.md | 2026-11-08 | — | [工程师]+[AI] | 方法论档案（2026-09-26 补行） |
-| content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md | 2026-11-19 | — | [工程师]+[AI] | 党委治理契约 |
+| content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md | 2026-11-23 | — | [工程师]+[AI] | 党委治理契约；2026-11-23 批次 604 增 §2.7 对象挂靠单一源指针（`D-914`） |
 | content/04_web_design/evolution/archive/ROLE_PERMISSION_DESIGN.md | 2026-11-08 | — | [工程师]+[AI] | 权限收敛档案（2026-09-26 补行） |
 | content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md | 2026-11-08 | — | [工程师]+[AI] | 块封装契约（2026-09-26 补行） |
 | content/04_web_design/module/PUBLIC_ENTRANCE.md | 2026-11-11 | — | [工程师]+[AI] | 门厅设计已裁定（公开门厅的规范编号 2026-11-10 批次 541 回填为 SD-62）。 |
@@ -197,7 +197,7 @@ dynamic_role:
 | content/05_ai_coding/REVIEW_AND_EXPRESSION.md | 2026-11-22 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。* |
 | content/05_ai_coding/TEST_AND_VERIFICATION.md | 2026-11-20 | — | [工程师]+[AI] | 测试三层（daily/precommit/weekly）；2026-11-03 增两条判例；2026-11-19 增 sample-diff 四条判例（缺证据即 |
 | content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md | 2026-11-19 | — | [工程师]+[AI] | 页签审计手册（2026-11-02 建）：五维检查表、P0–P2、例外口径、怎么跑、怎么加检查与页签、报告字段；判据回链 DS_06 §五与 `audit/se |
-| content/05_ai_coding/UI_REVIEW_CHECKLIST.md | 2026-11-22 | — | [工程师]+[AI] | 温层 UI 审查清单：按 8 组任务组织；2026-11-22 批次 603 增「同族完整性」一条（`D-913`）。 |
+| content/05_ai_coding/UI_REVIEW_CHECKLIST.md | 2026-11-23 | — | [工程师]+[AI] | 温层 UI 审查清单：8 组任务；2026-11-23 批次 604 增 ⑨ 外部准则对照附录（`D-914`） |
 | content/05_ai_coding/AUDIT_CANON.md | 2026-11-19 | — | [工程师]+[AI] | 审计口径唯一表（2026-11-02 建）：四口径裁定（F2 控件行数 / F4 H2 恰 1 / F7 `hasPager()` / C1 `requireA |
 
 ## content/insights/ (经验沉淀)
@@ -225,7 +225,7 @@ dynamic_role:
 | content/05_ai_coding/GUARD_INVENTORY.md | 2026-11-22 | — | [工程师]+[AI] | 守卫台账；历史总表停 66 件（已滞后），现行件数以 `test-tier-registry.mjs` 为准。 |
 | content/03_doc_system/CASES_INDEX.md | 2026-11-22 | — | [工程师]+[AI] | 判例总索引（design 44 / data 1 / ai 9）；2026-11-22 批次 603 登记 CASE-DESIGN-044（顶栏控件梯）。 |
 | .ctx/README.md | 2026-11-21 | — | [工程师]+[AI] | 见日志批次 597 |
-| .ctx/ACTIVE_CONTEXT.md | 2026-11-22 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-913`。 |
+| .ctx/ACTIVE_CONTEXT.md | 2026-11-23 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-914`。 |
 | server/README.md | 2026-11-19 | — | [工程师]+[AI] | 见日志批次 597 |
 | server/package.json | 2026-11-20 | — | [工程师]+[AI] |  |
 | server/package-lock.json | 2026-08-30 | — | [工具] |  |
@@ -238,13 +238,13 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 | --------- | ------------- | -------- | ------ | ------ |
-| docs/index.html | 2026-09-30 | — | [用户]+[AI] |  |
+| docs/index.html | 2026-11-23 | — | [用户]+[AI] | 首页；2026-11-23 批次 604 两枚党徽补 width/height（48 / 56） |
 | docs/login.html | 2026-10-22 | — | [用户]+[AI] |  |
 | docs/about.html | 2026-08-12 | — | [用户]+[AI] |  |
 | docs/archive.html | 2026-09-24 | — | [用户]+[AI] |  |
 | docs/branch-config.html | 2026-10-18 | — | [工程师]+[AI] |  |
 | docs/feedback.html | 2026-07-31 | — | [用户]+[AI] |  |
-| docs/help.html | 2026-11-17 | — | [用户]+[AI] |  |
+| docs/help.html | 2026-11-23 | — | [用户]+[AI] | 帮助页；2026-11-23 批次 604 焦点注释改准（输入族只变边框色，`FOCUS-2`） |
 | docs/notice.html | 2026-09-24 | — | [用户]+[AI] |  |
 | docs/messages.html | 2026-10-03 | — | [工程师]+[AI] |  |
 | docs/search.html | 2026-07-31 | — | [用户]+[AI] |  |

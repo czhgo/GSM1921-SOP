@@ -10,6 +10,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { DAILY_FILE_BUDGET, GUARDS_FILE_BUDGET, GUARDS_TEST_BUDGET } from '../test-tier-registry.mjs';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const EA = readFileSync(join(ROOT, '.ctx', 'ENGINEERING_ASSESSMENT.md'), 'utf8');
@@ -72,4 +73,39 @@ test('④ 反例自证：删掉 2.4 的改进项指针，①必须判红', () =>
   const broken = EA.replace(/(### 2\.4[^\n]*\n(?:.|\n)*?)\*\*下一改进项\*\*[^\n]*\n/, '$1');
   assert.notEqual(broken, EA, '反例构造失败：未删除 2.4 的改进项行');
   assert.ok(missingPointers(broken).includes('2.4'), '删掉指针后 must 判红 2.4');
+});
+
+/**
+ * ⑤ EA 的测试读数必须等于 `test-tier-registry.mjs` 的登记值。
+ * 病灶（批次 603 实见）：§2.5 / §5.2 写 guards 129 文件 / 902 断言，registry 实为 81 / 898；
+ *   守卫 ⑫ 只校六维元组，测试读数漂移完全没被拦住 ⇒ 「评分即资产」的证据链自己先失真。
+ * 判据：EA 中每一处 `guards **N 文件 / M 断言**` 的 N / M，与每一处 `daily **N 文件` 的 N，
+ *   必须等于 registry 常量；§2.5 与 §5.2 至少各出现一次（防只改一处）。
+ * 反例自证：喂入 129 / 902 的假文本，必须报出 mismatch。
+ */
+export function readingMismatches(md, expect = {
+  dailyFiles: DAILY_FILE_BUDGET,
+  guardsFiles: GUARDS_FILE_BUDGET,
+  guardsTests: GUARDS_TEST_BUDGET,
+}) {
+  const out = [];
+  const daily = [...md.matchAll(/daily \*\*(\d+) 文件/g)].map((m) => Number(m[1]));
+  const guards = [...md.matchAll(/guards \*\*(\d+) 文件 \/ (\d+) 断言\*\*/g)]
+    .map((m) => [Number(m[1]), Number(m[2])]);
+  if (!daily.length) out.push('EA 缺 `daily **N 文件` 读数');
+  if (guards.length < 2) out.push(`EA 的 guards 读数只出现 ${guards.length} 处（要求 §2.5 与 §5.2 各一处）`);
+  for (const n of daily) if (n !== expect.dailyFiles) out.push(`daily 文件 ${n} ≠ registry ${expect.dailyFiles}`);
+  for (const [n, m] of guards) {
+    if (n !== expect.guardsFiles) out.push(`guards 文件 ${n} ≠ registry ${expect.guardsFiles}`);
+    if (m !== expect.guardsTests) out.push(`guards 断言 ${m} ≠ registry ${expect.guardsTests}`);
+  }
+  return out;
+}
+
+test('⑤ EA 测试读数 ≡ test-tier-registry（防评分台账自身漂移）', () => {
+  assert.deepEqual(readingMismatches(EA), [], `EA 测试读数与 registry 不一致：\n  ${readingMismatches(EA).join('\n  ')}`);
+  // 反例自证：旧漂移值必须判红
+  const broken = EA.replace(/guards \*\*\d+ 文件 \/ \d+ 断言\*\*/g, 'guards **129 文件 / 902 断言**');
+  assert.notEqual(broken, EA, '反例构造失败：未替换 guards 读数');
+  assert.ok(readingMismatches(broken).length > 0, '反例未判红：129 / 902 未被识别为漂移');
 });

@@ -2,7 +2,7 @@
 title: "UI 审查清单——改界面时按任务组逐条过"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-11-22"
+last_updated: "2026-11-23"
 status: active
 ---
 
@@ -90,3 +90,26 @@ status: active
 | 3. 状态徽章 | 状态只用既有两族徽章与 `--status-*-text`，不新造第三套语义 | DS_03 §4.14 · SD-46 | 加状态列、状态胶囊时 |
 | 4. 宽表列宽 | 关键宽表固定列宽模板，末列右对齐并留尾部内边距，首列不折行 | DS_03 §12.15 · SD-44 | 改工作分工类宽表时 |
 | 5. 数字组 | 数字组横排、同组只用一种数值语法，组内不写内联色 | DS_03 §12.1 / §12.7 | 加指标卡时 |
+
+## ⑨ 外部准则对照（附录 · Web Interface Guidelines · 2026-11-23 批次 604 探查）
+
+> 用途：外部准则逐族对照，明确「已被哪个守卫覆盖 / 哪些是我们的特例（写明理由）/ 哪些还欠」。只做映射与抽查入口，不新造规则正文、不新增 SD 编号。
+
+| 准则族 | 我们的落点 | 状态 |
+|---|---|---|
+| 可访问性（可访问名 / 语义 HTML / 标题不跳级 / skip link） | `a11y-tree` · `navigation-guard::P0` · 审计 F4 / F5 · `CLAUDE.md H40.3-1` | 已覆盖 |
+| 焦点可见 | `component-ratchet-guard::FOCUS-1/2/3`；全局 `button/a/summary/[role=*]` 2px 环 | 已覆盖（输入族为特例：只变边框色，`FOCUS-2`） |
+| 表单（label / autocomplete / inputmode / 错误就近 / 首次错误聚焦 / 占位省略号） | `field-shell-guard` · `form-field-guard` · `forms.js`；登录四件齐 | 已覆盖 |
+| 动效（reduced-motion / 只动 transform·opacity / 禁 `transition: all`） | `motion-guard::M1–M10` ＋ `styles.css` 全局 reduced-motion 兜底 | 已覆盖 |
+| 排版（省略号 `…` / 数字 `tabular-nums` / 标题折行） | `copy-guard`；`tabular-nums` 84 处；`text-wrap: balance` 未采用 | 部分：`text-wrap` 记为特例 |
+| 图片尺寸（width/height） | 本批补 `index.html` 两枚党徽（48 / 56）；其余 `<img>` 由类与容器约束 | 已覆盖（本批补 2 处） |
+| 图片延迟加载（below-fold `loading="lazy"`） | 活动照片按需渲染；未逐图标注 | 待触发（列表 >50 项时同批加） |
+| 深色主题（`color-scheme` / `theme-color`） | `core/boot/theme.js` 同步 `colorScheme`；每页 `theme-color`（H7 守卫） | 已覆盖 |
+| 触控（命中区 ≥44） | `touch-target-audit` ＋ `component-ratchet-guard::T3` | 已覆盖 |
+| 导航与深链（URL 反映状态 / `<a>` 导航 / 破坏性动作确认） | `INTERACTION_AND_NAVIGATION_CONTRACT` · `navigation-guard` · `todo-actions` | 已覆盖 |
+| 日期 / 数字格式化（`Intl.*`） | **不采用**：统一走 `date-canon-guard` 的本地时区口径（`D-780`），`Intl` 的 zh-CN 输出不稳定 | 特例（不采纳） |
+| 文案（主动语态 / 标题式 / 数字用阿拉伯） | `copy-guard` · `DS_03 §4.18` | 已覆盖 |
+| 内联 `onclick` | `docs/src` 8 处仅 `event.stopPropagation()`（按钮内，不是 div 伪按钮）；未启 CSP | 特例（保留，不作缺陷） |
+| `text-wrap: balance` 标题 | 未采用：中文标题短、折行由容器与省略号承担；改动需真机复核 | 特例（不采纳） |
+
+探查方法：按规则表逐族 grep ＋ 实读关键文件（help / index / login / secretary 壳层 / 表格组件）；findings 与修正在 `D-914`。

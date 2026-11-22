@@ -3,7 +3,7 @@ title: "工程化评估与改造行动线"
 type: audit_report
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: 2026-11-22
+last_updated: 2026-11-23
 status: active
 layer: reference
 related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md, content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/04_web_design/deploy/DEPLOYMENT_GUIDE.md, .ctx/REVIEW_QUEUE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/insights/README.md, content/insights/工程与AI协作的全栈实践.md, server/README.md, docs/help.html]
@@ -26,7 +26,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | 业务与数据正确性 | **77 / 100** | 46 页签 D1 读口全 2xx；换轨逐表行数与 sha256 一致（批次 527，契约 50 表）；应到口径单一源 `roster-eligibility.js`、待办读权限 `todo-read-policy.mjs`；议程分类两端同源。残项：三层关系口径未统一、D2 仅 3 页签、C2 0 pass。 |
 | 安全与权限 | **75 / 100** | 矩阵 **163 条**（156 enforced / 5 self-service / 2 public / 0 known-risk），守卫断言运行期路由 ≡ 矩阵；会话 3 小时；production 单支部；public 门厅 fail-closed；`security-hardening` 8/8、`multi-branch-read-filter` 9 组、个人密码 21/21。残项：多支部读过滤未接线、共享口令仅非生产回退、CI 无 run id。 |
 | 最小三成本体验（含前端与交互） | **74 / 100** | 46 页签 **P0 0 / P1 0 / P2 0 / exception 44**；F1–F8 全绿；跳转 fail-closed、活动详情四段、卡头单源、三份前端契约。残项：真人 5 任务签收未完成、页签 IA A 37 / B 9 / C 0、6 个超 4 块页签登记例外；本批实测顶栏同族漏改一次（`CASE-DESIGN-044`）。 |
-| 测试与发布质量 | **69 / 100** | daily **32 文件 / 265 断言**；guards **81 文件 / 898 断言**；四层 runner 由 registry 单一源驱动。残项：CI 两个 job 无 run id、`test:full` 自批次 553 未整体重跑、审计脚本不进 daily；本批实测评分台账测试读数漂移未被守卫拦住。 |
+| 测试与发布质量 | **69 / 100** | daily **32 文件 / 266 断言**；guards **81 文件 / 901 断言**；四层 runner 由 registry 单一源驱动。残项：CI 两个 job 无 run id、`test:full` 自批次 553 未整体重跑、审计脚本不进 daily；本批实测评分台账测试读数漂移未被守卫拦住。 |
 | 架构与可维护性（原「架构复杂度与变更成本」） | **73 / 100** | `write-policy-matrix` 为写权限唯一机读源；契约落 `content/04_web_design/contracts/`；四层 runner 单源。残项：对象模型边界未定（三层关系判据表待落）、双适配器 / 版本戳 / 行号守卫抬高跨层成本；壳层尺寸规则散在三段（基础 / 移动 / 组件例外），易漏改。 |
 | 运行、部署与跨组织复用 | **67 / 100** | 换轨逐表 sha256 一致（批次 527）；生产空库 `preflight-cutover --strict` exit 0 / 警告 0；迁移前备份；`start:review` 独立库；`deploy/verify-linux.sh` 6/6。残项：`L-02` 真机未验、`deploy-verify` 无 run id、附件 / 会话按 runbook 另搬。 |
 
@@ -66,8 +66,8 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 ### 2.1 业务与数据正确性 —— 77/100
 
 **证据**：46 页签 D1 读口全 2xx / JSON 可解析 / ≤500KB；换轨逐表行数与 sha256 一致（批次 527；现行契约 50 表）；应到口径单一源 `docs/src/core/domain/roster-eligibility.js`（滞留保留身份、应到剔除；已转出前置剔除），报备 / 考勤 / 考察 / 复盘同源 import；待办行读权限单一源 `server/routes/resources/todo-read-policy.mjs`；议程「来源 → 类型 → 待议池」两端同源 import。
-**残项**：工作组 / 活动 / 专班 / 党小组三层关系口径未统一；D2 计数对账只对 3 个页签；C2（写口往返）46 页签 0 pass。
-**下一改进项**（`B-603-1`）：三层关系判据表落 `content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md`（工作组 / 活动 / 专班 / 党小组挂靠各一行，带反例）；D2 扩面与 C2 复跑配方归 `B-500-7b-2` 同族（判据：7 类对账 8/8、C2 按页签 pass 计数非零）。复评触发：判据表合并、或 D2 / C2 出现新读数。
+**残项**：D2 计数对账只对 3 个页签；C2（写口往返）46 页签 0 pass。
+**下一改进项**（`B-603-1`）：三层挂靠已收口——定义只在 `OBJECT_MODEL_AND_COMMITTEE_FLOW.md §2.1`，`PARTY_COMMITTEE_DESIGN.md §2.7` 只留指针（`single-fact-consistency::⑥`）；余 D2 扩面与 C2 复跑归 `B-605-1`（判据：7 类对账 8/8、C2 按页签 pass 计数非零）。复评触发：D2 / C2 出现新读数。
 
 ### 2.2 安全与权限 —— 75/100
 
@@ -79,19 +79,19 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 **证据**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**；F1–F8 全绿；M1–M3 与 4 个独立对象池例外在位；待办跳转 fail-closed（31 类动作 × 6 台登记）；议程待议池同源；`renderDataTable` 单一出口；活动详情四段；分工视图 2；卡头单源；三份前端契约常驻。
 **残项**：真人 5 任务签收未完成（自动走查 ＋ 截图不计验收）；页签 IA **A 37 / B 9 / C 0**；6 个超 4 块页签登记例外；顶栏同族漏改一次（`CASE-DESIGN-044`：`<a>` 改 36、`<button>` 仍 44）。
-**下一改进项**（`B-603-3`）：调色板状态文字按文件棘轮继续下降（当前 286 处 / 55 文件，目标先压到 200 以下）；手拼徽章 38 文件基线只减不增；顶栏控件梯已收口（桌面 36 / 移动 44，六成员），后续新增顶栏控件默认进梯。复评触发：任一基线计数下降或出现新违规。
+**下一改进项**（`B-603-3`）：**不再设「压到 200 以下」这类数字目标**——调色板状态文字（基线 **291 处 / 56 文件**）与手拼徽章（基线 **43 文件**）的验收标准就是守卫本身：逐文件不超基线、不出现新文件（`color-ratchet-guard::①` / `component-ratchet-guard::①`）。新增代码必须走 `--status-*-text` / `badgeHtml()`；存量只在动到该文件时顺带下降并同批下调基线。复评触发：任一基线计数下降或出现新文件（守卫判红）。
 
 ### 2.4 架构与可维护性（原「架构复杂度与变更成本」） —— 73/100
 
 **证据**：审计分层沿用；`write-policy-matrix` 为写权限唯一机读源；多支部同实例设计稿落 `ARCHITECTURE_EVOLUTION §十`；契约类落 `content/04_web_design/contracts/`；测试分层由 `test-tier-registry.mjs` 单一源驱动四个 runner。
-**残项**：对象模型边界未定，三层挂靠关系仍在台账 / 读面 / 设计稿各写一份；双数据适配器、活动内嵌数据、静态版本戳与行号守卫抬高跨层变更成本；壳层尺寸规则散在基础段 / 移动段 / 组件例外三段，改一处易漏另两处。
-**下一改进项**（`B-603-5`）：对象模型判据表（同 2.1 落点，一份文件同时解 2.1 / 2.4 的重复书写）；`B-541-7`（`L-18`）组件出口散件在下次动到该组件域时同批收敛。判据：三层挂靠只在判据表一处定义、代码与台账只留指针；散件只减不增（`style-baseline` 棘轮）。复评触发：判据表合并、或组件域被改动。
+**残项**：双数据适配器、活动内嵌数据、静态版本戳与行号守卫抬高跨层变更成本；壳层尺寸规则散在基础段 / 移动段 / 组件例外三段，改一处易漏另两处。
+**下一改进项**（`B-603-5`）：对象模型边界已收口（定义只在 `OBJECT_MODEL §2.1`，`PARTY_COMMITTEE_DESIGN §2.7` 只留指针）；余 `B-541-7`（`L-18`）组件出口散件在下次动到该组件域时同批收敛。判据：散件只减不增（`style-baseline` 只减不增基线）。复评触发：组件域被改动。
 
 ### 2.5 测试与发布质量 —— 69/100
 
-**证据**：daily **32 文件 / 265 断言**；guards **81 文件 / 898 断言**；`workbench-audit-coverage::W1–W5` 常驻；`write-policy-matrix`（路由 ≡ 矩阵 + 反例）、`security-hardening`、`session-ttl`、`run-mode` 均登记 tier；四层 runner 按 registry 单一源执行；`daily.yml` 已接 `test:daily` 与 `deploy-verify`；本批 `style-ratchet-guard::S5` 实测拦下新增非令牌间距（239 → 240）。
-**残项**：CI 两个 job 未实跑（无 run id）；`test:full` 自批次 553 未整体重跑；审计脚本仍不进 daily；precommit / full 时长仍是发布风险；评分台账的测试读数无守卫比对（§2.5 / §5.2 曾写 129 / 902，与 registry 81 / 898 漂移）。
-**下一改进项**（`B-603-4`）：CI 两个 job 实跑归**外部门**（判据：run id ＋ 日志，与 2.6 的 `L-02` 同批，由支书授权推送后一次性补齐）；`evaluation-asset-guard` 扩一条「EA 测试读数 ≡ `test-tier-registry.mjs`」（判据：文件数 / 断言数与 registry 常量相等，改一处即红）；审计脚本入 daily 前先给耗时读数。复评触发：CI 出 run id、或 guards 预算变更。
+**证据**：daily **32 文件 / 266 断言**；guards **81 文件 / 901 断言**；`workbench-audit-coverage::W1–W5` 常驻；`write-policy-matrix`（路由 ≡ 矩阵 + 门名处理分支 + 反例）、`security-hardening`、`session-ttl`、`run-mode` 均登记 tier；四层 runner 按 registry 单一源执行；`daily.yml` 已接 `test:daily` 与 `deploy-verify`；`evaluation-asset-guard::⑤` 把 EA 测试读数锁到 registry（批次 604 立）；`style-ratchet-guard::S5` 曾拦下新增非令牌间距（批次 603）。
+**残项**：CI 两个 job 未实跑（无 run id）；`test:full` 自批次 553 未整体重跑；审计脚本仍不进 daily；precommit / full 时长仍是发布风险。
+**下一改进项**（`B-603-4`）：EA 读数 ≡ registry 已收口（`evaluation-asset-guard::⑤`，改一处即红）；余 CI 两个 job 实跑归**外部门**（判据：run id ＋ 日志，与 2.6 的 `L-02` 同批，由支书授权推送后一次性补齐）；审计脚本入 daily 前先给耗时读数。复评触发：CI 出 run id、或 guards 预算变更。
 
 ### 2.6 运行、部署与跨组织复用 —— 67/100
 
@@ -262,13 +262,13 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 | 维度 / 对象 | 已有评价资产（证据落点） | 下一改进项（可验收判据 ＋ 落点） |
 |---|---|---|
-| 业务与数据正确性 | §2.1 得分依据 ＋ `D-864` / `D-886` / `D-887`；`.ctx/evidence/2026-11-20/backlog-reconcile.md` | 三层关系判据表 → `contracts/PARTY_COMMITTEE_DESIGN.md`；D2 / C2 扩面（`B-500-7b-2` 已收口，读数待复测） |
-| 安全与权限 | §2.2 ＋ `write-policy-matrix` 163 条 ＋ `multi-branch-read-filter` 9 组 | 门函数 / 角色集合 ≡ 矩阵断言；`B-541-3` 逐读口取证 ＋ 开关演练 |
-| 最小三成本体验 | §2.3 ＋ 46 页签审计读数 ＋ `.ctx/evidence/2026-11-21/density-8pages.md` | 调色板状态文字 286 → 200 以下；手拼徽章 38 文件只减不增 |
-| 测试与发布质量 | §2.5 读数（daily 265 / guards 81 文件 / 898 断言）＋ `test-tier-registry.mjs` | CI run id 归外部门；`evaluation-asset-guard` 锁住本节指针 |
-| 架构与可维护性 | §2.4 ＋ `D-888` 键级隔离 ＋ 三份契约 | 对象模型判据表（与 2.1 同落点）；`B-541-7` 组件散件随改动收敛 |
+| 业务与数据正确性 | §2.1 得分依据 ＋ `D-864` / `D-886` / `D-887`；`.ctx/evidence/2026-11-20/backlog-reconcile.md` | 三层挂靠已收口：定义只在 `OBJECT_MODEL §2.1`、指针在 `PARTY_COMMITTEE_DESIGN §2.7`（`single-fact-consistency::⑥`）；余 D2 / C2 扩面（`B-500-7b-2`） |
+| 安全与权限 | §2.2 ＋ `write-policy-matrix` 163 条 ＋ `multi-branch-read-filter` 9 组 | 门名处理分支已收口（`write-policy-matrix` R2）；余 `B-541-3` 逐读口取证 ＋ 开关演练 |
+| 最小三成本体验 | §2.3 ＋ 46 页签审计读数 ＋ `.ctx/evidence/2026-11-21/density-8pages.md` | 不设数字目标：调色板状态文字（291 处 / 56 文件）与手拼徽章（43 文件）逐文件不超基线、不出现新文件（`B-603-3`） |
+| 测试与发布质量 | §2.5 读数（daily 266 / guards 81 文件 / 901 断言）＋ `test-tier-registry.mjs` | EA 读数 ≡ registry 已收口（`evaluation-asset-guard::⑤`）；余 CI run id（外部门） |
+| 架构与可维护性 | §2.4 ＋ `D-888` 键级隔离 ＋ 三份契约 | 对象模型单一源已收口（同 2.1）；余 `B-541-7` 组件散件随改动收敛 |
 | 运行、部署与跨组织复用 | §2.6 ＋ 批次 527 换轨读数 ＋ `deploy/verify-linux.sh` 6/6 | `L-02` 真机三步 ＋ `deploy-verify` run id（外部门） |
-| 前端美学专项 | `D-893` ＋ `D-896`~`D-898` ＋ `card-consistency-guard` / `spacing-ratchet-guard` / 三份新守卫基线 | 调色板文字与手拼徽章基线继续下降；8 页读数复尺 |
+| 前端美学专项 | `D-893` ＋ `D-896`~`D-898` ＋ `card-consistency-guard` / `spacing-ratchet-guard` / 三份新守卫基线 | 不设数字目标；逐文件不超基线、不出现新文件；8 页读数复尺 |
 | 台账与投影 | `ACTIVE_CONTEXT §3` ＋ `REVIEW_QUEUE` ＋ `.ctx/TIMESTAMPS.md` | 已作废项不得在任何 open 列表复现（批次 580 `D-892` 对账结论） |
 
 ### 5.3 一页指针

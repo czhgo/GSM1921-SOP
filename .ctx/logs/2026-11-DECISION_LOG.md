@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-913`，共 87 条**；下一条自 **`D-914`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-914`，共 88 条**；下一条自 **`D-915`**。
 
 ## 本月目录（2026-11）
 
@@ -107,6 +107,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | help 外抽尝试后撤回（守卫写死扫描面）；content 去重经核查不做删改 | `D-911` | 2026-11-22 | 已落（批次 601） |
 | backlog 复核：`B-541-10` 作废、其余保持触发；`C-5` 存量 1709 继续在办 | `D-912` | 2026-11-22 | 已落（批次 602） |
 | 顶栏控件梯：六成员桌面 36 / 移动 44，判例＋特例；六维重评 77/75/74/69/73/67 | `D-913` | 2026-11-22 | 已落（批次 603） |
+| C-5 撤销（text-xs 是说明句合法档）；棘轮改人话；四项改进项收口＋外部准则探查 | `D-914` | 2026-11-23 | 已落（批次 604） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -897,5 +898,16 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：daily **32 / 265 全绿（131.5s）**；guards **81 文件全绿（159.4s）**（`S5` 曾判红 239→240，改令牌后 **236**，基线同步下调）；`probe:stage` 6/6；`audit-tabs --all` 46 页签 P0/P1/P2 0 / exception 44（239.7s）。
 > **落点**：`docs/src/styles.css`；`content/04_web_design/design-system/{DS_03_COMPONENTS,CASES,DESIGN_SYSTEM}.md`；`content/03_doc_system/CASES_INDEX.md`；`content/05_ai_coding/UI_REVIEW_CHECKLIST.md`；`server/test/{component-ratchet-guard.test.mjs,style-baseline.mjs}`；`.ctx/{ENGINEERING_ASSESSMENT,ACTIVE_CONTEXT,ACTIVE_RULINGS}.md`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-913`**（共 **87** 条）。
+## D-914 2026-11-23 — C-5 撤销、「棘轮」改人话、四项改进项收口与外部准则探查（批次 604）
+
+> **评议 → 裁定 → 落点**：支书问「C-5 是否真是持续性任务」「棘轮是什么意思」，并要求「能收尾的工作必须有明确验收标准的守卫」＋用 `web-design-guidelines` 查漏。
+> - **C-5 撤销**：`text-xs`（12px）是 DS_02 明文允许的「说明句」档（正文段才要 13px），「1709 处全部上迁」与设计规则冲突，不是任务。乙部删行；新增由 `style-ratchet-guard::Q6` 的只减不增基线守住。
+> - **「棘轮」改人话**：`CLAUDE.md H25` 定义「棘轮＝只减不增的存量基线」；active 台账（ACTIVE_CONTEXT / EA / REVIEW_QUEUE）改写为「只减不增基线」。
+> - **四项改进项收口**：`B-603-1` 对象模型单一源（定义只在 `OBJECT_MODEL §2.1`，`PARTY_COMMITTEE_DESIGN §2.7` 只留指针；`single-fact-consistency::⑥`）；`B-603-2` 矩阵门名必须都有处理分支（`write-policy-matrix` 新增断言）；`B-603-4` EA 测试读数 ≡ `test-tier-registry`（`evaluation-asset-guard::⑤`）；`B-603-3` 体验不设数字目标，验收＝逐文件不超基线、不出现新文件。
+> - **外部准则探查（web-design-guidelines）**：findings 两处实修——`help.html` 焦点注释与 `FOCUS-2` 矛盾（「2px 环」实为只变边框色）改准；`index.html` 两枚党徽补 `width/height`（48 / 56）。其余逐族对照落 `UI_REVIEW_CHECKLIST ⑨`，明确三条特例：`Intl.*` 不采用（本地时区口径 `D-780`）、`text-wrap: balance` 不采用、内联 `onclick` 8 处保留（仅 stopPropagation，非 div 伪按钮，未启 CSP）。
+> **未选**：把 `text-xs` 全量迁 13px（违反 DS_02）；把「压到 200 以下」当任务（无验收终点）；为凑分改六维（本批无新加减分证据）。
+> **读数**：daily **32 文件 / 266 断言全绿（124.2s）**；guards **81 文件全绿（182.2s）**；`probe:stage` 6/6；专项断言新增 3 条（矩阵门名 / EA 读数 / 对象单一源）均带反例自证。
+> **落点**：`CLAUDE.md`（H25 ＋ 乙部）；`.ctx/{ACTIVE_CONTEXT,ENGINEERING_ASSESSMENT,REVIEW_QUEUE,TIMESTAMPS}.md`；`content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md`；`content/05_ai_coding/UI_REVIEW_CHECKLIST.md`；`docs/{help,index}.html`；`server/test/{write-policy-matrix,evaluation-asset-guard,single-fact-consistency}.test.mjs`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-914`**（共 **88** 条）。
 

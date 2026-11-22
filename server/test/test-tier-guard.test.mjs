@@ -115,8 +115,8 @@ test('T4 daily / guards 文件数与断言预算不得高于登记值；daily �
   //   实然 262；与 registry `DAILY_TEST_BUDGET=262` 取齐（上限只随结果门禁用例同步，不因静态守卫上调）。
   assert.ok(dailyFiles.length >= 20 && dailyFiles.length <= 32,
     `daily 只应保留 20–32 个结果门禁文件（实 ${dailyFiles.length}）：超出说明又混入了守卫或非核心回归`);
-  assert.ok(dailyCases <= 262,
-    `daily 断言 ${dailyCases} 超过结果门禁上限 262：优先把静态 / 域回归移出 daily，不改断言`);
+  assert.ok(dailyCases <= DAILY_TEST_BUDGET,
+    `daily 断言 ${dailyCases} 超过结果门禁上限 ${DAILY_TEST_BUDGET}：优先把静态 / 域回归移出 daily，不改断言`);
 });
 
 test('T5 四个 runner 与 registry 对齐，且不含 cmd 专有语法', () => {

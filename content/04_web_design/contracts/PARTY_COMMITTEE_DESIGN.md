@@ -3,7 +3,7 @@ title: "院系党委后台——支部多实例两级治理设计定案"
 type: contract
 role: "[工程师]+[AI]"
 created: 2026-09-02
-last_updated: "2026-11-19"
+last_updated: "2026-11-23"
 status: approved-by-secretary
 version: "1.1"
 owner: "支书（契约裁决）；[工程师]+[AI]（维护）"
@@ -140,6 +140,19 @@ related_files: [docs/src/core/domain/domain.js, docs/src/data/mock/people.js, do
 
 - **在线可改只在设置 / 换组织向导（①②③ 步）**：组织信息（①）、模块/块组合（②）、角色分工（③）即时写入 config 生效留痕；向导 **④「术语/制度/数据指引 + 换壳工作单」只读**——汇总摘要 + 待人工替换清单 + 验证点，不在此在线改仓库。
 - **仓库文件内容一律出换壳工作单人工替换，不经设置页**：mock 演示数据（people/accounts/branches/activities…）、系统常量（constants.js）、角色权限矩阵（SYSTEM_ROLE_PERMISSION.md）、术语与使用策略（`OPERATIONS_GUIDE.md` §19–§23，《运行与协作规范》；原 `USAGE_POLICY.md`）、制度 SOP（`content/02_institution/sop/`）、配色系统固定令牌（DS_01_COLOR_AND_THEME.md §二 色彩系统 + styles.css `:root`）、policy-defaults 未登记白名单的 branch-default 与 institutional 默认——替换清单见 `org-wizard-report.js` `REPLACE_ENTRIES`；改动落在 git、随版本交付，换壳口径自查见工作单第三部分。
+
+### 2.7 对象挂靠单一源（2026-11-23 批次 604 · `D-914`）
+
+> **三层挂靠只在 [OBJECT_MODEL_AND_COMMITTEE_FLOW.md §2.1](../evolution/OBJECT_MODEL_AND_COMMITTEE_FLOW.md) 定义一次**（含四条布尔规则与反例）；本文不复制规则，只留「要回答什么 → 去哪看」。
+
+| 要回答 | 单一源 |
+|---|---|
+| 成员属于哪个党小组、能否跨组参与 | OBJECT_MODEL §2.1「成员归属唯一」 |
+| 活动 / 专班挂哪个承办党小组 | 同上「业务承办唯一」 |
+| 工作组挂活动还是专班 | 同上「工作组挂靠唯一」 |
+| 谁指导工作组 | 同上「工作组不设指导支委」 |
+
+判据：本文件不得再出现四条规则的全文复述；新增对象挂靠字段必须先改 OBJECT_MODEL §2.1，再回填本表指针。机检：`server/test/single-fact-consistency.test.mjs`。
 
 ## 3. 两级角色与可见范围
 

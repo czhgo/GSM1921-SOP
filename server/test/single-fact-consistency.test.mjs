@@ -125,3 +125,36 @@ test('G1 反例自证：篡改工作流标签必须报 mismatch', () => {
   const found = workflowLabelMismatches(forged, ['待支委会审议']);
   assert.ok(found.length >= 2, `反例未被拦住，只报 ${found.length} 处：${found.join(' / ')}`);
 });
+
+/**
+ * ⑥ 三层对象挂靠只在 OBJECT_MODEL §2.1 定义一次；PARTY_COMMITTEE_DESIGN 只留指针。
+ * 病灶（批次 603 台账）：同一句「成员归属 / 业务承办 / 工作组挂靠」在台账、读面、设计稿各写一份，
+ *   改一处忘另一处 ⇒ 两套口径。本断言把「定义」与「指针」分开，防回潮。
+ */
+export function objectModelProblems(model, design) {
+  const out = [];
+  if (!/### 2\.1 三层判据表/.test(model)) out.push('OBJECT_MODEL 缺 §2.1 三层判据表');
+  for (const row of ['组织归属层', '业务层', '执行层']) {
+    if (!model.includes(row)) out.push(`三层判据表缺「${row}」行`);
+  }
+  for (const rule of ['成员归属唯一', '业务承办唯一', '工作组挂靠唯一', '工作组不设指导支委']) {
+    if (!model.includes(rule)) out.push(`OBJECT_MODEL 缺规则「${rule}」`);
+  }
+  if (!/### 2\.7 对象挂靠单一源/.test(design)) out.push('PARTY_COMMITTEE_DESIGN 缺 §2.7 对象挂靠单一源');
+  if (!/OBJECT_MODEL_AND_COMMITTEE_FLOW\.md/.test(design)) out.push('PARTY_COMMITTEE_DESIGN §2.7 未指向 OBJECT_MODEL');
+  if (design.includes('people.partyGroup 指向一个党小组')) {
+    out.push('PARTY_COMMITTEE_DESIGN 复制了「成员归属唯一」全文：应只留指针');
+  }
+  return out;
+}
+
+test('⑥ 三层对象挂靠：定义只在 OBJECT_MODEL §2.1，另一处只留指针', () => {
+  const model = read('content/04_web_design/evolution/OBJECT_MODEL_AND_COMMITTEE_FLOW.md');
+  const design = read('content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md');
+  assert.deepEqual(objectModelProblems(model, design), [], `对象挂靠口径有漂移：\n  ${objectModelProblems(model, design).join('\n  ')}`);
+  // 反例自证：删掉指针标题 / 复制全文，都必须判红
+  assert.ok(objectModelProblems(model, design.replace(/### 2\.7 对象挂靠单一源/, '')).length > 0,
+    '反例未判红：删掉 §2.7 指针标题仍通过');
+  assert.ok(objectModelProblems(model, design + '\npeople.partyGroup 指向一个党小组').length > 0,
+    '反例未判红：复制规则全文仍通过');
+});

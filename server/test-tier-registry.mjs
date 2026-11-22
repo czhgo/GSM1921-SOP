@@ -83,8 +83,9 @@ export const DAILY_FILE_BUDGET = 32;
  *  2026-11-18 批次 566（B-552-6）：`db-migration` 增 M9（v18 报名唯一索引：重复行标 duplicateOf / 不删行 / 重放幂等）
  *    ⇒ 实测 260，预算维持 260（差 0；再增断言须先降存量或显式上调）。
  *  2026-11-18 批次 567（R10-D02 集合版本 ＋ v18 版本推进）：`db-migration` M9 增「v18 推进 signups 版本」1 条、
- *    `committee-multidomain` 增「档案写口推进 archiveRecords 版本键」1 条 ⇒ 静态调用点实测 258，按 262 登记（留 4 条余量）。 */
-export const DAILY_TEST_BUDGET = 262;
+ *    `committee-multidomain` 增「档案写口推进 archiveRecords 版本键」1 条 ⇒ 静态调用点实测 258，按 262 登记（留 4 条余量）。
+ *  2026-11-23 批次 604：`write-policy-matrix` 增 1 条（门名处理分支，属权限结果门禁）⇒ 实测 263；按 263 登记（余量 0）。 */
+export const DAILY_TEST_BUDGET = 263;
 
 /** guards 文件数预算（静态守卫；按需跑，不阻塞日常）
  *  2026-11-08 波次 A：daily 迁入 6 件 ⇒ 实测 99 文件，按 99 登记。
@@ -136,8 +137,9 @@ export const GUARDS_FILE_BUDGET = 81;
  *  2026-11-21 批次 593：新增 `bom-and-eol-guard` 3 条（BOM 唯一性 / frontmatter 锚点 / 反例自证），实然 896；按 896 登记（余量 0）。
  *  2026-11-21 批次 594：`open-items-guard` 扩扫 `.trae/specs/**` 并增 2 条（归档件未勾项逐行 concluded ／ 反例自证），实然 898；按 898 登记（余量 0）。
  *  2026-11-21 批次 595：新增 `evidence-hygiene-guard` 4 条（禁截图 / 压缩包 ／ 台账双向引用 ／ 单文件 ≤256KB ／ 反例自证），实然 902；按 902 登记（余量 0）。
- *  2026-11-22 批次 599：`.trae` 清零——删 `spec-task-consistency`（3 条）＋ `open-items-guard ⑥`（1 条），实然 898；按 898 登记（余量 0）。 */
-export const GUARDS_TEST_BUDGET = 898;
+ *  2026-11-22 批次 599：`.trae` 清零——删 `spec-task-consistency`（3 条）＋ `open-items-guard ⑥`（1 条），实然 898；按 898 登记（余量 0）。
+ *  2026-11-23 批次 604：`write-policy-matrix` 增 1（门名处理分支）＋ `evaluation-asset-guard` 增 1（EA 读数 ≡ registry）＋ `single-fact-consistency` 增 1（对象挂靠单一源），实然 901；按 901 登记（余量 0）。 */
+export const GUARDS_TEST_BUDGET = 901;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
