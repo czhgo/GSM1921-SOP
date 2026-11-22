@@ -2,7 +2,7 @@
 title: "判例库总索引"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-11-21"
+last_updated: "2026-11-22"
 status: active
 related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-system/CASES.md, content/02_institution/CASES.md, content/05_ai_coding/CASES.md]
 ---
@@ -67,6 +67,7 @@ related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-sy
 | CASE-DESIGN-041 | 图标只经 icons.js，SVG 色值禁 hex（含 data-URI 的 %23） | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-61（正文 §4.11.2） | 2026-11-10（批次 540） |
 | CASE-DESIGN-042 | 必填只写星号不够：控件 required/aria-required＋错误行 role=alert | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-66（正文 §4.3） | 2026-11-21（批次 591） |
 | CASE-DESIGN-043 | 筛选行控件必须有字段级可访问名，首项文本不充当名字 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-67（正文 §4.3） | 2026-11-21（批次 591） |
+| CASE-DESIGN-044 | 顶栏控件梯：六成员两档（36/44）；指示件与内联件为例外 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-68（正文 §12.7） | 2026-11-22（批次 603） |
 | CASE-DATA-001 | api 形态不得回退 mock；本地 resolve 不算写成功 | data | [CASES.md](../04_web_design/design-system/CASES.md) | SD-48 | 批次 513 |
 | CASE-INST-001 | 匿名反馈改裁为支部内闭环、无系统揭名入口 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9j`（SR 待编号） | 2026-10-16（D-824） |
 | CASE-INST-002 | 意见处置与品牌认定归支委会，支书主持 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9j`（SR 待编号） | 2026-09-18 |

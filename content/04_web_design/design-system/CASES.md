@@ -481,6 +481,18 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 
 ---
 
+## CASE-DESIGN-044 壳层「统一 44」把侧栏页脚压成正文档；改字链不改按钮属同族漏改
+
+- **编号**：CASE-DESIGN-044
+- **场景（真实发生）**：① 2026-10-18 支书复核侧栏页脚「原先的设置最舒服」，定为紧凑档（`padding 4px 8px` / `12px` / `line-height 1.2` ≈ 22.4 高）。批次 561 为统一触控热区，把顶栏动作、图标钮、页脚一并提到 44 高 / 13px；页脚在桌面变成与正文同档的宽行。② 2026-11-22 批次 603 首轮只把 `<a>.header-action-btn` 与铃铛改回 36，汉堡 `<button>` 仍是 44，同一顶栏出现两种高度；支书判为逃逸（同族漏改）。
+- **结论**：顶栏是一个控件族、两档值——桌面 36、移动 44。成员六个：`.hamburger-btn`、`.header-action-btn`（登录 / 我的档案 / 台主 CTA / 一键汇报）、`.btn-icon.header-icon-btn`（通知铃铛）。命中区一律 ≥44×44：汉堡与铃铛由 `::after` 提供，动作钮移动档由上下内边距提供。改任一成员，必须同批枚举全族并两档同对齐。
+- **边界**：不属控件梯的只有三类——`.role-label`（指示件，不可点）、`.party-emblem-wrapper`（图片）、`#branch-view-exit.btn-text`（金底状态条内联文字，高度随条）。工作台页签 `.tab-btn`、列表行、弹窗按钮仍按各自档位，不并入本梯。**特例准入**：新增顶栏控件默认进梯；要出梯必须支书裁定并在本「边界」登记，不得由 AI 自行解释。
+- **对应规范编号**：SD-68（壳层两档，正文见 `DS_03_COMPONENTS.md §12.7`）。
+- **守卫**：`component-ratchet-guard`（`COMPONENT_STATE_EXEMPT` 白名单 ＋ T3 命中区探测）＋ `scripts/touch-target-audit.mjs`（390×844 命中区 <44 计数）。
+- **证据指针**：`docs/src/styles.css`（`.hamburger-btn` / `.header-action-btn` / `.btn-icon.header-icon-btn` / `.sidebar-footer-action` / `@media (max-width:640px)` 顶栏收紧段）；`server/test/component-ratchet-guard.test.mjs:1431`；`content/04_web_design/design-system/DS_03_COMPONENTS.md §12.7`；批次 561 `a015ef08c` 与本批 `D-913`。
+
+---
+
 ## 数据域判例（data）
 
 > 本区承载 `CASE-DATA-*`：判据是「数据真相」而非视觉，但因同源于设计系统评审、且需与 SD-48 双向指针，正文与 design 域同放本文件；总目录仍见 [CASES_INDEX.md](../../03_doc_system/CASES_INDEX.md)。

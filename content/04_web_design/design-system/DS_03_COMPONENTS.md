@@ -1327,16 +1327,21 @@ icon('bell', { className: 'w-4 h-4' })
 | 页面/弹窗按钮（accent/outline/danger/neutral/md） | 36px | 8 + 8 + 18 + 2 |
 | 卡片/页签按钮（ghost/tab） | 32px | 4 + 4 + 22 + 2 |
 | 行内按钮（sm/action） | 28px | 4 + 4 + 18 + 2；命中区 44px |
-| 顶栏动作 `.header-action-btn` | 44px | 12 + 12 + 18 + 2（2026-11-16 批次 557，由 36 提到 44） |
-| 顶栏图标钮 `.btn-icon.header-icon-btn` / `.hamburger-btn` | 44px | 视觉即命中区；汉堡移动档同 44（不再 36） |
+| 顶栏动作 `.header-action-btn` | 36px | 8 + 8 + 18 + 2；字号 13px（2026-11-22 批次 603 `D-913` 由 44 回 36） |
+| 顶栏图标钮 `.btn-icon.header-icon-btn` | 36×36 | 视觉 36；命中区 44×44 由 `.btn-icon::after` 提供 |
+| 汉堡钮 `.hamburger-btn` | 36px | 桌面 36×36、移动档 44×44；视觉与命中区分离，命中区由 `::after` 给 44（`D-913`） |
 | 工作台页签 `.tab-btn` | 44px | `min-h-11` ＋ 行内居中；字号 13px；命中区 44×44（`::after`） |
-| 侧栏页脚动作 `.sidebar-footer-action` | 44px | 12 + 12 + 20（无边框）；字号 13px（2026-11-16 批次 557，由 22.4 提到 44） |
+| 侧栏页脚动作 `.sidebar-footer-action` | 22.4px | 4 + 4 + 14.4（12px×1.2，无边框）；桌面紧凑档；移动档（≤640 抽屉）44px / 13px 保命中区（`D-913`） |
 | 列表单行 / 双行 / 紧凑行 | 48 / 56 / 44px | 语义行型 |
 | 表格行 | 40px | 不再写无效的 `tr{min-height}` |
 | `summary` | ≥40px | 命中区 |
 
+- **壳层顶栏特例（`D-913`）**：`#app-header` 下六个可交互控件（汉堡 / 登录 / 我的档案 / 台主 CTA / 一键汇报 / 通知铃铛）共用一条两档梯——桌面 36、移动 44；命中区均 ≥44×44。不属控件梯的只有三类：`.role-label`（指示件）、`.party-emblem-wrapper`（图片）、`#branch-view-exit.btn-text`（金底状态条内联文字）。适用范围、复评触发与守卫白名单见 `CASES.md CASE-DESIGN-044`。
+
 - 间距只取 4/8/12/16/24；标题→次级→描述 8；页头说明→内容 8–12。
 - 按钮宽度由内容 + 水平 10/8/8；不得用 `min-height` 撑高脱离文字行高。
+
+**SD-68 壳层两档（2026-11-22 批次 603 · `D-913`）**：顶栏六个可交互控件（`.hamburger-btn`、`.header-action-btn` 家族、`.btn-icon.header-icon-btn`）共用一条梯——桌面 36（动作钮 8+8+18+2；图标与汉堡 36×36），移动档（≤640）全部 44；命中区一律 ≥44×44（汉堡与铃铛由 `::after`，动作钮移动档由上下内边距）。侧栏页脚 `.sidebar-footer-action` 桌面 22.4px（4+4+14.4，12px×1.2）、移动档 44px/13px。判据：桌面与移动档各自可复现上表高度；顶栏任一可点元素命中区 ≥44×44。判例：`CASE-DESIGN-044`。守卫：`component-ratchet-guard`（`COMPONENT_STATE_EXEMPT` 白名单 ＋ T3 命中区探测）＋ `scripts/touch-target-audit.mjs`。
 
 ### 12.8 交互三态（批次 506 立 · 507 补按压三源）
 

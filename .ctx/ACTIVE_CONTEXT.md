@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: 2026-11-22
 last_verified: "2026-11-22"
-latest_decision: "D-912"
+latest_decision: "D-913"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -24,8 +24,8 @@ status: active
 - **URL**：无后缀已落地（`D-867`）；旧 `.html` 保持 200；站内锚点只经 `pageHref()`。
 - **数据**：业务表 50 张；SQLite 宽表 `id + data(JSON)`；schema **v19**。source：`server/data/domain-contract.mjs`。
 - **权限**：写入口矩阵 **163 条**（156 enforced / 5 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵。source：`server/security/write-policy-matrix.mjs`。
-- **六维（`D-883` 重校 · `D-899` 复核未变）**：业务 **80** / 安全 **78** / 体验 **79** / 测试 **73** / 架构 **76** / 部署 **71**；只作诊断，不单独阻断合并（`D-894`）。
-- **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（`D-899` 实跑）。source：`.ctx/evidence/2026-11-21/tab-audit/summary.md`。
+- **六维（`D-913` 重评）**：业务 **77** / 安全 **75** / 体验 **74** / 测试 **69** / 架构 **73** / 部署 **67**；只作诊断，不单独阻断合并（`D-894`）。
+- **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（批次 603 实跑 239.7s，同值；source：`.ctx/evidence/2026-11-21/tab-audit/summary.md`）。
 - **测试（四层）**：daily **32 文件 / 265 断言**；guards **81 文件 / 898 断言**（52 源件已并 5 件，预算软告警）；`npm run probe:stage` 6 步断点探针。source：`server/test-tier-registry.mjs`。
 - **换轨**：`preflight-cutover --strict` exit 0；契约 50 表；生产只走个人密码（`D-882`）。source：`deploy/CUTOVER_RUNBOOK.md`。
 
@@ -66,9 +66,10 @@ status: active
 
 ### 下一批任务
 
-1. **持续棘轮**：`C-5`（`docs/**` 的 `text-xs` 存量 **1709 处**；下一批按「先正文段、后辅助标签、逐文件棘轮」推进；`help` 色令牌同批）。
-2. **外部门**：`EA §四` 五项（L-02 / CI run id / 真人签收 / SMTP 实投 / M-01），支书授权后一次性补齐。
-3. **backlog（触发即做）**：`L-13`、`L-14`·`L-15`、`L-17`、`L-18`；触发条件见 `EA §四` 与 `REVIEW_QUEUE B-541-*`。
+1. **六维扣分改进项**：`B-603-1…6`（业务三层关系判据表 / 安全门函数断言 / 体验棘轮 / 测试台账读数比对 / 架构对象模型 / 部署真机），落 `EA §二`，目标批次 604。
+2. **持续棘轮**：`C-5`（`docs/**` 的 `text-xs` 存量 **1709 处**；下一批按「先正文段、后辅助标签、逐文件棘轮」推进；`help` 色令牌同批）。
+3. **外部门**：`EA §四` 五项（L-02 / CI run id / 真人签收 / SMTP 实投 / M-01），支书授权后一次性补齐。
+4. **backlog（触发即做）**：`L-13`、`L-14`·`L-15`、`L-17`、`L-18`；触发条件见 `EA §四` 与 `REVIEW_QUEUE B-541-*`。
 
 ## §4 文件地图（读什么 / 不读什么）
 

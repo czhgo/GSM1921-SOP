@@ -19,16 +19,16 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 > 评分只表达当前证据下的成熟度，不作六维平均。高风险单独列出；同一系统可在本地单支部场景很好用，却仍不适合多支部共享部署。
 >
-> **当前值（`D-883` 重校；批次 589 · `D-899` 复核维持）**：业务与数据 **80** · 安全与权限 **78** · 最小三成本体验 **79** · 测试与发布 **73** · 架构与可维护性 **76** · 运行部署 **71**。**复核结论（`D-899`）**：批次 587–589 的增量（调色板状态色按文件棘轮、徽章单源、h-8 归位；数字卡按内容收窄；今天/归档补最近动态；兜底仪器与 7 类对账全绿）属既有基线内加固；audit-tabs P0/P1/P2 全 0（exception 44），daily 265 / 106.8s、guards 125 文件 / 884 用例；扣分结构未变（CI 无 run id、`test:full` 未整体重跑、Linux 真机未验、C2 写口往返 0 pass、真人签收未做）⇒ 六维维持不上调。下表单元格保留「已核实证据 / 未闭项」；带 `D-86x` 标记的数值属当时口径，历史沿革只查 `DECISION_LOG`。
+> **当前值（`D-913` 重评）**：业务与数据 **77** · 安全与权限 **75** · 最小三成本体验 **74** · 测试与发布 **69** · 架构与可维护性 **73** · 运行部署 **67**。**重评依据（`D-913`）**：只认证据、不加努力分；本批新增反面证据两条——① 评分台账测试读数漂移（§2.5 / §5.2 写 129 文件 / 902 断言，实为 81 / 898，守卫 ⑫ 只校六维元组未拦住）；② 顶栏同族漏改（`<a>` 改 36、同位 `<button>` 仍 44）。其余维度按支书口径收紧下调（未获新读数的项不再按乐观值计）。下表单元格保留「已核实证据 / 未闭项」；带 `D-86x` 标记的数值属当时口径，沿革只查 `DECISION_LOG`。
 
 | 维度 | 得分 | 证据、风险与未完成项 |
 |------|------|---------------------|
-| 业务与数据正确性 | **80 / 100** | 46 页签 D1 读口全 2xx；换轨逐表行数与 sha256 一致（批次 527，契约 50 表）；应到口径单一源 `roster-eligibility.js`、待办读权限 `todo-read-policy.mjs`；议程分类两端同源。残项：三层关系口径未统一、D2 仅 3 页签、C2 0 pass。 |
-| 安全与权限 | **78 / 100** | 矩阵 **163 条**（156 enforced / 5 self-service / 2 public / 0 known-risk），守卫断言运行期路由 ≡ 矩阵；会话 3 小时；production 单支部；public 门厅 fail-closed；`security-hardening` 8/8、`multi-branch-read-filter` 9 组、个人密码 21/21。残项：多支部读过滤未接线、共享口令仅非生产回退、CI 无 run id。 |
-| 最小三成本体验（含前端与交互） | **79 / 100** | 46 页签 **P0 0 / P1 0 / P2 0 / exception 44**；F1–F8 全绿；跳转 fail-closed、活动详情四段、卡头单源、三份前端契约。残项：真人 5 任务签收未完成、页签 IA A 37 / B 9 / C 0、6 个超 4 块页签登记例外。 |
-| 测试与发布质量 | **73 / 100** | daily **32 文件 / 265 断言**；guards **129 文件 / 902 断言**；四层 runner 由 registry 单一源驱动。残项：CI 两个 job 无 run id、`test:full` 未整体重跑、审计脚本不进 daily。 |
-| 架构与可维护性（原「架构复杂度与变更成本」） | **76 / 100** | `write-policy-matrix` 为写权限唯一机读源；契约落 `content/04_web_design/contracts/`；四层 runner 单源。残项：对象模型边界未定（三层关系判据表待落）、双适配器 / 版本戳 / 行号守卫抬高跨层成本。 |
-| 运行、部署与跨组织复用 | **71 / 100** | 换轨逐表 sha256 一致（批次 527）；生产空库 `preflight-cutover --strict` exit 0 / 警告 0；迁移前备份；`start:review` 独立库；`deploy/verify-linux.sh` 6/6。残项：`L-02` 真机未验、`deploy-verify` 无 run id、附件 / 会话按 runbook 另搬。 |
+| 业务与数据正确性 | **77 / 100** | 46 页签 D1 读口全 2xx；换轨逐表行数与 sha256 一致（批次 527，契约 50 表）；应到口径单一源 `roster-eligibility.js`、待办读权限 `todo-read-policy.mjs`；议程分类两端同源。残项：三层关系口径未统一、D2 仅 3 页签、C2 0 pass。 |
+| 安全与权限 | **75 / 100** | 矩阵 **163 条**（156 enforced / 5 self-service / 2 public / 0 known-risk），守卫断言运行期路由 ≡ 矩阵；会话 3 小时；production 单支部；public 门厅 fail-closed；`security-hardening` 8/8、`multi-branch-read-filter` 9 组、个人密码 21/21。残项：多支部读过滤未接线、共享口令仅非生产回退、CI 无 run id。 |
+| 最小三成本体验（含前端与交互） | **74 / 100** | 46 页签 **P0 0 / P1 0 / P2 0 / exception 44**；F1–F8 全绿；跳转 fail-closed、活动详情四段、卡头单源、三份前端契约。残项：真人 5 任务签收未完成、页签 IA A 37 / B 9 / C 0、6 个超 4 块页签登记例外；本批实测顶栏同族漏改一次（`CASE-DESIGN-044`）。 |
+| 测试与发布质量 | **69 / 100** | daily **32 文件 / 265 断言**；guards **81 文件 / 898 断言**；四层 runner 由 registry 单一源驱动。残项：CI 两个 job 无 run id、`test:full` 自批次 553 未整体重跑、审计脚本不进 daily；本批实测评分台账测试读数漂移未被守卫拦住。 |
+| 架构与可维护性（原「架构复杂度与变更成本」） | **73 / 100** | `write-policy-matrix` 为写权限唯一机读源；契约落 `content/04_web_design/contracts/`；四层 runner 单源。残项：对象模型边界未定（三层关系判据表待落）、双适配器 / 版本戳 / 行号守卫抬高跨层成本；壳层尺寸规则散在三段（基础 / 移动 / 组件例外），易漏改。 |
+| 运行、部署与跨组织复用 | **67 / 100** | 换轨逐表 sha256 一致（批次 527）；生产空库 `preflight-cutover --strict` exit 0 / 警告 0；迁移前备份；`start:review` 独立库；`deploy/verify-linux.sh` 6/6。残项：`L-02` 真机未验、`deploy-verify` 无 run id、附件 / 会话按 runbook 另搬。 |
 
 ### 评分锚点
 
@@ -63,41 +63,41 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 > 每维只留「当前证据 / 残项 / 下一改进项」；逐批论证与历史读数见 `.ctx/logs/`（`H26.5`：同一指标只留一个当前值）。
 
-### 2.1 业务与数据正确性 —— 80/100
+### 2.1 业务与数据正确性 —— 77/100
 
 **证据**：46 页签 D1 读口全 2xx / JSON 可解析 / ≤500KB；换轨逐表行数与 sha256 一致（批次 527；现行契约 50 表）；应到口径单一源 `docs/src/core/domain/roster-eligibility.js`（滞留保留身份、应到剔除；已转出前置剔除），报备 / 考勤 / 考察 / 复盘同源 import；待办行读权限单一源 `server/routes/resources/todo-read-policy.mjs`；议程「来源 → 类型 → 待议池」两端同源 import。
 **残项**：工作组 / 活动 / 专班 / 党小组三层关系口径未统一；D2 计数对账只对 3 个页签；C2（写口往返）46 页签 0 pass。
-**下一改进项**：三层关系判据表落 `content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md`（工作组 / 活动 / 专班 / 党小组挂靠各一行，带反例）；D2 扩面与 C2 复跑配方归 `B-500-7b-2` 同族（判据：7 类对账 8/8、C2 按页签 pass 计数非零）。复评触发：判据表合并、或 D2 / C2 出现新读数。
+**下一改进项**（`B-603-1`）：三层关系判据表落 `content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md`（工作组 / 活动 / 专班 / 党小组挂靠各一行，带反例）；D2 扩面与 C2 复跑配方归 `B-500-7b-2` 同族（判据：7 类对账 8/8、C2 按页签 pass 计数非零）。复评触发：判据表合并、或 D2 / C2 出现新读数。
 
-### 2.2 安全与权限 —— 78/100
+### 2.2 安全与权限 —— 75/100
 
 **证据**：`write-policy-matrix` **163 条**（0 known-risk），守卫断言 Express 运行期写路由 ≡ 矩阵登记面并带反例；`SESSION_TTL_HOURS` 缺省 3 小时；production 多支部拒绝启动；`start:review` 独立演示库；`security-hardening` 8/8、`multi-branch-read-filter` 9 组、`personal-password` 21/21；公共门厅过期 / 缺失有效期一律 404 fail-closed。
 **残项**：多支部读过滤未接线到生产读面（`ALLOW_MULTI_BRANCH` 关闭）；共享口令仅非生产回退；矩阵未断言「门函数 / 角色集合」本身；CI 安全类守卫无 run id。
-**下一改进项**：`write-policy-matrix.test.mjs` 增「门函数 / 角色集合 ≡ 矩阵」断言（落点 `server/security/write-policy-matrix.mjs` ＋ 同文件测试）；`B-541-3`（`L-10`）逐读口取证与 `ALLOW_MULTI_BRANCH` 开关演练。判据：矩阵每行 roleGate 与实际门函数集合逐项相等；开关演练 9 组夹具仍全绿。复评触发：任一新写口登记或开关演练出读数。
+**下一改进项**（`B-603-2`）：`write-policy-matrix.test.mjs` 增「门函数 / 角色集合 ≡ 矩阵」断言（落点 `server/security/write-policy-matrix.mjs` ＋ 同文件测试）；`B-541-3`（`L-10`）逐读口取证与 `ALLOW_MULTI_BRANCH` 开关演练。判据：矩阵每行 roleGate 与实际门函数集合逐项相等；开关演练 9 组夹具仍全绿。复评触发：任一新写口登记或开关演练出读数。
 
-### 2.3 最小三成本体验（含前端与交互） —— 79/100
+### 2.3 最小三成本体验（含前端与交互） —— 74/100
 
 **证据**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**；F1–F8 全绿；M1–M3 与 4 个独立对象池例外在位；待办跳转 fail-closed（31 类动作 × 6 台登记）；议程待议池同源；`renderDataTable` 单一出口；活动详情四段；分工视图 2；卡头单源；三份前端契约常驻。
-**残项**：真人 5 任务签收未完成（自动走查 ＋ 截图不计验收）；页签 IA **A 37 / B 9 / C 0**；6 个超 4 块页签登记例外。
-**下一改进项**：调色板状态文字按文件棘轮继续下降（当前 286 处 / 55 文件，目标先压到 200 以下）；手拼徽章 38 文件基线只减不增；`B-522-1` 已收口（批次 588），后续按 8 页读数复尺。复评触发：任一基线计数下降或出现新违规。
+**残项**：真人 5 任务签收未完成（自动走查 ＋ 截图不计验收）；页签 IA **A 37 / B 9 / C 0**；6 个超 4 块页签登记例外；顶栏同族漏改一次（`CASE-DESIGN-044`：`<a>` 改 36、`<button>` 仍 44）。
+**下一改进项**（`B-603-3`）：调色板状态文字按文件棘轮继续下降（当前 286 处 / 55 文件，目标先压到 200 以下）；手拼徽章 38 文件基线只减不增；顶栏控件梯已收口（桌面 36 / 移动 44，六成员），后续新增顶栏控件默认进梯。复评触发：任一基线计数下降或出现新违规。
 
-### 2.4 架构与可维护性（原「架构复杂度与变更成本」） —— 76/100
+### 2.4 架构与可维护性（原「架构复杂度与变更成本」） —— 73/100
 
 **证据**：审计分层沿用；`write-policy-matrix` 为写权限唯一机读源；多支部同实例设计稿落 `ARCHITECTURE_EVOLUTION §十`；契约类落 `content/04_web_design/contracts/`；测试分层由 `test-tier-registry.mjs` 单一源驱动四个 runner。
-**残项**：对象模型边界未定，三层挂靠关系仍在台账 / 读面 / 设计稿各写一份；双数据适配器、活动内嵌数据、静态版本戳与行号守卫抬高跨层变更成本。
-**下一改进项**：对象模型判据表（同 2.1 落点，一份文件同时解 2.1 / 2.4 的重复书写）；`B-541-7`（`L-18`）组件出口散件在下次动到该组件域时同批收敛。判据：三层挂靠只在判据表一处定义、代码与台账只留指针；散件只减不增（`style-baseline` 棘轮）。复评触发：判据表合并、或组件域被改动。
+**残项**：对象模型边界未定，三层挂靠关系仍在台账 / 读面 / 设计稿各写一份；双数据适配器、活动内嵌数据、静态版本戳与行号守卫抬高跨层变更成本；壳层尺寸规则散在基础段 / 移动段 / 组件例外三段，改一处易漏另两处。
+**下一改进项**（`B-603-5`）：对象模型判据表（同 2.1 落点，一份文件同时解 2.1 / 2.4 的重复书写）；`B-541-7`（`L-18`）组件出口散件在下次动到该组件域时同批收敛。判据：三层挂靠只在判据表一处定义、代码与台账只留指针；散件只减不增（`style-baseline` 棘轮）。复评触发：判据表合并、或组件域被改动。
 
-### 2.5 测试与发布质量 —— 73/100
+### 2.5 测试与发布质量 —— 69/100
 
-**证据**：daily **32 文件 / 265 断言**；guards **129 文件 / 902 断言**；`workbench-audit-coverage::W1–W5` 常驻；`write-policy-matrix`（路由 ≡ 矩阵 + 反例）、`security-hardening`、`session-ttl`、`run-mode` 均登记 tier；四层 runner 按 registry 单一源执行；`daily.yml` 已接 `test:daily` 与 `deploy-verify`。
-**残项**：CI 两个 job 未实跑（无 run id）；`test:full` 未整体重跑；审计脚本仍不进 daily；precommit / full 时长仍是发布风险。
-**下一改进项**：CI 两个 job 实跑归**外部门**（判据：run id ＋ 日志，与 2.6 的 `L-02` 同批，由支书授权推送后一次性补齐）；`evaluation-asset-guard` 新增后把六维「下一改进项」纳入机检（判据：2.1–2.6 每节含指针、删一处即红）；审计脚本入 daily 前先给耗时读数。复评触发：CI 出 run id、或 guards 预算变更。
+**证据**：daily **32 文件 / 265 断言**；guards **81 文件 / 898 断言**；`workbench-audit-coverage::W1–W5` 常驻；`write-policy-matrix`（路由 ≡ 矩阵 + 反例）、`security-hardening`、`session-ttl`、`run-mode` 均登记 tier；四层 runner 按 registry 单一源执行；`daily.yml` 已接 `test:daily` 与 `deploy-verify`；本批 `style-ratchet-guard::S5` 实测拦下新增非令牌间距（239 → 240）。
+**残项**：CI 两个 job 未实跑（无 run id）；`test:full` 自批次 553 未整体重跑；审计脚本仍不进 daily；precommit / full 时长仍是发布风险；评分台账的测试读数无守卫比对（§2.5 / §5.2 曾写 129 / 902，与 registry 81 / 898 漂移）。
+**下一改进项**（`B-603-4`）：CI 两个 job 实跑归**外部门**（判据：run id ＋ 日志，与 2.6 的 `L-02` 同批，由支书授权推送后一次性补齐）；`evaluation-asset-guard` 扩一条「EA 测试读数 ≡ `test-tier-registry.mjs`」（判据：文件数 / 断言数与 registry 常量相等，改一处即红）；审计脚本入 daily 前先给耗时读数。复评触发：CI 出 run id、或 guards 预算变更。
 
-### 2.6 运行、部署与跨组织复用 —— 71/100
+### 2.6 运行、部署与跨组织复用 —— 67/100
 
 **证据**：换轨闭环实测逐表行数与 sha256 一致（批次 527）；生产空库首启补 6 角色账号后 `preflight-cutover --strict` **exit 0 / 警告 0**；`user_version` 拒绝降级；迁移前备份；`start:review` 隔离演示库；production 单支部断言；`deploy/verify-linux.sh` **6/6**。
 **残项**：`install.sh` / `install.ps1` / `update.sh` 未在 Linux 真机验证（`L-02`）；GitHub Actions `deploy-verify` 未实跑（无 `gh`、本机不推送）；附件 / 会话按 runbook 另搬；多支部读过滤未实现。
-**下一改进项**：`L-02` ＋ `deploy-verify` 实跑归**外部门**（判据：Linux 真机 `install → preflight → update` 三步退出码 0 ＋ CI run id）；多支部读过滤见 2.2 的 `B-541-3`。复评触发：真机三步任一跑通、或开关演练出读数。
+**下一改进项**（`B-603-6`）：`L-02` ＋ `deploy-verify` 实跑归**外部门**（判据：Linux 真机 `install → preflight → update` 三步退出码 0 ＋ CI run id）；多支部读过滤见 2.2 的 `B-541-3`。复评触发：真机三步任一跑通、或开关演练出读数。
 
 ### 2.7 七个月工程复盘（结论）
 
@@ -252,7 +252,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 ### 5.2 当前值（一屏看现状）
 
-- **六维（当前 · `D-883`；批次 578 · `D-890` 复核未变）**：业务与数据正确性 **80** · 安全与权限 **78** · 最小三成本体验（含前端与交互） **79** · 测试与发布质量 **73** · 架构与可维护性 **76** · 运行/部署/跨组织复用 **71**。**不计算平均总分**；高风险见 §一「阻断级风险」，逐维依据见 §二；重校理由见 `DECISION_LOG D-883`。
+- **六维（当前 · `D-913` 重评）**：业务与数据正确性 **77** · 安全与权限 **75** · 最小三成本体验（含前端与交互） **74** · 测试与发布质量 **69** · 架构与可维护性 **73** · 运行/部署/跨组织复用 **67**。**不计算平均总分**；高风险见 §一「阻断级风险」，逐维依据见 §二；重评理由见 `DECISION_LOG D-913`。
 - **目录分层（当前 · 2026-09-29 批次 267 收官）**：`core/` **4 子域**（base 7 · domain 7 · boot 4 · session 4 = 22 件）· `data/` **新立**（4 适配器 ＋ `mock/` 15 件）· `services/` **5 域**（core 9 · member 9 · activity 12 · governance 11 · branch 8 = 49 件）· `components/` **7 域**（ui 13 · shell 6 · sections 2 · feedback 4 · record 11 · governance 13 · dashboard 4 = 53 件）· `capabilities/` **顶层 12 件**（2026-09-29 批次 268 增 `taskforce.js`） · `entries/` **3 类**（pages 15 · workspace 7 · tabs 68）· `workflow/` 8 件 · `config/` 1 件。**`modules/` 已消解**（能力声明上提顶层；3 件跨页件按判据归位：`branch-demo-nav` → `services/core/` · `references`/`help-catalog` → `components/sections/`）。落地方式与硬成本 ⇒ 见 §六 G2。
 - **测试规模**：**动态口径，不写死**——以 `server/test/` 实测为准（分档见 `server/README.md`「测试耗时台账」）。
 - **纪律与判据索引（当前）**：`§3.4` 收敛台账 **R13–R30 共 19 行**（含 `R28-附` / `R29` / `R30`）；`CLAUDE.md` 现行纪律 **R-68 ~ R-80**（真机同环境量测 · 不得以「等裁定」结束回合 · 授权声明可核验 · 异常面下沉动作级 · 守卫覆盖按接口逐维数 · 台账完备性三缺一 · 等待窗口须覆盖真实耗时 · 判据落在事实上而非手段上 · 增量而非绝对值 · 判据之间不得互相冒充 · 「不可达」只有两条出口 · 「成功」须确认落库 · 每个字段都要有判据）；自查问句 = `DATA_CONSISTENCY_CHECKLIST §0.1`（**现到二十七问**）；范本 = 同文件（**第六–第二十七**）；判例集 = `content/05_ai_coding/TEST_AND_VERIFICATION.md`。**逐条「哪一批增了哪一问 / 哪一范本」属沿革 ⇒ 见日志**。
@@ -265,7 +265,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | 业务与数据正确性 | §2.1 得分依据 ＋ `D-864` / `D-886` / `D-887`；`.ctx/evidence/2026-11-20/backlog-reconcile.md` | 三层关系判据表 → `contracts/PARTY_COMMITTEE_DESIGN.md`；D2 / C2 扩面（`B-500-7b-2` 已收口，读数待复测） |
 | 安全与权限 | §2.2 ＋ `write-policy-matrix` 163 条 ＋ `multi-branch-read-filter` 9 组 | 门函数 / 角色集合 ≡ 矩阵断言；`B-541-3` 逐读口取证 ＋ 开关演练 |
 | 最小三成本体验 | §2.3 ＋ 46 页签审计读数 ＋ `.ctx/evidence/2026-11-21/density-8pages.md` | 调色板状态文字 286 → 200 以下；手拼徽章 38 文件只减不增 |
-| 测试与发布质量 | §2.5 读数（daily 265 / guards 129 文件 / 902 断言）＋ `test-tier-registry.mjs` | CI run id 归外部门；`evaluation-asset-guard` 锁住本节指针 |
+| 测试与发布质量 | §2.5 读数（daily 265 / guards 81 文件 / 898 断言）＋ `test-tier-registry.mjs` | CI run id 归外部门；`evaluation-asset-guard` 锁住本节指针 |
 | 架构与可维护性 | §2.4 ＋ `D-888` 键级隔离 ＋ 三份契约 | 对象模型判据表（与 2.1 同落点）；`B-541-7` 组件散件随改动收敛 |
 | 运行、部署与跨组织复用 | §2.6 ＋ 批次 527 换轨读数 ＋ `deploy/verify-linux.sh` 6/6 | `L-02` 真机三步 ＋ `deploy-verify` run id（外部门） |
 | 前端美学专项 | `D-893` ＋ `D-896`~`D-898` ＋ `card-consistency-guard` / `spacing-ratchet-guard` / 三份新守卫基线 | 调色板文字与手拼徽章基线继续下降；8 页读数复尺 |

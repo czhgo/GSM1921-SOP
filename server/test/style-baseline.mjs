@@ -695,8 +695,8 @@ export const TYPE_TIER_BASELINE = {
 export const TYPE_TIER_TOTAL_BASELINE = 51;
 export const TYPE_TIER_FILE_BASELINE = 11;
 
-/** styles.css 非令牌间距声明数（S5；2026-10-31 实测 239） */
-export const SPACING_NON_TOKEN_BASELINE = 239;
+/** styles.css 非令牌间距声明数（S5；2026-11-22 批次 603 实测 236，随顶栏／页脚改令牌同批下调） */
+export const SPACING_NON_TOKEN_BASELINE = 236;
 
 /** 行内间距（S6/S7；2026-10-31 实测：声明 706 / 属性 560）
  *  扫描面＝docs 下全部 .js/.mjs/.html 的 `style="…"`（含模板串里的 style="…"）；

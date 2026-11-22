@@ -54,8 +54,8 @@ dynamic_role:
 | --------- | ------------- | -------- | ------ | ------ |
 | .ctx/TIMESTAMPS.md | 2026-11-22 | — | [工程师]+[AI] | 文件时间戳注册表；备注列只写**现状 / 边界 / 指针**（`R-89`）；纯代码行（`.js` / `.mjs`）不再逐条登记，改动日以 git 为准（批次 597）。 |
 | .ctx/SNAPSHOT.md | 2026-11-22 | — | [AI] | 系统现状基线（reference）：只答「系统现在长什么样」；schema v19 / 业务 50 表。 |
-| .ctx/ACTIVE_RULINGS.md | 2026-11-19 | — | [工程师]+[AI] | 现行有效裁定**索引**（reference）：只答「到哪找某条现行口径」；跨域摘要 + 18 领域索引，规则正文在 `content/01–05`。 |
-| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-22 | — | [工程师]+[AI] | 见日志批次 597 |
+| .ctx/ACTIVE_RULINGS.md | 2026-11-22 | — | [工程师]+[AI] | 现行有效裁定**索引**（reference）：只答「到哪找某条现行口径」；跨域摘要 + 18 领域索引，规则正文在 `content/01–05`。 |
+| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-22 | — | [工程师]+[AI] | 见日志批次 603（六维 77/75/74/69/73/67，`D-913`） |
 | .ctx/REVIEW_QUEUE.md | 2026-11-22 | — | [工程师]+[AI] | 支书评议队列（reference）：只答「要评议什么 ＋ 评议怎么做」；已闭环项删除（`D-892` / `D-901` 删 `B-552-1…6`）。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND1_WORKBENCH_STRUCTURE.md | 2026-10-19 | — | [工程师]+[AI] | Round 1 工作台结构审计报告（53 条 triage + 三路审查 + 共识/分歧/裁定 + 证据门）；修复 spec 落盘后可归档或删除。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND2_MINIMUM_THREE_COSTS.md | 2026-10-19 | — | [工程师]+[AI] | 见日志批次 597 |
@@ -140,15 +140,15 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 | --------- | ------------- | -------- | ------ | ------ |
-| content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-11-21 | — | [工程师]+[AI] | 父索引：§一 设计哲学 ＋ 编目（原则 4 补「点缀色不单独承担状态语义」）。 |
+| content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-11-22 | — | [工程师]+[AI] | 父索引：§一 设计哲学 ＋ 编目（SD-1…SD-68）；2026-11-22 批次 603 增 SD-68 指针。 |
 | content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md | 2026-11-22 | — | [工程师]+[AI] | 第一编 色彩与主题（§2.13 补图标状态色互指句）。 |
 | content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md | 2026-11-22 | — | [工程师]+[AI] | 第二编 排版与尺寸（增正文/说明边界与棘轮）。 |
-| content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-11-22 | — | [工程师]+[AI] | 第三编 组件；2026-11-20 卡厚度改准为 16 / 12 两档（`.card-standard` / `.card-compact`），`p-5` 退出 |
+| content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-11-22 | — | [工程师]+[AI] | 第三编 组件；2026-11-22 批次 603 增 SD-68 壳层两档（顶栏 36/44、页脚 22.4/44）；卡厚度 16 / 12 两档 |
 | content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md | 2026-11-08 | — | [工程师]+[AI] | 第四编 交互与响应式（P10 三档动效令牌）。 |
 | content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md | 2026-11-22 | — | [工程师]+[AI] | 第五编 地图与速查。 |
 | content/04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md | 2026-11-21 | — | [工程师]+[AI] | 第六编 布局与密度：SD-57 页签密度 46。 |
 | content/04_web_design/design-system/README.md | 2026-11-03 | — | [工程师]+[AI] | 设计系统目录索引；文件清单含 DS_06，权威源指向 DESIGN_SYSTEM.md。 |
-| content/04_web_design/design-system/CASES.md | 2026-11-22 | — | [工程师]+[AI] | 设计＋数据域判例库：CASE-DESIGN-020…041、CASE-DATA-001（030 边界句改准；036 证据指针随卡头迁移改签）。 |
+| content/04_web_design/design-system/CASES.md | 2026-11-22 | — | [工程师]+[AI] | 设计＋数据域判例库：CASE-DESIGN-020…044、CASE-DATA-001；2026-11-22 批次 603 增 044 顶栏控件梯（六成员两档＋三类特例）。 |
 | content/04_web_design/design-system/COLOR_SYSTEM.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的  |
 | content/04_web_design/design-system/COMPONENT_SPEC.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-24 批次 172**：正文**整体并入** `content/04_web_design/design-syste |
 | content/04_web_design/module/ABOUT_PAGE_DESIGN.md | 2026-10-05 | — | [工程师]+[AI] | 见日志批次 597 |
@@ -197,7 +197,7 @@ dynamic_role:
 | content/05_ai_coding/REVIEW_AND_EXPRESSION.md | 2026-11-22 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。* |
 | content/05_ai_coding/TEST_AND_VERIFICATION.md | 2026-11-20 | — | [工程师]+[AI] | 测试三层（daily/precommit/weekly）；2026-11-03 增两条判例；2026-11-19 增 sample-diff 四条判例（缺证据即 |
 | content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md | 2026-11-19 | — | [工程师]+[AI] | 页签审计手册（2026-11-02 建）：五维检查表、P0–P2、例外口径、怎么跑、怎么加检查与页签、报告字段；判据回链 DS_06 §五与 `audit/se |
-| content/05_ai_coding/UI_REVIEW_CHECKLIST.md | 2026-11-08 | — | [工程师]+[AI] | 温层 UI 审查清单（2026-11-03 建）：按 8 组任务组织（版式密度 / 排版字号 / 颜色对比 / 交互无障碍 / 文案空态 / 响应式 / 动效  |
+| content/05_ai_coding/UI_REVIEW_CHECKLIST.md | 2026-11-22 | — | [工程师]+[AI] | 温层 UI 审查清单：按 8 组任务组织；2026-11-22 批次 603 增「同族完整性」一条（`D-913`）。 |
 | content/05_ai_coding/AUDIT_CANON.md | 2026-11-19 | — | [工程师]+[AI] | 审计口径唯一表（2026-11-02 建）：四口径裁定（F2 控件行数 / F4 H2 恰 1 / F7 `hasPager()` / C1 `requireA |
 
 ## content/insights/ (经验沉淀)
@@ -223,9 +223,9 @@ dynamic_role:
 | content/05_ai_coding/REVIEW_QUESTION_SET.md | 2026-11-22 | — | [工程师]+[AI] | 审查问题集：Q-01…Q-22（Q-22 为页签密度与信息经济的审查方法，执行工具指向 `TAB_AUDIT_PLAYBOOK.md`）。 |
 | content/05_ai_coding/QUESTION_HIT_MATRIX.md | 2026-11-03 | — | [工程师]+[AI] | 历史命中矩阵；Q-22 列新立，36 行历史记 `—`。 |
 | content/05_ai_coding/GUARD_INVENTORY.md | 2026-11-22 | — | [工程师]+[AI] | 守卫台账；历史总表停 66 件（已滞后），现行件数以 `test-tier-registry.mjs` 为准。 |
-| content/03_doc_system/CASES_INDEX.md | 2026-11-21 | — | [工程师]+[AI] | 判例总索引（design 43 / data 1 / ai 9）；CASE-DESIGN-042 / 043 于批次 590 登记。 |
+| content/03_doc_system/CASES_INDEX.md | 2026-11-22 | — | [工程师]+[AI] | 判例总索引（design 44 / data 1 / ai 9）；2026-11-22 批次 603 登记 CASE-DESIGN-044（顶栏控件梯）。 |
 | .ctx/README.md | 2026-11-21 | — | [工程师]+[AI] | 见日志批次 597 |
-| .ctx/ACTIVE_CONTEXT.md | 2026-11-22 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-906`。 |
+| .ctx/ACTIVE_CONTEXT.md | 2026-11-22 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-913`。 |
 | server/README.md | 2026-11-19 | — | [工程师]+[AI] | 见日志批次 597 |
 | server/package.json | 2026-11-20 | — | [工程师]+[AI] |  |
 | server/package-lock.json | 2026-08-30 | — | [工具] |  |
@@ -328,7 +328,7 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 | --------- | ------------- | -------- | ------ | ------ |
-| docs/src/styles.css | 2026-11-10 | — | [工程师]+[AI] |  |
+| docs/src/styles.css | 2026-11-22 | — | [工程师]+[AI] | 全站样式单一源；SD-68 壳层两档（`D-913`） |
 | docs/src/about.css | 2026-09-28 | — | [工程师]+[AI] |  |
 
 ### docs/scripts/

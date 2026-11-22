@@ -2478,10 +2478,10 @@ a.text-accent {
 .header-action-btn {
   font-size: 0.75rem;
   color: rgba(255,255,255,0.85);
-  /* 2026-11-16 批次 557：页面档 44px = 12+12+18+2（此前 36px = 8+8+18+2）。
-     高度仍由 padding + 显式行高 + 边框推导，不用 min-height 撑高；
+  /* 2026-11-22 批次 603（D-913）：页面档回 36px = 8+8+18+2，与侧栏页脚紧凑档同一视觉节奏；
+     撤销批次 561 的 44px。高度仍由 padding + 显式行高 + 边框推导，不用 min-height 撑高；
      族类组合（`.btn-outline.header-action-btn` 等）由文件末尾「组件级例外」段的 !important 接管。 */
-  padding: 12px 10px;
+  padding: 8px 10px;
   line-height: 18px;
   display: inline-flex;
   align-items: center;
@@ -2505,7 +2505,8 @@ a.text-accent {
 /* 顶栏图标按钮（铃铛）：与 `.header-action-btn` 同口径（白透底 / 细边 / 三态）。
    2026-10-28 Task 4：此前背景与描边写在元素内联样式里，`.btn-neutral:hover` 被内联压掉
    ⇒ hover / active 全不可见。改为类承担后三态恢复。
-   2026-11-16 批次 557：尺寸 40 → 44 写到文件末尾「组件级例外」段（`.btn-icon.header-icon-btn`），
+   2026-11-22 批次 603（D-913）：尺寸回 36×36 写到文件末尾「组件级例外」段（`.btn-icon.header-icon-btn`），
+   与顶栏动作同档；命中区仍由 `.btn-icon::after` 提供 44×44。
    因为 `.btn-icon` 在本段之后定义，同特异性会压回 32×32；本段只留外观。 */
 .header-icon-btn {
   border-radius: var(--radius-sm);
@@ -2533,9 +2534,10 @@ a.text-accent {
 }
 
 .hamburger-btn {
-  /* 2026-11-16 批次 557：40 → 44（与顶栏动作 / 图标钮同档）。 */
-  width: 44px;
-  height: 44px;
+  /* 2026-11-22 批次 603（D-913）：桌面回 36×36，与顶栏动作 / 图标钮同档；
+     移动档仍 44（见 ≤640 段）。命中区由 `.hamburger-btn::after` 提供 44。 */
+  width: 36px;
+  height: 36px;
   border-radius: var(--radius-sm);
   background-color: rgba(255,255,255,0.1);
   border: 1.5px solid rgba(255,255,255,0.25);
@@ -2683,15 +2685,16 @@ a.text-accent {
 
 /* 页脚动作（帮助/关于/设置/登录/退出）：单一视觉源。
    2026-10-18 支书复核「原先的设置最舒服」——恢复历史间距（gap 6px、行间 2px）；
-   2026-11-16 批次 557：22.4 高 / 12px → 44 高 / 13px（12+12+20 = 44；触控热区与顶栏同档）。
+   2026-11-22 批次 603（D-913）：恢复本裁定版紧凑档（padding 4px 8px / 12px / 1.2 ≈ 22.4 高），
+   撤销批次 561 的 44 高 / 13px；移动档（≤640 抽屉）另设 44 高保命中区（见本段后 @media）。
    高度仍由 padding + 显式行高推导，不用 min-height 撑高。 */
 .sidebar-footer-action {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 12px 8px;
-  font-size: 13px;
-  line-height: 20px;
+  padding: var(--space-1) var(--space-2);
+  font-size: 12px;
+  line-height: 1.2;
   color: var(--neutral-500);
   text-decoration: none;
   border: none;
@@ -2722,6 +2725,12 @@ a.text-accent {
 @media (max-width: 640px) {
   .sidebar-footer-action--mobile-only {
     display: flex;
+  }
+  /* 2026-11-22 批次 603：桌面紧凑档在移动档恢复 44 高保命中区（抽屉内可点元素 ≥44）。 */
+  .sidebar-footer-action {
+    padding: var(--space-3) var(--space-2);
+    font-size: 13px;
+    line-height: 20px;
   }
 }
 
@@ -4190,7 +4199,7 @@ summary:focus-visible,
   }
 
   /* 390px：内容区收紧，给品牌短名（约 82px）留出完整宽度，不再压成「光…」。
-     动作按钮的内边距在文件末尾统一覆盖（`.btn-ghost.header-action-btn` 带 !important）。 */
+     动作按钮的内边距由「390px 顶栏收紧」段按 `#app-header` 提级覆盖（左右 6 / 上下 12）。 */
   .header-content {
     gap: 8px;
   }
@@ -4211,7 +4220,7 @@ summary:focus-visible,
   }
 
   .hamburger-btn {
-    /* 2026-11-16 批次 557：移动档 36 → 44（与桌面同档，不再只改移动端分叉）。 */
+    /* 2026-11-22 批次 603（D-913）：移动档 44 保命中区，桌面 36。 */
     width: 44px;
     height: 44px;
   }
@@ -6783,8 +6792,9 @@ button.metric-band__item--filter.is-active {
    390px 顶栏收紧（2026-10-19 · Spec Task 1）
    ── 病灶：品牌短名已进 DOM，但动作区 220px 把 `.header-title` 压到 38px，
       仍显示「光…」。本节按「先让品牌可读」收紧动作区，不改动作数量与语义。
-   ── 覆盖关系：`.btn-ghost.header-action-btn` 在文件中部带 `padding: 0 14px !important`，
-      故这里用 `#app-header` 提一级特异性覆盖，只改左右内边距，高度仍为 36px。 */
+   ── 覆盖关系：组件级例外段 `.header-action-btn { padding: 8px 10px !important }` 已定桌面档；
+      本节用 `#app-header` 提一级特异性覆盖左右内边距，并补上下 12 恢复移动档 44。
+   ── 2026-11-22 批次 603（`D-913`）：桌面顶栏 36px、移动档恢复 44px 保命中区。 */
 @media (max-width: 640px) {
   #app-header .header-actions {
     gap: 4px;
@@ -6793,6 +6803,13 @@ button.metric-band__item--filter.is-active {
   #app-header .btn-ghost.header-action-btn {
     padding-left: 6px !important;
     padding-right: 6px !important;
+    padding-top: var(--space-3) !important;
+    padding-bottom: var(--space-3) !important;
+  }
+  /* 2026-11-22 批次 603（D-913）：移动档铃铛回 44，与汉堡 / 动作钮同档。 */
+  #app-header .btn-icon.header-icon-btn {
+    width: 44px !important;
+    height: 44px !important;
   }
 }
 
@@ -7183,22 +7200,25 @@ textarea::placeholder {
 }
 
 /* 组件级例外（沿用组件**既有已裁定的尺寸口径**，字号仍随归一为 13px；颜色 / hover 不动）：
-   ① 顶栏动作 `.header-action-btn`：44px（12+12+18+2；2026-11-16 批次 557 由 36 提到 44）。
+   ① 顶栏控件梯（`D-913` · SD-68）：桌面 36 / 移动 44，一个族两档值。成员六个：
+      `.hamburger-btn`（36 / 44）、`.header-action-btn`（登录 / 我的档案 / 台主 CTA / 一键汇报）、
+      `.btn-icon.header-icon-btn`（通知铃铛，36 / 44）。
+      命中区：汉堡与铃铛由 `::after` 提供 44；动作钮移动档由上下内边距提供 44。
       族类组合（`.btn-outline.header-action-btn` / `.btn-ghost.header-action-btn`）由尺寸归一
       段的 !important 压着，故本段同用 !important，靠文件顺序接管。
-   ② 顶栏图标钮 `.btn-icon.header-icon-btn`：44×44（覆盖 `.btn-icon` 的 32×32 与已删除的内联 40）。
-      视觉与命中区同尺寸，不再另写伪元素。
+   ② 不属控件梯的特例（`CASE-DESIGN-044` 边界）：`.role-label`（指示件，不可点）、
+      `.party-emblem-wrapper`（图片）、`#branch-view-exit.btn-text`（金底状态条内联文字）。
    ③ 筛选行 `.lf-btn`：页面档 36px × 13px，与同排 40px 控件基线对齐（高度按位置分级，
       不再为对齐输入框而改成 40）。
       内边距保持 10px。 */
 .header-action-btn {
-  padding: 12px 10px !important;
+  padding: 8px 10px !important;
   font-size: 13px !important;
   line-height: 18px !important;
 }
 .btn-icon.header-icon-btn {
-  width: 44px !important;
-  height: 44px !important;
+  width: 36px !important;
+  height: 36px !important;
 }
 
 /* 相对颜色兼容（2026-10-27 批次 516 · B-515-5）：老内核不支持 rgb(from ...) 时退回既有 soft 底；
