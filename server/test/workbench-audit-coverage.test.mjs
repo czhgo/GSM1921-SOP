@@ -86,3 +86,44 @@ test('W6 audit-tabs 的页面 URL 跟随 canonical 单一源（page-url.js），
   assert.match(AUDIT_TABS_SRC, /return aborted \? 2 : 0/, '登录失败必须以退出码 2 结束');
   assert.doesNotMatch(AUDIT_TABS_SRC, /登录失败，页签无法审计/, '登录失败不得写成每页签 F0/P0 结论');
 });
+
+/**
+ * W7 D2 处置完整性（2026-11-23 批次 605 · `B-605-1`）：
+ *   每个页签必须二选一——① 至少 1 条行计数对账规则（`count`，`ui` ＋ `collection` ＋ 端点/集合）；
+ *   ② 写明不登记的行计数理由（`countSkip`，非空）。空 `count` 且无理由＝该页签从未被 D2 检查过，
+ *   而报告里不会出现任何行——这是「看起来全绿、其实没查」的假绿。
+ *   结构判据：`mode: 'total'` 必须给 `countSelector`（分页「共 N」不能靠数当页行）；
+ *   规则数只增不减（当前基线 5，新增规则须同批上调基线）。
+ *   反例自证：删掉一条 `countSkip`、删掉规则里的 `collection` 都必须判红。
+ */
+const D2_RULE_BASELINE = 5;
+function d2DispositionIssues(endpoints) {
+  const issues = [];
+  for (const [key, ep] of Object.entries(endpoints)) {
+    const rules = Array.isArray(ep.count) ? ep.count : [];
+    const skip = String(ep.countSkip || '').trim();
+    if (!rules.length && !skip) issues.push(`${key} 既无 D2 规则也无 countSkip 理由`);
+    for (const rule of rules) {
+      if (!rule.ui) issues.push(`${key} 的 D2 规则缺 ui`);
+      if (!rule.collection) issues.push(`${key} 的 D2 规则缺 collection`);
+      if (rule.mode === 'total' && !rule.countSelector) issues.push(`${key} 的 total 规则缺 countSelector`);
+    }
+  }
+  return issues;
+}
+
+test('W7 D2 处置完整：每页签有对账规则或写明不登记理由；total 规则带 countSelector；规则数不减', () => {
+  assert.deepEqual(d2DispositionIssues(ENDPOINT_MAP), [], `D2 处置不完整：\n  ${d2DispositionIssues(ENDPOINT_MAP).join('\n  ')}`);
+  const withRules = Object.values(ENDPOINT_MAP).filter((ep) => (ep.count || []).length > 0).length;
+  assert.ok(withRules >= D2_RULE_BASELINE,
+    `有 D2 规则的页签由 ${D2_RULE_BASELINE} 降到 ${withRules}：删规则须同批下调基线并写明理由`);
+  // 反例自证：删理由 / 删 collection 都必须判红
+  const brokenSkip = structuredClone(ENDPOINT_MAP);
+  const skipKey = Object.keys(brokenSkip).find((k) => (brokenSkip[k].count || []).length === 0 && brokenSkip[k].countSkip);
+  delete brokenSkip[skipKey].countSkip;
+  assert.ok(d2DispositionIssues(brokenSkip).some((s) => s.startsWith(skipKey)), 'W7 反例失效：删掉 countSkip 未判红');
+  const brokenRule = structuredClone(ENDPOINT_MAP);
+  const ruleKey = Object.keys(brokenRule).find((k) => (brokenRule[k].count || []).length > 0);
+  delete brokenRule[ruleKey].count[0].collection;
+  assert.ok(d2DispositionIssues(brokenRule).some((s) => s.startsWith(ruleKey)), 'W7 反例失效：删掉 collection 未判红');
+});

@@ -135,6 +135,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '「要办」按动作分组的待办派生视图（数据源 todos 由 D1 覆盖），无单一集合计数',
   },
   'secretary.todo': {
     source: SRC.secretaryTodo,
@@ -149,6 +150,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '统计为待办派生（逾期 / 今日 / 本周），无单一集合计数',
   },
   'secretary.overview': {
     source: SRC.secretaryOverview,
@@ -162,6 +164,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '汇总页混合多集合指标（复合视图），无单一集合计数',
   },
   'secretary.calendar': {
     source: SRC.secretaryCalendar,
@@ -181,6 +184,7 @@ export const ENDPOINT_MAP = {
       { flow: 'activity-delete', reason: '活动删除会级联清理考勤/分工/文件；审计只做创建→更新→软回滚，不真删存量' },
     ],
     count: [],
+    countSkip: '日历 / 表单页，无行计数列表',
     // C3：本页是唯一使用 data-action 写动作的页签；非写动作登记为只读 UI。
     actionMap: {
       'wp-submit': 'activity-create',
@@ -206,6 +210,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '议程表为按会议类型筛选的活动派生视图，无单一集合计数',
   },
   'secretary.group-progress': {
     source: SRC.secretaryGroup,
@@ -238,7 +243,10 @@ export const ENDPOINT_MAP = {
     destructive: [
       { flow: 'notice-delete', reason: '删除通知会从受众视野移除；审计只删除自带试点草稿（创建→更新→删除）' },
     ],
-    count: [],
+    count: [
+      // 2026-11-23 批次 605（B-605-1）：已发布通知按「共 N 条」对账；党委下发（source=committee）不进本列表。
+      { ui: '#notification-list-area .lf-count', countSelector: '#notification-list-area .lf-count', collection: 'notices', mode: 'total', filter: "row.source !== 'committee'" },
+    ],
   },
   'secretary.report-up': {
     source: SRC.secretaryReportUp,
@@ -253,6 +261,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '统计为报备批复派生（待批复 / 已批准 / 已驳回），无单一集合计数',
   },
   'secretary.work-map': {
     source: SRC.secretaryWorkMap,
@@ -269,6 +278,7 @@ export const ENDPOINT_MAP = {
       { flow: 'assignment-delete', reason: '删除分工属治理动作；审计不真删存量，只验证越权 403 与静态写门' },
     ],
     count: [],
+    countSkip: '模块地图为能力注册表派生，无数据集合计数',
   },
   'secretary.feedback': {
     source: SRC.secretaryFeedback,
@@ -282,6 +292,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '反馈计数按状态分组派生（4 条 · 1 开放…），无单一集合计数',
   },
 
   // ── 组织台（8）─────────────────────────────────────────────────
@@ -297,6 +308,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '「要办」按动作分组的待办派生视图（数据源 todos 由 D1 覆盖），无单一集合计数',
   },
   'org.todo': {
     source: SRC.orgTodo,
@@ -310,6 +322,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '统计为待办派生（逾期 / 今日 / 本周），无单一集合计数',
   },
   'org.overview': {
     source: SRC.orgOverview,
@@ -324,6 +337,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '汇总页混合多集合指标（复合视图），无单一集合计数',
   },
   'org.roster': {
     source: SRC.orgRoster,
@@ -344,7 +358,7 @@ export const ENDPOINT_MAP = {
     ],
     count: [
       // 名单页是分页表（list-filter 每页 10 行）⇒ 与接口数组对账必须用「共 N」总数，不能数当页行。
-      { ui: '.roster-row', collection: 'users', mode: 'total', filter: "row.branchId != null && row.transferOut !== true" },
+      { ui: '.roster-row', countSelector: '.lf-count', collection: 'users', mode: 'total', filter: "row.branchId != null && row.transferOut !== true" },
     ],
   },
   'org.talent': {
@@ -357,7 +371,10 @@ export const ENDPOINT_MAP = {
       write('POST', '/api/v1/inspection-appeals', 'requireAuth', 'inspection-appeal', { selfService: true }),
     ],
     destructive: [],
-    count: [],
+    count: [
+      // 2026-11-23 批次 605（B-605-1）：分页列表按「共 N 人」对账（名单口径＝有支部归属）。
+      { ui: '#talent-list .lf-count', countSelector: '#talent-list .lf-count', collection: 'users', mode: 'total', filter: 'row.branchId != null' },
+    ],
   },
   'org.thought-review': {
     source: SRC.orgThought,
@@ -366,6 +383,7 @@ export const ENDPOINT_MAP = {
     readOnlyReason: '思想汇报总表为只读汇总；本人提交入口在成员台「成长」页，本页不承载写动作',
     destructive: [],
     count: [],
+    countSkip: '三组（未交 / 待初阅 / 待补充）是按周期从 thoughtReports ＋ 名册派生的例外清单，不对应单一集合长度',
   },
   'org.taskforce': {
     source: SRC.orgTaskforce,
@@ -395,6 +413,7 @@ export const ENDPOINT_MAP = {
       { flow: 'taskforce-dissolution', reason: '解散专班走语义端点并联动工作组状态；审计只验证写门，不真解散' },
     ],
     count: [],
+    countSkip: '专班为卡片视图，无行计数列表',
   },
   'org.member-flow': {
     source: SRC.orgMemberFlow,
@@ -412,6 +431,7 @@ export const ENDPOINT_MAP = {
       { flow: 'member-transfer-out', reason: '转出停用账号，不在审计库执行真实转出' },
     ],
     count: [],
+    countSkip: '成员流转表为按记录状态派生的流程视图，无单一集合计数',
   },
 
   // ── 宣传台（5）─────────────────────────────────────────────────
@@ -426,6 +446,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '「要办」按动作分组的待办派生视图（数据源 todos 由 D1 覆盖），无单一集合计数',
   },
   'prop.todo': {
     source: SRC.propTodo,
@@ -437,6 +458,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '统计为待办派生（逾期 / 今日 / 本周），无单一集合计数',
   },
   'prop.overview': {
     source: SRC.propOverview,
@@ -449,6 +471,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '汇总页混合多集合指标（复合视图），无单一集合计数',
   },
   'prop.kanban': {
     source: SRC.propKanban,
@@ -464,6 +487,7 @@ export const ENDPOINT_MAP = {
       { flow: 'prop-task-delete', reason: '宣传任务删除属治理动作；审计只验证越权 403 与静态写门' },
     ],
     count: [],
+    countSkip: '看板按状态分列，无行计数列表',
   },
   'prop.archive': {
     source: SRC.propArchive,
@@ -487,7 +511,11 @@ export const ENDPOINT_MAP = {
     destructive: [
       { flow: 'archive-record-delete', reason: '归档记录删除会联动物理文件；审计只删除自带试点元数据并清理' },
     ],
-    count: [],
+    count: [
+      // 2026-11-23 批次 605（B-605-1）：归档记录列表需切段才渲染（默认段为待归档），D2 不点击切段；
+      //   默认段的行列表为「待归档活动」派生视图，不对应单一集合长度。
+    ],
+    countSkip: '归档记录列表需切段才渲染（默认段为待归档），默认段为活动派生视图，无单一集合计数',
   },
 
   // ── 纪检台（6）─────────────────────────────────────────────────
@@ -505,6 +533,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '「要办」按动作分组的待办派生视图（数据源 todos 由 D1 覆盖），无单一集合计数',
   },
   'disc.todo': {
     source: SRC.discTodo,
@@ -519,6 +548,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '统计为待办派生（逾期 / 今日 / 本周），无单一集合计数',
   },
   'disc.overview': {
     source: SRC.discOverview,
@@ -532,6 +562,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '汇总页混合多集合指标（复合视图），无单一集合计数',
   },
   'disc.attendance': {
     source: SRC.discAttendance,
@@ -553,6 +584,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '考勤明细按当前活动筛选，无单一集合计数',
   },
   'disc.review': {
     source: SRC.discReview,
@@ -570,7 +602,11 @@ export const ENDPOINT_MAP = {
       write('POST', '/api/v1/todos', 'todo-row', 'todo-create'),
     ],
     destructive: [],
-    count: [],
+    count: [
+      // 2026-11-23 批次 605（B-605-1）：实测 UI 13 = activityReviews 11 ＋ taskforceReviews 2 ——
+      //   本列表是**两类复盘合并视图**，不对应单一集合长度，故不登记行计数（改为 countSkip）。
+    ],
+    countSkip: '活动复盘监督列表是 activityReviews ＋ taskforceReviews 的合并视图（实测 13 = 11 ＋ 2），无单一集合计数',
   },
   'disc.inspection': {
     source: SRC.discInspection,
@@ -589,6 +625,7 @@ export const ENDPOINT_MAP = {
       { flow: 'inspection-delete', reason: '删除考察记录不可逆；审计只验证写门与确认/打回，不删存量' },
     ],
     count: [],
+    countSkip: '考察监督按人聚合（长表另含考察记录），无单一集合计数',
   },
 
   // ── 组长台（6）─────────────────────────────────────────────────
@@ -604,6 +641,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '「要办」按动作分组的待办派生视图（数据源 todos 由 D1 覆盖），无单一集合计数',
   },
   'leader.todo': {
     source: SRC.leaderTodo,
@@ -615,6 +653,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '统计为待办派生（逾期 / 今日 / 本周），无单一集合计数',
   },
   'leader.overview': {
     source: SRC.leaderOverview,
@@ -625,6 +664,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '汇总页混合多集合指标（复合视图），无单一集合计数',
   },
   'leader.write': {
     source: SRC.leaderWrite,
@@ -641,6 +681,7 @@ export const ENDPOINT_MAP = {
       { flow: 'activity-delete', reason: '活动删除会级联；审计只做创建→更新→回滚，不真删' },
     ],
     count: [],
+    countSkip: '起草表单页，无行计数列表',
   },
   'leader.attendance': {
     source: SRC.leaderAttendance,
@@ -657,6 +698,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '考勤明细为组内按活动筛选的派生视图，无单一集合计数',
   },
   'leader.members': {
     source: SRC.leaderMembers,
@@ -672,6 +714,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '组员进度 / 卡点为按党小组派生的子集（需运行时组名），无静态可判的单一集合计数',
   },
 
   // ── 成员台（7）─────────────────────────────────────────────────
@@ -687,6 +730,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '「要办」按动作分组的待办派生视图（数据源 todos 由 D1 覆盖），无单一集合计数',
   },
   'visitor.todo': {
     source: SRC.visitorTodo,
@@ -698,6 +742,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '统计为待办派生（逾期 / 今日 / 本周），无单一集合计数',
   },
   'visitor.overview': {
     source: SRC.visitorOverview,
@@ -708,6 +753,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '汇总页混合多集合指标（复合视图），无单一集合计数',
   },
   'visitor.activities': {
     source: SRC.visitorActivities,
@@ -720,6 +766,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '活动列表为成员可见范围派生（按权限过滤），无单一集合计数',
   },
   'visitor.projects': {
     source: SRC.visitorProjects,
@@ -732,6 +779,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '专班列表为成员参与范围派生，无单一集合计数',
   },
   'visitor.attendance': {
     source: SRC.visitorAttendance,
@@ -743,6 +791,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '个人考勤按当前人筛选，无单一集合计数',
   },
   'visitor.growth': {
     source: SRC.visitorGrowth,
@@ -755,6 +804,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '个人成长档案为多集合拼接，无单一集合计数',
   },
 
   // ── 党委台（4）────────────────────────────────────────────────
@@ -778,6 +828,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '下发事项为跨支部派生视图，无单一集合计数',
   },
   // 2026-11-08 批次 536（spec Task 8）：院级内容＝党委活动 + 院级资料两个子视图。
   // 读口 / 写口与 api-adapter.js::committeeContent 一一对应；写门均为 requireRole(PARTY_STAFF_ROLE)，
@@ -799,6 +850,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '院级内容为发布态派生视图，无单一集合计数',
   },
   'party-committee.review': {
     source: SRC.partyReview,
@@ -810,6 +862,7 @@ export const ENDPOINT_MAP = {
     ],
     destructive: [],
     count: [],
+    countSkip: '支部上报为待批复派生视图，无单一集合计数',
   },
   'party-committee.branches': {
     source: SRC.partyBranches,

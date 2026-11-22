@@ -84,8 +84,10 @@ export const DAILY_FILE_BUDGET = 32;
  *    ⇒ 实测 260，预算维持 260（差 0；再增断言须先降存量或显式上调）。
  *  2026-11-18 批次 567（R10-D02 集合版本 ＋ v18 版本推进）：`db-migration` M9 增「v18 推进 signups 版本」1 条、
  *    `committee-multidomain` 增「档案写口推进 archiveRecords 版本键」1 条 ⇒ 静态调用点实测 258，按 262 登记（留 4 条余量）。
- *  2026-11-23 批次 604：`write-policy-matrix` 增 1 条（门名处理分支，属权限结果门禁）⇒ 实测 263；按 263 登记（余量 0）。 */
-export const DAILY_TEST_BUDGET = 263;
+ *  2026-11-23 批次 604：`write-policy-matrix` 增 1 条（门名处理分支，属权限结果门禁）⇒ 实测 263；按 263 登记（余量 0）。
+ *  2026-11-23 批次 605：`workbench-audit-coverage` 增 W7（D2 处置完整性：每页签有对账规则或 countSkip 理由、
+ *    total 规则带 countSelector、规则数只增不减，含两条反例）⇒ 实测 **264**；按 264 登记（余量 0）。 */
+export const DAILY_TEST_BUDGET = 264;
 
 /** guards 文件数预算（静态守卫；按需跑，不阻塞日常）
  *  2026-11-08 波次 A：daily 迁入 6 件 ⇒ 实测 99 文件，按 99 登记。
@@ -142,8 +144,8 @@ export const GUARDS_FILE_BUDGET = 81;
  *  2026-11-23 批次 604 续：**改正登记漂移**——批次 604 写「实然 901」，复核实测为 **898**（多记 3 条）；
  *    本批新源件 16 `viewport-and-touch-guard` 5 条（顶栏避让 / 触控 / 滚动隔离 / 触控高亮 / 图片尺寸，每条带反例）
  *    ＋ `doc-lifecycle-guard` 源件 5 `guard-citation-guard` 2 条（文档引用的守卫文件必须存在 ＋ 反例自证）
- *    ⇒ 实测 **905**；按 905 登记（余量 0）。 */
-export const GUARDS_TEST_BUDGET = 905;
+ *    ⇒ 实测 **906**；按 906 登记（余量 0）。 */
+export const GUARDS_TEST_BUDGET = 906;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 

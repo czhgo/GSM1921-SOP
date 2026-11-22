@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-914`，共 88 条**；下一条自 **`D-915`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-915`，共 89 条**；下一条自 **`D-916`**。
 
 ## 本月目录（2026-11）
 
@@ -108,6 +108,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | backlog 复核：`B-541-10` 作废、其余保持触发；`C-5` 存量 1709 继续在办 | `D-912` | 2026-11-22 | 已落（批次 602） |
 | 顶栏控件梯：六成员桌面 36 / 移动 44，判例＋特例；六维重评 77/75/74/69/73/67 | `D-913` | 2026-11-22 | 已落（批次 603） |
 | C-5 撤销（text-xs 是说明句合法档）；棘轮改人话；四项改进项收口＋外部准则探查 | `D-914` | 2026-11-23 | 已落（批次 604） |
+| D2 处置 46/46（5 规则＋41 条 countSkip）、C2 37 pass；`W7` 机检 | `D-915` | 2026-11-23 | 已落（批次 605） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -921,5 +922,15 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **落点**：`docs/src/styles.css`（`html` 两声明）；`docs/{help,login}.html`（党徽尺寸归一为属性）；`content/05_ai_coding/UI_REVIEW_CHECKLIST.md` ⑨；
 > `server/test/{component-ratchet-guard.test.mjs,doc-lifecycle-guard.test.mjs,test-tier-registry.mjs}`；`docs/src/AGENTS.md`；`server/README.md`；`content/04_web_design/design-system/{DS_02_TYPE_AND_SIZE,DS_03_COMPONENTS}.md`；`content/05_ai_coding/{REVIEW_QUESTION_SET,TEST_AND_VERIFICATION}.md`；`.ctx/{ENGINEERING_ASSESSMENT,ACTIVE_CONTEXT,TIMESTAMPS}.md`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-914`**（共 **88** 条）。
+## D-915 2026-11-23 — D2 处置完整性、C2 往返复跑（`B-605-1` 收口 · 批次 605）
+
+> **评议 → 裁定 → 落点**：乙部唯一在办项 `B-605-1`（D2 扩面 ＋ C2 复跑）是否真的可收尾。
+> - **D2 口径改为「46/46 显式处置」**：46 个页签中只有 5 个是「列表行＝单一集合长度」；其余 41 个是派生视图，强行对账会造出假 P0（实测 `disc.review` 的 13 = activityReviews 11 ＋ taskforceReviews 2）。故每个页签必须二选一：写对账规则，或写 `countSkip` 理由。
+> - **C2 旧读数作废**：全量审计实测 C2 **37 pass** / 12 destructive exception（有理由）/ 207 skip；EA 旧写「0 pass」为陈旧值。
+> - **机检**：`workbench-audit-coverage::W7`（有规则或理由、`total` 规则必须带 `countSelector`、规则数 ≥ 5 只增不减，含两条反例）。
+> **未选**：给 41 个派生视图硬凑「单一集合」规则（会产出假 P0）；把 D2 做成点分段后再对账（审计不驱动交互，成本高于收益）。
+> **读数**：`--all --only D,C` → P0 0 / P1 0 / P2 0 · exception 12；D1 46 pass、D2 5 pass、C2 37 pass。
+> **落点**：`server/scripts/audit/endpoint-map.mjs`（5 规则 ＋ 41 `countSkip`）；`server/test/workbench-audit-coverage.test.mjs::W7`；`server/test-tier-registry.mjs`（daily 264）；`CLAUDE.md` 乙部（`B-605-1` 删行，`B-605-2` 多支部读过滤接线在办）；`.ctx/{ENGINEERING_ASSESSMENT,ACTIVE_CONTEXT,TIMESTAMPS}.md`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-915`**（共 **89** 条）。
 
