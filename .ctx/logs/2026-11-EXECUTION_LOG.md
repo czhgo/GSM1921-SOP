@@ -10,6 +10,40 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 610（2026-11-23）· SKILL 路由表按当前能力重写
+
+### 为什么
+- 支书要求「过时的 SKILL 不要拖模型后腿」：`PARALLEL_SKILL_AUDIT §14` 仍把已下架的 `web-design-guidelines` 当可调用 skill，把 agent 类型（`backend-architect`）写成 skill；`DS_03` 另有两处同名引用。
+
+### 拿不准 / 取舍
+- **下架项不删判据**：外部准则原文改由 WebFetch 拉 `vercel-labs/web-interface-guidelines`，判据（对比度 / 命中区 / focus-visible）原样保留。
+- **补当前能力**：`dynamic-ui` / `TRAE-browseruse` / `webapp-testing` / `improve-animations` / `gsap-*` / `better-interface` 进「工具类」与前端表；`backend-architect` 标注为 agent 类型。
+- **不建仓库级 skills 目录**：仓库无 `skills/`，本表只作路由；避免多一份需要同步的清单。
+
+### 边界
+- 只改文档路由与引用，不改任何 skill 本体；`last_verified` 写 2026-11-24。
+
+### 读数
+- `node --test test/claude-parallel-audit.test.mjs test/doc-consistency.test.mjs test/doc-lifecycle-guard.test.mjs` 全绿（见收尾跑）。
+
+## 批次 609（2026-11-23）· backlog 触发条件推进
+
+### 为什么
+- 支书要求「把触发条件研究清楚，朝那些条件推进」：4 条 backlog 里 3 条的触发条件已成立或可机检，1 条需产品裁定。
+
+### 拿不准 / 取舍
+- **B-541-2 的 3 条「待做」早已落地**：代码取证显示 F-3/F-4/F-5 在批次 539 已修（此前台账未复核）。本批不重复改代码，只复核并改准台账：**A 40 / B 6 / C 0**，剩余 8 条里只有 F-2 需裁定（`P-5`）。
+- **B-541-4 只出方案**：按触发条件「先出方案并经支书定稿」，本轮只写 `WORKFLOW_BLOCK_CONTRACT §8.5`（数据形状 / 编辑面 / 与 `allowedPages`、页签计数、乐观锁的关系 / 三个待裁点），不动产品代码；范围问题进丙部 `P-6`。
+- **B-541-6 把阈值做成探针**：新增 `npm run probe:scale`（逐表行数 ＋ 5 条热查询 p95，warn≥1000 / red≥10000 或 p95>200ms）。现读数：最大 `sessions 679`、p95 ≤ 5.2ms ⇒ **未触发**，不启动 `MIGRATIONS v2`。
+- **B-541-7 仍不提前合并**：散件收敛的触发是「动到该组件域」，本批未动组件，只维持既有只减不增基线。
+
+### 边界
+- 不打开 `ALLOW_MULTI_BRANCH`；不改六维分数（新读数只进 §四 触发口径）。
+
+### 读数
+- `npm run probe:scale`：58 表 · 最大 679 行 · p95 最高 5.2ms · 未触发（exit 0）。
+- 台账复核：`tab-review-ledger §三` **A 40 / B 6 / C 0**；`REVIEW_QUEUE B-541-2` 同步。
+
 ## 批次 608（2026-11-23）· 提交文字收口 ＋ 推 release 跑 CI（`D-917`）
 
 ### 为什么

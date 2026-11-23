@@ -143,7 +143,7 @@ dynamic_role:
 | content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-11-22 | — | [工程师]+[AI] | 父索引：§一 设计哲学 ＋ 编目（SD-1…SD-68）；2026-11-22 批次 603 增 SD-68 指针。 |
 | content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md | 2026-11-22 | — | [工程师]+[AI] | 第一编 色彩与主题（§2.13 补图标状态色互指句）。 |
 | content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md | 2026-11-23 | — | [工程师]+[AI] | 第二编 排版与尺寸（增正文/说明边界与棘轮）；2026-11-23 批次 604 续守卫指针改归并件名（`GC-1`）。 |
-| content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-11-23 | — | [工程师]+[AI] | 第三编 组件；2026-11-22 批次 603 增 SD-68 壳层两档（顶栏 36/44、页脚 22.4/44）；卡厚度 16 / 12 两档；604 续守卫指针改归并件名（`GC-1`） |
+| content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-11-23 | — | [工程师]+[AI] | 第三编 组件；2026-11-22 批次 603 增 SD-68 壳层两档（顶栏 36/44、页脚 22.4/44）；卡厚度 16 / 12 两档；批次 610 两处外部准则引用改 WebFetch 指针 |
 | content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md | 2026-11-08 | — | [工程师]+[AI] | 第四编 交互与响应式（P10 三档动效令牌）。 |
 | content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md | 2026-11-22 | — | [工程师]+[AI] | 第五编 地图与速查。 |
 | content/04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md | 2026-11-21 | — | [工程师]+[AI] | 第六编 布局与密度：SD-57 页签密度 46。 |
@@ -158,7 +158,7 @@ dynamic_role:
 | content/04_web_design/evolution/archive/DESIGN_METHODOLOGY.md | 2026-11-08 | — | [工程师]+[AI] | 方法论档案（2026-09-26 补行） |
 | content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md | 2026-11-23 | — | [工程师]+[AI] | 党委治理契约；2026-11-23 批次 604 增 §2.7 对象挂靠单一源指针（`D-914`） |
 | content/04_web_design/evolution/archive/ROLE_PERMISSION_DESIGN.md | 2026-11-08 | — | [工程师]+[AI] | 权限收敛档案（2026-09-26 补行） |
-| content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md | 2026-11-08 | — | [工程师]+[AI] | 块封装契约（2026-09-26 补行） |
+| content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md | 2026-11-23 | — | [工程师]+[AI] | 块封装契约；批次 609 追加 §8.5 画布 / 块决定 tab 方案稿（待支书定稿） |
 | content/04_web_design/module/PUBLIC_ENTRANCE.md | 2026-11-11 | — | [工程师]+[AI] | 门厅设计已裁定（公开门厅的规范编号 2026-11-10 批次 541 回填为 SD-62）。 |
 | content/04_web_design/deploy/WECHAT_INTEGRATION.md | 2026-09-05 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§五 |
 | content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md | 2026-11-22 | — | [用户]+[AI] | 见日志批次 597 |
@@ -189,7 +189,7 @@ dynamic_role:
 | content/05_ai_coding/KNOWN_PITFALLS.md | 2026-09-04 | — | [工程师]+[AI] | 🗑️ 已删除（拆为 05_ai_coding 六篇纪律件） |
 | content/05_ai_coding/README.md | 2026-11-03 | — | [工程师]+[AI] | 05_ai_coding 目录索引（含 `TAB_AUDIT_PLAYBOOK.md` 行）。 |
 | content/05_ai_coding/AGENTS.md | 2026-11-01 | — | [工程师]+[AI] | 05 目录协作说明：Q 范围 Q-01…Q-22、分层裁决与验证命令。 |
-| content/05_ai_coding/PARALLEL_SKILL_AUDIT.md | 2026-11-03 | — | [工程师]+[AI] | 多代理独立审查操作手册（H21 详版）：问题集 Q-01…Q-22 → 分 lens → 汇总 → 裁定；§11 IA 审查、§14 SKILL 路由。 |
+| content/05_ai_coding/PARALLEL_SKILL_AUDIT.md | 2026-11-23 | — | [工程师]+[AI] | 多代理独立审查操作手册（H21 详版）：问题集 Q-01…Q-22 → 分 lens → 汇总 → 裁定；§11 IA 审查；§14 SKILL 路由（批次 610 按当前能力重写）。 |
 | content/05_ai_coding/CASES.md | 2026-11-22 | — | [工程师]+[AI] | AI 协作判例库。 |
 | content/05_ai_coding/CONTEXT_MANAGEMENT.md | 2026-11-15 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。* |
 | content/05_ai_coding/DOCUMENT_GOVERNANCE.md | 2026-11-19 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒  |
@@ -225,9 +225,9 @@ dynamic_role:
 | content/05_ai_coding/GUARD_INVENTORY.md | 2026-11-22 | — | [工程师]+[AI] | 守卫台账；历史总表停 66 件（已滞后），现行件数以 `test-tier-registry.mjs` 为准。 |
 | content/03_doc_system/CASES_INDEX.md | 2026-11-22 | — | [工程师]+[AI] | 判例总索引（design 44 / data 1 / ai 9）；2026-11-22 批次 603 登记 CASE-DESIGN-044（顶栏控件梯）。 |
 | .ctx/README.md | 2026-11-21 | — | [工程师]+[AI] | 见日志批次 597 |
-| .ctx/ACTIVE_CONTEXT.md | 2026-11-23 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-916`；2026-11-23 批次 606 乙部清空。 |
+| .ctx/ACTIVE_CONTEXT.md | 2026-11-23 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-917`；2026-11-23 批次 606 乙部清空、609 backlog 台账改准。 |
 | server/README.md | 2026-11-23 | — | [工程师]+[AI] | 服务端说明；604 续守卫清单旧文件名改归并件名（`GC-1`） |
-| server/package.json | 2026-11-23 | — | [工程师]+[AI] | 2026-11-23 批次 606 增 `test:multi-branch` 开关演练命令 |
+| server/package.json | 2026-11-23 | — | [工程师]+[AI] | 2026-11-23 批次 606/607/609 增 `test:multi-branch` / `verify:smtp` / `acceptance` / `probe:scale` |
 | server/package-lock.json | 2026-08-30 | — | [工具] |  |
 | server/.gitignore | 2026-09-01 | — | [工具] |  |
 | server/data.db | — | — | — | 🗑️ 运行时产物（不入库，.gitignore 忽略） |

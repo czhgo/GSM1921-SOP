@@ -70,7 +70,7 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 
 | ID | 一句话 | 触发条件 | 权威指针 |
 |---|---|---|---|
-| B-541-2 | `L-13` 页签 IA 未闭项（A 37 / B 9 / C 0；6 个超 4 块页签已登记例外） | 剩余 B 项按台账逐条排批；默认两条已于波次 C 落地（`D-887`） | `.ctx/evidence/2026-11-08/tab-review-ledger.md §四 / §六` |
+| B-541-2 | `L-13` 页签 IA 未闭项（**A 40 / B 6 / C 0**；6 个超 4 块页签已登记例外） | 剩余 B 项按台账逐条排批；F-3/F-4/F-5 已复核闭环（批次 609），F-2 待支书裁定 | `.ctx/evidence/2026-11-08/tab-review-ledger.md §四 / §六` |
 | B-541-4 | `L-15` ＋ `H-24` 画布 UI 与「块决定 tab」（与 `allowedPages` 身份门、页签计数守卫相交） | 先出方案并经支书定稿后才编码；定稿前不排批 | `content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md §8.4` |
 | B-541-6 | `L-17` SQLite JSON 宽表、无跨表外键、无业务字段索引 | 任一表行数接近万行，或真机出现慢查询读数（E1 类）时启动 `MIGRATIONS v2` 与索引评估；平时只登记 | `.ctx/ENGINEERING_ASSESSMENT.md §一 阻断级风险 5`；`server/README.md §部署前必知限制 #2` |
 | B-541-7 | `L-18` 单一源组件出口仍有零星散件（徽章 / 选择器等） | 下次改动到该组件域时同批收敛（一改具改）；未动到的散件不提前合并 | `.ctx/ENGINEERING_ASSESSMENT.md §3.3 复核保留` |

@@ -78,7 +78,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 ### 2.3 最小三成本体验（含前端与交互） —— 74/100
 
 **证据**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**；F1–F8 全绿；M1–M3 与 4 个独立对象池例外在位；待办跳转 fail-closed（31 类动作 × 6 台登记）；议程待议池同源；`renderDataTable` 单一出口；活动详情四段；分工视图 2；卡头单源；三份前端契约常驻。
-**残项**：真人 5 任务签收未完成（自动走查 ＋ 截图不计验收）；页签 IA **A 37 / B 9 / C 0**；6 个超 4 块页签登记例外；顶栏同族漏改一次（`CASE-DESIGN-044`：`<a>` 改 36、`<button>` 仍 44）。
+**残项**：真人 5 任务签收未完成（自动走查 ＋ 截图不计验收）；页签 IA **A 40 / B 6 / C 0**；6 个超 4 块页签登记例外；顶栏同族漏改一次（`CASE-DESIGN-044`：`<a>` 改 36、`<button>` 仍 44）。
 **下一改进项**（`B-603-3`）：**不再设「压到 200 以下」这类数字目标**——调色板状态文字（基线 **291 处 / 56 文件**）与手拼徽章（基线 **43 文件**）的验收标准就是守卫本身：逐文件不超基线、不出现新文件（`color-ratchet-guard::①` / `component-ratchet-guard::①`）。新增代码必须走 `--status-*-text` / `badgeHtml()`；存量只在动到该文件时顺带下降并同批下调基线。复评触发：任一基线计数下降或出现新文件（守卫判红）。
 
 ### 2.4 架构与可维护性（原「架构复杂度与变更成本」） —— 73/100
@@ -217,9 +217,9 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | 编号 | 残项 | 状态 | 下一动作 / 指针 |
 |---|---|---|---|
 | L-02 | Linux 真机 `install.sh` / `update.sh` 未验 | 外部门 | 见下表；容器侧 `deploy/verify-linux.sh` 6/6 |
-| L-13 | 页签 IA **A 37 / B 9 / C 0** | backlog | 按 `.ctx/evidence/2026-11-08/tab-review-ledger.md §四` 排批 |
+| L-13 | 页签 IA **A 40 / B 6 / C 0** | backlog | 按 `.ctx/evidence/2026-11-08/tab-review-ledger.md §四` 排批（剩余 8 条，F-2 待支书裁定 `P-5`） |
 | L-14 / L-15 | 工作流块停用 / 画布 UI | backlog | 先出方案（`WORKFLOW_BLOCK_CONTRACT §8.4`） |
-| L-17 | SQLite 宽表与索引 | backlog | 单表 ≥ 1 万行或 p95 > 200ms 触发 `MIGRATIONS v2` |
+| L-17 | SQLite 宽表与索引 | backlog | `cd server; npm run probe:scale`（现读数：最大 679 行 / p95 ≤ 5.2ms，未触发）；单表 ≥ 1 万行或 p95 > 200ms 触发 `MIGRATIONS v2` |
 | L-18 | 组件出口散件 | backlog | 随组件域改动同批收敛（`B-541-7`） |
 
 > 已关闭项（L-09 / L-19 / L-20 / L-22 等）与逐条证据见 `.ctx/logs/` 与 `.ctx/evidence/2026-11-10/p2-cleanup-ledger.md`，不再逐行占用本表。
@@ -231,10 +231,10 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 | 编号 | 事项 | 责任人 | 证据口径 | 复评触发 |
 |---|---|---|---|---|
-| L-02 | Linux 真机跑 `install.sh` / `install.ps1`（WSL 或测试机）/ `update.sh` | 支书授权，AI 出命令 | 三条脚本各自退出码 0 ＋ 安装后 `/login.html` 200 ＋ 附件目录可写；容器侧已 6/6 | 每次改动 `deploy/**` 或发布包白名单后 |
+| L-02 | Linux 真机跑 `install.sh` / `install.ps1`（WSL 或测试机）/ `update.sh` | 支书授权，AI 出命令 | 三条脚本各自退出码 0 ＋ 安装后 `/login.html` 200 ＋ 附件目录可写；**批次 607 已取**：Windows 本机 200 ＋ uploads 可写；Linux 走 CI `install-linux`（读数 `.ctx/evidence/2026-11-23/deploy-l02.md`）；systemd / useradd / cron / 反代仍待真机 | 每次改动 `deploy/**` 或发布包白名单后 |
 | CI | 首次 GitHub Actions run id（daily ＋ nightly 四片） | 支书提供仓库访问 | run id ＋ 结论；**无 run id 不得称已绿** | 首次 push 后；此后每次 workflow 改动 |
 | 签收 | 真人（支书 / 支委）在 review 档完整走一遍上线路径并签收 | 支书 | 签收记录（日期 ＋ 账号 ＋ 走过页面清单）写 `.ctx/evidence/` | 每轮候选发布前 |
-| SMTP | 真实邮件服务器实投（非 mock） | 支书提供凭据 | 一封实投成功的邮件 ＋ 服务端日志行；失败样本各一类（超时 / 认证失败） | 邮件通道配置或 `mailer*` 改动后 |
+| SMTP | 真实邮件服务器实投（非 mock） | 支书提供凭据 | **批次 607 已取本机真实 SMTP 协议读数**（正常投递 / 认证失败 535 / 连接超时，`.ctx/evidence/2026-11-23/smtp.md`）；第三方服务商实投仍待支书提供 `SMTP_*` 后加 `--remote` 复跑 | 邮件通道配置或 `mailer*` 改动后 |
 | M-01 | 移动端三任务：看通知并回执 / 表决投票 / 查看考勤（375 / 390 两档） | 支书提供真机 | 三任务各走通一次；无横向滚动、可交互文字 ≥13px、命中区 ≥44。AI 仿真 375 已过（命中区 44，不计真人验收） | 每次改动移动端布局或 `.vote-btn` 命中区后 |
 
 **执行顺序**：① 外部门五项由支书授权后一次性补齐（只阻断上线）；② backlog 只登记、触发即做；③ 本表只归总残项与顺序，不改 §一 / §二 / §五 的评分与论证。

@@ -1138,13 +1138,13 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 3 | `DISABLE_SEED` | 置 `1` 时**空库也不导入演示种子**（真实部署务必开；生产形态已默认不播种） | 否 | 未设置（＝播种；生产形态＝不播种） | `server/server.js:12-18` |
 | 4 | `LOGIN_PASSWORD` | **共享登录口令**（仅未设个人密码的账号使用；个人密码优先），`/auth/login` 校验用 | 否（**生产形态必填**：未设则启动即拒） | `123456`（**非生产形态**；生产形态无缺省，无口令比对兜底） | `server/routes/auth.js:17` |
 | 5 | `DISABLE_PASSWORD_CHECK` | 置 `1` 时**跳过口令校验**，仅凭 personId 即可登录（**生产形态不认此开关**） | 否 | 未设置（＝校验） | `server/routes/auth.js:12-14` |
-| 6 | `MAIL_ENABLED` | 是否启用邮件通道（须为字符串 `'true'`） | 否 | 未设置（＝停用） | `server/services/mailer.js:16` |
-| 7 | `SMTP_HOST` | SMTP 服务器地址（未配置则邮件整体跳过） | 否 | 空 | `server/services/mailer.js:17`、`:29` |
-| 8 | `SMTP_PORT` | SMTP 端口 | 否 | `465` | `server/services/mailer.js:18` |
-| 9 | `SMTP_USER` | SMTP 账号 | 否 | 空（为空则邮件跳过） | `server/services/mailer.js:19`、`:29` |
-| 10 | `SMTP_PASS` | SMTP 口令 | 否 | 空 | `server/services/mailer.js:20` |
-| 11 | `SMTP_FROM` | 发件人显示（为空时回退 SMTP_USER） | 否 | 空 | `server/services/mailer.js:21`、`:64` |
-| 12 | `SMTP_TLS` | 是否 SSL/TLS（**除字符串 `'false'` 外一律 true**） | 否 | `true` | `server/services/mailer.js:22` |
+| 6 | `MAIL_ENABLED` | 是否启用邮件通道（须为字符串 `'true'`） | 否 | 未设置（＝停用） | `server/services/mailer.js:20` |
+| 7 | `SMTP_HOST` | SMTP 服务器地址（未配置则邮件整体跳过） | 否 | 空 | `server/services/mailer.js:21`、`:33` |
+| 8 | `SMTP_PORT` | SMTP 端口 | 否 | `465` | `server/services/mailer.js:22` |
+| 9 | `SMTP_USER` | SMTP 账号 | 否 | 空（为空则邮件跳过） | `server/services/mailer.js:23`、`:33` |
+| 10 | `SMTP_PASS` | SMTP 口令 | 否 | 空 | `server/services/mailer.js:24` |
+| 11 | `SMTP_FROM` | 发件人显示（为空时回退 SMTP_USER） | 否 | 空 | `server/services/mailer.js:25`、`:69` |
+| 12 | `SMTP_TLS` | 是否 SSL/TLS（**除字符串 `'false'` 外一律 true**） | 否 | `true` | `server/services/mailer.js:26` |
 | 13 | `REPORT_WEBHOOKS_JSON` | 按支部 id 配置各自 Webhook 与 Bearer Token；缺少当前支部配置时该支部不推送，`/report/trigger` 返回 409；每日任务逐支部发送且请求只含对应支部数据 | 否 | 空（不推送） | `server/services/reporting.js` |
 | 15 | `REPORT_ADMIN_MAIL` | 上报**连续失败**时的管理员告警收件人 | 否 | 空（不告警） | `server/services/reporting.js:188-195` |
 | 16 | `REPORT_BASE_URL` | 邮件正文里追加的「系统入口」基址 | 否 | 空（不加链接） | `server/services/mailer-hooks.js:11`、`server/services/reporting.js:202` |

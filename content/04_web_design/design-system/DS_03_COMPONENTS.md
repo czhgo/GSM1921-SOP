@@ -196,7 +196,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 
 **硬性规则**：
 1. **每条边线必须有语义**：只允许结构关系（嵌套 / 时间线 / 缩进）；状态 / 身份 / 品牌 / 引述 / 装饰一律不得用边线表达
-2. **可交互必 hover**：可交互卡必须有 hover 加深反馈（`border-color` 加深或背景偏移），符合 web-design-guidelines "Interactive states increase contrast"
+2. **可交互必 hover**：可交互卡必须有 hover 加深反馈（`border-color` 加深或背景偏移），符合外部准则原文「Interactive states increase contrast」（WebFetch：`vercel-labs/web-interface-guidelines`）
 3. **宽度唯一**：结构边 1px；2 / 3 / 4px 左条计数为 0
 4. **纯展示卡不加 hover 伪装**：不可点击的卡不要加"看似可点"的 hover 效果
 
@@ -729,7 +729,7 @@ icon('bell', { className: 'w-4 h-4' })
 
 **生效条件**：导航项可按"角色 × 功能域"两轴正交切分的多角色系统（组织内部管理系统、多岗位后台）。单角色站点、或导航项无法正交切分时，卡片/列表形态仍适用。
 
-> **关联**：最小三成本（[DESIGN_METHODOLOGY.md](../evolution/archive/DESIGN_METHODOLOGY.md) §1.3.1）、H40.1 概念命名守则（扁平化）、web-design-guidelines（语义 `<a>`/focus-visible）
+> **关联**：最小三成本（[DESIGN_METHODOLOGY.md](../evolution/archive/DESIGN_METHODOLOGY.md) §1.3.1）、H40.1 概念命名守则（扁平化）、外部准则原文（语义 `<a>` / focus-visible；WebFetch：`vercel-labs/web-interface-guidelines`）
 
 ### 4.18 界面文案（Copy）规范（2026-09-24 立 · 阈值全部来自实测）
 

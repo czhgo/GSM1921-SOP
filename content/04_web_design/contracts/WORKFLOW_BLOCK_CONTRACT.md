@@ -3,7 +3,7 @@ title: "工作流块封装契约"
 type: contract
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: 2026-11-08
+last_updated: 2026-11-23
 status: active
 version: "1.1"
 owner: "支书（契约裁决）；[工程师]+[AI]（维护）"
@@ -330,3 +330,34 @@ related_files: [../evolution/ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERIN
 - **8.2 / 8.3 已落**（**批次 275**，见 `D-686`）：② `fieldPolicies`（`hiddenFieldIds` / `requiredOverrides`）＋ `carrier:'template-card'` ＋ 写面板消费；③ **§8.3 更正稿**（`mode` ＋ `orgMode`；**「三档」系笔误**）＋ 新增 `vote-config.js::resolveParticipantIds`（既有 `resolveVoterIds` 一字不动）＋ 写面板消费；两轴各配常驻守卫（`block-field-policy` · `participant-scope`），**默认零影响**。
 - **未落（待执行 / 待裁）**：§8.1 的**任务派生 / 通知**是否随块停用而停（**仍只登记**）；**画布 UI(L4) 与「按角色配置（块决定 tab）」＝新维度，先出方案、编码并入画布批**（见 `.ctx/REVIEW_QUEUE.md` `H-24`）。
 - ⚠ **§二 的「注册表对应」仍为唯一口径**：`REGISTRY_EXCEPTIONS` 已清零，**今后新块一律走注册三表**（`scenario` / `definition` / `capability`），确需例外者须在该文件逐条写理由。
+
+### 8.5 方案稿：块决定 tab ＋ 画布 UI（L4/L5 · 2026-11-24 批次 609 · **待支书定稿，未编码**）
+
+> **本节的效力**：只作方案与判据，不是已生效口径；支书定稿前不改任何产品代码（`REVIEW_QUEUE` `B-541-4` 的触发条件）。
+
+**A. 「块决定 tab」的数据形状（建议）**
+
+- 现状单一源：支部 `config.blocks` 只控制**活动产出块**的启停 / 排序（`applyOutputBlockPolicy`）。
+- 建议新增 `config.blockTabs`：`{ [role]: { order: string[], hidden: string[] } }`，`order` 只允许引用**已注册页签 id**（`catalog.mjs` 的台注册表），`hidden` 只允许当前角色**原本可见**的页签；未登记键一律忽略（fail-closed）。
+- 服务端：写口沿用 `PATCH /branches/:id/config` 既有写门；读口在 `/bootstrap` 的 `branches` 投影里回传（不新增表、不改快照集合）。
+
+**B. 画布 UI 的编辑面（建议）**
+
+- 三栏：左＝可用块 / 页签池；中＝画布（拖拽排序）；右＝属性（启停、必填、角色可见范围）。
+- 「拖拽 → 写 config」：拖拽只改本地草稿，保存走既有快照 / 配置写口；不引入新的写 endpoint。
+- 停用块的运行时边界：**只停编辑面与入口，不删历史行**；已在办活动的子记录仍按只读可见（与 `D-876` 历史留痕同口径）。
+
+**C. 与既有约束的关系**
+
+| 约束 | 方案内处置 |
+|---|---|
+| `allowedPages` 身份门 | 画布只能**收窄**该角色的可见集，不能扩权；越权键判 400 |
+| 页签计数守卫（`audit-tabs`） | 画布产物按「注册表并集」校验；新增 / 删除页签仍走注册表，不由画布动态生成 |
+| 快照与乐观锁 | `config` 属 `branches` 行，沿用 `If-Match` 409 / 428 口径 |
+| mock 结构 | 画布草稿只存运行时，不入 mock 种子；原型数据不决定产品结构（`H21.3`） |
+
+**D. 待支书裁定**
+
+1. 画布是否要「按支部」配置页签顺序（还是全支部统一、只按角色）。
+2. 停用块是否同时停「任务派生 / 通知」（`§8.4` 仍只登记的同一问题）。
+3. L4 画布是否进本季度范围；若进，按「先只做排序 + 启停，不做条件分支连线」的最小形态。

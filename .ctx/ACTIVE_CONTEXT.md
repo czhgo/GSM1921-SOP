@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: 2026-11-23
 last_verified: "2026-11-23"
-latest_decision: "D-916"
+latest_decision: "D-917"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -60,7 +60,7 @@ status: active
 
 - `L-02`（**外部门**）Linux 真机 install / update 未验；容器侧 `verify-linux.sh` 6/6。
 - `M-01`（**外部门**）移动端三任务真人真机未验；AI 375 仿真通过不计验收。
-- `L-13` 页签 IA：A 37 / B 9 / C 0；6 个超 4 块页签登记例外。
+- `L-13` 页签 IA：A 40 / B 6 / C 0；6 个超 4 块页签登记例外。
 - `L-14` / `L-15` 工作流新维度：先出方案；`L-17` 宽表阈值：单表 ≥ 1 万行触发；`L-18` 组件散件：随改动收敛。
 
 ### 下一批任务
