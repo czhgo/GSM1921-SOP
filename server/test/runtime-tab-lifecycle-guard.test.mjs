@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // runtime-tab-lifecycle-guard.test.mjs — Tab 运行时正确性守卫（2026-10-25 Task 1）
 //
-// 判据来源：`.trae/specs/restore-visual-hierarchy-and-runtime/spec.md`
+// 判据来源：`历史 spec（已删）`
 //   「Requirement: Tab 渲染生命周期」「Requirement: 绑定幂等」＋ checklist「运行时正确性」节。
 //
 // 覆盖 5 条根因（逐条非空转）：
@@ -22,7 +22,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   renderTabBar, mountTabFailure, TAB_LOADING_TIMEOUT_MS,
-} from '../../docs/src/components/shell/tab-bar.js?v=20261031a';
+} from '../../docs/src/components/shell/tab-bar.js?v=20261120a';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -253,7 +253,7 @@ test('P1 600ms 不再写死：默认 ≤120ms，可由 window.__MOCK_DELAY_MS / 
     '所有 mock 写口/读口的延迟必须走可配置源');
 
   // 行为：覆盖优先级 + 默认值（不依赖浏览器）
-  const { mockDelayMs } = await import('../../docs/src/data/mock-adapter.js?v=20261031a');
+  const { mockDelayMs } = await import('../../docs/src/data/mock-adapter.js?v=20261120a');
   const envKey = 'MOCK_DELAY_MS';
   const oldEnv = process.env[envKey];
   try {

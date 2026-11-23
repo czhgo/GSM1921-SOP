@@ -8,15 +8,16 @@
 //  本组件禁用 SVG 图标（支书 2026-08-10 裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { showToast, escHtml } from '../../core/base/utils.js?v=20261031a';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261031a';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261031a';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { showToast, escHtml } from '../../core/base/utils.js?v=20261120a';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261120a';
+import { solidAccentStyle, TASK_STATUS_TONE } from '../../core/domain/constants.js?v=20261120a';
 // 统一检索引擎（2026-09-14 批次 37）：待答复汇报列表接入（关键词 事项/汇报人 + 引擎内置分页）
-import { renderFilteredList } from '../ui/list-filter.js?v=20261031a';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261120a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261120a';
+import { badgeHtml } from '../ui/badges.js?v=20261120a';
 // ── E-3（2026-09-09 · H60.7 面板保态复查③）：列表瞬态草稿互扰兜底 ──────
 // 某行正式答复成功 → onAnswered → 调用方整块重渲染（支书待办/组长组员汇报），
 // 原实现清掉其它已展开行的草稿与展开态。修法取「渲染前收集、渲染后回填」：
@@ -25,8 +26,8 @@ import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
 // renderReportInboxHtml 依态输出展开态与输入框初值，重建后即回填。
 // 答复成功的行草稿清零（保留展开态以便直接看到时间线新答复），被答复/关闭的行
 // 自然移出列表后状态随之清掉。跨复用方（todo-tab/members-tab）共享同一模块态，
-// 同一 reportId 不会同屏出现在两个容器，无串扰。
-const _rowUi = new Map(); // reportId → { open: boolean, draft: string }
+// 同一 reportId 可能同屏出现在两份收件箱（跨 scope）⇒ 键为 payloadKey::reportId，各清各的。
+const _rowUi = new Map(); // payloadKey::reportId → { open: boolean, draft: string }
 
 // 引擎行数据交接（2026-09-14 批次 37）：行由统一检索引擎渲染，而引擎须 DOM 就位后才可挂载
 //（render 出 HTML 串 → 调用方 innerHTML → bind 才拿到容器）。bind 侧调用方只传 role，拿不到 reports，
@@ -90,6 +91,8 @@ function _payloadKey(role, scope) {
  * @param {string} [opts.emptyMsg] — 空态文案
  * @param {boolean} [opts.embedded] — 嵌入折叠条时为 true：不画独立卡片与标题，只出检索宿主
  * @param {number} [opts.embeddedLimit=2] — 仅 embedded 生效：首屏只露前 N 条待答复，其余经「查看全部待答复」展开
+ * @param {string} [opts.errorMsg] — 权威源加载失败时的说明（非空即渲染「加载失败，重试」＋重试按钮，
+ *   不显示「暂无待答复」空态——加载失败不等于没有汇报）
  * @returns {string}
  */
 export function renderReportInboxHtml({
@@ -102,28 +105,41 @@ export function renderReportInboxHtml({
   emptyMsg = '暂无待答复汇报',
   embedded = false,
   embeddedLimit = 2,
+  errorMsg = '',
 } = {}) {
-  const list = filterReportsByScope(reports, scope || {});
+  const stripHeader = '<p class="text-xs font-medium text-gray-500 pt-2 pb-1">待答复</p>';
+  const cardHeaderHtml = (subtitleText) => `
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="font-title-cn text-sm font-bold text-gray-800">${escHtml(title)}</h4>
+        <span class="text-xs text-gray-500">${escHtml(subtitleText)}</span>
+      </div>`;
   const payloadKey = _payloadKey(role, scope);
+  if (errorMsg) {
+    _clearRowUi(payloadKey);
+    const failureBox = emptyStateHtml({
+      variant: 'inline',
+      text: errorMsg,
+      actionHtml: '<button type="button" class="btn-outline btn-sm" data-rep-inbox-retry>重试</button>',
+    });
+    if (embedded) return `
+      <div class="todo-strip__section">${stripHeader}${failureBox}</div>`;
+    return `
+    <div class="card rounded-xl p-4 mb-4">${cardHeaderHtml(subtitle || '汇报答复')}${failureBox}</div>`;
+  }
+  const list = filterReportsByScope(reports, scope || {});
   // 2026-09-08 顶卡排布统一：空态并入统一形态（text-xs text-gray-500 py-1），
   // 保留绿色圆点「已全部答复」语义（不突兀：与相邻卡空态行同高，无底色整条）
   const emptyBox = `
     <p class="text-xs text-gray-500 py-1 flex items-center gap-1.5">
-      <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> ${emptyMsg}
+      <span class="w-2 h-2 rounded-full bg-[var(--status-success)] flex-shrink-0"></span> ${escHtml(emptyMsg)}
     </p>`;
 
   if (!list.length) {
-    _rowUi.clear(); // 无行可展示：清模块态，防陈旧草稿/展开态残留下次渲染
+    _clearRowUi(payloadKey); // 无行可展示：只清本 payload 的模块态，不误伤另一份收件箱
     _embeddedExpanded.delete(payloadKey); // 无待答复：下次有汇报时回到默认「只露前 2 条」
     if (embedded) return ''; // 折叠条内无待答复 → 不占位（条内还有未读通知行）
     return `
-      <div class="card rounded-xl p-4 mb-4">
-        <div class="flex items-center justify-between mb-3">
-          <h4 class="font-title-cn text-sm font-bold text-gray-800">${title}</h4>
-          <span class="text-xs text-gray-500">${subtitle || '汇报答复'}</span>
-        </div>
-        ${emptyBox}
-      </div>`;
+      <div class="card rounded-xl p-4 mb-4">${cardHeaderHtml(subtitle || '汇报答复')}${emptyBox}</div>`;
   }
 
   // 问题优先排序：卡点 → 请示 → 进度；待答复（resultPending）优先于待处理
@@ -139,8 +155,8 @@ export function renderReportInboxHtml({
   });
   // E-3：状态只跟随仍在列表中的行（被关闭/答复移出的行其草稿/展开态一并清掉）
   {
-    const alive = new Set(sorted.map(r => r.id));
-    for (const k of _rowUi.keys()) if (!alive.has(k)) _rowUi.delete(k);
+    const alive = new Set(sorted.map(r => _rowKey(payloadKey, r.id)));
+    for (const k of _rowUi.keys()) if (k.startsWith(_rowKeyPrefix(payloadKey)) && !alive.has(k)) _rowUi.delete(k);
   }
 
   // 行内容迁至统一检索引擎（rowHtml 见 bindReportInbox——引擎须 DOM 就位后才可挂载）；
@@ -154,7 +170,7 @@ export function renderReportInboxHtml({
     const hiddenCount = sorted.length - visibleCount;
     return `
       <div class="todo-strip__section">
-        <p class="text-xs font-medium text-gray-500 pt-2 pb-1">待答复</p>
+        ${stripHeader}
         <div id="rep-inbox-list-host"></div>
         ${hiddenCount > 0 ? `
           <div class="rep-inbox-more pt-1">
@@ -164,11 +180,7 @@ export function renderReportInboxHtml({
   }
 
   return `
-    <div class="card rounded-xl p-4 mb-4">
-      <div class="flex items-center justify-between mb-3">
-        <h4 class="font-title-cn text-sm font-bold text-gray-800">${title}</h4>
-        <span class="text-xs text-gray-500">${subtitle || `${sorted.length} 条待答复`}</span>
-      </div>
+    <div class="card rounded-xl p-4 mb-4">${cardHeaderHtml(subtitle || `${sorted.length} 条待答复`)}
       <div id="rep-inbox-list-host"></div>
     </div>`;
 }
@@ -177,29 +189,32 @@ export function renderReportInboxHtml({
  *  @param {string} [draft] E-3：重建前收集的该行未提交草稿（作为输入框初值回填） */
 function _renderInboxDetail(r, accent, draft = '') {
   const requesterNote = r.requestedBy && r.requestedNote
-    ? `<div class="rounded-lg p-2 bg-blue-50 mt-2"><p class="text-xs text-blue-700">请汇报：${r.requestedNote}</p></div>`
+    ? `<div class="rounded-lg p-3 bg-white border border-[var(--neutral-200)] mt-2"><p class="text-xs text-[var(--status-warning-text)]">请汇报：${escHtml(r.requestedNote)}</p></div>`
     : '';
   const comments = (r.comments || []).filter(c => !c.hidden).map(c => {
     const icon = c.kind === 'dispatch' ? '→' : c.kind === 'reply' ? '答'
       : c.kind === 'result' ? '✓' : c.kind === 'verdict' ? '★' : '';
-    const bg = c.kind === 'reply' ? 'bg-gray-50' : c.kind === 'result' ? 'bg-green-50'
-      : c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
+    // 底色按语义取令牌（深色自动跟随）；不用调色板浅底。
+    const bg = c.kind === 'reply' ? 'bg-[var(--neutral-50)]'
+      : c.kind === 'result' ? 'bg-[var(--badge-success-bg)]'
+        : c.kind === 'dispatch' ? 'bg-[var(--badge-info-bg)]'
+          : c.kind === 'verdict' ? 'bg-[var(--badge-warning-bg)]' : 'bg-[var(--neutral-50)]';
     const bgDark = '';
     return `
       <div class="rounded-lg p-2 ${bg}"${bgDark}>
         <div class="flex items-center gap-1.5 mb-1">
-          <span class="text-xs font-medium text-gray-700">${icon} ${getPersonName(c.author) || '匿名'}</span>
-          ${c.kind === 'reply' ? '<span class="state-badge state-badge--neutral">正式答复</span>' : ''}
-          <span class="text-xs text-gray-500">${c.createdAt}</span>
+          <span class="text-xs font-medium text-gray-700">${icon} ${escHtml(getPersonName(c.author) || '匿名')}</span>
+          ${c.kind === 'reply' ? badgeHtml('正式答复', 'neutral') : ''}
+          <span class="text-xs text-gray-500">${escHtml(c.createdAt)}</span>
         </div>
-        <p class="text-xs text-gray-600 whitespace-pre-wrap">${c.body}</p>
+        <p class="text-body-sm text-gray-600 whitespace-pre-wrap">${escHtml(c.body)}</p>
       </div>`;
   }).join('');
   const timeline = comments || emptyStateHtml({ text: "暂无对话", variant: 'inline' });
 
   return `
     ${r.sourceName ? `<p class="text-xs text-gray-500 mt-2">关联：${escHtml(r.sourceName)}</p>` : ''}
-    ${r.body ? `<p class="text-xs text-gray-600 whitespace-pre-wrap mt-2">${r.body}</p>` : ''}
+    ${r.body ? `<p class="text-body-sm text-gray-600 whitespace-pre-wrap mt-2">${escHtml(r.body)}</p>` : ''}
     ${requesterNote}
     <div class="space-y-2 mt-2">${timeline}</div>
     ${r.status === 'open' ? `
@@ -217,14 +232,20 @@ function _renderInboxDetail(r, accent, draft = '') {
  * @param {string} opts.role       — 答复人角色键
  * @param {{ workgroupId?: string|null, partyGroup?: string|null }} [opts.scope] — 与 render 相同的汇总范围
  * @param {Function} [opts.onAnswered] — 答复完成后回调（重渲染）
+ * @param {Function} [opts.onRetry] — 加载失败态「重试」按钮回调（由调用方重新拉取权威源并重渲染）
  */
-export function bindReportInbox(container, { role = 'secretary', scope = null, onAnswered = () => {} } = {}) {
+export function bindReportInbox(container, { role = 'secretary', scope = null, onAnswered = () => {}, onRetry = null } = {}) {
   if (!container) return;
+  // 加载失败态：错误卡由 renderReportInboxHtml 产出，重试动作交给调用方
+  container.querySelectorAll('[data-rep-inbox-retry]').forEach((btn) => btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (typeof onRetry === 'function') onRetry();
+  }));
   const payloadKey = _payloadKey(role, scope);
   /** E-3：读/写某行模块态（不存在则按默认建） */
   const rowState = (id) => {
-    let s = _rowUi.get(id);
-    if (!s) { s = { open: false, draft: '' }; _rowUi.set(id, s); }
+    let s = _rowUi.get(_rowKey(payloadKey, id));
+    if (!s) { s = { open: false, draft: '' }; _rowUi.set(_rowKey(payloadKey, id), s); }
     return s;
   };
   // 待答复汇报列表接统一检索引擎（行 HTML 原样迁为 rowHtml；关键词 事项/汇报人，分页由引擎内置）。
@@ -248,8 +269,9 @@ export function bindReportInbox(container, { role = 'secretary', scope = null, o
       emptyMessage: '无匹配汇报',
       rowHtml: (r) => {
         const cat = REPORT_CATEGORIES[r.reportCategory] || '进度';
+        // 2026-11-04 批次 534（Task 6.4）：绿档改为引用三态色表（同一「正常 / 完成」色调，值逐字不变）。
         const catColor = r.reportCategory === 'blocked' ? '#EF4444'
-          : r.reportCategory === 'ask' ? '#F59E0B' : '#16A34A';
+          : r.reportCategory === 'ask' ? '#F59E0B' : TASK_STATUS_TONE.completed.color;
         const ds = deriveIssueDisplayState(r);
         const badgeVariant = STATE_BADGE_VARIANT[ds.key] || 'neutral';
         const metaParts = [
@@ -258,17 +280,17 @@ export function bindReportInbox(container, { role = 'secretary', scope = null, o
           r.submittedAt || '—',
         ].filter(Boolean);
         // E-3：模块态回填（引擎重绘后仍保持展开/输入；只保留仍在列表中的行）
-        const ui = _rowUi.get(r.id);
+        const ui = _rowUi.get(_rowKey(payloadKey, r.id));
         const rowOpen = !!(ui && ui.open);
         return `
       <div class="rounded-lg border ${r.reportCategory === 'blocked' ? 'border-red-200' : 'border-gray-100'} overflow-hidden">
         <div class="notice-row px-3">
           <span class="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style="background:${catColor};" title="${cat}" role="img" aria-label="${cat}"></span>
           <div class="notice-row__main">
-            <p class="notice-row__title">${r.title}</p>
+            <p class="notice-row__title">${escHtml(r.title)}</p>
             <p class="notice-row__meta flex items-center gap-2 min-w-0">
-              <span class="truncate">${metaParts.join(' · ')}</span>
-              <span class="state-badge state-badge--${badgeVariant} flex-shrink-0">${ds.label}</span>
+              <span class="truncate">${escHtml(metaParts.join(' · '))}</span>
+              ${badgeHtml(ds.label, badgeVariant, { extraClass: 'flex-shrink-0' })}
             </p>
           </div>
           <div class="notice-row__actions">
@@ -329,4 +351,20 @@ export function bindReportInbox(container, { role = 'secretary', scope = null, o
     if (!inp) return;
     rowState(inp.id.slice('rep-inbox-input-'.length)).draft = inp.value;
   });
+}
+
+/** 行模块态的键前缀（同一 scope 一份收件箱；不同 scope 的同 reportId 互不覆盖） */
+function _rowKeyPrefix(payloadKey) {
+  return `${payloadKey}::`;
+}
+
+/** 行模块态键：payloadKey::reportId */
+function _rowKey(payloadKey, reportId) {
+  return `${_rowKeyPrefix(payloadKey)}${reportId}`;
+}
+
+/** 只清本 payload 的行模块态（另一份收件箱的草稿 / 展开态保留） */
+function _clearRowUi(payloadKey) {
+  const prefix = _rowKeyPrefix(payloadKey);
+  for (const k of _rowUi.keys()) if (k.startsWith(prefix)) _rowUi.delete(k);
 }

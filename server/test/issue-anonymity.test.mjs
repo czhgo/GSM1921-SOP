@@ -37,7 +37,7 @@ import { join } from 'node:path';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 // 前后端同源哈希（服务端与前端共用；测试据此证明 tokenHash 由随机 token 派生、不含 personId）
-import { hashSubmitterToken } from '../../docs/src/core/domain/constants.js?v=20261031a';
+import { hashSubmitterToken } from '../../docs/src/core/domain/constants.js?v=20261120a';
 import { chromium } from 'playwright';
 
 let app, server, base;
@@ -178,7 +178,8 @@ test('API ①′处置不清真身：支书反复 PATCH 后库里仍保留匿名
   for (const [i, patch] of patches.entries()) {
     const res = await fetch(`${base}/api/v1/issues/${created.id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sec}` },
+      // 批次 564：整行写口要求 If-Match；本例只验真身不被回写擦掉，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sec}`, 'If-Match': '*' },
       body: JSON.stringify(patch),
     });
     assert.equal(res.status, 200, `第 ${i + 1} 次处置应成功`);
@@ -363,10 +364,12 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
   try {
     const page = await browser.newPage();
     await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
-    await page.goto(`${base}/index.html`, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    // 用静态文档页作宿主：不跑首页的数据装配（mock 水合会在本用例的异步等待期间重写 localStorage，
+    //   全量高负载下曾把「写链已落库 / 列表已渲染」误判为缺失）。同源页面即可 import 模块与读写 localStorage。
+    await page.goto(`${base}/help.html`, { waitUntil: 'domcontentloaded', timeout: 15000 });
     const out = await page.evaluate(async () => {
-      const { IssueStore } = await import('/src/services/governance/issues.js?v=20261031a');
-      const { PersonStore } = await import('/src/services/member/person.js?v=20261031a');
+      const { IssueStore } = await import('/src/services/governance/issues.js?v=20261120a');
+      const { PersonStore } = await import('/src/services/member/person.js?v=20261120a');
       localStorage.clear();
       // 页面启动（bootstrap）可能已把 issues 读入模块内存；先清内存缓存，确保下面的「旧缓存迁移」
       // 场景从持久层真实回放（否则 loadAll 会走内存短路，旧记录被随后的写链覆盖）。
@@ -391,6 +394,9 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
       // 实名提交 → 同样仅本支部内可见
       const dReal = await IssueStore.submitIssue({ title: '实名-B', body: '内容B', scope: 'scenario', types: ['bug'], anonymous: false });
       const real = IssueStore.approveDraft(dReal.draftId);
+      // 持久化证据在**写链刚完成时**取样：后续动态 import / 首页其它模块的异步读回可能重写同一缓存键，
+      //   那不是本用例的被测行为（全量高负载下曾把「写链已落库」误判为未落库）。
+      const rawCachePersisted = localStorage.getItem('gsm1921-issue-cache-v3');
 
       // 常规出口脱敏（成员视角）
       const viaGetAll = IssueStore.getAll().find((i) => i.id === anon.id);
@@ -414,7 +420,7 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
       const tc = document.createElement('div');
       tc.id = 'secretary-tab-content';
       document.body.appendChild(tc);
-      const fb = await import('/src/entries/tabs/secretary/feedback-tab.js?v=20261031a');
+      const fb = await import('/src/entries/tabs/secretary/feedback-tab.js?v=20261120a');
       fb.renderContent();
       const listRow = document.querySelector(`[data-issue-id="${anon.id}"]`);
       const listRowHtml = listRow ? listRow.innerHTML : '';
@@ -426,7 +432,7 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
       const pc = document.createElement('div');
       pc.id = 'party-committee-tab-content';
       document.body.appendChild(pc);
-      const pcTab = await import('/src/entries/tabs/party-committee/issue-review-tab.js?v=20261031a');
+      const pcTab = await import('/src/entries/tabs/party-committee/issue-review-tab.js?v=20261120a');
       await pcTab.renderContent();
       const asSecretaryHtml = pc.innerHTML;
       // …党委同样只看到边界说明
@@ -438,7 +444,7 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
       return {
         anon, real, viaGetAll, viaGetById, viaDrafts, asMember, asParty, asSecretary,
         asSecretaryHtml, asPartyHtml, listRowHtml, detailHtml, p5Name,
-        rawCache: localStorage.getItem('gsm1921-issue-cache-v3'),
+        rawCache: rawCachePersisted,
         rawDrafts: localStorage.getItem('gsm1921-issue-drafts'),
         legacyCacheVersion: localStorage.getItem('gsm1921-issue-cache-version'),
         tracesAfterReveal,

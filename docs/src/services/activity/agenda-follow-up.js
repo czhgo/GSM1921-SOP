@@ -3,17 +3,19 @@
 // 2026-09-02 AV4：记录「通过」前对支部党员大会（voteConfig.quorumCheck=true）做出席/赞成过半数硬校验
 //（spec §3.4）；校验不通过抛错中止（不写 result，UI 层 catch 以 error toast 提示支书）。
 
-import { fetchVotesStrict, presentIdsForItem, tallyForItem } from './committee-vote.js?v=20261031a';
+import { fetchVotesStrict, presentIdsForItem, tallyForItem } from './committee-vote.js?v=20261120a';
 // S-1（2026-09-09 支书批）：逐人结果中「通过者」需按人推导当前发展阶段（fromStage）——
 // 单条议程的 fromStage / personStages 可能不覆盖全部对象（各自阶段不同），以成员档案现值兜底。
-import { PersonStore } from '../member/person.js?v=20261031a';
+import { PersonStore } from '../member/person.js?v=20261120a';
 // 制度链（2026-09-21 批次 129 · `SOP-B-25` 第 ① 项 / `SOP-B-26`）：议程项结果的「制度」分支只做 IO，
 //   判据与状态迁移的单一源在 branch-doc.js::applyInstitutionAgendaResult（纯函数，本文件不复制状态名）。
-import { isInstitutionDoc, applyInstitutionAgendaResult } from '../branch/branch-doc.js?v=20261031a';
+import { isInstitutionDoc, applyInstitutionAgendaResult, syncInstitutionTodoForDoc } from '../branch/branch-doc.js?v=20261120a';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）：议程项结果的 `brand-designation`
 //   分支只做 IO，判据与状态迁移的单一源在 activity.js::applyBrandDesignationResult（纯函数）。
-import { commitBrandDesignationResult, commitActivityApprovalResult } from './activity.js?v=20261031a';
-import { agendaDecisionSource, validateAgendaStructure } from './agenda-relations.js?v=20261031a';
+import { commitBrandDesignationResult, commitActivityApprovalResult } from './activity.js?v=20261120a';
+import { agendaDecisionSource, validateAgendaStructure } from './agenda-relations.js?v=20261120a';
+// 支委提案（D-869）：会议记录结果即提案决议；写入单一源在 `CommitteeProposalStore`（API 走服务端同事务回写议程）。
+import { CommitteeProposalStore } from '../governance/committee-proposal.js?v=20261120a';
 
 function replaceById(records, record) {
   const index = records.findIndex((item) => item.id === record.id);
@@ -187,6 +189,8 @@ export async function recordAgendaResult({ activity, agendaItemId, result, perso
     if (inst && inst.ok) {
       const updated = await adapter.branchDocs.update(doc.id, inst.patch);
       db.branchDocs = replaceById(db.branchDocs || [], updated);
+      // 制度草案待办随审议结果同步（`D-886` / `SOP-B-25`）：未通过（仍草案）保活；通过 / 待党员大会 ⇒ 撤条
+      await syncInstitutionTodoForDoc(updated, { retireFirst: true });
     } else if (effectiveResult === 'passed' && !onChain) {
       const archived = await adapter.branchDocs.update(decisionItem.branchDocId, {
         status: 'archived',
@@ -217,7 +221,7 @@ export async function recordAgendaResult({ activity, agendaItemId, result, perso
   }
 
   // 活动批准门·支委会档（2026-09-22 批次 151 · 支书裁定「复用线上表决」）：本活动上承载批准表决的议程项
-  //   记录结果 ⇒ 通过 ⇒ 该活动**发布**；未通过 ⇒ **终止**（母本「不批准则终止」同一口径）。
+  //   记录结果 ⇒ 通过 ⇒ 该活动**发布**；未通过 ⇒ **退回待批**（状态留在 pending-approval，可再次提请；`D-885`）。
   //   判据与状态迁移的单一源在 `services/activity/activity.js::applyActivityApprovalResult`（纯函数）；
   //   落库走 `commitActivityApprovalResult`（活动主源单点改写 ＋ persist ⇒ mock/api 同码，与品牌认定同法）。
   if (hasKind(decisionItem, 'activity-approval') && decisionItem.approvalActivityId) {
@@ -227,6 +231,15 @@ export async function recordAgendaResult({ activity, agendaItemId, result, perso
       by: actorId,
       at: now,
       agendaItemId: agendaItem.id,
+    });
+  }
+
+  // 支委提案（D-869）：会议记录的提案议程项结果即提案决议——写入单一源在服务端 `decide`
+  //   （API 形态同事务回写议程；mock 形态由 store 回写），本文件只转发，不另造第二套状态。
+  if (hasKind(decisionItem, 'proposal') && decisionItem.proposalId) {
+    await CommitteeProposalStore.update(decisionItem.proposalId, {
+      action: 'decide',
+      result: effectiveResult === 'passed' ? 'passed' : 'rejected',
     });
   }
 

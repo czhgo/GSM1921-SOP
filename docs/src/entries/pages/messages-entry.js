@@ -8,21 +8,23 @@
 //  · 读口单一源 = NoticeStore.listMessages；未读计数单一源 = NoticeStore.countUnread。
 //  · 可见性单一源 = canReadNotice（经 NoticeStore.list 受众门），本页不另写规则。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261031a';
-import { renderHeader } from '../../components/shell/header.js?v=20261031a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261120a';
+import { renderHeader } from '../../components/shell/header.js?v=20261120a';
+import { pageHref } from '../../core/base/page-url.js?v=20261120a';
 import {
   NoticeStore, sendDirectMessage, canSendDirectMessage, kindOf,
-} from '../../services/governance/notice.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261031a';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261031a';
-import { pagerHtml } from '../../components/ui/pager.js?v=20261031a';
-import { PersonPicker } from '../../components/governance/pickers.js?v=20261031a';
-import { messageSearchBarHtml } from '../../components/notice/message-search-bar.js?v=20261031a';
+} from '../../services/governance/notice.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261120a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261120a';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261120a';
+import { pagerHtml } from '../../components/ui/pager.js?v=20261120a';
+import { PersonPicker } from '../../components/governance/pickers.js?v=20261120a';
+import { messageSearchBarHtml } from '../../components/notice/message-search-bar.js?v=20261120a';
 // S1（2026-09-12 通知详情页同款）：必须先完成数据 hydrate（loadDB / API init）再取数
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261031a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261031a';
-import { BranchService } from '../../services/core/runtime.js?v=20261031a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261120a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261120a';
+import { BranchService } from '../../services/core/runtime.js?v=20261120a';
 
 renderSidebar('messages');
 renderHeader('messages');
@@ -47,7 +49,7 @@ let _picker = null;
 
 // `?open=` 是深链：直接进统一详情页（列表页不再各自解释对象落点）。
 if (_openParam) {
-  window.location.replace(`${getBasePath()}notice.html?id=${encodeURIComponent(_openParam)}`);
+  window.location.replace(pageHref(`${getBasePath()}notice.html?id=${encodeURIComponent(_openParam)}`));
 }
 
 /** hydrate：API 会话走 data-adapter init（服务端权威）；否则本地 loadDB（与 notice-entry 同款）。 */
@@ -151,7 +153,7 @@ function render() {
     <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
       <div class="flex items-center gap-2">
         <h2 class="font-title-cn text-xl font-bold text-gray-800">消息</h2>
-        <span class="text-xs px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">共 ${list.total} 条${unread ? ` · 未读 ${unread}` : ''}</span>
+        ${badgeHtml(`共 ${list.total} 条`, 'neutral')}${unread ? badgeHtml(`未读 ${unread}`, 'warning') : ''}
       </div>
       <div class="flex items-center gap-2">
         ${unread ? '<button type="button" id="msg-mark-all" class="btn-outline">全部已读</button>' : ''}
@@ -164,8 +166,8 @@ function render() {
     <div class="rounded-lg border border-gray-200 bg-white p-3 mb-4" id="msg-composer">
       <p class="text-xs text-gray-500 mb-2">收件人（可多选）</p>
       <div id="msg-composer-host"></div>
-      <input id="msg-compose-title" class="input-flat text-xs w-full mt-2" maxlength="80" placeholder="标题" />
-      <textarea id="msg-compose-content" class="input-flat text-xs w-full mt-2" rows="4" maxlength="2000" placeholder="正文"></textarea>
+      <input id="msg-compose-title" class="input-flat text-xs w-full mt-2" maxlength="80" placeholder="标题" aria-label="私信标题" />
+      <textarea id="msg-compose-content" class="input-flat text-xs w-full mt-2" rows="4" maxlength="2000" placeholder="正文" aria-label="私信正文"></textarea>
       <div class="flex justify-end gap-2 mt-2">
         <button type="button" id="msg-compose-cancel" class="btn-outline" style="cursor:pointer;">取消</button>
         <button type="button" id="msg-compose-send" class="btn-accent" style="cursor:pointer;">发送</button>

@@ -3,38 +3,40 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState, getAppState } from '../../../core/base/state.js?v=20261031a';
-import { BranchService } from '../../../services/core/runtime.js?v=20261031a';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/activity/decision-tree.js?v=20261031a';
+import { setState, getAppState } from '../../../core/base/state.js?v=20261120a';
+import { BranchService } from '../../../services/core/runtime.js?v=20261120a';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/activity/decision-tree.js?v=20261120a';
 // 党小组常态清单唯一来源（活组、按 seq 升序）——承办党小组选项不再写死
-import { groupOptions, loadPartyGroups } from '../../../services/member/party-group.js?v=20261031a';
+import { groupOptions, loadPartyGroups } from '../../../services/member/party-group.js?v=20261120a';
 // 2026-10-21 批次 499：跨党小组深参/组织者需按成员所属组判定（组织者一般本组，跨组深参由组织委员协调）
-import { PersonStore } from '../../../services/member/person.js?v=20261031a';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261031a';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261031a';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain/domain.js?v=20261031a';
-import { persist } from '../../../data/data-adapter.js?v=20261031a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261031a';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261031a';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20261031a';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch/branch.js?v=20261031a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261031a';
+import { PersonStore } from '../../../services/member/person.js?v=20261120a';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261120a';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261120a';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain/domain.js?v=20261120a';
+import { persist } from '../../../data/data-adapter.js?v=20261120a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261120a';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261120a';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20261120a';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch/branch.js?v=20261120a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261120a';
 // 活动生命周期展示态单一源（草稿/已发布/进行中/待归档/已执行/已归档/已取消）——勿在本文件另造中文标签
-import { activityLifecycleBadgeHtml } from '../../../components/record/inspector.js?v=20261031a';
-import { showToast, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261031a';
+import { activityLifecycleBadgeHtml } from '../../../components/record/inspector.js?v=20261120a';
+// 三档状态色调单一源（2026-11-04 批次 534 · Task 6.4）
+import { TASK_STATUS_TONE } from '../../../core/domain/constants.js?v=20261120a';
+import { showToast, escHtml, todayLocal, getBasePath } from '../../../core/base/utils.js?v=20261120a';
 // 组织者的发布口（2026-09-19 批次 91 · SOP-B-17）：本人被指定为该场组织者时，本台即可发布本组通知
-import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity/activity.js?v=20261031a';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261031a';
-import { renderDisclosure } from '../../../components/ui/disclosure.js?v=20261031a';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261031a';
-import { DEFAULT_BRANCH_ID, solidAccentStyle, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType, ACTIVITY_SCOPES, RECRUITMENT_SCOPES } from '../../../core/domain/constants.js?v=20261031a';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20261031a';
-import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261031a';
+import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity/activity.js?v=20261120a';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261120a';
+import { renderDisclosure } from '../../../components/ui/disclosure.js?v=20261120a';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261120a';
+import { DEFAULT_BRANCH_ID, solidAccentStyle, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType, ACTIVITY_SCOPES, RECRUITMENT_SCOPES } from '../../../core/domain/constants.js?v=20261120a';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20261120a';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261120a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261031a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261031a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261120a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 // U-35：「我的任务」承载面（按项目身份派给组长的 SOP 任务；数据与写口复用 services/activity/activity.js）
-import { myTasksSectionHtml, bindMyTasksSection } from './my-tasks-section.js?v=20261031a';
+import { myTasksSectionHtml, bindMyTasksSection } from './my-tasks-section.js?v=20261120a';
 
 /**
  * 活动角色可编辑性（dogfood 权限专项 2026-09-13）
@@ -185,7 +187,7 @@ export function renderContent(ctx) {
   container.innerHTML = `
     ${renderTabHeader({ title: '本组活动', description: '创建本组活动并登记责任 / 产出；支部级活动只读。' })}
     ${myTasksSectionHtml(_me?.personId || '')}
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       ${renderCardHeader({
         title: '活动清单',
         meta: '本组创建 / 承办可写入 · 支部级只读',
@@ -196,10 +198,10 @@ export function renderContent(ctx) {
       </div>
       <div class="mt-4 pt-3 border-t border-gray-100">
         <div id="leader-activity-lists">
-          <div class="flex items-center justify-between mb-2"><h3 class="font-title-cn text-sm font-bold text-gray-700">本组创建 / 承办</h3><span class="text-xs text-gray-500">可写入 · ${writableActs.length} 条</span></div>
+          ${renderCardHeader({ title: `本组创建 / 承办`, meta: `<span class="text-xs text-gray-500">可写入 · ${writableActs.length} 条</span>`, variant: 'panel' })}
           <div class="space-y-2" id="leader-activity-list"></div>
           <div class="mt-4 pt-3 border-t border-dashed border-gray-100">
-            <div class="flex items-center justify-between mb-2"><h3 class="font-title-cn text-sm font-bold text-gray-700">可见活动（只读）</h3><span class="text-xs text-gray-500">支部级 / 定向下发 · ${readonlyActs.length} 条</span></div>
+            ${renderCardHeader({ title: `可见活动（只读）`, meta: `<span class="text-xs text-gray-500">支部级 / 定向下发 · ${readonlyActs.length} 条</span>`, variant: 'panel' })}
             <div class="space-y-2" id="leader-activity-readonly-list"></div>
           </div>
         </div>
@@ -266,7 +268,8 @@ export function renderContent(ctx) {
       function renderActSubTable(hostEl, type, items, readOnly) {
         const configs = {
           attendance: { label: '考勤记录', color: '#10B981', fields: [{ key: 'person', label: '姓名' }, { key: 'status', label: '出勤状态' }, { key: 'note', label: '备注' }, { key: 'time', label: '时间' }] },
-          inspection: { label: '考察记录', color: '#D97706', fields: [{ key: 'person', label: '被考察人' }, { key: 'content', label: '考察内容' }, { key: 'result', label: '考察结论' }, { key: 'time', label: '时间' }] },
+          // 2026-11-04 批次 534（Task 6.4）：考察记录标题色沿用三态色表的琥珀档（值逐字不变）。
+          inspection: { label: '考察记录', color: TASK_STATUS_TONE.in_progress.color, fields: [{ key: 'person', label: '被考察人' }, { key: 'content', label: '考察内容' }, { key: 'result', label: '考察结论' }, { key: 'time', label: '时间' }] },
           publicity: { label: '宣传记录', color: '#0E7490', fields: [{ key: 'title', label: '宣传标题' }, { key: 'author', label: '撰写人' }, { key: 'channel', label: '发布渠道' }, { key: 'time', label: '时间' }, { key: 'draftStatus', label: '初稿状态' }] },
           materials: { label: '材料记录', color: '#3B82F6', fields: [{ key: 'name', label: '材料名称' }, { key: 'author', label: '提交人' }, { key: 'note', label: '备注' }, { key: 'time', label: '时间' }] },
         };
@@ -295,7 +298,13 @@ export function renderContent(ctx) {
             <div class="flex items-center justify-between gap-2 mb-1.5">
               <h5 class="text-xs font-bold font-title-cn" style="color:${cfg.color}">${cfg.label} (${items.length})</h5>
               ${effectiveReadOnly
-                ? `<span class="text-xs text-amber-700 text-right">${type === 'attendance' ? '考勤请到「考勤管理」录入' : type === 'inspection' ? '考察请到「考察管理」录入' : '支部级（定向）活动由支书侧维护，本页只读'}</span>`
+                // 批次 539（F-4）：只读指引给出可点击落点——考勤／考察均有本台承载页；
+                //   深链沿用壳既有 `?tab=` / `?section=` 协议（inspection 已并入组员进展的「上传考察」段）。
+                ? `<span class="text-xs text-[var(--status-warning-text)] text-right">${type === 'attendance'
+                  ? `考勤请到<a class="text-accent font-medium hover:opacity-80" href="${getBasePath()}workspace/leader.html?tab=attendance">「考勤管理」</a>录入`
+                  : type === 'inspection'
+                    ? `考察请到<a class="text-accent font-medium hover:opacity-80" href="${getBasePath()}workspace/leader.html?tab=members&section=inspection">「考察管理」</a>录入`
+                    : '支部级（定向）活动由支书侧维护，本页只读'}</span>`
                 : `<button class="btn-outline act-sub-add-btn text-xs px-3 py-1.5" style="color:${cfg.color};border-color:${cfg.color}40" data-type="${type}">+ 添加</button>`}
             </div>
             <div class="act-sub-table-host"></div>
@@ -308,14 +317,14 @@ export function renderContent(ctx) {
           emptyMessage: '暂无记录',
           table: {
             responsive: true,
-            headHtml: `<tr>${cfg.fields.map(f => `<th>${f.label}</th>`).join('')}${effectiveReadOnly ? '' : '<th class="w-12">操作</th>'}</tr>`,
+            headHtml: `<tr>${cfg.fields.map(f => `<th scope="col">${f.label}</th>`).join('')}${effectiveReadOnly ? '' : '<th scope="col" class="w-12">操作</th>'}</tr>`,
             colSpan: cfg.fields.length + (effectiveReadOnly ? 0 : 1),
           },
           rowHtml: (item) => {
             const idx = items.indexOf(item); // 删除按全量下标（分页切片下 i 只是页内序）
             // SOP-B-38：宣传子记录的「初稿 → 提交审核」动作（审核/定稿位在宣传委员台「档案归档」）
             const draftBtn = (type === 'publicity' && publicityDraftStatusOf(item) === PUBLICITY_DRAFT_STATUS.DRAFT)
-              ? `<button class="btn-tab act-sub-review-btn text-xs mr-2" data-type="${type}" data-idx="${idx}">提交审核</button>`
+              ? `<button class="btn-outline act-sub-review-btn text-xs mr-2" data-type="${type}" data-idx="${idx}">提交审核</button>`
               : '';
             return `
               <tr>
@@ -490,7 +499,7 @@ export function renderContent(ctx) {
                 const isPublicityAuthor = type === 'publicity' && key === 'author';
                 const required = key === 'title' || key === 'name' || isPublicityAuthor;
                 const prefill = isPublicityAuthor ? (PersonStore.getById(currentUserId())?.name || '') : '';
-                return `<input class="f-${key} input-flat w-full mb-2" placeholder="${label}${required ? '（必填）' : '（选填）'}" value="${escHtml(prefill)}">`;
+                return `<input class="f-${key} input-flat w-full mb-2" aria-label="${label}${required ? '（必填）' : '（选填）'}" placeholder="${label}${required ? '（必填）' : '（选填）'}"${required ? ' required aria-required="true"' : ''} value="${escHtml(prefill)}">`;
               }).join('')}`,
           });
 
@@ -799,7 +808,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
             <div class="text-[12px] text-gray-500 mb-1">组织者（默认组长本人，可改）</div>
             <div id="dt-org-picker"></div>
             <!-- 2026-10-21 批次 499：组织者一般本组；他组同志须留说明（软提示，不阻断） -->
-            <p id="dt-org-cross-hint" class="text-xs text-amber-700 mt-1 hidden">组织者一般由本党小组承担；已选他组同志，请填写说明。</p>
+            <p id="dt-org-cross-hint" class="text-xs text-[var(--status-warning-text)] mt-1 hidden">组织者一般由本党小组承担；已选他组同志，请填写说明。</p>
             <div id="dt-org-exception-slot" class="mt-1 hidden">
               <input type="text" id="dt-org-exception" class="input-flat w-full text-xs" placeholder="组织者跨组说明（将随活动留存）" value="${escHtml(dtDraft.organizerExceptionReason || '')}">
             </div>
@@ -808,7 +817,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
             <div class="text-[12px] text-gray-500 mb-1">深度参与者 <span class="text-gray-500">（选填）</span></div>
             <div id="dt-deep-picker"></div>
             <!-- 2026-10-21 批次 499：跨党小组深参须由组织委员协调，提交时自动标记跨组招募 -->
-            <p id="dt-deep-cross-hint" class="text-xs text-amber-700 mt-1 hidden"></p>
+            <p id="dt-deep-cross-hint" class="text-xs text-[var(--status-warning-text)] mt-1 hidden"></p>
           </div>
         </div>
         ${renderWorkgroupPermissionEditor('activity-create')}

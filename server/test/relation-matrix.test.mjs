@@ -166,12 +166,12 @@ async function loginDisc() {
   await page.fill('#student-id', '2400012354');
   await page.fill('#password', '123456');
   await Promise.all([
-    page.waitForURL('**/workspace/disc.html', { timeout: 15000 }),
+    page.waitForURL('**/workspace/disc', { timeout: 15000 }),
     page.click('button[type="submit"]'),
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261031a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261120a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.waitForTimeout(600);
   return { page, errs };
 }
@@ -190,12 +190,12 @@ async function loginOrg() {
   await page.fill('#student-id', '2400012355');
   await page.fill('#password', '123456');
   await Promise.all([
-    page.waitForURL('**/workspace/org.html', { timeout: 15000 }),
+    page.waitForURL('**/workspace/org', { timeout: 15000 }),
     page.click('button[type="submit"]'),
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261031a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261120a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.waitForTimeout(600);
   return { page, errs };
 }
@@ -217,9 +217,7 @@ test('① 考勤/考察宽表真机闭环：默认宽表 → 列上限 6 → 一
     // 考勤：默认按人（行=人，列=活动）
     await openTab(page, '考勤管理');
     await page.waitForTimeout(1400);
-    // 2026-10-20 IA 判例：考勤默认落「确认与录入」；矩阵在「数据查看」二级视图（R3-11 同批）
-    await page.evaluate(() => document.querySelector('.att-view-btn[data-att-view="data"]')?.click());
-    await page.waitForTimeout(700);
+    // 2026-11-08 波次 C（IA-E05）：撤「确认与录入 / 数据查看」二级切换 ⇒ 矩阵与队列同屏，进页即见矩阵。
     const att1 = await shape(page);
     assert.ok(att1.isMatrix, '考勤矩阵须渲染为单一源矩阵');
     assert.equal(att1.first, '姓名', '考勤默认视图首列须为「姓名」（宽表默认）');
@@ -313,8 +311,8 @@ test('② 思想汇报例外清单真机：无矩阵 / 三组在位 / 完整记�
       return {
         matrix: !!root?.querySelector('.rm-root'),
         groups: heads.filter((t) => /^(未交|待初阅|待补充)/.test(t)),
-        personLinks: root?.querySelectorAll('a[href*="person.html"]')?.length ?? 0,
-        reportLinks: root?.querySelectorAll('a[href*="thought-report.html"]')?.length ?? 0,
+        personLinks: root?.querySelectorAll('a[href*="person"]')?.length ?? 0,
+        reportLinks: root?.querySelectorAll('a[href*="thought-report"]')?.length ?? 0,
         queue: !!root?.querySelector('#tr-queue-host'),
       };
     });

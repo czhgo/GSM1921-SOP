@@ -109,7 +109,7 @@ test('党委选中支部后整页数据请求都带同一支部范围，未选�
   const filter = await read('../../docs/src/components/governance/branch-filter.js');
   const adapter = await read('../../docs/src/data/api-adapter.js');
   assert.match(filter, /url\.searchParams\.set\('branchId',/);
-  assert.match(filter, /window\.location\.assign\(url\.toString\(\)\)/);
+  assert.match(filter, /window\.location\.assign\((?:pageHref\()?url\.toString\(\)/);
   assert.match(filter, /选择支部查看明细/);
   assert.match(filter, /apiMode \? '选择支部查看明细' : `全部支部（\$\{branches\.length\}）`/);
   assert.match(adapter, /function _withSelectedBranch\(path\)/);
@@ -270,7 +270,9 @@ test('宣传看板只承接在办项目，归档统一落档案归档页', async
   assert.match(source, /\?tab=archive/, '归档出口统一落档案归档页签');
   assert.match(source, /去档案归档/);
   assert.doesNotMatch(source, /已完成并归档/);
-  assert.match(source, /已标记结束，待档案归档/);
+  // 本批 P0-4：宣传台不再闭环活动（结束权归组织者 / 支书）；专班收尾提示保留。
+  assert.doesNotMatch(source, /activity-complete-btn/, '看板不得再有「确认完成」按钮');
+  assert.match(source, /收尾由组织委员办理/);
 });
 
 test('成员台组织者上传位以 scope=organizer 投影，个人考勤与考察记录在页首', async () => {
@@ -412,7 +414,9 @@ test('工作概况汇报区只读：无提交入口，唯一动作跳待办「�
   assert.doesNotMatch(source, /wo-req-submit|data-report-submit|请填写汇报内容|renderFilteredList/, '概况不得保留汇报行内提交/校验载体');
   assert.match(source, /data-wo-go-dispatch/, '汇报摘要须给出唯一动作按钮');
   // 2026-10-25 Task 5：原「我的处置」页签已并入待办「我经办的反馈」区 ⇒ 落点改为待办 + 滚到该区。
-  assert.match(source, /data-\$\{prefix\}-tab="todo"/, '唯一动作须跳「待办」');
+  // 2026-11-10 批次 540 波次 5：切页签改走统一导航（`goToWorkspaceTab('todo', …)`），
+  //   不再按 prefix 点按钮；本条覆盖「唯一动作须跳待办」不变。
+  assert.match(source, /_switchTo\(role, 'todo'/, '唯一动作须跳「待办」（经统一导航出口）');
   assert.match(source, /ws-dispatch-section/, '落点须滚到「我经办的反馈」区');
 });
 

@@ -13,26 +13,28 @@
 //  （2026-09-21 批次 124：支书 2026-09-20 定案「只给提交人本人」——支委层读他人的汇报时看不到该标记，
 //   组织侧不经手篇幅）；**一律不影响提交与归档**。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261031a';
-import { renderHeader } from '../../components/shell/header.js?v=20261031a';
-import { BranchService } from '../../services/core/runtime.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261120a';
+import { renderHeader } from '../../components/shell/header.js?v=20261120a';
+import { BranchService } from '../../services/core/runtime.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
 // D-484（批次 87）：本页必须先 hydrate API 数据源再取数——与 activity / notice 独立页同款标准形。
 // 此前本页只调 BranchService.loadDB()，而该函数在 API 模式直接 return（数据由 data-adapter.init()
 // 从服务器填充）⇒ 本页从未切数据源 / init ⇒ api 形态下退回本地 mock 读（种子打得开、新提交报「不存在」）。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261031a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261031a';
-import { getPersonName } from '../../services/member/person.js?v=20261031a';
-import { getBasePath, showToast, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261031a';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261031a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261120a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261120a';
+import { getPersonName } from '../../services/member/person.js?v=20261120a';
+import { getBasePath, showToast, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261120a';
+import { pageHref } from '../../core/base/page-url.js?v=20261120a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261120a';
 import {
   loadThoughtReports, listThoughtReportsByPerson, listThoughtReportsByPersonGrouped,
   canReadThoughtReport, canReviewThoughtReport,
   rejectThoughtReport, resubmitThoughtReport,
   wordCountHint, periodLabel, comparePeriodDesc, THOUGHT_REVIEW_STATUS,
-} from '../../services/governance/thought-report.js?v=20261031a';
+} from '../../services/governance/thought-report.js?v=20261120a';
 
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261120a';
+import { renderCardHeader } from '../../components/shell/page-frame.js?v=20261120a';
 renderSidebar('dashboard');
 renderHeader('dashboard');
 
@@ -54,7 +56,7 @@ const cardEl = document.getElementById('tr-page-card');
 const backBtn = document.getElementById('tr-back-btn');
 backBtn?.addEventListener('click', () => {
   if (window.history.length > 1) window.history.back();
-  else window.location.href = getBasePath() + 'index.html';
+  else window.location.href = pageHref(getBasePath() + 'index.html');
 });
 
 const viewer = AuthStore.getCurrentUser();
@@ -142,7 +144,7 @@ function renderSingleView(rec) {
   const history = Array.isArray(rec.reviewHistory) ? rec.reviewHistory : [];
   const historyHtml = history.length === 0 ? '' : `
     <div class="mt-8 pt-6 border-t border-gray-100">
-      <h3 class="text-sm font-semibold text-gray-700 mb-2">审阅留痕</h3>
+      ${renderCardHeader({ title: `审阅留痕`, variant: 'panel' })}
       <div class="space-y-1.5">
         ${history.map(h => `
           <div class="text-xs text-gray-600">
@@ -158,7 +160,7 @@ function renderSingleView(rec) {
   //   该标记**只在提交人本人（isSelf）看自己的汇报时**出现——支委层（含组织委员 / 支书）在此页
   //   读他人的汇报时**看不到任何「篇幅不足」标记**（组织侧不经手篇幅这件事）。
   const shortMarkHtml = (isSelf && wc.level === 'short')
-    ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200" title="${esc(wc.hint)}">篇幅不足 ${wc.count} 字 · 触发警告审阅</span>`
+    ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-[var(--status-warning-text)] border border-amber-200" title="${esc(wc.hint)}">篇幅不足 ${wc.count} 字 · 触发警告审阅</span>`
     : '';
 
   // 操作区（按权限显隐，均调用服务层函数）
@@ -204,7 +206,7 @@ function renderSingleView(rec) {
     .filter(g => g.items.length > 0);
   const othersHtml = otherGroups.length === 0 ? '' : `
     <div class="mt-8 pt-6 border-t border-gray-100">
-      <h3 class="text-sm font-semibold text-gray-700 mb-3">同一人的其他思想汇报</h3>
+      ${renderCardHeader({ title: `同一人的其他思想汇报`, variant: 'panel' })}
       ${otherGroups.map(g => `
         <div class="mb-3 last:mb-0">
           <p class="text-xs text-gray-500 mb-1">${esc(g.label)} · ${g.items.length} 篇</p>
@@ -283,7 +285,7 @@ function bindActions(rec) {
     if (!el) return;
     const h = wordCountHint(cardEl.querySelector('#tr-resubmit-content')?.value || '');
     el.textContent = `当前 ${h.count} 字 · ${h.hint}`;
-    el.className = `text-xs ${h.level === 'short' ? 'text-amber-600' : 'text-gray-500'}`;
+    el.className = `text-xs ${h.level === 'short' ? 'text-[var(--status-warning-text)]' : 'text-gray-500'}`;
   };
   cardEl.querySelector('#tr-resubmit-content')?.addEventListener('input', syncResubmitHint);
   cardEl.querySelector('#tr-resubmit-confirm')?.addEventListener('click', () => {

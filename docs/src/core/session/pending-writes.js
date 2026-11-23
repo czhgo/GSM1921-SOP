@@ -46,11 +46,16 @@ let _scopeSeq = 0;
 // ════════════════════════════════════════════════════════════════
 //  口径（spec「断网写入」）：写失败**不得**报成功；失败进入本机持久队列并显示「未同步」，
 //  恢复网络后可重试或放弃。本段仍是叶子模块：只碰 localStorage / DOM 事件，不引任何业务模块。
-//  · 只存**元数据**（集合名 / 错误码 / 文案 / 时间 / 次数）——业务数据仍以服务端为权威；
-//  · `retryOutbox()` 调用由 `data-adapter.js` 注册的重试钩子（重新 flush 仍是脏的集合）；
+//  · 默认存**元数据**（集合名 / 错误码 / 文案 / 时间 / 次数）；
+//  · 2026-11-02 批次 527 · Wave 3：条目可带 `payload`（集合名 + 行数据 + `_versions`）——
+//    换页/刷新后内存快照被服务端权威值覆盖，仅靠「重新 flush 脏集合」已无可重试的数据；
+//    带 payload 的条目由重试钩子直接重发。**旧条目（无 payload）仍按旧逻辑**（只重新 flush 脏集合）；
+//  · `retryOutbox()` 把条目（含 payload）交给 `data-adapter.js` 注册的重试钩子；
 //  · `discardOutbox()` 只移除队列条目（放弃同步），不改业务数据。
 const OUTBOX_KEY = 'gsm1921-pending-writes-outbox';
 const OUTBOX_MAX = 20;
+/** payload 只保留「可重试的最近一次失败」；超出即退回仅元数据（防撑爆 localStorage） */
+const OUTBOX_PAYLOAD_MAX_BYTES = 512 * 1024;
 
 /** 本机持久队列的内存视图（首次访问时从 localStorage 载入） */
 let _outbox = null;
@@ -89,14 +94,37 @@ function _saveOutbox(list) {
 }
 
 /**
+ * 归一 payload：`{ collections, rows, _versions }`。
+ * 不合法 / 序列化超限 ⇒ 返回 null（退回仅元数据，行为与旧条目一致）。
+ * @param {{collections?:string[], rows?:Object, _versions?:Object}|null|undefined} payload
+ */
+function _normalizePayload(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null;
+  const rows = payload.rows;
+  if (!rows || typeof rows !== 'object' || Array.isArray(rows)) return null;
+  const collections = [...new Set((Array.isArray(payload.collections) ? payload.collections : Object.keys(rows))
+    .filter(Boolean).map(String))].sort();
+  if (!collections.length) return null;
+  const versions = (payload._versions && typeof payload._versions === 'object' && !Array.isArray(payload._versions))
+    ? payload._versions : {};
+  const normalized = { collections, rows, _versions: versions };
+  try {
+    if (JSON.stringify(normalized).length > OUTBOX_PAYLOAD_MAX_BYTES) return null;
+  } catch (_) { return null; }
+  return normalized;
+}
+
+/**
  * 登记一次写失败到持久 outbox（同集合组合去重：次数 +1、刷新时间与原因）。
- * @param {{collections?: string[], message?: string, status?: number, kind?: string}} [failure]
+ * @param {{collections?: string[], message?: string, status?: number, kind?: string,
+ *          payload?: {collections?:string[], rows?:Object, _versions?:Object}}} [failure]
  * @returns {Object|null} 入库条目
  */
 export function recordOutboxFailure(failure = {}) {
   const collections = [...new Set((Array.isArray(failure.collections) ? failure.collections : []).filter(Boolean))].sort();
   const message = String(failure.message || '写入未确认').trim();
   const status = Number(failure.status) || 0;
+  const payload = _normalizePayload(failure.payload);
   const entry = {
     id: collections.length ? collections.join(',') : 'w-unspecified',
     collections,
@@ -106,6 +134,7 @@ export function recordOutboxFailure(failure = {}) {
     at: new Date().toISOString(),
     attempts: 1,
   };
+  if (payload) entry.payload = payload;
   const list = _loadOutbox();
   const existing = list.find((e) => e && e.id === entry.id);
   if (existing) {
@@ -113,6 +142,8 @@ export function recordOutboxFailure(failure = {}) {
     existing.message = entry.message;
     existing.status = entry.status;
     existing.at = entry.at;
+    // 新 payload 覆盖旧 payload；本次无 payload 时保留旧 payload（旧数据仍可重试）
+    if (payload) existing.payload = payload;
     _saveOutbox([...list]);
     return existing;
   }
@@ -123,7 +154,11 @@ export function recordOutboxFailure(failure = {}) {
 
 /** 读队列（返回副本，调用方可安全遍历） */
 export function listOutbox() {
-  return _loadOutbox().map((e) => ({ ...e, collections: [...(e.collections || [])] }));
+  return _loadOutbox().map((e) => {
+    const copy = { ...e, collections: [...(e.collections || [])] };
+    if (e && e.payload) copy.payload = { ...e.payload, collections: [...(e.payload.collections || [])] };
+    return copy;
+  });
 }
 
 /** 队列条数（供角标 / 守卫断言） */
@@ -164,7 +199,8 @@ export async function retryOutbox() {
   if (!entries.length) return { ok: true, count: 0, reason: 'empty' };
   if (!_outboxRetryHandler) return { ok: false, count: entries.length, reason: 'no-retry-handler' };
   try {
-    await _outboxRetryHandler();
+    // 带 payload 的条目由钩子直接重发（重载后内存里已没有那份脏数据）；旧条目仍走「重新 flush」。
+    await _outboxRetryHandler(entries);
     const remaining = listOutbox().filter((e) => e && e.kind !== 'local-only');
     if (remaining.length) return { ok: false, count: remaining.length, reason: 'still-unsynced' };
     return { ok: true, count: entries.length };

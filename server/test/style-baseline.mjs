@@ -113,16 +113,16 @@
 //   · 处数 1545 → 1419、distinct 168 → 287、文件 74 → 51（全部按实况重算；H1/H2 仍逐文件判红）。
 // 收基线纪律不变：不得为变绿补条目；新增游离值仍由 H1/H2 判红。
 export const HEX_BASELINE = {
-  'docs/help.html': { c: 555, v: [
-      '#0369a1', '#047857', '#059669', '#06b6d4', '#0891b2', '#10b981', '#111827',
-      '#15803d', '#1d4ed8', '#1f2937', '#2563eb', '#374151', '#3b82f6', '#4b5563',
-      '#4d7c0f', '#65a30d', '#6b7280', '#7a0010', '#7c3aed', '#7c5a14', '#86efac',
-      '#8b5cf6', '#92400e', '#93c5fd', '#991b1b', '#9a3412', '#9ca3af', '#a7f3d0',
-      '#b45309', '#b91c1c', '#bae6fd', '#ce1126', '#d1d5db', '#d97706', '#e5e7eb',
-      '#ecfdf5', '#edeef0', '#eeeff2', '#f0dfa8', '#f1f2f4', '#f3f4f6', '#f6d1d1',
-      '#f8f9fa', '#fafaf5', '#fafaf9', '#fca5a5', '#fcfcfb', '#fdba74', '#fde68a',
-      '#fdf2f2', '#fdfbf4', '#fecaca', '#fef2f2', '#ffd700', '#fff', '#fffbeb',
-      '#fffbfb', '#ffffff',
+  // 2026-11-03 批次 533（B-522-2）：help.html 一轮令牌化 532 → 167 处（#4B5563 等 365 处改 var(--*)），
+  //   保留 167 处不可令牌化色（徽标三联/二联、文档页暖纸色、角色色、3 处渐变）。同批把该文件从
+  //   `allowNew` 例外改为**只减不增**棘轮（见 hex-hardcode-guard EXCEPTIONS 理由）。
+  // 2026-11-04 批次 534（Task 6.1）：内联徽标两族 84 处改 `.doc-tag--ok` / `.doc-tag--warn` 类
+  //   （色值收敛到页内 <style> 与既有令牌）⇒ 167 → **48** 处；值集不变（#ECFDF5 / #A7F3D0 仍在类定义里）。
+  'docs/help.html': { c: 48, v: [
+      '#0891b2', '#7c3aed', '#7c5a14', '#86efac', '#93c5fd', '#a7f3d0', '#b45309',
+      '#b91c1c', '#bae6fd', '#ce1126', '#d97706', '#e5e7eb', '#ecfdf5', '#edeef0',
+      '#eeeff2', '#f0dfa8', '#f1f2f4', '#f6d1d1', '#fafaf9', '#fcfcfb', '#fdba74',
+      '#fdf2f2', '#fdfbf4', '#fff', '#fffbeb', '#fffbfb',
   ] },
   'docs/login.html': { c: 3, v: [
       '#7a0010', '#9b0000', '#e5e7eb',
@@ -139,10 +139,6 @@ export const HEX_BASELINE = {
   'docs/src/components/dashboard/gallery.js': { c: 1, v: [
       '#6b7280',
   ] },
-  'docs/src/components/dashboard/stats.js': { c: 15, v: [
-      '#059669', '#3b82f6', '#94a3b8', '#9ca3af', '#d1d5db', '#d97706', '#dc2626',
-      '#f59e0b', '#f97316',
-  ] },
   'docs/src/components/governance/member-change-panel.js': { c: 1, v: [
       '#b91c1c',
   ] },
@@ -152,11 +148,8 @@ export const HEX_BASELINE = {
   'docs/src/components/governance/org-setup-wizard.js': { c: 7, v: [
       '#16a34a', '#ce1126', '#ef4444', '#ffd700',
   ] },
-  'docs/src/components/governance/overview-dispatch-bar.js': { c: 1, v: [
-      '#b91c1c',
-  ] },
-  'docs/src/components/governance/person-picker.js': { c: 3, v: [
-      '#6b7280', '#ce1126',
+  'docs/src/components/governance/person-picker.js': { c: 2, v: [
+      '#ce1126',
   ] },
   'docs/src/components/governance/query-view.js': { c: 2, v: [
       '#3b82f6',
@@ -167,20 +160,17 @@ export const HEX_BASELINE = {
   'docs/src/components/person-picker.css': { c: 2, v: [
       '#92400e', '#fef3c7',
   ] },
-  'docs/src/components/record/activity-view.js': { c: 4, v: [
-      '#16a34a', '#9ca3af', '#d97706',
+  'docs/src/components/record/inspector.js': { c: 1, v: [
+      '#ce1126',
   ] },
-  'docs/src/components/record/inspector.js': { c: 4, v: [
-      '#16a34a', '#9ca3af', '#ce1126', '#d97706',
+  'docs/src/components/record/report-inbox.js': { c: 3, v: [
+      '#b91c1c', '#ef4444', '#f59e0b',
   ] },
-  'docs/src/components/record/report-inbox.js': { c: 4, v: [
-      '#16a34a', '#b91c1c', '#ef4444', '#f59e0b',
+  'docs/src/components/record/taskforce-view.js': { c: 5, v: [
+      '#0d9488', '#10b981', '#10b98115', '#3b82f6', '#6366f1',
   ] },
-  'docs/src/components/record/taskforce-view.js': { c: 7, v: [
-      '#0d9488', '#10b981', '#10b98115', '#3b82f6', '#6366f1', '#6b7280', '#d97706',
-  ] },
-  'docs/src/components/sections/references.js': { c: 16, v: [
-      '#047857', '#1d4ed8', '#b45309', '#d1fae5', '#dbeafe', '#ecfdf5', '#fef3c7',
+  'docs/src/components/sections/references.js': { c: 14, v: [
+      '#047857', '#1d4ed8', '#b45309', '#d1fae5', '#ecfdf5', '#fef3c7',
   ] },
   'docs/src/components/shell/header.js': { c: 2, v: [
       '#fff', '#ffffff',
@@ -194,14 +184,14 @@ export const HEX_BASELINE = {
   'docs/src/components/ui/status-badge.js': { c: 1, v: [
       '#9ca3af',
   ] },
-  'docs/src/core/base/icons.js': { c: 1, v: [
-      '#fff',
-  ] },
+  // 2026-11-10 批次 540：`icons.js` 的 `stroke: '#FFF'` 示例删除（硬编码从唯一图标源向调用点传播的源），
+  //   该文件 hex 清零 ⇒ 按收基线纪律删除条目，文件数 45 → 44。
   'docs/src/core/base/utils.js': { c: 12, v: [
       '#16a34a', '#1f2937', '#3b82f6', '#ef4444', '#eff6ff', '#f0fdf4', '#fef2f2',
       '#fff',
   ] },
-  'docs/src/core/domain/constants.js': { c: 194, v: [
+  // 2026-11-04 批次 534（Task 6.4）：_C 新增 gray400（#9CA3AF，任务三态「待处理」档，原为各组件字面量）⇒ 194 → 195。
+  'docs/src/core/domain/constants.js': { c: 195, v: [
       '#000', '#0b5e6b', '#278b9d', '#285f45', '#324287', '#49936f', '#5f4873', '#6275cb',
       '#8971a8', '#91650d', '#932920', '#a04b27', '#bd9231', '#be643a', '#ca564b',
       '#0369a1', '#04161a', '#047857', '#059669', '#07130e', '#0a0e1c',
@@ -216,7 +206,7 @@ export const HEX_BASELINE = {
       '#573827', '#5c332e', '#60a5fa', '#63b8c7', '#654c7a', '#667ad4', '#6b7280',
       '#6d5382', '#6e4e08', '#7a201b', '#7a3a16', '#7c3aed', '#7cc4a0', '#7dd3fc',
       '#8e75ae', '#8f9edb', '#8fcbd6', '#92400e', '#94a3b8', '#991b1b', '#9a6b0f',
-      '#9b0000', '#9b2c22', '#9fd3b6', '#a16207', '#a32b24', '#a5b4fc', '#a78bfa',
+      '#9b0000', '#9b2c22', '#9ca3af', '#9fd3b6', '#a16207', '#a32b24', '#a5b4fc', '#a78bfa',
       '#a9502a', '#a97a12', '#a9b6e0', '#b45b33', '#b79fcb', '#b91c1c', '#b9dce2',
       '#c1663b', '#c2410c', '#c3b0d6', '#c4b5fd', '#c4dcd0', '#c89a34', '#c8cee9',
       '#cbd5e1', '#ce1126', '#d25a4e', '#d3e7eb', '#d4af37', '#d8cce2', '#d8e9e0',
@@ -227,14 +217,17 @@ export const HEX_BASELINE = {
       '#fb923c', '#fbbf24', '#fbeeec', '#fbf0e9', '#fbf3dc', '#fee2e2', '#fef2f2',
       '#fefce8', '#ffd700', '#fff', '#ffffff',
   ] },
-  'docs/src/data/data-adapter.js': { c: 7, v: [
-      '#111827', '#374151', '#6b7280', '#9ca3af', '#d1d5db', '#f9fafb', '#fff',
+  // 2026-11-04 批次 534（Task 6.5）：弹窗内联色改令牌（--surface-card / --neutral-900/700/500/400/300），
+  //   仅剩无同名令牌的 #F9FAFB ⇒ 7 → **2** 处（1 处在注释里说明为什么不换）。
+  'docs/src/data/data-adapter.js': { c: 2, v: [
+      '#f9fafb',
   ] },
   'docs/src/entries/pages/about-entry.js': { c: 18, v: [
       '#0e7490', '#0ea5e9', '#15803d', '#2563eb', '#64748b', '#6b7280', '#900',
       '#b91c1c', '#c2410c', '#ce1126', '#fee', '#ffd700',
   ] },
-  'docs/src/entries/pages/activity-entry.js': { c: 5, v: [
+  // 2026-11-04 批次 534（Task 6.5）：类别色兜底改 var(--neutral-500)（仅用于 tone 判定）⇒ 5 → 4 处。
+  'docs/src/entries/pages/activity-entry.js': { c: 4, v: [
       '#6b7280', '#a16207', '#ce1126', '#ffd700',
   ] },
   'docs/src/entries/pages/archive-entry.js': { c: 1, v: [
@@ -249,12 +242,9 @@ export const HEX_BASELINE = {
   'docs/src/entries/tabs/disc/inspection-tab.js': { c: 1, v: [
       '#94a3b8',
   ] },
-  'docs/src/entries/tabs/leader/write-tab.js': { c: 11, v: [
+  'docs/src/entries/tabs/leader/write-tab.js': { c: 9, v: [
       '#0e7490', '#10b981', '#3b82f6', '#475569', '#6b7280', '#ce1126', '#d1d5db',
-      '#d97706', '#e5e7eb',
-  ] },
-  'docs/src/entries/tabs/org/taskforce-tab.js': { c: 2, v: [
-      '#0d9488', '#10b98115',
+      '#e5e7eb',
   ] },
   'docs/src/entries/tabs/prop/archive-tab.js': { c: 1, v: [
       '#999',
@@ -292,8 +282,14 @@ export const HEX_BASELINE = {
   // 2026-10-31 P8：状态色拆「填充 / 文字」两层，亮色文字档新增 #047857（success）/ #991B1B（error）/
   //   #1D4ED8（info），暗色档沿用既有 #34D399 / #F87171 / #60A5FA ⇒ 处数 383 → 389（+6），值集 +1。
   //   只新增文字档 token 定义（4 段共 6 行），组件仍零裸 hex；收基线与实现同批。
-  'docs/src/styles.css': { c: 389, v: [
-      '#047857',
+  // 2026-11-03 批次 530（B-518-1 状态胶囊收口）：`.badge--warning` 的字色 `#92400E` 改取
+  //   `var(--status-warning-text)`（该令牌亮色值即 #92400E，零观感变化）⇒ 按实况收基线 389 → **387**
+  //   （另一处为历史批次已清未随注）。只减不增，未放宽任何判红面。
+  // 2026-11-04 批次 534（Task 6.2 / 6.5 复核）：先按实况收基线 387 → 381；
+  //   同批 Task 6.3 把 toast 的 #16a34a / #eff6ff 从 utils.js 搬入 --toast-* 令牌定义（见 HEX_MOVE_LEDGER），
+  //   故 styles.css 处数 381 → **388**（+7：搬入 2 值 + 既有值在令牌定义中的新增引用；搬移合法性由 H5 逐值校验）。
+  'docs/src/styles.css': { c: 388, v: [
+      '#047857', '#16a34a', '#eff6ff',
       '#000', '#91650d', '#bd9231', '#0284c7', '#0369a1', '#059669', '#0b1220', '#0e7490', '#0ea5e9', '#0f172a',
       '#102a32', '#10b981', '#111827', '#12291f', '#141d2f', '#15803d', '#16233a',
       '#1a2438', '#1b1e24', '#1d4ed8', '#1d5a69', '#1e1503', '#1e293b', '#1e5c44',
@@ -316,19 +312,18 @@ export const HEX_BASELINE = {
       '#fef3c7', '#fef9c3', '#ffd700', '#ffedd5', '#fff', '#fff7ed', '#fffbeb',
       '#ffffff',
   ] },
-  'docs/src/tailwind-config.js': { c: 48, v: [
-      '#10b981', '#111827', '#1f2937', '#374151', '#3b82f6', '#4a000a', '#4b5563',
-      '#6b7280', '#7a0010', '#8b5cf6', '#9b0000', '#9ca3af', '#ce1126', '#d1d5db',
-      '#d97706', '#dc2626', '#e5e7eb', '#ef4444', '#f3f4f6', '#f87171', '#f8f9fa',
-      '#fca5a5', '#fde68a', '#fecaca', '#fee2e2', '#fef2f2', '#ffd700', '#ffffff',
-  ] },
+  // 2026-11-04 批次 534（Task 5.2）：`tailwind-config.js` 的 party / primary / neutral / surface
+  //   全部改为 `var(--*)` 映射（色值只留 styles.css 一处）⇒ 该文件 hex 清零，按收基线纪律删条目。
 };
 
 /** 硬编码 hex 规模下限（守卫的非空转判据：低于此值说明抽取口径失效或台账被删减） */
-// 2026-10-23 批次 505：存量按实况重设为 **1419 处**（原 2025 为 2026-09-24 起点；
-// 中间各批已降到 1545，本批因色板 112 个手选 hex 与 23 个文件清零相抵后为 1419）。
-// H4 仍只报不判；真正的棘轮是 H1（新增值）/ H2（处数上涨）/ H3（僵尸登记）。
-export const HEX_TOTAL_BASELINE = 1433;
+// ⚠ 2026-11-04 批次 534（spec unify-ui-signals Task 5.5）：本批按**实况**重设三档基数——
+//   处数 812 / 值 291 / 文件 45（tailwind-config hex 清零、activity-view 清零、help 徽标族收敛）。
+//   `HEX_TOTAL_BASELINE` 由「存量起点」改为「当前实况」：本批起它随收基线同步下沉，
+//   H4 的缩减读数以「上一批基线」为参照，不再固定盯 2025 起点。
+//   H3 的防呆下限随实况下沉（文件 47→45、处数 1400→800）；**不是放宽**——真正的判红项是
+//   H1（新增值）/ H2（处数上涨）/ 僵尸登记，本下限只防「台账被悄悄删空」。
+export const HEX_TOTAL_BASELINE = 810;
 // 93 → 92（2026-09-25）：`docs/settings.html` 整体重做后其硬编码 hex 清零 ⇒ 该条目按收基线纪律删除，
 //   条目数随之 −1（H3 要求「基线条目数 ＝ 声明文件数」，两处必须同步动）。
 //   `HEX_TOTAL_BASELINE` **有意保持 2025**：它是「存量起点」，H4 会据此显示 ↓15 的缩减进度（该文件真少了 15 处）。
@@ -407,8 +402,19 @@ export const HEX_TOTAL_BASELINE = 1433;
 // ⚠ 2026-10-29 P2（数字组单一语法）：`secretary/report-up-tab.js` 页首统计三项的三处内联 hex
 //   （#d97706 / #16a34a / #6b7280）改为语义 token（--status-warning-text / --status-success /
 //   --status-error）⇒ 该文件 hex 清零，按收基线纪律删条目，文件数 49 → **48**（与实况同值）。
-export const HEX_FILE_BASELINE = 48;
-export const HEX_VALUE_BASELINE = 300;
+// ⚠ 2026-11-01 批次 524（E 功能色分工）：`overview-dispatch-bar.js` 待答复条由角色主题色 hex
+//   （`accent = '#B91C1C'` + `1A/40` 透明后缀）改为 `--status-info-text` 功能色（状态指标不跟主题走）
+//   ⇒ 该文件 hex 清零，按收基线纪律删条目，文件数 48 → **47**（与实况同值；H3 防呆下限同步下沉）。
+// ⚠ 2026-11-04 批次 534（Task 5.2 / 6.4）：`tailwind-config.js` 与 `activity-view.js` hex 清零
+//   ⇒ 删两条目，文件数 47 → **45**（与实况同值；H3 防呆下限同步下沉到 45）。
+//   同批值数 300 → **291**（tailwind 的 Tailwind 默认色残留退场）。
+// ⚠ 2026-11-10 批次 540（SVG 色彩契约）：`icons.js` 的 `stroke: '#FFF'` 示例删除、`person-picker.js` 的
+//   `stroke: '#6B7280'` 改 `var(--neutral-500)` ⇒ 前者条目删除、后者 c 3 → 2；文件数 45 → **44**（与实况同值，
+//   H3 防呆下限同步下沉）。**不是放宽**：判红项仍是 H1（新增值）/ H2（处数上涨）/ 僵尸登记。
+// ⚠ 2026-11-21 批次 591（P2 清零）：`dashboard/stats.js` 的 15 处内联色全部改 `--status-*` / `--neutral-*`
+//   ⇒ 该文件 hex 清零，按收基线纪律删条目，文件数 43 → **42**（与实况同值；H3 防呆下限同步下沉）。
+export const HEX_FILE_BASELINE = 42;
+export const HEX_VALUE_BASELINE = 291;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。
  *
@@ -433,6 +439,16 @@ export const HEX_VALUE_BASELINE = 300;
  *  收尾：搬移批次结束、基线按新文件重设后，台账条目**保留**（它是「这次搬移合法」的凭据；删掉它，
  *   历史搬移就无从复核）。 */
 export const HEX_MOVE_LEDGER = [
+  {
+    id: 'utils.js toast → styles.css（Task 6.3：toast 状态色收口到唯一权威）',
+    from: 'docs/src/core/base/utils.js',
+    to: ['docs/src/styles.css'],
+    values: ['#16a34a', '#eff6ff'],
+    fromValues: ['#16a34a', '#eff6ff'],
+    reason: '2026-11-04 批次 534 · Task 6.3：toast 的 success / info 两档色值从 utils.js 的内联色'
+      + '搬入 styles.css 的 --toast-* 令牌定义（唯一权威），utils 改为读 var(--toast-*)。'
+      + '值逐字不变、观感零变化；同批把 #16a34a / #eff6ff 从 utils 移除，故按搬移例外登记。',
+  },
   {
     id: 'notice.js → notice-view.js（G1 第③项：服务层不产 UI，通知视图层整块搬出）',
     from: 'docs/src/services/governance/notice.js',
@@ -491,6 +507,20 @@ export const CTRL_SMALL_FILE_BASELINE = 0;
 export const SMALL_TEXT_TOTAL_BASELINE = 346;
 export const SMALL_TEXT_FILE_BASELINE = 54;
 export const SMALL_TEXT_BY_VALUE_BASELINE = {"text-[11px]":338,"text-[10px]":0};
+
+/** `text-xs`（12px Caption 档）存量棘轮（2026-11-03 批次 533 · B-515-5）
+ *  口径：`docs/src` 下全部 `.js` / `.mjs` 中 `text-xs` 的出现次数；CSS 令牌定义、`about.css`（冻结件）、
+ *  静态页 `docs/*.html` 不计入。
+ *  判据：**正文段**上迁 13px（`.text-body-sm`）；标签 / meta / 计数 / 一行说明保持 12px。
+ *  批次 533 实测 1771 处 / 116 文件（上批迁 18 + 本批迁 23 处正文段；同批新增表单错误等 20 处小字）。
+ *  2026-11-15 `close-six-dim-gaps` T9（移动端三任务）：`entries/tabs/visitor/attendance-tab.js` 的
+ *    三个行内动作（查看个人明细 / 去补课 / 我参加了但没记上）由 `text-xs` 改控件单档 `text-[13px]`
+ *    ⇒ 全站实测 **1756 处 / 116 文件**，按「收基线＝同批下调」改准（只降不升）。
+ *  2026-11-16 `polish-shell-and-display-truth` T2（页签 44 ＋ 13px）：`components/shell/tab-bar.js`
+ *    的页签文字由 `text-xs` 改正文档 `.text-body-sm`（13px）⇒ 全站实测 **1755 处 / 116 文件**，
+ *    同批下调（只降不升）。
+ *  后续批次迁出正文段后**同批下调**本基线；不得为变绿上调。 */
+export const TEXT_XS_BASELINE = { total: 1755, files: 116 };
 
 /** 「段落/导语档」基线（2026-09-27 文本档位统一批，给 `text-tier-guard.test.mjs` 消费）
  *  `文件 → { c: 处数, v: 出现档位（px） }`
@@ -665,11 +695,223 @@ export const TYPE_TIER_BASELINE = {
 export const TYPE_TIER_TOTAL_BASELINE = 51;
 export const TYPE_TIER_FILE_BASELINE = 11;
 
-/** styles.css 非令牌间距声明数（S5；2026-10-31 实测 239） */
-export const SPACING_NON_TOKEN_BASELINE = 239;
+/** styles.css 非令牌间距声明数（S5；2026-11-22 批次 603 实测 236，随顶栏／页脚改令牌同批下调） */
+export const SPACING_NON_TOKEN_BASELINE = 236;
 
 /** 行内间距（S6/S7；2026-10-31 实测：声明 706 / 属性 560）
  *  扫描面＝docs 下全部 .js/.mjs/.html 的 `style="…"`（含模板串里的 style="…"）；
  *  声明＝属性体内 margin/padding/gap 家族且值不是 0/auto；属性＝含至少一条此类声明的 style 属性。 */
 export const SPACING_INLINE_DECL_BASELINE = 706;
 export const SPACING_INLINE_ATTR_BASELINE = 560;
+
+/* ════════════════════════════════════════════════════════════════
+   裸输入棘轮（2026-11-01 · 批次 524 · F · 输入单一源）
+   ────────────────────────────────────────────────────────────────
+   口径（守卫单一源＝`server/test/field-shell-guard.test.mjs::rawInputCount`）：
+     `docs/src` 下全部 .js 里 `<input|select|textarea` 标签的 class 属性含 `input-flat` 即一处「裸输入」
+     ——即绕开 `components/ui/forms.js`（textInput / selectInput / textField / selectField / dateField）
+     直接手写控件。只收处数 >0 的文件。
+   纪律：**只减不增**。新文件出现裸输入即红；某文件清零后须按收基线纪律删条目
+   （R1 的僵尸检查会判红），并同步下调 `RAW_INPUT_TOTAL_BASELINE` / `RAW_INPUT_FILE_BASELINE`。
+   2026-11-01 首批迁移（同口径实测 251 → 192，文件 58 → 57）：
+     `org/taskforce-tab.js` 25→9 · `secretary/calendar-tab.js` 25→2 · `prop/archive-tab.js` 12→0
+     （清零 ⇒ 不登记）· `disc/attendance-tab.js` 11→2 · `governance/person-edit-modal.js` 10→2；
+     未迁部分＝textarea（无布局中立 helper）与选项由变量拼好的 select。
+   ════════════════════════════════════════════════════════════════ */
+export const RAW_INPUT_BASELINE = {
+  'docs/src/components/feedback/issue-detail.js': 3,
+  'docs/src/components/feedback/issue-dispatch-view.js': 4,
+  'docs/src/components/feedback/issue-form.js': 4,
+  'docs/src/components/feedback/issue-list.js': 4,
+  'docs/src/components/governance/branch-filter.js': 1,
+  'docs/src/components/governance/org-setup-wizard.js': 10,
+  'docs/src/components/governance/person-edit-modal.js': 2,
+  'docs/src/components/governance/query-view.js': 6,
+  'docs/src/components/governance/resolution-followup-manager.js': 3,
+  'docs/src/components/governance/signup-panel.js': 2,
+  'docs/src/components/governance/workgroup-member-editor.js': 2,
+  'docs/src/components/notice/message-search-bar.js': 1,
+  'docs/src/components/record/activity-view.js': 1,
+  'docs/src/components/record/inspector.js': 9,
+  'docs/src/components/record/report-entry.js': 2,
+  'docs/src/components/record/report-inbox.js': 1,
+  'docs/src/components/record/taskforce-view.js': 5,
+  'docs/src/components/record/todo-tab-shell.js': 1,
+  'docs/src/components/sections/references.js': 9,
+  'docs/src/components/ui/list-filter.js': 2,
+  'docs/src/components/ui/modal.js': 3,
+  'docs/src/components/ui/void-record.js': 1,
+  'docs/src/entries/pages/activity-entry.js': 5,
+  'docs/src/entries/pages/branch-config-entry.js': 2,
+  'docs/src/entries/pages/branch-readonly-entry.js': 3,
+  'docs/src/entries/pages/messages-entry.js': 2,
+  'docs/src/entries/pages/notice-entry.js': 2,
+  'docs/src/entries/pages/party-committee-meeting-entry.js': 2,
+  'docs/src/entries/pages/settings-entry.js': 6,
+  'docs/src/entries/pages/thought-report-entry.js': 2,
+  'docs/src/entries/tabs/disc/attendance-tab.js': 2,
+  'docs/src/entries/tabs/disc/inspection-tab.js': 3,
+  'docs/src/entries/tabs/leader/attendance-tab.js': 4,
+  'docs/src/entries/tabs/leader/inspection-tab.js': 5,
+  'docs/src/entries/tabs/leader/write-tab.js': 6,
+  'docs/src/entries/tabs/org/activity-calendar-tab.js': 1,
+  'docs/src/entries/tabs/org/inspection-tab.js': 2,
+  'docs/src/entries/tabs/org/member-flow-tab.js': 9,
+  'docs/src/entries/tabs/org/roster-tab.js': 1,
+  'docs/src/entries/tabs/org/taskforce-tab.js': 9,
+  'docs/src/entries/tabs/party-committee/branches-tab.js': 2,
+  'docs/src/entries/tabs/party-committee/review-tab.js': 1,
+  'docs/src/entries/tabs/prop/tasks-tab.js': 4,
+  'docs/src/entries/tabs/prop/weekly-tab.js': 4,
+  'docs/src/entries/tabs/secretary/assign-tab.js': 1,
+  'docs/src/entries/tabs/secretary/calendar-tab.js': 2,
+  'docs/src/entries/tabs/secretary/feedback-tab.js': 7,
+  'docs/src/entries/tabs/secretary/group-progress-tab.js': 4,
+  'docs/src/entries/tabs/secretary/notification-tab.js': 8,
+  'docs/src/entries/tabs/secretary/overview-tab.js': 1,
+  'docs/src/entries/tabs/secretary/report-up-tab.js': 2,
+  'docs/src/entries/tabs/secretary/todo-tab.js': 3,
+  'docs/src/entries/tabs/secretary/workforce-panel.js': 4,
+  'docs/src/entries/tabs/shared/activity-calendar-tab.js': 1,
+  'docs/src/entries/tabs/visitor/inspection-tab.js': 2,
+  'docs/src/entries/tabs/visitor/thought-report-tab.js': 2,
+  'docs/src/services/governance/review.js': 2,
+};
+export const RAW_INPUT_TOTAL_BASELINE = 192;
+export const RAW_INPUT_FILE_BASELINE = 57;
+
+/* ════════════════════════════════════════════════════════════════
+   页签顶层区块数基线（2026-11-01 · spec consolidate-tab-density-and-filter-bars Task 1）
+   ────────────────────────────────────────────────────────────────
+   口径：`role.tab → { blocks, reason }`，与 `docs/src/capabilities/*-workspace.js`
+   注册的 46 个页签一一对应（键集合双向相等，由 `ui-first-screen-order.test.mjs`
+   的 F6 机检；新增 / 删除页签未登记即红）。
+   · blocks = 该页「用户可见的独立顶层区块」数（**本表历史口径含页头**；SD-57 判定页头不计，
+     等价于 `blocks - 1 ≤ 4`；全表重基数列入 C-4，不在本批批量改数）；
+   · 密度上限 = `TAB_BLOCK_LIMIT`（4）；blocks > 4 的条目必须有非空 reason（F7 机检）。
+   数据源：`.ctx/evidence/2026-11-01/tab-inventory.json`（同批生成；改清单须同批改本表）。
+   收基线纪律：只随页签收敛下调；**不得**为变绿放宽上限或删条目。
+   ════════════════════════════════════════════════════════════════ */
+
+/** 单页顶层区块密度上限（SD-57 页签密度；见 DS_06 §2） */
+export const TAB_BLOCK_LIMIT = 4;
+
+/** 基线规模（非空转下限：注册表 7 台共 46 个页签） */
+export const TAB_BLOCK_TOTAL_BASELINE = 46;
+
+/** 逐页签块数基线：`role.tab → { blocks, reason }`（reason 仅 >4 块时必填） */
+export const TAB_BLOCK_BASELINE = {
+  // 支书台（10）
+  'secretary.today': { blocks: 3, reason: '' },
+  'secretary.todo': { blocks: 4, reason: '' },
+  'secretary.overview': {
+    blocks: 7,
+    reason: '共享骨架 5 块（页头 / 结论带 / 条线表 / 待我处理 / 我已处理）+ 支书专属「周期归档待审核」「知情查看」两卡',
+  },
+  'secretary.calendar': { blocks: 3, reason: '' },
+  'secretary.committee-meeting': { blocks: 3, reason: '' },
+  // 2026-11-01 Task 4：整页改主从双栏（左栏组列表 / 右栏组详情），活动台账合并原「复盘状态 + 活动与考勤」，
+  //   变更记录降为右栏底部链接 ⇒ 5 → 2
+  'secretary.group-progress': {
+    blocks: 2,
+    reason: '主从双栏（左栏组列表 + 右栏组详情）＋ 活动台账合并',
+  },
+  'secretary.notification': { blocks: 3, reason: '' },
+  'secretary.report-up': { blocks: 4, reason: '' },
+  'secretary.work-map': { blocks: 3, reason: '' },
+  'secretary.feedback': { blocks: 3, reason: '' },
+  // 组织台（8）
+  'org.today': { blocks: 3, reason: '' },
+  'org.todo': {
+    blocks: 5,
+    reason: '页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）',
+  },
+  'org.overview': {
+    blocks: 6,
+    reason: '共享三层骨架 5 块 + 页内「活动日历」折叠卡（承接原活动日历页签）',
+  },
+  'org.roster': { blocks: 3, reason: '' },
+  'org.talent': { blocks: 4, reason: '' },
+  'org.thought-review': { blocks: 2, reason: '' },
+  // 2026-11-01 Task 6：看板＋报名总表合为一卡两视图（筛选挂卡头），详情改右侧抽屉（五块折叠区，默认展开前两段），
+  //   历史分工与核验代录合并为「贡献核验」，赋权记录折叠置后 ⇒ 6 → 4
+  'org.taskforce': { blocks: 4, reason: '看板/总表同卡 + 详情抽屉 + 贡献合并' },
+  'org.member-flow': { blocks: 3, reason: '' },
+  // 宣传台（5）
+  'prop.today': { blocks: 3, reason: '' },
+  'prop.todo': {
+    blocks: 5,
+    reason: '页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）',
+  },
+  'prop.overview': {
+    blocks: 6,
+    reason: '共享三层骨架 5 块 + 页内「活动日历」折叠卡',
+  },
+  'prop.kanban': {
+    blocks: 5,
+    reason: '待启动 / 进行中 / 宣传任务三块主体之外，另有独立的「去档案归档」去向条与页头并列',
+  },
+  // 2026-11-01 Task 5：待办合卡（待归档 / 初稿 / 缺口三段切换，上传材料并入卡头）+ 回看合并 + 低频查阅合并 ⇒ 8 → 4
+  'prop.archive': {
+    blocks: 4,
+    reason: '待办合卡 + 回看合并 + 低频查阅合并',
+  },
+  // 纪检台（6）
+  'disc.today': { blocks: 3, reason: '' },
+  'disc.todo': {
+    blocks: 5,
+    reason: '页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）',
+  },
+  'disc.overview': {
+    blocks: 6,
+    reason: '共享三层骨架 5 块 + 页内「活动日历」折叠卡',
+  },
+  // 2026-11-08 波次 C（IA-E05）：撤「确认与录入 / 数据查看」二级切换，矩阵与总表合为「考勤数据」一卡
+  //   （共用一条筛选条 ⇒ 同页不再有第二条 .lf-bar）⇒ 段落结构＝页头 + 分段条 + 待确认 + 申诉 + 会议录入 + 考勤数据。
+  'disc.attendance': {
+    blocks: 6,
+    reason: '单一层级视图：分段条（考勤/补课）+ 待确认考勤 + 出勤申诉 + 会议考勤录入 + 考勤数据（矩阵/总表合卡），加页头共 6 块',
+  },
+  'disc.review': { blocks: 4, reason: '' },
+  'disc.inspection': {
+    blocks: 5,
+    reason: '督办清单 / 考察申诉 / 考察代录 / 考察总表四张功能卡并列（含页头 5 块）',
+  },
+  // 组长台（6）
+  'leader.today': { blocks: 3, reason: '' },
+  'leader.todo': {
+    blocks: 5,
+    reason: '页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）',
+  },
+  'leader.overview': {
+    blocks: 6,
+    reason: '共享三层骨架 5 块 + 页内「活动日历」折叠卡',
+  },
+  'leader.write': { blocks: 3, reason: '' },
+  'leader.attendance': { blocks: 2, reason: '' },
+  // 2026-11-01 Task 7：卡点＋进度合为一卡（段内切换），复盘与其他党小组并入一张低频折叠卡，上传考察入卡头 ⇒ 7 → 4
+  'leader.members': {
+    blocks: 4,
+    reason: '卡点/进度分段 + 汇报 + 复盘/其他组折叠 + 上传考察入卡头',
+  },
+  // 成员台（7）
+  'visitor.today': { blocks: 3, reason: '' },
+  'visitor.todo': {
+    blocks: 5,
+    reason: '页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）',
+  },
+  'visitor.overview': {
+    blocks: 5,
+    reason: '无页内折叠卡，但共享骨架本身 5 块（含「我已处理」折叠）',
+  },
+  'visitor.activities': { blocks: 3, reason: '' },
+  'visitor.projects': { blocks: 3, reason: '' },
+  'visitor.attendance': { blocks: 4, reason: '' },
+  'visitor.growth': { blocks: 4, reason: '' },
+  // 党委台（4）
+  'party-committee.dispatch': { blocks: 3, reason: '' },
+  // 2026-11-08 批次 536（spec Task 8）：院级内容＝页头 + 子视图切换 + 列表卡 + 撰写卡（活动 / 资料同构）
+  'party-committee.gov-content': { blocks: 4, reason: '' },
+  'party-committee.review': { blocks: 2, reason: '' },
+  'party-committee.branches': { blocks: 2, reason: '' },
+};

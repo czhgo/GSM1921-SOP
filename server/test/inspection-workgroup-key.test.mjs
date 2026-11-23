@@ -1,6 +1,6 @@
 // server/test/inspection-workgroup-key.test.mjs — 考察记录稳定父键（IA 审查 R4-D04，2026-10-20）
 // ════════════════════════════════════════════════════════════════
-// 验收口径（spec: .trae/specs/migrate-inspection-workgroup-key）：
+// 验收口径（spec: 历史 spec（已删））：
 //   1. 新建专班考察必带 workgroupId；活动类必带 activityId；
 //   2. 专班改名后仍按 workgroupId 可查；两个同名专班不串数据；
 //   3. 回填幂等（第二次 filled=0、legacy 不增）；无法回填项 legacy:true，确认/删除被拒；
@@ -11,9 +11,9 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { migrateInspectionWorkgroupKeys } from '../../docs/src/services/activity/inspection-migrate.js?v=20261031a';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261031a';
-import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261031a';
+import { migrateInspectionWorkgroupKeys } from '../../docs/src/services/activity/inspection-migrate.js?v=20261120a';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261120a';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261120a';
 
 let app, db, server, base;
 

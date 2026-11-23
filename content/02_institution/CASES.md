@@ -2,7 +2,7 @@
 title: "制度域判例库"
 type: guide
 role: "[用户]+[工程师]+[AI]"
-last_updated: "2026-10-24"
+last_updated: "2026-11-08"
 status: active
 related_files: [SYSTEM_ROLE_PERMISSION.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -23,7 +23,7 @@ related_files: [SYSTEM_ROLE_PERMISSION.md, content/03_doc_system/CASES_INDEX.md,
 - **结论**：匿名反馈对支部工作人员隐藏提交人；真实提交人只保留在服务端受保护字段 `_realPersonId`，常规 API 与页面均不得返回；浏览器 mock 缓存与草稿不得持久化真实身份。
 - **边界**：正式表决的无记名数据边界是另一件事，本节不改表决模型；历史 `issue_reveals` 记录停写保留、不设系统查询入口；意见反馈不是向党委反映问题的通道。
 - **对应规范编号**：`SYSTEM_ROLE_PERMISSION §9j`（制度域；`SR-` 编号待启用）
-- **证据指针**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md:190`（现行裁定）、`:199`（注③④⑤）、`:283`（改裁历史）；决策 `D-824`（2026-10-16）。
+- **证据指针**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md:231`（现行裁定）、`:240`（注①–⑤）、`:325`（改裁历史）；决策 `D-824`（2026-10-16）。
 
 ## CASE-INST-002 意见建议处置与品牌认定归支委会
 
@@ -32,7 +32,7 @@ related_files: [SYSTEM_ROLE_PERMISSION.md, content/03_doc_system/CASES_INDEX.md,
 - **结论**：意见建议处置与品牌认定均属支委会职权，由支书主持支委会；副支书同权（2026-09-09 支书批）；系统上取消「点一下即认定」。
 - **边界**：提案权在支委层与党小组组长，确定权在支委会——提案与确定不是同一个动作；本条不改正式表决的无记名边界。
 - **对应规范编号**：`SYSTEM_ROLE_PERMISSION §9j`（制度域；`SR-` 编号待启用）
-- **证据指针**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md:196`（矩阵行）、`:278`（2026-09-21 品牌认定）、`:281`（2026-09-18 裁定）。
+- **证据指针**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md:236`（矩阵行）、`:320`（2026-09-21 品牌认定）、`:323`（2026-09-18 裁定）。
 
 ## CASE-INST-003 母本里的「过程时限」统一属可配置制度参数
 
@@ -41,7 +41,7 @@ related_files: [SYSTEM_ROLE_PERMISSION.md, content/03_doc_system/CASES_INDEX.md,
 - **结论**：过程时限属可配置的制度参数，母本所写数字即默认值；可调性只登记在 `§9l`，母本不逐处加「可调」字样。
 - **边界**：上级规定的时限下限不属支部可调（如发展对象公示期「不少于五个工作日」）；考察意见的频次属制度固定；母本未定归谁调的项不开放；单场活动的补课范围勾选仍「只能加、不能减」。
 - **对应规范编号**：`SYSTEM_ROLE_PERMISSION §9l`（制度域；`SR-` 编号待启用）
-- **证据指针**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md:282`（立节裁定）、`:280`（对照项：上级时限下限）、`:248`（考察频次属制度固定）、`:272-273`（不开放与单场刚性）。
+- **证据指针**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md:324`（立节裁定）、`:322`（对照项：上级时限下限）、`:291`（考察频次属制度固定）、`:312-313`（不开放与单场刚性）。
 
 ## CASE-INST-004 思想汇报字数依「同族登记」推导为可调
 
@@ -50,7 +50,7 @@ related_files: [SYSTEM_ROLE_PERMISSION.md, content/03_doc_system/CASES_INDEX.md,
 - **结论**：字数属支部可调，母本数字即默认值；推导项必须写明「属依族例登记的推导」，不得冒充支书原话（落地 `D-547`）。
 - **边界**：支书未明答的具体数字，只能在与已登记族例同构时推导；跨族（如把字数族的口径套到时限族）不成立。
 - **对应规范编号**：`SYSTEM_ROLE_PERMISSION §9l`「同族登记项（一）」（制度域；`SR-` 编号待启用）
-- **证据指针**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md:279`（批次 124 登记、`D-547`）。
+- **证据指针**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md:321`（批次 124 登记、`D-547`）。
 
 ## CASE-INST-005 config 写权不硬凑角色键，另立业务守卫节
 
@@ -59,4 +59,4 @@ related_files: [SYSTEM_ROLE_PERMISSION.md, content/03_doc_system/CASES_INDEX.md,
 - **结论**：不硬凑缺键（`§9f` 约定），另立 `§9h`「支部 config 写权」把守卫语义文档化；副支书同权、域负责人仅本域参数、顶层治理字段仅 `party-staff`。
 - **边界**：`§9h` 是业务守卫的文档化，不是 `ROLE_PERMISSIONS` 的新键来源——角色键集仍以 `§9a0` 全表为准。
 - **对应规范编号**：`SYSTEM_ROLE_PERMISSION §9h` ＋ `§9f`（制度域；`SR-` 编号待启用）
-- **证据指针**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md:286`（2026-09-09 审定定稿）、`:288`（不硬凑列原则）。
+- **证据指针**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md:328`（2026-09-09 审定定稿）、`:329`（不硬凑列原则）。

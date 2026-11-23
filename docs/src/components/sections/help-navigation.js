@@ -4,8 +4,14 @@
 export const HELP_TOC_CHAPTERS = [
   { id: 'sec-ack', label: '致谢' },
   { id: 'sec-entries', label: '0 入口速查' },
+  // 2026-11-17：新增「我能做什么」——按角色给入口与三步动作，放在入口速查之后（先知道去哪，再知道做什么）。
+  { id: 'sec-can-do', label: '我能做什么' },
   { id: 'sec-quickstart', label: '1 快速上手' },
   { id: 'sec-roles', label: '2 角色工作台导览' },
+  // 2026-11-17：目录补两项深链目标——「附 口径定点」（界面深链落点，原只在页内不在目录）
+  //   与「图 功能地图」（原只有正文标题）。目录项因此由 11 条变 14 条（help-e2e 同批改断言）。
+  { id: 'sec-copy-anchors', label: '附 口径定点' },
+  { id: 'sec-功能地图', label: '图 功能地图' },
   { id: 'sec-domains', label: '3 域手册' },
   { id: 'sec-settings', label: '4 设置逐项' },
   { id: 'sec-flows', label: '5 业务链路' },

@@ -3,7 +3,7 @@ title: "部署与对外对接"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-19
-last_updated: 2026-10-17
+last_updated: "2026-11-18"
 status: active
 related_files: [docs/src/data/data-adapter.js, docs/src/data/api-adapter.js, docs/src/services/core/runtime.js, docs/src/config/deploy.js, docs/src/core/boot/bootstrap.js, docs/src/components/shell/sidebar.js, docs/src/components/shell/header.js, docs/login.html, docs/src/services/core/auth.js, server/server.js, server/app.js, server/db.js, server/routes/auth.js, server/routes/resources.js, server/routes/uploads.js]
 ---
@@ -63,6 +63,19 @@ related_files: [docs/src/data/data-adapter.js, docs/src/data/api-adapter.js, doc
 **判定口诀**：要演示走 A，要持久化走 B，要学校托管走 C，要微信协同走 D——D 必须站在 B/C 之上。
 
 > 代码就绪度逐项盘点（已就绪 / 待做）与真实部署 checklist 见附录 A.1 / A.2（对内）。
+
+### 2.3 运行档：review / production（2026-11-03 固化）
+
+**判定单一源**：`server/env.js::isProductionEnv`——`APP_ENV=production` **或** `NODE_ENV=production` 即生产档；两者都不设即 review 档。启动日志首行直接标明档位，部署后先看这一行再判断后续行为。
+
+| 档位 | 用途 | 启动方式 | 数据与拦截 |
+|---|---|---|---|
+| **review**（缺省） | 视觉检验 / 本地演示 | `cd server && npm start`；建议 `DB_PATH=data.review.db node server.js` | 允许演示种子；多支部**只打印分支数、不拦截**。**必须使用独立库，不得指向生产库** |
+| **production** | 正式上线（一实例一支部） | `APP_ENV=production`、`LOGIN_PASSWORD=…`（另按 A.2 设 `DB_PATH` / `UPLOAD_DIR` / `SEED_FALLBACK=0`）后 `cd server && npm start` | 默认不播种；迁移完成后若 `branches` 表 >1 且未设 `ALLOW_MULTI_BRANCH=1`，**打印提示并以 exit 1 停止**（发生在监听端口之前） |
+
+**生产多支部口径**：一实例一支部；多支部需先完成服务端读过滤或显式设置 `ALLOW_MULTI_BRANCH=1`。默认不设该开关。
+
+`deploy/doctor.mjs` 会按档位核 `APP_ENV` / `LOGIN_PASSWORD`，并只读 SQLite 打印支部数；`deploy/smoke.mjs` 打印预期档位并照旧检查 `health` 与登录。环境模板见 `deploy/env.production.example`。
 
 ---
 
@@ -959,7 +972,7 @@ WebView 套壳（短期）→ Taro 跨端（中期），与网页共用后端；
 | 层 | 事实 |
 |----|------|
 | 前端模块化 | `docs/src/` ESM 分层（entries/components/core/services/workflow/modules/mock），根页面 + 工作台（页面清单以 docs/ 实测为准，含 wizard/settings） |
-| 数据抽象 | `data-adapter.js` mock/api 双模式，`setDataSource('mock'/'api', { apiBaseUrl, authToken })` 动态切换；`runtime.js` 默认 mock，`bootstrap.js` 检测到 token 自动切 api、服务器不可达静默回退 mock |
+| 数据抽象 | `data-adapter.js` mock/api 双模式，`setDataSource('mock'/'api', { apiBaseUrl, authToken })` 动态切换；`runtime.js` 默认 mock，`bootstrap.js` 检测到 token 自动切 api；**有 token 时不得回退到可写 mock**——拉不到服务端数据须显式报错并提供重试（`renderDataSourceError`），会话失效另走 `renderSessionExpiredError`；无 token 的本地演示形态保持原样（D-633） |
 | API 适配器 | `api-adapter.js` P1 已实现：35 个资源分组 `list()`（供 init 拉全量）+ `snapshot()` 全量写穿 + 8s 超时兜底；路由表见文件头（35 资源分组 + auth/login/logout + snapshot + uploads + health/bootstrap） |
 | 后端服务 | `server/` Express + better-sqlite3：**35 资源表**（id + data JSON 通用结构，含 branch_docs）+ sessions/attachments；routes：auth（login/logout/me）、resources（CRUD + bootstrap + snapshot 写穿）、uploads（jpg/png/pdf/doc/docx/xlsx/mp4 ≤10MB）、report（§3.9）；`npm test` 测试全绿（server/test/ 覆盖单元/E2E/审计/链接完整性） |
 | 邮件双通道（§3.8） | `server/services/mailer.js`（nodemailer 通用 SMTP，env 注入不落库，失败重试 3 次 + 静默降级）+ `services/mailer-hooks.js` 接入通知发布/待办提醒/反馈汇报触发点；成员档案 email 字段预留，补充后通道自动生效 |
@@ -1010,7 +1023,8 @@ WebView 套壳（短期）→ Taro 跨端（中期），与网页共用后端；
 
 **回滚后 DB 要不要一起回？——判据**
 
-- **默认：不回**。迁移机制**只向前应用、不回退 `user_version`**（`server/db.js::applyMigrations`：只跑 `version > user_version` 的项）。旧代码启动时没有更新的迁移可跑 ⇒ **一行 DDL 不跑、数据一行不动**；本仓 `MIGRATIONS` 目前只有 `v1` 基线（幂等重放既有建表、不改写数据）⇒ **代码回滚与 DB 无关**。
+- **默认：不回**。迁移机制**只向前应用、不回退 `user_version`**（`server/db.js::applyMigrations`：只跑 `version > user_version` 的项）。旧代码启动时没有更新的迁移可跑 ⇒ **一行 DDL 不跑、数据一行不动**；本仓 `MIGRATIONS` 现为 **v1–v12**（当前 `SCHEMA_VERSION = 12`；v1 为冻结基线），v2 起含结构变更与数据回填 ⇒ **代码回滚与 DB 无关**（只能回代码，不能降库）。
+- **迁移安全（2026-11-02 批次 527）**：① **迁移前自动备份**——目标库已有业务数据且有待应用迁移时，`initDb` 会先同步调用 `scripts/backup.mjs` 备份到 `server/backups/pre-migration-<时间戳>/`，失败即中止迁移（`:memory:` / 临时库跳过）；② **版本拒绝降级**——库内 `user_version > SCHEMA_VERSION` 时启动直接抛错「库比代码新，禁止降级」，不提供降级脚本；③ **失败回滚**——单事务整体回滚并打印 runbook 指针；④ **附件校验**——恢复/换轨后跑 `node scripts/preflight-cutover.mjs --db <库> --uploads <附件目录> --strict`，核对 `attachments` 记录与 `UPLOAD_DIR` 物理文件（缺文件即阻断，孤儿文件告警）。换轨/迁移完整步骤见 [deploy/CUTOVER_RUNBOOK.md](../../../deploy/CUTOVER_RUNBOOK.md)。
 - **必须回 DB 的唯一情形**：本次升级做了**破坏性结构变更或数据改写**，旧代码读不了新库（本仓当前无此情形）。此时按 **A.2 第 7 条恢复**：停服 → 用**升级前**的备份 `data.db` 覆盖库文件、并删除同目录 `data.db-wal` / `data.db-shm` → 用备份的 `uploads/` 覆盖附件目录 → 启动。
 - ⚠ **回 DB 会丢掉**「升级 → 回滚」之间产生的真实写入 ⇒ **只在确认「新版本写坏了数据」时做**，且**先把现状库另存一份**再覆盖；遇 SQLite **WAL** 陷阱一律用脚本备份（只拷 `data.db` 会丢最近写入，见 A.2 第 6 条）。
 
@@ -1072,6 +1086,73 @@ pm2 logs gsm1921              # 日志
 - **库完整性 / 迁移纪律 / 备份恢复**：`server/test/db-integrity-guard.test.mjs`（`G1–G6`）· `db-migration.test.mjs`（`M1–M6`）· `backup-restore.test.mjs`——上线前跑一次作回归基线。
 
 **判定「不加」的三条理由**：① 已有公开 `/api/v1/health`，够做存活探针；② 「深度检查」（探库可写 / 队列积压）需改 `server/` 业务代码，超出「只补部署文档」的范围，且单进程 ＋ SQLite 形态下收益低；③ 真正的自检需求（库内是否只有真人、结构是否对齐）**已由启动日志与上述守卫覆盖**。若日后改多实例 / 多库，再按需加「就绪探针（readiness）」，代价＝新增一条只读路由 ＋ 一条守卫用例。
+
+### A.2.4 备份自动巡跑与「如何看备份状态」（T4，2026-11-15）
+
+**自动巡跑＝每天跑脚本，不靠人记得。** 三份现成入口，按部署环境选一份装（不要同时装 cron 与 systemd timer）：
+
+| 环境 | 装什么 | 怎么做 |
+|---|---|---|
+| Linux（推荐） | `deploy/systemd/gsm-backup.service` ＋ `gsm-backup.timer` | 拷到 `/etc/systemd/system/` → `systemctl daemon-reload && systemctl enable --now gsm-backup.timer`；`Systemd*` 单元里改 `User` 与 `/opt/gsm1921` 两处 |
+| Linux（无 systemd） | `deploy/backup-cron.example` | 拷到 `/etc/cron.d/gsm1921-backup`（`chmod 644`），改账号 / 目录 / 时间三处 |
+| Windows | `server\scripts\backup-daily.ps1` | 任务计划程序每日 03:30 调用（示例命令见该脚本头注释）；保留最近 N 份（`-Keep`，缺省 14），失败写 `server\.backup-errors.log` |
+
+三者都最终调用 `scripts/backup.mjs`：SQLite **在线备份**（含 WAL 的一致性快照，不需停服）＋ `uploads/` 整目录 ＋ 备份当场自检。
+
+**如何看备份状态（三个读口，按「先看结论、再找证据」的顺序）**
+
+1. **结论**：`server/.backup-status.json` —— 每次 `backup.mjs` 运行后都会被覆盖写入，字段固定四项：
+
+   | 字段 | 含义 | 判据 |
+   |---|---|---|
+   | `lastRunAt` | 本次运行时间（UTC，ISO 8601） | 距现在超过 **24 小时** ⇒ 巡跑没跑起来（先查定时器 / 计划任务是否启用） |
+   | `ok` | 本次是否成功 | 必须为 `true`；`false` 即失败，原因看 `error` |
+   | `error` | 失败原因（成功时为 `null`） | 失败时整段可读文本，含具体路径 |
+   | `path` | 本次备份目录（失败且未建目录时为 `null`） | 目录内应有 `data.db` ＋ `backup.json`（＋ `uploads/`） |
+
+2. **证据**：`server/backups/<时间戳>/backup.json` —— 备份清单（`tables` 逐表行数、`uploads` 文件数、`sha256`、`user_version`、`seed_version`）。**「有目录」不等于「备份可用」，清单与 `data.db` 必须在同一目录里成对出现。**
+3. **过程**：Linux 看 `journalctl -u gsm-backup.service -n 50`（systemd）或 `server/backups/backup.log`（cron）；Windows 看 `server\.backup-errors.log`。
+
+> 该状态文件是健康页与告警的**唯一读口**（T3 消费）；巡跑失败会先落 `ok:false` 再退出，不会只留在日志里。
+
+**恢复演练（证明备份真能用，不是「文件还在」）**
+
+```bash
+cd server
+node scripts/restore-drill.mjs          # 在线备份 → 恢复到临时目录 → listen(0) 启动 → integrity ＋ 逐表行数核对
+node scripts/restore-drill.mjs --keep   # 保留临时目录排障
+```
+
+演练**只读运行库**（备份源由 `backup.mjs` 现做，不直接拷 `data.db`），任一步失败**退出码 1**。上线前 / 换轨前后 / 迁移后各跑一次，读数记入 `.ctx/evidence/<日期>/restore-drill.md`。真正的「覆盖现有库」仍按 A.2 第 7 条（`scripts/restore.mjs`，须停服）。
+
+### A.2.5 发布前审计与例外复核
+
+**命令**（仓库根 → `server/`，自起 `:memory:` 实例 + seed + 随机端口，约 4–5 分钟）：
+
+```powershell
+cd server
+node scripts/audit-tabs.mjs --all
+```
+
+需要留档时加输出口（**落 `.ctx/evidence/<日期>/`**；临时重跑可写到仓库外临时目录，`findings.json` 与截图不提交进仓库）：
+
+```powershell
+node scripts/audit-tabs.mjs --all `
+  --json ../.ctx/evidence/2026-11-18/tab-audit-after/findings.json `
+  --md   ../.ctx/evidence/2026-11-18/tab-audit-after/summary.md
+```
+
+**判据**：`P0 = 0`、`P1 = 0` 才可发布；P2 只进报告，不阻断。`exception` 不计违规，但**必须同批复核理由是否仍成立**。
+
+**例外同批复核与三类归档**：审计每次会带出若干 `exception`（破坏性写口的探针跳过、块数 / 筛选条基线例外、驱动执行异常）。归档口径固定三类：
+
+| 类型 | 判据 | 处置 |
+|---|---|---|
+| 驱动跳过 | C2 destructive 写口未真删存量，只做写门证明或自带探针清理 | 复核该写口仍为破坏性、无安全 CRUD 配方 |
+| 维度例外 | F1 / M1 块数基线 >4 或 M3 同页两条筛选条，且登记了理由 | 复核页面结构未变；改实现或下调基线后同批删条目 |
+| 环境 / 执行异常 | 驱动加载失败 / 执行异常 / 页面 DOM 读不到 | 按真回归优先取证，不得直接登记为例外 |
+
+**证据落点**：`.ctx/evidence/YYYY-MM-DD/tab-audit-exceptions.md`——表头写命令 / 日期 / 页签数 / P0·P1·P2·exception 计数，逐条列「页签 / 维度 / 类型 / 理由 / 下次复核动作」，三类各给计数小计，合计必须等于 summary 的 `exception` 数。
 
 ### A.3 风险与依赖
 

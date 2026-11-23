@@ -51,7 +51,7 @@
 
 - `server/scripts/ia-inventory.mjs` 输出改为 `.ctx/logs/archive/2026-10/IA_INVENTORY.md`。
 - `server/test/ia-critical-guard.test.mjs`、`server/test/workbench-audit-coverage.test.mjs` 改读归档路径。
-- 新增 `server/test/ctx-hygiene-guard.test.mjs`：
+- 新增 `server/test/doc-lifecycle-guard.test.mjs`：
   - ① `.ctx` 顶层只允许白名单条目；
   - ② 顶层不得存在 `AUDIT_*` / `IA_*` / `*_DRAFT.md`；
   - ③ 归档文件必须在正式文档或执行日志中有指针（防「移了等于丢了」）；

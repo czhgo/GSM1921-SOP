@@ -4,23 +4,24 @@
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
 //  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，支书 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../../services/activity/signup.js?v=20261031a';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261031a';
-import { getBasePath, showToast, todayLocal } from '../../core/base/utils.js?v=20261031a';
-import { badgeHtml } from '../ui/badges.js?v=20261031a';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../../services/activity/signup.js?v=20261120a';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261120a';
+import { getBasePath, showToast, todayLocal } from '../../core/base/utils.js?v=20261120a';
+import { badgeHtml } from '../ui/badges.js?v=20261120a';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 source.archived
-import { isActivityArchived, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261031a';
+import { isActivityArchived, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261120a';
 // 统一检索引擎（2026-09-14 批次 37）：报名名单（已通过）接入关键词 + 分页
-import { renderFilteredList } from '../ui/list-filter.js?v=20261031a';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261120a';
 // 批次 49 口径（「存好了才报成功」）：刷新前先等在途落库结算，见 _reloadAfterSettle
-import { settleWrites } from '../../core/session/pending-writes.js?v=20261031a';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20261120a';
 // 2026-10-03 批次 358（`D-751`）：报名记录「作废（软）」——弹窗**单一源** ＋ 支委层判据单一源
-import { openVoidModal } from '../ui/void-record.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { usesFormalMeetingRoster } from '../../core/domain/constants.js?v=20261031a';
-import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261031a';
-import { confirmDanger } from '../ui/modal.js?v=20261031a';
+import { openVoidModal } from '../ui/void-record.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { usesFormalMeetingRoster } from '../../core/domain/constants.js?v=20261120a';
+import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261120a';
+import { confirmDanger } from '../ui/modal.js?v=20261120a';
 
+import { renderCardHeader } from '../shell/page-frame.js?v=20261120a';
 /**
  * 落库结算后再整页刷新（2026-09-18 批次 83 · SOP-B-2）
  * 病灶（真机实测）：原实现是 `setTimeout(() => location.reload(), 400)` —— 而 `persist()` 在 API
@@ -83,7 +84,7 @@ export function renderSignupSection({ sourceType, sourceId, source, title, signu
   ];
   const requiresOnsiteChoice = sourceType === 'activity' && source?.type === '主题党日';
   const onsiteChoice = requiresOnsiteChoice ? `
-    <fieldset id="signup-onsite-choice" class="mt-3 rounded-lg border border-gray-200 bg-white px-3 py-2.5" hidden>
+    <fieldset id="signup-onsite-choice" class="mt-3 rounded-lg border border-gray-200 bg-white px-3 py-3" hidden>
       <legend class="px-1 text-xs font-medium text-gray-700">是否线下参加本次主题党日？</legend>
       <div class="flex items-center gap-5 text-sm text-gray-700">
         <label class="inline-flex items-center gap-2"><input type="radio" name="signup-onsite" value="true">线下参加</label>
@@ -109,26 +110,30 @@ export function renderSignupSection({ sourceType, sourceId, source, title, signu
         <a href="${getBasePath()}login.html" class="btn-accent btn-party-solid inline-block px-3 py-1.5 rounded-lg text-xs font-medium text-white" style="text-decoration:none;">去登录</a>
       </div>`;
   } else if (!mySignup) {
+    // 2026-11-10 批次 541：≤640 时「报名」整行下移右对齐——原先与 200px 输入 / 180px 下拉同行互挤，
+    //   390 宽下按钮被压成窄条。≥641 仍与输入同行（sm:w-auto 收回整行）。
     body = `
       <div class="flex items-start gap-3 flex-wrap">
         ${signupFields()}
-        <button id="signup-submit-btn" class="btn-accent inline-flex items-center gap-1 text-sm px-4 py-1.5 font-medium">
-          报名
-        </button>
+        <div class="flex w-full justify-end sm:w-auto sm:self-end">
+          <button id="signup-submit-btn" class="btn-accent inline-flex items-center gap-1 text-sm px-4 py-1.5 font-medium">
+            报名
+          </button>
+        </div>
       </div>`;
   } else if (mySignup.status === SignupStatus.APPROVED) {
     const onsiteStatus = requiresOnsiteChoice && ['organizer', 'deep'].includes(mySignup.role)
       ? `<span class="text-xs text-gray-600">${mySignup.onsite === true ? '已选择线下参加' : mySignup.onsite === false ? '已选择不线下参加' : '线下意向未记录'}</span>`
       : '';
     body = `
-      <div class="flex items-center gap-2.5 flex-wrap">
+      <div class="flex items-center gap-2 flex-wrap">
         ${badgeHtml('已报名 · ' + roleLabel(mySignup.role, sourceType), 'success')}
         ${onsiteStatus}
         <button id="signup-cancel-btn" class="btn-outline text-xs px-3 py-1.5">取消报名</button>
       </div>`;
   } else if (mySignup.status === SignupStatus.PENDING) {
     body = `
-      <div class="flex items-center gap-2.5">
+      <div class="flex items-center gap-2">
         ${badgeHtml('待审核 · ' + roleLabel(mySignup.role, sourceType), 'warning')}
         <button id="signup-cancel-btn" class="btn-outline text-xs px-3 py-1.5">撤回申请</button>
       </div>`;
@@ -137,15 +142,17 @@ export function renderSignupSection({ sourceType, sourceId, source, title, signu
       <div class="flex items-start gap-3 flex-wrap">
         ${badgeHtml('已拒绝 · ' + roleLabel(mySignup.role, sourceType), 'danger')}
         ${signupFields('重新申请说明（选填）')}
-        <button id="signup-submit-btn" class="btn-accent inline-flex items-center gap-1 text-sm px-4 py-1.5 font-medium">
-          重新申请
-        </button>
+        <div class="flex w-full justify-end sm:w-auto sm:self-end">
+          <button id="signup-submit-btn" class="btn-accent inline-flex items-center gap-1 text-sm px-4 py-1.5 font-medium">
+            重新申请
+          </button>
+        </div>
       </div>`;
   }
 
   return `
-    <div class="rounded-xl border border-red-100 bg-red-50/40 p-5 mb-6">
-      <h3 class="text-sm font-semibold text-gray-700 mb-3">${sourceType === 'taskforce' ? '申请加入专班工作组' : '报名参与'}</h3>
+    <div class="card card-standard mb-6">
+      ${renderCardHeader({ title: sourceType === 'taskforce' ? '申请加入专班工作组' : '报名参与', variant: 'panel' })}
       ${body}
       ${onsiteChoice}
     </div>
@@ -171,7 +178,7 @@ export function renderSignupList({ sourceType, sourceId, source, signups, myId }
     <div class="mt-4 pt-3 border-t border-gray-100">
       <p class="text-xs font-medium text-gray-500 mb-2">待审核申请（${pendingList.length}）</p>
       ${pendingList.map(s => `
-        <div class="flex items-center gap-2.5 py-2">
+        <div class="flex items-center gap-2 py-2">
           <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0" style="background:var(--status-warning);">${(getPersonById(s.personId)?.name || '?').slice(0, 1)}</span>
           <a href="${getBasePath()}person.html?id=${encodeURIComponent(s.personId)}" class="text-sm font-medium text-gray-700 hover:text-accent transition-colors" title="查看完整档案">${getPersonName(s.personId)}</a>
           <span class="text-xs text-gray-500">${roleLabel(s.role, sourceType)}</span>
@@ -179,7 +186,7 @@ export function renderSignupList({ sourceType, sourceId, source, signups, myId }
           ${s.note ? `<span class="text-xs text-gray-500 truncate max-w-[140px]">${s.note}</span>` : ''}
           <span class="ml-auto flex items-center gap-2">
             ${sourceType === 'taskforce' && s.role === 'participant'
-              ? '<span class="text-xs text-amber-700">历史记录待核，不能转为工作组成员</span>'
+              ? '<span class="text-xs text-[var(--status-warning-text)]">历史记录待核，不能转为工作组成员</span>'
               : '<button class="btn-tab signup-review-btn text-xs px-3 py-1.5 font-medium" data-signup-id="' + s.id + '" data-approve="1" style="background:var(--status-success);">通过</button>'}
             <button class="btn-tab signup-review-btn text-xs px-3 py-1.5 font-medium" data-signup-id="${s.id}" data-approve="0">拒绝</button>
           </span>
@@ -205,7 +212,7 @@ export function renderSignupList({ sourceType, sourceId, source, signups, myId }
 
   return `
     <div>
-      <h3 class="text-sm font-semibold text-gray-700 mb-3">报名名单（${approvedList.length}）</h3>
+      ${renderCardHeader({ title: `报名名单（${approvedList.length}）`, variant: 'panel' })}
       ${onsiteSummary}
       <div data-signup-list-host></div>
       ${pendingRows}
@@ -290,7 +297,7 @@ export function bindSignupEvents({ sourceType, sourceId, source, title, myId, ca
       // 原空态文案迁移为 emptyMessage
       emptyMessage: '暂无已报名成员',
       rowHtml: (s) => `
-        <div class="flex items-center gap-2.5 py-2">
+        <div class="flex items-center gap-2 py-2">
           <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0" style="background:var(--party-red);">${(getPersonById(s.personId)?.name || '?').slice(0, 1)}</span>
           <a href="${getBasePath()}person.html?id=${encodeURIComponent(s.personId)}" class="text-sm font-medium text-gray-700 hover:text-accent transition-colors" title="查看完整档案">${getPersonName(s.personId)}</a>
           <span class="text-xs text-gray-500">${roleLabel(s.role, sourceType)}</span>

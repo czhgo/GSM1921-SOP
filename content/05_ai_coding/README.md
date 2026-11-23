@@ -2,7 +2,7 @@
 title: "AI coding 技术层索引——网站系统的 AI coding 技术方法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: 2026-10-28
+last_updated: "2026-11-03"
 status: active
 ---
 
@@ -36,10 +36,27 @@ status: active
 | [QUESTION_HIT_MATRIX.md](QUESTION_HIT_MATRIX.md) | 审查问题集命中矩阵：历史 spec × 问题的命中记录 | 派生——由 `REVIEW_QUESTION_SET` 与历史审查生成 | on-demand |
 | [CASES.md](CASES.md) | AI 协作域判例：场景、结论、边界、对应规范编号与证据指针 | 否——判例不产生规范效力 | on-demand |
 | [GUARD_INVENTORY.md](GUARD_INVENTORY.md) | 守卫清单与断言台账：按域分组、新增 / 合并 / 归并候选的登记处 | 指针——判据在各守卫源码与对应规范 | on-demand |
+| [TAB_AUDIT_PLAYBOOK.md](TAB_AUDIT_PLAYBOOK.md) | 页签审计手册：45 页签五维检查怎么跑、怎么判、怎么加检查与加页签 | 指针——判据在 DS_06 / `audit/severity.mjs` | on-demand |
+| [UI_REVIEW_CHECKLIST.md](UI_REVIEW_CHECKLIST.md) | 温层 UI 审查清单：按 8 组任务（版式 / 排版 / 颜色 / 交互 / 文案 / 响应式 / 动效 / 数据展示）逐条过，每条带判据 + DS 节 / SD 编号 + 何时读 | 指针——`CLAUDE.md H40.2` 的详版 | on-demand |
+| [AUDIT_CANON.md](AUDIT_CANON.md) | 审计口径唯一表：F2 / F4 / F7-D2 / C1 / F1 的唯一判据与 daily / precommit / audit 分工 | 指针——规范在 DS_06，实现见 `server/scripts/audit/*` | on-demand |
 | [AGENTS.md](AGENTS.md) | 本目录协作说明：分层裁决（不写规范判据）、验证命令与常见坑 | 指针 → 本 README 与五个分篇 | on-demand |
 | `README.md` | 本层索引（分篇入口、边界与维护规则） | 指针 → 上述分篇 | active |
 
 > **分篇章节指针：** `PARALLEL_SKILL_AUDIT.md` §14 SKILL 路由（前端 / 后端 / 全栈）——按任务类型选 skill、各类禁止项与并行审查纪律。
+
+## 可复用资产索引（2026-11-03 批次 529）
+
+> 从 `.ctx` 提炼的**工作模式 / 方法**；正文在各篇，本表只做入口，不复制。
+
+| 资产 | 一句话 | 落点 |
+|---|---|---|
+| 上下文三层与预算 | active / reference / provenance；≤300 行 / 30KB | [CONTEXT_MANAGEMENT.md](CONTEXT_MANAGEMENT.md) |
+| 文档准入 / 晋升 / 删除 | 规则进 content、证据进 evidence、流水进 logs | [DOCUMENT_GOVERNANCE.md](DOCUMENT_GOVERNANCE.md) |
+| 批次收尾协议 | 执行日志 + 测试读数 + 决策日志 + active 刷新 | `CLAUDE.md H40` ＋ [TEST_AND_VERIFICATION.md](TEST_AND_VERIFICATION.md) |
+| 决策 → 裁定投影 | 决策日志追加 → content 改准 → `.ctx` 索引同步 | [DOCUMENT_GOVERNANCE.md](DOCUMENT_GOVERNANCE.md) |
+| 证据索引 | 截图 / 读数 / 真机日志按日期归档 | `.ctx/logs/EXECUTION_LOG_INDEX.md` |
+| 六维评分方法 | 只按证据加减分，不因工具自动加分 | `.ctx/ENGINEERING_ASSESSMENT.md` §一 / §二 |
+| 页签审计 | 45 页签五维检查、P0–P2、例外口径 | [TAB_AUDIT_PLAYBOOK.md](TAB_AUDIT_PLAYBOOK.md) ＋ [AUDIT_CANON.md](AUDIT_CANON.md) |
 
 ## 权威源与派生
 

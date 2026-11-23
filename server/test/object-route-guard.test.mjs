@@ -33,7 +33,7 @@ import {
   isTerminal,
   objectDetailHref,
   resolveObjectRoute,
-} from '../../docs/src/core/domain/object-route.js?v=20261031a';
+} from '../../docs/src/core/domain/object-route.js?v=20261120a';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -86,23 +86,23 @@ test('R1 入口矩阵：每个入口只声明一种 mode 并写理由，未知�
   for (const entry of DIRECT_ENTRIES) assert.equal(OBJECT_ROUTE_ENTRIES[entry].mode, 'direct', `${entry} 应为 direct`);
   for (const entry of LOCATE_ENTRIES) assert.equal(OBJECT_ROUTE_ENTRIES[entry].mode, 'locate', `${entry} 应为 locate`);
   assert.equal(resolveObjectRoute({ type: 'activity', obj, viewer: view, entry: 'unknown' }).mode, 'none');
-  assert.equal(OBJECT_DETAIL_PAGES.activity, 'activity.html');
-  assert.equal(OBJECT_DETAIL_PAGES.taskforce, 'taskforce.html');
+  assert.equal(OBJECT_DETAIL_PAGES.activity, 'activity');
+  assert.equal(OBJECT_DETAIL_PAGES.taskforce, 'taskforce');
 });
 
 test('R2 落点：direct 直达详情页 / locate 同页定位但 href 仍指向完整页', () => {
   for (const entry of DIRECT_ENTRIES) {
     const route = resolveObjectRoute({ type: 'activity', obj, viewer: view, entry });
     assert.equal(route.mode, 'direct', `${entry} 应 direct`);
-    assert.equal(route.href, 'activity.html?id=act-1', `${entry} 的直达 href 不正确`);
+    assert.equal(route.href, 'activity?id=act-1', `${entry} 的直达 href 不正确`);
   }
   for (const entry of LOCATE_ENTRIES) {
     const route = resolveObjectRoute({ type: 'activity', obj, viewer: view, entry });
     assert.equal(route.mode, 'locate', `${entry} 应 locate`);
-    assert.equal(route.href, 'activity.html?id=act-1', `${entry} 的「打开完整页」href 不正确`);
+    assert.equal(route.href, 'activity?id=act-1', `${entry} 的「打开完整页」href 不正确`);
   }
   assert.equal(resolveObjectRoute({ type: 'taskforce', obj: { id: 'tf-1' }, viewer: view, entry: 'owner-workspace' }).href,
-    'taskforce.html?id=tf-1');
+    'taskforce?id=tf-1');
 });
 
 test('R3 门：缺 id / 跨支部拒绝；同支部与党委/组织员放行', () => {
@@ -131,7 +131,10 @@ test('R4 已归档/终态只读：resolveObjectRoute.readOnly 与 activity-entry
   assert.equal(archivedRoute.readOnly, true, '已归档必须 readOnly');
 
   const entry = read('docs/src/entries/pages/activity-entry.js');
-  assert.match(entry, /const readOnly = act\.archived === true;/, 'activity-entry 缺 archived 只读判定');
+  // 批次 536：readOnly 扩为「归档只读 ∨ 党委原件锁定」；两种写法都接受，但 archived ⇒ readOnly 必须成立。
+  assert.match(entry, /act\.archived === true/, 'activity-entry 缺 archived 只读判定');
+  assert.match(entry, /const readOnly = (?:act\.archived === true|archivedReadOnly \|\| committeeSourceLocked);/,
+    'activity-entry 的 readOnly 必须由归档只读派生（可扩展党委原件锁定）');
   assert.match(entry, /const canManageMembers = !readOnly && !formalRoster/, '已归档活动的 canManageMembers 必须为 false');
   assert.match(entry, /已归档，只读保留/, '已归档详情必须显示「已归档，只读保留」');
   for (const gate of ['canSignup = !readOnly', 'canCloseSignup = !readOnly', 'canManageWork = !readOnly', 'canInitiateTransfer = !readOnly']) {

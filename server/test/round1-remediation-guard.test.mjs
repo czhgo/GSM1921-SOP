@@ -24,9 +24,15 @@ test('R1 U-04 纪检考勤：无 window.prompt · 会议 label 关联 · 视图 
   assert.match(src, /_openReturnNoteModal\(/, '缺少打回说明浮窗单一源 _openReturnNoteModal');
   assert.match(src, /\bopenModal\(\{/, '打回说明须走 components/ui/modal.js::openModal');
   assert.match(src, /for="disc-meet-activity"/, '会议活动 label 须与 select 通过 for/id 关联');
-  assert.match(src, /id="disc-meet-activity"/, '会议活动 select 缺少 id（label 无法关联）');
-  assert.match(src, /data-att-view="process" aria-pressed=/, '「确认与录入」视图钮须带 aria-pressed');
-  assert.match(src, /data-att-view="data" aria-pressed=/, '「数据查看」视图钮须带 aria-pressed');
+  // 2026-11-01 批次 524：select 可由 forms.js 的 `selectInput({ id: ... })` 生成——判据同时接受
+  //   静态 `id="…"` 与 helper 参数，仍要求 id 真实存在（不许只写 label）。
+  assert.match(src, /(?:id="disc-meet-activity"|id:\s*'disc-meet-activity')/,
+    '会议活动 select 缺少 id（label 无法关联）');
+  // 2026-11-08 波次 C（IA-E05）：撤「确认与录入 / 数据查看」二级切换 ⇒ 一级分段只剩 考勤 / 补课；
+  //   判据仍要求分段钮带 aria-pressed（当前分段可静态回读），并守住二级切换不回潮。
+  assert.match(src, /data-seg="attendance" aria-pressed=/, '「考勤」分段钮须带 aria-pressed');
+  assert.match(src, /data-seg="makeup" aria-pressed=/, '「补课」分段钮须带 aria-pressed');
+  assert.ok(!/data-att-view=/.test(src), '考勤页不得回潮「确认与录入 / 数据查看」二级切换（IA-E05）');
 });
 
 test('R2 U-05 专班管理：招募浮窗走通用 modal · 视图 aria-pressed · 折叠 aria-expanded', () => {
@@ -94,7 +100,7 @@ test('R5 U-35 组长台「我的任务」：承载面 + 复用单一口径 + 已
   assert.match(section, /export function myTasksSectionHtml/, '缺少 myTasksSectionHtml 导出');
   assert.match(section, /export function bindMyTasksSection/, '缺少 bindMyTasksSection 导出');
   assert.match(section, /暂无我的任务/, '缺少空态文案「暂无我的任务」');
-  assert.match(section, /与「待办」页的待办聚合口径不同/, '缺少与待办聚合的口径区分说明');
+  assert.match(section, /其他待办请到「待办」页查看/, '缺少与待办页的范围区分说明');
   const write = read('docs/src/entries/tabs/leader/write-tab.js');
   assert.match(write, /myTasksSectionHtml\(/, '组长台「本组活动」未挂载我的任务区块');
   assert.match(write, /bindMyTasksSection\(/, '我的任务勾掉未接线');

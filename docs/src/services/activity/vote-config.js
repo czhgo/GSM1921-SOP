@@ -8,10 +8,10 @@
 //   滞留剔除复用 services/member/roster.js isDetained（口径单一源 = core/policy-defaults attendance.roster）。
 //   历史快照语义：已创建活动（如 mock act-31）的 voteConfig.voterIds 为创建时固化的名单快照，
 //   不随成员后续滞留状态变更回改——存量数据不动，仅新创建默认值走现时 roster。
-import { PersonStore } from '../member/person.js?v=20261031a';
-import { isDetained } from '../member/roster.js?v=20261031a';
+import { PersonStore } from '../member/person.js?v=20261120a';
+import { isDetained } from '../member/roster.js?v=20261120a';
 // 支委名单单一源（数据生命周期 P1-09）：按 users.role 派生，禁止再维护旧 id 快照。
-import { resolveCommitteeIds } from '../../core/domain/constants.js?v=20261031a';
+import { resolveCommitteeIds } from '../../core/domain/constants.js?v=20261120a';
 
 export const OPTION_SETS = {
   deliberative: {
@@ -28,7 +28,7 @@ export const OPTION_SETS = {
 
 // 计票方式（ballotMode）单一源转出：常量与强制/默认规则定义在 core/domain/constants.js
 // （server 写侧校验与 mock 形态共用同一文件，勿另写规则副本）。
-export { BALLOT_MODES, BALLOT_MODE_LABELS, isAnonymousForced, defaultBallotMode, ballotModeOfActivity, isAnonymousActivity } from '../../core/domain/constants.js?v=20261031a';
+export { BALLOT_MODES, BALLOT_MODE_LABELS, isAnonymousForced, defaultBallotMode, ballotModeOfActivity, isAnonymousActivity } from '../../core/domain/constants.js?v=20261120a';
 
 const DECISION_SCENARIOS = new Set(['branch-committee', 'branch-party-meeting']);
 
@@ -114,6 +114,26 @@ export function isVoterOf(activity, personId) {
   if (!personId) return false;
   const ids = activity?.voteConfig?.voterIds;
   return Array.isArray(ids) && ids.includes(personId);
+}
+
+/**
+ * **冻结应到名单成员的现时在册判据**（T8，2026-11-16）：开会后「已转出 / 滞留」者，不计入未表态。
+ * 为什么需要：`voteConfig.voterIds` 是开会时固化的名单（不回改，分母保持冻结）；开会后转出 / 滞留的人
+ *   已不可能再表态，若仍留在「未表态」里，催办数与事实不符。
+ * 判据只用人员档案**既有事实**，不新造字段：
+ *   · 已转出 = 该 id 已不在在册读链（`PersonStore.getAll()`；转出＝软标记移出，读链剔除该行）；
+ *   · 滞留   = 在册状态「滞留」（`isDetained`，roster 口径单一源）。
+ * 读链为空（初始化未完成 / 服务端未同步）时一律返回 false——查无实据不得判人「已转出」。
+ * @param {string} personId
+ * @returns {boolean}
+ */
+export function isVoterOutOfRoster(personId) {
+  if (!personId) return false;
+  const members = PersonStore.getAll();
+  if (!Array.isArray(members) || members.length === 0) return false;
+  const person = members.find((p) => p && p.id === personId);
+  if (!person) return true;
+  return isDetained(person);
 }
 
 export function optionSetOf(activity) {

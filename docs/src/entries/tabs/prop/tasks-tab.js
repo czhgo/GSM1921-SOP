@@ -2,20 +2,20 @@
 // 宣传委员工作台 Tab：宣传任务（T-279 M3 拆分，照 M2 样板）
 // 任务状态流转：待接收 → 进行中 → 已提交（seed 常量 + mockDB 持久化，刷新不再丢失）。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261031a';
-import { persist } from '../../../data/data-adapter.js?v=20261031a';
-import { showToast, downloadCSV, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261031a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261031a';
-import { generateId } from '../../../core/base/id.js?v=20261031a';
-import { isActivityLive, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261031a';
-import { ORG_SUBJECT_LABELS } from '../../../core/domain/work-map.js?v=20261031a';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261031a';
-import { filterActive } from '../../../services/governance/soft-void.js?v=20261031a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261120a';
+import { persist } from '../../../data/data-adapter.js?v=20261120a';
+import { showToast, downloadCSV, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261120a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261120a';
+import { generateId } from '../../../core/base/id.js?v=20261120a';
+import { isActivityLive, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261120a';
+import { ORG_SUBJECT_LABELS } from '../../../core/domain/work-map.js?v=20261120a';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261120a';
+import { filterActive } from '../../../services/governance/soft-void.js?v=20261120a';
 
 // ── 宣传任务 mock 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/data/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261031a';
+import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261120a';
 
 // 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.propTasks 后调用 persist()
 function _loadPropTasks() {
@@ -35,15 +35,15 @@ function _activePropTasks() {
 const TASK_STATUS_FLOW = { pending: 'in_progress', in_progress: 'submitted' };
 const TASK_STATUS_LABEL = { pending: '待接收', in_progress: '进行中', submitted: '已提交' };
 const TASK_STATUS_STYLE = {
-  pending: 'bg-amber-50 text-amber-700 border-amber-200',
-  in_progress: 'bg-blue-50 text-blue-700 border-blue-200',
-  submitted: 'bg-green-50 text-green-700 border-green-200',
+  pending: 'bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] border-[var(--badge-warning-border)]',
+  in_progress: 'bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] border-[var(--badge-info-border)]',
+  submitted: 'bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] border-[var(--badge-success-border)]',
 };
 const TASK_TYPE_STYLE = {
-  '素材归档': 'bg-purple-50 text-purple-700',
-  '新闻稿': 'bg-rose-50 text-rose-700',
-  '推送排版': 'bg-sky-50 text-sky-700',
-  '周期归档': 'bg-teal-50 text-teal-700',
+  '素材归档': 'bg-[var(--neutral-50)] text-gray-700',
+  '新闻稿': 'bg-[var(--neutral-50)] text-gray-700',
+  '推送排版': 'bg-[var(--neutral-50)] text-gray-700',
+  '周期归档': 'bg-[var(--neutral-50)] text-gray-700',
 };
 // 登记表单可选的类型（与任务卡胶囊样式同一套取值）
 const TASK_CREATE_TYPES = ['素材归档', '新闻稿', '推送排版', '周期归档'];
@@ -242,7 +242,7 @@ function _renderTaskCard(task, activityMap = new Map()) {
     : '';
   // 批次 358（`D-751`）：行内「作废（软）」键（软作废 · 留痕 · 默认列表出列；原因必填在弹窗单一源里）
   const voidBtn = `<button class="btn-outline btn-sm prop-task-void-btn mt-1" data-task-id="${task.id}">作废</button>`;
-  const typeStyle = TASK_TYPE_STYLE[task.type] || 'bg-gray-50 text-gray-700';
+  const typeStyle = TASK_TYPE_STYLE[task.type] || 'bg-[var(--neutral-50)] text-gray-700';
   const statusStyle = TASK_STATUS_STYLE[task.status];
   const activity = task.activityId ? activityMap.get(task.activityId) : null;
   const related = activity ? ` · 关联：${escHtml(activity.title || '未命名活动')}` : '';

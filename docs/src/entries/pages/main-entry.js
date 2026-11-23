@@ -4,29 +4,33 @@
 // 各区块渲染已拆至 components/dashboard/：stats（统计卡+考勤弹窗）/ activity-panel（活动日历+列表）/ taskforce-list / gallery。
 // 本文件仅保留：bootstrap、工作台链接修正、renderUI 调度、renderDashboard 组装+导航委托、数据变更即时刷新。
 
-import { BranchService } from '../../services/core/runtime.js?v=20261031a';
-import { STATE, setState, registerRenderCallback, getAppState } from '../../core/base/state.js?v=20261031a';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261031a';
+import { BranchService } from '../../services/core/runtime.js?v=20261120a';
+import { STATE, setState, registerRenderCallback, getAppState } from '../../core/base/state.js?v=20261120a';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261120a';
 // 视图层独立：renderNoticeList 属「通知视图层」（G1 第③项服务层不产 UI，2026-09-28 迁出）
-import { renderNoticeList } from '../../components/governance/notice-view.js?v=20261031a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261031a';
-import { getBasePath } from '../../core/base/utils.js?v=20261031a';
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261031a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261031a';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261031a';
+import { renderNoticeList } from '../../components/governance/notice-view.js?v=20261120a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261120a';
+import { getBasePath, escHtml } from '../../core/base/utils.js?v=20261120a';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261120a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261120a';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261120a';
 // Task 6：首页活动/专班行 → 完整详情页（首页是跨对象聚合面，不属对象工作台 ⇒ direct）。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261031a';
-import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261031a';
-import { loadWorkspaceData } from '../../data/data-loader.js?v=20261031a';
-import { DATA_CHANGED_EVENT, probeRemoteChanges } from '../../data/data-adapter.js?v=20261031a';
-import '../../capabilities/activity-calendar.js?v=20261031a'; // 副作用导入：注册首页活动日历能力
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261120a';
+import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261120a';
+import { loadWorkspaceData } from '../../data/data-loader.js?v=20261120a';
+import { DATA_CHANGED_EVENT, probeRemoteChanges } from '../../data/data-adapter.js?v=20261120a';
+import '../../capabilities/activity-calendar.js?v=20261120a'; // 副作用导入：注册首页活动日历能力
 // ── 方案 B 入口拆分：dashboard 区块渲染模块 ──
-import { renderDashboardStats } from '../../components/dashboard/stats.js?v=20261031a';
-import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../../components/dashboard/activity-panel.js?v=20261031a';
-import { renderWorkgroupProgress } from '../../components/dashboard/taskforce-list.js?v=20261031a';
-import { renderGallery } from '../../components/dashboard/gallery.js?v=20261031a';
+import { renderDashboardStats } from '../../components/dashboard/stats.js?v=20261120a';
+import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../../components/dashboard/activity-panel.js?v=20261120a';
+import { renderWorkgroupProgress } from '../../components/dashboard/taskforce-list.js?v=20261120a';
+import { renderGallery } from '../../components/dashboard/gallery.js?v=20261120a';
+// ── 未登录公共门厅（2026-11-08 批次 536 · Task 7）──
+// 门厅只读匿名接口，不经 data-adapter / 不读 token；空态与骨架沿用共享单一源。
+import { emptyStateHtml, skeletonHtml } from '../../components/ui/empty-state.js?v=20261120a';
+import { loadPublicPortal, publicDocumentDownloadUrl } from '../../data/public-portal-client.js?v=20261120a';
 
 // ── 时序修复（2026-09-10「归属显示不一致」；正确先例 settings-entry.js:1236-1244）──
 // header 品牌标题经 getHeaderTitle 读 mockDB.branches，必须先完成 BranchService.loadDB()
@@ -99,8 +103,6 @@ function renderUI(state) {
     renderDashboard(state);
   }
 }
-
-registerRenderCallback(renderUI);
 
 function renderDashboard(state) {
   const activities = state.activities || [];
@@ -182,75 +184,231 @@ function renderDashboard(state) {
   // 原 div[role=button] + keydown 补救已删除（标题不再进入交互元素）。
 }
 
-// T223 修复：活动 tab 在模块初始化即绑定（tab 按钮为静态 HTML），
-// 避免异步数据加载期间用户点击「列表」时监听器尚未绑定而丢失点击。
-initActivityTabs();
+// ════════════════════════════════════════════════════════════════
+// 登录态分流（2026-11-08 批次 536 · Task 7 · spec「未登录公共门厅」）
+//   已登录：现有工作台全流程原样保留（只包进 initDashboard）；
+//   未登录：只渲染公共门厅——不调 loadWorkspaceData、不绑工作台深链、
+//           不请求统计 / 工作组 / 活动风采 / 通知。
+// ════════════════════════════════════════════════════════════════
+function initDashboard() {
+  registerRenderCallback(renderUI);
 
-loadWorkspaceData({
-  role: 'all',
-  selectedRole: null,
-  activeModule: 'dashboard',
-  fallbackData: () => loadActivities(),
-  storeInits: [() => NoticeStore.init(), () => TaskForceRecordStore.init()],
-  extraLoads: [() => typeof BranchService.listTasks === 'function' ? BranchService.listTasks() : Promise.resolve([])],
-  logTag: 'initApp'
-});
+  // T223 修复：活动 tab 在模块初始化即绑定（tab 按钮为静态 HTML），
+  // 避免异步数据加载期间用户点击「列表」时监听器尚未绑定而丢失点击。
+  initActivityTabs();
 
-// ── 数据变更即时刷新（2026-08-05，响应支书"计算需手动刷新"）──────
-// 任何业务写（通知已读、待办完成、考勤确认等）经 persist() 派发 DATA_CHANGED_EVENT，
-// 首页订阅后即时重算统计卡/通知列表/我的考勤，无需手动刷新页面。
-function _refreshDashboardSnapshot() {
-  const state = getAppState();
-  const activities = state.activities || [];
-  const taskforces = TaskForceRecordStore.getAll();
-  const notices = NoticeStore.getAll();
+  loadWorkspaceData({
+    role: 'all',
+    selectedRole: null,
+    activeModule: 'dashboard',
+    fallbackData: () => loadActivities(),
+    storeInits: [() => NoticeStore.init(), () => TaskForceRecordStore.init()],
+    extraLoads: [() => typeof BranchService.listTasks === 'function' ? BranchService.listTasks() : Promise.resolve([])],
+    logTag: 'initApp'
+  });
 
-  renderDashboardStats({ activities, taskforces, notices, attendanceRecords: loadActiveAttendanceRecords(), user });
-  if (state.status === STATE.LOADING && activities.length === 0) return;
+  // ── 数据变更即时刷新（2026-08-05，响应支书"计算需手动刷新"）──────
+  // 任何业务写（通知已读、待办完成、考勤确认等）经 persist() 派发 DATA_CHANGED_EVENT，
+  // 首页订阅后即时重算统计卡/通知列表/我的考勤，无需手动刷新页面。
+  function _refreshDashboardSnapshot() {
+    const state = getAppState();
+    const activities = state.activities || [];
+    const taskforces = TaskForceRecordStore.getAll();
+    const notices = NoticeStore.getAll();
 
-  renderNoticeList('dashboard-notice-list', 5, { groupSystem: true, footerCountId: 'dashboard-notice-count' });
-  const noticeCount = document.getElementById('dashboard-notice-count');
-  if (noticeCount) {
-    const activeUnread = NoticeStore.list({ activeOnly: true }).filter(n => !n.read).length;
-    // 2026-09-29 批次 283（支书评议：「后面的 系统派生已按类归并 我认为是不该有的！」）：
-    //   **计数只报未读数，不加任何解释性后缀**——说明口径属界面不该背的负担；归并事实由列表自身呈现。
-    noticeCount.textContent = activeUnread > 0 ? `${activeUnread} 条未读` : '';
+    renderDashboardStats({ activities, taskforces, notices, attendanceRecords: loadActiveAttendanceRecords(), user });
+    if (state.status === STATE.LOADING && activities.length === 0) return;
+
+    renderNoticeList('dashboard-notice-list', 5, { groupSystem: true, footerCountId: 'dashboard-notice-count' });
+    const noticeCount = document.getElementById('dashboard-notice-count');
+    if (noticeCount) {
+      const activeUnread = NoticeStore.list({ activeOnly: true }).filter(n => !n.read).length;
+      // 2026-09-29 批次 283（支书评议：「后面的 系统派生已按类归并 我认为是不该有的！」）：
+      //   **计数只报未读数，不加任何解释性后缀**——说明口径属界面不该背的负担；归并事实由列表自身呈现。
+      noticeCount.textContent = activeUnread > 0 ? `${activeUnread} 条未读` : '';
+    }
+
+    renderWorkgroupProgress();
+    renderActivityList(activities, user);
+    renderGallery(activities);
   }
 
-  renderWorkgroupProgress();
-  renderActivityList(activities, user);
-  renderGallery(activities);
+  document.addEventListener(DATA_CHANGED_EVENT, () => {
+    if (getAppState().activeModule !== 'dashboard') return;
+    _refreshDashboardSnapshot();
+  });
+
+  const _lastDataVersion = CrossPageState.getDataVersion();
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'sop_org_os_data_version') {
+      const newVersion = CrossPageState.getDataVersion();
+      if (newVersion !== _lastDataVersion) {
+        BranchService.listActivities().then(activities => {
+          setState({ activities });
+        }).catch(() => {});
+      }
+    }
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      // P1-1（2026-09-24 批次 164）：**远端变更探测**——切回本页时立刻查一次「别人是否刚写过」
+      // （跨标签/跨设备；逐集合版本比对，只重拉差异集合）。探测失败静默，不影响本页任何功能。
+      // ⚠ 刻意复用本监听器（不另挂第二个 visibilitychange）：本页的「可见即探测」只有这一处入口。
+      probeRemoteChanges().catch(() => {});
+      const newVersion = CrossPageState.getDataVersion();
+      if (newVersion !== _lastDataVersion) {
+        BranchService.listActivities().then(activities => {
+          setState({ activities });
+        }).catch(() => {});
+      }
+    }
+  });
 }
 
-document.addEventListener(DATA_CHANGED_EVENT, () => {
-  if (getAppState().activeModule !== 'dashboard') return;
-  _refreshDashboardSnapshot();
-});
+// ── 公共门厅（未登录）─────────────────────────────────────────────
+// 三块共用一次 `GET /api/public/portal`；每块各自有骨架 / 空态 / 失败重试。
+// 全部字段经 escHtml 转义（匿名接口仍不可信），下载走原生 <a href> 落浏览器。
+const PORTAL_BLOCKS = [
+  { id: 'public-portal-notices', label: '公开通知', lines: 3 },
+  { id: 'public-portal-activities', label: '公开活动', lines: 2 },
+  { id: 'public-portal-documents', label: '公开资料', lines: 2 },
+];
 
-const _lastDataVersion = CrossPageState.getDataVersion();
+function _portalBlock(id) {
+  return document.getElementById(id);
+}
 
-window.addEventListener('storage', (e) => {
-  if (e.key === 'sop_org_os_data_version') {
-    const newVersion = CrossPageState.getDataVersion();
-    if (newVersion !== _lastDataVersion) {
-      BranchService.listActivities().then(activities => {
-        setState({ activities });
-      }).catch(() => {});
-    }
+function _setPortalBusy(busy) {
+  const value = busy ? 'true' : 'false';
+  PORTAL_BLOCKS.forEach(({ id }) => {
+    const el = _portalBlock(id);
+    if (el) el.setAttribute('aria-busy', value);
+  });
+}
+
+function _renderPortalSkeletons() {
+  PORTAL_BLOCKS.forEach(({ id, label, lines }) => {
+    const el = _portalBlock(id);
+    if (el) el.innerHTML = skeletonHtml(lines, { ariaText: `正在加载${label}…` });
+  });
+}
+
+function _renderPortalEmpty(id, text) {
+  const el = _portalBlock(id);
+  if (el) el.innerHTML = emptyStateHtml({ text, variant: 'inline' });
+}
+
+function _renderPortalError(err) {
+  const message = (err && err.message) ? err.message : '加载失败，请重试';
+  PORTAL_BLOCKS.forEach(({ id }) => {
+    const el = _portalBlock(id);
+    if (!el) return;
+    el.innerHTML = emptyStateHtml({
+      text: message,
+      variant: 'panel',
+      actionHtml: '<button type="button" class="btn-outline" data-public-retry>重试</button>',
+    });
+  });
+}
+
+/** 元信息行：只拼非空项，逐项转义 */
+function _portalMeta(parts) {
+  return parts.filter(Boolean).map((part) => escHtml(String(part))).join(' · ');
+}
+
+function _renderPublicNotices(notices) {
+  if (!notices.length) { _renderPortalEmpty('public-portal-notices', '暂无公开通知'); return; }
+  const html = notices.map((n) => `
+    <div class="public-portal-item">
+      <p class="public-portal-item__title">${escHtml(n.title || '未命名通知')}</p>
+      ${n.publishDate ? `<p class="public-portal-item__meta">${escHtml(n.publishDate)}</p>` : ''}
+      <p class="public-portal-item__body">${escHtml(n.content || '')}</p>
+    </div>`).join('');
+  const el = _portalBlock('public-portal-notices');
+  if (el) el.innerHTML = html;
+}
+
+function _renderPublicActivities(activities) {
+  if (!activities.length) { _renderPortalEmpty('public-portal-activities', '暂无公开活动'); return; }
+  const html = activities.map((a) => {
+    const meta = _portalMeta([a.date, a.location]);
+    return `
+      <div class="public-portal-item">
+        <p class="public-portal-item__title">${escHtml(a.title || '未命名活动')}</p>
+        ${meta ? `<p class="public-portal-item__meta">${meta}</p>` : ''}
+        ${a.publicSummary ? `<p class="public-portal-item__body">${escHtml(a.publicSummary)}</p>` : ''}
+      </div>`;
+  }).join('');
+  const el = _portalBlock('public-portal-activities');
+  if (el) el.innerHTML = html;
+}
+
+/** 文件大小（展示派生，不改业务事实） */
+function _formatFileSize(bytes) {
+  const n = Number(bytes);
+  if (!Number.isFinite(n) || n <= 0) return '';
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function _renderPublicDocuments(documents) {
+  if (!documents.length) { _renderPortalEmpty('public-portal-documents', '暂无公开资料'); return; }
+  const html = documents.map((d) => {
+    const title = d.title || d.fileName || '未命名资料';
+    const meta = _portalMeta([String(d.format || '').toUpperCase(), _formatFileSize(d.fileSize), d.updatedAt]);
+    return `
+      <div class="public-portal-item">
+        <p class="public-portal-item__title">${escHtml(title)}</p>
+        ${meta ? `<p class="public-portal-item__meta">${meta}</p>` : ''}
+        ${d.summary ? `<p class="public-portal-item__body">${escHtml(d.summary)}</p>` : ''}
+        <a class="public-portal-download" href="${escHtml(publicDocumentDownloadUrl(d.id))}">${escHtml(`下载「${title}」`)}</a>
+      </div>`;
+  }).join('');
+  const el = _portalBlock('public-portal-documents');
+  if (el) el.innerHTML = html;
+}
+
+let _portalLoading = false;
+
+async function loadPortal() {
+  if (_portalLoading) return;
+  _portalLoading = true;
+  _setPortalBusy(true);
+  _renderPortalSkeletons();
+  try {
+    const data = await loadPublicPortal();
+    _renderPublicNotices(data.notices);
+    _renderPublicActivities(data.activities);
+    _renderPublicDocuments(data.documents);
+  } catch (err) {
+    _renderPortalError(err);
+  } finally {
+    _portalLoading = false;
+    _setPortalBusy(false);
   }
-});
+}
 
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    // P1-1（2026-09-24 批次 164）：**远端变更探测**——切回本页时立刻查一次「别人是否刚写过」
-    // （跨标签/跨设备；逐集合版本比对，只重拉差异集合）。探测失败静默，不影响本页任何功能。
-    // ⚠ 刻意复用本监听器（不另挂第二个 visibilitychange）：本页的「可见即探测」只有这一处入口。
-    probeRemoteChanges().catch(() => {});
-    const newVersion = CrossPageState.getDataVersion();
-    if (newVersion !== _lastDataVersion) {
-      BranchService.listActivities().then(activities => {
-        setState({ activities });
-      }).catch(() => {});
-    }
+function initPublicPortal() {
+  const dashboardEl = document.getElementById('view-dashboard');
+  const portalEl = document.getElementById('view-public-portal');
+  if (dashboardEl) dashboardEl.classList.add('hidden');
+  if (portalEl) {
+    portalEl.classList.remove('hidden');
+    // 三块共用同一次拉取 ⇒ 重试按钮委托到本区块一次
+    portalEl.addEventListener('click', (e) => {
+      if (e.target.closest('[data-public-retry]')) loadPortal();
+    });
   }
-});
+  const loginBtn = document.getElementById('public-portal-login');
+  if (loginBtn) loginBtn.href = _loginHrefFor(window.location.href);
+  loadPortal();
+}
+
+if (user) {
+  initDashboard();
+} else {
+  initPublicPortal();
+}

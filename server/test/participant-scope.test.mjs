@@ -15,9 +15,9 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { resolveVoterIds, resolveParticipantIds } from '../../docs/src/services/activity/vote-config.js?v=20261031a';
-import { cleanParticipantPolicies } from '../../docs/src/services/branch/config-clean.js?v=20261031a';
-import { getWorkflowBlockParticipantPolicy } from '../../docs/src/services/branch/branch.js?v=20261031a';
+import { resolveVoterIds, resolveParticipantIds } from '../../docs/src/services/activity/vote-config.js?v=20261120a';
+import { cleanParticipantPolicies } from '../../docs/src/services/branch/config-clean.js?v=20261120a';
+import { getWorkflowBlockParticipantPolicy } from '../../docs/src/services/branch/branch.js?v=20261120a';
 
 let server, base;
 
@@ -42,7 +42,8 @@ async function login(personId) {
   return res.json();
 }
 function auth(token) {
-  return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+  // 批次 564：整行写口要求 If-Match；本文件只验参与范围，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+  return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'If-Match': '*' };
 }
 async function patchConfig(token, body) {
   return fetch(`${base}/api/v1/branches/br-b1/config`, {

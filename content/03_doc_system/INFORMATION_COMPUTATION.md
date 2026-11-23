@@ -2,7 +2,7 @@
 title: "信息计算与呈现口径"
 type: spec
 role: "[工程师]+[AI]"
-last_updated: 2026-10-30
+last_updated: 2026-11-08
 status: active
 related_files: [docs/src/services/governance/notice.js, docs/src/components/shell/header.js, docs/src/services/governance/todo.js, docs/src/services/governance/today-summary.js, docs/src/components/governance/work-overview.js, docs/src/services/activity/taskforce.js, docs/src/services/activity/attendance.js]
 ---
@@ -35,10 +35,10 @@ related_files: [docs/src/services/governance/notice.js, docs/src/components/shel
 | 类型 | 字段特征 | 典型生成口 |
 |---|---|---|
 | 党委下发 | `source = 'committee'`；`audience = 'committee'`；`branchId = 目标支部` | `NoticeStore.addSystem('committee-dispatch', …)` |
-| 支部广播 | 无受众字段，或 `audience` 含广播 sentinel `all` | 通知发布表单 / 活动广播 |
+| 支部广播 | `audience` 显式含广播 sentinel `all`；公告无受众字段时按支部广播处理 | 通知发布表单 / 活动广播 |
 | 角色定向 | `audience` 为 sentinel（`leaders` / `activists` / `candidates`）、裸角色键，或 `actionRoles` 非空 | 通知发布表单 / 业务派生 |
 | 到人私信 | `noticeType = 'message'`；`audiencePersons` 为收件人 personId 数组 | `sendDirectMessage()` / 通知发布「指定人（私发）」 |
-| 系统通知 | 经 `NoticeStore.addSystem(kind, …)` 生成；**没有独立类型字段**，可见性由它生成的 `audience` / `audiencePersons` / `actionRoles` 决定 | 各业务流程副作用 |
+| 系统通知 | 经 `NoticeStore.addSystem(kind, …)` 生成；**没有独立类型字段**，可见性由它生成的 `audience` / `audiencePersons` / `actionRoles` 决定；**三者全空＝不可读**（不得当广播） | 各业务流程副作用 |
 
 ### 1.3 列表可见性矩阵（`NoticeStore.list` 默认）
 
@@ -50,14 +50,14 @@ related_files: [docs/src/services/governance/notice.js, docs/src/components/shel
 | 支委层（支书 / 副支书 / 组织 / 宣传 / 纪检委员） | 条件（`audience` 命中 `committee` 且 `branchId`＝本人支部） | 可见 | 条件（受众或 `actionRoles` 命中；**列表无签发人特权**） | 仅收件人可见（发件人走私信页） | 条件（按其受众字段） |
 | `leader`（党小组组长） | 不可见 | 可见 | 条件（`leaders` / 裸 `leader` / `actionRoles` 命中） | 仅收件人可见 | 条件 |
 | `participant`（普通成员） | 不可见 | 可见 | 条件（发展阶段 sentinel / 裸角色键 / 到人） | 仅收件人可见 | 条件 |
-| 无登录会话 | 可见（`list()` 无会话全放行） | 可见 | 可见（`list()` 无会话全放行） | 可见（`list()` 无会话全放行） | 可见（`list()` 无会话全放行） |
+| 无登录会话 | 不可见 | 不可见 | 不可见 | 不可见 | 不可见 |
 
 **条件说明**
 
 1. **党委下发**：代码仅在 `party-staff` 传入 `scope: 'committee'`（党委台铃铛）时放行 `audience === 'committee'` 及其数组写法（该角色不属于任何支部，故不做支部比对）；默认列表调用保持原行为。支委层则要求 `branchId` 与本人支部一致。
 2. **角色定向**：`audience` 为 sentinel 时按 `NOTICE_AUDIENCE_SENTINELS` 判定；裸角色键直接比对角色；`actionRoles` 只对目标角色可见。
 3. **到人私信**：`list()` 只按 `audiencePersons` 命中收件人；发件人查看自己的私信走 `listMyMessages()`（内部逐条 `canReadNotice`）。
-4. **无登录会话**：`list()` 在无会话时**不按受众收窄**（直接返回），这是既有行为，与 `canReadNotice` 不一致，见 §七。
+4. **无登录会话**：`list()` 与 `canReadNotice` 统一为**一律不可见 / 不可读**（2026-11-07 批次 535）；公开门厅的匿名窄口只对 `publishScope='public'` 且未过期的党委内容开放，已裁定，见 `D-858` / `PUBLIC_ENTRANCE.md`。
 
 ### 1.4 详情可读性矩阵（`canReadNotice`）
 
@@ -68,7 +68,7 @@ related_files: [docs/src/services/governance/notice.js, docs/src/components/shel
 | `party-staff` | 可读 | 可读 | 条件（命中受众） | 仅发件人与收件人可读 | 条件 |
 | 支委层 | 可读（支委层可读任意**非私信**通知） | 可读 | 可读（支委层兜底） | 仅发件人与收件人可读 | 可读（非私信） |
 | `leader` / `participant` | 不可读 | 可读 | 条件（命中受众） | 仅发件人与收件人可读 | 条件 |
-| 无登录会话 | 不可读 | 可读 | 不可读 | 不可读 | 条件（广播 / 无受众才可读） |
+| 无登录会话 | 不可读 | 不可读 | 不可读 | 不可读 | 不可读 |
 
 **私信优先于支委层兜底**：`noticeType === 'message'` 在 `canReadNotice` 中最先判定，可见性只认发件人与收件人；支委层不能读他人私信。
 
@@ -277,7 +277,7 @@ related_files: [docs/src/services/governance/notice.js, docs/src/components/shel
 
 | # | 未统一项 | 现状 | 影响 |
 |---|---|---|---|
-| 1 | 无会话时的通知可见性 | `list()` 无会话直接返回全部（不按受众收窄）；`canReadNotice` 无会话只允许广播 / 无受众 | 列表能看到、详情打不开 |
+| 1 | 无会话时的通知可见性（已统一） | 2026-11-07 批次 535 起：`list()` 与 `canReadNotice` 均**无会话一律不可见 / 不可读** | 无列表与详情口径冲突；显式广播匿名待公共入口裁定 |
 | 2 | 支书概况出勤率 vs 考勤模块出勤率 | 前者按记录条数；后者按应到名单并集 | 同一月可能得到两个百分比 |
 | 3 | 支书概况补课未完成 vs 工作概况补课待完成 | 前者按缺勤人员差集；后者按补课任务表 | 同一时点可能得到两个数 |
 | 4 | 通知行动待办去重 | `NoticeTodoDeriver` 无去重键；`VisitorTodoDeriver` 有来源去重 | 同一通知重复派生会重复 |
@@ -295,7 +295,7 @@ related_files: [docs/src/services/governance/notice.js, docs/src/components/shel
 
 > 以下问题需要支书明确口径后才能改代码；本文不替支书做决定。
 
-1. **无会话的 `list()` 是否应按受众收窄**：当前「无会话全放行」与详情页口径冲突；是否统一为「无会话只返回广播 / 无受众」。
+1. **无会话的显式广播是否允许匿名**：本批已统一「无会话一律不可见 / 不可读」；匿名可读只开 `publishScope='public'` 且未过期这一条窄口，`audience:['all']` 的系统广播仍不对匿名开放——已裁定，见 `D-858` / `PUBLIC_ENTRANCE.md`。
 2. **支书概况出勤率是否改用应到名单做分母**：当前按记录条数，是否统一到 `summarizeAttendanceByActivity` 的场次口径。
 3. **补课未完成是否统一为补课任务表口径**：当前支书概况与工作概况各算一套；是否保留「人员差集」作为另一种提示，还是只留任务表。
 4. **通知行动待办是否补去重键**：建议键为 `sourceType = 'notice'` ＋ `sourceId` ＋ `actionKey`（或 `role`）；是否采纳。

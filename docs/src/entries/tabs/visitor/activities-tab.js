@@ -3,27 +3,29 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/base/icons.js?v=20261031a';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20261031a';
-import { flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261031a';
-import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261031a';
+import { icon } from '../../../core/base/icons.js?v=20261120a';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20261120a';
+import { flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261120a';
+import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261120a';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261031a';
-import { canSignup } from '../../../components/governance/signup-panel.js?v=20261031a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261031a';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261120a';
+import { canSignup } from '../../../components/governance/signup-panel.js?v=20261120a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261120a';
 // 组织者按活动身份读（2026-09-19 批次 91 · SOP-B-17）：本人被指定为某场活动的组织者时，
 // 该场的发布口与上传位从该行可达——「组织者是这场事上被指定的人」，不是静态角色。
-import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261031a';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261031a';
+import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261120a';
+import { isCommitteeActivity, isCommitteeCopy } from '../../../services/activity/committee-activity.js?v=20261120a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261120a';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261120a';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261031a';
-import { getAppState } from '../../../core/base/state.js?v=20261031a';
-import { renderContent as renderSharedActivityCalendar } from '../shared/activity-calendar-tab.js?v=20261031a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261120a';
+import { getAppState } from '../../../core/base/state.js?v=20261120a';
+import { renderContent as renderSharedActivityCalendar } from '../shared/activity-calendar-tab.js?v=20261120a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 // Task 6：活动动态属跨对象列表 ⇒ direct 完整详情页；缺 id 不渲染可点链接。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261031a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261120a';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261120a';
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
 // ③闭环样本1（2026-09-10）：活动列表/查询行补「去报名 / 去表态」明确入口——
@@ -71,12 +73,17 @@ function _activityRowHtml(a) {
   const color = ACTIVITY_TYPE_COLORS[a.type || a.category] || { bg: '#F9FAFB', dot: '#6B7280' };
   const detailHref = objectDetailHref('activity', a.id, { entry: 'workspace-aggregate' });
   const href = detailHref ? `./${detailHref}` : '';
+  // 院级标识（批次 534 · Task 9）：成员只读知悉来源，不提供采用入口（采用权在支书 / 副支书）。
+  const committeeMarks = [
+    isCommitteeActivity(a) ? badgeHtml('院级', 'brand') : '',
+    isCommitteeCopy(a) ? badgeHtml('源自党委', 'info') : '',
+  ].filter(Boolean).join('');
   return `
     <div class="flex flex-wrap items-center gap-3 p-3 rounded-lg bg-white hover:bg-surface-hover transition-colors" data-visitor-act-id="${a.id || ''}">
       <a ${href ? `href="${href}"` : 'aria-disabled="true"'} class="flex items-center gap-3 flex-1 min-w-0 rounded-lg focus-ring hover:bg-[var(--surface-hover)] transition-colors" aria-label="查看活动详情：${a.title || '未命名'}">
         <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''}"></div>
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
+          <p class="flex flex-wrap items-center gap-1.5 text-sm font-medium text-gray-800">${a.title || '未命名'}${committeeMarks}</p>
           <p class="text-xs text-gray-500 mt-0.5">${a.date || '待定'} · ${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
         </div>
       </a>
@@ -102,12 +109,17 @@ const _VIEW_IDLE = { background: 'var(--surface-card)', color: 'var(--neutral-50
 
 function _paintViewButtons(tc, active) {
   tc.querySelectorAll('.visitor-view-btn').forEach((btn) => {
-    const s = btn.dataset.vview === active ? _VIEW_ACTIVE : _VIEW_IDLE;
+    const on = btn.dataset.vview === active;
+    const s = on ? _VIEW_ACTIVE : _VIEW_IDLE;
     btn.style.background = s.background;
     btn.style.color = s.color;
     btn.style.border = s.border;
-    btn.setAttribute('aria-selected', btn.dataset.vview === active ? 'true' : 'false');
+    btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    // R5A-19：roving tabindex——只有当前页签在 Tab 序列内，左右箭头切换。
+    btn.setAttribute('tabindex', on ? '0' : '-1');
   });
+  const panel = tc.querySelector('#visitor-act-view');
+  if (panel) panel.setAttribute('aria-labelledby', `visitor-view-tab-${active}`);
 }
 
 // 日历视图只保留「月 / 周 / 日」粒度；移除内层「列表」并降为次级工具条（不和主视图切换抢主位）。
@@ -174,18 +186,18 @@ export function renderContent(ctx) {
     <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
       <span class="text-xs text-gray-500">${sorted.length} 条活动</span>
       <div class="flex gap-1" role="tablist" aria-label="活动视图">
-        <button class="btn-tab visitor-view-btn px-3 py-1.5 text-[13px] font-medium" data-vview="list" role="tab">
+        <button id="visitor-view-tab-list" class="btn-tab visitor-view-btn px-3 py-1.5 text-[13px] font-medium" data-vview="list" role="tab" aria-controls="visitor-act-view" aria-selected="false" tabindex="-1">
           ${icon('list', { className: 'w-3.5 h-3.5' })} 列表
         </button>
-        <button class="btn-tab visitor-view-btn px-3 py-1.5 text-[13px] font-medium" data-vview="calendar" role="tab">
+        <button id="visitor-view-tab-calendar" class="btn-tab visitor-view-btn px-3 py-1.5 text-[13px] font-medium" data-vview="calendar" role="tab" aria-controls="visitor-act-view" aria-selected="false" tabindex="-1">
           ${icon('calendar', { className: 'w-3.5 h-3.5' })} 日历
         </button>
-        <button class="btn-tab visitor-view-btn px-3 py-1.5 text-[13px] font-medium" data-vview="query" role="tab">
+        <button id="visitor-view-tab-query" class="btn-tab visitor-view-btn px-3 py-1.5 text-[13px] font-medium" data-vview="query" role="tab" aria-controls="visitor-act-view" aria-selected="false" tabindex="-1">
           ${icon('search', { className: 'w-3.5 h-3.5' })} 查询
         </button>
       </div>
     </div>
-    <div class="card rounded-xl p-5"><div id="visitor-act-view"></div></div>
+    <div class="card rounded-xl card-standard"><div id="visitor-act-view" role="tabpanel" tabindex="0" aria-labelledby="visitor-view-tab-list"></div></div>
   `;
   _paintViewButtons(tc, 'list');
 
@@ -199,6 +211,23 @@ export function renderContent(ctx) {
       else if (view === 'calendar') _renderActCalendarView(sorted, highlightId);
       else { _calToolbarObserver?.disconnect(); _renderActQueryView(sorted, highlightId); }
     });
+  });
+
+  // R5A-19：页签组左右箭头 / Home / End 切换（roving tabindex 配套）
+  const tablist = tc.querySelector('[role="tablist"][aria-label="活动视图"]');
+  tablist?.addEventListener('keydown', (e) => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+    const tabs = [...tablist.querySelectorAll('.visitor-view-btn')];
+    const idx = tabs.indexOf(document.activeElement);
+    if (idx < 0) return;
+    e.preventDefault();
+    const next = e.key === 'ArrowLeft'
+      ? (idx - 1 + tabs.length) % tabs.length
+      : e.key === 'ArrowRight'
+        ? (idx + 1) % tabs.length
+        : e.key === 'Home' ? 0 : tabs.length - 1;
+    tabs[next].focus();
+    tabs[next].click();
   });
 
   // 2026-10-04 批次 371（支书裁「**活动日历 应该放在 活动动态中 作为一个 视图**」）：

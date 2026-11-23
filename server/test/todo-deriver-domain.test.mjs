@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // server/test/todo-deriver-domain.test.mjs — IA 收敛 C1 Task2：所有 TodoStore 派生点补
 // 「稳定 actionKey + 准确 domain（含会务 scenarioId）」归属表（2026-09-07）
-// 依据：.trae/specs/2026-09-06-ia-todo-cards/plan-c1.md Task2 + spec.md 三节映射
+// 依据：历史 spec（已删） Task2 + spec.md 三节映射
 // 现状（Task1 已落 _buildTodo 兜底 domain 推断）：本批断言各派生动作后 todo.domain 归属
 // 正确且稳定 actionKey 存在——
 //   ① 活动创建 → leader authorize 待办 domain 按 scenarioId 分（三会→会务、theme-party→活动/项目）
@@ -19,24 +19,25 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261031a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261120a';
 import {
   MockAdapter,
-} from '../../docs/src/data/mock-adapter.js?v=20261031a';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261031a';
+} from '../../docs/src/data/mock-adapter.js?v=20261120a';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261120a';
 import {
   WORK_DOMAIN, TodoStore, TodoSourceType,
   LifecycleTodoDeriver, VisitorTodoDeriver, NoticeTodoDeriver,
   REALTIME_GROUP_DOMAIN, realtimeGroupDomainOf,
   buildDevelopNodeRemindGroup,
-} from '../../docs/src/services/governance/todo.js?v=20261031a';
-import { HandoffStore } from '../../docs/src/services/governance/handoff.js?v=20261031a';
-import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261031a';
-import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261031a';
+  buildHalfYearInspectionRemindGroup,
+} from '../../docs/src/services/governance/todo.js?v=20261120a';
+import { HandoffStore } from '../../docs/src/services/governance/handoff.js?v=20261120a';
+import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261120a';
+import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261120a';
 import {
   saveFollowups, buildOverdueRemindGroup,
-} from '../../docs/src/services/governance/resolution-followup.js?v=20261031a';
-import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261031a';
+} from '../../docs/src/services/governance/resolution-followup.js?v=20261120a';
+import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261120a';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();
@@ -344,4 +345,17 @@ test('⑨ 发展节点提醒：培养考察期满/预备期满派生组织委员
   // 幂等：无期满/空输入 → null（不产生空组卡，避免重复提醒）
   assert.equal(buildDevelopNodeRemindGroup({ members, overrides: { 2400012347: overrides['2400012347'] }, today }), null);
   assert.equal(buildDevelopNodeRemindGroup({ members: [], overrides: {}, today }), null);
+});
+
+// ── 半年考察按本地日归期（跨层正确性 1.2）────────────────────────────
+test('半年考察口径按本地日：本地 7/1 00:30（UTC 仍是 6/30）的记录归入下半年', () => {
+  // 构造「本地 2026-07-01 00:30」：其 ISO（UTC）串落在 2026-06-30T16:30Z
+  const recordedAt = new Date(2026, 6, 1, 0, 30).toISOString();
+  const members = [{ id: 'p-hy', name: '边界成员', developStage: '积极分子' }];
+  const group = buildHalfYearInspectionRemindGroup({
+    members,
+    records: [{ id: 'r-hy', personId: 'p-hy', recordedAt }],
+    today: '2026-10-01', // H2
+  });
+  assert.equal(group, null, '本地 7/1 记录已覆盖 H2，不得按 UTC 6/30 误判为未考察');
 });

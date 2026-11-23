@@ -50,7 +50,7 @@ async function openOrgTab(page, tab) {
   await page.fill('#student-id', '2400012355');
   await page.fill('#password', '123456');
   await Promise.all([
-    page.waitForURL('**/workspace/org.html', { timeout: 12000 }),
+    page.waitForURL('**/workspace/org', { timeout: 12000 }),
     page.click('button[type="submit"]'),
   ]);
   await page.goto(`${base}/workspace/org.html?tab=${tab}`, { waitUntil: 'domcontentloaded' });

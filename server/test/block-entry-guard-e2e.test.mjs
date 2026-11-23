@@ -40,7 +40,8 @@ async function apiLogin(personId) {
 async function patchBlocks(token, blocks) {
   const res = await fetch(`${base}/api/v1/branches/br-b1/config`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    // 批次 564：整行写口要求 If-Match；本例只验块入口守卫，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'If-Match': '*' },
     body: JSON.stringify({ config: { blocks } }),
   });
   assert.equal(res.status, 200);
@@ -58,12 +59,12 @@ async function openWriteStep1(page) {
   await page.fill('#student-id', '2300010001');
   await page.fill('#password', '123456');
   await Promise.all([
-    page.waitForURL('**/workspace/secretary.html', { timeout: 10000 }),
+    page.waitForURL('**/workspace/secretary', { timeout: 10000 }),
     page.click('button[type="submit"]'),
   ]);
   await page.waitForFunction(() => [...document.querySelectorAll('.secretary-tab-btn')].some(b => b.textContent.includes('活动')), null, { timeout: 12000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261031a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261120a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.evaluate(() => [...document.querySelectorAll('.secretary-tab-btn')].find(b => b.textContent.includes('活动'))?.click());
   await page.waitForFunction(() => document.getElementById('ws-sec-write-btn'), null, { timeout: 10000 });
   await page.evaluate(() => document.getElementById('ws-sec-write-btn')?.click());

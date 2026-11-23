@@ -1,30 +1,36 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../../core/base/icons.js?v=20261031a';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20261031a';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261031a';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261031a';
-import { PEOPLE } from '../../data/mock/people.js?v=20261031a';
+import { icon } from '../../core/base/icons.js?v=20261120a';
+import { getBasePath, showToast, fmtLocalDateTime } from '../../core/base/utils.js?v=20261120a';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261120a';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261120a';
+import { PEOPLE } from '../../data/mock/people.js?v=20261120a';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 // 2026-09-21 批次 129：制度链（草案 → 支委会审议 → 现行版 / 退回修改）——草案态与修改口同源于该服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   updateInstitutionDraft, INSTITUTION_DRAFT, INSTITUTION_PENDING_PARTY_MEETING,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../../services/branch/branch-doc.js?v=20261031a';
+} from '../../services/branch/branch-doc.js?v=20261120a';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261031a';
-import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261031a';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261120a';
+import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261120a';
 // 制度内容（领域）→ 对应【主体】：判据单一源（2026-10-05 批次 378 · `SOP-B-25` 第 ② 项「按草案落地」）
 import {
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_LABELS, institutionSubjectOfDomain, ORG_SUBJECT_LABELS,
-} from '../../core/domain/work-map.js?v=20261031a';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261031a';
+} from '../../core/domain/work-map.js?v=20261120a';
+import { ROLE_LABELS, COMMITTEE_OWNER_ID } from '../../core/domain/constants.js?v=20261120a';
+// 未登录公共门厅读口（匿名 `/api/public/*`，只返回党委公开、未过期内容）——批次 539 R2
+import { loadPublicPortal, publicDocumentDownloadUrl } from '../../data/public-portal-client.js?v=20261120a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
+import { emptyStateHtml, skeletonHtml } from '../ui/empty-state.js?v=20261120a';
+/** 院级资料（党委自有内容）：登录后按 D-858 与本支部文件并集展示；写口仍只归党委。 */
+function _isCommitteeDoc(d) {
+  return !!d && (d.ownerScope === 'committee' || d.branchId === COMMITTEE_OWNER_ID);
+}
 /** 主体引用 → 显示名（角色键 → 角色名；组织型主体 id → 组织名，如「支委会」） */
 function _subjectLabelOf(subjectId) {
   if (!subjectId) return '';
@@ -172,13 +178,10 @@ function _isInstitutionDoc(d) {
   return !!d && d.purpose === 'institution';
 }
 
-/** ISO 时间 → 本地 'YYYY-MM-DD HH:mm' */
+/** ISO 时间 → 本地 'YYYY-MM-DD HH:mm'（单一源 core/base/date.js::fmtLocalDateTime） */
 function _fmtDateTime(iso) {
   if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return String(iso).slice(0, 16);
-  const p = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  return fmtLocalDateTime(iso) || String(iso).slice(0, 16);
 }
 
 /** 发布人 personId → 姓名（种子外人员回退 id） */
@@ -196,7 +199,8 @@ function _institutionStatusOf(d) {
       ? { label: '已退回', bg: '#FEF3C7', fg: '#B45309' }
       : { label: '草案', bg: '#FEF3C7', fg: '#B45309' };
   }
-  if (d.status === INSTITUTION_PENDING_PARTY_MEETING) return { label: '待党员大会表决', bg: '#DBEAFE', fg: '#1D4ED8' };
+  // 2026-11-04 批次 534（Task 6.5）：待表决态底/字改语义令牌（亮色值逐字相同，暗色随令牌成对翻转）。
+  if (d.status === INSTITUTION_PENDING_PARTY_MEETING) return { label: '待党员大会表决', bg: 'var(--badge-info-bg)', fg: 'var(--badge-info-text)' };
   return { label: '停用', bg: 'var(--neutral-100)', fg: 'var(--neutral-500)' };
 }
 
@@ -221,6 +225,9 @@ export class ReferencesModule {
   static _isInstitutionManager = false;
   /** 「只看制度」过滤开关（默认全部） */
   static _onlyInstitution = false;
+  /** 未登录时可见的党委公开资料（公共门厅匿名读口；不含支部名与成员字段） */
+  static _publicDocs = [];
+  static _publicDocsState = { loading: false, loaded: false, error: '' };
 
   static init() {
     ReferencesModule._onlyInstitution = false;
@@ -229,7 +236,9 @@ export class ReferencesModule {
     // 支部文件行内动作：宿主 #ref-branch-docs-list 常驻、行由引擎重绘 → 事件委托只挂一次
     ReferencesModule._bindBranchDocList();
     ReferencesModule._loadAuth();
-    ReferencesModule._loadBranchDocs().then(() => ReferencesModule.render());
+    ReferencesModule._loadBranchDocs()
+      .then(() => (ReferencesModule._currentUser ? null : ReferencesModule._loadPublicDocs()))
+      .then(() => ReferencesModule.render());
   }
 
   static _loadAuth() {
@@ -251,6 +260,26 @@ export class ReferencesModule {
     } catch (e) {
       console.warn('[references] 支部文件加载失败：', e);
       ReferencesModule._branchDocs = [];
+    }
+  }
+
+  /** 未登录公开资料：只走匿名公共门厅读口（服务端白名单投影，不含支部名 / 成员字段） */
+  static async _loadPublicDocs() {
+    const state = ReferencesModule._publicDocsState;
+    if (state.loading) return;
+    state.loading = true;
+    state.error = '';
+    ReferencesModule.render();
+    try {
+      const data = await loadPublicPortal({ limit: 20 });
+      ReferencesModule._publicDocs = data.documents;
+      state.loaded = true;
+    } catch (e) {
+      ReferencesModule._publicDocs = [];
+      state.error = (e && e.message) ? e.message : '加载失败';
+    } finally {
+      state.loading = false;
+      ReferencesModule.render();
     }
   }
 
@@ -366,20 +395,12 @@ export class ReferencesModule {
     ReferencesModule._ensureBranchFilterToolbar();
 
     // 保持匿名可访：支部文件需登录后可见（支书 2026-08-18 裁决）；
-    // 匿名提示附「去登录」入口（支书 2026-09-07 U1 批准；静态文案位在 search.html，此处 JS 补链）
+    // 批次 539 R2：匿名不再只给登录提示——同一宿主展示党委公开资料（匿名门厅读口）＋ 下载入口，
+    //   「去登录」降为附注（登录后才看得到所属支部文件）。
     if (!ReferencesModule._currentUser) {
-      list.innerHTML = '';
       ReferencesModule._setBranchFilterVisible(false);
-      if (empty) empty.classList.add('hidden');
-      if (loginHint) {
-        loginHint.innerHTML = emptyStateHtml({
-          variant: 'panel',
-          text: '请先登录后使用',
-          actionHtml: `<a href="${getBasePath()}login.html" class="btn-accent btn-party-solid inline-block px-3 py-1.5 rounded-lg text-xs font-medium text-white" style="text-decoration:none;">去登录</a>`,
-        });
-        loginHint.classList.remove('hidden');
-      }
       if (addBtn) addBtn.classList.add('hidden');
+      ReferencesModule._renderPublicDocs(list, empty, loginHint);
       return;
     }
     ReferencesModule._setBranchFilterVisible(true);
@@ -395,7 +416,8 @@ export class ReferencesModule {
       // 成员可见：**现行 / 已停用**的制度文本（全员可读）+ 已归档普通文件（现状不变）；
       // 会前草案（status=draft）维持现状仅支委可见；2026-09-21 批次 129：**制度草案 / 待党员大会表决**
       // 同属「尚未成为现行版」，与普通文件草案一样**仅支委层可见**（不让草案提前对全员公开）。
-      docs = docs.filter((doc) => (_isInstitutionDoc(doc)
+      // 院级资料按 D-858 对登录成员并集展示（服务端已按 publishScope 过滤，本层不再二次收紧）
+      docs = docs.filter((doc) => _isCommitteeDoc(doc) || (_isInstitutionDoc(doc)
         && doc.status !== INSTITUTION_DRAFT && doc.status !== INSTITUTION_PENDING_PARTY_MEETING)
         || doc.status === 'archived');
     }
@@ -448,13 +470,94 @@ export class ReferencesModule {
     });
   }
 
+  /**
+   * 未登录公开资料渲染（批次 539 R2）。
+   * 只消费匿名门厅投影（标题 / 摘要 / 格式 / 大小 / 下载），不出现支部名与成员字段；
+   * 载荷、空态、失败态沿用本页既有形态（骨架 / emptyStateHtml / ref-doc-item 行）。
+   */
+  static _renderPublicDocs(list, empty, loginHint) {
+    const state = ReferencesModule._publicDocsState;
+    const loginAction = `<a href="${getBasePath()}login.html" class="btn-accent btn-party-solid inline-block px-3 py-1.5 rounded-lg text-xs font-medium text-white" style="text-decoration:none;">去登录</a>`;
+
+    if (empty) empty.classList.add('hidden');
+    if (loginHint) loginHint.classList.add('hidden');
+
+    if (state.loading) {
+      list.innerHTML = skeletonHtml(3, { variant: 'list', ariaText: '正在加载公开资料…' });
+      return;
+    }
+    if (state.error) {
+      list.innerHTML = emptyStateHtml({
+        variant: 'panel',
+        text: `公开资料加载失败：${state.error}`,
+        actionHtml: '<button type="button" class="btn-outline btn-sm" data-public-docs-retry>重试</button>',
+      });
+      return;
+    }
+
+    let docs = ReferencesModule._publicDocs;
+    const q = ReferencesModule._searchTerm;
+    if (q) {
+      docs = docs.filter((d) => [d.title, d.summary, d.fileName]
+        .some((value) => String(value || '').toLowerCase().includes(q)));
+    }
+
+    if (!docs.length) {
+      list.innerHTML = emptyStateHtml({
+        variant: 'panel',
+        text: q ? '未找到匹配的公开资料' : '暂无公开资料',
+        actionHtml: q ? '' : loginAction,
+      });
+      return;
+    }
+
+    list.innerHTML = docs.map((d) => ReferencesModule._renderPublicDocRow(d)).join('');
+    if (loginHint) {
+      loginHint.innerHTML = emptyStateHtml({
+        variant: 'panel',
+        text: '以上为党委公开资料；登录后可查看所属支部文件',
+        actionHtml: loginAction,
+      });
+      loginHint.classList.remove('hidden');
+    }
+  }
+
+  /** 公开资料行：沿用本页 ref-doc-item 行型（不复用门厅样式），下载走匿名下载口 */
+  static _renderPublicDocRow(d) {
+    const title = d.title || d.fileName || '未命名资料';
+    const fmt = String(d.format || _extFromName(d.fileName) || '').toLowerCase();
+    const size = _formatSize(d.fileSize);
+    const meta = [d.updatedAt ? String(d.updatedAt).slice(0, 10) : '', d.summary || '']
+      .filter(Boolean).join(' · ');
+    return `
+      <div class="ref-doc-item">
+        <div class="ref-doc-left">
+          ${fmt ? _formatIcon(fmt) : ''}
+          <div class="ref-doc-info">
+            <span class="ref-doc-title">${_esc(title)}</span>
+            ${meta ? `<span class="ref-doc-meta">${_esc(meta)}</span>` : ''}
+          </div>
+        </div>
+        <div class="ref-doc-right">
+          ${size ? `<span class="ref-doc-size">${size}</span>` : ''}
+          <a class="ref-download-btn" href="${_esc(publicDocumentDownloadUrl(d.id))}" download="${_esc(d.fileName || title)}">${icon('download', { className: 'w-3.5 h-3.5' })}下载</a>
+        </div>
+      </div>
+    `;
+  }
+
   /** 普通文件行（维持现状模板：类型徽标 + 标题/元信息 + 下载 + 支委修改/删除） */
   static _renderDocRow(d) {
     const href = d.filePath ? withSelectedBranchScope(d.filePath) : (d.fileData || '#');
     const downloadable = href && href !== '#';
     const downloadAttr = downloadable ? `download="${_esc(d.fileName || d.title || '文件')}"` : '';
     const fileTarget = d.filePath ? 'target="_blank" rel="noopener noreferrer"' : '';
-    const actions = ReferencesModule._isCommissioner ? `
+    const isCommittee = _isCommitteeDoc(d);
+    const statusText = isCommittee
+      ? `院级资料 · ${d.publishScope === 'public' ? '公开' : '登录可见'}`
+      : (d.status === 'draft' ? '会前草案' : '已归档');
+    // 院级资料的写口只归党委，支部侧不呈现修改 / 删除（点了也会被服务端拒绝）
+    const actions = ReferencesModule._isCommissioner && !isCommittee ? `
       <button type="button" class="btn-outline ref-doc-action-btn" data-action="edit" data-id="${_esc(d.id)}">修改</button>
       <button type="button" class="btn-outline ref-doc-action-btn ref-doc-action-danger" data-action="delete" data-id="${_esc(d.id)}">删除</button>
     ` : '';
@@ -464,7 +567,9 @@ export class ReferencesModule {
           ${_formatIcon(d.format || _extFromName(d.fileName))}
           <div class="ref-doc-info">
             <span class="ref-doc-title">${_esc(d.title || d.fileName || '未命名文件')}</span>
-            <span class="ref-doc-meta">${_esc(d.status === 'draft' ? '会前草案' : '已归档')}${_discussionLabel(d)}${d.desc || d.fileName ? ' · ' + _esc(d.desc || d.fileName || '') : ''}</span>
+            <!-- 2026-11-10 批次 541：meta 拆两行（状态 / 说明各占一行，12px），不再挤成一行截断 -->
+            <span class="ref-doc-meta">${_esc(statusText)}${_discussionLabel(d)}</span>
+            ${d.desc || d.fileName ? `<span class="ref-doc-meta">${_esc(d.desc || d.fileName || '')}</span>` : ''}
           </div>
         </div>
         <div class="ref-doc-right">
@@ -503,24 +608,26 @@ export class ReferencesModule {
       // 「待党员大会表决」态不出操作：下一步在支部党员大会议程上（既有会议议程），本列表不另开入口
     }
 
-    const metaParts = [];
-    if (isCurrent) metaParts.push(`制度文本 · 现行版 v${versionNo}`);
-    else if (isDraft) metaParts.push(d.reviewResult === 'rejected'
+    // 2026-11-10 批次 541：meta 拆两行——首行「状态 / 版本」，次行「领域 · 说明 · 更新时间 · 发布人」
+    const metaTop = [];
+    if (isCurrent) metaTop.push(`制度文本 · 现行版 v${versionNo}`);
+    else if (isDraft) metaTop.push(d.reviewResult === 'rejected'
       ? `制度文本 · 草案 v${versionNo}（支委会审议未通过，已退回修改）`
       : `制度文本 · 草案 v${versionNo}（待支委会审议）`);
-    else if (d.status === INSTITUTION_PENDING_PARTY_MEETING) metaParts.push(`制度文本 · v${versionNo}（支委会审议通过，待党员大会表决）`);
-    else metaParts.push(`制度文本 · 已停用（最近版本 v${versionNo}）`);
-    if (isDraft && d.reviewResult === 'rejected' && d.reviewNote) metaParts.push(`退回意见：${_esc(d.reviewNote)}`);
+    else if (d.status === INSTITUTION_PENDING_PARTY_MEETING) metaTop.push(`制度文本 · v${versionNo}（支委会审议通过，待党员大会表决）`);
+    else metaTop.push(`制度文本 · 已停用（最近版本 v${versionNo}）`);
+    const metaSub = [];
+    if (isDraft && d.reviewResult === 'rejected' && d.reviewNote) metaSub.push(`退回意见：${_esc(d.reviewNote)}`);
     // 制度内容（领域）→ 起草与监督主体（2026-10-05 批次 378 · 判据单一源 `work-map.js::INSTITUTION_DOMAINS`）
     const domLabel = d.domain && INSTITUTION_DOMAIN_LABELS[d.domain];
-    metaParts.push(domLabel
+    metaSub.push(domLabel
       ? `制度内容领域：${domLabel} · 起草与监督：${_subjectLabelOf(institutionSubjectOfDomain(d.domain))}`
       : '制度内容领域未登记（未定起草与监督主体）');
-    if (d.desc) metaParts.push(_esc(d.desc));
+    if (d.desc) metaSub.push(_esc(d.desc));
     const updTime = _fmtDateTime(d.updatedAt || d.uploadedAt);
-    if (updTime) metaParts.push(`更新于 ${updTime}`);
+    if (updTime) metaSub.push(`更新于 ${updTime}`);
     const pubName = _personName(d.versionBy || d.uploadedBy);
-    if (pubName) metaParts.push(`${pubName} 发布`);
+    if (pubName) metaSub.push(`${pubName} 发布`);
 
     const readPanel = ReferencesModule._renderInstitutionReadPanel(d);
     const histPanel = ReferencesModule._renderInstitutionHistoryPanel(d, isCurrent);
@@ -535,7 +642,8 @@ export class ReferencesModule {
                 <span class="ref-doc-title">${_esc(d.title || '未命名制度')}</span>
                 ${_institutionBadge(d)}
               </span>
-              <span class="ref-doc-meta">${metaParts.join(' · ')}</span>
+              <span class="ref-doc-meta">${metaTop.join(' · ')}</span>
+              <span class="ref-doc-meta">${metaSub.join(' · ')}</span>
             </div>
           </div>
           <div class="ref-doc-right">
@@ -621,6 +729,11 @@ export class ReferencesModule {
     const list = document.getElementById('ref-branch-docs-list');
     if (!list) return;
     list.addEventListener('click', (e) => {
+      // 匿名公开资料失败重试（批次 539 R2）：列表由本函数重绘，故走宿主委托
+      if (e.target.closest('[data-public-docs-retry]')) {
+        ReferencesModule._loadPublicDocs();
+        return;
+      }
       const btn = e.target.closest('.ref-doc-action-btn');
       if (!btn) return;
       e.preventDefault();
@@ -712,7 +825,7 @@ export class ReferencesModule {
           <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-body">正文（文本 / Markdown）</label>
           <textarea id="ref-modal-body" class="input-flat w-full" rows="10"
             placeholder="输入制度正文。支持简单 Markdown：# 标题、**加粗**、- 列表、1. 列表、行内 code、代码块">${editingDraft ? _esc(editing.bodyText || '') : ''}</textarea>
-          <p class="text-xs mt-1.5" style="color:var(--neutral-500);">${editingDraft
+          <p class="text-body-sm mt-1.5" style="color:var(--neutral-500);">${editingDraft
             ? '保存后仍是草案（不改变现行版与版本号）；修改完可再次提交支委会审议。'
             : '保存后即为「制度 · 现行版 v1」；之后再改正文请用列表上的「上传新版」，旧版自动归档可查。'}</p>
         </div>
@@ -735,7 +848,7 @@ export class ReferencesModule {
         <div class="space-y-3.5">
           ${purposeSelectHtml}
           <div>
-            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--status-error-text);">*</span></label>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-title">标题 <span style="color:var(--status-error-text);">*</span></label>
             <input id="ref-modal-title" class="input-flat w-full" placeholder="如：积极分子考察表模板 / 支部例会制度" value="${editing ? _esc(editing.title || '') : ''}" />
           </div>
           <div>
@@ -744,9 +857,9 @@ export class ReferencesModule {
           </div>
           ${instBoxHtml}
           <div>
-            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" id="ref-modal-file-label">${editing ? '替换文件（可选，不选则保留原文件）' : '选择文件 <span style="color:var(--status-error-text);">*</span>'}</label>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" id="ref-modal-file-label" for="ref-modal-file">${editing ? '替换文件（可选，不选则保留原文件）' : '选择文件 <span style="color:var(--status-error-text);">*</span>'}</label>
             <input id="ref-modal-file" type="file" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xlsx,.mp4"
-              class="block w-full text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" style="color:var(--neutral-600);" />
+              class="block w-full text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-[var(--app-accent-soft-bg)] file:text-[var(--app-accent-soft-text)] file:text-xs hover:file:bg-[var(--app-accent-active-bg)] transition-colors cursor-pointer" style="color:var(--neutral-600);" />
           </div>
           <div id="ref-modal-status" class="hidden text-xs rounded-lg px-3 py-2"></div>
         </div>`,
@@ -871,7 +984,7 @@ export class ReferencesModule {
       bodyHtml: `
         <div class="space-y-3.5">
           <div>
-            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--status-error-text);">*</span></label>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-pub-title">标题 <span style="color:var(--status-error-text);">*</span></label>
             <input id="ref-pub-title" class="input-flat w-full" value="${_esc(doc.title || '')}" />
           </div>
           <div>
@@ -882,7 +995,7 @@ export class ReferencesModule {
             <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-pub-note">版本说明（可选）</label>
             <input id="ref-pub-note" class="input-flat w-full" placeholder="如：根据支委会意见修订第三条" />
           </div>
-          <p class="text-xs" style="color:var(--neutral-500);">保存后：当前「现行版 v${doc.version || 1}」自动归档为历史版本（成员仍可展开查阅），正文更新为「现行版 v${(doc.version || 1) + 1}」。</p>
+          <p class="text-body-sm" style="color:var(--neutral-500);">保存后：当前「现行版 v${doc.version || 1}」自动归档为历史版本（成员仍可展开查阅），正文更新为「现行版 v${(doc.version || 1) + 1}」。</p>
           <div id="ref-pub-status" class="hidden text-xs rounded-lg px-3 py-2"></div>
         </div>`,
       footerHtml: `

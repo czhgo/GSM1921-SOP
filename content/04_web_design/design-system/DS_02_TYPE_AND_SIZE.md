@@ -2,9 +2,9 @@
 title: "设计系统 · 第二编 排版与尺寸"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-31
+last_updated: 2026-11-23
 status: active
-related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.css, ../../../server/test/type-scale-guard.test.mjs, ../../../server/test/spacing-scale-guard.test.mjs]
+related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.css, ../../../server/test/style-ratchet-guard.test.mjs, ../../../server/test/style-ratchet-guard.test.mjs]
 ---
 
 # 第二编 排版与尺寸
@@ -56,7 +56,7 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.
 
 #### 3.2.1 非控件小字口径（2026-09-26 立 · 据本表推导 · 可判）
 
-**口径**（单一源守卫＝`server/test/small-text-guard.test.mjs`）：
+**口径**（单一源守卫＝`server/test/style-ratchet-guard.test.mjs`，源件 1 type-scale）：
 
 | 档 | 判定 | 依据 |
 |----|------|------|
@@ -103,6 +103,13 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.
 「内嵌面板标题 / 列表项标题 / 人名」）· `16=Body-L`＋§3.3.1 卡片面板标题（h3）· `18/20/24=H3/H2/H1`。
 **没有新档入表**（`11.2px` 是浏览器 UA 默认，出自外壳页脚链接，**不在档位表内**，登记为待收敛离群项）。
 
+**「正文段」与「说明句」的边界（2026-11-04 批次 533 · `B-515-5`）**：
+
+- **正文段**＝承载多条内容叙述、需要连续阅读的 `<p>`（活动说明 / 汇报正文 / 处理意见 / 分工与跨组协调说明）⇒ 取 **13px** `.text-body-sm`。
+- **说明句**＝给相邻内容加一句注脚、只读一行（附注 / meta / 计数 / 徽标 / 空态 / 提示条）⇒ 保持 **12px** `text-xs`，不得上迁。
+- 判据：把该段单独抽出来读——「删掉后信息丢失且需要连续阅读」＝正文段；「只是给旁边内容加注脚」＝说明句。
+- 存量由 `server/test/style-baseline.mjs::TEXT_XS_BASELINE` 棘轮锁定（只减不增）；守卫 `type-scale-guard::Q6`。
+
 **行高规则（「行距宽窄」的根因与判据）**：
 
 1. **档位类必须自带行高**：正文/导语只用**携行高的档位类**（`text-xs`→16px、`text-sm`→20px、
@@ -115,14 +122,14 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.
 
 **Overline 形态判据（可机检的一半）**：`text-[11px]` 是 **Overline（标签）档**，只许出现在**标签**上
 （同标签 class 同时具备 600 字重、或 `tracking-*` / `uppercase` 之一）；
-**`<p>` 段落（说明 / 导语）不得用 11px**（应取 Caption 12px）。守卫：`server/test/text-tier-guard.test.mjs`
+**`<p>` 段落（说明 / 导语）不得用 11px**（应取 Caption 12px）。守卫：`server/test/style-ratchet-guard.test.mjs`（源件 1 type-scale）
 （判红面＝`<p>` 上的 9/10/11px；`<span>`/`<div>` 上 11px 形态可能合法、只计进度）。
 
 #### 3.2.3 全站实测字号档位（2026-10-31 登记 · 只登记不改值）
 
 > **统计口径**：扫 `docs/src` 下全部 `.css` 的 `font-size`（`var(--text-*)` 按 `styles.css :root` 解析为 px）
 > ＋ `docs` 下全部 `.js/.mjs` 的 `text-*` 工具类、`text-[Npx]` 与行内 `font-size`。
-> 扫描 / 断言单一源＝`server/test/type-scale-guard.test.mjs`（源件 5）；存量台账＝`server/test/style-baseline.mjs::TYPE_TIER_BASELINE`。
+> 扫描 / 断言单一源＝`server/test/style-ratchet-guard.test.mjs`（源件 5）；存量台账＝`server/test/style-baseline.mjs::TYPE_TIER_BASELINE`。
 > **本表只登记现状，不调整任何字号数值**（渲染结果与登记前逐像素一致）。
 
 | 值 | docs/src 全部 .css | docs/**/*.js | 合计 | 判读 |
@@ -156,6 +163,12 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.
 
 **档位表（新代码只许用这些值）**：`11 / 12 / 13 / 14 / 15 / 16 / 18 / 20 / 22 / 24`（px）。
 表外值一律按 `(文件, 值)` 进基线、**只减不增**；新增表外值由 `type-scale-guard::Q1` 判红。
+
+**折叠头标题的字级（2026-11-01 批次 523 立 · 只取 16px 档）**：分区折叠头的标题
+（`.disclosure__title`）固定 **16px / 字重 600 / 行高 24px / 字族 `--font-display`**——即本表 `16px` 档，
+调用点不得再用 `text-sm`（14px）或 `.font-title-cn` 各自覆盖；`<summary class="disclosure__summary">`
+只作**整行热区**（≥44 高、覆盖整行），**不承载标题文字与字级**（行内披露条不受此限）。
+守卫：`type-scale-guard::Q1` ＋ `card-summary-hero-guard::G2`。
 
 **两套 `sm` 的处置（本节要回答的核心歧义）**：
 
@@ -204,8 +217,8 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.
    - 间距裸值 → `SPACING_NON_TOKEN_BASELINE` / `SPACING_INLINE_DECL_BASELINE` / `SPACING_INLINE_ATTR_BASELINE`
      （只减不增；本期**不做批量替换**，避免改变渲染）。
 
-**守卫**：`server/test/type-scale-guard.test.mjs`（Q1 新增表外字号即红 / Q2 处数棘轮）
-＋ `server/test/spacing-scale-guard.test.mjs`（S5 非令牌声明 / S6 行内声明 / S7 行内属性）。
+**守卫**：`server/test/style-ratchet-guard.test.mjs`（Q1 新增表外字号即红 / Q2 处数棘轮）
+＋ `server/test/style-ratchet-guard.test.mjs`（S5 非令牌声明 / S6 行内声明 / S7 行内属性）。
 
 ### 3.3 排版规则
 

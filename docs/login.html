@@ -3,8 +3,9 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261031a"></script>
+<script src="./src/theme-init.js?v=20261120a"></script>
 <meta charset="UTF-8">
+  <meta name="theme-color" content="#CE1126">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>登录 — GSM1921-SOP</title>
   <meta name="description" content="登录">
@@ -13,8 +14,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="./src/tailwind-config.js?v=20261031a"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261031a">
+  <script src="./src/tailwind-config.js?v=20261120a"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261120a">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -71,9 +72,9 @@
   <div class="w-full max-w-md" id="main-content">
     <!-- 顶部签名区：红色色带 + 党徽 + 标题 -->
     <div class="login-hero login-card-anim rounded-t-2xl px-6 py-8 text-center">
-      <img src="./assets/images/party_emblem.png" alt="党徽" class="login-hero-emblem mx-auto mb-3" style="width:56px;height:56px;" draggable="false">
-      <!-- 支部名不写死：静态默认中性文案，配置就绪后由 login-entry.js 按支部档案（config.headerTitle）覆盖 -->
-      <h1 id="login-title" class="font-title text-lg font-bold text-white mb-1 tracking-wide">党支部管理系统</h1>
+      <img src="./assets/images/party_emblem.png" alt="党徽" width="56" height="56" class="login-hero-emblem mx-auto mb-3" draggable="false">
+      <!-- 未登录品牌统一为公共平台品牌（2026-11-08 批次 536 · Task 7）：不显示任何具体支部名 -->
+      <h1 id="login-title" class="font-title text-lg font-bold text-white mb-1 tracking-wide">光华管理学院党建平台</h1>
     </div>
 
     <!-- 默认模式: 统一身份认证（IAAA）＋ 账号密码 -->
@@ -83,17 +84,18 @@
       <!-- 统一身份认证（北大 IAAA）· 批次 277：正式登录方式（备案未完成时按钮会给出可懂提示） -->
       <button type="button" id="iaaa-login" class="btn-accent w-full">统一身份认证登录</button>
       <p class="text-xs text-gray-500 mt-2 leading-relaxed">首次登录自动建号，选择支部后由支部确认。</p>
-      <p id="iaaa-note" class="text-xs text-red-600 mt-2 leading-relaxed hidden"></p>
+      <!-- 2026-11-04 Task 3.5：IAAA 失败提示是状态播报 ⇒ role="alert"（插入即被读屏读出） -->
+      <p id="iaaa-note" class="text-xs text-red-600 mt-2 leading-relaxed hidden" role="alert"></p>
       <div class="login-divider my-5"></div>
       <p class="text-xs text-gray-500 mb-3">账号（学号 ＋ 密码）</p>
       <form id="login-form" class="space-y-4" novalidate>
         <div>
           <label for="student-id" class="block text-xs font-medium text-gray-600 mb-1.5">学号</label>
-          <input type="text" id="student-id" name="studentId" inputmode="numeric" class="input-flat w-full" placeholder="请输入学号…" autocomplete="username">
+          <input type="text" id="student-id" name="studentId" inputmode="numeric" class="input-flat w-full" placeholder="请输入学号…" autocomplete="username" required aria-required="true">
         </div>
         <div>
           <label for="password" class="block text-xs font-medium text-gray-600 mb-1.5">密码</label>
-          <input type="password" id="password" name="password" class="input-flat w-full" placeholder="请输入密码…" autocomplete="current-password">
+          <input type="password" id="password" name="password" class="input-flat w-full" placeholder="请输入密码…" autocomplete="current-password" required aria-required="true">
         </div>
         <p id="login-error" class="text-xs text-red-600 hidden" role="alert">学号或密码错误，请重试</p>
         <button type="submit" class="btn-outline w-full">登录</button>
@@ -121,14 +123,14 @@
   </div>
 
 <!-- modulepreload:start -->
-  <link rel="modulepreload" href="./src/services/core/auth.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/services/core/runtime.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/services/branch/branch.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/core/domain/constants.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/core/base/utils.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/config/deploy.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/components/ui/empty-state.js?v=20261031a" />
+  <link rel="modulepreload" href="./src/services/core/auth.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/core/domain/constants.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/core/base/utils.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/config/deploy.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/components/ui/empty-state.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/core/base/link-normalize.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/core/base/page-url.js?v=20261120a" />
   <!-- modulepreload:end -->
-  <script type="module" src="./src/entries/pages/login-entry.js?v=20261031a"></script>
+  <script type="module" src="./src/entries/pages/login-entry.js?v=20261120a"></script>
 </body>
 </html>

@@ -26,7 +26,7 @@
 
 - Affected specs：`DESIGN_SYSTEM`（SD-3、SD-36、§12.3、新增 SD-47/SD-48）、`DATA_MODEL`（字段表、schema v12、种子契约指针）、`PRODUCT_IA`（缓存/数据形态说明）、`TERMINOLOGY`（新增「业务读缓存 / 写确认 / 演示窗口」）、`CASES`（新增胶囊与数据真相判例）。
 - Affected code：
-  - 胶囊：`docs/src/styles.css`、`docs/src/components/shell/tab-bar.js`、`server/test/ui-contrast-guard.test.mjs`、`server/test/ui-control-system-guard.test.mjs`
+  - 胶囊：`docs/src/styles.css`、`docs/src/components/shell/tab-bar.js`、`server/test/color-ratchet-guard.test.mjs`、`server/test/component-ratchet-guard.test.mjs`
   - 缓存与登录：`docs/src/entries/pages/login-entry.js`、`docs/src/services/core/auth.js`、`accounts.js`、`docs/src/data/data-adapter.js`、`pending-writes.js`
   - mock 回退：`docs/src/services/activity/{activity,attendance,inspection,signup}.js`、`docs/src/services/governance/{notice,todo}.js`
   - schema/种子：`server/db.js`、`server/seed.js`、`server/seed-manifest.js`、`docs/src/data/mock/*.js`、`docs/src/data/derive.js`

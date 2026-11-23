@@ -1,4 +1,4 @@
-﻿﻿# Tasks
+# Tasks
 
 - [x] Task 1: 阻塞 · 成员考勤上传位收口
   - [x] SubTask 1.1 给 `leader/attendance-tab.js` 增加组织者投影模式：只列「本人组织的活动」，隐藏全组考勤明细、补课名单与本组上传摘要

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { resolveDocumentUrl } from '../../docs/src/core/base/page-url.js?v=20261031a';
+import { resolveDocumentUrl } from '../../docs/src/core/base/page-url.js?v=20261120a';
 
 const adapterSource = readFileSync(new URL('../../docs/src/data/data-adapter.js', import.meta.url), 'utf8');
 const todaySource = readFileSync(new URL('../../docs/src/entries/tabs/today/today-tab.js', import.meta.url), 'utf8');
@@ -21,20 +21,20 @@ const leaderWorkspaceSource = readFileSync(new URL('../../docs/src/capabilities/
 test('workspace fallbacks resolve from document base to the site root', () => {
   const workspaceBase = 'http://127.0.0.1:3001/'; // workspace HTML <base href="../">
 
-  assert.equal(resolveDocumentUrl('login.html', { baseURI: workspaceBase }), `${workspaceBase}login.html`);
+  assert.equal(resolveDocumentUrl('login.html', { baseURI: workspaceBase }), `${workspaceBase}login`);
   assert.equal(
     resolveDocumentUrl('notice.html', { baseURI: workspaceBase, searchParams: { id: 'notice 1&2' } }),
-    `${workspaceBase}notice.html?id=notice+1%262`,
+    `${workspaceBase}notice?id=notice+1%262`,
   );
 });
 
 test('workspace fallbacks preserve a project deployment prefix', () => {
   const projectBase = 'https://example.org/GSM1921-SOP/'; // /workspace/*.html with <base href="../">
 
-  assert.equal(resolveDocumentUrl('login.html', { baseURI: projectBase }), `${projectBase}login.html`);
-  assert.equal(resolveDocumentUrl('notice.html', { baseURI: projectBase, searchParams: { id: 'n1' } }), `${projectBase}notice.html?id=n1`);
+  assert.equal(resolveDocumentUrl('login.html', { baseURI: projectBase }), `${projectBase}login`);
+  assert.equal(resolveDocumentUrl('notice.html', { baseURI: projectBase, searchParams: { id: 'n1' } }), `${projectBase}notice?id=n1`);
   for (const page of ['activity.html', 'taskforce.html']) {
-    assert.equal(resolveDocumentUrl(page, { baseURI: projectBase, searchParams: { id: 'item-1' } }), `${projectBase}${page}?id=item-1`);
+    assert.equal(resolveDocumentUrl(page, { baseURI: projectBase, searchParams: { id: 'item-1' } }), `${projectBase}${page.replace(/\.html$/, '')}?id=item-1`);
   }
 });
 
@@ -74,12 +74,18 @@ test('思想汇报「完整记录」落个人档案，不得落名册聚合页',
   assert.doesNotMatch(thoughtReviewSource, /workspace\/org\.html\?tab=roster/, '不得把「完整记录」指向名册聚合页');
 });
 
-test('组长 todo tabMap 的每个值都存在于 leader-workspace 的 tab 集合', () => {
-  const mapBody = leaderTodoSource.match(/const tabMap = \{([\s\S]*?)\};/)?.[1] || '';
-  const values = [...mapBody.matchAll(/:\s*'([^']+)'/g)].map((m) => m[1]);
-  assert.ok(values.length >= 2, 'tabMap 解析失败（至少 authorize / review 两项）');
-  for (const id of values) {
-    assert.match(leaderWorkspaceSource, new RegExp(`\\{ id: '${id}'`), `leader-workspace 不存在 tabMap 目标页签「${id}」`);
+test('组长待办动作落点：每个目标都存在于 leader-workspace 的 tab 集合', async () => {
+  // 2026-11-01 批次 524：tabMap 已收进声明式动作表 `core/domain/todo-actions.js`，
+  //   本判据改为「按 leader 解析出的目标页签仍必须真实存在」——不因换实现而放宽覆盖。
+  // 2026-11-10 批次 540 波次 1：六台落点收口到 `executeTodoAction`（其内部即 resolveTodoAction ＋
+  //   goToWorkspaceTab）⇒ 三种写法同属「走统一动作表 / 统一导航」，一并接受。
+  const { resolveTodoAction } = await import('../../docs/src/core/domain/todo-actions.js?v=20261120a');
+  assert.match(leaderTodoSource, /resolveTodoAction|goToWorkspaceTab|executeTodoAction/,
+    '组长待办须走统一动作表 / 统一导航（不得回退到本页 tabMap）');
+  const ids = ['authorize', 'review'].map((key) => resolveTodoAction({ actionType: key }, 'leader')?.tab).filter(Boolean);
+  assert.ok(ids.length >= 2, '动作表解析失败（至少 authorize / review 两项）');
+  for (const id of ids) {
+    assert.match(leaderWorkspaceSource, new RegExp(`\\{ id: '${id}'`), `leader-workspace 不存在动作目标页签「${id}」`);
   }
 });
 

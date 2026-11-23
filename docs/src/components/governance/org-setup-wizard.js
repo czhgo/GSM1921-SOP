@@ -16,40 +16,41 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261031a';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261031a';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261031a';
-import { applyAccentThemeTokens } from '../../core/boot/theme.js?v=20261031a';
-import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261031a';
-import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261031a';
+import { mockDB } from '../../core/domain/domain.js?v=20261120a';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261120a';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors, ACCENT_PALETTE, normalizeAccentKey } from '../../core/domain/constants.js?v=20261120a';
+import { applyAccentThemeTokens } from '../../core/boot/theme.js?v=20261120a';
+import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261120a';
+import { badgeHtml } from '../ui/badges.js?v=20261120a';
+import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261120a';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../capabilities/secretary-workspace.js?v=20261031a';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261031a';
+import '../../capabilities/secretary-workspace.js?v=20261120a';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261120a';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261031a';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261031a';
-import { icon } from '../../core/base/icons.js?v=20261031a';
-import { confirmDanger } from '../ui/modal.js?v=20261031a';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261031a';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261031a';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261120a';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261120a';
+import { icon } from '../../core/base/icons.js?v=20261120a';
+import { confirmDanger } from '../ui/modal.js?v=20261120a';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261120a';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261120a';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getBranchCapabilityPackageState, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, updateBranchCapabilityPackages, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson, ensureBranchConfigLoaded,
-} from '../../services/branch/branch.js?v=20261031a';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261031a';
+} from '../../services/branch/branch.js?v=20261120a';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261120a';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20261031a';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261031a';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261031a';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261031a';
+} from '../../services/branch/org-base-data-preview.js?v=20261120a';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261120a';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261120a';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261120a';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261031a';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261120a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261120a';
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
   { id: 1, label: '组织信息' },
@@ -62,11 +63,14 @@ export const WIZARD_STEPS = [
 // ── 主题预设（仅「可调令牌」= 角色识别层强调色 --app-accent 三件套，DESIGN_SYSTEM §2.3.2/§2.8）──
 // 党建红 party-red（#CE1126）与党徽金 party-gold（#FFD700）为固定合规底线 → 不提供任何预设/更改；
 // 预设取既有角色识别色系（accent 色相），id 与 core/config-clean THEME_PRESET_IDS 白名单一致。
+// ⚠ 名称一律取现行七色口径（`ACCENT_PALETTE` 的 label：金 / 红 / 橙 / 绿 / 青 / 蓝 / 紫）——
+//   2026-11-03 批次 530（B-520-5）：原「天蓝 / 海蓝 / 翠绿」是已撤的旧色名，不得回潮。
+const _accentLabelOf = (role) => ACCENT_PALETTE.find((c) => c.key === normalizeAccentKey(role))?.label || '金（默认）';
 export const THEME_PRESETS = [
-  { id: 'red',   name: '党建红调', accentRole: 'secretary',        note: '角色识别层红（贴近固定党建红，最稳）' },
-  { id: 'green', name: '翠绿',     accentRole: 'leader',           note: '执行层翠绿系' },
-  { id: 'sky',   name: '天蓝',     accentRole: 'org-commissioner', note: '组织线天蓝系' },
-  { id: 'blue',  name: '海蓝',     accentRole: 'prop-commissioner', note: '宣传线海蓝系' },
+  { id: 'red',   name: _accentLabelOf('secretary'),        accentRole: 'secretary',        note: '角色识别层红（贴近固定党建红，最稳）' },
+  { id: 'green', name: _accentLabelOf('leader'),           accentRole: 'leader',           note: '执行层绿系' },
+  { id: 'sky',   name: _accentLabelOf('org-commissioner'), accentRole: 'org-commissioner', note: '组织线青系' },
+  { id: 'blue',  name: _accentLabelOf('prop-commissioner'), accentRole: 'prop-commissioner', note: '宣传线蓝系' },
 ];
 
 // 固定令牌展示（只读说明，不作为可选预设）
@@ -305,7 +309,7 @@ function _render(S) {
         ${_headHtml(S, branch, org, isStaff)}
         <div class="org-config-layout">
           <nav class="org-config-steps" aria-label="业务配置步骤">${_stepperHtml(S)}</nav>
-          <div class="org-config-content"><div class="card p-5 org-config-step-panel"><div class="space-y-4">${stepContent}</div></div></div>
+          <div class="org-config-content"><div class="card card-standard org-config-step-panel"><div class="space-y-4">${stepContent}</div></div></div>
         </div>
       </section>`
     : `${_headHtml(S, branch, org, isStaff)}${_stepperHtml(S)}<div class="space-y-4">${stepContent}</div>`;
@@ -348,7 +352,7 @@ function _deniedHtml(S) {
   return `<div class="rounded-xl border border-gray-200 bg-white p-6 max-w-xl">
     <p class="font-title-cn text-sm font-bold text-gray-800">无配置权限</p>
     <p class="text-xs text-gray-500 mt-1">换组织向导的配置权限：仅 <b>本支部现任支书/副支书</b>（副书同权）可配置自己的支部（config 写口校验同 branch 服务既有语义）。</p>
-    <p class="text-xs text-amber-700 mt-2">${esc(reason || '当前账号无支部配置权限')}</p>
+    <p class="text-xs text-[var(--status-warning-text)] mt-2">${esc(reason || '当前账号无支部配置权限')}</p>
     <p class="text-xs text-gray-500 mt-3">如需使用向导：以 <b>本支部现任支书/副支书</b>账号登录。</p>
   </div>`;
 }
@@ -365,12 +369,12 @@ function _headHtml(S, branch, org, isStaff) {
     ? `<div class="flex flex-wrap items-center gap-2">
         <label for="wz-branch-select" class="text-xs text-gray-500 shrink-0">目标支部</label>
         <select id="wz-branch-select" class="input-flat w-full max-w-xs min-w-0">${options}</select>
-        <span class="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 shrink-0">党委 · 任意支部</span>
+        ${badgeHtml('党委 · 任意支部', 'info')}
       </div>`
     : `<div class="flex flex-wrap items-center gap-2">
         <span class="text-xs text-gray-500 shrink-0">目标支部</span>
         <span class="text-xs font-medium text-gray-800">${esc(branch.name)}</span>
-        <span class="text-xs px-2 py-0.5 rounded-full shrink-0 ${S.actor.role === 'party-staff' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-red-50 text-red-700 border border-red-100'}">${whoBadge}${S.actor.role === 'party-staff' ? '' : ' · 限本支部'}</span>
+        ${badgeHtml(`${whoBadge}${S.actor.role === 'party-staff' ? '' : ' · 限本支部'}`, S.actor.role === 'party-staff' ? 'info' : 'warning')}
       </div>`;
   return `
     <div class="${S.navigationMode === 'sections' ? 'space-y-2' : 'rounded-xl border border-gray-200 bg-white p-4 space-y-2'}">
@@ -442,7 +446,7 @@ function _createPanelHtml(S, isStaff) {
       </div>`
     : `
       <div class="rounded-lg border border-amber-200 bg-amber-50/60 p-2.5">
-        <p class="text-xs text-amber-700">当前没有可任命的现役成员（已剔除滞留党员）——请先经下方「成员名册预览」导入成员名单，或到成员管理补入成员后，再创建支部并就地任命首任骨干。</p>
+        <p class="text-xs text-[var(--status-warning-text)]">当前没有可任命的现役成员（已剔除滞留党员）——请先经下方「成员名册预览」导入成员名单，或到成员管理补入成员后，再创建支部并就地任命首任骨干。</p>
       </div>`;
   return `
     <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 space-y-2">
@@ -508,7 +512,7 @@ function _basePanelHtml(S) {
     <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 mt-2.5 space-y-2">
       <p class="text-xs font-semibold text-gray-700">成员基础数据预览 <span class="text-xs font-normal text-gray-500">（本地预览：仅覆盖姓名/党小组归属/发展阶段/在校·滞留，不改动已保存数据）</span></p>
       <p class="text-xs text-gray-500">下载「成员名单模板」→ 按真实名册改 JSON → 「导入名单(JSON)预览」：应到人数与党员分布即时变化；「清除预览」回到初始名册。</p>
-      <p class="text-xs text-amber-700">注意：业务历史（活动/考勤/议程/专班等）仍关联历史成员；需人工替换的项见「换壳工作单」。</p>
+      <p class="text-xs text-[var(--status-warning-text)]">注意：业务历史（活动/考勤/议程/专班等）仍关联历史成员；需人工替换的项见「换壳工作单」。</p>
       <div class="flex flex-wrap items-center gap-2">
         <button type="button" data-wz-act="download-base-template" class="btn-outline ${subtle}">下载成员名单模板</button>
         <button type="button" data-wz-act="import-base" class="btn-outline ${subtle}">导入名单(JSON)预览</button>
@@ -528,7 +532,7 @@ function _basePanelHtml(S) {
  *  卡片不自带尺寸，列数交给 .stat-grid。sub 走纯文本转义，subHtml 走已拼好的转义片段。 */
 function _baseStatBox({ icon: iconName, tint, value, valueColor, unit, label, sub, subHtml }) {
   const note = subHtml || (sub ? esc(sub) : '');
-  return `<div class="card rounded-xl p-3 stat-card">
+  return `<div class="card rounded-xl p-4 stat-card">
     <span class="stat-icon-tint" style="--tint:${tint};" aria-hidden="true">${icon(iconName, { strokeWidth: 1.8, className: 'w-5 h-5' })}</span>
     <div class="stat-card__body">
       <p class="stat-card__value"${valueColor ? ` style="color:${valueColor};"` : ''}>${value}${unit ? `<span class="stat-card__unit">${unit}</span>` : ''}</p>
@@ -551,9 +555,9 @@ function _baseDraftHtml(S, draft) {
         <span class="text-xs text-gray-500">有效 ${draft.people.length} 条${draft.dropped ? ` · 已忽略非法/白名单外 ${draft.dropped} 条` : ''}</span>
       </div>
       <div class="stat-grid">
-        ${_baseStatBox({ icon: 'usersGroup', tint: 'var(--status-info)', value: s.partyTotal, unit: '人', label: '在册党员', sub: `应到基数 · 正式 ${s.official} + 预备 ${s.probationary}` })}
+        ${_baseStatBox({ icon: 'usersGroup', tint: 'var(--status-info-text)', value: s.partyTotal, unit: '人', label: '在册党员', sub: `应到基数 · 正式 ${s.official} + 预备 ${s.probationary}` })}
         ${_baseStatBox({ icon: 'clock', tint: 'var(--status-warning-text)', value: s.detained, unit: '人', label: '滞留党员', sub: '组织关系保留、通知照发' })}
-        ${_baseStatBox({ icon: 'usersGroup', tint: 'var(--app-accent-soft-text)', value: s.expected, valueColor: 'var(--status-error-text)', unit: '人', label: '支部党员大会应到', sub: `党员 ${s.partyTotal} − 滞留 ${s.detained}` })}
+        ${_baseStatBox({ icon: 'usersGroup', tint: 'var(--app-accent-soft-text)', value: s.expected, valueColor: 'var(--neutral-800)', unit: '人', label: '支部党员大会应到', sub: `党员 ${s.partyTotal} − 滞留 ${s.detained}` })}
         ${_baseStatBox({ icon: 'list', tint: 'var(--neutral-500)', value: groupCount, unit: '组', label: '各党小组会应到', subHtml: groupParts || '—' })}
       </div>
       <div class="flex flex-wrap items-center justify-between gap-2">
@@ -653,7 +657,7 @@ function _step1Html(S, branch, org, isStaff) {
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <label class="flex flex-col gap-1 text-xs text-gray-500">
-          支部名称（官方名）${canEditName ? '' : '<span class="text-xs text-amber-700">党委管理，支书只读</span>'}
+          支部名称（官方名）${canEditName ? '' : '<span class="text-xs text-[var(--status-warning-text)]">党委管理，支书只读</span>'}
           <input id="wz-org-name" type="text" value="${esc(org.name)}" placeholder="支部官方名" ${canEditName ? '' : 'disabled'}
             class="input-flat w-full ${canEditName ? '' : 'bg-gray-50 text-gray-500'}">
         </label>
@@ -761,7 +765,7 @@ function _step2Html(S, branch, isStaff = false) {
     <div class="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
       <div class="flex items-center justify-between">
         <p class="text-xs font-bold text-gray-700">② 模块 / 块组合</p>
-        <span class="text-xs ${isStaff ? 'text-amber-700' : 'text-gray-500'}">${locked ? '先选目标支部；未选支部时本页只读' : (isStaff ? '党委代配置（留痕），支部可覆盖；点击开关 → 保存本步' : '对支部工作台成员「下次进入」生效；点击开关 → 保存本步')}</span>
+        <span class="text-xs ${isStaff ? 'text-[var(--status-warning-text)]' : 'text-gray-500'}">${locked ? '先选目标支部；未选支部时本页只读' : (isStaff ? '党委代配置（留痕），支部可覆盖；点击开关 → 保存本步' : '对支部工作台成员「下次进入」生效；点击开关 → 保存本步')}</span>
       </div>
       <div>
         <p class="text-xs font-bold text-gray-600 mb-1.5">业务模块 <span class="text-xs font-normal text-gray-500">（支书工作台 tab；核心组固定不可关）</span></p>
@@ -863,7 +867,7 @@ function _step4Html(S, branch) {
         <p class="text-xs font-bold text-gray-700">④ 术语 / 制度 / 数据指引 + 换壳工作单</p>
       </div>
       <div class="rounded-lg border border-gray-100 bg-gray-50/50 px-3 py-1">${guide}</div>
-      <div class="rounded-xl border border-dashed border-red-200 bg-red-50/40 p-3.5">
+      <div class="rounded-xl border border-dashed border-red-200 bg-red-50/40 p-4">
         <p class="text-xs font-semibold text-gray-700">生成「换壳工作单」（Markdown 下载）</p>
         <p class="text-xs text-gray-500 mt-1">汇总：已完成配置摘要 + 待替换材料清单。</p>
         <button type="button" data-wz-act="download-report" class="btn-accent mt-2 px-3 py-1.5 text-xs font-medium">生成并下载工作单</button>

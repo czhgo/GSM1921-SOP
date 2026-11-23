@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // module-compose.test.mjs — P3d v0 模块组合声明契约校验单测（2026-09-05）
-// 契约源：content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md「组合声明（P3d v0）」
+// 契约源：content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md「组合声明（P3d v0）」
 // 纯 node（无 Playwright、不起 server）：
 //   ① assertComposeValid 通过例；② 引用缺失 / 互斥同含 / depends 成环 三失败例；
 //   ③ resolveConflicts 收集正确性（多类问题一次集齐、去重）；
@@ -8,8 +8,8 @@
 // 运行：cd server; node --test --test-concurrency=1 test/module-compose.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveConflicts, assertComposeValid } from '../../docs/src/core/base/module-compose.js?v=20261031a';
-import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js?v=20261031a';
+import { resolveConflicts, assertComposeValid } from '../../docs/src/core/base/module-compose.js?v=20261120a';
+import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js?v=20261120a';
 
 // ── ① 通过例：依赖链合法、无互斥同含、无环 ──
 test('assertComposeValid：组合干净返回 true', () => {

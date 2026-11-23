@@ -5,9 +5,10 @@
 // ════════════════════════════════════════════════════════════════
 
 import { requireAuth, requireCommissioner } from '../auth.js';
-import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, ORG_COMMISSIONER_ROLES, INSPECTION_WRITE_ROLES, INSPECTION_CONFIRM_ROLES, branchCommissionerWriteDeny, isAnonymousForced, PARTY_GROUP_LEADER_ROLES, isPartyGroupLeaderRole, DEFAULT_BRANCH_ID, LEADER_CREATABLE_ACTIVITY_TYPES } from '../../../docs/src/core/domain/constants.js';
+import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, ORG_COMMISSIONER_ROLES, INSPECTION_WRITE_ROLES, INSPECTION_CONFIRM_ROLES, branchCommissionerWriteDeny, isAnonymousForced, PARTY_GROUP_LEADER_ROLES, isPartyGroupLeaderRole, DEFAULT_BRANCH_ID, LEADER_CREATABLE_ACTIVITY_TYPES, isBranchPendingUser } from '../../../docs/src/core/domain/constants.js';
 import { RESOURCE_TABLES, listTable } from './store.js';
-import { actorBranchId, resourceBranchId } from './branch-scope.js';
+import { actorBranchId, createTableReader, resourceBranchId } from './branch-scope.js';
+import { deputyResourceDeny } from './deputy-policy.js';
 import { CAPABILITY_PACKAGES } from '../../../docs/src/core/domain/capability-packages.js';
 
 // ── P3 上线前收紧（2026-09-03，design §7 登记项落地）：资源级写角色门 ──────────
@@ -78,6 +79,11 @@ function _noticePublishAllowed(db, actor, notice) {
 
 /** 资源写角色门判定（在 requireAuth 之后、handler 内调用；未设门资源一律放行） */
 export function _assertResourceWrite(actor, name, method, body, targetId, db) {
+  // 副支书操作权（2026-11-20 批次 579）：只收紧 deputy 的四类主责动作，其余角色口径不变。
+  if (db) {
+    const deputyDeny = deputyResourceDeny(db, actor, name, method, body);
+    if (deputyDeny) return false;
+  }
   const gate = RESOURCE_WRITE_GATE[name];
   if (!gate) return true; // 未设门：由既有 writeAuth（requireAuth / requireCommissioner）把关
   const need = typeof gate === 'string' ? gate : gate[method];
@@ -138,6 +144,19 @@ export function _assertActivityWrite(actor, effectiveType) {
   if (isPartyGroupLeaderRole(actor.role)) return LEADER_ACTIVITY_TYPES.has(effectiveType);
   return true;
 }
+
+// ── 支委会写门（D-866 · 本批 P0-2）──────────────────────────────
+//   建会 / 改议程 / 记录决议只归支书 / 副支书；党委侧 party-staff 保留既有入口。
+//   普通活动写权不动（避免误伤归档 / 议程编辑既有链路）；进一步收紧列入丙部待裁。
+const COMMITTEE_MEETING_TYPES = new Set(['支委会']);
+export function isCommitteeMeetingActivity(activity) {
+  return !!activity && (COMMITTEE_MEETING_TYPES.has(activity.type) || activity.scenarioId === 'branch-committee');
+}
+export function assertCommitteeMeetingWrite(actor, activity) {
+  if (!isCommitteeMeetingActivity(activity)) return true;
+  return !!actor && (SECRETARY_AND_DEPUTY_ROLE_SET.has(actor.role) || PARTY_STAFF_ROLE.has(actor.role));
+}
+export const COMMITTEE_MEETING_DENY_MSG = '无权限：支委会只能由支书 / 副支书建立，议程与决议也只能由支书 / 副支书记录';
 export function _ballotModeReject(voteConfig) {
   if (!voteConfig || typeof voteConfig !== 'object') return null;
   if (isAnonymousForced(voteConfig.optionSet) && voteConfig.ballotMode === 'named') {
@@ -306,10 +325,10 @@ export const NOTICE_MESSAGE_DENY_MSG = '无权限：站内信（私信）发件�
  * @param {{role?:string,id?:string}} actor 写者（requireAuth 注入）
  * @returns {string|null}
  */
-export function _snapshotNoticeMessageGateDeny(db, payload, actor) {
+export function _snapshotNoticeMessageGateDeny(db, payload, actor, reader) {
   const rows = (payload && Array.isArray(payload.notices)) ? payload.notices : null;
   if (!rows) return null;
-  const prevById = new Map(listTable(db, 'notices').map((r) => [r.id, r]));
+  const prevById = reader ? reader.ids('notices') : new Map(listTable(db, 'notices').map((r) => [r.id, r]));
   for (const row of rows) {
     if (!row || typeof row !== 'object' || row.noticeType !== 'message') continue;
     const prev = prevById.get(row.id);
@@ -345,8 +364,8 @@ export function _snapshotNoticeMessageGateDeny(db, payload, actor) {
 // ════════════════════════════════════════════════════════════════
 
 /** 通知快照写门：新增需发布权（含本场组织者），修改需管理权；任何成员可只改自己的 read 状态。 */
-function _snapshotNoticeWriteDeny(db, rows, actor) {
-  const previous = new Map(listTable(db, 'notices').map((r) => [String(r.id), r]));
+function _snapshotNoticeWriteDeny(db, rows, actor, reader) {
+  const previous = reader ? reader.ids('notices') : new Map(listTable(db, 'notices').map((r) => [String(r.id), r]));
   for (const row of rows) {
     if (!row || typeof row !== 'object' || !row.id) continue;
     const prev = previous.get(String(row.id));
@@ -383,9 +402,10 @@ function _snapshotNoticeWriteDeny(db, rows, actor) {
  * @param {{id?:string, role?:string, branchId?:string|null}} actor
  * @returns {Array<{name:string, table:string, rows:Array<Object>}>}
  */
-export function _retainUngatedSnapshotRows(db, writes, actor) {
+export function _retainUngatedSnapshotRows(db, writes, actor, reader) {
   const own = actorBranchId(actor);
   if (!own) return writes;
+  const read = reader || createTableReader(db);
   return writes.map((write) => {
     const { name, table, rows } = write;
     if (['users', 'branches', 'actSubRecords', 'tfSubRecords'].includes(name)) return write;
@@ -396,8 +416,8 @@ export function _retainUngatedSnapshotRows(db, writes, actor) {
       : _assertResourceWrite(actor, name, 'delete', null, null, db);
     if (canDelete) return write;
     const incomingIds = new Set(rows.map((row) => String(row?.id)));
-    const missing = listTable(db, table)
-      .filter((row) => resourceBranchId(db, name, row) === own && !incomingIds.has(String(row.id)));
+    const missing = read.rows(table)
+      .filter((row) => resourceBranchId(db, name, row, read) === own && !incomingIds.has(String(row.id)));
     return missing.length ? { ...write, rows: [...rows, ...missing] } : write;
   });
 }
@@ -409,22 +429,23 @@ export function _retainUngatedSnapshotRows(db, writes, actor) {
  * @param {{id?:string, role?:string, branchId?:string|null}} actor
  * @returns {string|null} 拒绝原因（403 文案）；放行 → null
  */
-export function _snapshotResourceWriteGateDeny(db, writes, actor) {
+export function _snapshotResourceWriteGateDeny(db, writes, actor, reader) {
   const ownBranch = actorBranchId(actor);
+  const read = reader || createTableReader(db);
   for (const write of writes) {
     const { name, table, rows } = write;
-    // 治理表由 snapshotScopeDeny 整体拒绝；聚合域由 aggregate 分支夹带校验。
-    if (['users', 'branches', 'actSubRecords', 'tfSubRecords'].includes(name)) continue;
+    // 治理表由 snapshotScopeDeny 整体拒绝；聚合域由 `_snapshotAggregateSubRecordDeny` 按父键复算（Task 7 红队：原直接 continue ⇒ 可用空 body 整段清空）。
+    if (['users', 'branches', 'actSubRecords', 'tfSubRecords'].includes(name)) { if (name === 'actSubRecords' || name === 'tfSubRecords') { const d = _snapshotAggregateSubRecordDeny(db, name, rows, actor, read); if (d) return d; } continue; }
 
     // deny-by-default：没有门的集合也至少确认每行归属当前支部。
     // 跳过「合并后保留的其他支部存量行」（未变行不构成本次写入）。
     if (ownBranch) {
-      const existing = new Map(listTable(db, table).map((r) => [String(r.id), r]));
+      const existing = read.ids(table);
       for (const row of rows) {
         if (!row || typeof row !== 'object') continue;
         const prev = existing.get(String(row.id));
         if (prev && JSON.stringify(prev) === JSON.stringify(row)) continue;
-        const resolved = resourceBranchId(db, name, row);
+        const resolved = resourceBranchId(db, name, row, read);
         if (resolved && resolved !== ownBranch) {
           return '无权限：快照只能写入当前支部记录';
         }
@@ -432,7 +453,7 @@ export function _snapshotResourceWriteGateDeny(db, writes, actor) {
     }
 
     if (name === 'notices') {
-      const deny = _snapshotNoticeWriteDeny(db, rows, actor);
+      const deny = _snapshotNoticeWriteDeny(db, rows, actor, read);
       if (deny) return deny;
       continue;
     }
@@ -441,7 +462,7 @@ export function _snapshotResourceWriteGateDeny(db, writes, actor) {
     const commissionerOnly = COMMISSIONER_WRITE_RESOURCES.has(name);
     if (!gate && !commissionerOnly) continue;
 
-    const previous = new Map(listTable(db, table).map((r) => [String(r.id), r]));
+    const previous = read.ids(table);
     for (const row of rows) {
       if (!row || typeof row !== 'object' || !row.id) continue;
       const prev = previous.get(String(row.id));
@@ -731,7 +752,12 @@ function _assertResourceWriteTail(need, db, actor, method, body, targetId) {
     //         不能借它改他人已有待办的推进状态）。
     //   边界：`patch` / `delete` 仍只归本人 / 本角色，他人不得替其推进或销项。
     const isPost = method === 'post';
+    // T11（2026-11-16）：待归属账号（`branchId` 显式为 null）没有支部上下文 ⇒ 不得替他人生成派生待办：
+    //   缺支部时 `own` 为 null，下方旧判据 `!own || …` 会把任意支部来源的派生行放行。
+    //   本人待办（personId / role 等于本人）仍按原口径放行。
+    const branchPending = isBranchPendingUser(actor);
     const canDeriveForOthers = isPost
+      && !branchPending
       && !!actor.role
       && (BRANCH_COMMITTEE_ROLES.has(actor.role) || PARTY_STAFF_ROLE.has(actor.role));
     const SOURCE_TABLE = { notice: 'notices', activity: 'activities', taskforce: 'taskforces' };
@@ -742,7 +768,7 @@ function _assertResourceWriteTail(need, db, actor, method, body, targetId) {
         let src = null;
         try { src = JSON.parse(found.data); } catch { src = null; }
         const own = actorBranchId(actor);
-        derivedFromSource = !!src && (!own || (src.branchId || DEFAULT_BRANCH_ID) === own);
+        derivedFromSource = !!src && !!own && (src.branchId || DEFAULT_BRANCH_ID) === own;
       }
     }
     const mayCreateForOthers = canDeriveForOthers || derivedFromSource;
@@ -788,6 +814,16 @@ function _assertResourceWriteTail(need, db, actor, method, body, targetId) {
     const row = _gateTargetRow(db, 'agendaVotes', body, targetId);
     return [row.voterId, row.personId].some((id) => id && String(id) === String(actor.id));
   }
+  if (need === 'attendance-row') {
+    // 删除面必须读旧行判定；无 targetId（如快照保留逻辑的探测）不在此收口，保持既有行为。
+    if (!targetId) return true;
+    if (!actor || !actor.id) return false;
+    const found = db.prepare('SELECT data FROM attendances WHERE id = ?').get(String(targetId));
+    if (!found) return true; // 行不存在 → 交给 DELETE handler 返回 404，不把「不存在」当越权
+    let prev;
+    try { prev = JSON.parse(found.data); } catch { return false; }
+    return _attendanceDeleteAllowed(db, actor, prev);
+  }
   // 未登记的门类型：拒绝（deny-by-default，防「拼错门名＝全放行」）
   return false;
 }
@@ -814,3 +850,108 @@ function _noticeSelfStateChange(prev, row, actor, changed) {
   if (changed.includes('archivedBy') && !selfIdsOnly(prev.archivedBy, row.archivedBy)) return false;
   return true;
 }
+
+// ════════════════════════════════════════════════════════════════
+//  Task 4（2026-11-03）：写入口权限矩阵暴露的两类真实缺口
+//
+//  ① DELETE /attendances/:id —— 原先只有 requireAuth + 同支部范围：
+//     同支部任一登录成员可物理删除他人考勤行，抹掉申诉/考察依赖的证据链。
+//     现复用既有角色集与 `_isActivityOrganizer`（不另写角色表）：
+//       支委层（含党委）∪ 该场活动组织者 ∪ 该行 recordedBy / submittedBy 本人。
+//     ⚠ 必须按 targetId 读旧行判定（不能只看 query/body）；行不存在交给 404。
+//  ② POST/PATCH /actSubRecords、/tfSubRecords —— 原先 aggregateWriteDeny 只判父记录支部：
+//     同支部任一登录成员可直连写入/改写他人活动或专班子记录。
+//     现对**值确有变化**的父键逐个复算：支委层/党委 ∪ 父活动·专班的组织者/深度参与者
+//     （assignments / members 的 role；与考察写门同口径）。未变父键跳过——前端整对象回传时
+//     不会因「夹带别人未改的数据」被误拒；PATCH 若把子记录挪到别的父键，新父键同样受判据约束。
+//  ③ 本段置尾：`RESOURCE_WRITE_GATE.attendances` 运行时挂载，不改上文行号（README 有取证引用）。
+// ════════════════════════════════════════════════════════════════
+
+/** 考勤删除判据（支委层/党委 ∪ 本场组织者 ∪ 记录人/提交人本人；支部须一致） */
+function _attendanceDeleteAllowed(db, actor, attendance) {
+  if (!actor || !actor.id || !attendance) return false;
+  const own = actorBranchId(actor);
+  const rowBranch = attendance.branchId || DEFAULT_BRANCH_ID;
+  if (own && own !== rowBranch) return false; // 跨支部一律拒绝（与读口同口径）
+  if (PARTY_STAFF_ROLE.has(actor.role) || BRANCH_COMMITTEE_ROLES.has(actor.role)) return true;
+  if (attendance.recordedBy && String(attendance.recordedBy) === String(actor.id)) return true;
+  if (attendance.submittedBy && String(attendance.submittedBy) === String(actor.id)) return true;
+  // 本场活动（场次）组织者：复用既有判据（顶层 organizer + assignments.organizer + 支部等值）
+  return !!attendance.activityId && _isActivityOrganizer(db, actor, attendance.activityId);
+}
+
+/**
+ * 聚合子记录写门（纯判定）：允许 → null；拦截 → 403 文案。
+ * @param {import('better-sqlite3').Database} db
+ * @param {'actSubRecords'|'tfSubRecords'} resourceName
+ * @param {Object} incomingBody 本次提交的聚合对象（父键 → 子记录）
+ * @param {Object|null} currentBody 库里现有聚合对象（POST 传 null）
+ * @param {{id?:string, role?:string, branchId?:string|null}} actor
+ * @returns {string|null}
+ */
+export function aggregateSubRecordWriteDeny(db, resourceName, incomingBody, currentBody, actor) {
+  if (!actor || !actor.id) return '无权限：未登录';
+  const incoming = (incomingBody && typeof incomingBody === 'object' && !Array.isArray(incomingBody)) ? incomingBody : {};
+  const current = (currentBody && typeof currentBody === 'object' && !Array.isArray(currentBody)) ? currentBody : {};
+  for (const parentId of Object.keys(incoming)) {
+    // 未变的父键跳过：整对象回传（PATCH /__root__）会带上本支部所有父键，
+    // 若逐个要求组织者身份，宣传委员改一条初稿也会因「不是别的活动组织者」被 403。
+    if (JSON.stringify(incoming[parentId]) === JSON.stringify(current[parentId])) continue;
+    const deny = _aggregateParentWriteDeny(db, resourceName, parentId, actor);
+    if (deny) return deny;
+  }
+  return null;
+}
+
+/** 单个聚合父键的写权判据（写值 / 删除面共用；角色集与 `_isActivityOrganizer` 同源，不另写第二套） */
+function _aggregateParentWriteDeny(db, resourceName, parentId, actor) {
+  if (!actor || !actor.id) return '无权限：未登录';
+  const isActivity = resourceName === 'actSubRecords';
+  const parentTable = isActivity ? 'activities' : 'taskforces';
+  const found = db.prepare(`SELECT data FROM ${parentTable} WHERE id = ?`).get(String(parentId));
+  if (!found) return '无权限：聚合子记录只能写入已存在的业务记录';
+  let parent;
+  try { parent = JSON.parse(found.data); } catch { return '无权限：父记录数据损坏'; }
+  const own = actorBranchId(actor);
+  if (own && (parent.branchId || DEFAULT_BRANCH_ID) !== own) {
+    return '无权限：聚合子记录只能写入本支部所属业务记录';
+  }
+  if (PARTY_STAFF_ROLE.has(actor.role) || BRANCH_COMMITTEE_ROLES.has(actor.role)) return null;
+  if (parent.createdBy && String(parent.createdBy) === String(actor.id)) return null;
+  const holders = isActivity ? parent.assignments : parent.members;
+  const organizerField = isActivity ? parent.organizer : null;
+  if (organizerField && String(organizerField) === String(actor.id)) return null;
+  if (Array.isArray(holders) && holders.some((item) => item
+    && String(item.personId) === String(actor.id)
+    && ['organizer', 'deep'].includes(item.role))) return null;
+  return isActivity
+    ? '无权限：活动子记录仅限支委层或本场活动的组织者/深度参与者写入'
+    : '无权限：专班子记录仅限支委层或本专班的组织者/深度参与者写入';
+}
+
+/**
+ * 快照写穿的聚合子记录门（Task 7 红队）：`POST /snapshot` 是整表写穿，
+ * 原实现对 actSubRecords / tfSubRecords 直接放行 ⇒ 普通成员用 `body:{}` 即可清空全支部子记录。
+ * 这里按父键复算两件事：
+ *   ① 值有变化的父键 → 与 PATCH /actSubRecords 同一 `aggregateSubRecordWriteDeny` 判据；
+ *   ② 库里存在、本次 payload 未出现（＝删除面）的父键 → 必须有该父键写权，否则 403（不做静默保留，避免误以为已删）。
+ */
+function _snapshotAggregateSubRecordDeny(db, resourceName, rows, actor, reader) {
+  const table = RESOURCE_TABLES[resourceName];
+  const read = reader || createTableReader(db);
+  const currentRoot = (table ? read.rows(table) : []).find((row) => row && row.id === '__root__') || { id: '__root__', body: {} };
+  const nextRoot = (Array.isArray(rows) ? rows : []).find((row) => row && row.id === '__root__') || { id: '__root__', body: {} };
+  const current = currentRoot.body && typeof currentRoot.body === 'object' && !Array.isArray(currentRoot.body) ? currentRoot.body : {};
+  const incoming = nextRoot.body && typeof nextRoot.body === 'object' && !Array.isArray(nextRoot.body) ? nextRoot.body : {};
+  const changedDeny = aggregateSubRecordWriteDeny(db, resourceName, incoming, current, actor);
+  if (changedDeny) return changedDeny;
+  for (const parentId of Object.keys(current)) {
+    if (Object.prototype.hasOwnProperty.call(incoming, parentId)) continue;
+    const deleteDeny = _aggregateParentWriteDeny(db, resourceName, parentId, actor);
+    if (deleteDeny) return deleteDeny;
+  }
+  return null;
+}
+
+// 运行时登记：仅 DELETE 设门（POST/PATCH 的组织者判据在 handler 内按父键逐个复算）
+Object.assign(RESOURCE_WRITE_GATE, { attendances: { delete: 'attendance-row' } });

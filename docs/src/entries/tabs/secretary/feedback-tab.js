@@ -3,25 +3,31 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261031a';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261031a';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261031a';
-import { icon } from '../../../core/base/icons.js?v=20261031a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261031a';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261031a';
-import { getPersonName } from '../../../services/member/person.js?v=20261031a';
-import { PersonStore } from '../../../services/member/person.js?v=20261031a';
-import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261031a';
+import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261120a';
+import { showToast, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261120a';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261120a';
+// 2026-11-01 批次 524（#7）：待办深链消费（只认本页签；非本页目标不清除）
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261120a';
+import { icon } from '../../../core/base/icons.js?v=20261120a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261120a';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261120a';
+import { getPersonName } from '../../../services/member/person.js?v=20261120a';
+import { PersonStore } from '../../../services/member/person.js?v=20261120a';
+import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261120a';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261031a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261031a';
-import { openFormModal, confirmDanger } from '../../../components/ui/modal.js?v=20261031a';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261120a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261120a';
+import { openFormModal, confirmDanger } from '../../../components/ui/modal.js?v=20261120a';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261120a';
+// 范围标签单一源（批次 525 · #2：反馈页与意见反馈页同一口径，不另抄一份）
+import { SCOPE_LABELS } from '../../../components/feedback/issue-list.js?v=20261120a';
+// 布局中立下拉（批次 524 F 输入单一源；新控件不得手写 input-flat 裸标签）
+import { selectInput } from '../../../components/ui/forms.js?v=20261120a';
 const FEEDBACK_TAB_HTML = `
   ${renderTabHeader({ title: '意见反馈' })}
   <!-- 列表面板 -->
-  <div id="issue-list-panel" class="card rounded-xl p-5">
+  <div id="issue-list-panel" class="card rounded-xl card-standard">
     ${renderCardHeader({
       title: '反馈列表',
       meta: '本支部 · 全部反馈',
@@ -37,13 +43,23 @@ const FEEDBACK_TAB_HTML = `
       <div id="issue-drafts-list" class="px-3 pb-3 space-y-2"></div>
     </details>
 
-    <!-- 筛选条（P3 四段：检索 → 分面 → 重置；范围为空段，不输出空行；
+    <!-- 筛选条（P3 四段：范围 → 检索 → 分面 → 重置；
+         批次 525 · #2 定版两行：第 1 行＝范围＋搜索，第 2 行＝分面＋清除；
          载体 styles.css::.lf-bar/.lf-bar__row，控件统一单档 40px / 13px 字） -->
     <div class="lf-bar mb-3">
-      <div class="lf-bar__row" data-seg="search">
-        <input type="text" id="issue-filter-keyword" class="input-flat text-xs lf-kw" placeholder="搜索标题或正文...">
+      <div class="lf-bar__row" data-seg="scope">
+        ${selectInput({
+          id: 'issue-filter-scope',
+          value: 'all',
+          ariaLabel: '范围筛选',
+          className: 'lf-select',
+          options: [{ value: 'all', label: '范围：全部' }].concat(Object.entries(SCOPE_LABELS).map(([v, l]) => ({ value: v, label: l }))),
+        })}
       </div>
-      <div class="lf-bar__row" data-seg="facet">
+      <div class="lf-bar__row" data-seg="search">
+        <input type="text" id="issue-filter-keyword" class="input-flat text-xs lf-kw" placeholder="搜索标题或正文">
+      </div>
+      <div class="lf-bar__row" data-seg="facet" data-break-before="1">
         <select id="issue-filter-status" class="input-flat text-xs lf-select" aria-label="状态筛选">
           <option value="all">状态：全部</option>
           <option value="open">开放中</option>
@@ -89,7 +105,24 @@ export function renderContent() {
     tc.innerHTML = FEEDBACK_TAB_HTML;
     tc.dataset.currentTab = 'feedback';
   }
+  // 2026-11-01 批次 524（#7）：待办「去复核」深链——命中 feedback 目标时才消费；
+  //   列表里没有对应项（已在其它页/已关闭）时只提示已到页，不硬造定位。
+  const pending = PendingTarget.peek();
+  const navTarget = pending && pending.tab === 'feedback' ? PendingTarget.consume() : null;
   renderIssueManagement();
+  if (navTarget && navTarget.kind === 'review' && navTarget.id) {
+    const el = document.querySelector(`[data-issue-id="${navTarget.id}"]`);
+    if (el) {
+      scrollDetailIntoView(el, { block: 'center', smooth: true });
+      flashHighlight(el);
+    } else {
+      showToast('info', '已到意见反馈；未找到对应反馈项');
+    }
+  } else if (navTarget && navTarget.kind !== 'review') {
+    // 批次 541：本页只承载**反馈项**。考勤 / 考察等复核类目标已改落待办页（`todo-actions.js` 同义落点）；
+    //   收到非 review 语义的旧目标时不得断言「未找到反馈项」—— 那是错误事实（该条根本不属于本页）。
+    showToast('info', '已到意见反馈；该目标不是反馈项，请从待办页处理');
+  }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -119,9 +152,12 @@ function renderIssueManagement() {
   // ── 草稿审核 ──
   const draftsEl = document.getElementById('issue-drafts-list');
   const draftsCountEl = document.getElementById('issue-drafts-count');
+  const draftsDetailsEl = document.getElementById('issue-drafts-details');
   if (draftsEl) {
     const drafts = IssueStore.getDrafts().filter(d => d.status === 'pending');
     if (draftsCountEl) draftsCountEl.textContent = drafts.length;
+    // C-22：计数为 0 时不显示这条告警条（不渲染只剩标题的空卡）
+    if (draftsDetailsEl) draftsDetailsEl.hidden = drafts.length === 0;
     if (drafts.length === 0) {
       draftsEl.innerHTML = emptyStateHtml({ text: "暂无待审核草稿", variant: 'inline' });
     } else {
@@ -141,12 +177,14 @@ function renderIssueManagement() {
       .filter(i => !i.hidden && !i.mergedInto && i.kind !== 'report')
       .sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || ''));
     // 筛选
+    const filterScope = document.getElementById('issue-filter-scope')?.value || 'all';
     const filterStatus = document.getElementById('issue-filter-status')?.value || 'all';
     const filterAssignee = document.getElementById('issue-filter-assignee')?.value || 'all';
     const filterKeyword = (document.getElementById('issue-filter-keyword')?.value || '').trim().toLowerCase();
 
     const filtered = issues.filter(i => {
       const ds = deriveIssueDisplayState(i);
+      if (filterScope !== 'all' && i.scope !== filterScope) return false;
       if (filterStatus !== 'all') {
         if (filterStatus === 'assigned' && ds.key !== 'assigned') return false;
         if (filterStatus === 'pending-review' && ds.key !== 'pending-review') return false;
@@ -184,7 +222,7 @@ function renderIssueManagement() {
         const isReviewUnread = IssueNotify.getSecretaryReviewUnread().includes(i.id);
         const submitterTip = _submitterTip(i.submittedBy);
         return `
-          <div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 active:bg-[var(--surface-active)] cursor-pointer transition-colors" role="button" tabindex="0" data-issue-action="open-detail" data-issue-id="${i.id}">
+          <div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 active:bg-[var(--surface-active)] cursor-pointer transition-colors" role="button" tabindex="0" data-issue-action="open-detail" data-issue-id="${i.id}" data-nested-actions="true">
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs text-gray-500 font-mono">#${i.number}</span>
               <div class="flex items-center gap-1.5">
@@ -195,7 +233,7 @@ function renderIssueManagement() {
             </div>
             <p class="text-sm text-gray-800 font-medium">${i.title}</p>
             <div class="text-xs text-gray-500 mt-1">${submitterTip
-              ? `<span class="tip-trigger" data-tip="${submitterTip}">${getPersonName(i.submittedBy)}</span>`
+              ? `<button type="button" class="btn-action tip-trigger" data-tip="${submitterTip}" aria-describedby="submitter-tip-${i.id}">${getPersonName(i.submittedBy)}</button><span id="submitter-tip-${i.id}" class="visually-hidden">${submitterTip}</span>`
               : (getPersonName(i.submittedBy) || '匿名')} · ${i.commentCount || 0} 评论 · ${i.submittedAt}</div>
           </div>
       `;
@@ -204,7 +242,9 @@ function renderIssueManagement() {
 
       // 绑定点击事件 → 打开详情面板
       listEl.querySelectorAll('[data-issue-action="open-detail"]').forEach(el => {
-        el.addEventListener('click', () => {
+        el.addEventListener('click', (ev) => {
+          // 行内 tip 按钮（提交人）是独立动作：不得连带打开详情。
+          if (ev.target.closest('[data-tip]')) return;
           openIssueDetail(el.dataset.issueId);
         });
       });
@@ -221,7 +261,7 @@ function renderIssueManagement() {
   }
 
   // 筛选联动（T-234 F2 铁律：搜索/筛选变化页码归 1）
-  ['issue-filter-status', 'issue-filter-assignee', 'issue-filter-keyword'].forEach(id => {
+  ['issue-filter-scope', 'issue-filter-status', 'issue-filter-assignee', 'issue-filter-keyword'].forEach(id => {
     const el = document.getElementById(id);
     if (el && !el.dataset.bound) {
       el.dataset.bound = '1';
@@ -237,9 +277,11 @@ function renderIssueManagement() {
   if (filterClear && !filterClear.dataset.bound) {
     filterClear.dataset.bound = '1';
     filterClear.addEventListener('click', () => {
+      const scopeSel = document.getElementById('issue-filter-scope');
       const statusSel = document.getElementById('issue-filter-status');
       const assigneeSel = document.getElementById('issue-filter-assignee');
       const keywordInput = document.getElementById('issue-filter-keyword');
+      if (scopeSel) scopeSel.value = 'all';
       if (statusSel) statusSel.value = 'all';
       if (assigneeSel) assigneeSel.value = 'all';
       if (keywordInput) keywordInput.value = '';
@@ -347,7 +389,7 @@ function renderIssueDetail(issueId) {
   const ds = deriveIssueDisplayState(issue);
   const assigneeLabel = issue.assigneeRole ? ROLE_LABELS[issue.assigneeRole] || issue.assigneeRole : '未指派';
 
-  let html = `<div class="card rounded-xl p-5">`;
+  let html = `<div class="card rounded-xl card-standard">`;
 
   // ── Header：返回按钮 + 编号 + 状态徽章 + 操作按钮 ──
   html += `<div class="flex items-center justify-between mb-4">`;
@@ -365,7 +407,7 @@ function renderIssueDetail(issueId) {
   html += `</div></div>`;
 
   // ── 标题 ──
-  html += `<h3 class="text-base font-semibold text-gray-800 mb-2">${issue.title}</h3>`;
+  html += `${renderCardHeader({ title: issue.title })}`;
 
   // ── 正文 ──
   if (issue.body) {

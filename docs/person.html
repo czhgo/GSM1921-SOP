@@ -2,8 +2,9 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261031a"></script>
+<script src="./src/theme-init.js?v=20261120a"></script>
 <meta charset="UTF-8">
+  <meta name="theme-color" content="#CE1126">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>成员档案 — GSM1921-SOP</title>
   <meta name="description" content="成员档案独立查阅页（只读全文，编辑走模态）">
@@ -12,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="./src/tailwind-config.js?v=20261031a"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261031a">
+  <script src="./src/tailwind-config.js?v=20261120a"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261120a">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -31,12 +32,14 @@
       ← 返回
     </button>
     <!-- 5.5（2026-10-22 第九轮）：初始化前先给 aria-busy + 最小骨架（3 行占位），
-         避免 hydrate / 档案读取期间出现 0 高空白卡；person-entry 渲染完成或报错时置 aria-busy="false"。 -->
-    <div id="person-archive-card" class="card rounded-xl p-5" aria-busy="true">
-      <div data-person-skeleton class="space-y-3" aria-hidden="true">
-        <div class="h-6 w-40 rounded bg-gray-100 animate-pulse"></div>
-        <div class="h-4 w-full rounded bg-gray-100 animate-pulse"></div>
-        <div class="h-4 w-5/6 rounded bg-gray-100 animate-pulse"></div>
+         避免 hydrate / 档案读取期间出现 0 高空白卡；person-entry 渲染完成或报错时置 aria-busy="false"。
+         批次 530（B-518-2）：骨架形状单一源＝`components/ui/empty-state.js::skeletonHtml`
+         （`.skeleton-block` ＋ `.skeleton-line`）——页面内不得再手写 bg-gray-100/animate-pulse 堆叠。 -->
+    <div id="person-archive-card" class="card rounded-xl card-standard" aria-busy="true">
+      <div data-person-skeleton class="skeleton-block" aria-hidden="true">
+        <div class="skeleton-line h-6 w-40 animate-pulse"></div>
+        <div class="skeleton-line h-4 w-full animate-pulse"></div>
+        <div class="skeleton-line h-4 w-5/6 animate-pulse"></div>
       </div>
       <p class="visually-hidden" role="status">正在加载档案…</p>
     </div>
@@ -44,25 +47,26 @@
 </main>
 
 <!-- modulepreload:start -->
-  <link rel="modulepreload" href="./src/components/shell/sidebar.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/components/shell/header.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/services/core/runtime.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/services/core/auth.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/services/member/person.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/data/data-adapter.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/services/member/profile.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/services/branch/branch.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/components/governance/pickers.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/components/governance/person-profile-sections.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/services/governance/thought-report.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/services/member/member-confirmation.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/core/domain/constants.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/core/domain/profile-access.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/core/base/utils.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/components/ui/badges.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/data/api-adapter.js?v=20261031a" />
-  <link rel="modulepreload" href="./src/components/ui/empty-state.js?v=20261031a" />
+  <link rel="modulepreload" href="./src/components/shell/sidebar.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/components/shell/header.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/services/core/runtime.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/services/core/auth.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/services/member/person.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/data/data-adapter.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/services/member/profile.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/services/branch/branch.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/components/governance/pickers.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/components/governance/person-profile-sections.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/services/governance/thought-report.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/services/member/member-confirmation.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/core/domain/constants.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/core/domain/profile-access.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/core/base/utils.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/core/base/page-url.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/components/ui/badges.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/data/api-adapter.js?v=20261120a" />
+  <link rel="modulepreload" href="./src/components/ui/empty-state.js?v=20261120a" />
   <!-- modulepreload:end -->
-  <script type="module" src="./src/entries/pages/person-entry.js?v=20261031a"></script>
+  <script type="module" src="./src/entries/pages/person-entry.js?v=20261120a"></script>
 </body>
 </html>

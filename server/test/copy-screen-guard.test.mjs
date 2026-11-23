@@ -137,7 +137,7 @@ const C4_BASELINE = {
   'secretary::全局概况': { copy: 776, ctrls: 61, ratio: 12.7 },
   // 2026-10-01 批次 327 收基线（存量红 · 连带）：实测 `secretary::全局概况` 与 `org::人才库` 的比值
   //   均已 ≤12 ⇒ 按「收基线纪律」**同批删条目**（进度前进；非放宽——M2 的 >12 判红与 M3 的僵尸检查一字未动）。
-  'secretary::通知发布': { copy: 869, ctrls: 56, ratio: 15.52 },
+  // 2026-11-15 批次 553：复测 `secretary::通知发布` 已 ≤12 ⇒ 按同一纪律删条目（C4_REASON 同撤）。
   // 2026-10-04 批次 373（`#10` 按对象归位 · 支书圈乙）：支书台原「党小组与活动」**改名「党小组」**且
   //   「党小组活动」＋「项目赋权」整卡**迁「活动管理」** ⇒ 该屏键已不存在、两屏实测均 **≤12**
   //   ⇒ 按「收基线纪律」**同批删条目**（进度前进；非放宽——M2 的 >12 判红与 M3 的僵尸检查一字未动；
@@ -187,7 +187,6 @@ const C4_BASELINE = {
 /** C4 的登记理由（§4.18.2 C4：12–20 须逐屏登记理由；>20 记「待改造」） */
 const C4_REASON = {
   'secretary::全局概况': '聚合页（日历+知情+处置）：待我处理、周期归档待审核、知情查看（活动/专班工作组）同屏；主体是逐条事实元信息，控件仅 61（分母小），符合 §4.18.1「8 成是运行时数据」；IA 62→45 既定落点，无冗余文案可删',
-  'secretary::通知发布': '通知表单 + 模板下拉：表单标签与规则提示偏多，登记待收',
   'visitor::专班动态': '只读一览（专班卡）＋ 分段钮 1 个：条目元信息（状态 / 日期 / 成员）占比高、分母小；同 `disc::复盘` 族',
   'disc::复盘': '复盘正文（成员提交）＋父键口径列构成主体；§4.18.1 已认定「8 成是运行时数据」，非界面文案',
 };
@@ -224,6 +223,10 @@ const C3_BASELINE = {
   'prop::工作概况': 1,
   'disc::工作概况': 1,
   'leader::工作概况': 1,
+  // 2026-11-15 批次 553（full 首跑暴露）：党委台「支部上报」的两条既有上报记录共用同一行级模板
+  //   「提交人 提交 · 日期」，数字归一化后文本同构 ⇒ 属 §4.18.2 C3 允许的「逐行同构」例外，
+  //   按实测登记 1 处（不是同一句被说两遍；>12 判红与僵尸检查未动）。
+  'party-committee::支部上报': 1,
   'visitor::工作概况': 1,
   'org::专班管理': 3,
   'org::人才库': 2,
@@ -274,7 +277,7 @@ for (const w of WORKS) {
       await page.fill('#student-id', w.studentId);
       await page.fill('#password', '123456');
       await Promise.all([
-        page.waitForURL(`**/workspace/${w.page}.html`, { timeout: 30000 }),
+        page.waitForURL(`**/workspace/${w.page}`, { timeout: 30000 }),
         page.click('button[type="submit"]'),
       ]);
       await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 45000 });

@@ -19,18 +19,18 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261031a';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261031a';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261120a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261120a';
 import {
   MockAdapter, collectResetKeys, handleResetIfRequested,
-} from '../../docs/src/data/mock-adapter.js?v=20261031a';
+} from '../../docs/src/data/mock-adapter.js?v=20261120a';
 import {
   PersonStore, MEMBER_OVERLAY_KEY, getBaseMemberRecords, findMemberRefs,
-} from '../../docs/src/services/member/person.js?v=20261031a';
-import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261031a';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261031a';
+} from '../../docs/src/services/member/person.js?v=20261120a';
+import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261120a';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261120a';
 // Q-23-10（批次 30）实证：成员流动流入登记在 api 形态走 /members/intake（支书/副支书亦可）
-import { registerIntake } from '../../docs/src/services/member/member-flow.js?v=20261031a';
+import { registerIntake } from '../../docs/src/services/member/member-flow.js?v=20261120a';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -292,14 +292,21 @@ test('api ⑦：server users 通用 CRUD 落库断言（POST 新增 / PATCH 更�
   assert.equal((await post.json()).id, 'p60');
   assert.ok((await getUsers(staffToken)).some(u => u.id === 'p60'), '落库：GET 列表含新增');
 
-  // update（PATCH 局部合并）
+  // update（PATCH 局部合并）：只写 name（党委不得直接改阶段，见下一条）
+  // 批次 564：整行写口要求 If-Match；本例只验落库，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
   const patch = await fetch(`${base}/api/v1/users/p60`, {
-    method: 'PATCH', headers: auth(staffToken), body: JSON.stringify({ name: '测试成员六十·改', developStage: '发展对象' }),
+    method: 'PATCH', headers: { ...auth(staffToken), 'If-Match': '*' }, body: JSON.stringify({ name: '测试成员六十·改' }),
   });
   assert.equal(patch.status, 200);
   const patched = await patch.json();
   assert.equal(patched.name, '测试成员六十·改');
   assert.equal(patched.studentId, '2600000060', 'PATCH 局部合并保留未提供字段');
+
+  // 批次 536：党委不得直接改 developStage（须提案 → 支部确认链落库）⇒ 403
+  const denyStage = await fetch(`${base}/api/v1/users/p60`, {
+    method: 'PATCH', headers: auth(staffToken), body: JSON.stringify({ developStage: '发展对象' }),
+  });
+  assert.equal(denyStage.status, 403, '党委不得直接改成员发展阶段，须提交名册提案');
 
   // delete → 204，列表不再含
   const del = await fetch(`${base}/api/v1/users/p60`, { method: 'DELETE', headers: auth(staffToken) });

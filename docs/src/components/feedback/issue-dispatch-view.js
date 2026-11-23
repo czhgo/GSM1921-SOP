@@ -11,16 +11,28 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫：issue-branch.test.mjs（结构层）。
 // ════════════════════════════════════════════════════════════════
 
-import { renderFilteredList } from '../ui/list-filter.js?v=20261031a';
-import { renderTabHeader } from '../shell/page-frame.js?v=20261031a';
-import { escHtml, showToast } from '../../core/base/utils.js?v=20261031a';
-import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261031a';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261120a';
+import { renderTabHeader } from '../shell/page-frame.js?v=20261120a';
+import { escHtml, showToast } from '../../core/base/utils.js?v=20261120a';
+import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261120a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261120a';
+import { renderCardHeader } from '../shell/page-frame.js?v=20261120a';
 // ════════════════════════════════════════════════════════════════
 //  「我的处置」Tab 渲染工具（各角色工作台复用）
 //  2026-07-30 新增：被指派人视角的反馈列表+详情+评论/提交处置结果
 // ════════════════════════════════════════════════════════════════
+
+/** 字段级错误（就地）：错误文本 + aria-invalid + aria-describedby（R5A-11，口径同 org-setup-wizard） */
+function _showDispatchFieldError(input, errId, msg) {
+  const errEl = errId ? document.getElementById(errId) : null;
+  if (errEl) { errEl.textContent = msg; errEl.hidden = false; }
+  if (input) {
+    input.setAttribute('aria-invalid', 'true');
+    if (errId) input.setAttribute('aria-describedby', errId);
+    if (typeof input.focus === 'function') input.focus();
+  }
+}
 
 /**
  * 渲染「我的处置」Tab 内容
@@ -52,14 +64,14 @@ export function renderMyDispatchTab(role, userId, opts = {}) {
     description: '支部派发的汇报与反馈在此处理；处理结果可回看。',
   });
   html += `<div class="space-y-4">`;
-  html += `<div class="card rounded-xl p-5">`;
-  html += `<h3 class="font-title-cn text-sm font-bold text-gray-700 mb-2">待我处理 <span class="tabular-nums text-gray-500">${pendingRows.length}</span></h3>`;
+  html += `<div class="card rounded-xl card-standard">`;
+  html += `${renderCardHeader({ title: '待我处理', meta: `<span class="tabular-nums text-gray-500">${pendingRows.length}</span>`, variant: 'panel' })}`;
   html += `<div id="mydispatch-pending-host"></div>`;
   html += `</div>`;
-  html += `<div class="card rounded-xl p-5">`;
-  html += `<h3 class="font-title-cn text-sm font-bold text-gray-700 mb-2">我已处理 <span class="tabular-nums text-gray-500">${doneRows.length}</span></h3>`;
+  html += `<div class="card rounded-xl card-standard">`;
+  html += `${renderCardHeader({ title: '我已处理', meta: `<span class="tabular-nums text-gray-500">${doneRows.length}</span>`, variant: 'panel' })}`;
   // R3-08：原 100 字令牌机制说明移 help，界面只留一句可执行提示。
-  html += `<p class="text-xs text-gray-500 mb-2">可回看本浏览器提交或参与的反馈；换设备后无法回认。<a href="./help.html#card-dom39-my-dispatch" class="text-accent">帮助</a></p>`;
+  html += `<p class="text-body-sm text-gray-500 mb-2">可回看本设备提交或参与的反馈；换设备后需重新认领。<a href="./help.html#card-dom39-my-dispatch" class="text-accent">帮助</a></p>`;
   html += `<div id="mydispatch-done-host"></div>`;
   html += `</div>`;
   html += `</div>`;
@@ -135,7 +147,7 @@ export function bindMyDispatchEvents(container, role, userId, opts = {}) {
         const id = submitEl.dataset.issueId;
         const input = document.getElementById('report-req-input-' + id);
         const body = input?.value?.trim();
-        if (!body) { showToast('error', '请填写汇报内容'); return; }
+        if (!body) { _showDispatchFieldError(input, 'report-req-err-' + id, '请填写汇报内容'); return; }
         IssueStore.addComment(id, userId, role, body, 'result');
         // E-3：提交行立即清空再整 tab 重渲染——已发内容不回填到该行输入框
         if (input) input.value = '';
@@ -180,11 +192,12 @@ function _reportRequestRowHtml(r) {
   return `
         <div class="rounded-lg bg-white border border-blue-100 p-3 mb-2">
           <p class="text-sm font-medium text-gray-800">${r.title}</p>
-          ${r.body && r.body !== r.title ? `<p class="text-xs text-gray-600 mt-1">${r.body}</p>` : ''}
+          ${r.body && r.body !== r.title ? `<p class="text-body-sm text-gray-600 mt-1">${r.body}</p>` : ''}
           <div class="flex gap-2 mt-2">
-            <input type="text" id="report-req-input-${r.id}" class="input-flat flex-1" placeholder="填写汇报内容…">
+            <input type="text" id="report-req-input-${r.id}" class="input-flat flex-1" placeholder="填写汇报内容" aria-describedby="report-req-err-${r.id}">
             <button data-mydispatch-action="submit-report" data-issue-id="${r.id}" class="btn-accent-soft text-xs px-3 py-2 flex-shrink-0">汇报</button>
           </div>
+          <p id="report-req-err-${r.id}" data-field-error hidden class="mt-1 text-xs text-[var(--status-error-text)]" role="alert"></p>
         </div>`;
 }
 
@@ -199,7 +212,7 @@ function _assignedIssueRowHtml(issue, userId) {
             <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>
           </div>
           <p class="text-sm text-gray-800 font-medium">${issue.title}</p>
-          ${dispatchNote?.note ? `<p class="text-xs text-blue-600 mt-1">支书备注：${dispatchNote.note}</p>` : ''}
+          ${dispatchNote?.note ? `<p class="text-body-sm text-[var(--status-info-text)] mt-1">支书备注：${dispatchNote.note}</p>` : ''}
           <div class="text-xs text-gray-500 mt-1">${_displayName(issue.submittedBy)} · ${issue.submittedAt} · ${issue.commentCount || 0} 评论</div>
         </div>`;
 }
@@ -239,10 +252,10 @@ function _renderMyReportDetail(issueId, role, userId, container, opts = {}) {
   const ds = deriveIssueDisplayState(issue);
   const hasReply = (issue.comments || []).some(c => c.kind === 'reply');
 
-  let html = `<div class="card rounded-xl p-5">`;
+  let html = `<div class="card rounded-xl card-standard">`;
   html += `<button data-mydispatch-action="back" class="btn-outline btn-sm text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
-  html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
+  html += `${renderCardHeader({ title: issue.title })}`;
   html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
   html += `</div>`;
   if (issue.body) html += `<p class="text-sm text-gray-600 whitespace-pre-wrap mb-4">${issue.body}</p>`;
@@ -269,7 +282,7 @@ function _renderMyReportDetail(issueId, role, userId, container, opts = {}) {
         html += `<span class="text-xs px-1 py-0.5 rounded font-medium" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);">正式答复</span>`;
       }
       html += `<span class="text-xs text-gray-500 ml-1">${c.createdAt}</span>`;
-      html += `<p class="text-xs text-gray-600 mt-0.5">${c.body}</p></div>`;
+      html += `<p class="text-body-sm text-gray-600 mt-0.5">${c.body}</p></div>`;
     });
   }
   html += `</div></div>`;
@@ -280,9 +293,9 @@ function _renderMyReportDetail(issueId, role, userId, container, opts = {}) {
       html += `<button data-mydispatch-action="confirm-received" class="btn-accent-soft text-xs px-4 py-2">确认已收到答复</button>`;
     }
     html += `<div class="flex items-center gap-2">`;
-    html += `<input type="text" id="mydispatch-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论…">`;
+    html += `<input type="text" id="mydispatch-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论" aria-describedby="mydispatch-comment-err">`;
     html += `<button data-mydispatch-action="comment" class="btn-neutral text-xs px-3 py-2">评论</button>`;
-    html += `</div></div>`;
+    html += `</div><p id="mydispatch-comment-err" data-field-error hidden class="mt-1 text-xs text-[var(--status-error-text)]" role="alert"></p></div>`;
   }
   html += `</div>`;
 
@@ -298,8 +311,9 @@ function _renderMyReportDetail(issueId, role, userId, container, opts = {}) {
         detailEl.classList.add('hidden');
         if (listDiv) listDiv.classList.remove('hidden');
       } else if (action === 'comment') {
-        const body = document.getElementById('mydispatch-comment-input')?.value?.trim();
-        if (!body) { showToast('error', '请输入评论内容'); return; }
+        const inputEl = document.getElementById('mydispatch-comment-input');
+        const body = inputEl?.value?.trim();
+        if (!body) { _showDispatchFieldError(inputEl, 'mydispatch-comment-err', '请输入评论内容'); return; }
         IssueStore.addComment(issueId, userId, role, body, 'comment');
         showToast('success', '评论已添加');
         _renderMyReportDetail(issueId, role, userId, container, opts);
@@ -320,10 +334,10 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
   IssueNotify.markRead(userId, issueId);
   const ds = deriveIssueDisplayState(issue);
 
-  let html = `<div class="card rounded-xl p-5">`;
+  let html = `<div class="card rounded-xl card-standard">`;
   html += `<button data-mydispatch-action="back" class="btn-outline btn-sm text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
-  html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
+  html += `${renderCardHeader({ title: issue.title })}`;
   html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
   html += `</div>`;
   if (issue.body) html += `<p class="text-sm text-gray-600 whitespace-pre-wrap mb-4">${issue.body}</p>`;
@@ -350,16 +364,16 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
     html += `<div class="rounded-lg p-2.5 ${kindBg}">`;
     html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${_displayName(c.author)}</span>`;
     html += `<span class="text-xs text-gray-500 ml-1">${c.createdAt}</span>`;
-    html += `<p class="text-xs text-gray-600 mt-0.5">${c.body}</p></div>`;
+    html += `<p class="text-body-sm text-gray-600 mt-0.5">${c.body}</p></div>`;
   });
   html += `</div></div>`;
 
   if (issue.status === 'open') {
     html += `<div class="pt-3 border-t border-gray-100"><div class="flex items-center gap-2">`;
-    html += `<input type="text" id="mydispatch-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论…">`;
+    html += `<input type="text" id="mydispatch-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论" aria-describedby="mydispatch-comment-err">`;
     html += `<button data-mydispatch-action="comment" class="btn-neutral text-xs px-3 py-2">评论</button>`;
     html += `<button data-mydispatch-action="submit-result" class="btn-accent-soft text-xs px-3 py-2">提交处置结果</button>`;
-    html += `</div></div>`;
+    html += `</div><p id="mydispatch-comment-err" data-field-error hidden class="mt-1 text-xs text-[var(--status-error-text)]" role="alert"></p></div>`;
   }
   html += `</div>`;
 
@@ -375,14 +389,16 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
         detailEl.classList.add('hidden');
         if (listDiv) listDiv.classList.remove('hidden');
       } else if (action === 'comment') {
-        const body = document.getElementById('mydispatch-comment-input')?.value?.trim();
-        if (!body) { showToast('error', '请输入评论内容'); return; }
+        const inputEl = document.getElementById('mydispatch-comment-input');
+        const body = inputEl?.value?.trim();
+        if (!body) { _showDispatchFieldError(inputEl, 'mydispatch-comment-err', '请输入评论内容'); return; }
         IssueStore.addComment(issueId, userId, role, body, 'comment');
         showToast('success', '评论已添加');
         _renderMyDispatchDetail(issueId, role, userId, container);
       } else if (action === 'submit-result') {
-        const body = document.getElementById('mydispatch-comment-input')?.value?.trim();
-        if (!body) { showToast('error', '请输入处置结果内容'); return; }
+        const inputEl = document.getElementById('mydispatch-comment-input');
+        const body = inputEl?.value?.trim();
+        if (!body) { _showDispatchFieldError(inputEl, 'mydispatch-comment-err', '请输入处置结果内容'); return; }
         IssueStore.addComment(issueId, userId, role, body, 'result');
         showToast('success', '处置结果已提交，等待支书终审');
         _renderMyDispatchDetail(issueId, role, userId, container);
@@ -404,10 +420,10 @@ function _renderMyIssueDetail(issueId, role, userId, container) {
   IssueNotify.markRead(userId, issueId);
   const ds = deriveIssueDisplayState(issue);
 
-  let html = `<div class="card rounded-xl p-5">`;
+  let html = `<div class="card rounded-xl card-standard">`;
   html += `<button data-mydispatch-action="back" class="btn-outline btn-sm text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
-  html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
+  html += `${renderCardHeader({ title: issue.title })}`;
   html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
   html += `</div>`;
   if (issue.body) html += `<p class="text-sm text-gray-600 whitespace-pre-wrap mb-4">${issue.body}</p>`;
@@ -424,14 +440,18 @@ function _renderMyIssueDetail(issueId, role, userId, container) {
   } else {
     comments.forEach(c => {
       const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'reply' ? '答' : c.kind === 'verdict' ? '★' : '';
-      const kindBg = c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'result' ? 'bg-green-50' : c.kind === 'reply' ? 'bg-red-50/70' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
-      html += `<div class="rounded-lg p-2.5 ${kindBg}">`;
+      // 底色按语义取令牌（浅色 → 深色自动跟随）：分派＝info，结论＝success，正式答复＝中性，判定＝warning。
+      const kindBg = c.kind === 'dispatch' ? 'bg-[var(--badge-info-bg)]'
+        : c.kind === 'result' ? 'bg-[var(--badge-success-bg)]'
+          : c.kind === 'reply' ? 'bg-[var(--neutral-50)]'
+            : c.kind === 'verdict' ? 'bg-[var(--badge-warning-bg)]' : 'bg-[var(--neutral-50)]';
+      html += `<div class="rounded-lg p-3 ${kindBg}">`;
       html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${_displayName(c.author)}</span>`;
       if (c.kind === 'reply') {
         html += `<span class="text-xs px-1 py-0.5 rounded font-medium ml-1" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);">正式答复</span>`;
       }
       html += `<span class="text-xs text-gray-500 ml-1">${c.createdAt}</span>`;
-      html += `<p class="text-xs text-gray-600 mt-0.5">${c.body}</p></div>`;
+      html += `<p class="text-body-sm text-gray-600 mt-0.5">${c.body}</p></div>`;
     });
   }
   html += `</div></div>`;

@@ -28,10 +28,10 @@ globalThis.sessionStorage = makeStorage();
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261031a';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261031a';
-import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261031a';
-import { BranchService } from '../../docs/src/services/core/runtime.js?v=20261031a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261120a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261120a';
+import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261120a';
+import { BranchService } from '../../docs/src/services/core/runtime.js?v=20261120a';
 
 let server, base, db;
 const tokens = {};
@@ -59,7 +59,12 @@ after(() => {
 async function request(path, personId, method = 'GET', body) {
   const response = await fetch(`${base}/api/v1/${path}`, {
     method,
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokens[personId]}` },
+    // 批次 564：整行写口要求 If-Match；本文件只验活动↔工作组投影同步，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${tokens[personId]}`,
+      ...(method === 'PATCH' ? { 'If-Match': '*' } : {}),
+    },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
   const contentType = response.headers.get('content-type') || '';

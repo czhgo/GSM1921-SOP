@@ -29,7 +29,8 @@ const WORKGROUP_PERMISSION_KEYS = new Set(Object.values(WORKGROUP_PERMISSION_TEM
   .flatMap((templates) => Object.values(templates).flat()));
 
 const jsonRows = (db, table) => db.prepare(`SELECT id, data FROM ${table}`).all().map((r) => ({ id: r.id, ...JSON.parse(r.data) }));
-const rowOf = (db, table, id) => {
+const rowOf = (db, table, id, read) => {
+  if (read) return read.get(table, id);
   const found = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(String(id));
   return found ? JSON.parse(found.data) : null;
 };
@@ -67,10 +68,10 @@ const memberIdFor = (workgroupId, personId) => `wgm-${encodeURIComponent(workgro
  * @param {string|null} actorId
  * @returns {Object|null} 待写入的 workgroups 行
  */
-export function activityWorkgroupUpdate(db, activity, actorId = null) {
+export function activityWorkgroupUpdate(db, activity, actorId = null, read) {
   const patch = syncActivityWorkgroup(activity);
   if (!patch) return null;
-  const current = rowOf(db, 'workgroups', patch.id);
+  const current = rowOf(db, 'workgroups', patch.id, read);
   const at = new Date().toISOString();
   if (!current) {
     return {
@@ -96,17 +97,17 @@ export function activityWorkgroupUpdate(db, activity, actorId = null) {
  * 快照写穿路径：payload.activities 里的活动 → 工作组同步更新清单。
  * 前端编辑活动走 persist() 快照（而非 PATCH），故此处必须与 PATCH 同源。
  */
-export function activityWorkgroupSyncUpdates(db, payload, actor) {
+export function activityWorkgroupSyncUpdates(db, payload, actor, read) {
   if (!Array.isArray(payload?.activities)) return [];
   const updates = [];
   for (const row of payload.activities) {
     if (!row?.id) continue;
-    const current = rowOf(db, 'activities', row.id);
+    const current = rowOf(db, 'activities', row.id, read);
     if (!current) continue;
     const merged = { ...current, ...row };
-    const next = activityWorkgroupUpdate(db, merged, actor?.id || null);
+    const next = activityWorkgroupUpdate(db, merged, actor?.id || null, read);
     if (!next) continue;
-    const before = rowOf(db, 'workgroups', next.id);
+    const before = rowOf(db, 'workgroups', next.id, read);
     const fields = ['name', 'organizingScope', 'hostGroupId', 'hostGroup', 'recruitmentScope', 'crossGroupCoordinatorId', 'status'];
     const unchanged = before && fields.every((field) => JSON.stringify(before[field]) === JSON.stringify(next[field]));
     if (unchanged) continue;
@@ -199,15 +200,15 @@ function isApprovedDissolution(previous, next) {
  * 终态变化只能经「已批准解散」进入，由 approvedTaskforceDissolutionWorkgroups 处理；
  * 这里覆盖 draft/pending_review/recruiting/active 之间的流转（如支委会发起表决通过）。
  */
-export function taskforceStatusWorkgroups(db, payload, actor) {
+export function taskforceStatusWorkgroups(db, payload, actor, read) {
   if (!Array.isArray(payload?.taskforces)) return [];
-  const current = new Map(jsonRows(db, 'taskforces').map((row) => [String(row.id), row]));
+  const current = new Map((read ? read.rows('taskforces') : jsonRows(db, 'taskforces')).map((row) => [String(row.id), row]));
   const updates = [];
   for (const next of payload.taskforces) {
     if (!next?.id || !isTaskforceStatus(next.status) || isTaskforceTerminalStatus(next.status)) continue;
     const previous = current.get(String(next.id));
     if (!previous || previous.status === next.status) continue;
-    const workgroup = rowOf(db, 'workgroups', next.workgroupId || workgroupIdFor('taskforce', next.id));
+    const workgroup = rowOf(db, 'workgroups', next.workgroupId || workgroupIdFor('taskforce', next.id), read);
     if (!workgroup || (workgroup.branchId || DEFAULT_BRANCH_ID) !== (next.branchId || DEFAULT_BRANCH_ID)) continue;
     updates.push({
       ...workgroup,
@@ -220,14 +221,14 @@ export function taskforceStatusWorkgroups(db, payload, actor) {
   return updates;
 }
 
-export function approvedTaskforceDissolutionWorkgroups(db, payload, actor) {
+export function approvedTaskforceDissolutionWorkgroups(db, payload, actor, read) {
   if (!Array.isArray(payload?.taskforces)) return [];
-  const current = new Map(jsonRows(db, 'taskforces').map((row) => [String(row.id), row]));
+  const current = new Map((read ? read.rows('taskforces') : jsonRows(db, 'taskforces')).map((row) => [String(row.id), row]));
   const updates = [];
   for (const next of payload.taskforces) {
     const previous = next?.id ? current.get(String(next.id)) : null;
     if (!isApprovedDissolution(previous, next)) continue;
-    const workgroup = rowOf(db, 'workgroups', previous.workgroupId || workgroupIdFor('taskforce', previous.id));
+    const workgroup = rowOf(db, 'workgroups', previous.workgroupId || workgroupIdFor('taskforce', previous.id), read);
     if (!workgroup) continue; // snapshotScopeDeny rejects the missing-parent case before this helper is called.
     const decision = next.committeeDecision.at(-1);
     updates.push({
@@ -244,6 +245,18 @@ export function hasWorkgroupPermission(db, workgroupId, personId, permissionKey)
   return !!workgroup && isWorkgroupWritableStatus(workgroup.status) && member && jsonRows(db, 'workgroup_grants').some((grant) => grant.workgroupId === workgroupId
     && grant.personId === personId && grant.status === 'active'
     && Array.isArray(grant.permissionKeys) && grant.permissionKeys.includes(permissionKey));
+}
+
+/**
+ * 工作组挂靠形状校验（D-868）：`kind` / `sourceType` / `sourceId` 必须同时成立且一致。
+ * 不新增第二套挂靠键（activityId / taskforceId），避免两处各写一份。
+ * @returns {string|null}
+ */
+export function workgroupShapeDeny(workgroup) {
+  if (!workgroup || !['activity', 'taskforce'].includes(workgroup.kind)) return '工作组类型无效';
+  if (workgroup.sourceType !== workgroup.kind) return '工作组来源类型与类型不一致';
+  if (!String(workgroup.sourceId || '').trim()) return '工作组缺少业务来源';
+  return null;
 }
 
 export function canManageWorkgroup(db, actor, workgroup) {
@@ -285,6 +298,60 @@ export function activityCreationDeny(db, actor, body) {
   if (SECRETARY.has(actor.role)) return null;
   if (isPartyGroupLeaderRole(actor.role) && group.name === actor.partyGroup) return null;
   return '无权限：非支部级活动须由支书 / 副书记或承办党小组组长创建';
+}
+
+/**
+ * 专班承办方校验（D-868）：新记录必须显式声明 `organizingScope`，不猜。
+ * - branch：hostGroupId 必须为空（承办方记为支委会）；
+ * - party-group：hostGroupId 必须指向同支部 active 党小组。
+ * @returns {string|null} 可懂错误文案
+ */
+export function taskforceScopeDeny(db, actor, body) {
+  if (!actor) return '操作者不存在';
+  const branchId = ownBranch(actor);
+  if (!branchId) return NO_BRANCH_MESSAGE;
+  const rawScope = body?.organizingScope;
+  if (rawScope !== ACTIVITY_SCOPES.BRANCH && rawScope !== ACTIVITY_SCOPES.PARTY_GROUP) {
+    return '专班必须选择承办方（支部级或党小组）';
+  }
+  const hostGroupId = body?.hostGroupId ? String(body.hostGroupId) : '';
+  if (rawScope === ACTIVITY_SCOPES.BRANCH) {
+    if (hostGroupId) return '支部级专班不指定承办党小组';
+    return null;
+  }
+  const group = hostGroupId ? groupOf(db, hostGroupId) : null;
+  if (!group || group.status !== 'active' || (group.branchId || DEFAULT_BRANCH_ID) !== branchId) {
+    return '专班承办党小组必须是本支部在册党小组';
+  }
+  return null;
+}
+
+/**
+ * 专班承办方 PATCH 门（D-868）：
+ *   · 已声明承办方 → 创建后不可改；
+ *   · 历史缺省 → 允许组织委员 / 支书 / 副支书一次性补选（null → 值），补选后锁死。
+ * @returns {string|null} 可懂错误文案
+ */
+export function taskforceScopePatchDeny(db, actor, previous, patch) {
+  const hasScope = previous?.organizingScope === ACTIVITY_SCOPES.BRANCH
+    || previous?.organizingScope === ACTIVITY_SCOPES.PARTY_GROUP;
+  const touches = patch && (Object.prototype.hasOwnProperty.call(patch, 'organizingScope')
+    || Object.prototype.hasOwnProperty.call(patch, 'hostGroupId'));
+  if (!touches) return null;
+  if (hasScope) {
+    const prevGroup = previous?.hostGroupId || null;
+    const nextGroup = Object.prototype.hasOwnProperty.call(patch, 'hostGroupId') ? (patch.hostGroupId || null) : prevGroup;
+    const nextScope = Object.prototype.hasOwnProperty.call(patch, 'organizingScope')
+      ? patch.organizingScope : previous.organizingScope;
+    if (nextScope !== previous.organizingScope || nextGroup !== prevGroup) {
+      return '专班承办方创建后不可修改';
+    }
+    return null;
+  }
+  if (actor?.role !== 'org-commissioner' && !SECRETARY.has(actor?.role)) {
+    return '无权限：补选专班承办方须由组织委员或支书操作';
+  }
+  return taskforceScopeDeny(db, actor, { ...previous, ...patch });
 }
 
 /**
@@ -390,7 +457,7 @@ export function attendanceConfirmDeny(db, actor, previous, next) {
   return null;
 }
 
-export function snapshotScopeDeny(db, payload, actor) {
+export function snapshotScopeDeny(db, payload, actor, read) {
   if (!ownBranch(actor)) return NO_BRANCH_MESSAGE;
   if (['users', 'branches'].some((key) => Object.prototype.hasOwnProperty.call(payload, key))) {
     return '无权限：成员与支部治理记录须走专用语义接口，不能通过整库快照写入';
@@ -401,7 +468,7 @@ export function snapshotScopeDeny(db, payload, actor) {
   }
   if (Array.isArray(payload.periodicArchives)) {
     const branchId = ownBranch(actor);
-    const current = new Map(jsonRows(db, 'periodic_archive_submissions').map((row) => [String(row.id), row]));
+    const current = new Map((read ? read.rows('periodic_archive_submissions') : jsonRows(db, 'periodic_archive_submissions')).map((row) => [String(row.id), row]));
     const incomingIds = new Set();
     for (const row of payload.periodicArchives) {
       if (!row?.id || !row.branchId) return '周期归档写入必须包含记录 ID 与支部归属';
@@ -419,7 +486,7 @@ export function snapshotScopeDeny(db, payload, actor) {
     }
   }
   if (Array.isArray(payload.taskforces)) {
-    const current = new Map(jsonRows(db, 'taskforces').map((row) => [String(row.id), row]));
+    const current = new Map((read ? read.rows('taskforces') : jsonRows(db, 'taskforces')).map((row) => [String(row.id), row]));
     const incomingIds = new Set(payload.taskforces.filter((row) => row?.id).map((row) => String(row.id)));
     for (const next of payload.taskforces) {
       if (!next?.id) continue;
@@ -431,6 +498,19 @@ export function snapshotScopeDeny(db, payload, actor) {
       if ((next.branchId || DEFAULT_BRANCH_ID) !== (previous.branchId || DEFAULT_BRANCH_ID)) return '无权限：工作组支部归属创建后不可修改';
       if (JSON.stringify(previous) !== JSON.stringify(next) && (previous.branchId || DEFAULT_BRANCH_ID) !== ownBranch(actor)) return '无权限：不能通过快照修改其他支部工作组';
       if ((next.workgroupId || workgroupIdFor('taskforce', next.id)) !== (previous.workgroupId || workgroupIdFor('taskforce', previous.id))) return '无权限：工作组关联创建后不可修改';
+      // D-868：专班承办方与活动同口径——创建后不可改；历史缺省允许一次性补选。
+      const prevScope = previous.organizingScope;
+      const nextScope = next.organizingScope;
+      if (prevScope && (prevScope !== nextScope || (previous.hostGroupId || null) !== (next.hostGroupId || null))) {
+        return '无权限：专班承办方创建后不可修改';
+      }
+      if (!prevScope && nextScope) {
+        if (!actor || !['org-commissioner', 'secretary', 'deputy-secretary'].includes(actor.role)) {
+          return '无权限：补选专班承办方须由组织委员或支书操作';
+        }
+        const scopeDeny = taskforceScopeDeny(db, actor, next);
+        if (scopeDeny) return scopeDeny;
+      }
       if (memberIdentity(previous.members) !== memberIdentity(next.members)) return '无权限：工作组成员须走成员语义接口调整';
       const transitionedToTerminal = isTaskforceTerminalStatus(next.status) && (!previous || previous.status !== next.status);
       if (!transitionedToTerminal) continue;
@@ -449,7 +529,7 @@ export function snapshotScopeDeny(db, payload, actor) {
   }
   if (Array.isArray(payload.activities)) {
     const incoming = new Map(payload.activities.filter((row) => row?.id).map((row) => [String(row.id), row]));
-    const current = new Map(jsonRows(db, 'activities').map((row) => [String(row.id), row]));
+    const current = new Map((read ? read.rows('activities') : jsonRows(db, 'activities')).map((row) => [String(row.id), row]));
     for (const [id, row] of incoming) {
       const old = current.get(id);
       if (!old) return '无权限：新增活动须走活动语义写入口，以同时建立活动工作组';
@@ -477,13 +557,13 @@ export function snapshotScopeDeny(db, payload, actor) {
       if (!row?.activityId || !row?.personId || pairKeys.has(key)) return '考勤快照中活动与人员必须唯一对应';
       pairKeys.add(key);
     }
-    const current = new Map(db.prepare('SELECT id, data FROM attendances').all().map((r) => [r.id, JSON.parse(r.data)]));
+    const current = read ? read.ids('attendances') : new Map(db.prepare('SELECT id, data FROM attendances').all().map((r) => [r.id, JSON.parse(r.data)]));
     const next = new Map(incoming.filter((row) => row?.id).map((row) => [String(row.id), row]));
     for (const [id, row] of next) {
       const old = current.get(id);
       const changed = !old || JSON.stringify(old) !== JSON.stringify(row);
       if (!changed) continue;
-      if (isDisabledActivityHistory(db, activityOf(db, row.activityId))) return '无权限：本支部已停用活动组织能力，已结束活动的考勤只读保留';
+      if (isDisabledActivityHistory(db, activityOf(db, row.activityId, read))) return '无权限：本支部已停用活动组织能力，已结束活动的考勤只读保留';
       if (old && old.recordedBy !== row.recordedBy) return '无权限：考勤记录人留痕不可通过快照修改';
       // 2026-10-22（第八轮 2.8）：确认与「上传位 / 记录人留痕」分离——
       //   确认只改 confirmed/confirmedBy/confirmedAt，按确认权（纪检 / 支书 / 副支书）放行；
@@ -507,7 +587,7 @@ export function snapshotScopeDeny(db, payload, actor) {
     }
     for (const [id, row] of current) {
       if (next.has(id)) continue;
-      if (isDisabledActivityHistory(db, activityOf(db, row.activityId))) return '无权限：本支部已停用活动组织能力，已结束活动的考勤只读保留';
+      if (isDisabledActivityHistory(db, activityOf(db, row.activityId, read))) return '无权限：本支部已停用活动组织能力，已结束活动的考勤只读保留';
       const deny = attendanceWriteDeny(db, actor, row);
       if (deny) return `无权限：不能删除该考勤记录（${deny.error}）`;
     }
@@ -548,6 +628,8 @@ export function createActivityWorkgroup(db, actor, activity) {
   const id = workgroupIdFor('activity', activity.id);
   // R9 Task 4.3：建组字段与编辑 / 归档同源（同一投影函数），避免两处各写一份。
   const workgroup = activityWorkgroupUpdate(db, { ...activity, workgroupId: id }, actor.id);
+  const shapeDeny = workgroupShapeDeny(workgroup);
+  if (shapeDeny) return { ok: false, status: 400, error: shapeDeny };
   workgroup.createdBy = actor.id;
   workgroup.createdAt = activity.createdAt || new Date().toISOString();
   workgroup.migrationState = 'ready';
@@ -567,7 +649,16 @@ export function createActivityWorkgroup(db, actor, activity) {
   // 2026-10-21 批次 499：兼容镜像 assignments 与成员主源同形（含 crossGroup/coordinatedBy）。
   activity.assignments = membership.value;
   const run = db.transaction(() => {
-    put(db, 'activities', activity);
+    // 活动行用裸 INSERT：`db.js` 的 `idx_activities_source_branch`（支部 × 党委原件）是部分唯一索引，
+    // `INSERT OR REPLACE` 会静默替换冲突副本；唯一冲突转 409（判例 signup-write-guard.js:105-116）。
+    try {
+      db.prepare('INSERT INTO activities (id, data) VALUES (?, ?)').run(activity.id, JSON.stringify(activity));
+    } catch (e) {
+      if (/UNIQUE constraint failed/i.test(String(e && e.message))) {
+        throw Object.assign(new Error('同一支部对同一党委活动只能保留一条副本'), { uniqueConflict: true });
+      }
+      throw e;
+    }
     put(db, 'workgroups', workgroup);
     for (const member of members) {
       const row = {
@@ -580,18 +671,29 @@ export function createActivityWorkgroup(db, actor, activity) {
       put(db, 'workgroup_members', row);
     }
   });
-  run();
+  try {
+    run();
+  } catch (e) {
+    if (e && e.uniqueConflict) return { ok: false, status: 409, error: e.message };
+    throw e;
+  }
   return { ok: true, workgroup };
 }
 
 export function createTaskforceWorkgroup(db, actor, taskforce) {
   if (!ownBranch(actor)) return { ok: false, status: 403, error: NO_BRANCH_MESSAGE };
+  const scopeDeny = taskforceScopeDeny(db, actor, taskforce);
+  if (scopeDeny) return { ok: false, status: 400, error: scopeDeny };
   const id = workgroupIdFor('taskforce', taskforce.id);
   const workgroup = {
     id, branchId: ownBranch(actor), kind: 'taskforce', sourceType: 'taskforce', sourceId: taskforce.id,
     name: taskforce.name || taskforce.id, status: workgroupStatusForTaskforce(taskforce.status),
+    organizingScope: taskforce.organizingScope,
+    hostGroupId: taskforce.organizingScope === ACTIVITY_SCOPES.PARTY_GROUP ? (taskforce.hostGroupId || null) : null,
     createdBy: actor.id, createdAt: taskforce.createdAt || new Date().toISOString(), migrationState: 'ready',
   };
+  const shapeDeny = workgroupShapeDeny(workgroup);
+  if (shapeDeny) return { ok: false, status: 400, error: shapeDeny };
   const membership = validAssignments(db, actor, taskforce.members || []);
   if (!membership.ok) return membership;
   const run = db.transaction(() => {

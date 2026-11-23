@@ -2,7 +2,7 @@
 title: "架构与单一事实源"
 type: architecture
 role: "[工程师]+[AI]"
-last_updated: "2026-10-30"
+last_updated: "2026-11-08"
 version: "7.4"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/04_web_design/]
@@ -178,9 +178,11 @@ Layer 7: 审计参考层（审计与参考）
 │   ├── 04_web_design/                [工程师]+[AI] 网站设计层（设计理念与思路档案）
 │   │   ├── data/                      [工程师]+[AI] 数据权威（DATA_MODEL 数据模型与数据流）
 │   │   ├── design-system/             [工程师]+[AI] 全站通用规范（DESIGN_SYSTEM：设计哲学/色彩/排版/组件〔含浮窗体例、筛选形态〕/交互/响应式/深色/资产/点击落点〔含承载面唯一性〕）
-│   │   ├── module/                    [工程师]+[AI] 页面与模块设计（SOP_WEBSITE_GUIDE / MODULE_UI_DESIGN / ABOUT_PAGE_DESIGN / AGENDA_AND_REFERENCE_DESIGN）
+│   │   ├── module/                    [工程师]+[AI] 页面与模块设计（SOP_WEBSITE_GUIDE / MODULE_UI_DESIGN / ABOUT_PAGE_DESIGN / AGENDA_AND_REFERENCE_DESIGN / PUBLIC_ENTRANCE）
 │   │   ├── deploy/                    [工程师]+[AI] 部署与集成设计（DEPLOYMENT_GUIDE）
-│   │   ├── evolution/                 [工程师]+[AI] 演进、契约与评估（ARCHITECTURE_EVOLUTION / WORKFLOW_BLOCK_CONTRACT / BRANCH_WORK_MAP / PARTY_COMMITTEE_DESIGN / ROLE_PERMISSION_DESIGN / DESIGN_METHODOLOGY；工程化评估见 .ctx/ENGINEERING_ASSESSMENT.md）
+│   │   ├── contracts/                 [工程师]+[AI] 契约类载体（WORKFLOW_BLOCK_CONTRACT / PARTY_COMMITTEE_DESIGN；状态词与变更规则见 contracts/README.md）
+│   │   ├── evolution/                 [工程师]+[AI] 演进愿景（ARCHITECTURE_EVOLUTION；工程化评估见 .ctx/ENGINEERING_ASSESSMENT.md）
+│   │   │   └── archive/               [工程师]+[AI] 已落地设计档案（BRANCH_WORK_MAP / ROLE_PERMISSION_DESIGN / DESIGN_METHODOLOGY）
 │   │   └── README.md                 [工程师]+[AI] 网站设计层目录索引（逐文件一句话说明）
 │   ├── 05_ai_coding/                 [工程师]+[AI] AI 协作方法论层（唯一 AI 协作方法论层：README + 5 分篇 + DATA_CONSISTENCY_CHECKLIST）
 │   │   ├── README.md                         [工程师]+[AI] AI 协作方法论层目录索引（层索引表 + 分流来源声明）
@@ -494,7 +496,7 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 >
 > **范围声明**：本表为**主要服务索引**（非全量枚举，随系统演进补充）——**全量以 [`docs/src/services/`](../../docs/src/services/)（前端）与 [`server/routes/`](../../server/routes/)（后端）目录实际文件为准**。
 >
-> 关联制度缩写：CF=[COMMISSIONER_DUTY_FRAMEWORK.md](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)、DA=[DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)（数据模型与数据流）、FLAT=[COMMISSIONER_DUTY_FRAMEWORK.md](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（§G 扁平化设计；2026-09-26 原 FLAT_ORGANIZATION_DESIGN.md 并入）、RC=[SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵，9a0~9g）、PC=[PARTY_COMMITTEE_DESIGN.md](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md)（党委后台 P1-P3）；其余为 [sop/](../02_institution/sop/) 制度指南。
+> 关联制度缩写：CF=[COMMISSIONER_DUTY_FRAMEWORK.md](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)、DA=[DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)（数据模型与数据流）、FLAT=[COMMISSIONER_DUTY_FRAMEWORK.md](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（§G 扁平化设计；2026-09-26 原 FLAT_ORGANIZATION_DESIGN.md 并入）、RC=[SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵，9a0~9g）、PC=[PARTY_COMMITTEE_DESIGN.md](../04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md)（党委后台 P1-P3，契约类）；其余为 [sop/](../02_institution/sop/) 制度指南。
 
 | 服务 | 服务文件 | 入口页面 | 核心操作 | 关联制度 |
 |------|---------|---------|---------|---------|
@@ -592,3 +594,14 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 | 前端设计规范 | [DESIGN_SYSTEM.md](../04_web_design/design-system/DESIGN_SYSTEM.md) |
 | 支书裁定原文（P-xxx 系列） | [SECRETARY_DIRECTIVES.md](../01_strategy/SECRETARY_DIRECTIVES.md) |
 | 沿革与「哪一批做了什么」 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` |
+
+---
+
+## 附：系统现行口径承接（2026-11-03）
+
+> 来源：`.ctx/ACTIVE_RULINGS.md` 分类承接；每条末尾 `（D-xxx）` 是决议指针，正文以本文件为准。
+
+- **独立页必须 hydrate**：`docs/*.html` 独立页入口须 `registerApiAdapter` ＋ `init()` / `bootstrapPage`；只 import `runtime.js` 默认仍是 mock，api 形态下只能读到种子。（D-485/D-489）
+- **渲染型路径写 `./`**：JS 渲染的链接 / 资源路径一律 `./`，不得 `../`；裸文件名按 `<base>` 解析后必须真实存在。（D-610/D-646/D-656）
+- **批准门服务端补门**：`POST /activities` 与 `POST /snapshot` 与 `PATCH` 过同一判据，不新增专用端点。（D-591/D-593）
+- **`WORKFLOW_BLOCK_CONTRACT` 的定位**：属契约类（`contracts/`），回答「实现必须遵守的块结构」；规范效力与变更规则见 [contracts/README.md](../04_web_design/contracts/README.md)，组件形态仍以 `DS_03` 与本文为准。（D-686）

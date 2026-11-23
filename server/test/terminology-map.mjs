@@ -248,6 +248,23 @@ export function extractStructuralLabels(root = ROOT, segments = extractInsightSe
       const block = sliceBracket(src, open);
       for (const lm of block.matchAll(/label\s*:\s*'([^']+)'/g)) push(lm[1], 'facet', file);
     }
+    // 2026-11-01 批次 524：选项改由 forms.js 的 `selectInput({ options: [{ label }] })` 生成，
+    //   `<option>` 字面量不再出现。抽取面同步跟进 `options` 数组，否则选项文案会从 H-T3 的
+    //   扫描面里静默消失（守卫名义绿、实际漏报）。
+    //   两种写法都收：① 内联 `options: [...]`；② 先声明 `const xxxOptions = [...]` 再传入。
+    const optionArrays = [
+      ...src.matchAll(/\boptions\s*:\s*/g),
+      ...src.matchAll(/(?:const|let|var)\s+[A-Za-z_$][\w$]*[Oo]ptions\s*=\s*/g),
+    ];
+    for (const m of optionArrays) {
+      const open = src.indexOf('[', m.index);
+      if (open < 0) continue;
+      const block = sliceBracket(src, open);
+      // `label: 'x'` 与三元 `label: cond ? 'a' : 'b'` 都抽；只取该表达式里的字符串字面量。
+      for (const lm of block.matchAll(/\blabel\s*:\s*([^,\n}]+)/g)) {
+        for (const s of lm[1].matchAll(/'([^']+)'/g)) push(s[1], 'option', file);
+      }
+    }
   }
   // 页签 label（能力声明是唯一注册源）
   for (const t of extractCapabilityTabs(root)) push(t.label, 'tab', t.file);

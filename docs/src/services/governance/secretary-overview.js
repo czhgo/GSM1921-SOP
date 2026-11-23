@@ -7,24 +7,25 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
-import { loadAttendanceRecords, loadActiveAttendanceRecords, listLowAttendanceSessions, summarizeAttendanceByActivity } from '../activity/attendance.js?v=20261031a';
-import { loadActivities } from '../activity/activity.js?v=20261031a';
-import { loadInspectionRecords, getOverdueRecords } from '../activity/inspection.js?v=20261031a';
-import { TaskForceRecordStore } from '../activity/taskforce.js?v=20261031a';
-import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20261031a';
-import { NoticeStore } from './notice.js?v=20261031a';
-import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20261031a';
-import { tokenOf } from '../../core/base/version-token.js?v=20261031a'; // P0 域缓存失效（spec §二.3/§二.4）
-import { PEOPLE } from '../../data/mock/index.js?v=20261031a';
-import { getPersonById } from '../member/person.js?v=20261031a';
-import { ROLE_LABELS, isActivityEnded, isActivityArchived, isActivityInProgress } from '../../core/domain/constants.js?v=20261031a';
-import { mockDB, AttendanceStatus, ReviewStatus, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261031a';
-import { persist } from '../../data/data-adapter.js?v=20261031a'; // 周期归档审核写口落盘（SOP-B-40 ②）
+import { loadAttendanceRecords, loadActiveAttendanceRecords, listLowAttendanceSessions, summarizeAttendanceByActivity } from '../activity/attendance.js?v=20261120a';
+import { loadActivities } from '../activity/activity.js?v=20261120a';
+import { loadInspectionRecords, getOverdueRecords } from '../activity/inspection.js?v=20261120a';
+import { TaskForceRecordStore } from '../activity/taskforce.js?v=20261120a';
+import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20261120a';
+import { NoticeStore } from './notice.js?v=20261120a';
+import { TodoStore, seedTodos, TodoCategory, TodoActionType, TodoStatus, isTodoExpired, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20261120a';
+import { tokenOf } from '../../core/base/version-token.js?v=20261120a'; // P0 域缓存失效（spec §二.3/§二.4）
+import { getPersonById, PersonStore } from '../member/person.js?v=20261120a';
+import { ROLE_LABELS, isActivityEnded, isActivityArchived, isActivityInProgress } from '../../core/domain/constants.js?v=20261120a';
+import { mockDB, AttendanceStatus, ReviewStatus, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261120a';
+import { persist } from '../../data/data-adapter.js?v=20261120a'; // 周期归档审核写口落盘（SOP-B-40 ②）
 // 批4（2026-09-09 支书批「域参数」副本收编）：本文件 4 组提醒阈值/deadline 一律引 policy 单一源派生，
 // 勿再写字面量（attendance.entryRemindDays/summaryDeadlineDays · inspection.overdueDays ·
 // review.overdueDays/deadlineDays——读侧注入后自动跟随域覆盖值）
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261031a';
-import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261031a';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261120a';
+import { todayLocal, _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261120a';
+// 待办派生单一源（零依赖叶子件；服务端 Task 8 同源消费，见 `server/routes/todo-groups.js`）
+import { deriveAttendanceRemindGroup, deriveInspectionRemindGroup } from '../../core/domain/todo-derive.js?v=20261120a';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数
@@ -35,9 +36,9 @@ function _today() {
   return todayLocal();
 }
 
-/** 当前年月字符串 YYYY-MM */
+/** 当前年月字符串 YYYY-MM（本地口径：本地 12-01 早上仍是「12 月」，不得用 UTC 切串） */
 function _thisMonth() {
-  return new Date().toISOString().slice(0, 7);
+  return _currentYearMonth();
 }
 
 /** 日期偏移（返回 YYYY-MM-DD） */
@@ -102,6 +103,17 @@ function _personFp() {
   return `${_pair('activity', mockDB.activities)},${_pair('taskforce', mockDB.taskforces)},todo:${tokenOf('todo')},day:${_today()}`;
 }
 
+/**
+ * 「已过截止」判定 —— 截止日已过、但按 `isTodoExpired` **不计逾期**的那一类（当前即「进行中」）；
+ * 与「逾期」互斥（逾期 = `isTodoExpired` 为真）。逾期口径单一源 = `todo.js::isTodoExpired`；
+ * 消费点 = 按人视图 `getPersonOverview().pastDeadlineCount` ＋ 支书全局概况结论带（`work-overview.js`）。
+ */
+export function isPastDeadlineOnly(todo, today) {
+  if (!todo || !todo.deadline) return false;
+  if (todo.status === TodoStatus.COMPLETED) return false;
+  return todo.deadline < today && !isTodoExpired(todo, today);
+}
+
 // ════════════════════════════════════════════════════════════════
 //  SecretaryOverviewStore — 四维度概况聚合
 // ════════════════════════════════════════════════════════════════
@@ -148,7 +160,7 @@ export const SecretaryOverviewStore = {
    * 其后以复合键缓存（活动/专班 token+长度 + todo token + 日期；⚠️ 返回值只读契约）。
    * @returns {Array<{
    *   role:string, label:string, personIds:string[], names:string,
-   *   todoCount:number, overdueCount:number, todoGroups:Array,
+   *   todoCount:number, overdueCount:number, pastDeadlineCount:number, todoGroups:Array,
    *   activities:Array<{id,title,date,status}>,
    *   taskforces:Array<{id,name,status,deadline,relation}>,
    *   url:string
@@ -166,15 +178,21 @@ export const SecretaryOverviewStore = {
 
     const result = this.PERSON_ROLES.map(cfg => {
       const role = cfg.role;
-      const people = PEOPLE.filter(p => p.role === role);
+      const people = PersonStore.getMembers().filter(p => p.role === role);
       const personIds = people.map(p => p.id);
       const personIdSet = new Set(personIds);
 
       // ① 未完成待办（按业务动作聚合，同跳转目标合并为一条）
       const todoGroups = TodoStore.getGroupedByAction(role);
       const todoCount = todoGroups.reduce((s, g) => s + g.count, 0);
+      // 逾期口径单一源 = `todo.js::isTodoExpired`（排除 in_progress、认 expired 显式态）；
+      // 不再自算 `deadline < today`——那会把进行中的待办误计为逾期。
       const overdueCount = todoGroups.reduce((s, g) => s + g.items.filter(it =>
-        it.deadline && it.deadline < today
+        isTodoExpired(it, today)
+      ).length, 0);
+      // 已过截止（单列，不与「逾期」混）：截止日已过、但按 isTodoExpired 不计逾期（当前即进行中）。
+      const pastDeadlineCount = todoGroups.reduce((s, g) => s + g.items.filter(it =>
+        isPastDeadlineOnly(it, today)
       ).length, 0);
 
       // ② 在办活动：统一判据 isActivityInProgress（排除草稿/已取消/已结束）；本人为组织者或项目成员
@@ -203,6 +221,7 @@ export const SecretaryOverviewStore = {
         names: people.map(p => p.name).join('、'),
         todoCount,
         overdueCount,
+        pastDeadlineCount,
         todoGroups,
         activities: relatedActivities.map(a => ({ id: a.id, title: a.title, date: a.date, status: a.status })),
         taskforces: relatedTaskforces,
@@ -285,7 +304,7 @@ export const SecretaryOverviewStore = {
     // 各阶段全量人数（50 人规模，2026-08-01 口径修正：按人员库全量统计，非"有考察记录者"）
     // 2026-08-01 身份四阶段：申请人并入积极分子，无独立 applicant 档
     const stageCounts = { activist: 0, target: 0, probationary: 0, full: 0 };
-    for (const p of PEOPLE) {
+    for (const p of PersonStore.getMembers()) {
       const stage = p.developStage;
       if (stage === '积极分子') stageCounts.activist++;
       else if (stage === '发展对象') stageCounts.target++;
@@ -456,20 +475,28 @@ export const SecretaryTodoDeriver = {
 
   /** 计算支书全部待办聚合卡（8 组；空组不展示，避免 0 条占位卡）
    *  P0：复合键缓存（读源 token + 长度指纹；⚠️ 返回数组只读契约——调用方仅读，
-   *  需改（如加 hideActionBtn 标记）先浅拷贝——todo-tab 已按此消费）。 */
-  computeAggregates() {
-    const key = 'deriverAggs:' + _deriverFp() + ':day:' + _today();
+   *  需改（如加 hideActionBtn 标记）先浅拷贝——todo-tab 已按此消费）。
+   *  2026-11-04 批次 534（B-500-7b-1 Task 9）：`skipActionKeys`（Set<string>）内的键**不派生**
+   *  ——服务端已接管的实时组（7 类 + 模块周期等）默认由 `GET /todo-groups` 给出，
+   *  客户端只在兜底时全量派生。命中缓存时按 skip 集合分键，互不串场。 */
+  computeAggregates({ skipActionKeys = null } = {}) {
+    const skip = skipActionKeys && typeof skipActionKeys.has === 'function'
+      ? skipActionKeys
+      : new Set(skipActionKeys || []);
+    const skipTag = skip.size ? ':skip:' + [...skip].sort().join(',') : '';
+    const key = 'deriverAggs:' + _deriverFp() + ':day:' + _today() + skipTag;
     const hit = _memoGet(key);
     if (hit !== undefined) return hit;
+    const agg = (k, fn) => (skip.has(k) ? [] : fn.call(this));
     const value = [
-      ...this._aggAttendanceRemind(),
-      ...this._aggInspectionRemind(),
-      ...this._aggReviewRemind(),
-      ...this._aggArchiveRemind(),
-      ...this._aggAttendanceConfirm(),
-      ...this._aggInspectionConfirm(),
-      ...this._aggReviewConfirm(),
-      ...this._aggArchiveConfirm(),
+      ...agg('attendance-remind', this._aggAttendanceRemind),
+      ...agg('inspection-remind', this._aggInspectionRemind),
+      ...agg('review-remind', this._aggReviewRemind),
+      ...agg('archive-remind', this._aggArchiveRemind),
+      ...agg('attendance-confirm', this._aggAttendanceConfirm),
+      ...agg('inspection-confirm', this._aggInspectionConfirm),
+      ...agg('review-confirm', this._aggReviewConfirm),
+      ...agg('archive-confirm', this._aggArchiveConfirm),
     ].filter(g => g.count > 0);
     return _memoSet(key, value);
   },
@@ -498,52 +525,26 @@ export const SecretaryTodoDeriver = {
 
   // ── 提醒类1：活动结束超录入提醒阈值且无考勤记录（天数=policy attendance.entryRemindDays） ──
   _aggAttendanceRemind() {
-    const activities = loadActivities();
-    const attendances = loadAttendanceRecords();
-    const today = _today();
-    // P1（2026-09-07 · spec §三.1）：预建 Map<activityId, records[]> 一次分组（O(A+R)），
-    // 缺口查表 O(1)——替代原 attendances.some 逐活动全扫（O(A·R)）。等价：有无记录判定不变。
-    const recordsByActivity = new Map();
-    for (const r of attendances) {
-      if (!r) continue;
-      const k = r.activityId;
-      if (!recordsByActivity.has(k)) recordsByActivity.set(k, []);
-      recordsByActivity.get(k).push(r);
-    }
-    const hasRecords = (activityId) => {
-      const bucket = recordsByActivity.get(activityId);
-      return !!bucket && bucket.length > 0;
-    };
-    const gaps = activities.filter(a =>
-      isActivityEnded(a) && a.date && !POLICY_DEFAULTS.attendance.noAttendanceTypes.includes(a.type) && // 132：不考勤的会议类型（支委会）不提示「考勤待录入」（单源 = policy attendance.noAttendanceTypes）
-      _daysBetween(a.date, today) > POLICY_DEFAULTS.attendance.entryRemindDays &&
-      !hasRecords(a.id)
-    );
-    return this._mkGroup('attendance-remind', '考勤待录入', TodoCategory.REVIEW, TodoActionType.REVIEW,
-      `活动结束>${POLICY_DEFAULTS.attendance.entryRemindDays}天未录入考勤 → 纪检确认 → 考勤明细`,
-      gaps.map(a => ({
-        id: a.id,
-        activityId: a.id,
-        name: a.title,
-        date: a.date,
-        deadline: _addDays(a.date, POLICY_DEFAULTS.attendance.summaryDeadlineDays),
-      })),
-      'remind');
+    // 2026-11-04 批次 534（B-500-7b-1 Task 7）：派生单一源＝`core/domain/todo-derive.js`
+    //   （零依赖叶子件，服务端 Task 8 同源消费）；组键 / 标题 / flow / 条目形状一字未改。
+    const group = deriveAttendanceRemindGroup({
+      activities: loadActivities(),
+      attendanceRecords: loadAttendanceRecords(),
+      today: _today(),
+    });
+    return group ? [group] : [];
   },
 
   // ── 提醒类2：考察记录超期未确认（> inspection.overdueDays 天，policy 单一源） ─────
   _aggInspectionRemind() {
-    const overdue = getOverdueRecords();
-    const items = overdue.map(r => ({
-      id: r.id,
-      inspectionId: r.id,
-      name: (getPersonById(r.personId) || {}).name || r.personId,
-      date: r.recordedAt ? r.recordedAt.slice(0, 10) : null,
-      // 批4：deadline 引 policy 单一源（与纪检台超期判定同源，随域覆盖变化）
-      deadline: _addDays(r.recordedAt ? r.recordedAt.slice(0, 10) : _today(), POLICY_DEFAULTS.inspection.overdueDays),
-    }));
-    return this._mkGroup('inspection-remind', '考察超期未确认', TodoCategory.REVIEW, TodoActionType.REVIEW,
-      '纪检录入考察 → 确认 → 组织建档 → 人才库', items, 'remind');
+    // 2026-11-04 批次 534（Task 7）：同源 `todo-derive.js::deriveInspectionRemindGroup`
+    //   （判据＝原 `getOverdueRecords` 逐条：pending + 未打回 + 距今 > overdueDays）。
+    const group = deriveInspectionRemindGroup({
+      inspectionRecords: loadInspectionRecords(),
+      persons: PersonStore.getMembers(),
+      today: _today(),
+    });
+    return group ? [group] : [];
   },
 
   // ── 提醒类3：活动结束 > review.overdueDays 天且无复盘（policy 单一源） ───────

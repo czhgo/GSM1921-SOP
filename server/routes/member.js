@@ -5,6 +5,7 @@
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { requireAuth, requireRole, requireCommissioner } from './auth.js';
+import { requireSecretaryAction } from './resources/deputy-policy.js';
 // P2c（2026-09-03）：角色/支委名单单一源 = docs/src/core/domain/constants.js（勿手写）
 // Q-21-3（2026-09-13）：在册状态枚举 RESIDENCE 同源 = constants.js（原先经 org-base-data-preview 转出，
 //   而 preview 与 roster 各持一份同值字面量；现全站唯一源）
@@ -26,7 +27,7 @@ import { sanitizeSelfProfile } from '../../docs/src/core/domain/self-profile.js'
 import { canReadMemberProfile, projectMemberProfile } from '../../docs/src/core/domain/profile-access.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
 import { today as todayLocal } from '../services/reporting.js';
-import { actorBranchId, branchSelectionError, selectedBranchRequiredError, recordBranchWriteDeny, requireAssignedBranch, resourceRowsForActor } from './resources/branch-scope.js';
+import { actorBranchId, branchSelectionError, selectedBranchRequiredError, recordBranchWriteDeny, requireAssignedBranch, resourceRowsForActor } from './resources/branch-scope.js'; import { aliasMemberChangeRow } from '../data/domain-contract.mjs'; // 2026-11-02 批次 527：成员变更形状单一源（读时别名；不双写）
 
 // 全体支委广播常量已移除（2026-10-20 数据生命周期 P1-26）：
 // `committee_broadcasts` 无任何消费端，审批通过的送达由系统通知 `member-change-approved` 完成，
@@ -35,9 +36,6 @@ import { actorBranchId, branchSelectionError, selectedBranchRequiredError, recor
 const ORG_COMMISSIONER_ROLES = new Set(ORG_COMMISSIONER_ROLE_KEYS);
 // 成员流动登记角色集（组织委员 + 支书/副支书；单一源 constants.js，勿手写）
 const MEMBER_FLOW_ROLES = new Set(MEMBER_FLOW_ROLE_KEYS);
-// 副书同权（2026-09-11 支书裁定）：支书侧写链共享集合（单一源 constants.js，勿手写两套）——
-// 名册阶段/在册镜像、移出确认、成员变更确认（本文件 confirm）一律复用本集合。
-const SECRETARY_AND_DEPUTY_ROLES = new Set(SECRETARY_DEPUTY_ROLE_KEYS);
 
 function listTable(db, table) {
   return db.prepare(`SELECT data FROM ${table}`).all().map((r) => JSON.parse(r.data));
@@ -75,6 +73,28 @@ export function renamePersonRefs(value, from, to) {
   return value;
 }
 
+/** 支部可调参数：积极分子 → 发展对象最短考察月数（缺省 12；0＝不设期限）（`D-887` / `SOP-B-27`） */
+function policyActivistMinMonths(db, branchId) {
+  try {
+    const row = db.prepare('SELECT data FROM branches WHERE id = ?').get(branchId);
+    const cfg = row ? JSON.parse(row.data).config : null;
+    const v = cfg && cfg.policyOverrides && cfg.policyOverrides.member
+      && cfg.policyOverrides.member.activistMinMonths;
+    return (Number.isInteger(v) && v >= 0 && v <= 60) ? v : 12;
+  } catch (_) { return 12; }
+}
+
+/** 整月差（`YYYY-MM-DD` → 今天）；非法日期 → null */
+function fullMonthsBetween(ymd, now) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(ymd || ''));
+  if (!m) return null;
+  const y = Number(m[1]); const mo = Number(m[2]); const d = Number(m[3]);
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+  let months = (now.getFullYear() - y) * 12 + (now.getMonth() + 1 - mo);
+  if (now.getDate() < d) months -= 1;
+  return months;
+}
+
 export function createMemberRouter(db) {
   const router = Router();
 
@@ -95,7 +115,7 @@ export function createMemberRouter(db) {
   router.get('/member-change-requests', requireAuth(db), (req, res) => {
     const scopeDeny = branchSelectionError(req.actor, req.query.branchId);
     if (scopeDeny) return res.status(403).json({ error: scopeDeny });
-    let rows = resourceRowsForActor(db, 'member_change_requests', listTable(db, 'member_change_requests'), req.actor, req.query.branchId);
+    let rows = resourceRowsForActor(db, 'member_change_requests', listTable(db, 'member_change_requests'), req.actor, req.query.branchId).map(aliasMemberChangeRow); // 2026-11-02 批次 527：读时别名（统一 fromStage/toStage/action，不双写）
     if (req.query.activityId) rows = rows.filter((r) => r.activityId === req.query.activityId);
     if (req.query.status) rows = rows.filter((r) => r.status === req.query.status);
     res.json(rows);
@@ -160,20 +180,28 @@ export function createMemberRouter(db) {
   });
 
   // ── 支书/副支书确认 → 更新成员发展阶段（users.developStage）──
-  // 副书同权（2026-09-11 支书裁定）：确认端点一并纳入，复用 SECRETARY_AND_DEPUTY_ROLES
-  // （与名册阶段/在册镜像、移出确认同口径，不在支书侧写链内再造第二套集合）。
+  // 主责在支书；副支书能否代操作由支部参数 `role.deputySecretary`（rosterStage）决定（批次 579）。
   // 同支部校验（与 develop-stage / residence-status 等支书侧写端点同口径）：跨支部一律 403。
-  router.post('/member-change-requests/:id/confirm', requireRole(db, SECRETARY_AND_DEPUTY_ROLES), (req, res) => {
+  router.post('/member-change-requests/:id/confirm', requireSecretaryAction(db, 'rosterStage'), (req, res) => {
     const existing = getRow(db, 'member_change_requests', req.params.id);
     if (!existing) return res.status(404).json({ error: '申请不存在' });
     if (recordBranchWriteDeny(db, 'member_change_requests', existing, req.actor, { requireBranch: false })) return res.status(403).json({ error: '无权限：不能确认其他支部的申请' });
     if (existing.status !== 'pending-secretary') {
       return res.status(400).json({ error: `当前状态 ${existing.status} 不可确认，须组织委员审批后` });
     }
+    // G4（2026-11-08 波次 B）：提案目标阶段必须是合法枚举——脏数据不得落 `users.developStage`。
+    const proposal = aliasMemberChangeRow(existing);
+    if (!DEVELOP_STAGE_OPTIONS.includes(String(proposal.toStage || ''))) {
+      return res.status(422).json({ error: `提案目标阶段非法：${proposal.toStage || '空'}（须为 ${DEVELOP_STAGE_OPTIONS.join(' / ')}）` });
+    }
     const userRow = db.prepare('SELECT data FROM users WHERE id = ?').get(existing.personId);
     const user = userRow ? JSON.parse(userRow.data) : null;
     if (user && branchOf(req.actor) !== branchOf(user)) {
       return res.status(403).json({ error: '无权限：仅可确认本支部成员的变更申请' });
+    }
+    // G4：落库前重新读取成员当前阶段，必须仍等于提案 `fromStage`（不等＝期间已被他处改动，拒绝覆盖）。
+    if (user && String(user.developStage || '') !== String(proposal.fromStage || '')) {
+      return res.status(409).json({ error: '阶段已变化，请重新提交提案' });
     }
     const updated = {
       ...existing,
@@ -187,8 +215,8 @@ export function createMemberRouter(db) {
     // 2026-09-28 服务端化：一并落 developStageSince（进入当前阶段日期，取自申请的 entryDate）——
     // 原记在本机 localStorage 覆盖档案 gsm1921-dev-stage-overrides（跨设备不可读），已撤除。
     if (user) {
-      const merged = { ...user, developStage: existing.toStage || user.developStage };
-      if (existing.toStage) {
+      const merged = { ...user, developStage: proposal.toStage || user.developStage };
+      if (proposal.toStage) {
         const d = String(existing.entryDate || '').slice(0, 10);
         merged.developStageSince = /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : todayLocal();
       }
@@ -238,21 +266,21 @@ export function createMemberRouter(db) {
   //   · 直接写 users.developStage，不触碰 resources.js 的 users 写权矩阵。
   // 返回：200 { ...updatedUser }（单条成员对象，与其它写端点一致）；错误 400/401/403/404 { error }。
   const DEVELOP_STAGE_FORBIDDEN = ['role', 'branchId'];
-  router.post('/members/:id/develop-stage', requireRole(db, SECRETARY_AND_DEPUTY_ROLES), (req, res) => {
+  router.post('/members/:id/develop-stage', requireSecretaryAction(db, 'rosterStage'), (req, res) => {
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     const forbidden = DEVELOP_STAGE_FORBIDDEN.find((k) => Object.prototype.hasOwnProperty.call(body, k));
     if (forbidden) {
-      return res.status(400).json({ error: `字段 ${forbidden} 不在白名单（本端点仅可写 developStage）` });
+      return res.status(422).json({ error: `字段 ${forbidden} 不在白名单（本端点仅可写 developStage）` });
     }
     const toStage = body.developStage;
     if (typeof toStage !== 'string' || !DEVELOP_STAGE_OPTIONS.includes(toStage)) {
-      return res.status(400).json({ error: `developStage 须为：${DEVELOP_STAGE_OPTIONS.join(' / ')}` });
+      return res.status(422).json({ error: `developStage 须为：${DEVELOP_STAGE_OPTIONS.join(' / ')}` });
     }
     // developStageSince（进入当前阶段日期）：可选随行落档（2026-09-28 服务端化——原为本机
-    // localStorage 覆盖档案 gsm1921-dev-stage-overrides，跨设备不可读）。非 'YYYY-MM-DD' ⇒ 400。
+    // localStorage 覆盖档案 gsm1921-dev-stage-overrides，跨设备不可读）。非 'YYYY-MM-DD' ⇒ 422。
     const since = body.developStageSince;
     if (since !== undefined && since !== null && !/^\d{4}-\d{2}-\d{2}$/.test(String(since))) {
-      return res.status(400).json({ error: "developStageSince 须为 'YYYY-MM-DD'" });
+      return res.status(422).json({ error: "developStageSince 须为 'YYYY-MM-DD'" });
     }
     const userRow = db.prepare('SELECT data FROM users WHERE id = ?').get(req.params.id);
     if (!userRow) return res.status(404).json({ error: '成员不存在' });
@@ -261,6 +289,31 @@ export function createMemberRouter(db) {
     const targetBranch = branchOf(user);
     if (!myBranch || myBranch !== targetBranch) {
       return res.status(403).json({ error: '无权限：仅可推进本支部成员的发展阶段' });
+    }
+    // ── 「推荐为发展对象」服务端硬门（`D-887` / `SOP-B-27`）──────────────────────────
+    //  ① 讨论前置：进入「发展对象」前须存在支委会讨论通过留痕（`member_change_requests`
+    //    该人 `toStage='发展对象' && meetingResult='passed'`，由 `recordAgendaResult` 只对通过者建）；
+    //  ② 一年考察期：默认满 `member.activistMinMonths`（12）个月，0 ＝ 不设期限（支部可调）。
+    //  ⚠ 只管「进入发展对象」这一步；已是发展对象 / 其它阶段推进不受此门影响。
+    if (toStage === '发展对象' && user.developStage !== '发展对象') {
+      const passed = listTable(db, 'member_change_requests').some((r) => r
+        && String(r.personId) === String(req.params.id)
+        && String(r.toStage || '') === '发展对象'
+        && r.meetingResult === 'passed'
+        && !['rejected', 'cancelled'].includes(String(r.status || '')));
+      if (!passed) {
+        return res.status(422).json({ error: '推荐为发展对象须先经支委会讨论通过（把该成员加入支委会「待讨论名单」并记录通过后再推进）' });
+      }
+      const minMonths = policyActivistMinMonths(db, myBranch);
+      if (minMonths > 0) {
+        const stageSince = since || user.developStageSince;
+        if (!stageSince) return res.status(422).json({ error: '缺少积极分子阶段起始日（developStageSince），无法核验培养考察期' });
+        const full = fullMonthsBetween(String(stageSince), new Date());
+        if (full === null) return res.status(422).json({ error: 'developStageSince 须为 YYYY-MM-DD' });
+        if (full < minMonths) {
+          return res.status(422).json({ error: `培养考察期未满：须满 ${minMonths} 个月（自积极分子阶段起始日算起）` });
+        }
+      }
     }
     const merged = { ...user, developStage: toStage };
     if (since) merged.developStageSince = String(since);
@@ -350,7 +403,8 @@ export function createMemberRouter(db) {
       const user = readUser(from);
       const nextData = { ...renamePersonRefs(user, from, to), id: to, studentId: to };
       db.prepare('UPDATE users SET id = ?, data = ? WHERE id = ?').run(to, JSON.stringify(nextData), from);
-      db.prepare('UPDATE sessions SET person_id = ? WHERE person_id = ?').run(to, from);
+      // 支书 2026-11-03 裁定：账号改名后不保留旧会话（无别名表，避免旧 token 继续可用）。
+      db.prepare('DELETE FROM sessions WHERE person_id = ?').run(from);
       // 附件上传人同属人员引用列（旧 v7 迁移同口径）；表可能不存在于最小测试库。
       if (db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'attachments'").get()) {
         db.prepare('UPDATE attachments SET uploaded_by = ? WHERE uploaded_by = ?').run(to, from);
@@ -365,14 +419,14 @@ export function createMemberRouter(db) {
         }
       }
       // 留痕形状：what/from/to/by/at（账号改名不是授权授予，故不复用 grant/revoke 语义）
-      const audit = { id: auditId, what: 'account-renamed', from, to, by: req.actor.id, at };
+      const audit = { id: auditId, what: 'account-renamed', from, to, by: req.actor.id, at, sessionsInvalidated: true };
       db.prepare('INSERT OR REPLACE INTO auth_audit (id, data) VALUES (?, ?)').run(audit.id, JSON.stringify(audit));
     })();
-    res.json({ ok: true, from, to });
+    res.json({ ok: true, from, to, sessionsInvalidated: true });
   });
 
   // ① 在册状态镜像：成员变更确认链支书/副支书确认生效 → 写 residenceStatus/Note/History（副书同权 + 同支部）
-  router.post('/members/:id/residence-status', requireRole(db, SECRETARY_AND_DEPUTY_ROLES), (req, res) => {
+  router.post('/members/:id/residence-status', requireSecretaryAction(db, 'rosterStage'), (req, res) => {
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     const bad = firstOutside(body, RESIDENCE_FIELDS);
     if (bad) return res.status(400).json({ error: `字段 ${bad} 不在白名单（本端点仅可写 ${RESIDENCE_FIELDS.join(' / ')}）` });
@@ -386,7 +440,7 @@ export function createMemberRouter(db) {
     }
     const merged = { ...user, ...body };
     writeRow(db, 'users', merged);
-    res.json(merged);
+    res.json(stripPasswordHash(merged));
   });
 
   // ② 名册档案维护：组织委员行内编辑（姓名/学号/党小组/自我描述/在册属性）
@@ -428,7 +482,7 @@ export function createMemberRouter(db) {
     if (patch.selfProfile !== undefined) patch.selfProfile = sanitizeSelfProfile(patch.selfProfile);
     const merged = { ...user, ...patch };
     writeRow(db, 'users', merged);
-    res.json(merged);
+    res.json(stripPasswordHash(merged));
   });
 
   // ②b 名册新增：组织委员；id 缺省服务端生成；强制归本支部 + 默认 role=participant（防注入）
@@ -459,7 +513,7 @@ export function createMemberRouter(db) {
     }
     const row = { ...body, id, name: body.name.trim(), role: 'participant', branchId: branchOf(req.actor) };
     writeRow(db, 'users', row);
-    res.status(201).json(row);
+    res.status(201).json(stripPasswordHash(row));
   };
   router.post('/members', requireRole(db, ORG_COMMISSIONER_ROLES), createMemberRow);
   router.post('/members/intake', requireRole(db, MEMBER_FLOW_ROLES), createMemberRow);
@@ -474,12 +528,12 @@ export function createMemberRouter(db) {
     if (branchOf(req.actor) !== branchOf(user)) {
       return res.status(403).json({ error: '无权限：仅可移出本支部成员' });
     }
-    if (user.transferOut === true) return res.json(user); // 幂等：已转出重复请求不重复改写
+    if (user.transferOut === true) return res.json(stripPasswordHash(user)); // 幂等：已转出重复请求不重复改写
     const at = new Date().toISOString();
     const merged = { ...user, transferOut: true, transferredOutAt: at, removedAt: at, removedBy: req.actor.id };
     if (typeof body.note === 'string' && body.note.trim()) merged.transferOutNote = body.note.trim();
     writeRow(db, 'users', merged);
-    res.json(merged);
+    res.json(stripPasswordHash(merged));
   });
 
   // ④ 撤销流出（登记即生效的纠错口；2026-09-14 批次 29 支书裁定，Q-23-5 闭环）
@@ -495,7 +549,7 @@ export function createMemberRouter(db) {
     if (branchOf(req.actor) !== branchOf(user)) {
       return res.status(403).json({ error: '无权限：仅可撤销本支部成员的流出' });
     }
-    if (user.transferOut !== true) return res.json(user); // 幂等：本就在册，不重复改写
+    if (user.transferOut !== true) return res.json(stripPasswordHash(user)); // 幂等：本就在册，不重复改写
     const merged = { ...user };
     delete merged.transferOut;
     delete merged.transferredOutAt;
@@ -503,7 +557,7 @@ export function createMemberRouter(db) {
     delete merged.removedBy;
     delete merged.transferOutNote;
     writeRow(db, 'users', merged);
-    res.json(merged);
+    res.json(stripPasswordHash(merged));
   });
 
   // ── 广播记录（支委可见；按 requestId 过滤）──
@@ -517,3 +571,6 @@ export function createMemberRouter(db) {
 
   return router;
 }
+
+// 个人密码散列（波次 G）：users 行响应脱敏单一源；置尾以保上文（README-server.md 的 member.js 行号引用）不漂移
+import { stripPasswordHash } from '../security/password.mjs';

@@ -76,7 +76,7 @@ async function setMonth(page, month) {
 /** 从应用状态读取某活动所在月份（YYYY-MM）：不写死演示月份，种子重排后自动跟随。 */
 async function monthOfActivity(page, activityId) {
   const month = await page.evaluate(async (id) => {
-    const m = await import('/src/core/base/state.js?v=20261031a');
+    const m = await import('/src/core/base/state.js?v=20261120a');
     const act = (m.getAppState().activities || []).find((a) => a.id === id);
     return act ? String(act.date).slice(0, 7) : null;
   }, activityId);
@@ -306,7 +306,7 @@ test('A5 支部分工「去表决」落到支委会会议页且表态位在位�
     const href = await page.locator('a:has-text("去表决")').first().getAttribute('href');
     console.log(`[A5] 「去表决」href = ${href}`);
     // ① 目标＝支委会会议页（带本次活动 id）
-    assert.match(href, /party-committee-meeting\.html\?id=/, '「去表决」应指向支委会会议页 ?id=<活动id>');
+    assert.match(href, /party-committee-meeting(?:\.html)?\?id=/, '「去表决」应指向支委会会议页 ?id=<活动id>');
     assert.ok(!href.includes('secretary.html?activityId='), '「去表决」不得再走支书台活动定位深链（会落到「活动管理」）');
 
     // ② 真机点它：落到支委会会议页
@@ -314,7 +314,7 @@ test('A5 支部分工「去表决」落到支委会会议页且表态位在位�
       page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {}),
       page.locator('a:has-text("去表决")').first().click(),
     ]);
-    assert.ok(page.url().includes('/party-committee-meeting.html'), `应落到支委会会议页，实际 ${page.url()}`);
+    assert.ok(page.url().includes('/party-committee-meeting'), `应落到支委会会议页，实际 ${page.url()}`);
     await page.waitForSelector('.vote-panel', { timeout: 15000 });
     const tabTitle = await page.locator('h2').first().innerText();
     const voteText = await page.locator('.vote-panel').first().innerText();

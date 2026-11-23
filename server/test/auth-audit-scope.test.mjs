@@ -40,6 +40,7 @@ async function request(personId, method, path, body) {
 test('授权审计由服务端认定操作者，且只接受其有权执行的同支部工作组变更', async () => {
   const created = await request('2400012355', 'POST', 'taskforces', {
     name: '审计范围测试专班', task: '核对授权留痕', status: 'recruiting', branchId: 'br-b1', members: [],
+    organizingScope: 'branch',
   });
   assert.equal(created.status, 201);
   const workgroupId = created.data.workgroupId;

@@ -73,7 +73,7 @@
 
 ## 九、验证
 
-- [x] `ui-button-four-types.test.mjs` 通过
+- [x] `component-ratchet-guard.test.mjs` 通过
 - [x] `ui-help-note.test.mjs` 通过
 - [x] `ui-first-screen-order.test.mjs` 通过
 - [x] 模块装配 202/202；文档一致性、按钮、表格、间距、行容器守卫全绿（本轮相关 127/127；版本升级后复核 63/63）

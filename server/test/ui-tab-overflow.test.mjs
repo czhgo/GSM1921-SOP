@@ -41,12 +41,13 @@ test('T2 滚动行为：240px 平滑滚动 + scroll/resize 重算', () => {
   assert.match(TAB_BAR, /right\.hidden = !canScroll \|\| atEnd/, '右箭头可见性未随滚动位置更新');
 });
 
-test('T3 样式：定位壳 / 箭头 / 右侧渐隐', () => {
+test('T3 样式：页签行流式箭头 / 右侧渐隐', () => {
+  // 2026-11-04 批次 533（R5A-23）：箭头从「绝对定位覆盖层」改为「页签行内流式元素」，
+  //   页签内容不得再被圆形按钮压住；滚动行为不变。
   assert.match(CSS, /\.ws-tab-shell\s*\{[^}]*position:\s*relative/, '.ws-tab-shell 缺少 position:relative');
-  assert.match(CSS, /\.ws-tab-arrow\s*\{[^}]*position:\s*absolute[^}]*top:\s*50%[^}]*transform:\s*translateY\(-50%\)/,
-    '.ws-tab-arrow 缺少绝对定位与垂直居中');
-  assert.match(CSS, /\.ws-tab-arrow--left\s*\{\s*left:\s*0/, '缺少左箭头定位');
-  assert.match(CSS, /\.ws-tab-arrow--right\s*\{\s*right:\s*0/, '缺少右箭头定位');
+  assert.match(CSS, /\.ws-tab-arrow\s*\{[^}]*position:\s*relative/, '.ws-tab-arrow 须为流式元素');
+  assert.match(CSS, /\.ws-tab-arrow\s*\{[^}]*flex-shrink:\s*0/, '箭头不得被页签挤扁');
+  assert.doesNotMatch(CSS, /\.ws-tab-arrow\s*\{[^}]*position:\s*absolute/, '箭头不得回到覆盖层（会压住页签内容）');
   assert.match(CSS, /\.ws-tab-arrow\[hidden\]\s*\{\s*display:\s*none/, '箭头 hidden 时应隐藏');
   assert.match(CSS, /\.ws-tab-shell::after\s*\{/, '缺少右侧渐隐伪元素');
   assert.match(CSS, /data-scrollable[^{]*data-scroll-end[^{]*::after|data-scrollable\]:not\(\[data-scroll-end\]\)::after/,
@@ -63,8 +64,9 @@ test('T5 键盘起点：激活页签只改 scrollLeft，不用元素级滚动定
 });
 
 test('T4 不改 tab 尺寸 / 选中态 / 顺序', () => {
-  // 页签按钮模板保持原尺寸档（shrink-0 min-h-9 px-4 py-2 text-xs）。
-  assert.match(TAB_BAR, /shrink-0 min-h-9 px-4 py-2 text-xs font-medium rounded-lg transition-colors/,
+  // 页签按钮模板保持「单一尺寸口径」：2026-11-16 批次 557（spec polish-shell-and-display-truth T2）
+  //   支书批准视觉高 36 → 44（min-h-11）＋ 字号 12px → 13px（.text-body-sm）。
+  assert.match(TAB_BAR, /shrink-0 min-h-11 px-4 py-2 text-body-sm font-medium rounded-lg transition-colors/,
     '页签按钮尺寸/样式模板被改动');
   // `.btn-tab` 已是 32px / 13px 档（2026-10-23 Task 6：页签与 .btn-ghost 同属紧凑档，
   //  高度 = 4+4 padding + 22 line-height + 2 边框 = 32，不再用 min-height 撑高）。
@@ -75,10 +77,12 @@ test('T4 不改 tab 尺寸 / 选中态 / 顺序', () => {
   assert.ok(btnTab, '未找到 .btn-tab 的 32px 尺寸档（padding 4px 8px + line-height 22px）');
   assert.match(btnTab.body, /font-size:\s*13px\s*!important/, '.btn-tab 字号应保持 13px');
   assert.doesNotMatch(btnTab.body, /min-height/, '.btn-tab 不得再用 min-height 撑高');
-  // tab 按钮本身不应新增尺寸工具类（滚动箭头不是 tab）。
+  // tab 按钮本身不应再新增固定高度 / 内边距 / 字号档（滚动箭头不是 tab）；
+  //   高度只由 `min-h-11` 承担，故按「整枚类令牌」判，不把 `min-h-11` 里的 `h-11` 当固定高度。
   const tabBtnLine = TAB_BAR.split('\n').find((line) => line.includes('tab-btn${activeClass}')) || '';
   assert.ok(tabBtnLine, '未找到页签按钮模板');
-  assert.doesNotMatch(tabBtnLine, /\b(h-10|h-11|h-12|py-3|text-sm)\b/, '页签按钮被加了新的尺寸工具类');
+  assert.doesNotMatch(tabBtnLine, /(?:^|\s)(h-10|h-11|h-12|py-3|text-sm)\b/,
+    '页签按钮被加了固定高度 / 新字号档（尺寸只走 min-h-11 ＋ .text-body-sm）');
 });
 
 test('T6 页签条分层（2026-10-27 Task 6.1）：组名行独立在上、页签行只放页签与箭头', () => {
@@ -110,8 +114,8 @@ test('T7 分层样式（2026-10-27 Task 6.2）：组名行与页签行分列、1
   assert.match(CSS, /\.ws-tab-row\s*\{[^}]*display:\s*flex[^}]*position:\s*relative/,
     '.ws-tab-row 须为定位 flex 行（箭头以它为定位基准）');
   assert.match(CSS, /\.ws-tab-row\s*\{[^}]*flex:\s*1 0 100%/, '.ws-tab-row 须独占一行');
-  assert.match(CSS, /@media \(min-width: 1281px\) \{[\s\S]*?\.ws-tab-scroll \{ padding-right: 0; \}/,
-    '1440 须放开到容器可用宽度（不再给覆盖式箭头留 40px）');
+  // 2026-11-04 批次 533：箭头已流式化，滚动区不再需要为覆盖式箭头预留内边距 ⇒ 断言改为「无预留」。
+  assert.match(CSS, /\.ws-tab-scroll\s*\{[^}]*padding:\s*0/, '.ws-tab-scroll 不得再为覆盖式箭头预留内边距');
   // 组名全宽可见：任何断点都不得用 display:none / visibility:hidden 隐藏组名。
   assert.doesNotMatch(CSS, /\.tab-group-label[^{}]*\{[^}]*display:\s*none/, '组名不得用 display:none 隐藏');
   assert.doesNotMatch(CSS, /\.tab-group-label[^{}]*\{[^}]*visibility:\s*hidden/, '组名不得用 visibility:hidden 隐藏');

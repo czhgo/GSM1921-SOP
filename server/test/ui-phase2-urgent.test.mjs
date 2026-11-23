@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // ui-phase2-urgent.test.mjs — Phase 2 急救四项 + 首页活动风采真图位守卫（2026-10-19）
 //
-// 判据来源：`.trae/specs/phase2-home-and-urgent-fixes/spec.md`。
+// 判据来源：`历史 spec（已删）`。
 // 本文件只做静态回归：防止「已修的四项」被后续批次悄悄改回旧形态。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -40,11 +40,20 @@ test('U2 日历标签字色：固定 tone 类（tint-fill + data-tone），不�
   assert.doesNotMatch(src, /color-mix\(in srgb/, '日历不得再用 color-mix 派生文字 / 底色');
 });
 
-test('U3 个人考勤空态：数值为「—」且标签写明「本月无记录」', () => {
+test('U3 个人考勤空态：数值为「—」，不得再加第三行「本月无记录」', () => {
+  // 2026-11-01 批次 523 支书裁定（对照线上 czhgo.github.io 同款）：数字卡只保留「数值 / 标签」两行，
+  //   无记录由数值位「—」表达（与线上一致），第三行注记被删除——它把四张卡从 78px 撑到 96px。
+  //   判据同时保留「空态不得改成 0 / 空白」的旧意图，并反向断言注记不得回潮。
+  // 2026-11-16 T7（支书裁定「未录统一待录入」）：本月**有应到场次但一条未录** → 数值位显示「待录入」；
+  //   「—」只留给「本月没有应到场次」。判据随之改准（仍是逐字匹配，不放宽「不得改成 0 / 空白」）。
   const src = read('docs/src/components/dashboard/stats.js');
-  assert.match(src, /本月无记录/, '个人考勤为 0 时须写明「本月无记录」');
-  assert.match(src, /value:\s*myTotal > 0(?: && myRate !== null)? \? `\$\{myPresent\}\/\$\{myTotal\}` : '—'/,
-    '空态数值应保持「—」，不得改成 0 或空白');
+  assert.doesNotMatch(src, /本月无记录/, '空态不得再加第三行「本月无记录」（数值位「—」即表达）');
+  assert.doesNotMatch(src, /stat-card__note/, '首页数字卡不得渲染 .stat-card__note 第三行');
+  assert.match(src, /value: myTotal > 0 \? \(myRate === null \? '待录入' : `\$\{myPresent\}\/\$\{myTotal\}`\) : '—'/,
+    '无应到场次显示「—」；有应到场次但未录显示「待录入」——不得改成 0 或空白');
+  // 反例自检：旧写法必须被同一口径判红（防断言空转）。
+  assert.match("note: myTotal === 0 ? '本月无记录' : '',", /本月无记录/);
+  assert.match('<p class="text-xs stat-card__note">x</p>', /stat-card__note/);
 });
 
 test('U4 卡片 hover：默认无 hover 规则，只有 card--interactive 才给主题色边框与淡底', () => {
@@ -152,7 +161,9 @@ test('U8 页标题层级：四页重点各一个 H2，卡头 H3，首页抬头�
   assert.doesNotMatch(html, /光华管理学院本科生党支部/, '首页不得出现硬编码示例支部名');
   assert.match(html, /id="dashboard-hero-title"/, '首页抬头标题须走专属 id');
   assert.doesNotMatch(html, /<h3/, '首页区块标题应升为 H2，不再保留 H3');
-  assert.equal((html.match(/<h2/g) || []).length, 5, '首页应有 4 个区块 H2 + 1 个抬头 H2');
+  // 2026-11-08 批次 536 · Task 7：未登录公共门厅在首页追加 3 个区块 H2（重要通知 / 近期活动 / 公开资料），
+  //   与工作台的 4 个区块 H2 + 1 个抬头 H2 并存；两态由 JS 二选一显示。
+  assert.equal((html.match(/<h2/g) || []).length, 8, '首页应有 8 个 H2：工作台 4 区块 + 1 抬头 + 门厅 3 区块');
 
   const gallery = read('docs/src/components/dashboard/gallery.js');
   assert.match(gallery, /<h3 class="gallery-card__title">/, '风采卡标题应为 H3');
@@ -161,7 +172,8 @@ test('U8 页标题层级：四页重点各一个 H2，卡头 H3，首页抬头�
 test('U9 零值口径：真实的 0 显示为 0；不得出现 0/0', () => {
   const src = read(OVERVIEW);
   assert.doesNotMatch(src, /row\.active \|\| '—'/, '在办 0 不得再用「—」代替');
-  assert.match(src, /\$\{row\.active\}<\/td>/, '在办应直接输出数值（含 0）');
+  // 2026-11-10 批次 540 波次 5：在办计数外套一层纯计数色（`--neutral-600`），数值仍直接输出（含 0）。
+  assert.match(src, /\$\{row\.active\}<\/span><\/td>/, '在办应直接输出数值（含 0）');
   // 2026-10-26 Task 3.3：零值是数据，不是装饰 ⇒ 由 `.wo-zero`（neutral-600）承担弱化，
   //   不再用 neutral-400（最浅中性色只留装饰）。判据从「字面 text-gray-400」改为「专用弱化类」。
   assert.match(src, /class="wo-zero">0</, '逾期 0 应显示弱化数字 0（.wo-zero）');
@@ -182,7 +194,8 @@ test('U10 数字对齐与状态列去重：scope / is-numeric / is-redundant 齐
   assert.match(css, /\.data-table \.is-redundant\s*\{[^}]*display:\s*none/, '冗余列应可隐藏');
 
   assert.match(read(COMMITTEE), /showStatus = roster\.some/, '支委会应计算状态列是否冗余');
-  assert.match(read(GROUP), /showStatus = entities\.some/, '党小组应计算状态列是否冗余');
+  // 2026-11-01 Task 4：党小组改主从双栏，不再有独立「状态」列；已解散组收为左栏单行摘要（不逐行占列）。
+  assert.match(read(GROUP), /已解散：\$\{esc\(dissolved/, '党小组左栏应把已解散组收在单行摘要，不单列状态列');
 });
 
 test('U11 DESIGN_SYSTEM 写入标题层级与零值口径', () => {
@@ -193,20 +206,19 @@ test('U11 DESIGN_SYSTEM 写入标题层级与零值口径', () => {
   assert.match(ds, /0 是事实就显示 0/, '零值规则应写明 0 是事实');
 });
 
-test('U12 卡片边界：跨组进展拆成并列四卡，不套外包卡', () => {
+test('U12 卡片边界：党小组主从双栏两卡，活动台账单表不套外包卡', () => {
   const src = read(GROUP);
-  const start = src.indexOf('function _progressSectionHtml');
-  assert.ok(start >= 0, '未找到 _progressSectionHtml');
-  const end = src.indexOf('\n}', start);
-  const body = src.slice(start, end);
-  // 2026-10-25 Task 3：分区根仍是无卡 section；折叠控件为内部原生 details（标题在 summary 外）
-  assert.match(body, /<section class="space-y-4" data-gp-progress/, '跨组进展应为无卡分区');
-  assert.doesNotMatch(body, /class="card rounded-xl p-4 card--static"/, '跨组进展不得再套外包卡（卡中卡）');
-  const order = ['_groupSwitchHtml', '_memberProgressCardHtml', '_reviewStatusCardHtml', '_activityAttendanceCardHtml'];
-  const positions = order.map((fn) => body.indexOf(fn));
-  assert.ok(positions.every((p) => p >= 0), `四张并列卡缺一：${order.join(' / ')}`);
+  // 2026-11-01 Task 4：主从双栏＝左栏组列表卡 + 右栏组详情卡；裸 h4 / section 折叠壳已撤
+  assert.match(src, /data-gp-layout/, '应为主从双栏容器');
+  assert.match(src, /function _groupRailHtml/, '缺左栏组列表');
+  assert.match(src, /function _groupDetailHtml/, '缺右栏组详情');
+  assert.ok(!src.includes('_progressSectionHtml'), '进展区折叠壳已撤（右栏直接呈现）');
+  assert.doesNotMatch(src, /(^|\n)\s*<section\b/, '不得回退到无名称 section 分区');
+  const order = ['_ledgerSectionHtml', '_reportsSectionHtml', '_historySectionHtml'];
+  const positions = order.map((fn) => src.indexOf(fn));
+  assert.ok(positions.every((p) => p >= 0), `右栏三段缺一：${order.join(' / ')}`);
   assert.deepEqual([...positions].sort((a, b) => a - b), positions,
-    '阅读顺序应为：选择党小组 → 组员汇报 → 活动复盘 → 活动与考勤');
+    '右栏阅读顺序应为：活动台账 → 组员汇报 → 变更记录');
 
   const ds = read('content/04_web_design/design-system/DS_03_COMPONENTS.md');
   assert.match(ds, /#### 卡片边界判据/, 'DESIGN_SYSTEM 应写入卡片边界判据');

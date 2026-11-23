@@ -14,11 +14,13 @@
 //    催办状态、作废审批门、删除权限门（均由壳体注入回调，本件只渲染与转交）。
 // ════════════════════════════════════════════════════════════════
 
-import { listRowHtml } from '../ui/list-row.js?v=20261031a';
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
-import { renderMenuButton, bindMenuButtons } from '../ui/menu-button.js?v=20261031a';
-import { isTodoExpired } from '../../services/governance/todo.js?v=20261031a';
-import { escHtml, todayLocal } from '../../core/base/utils.js?v=20261031a';
+import { listRowHtml } from '../ui/list-row.js?v=20261120a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261120a';
+import { badgeHtml } from '../ui/badges.js?v=20261120a';
+import { renderMenuButton, bindMenuButtons } from '../ui/menu-button.js?v=20261120a';
+import { isTodoExpired } from '../../services/governance/todo.js?v=20261120a';
+import { resolveTodoAction } from '../../core/domain/todo-actions.js?v=20261120a';
+import { escHtml, todayLocal } from '../../core/base/utils.js?v=20261120a';
 
 /** 四档展示顺序与组名（纯中文；空组由渲染层跳过） */
 const URGENCY_LEVELS = [
@@ -157,7 +159,8 @@ function _renderUrgencyRow(prefix, g, opts, today, selectedTodoId) {
   const canVoid = g.persisted && typeof onVoidTodo === 'function';
   const canDelete = g.persisted && typeof onDeleteTodo === 'function';
   const urge = typeof urgeStateOf === 'function' ? urgeStateOf(g) : null;
-  const actionLabel = ACTION_LABELS[g.actionKey] || ACTION_LABELS[g.actionType] || '去处理';
+  // 2026-11-01 批次 524（#7）：文案单一源 = todo-actions.js；ACTION_LABELS 仅作旧键兜底。
+  const actionLabel = resolveTodoAction(g)?.label || ACTION_LABELS[g.actionKey] || ACTION_LABELS[g.actionType] || '去处理';
 
   const primaryBtn = g.hideActionBtn ? '' : `
     <button type="button" class="btn-accent-soft btn-sm ${prefix}-todo-action-btn" data-group-key="${escHtml(g.groupKey)}" style="${actionBtnStyle}">${actionLabel}</button>`;
@@ -171,11 +174,12 @@ function _renderUrgencyRow(prefix, g, opts, today, selectedTodoId) {
 
   const row = listRowHtml({
     rowType: 'master',
-    leading: hasVoidPending ? '<span class="state-badge state-badge--warning">待支委会确认</span>' : '',
+    leading: hasVoidPending ? badgeHtml('待支委会确认', 'warning') : '',
     title: g.title || '未命名待办',
     meta: metaParts.join(' · '),
     trailing,
-    className: `todo-row ${prefix}-todo-item ${prefix}-todo-item-main${isSelected ? ' list-row--selected' : ''}`,
+    // 2026-11-01：删 `list-row--selected` 死类（全站无 CSS 规则），选中态只走 data-selected。
+    className: `todo-row ${prefix}-todo-item ${prefix}-todo-item-main`,
     dataAttrs: {
       'data-group-key': g.groupKey,
       'data-selected': isSelected ? 'true' : undefined,
@@ -186,7 +190,7 @@ function _renderUrgencyRow(prefix, g, opts, today, selectedTodoId) {
 
   // 批量块（成员确认等）跟在组行之后，保持原有勾选批量与逐项详情并行
   return g.bulkHtml
-    ? `${row}<div class="${prefix}-todo-bulk rounded-b-lg bg-gray-50/40">${g.bulkHtml}</div>`
+    ? `${row}<div class="${prefix}-todo-bulk rounded-b-lg bg-[var(--neutral-50)]">${g.bulkHtml}</div>`
     : row;
 }
 
@@ -248,7 +252,7 @@ export function renderUrgencyTodoList(opts) {
       .map(g => _renderUrgencyRow(prefix, g, { onActionTodo, onDeleteTodo, onVoidTodo, urgeStateOf, actionBtnStyle }, today, selectedTodoId))
       .join('');
     return `
-      <section class="todo-urgency-group ${prefix}-todo-urgency-group" data-urgency="${section.key}">
+      <section class="todo-urgency-group ${prefix}-todo-urgency-group" data-urgency="${section.key}" aria-label="${section.label}">
         <div class="todo-urgency-header ${prefix}-todo-urgency-header">
           <span class="${dotClass}" aria-hidden="true"></span>
           <span class="todo-urgency-header__label">${section.label}</span>

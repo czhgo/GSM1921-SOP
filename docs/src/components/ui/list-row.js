@@ -34,10 +34,10 @@
 //   · .metric-band / .metric-band__item / .metric-band__jump（可交互指标卡容器）
 //   · .stat-card / .stat-card__body / .stat-card__value / .stat-card__label（数字组单一语法）
 //   · .stat-card__value--warning / .stat-grid（列数交给栅格）
-//   · .state-badge / .state-badge--neutral / .state-badge--success / .state-badge--warning
-//   · .state-badge--info / .state-badge--accent · .section-accent-left
+//   · .badge / .badge--neutral / .badge--success / .badge--warning
+//   · .badge--info / .badge--accent · .section-accent-left
 //   · 行型样式：.list-row[data-row-type="nav|action|select|display|master"]（本件输出 data-row-type）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261031a';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261120a';
 
 /** dataAttrs 对象 → HTML 属性串（键名只允许字母开头的属性名；值统一转义） */
 function dataAttrsHtml(dataAttrs) {
@@ -92,7 +92,7 @@ export function listRowHtml({
   // 导航行：有 href 用 <a>；无 href 用 <button>，两者都标记 data-interactive。
   // 2026-10-26 Task 5：无 href 的导航行是**非动作行载体**（整行点击跳转），
   //   `.btn-ghost` 在此仅作尺寸族；可见 affordance 由 styles.css 的
-  //   `.list-row[data-interactive="true"]:hover`（底 ＋ 3px 主题左条）承担。
+  //   `.list-row[data-interactive="true"]:hover`（主题 10% 淡底；状态左条已退出）承担。
   if (type === 'nav') {
     if (href) {
       return `<a class="${baseClass}" href="${esc(href)}" data-row-type="nav" data-interactive="true"${dataAttrsHtml(dataAttrs)}>${inner}</a>`;
@@ -112,7 +112,7 @@ export function listRowHtml({
 
   // 选择行：原生 <button>，键盘可达；data-interactive 表示整行可点。
   // 2026-10-26 Task 5：同为**非动作行载体**（选中一行，不是执行写操作）；
-  //   `.btn-ghost` 仅提供尺寸族，hover 底 ＋ 3px 主题左条见 styles.css。
+  //   `.btn-ghost` 仅提供尺寸族，hover 底见 styles.css（状态左条已退出）。
   return `<button type="button" class="${baseClass} btn-ghost" data-row-type="${type}" data-interactive="true"${dataAttrsHtml(dataAttrs)}>${inner}</button>`;
 }
 

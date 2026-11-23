@@ -3,21 +3,21 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261031a';
-import { POLICY_DEFAULTS, isAttendanceOverdue } from '../../core/domain/policy-defaults.js?v=20261031a';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261031a';
-import { generateId } from '../../core/base/id.js?v=20261031a';
-import { bumpToken } from '../../core/base/version-token.js?v=20261031a'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261031a';
-import { isInitStateActive } from '../core/init-reset.js?v=20261031a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261031a';
-import { getRosterStats } from '../member/roster.js?v=20261031a';
-import { getMeetingRosterIds } from '../member/roster.js?v=20261031a';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20261031a';
-import { SignupStore } from './signup.js?v=20261031a';
-import { deriveExpectedRosterIds } from './attendance-roster.js?v=20261031a';
-import { trackWrite } from '../../core/session/pending-writes.js?v=20261031a';
-import { isPartyGroupLeaderRole } from '../../core/domain/constants.js?v=20261031a';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261120a';
+import { POLICY_DEFAULTS, isAttendanceOverdue } from '../../core/domain/policy-defaults.js?v=20261120a';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261120a';
+import { generateId } from '../../core/base/id.js?v=20261120a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261120a'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261120a';
+import { isInitStateActive } from '../core/init-reset.js?v=20261120a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261120a';
+import { getRosterStats } from '../member/roster.js?v=20261120a';
+import { getMeetingRosterIds } from '../member/roster.js?v=20261120a';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20261120a';
+import { SignupStore } from './signup.js?v=20261120a';
+import { deriveExpectedRosterIds } from './attendance-roster.js?v=20261120a';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261120a';
+import { isPartyGroupLeaderRole } from '../../core/domain/constants.js?v=20261120a';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];
@@ -657,11 +657,32 @@ export function listActivityParticipationByPerson(records) {
 }
 
 /**
+ * 活动语境下的会议应到名单（R2-46 ＋ 跨层正确性 1.1）：党小组会优先 `hostGroup`，
+ * 其次组织者所属党小组；两者皆缺时**不返回空集**，回退「支部在册应到」（口径单一源仍是
+ * `roster-eligibility`），否则分母只剩实际到场 ⇒ 覆盖率恒 100%。
+ * 与 `getMeetingRoster` 的分工：那里缺小组语境返回空是 picker「不猜测全支部」的既有语义，不放宽。
+ * @param {Object} activity 活动（读 type / hostGroup / organizer / branchId）
+ * @returns {{ids:string[], fallback:boolean}} fallback=true 表示按支部应到计
+ */
+function _meetingRosterIdsOf(activity) {
+  const branchId = activity.branchId || undefined;
+  const groupId = activity.type === '党小组会'
+    ? (activity.hostGroup || getPersonById(activity.organizer)?.partyGroup || '')
+    : undefined;
+  if (activity.type === '党小组会' && !groupId) {
+    return { ids: getMeetingRosterIds({ branchId }), fallback: true };
+  }
+  return { ids: getMeetingRosterIds({ type: activity.type, groupId, branchId }), fallback: false };
+}
+
+/**
  * 出勤率汇总（SOP-B-35 / `D-412`，2026-09-18 批次 85）：**按场次（活动）**汇总本月出勤率——
  * 出勤含「已补」；线上参会不计出席（记请假）——口径与全站各处一致（单一源，勿在页面另算）。
  * 供纪检台「导出出勤率汇总（支委会内部）」与支书台「偏低提示」同一读口消费。
  * @param {{month?:string, records?:Array}} [params] month 形如 '2026-09'（缺省 = 全部活动）
- * @returns {{month:string, rows:Array<Object>, total:number, presentTotal:number, rate:number}}
+ * @returns {{month:string, rows:Array<Object>, total:number, presentTotal:number, recordedTotal:number,
+ *   coverage:number, rate:number, recordedRate:number}} `rows[].ratePending=true` 表示该场未录（展示「待录入」、导出留空）；
+ *   `rate` 按应到人次（概况口径），`recordedRate` 按已录人次（月末合计导出件口径）
  */
 export function summarizeAttendanceByActivity({ month, records, rosterSnapshots } = {}) {
   const src = records || loadActiveAttendanceRecords();
@@ -679,16 +700,15 @@ export function summarizeAttendanceByActivity({ month, records, rosterSnapshots 
     const snapshot = snapshots.find((row) => row.activityId === a.id && row.frozen === true);
     let expectedIds;
     let rosterFrozen = !!snapshot;
+    let rosterFallback = false;
     if (snapshot) {
       expectedIds = new Set(Array.isArray(snapshot.personIds) ? snapshot.personIds.map(String) : []);
     } else {
       // R2-46：未冻结名单的活动也不能把「实际到场」当分母（会恒等于 100%）。
-      // 回退到支部在册应到名单（党小组会按本组），再叠加主题党日报名口径——与 freeze 时同源。
-      const groupId = a.type === '党小组会'
-        ? (a.hostGroup || getPersonById(a.organizer)?.partyGroup || '')
-        : undefined;
-      const original = getMeetingRosterIds({ type: a.type, groupId, branchId: a.branchId || undefined });
-      expectedIds = new Set(deriveExpectedRosterIds({ activity: a, originalPersonIds: original, signups }).map(String));
+      // 回退到支部在册应到名单（党小组会按本组；缺小组归属时按支部），再叠加主题党日报名口径——与 freeze 时同源。
+      const source = _meetingRosterIdsOf(a);
+      rosterFallback = source.fallback;
+      expectedIds = new Set(deriveExpectedRosterIds({ activity: a, originalPersonIds: source.ids, signups }).map(String));
     }
     const actualIds = new Set([...recordByPerson.values()]
       .filter((record) => record.status === AttendanceStatus.PRESENT || record.status === AttendanceStatus.MADE_UP)
@@ -704,8 +724,13 @@ export function summarizeAttendanceByActivity({ month, records, rosterSnapshots 
     rows.push({
       activityId: a.id, activity: a.title, date: a.date || '', type: a.type || '',
       total: rosterIds.size, present, leave, absent, unrecorded, coverage,
-      rosterFrozen, estimate: !rosterFrozen,
+      rosterFrozen, rosterFallback, estimate: !rosterFrozen,
+      // T7（2026-11-16 支书裁定）：未录 ≠ 全员缺勤——「该场一条考勤记录都没有」时展示层写「待录入」、
+      //   导出单元格留空。判据只用既有事实（本场已录人数 = counted.length），不新造字段。
+      //   `rate` 仍保持数字 0：`roster-denominator-guard::R1` 的既有断言口径是「未录不得显示 100%」，
+      //   不得拿 null 顶替；展示层一律以 `ratePending` 判「待录入」。
       rate: Math.round((present / rosterIds.size) * 100),
+      ratePending: counted.length === 0,
     });
   }
   rows.sort((x, y) => (y.date || '').localeCompare(x.date || ''));
@@ -715,7 +740,12 @@ export function summarizeAttendanceByActivity({ month, records, rosterSnapshots 
   return {
     month: month || '', rows, total, presentTotal, recordedTotal,
     coverage: total > 0 ? Math.round((recordedTotal / total) * 100) : 0,
+    // 两个合计率，分母各自声明（H32）：
+    //   · `rate` ＝ 出勤 / **应到人次**（支书概况 R2-47 口径，未录视为未出勤，不得按已录算 100%）；
+    //   · `recordedRate` ＝ 出勤 / **已录人次**（批次 567：月末合计导出件用，与单元格「未录留空」一致，
+    //     完全未录的场次不拉低合计率；`recordedTotal === 0` 时导出留空，不写本值）。
     rate: total > 0 ? Math.round((presentTotal / total) * 100) : 0,
+    recordedRate: recordedTotal > 0 ? Math.round((presentTotal / recordedTotal) * 100) : 0,
   };
 }
 
@@ -786,11 +816,8 @@ export function summarizePersonAttendanceByRoster({ personId, month } = {}) {
     if (snapshot) {
       expectedIds = new Set(Array.isArray(snapshot.personIds) ? snapshot.personIds.map(String) : []);
     } else {
-      const groupId = a.type === '党小组会'
-        ? (a.hostGroup || getPersonById(a.organizer)?.partyGroup || '')
-        : undefined;
-      const original = getMeetingRosterIds({ type: a.type, groupId, branchId: a.branchId || undefined });
-      expectedIds = new Set(deriveExpectedRosterIds({ activity: a, originalPersonIds: original, signups }).map(String));
+      const source = _meetingRosterIdsOf(a);
+      expectedIds = new Set(deriveExpectedRosterIds({ activity: a, originalPersonIds: source.ids, signups }).map(String));
     }
     if (!expectedIds.has(String(personId))) continue;
     total += 1;

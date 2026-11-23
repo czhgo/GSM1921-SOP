@@ -6,10 +6,10 @@
 // 顶部直达条属重复动作 ⇒ 外壳不再挂条，只保留骨架占位。
 // U3（2026-09-07）：先 beginOverviewShell 骨架/槽位占位 → 原地渲染概况（不推挤正文）。
 
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261031a';
-import { getDiscCommissionerId } from './_shared.js?v=20261031a';
-import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261031a';
-import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261031a';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261120a';
+import { getDiscCommissionerId } from './_shared.js?v=20261120a';
+import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261120a';
+import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261120a';
 
 /**
  * 条线缺口行补真实动作（2026-10-18 繁专项 Task 15）。
@@ -24,7 +24,7 @@ const DISC_GAP_TARGETS = [
 async function _goGapTarget(tab, segment) {
   if (segment === 'makeup') {
     try {
-      const m = await import('./attendance-tab.js?v=20261031a');
+      const m = await import('./attendance-tab.js?v=20261120a');
       m.focusSegment('makeup');
     } catch (_) { /* 分段记忆失败时仍进考勤页 */ }
   }
@@ -32,6 +32,9 @@ async function _goGapTarget(tab, segment) {
   if (btn) btn.click();
 }
 
+/** 条线缺口行 → 直达按钮（渲染后调用；`data-woGapBound` 保证重复调用幂等）。
+ *  F-20（2026-11-03 批次 531）：原实现靠 MutationObserver 观察 work-overview 的内部重绘（事后补渲染）；
+ *  现由 extraSections 的 mount（每次重绘都会调用）＋ renderContent 末尾各调一次，与渲染同一次完成。 */
 function _bindLineGapActions(container) {
   if (!container) return;
   // 只在概况骨架内生效，避免同一容器切到其他 tab 后误判。
@@ -75,17 +78,13 @@ export async function renderContent(ctx) {
       mount: (host) => renderCalendarCard(host.querySelector('#ov-calendar-card-host'), undefined, {
         open: ctx?.navTarget?.section === 'calendar',
       }),
+    }, {
+      // F-20（2026-11-03 批次 531）：work-overview 内部重绘（下钻返回 / 外发确认）后，
+      // 用同一个显式渲染回调把条线缺口行升级为按钮——不再用 MutationObserver 事后补渲染。
+      html: '',
+      mount: (host) => _bindLineGapActions(host),
     }],
   });
-  _observeLineGapActions(el);
+  _bindLineGapActions(el);
   return done;
-}
-
-/** work-overview 内部下钻返回/外发确认会自行重绘 ⇒ 用观察器把缺口动作补回（不内改共享件）。 */
-function _observeLineGapActions(container) {
-  _bindLineGapActions(container);
-  if (!container || container.dataset.woGapObserved === '1') return;
-  container.dataset.woGapObserved = '1';
-  new MutationObserver(() => _bindLineGapActions(container))
-    .observe(container, { childList: true, subtree: true });
 }

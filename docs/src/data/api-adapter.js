@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken, advanceVersionBaselineAfterWrite } from './data-adapter.js?v=20261031a';
+import { getApiBaseUrl, getAuthToken, advanceVersionBaselineAfterWrite } from './data-adapter.js?v=20261120a';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -39,6 +39,46 @@ async function _gzip(str) {
 }
 
 /**
+ * 行版本表（批次 564 Task 17）：`资源名:id` → 本机读到的 `updatedAt`。
+ * 是「全资源 If-Match」的客户端单一源——写口在这里取戳注入，表单文件一律不改。
+ * 登记点只有两处：集合装载 / 重拉（`recordRowVersions`）与本机写成功后返回行（`_writeRequest`）。
+ */
+const ROWS = new Map();
+
+/** 行版本冲突回调（由 `data-adapter.js` 注册：收到 409 时刷新该集合） */
+let _conflictHandler = null;
+
+/** 注册 409 版本冲突回调：`cb(资源名)`（可返回 Promise，本模块等它完成再抛错） */
+export function onVersionConflict(cb) {
+  _conflictHandler = typeof cb === 'function' ? cb : null;
+}
+
+/**
+ * 登记一个集合的行版本（集合装载 / 重拉后调用；聚合根 `__root__` 单行没有按行戳，跳过）。
+ * @param {string} name 资源名（与 URL 资源段同名，如 `todos` / `branches`）
+ * @param {Array} rows 服务端返回的行数组
+ */
+export function recordRowVersions(name, rows) {
+  if (!name || !Array.isArray(rows)) return;
+  for (const row of rows) {
+    if (row && row.id && row.updatedAt) ROWS.set(`${name}:${row.id}`, row.updatedAt);
+  }
+}
+
+/**
+ * 从写路径认出「单行资源」，返回 { name, id, key }；不是单行 PATCH 则返回 null。
+ * 覆盖两档形状：`/api/v1/<资源>/<id>`，以及支部配置 `/api/v1/branches/<id>/config`（落在 `branches` 行上）。
+ */
+function _rowVersionKeyFor(path) {
+  const clean = String(path || '').split('?')[0];
+  const config = /^\/api\/v1\/branches\/([^/]+)\/config$/.exec(clean);
+  if (config) return { name: 'branches', id: config[1], key: `branches:${config[1]}` };
+  const m = /^\/api\/v1\/([A-Za-z][A-Za-z-]*)\/([^/?]+)$/.exec(clean);
+  if (!m) return null;
+  return { name: m[1], id: m[2], key: `${m[1]}:${m[2]}` };
+}
+
+/**
  * 发送认证 HTTP 请求
  * @param {string} path - API 路径（不含 base URL）
  * @param {RequestInit} [options] - fetch 选项
@@ -47,9 +87,16 @@ async function _gzip(str) {
 async function _request(path, options = {}) {
   const url = `${getApiBaseUrl()}${path}`;
   const headers = {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json', ...(_hydrateDepth > 0 ? { 'X-Hydrate': '1' } : null), // 水合窗口（仅 init 全量灌库）：服务端整集合不截断（行数不变：保 README-server 的行号取证）
     ...options.headers,
   };
+  // 批次 564 Task 17：全资源乐观锁的**客户端单点注入**——PATCH 单行时带上本机读到的该行 `updatedAt`。
+  //   取不到（表单从没读过这一行）就不带，交给服务端 428 逻辑；`If-Match` 也可由调用方显式覆盖（如 `*`）。
+  if (String(options.method || '').toUpperCase() === 'PATCH') {
+    const rowRef = _rowVersionKeyFor(path);
+    const stamp = rowRef ? ROWS.get(rowRef.key) : null;
+    if (stamp && !headers['If-Match']) headers['If-Match'] = stamp;
+  }
   const token = getAuthToken();
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
@@ -96,10 +143,49 @@ async function _request(path, options = {}) {
                  response.status === 409 ? 'ConflictError' :
                  response.status === 401 ? 'AuthError' : 'ApiError';
     error.body = body;
+    // 批次 564 Task 17：整行版本冲突（与快照 `conflicts` 是两种 409）——先刷新该集合再抛，
+    //   文案直接给「已被他人修改，已刷新」，既有 toast / 错误提示无需改动。
+    if (error.status === 409 && body && body.code === 'VERSION_CONFLICT') {
+      const rowRef = _rowVersionKeyFor(String(path).split('?')[0]);
+      if (_conflictHandler && rowRef) {
+        try { await _conflictHandler(rowRef.name, body.latest || null); } catch (e) { console.warn('[ApiAdapter] 版本冲突后刷新集合失败（不阻断提示）：', e); }
+      }
+      error.message = '已被他人修改，已刷新';
+      error.code = 'VERSION_CONFLICT';
+      error.latest = body.latest || null;
+      error.collection = rowRef ? rowRef.name : '';
+    }
     throw error;
   }
   if (response.status === 204) return null;
   return response.json();
+}
+
+/**
+ * B-552-2（2026-11-18 批次 566）：`GET /api/v1/:resource` 的列表响应形状归一。
+ * 同一读口两种形状：默认（不传 `page` / `cursor`）返回裸数组；带分页参数时返回
+ * `{ rows, total, pageSize, nextCursor, hasMore }`。归一点选**读口**而非服务端：
+ * 服务端改成恒为对象会让 `init()` 水合与既有数组消费者（data-adapter 集合替换）同时失效。
+ * 判据只看 `rows` 是否为数组：游标分页（`{ rows, nextCursor, hasMore }`）不带数字 `total`，
+ * 旧判据会把游标分支原样漏给数组消费者。归一为 `rows` 数组，并把 `nextCursor` / `hasMore`
+ * 挂在同一数组上（元信息不丢，调用方仍可 `Array.isArray`）。
+ * @param {any} payload 服务端 JSON
+ * @returns {any} 分页对象取 `rows`；其余（裸数组 / 非分页对象）原样返回
+ */
+export function normalizeListPayload(payload) {
+  if (Array.isArray(payload)) return payload;
+  if (payload && typeof payload === 'object' && Array.isArray(payload.rows)) {
+    const rows = payload.rows;
+    if (payload.nextCursor !== undefined) rows.nextCursor = payload.nextCursor;
+    if (payload.hasMore !== undefined) rows.hasMore = payload.hasMore;
+    return rows;
+  }
+  return payload;
+}
+
+/** 单段资源列表读口（`/api/v1/<name>`）：只有这一类 GET 应用列表形状归一 */
+function _isResourceListPath(path) {
+  return /^\/api\/v1\/[A-Za-z][A-Za-z0-9]*$/.test(String(path || '').split('?')[0]);
 }
 
 /** 为党委已选中的支部附加统一读取范围，避免各资源漏传 branchId。 */
@@ -126,8 +212,10 @@ export function withSelectedBranchScope(path) {
 }
 
 /** GET 请求 */
-function _get(path) {
-  return _request(_withSelectedBranch(path), { method: 'GET' });
+async function _get(path) {
+  const payload = await _request(_withSelectedBranch(path), { method: 'GET' });
+  // B-552-2：资源列表读口归一（分页对象 → 数组），非列表端点原样返回
+  return _isResourceListPath(path) ? normalizeListPayload(payload) : payload;
 }
 
 /** POST 请求 */
@@ -171,6 +259,10 @@ async function _writeRequest(path, method, data) {
     method,
     ...(data !== undefined ? { body: JSON.stringify(data) } : {}),
   });
+  // 批次 564 Task 17：写成功返回的整行带着新 `updatedAt` ⇒ 就地登记，下一次 PATCH 自动带对新戳
+  //   （否则同一会话连改两次，第二次会被自己的旧戳拦成 409）。
+  const rowRef = _rowVersionKeyFor(path);
+  if (rowRef && out && typeof out === 'object' && out.updatedAt) ROWS.set(rowRef.key, out.updatedAt);
   const name = _writeCollectionName(path);
   if (name) {
     try { await advanceVersionBaselineAfterWrite(name); } catch (e) {
@@ -665,10 +757,99 @@ export const ApiAdapter = {
     },
   },
 
+  // 支委会「待议池」（2026-11-10 批次 540 波次 2）：只读汇总口，服务端按支部 / 角色过滤，
+  // 并算好去重键 / 类型 / 应到 / 待议天数（`H32` 服务端算业务事实）。
+  // 分类单一源 = docs/src/core/domain/agenda-classify.js（服务端同一函数）。
+  agendaCandidates: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/committee/agenda-candidates${query ? '?' + query : ''}`);
+    },
+  },
+
+  // 2026-11-08 批次 536 · 党委工作台「院级内容」写口（Task 8 前端接线）。
+  // 服务端实现 = server/routes/resources/semantic-routes.js（`requireRole(PARTY_STAFF_ROLE)`；
+  //   `ownerScope='committee'` 与 `branchId='pc-gsm'` 由服务端固定，本组不传）。
+  // 读侧沿用 `_get`：党委内容按 ownerScope 过滤，`_withSelectedBranch` 附加的 branchId 不改变结果集。
+  // 新增的 publication / dispatch / cancel / archive / withdraw 均为行级语义端点，不接受整表覆盖。
+  committeeContent: {
+    activities: {
+      list(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        return _get(`/api/v1/committee/activities${query ? '?' + query : ''}`);
+      },
+
+      create(data) {
+        return _post('/api/v1/committee/activities', data);
+      },
+
+      update(id, patch) {
+        return _patch(`/api/v1/committee/activities/${encodeURIComponent(id)}`, patch);
+      },
+
+      cancel(id) {
+        return _post(`/api/v1/committee/activities/${encodeURIComponent(id)}/cancel`);
+      },
+
+      archive(id) {
+        return _post(`/api/v1/committee/activities/${encodeURIComponent(id)}/archive`);
+      },
+
+      updatePublication(id, patch) {
+        return _patch(`/api/v1/committee/activities/${encodeURIComponent(id)}/publication`, patch);
+      },
+
+      dispatch(id, body) {
+        return _post(`/api/v1/committee/activities/${encodeURIComponent(id)}/dispatch`, body);
+      },
+    },
+
+    documents: {
+      list(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        return _get(`/api/v1/committee/documents${query ? '?' + query : ''}`);
+      },
+
+      create(data) {
+        return _post('/api/v1/committee/documents', data);
+      },
+
+      update(id, patch) {
+        return _patch(`/api/v1/committee/documents/${encodeURIComponent(id)}`, patch);
+      },
+
+      withdraw(id) {
+        return _post(`/api/v1/committee/documents/${encodeURIComponent(id)}/withdraw`);
+      },
+    },
+
+    // 2026-11-08 批次 537 波次 1：党委公开通知（服务端 semantic-routes.js → committee-notices.js）。
+    // 归属 / 来源 / 受众 / 类型 / 日期由服务端强制；publishScope 只收 login / public。
+    notices: {
+      list(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        return _get(`/api/v1/committee/notices${query ? '?' + query : ''}`);
+      },
+
+      create(data) {
+        return _post('/api/v1/committee/notices', data);
+      },
+
+      update(id, patch) {
+        return _patch(`/api/v1/committee/notices/${encodeURIComponent(id)}`, patch);
+      },
+
+      withdraw(id) {
+        return _post(`/api/v1/committee/notices/${encodeURIComponent(id)}/withdraw`);
+      },
+    },
+  },
+
   // 意见反馈支部内闭环（D-824）：必须登录、读写按所属支部校验；匿名真身保存在服务端，但没有揭名端点权限。
   //   GET /issues: 未登录 401、支部账号只读本支部、党委返回空列表（保持 bootstrap 兼容）
   //   POST /issues: 仅支部账号可提交，branchId 由服务端按会话确定
   //   PATCH /issues/:id: 支委层处置，并校验反馈属于操作者支部
+  //   POST /issues/:id/reactions: 按人表态（只写本人；出口只回计数与 myReactions，D-906）
   //   /issues/reveal: 兼容端点保留但始终拒绝；不得把反馈当作向党委上报的渠道
   //   正式表决「真无记名」仍是独立数据边界。
   issues: {
@@ -685,6 +866,11 @@ export const ApiAdapter = {
       return _patch(`/api/v1/issues/${id}`, patch);
     },
 
+    /** 表态：按人存、只本人可撤（D-906）；服务端只回 `reactionCounts` / `myReactions`。 */
+    toggleReaction(id, key) {
+      return _post(`/api/v1/issues/${id}/reactions`, { key });
+    },
+
     /** 历史兼容端点；按 D-824 当前所有揭名请求均由服务端拒绝。 */
     reveal() {
       return _get('/api/v1/issues/reveal');
@@ -693,8 +879,15 @@ export const ApiAdapter = {
 
   users: {
     // `includeTransferredOut`：治理侧读「历史行」（移出成员）时显式请求；默认在册名册不含移出行（F-08）。
+    // `branchId`：党委未选支部时服务端对支部明细返回空表（server/routes/resources/branch-scope.js::resourceRowsForActor）；
+    //   支部管理行内名册（branches-tab.js::ensureBranchMembersLoaded）按支部逐个读取 ⇒ 支部参数必须透传到 query，
+    //   否则党委视角拿到的永远是空名册。
     list(params = {}) {
-      return _get(`/api/v1/users${params && params.includeTransferredOut ? '?includeTransferredOut=1' : ''}`);
+      const query = new URLSearchParams();
+      if (params && params.includeTransferredOut) query.set('includeTransferredOut', '1');
+      if (params && params.branchId) query.set('branchId', String(params.branchId));
+      const serialized = query.toString();
+      return _get(`/api/v1/users${serialized ? '?' + serialized : ''}`);
     },
     // 2026-09-06 立项⑥ A波：users 双形态写口补齐（server RESOURCE_TABLES 通用 CRUD 已存在：
     // POST /api/v1/users / PATCH /users/:id / DELETE /users/:id，party-staff 门）
@@ -771,7 +964,10 @@ export const ApiAdapter = {
   branches: {
     list(params = {}) {
       const query = new URLSearchParams(params).toString();
-      return _get(`/api/v1/branches${query ? '?' + query : ''}`);
+      // 批次 564 补：`?branchId=` 定向读支部整行（党委向导 `ensureBranchConfigLoaded`）同样是「本机读到的
+      //   该行 updatedAt」⇒ 必须登记，否则其后 PATCH /branches/:id/config 无戳可带，服务端一律 428。
+      return _get(`/api/v1/branches${query ? '?' + query : ''}`)
+        .then((rows) => { recordRowVersions('branches', rows); return rows; });
     },
 
     create(data) {
@@ -950,6 +1146,26 @@ export const ApiAdapter = {
     },
   },
 
+  // 2026-11-11 支委提案（D-869；语义端点，不进快照）
+  committeeProposals: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/committee/proposals${query ? '?' + query : ''}`);
+    },
+    get(id) {
+      return _get(`/api/v1/committee/proposals/${encodeURIComponent(id)}`);
+    },
+    create(data) {
+      return _post('/api/v1/committee/proposals', data);
+    },
+    update(id, data) {
+      return _request(`/api/v1/committee/proposals/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(data) });
+    },
+    events(id) {
+      return _get(`/api/v1/committee/proposals/${encodeURIComponent(id)}/events`);
+    },
+  },
+
   // 工作组成员、授权、任务、产出与应到名单均走语义 API，不进入全量快照。
   workgroups: {
     list(params = {}) {
@@ -994,6 +1210,60 @@ export const ApiAdapter = {
       return _request(`/api/v1/activities/${encodeURIComponent(activityId)}/expected-roster`, {
         method: 'PUT', body: JSON.stringify({ personIds, frozen: true }),
       });
+    },
+  },
+
+  // 待办「实时派生组」服务端只读端点（批次 532 · B-500-7 最小 Plan B）：
+  //   服务端实现 = `server/routes/todo-groups.js`；只读 GET，读权限门与 `GET /todos` 同口径
+  //   （本人 / 本角色；跨人 / 跨角色一律 403）。
+  //   兼容期：客户端仍在本地派生同样的组（`components/record/todo-tab-shell.js`），
+  //   本口失败 / mock 数据源 / 返回空 ⇒ 回落客户端派生（可见结果不变）。
+  todoGroups: {
+    get({ role, personId } = {}) {
+      const params = new URLSearchParams();
+      if (role) params.set('role', role);
+      if (personId) params.set('personId', personId);
+      const query = params.toString();
+      return _get(`/api/v1/todo-groups${query ? '?' + query : ''}`);
+    },
+  },
+
+  // 2026-11-17 批次 562（Task 10）：跨组「应到 / 实到」只读汇总。
+  //   服务端实现 = `server/routes/resources/semantic-routes.js`（GET /api/v1/group-attendance-summary）；
+  //   口径单一源 = `core/domain/roster-eligibility.js`；前端不再逐组现算（`H32` 计数只在服务端算）。
+  groupAttendanceSummary: {
+    get() { return _get('/api/v1/group-attendance-summary'); },
+  },
+
+  // 2026-11-15 六维补齐 T3：党委台「支部管理」页的运维健康读数（只读 GET，无写门）。
+  //   服务端实现 = `server/routes/health.js`；页面只经本门面取数（`CLAUDE.md H32`：不直连 fetch）。
+  //   `deep()` 在任一项检查失败时返回 503 —— `_request` 会抛错并带 `.body`，调用方按 body 展示降级原因。
+  opsHealth: {
+    shallow() {
+      return _get('/api/v1/health');
+    },
+    deep() {
+      return _get('/api/v1/health/deep');
+    },
+    metrics() {
+      return _get('/api/v1/health/metrics');
+    },
+  },
+
+  // 2026-11-15 六维补齐 T14：党委台「进入某支部」只读查看（留痕 ＋ 一键退出）。
+  //   服务端实现 = `server/routes/resources/semantic-routes.js`（POST / PATCH）；
+  //   只读强制在服务端 `server/branch-view.js::createBranchViewGuard`，本组只做门面（H32）。
+  //   `context()` 读 `GET /bootstrap` 的 `viewContext`（与后端同形投影；无进入记录 ⇒ null）。
+  branchVisits: {
+    async context() {
+      const payload = await _get('/api/v1/bootstrap');
+      return (payload && typeof payload === 'object' && payload.viewContext) || null;
+    },
+    enter(branchId) {
+      return _post('/api/v1/committee/branch-visits', { branchId: String(branchId) });
+    },
+    exit(id) {
+      return _patch(`/api/v1/committee/branch-visits/${encodeURIComponent(String(id))}`, {});
     },
   },
 
@@ -1100,4 +1370,15 @@ export const ApiAdapter = {
       return _post(`/api/v1/auth-audit${query}`, body);
     },
   },
+
+  // ── 水合窗口（2026-11-16 · 列表上限 2000 ＋ 全量灌库不截断）────────────────────
+  // 开窗方只有两处：`data-adapter.js::init()` 的 from-server 灌库路径，以及 `_refreshCollections`（集合重拉 /
+  //   409 冲突恢复 / 远端探测，批次 564 Task 17.3）。窗口内 GET 带 `X-Hydrate: 1`，
+  //   服务端按「已登录 ⇒ 整集合不截断」返回（`server/routes/resources/write-validation.js::hydrateReadMode`）。
+  // 窗口外的一切读口仍是 2000 上限 ＋ `X-Has-More`，标记不放大普通读面。
+  beginHydrate() { _hydrateDepth += 1; },
+  endHydrate() { _hydrateDepth = Math.max(0, _hydrateDepth - 1); },
 };
+
+/** 水合窗口深度（0 ＝ 关；只在 `_request` 里被读，声明可在对象之后——调用发生在模块求值完成后） */
+let _hydrateDepth = 0;

@@ -55,7 +55,6 @@ export const CACHE_KEYS = Object.freeze({
   'gsm1921-inspection-appeals': { category: 'read-cache', storage: 'localStorage', note: '考察申诉队列缓存；服务端 inspection_appeals 为权威' },
   'sop_org_os_auth_audit': { category: 'read-cache', storage: 'localStorage', note: '授权审计留痕缓存；服务端 auth_audit 为权威' },
   'gsm1921-issue-cache-v3': { category: 'read-cache', storage: 'localStorage', note: '意见反馈读缓存；服务端 issues 表为权威' },
-  'gsm1921-issue-cache': { category: 'read-cache', storage: 'localStorage', note: '意见反馈旧读缓存（历史版本）' },
   'gsm1921-issue-cache-version': { category: 'read-cache', storage: 'localStorage', note: '意见反馈缓存版本号（缓存失效用，非数据本体）' },
   'gsm1921-milestone-cache': { category: 'read-cache', storage: 'localStorage', note: '里程碑读缓存；服务端 milestones 为权威' },
   'gsm1921-members-overlay': { category: 'read-cache', storage: 'localStorage', note: 'mock 形态成员档案覆盖层（api 形态读 server users）' },
@@ -86,6 +85,10 @@ export const CACHE_KEY_PREFIXES = Object.freeze([
   { prefix: 'cps-', category: 'auth', note: '跨页单值会话参数' },
   { prefix: 'gsm1921-issue-unread-', category: 'read-cache', note: '逐人未读标记缓存（服务端 issue_unread 为权威）' },
   { prefix: 'wizard-draft-', category: 'temp', note: '换组织向导未完成草稿（按支部一份）' },
+  // 2026-11-01 批次 523：页签模块加载失败的「同会话自愈一次」标记（键含 tab.id，成功后即删）。
+  { prefix: 'gsm1921-tab-selfheal-', category: 'temp', note: '页签失败自愈一次性标记（本会话一次，成功后清除）' },
+  // 2026-11-10 批次 540：数据表列宽拖动（`components/ui/data-table.js`，键 `table:cols:<stateKey>`）。
+  { prefix: 'table:cols:', category: 'visual', note: '表格列宽拖动偏好（逐表一份百分比数组，纯展示，可随时丢弃）' },
 ]);
 
 /**

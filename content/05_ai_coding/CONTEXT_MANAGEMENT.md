@@ -2,7 +2,7 @@
 title: "上下文管理与防失忆"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-26"
+last_updated: "2026-11-15"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/01_strategy/SECRETARY_DIRECTIVES.md]
 ---
@@ -42,7 +42,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/01
 > 原则级提醒的索引见 [CLAUDE.md H90 外部权威源索引](../../CLAUDE.md)。
 
 1. **文件修改必须验证持久化**：Edit工具可能报告成功但未写入磁盘，关键文件修改后必须用Python验证
-2. **一改具改必须全仓搜索确认零残留**：不能只改"最明显的几处"
+2. **一改具改必须全仓搜索确认零残留**（做法与判例见 [DOCUMENT_GOVERNANCE.md](DOCUMENT_GOVERNANCE.md)『一改具改执行陷阱』）
 3. **临时文件用完即删**：零容忍.bak/.py遗留，可复用工具归入.tools/
 4. **不得自行推断制度安排**：涉及权限/角色/制度时，先读guides确认
 5. **经验沉淀写入前检查定位**：确认内容与目标文件定位匹配
@@ -150,7 +150,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/01
 
 | 层       | 定位               | 生命周期            | 核心约束                    |
 | ----------- | ---------------- | --------------- | ----------------------- |
-| 核心原则层   | 核心原则——原则+判例+运行标准 | 最稳定，修改须决策人确认     | 修改一处即全仓同步：修改一项原则，所有相关引用同步更新 |
+| 核心原则层   | 核心原则——原则+判例+运行标准 | 最稳定，修改须决策人确认     | 一改具改（`CLAUDE.md H30.1`）：原则改动须全仓同步引用 |
 | 执行事项层   | 当前工作上下文          | 完成即删，补充新项          | 不堆积历史，上下文只保留当前待办        |
 | 待决策层    | 问题池——拿不定主意的事项    | 决策后删除           | 不得自行决定需要决策人判断的事项      |
 
@@ -164,7 +164,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/01
 
 **为什么需要温层而非只有热冷两层？** 因为有些规则不是每次都需要，却在特定场景下必须遵守。温层是"条件触发"的读取层——修改时读，不修改时不读。
 
-**同步修改的执行代价**：修改核心原则层任何一项原则，必须全仓搜索所有引用位置并逐一替换。散落导致未同步与不一致——同一概念在多文件表达时，修改一处遗漏另一处的代价远高于逐一替换的执行成本。
+**同步修改的执行代价**：引用面越大，同步与验证成本越高——判据与做法见 [DOCUMENT_GOVERNANCE.md](DOCUMENT_GOVERNANCE.md)『一改具改执行陷阱』与『同一概念只在一个地方表达』；原则层因此只放稳定条文。
 
 ## 上下文工程：让上下文持续有效（原 insights §3.3）
 
@@ -180,6 +180,13 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/01
 | 到期提醒 | 周期性任务到期 | AI          | AI（自动唤醒）          | 持续更新 |
 
 **为什么操作日志和决策档案必须分离？** 因为它们的读者和用途完全不同。操作日志是"操作记录"，读者是下次接手的 AI，用途是恢复上下文；决策档案是"决策记录"，读者是决策人与执行人，用途是理解"为什么"。混在一起会导致：AI 读取时被决策分析干扰（信息过载），决策人查阅时被操作细节淹没。
+
+**commit message 是第一主记录（2026-11-03 批次 530）**：每批「改了什么」以 `git commit message` 为准，模板＝`批次号｜为什么｜改动面｜验证读数｜D/任务号`；`EXECUTION_LOG` 只写「为什么 / 拿不准 / 边界 / 读数」，不落 commit hash，不得复述逐文件 diff / 改动清单。改动事实用 `git log --grep "批次 N｜"` / `git show <hash>` 取回。这样只留一份可精确检索的事实源，日志不与之竞争；读者仍能由 commit 还原上下文。
+
+**恢复上下文：读 commit 先于读日志**。
+
+- `git log --oneline -5` 看最近批次；`git show --stat <hash>` 看改动面；按批次号追溯用 `git log --grep "批次 N｜"`。
+- 执行日志只补判断语境，改动事实以 commit 为准。
 
 **快照按需生成**：快照仅按需更新（大版本升级、用户指令、阶段收官），日常变更由日志承载——教训详情见原 insights §6.8。快照是重方案，日志是轻方案，日常用轻量方案。
 
@@ -204,3 +211,27 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/01
 **适用范围**：一切影响系统设计（04）或 AI 协作方法（05）的支书表述与 AI 判例；机械细节落各篇判例节，方向裁决落 04/05 正文或 README 权威标注。
 
 **首轮演练**：2026-09-04 content 分层重构支书裁决 D1-D10（archive 废除、AI 方法论归 05、每篇自包含+指针、状态标注 landed 等）已全部落 04/05/03 正文与 README，即本规则的首次实例。
+
+## 三层上下文模型与 Active Context 预算（2026-11-03 批次 529）
+
+**问题**：`.ctx` 顶层 7 份文件约 500KB，新会话无法全读；把「仓库」当「活跃上下文」会同时造成类型混杂、事实多源与长度失控。
+
+**三层模型**：
+
+| 层 | 内容 | 更新频率 | 读取策略 | 典型文件 |
+|---|---|---|---|---|
+| active（热） | 当前状态、当前判断、下一步、读取地图 | 每批 / 每条新裁定 | 每次会话必读 | `CLAUDE.md`、`.ctx/ACTIVE_CONTEXT.md` |
+| reference（温） | 系统形态、规则索引、评分证据、待评议、机器元数据 | 按批 / 按裁定 / 按文件 | 按需读 | `SNAPSHOT` / `ACTIVE_RULINGS` / `ENGINEERING_ASSESSMENT` / `REVIEW_QUEUE` / `TIMESTAMPS` |
+| provenance（冷） | 执行 / 决策 / 审计原文、截图与读数 | 追加 | 只追溯时读 | `.ctx/logs/`、`.ctx/evidence/` |
+
+**预算与判据**：
+
+1. `ACTIVE_CONTEXT.md` **≤300 行 / ≤30KB**；超预算先把细节降级到 reference，再压缩措辞。
+2. `latest_decision` 必须 ≥ 当月决策日志最后一条 `D-xxx`；`last_verified` 必须 ≥ 最新裁定日期。
+3. 冲突顺序：当月 `DECISION_LOG` ＞ `ACTIVE_CONTEXT` ＞ `content` 权威 ＞ `SNAPSHOT` ＞ `ENGINEERING_ASSESSMENT` ＞ `logs` / `evidence`。
+4. 连续 3 批未触发、且不再影响动作的 active 行，删除或降级。
+5. 规则 / 判例 / 方法正文进 `content/01–05`；`.ctx` 只留索引与当前投影。
+
+**Boolean 条件**：`.ctx/ACTIVE_CONTEXT.md` 超过 300 行或 30KB，或 `latest_decision` 落后于当月决策日志最后一条 `D-xxx` → `ctx-hygiene-guard` 判红。
+
+**生效条件**：每次会话开局、每批收尾、每条新裁定落账后。

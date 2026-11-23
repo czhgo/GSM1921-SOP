@@ -2,7 +2,7 @@
 title: "测试验证纪律"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-10-22"
+last_updated: "2026-11-23"
 status: active
 related_files: [CLAUDE.md, DATA_CONSISTENCY_CHECKLIST.md, content/03_doc_system/OPERATIONS_GUIDE.md, docs/scripts/bump-version.mjs]
 ---
@@ -271,7 +271,7 @@ UI-2 通知点击响应修复时，首次基于"函数名直观判断"将 click 
 
 | 守卫 | 守什么（形态 / 状态） | 判据示例（可在源码或 DOM 上计数） | 现有落点 |
 |---|---|---|---|
-| 浮窗 | 三段结构、footer sticky、`85dvh`、四条关闭路径 reset | 提交按钮不在 `.modal-body` 内；`title` 不含 HTML；Esc / 遮罩 / × 均调用 reset | `modal-escape-guard.test.mjs`（转义部分）；形态部分待补 |
+| 浮窗 | 三段结构、footer sticky、`85dvh`、四条关闭路径 reset | 提交按钮不在 `.modal-body` 内；`title` 不含 HTML；Esc / 遮罩 / × 均调用 reset | `component-ratchet-guard.test.mjs`（源件「modal」转义部分）；形态部分待补 |
 | 筛选 | 引擎单一源与阈值 | `.lf-bar` 内页面自写 chip 计数 = 0；同页筛选控件 > 6 且无下拉 ⇒ 红；表格 > 8 行无搜索 ⇒ 红 | `filter-row.test.mjs::S2/S6/S7`、`list-filter-chip-e2e.test.mjs` |
 | 承载面 | 一个对象一个完整内容面 | 同一对象 id 的完整正文 / 字段清单节点计数 ≤ 1；次级入口只出现链接 + 摘要；第二写口计数 = 0 | 待建（对象级路由表或 `data-carrier` 标记） |
 
@@ -328,3 +328,52 @@ UI-2 通知点击响应修复时，首次基于"函数名直观判断"将 click 
 **Boolean 条件**：测试文件移出 daily → 必须同时出现在 precommit/weekly 且 registry 有 reason；否则守卫红。
 
 **生效条件**：任何新增 / 删除 / 移动测试文件或修改 server/package.json 测试脚本的批次。
+
+---
+
+## 判例：权限判据必须落在真实行为上（2026-11-03 批次 527 后）
+
+**问题**：审计按「中间件是不是 `requireAuth`」判越权，把 `signups` 这类「中间件只登录、handler 有专用 guard」的写口误记为风险；同时换轨演练暴露 `notices.reads` 被错误列为必填，导致导入被契约挡住。
+
+**规则**：
+
+1. 写权限的唯一机读源是 `server/security/write-policy-matrix.mjs`；矩阵行必须写 `roleGate / ownership / fieldLocks / evidence / status`。
+2. 审计 C1 只查矩阵：未登记 → P0；`known-risk` → exception 并回链阻断风险；`enforced` → 通过。运行期探针只抽样高风险行。
+3. 数据契约的 `required` 必须能在「演示库 + 真实库」两处都成立；只在实际写入方保证的字段才进 `required`，否则进 `optional`。
+
+**Boolean 条件**：新增 `POST/PATCH/DELETE` 路由 → 矩阵必须同步新增一行且 `write-policy-matrix` 绿；否则判红。
+
+**生效条件**：任何新增写口、改权限门、改审计 C1 口径或改 `domain-contract.required` 的批次。
+
+## 判例：用户说「保留」不等于「不用改」（2026-11-03 sample-diff-learning）
+
+**问题**：抽查时用户回「保留归保留，有改进空间就改进！有问题就改正」——若把这句读成 `Keep` 就会漏掉潜在缺陷。
+
+**规则**：收到「保留 + 改进」类反馈时，必须给出**具体改进点**（改了什么 / 为什么）或**明确说明为何当前无改进空间**（附检查项），不得以「已保留」结束。
+
+**Boolean 条件**：用户反馈含「改进 / 改正 / 有问题」→ 回复必须包含 `改动清单` 或 `无改进空间的三条检查证据`；否则视为未响应反馈。
+
+**生效条件**：每次 `sample-diff-learning` 抽样或用户对已交付改动作出保留类评价时。
+
+---
+
+## 判例：缺证据即拒、缺省可见性冻结、派生随来源终止、提问自解释（2026-11-19 批次 578 · sample-diff 8.1–8.5）
+
+**问题**：批次 574–577 的六条抽样里，AI 对三类边界均取了「保守 / 不变」档，支书复核全部确认；但第一轮提问把「遗留键」直接当标签抛出，支书无法判断所指（实为 `commissioner` / `initiator` 两个无角色语义的兼容键，与组长 / 副组长无关）。
+
+**规则**：
+
+1. **缺证据即拒**：进入受控状态所需证据字段缺失或非法 ⇒ 硬拦（422 / 404），不得默认放行；确需放行时，必须登记为可配置项并由支书裁定。
+2. **缺省可见性冻结**：新增隔离维度（支部 / 租户 / 范围）只加参数分支；不带参数时行为必须与上线口径逐字节一致。
+3. **派生随来源终止**：派生条目（待办 / 清单 / 提醒）必须在来源完结、归档或删除时撤除，不得挂在已终止来源下。
+4. **提问自解释**：抽样或待裁提问涉及「遗留 / 例外 / known-risk」等标签时，必须给定义、数量与证据，不得只给标签让支书猜。
+
+**Boolean 条件**：
+
+- 受控状态写入存在「证据字段缺失 → 放行」分支 ⇒ 判红，除非同批登记可配置项与裁定编号。
+- 隔离维度改动不带参数时返回集合 ≠ 上线口径集合 ⇒ 判红。
+- 来源 `completed | archived | deleted` 后仍能列出其派生条目 ⇒ 判红。
+- 提问选项出现术语而无定义 / 数量 / 证据 ⇒ 视为未响应抽样协议。
+
+**生效条件**：任何受控状态写口、任何新增隔离维度、任何派生条目生成逻辑，以及每一轮 `sample-diff` 抽样提问。
+

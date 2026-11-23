@@ -21,9 +21,9 @@
 // ════════════════════════════════════════════════════════════════
 
 // 期次标签单一源（core/base/period.js）——勿在本文件另写季度格式化
-import { periodLabel } from '../base/period.js?v=20261031a';
+import { periodLabel } from '../base/period.js?v=20261120a';
 // 角色 → 工作台页单一源（F05/F12：按接收人角色生成落点，勿在本文件另写一张角色页表）
-import { ROLE_PAGE_MAP, SECRETARY_AND_DEPUTY_ROLES } from './constants.js?v=20261031a';
+import { ROLE_PAGE_MAP, SECRETARY_AND_DEPUTY_ROLES } from './constants.js?v=20261120a';
 
 /** 组装返回对象（跳过 undefined，保持通知结构精简；与原前端 add() 落库形态一致） */
 function pick(obj) {
@@ -85,6 +85,8 @@ const TEMPLATES = {
     title: '考勤已确认并归档',
     content: `「${activityTitle}」考勤已由纪检确认，系统已自动归档至考察档案，组织委员可直接读取使用。`,
     priority: 'normal',
+    // 2026-11-07 批次 535：系统通知必须有受众；考勤归档的使用方是组织委员。
+    audience: ['org-commissioner'],
     targetType: 'activity',
     targetId: sourceId,
   }),
@@ -93,6 +95,7 @@ const TEMPLATES = {
   'activity-agenda-updated': ({ sourceId, activityTitle }) => pick({
     title: `「${activityTitle}」议程已更新`,
     content: '议程已更新，可查看最新议程',
+    audience: ['all'],
     targetType: 'activity',
     targetId: sourceId,
   }),
@@ -119,6 +122,7 @@ const TEMPLATES = {
     title: '支部分工调整议题待表决',
     content: `「${activityTitle}」已发起，请支委在本次支委会活动中参与线上表决（交流式表态）。`,
     priority: 'normal',
+    audience: 'committee',
     targetType: 'activity',
     targetId: sourceId,
   }),
@@ -167,13 +171,15 @@ const TEMPLATES = {
   }),
 
   // ── 赋权通知（auth.js 迁移） ────────────────────────────────────
-  'project-auth-granted': ({ sourceId, targetPage, authorizerName, projectName, roleLabel, targetType }) => pick({
+  'project-auth-granted': ({ sourceId, targetPage, authorizerName, projectName, roleLabel, targetType, targetPersonId }) => pick({
     title: '赋权通知',
     content: `${authorizerName} 已将您赋权为「${projectName}」的${roleLabel}。点击前往工作台。`,
     priority: 'normal',
     targetType: targetType || (String(sourceId || '').startsWith('tf-') ? 'taskforce' : 'activity'),
     targetId: sourceId,
     targetUrl: targetPage,
+    // 2026-11-07 批次 535：赋权通知只发给被赋权人；无 audiencePersons 即不可读（fail-closed）。
+    audiencePersons: targetPersonId ? [String(targetPersonId)] : undefined,
   }),
 
   // ── 材料外发待确认（external-dispatch.js 迁移） ───────────────────
@@ -222,6 +228,7 @@ const TEMPLATES = {
     title: '活动已创建，请建核心群',
     content: `「${activityTitle}」${date}${location ? ' · ' + location : ' · 线上'}：请前往微信群建核心群。`,
     priority: 'normal',
+    audience: ['all'],
     targetType: 'activity',
     targetId: sourceId,
     // F06：`targetType+targetId` 优先 ⇒ 原 `targetUrl: workspace/leader.html` 永不生效（死链），删除。
@@ -274,6 +281,7 @@ const TEMPLATES = {
     content: content || `请全体成员关注「${activityTitle}」，按时参加。`,
     priority: 'normal',
     expireDate,
+    audience: ['all'],
     targetModule: 'activity',
     targetType: 'activity',
     targetId: sourceId,
@@ -285,6 +293,7 @@ const TEMPLATES = {
     content: content || `专班「${taskforceName}」已报送支委会表决，表决通过后将开放招募（截止 ${deadline}），欢迎届时报名参与。`,
     priority: 'normal',
     expireDate: deadline,
+    audience: ['all'],
     targetModule: 'workspace',
     targetType: 'taskforce',
     targetId: sourceId,
@@ -345,6 +354,18 @@ const TEMPLATES = {
     //   对非成员角色会被身份门弹回且永不生效，删除死链。
   }),
 
+  // ── 组织者指定已解除（2026-11-19 批次 573 · `D-885` / SOP-B-17）──────────
+  // 场景：角色编辑里**解除**组织者指定（无接手人）⇒ 给被解除者本人发「更正」。
+  // 受众＝到人定向（只发本人）；不派生待办；与「组织者已变更」（有接手人）分列。
+  'organizer-designation-corrected': ({ sourceId, removedPersonId, projectName, removedName, byName, label, targetType }) => pick({
+    title: '组织者指定已解除',
+    content: `更正：「${projectName}」已解除 ${removedName || '你'} 的组织者指定${byName ? `（办理：${byName}）` : ''}；你不再是该${label || '项目'}的组织者，本场通知发布权随之收回。如有未了事项，请与现任组织者交接。`,
+    priority: 'normal',
+    audiencePersons: removedPersonId ? [removedPersonId] : undefined,
+    targetType,
+    targetId: sourceId,
+  }),
+
   // ── 待办作废已裁决（`#1`/`D-742`；2026-10-02 批次 340 · 支书裁「支书如果不认为能取消 /
   //    即使取消也要让相关委员知情，知道管理上可以优化」）─────────────────────────────
   // 场景：责任人 `requestVoid` → 支书/副支书在支书台待办**确认**或**驳回**该作废申请后的**知会**。
@@ -383,6 +404,62 @@ const TEMPLATES = {
     audiencePersons,
     targetType: 'record',
     targetId: sourceId,
+  }),
+
+  // ── 支委提案回执（D-869） ──────────────────────────────────────
+  //   受众按动作分：提交 → 支委层；受理 / 驳回 / 归档 → 提案人；
+  //   排期 / 决议 → 支委层 ＋ 提案人（＋ 受影响人）。
+  'committee-proposal-submitted': ({ sourceId, proposalTitle, proposerName }) => pick({
+    title: '新的支部提案待受理',
+    content: `${proposerName || '党小组组长'} 提交了「${proposalTitle || '支部提案'}」，请支委会受理。`,
+    priority: 'normal',
+    audience: ['committee'],
+    targetType: 'committeeProposal',
+    targetId: sourceId,
+    targetUrl: 'workspace/secretary.html?tab=committee-meeting',
+  }),
+  'committee-proposal-accepted': ({ sourceId, proposalTitle, proposerRole }) => pick({
+    title: '支部提案已受理',
+    content: `你的提案「${proposalTitle || '支部提案'}」已由支委会受理，等待排期。`,
+    priority: 'normal',
+    audiencePersons: [],
+    targetType: 'committeeProposal',
+    targetId: sourceId,
+    targetUrl: `${workspacePageOf(proposerRole || 'leader')}?tab=overview&section=proposals`,
+  }),
+  'committee-proposal-rejected': ({ sourceId, proposalTitle, note, proposerRole }) => pick({
+    title: '支部提案未受理',
+    content: `你的提案「${proposalTitle || '支部提案'}」未受理${note ? `：${note}` : ''}。`,
+    priority: 'normal',
+    targetType: 'committeeProposal',
+    targetId: sourceId,
+    targetUrl: `${workspacePageOf(proposerRole || 'leader')}?tab=overview&section=proposals`,
+  }),
+  'committee-proposal-scheduled': ({ sourceId, proposalTitle, meetingTitle }) => pick({
+    title: '支部提案已排期',
+    content: `提案「${proposalTitle || '支部提案'}」已排入${meetingTitle ? `「${meetingTitle}」` : '支委会'}议程。`,
+    priority: 'normal',
+    audience: ['committee'],
+    targetType: 'committeeProposal',
+    targetId: sourceId,
+    targetUrl: 'workspace/secretary.html?tab=committee-meeting',
+  }),
+  'committee-proposal-decided': ({ sourceId, proposalTitle, decisionLabel, note }) => pick({
+    title: '支部提案已形成决议',
+    content: `提案「${proposalTitle || '支部提案'}」的决议为「${decisionLabel || '已记录'}」${note ? `：${note}` : ''}。`,
+    priority: 'normal',
+    audience: ['committee'],
+    targetType: 'committeeProposal',
+    targetId: sourceId,
+    targetUrl: 'workspace/secretary.html?tab=committee-meeting',
+  }),
+  'committee-proposal-closed': ({ sourceId, proposalTitle, proposerRole }) => pick({
+    title: '支部提案已归档',
+    content: `提案「${proposalTitle || '支部提案'}」已归档。`,
+    priority: 'normal',
+    targetType: 'committeeProposal',
+    targetId: sourceId,
+    targetUrl: `${workspacePageOf(proposerRole || 'leader')}?tab=overview&section=proposals`,
   }),
 };
 

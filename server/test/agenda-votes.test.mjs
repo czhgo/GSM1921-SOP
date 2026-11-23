@@ -12,6 +12,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
+import { daysAgo } from '../services/reporting.js';
 
 let server, base, db;
 let tokenSec, tokenOrg, tokenMember;
@@ -389,6 +390,55 @@ test('活动创建：formal + ballotMode=named → 400；formal + anonymous → 
   assert.equal(patch.status, 400, 'PATCH 改为 named 应 400');
 });
 
+// ===== 截止串必须有日期语义：非 YYYY-MM-DD / 早于今天 ⇒ 422（2026-11-18 批次 567）=====
+test('lock 的 voteDeadline：非日期串 / 早于今天 ⇒ 422；合法日期 200', async () => {
+  const lock = (body) => fetch(`${base}/api/v1/agenda-votes/lock`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenSec}` },
+    body: JSON.stringify({ activityId: 'act-27', ...body }),
+  });
+  const notDate = await lock({ voteDeadline: '下周三' });
+  assert.equal(notDate.status, 422, '非 YYYY-MM-DD ⇒ 422');
+  const past = await lock({ voteDeadline: '2000-01-01' });
+  assert.equal(past.status, 422, '早于今天 ⇒ 422');
+  // 服务端本地口径的「明天」（不得用 UTC 切串取日，见 date-canon-guard）
+  const tomorrow = daysAgo(-1);
+  const ok = await lock({ voteDeadline: tomorrow });
+  assert.equal(ok.status, 200);
+  assert.equal((await ok.json()).voteDeadline, tomorrow);
+});
+
+// ===== D-872（L-16）：建会冻结表决名单——服务端按 users ＋ 组织归属算一次，客户端名单不作数 =====
+test('建会冻结名单：客户端伪造 / 含滞留的 voterIds 被服务端按名册重算覆盖；范围非法 400', async () => {
+  const created = await fetch(`${base}/api/v1/activities`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenSec}` },
+    body: JSON.stringify({
+      id: 'act-frozen-roster', title: '支部党员大会：名单冻结（测试）', date: '2026-09-08',
+      type: '支部党员大会', scenarioId: 'branch-party-meeting', status: 'published',
+      voteConfig: {
+        mode: 'async', optionSet: 'formal', ballotMode: 'anonymous', voterScope: 'formal-only',
+        voterIds: ['2400012349', 'not-a-member'], quorumCheck: true,
+      },
+    }),
+  });
+  assert.equal(created.status, 201, '建会应 201（名单由服务端重算）');
+  const frozen = (await created.json()).voteConfig;
+  assert.ok(!frozen.voterIds.includes('not-a-member'), '客户端伪造的 id 必须被丢弃');
+  assert.ok(!frozen.voterIds.includes('2400012349'), '滞留党员须按名册口径剔除');
+  assert.ok(frozen.voterIds.includes('2400012347'), '在册正式党员须在冻结名单内');
+  assert.equal(frozen.quorumCheck, true, '其余表决配置原样保留');
+
+  const bad = await fetch(`${base}/api/v1/activities`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenSec}` },
+    body: JSON.stringify({
+      id: 'act-frozen-bad-scope', title: '支部党员大会：范围非法（测试）', date: '2026-09-08',
+      type: '支部党员大会', scenarioId: 'branch-party-meeting', status: 'published',
+      voteConfig: { mode: 'async', optionSet: 'formal', voterScope: 'everyone', voterIds: ['2400012347'] },
+    }),
+  });
+  assert.equal(bad.status, 400, '范围非法 fail-closed 400（不回退客户端名单）');
+  assert.match((await bad.json()).error, /表决范围无效/);
+});
+
 // ===== AV3 fail-closed：voteConfig 非法配置一律 400（不回退默认值，消除 voterIds:[] 死锁）=====
 function addActivityFixture(act) {
   db.prepare('INSERT INTO activities (id, data) VALUES (?, ?)').run(act.id, JSON.stringify(act));
@@ -449,8 +499,8 @@ test('formal 活动：voteConfig.voterIds 空数组：400（fail-closed，不回
 
 // ===== mock 形态同口径（与 server 双形态一致；纯前端模块直调，不起服务）=====
 test('mock 形态：无记名只落参与记录 + tally、无逐人选项；记名保持逐人可见', async () => {
-  const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261031a');
-  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261031a');
+  const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261120a');
+  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261120a');
   const originActs = mockDB.activities;
   const originVotes = mockDB.agendaVotes;
   const originLoaded = mockDB._loaded;

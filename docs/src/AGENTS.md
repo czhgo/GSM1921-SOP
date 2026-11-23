@@ -14,18 +14,18 @@
 - 数据：运行时门面 `data/data-adapter.js` / `data/api-adapter.js`；演示种子 `data/mock/*`。
 
 ## 禁什么（3 条硬禁）
-1. 不得在 `docs/**` 新增硬编码 hex（`#RGB` / `#RRGGBB`，含 JS 模板串）。判定：`cd server; node --test test/hex-hardcode-guard.test.mjs`；例外只能登记进 `test/style-baseline.mjs`。
-2. 不得用 `color-mix()`、`rgba(主题色)`、`filter: brightness()` 生成主题色。判定：`node --test test/theme-palette-guard.test.mjs`（SD-12 计数为 0）。
-3. 不得写裸 `transition: <属性> <毫秒>` 或 `transition: all`；只用 `--motion-*` / `--ease-*` 加白名单属性。判定：`node --test test/motion-guard.test.mjs`（SD-30）。
+1. 不得在 `docs/**` 新增硬编码 hex（`#RGB` / `#RRGGBB`，含 JS 模板串）。判定：`cd server; node --test test/color-ratchet-guard.test.mjs`（源件 1 hex-hardcode）；例外只能登记进 `test/style-baseline.mjs`。
+2. 不得用 `color-mix()`、`rgba(主题色)`、`filter: brightness()` 生成主题色。判定：`node --test test/color-ratchet-guard.test.mjs`（源件 2 theme-palette；SD-12 计数为 0）。
+3. 不得写裸 `transition: <属性> <毫秒>` 或 `transition: all`；只用 `--motion-*` / `--ease-*` 加白名单属性。判定：`node --test test/style-ratchet-guard.test.mjs`（源件 12/13 motion；SD-30）。
 
 ## 验证命令
 ```powershell
 # 定向（秒级；静态守卫，不需要 3000 端口）
-cd server; node --test test/field-shell-guard.test.mjs test/motion-guard.test.mjs test/activity-tone-guard.test.mjs
-# 按改动面追加：改色板 → theme-palette-guard + hex-hardcode-guard；改焦点 → ui-focus-ring
+cd server; node --test test/component-ratchet-guard.test.mjs test/style-ratchet-guard.test.mjs test/activity-tone-guard.test.mjs
+# 按改动面追加：改色板 → color-ratchet-guard（源件 1/2）；改焦点 → component-ratchet-guard（源件 9 ui-focus-ring）
 # 全量日常（实测 ≈150s，预算 ≤180s）
 cd server; npm run test:daily
-# 发布 / 大批改动（预算 ≤1200s；README 实测量级 ≈23 分钟，超预算先排除机器负载）
+# 发布 / 大批改动（分片后单片 ≤1200s，夜间档分片执行；README 实测量级 ≈23 分钟，超预算先排除机器负载）
 cd server; npm run test:full
 ```
 
@@ -45,4 +45,4 @@ cd server; npm run test:full
 |---|---|
 | 触发条件 | 新增颜色 / 动效 / 字段外壳用法 |
 | 唯一落点 | `styles.css` 令牌 + 组件类；确需例外只登记 `server/test/style-baseline.mjs` |
-| 检查方式 | `hex-hardcode-guard` / `theme-palette-guard` / `motion-guard` / `field-shell-guard` 全绿 |
+| 检查方式 | `color-ratchet-guard`（源件 1/2） / `style-ratchet-guard`（源件 12/13） / `component-ratchet-guard`（源件 4/5） 全绿 |

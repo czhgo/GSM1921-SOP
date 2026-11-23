@@ -29,19 +29,22 @@
 //      并标「随在册状态变更填写」——不留「可输入却存不进」的死入口（R7-02）。
 // ════════════════════════════════════════════════════════════════
 
-import { openModal, closeModal, setModalBusy } from '../ui/modal.js?v=20261031a';
-import { PersonStore } from '../../services/member/person.js?v=20261031a';
-import { getBranchById } from '../../services/branch/branch.js?v=20261031a';
+import { openModal, closeModal, setModalBusy } from '../ui/modal.js?v=20261120a';
+import { badgeHtml } from '../ui/badges.js?v=20261120a';
+// 批次 524（F · 输入单一源）：布局中立的控件积木（只出控件本体，不套 label / 外边距）
+import { textInput, selectInput } from '../ui/forms.js?v=20261120a';
+import { PersonStore } from '../../services/member/person.js?v=20261120a';
+import { getBranchById } from '../../services/branch/branch.js?v=20261120a';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/domain/constants.js?v=20261031a';
-import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { showToast, escHtml as esc, getBasePath, todayLocal, describeWriteError } from '../../core/base/utils.js?v=20261031a';
+import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/domain/constants.js?v=20261120a';
+import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { showToast, escHtml as esc, getBasePath, todayLocal, describeWriteError, smoothScroll } from '../../core/base/utils.js?v=20261120a';
 // `D-788`（2026-10-05 · `V-10b`）：成员「自我描述」字段模型（**零依赖叶子**）——表单控件由它逐字段生成（单一源）
 import {
   SELF_PROFILE_FIELDS, sanitizeSelfProfile,
   selfProfileListToText, selfProfileListFromText,
-} from '../../core/domain/self-profile.js?v=20261031a';
+} from '../../core/domain/self-profile.js?v=20261120a';
 
 /** 模态 id（openModal / closeModal 定位键） */
 const MODAL_ID = 'person-edit-modal';
@@ -86,25 +89,31 @@ function archiveRow({ label, valueHtml, field, highlight }) {
 }
 
 /** 发展阶段下拉（当前值不在枚举内时保留为「原值」选项，避免打开即产生伪变更） */
-function stageOptions(current) {
+function stageSelect(current) {
   const extra = current && !DEVELOP_STAGES.includes(current) ? [current] : [];
-  return [...extra, ...DEVELOP_STAGES]
-    .map(v => `<option value="${esc(v)}"${v === current ? ' selected' : ''}>${esc(v)}${extra.includes(v) ? '（原值）' : ''}</option>`)
-    .join('');
+  return selectInput({
+    options: [...extra, ...DEVELOP_STAGES].map(v => ({ value: v, label: `${v}${extra.includes(v) ? '（原值）' : ''}` })),
+    value: current,
+    className: 'w-full',
+    attrs: 'data-field="developStage"',
+  });
 }
 
 /** 在册状态下拉（缺省值 = 在校） */
-function residenceOptions(current) {
+function residenceSelect(current) {
   const cur = RESIDENCE_OPTIONS.includes(current) ? current : RESIDENCE.CAMPUS;
-  return RESIDENCE_OPTIONS
-    .map(v => `<option value="${esc(v)}"${v === cur ? ' selected' : ''}>${esc(v)}</option>`)
-    .join('');
+  return selectInput({
+    options: RESIDENCE_OPTIONS.map(v => ({ value: v, label: v })),
+    value: cur,
+    className: 'w-full',
+    attrs: 'data-field="residenceStatus"',
+  });
 }
 
 /** 「立即生效」小标（档案属性直改；浅底语义类，非可点击控件） */
-const TAG_INSTANT = '<span class="text-[11px] px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-100 whitespace-nowrap flex-shrink-0">立即生效</span>';
+const TAG_INSTANT = badgeHtml('立即生效', 'info');
 /** 「报支书确认」小标（制度链；与名册「待确认」小标同源语义） */
-const TAG_CONFIRM = '<span class="text-[11px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-100 whitespace-nowrap flex-shrink-0">报支书确认</span>';
+const TAG_CONFIRM = badgeHtml('报支书确认', 'warning');
 
 /** 字段分组容器：统一用 fieldset（浮窗体例 §body 分组），不再各写卡片 */
 function groupBox({ title, desc, rows }) {
@@ -115,13 +124,41 @@ function groupBox({ title, desc, rows }) {
     </fieldset>`;
 }
 
-/** 可改字段行（标签 + input-flat 控件 + 右侧写路径小标）；≤640px 由 .modal-form-row 折行 */
-function formRow(label, controlHtml, { required = false, tag = '' } = {}) {
+/** 可改字段行（标签 + input-flat 控件 + 右侧写路径小标）；≤640px 由 .modal-form-row 折行
+ *  `errId` 给定时在控件下方留一处字段级错误位（R5A-11：错误文本 + aria-invalid + aria-describedby）。 */
+function formRow(label, controlHtml, { required = false, tag = '', errId = '' } = {}) {
   return `<div class="modal-form-row">
-      <label class="text-xs text-gray-500 w-24 flex-shrink-0 pt-2">${esc(label)}${required ? ' <span class="text-gray-400">*</span>' : ''}</label>
-      <div class="flex-1 min-w-0">${controlHtml}</div>
+      <label class="text-xs text-gray-500 w-24 flex-shrink-0 pt-2">${esc(label)}${required ? ' <span class="text-gray-500">*</span>' : ''}</label>
+      <div class="flex-1 min-w-0">${controlHtml}${errId ? `<p id="${errId}" data-field-error hidden class="mt-1 text-xs text-red-600" role="alert"></p>` : ''}</div>
       <div class="flex-shrink-0 pt-1.5">${tag}</div>
     </div>`;
+}
+
+/** 字段级错误（就地）：错误文本 + aria-invalid + aria-describedby（同 org-setup-wizard 口径） */
+function _showPersonEditError(input, errId, msg) {
+  const errEl = errId ? document.getElementById(errId) : null;
+  if (errEl) { errEl.textContent = msg; errEl.hidden = false; }
+  if (input) {
+    input.setAttribute('aria-invalid', 'true');
+    if (errId) input.setAttribute('aria-describedby', errId);
+    if (typeof input.focus === 'function') input.focus();
+  }
+  return false;
+}
+
+/** 浮窗级错误（M-6）：固定错误位承载「为什么没保存」，不随 toast 消失，也不关浮窗 */
+function _showSaveError(msg) {
+  const el = document.getElementById('pe-save-err');
+  if (!el) return;
+  el.textContent = msg;
+  el.hidden = false;
+  smoothScroll(el, { block: 'nearest' });
+}
+
+/** 清空浮窗级错误（每次保存开始前调用，避免旧错留在屏上） */
+function _clearSaveError() {
+  const el = document.getElementById('pe-save-err');
+  if (el) { el.textContent = ''; el.hidden = true; }
 }
 
 /** 今日日期键 'YYYY-MM-DD'（阶段推进「进入当前阶段日期」默认值；submitMemberChange 缺省亦为今日） */
@@ -140,21 +177,32 @@ function selfProfileControl(f, sp) {
   if (f.type === 'bool') {
     const opts = [['', '未填'], ['true', '是'], ['false', '否']];
     const sel = v === true ? 'true' : v === false ? 'false' : '';
-    return `<select data-field="${df}" class="input-flat text-xs w-full">${opts
-      .map(([val, lab]) => `<option value="${val}"${val === sel ? ' selected' : ''}>${esc(lab)}</option>`)
-      .join('')}</select>`;
+    return selectInput({
+      options: opts.map(([value, label]) => ({ value, label })),
+      value: sel,
+      className: 'w-full',
+      attrs: `data-field="${df}"`,
+    });
   }
   if (f.type === 'multi') {
-    return `<input data-field="${df}" type="text" class="input-flat text-xs w-full"
-      value="${esc((Array.isArray(v) ? v : []).join('; '))}" placeholder="多项用 ; 分隔（可空）" />`;
+    return textInput({
+      value: (Array.isArray(v) ? v : []).join('; '),
+      placeholder: '多项用 ; 分隔（可空）',
+      className: 'w-full',
+      attrs: `data-field="${df}"`,
+    });
   }
   if (f.type === 'list') {
     const ph = `每行一条，子项用 | 分隔：${(f.itemFields || []).map((it) => it.label).join(' | ')}`;
     return `<textarea data-field="${df}" rows="2" class="input-flat text-xs w-full"
       placeholder="${esc(ph)}">${esc(selfProfileListToText(v, f.itemFields))}</textarea>`;
   }
-  return `<input data-field="${df}" type="text" class="input-flat text-xs w-full"
-    value="${esc(v == null ? '' : v)}" placeholder="${esc(f.label)}（可空）" />`;
+  return textInput({
+    value: v == null ? '' : v,
+    placeholder: `${f.label}（可空）`,
+    className: 'w-full',
+    attrs: `data-field="${df}"`,
+  });
 }
 
 /**
@@ -229,7 +277,7 @@ export function openPersonEditModal(opts = {}) {
   //    发展阶段 / 在册状态 / 在册备注 在下方可改区已有控件，不再重复一遍）。
   //    selfOnly（本人自助）时这些字段对本人均不可改，故完整展示。
   const residenceStatusHtml = isDetained
-    ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-amber-700 bg-amber-50">${esc(RESIDENCE.DETAINED)}</span>`
+    ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-[var(--status-warning-text)] bg-amber-50">${esc(RESIDENCE.DETAINED)}</span>`
     : `<span class="text-gray-800">${esc(member.residenceStatus || RESIDENCE.CAMPUS)}</span>`;
   const readonlyAll = [
     archiveRow({ label: '姓名', valueHtml: esc(member.name || '—'), field: 'name', highlight: hits('name') }),
@@ -254,21 +302,22 @@ export function openPersonEditModal(opts = {}) {
   //    ⚠ `selfOnly`（本人自助）：只出「自我描述」一组；其余组与治理字段说明不出（本人无权写）。
   const formHtml = `
     <form id="${MODAL_ID}-form">
+      <p id="pe-save-err" data-save-error hidden class="mb-3 text-xs text-[var(--status-error-text)]" role="alert"></p>
       ${selfOnly ? '' : groupBox({
         title: '档案资料 · 立即生效',
         rows: [
-          formRow('姓名', `<input data-field="name" type="text" class="input-flat text-xs w-full" value="${esc(member.name || '')}" placeholder="成员姓名" />`, { required: true, tag: TAG_INSTANT }),
-          formRow('届别', `<input data-field="enrollYear" type="text" class="input-flat text-xs w-full" value="${esc(member.enrollYear || '')}" placeholder="入学年份 / 届别（如 2026，可空）" />`, { tag: TAG_INSTANT }),
-          formRow('党小组', `<input data-field="partyGroup" type="text" class="input-flat text-xs w-full" value="${esc(member.partyGroup || '')}" placeholder="党小组归属（可空）" />`, { tag: TAG_INSTANT }),
+          formRow('姓名', textInput({ value: member.name || '', placeholder: '成员姓名', className: 'w-full', attrs: 'data-field="name" aria-describedby="pe-name-err"' }), { required: true, tag: TAG_INSTANT, errId: 'pe-name-err' }),
+          formRow('届别', textInput({ value: member.enrollYear || '', placeholder: '入学年份 / 届别（如 2026，可空）', className: 'w-full', attrs: 'data-field="enrollYear"' }), { tag: TAG_INSTANT }),
+          formRow('党小组', textInput({ value: member.partyGroup || '', placeholder: '党小组归属（可空）', className: 'w-full', attrs: 'data-field="partyGroup"' }), { tag: TAG_INSTANT }),
         ].join(''),
       })}
       ${selfProfileGroup(spCurrent)}
       ${selfOnly ? '' : groupBox({
         title: '制度变更 · 报支书确认',
         rows: [
-          formRow('发展阶段', `<select data-field="developStage" class="input-flat text-xs w-full">${stageOptions(member.developStage)}</select>`, { tag: TAG_CONFIRM }),
-          formRow('在册状态', `<select data-field="residenceStatus" class="input-flat text-xs w-full">${residenceOptions(member.residenceStatus)}</select>`, { tag: TAG_CONFIRM }),
-          formRow('在册备注', `<textarea data-field="residenceNote" rows="3" class="input-flat text-xs w-full" disabled placeholder="随在册状态变更填写；状态变更时必填说明">${esc(member.residenceNote || '')}</textarea><p class="mt-1 text-[11px] text-gray-500" data-note-hint>随在册状态变更填写</p>`, { tag: TAG_CONFIRM }),
+          formRow('发展阶段', stageSelect(member.developStage), { tag: TAG_CONFIRM }),
+          formRow('在册状态', residenceSelect(member.residenceStatus), { tag: TAG_CONFIRM }),
+          formRow('在册备注', `<textarea data-field="residenceNote" rows="3" class="input-flat text-xs w-full" disabled placeholder="随在册状态变更填写；状态变更时必填说明" aria-describedby="pe-note-err">${esc(member.residenceNote || '')}</textarea><p class="mt-1 text-[11px] text-gray-500" data-note-hint>随在册状态变更填写</p><p id="pe-note-err" data-field-error hidden class="mt-1 text-xs text-red-600" role="alert"></p>`, { tag: TAG_CONFIRM }),
         ].join(''),
       })}
     </form>`;
@@ -349,8 +398,7 @@ export function openPersonEditModal(opts = {}) {
       residenceNote: String(read('residenceNote')).trim(),
     };
     if (next && !next.name) {
-      showToast('error', '成员姓名不能为空');
-      return;
+      return _showPersonEditError(panelEl?.querySelector('[data-field="name"]'), 'pe-name-err', '成员姓名不能为空');
     }
 
     // 与档案真值逐字段比对 → 只提交有变更的字段（在册状态缺失 ≡ 在校，避免伪变更）
@@ -366,8 +414,7 @@ export function openPersonEditModal(opts = {}) {
     if (JSON.stringify(nextSp) !== JSON.stringify(spCurrent)) patch.selfProfile = nextSp;
     // R7-02：在册状态变更必须随附说明（备注不再是「可空且单独可存」的字段）
     if (next && 'residenceStatus' in patch && !next.residenceNote) {
-      showToast('error', '在册状态变更须填写备注说明');
-      return;
+      return _showPersonEditError(panelEl?.querySelector('[data-field="residenceNote"]'), 'pe-note-err', '在册状态变更须填写备注说明');
     }
     if (Object.keys(patch).length === 0) {
       showToast('info', '没有需要保存的变更');
@@ -384,6 +431,7 @@ export function openPersonEditModal(opts = {}) {
     const resStatusChanged = 'residenceStatus' in patch;
 
     setSaving(true);
+    _clearSaveError();
 
     // ① 立即生效组：档案属性直改（失败不关闭，便于修正后重试）
     let savedMember = member;
@@ -397,7 +445,7 @@ export function openPersonEditModal(opts = {}) {
       }
       if (!r || !r.ok) {
         setSaving(false);
-        showToast('error', r?.reason || '保存未完成，请稍后重试');
+        _showSaveError(r?.reason || '保存未完成，请稍后重试');
         return;
       }
       savedMember = r.member || { ...member, ...instantPatch };
@@ -428,7 +476,7 @@ export function openPersonEditModal(opts = {}) {
 
     // 失败时只报失败、不报成功（同一次保存不得同时弹 error 与 success），浮窗保留便于修正。
     if (errors.length) {
-      showToast('error', errors.join('；'));
+      _showSaveError(errors.join('；'));
       if (savedCount > 0 && typeof opts.onSaved === 'function') {
         try { opts.onSaved(savedMember); } catch (err) { console.warn('[person-edit-modal] onSaved 回调异常：', err); }
       }

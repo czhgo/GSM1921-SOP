@@ -5,37 +5,39 @@
 //  职责单一：统计卡渲染 + 考勤明细弹窗（点击统计卡查看本月考勤）。
 // ════════════════════════════════════════════════════════════════
 
-import { NoticeStore } from '../../services/governance/notice.js?v=20261031a';
-import { _fmtDate } from '../../core/base/utils.js?v=20261031a';
-import { icon } from '../../core/base/icons.js?v=20261031a';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261120a';
+import { _fmtDate, animateNumber } from '../../core/base/utils.js?v=20261120a';
+import { icon } from '../../core/base/icons.js?v=20261120a';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261031a';
-import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261031a';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261120a';
+import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261120a';
 // R2-47：出勤率语义单一源——首页「个人考勤」按应到人次（不是按已录记录），未录显示「待录入」
-import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261031a';
+import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261120a';
 
 // 出勤率档位 → 既有语义色 token（服务层只给档位，颜色映射留在展示层）
+// 2026-11-10 批次 540：状态色一律取文字档 `--status-*-text`（`--tint` 与数值同源，填充档不承担文字 / 笔触，见 DS_03 §4.11.2）。
 const ATTENDANCE_TONE_COLOR = {
-  good: 'var(--status-success)',
+  good: 'var(--status-success-text)',
   watch: 'var(--status-warning-text)',
-  low: 'var(--status-error)',
+  low: 'var(--status-error-text)',
   pending: 'var(--neutral-500)',
 };
 // 2026-10-28：数值（24px 大字）与图标分两档色。--status-success 对白卡仅 2.54:1，
 //   大字要求 ≥3:1 ⇒「良好」档数值退回正文色 --neutral-800（对白卡 14.68:1），
 //   绿色只留在 `.stat-icon-tint` 的图标笔触上（装饰性、aria-hidden，不承担信息）。
-//   其余档位对白卡 ≥3:1（warning-text 7.09 / error 3.76 / neutral-500 4.83），数值与图标同色。
+//   其余档位对白卡 ≥4.5:1（文字档：warning-text 7.09 / error-text 8.31 / neutral-500 4.83），数值与图标同色。
 const ATTENDANCE_VALUE_COLOR = {
   ...ATTENDANCE_TONE_COLOR,
   good: 'var(--neutral-800)',
 };
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261120a';
+import { renderCardHeader } from '../shell/page-frame.js?v=20261120a';
 const ATTENDANCE_STATUS_DOT = {
-  present:  { text: '出勤', cls: 'text-green-700', dot: 'var(--status-success)' },
-  absent:   { text: '缺勤', cls: 'text-red-600',  dot: 'var(--status-error)' },
-  leave:    { text: '请假', cls: 'text-orange-500', dot: '#F97316' },
-  made_up:  { text: '已补', cls: 'text-blue-500', dot: 'var(--status-info)' },
+  present:  { text: '出勤', cls: 'text-[var(--status-success-text)]', dot: 'var(--status-success)' },
+  absent:   { text: '缺勤', cls: 'text-[var(--status-error-text)]',  dot: 'var(--status-error)' },
+  leave:    { text: '请假', cls: 'text-[var(--status-warning-text)]', dot: 'var(--status-warning)' },
+  made_up:  { text: '已补', cls: 'text-[var(--status-info-text)]', dot: 'var(--status-info)' },
 };
 
 // 弹窗的 document 级关闭监听防重绑定（统计卡即时刷新会反复调用）
@@ -53,7 +55,7 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   if (isLoading) {
     const skeletonItems = ['本月活动', '活跃专班', '未读通知', '个人考勤'];
     container.innerHTML = skeletonItems.map(label => `
-      <div class="card rounded-xl px-4 py-3 stat-card">
+      <div class="card rounded-xl p-4 stat-card">
         <span class="stat-icon-tint" style="--tint:var(--neutral-300);" aria-hidden="true">
           <span class="h-5 w-5 rounded bg-gray-100 animate-pulse"></span>
         </span>
@@ -70,7 +72,8 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const monthActivities = activities.filter(a => (a.date || '').startsWith(thisMonth) && !isActivityArchived(a));
   const activeTFs = taskforces.filter(t => isTaskforceActiveStatus(t.status));
-  const unreadNotices = NoticeStore.list({ activeOnly: true }).filter(n => !n.read).length;
+  // 未读计数单一源 = NoticeStore.countUnread（消息中心 / 侧栏角标 / 顶栏铃铛同一读数）
+  const unreadNotices = NoticeStore.countUnread(user?.personId || null);
 
   const userPersonId = user?.personId;
   // R2-47（2026-10-20）：原口径 = (出勤+已补) / 本月**已录记录数**——只录 3 条全勤也显示 100%，
@@ -96,38 +99,47 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   // 改为：仅在**确有活跃/招募中专班**时出现（规范类统计「本月活动」不受影响，始终保留）。
   // 2026-10-29 P2（支书：「一个 p 一行…摊大饼」）：数字组统一为「图标在左、数值/标签在右两行」；
   //   卡片不再写 `min-height`——四张等高由 #dashboard-stats 的栅格 `align-items: stretch` 保证。
-  //   标签仍取短标签（4 字），状态说明降为 `.stat-card__note`。
-  // 颜色 = 既有语义 token：活动信息蓝 / 专班琥珀文字档 / 未读错误红（0 条回落中性）/ 考勤按档位。
+  //   2026-11-01（回线上口径）：卡片内边距统一 `p-4`（16px），标签仍取短标签（4 字）；
+  //   卡内只保留「数值 / 标签」两行——空态由数值位「—」表达，不再追加第三行说明。
+  // 颜色 = 既有语义 token（一律文字档 `--status-*-text`：`--tint` 与数值同色，填充档不承担文字 / 笔触，
+  //   见 DS_03 §4.11.2 与 status-color-guard）：活动信息蓝 / 专班琥珀 / 未读错误红（0 条回落中性）/ 考勤按档位。
   const stats = [
-    { label: '本月活动', value: monthActivities.length, unit: '场', color: 'var(--status-info)', icon: 'calendarHero', interactive: false },
+    { label: '本月活动', value: monthActivities.length, count: monthActivities.length, unit: '场', color: 'var(--status-info-text)', icon: 'calendarHero', interactive: false },
     ...(activeTFs.length > 0
-      ? [{ label: '活跃专班', value: activeTFs.length, unit: '个', color: 'var(--status-warning-text)', icon: 'usersGroup', interactive: false }]
+      ? [{ label: '活跃专班', value: activeTFs.length, count: activeTFs.length, unit: '个', color: 'var(--status-warning-text)', icon: 'usersGroup', interactive: false }]
       : []),
-    { label: '未读通知', value: unreadNotices, unit: '条',
-      color: unreadNotices > 0 ? 'var(--status-error)' : 'var(--neutral-500)', icon: 'bellHero', interactive: false },
-    // 空态（P2-5）：没有记录不是「数据坏了」，而是「本月无记录」这一事实。
-    // R2-47：有应到场次但一条都没录 → 「待录入」，不再把未录当成 0%。
+    { label: '未读通知', value: unreadNotices, count: unreadNotices, unit: '条',
+      color: unreadNotices > 0 ? 'var(--status-error-text)' : 'var(--neutral-500)', icon: 'bellHero', interactive: false },
+    // 空态（P2-5）：没有记录不是「数据坏了」，而是本月应到场次为 0 这一事实——数值位显示「—」。
+    // R2-47 / T7（2026-11-16 统一口径）：有应到场次但一条都没录 → 与页面 / 导出一致显示「待录入」
+    //   （不是 0%，也不是「—」——「—」只表示本月没有应到场次）。
     { label: '个人考勤',
-      value: myTotal > 0 && myRate !== null ? `${myPresent}/${myTotal}` : '—',
+      value: myTotal > 0 ? (myRate === null ? '待录入' : `${myPresent}/${myTotal}`) : '—',
       unit: '', color: ATTENDANCE_TONE_COLOR[myTone], valueColor: ATTENDANCE_VALUE_COLOR[myTone],
       icon: 'clipboard', interactive: true,
-      note: myTotal === 0 ? '本月无记录' : (myRate === null ? '待录入' : ''),
       title: '分母＝本月应到场次（应到人次口径；未录场次单列「待录入」）' },
   ];
 
   // T-304 Q2 点击热区：不可点卡（前三张）不给 hover / 手型（纯展示卡不加 hover 伪装，DESIGN_SYSTEM §4.3）；
   // 仅可点卡（个人考勤）挂 .card--interactive，hover = 主题色边框 ＋ 10% 淡底，不阴影、不上浮。
   container.innerHTML = stats.map(s => `
-    <div class="card rounded-xl px-4 py-3 stat-card ${s.interactive ? 'card--interactive cursor-pointer' : ''}"
+    <div class="card rounded-xl p-4 stat-card ${s.interactive ? 'card--interactive cursor-pointer' : ''}"
          ${s.interactive ? 'role="button" tabindex="0" data-attendance-popover="1"' : ''} ${s.title ? `title="${s.title}"` : ''}>
       <span class="stat-icon-tint" style="--tint:${s.color};" aria-hidden="true">${icon(s.icon, { strokeWidth: 1.8, className: 'w-5 h-5' })}</span>
       <div class="stat-card__body">
-        <p class="stat-card__value" style="color:${s.valueColor || s.color};">${s.value}${s.unit ? `<span class="stat-card__unit">${s.unit}</span>` : ''}</p>
+        <p class="stat-card__value" style="color:${s.valueColor || s.color};">${s.count == null ? s.value : `<span data-count-to="${s.count}">${s.value}</span>`}${s.unit ? `<span class="stat-card__unit">${s.unit}</span>` : ''}</p>
         <p class="stat-card__label">${s.label}</p>
-        ${s.note ? `<p class="text-xs stat-card__note" style="color:var(--neutral-500);">${s.note}</p>` : ''}
       </div>
     </div>
   `).join('');
+
+  // F-14（2026-11-03 批次 531）：计数跟手——数值从 0 数到目标值（rAF；减少动效时直接落值，
+  //   读屏只播报终值一次）。只作用于纯计数卡，「个人考勤」是比值串不参与。
+  container.querySelectorAll('[data-count-to]').forEach((node) => {
+    const to = Number(node.dataset.countTo);
+    if (!Number.isFinite(to)) return;
+    animateNumber(node, 0, to);
+  });
 
   if (userPersonId) {
     _bindAttendancePopover(activities, attendanceRecords, thisMonth, user);
@@ -185,7 +197,7 @@ function _bindAttendancePopover(activities, attendanceRecords, thisMonth, user) 
 
       popover.innerHTML = `
         <div class="flex items-center justify-between mb-2 pb-2 border-b border-gray-100">
-          <h3 class="font-title-cn text-sm font-semibold text-gray-800">我的本月考勤</h3>
+          ${renderCardHeader({ title: `我的本月考勤`, variant: 'panel' })}
           <span class="text-xs text-gray-500">${myRecords.length} 条记录</span>
         </div>
         <div class="max-h-64 overflow-y-auto">${listHTML}</div>

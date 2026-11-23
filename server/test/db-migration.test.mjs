@@ -157,7 +157,8 @@ test('M7 v8/v10 活动组织落点：两档归一 / legacy 标记 / 补跨组招
     }));
 
     const applied = applyMigrations(db);
-    assert.deepEqual(applied.applied, [8, 9, 10, 11, 12], '应从 v7 补跑 v8 + v9 + v10 + v11 + v12');
+    const expectedApplied = MIGRATIONS.filter((m) => m.version > 7).map((m) => m.version);
+    assert.deepEqual(applied.applied, expectedApplied, `应从 v7 补跑 v8…v${SCHEMA_VERSION}（版本后续新增须自动纳入，不写死）`);
     const row = (id) => JSON.parse(db.prepare('SELECT data FROM activities WHERE id = ?').get(id).data);
     assert.equal(row('act-v8-legacy').organizingScope, 'party-group', '旧 cross-group 归一为 party-group');
     assert.equal(row('act-v8-legacy').legacyHostGroup, true, '无承办组 ⇒ legacy 标记，不猜测');
@@ -188,10 +189,90 @@ test('M7 v8/v10 活动组织落点：两档归一 / legacy 标记 / 补跨组招
   } finally { db.close(); }
 });
 
+test('M9 v18 报名有效行部分唯一索引：重复行标 duplicateOf（不删行 / 不改 status），重放幂等', () => {
+  const db = initDb(tempDbPath('v18'));
+  try {
+    const indexSql = () => db.prepare("SELECT sql FROM sqlite_master WHERE type='index' AND name='idx_signups_active_unique'").get();
+    assert.ok(indexSql(), '全新库应已建 idx_signups_active_unique');
+    assert.match(String(indexSql().sql), /WHERE/i, '必须是部分索引（带 WHERE）');
+
+    // 回退到 v17 并造 3 条同人同活动的有效报名（模拟存量脏数据）＋ 1 条作废行
+    db.exec('DROP INDEX idx_signups_active_unique');
+    db.pragma('user_version = 17');
+    const before = db.prepare('SELECT COUNT(*) AS n FROM signups').get().n;
+    const put = (id, extra) => db.prepare('INSERT INTO signups (id, data) VALUES (?, ?)').run(id, JSON.stringify({
+      id, sourceType: 'activity', sourceId: 'act-dup', personId: 'p-dup', role: 'participant', status: 'approved', ...extra,
+    }));
+    put('su-dup-2', { createdAt: '2026-11-02T00:00:00.000Z' });
+    put('su-dup-1', { createdAt: '2026-11-01T00:00:00.000Z' });
+    put('su-dup-voided', { createdAt: '2026-10-01T00:00:00.000Z', voided: { reason: '重复', confirmedBy: 'u1' } });
+    put('su-dup-3', { createdAt: undefined, id: 'su-dup-3' }); // 缺 createdAt ⇒ 用 id 排序
+
+    const signupsVersionBefore = (db.prepare("SELECT version FROM collection_versions WHERE name = 'signups'").get() || {}).version || 0;
+    const applied = applyMigrations(db);
+    assert.deepEqual(applied.applied, MIGRATIONS.filter((m) => m.version > 17).map((m) => m.version),
+      '应从 v17 只补 v18…v最新（版本后续新增须自动纳入，不写死）');
+    assert.ok(((db.prepare("SELECT version FROM collection_versions WHERE name = 'signups'").get() || {}).version || 0) > signupsVersionBefore,
+      'v18 迁移须推进 signups 集合版本（清缓存设备不得沿用旧 baseline 整表回写冲掉 duplicateOf）');
+    const rows = db.prepare("SELECT id, data FROM signups WHERE json_extract(data,'$.personId') = 'p-dup' ORDER BY id").all()
+      .map((r) => ({ id: r.id, ...JSON.parse(r.data) }));
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM signups').get().n, before + 4, 'v18 处置不得删行');
+    const kept = rows.filter((r) => r.duplicateOf === undefined && !r.voided);
+    assert.deepEqual(kept.map((r) => r.id), ['su-dup-1'], '每组保留 createdAt 最早一条（作废行不参与判重）');
+    for (const row of rows.filter((r) => r.id !== 'su-dup-1' && r.id !== 'su-dup-voided')) {
+      assert.equal(row.duplicateOf, 'su-dup-1', `${row.id} 应标 duplicateOf=su-dup-1`);
+      assert.ok(row.duplicateMarkedAt, `${row.id} 应带 duplicateMarkedAt`);
+      assert.equal(row.status, 'approved', 'v18 不改 status');
+    }
+    assert.equal(rows.find((r) => r.id === 'su-dup-voided').duplicateOf, undefined, '作废行不参与判重');
+    assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND name='idx_signups_active_unique'").get(),
+      '处置后索引必须建成');
+
+    const snapshot = db.prepare('SELECT id, data FROM signups ORDER BY id').all().map((r) => r.data);
+    const again = applyMigrations(db);
+    assert.deepEqual(again.applied, [], '重复迁移不得再改写');
+    assert.deepEqual(db.prepare('SELECT id, data FROM signups ORDER BY id').all().map((r) => r.data), snapshot,
+      'v18 重放零改写（duplicateMarkedAt 不刷新）');
+  } finally { db.close(); }
+});
+
 test('M6 非空转：迁移列表规模基线（防列表被清空导致守卫恒真）', () => {
   assert.ok(MIGRATIONS.length >= 1, `迁移列表为空（基线 ≥1）`);
   assert.ok(SCHEMA_VERSION >= 1, `SCHEMA_VERSION=${SCHEMA_VERSION}（基线 ≥1）`);
   assert.equal(SCHEMA_VERSION, Math.max(...MIGRATIONS.map((m) => m.version)), 'SCHEMA_VERSION 须＝列表最大版本');
   assert.ok(MIGRATIONS[0].tables && MIGRATIONS[0].tables.length >= 44,
     `v1 基线应登记 ≥44 张现状表（实得 ${MIGRATIONS[0].tables ? MIGRATIONS[0].tables.length : 0}）`);
+});
+
+test('M8 v15 党委在途提案部分唯一索引：存量重复置 cancelled（不删行）后建索引；重放幂等', () => {
+  const db = initDb(tempDbPath('v15'));
+  try {
+    const indexSql = () => db.prepare("SELECT sql FROM sqlite_master WHERE type='index' AND name='ux_mcr_committee_inflight'").get();
+    assert.ok(indexSql(), '全新库应已建 ux_mcr_committee_inflight');
+    assert.match(String(indexSql().sql), /WHERE/i, '必须是部分索引（带 WHERE）');
+
+    // 回退到 v14 并造两条「同一人在途党委提案」重复行（模拟存量脏数据）
+    db.exec('DROP INDEX ux_mcr_committee_inflight');
+    db.pragma('user_version = 14');
+    const put = (id, createdAt) => db.prepare('INSERT INTO member_change_requests (id, data) VALUES (?, ?)').run(id, JSON.stringify({
+      id, branchId: 'br-b1', personId: 'p-dup', source: 'committee-proposal',
+      status: 'pending-org-approval', createdAt,
+    }));
+    put('mcr-dup-1', '2026-11-01T00:00:00.000Z');
+    put('mcr-dup-2', '2026-11-02T00:00:00.000Z');
+
+    const applied = applyMigrations(db);
+    const expectedApplied = MIGRATIONS.filter((m) => m.version > 14).map((m) => m.version);
+    assert.deepEqual(applied.applied, expectedApplied, `应从 v14 只补 v15…v${SCHEMA_VERSION}（版本后续新增须自动纳入，不写死）`);
+    const rows = db.prepare("SELECT id, data FROM member_change_requests WHERE json_extract(data,'$.personId') = 'p-dup' ORDER BY id").all()
+      .map((r) => JSON.parse(r.data));
+    assert.equal(rows.length, 2, 'v15 去重不删行');
+    assert.equal(rows.find((r) => r.id === 'mcr-dup-1').status, 'pending-org-approval', '保留最早一条在途');
+    assert.equal(rows.find((r) => r.id === 'mcr-dup-2').status, 'cancelled', '重复条置 cancelled');
+    assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND name='ux_mcr_committee_inflight'").get(),
+      '去重后索引必须建成');
+
+    const again = applyMigrations(db);
+    assert.deepEqual(again.applied, [], '重复迁移不得再改写');
+  } finally { db.close(); }
 });

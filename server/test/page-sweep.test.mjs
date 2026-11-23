@@ -36,6 +36,7 @@ import { join } from 'node:path';
 import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
+import { buildH2Probe, withSharedDomHelpers } from '../scripts/audit/dom-probe.mjs';
 
 /** 七个工作台 × 登录账号（与 docs/src/data/mock/accounts.js 的演示账号一致） */
 const WORKS = [
@@ -97,6 +98,18 @@ const SUBVIEW_TRIGGERS = [{ name: '矩阵·显示全部', sel: '[data-rm-toggle]
  *  → 故本次 2 条**全部删除**；本台账保持为空 = 「当前无已确认待修项」。 */
 const CARD_LIST_PENDING = [];
 
+/** **固定目录列表**（不是「待修」）：行数由单一源模块目录决定、不随业务数据累积 —— 分页无意义。
+ *  仍设硬上限：超过上限即说明目录膨胀或选择器误命中，照旧判红（例外带闸，见 `H27 E4`）。
+ *  当前唯一命中：支书台「支部分工」责任关系 14 行（`core/domain/work-map.js::WORK_MAP_MODULES` 固定目录）。 */
+const FIXED_CATALOG_LISTS = [
+  {
+    where: '支书台·支部分工',
+    sig: 'DIV|list-row wm-row',
+    max: 20,
+    why: '14 项工作模块目录（core/domain/work-map.js）固定，不随年份 / 业务数据增长',
+  },
+];
+
 /** 当前 tab 内容的 DOM 普查（纯只读断言，返回 {violations, stats, probe}） */
 const AUDIT = (cfg) => {
   const minRows = cfg.minRows;
@@ -113,7 +126,7 @@ const AUDIT = (cfg) => {
     if (tot && Number(tot[1]) > 10) stats.listsOverPage += 1;
     const tbody = list.querySelector('tbody');
     const rows = tbody ? tbody.querySelectorAll('tr').length : list.children.length;
-    if (rows > 10 && !root.querySelector('.lf-pager [data-lf-page]')) {
+    if (rows > 10 && !hasPager(root)) {
       v.push({ rule: 'P1 引擎列表未分页', rows, sample: txt(list).slice(0, 40) });
     }
   });
@@ -142,7 +155,7 @@ const AUDIT = (cfg) => {
     if (t.closest('.lf-root') || t.closest('.rm-root')) return;
     stats.tables += 1;
     const n = t.querySelectorAll('tbody tr').length;
-    if (n > 10 && !t.closest('[id$="-tab-content"]')?.querySelector('[data-lf-page]')) {
+    if (n > 10 && !hasPager(t.closest('[id$="-tab-content"]'))) {
       v.push({ rule: 'P3 手写表格未分页', rows: n, sample: txt(t).slice(0, 40) });
     }
   });
@@ -220,6 +233,7 @@ const AUDIT = (cfg) => {
   //   台账随之清空（僵尸化检查会强制这条一致性）。
   //   任何**新出现**的同类即刻红灯 —— 这正是支书实报「还有表格没分页」的那一类。
   const pending = cfg.pending || [];
+  const fixed = cfg.fixed || [];
   const pendingSeen = [];
   const probe = [];
   document.querySelectorAll('div, ul, ol').forEach((el) => {
@@ -228,8 +242,15 @@ const AUDIT = (cfg) => {
     if (kids.length < 12) return;
     const sig = (n) => n.tagName + '|' + (n.getAttribute('class') || '');
     if (!kids.every((k) => sig(k) === sig(kids[0]))) return;
-    if (el.querySelector('[data-lf-page]')) return;
+    if (hasPager(el)) return;
     if (!el.getBoundingClientRect().height) return;
+    const fixedHit = fixed.find((p) => sig(kids[0]).startsWith(p.sig));
+    if (fixedHit) {
+      if (kids.length > fixedHit.max) {
+        v.push({ rule: `P11 固定目录列表超出上限 ${fixedHit.max}（目录膨胀？）`, kids: kids.length, sig: sig(kids[0]).slice(0, 70), txt: txt(el).slice(0, 30) });
+      }
+      return;
+    }
     const hit = pending.find((p) => sig(kids[0]).startsWith(p.sig));
     if (hit) {
       pendingSeen.push(hit.sig);
@@ -273,7 +294,7 @@ for (const w of WORKS) {
         await page.fill('#student-id', w.studentId);
         await page.fill('#password', '123456');
         await Promise.all([
-          page.waitForURL(`**/workspace/${w.page}.html`, { timeout: 30000 }),
+          page.waitForURL(`**/workspace/${w.page}`, { timeout: 30000 }),
           page.click('button[type="submit"]'),
         ]);
         try {
@@ -285,7 +306,7 @@ for (const w of WORKS) {
       }
       await page.waitForTimeout(800);
       // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：本文件真机用例必须在 API 形态下跑
-      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261031a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261120a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 
       // ── 1440 页签条不溢出（2026-10-21 R5-C01）──
       //   判据：`.ws-tab-scroll` 的 scrollWidth ≤ clientWidth（分组胶囊改竖线 + 滚动区右留 40px 后，
@@ -312,7 +333,10 @@ for (const w of WORKS) {
       const probeLog = [];
       /** 审一次当前 DOM（phase 区分默认视图 / 二级视图）；只有默认视图计入「载体覆盖样本」，防重复计数 */
       const audit = async (label, phase, countCarriers) => {
-        const { violations, stats, probe, pendingSeen } = await page.evaluate(AUDIT, { minRows: MIN_ROWS, deck: DECK, pending: CARD_LIST_PENDING });
+        const { violations, stats, probe, pendingSeen } = await page.evaluate(
+          withSharedDomHelpers(AUDIT),
+          { minRows: MIN_ROWS, deck: DECK, pending: CARD_LIST_PENDING, fixed: FIXED_CATALOG_LISTS },
+        );
         SWEEP.views += 1;
         SWEEP.matrixTransposed += stats.matrixTransposed || 0;
         if (countCarriers) for (const k of SWEEP_KEYS) SWEEP[k] += stats[k] || 0;
@@ -340,14 +364,12 @@ for (const w of WORKS) {
           `${w.name} · tab「${label}」：容器 #${w.page}-tab-content 不存在 ⇒ 结构漂移（renderTabBar 口径变了？）`);
         assert.ok(rendered.len > 10,
           `${w.name} · tab「${label}」：渲染产物为空（#${w.page}-tab-content innerHTML 长度 ${rendered.len}）⇒ 「加载不出来」`);
-        // ── 页题守卫（2026-10-21 R5-B F-01 / R5-C C-02）──
-        //   每个 tab 内容区至少一个可见 H2，且 H2 字号统一 20px（含今天页的日期副串）。
-        const h2 = await page.evaluate((pid) => {
-          const root = document.getElementById(pid);
-          const hs = root ? [...root.querySelectorAll('h2')].filter((el) => el.offsetParent !== null) : [];
-          return { count: hs.length, sizes: [...new Set(hs.map((el) => Math.round(parseFloat(getComputedStyle(el).fontSize) * 100) / 100))] };
-        }, `${w.page}-tab-content`);
-        assert.ok(h2.count >= 1, `${w.name} · tab「${label}」缺页级 H2（页题）`);
+        // ── 页题守卫（2026-10-21 R5-B F-01 / R5-C C-02；2026-11-02 批次 527 改准 H2 恰 1）──
+        //   每个 tab 内容区**恰有 1 个**可见 H2（页题单一源；与 audit-tabs::F4 同口径），
+        //   且 H2 字号统一 20px（含今天页的日期副串）。
+        const h2 = await page.evaluate(buildH2Probe(), `${w.page}-tab-content`);
+        assert.equal(h2.count, 1,
+          `${w.name} · tab「${label}」页级 H2 应恰为 1（实测 ${h2.count}；多页题或漏页题均判红）`);
         assert.deepEqual(h2.sizes.filter((px) => px !== 20), [],
           `${w.name} · tab「${label}」H2 字号不统一（应为 20px，实测 ${h2.sizes.join(' / ')}）`);
         await audit(label, '默认', true);
@@ -461,7 +483,7 @@ test('S20 tab 快速切换竞态：冷上下文连点全部 tab，内容不得�
       await page.fill('#student-id', w.studentId);
       await page.fill('#password', '123456');
       await Promise.all([
-        page.waitForURL(`**/workspace/${w.page}.html`, { timeout: 30000 }),
+        page.waitForURL(`**/workspace/${w.page}`, { timeout: 30000 }),
         page.click('button[type="submit"]'),
       ]);
       try {
@@ -517,7 +539,7 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「工作概
       await page.fill('#student-id', w.studentId);
       await page.fill('#password', '123456');
       await Promise.all([
-        page.waitForURL(`**/workspace/${w.page}.html`, { timeout: 30000 }),
+        page.waitForURL(`**/workspace/${w.page}`, { timeout: 30000 }),
         page.click('button[type="submit"]'),
       ]);
       try { await tabReady(); loggedIn = true; } catch (e) { if (attempt === 1) throw e; }
@@ -525,7 +547,7 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「工作概
     await page.waitForTimeout(800);
     // 取一个真实活动（优先「非当前月」者，顺带验证切月）
     const acts = await page.evaluate(async () => {
-      const m = await import('/src/core/base/state.js?v=20261031a');
+      const m = await import('/src/core/base/state.js?v=20261120a');
       return ((m.getAppState() || {}).activities || []).map((x) => ({ id: x.id, date: x.date }));
     });
     assert.ok(acts.length > 0, '组织台活动深链用例：未取到任何活动（样本不足）');
@@ -560,8 +582,8 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「工作概
 //    那 P1/P2/P3 就是**恒真**（查了个寂寞）。故断言普查确实覆盖到「本该分页」的样本。
 //    ⚠ 依赖顶层 test 串行执行（本仓 `npm test` 固定 `--test-concurrency=1`）。
 test('S1 普查非空转：确实覆盖到「本该分页的列表 / 矩阵人维 / 手写表格」样本', () => {
-  // 当前基线：45 个角色页签（2026-10-25 IA 62→45 后实测；单一源＝各台能力注册）。
-  const TAB_BASELINE = 45;
+  // 当前基线：46 个角色页签（2026-10-25 IA 62→45 后实测；2026-11 提案上会新增 1 页签；单一源＝各台能力注册）。
+  const TAB_BASELINE = 46;
   console.log(`[普查覆盖] tab=${SWEEP.tabs} 引擎列表=${SWEEP.lists}（其中总数>10 的 ${SWEEP.listsOverPage}）矩阵=${SWEEP.matrices} 手写表格=${SWEEP.tables}`);
   // 总数由注册表现算（逐台实测累积），而不是散落的历史门槛：
   const registeredTabs = Object.values(SWEEP.byPage).reduce((sum, n) => sum + n, 0);

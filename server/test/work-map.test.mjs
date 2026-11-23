@@ -12,9 +12,9 @@ import {
   ORG_SUBJECT_IDS, ORG_SUBJECT_LABELS, BRANCH_ORG_SUBJECT_IDS, isOrgSubject, isBranchOrgSubject,
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_IDS, INSTITUTION_COLLECTIVE_SUBJECTS, institutionSubjectOfDomain,
   transferRowOf, transferTabDecision, TRANSFERABLE_TAB_ROWS,
-} from '../../docs/src/core/domain/work-map.js?v=20261031a';
-import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261031a';
-import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261031a';
+} from '../../docs/src/core/domain/work-map.js?v=20261120a';
+import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261120a';
+import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261120a';
 
 let server, base, token;
 
@@ -163,33 +163,92 @@ test('分层与停用（2026-09-13 支书裁定）：tier ∈ {norm,method}；�
   );
 });
 
-// 2026-10-24 Task 4.4：责任关系由「5 列表格 + 10 条分页」改为**主从两栏**
-//   （左列模块清单 / 右列责任角色 + 责任说明 + 停用项启用入口）。
-//   原断言「表头四列齐全 + 走 renderFilteredList」随被替换的结构退场，**改为断言新结构**（未删覆盖面）：
-//   listbox/option 键盘语义、右侧两字段、停用项操作、无空「操作」列与「每行读法」、无分页。
+// 2026-10-24 Task 4.4：责任关系由「5 列表格 + 10 条分页」改为**主从两栏**。
+// 2026-11-09 批次 539（支书点名「排版丑陋」）：主从两栏再改为**单列对象列表**——
+//   左 260px 清单 + 右约 600px 空白详情撤除，14 项改为一条条对象行（行尾只在停用项给入口）。
+//   原断言「listbox / option / aria-activedescendant + 右列 dl 两字段」随被替换的结构退场，
+//   **改为断言新结构**（未删覆盖面）：master 单列行、角色徽章、负责人、截断说明、
+//   停用项操作、键盘 ↑/↓、空态、卡头不复述视图名、无分页引擎。
 const WORK_MAP_UI = readFileSync(new URL('../../docs/src/entries/tabs/secretary/work-map-tab.js', import.meta.url), 'utf8');
 
-test('UI 责任关系主从两栏：左列 listbox 模块清单、右列责任角色 / 责任说明、停用项才有操作', () => {
+test('UI 责任关系单列列表：master 行承载工作项 / 负责人 / 角色徽章，停用项才有操作', () => {
   assert.match(WORK_MAP_UI, /let _view = 'relations'/, '默认视图须落「责任关系」');
-  assert.match(WORK_MAP_UI, /role="listbox"/, '左列模块清单须有 listbox 语义');
-  assert.match(WORK_MAP_UI, /role="option"/, '每个模块须是可选项（role=option）');
-  assert.match(WORK_MAP_UI, /aria-activedescendant/, 'listbox 须用 aria-activedescendant 暴露当前项');
-  assert.match(WORK_MAP_UI, /ArrowDown[\s\S]{0,200}ArrowUp/, '左列须支持 ↑ / ↓ 键盘选择');
-  for (const label of ['责任角色', '责任说明']) {
-    assert.ok(WORK_MAP_UI.includes(`<dt>${label}</dt>`), `右列须有字段「${label}」`);
-  }
+  assert.match(WORK_MAP_UI, /listRowHtml\(\{[\s\S]{0,200}rowType: 'master'/, '单列行须走 list-row 的 master 行型');
+  assert.match(WORK_MAP_UI, /listGroupHtml\(/, '行间分隔线由 list-group 承担，不再手写行容器');
+  assert.doesNotMatch(WORK_MAP_UI, /role="listbox"|role="option"/, '已改单列列表，不再走主从 listbox 语义');
+  assert.doesNotMatch(WORK_MAP_UI, /wm-split|wm-detail/, '左右两栏与右侧详情列已撤');
+  // 2026-11-10 批次 541（前端美学 P1）：负责人进**行首徽章位**，常规行不再出「主责」徽标；
+  //   行内说明退场（选中行由紧随其后的展开块给全文）⇒ 行高由 64–80 回到 48。
+  assert.match(WORK_MAP_UI, /function _ownerBadgeHtml\(row\)/, '每行须有负责人徽章（负责人名进徽章位）');
+  assert.match(WORK_MAP_UI, /leading: _ownerBadgeHtml\(row\)/, '行首插槽须出负责人徽章');
+  assert.match(WORK_MAP_UI, /_ownerBadgeHtml[\s\S]{0,200}badge--warning">停用/, '停用例外须用 warning 档');
+  assert.ok(!WORK_MAP_UI.includes('负责人：'), '负责人已进徽章位，meta 不得再复述「负责人：」');
+  assert.doesNotMatch(WORK_MAP_UI, /description: selected/, '行内不再出责任说明（选中行由展开块给全文）');
+  assert.match(WORK_MAP_UI, /title: row\.note/, '说明须带 title 全文');
+  assert.match(WORK_MAP_UI, /ArrowDown[\s\S]{0,200}ArrowUp/, '行间须支持 ↑ / ↓ 键盘移动');
   assert.match(WORK_MAP_UI, /wm-reenable/, '停用项须保留「发起启用议题」入口');
   assert.ok(!WORK_MAP_UI.includes('每行读法'), '不得再复述表头读法');
   assert.ok(!WORK_MAP_UI.includes('<th>操作</th>'), '不得再有空的「操作」列');
-  assert.ok(!WORK_MAP_UI.includes('renderFilteredList'), '主从两栏不再走分页引擎（14 项单屏可览）');
+  assert.ok(!WORK_MAP_UI.includes('renderFilteredList'), '单列列表不再走分页引擎（14 项单屏可览）');
   assert.ok(!/pageSize\s*:\s*10/.test(WORK_MAP_UI), '不得保留 10 条分页');
   assert.match(WORK_MAP_UI, /暂无分工数据/, '须有明确空态');
+  assert.doesNotMatch(WORK_MAP_UI, /title: '责任关系'/, '卡头不得逐字复述视图名「责任关系」（只留视图页签一处）');
+});
+
+// 2026-11-10 批次 540 波次 5：视图 4 → 2、协作 / 产出并入行、选中展开、页根骨架与徽章档位。
+test('UI 视图收 2：责任关系 / 关系矩阵；协作与产出入行 meta，选中行展开说明', () => {
+  // 视图按钮：2 枚，且不再保留「平铺模块 / 按项目」
+  assert.match(WORK_MAP_UI, /\{ key: 'relations', label: '责任关系' \},/, '须保留「责任关系」视图');
+  assert.match(WORK_MAP_UI, /\{ key: 'matrix', label: '关系矩阵' \},/, '「按人」须收为「关系矩阵」视图');
+  assert.doesNotMatch(WORK_MAP_UI, /key: 'modules'|label: '平铺模块'/, '「平铺模块」视图已并入行展开，不得回潮');
+  assert.doesNotMatch(WORK_MAP_UI, /key: 'items'|label: '按项目'/, '「按项目」是矩阵转置，已删除');
+  assert.doesNotMatch(WORK_MAP_UI, /_modulesHtml/, '平铺模块渲染函数已退场');
+  // 矩阵降为折叠块（details），不再是首屏并列主体
+  assert.match(WORK_MAP_UI, /<details class="disclosure" id="work-map-matrix-fold"/, '关系矩阵须为折叠块');
+  assert.match(WORK_MAP_UI, /mode: 'byPerson'/, '矩阵只剩按人一种排法');
+  assert.doesNotMatch(WORK_MAP_UI, /byItem/, '不得再输出转置矩阵');
+  // 行 meta：负责人 · 协作 · 产出（协作方单一源＝collaborators，可缺省）
+  assert.match(WORK_MAP_UI, /\(m\.collaborators \|\| \[\]\)/, '协作方须读模块目录的 collaborators');
+  assert.match(WORK_MAP_UI, /`协作：\$\{collaborators\.join\('、'\)\}`/, 'meta 须拼「协作：X」');
+  assert.match(WORK_MAP_UI, /`产出：\$\{outputs\.join\('、'\)\}`/, 'meta 须拼「产出：…」');
+  // 选中行展开：紧随选中行输出说明块（desc / 子项 / 产出），行数不变
+  assert.match(WORK_MAP_UI, /function _relationDetailHtml\(row\)/, '须有选中行展开块');
+  assert.match(WORK_MAP_UI, /if \(r\.id === selectedId\) rowHtml\.push\(_relationDetailHtml\(r\)\)/, '选中行须紧随展开');
+  assert.match(WORK_MAP_UI, /data-wm-expanded=/, '展开块须带可核标记');
+  // 页根骨架与间距：.stack-page（页头 → 卡 24px），删手写 mt-3
+  assert.match(WORK_MAP_UI, /<div class="stack-page" data-wm-view-current=/, '页根须改 .stack-page');
+  assert.doesNotMatch(WORK_MAP_UI, /p-4 mt-3/, '工具卡不得再手写 mt-3（间距由 .stack-page 给）');
+  assert.doesNotMatch(WORK_MAP_UI, /text-gray-500 mt-3/, '页脚不得再手写 mt-3');
+  // 徽章档位（2026-11-10 批次 541 改准）：常规行不渲染「主责」——主责是常态、不是状态；
+  //   只有停用（warning）与上级主导（中性）两个例外带徽标，且都不得用主题色。
+  const ownerBadgeFn = WORK_MAP_UI.slice(
+    WORK_MAP_UI.indexOf('function _ownerBadgeHtml'),
+    WORK_MAP_UI.indexOf('/** 单行对象行'),
+  );
+  assert.ok(ownerBadgeFn.length > 0, '抽不到 _ownerBadgeHtml 函数体（判据会恒绿）');
+  assert.doesNotMatch(ownerBadgeFn, /主责/, '常规行不得再渲染「主责」徽标');
+  assert.match(WORK_MAP_UI, /badge--warning">停用</, '停用例外须用 warning 档');
+  assert.doesNotMatch(WORK_MAP_UI, /badge--accent/, '例外徽章不得用主题色');
+});
+
+test('模块目录：collaborators 可缺省，填了的主体引用必须可解析（角色键 ∪ 组织型主体）', () => {
+  const subjects = new Set([...ROLE_KEYS, ...ORG_SUBJECT_IDS]);
+  const withCollab = WORK_MAP_MODULES.filter((m) => m.collaborators !== undefined);
+  assert.ok(withCollab.length >= 1, '至少一项模块须登记协作方（否则 meta 的「协作：」恒不出现）');
+  for (const m of withCollab) {
+    assert.ok(Array.isArray(m.collaborators), `模块「${m.id}」的 collaborators 须为数组`);
+    for (const id of m.collaborators) {
+      assert.ok(subjects.has(id), `模块「${m.id}」的协作方「${id}」既不在角色枚举、也不是组织型主体`);
+      assert.notEqual(id, m.defaultOwner, `模块「${m.id}」的协作方不得与主责同一主体`);
+    }
+  }
 });
 
 test('HTTP：支书 PATCH config.workforce 落库（净化生效），null 恢复默认', async () => {
   const put = await fetch(`${base}/api/v1/branches/br-b1/config`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    // 批次 564：整行写口要求 If-Match；本例只验 workforce 净化，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'If-Match': '*' },
     body: JSON.stringify({
       config: {
         workforce: {
@@ -207,7 +266,7 @@ test('HTTP：支书 PATCH config.workforce 落库（净化生效），null 恢�
 
   const reset = await fetch(`${base}/api/v1/branches/br-b1/config`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'If-Match': '*' },
     body: JSON.stringify({ config: { workforce: null } }),
   });
   assert.equal(reset.status, 200);

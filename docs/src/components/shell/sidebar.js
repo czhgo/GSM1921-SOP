@@ -11,13 +11,17 @@
 // （R1-A 2026-09-09 支书裁决：不写全局键、person 无键=出厂默认不继承；冻结读取点
 // theme-init.js 首帧 / bootstrap.js 字号 / constants.js resolveAccentRole 保持全局键语义不改）。
 
-import { getBasePath } from '../../core/base/utils.js?v=20261031a';
-import { icon } from '../../core/base/icons.js?v=20261031a';
-import { syncAppearanceForActiveUser } from '../../core/boot/theme.js?v=20261031a';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261031a';
+import { getBasePath } from '../../core/base/utils.js?v=20261120a';
+import { icon } from '../../core/base/icons.js?v=20261120a';
+import { syncAppearanceForActiveUser } from '../../core/boot/theme.js?v=20261120a';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261120a';
+import { installLinkNormalizer } from '../../core/base/link-normalize.js?v=20261120a';
+import { pageHref } from '../../core/base/page-url.js?v=20261120a';
 
 // 外观键空间适配：页面壳加载即执行（全站每页均渲染 sidebar，天然覆盖公共页/工作台）
 syncAppearanceForActiveUser();
+// 站内链接去 `.html`（D-866 URL B）：随侧栏一次性安装，覆盖初始 DOM 与后续新增节点。
+installLinkNormalizer();
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染侧边栏：不预加载 auth 数据链
@@ -28,7 +32,7 @@ syncAppearanceForActiveUser();
 let AuthStore = null;
 let _authModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261031a');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261120a');
   return _authModule;
 }
 
@@ -69,10 +73,10 @@ function getFooterItems() {
   return items;
 }
 
-// footer 图标按模块取（stroke 随 footer 弱化色；设置=齿轮，档案=文档）
+// footer 图标按模块取（颜色继承 .sidebar-footer-action 的文字色：静态 --neutral-500、hover --neutral-700）
 function _footerIcon(module) {
   const name = module === 'help' ? 'book' : module === 'settings' ? 'gear' : module === 'profile' ? 'fileText' : 'info';
-  return icon(name, { stroke: 'var(--neutral-500)', extra: ' aria-hidden="true"' });
+  return icon(name, { extra: ' aria-hidden="true"' });
 }
 
 export async function renderSidebar(activeModule, opts = {}) {
@@ -146,11 +150,11 @@ export async function renderSidebar(activeModule, opts = {}) {
   // （同位同样式同 hover；图标为 logout 镜像 → 「进入」感，不新增图标字典项）
   const authEntryHTML = user ? `
       <button id="sidebar-logout" type="button" class="sidebar-footer-action">
-        ${icon('logout', { stroke: 'var(--neutral-500)', extra: ' aria-hidden="true"' })}
+        ${icon('logout', { extra: ' aria-hidden="true"' })}
         <span>退出登录</span>
       </button>` : `
       <a href="${getBasePath()}login.html" id="sidebar-login" class="sidebar-footer-action">
-        <span class="sidebar-footer-action__mirror">${icon('logout', { stroke: 'var(--neutral-500)', extra: ' aria-hidden="true"' })}</span>
+        <span class="sidebar-footer-action__mirror">${icon('logout', { extra: ' aria-hidden="true"' })}</span>
         <span>登录</span>
       </a>`;
 
@@ -179,7 +183,7 @@ async function _refreshMessageBadge() {
   const badge = document.getElementById('sidebar-message-badge');
   if (!badge) return;
   try {
-    const { NoticeStore } = await import('../../services/governance/notice.js?v=20261031a');
+    const { NoticeStore } = await import('../../services/governance/notice.js?v=20261120a');
     const unread = NoticeStore.countUnread(readLoginSnapshot()?.personId || null);
     if (unread > 0) {
       badge.textContent = unread > 9 ? '9+' : String(unread);
@@ -197,7 +201,7 @@ async function _bindMessageBadge() {
   if (_badgeBound) return;
   _badgeBound = true;
   try {
-    const { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } = await import('../../data/data-adapter.js?v=20261031a');
+    const { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } = await import('../../data/data-adapter.js?v=20261120a');
     document.addEventListener(DATA_CHANGED_EVENT, _refreshMessageBadge);
     document.addEventListener(DATA_LOADED_EVENT, _refreshMessageBadge);
   } catch (_) { /* 静默 */ }
@@ -211,6 +215,6 @@ function _bindLogout(sidebar) {
   if (!btn) return;
   btn.addEventListener('click', () => {
     AuthStore.logout();
-    window.location.href = getBasePath() + 'login.html';
+    window.location.href = pageHref(getBasePath() + 'login.html');
   });
 }

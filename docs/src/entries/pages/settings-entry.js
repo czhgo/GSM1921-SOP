@@ -11,43 +11,46 @@
 // 「支部治理·快捷块说明」仍建设中（分组结构可见性即角色化验收点）。
 // 登录态：非纯静态——readLoginSnapshot() + 动态 import auth（同 sidebar.js 模式）。
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261031a';
-import { renderHeader } from '../../components/shell/header.js?v=20261031a';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261031a';
-import { ROLE_LABELS, ROLE_PAGE_MAP } from '../../core/domain/constants.js?v=20261031a';
-import { resolveAppliedAccentRole, applyAccentThemeTokens } from '../../core/boot/theme.js?v=20261031a';
-import { appearanceControlsHTML, bindAppearanceControls } from '../../components/shell/appearance-controls.js?v=20261031a';
-import { icon } from '../../core/base/icons.js?v=20261031a';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261031a';
-import { escHtml as esc } from '../../core/base/utils.js?v=20261031a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261120a';
+import { renderHeader } from '../../components/shell/header.js?v=20261120a';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261120a';
+import { ROLE_LABELS, ROLE_PAGE_MAP } from '../../core/domain/constants.js?v=20261120a';
+import { resolveAppliedAccentRole, applyAccentThemeTokens } from '../../core/boot/theme.js?v=20261120a';
+import { appearanceControlsHTML, bindAppearanceControls } from '../../components/shell/appearance-controls.js?v=20261120a';
+import { icon } from '../../core/base/icons.js?v=20261120a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261120a';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261120a';
 // 2026-10-24 批次 508：支部制度参数区仍有原生 `select.input-flat`（活动批准门 / 归档周期）
 //   ⇒ 渲染后统一接入统一自定义下拉（同全站 S2 下拉口径）
-import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261031a';
-import { confirmDanger } from '../../components/ui/modal.js?v=20261031a';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261031a';
+import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261120a';
+import { textInput, selectInput } from '../../components/ui/forms.js?v=20261120a';
+import { normalizeDeputyPolicy, DEPUTY_ACTIONS, DEPUTY_ACTION_LABELS } from '../../core/domain/deputy-capability.js?v=20261120a';
+import { confirmDanger } from '../../components/ui/modal.js?v=20261120a';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261120a';
 import {
   coreTabIdsOf, sameIdOrder, applyPersonalTabOrder, readPersonalTabOrder,
   savePersonalTabOrder, resetPersonalTabOrder,
-} from '../../services/core/preferences.js?v=20261031a';
+} from '../../services/core/preferences.js?v=20261120a';
 // 批4（2026-09-09 支书批「域参数」）：制度默认单一源 = policy-defaults（设置页展示「制度默认」行与域参数默认值）
-import { POLICY_DEFAULTS, ACTIVITY_APPROVAL_MODES, ACTIVITY_APPROVAL_MODE_LABELS } from '../../core/domain/policy-defaults.js?v=20261031a';
+import { POLICY_DEFAULTS, ACTIVITY_APPROVAL_MODES, ACTIVITY_APPROVAL_MODE_LABELS, policyRange, POLICY_WINDOW_RANGE } from '../../core/domain/policy-defaults.js?v=20261120a';
 // 数据层初始化（2026-09-09 冒烟修复，同 wizard/search 独立页模式）：设置页治理区（支部信息/默认顺序/
 // 制度参数/域参数）与「我的工作台」需读支部配置——注册适配器并恢复本地 mock 数据（或 API 模式 init），
 // 否则整页加载后 mockDB 恒空 → 治理区误显「未找到您所属支部」且写口（保存默认顺序/域参数）不可达。
-import { BranchService } from '../../services/core/runtime.js?v=20261031a';
-import { hydrateDataSource } from '../../data/data-adapter.js?v=20261031a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261031a';
+import { BranchService } from '../../services/core/runtime.js?v=20261120a';
+import { hydrateDataSource } from '../../data/data-adapter.js?v=20261120a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261120a';
 
 // 2026-09-09 支部归属显式化/审计内核：变更记录展示与回滚按钮需要操作者姓名、单键回滚白名单
-import { getPersonName } from '../../services/member/person.js?v=20261031a';
-import { CONFIG_ROLLBACK_KEYS, CONFIG_HISTORY_MAX, CONFIG_HISTORY_DISPLAY_MAX } from '../../services/branch/config-clean.js?v=20261031a';
+import { getPersonName } from '../../services/member/person.js?v=20261120a';
+import { CONFIG_ROLLBACK_KEYS, CONFIG_HISTORY_MAX, CONFIG_HISTORY_DISPLAY_MAX } from '../../services/branch/config-clean.js?v=20261120a';
 // 2026-09-23 支书批「判别依据可感」：「当前形态 · 归属判定」卡的数据源 = branch.getAffiliationShape
 // （数据源/判定段/支部 id 单一源，判定逻辑不在此复制第二遍）
-import { getAffiliationShape } from '../../services/branch/branch.js?v=20261031a';
+import { getAffiliationShape } from '../../services/branch/branch.js?v=20261120a';
 // R10-B04：补课范围/时限文案与判定同源（makeup.js，勿在页面写死「T+7」）。
-import { makeupScopeHint } from '../../services/activity/makeup.js?v=20261031a';
+import { makeupScopeHint } from '../../services/activity/makeup.js?v=20261120a';
 
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261120a';
+import { renderCardHeader } from '../../components/shell/page-frame.js?v=20261120a';
 // 支部治理区归属缺失统一文案（2026-09-09 支书批「未绑定支部」口径：支部语境一律 getBoundBranch 判定，
 // 不再回退示例支部 br-b1；由党委在『支部管理』中确认归属后才可见本支部治理内容）
 const GOV_NO_BRANCH_TEXT = '未找到您所属支部——请先由党委在『支部管理』中确认归属。';
@@ -55,7 +58,7 @@ const GOV_NO_BRANCH_TEXT = '未找到您所属支部——请先由党委在『�
 // ── 数据层按需加载（同 sidebar staticShell 模式：确已登录才动态 import auth）──
 let _authModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261031a');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261120a');
   return _authModule;
 }
 
@@ -179,8 +182,8 @@ function shapeCardHtml() {
     ['归属依据', esc(shape.segmentLabel)],
   ].map(([k, v]) => `<div class="kv-row"><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join('');
   return `
-    <div class="card rounded-xl p-5 mt-4">
-      <h3 class="font-title-cn text-base font-bold text-gray-800 mb-2">当前归属</h3>
+    <div class="card rounded-xl card-standard mt-4">
+      ${renderCardHeader({ title: `当前归属` })}
       <dl class="kv-list">${rows}</dl>
     </div>`;
 }
@@ -225,12 +228,12 @@ function renderPanel(panel) {
       ? '外观偏好随当前账号保存，切换登录人互不影响；未登录访客的外观保存在本浏览器。'
       : '当前为访客浏览：外观偏好保存在本浏览器；登录后外观将随账号独立保存。';
     panel.innerHTML = `
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-xl card-standard">
         <div class="flex items-center gap-2.5 mb-2">
-          <h3 class="font-title-cn text-base font-bold text-gray-800">外观</h3>
+          ${renderCardHeader({ title: `外观` })}
           ${badgeHtml('即时生效', 'success')}
         </div>
-        <p class="text-[13px] leading-relaxed text-gray-500 mb-4">字号、明暗主题与主题色的个人偏好设置 —— 保存后全站即时生效。</p>
+        <p class="text-xs text-gray-500 mb-4">字号、明暗主题与主题色的个人偏好设置 —— 保存后全站即时生效。</p>
         <div id="appearance-controls-host" class="mt-2"></div>
       </div>
       ${shapeCardHtml()}
@@ -260,12 +263,9 @@ function renderPanel(panel) {
   }
 
   panel.innerHTML = `
-    <div class="card rounded-xl p-5">
-      <div class="flex items-center gap-2.5 mb-2">
-        <h3 class="font-title-cn text-base font-bold text-gray-800">${meta.title}</h3>
-        ${meta.badge ? badgeHtml(meta.badge, 'neutral') : ''}
-      </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">${meta.desc}</p>
+    <div class="card rounded-xl card-standard">
+      ${renderCardHeader({ title: meta.title, meta: meta.badge ? badgeHtml(meta.badge, 'neutral') : '' })}
+      <p class="text-xs text-gray-500 mb-4">${meta.desc}</p>
       <div class="hint-box">
         <span class="hint-dot"></span>
         建设中 · 随后续批次开放。${meta.note}
@@ -295,11 +295,11 @@ async function buildMyWorkspaceModel(role, personId) {
   //   曾写成 `../modules/…` ⇒ 解析到不存在的 `src/entries/modules/…` ⇒ 404、「我的工作台」面板恒显「加载失败」
   //   （2026-09-29 批次 262 定根因并修；`preferences.test.mjs::真实拖拽` 长期红的根因即此）。
   //   2026-09-29 批次 267：`modules/capabilities/` 上提为顶层 `capabilities/`，深度不变（同批已改）。
-  await import(`../../capabilities/${stem}-workspace.js?v=20261031a`);
+  await import(`../../capabilities/${stem}-workspace.js?v=20261120a`);
   const cap = getCapabilities({ scope }).find(c => c.id === `${stem}-workspace`);
   const rawTabs = cap && typeof cap.tabs === 'function' ? cap.tabs() : [];
   if (!rawTabs.length) return null;
-  const { applyTabPolicy, getBranchIdOfPerson } = await import('../../services/branch/branch.js?v=20261031a');
+  const { applyTabPolicy, getBranchIdOfPerson } = await import('../../services/branch/branch.js?v=20261120a');
   // 支部策略口径与 workspace-shell 一致：支部层工作台应用 config.modules；党委台不受支部配置影响
   let base = rawTabs;
   if (scope !== 'workspace:party-committee' && role !== 'party-staff') {
@@ -347,25 +347,25 @@ function mywsCardHtml(model) {
       ${isMine ? `<button type="button" class="btn-action ${actCls}" data-myws="restore-row" data-id="${id}" title="恢复该行默认位置" aria-label="恢复 ${tab.label || id} 默认位置">${icon('undo', { className: 'icon-base w-4 h-4' })}</button>` : ''}`;
     const gripCls = locked
       ? 'shrink-0 flex items-center text-gray-300 cursor-not-allowed'
-      : 'shrink-0 flex items-center text-gray-400 cursor-grab active:cursor-grabbing touch-none';
+      : 'shrink-0 flex items-center text-gray-500 cursor-grab active:cursor-grabbing touch-none';
     return `
       <li class="myws-row${locked ? ' is-locked' : ''}" draggable="${!locked}" data-id="${id}" data-locked="${locked ? '1' : '0'}">
         <span class="${gripCls}" title="${locked ? '核心固定，不可拖动' : '拖拽排序'}">${icon('grip', { className: 'icon-base w-4 h-4' })}</span>
-        <span class="flex-1 min-w-0 text-[13px] font-semibold text-gray-800 leading-snug">${tab.label || id}</span>
+        <span class="flex-1 min-w-0 text-sm font-semibold text-gray-800 leading-snug">${tab.label || id}</span>
         ${badgeHtml(tab.groupLabel || '页签', 'neutral')}
         <span class="flex items-center gap-1.5 shrink-0">${statusTag}</span>
         <span class="flex items-center gap-0.5 shrink-0">${acts}</span>
       </li>`;
   }).join('');
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center gap-2.5 mb-2">
-        <h3 class="font-title-cn text-base font-bold text-gray-800">我的工作台</h3>
+        ${renderCardHeader({ title: `我的工作台` })}
         <span class="ml-auto flex items-center gap-2">
           <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" data-myws="reset-all" title="恢复全部默认（清除本账号顺序调整）" ${hasPref ? '' : 'disabled'}>${icon('undo', { className: 'icon-base w-[13px] h-[13px]' })}恢复全部默认</button>
         </span>
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">${label}工作台页签顺序 · 拖拽或按钮调整，即时保存（仅对当前账号生效）。</p>
+      <p class="text-xs text-gray-500 mb-4">${label}工作台页签顺序 · 拖拽或按钮调整，即时保存（仅对当前账号生效）。</p>
       <ul class="myws-list" data-myws-list="1">${rows}</ul>
       <p class="status-line" data-myws-status aria-live="polite"></p>
       <div class="hint-box mt-3.5">${hint}</div>
@@ -373,7 +373,7 @@ function mywsCardHtml(model) {
 }
 
 function mywsEmptyHtml(text) {
-  return `<div class="card rounded-xl p-5"><h3 class="font-title-cn text-base font-bold text-gray-800">我的工作台</h3><p class="text-[13px] leading-relaxed text-gray-500 mt-2 mb-0">${text}</p></div>`;
+  return `<div class="card rounded-xl card-standard">${renderCardHeader({ title: `我的工作台` })}<p class="text-xs text-gray-500 mt-2 mb-0">${text}</p></div>`;
 }
 
 function showMywsStatus(panel, msg, isErr = false) {
@@ -513,7 +513,7 @@ let _bwsModel = null;  // 工作台默认顺序当前渲染模型（行操作/�
 const GOV_ROLES = new Set(['secretary', 'deputy-secretary']); // 支部治理分组可见角色（与 buildGroups 同源）
 
 function govEmptyHtml(text) {
-  return `<div class="card rounded-xl p-5"><h3 class="font-title-cn text-base font-bold text-gray-800">支部治理</h3><p class="text-[13px] leading-relaxed text-gray-500 mt-2 mb-0">${text}</p></div>`;
+  return `<div class="card rounded-xl card-standard">${renderCardHeader({ title: `支部治理` })}<p class="text-xs text-gray-500 mt-2 mb-0">${text}</p></div>`;
 }
 
 /** 区块分发：支部信息与向导 / 工作台默认顺序 */
@@ -526,7 +526,7 @@ async function renderBranchGovSection(panel, sectionId) {
   }
   panel.innerHTML = govEmptyHtml('加载支部配置…');
   try {
-    const br = await import('../../services/branch/branch.js?v=20261031a');
+    const br = await import('../../services/branch/branch.js?v=20261120a');
     const branch = br.getBoundBranch(personId);
     if (!branch) {
       panel.innerHTML = govEmptyHtml(GOV_NO_BRANCH_TEXT);
@@ -543,7 +543,7 @@ async function renderBranchGovSection(panel, sectionId) {
     } else if (_currentSectionId === 'branch-default-tab-order') {
       // 2026-09-09 冒烟修复：先注册支书工作台能力模块（buildBranchOrderModel 读注册表取 tab 清单；
       // 设置页独立加载，不先经 workspace-shell/我的工作台则能力未注册 → 误显「未能读取…页签清单」）
-      await import('../../capabilities/secretary-workspace.js?v=20261031a');
+      await import('../../capabilities/secretary-workspace.js?v=20261120a');
       if (seq !== _govSeq) return;
       const model = buildBranchOrderModel(br, branch);
       if (!model) { panel.innerHTML = govEmptyHtml('未能读取该支部工作台页签清单。'); return; }
@@ -568,18 +568,15 @@ function renderBranchInfoCard(panel, br, branch) {
     ['支部自述', org.desc || '—'],
   ].map(([k, v]) => `<div class="kv-row"><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('');
   panel.innerHTML = `
-    <div class="card rounded-xl p-5">
-      <div class="flex items-center gap-2.5 mb-2">
-        <h3 class="font-title-cn text-base font-bold text-gray-800">支部信息与向导</h3>
-        ${badgeHtml('档案 · 只读展示', 'neutral')}
-      </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">支部基础档案只读展示（名称等治理字段归党委管理）；需要调整支部信息 / 模块组合 / 分工 / 术语时，打开换组织向导 —— 每步保存即时生效并记录变更。</p>
+    <div class="card rounded-xl card-standard">
+      ${renderCardHeader({ title: `支部信息与向导`, meta: badgeHtml('档案 · 只读展示', 'neutral') })}
+      <p class="text-xs text-gray-500 mb-4">支部基础档案只读；要改支部信息、模块、分工或术语，用换组织向导。</p>
       <dl class="kv-list">${kv}</dl>
       <div class="hint-box mt-3.5">
         <b>改名 / 改自述，去哪改</b>：官方名与类别归党委（党委台「支部管理」）；页眉名、自述、主题与模块组合在本页「打开换组织向导」内改。
       </div>
     </div>
-    <div class="card rounded-xl p-4 mt-4 flex flex-col sm:flex-row sm:items-center gap-3.5 border-l-[3px] border-l-[var(--party-red)]">
+    <div class="card rounded-xl p-4 mt-4 flex flex-col sm:flex-row sm:items-center gap-4">
       <span class="w-[42px] h-[42px] shrink-0 flex items-center justify-center rounded-xl bg-[var(--app-accent-soft-bg)] text-[var(--app-accent-soft-text)]">${icon('flag', { className: 'icon-base w-5 h-5' })}</span>
       <div class="flex-1 min-w-0">
         <b class="block text-sm text-gray-800 leading-snug">换组织向导（支部信息 / 模块组合 / 分工 / 术语）</b>
@@ -602,7 +599,7 @@ async function openWizardEmbed(panel) {
     <div id="settings-wizard-host"></div>`;
   const host = panel.querySelector('#settings-wizard-host');
   try {
-    const { mountOrgSetupWizard } = await import('../../components/governance/org-setup-wizard.js?v=20261031a');
+    const { mountOrgSetupWizard } = await import('../../components/governance/org-setup-wizard.js?v=20261120a');
     if (seq !== _govSeq || !host) return;
     mountOrgSetupWizard(host, { actor: { personId, role }, branchId: _govBranchId, embed: true });
   } catch (e) {
@@ -685,12 +682,12 @@ function renderConfigHistorySection(panel, br, branch, statusMsg) {
     ? [...history].slice(-CONFIG_HISTORY_DISPLAY_MAX).reverse().map(_cfgHistoryRowHtml).join('')
     : emptyStateHtml({ text: "暂无配置变更记录", variant: 'inline' });
   panel.innerHTML = `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center gap-2.5 mb-2">
-        <h3 class="font-title-cn text-base font-bold text-gray-800">配置变更记录</h3>
+        ${renderCardHeader({ title: `配置变更记录` })}
         ${badgeHtml(`${esc(roleLabel)} · 本支部 · 审计`, 'neutral')}
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">每次保存自动记账（谁 / 何时 / 改了哪一项 / 前后值 / 依据）；单键改动可回滚，回滚本身再记一条。迁移前记录无操作人。</p>
+      <p class="text-xs text-gray-500 mb-4">每次保存自动记账（谁 / 何时 / 改了哪一项 / 前后值 / 依据）；单键改动可回滚，回滚本身再记一条。迁移前记录无操作人。</p>
       <ul class="flex flex-col gap-2 mt-3 p-0 list-none">${rowsHtml}</ul>
       <p class="status-line" data-cfg-hist-status aria-live="polite"></p>
     </div>`;
@@ -714,7 +711,7 @@ async function runConfigHistoryRollback(panel, entryAt) {
   if (!await confirmDanger({ id: 'config-rollback', title: '回滚这条配置更改', bodyHtml: '<p class="text-sm text-gray-700">把该项配置恢复到本次变更前的值。<br>影响：本支部对应设置立即回到旧值，并追加一条回滚记录。<br>可恢复：回滚记录可查；如需改回，只能再改一次配置。</p>', confirmLabel: '回滚' })) return;
   const seq = ++_govSeq;
   try {
-    const br = await import('../../services/branch/branch.js?v=20261031a');
+    const br = await import('../../services/branch/branch.js?v=20261120a');
     const res = await br.rollbackBranchConfig(_govBranchId, { by: personId, targetEntryAt: entryAt });
     if (!res.ok) {
       if (_currentSectionId === 'branch-config-history' && seq === _govSeq) showCfgHistStatus(panel, res.reason || '回滚失败。', true);
@@ -791,11 +788,11 @@ function branchOrderCardHtml(model) {
       <button type="button" class="btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover:text-gray-900 disabled:opacity-30" data-bws="move" data-id="${id}" data-dir="1" title="下移" aria-label="下移 ${tab.label || id}" ${bizIdx === bizLen - 1 ? 'disabled' : ''}>${icon('chevronDown', { className: 'icon-base w-4 h-4' })}</button>`;
     const gripCls = locked
       ? 'shrink-0 flex items-center text-gray-300 cursor-not-allowed'
-      : 'shrink-0 flex items-center text-gray-400 cursor-grab active:cursor-grabbing touch-none';
+      : 'shrink-0 flex items-center text-gray-500 cursor-grab active:cursor-grabbing touch-none';
     return `
       <li class="myws-row${locked ? ' is-locked' : ''}" draggable="${!locked}" data-id="${id}" data-locked="${locked ? '1' : '0'}">
         <span class="${gripCls}" title="${locked ? '核心固定，不可拖动' : '拖拽排序'}">${icon('grip', { className: 'icon-base w-4 h-4' })}</span>
-        <span class="flex-1 min-w-0 text-[13px] font-semibold text-gray-800 leading-snug">${esc(tab.label || id)}</span>
+        <span class="flex-1 min-w-0 text-sm font-semibold text-gray-800 leading-snug">${esc(tab.label || id)}</span>
         ${badgeHtml(esc(tab.groupLabel || '页签'), 'neutral')}
         <span class="flex items-center gap-1.5 shrink-0">${bwsRowBadgeHtml(model, tab, bizIdx)}</span>
         <span class="flex items-center gap-0.5 shrink-0">${acts}</span>
@@ -804,16 +801,16 @@ function branchOrderCardHtml(model) {
   const modulesNull = !model.modules;
   const dirty = !sameIdOrder(model.bizIds, model.savedDisplay);
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center gap-2.5 mb-2">
-        <h3 class="font-title-cn text-base font-bold text-gray-800">工作台默认顺序</h3>
+        ${renderCardHeader({ title: `工作台默认顺序` })}
         <span class="ml-auto flex items-center gap-2">
           <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" data-bws="reset-all" title="恢复系统默认顺序（默认全开 + 注册序）" ${modulesNull ? 'disabled' : ''}>${icon('undo', { className: 'icon-base w-[13px] h-[13px]' })}恢复默认</button>
           <button type="button" class="btn-accent text-xs px-3 py-1.5" data-bws="save" title="保存为支部默认顺序" ${dirty ? '' : 'disabled'}>保存</button>
         </span>
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">${roleLabel}设定支部工作台默认页签顺序 —— 保存后<strong>全体成员下一刷新按新默认</strong>；成员仍可在「个人设置 → 我的工作台」做个人调整。</p>
-      <div class="hint-box mb-3">${icon('bell', { className: 'icon-base w-3.5 h-3.5 mt-0.5 text-gray-400' })}<span>影响全体成员：此处变更写入支部默认配置，全员工作台随之生效；行徽标「默认」表示与当前支部默认一致，「调整中」表示有未保存的位置调整。</span></div>
+      <p class="text-xs text-gray-500 mb-4">${roleLabel}设定支部工作台默认页签顺序 —— 保存后<strong>全体成员下一刷新按新默认</strong>；成员仍可在「个人设置 → 我的工作台」做个人调整。</p>
+      <div class="hint-box mb-3">${icon('bell', { className: 'icon-base w-3.5 h-3.5 mt-0.5 text-gray-500' })}<span>影响全体成员：此处变更写入支部默认配置，全员工作台随之生效；行徽标「默认」表示与当前支部默认一致，「调整中」表示有未保存的位置调整。</span></div>
       <ul class="myws-list" data-bws-list="1">${rows}</ul>
       <p class="status-line" data-bws-status aria-live="polite"></p>
       ${coreHint ? `<div class="hint-box mt-3.5">${coreHint}</div>` : ''}
@@ -837,7 +834,7 @@ async function saveBranchOrder(panel) {
   const hidden = Array.isArray(m.modules?.hiddenTabIds) ? m.modules.hiddenTabIds : [];
   const canNull = !hidden.length && sameIdOrder(cur, m.baseBizIds);
   try {
-    const br = await import('../../services/branch/branch.js?v=20261031a');
+    const br = await import('../../services/branch/branch.js?v=20261120a');
     await br.updateBranchModules(m.branchId, canNull ? null : { hiddenTabIds: hidden, tabOrder: cur }, m.rawTabs);
     await refreshBranchOrder(panel, canNull
       ? '已恢复系统默认顺序 —— 全体成员下一刷新按默认全开 · 注册顺序。'
@@ -853,7 +850,7 @@ async function resetBranchOrder(panel) {
   const m = _bwsModel;
   if (!m) return;
   try {
-    const br = await import('../../services/branch/branch.js?v=20261031a');
+    const br = await import('../../services/branch/branch.js?v=20261120a');
     await br.updateBranchModules(m.branchId, null, m.rawTabs);
     await refreshBranchOrder(panel, '已恢复系统默认顺序 —— 全体成员下一刷新按默认全开 · 注册顺序。');
   } catch (e) {
@@ -866,7 +863,7 @@ async function resetBranchOrder(panel) {
 async function refreshBranchOrder(panel, msg) {
   const seq = ++_govSeq;
   try {
-    const br = await import('../../services/branch/branch.js?v=20261031a');
+    const br = await import('../../services/branch/branch.js?v=20261120a');
     const branch = br.getBranchById(_govBranchId);
     if (!branch || seq !== _govSeq) return;
     const model = buildBranchOrderModel(br, branch);
@@ -969,13 +966,13 @@ function bindBranchOrderDnD(panel) {
 //   当前生效覆盖 = branch.config.policyOverrides；保存后写入 config（留痕同 configChangeHistory）。
 const DOMAIN_CARD_META = {
   'domain-disc': { role: 'disc-commissioner', roleLabel: '纪检委员', sections: ['inspection', 'attendance', 'review', 'makeup'], sectionLabel: '纪检域' },
-  'domain-org': { role: 'org-commissioner', roleLabel: '组织委员', sections: ['memberConfirmation', 'thoughtReport'], sectionLabel: '组织域' },
+  'domain-org': { role: 'org-commissioner', roleLabel: '组织委员', sections: ['memberConfirmation', 'thoughtReport', 'member'], sectionLabel: '组织域' },
   'domain-leader': { role: 'leader', roleLabel: '党小组组长', sections: ['leader'], sectionLabel: '组长域' },
 };
 const LOCKED_POLICY_ROLES = new Set(['secretary', 'deputy-secretary']); // 制度锁定展示 = 支书/副视角
 
 function policyEmptyHtml(title, text) {
-  return `<div class="card rounded-xl p-5"><h3 class="font-title-cn text-base font-bold text-gray-800">${title}</h3><p class="text-[13px] leading-relaxed text-gray-500 mt-2 mb-0">${text}</p></div>`;
+  return `<div class="card rounded-xl card-standard">${renderCardHeader({ title: title })}<p class="text-xs text-gray-500 mt-2 mb-0">${text}</p></div>`;
 }
 
 /** 统一入口：支部制度参数（支书/副）/ 域参数卡（域负责人）——可见角色不匹配给提示 */
@@ -1000,7 +997,7 @@ async function renderPolicySection(panel, sectionId) {
   }
   panel.innerHTML = policyEmptyHtml(SECTION_META[sectionId]?.title || '设置', '加载支部配置…');
   try {
-    const br = await import('../../services/branch/branch.js?v=20261031a');
+    const br = await import('../../services/branch/branch.js?v=20261120a');
     // 2026-09-09 归属显式化：支部语境用 getBoundBranch（无归属 → 统一提示，不兜底示例支部）
     const branch = br.getBoundBranch(personId);
     if (!branch) {
@@ -1067,12 +1064,12 @@ function branchPolicyLockedCardHtml(branch) {
     ['请假/缺席标因', `<span class="flex flex-wrap gap-1.5 pt-0.5">${reasonChips}</span>`],
   ].map(([k, v]) => `<div class="kv-row"><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join('');
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center gap-2.5 mb-2">
-        <h3 class="font-title-cn text-base font-bold text-gray-800">支部制度参数</h3>
+        ${renderCardHeader({ title: `支部制度参数` })}
         ${badgeHtml('制度默认 · 只读', 'neutral')}
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">下面制度项的当前取值集中摆出，供核对；本卡不放控件，改动要走制度裁决与放行程序（见下）。</p>
+      <p class="text-xs text-gray-500 mb-4">下面制度项的当前取值集中摆出，供核对；本卡不放控件，改动要走制度裁决与放行程序（见下）。</p>
       <dl class="kv-list">${rows}</dl>
       <div class="hint-box mt-3.5">
         <b>为什么只读</b>：这些口径关系组织统一的权力边界、票决、应到与考勤判定，故不随支部各自调整。
@@ -1099,7 +1096,55 @@ function branchPolicyLockedCardHtml(branch) {
 function branchPolicySectionHtml(branch) {
   return branchPolicyLockedCardHtml(branch)
     + activityApprovalCardHtml(branch, POLICY_DEFAULTS)
+    + deputyPolicyCardHtml(branch)
     + periodicArchivePolicyCardHtml(branch, POLICY_DEFAULTS);
+}
+
+/** 副支书操作权（2026-11-20 批次 579）：主责在支书，本卡只开关副支书能否代操作。 */
+function deputyPolicyCardHtml(branch) {
+  const { role } = _session;
+  const roleLabel = role === 'deputy-secretary' ? '副支书' : '支书';
+  const po = _overridesOf(branch);
+  const raw = po.role?.deputySecretary;
+  const p = normalizeDeputyPolicy(raw);
+  const hasOverride = !!raw;
+  const modes = [
+    ['full', '同权（四类均可代操作）'],
+    ['standard', '仅日常执行（四类均不可代操作）'],
+    ['custom', '自定义（逐项开关）'],
+  ];
+  const opts = modes.map(([v, label]) => ({ value: v, label }));
+  const checks = DEPUTY_ACTIONS.map((action) => `
+    <label class="flex items-center gap-2 text-[13px] text-gray-600">
+      <input type="checkbox" data-deputy-allow="${action}" ${p.allow[action] ? 'checked' : ''} ${p.mode === 'custom' ? '' : 'disabled'}>
+      <span>${DEPUTY_ACTION_LABELS[action]}</span>
+    </label>`).join('');
+  return `
+    <div class="card rounded-xl card-standard">
+      <div class="flex items-center gap-2.5 mb-2">
+        ${renderCardHeader({ title: `副支书操作权` })}
+        ${badgeHtml(`${esc(roleLabel)} · 本支部可调`, 'neutral')}
+      </div>
+      <p class="text-[13px] text-gray-500 mb-4">主责仍在支书：任务、提醒、统计与逾期归属不随本项变化；本项只决定副支书能否代操作下列四类动作。</p>
+      <dl class="kv-list">
+        <div class="kv-row">
+          <dt>代操作档位</dt>
+          <dd>
+            ${selectInput({ id: 'pol-deputy-mode', options: opts, value: p.mode, ariaLabel: '副支书代操作档位', className: 'w-64' })}
+            <div class="text-[13px] text-gray-500 mt-1">制度默认：同权 · 当前${hasOverride ? '已按本支部调整值生效' : '为制度默认（同权）'}。</div>
+          </dd>
+        </div>
+        <div class="kv-row">
+          <dt>逐项开关</dt>
+          <dd class="space-y-1.5">${checks}</dd>
+        </div>
+      </dl>
+      <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
+        <button type="button" class="btn-accent text-[13px] px-3 py-1.5" data-deputy-save>保存</button>
+        <button type="button" class="btn-accent-soft text-[13px] px-3 py-1.5 disabled:opacity-45" data-deputy-reset ${hasOverride ? '' : 'disabled'}>恢复默认</button>
+      </div>
+      <p class="status-line" data-pol-status aria-live="polite"></p>
+    </div>`;
 }
 
 function activityApprovalCardHtml(branch, P) {
@@ -1114,19 +1159,21 @@ function activityApprovalCardHtml(branch, P) {
   const opts = ACTIVITY_APPROVAL_MODES.map(m =>
     `<option value="${m}" ${m === cur ? 'selected' : ''}>${esc(ACTIVITY_APPROVAL_MODE_LABELS[m] || m)}</option>`).join('');
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center gap-2.5 mb-2">
-        <h3 class="font-title-cn text-base font-bold text-gray-800">活动批准门</h3>
+        ${renderCardHeader({ title: `活动批准门` })}
         ${badgeHtml(`${esc(roleLabel)} · 本支部可调`, 'info')}
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">开启后活动须批准才能推进。</p>
-      <div class="kv-row">
-        <dt>批准门档位</dt>
-        <dd>
-          <select id="pol-approval-mode" class="input-flat text-xs w-56">${opts}</select>
-          <div class="text-xs text-gray-500 mt-1">制度默认：关闭 · 当前${hasOverride ? '已按本支部调整值生效' : '为制度默认（关闭）'}。</div>
-        </dd>
-      </div>
+      <p class="text-xs text-gray-500 mb-4">开启后活动须批准才能推进。</p>
+      <dl class="kv-list">
+        <div class="kv-row">
+          <dt>批准门档位</dt>
+          <dd>
+            <select id="pol-approval-mode" class="input-flat text-xs w-56" aria-label="批准门档位">${opts}</select>
+            <div class="text-xs text-gray-500 mt-1">制度默认：关闭 · 当前${hasOverride ? '已按本支部调整值生效' : '为制度默认（关闭）'}。</div>
+          </dd>
+        </div>
+      </dl>
       <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
         <button type="button" class="btn-accent text-xs px-3 py-1.5" data-approval-save>保存</button>
         <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" data-approval-reset ${hasOverride ? '' : 'disabled'}>恢复默认</button>
@@ -1140,19 +1187,21 @@ function periodicArchivePolicyCardHtml(branch, P) {
   const unit = po.archive?.periodic?.unit || P.archive.periodic.unit;
   const hasOverride = !!po.archive?.periodic?.unit;
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center gap-2.5 mb-2">
-        <h3 class="font-title-cn text-base font-bold text-gray-800">周期归档规则</h3>
+        ${renderCardHeader({ title: `周期归档规则` })}
         ${badgeHtml('支部制度参数', 'info')}
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-3">调整只影响之后新建和提交的期次，已提交记录保留原规则。</p>
-      <div class="kv-row">
-        <dt>归档周期</dt>
-        <dd><select id="pol-archive-unit" class="input-flat text-xs w-56">
-          <option value="week" ${unit === 'week' ? 'selected' : ''}>按周</option>
-          <option value="month" ${unit === 'month' ? 'selected' : ''}>按自然月</option>
-        </select></dd>
-      </div>
+      <p class="text-xs text-gray-500 mb-3">调整只影响之后新建和提交的期次，已提交记录保留原规则。</p>
+      <dl class="kv-list">
+        <div class="kv-row">
+          <dt>归档周期</dt>
+          <dd><select id="pol-archive-unit" class="input-flat text-xs w-56" aria-label="归档周期">
+            <option value="week" ${unit === 'week' ? 'selected' : ''}>按周</option>
+            <option value="month" ${unit === 'month' ? 'selected' : ''}>按自然月</option>
+          </select></dd>
+        </div>
+      </dl>
       <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
         <button type="button" class="btn-accent text-xs px-3 py-1.5" data-archive-policy-save>保存</button>
         <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" data-archive-policy-reset ${hasOverride ? '' : 'disabled'}>恢复默认</button>
@@ -1172,7 +1221,7 @@ async function runPeriodicArchivePolicyAction(panel, action) {
   const patch = action === 'reset' ? { archive: null } : { archive: { periodic: { unit } } };
   const seq = ++_govSeq;
   try {
-    const br = await import('../../services/branch/branch.js?v=20261031a');
+    const br = await import('../../services/branch/branch.js?v=20261120a');
     const res = await br.savePolicyOverrides(_govBranchId, patch, { actor: { personId, role } });
     if (!res.ok) {
       if (_currentSectionId === 'branch-policy-params') showPolicyStatus(panel, res.reason || '保存失败（无权限或参数非法）。', true);
@@ -1204,7 +1253,7 @@ async function runActivityApprovalAction(panel, action) {
   const patch = action === 'reset' ? { activityApproval: null } : { activityApproval: { mode } };
   const seq = ++_govSeq;
   try {
-    const br = await import('../../services/branch/branch.js?v=20261031a');
+    const br = await import('../../services/branch/branch.js?v=20261120a');
     const res = await br.savePolicyOverrides(_govBranchId, patch, { actor: { personId, role } });
     if (!res.ok) {
       if (_currentSectionId === 'branch-policy-params') showPolicyStatus(panel, res.reason || '保存失败（无权限或参数非法）。', true);
@@ -1222,6 +1271,49 @@ async function runActivityApprovalAction(panel, action) {
     if (_currentSectionId === 'branch-policy-params') showPolicyStatus(panel, '保存失败，请刷新后重试。', true);
   }
 }
+
+/**
+ * 保存 / 恢复默认副支书操作权（2026-11-20 批次 579）。
+ * 写 `role.deputySecretary`；主责不随参数变化（任务 / 提醒 / 统计仍归支书）。
+ */
+async function runDeputyPolicyAction(panel, action) {
+  const { role, personId } = _session;
+  if (!personId) return;
+  const modeSel = panel.querySelector('#pol-deputy-mode');
+  const mode = modeSel ? modeSel.value : 'full';
+  if (action === 'save' && !['full', 'standard', 'custom'].includes(mode)) {
+    showPolicyStatus(panel, '档位取值非法。', true);
+    return;
+  }
+  const allow = {};
+  for (const actionKey of DEPUTY_ACTIONS) {
+    const box = panel.querySelector(`[data-deputy-allow="${actionKey}"]`);
+    allow[actionKey] = box ? box.checked : true;
+  }
+  const patch = action === 'reset'
+    ? { role: null }
+    : { role: { deputySecretary: { mode, allow } } };
+  const seq = ++_govSeq;
+  try {
+    const br = await import('../../services/branch/branch.js?v=20261120a');
+    const res = await br.savePolicyOverrides(_govBranchId, patch, { actor: { personId, role } });
+    if (!res.ok) {
+      if (_currentSectionId === 'branch-policy-params') showPolicyStatus(panel, res.reason || '保存失败（无权限或参数非法）。', true);
+      return;
+    }
+    if (_currentSectionId !== 'branch-policy-params' || seq !== _govSeq) return;
+    const branch = br.getBranchById(_govBranchId);
+    panel.innerHTML = branchPolicySectionHtml(branch);
+    bindPolicyPanel(panel);
+    showPolicyStatus(panel, action === 'reset'
+      ? '已恢复制度默认（同权）。'
+      : (res.changed ? '已保存 —— 副支书代操作范围随参数生效（下次加载生效）。' : '档位与当前一致，无需保存。'));
+  } catch (e) {
+    console.warn('[settings] 副支书操作权保存失败', e);
+    if (_currentSectionId === 'branch-policy-params') showPolicyStatus(panel, '保存失败，请刷新后重试。', true);
+  }
+}
+
 
 // ── 域参数卡（L2 编辑 · 纪检/组织/组长各自可见）───────────────────────
 function _overridesOf(branch) {
@@ -1253,6 +1345,18 @@ function domainCardHtml(meta, branch, P) {
               <input type="number" id="${id}" class="input-flat text-xs w-20 text-center" min="${min}" max="${max}" value="${v}" inputmode="numeric">
               <span class="text-xs text-gray-600">${post}</span>
             </label>`;
+    // 批次 530（B-520-3）：范围数字单一源＝policy-defaults.js::policyRange（与写口钳制同表）。
+    const rg = (path) => policyRange(path) || { min: 1, max: 90 };
+    const r = {
+      inspection: rg(['inspection', 'overdueDays']),
+      entry: rg(['attendance', 'entryRemindDays']),
+      summary: rg(['attendance', 'summaryDeadlineDays']),
+      lowRate: rg(['attendance', 'lowRateHint']),
+      review: rg(['review', 'overdueDays']),
+      reviewDeadline: rg(['review', 'deadlineDays']),
+      makeup: rg(['makeup', 'deadlineDays']),
+    };
+    const span = (x, unit = '天') => `范围 ${x.min}–${x.max}${unit ? ' ' + unit : ''}；`;
     const row = (label, field, hint) => `
         <div class="kv-row">
           <dt>${label}</dt>
@@ -1261,19 +1365,19 @@ function domainCardHtml(meta, branch, P) {
           </dd>
         </div>`;
     return `
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-xl card-standard">
         <div class="flex items-center gap-2.5 mb-2">
-          <h3 class="font-title-cn text-base font-bold text-gray-800">纪检职责参数</h3>
+          ${renderCardHeader({ title: `纪检职责参数` })}
           ${badgeHtml(`${esc(meta.roleLabel)} 可调`, 'info')}
         </div>
-        <p class="text-[13px] leading-relaxed text-gray-500 mb-4">考察超期、考勤与复盘时限、补课范围与时限。保存后：纪检台判定、支书台提醒与补课判据同源生效。</p>
+        <p class="text-xs text-gray-500 mb-4">考察超期、考勤与复盘时限、补课范围与时限。保存后：纪检台判定、支书台提醒与补课判据同源生效。</p>
         <div class="space-y-3">
-          ${row('考察确认超期', numField('pol-inp-disc-days', cur, 1, 90, '超过', '天未确认判超期'), `范围 1–90 天；默认 ${def} 天。${curState}`)}
-          ${row('考勤录入提醒', numField('pol-disc-entry-remind', cEntry, 1, 30, '活动结束超过', '天未录入判提醒'), `范围 1–30 天；默认 ${ad.entryRemindDays} 天（母本 24h）。`)}
-          ${row('考勤汇总期限', numField('pol-disc-summary-days', cSum, 1, 30, '截止 = 活动日 +', '天'), `范围 1–30 天；默认 ${ad.summaryDeadlineDays} 天（母本 48h）。`)}
-          ${row('出勤率提示线', numField('pol-disc-low-rate', cLow, 0, 100, '低于', '% 仅提示本人'), `范围 0–100；默认 ${ad.lowRateHint}%。只提示、不触发处置。`)}
-          ${row('复盘提醒', numField('pol-disc-review-remind', cRev, 1, 90, '活动结束超过', '天未交复盘判提醒'), `范围 1–90 天；默认 ${rd.overdueDays} 天。`)}
-          ${row('复盘提交期限', numField('pol-disc-review-deadline', cRevD, 1, 90, '截止 = 活动日 +', '天'), `范围 1–90 天；默认 ${rd.deadlineDays} 天。`)}
+          ${row('考察确认超期', numField('pol-inp-disc-days', cur, r.inspection.min, r.inspection.max, '超过', '天未确认判超期'), `${span(r.inspection, '天')}默认 ${def} 天。${curState}`)}
+          ${row('考勤录入提醒', numField('pol-disc-entry-remind', cEntry, r.entry.min, r.entry.max, '活动结束超过', '天未录入判提醒'), `${span(r.entry, '天')}默认 ${ad.entryRemindDays} 天（母本 24h）。`)}
+          ${row('考勤汇总期限', numField('pol-disc-summary-days', cSum, r.summary.min, r.summary.max, '截止 = 活动日 +', '天'), `${span(r.summary, '天')}默认 ${ad.summaryDeadlineDays} 天（母本 48h）。`)}
+          ${row('出勤率提示线', numField('pol-disc-low-rate', cLow, r.lowRate.min, r.lowRate.max, '低于', '% 仅提示本人'), `${span(r.lowRate, '')}默认 ${ad.lowRateHint}%。只提示、不触发处置。`)}
+          ${row('复盘提醒', numField('pol-disc-review-remind', cRev, r.review.min, r.review.max, '活动结束超过', '天未交复盘判提醒'), `${span(r.review, '天')}默认 ${rd.overdueDays} 天。`)}
+          ${row('复盘提交期限', numField('pol-disc-review-deadline', cRevD, r.reviewDeadline.min, r.reviewDeadline.max, '截止 = 活动日 +', '天'), `${span(r.reviewDeadline, '天')}默认 ${rd.deadlineDays} 天。`)}
           <div class="kv-row">
             <dt>补课范围</dt>
             <dd>
@@ -1287,7 +1391,7 @@ function domainCardHtml(meta, branch, P) {
               </label>
             </dd>
           </div>
-          ${row('补课时限', numField('pol-disc-makeup-deadline', cMkD, 1, 30, '活动后', '天内闭环'), `范围 1–30 天；${makeupScopeHint()}`)}
+          ${row('补课时限', numField('pol-disc-makeup-deadline', cMkD, r.makeup.min, r.makeup.max, '活动后', '天内闭环'), `范围 ${r.makeup.min}–${r.makeup.max} 天；${makeupScopeHint()}`)}
         </div>
         <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
           <button type="button" class="btn-accent text-xs px-3 py-1.5" data-pol-save="domain-disc">保存</button>
@@ -1301,13 +1405,19 @@ function domainCardHtml(meta, branch, P) {
       ? po.memberConfirmation.semesterDetainedWindows : P.memberConfirmation.semesterDetainedWindows;
     const win = (idx) => cur[idx] || [6, 15, 7, 15];
     const w1 = win(0); const w2 = win(1);
-    const num = (v, id) => `<input type="number" id="${id}" class="input-flat text-xs w-16 text-center" min="1" max="31" value="${v}" inputmode="numeric">`;
+    // 复核窗口月 / 日范围单一源＝policy-defaults.js::POLICY_WINDOW_RANGE（批次 530 · B-520-3）。
+    const num = (v, id, kind = 'day') => `<input type="number" id="${id}" class="input-flat text-xs w-16 text-center" min="${kind === 'month' ? POLICY_WINDOW_RANGE.monthMin : POLICY_WINDOW_RANGE.dayMin}" max="${kind === 'month' ? POLICY_WINDOW_RANGE.monthMax : POLICY_WINDOW_RANGE.dayMax}" value="${v}" inputmode="numeric">`;
+    const wHint = policyRange(['thoughtReport', 'wordHint']) || { min: 100, max: 10000 };
+    const wSoft = policyRange(['thoughtReport', 'wordSoftMin']) || { min: 100, max: 10000 };
     const cHint = (Number.isInteger(po.thoughtReport?.wordHint) ? po.thoughtReport.wordHint : P.thoughtReport.wordHint);
     const cSoft = (Number.isInteger(po.thoughtReport?.wordSoftMin) ? po.thoughtReport.wordSoftMin : P.thoughtReport.wordSoftMin);
+    // 积极分子 → 发展对象最短考察期（`D-887` / `SOP-B-27`；0＝不设期限）
+    const mA = policyRange(['member', 'activistMinMonths']) || { min: 0, max: 60 };
+    const cAct = (Number.isInteger(po.member?.activistMinMonths) ? po.member.activistMinMonths : P.member.activistMinMonths);
     return `
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-xl card-standard">
         <div class="flex items-center gap-2.5 mb-2">
-          <h3 class="font-title-cn text-base font-bold text-gray-800">组织职责参数</h3>
+          ${renderCardHeader({ title: `组织职责参数` })}
           ${badgeHtml(`${esc(meta.roleLabel)} 可调`, 'info')}
         </div>
         <div class="space-y-3">
@@ -1316,18 +1426,25 @@ function domainCardHtml(meta, branch, P) {
             <dd class="space-y-1.5">
               <div class="flex items-center gap-1 flex-wrap">
                 <span class="text-xs text-gray-500 w-9 shrink-0">第一段</span>
-                ${num(w1[0], 'pol-org-1-sm')}<span class="text-xs text-gray-500">月</span>${num(w1[1], 'pol-org-1-sd')}<span class="text-xs text-gray-500">日 ～</span>${num(w1[2], 'pol-org-1-em')}<span class="text-xs text-gray-500">月</span>${num(w1[3], 'pol-org-1-ed')}<span class="text-xs text-gray-500">日</span>
+                ${num(w1[0], 'pol-org-1-sm', 'month')}<span class="text-xs text-gray-500">月</span>${num(w1[1], 'pol-org-1-sd')}<span class="text-xs text-gray-500">日 ～</span>${num(w1[2], 'pol-org-1-em', 'month')}<span class="text-xs text-gray-500">月</span>${num(w1[3], 'pol-org-1-ed')}<span class="text-xs text-gray-500">日</span>
               </div>
               <div class="flex items-center gap-1 flex-wrap">
                 <span class="text-xs text-gray-500 w-9 shrink-0">第二段</span>
-                ${num(w2[0], 'pol-org-2-sm')}<span class="text-xs text-gray-500">月</span>${num(w2[1], 'pol-org-2-sd')}<span class="text-xs text-gray-500">日 ～</span>${num(w2[2], 'pol-org-2-em')}<span class="text-xs text-gray-500">月</span>${num(w2[3], 'pol-org-2-ed')}<span class="text-xs text-gray-500">日</span><span class="text-xs text-gray-500">（跨年）</span>
+                ${num(w2[0], 'pol-org-2-sm', 'month')}<span class="text-xs text-gray-500">月</span>${num(w2[1], 'pol-org-2-sd')}<span class="text-xs text-gray-500">日 ～</span>${num(w2[2], 'pol-org-2-em', 'month')}<span class="text-xs text-gray-500">月</span>${num(w2[3], 'pol-org-2-ed')}<span class="text-xs text-gray-500">日</span><span class="text-xs text-gray-500">（跨年）</span>
               </div>
+            </dd>
+          </div>
+          <div class="kv-row">
+            <dt>入发展对象前最短考察</dt>
+            <dd class="flex items-center gap-2">
+              ${textInput({ id: 'pol-org-activist-months', type: 'number', value: String(cAct), ariaLabel: '入发展对象前最短考察月数', className: 'w-24 text-center', attrs: `min="${mA.min}" max="${mA.max}" inputmode="numeric"` })}
+              <span class="text-xs text-gray-600">个月（0 ＝ 不设期限）</span>
             </dd>
           </div>
           <div class="kv-row">
             <dt>篇幅建议</dt>
             <dd class="flex items-center gap-2">
-              <input type="number" id="pol-org-word-hint" class="input-flat text-xs w-24 text-center" min="100" max="10000" value="${cHint}" inputmode="numeric">
+              <input type="number" id="pol-org-word-hint" class="input-flat text-xs w-24 text-center" min="${wHint.min}" max="${wHint.max}" value="${cHint}" inputmode="numeric">
               <span class="text-xs text-gray-600">字以上</span>
             </dd>
           </div>
@@ -1335,7 +1452,7 @@ function domainCardHtml(meta, branch, P) {
             <dt>警告审阅线</dt>
             <dd class="flex items-center gap-2">
               <span class="text-xs text-gray-600">少于</span>
-              <input type="number" id="pol-org-word-soft" class="input-flat text-xs w-24 text-center" min="100" max="10000" value="${cSoft}" inputmode="numeric">
+              <input type="number" id="pol-org-word-soft" class="input-flat text-xs w-24 text-center" min="${wSoft.min}" max="${wSoft.max}" value="${cSoft}" inputmode="numeric">
               <span class="text-xs text-gray-600">字</span>
             </dd>
           </div>
@@ -1352,12 +1469,12 @@ function domainCardHtml(meta, branch, P) {
   const defOn = !!P.leader.semesterReportReminder?.enabled;
   const curOn = typeof po.leader?.semesterReportReminder?.enabled === 'boolean' ? po.leader.semesterReportReminder.enabled : defOn;
   return `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center gap-2.5 mb-2">
-        <h3 class="font-title-cn text-base font-bold text-gray-800">组长职责参数</h3>
+        ${renderCardHeader({ title: `组长职责参数` })}
         ${badgeHtml(`${esc(meta.roleLabel)} 可调`, 'info')}
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">学期组员进展自动归集提醒：每学期开学周（3 月 / 9 月首周）在组长工作台提醒一次「逐人归集本组组员进展」。频率固定学期制。</p>
+      <p class="text-xs text-gray-500 mb-4">学期组员进展自动归集提醒：每学期开学周（3 月 / 9 月首周）在组长工作台提醒一次「逐人归集本组组员进展」。频率固定学期制。</p>
       <div class="kv-row">
         <dt>学期提醒</dt>
         <dd>
@@ -1401,14 +1518,23 @@ function _readDomainPatch(meta, panel) {
     return v;
   };
   if (meta.role === 'disc-commissioner') {
-    const days = intField('pol-inp-disc-days', 1, 90, '考察确认超期');
+    // 范围单一源＝POLICY_OVERRIDABLE（批次 530 · B-520-3）：校验与输入框 min/max 同表。
+    const rg = (path) => policyRange(path) || { min: 1, max: 90 };
+    const rI = rg(['inspection', 'overdueDays']);
+    const rE = rg(['attendance', 'entryRemindDays']);
+    const rS = rg(['attendance', 'summaryDeadlineDays']);
+    const rL = rg(['attendance', 'lowRateHint']);
+    const rR = rg(['review', 'overdueDays']);
+    const rD = rg(['review', 'deadlineDays']);
+    const rM = rg(['makeup', 'deadlineDays']);
+    const days = intField('pol-inp-disc-days', rI.min, rI.max, '考察确认超期');
     if (days === null) return null;
-    const entry = intField('pol-disc-entry-remind', 1, 30, '考勤录入提醒');
-    const summary = intField('pol-disc-summary-days', 1, 30, '考勤汇总期限');
-    const low = intField('pol-disc-low-rate', 0, 100, '出勤率提示线');
-    const rRev = intField('pol-disc-review-remind', 1, 90, '复盘提醒');
-    const rDead = intField('pol-disc-review-deadline', 1, 90, '复盘提交期限');
-    const mkDead = intField('pol-disc-makeup-deadline', 1, 30, '补课时限');
+    const entry = intField('pol-disc-entry-remind', rE.min, rE.max, '考勤录入提醒');
+    const summary = intField('pol-disc-summary-days', rS.min, rS.max, '考勤汇总期限');
+    const low = intField('pol-disc-low-rate', rL.min, rL.max, '出勤率提示线');
+    const rRev = intField('pol-disc-review-remind', rR.min, rR.max, '复盘提醒');
+    const rDead = intField('pol-disc-review-deadline', rD.min, rD.max, '复盘提交期限');
+    const mkDead = intField('pol-disc-makeup-deadline', rM.min, rM.max, '补课时限');
     if ([entry, summary, low, rRev, rDead, mkDead].some((v) => v === null)) return null;
     const asm = panel.querySelector('#pol-disc-makeup-assembly');
     const cls = panel.querySelector('#pol-disc-makeup-class');
@@ -1427,19 +1553,27 @@ function _readDomainPatch(meta, panel) {
     };
     const names = [['pol-org-1-sm', 'pol-org-1-sd', 'pol-org-1-em', 'pol-org-1-ed'], ['pol-org-2-sm', 'pol-org-2-sd', 'pol-org-2-em', 'pol-org-2-ed']];
     const windows = names.map(ids => ids.map(read));
+    const { monthMin, monthMax, dayMin, dayMax } = POLICY_WINDOW_RANGE;
     for (const [sm, sd, em, ed] of windows) {
-      if (!(sm >= 1 && sm <= 12 && em >= 1 && em <= 12 && sd >= 1 && sd <= 31 && ed >= 1 && ed <= 31)) {
-        showPolicyStatus(panel, '窗口请填合法月日：月 1–12、日 1–31。', true);
+      if (!(sm >= monthMin && sm <= monthMax && em >= monthMin && em <= monthMax && sd >= dayMin && sd <= dayMax && ed >= dayMin && ed <= dayMax)) {
+        showPolicyStatus(panel, `窗口请填合法月日：月 ${monthMin}–${monthMax}、日 ${dayMin}–${dayMax}。`, true);
         return null;
       }
     }
     const hint = read('pol-org-word-hint');
     const soft = read('pol-org-word-soft');
-    if (!(hint >= 100 && hint <= 10000)) { showPolicyStatus(panel, '建议篇幅请输入 100–10000 之间的整数。', true); return null; }
-    if (!(soft >= 100 && soft <= 10000)) { showPolicyStatus(panel, '警告审阅线请输入 100–10000 之间的整数。', true); return null; }
+    // 范围单一源＝POLICY_OVERRIDABLE（与输入框 min/max 同表；批次 530 · B-520-3）。
+    const hintRg = policyRange(['thoughtReport', 'wordHint']) || { min: 100, max: 10000 };
+    const softRg = policyRange(['thoughtReport', 'wordSoftMin']) || { min: 100, max: 10000 };
+    if (!(hint >= hintRg.min && hint <= hintRg.max)) { showPolicyStatus(panel, `建议篇幅请输入 ${hintRg.min}–${hintRg.max} 之间的整数。`, true); return null; }
+    if (!(soft >= softRg.min && soft <= softRg.max)) { showPolicyStatus(panel, `警告审阅线请输入 ${softRg.min}–${softRg.max} 之间的整数。`, true); return null; }
+    const actRg = policyRange(['member', 'activistMinMonths']) || { min: 0, max: 60 };
+    const act = read('pol-org-activist-months');
+    if (!(act >= actRg.min && act <= actRg.max)) { showPolicyStatus(panel, `最短考察月数请输入 ${actRg.min}–${actRg.max} 之间的整数。`, true); return null; }
     return {
       memberConfirmation: { semesterDetainedWindows: windows },
       thoughtReport: { wordHint: hint, wordSoftMin: soft },
+      member: { activistMinMonths: act },
     };
   }
   const el = panel.querySelector('#pol-leader-enabled');
@@ -1457,7 +1591,7 @@ async function runPolicyAction(panel, cardId, action) {
   if (action === 'save' && !patch) return; // 输入非法已提示
   const seq = ++_govSeq;
   try {
-    const br = await import('../../services/branch/branch.js?v=20261031a');
+    const br = await import('../../services/branch/branch.js?v=20261120a');
     const res = await br.savePolicyOverrides(_govBranchId, patch, { actor: { personId, role } });
     if (!res.ok) {
       if (_currentSectionId === cardId) showPolicyStatus(panel, res.reason || '保存失败（无权限或参数非法）。', true);
@@ -1498,6 +1632,16 @@ function bindPolicyPanel(panel) {
     if (archiveSave) { runPeriodicArchivePolicyAction(panel, 'save'); return; }
     const archiveReset = e.target.closest('button[data-archive-policy-reset]');
     if (archiveReset) runPeriodicArchivePolicyAction(panel, 'reset');
+    const deputySave = e.target.closest('button[data-deputy-save]');
+    if (deputySave) { runDeputyPolicyAction(panel, 'save'); return; }
+    const deputyReset = e.target.closest('button[data-deputy-reset]');
+    if (deputyReset) runDeputyPolicyAction(panel, 'reset');
+  });
+  panel.addEventListener('change', (e) => {
+    if (e.target && e.target.id === 'pol-deputy-mode') {
+      const custom = e.target.value === 'custom';
+      panel.querySelectorAll('[data-deputy-allow]').forEach((box) => { box.disabled = !custom; });
+    }
   });
 }
 

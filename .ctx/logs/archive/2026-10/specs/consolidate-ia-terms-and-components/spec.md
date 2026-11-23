@@ -24,7 +24,7 @@
   - 折叠与菜单：`docs/src/components/ui/`（新增 Disclosure/MenuButton 封装）、`docs/src/components/record/todo-tab-shell.js`、`docs/src/components/governance/work-overview.js`、`docs/src/components/dashboard/gallery.js`、`docs/src/entries/tabs/{secretary,visitor,leader}/**`
   - IA：`docs/src/capabilities/*-workspace.js`、`docs/src/core/domain/function-catalog.js`、`docs/src/entries/tabs/secretary/{calendar-tab,assign-tab,group-progress-tab}.js`、`docs/src/components/record/insight-view.js`
   - 术语：新增 `content/03_doc_system/TERMINOLOGY.md`；`docs/help.html`、`docs/src/**` 的用户可见并列标签
-  - 守卫：`server/test/docs-governance-guard.test.mjs`、`ui-control-system-guard.test.mjs`、`frontend-foundations-guard.test.mjs`、`catalog-sync.test.mjs`、`copy-*`、`page-title-guard`
+  - 守卫：`server/test/doc-lifecycle-guard.test.mjs`、`component-ratchet-guard.test.mjs`、`frontend-foundations-guard.test.mjs`、`catalog-sync.test.mjs`、`copy-*`、`page-title-guard`
 - 环境假设：`npx skills check` 发现 18 个技能更新与若干高星 IA 技能，但 git 克隆被网络拒绝；本批以本地 `frontend-design` / `web-design-guidelines` 为准，并在日志登记该限制。
 
 ## ADDED Requirements

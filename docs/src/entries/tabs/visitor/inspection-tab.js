@@ -2,24 +2,24 @@
 // 参与者工作台 Tab：我的考察（T-279 M3 拆分，照 M2 样板）
 // 个人考察记录查询视图（spec §五 数据访问规则：支部成员对自己的历次活动参与考察情况有查询视图）。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261031a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261120a';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：成员台非支委层 ⇒ 待批活动
 // 不在本页「考察申诉选活动」下拉里出现。
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261031a';
-import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261031a';
-import { inspectionToDisplay, createInspectionAppeal, loadInspectionAppeals } from '../../../services/activity/inspection.js?v=20261031a';
-import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261031a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261031a';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261031a';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261120a';
+import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261120a';
+import { inspectionToDisplay, createInspectionAppeal, loadInspectionAppeals } from '../../../services/activity/inspection.js?v=20261120a';
+import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261120a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261120a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261120a';
 
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261031a';
+import { showToast, escHtml as esc, getBasePath, fmtLocalDate } from '../../../core/base/utils.js?v=20261120a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261031a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261120a';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261031a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261120a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 // Task 6：跨对象表格里的活动名 → 完整详情页（direct）；缺 id 不渲染链接。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261031a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261120a';
 
 export function renderContent(ctx, host) {
   const tc = host || document.getElementById('visitor-tab-content');
@@ -65,13 +65,13 @@ export function renderContent(ctx, host) {
   // 只渲染「由我组织」的活动 / 本人负责的专班，不再整页复用组长台的全支部视图。
   tc.innerHTML = `
     ${host ? '' : renderTabHeader({ title: '我的考察', description: '本人历次活动参与考察记录与申诉入口。' })}
-    <div class="card rounded-xl p-5 mb-3 flex items-center gap-4">
+    <div class="card rounded-xl card-standard mb-3 flex items-center gap-4">
       <div class="flex-1">
         <p class="text-sm font-semibold text-gray-800">我的考察记录</p>
         <p class="text-xs text-gray-500 mt-0.5">共 ${total} 条 · 已确认 ${confirmed} · 待确认 ${pending}</p>
       </div>
     </div>
-    <div class="card rounded-xl p-5 mb-3">
+    <div class="card rounded-xl card-standard mb-3">
       <p class="text-sm font-medium text-gray-800">我参与了但没记上？</p>
       <p class="text-xs text-gray-500 mt-0.5 mb-2">选一场活动并说明情况，提交给纪检委员——纪检<b>先核实</b>，属实再由活动组织方补录（与考勤申诉同一套做法）</p>
       <div class="flex flex-wrap items-center gap-2">
@@ -95,7 +95,7 @@ export function renderContent(ctx, host) {
   // 挂「由我组织的活动」上传位（实现单一源＝leader/inspection-tab，host 复用；scope=organizer 只投影本人活动）
   const _orgInspHost = document.getElementById('visitor-org-insp-host');
   if (_orgInspHost) {
-    import('../leader/inspection-tab.js?v=20261031a').then(m => { if (_orgInspHost.isConnected) m.renderContent(ctx, _orgInspHost, { scope: 'organizer' }); });
+    import('../leader/inspection-tab.js?v=20261120a').then(m => { if (_orgInspHost.isConnected) m.renderContent(ctx, _orgInspHost, { scope: 'organizer' }); });
   }
 
   // 提交申诉（同考勤申诉口径：先去纪检核实，不直接改考察记录）
@@ -151,7 +151,7 @@ export function renderContent(ctx, host) {
     const levelLabel = LEVEL_LABEL[r.level] || r.level;
     const levelTone = LEVEL_TONE[r.level] || 'neutral';
     const sourceTitle = r.activityTitle || r.sourceName || '—';
-    const recordedDate = r.recordedAt ? r.recordedAt.slice(0, 10) : '—';
+    const recordedDate = fmtLocalDate(r.recordedAt) || '—';
 
     return `
       <div class="p-3 rounded-lg bg-white" data-act-id="${r.activityId || ''}">

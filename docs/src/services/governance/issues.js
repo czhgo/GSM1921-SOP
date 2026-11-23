@@ -6,17 +6,17 @@
 //   见 server/routes/resources.js 末「反馈未读标记」段），`init()` 拉取填 `mockDB.issueUnread` 供同步读；
 //   mock 形态原路径（本机键）一字未改。
 
-import { mockDB } from '../../core/domain/domain.js?v=20261031a';
-import { AuthStore } from '../core/auth.js?v=20261031a';
-import { PersonStore } from '../member/person.js?v=20261031a';
-import { bumpToken } from '../../core/base/version-token.js?v=20261031a'; // P2 渲染守卫失效（spec §四.1）
-import { getDataSource, getAdapter, isDemoReadOnly, demoReadOnlyMessage } from '../../data/data-adapter.js?v=20261031a';
-import { hashSubmitterToken, BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../../core/domain/constants.js?v=20261031a';
+import { mockDB } from '../../core/domain/domain.js?v=20261120a';
+import { AuthStore } from '../core/auth.js?v=20261120a';
+import { PersonStore } from '../member/person.js?v=20261120a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261120a'; // P2 渲染守卫失效（spec §四.1）
+import { getDataSource, getAdapter, isDemoReadOnly, demoReadOnlyMessage } from '../../data/data-adapter.js?v=20261120a';
+import { hashSubmitterToken, BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../../core/domain/constants.js?v=20261120a';
 // 2026-09-17 批次 49：处置写链（REST 直连，不走 persist）须自登记进成功提示的统一等待点
-import { trackWrite } from '../../core/session/pending-writes.js?v=20261031a';
-import { withinBranch, getBranchIdOfPerson } from '../branch/branch.js?v=20261031a';
-import { canReadIssue } from '../../core/domain/issue-visibility.js?v=20261031a';
-import { generateId, randomHex } from '../../core/base/id.js?v=20261031a';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261120a';
+import { withinBranch, getBranchIdOfPerson } from '../branch/branch.js?v=20261120a';
+import { canReadIssue } from '../../core/domain/issue-visibility.js?v=20261120a';
+import { generateId, randomHex } from '../../core/base/id.js?v=20261120a';
 // 批次 47-M（2026-09-16）：**补上缺失的 showToast 导入**——本文件有 11 处 `showToast(...)`，
 //   却从未 import 它，页面也没有任何地方把它挂到 window 上 ⇒ 真机跑到这些行时**一律抛
 //   `ReferenceError: showToast is not defined`**。后果（正是支书实报的那类「非闭环」）：
@@ -27,7 +27,7 @@ import { generateId, randomHex } from '../../core/base/id.js?v=20261031a';
 //       **写已经落库，提示却抛在写之后**，于是「事情办成了，但界面一声不吭」，用户会以为没生效而重复提交。
 //   之所以长期没被发现：这五处校验点的「载体不在位」旧理由（「需先有议题并进入评论态」等）把它们
 //   一直挂在 machine:false 白名单里，**真机从未跑到这些行**（见批 47-M 台账注释）。
-import { showToast, todayLocal } from '../../core/base/utils.js?v=20261031a';
+import { showToast, todayLocal } from '../../core/base/utils.js?v=20261120a';
 // 统一检索引擎（2026-09-14 批次 37）：本 tab 三区各接一个实例（关键词 + 引擎内置分页）
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
@@ -209,6 +209,20 @@ function _currentPersonId() {
   return AuthStore.getCurrentUser()?.personId || '匿名';
 }
 
+/** 表态展示派生（与服务端出口同口径）：只算计数与「我的表态」，不读他人 personId。 */
+const REACTION_KEYS = ['thumbsUp', 'thumbsDown', 'eyes', 'hooray'];
+function _recomputeReactionView(issue, personId) {
+  const counts = {};
+  const mine = [];
+  for (const k of REACTION_KEYS) {
+    const arr = Array.isArray(issue.reactions?.[k]) ? issue.reactions[k] : [];
+    counts[k] = arr.length;
+    if (personId && arr.includes(personId)) mine.push(k);
+  }
+  issue.reactionCounts = counts;
+  issue.myReactions = mine;
+}
+
 // ── 支部归属（支部内闭环）───────────────────────────────────────────────
 // 未登录或党委账号没有支部反馈访问权；支部账号按所属支部过滤，服务端对读写再次执行范围校验。
 function _viewerId() {
@@ -304,7 +318,13 @@ export const IssueStore = {
       } catch (e) {
         console.warn('[IssueStore] API 形态加载反馈失败：', e);
         _issuesCache = [];
-        return [];
+        // 2026-11-17 批次 553（`repair-field-mismatch-and-refresh-help` Task 7）：原实现吞错返回 []
+        //   ⇒ 读面把「加载失败」显示成「暂无汇报」。现抛出可识别错误（name 前缀 + message 前缀），
+        //   由读面区分「失败」与「确实没有」，显式给「加载失败，重试」。
+        const err = new Error(`[IssueStore.loadAll] 意见反馈加载失败：${(e && e.message) ? e.message : String(e)}`);
+        err.name = 'IssueLoadError';
+        err.cause = e;
+        throw err;
       }
     }
     // 加载意见域时顺手迁除旧草稿中的身份字段；浏览器本地存储不是受保护后台。
@@ -662,6 +682,53 @@ export const IssueStore = {
     if (assigneeId && assigneeId !== by) {
       IssueNotify.markUnread(assigneeId, issueId);
     }
+    return _sanitizeIssue(issue);
+  },
+
+  /**
+   * 表态（赞同 / 反对 / 关注 / 庆祝）唯一写口：mock 形态落本域缓存；api 形态写服务端。
+   * 组件不得直接改 issue 对象或写 localStorage（H32：UI 只经数据层）。
+   * 2026-11-22 批次 596 · `D-906`：按人存、只本人可撤；服务端出口只回
+   * `reactionCounts` / `myReactions`（不回传 personId 数组，匿名反馈不得反查表态人）。
+   * 失败回滚乐观更新并抛可读错误（H32 兜底不造事实）。
+   * @param {string} issueId
+   * @param {'thumbsUp'|'thumbsDown'|'eyes'|'hooray'} key
+   * @returns {Promise<object|null>} 更新后的 issue（已脱敏）
+   */
+  async toggleReaction(issueId, key) {
+    const issue = _rawById(issueId);
+    if (!issue || !key) return null;
+    const me = _currentPersonId();
+    const prevReactions = JSON.parse(JSON.stringify(issue.reactions || {}));
+    const prevCounts = issue.reactionCounts ? { ...issue.reactionCounts } : null;
+    const prevMine = Array.isArray(issue.myReactions) ? [...issue.myReactions] : null;
+    if (!issue.reactions || typeof issue.reactions !== 'object') issue.reactions = {};
+    const list = Array.isArray(issue.reactions[key]) ? issue.reactions[key] : [];
+    const idx = list.indexOf(me);
+    if (idx >= 0) list.splice(idx, 1); else list.push(me);
+    issue.reactions[key] = list;
+    _recomputeReactionView(issue, me);
+    if (_isApiMode()) {
+      try {
+        const res = await getAdapter().issues.toggleReaction(issueId, key);
+        if (res && res.reactionCounts && typeof res.reactionCounts === 'object') issue.reactionCounts = res.reactionCounts;
+        if (res && Array.isArray(res.myReactions)) issue.myReactions = res.myReactions;
+        // 服务端为权威：不回传 personId 数组，本地也不再保留（避免二次展示身份）
+        delete issue.reactions;
+      } catch (e) {
+        issue.reactions = prevReactions;
+        if (prevCounts) issue.reactionCounts = prevCounts; else delete issue.reactionCounts;
+        if (prevMine) issue.myReactions = prevMine; else delete issue.myReactions;
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+        _noteIssueChange();
+        const err = new Error(`[IssueStore.toggleReaction] 表态未保存：${(e && e.message) ? e.message : String(e)}`);
+        err.name = 'IssueReactionError';
+        err.cause = e;
+        throw err;
+      }
+    }
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // 表态 → 写版本 +1（列表 / 详情同步刷新）
     return _sanitizeIssue(issue);
   },
 
@@ -1164,19 +1231,19 @@ export function deriveIssueDisplayState(issue) {
     }
     // 成员已提交汇报内容，等待支书答复 → 待答复
     if (issue.resultPending) {
-      return { key: 'pending-review', label: '待答复', badgeClass: 'bg-amber-100 text-amber-700' };
+      return { key: 'pending-review', label: '待答复', badgeClass: 'bg-amber-100 text-[var(--status-warning-text)]' };
     }
     return { key: 'open', label: '进行中', badgeClass: 'bg-green-100 text-green-700' };
   }
   // 开放中分支（意见反馈）
   if (issue.resultPending) {
-    return { key: 'pending-review', label: '待终审', badgeClass: 'bg-amber-100 text-amber-700' };
+    return { key: 'pending-review', label: '待终审', badgeClass: 'bg-amber-100 text-[var(--status-warning-text)]' };
   }
   if (issue.assignee) {
     // 有指派人，且评论时间线中存在 kind='result' 但 resultPending 还未触发（理论上不会）— 简化为「处置中」
     const hasResult = (issue.comments || []).some(c => c.kind === 'result');
     if (hasResult) {
-      return { key: 'pending-review', label: '待终审', badgeClass: 'bg-amber-100 text-amber-700' };
+      return { key: 'pending-review', label: '待终审', badgeClass: 'bg-amber-100 text-[var(--status-warning-text)]' };
     }
     return { key: 'assigned', label: '已指派', badgeClass: 'bg-blue-100 text-blue-700' };
   }

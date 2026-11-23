@@ -8,10 +8,10 @@
 // 纪律：新建「制度文本」条目仅支书（含副支书）可操作；普通文件写权限维持现状（支委可写，
 // 由 UI 现状门控，本服务对 doc 类不做额外收紧）。不触碰 content / 禁改清单。
 
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261031a';
-import { getAdapter } from '../../data/data-adapter.js?v=20261031a';
+import { DEFAULT_BRANCH_ID, COMMITTEE_OWNER_ID } from '../../core/domain/constants.js?v=20261120a';
+import { getAdapter } from '../../data/data-adapter.js?v=20261120a';
 // 支部归属判定收敛点（读侧隔离用；设计 §2.5「一个支部一片存储空间、按 branchId 分区、跨支部不可见」）
-import { getBoundBranch } from './branch.js?v=20261031a';
+import { getBoundBranch } from './branch.js?v=20261120a';
 
 /** 制度文本管理角色（支书/副支书）——与既有写权限门一致做法：UI 与 service 双重校验 */
 export const INSTITUTION_MANAGER_ROLES = ['secretary', 'deputy-secretary'];
@@ -51,6 +51,26 @@ function _currentPersonId() {
  */
 function _boundBranchId(personId) {
   return getBoundBranch(personId)?.id || null;
+}
+
+/**
+ * 制度草案 → 对应主体待办同步（`D-886` / `SOP-B-25` ①：派生；②：改派随主体换人）。
+ * 派生判据与幂等全在 `services/governance/todo.js::InstitutionTodoDeriver`（单一源，勿在此另写映射）。
+ * ⚠ 动态 import：`todo.js` 反向依赖活动/成员服务，静态引入会把制度写口拖进那条依赖链。
+ * ⚠ 失败只告警：待办是附带提醒，不得阻断制度写口。
+ * @param {Object} doc 写入后的制度行
+ * @param {{retireFirst?:boolean}} [opts] 改派＝先撤旧条再派生新条
+ */
+export async function syncInstitutionTodoForDoc(doc, opts = {}) {
+  if (!doc || !doc.id) return;
+  try {
+    const { InstitutionTodoDeriver } = await import('../governance/todo.js?v=20261120a');
+    if (opts.retireFirst) InstitutionTodoDeriver.retireForDoc(doc.id);
+    if (doc.status === INSTITUTION_DRAFT) InstitutionTodoDeriver.deriveFromDraft(doc);
+    else InstitutionTodoDeriver.retireForDoc(doc.id);
+  } catch (e) {
+    console.warn('[branch-doc] 制度草案待办同步失败：', e);
+  }
 }
 
 /**
@@ -120,6 +140,8 @@ export async function saveDoc(opts = {}) {
         versionAt: now,
         versionNote: note || '', domain: opts.domain || null,
       });
+      // 草案 → 对应主体待办（`D-886`：按制度内容领域派生；现行版不派生）
+      await syncInstitutionTodoForDoc(created);
       return { ok: true, doc: created };
     }
     // 新建普通文件：维持既有文件语义（status draft=会前草案，资料查询现状不变）
@@ -253,6 +275,10 @@ export async function listDocs(filter = {}) {
     // 顶层不驻留 superseded（该值只出现在 versions 历史中；防御脏数据）
     if (purpose === 'institution' && d.status === 'superseded') return false;
     if (status && d.status !== status) return false;
+    // 院级资料（`ownerScope='committee'` / 归属 pc-gsm）不按支部隔离：服务端读口已按 D-858
+    //   把「本支部 ∪ 党委登录可见」并集发给登录用户，这里再按支部过滤会把院级资料整体丢掉。
+    const isCommitteeDoc = d.ownerScope === 'committee' || d.branchId === COMMITTEE_OWNER_ID;
+    if (isCommitteeDoc) return true;
     // 支部隔离：仅已归属者过滤；老数据无 branchId 归 br-b1（惰性维度迁移兼容）
     if (boundBranchId && (d.branchId || DEFAULT_BRANCH_ID) !== boundBranchId) return false;
     return true;
@@ -546,6 +572,8 @@ export async function updateInstitutionDraft(opts = {}) {
       patch.fileData = opts.fileData || null;
     }
     const updated = await getAdapter().branchDocs.update(id, patch);
+    // 改派（改「制度内容领域」）⇒ 旧主体条撤除、新主体条派生（`D-886` / `SOP-B-25` ②）
+    await syncInstitutionTodoForDoc(updated, { retireFirst: true });
     return { ok: true, doc: updated };
   } catch (e) {
     return { ok: false, reason: (e && e.message) ? e.message : '修改草案失败' };

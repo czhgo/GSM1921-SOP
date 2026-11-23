@@ -80,7 +80,7 @@ test('S1 改名成功：users / sessions / 业务 JSON 引用三处同事务变�
   const tokenBefore = await login(from);
   const result = await request(tokens['9000000001'], 'POST', `members/${from}/account-rename`, { newPersonId: to });
   assert.equal(result.status, 200, JSON.stringify(result.data));
-  assert.deepEqual(result.data, { ok: true, from, to });
+  assert.deepEqual(result.data, { ok: true, from, to, sessionsInvalidated: true });
 
   assert.equal(userRow(from), null, '旧主键行应已不存在');
   const renamed = userRow(to);
@@ -90,8 +90,9 @@ test('S1 改名成功：users / sessions / 业务 JSON 引用三处同事务变�
   assert.equal(renamed.name, '苏明哲', '档案其余字段保留');
 
   const me = await request(tokenBefore, 'GET', 'auth/me');
-  assert.equal(me.status, 200, '改名前发出的 token 仍有效（会话已同步到新 id）');
-  assert.equal(me.data.id, to, 'sessions.person_id 已同步到新 id');
+  assert.equal(me.status, 401, '改名前发出的 token 应失效（旧会话已删除）');
+  const left = db.prepare('SELECT token FROM sessions WHERE person_id = ?').get(from);
+  assert.equal(left, undefined, 'sessions 不得保留旧 person_id 行');
 
   const todo = JSON.parse(db.prepare('SELECT data FROM todos WHERE id = ?').get('todo-rename-1').data);
   assert.equal(todo.assigneeId, to, '业务表字符串引用已换新 id');

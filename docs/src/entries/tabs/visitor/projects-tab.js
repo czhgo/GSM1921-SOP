@@ -3,44 +3,44 @@
 // 支书 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
 // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片（ctx.highlightTfId 一次性消费）。
 
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261031a';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261120a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { AuthStore } from '../../../services/core/auth.js?v=20261031a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261120a';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261031a';
-import { isTaskforceTerminalStatus } from '../../../core/domain/domain.js?v=20261031a';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261120a';
+import { isTaskforceTerminalStatus } from '../../../core/domain/domain.js?v=20261120a';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 archived || ['completed','cancelled']
-import { isActivityClosed } from '../../../core/domain/domain.js?v=20261031a';
-import { flashHighlight, todayLocal, showToast, smoothScroll } from '../../../core/base/utils.js?v=20261031a';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261031a';
+import { isActivityClosed } from '../../../core/domain/domain.js?v=20261120a';
+import { flashHighlight, todayLocal, showToast, smoothScroll } from '../../../core/base/utils.js?v=20261120a';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261120a';
 // 党小组筛选项单一源（活组按 seq 升序；2026-09-14 批次 29 收敛，原从成员档案派生）
-import { groupOptions } from '../../../services/member/party-group.js?v=20261031a';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261120a';
 // 活动生命周期展示态单一源（2026-09-13 支书裁定：「活动与专班是并列的概念，各走各的」）——
 // 活动状态文案改走 components/record/inspector.js，专班状态词维持各自来源，不强行统一。
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/record/inspector.js?v=20261031a';
-import { getAppState } from '../../../core/base/state.js?v=20261031a';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/record/inspector.js?v=20261120a';
+import { getAppState } from '../../../core/base/state.js?v=20261120a';
 // 统一检索引擎（支书 2026-09-14 裁定）：手写 lf-bar 筛选整体收敛为 keyword + facets + 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261031a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261120a';
 // 「我的任务」承担人单一源（2026-09-19 批次 93 · SOP-B-31）：按项目内身份读，复用组织者身份单一源
 // 「勾掉即关闭」（2026-09-21 批次 137 · SOP-B-9 乙档）：写口同在这份单一源里（只认本人担的那步）
 // 深参分工的完成方式（2026-09-23 批次 156）：系统内做 / 去线下做 —— 判据与文案同一份单一源
-import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity/activity.js?v=20261031a';
+import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity/activity.js?v=20261120a';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：「我的任务」按活动可见性收窄
-import { isActivityVisibleTo } from '../../../services/core/visibility.js?v=20261031a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261031a';
+import { isActivityVisibleTo } from '../../../services/core/visibility.js?v=20261120a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261120a';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261120a';
 // Task 6：成员「项目分工」是专班所属工作台 ⇒ 专班卡走 locate（同页详情 + 「打开完整页」）；
 // 活动卡是跨对象聚合行 ⇒ direct（完整活动详情页）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261031a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261120a';
 
 // 子视图（`SOP-B-31` 已定口径一）：**主口径＝「我的任务」**（按「我」切），
 // 「项目分工」是**同一份事实的转置**（按「项目」切）——同一份数据、两种切法，不建第二份清单。
 // 另保留既有「我的分工 / 全局分工」两档（支书 2026-08-10 裁定第5点：区分以人为中心与全局查询）。
 let _projSubView = 'tasks'; // 'tasks' | 'mine' | 'all' | 'tf'
 // 首页专班跳转定位目标（快照自 ctx，一次性消费后清除）
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261120a';
 let _highlightTfId = null;
 // 2026-10-25 IA 62→45：「专班动态」页签并入本页「专班」区（只读一览 + 本人产出填报），
 //   旧深链 `?tab=tf-view` 由壳落 `projects&section=taskforce`。
@@ -139,7 +139,7 @@ export function renderContent(ctx) {
   tc.innerHTML = `
     ${renderTabHeader({ title: '项目分工', description: '我的任务 / 我的分工 / 全局分工；同一份事实的三种切法。' })}
     ${subTabsHtml}
-    <div class="card rounded-xl p-5"><div id="visitor-proj-host"></div><div id="visitor-proj-detail" class="hidden mt-4"></div></div>
+    <div class="card rounded-xl card-standard"><div id="visitor-proj-host"></div><div id="visitor-proj-detail" class="hidden mt-4"></div></div>
   `;
   const host = tc.querySelector('#visitor-proj-host');
 
@@ -199,10 +199,10 @@ export function renderContent(ctx) {
   //   `visitor/tf-view-tab.js::enhanceTaskforceViewForMember`（不复制第二套列表）。
   function renderTaskforceSection() {
     document.getElementById('visitor-proj-detail')?.classList.add('hidden');
-    import('../../../components/record/taskforce-view.js?v=20261031a').then((m) => {
+    import('../../../components/record/taskforce-view.js?v=20261120a').then((m) => {
       if (!host.isConnected) return;
       m.renderTaskforceView(host, {});
-      import('./tf-view-tab.js?v=20261031a').then((t) => {
+      import('./tf-view-tab.js?v=20261120a').then((t) => {
         if (host.isConnected) t.enhanceTaskforceViewForMember(host);
       });
     });
@@ -272,7 +272,7 @@ export function renderContent(ctx) {
 
   // 卡片点击直达详情页（T-304 第5轮 P8 专班报名可达性 / D7 活动卡一致行为）：
   // 事件委托挂在 host 上——引擎筛选/翻页会重绘行，行内直接绑定会失效
-  host.addEventListener('click', (e) => {
+  host.addEventListener('click', async (e) => {
     // U-09：空态出口（data-proj-subview）与顶部子视图钮同一落点（空态不成为死胡同）
     const subBtn = e.target.closest('[data-proj-subview]');
     if (subBtn) { goSubView(subBtn.dataset.projSubview); return; }
@@ -281,7 +281,7 @@ export function renderContent(ctx) {
     const doneBtn = e.target.closest('[data-complete-task]');
     if (doneBtn) {
       e.stopPropagation();
-      const r = completeMyProjectTask(currentUserId, doneBtn.dataset.completeTask);
+      const r = await completeMyProjectTask(currentUserId, doneBtn.dataset.completeTask);
       if (r.ok) renderList();
       return;
     }
@@ -314,7 +314,7 @@ export function renderContent(ctx) {
     const tf = TaskForceRecordStore.getAll().find(r => r.id === tfId);
     if (!detailHost || !tf) { showToast('info', '未找到该专班（可能已删除）'); return; }
     detailHost.classList.remove('hidden');
-    const { renderTaskforceDetailPanel } = await import('../../../components/record/taskforce-view.js?v=20261031a');
+    const { renderTaskforceDetailPanel } = await import('../../../components/record/taskforce-view.js?v=20261120a');
     await renderTaskforceDetailPanel(detailHost, tf);
     smoothScroll(detailHost, { block: 'nearest' });
   }
@@ -408,7 +408,7 @@ function _renderTaskCard(r, statusLabel, statusClass) {
   const done = r.status === 'completed';
   const offline = r.deepMode === DEEP_WORK_MODE.OFFLINE;
   const modeChip = r.deepMode
-    ? `<span class="text-xs px-1.5 py-0.5 rounded-full border flex-shrink-0 ${offline ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}" title="${offline ? '组织者已在写入活动时标为「去线下做」——线下（微信等）完成，由组织者确认完成，不进系统产出链' : '组织者已在写入活动时标为「系统内做」——在本页完成，产出由系统后台同步'}">${DEEP_WORK_MODE_LABEL[r.deepMode]}</span>`
+    ? `<span class="text-xs px-1.5 py-0.5 rounded-full border flex-shrink-0 ${offline ? 'bg-amber-50 text-[var(--status-warning-text)] border-amber-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}" title="${offline ? '组织者已在写入活动时标为「去线下做」——线下（微信等）完成，由组织者确认完成，不进系统产出链' : '组织者已在写入活动时标为「系统内做」——在本页完成，产出由系统后台同步'}">${DEEP_WORK_MODE_LABEL[r.deepMode]}</span>`
     : '';
   // 2026-10-19 恢复半透明主题底体例：勾掉＝推进任务关闭的高频行内动作。
   return `
@@ -445,14 +445,14 @@ function _renderProjectCard(project, currentUserId) {
   const badge = (p, withRole) => {
     const isMe = !!(currentUserId && p.personId && p.personId === currentUserId);
     return `
-      <span class="tint-pill inline-flex items-center gap-0.5" data-tone="${_personnelRoleTone(p.role)}"${isMe ? ' style="box-shadow:0 0 0 1.5px rgba(206,17,38,0.45);"' : ''}>${p.name}${withRole ? '·' + _personnelRoleLabel(p.role) : ''}${isMe ? '<span class="text-xs font-bold tint-text" data-tone="danger">·我</span>' : ''}</span>`;
+      <span class="tint-pill inline-flex items-center gap-0.5" data-tone="${_personnelRoleTone(p.role)}"${isMe ? ' style="box-shadow:0 0 0 1.5px color-mix(in srgb, var(--party-red) 45%, transparent);"' : ''}>${p.name}${withRole ? '·' + _personnelRoleLabel(p.role) : ''}${isMe ? '<span class="text-xs font-bold tint-text" data-tone="danger">·我</span>' : ''}</span>`;
   };
 
   return `
     <div class="visitor-proj-card p-3 rounded-xl bg-white border border-transparent cursor-pointer hover:border-[var(--color-border-strong)] hover:bg-[var(--surface-hover)] active:bg-[var(--surface-active)] active:border-[var(--app-accent)] transition-colors" role="button" tabindex="0" aria-label="查看${project.type}：${esc(project.name)}" data-tf-id="${project.type === '专班' ? project.id : ''}" data-act-id="${project.type === '活动' ? project.id : ''}">
       <div class="flex items-center justify-between mb-1.5">
         <div class="flex items-center gap-2 min-w-0">
-          <span class="text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 border ${project.type === '活动' ? 'text-red-700 border-red-200' : 'text-amber-700 border-amber-200'}">${project.typeBadge}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 border ${project.type === '活动' ? 'text-red-700 border-red-200' : 'text-[var(--status-warning-text)] border-amber-200'}">${project.typeBadge}</span>
           <p class="text-sm font-medium text-gray-800 truncate">${project.name}</p>
         </div>
         <span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${project.statusColor}">${project.status}</span>

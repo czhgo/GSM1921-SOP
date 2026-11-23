@@ -88,7 +88,7 @@ async function loginAndOpenTab(page, studentId, workspace, tabLabel) {
   await page.fill('#student-id', studentId);
   await page.fill('#password', '123456');
   await Promise.all([
-    page.waitForURL(`**/workspace/${workspace}.html`, { timeout: 30000 }),
+    page.waitForURL(`**/workspace/${workspace}`, { timeout: 30000 }),
     page.click('button[type="submit"]'),
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 45000 });
@@ -99,10 +99,8 @@ test('A3 迁移在界面上真生效：说明行已缩成一行 ＋ 深链（导
   // 支书台「党小组」tab：清单卡导语 → #card-copy-party-group；本组活动复盘状态卡导语 → #card-copy-review-submit
   const sec = await newPage();
   await loginAndOpenTab(sec, '2300010001', 'secretary', '党小组');
-  // 2026-09-27（R7 减负）：该 tab 的「跨组进展」区（含「本组活动复盘状态」卡）默认折叠 ⇒ 先展开再核深链。
-  //   **不是放宽**：深链仍在、仍各恰 1 处、导语仍 ≤60 字——只是落点由「首屏」改到「展开态」（一键可达）。
-  await sec.locator('.gp-progress-toggle').first().waitFor({ timeout: 20000 });
-  await sec.locator('.gp-progress-toggle').first().click();
+  // 2026-11-01 Task 4（主从双栏）：右栏直接呈现活动台账，「跨组进展」折叠壳已撤 ⇒ 深链回到首屏。
+  //   **不是放宽**：深链仍在、仍各恰 1 处、导语仍 ≤60 字。
   for (const id of ['card-copy-party-group', 'card-copy-review-submit']) {
     const link = sec.locator(`a[href="./help.html#${id}"]`);
     await link.first().waitFor({ timeout: 20000 });
@@ -118,6 +116,14 @@ test('A3 迁移在界面上真生效：说明行已缩成一行 ＋ 深链（导
   // 组长台「组员进展」tab：复盘状态区块导语 → #card-copy-review-submit（同一口径的第二个界面落点）
   const lead = await newPage();
   await loginAndOpenTab(lead, '2400012345', 'leader', '组员进展');
+  // 批次 523–526：复盘状态并入「组员进展」的低频折叠块（默认收起）；展开后再核深链与文案。
+  //   数据到达会整块重渲染 ⇒ 在 waitForFunction 里持续置 `open`，直到深链真的可见（防「开了又被重置」）。
+  await lead.waitForFunction(() => {
+    const fold = document.getElementById('leader-review-fold');
+    if (fold) fold.open = true;
+    const a = document.querySelector('a[href="./help.html#card-copy-review-submit"]');
+    return !!a && a.getBoundingClientRect().height > 0;
+  }, null, { timeout: 20000 });
   const link = lead.locator('a[href="./help.html#card-copy-review-submit"]');
   await link.first().waitFor({ timeout: 20000 });
   assert.equal(await link.count(), 1, '组长台「组员进展」tab 里应恰有 1 处深链 #card-copy-review-submit');

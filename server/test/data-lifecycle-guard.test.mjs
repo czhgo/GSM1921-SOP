@@ -18,10 +18,10 @@ import Database from 'better-sqlite3';
 import { initDb } from '../db.js';
 import {
   classifyPersistKey, classifyTable,
-} from '../../docs/src/data/seed-manifest.js?v=20261031a';
+} from '../../docs/src/data/seed-manifest.js?v=20261120a';
 import {
   INIT_BLOB_KEEP_KEYS, INIT_BLOB_CLEAR_DEFAULTS, trimInitBlob,
-} from '../../docs/src/services/core/init-reset.js?v=20261031a';
+} from '../../docs/src/services/core/init-reset.js?v=20261120a';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -165,6 +165,7 @@ test('⑦ 建表清单不新增只写不读集合（允许清单 + 理由，P1-2
     sessions: '认证会话内部表，仅服务端读写',
     attachments: '附件元数据内部表，仅上传/下载链路消费',
     issue_reveals: 'D-824 起停写，仅保留历史留痕，无系统读取入口',
+    publication_audits: '党委发布留痕表（v13）：本批只建表与写契约，读口在后续任务接入；写入即留痕、不改不删',
   };
 
   const appsSource = SRC_FILES

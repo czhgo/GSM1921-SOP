@@ -11,42 +11,43 @@
 //   下拉按 `MEETING_ATTENDANCE_TYPES ∪ {党小组会, 主题党日}`
 //   列活动，写口仍逐场由 `canUploadAttendance` 判定（非本页可传者即便在类型清单里也传不了）。
 
-import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords, loadAttendanceAppeals, resolveAttendanceAppeal, reconfirmReturnedRecord, MEETING_ATTENDANCE_TYPES, isAttendanceHomePosition, isAutoConfirmedAttendance, isAttendanceConfirmed, attendanceConfirmerId, freezeExpectedRosterForActivity } from '../../../services/activity/attendance.js?v=20261031a';
-import { loadMakeupTasks } from '../../../services/activity/makeup.js?v=20261031a';
-import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261031a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261031a';
+import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords, loadAttendanceAppeals, resolveAttendanceAppeal, reconfirmReturnedRecord, MEETING_ATTENDANCE_TYPES, isAttendanceHomePosition, isAutoConfirmedAttendance, isAttendanceConfirmed, attendanceConfirmerId, freezeExpectedRosterForActivity } from '../../../services/activity/attendance.js?v=20261120a';
+import { loadMakeupTasks } from '../../../services/activity/makeup.js?v=20261120a';
+import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261120a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261120a';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：组长台非支委层 ⇒ 待批活动
 // 不出现在本页的活动下拉与考勤关联行里（与各台列表同一判据）。
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261031a';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261120a';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261031a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261031a';
+import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261120a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261120a';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261031a';
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261031a';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261120a';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261120a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { attendanceToLong } from '../../../services/activity/attendance.js?v=20261031a';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261031a';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261031a';
-import { generateId } from '../../../core/base/id.js?v=20261031a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261031a';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261031a';
+import { attendanceToLong } from '../../../services/activity/attendance.js?v=20261120a';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261120a';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261120a';
+import { generateId } from '../../../core/base/id.js?v=20261120a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261120a';
+import { showToast, escHtml as esc, getBasePath, describeWriteError } from '../../../core/base/utils.js?v=20261120a';
 // ③批（支书 2026-09-06）：党小组会考勤候选 = 本组应到名单（党员非滞留）；
 // 滞留者「可见但不可选」（灰态 + 「滞留」徽标 + title 备注，同纪检口径）
-import { getMeetingRosterCandidates, getRosterStats } from '../../../services/member/roster.js?v=20261031a';
-import { DEFAULT_BRANCH_ID, solidAccentStyle, LEADER_CREATABLE_ACTIVITY_TYPES } from '../../../core/domain/constants.js?v=20261031a';
-import { currentLeaderGroup } from './_shared.js?v=20261031a';
-import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261031a';
+import { getMeetingRosterCandidates, getRosterStats } from '../../../services/member/roster.js?v=20261120a';
+import { DEFAULT_BRANCH_ID, solidAccentStyle, LEADER_CREATABLE_ACTIVITY_TYPES } from '../../../core/domain/constants.js?v=20261120a';
+import { currentLeaderGroup } from './_shared.js?v=20261120a';
+import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261120a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261031a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261120a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261031a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261120a';
 // Task 6：考勤表活动列是跨对象行 ⇒ 直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261031a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261120a';
 
+import { renderCardHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 // 私有状态（随模块自持，不污染入口）
 let _attFormVisible = false;
 let _attPickerInstance = null;
@@ -176,9 +177,9 @@ export function renderContent(ctx, host, opts = {}) {
 
   container.innerHTML = `
     ${renderTabHeader({ title: '考勤管理', description: isOrganizerScope ? '由我组织的活动考勤上传位。' : '组织者上传 → 纪检委员确认 → 录入考勤明细。' })}
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">${isOrganizerScope ? '考勤上传位' : '考勤管理'}</h3>
+        ${renderCardHeader({ title: isOrganizerScope ? '考勤上传位' : '考勤管理' })}
         <button class="btn-md" id="btn-leader-upload-att" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);border:1px solid var(--app-accent-soft-border);">${_attFormVisible ? '收起表单' : '上传考勤表单'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">${isOrganizerScope
@@ -252,19 +253,25 @@ export function renderContent(ctx, host, opts = {}) {
       countUnit: '人',
       emptyMessage: '暂无考勤明细',
       table: {
-        colSpan: 4,
+        // C-16（2026-11-03 批次 531）：筛选分面有 4 维，可见列必须能对上——补「学号」「党小组」两列
+        // （关键词命中字段 / 分面维度不再只在筛选里存在）；窄屏沿用 responsive cards 的 data-label 堆叠。
+        colSpan: 6,
         responsive: true,
         headHtml: `<tr>
-              <th>姓名</th>
-              <th>活动</th>
-              <th>状态</th>
-              <th>确认状态</th>
+              <th scope="col">姓名</th>
+              <th scope="col">学号</th>
+              <th scope="col">党小组</th>
+              <th scope="col">活动</th>
+              <th scope="col">状态</th>
+              <th scope="col">确认状态</th>
             </tr>`,
       },
       // 状态色按 statusKey（英文枚举）判定——attendanceToLong 的 status 为中文标签
       rowHtml: (a) => `
               <tr data-act-id="${esc(a.activityId || '')}">
                 <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(a.personId)}" class="hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(getPersonName(a.personId))}</a></td>
+                <td data-label="学号" class="text-gray-500 tabular-nums">${a.studentId ? esc(a.studentId) : '—'}</td>
+                <td data-label="党小组" class="text-gray-600">${a.partyGroup ? esc(a.partyGroup) : '—'}</td>
                 <td data-label="活动" class="text-gray-600">${a.activityId ? `<a class="text-accent" href="./${objectDetailHref('activity', a.activityId, { entry: 'workspace-aggregate' })}">${esc(a.activity)}</a>` : esc(a.activity)}</td>
                 <td data-label="状态"><span class="px-1.5 py-0.5 rounded-full text-xs ${a.statusKey === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.statusKey === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.statusKey === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${esc(a.status)}</span></td>
                 <td data-label="确认状态" class="text-gray-500">${isAutoConfirmedAttendance(a.record)
@@ -480,7 +487,8 @@ function _initAttForm(container, eligibleActivities, ctx, opts = {}) {
     try {
       await freezeExpectedRosterForActivity(activityId);
     } catch (error) {
-      showToast('error', `应到名单未能冻结，考勤未提交：${error.message || '请重试'}`);
+      console.warn('[leader-attendance] 应到名单冻结失败：', error);
+      showToast('error', `应到名单未能冻结，考勤未提交：${describeWriteError(error)}`);
       return;
     }
 
@@ -547,10 +555,10 @@ function _renderAttRosterHint(activity, rosterCtx, myGroup) {
   const chips = detained.length === 0
     ? '<span class="text-gray-500">无滞留成员</span>'
     : detained.map(p => `
-      <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 align-middle"
+      <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-50 text-[var(--status-warning-text)] border border-amber-200 align-middle"
         title="${esc(p.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">${esc(p.name)} · 滞留</span>`).join(' ');
   hintEl.innerHTML = `
-    <span>本组（${esc(myGroup)}）应到 <b class="text-gray-600">${stats.expected}</b> 人（组内党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}）。滞留者已在候选中<b class="text-amber-700">标灰禁选</b>（悬浮查看备注）：${chips}</span>`;
+    <span>本组（${esc(myGroup)}）应到 <b class="text-gray-600">${stats.expected}</b> 人（组内党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}）。滞留者已在候选中<b class="text-[var(--status-warning-text)]">标灰禁选</b>（悬浮查看备注）：${chips}</span>`;
 }
 
 function _renderAttStatusRows(selectedIds) {

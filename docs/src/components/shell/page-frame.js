@@ -3,7 +3,7 @@
 // components/shell/page-frame.js — 工作台页面骨架与分区标题（2026-10-18 工作台提质）
 // 页面只保留一个标题；页签内容从任务型分区标题开始。
 
-import { escHtml as esc } from '../../core/base/utils.js?v=20261031a';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261120a';
 
 /** 页面级页头：页面标题与页面动作；眉题、说明缀词已移除（2026-10-18 工作台提质）。 */
 export function renderPageHeader({ title, actions = '' }) {
@@ -43,16 +43,21 @@ export function renderTabHeader({ title, description = '', actions = '' }) {
  * 一个 tab 只保留 `renderTabHeader` 的 H2；卡内标题一律 H3，右侧放计数 / 动作。
  * `title` 必须是**带范围或权限信息**的卡内标题（如「在册成员」），不得逐字复述页签名。
  * `meta` / `actions` 为受信任的内部 HTML（计数徽标、按钮），调用点自行保证不含用户输入原文。
- * @param {{title:string, meta?:string, actions?:string, titleId?:string}} opts
+ * `variant: 'panel'` 用于内嵌面板（14px / 600），与页面级卡头同一出口。
+ * @param {{title:string, meta?:string, actions?:string, titleId?:string, variant?:'panel'}} opts
  */
-export function renderCardHeader({ title, meta = '', actions = '', titleId = '' } = {}) {
+export function renderCardHeader({ title, meta = '', actions = '', titleId = '', variant = '' } = {}) {
+  const panel = variant === 'panel';
   const idAttr = titleId ? ` id="${esc(titleId)}"` : '';
   const aside = (meta || actions)
     ? `<div class="card-head__aside">${meta ? `<div class="card-head__meta">${meta}</div>` : ''}${actions ? `<div class="card-head__actions">${actions}</div>` : ''}</div>`
     : '';
+  const titleClass = panel
+    ? 'card-head__title font-title-cn text-sm font-semibold text-gray-700'
+    : 'card-head__title font-title-cn text-base font-semibold text-gray-800';
   return `
-    <div class="card-head">
-      <h3${idAttr} class="card-head__title font-title-cn text-base font-semibold text-gray-800">${esc(title)}</h3>
+    <div class="card-head${panel ? ' card-head--panel' : ''}">
+      <h3${idAttr} class="${titleClass}">${esc(title)}</h3>
       ${aside}
     </div>`;
 }

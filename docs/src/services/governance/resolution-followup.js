@@ -15,17 +15,19 @@
 //  BOM/纯 ESM 零依赖 DOM；扫描/派生为纯函数（activities 数组入参），供 node 单测与支书台聚合共用。
 // ════════════════════════════════════════════════════════════════
 
-import { generateId } from '../../core/base/id.js?v=20261031a';
-import { mockDB } from '../../core/domain/domain.js?v=20261031a';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261031a'; // P0 域缓存失效（spec §二.3/§二.4）
+import { generateId } from '../../core/base/id.js?v=20261120a';
+import { mockDB } from '../../core/domain/domain.js?v=20261120a';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261120a'; // P0 域缓存失效（spec §二.3/§二.4）
 import {
-  TodoStore, TodoStatus, TodoCategory, TodoActionType, TodoSourceType, REALTIME_GROUP_DOMAIN,
-} from './todo.js?v=20261031a';
-import { BranchService } from '../core/runtime.js?v=20261031a';
-import { loadActivities } from '../activity/activity.js?v=20261031a';
-import { PersonStore } from '../member/person.js?v=20261031a';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261031a';
-import { todayLocal } from '../../core/base/utils.js?v=20261031a';
+  TodoStore, TodoStatus, TodoCategory, TodoActionType, TodoSourceType,
+} from './todo.js?v=20261120a';
+import { BranchService } from '../core/runtime.js?v=20261120a';
+import { loadActivities } from '../activity/activity.js?v=20261120a';
+import { PersonStore } from '../member/person.js?v=20261120a';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261120a';
+import { todayLocal } from '../../core/base/utils.js?v=20261120a';
+// 决议逾期派生单一源（零依赖叶子件；服务端 Task 8 同源消费）
+import { collectOverdueResolutionFollowups, deriveResolutionFollowupRemindGroup } from '../../core/domain/todo-derive.js?v=20261120a';
 
 /** 待落实跟进状态 */
 export const FOLLOWUP_STATUS = {
@@ -212,61 +214,17 @@ export async function reopenFollowup({ activityId, agendaItemId, followupId, act
 // ════════════════════════════════════════════════════════════════
 //  逾期扫描（纯：activities 数组入参；供支书台聚合与 node 单测）
 //  逾期口径 = 未销项且 deadline < today（到期当天仍属「到期催办」窗口，不算逾期）
+//  ⚠ 2026-11-04 批次 534（B-500-7b-1 Task 7）：派生逻辑已抽到零依赖叶子件
+//    `core/domain/todo-derive.js`（服务端 Task 8 与本文件同源消费）；此处只做**薄包装**，
+//    组键 / 标题 / flow / 条目形状一字未改。
 // ════════════════════════════════════════════════════════════════
 
-/** 收集全部逾期未落实的决议跟进项 */
-export function collectOverdueResolutionFollowups(activities, today) {
-  const out = [];
-  for (const a of activities || []) {
-    if (!a || !Array.isArray(a.agenda)) continue;
-    for (const item of a.agenda) {
-      if (!item || item.result !== 'passed' || !Array.isArray(item.followups)) continue;
-      for (const f of item.followups) {
-        if (!f || f.status === FOLLOWUP_STATUS.COMPLETED) continue;
-        if (!f.deadline || f.deadline >= today) continue; // 仅逾期；到期当天由责任人待办呈现
-        out.push({
-          id: `${a.id}:${item.id}:${f.id}`,
-          activityId: a.id,
-          activityTitle: a.title || a.id,
-          agendaItemId: item.id,
-          agendaItem: item.item,
-          followupId: f.id,
-          item: f.item,
-          ownerType: f.ownerType,
-          ownerId: f.ownerId,
-          deadline: f.deadline,
-          // 支书台提醒卡展示字段（对齐 SecretaryTodoDeriver remind 组：name + date）
-          name: `落实「${f.item}」·${a.title || a.id}`,
-          date: f.deadline,
-        });
-      }
-    }
-  }
-  return out;
-}
+/** 收集全部逾期未落实的决议跟进项（单一源＝`todo-derive.js::collectOverdueResolutionFollowups`） */
+export { collectOverdueResolutionFollowups };
 
 /** 组装支书台「决议落实逾期」提醒组（无逾期返回 null；renderTodoList 直接可渲染） */
 export function buildOverdueRemindGroup(activities, today) {
-  const items = collectOverdueResolutionFollowups(activities, today);
-  if (items.length === 0) return null;
-  let earliest = null;
-  for (const it of items) {
-    if (!earliest || it.deadline < earliest) earliest = it.deadline;
-  }
-  return {
-    groupKey: 'secretary:resolution-followup-remind',
-    actionKey: 'resolution-followup-remind',
-    // IA-C1 Task2：实时组标注业务域（决议上报；供 T4 域折组归类展示）
-    domain: REALTIME_GROUP_DOMAIN['resolution-followup-remind'],
-    title: '决议落实逾期',
-    category: TodoCategory.TRACK,
-    actionType: TodoActionType.TRACK,
-    flow: '支委会决议待落实 → 责任人执行 → 逾期支书督办销项',
-    kind: 'remind',
-    deadline: earliest,
-    count: items.length,
-    items,
-  };
+  return deriveResolutionFollowupRemindGroup({ activities, today });
 }
 
 /** 供支书台聚合的现读入口（mockDB/种子活动都吃；未逾期返回 null）。

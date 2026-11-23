@@ -3,8 +3,8 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261031a';
-import { monthKeyOf } from '../../docs/src/data/mock/demo-window.js?v=20261031a';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261120a';
+import { monthKeyOf } from '../../docs/src/data/mock/demo-window.js?v=20261120a';
 
 // 演示种子日期（单一源）：排序后取首尾，测试锚点随种子窗口自动跟随，不再写死月份。
 const ACTIVITY_DATES = ACTIVITIES.map((a) => a.date).sort();
@@ -14,11 +14,12 @@ const FILTER_MONTH = monthKeyOf(REPORT_FROM);
 const FILTER_FROM = `${FILTER_MONTH}-01`;
 const FILTER_TO = `${FILTER_MONTH}-31`;
 
-let server, base, token, partyToken;
+let server, base, token, partyToken, db;
 
 before(async () => {
   const app = createApp({ dbPath: ':memory:' });
   await seedDatabase(app.locals.db);
+  db = app.locals.db;
   server = app.listen(0);
   base = `http://127.0.0.1:${server.address().port}`;
   const login = await fetch(`${base}/api/v1/auth/login`, {
@@ -124,4 +125,30 @@ test('党委手动推送须选定单一支部；该支部未配置 webhook 时�
   assert.equal(selected.status, 409);
   const body = await selected.json();
   assert.equal(body.pushed, false);
+});
+
+test('手动推送遇内部异常返回 500 通用文案，请求不悬挂、进程存活', async () => {
+  // Task 3.2 / 3.3：损坏数据让 extractDomain 在 pushReport 内抛错（Promise 拒绝）——
+  // 未包 try/catch 时 Express 4 不接管，请求悬挂；包后应经错误中间件回 500 通用文案。
+  const previousConfig = process.env.REPORT_WEBHOOKS_JSON;
+  const corruptId = 'su-corrupt-report';
+  process.env.REPORT_WEBHOOKS_JSON = JSON.stringify({ 'br-b1': { url: 'https://branch-one.example.test/report' } });
+  db.prepare('INSERT OR REPLACE INTO signups (id, data) VALUES (?, ?)').run(corruptId, '{not-json');
+  try {
+    const res = await fetch(`${base}/api/v1/report/trigger?branchId=br-b1`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${partyToken}` },
+      signal: AbortSignal.timeout(5000),
+    });
+    assert.equal(res.status, 500);
+    const body = await res.json();
+    assert.equal(body.error, '服务器内部错误');
+    assert.ok(!JSON.stringify(body).includes('JSON'), '内部解析异常串不得回传');
+    const health = await fetch(`${base}/api/v1/health`);
+    assert.equal(health.status, 200, '进程须存活');
+  } finally {
+    db.prepare('DELETE FROM signups WHERE id = ?').run(corruptId);
+    if (previousConfig === undefined) delete process.env.REPORT_WEBHOOKS_JSON;
+    else process.env.REPORT_WEBHOOKS_JSON = previousConfig;
+  }
 });

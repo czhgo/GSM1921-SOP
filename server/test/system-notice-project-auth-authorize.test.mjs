@@ -10,11 +10,14 @@ import { SYSTEM_NOTICE_KINDS } from '../system-notice-kinds.js';
 // R-23 余项（2026-10-06 批次 422 · `D-803`③）：服务端**人员名册读口**（D 组的端口单测）
 import { applyRosterNames } from '../person-roster.js';
 
-/** 最小 db 桩：只实现 `prepare().get()`，返回与真库同形的 `{ data: JSON }`（`rowOf` 会 JSON 解包） */
+/** 最小 db 桩：`get` 返回单行 `{ data: JSON }`；`all` 返回整表（供 workgroup_members 等批量读） */
 const dbStub = (rows) => ({
   prepare(sql) {
     const table = /FROM (\w+)/.exec(sql)[1];
-    return { get: (id) => (rows[table] && rows[table][id] ? { data: JSON.stringify(rows[table][id]) } : undefined) };
+    return {
+      get: (id) => (rows[table] && rows[table][id] ? { data: JSON.stringify(rows[table][id]) } : undefined),
+      all: () => Object.values(rows[table] || {}).map((row) => ({ data: JSON.stringify(row) })),
+    };
   },
 });
 const AUTH = (actor, sourceId, rows) => SYSTEM_NOTICE_KINDS['project-auth-granted'].authorize({ actor, sourceId, db: dbStub(rows) });
@@ -163,11 +166,15 @@ test('B9 上报结论：approved 由 review_requests.status 复算（不采信 p
 });
 
 test('B10 赋权通知：项目名按表复算（活动 title / 专班 name）', () => {
+  const actor = { id: '2300010001', role: 'secretary' };
+  const users = { 2300010001: { id: '2300010001', name: '支书真名' } };
   const byAct = TEXT(BUILD('project-auth-granted', 'act-1',
-    { activities: { 'act-1': { id: 'act-1', title: '表内活动名' } } }, { projectName: '伪造项目名', roleLabel: '组织者' }));
+    { users, activities: { 'act-1': { id: 'act-1', title: '表内活动名', assignments: [{ personId: '2500010016', role: 'organizer' }] } } },
+    { projectName: '伪造项目名', roleLabel: '组织者', targetPersonId: '2500010016' }, actor));
   assert.ok(byAct.includes('表内活动名') && !byAct.includes('伪造项目名'), byAct);
   const byTf = TEXT(BUILD('project-auth-granted', 'tf-1',
-    { taskforces: { 'tf-1': { id: 'tf-1', name: '表内专班名' } } }, { projectName: '伪造项目名' }));
+    { users, taskforces: { 'tf-1': { id: 'tf-1', name: '表内专班名', members: [{ personId: '2500010016', role: 'organizer' }] } } },
+    { projectName: '伪造项目名', targetPersonId: '2500010016' }, actor));
   assert.ok(byTf.includes('表内专班名') && !byTf.includes('伪造项目名'), byTf);
 });
 
@@ -307,10 +314,10 @@ test('E2 `review-request-submitted`：源行 `submittedBy` ⇒ 按名册复算 `
 test('E3 `project-auth-granted`：授权人＝服务端 `actor`、角色标签＝按 `role` 键复算（均不采信 payload）', () => {
   const rows = {
     users: { 2300010001: { id: '2300010001', name: '支书真名' } },
-    activities: { 'act-1': { id: 'act-1', title: '表内活动' } },
+    activities: { 'act-1': { id: 'act-1', title: '表内活动', assignments: [{ personId: '2500010016', role: 'organizer' }] } },
   };
   const t = TEXT(BUILD('project-auth-granted', 'act-1', rows,
-    { authorizerName: '伪造授权人', projectName: '伪造活动', roleLabel: '伪造角色', targetPage: './workspace/leader.html', role: 'organizer' },
+    { authorizerName: '伪造授权人', projectName: '伪造活动', roleLabel: '伪造角色', targetPage: './workspace/leader.html', role: 'organizer', targetPersonId: '2500010016' },
     { id: '2300010001', role: 'secretary' }));
   assert.ok(t.includes('支书真名'), `授权人未按名册复算（须取自 ctx.actor.id）：${t}`);
   assert.ok(!t.includes('伪造授权人'), `伪造授权人不得出现：${t}`);
@@ -320,18 +327,24 @@ test('E3 `project-auth-granted`：授权人＝服务端 `actor`、角色标签�
 });
 
 test('E5 `project-auth-granted`：`role=deep` ⇒ 「深度参与者」（同一张 ROLE_LABELS 单一源）', () => {
-  const rows = { activities: { 'act-2': { id: 'act-2', title: '表内活动二' } } };
+  const rows = {
+    users: { 2400012355: { id: '2400012355', name: '组织委员真名' } },
+    activities: { 'act-2': { id: 'act-2', title: '表内活动二', assignments: [{ personId: '2500010016', role: 'deep' }] } },
+  };
   const t = TEXT(BUILD('project-auth-granted', 'act-2', rows,
-    { roleLabel: '伪造角色', role: 'deep', targetPage: './workspace/visitor.html' },
+    { roleLabel: '伪造角色', role: 'deep', targetPage: './workspace/visitor.html', targetPersonId: '2500010016' },
     { id: '2400012355', role: 'org-commissioner' }));
   assert.ok(t.includes('深度参与者'), t);
   assert.ok(!t.includes('伪造角色'), t);
 });
 
 test('E6 反例（如实）：payload 不带 `role` 键 ⇒ 角色标签沿用 payload（不空标签）', () => {
-  const rows = { activities: { 'act-3': { id: 'act-3', title: '表内活动三' } } };
+  const rows = {
+    users: { 2400012355: { id: '2400012355', name: '组织委员真名' } },
+    activities: { 'act-3': { id: 'act-3', title: '表内活动三', assignments: [{ personId: '2500010016', role: 'deep' }] } },
+  };
   const t = TEXT(BUILD('project-auth-granted', 'act-3', rows,
-    { roleLabel: '旧客户端发来的标签', targetPage: './workspace/visitor.html' },
+    { roleLabel: '旧客户端发来的标签', targetPage: './workspace/visitor.html', targetPersonId: '2500010016' },
     { id: '2400012355', role: 'org-commissioner' }));
   assert.ok(t.includes('旧客户端发来的标签'), `无 role 键 ⇒ 沿用 payload（不空标签）：${t}`);
 });

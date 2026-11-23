@@ -2,30 +2,31 @@
 // 纪检委员工作台 Tab：复盘（T-279 M3 拆分；2026-10-04 批次 368 页签名由「活动监督复盘」改「复盘」——原名＝动作＋对象混轴）
 // 活动流程监督（超时提醒）+ 活动复盘监督（批注/打回/确认）+ 经验沉淀督促清单。
 
-import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261031a';
-import { persist } from '../../../data/data-adapter.js?v=20261031a';
-import { reviewToDisplay } from '../../../services/governance/review.js?v=20261031a';
-import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261031a';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261031a';
+import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261120a';
+import { persist } from '../../../data/data-adapter.js?v=20261120a';
+import { reviewToDisplay } from '../../../services/governance/review.js?v=20261120a';
+import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261120a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261120a';
 // R7-33：复盘「超期」按「活动日 + 复盘提交期限（policy）」现算，不再直读记录上的 overdue 快照
-import { isReviewOverdue } from '../../../core/domain/policy-defaults.js?v=20261031a';
-import { showToast, escHtml } from '../../../core/base/utils.js?v=20261031a';
-import { openFormModal, openModal, closeModal } from '../../../components/ui/modal.js?v=20261031a';
+import { isReviewOverdue } from '../../../core/domain/policy-defaults.js?v=20261120a';
+import { showToast, escHtml, fmtLocalDate } from '../../../core/base/utils.js?v=20261120a';
+import { openFormModal, openModal, closeModal } from '../../../components/ui/modal.js?v=20261120a';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：经验沉淀「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261031a';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261031a';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261031a';
-import { generateId } from '../../../core/base/id.js?v=20261031a';
-import { getPersonById } from '../../../services/member/person.js?v=20261031a';
-import { requireDiscCommissionerId } from './_shared.js?v=20261031a';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261120a';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261120a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261120a';
+import { generateId } from '../../../core/base/id.js?v=20261120a';
+import { getPersonById } from '../../../services/member/person.js?v=20261120a';
+import { requireDiscCommissionerId } from './_shared.js?v=20261120a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261031a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261120a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261031a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261120a';
 // Task 6：复盘监督是跨对象列表 ⇒ 活动行直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261031a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261120a';
 
+import { renderCardHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 // ── 超期提醒真实触达（2026-09-10）───────────────────────────────
 // 依据：纪检委员工作流程指南 §3.1「超时确认后可触发邮件提醒」、党小组组长工作手册
 //   「超期未提交考勤/考察/复盘时，纪检委员会通过邮件提醒你」。
@@ -104,7 +105,7 @@ function depositRecordRowHtml(d) {
     <div class="p-3 rounded-xl bg-white transition-colors flex items-start justify-between gap-3">
       <div class="min-w-0">
         <p class="text-sm font-medium text-gray-800 truncate">${escHtml(d.title || '未命名沉淀')}</p>
-        <p class="text-xs text-gray-500 mt-0.5 truncate">来源活动：${escHtml(d.sourceName || '—')} · 记录于 ${escHtml((d.createdAt || '').slice(0, 10) || '—')}</p>
+        <p class="text-xs text-gray-500 mt-0.5 truncate">来源活动：${escHtml(d.sourceName || '—')} · 记录于 ${escHtml(fmtLocalDate(d.createdAt) || '—')}</p>
       </div>
       <div class="flex items-center gap-2 flex-shrink-0">
         ${d.voidPending && !d.voided
@@ -143,9 +144,6 @@ export function renderContent(ctx) {
     return legacyDepositNames.has(reviewItem.sourceName || reviewItem.activity);
   }
 
-  // 经验沉淀督促清单：已确认复盘但未沉淀的活动
-  const unDepositedReviews = reviewData.filter(r => r.reviewStatus === ReviewStatus.CONFIRMED && !hasDeposit(r));
-
   // ── 统一检索引擎行数据（第一列是活动）：按 activityId 补齐活动字段，供关键词/分面取用 ──
   const _actById = new Map(loadActivities().map(a => [a.id, a]));
   const _withAct = (r) => {
@@ -154,7 +152,6 @@ export function renderContent(ctx) {
   };
   const flowRows = reviewData.map(_withAct);
   const itemRows = reviewData.filter(r => r.reviewStatus !== '—').map(_withAct);
-  const depositRows = unDepositedReviews.map(_withAct);
 
   /** 活动流程监督行 */
   const flowRowHtml = (r) => {
@@ -194,13 +191,13 @@ export function renderContent(ctx) {
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="text-xs px-1.5 py-0.5 rounded-full ${reviewColor[r.reviewStatus] || 'bg-gray-100 text-gray-600'}">${r.reviewStatus}</span>
-                  ${r.reviewStatus === '已确认' ? `<span class="text-xs px-1.5 py-0.5 rounded-full ${hasDeposit(r) ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${hasDeposit(r) ? '已沉淀' : '未沉淀'}</span>` : ''}
+                  ${r.reviewStatus === '已确认' ? `<span class="text-xs px-1.5 py-0.5 rounded-full ${hasDeposit(r) ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-[var(--status-warning-text)]'}">${hasDeposit(r) ? '已沉淀' : '未沉淀'}</span>` : ''}
                 </div>
               </div>
               ${r.reviewContent ? `<div class="text-xs text-gray-600 mb-2 p-2 bg-white rounded-lg border border-gray-100">${r.reviewContent}</div>` : ''}
               ${(r.issues && r.issues.length) ? `<div class="mb-2 p-2 rounded-lg border border-amber-100 bg-amber-50">
-                <div class="text-[11px] text-amber-700 font-bold mb-0.5">提出的真问题（${r.issues.length}）</div>
-                <ul class="space-y-0.5">${r.issues.map(i => `<li class="text-xs text-amber-700">· ${i}</li>`).join('')}</ul>
+                <div class="text-[11px] text-[var(--status-warning-text)] font-bold mb-0.5">提出的真问题（${r.issues.length}）</div>
+                <ul class="space-y-0.5">${r.issues.map(i => `<li class="text-xs text-[var(--status-warning-text)]">· ${i}</li>`).join('')}</ul>
               </div>` : ''}
               <div class="flex gap-2">
                 ${r.reviewStatus === ReviewStatus.UPLOADED ? `
@@ -221,37 +218,26 @@ export function renderContent(ctx) {
             </div>`;
   };
 
-  /** 经验沉淀督促行 */
-  const depositRowHtml = (r) => `
-            <div class="flex items-center justify-between p-3 rounded-xl bg-white">
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-gray-800">${r.activity}</div>
-                <div class="text-xs text-gray-500 mt-0.5">组织者：${r.organizer}</div>
-              </div>
-              <button class="btn-accent-soft text-xs px-3 py-1.5 btn-disc-urge-deposit" style="cursor:pointer;" data-review-id="${escHtml(r.id)}" data-activity-name="${r.sourceName || r.activity}" data-organizer="${r.organizer}"
-                data-source-type="${escHtml(r.sourceType || 'activity')}" data-activity-id="${escHtml(r.activityId || '')}" data-taskforce-id="${escHtml(r.taskforceId || '')}" data-workgroup-id="${escHtml(r.workgroupId || '')}">督促沉淀</button>
-            </div>`;
-
-  // B10（2026-10-20）：「流程监督」与「复盘监督」原为两张并列卡，但同一批复盘先看流程进度、
-  //   再批注/确认，属同一任务的先后两段 ⇒ 合并为一张「复盘监督」卡：一个卡头、两个小节；
-  //   两个列表宿主 id 与全部按钮/勾选行为原样保留（清单与动作零丢失）。
+  // 批次 539：原「复盘监督 / 经验沉淀督促清单 / 已沉淀清单」三张并列卡收为两段——
+  //   「待处理」＝流程监督 ＋ 复盘处理（确认但未沉淀的行在复盘处理行内直接督促，不再另起一份清单）；
+  //   「已沉淀」＝经验沉淀台账。两个列表宿主 id 与全部按钮/勾选行为原样保留（写口与数据口径不变）。
   container.innerHTML = `
-    ${renderTabHeader({ title: '复盘', description: '流程监督与复盘处理；已确认复盘的经验沉淀。' })}
+    ${renderTabHeader({ title: '复盘', description: '活动流程监督与复盘处理；确认后的复盘在此记录经验沉淀。' })}
     <div class="space-y-4">
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-xl card-standard">
         <div class="flex items-center justify-between gap-2 mb-3">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">复盘监督</h3>
+          ${renderCardHeader({ title: `待处理` })}
           ${(_batchModeOn || reviewData.some(r => r.reviewStatus === ReviewStatus.ANNOTATING)) ? `
           <button class="btn-action btn-action-gray js-batch-toggle" style="cursor:pointer;">${_batchModeOn ? '退出批量模式' : '批量确认'}</button>` : ''}
         </div>
         <section class="mb-5" aria-label="流程监督">
           <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">流程监督</h4>
-          <div class="text-xs text-gray-500 mb-3">阅览党小组活动/专班工作时间流 · 超时确认后站内通知</div>
+          <div class="text-xs text-gray-500 mb-3">超时确认后可站内通知组织者</div>
           <div id="disc-review-flow-list"></div>
         </section>
         <section aria-label="复盘处理">
           <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">复盘处理</h4>
-          <div class="text-xs text-gray-500 mb-3">复盘流转：已上传 → 批注中 → 确认/打回 · 留痕台账不提供删除</div>
+          <div class="text-xs text-gray-500 mb-3">已上传 → 批注中 → 确认 / 打回；确认后未沉淀可在行内督促</div>
           ${_batchModeOn ? `
           <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2 mb-3 text-xs text-gray-600">
             <span>已勾选 <b class="js-batch-count tabular-nums">${_batchCheckedIds.size}</b> 条「批注中」复盘（已确认/打回/待批注/未提交行置灰不可勾）</span>
@@ -260,20 +246,11 @@ export function renderContent(ctx) {
           <div id="disc-review-items-list"></div>
         </section>
       </div>
-      ${unDepositedReviews.length > 0 ? `
-      <div class="card rounded-xl p-5">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">经验沉淀督促清单</h3>
-        <div class="text-xs text-gray-500 mb-3">以下活动复盘已确认但尚未沉淀经验，请督促深度参与者提交</div>
-        <div id="disc-review-deposit-list"></div>
-      </div>
-      ` : ''}
-      ${activeDeposits.length > 0 ? `
-      <div class="card rounded-xl p-5">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">已沉淀清单</h3>
-        <div class="text-xs text-gray-500 mb-3">已记录的经验沉淀（${activeDeposits.length} 条）；作废＝软作废（出列、留痕可回查）</div>
+      <div class="card rounded-xl card-standard">
+        ${renderCardHeader({ title: `已沉淀` })}
+        <div class="text-xs text-gray-500 mb-3">${activeDeposits.length} 条；作废＝软作废（出列、留痕可回查）</div>
         <div id="disc-review-deposit-record-list"></div>
       </div>
-      ` : ''}
     </div>
   `;
 
@@ -300,18 +277,6 @@ export function renderContent(ctx) {
     emptyMessage: '无匹配复盘记录',
     rowHtml: itemRowHtml,
   });
-  if (container.querySelector('#disc-review-deposit-list')) {
-    renderFilteredList(container.querySelector('#disc-review-deposit-list'), {
-      stateKey: 'disc-review-deposit',
-      rows: depositRows,
-      keyword: _rvKeyword,
-      facets: _rvFacets,
-      countUnit: '条',
-      listClass: 'space-y-2',
-      emptyMessage: '无匹配待沉淀活动',
-      rowHtml: depositRowHtml,
-    });
-  }
   // 批次 352（`D-746`）：已沉淀清单（行尾可作废）——第一列是活动 ⇒ 同接入统一检索引擎
   if (container.querySelector('#disc-review-deposit-record-list')) {
     renderFilteredList(container.querySelector('#disc-review-deposit-record-list'), {
@@ -319,7 +284,7 @@ export function renderContent(ctx) {
       rows: activeDeposits.map(d => ({
         ...d,
         activity: d.sourceName || d.title || '',
-        date: (d.createdAt || '').slice(0, 10),
+        date: fmtLocalDate(d.createdAt),
         type: d.scenario || '',
       })),
       keyword: _rvKeyword,
@@ -533,12 +498,6 @@ export function renderContent(ctx) {
     }
     const urge = e.target.closest('.btn-disc-urge-deposit');
     if (urge) { _openDepositForm(urge); return; }
-  });
-
-  // 经验沉淀督促清单：督促沉淀
-  container.querySelector('#disc-review-deposit-list')?.addEventListener('click', (e) => {
-    const urge = e.target.closest('.btn-disc-urge-deposit');
-    if (urge) _openDepositForm(urge);
   });
 
   // 批量模式开关：进入/退出均清空勾选后重渲染（单行批注/打回/确认交互不受影响）

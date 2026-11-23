@@ -1,0 +1,18 @@
+# /etc/cron.d/gsm1921-backup —— 每日自动备份巡跑（T4，2026-11-15）
+#
+# 安装：
+#   sudo cp deploy/backup-cron.example /etc/cron.d/gsm1921-backup
+#   sudo chmod 644 /etc/cron.d/gsm1921-backup
+# 安装前改三处：① 运行账号 gsm1921 ② 代码目录 /opt/gsm1921（＝ install.sh 的 APP_DIR）③ 执行时间 03:30（服务器本地时间）
+#
+# 做什么：SQLite 在线备份（含 WAL 的一致性快照，不需停服）+ uploads/ 整目录 + 备份当场自检；
+#         备份成功后清理超期备份（保留最近 14 份）与附件孤儿（cleanup.mjs）。
+# 结果在哪：<APP_DIR>/server/backups/<时间戳>/（含 backup.json 清单）
+#           最近一次成败：<APP_DIR>/server/.backup-status.json（lastRunAt / ok / error / path）
+#           运行日志：<APP_DIR>/server/backups/backup.log
+# 注意：本文件是「二选一」方案——若已启用 systemd 定时器（deploy/systemd/gsm-backup.timer），不要再装这份 cron。
+
+SHELL=/bin/sh
+PATH=/usr/local/bin:/usr/bin:/bin
+
+30 3 * * * gsm1921 cd /opt/gsm1921/server && /usr/bin/env node scripts/backup.mjs --out /opt/gsm1921/server/backups >> /opt/gsm1921/server/backups/backup.log 2>&1 && /usr/bin/env node scripts/cleanup.mjs --keep 14 --apply >> /opt/gsm1921/server/backups/backup.log 2>&1

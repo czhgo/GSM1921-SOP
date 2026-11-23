@@ -10,20 +10,20 @@
 //   - party 页面已移除，organizer/deep 内容落在成员工作台（workspace/visitor.html）——
 //     首页并无"我的角色"区块（2026-09-17 批次 64 dogfood 实测）
 
-import { DEFAULT_BRANCH_ID, ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261031a';
-import { PEOPLE } from '../../data/mock/index.js?v=20261031a';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261120a';
+import { PEOPLE } from '../../data/mock/index.js?v=20261120a';
 // 账号登录校验（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
 // 2026-09-14 批次 25：改为「可持久化账号层 ∪ 静态种子表」校验（成员流入自动建号 / 流出停用；
 //   见 services/core/accounts.js），支撑「账号与成员档案同源」口径。
-import { verifyLogin } from './accounts.js?v=20261031a';
-import { getPersonById, getPersonName } from '../member/person.js?v=20261031a';
-import { mockDB, WORKGROUP_WRITABLE_STATUSES } from '../../core/domain/domain.js?v=20261031a';
-import { NoticeStore } from '../governance/notice.js?v=20261031a';
-import { getAdapter, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261031a';
-import { enableApiMode } from './runtime.js?v=20261031a';
-import { generateId } from '../../core/base/id.js?v=20261031a';
-import { todayLocal } from '../../core/base/utils.js?v=20261031a';
-import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../../core/domain/workgroup-policy.js?v=20261031a';
+import { verifyLogin } from './accounts.js?v=20261120a';
+import { getPersonById, getPersonName } from '../member/person.js?v=20261120a';
+import { mockDB, WORKGROUP_WRITABLE_STATUSES } from '../../core/domain/domain.js?v=20261120a';
+import { NoticeStore } from '../governance/notice.js?v=20261120a';
+import { getAdapter, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261120a';
+import { enableApiMode } from './runtime.js?v=20261120a';
+import { generateId } from '../../core/base/id.js?v=20261120a';
+import { todayLocal } from '../../core/base/utils.js?v=20261120a';
+import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../../core/domain/workgroup-policy.js?v=20261120a';
 
 // 迁移期（2026-10-20）：旧 p* 仅作登录别名 / 历史 localStorage 兼容，会话一律存学号。
 // 映射表经 data-adapter 的迁移入口转出，业务层不直接引用 deprecated 映射文件。
@@ -303,7 +303,7 @@ function _notifyProjectAuth(projectId, authorizerId, targetPersonId, role) {
   // R-23 余项收口（2026-10-06 批次 427）：**随包带 `role` 键**——服务端据此按
   //   `constants.js::ROLE_LABELS`（单一源）**复算** `roleLabel`，不再采信客户端自述的标签。
   NoticeStore.addSystem('project-auth-granted', projectId, {
-    targetPage, authorizerName, projectName, roleLabel, role,
+    targetPage, authorizerName, projectName, roleLabel, role, targetPersonId,
   });
 }
 
@@ -419,9 +419,18 @@ export const AuthStore = {
    */
   devLogin(role) {
     // 找到该角色的第一个 mock 用户
-    const person = PEOPLE.find(p => p.role === role);
-    const personId = person ? person.id : (PEOPLE[0]?.id || null);
-    _writeLogin({ personId, role });
+    let person = PEOPLE.find(p => p.role === role);
+    // R7-31：`deputy-leader`（党小组副组长）与组长同工作台、但 mock 无该角色成员——
+    //   优先取同工作台的 `leader` 成员落地（角色仍记为 deputy-leader）；其它角色找不到成员时
+    //   **不得拿第一个成员冒充**：不写登录态并给出可见提示（返回 false 供调用方中止跳转）。
+    if (!person && role === 'deputy-leader') {
+      person = PEOPLE.find(p => p.role === 'leader');
+    }
+    if (!person) {
+      console.warn(`[AuthStore] 开发身份 ${role} 暂无对应成员档案，未写入登录态`);
+      return false;
+    }
+    _writeLogin({ personId: person.id, role });
     // 修复（2026-08-05）：开发模式是纯 mock 路径，必须清除残留 API token，
     // 否则 bootstrap 检测到 sessionStorage['gsm1921-api-token'] 会把开发模式劫持为 API 模式
     // （复现：账号登录后切开发模式卡片 → 28 个 /api/v1 请求）。
@@ -727,10 +736,13 @@ export const AuthStore = {
    * 整组同步项目角色（活动详情 / 专班详情内联编辑共用）
    * 三合一：写主源（全量覆盖 organizer/deep，保留 participant 等其它角色）+
    * 追加快照（新增 grant / 移除 revoke）+ 通知。
-   * @param {{ scopeRef: string, assignments: Array<{personId:string, role:string}>, actorId?: string }} opts
+   * @param {{ scopeRef: string, assignments: Array<{personId:string, role:string}>, actorId?: string,
+   *   notifyRemovedOrganizers?: boolean }} opts
+   *   `notifyRemovedOrganizers`（缺省 true）：解除组织者指定时是否补「更正」通知；
+   *   「转交」路径自己发 `organizer-transferred`，须传 false 防双发。
    * @returns {Promise<{ added: number, removed: number }>}
    */
-  async syncProjectRoles({ scopeRef, assignments = [], actorId, permissionKeysByRole = {} }) {
+  async syncProjectRoles({ scopeRef, assignments = [], actorId, permissionKeysByRole = {}, notifyRemovedOrganizers = true }) {
     if (!scopeRef) return { added: 0, removed: 0 };
     const desired = [...new Map(assignments
       .filter((x) => x.personId && (x.role === 'organizer' || x.role === 'deep'))
@@ -797,6 +809,26 @@ export const AuthStore = {
     _appendAuditEntries(scopeRef, actorId, added, 'grant');
     added.forEach(x => _notifyProjectAuth(scopeRef, actorId, x.personId, x.role));
     _appendAuditEntries(scopeRef, actorId, removed, 'revoke');
+
+    // 解除组织者指定补一条「更正」通知（`D-885` / SOP-B-17）：被移除的组织者不再拥有本场
+    //   通知发布权与组织职责，须被告知；受众到人定向、不派生待办。转交路径（有接手人）由
+    //   `organizer-transfer.js` 发 `organizer-transferred`，故那里传 `notifyRemovedOrganizers:false`，避免双发。
+    if (notifyRemovedOrganizers) {
+      for (const row of removed) {
+        if (row.role !== 'organizer') continue;
+        try {
+          NoticeStore.addSystem('organizer-designation-corrected', scopeRef, {
+            removedPersonId: row.personId,
+            removedName: getPersonName(row.personId) || row.personId,
+            byName: actorId ? (getPersonName(actorId) || actorId) : '',
+            label: activity ? '活动' : '专班',
+            subjectName: (activity && activity.title) || (tf && tf.name) || '',
+          });
+        } catch (e) {
+          console.warn('[AuthStore] 组织者解除通知失败：', e);
+        }
+      }
+    }
 
     return { added: added.length, removed: removed.length };
   },
@@ -909,7 +941,7 @@ function _syncAuthAuditToServer(records) {
   const fresh = rows.filter((r) => r && r.id && !_auditSyncedIds.has(r.id));
   if (!fresh.length) return;
   fresh.forEach((r) => _auditSyncedIds.add(r.id));
-  const sync = import('../../data/data-adapter.js?v=20261031a').then(async ({ getDataSource, getAdapter }) => {
+  const sync = import('../../data/data-adapter.js?v=20261120a').then(async ({ getDataSource, getAdapter }) => {
     if (getDataSource() !== 'api') return; // mock 形态：不发（本机键即权威）
     const a = getAdapter();
     if (!a.authAudit || typeof a.authAudit.create !== 'function') return;
@@ -926,7 +958,7 @@ function _syncAuthAuditToServer(records) {
 }
 
 // R3-P1（F-09）：授权审计语义端点登记 pending-writes（置尾 import，避免上文 README 取证行号漂移）
-import { trackWrite } from '../../core/session/pending-writes.js?v=20261031a';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261120a';
 
 // ════════════════════════════════════════════════════════════════
 //  服务端优先登录（2026-10-26 Task 2.1）
@@ -939,7 +971,7 @@ import { trackWrite } from '../../core/session/pending-writes.js?v=20261031a';
 // IAAA 路径不经本函数（`startIaaaSession` 保持原样）。
 // ⚠ 置尾覆盖：本文件上文的行号是 README-server.md 的取证靶点，`login()` 原位改写会整体漂移；
 //   故与 `deputy-leader` / 审计同步同法——**集中置尾**重绑 `AuthStore.login`，语义不变、上方行号不动。
-import { DEPLOY_MODE } from '../../config/deploy.js?v=20261031a';
+import { DEPLOY_MODE } from '../../config/deploy.js?v=20261120a';
 
 const LOGIN_ENDPOINT = '/api/v1/auth/login';
 

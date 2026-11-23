@@ -7,9 +7,10 @@
 // **组件复用律**（`D-765` ⑤）：当前支部筛选由党委台「支部审核」「下发通知」「支部监控」三页共用——不各写一份。
 // 体例：筛选一律用**下拉**（禁 chip，规范 §筛选）；选择随模块自持（同 `list-filter` 的 `stateKey` 体例）
 //   ⇒ 页内重绘不丢选择。支部管理页自身就是支部目录，因此不重复挂筛选。
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261031a';
-import { mockDB } from '../../core/domain/domain.js?v=20261031a';
-import { escHtml } from '../../core/base/utils.js?v=20261031a';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261120a';
+import { pageHref } from '../../core/base/page-url.js?v=20261120a';
+import { mockDB } from '../../core/domain/domain.js?v=20261120a';
+import { escHtml } from '../../core/base/utils.js?v=20261120a';
 
 /** `stateKey` → 当前选中支部 id。API 模式的范围放在 URL，便于整页共用。 */
 const _selected = new Map();
@@ -64,7 +65,7 @@ export function renderBranchFilter(host, { stateKey, onChange, tabId } = {}) {
       if (tabId) url.searchParams.set('tab', tabId);
       if (selected) url.searchParams.set('branchId', selected);
       else url.searchParams.delete('branchId');
-      window.location.assign(url.toString());
+      window.location.assign(pageHref(url.toString()));
       return;
     }
     // F11：mock 形态清除筛选时也删 URL 参数——否则下次重载又按 URL 旧值恢复出「清不掉」的筛选。

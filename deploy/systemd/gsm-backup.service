@@ -1,0 +1,32 @@
+# gsm-backup.service —— 每日备份（T4，2026-11-15）
+#
+# 安装：
+#   sudo cp deploy/systemd/gsm-backup.service deploy/systemd/gsm-backup.timer /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now gsm-backup.timer
+#   systemctl list-timers gsm-backup.timer        # 看下次触发时间
+#   sudo systemctl start gsm-backup.service       # 立刻手动跑一次
+#
+# 安装前按实际环境改两处：User（运行账号）、/opt/gsm1921（＝ install.sh 的 APP_DIR）。
+# 若生产把 DB_PATH / UPLOAD_DIR 写在 env 文件里，把 EnvironmentFile 指向它（缺省用 server/data.db + server/uploads）。
+#
+# 结果在哪：<APP_DIR>/server/backups/<时间戳>/（含 backup.json 清单）
+#           最近一次成败：<APP_DIR>/server/.backup-status.json（lastRunAt / ok / error / path）
+#           单元日志：journalctl -u gsm-backup.service -n 50
+
+[Unit]
+Description=光华党支部管理引擎 · 每日备份（data.db 在线快照 + uploads/）
+Documentation=file:///opt/gsm1921/content/04_web_design/deploy/DEPLOYMENT_GUIDE.md
+After=network.target
+
+[Service]
+Type=oneshot
+User=gsm1921
+WorkingDirectory=/opt/gsm1921/server
+EnvironmentFile=-/etc/gsm1921/server.env
+ExecStart=/usr/bin/env node scripts/backup.mjs --out /opt/gsm1921/server/backups
+# ExecStart 成功后才执行：清超期备份（保留最近 14 份）与附件孤儿；备份失败时不会进这一步
+ExecStartPost=/usr/bin/env node scripts/cleanup.mjs --keep 14 --apply
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7

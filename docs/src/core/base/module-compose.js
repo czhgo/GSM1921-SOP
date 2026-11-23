@@ -7,7 +7,7 @@
 //   - depends：本模块依赖的其他模块 id —— 引用必须 ∈ 组合 id 集合；不允许成环（DFS）
 //   - conflictsWith：与本模块互斥的模块 id —— 同一组合不得同含互斥双方；引用必须存在
 // 收集式（不抛错）返回三类问题：missingRefs（引用缺失）/ mutual（互斥同含）/ cycles（depends 成环）。
-// 契约权威源：content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md「组合声明（P3d v0）」
+// 契约权威源：content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md「组合声明（P3d v0）」
 // v0 边界：前端纯校验（模块加载自检 + 单测）；不进 server 端 config/路由校验（服务端组合校验后续版本接入）。
 // 语义：台内 tab 为固定组合（见 core/boot/registry.js 顶部注释）；模块/块级组合声明由本文件校验。
 

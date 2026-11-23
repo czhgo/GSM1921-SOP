@@ -27,23 +27,25 @@
 // 单测：server/test/member-confirmation.test.mjs
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261031a';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261031a';
+import { mockDB } from '../../core/domain/domain.js?v=20261120a';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261120a';
 // 全站唯一实体 id 源（2026-09-13 Q-21-2 收敛：禁止再写「前缀 + Date.now()」）
-import { generateId } from '../../core/base/id.js?v=20261031a';
-import { bumpToken } from '../../core/base/version-token.js?v=20261031a'; // P0 域缓存失效（spec §二.3）
+import { generateId } from '../../core/base/id.js?v=20261120a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261120a'; // P0 域缓存失效（spec §二.3）
 // 批4（2026-09-09 支书批「域参数」）：滞留复核窗口单一源 = policy memberConfirmation.semesterDetainedWindows
 // （原本文件 :533 硬编码 615/715/1215 迁出；组织委员可经设置中心覆盖，判定随窗口变化）
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261031a';
-import { PersonStore, findRemovedRecord, liveMembers } from './person.js?v=20261031a';
-import { getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20261031a';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261120a';
+import { PersonStore, findRemovedRecord, liveMembers } from './person.js?v=20261120a';
+import { getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20261120a';
 // 发展阶段枚举单一源（静态种子派生，禁造新枚举）
-import { DEVELOP_STAGE_OPTIONS } from '../branch/org-base-data-preview.js?v=20261031a';
+import { DEVELOP_STAGE_OPTIONS } from '../branch/org-base-data-preview.js?v=20261120a';
 // 活动「未开始」口径单一源（2026-09-13 收敛）：替代本文件手写 archived || status==='completed'
 // 在册状态枚举 RESIDENCE 同源（2026-09-13 Q-21-3 收敛：原经 roster.js 转出，现直取单一源）
-import { isActivityNotStarted, RESIDENCE } from '../../core/domain/constants.js?v=20261031a';
-import { todayLocal } from '../../core/base/utils.js?v=20261031a';
-import { trackWrite } from '../../core/session/pending-writes.js?v=20261031a';
+import { isActivityNotStarted, RESIDENCE } from '../../core/domain/constants.js?v=20261120a';
+import { todayLocal } from '../../core/base/utils.js?v=20261120a';
+// 滞留复核窗口判定 / 文案单一源（零依赖叶子件；待办派生与服务端 Task 8 同源消费）
+import { inSemesterDetainedWindow, semesterDetainedWindowsLabel as _windowsLabel } from '../../core/domain/todo-derive.js?v=20261120a';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261120a';
 
 /** 成员变更确认请求队列的 localStorage 键（gsm1921- 前缀 → ?reset=demo 自动清理） */
 export const MEMBER_CONFIRM_KEY = 'gsm1921-member-confirmations';
@@ -652,18 +654,8 @@ export function isTransferredOut(personId) {
 export function shouldShowSemesterDetainedRemind(now = new Date()) {
   const d = new Date(now);
   if (Number.isNaN(d.getTime())) return false;
-  const month = d.getMonth() + 1;
-  const day = d.getDate();
-  const md = month * 100 + day;
-  const windows = POLICY_DEFAULTS.memberConfirmation.semesterDetainedWindows;
-  const inWindow = Array.isArray(windows) && windows.some(w => {
-    if (!Array.isArray(w) || w.length !== 4) return false;
-    const [sm, sd, em, ed] = w;
-    const s = (sm * 100) + sd;
-    const e = (em * 100) + ed;
-    return s <= e ? (md >= s && md <= e) : (md >= s || md <= e);
-  });
-  if (!inWindow) return false;
+  const md = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  if (!inSemesterDetainedWindow(md)) return false;
   return Array.isArray(getDetainedMembers()) && getDetainedMembers().length > 0;
 }
 
@@ -674,11 +666,5 @@ export function shouldShowSemesterDetainedRemind(now = new Date()) {
  * @returns {string}
  */
 export function semesterDetainedWindowsLabel(windows = POLICY_DEFAULTS.memberConfirmation.semesterDetainedWindows) {
-  if (!Array.isArray(windows) || !windows.length) return '';
-  return windows.map(w => {
-    if (!Array.isArray(w) || w.length !== 4) return '';
-    const [sm, sd, em, ed] = w;
-    const cross = (sm * 100 + sd) > (em * 100 + ed); // 止于次年
-    return `${sm}/${sd}–${cross ? '次年' : ''}${em}/${ed}`;
-  }).filter(Boolean).join('、');
+  return _windowsLabel(windows);
 }

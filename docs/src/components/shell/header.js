@@ -3,16 +3,17 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261031a';
-import { getBasePath } from '../../core/base/utils.js?v=20261031a';
-import { icon } from '../../core/base/icons.js?v=20261031a';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261031a';
-import { badgeHtml } from '../ui/badges.js?v=20261031a';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261031a';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261120a';
+import { getBasePath } from '../../core/base/utils.js?v=20261120a';
+import { pageHref } from '../../core/base/page-url.js?v=20261120a';
+import { icon } from '../../core/base/icons.js?v=20261120a';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261120a';
+import { badgeHtml } from '../ui/badges.js?v=20261120a';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261120a';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261031a';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261120a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261120a';
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
 // （auth→runtime→mock→domain 全量约 50 模块），通知铃首次点击或 app 模式渲染后按需加载。
@@ -20,18 +21,18 @@ import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261031a');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261120a');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261031a');
+  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261120a');
   return _noticeModule;
 }
 // 2026-09-30 批次 297-2：跨台通用动作「一键汇报」收进顶栏唯一固定位 ⇒ 顶栏按需加载其入口模块
 // （与 auth / notice 同一策略：静态壳页不加载，app 模式渲染后加载，模块缓存后即时）
 let _reportEntryModule = null;
 function loadReportEntry() {
-  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261031a');
+  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261120a');
   return _reportEntryModule;
 }
 
@@ -80,7 +81,10 @@ const PAGE_NAME = _STATIC_PAGE_TITLE.split(DOC_TITLE_SEP)[0].trim();
 /** 刷新浏览器标签页标题（组织名由调用方传入 = getHeaderTitle 结果；页面名取静态 <title> 快照） */
 function _applyDocumentTitle(orgTitle) {
   if (typeof document === 'undefined' || !document) return;
-  const next = PAGE_NAME ? `${PAGE_NAME}${DOC_TITLE_SEP}${orgTitle}` : orgTitle;
+  // 页面名与组织名同值（未登录首页：静态 title 已是平台品牌）时不重复拼成「品牌 — 品牌」
+  const next = (!PAGE_NAME || PAGE_NAME === orgTitle)
+    ? orgTitle
+    : `${PAGE_NAME}${DOC_TITLE_SEP}${orgTitle}`;
   if (document.title !== next) document.title = next;
 }
 
@@ -128,6 +132,13 @@ function _noticeListFilter(extra = {}) {
 async function _renderNotificationBadge() {
   const bell = document.getElementById('notification-bell');
   if (!bell) return;
+  // 2026-11-07 批次 535：未登录不加载通知数据链，也不显示角标（读侧已 fail-closed）。
+  if (!readLoginSnapshot()?.role) {
+    const stale = bell.querySelector('#notif-badge');
+    if (stale) stale.remove();
+    document.getElementById('notif-btn')?.setAttribute('aria-label', '通知');
+    return;
+  }
   let NoticeStore;
   try {
     ({ NoticeStore } = await loadNotice());
@@ -147,11 +158,11 @@ async function _renderNotificationBadge() {
     // 2026-09-29 批次 285 立「红底数字小圆」（支书：「参考微信消息提醒的做法」）；
     //   **批次 294 支书复议**：「我更喜欢金色，因为背景是党建红了对比不明显」——顶栏是**深红底**
     //   （本文件 `_roleLabelHTML` 注：「整个 header（深红底白字）」）⇒ 红角标与底同色系、对比不足。
-    //   ⇒ 改**党徽金底 + 深字**（金 `--party-gold` / 深字 `text-amber-800`，与 `badgeHtml(..., 'gold')` 同源字色）。
+    //   ⇒ 改**党徽金底 + 深字**（金 `--party-gold` / 深字 `text-[var(--status-warning-text)]`，与 `badgeHtml(..., 'gold')` 同源字色）。
     //   口径升为「**计数小圆底色随宿主背景**」：**深红底 ⇒ 金**；**白 / 浅底（如首页卡片内那些） ⇒ 红**（沿用 `--party-red`）。
     //   仍走令牌与 Tailwind 工具类，**不落 hex 字面量**。
     badge.style.cssText = 'position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:9999px;background:var(--party-gold);font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 4px;';
-    badge.classList.add('text-xs', 'text-amber-800');
+    badge.classList.add('text-xs', 'text-[var(--status-warning-text)]');
     bell.appendChild(badge);
   }
 }
@@ -182,10 +193,13 @@ async function _refreshHeaderTitle() {
   const shortEl = titleEl.querySelector('.header-title-short');
   if (fullEl && shortEl) {
     if (fullEl.textContent !== title) fullEl.textContent = title;
-    const short = title.includes('党支部') && title.length > 6 ? `${title.slice(0, 2)}党支部` : title;
-    if (shortEl.textContent !== short) shortEl.textContent = short;
+    // C-14：390px 顶栏不再截成「前两字 + 党支部」——显示完整支部名，放不下由 h1 的 ellipsis 截断，
+    //   完整名仍可从 title 提示读到（不改变支部名语义）。
+    if (shortEl.textContent !== title) shortEl.textContent = title;
+    titleEl.setAttribute('title', title);
   } else if (titleEl.textContent !== title) {
     titleEl.textContent = title;
+    titleEl.setAttribute('title', title);
   }
   _applyDocumentTitle(title);
 }
@@ -213,10 +227,12 @@ function _loginEntryHTML() {
 function _notificationBellHTML() {
   // 角标由 _renderNotificationBadge() 在数据层加载后异步补充
   // （静态壳页不加载数据链 → 无角标；app 页渲染后即时补上，无感知延迟）
+  // 铃铛笔触取 `--app-accent-strong-ink-light`（七主题恒 #FFFFFF，顶栏深红底专用白，同 #app-header 焦点环口径）；
+  // 不能靠 currentColor 继承——宿主 `.btn-neutral` 的文字色是 --neutral-700，深红底上不可见。
   return `
     <div id="notification-bell" style="position:relative;">
-      <button id="notif-btn" class="btn-neutral btn-icon header-icon-btn" aria-label="通知" aria-haspopup="true" aria-expanded="false" aria-controls="notif-dropdown" style="width:40px;height:40px;">
-        ${icon('bell', { stroke: '#FFFFFF', className: 'w-4 h-4', extra: ' aria-hidden="true"' })}
+      <button id="notif-btn" class="btn-neutral btn-icon header-icon-btn" aria-label="通知" aria-haspopup="true" aria-expanded="false" aria-controls="notif-dropdown">
+        ${icon('bell', { stroke: 'var(--app-accent-strong-ink-light)', className: 'w-4 h-4', extra: ' aria-hidden="true"' })}
       </button>
       <div id="notif-dropdown" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;width:320px;background:var(--surface-card);border-radius:var(--radius-sm);box-shadow:var(--shadow-dropdown);z-index:100;overflow:hidden;border:1px solid var(--neutral-200);"></div>
     </div>
@@ -246,12 +262,11 @@ export async function renderHeader(activeModule, opts = {}) {
   // P1 软编码 + 2026-09-09 支部归属显式化：支部名随配置档案（getBoundBranch 有效归属 → config.headerTitle）；
   //   登录但无有效归属支部（branchId 空/查无）→ 中性占位「未绑定支部」（不再泄漏示例支部名）；
   //   分支数据尚未加载（时序）→ 静态兜底名（getHeaderTitle 内处理），数据到达后由 _refreshHeaderTitle 归还真实支部名；
-  //   未登录静态壳（personId 缺省）→ 中性占位「示例组织（未登录）」。
+  //   未登录静态壳（personId 缺省）→ 公共平台品牌「光华管理学院党建平台」（不显示具体支部名）。
   const headerTitle = getHeaderTitle(personId || undefined, { role });
-  // 390px 顶栏只留可读短名：取前两字 + 「党支部」，避免被压成「光…」。
-  const shortHeaderTitle = headerTitle.includes('党支部') && headerTitle.length > 6
-    ? `${headerTitle.slice(0, 2)}党支部`
-    : headerTitle;
+  // C-14：390px 顶栏显示完整支部名（不再取前两字拼「党支部」）；放不下由 h1 的 ellipsis 截断，
+  //   title 属性保留全名，语义不因窄屏改变。
+  const shortHeaderTitle = headerTitle;
   // 2026-09-23：浏览器标签页标题同源刷新（渲染路径；未登录/登出后重绘即回到「示例组织（未登录）」）
   _applyDocumentTitle(headerTitle);
 
@@ -265,9 +280,10 @@ export async function renderHeader(activeModule, opts = {}) {
       </div>
       <div class="header-title">
         <!-- h1 无归属态即显示「未绑定支部」中性占位（getHeaderTitle 收敛）；不加点击引导（二期候选 b 登记：可考虑引导去党委确认归属） -->
-        <h1 class="font-title-cn"><span class="header-title-full">${headerTitle}</span><span class="header-title-short">${shortHeaderTitle}</span></h1>
+        <h1 class="font-title-cn" title="${headerTitle}"><span class="header-title-full">${headerTitle}</span><span class="header-title-short">${shortHeaderTitle}</span></h1>
       </div>
       <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
+        <span id="branch-view-slot"></span>
         ${role ? _roleLabelHTML(role) : _loginEntryHTML()}
         ${personId && role !== 'party-staff' ? `<a href="${getBasePath()}person.html" id="header-my-profile" class="header-action-btn" style="display:inline-flex;align-items:center;text-decoration:none;">我的档案</a>` : ''}
         <span id="header-cta-slot"></span>
@@ -283,6 +299,13 @@ export async function renderHeader(activeModule, opts = {}) {
 
   // app 模式：渲染后立即按需加载通知模块 → 计算未读角标（模块缓存后即时、无感知）
   if (!staticShell) {
+    // T14（2026-11-15）：党委进入支部只读查看时，顶栏常驻「正在查看 X 支部」＋ 一键退出。
+    //   只读本身由服务端强制；本处只渲染可见性，非党委身份不加载该模块。
+    if (role === 'party-staff') {
+      import('../../services/core/branch-view.js?v=20261120a')
+        .then((m) => m.renderBranchViewBanner(header, { role }))
+        .catch(() => {});
+    }
     loadNotice().then(() => _renderNotificationBadge()).catch(() => {});
     // 2026-09-30 批次 297-2（支书裁「页头只留 1 枚本台主 CTA；跨台通用动作收进全局固定位」）：
     //   「一键汇报」由「常驻 5 台页头」收成**全站唯一固定位**＝本顶栏；未登录（无 personId）不渲染。
@@ -384,6 +407,11 @@ function _bindNotificationBell(header) {
     dropdown.classList.toggle('hidden');
     btn.setAttribute('aria-expanded', String(!dropdown.classList.contains('hidden')));
     if (!dropdown.classList.contains('hidden')) {
+      // 2026-11-07 批次 535：未登录不加载通知数据链（读侧 fail-closed，匿名无可见通知）。
+      if (!readLoginSnapshot()?.role) {
+        dropdown.innerHTML = emptyStateHtml({ text: '登录后可查看通知', variant: 'inline' });
+        return;
+      }
       // 首次点击时按需加载通知数据链（静态壳页点开铃铛才会加载，平时零依赖）
       let NoticeStore;
       try {
@@ -418,7 +446,7 @@ function _bindNotificationBell(header) {
              style="padding:12px;cursor:pointer;transition:background-color var(--motion-feedback) var(--ease-standard);">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
             ${priorityBadge[n.priority] || ''}
-            ${n.source === 'committee' ? '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>' : ''}
+            ${n.source === 'committee' ? '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:11px;line-height:16px;flex-shrink:0;">党委下发</span>' : ''}
             ${n.kind === 'message' ? badgeHtml('私信', 'brand') : ''}
             <p style="color:var(--neutral-700);margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" class="text-body-sm">${n.title || n.content}</p>
             <button class="btn-outline notif-mark-read text-xs px-1.5 py-0.5" data-notice-id="${n.id}" style="color:var(--status-info-text);flex-shrink:0;">已读</button>
@@ -453,7 +481,7 @@ function _bindNotificationBell(header) {
       dropdown.querySelectorAll('.notif-dropdown-item').forEach(item => {
         const open = () => {
           const id = item.dataset.noticeId;
-          if (id) window.location.href = `${getBasePath()}notice.html?id=${encodeURIComponent(id)}`;
+          if (id) window.location.href = pageHref(`${getBasePath()}notice.html?id=${encodeURIComponent(id)}`);
         };
         item.addEventListener('click', (ev) => {
           ev.stopPropagation();
@@ -480,11 +508,12 @@ function _bindNotificationBell(header) {
     }
   });
 
-  // ESC 关闭下拉
+  // ESC 关闭下拉（R5A-24：关闭后把焦点还给触发铃铛，不让焦点留在被隐藏节点里）
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
       dropdown.classList.add('hidden');
       btn.setAttribute('aria-expanded', 'false');
+      btn.focus();
     }
   });
 }

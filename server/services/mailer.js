@@ -10,7 +10,11 @@
 
 import nodemailer from 'nodemailer';
 
-const RETRY_DELAYS_MS = [60_000, 300_000, 1_800_000]; // 1min / 5min / 30min
+const RETRY_DELAYS_MS = (process.env.MAIL_RETRY_DELAYS_MS || '60000,300000,1800000')
+  .split(',')
+  .map((value) => Number(value))
+  .filter((value) => Number.isFinite(value) && value >= 0); // 演练可注入 0,0,0；缺省与原口径一致（1min / 5min / 30min）
+const CONNECTION_TIMEOUT_MS = Number(process.env.SMTP_CONNECTION_TIMEOUT_MS || 120000);
 
 const config = {
   enabled: process.env.MAIL_ENABLED === 'true',
@@ -34,6 +38,7 @@ function getTransporter() {
       port: config.port,
       secure: config.tls,
       auth: { user: config.user, pass: config.pass },
+      connectionTimeout: CONNECTION_TIMEOUT_MS,
     });
     return _transporter;
   } catch (e) {

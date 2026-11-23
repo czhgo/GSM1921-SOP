@@ -10,30 +10,28 @@
 //  · 提交表单新增期次（period）手填下拉（缺省 = 当前期次）；
 //  · 「我的汇报」按期次分组，逐篇点击跳**独立阅读页** docs/thought-report.html——
 //    只读正文与「修改重交」均收敛到该页，本 tab 不再行内展开/就地编辑。
-import { AuthStore } from '../../../services/core/auth.js?v=20261031a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261120a';
 import {
   addThoughtReport, listThoughtReportsByPersonGrouped,
   wordCountHint, wordHint, wordSoftMin, periodOf, periodOptions,
-} from '../../../services/governance/thought-report.js?v=20261031a';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261031a';
+} from '../../../services/governance/thought-report.js?v=20261120a';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261120a';
 // 统一检索引擎（支书 2026-09-14 裁定）：按期次分组子列表复用其分页（无 keyword/facets → 不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261031a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261120a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261120a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261120a';
 // ── 状态徽标（与服务层 _effective 同语义：无状态 / 状态非法 / 旧 'pending' → 已入库）──
 const STATUS_META = {
-  needs_revision: { label: '已打回·待补充', cls: 'bg-red-100 text-red-700' },
-  archived:       { label: '已入库', cls: 'bg-green-100 text-green-700' },
+  needs_revision: { label: '已打回·待补充', tone: 'danger' },
+  archived:       { label: '已入库', tone: 'success' },
 };
 
 const _effStatus = (r) => (STATUS_META[r && r.reviewStatus] ? r.reviewStatus : 'archived');
 const _dateTime = (iso) => { const s = (iso || ''); return s.length >= 16 ? s.slice(0, 16).replace('T', ' ') : s; };
 
-const _statusBadgeHtml = (status) => {
-  const m = STATUS_META[status];
-  return `<span class="text-xs px-1.5 py-0.5 rounded-full font-medium ${m.cls}">${m.label}</span>`;
-};
+const _statusBadgeHtml = (status) => badgeHtml(STATUS_META[status].label, STATUS_META[status].tone);
 
 export function renderContent(ctx, host) {
   const tc = host || document.getElementById('visitor-tab-content');
@@ -65,11 +63,11 @@ export function renderContent(ctx, host) {
 
     tc.innerHTML = `
       ${host ? '' : renderTabHeader({ title: '思想汇报', description: '按期次提交与回看；提交即入库归档。' })}
-      <div class="card rounded-xl p-5 mb-3">
+      <div class="card rounded-xl card-standard mb-3">
         <p class="text-sm font-semibold text-gray-800">我的思想汇报</p>
         <p class="text-xs text-gray-500 mt-0.5">已提交 ${total} 篇</p>
       </div>
-      <div class="card rounded-xl p-5 mb-3">
+      <div class="card rounded-xl card-standard mb-3">
         <p class="text-xs font-medium text-gray-600 mb-2">提交思想汇报</p>
         <div class="flex items-center gap-2 mb-2">
           <span class="text-xs text-gray-500 flex-shrink-0">期次</span>
@@ -105,7 +103,7 @@ export function renderContent(ctx, host) {
                   <span class="text-xs text-gray-500 flex-shrink-0">${_dateTime(r.submittedAt)}</span>
                   <span class="text-xs text-gray-500 tabular-nums flex-shrink-0">${wc.count} 字</span>
                   ${wc.level === 'short'
-                    ? '<span class="text-xs text-amber-700 flex-shrink-0">篇幅不足</span>'
+                    ? '<span class="text-xs text-[var(--status-warning-text)] flex-shrink-0">篇幅不足</span>'
                     : ''}
                   ${_statusBadgeHtml(_effStatus(r))}
                 </a>`;

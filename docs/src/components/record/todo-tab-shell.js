@@ -19,31 +19,41 @@
 // 视觉沿用 card/rounded 既有体系（四档列表渲染在 components/record/todo-list.js renderUrgencyTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261031a';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261120a';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261031a';
-import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261031a';
-import { badgeHtml } from '../ui/badges.js?v=20261031a';
-import { icon } from '../../core/base/icons.js?v=20261031a';
-import { showToast, escHtml, todayLocal, flashHighlight, getBasePath, smoothScroll } from '../../core/base/utils.js?v=20261031a';
-import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261031a';
-import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { mockDB } from '../../core/domain/domain.js?v=20261031a';
-import { tokenOf } from '../../core/base/version-token.js?v=20261031a'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261031a';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261031a'; // P2 渲染守卫（spec §四.1）
-import { renderTabHeader } from '../shell/page-frame.js?v=20261031a'; // 页题单一源（H2）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261120a';
+import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261120a';
+import { badgeHtml } from '../ui/badges.js?v=20261120a';
+import { icon } from '../../core/base/icons.js?v=20261120a';
+import { showToast, escHtml, todayLocal, flashHighlight, getBasePath, smoothScroll } from '../../core/base/utils.js?v=20261120a';
+import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261120a';
+import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { mockDB } from '../../core/domain/domain.js?v=20261120a';
+import { tokenOf } from '../../core/base/version-token.js?v=20261120a'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261120a';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261120a'; // P2 渲染守卫（spec §四.1）
+import { renderTabHeader } from '../shell/page-frame.js?v=20261120a'; // 页题单一源（H2）
+// 批次 540 波次 1：PendingTarget 消费下沉到本壳（report / member / group / inspection / attendance 统一），
+//   清理时机与「?highlight=」深链一致——渲染完成即一次性消费，重渲染不再残留。
+import { PendingTarget } from '../../core/session/pending-target.js?v=20261120a';
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261031a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261120a';
+// 待办「实时派生组」服务端只读端点（批次 532 · B-500-7 最小 Plan B）：
+//   批次 534（B-500-7b-1 Task 9）起**服务端为默认来源**——api 形态取服务端派生组，客户端只做展示派生
+//   （分档 / 排序 / 格式化 / 筛选 / 折叠）；mock 形态 / 服务端读取失败才回落客户端派生（兜底）。
+import { getAdapter, getDataSource } from '../../data/data-adapter.js?v=20261120a';
+// 7 键实时组映射（服务端 Task 8 同源消费）：用于声明「服务端已接管」的动作键集合
+import { DERIVE_GROUP_DOMAIN } from '../../core/domain/todo-derive.js?v=20261120a';
 
 // ── 「我经办的反馈」区（2026-10-25 IA 62→45 · spec Task 5）──────────────
 // 五台原「我的处置」页签已删（与待办同属「我的待处理」，只是对象为反馈）⇒ 并入本页成一段。
 // 实现单一源＝`components/feedback/issue-dispatch-view.js`（embedded 形态：不渲染第二张页头 H2，
 // 列表 / 详情 / 评论 / 提交处置结果一字未改，不复制第二套）。
 // 旧深链 `?tab=my-dispatch` 由工作台壳落 `todo&filter=dispatch`（本区据此滚到视野）。
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261120a';
+import { renderCardHeader } from '../shell/page-frame.js?v=20261120a';
 const DISPATCH_SECTION_BY_ROLE = {
   'org-commissioner': { roleKey: 'org-commissioner', opts: {} },
   'prop-commissioner': { roleKey: 'prop-commissioner', opts: {} },
@@ -76,7 +86,7 @@ const _COMBO_LEN_KEYS = [
   ['memberChangeRequests', 'memberChangeRequests'],
   ['notice', 'notices'],
 ];
-function _comboKeyOf(role) {
+function _comboKeyOf(role, retrySeq = 0) {
   const parts = _COMBO_LEN_KEYS.map(([tok, arr]) => {
     const len = arr ? (Array.isArray(mockDB[arr]) ? mockDB[arr].length : '') : '';
     return len === '' ? `${tok}=${tokenOf(tok)}` : `${tok}=${tokenOf(tok)}+${len}`;
@@ -85,6 +95,8 @@ function _comboKeyOf(role) {
   parts.push(`member=${tokenOf('member')}`);
   parts.push(`day=${todayLocal()}`);
   parts.push(`role=${role}`);
+  // 失败兜底后的「重试」（Task 9）：键内加序号 ⇒ 绕过组合缓存与渲染守卫，重新取服务端派生组
+  parts.push(`retry=${retrySeq}`);
   // 「到人」定向（批次 428）：本人身份入复合键 —— 同一 tab 内换登录身份（开发身份卡）不得命中上一位的组合缓存
   const _me = AuthStore.getCurrentUser && AuthStore.getCurrentUser();
   parts.push(`p=${(_me && (_me.personId || _me.id)) || ''}`);
@@ -119,6 +131,140 @@ function _moduleCycleGroupsFor(role) {
 // ≥lg = 现有双栏（列表 2/3 + 详情 1/3）。只用于「是否自动选中 / 是否渲染详情列」，
 // 不改数据与查询链。
 const TODO_DESKTOP_QUERY = '(min-width: 1024px)';
+/** 服务端实时组取用告警（每页只 warn 一次；失败后回落客户端派生，不把页面打空） */
+let _serverRealtimeGroupsWarned = false;
+
+/**
+ * 服务端已接管的实时组动作键（批次 534 · B-500-7b-1 Task 9；批次 539 增纪检确认队列）。
+ * 单一源：7 类＝`core/domain/todo-derive.js::DERIVE_GROUP_DOMAIN`（服务端 Task 8 同源消费）；
+ *   另 3 类（发展节点 / 半年考察 / 模块周期）＝批次 532 起服务端已算，键名见 `server/routes/todo-groups.js`；
+ *   纪检「考勤 / 考察待确认」＝批次 539 起服务端派生（`deriveAttendanceConfirmGroup` / `deriveInspectionConfirmGroup`）。
+ * 服务端成功时这些键**只以服务端结果为准**：客户端不再派生、也不并入同键组（防同组双卡 / 计数失真）。
+ */
+export const SERVER_OWNED_ACTION_KEYS = new Set([
+  ...Object.keys(DERIVE_GROUP_DOMAIN),
+  'develop-node-remind',
+  'half-year-inspection-remind',
+  'module-cycle-remind',
+  'attendance-confirm',
+  'inspection-confirm',
+]);
+
+/**
+ * 服务端实时派生组读取（批次 532 · B-500-7；Task 9 起为**默认来源**）。
+ * 三种状态：`ok`（拿到响应，含空数组）/ `unavailable`（mock 数据源 / 无登录人 / 适配器无该方法，
+ *   属正常形态，不算失败）/ `failed`（api 形态请求抛错 ⇒ 回落客户端兜底 + 可见失败提示）。
+ * 失败只 `console.warn` 一次（每页），不抛错、不把页面打空。
+ * @param {string} role 本壳角色键
+ * @returns {Promise<{status:'ok'|'unavailable'|'failed', groups:Array<Object>}>}
+ */
+async function _fetchServerRealtimeGroups(role) {
+  if (getDataSource() !== 'api') return { status: 'unavailable', groups: [] };
+  const me = AuthStore.getCurrentUser && AuthStore.getCurrentUser();
+  const personId = me && (me.personId || me.id);
+  if (!personId) return { status: 'unavailable', groups: [] };
+  let adapter = null;
+  try { adapter = getAdapter(); } catch (_) { return { status: 'unavailable', groups: [] }; }
+  const api = adapter && adapter.todoGroups;
+  if (!api || typeof api.get !== 'function') return { status: 'unavailable', groups: [] };
+  try {
+    const payload = await api.get({ role, personId });
+    const groups = payload && Array.isArray(payload.groups) ? payload.groups : [];
+    return { status: 'ok', groups: groups.filter((g) => g && g.groupKey) };
+  } catch (e) {
+    if (!_serverRealtimeGroupsWarned) {
+      _serverRealtimeGroupsWarned = true;
+      console.warn('[todo-tab] 服务端实时组读取失败，已回落客户端派生：', (e && e.message) || e);
+    }
+    return { status: 'failed', groups: [] };
+  }
+}
+
+/**
+ * 服务端组的**展示派生**：7 类实时组在客户端原本 `hideActionBtn`（无行尾直接动作，
+ *   动作承载于详情 / 批量块）——服务端载荷只带业务字段，这里按同口径补回。
+ * 不碰 groupKey / count / items / domain（业务事实一律以服务端为准）。
+ * @param {Object} group 服务端组
+ * @returns {Object}
+ */
+function _decorateServerGroup(group) {
+  if (!group || typeof group !== 'object') return group;
+  const key = group.actionKey || String(group.groupKey || '').split(':').pop();
+  return DERIVE_GROUP_DOMAIN[key] ? { ...group, hideActionBtn: true } : group;
+}
+
+/** 同 groupKey 只留首条（服务端在前 ⇒ 服务端优先），防同组双卡 / 重复计数 */
+function _dedupeByGroupKey(groups) {
+  const seen = new Set();
+  const out = [];
+  for (const g of groups || []) {
+    if (!g || typeof g !== 'object') continue;
+    if (g.groupKey) {
+      if (seen.has(g.groupKey)) continue;
+      seen.add(g.groupKey);
+    }
+    out.push(g);
+  }
+  return out;
+}
+
+// 2026-11-21 批次 589 · B-500-7b-2：客户端派生兜底计数（只读仪表）。
+//   默认路径（服务端 ok）不得自增；仅 mock 数据源 / 服务端失败时自增。真机可读 `window.__TODO_DERIVE_FALLBACK__()`。
+let _deriveFallbackCount = 0;
+export function deriveFallbackCount() { return _deriveFallbackCount; }
+try {
+  if (typeof window !== 'undefined') window.__TODO_DERIVE_FALLBACK__ = deriveFallbackCount;
+} catch (_) { /* 非浏览器环境忽略 */ }
+
+/**
+ * 实时组收集（Task 9：**服务端默认 + 客户端仅失败兜底**）。
+ *  ① 服务端成功（含空组）：业务组只取服务端；客户端只补「服务端不产出」的展示用组
+ *     （如归档缺口 / 复盘缺口 / 各台确认队列 / 作废待确认），并以 `skipActionKeys` 声明
+ *     **不必再派生服务端已接管的键**（默认路径不调用 7 类业务 builder）。
+ *  ② mock 数据源 / 服务端读取失败：客户端派生兜底——只用**同一份已拉取业务数据**
+ *     （mockDB / 适配器缓存），不新造业务事实；失败时回 `error` 供页面显示可见提示（不得静默空页）。
+ * @param {Object} opts
+ * @param {string} opts.role
+ * @param {Object} [opts.ctx] 渲染上下文
+ * @param {(ctx:Object, opts:Object)=>Array} [opts.buildRealtimeGroups] 各台客户端派生（兜底 + 非接管组）
+ * @param {(ctx:Object, groups:Array)=>Array} [opts.decorateServerGroups] 各台展示补充（bulkHtml / detailAction 等）
+ * @param {(role:string)=>Promise<{status:string, groups:Array}>} [opts.fetchServerGroups] 测试注入用
+ * @param {(role:string)=>Array} [opts.moduleCycleGroups] 测试注入用（缺省＝本壳模块周期提醒）
+ * @returns {Promise<{groups:Array<Object>, source:'server'|'client', error:string|null}>}
+ */
+export async function collectRealtimeGroups({
+  role,
+  ctx,
+  buildRealtimeGroups,
+  decorateServerGroups,
+  fetchServerGroups = _fetchServerRealtimeGroups,
+  moduleCycleGroups = _moduleCycleGroupsFor,
+} = {}) {
+  const server = await fetchServerGroups(role);
+  if (server.status === 'ok') {
+    const decorated = (server.groups || []).map(_decorateServerGroup);
+    const withDisplay = typeof decorateServerGroups === 'function'
+      ? (decorateServerGroups(ctx, decorated) || decorated)
+      : decorated;
+    // 客户端只补服务端不产出的组（展示用）；服务端已接管的键一律不并入
+    const clientGroups = buildRealtimeGroups
+      ? (buildRealtimeGroups(ctx, { skipActionKeys: SERVER_OWNED_ACTION_KEYS }) || [])
+      : [];
+    const supplements = clientGroups.filter((g) => g && !SERVER_OWNED_ACTION_KEYS.has(g.actionKey));
+    return { groups: _dedupeByGroupKey([...withDisplay, ...supplements]), source: 'server', error: null };
+  }
+  // 兜底：客户端派生（原路径不删；Task 10 才登记删除）
+  _deriveFallbackCount += 1; // 仅此一处自增（守卫 `todo-derive-instrument-guard` 锁定）
+  const clientGroups = buildRealtimeGroups ? (buildRealtimeGroups(ctx) || []) : [];
+  const cycle = typeof moduleCycleGroups === 'function' ? (moduleCycleGroups(role) || []) : [];
+  return {
+    groups: _dedupeByGroupKey([...clientGroups, ...cycle]),
+    source: 'client',
+    error: server.status === 'failed' ? '待办实时信息暂时加载失败' : null,
+  };
+}
+
+
 function _isTodoDesktopLayout() {
   try {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return true;
@@ -151,47 +297,131 @@ function _resolveNavHighlightId(ctx) {
 }
 
 /**
- * 深链定位执行（F03/F07）：按 groupKey / 成员变更申请 id 找 DOM 锚点。
- * 命中 → 滚动 + 闪烁；未命中 → 页内可见提示（不得静默落默认列表）。
- * @param {HTMLElement} container 待办容器
- * @param {string} id 深链 highlight 值
- * @param {Object|null} matchedGroup 数据侧匹配到的聚合组（用于更准确的失败文案）
+ * 待办页内定位选择器（按 PendingTarget.kind 分派；契约 §三 report / member / group / inspection / attendance）。
+ * 顺序＝业务锚点优先、`data-id` 兜底；同一个 id 在别的语义里串味时由业务锚点先命中。
  */
-function _applyNavHighlight(container, id, matchedGroup) {
-  const selectors = [
-    `[data-group-key="${id}"]`,
-    `[data-mc-request-id="${id}"]`,
-    `[data-mc-card="${id}"]`,
-    `[data-id="${id}"]`,
-  ];
-  let target = null;
-  for (const sel of selectors) {
-    try { target = container.querySelector(sel); } catch (_) { target = null; }
-    if (target) break;
-  }
-  if (target) {
-    const row = target.closest('[data-group-key]') || target;
-    smoothScroll(row, { block: 'center' });
-    flashHighlight(target);
-    return;
-  }
+const PENDING_KIND_SELECTORS = {
+  report: (id) => [`#rep-inbox-detail-${id}`, `[data-report-id="${id}"]`, `[data-rq-id="${id}"]`],
+  member: (id) => [`[data-person-id="${id}"]`, `[data-mc-request-id="${id}"]`, `[data-mc-card="${id}"]`, `[data-id="${id}"]`],
+  group: (id) => [`[data-group-key="${id}"]`, `[data-tf-id="${id}"]`, `[data-id="${id}"]`],
+  inspection: (id) => [`[data-inspection-id="${id}"]`, `[data-person-id="${id}"]`, `[data-group-key="${id}"]`, `[data-id="${id}"]`],
+  attendance: (id) => [`[data-att-record-row="${id}"]`, `[data-att-record-id="${id}"]`, `[data-id="${id}"]`],
+};
+const PENDING_DEFAULT_SELECTORS = (id) => [
+  `[data-group-key="${id}"]`,
+  `[data-mc-request-id="${id}"]`,
+  `[data-mc-card="${id}"]`,
+  `[data-id="${id}"]`,
+];
+
+/** 在容器顶部插入一条显式提示（`kind` 一律 `data-*`，不写死文案到调用点） */
+function _insertTargetHint(container, text) {
+  if (!container) return;
+  container.querySelectorAll('[data-nav-target-missing]').forEach((el) => el.remove());
   const hint = document.createElement('div');
-  hint.dataset.navHighlightMissing = '1';
+  hint.dataset.navTargetMissing = '1';
   hint.setAttribute('role', 'status');
-  hint.className = 'card rounded-xl p-3 mb-4 text-xs text-amber-800 bg-amber-50 border border-amber-200';
-  hint.textContent = matchedGroup
-    ? `已定位到「${matchedGroup.title}」，但该条明细已处理或已移出列表。`
-    : '未找到该待办（可能已处理）。';
+  hint.className = 'card rounded-xl p-3 mb-4 text-xs text-[var(--status-warning-text)] bg-amber-50 border border-amber-200';
+  hint.textContent = text;
   container.prepend(hint);
 }
 
 /**
- * 顶部四数摘要（逾期 / 今日 / 本周 / 待处理）——数字组单一语法（2026-10-29 P2）：
+ * 深链定位：按 kind / id 找 DOM 锚点（纯查找，不产生副作用；未命中返回 null）。
+ * 顺序＝业务锚点优先、`data-id` 兜底；同一个 id 在别的语义里串味时由业务锚点先命中。
+ * @param {HTMLElement} container 待办容器
+ * @param {string} id 深链 highlight 值
+ * @param {string} [kind] PendingTarget.kind（缺省＝全选择器兜底）
+ * @returns {HTMLElement|null}
+ */
+function _findNavAnchor(container, id, kind = '') {
+  const selectors = (PENDING_KIND_SELECTORS[kind] || PENDING_DEFAULT_SELECTORS)(id);
+  for (const sel of selectors) {
+    let target = null;
+    try { target = container.querySelector(sel); } catch (_) { target = null; }
+    if (target) return target;
+  }
+  return null;
+}
+
+/** 锚点命中后的落地：展开所在折叠区 + 滚动到视口中央 + 一次高亮 */
+function _settleNavAnchor(target) {
+  // 折叠区内的目标先展开（如页顶「待答复与未读通知」条、复盘收件箱）
+  const details = target.closest('details');
+  if (details && !details.open) details.open = true;
+  if (target.classList && target.classList.contains('hidden')) target.classList.remove('hidden');
+  const row = target.closest('[data-group-key]') || target;
+  smoothScroll(row, { block: 'center' });
+  flashHighlight(target);
+}
+
+/**
+ * 深链定位执行（F03/F07 ＋ 批次 540 PendingTarget）：按 kind / id 找 DOM 锚点。
+ * 命中 → 展开所在折叠区 + 滚动 + 闪烁；未命中 → 页内可见提示（不得静默落默认列表）。
+ * @param {HTMLElement} container 待办容器
+ * @param {string} id 深链 highlight 值
+ * @param {Object|null} matchedGroup 数据侧匹配到的聚合组（用于更准确的失败文案）
+ * @param {string} [kind] PendingTarget.kind（缺省＝全选择器兜底）
+ * @returns {boolean} 是否命中
+ */
+function _applyNavHighlight(container, id, matchedGroup, kind = '') {
+  const target = _findNavAnchor(container, id, kind);
+  if (target) {
+    _settleNavAnchor(target);
+    return true;
+  }
+  _insertTargetHint(container, matchedGroup
+    ? `未定位到具体条目：「${matchedGroup.title}」下的该条明细已处理或已移出列表。`
+    : '未定位到具体条目：未找到该待办（可能已处理）。该条可能已移出列表。');
+  return false;
+}
+
+/**
+ * PendingTarget 一次性消费（批次 540 波次 1·下沉到壳）：
+ *   · 目标不属于本页（tab !== 'todo'）→ 原样留给目标页；
+ *   · 缺 id → 落页顶并显示「未定位到具体条目」（契约 §二 末条：禁止静默、禁止只 toast）；
+ *   · 有 id → 先按 kind 找业务锚点，再**壳内 `id → groupKey` 反查**（待办页以「组」为行：
+ *     组内条目 id / 待办本体 id 都收敛到所属组键再高亮）；未命中同样给显式提示。
+ * 取后即清（`consume`），重渲染不再重复定位。
+ */
+function _consumePendingTarget(container, allGroups) {
+  const pending = PendingTarget.peek();
+  if (!pending || pending.tab !== 'todo') return false;
+  const target = PendingTarget.consume();
+  if (!target) return false;
+  if (!target.id) {
+    _insertTargetHint(container, '未定位到具体条目（本次跳转未带对象编号），已落到待办页顶部。');
+    return true;
+  }
+  const matchedGroup = (allGroups || []).find(g => g.groupKey === target.id)
+    || (allGroups || []).find(g => Array.isArray(g.items) && g.items.some(it => it && (it.id === target.id || it.groupKey === target.id)))
+    || (allGroups || []).find(g => typeof g.bulkHtml === 'string' && g.bulkHtml.includes(target.id))
+    || null;
+  // ① 业务锚点优先（report / member / group / inspection / attendance 各自的 DOM 语义）
+  let anchor = _findNavAnchor(container, target.id, target.kind);
+  // ② 反查兜底：条目 id → 所属聚合组键（今天页 / 待办页传组键时也在此收敛）
+  if (!anchor && matchedGroup && matchedGroup.groupKey) {
+    anchor = _findNavAnchor(container, matchedGroup.groupKey, 'group');
+  }
+  if (anchor) {
+    container.querySelectorAll('[data-nav-target-missing]').forEach((el) => el.remove());
+    _settleNavAnchor(anchor);
+    return true;
+  }
+  _applyNavHighlight(container, target.id, matchedGroup, target.kind);
+  return true;
+}
+
+/**
+ * 顶部摘要（逾期 / 今日 / 本周 ＋ 待处理合计）——数字组单一语法（2026-10-29 P2）：
  * 图标块在左 ＋ 数值/标签在右两行，四列栅格（≤1024 两列）。
  * 数值由 buildUrgencySections 与列表共用同一批分组数据算出，不另立口径。
  * 只读卡：不挂 role=button / tabindex / card--interactive；
  * **仅逾期件数 > 0 时**加 `stat-card__value--warning`，0 件时保持中性
  * （颜色只表状态，不得恒加警示类）。
+ *
+ * 2026-11-04 Task 3.6：前三格是**互斥桶**（逾期 / 今日 / 本周），第四格是**合计**——
+ *   合计格不挂图标、并在标签下写明关系「＝逾期＋今日＋本周＋以后 N」，不再与三个桶同形并排。
  */
 function _urgencySummaryHtml(summary) {
   const item = (iconName, tint, label, value, tone) => `
@@ -203,12 +433,22 @@ function _urgencySummaryHtml(summary) {
       </div>
     </div>`;
   const overdueTone = (Number(summary.overdue) || 0) > 0 ? 'warning' : '';
+  const overdue = Number(summary.overdue) || 0;
+  const today = Number(summary.today) || 0;
+  const week = Number(summary.week) || 0;
+  const pending = Number(summary.pending) || 0;
+  const later = Math.max(0, pending - overdue - today - week);
   return `
-    <div class="stat-grid mb-4" role="group" aria-label="待办摘要">
-      ${item('warning', 'var(--status-warning-text)', '逾期', summary.overdue, overdueTone)}
-      ${item('clock', 'var(--status-info)', '今日', summary.today, '')}
-      ${item('calendar', 'var(--app-accent-soft-text)', '本周', summary.week, '')}
-      ${item('list', 'var(--neutral-500)', '待处理', summary.pending, '')}
+    <div class="stat-grid mb-4" role="group" aria-label="待办摘要" aria-live="polite">
+      ${item('warning', 'var(--status-warning-text)', '逾期', overdue, overdueTone)}
+      ${item('clock', 'var(--status-info-text)', '今日', today, '')}
+      ${item('calendar', 'var(--app-accent-soft-text)', '本周', week, '')}
+      <div class="card rounded-xl p-4 stat-card" title="合计＝逾期＋今日＋本周＋以后 ${later}">
+        <div class="stat-card__body">
+          <p class="stat-card__value">${pending}</p>
+          <p class="stat-card__label">待处理</p>
+        </div>
+      </div>
     </div>`;
 }
 
@@ -219,13 +459,17 @@ function _urgencySummaryHtml(summary) {
  * @param {string} opts.prefix              事件/选择器前缀（如 'org'）
  * @param {string} opts.role                待办角色键（getByRole/getUnreadNotices 用）
  * @param {(todo:Object, ctx:Object)=>void} opts.onAction  角色特有动作处理（必填）
- * @param {(ctx:Object)=>Array} [opts.buildRealtimeGroups] 各台自定义「不落库」实时聚合组
+ * @param {(ctx:Object, opts:Object)=>Array} [opts.buildRealtimeGroups] 各台自定义「不落库」实时聚合组
  *        （支书 SecretaryTodoDeriver 组/决议逾期/成员变更/纪检队列等；壳统一
  *        mergeRealtimeDomains 并入对应业务域；缺省=[] 纯持久化域视图）
  *        ——2026-09-08 裁决批一（D1/D3）：实时组可携带 bulkHtml（组行批量块，见 todo-list.js
  *        组行渲染扩展；勾选批量与详情逐项并行）与 hideActionBtn（批量组无行尾单键）；
  *        写口均须 bumpToken 对应域（memberChangeRequests/memberConfirmation 等）使
  *        _comboKeyOf 复合键变化 → 批量块内容随重建刷新。
+ *        ——2026-11-04 Task 9：服务端成功时第二个入参 `{ skipActionKeys }`（服务端已接管的键集合）
+ *        ⇒ 各台**不再派生这些键**，只返回服务端不产出的展示组；mock / 失败兜底时不传该参数。
+ * @param {(ctx:Object, groups:Array)=>Array} [opts.decorateServerGroups] 服务端组的**展示补充**
+ *        （如成员变更组的 bulkHtml、考察组的 detailAction；不得改 groupKey / count / items）
  * @param {(todo:Object, ctx:Object)=>string} [opts.renderDetail] 自定义详情渲染
  *        （支书按 kind/groupKey 分发；缺省=壳内置概要，主行动只留在行尾，详情不重复）
  * @param {async (ctx:Object)=>void} [opts.onBeforeRender] 渲染前钩子（seedTodos/异步预载；await）
@@ -255,10 +499,10 @@ function _urgencySummaryHtml(summary) {
  */
 function _dispatchSectionHtml(role) {
   if (!DISPATCH_SECTION_BY_ROLE[role]) return '';
-  return `<div class="card rounded-xl p-5 mt-4 card--static" id="ws-dispatch-section"
+  return `<div class="card rounded-xl card-standard mt-4 card--static" id="ws-dispatch-section"
     data-todo-dispatch="1">
     <div class="flex items-center justify-between mb-2">
-      <h3 class="font-title-cn text-base font-semibold text-gray-800">我经办的反馈</h3>
+      ${renderCardHeader({ title: `我经办的反馈` })}
     </div>
     <p class="text-xs text-gray-500 mb-3">支部派发的汇报与反馈在此处理；处理结果可回看。</p>
     <div id="ws-dispatch-host"></div>
@@ -275,7 +519,7 @@ function _mountDispatchSection(container, role, ctx) {
     host.innerHTML = emptyStateHtml({ variant: 'panel', text: '请先登录后使用', actionHtml: `<a class="btn-outline" href="${getBasePath()}login.html">去登录</a>` });
     return;
   }
-  import('../feedback/issue-dispatch-view.js?v=20261031a').then((m) => {
+  import('../feedback/issue-dispatch-view.js?v=20261120a').then((m) => {
     if (!host.isConnected) return;
     host.innerHTML = m.renderMyDispatchTab(cfg.roleKey, uid, { ...cfg.opts, embedded: true });
     m.bindMyDispatchEvents(host, cfg.roleKey, uid, cfg.opts);
@@ -298,6 +542,7 @@ export function createTodoTab(opts) {
     role,
     onAction,
     buildRealtimeGroups,
+    decorateServerGroups,
     renderDetail,
     onBeforeRender,
     onAfterRender,
@@ -323,9 +568,10 @@ export function createTodoTab(opts) {
   let _selectedTodoId = null;
   // P0 组合点记忆化（每实例自持：复合键未变 → 复用上次组合数据对象；只读契约，见 _comboKeyOf 注释）
   let _lastComboKey = null;
-  let _lastCombo = null; // { domains, allGroups, unreadNotices }
+  let _lastCombo = null; // { domains, allGroups, unreadNotices, realtimeError }
   let _stripOpen = true; // 页顶折叠条展开态（默认展开；重渲染后保留用户折叠）
   let _navHighlightDone = false; // 深链 highlight 一次性消费（重渲染不再重复定位/提示）
+  let _retrySeq = 0; // 服务端派生组读取失败后的「重试」次数（入复合键 ⇒ 绕过缓存重新取数）
 
   /** U3（2026-09-07）待办两栏等高骨架（await onBeforeRender/数据聚合期间占位；styles.css 禁改不碰）
    *  阶段一 Task 1：源码顺序＝列表 → 详情，窄屏骨架同样先列表（不再 order-first 把详情提到首屏）。 */
@@ -333,11 +579,11 @@ export function createTodoTab(opts) {
     const row = '<div class="h-9 rounded-lg bg-gray-100 animate-pulse"></div>';
     return `
       <div data-ws-todo-skeleton class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-2 card rounded-xl p-5" style="min-height:340px;">
+        <div class="lg:col-span-2 card rounded-xl card-standard" style="min-height:340px;">
           <div class="h-4 w-20 rounded bg-gray-100 animate-pulse mb-4"></div>
           <div class="space-y-2">${row}${row}${row}${row}${row}</div>
         </div>
-        <div class="lg:col-span-1 card rounded-xl p-5" style="min-height:220px;">
+        <div class="lg:col-span-1 card rounded-xl card-standard" style="min-height:220px;">
           <div class="h-4 w-12 rounded bg-gray-100 animate-pulse mb-4"></div>
           <div class="h-24 rounded-lg bg-gray-100 animate-pulse"></div>
         </div>
@@ -375,7 +621,7 @@ export function createTodoTab(opts) {
               <dd class="text-gray-700 tabular-nums">${todo.deadline}</dd>
             </div>` : ''}
           </dl>
-          ${todo.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.flow}</p>` : ''}
+          ${todo.flow ? `<p class="text-body-sm text-gray-600">${todo.flow}</p>` : ''}
           ${actionBtn ? `<div class="pt-3 border-t border-gray-100 flex gap-2">${actionBtn}</div>` : ''}
         </div>
       `;
@@ -404,7 +650,7 @@ export function createTodoTab(opts) {
         <dl class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
           <div>
             <dt class="text-gray-500">状态</dt>
-            <dd><span class="state-badge state-badge--${statusVariant}">${statusLabel}</span></dd>
+            <dd>${badgeHtml(statusLabel, statusVariant)}</dd>
           </div>
           ${todo.deadline ? `<div>
             <dt class="text-gray-500">截止</dt>
@@ -415,7 +661,7 @@ export function createTodoTab(opts) {
             <dd class="text-gray-700 tabular-nums">${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</dd>
           </div>
         </dl>
-        ${todo.description ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.description}</p>` : ''}
+        ${todo.description ? `<p class="text-body-sm text-gray-600">${todo.description}</p>` : ''}
         <div class="pt-3 border-t border-gray-100 flex gap-2">
           ${todo.actionType ? `<button type="button" class="btn-accent-soft btn-sm ${detailBtnClass}">处理</button>` : ''}
         </div>
@@ -462,9 +708,12 @@ export function createTodoTab(opts) {
     if (!extraHtml && !unreadHtml) return '';
     return `
       <div class="disclosure-host card rounded-xl mb-4 card--static">
-        <!-- 2026-10-31 支书补充（折叠头）：标题与计数同字级（14px）、同基线；标题行走 .disclosure__title
-             （min-height 44），summary 空内容覆盖整行 ⇒ 整行任意位置可点，展开 / 收起看右侧 chevron。 -->
-        <h3 class="disclosure__title font-title-cn text-sm px-4" id="todo-strip-title">
+        <!-- 2026-10-31 支书补充（折叠头）：标题与计数同基线；标题行走 .disclosure__title
+             （min-height 44），summary 空内容覆盖整行 ⇒ 整行任意位置可点，展开 / 收起看右侧 chevron。
+             2026-11-01（折叠头单一语法）：标题字号/字重/字族由 .disclosure__title 统一给出
+             （16/600/24 ＋ 标题字族），调用点只留内边距，不再用 font-title-cn / text-sm 覆盖；
+             计数是附注（14px 常规字重）。 -->
+        <h3 class="disclosure__title text-base px-4" id="todo-strip-title">
           待答复与未读通知
           ${count > 0 ? `<span class="text-sm font-normal text-gray-500 tabular-nums">${count}</span>` : ''}
         </h3>
@@ -481,6 +730,24 @@ export function createTodoTab(opts) {
   /** 窄屏选中待办后把详情卡滚入视野（详情卡渲染在列表之后，选中才出现） */
   function _scrollDetailIntoView() {
     smoothScroll(document.getElementById(containerId)?.querySelector('[data-ws-todo-detail]'), { block: 'start' });
+  }
+
+  /**
+   * 选行后的焦点归还（2026-11-04 批次 534）：整行重建会把焦点扔回 BODY，键盘用户丢失位置。
+   * 重渲染后把焦点还给新选中行（`preventScroll` —— 宽屏不因聚焦而跳动）；
+   * 宽屏不再把右栏详情滚入视野，窄屏详情在列表下方且选中才出现 ⇒ 仍滚一次。
+   * @param {string} groupKey 本次选中的组键
+   */
+  function _settleSelection(groupKey) {
+    const container = document.getElementById(containerId);
+    if (container && groupKey) {
+      let row = null;
+      try {
+        row = container.querySelector(`.${prefix}-todo-item[data-group-key="${String(groupKey).replace(/["\\]/g, '\\$&')}"]`);
+      } catch (_) { row = null; }
+      if (row && typeof row.focus === 'function') row.focus({ preventScroll: true });
+    }
+    if (!_isTodoDesktopLayout()) _scrollDetailIntoView();
   }
 
   async function renderContent(ctx) {
@@ -504,28 +771,31 @@ export function createTodoTab(opts) {
     TodoStore.refreshExpiredStatus();
 
     // P0 组合点记忆化：域视图数据（realtimeGroups 并入 + 未读通知）复合键未变 → 直接复用
-    const comboKey = _comboKeyOf(role);
+    const comboKey = _comboKeyOf(role, _retrySeq);
     let combo;
     if (comboKey === _lastComboKey && _lastCombo) {
       combo = _lastCombo;
     } else {
-      const rtGroups = buildRealtimeGroups ? (buildRealtimeGroups(ctx) || []) : [];
-      // 模块周期提醒（`R-29⑤` · `D-804`）：**各台通用**（不逐台接线）——按本台主体集取「有周期模块本期未开展」
-      rtGroups.push(..._moduleCycleGroupsFor(role));
+      // 批次 534（Task 9）：实时组**默认来源＝服务端**（api 形态）；客户端只补服务端不产出的展示组。
+      //   mock 形态 / 服务端读取失败 ⇒ 客户端派生兜底（同一份已拉取业务数据，不新造事实），
+      //   失败时回 `error`，由列表卡顶部给可见提示与「重试」（见 collectRealtimeGroups）。
+      const rt = await collectRealtimeGroups({
+        role, ctx, buildRealtimeGroups, decorateServerGroups, moduleCycleGroups: _moduleCycleGroupsFor,
+      });
       // 「到人」定向（批次 428 · `R-29⑤` 余项收口）：把「本人 personId」传进读链 ⇒ `personId` 非空的待办只给本人看
       const meNow = AuthStore.getCurrentUser && AuthStore.getCurrentUser();
-      const domains = TodoStore.mergeRealtimeDomains(role, rtGroups, { personId: meNow && (meNow.personId || meNow.id) });
+      const domains = TodoStore.mergeRealtimeDomains(role, rt.groups, { personId: meNow && (meNow.personId || meNow.id) });
       // 全部组（选中态查找；含持久化聚合组与并入的实时组）
       const allGroups = [];
       for (const d of domains) {
         if (Array.isArray(d.groups)) allGroups.push(...d.groups);
       }
       const unreadNotices = NoticeStore.list({ activeOnly: true }).filter(n => !n.read);
-      combo = { domains, allGroups, unreadNotices };
+      combo = { domains, allGroups, unreadNotices, realtimeError: rt.error };
       _lastComboKey = comboKey;
       _lastCombo = combo;
     }
-    const { domains, allGroups, unreadNotices } = combo;
+    const { domains, allGroups, unreadNotices, realtimeError } = combo;
 
     // F03/F07：通知深链 ?highlight=<groupKey|条目 id> —— 壳已清 URL，只能从 ctx.navTarget.hl 读。
     // 先按数据侧命中（groupKey 或组内条目 id），把目标组置于选中态；DOM 命中在重建后执行。
@@ -612,7 +882,8 @@ export function createTodoTab(opts) {
         selectedTodoId: _selectedTodoId,
         onSelectTodo: (todo) => {
           _selectedTodoId = todo.groupKey || todo.id;
-          renderContent(ctx).then(_scrollDetailIntoView);
+          const selectedKey = _selectedTodoId;
+          renderContent(ctx).then(() => _settleSelection(selectedKey));
         },
         onActionTodo: (todo) => {
           onAction(todo, ctx);
@@ -641,25 +912,35 @@ export function createTodoTab(opts) {
       const headerAndStripHtml = `${renderTabHeader({ title: pageTitle })}
         ${stripHtml}`;
 
+      // 服务端派生组读取失败的可见提示（Task 9）：不得静默空页、不得写成成功；
+      // 「重试」按 _retrySeq 入复合键 ⇒ 绕过组合缓存与渲染守卫重新取数。
+      const hasAnyGroup = urgency.sections.some(s => s.groups.length > 0);
+      const realtimeNoticeHtml = realtimeError
+        ? `<div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 mb-3 flex items-center justify-between gap-3" role="status" data-ws-todo-realtime-notice>
+            <span class="text-xs text-[var(--status-warning-text)]">${escHtml(realtimeError)}${hasAnyGroup ? '，已按本地数据展示' : '，请重试'}</span>
+            <button type="button" class="btn-outline btn-sm" data-ws-todo-retry>重试</button>
+          </div>`
+        : '';
+
       const listCardHtml = `
-        <div class="card rounded-xl p-5 card--static">
+        <div class="card rounded-xl card-standard card--static">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
+            ${renderCardHeader({ title: `我的待办` })}
           </div>
+          ${realtimeNoticeHtml}
           ${_urgencySummaryHtml(urgency.summary)}
           ${listHtml}
         </div>`;
 
       const detailCardHtml = `
-        <div class="card rounded-xl p-5 lg:sticky lg:top-20 card--static" data-ws-todo-detail aria-live="polite">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">${detailTitle}</h3>
+        <div class="card rounded-xl card-standard lg:sticky lg:top-20 card--static" data-ws-todo-detail aria-live="polite">
+          ${renderCardHeader({ title: detailTitle })}
           ${detailHtml}
         </div>`;
 
       // 详情列渲染条件（阶段一 Task 1 · 首屏单一重心）：
       //   · 窄屏只在「已选中」时渲染——未选中不出现「选择一条待办查看详情」占位，列表独占首屏；
       //   · 桌面双栏保留「列表存在但未选中」时的选择提示；列表为空则不出详情列（空态只留一处）。
-      const hasAnyGroup = urgency.sections.some(s => s.groups.length > 0);
       const showDetail = !!selectedTodo || (hasAnyGroup && isDesktopLayout);
 
       // 列顺序：源码恒为「列表 → 详情」，两种宽度都按源码顺序落位（窄屏单列 ⇒ 列表在前）。
@@ -683,6 +964,12 @@ export function createTodoTab(opts) {
 
       // 域折组折叠 / 组行选中 / 行动按钮 / 删除
       bindEvents(container);
+
+      // 服务端派生组读取失败后的「重试」：序号入复合键 ⇒ 下一次渲染重新取数（不猜、不静默）
+      container.querySelector('[data-ws-todo-retry]')?.addEventListener('click', () => {
+        _retrySeq += 1;
+        renderContent(ctx);
+      });
 
       // 页顶折叠条：记住折叠态（默认展开；数据变化重建后保留用户折叠）
       container.querySelector('.todo-strip')?.addEventListener('toggle', (e) => {
@@ -727,11 +1014,14 @@ export function createTodoTab(opts) {
     // 命中（返回 false）→ 整卡保留、异步面板不再重跑（其内容随 renderKey 未变而正确）
     if (!memoizeRender(container, renderKey, rebuild, { marker: '[data-ws-memo="todo-shell"]' })) {
       if (navHlId) { _navHighlightDone = true; _applyNavHighlight(container, navHlId, navMatchedGroup); }
+      // 批次 540：PendingTarget 消费与重建与否无关（命中也要定位，且必须一次性清理）
+      _consumePendingTarget(container, allGroups);
       return;
     }
     if (onAfterRender) await onAfterRender(container, ctx, api);
     // F03/F07：重建后定位（失败给页内可见提示；一次性消费，换 tab/重渲染不再重复）
     if (navHlId) { _navHighlightDone = true; _applyNavHighlight(container, navHlId, navMatchedGroup); }
+    _consumePendingTarget(container, allGroups);
   }
 
   return { renderContent };

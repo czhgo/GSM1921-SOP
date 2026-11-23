@@ -70,7 +70,8 @@ async function get(personId, path) {
 
 async function patch(personId, path, body) {
   return fetch(`${base}${path}`, {
-    method: 'PATCH', headers: { Authorization: `Bearer ${tokens.get(personId)}`, 'Content-Type': 'application/json' },
+    // 批次 564：整行写口要求 If-Match；本例只验支部隔离，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+    method: 'PATCH', headers: { Authorization: `Bearer ${tokens.get(personId)}`, 'Content-Type': 'application/json', 'If-Match': '*' },
     body: JSON.stringify(body),
   });
 }

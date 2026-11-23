@@ -1,4 +1,4 @@
-import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_PERMISSION_TEMPLATES_BY_KIND, WORKGROUP_ROLE_LABELS } from '../../core/domain/workgroup-policy.js?v=20261031a';
+import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_PERMISSION_TEMPLATES_BY_KIND, WORKGROUP_ROLE_LABELS } from '../../core/domain/workgroup-policy.js?v=20261120a';
 
 /** Render editable suggested permission templates for a workgroup assignment form. */
 export function renderWorkgroupPermissionEditor(prefix, kind = 'activity') {
@@ -14,7 +14,7 @@ export function renderWorkgroupPermissionEditor(prefix, kind = 'activity') {
         </label>`).join('')}
       </fieldset>`).join('')}
     </div>
-    <p class="text-xs text-gray-500 mt-2">工作组身份与系统权限分开保存；此处权限只作用于所选工作组。</p>
+    <p class="text-body-sm text-gray-500 mt-2">工作组身份与系统权限分开保存；此处权限只作用于所选工作组。</p>
   </details>`;
 }
 

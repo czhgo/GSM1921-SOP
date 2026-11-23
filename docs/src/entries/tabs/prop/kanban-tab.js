@@ -2,21 +2,16 @@
 // 宣传委员工作台 Tab：项目看板（T-279 M3 拆分，照 M2 样板）
 // 活动/专班合并看板（活动+专班分桶）+ 专班工作量区块；从 TaskForceRecordStore 动态派生（H-1 数据断裂修复）。
 
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261031a';
-import { BranchService } from '../../../services/core/runtime.js?v=20261031a';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261031a';
-import { persist } from '../../../data/data-adapter.js?v=20261031a';
-import { showToast, escHtml as esc, smoothScroll } from '../../../core/base/utils.js?v=20261031a';
-import { setState } from '../../../core/base/state.js?v=20261031a';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261031a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261120a';
+import { escHtml as esc, smoothScroll } from '../../../core/base/utils.js?v=20261120a';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261120a';
 // 「已归档」判据单一源（只看 archived === true；不得再把 status === 'completed' 当归档）
-import { isActivityArchived, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261031a';
+import { isActivityArchived, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261120a';
 // 统一检索引擎（2026-09-14 批次 37）：三桶各接一个实例（keyword null + facets [] → 仅分页，保持三桶观感）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261031a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261120a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 // Task 6：项目看板是跨对象聚合面 ⇒ 活动/专班卡直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261031a';
-import { confirmDanger } from '../../../components/ui/modal.js?v=20261031a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261120a';
 
 export function renderContent(ctx) {
   const container = document.getElementById('prop-tab-content');
@@ -76,9 +71,9 @@ export function renderContent(ctx) {
   // A07：活动结束沿活动流程（结束后状态为 completed，正式归档在档案归档页）；本页不再承载归档桶。
   //   工作组收尾由组织委员统一办理，宣传看板仅提供详情入口。
   [
-    { host: container.querySelector('#kanban-pending-host'), stateKey: 'prop-kanban-pending', rows: pending, emptyMessage: '暂无待启动项目', showComplete: false },
-    { host: container.querySelector('#kanban-active-host'), stateKey: 'prop-kanban-active', rows: active, emptyMessage: '暂无进行中项目', showComplete: true },
-  ].forEach(({ host, stateKey, rows, emptyMessage, showComplete }) => {
+    { host: container.querySelector('#kanban-pending-host'), stateKey: 'prop-kanban-pending', rows: pending, emptyMessage: '暂无待启动项目' },
+    { host: container.querySelector('#kanban-active-host'), stateKey: 'prop-kanban-active', rows: active, emptyMessage: '暂无进行中项目' },
+  ].forEach(({ host, stateKey, rows, emptyMessage }) => {
     if (!host) return;
     renderFilteredList(host, {
       stateKey,
@@ -88,29 +83,11 @@ export function renderContent(ctx) {
       countUnit: '个',
       listClass: 'space-y-2',
       emptyMessage,
-      rowHtml: (item) => _renderKanbanItem(item, showComplete),
+      rowHtml: (item) => _renderKanbanItem(item),
     });
-    // 卡内「确认完成」按钮自带 inline onclick stopPropagation（行 HTML 逐字保留，不改），
-    // 故用捕获阶段委托挂宿主：在按钮目标阶段 stopPropagation 前先拦到点击；再判整卡跳转。
-    host.addEventListener('click', async (e) => {
-      const actBtn = e.target.closest('.activity-complete-btn');
-      if (actBtn) {
-        const actId = actBtn.dataset.actId;
-        const activity = activities.find(a => a.id === actId);
-        if (!activity) return;
-        const confirmed = await confirmDanger({ id: 'activity-finish', title: '结束活动', bodyHtml: `<p class="text-sm text-gray-700">把活动「${esc(activity.title || '未命名')}」标记为结束。<br>影响：状态转为「已完成」，宣传侧「活动归档」与支书「待复盘」待办随之销项。<br>可恢复：正式归档仍须在「档案归档」按材料 / 考勤闸门办理。</p>`, confirmLabel: '标记结束' });
-        if (!confirmed) return;
-        activity.status = 'completed';
-        BranchService.updateActivity(actId, { status: 'completed' });
-        persist(); // 扎口修复（Z1/Z3）：updateActivity 内部不落盘，必须显式 persist 写穿
-        // 做事即销待办：活动完成 → 销宣传侧「活动归档」/支书「待复盘」
-        TodoStore.completeBySource(TodoSourceType.ACTIVITY, actId);
-        TodoStore.completeBySource(TodoSourceType.ACTIVITY, `review_${actId}`);
-        showToast('success', `活动「${activity.title || '未命名'}」已标记结束，待档案归档`);
-        setState({});
-        return;
-      }
-      // 看板条目跳转详情（活动→activity.html / 专班→taskforce.html）
+    // 看板条目跳转详情（活动→activity.html / 专班→taskforce.html）。
+    // 活动闭环权归组织者 / 支书，宣传台只读与归档（本批 P0-4）；工作组收尾由组织委员办理。
+    host.addEventListener('click', (e) => {
       const card = e.target.closest('.kanban-card');
       if (!card) return;
       const id = card.dataset.ki;
@@ -122,7 +99,7 @@ export function renderContent(ctx) {
     // dogfood #13（2026-09-12）：卡片为 role=button 的 div，补 Enter/Space 键盘激活
     host.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' && e.key !== ' ') return;
-      // 内层按钮 / 链接 / 表单件自有原生键盘激活，勿连带触发整卡跳转（「确认完成」回车执行自身动作）
+      // 内层链接 / 表单件自有原生键盘激活，勿连带触发整卡跳转。
       if (e.target.closest('button,a,input,textarea,select')) return;
       const card = e.target.closest('.kanban-card');
       if (!card) return;
@@ -134,7 +111,7 @@ export function renderContent(ctx) {
   // 宣传任务泳道（2026-10-25 IA 62→45）：复用 `tasks-tab.js::renderBoard`（列表 / 登记 / 推进 / 作废单一源）。
   const tasksHost = container.querySelector('#prop-tasks-host');
   if (tasksHost) {
-    import('./tasks-tab.js?v=20261031a').then((m) => {
+    import('./tasks-tab.js?v=20261120a').then((m) => {
       if (tasksHost.isConnected) m.renderBoard(tasksHost, ctx, { header: false });
     });
     // 旧深链 `?tab=kanban&lane=tasks`：滚到本条泳道并给可见落点。
@@ -144,7 +121,7 @@ export function renderContent(ctx) {
   }
 }
 
-function _renderKanbanItem(item, showCompleteBtn = false) {
+function _renderKanbanItem(item) {
   const isTf = item._type === 'taskforce';
   const typeTag = isTf
     ? badgeHtml('专班', 'success')
@@ -152,9 +129,7 @@ function _renderKanbanItem(item, showCompleteBtn = false) {
   const subInfo = isTf
     ? `<span class="text-xs text-gray-500">${item.filled}/${item.capacity} 人 × ${item.contributions} 产出</span>`
     : '';
-  const completeBtn = showCompleteBtn && !isTf
-    ? `<button class="btn-accent-soft activity-complete-btn text-xs px-3 py-1.5 mt-1" data-act-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`
-    : (showCompleteBtn && isTf ? '<span class="text-xs text-gray-500">收尾由组织委员办理</span>' : '');
+  const completeHint = isTf ? '<span class="text-xs text-gray-500">收尾由组织委员办理</span>' : '';
   return `
     <div class="kanban-card p-3 rounded-xl bg-white hover:bg-surface-hover transition-colors cursor-pointer focus-ring" role="button" tabindex="0" aria-label="查看 ${esc(item.title || '未命名')} 详情" data-kt="${item._type}" data-ki="${item.id}">
       <div class="flex items-center gap-2 mb-0.5">
@@ -163,6 +138,6 @@ function _renderKanbanItem(item, showCompleteBtn = false) {
       </div>
       <div class="text-xs text-gray-500 mt-0.5">${item.date || ''} ${subInfo}</div>
       ${isTf && item.task ? `<div class="text-[12px] text-gray-500 mt-0.5 line-clamp-1">${item.task}</div>` : ''}
-      ${completeBtn}
+      ${completeHint}
     </div>`;
 }

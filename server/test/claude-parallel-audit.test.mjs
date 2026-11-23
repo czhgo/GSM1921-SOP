@@ -95,27 +95,36 @@ test('C3 H21 协议关键词齐备（独立审查 / 证据 / 汇总 / 裁定 / �
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// C4 判例与四轮路线图齐备
+// C4 判例与四轮路线图：正文下迁手册，H21 只留指针（2026-11-07 批次 535）
 // ─────────────────────────────────────────────────────────────────────────────
-test('C4 判例与四轮路线图齐备（三路 lens / 共识分歧裁定 / 逐轮启动）', () => {
+test('C4 判例与四轮路线图以指针下迁（H21 只留入口，细节在手册）', () => {
   const h21 = h21Of(read(CLAUDE));
+  for (const [needle, desc] of [
+    ['PARALLEL_SKILL_AUDIT', 'H21 缺详版手册指针'],
+    ['§8', 'H21 缺判例指针 §8'],
+    ['§9', 'H21 缺路线图指针 §9'],
+    ['逐轮启动', '启动纪律：逐轮启动'],
+    ['不得同时开四轮', '启动纪律：不得同时开四轮'],
+  ]) {
+    assert.ok(h21.includes(needle), `H21 缺少「${needle}」（${desc}）：判例 / 路线图入口丢失`);
+  }
+
+  const manual = read(MANUAL);
   const required = [
     ['web-design-guidelines', '判例 lens：web-design-guidelines'],
     ['design-with-taste', '判例 lens：design-with-taste'],
     ['frontend-design', '判例 lens：frontend-design'],
-    ['6 项共识', '判例结论：6 项共识'],
-    ['5 项分歧', '判例结论：5 项分歧'],
+    ['六项共识', '判例结论：六项共识'],
+    ['五项分歧', '判例结论：五项分歧'],
     ['支书四项裁定', '判例结论：支书四项裁定'],
-    ['Round 1 脏乱繁复审计', '四轮路线图：Round 1'],
+    ['Round 1 脏乱繁', '四轮路线图：Round 1'],
     ['Round 2 最小三成本', '四轮路线图：Round 2'],
     ['Round 3 功能与美观', '四轮路线图：Round 3'],
-    ['Round 4 全栈数据结构设计', '四轮路线图：Round 4'],
-    ['逐轮启动', '启动纪律：逐轮启动'],
-    ['不得同时开四轮', '启动纪律：不得同时开四轮'],
+    ['Round 4 全栈数据结构', '四轮路线图：Round 4'],
   ];
   for (const [needle, desc] of required) {
-    assert.ok(h21.includes(needle),
-      `H21 缺少「${needle}」（${desc}）：判例或四轮路线图被删，协议失去经验依据与推进路径`);
+    assert.ok(manual.includes(needle),
+      `PARALLEL_SKILL_AUDIT.md 缺少「${needle}」（${desc}）：判例或路线图下迁后丢失`);
   }
 });
 
@@ -164,11 +173,10 @@ test('C6 05 索引已登记 PARALLEL_SKILL_AUDIT.md 且为 on-demand', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// C7 守卫已登记 test:daily
+// C7 守卫已登记 daily / guards 层（2026-11-08 批次 537 起本守卫在 guards 层按需跑）
 // ─────────────────────────────────────────────────────────────────────────────
-test('C7 守卫已登记 test:daily', () => {
-  const pkg = JSON.parse(read(PKG));
-  const daily = pkg.scripts?.['test:daily'] ?? '';
-  assert.ok(daily.includes('test/claude-parallel-audit.test.mjs'),
-    'server/package.json 的 test:daily 未登记 test/claude-parallel-audit.test.mjs：守卫孤儿化，从不自动运行');
+test('C7 守卫已登记 daily / guards 层', async () => {
+  const { tierOf } = await import('../test-tier-registry.mjs');
+  assert.ok(['daily', 'guards'].includes(tierOf('claude-parallel-audit.test.mjs')),
+    'registry 未把 claude-parallel-audit 登记在 daily / guards：守卫孤儿化，从不自动运行');
 });

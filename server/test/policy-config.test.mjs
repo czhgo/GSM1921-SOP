@@ -20,43 +20,43 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261031a';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261031a';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261031a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261120a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261120a';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261120a';
 import {
   POLICY_DEFAULTS, POLICY_OVERRIDABLE, POLICY_FIXED, POLICY_OVERRIDE_SECTIONS, activityApprovalMode,
   isAttendanceOverdue, isReviewOverdue,
-} from '../../docs/src/core/domain/policy-defaults.js?v=20261031a';
+} from '../../docs/src/core/domain/policy-defaults.js?v=20261120a';
 // ⑧ 活动批准门（2026-09-22 批次 150）：判据/写口/状态单一源 = services/activity/activity.js
 import {
   pendingApprovalPatchOnWrite, canApproveActivity, PENDING_APPROVAL_STATUS,
   // ⑨ 批次 151（启用端：待批可见性 / 支委会档复用线上表决）
   activityApprovalVoteOf, openCommitteeVoteForActivity, applyActivityApprovalResult,
-} from '../../docs/src/services/activity/activity.js?v=20261031a';
+} from '../../docs/src/services/activity/activity.js?v=20261120a';
 // ⑨ 待批可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）
 import {
   canSeePendingApprovalActivities, isActivityVisibleTo, filterActivitiesForViewer,
-} from '../../docs/src/services/core/visibility.js?v=20261031a';
+} from '../../docs/src/services/core/visibility.js?v=20261120a';
 // 批次 47-F 第二组并入：消费点导出面（原 policy-defaults-sync.test.mjs 的导入）
-import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/activity/attendance.js?v=20261031a';
-import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/branch/workforce.js?v=20261031a';
-import { getOverdueRecords } from '../../docs/src/services/activity/inspection.js?v=20261031a';
+import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/activity/attendance.js?v=20261120a';
+import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/branch/workforce.js?v=20261120a';
+import { getOverdueRecords } from '../../docs/src/services/activity/inspection.js?v=20261120a';
 import {
   sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides,
-} from '../../docs/src/services/branch/config-clean.js?v=20261031a';
+} from '../../docs/src/services/branch/config-clean.js?v=20261120a';
 import {
   savePolicyOverrides, canManagePolicyOverrides, getBranchById,
-} from '../../docs/src/services/branch/branch.js?v=20261031a';
+} from '../../docs/src/services/branch/branch.js?v=20261120a';
 import {
   semesterDetainedWindowsLabel,
-} from '../../docs/src/services/member/member-confirmation.js?v=20261031a';
+} from '../../docs/src/services/member/member-confirmation.js?v=20261120a';
 // ⑪ 2026-09-27「补入口」批：补课范围/时限 call-time 消费点（makeup.js 读 POLICY_DEFAULTS）
 import {
-  makeupDefaultActivityTypes, makeupDeadlineDays, isMakeupRequired,
-} from '../../docs/src/services/activity/makeup.js?v=20261031a';
+  makeupDefaultActivityTypes, makeupDeadlineDays, isMakeupRequired, autoGenerateMakeupTask,
+} from '../../docs/src/services/activity/makeup.js?v=20261120a';
 import {
   leaderSemesterReportTermKey, isLeaderSemesterRemindWindow,
-} from '../../docs/src/entries/tabs/today/today-tab.js?v=20261031a';
+} from '../../docs/src/entries/tabs/today/today-tab.js?v=20261120a';
 // HTTP 域（PATCH /branches/:id/config policyOverrides 写口与 server 同源校验）
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
@@ -157,7 +157,7 @@ test('① policy-defaults 批4：新节结构与默认值（memberConfirmation/l
   //   组长域＝leader；支书域＝activityApproval。
   assert.deepEqual(
     POLICY_OVERRIDE_SECTIONS,
-    ['archive', 'inspection', 'memberConfirmation', 'leader', 'activityApproval', 'attendance', 'review', 'makeup', 'thoughtReport'],
+    ['archive', 'inspection', 'memberConfirmation', 'member', 'role', 'leader', 'activityApproval', 'attendance', 'review', 'makeup', 'thoughtReport'],
   );
 });
 
@@ -297,7 +297,7 @@ test('④ 角色守卫：支书/副/party-staff 全量；纪检/组织/组长仅
   assert.equal(perm({ personId: '2300010002', role: 'deputy-secretary' }).ok, true, '副书同权');
   assert.equal(perm({ personId: '9000000001', role: 'party-staff' }).ok, true);
   assert.deepEqual(perm({ personId: '2400012354', role: 'disc-commissioner' }).scope, ['inspection', 'attendance', 'review', 'makeup'], '纪检域＝考察超期 / 考勤与复盘时限 / 补课范围与时限');
-  assert.deepEqual(perm({ personId: '2400012355', role: 'org-commissioner' }).scope, ['memberConfirmation', 'thoughtReport']);
+  assert.deepEqual(perm({ personId: '2400012355', role: 'org-commissioner' }).scope, ['memberConfirmation', 'member', 'thoughtReport'], '组织域＝滞留复核窗口 / 发展党员考察期 / 思想汇报篇幅');
   assert.deepEqual(perm({ personId: '2400012345', role: 'leader' }).scope, ['leader']);
   assert.equal(perm({ personId: '2400012347', role: 'participant' }).ok, false, '普通成员无权');
 });
@@ -399,7 +399,8 @@ async function _login(personId) {
 }
 async function _patchConfig(token, body) {
   return fetch(`${_httpBase}/api/v1/branches/br-b1/config`, {
-    method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    // 批次 564：整行写口要求 If-Match；本文件只验域参数写权与净化，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+    method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'If-Match': '*' },
     body: JSON.stringify(body),
   });
 }
@@ -486,7 +487,7 @@ test('⑨ 待批可见性：只支委层可见；非待批活动恒可见（关�
   assert.deepEqual(filterActivitiesForViewer(plain, 'participant'), plain);
 });
 
-test('⑨ 支委会档：提请表决＝挂 activity-approval 议程项＋支委会档 voteConfig；通过⇒发布、未通过⇒终止', async () => {
+test('⑨ 支委会档：提请表决＝挂 activity-approval 议程项＋支委会档 voteConfig；通过⇒发布、未通过⇒退回待批', async () => {
   beginMockCase();
   mockDB.activities = [{
     id: 'act-ap1', title: '共建活动', status: PENDING_APPROVAL_STATUS,
@@ -512,11 +513,19 @@ test('⑨ 支委会档：提请表决＝挂 activity-approval 议程项＋支委
   assert.equal(pass.ok, true);
   assert.equal(pass.patch.status, 'published');
   assert.equal(pass.patch.approval.state, 'approved');
-  // 未通过 ⇒ 终止
+  // 未通过 ⇒ 退回待批（`D-885` / SOP-F-4）：状态不变、留退回结论
   const fail = applyActivityApprovalResult({ activity: act, decision: 'rejected', by: '2300010001' });
   assert.equal(fail.ok, true);
-  assert.equal(fail.patch.status, 'cancelled');
+  assert.equal(fail.patch.status, PENDING_APPROVAL_STATUS, '未通过＝退回待批，不终止');
   assert.equal(fail.patch.approval.state, 'rejected');
+  // 退回后：已出结论的旧的议程项留作历史，不再充当「待表决项」⇒ 可再次提请
+  const afterReject = {
+    ...act,
+    status: fail.patch.status,
+    approval: fail.patch.approval,
+    agenda: act.agenda.map((x) => (x.id === vote.agendaItemId ? { ...x, result: 'rejected' } : x)),
+  };
+  assert.equal(activityApprovalVoteOf(afterReject), null, '退回后旧议程项不再充当待表决项（可重新提请）');
   // 非待批 / 非支委会档 ⇒ 本段不动（别的路径不误伤）
   assert.equal(applyActivityApprovalResult({ activity: { status: 'published', approval: { mode: 'branch-committee' } } }).ok, false);
   assert.equal(applyActivityApprovalResult({ activity: { status: PENDING_APPROVAL_STATUS, approval: { mode: 'secretary' } } }).ok, false);
@@ -529,7 +538,7 @@ test('⑨ HTTP：服务端门——待批活动改状态必须带批准语义且
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ organizingScope: 'party-group', hostGroupId: 'pg-1', hostGroup: '第一党小组', ...body }),
   });
   const patch = (token, id, body) => fetch(`${_httpBase}/api/v1/activities/${id}`, {
-    method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body),
+    method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'If-Match': '*' }, body: JSON.stringify(body),
   });
   // 造一条「待批」活动（档位＝secretary，由支书写入）
   const mk = await post(sec, {
@@ -776,4 +785,18 @@ test('⑬ R7-33 复盘超期现算：未提交 / 已打回按期限判；已提�
     { today: '2026-07-30', policy }), false, '已确认不判超期');
   assert.equal(isReviewOverdue({ ...notSubmitted, submittedAt: '2026-07-20T10:00:00Z', reviewStatus: '已打回' },
     { today: '2026-07-30', policy }), true, '已打回且未重交 ⇒ 超期');
+});
+
+// ── 补课截止日按本地日（跨层正确性 1.3）─────────────────────────────
+test('补课截止日 = 活动日 + 7 天（本地日）：2026-06-30 → 2026-07-07', () => {
+  beginMockCase();
+  const activity = { id: 'act-mk-localday', title: '补课本日口径', date: '2026-06-30', type: '支部党员大会' };
+  mockDB.activities = [activity];
+  mockDB.makeupTasks = [];
+  const task = autoGenerateMakeupTask({
+    id: 'att-mk-localday', activityId: activity.id, personId: '2400012345', status: 'absent',
+  });
+  assert.ok(task, '缺席 + 制度补课类型 ⇒ 生成补课任务');
+  assert.equal(task.absentDate, '2026-06-30');
+  assert.equal(task.deadline, '2026-07-07', '截止日按本地日 T+7，不得因 UTC 回切早一天');
 });

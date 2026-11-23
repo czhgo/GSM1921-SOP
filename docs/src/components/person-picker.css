@@ -76,7 +76,7 @@
 .person-picker-trigger-badge {
   background: var(--pp-accent);
   color: white;
-  font-size: 10px;
+  font-size: 11px;
   min-width: 18px;
   height: 18px;
   border-radius: var(--radius-sm);
@@ -172,7 +172,9 @@
 
 /* 搜索框：高度 34px（Task 6 口径）、字号 13px；左内边距留给放大镜图标。
    2026-10-23 R11：并入控件单一口径——1px --neutral-200、8px 圆角（--radius-sm）；
-   2026-10-28（焦点单环）：焦点环与 .input-flat / <select> 同宽同色同偏移（2px 主题色 / offset 1px）。 */
+   2026-10-28（焦点单环）：焦点环与 .input-flat / <select> 同宽同色同偏移（2px 主题色 / offset 1px）。
+   2026-11-10 批次 540：放大镜由 CSS data-URI 改为 icons.js 的实体 SVG（`.person-picker-search-icon`），
+   笔触色走 var(--neutral-400)，不再在 data-URI 里写字面量色值（DS_03 §4.11.2）。 */
 .person-picker-search {
   width: 100%;
   height: 34px;
@@ -183,9 +185,22 @@
   outline: none;
   outline-width: 0;
   transition: border-color var(--transition-fast);
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%239CA3AF" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>') no-repeat var(--space-3) center;
+  background: none;
   background-color: var(--surface-card);
   box-sizing: border-box;
+}
+.person-picker-search-wrap {
+  position: relative;
+}
+.person-picker-search-icon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translateY(-50%);
+  color: var(--neutral-400);
+  pointer-events: none;
 }
 
 /* 2026-10-29 P1：搜索框是输入族（有边框）——聚焦只变边框色，不出环。 */

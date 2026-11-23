@@ -9,11 +9,11 @@
 //   履职卡映射改在 workforce-duty-card.js 的 DUTY_TAB 单一源，条线缺口由 work-overview 的
 //   结构化 `gapTab` 直接渲染入口；文案或 DOM 结构再变也不会静默失效。
 
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261031a';
-import { currentUserId } from '../../../services/core/auth.js?v=20261031a';
-import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261031a';
-import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261031a';
-import { renderCalendarView } from './activity-calendar-tab.js?v=20261031a';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261120a';
+import { currentUserId } from '../../../services/core/auth.js?v=20261120a';
+import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261120a';
+import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261120a';
+import { renderCalendarView } from './activity-calendar-tab.js?v=20261120a';
 
 export async function renderContent(ctx) {
   const el = document.getElementById('org-tab-content');
@@ -21,7 +21,7 @@ export async function renderContent(ctx) {
   const personId = currentUserId();
   // 失效会话不猜人（P1-11）：读口显式显示 —，不再回落到固定组织委员 p11。
   if (!personId) {
-    el.innerHTML = '<div class="card rounded-xl p-5 text-center"><p class="text-xs text-gray-500">—（登录态已失效，请重新登录）</p></div>';
+    el.innerHTML = '<div class="card rounded-xl card-standard text-center"><p class="text-xs text-gray-500">—（登录态已失效，请重新登录）</p></div>';
     return null;
   }
   beginOverviewShell(el);

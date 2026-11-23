@@ -1,33 +1,38 @@
 // role: [工程师]+[AI]
-// 组织委员工作台 Tab：**人才库**（2026-10-01 批次 321 改准：原「发展数据」整页并入本页）
+import { pageHref } from '../../../core/base/page-url.js?v=20261120a';
 //   · 支书 2026-10-01 裁「发展数据**整页并入人才库**」＋「**考察就是维护人才库的过程！！**」
 //     ＋「人才库是**长期维护**的系统（以考察数据为主）」⇒ 本页＝人才库卡片（全量在册成员、只读）
 //     ＋ **活动参与汇总**（＝参与工作情况，考察主体）。
 //   · **发展阶段变更的写入位＝个人总表（`person.html`）**（同批裁定）⇒ 卡片提示行直达个人总表；
 //     「发展数据」页签已摘除，其候选卡/管线概览不再保留（逐人明细仍可在名册与个人总表查）。
 //   · 不在本页平铺全量成员档案维护：成员档案写入仍以「成员名册」为唯一全量写位。
-//   · 读侧数据不动写（除页面跳转外无任何保存/报送控件）。
+//   · **「录入考察」＝卡头主 CTA**（2026-11-08 波次 C · IA-B11 / E03）：原在页底折叠区（2 点击 / 2 屏），
+//     现置于「成员发展」卡头右侧；一次点击展开页内考察块并按需挂载既有 `inspection-tab.js`。
+//     卡内「专班考察记录」折叠块保留（查已有考察 + 就地补录），不复制表单。
+//   · 读侧数据不动写（除页面跳转与考察录入外无其它保存/报送控件）。
 // 保留「人才库=只读画像、名册=档案维护」页内注释与引导文案。
 
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261031a';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261120a';
 // ⚠ 2026-10-01 批次 321（支书 V-10 取「乙：整页并入人才库」）：原「发展数据」tab 的**活动参与汇总**卡
 //   并入本页——「参与工作情况」正是**考察**的主体，支书原话「**考察就是维护人才库的过程！！**」。
-import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261031a';
+import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261120a';
 // R2-15（2026-10-20）：预备期月数改由制度参数派生（原 12/9 写死在本页）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261031a';
-import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261031a';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261031a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261120a';
+import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261120a';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261120a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
-import { getResidenceOf } from '../../../services/member/roster.js?v=20261031a';
+import { getResidenceOf } from '../../../services/member/roster.js?v=20261120a';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../../core/domain/constants.js?v=20261031a';
+import { RESIDENCE } from '../../../core/domain/constants.js?v=20261120a';
 // B5（2026-09-12）：搜索 + 阶段/党小组筛选已统一接入 components/ui/list-filter.js（分面枚举由引擎 auto 派生）
-import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261031a';
-import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261031a';
+import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261120a';
+import { escHtml as esc, getBasePath, smoothScroll, flashHighlight } from '../../../core/base/utils.js?v=20261120a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：成员卡列表接入关键词 + 分面（替代原手写三控件显隐过滤）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261031a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261031a';
-import { bindDisclosures } from '../../../components/ui/disclosure.js?v=20261031a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261120a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261120a';
+import { bindDisclosures } from '../../../components/ui/disclosure.js?v=20261120a';
+// 批次 540 波次 1：待办「考察 / 半年核对」跳转的定位目标（talent→inspection）
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261120a';
 
 // 发展阶段顺序（发展流程正向：入党申请人 → 积极分子 → 发展对象 → 预备党员 → 正式党员）
 const STAGE_ORDER = ['积极分子', '发展对象', '预备党员', '正式党员'];
@@ -47,7 +52,7 @@ const STAGE_OTHER = '未标注';
 function _residenceChipHtml(p) {
   const rs = getResidenceOf(p);
   if (rs.residenceStatus !== RESIDENCE.DETAINED) return '';
-  return `<span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100" title="${esc(rs.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">滞留</span>`;
+  return `<span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-[var(--status-warning-text)] border border-amber-100" title="${esc(rs.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">滞留</span>`;
 }
 
 /** 文本截断（发展观察摘要行用） */
@@ -83,7 +88,7 @@ function _devTips(person, counts, ctx) {
   const mc = ctx.pendingByPerson.get(person.id);
   if (mc) {
     tips.push({
-      cls: 'bg-amber-50 text-amber-700 border border-amber-100',
+      cls: 'bg-amber-50 text-[var(--status-warning-text)] border border-amber-100',
       text: `${mc.action === 'residence' ? '在册状态' : '发展阶段'}变更待支书确认（${mc.from || ''} → ${mc.to || ''}）`,
     });
   }
@@ -123,8 +128,8 @@ function _devTips(person, counts, ctx) {
 
 function _participationCardHtml(part) {
   return `
-    <div class="card rounded-xl p-5 mt-4">
-      ${renderCardHeader({ title: '活动参与汇总', meta: `${part.rows.length} 人 · 以人为第一列` })}
+    <div class="card rounded-xl card-standard mt-4">
+      ${renderCardHeader({ title: '活动参与汇总', meta: `${part.rows.length} 人 · 按人员查看` })}
       <div class="overflow-x-auto"><div id="org-part-list"></div></div>
       <p class="text-xs text-gray-500 mt-2 mb-0">参与＝出勤 / 已补；请假 / 缺勤不计。</p>
     </div>
@@ -133,11 +138,11 @@ function _participationCardHtml(part) {
 
 function _participationHeadHtml(types) {
   return `<tr>
-            <th>姓名</th>
-            <th>学号</th>
-            <th>所属党小组</th>
-            ${types.map(t => `<th>${esc(t)}</th>`).join('')}
-            <th>合计</th>
+            <th scope="col">姓名</th>
+            <th scope="col">学号</th>
+            <th scope="col">所属党小组</th>
+            ${types.map(t => `<th scope="col">${esc(t)}</th>`).join('')}
+            <th scope="col">合计</th>
           </tr>`;
 }
 
@@ -208,9 +213,11 @@ export function renderContent(ctx) {
         // 实体条目可点（2026-09-12 支书裁定）：成员卡 = 成员实体 → 点击 1 跳直达「成员名册」并高亮该成员
         //（复用既有深链 workspace/org.html?tab=roster&highlight=<personId>，与 development-tab「去名册发起变更」同源）
         // 2026-09-13：卡内姓名改为真实 <a>（档案页）——HTML 不允许 <a> 嵌套，故整卡跳转改由下方事件委托承担
+        // 2026-11-15 Task 4.2：整卡补 role="button" / tabindex="0" / aria-label 与 Enter·Space；
+        //   卡内含姓名 <a>（档案页）⇒ 带 data-nested-actions 标记（嵌套交互白名单同批登记）。
         return `
           <div class="p-3 rounded-xl bg-white border border-gray-50 hover:border-gray-100 transition-colors">
-            <div class="talent-card block cursor-pointer" data-roster-jump="${esc(p.id)}" title="查看成员档案（成员名册）">
+            <div class="talent-card block cursor-pointer" data-roster-jump="${esc(p.id)}" role="button" tabindex="0" aria-label="查看成员名册并高亮：${esc(getPersonName(p.id))}" title="查看成员档案（成员名册）" data-nested-actions="true">
               <div class="flex items-center gap-2 flex-wrap">
                 <a href="${archiveHref}" class="text-sm font-semibold text-gray-800 hover:text-accent transition-colors" title="查看完整档案">${esc(getPersonName(p.id))}</a>
                 <span class="tint-pill" data-tone="${stageTone}">${esc(p.developStage || STAGE_OTHER)}</span>
@@ -227,15 +234,22 @@ export function renderContent(ctx) {
           </div>`;
   };
 
+  // 「录入考察」卡头主 CTA（2026-11-08 波次 C）：空态（本支部无成员）时禁用并给出可见原因；
+  //   表单内部仍按原校验提示（选专班 / 选人员 / 逐人填写），不在入口重复校验。
+  const canRecordInspection = people.length > 0;
+  const inspCtaReason = canRecordInspection ? '' : '暂无成员档案，无法录入考察';
+  const inspCtaHtml = `<button type="button" class="btn-accent btn-sm talent-insp-cta"${canRecordInspection ? '' : ` disabled title="${inspCtaReason}"`}>录入考察</button>${inspCtaReason ? `<span class="text-xs text-gray-500">${inspCtaReason}</span>` : ''}`;
+
   container.innerHTML = `
     ${renderTabHeader({ title: '人才库', description: '成员发展观察、考察摘要与活动参与汇总。' })}
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       ${renderCardHeader({
         title: '成员发展',
         meta: `<span>成员 <span class="tabular-nums font-medium text-gray-700">${people.length}</span> 人</span>
           <span>考察摘要 <span class="tabular-nums font-medium text-gray-700">${inspections.filter(r => r && r.personId).length}</span> 条</span>
           <span>思想汇报已归档 <span class="tabular-nums font-medium text-gray-700">${thoughts.filter(t => t && t.personId).length}</span> 篇</span>
-          <span>发展提示 <span class="tabular-nums font-medium ${tipCount > 0 ? 'text-amber-700' : 'text-gray-700'}">${tipCount}</span> 人</span>`,
+          <span>发展提示 <span class="tabular-nums font-medium ${tipCount > 0 ? 'text-[var(--status-warning-text)]' : 'text-gray-700'}">${tipCount}</span> 人</span>`,
+        actions: inspCtaHtml,
       })}
       <!-- 2026-10-01 批次 315（支书 V-9 取甲「全删」）：本块原为「人才库 = 发展观察（只读画像）…本页读侧数据不动写」
            整段说明，**已整块删除**——页面自己能说清；这类「本页是什么 / 写位在哪」属**替界面说话**
@@ -282,6 +296,9 @@ export function renderContent(ctx) {
   //   在位），不再用持久容器 `#org-tab-content` 上的 dataset 标记 ⇒ 离开再回来新控件仍有监听。
   const talentList = container.querySelector('#talent-list');
   if (talentList) {
+    const jumpToRoster = (personId) => {
+      window.location.href = pageHref(getBasePath() + 'workspace/org.html?tab=roster&highlight=' + encodeURIComponent(personId));
+    };
     talentList.addEventListener('click', (e) => {
       const btn = e.target.closest('.talent-person-jump');
       if (btn && btn.dataset.personId) {
@@ -292,8 +309,18 @@ export function renderContent(ctx) {
       if (e.target.closest('a')) return;
       const card = e.target.closest('.talent-card');
       if (card && card.dataset.rosterJump) {
-        window.location.href = getBasePath() + 'workspace/org.html?tab=roster&highlight=' + encodeURIComponent(card.dataset.rosterJump);
+        jumpToRoster(card.dataset.rosterJump);
       }
+    });
+    // 键盘同权（Task 4.2）：整卡 role="button"，Enter / Space 与点击同路；
+    //   卡内链接 / 按钮自行处理，不由整卡劫持。
+    talentList.addEventListener('keydown', (e) => {
+      if (e.target.closest('a,button,input,textarea,select')) return;
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const card = e.target.closest('.talent-card');
+      if (!card || !card.dataset.rosterJump) return;
+      e.preventDefault();
+      jumpToRoster(card.dataset.rosterJump);
     });
   }
 
@@ -301,15 +328,88 @@ export function renderContent(ctx) {
   //   （本台 12 → 11）降为本页动作位——**折叠区展开时才挂载**既有实现 `inspection-tab.js`
   //   （**实现单一源，不复制表单**）；支书依据＝V-10 原话「**考察就是维护人才库的过程！！**」。
   _renderInspectionSlot(container, ctx);
+  // 2026-11-08 波次 C（IA-B11 / IA-E03）：写入位提到卡头——「录入考察」原在页底折叠区（2 点击 / 2 屏），
+  //   现为「成员发展」卡头右侧主 CTA：一次点击＝展开页内考察块 ＋ 挂载既有实现 ＋ 打开录入表单。
+  container.querySelector('.talent-insp-cta')?.addEventListener('click', () => {
+    const details = container.querySelector('#talent-insp');
+    const host = container.querySelector('#talent-insp-host');
+    if (!details || !host) return;
+    if (!details.open) details.open = true;
+    _mountInspection(container.querySelector('#talent-insp-body'), ctx).then(() => {
+      const body = container.querySelector('#talent-insp-body');
+      const formBtn = body?.querySelector('#btn-org-upload-insp');
+      // 表单未展开才点（已展开时该钮是「收起录入」，不得反向折叠）
+      if (formBtn && !body.querySelector('#org-insp-form-panel')) formBtn.click();
+      smoothScroll(host, { block: 'start' });
+      body?.querySelector('#org-insp-tf-select')?.focus();
+    });
+  });
+  // 批次 540：待办跳转（考察 / 半年核对）落到本页——展开考察块并定位成员（缺 id 给显式提示）
+  _consumePendingTarget(container, ctx);
+}
+
+/** 页内定位提示（与待办壳同语法：`data-nav-target-missing`，一次只留一条） */
+function _pendingHint(container, text) {
+  if (!container) return;
+  container.querySelectorAll('[data-nav-target-missing]').forEach((el) => el.remove());
+  const hint = document.createElement('div');
+  hint.dataset.navTargetMissing = '1';
+  hint.setAttribute('role', 'status');
+  hint.className = 'card rounded-xl p-3 mb-4 text-xs text-[var(--status-warning-text)] bg-amber-50 border border-amber-200';
+  hint.textContent = text;
+  container.prepend(hint);
+}
+
+/** 消费待办跳转目标（kind=inspection；talent→inspection 契约落点） */
+function _consumePendingTarget(container, ctx) {
+  const pending = PendingTarget.peek();
+  if (!pending || pending.tab !== 'talent') return;
+  const target = PendingTarget.consume();
+  const host = container.querySelector('#talent-insp-host');
+  const details = container.querySelector('#talent-insp');
+  if (!host || !details) {
+    _pendingHint(container, '未定位到具体条目（本页考察块未挂载）');
+    return;
+  }
+  details.open = true;
+  _mountInspection(container.querySelector('#talent-insp-body'), ctx).then(() => {
+    const row = target.id ? container.querySelector(`[data-roster-jump="${target.id}"]`) : null;
+    if (row) {
+      smoothScroll(row, { block: 'center' });
+      flashHighlight(row);
+      return;
+    }
+    smoothScroll(host, { block: 'start' });
+    _pendingHint(container, target.id
+      ? '未定位到具体条目（该成员可能已移出列表）；已展开「专班考察记录」。'
+      : '未定位到具体条目（本次跳转未带对象编号）；已展开「专班考察记录」。');
+  });
+}
+
+// 考察块的挂载 promise（同一体例只 import 一次；卡头 CTA 与折叠摘要共用）
+let _inspMountPromise = null;
+
+function _mountInspection(body, ctx) {
+  if (!body) return Promise.resolve();
+  if (body.dataset.inspectionMounted === '1') return _inspMountPromise || Promise.resolve();
+  body.dataset.inspectionMounted = '1';
+  _inspMountPromise = import('./inspection-tab.js?v=20261120a').then((m) => {
+    if (!body.isConnected) return;
+    m.renderContent(ctx, body);
+    _normalizeInspectionCopy(body);
+  });
+  return _inspMountPromise;
 }
 
 function _renderInspectionSlot(container, ctx) {
   const host = container.querySelector('#talent-insp-host');
   if (!host) return;
-  // 2026-10-25 Task 3：原生 details——标题在 summary 外，展开态在 `open` 上（原 `_inspSlotOpen` 已删）
+  // 2026-10-25 Task 3：原生 details——标题在 summary 外，展开态在 `open` 上（原 `_inspSlotOpen` 已删）。
+  // 2026-11-08 波次 C：主入口已提到「成员发展」卡头 CTA；本块标题改「专班考察记录」，
+  //   承担「查已有考察 + 就地补录」的档案面，不再与卡头 CTA 争夺同一入口措辞。
   host.innerHTML = `
-    <div class="card rounded-xl p-5 disclosure-host">
-      <h3 class="disclosure__title" id="talent-insp-title">录入考察</h3>
+    <div class="card rounded-xl card-standard disclosure-host">
+      <h3 class="disclosure__title" id="talent-insp-title">专班考察记录</h3>
       <details class="disclosure" id="talent-insp">
         <summary class="disclosure__summary" id="talent-insp-toggle" aria-labelledby="talent-insp-title"></summary>
         <div id="talent-insp-body" class="disclosure__body"></div>
@@ -318,18 +418,9 @@ function _renderInspectionSlot(container, ctx) {
   const details = host.querySelector('#talent-insp');
   const body = host.querySelector('#talent-insp-body');
   bindDisclosures(container);
-  const mount = () => {
-    if (!body || body.dataset.inspectionMounted === '1') return;
-    body.dataset.inspectionMounted = '1';
-    import('./inspection-tab.js?v=20261031a').then((m) => {
-      if (!body.isConnected) return;
-      m.renderContent(ctx, body);
-      _normalizeInspectionCopy(body);
-    });
-  };
-  if (details?.open) mount();
+  if (details?.open) _mountInspection(body, ctx);
   details?.addEventListener('toggle', () => {
-    if (details.open) mount();
+    if (details.open) _mountInspection(body, ctx);
   });
 }
 
@@ -337,13 +428,14 @@ function _renderInspectionSlot(container, ctx) {
  * 统一内嵌考察子页的动作文案（2026-10-18 Task 14）：
  * 外层已叫「录入考察」，内层 `inspection-tab.js` 的「录入事项考察 / 收起表单 / 上传考察表单」属于同一动作的三种写法。
  * 这里只在**渲染后**把可见文案归一到「录入考察 / 收起录入」（不改子页实现、不复制表单）。
+ * 2026-11-08 波次 C：内层重渲染后按钮是**新节点**，故每次 sync 重新取按钮（原固定引用会与新节点脱钩）。
  * @param {HTMLElement|null} body 内嵌考察宿主
  */
 function _normalizeInspectionCopy(body) {
   if (!body) return;
-  const btn = body.querySelector('#btn-org-upload-insp');
-  if (!btn) return;
   const sync = () => {
+    const btn = body.querySelector('#btn-org-upload-insp');
+    if (!btn) return;
     const panel = body.querySelector('#org-insp-form-panel');
     const open = !!panel && !panel.classList.contains('hidden');
     const label = open ? '收起录入' : '录入考察';

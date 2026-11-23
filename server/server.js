@@ -1,6 +1,6 @@
 // server/server.js — 入口：初始化数据库，空库自动导入种子，启动服务
 import { createApp } from './app.js';
-import { initDb } from './db.js';
+import { initDb, backfillUpdatedAt } from './db.js';
 import { seedDatabase } from './seed.js';
 import { startScheduler } from './services/reporting.js';
 import { fileURLToPath } from 'node:url';
@@ -11,7 +11,7 @@ const DB_PATH = process.env.DB_PATH || fileURLToPath(new URL('./data.db', import
 // **2026-09-23 P0-4**：生产形态（isProductionEnv）**默认不播种**——比「忘了设 DISABLE_SEED 就灌进 50 人演示支部」更安全。
 const SEED_DISABLED = process.env.DISABLE_SEED === '1' || isProductionEnv();
 if (isProductionEnv() && !process.env.LOGIN_PASSWORD) { console.error('[server] ⛔ 启动被拒：生产形态（APP_ENV=production / NODE_ENV=production）必须显式设置 LOGIN_PASSWORD（所有账号共用该口令，缺省口令不得上线）。请设置该环境变量后重启。'); process.exit(1); } // P0-3：生产形态必须显式设 LOGIN_PASSWORD（全站账号共用该口令）⇒ 未设则启动即拒
-const db = initDb(DB_PATH); await enforceProductionDemoGate(db); // Task 7.1：生产形态含演示种子行 ⇒ 默认拒绝启动；ALLOW_DEMO_DATA=1 才放行（说明见文件末）
+const db = initDb(DB_PATH); backfillUpdatedAt(db); await enforceProductionDemoGate(db); // Task 7.1：生产形态含演示种子行 ⇒ 默认拒绝启动；ALLOW_DEMO_DATA=1 才放行（说明见文件末）；批次 562：启动回填 updatedAt（幂等，仅补空值）
 // B-499-8（2026-10-21）：既有库跟随种子版本——applyMigrations 之后比较 seed_meta.seed_version，
 // 不一致时在事务内**只修复既有 seed id**（不插入缺失、不删除 orphan、保留运行时字段）。
 // 用内联 import：上方 `:12-18` / `:21` / `:22-23` 是 README-server.md 的取证靶点，尽量少动行。
@@ -22,6 +22,13 @@ if (!SEED_DISABLED && db.prepare('SELECT COUNT(*) AS c FROM users').get().c === 
   await seedDatabase(db);
   console.log('[server] 已导入种子数据');
 }
+// ── 运行档标识 ＋ 生产单支部硬断言（2026-11-03 任务 2）───────────────────────────
+// 为什么插在这里：`initDb`（上方 `:14`）已完成迁移，且本段仍在 `db.close()` / `listen()` 之前
+// ⇒ 生产档的「一实例多支部」缺口会被挡在端口对外之前；review 档只打印分支数，不改变任何行为。
+// 位置刻意放在 `:21` / `:22-23` 之后：那两处是 README-server.md 的取证靶点，插入必须不影响它们。
+// 判定与文案单一源＝`server/run-mode.js`（复用 `env.js::isProductionEnv`，入口不另写判定）。
+console.log(formatRunModeLine({ production: isProductionEnv(), demoSeedEnabled: !SEED_DISABLED, dbPath: DB_PATH }));
+enforceSingleBranch(db);
 db.close();
 const app = createApp({ dbPath: DB_PATH });
 const httpServer = app.listen(PORT, () => console.log(`[server] 光华党支部管理引擎后端已启动: http://localhost:${PORT}`));
@@ -80,6 +87,8 @@ import { isProductionEnv } from './env.js';
 // Task 7.1（生产启动闸门）：生产形态检测到演示种子行时默认拒启（ALLOW_DEMO_DATA=1 才放行）。
 //   判据与说明见 `server/demo-data-guard.js`；调用点在上方 `:14`（与 initDb 同行，保 README 行号不漂）。
 import { enforceProductionDemoGate } from './demo-data-guard.js';
+// 运行档标识与生产单支部硬断言的实现（调用点在上方 `:24` 之后；import 声明被提升，置尾不影响语义）。
+import { formatRunModeLine, enforceSingleBranch } from './run-mode.js';
 
 // ════════════════════════════════════════════════════════════════
 //  部署前件（2026-09-29 批次 268「部署前筹备检查」）：**优雅关闭** SIGTERM / SIGINT
@@ -91,7 +100,7 @@ import { enforceProductionDemoGate } from './demo-data-guard.js';
 // 做法：收到信号 ⇒ ① 停止接新连接（`httpServer.close()`）② 等在途连接结束（**上限 5s**，到点强行退出）
 //   ③ 关库 ④ 退出码 0。**不改任何业务行为、不新增依赖**。
 // 边界（如实登记）：**未处理**「排程中的定时任务」——它随进程退出而中断（下次启动会重新排期）；
-//   **未做** readiness/liveness 分离探针（存活探针仍只有 `GET /api/v1/health`，见 `app.js`）。
+//   **探针**：已分开浅 `GET /api/v1/health` / 深 `GET /api/v1/health/deep`（库 / 迁移版本 / 备份目录，见 `routes/health.js`）。
 // ⚠ 本段必须留在文件末尾：上方 `:12-18` / `:21` / `:22-23` 是 `README-server.md` 的取证靶点。
 let _closing = false;
 for (const sig of ['SIGTERM', 'SIGINT']) {

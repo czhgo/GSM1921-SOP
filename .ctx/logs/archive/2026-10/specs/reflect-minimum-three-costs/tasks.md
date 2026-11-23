@@ -94,7 +94,7 @@
 
 * [x] Task 9: 守卫与截图复核
 
-  * [x] SubTask 9.1 新增 `ui-button-four-types.test.mjs`：四页重点无 `btn-ghost`；四类之外不得新增动作按钮；`tab-btn` / 页签 `btn-tab` 豁免
+  * [x] SubTask 9.1 新增 `component-ratchet-guard.test.mjs`：四页重点无 `btn-ghost`；四类之外不得新增动作按钮；`tab-btn` / 页签 `btn-tab` 豁免
 
   * [x] SubTask 9.2 新增 `ui-help-note.test.mjs`：两页 `.help-note` + 蓝链 + 一句正文
 

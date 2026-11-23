@@ -12,12 +12,12 @@
 //   · **窄屏（≤640px）＝同一关系行的响应式形态**：仍是这一张表，只是每行按「行表头（人/项目）＋
 //     逐列 `data-label` 值」堆叠成卡；不新造第二套矩阵、不改 cell 口径。与引擎表共用 styles.css 的
 //     `[data-responsive="cards"]` 一套规则（thead 隐藏、sticky/min-width 清零）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261031a';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261120a';
 // 翻页控件单一源（批次 38）：矩阵的人维分页与统一检索引擎共用同一套 .page-btn / .page-num 标记
 // （叶子件 pager.js——不经 list-filter 引入，避免 list-filter→inspector→vote-summary-panel 与本节成环）
-import { pagerHtml } from './pager.js?v=20261031a';
+import { pagerHtml } from './pager.js?v=20261120a';
 // 空态单一源：矩阵空行统一走 empty-state 的 table 形态（不再手写 `<tr class="is-empty">`）
-import { emptyStateHtml } from './empty-state.js?v=20261031a';
+import { emptyStateHtml } from './empty-state.js?v=20261120a';
 
 /** 项目维缺省列上限（最近 N 项） */
 export const MATRIX_COL_LIMIT = 6;
@@ -70,7 +70,7 @@ export function renderRelationMatrix(host, cfg) {
     const lab = label ? ` data-label="${esc(label)}" title="${esc(label)}"` : '';
     return html
       ? `<td class="text-center${cls}"${lab}>${html}</td>`
-      : `<td class="text-center text-gray-400${cls}"${lab}>—</td>`;
+      : `<td class="text-center text-gray-500${cls}"${lab}>—</td>`;
   };
 
   const overLimit = colLimit > 0 && items.length > colLimit;
@@ -87,9 +87,11 @@ export function renderRelationMatrix(host, cfg) {
     page: st.page, pages, total: persons.length, unit: cfg.personUnit || '人',
   });
 
-  // 项目维两行表头（标题 + 日期/类型），宽表列窄，标题截断并留 title 悬浮全文
-  const itemTh = (it) => `<th scope="col" class="text-center align-top max-w-[112px] whitespace-nowrap">
-      <div class="truncate" title="${esc(it.title)}">${esc(it.title)}</div>
+  // 项目维两行表头（标题 + 日期/类型）：标题**可换行**并保留 title 全文——
+  //   C-10（2026-11-03 批次 531）：原 `max-w-[112px] truncate` 把长活动名截成同名片段，触屏无 hover 读不到全名；
+  //   窄屏仍走同一张表的 `data-responsive="cards"` 堆叠（td/th 的 data-label 抬为行标签），不另造第二套矩阵。
+  const itemTh = (it) => `<th scope="col" class="text-center align-top max-w-[112px]">
+      <div class="break-words leading-snug" title="${esc(it.title)}">${esc(it.title)}</div>
       ${it.sub ? `<div class="text-xs text-gray-500 font-normal">${esc(it.sub)}</div>` : ''}
     </th>`;
   const itemRowHead = (it) => `<th scope="row" class="sticky left-0 bg-white" style="color:#1F2937">

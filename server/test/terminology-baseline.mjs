@@ -40,6 +40,9 @@ export const STRUCTURAL_LABEL_BASELINE = [
   { label: '补课方式', reason: '表头字段：补课方式列' },
   { label: '截止日期', reason: '表头字段：补课截止列' },
   { label: '确认状态', reason: '表头字段：确认状态列' },
+  // 2026-11-04 批次 534（P1 名册语义表格）：名册新增两列，均为人员属性字段名。
+  { label: '在册状态', reason: '表头字段：成员在册 / 滞留状态列' },
+  { label: '滞留备注', reason: '表头字段：滞留原因备注列' },
   { label: '考察内容', reason: '表头字段：考察内容列' },
   { label: '在办 / 超期', reason: '表头字段：组员进展统计列' },
   { label: '考勤', reason: '表头字段：组员进展考勤列' },
@@ -59,8 +62,8 @@ export const STRUCTURAL_LABEL_BASELINE = [
   { label: '通知', reason: '表头字段：通知统计列' },
   { label: '待批复', reason: '表头字段：反馈待批复统计列' },
   { label: '组织提醒', reason: '表头字段：组织提醒统计列' },
-  { label: '负责人', reason: '表头字段：支部分工事项承担人（不是工作组成员角色，不套「组织者」禁用口径）' },
-  { label: '人数（含党员）', reason: '表头字段：成员流动人数列' },
+  // 2026-11-10 批次 540：活动台账表头改由 `LEDGER_COLUMNS`（renderDataTable）声明，
+  //   源文件不再出现 `<th>复盘状态</th>` / `<th>应到 · 实到</th>` 字面 ⇒ 「复盘状态」「应到 · 实到」两条撤下。
 
   // ── 页面名（页签名是产品页面称谓，不是术语表要定义的业务对象） ──
   { label: '今天', reason: '页面名：各台首屏页签（共享 tab 名）' },
@@ -81,6 +84,7 @@ export const STRUCTURAL_LABEL_BASELINE = [
   { label: '下发通知', reason: '页面名：党委台页签（业务动作命名）' },
   { label: '支部上报', reason: '页面名：党委台页签' },
   { label: '支部管理', reason: '页面名：党委台页签' },
+  { label: '院级内容', reason: '页面名：党委台页签（党委活动 + 院级资料合并为一个页签）' },
   { label: '项目看板', reason: '页面名：宣传台页签（承载宣传任务泳道）' },
   { label: '档案归档', reason: '页面名：宣传台页签' },
   { label: '活动管理', reason: '页面名：支书台页签（全支部活动写入）' },
@@ -122,9 +126,20 @@ export const STRUCTURAL_LABEL_BASELINE = [
   { label: '新负责人…', reason: '选项文案：支部分工负责人候选占位（非工作组成员角色）' },
   { label: '（暂无活动，请先创建）', reason: '选项文案：空态占位' },
   { label: '（不关联活动）', reason: '选项文案：空值占位' },
+  // 2026-11-01 批次 524：选项改由 `selectInput({ options: [{ label }] })` 生成，抽取面跟进 `options`
+  //   数组后，原先由变量注入、从未进过扫描面的枚举文案首次显形——按「选项文案」登记，不新增业务词。
+  { label: '在校', reason: '选项文案：在册状态枚举值' },
+  { label: '滞留', reason: '选项文案：在册状态枚举值' },
+  { label: '建议', reason: '选项文案：意见反馈类型枚举值' },
+  { label: '疑问', reason: '选项文案：意见反馈类型枚举值' },
+  { label: '纠正', reason: '选项文案：意见反馈类型枚举值' },
+  { label: '肯定', reason: '选项文案：意见反馈类型枚举值' },
+  { label: '活动类型', reason: '筛选项：活动类型维度名' },
+  { label: '支书（审核）', reason: '选项文案：归档审核角色' },
+  { label: '纪检委员（留档）', reason: '选项文案：归档留档角色' },
   { label: '— 选择状态 —', reason: '选项文案：下拉占位' },
   { label: '加载会前草案…', reason: '选项文案：加载态占位' },
-  { label: '草案加载失败', reason: '选项文案：失败态提示' },
+  { label: '草案加载失败，点此重试', reason: '选项文案：失败态提示（点选即重读）' },
   { label: '出勤', reason: '选项文案：考勤状态枚举值' },
   { label: '缺勤', reason: '选项文案：考勤状态枚举值' },
   { label: '请假', reason: '选项文案：考勤状态枚举值' },
@@ -147,6 +162,7 @@ export const STRUCTURAL_LABEL_BASELINE = [
   { label: '普通', reason: '选项文案：紧急度枚举值' },
   { label: '紧急', reason: '选项文案：紧急度枚举值' },
   { label: '品牌：全部', reason: '选项文案：品牌筛选占位' },
+  { label: '范围：全部', reason: '选项文案：意见反馈范围筛选占位（2026-11-01 批次 525 补登）' },
   { label: '范围：全部活动', reason: '选项文案：范围筛选占位' },
   { label: '活动类别：全部', reason: '选项文案：活动类别筛选占位' },
   { label: '党小组活动', reason: '选项文案：活动类别筛选值（不是并列按钮）' },
@@ -154,6 +170,15 @@ export const STRUCTURAL_LABEL_BASELINE = [
   { label: '宣传委员', reason: '选项文案：支委身份名' },
   { label: '纪检委员', reason: '选项文案：支委身份名' },
   { label: '党小组组长', reason: '选项文案：组织单元身份名' },
+  // 2026-11-11 批次 546（D-868/D-869）：专班承办方与支委提案的新选项文案，均为普通枚举值 / 占位，非并列业务对象。
+  { label: '请选择承办方', reason: '选项文案：专班承办方下拉空值占位' },
+  { label: '支部级（支委会）', reason: '选项文案：专班承办方枚举值（支部级）' },
+  { label: '决策', reason: '选项文案：提案建议类型枚举值' },
+  { label: '讨论', reason: '选项文案：提案建议类型枚举值' },
+  { label: '同步', reason: '选项文案：提案建议类型枚举值' },
+  { label: '制度', reason: '选项文案：提案来源类型枚举值' },
+  { label: '通过', reason: '选项文案：提案决议结果枚举值' },
+  { label: '未通过', reason: '选项文案：提案决议结果枚举值' },
 
   // ── 业务动作短语（按钮 / 行内动作类文案，不是业务对象） ──
   { label: '移出党小组', reason: '业务动作短语：成员名册行内动作' },

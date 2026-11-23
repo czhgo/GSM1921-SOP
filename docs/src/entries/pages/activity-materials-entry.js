@@ -12,26 +12,27 @@
 //   · 材料读取：`mockDB.imageRecords` / `loadAttendanceRecords` / `mockDB.inspections` / `loadActivityReviews`；
 //   · 归档写口：`services/core/mock.js::archiveActivity`（经 BranchService 暴露，与宣传台 / 支书台同源）；
 //   · 空态：`components/ui/empty-state.js`；浮窗：`components/ui/modal.js`；版本戳：`core/base/version-token.js`。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261031a';
-import { renderHeader } from '../../components/shell/header.js?v=20261031a';
-import { BranchService } from '../../services/core/runtime.js?v=20261031a';
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261031a';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261031a';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261031a';
-import { getBasePath, escHtml as esc, showToast, describeWriteError, smoothScroll } from '../../core/base/utils.js?v=20261031a';
-import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261031a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261120a';
+import { renderHeader } from '../../components/shell/header.js?v=20261120a';
+import { BranchService } from '../../services/core/runtime.js?v=20261120a';
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261120a';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261120a';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261120a';
+import { getBasePath, escHtml as esc, showToast, describeWriteError, smoothScroll } from '../../core/base/utils.js?v=20261120a';
+import { pageHref } from '../../core/base/page-url.js?v=20261120a';
+import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261120a';
 // 材料页可见性单一源（C11）：与活动列表 / 详情页同判据，待批活动不能凭 id 被非支委层读到
-import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261031a';
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261031a';
-import { openModal, closeModal } from '../../components/ui/modal.js?v=20261031a';
-import { bumpToken } from '../../core/base/version-token.js?v=20261031a';
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261031a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261031a';
-import { beginWriteScope, endWriteScope } from '../../core/session/pending-writes.js?v=20261031a';
+import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261120a';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261120a';
+import { openModal, closeModal } from '../../components/ui/modal.js?v=20261120a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261120a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261120a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261120a';
+import { beginWriteScope, endWriteScope } from '../../core/session/pending-writes.js?v=20261120a';
 // Task 6：材料页回活动详情 → direct（跨页深链，无对象所属工作台上下文）。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261031a';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261120a';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -54,11 +55,11 @@ backBtn?.addEventListener('click', () => {
   } catch (_) { /* 空 / 非法 referrer：走下方活动详情兜底 */ }
   if (activityId) {
     const href = objectDetailHref('activity', activityId, { entry: 'cross-page-deeplink' });
-    if (href) window.location.href = getBasePath() + href;
+    if (href) window.location.href = pageHref(getBasePath() + href);
     return;
   }
   if (window.history.length > 1) window.history.back();
-  else window.location.href = getBasePath() + 'index.html';
+  else window.location.href = pageHref(getBasePath() + 'index.html');
 });
 
 /** 归档失败原因（局部重渲染时保留，供「重试」旁展示） */
@@ -162,12 +163,12 @@ function render() {
 
     <section class="mt-6" aria-labelledby="materials-check-title">
       <h3 id="materials-check-title" class="text-sm font-semibold text-gray-800 mb-2">② 核对材料</h3>
-      <div class="rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-3 text-xs text-gray-600 leading-6">
+      <div class="rounded-xl border border-gray-100 bg-white px-4 py-3 text-xs text-gray-600 leading-6">
         ${esc(resolveMaterialRoleNote({ role: me.role, isOrganizer }))}
         三类核心材料（宣传材料 / 考勤 / 考察）齐全后即可提交归档；归档后仍可补交材料。
       </div>
       <div class="mt-2 flex flex-wrap items-center gap-3">
-        <span class="text-xs ${coreReady ? 'text-green-700' : 'text-amber-700'}">
+        <span class="text-xs ${coreReady ? 'text-green-700' : 'text-[var(--status-warning-text)]'}">
           ${coreReady ? '核心材料已齐（宣传材料 / 考勤 / 考察）。' : `核心材料待补：${_missingText({ photos, attendance, inspections })}`}
         </span>
         ${archived ? '' : '<button type="button" id="materials-check-done-btn" class="btn-outline btn-sm">核对完成，去提交归档</button>'}
@@ -177,9 +178,9 @@ function render() {
     <section class="mt-6" id="materials-archive-section" aria-labelledby="materials-archive-title">
       <h3 id="materials-archive-title" class="text-sm font-semibold text-gray-800 mb-2">③ 提交归档</h3>
       ${archived ? `
-        <div class="rounded-xl border border-green-100 bg-green-50/60 px-4 py-3">
+        <div class="rounded-xl border border-green-100 bg-white px-4 py-3">
           <p class="text-sm text-green-800">本场已归档。</p>
-          <p class="text-xs text-gray-600 mt-1">归档记录 ${archiveRecords.length} 条（宣传台材料归档）；补交材料仍走宣传台。</p>
+          <p class="text-body-sm text-gray-600 mt-1">归档记录 ${archiveRecords.length} 条（宣传台材料归档）；补交材料仍走宣传台。</p>
         </div>` : `
         <div class="rounded-xl border border-gray-100 px-4 py-3">
           ${_archiveError ? `<p class="mt-2 text-xs text-red-700" role="alert">归档失败：${esc(_archiveError)}</p>` : ''}
@@ -235,7 +236,7 @@ function _materialRowHtml({ label, count, unit, hint, href, handoff = '', extra 
       <div class="min-w-0">
         <div class="flex items-center gap-2">
           <span class="text-sm font-medium text-gray-800">${esc(label)}</span>
-          <span class="text-xs px-1.5 py-0.5 rounded-full ${ready ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}">${ready ? `已收 ${count} ${unit}` : '待补'}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${ready ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-[var(--status-warning-text)]'}">${ready ? `已收 ${count} ${unit}` : '待补'}</span>
           ${extra}
         </div>
         <p class="text-xs text-gray-500 mt-0.5">${esc(hint)}</p>
@@ -257,8 +258,8 @@ function _confirmArchive(act, materials) {
   const missing = _missingText(materials);
   const bodyHtml = `
     ${missing
-      ? `<p class="text-xs text-amber-700 leading-6">以下核心材料仍缺：<b>${esc(missing)}</b>。归档后仍可在宣传台补交材料。</p>`
-      : '<p class="text-xs text-green-700 leading-6">核心材料已齐（宣传材料 / 考勤 / 考察）。</p>'}`;
+      ? `<p class="text-body-sm text-[var(--status-warning-text)] leading-6">以下核心材料仍缺：<b>${esc(missing)}</b>。归档后仍可在宣传台补交材料。</p>`
+      : '<p class="text-body-sm text-green-700 leading-6">核心材料已齐（宣传材料 / 考勤 / 考察）。</p>'}`;
   openModal({
     id: 'materials-archive-confirm',
     title: '提交归档',

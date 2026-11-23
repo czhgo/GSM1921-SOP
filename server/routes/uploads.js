@@ -6,9 +6,10 @@ import fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { requireAuth, requireCommissioner } from './auth.js';
-import { selectedBranchRequiredError } from './resources/branch-scope.js';
+import { requireAssignedBranch, selectedBranchRequiredError } from './resources/branch-scope.js';
 // 党委角色单一源（勿手写）：下载做支部隔离时，党委（组织级、不属任何支部）跨支部可见
-import { DEFAULT_BRANCH_ID, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS } from '../../docs/src/core/domain/constants.js';
+import { PARTY_STAFF_ROLE as PARTY_STAFF_KEYS } from '../../docs/src/core/domain/constants.js';
+import { branchOrDefault } from './resources/branch-scope.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // 上传目录（2026-09-18 批次 80 · P1-③）：可由 env UPLOAD_DIR 配置；缺省值不变＝server/uploads。
@@ -57,18 +58,39 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => cb(null, `${randomUUID()}${ALLOWED[file.mimetype] || ''}`),
 });
 const upload = multer({ storage, limits: { fileSize: MAX_SIZE }, fileFilter: (req, file, cb) => {
-  cb(null, Boolean(ALLOWED[file.mimetype]));
+  const allowed = Boolean(ALLOWED[file.mimetype]);
+  // 类型不支持 ≠ 空文件：记下被拒的 mime，路由据此回 415（空请求 / 未选文件仍 400）
+  if (!allowed) req.unsupportedFileType = file.mimetype || '';
+  cb(null, allowed);
 } });
 
 const PARTY_STAFF_ROLE_SET = new Set(PARTY_STAFF_KEYS);
 
 export function createUploadsRouter(db) {
   const router = Router();
+  const requireAuthGate = requireAuth(db);
+  const requireCommissionerGate = requireCommissioner(db);
+  // T11（2026-11-16）：待归属账号（`branchId` 显式为 null，判据单一源 `branch-scope.js::requireAssignedBranch`）
+  //   没有支部上下文 ⇒ 上传 / 下载一律 403；不得回落到默认支部后放行。
+  //   上传门放在 multer 之前，拒绝时不落盘、不写 attachments 行。
+  const assignedBranchGuard = requireAssignedBranch();
+  // 上传门：支委层或党委（党委需要上传院级资料）；普通成员仍拒绝。
+  const requireUploader = (req, res, next) => requireAuthGate(req, res, (err) => {
+    if (err) return next(err);
+    if (PARTY_STAFF_ROLE_SET.has(req.actor?.role)) return next();
+    return requireCommissionerGate(req, res, next);
+  });
 
   // 上传写口（2026-09-18 批次 80 · 风险-⑤ 收紧）：原仅 requireAuth ⇒ 任一登录成员可上传。
-  // 现按既有附件写口口径收（COMMISSIONER_WRITE，server/routes/resources.js:196 的同一支委门）＝支委层。
-  router.post('/uploads', requireCommissioner(db), upload.single('file'), (req, res) => {
-    if (!req.file) return res.status(400).json({ error: '文件类型不支持或为空' });
+  // 现按既有附件写口口径收（COMMISSIONER_WRITE，server/routes/resources.js:196 的同一支委门）＝支委层；
+  // 2026-11-08 波次 H：党委可上传院级资料，故放行 party-staff（普通成员仍 403）。
+  router.post('/uploads', requireUploader, assignedBranchGuard, upload.single('file'), (req, res) => {
+    if (!req.file) {
+      if (req.unsupportedFileType !== undefined) {
+        return res.status(415).json({ error: `不支持的文件类型：${req.unsupportedFileType || '未知'}` });
+      }
+      return res.status(400).json({ error: '文件为空或未选择文件' });
+    }
     const meta = {
       id: randomUUID(),
       filename: decodeOriginalName(req.file.originalname),
@@ -78,29 +100,36 @@ export function createUploadsRouter(db) {
       uploadedBy: req.session.person_id,
       uploadedAt: new Date().toISOString(),
     };
-    db.prepare('INSERT INTO attachments (id, filename, path, size, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?)')
-      .run(meta.id, meta.filename, meta.path, meta.size, meta.uploadedBy, meta.uploadedAt);
+    // 多支部（批次 576 · `D-888`）：上传即固化归属支部；党委可显式选支部，支部账号取自身支部。
+    const uploadBranchId = req.query.branchId || branchOrDefault(req.actor.branchId);
+    db.prepare('INSERT INTO attachments (id, filename, path, size, uploaded_by, uploaded_at, branch_id) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run(meta.id, meta.filename, meta.path, meta.size, meta.uploadedBy, meta.uploadedAt, uploadBranchId);
     res.status(201).json(meta);
   });
 
   // 受保护静态访问：仅登录用户可下载 + 支部隔离（2026-09-18 批次 80 · 风险-⑤）。
-  // 附件表无支部字段，故按「上传人所属支部」判（users.branchId，缺省 'br-b1'，与 resources.js 同口径）；
-  // 党委必须选择支部，且只能下载所选支部上传人名下的附件。
-  router.get('/uploads/:name', requireAuth(db), (req, res) => {
+  // 归属判定（批次 576 · `D-888`）：**优先读附件行固化的 `branch_id`**；历史行空值才回落
+  //   「按上传人现支部」（users.branchId，缺省 'br-b1'，与 resources.js 同口径）。
+  router.get('/uploads/:name', requireAuth(db), assignedBranchGuard, (req, res) => {
     const safe = path.basename(req.params.name);
     const rel = `/api/v1/uploads/${safe}`;
-    const row = db.prepare('SELECT uploaded_by FROM attachments WHERE path = ?').get(rel);
+    const row = db.prepare('SELECT uploaded_by, branch_id FROM attachments WHERE path = ?').get(rel);
     if (!row) return res.status(404).json({ error: '附件不存在' });
     const actor = req.actor;
     const ownerRow = db.prepare('SELECT data FROM users WHERE id = ?').get(row.uploaded_by);
-    const ownerBranch = (ownerRow ? JSON.parse(ownerRow.data).branchId : null) || DEFAULT_BRANCH_ID;
+    const owner = ownerRow ? JSON.parse(ownerRow.data) : null;
+    // T11（2026-11-16）：上传人 `branchId` 显式为 null（待归属）⇒ 归属为 null，不得按缺省支部下发；
+    //   只有历史缺字段（undefined）才按存量口径回落 br-b1（与 `branch-scope.js::actorBranchId` 同判据）。
+    const ownerBranch = owner && owner.branchId === null ? null : branchOrDefault(owner ? owner.branchId : undefined);
+    // 行内支部为空 ⇒ 历史行（v19 之前的附件）⇒ 回落到传人现支部；显式值是上传时固化的归属
+    const ownerBranchResolved = row.branch_id ? row.branch_id : ownerBranch;
     if (PARTY_STAFF_ROLE_SET.has(actor.role)) {
       const selectionRequired = selectedBranchRequiredError(actor, req.query.branchId);
       if (selectionRequired) return res.status(400).json({ error: selectionRequired });
-      if (String(req.query.branchId) !== ownerBranch) return res.status(403).json({ error: '无权限：附件不属于所选支部' });
+      if (String(req.query.branchId) !== ownerBranchResolved) return res.status(403).json({ error: '无权限：附件不属于所选支部' });
     } else {
-      const actorBranch = actor.branchId || DEFAULT_BRANCH_ID;
-      if (ownerBranch !== actorBranch) return res.status(403).json({ error: '无权限：该附件不属于本支部' });
+      const actorBranch = branchOrDefault(actor.branchId);
+      if (ownerBranchResolved !== actorBranch) return res.status(403).json({ error: '无权限：该附件不属于本支部' });
     }
     res.sendFile(path.join(UPLOAD_DIR, safe));
   });

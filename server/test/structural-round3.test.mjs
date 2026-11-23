@@ -56,8 +56,12 @@ test('S1 待办窄屏：390 列表先于详情、未选中不渲染详情列，�
   // 选中待办后滚动到详情卡顶部（block: 'start'）。
   assert.match(src, /data-ws-todo-detail/, '详情卡缺 data-ws-todo-detail 定位标记');
   assert.match(src, /smoothScroll\([\s\S]{0,100}?data-ws-todo-detail[\s\S]{0,100}?block: 'start'/, '选中后未对详情卡 smoothScroll');
-  assert.match(src, /_selectedTodoId = todo\.groupKey \|\| todo\.id;[\s\S]{0,120}?renderContent\(ctx\)\.then\(_scrollDetailIntoView\)/,
-    '选中后应在重建完成时滚动到详情');
+  // 2026-11-04 批次 534（Task 2.6）：选行重建后把焦点还给新选中行；**窄屏才滚入详情**，
+  //   宽屏不再自动滚（右栏与列表同屏，滚动只会让列表跳走）。
+  assert.match(src, /_selectedTodoId = todo\.groupKey \|\| todo\.id;[\s\S]{0,120}?renderContent\(ctx\)\.then\(\(\) => _settleSelection\(selectedKey\)\)/,
+    '选中后应在重建完成时走 _settleSelection（焦点归还 ＋ 窄屏滚入详情）');
+  assert.match(src, /if \(!_isTodoDesktopLayout\(\)\) _scrollDetailIntoView\(\);/, '滚入详情只应在窄屏发生');
+  assert.match(src, /row\.focus\(\{ preventScroll: true \}\)/, '选行重建后应把焦点还给新选中行（不得落 BODY）');
   // 读屏可感知详情变化。
   assert.match(src, /data-ws-todo-detail aria-live="polite"/, '详情卡缺 aria-live="polite"');
   // 空态不再写「左侧」（窄屏详情在上方），且不再重复页签名。

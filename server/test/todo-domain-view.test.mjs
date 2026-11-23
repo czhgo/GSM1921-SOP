@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // server/test/todo-domain-view.test.mjs — IA 收敛 C1 Task3：TodoStore 按业务域聚合视图（2026-09-07）
-// 依据：.trae/specs/2026-09-06-ia-todo-cards/plan-c1.md Task3 + spec.md 二节（聚合/分组输出域序固定）
+// 依据：历史 spec（已删） Task3 + spec.md 二节（聚合/分组输出域序固定）
 // 覆盖（member-persist 桩做法；seed 用 mockDB.todos 直插构造记录）：
 //   ① DOMAIN_ORDER 导出：9 域固定顺序（会务→活动项目→考勤纪律→考察→成员发展→专班→
 //      决议上报→归档宣传→汇报反馈），NONE 不入列；顺序与 WORK_DOMAIN_LABELS 齐全
@@ -17,17 +17,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261031a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261120a';
 import {
   MockAdapter,
-} from '../../docs/src/data/mock-adapter.js?v=20261031a';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261031a';
+} from '../../docs/src/data/mock-adapter.js?v=20261120a';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261120a';
 import {
   WORK_DOMAIN, WORK_DOMAIN_LABELS, DOMAIN_ORDER,
   TodoStore, TodoCategory, TodoStatus,
   realtimeGroupDomainOf,
   urgeRolesOf,
-} from '../../docs/src/services/governance/todo.js?v=20261031a';
+} from '../../docs/src/services/governance/todo.js?v=20261120a';
 // A① 通知对象级深链守卫（2026-09-10）：静态扫描 docs/src 全部通知生产点（纯 fs，无需浏览器）
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';

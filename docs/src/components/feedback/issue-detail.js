@@ -1,18 +1,19 @@
 // role: [工程师]+[AI]
 // issue-detail.js — 反馈详情渲染
 
-import { IssueStore, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261031a';
-import { MilestoneStore } from '../../services/governance/milestones.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { showToast } from '../../core/base/utils.js?v=20261031a';
-import { icon } from '../../core/base/icons.js?v=20261031a';
-import { getPersonName } from '../../services/member/person.js?v=20261031a';
-import { renderReactions, bindReactions } from './reactions.js?v=20261031a';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261031a';
-import { badgeHtml } from '../ui/badges.js?v=20261031a';
-import { openFormModal } from '../ui/modal.js?v=20261031a';
+import { IssueStore, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261120a';
+import { MilestoneStore } from '../../services/governance/milestones.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { showToast } from '../../core/base/utils.js?v=20261120a';
+import { icon } from '../../core/base/icons.js?v=20261120a';
+import { getPersonName } from '../../services/member/person.js?v=20261120a';
+import { renderReactions, bindReactions } from './reactions.js?v=20261120a';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261120a';
+import { badgeHtml } from '../ui/badges.js?v=20261120a';
+import { openFormModal } from '../ui/modal.js?v=20261120a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261120a';
+import { renderCardHeader } from '../shell/page-frame.js?v=20261120a';
 const SCOPE_LABELS = {
   permanent: '底层架构',
   global: '全局通用',
@@ -56,7 +57,7 @@ export function renderIssueDetail(issueId) {
   const issue = IssueStore.getById(issueId);
   if (!issue) {
     container.innerHTML = `
-      <div class="card rounded-xl p-5 text-center">
+      <div class="card rounded-xl card-standard text-center">
         <p class="text-sm text-gray-500 mb-3">反馈不存在或已被删除</p>
         <a href="./feedback.html" class="text-xs text-accent">← 返回列表</a>
       </div>
@@ -80,11 +81,11 @@ export function renderIssueDetail(issueId) {
     <div class="grid lg:grid-cols-10 gap-4">
       <!-- 主区 70% -->
       <div class="lg:col-span-7 space-y-4">
-        <div class="card rounded-xl p-5">
+        <div class="card rounded-xl card-standard">
           <div class="flex items-center gap-2 mb-3">
             <span class="text-xs text-gray-500 font-mono">#${issue.number}</span>
             ${issue.status === 'open'
-              ? badgeHtml('开放中', 'success')
+              ? badgeHtml('开放中', 'warning')
               : badgeHtml(`已关闭 · ${ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || '已解决'}`, 'neutral')
             }
           </div>
@@ -110,7 +111,7 @@ export function renderIssueDetail(issueId) {
 
           <!-- 评论 timeline -->
           <div class="mt-6 pt-4 border-t border-gray-100">
-            <h3 class="font-title-cn text-sm font-semibold text-gray-700 mb-3">评论 (${issue.commentCount || 0})</h3>
+            ${renderCardHeader({ title: `评论 (${issue.commentCount || 0})`, variant: 'panel' })}
             <div class="space-y-3">
               ${(issue.comments || []).map(c => renderComment(c, canManage, issue.id)).join('') || emptyStateHtml({ text: '暂无评论', variant: 'inline', className: 'font-sans' })}
             </div>

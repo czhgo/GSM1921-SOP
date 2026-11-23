@@ -1,4 +1,4 @@
-# ════════════════════════════════════════════════════════════════
+﻿# ════════════════════════════════════════════════════════════════
 #  deploy/install.ps1 —— **Windows** 一键安装（部署到自己的电脑 / 办公机时用）
 #
 #    powershell -ExecutionPolicy Bypass -File deploy\install.ps1
@@ -9,7 +9,14 @@
 #  ⚠ **诚实声明（2026-09-29 批次 269）**：本脚本**未在真机执行过**（只做静态审读）。
 #  ⚠ 与 Linux 版的差别：Windows 没有 systemd，**优雅关闭靠 deploy\start-server.cmd 前台运行 +
 #    `taskkill` 会发 WM_CLOSE/CTRL_C 的行为不保证** ⇒ 停止服务请用 `Ctrl+C`（会走 server.js 的 SIGINT 分支）。
+#
+#  演练开关（2026-11-24 批次 607 · `L-02`）：
+#    `powershell -ExecutionPolicy Bypass -File deploy\install.ps1 -SkipTask`
+#    跳过「开机启动计划任务」注册（不动系统计划任务），其余步骤照常。
 # ════════════════════════════════════════════════════════════════
+param(
+  [switch]$SkipTask
+)
 $ErrorActionPreference = 'Stop'
 $Here = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $ServerDir = Join-Path $Here 'server'
@@ -21,7 +28,7 @@ function Die($m) { Write-Host "✖ $m" -ForegroundColor Red; exit 1 }
 
 Say '① 预检'
 if (-not (Get-Command node -ErrorAction SilentlyContinue)) { Die '未找到 node（要求 ≥ 22）' }
-$major = [int](node -p 'process.versions.node.split(".")[0]')
+$major = [int](node -p "process.versions.node.split('.')[0]")
 if ($major -lt 22) { Die "Node 版本过低：$(node -v)（better-sqlite3@12 要求 20.x/22.x+）" }
 if (-not (Test-Path (Join-Path $ServerDir 'server.js'))) { Die "未在仓库根执行（找不到 server\server.js）" }
 Write-Host "  node $(node -v) · 仓库根 $Here"
@@ -52,11 +59,15 @@ node server.js
 }
 
 Say '④ 注册开机启动（计划任务）'
-$action = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument "/c `"$StartCmd`"" -WorkingDirectory $Here
-$trigger = New-ScheduledTaskTrigger -AtStartup
-$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
-Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger -Settings $settings -RunLevel Highest -Force | Out-Null
-Write-Host "  已注册计划任务 $TaskName（✅ 首次请先手动双击 start-server.cmd 填好口令并试跑）"
+if ($SkipTask) {
+  Write-Host '  -SkipTask：跳过计划任务注册（演练模式）'
+} else {
+  $action = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument "/c `"$StartCmd`"" -WorkingDirectory $Here
+  $trigger = New-ScheduledTaskTrigger -AtStartup
+  $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
+  Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger -Settings $settings -RunLevel Highest -Force | Out-Null
+  Write-Host "  已注册计划任务 $TaskName（✅ 首次请先手动双击 start-server.cmd 填好口令并试跑）"
+}
 
 Say '⑤ 冒烟'
 $smoke = Join-Path $PSScriptRoot 'smoke.mjs'

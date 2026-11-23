@@ -3,15 +3,15 @@ title: "架构演进——组件化落地评估与轻量插件化设计"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-22
-last_updated: "2026-10-29"
+last_updated: 2026-11-22
 status: active
-related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../03_doc_system/ARCHITECTURE.md, ../../05_ai_coding/README.md]
+related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../module/PUBLIC_ENTRANCE.md, ../../03_doc_system/ARCHITECTURE.md, ../../05_ai_coding/README.md]
 ---
 
 # 架构演进——组件化落地评估与轻量插件化设计
 
 > **本文负责**：系统架构的**演进方向与承载机制**——组件化落地的历史结论、M1~M8 落地账、L1~L5 层级愿景，以及 L3/L4 的架构锚点与 YAGNI 边界。
-> **本文不负责**：① **架构的现行描述**（分层 / 目录结构 / 单一事实源注册表）→ [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)；② **工程化现状与下一步改造行动线** → [ENGINEERING_ASSESSMENT.md](../../../.ctx/ENGINEERING_ASSESSMENT.md)（本文件的评估正文已由它承接）；③ **L3 块封装的字段规格** → [WORKFLOW_BLOCK_CONTRACT.md](WORKFLOW_BLOCK_CONTRACT.md)；④ **支部工作地图（L4 的设计稿）** → [BRANCH_WORK_MAP.md](BRANCH_WORK_MAP.md)。
+> **本文不负责**：① **架构的现行描述**（分层 / 目录结构 / 单一事实源注册表）→ [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)；② **工程化现状与下一步改造行动线** → [ENGINEERING_ASSESSMENT.md](../../../.ctx/ENGINEERING_ASSESSMENT.md)（本文件的评估正文已由它承接）；③ **L3 块封装的字段规格** → [WORKFLOW_BLOCK_CONTRACT.md](../contracts/WORKFLOW_BLOCK_CONTRACT.md)；④ **支部工作地图（L4 的设计稿）** → [BRANCH_WORK_MAP.md](archive/BRANCH_WORK_MAP.md)。
 
 > **定位**：一次关于系统架构的探索——「高度组件化、高度可复用」的目标落地到什么程度？距离「一切皆插件」的灵活性还有多远？上线后的多轮迭代靠什么机制承载？本文档只表达探索与选择，不代表最终结论，更不代表方案完备。
 > **受众**：[工程师]+[AI]（架构维护者、开发者）+ 愿意给出架构反馈的外部评审者
@@ -52,7 +52,7 @@ related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../
 
 本系统的核心资产不是界面，而是**一套把支部工作流（SOP）代码化的方法论**：决策树引导写入、WorkflowEngine 纯数据驱动、SOP-系统双向映射（SOP_WEBSITE_GUIDE）。三者已经证明「流程可被描述、可被机器执行」。在此基础上，真正的复用瓶颈不再是"能不能写"而是"支部/用户能否自己组合"：
 
-- 不同支部流程不同（本科 vs 硕博、常规 vs 专项），`enabledModules` 勾选已能排列组合（见 [PARTY_COMMITTEE_DESIGN.md](PARTY_COMMITTEE_DESIGN.md) §2.5）；
+- 不同支部流程不同（本科 vs 硕博、常规 vs 专项），`enabledModules` 勾选已能排列组合（见 [PARTY_COMMITTEE_DESIGN.md](../contracts/PARTY_COMMITTEE_DESIGN.md) §2.5）；
 - 能力注册表（见 §二 历史结论，M1~M8 已落地）已经为每个能力单元提供**目录**；
 - 缺的最后一块拼图是：一个面向使用者的**可视化编排形态**——把「代码级能力」翻译为「可拖的工作流块」。
 
@@ -61,12 +61,12 @@ related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../
 | 层 | 内容 | 状态 |
 |---|---|---|
 | L1 能力目录化 | 能力注册表 = 全仓能力的单一目录（M1~M8 已全落地，2026-08-30） | 已落地 |
-| L2 支部组合化 | 支部 config.modules（hiddenTabIds/tabOrder）从已注册工作台 tab 中排列组合；**已落地（2026-09-03 支部自治/核心固定；2026-09-09 操作位收口）**——写权与操作位见 [PARTY_COMMITTEE_DESIGN.md](PARTY_COMMITTEE_DESIGN.md) §2.5/§2.6 | 已落地（L2 定案） |
-| L3 块封装契约 | 把一条 SOP 封装为一个「工作流块」：声明输入（发起角色/必填字段）、阶段（节点与顺序）、产出（待办/通知/归档联动） | 已落地（2026-09-03，S1~S4）→ 见 [WORKFLOW_BLOCK_CONTRACT.md](WORKFLOW_BLOCK_CONTRACT.md) §六/§七 |
+| L2 支部组合化 | 支部 config.modules（hiddenTabIds/tabOrder）从已注册工作台 tab 中排列组合；**已落地（2026-09-03 支部自治/核心固定；2026-09-09 操作位收口）**——写权与操作位见 [PARTY_COMMITTEE_DESIGN.md](../contracts/PARTY_COMMITTEE_DESIGN.md) §2.5/§2.6 | 已落地（L2 定案） |
+| L3 块封装契约 | 把一条 SOP 封装为一个「工作流块」：声明输入（发起角色/必填字段）、阶段（节点与顺序）、产出（待办/通知/归档联动） | 已落地（2026-09-03，S1~S4）→ 见 [WORKFLOW_BLOCK_CONTRACT.md](../contracts/WORKFLOW_BLOCK_CONTRACT.md) §六/§七 |
 | L4 拖拽编排 | 画布拖拽块 → 连线定顺序/条件 → 导出为版本化工作流定义 JSON（可预览、可回退） | 远期愿景 |
 | L5 块市场/分享 | 编排好的工作流块可命名、可导出、可复用于其他支部（开源社区的场景库） | 远期愿景 |
 
-> **注（2026-09-03 后续落地）**：L3 契约与 L4 画布/地图设计已独立成文——[WORKFLOW_BLOCK_CONTRACT.md](WORKFLOW_BLOCK_CONTRACT.md)（L3 块封装契约 v1.1 定稿）、[BRANCH_WORK_MAP.md](BRANCH_WORK_MAP.md)（L4 支部工作地图设计稿 v2.1，支书放行编码）；本表与 §8.5 的草案状态以上述两文件为准。
+> **注（2026-09-03 后续落地）**：L3 契约与 L4 画布/地图设计已独立成文——[WORKFLOW_BLOCK_CONTRACT.md](../contracts/WORKFLOW_BLOCK_CONTRACT.md)（L3 块封装契约 v1.1 定稿）、[BRANCH_WORK_MAP.md](archive/BRANCH_WORK_MAP.md)（L4 支部工作地图设计稿 v2.1，支书放行编码）；本表与 §8.5 的草案状态以上述两文件为准。
 
 ### 8.3 落地时的架构锚点（不新造核心）
 
@@ -144,6 +144,182 @@ related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../
 取舍是把 bump 的**时机**从「每次改动」挪到「发布」：日常提交不动 `?v=`（降低 diff 噪音），发布前跑一次 `cd server; npm run release:stamp`（先全站补戳，再以 `--check` 核对陈旧戳与 `CODE_VERSION`）。这条取舍的前提是**部署必经 `release:stamp`**——若直接部署未 bump 的代码，`?v=` 未变的模块 URL 会命中旧缓存，新旧混用随即回来。
 
 > **若将来要退出戳，必须先把内部模块改 no-cache 协商**——否则浏览器按 URL 缓存 ES Module 的语义不变，去掉 `?v=` 只会把「陈旧模块」从可见变成不可见。
+
+---
+
+## 十、多支部同实例与党委内容域（2026-11-08 · 设计与前置条件）
+
+> **支书口径**：「服务端要考虑多支部情况，需要有所设计」。本节定**模型、阶段顺序与验收**，不改变当前上线形态——生产仍为「一实例一支部」，`ALLOW_MULTI_BRANCH` 开关**保持关闭**，多支部且未显式放行时 production 档拒绝启动。Phase 1–2 是打开开关的**前置**；Phase 3–4 不以上线为前提。
+
+### 10.1 现状与风险
+
+- 数据行已有 `branchId`（资源、语义、工作组表均带；历史缺字段回落 `br-b1`），写门已有支部校验（`branch-scope.js` / `RESOURCE_WRITE_GATE`）。
+- **读面没有统一收口**：`listTable` 与部分语义端点整表读取，支部过滤靠前端投影；同实例多支部会串读。
+- 快照写穿已做「写入行归属校验」，读取面未过滤，形成「写得住、看得穿」。
+- 党委此前只有治理视野（监控 / 任命 / 审批 / 下发），没有内容域：院级活动、院级通知、院级资料无处落行。
+
+### 10.2 目标模型（请求级支部上下文）
+
+1. **单一来源**：每个请求由 `requireAuth` 注入 `req.actor.branchId`；无支部归属仅限 `party-staff` / 待归属账号。
+2. **读口统一过滤**：`list` / `bootstrap` / 语义读口取得行后必须经过 `resourceRowsForActor(db, name, rows, actor, reader)`；不得在 handler 里 `JSON.parse` 后直接返回全表。
+3. **治理面显式跨支部**：`party-staff` 跨支部读取必须带 `?branchId=` 或走党委专用端点，并留痕；不带范围时拒绝，不默认全量。
+4. **写入面按内容归属分档**：`ownerScope` 决定写门；支部账号只写 `ownerScope='branch'` 且属于本支部的行，党委账号写支部业务记录时必须明确 `branchId`。
+5. **索引随查询出现再加**：`MIGRATIONS` 追加 `branchId` 表达式索引（`json_extract(data,'$.branchId')`），只在实际出现跨支部查询后加。
+
+### 10.3 党委伪支部 `pc-gsm` 与真实支部的边界
+
+| 维度 | 党委伪支部 `pc-gsm` | 真实支部 |
+|---|---|---|
+| 支部目录 | 不进入；不参与支部数与统计 | 进入目录，参与统计 |
+| 成员与考勤 | 不承载成员名册、考勤、工作组 | 承载 |
+| 支书任命 | 不可任命 | 可任命 |
+| 内容行 | 党委活动、党委通知、院级资料 | 支部活动、支部内部通知、支部资料 |
+| 写入口 | 只对 `party-staff` 开放 | 支部账号写本支部行；党委写支部业务记录须明确 `branchId` |
+
+- **跨支部副本唯一性**：唯一约束落在 `(branch_id, source_activity_id)`（排除空值），同一支部对一条党委活动最多一条副本；不同支部各自一条，互不影响。
+- **公开路由与支部隔离**：公开路由不经支部作用域，只返回 `publishScope='public'` 且未过期的党委行；登录态读口仍走支部作用域 ＋ 党委可见行的并集。两条通道不共用同一条 SQL 分支。
+
+### 10.4 实施顺序（每阶段可独立回归）
+
+| 阶段 | 内容 | 验收判据 | 是否上线前置 |
+|---|---|---|---|
+| **Phase 1 数据模型** | `activities` 增 `ownerScope`、`targetBranchIds`、`sourceActivityId`、`sourceVersion`、`sourceSyncedAt`、`adoptedAt`、`adoptedBy`、`contentVersion`、`publicSummary`、`publishScope`、`publishExpiresAt`；党委活动行 `branchId='pc-gsm'`；`notices` / `branch_docs` 增 `publishScope` / `publishExpiresAt`；迁移追加生成列与部分唯一索引；存量行缺 `ownerScope` 读作 `branch` | 迁移后字段、生成列与索引齐备；`data-contract` / `db-integrity-guard` / `seed-contract-guard` 绿；存量活动与通知不丢失 | 是（打开开关的前置） |
+| **Phase 2 读侧并集与写门** | `resourceRowsForActor` 对 `activities` / `notices` / `branchDocs` 支部账号返回「本支部行 ＋ 党委可见行」，已有副本时排除党委原件；写门按 `ownerScope` 判定；党委伪支部不进入支部目录与支部统计；其余资源维持支部隔离 | 双支部夹具下 A 支部读不到 B 支部任何行；支部汇总不含 `pc-gsm`；其他资源隔离不松动；单支部既有测试全绿 | 是（打开开关的前置） |
+| **Phase 3 下发与采用** | 下发按目标支部创建系统通知（受众 `['secretary','deputy-secretary']`，同一 `contentVersion` 幂等）；支部幂等采用生成副本（并发由唯一索引 ＋ 事务兜底）；副本内容字段锁定，只允许执行字段；手动同步只覆盖内容字段并更新 `sourceVersion` / `sourceSyncedAt`；强调通知按 `(branchId, sourceActivityId)` 24 小时限频 | 重复下发不新增通知；重复采用返回同一副本；副本内容字段变更返回 422；越权采用 403；24 小时内重复强调通知返回 429 | 否 |
+| **Phase 4 公开门厅与多实例部署** | 匿名只读接口（字段白名单、有效期 fail-closed、不存在与无权统一 404、下载写审计）；公开权限只归党委；多实例部署由 `ALLOW_MULTI_BRANCH` 控制，开关关闭时多支部配置拒绝启动 | 匿名响应不含成员与内部字段；过期后匿名 404；公开与撤下可在审计表查到；开关关闭时单支部正常启动、打开时通过多支部校验 | 否 |
+
+### 10.5 不做什么
+
+- 不把支部做成独立数据库 / 独立 schema（迁移与备份成本高，当前规模不需要）。
+- 不在前端做「隐藏他支部数据」来替代服务端读过滤——前端隐藏不构成隔离。
+- 不在 Phase 1–2 完成前打开 `ALLOW_MULTI_BRANCH`。
+- 不为党委内容域另建一套活动表；党委活动与支部活动同表，由 `ownerScope` 区分。
+
+> **决策待办**：Phase 2 之后「党委跨支部读取是否需要独立页面 / 入口，还是仅 API 参数」仍留给支书裁定，该决定影响党委工作台的 IA。开关打开本身另需支书裁定与部署放行，本节不预设时间。
+
+### 10.6 判定点清单（T12 设计定稿 · 2026-11-15）
+
+> **本节回答**：一次请求的行，按什么判定它「属于哪个支部 / 是否允许跨支部 / 与支部无关」。每条给 `文件:函数` 锚点与现状，T13 只按本节施工，不再另立判据。
+> **判据形态**：每类都能布尔化——「这条读口返回的行是否全部经 `branch-scope` 解析并等于请求支部」「这条写口是否对外支部行返回 403」。锚点写函数名，不写行号（行号随插行漂移）。
+
+**（a）必须按 `branchId` 过滤的域**
+
+| 域 | 判据落点（`文件:函数`） | 现状 |
+|---|---|---|
+| 全部通用资源集合（`RESOURCE_TABLES` 全表） | `server/routes/resources/index.js::_resourceRowsForActor` → `server/routes/resources/branch-scope.js::resourceRowsForActor` | 已接线；例外见 10.7-1 |
+| 活动 / 通知 / 支部资料（本支部 ＋ 党委可见行并集） | `branch-scope.js::resourceRowsForActor`（`isCommitteeRow` / `targetsBranch` / `isLoginVisible` / `isWithdrawnPublic`） | 已接线 |
+| 待办 `todos`（含 `branchLegacy` 兼容期） | `branch-scope.js::resourceBranchId`（`name === 'todos'` 分支）＋ `resourceRowsForActor`（todos 分支） | 已接线；与 `todo-groups` 判据不同（10.7-3/4） |
+| 归档记录 `archiveRecords`（未归属只给党委） | `branch-scope.js::resourceBranchId` ＋ `resourceRowsForActor`（archiveRecords 分支） | 支部读口已接线；匿名读口失守（10.7-1） |
+| 聚合子记录 `actSubRecords` / `tfSubRecords` | `branch-scope.js::aggregateRows` / `aggregateWriteDeny` / `mergeAggregateBody` | 已接线（读写同判据） |
+| 考勤 / 考察行级叠加 | `resources/index.js::_canReadAttendanceRow` / `_canReadInspectionRow` | 已接线（人物 / 组织者维度，支部维度由集合层承担） |
+| 支部名册 | `server/routes/branch-roster.js::PUT /branches/:id/roster`（`cleanMemberRow` 固定路径支部） | 已接线；历史判定见 10.7-5 |
+| 工作组域（6 表） | `server/routes/resources/workgroup-routes.js::ownBranch` ＋ 各 `(row.branchId \|\| DEFAULT_BRANCH_ID)` 比对 | 已接线，字面兜底 26 处 |
+| 待办组派生 | `server/routes/todo-groups.js::_scopeBranchId` / `_belongsTo` / `_visibleTodos` / `_membersOfBranch` / `rowsOf` | 已接线，自成一套判据（10.7-3/4） |
+| 报表四域 | `server/routes/report.js` ＋ `server/services/reporting.js::extractDomain({ branchId })` | 已接线；党委未选支部时 null 语义见 10.7-7 |
+| 申诉 / 议题 / 名册变更等语义读口 | `server/routes/resources/semantic-routes.js::readScoped`、`server/routes/member.js::GET /member-change-requests`、`server/routes/committee.js`（agenda_votes） | 已接线（同一 helper） |
+| 快照写穿 | `branch-scope.js::scopedSnapshotWriteDeny` / `mergeScopedSnapshotWrites`；`resources/index.js::_retainRowScopedSnapshotRows` | 已接线 |
+
+**（b）本职跨支部的域**
+
+| 域 | 判据落点 | 现状 |
+|---|---|---|
+| 支部目录与支部统计 | `branch-scope.js::projectBranchDirectoryRow` / `branchSummary`（`branches` 读口，党委未选支部给目录投影） | 已接线 |
+| 支部上报审批 `reviewRequests` | `resourceRowsForActor`（党委未选支部时返回全部待批复） | 已接线（本职跨支部） |
+| 党委活动 / 院级资料管理 | `semantic-routes.js::GET /committee/activities`、`GET /committee/documents`（`ownerScope === 'committee'`） | 已接线 |
+| 党委档案读取 | `semantic-routes.js::GET /committee/archive-records`（`?branchId=` 可选过滤） | 已接线；不传参即全量 |
+| 党委名册提案 | `semantic-routes.js::POST /committee/roster-proposals`（`body.branchId` 必填校验） | 已接线 |
+| 任命档案 | `semantic-routes.js` 任命链（`appointment_records`） | 已接线 |
+| 发布留痕 | `semantic-routes.js::GET /publication-audits`（全量只增不改） | 已接线 |
+| 报表触发 / 导出 | `report.js::POST /report/trigger`、`GET /report/export`（党委须先选支部：`selectedBranchRequiredError`） | 已接线 |
+| 党委下发通知 | `branch-scope.js::isCommitteeRow` 分支（`source === 'committee'` / `branchId === pc-gsm`） | 已接线 |
+
+**（c）无支部维度的域**
+
+| 域 | 判据落点 | 说明 |
+|---|---|---|
+| 里程碑 `milestones` | `semantic-routes.js::GET /milestones`（直接 `listTable`） | 内容单一源 `docs/data/milestones.json`，无支部字段 |
+| 会话 `sessions` / 上传元数据 `attachments` | `server/db.js::SCHEMA` | 按人 / 会话，不按支部 |
+| 集合版本号 `collection_versions` | `server/db.js` | 乐观锁元表 |
+| 认证域 `/api/v1/auth/**` | `server/routes/auth.js` ＋ `server/read-only.js::isAuthPath` | 登录 / 登出不算业务写 |
+| 匿名公开门厅的字段投影 | `server/routes/public-portal.js`（字段白名单） | 只出 `publishScope='public'` 且未过期行，按白名单裁字段 |
+
+### 10.7 现状缺失与失败开放点（探针证据）
+
+> 「失败开放」指缺字段或取不到支部上下文时放行，不拒绝。T13 的每条改动都要先指明它关掉哪一条。
+
+| 编号 | 位置 | 现象 | 判定 |
+|---|---|---|---|
+| 1 | `branch-scope.js::resourceRowsForActor`（`if (!targetBranchId) return rows;`） | 无支部上下文（匿名 / 待归属）直接返回全表 | 失败开放。实测无 token `GET /archiveRecords` 返回 `ar-a,ar-b`（跨支部） |
+| 2 | `branch-scope.js::resourceBranchId` 末尾 `return linked \|\| DEFAULT_BRANCH;` | 缺 `branchId` 的存量行归默认支部 | 多支部下把未归属行并入 `br-b1`；全仓 `\|\| DEFAULT_BRANCH(_ID)` 实测 **190 处 / 50 文件**（server 113/20、docs 77/30），线索所记「109 处 / 18 文件」未复现，最接近的是 server 面 113/20 |
+| 3 | `todo-groups.js::_scopeBranchId` | `actorBranchId(actor) \|\| requested \|\| DEFAULT_BRANCH_ID`，比 `branch-scope.js::selectedBranch` 多一层默认回落 | 两套判据；党委未选支部时口径分歧 |
+| 4 | `todo-groups.js::_belongsTo` | `(row.branchId \|\| DEFAULT_BRANCH_ID) === branchId`；`resourceBranchId('todos')` 用 `linked \|\| null` | 同一行两判（实测见 10.8-⑤） |
+| 5 | `branch-roster.js::branchHasHistory` | SQL `IFNULL(json_extract(data,'$.branchId'),'<默认支部>')` 计历史 | 缺字段按默认支部算，删除支部前校验会误判 |
+| 6 | `semantic-routes.js::GET /committee/*` 系列 | 不传 `?branchId=` 时全量返回 | 本职跨支部，可接受；缺留痕 |
+| 7 | `report.js` 三处 `actorBranchId(actor) \|\| req.query.branchId \|\| null` | 党委未选支部时 `branchId = null` | `extractDomain` 的 null 语义须在 T13 前确认（是否等价全量） |
+| 8 | 无 view 上下文 | `/committee/enter-branch` 返回 404；党委选支部后 `PATCH /branches/br-a/config` 返回 200，响应无 `readOnly` 字段 | 「进入支部只读」尚未存在（Q10 未落地） |
+
+### 10.8 双支部夹具摸底（一次性探针 · 不落仓库文件）
+
+> 方法：`:memory:` 库 ＋ `createApp` ＋ 真实 HTTP 登录；每次跑完删除探针目录，不写运行库 `server/data.db`。
+
+| 证 | 结论 | 证据 |
+|---|---|---|
+| ① A 支部读不到 B 支部行 | **成立** | 甲支书 / 甲成员在 `/activities` `/notices` `/branchDocs` `/users` `/tasks` `/todos` `/archiveRecords` `/todo-groups` `/bootstrap` 9 个读口 0 泄漏；对照乙支书可见 `act-b` |
+| ①补 匿名归档读口 | **不成立（跨支部可见）** | 无 token `GET /archiveRecords` 返回 `ar-a,ar-b`；根因 10.7-1 |
+| ② 跨支部写被拒 | **成立** | 单行 `POST /activities` = 403；`PATCH /activities/act-b` = 403；快照含 B 行 = 403（`不能通过快照触碰其他支部记录`）；聚合父键 `PATCH /actSubRecords/__root__`（body 含 `act-b`）= 403；B 行未被改写 |
+| ③ N=1 读集合与快照串不变 | **成立（基线已固化）** | 单支部 `br-b1` 下缺 `branchId` 行的可见性：`/activities:[act-1]`、`/notices:[ntc-1]`、`/users:[6100000001,6100000002]`（缺字段的 `6100000003` 不可见）、`/todos:[todo-1,todo-2]`（`todo-2` 走 `branchLegacy`）、`/archiveRecords:[]`（缺字段行对支部不可见）；`/bootstrap` 29 集合摘要 `4c42b6029aaf4d2e`；空快照 `POST /snapshot` = 204。**T13 改造后必须复跑同一夹具，摘要逐字节一致** |
+| ④ 党委 view 内写被拒 | **不成立** | 党委 `?branchId=br-a` 读 200，随后 `PATCH /branches/br-a/config` = 200（配置写入成功），响应无 `readOnly`；`/committee/enter-branch` = 404 |
+| ⑤ `todo-groups` 与 `todos` 同判 | **不成立** | 无 `branchId` 但 `sourceId=act-a` 的 `todo-lk`：`/todos` 可见 = true，`/todo-groups` 可见 = false；显式 `branchId=br-a` 的 `todo-ctl` 两处均可见 = true |
+
+**覆盖范围**：读口 9 个、写口 4 类（单行 / 快照 / 聚合 / 配置）、N=1 与 N=2 两套库。**未覆盖**：工作组 6 表、上传口、公开门厅、`?page` 分页路径、`party-staff` 写支部业务行的全部矩阵项。
+
+### 10.9 T13 施工顺序与前置断言
+
+> 顺序按「先定判据、再动使用方、最后加门」。每步单独可回归，前一步不绿不进下一步。
+
+| 步 | 改哪里 | 前置断言（进下一步的门） |
+|---|---|---|
+| 1 | `branch-scope.js`：把「缺字段回落默认支部」抽成显式策略（保留 `todos` / `archiveRecords` 的 `null` 口径），新增 `resolveRowBranchId` 作为统一入口 | 10.8-③ 基线摘要 `4c42b6029aaf4d2e` 与五条读集合逐字节不变 |
+| 2 | `todo-groups.js`：删 `_scopeBranchId` / `_belongsTo`，改用 `branch-scope` 两个函数（`actorBranchId` ＋ `resourceBranchId`） | 10.8-⑤ 由「不成立」转「成立」；`todo-groups-api` / `todo-derive-parity` / `todo-branch-attribution` 全绿 |
+| 3 | `resources/index.js`：`_resourceRowsForActor` 去掉 `!targetBranchId ⇒ return rows`，改为「无支部上下文只放行 `publishScope='public'` 且未过期的党委行」 | 匿名 `GET /archiveRecords` 不再含他支部行；`archive-record-write` / `public-portal` / `data-lifecycle-guard` 绿 |
+| 4 | 新增 `server/branch-view.js`（仿 `read-only.js::createReadOnlyGuard` 的挂载位置与响应形状），党委进入支部写口统一 403 `{ readOnly: true }` | `write-policy-matrix` 141 → 143 条同批登记；`write-policy-gaps` / `permission-gate` / `r3-data-permission-regression` 绿 |
+| 5 | 新增常驻守卫：支部解析只经 `branch-scope` 两个函数，新增 `\|\| DEFAULT_BRANCH` 判红 | `test:guards` 绿；既有 190 处按文件基线只减不增 |
+
+**会引爆存量断言的改动（同批必须一起改）**
+
+| 改动 | 受影响断言（实测文件 / 规模） |
+|---|---|
+| 待办判据收敛（步 2） | `todo-groups-api`（20 处 `br-b1`）、`todo-derive-parity` ＋ `test/fixtures/todo-derive/golden.json`、`todo-realtime-source`、`todo-branch-attribution`、`workbench-revision-contract`、`mock-api-parity-structure` |
+| 默认支部回落改策略（步 1） | **108 个测试文件 / 769 处 `br-b1`**；重点 `branch-roster-import`、`branch-affiliation`、`branch-id-literal-guard`、`data-contract`、`seed-contract-guard`、`db-migration`、`workgroup-api`（34）、`permission-gate`（32）、`branch-config-audit`（31） |
+| 匿名归档读口收紧（步 3） | `archive-record-write`、`public-portal`、`public-write-closure`、`mock-api-parity`、`data-lifecycle-guard` |
+| view 只读门（步 4） | `write-policy-gaps`、`write-truth-guard`、`permission-gate`、`r3-data-permission-regression`、`security-redteam` |
+| 待议池 | 丙部当前无相关待裁；在办项影响面涉及 `B-500-7b-2`（待办派生单源），施工前须先确认其前置读数不因步 2 变化 |
+
+### 10.10 T13 / T15 施工进度（2026-11-15 本批收口）
+
+> **本节回答**：`§10.9` 的五步做到哪一步、改了哪些文件、还剩哪些文件按「逐文件」节奏继续。判据＝双支部五证夹具全绿（`server/test/multi-branch-five-proof.test.mjs`）＋ 单源守卫绿（`server/test/branch-resolve-single-source-guard.test.mjs`）。
+
+**已完成（本批）**
+
+| 步 | 文件 | 改法 |
+|---|---|---|
+| 1 | `server/routes/resources/branch-scope.js` | 新增 `resolveRowBranchId`（行级）与 `resolveBranchIdForActor`（请求级）两个解析入口；缺字段回落改为 `LEGACY_DEFAULT_BRANCH_FALLBACK` 白名单（每条带 reason）；未登记域解析不出即 `null` |
+| 2 | `server/routes/todo-groups.js` | 删 `_scopeBranchId` / `_belongsTo` 自带判据，改调上表两个函数；`_visibleTodos` 直接复用 `resourceRowsForActor`（与 `GET /todos` 同判） |
+| 3 | `server/routes/resources/branch-scope.js` | 删 `!targetBranchId ⇒ return rows` 失败开放；匿名 / 无支部上下文只放行 `publishScope='public'` 且未过期的党委行 |
+| 3 | `server/routes/report.js` | 三处 `actorBranchId(...) \|\| req.query.branchId \|\| null` 收敛为 `resolveBranchIdForActor`（口径不变） |
+| 5 | `server/test/branch-resolve-single-source-guard.test.mjs` | 常驻守卫：`server/routes/**` 新增 `\|\| DEFAULT_BRANCH(_ID)` 即红，存量按文件基线只减不增 |
+| 5 | `server/test/doc-lifecycle-guard.test.mjs` | 行号引用校验扩面到 `content/**`（复用 R1 同一解析；存量 26 条失效引用登记基线，只减不增） |
+
+**未完成（后续批次；按文件逐条替换，不一次性改全仓）**
+
+| 面 | 现状 | 处理 |
+|---|---|---|
+| `server/routes/**` 其余回落 | 13 文件 / 87 处（含 `branch-scope.js` 自身 7 处历史口径） | 按 `branch-resolve-single-source-guard::BRANCH_FALLBACK_BASELINE` 逐文件递减；改一处同批减一处 |
+| `docs/**` 回落 | 77 处 / 30 文件（页面侧投影） | 未经本批改动；待服务端读面收敛后另批 |
+| 步 4 党委 view 只读门 | 未做（T14） | 新增 `server/branch-view.js` 后同批登记 `write-policy-matrix` 141 → 143 |
+| `branch-roster.js::branchHasHistory` | SQL `IFNULL(..., 缺省支部)` 仍按缺省支部计历史（10.7-5） | 随 `branch-roster.js` 的 2 处回落一起改 |
+
+**读数（本批实测）**：五证夹具 6/6 绿（含 N=1 bootstrap 摘要 `a308adac0dae3cbd` 与改造前一致）；`test:daily` 254 断言全绿（31 文件 / 87.8s）；单源守卫 3 条绿；`content/**` 行号扩面 R7 绿（195 条引用 / 26 条存量基线）。
 
 ---
 

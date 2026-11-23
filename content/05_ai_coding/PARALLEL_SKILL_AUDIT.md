@@ -2,7 +2,7 @@
 title: "多代理独立审查操作手册"
 type: methodology
 role: "[工程师]+[AI]"
-last_updated: "2026-10-28"
+last_updated: "2026-11-24"
 status: active
 related_files: [CLAUDE.md, .ctx/logs/archive/2026-10/specs/generalize-parallel-skill-audit/spec.md, .ctx/logs/archive/2026-10/specs/refine-ui-three-lenses/spec.md, .trae/specs/_TEMPLATE/tasks.md]
 ---
@@ -18,9 +18,9 @@ related_files: [CLAUDE.md, .ctx/logs/archive/2026-10/specs/generalize-parallel-s
 
 ## 0. 前置：先跑问题集
 
-> 本文管「怎么分 lens、怎么汇总、怎么裁定」；`REVIEW_QUESTION_SET.md` 管「每轮开工前必须先回答什么」。顺序不可倒：**先逐条回答 Q-01…Q-21，再分 lens。**
+> 本文管「怎么分 lens、怎么汇总、怎么裁定」；`REVIEW_QUESTION_SET.md` 管「每轮开工前必须先回答什么」。顺序不可倒：**先逐条回答 Q-01…Q-22，再分 lens。**
 
-1. **逐条回答，不跳过。** 每轮开工先对 `REVIEW_QUESTION_SET.md` 的 21 条各给一个结论：`有`（本轮范围存在，附 `文件:行号`/批次/审计条目）/ `无`（附已核对范围）/ `不适用＋理由`。Q-17…Q-21 五条低频高危必须单独回答，不得以「本轮主题不相关」跳过。
+1. **逐条回答，不跳过。** 每轮开工先对 `REVIEW_QUESTION_SET.md` 的 22 条各给一个结论：`有`（本轮范围存在，附 `文件:行号`/批次/审计条目）/ `无`（附已核对范围）/ `不适用＋理由`。Q-17…Q-21 五条低频高危必须单独回答，不得以「本轮主题不相关」跳过；Q-22 为审查方法（页签密度与信息经济），按该条五步执行并留块清单。
 2. **先填矩阵，再分 lens。** 把本轮结论写入 `QUESTION_HIT_MATRIX.md`：`●` 命中并处理 / `○` 本轮范围不适用 / 空白 本轮未问。**未填矩阵的轮次不算完成**，不得进入 §2 的选 lens 与并行审查。
 3. **用问题集收敛四个待回答问题。** 答「有」的条目优先转成 §3.3 的四个待回答问题；上一轮空白最多的 3 条在本轮范围相同时优先补问。
 4. **lens 只负责「怎么看」，不负责「看没看全」。** 问题集负责覆盖，lens 负责深度与分歧；两者都完成，才进入 §5 汇总与 §6 裁定。
@@ -655,22 +655,26 @@ related_files: [CLAUDE.md, .ctx/logs/archive/2026-10/specs/generalize-parallel-s
 
 ### 14.2 三张表
 
+> **last_verified: 2026-11-24（批次 610）**。本表只列**当前可调用**的 skill 短名；插件 skill 的完整名为 `trae-remote-official:<plugin>:<skill>`。
+> `web-design-guidelines` 已不在技能列表：需要外部准则原文时用 WebFetch 拉 `https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md`，不得把已下架 skill 当可调用项。
+
 列固定为：任务类型 | SKILL | 用途 | 禁止项。
 
 **前端**
 
 | 任务类型 | SKILL | 用途 | 禁止项 |
 |---|---|---|---|
-| 视觉质量与版式（重音、密度、节奏、形） | `uicraft`、`frontend-design`、`better-*`（`better-layout` / `better-typography` / `better-colors` / `better-ui` / `better-accessibility` / `better-writing`） | 出设计判断与实施 | 不得把它们当验收判据（验收仍以 `DESIGN_SYSTEM` 与守卫为准） |
-| 可访问性与硬规范 | `web-design-guidelines` | 焦点、对比度、命中区、键盘、reduced-motion、响应式审查 | 不负责「好不好看」的判断 |
+| 视觉质量与版式（重音、密度、节奏、形） | `uicraft`、`frontend-design`、`better-*`（`better-layout` / `better-typography` / `better-colors` / `better-ui` / `better-interface` / `better-writing`） | 出设计判断与实施 | 不得把它们当验收判据（验收仍以 `DESIGN_SYSTEM` 与守卫为准） |
+| 可访问性与硬规范 | `better-accessibility`；外部准则原文经 WebFetch（见上） | 焦点、对比度、命中区、键盘、reduced-motion、响应式审查 | 不负责「好不好看」的判断 |
 | Critical 审查（独立 lens） | `huashu-design` | 从「物料 / 观感」角度做批判性评审，产出可核对的发现 | 不用于实施；不照搬其三方向门 / 品牌资产 / 模板装饰等物料范式；不用于生产级 Web App 的范式迁移（其原文声明「生产级 Web App、需后端的系统不走本 skill」） |
+| 动效实施与审计 | `gsap-core` / `gsap-timeline` / `gsap-scrolltrigger` / `gsap-performance`、`improve-animations` | 动画编排与性能；`improve-animations` 只出审计与实施计划 | 动效参数仍须落在 `--motion-*` / `--ease-*`（`style-ratchet-guard` 守） |
 
 **后端**
 
 | 任务类型 | SKILL | 用途 | 禁止项 |
 |---|---|---|---|
-| 接口与数据建模 | `backend-architect` | 路由 / 表结构 / 权限 / 迁移 | 不得用它代替前端 lens 评界面 |
-| 安全基线 | `security-best-practices` | 鉴权、输入边界、注入、敏感信息 | 不做通用代码风格评审 |
+| 接口与数据建模 | `backend-architect`（**agent 类型**，非 skill）、`fullstack-developer` | 路由 / 表结构 / 权限 / 迁移 | 不得用它代替前端 lens 评界面 |
+| 安全基线 | `security-best-practices`、`TRAE-security-review`（只扫变更引入的可利用风险） | 鉴权、输入边界、注入、敏感信息 | 不做通用代码风格评审 |
 | 服务端实现与联调 | `fullstack-developer`（仅服务端部分） | 实现与测试 | 不得顺手改前端视觉 |
 
 **全栈**
@@ -678,7 +682,15 @@ related_files: [CLAUDE.md, .ctx/logs/archive/2026-10/specs/generalize-parallel-s
 | 任务类型 | SKILL | 用途 | 禁止项 |
 |---|---|---|---|
 | 主控 | `fullstack-developer` | 契约先行、两侧同步；汇总只出共识 / 分歧 / 待裁定 | 同一 skill 不派两个代理；主代理不得平均意见 |
-| 并行两路 | 前端一路（`uicraft` / `web-design-guidelines` / `huashu-design`，三选一）＋ 后端一路（`backend-architect` / `security-best-practices`） | 两路各自独立出报告，不共享中间结论 | 两路互不读报告；同一 skill 不派两个代理 |
+| 并行两路 | 前端一路（`uicraft` / `better-interface` / `huashu-design`，三选一）＋ 后端一路（`backend-architect` / `security-best-practices`） | 两路各自独立出报告，不共享中间结论 | 两路互不读报告；同一 skill 不派两个代理 |
+
+**工具类（验证与讲解，不参与裁定）**
+
+| 任务类型 | SKILL / 工具 | 用途 | 禁止项 |
+|---|---|---|---|
+| 浏览器验证 | `TRAE-browseruse`、`webapp-testing` | 真机式页面走查、截图、交互断言 | 不用它替代 `test:daily` / `test:guards` |
+| 可视化讲解 | `dynamic-ui` | 把流程 / 结构 / 对比画成内联图 | 不用于产出正式交付物页面 |
+| 审查纪律 | `TRAE-code-review` / `TRAE-security-review` | 仅在被点名审查 MR / diff 时加载 | 不用于普通实现或替代 H21 独立 lens |
 
 ### 14.3 并行审查纪律（5 条硬规则）
 

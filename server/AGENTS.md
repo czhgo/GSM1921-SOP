@@ -23,9 +23,13 @@
 cd server; $env:DISABLE_PASSWORD_CHECK=1; node --test test/r3-data-permission-regression.test.mjs test/permission-gate.test.mjs test/roles-sync.test.mjs test/server-base.test.mjs
 # 动到语义端点时追加（真机，自起自停，较慢）
 cd server; node --test test/records-endpoints.test.mjs
-# 全量日常（实测 ≈150s，预算 ≤180s）
+# 全量日常（结果门禁，实测 ≈120–150s）
 cd server; npm run test:daily
-# 发布 / 大批改动（预算 ≤1200s；README 实测量级 ≈23 分钟）
+# 改样式 / 文档后补静态守卫（按需）
+cd server; npm run test:guards
+# 提交前 / 发布前（daily + guards + 域回归 + e2e）
+cd server; npm run test:precommit
+# 发布前全量（分片后单片 ≤1200s，夜间档分片执行；README 实测量级 ≈23 分钟）
 cd server; npm run test:full
 ```
 
@@ -46,3 +50,5 @@ cd server; npm run test:full
 | 触发条件 | 新增写口（POST / PATCH / DELETE）或新增角色可见动作 |
 | 唯一落点 | `routes/resources/gates.js::RESOURCE_WRITE_GATE`（或对应业务写门）+ `semantic-routes.js` |
 | 检查方式 | `permission-gate` + `r3-data-permission-regression` + `roles-sync` 全绿 |
+
+党委内容写口（`/committee/activities*`）落点 ＝ `routes/resources/semantic-routes.js::registerExtraSemanticRoutes` 尾部；发布留痕只经 `routes/resources/publication-audit.js::writePublicationAudit`。检查方式 ＝ `server/test/committee-activities.test.mjs` + `write-policy-matrix`。

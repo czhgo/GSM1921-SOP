@@ -20,33 +20,34 @@
 
 
 
-import { STATE, getAppState, setState, registerRenderCallback } from '../../core/base/state.js?v=20261031a';
+import { STATE, getAppState, setState, registerRenderCallback } from '../../core/base/state.js?v=20261120a';
 
-import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261031a';
-import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20261031a';
-import { flashHighlight, escHtml, showToast, smoothScroll } from '../../core/base/utils.js?v=20261031a';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261031a';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261031a';
-import { loadWorkspaceData } from '../../data/data-loader.js?v=20261031a';
+import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261120a';
+import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20261120a';
+import { flashHighlight, escHtml, showToast, smoothScroll } from '../../core/base/utils.js?v=20261120a';
+import { pageHref } from '../../core/base/page-url.js?v=20261120a';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261120a';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261120a';
+import { loadWorkspaceData } from '../../data/data-loader.js?v=20261120a';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：种子兜底路径同样按查看者角色收窄（与 data-loader 同判据）
-import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261031a';
+import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261120a';
 
-import { TodoStore } from '../../services/governance/todo.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { BranchService } from '../../services/core/runtime.js?v=20261031a';
-import { applyTabPolicy, getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261031a';
+import { TodoStore } from '../../services/governance/todo.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { BranchService } from '../../services/core/runtime.js?v=20261120a';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261120a';
 // 设置中心批2（2026-09-09 支书批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
-import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20261031a';
+import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20261120a';
 // （丁）归属可转移：可转移页签的**判据单一源**（2026-10-05 批次 379 · `D-771`）——模块主责快照派生，
 //   禁前端写死「哪个 tab 长在哪个台」。
-import { TRANSFERABLE_TAB_ROWS, transferRowOf, transferTabDecision, expandWorkforce } from '../../core/domain/work-map.js?v=20261031a';
+import { TRANSFERABLE_TAB_ROWS, transferRowOf, transferTabDecision, expandWorkforce } from '../../core/domain/work-map.js?v=20261120a';
 // 「归属可转移」**原台页签声明单一源**（迁入时取**同一份声明**，勿在本处复制 render）：
 //   ⚠ 台账：`TRANSFERABLE_TAB_ROWS` 的每个 `page` 都必须在此有对应声明（新增行时同批补），
 //     由 `server/test/work-map.test.mjs` 断言 `page ∈ {org, disc, leader}` 守住。
 //   ⚠ 统一取**声明常量**而非各台 `tabs()`：后者是**查看者上下文相关**的（如组长台按「组织者兜底进入」过滤）。
-import { ORG_WORKSPACE_TAB_DECLS } from '../../capabilities/org-workspace.js?v=20261031a';
-import { DISC_WORKSPACE_TAB_DECLS } from '../../capabilities/disc-workspace.js?v=20261031a';
-import { LEADER_WORKSPACE_TAB_DECLS } from '../../capabilities/leader-workspace.js?v=20261031a';
+import { ORG_WORKSPACE_TAB_DECLS } from '../../capabilities/org-workspace.js?v=20261120a';
+import { DISC_WORKSPACE_TAB_DECLS } from '../../capabilities/disc-workspace.js?v=20261120a';
+import { LEADER_WORKSPACE_TAB_DECLS } from '../../capabilities/leader-workspace.js?v=20261120a';
 
 /** 台 → 页签声明（归属可转移迁入取用；单一源＝各台能力模块的声明常量） */
 const TRANSFER_HOME_DECLS = {
@@ -120,7 +121,7 @@ function _renderCapabilityDenied(containerId, { capId, scope, role }) {
   const root = document.getElementById(containerId);
   if (!root) return;
   root.innerHTML = `
-    <div class="card rounded-xl p-6 max-w-xl">
+    <div class="card rounded-xl card-standard max-w-xl">
       <h2 class="font-title-cn text-base font-bold text-gray-800 mb-2">该工作台未对你的身份开放</h2>
       <p class="text-xs text-gray-600 leading-relaxed mb-1">你的身份不在该工作台的可达角色内，页面未渲染。</p>
       <p class="text-xs text-gray-500">如需访问，请联系管理员调整你的身份或工作台组合。</p>
@@ -518,7 +519,8 @@ export async function createWorkspaceShell(opts) {
     const _requestedId = _navTarget && _navTarget.tab ? _navTarget.tab : '';
     const _pageRedirect = _requestedId ? _legacyPageRedirects[_requestedId] : '';
     if (_pageRedirect) {
-      try { window.location.replace(_pageRedirect); } catch (_) { window.location = _pageRedirect; }
+      const _cleanRedirect = pageHref(_pageRedirect);
+      try { window.location.replace(_cleanRedirect); } catch (_) { window.location = _cleanRedirect; }
       return;
     }
 
@@ -615,8 +617,8 @@ export async function createWorkspaceShell(opts) {
     if (!container || container.querySelector('[data-ws-tab-notice]')) return;
     console.warn(`[ws-shell] ?tab=${requestedTab} 不在本台可见页签（含别名解析后），已回退默认页签并显示提示`);
     const fallbackTab = tabs.some(t => t && t.id === 'today') ? 'today' : (tabs[0] && tabs[0].id);
-    const html = `<div data-ws-tab-notice role="status" class="card rounded-xl px-4 py-3 mb-3 flex items-center justify-between gap-3 flex-wrap">
-      <p class="text-xs text-amber-700">该页签已调整或对本角色不可用。</p>
+    const html = `<div data-ws-tab-notice role="status" class="card rounded-xl px-4 py-2.5 mb-3 flex items-center justify-between gap-3 flex-wrap">
+      <p class="text-xs text-[var(--status-warning-text)]">该页签已调整或对本角色不可用。</p>
       <button type="button" class="btn-outline text-xs px-3 py-1.5" data-ws-tab-notice-home style="cursor:pointer;">回今天</button>
     </div>`;
     const contentEl = container.querySelector(`#${prefix}-tab-content`);
@@ -693,7 +695,9 @@ export async function createWorkspaceShell(opts) {
 
       // A① 通知对象级深链（2026-09-10）：workspace/<page>.html?tab=<tabId>&highlight=<objectId>。
       // 复用首页导航同一落点通道；未携带时行为零变化（无新协议，tab/highlight 为叠加参数）。
-      const tab = urlParams.tab || null;
+      // 页签条自身写入的 `?tab=`（history.state.tabSync）只用于分享 / 回读当前态，
+      //   不得当成「外部导航目标」反复消费——否则每次 setState 都会命中导航抑制、当前 tab 不重渲染。
+      const tab = (history.state && history.state.tabSync) ? null : (urlParams.tab || null);
 
       const hl = urlParams.highlight || null;
 

@@ -128,7 +128,7 @@ async function createSession(studentId, pageName) {
     await page.fill('#student-id', studentId);
     await page.fill('#password', '123456');
     await Promise.all([
-      page.waitForURL(`**/workspace/${pageName}.html`, { timeout: 30000 }),
+      page.waitForURL(`**/workspace/${pageName}`, { timeout: 30000 }),
       page.click('button[type="submit"]'),
     ]);
     try {
@@ -151,7 +151,7 @@ async function createSession(studentId, pageName) {
 
 /** P0-2 形态断言：本文件真机用例必须在 API 形态下跑（单一源 = data/data-adapter.js::getRuntimeMode） */
 async function assertApiMode(page) {
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261031a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261120a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 
 /** 等「上一态已清、本态已到」的**可判定条件**（替代原来的固定 `waitForTimeout(1500)`）。
@@ -165,7 +165,7 @@ async function assertApiMode(page) {
 async function waitShellSettled(page) {
   await page.waitForFunction(async () => {
     if (document.querySelectorAll('button[role="tab"]').length === 0) return false;
-    const { getAppState, STATE } = await import('/src/core/base/state.js?v=20261031a');
+    const { getAppState, STATE } = await import('/src/core/base/state.js?v=20261120a');
     const st = getAppState();
     // ⚠ 只判 `status === IDLE` **不够**：`status` 的初值就是 IDLE，而工作台壳层的 tab 条
     //   可能在 `loadWorkspaceData` 之前就已渲染 ⇒ 会「假就位」，此时切 tab 会被随后的
@@ -317,7 +317,24 @@ const CARRIER_PROBE = (sel) => {
     // 文本取「控件本身（含 select 的 option 文本，＝列表条目在不在）+ 可见载体文本」两者并集
     return { visible: true, text: `${el.textContent || ''} ${proxy.textContent || ''}`.replace(/\s+/g, ' ').trim() };
   }
-  return { visible: false, text: '' };
+  // 诊断：载体存在但不可见时，给出最近的可解释祖先（折叠 details / display:none / visibility:hidden）。
+  // 目的：把「载体不在位」从“缺件”与“没展开”中区分开，避免把折叠区误判成 DOM 缺失。
+  let blocking = '';
+  for (const el of document.querySelectorAll(sel)) {
+    const details = el.closest('details:not([open])');
+    if (details) { blocking = `details:not([open])${details.id ? `#${details.id}` : ''}`; break; }
+    let n = el.parentElement;
+    while (n && n !== document.body) {
+      const s = getComputedStyle(n);
+      if (s.display === 'none' || s.visibility === 'hidden') {
+        blocking = `${n.tagName.toLowerCase()}${n.id ? `#${n.id}` : ''}（${s.display === 'none' ? 'display:none' : 'visibility:hidden'}）`;
+        break;
+      }
+      n = n.parentElement;
+    }
+    if (blocking) break;
+  }
+  return { visible: false, text: '', blocking };
 };
 
 async function runStep(page, step) {
@@ -493,14 +510,30 @@ const TOAST_PENDING_MARK = '保存中…';
  *  其它载体（面板内状态区，如 `#ref-modal-status`）整块文本就是它的全部内容 ⇒ 按一条返回。 */
 async function readToastTexts(page, sel) {
   return page.evaluate((s) => {
-    const host = document.querySelector(s);
-    if (!host) return [];
     const norm = (t) => (t || '').replace(/\s+/g, ' ').trim();
-    if (host.id === 'toast-container' && host.children.length) {
-      return [...host.children].map((el) => norm(el.textContent)).filter(Boolean);
+    const out = [];
+    const host = document.querySelector(s);
+    if (host) {
+      if (host.id === 'toast-container' && host.children.length) {
+        out.push(...[...host.children].map((el) => norm(el.textContent)).filter(Boolean));
+      } else {
+        const whole = norm(host.textContent);
+        if (whole) out.push(whole);
+      }
     }
-    const whole = norm(host.textContent);
-    return whole ? [whole] : [];
+    // 2026-11-04 批次 533（R5A-11）：新增字段级错误后，校验提示不再只走 toast——
+    //   `[role="alert"]` / `[data-field-error]` 的就地可见错误同样是「可见校验提示」，不得判成静默失败。
+    const visible = (el) => {
+      if (el.hidden || el.getAttribute('aria-hidden') === 'true') return false;
+      const r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0;
+    };
+    for (const el of document.querySelectorAll('[role="alert"], [data-field-error]')) {
+      if (!visible(el)) continue;
+      const t = norm(el.textContent);
+      if (t) out.push(t);
+    }
+    return out;
   }, sel);
 }
 
@@ -579,8 +612,8 @@ async function sweepFlow(page, flow) {
       // 提示不符则后续状态不可信，停止该流程
       break;
     }
-    const { visible } = await page.evaluate(CARRIER_PROBE, e.carrier);
-    if (!visible) v.push(`【载体不在位】报「${e.msg}」但载体「${e.carrier}」不可见/不存在（${at}）`);
+    const { visible, blocking } = await page.evaluate(CARRIER_PROBE, e.carrier);
+    if (!visible) v.push(`【载体不在位】报「${e.msg}」但载体「${e.carrier}」不可见/不存在（${at}）${blocking ? `；最近阻断祖先：${blocking}` : ''}`);
     // satisfy 支持「多步」（2026-09-18 批次 83）：SOP-B-2 落地后，考勤表单会**默认选中本场报名者**
     //   ⇒ 「请选择参会人员」这一支不再天然可达，须在放行第一步（选定活动）之后再**清空**一次默认选中，
     //   否则本判据会**因默认值而静默失效**（绿得毫无证据）。数组形态与 submit[] 同规。
@@ -946,6 +979,14 @@ function uncaughtErrors(page) {
   // 静默失败最直接的证据，不能只留在控制台。
   // 2026-10-26 批次 514：409 是乐观锁冲突，前端已用可见 toast「数据已被他人更新，已为你刷新」
   //   恢复并让用户重试；它不是静默失败。只把它从“未捕获错误”里排除，400/401/403/428/5xx 仍全收。
+  // ── 证据登记（2026-11-03 批次 530 · B-515-5；**只登记，不改断言**）──────────────────────
+  //   收紧口径（待后续批次落成断言）：排除 409 必须同时具备「可见恢复提示」与「后续成功重试」两件证据，
+  //   仅凭一句 toast 不得排除。现行证据（本批核对）：
+  //     ① 可见恢复：`docs/src/data/data-adapter.js:1048` 在 `_recoverFromConflict` 内经 `showToast('info',
+  //        '数据已被他人更新，已为你刷新')` 明示，且先按冲突集合 `_refreshCollections` 重拉服务端权威数据；
+  //     ② 可重试成功：重拉时 `_versions` 基线随服务端版本推进（`_commitVersions` / `_refreshCollections` 同源），
+  //        用户对同一表单再提交即不再撞同一冲突；写失败仍进 `pending-writes` 失败分支（成功提示不会误报）。
+  //   未落成断言的原因：真机侧「重试后成功」需按流程记录两次提交的读数，本批只做静态取证，避免伪绿。
   return (page.__errs || []).filter((m) => {
     if (/^HTTP 409\b/.test(m) && /数据已被他人更新/.test(m)) return false;
     return /ReferenceError|TypeError|is not a function|is not defined|Cannot read/.test(m) || /^HTTP [45]\d\d/.test(m);

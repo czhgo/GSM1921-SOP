@@ -10,7 +10,7 @@ import { DEFAULT_BRANCH_ID, ACTIVITY_SCOPES, isBranchLevelActivity, normalizeOrg
 // T-209 全栈同步：补齐前端 mockDB 全部持久化域（报名/复盘/宣传/档案/外发确认 + 子记录聚合域），
 // 使 API 模式下全部持久化域均有后端表支撑。act_sub_records/tf_sub_records
 // 为对象聚合域，以「__root__ 单行」模式存储（见 data-adapter.js 封装）。
-const RESOURCE_TABLES = [
+export const RESOURCE_TABLES = [
   'users', 'activities', 'tasks', 'attendances', 'inspections',
   'taskforces', 'notices', 'todos', 'assignments', 'makeup_tasks',
   'experience_deposits', 'file_space_records', 'image_records',
@@ -67,7 +67,7 @@ export function initDb(dbPath) {
     db.exec(`CREATE TABLE IF NOT EXISTS ${t} (id TEXT PRIMARY KEY, data TEXT NOT NULL)`);
   }
   db.exec(`CREATE TABLE IF NOT EXISTS ${COLLECTION_VERSIONS_TABLE} (name TEXT PRIMARY KEY, version INTEGER NOT NULL DEFAULT 0)`);
-  applyMigrations(db); ensureActivityArchiveIndexes(db); return db; // 迁移机制接入点（2026-09-25）：与 return 同行 ⇒ 上文行号零漂移（db.js 是 README-server.md 取证靶点）；2026-10-24 批次 508 追加归档读口索引（幂等、不抬 schema 版本）
+  applyMigrations(db, MIGRATIONS, { dbPath }); ensureActivityArchiveIndexes(db); return db; // 迁移机制接入点（2026-09-25）：与 return 同行 ⇒ 上文行号零漂移（db.js 是 README-server.md 取证靶点）；2026-10-24 批次 508 追加归档读口索引（幂等、不抬 schema 版本）；2026-11-02 Wave 3 传入 dbPath ⇒ 迁移前自动备份
 }
 
 // 辅助：整表替换写入（写穿透快照用）。table 限定白名单，杜绝 SQL 注入。
@@ -97,20 +97,37 @@ export function replaceCollection(db, table, rows) {
 /** 集合版本号表名（乐观锁；关系表，与 sessions/attachments 同类——**不动既有业务表结构**） */
 export const COLLECTION_VERSIONS_TABLE = 'collection_versions';
 
-/** 读全部集合版本（无行 ⇒ 0：该集合的「首次上传」服务端基线） */
-export function readCollectionVersions(db) {
+/** 版本表是否已有支部列（v19 之前＝无；迁移期 v18 仍会调用本组函数） */
+function _collectionVersionsHaveBranch(db) {
+  try {
+    return db.prepare(`PRAGMA table_info(${COLLECTION_VERSIONS_TABLE})`).all().some((c) => c.name === 'branch_id');
+  } catch (_) { return false; }
+}
+
+/** 读全部集合版本（无行 ⇒ 0：该集合的「首次上传」服务端基线）。`branchId` 缺省＝部署默认支部 */
+export function readCollectionVersions(db, branchId = DEFAULT_BRANCH_ID) {
   const out = {};
-  for (const r of db.prepare(`SELECT name, version FROM ${COLLECTION_VERSIONS_TABLE}`).all()) {
+  if (!_collectionVersionsHaveBranch(db)) {
+    for (const r of db.prepare(`SELECT name, version FROM ${COLLECTION_VERSIONS_TABLE}`).all()) out[r.name] = r.version;
+    return out;
+  }
+  for (const r of db.prepare(`SELECT name, version FROM ${COLLECTION_VERSIONS_TABLE} WHERE branch_id = ?`).all(branchId)) {
     out[r.name] = r.version;
   }
   return out;
 }
 
 /** 单集合版本 +1（**须在调用方事务内**；无行 ⇒ 以 0 为基线），返回新版本 */
-export function bumpCollectionVersion(db, name) {
-  const row = db.prepare(`SELECT version FROM ${COLLECTION_VERSIONS_TABLE} WHERE name = ?`).get(name);
+export function bumpCollectionVersion(db, name, branchId = DEFAULT_BRANCH_ID) {
+  if (!_collectionVersionsHaveBranch(db)) {
+    const row = db.prepare(`SELECT version FROM ${COLLECTION_VERSIONS_TABLE} WHERE name = ?`).get(name);
+    const next = (row ? row.version : 0) + 1;
+    db.prepare(`INSERT OR REPLACE INTO ${COLLECTION_VERSIONS_TABLE} (name, version) VALUES (?, ?)`).run(name, next);
+    return next;
+  }
+  const row = db.prepare(`SELECT version FROM ${COLLECTION_VERSIONS_TABLE} WHERE branch_id = ? AND name = ?`).get(branchId, name);
   const next = (row ? row.version : 0) + 1;
-  db.prepare(`INSERT OR REPLACE INTO ${COLLECTION_VERSIONS_TABLE} (name, version) VALUES (?, ?)`).run(name, next);
+  db.prepare(`INSERT OR REPLACE INTO ${COLLECTION_VERSIONS_TABLE} (branch_id, name, version) VALUES (?, ?, ?)`).run(branchId, name, next);
   return next;
 }
 
@@ -121,18 +138,18 @@ export function bumpCollectionVersion(db, name) {
  * @param {Array<{name:string, table:string, rows:Array}>} writes 本次要写的集合（name = 快照 payload 键）
  * @returns {Object<string, number>} 各集合写后的新版本号
  */
-export function replaceCollectionsAtomic(db, writes, { workgroups = [] } = {}) {
+export function replaceCollectionsAtomic(db, writes, { workgroups = [], branchId = DEFAULT_BRANCH_ID } = {}) {
   const run = db.transaction((items, relatedWorkgroups) => {
     const versions = {};
     for (const it of items) {
       replaceCollection(db, it.table, it.rows);
-      versions[it.name] = bumpCollectionVersion(db, it.name);
+      versions[it.name] = bumpCollectionVersion(db, it.name, branchId);
     }
     for (const workgroup of relatedWorkgroups) {
       db.prepare('INSERT OR REPLACE INTO workgroups (id, data) VALUES (?, ?)')
         .run(workgroup.id, JSON.stringify(workgroup));
     }
-    if (relatedWorkgroups.length > 0) bumpCollectionVersion(db, 'workgroups');
+    if (relatedWorkgroups.length > 0) bumpCollectionVersion(db, 'workgroups', branchId);
     // v11 影子表随快照整表重建（非权威源；只在快照覆盖活动/专班时执行）
     if (items.some((it) => ['activities', 'taskforces'].includes(it.name))) rebuildShadowTables(db);
     return versions;
@@ -176,10 +193,17 @@ export const SEMANTIC_TABLES = [
   // 授权审计留痕（端点见 resources.js「授权审计留痕」段）——原只存 localStorage 键 sop_org_os_auth_audit
   //   ⇒ 清缓存即留痕灭失。留痕的意义＝让「谁给谁赋了什么角色」这条治理承诺可被事后核对（只增不改）。
   'auth_audit',
+  // 2026-11-08 批次 536（党委内容与公开发布 · Task 1）：发布动作留痕（发布 / 撤回 / 过期 / 支部采纳），
+  //   只增不改，演示种子为空；表结构由 schema v13 建立，读写口在后续任务接入。
+  'publication_audits',
   // 工作组子域和应到名单快照不属于既有语义表；由 schema v3 迁移建立。
+  // 2026-11-11 批次 546（D-869）：支委提案（统一上会事项）与状态事件。
+  //   只做运行时域，演示种子为空；不塞进通用资源 CRUD / 快照 payload。
+  'committee_proposals',
+  'committee_proposal_events',
 ];
 
-const WORKGROUP_TABLES = Object.freeze([
+export const WORKGROUP_TABLES = Object.freeze([
   'workgroups', 'workgroup_members', 'workgroup_grants', 'workgroup_tasks', 'workgroup_outputs', 'attendance_rosters',
 ]);
 
@@ -851,6 +875,243 @@ export const MIGRATIONS = [
       }
     },
   },
+  {
+    // v13（2026-11-08 批次 536 · 党委内容与公开发布 Task 1）：
+    //   ① 三张内容表增只读生成列：activities(owner_scope / source_activity_id / publish_scope)、
+    //      notices(publish_scope)、branch_docs(owner_scope / publish_scope)——读侧缺省一律 branch；
+    //   ② 部分唯一索引：同一支部对同一条党委活动最多一条副本（以 source_activity_id 判定）；
+    //   ③ 发布范围读口索引；④ 新建 publication_audits 留痕表。
+    // ⚠ 不给存量行写 ownerScope / publishScope（读侧 COALESCE 缺省 branch），不改 v1 基线。
+    // 幂等：每步先探测表 / 列 / 索引；重复重放不重复 ADD、不改写任何行。
+    version: 13,
+    name: 'committee-content-and-publication',
+    tables: ['activities', 'notices', 'branch_docs', 'publication_audits'],
+    up(db) {
+      const hasTable = (name) => !!db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(name);
+      // ⚠ 用 table_xinfo（table_info 不列 generated 列）；VIRTUAL 生成列对已有数据的表可 ADD。
+      const columns = (table) => (hasTable(table) ? db.prepare(`PRAGMA table_xinfo(${table})`).all().map((c) => c.name) : []);
+      const addGenerated = (table, column, expr) => {
+        if (!hasTable(table) || columns(table).includes(column)) return;
+        try {
+          db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} TEXT GENERATED ALWAYS AS (${expr}) VIRTUAL`);
+        } catch (e) {
+          throw new Error(`[db] v13 加列失败 ${table}.${column}：${e.message}（现有列：${columns(table).join(',')}）`);
+        }
+      };
+
+      // ① 生成列（缺省 branch：读侧不必区分「未写」与「支部自发」）
+      addGenerated('activities', 'owner_scope', "COALESCE(json_extract(data,'$.ownerScope'),'branch')");
+      addGenerated('activities', 'source_activity_id', "json_extract(data,'$.sourceActivityId')");
+      addGenerated('activities', 'publish_scope', "COALESCE(json_extract(data,'$.publishScope'),'branch')");
+      addGenerated('notices', 'publish_scope', "COALESCE(json_extract(data,'$.publishScope'),'branch')");
+      addGenerated('branch_docs', 'owner_scope', "COALESCE(json_extract(data,'$.ownerScope'),'branch')");
+      addGenerated('branch_docs', 'publish_scope', "COALESCE(json_extract(data,'$.publishScope'),'branch')");
+
+      // ② 部分唯一索引：只约束「有下发原件 id」的副本行
+      if (hasTable('activities')) {
+        db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_activities_source_branch ON activities(branch_id, source_activity_id) WHERE source_activity_id IS NOT NULL");
+      }
+
+      // ③ 发布范围读口索引
+      if (hasTable('activities')) {
+        db.exec('CREATE INDEX IF NOT EXISTS idx_activities_owner_scope_publish ON activities(owner_scope, publish_scope)');
+      }
+      if (hasTable('notices')) {
+        db.exec('CREATE INDEX IF NOT EXISTS idx_notices_publish_scope ON notices(publish_scope)');
+      }
+      if (hasTable('branch_docs')) {
+        db.exec('CREATE INDEX IF NOT EXISTS idx_branch_docs_publish_scope ON branch_docs(publish_scope)');
+      }
+
+      // ④ 发布动作留痕表（只增不改）
+      db.exec('CREATE TABLE IF NOT EXISTS publication_audits (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
+    },
+  },
+  {
+    // v14（2026-11-08 波次 B · 安全加固）：`publication_audits` 读口需要按时间 / 资源检索，
+    //   追加三只读生成列（at / resource_type / resource_id）与两只索引，避免全表 JSON 扫描。
+    // 幂等：先探测列 / 索引；表缺失时先补建（v13 已建，重放时不会再建）。
+    version: 14,
+    name: 'publication-audits-index',
+    tables: ['publication_audits'],
+    up(db) {
+      db.exec('CREATE TABLE IF NOT EXISTS publication_audits (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
+      const columns = db.prepare('PRAGMA table_xinfo(publication_audits)').all().map((c) => c.name);
+      const addGenerated = (column, expr) => {
+        if (columns.includes(column)) return;
+        db.exec(`ALTER TABLE publication_audits ADD COLUMN ${column} TEXT GENERATED ALWAYS AS (${expr}) VIRTUAL`);
+      };
+      addGenerated('at', "json_extract(data,'$.at')");
+      addGenerated('resource_type', "json_extract(data,'$.resourceType')");
+      addGenerated('resource_id', "json_extract(data,'$.resourceId')");
+      db.exec('CREATE INDEX IF NOT EXISTS idx_publication_audits_at ON publication_audits(at)');
+      db.exec('CREATE INDEX IF NOT EXISTS idx_publication_audits_resource ON publication_audits(resource_type, resource_id)');
+    },
+  },
+  {
+    // v15（2026-11-10 批次 541 · P2 统一清理）：
+    //   `member_change_requests` 的「同支部同成员的党委在途提案」只允许一条——应用层
+    //   （`semantic-routes.js::POST /committee/roster-proposals`）已把查重与写入放进同一事务，
+    //   本部分唯一索引兜「多进程 / 并发」窗口。
+    //   ⚠ 只覆盖 `source='committee-proposal'` 的在途行：议程派生提案（`member.js`）按
+    //     `activityId + agendaItemId + personId` 防重，同一成员可有多条不同议程的在途申请，不得被本索引误伤。
+    //   幂等：先探测索引；存量重复（同一人在途多条党委提案）只保留最早一条，其余置 `cancelled`（不删行）。
+    version: 15,
+    name: 'member-change-requests-committee-inflight-unique',
+    tables: ['member_change_requests'],
+    up(db) {
+      const hasTable = (name) => !!db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(name);
+      if (!hasTable('member_change_requests')) return;
+      const indexName = 'ux_mcr_committee_inflight';
+      const hasIndex = !!db.prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?").get(indexName);
+      if (hasIndex) return;
+
+      const terminal = new Set(['completed', 'rejected', 'cancelled']);
+      // 存量去重：同一 (branchId, personId) 的在途党委提案只留最早一条，其余置 cancelled
+      const groups = new Map();
+      for (const row of db.prepare("SELECT id, data FROM member_change_requests WHERE json_extract(data,'$.source') = 'committee-proposal'").all()) {
+        let parsed;
+        try { parsed = JSON.parse(row.data); } catch { continue; }
+        if (!parsed || !parsed.branchId || !parsed.personId) continue;
+        if (terminal.has(String(parsed.status || ''))) continue;
+        const key = `${parsed.branchId}\u0000${parsed.personId}`;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push({ id: String(row.id), row: parsed });
+      }
+      let cancelled = 0;
+      for (const list of groups.values()) {
+        if (list.length < 2) continue;
+        const keep = [...list].sort((a, b) => String(a.row.createdAt || '').localeCompare(String(b.row.createdAt || ''))
+          || String(a.id).localeCompare(String(b.id)))[0];
+        for (const item of list) {
+          if (item.id === keep.id) continue;
+          const next = { ...item.row, status: 'cancelled', cancelledAt: new Date().toISOString(), cancelledReason: 'v15 去重：同成员在途党委提案只保留最早一条' };
+          db.prepare('UPDATE member_change_requests SET data = ? WHERE id = ?').run(JSON.stringify(next), item.id);
+          cancelled += 1;
+        }
+      }
+      if (cancelled) console.log(`[db] v15 名册提案去重：置 cancelled=${cancelled}`);
+
+      db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS ${indexName}
+        ON member_change_requests(json_extract(data,'$.branchId'), json_extract(data,'$.personId'))
+        WHERE json_extract(data,'$.source') = 'committee-proposal'
+          AND IFNULL(json_extract(data,'$.status'),'') NOT IN ('completed','rejected','cancelled')`);
+    },
+  },
+  {
+    // v16（2026-11-11 批次 546 · D-869）：支委提案（统一上会事项）＋ 状态事件。
+    //   运行时域，演示种子为空；只建表，不改既有 JSON 行。
+    version: 16,
+    name: 'committee-proposals',
+    tables: ['committee_proposals', 'committee_proposal_events'],
+    up(db) {
+      db.exec('CREATE TABLE IF NOT EXISTS committee_proposals (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
+      db.exec('CREATE TABLE IF NOT EXISTS committee_proposal_events (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
+    },
+  },
+  {
+    // v17（2026-11-15 六维补齐 T14 · Q10/Q13/Q14）：党委台「进入某支部」留痕。
+    //   谁（entered_by）/ 何时（entered_at）/ 哪个支部（branch_id）/ 何时退出（exited_at）。
+    //   一 token 只允许一条未退出记录：部分唯一索引兜「并发 / 多标签重复进入」；
+    //   运行时域，演示种子为空；不改既有 JSON 行。
+    version: 17,
+    name: 'branch-visits',
+    tables: ['branch_visits'],
+    up(db) {
+      db.exec(`CREATE TABLE IF NOT EXISTS branch_visits (
+        id TEXT PRIMARY KEY,
+        branch_id TEXT NOT NULL,
+        entered_by TEXT NOT NULL,
+        entered_at TEXT NOT NULL,
+        exited_at TEXT,
+        token TEXT NOT NULL,
+        data TEXT NOT NULL
+      )`);
+      db.exec("CREATE UNIQUE INDEX IF NOT EXISTS ux_branch_visits_active_token ON branch_visits(token) WHERE exited_at IS NULL");
+      db.exec('CREATE INDEX IF NOT EXISTS idx_branch_visits_branch ON branch_visits(branch_id, entered_at)');
+    },
+  },
+  {
+    // v18（2026-11-18 批次 566 · B-552-6）：报名唯一性下沉到 DB（此前只在应用层 `signupCreateDeny` 查重，
+    //   并发提交 / 绕过应用层写口时仍可产生重复报名）。
+    //   ① 重复行处置（不删行、不改 status）：按 sourceType + sourceId + personId 分组，只对「voided 不为 true
+    //      且 status ∈ {approved,pending} 且未标 duplicateOf」的行判重；每组按 createdAt（缺失用 id）保留最早一条，
+    //      其余行在 JSON 里写 `duplicateOf: <保留行 id>` 与 `duplicateMarkedAt`。
+    //   ② 部分唯一索引 `idx_signups_active_unique`：只约束「有效且非重复台账」的报名行。
+    version: 18,
+    name: 'signups-active-unique',
+    tables: ['signups'],
+    up(db) {
+      const rows = db.prepare('SELECT id, data FROM signups').all()
+        .map((raw) => ({ id: String(raw.id), row: JSON.parse(raw.data) }));
+      const groups = new Map();
+      for (const item of rows) {
+        const row = item.row || {};
+        if (row.duplicateOf) continue;
+        if (row.voided) continue;
+        if (!['approved', 'pending'].includes(row.status)) continue;
+        if (row.sourceType == null || row.sourceId == null || row.personId == null) continue;
+        const key = `${row.sourceType}\u0000${row.sourceId}\u0000${row.personId}`;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(item);
+      }
+      const markedAt = new Date().toISOString();
+      let marked = 0;
+      for (const list of groups.values()) {
+        if (list.length < 2) continue;
+        const keep = [...list].sort((a, b) => String(a.row.createdAt || a.id).localeCompare(String(b.row.createdAt || b.id))
+          || a.id.localeCompare(b.id))[0];
+        for (const item of list) {
+          if (item.id === keep.id) continue;
+          const next = { ...item.row, duplicateOf: keep.id, duplicateMarkedAt: markedAt };
+          db.prepare('UPDATE signups SET data = ? WHERE id = ?').run(JSON.stringify(next), item.id);
+          marked += 1;
+        }
+      }
+      if (marked) console.log(`[db] v18 报名重复行处置：标记 duplicateOf=${marked}（不删行、不改 status）`);
+      // 「作废」判定与迁移内的 JS `row.voided` 真值语义一致：缺失 / null / false / 0 / 空串＝未作废，
+      // 其余（`true` 或软作废留痕对象）＝已作废、不进唯一索引（作废行是可重新报名的证据行）。
+      const voidedIsFalsy = `(json_type(data,'$.voided') IS NULL
+          OR json_type(data,'$.voided') = 'null' OR json_type(data,'$.voided') = 'false'
+          OR (json_type(data,'$.voided') = 'integer' AND json_extract(data,'$.voided') = 0)
+          OR (json_type(data,'$.voided') = 'text' AND json_extract(data,'$.voided') = ''))`;
+      db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_signups_active_unique
+        ON signups (
+          json_extract(data,'$.sourceType'), json_extract(data,'$.sourceId'), json_extract(data,'$.personId')
+        )
+        WHERE json_extract(data,'$.duplicateOf') IS NULL
+          AND ${voidedIsFalsy}
+          AND json_extract(data,'$.status') IN ('approved','pending')`);
+      // 迁移改了报名行（标 duplicateOf）⇒ 必须推进集合版本，清缓存设备才不会沿旧 baseline 整表回写、把标记冲掉。
+      bumpCollectionVersion(db, 'signups');
+    },
+  },
+  {
+    // v19（2026-11-19 批次 576 · `D-888` / `B-568-1`）：多支部框架隔离的三处**键级**缺口。
+    //   ① `collection_versions` 原是全局 `name` 主键 ⇒ 两支部互触 409；重建为 `(branch_id, name)` 复合主键，
+    //      旧行按部署默认支部 `br-b1` 灌入（单支部行为逐字节一致）。
+    //   ② `sessions` 加 `branch_id`：登录时固化身份支部；历史行为空 ⇒ 读侧回落 `users.branchId`。
+    //   ③ `attachments` 加 `branch_id`：上传时固化归属支部；历史行为空 ⇒ 下载侧沿用「按上传人现支部」兼容。
+    version: 19,
+    name: 'multi-branch-keys',
+    tables: ['collection_versions', 'sessions', 'attachments'],
+    up(db) {
+      const legacy = db.prepare(`SELECT name, version FROM ${COLLECTION_VERSIONS_TABLE}`).all();
+      db.exec(`CREATE TABLE IF NOT EXISTS collection_versions__v19 (
+        branch_id TEXT NOT NULL DEFAULT '${DEFAULT_BRANCH_ID}',
+        name TEXT NOT NULL,
+        version INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (branch_id, name)
+      )`);
+      const ins = db.prepare('INSERT OR REPLACE INTO collection_versions__v19 (branch_id, name, version) VALUES (?, ?, ?)');
+      for (const row of legacy) ins.run(DEFAULT_BRANCH_ID, row.name, row.version);
+      db.exec('DROP TABLE collection_versions');
+      db.exec('ALTER TABLE collection_versions__v19 RENAME TO collection_versions');
+      const columnsOf = (table) => db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name);
+      if (!columnsOf('sessions').includes('branch_id')) db.exec('ALTER TABLE sessions ADD COLUMN branch_id TEXT');
+      if (!columnsOf('attachments').includes('branch_id')) db.exec('ALTER TABLE attachments ADD COLUMN branch_id TEXT');
+    },
+  },
 ];
 
 /** 迁移列表的最大版本（＝目标 schema 版本；守卫据此核 `user_version`，防「有迁移没跑」/「版本号被手改」） */
@@ -881,26 +1142,44 @@ export function validateMigrations(list) {
 /**
  * 应用未应用的迁移：自检列表 → 取 `user_version` → 过滤 `version > current` 并**按序**在一个事务内执行，
  * 每项跑完写回 `user_version` → 打印已应用版本。**失败向上抛（不吞）**，事务整体回滚。
+ * 迁移安全（2026-11-02 批次 527 · Wave 3）：
+ *   ① `user_version > 目标版本` ⇒ **拒绝启动**（库比代码新，禁止降级）；不提供降级脚本，只走备份回滚；
+ *   ② 有待应用迁移且目标库已有业务数据 ⇒ 先同步调用 `scripts/backup.mjs`（失败即中止，不进入迁移）；
+ *      `:memory:` / 临时库（`os.tmpdir()` 或路径含 `.tmp`）跳过自动备份；
+ *   ③ 迁移失败 ⇒ 单事务整体回滚，并打印 `deploy/CUTOVER_RUNBOOK.md` 指针后向上抛（不静默）。
  * @param {Object} db better-sqlite3 实例
  * @param {Array} [list=MIGRATIONS] 迁移列表（仅测试注入用；生产恒为 `MIGRATIONS`）
- * @returns {{from:number, to:number, applied:number[]}}
+ * @param {{dbPath?:string|null}} [opts] `dbPath` 仅供「迁移前自动备份」定位库文件
+ * @returns {{from:number, to:number, applied:number[], backup?:string|null}}
  */
-export function applyMigrations(db, list = MIGRATIONS) {
+export function applyMigrations(db, list = MIGRATIONS, { dbPath = null } = {}) {
   const problems = validateMigrations(list);
   if (problems.length) throw new Error(`[db] 迁移列表自检未通过，拒绝启动：\n  ${problems.join('\n  ')}`);
+  const target = list.reduce((mx, m) => Math.max(mx, m.version), 0);
   const current = Number(db.pragma('user_version', { simple: true })) || 0;
+  if (current > target) {
+    throw new Error(`[db] 库比代码新，禁止降级：库内 user_version=${current} > 代码 SCHEMA_VERSION=${target}。`
+      + '请勿用旧代码启动新库；处置见 deploy/CUTOVER_RUNBOOK.md（以升级前备份恢复，或换回匹配版本代码）。');
+  }
   const pending = list.filter((m) => m.version > current).sort((a, b) => a.version - b.version);
   if (!pending.length) return { from: current, to: current, applied: [] };
+  const backup = autoBackupBeforeMigrations(db, dbPath);
   const run = db.transaction(() => {
     for (const m of pending) {
       m.up(db);
       db.pragma(`user_version = ${m.version}`);
     }
   });
-  run();
+  try {
+    run();
+  } catch (e) {
+    console.error('[db] ✖ 迁移失败：单事务已整体回滚（user_version 与 DDL 均未保留）。'
+      + '处置见 deploy/CUTOVER_RUNBOOK.md（先备份，再按失败项修复或恢复）。');
+    throw e;
+  }
   const to = pending[pending.length - 1].version;
   console.log(`[db] schema v${to}（本次应用 ${pending.length} 项）`);
-  return { from: current, to, applied: pending.map((m) => m.version) };
+  return { from: current, to, applied: pending.map((m) => m.version), backup };
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1394,4 +1673,97 @@ export function rollbackV12(db) {
     'ux_attendance_rosters_activity', 'ux_workgroup_members_group_person',
   ]) db.exec(`DROP INDEX IF EXISTS ${index}`);
   db.pragma('user_version = 11');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  迁移安全配套（2026-11-02 批次 527 · Wave 3）
+// ════════════════════════════════════════════════════════════════
+// 放在文件末尾：上方 `initDb` / `applyMigrations` 的行号是 README-server.md 的取证靶点；
+// ESM import 声明会被提升，函数声明也提升 ⇒ 置尾不影响上文调用。
+
+/** 临时库判定：`:memory:` / `os.tmpdir()` 下 / 路径含 `.tmp` 段 ⇒ 跳过自动备份（演练与测试不落备份盘） */
+function isEphemeralDbPath(dbPath) {
+  if (!dbPath || dbPath === ':memory:') return true;
+  const abs = path.resolve(String(dbPath));
+  const tmp = path.resolve(os.tmpdir());
+  const rel = path.relative(tmp, abs);
+  if (rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel))) return true;
+  return abs.split(path.sep).includes('.tmp');
+}
+
+/** 业务库是否已有数据（任一张资源/语义/工作组表有行即算；只读、`LIMIT 1`） */
+function dbHasBusinessData(db) {
+  const hasTable = (name) => Boolean(
+    db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?").get(name),
+  );
+  for (const table of [...RESOURCE_TABLES, ...SEMANTIC_TABLES, ...WORKGROUP_TABLES]) {
+    if (RETIRED_RESOURCE_TABLES.has(table) || !hasTable(table)) continue;
+    if (db.prepare(`SELECT 1 FROM ${table} LIMIT 1`).get()) return true;
+  }
+  return false;
+}
+
+/**
+ * 迁移前自动备份（同步阻塞；失败即抛 ⇒ **不进入迁移**）。
+ * 跳过：无 `dbPath`（测试注入）/ `:memory:` / 临时库 / 目标库无业务数据（空库首建）。
+ * @returns {string|null} 备份目录（跳过时为 null）
+ */
+function autoBackupBeforeMigrations(db, dbPath) {
+  if (!dbPath || isEphemeralDbPath(dbPath)) return null;
+  if (!dbHasBusinessData(db)) return null;
+  if (process.env.DB_AUTO_BACKUP === '0') {
+    console.warn('[db] ⚠ DB_AUTO_BACKUP=0：已按显式开关跳过迁移前自动备份（仅演练可接受）。');
+    return null;
+  }
+  const absDb = path.resolve(String(dbPath));
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0, 19);
+  const outDir = path.resolve(SERVER_DIR, 'backups', `pre-migration-${stamp}`);
+  const script = path.resolve(SERVER_DIR, 'scripts', 'backup.mjs');
+  console.log(`[db] 迁移前自动备份 → ${outDir}`);
+  const result = spawnSync(process.execPath, [script, '--db', absDb, '--out', outDir], { encoding: 'utf8' });
+  if (result.error) {
+    throw new Error(`[db] 迁移前备份无法执行（${result.error.message}）⇒ 已中止迁移。处置见 deploy/CUTOVER_RUNBOOK.md。`);
+  }
+  if (result.status !== 0) {
+    const detail = `${result.stdout || ''}${result.stderr || ''}`.trim();
+    throw new Error(`[db] 迁移前备份失败（退出码 ${result.status}）⇒ 已中止迁移。${detail ? `\n${detail}` : ''}\n处置见 deploy/CUTOVER_RUNBOOK.md。`);
+  }
+  console.log(`[db] ✔ 迁移前备份完成：${outDir}`);
+  return outDir;
+}
+
+// 迁移安全配套的依赖（置尾：import 提升，避免上文 README-server.md 取证行号漂移）
+import os from 'node:os';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+const SERVER_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
+
+// ════════════════════════════════════════════════════════════════
+//  v17+ 数据回填（2026-11-17 批次 562 · `repair-field-mismatch-and-refresh-help` Task 8）
+// ════════════════════════════════════════════════════════════════
+// 为什么：游标分页排序键与全资源 If-Match（Task 564）都以 `updatedAt` 为基准；历史行缺该字段会让
+//   排序退化为 id 序、让并发校验没有可比对的版本。口径：只补空值（幂等），取 `createdAt`，
+//   无 `createdAt` 则取启动时刻；**不新增列、不抬 schema 版本**，重复启动不改变已有值。
+export function backfillUpdatedAt(db, at = new Date().toISOString()) {
+  const tables = [...RESOURCE_TABLES, ...SEMANTIC_TABLES].filter((t) => !RETIRED_RESOURCE_TABLES.has(t));
+  let patched = 0;
+  const run = db.transaction(() => {
+    for (const table of tables) {
+      const rows = db.prepare(`SELECT id, data FROM ${table}`).all();
+      if (!rows.length) continue;
+      const update = db.prepare(`UPDATE ${table} SET data = ? WHERE id = ?`);
+      for (const row of rows) {
+        let data;
+        try { data = JSON.parse(row.data); } catch { continue; }
+        if (!data || typeof data !== 'object' || Array.isArray(data)) continue;
+        if (data.updatedAt) continue;
+        update.run(JSON.stringify({ ...data, updatedAt: data.createdAt || at }), row.id);
+        patched += 1;
+      }
+    }
+  });
+  run();
+  if (patched) console.log(`[db] ✔ 回填 updatedAt：${patched} 行`);
+  return patched;
 }

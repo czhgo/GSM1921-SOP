@@ -21,11 +21,11 @@
 //   · 考察待确认  = 考察记录 `status === 'pending'`
 // ════════════════════════════════════════════════════════════════
 
-import { isTodoExpired, TodoStatus } from '../governance/todo.js?v=20261031a';
-import { AttendanceStatus } from '../../core/domain/domain.js?v=20261031a';
-import { isApiMode } from '../core/runtime.js?v=20261031a';
-import { getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261031a';
-import { todayLocal } from '../../core/base/utils.js?v=20261031a';
+import { isTodoExpired, TodoStatus } from '../governance/todo.js?v=20261120a';
+import { AttendanceStatus } from '../../core/domain/domain.js?v=20261120a';
+import { isApiMode } from '../core/runtime.js?v=20261120a';
+import { getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261120a';
+import { todayLocal } from '../../core/base/utils.js?v=20261120a';
 
 /** 汇报态 → 稳定判别键（渲染文案随时可改，键不动；与 members-tab 原口径逐条对齐） */
 export const REPORT_KIND = {
@@ -152,12 +152,19 @@ export async function loadMemberProgress({ personIds = [], today } = {}) {
   // mock 态：动态引入各 store（保持服务端静态依赖图不被撑大）→ 调**同一个**纯函数
   const [{ TodoStore }, { loadAttendanceRecords }, { loadActiveInspectionRecords }, { IssueStore }] =
     await Promise.all([
-      import('../governance/todo.js?v=20261031a'),
-      import('../activity/attendance.js?v=20261031a'),
-      import('../activity/inspection.js?v=20261031a'),
-      import('../governance/issues.js?v=20261031a'),
+      import('../governance/todo.js?v=20261120a'),
+      import('../activity/attendance.js?v=20261120a'),
+      import('../activity/inspection.js?v=20261120a'),
+      import('../governance/issues.js?v=20261120a'),
     ]);
-  if (typeof IssueStore.loadAll === 'function') await IssueStore.loadAll();
+  if (typeof IssueStore.loadAll === 'function') {
+    try {
+      await IssueStore.loadAll();
+    } catch (err) {
+      // 反馈权威源失败不阻断整组聚合（H32：仅用已拉取数据兜底；读面另显「加载失败，重试」）
+      console.warn('[member-progress] 反馈数据加载失败：', err);
+    }
+  }
   const rows = aggregateMemberProgress({
     persons: personIds.map((personId) => ({ personId })),
     todos: TodoStore.getAll(),

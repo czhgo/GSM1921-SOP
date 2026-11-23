@@ -2,15 +2,18 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { BranchService } from '../../services/core/runtime.js?v=20261031a';
-import { getBranchOrg } from '../../services/branch/branch.js?v=20261031a';
-import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser, DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261031a';
-import { escHtml } from '../../core/base/utils.js?v=20261031a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261120a';
+import { escHtml } from '../../core/base/utils.js?v=20261120a';
 // Task 2.1（2026-10-26）：服务端优先登录——静态托管 / 显式开发模式才走本地账号层。
-import { DEPLOY_MODE } from '../../config/deploy.js?v=20261031a';
+import { DEPLOY_MODE } from '../../config/deploy.js?v=20261120a';
 
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261120a';
+import { installLinkNormalizer } from '../../core/base/link-normalize.js?v=20261120a';
+import { pageHref } from '../../core/base/page-url.js?v=20261120a';
+
+// 登录页不渲染侧栏：单独安装站内链接去 `.html`（D-866 URL B）。
+installLinkNormalizer();
 // C09（2026-10-20）：登录链接可带 `next`（目标页 URL）——登录成功后按 next 回跳，
 // 「未登录点活动 / 专班」不再只进工作台、丢掉原对象。只接受**同源** URL（防开放重定向），
 // 且 next 不得又指回登录页本身（防自循环）。
@@ -35,13 +38,11 @@ if (!_IAAA_HASH && !isBranchPendingUser(_user)) {
   if (_user) _goToWorkspace(_user.role);
 }
 
-// ── 登录页抬头：读支部配置档案（2026-10-28「支部名不写死」）───────────────
-// HTML 只留中性兜底「党支部管理系统」；支部显示名按托管形态运行期写入：
-//   · 本地演示形态（DEPLOY_MODE='static'）：支部配置就绪后读本地演示库
-//     （config.headerTitle → name；读取口与顶栏同族 = getBranchOrg）。
-//   · 服务端形态（api）：登录前无 token、`/api/v1/branches` 不可读 ⇒ 请求**免登录最小读口**
-//     `GET /api/v1/public/branch-name`（只回 `{ name }`）。失败 / 被拦截 / 空值一律保持中性兜底；
-//     请求在后台进行，不阻塞登录表单，也不向控制台报错。
+// ── 登录页抬头：公共平台品牌（2026-11-08 批次 536 · Task 7 · D-858 决策 10）──
+// 未登录不暴露任何具体支部名：抬头固定「光华管理学院党建平台」+ 党徽（HTML 静态文案同值）。
+// 支部品牌只在登录后的工作台顶栏（getHeaderTitle 段②）出现，登录页不再请求支部名接口。
+const LOGIN_PLATFORM_BRAND = '光华管理学院党建平台';
+
 function _setLoginTitle(title) {
   const el = document.getElementById('login-title');
   if (!el) return;
@@ -49,28 +50,7 @@ function _setLoginTitle(title) {
   if (next) el.textContent = next;
 }
 
-function _applyLoginBrandTitle() {
-  const org = getBranchOrg(DEFAULT_BRANCH_ID);
-  _setLoginTitle(org && (org.headerTitle || org.name));
-}
-
-function _applyServerBrandTitle() {
-  fetch('./api/v1/public/branch-name', { cache: 'no-store', headers: { Accept: 'application/json' } })
-    .then((r) => (r.ok ? r.json() : null))
-    .then((body) => { if (body) _setLoginTitle(body.name); })
-    .catch(() => { /* 保持中性兜底：不阻塞登录、不污染控制台 */ });
-}
-
-if (DEPLOY_MODE === 'static') {
-  try {
-    BranchService.loadDB();     // 配置就绪（幂等；与 main-entry.js 同一加载时序）
-    _applyLoginBrandTitle();
-  } catch (e) {
-    console.warn('[login] 支部配置未就绪，抬头保持中性兜底', e);
-  }
-} else {
-  _applyServerBrandTitle();
-}
+_setLoginTitle(LOGIN_PLATFORM_BRAND);
 
 // 登录成功后按角色直达对应工作台（最小三成本：登录→工作台 ≤2 跳）
 // 2026-08-24 最小三成本专项评议 P2 修复：原固定跳首页，改为直达角色工作台
@@ -81,11 +61,11 @@ function _goToWorkspace(role) {
   const current = AuthStore.getCurrentUser();
   if (_NEXT_URL && !_IAAA_HASH && !isBranchPendingUser(current)) { window.location.href = _NEXT_URL; return; }
   const raw = AuthStore.getPageForRole('workspace', role);
-  const page = raw && !raw.endsWith('.html') ? raw + '.html' : raw;
+  const page = raw;
   if (page) {
-    window.location.href = `./workspace/${page}`;
+    window.location.href = pageHref(`./workspace/${page}`);
   } else {
-    window.location.href = './index.html';
+    window.location.href = pageHref('./index.html');
   }
 }
 
@@ -209,12 +189,16 @@ if (loginForm) {
     _fields.forEach(_clearField);
     if (errorEl) { errorEl.textContent = ''; errorEl.classList.add('hidden'); }
   };
-  /** 错误贴到字段：文本在字段下方（#login-error），同时产出 aria-invalid + aria-describedby */
+  /** 错误贴到字段：文本在字段下方（#login-error），同时产出 aria-invalid + aria-describedby
+   *  2026-11-04 Task 3.5：`#login-error` 仍是唯一 live region（aria-describedby 目标不变），
+   *    但**移到出错字段的下面**——只错学号时不再挂在密码框下方；两字段都错时贴在最后一个字段下。 */
   const _showError = (msg, fields) => {
     const targets = Array.isArray(fields) && fields.length ? fields.filter(Boolean) : _fields;
     if (!errorEl) return;
     errorEl.textContent = msg;
     errorEl.classList.remove('hidden');
+    const anchorWrap = targets[targets.length - 1]?.parentElement;
+    if (anchorWrap && anchorWrap.parentElement === loginForm) anchorWrap.after(errorEl);
     targets.forEach((el) => {
       el.setAttribute('aria-invalid', 'true');
       if (_errId) el.setAttribute('aria-describedby', _errId);

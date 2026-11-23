@@ -3,24 +3,25 @@
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 // 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261031a';
-import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261031a';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261031a';
-import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261031a';
-import { currentUserId } from '../../../services/core/auth.js?v=20261031a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261031a';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261120a';
+import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261120a';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261120a';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261120a';
+import { currentUserId } from '../../../services/core/auth.js?v=20261120a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261120a';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261031a';
-import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261031a';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261031a';
-import { SourceType, ParticipationLevel, isTaskforceActiveStatus } from '../../../core/domain/domain.js?v=20261031a';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261031a';
-import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261031a';
-import { generateId } from '../../../core/base/id.js?v=20261031a';
-import { mockDB } from '../../../core/domain/domain.js?v=20261031a';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261120a';
+import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261120a';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261120a';
+import { SourceType, ParticipationLevel, isTaskforceActiveStatus } from '../../../core/domain/domain.js?v=20261120a';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261120a';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261120a';
+import { generateId } from '../../../core/base/id.js?v=20261120a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261120a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：考察明细表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261031a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261120a';
 
+import { renderCardHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
 let _orgInspPickerInstance = null;
@@ -77,9 +78,9 @@ export function renderContent(ctx, container) {
   const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-orange-100 text-orange-700' };
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">专班事项考察记录</h3>
+        ${renderCardHeader({ title: `专班事项考察记录` })}
         <button class="btn-md" id="btn-org-upload-insp" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);border:1px solid var(--app-accent-soft-border);">${_orgInspFormVisible ? '收起表单' : '录入事项考察'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">仅为制度、议程或事项明确要求的专班录入考察；工作组成员名单不会自动生成考察名单。提交后由纪检委员确认。</div>
@@ -114,7 +115,9 @@ export function renderContent(ctx, container) {
     const btn = container.querySelector('#btn-org-upload-insp');
     if (!panel) { // 首次打开（表单未渲染）：走 _orgInspFormVisible 渲染表单 + 创建 picker
       _orgInspFormVisible = true;
-      renderContent(ctx);
+      // 2026-11-08 波次 C：只重渲染**本件宿主**——原 `renderContent(ctx)` 会落到 `#org-tab-content`，
+      //   把人才库整页替换成考察卡（卡头 CTA 一次点击即触发，故必须收在宿主内）。
+      renderContent(ctx, container);
       return;
     }
     const collapsed = panel.classList.toggle('hidden');
@@ -147,11 +150,11 @@ export function renderContent(ctx, container) {
       colSpan: 5,
       responsive: true,
       headHtml: `<tr>
-            <th>姓名</th>
-            <th>专班</th>
-            <th>标签</th>
-            <th>考察内容</th>
-            <th>状态</th>
+            <th scope="col">姓名</th>
+            <th scope="col">专班</th>
+            <th scope="col">标签</th>
+            <th scope="col">考察内容</th>
+            <th scope="col">状态</th>
           </tr>`,
     },
     rowHtml: (i) => `
@@ -187,7 +190,7 @@ export function renderContent(ctx, container) {
       // 行列分隔线提升可读性，不再用高饱和实底+白字）
       const statusBadge = rec.status === 'confirmed'
         ? '<span class="px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">已确认</span>'
-        : '<span class="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">待确认</span>';
+        : '<span class="px-1.5 py-0.5 rounded-full bg-amber-100 text-[var(--status-warning-text)] font-medium">待确认</span>';
       detailEl.innerHTML = `
         <div class="rounded-lg p-3" style="background:var(--neutral-50);border:1px solid var(--neutral-200);">
           <div class="flex items-center justify-between mb-2 pb-2" style="border-bottom:1px solid var(--neutral-200);">
@@ -224,7 +227,7 @@ export function renderContent(ctx, container) {
       const res = reconfirmReturnedInspectionRecord(btn.dataset.id, { actorId });
       if (!res.ok) { showToast('error', '确认失败：该记录不存在'); return; }
       showToast('success', '已重新提交，等待纪检复核');
-      renderContent(ctx);
+      renderContent(ctx, container);
     });
   });
 
@@ -333,7 +336,8 @@ function _initOrgInspForm(container, activeTaskforces, ctx) {
     showToast('success', `专班考察上传成功，共 ${records.length} 条记录，等待纪检委员确认`);
     _orgInspFormVisible = false;
     if (_orgInspPickerInstance) { _orgInspPickerInstance.destroy(); _orgInspPickerInstance = null; }
-    renderContent(ctx);
+    // 2026-11-08 波次 C：同「首次打开」——提交成功后只刷新本件宿主，不替换整个人才库页。
+    renderContent(ctx, container);
   });
 }
 

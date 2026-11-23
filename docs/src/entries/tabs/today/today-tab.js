@@ -9,7 +9,7 @@
 //
 // 版式（2026-09-30 批次 299 · 支书裁定「B 行动 / 日程双卡」；2026-10-01 批次 320 按「工作类型＝动作性质」改准左卡分组；
 //   **2026-10-01 批次 329 支书再裁「单一轴」：左卡只留一条轴＝`TodoActionType` 七类，卡名改「今天要办」，色条只表紧迫度**）：
-//   左 2/3「今天要办」＝ **只有一个轴：按动作性质分组的 `TodoActionType` 七类**（审核 / 提交 / 赋权 / 参与 /
+//   左 2/3「要办」＝ **只有一个轴：按动作性质分组的 `TodoActionType` 七类**（审核 / 提交 / 赋权 / 参与 /
 //     归档 / 阅读 / 追踪）。**逾期 / 今天到期不再单开段**——降为**行内色条**（红＝已逾期 · 金＝今天到期 ·
 //     灰＝随时）；**今日分工 / 待我表态 / 未读通知 / 待我处理的汇报也不再各起段头**，而是**按动作性质归入七类**
 //     （分工 / 表态 → `participate` 参与；通知 → `read` 阅读；汇报 → `review` 审核。映射单一源＝下方 `SOURCE_ACTION`）。
@@ -17,7 +17,7 @@
 //     角色分工 / 事项来源」**四条轴混在同一层 h4 上**，读不出统一逻辑 ⇒ 收成一条轴。
 //     每组**组标题＝动作性质＋计数**、**行内右端＝业务域小胶囊**（九域降为胶囊）——原「今天到期 / 本岗待办」
 //     两段已由分组取代（支书评「信息量居然这么少…第一次进入的界面居然只是一个花瓶」）。
-//   右 1/3「日程」＝ 今天（会议）→ 接下来（未来 7 天）一条时间轴 ＋ 活动管理入口（B02 合卡，单一卡头 / 单一空态）。
+//   右 1/3「日程」＝ 今天（会议）→ 接下来（未来 7 天）一条时间轴（单一段头）＋ 卡头「看日历」入口（B02 合卡，单一卡头 / 单一空态）。
 //   **信息自陈（形轴·2026-10-01 批次 329 收窄）**：**行左 3px 竖色条只表「紧迫度」**——红＝逾期 /
 //   金＝今天到期 / 灰＝随时（**不再兼表角色分工 / 会议 / 通知**——同一形状只承担一件事）；**分类走胶囊**
 //   （活动类型 / 业务域 / 来源标签）；有时间者走「时间轴行」（时间 ＋ 标题 ＋ 类型胶囊）。
@@ -32,50 +32,54 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261031a';
-import { icon } from '../../../core/base/icons.js?v=20261031a';
-import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261031a';
+import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261120a';
+import { icon } from '../../../core/base/icons.js?v=20261120a';
+import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261120a';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
 // api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
-import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261031a';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261031a';
-import { mockDB } from '../../../core/domain/domain.js?v=20261031a';
-import { tokenOf } from '../../../core/base/version-token.js?v=20261031a'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261031a'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261031a'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261031a'; // P2 渲染守卫（spec §四.1）
+import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261120a';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261120a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261120a';
+import { tokenOf } from '../../../core/base/version-token.js?v=20261120a'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261120a'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261120a'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261120a'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261031a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261120a';
 // 批次 299「待我处理」两源——**单一源复用**，不另立取数口径：
 //   · 未读通知 ＝ 顶栏铃铛同一取数（NoticeStore.list retention:'visible'）＋ 统一落消息详情（notice.html?id=）
 //   · 待处理汇报 ＝ 顶栏「一键汇报」角标同一集合（IssueNotify.getUnread(我)）
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261031a';
-import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261031a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261120a';
+import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261120a';
 // 批次 304「待我表态」三件——**判据与读口皆单一源**，不在本文件重写投票规则：
 //   · 我是否应到表决人 ＝ `vote-config.js::isVoterOf`（角色无关，只看固化名单）
 //   · 我是否已对某议程项表态 ＝ `committee-vote.js::hasVoted`
 //   · 当前登录人 ＝ `AuthStore.getCurrentUser()`
-import { AuthStore } from '../../../services/core/auth.js?v=20261031a';
-import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261031a';
-import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261031a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261120a';
+import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261120a';
+import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261120a';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**本文件不手写类型色值**。
-import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS } from '../../../core/domain/constants.js?v=20261031a';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261031a';
+import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS, SEMESTER_REMIND_OPEN_MONTHS, SEMESTER_REMIND_FIRST_WEEK_LAST_DAY } from '../../../core/domain/constants.js?v=20261120a';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261120a';
 // 徽章扎口出口（2026-09-30 批次 304 改准）：`components/ui/badges.js` 是**唯一调用口**
 //   （其文件头明写「调用方一律 import badges.js；内部实现文件 badge.js / status-badge.js 可各自演进」）；
 //   批次 301 我直连了实现文件 `badge.js` ⇒ 本批收回归口，**零行为变化**。
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261031a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261120a';
 // 2026-10-18 繁专项 Task 7：汇报类行统一落到待办「待答复」收件箱（PendingTarget 一次性定位）。
 // 提交入口只在「我的处置」；今天页只读、不重复提供提交位。
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261031a';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261120a';
+// 批次 540 波次 1：待办行点击按**动作级**契约落地（`todo-actions.js` ＋ `workspace-nav.js` 单一出口），
+//   不再一律 `data-go="todo"`；inline 类落到待办该行（行尾 / 浮窗才是完成位）。
+import { resolveTodoAction } from '../../../core/domain/todo-actions.js?v=20261120a';
+import { executeTodoAction, goToWorkspaceTab } from '../../../core/session/workspace-nav.js?v=20261120a';
 // Task 6：「今天」是跨对象日程摘要，不属活动工作台 ⇒ direct；缺 id 不跳转。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261031a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261120a';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261120a';
+import { renderCardHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';
-const ACCENT_BG = 'var(--app-accent-soft-bg)';
 
 // ── P2 渲染守卫（2026-09-07 · spec §四.1）────────────────────────
 // 今天卡为「读多写少」只读聚合视图：buildTodaySummary 内部已有 P0/P1 缓存，本守卫省的
@@ -130,6 +134,28 @@ function _shortDate(dateStr) {
 //   （整行点击跳转），白名单理由见 ui-control-system-guard::V5；纯文字动作「全部 ›」改 `.link`
 //   （静态下划线 ＋ 尾随箭头），写入口「写入活动 / 看日历」改 `.btn-outline`（描边动作档）。
 
+/** 卡尾「最近动态 / 下一步动作」（2026-11-21 批次 588 · B-522-1）：
+ *  最近 3 条已发生活动（同一可见性单一源，纯展示派生）＋ 最高优先动作组的直达入口；
+ *  两者都并进「要办」卡内，不新增顶层块（SD-57）。 */
+function _recentStripHtml(recent = [], nextGroup = null) {
+  const rows = recent.map((r) => _row(
+    'var(--neutral-400)',
+    `<span class="text-sm text-gray-700 flex-1 min-w-0 truncate">${esc(r.title)}</span><span class="text-xs text-gray-500 flex-none tabular-nums">${esc(String(r.date || '').slice(5))}</span>`,
+    `data-go="activity" data-act-id="${esc(r.activityId)}" title="${esc(r.title)}"`,
+  )).join('');
+  const next = nextGroup
+    ? `<button type="button" class="btn-text today-all flex-shrink-0 text-xs" data-today-all="todo">下一步：${esc(nextGroup.label)} · ${nextGroup.count} 项 ›</button>`
+    : '';
+  return `
+    <div class="pt-3 border-t border-gray-100 space-y-2" data-today-recent>
+      <div class="flex items-center justify-between gap-2">
+        <h4 class="font-title-cn text-sm font-semibold text-gray-700">最近动态</h4>
+        ${next}
+      </div>
+      ${rows || emptyStateHtml({ text: '暂无最近动态', variant: 'inline', className: 'px-1 py-2' })}
+    </div>`;
+}
+
 /** 段标题（卡片内小分组）：h4 ＋ `text-sm`（14px/600）；`n` 给计数，`allKind` 给右上「全部 ›」 */
 function _segHead(title, n = null, allKind = '') {
   const count = (n !== null && n > 0) ? _count(n) : '';
@@ -145,15 +171,16 @@ function _segHead(title, n = null, allKind = '') {
 
 /** 段头数字（仅 n>0 显示）：13px/500——**下级计数不得大于组标题**（层级：标题 14 > 计数 13） */
 function _count(n) {
-  return n > 0 ? `<span class="text-[13px] font-medium ml-2 tabular-nums" style="color:var(--app-accent-soft-text);">${n}</span>` : '';
+  return n > 0 ? `<span class="text-[13px] font-medium ml-2 tabular-nums" style="color:var(--neutral-800);">${n}</span>` : '';
 }
 
-/** 清单行（行式载体）：左 3px 竖色条＝状态自陈；`bar`＝色条色，`inner`＝行内其余内容 */
+/** 清单行（行式载体）：行首 6px 状态圆点（`bar`＝圆点色）。
+ *  2026-11-04 批次 534：左侧 3px 竖色条退出界面信号，状态改由圆点 ＋ 行内文字表达。 */
 function _row(bar, inner, attrs = '') {
   return `
     <button type="button" class="btn-ghost today-go w-full flex items-center gap-2 text-left"
       ${attrs}>
-      <span class="w-[3px] self-stretch rounded-full flex-shrink-0" style="background:${bar};"></span>
+      <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${bar};" aria-hidden="true"></span>
       ${inner}
     </button>`;
 }
@@ -172,7 +199,7 @@ function _typeChip(type) {
   return badgeHtml(esc(type), activityTypeBadgeVariant(type));
 }
 
-// ── 左卡：今天要办 ───────────────────────────────────────────────
+// ── 左卡：要办 ───────────────────────────────────────────────
 //  单一轴（2026-10-01 批次 329 · 支书裁「甲 单一轴＝动作性质」「甲 只表紧迫度」）：
 //    · **分类轴**＝动作性质七类（`TodoActionType`；组序/组名＝`TODO_ACTION_*` 单一源）；
 //    · **紧迫度轴**＝行左 3px 竖色条（红＝逾期 / 金＝今天到期 / 灰＝随时）——**同一形状只承担一件事**。
@@ -182,23 +209,37 @@ function _typeChip(type) {
 const SOURCE_ACTION = { duty: 'participate', vote: 'participate', notice: 'read', report: 'review' };
 
 /** 待办 → 统一行模型 `{key, bar, inner, attrs}`（key＝组内紧迫度排序键，无截止殿后）：
- *  行左 3px 条**只表紧迫度**（红＝逾期 / 金＝今天到期 / 灰＝随时）；分类走胶囊（业务域）。 */
+ *  行左 3px 条**只表紧迫度**（红＝逾期 / 金＝今天到期 / 灰＝随时）；分类走胶囊（业务域）。
+ *  批次 540：行不再笼统 `data-go="todo"`，改 `data-go="action"` ＋ `actionKey/sourceId/todoId`，
+ *  点击由 `todo-actions.js` 契约解析（switch / direct / inline 三模式，见 `runTodayAction`）。 */
 function _todoEntry(it, today) {
   const overdue = !!it.deadline && it.deadline < today;
   const dueToday = !!it.deadline && it.deadline === today;
   // 逾期＝warning（与待办同源）；error 只留给阻断 / 失败。
   const bar = overdue ? 'var(--status-warning)'
     : dueToday ? 'var(--status-warning)' : 'var(--neutral-400)';
-  const titleCls = overdue ? 'text-amber-700 font-medium' : 'text-gray-800';
-  const metaCls = overdue ? 'text-amber-700 font-medium' : 'text-gray-500';
+  const titleCls = overdue ? 'text-[var(--status-warning-text)] font-medium' : 'text-gray-800';
+  const metaCls = overdue ? 'text-[var(--status-warning-text)] font-medium' : 'text-gray-500';
+  // 2026-11-04 Task 3.7：早于今天的件必须标「逾期」，与「今日到期」的日期同屏时可区分——
+  //   日期本身保留完整 ISO（行内 tabular-nums 不变，真机件按它核对截止 ≤ 今天），
+  //   逾期 / 今日只在日期前加状态标签（不靠颜色单独承载信息）。
+  const dueLabel = overdue
+    ? badgeHtml('逾期', 'danger', { extraClass: 'flex-shrink-0' })
+    : dueToday ? badgeHtml('今天', 'warning', { extraClass: 'flex-shrink-0' }) : '';
   return {
     key: it.deadline || '9999-12-31',
     bar,
     inner: `<span class="text-[13px] flex-1 min-w-0 truncate ${titleCls}">${esc(it.title || '未命名待办')}</span>
        ${_domainChip(it.domain, it.domainLabel)}
+       ${dueLabel}
        <span class="text-xs tabular-nums flex-shrink-0 ${metaCls}">${esc(it.deadline || '')}</span>`,
-    attrs: `data-go="todo" title="${esc(it.title || '')}"`,
+    attrs: `data-go="action" data-action-key="${esc(it.actionKey || '')}" data-source-id="${esc(it.sourceId || '')}" data-group-key="${esc(it.groupKey || '')}" data-todo-id="${esc(it.id || '')}" title="${esc(it.title || '')}"`,
   };
+}
+
+/** 行尾「可点」暗示（参与类 / 审核类共用同一枚标记，2026-11-04 Task 3.7） */
+function _chevron() {
+  return '<span class="text-xs text-gray-500 flex-shrink-0" aria-hidden="true">›</span>';
 }
 
 /** 今日分工 → 参与类行（角色走胶囊；点击进活动详情）。无截止 ⇒ 紧迫度＝灰（随时）。 */
@@ -208,7 +249,7 @@ function _dutyEntry(d) {
     bar: 'var(--neutral-400)',
     inner: `<span class="text-[13px] text-gray-800 flex-1 min-w-0 truncate">${esc(d.activityTitle || '未命名活动')}</span>
        ${_chip(d.role)}
-       <span class="text-xs text-gray-500 flex-shrink-0">›</span>`,
+       ${_chevron()}`,
     attrs: `data-go="activity" data-act-id="${esc(d.activityId)}" title="${esc(d.activityTitle || '')}"`,
   };
 }
@@ -219,8 +260,8 @@ function _voteEntry(a) {
     key: '9999-12-31',
     bar: 'var(--neutral-400)',
     inner: `<span class="text-[13px] text-gray-800 flex-1 min-w-0 truncate">${esc(a.title || '未命名活动')}</span>
-       <span class="text-xs text-gray-500 flex-shrink-0">›</span>`,
-    attrs: `data-go="activity" data-act-id="${esc(a.id)}" title="前往活动详情页表态"`,
+       ${_chevron()}`,
+    attrs: `data-go="activity" data-act-id="${esc(a.id)}" title="${esc(a.title || '')}"`,
   };
 }
 
@@ -241,8 +282,8 @@ function _reportEntry(i) {
     key: '9999-12-31',
     bar: 'var(--neutral-400)',
     inner: `<span class="text-[13px] text-gray-800 flex-1 min-w-0 truncate">${esc(i.title || i.body || '待处理汇报')}</span>
-       <span class="text-xs text-gray-500 flex-shrink-0">›</span>`,
-    attrs: `data-go="todo" data-report-id="${esc(i.id)}" title="前往待办「待答复」处理"`,
+       ${_chevron()}`,
+    attrs: `data-go="todo" data-report-id="${esc(i.id)}" title="${esc(i.title || '')}"`,
   };
 }
 
@@ -346,6 +387,15 @@ async function _fillPendingReports(container, personId, onNav) {
       .map(id => IssueStore.getById(id)).filter(Boolean).slice(0, 3);
   } catch (err) {
     console.warn('[today-tab] 待处理汇报读取失败：', err);
+    // 读口失败不得静默成空（批次 590 · UI ⑤.1）：给可重试提示，不伪装成「无汇报」。
+    const strip = document.createElement('div');
+    strip.className = 'px-1 py-2 flex items-center gap-2';
+    strip.innerHTML = '<span class="text-xs text-[var(--status-error-text)]">汇报加载失败</span><button type="button" class="btn-outline btn-sm">重试</button>';
+    strip.querySelector('button').addEventListener('click', () => {
+      strip.remove();
+      _hydrateReportRows(groupsHost, personId);
+    });
+    groupsHost.appendChild(strip);
     return;
   }
   if (!issues.length) return;
@@ -380,6 +430,38 @@ function _navPending(btn, onNav) {
   if (typeof onNav === 'function') onNav('todo');
 }
 
+/**
+ * 待办行的**动作级**落点（批次 540）：与待办页同一契约（`todo-actions.js` ＋ `workspace-nav.js`）。
+ *  · switch / direct → `executeTodoAction`（含 fail-closed 可见提示与缺 id 提示）；
+ *  · inline → 今天页只读，完成位在待办行尾 / 浮窗 ⇒ 切到待办并定位该行；
+ *  · 未登记动作 → 落到待办并定位该行（不得只 toast）。
+ * 批次 541：定位键改用**聚合组键**（待办页行键 `role:actionKey`）——待办本体 id 不是行键，
+ *  用它作 PendingTarget.id 时选择器永不命中；无组键（非聚合来源）才退回待办本体 id。
+ * @param {HTMLElement} btn `.today-go[data-go="action"]`
+ * @param {string} role 本台角色键
+ */
+function runTodayAction(btn, role) {
+  const groupKey = btn.dataset.groupKey || '';
+  const todoId = btn.dataset.todoId || '';
+  const todoLike = {
+    id: todoId,
+    // switch 落点的定位键：组键优先（组 → 行唯一的稳定键）
+    pendingId: groupKey,
+    actionKey: btn.dataset.actionKey || '',
+    sourceId: btn.dataset.sourceId || '',
+    role,
+    items: btn.dataset.sourceId
+      ? [{ id: btn.dataset.sourceId, sourceId: btn.dataset.sourceId }]
+      : [],
+  };
+  const resolved = resolveTodoAction(todoLike, role);
+  if (resolved && resolved.mode !== 'inline') {
+    executeTodoAction(todoLike, role);
+    return;
+  }
+  goToWorkspaceTab('todo', { kind: 'todo', id: groupKey || todoId || null }, role);
+}
+
 // ── 右卡：我的日程 ───────────────────────────────────────────────
 
 /** 时间轴行：时间（tabular-nums）＋ 标题 ＋ 类型胶囊 ＋ ›；点击 → activity.html */
@@ -392,62 +474,44 @@ function _meetingRow(m) {
     `data-go="activity" data-act-id="${esc(m.activityId)}" title="${esc(m.title || '')}"`);
 }
 
-function _meetingBlock(s) {
-  const rows = s.hasMeeting.map(_meetingRow).join('');
-  // B02（2026-10-20）：原「今天有会」独立卡并入「日程」卡，本段只出小标题；
-  // 空态不在段内各说一遍（同屏只留卡级一个空态，见 renderTodayTab 右卡）。
-  if (!rows) return '';
-  return `
-    ${_segHead('今天', s.hasMeeting.length, 'meeting')}
-    <div class="space-y-2">${rows}</div>`;
+function _meetingRows(s) {
+  return (Array.isArray(s.hasMeeting) ? s.hasMeeting : []).map(_meetingRow);
 }
 
-/** 活动管理快捷入口（2026-09-25 立；2026-09-30 批次 310 扩到全角色）：
- *  2026-09-25 支书裁定：党小组 tab 更名并收编党小组活动后，活动管理的写操作从 tab 名上不再一眼可寻
- *    ⇒ 今日页留一手（防高频动作被埋）。形态沿用本页「行」体例，不新造第三种视觉。
- *  2026-09-30 批次 310 支书裁定「**每个人应该都有这样的活动日历界面，可以从桌面的部分日历 跳转过来**」：
- *    「看日历」是**只读入口**（跳各台「活动日历」tab，五台同 id ⇒ 无需按台映射）⇒ 全角色呈现。
- *  2026-10-27 Task 6.4（脏乱繁 · 重复动作）：「写入活动」在支书台已提顶栏 CTA
- *    （`ws-secretary-entry` 的 header-actions），卡内再摆一枚属重复 ⇒ 本节只留「看日历」，
- *    写入口仍从顶栏进，不改变任何写能力。 */
-function _activityEntryBlock() {
-  return `
-    ${_segHead('活动管理')}
-    <div class="flex items-center gap-2">
-      <button type="button" class="btn-outline today-go flex items-center justify-center gap-2" data-go="calendar">看日历</button>
-    </div>`;
+/** 「看日历」只读入口（2026-09-30 批次 310 支书裁定：全角色可从桌面日历跳转）：
+ *  落各台同 id 的「活动日历」页签；2026-10-27 Task 6.4 起「写入活动」只留顶栏 CTA。
+ *  2026-11-03 B-522-1：原独立「活动管理」段头与页签名同名，入口并进「日程」卡头右侧，段头撤销。 */
+function _calendarEntryHtml() {
+  return `<button type="button" class="btn-outline today-go flex items-center justify-center gap-2" data-go="calendar">看日历</button>`;
 }
 
-/** 近期安排（未来 7 天，不含今天）：灰条 ＋ 日期短标 ＋ 标题 ＋ 类型胶囊；点击 → 活动详情 */
-function _upcomingBlock(s) {
+/** 近期安排（未来 7 天，不含今天）：灰条 ＋ 日期短标 ＋ 标题 ＋ 类型胶囊；点击 → 活动详情。
+ *  日期与「今天」的会议时间同占行首固定宽列 ⇒ 同一条时间轴，不再各起段头。 */
+function _upcomingRows(s) {
   const items = Array.isArray(s.upcoming) ? s.upcoming : [];
-  const rows = items.map(u => _row('var(--neutral-400)',
-    `<span class="text-xs tabular-nums text-gray-500 w-9 flex-shrink-0">${esc(_shortDate(u.date))}</span>
+  return items.map(u => _row('var(--neutral-400)',
+    `<span class="text-xs tabular-nums text-gray-500 w-11 flex-shrink-0">${esc(_shortDate(u.date))}</span>
      <span class="text-[13px] text-gray-800 flex-1 min-w-0 truncate">${esc(u.title || '未命名活动')}</span>
      ${_typeChip(u.type)}`,
-    `data-go="activity" data-act-id="${esc(u.activityId)}" title="${esc(u.title || '')}"`)).join('');
-  // B02：与「今天」同属一条时间轴，作为「日程」卡的后续小节；空态留到卡级统一说。
-  if (!rows) return '';
-  return `
-    ${_segHead('接下来', items.length)}
-    <div class="space-y-2">${rows}</div>`;
+    `data-go="activity" data-act-id="${esc(u.activityId)}" title="${esc(u.title || '')}"`));
 }
 
-/** 全空 → **一张卡：一行说明 + 单一主 CTA**（看日历）。
+/** 全空 → **一张卡：一句现状 + 唯一动作「看待办」**（`close-six-dim-gaps` T8）。
  *  2026-10-27 Task 6.4（脏乱繁 · 空态）：原「今天要办 / 日程」两卡各示一句空态、右卡尾部再放
- *    「写入活动 / 看日历」两枚入口 ⇒ 首屏两张等权大卡 + 两个下一步。现合并为一张卡的一行说明；
- *    卡头「全部 ›」与常规态同一处次级导航（不是主 CTA），主 CTA 仍只一枚。
- *    卡内「写入活动」与顶栏 CTA 重复，已删（顶栏保留）。 */
+ *    「写入活动 / 看日历」两枚入口 ⇒ 首屏两张等权大卡 + 两个下一步。现合并为一张卡的一行说明。
+ *  2026-11-15 T8（DESIGN_SYSTEM §4.18 C6 / §12.16）：空态只留**一枚动作**——原「全部 ›」＋「看日历」
+ *    两个并列出口撤掉，改为「看待办」；动作走统一导航契约 `workspace-nav.goToWorkspaceTab`，
+ *    不依赖调用方是否传 `onNav`（未传时不会变死链）。 */
 function _allEmptyHtml() {
   return `
-    <div class="card rounded-xl p-5" data-today-empty>
-      <div class="flex items-center justify-between">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">今天要办</h3>
-        <button type="button" class="btn-text today-all flex-shrink-0 text-xs" data-today-all="todo">全部 ›</button>
-      </div>
-      <div class="flex flex-wrap items-center gap-3 py-4">
-        ${emptyStateHtml({ text: '今天暂无待办与安排', variant: 'inline', className: 'flex-1 min-w-0' })}
-        <button type="button" class="btn-outline today-go flex items-center justify-center gap-2" data-go="calendar">看日历</button>
+    <div class="card rounded-xl card-standard" data-today-empty>
+      ${renderCardHeader({ title: `要办` })}
+      <div class="py-4">
+        ${emptyStateHtml({
+          text: '今天暂无待办与安排',
+          variant: 'inline',
+          actionHtml: '<button type="button" class="btn-outline" data-today-empty-go="todo">看待办</button>',
+        })}
       </div>
     </div>`;
 }
@@ -463,8 +527,9 @@ function _allEmptyHtml() {
 // 窗口 = 每年两学期开学首周（3 月 / 9 月 1–7 日，简单实现——与滞留复核窗非同构故不引入学期窗表）；
 // 防重复弹 = 按人存 localStorage 键 gsm1921-pref-<personId>-semester-report-remind-<学期键>
 // （学期键 'YYYY-H1'（3 月）/'YYYY-H2'（9 月）；首次查看/去归集即标记，本学年同窗不再弹）。
-const LEADER_REMIND_OPEN_MONTHS = [3, 9];
-const LEADER_REMIND_FIRST_DAY_MAX = 7;
+// 提醒窗（开学首周）= 单一源 constants.js（批次 530 · B-520-3）：月份与首周末日不再本地写字面量。
+const LEADER_REMIND_OPEN_MONTHS = SEMESTER_REMIND_OPEN_MONTHS;
+const LEADER_REMIND_FIRST_DAY_MAX = SEMESTER_REMIND_FIRST_WEEK_LAST_DAY;
 
 /** 当前学期键（仅开学月返回 'YYYY-H1'/'YYYY-H2'；非开学月返回 null；纯函数供单测） */
 export function leaderSemesterReportTermKey(now = new Date()) {
@@ -472,8 +537,8 @@ export function leaderSemesterReportTermKey(now = new Date()) {
   if (Number.isNaN(d.getTime())) return null;
   const y = d.getFullYear();
   const mo = d.getMonth() + 1;
-  if (mo === 3) return `${y}-H1`;
-  if (mo === 9) return `${y}-H2`;
+  if (mo === LEADER_REMIND_OPEN_MONTHS[0]) return `${y}-H1`;
+  if (mo === LEADER_REMIND_OPEN_MONTHS[1]) return `${y}-H2`;
   return null;
 }
 
@@ -507,9 +572,9 @@ function _leaderSemesterRemindHtml(personId) {
   const key = _lsrMarkKey(personId);
   if (!key || _lsrGet(key)) return ''; // 本学年同窗已提醒过
   return `
-    <div class="card rounded-xl p-4 border-l-4" style="border-left-color:${ACCENT};" data-leader-sem-remind="1">
+    <div class="card rounded-xl p-4" data-leader-sem-remind="1">
       <div class="flex items-start gap-3">
-        <span class="flex-none w-8 h-8 rounded-lg flex items-center justify-center" style="background:${ACCENT_BG};color:var(--app-accent-soft-text);">${icon('bell', { className: 'icon-base w-4 h-4' })}</span>
+        <span class="flex-none w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--surface-card);color:var(--app-accent-soft-text);">${icon('bell', { className: 'icon-base w-4 h-4' })}</span>
         <div class="flex-1 min-w-0">
           <p class="font-title-cn text-sm font-semibold text-gray-800">本学期组员进展</p>
           <p class="text-xs text-gray-700 mt-2" data-lsr-facts>正在汇总…</p>
@@ -597,27 +662,21 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
     }
     const dateLabel = _dateLabel(summary.date) || _dateLabel(_fmtDate(new Date()));
 
-    const total = summary.hasMeeting.length + summary.overdue.length
-      + summary.dueToday.length + summary.myDuties.length
-      + ((summary.todoSummary && summary.todoSummary.total) || 0)
-      + ((summary.upcoming && summary.upcoming.length) || 0);
-
     // 批4：组长开学周提醒条（仅组长角色；开关/窗口/防重复见 _leaderSemesterRemindHtml）
     const leaderSemReminder = role === 'leader' ? _leaderSemesterRemindHtml(personId) : '';
-    // 活动管理快捷入口（2026-09-30 批次 310：全角色呈现「看日历」；写入口在顶栏 CTA，不在此重复）
-    const activityEntry = _activityEntryBlock();
 
-    // 左卡「今天要办」＝ **单一轴：动作性质七类**（2026-10-01 批次 329 · 支书裁「甲 单一轴＝动作性质」「甲 「今天要办」」）。
+    // 左卡「要办」＝ **单一轴：动作性质七类**（2026-10-01 批次 329 · 支书裁「甲 单一轴＝动作性质」「甲 「今天要办」」）。
     //   ⚠ 原「逾期区 / 今天到期 / 本岗待办 / 今日分工 / 待我表态 / 未读通知 / 待我处理的汇报」七段
     //     已收成**一条轴**——「四轴混在同一层 h4」正是支书所斥「这几个 h4 排布是什么逻辑？我看不懂！！」的根源。
     //   ⚠ 「全部 ›」留在**卡标题行**（分组不再只有一个段头，链接留任一段头都显得只属于那一段）。
     //   ⚠ 卡片**首个子 div 须为标题行**（真机件 `today-action-groups-e2e` 以其定位「全部 ›」）。
     const actionGroupsHtml = _actionGroupsBlock(summary);
+    const recentStrip = _recentStripHtml(summary.recent || [], (summary.byAction || [])[0] || null);
     const leftCard = summaryError
       ? `
-      <div class="lg:col-span-2 card rounded-xl p-5 space-y-5 min-w-0">
+      <div class="lg:col-span-2 card rounded-xl card-standard space-y-5 min-w-0">
         <div class="flex items-center justify-between">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">今天要办</h3>
+          ${renderCardHeader({ title: `要办` })}
         </div>
         <div class="text-center py-8" data-today-error role="alert">
           <p class="text-sm text-gray-600">今天的汇总暂时读取失败</p>
@@ -625,29 +684,36 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
         </div>
       </div>`
       : `
-      <div class="lg:col-span-2 card rounded-xl p-5 space-y-5 min-w-0">
+      <div class="lg:col-span-2 card rounded-xl card-standard space-y-5 min-w-0">
         <div class="flex items-center justify-between">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">今天要办</h3>
+          ${renderCardHeader({ title: `要办` })}
           <button type="button" class="btn-text today-all flex-shrink-0 text-xs" data-today-all="todo">全部 ›</button>
         </div>
         <div data-today-groups class="space-y-5">${actionGroupsHtml}</div>
-        ${actionGroupsHtml ? '' : `<div data-today-empty>${emptyStateHtml({ text: '今日暂无待办', variant: 'inline', className: 'px-1 py-2' })}</div>`}
+        ${actionGroupsHtml ? '' : `<div data-today-empty>${emptyStateHtml({ text: '今天暂无待办', variant: 'inline', className: 'px-1 py-2', actionHtml: '<button type="button" class="btn-outline" data-today-empty-go="todo">看待办</button>' })}</div>`}
+        ${recentStrip}
       </div>`;
-    // 右卡「日程」（B02）：今天与未来 7 天同属一条时间轴 ⇒ 合成一张卡（一个小标题在前、一个在后），
-    //   同屏只保留一个卡头与一个空态；活动管理入口仍留在卡尾（写入口不并入时间轴）。
-    const scheduleBlocks = `${_meetingBlock(summary)}${_upcomingBlock(summary)}`;
+    // 右卡「日程」（B02）：今天与未来 7 天同属一条时间轴 ⇒ 合成一张卡、一个段头（日期与时间同占行首固定宽列），
+    //   同屏只保留一个卡头与一个空态；「看日历」只读入口挂卡头右侧，原「今天 / 接下来」两个同名段头合并，
+    //   段头右侧的「全部 ›」仍落各台活动列表（原会议段头的跳转保持不变）。
+    const scheduleRows = [..._meetingRows(summary), ..._upcomingRows(summary)];
+    const scheduleBlocks = scheduleRows.length
+      ? `${_segHead('安排', scheduleRows.length, 'activities')}<div class="space-y-2">${scheduleRows.join('')}</div>`
+      : '';
     const rightCard = `
       <div class="lg:col-span-1 space-y-5 min-w-0">
-        <div class="card rounded-xl p-5 space-y-5">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">日程</h3>
+        <div class="card rounded-xl card-standard space-y-5">
+          <div class="flex items-center justify-between gap-2">
+            ${renderCardHeader({ title: `日程` })}
+            ${_calendarEntryHtml()}
+          </div>
           ${scheduleBlocks || emptyStateHtml({ text: '今天暂无安排', variant: 'inline', className: 'px-1 py-2' })}
-          ${activityEntry ? `<div>${activityEntry}</div>` : ''}
         </div>
       </div>`;
 
     const body = summaryError
       ? `<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">${leftCard}${rightCard}</div>`
-      : total === 0
+      : (!actionGroupsHtml && !scheduleRows.length)
         ? _allEmptyHtml()
         : `<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">${leftCard}${rightCard}</div>`;
 
@@ -663,7 +729,8 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
         ${body}
       </div>`;
 
-    // 行点击：会议/分工/近期安排 → 活动详情页；到期/逾期 → onNav('todo')；通知 → 消息详情（同顶栏）；
+    // 行点击：会议/分工/近期安排 → 活动详情页；待办行 → 动作级落点（`runTodayAction`）；
+    //   汇报行 → 待办「待答复」；通知 → 消息详情（同顶栏）；
     //   活动管理快捷入口：建活动 → onCreateActivity；看日历 → onNav('calendar')（各台同 id 的只读日历页签）
     // R3-U08：汇总失败时「重试」清掉本卡 memo 键后重走同一渲染链（数据未变也能真正重算）。
     container.querySelector('[data-today-retry]')?.addEventListener('click', () => {
@@ -676,6 +743,8 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
         if (go === 'activity') {
           const href = objectDetailHref('activity', btn.dataset.actId, { entry: 'today' });
           if (href) window.location = href;
+        } else if (go === 'action') {
+          runTodayAction(btn, role);
         } else if (go === 'todo' && typeof onNav === 'function') {
           if (btn.dataset.reportId) _navPending(btn, onNav);
           else onNav('todo');
@@ -694,6 +763,10 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
         if (typeof onNav !== 'function') return;
         onNav(btn.dataset.todayAll === 'todo' ? 'todo' : 'activities');
       });
+    });
+    // 空态唯一动作「看待办」：走统一导航契约（六台均注册 todo 页签；未命中时由 goToWorkspaceTab 给可见提示）
+    container.querySelector('[data-today-empty-go]')?.addEventListener('click', () => {
+      goToWorkspaceTab('todo', null, role);
     });
     // 待处理汇报**异步注入「审核」组**（与顶栏「一键汇报」角标同一集合；无组则动态建组）
     _fillPendingReports(container, personId, onNav);

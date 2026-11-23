@@ -17,9 +17,9 @@
 //   组长学期提醒消费——一律改由本文件派生）。
 // ════════════════════════════════════════════════════════════════
 
-import { todayLocal } from '../base/date.js?v=20261031a';
+import { todayLocal } from '../base/date.js?v=20261120a';
 // 状态中文枚举单一源（R10-B19；domain.js 零依赖，不引入循环）。
-import { ReviewStatus } from './domain.js?v=20261031a';
+import { ReviewStatus } from './domain.js?v=20261120a';
 
 /** 深拷贝工具（policy 结构纯 JSON 数据；factory 基准深拷贝/复位用） */
 function _clone(v) {
@@ -144,6 +144,24 @@ const _FACTORY = {
       completeMonths: 12,
       prepMonths: 9,
     },
+    // 积极分子 → 发展对象的最短培养考察期（`D-887` / `SOP-B-27`）：默认 12 个月，
+    //   由服务端 `POST /members/:id/develop-stage` 硬校验（进入「发展对象」时）；0 ＝ 不设期限（可配置放行）。
+    //   登记 `POLICY_OVERRIDABLE`（组织域）⇒ 组织委员可在设置中心改。
+    activistMinMonths: 12,
+  },
+  // 副支书操作权（2026-11-20 支书裁定 · 批次 579）：主责仍在支书，参数只决定副支书能否代操作。
+  //   mode：full（默认，四类全可代操作）/ standard（四类均不可代操作）/ custom（按 allow 逐项）。
+  //   本参数不转移任务、提醒、统计与逾期归属；四个动作见 `docs/src/core/domain/deputy-capability.js::DEPUTY_ACTIONS`。
+  role: {
+    deputySecretary: {
+      mode: 'full',
+      allow: {
+        activityEdit: true,
+        branchNotice: true,
+        rosterStage: true,
+        branchConfig: true,
+      },
+    },
   },
   review: {
     // 复盘提交提醒阈值（支书台自动提醒：活动结束 >overdueDays 天仍无复盘 → 提醒组织者提交）
@@ -237,6 +255,14 @@ export const POLICY_OVERRIDABLE = [
   { path: ['archive', 'periodic', 'unit'], type: 'enum', values: ['week', 'month'], domain: 'secretary' },
   { path: ['inspection', 'overdueDays'], type: 'int', min: 1, max: 90, domain: 'disc-commissioner' },
   { path: ['memberConfirmation', 'semesterDetainedWindows'], type: 'windows', domain: 'org-commissioner' },
+  // 发展党员：积极分子 → 发展对象的最短培养考察期（月；0＝不设期限）（`D-887` / `SOP-B-27`）
+  { path: ['member', 'activistMinMonths'], type: 'int', min: 0, max: 60, domain: 'org-commissioner' },
+  // 副支书操作权（2026-11-20 批次 579）：主责在支书，参数只开关副支书能否代操作。
+  { path: ['role', 'deputySecretary', 'mode'], type: 'enum', values: ['full', 'standard', 'custom'], domain: 'secretary' },
+  { path: ['role', 'deputySecretary', 'allow', 'activityEdit'], type: 'boolean', domain: 'secretary' },
+  { path: ['role', 'deputySecretary', 'allow', 'branchNotice'], type: 'boolean', domain: 'secretary' },
+  { path: ['role', 'deputySecretary', 'allow', 'rosterStage'], type: 'boolean', domain: 'secretary' },
+  { path: ['role', 'deputySecretary', 'allow', 'branchConfig'], type: 'boolean', domain: 'secretary' },
   { path: ['leader', 'semesterReportReminder', 'enabled'], type: 'boolean', domain: 'leader' },
   // 活动批准门（2026-09-22 批次 150）：支部级可调制度参数，归支书域（支书/副支书/party-staff 可改）。
   { path: ['activityApproval', 'mode'], type: 'enum', values: ['off', 'secretary', 'branch-committee'], domain: 'secretary' },
@@ -333,9 +359,24 @@ export function activityApprovalMode() {
   return ACTIVITY_APPROVAL_MODES.includes(m) ? m : 'off';
 }
 
+/**
+ * 取某个可覆盖参数的输入范围（单一源＝`POLICY_OVERRIDABLE` 的 min/max，2026-11-03 批次 530 · B-520-3）。
+ * 设置页的 `min` / `max` 与「范围 a–b」提示、以及写口钳制必须同读本函数，不得再各写一遍数字。
+ * @param {string[]} path 形如 `['inspection', 'overdueDays']`
+ * @returns {{min:number,max:number}|null} 非 int 档 / 未登记返回 null
+ */
+export function policyRange(path) {
+  const key = (path || []).join('.');
+  const spec = POLICY_OVERRIDABLE.find((o) => o.path.join('.') === key);
+  if (!spec || spec.type !== 'int') return null;
+  return { min: spec.min, max: spec.max };
+}
+
+/** 窗口类参数（`[起月,起日,止月,止日]`）的月 / 日输入范围（设置页复核窗口用；POLICY_OVERRIDABLE 的 windows 档不带 min/max） */
+export const POLICY_WINDOW_RANGE = Object.freeze({ monthMin: 1, monthMax: 12, dayMin: 1, dayMax: 31 });
+
 /** policyOverrides 顶层节白名单（由 POLICY_OVERRIDABLE 派生；写口校验/删除语义用） */
 export const POLICY_OVERRIDE_SECTIONS = [...new Set(POLICY_OVERRIDABLE.map(o => o.path[0]))];
-
 /** 复位全部有效默认为出厂基准（读侧注入/跨支部切换前调用；幂等） */
 export function resetPolicyDefaults() {
   for (const k of Object.keys(_FACTORY)) {
@@ -436,7 +477,7 @@ function _addDays(dateKey, n) {
 function _recordDateKey(record) {
   const r = record || {};
   const base = r.date || r.activityDate || r.recordedAt || r.submittedAt || r.createdAt || '';
-  const key = String(base).slice(0, 10);
+  const key = (String(base).match(/^\d{4}-\d{2}-\d{2}/) || [''])[0];
   return /^\d{4}-\d{2}-\d{2}$/.test(key) ? key : '';
 }
 

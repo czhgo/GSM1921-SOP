@@ -73,7 +73,10 @@ test('I1 每个测试文件都登记 fixtureClass，四类取值合法', () => {
   assert.equal(FIXTURE_CLASSES.length, 4, 'fixtureClass 必须恰为四类');
 
   // 非空转：两大数据面的规模下限
-  assert.ok(filesByFixtureClass('memory').length >= 190, `memory 类只解析到 ${filesByFixtureClass('memory').length} 个（下限 190）`);
+  //  2026-11-08 批次 537：分层改四层后 memory 类 = daily（结果门禁）＋ guards（静态守卫）
+  //    ⇒ 规模由 190 下调为 120（口径未放宽：仍要求两大数据面都有量级）。
+  // 2026-11-22 批次 600：守卫归并后文件数下降（129→81），下限随之下调；判据仍是「解析非空转」
+  assert.ok(filesByFixtureClass('memory').length >= 80, `memory 类只解析到 ${filesByFixtureClass('memory').length} 个（下限 80）`);
   assert.ok(filesByFixtureClass('tmp').length >= 30, `tmp 类只解析到 ${filesByFixtureClass('tmp').length} 个（下限 30）`);
 
   // 本轮已确认的显式归类

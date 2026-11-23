@@ -51,7 +51,7 @@
   - [x] SubTask 8.3 补守卫：两处 10 问卡齐备；缺一即红
 
 - [x] Task 9: 设计守卫与截图复核
-  - [x] SubTask 9.1 新增 `ui-color-semantics.test.mjs`：逾期/错误/主题色/功能色越界检查
+  - [x] SubTask 9.1 新增 `color-ratchet-guard.test.mjs`：逾期/错误/主题色/功能色越界检查
   - [x] SubTask 9.2 新增 `ui-row-interaction.test.mjs`：行型元素、focus-visible、display 行无 hover/pointer
   - [x] SubTask 9.3 新增 `ui-preflight-context.test.mjs`：CLAUDE 与 DESIGN_SYSTEM 两处 10 问卡
   - [x] SubTask 9.4 截 1440/390 的概况、待办、支委会、首页；人工核对层级、颜色、行交互

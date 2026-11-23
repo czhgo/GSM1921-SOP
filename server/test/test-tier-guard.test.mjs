@@ -1,18 +1,18 @@
 // role: [工程师]+[AI]
-// server/test/test-tier-guard.test.mjs — 测试分层登记 / 预算守卫（B-499-5 · Task 9，2026-10-21）
+// server/test/test-tier-guard.test.mjs — 测试分层登记 / 预算守卫（B-499-5 · Task 9）
 // ════════════════════════════════════════════════════════════════
 // 为什么要这层守卫：
 //   · daily 是「每次改完必跑」的那一层。没有登记守卫时，新增测试只写文件不登记 ⇒ **从不自动运行**；
-//     登记了但不分层 ⇒ daily 被 Playwright e2e 拖长到十几分钟，最后被整层跳过（＝判据实际失效）。
-//   · 本守卫把「磁盘实况 ↔ 三层登记 ↔ npm scripts ↔ 预算」钉在一起：
-//       T1 磁盘全部 `*.test.{js,mjs}` ↔ registry 三层并集**双向相等**；三层互不重叠
+//     登记了但不分层 ⇒ daily 被静态守卫与真机 e2e 拖长，最后被整层跳过（＝判据实际失效）。
+//   · 2026-11-08 批次 537 起分四层（daily 结果门禁 / guards 静态守卫 / precommit 全量纯 node + e2e /
+//     weekly 慢速普查）。本守卫把「磁盘实况 ↔ 四层登记 ↔ npm scripts ↔ 预算」钉在一起：
+//       T1 磁盘全部 `*.test.{js,mjs}` ↔ registry 四层并集**双向相等**；四层互不重叠
 //       T2 daily 不含 page-sweep / form-loop-sweep / 任何 `*-e2e` 重活
-//       T3 不 import playwright 的纯 node 测试**必须全部在 daily**（`doc-consistency::S16` 同口径）
-//       T4 daily 文件数与静态 `test(` 调用点数不得高于 registry 预算常量
-//       T5 `test:daily` 显式清单 ≡ registry daily；`test:precommit` / `test:full` 覆盖三层并集
+//       T3 不 import playwright 的纯 node 测试必须在 daily / guards / precommit，**不得在 weekly**
+//       T4 daily / guards 的文件数与静态 `test(` 调用点数不得高于各自预算；daily 另有 27 文件 / 220 断言上限
+//       T5 四个 runner（daily / guards / precommit / changed）与 registry 对齐，且无 cmd 专有语法
 //       T6 非空转：registry 规模下限、每条 reason 非空、比较器能判出人为差异
-//   · 移层不删判据：precommit / full 仍跑全部文件（`run-suite.mjs` 单源发现），
-//     本守卫只核对「哪一层跑」，不核对「跑不跑」。
+//   · 分层只决定「哪一层跑」，不决定「跑不跑」：precommit / full 仍覆盖全部文件。
 // 运行：`node --test test/test-tier-guard.test.mjs`（server 目录）
 // ════════════════════════════════════════════════════════════════
 import { test } from 'node:test';
@@ -22,8 +22,9 @@ import { join } from 'node:path';
 
 import {
   TIERS, TEST_TIERS, DAILY_FILE_BUDGET, DAILY_TEST_BUDGET,
-  filesByTier, dailyFiles, precommitFiles, weeklyFiles,
-  allRegisteredFiles, diffTiers, isPlaywrightSource, countTestCases, parseScriptFiles,
+  GUARDS_FILE_BUDGET, GUARDS_TEST_BUDGET,
+  filesByTier, dailyFiles, guardsFiles, precommitFiles, weeklyFiles,
+  allRegisteredFiles, diffTiers, isPlaywrightSource, countTestCases,
 } from '../test-tier-registry.mjs';
 
 const ROOT = join(import.meta.dirname, '..', '..');
@@ -33,7 +34,7 @@ const read = (f) => readFileSync(join(TDIR, f), 'utf8');
 
 const diskFiles = () => readdirSync(TDIR).filter((f) => /\.test\.(js|mjs)$/.test(f)).sort();
 
-test('T1 磁盘测试文件 ↔ 三层登记双向相等，且三层互不重叠', () => {
+test('T1 磁盘测试文件 ↔ 四层登记双向相等，且四层互不重叠', () => {
   const disk = diskFiles();
   const diff = diffTiers(disk);
   assert.deepEqual(diff.missing, [],
@@ -41,7 +42,7 @@ test('T1 磁盘测试文件 ↔ 三层登记双向相等，且三层互不重叠
   assert.deepEqual(diff.extra, [],
     `以下 registry 条目在磁盘上不存在（删除测试须同批删登记并写明覆盖来源）：\n  ${diff.extra.join('\n  ')}`);
   assert.deepEqual(diff.duplicates, [],
-    `以下文件在 registry 中被登记了不止一层（三层必须互斥）：${diff.duplicates.join(' / ')}`);
+    `以下文件在 registry 中被登记了不止一层（四层必须互斥）：${diff.duplicates.join(' / ')}`);
   assert.deepEqual(new Set(disk), new Set(allRegisteredFiles()), '磁盘与登记表并集不一致');
 });
 
@@ -54,54 +55,96 @@ test('T2 daily 不含 page-sweep / form-loop-sweep / 任何 *-e2e 重活', () =>
   assert.equal(precommitFiles.includes('form-loop-sweep.test.mjs'), true, 'form-loop-sweep 必须在 precommit 层');
 });
 
-test('T3 不 import playwright 的纯 node 测试必须全部在 daily（S16 同口径）', () => {
+test('T3 不 import playwright 的纯 node 测试必须在 daily / guards / precommit，不得在 weekly', () => {
   const disk = diskFiles();
   const nonPw = disk.filter((f) => !isPlaywrightSource(read(f)));
   // 非空转：两侧都要有规模（解析写坏 ⇒ 差集恒空 ⇒ 漏登记也绿）
-  assert.ok(nonPw.length >= 190, `非 playwright 测试只解析到 ${nonPw.length} 个（下限 190）：解析面被写坏`);
-  assert.ok(dailyFiles.length >= 190, `daily 只登记了 ${dailyFiles.length} 个（下限 190）：registry 被写坏`);
-  const daily = new Set(dailyFiles);
-  const missing = nonPw.filter((f) => !daily.has(f)).sort();
+  assert.ok(nonPw.length >= 250, `非 playwright 测试只解析到 ${nonPw.length} 个（下限 250）：解析面被写坏`);
+  const known = new Set([...dailyFiles, ...guardsFiles, ...precommitFiles]);
+  assert.ok(dailyFiles.length + guardsFiles.length + precommitFiles.length >= 250,
+    `daily + guards + precommit 只登记了 ${dailyFiles.length + guardsFiles.length + precommitFiles.length} 个（下限 250）：registry 被写坏`);
+  const missing = nonPw.filter((f) => !known.has(f)).sort();
   assert.deepEqual(missing, [],
-    `以下纯 node 测试**不在 daily**（守卫孤儿化 / 被错误降层）：\n  ${missing.join('\n  ')}`);
-  // 反向：daily 不得混入 Playwright（本仓 daily 定义为纯 node 快判据）
-  const dailyPw = dailyFiles.filter((f) => isPlaywrightSource(read(f)));
-  assert.deepEqual(dailyPw, [], `daily 混入 Playwright 测试：${dailyPw.join(' / ')}`);
+    `以下纯 node 测试**不在 daily / guards / precommit**（守卫孤儿化 / 被错误降层）：\n  ${missing.join('\n  ')}`);
+  // 反向：daily / guards 不得混入 Playwright（真机件只在 precommit / weekly）
+  for (const [name, list] of [['daily', dailyFiles], ['guards', guardsFiles]]) {
+    const pw = list.filter((f) => isPlaywrightSource(read(f)));
+    assert.deepEqual(pw, [], `${name} 混入 Playwright 测试：${pw.join(' / ')}`);
+  }
+  // weekly 只放真机慢速普查：纯 node 落入 weekly 即判红
+  const weeklyNode = weeklyFiles.filter((f) => !isPlaywrightSource(read(f)));
+  assert.deepEqual(weeklyNode, [], `weekly 混入纯 node 测试（应回 daily / guards / precommit）：${weeklyNode.join(' / ')}`);
 });
 
-test('T4 daily 文件数与断言预算不得高于登记值', () => {
-  const cases = dailyFiles.reduce((n, f) => n + countTestCases(read(f)), 0);
+test('T4 daily / guards 文件数与断言预算不得高于登记值；daily 另有结果门禁上限', () => {
+  const dailyCases = dailyFiles.reduce((n, f) => n + countTestCases(read(f)), 0);
+  const guardCases = guardsFiles.reduce((n, f) => n + countTestCases(read(f)), 0);
   // 非空转：预算本身要有规模，且不能宽到「加十个文件也不红」
-  assert.ok(DAILY_FILE_BUDGET >= 190, `DAILY_FILE_BUDGET=${DAILY_FILE_BUDGET}（下限 190）：预算常量被写坏`);
-  assert.ok(DAILY_TEST_BUDGET >= 1200, `DAILY_TEST_BUDGET=${DAILY_TEST_BUDGET}（下限 1200）：预算常量被写坏`);
+  assert.ok(DAILY_FILE_BUDGET >= 20, `DAILY_FILE_BUDGET=${DAILY_FILE_BUDGET}（下限 20）：预算常量被写坏`);
+  assert.ok(DAILY_TEST_BUDGET >= 150, `DAILY_TEST_BUDGET=${DAILY_TEST_BUDGET}（下限 150）：预算常量被写坏`);
+  assert.ok(GUARDS_FILE_BUDGET >= 60, `GUARDS_FILE_BUDGET=${GUARDS_FILE_BUDGET}（下限 60）：预算常量被写坏`);
+  assert.ok(GUARDS_TEST_BUDGET >= 400, `GUARDS_TEST_BUDGET=${GUARDS_TEST_BUDGET}（下限 400）：预算常量被写坏`);
   assert.ok(dailyFiles.length <= DAILY_FILE_BUDGET,
     `daily 文件数 ${dailyFiles.length} 超过登记预算 ${DAILY_FILE_BUDGET}：新增测试须显式上调预算并写明理由`);
-  assert.ok(cases <= DAILY_TEST_BUDGET,
-    `daily 静态 test() 调用点 ${cases} 超过登记预算 ${DAILY_TEST_BUDGET}：新增断言须显式上调预算并写明理由`);
+  assert.ok(dailyCases <= DAILY_TEST_BUDGET,
+    `daily 静态 test() 调用点 ${dailyCases} 超过登记预算 ${DAILY_TEST_BUDGET}：新增断言须显式上调预算并写明理由`);
+  // 2026-11-22 批次 600：预算只作**软告警**——超出登记值打印 WARN，超过 25% 才判红（防「加一条即红」的过拟合）
+  const warnOver = (label, actual, budget) => {
+    if (actual > budget) {
+      console.warn(`[budget] ${label} ${actual} > 登记 ${budget}（软告警；硬顶 ${Math.ceil(budget * 1.25)}）`);
+    }
+  };
+  warnOver('guards 文件', guardsFiles.length, GUARDS_FILE_BUDGET);
+  warnOver('guards 断言', guardCases, GUARDS_TEST_BUDGET);
+  assert.ok(guardsFiles.length <= Math.ceil(GUARDS_FILE_BUDGET * 1.25),
+    `guards 文件数 ${guardsFiles.length} 超过硬顶 ${Math.ceil(GUARDS_FILE_BUDGET * 1.25)}（登记 ${GUARDS_FILE_BUDGET} × 1.25）`);
+  assert.ok(guardCases <= Math.ceil(GUARDS_TEST_BUDGET * 1.25),
+    `guards 静态 test() 调用点 ${guardCases} 超过硬顶 ${Math.ceil(GUARDS_TEST_BUDGET * 1.25)}（登记 ${GUARDS_TEST_BUDGET} × 1.25）`);
   // 预算不得高于实然值太多（防「预算写成 9999」失去意义）
   assert.ok(DAILY_FILE_BUDGET - dailyFiles.length <= 4,
     `DAILY_FILE_BUDGET=${DAILY_FILE_BUDGET} 比实然 ${dailyFiles.length} 宽松 >4：预算失去约束力`);
-  assert.ok(DAILY_TEST_BUDGET - cases <= 40,
-    `DAILY_TEST_BUDGET=${DAILY_TEST_BUDGET} 比实然 ${cases} 宽松 >40：预算失去约束力`);
+  assert.ok(DAILY_TEST_BUDGET - dailyCases <= 40,
+    `DAILY_TEST_BUDGET=${DAILY_TEST_BUDGET} 比实然 ${dailyCases} 宽松 >40：预算失去约束力`);
+  assert.ok(GUARDS_FILE_BUDGET - guardsFiles.length <= 4,
+    `GUARDS_FILE_BUDGET=${GUARDS_FILE_BUDGET} 比实然 ${guardsFiles.length} 宽松 >4：预算失去约束力`);
+  assert.ok(GUARDS_TEST_BUDGET - guardCases <= 40,
+    `GUARDS_TEST_BUDGET=${GUARDS_TEST_BUDGET} 比实然 ${guardCases} 宽松 >40：预算失去约束力`);
+  // 结果门禁口径（2026-11-10 波次 540）；2026-11-17 批次 564 上调到 32 文件 / 260 断言
+  //   （新增 `if-match`：全资源乐观锁的 428 / 409 / 200 / 强制写 / 回填幂等属「结果对不对」，理由见 registry 常量注释）
+  // 2026-11-19 批次 575 / 577：发展对象硬门（permission-gate）＋ 门厅支部维度（public-portal）各 +1，
+  //   实然 262；与 registry `DAILY_TEST_BUDGET=262` 取齐（上限只随结果门禁用例同步，不因静态守卫上调）。
+  assert.ok(dailyFiles.length >= 20 && dailyFiles.length <= 32,
+    `daily 只应保留 20–32 个结果门禁文件（实 ${dailyFiles.length}）：超出说明又混入了守卫或非核心回归`);
+  assert.ok(dailyCases <= DAILY_TEST_BUDGET,
+    `daily 断言 ${dailyCases} 超过结果门禁上限 ${DAILY_TEST_BUDGET}：优先把静态 / 域回归移出 daily，不改断言`);
 });
 
-test('T5 package.json 三个脚本与 registry 一致', () => {
-  const daily = new Set(parseScriptFiles(PKG.scripts['test:daily']));
-  assert.deepEqual([...daily].sort(), [...dailyFiles].sort(),
-    'test:daily 显式清单与 registry daily 层不一致（改层必须同批改 package.json）');
-  assert.ok(dailyFiles.length > 0 && precommitFiles.length > 0 && weeklyFiles.length > 0,
-    '三层都不得为空（分层登记被写坏）');
+test('T5 四个 runner 与 registry 对齐，且不含 cmd 专有语法', () => {
+  const scripts = PKG.scripts || {};
+  assert.equal(scripts['test:daily'], 'node scripts/run-daily.mjs', 'test:daily 必须走 registry 驱动的 run-daily.mjs');
+  assert.equal(scripts['test:guards'], 'node scripts/run-guards.mjs', 'test:guards 必须走 registry 驱动的 run-guards.mjs');
+  assert.equal(scripts['test:precommit'], 'node scripts/run-precommit.mjs', 'test:precommit 必须走 run-precommit.mjs');
+  assert.equal(scripts['test:changed'], 'node scripts/run-changed.mjs', 'test:changed 必须走按改动面的 run-changed.mjs');
+  assert.ok(dailyFiles.length > 0 && guardsFiles.length > 0 && precommitFiles.length > 0 && weeklyFiles.length > 0,
+    '四层都不得为空（分层登记被写坏）');
 
-  const union = new Set([...dailyFiles, ...precommitFiles, ...weeklyFiles]);
-  const pre = PKG.scripts['test:precommit'] || '';
-  // precommit 允许两种等价形态：① 显式三层并集；② `SWEEP_SHARD=all node run-suite.mjs`（全量单源）
-  if (/run-suite\.mjs/.test(pre) && /SWEEP_SHARD=all/.test(pre)) {
-    assert.ok(true, 'precommit = run-suite 全量（等价于三层并集）');
-  } else {
-    assert.deepEqual(new Set(parseScriptFiles(pre)), union,
-      'test:precommit 既不是 run-suite 全量，也不等于 registry 三层并集');
+  // runner 源码必须真的引用 registry（防「脚本存在但不读单一源」）
+  const sh = (f) => readFileSync(join(ROOT, 'server', 'scripts', f), 'utf8');
+  assert.match(sh('run-daily.mjs'), /dailyFiles/, 'run-daily.mjs 未引用 registry 的 dailyFiles');
+  assert.match(sh('run-guards.mjs'), /guardsFiles/, 'run-guards.mjs 未引用 registry 的 guardsFiles');
+  const pre = sh('run-precommit.mjs');
+  for (const key of ['dailyFiles', 'guardsFiles', 'precommitFiles']) {
+    assert.match(pre, new RegExp(key), `run-precommit.mjs 未引用 registry 的 ${key}`);
   }
-  const full = PKG.scripts['test:full'] || '';
+  assert.match(pre, /ensurePlaywright/, 'run-precommit.mjs 缺少 Playwright 缺失时的明确报错（跳层＝假绿）');
+  assert.match(sh('run-changed.mjs'), /guardsFiles/, 'run-changed.mjs 未引用 registry 的 guardsFiles');
+
+  // 四个 runner 入口不得再用 `set X=1&&`（cmd 专有；Linux 上不能跑）
+  for (const key of ['test:daily', 'test:guards', 'test:precommit', 'test:changed']) {
+    assert.doesNotMatch(scripts[key], /(^|&&\s*)set\s+[A-Z_]+=/, `${key} 仍含 cmd 专有的 set 语法`);
+  }
+
+  const full = scripts['test:full'] || '';
   assert.ok(/run-suite\.mjs/.test(full) && /SWEEP_SHARD=all/.test(full),
     'test:full 必须是 run-suite 全量（SWEEP_SHARD=all），否则会静默漏掉分层外的文件');
 });

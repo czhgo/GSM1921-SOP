@@ -3,13 +3,15 @@
 //  utils.js — 格式化工具、动画辅助、Toast 组件
 // ════════════════════════════════════════════════════════════════
 
-import { hasPendingWrites, settleScope, settleWrites } from '../session/pending-writes.js?v=20261031a';
+import { hasPendingWrites, settleScope, settleWrites } from '../session/pending-writes.js?v=20261120a';
+import { fmtLocalDateTime } from './date.js?v=20261120a';
 
 // ── 日期格式化 ─────────────────────────────────────────────────
 // R-26③（2026-10-05 批次 388）：日期口径单一源下沉到**零依赖叶子** `core/base/date.js`
 //   （`core/domain/constants.js` 这类「被全站 import 且要求双端可载」的件只能引零依赖件；
 //   而 `utils.js` 牵 `core/session/pending-writes.js`）⇒ 此处**转出**，既有 `from '…/utils.js'` 调用点不变。
-export { _fmtDate, todayLocal } from './date.js?v=20261031a';
+export { _fmtDate, todayLocal } from './date.js?v=20261120a';
+export { fmtLocalDate, fmtLocalDateTime } from './date.js?v=20261120a';
 
 export function _fmtChinese(d) {
   const DN = ['日','一','二','三','四','五','六'];
@@ -22,10 +24,18 @@ export function _currentYearMonth(now = new Date()) {
   return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0');
 }
 
-/** ISO 时间串 → 'YYYY-MM-DD HH:mm'（去 T 分隔；空值返回 ''） */
+/**
+ * ISO 时间串 / Date → **本地** 'YYYY-MM-DD HH:mm'（去 T 分隔；空值返回 ''）。
+ * 2026-11-16 `polish-shell-and-display-truth` T5：原实现直接截 UTC 串前 16 位
+ *   ⇒ 本地 00:00–08:00 写入的时间戳会显示成**前一天** 16:xx。现按本地时区取年月日时分
+ *   （单一源 `core/base/date.js::fmtLocalDateTime`）。
+ * 纯日期串（`YYYY-MM-DD`，无时间部分）原样返回；不可解析的输入退回旧截断形态。
+ */
 export function fmtDt(iso) {
   if (!iso) return '';
-  return String(iso).slice(0, 16).replace('T', ' ');
+  const s = typeof iso === 'string' ? iso.trim() : '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  return fmtLocalDateTime(iso) || String(iso).slice(0, 16).replace('T', ' ');
 }
 
 // ── HTML 转义（innerHTML 渲染前统一出口，防存储型 XSS）─────────
@@ -61,6 +71,8 @@ export function describeWriteError(err) {
     if (status === 403) return reason ? `当前账号无权办理：${reason}` : '当前账号无权办理';
     if (status === 404) return '记录不存在或已删除';
     if (status === 409) return '已被他人更新，请刷新后重试';
+    if (status === 413) return '文件过大，请压缩后重试';
+    if (status === 422) return '填写内容不符合要求，请检查';
     if (status === 428) return '页面版本过旧，请刷新';
     if (status === 408 || status >= 500) return '服务暂时不可用，请稍后重试';
     if (!status && (e.type === 'NetworkError' || e.name === 'TypeError'
@@ -184,12 +196,13 @@ function _renderToast(type, message, options = {}) {
     return { ok: type !== 'error', type, message };
   }
 
-  // 状态色点缀（DESIGN_SYSTEM 状态色统一：完成绿 #16A34A / 告警红 #EF4444 / 信息蓝 #3B82F6）
-  // 主色收敛原则：Toast 为状态指示，用状态色而非角色主题色；白色实底 + 深色文字保证高对比度
+  // 状态色点缀（DESIGN_SYSTEM 状态色统一）：色值单一源＝styles.css 的 --toast-* 令牌。
+  // 主色收敛原则：Toast 为状态指示，用状态色而非角色主题色；浅底 + 深字保证高对比度。
+  // 2026-11-04 批次 534（Task 6.3）：令牌在 :root 定义、暗色不覆写 ⇒ 明暗都保持浅底深字。
   const COLORS = {
-    success: { accent: '#16A34A', bg: '#F0FDF4', icon: '✓' },
-    error:   { accent: '#EF4444', bg: '#FEF2F2', icon: '!' },
-    info:    { accent: '#3B82F6', bg: '#EFF6FF', icon: 'i' },
+    success: { accent: 'var(--toast-success-accent)', bg: 'var(--toast-success-bg)', icon: '✓' },
+    error:   { accent: 'var(--toast-error-accent)', bg: 'var(--toast-error-bg)', icon: '!' },
+    info:    { accent: 'var(--toast-info-accent)', bg: 'var(--toast-info-bg)', icon: 'i' },
   };
   const { accent, bg, icon } = COLORS[type] || COLORS.info;
 
@@ -199,10 +212,10 @@ function _renderToast(type, message, options = {}) {
   toast.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
   toast.style.cssText = [
     `background:${bg}`,
-    `border:1px solid ${accent}`, `border-left:4px solid ${accent}`,
+    `border:1px solid ${accent}`,
     'border-radius:var(--radius-md)',
     'padding:0.625rem 1rem', 'display:flex', 'align-items:center',
-    'gap:0.625rem', 'font-size:0.875rem', 'color:#1F2937',
+    'gap:0.625rem', 'font-size:0.875rem', 'color:var(--toast-text)',
     'box-shadow:0 4px 24px rgba(0,0,0,0.12)',
     'opacity:0', 'transform:translateY(0.5rem)',
     'transition:opacity var(--motion-exit) var(--ease-standard),transform var(--motion-exit) var(--ease-standard)',
@@ -220,7 +233,7 @@ function _renderToast(type, message, options = {}) {
   ].join(';');
   iconEl.textContent = icon;
   const msgEl = document.createElement('span');
-  msgEl.style.cssText = 'color:#1F2937;flex:1;';
+  msgEl.style.cssText = 'color:var(--toast-text);flex:1;';
   msgEl.textContent = message;
   const closeEl = document.createElement('button');
   closeEl.type = 'button';
@@ -308,6 +321,56 @@ export function prefersReducedMotion() {
   } catch (_) { return false; }
 }
 const _prefersReducedMotion = prefersReducedMotion;
+
+/**
+ * 数值跟手过渡（2026-11-03 批次 531 · F-14）：把 `el` 的文本从 `from` 数到 `to`。
+ * · 只用 `requestAnimationFrame`，不引第三方库；
+ * · `prefersReducedMotion()` 或无 rAF 环境 ⇒ 直接落终值（不做逐帧）；
+ * · 播报只做一次：动画期视觉数字 `aria-hidden`，终值由相邻 `.visually-hidden[role=status]`
+ *   承担（逐帧改文本不会触发读屏重复播报）；`announce:false` 时不给该状态节点、终值仍可读。
+ * @param {HTMLElement} el 承载数字的元素（其 `textContent` 会被本函数接管）
+ * @param {number} from 起始值
+ * @param {number} to 终值
+ * @param {{ duration?: number, format?: (v:number)=>string, announce?: boolean }} [opts]
+ *   `duration` 缺省 320ms（与 `--motion-emphasis` 同档，仅一次性提示）；`format` 缺省取整。
+ * @returns {void}
+ */
+export function animateNumber(el, from, to, opts = {}) {
+  if (!el || typeof el !== 'object') return;
+  const format = typeof opts.format === 'function' ? opts.format : (v) => String(Math.round(v));
+  const start = Number(from);
+  const end = Number(to);
+  const finalText = format(Number.isFinite(end) ? end : 0);
+  const duration = Number(opts.duration) > 0 ? Number(opts.duration) : 320;
+  const done = () => { el.textContent = finalText; };
+  if (!Number.isFinite(start) || !Number.isFinite(end) || prefersReducedMotion()
+    || typeof requestAnimationFrame !== 'function' || duration <= 0) {
+    done();
+    return;
+  }
+  // 逐帧数字对读屏不友好：视觉数字隐藏，终值交 role=status 播报一次。
+  let status = null;
+  if (opts.announce !== false) {
+    status = document.createElement('span');
+    status.className = 'visually-hidden';
+    status.setAttribute('role', 'status');
+    el.insertAdjacentElement('afterend', status);
+  }
+  el.setAttribute('aria-hidden', 'true');
+  const now = () => ((typeof performance !== 'undefined' && typeof performance.now === 'function')
+    ? performance.now() : Date.now());
+  const t0 = now();
+  const step = (t) => {
+    const p = Math.min(1, Math.max(0, (t - t0) / duration));
+    // easeOutCubic：收尾慢、起步快，读数不「跳」
+    el.textContent = format(start + (end - start) * (1 - Math.pow(1 - p, 3)));
+    if (p < 1) { requestAnimationFrame(step); return; }
+    done();
+    if (status) status.textContent = finalText;
+    else el.removeAttribute('aria-hidden');
+  };
+  requestAnimationFrame(step);
+}
 
 /** 取走过渡态（最终结果出现时替换掉它，不叠加） */
 function _dismissToast(key) {

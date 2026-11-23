@@ -25,12 +25,29 @@ import { isProductionEnv } from './env.js';
 export const DEMO_ACTIVITY_ID_RE = /^act-\d{1,4}$/;
 /** 旧版演示人员 id 形态（v7 迁移前）；生产残留判据只认这一种「包无关」形态 */
 export const LEGACY_DEMO_USER_ID_RE = /^p\d{1,3}$/;
+/** 演示单据种子 id 形态（批次 539；单一源＝`docs/src/data/seed-manifest.js` 的同名 idPattern） */
+export const DEMO_SEED_ROW_RES = {
+  todos: /^todo_seed_\d+$/,
+  memberConfirmations: /^mc-seed-\d+$/,
+  memberChangeRequests: /^mcr-seed-[a-z]+$/,
+};
+
+/** 按 id 形态读某表的演示种子行（表缺 / 老库无该表 → 空数组，不抛错） */
+function _seedIdsOf(db, table, re) {
+  try {
+    return db.prepare(`SELECT id FROM ${table}`).all().map((row) => String(row.id)).filter((id) => re.test(id));
+  } catch (_) {
+    return [];
+  }
+}
 
 /**
  * 只读检测演示种子行。
  * @param {import('better-sqlite3').Database} db
  * @param {{demoUserIds?: Set<string>|string[]|null}} [opts]
- * @returns {{demoUsers:string[], seedActivities:string[], demo:boolean, counts:{users:number, activities:number}}}
+ * @returns {{demoUsers:string[], seedActivities:string[], seedTodos:string[],
+ *   seedMemberConfirmations:string[], seedMemberChangeRequests:string[], demo:boolean,
+ *   counts:{users:number, activities:number, seeds:number}}}
  */
 export function detectDemoSeedRows(db, { demoUserIds = null } = {}) {
   const roster = new Set(Array.from(demoUserIds || []).map(String));
@@ -40,6 +57,10 @@ export function detectDemoSeedRows(db, { demoUserIds = null } = {}) {
   const seedActivities = db.prepare('SELECT id FROM activities').all()
     .map((row) => String(row.id))
     .filter((id) => DEMO_ACTIVITY_ID_RE.test(id));
+  // 单据类演示种子（批次 539）：待办 / 名册确认 / 议程派生申请——均为演示种子 id 形态
+  const seedTodos = _seedIdsOf(db, 'todos', DEMO_SEED_ROW_RES.todos);
+  const seedMemberConfirmations = _seedIdsOf(db, 'member_confirmations', DEMO_SEED_ROW_RES.memberConfirmations);
+  const seedMemberChangeRequests = _seedIdsOf(db, 'member_change_requests', DEMO_SEED_ROW_RES.memberChangeRequests);
   // 第三判据（包无关）：`seed_meta.mode='demo'` 是 rebuild-demo 写下的形态标记；
   //   即使发布包把 mock 名册壳化（PEOPLE=[]）或有人手工删掉了演示行，标记仍能阻止「演示库当正式库」。
   let seedMode = null;
@@ -47,12 +68,16 @@ export function detectDemoSeedRows(db, { demoUserIds = null } = {}) {
     const row = db.prepare("SELECT value FROM seed_meta WHERE key = 'mode'").get();
     seedMode = row ? row.value : null;
   } catch (_) { /* 老库无 seed_meta */ }
+  const seedRowCount = seedTodos.length + seedMemberConfirmations.length + seedMemberChangeRequests.length;
   return {
     demoUsers: users,
     seedActivities,
+    seedTodos,
+    seedMemberConfirmations,
+    seedMemberChangeRequests,
     seedMode,
-    demo: users.length + seedActivities.length > 0 || seedMode === 'demo',
-    counts: { users: users.length, activities: seedActivities.length },
+    demo: users.length + seedActivities.length + seedRowCount > 0 || seedMode === 'demo',
+    counts: { users: users.length, activities: seedActivities.length, seeds: seedRowCount },
   };
 }
 
@@ -68,15 +93,24 @@ export async function loadDemoUserIds() {
 
 /**
  * 纯判定：是否应拒绝启动。
- * @param {{production:boolean, allowDemoData:boolean, demoUsers:string[], seedActivities:string[], seedMode?:string|null}} input
+ * @param {{production:boolean, allowDemoData:boolean, demoUsers:string[], seedActivities:string[],
+ *   seedTodos?:string[], seedMemberConfirmations?:string[], seedMemberChangeRequests?:string[],
+ *   seedMode?:string|null}} input
  * @returns {{blocked:boolean, warn:boolean, reason:'not-production'|'clean'|'allow-demo-data'|'demo-detected', message?:string}}
  */
-export function demoGateDecision({ production, allowDemoData, demoUsers = [], seedActivities = [], seedMode = null }) {
+export function demoGateDecision({
+  production, allowDemoData, demoUsers = [], seedActivities = [],
+  seedTodos = [], seedMemberConfirmations = [], seedMemberChangeRequests = [], seedMode = null,
+}) {
   if (!production) return { blocked: false, warn: false, reason: 'not-production' };
   const demoFlag = seedMode === 'demo';
-  if (demoUsers.length + seedActivities.length === 0 && !demoFlag) return { blocked: false, warn: false, reason: 'clean' };
+  const seedRows = [...seedTodos, ...seedMemberConfirmations, ...seedMemberChangeRequests];
+  if (demoUsers.length + seedActivities.length + seedRows.length === 0 && !demoFlag) {
+    return { blocked: false, warn: false, reason: 'clean' };
+  }
   const detail = `users 演示账号 ${demoUsers.length} 个${demoUsers.length ? `（${demoUsers.slice(0, 5).join(', ')}${demoUsers.length > 5 ? ' …' : ''}）` : ''}`
     + ` · activities 演示种子 id ${seedActivities.length} 个${seedActivities.length ? `（${seedActivities.slice(0, 5).join(', ')}${seedActivities.length > 5 ? ' …' : ''}）` : ''}`
+    + ` · 单据演示种子 ${seedRows.length} 个${seedRows.length ? `（${seedRows.slice(0, 5).join(', ')}${seedRows.length > 5 ? ' …' : ''}）` : ''}`
     + `${demoFlag ? ' · seed_meta.mode=demo' : ''}`;
   if (allowDemoData) {
     return {
@@ -112,6 +146,9 @@ export async function enforceProductionDemoGate(db, { env = process.env, log = c
     allowDemoData: env.ALLOW_DEMO_DATA === '1',
     demoUsers: found.demoUsers,
     seedActivities: found.seedActivities,
+    seedTodos: found.seedTodos,
+    seedMemberConfirmations: found.seedMemberConfirmations,
+    seedMemberChangeRequests: found.seedMemberChangeRequests,
     seedMode: found.seedMode,
   });
   if (decision.warn && decision.message) log.warn(decision.message);

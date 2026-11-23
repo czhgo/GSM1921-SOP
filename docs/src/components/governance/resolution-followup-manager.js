@@ -8,14 +8,14 @@
 //  责任人候选 = 支委角色 + 具体成员（与 workforce-panel 发起分工的负责人下拉同口径）。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, showToast } from '../../core/base/utils.js?v=20261031a';
-import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../core/domain/constants.js?v=20261031a';
-import { PersonStore } from '../../services/member/person.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
+import { escHtml as esc, showToast } from '../../core/base/utils.js?v=20261120a';
+import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../core/domain/constants.js?v=20261120a';
+import { PersonStore } from '../../services/member/person.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
 import {
   saveFollowups, completeFollowup, reopenFollowup,
   FOLLOWUP_STATUS, ownerLabelOf,
-} from '../../services/governance/resolution-followup.js?v=20261031a';
+} from '../../services/governance/resolution-followup.js?v=20261120a';
 
 /** 责任人下拉选项（value 编码 type:id，与 workforce-panel 同口径） */
 function _ownerOptionsHtml() {
@@ -51,7 +51,7 @@ function _cardHtml(activity, item, { canManage }) {
   const followups = Array.isArray(item.followups) ? item.followups : [];
   const doneCount = followups.filter((f) => f.status === FOLLOWUP_STATUS.COMPLETED).length;
   const chip = followups.length > 0
-    ? `<span class="text-xs px-1.5 py-0.5 rounded-full ${doneCount === followups.length ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">落实 ${doneCount}/${followups.length}</span>`
+    ? `<span class="text-xs px-1.5 py-0.5 rounded-full ${doneCount === followups.length ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-[var(--status-warning-text)]'}">落实 ${doneCount}/${followups.length}</span>`
     : '';
   const rows = followups.length > 0
     ? followups.map((f) => _rowHtml(f, { canManage })).join('')
@@ -64,10 +64,10 @@ function _cardHtml(activity, item, { canManage }) {
         <input type="date" class="fu-new-deadline input-flat text-xs" title="落实时限" />
         <button type="button" class="btn-danger-solid fu-add px-2.5 py-1.5 text-xs font-medium">添加待落实</button>
       </div>
-      <p class="text-xs text-gray-500">保存即生成责任人跟进待办：到期当天可见（催办），逾期自动进支书工作台待办督办。</p>
+      <p class="text-body-sm text-gray-500">保存即生成责任人跟进待办：到期当天可见（催办），逾期自动进支书工作台待办督办。</p>
     </div>` : '';
   return `
-    <div class="fu-card rounded-xl border border-gray-200 bg-white p-3.5 mt-3" data-activity-id="${esc(activity.id)}" data-item-id="${esc(item.id)}">
+    <div class="fu-card rounded-xl border border-gray-200 bg-white p-4 mt-3" data-activity-id="${esc(activity.id)}" data-item-id="${esc(item.id)}">
       <div class="flex items-center gap-2 mb-2 flex-wrap">
         <p class="font-title-cn text-xs font-bold text-gray-800">决议落实：${esc(item.item || '(未命名议题)')}</p>
         ${chip}

@@ -5,17 +5,19 @@
 //   · 党委（party-staff）→ 任意支部可选（canSwitchBranch）
 //   · 未登录 / 其它角色 / 非现任支书 → 提示卡（无权限不渲染向导）
 // 主体共用 components/governance/org-setup-wizard.js（party-config tab 同源）。
-import { BranchService } from '../../services/core/runtime.js?v=20261031a'; // 副作用注册适配器 + BranchService 绑定（loadDB）
-import { hydrateDataSource } from '../../data/data-adapter.js?v=20261031a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { getBranchById, getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261031a';
-import { mountOrgSetupWizard } from '../../components/governance/org-setup-wizard.js?v=20261031a';
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261031a';
-import { renderHeader } from '../../components/shell/header.js?v=20261031a';
-import { escHtml as esc } from '../../core/base/utils.js?v=20261031a';
+import { BranchService } from '../../services/core/runtime.js?v=20261120a'; // 副作用注册适配器 + BranchService 绑定（loadDB）
+import { hydrateDataSource } from '../../data/data-adapter.js?v=20261120a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { getBranchById, getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261120a';
+import { mountOrgSetupWizard } from '../../components/governance/org-setup-wizard.js?v=20261120a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261120a';
+import { pageHref } from '../../core/base/page-url.js?v=20261120a';
+import { renderHeader } from '../../components/shell/header.js?v=20261120a';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261120a';
+import { SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261120a';
 
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261120a';
 renderSidebar('wizard');
 renderHeader('wizard');
 
@@ -46,7 +48,7 @@ if (!me) {
     AuthStore.devLogin(devRole);
     params.delete('dev');
     const qs = params.toString();
-    location.replace('./wizard.html' + (qs ? `?${qs}` : ''));
+    location.replace(pageHref('./wizard.html' + (qs ? `?${qs}` : '')));
   }
 }
 
@@ -65,19 +67,20 @@ if (!me) {
   // 权限轨 B：党委（party-staff）→ 任意支部可选
   const target = reqBranch && getBranchById(reqBranch) ? reqBranch : null;
   mountOrgSetupWizard(content, { actor: me, canSwitchBranch: true, branchId: target, embed: false });
-} else if (me.role === 'secretary') {
-  // 权限轨 A：现任支书 → 限本支部（独立 URL 直达；非本支部 → 提示）
+} else if (SECRETARY_AND_DEPUTY_ROLES.includes(me.role)) {
+  // 权限轨 A：现任支书 / 副支书 → 限本支部（独立 URL 直达；非本支部 → 提示）
   const own = getBranchIdOfPerson(me.personId);
   const branch = getBranchById(own);
+  const canConfigOwn = !!branch && (me.role === 'deputy-secretary' || branch.secretaryId === me.personId);
   if (reqBranch && reqBranch !== own) {
     showNotice(`
       <p class="font-title-cn text-sm font-bold text-gray-800">仅限本支部</p>
-      <p class="text-xs text-gray-500 mt-1">现任支书只能配置自己的支部（${esc(own)}）；请求的支部「${esc(reqBranch)}」不在权限范围。</p>
+      <p class="text-xs text-gray-500 mt-1">现任支书 / 副支书只能配置自己的支部（${esc(own)}）；请求的支部「${esc(reqBranch)}」不在权限范围。</p>
       <a href="./wizard.html?branch=${esc(own)}" class="btn-accent btn-party-solid inline-block mt-3 px-3 py-1.5 rounded-lg text-xs font-medium text-white">进入本支部向导</a>`);
-  } else if (!branch || branch.secretaryId !== me.personId) {
+  } else if (!canConfigOwn) {
     showNotice(`
-      <p class="font-title-cn text-sm font-bold text-gray-800">非现任支书</p>
-      <p class="text-xs text-gray-500 mt-1">本支部的配置权限归现任支书（secretaryId 匹配）；当前账号不满足，无法进入向导。</p>`);
+      <p class="font-title-cn text-sm font-bold text-gray-800">非现任支书 / 副支书</p>
+      <p class="text-xs text-gray-500 mt-1">本支部的配置权限归现任支书 / 副支书；当前账号不满足，无法进入向导。</p>`);
   } else {
     mountOrgSetupWizard(content, { actor: me, canSwitchBranch: false, branchId: own, embed: false });
   }

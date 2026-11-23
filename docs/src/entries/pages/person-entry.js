@@ -11,39 +11,40 @@
 //  2026-10-18 乱专项：按「L0 结论带 → 组织事实 → 在册与留痕 → 本人自述 → 系统说明」重排；
 //        27 个档案字段各有且仅有一个 data-field 落点；同一事实不跨层重复。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261031a';
-import { renderHeader } from '../../components/shell/header.js?v=20261031a';
-import { BranchService } from '../../services/core/runtime.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { PersonStore, getPersonName, renameMemberAccount, deriveDevelopStageSince } from '../../services/member/person.js?v=20261031a';
-import { getDataSource, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261031a';
-import { loadMemberProfile } from '../../services/member/profile.js?v=20261031a';
-import { getBranchById } from '../../services/branch/branch.js?v=20261031a';
-import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261031a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261120a';
+import { renderHeader } from '../../components/shell/header.js?v=20261120a';
+import { BranchService } from '../../services/core/runtime.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { PersonStore, getPersonName, renameMemberAccount, deriveDevelopStageSince } from '../../services/member/person.js?v=20261120a';
+import { getDataSource, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261120a';
+import { loadMemberProfile } from '../../services/member/profile.js?v=20261120a';
+import { getBranchById } from '../../services/branch/branch.js?v=20261120a';
+import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261120a';
 import {
-  renderSelfDescriptionSection, countSelfProfileFilled, SELF_PROFILE_TOTAL,
+  renderSelfDescriptionSection,
   renderThoughtReportsSection,
-} from '../../components/governance/person-profile-sections.js?v=20261031a';
+} from '../../components/governance/person-profile-sections.js?v=20261120a';
 // 思想汇报按人归集（既有服务读口；制度承诺「提交即入库、算法归集至个人档案」的落地）
 import {
   listThoughtReportsByPerson, canReadThoughtReport,
-} from '../../services/governance/thought-report.js?v=20261031a';
+} from '../../services/governance/thought-report.js?v=20261120a';
 // 待确认请求读口（单一源：服务层现有读口；api 形态由 init() 从服务端填充同一缓存）
 import {
   listPendingConfirmations, MC_ACTION_LABEL,
-} from '../../services/member/member-confirmation.js?v=20261031a';
+} from '../../services/member/member-confirmation.js?v=20261120a';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, RESIDENCE, EMPTY_TEXT, EMPTY_NOT_APPLICABLE } from '../../core/domain/constants.js?v=20261031a';
-import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261031a';
-import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261031a';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261031a';
+import { ROLE_LABELS, RESIDENCE, EMPTY_TEXT, EMPTY_NOT_APPLICABLE } from '../../core/domain/constants.js?v=20261120a';
+import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261120a';
+import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261120a';
+import { pageHref } from '../../core/base/page-url.js?v=20261120a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261120a';
 // 批次 87：本页必须先 hydrate API 数据源再渲染（成员档案读 + 编辑写）——与 activity.html 标准形同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下档案读的是本地备份，
 // 且「编辑档案」按 mock 数据源落本机、服务端 users 表不更新。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261031a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261031a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261120a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261120a';
 
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261120a';
 renderSidebar('dashboard');
 renderHeader('dashboard');
 
@@ -66,7 +67,7 @@ const cardEl = document.getElementById('person-archive-card');
 const backBtn = document.getElementById('person-back-btn');
 backBtn?.addEventListener('click', () => {
   if (window.history.length > 1) window.history.back();
-  else window.location.href = getBasePath() + 'index.html';
+  else window.location.href = pageHref(getBasePath() + 'index.html');
 });
 
 const params = new URLSearchParams(window.location.search);
@@ -215,12 +216,8 @@ async function render() {
   const pendingCountText = pending.length ? `待支书确认 ${pending.length} 项` : '暂无待确认';
   const pendingLineHtml = pending.map((request) => {
     const label = MC_ACTION_LABEL[request.action] || '状态变更';
-    return `<span class="block text-xs text-amber-700">${esc(label)}：${esc(request.from || '—')} → ${esc(request.to || '—')}</span>`;
+    return `<span class="block text-xs text-[var(--status-warning-text)]">${esc(label)}：${esc(request.from || '—')} → ${esc(request.to || '—')}</span>`;
   }).join('');
-
-  const filledSelf = countSelfProfileFilled(member.selfProfile);
-  const selfGap = SELF_PROFILE_TOTAL - filledSelf;
-  const selfGapText = selfGap > 0 ? `自述缺 ${selfGap} 项` : '自述已填全';
 
   const residenceLabel = residenceText(member);
   const residenceVariant = !member.residenceStatus ? 'neutral' : isDetained ? 'warning' : 'success';
@@ -275,21 +272,21 @@ async function render() {
             <span data-field="residenceStatus">${badgeHtml(esc(residenceLabel), residenceVariant)}</span>
             ${isDetained ? `<span class="text-gray-500">${hasResidenceNote ? '有备注' : '无备注'}</span>` : ''}
             <span class="text-gray-500">${pendingCountText}</span>
-            <span class="text-gray-500">${selfGapText}</span>
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-1.5">
-          ${isSelf ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700">本人</span>' : ''}
-          ${isPartyStaff ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">党委只读</span>' : ''}
+          ${isSelf ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--app-accent-soft-bg)] text-[var(--app-accent-soft-text)] border border-[var(--app-accent-soft-border)]">本人</span>' : ''}
+          ${isPartyStaff ? badgeHtml('党委只读', 'neutral') : ''}
           ${isPartyStaff ? '<button type="button" id="person-rename-btn" class="btn-outline">重命名账号</button>' : ''}
         </div>
       </div>
     </section>
 
-    <!-- 分区一：组织事实（一行小标签 + 两列 key-value；2026-10-20 支书裁定去掉独立标题与解释段） -->
+    <!-- 分区一：组织事实（分区标题 + 两列 key-value；2026-10-20 支书裁定去掉解释段）
+         2026-11-04 Task 4.2：分区字号与「在册与留痕 / 本人自述」统一为 16px/600（同一级分区）。 -->
     <section aria-labelledby="person-org-facts-heading" class="mb-6 border-b border-gray-100 pb-6">
       <div class="flex flex-wrap items-center justify-between gap-2">
-        <p id="person-org-facts-heading" class="text-xs font-medium tracking-wide text-gray-500">组织事实</p>
+        <p id="person-org-facts-heading" class="text-base font-semibold text-gray-700">组织事实</p>
         ${canEdit
           ? '<button type="button" id="person-org-facts-btn" class="btn-accent-soft text-sm px-4 py-2 rounded-lg">编辑组织事实</button>'
           : `<p class="text-xs text-gray-500">${esc(readOnlyReason)}</p>`}
@@ -347,7 +344,7 @@ async function render() {
         </details>
         ${canEdit
           ? '<button type="button" id="person-residence-btn" class="btn-accent-soft text-sm px-4 py-2 rounded-lg">变更在册状态</button>'
-          : `<p class="text-xs text-gray-500">${esc(readOnlyReason)}</p>`}
+          : ''}
       </div>
     </section>
 

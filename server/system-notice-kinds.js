@@ -21,7 +21,7 @@ import { branchDisplayName, reviewRequestSubject } from '../docs/src/core/domain
 // 补录#1（2026-10-05 批次 407）：`payload.resource` → 服务端表名的单一源（勿另写一张名表）
 import { RESOURCE_TABLES } from './routes/resources/store.js';
 // R-23 余项（2026-10-06 批次 422 · `D-803`③）：服务端**人员名册读口**——通知里的人名不再无条件采信 payload
-import { applyRosterNames } from './person-roster.js';
+import { applyRosterNames, personName } from './person-roster.js';
 
 const COMMITTEE_ROLE_SET = new Set(BRANCH_COMMISSION_ROLES);
 const SECRETARY_DEPUTY_SET = new Set(SECRETARY_AND_DEPUTY_ROLES);
@@ -278,6 +278,25 @@ const KINDS = {
       // Task 3（2026-10-25）：对象坐标按源表复算（不信客户端自述），保证非公告消息必有 targetType+targetId。
       if (act) vars.targetType = 'activity';
       else if (tf) vars.targetType = 'taskforce';
+      // 2026-11-07 批次 535（CASE-AI-004）：赋权通知必须定向到被赋权人，且授权人姓名由服务端复算。
+      //   缺 targetPersonId / 目标人不在项目名册 / 授权人查无姓名 ⇒ 抛错让路由 500，不落一条无受众通知。
+      const targetPersonId = raw.targetPersonId ? String(raw.targetPersonId) : '';
+      if (!targetPersonId) throw new Error('project-auth-granted 缺 targetPersonId');
+      const members = act ? (act.assignments || []) : ((tf && tf.members) || []);
+      const inProjectRoster = members.some((x) => x && String(x.personId) === targetPersonId);
+      // 授权链路先写 workgroup_members、再触发通知，活动 / 专班内嵌名单可能尚未同步；
+      // 因此同时认工作组在册成员（status !== 'removed'）。
+      const workgroupId = (act && act.workgroupId)
+        || (act ? `wg-activity-${ctx.sourceId}` : (tf && tf.workgroupId) || `wg-taskforce-${ctx.sourceId}`);
+      const inWorkgroup = rowsOf(ctx.db, 'workgroup_members')
+        .some((r) => r && r.workgroupId === workgroupId && String(r.personId) === targetPersonId && r.status !== 'removed');
+      if (!inProjectRoster && !inWorkgroup) {
+        throw new Error(`project-auth-granted 的目标人 ${targetPersonId} 不在该项目名册`);
+      }
+      const authorizerName = personName(ctx.db, ctx.actor && ctx.actor.id);
+      if (!authorizerName) throw new Error('project-auth-granted 的授权人姓名无法按名册复算');
+      vars.authorizerName = authorizerName;
+      vars.audiencePersons = [targetPersonId];
       return buildSystemNotice('project-auth-granted', vars);
     },
   },
@@ -490,6 +509,40 @@ const KINDS = {
     },
   },
 
+  // ── 组织者指定已解除（2026-11-19 批次 573 · `D-885` / SOP-B-17）──────────────
+  // 场景：角色编辑里**解除**某人的组织者指定（无接手人）⇒ 补一条「更正」通知给被解除者本人：
+  //   他不再是该场组织者，本场通知发布权随之收回。与 `organizer-transferred` 分列——
+  //   那条是「有接手人」的转交；本条是「无接手人」的解除，文案不同，不能混用。
+  // 授权：① 支委层（角色编辑的功能位）；② 党小组组长（本组活动角色编辑的既有功能位）；
+  //      ③ 被解除者本人（受众恒为本人，只伤及自己）。
+  // 展示值：项目名按表复算（`activities.title` / `taskforces.name`），人名按名册复算。
+  'organizer-designation-corrected': {
+    authorize({ actor, sourceId, payload, db }) {
+      if (!actor) return false;
+      if (!rowOf(db, 'activities', sourceId) && !rowOf(db, 'taskforces', sourceId)) return false;
+      const removed = payloadOf({ payload }).removedPersonId;
+      if (COMMITTEE_ROLE_SET.has(actor.role)) return true;
+      if (isPartyGroupLeaderRole(actor.role)) return true;
+      return !!removed && removed === actor.id;
+    },
+    build(ctx) {
+      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
+      const act = rowOf(ctx.db, 'activities', ctx.sourceId);
+      const tf = rowOf(ctx.db, 'taskforces', ctx.sourceId);
+      if (act) {
+        vars.label = '活动';
+        vars.targetType = 'activity';
+        if (act.title) vars.projectName = act.title;
+      } else if (tf) {
+        vars.label = '专班';
+        vars.targetType = 'taskforce';
+        if (tf.name) vars.projectName = tf.name;
+      }
+      if (!vars.projectName && vars.subjectName) vars.projectName = vars.subjectName;
+      return buildSystemNotice('organizer-designation-corrected', vars);
+    },
+  },
+
   // ── 待办作废已裁决（`#1`/`D-742`；2026-10-02 批次 340）────────────────────
   // 场景：责任人 `requestVoid` → 支书/副支书在支书台确认或驳回该作废申请后的**站内知会**
   //   （支书 2026-10-02 语：「支书如果不认为这个待办能取消，或者说即使取消也要让某个委员知情，
@@ -520,7 +573,47 @@ const KINDS = {
     },
   },
 
-  // ── 业务记录作废已裁决（`CRUD-4`/`CRUD-6` · 补录#1；2026-10-05 批次 407 · 支书圈「新建通知 kind」）──
+  // ── 支委提案回执（D-869）──────────────────────────────────────
+  //   生成权仍在服务端：按 committee_proposals 行复算，不信客户端自述。
+  //   受众：提交 → 支委层；受理 / 驳回 / 归档 → 提案人；排期 / 决议 → 支委层 ＋ 提案人（＋ 受影响人）。
+  'committee-proposal-submitted': {
+    authorize({ actor, sourceId, db }) {
+      if (!actor || !sourceId) return false;
+      const row = rowOf(db, 'committee_proposals', sourceId);
+      return !!row && (row.proposedBy === actor.id || COMMITTEE_ROLE_SET.has(actor.role));
+    },
+  },
+  'committee-proposal-accepted': {
+    authorize({ actor, sourceId, db }) {
+      if (!actor || !sourceId || !COMMITTEE_ROLE_SET.has(actor.role)) return false;
+      return !!rowOf(db, 'committee_proposals', sourceId);
+    },
+  },
+  'committee-proposal-rejected': {
+    authorize({ actor, sourceId, db }) {
+      if (!actor || !sourceId || !COMMITTEE_ROLE_SET.has(actor.role)) return false;
+      return !!rowOf(db, 'committee_proposals', sourceId);
+    },
+  },
+  'committee-proposal-scheduled': {
+    authorize({ actor, sourceId, db }) {
+      if (!actor || !sourceId || !SECRETARY_DEPUTY_SET.has(actor.role)) return false;
+      return !!rowOf(db, 'committee_proposals', sourceId);
+    },
+  },
+  'committee-proposal-decided': {
+    authorize({ actor, sourceId, db }) {
+      if (!actor || !sourceId || !SECRETARY_DEPUTY_SET.has(actor.role)) return false;
+      return !!rowOf(db, 'committee_proposals', sourceId);
+    },
+  },
+  'committee-proposal-closed': {
+    authorize({ actor, sourceId, db }) {
+      if (!actor || !sourceId || !SECRETARY_DEPUTY_SET.has(actor.role)) return false;
+      return !!rowOf(db, 'committee_proposals', sourceId);
+    },
+  },
+
   // 场景：责任人 `requestVoid` → 支委层在支书台**确认**或**驳回**该**业务记录**作废申请后的**到人知会**
   //   （与 `todo-void-decided` 同口径；本条补的是「业务记录」那一面：原只发待办作废、记录作废无派生知会）。
   // 授权：① actor 为**支委层**（裁决动作的功能位）；② `payload.resource` 须在 `RESOURCE_TABLES` 内
@@ -551,6 +644,31 @@ const KINDS = {
   },
 };
 
+// 提案回执的受众补全（D-869）：模板只负责文案与主受众，具体到人在这里按行复算。
+const PROPOSAL_NOTICE_KINDS = new Set([
+  'committee-proposal-submitted', 'committee-proposal-accepted', 'committee-proposal-rejected',
+  'committee-proposal-scheduled', 'committee-proposal-decided', 'committee-proposal-closed',
+]);
+for (const kind of PROPOSAL_NOTICE_KINDS) {
+  if (KINDS[kind].build) continue;
+  KINDS[kind].build = (ctx) => {
+    const p = rowOf(ctx.db, 'committee_proposals', ctx.sourceId) || {};
+    const built = buildSystemNotice(kind, {
+      ...payloadOf(ctx),
+      sourceId: ctx.sourceId,
+      proposalTitle: p.title || '',
+      proposerName: p.proposedBy ? personName(ctx.db, p.proposedBy) : '',
+      proposerRole: p.proposedBy ? (rowOf(ctx.db, 'users', p.proposedBy)?.role || '') : '',
+    });
+    const persons = new Set([...(built.audiencePersons || []), p.proposedBy]);
+    if (kind === 'committee-proposal-scheduled' || kind === 'committee-proposal-decided') {
+      for (const id of Array.isArray(p.affectedPersonIds) ? p.affectedPersonIds : []) persons.add(id);
+    }
+    const list = [...persons].filter(Boolean);
+    return { ...built, ...(list.length ? { audiencePersons: list } : {}) };
+  };
+}
+
 // 统一 build 包装：sourceId 由服务端注入并置于末位，杜绝客户端 payload 覆盖落点锚点。
 for (const [kind, def] of Object.entries(KINDS)) {
   if (!def.build) {
@@ -559,6 +677,47 @@ for (const [kind, def] of Object.entries(KINDS)) {
 }
 
 export const SYSTEM_NOTICE_KINDS = KINDS;
+
+/**
+ * 受众策略（2026-11-07 批次 535 · CASE-AI-004）：
+ *   required    — 落库前必须至少有一项受众（audience / audiencePersons / actionRoles），否则 422；
+ *   broadcast   — 必须显式 `audience` 含 `'all'`（登录成员广播，不匿名）；
+ *   conditional — 由模板 / build 自行决定，允许无受众但读侧按 fail-closed 处理。
+ * 单一源：本表；路由 `normalizeSystemNotice` 与测试同引此处。
+ */
+export const SYSTEM_NOTICE_AUDIENCE_POLICY = Object.freeze({
+  'project-auth-granted': 'required',
+  'attendance-confirmed': 'required',
+  'activity-agenda-updated': 'required',
+  'workforce-proposal-created': 'required',
+  'activity-notice-draft': 'required',
+  'taskforce-notice-draft': 'required',
+  'activity-created-broadcast': 'broadcast',
+  'thought-report-submitted': 'conditional',
+  'periodic-archive-submitted': 'conditional',
+  'weekly-report-submitted': 'conditional',
+  'member-change-approved': 'conditional',
+  'workforce-proposal-adopted': 'conditional',
+  'committee-vote-progress': 'conditional',
+  'committee-vote-locked': 'conditional',
+  'external-dispatch-created': 'conditional',
+  'review-request-submitted': 'conditional',
+  'review-request-decided': 'conditional',
+  'taskforce-vote-requested': 'conditional',
+  'review-overdue-reminder': 'conditional',
+  'review-resubmit-reminder': 'conditional',
+  'makeup-remind': 'conditional',
+  'committee-dispatch': 'conditional',
+  'organizer-transferred': 'conditional',
+  'organizer-designation-corrected': 'conditional',
+  'todo-void-decided': 'conditional',
+  'record-void-decided': 'conditional',
+});
+
+/** 取某 kind 的受众策略；未登记按 conditional（读侧仍 fail-closed） */
+export function audiencePolicyOf(kind) {
+  return SYSTEM_NOTICE_AUDIENCE_POLICY[kind] || 'conditional';
+}
 
 /** 全部 kind 名（供端点校验/调试） */
 export const SYSTEM_NOTICE_KIND_NAMES = Object.keys(KINDS);

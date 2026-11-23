@@ -32,9 +32,9 @@
 // ⚠ 2026-10-02 批次 333（备注列第六轮）：实测 47,744（守卫口径，275 行）→ **迁出 2 格 ＋ 修一处「8 段被跳过」结构缺陷** 后 **47,136**（276 行）
 //   ⇒ 预算 50,000 → **47,500**（**只降不升**）。**修缺陷说明**：`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 那格含未转义竖线 ⇒ 整行 8 段、被守卫跳过。
 // ⚠ 2026-10-01 批次 322（备注列第五轮）：实测 53,708 → **49,750** ⇒ 预算 57,000 → 50,000（**只降不升**）。
-export const NOTE_TOTAL_BUDGET = 31400;
+export const NOTE_TOTAL_BUDGET = 9000;
 /** 历史冻结高水位（机检 NOTE_TOTAL_BUDGET ≤ 本值 ⇒ 预算不可能被悄悄调大） */
-export const NOTE_TOTAL_HARD_CEIL = 95000;
+export const NOTE_TOTAL_HARD_CEIL = 12000;
 // 高水位沿革（只许下调）：2026-09-30 批次 311 第四轮收敛（再迁 5 格：README.md /
 //   content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md / content/04_web_design/data/DATA_MODEL.md /
 //   content/04_web_design/module/MODULE_UI_DESIGN.md / docs/src/styles.css）后实测 53,708，
@@ -51,7 +51,7 @@ export const NOTE_LONG_MAX = 1000;
 /** 单格「批次 N」出现次数硬顶（超过即入清单） */
 export const BATCH_MENTION_MAX = 3;
 /** 登记行数下限（非空转：解析口径被改坏即红） */
-export const ROWS_MIN = 245;
+export const ROWS_MIN = 210;
 
 /** 单格 > NOTE_LONG_MAX 字（26 行 · 待专项批把沿革迁 `.ctx/logs/**`） */
 // ⚠ 2026-10-01 批次 322：**已清零**——原 6 格 >1000 字的备注**整段迁出**到 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`

@@ -10,20 +10,21 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫见 notice-audience / doc-consistency。
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20261031a';
-import { openFormModal } from '../ui/modal.js?v=20261031a';
-import { showToast, getBasePath, todayLocal, escHtml } from '../../core/base/utils.js?v=20261031a';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261031a';
-import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261031a';
-import { NoticeStore, NoticePermission } from '../../services/governance/notice.js?v=20261031a';
+import { badgeHtml } from '../ui/badges.js?v=20261120a';
+import { openFormModal } from '../ui/modal.js?v=20261120a';
+import { showToast, getBasePath, todayLocal, escHtml } from '../../core/base/utils.js?v=20261120a';
+import { pageHref } from '../../core/base/page-url.js?v=20261120a';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261120a';
+import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261120a';
+import { NoticeStore, NoticePermission } from '../../services/governance/notice.js?v=20261120a';
 // Task 6：通知 targetUrl 属 direct 深链（通知不在活动工作台内）；缺 id 不写空 URL。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261031a';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261120a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261120a';
 function committeeSourceChip() {
-  return '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>';
+  return '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:11px;line-height:16px;flex-shrink:0;">党委下发</span>';
 }
 
 /**
@@ -42,6 +43,8 @@ function committeeSourceChip() {
 export function renderNoticeList(containerId, limit = 5, opts = {}) {
   const container = document.getElementById(containerId);
   if (!container) return;
+  // 批次 530（B-518-2）：页面首帧骨架带 aria-busy；本函数同步渲染后即可撤标记（读屏不再停在「加载中」）。
+  container.removeAttribute('aria-busy');
 
   // 支书规则（2026-08-01）：任何带时间字段的列示一律按时间倒序（最新在前）
   // 支书裁决（2026-08-05）：重要通知仅保留未读，紧急通知无论已读未读均展示
@@ -150,7 +153,7 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
     item.addEventListener('click', (e) => {
       e.preventDefault();
       const id = item.dataset.noticeId;
-      if (id) window.location.href = `${getBasePath()}notice.html?id=${encodeURIComponent(id)}`;
+      if (id) window.location.href = pageHref(`${getBasePath()}notice.html?id=${encodeURIComponent(id)}`);
     });
   });
 }

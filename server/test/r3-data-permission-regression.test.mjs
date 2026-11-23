@@ -18,9 +18,9 @@ import Database from 'better-sqlite3';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 import { migratePersonIdsToStudentNumbers } from '../db.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261031a';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261031a';
-import { TodoStore } from '../../docs/src/services/governance/todo.js?v=20261031a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261120a';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261120a';
+import { TodoStore } from '../../docs/src/services/governance/todo.js?v=20261120a';
 
 let server;
 let base;
@@ -320,4 +320,63 @@ test('R3-09 v7 迁移：目标主键冲突 → 列清单且不写库', () => {
     assert.ok(mem.prepare('SELECT 1 FROM users WHERE id = ?').get('p13'), '失败后旧行原样保留（未半写）');
     assert.ok(mem.prepare('SELECT 1 FROM users WHERE id = ?').get('2300010001'), '失败后新行原样保留');
   } finally { mem.close(); }
+});
+
+// ── 批次 541 · S-1：过期 public 撤出登录态（判定函数与匿名公共门厅同一源）──
+test('R3-10 过期 public 通知 / 资料 / 活动：支部登录列表不可见；未过期可见；匿名 404', async () => {
+  const PAST = new Date(Date.now() - 60 * 1000).toISOString();
+  const FUTURE = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  insert('notices', {
+    id: 'ntc-s1-expired', title: '过期公开通知', content: '正文', publishDate: '2026-11-01',
+    branchId: 'pc-gsm', source: 'committee', audience: ['all'], kind: 'announcement',
+    publishScope: 'public', publishExpiresAt: PAST,
+  });
+  insert('notices', {
+    id: 'ntc-s1-live', title: '未过期公开通知', content: '正文', publishDate: '2026-11-02',
+    branchId: 'pc-gsm', source: 'committee', audience: ['all'], kind: 'announcement',
+    publishScope: 'public', publishExpiresAt: FUTURE,
+  });
+  insert('branch_docs', {
+    id: 'bd-s1-expired', title: '过期公开资料', summary: '摘要', updatedAt: '2026-11-01',
+    branchId: 'pc-gsm', ownerScope: 'committee', publishScope: 'public', publishExpiresAt: PAST,
+  });
+  insert('branch_docs', {
+    id: 'bd-s1-live', title: '未过期公开资料', summary: '摘要', updatedAt: '2026-11-02',
+    branchId: 'pc-gsm', ownerScope: 'committee', publishScope: 'public', publishExpiresAt: FUTURE,
+  });
+  insert('activities', {
+    id: 'act-s1-expired', title: '过期公开活动', type: 'meeting', date: '2026-11-01', status: 'published',
+    ownerScope: 'committee', branchId: 'pc-gsm', targetBranchIds: ['all'],
+    publishScope: 'public', publishExpiresAt: PAST, publicSummary: '公开摘要',
+  });
+  insert('activities', {
+    id: 'act-s1-live', title: '未过期公开活动', type: 'meeting', date: '2026-11-02', status: 'published',
+    ownerScope: 'committee', branchId: 'pc-gsm', targetBranchIds: ['all'],
+    publishScope: 'public', publishExpiresAt: FUTURE, publicSummary: '公开摘要',
+  });
+
+  const member = await login('2400012347'); // 何晓峰（participant，br-b1）
+  const idsOf = async (path) => (await (await fetch(`${base}/api/v1/${path}`, { headers: H(member) })).json()).map((r) => r.id);
+
+  const notices = await idsOf('notices');
+  assert.ok(notices.includes('ntc-s1-live'), '未过期 public 通知：支部登录列表可见');
+  assert.ok(!notices.includes('ntc-s1-expired'), '★ 过期 public 通知：支部登录列表不可见（视同撤下）');
+
+  const docs = await idsOf('branchDocs');
+  assert.ok(docs.includes('bd-s1-live'), '未过期 public 资料：支部登录列表可见');
+  assert.ok(!docs.includes('bd-s1-expired'), '★ 过期 public 资料：支部登录列表不可见');
+
+  const activities = await idsOf('activities');
+  assert.ok(activities.includes('act-s1-live'), '未过期 public 活动：支部登录列表可见');
+  assert.ok(!activities.includes('act-s1-expired'), '★ 过期 public 活动：支部登录列表不可见');
+
+  const anon = async (path) => (await fetch(`${base}${path}`)).status;
+  assert.equal(await anon('/api/public/notices/ntc-s1-expired'), 404, '匿名读过期公开通知 → 404');
+  assert.equal(await anon('/api/public/documents/bd-s1-expired'), 404, '匿名读过期公开资料 → 404');
+  assert.equal(await anon('/api/public/activities/act-s1-expired'), 404, '匿名读过期公开活动 → 404');
+  assert.equal(await anon('/api/public/notices/ntc-s1-live'), 200, '匿名读未过期公开通知 → 200（非恒 404）');
+
+  const staff = await login('9000000001'); // 党委组织员
+  const staffNotices = (await (await fetch(`${base}/api/v1/notices`, { headers: H(staff) })).json()).map((r) => r.id);
+  assert.ok(staffNotices.includes('ntc-s1-expired'), '党委管理口仍见过期 public 原件（撤下只作用于登录态支部列表）');
 });

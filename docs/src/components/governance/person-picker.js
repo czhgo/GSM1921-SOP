@@ -7,23 +7,21 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261031a';
+import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261120a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../../services/member/person.js?v=20261031a';
+import { getPersonById } from '../../services/member/person.js?v=20261120a';
 // 党小组清单单一源（活组按 seq 升序；2026-09-14 批次 29 收敛——见文件头「党小组清单」说明）
-import { groupOptions } from '../../services/member/party-group.js?v=20261031a';
-import { icon } from '../../core/base/icons.js?v=20261031a';
-import { ROLE_LABELS, ACCENT_COLORS } from '../../core/domain/constants.js?v=20261031a';
+import { groupOptions } from '../../services/member/party-group.js?v=20261120a';
+import { icon } from '../../core/base/icons.js?v=20261120a';
+import { ROLE_LABELS, ACCENT_COLORS } from '../../core/domain/constants.js?v=20261120a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
-// ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
-function hexToRgba(hex, alpha) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261120a';
+// ── 辅助：强调色 + 透明度 → CSS 颜色 ──────────────────────────
+// 2026-11-04 批次 534（Task 5.4）：渲染层彩色 rgba 清零，改用 color-mix（与 rgba 同值，纯 CSS 计算）。
+function hexToAlpha(color, alpha) {
+  return `color-mix(in srgb, ${color} ${Math.round(alpha * 100)}%, transparent)`;
 }
 
 // ── 辅助：简易加深 hex（每通道减 30） ──────────────────────────
@@ -104,11 +102,11 @@ export class PersonPicker {
     // 预计算主题色 CSS 变量（注入到 wrapper 上，供 person-picker.css 使用）
     this._cssVars = {
       '--pp-accent': this._accent,
-      '--pp-accent-06': hexToRgba(this._accent, 0.06),
-      '--pp-accent-10': hexToRgba(this._accent, 0.10),
-      '--pp-accent-12': hexToRgba(this._accent, 0.12),
-      '--pp-accent-20': hexToRgba(this._accent, 0.20),
-      '--pp-accent-25': hexToRgba(this._accent, 0.25),
+      '--pp-accent-06': hexToAlpha(this._accent, 0.06),
+      '--pp-accent-10': hexToAlpha(this._accent, 0.10),
+      '--pp-accent-12': hexToAlpha(this._accent, 0.12),
+      '--pp-accent-20': hexToAlpha(this._accent, 0.20),
+      '--pp-accent-25': hexToAlpha(this._accent, 0.25),
       '--pp-accent-darker': darkenHex(this._accent),
     };
 
@@ -210,6 +208,10 @@ export class PersonPicker {
     btn.type = 'button';
     btn.className = 'person-picker-trigger ';
     btn.setAttribute('aria-expanded', 'false');
+    // SD-66 同族：aria-expanded 必须与 aria-controls 成对（面板 id 每实例唯一，同页可挂多个选人器）。
+    if (!this._panelId) this._panelId = `pp-panel-${Math.random().toString(36).slice(2, 8)}`;
+    btn.setAttribute('aria-haspopup', 'dialog');
+    btn.setAttribute('aria-controls', this._panelId);
 
     if (hasSelection) {
       if (this._mode === 'multi') {
@@ -334,6 +336,7 @@ export class PersonPicker {
     // 面板主体（dialog 语义 + modal 焦点管理）
     const panel = document.createElement('div');
     panel.className = 'person-picker-panel card rounded-xl shadow-xl';
+    if (this._panelId) panel.id = this._panelId;
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-modal', 'true');
     panel.setAttribute('aria-label', '选择人员');
@@ -348,10 +351,13 @@ export class PersonPicker {
       <div class="person-picker-header-row">
         <h4 class="person-picker-title ">选择人员</h4>
         <button type="button" class="btn-outline btn-icon person-picker-close-btn" aria-label="关闭">
-          ${icon('close', { stroke: '#6B7280', className: 'w-3.5 h-3.5', extra: ' aria-hidden="true"' })}
+          ${icon('close', { stroke: 'var(--neutral-500)', className: 'w-3.5 h-3.5', extra: ' aria-hidden="true"' })}
         </button>
       </div>
-      <input type="text" class="person-picker-search " placeholder="搜索姓名或学号…" aria-label="搜索人员" />
+      <div class="person-picker-search-wrap">
+        ${icon('search', { className: 'person-picker-search-icon', extra: ' aria-hidden="true"' })}
+        <input type="text" class="person-picker-search " placeholder="搜索姓名或学号…" aria-label="搜索人员" />
+      </div>
     `;
     panel.appendChild(header);
 

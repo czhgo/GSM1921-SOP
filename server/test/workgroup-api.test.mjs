@@ -32,7 +32,12 @@ after(() => {
 async function request(path, personId, method = 'GET', body) {
   const response = await fetch(`${base}/api/v1/${path}`, {
     method,
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokens[personId]}` },
+    // 批次 564：整行写口要求 If-Match；本文件只验成员/授权/专班语义，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${tokens[personId]}`,
+      ...(method === 'PATCH' ? { 'If-Match': '*' } : {}),
+    },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
   const contentType = response.headers.get('content-type') || '';
@@ -82,6 +87,7 @@ test('工作组成员只登记组织者与深度参与者，普通活动参与�
 
   const taskforce = await request('taskforces', '2400012355', 'POST', {
     name: '专班成员边界', task: '只登记做事角色', status: 'recruiting', branchId: 'br-b1', members: [],
+    organizingScope: 'branch',
   });
   assert.equal(taskforce.response.status, 201);
   const taskforceParticipant = await request(`workgroups/${taskforce.data.workgroupId}/members`, '2400012355', 'POST', {
@@ -352,6 +358,7 @@ test('成员与授权批量保存中的数据库失败会回滚所有表及集�
 test('专班批量保存只接收做事成员，并保留旧 participant 历史行', async () => {
   const created = await request('taskforces', '2400012355', 'POST', {
     name: '批量编辑专班', task: '专班只做事', status: 'recruiting', branchId: 'br-b1', members: [],
+    organizingScope: 'branch',
   });
   assert.equal(created.response.status, 201);
   const taskforce = JSON.parse(db.prepare('SELECT data FROM taskforces WHERE id = ?').get(created.data.id).data);
@@ -379,6 +386,7 @@ test('专班批量保存只接收做事成员，并保留旧 participant 历史�
 test('专班成员、支部归属和工作组映射不能经通用快照绕过语义接口', async () => {
   const created = await request('taskforces', '2400012355', 'POST', {
     name: '快照边界工作组', task: '保护成员与支部关系', status: 'recruiting', branchId: 'br-b1', members: [],
+    organizingScope: 'branch',
   });
   assert.equal(created.response.status, 201);
   const hardDelete = await request(`taskforces/${created.data.id}`, '2400012355', 'DELETE');
@@ -460,12 +468,14 @@ test('任务与产出可关联能力包和同支部活动；跨支部引用、�
 test('独立工作组按任务治理：无制度/议程表决依据时可以直接进入招募', async () => {
   const missingTask = await request('taskforces', '2400012355', 'POST', {
     name: '无任务不应建组', status: 'active', branchId: 'br-b1', members: [],
+    organizingScope: 'branch',
   });
   assert.equal(missingTask.response.status, 400);
 
   const created = await request('taskforces', '2400012355', 'POST', {
     name: '材料归档工作组', task: '按本月计划收集并归档材料', status: 'recruiting',
     branchId: 'br-b1', members: [], governanceRequired: false,
+    organizingScope: 'branch',
   });
   assert.equal(created.response.status, 201);
   assert.equal(created.data.status, 'recruiting');
@@ -478,6 +488,7 @@ test('独立工作组按任务治理：无制度/议程表决依据时可以直�
 test('工作组解散仅在有制度或议程依据时提交表决，否则直接结束并留痕', async () => {
   const direct = await request('taskforces', '2400012355', 'POST', {
     name: '直接结束工作组', task: '归档材料', status: 'active', branchId: 'br-b1', members: [],
+    organizingScope: 'branch',
   });
   assert.equal(direct.response.status, 201);
 
@@ -557,6 +568,7 @@ test('工作组解散仅在有制度或议程依据时提交表决，否则直�
 
   const voted = await request('taskforces', '2400012355', 'POST', {
     name: '需表决工作组', task: '制度要求集体决定', status: 'active', branchId: 'br-b1', members: [],
+    organizingScope: 'branch',
   });
   assert.equal(voted.response.status, 201);
   const voteTask = (await request(`workgroups/${voted.data.workgroupId}/tasks`, '2400012355')).data[0];
@@ -621,6 +633,7 @@ test('旧专班首次查看任务时幂等迁移主任务，待闭合工作组�
 test('停用专班能力后停止新开，既有任务仍可完成，结束后记录只读保留', async () => {
   const created = await request('taskforces', '2400012355', 'POST', {
     name: '既有工作组收尾', task: '完成已登记工作', status: 'active', branchId: 'br-b1', members: [],
+    organizingScope: 'branch',
   });
   assert.equal(created.response.status, 201);
   const tasks = await request(`workgroups/${created.data.workgroupId}/tasks`, '2400012355');
@@ -665,6 +678,7 @@ test('支部自主停用本地能力包后禁止新建工作组，党委可代�
 
   const denied = await request('taskforces', '2400012355', 'POST', {
     name: '停用后不得新建', task: '不应创建', status: 'active', branchId: 'br-b1', members: [],
+    organizingScope: 'branch',
   });
   assert.equal(denied.response.status, 403);
 
@@ -744,6 +758,7 @@ test('停用活动组织能力后阻止新建，并保护已结束活动及其�
 test('专班单加成员按 personId 合并历史 contributions，不清空既有镜像', async () => {
   const created = await request('taskforces', '2400012355', 'POST', {
     name: '贡献镜像合并', task: '锁定历史贡献', status: 'recruiting', branchId: 'br-b1', members: [],
+    organizingScope: 'branch',
   });
   assert.equal(created.response.status, 201);
   const taskforce = JSON.parse(db.prepare('SELECT data FROM taskforces WHERE id = ?').get(created.data.id).data);

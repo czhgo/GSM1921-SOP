@@ -12,24 +12,37 @@
 //     应到 = `attendanceRosters` 冻结名单优先，无冻结时回落 `services/activity/vote-config.js::resolveVoterIds('committee')`
 //     并标注「实时」；两种口径不混算。
 //   · 表格 = components/ui/data-table.js（.data-table 单一源）；行内选人 = components/governance/pickers.js::PersonPicker。
-import { mockDB } from '../../../core/domain/domain.js?v=20261031a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261031a';
-import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261031a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261120a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261120a';
+import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261120a';
 import {
   listBranchCommissioners,
   appointBranchCommissioner,
   revokeBranchCommissioner,
-} from '../../../services/branch/appointment.js?v=20261031a';
-import { confirmDanger } from '../../../components/ui/modal.js?v=20261031a';
-import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261031a';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261031a';
-import { deriveMeetingStatus } from '../../../data/mock/derive.js?v=20261031a';
-import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261031a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261031a';
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261031a';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261031a';
+} from '../../../services/branch/appointment.js?v=20261120a';
+import { confirmDanger, openModal, closeModal } from '../../../components/ui/modal.js?v=20261120a';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261120a';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261120a';
+import { deriveMeetingStatus } from '../../../data/mock/derive.js?v=20261120a';
+import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261120a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261120a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261120a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261120a';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261120a';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261120a';
+// 待议池（2026-11-10 批次 540 波次 2）：类型 / 文案 / 去重键 / 应到范围由服务端算（API 形态），
+// 分类函数与 mock 形态本地归集共用 `core/domain/agenda-classify.js`（同一判据、同一文案）。
+import { getAdapter, getDataSource } from '../../../data/data-adapter.js?v=20261120a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261120a';
+import { buildAgendaPool } from './agenda-form.js?v=20261120a';
+import { AGENDA_TYPES, AGENDA_TYPE_BADGE_VARIANT } from '../../../core/domain/agenda-classify.js?v=20261120a';
+import { CommitteeProposalStore } from '../../../services/governance/committee-proposal.js?v=20261120a';
+import {
+  PROPOSAL_STATUS_LABELS, PROPOSAL_TYPE_LABELS, PROPOSAL_SOURCE_LABELS,
+} from '../../../core/domain/committee-proposal.js?v=20261120a';
+import { selectInput, textareaField } from '../../../components/ui/forms.js?v=20261120a';
 
+import { renderCardHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 /** 本支部 id（登录人归属；缺省 br-b1，与全仓同口径） */
 function branchId() {
   const me = getPersonById(AuthStore.getCurrentUser()?.personId);
@@ -69,18 +82,20 @@ function rosterRows() {
   return rows;
 }
 
-/** 状态徽章（视觉口径 = styles.css::.state-badge；状态不写裸文字） */
+/** 状态徽章（视觉口径 = components/ui/badge.js；状态不写裸文字） */
 function statusBadge(label, variant) {
-  return `<span class="state-badge state-badge--${variant}">${esc(label)}</span>`;
+  return badgeHtml(esc(label), variant);
 }
 
 /** 支委构成行：末列 1 主（改派 / 补选）+「更多（撤销）」，只在本行内展开选人面板，
- *  不再出现全局「选人 → 选身份 → 确认」表单 */
+ *  不再出现全局「选人 → 选身份 → 确认」表单。
+ *  2026-11-10 批次 541：来源并入身份注（「支书 · 党委配置」），操作列不再复述「党委配置」——
+ *  只在有写口（支部授予）的行出按钮，党委配置行留「—」。 */
 function rosterRowHtml(r, showStatus) {
   const vacant = !r.name;
   const personCell = vacant ? '<span class="text-gray-500">空缺</span>' : esc(r.name);
   const statusCell = vacant ? statusBadge('空缺', 'warning') : statusBadge('在任', 'neutral');
-  let action = '<span class="text-gray-500">党委配置</span>';
+  let action = '<span class="text-gray-500">—</span>';
   if (r.editable && !vacant) {
     // 1 主（改派）＋ 1 个「更多」；撤销进菜单（2026-10-19 Task 7）
     action = `<button type="button" class="btn-accent-soft btn-sm" data-cm-replace="${esc(r.role)}">改派</button>
@@ -95,8 +110,7 @@ function rosterRowHtml(r, showStatus) {
   }
   return `<tr>
     <td${vacant ? ' class="section-accent-left"' : ''} data-label="姓名">${personCell}</td>
-    <td data-label="身份">${esc(r.label)}</td>
-    <td data-label="来源">${esc(r.source)}</td>
+    <td data-label="身份">${esc(r.label)}<span class="ml-1 text-xs text-gray-500">${esc(r.source)}</span></td>
     <td${showStatus ? '' : ' class="is-redundant"'} data-label="状态">${statusCell}</td>
     <td data-label="操作" data-cm-cell="${esc(r.role)}"><div class="flex items-center gap-2">${action}</div></td>
   </tr>`;
@@ -235,6 +249,253 @@ function bindEvents(tc) {
   });
 }
 
+// ════════════════════════════════════════════════════════════════
+//  待议池（2026-11-10 批次 540 波次 2）
+// ════════════════════════════════════════════════════════════════
+// 口径契约 = `content/04_web_design/contracts/AGENDA_DERIVATION_CONTRACT.md`：
+//   · 服务端算去重 / 时效 / 类型 / 应到（`GET /api/v1/committee/agenda-candidates`）；
+//   · 本 tab 只做分组（决策 → 讨论 → 同步）、组内排序（待议天数长 → 短）与类型徽章；
+//   · mock 形态（未连服务端）用同一分类函数本地归集，并如实标注「应到未计算」——不伪造服务端读数。
+
+/** 归集序号：重渲染 / 切 tab 后旧请求的写回一律丢弃（避免旧数据盖新数据） */
+let _poolSeq = 0;
+
+/** 每组先呈现几条（其余在会议页提取；同屏文案密度见 `DS_06`） */
+const AGENDA_POOL_PREVIEW = 5;
+
+function agendaPoolRowHtml(p, showAttendee = true) {
+  const badge = badgeHtml(esc(p.typeLabel || ''), AGENDA_TYPE_BADGE_VARIANT[p.type] || 'neutral',
+    { title: esc(`${p.sourceLabel || ''}${p.expected ? ` · ${p.expected}` : ''}`) });
+  const attendee = p.attendees && typeof p.attendees === 'object' ? p.attendees.count : null;
+  // 来源名 / 说明只进徽章 title（同屏 20 行逐行复述来源即「同一句话说三遍」，`DESIGN_SYSTEM §4.18 C3`）
+  const bits = [
+    showAttendee && attendee !== null && attendee !== undefined ? `应到 ${attendee} 人` : '',
+    p.ageDays !== null && p.ageDays !== undefined ? `待议 ${p.ageDays} 天` : '',
+  ].filter(Boolean).join(' · ');
+  return `<li class="flex items-start gap-2 py-1">
+    <span class="flex-shrink-0">${badge}</span>
+    <span class="flex-1 min-w-0">
+      <span class="block text-body-sm text-gray-700">${esc(p.item)}</span>
+      ${bits ? `<span class="block text-body-sm text-gray-500">${esc(bits)}</span>` : ''}
+    </span>
+  </li>`;
+}
+
+/** 池主体：按类型分组（空组不渲）；整池为空给一行空态，不报错 */
+function agendaPoolHtml(pool, local) {
+  if (!pool.length) {
+    return emptyStateHtml({
+      text: '暂无可上会事项：新事项出现后自动进池。',
+      variant: 'inline',
+    });
+  }
+  const blocks = AGENDA_TYPES
+    .map((t) => ({
+      ...t,
+      list: pool.filter((p) => p.type === t.value).sort((a, b) => {
+        const ageA = Number.isFinite(Number(a.ageDays)) ? Number(a.ageDays) : -1;
+        const ageB = Number.isFinite(Number(b.ageDays)) ? Number(b.ageDays) : -1;
+        return ageB - ageA || String(a.refId).localeCompare(String(b.refId));
+      }),
+    }))
+    .filter((g) => g.list.length)
+    .map((g) => {
+      const shown = g.list.slice(0, AGENDA_POOL_PREVIEW);
+      const rest = g.list.length - shown.length;
+      // 同组应到一致 ⇒ 只在组头说一次（避免每行复述同一句）
+      const counts = new Set(g.list.map((p) => (p.attendees && typeof p.attendees === 'object' ? p.attendees.count : null)));
+      const uniform = counts.size === 1 ? [...counts][0] : null;
+      return `<div class="mt-2 first:mt-0">
+      <p class="text-body-sm text-gray-500">${esc(g.label)} · ${g.list.length}${uniform !== null ? `（应到 ${uniform} 人）` : ''}<span class="ml-1.5">${esc(g.hint)}</span></p>
+      <ul class="mt-1 space-y-0.5">${shown.map((p) => agendaPoolRowHtml(p, uniform === null)).join('')}</ul>
+      ${rest > 0 ? `<p class="text-body-sm text-gray-500 mt-1">另有 ${rest} 条，<a href="./party-committee-meeting.html" class="text-accent font-medium">去会议页提取</a>。</p>` : ''}
+    </div>`;
+    }).join('');
+  return `${blocks}${local
+    ? '<p class="text-body-sm text-gray-500 mt-2">本地预览（未连服务端）：类型与文案同一判据，应到名单未计算。</p>'
+    : ''}`;
+}
+
+/** mock 形态本地归集：各来源取既有出口，归集与分类走同一纯函数（不新造判据） */
+async function localAgendaPool() {
+  const [{ TaskForceRecordStore }, { IssueStore }, { loadStageEntryDates }, { listDocs, isAgendaDraftDoc }, { listBrandProposals }] = await Promise.all([
+    import('../../../services/activity/taskforce.js?v=20261120a'),
+    import('../../../services/governance/issues.js?v=20261120a'),
+    import('../../../services/member/member-confirmation.js?v=20261120a'),
+    import('../../../services/branch/branch-doc.js?v=20261120a'),
+    import('../../../services/activity/activity.js?v=20261120a'),
+  ]);
+  const src = { activities: mockDB.activities || [] };
+  try { src.taskforceProposals = TaskForceRecordStore.listCommitteeRequests(); } catch (e) { /* 少一类不阻断 */ }
+  try {
+    await IssueStore.loadAll();
+    src.issues = IssueStore.getAll().filter((i) => i.status === 'open' && !i.hidden && !i.mergedInto);
+  } catch (e) { /* 少一类不阻断 */ }
+  try { src.draftDocs = (await listDocs()).filter(isAgendaDraftDoc); } catch (e) { /* 少一类不阻断 */ }
+  try { src.members = PersonStore.getMembers(); } catch (e) { /* 少一类不阻断 */ }
+  try { src.stageEntries = loadStageEntryDates(); } catch (e) { /* 少一类不阻断 */ }
+  try { src.brandProposals = listBrandProposals(); } catch (e) { /* 少一类不阻断 */ }
+  return buildAgendaPool(src);
+}
+
+/** 填充待议池（API 形态读服务端汇总口；失败如实显示重试，不回退造数） */
+async function hydrateAgendaPool() {
+  const host = document.getElementById('cm-agenda-pool');
+  if (!host) return;
+  const seq = ++_poolSeq;
+  try {
+    const items = getDataSource() === 'api'
+      ? await getAdapter().agendaCandidates.list()
+      : await localAgendaPool();
+    if (seq !== _poolSeq) return;
+    host.innerHTML = agendaPoolHtml(Array.isArray(items) ? items : [], getDataSource() !== 'api');
+  } catch (e) {
+    console.warn('[committee-meeting-tab] 待议池加载失败：', e);
+    if (seq !== _poolSeq) return;
+    host.innerHTML = emptyStateHtml({
+      text: '待议池加载失败',
+      variant: 'inline',
+      actionHtml: '<button type="button" class="btn-outline" data-cm-pool-retry>重新载入</button>',
+    });
+    host.querySelector('[data-cm-pool-retry]')?.addEventListener('click', () => hydrateAgendaPool());
+  }
+}
+
+// ── 支部提案池（D-869）────────────────────────────────────────────
+function proposalActionHtml(p) {
+  const accentBtn = (act, label) =>
+    `<button type="button" class="btn-accent-soft px-2 py-1" data-p-id="${esc(p.id)}" data-p-act="${act}">${label}</button>`;
+  const outlineBtn = (act, label) =>
+    `<button type="button" class="btn-outline px-2 py-1" data-p-id="${esc(p.id)}" data-p-act="${act}">${label}</button>`;
+  if (p.status === 'pending') return `${accentBtn('accept', '受理')} ${outlineBtn('reject', '驳回')}`;
+  if (p.status === 'queued') return `${accentBtn('schedule', '排期')} ${outlineBtn('reject', '驳回')}`;
+  if (p.status === 'on-agenda') return accentBtn('decide', '记录决议');
+  if (p.status === 'decided' || p.status === 'rejected') return outlineBtn('close', '归档');
+  return '';
+}
+
+function proposalRowHtml(p) {
+  return `<td data-label="事项"><span class="text-body-sm text-gray-800">${esc(p.title || '未命名')}</span></td>
+    <td data-label="来源"><span class="text-body-sm text-gray-600">${esc(PROPOSAL_SOURCE_LABELS[p.sourceType] || p.sourceType)}</span></td>
+    <td data-label="提案人"><span class="text-body-sm text-gray-600">${esc(p.proposedBy || '—')}</span></td>
+    <td data-label="状态"><span class="text-body-sm text-gray-600">${esc(PROPOSAL_STATUS_LABELS[p.status] || p.status)} · ${esc(PROPOSAL_TYPE_LABELS[p.suggestedType] || p.suggestedType)}</span></td>
+    <td data-label="操作"><div class="flex flex-wrap gap-1">${proposalActionHtml(p)}</div></td>`;
+}
+
+async function _proposalAction(id, payload) {
+  try {
+    const updated = await CommitteeProposalStore.update(id, payload);
+    if (!updated) { showToast('error', '提案操作失败，请刷新后重试'); return; }
+    showToast('success', '提案状态已更新');
+    await hydrateProposalPool();
+  } catch (e) {
+    showToast('error', e?.message || '提案操作失败，请刷新后重试');
+  }
+}
+
+function _openScheduleModal(p) {
+  const meetings = meetingRows().filter((m) => m.type === '支委会');
+  if (!meetings.length) { showToast('error', '暂无支委会会议，请先新建'); return; }
+  openModal({
+    id: 'cm-proposal-schedule',
+    title: '排期到支委会',
+    width: '480px',
+    bodyHtml: `
+      <p class="text-sm text-gray-700 mb-3">提案「${esc(p.title)}」</p>
+      <label for="cm-proposal-meeting" class="text-[11px] text-gray-500 mb-2 block font-medium">选择会议</label>
+      ${selectInput({
+        id: 'cm-proposal-meeting',
+        options: meetings.map((m) => ({ value: m.id, label: `${m.date || ''} ${m.title || '支委会'}` })),
+        className: 'w-full',
+      })}
+      <div class="flex justify-end gap-2 mt-4">
+        <button type="button" class="btn-outline" id="cm-proposal-schedule-cancel">取消</button>
+        <button type="button" class="btn-accent-soft" id="cm-proposal-schedule-save">排期</button>
+      </div>`,
+  });
+  document.getElementById('cm-proposal-schedule-cancel')?.addEventListener('click', () => closeModal('cm-proposal-schedule'));
+  document.getElementById('cm-proposal-schedule-save')?.addEventListener('click', async () => {
+    const meetingActivityId = document.getElementById('cm-proposal-meeting')?.value || '';
+    if (!meetingActivityId) { showToast('error', '请选择会议'); return; }
+    closeModal('cm-proposal-schedule');
+    await _proposalAction(p.id, { action: 'schedule', meetingActivityId });
+  });
+}
+
+function _openDecideModal(p) {
+  openModal({
+    id: 'cm-proposal-decide',
+    title: '记录提案决议',
+    width: '480px',
+    bodyHtml: `
+      <p class="text-sm text-gray-700 mb-3">提案「${esc(p.title)}」</p>
+      <label for="cm-proposal-result" class="text-[11px] text-gray-500 mb-2 block font-medium">决议结果</label>
+      ${selectInput({
+        id: 'cm-proposal-result',
+        options: [{ value: 'passed', label: '通过' }, { value: 'rejected', label: '未通过' }],
+        className: 'w-full',
+      })}
+      <div class="mt-3">
+        ${textareaField({ id: 'cm-proposal-note', label: '说明', rows: 2 })}
+      </div>
+      <div class="flex justify-end gap-2 mt-4">
+        <button type="button" class="btn-outline" id="cm-proposal-decide-cancel">取消</button>
+        <button type="button" class="btn-accent-soft" id="cm-proposal-decide-save">保存决议</button>
+      </div>`,
+  });
+  document.getElementById('cm-proposal-decide-cancel')?.addEventListener('click', () => closeModal('cm-proposal-decide'));
+  document.getElementById('cm-proposal-decide-save')?.addEventListener('click', async () => {
+    const result = document.getElementById('cm-proposal-result')?.value || 'passed';
+    const note = document.getElementById('cm-proposal-note')?.value?.trim() || '';
+    closeModal('cm-proposal-decide');
+    await _proposalAction(p.id, { action: 'decide', result, note });
+  });
+}
+
+async function hydrateProposalPool() {
+  const host = document.getElementById('cm-proposal-pool');
+  if (!host) return;
+  try {
+    const me = AuthStore.getCurrentUser();
+    const rows = await CommitteeProposalStore.list({ role: me?.role || '', personId: me?.personId || '' });
+    const visible = rows.filter((p) => ['pending', 'queued', 'on-agenda', 'decided', 'rejected'].includes(p.status));
+    if (!visible.length) {
+      host.innerHTML = emptyStateHtml({ text: '暂无支部提案。', variant: 'inline' });
+      return;
+    }
+    renderDataTable(host, {
+      stateKey: 'cm-proposal-pool',
+      rows: visible,
+      rowHtml: proposalRowHtml,
+      headHtml: tableHeadHtml([
+        { label: '事项' }, { label: '来源' }, { label: '提案人' }, { label: '状态' }, { label: '操作' },
+      ]),
+      colSpan: 5,
+      pageSize: 8,
+      responsive: true,
+      emptyMessage: '暂无支部提案',
+    });
+    host.querySelectorAll('[data-p-act]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const p = visible.find((row) => row.id === btn.dataset.pId);
+        if (!p) return;
+        const act = btn.dataset.pAct;
+        if (act === 'schedule') return _openScheduleModal(p);
+        if (act === 'decide') return _openDecideModal(p);
+        return _proposalAction(p.id, { action: act, note: act === 'reject' ? '支委会驳回' : '' });
+      });
+    });
+  } catch (e) {
+    console.warn('[committee-meeting-tab] 提案池加载失败：', e);
+    host.innerHTML = emptyStateHtml({
+      text: '提案池加载失败',
+      variant: 'inline',
+      actionHtml: '<button type="button" class="btn-outline" data-cm-proposal-retry>重新载入</button>',
+    });
+    host.querySelector('[data-cm-proposal-retry]')?.addEventListener('click', () => hydrateProposalPool());
+  }
+}
+
 export function renderContent() {
   const tc = document.getElementById('secretary-tab-content');
   if (!tc) throw new Error('[committee-meeting-tab] 缺少内容容器 #secretary-tab-content');
@@ -248,11 +509,21 @@ export function renderContent() {
         actions: '<a href="./party-committee-meeting.html?action=new" class="btn-accent" style="text-decoration:none;">新建线上支委会 →</a>',
       })}
       <div class="card card--static rounded-xl card-standard stack-card">
-        <h3 class="font-title-cn text-sm font-bold text-gray-700">支委构成</h3>
+        ${renderCardHeader({ title: `支委构成`, variant: 'panel' })}
         <div id="cm-roster-table" class="overflow-x-auto"></div>
       </div>
       <div class="card card--static rounded-xl card-standard stack-card">
-        <h3 class="font-title-cn text-sm font-bold text-gray-700">支委会会议</h3>
+        ${renderCardHeader({ title: `待议池`, variant: 'panel' })}
+        <p class="text-body-sm text-gray-500 mt-1">该上支委会的事，按来源判定类型（决策 / 讨论 / 同步）。<a href="./party-committee-meeting.html" class="text-accent font-medium" title="到支委会会议页提取议程">去提取议程</a></p>
+        <div id="cm-agenda-pool" class="mt-2"><p class="text-body-sm text-gray-500">正在归集…</p></div>
+      </div>
+      <div class="card card--static rounded-xl card-standard stack-card">
+        ${renderCardHeader({ title: `支部提案`, variant: 'panel' })}
+        <p class="text-body-sm text-gray-500 mt-1">组长的支部级事项在这里受理、排期与决议；回执自动发提案人。</p>
+        <div id="cm-proposal-pool" class="mt-2"><p class="text-body-sm text-gray-500">正在加载…</p></div>
+      </div>
+      <div class="card card--static rounded-xl card-standard stack-card">
+        ${renderCardHeader({ title: `支委会会议`, variant: 'panel' })}
         <div id="cm-meeting-table" class="overflow-x-auto"></div>
       </div>
       <p class="help-note">授予、改派与撤销的完整口径与权限边界，详见<a href="./help.html#card-copy-pcm-scope" class="help-note__link" title="见帮助：支委身份的授予、改派与撤销">帮助 · 支委身份</a>。</p>
@@ -268,11 +539,11 @@ export function renderContent() {
     rows: roster,
     rowHtml: (r) => rosterRowHtml(r, showStatus),
     headHtml: tableHeadHtml([
-      { label: '姓名' }, { label: '身份' }, { label: '来源' },
+      { label: '姓名' }, { label: '身份' },
       { label: '状态', className: showStatus ? '' : 'is-redundant' },
       { label: '操作' },
     ]),
-    colSpan: 5,
+    colSpan: 4,
     pageSize: 0,
     responsive: true,
     emptyMessage: '暂无支委身份',
@@ -292,4 +563,8 @@ export function renderContent() {
     responsive: true,
     emptyMessage: '暂无支委会会议',
   });
+
+  // 待议池异步填充（API 形态读服务端汇总口；不阻塞表格渲染）
+  hydrateAgendaPool();
+  hydrateProposalPool();
 }

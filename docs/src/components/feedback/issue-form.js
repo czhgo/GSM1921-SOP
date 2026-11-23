@@ -1,10 +1,11 @@
 // role: [工程师]+[AI]
 // issue-form.js — 反馈新建表单
 
-import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261031a';
-import { showToast } from '../../core/base/utils.js?v=20261031a';
-import { icon } from '../../core/base/icons.js?v=20261031a';
-import { badgeHtml } from '../ui/badges.js?v=20261031a';
+import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261120a';
+import { showToast, describeWriteError } from '../../core/base/utils.js?v=20261120a';
+import { pageHref } from '../../core/base/page-url.js?v=20261120a';
+import { icon } from '../../core/base/icons.js?v=20261120a';
+import { badgeHtml } from '../ui/badges.js?v=20261120a';
 
 const SCOPE_OPTIONS = [
   { value: 'permanent', label: '底层架构' },
@@ -33,35 +34,35 @@ export function renderIssueForm() {
       </a>
     </div>
 
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <h2 class="font-title-cn text-lg font-bold text-gray-800 mb-4">新建反馈</h2>
 
       <div class="space-y-4">
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">标题 <span class="text-red-600">*</span></label>
-          <input type="text" id="form-title" class="input-flat w-full font-sans" placeholder="如：报名名单与实际不符">
+          <label for="form-title" class="text-xs text-gray-500 mb-1.5 block font-medium">标题 <span class="text-[var(--status-error-text)]">*</span></label>
+          <input type="text" id="form-title" class="input-flat w-full font-sans" placeholder="如：报名名单与实际不符" aria-required="true">
         </div>
 
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">正文 <span class="text-red-600">*</span></label>
-          <textarea id="form-body" rows="6" class="input-flat w-full font-sans" placeholder="如：活动名称 + 时间 + 具体情况"></textarea>
+          <label for="form-body" class="text-xs text-gray-500 mb-1.5 block font-medium">正文 <span class="text-[var(--status-error-text)]">*</span></label>
+          <textarea id="form-body" rows="6" class="input-flat w-full font-sans" placeholder="如：活动名称 + 时间 + 具体情况" aria-required="true"></textarea>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-xs text-gray-500 mb-1.5 block font-medium">范围（单选）<span class="text-red-600">*</span></label>
-            <select id="form-scope" class="input-flat w-full font-sans">
+            <label for="form-scope" class="text-xs text-gray-500 mb-1.5 block font-medium">范围（单选）<span class="text-[var(--status-error-text)]">*</span></label>
+            <select id="form-scope" class="input-flat w-full font-sans" aria-required="true">
               ${SCOPE_OPTIONS.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
             </select>
           </div>
 
           <div>
-            <label class="text-xs text-gray-500 mb-1.5 block font-medium">类型（多选）<span class="text-red-600">*</span></label>
-            <div class="space-y-1">
+            <label id="form-type-label" class="text-xs text-gray-500 mb-1.5 block font-medium">类型（多选）<span class="text-[var(--status-error-text)]">*</span></label>
+            <div class="space-y-1" role="group" aria-labelledby="form-type-label" aria-required="true">
               ${TYPE_OPTIONS.map(t => `
                 <label class="flex items-center gap-2 text-xs cursor-pointer font-sans">
                   <input type="checkbox" name="form-type" value="${t.value}" class="rounded">
-                  <span class="badge badge--${t.badge}">${t.label}</span>
+                  ${badgeHtml(t.label, t.badge)}
                 </label>
               `).join('')}
             </div>
@@ -69,8 +70,8 @@ export function renderIssueForm() {
         </div>
 
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">事项领域（单选）<span class="text-red-600">*</span></label>
-          <select id="form-domain" class="input-flat w-full font-sans">
+          <label for="form-domain" class="text-xs text-gray-500 mb-1.5 block font-medium">事项领域（单选）<span class="text-[var(--status-error-text)]">*</span></label>
+          <select id="form-domain" class="input-flat w-full font-sans" aria-required="true">
             <option value="">请选择事项领域</option>
             ${ISSUE_DOMAINS.map(d => `<option value="${d.value}">${d.label}</option>`).join('')}
           </select>
@@ -108,17 +109,26 @@ export function renderIssueForm() {
 
     const anon = document.getElementById('form-anon')?.checked ?? true;
 
+    // 提交 pending（Task 4.1）：校验通过后才禁用；连点只产生一条记录，失败时恢复可点与原文案。
+    const submitBtn = document.getElementById('btn-submit-issue');
+    if (!submitBtn || submitBtn.disabled) return;
+    const submitLabel = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = '提交中…';
+
     // 匿名提交：支部工作人员看不到提交人；服务端受保护记录保留身份，当前没有任何系统揭名入口。
     // mock 演示没有受保护的服务端存储，不留存真实身份；实名仍按现口径记录真实 personId。
     try {
       await IssueStore.submitIssue({ title, body, scope, types, domain, anonymous: anon });
     } catch (e) {
-      showToast('error', '提交失败：' + (e?.message || '网络错误'));
+      submitBtn.disabled = false;
+      submitBtn.textContent = submitLabel;
+      showToast('error', '提交失败：' + describeWriteError(e));
       return;
     }
 
     showToast('success', anon ? '已匿名提交，待支书审核通过后公开' : '反馈已提交为草稿，待支书审核通过后公开');
-    window.location.href = './feedback.html';
+    window.location.href = pageHref('./feedback.html');
   });
 
   // 事项领域 → 建议归口 / 反馈时间实时提示（只呈现母本口径，不代填 / 不指派）：填写人当场看到这事「该往哪边走、大概多久有回音」

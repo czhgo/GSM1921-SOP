@@ -3,37 +3,39 @@
 // 仅展示已登记的考察事项；工作组成员名单不自动生成考察清单。
 // 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20261031a';
-import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition, inspectionConfirmDenyReason } from '../../../services/activity/inspection.js?v=20261031a';
-import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/activity/inspection.js?v=20261031a';
-import { inspectionToLong, inspectionToWide } from '../../../services/activity/inspection.js?v=20261031a';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261031a';
-import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261031a';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20261120a';
+import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition, inspectionConfirmDenyReason } from '../../../services/activity/inspection.js?v=20261120a';
+import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/activity/inspection.js?v=20261120a';
+import { inspectionToLong, inspectionToWide } from '../../../services/activity/inspection.js?v=20261120a';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261120a';
+import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261120a';
 // 超期天数单一源（设置中心可调）：只用于徽章 title，不在界面铺口径说明
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261031a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261031a';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261031a';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261031a';
-import { requireDiscCommissionerId } from './_shared.js?v=20261031a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261120a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261120a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261120a';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261120a';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261120a';
+import { requireDiscCommissionerId } from './_shared.js?v=20261120a';
 // 统一检索引擎（支书 2026-09-13 裁定）：可搜索表一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261031a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
+import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261120a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广到其它二元关系域）
-import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/ui/relation-matrix.js?v=20261031a';
+import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/ui/relation-matrix.js?v=20261120a';
 // 考察代录位（2026-09-23 支书追裁「开一个代录位」）：写口与字段**完全复用**组长台「考察上传」，
 //   本位判据单一源 `services/activity/inspection.js::isInspectionHomePosition`，非本位代录走既有 nudge。
-import { loadActivities } from '../../../services/activity/activity.js?v=20261031a';
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261031a';
-import { currentUserId } from '../../../services/core/auth.js?v=20261031a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261031a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261120a';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261120a';
+import { currentUserId } from '../../../services/core/auth.js?v=20261120a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261120a';
 // 「本位」nudge 确认弹窗（单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge, confirmDanger } from '../../../components/ui/modal.js?v=20261031a';
-import { generateId } from '../../../core/base/id.js?v=20261031a';
+import { confirmNudge, confirmDanger } from '../../../components/ui/modal.js?v=20261120a';
+import { generateId } from '../../../core/base/id.js?v=20261120a';
 // Task 6：考察/申诉表格是跨对象聚合面 ⇒ 活动名直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261031a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261120a';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261031a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261120a';
 
+import { renderCardHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 // 考察代录表单状态（随模块自持，不污染入口；与组长 / 组织台考察上传同规）
 let _discInspFormVisible = false;
 let _discInspPickerInstance = null;
@@ -79,10 +81,10 @@ export function renderContent(ctx) {
     ${_buildSupervisionCardHTML(supervisionRows, returnedRecs)}
     ${_buildAppealCardHTML(pendingAppeals, returnedAppeals)}
     ${_buildInspectionProxyCardHTML(proxyActivities)}
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div class="flex items-center gap-2">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">考察总表</h3>
+          ${renderCardHeader({ title: `考察总表` })}
           ${overdueRecords.length > 0
             ? badgeHtml(`${overdueRecords.length} 条超期`, 'danger', { title: `以下考察记录已超过${overdueDays}天未确认，请尽快处理` })
             : ''}
@@ -99,11 +101,11 @@ export function renderContent(ctx) {
           </div>
           <!-- 2026-08-28 T-304 A 档下载闭环：考察总表导出 CSV + 打印 -->
           <!-- U5b（2026-09-07）：低频操作钮统一 32px 圆角（与下拉/胶囊同 32px 档，hover 统一 bg-gray-50） -->
-          <button class="btn-outline insp-export-btn h-8 px-3 text-xs font-medium">导出 CSV</button>
-          <button class="btn-outline insp-print-btn h-8 px-3 text-xs font-medium">打印</button>
+          <button class="btn-outline insp-export-btn px-3 text-xs font-medium">导出 CSV</button>
+          <button class="btn-outline insp-print-btn px-3 text-xs font-medium">打印</button>
           <!-- 2026-08-29 T-304 C2 数据交接协议：纪检→组织 考察记录提交 -->
-          <button class="btn-outline insp-handoff-btn h-8 px-3 text-xs font-medium">提交考察至支委会</button>
-          ${HandoffStore.hasFor('inspection-report', 'inspection') ? '<span class="text-xs text-teal-600 font-medium">已自动送达</span>' : ''}
+          <button class="btn-outline insp-handoff-btn px-3 text-xs font-medium">提交考察至支委会</button>
+          ${HandoffStore.hasFor('inspection-report', 'inspection') ? '<span class="text-xs text-[var(--status-success-text)] font-medium">已自动送达</span>' : ''}
         </div>
       </div>
       <div class="text-xs text-gray-500 mb-3">纪检委员管理考察记录，党小组组长/组织委员上传 → 纪检确认 → 录入考察总表</div>
@@ -111,7 +113,7 @@ export function renderContent(ctx) {
            来源/状态筛选已收敛为统一检索引擎分面下拉（活动视图）；本行仅用于「人视图」姓名检索 -->
       <div class="lf-bar mb-3" id="insp-filter-row">
         <div class="lf-bar__row" data-seg="search">
-          <input type="text" id="insp-search-input" class="input-flat text-xs lf-kw" placeholder="搜索姓名...">
+          <input type="text" id="insp-search-input" class="input-flat text-xs lf-kw" placeholder="搜索姓名" aria-label="搜索姓名">
         </div>
         <div class="lf-bar__row" data-seg="reset">
           <button type="button" id="insp-search-clear" class="btn-tab lf-btn">清除</button>
@@ -137,11 +139,11 @@ export function renderContent(ctx) {
       colSpan: 6,
       responsive: true,
       headHtml: `<tr>
-            <th>姓名</th>
-            <th>所属党小组</th>
-            <th>未闭环</th>
-            <th>超期</th>
-            <th>最近记录人</th><th>操作</th>
+            <th scope="col">姓名</th>
+            <th scope="col">所属党小组</th>
+            <th scope="col">未闭环</th>
+            <th scope="col">超期</th>
+            <th scope="col">最近记录人</th><th scope="col">操作</th>
           </tr>`,
     },
     rowHtml: (s) => `
@@ -218,13 +220,13 @@ export function renderContent(ctx) {
         colSpan: 7,
         responsive: true,
         headHtml: `<tr>
-            <th>姓名</th>
-            <th>来源</th>
-            <th>类别</th>
-            <th>内容</th>
-            <th>记录人</th>
-            <th>状态</th>
-            <th>操作</th>
+            <th scope="col">姓名</th>
+            <th scope="col">来源</th>
+            <th scope="col">类别</th>
+            <th scope="col">内容</th>
+            <th scope="col">记录人</th>
+            <th scope="col">状态</th>
+            <th scope="col">操作</th>
           </tr>`,
       },
       rowHtml: (i) => {
@@ -236,7 +238,7 @@ export function renderContent(ctx) {
         const decisionDeny = inspectionConfirmDenyReason(actorId, i);
         const isSelfRecorded = !!i.recordedBy && i.recordedBy === actorId;
         const rowBg = isReturned ? 'bg-amber-50/40' : isOverdue ? 'bg-red-50/40' : isPending ? 'bg-orange-50/30' : '';
-        const statusCls = isReturned ? 'bg-amber-100 text-amber-700' : (isOverdue ? statusColor.overdue : statusColor[i.status] || 'bg-gray-100 text-gray-600');
+        const statusCls = isReturned ? 'bg-amber-100 text-[var(--status-warning-text)]' : (isOverdue ? statusColor.overdue : statusColor[i.status] || 'bg-gray-100 text-gray-600');
         return `
             <tr data-act-id="${esc(i.activityId || '')}" data-insp-record-id="${esc(i.id)}" data-insp-person-id="${esc(i.personId)}"${rowBg ? ` class="${rowBg}"` : ''}>
               <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
@@ -246,7 +248,7 @@ export function renderContent(ctx) {
               <td data-label="记录人" class="text-gray-600"${i.recordedByName ? '' : ' title="登记时未采集（历史导入）"'}>${i.recordedByName ? esc(i.recordedByName) : '登记时未采集（历史导入）'}</td>
               <td data-label="状态"><span class="px-1.5 py-0.5 rounded-full text-xs ${statusCls}">${statusLabelOf(i)}</span></td>
               <td data-label="操作">${isReturned
-                ? '<span class="text-xs text-amber-700" title="已打回，待上传方重新确认（修改痕迹留存）">已打回 · 待上传方确认</span>'
+                ? '<span class="text-xs text-[var(--status-warning-text)]" title="已打回，待上传方重新确认（修改痕迹留存）">已打回 · 待上传方确认</span>'
                 : (i.status === 'confirmed'
                   ? `<span class="text-xs text-green-700 mr-2"${i.confirmedBy ? ` title="确认人：${esc(getPersonName(i.confirmedBy))}"` : ''}>已确认</span>${decisionDeny
                     ? `<button type="button" class="btn-outline text-xs px-2.5 py-1" disabled title="${esc(decisionDeny)}；请由其他支委处理">打回</button>`
@@ -388,11 +390,11 @@ export function renderContent(ctx) {
   container.querySelector('.insp-export-btn')?.addEventListener('click', () => {
     const stamp = _fmtDate(new Date());
     if (currentView === 'long') {
-      // 与引擎同口径复算当前筛选结果（关键词 + 来源类别 + 状态）
+      // 与引擎同口径复算当前筛选结果（关键词 + 来源类别 + 状态）；列与内容同屏（屏上无「参与层级」⇒ 导出也删）
       const st = longHandle ? longHandle.state : null;
       const rows = longRows.filter(r => _matchLongRow(r, st))
-        .map(i => [i.name, i.source, i.sourceType, i.level, i.role || i.content, i.recordedByName || '', statusLabelOf(i)]);
-      downloadCSV(`考察总表_${stamp}.csv`, ['姓名', '来源', '类别', '参与层级', '内容/角色', '记录人', '状态'], rows);
+        .map(i => [i.name, i.source, i.sourceType === '活动' ? '活动' : '专班', i.content || i.role, i.recordedByName || '', statusLabelOf(i)]);
+      downloadCSV(`考察总表_${stamp}.csv`, ['姓名', '来源', '类别', '内容', '记录人', '状态'], rows);
     } else {
       // 宽表「所见即所得」：列随矩阵当前列上限（未展开＝最近 6 项），行随姓名检索；按项目视图导出转置后的形态
       const searchEl = document.getElementById('insp-search-input');
@@ -510,8 +512,8 @@ function _buildInspectionProxyCardHTML(activities = []) {
   return `
     <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">考察代录（代上传方录入）</h3>
-        <button id="btn-disc-upload-insp" class="btn-outline h-8 px-3 text-xs font-medium">${_discInspFormVisible ? '收起表单' : '代录考察表单'}</button>
+        ${renderCardHeader({ title: `考察代录（代上传方录入）` })}
+        <button id="btn-disc-upload-insp" class="btn-outline btn-sm">${_discInspFormVisible ? '收起表单' : '代录考察表单'}</button>
       </div>
       <div class="text-xs text-gray-500 leading-5 mb-3">代录后进入下方考察总表「待确认」。</div>
       ${formHtml}
@@ -628,14 +630,14 @@ function _buildSupervisionCardHTML(rows, returnedRecs = []) {
               <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#94A3B8"></span>
               <span class="text-xs text-gray-700 flex-shrink-0">${esc(getPersonName(r.personId))}</span>
               <span class="text-xs text-gray-500 flex-1 truncate">${esc(inspectionToLong([r])[0].source || '—')}${r.returnReason ? ` · ${esc(r.returnReason)}` : ''}</span>
-              ${badgeHtml('已打回', 'info')}
+              ${badgeHtml('已打回', 'warning')}
             </div>`).join('')}
         </div>
       </div>`;
   return `
     <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">督办清单（未闭环 / 超期）</h3>
+        ${renderCardHeader({ title: `督办清单（未闭环 / 超期）` })}
         <div class="flex gap-3 text-xs">
           <span class="text-gray-600">待督办 <span class="font-bold text-orange-700">${rows.length}</span> 人</span>
           <span class="text-gray-600">超期 <span class="font-bold text-red-700">${overdueCount}</span></span>
@@ -662,7 +664,7 @@ function _buildAppealCardHTML(pendingAppeals, returnedAppeals) {
         <span class="flex-1 min-w-0">
           <span class="block text-xs text-gray-600 truncate" title="${esc(title)}">${a.activityId ? `<a class="text-accent" href="./${objectDetailHref('activity', a.activityId, { entry: 'workspace-aggregate' })}">${esc(title)}</a>` : esc(title)}</span>
           ${a.note ? `<span class="block text-xs text-gray-500 truncate">申诉说明：${esc(a.note)}</span>` : ''}
-          ${a.returnNote ? `<span class="block text-xs text-amber-700 truncate">打回说明：${esc(a.returnNote)}</span>` : ''}
+          ${a.returnNote ? `<span class="block text-xs text-[var(--status-warning-text)] truncate">打回说明：${esc(a.returnNote)}</span>` : ''}
         </span>
         ${actionable ? `
           <button type="button" class="btn-action-amber insp-appeal-return text-xs px-3 py-1.5 flex-shrink-0" data-appeal-id="${a.id}">核实属实，打回上传方</button>
@@ -673,12 +675,12 @@ function _buildAppealCardHTML(pendingAppeals, returnedAppeals) {
   return `
     <div class="card rounded-xl p-4 mb-4" id="insp-appeal-card">
       <div class="flex items-center justify-between mb-2">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">考察申诉（待核实）</h3>
+        ${renderCardHeader({ title: `考察申诉（待核实）` })}
         <span class="text-xs text-gray-500">同学报「我参与了但没记上」——纪检<b>先核实</b>，属实再打回上传方</span>
       </div>
       ${pendingAppeals.length > 0
         ? `<div class="text-xs text-gray-600 mb-1.5">待核实（${pendingAppeals.length}）</div>${pendingAppeals.map(a => row(a, true)).join('')}`
-        : '<div class="text-xs text-gray-500 py-2">无待核实申诉</div>'}
+        : emptyStateHtml({ text: '无待核实申诉', variant: 'inline' })}
       ${returnedAppeals.length > 0
         ? `<div class="text-xs text-gray-600 mt-3 mb-1.5">已打回 · 待上传方确认（${returnedAppeals.length}）</div>${returnedAppeals.map(a => row(a, false)).join('')}`
         : ''}

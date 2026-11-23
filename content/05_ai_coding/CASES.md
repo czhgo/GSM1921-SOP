@@ -2,7 +2,7 @@
 title: "AI 协作域判例库"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-10-26"
+last_updated: 2026-11-22
 status: active
 related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -38,7 +38,7 @@ related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_
 
 - **编号**：CASE-AI-003
 - **场景（真实发生）**：ROADMAP→CLAUDE.md 更名时，只修改了文件名和部分引用，遗漏了 guides / insights / SOP 中的引用；该次更名被指出「一改具改执行不令人满意」。
-- **结论**：改文件名、编号或术语后，必须全仓 Grep 旧标识并做零残留复核（`CLAUDE.md H30.1`）。
+- **结论**：改名后旧标识的引用须一次清零；做法与判据见 `DOCUMENT_GOVERNANCE.md`「一改具改执行陷阱」＋ `CLAUDE.md H30.1`。
 - **边界**：触发面是「会被别处引用的标识」（文件名、编号、术语）；纯正文措辞润色不触发全仓扫描。
 - **对应规范编号**：`DOCUMENT_GOVERNANCE.md`「一改具改执行」＋ `CLAUDE.md H30.1`
 - **证据指针**：`content/05_ai_coding/DOCUMENT_GOVERNANCE.md:23`。
@@ -72,3 +72,50 @@ related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_
 - **对应规范编号**：`TEST_AND_VERIFICATION.md`「非闭环类缺陷的守卫写法：真机闭环断言 + 静态保态断言」＋ `CLAUDE.md H25`
 - **边界**：本条针对「同一 tab 的渲染 / 绑定生命周期」；纯服务端接口契约测试不受此限。首屏性能读数（974→515ms、hover p95 3.5→0.9ms）属演示环境实测，不当作跨机器承诺。
 - **证据指针**：`docs/src/components/shell/tab-bar.js`（`renderCurrent` / `_safeRender` / `_armLoadingTimeout`）· `docs/src/components/shell/workspace-shell.js`（`renderCtx: () => _renderCtx(getAppState())`）· `server/test/runtime-tab-lifecycle-guard.test.mjs` · `.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 512。
+
+## CASE-AI-007 系统通知「无受众」被当成广播，匿名读到定向赋权
+
+- **编号**：CASE-AI-007
+- **样本（真实发生）**：支书在未登录状态看到「某某已将您赋权」通知。取证发现三层叠加：`project-auth-granted` 写侧不产 `audience` / `audiencePersons`；读侧 `canReadNotice` 把「无受众」当广播、`list()` 无会话直接全放行；授权人姓名依赖前端 payload，服务端未复算。同类 7 个 kind 恒无受众。
+- **AI 假设**：没有受众字段就是广播；服务端生成的通知天然可信；未登录放行只是演示便利。
+- **人类意图**：没有受众就是**未授权**；定向通知只能到人；未登录不读任何站内通知；广播必须显式写 `audience:['all']`。
+- **泛化规则（结论）**：安全默认 fail-closed——无受众系统通知不可读；广播必须显式；写侧按 kind 声明 `required / broadcast / conditional` 并在落库前校验；展示值（人名 / 项目名）由服务端按表复算；存量无受众行标 `legacyUnscoped`，仅发布者可见。
+- **守卫**：`notice-audience-failclosed`（F1–F6）＋ `notice-audience::N1/N6/N7` ＋ `system-notice-project-auth-authorize::B10/E3/E5/E6`。
+- **对应规范编号**：`CLAUDE.md H32`（服务端算业务事实）＋ `DATA_MODEL.md §2.9`（受众必填）＋ `INFORMATION_COMPUTATION.md §1.2–§1.4`。
+- **边界**：公告（`kind='announcement'`）无受众仍按支部广播兼容；匿名可读只开 `publishScope='public'` 且未过期这一条窄口，已裁定，见 `D-858` / `PUBLIC_ENTRANCE.md`。
+- **证据指针**：`docs/src/services/governance/notice.js`（`list()` / `canReadNotice`）· `server/system-notice-kinds.js`（`audiencePolicy`）· `server/routes/system-notices.js`（`normalizeSystemNotice`）· `server/scripts/migrate-notice-audience.mjs` · `.ctx/evidence/2026-11-07/notice-audience-gap.md`。
+
+## CASE-AI-008 CLAUDE 层标记漂移：温层被搬空仍宣称三层
+
+- **编号**：CASE-AI-008
+- **样本（真实发生）**：`CLAUDE.md` 声明「热 / 温 / 冷三层」，实际温层 0 行、H60–H80 全被并进热层；守卫只挡总量与引用框，没有层边界、单节配额与温层非空检查，乙部历史叙述也不计入行数。
+- **AI 假设**：只要总量不超 600 行就安全；层标记只是注释；历史完成项留在乙部便于追溯。
+- **人类意图**：温层必须真的被用起来（触发式任务表）；层边界与单节配额要有机检；完成项整行删除，沿革归 git。
+- **泛化规则（结论）**：结构规则必须有结构守卫——热/温/冷区间、每层允许的 H 节、温层非空、单节配额、乙部无历史叙述、触发表指针 `existsSync`；新增规则同批删等量旧行或降为指针。
+- **守卫**：`ctx-hygiene-guard::⑧⑨`（层边界 / 温层 3–60 行 / 乙部 ≤18 行且无历史）＋ `claude-parallel-audit::C4`（判例下迁手册）＋ `ui-preflight-context::P5`（温层非空 + 触发表）。
+- **对应规范编号**：`CLAUDE.md H26` / `H50` ＋ `CONTEXT_MANAGEMENT.md` 三层模型。
+- **证据指针**：`CLAUDE.md`（`# 热层` / `# 温层` / `# 冷层`）· `server/test/doc-lifecycle-guard.test.mjs` · `.ctx/evidence/2026-11-07/ui-audit.md`。
+
+## CASE-AI-009 只引「点缀色」允许，漏引「不承担状态语义」
+
+- **编号**：CASE-AI-009
+- **样本（真实发生）**：批次 540 统一图标着色时，AI 逐条对照 `DESIGN_SYSTEM §一 原则 4`，抓到「**点缀色**（图标浅底 / 笔触 / 关键数值，每屏 1–2 处）不计入主色数量」，据此把彩色状态图标判为合规并放行；同一句后半「**不单独承担状态语义，须同时有文字标签**」没有被引用，若干只靠颜色区分的状态图标因此留在页面上。该句正是同批为 `CASE-DESIGN-030` 补写的边界，AI 读过该判例却没有读回它所指向的条文。
+- **AI 假设**：命中「允许」那半句即等于该条已读；后半句属于补充说明，可以在动手时略过；判例只教「别过度去色」，不会反过来约束用色。
+- **人类意图**：一条规范同时含「允许」与「约束」时，两句必须一起引；点缀色的前提是有文字标签，没有标签的颜色不享受这条豁免。
+- **泛化规则（结论）**：引用带例外的规范须同句引完「允许 ＋ 例外条件 ＋ 兜底」三段，只引前半句视为未读该条；判例只作边界，不得当条文用；改一条规范的边界句时，同批检查所有引用了旧边界的调用点。
+- **守卫**：`icon-color-guard::G3`（状态色只经 `--tint`，且只在计数 > 0 或状态成立时出现）＋ `status-color-guard::S1`（填充档不进图标笔触）。
+- **对应规范编号**：`DESIGN_SYSTEM.md §一 原则 4` ＋ SD-61（图标色彩契约，正文见 `DS_03_COMPONENTS.md §4.11.2`）
+- **边界**：本条只判「引用完整性」，不重开「图标能不能用色」；党徽 / 插画的多色仍按 §4.11.2 登记。`--tint` 的取值面由 `icon-color-guard::G3` 判，本条不另立色值白名单。
+- **证据指针**：`content/04_web_design/design-system/DESIGN_SYSTEM.md:67` · `content/04_web_design/design-system/DS_03_COMPONENTS.md:544-556,1542` · `content/04_web_design/design-system/CASES.md`（CASE-DESIGN-030 / CASE-DESIGN-041）· `server/test/color-ratchet-guard.test.mjs`。
+
+## CASE-AI-010 同一指标多值并存：台账各写一个「当前值」
+
+- **编号**：CASE-AI-010
+- **样本（真实发生）**：批次 565–567 后，`ACTIVE_CONTEXT §1` 写 81/80/81…、`ACTIVE_RULINGS §A` 带历史 81/78…、`ENGINEERING_ASSESSMENT §一` 表格写 82/80/82…、§二 六个标题写 81/80/81…；`server/README.md` 矩阵写 141 而行数实为 162；党委台页签一处 4、一处 5。每轮“重新检查”都会再发现同一批漂移。
+- **AI 假设**：只要有一处写对就够；历史值留着便于对照；文档改一处即可，其余下次再说。
+- **人类意图**：同一事实只允许**一个当前值 ＋ `D-xxx`**；历史值只进 `.ctx/logs/` 与 git；跨文件必须机检，不靠人眼。
+- **泛化规则（结论）**：任何“当前值”类事实（评分、条数、页签数、白名单、层名、口令口径）必须有代码或证据单一源，并在 active/reference 台账逐处相等；改一处必须在同批改完全部引用（`H30` 先裁后清）。
+- **守卫**：`ctx-hygiene-guard::⑪`（历史值不得回潮 / 每文件至多一个六维元组 / EA §一 不再开「重评」小节）＋ `::⑫`（三处六维一致）＋ `single-fact-consistency::G1`（矩阵 / 表 / 页签 / 白名单 / 四层名 ≡ 代码）＋ `spec-task-consistency::G2`（spec 台账噪声只减不增）。
+- **对应规范编号**：`CLAUDE.md H26.5` · `H30`（先裁后清）· `H20.3`（check-batch-commits 基线）；`content/05_ai_coding/DOCUMENT_GOVERNANCE.md`「去重 / 日志分层」。
+- **边界**：只判「当前值多值」，不判分数是否合理；历史值本身保留在 `.ctx/logs/` 与 git，不删除。
+- **证据指针**：`D-883` · `D-884` · `.ctx/ACTIVE_CONTEXT.md §1` · `server/test/{ctx-hygiene-guard,single-fact-consistency,spec-task-consistency}.test.mjs`。

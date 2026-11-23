@@ -8,57 +8,62 @@
 //   buildRealtimeGroups 一次 merge 进对应域（考勤纪律/考察/活动项目/归档宣传/成员发展/决议上报）；
 //   种子行动类（设党小组组长）由壳按域聚合；自定义详情/专班待议/待答复收件箱/成员变更面板照旧挂载。
 
-import { showToast, escHtml as esc, flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261031a';
-// D2 裁决批二（2026-09-08）：概况汇报区只读摘要「去待办处理」→ 定位消费（展开该答复详情并滚动到视口）
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261031a';
-import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261031a';
+import { showToast, escHtml as esc, flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261120a';
+// 2026-11-01 批次 524（#7）：待办主行动声明式动作表 + 统一页签导航（删本台 tabMap 与选择器直点）
+// 2026-11-10 批次 540 波次 1：PendingTarget 消费下沉到 todo-tab-shell（report / member / group /
+//   inspection / attendance 统一）；本文件只保留落点出口 `executeTodoAction`。
+import { resolveTodoAction } from '../../../core/domain/todo-actions.js?v=20261120a';
+import { executeTodoAction, goToWorkspaceTab } from '../../../core/session/workspace-nav.js?v=20261120a';
+import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261120a';
 // 本位 nudge 单一源（2026-09-27：材料催办 → 组织委员为本位；支书 / 副支书催办属例外代办）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261031a';
-import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/governance/todo.js?v=20261031a';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261120a';
+import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/governance/todo.js?v=20261120a';
 // `#1`/`D-742`：作废裁决后的**站内知会**（知会「相关委员管理上可优化」）——走系统派生通知单一源
 // （`addSystem` → 服务端按 `todo-void-decided` kind 复算授权与受众；mock 模式本地同模板镜像）。
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261031a';
-import { SecretaryTodoDeriver, getEndedUnarchivedActivities, getArchiveGapActivities } from '../../../services/governance/secretary-overview.js?v=20261031a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261031a';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261031a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261120a';
+import { SecretaryTodoDeriver, getEndedUnarchivedActivities, getArchiveGapActivities } from '../../../services/governance/secretary-overview.js?v=20261120a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261120a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261120a';
 
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261031a';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261031a';
-import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20261031a';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261031a';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261120a';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261120a';
+import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20261120a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261120a';
 // 批次 346（`D-744`②）：业务记录「作废（软）」统一写口——待确认申请并入**同一个**「作废待确认」组
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261031a';
-import { mockDB } from '../../../core/domain/domain.js?v=20261031a';
-import { persist } from '../../../data/data-adapter.js?v=20261031a';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261031a'; // P0 域缓存失效（spec §二.3）
-import { getPersonById, getPersonName, PersonStore } from '../../../services/member/person.js?v=20261031a';
-import { solidAccentStyle, ROLE_LABELS, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261031a';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261120a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261120a';
+import { persist } from '../../../data/data-adapter.js?v=20261120a';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261120a'; // P0 域缓存失效（spec §二.3）
+import { getPersonById, getPersonName, PersonStore } from '../../../services/member/person.js?v=20261120a';
+import { solidAccentStyle, ROLE_LABELS, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261120a';
 // 代归档写口（D-807④）：与宣传台归档面同一写口（软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/core/runtime.js?v=20261031a';
+import { BranchService } from '../../../services/core/runtime.js?v=20261120a';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261031a';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261031a';
-import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/activity/taskforce.js?v=20261031a';
-import { fetchVotes } from '../../../services/activity/committee-vote.js?v=20261031a';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261031a';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/record/reporting.js?v=20261031a';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261120a';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261120a';
+import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/activity/taskforce.js?v=20261120a';
+import { fetchVotes } from '../../../services/activity/committee-vote.js?v=20261120a';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261120a';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/record/reporting.js?v=20261120a';
 // Task 6：待办对象卡/跳转属跨工作台动作 ⇒ direct 完整详情页；缺 id 不渲染可点链接。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261031a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261120a';
 // 2026-09-08 裁决批一（D1/D3）：成员变更=域内确认+批量去顶卡——顶卡面板移除，
 // 确认位唯一化 = 「成员发展」域实时组内批量块（buildMcBulkRows/renderMcBulkRowsHtml/bindMcBulk）。
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261031a';
-import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261031a';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261031a';
-import { buildOverdueRemindGroupNow } from '../../../services/governance/resolution-followup.js?v=20261031a';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261120a';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261120a';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261120a';
+import { buildOverdueRemindGroupNow } from '../../../services/governance/resolution-followup.js?v=20261120a';
 // C 批 附录⑩ S4：名册成员变更确认复核（组织委员发起 → 支书确认/退回）+ 学期末滞留集中复核提醒
 // 批4（2026-09-09）：窗口判定与窗口文案单一源 = policy（memberConfirmation.semesterDetainedWindows）
-import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member/member-confirmation.js?v=20261031a';
-import { getDetainedMembers, getResidenceOf } from '../../../services/member/roster.js?v=20261031a';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261031a';
+import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../../../services/member/member-confirmation.js?v=20261120a';
+import { getDetainedMembers } from '../../../services/member/roster.js?v=20261120a';
+// 待办派生单一源（零依赖叶子件；服务端 Task 8 同源消费）
+import { deriveMemberConfirmGroup, deriveSemesterDetainedRemindGroup } from '../../../core/domain/todo-derive.js?v=20261120a';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261120a';
 // 逐条催办（2026-09-10 支书裁定；2026-09-18 批次 88 抽到共享壳 createUrgeController，
 // 与组织委员台共用同一实现；判据仍在 services/governance/todo.js::urgeRolesOf，未改）
-import { setState } from '../../../core/base/state.js?v=20261031a';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261031a';
+import { setState } from '../../../core/base/state.js?v=20261120a';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261120a';
 
 // 生效强调色三件套（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -68,6 +73,8 @@ function _accentColors() {
 
 // ── 模块级渲染缓存（onBeforeRender 预载 / 顶部自定义区共用） ─────
 let _pendingReports = [];
+// Task 7：反馈权威源加载失败时置说明（收件箱显「加载失败，重试」，不显「暂无待答复」）
+let _reportsError = '';
 
 // ════════════════════════════════════════════════════════════════
 //  共享壳接线（IA-C1 Task4：未读通知条 + 9 业务域折组；原手写双栏大列表结构移除）
@@ -76,12 +83,20 @@ let _pendingReports = [];
 /** 实时聚合组（不落库）：SecretaryTodoDeriver 8 组 + 决议逾期 + 成员变更确认 + 学期末滞留复核。
  *  壳 mergeRealtimeDomains 按组 domain 并入对应业务域折组；实时组无「行尾直接动作」
  *  （动作承载于详情内一键确认/去活动管理）→ hideActionBtn 只留点行进详情。
- *  种子行动类（设党小组组长等）为持久化待办，由壳 getDomainsWithGroups 域内聚合，无需在此给出。 */
-function _buildRealtimeGroups() {
-  const computedAggs = SecretaryTodoDeriver.computeAggregates().map(g => ({ ...g, hideActionBtn: true }));
-  const followupOverdueAgg = buildOverdueRemindGroupNow();
-  const mcConfirmAgg = _mcConfirmAgg();
-  const semesterAgg = _semesterRemindAgg();
+ *  种子行动类（设党小组组长等）为持久化待办，由壳 getDomainsWithGroups 域内聚合，无需在此给出。
+ *
+ *  2026-11-04 批次 534（B-500-7b-1 Task 9）：服务端成功时壳传入 `opts.skipActionKeys`
+ *  （服务端已接管的键集合）——这些键**不再在客户端派生**；本函数只返回服务端不产出的展示组
+ *  （复盘 / 归档提醒与复核、专班待议、待办作废待确认）。mock / 失败兜底时不传 ⇒ 全量派生（原路径不删）。 */
+function _buildRealtimeGroups(ctx, opts) {
+  const skip = opts && opts.skipActionKeys instanceof Set ? opts.skipActionKeys : null;
+  const skipKey = (k) => !!(skip && skip.has(k));
+  const computedAggs = SecretaryTodoDeriver.computeAggregates({ skipActionKeys: skip })
+    .filter(g => !skipKey(g.actionKey))
+    .map(g => ({ ...g, hideActionBtn: true }));
+  const followupOverdueAgg = skipKey('resolution-followup-remind') ? null : buildOverdueRemindGroupNow();
+  const mcConfirmAgg = skipKey('member-confirm') ? null : _mcConfirmAgg();
+  const semesterAgg = skipKey('semester-detained-remind') ? null : _semesterRemindAgg();
   const committeeTfAgg = _committeeTfAgg();
   const voidConfirmAgg = _voidConfirmAgg();
   return [
@@ -94,6 +109,21 @@ function _buildRealtimeGroups() {
   ];
 }
 
+/** 服务端组的**展示补充**（Task 9）：成员变更待确认组的批量块 + 议程链引导文案。
+ *  只补展示字段（bulkHtml / agendaCount），**不改 groupKey / count / items**——业务事实以服务端为准。 */
+function _decorateServerGroups(ctx, groups) {
+  return groups.map((g) => {
+    if (g.actionKey !== 'member-confirm') return g;
+    const rows = buildMcBulkRows('secretary-confirm');
+    const agendaCount = (getCachedMemberChangeRequests() || []).filter(r => r && r.status === 'pending-secretary').length;
+    return {
+      ...g,
+      agendaCount,
+      bulkHtml: renderMcBulkRowsHtml(rows, { mode: 'secretary-confirm', accent: _accentColors().accent }),
+    };
+  });
+}
+
 /** 顶部自定义区：待答复收件箱（2026-09-13 支书裁定：原「专班待议（支委会）」独立顶卡撤销——
  *  专班只是工作中的一部分，不宜在待办页顶部独占一张卡（过拟合）；改为实时聚合组归入「专班」业务域折组） */
 function _extraTopHtml() {
@@ -104,6 +134,7 @@ function _extraTopHtml() {
     role: 'secretary',
     accent: _accentColors().accent,
     emptyMsg: '暂无待答复汇报',
+    errorMsg: _reportsError,
     embedded: true,
   });
 }
@@ -180,11 +211,9 @@ function _firstActivityOf(group) {
   return loadActivities().find(a => a.id === id) || null;
 }
 
-/** 切到本台 tab（存在才切；返回是否切换成功） */
+/** 切到本台 tab（统一导航 helper；返回是否切换成功） */
 function _gotoSecretaryTab(tabId) {
-  const btn = document.querySelector(`.secretary-tab-btn[data-secretary-tab="${tabId}"]`);
-  if (btn) { btn.click(); return true; }
-  return false;
+  return goToWorkspaceTab(tabId);
 }
 
 /** 活动管理定位：切 calendar + 选中该活动（state 变更触发含 latest appState 的重渲染 → inspector 打开该活动） */
@@ -224,7 +253,7 @@ function _openDelegateArchiveModal() {
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-gray-800 truncate">${esc(a.title || '未命名活动')}</span>
             ${a.type ? badgeHtml(esc(a.type), activityTypeBadgeVariant(a.type)) : ''}
-            <span class="text-xs px-1.5 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200 shrink-0">已结束·待归档</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-full border bg-amber-50 text-[var(--status-warning-text)] border-amber-200 shrink-0">已结束·待归档</span>
           </div>
           <span class="text-xs text-gray-500">活动日期：${esc(a.date || '—')} <span class="text-accent" aria-hidden="true">→</span></span>
         </a>
@@ -238,7 +267,7 @@ function _openDelegateArchiveModal() {
         <a href="./${objectDetailHref('activity', a.id, { entry: 'todo' })}" class="flex-1 min-w-0 hover:bg-[var(--surface-hover)] transition-colors" title="查看活动详情">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-gray-800 truncate">${esc(a.title || '未命名活动')}</span>
-            <span class="text-xs px-1.5 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200 shrink-0">待补材料</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-full border bg-amber-50 text-[var(--status-warning-text)] border-amber-200 shrink-0">待补材料</span>
           </div>
           <span class="text-xs text-gray-500">已归档 · 宣传材料未提交（归档缺口） <span class="text-accent" aria-hidden="true">→</span></span>
         </a>
@@ -366,6 +395,8 @@ const _tab = createTodoTab({
   onUrgeTodo: _urgeWithNudge.onUrgeTodo,
   // IA-C1 Task4：实时组（支书派生/决议逾期/成员变更等）并入对应域折组
   buildRealtimeGroups: _buildRealtimeGroups,
+  // Task 9：服务端组的展示补充（成员变更批量块 / 议程链引导；不改业务事实）
+  decorateServerGroups: _decorateServerGroups,
   // 自定义详情（confirm/remind/成员变更确认逐项面板；种子行动类走内置概要）
   renderDetail: renderTodoDetail,
   detailTitle: '待办详情',
@@ -376,7 +407,15 @@ const _tab = createTodoTab({
     // P0 去重：refreshExpiredStatus 已由壳 renderContent 统一调用（本 tab 不再重复执行）。
     seedTodos();
     // 待答复汇报（支书 2026-08-10 裁定：答复类置顶待办）——预加载 issues 权威源
-    await IssueStore.loadAll();
+    try {
+      await IssueStore.loadAll();
+      _reportsError = '';
+    } catch (err) {
+      // Task 7：加载失败不得静默成空（否则收件箱显示「暂无待答复」）。
+      console.warn('[secretary-todo] 待答复汇报加载失败：', err);
+      _reportsError = '加载失败，重试';
+    }
+    // 失败时取已拉取缓存（H32：兜底不造事实，无缓存即空）
     _pendingReports = IssueStore.getSecretaryPendingReports();
     // 2026-09-08 顶卡同步化：成员变更确认请求预载（mock 600ms 延迟 → 缓存 → _extraTopHtml 同步产物；
     // 本地签名未变则秒回，变才 await 拉取——守卫命中路径不额外加延迟）
@@ -386,15 +425,10 @@ const _tab = createTodoTab({
   extraTopCount: () => _pendingReports.length,
   bindExtras: (container, ctx, api) => {
     bindCommitteeTfEvents(container, api);
-    bindReportInbox(container, { role: 'secretary', onAnswered: () => api.renderContent() });
+    bindReportInbox(container, { role: 'secretary', onAnswered: () => api.renderContent(), onRetry: () => api.renderContent() });
     bindTodoDetailExtras(container, api);
     // 2026-09-08 裁决批一（D1/D3）：域内批量块绑定（全选/计数/批量确认 + onDone 重渲染）
     bindMcBulk(container, { mode: 'secretary-confirm', onDone: () => api.renderContent() });
-  },
-  onAfterRender: (container, ctx, api) => {
-    // D2 裁决批二（2026-09-08）：概况汇报区「去待办处理」→ 展开目标答复详情并滚动到视口
-    //（一次性消费；目标不在待答复列表/无目标 → 不做动作 = 落待办页顶部）
-    _locatePendingTarget(container);
   },
 });
 
@@ -404,17 +438,8 @@ export function renderContent(ctx) {
   return _tab.renderContent(ctx);
 }
 
-/** D2 定位消费：概况跳转后打开对应待答复详情并滚动到视口（见 PendingTarget 模块头注） */
-function _locatePendingTarget(container) {
-  const target = PendingTarget.consume();
-  if (!target || target.tab !== 'todo' || target.kind !== 'report' || !target.id) return; // 回退=待办页顶部
-  const detail = container.querySelector(`#rep-inbox-detail-${target.id}`);
-  if (!detail) return; // 该汇报已答复/关闭（不在待答复列表）→ 回退=待办页顶部
-  detail.closest('details.todo-strip')?.setAttribute('open', ''); // 折叠条内定位：先展开页顶条
-  detail.classList.remove('hidden');
-  smoothScroll(detail, { block: 'center' });
-  flashHighlight(detail);
-}
+// D2 裁决批二（2026-09-08）的「待答复」定位已下沉到 `todo-tab-shell.js::_consumePendingTarget`
+// （2026-11-10 批次 540 波次 1：report / member / group / inspection / attendance 统一消费与清理时机）。
 
 // ── 详情卡：按聚合类型分发（confirm / remind / 种子行动类；C 批自定义组优先） ────
 function renderTodoDetail(todo) {
@@ -441,7 +466,7 @@ function renderCommitteeTfDetail(group) {
         <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">${items.length} 项待议</span>
       </div>
       <p class="font-title-cn text-base font-semibold text-gray-800">${group.title}</p>
-      ${group.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${group.flow}</p>` : ''}
+      ${group.flow ? `<p class="text-body-sm text-gray-600">${group.flow}</p>` : ''}
       <div class="space-y-2 max-h-64 overflow-y-auto">${rows || emptyStateHtml({ text: '暂无待议专班', variant: 'inline' })}</div>
     </div>`;
 }
@@ -457,9 +482,9 @@ function renderConfirmDetail(group) {
         <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">${group.count} 条待复核</span>
       </div>
       <p class="font-title-cn text-base font-semibold text-gray-800">${group.title}</p>
-      ${group.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${group.flow}</p>` : ''}
+      ${group.flow ? `<p class="text-body-sm text-gray-600">${group.flow}</p>` : ''}
       <div class="rounded-lg bg-gray-50 p-2.5 space-y-1.5 max-h-44 overflow-y-auto">
-        ${rows || '<div class="text-xs text-gray-500">无待复核记录</div>'}
+        ${rows || emptyStateHtml({ text: '无待复核记录', variant: 'inline' })}
         ${more}
       </div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
@@ -490,13 +515,13 @@ function renderRemindDetail(group) {
         ${group.deadline ? `<span class="text-xs text-gray-500">最早 ${group.deadline}</span>` : ''}
       </div>
       <p class="font-title-cn text-base font-semibold text-gray-800">${group.title}</p>
-      ${group.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${group.flow}</p>` : ''}
+      ${group.flow ? `<p class="text-body-sm text-gray-600">${group.flow}</p>` : ''}
       <div class="rounded-lg bg-gray-50 p-2.5 space-y-1.5 max-h-44 overflow-y-auto">
         ${rows || emptyStateHtml({ text: '暂无缺口', variant: 'inline' })}
         ${more}
       </div>
       <div class="pt-3 border-t border-gray-100 flex flex-wrap gap-2">
-        <button class="btn-accent-soft btn-sm secretary-todo-detail-action" >去活动管理</button>
+        <button class="btn-accent-soft btn-sm secretary-todo-detail-action" >${resolveTodoAction(group)?.label || '去活动管理'}</button>
         ${isArchiveGap ? `<button type="button" class="btn-accent-soft btn-sm secretary-todo-detail-archive">代归档</button>` : ''}
         ${isReviewGap ? `<button type="button" class="btn-accent-soft btn-sm secretary-todo-detail-review">代提交复盘</button>` : ''}
       </div>
@@ -521,7 +546,7 @@ function renderSeedDetail(todo) {
             <dd class="text-gray-700 tabular-nums">${todo.deadline}</dd>
           </div>` : ''}
         </dl>
-        ${todo.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.flow}</p>` : ''}
+        ${todo.flow ? `<p class="text-body-sm text-gray-600">${todo.flow}</p>` : ''}
         <div class="pt-3 border-t border-gray-100 flex gap-2">
           <button type="button" class="btn-accent-soft btn-sm secretary-todo-detail-action">去处理</button>
         </div>
@@ -552,7 +577,7 @@ function renderSeedDetail(todo) {
       <dl class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
         <div>
           <dt class="text-gray-500">状态</dt>
-          <dd><span class="state-badge state-badge--${statusVariant}">${statusLabel}</span></dd>
+          <dd>${badgeHtml(statusLabel, statusVariant)}</dd>
         </div>
         ${todo.deadline ? `<div>
           <dt class="text-gray-500">截止</dt>
@@ -563,7 +588,7 @@ function renderSeedDetail(todo) {
           <dd class="text-gray-700 tabular-nums">${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</dd>
         </div>
       </dl>
-      ${todo.description ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.description}</p>` : ''}
+      ${todo.description ? `<p class="text-body-sm text-gray-600">${todo.description}</p>` : ''}
       <div class="pt-3 border-t border-gray-100 flex gap-2">
         ${todo.actionType ? `<button type="button" class="btn-accent-soft btn-sm secretary-todo-detail-action">处理</button>` : ''}
       </div>
@@ -588,27 +613,19 @@ function _requireSecActor() {
 /** 待确认聚合组（两链皆空返回 null；kind=confirm 复用既有「点行进详情面板」交互）。
  * 裁决批一（D1/D3）：组带 bulkHtml（域内批量确认块）——agenda=会议待讨论名单（memberChangeRequests
  * pending-secretary）+ roster=名册报送成员变更确认（member-confirmation pending，来源徽标区分）；
- * count=批量行总数（行尾角标与批量块一致）；items 保留 roster 供详情逐项确认/退回。 */
+ * count=名册待确认行数（与 items 同长；议程行数见 agendaCount）；items 保留 roster 供详情逐项确认/退回。 */
 function _mcConfirmAgg() {
-  const rosterItems = listPendingConfirmations();
-  const agendaPending = (getCachedMemberChangeRequests() || []).filter(r => r.status === 'pending-secretary');
-  if (!rosterItems.length && !agendaPending.length) return null;
+  // 2026-11-04 批次 534（B-500-7b-1 Task 7）：两链筛选 + 计数单一源＝`todo-derive.js`
+  //   （批次 539 起 `count` = 名册 pending 行数，`agendaCount` = 议程 pending-secretary 行数；本台只补批量块 HTML）。
+  const group = deriveMemberConfirmGroup({
+    memberConfirmations: listPendingConfirmations(),
+    memberChangeRequests: getCachedMemberChangeRequests() || [],
+  });
+  if (!group) return null;
   const rows = buildMcBulkRows('secretary-confirm');
-  const bulkHtml = renderMcBulkRowsHtml(rows, { mode: 'secretary-confirm', accent: _accentColors().accent });
   return {
-    groupKey: 'secretary:member-confirm',
-    actionKey: 'member-confirm',
-    // IA-C1 Task2：实时组标注业务域（成员发展；供 T4 域折组）
-    domain: REALTIME_GROUP_DOMAIN['member-confirm'],
-    title: '成员变更待确认',
-    category: TodoCategory.REVIEW,
-    flow: '确认位唯一化（域内批量）：名册报送=支书确认生效/退回；议程派生（议程）审批通过项=支书确认更新阶段',
-    kind: 'confirm',
-    count: rows.length,
-    items: rosterItems,
-    agendaCount: agendaPending.length,
-    hideActionBtn: true,
-    bulkHtml,
+    ...group,
+    bulkHtml: renderMcBulkRowsHtml(rows, { mode: 'secretary-confirm', accent: _accentColors().accent }),
   };
 }
 
@@ -669,13 +686,13 @@ function renderVoidConfirmDetail(group) {
     const atText = String(vp.at || '').slice(0, 16).replace('T', ' ');
     const roleLabel = ROLE_LABELS[t.role] || t.role || '';
     return `
-      <div class="rounded-lg border border-gray-100 bg-gray-50/40 p-2.5 space-y-1.5" data-void-card="${esc(t.id)}" data-void-label="${esc(t.title || '未命名待办')}">
+      <div class="rounded-lg border border-gray-100 bg-[var(--neutral-50)] p-2.5 space-y-1.5" data-void-card="${esc(t.id)}" data-void-label="${esc(t.title || '未命名待办')}">
         <div class="flex items-center gap-1.5 flex-wrap">
           <span class="text-sm font-medium text-gray-800">${esc(t.title || '未命名待办')}</span>
           ${roleLabel ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 flex-shrink-0">${esc(roleLabel)}</span>` : ''}
           <span class="text-xs text-gray-500 ml-auto">${esc(byName)} · ${atText}</span>
         </div>
-        <div class="text-xs text-gray-600 leading-relaxed"><span class="font-medium text-gray-700">作废原因：</span>${esc(vp.reason || '—')}</div>
+        <div class="text-body-sm text-gray-600"><span class="font-medium text-gray-700">作废原因：</span>${esc(vp.reason || '—')}</div>
         <div class="flex gap-2 pt-1">
           <button type="button" class="btn-danger btn-sm void-decide" data-void-id="${esc(t.id)}" data-decision="confirm">确认作废</button>
           <button type="button" class="btn-outline btn-sm void-decide" data-void-id="${esc(t.id)}" data-decision="reject">驳回</button>
@@ -688,32 +705,16 @@ function renderVoidConfirmDetail(group) {
         <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">${items.length} 条待确认</span>
       </div>
       <p class="font-title-cn text-base font-semibold text-gray-800">待办作废待确认</p>
-      <p class="text-xs text-gray-600 leading-relaxed">确认即作废出列；驳回退回原状。</p>
+      <p class="text-body-sm text-gray-600">确认即作废出列；驳回退回原状。</p>
       <div class="space-y-2 max-h-[26rem] overflow-y-auto">${rows || emptyStateHtml({ text: '暂无待确认申请', variant: 'inline' })}</div>
     </div>`;
 }
 
 /** 学期末滞留集中复核提醒组（窗口内且有滞留成员时出现；kind=remind 复用「去处理→详情面板」） */
 function _semesterRemindAgg() {
-  if (!shouldShowSemesterDetainedRemind()) return null;
-  const detained = getDetainedMembers();
-  if (!detained.length) return null;
-  return {
-    groupKey: 'secretary:semester-detained-remind',
-    actionKey: 'semester-detained-remind',
-    // IA-C1 Task2：实时组标注业务域（成员发展；供 T4 域折组）
-    domain: REALTIME_GROUP_DOMAIN['semester-detained-remind'],
-    title: '学期末滞留集中复核',
-    category: TodoCategory.REVIEW,
-    // 批4：窗口文案由 policy 单一源派生（semesterDetainedWindowsLabel；含组织域覆盖后的动态窗口）
-    flow: `学期末窗口提醒（${semesterDetainedWindowsLabel()}）：请集中复核在册滞留名单`,
-    kind: 'remind',
-    count: detained.length,
-    items: detained.map(p => {
-      const rs = getResidenceOf(p);
-      return { id: p.id, name: p.name, note: rs.residenceNote || '', date: '' };
-    }),
-  };
+  // 2026-11-04 批次 534（Task 7）：窗口判定 + 滞留名单 + 文案单一源＝`todo-derive.js`
+  //   （窗口 `policy.memberConfirmation.semesterDetainedWindows`；`getDetainedMembers` 已套用居住覆盖）。
+  return deriveSemesterDetainedRemindGroup({ members: getDetainedMembers() });
 }
 
 /** 成员变更确认详情：逐项展示（kind 徽标 / 姓名 / from→to / 发起人 / 时间 / 备注 / 移出保持摘要）。
@@ -730,7 +731,7 @@ function renderMemberConfirmDetail(group) {
         ${agendaCount > 0 ? `<span class="text-xs text-gray-500">另 ${agendaCount} 条议程链项见左列批量块</span>` : ''}
       </div>
       <p class="font-title-cn text-base font-semibold text-gray-800">成员变更待确认</p>
-      <p class="text-xs text-gray-600 leading-relaxed">组织委员发起的变更须支书确认后生效，或退回原状。</p>
+      <p class="text-body-sm text-gray-600">组织委员发起的变更须支书确认后生效，或退回原状。</p>
       <div class="space-y-2 max-h-[26rem] overflow-y-auto">${rows || emptyStateHtml({ text: agendaCount > 0 ? '暂无名册逐项（议程链项请在上方批量块勾选确认）' : '暂无待确认请求', variant: 'inline' })}</div>
     </div>
   `;
@@ -740,19 +741,19 @@ function renderMemberConfirmDetail(group) {
 function _mcReqCard(req) {
   const action = req.action;
   const kindLabel = MC_ACTION_LABEL[action] || (req.kind === 'transferOut' ? '移出' : '变更');
-  const kindCls = action === 'developStage' ? 'bg-sky-50 text-sky-700'
-    : action === 'residence' ? 'bg-amber-50 text-amber-700'
-    : 'bg-red-50 text-red-700';
+  const kindTone = action === 'developStage' ? 'info'
+    : action === 'residence' ? 'warning'
+    : 'danger';
   const byName = req.by ? (getPersonName(req.by) || req.by) : '组织委员';
   const atText = String(req.at || '').slice(0, 16).replace('T', ' ');
   return `
-    <div class="rounded-lg border border-gray-100 bg-gray-50/40 p-2.5 space-y-1.5" data-mc-card="${esc(req.id)}">
+    <div class="rounded-lg border border-gray-100 bg-[var(--neutral-50)] p-2.5 space-y-1.5" data-mc-card="${esc(req.id)}">
       <div class="flex items-center gap-1.5 flex-wrap">
-        <span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${kindCls}">${kindLabel}</span>
+        ${badgeHtml(kindLabel, kindTone)}
         <span class="text-sm font-medium text-gray-800">${esc(req.name || req.personId)}</span>
         <span class="text-xs text-gray-500 ml-auto">${esc(byName)} · ${atText}</span>
       </div>
-      <div class="text-xs text-gray-600 leading-relaxed">
+      <div class="text-body-sm text-gray-600">
         <span class="font-medium text-gray-700">${esc(req.from || '')} → ${esc(req.to || '')}</span>
         ${req.note ? ` <span class="text-gray-500">· ${esc(req.note)}</span>` : ''}
       </div>
@@ -803,7 +804,7 @@ function renderSemesterDetainedDetail(group) {
         <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">${group.count} 名滞留成员</span>
       </div>
       <p class="font-title-cn text-base font-semibold text-gray-800">学期末滞留集中复核</p>
-      <p class="text-xs text-gray-600 leading-relaxed">延续或解除滞留：组织委员在「成员名册」发起变更。</p>
+      <p class="text-body-sm text-gray-600">延续或解除滞留：组织委员在「成员名册」发起变更。</p>
       <div class="rounded-lg bg-gray-50 p-2.5 space-y-1 max-h-44 overflow-y-auto">
         ${rows || '<div class="text-xs text-gray-500">当前无在册滞留成员</div>'}
       </div>
@@ -1083,7 +1084,8 @@ function confirmGroup(group, api) {
   api.renderContent();
 }
 
-// ── 行动跳转（种子行动类 / 提醒类跳活动管理） ──────────────────
+// ── 行动跳转（种子行动类 / 提醒类；落点经 `executeTodoAction`） ──────────────────
+
 function handleTodoAction(todo, ctx) {
   // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/record/todo-jump.js（2026-09-04）
   if (tryDirectJump(todo)) return;
@@ -1096,42 +1098,29 @@ function handleTodoAction(todo, ctx) {
     renderContent(ctx);
     return;
   }
-  // 提醒类聚合卡：「去活动管理」按钮直接切 calendar tab
+  // 提醒类聚合卡：动作表已声明落点（archive-remind / review-remind → 活动管理）
   if (todo.groupKey && (todo.actionKey || '').endsWith('-remind')) {
     jumpToCalendar(todo);
     return;
   }
-  // 根据 actionType 跳转到对应 tab（renderTabBar 统一按钮类名）
-  // 2026-09-25（赋权按对象归位）：authorize 原落「赋权管理」tab（已删）⇒ 落收编赋权①②的「党小组与活动」
-  // 2026-10-04 批次 373（按对象归位 · 支书圈乙）：情景②③ 项目赋权整卡迁「活动管理」页 ⇒ authorize 待办
-  //   按 scope 分流——leader（组长 / 副组长）落「党小组与活动」；activity / taskforce 落「活动管理」。
-  const authScope = todo.actionData?.scope;
-  const tabMap = {
-    authorize: 'group-progress',
-    write: 'calendar',
-    review: 'feedback',
-    notify: 'notification',
-  };
-  const targetTab = (todo.actionType === 'authorize' && (authScope === 'activity' || authScope === 'taskforce'))
-    ? 'calendar'
-    : tabMap[todo.actionType];
-  if (targetTab) {
-    const btn = document.querySelector(`.secretary-tab-btn[data-secretary-tab="${targetTab}"]`);
-    if (btn) btn.click();
-    // t5c：切 tab 后自动展开目标面板（最小三成本——行动按钮一次直达可操作状态）
-    if (todo.actionType === 'authorize') expandAssignPanelForTodo(todo);
-    showToast('info', `已跳转，请处理：${todo.title}`);
-  } else {
-    showToast('info', `请处理：${todo.title}`);
+  // 2026-11-01 批次 524（#7）：落点与按钮文案统一由 todo-actions.js 声明。
+  // 2026-11-10 批次 540：失败落点由导航层给可见提示（不再只 toast）。
+  // 2026-11-21 批次 592：赋权的活动 / 专班两个 scope 落**跨页或对象详情**，由 expandAssignPanelForTodo 单独落点；
+  //   先执行动作表会先切日历页再被改写（双跳转）⇒ 这两支直接走展开函数，不再调 executeTodoAction。
+  const _assignScope = todo.actionData?.scope;
+  if (todo.actionType === 'authorize' && (_assignScope === 'activity' || _assignScope === 'taskforce')) {
+    expandAssignPanelForTodo(todo);
+    return;
   }
+  const { action, ok } = executeTodoAction(todo, 'secretary');
+  if (!ok || !action) return;
+  // t5c：切 tab 后自动展开目标面板（最小三成本——行动按钮一次直达可操作状态）
+  if (todo.actionType === 'authorize') expandAssignPanelForTodo(todo);
 }
 
-/** 提醒类 → 切到活动管理 tab */
+/** 提醒类 → 切到动作表声明的落点（缺项 / 未命中由导航层给可见提示） */
 function jumpToCalendar(group) {
-  const btn = document.querySelector('.secretary-tab-btn[data-secretary-tab="calendar"]');
-  if (btn) btn.click();
-  const first = (group.items || [])[0];
-  showToast('info', `已跳转到活动管理，请跟进：${group.title}${first && first.name ? `（${first.name}）` : ''}`);
+  executeTodoAction(group, 'secretary');
 }
 
 /** t5c：赋权分块按对象归位后，按待办 scope 自动展开对应赋权面板——
@@ -1145,7 +1134,7 @@ function expandAssignPanelForTodo(todo) {
   const sourceId = todo.actionData?.sourceId || '';
   if (scope === 'leader') {
     // 组长 / 副组长赋权：置模块态后由 group-progress 挂载时补渲（tab 异步渲染也能落到位）
-    import('./assign-tab.js?v=20261031a').then(m => m.openLeaderAssignPanel({}));
+    import('./assign-tab.js?v=20261120a').then(m => m.openLeaderAssignPanel({}));
   } else if (scope === 'taskforce') {
     // 2026-10-25 IA 62→45：走统一页面解析（避免在 tab 模块里裸拼工作台相对路径——L2 导航守卫会误判）。
     window.location.href = resolveDocumentUrl('workspace/org.html', {
@@ -1167,19 +1156,17 @@ function expandAssignPanelForTodo(todo) {
 /** 单行：类型徽标（发起/解散）+ 专班名/任务摘要/报送人/报送时间 + 操作 */
 function _committeeTfRowHtml(req, act) {
   const kindLabel = req.kind === 'dissolve' ? '解散' : '发起';
-  const kindCls = req.kind === 'dissolve'
-    ? 'bg-gray-100 text-gray-600'
-    : 'bg-indigo-50 text-indigo-600';
+  const kindTone = req.kind === 'dissolve' ? 'neutral' : 'info';
   const byName = req.by ? getPersonName(req.by) : '组织委员';
   const atText = String(req.at || '').slice(0, 16).replace('T', ' ');
   const ops = act
-    ? `<span class="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 flex-shrink-0">已排入表决</span>
+    ? `<span class="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-[var(--status-warning-text)] flex-shrink-0">已排入表决</span>
        <button type="button" class="btn-accent-soft btn-sm tf-cr-result flex-shrink-0" data-tf-id="${req.id}" data-activity-id="${act.id}">查看表决结果并生效</button>`
     : `<button type="button" class="btn-accent-soft btn-sm tf-cr-arrange flex-shrink-0" data-tf-id="${req.id}" data-kind="${req.kind}">排入支委会表决</button>`;
   return `
-    <div class="rounded-xl border border-gray-100 bg-gray-50/40 p-3">
+    <div class="rounded-xl border border-gray-100 bg-[var(--neutral-50)] p-3">
       <div class="flex items-start gap-2">
-        <span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${kindCls}">${kindLabel}</span>
+        ${badgeHtml(kindLabel, kindTone)}
         <div class="flex-1 min-w-0">
           <p class="font-title-cn text-sm font-bold text-gray-800 truncate">${req.name || '未命名专班'}</p>
           ${req.task ? `<p class="text-xs text-gray-500 truncate mt-0.5">${req.task}</p>` : ''}
@@ -1249,7 +1236,7 @@ async function _openTfDecisionModal(req, activityId, api) {
       <p class="text-xs text-gray-500 mb-3">表决活动：线上支委会（${kindLabel}专班议案）</p>
       <div class="rounded-lg bg-gray-50 p-3 text-xs space-y-1.5">
         <p class="text-gray-700">${sumLine}</p>
-        <p class="font-medium ${status === 'passed' ? 'text-green-700' : status === 'failed' ? 'text-red-600' : 'text-amber-700'}">结论：${conclusion}</p>
+        <p class="font-medium ${status === 'passed' ? 'text-green-700' : status === 'failed' ? 'text-red-600' : 'text-[var(--status-warning-text)]'}">结论：${conclusion}</p>
         ${status === 'pending'
           ? '<p class="text-gray-500">判据（R2-3）：应到严格超过 2/3 出席且无反对（弃权允许）。未达标请等待委员表态/截止后再查看。</p>'
           : '<p class="text-gray-500">确认后按此结论生效：' + (status === 'passed'

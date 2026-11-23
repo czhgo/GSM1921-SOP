@@ -87,6 +87,9 @@ export function ownerSubjectType(id) {
  * @property {string} defaultOwner 缺省主责**主体引用**（角色键 或 组织型主体 id，见 `ORG_SUBJECTS`；SOP/职责表草案，支委会可改）
  * @property {string} desc      一句话说明（卡面文案）
  * @property {string[]} [outputs] 产出交接标签（考勤/考察/宣传/材料，对应活动/专班运行产出）
+ * @property {string[]} [collaborators] 协作主体（角色键 或 组织型主体 id，见 `ORG_SUBJECTS`）。
+ *   **可缺省**＝该模块没有已登记的协作方。只填母本 / 本模块 `desc` 与注释可核者，
+ *   不作制度推定（2026-11-10 批次 540 波次 5：责任关系行 meta 读这一格）。
  * @property {{unit:'month'|'quarter'|'half-year'|'year', source:string}} [cycle]
  *   开展周期（2026-10-06 批次 423 · `R-29⑤` · `D-804`）——**周期任务的唯一来源**（不另立第二份映射，`D-803②`）。
  *   `source`＝出处（母本文件 §节），供面板 title 与核查。**只填母本可核者**；无制度固定周期者**不填**
@@ -129,6 +132,8 @@ export const WORK_MAP_MODULES = [
     //   这一层的主责，不是考勤主责。
     desc: '党课：系统性政治理论学习（通常由上级统一安排；通知与补课提醒归支书，考勤上传位在纪检委员）',
     outputs: ['考勤', '宣传', '材料'],
+    // 协作方取自本行 desc 的可核事实：考勤上传位在纪检委员（`D-558`）。
+    collaborators: ['disc-commissioner'],
   },
   {
     id: 'theme-party', name: '主题党日', tier: 'norm', defaultOwner: 'leader',
@@ -146,7 +151,8 @@ export const WORK_MAP_MODULES = [
   {
     id: 'taskforce', name: '专班', tier: 'method', defaultOwner: 'org-commissioner',
     desc: '专班全生命周期：创建-招募-运行-解散（组织委员最高优先级），负责人制',
-    outputs: ['考勤', '考察', '材料'],
+    // D-868：专班不产生考勤（考勤只挂活动）；产出只保留考察与材料。
+    outputs: ['考察', '材料'],
   },
   {
     id: 'joint-event', name: '共建活动', tier: 'method', defaultOwner: 'leader',
@@ -171,6 +177,8 @@ export const WORK_MAP_MODULES = [
     //   与母本 §5.1 相左（组织委员承担的是其中的考察与材料准备，不是整件事的主责）。
     desc: '发展党员管线：申请→积极分子→考察→发展对象→接收→转正（责任在支委会，集体决策；考察与材料准备归组织委员）',
     outputs: ['材料'],
+    // 协作方取自本行 desc 与母本 §5.1 注：支委会集体决策，考察与材料准备归组织委员。
+    collaborators: ['org-commissioner'],
   },
   {
     id: 'democratic-review', name: '民主评议党员', tier: 'norm', defaultOwner: 'secretary',
@@ -182,6 +190,8 @@ export const WORK_MAP_MODULES = [
     //   生活会」同一裁定：内容是命名表达、不进子类 chips/写入表单）；「评议明细」（评议表/格次/汇总）
     //   尚未建，待按 L3 manifest 补齐。
     desc: '年度民主评议党员（以支部党员大会 / 党小组会形式召开、活动命名表达；上传任务归支书、评议明细待按 L3 补齐）',
+    // 协作方取自本行 desc：承载在支部党员大会 / 党小组会（党小组会由本组组长主导）。
+    collaborators: ['leader'],
   },
   {
     id: 'election', name: '换届选举', tier: 'norm', defaultOwner: 'party-committee',
@@ -208,6 +218,8 @@ export const WORK_MAP_MODULES = [
     // 未据此改全套派单逻辑）。『支委会』是**组织型主体**（`ORG_SUBJECTS`，类似法人、不是自然人），
     // 不是角色键 ⇒ 由 `ownerSubjectType()` 判为 `ownerType:'org'`。
     desc: '意见建议反馈处理（处置归支委会，支书主持支委会；场景 feedback-handling + 意见反馈）',
+    // 协作方取自母本 `COMMISSIONER_DUTY_FRAMEWORK.md §C.1b`：处置主体＝支委会，支书主持。
+    collaborators: ['secretary'],
   },
   {
     id: 'rule-making', name: '制度制定与迭代', tier: 'norm', defaultOwner: 'branch-committee',

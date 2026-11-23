@@ -12,15 +12,15 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261031a';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261031a';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261031a';
-import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT } from '../../docs/src/services/branch/config-clean.js?v=20261031a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261120a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261120a';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261120a';
+import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT } from '../../docs/src/services/branch/config-clean.js?v=20261120a';
 import {
   getBranchById, updateBranchModules, updateBranchBlocks, updateBranchWorkforce,
   savePolicyOverrides, updateBranchOrg, createBranch,
   canRollbackBranchConfig, rollbackBranchConfig,
-} from '../../docs/src/services/branch/branch.js?v=20261031a';
+} from '../../docs/src/services/branch/branch.js?v=20261120a';
 // HTTP 域
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
@@ -174,7 +174,7 @@ test('② rollback：跨键/聚合留痕（branch-created/config-copied 等）�
   // 注入聚合留痕场景：复制配置到 br-b1 前先建一个源支部（applyConfigCopy 会写 config-copied 聚合行）
   const src = await createBranch({ name: '源支部（复制）', by: '9000000001', actorRole: 'party-staff' });
   assert.equal(src.ok, true);
-  const { applyConfigCopy } = await import('../../docs/src/services/branch/branch.js?v=20261031a');
+  const { applyConfigCopy } = await import('../../docs/src/services/branch/branch.js?v=20261120a');
   const rCopy = await applyConfigCopy(src.branch.id, ['br-b1'], { by: '2300010001' });
   assert.equal(rCopy[0].ok, true);
   const copiedRow = lastRow();
@@ -252,7 +252,8 @@ async function _login(personId) {
   return (await r.json()).token;
 }
 function _auth(token) {
-  return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+  // 批次 564：整行写口要求 If-Match；本文件只验留痕与回滚，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+  return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'If-Match': '*' };
 }
 async function _patchConfig(token, body) {
   return fetch(`${_httpBase}/api/v1/branches/br-b1/config`, {

@@ -28,7 +28,9 @@
 // ════════════════════════════════════════════════════════════════
 
 /** 支部名与类型（支书点名：既存支部＝光华管理学院本科生党支部） */
+import { randomBytes } from 'node:crypto';
 import { DEFAULT_BRANCH_ID } from '../docs/src/core/domain/constants.js';
+import { isProductionEnv } from './env.js';
 const BASELINE_BRANCH = {
   id: DEFAULT_BRANCH_ID,
   name: '光华管理学院本科生党支部',
@@ -66,6 +68,49 @@ function partyStaffRow() {
   };
 }
 
+// ════════════════════════════════════════════════════════════════
+//  生产首启的最小角色账号（2026-11-02 批次 527 · Wave 3）
+// ════════════════════════════════════════════════════════════════
+// 口径：只补「能登录并在本支部行使角色」的最小账号，**不写任何演示业务数据**（无活动/考勤/名册）。
+//   · 仅在**生产形态**且**当前库里没有该角色**时创建（非生产/演示库由 seed.js 负责，本段不介入）；
+//   · 账号＝学号/工号；缺省占位号可用环境变量覆盖（部署后在设置中心改真实学号）；
+//   · 口令：本系统口令是**全站统一**的 `LOGIN_PASSWORD`（见 routes/auth.js）。生产启动已强制要求该变量；
+//     若未设则生成一次性随机口令并**仅在控制台打印一次**（不写库、不落盘）。
+const BASELINE_ROLE_ACCOUNTS = [
+  { role: 'secretary', label: '支书', suffix: '2', idVar: 'BASELINE_SECRETARY_ID', nameVar: 'BASELINE_SECRETARY_NAME' },
+  { role: 'deputy-secretary', label: '副支书', suffix: '3', idVar: 'BASELINE_DEPUTY_ID', nameVar: 'BASELINE_DEPUTY_NAME' },
+  { role: 'org-commissioner', label: '组织委员', suffix: '4', idVar: 'BASELINE_ORG_ID', nameVar: 'BASELINE_ORG_NAME' },
+  { role: 'prop-commissioner', label: '宣传委员', suffix: '5', idVar: 'BASELINE_PROP_ID', nameVar: 'BASELINE_PROP_NAME' },
+  { role: 'disc-commissioner', label: '纪检委员', suffix: '6', idVar: 'BASELINE_DISC_ID', nameVar: 'BASELINE_DISC_NAME' },
+  { role: 'leader', label: '党小组组长', suffix: '7', idVar: 'BASELINE_LEADER_ID', nameVar: 'BASELINE_LEADER_NAME' },
+];
+
+function roleAccountRow(spec) {
+  const studentId = process.env[spec.idVar] || `900000000${spec.suffix}`;
+  const name = process.env[spec.nameVar] || `${spec.label}账号`;
+  return {
+    id: studentId,
+    name,
+    studentId,
+    partyGroup: '',
+    developStage: '正式党员',
+    role: spec.role,
+    branchId: DEFAULT_BRANCH_ID,
+  };
+}
+
+/** 全站统一口令：优先 LOGIN_PASSWORD / BASELINE_LOGIN_PASSWORD；都没有 ⇒ 一次性随机（仅打印一次） */
+function resolveBaselinePassword() {
+  if (process.env.LOGIN_PASSWORD) return { value: process.env.LOGIN_PASSWORD, generated: false, source: 'LOGIN_PASSWORD' };
+  if (process.env.BASELINE_LOGIN_PASSWORD) {
+    process.env.LOGIN_PASSWORD = process.env.BASELINE_LOGIN_PASSWORD;
+    return { value: process.env.BASELINE_LOGIN_PASSWORD, generated: false, source: 'BASELINE_LOGIN_PASSWORD' };
+  }
+  const value = randomBytes(12).toString('base64url');
+  process.env.LOGIN_PASSWORD = value;
+  return { value, generated: true, source: 'generated' };
+}
+
 const countOf = (db, table) => db.prepare(`SELECT COUNT(*) AS c FROM ${table}`).get().c;
 const insertRow = (db, table, row) =>
   db.prepare(`INSERT OR IGNORE INTO ${table} (id, data) VALUES (?, ?)`).run(row.id, JSON.stringify(row));
@@ -92,10 +137,51 @@ export function seedBaseline(db) {
     done.partyStaff = true;
   }
 
-  if (done.branch || done.partyStaff) {
+  // ③ 生产首启：补最小角色账号（支书/副支书/组织/宣传/纪检/组长）——**不写任何业务数据**
+  //    非生产形态不介入：演示种子（seed.js）本就含全部角色，测试基线仍保持「1 支部 + 1 党委」口径。
+  if (isProductionEnv()) {
+    const existing = new Map();
+    for (const r of db.prepare('SELECT data FROM users').all()) {
+      try {
+        const u = JSON.parse(r.data);
+        if (u && u.role && !existing.has(u.role)) existing.set(u.role, u);
+      } catch (_) { /* 坏行忽略 */ }
+    }
+    const created = [];
+    for (const spec of BASELINE_ROLE_ACCOUNTS) {
+      if (existing.has(spec.role)) continue;
+      const row = roleAccountRow(spec);
+      insertRow(db, 'users', row);
+      created.push(row);
+    }
+    if (created.length) {
+      done.roleAccounts = created.length;
+      const pwd = resolveBaselinePassword();
+      const branch = db.prepare('SELECT id, data FROM branches WHERE id = ?').get(DEFAULT_BRANCH_ID);
+      const secretary = created.find((u) => u.role === 'secretary');
+      if (branch && secretary) {
+        const data = JSON.parse(branch.data);
+        if (!data.secretaryId) {
+          data.secretaryId = secretary.id;
+          db.prepare('UPDATE branches SET data = ? WHERE id = ?').run(JSON.stringify(data), branch.id);
+        }
+      }
+      console.log(`[server] 已补**最小角色账号** ${created.length} 名（仅账号，无业务数据）：`
+        + created.map((u) => `${u.name}/${u.studentId}`).join('、'));
+      if (pwd.generated) {
+        console.log(`[server] ⚠ 未设 LOGIN_PASSWORD ⇒ 本次生成一次性登录口令（仅打印这一次，进程重启后失效）：${pwd.value}`);
+        console.log('[server]   生产部署请显式设置 LOGIN_PASSWORD（全站统一口令），勿依赖一次性口令。');
+      } else {
+        console.log(`[server]   登录口令取自 ${pwd.source}（不在日志中回显）；首次登录后请尽快改真实学号与口令。`);
+      }
+    }
+  }
+
+  if (done.branch || done.partyStaff || done.roleAccounts) {
     const parts = [];
     if (done.branch) parts.push(`支部 1 个（${BASELINE_BRANCH.name}）`);
     if (done.partyStaff) parts.push(`党委账号 1 名（${partyStaffRow().name} / 学号 ${partyStaffRow().studentId}）`);
+    if (done.roleAccounts) parts.push(`最小角色账号 ${done.roleAccounts} 名`);
     console.log(`[server] 已建立**最小组织基线**：${parts.join(' ＋ ')}；`
       + '**未灌任何成员名单**（名单请走 IAAA 登录 + 支部确认，或党委台「支部管理 → 导入成员名册」）');
   }

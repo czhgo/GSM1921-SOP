@@ -183,7 +183,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-10-EXECUTION_LOG.md, .ctx/logs/2026-09
 
 
 
-`CLAUDE.md`（乙部：删 60 行已闭环/已立、新增「在办：支书 2026-10-01 评议批」14 条 `V-` 与「后续批次计划」）· `docs/src/entries/tabs/org/talent-tab.js`（删 11px 说明块 ＋ `†` 口径半句）· `docs/src/components/governance/org-setup-wizard.js`（两句去党委强调）· `docs/src/components/governance/work-overview.js`（超期行对比度）· `docs/src/entries/tabs/org/todo-tab.js`（撤补课回执卡）· `server/test/doc-consistency.test.mjs`（`S14` 第 4 读改锚母本；`S15②` 改判据）· `server/test/style-baseline.mjs` ＋ `hex-hardcode-guard.test.mjs`（收基线 78→77）· `server/test/copy-length-guard.test.mjs`（收基线 `C2 12→11` / `C5 4→3`）· `.ctx/TIMESTAMPS.md`。
+`CLAUDE.md`（乙部：删 60 行已闭环/已立、新增「在办：支书 2026-10-01 评议批」14 条 `V-` 与「后续批次计划」）· `docs/src/entries/tabs/org/talent-tab.js`（删 11px 说明块 ＋ `†` 口径半句）· `docs/src/components/governance/org-setup-wizard.js`（两句去党委强调）· `docs/src/components/governance/work-overview.js`（超期行对比度）· `docs/src/entries/tabs/org/todo-tab.js`（撤补课回执卡）· `server/test/doc-consistency.test.mjs`（`S14` 第 4 读改锚母本；`S15②` 改判据）· `server/test/style-baseline.mjs` ＋ `color-ratchet-guard.test.mjs`（收基线 78→77）· `server/test/copy-length-guard.test.mjs`（收基线 `C2 12→11` / `C5 4→3`）· `.ctx/TIMESTAMPS.md`。
 
 
 
@@ -954,7 +954,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-10-EXECUTION_LOG.md, .ctx/logs/2026-09
 - `docs/src/styles.css`：`.badge--brand` 浅色 / 深色两条规则。
 - `docs/src/components/ui/badge.js`：`brand` / `gold` 去内联字色 ＋ 头注更新。
 - `server/test/style-baseline.mjs`：删 `badge.js` 条目（hex 清零）· `HEX_FILE_BASELINE` 76 → **75**（**收基线**，非放宽）。
-- `server/test/hex-hardcode-guard.test.mjs`：防呆下限随实况 76 → **75**。
+- `server/test/color-ratchet-guard.test.mjs`：防呆下限随实况 76 → **75**。
 - 全站 `?v=` 戳 `20261002a → b`（JS 217 / HTML 22 / CSS 2 / server-test 88；陈旧戳 0 残留）。
 - `.ctx/**`：本条 ＋ 四处计数（`11 → 12` 条）＋ 执行日志批次 337 节。
 
@@ -2647,7 +2647,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-10-EXECUTION_LOG.md, .ctx/logs/2026-09
 > - **⑤ 联动赋权（收发件人改取模块主责）**：`LifecycleTodoDeriver.deriveFromActivityCreate / deriveFromTaskforceCreate` 新增可选 `opts.snapshot`（接受 `config.workforce` 原样或 `expandWorkforce` 展开后，展开幂等），收件人经 `_authzRecipient` 三档解析：**角色键 ⇒ 直达该角色台；具体人 ⇒ 补 `personId`（定向）＋ `role` 回退本台固定角色**（待办只有 `role` 索引，`TodoStore.getByRole` ⇒ 不写 `role` 会**不可见**，故必须回退）；**组织型主体 / 无模块 / 停用 ⇒ 回退固定角色**（既有行为）。同时把 `moduleId` / `ownerType` / `ownerId` 落进 `actionData`（供界面显示「本活动属哪个模块、主责是谁」）。**缺省分工即刻生效**（如活动 `type='支委会'` ⇒ 收件人＝支书，此前一律组长）。
 > - **⑥ 常驻判据（`D-803②` 要求的「配常驻判据」）**：新建 `server/test/module-cycle-remind.test.mjs`（8 例：单一源自洽 · 四单位期键与标签 · 未开展⇒出组 · 已开展⇒不出 · 非本主体⇒不出 · 改派随分工走 · 空组不产生 · 域标注在位）＋ `server/test/module-owner-authz.test.mjs`（9 例：三档收件人 ＋ 支委会/党小组会/无 type/组织型/专班 ＋ **非空转**「角色档须能被 `getByRole` 取到」）；**两件均登记 `test:fast` ＋ `test:daily`**（`S16` 要求）。
 
-> **一改具改**：`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 两条同源校验点改准（赋权类待办的收件人口径改「模块主责」＋ 新增「模块周期提醒」一条）；`CLAUDE.md` 乙部 `R-29` 行改准（**保留在办行**——余项仍在，非闭环）；`server/test/localstorage-key-guard.test.mjs` 的 `NON_STORAGE_CONST_NAMES` 增 `MODULE_CYCLE_ACTION_KEY`（**动作键不是存储键**，循该守卫既有例外机制）；戳 `20261005m → 20261006a`。
+> **一改具改**：`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 两条同源校验点改准（赋权类待办的收件人口径改「模块主责」＋ 新增「模块周期提醒」一条）；`CLAUDE.md` 乙部 `R-29` 行改准（**保留在办行**——余项仍在，非闭环）；`server/test/navigation-guard.test.mjs` 的 `NON_STORAGE_CONST_NAMES` 增 `MODULE_CYCLE_ACTION_KEY`（**动作键不是存储键**，循该守卫既有例外机制）；戳 `20261005m → 20261006a`。
 
 > **未闭环余项（如实登记，不得读成已全落）**：① 周期提醒**只接线组长台**（支书台 / 组织台等未接——那两个模块的缺省主责＝`leader`，改派到别台后该台不出条）；② **支部改派（`config.workforce`）尚未接到三个派生点**（`services/core/mock.js::createActivity` · `data/mock-adapter.js` 两处 · `services/activity/taskforce.js::add`）——它们未传 `opts.snapshot`，故按**缺省分工**解析（已正确，但支部改派不生效）；③ **「到人」主责**今仍回退角色、`personId` 仅作定向——待「按人索待办」（`TodoStore` 增 `personId` 索引面）才可真正只给本人看。
 

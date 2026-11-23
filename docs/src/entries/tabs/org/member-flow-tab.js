@@ -15,29 +15,29 @@
 //   登记者角色门 = canRegisterFlow（组织委员 + 支书/副支书）。
 // ════════════════════════════════════════════════════════════════
 
-import { DEFAULT_BRANCH_ID, DEVELOP_STAGES } from '../../../core/domain/constants.js?v=20261031a';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261031a';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261031a';
-import { getPersonName } from '../../../services/member/person.js?v=20261031a';
+import { DEFAULT_BRANCH_ID, DEVELOP_STAGES } from '../../../core/domain/constants.js?v=20261120a';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261120a';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261120a';
+import { getPersonName } from '../../../services/member/person.js?v=20261120a';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——登记流入的「党小组」选项
-import { groupOptions } from '../../../services/member/party-group.js?v=20261031a';
-import { showToast, escHtml as esc, todayLocal } from '../../../core/base/utils.js?v=20261031a';
-import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261031a';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261031a';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261120a';
+import { showToast, escHtml as esc, todayLocal, getBasePath, describeWriteError } from '../../../core/base/utils.js?v=20261120a';
+import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261120a';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261120a';
 // 统一检索引擎（表格统一化批次 A）：台账表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261031a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261031a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261120a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member/member-flow.js?v=20261031a';
+} from '../../../services/member/member-flow.js?v=20261120a';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261031a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261120a';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261031a';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261120a';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261031a';
+import { emptyStateHtml, renderSkeleton } from '../../../components/ui/empty-state.js?v=20261120a';
 // 模块级 ctx 缓存：登记/撤销后整页刷新复用首次渲染的 accent
 let _ctx = null;
 
@@ -54,6 +54,17 @@ function _requireActor() {
   const id = _actorId();
   if (!id) showToast('error', '登录态已失效，请重新登录');
   return id;
+}
+
+/** 字段级错误（就地）：错误文本 + aria-invalid + aria-describedby（R5A-11，口径同 org-setup-wizard） */
+function _showFlowFieldError(input, errId, msg) {
+  const errEl = errId ? document.getElementById(errId) : null;
+  if (errEl) { errEl.textContent = msg; errEl.hidden = false; }
+  if (input) {
+    input.setAttribute('aria-invalid', 'true');
+    if (errId) input.setAttribute('aria-describedby', errId);
+    if (typeof input.focus === 'function') input.focus();
+  }
 }
 
 /** 操作人角色（成员流动登记权限门 canRegisterFlow 入参） */
@@ -155,11 +166,11 @@ async function _loadIaaaPending() {
   if (!host) return;
   const token = getAuthToken();
   if (!token) { host.innerHTML = '<p class="text-xs text-gray-500">本地浏览形态无入站申请；接入统一身份认证后在此确认。</p>'; return; }
-  host.innerHTML = '<p class="text-xs text-gray-500">正在加载…</p>';
+  renderSkeleton(host, 3, { ariaText: '正在加载待确认申请…' });
   try {
     const r = await fetch(`${getApiBaseUrl()}/api/v1/auth/iaaa/pending`, { headers: { Authorization: `Bearer ${token}` } });
     if (r.status === 403) { host.innerHTML = '<p class="text-xs text-gray-500">仅支书 / 副支书 / 组织委员可确认入站。</p>'; return; }
-    if (!r.ok) throw new Error('HTTP ' + r.status);
+    if (!r.ok) throw Object.assign(new Error('pending list failed'), { status: r.status });
     const rows = await r.json();
     if (!Array.isArray(rows) || !rows.length) { host.innerHTML = emptyStateHtml({ text: "暂无待确认的入站申请。", variant: 'inline' }); return; }
     host.innerHTML = `<div class="space-y-2">${rows.map((u) => `
@@ -171,7 +182,13 @@ async function _loadIaaaPending() {
         </span>
       </div>`).join('')}</div>`;
   } catch (e) {
-    host.innerHTML = `<p class="text-xs text-red-600">待确认清单加载失败：${esc(e && e.message ? e.message : '')}</p>`;
+    console.warn('[member-flow] 待确认清单加载失败：', e);
+    host.innerHTML = emptyStateHtml({
+      text: '待确认清单加载失败',
+      variant: 'inline',
+      actionHtml: '<button type="button" class="btn-outline" data-iaaa-retry>重新载入</button>',
+    });
+    host.querySelector('[data-iaaa-retry]')?.addEventListener('click', () => _loadIaaaPending());
   }
 }
 
@@ -184,11 +201,11 @@ async function _decideIaaaPending(personId, verb) {
       method: 'POST', headers: { Authorization: `Bearer ${token}` },
     });
     const j = await r.json().catch(() => null);
-    if (!r.ok) throw new Error((j && j.error) || ('HTTP ' + r.status));
+    if (!r.ok) throw Object.assign(new Error((j && j.error) || 'decide failed'), { status: r.status, body: j });
     showToast('success', verb === 'approve' ? '已确认入站' : '已驳回');
     _loadIaaaPending();
   } catch (e) {
-    showToast('error', '处理失败：' + (e && e.message ? e.message : ''));
+    showToast('error', '处理失败：' + describeWriteError(e));
   }
 }
 
@@ -212,7 +229,7 @@ function _renderFlowBody() {
       <span class="text-gray-500">流出 <span class="text-red-700 font-medium">${r.outCount}</span></span>
       <span class="text-gray-300">·</span>
       <span class="text-gray-500">当前在册 <span class="text-gray-700 font-medium">${r.currentCount}</span></span>
-      ${r.balanced ? '' : '<span class="text-gray-500">台账流水与在册人数暂不一致，请核对下方记录与撤销留痕</span>'}
+      ${r.balanced ? '' : `<span class="text-gray-500">台账流水与在册人数暂不一致，请核对下方记录与撤销留痕，或到 <a class="text-accent font-medium hover:opacity-80" href="${getBasePath()}workspace/org.html?tab=roster">成员名册</a> 核对在册人数</span>`}
     </div>`;
   const flows = _flowRows();
   // R7-08：学号 / 届别 / 备注是登记快照（无改写入口）——空值标注快照语义，整列全空则不渲染该列。
@@ -223,9 +240,9 @@ function _renderFlowBody() {
     enrollYear: colHasValue('enrollYear'),
     note: colHasValue('note'),
   };
-  const heads = ['<th>类型</th>', '<th>姓名</th>',
-    showCols.studentId ? '<th>学号</th>' : '', showCols.enrollYear ? '<th>届别</th>' : '',
-    '<th>日期</th>', '<th>经手人</th>', showCols.note ? '<th>备注</th>' : '', '<th>操作</th>'].filter(Boolean).join('');
+  const heads = ['<th scope="col">类型</th>', '<th scope="col">姓名</th>',
+    showCols.studentId ? '<th scope="col">学号</th>' : '', showCols.enrollYear ? '<th scope="col">届别</th>' : '',
+    '<th scope="col">日期</th>', '<th scope="col">经手人</th>', showCols.note ? '<th scope="col">备注</th>' : '', '<th scope="col">操作</th>'].filter(Boolean).join('');
   renderFilteredList(tableHost, {
     stateKey: 'org-member-flow-table',
     rows: flows,
@@ -300,11 +317,13 @@ function _openIntakeModal() {
       <div data-intake-pane="single">
         <div style="margin-bottom:14px;">
           <label for="flow-intake-name" class="text-body-sm" style="${labelStyle}">姓名 <span style="color:var(--status-error-text);">*</span></label>
-          <input id="flow-intake-name" data-intake="name" type="text" class="input-flat-sm w-full" placeholder="成员姓名（必填）" style="${inputStyle}">
+          <input id="flow-intake-name" data-intake="name" type="text" class="input-flat-sm w-full" placeholder="成员姓名（必填）" style="${inputStyle}" aria-describedby="flow-intake-name-err">
+          <p id="flow-intake-name-err" data-field-error hidden class="mt-1 text-xs text-red-700" role="alert"></p>
         </div>
         <div style="margin-bottom:14px;">
           <label for="flow-intake-student-id" class="text-body-sm" style="${labelStyle}">学号 <span style="color:var(--status-error-text);">*</span></label>
-          <input id="flow-intake-student-id" data-intake="studentId" type="text" class="input-flat-sm w-full" placeholder="学号（账号由此派生，必填）" style="${inputStyle}">
+          <input id="flow-intake-student-id" data-intake="studentId" type="text" class="input-flat-sm w-full" placeholder="学号（账号由此派生，必填）" style="${inputStyle}" aria-describedby="flow-intake-student-id-err">
+          <p id="flow-intake-student-id-err" data-field-error hidden class="mt-1 text-xs text-red-700" role="alert"></p>
         </div>
         <div style="margin-bottom:14px;">
           <label for="flow-intake-enroll-year" class="text-body-sm" style="${labelStyle}">届别</label>
@@ -316,7 +335,8 @@ function _openIntakeModal() {
         </div>
         <div style="margin-bottom:14px;">
           <label for="flow-intake-develop-stage" class="text-body-sm" style="${labelStyle}">发展阶段 <span style="color:var(--status-error-text);">*</span></label>
-          <select id="flow-intake-develop-stage" data-intake="developStage" required aria-required="true" class="input-flat w-full">${stageOpts}</select>
+          <select id="flow-intake-develop-stage" data-intake="developStage" required aria-required="true" aria-describedby="flow-intake-develop-stage-err" class="input-flat w-full">${stageOpts}</select>
+          <p id="flow-intake-develop-stage-err" data-field-error hidden class="mt-1 text-xs text-red-700" role="alert"></p>
         </div>
         <div style="margin-bottom:14px;">
           <label for="flow-intake-note" class="text-body-sm" style="${labelStyle}">备注（选填）</label>
@@ -325,7 +345,8 @@ function _openIntakeModal() {
       </div>
       <div data-intake-pane="batch" class="hidden">
         <label for="flow-intake-text" class="text-body-sm" style="${labelStyle}">粘贴多行</label>
-        <textarea id="flow-intake-text" data-intake="text" rows="6" class="input-flat w-full" placeholder="一行一人：姓名、学号、届别、党小组、备注、发展阶段（Tab 或逗号分隔；第 6 列发展阶段必填）" style="${inputStyle}resize:vertical;"></textarea>
+        <textarea id="flow-intake-text" data-intake="text" rows="6" class="input-flat w-full" placeholder="一行一人：姓名、学号、届别、党小组、备注、发展阶段（Tab 或逗号分隔；第 6 列发展阶段必填）" style="${inputStyle}resize:vertical;" aria-describedby="flow-intake-text-err"></textarea>
+        <p id="flow-intake-text-err" data-field-error hidden class="mt-1 text-xs text-red-700" role="alert"></p>
       </div>
       <div data-intake-errors class="hidden mt-3 text-xs text-red-700"></div>`,
     // 动作固定在 sticky footer（R3-10）
@@ -356,6 +377,10 @@ function _openIntakeModal() {
         const branchId = _branchId();
         if (mode === 'single') {
           const val = (k) => panel.querySelector(`[data-intake="${k}"]`).value;
+          // R5A-11：必填为空先在字段旁给出原因（不新造校验规则，仍由服务层做最终判定）
+          if (!String(val('name')).trim()) { _showFlowFieldError(panel.querySelector('#flow-intake-name'), 'flow-intake-name-err', '请填写成员姓名'); return; }
+          if (!String(val('studentId')).trim()) { _showFlowFieldError(panel.querySelector('#flow-intake-student-id'), 'flow-intake-student-id-err', '请填写学号'); return; }
+          if (!String(val('developStage')).trim()) { _showFlowFieldError(panel.querySelector('#flow-intake-develop-stage'), 'flow-intake-develop-stage-err', '请选择发展阶段'); return; }
           const r = await registerIntake({
             name: val('name'), studentId: val('studentId'),
             enrollYear: val('enrollYear'), partyGroup: val('partyGroup'),
@@ -371,7 +396,9 @@ function _openIntakeModal() {
           }
           return;
         }
-        const r = await registerIntakeBatch({ text: panel.querySelector('[data-intake="text"]').value, by, role, branchId });
+        const batchText = panel.querySelector('[data-intake="text"]').value;
+        if (!String(batchText).trim()) { _showFlowFieldError(panel.querySelector('#flow-intake-text'), 'flow-intake-text-err', '请粘贴要登记的人员行'); return; }
+        const r = await registerIntakeBatch({ text: batchText, by, role, branchId });
         if (!r.created.length) {
           showErrors(`<p>${esc(r.reason || '未登记任何成员，请检查填写格式')}</p>`);
           return;

@@ -69,7 +69,7 @@
 
 ## 九、守卫与复核
 
-- [x] `ui-color-semantics.test.mjs` 通过：逾期/错误/主题色/功能色无越界
+- [x] `color-ratchet-guard.test.mjs` 通过：逾期/错误/主题色/功能色无越界
 - [x] `ui-row-interaction.test.mjs` 通过：元素、focus-visible、display 行无 hover/pointer
 - [x] `ui-preflight-context.test.mjs` 通过：两处 10 问卡齐备
 - [x] 1440 与 390 截图复核：概况、待办、支委会、首页四页

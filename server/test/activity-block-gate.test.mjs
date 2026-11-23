@@ -14,7 +14,7 @@
 // ════════════════════════════════════════════════════════════════
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { SCENARIO_WRITE_IDS, SCENARIO_LABELS, BRANCH_COMMISSION_ROLES } from '../../docs/src/core/domain/constants.js?v=20261031a';
+import { SCENARIO_WRITE_IDS, SCENARIO_LABELS, BRANCH_COMMISSION_ROLES } from '../../docs/src/core/domain/constants.js?v=20261120a';
 const { createApp } = await import('../app.js');
 const { seedBaseline } = await import('../seed-baseline.js');
 
@@ -28,7 +28,12 @@ const PARTY_LABEL = SCENARIO_LABELS['theme-party'];   // 主题党日（别名�
 const api = async (method, path, { body, tok } = {}) => {
   const r = await fetch(BASE + path, {
     method,
-    headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...((tok || token) ? { Authorization: `Bearer ${tok || token}` } : {}) },
+    // 批次 564：整行写口要求 If-Match；本文件只验块入口门，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+    headers: {
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+      ...((tok || token) ? { Authorization: `Bearer ${tok || token}` } : {}),
+      ...(method === 'PATCH' ? { 'If-Match': '*' } : {}),
+    },
     body: body ? JSON.stringify(body) : undefined,
   });
   const text = await r.text();
@@ -141,14 +146,14 @@ test('G7 停止新建但允许在办活动完成；活动完成后只读保留',
 test('G8 停用专班能力后不再新建；在办工作组可办结，历史保留只读', async () => {
   setHiddenBlocks([]);
   const created = await api('POST', '/api/v1/taskforces', { body: {
-    id: `tf-blockgate-${++seq}`, name: '停用生命周期测试', task: '测试事项治理', status: 'active', members: [],
+    id: `tf-blockgate-${++seq}`, name: '停用生命周期测试', task: '测试事项治理', status: 'active', organizingScope: 'branch', hostGroupId: null, members: [],
   } });
   assert.equal(created.status, 201);
   const id = created.json.id;
 
   setHiddenBlocks(['taskforce']);
   const newGroup = await api('POST', '/api/v1/taskforces', { body: {
-    id: `tf-blockgate-${++seq}`, name: '停用后不应新建', task: '测试事项治理', status: 'active', members: [],
+    id: `tf-blockgate-${++seq}`, name: '停用后不应新建', task: '测试事项治理', status: 'active', organizingScope: 'branch', hostGroupId: null, members: [],
   } });
   assert.equal(newGroup.status, 403, '关闭能力后停止新建工作组');
 

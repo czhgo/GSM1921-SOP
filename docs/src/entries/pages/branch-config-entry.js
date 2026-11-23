@@ -1,22 +1,24 @@
 // Party-only per-branch configuration. The selected branch remains explicit in the URL.
-import { mockDB } from '../../core/domain/domain.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { BranchService } from '../../services/core/runtime.js?v=20261031a';
-import { getPersonName } from '../../services/member/person.js?v=20261031a';
-import { getBranchById, renameBranch, setBranchActive } from '../../services/branch/branch.js?v=20261031a';
-import { appointSecretary, listAppointments } from '../../services/branch/appointment.js?v=20261031a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261031a';
-import { hydrateDataSource } from '../../data/data-adapter.js?v=20261031a';
-import { mountPartyConfig } from '../tabs/party-committee/party-config-tab.js?v=20261031a';
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261031a';
-import { renderHeader } from '../../components/shell/header.js?v=20261031a';
-import { mountBranchRosterImport } from '../../components/governance/branch-roster-import-panel.js?v=20261031a';
-import { PersonPicker } from '../../components/governance/pickers.js?v=20261031a';
-import { escHtml as esc, showToast, getBasePath } from '../../core/base/utils.js?v=20261031a';
-import { renderSectionHeader } from '../../components/shell/page-frame.js?v=20261031a';
-import { confirmDanger } from '../../components/ui/modal.js?v=20261031a';
+import { mockDB } from '../../core/domain/domain.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { BranchService } from '../../services/core/runtime.js?v=20261120a';
+import { getPersonName } from '../../services/member/person.js?v=20261120a';
+import { getBranchById, renameBranch, setBranchActive } from '../../services/branch/branch.js?v=20261120a';
+import { appointSecretary, listAppointments } from '../../services/branch/appointment.js?v=20261120a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261120a';
+import { hydrateDataSource } from '../../data/data-adapter.js?v=20261120a';
+import { mountPartyConfig } from '../tabs/party-committee/party-config-tab.js?v=20261120a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261120a';
+import { renderHeader } from '../../components/shell/header.js?v=20261120a';
+import { mountBranchRosterImport } from '../../components/governance/branch-roster-import-panel.js?v=20261120a';
+import { PersonPicker } from '../../components/governance/pickers.js?v=20261120a';
+import { escHtml as esc, showToast, getBasePath } from '../../core/base/utils.js?v=20261120a';
+import { renderSectionHeader } from '../../components/shell/page-frame.js?v=20261120a';
+import { confirmDanger } from '../../components/ui/modal.js?v=20261120a';
+// T14（2026-11-15）：支部只读入口与党委台目录共用同一进入流程（先写留痕、再进只读视图）。
+import { bindBranchReadOnlyButtons } from '../../services/core/branch-readonly-nav.js?v=20261120a';
 
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261120a';
 renderSidebar('workspace');
 renderHeader('workspace');
 
@@ -67,7 +69,7 @@ function renderControls() {
   if (wizardLink) wizardLink.href = `${getBasePath()}wizard.html?branch=${encodeURIComponent(branchId)}`;
 
   controls.innerHTML = `
-    <div class="card p-5">
+    <div class="card card-standard">
     <div class="mb-4">
       ${renderSectionHeader({
         title: '组织与任期',
@@ -84,7 +86,7 @@ function renderControls() {
         </div>
         <div class="mt-4 flex flex-wrap gap-2">
           <button type="button" id="branch-status-action" class="btn-outline px-3 py-2 text-sm">${branch.status === 'inactive' ? '恢复支部' : '停用支部'}</button>
-          <a class="btn-outline inline-flex items-center px-3 py-2 text-sm" href="${getBasePath()}workspace/branch-readonly.html?branchId=${encodeURIComponent(branchId)}">查看支部只读视图</a>
+          <a class="btn-outline inline-flex items-center px-3 py-2 text-sm branch-readonly-enter" data-branch-id="${esc(branchId)}" href="${getBasePath()}workspace/branch-readonly.html?branchId=${encodeURIComponent(branchId)}">只读查看该支部</a>
         </div>
         <div class="mt-5 max-w-xl">
           <label class="block text-sm font-medium text-gray-800">任命支书</label>
@@ -112,6 +114,10 @@ function renderControls() {
     initialIds: branch.secretaryId ? [branch.secretaryId] : [],
   });
   secretaryPicker.render(controls.querySelector('#branch-secretary-picker'));
+
+  // T14：本页的只读入口与党委台目录共用同一进入流程（先写留痕、再进只读视图，
+  //   顶栏随之出现「正在查看 X 支部」）。不得保留「直接跳页」的第二条路径。
+  bindBranchReadOnlyButtons(controls);
 
   mountBranchRosterImport(rosterHost, { branchId, onChange: renderControls });
 

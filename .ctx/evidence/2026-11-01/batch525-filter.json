@@ -1,0 +1,92 @@
+{
+  "generatedAt": "2026-11-01T15:22:32.329Z",
+  "base": "http://localhost:3000",
+  "pages": [
+    {
+      "page": "calendar",
+      "rows": 2,
+      "height": 96,
+      "height1440": 96,
+      "rows390": 3,
+      "height390": 144,
+      "itemCount": 6,
+      "shots": [
+        "batch525-filter-calendar-1440.png",
+        "batch525-filter-calendar-390.png"
+      ],
+      "viewSwitcher": {
+        "exists": true,
+        "buttons": 4,
+        "inHeader": true,
+        "inBar": false
+      },
+      "breakBefore": [
+        {
+          "seg": "scope",
+          "br": ""
+        },
+        {
+          "seg": "search",
+          "br": ""
+        },
+        {
+          "seg": "facet",
+          "br": "1"
+        },
+        {
+          "seg": "reset",
+          "br": ""
+        }
+      ]
+    },
+    {
+      "page": "issue-list",
+      "rows": 2,
+      "height": 96,
+      "height1440": 96,
+      "rows390": 3,
+      "height390": 140,
+      "itemCount": 5,
+      "shots": [
+        "batch525-filter-issue-list-1440.png",
+        "batch525-filter-issue-list-390.png"
+      ]
+    },
+    {
+      "page": "feedback",
+      "rows": 2,
+      "height": 96,
+      "height1440": 96,
+      "rows390": 2,
+      "height390": 96,
+      "itemCount": 5,
+      "shots": [
+        "batch525-filter-feedback-1440.png",
+        "batch525-filter-feedback-390.png"
+      ]
+    },
+    {
+      "page": "attendance",
+      "rows": 2,
+      "height": 96,
+      "height1440": 96,
+      "rows390": 3,
+      "height390": 144,
+      "itemCount": 4,
+      "shots": [
+        "batch525-filter-attendance-1440.png",
+        "batch525-filter-attendance-390.png"
+      ],
+      "secondBar": {
+        "found": true,
+        "rows": 2,
+        "height": 88
+      }
+    }
+  ],
+  "viewports": {
+    "desktop": 1440,
+    "mobile": 390
+  },
+  "pageErrors": []
+}

@@ -38,7 +38,9 @@ const SNAPSHOT = join(ROOT, '.ctx', 'SNAPSHOT.md');
 const README = join(ROOT, 'README.md');
 const README_SERVER = join(ROOT, 'README-server.md');
 
-const read = (f) => readFileSync(f, 'utf8');
+// 单个 BOM 是编码标记（`.ctx` 与部分 content 文件自带），不是正文；解析前统一剥掉，
+//   否则 `^---` 锚点失效会把「有 frontmatter」误判成「无 frontmatter」（2026-11-21 批次 593 修）。
+const read = (f) => readFileSync(f, 'utf8').replace(/^\uFEFF/, '');
 
 /** 遍历目录下的 .js / .mjs（守卫扫描用） */
 function walkJs(dir, out = []) {
@@ -491,6 +493,7 @@ const TIMESTAMPS_NO_FM_MD_OK = [
   '.ctx/ACTIVE_RULINGS.md',                           // 审计台账（`.ctx` 底座）：按 `.ctx` 体例不带 YAML 头
   '.ctx/logs/DECISION_LOG.md',                        // 决策日志月度索引：日志件、非文档
   '.ctx/logs/archive/2026-05-DECISION_LOG.md',        // 归档决策日志：同上
+  'content/05_ai_coding/AGENTS.md',                   // 05 目录协作说明：按 AGENTS 体例不带 YAML 头（2026-11-01 批次 525 补登）
 ];
 /** 无 frontmatter 时可按**扩展名**机械跳过的非文档类文件（代码 / 样式 / 数据 / 资源；无扩展名串为空） */
 const TIMESTAMPS_NO_FM_EXT_OK = new Set([
@@ -657,9 +660,9 @@ function enumCount(line) {
 
 test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代码 / 数据的实然值', async () => {
   const problems = [];
-  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261031a');
-  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261031a');
-  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261031a');
+  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261120a');
+  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261120a');
+  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261120a');
   const { SYSTEM_NOTICE_KIND_NAMES } = await import('../system-notice-kinds.js');
 
   /** 对账一条：`got` 为文档里抽出的数（null＝抽不出，判红并提示是判据失效而非「文档错」） */
@@ -671,7 +674,7 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
     if (got !== real) problems.push(`【${fact}】${where} 写 ${got}，实然 ${real}${hint ? `（${hint}）` : ''}`);
   };
   // 支部分工模块数**第 4 读**的锚点＝母本 `BRANCH_WORK_MAP.md`（2026-10-01 批次 314 改锚，理由见下方 `eq`）
-  const bwm = read(join(ROOT, 'content', '04_web_design', 'evolution', 'BRANCH_WORK_MAP.md'));
+  const bwm = read(join(ROOT, 'content', '04_web_design', 'evolution', 'archive', 'BRANCH_WORK_MAP.md'));
   const rs = read(README_SERVER);
   const help = read(HELP);
   const snap = read(SNAPSHOT);
@@ -723,10 +726,12 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
     for (const g of l.matchAll(/'([A-Za-z]+)'/g)) agendaGroups.add(g[1]);
   }
   const agendaReal = agendaGroups.size;
-  eq('「拟上会」清单类数', 'ACTIVE_RULINGS.md 的 `D-411` 行「共 N 类」', cn(m(lineWith(read(RULINGS), /^- .*一键导入议程/), /共\s*([\d一二两三四五六七八九十]+)\s*类/)), agendaReal,
+  eq('「拟上会」清单类数', 'ACTIVE_RULINGS.md §A「拟上会清单共 N 类」', cn(m(lineWith(read(RULINGS), /^- .*「拟上会」清单共/), /共\s*([\d一二两三四五六七八九十]+)\s*类/)), agendaReal,
     `系统 group 取值＝${[...agendaGroups].sort().join(' / ')}`);
   eq('「拟上会」清单类数', 'docs/help.html §3.1 括注列举', enumCount(lineWith(help, /「拟上会」清单<\/strong>里勾/)), agendaReal);
-  eq('「拟上会」清单类数', 'REVIEW_QUEUE.md `SOP-B-33`「现为 N 类」', cn(m(lineWith(read(QUEUE), /^> \*\*已闭环\*\*：裁定 `D-552`/), /现为\s*([\d一二两三四五六七八九十]+)\s*类/)), agendaReal);
+  // 原锚点＝REVIEW_QUEUE 的 `SOP-B-33` 段；2026-11-19 批次 573（`D-885`）该段按 `H50.1` 关闭删除，
+  //   类数的事实落回契约正文（`AGENDA_DERIVATION_CONTRACT.md §二` 标题即「六类来源」）——契约是这条枚举的权威家。
+  eq('「拟上会」清单类数', 'AGENDA_DERIVATION_CONTRACT.md §二 标题', cn(m(lineWith(read(join(ROOT, 'content', '04_web_design', 'contracts', 'AGENDA_DERIVATION_CONTRACT.md')), /^## 二、/), /^## 二、([\d一二两三四五六七八九十]+)类来源/)), agendaReal);
 
   // ⑤ ACTIVE_RULINGS 口径行数（权威＝该文件 `^- ` 实测）——**2026-10-06 批次 413：文首不再写死行数**
   //    （逐批增量句已删、口径行数以本表实读为准；`H26.2` ＋ `D-663`「规模面不许写人手维护的整数」）
@@ -832,7 +837,11 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
   assert.match(q, /## 附录：W4 专项评议循环承接区/, 'REVIEW_QUEUE.md 缺「W4 专项评议循环承接区」（队列的 (a) 类：机制描述 ＋ 支书复用检查项）');
   assert.match(q, /## 未闭环/, 'REVIEW_QUEUE.md 缺「未闭环」节（`H26.2`：队列只留未闭环）');
   const qSections = (q.match(/^### SOP-/gm) || []).length;
-  assert.ok(qSections >= 8, `REVIEW_QUEUE.md 只解析到 ${qSections} 个 \`### SOP-*\` 命题节（下限 8）：解析失效或队列被误清空`);
+  // 下限是**非空转地板**（防整份被清空 / 解析失效），不是目标数：
+  //   2026-11-19 批次 573（`D-885`）删 3 条已裁「不做」/ 已闭环命题；批次 574（`D-886`）再关
+  //   `SOP-B-25` / `SOP-B-31`；批次 575 计划再关 `SOP-B-27` / `SOP-B-32` / `SOP-B-44` ⇒ 命题节会持续减少。
+  //   故地板取 1，真正的非空转由「W4 承接区 ＋ 未闭环节」两条断言承担（上面两行），本行只防"整份被清空"。
+  assert.ok(qSections >= 1, `REVIEW_QUEUE.md 解析到 ${qSections} 个 \`### SOP-*\` 命题节（下限 1）：解析失效或队列被误清空`);
 
   // ⑬ 真机台账规模（权威＝`server/test/form-loop-registry.mjs` 的**条目行**；2026-09-28 批次 240 · 收 `H-4`）
   //    病灶（`H-4`）：README 自述「95 处校验点 / 91 条可自动化 / 4 条非自动化」是**旧口径的定格**——
@@ -877,16 +886,16 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
 //   （给上限）。⚠ 弱清单**不是空壳**：每条都断言「它还认得那个写法」或「编号自洽」。
 // ─────────────────────────────────────────────────────────────────────────────
 test('S15 弱清单：有正当沿革 / 取值定义不清的枚举数字只登记（带基线，防僵尸与变松）', () => {
-  // ① ACTIVE_RULINGS：**只收「现行有效」口径**。**逐批增量句 ＝ 历史包袱，按 `H26.1`/`H26.2`（2026-10-06 批次 413）
-  //    已一律删**（实读 480 → 224 行；口径行 153）。
-  //    本判据两条：① 文首须写明收录口径（防读者把沿革当现况）；② **不得再出现「逐批增量句」**（防回潮）；
-  //    非空转：口径行规模须达下限（防解析失效 / 口径行被误删）。
+  // ① ACTIVE_RULINGS：**只收「现行有效」的索引**。规则正文已迁 `content/01–05`；本文件只留跨域摘要 + 分域索引。
+  //    判据三条：① 文首写明「只收现行有效」；② 不得出现「逐批增量句」；③ **必须有分域索引且 ≥16 行**（防解析失效）。
   const ar = read(RULINGS);
   assert.match(ar, /只收「现行有效」/, 'ACTIVE_RULINGS 文首未写明收录口径（只收现行有效）——读者会把沿革当现况');
   const histSent = (ar.match(/增量（实测|增量（补登|实做 \d+ 行新立/g) || []).length;
   assert.equal(histSent, 0, `ACTIVE_RULINGS 出现「逐批增量句」（历史包袱，H26.2 已禁）：${histSent} 处`);
   const arRules = (ar.match(/^- /gm) || []).length;
-  assert.ok(arRules >= 100, `ACTIVE_RULINGS 只解析到 ${arRules} 条口径行（下限 100）：解析失效或口径行被误删`);
+  assert.ok(arRules >= 8, `ACTIVE_RULINGS 只解析到 ${arRules} 条跨域摘要（下限 8）：摘要被误删或解析失效`);
+  const arIndexRows = ar.split(/\r?\n/).filter((l) => /^\| [一二三四五六七八九十]+、/.test(l)).length;
+  assert.ok(arIndexRows >= 16, `ACTIVE_RULINGS 分域索引只解析到 ${arIndexRows} 行（下限 16）：分域表被写坏或漏项`);
 
   // ② CLAUDE.md 的「评议待办 · 执行型」表（`R-NN`）：**只留在办项**——`H50.1 §3`＝完成即**整行删除**（禁仅标 ✅）。
   //   2026-10-01 批次 314 按此把 **60 行已闭环 / 已立**删去（**69 → 9 行**）；**全文不丢** ⇒ 迁出附节
@@ -924,29 +933,31 @@ test('S15 弱清单：有正当沿革 / 取值定义不清的枚举数字只登�
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// S16 守卫注册完整性（2026-09-28 批次 243）：**S 类测试文件必须全数列入 `test:daily` 显式清单**。
-//   病灶（本批实测）：`dead-selector-guard`（批次 227 立）与 `text-tier-guard`（文本档位批立）两个
-//   **纯 node 守卫**——文件在、断言在、单跑全绿，却**不在任何 npm script 里**（`test:fast` / `test:daily`
-//   都是**显式清单**）⇒ **从不自动运行**。同类「漏注册」已第三次：批 43 的 `page-sweep`（`S10` 即为此立）、
-//   批次 239 的 `block-orchestration`（当批自补）、本次两个。**根因＝「新增守卫」没和「登记进日常档」绑定**。
-//   判据（单一源）：`server/test/` 下**不** `import 'playwright'` 的 `*.test.{js,mjs}`（＝S 类，`CLAUDE.md R-85`）
-//   必须 ⊆ `test:daily` 清单；两侧都设非空转下限（防解析写坏 ⇒ 差集恒空 ⇒ 漏注册也绿）。
+// S16 守卫注册完整性：**S 类测试文件必须登记在 daily / guards / precommit 之一**（不得落在 weekly）。
+//   病灶（批次 243 立）：`dead-selector-guard` 与 `text-tier-guard` 两个**纯 node 守卫**——文件在、
+//     断言在、单跑全绿，却**不在任何 npm script 里** ⇒ **从不自动运行**。根因＝「新增守卫」没和
+//     「登记进日常档」绑定。
+//   2026-11-08 批次 537（支书裁定「测试瘦身：结果优先、守卫按需」）：分层由三层改四层，
+//     静态守卫迁 `guards`、非核心域回归迁 `precommit` ⇒ 判据由「必须 ⊆ test:daily 显式清单」
+//     改为「必须 ⊆ registry 的 daily / guards / precommit 并集」，**仍守「不得孤儿化」**，
+//     只放掉「必须在 daily」这一条（daily 已收敛为结果门禁白名单）。
+//   判据（单一源）：`server/test-tier-registry.mjs`；S 类 = 不 `import 'playwright'` 的
+//     `*.test.{js,mjs}`（`CLAUDE.md H25`）。两侧都设非空转下限（防解析写坏 ⇒ 差集恒空 ⇒ 漏注册也绿）。
 // ─────────────────────────────────────────────────────────────────────────────
-test('S16 守卫注册完整性：S 类测试文件必须全数列入 test:daily（防守卫孤儿化）', () => {
+test('S16 守卫注册完整性：S 类测试文件必须登记在 daily / guards / precommit（防守卫孤儿化）', async () => {
   const TDIR = join(ROOT, 'server', 'test');
   const all = readdirSync(TDIR).filter((f) => /\.test\.(js|mjs)$/.test(f));
   const playwrightRe = /from\s+['"]playwright['"]|import\(\s*['"]playwright['"]\s*\)/;
   const sClass = all.filter((f) => !playwrightRe.test(read(join(TDIR, f))));
-  const pkg = JSON.parse(read(join(ROOT, 'server', 'package.json')));
-  const daily = new Set((pkg.scripts['test:daily'].match(/test\/[A-Za-z0-9_.-]+\.test\.m?js/g) || [])
-    .map((x) => x.replace(/^test\//, '')));
+  const { dailyFiles, guardsFiles, precommitFiles } = await import('../test-tier-registry.mjs');
+  const registered = new Set([...dailyFiles, ...guardsFiles, ...precommitFiles]);
   // 非空转：两侧都必须有规模（解析写坏 ⇒ 差集恒空 ⇒ 「漏注册」也判绿）
-  assert.ok(sClass.length >= 60 && daily.size >= 60,
-    `解析面不足（S 类 ${sClass.length} / test:daily ${daily.size}，下限均 60）：判据或 package.json 解析被写坏`);
-  const missing = sClass.filter((f) => !daily.has(f)).sort();
+  assert.ok(sClass.length >= 200 && registered.size >= 200,
+    `解析面不足（S 类 ${sClass.length} / registry 三层 ${registered.size}，下限均 200）：判据或 registry 被写坏`);
+  const missing = sClass.filter((f) => !registered.has(f)).sort();
   assert.deepEqual(missing, [],
-    `以下 S 类测试文件**不在 test:daily 清单**（守卫孤儿化 ⇒ 从不自动运行）：\n  ${missing.join('\n  ')}\n` +
-    '  处置：加进 `server/package.json` 的 `test:daily`（S 类应全数入档，见 `CLAUDE.md R-85`）。');
+    `以下 S 类测试文件**未登记 daily / guards / precommit**（守卫孤儿化 ⇒ 从不自动运行）：\n  ${missing.join('\n  ')}\n` +
+    '  处置：在 `server/test-tier-registry.mjs` 登记 tier + reason（见 `CLAUDE.md H25`）。');
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

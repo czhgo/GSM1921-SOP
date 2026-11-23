@@ -1,4 +1,4 @@
-﻿﻿# Tasks
+# Tasks
 
 > 顺序：先定令牌与组件类（单文件）→ 再迁移调用方（多文件，可并行）→ 守卫读最终值 → 文档 → 三次验证。
 > 文件边界：Task 1 独占 `styles.css`；Task 2 只改 `docs/src/**/*.js` 与根 HTML，不动 `styles.css`。

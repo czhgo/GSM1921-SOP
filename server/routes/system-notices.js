@@ -9,7 +9,7 @@
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { requireAuth } from './auth.js';
-import { SYSTEM_NOTICE_KINDS } from '../system-notice-kinds.js';
+import { SYSTEM_NOTICE_KINDS, audiencePolicyOf } from '../system-notice-kinds.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
 import { today as todayLocal } from '../services/reporting.js';
 import { actorBranchId, resourceBranchId } from './resources/branch-scope.js';
@@ -37,12 +37,19 @@ const SOURCE_RESOURCE_BY_KIND = Object.freeze({
   'committee-dispatch': 'branches',
   'member-change-approved': 'memberChangeRequests',
   'todo-void-decided': 'todos',
+  'committee-proposal-submitted': 'committeeProposals',
+  'committee-proposal-accepted': 'committeeProposals',
+  'committee-proposal-rejected': 'committeeProposals',
+  'committee-proposal-scheduled': 'committeeProposals',
+  'committee-proposal-decided': 'committeeProposals',
+  'committee-proposal-closed': 'committeeProposals',
 });
 
 // Semantic records whose tables are outside the generic resource CRUD registry still need a
 // fixed source-table mapping so notice authorization can enforce branch ownership.
 const SEMANTIC_SOURCE_TABLES = Object.freeze({
   memberChangeRequests: 'member_change_requests',
+  committeeProposals: 'committee_proposals',
 });
 
 function sourceRow(db, resource, sourceId) {
@@ -74,6 +81,21 @@ function coordsFromTargetUrl(url) {
   const activityId = grab('activityId');
   if (activityId) return { targetType: 'activity', targetId: activityId };
   return null;
+}
+
+/** 受众三源是否至少一项非空（空数组不算） */
+function hasAudience(notice) {
+  const a = notice && notice.audience;
+  const hasA = Array.isArray(a) ? a.length > 0 : (typeof a === 'string' && a.trim() !== '');
+  const hasP = Array.isArray(notice && notice.audiencePersons) && notice.audiencePersons.length > 0;
+  const hasR = Array.isArray(notice && notice.actionRoles) && notice.actionRoles.length > 0;
+  return hasA || hasP || hasR;
+}
+
+/** 是否显式广播：audience 为 'all' 或数组含 'all' */
+function isBroadcastNotice(notice) {
+  const a = notice && notice.audience;
+  return a === 'all' || (Array.isArray(a) && a.includes('all'));
 }
 
 /** 系统通知落库前的模型收口：kind='system'、archivedBy 归一；非公告必须带坐标，补不出则降级公告。 */
@@ -170,6 +192,25 @@ export function createSystemNoticesRouter(db) {
       return res.status(403).json({ error: '无权限：不能为其他支部触发系统通知' });
     }
 
+    // B-552-5（2026-11-18 批次 566）：幂等键——调用方可选 `eventKey`；同一 `eventKey`（同一支部）重复投递
+    //   只保留一条并返回既有记录（200，不新增）。无 `eventKey` 时行为不变。
+    const eventKey = typeof body.eventKey === 'string' ? body.eventKey.trim() : '';
+    const eventScopeBranchId = sourceBranchId || ownBranch || null;
+    if (eventKey) {
+      const existing = db.prepare("SELECT data FROM notices WHERE json_extract(data,'$.eventKey') = ?").all(eventKey)
+        .map((raw) => JSON.parse(raw.data))
+        .find((row) => (row.branchId || null) === eventScopeBranchId);
+      if (existing) {
+        // 幂等键必须指向同一通知类型与同一来源：不匹配时 409 报错，不得把旧记录当成本次结果返回。
+        // 来源 id 以落库坐标 `targetId` 为准（模板由 sourceId 派生 targetId；`sourceId` 字段本身不落库）。
+        const existingSourceId = existing.sourceId ?? existing.targetId ?? '';
+        if (existing.systemKind !== kind || String(existingSourceId) !== String(ctx.sourceId ?? '')) {
+          return res.status(409).json({ error: `eventKey 已用于其他通知（kind=${existing.systemKind || '—'}）` });
+        }
+        return res.status(200).json(existing);
+      }
+    }
+
     let built;
     try {
       built = def.build(ctx);
@@ -177,11 +218,22 @@ export function createSystemNoticesRouter(db) {
       console.warn(`[system-notices] build 失败（kind=${kind}）：`, e);
       return res.status(500).json({ error: '系统通知生成失败' });
     }
+    // 2026-11-07 批次 535：落库保留 systemKind，供读侧策略 / 存量迁移识别来源（不再只靠 kind='system'）。
+    built.systemKind = built.systemKind || kind;
+    // CASE-AI-004（2026-11-07 批次 535）：写侧受众策略——required 必须有受众，broadcast 必须显式 all。
+    const policy = audiencePolicyOf(kind);
+    if (policy === 'required' && !hasAudience(built)) {
+      return res.status(422).json({ error: `系统通知「${kind}」缺少受众，已拒绝落库` });
+    }
+    if (policy === 'broadcast' && !isBroadcastNotice(built)) {
+      return res.status(422).json({ error: `广播通知「${kind}」必须显式 audience:['all']` });
+    }
     // id/publishDate 由服务端补齐并覆盖，杜绝客户端携带同名锚点字段
     const id = `ntc-${randomUUID().slice(0, 8)}`;
     const notice = normalizeSystemNotice({
       ...built,
       ...((sourceBranchId || ownBranch) ? { branchId: sourceBranchId || ownBranch } : {}),
+      ...(eventKey ? { eventKey } : {}),
       id,
       publishDate: todayLocal(),
     });

@@ -24,7 +24,7 @@ import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   activityTypeTone, activityTypeBadgeVariant, activityTypeClassification,
-} from '../../docs/src/core/domain/constants.js?v=20261031a';
+} from '../../docs/src/core/domain/constants.js?v=20261120a';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -134,6 +134,13 @@ const INFO_EXCEPTIONS = [
   { file: 'docs/src/components/record/todo-tab-shell.js', snippet: "in_progress: 'info',", reason: '待办进行中（非活动状态）' },
   { file: 'docs/src/entries/tabs/secretary/todo-tab.js', snippet: "in_progress: 'info',", reason: '待办进行中（非活动状态）' },
   { file: 'docs/src/entries/tabs/prop/archive-tab.js', snippet: 'data-tone="info"', reason: '归档材料文件图标标注（非活动类别 / 状态）' },
+  // 2026-11-21 批次 590（D-900）：支书裁定议程项 / 发起类徽章统一走 info 功能色；
+  //   这些是「议程步 / 成员变更类别 / 专班发起」语义，不是活动类别色，登记为受控例外。
+  { file: 'docs/src/components/record/inspector.js', snippet: "badgeHtml('讨论项', 'info')", reason: '议程步：讨论项（非活动类别）' },
+  { file: 'docs/src/components/record/activity-view.js', snippet: "badgeHtml('讨论项', 'info')", reason: '议程步：讨论项（非活动类别）' },
+  { file: 'docs/src/entries/pages/activity-entry.js', snippet: "badgeHtml('讨论项', 'info')", reason: '议程步：讨论项（非活动类别）' },
+  { file: 'docs/src/entries/tabs/secretary/todo-tab.js', snippet: "const kindTone = action === 'developStage' ? 'info'", reason: '议程步：成员变更类别（发展节点）' },
+  { file: 'docs/src/entries/tabs/secretary/todo-tab.js', snippet: "const kindTone = req.kind === 'dissolve' ? 'neutral' : 'info';", reason: '议程步：专班发起（非活动类别）' },
   // 2026-10-26 Task 4：宣传看板最后 3 处 info（类别徽章 + 两个分组标题）已迁移
   //   （类别走 activityTypeBadgeVariant、标题改 neutral）⇒ 白名单条目按僵尸规则删除。
 ];
@@ -267,7 +274,7 @@ test('A3 语义隔离：活动类别/状态路径不得出现 info，允许站�
     used.set(ex, used.get(ex) + 1);
   }
   assert.deepEqual(unmatched, [],
-    `活动类别 / 状态路径出现未登记的 info（允许的只有：通知重要 / 已发布 / 待汇报 / 建议选修 / 配置标注 + 已登记例外）：\n  ${unmatched.join('\n  ')}`);
+    `活动类别 / 状态路径出现未登记的 info（允许的只有：通知重要 / 已发布 / 待汇报 / 建议选修 / 配置标注 / 议程步 + 已登记例外）：\n  ${unmatched.join('\n  ')}`);
 
   const zombieOrCountMismatch = INFO_EXCEPTIONS.filter((e) => used.get(e) !== (e.count || 1))
     .map((e) => `${e.file} ${e.snippet}（期望 ${e.count || 1} 处，实测 ${used.get(e)} 处；${e.reason}）`);
@@ -276,8 +283,8 @@ test('A3 语义隔离：活动类别/状态路径不得出现 info，允许站�
 
   // 4) 非空转：五类允许语义都真实存在（不是只登记不消费）
   const reasons = new Set(INFO_EXCEPTIONS.map((e) => e.reason));
-  for (const family of ['通知重要', '已发布', '待汇报', '建议选修', '配置标注']) {
-    assert.ok([...reasons].some((r) => r.startsWith(family)), `允许 info 的五类语义缺「${family}」（白名单不完整）`);
+  for (const family of ['通知重要', '已发布', '待汇报', '建议选修', '配置标注', '议程步']) {
+    assert.ok([...reasons].some((r) => r.startsWith(family)), `允许 info 的六类语义缺「${family}」（白名单不完整）`);
   }
 });
 
@@ -290,8 +297,11 @@ test('A4 党建红：.badge--brand 与 [data-tone="party-red"] 用功能红 #CE1
 
   const brand = ruleBody(css, '.badge--brand');
   assert.ok(brand, 'styles.css 缺少 .badge--brand 规则');
-  assert.match(brand, /var\(--color-functional-red\)|var\(--party-red\)|#CE1126/i,
-    '.badge--brand 必须使用功能红 / 党建红 #CE1126');
+  // 2026-11-04 批次 534（Task 4.1）：徽标三连令牌化——规则体只读令牌，色义核在令牌定义处。
+  assert.match(brand, /var\(--badge-brand-text\)/,
+    '.badge--brand 字色应读 --badge-brand-text（令牌须落到功能红 / 党建红）');
+  assert.match(css, /--badge-brand-text:\s*var\(--color-functional-red\)\s*;/,
+    '--badge-brand-text 必须引功能红 / 党建红 var(--color-functional-red)（#CE1126）');
   assert.doesNotMatch(brand, /#B91C1C|var\(--functional-error\)|var\(--status-error\)/i,
     '.badge--brand 不得用错误红 #B91C1C / --functional-error / --status-error');
 
@@ -328,10 +338,11 @@ test('A5 暗色分离：类别红/金与 danger/warning 逐值不同，badge--br
     '暗色主题党日金应读 --color-functional-gold-dark（#FCD34D）');
   assert.doesNotMatch(darkGold, /#FBBF24/i, '暗色主题党日金不得用 warning 的 #FBBF24');
 
-  const darkBrand = ruleBody(css, 'html.theme-dark .badge--brand');
-  assert.ok(darkBrand, '缺少暗色 .badge--brand 规则');
-  assert.doesNotMatch(darkBrand, /--functional-error|--status-error|#F87171/i,
+  // 2026-11-04 批次 534（Task 4.1）：暗色徽标不再逐条覆写，改由 `html.theme-dark` 段的令牌承担。
+  const darkBrandToken = /html\.theme-dark\s*\{[\s\S]*?--badge-brand-text:\s*([^;]+);/.exec(css);
+  assert.ok(darkBrandToken, '缺少暗色 --badge-brand-text 令牌');
+  assert.doesNotMatch(darkBrandToken[1], /--functional-error|--status-error|#F87171/i,
     '暗色 .badge--brand 不得借状态错误色');
-  assert.match(darkBrand, /--color-functional-red-dark|--color-category-three-meetings-dark/i,
+  assert.match(darkBrandToken[1], /--color-functional-red-dark|--color-category-three-meetings-dark/,
     '暗色 .badge--brand 应读功能红 / 类别红暗色 token');
 });

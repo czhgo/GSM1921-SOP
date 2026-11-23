@@ -42,10 +42,10 @@ test('党委台只有一个页面标题，页签内容不重复页面标题', as
   }
 });
 
-test('党委页签顺序为下发通知、支部上报、支部管理（A05/A06 合并后三项）', async () => {
+test('党委页签顺序为下发通知、院级内容、支部上报、支部管理（A05/A06 合并 + 批次 536 院级内容，四项）', async () => {
   const registry = await read('../../docs/src/capabilities/party-committee-workspace.js');
   const order = [...registry.matchAll(/\{ id: '([^']+)', label: '([^']+)'/g)].map((m) => m[1]);
-  assert.deepEqual(order, ['dispatch', 'review', 'branches']);
+  assert.deepEqual(order, ['dispatch', 'gov-content', 'review', 'branches']);
 });
 
 test('党委页头不提供个人档案入口', async () => {
@@ -53,9 +53,10 @@ test('党委页头不提供个人档案入口', async () => {
   assert.match(header, /role !== 'party-staff'/, '党委 does not get a personal-profile entry');
 });
 
-test('党委页签名与页面身份一致（A05/A06 撤页后只剩三项）', async () => {
+test('党委页签名与页面身份一致（A05/A06 撤页后四项）', async () => {
   const registry = await read('../../docs/src/capabilities/party-committee-workspace.js');
   assert.match(registry, /id: 'dispatch', label: '下发通知'/);
+  assert.match(registry, /id: 'gov-content', label: '院级内容'/);
   assert.match(registry, /id: 'review', label: '支部上报'/);
   assert.match(registry, /id: 'branches', label: '支部管理'/);
   assert.doesNotMatch(registry, /id: 'monitor'/);
@@ -146,7 +147,7 @@ test('支部配置以紧凑导航切换单一活动面板', async () => {
   assert.match(styles, /#branch-secretary-picker \.person-picker-trigger\s*\{\s*width:\s*100%/);
   assert.match(page, /data-config-panel/);
   assert.match(entry, /panel\.hidden/);
-  assert.match(wizard, /card p-5 org-config-step-panel/);
+  assert.match(wizard, /card card-standard org-config-step-panel/);
   assert.match(wizard, /aria-label="业务配置步骤"/);
   assert.match(styles, /org-config-step-panel > \.space-y-4 > \.rounded-xl\.border/);
 });

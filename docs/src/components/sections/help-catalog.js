@@ -5,10 +5,10 @@
 // 功能地图 mindmap 与业务链路 flowchart 以 <pre class="mermaid"> 文本注入（源文本来自共享模块
 // src/core/mermaid-sources.js，与 gen 脚本同实现），由 help-entry.js 懒加载 mermaid CDN 渲染
 // （离线失败保留 .mermaid-fallback 降级文本）
-import { FUNCTION_GROUPS, FUNCTION_CATALOG } from '../../core/domain/function-catalog.js?v=20261031a';
-import { generateMindmapText, FLOW_LINKS } from '../../core/domain/mermaid-sources.js?v=20261031a';
-import { escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261031a';
-import { HELP_BROWSE_ROLES, HELP_QUICK_TASKS, HELP_TOC_CHAPTERS } from './help-navigation.js?v=20261031a';
+import { FUNCTION_GROUPS, FUNCTION_CATALOG } from '../../core/domain/function-catalog.js?v=20261120a';
+import { generateMindmapText, FLOW_LINKS } from '../../core/domain/mermaid-sources.js?v=20261120a';
+import { escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261120a';
+import { HELP_BROWSE_ROLES, HELP_QUICK_TASKS, HELP_TOC_CHAPTERS } from './help-navigation.js?v=20261120a';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 
@@ -24,6 +24,9 @@ export function renderHelpCatalog(root) {
   toc.className = 'help-toc';
   toc.setAttribute('aria-label', '帮助目录');
   let tocHtml = HELP_TOC_CHAPTERS.map((s) => `<a class="help-toc-item" href="#${s.id}" data-target="${s.id}">${s.label}</a>`).join('');
+  // 2026-11-04 Task 3.4：390 下目录是单行横滑条——末尾补一枚可见溢出提示（箭头），
+  //   末项不再硬切；提示只做视觉告知（aria-hidden），目录项本身仍是唯一交互面。
+  tocHtml += '<span class="help-toc-more" aria-hidden="true">横滑查看更多 →</span>';
   toc.innerHTML = tocHtml;
   root.appendChild(toc);
 
@@ -37,7 +40,7 @@ export function renderHelpCatalog(root) {
       <div class="lf-bar__row" data-seg="search">
         <div class="help-search-field">
           <label class="help-search-label" for="help-search-input">搜索系统使用说明</label>
-          <input id="help-search-input" class="help-search-input" type="search" placeholder="试试：副支书、请假、议题表决、怎么归档" aria-label="搜索帮助说明、操作步骤和设置" aria-controls="help-search-results" autocomplete="off">
+          <input id="help-search-input" class="help-search-input" type="search" placeholder="试试：请假、议题表决、归档" aria-label="搜索帮助说明、操作步骤和设置" aria-controls="help-search-results" autocomplete="off">
           <div id="help-search-results" class="help-search-results" role="region" aria-label="帮助搜索结果" aria-live="polite" hidden></div>
         </div>
       </div>

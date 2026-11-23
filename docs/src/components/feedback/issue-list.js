@@ -1,17 +1,19 @@
 // role: [工程师]+[AI]
 // issue-list.js — 反馈列表渲染
 
-import { IssueStore } from '../../services/governance/issues.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { icon } from '../../core/base/icons.js?v=20261031a';
-import { getPersonName } from '../../services/member/person.js?v=20261031a';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261031a';
-import { badgeHtml } from '../ui/badges.js?v=20261031a';
+import { IssueStore } from '../../services/governance/issues.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { icon } from '../../core/base/icons.js?v=20261120a';
+import { getPersonName } from '../../services/member/person.js?v=20261120a';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261120a';
+import { badgeHtml } from '../ui/badges.js?v=20261120a';
+import { pageHref } from '../../core/base/page-url.js?v=20261120a';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../ui/pager.js?v=20261031a';
+import { pagerHtml } from '../ui/pager.js?v=20261120a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
-const SCOPE_LABELS = {
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261120a';
+import { renderCardHeader } from '../shell/page-frame.js?v=20261120a';
+export const SCOPE_LABELS = {
   permanent: '底层架构',
   global: '全局通用',
   role: '权责调整',
@@ -74,13 +76,11 @@ export function renderIssueList() {
   const pageItems = filtered.slice((_pageState - 1) * PAGE_SIZE, _pageState * PAGE_SIZE);
 
   container.innerHTML = `
-    <div class="card rounded-xl p-5 mb-4">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">全部意见反馈 <span class="text-xs font-normal text-gray-500">开放中 ${counts.open} · 已关闭 ${counts.closed}</span></h3>
-        ${canCreate ? `<button id="btn-new-issue" class="btn-accent text-sm px-4 py-1.5 font-medium">提交意见反馈</button>` : ''}
-      </div>
+    <div class="card rounded-xl card-standard mb-4">
+      ${renderCardHeader({ title: '全部意见反馈', meta: `<span class="text-xs font-normal text-gray-500">开放中 ${counts.open} · 已关闭 ${counts.closed}</span>`, actions: canCreate ? `<button id="btn-new-issue" class="btn-accent text-sm px-4 py-1.5 font-medium">提交意见反馈</button>` : '' })}
 
       <!-- 筛选行（P3 四段：范围 → 检索 → 分面 → 重置；载体 styles.css::.lf-bar/.lf-bar__row；
+           批次 525 · #2 定版两行：第 1 行＝范围＋搜索，第 2 行＝分面＋清除；
            分面一律下拉，禁 chip；控件统一单档 40px / 13px 字） -->
       <div class="lf-bar mb-3">
         <div class="lf-bar__row" data-seg="scope">
@@ -90,9 +90,9 @@ export function renderIssueList() {
           </select>
         </div>
         <div class="lf-bar__row" data-seg="search">
-          <input type="text" id="filter-keyword" placeholder="搜索标题/正文..." value="${_filterState.keyword}" class="input-flat text-xs lf-kw">
+          <input type="text" id="filter-keyword" placeholder="搜索标题/正文" aria-label="搜索反馈" value="${_filterState.keyword}" class="input-flat text-xs lf-kw">
         </div>
-        <div class="lf-bar__row" data-seg="facet">
+        <div class="lf-bar__row" data-seg="facet" data-break-before="1">
           <select id="filter-status" class="input-flat text-xs lf-select" aria-label="状态筛选">
             <option value="all" ${_filterState.status === 'all' ? 'selected' : ''}>状态：全部 (${counts.total})</option>
             <option value="open" ${_filterState.status === 'open' ? 'selected' : ''}>开放中 (${counts.open})</option>
@@ -141,14 +141,18 @@ function renderIssueRow(issue) {
   ).join('');
 
   const statusBadge = issue.status === 'open'
-    ? badgeHtml('开放中', 'success')
+    ? badgeHtml('开放中', 'warning')
     : badgeHtml(`已关闭 · ${ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || '已解决'}`, 'neutral');
 
-  const reactions = Object.entries(issue.reactions || {}).filter(([_, list]) => list.length > 0).map(([type, list]) => {
-    const iconName = { thumbsUp: 'thumbsUp', thumbsDown: 'thumbsDown', eyes: 'eyes', hooray: 'hooray' }[type];
-    const iconHTML = iconName ? icon(iconName, { className: 'w-3 h-3' }) : '·';
-    return `<span class="text-xs text-gray-500 inline-flex items-center gap-0.5">${iconHTML}${list.length}</span>`;
-  }).join(' ');
+  const reactionCounts = issue.reactionCounts && typeof issue.reactionCounts === 'object' ? issue.reactionCounts : null;
+  const reactions = (reactionCounts
+    ? Object.entries(reactionCounts)
+    : Object.entries(issue.reactions || {}).map(([type, list]) => [type, Array.isArray(list) ? list.length : 0]))
+    .filter(([, count]) => count > 0).map(([type, count]) => {
+      const iconName = { thumbsUp: 'thumbsUp', thumbsDown: 'thumbsDown', eyes: 'eyes', hooray: 'hooray' }[type];
+      const iconHTML = iconName ? icon(iconName, { className: 'w-3 h-3' }) : '·';
+      return `<span class="text-xs text-gray-500 inline-flex items-center gap-0.5">${iconHTML}${count}</span>`;
+    }).join(' ');
 
   return `
     <div class="issue-row p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-[var(--surface-hover)] cursor-pointer transition-colors focus-ring" data-issue-id="${issue.id}" role="button" tabindex="0" aria-label="查看反馈 #${issue.number ?? '—'} ${issue.title || '(无标题)'}">
@@ -183,7 +187,7 @@ function bindEvents() {
     const url = new URL(window.location.href);
     url.searchParams.set('new', '1');
     url.searchParams.delete('id');
-    window.location.href = url.toString();
+    window.location.href = pageHref(url.toString());
   });
 
   bindListRegion();
@@ -230,7 +234,7 @@ function bindListRegion() {
       const url = new URL(window.location.href);
       url.searchParams.set('id', id);
       url.searchParams.delete('new');
-      window.location.href = url.toString();
+      window.location.href = pageHref(url.toString());
     };
     row.addEventListener('click', open);
     row.addEventListener('keydown', (e) => {

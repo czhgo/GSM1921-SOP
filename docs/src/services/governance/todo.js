@@ -6,27 +6,29 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261031a';
-import { persist, getDataSource } from '../../data/data-adapter.js?v=20261031a';
-import { generateId } from '../../core/base/id.js?v=20261031a';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261031a';
+import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261120a';
+import { persist, getDataSource } from '../../data/data-adapter.js?v=20261120a';
+import { generateId } from '../../core/base/id.js?v=20261120a';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261120a';
 // 待批活动状态值单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：待批活动**不是**「待参与」的活动
 // ——它还没获批（与 `draft` 同待遇），不为它派生「参与活动」待办（也免得从待办标题把没批的活动漏出去）。
-import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261031a';
-import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261031a';
-import { DEFAULT_BRANCH_ID, isActivityEnded } from '../../core/domain/constants.js?v=20261031a';
-import { AuthStore } from '../core/auth.js?v=20261031a';
+import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261120a';
+import { todayLocal, _fmtDate, fmtLocalDate } from '../../core/base/utils.js?v=20261120a';
+import { DEFAULT_BRANCH_ID, isActivityEnded } from '../../core/domain/constants.js?v=20261120a';
+import { AuthStore } from '../core/auth.js?v=20261120a';
 // 周期键（月/季/半年/年）与「模块周期」单一源（2026-10-06 批次 423 · `R-29⑤` · `D-804`）——
 //   周期任务的**来源**＝`work-map.js::WORK_MAP_MODULES[].cycle`（不另立第二份映射，`D-803②`）。
-import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261031a';
-import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261031a';
+//   （2026-11-09 批次 539：周期提醒派生已迁 `core/domain/todo-derive.js`，本文件不再直接消费周期键。）
+import { expandWorkforce, ownerOfModule, moduleIdOfActivity, institutionSubjectOfDomain } from '../../core/domain/work-map.js?v=20261120a';
+// 7 键实时组域键单一源（零依赖叶子件；服务端 Task 8 同源消费）
+import { DERIVE_GROUP_DOMAIN } from '../../core/domain/todo-derive.js?v=20261120a';
 // R10-B03：种子待办截止 = 活动日 + 制度复盘/归档时限（单一源），不存死日期字面量。
-import { ACTIVITIES } from '../../data/mock/activities.js?v=20261031a';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261031a';
+import { ACTIVITIES } from '../../data/mock/activities.js?v=20261120a';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261120a';
 // 「待归档」是否可生成 = 活动关闭条件是否已齐（单一源 `services/activity/close-conditions.js`）。
 // 2026-10-25 批次 510：hydrate 原按「活动已结束」逐条生成，实测 34 条（多数产出未齐、归档面并不需要）；
 // 改为 canClose 才生成。该函数只在服务层此处消费，不复制分类型判据（避免第二套关闭标准）。
-import { checkActivityCloseConditions } from '../activity/close-conditions.js?v=20261031a';
+import { checkActivityCloseConditions } from '../activity/close-conditions.js?v=20261120a';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -188,17 +190,15 @@ export function _effDomain(todo) {
  * 复盘相关（review-remind/confirm）归「项目」域——`D-787` 合并后活动/会务/专班同域（spec 三节：复盘在原活动域）。
  */
 export const REALTIME_GROUP_DOMAIN = {
-  'attendance-remind': WORK_DOMAIN.ATTENDANCE,
+  // 7 类可服务端复算的实时组：域键单一源＝`core/domain/todo-derive.js::DERIVE_GROUP_DOMAIN`
+  //   （2026-11-04 批次 534 · B-500-7b-1 Task 7：原此处逐条字面量与叶子件重复，改为展开引用）
+  ...DERIVE_GROUP_DOMAIN,
   'attendance-confirm': WORK_DOMAIN.ATTENDANCE,
-  'inspection-remind': WORK_DOMAIN.INSPECTION,
   'inspection-confirm': WORK_DOMAIN.INSPECTION,
   'review-remind': WORK_DOMAIN.PROJECT,    // 活动复盘待提交（`D-787`：活动 → 项目）
   'review-confirm': WORK_DOMAIN.PROJECT,   // 活动复盘待复核（`D-787`：活动 → 项目）
   'archive-remind': WORK_DOMAIN.ARCHIVE,
   'archive-confirm': WORK_DOMAIN.ARCHIVE,
-  'resolution-followup-remind': WORK_DOMAIN.REPORT_UP, // `D-787`：决议上报 → 上报与汇报
-  'member-confirm': WORK_DOMAIN.MEMBER_DEV,
-  'semester-detained-remind': WORK_DOMAIN.MEMBER_DEV,
   'develop-node-remind': WORK_DOMAIN.MEMBER_DEV, // 发展节点期满提醒（组织委员流程指南附录A）
   'half-year-inspection-remind': WORK_DOMAIN.MEMBER_DEV, // 半年考察提醒（SOP-B-39 · D-295）
   // 模块周期提醒（`R-29⑤` · `D-804`）：三会一课 / 主题党日类**会议与活动形态** ⇒ 归「项目」域（`D-787` 同域）。
@@ -282,7 +282,17 @@ export function urgeRolesOf(group, ctx = {}) {
 //    · 积极分子：entryDate + 培养考察期（≥1 年）已满 → 提醒组织委员推进「发展对象」；
 //    · 预备党员：entryDate + 预备期（1 年）已满 → 提醒组织委员办理「转正」。
 //  阈值属制度裁决固定项（《中国共产党发展党员工作细则》一年），非可调项 → 常量化，不走 policyOverrides。
-export const DEVELOP_NODE_THRESHOLDS = { '积极分子': 365, '预备党员': 365 };
+// ── 既有的三类派生（发展节点 / 半年考察 / 模块周期）**单一源**在 `core/domain/todo-derive.js` ──
+//  2026-11-09 批次 539：原在本文件的实现已迁出（服务端需同源 import，不能整模块依赖 mockDB）；
+//  这里只做**再导出**，既有 import 路径（本文件 / 各台 / 测试）保持不变。
+export {
+  DEVELOP_NODE_THRESHOLDS,
+  buildDevelopNodeRemindGroup,
+  halfYearPeriodOf,
+  buildHalfYearInspectionRemindGroup,
+  MODULE_CYCLE_ACTION_KEY,
+  buildModuleCycleRemindGroup,
+} from '../../core/domain/todo-derive.js?v=20261120a';
 
 /** 日期 + N 天（'YYYY-MM-DD'，UTC 运算避免时区未同步；非法输入 → null） */
 function _addDays(dateStr, days) {
@@ -293,47 +303,9 @@ function _addDays(dateStr, days) {
 }
 
 /**
- * 派生组织委员「发展节点提醒」实时组（域=成员发展）。
- * @param {Object} opts
- * @param {Array} [opts.members]    成员档案（含 developStage）
- * @param {Object} [opts.overrides] 发展推进覆盖 { personId: { stage, entryDate } }（组织台同源）
- * @param {string} [opts.today]     日期键 YYYY-MM-DD（缺省=今天）
- * @returns {Object|null} 实时组；无期满成员 → null（不产生空组卡）
+ * 派生组织委员「发展节点提醒」实时组（域=成员发展）——实现已迁至 `core/domain/todo-derive.js`，
+ * 本文件仅再导出（见上方 export 块）。
  */
-export function buildDevelopNodeRemindGroup({ members = [], overrides = {}, today } = {}) {
-  const day = today || _todayStr();
-  const items = [];
-  for (const p of members || []) {
-    if (!p || !p.id) continue;
-    const ov = overrides[p.id] || {};
-    const stage = ov.stage || p.developStage;
-    const days = DEVELOP_NODE_THRESHOLDS[stage];
-    if (!days) continue;                       // 仅两类期满节点（发展对象/正式党员无期满动作）
-    const entryDate = ov.entryDate || p.entryDate || null;
-    if (!entryDate) continue;                  // 无阶段起始日期 → 不派生（避免误报）
-    const dueDate = _addDays(entryDate, days);
-    if (!dueDate || dueDate > day) continue;   // 未满期
-    items.push({
-      id: `dev-${p.id}`,
-      personId: p.id,
-      name: p.name,
-      stage,
-      entryDate,
-      dueDate,
-      title: stage === '预备党员' ? `${p.name} 预备期满（应办转正）` : `${p.name} 培养考察期满（应转发展对象）`,
-    });
-  }
-  if (!items.length) return null;
-  return {
-    groupKey: 'org-commissioner:develop-node-remind',
-    actionKey: 'develop-node-remind',
-    domain: WORK_DOMAIN.MEMBER_DEV,
-    title: '发展节点提醒',
-    flow: '发展阶段进入期满 → 组织委员办理下一节点（积极分子→发展对象 / 预备党员→转正）',
-    count: items.length,
-    items,
-  };
-}
 
 // ════════════════════════════════════════════════════════════════
 //  半年考察提醒（`SOP-B-39`；依据 `D-295`：考察意见＝**半年一次 · 制度固定 · 所有支部一致**）
@@ -345,59 +317,7 @@ export function buildDevelopNodeRemindGroup({ members = [], overrides = {}, toda
 //  ⚠ 只报「本半年无记录」这一**事实**；「应有记录的应到口径」系统内无口径 ⇒ 不自行推定。
 // ════════════════════════════════════════════════════════════════
 
-/** 自然半年期键：'YYYY-H1'（01-01…06-30）/ 'YYYY-H2'（07-01…12-31）——制度固定，非可调参数 */
-export function halfYearPeriodOf(dateStr) {
-  const m = /^(\d{4})-(\d{2})/.exec(String(dateStr || ''));
-  if (!m) return null;
-  const month = Number(m[2]);
-  if (month < 1 || month > 12) return null;
-  return `${m[1]}-H${month <= 6 ? 1 : 2}`;
-}
-
-/**
- * 派生「半年考察提醒」实时组（域=成员发展；组织委员台消费）。
- * @param {Object} opts
- * @param {Array} [opts.members]    成员档案（含 developStage）
- * @param {Array} [opts.records]    考察记录（含 personId / recordedAt）
- * @param {Object} [opts.overrides] 发展推进覆盖 { personId: { stage, entryDate } }（组织台同源，取 stage）
- * @param {string} [opts.today]     日期键 YYYY-MM-DD（缺省=今天）
- * @returns {Object|null} 实时组；无应提醒成员 → null（不产生空组卡）
- */
-export function buildHalfYearInspectionRemindGroup({ members = [], records = [], overrides = {}, today } = {}) {
-  const day = today || _todayStr();
-  const period = halfYearPeriodOf(day);
-  if (!period) return null;
-  const covered = new Set();
-  for (const r of records || []) {
-    if (!r || !r.personId) continue;
-    if (halfYearPeriodOf(String(r.recordedAt || '').slice(0, 10)) === period) covered.add(r.personId);
-  }
-  const items = [];
-  for (const p of members || []) {
-    if (!p || !p.id) continue;
-    const stage = (overrides[p.id] || {}).stage || p.developStage;
-    if (!DEVELOP_NODE_THRESHOLDS[stage]) continue;   // 只在培养考察期（积极分子 / 预备党员）内提醒
-    if (covered.has(p.id)) continue;                 // 本半年已有考察记录 → 不提醒
-    items.push({
-      id: `halfyear-${p.id}`,
-      personId: p.id,
-      name: p.name,
-      stage,
-      period,
-      title: `${p.name} · 本半年考察意见待更新`,
-    });
-  }
-  if (!items.length) return null;
-  return {
-    groupKey: 'org-commissioner:half-year-inspection-remind',
-    actionKey: 'half-year-inspection-remind',
-    domain: WORK_DOMAIN.MEMBER_DEV,
-    title: `半年考察提醒（${period}）`,
-    flow: '考察意见半年一次（制度固定）→ 本半年内无考察记录 → 组织委员核对建档；考察记录的督办位仍在纪检台',
-    count: items.length,
-    items,
-  };
-}
+/** 自然半年期键与「半年考察提醒」实现已迁至 `core/domain/todo-derive.js`，本文件仅再导出。 */
 
 // ════════════════════════════════════════════════════════════════
 //  模块周期提醒（2026-10-06 批次 423 · `R-29⑤` · `D-804`）
@@ -411,64 +331,10 @@ export function buildHalfYearInspectionRemindGroup({ members = [], records = [],
 //  **纯读实时组**：不落库、不改数据模型、**不派任务**（同 `buildHalfYearInspectionRemindGroup` 体例：
 //    天然幂等、跨期自动翻篇、无定时器）。**只报「本期未见开展」这一事实**，不推定应到口径。
 //  ⚠ **只对「主责∈本台主体集」的模块出条**（分工快照 `config.workforce` 覆盖 ＋ 缺省兜底；停用不计）。
+//  ⚠ 2026-11-09 批次 539：实现已迁至 `core/domain/todo-derive.js`，本文件仅再导出。
 // ════════════════════════════════════════════════════════════════
 
-/** 周期提醒实时组的 actionKey（组卡 / 域标注 / 判据共用一处） */
-export const MODULE_CYCLE_ACTION_KEY = 'module-cycle-remind';
-
-/**
- * 派生「本周期尚未开展」实时组（按模块周期；只列本主体主责的模块）。
- * @param {Object} opts
- * @param {Array}  [opts.activities] 全部活动（读 `type` / `date`；缺省＝[]）
- * @param {Array}  [opts.subjectIds]  本台主体集（角色键 / 组织型主体 id；如 `['leader']`）
- * @param {Record<string,{ownerType,ownerId}>|null} [opts.snapshot] 分工快照（缺省＝缺省分工兜底）
- * @param {Array}  [opts.modules]     模块表（缺省＝`WORK_MAP_MODULES`；**仅供判据注入**——支书 2026-10-06 裁「先不做周期提醒」
- *   后真实模块表上**无** `cycle`，机制仍由本参数在判据里被覆盖）
- * @param {string} [opts.today]       日期键 YYYY-MM-DD（缺省＝今天）
- * @returns {Object|null} 实时组；无「本期未开展」的模块 → null（不产生空组卡）
- */
-export function buildModuleCycleRemindGroup({ activities = [], subjectIds = [], snapshot = null, today, modules = WORK_MAP_MODULES } = {}) {
-  const ids = (Array.isArray(subjectIds) ? subjectIds : [subjectIds]).filter(Boolean);
-  if (!ids.length) return null;
-  // 快照接受「`config.workforce` 原样」或「`expandWorkforce` 展开后」——展开幂等，故一律再展开一次
-  const snap = expandWorkforce(snapshot);
-  const day = today || _todayStr();
-  if (!/^\d{4}-\d{2}/.test(String(day))) return null;
-  const items = [];
-  for (const m of (modules || [])) {
-    const cyc = m.cycle;
-    if (!cyc || !cyc.unit) continue;                       // 无制度固定周期 ⇒ 不派生（如实登记）
-    const owner = ownerOfModule(m.id, snap);
-    if (!owner || !ids.includes(owner.ownerId)) continue;  // 非本主体主责 / 已停用 ⇒ 不派生
-    const period = cyclePeriodOf(day, cyc.unit);
-    if (!period) continue;
-    const done = (activities || []).some((a) => {
-      if (!a || moduleIdOfActivity(a) !== m.id) return false;
-      const d = String(a.date || '').slice(0, 10);
-      return !!d && cyclePeriodOf(d, cyc.unit) === period;
-    });
-    if (done) continue;
-    items.push({
-      id: `cycle-${m.id}-${period}`,
-      moduleId: m.id,
-      moduleName: m.name,
-      period,
-      ownerType: owner.ownerType,
-      ownerId: owner.ownerId,
-      title: `${cyclePeriodLabel(period, cyc.unit)}的「${m.name}」尚未开展`,
-    });
-  }
-  if (!items.length) return null;
-  return {
-    groupKey: MODULE_CYCLE_ACTION_KEY,
-    actionKey: MODULE_CYCLE_ACTION_KEY,
-    domain: WORK_DOMAIN.PROJECT,
-    title: '本周期尚未开展（支部分工模块）',
-    flow: '模块周期（母本可核者）→ 本期未见对应活动 → 主责人据此组织；不派任务、不改数据',
-    count: items.length,
-    items,
-  };
-}
+/** 周期提醒 actionKey 与「模块周期」派生实现已迁至 `core/domain/todo-derive.js`，本文件仅再导出。 */
 
 // ── 待办状态枚举 ──────────────────────────────────────────────
 export const TodoStatus = {
@@ -491,6 +357,8 @@ export const TodoSourceType = {
   ACTIVITY: 'activity',
   TASKFORCE: 'taskforce',
   MANUAL: 'manual',
+  // 制度草案（2026-11-19 批次 574 · `D-886` / `SOP-B-25` ①）：草案 → 对应主体待办
+  INSTITUTION: 'institution',
 };
 
 // ── 待办行动类型枚举 ──────────────────────────────────────────
@@ -1370,6 +1238,60 @@ function _authzRecipient(fallbackRole, moduleId, snapshot) {
   return { role: fallbackRole, personId: null, ownerType: owner.ownerType, ownerId: owner.ownerId };
 }
 
+// ════════════════════════════════════════════════════════════════
+//  制度草案 → 对应主体待办（2026-11-19 批次 574 · `D-886` / `SOP-B-25` ①）
+//  口径：制度草案（`purpose='institution' && status='draft'`）按「制度内容领域 → 对应主体」
+//    的**既有判据**（`core/domain/work-map.js::institutionSubjectOfDomain`，勿另写映射）派生一条
+//    推进待办，收件人＝该领域的对应主体（角色键）；领域未登记 ⇒ 落支书。
+//  改派（`SOP-B-25` ②）：草案编辑面改「制度内容领域」后，`branch-doc.js` 先撤旧条再按新领域派生
+//    ⇒ 待办随主体换人，不改任何审批流。
+//  销项：草案离开草案态（审议通过 / 报送党员大会）即撤除派生条（与其他派生同法：来源消失则条消失）。
+// ⚠ 边界：本条属「按人 / 按角色的提醒」，与既有 `LifecycleTodoDeriver` 同层（客户端派生）；
+//    服务端 `todo-groups` 只接管实时组，本条不在其面内。
+// ════════════════════════════════════════════════════════════════
+export const InstitutionTodoDeriver = {
+  /**
+   * 草案 → 待办载荷（**纯函数**；不是草案 / 非草案态 → null）。
+   * @param {Object} doc 支部文件行（`purpose='institution'`）
+   * @returns {Object|null}
+   */
+  payloadFor(doc) {
+    if (!doc || doc.purpose !== 'institution' || doc.status !== 'draft') return null;
+    const role = institutionSubjectOfDomain(doc.domain) || 'secretary';
+    return {
+      title: `推进制度草案「${doc.title || '未命名制度'}」`,
+      description: '请按制度内容领域的分工起草与监督；定稿后提交支委会审议。',
+      role,
+      category: TodoCategory.SUBMIT,
+      priority: 'normal',
+      deadline: null,
+      sourceType: TodoSourceType.INSTITUTION,
+      sourceId: doc.id,
+      actionType: TodoActionType.SUBMIT,
+      actionKey: 'institution-draft',
+      actionData: { scope: 'institution', sourceId: doc.id, sourceName: doc.title || '' },
+      flow: '制度草案 → 对应主体起草与监督 → 支委会审议',
+    };
+  },
+
+  /** 按草案派生（幂等：同草案已有未完成条 ⇒ 不重复追加） */
+  deriveFromDraft(doc) {
+    const payload = this.payloadFor(doc);
+    if (!payload) return [];
+    const dup = TodoStore.getBySource(TodoSourceType.INSTITUTION, doc.id)
+      .some((t) => !t.voided && t.status !== TodoStatus.COMPLETED
+        && (t.actionKey || t.actionType) === 'institution-draft');
+    if (dup) return [];
+    return TodoStore.createBatch([payload]);
+  },
+
+  /** 草案离开草案态 / 改派时撤除旧派生条（派生提醒随来源变化，不保留悬空条） */
+  retireForDoc(docId) {
+    if (!docId) return;
+    TodoStore.deleteBySource(TodoSourceType.INSTITUTION, docId);
+  },
+};
+
 export const LifecycleTodoDeriver = {
   /**
    * 活动创建后，自动派生**赋权待办**（收件人＝该活动所属模块的主责，见 `_authzRecipient`）
@@ -1418,12 +1340,14 @@ export const LifecycleTodoDeriver = {
 
     return TodoStore.createBatch([{
       title: `为专班「${taskforce.name || '未命名'}」赋权组织者/深度参与者`,
-      description: `专班周期：${taskforce.startDate || '?'} ~ ${taskforce.endDate || '?'}. 请选择人员授予组织者或深度参与者角色。`,
+      // 契约（server/data/domain-contract.mjs taskforces 段）只有 `deadline` / `createdAt`；
+      //   原读 `startDate` / `endDate` 属字段漂移 ⇒ 描述恒为「? ~ ?」、截止恒 null。
+      description: `专班周期：${fmtLocalDate(taskforce.createdAt) || '未设定'} ~ ${fmtLocalDate(taskforce.deadline) || '未设定'}. 请选择人员授予组织者或深度参与者角色。`,
       role: to.role,
       personId: to.personId,
       category: TodoCategory.AUTH,
       priority: 'urgent',
-      deadline: taskforce.startDate || null,
+      deadline: taskforce.deadline || null,
       sourceType: TodoSourceType.TASKFORCE,
       sourceId: taskforce.id,
       actionType: TodoActionType.AUTHORIZE,
@@ -1730,6 +1654,45 @@ export const SEED_TODOS = [
   // R2-33（2026-10-20）：删除「设置第三党小组组长」种子——p4 已是第三党小组组长（people.js role:'leader'），
   //   这条待办点「去赋权」只会看到「已设置」，且每次 seed 补齐都会把它加回来 ⇒ 永远无法正确销项的假待办。
   //   不另造「第四组待任命」：本支部只有三个党小组（party-groups.js），伪造第四组同样是假数据。
+  // 2026-11-02 批次 527（数据契约 Wave 2）：原种子只有 pending 一种状态 ⇒ 「进行中 / 已过期」无样本。
+  //   补两条真实业务待办（进行中＝组织委员在办；已过期＝支书漏办后进入逾期口径），
+  //   状态枚举来自 TodoStatus 单一源；deadline / createdAt 均落在演示窗口（2026-08~11）。
+  {
+    id: 'todo_seed_8',
+    branchId: DEFAULT_BRANCH_ID,
+    title: '整理 10 月党小组会考勤',
+    description: '汇总 10 月各党小组会考勤并提交纪检委员确认。',
+    role: 'org-commissioner',
+    category: TodoCategory.SUBMIT,
+    priority: 'normal',
+    status: TodoStatus.IN_PROGRESS,
+    deadline: '2026-11-15',
+    createdAt: '2026-10-20T08:00:00',
+    sourceType: TodoSourceType.ACTIVITY,
+    sourceId: 'act-17',
+    actionKey: 'attendance-upload',
+    actionType: TodoActionType.SUBMIT,
+    actionData: { activityId: 'act-17' },
+    flow: '考勤汇总 → 纪检确认 → 考勤总表',
+  },
+  {
+    id: 'todo_seed_9',
+    branchId: DEFAULT_BRANCH_ID,
+    title: '审核 9 月支部党员大会考察记录',
+    description: '9 月支部党员大会考察记录待支书审核（演示逾期口径）。',
+    role: 'secretary',
+    category: TodoCategory.REVIEW,
+    priority: 'urgent',
+    status: TodoStatus.EXPIRED,
+    deadline: '2026-10-10',
+    createdAt: '2026-10-01T08:00:00',
+    sourceType: TodoSourceType.ACTIVITY,
+    sourceId: 'act-8',
+    actionKey: 'inspection-review',
+    actionType: TodoActionType.REVIEW,
+    actionData: { activityId: 'act-8' },
+    flow: '考察记录 → 纪检确认 → 支书审核',
+  },
 ];
 
 /** 已废弃种子（T232 闭环化移除：虚假/过期且来源与销项动作不匹配，改由业务数据动态派生） */

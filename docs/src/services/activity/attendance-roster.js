@@ -22,7 +22,8 @@ export function deriveExpectedRosterIds({ activity, originalPersonIds = [], sign
     && signup.sourceType === 'activity'
     && String(signup.sourceId) === String(activity.id)
     && signup.status === 'approved'
-    && !signup.voided);
+    && !signup.voided
+    && !signup.duplicateOf);
 
   const explicitNonOnsiteAssignments = new Set(relevant
     .filter((signup) => ['organizer', 'deep'].includes(signup.role)

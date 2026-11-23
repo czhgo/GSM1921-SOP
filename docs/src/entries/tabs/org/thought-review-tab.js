@@ -15,17 +15,18 @@
 //   判据复用既有 `reviewHistory`（打回是唯一留痕动作），不新增字段、不复活旧 `pending` 状态。
 //   它只提示「还没看过」，不拦归档、不产生写动作。
 
-import { listAllThoughtReports, comparePeriodDesc, periodOf } from '../../../services/governance/thought-report.js?v=20261031a';
-import { getPersonName, liveMembers } from '../../../services/member/person.js?v=20261031a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261031a';
-import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261031a';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261031a';
-import { listRowHtml } from '../../../components/ui/list-row.js?v=20261031a';
+import { listAllThoughtReports, comparePeriodDesc, periodOf } from '../../../services/governance/thought-report.js?v=20261120a';
+import { getPersonName, liveMembers } from '../../../services/member/person.js?v=20261120a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261120a';
+import { escHtml as esc, getBasePath, fmtLocalDate } from '../../../core/base/utils.js?v=20261120a';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261120a';
+import { listRowHtml } from '../../../components/ui/list-row.js?v=20261120a';
 // 例外清单仍是按人表：接统一引擎只为**分页**（无关键词 / 无分面时引擎自动不渲染检索条）。
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261031a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261120a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261120a';
+import { renderCardHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 const STATUS_LABEL = {
   needs_revision: '已打回 · 待补充',
   archived: '已入库',
@@ -49,7 +50,7 @@ function _reportHref(reportId) {
 /** 单行：姓名 + 期次/时间 + 状态 + 「查看 / 档案」两个出口（list-row 单一源） */
 function _rowHtml({ personId, name, meta, statusText, reportId }) {
   const status = statusText
-    ? `<span class="text-xs text-amber-700">${esc(statusText)}</span>`
+    ? `<span class="text-xs text-[var(--status-warning-text)]">${esc(statusText)}</span>`
     : '';
   return listRowHtml({
     rowType: 'action',
@@ -68,7 +69,7 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（本 tab 不�
 
   const user = AuthStore.getCurrentUser();
   if (!user) {
-    container.innerHTML = `${renderTabHeader({ title: '思想汇报' })}<div class="card rounded-xl p-5">${emptyStateHtml({ variant: 'panel', text: '请先登录后使用', actionHtml: `<a class="btn-outline" href="${getBasePath()}login.html">去登录</a>` })}</div>`;
+    container.innerHTML = `${renderTabHeader({ title: '思想汇报' })}<div class="card rounded-xl card-standard">${emptyStateHtml({ variant: 'panel', text: '请先登录后使用', actionHtml: `<a class="btn-outline" href="${getBasePath()}login.html">去登录</a>` })}</div>`;
     return;
   }
   // 防御：非组织委员不渲染。角色键一律走 ROLE_LABELS（R3-04：不得把 `secretary` 原样抛给用户）。
@@ -76,7 +77,7 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（本 tab 不�
     const roleName = ROLE_LABELS[user.role] || '当前身份';
     container.innerHTML = `
       ${renderTabHeader({ title: '思想汇报' })}
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-xl card-standard">
         ${emptyStateHtml({ variant: 'panel', text: `无权限：仅组织委员可审阅思想汇报（当前身份：${roleName}）` })}
       </div>`;
     return;
@@ -111,7 +112,7 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（本 tab 不�
       return {
         personId,
         name: getPersonName(personId) || latest.personName || personId,
-        meta: `${currentPeriod} · 提交 ${String(latest.submittedAt || '').slice(0, 10)}${list.length > 1 ? ` · 共 ${list.length} 篇` : ''}`,
+        meta: `${currentPeriod} · 提交 ${fmtLocalDate(latest.submittedAt)}${list.length > 1 ? ` · 共 ${list.length} 篇` : ''}`,
         reportId: list.length === 1 ? latest.id : '',
       };
     });
@@ -133,10 +134,10 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（本 tab 不�
 
   container.innerHTML = `
     ${renderTabHeader({ title: '思想汇报', description: '本期未交、待初阅与待补充的例外清单。' })}
-    <div class="card rounded-xl p-5">
+    <div class="card rounded-xl card-standard">
       <div class="flex items-center justify-between flex-wrap gap-2">
         <div class="min-w-0">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">思想汇报例外</h3>
+          ${renderCardHeader({ title: `思想汇报例外` })}
           <p class="mt-0.5 text-xs text-gray-500">${esc(currentPeriod)} · 需处理 ${total} 项</p>
         </div>
         <span class="text-xs text-gray-500">完整记录见各行「档案」</span>

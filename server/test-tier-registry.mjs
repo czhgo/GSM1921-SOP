@@ -1,24 +1,30 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
-//  server/test-tier-registry.mjs — 测试分层**单一源**（B-499-5 · Task 9，2026-10-21）
+//  server/test-tier-registry.mjs — 测试分层**单一源**
+//  （B-499-5 · Task 9 建表；2026-11-08 批次 537 按支书裁定改四层「结果优先、守卫按需」）
 //
-//  三层口径（互不重叠、并集 = 磁盘全部 `server/test/*.test.{js,mjs}`）：
-//    · daily     —— 每次改完必跑（墙钟目标 ≈4 分钟）。权限、数据真值、迁移、写链、
-//                   构建完整性、本批改动面、防假绿守卫，全部纯 node（不 import playwright）。
-//    · precommit —— 提交前 / 发布前全量。真机浏览器 e2e、page-sweep、form-loop-sweep 等重活。
+//  四层口径（互不重叠、并集 = 磁盘全部 `server/test/*.test.{js,mjs}`）：
+//    · daily     —— 结果门禁，每次改完必跑（墙钟目标 ≤75s）。只回答「结果对不对」：
+//                   服务启动 / 登录与会话 / 权限与写门 / 数据契约与迁移 / 核心业务结果
+//                   （党委内容 / 公开门厅 / 名册 / 考勤 / 待办派生）/ 构建可运行。
+//    · guards    —— 静态守卫，按需跑（`npm run test:guards` 或按改动面 `npm run test:changed`）。
+//                   CSS / 字号 / 间距 / 颜色 / 动效 / 结构 / 文案 / 文档 / 行号 / 页签密度。
+//    · precommit —— 提交前 / 发布前：daily + guards + 非核心域回归 + Playwright e2e。
 //    · weekly    —— 更慢的视觉 / 审计普查；precommit 与 full 仍覆盖（不因分层丢判据）。
 //
 //  约束（由 `test-tier-guard.test.mjs` 机械核对）：
-//    ① 磁盘测试文件 ↔ 三层并集**双向相等**；三层互不重叠；
-//    ② 不 import playwright 的纯 node 守卫**必须全部在 daily**（`doc-consistency::S16`）；
+//    ① 磁盘测试文件 ↔ 四层并集**双向相等**；四层互不重叠；
+//    ② 不 import playwright 的纯 node 测试必须在 daily / guards / precommit，**不得在 weekly**
+//       （`doc-consistency::S16` 同口径）；
 //    ③ daily 不含 page-sweep / form-loop-sweep / 任何 `*-e2e`；
-//    ④ daily 文件数与静态 `test(` 调用点数不得高于下方预算常量（新增测试须显式改预算）。
+//    ④ daily / guards 各自的文件数与静态 `test(` 调用点数不得高于下方预算常量。
 //
-//  本文件只做数据 + 纯函数：不改判据、不删测试。移层条目在 `reason` 里写明覆盖来源。
+//  本文件只做数据 + 纯函数：不改判据、不删测试。分层只决定「哪一层跑」，不决定「跑不跑」
+//  （precommit / full 仍覆盖全部文件）。
 // ════════════════════════════════════════════════════════════════
 
-/** 层级名（顺序即执行频次：daily → precommit → weekly） */
-export const TIERS = ['daily', 'precommit', 'weekly'];
+/** 层级名（顺序即执行频次：daily → guards → precommit → weekly） */
+export const TIERS = ['daily', 'guards', 'precommit', 'weekly'];
 
 /** fixture 数据面四类（2026-10-26 Task 6）：
  *  · memory        —— `:memory:` 库 / 纯函数 / 临时 mkdtemp 后即删；
@@ -29,7 +35,7 @@ export const TIERS = ['daily', 'precommit', 'weekly'];
 export const FIXTURE_CLASSES = ['memory', 'tmp', 'external-read', 'external-write'];
 
 /** 按层的缺省 fixtureClass（显式字段优先；见 `fixtureClassOf`） */
-export const DEFAULT_FIXTURE_CLASS = { daily: 'memory', precommit: 'tmp', weekly: 'tmp' };
+export const DEFAULT_FIXTURE_CLASS = { daily: 'memory', guards: 'memory', precommit: 'tmp', weekly: 'tmp' };
 
 /** 查某测试文件的 fixtureClass；未登记返回 undefined。显式 `fixtureClass` → 层缺省。 */
 export const fixtureClassOf = (file) => {
@@ -43,544 +49,478 @@ export const filesByFixtureClass = (fixtureClass) => TEST_TIERS
   .filter((e) => fixtureClassOf(e.file) === fixtureClass)
   .map((e) => e.file);
 
-/** daily 文件数预算（含本守卫自身；新增 daily 测试须同批上调并写明理由）
- *  2026-10-21 R5 P1：新增 page-title-guard / ui-contrast-guard，并补登记既有
- *  ui-custom-select / ui-focus-ring（纯 node 守卫）⇒ 209 → 213。
- *  2026-10-22 第七轮 P2：新增 branch-id-literal-guard（缺省支部字面量守卫，纯 node）⇒ 213 → 214。
- *  2026-10-22 第七轮 R7-01：新增 account-rename（人员主键改名受控端点，纯 node）⇒ 214 → 215。
- *  2026-10-22 第九轮 Task 4：新增 activity-workgroup-sync / taskforce-workgroup-source（纯 node）⇒ 215 → 217。
- *  2026-10-22 第九轮 Task 6：新增 ui-motion-guard（卡片悬停 / transition-all 棘轮，纯 node）⇒ 217 → 218。
- *  2026-10-23 R11 Task 12.1：补登 feedback-integrity / modal-contract / schema-split-gate
- *    （此前只落盘未登记）＋ 新增 ui-control-system-guard（均纯 node）⇒ 220 → 224。
- *  2026-10-23 批次 505（spec redesign-theme-palette-and-density Task 9）：新增
- *    theme-palette-guard / density-spacing-guard / hover-state-guard（均纯 node）⇒ 224 → 227。
- *  2026-10-23 批次 507（spec unify-link-and-press-states）：新增 link-color-guard（纯 node）⇒ 227 → 228。
- *  2026-10-24 批次 508：新增 activity-tone-guard / field-shell-guard / motion-guard /
- *    archive-deeplink-guard（均纯 node）⇒ 228 → 232。
- *  2026-10-24 批次 509：frontmatter-freshness / timestamps-note-guard / doc-line-ref / gold-accent-guard /
- *    button-system-guard 五件合并为 docs-governance-guard / theme-palette-guard / ui-control-system-guard
- *    （3+2+2 → 1+1+1）⇒ 232 − 5 ＋ 1 = 228。
- *  2026-10-25 spec restore-visual-hierarchy-and-runtime · Task 1：新增 runtime-tab-lifecycle-guard（纯 node）⇒ 228 → 229。
- *  2026-10-26 同 spec · Task 6（详情路由 direct/locate）：新增 object-route-guard（纯 node）⇒ 229 → 230。
- *  2026-10-26 Task 6（测试残留隔离）：新增 test-isolation-guard（纯 node）⇒ 230 → 231。
- *  2026-10-26 同 spec · Task 4（schema v12 与种子契约）：新增 seed-contract-guard（纯 node，10 条）⇒ 231 → 232。
- *  2026-10-26 同 spec · Task 5（四个月演示窗口）：新增 demo-window-guard（纯 node，5 条）⇒ 232 → 233。
- *  2026-10-26 同 spec · Task 3（写成功可证）：新增 write-truth-guard（纯 node，9 条）⇒ 233 → 234。
- *  2026-10-27 spec refine-ui-three-lenses · Task 12.4：新增 no-about-route-guard（纯 node，5 条）⇒ 234 → 235。
- *  2026-10-27 同 spec · Task 9：新增 no-underline-guard（纯 node，4 条）⇒ 235 → 236。
- *  2026-10-27 同 spec · Task 10：新增 loading-experience-guard（纯 node，6 条）⇒ 236 → 237。
- *  2026-10-29 About 冻结件：新增 about-freeze-guard（纯 node，5 条：5 处内容基线 ＋ 反例）⇒ 226 → 227。
- *  2026-10-29 ESM 解析门禁：新增 esm-parse-guard（纯 node，2 条：全量真 ESM 解析 + 函数体 import 反例）
- *    ——浏览器按 ESM 解析，`node --check`（CommonJS）放过的函数体内 import 会整模块语法失败 ⇒ 227 → 228。
- *  2026-10-29 P3/P4：新增 lf-bar-structure-guard / container-width-guard（均纯 node）⇒ 228 → 230。
- *  2026-10-31 P0/P13–P15：新增 nested-interaction-guard / card-summary-hero-guard（均纯 node）⇒ 231 → 233。 */
-export const DAILY_FILE_BUDGET = 234;
+/** daily 文件数预算（新增 daily 测试须同批上调并写明理由）
+ *  2026-11-08 批次 537（`D-859`「结果优先、守卫按需」）：daily 由「全部纯 node」收敛为结果门禁白名单；
+ *    不删任何测试文件 / 断言，只改分层与触发方式。
+ *  2026-11-08 波次 A（daily 墙钟收口）：43 → **25 文件 / 187 断言**——六个静态守卫
+ *    （`public-brand-guard` / `public-portal-leak-guard` / `import-path-guard` / `test-tier-guard` /
+ *    `test-isolation-guard` / `contract-doc-guard`）迁 guards；十二个非核心结果回归
+ *    （`write-policy-gaps` / `notice-audience` / `seed-baseline` / `branch-roster-import` /
+ *    `member-change-flow` / `member-change-cross-session` / `activity-creation-transaction` /
+ *    `attendance-roster-union` / `attendance-batch` / `inspection-workgroup-key` / `run-mode` /
+ *    `version-stamp`）迁 precommit（判据不丢：precommit / full 仍覆盖）。
+ *    `version-stamp` 按 `--timing` 实测最慢（23.0s）且不属业务结果，按「最慢非关键件移 precommit」处理。
+ *    按实然值 27 登记。
+ *  2026-11-15 六维补齐 T2：新增 `observability`（结构化日志脱敏 ＋ 浅/深健康检查为结果门禁）⇒
+ *    实测 30 文件，按 30 登记。
+ *  2026-11-15 六维补齐 T3：新增 `health-alerts`（深检查 503 / 告警 30 分钟去重 / 恢复通知为结果门禁）⇒
+ *    实测 31 文件，按 31 登记（结果门禁上限 31，已到顶）。
+ *  2026-11-17 批次 564（`repair-field-mismatch-and-refresh-help` Task 18）：新增 `if-match`（全资源乐观锁 428 / 409 /
+ *    200 / `If-Match: *` / `backfillUpdatedAt` 幂等为结果门禁——写口能否拦住并发覆盖是「结果对不对」而非过程检查）⇒
+ *    实测 32 文件，按 32 登记（上限随本批 +1）。 */
+export const DAILY_FILE_BUDGET = 32;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
- *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
- *  2026-10-21 批次 500 收尾：`todo-role-write-gate` 补 S5–S10（派生待办：支委代办 / 来源可证 / 伪造来源拒 / 无 actionKey 拒 / 推进仍归本人 / 无主 visitor 拒）⇒ 1377 → 1383。
- *  2026-10-22 第七轮 P2：`branch-id-literal-guard` 2 条 + 副组长同权用例 2 条 ⇒ 1383 → 1387。
- *  2026-10-22 第七轮 R7-33：`policy-config` 补考勤/复盘超期现算 2 条纯函数用例 ⇒ 1387 → 1389。
- *  2026-10-22 第七轮 R7-01：`account-rename` 4 条（成功 / 409 / 403 / p* 400）⇒ 1389 → 1393。
- *  2026-10-22 第九轮 Task 4：新增 activity-workgroup-sync（4）/ taskforce-workgroup-source（2），
- *    seed-drift +1、workgroup-api +1、mock-api-parity +1、home-workgroup-progress +1 ⇒ 1393 → 1403。
- *  2026-10-22 第九轮 Task 5：`frontend-foundations-guard` 新增 F8（可点容器键盘可达）1 条 ⇒ 1403 → 1404。
- *  2026-10-22 第八轮 Task 2.8：`r3-data-permission-regression` 新增「纪检确认考勤」1 条 ⇒ 1404 → 1405。
- *  2026-10-22 第九轮 Task 6：新增 ui-motion-guard（M1 悬停 / M2 transition-all / M3 非空转）3 条 ⇒ 1405 → 1408。
- *  2026-10-22 第九轮 Task 7.3：`frontend-foundations-guard` 新增 F9（写口失败不得提示成功）1 条 ⇒ 1408 → 1409。
- *  2026-10-23 批次 504（schema v11）：新增 todo-branch-attribution（6）/ schema-split-shadow（3）⇒ 1409 → 1418。
- *  2026-10-23 R11 Task 12.1：补登 feedback-integrity（12）/ modal-contract（5）/ schema-split-gate（4）
- *    ＋ 新增 ui-control-system-guard（7）⇒ 1418 → 1446。
- *  2026-10-23 批次 505（Task 9）：新增 theme-palette-guard（5）/ density-spacing-guard（7）/
- *    hover-state-guard（5）⇒ 按实况 1464（上批声明 1446 与实际差 1，本批一并校准）。
- *  2026-10-23 批次 507：新增 link-color-guard（5）＋ hover-state-guard 增补按压 H6/H7（2）⇒ 1464 → 1471。
- *  2026-10-24 批次 508：新增 activity-tone-guard（4）/ field-shell-guard（6）/ motion-guard（6）/
- *    archive-deeplink-guard（5）＋ theme-palette-guard 增补 strongHover T6/T7（2）⇒ 1471 → 1494。
- *  2026-10-24 批次 509：删 5 件（doc-line-ref 6 / frontmatter-freshness 3 / timestamps-note-guard 4 /
- *    gold-accent-guard 5 / button-system-guard 7 ＝ 25）＋ docs-governance-guard 18（F1–F3 3 ＋ N1–N7 4
- *    ＋ R1–R6 6 ＋ G4–G8 5）⇒ 净 −7。按守卫实算 **1499**（上批预算 1494 与实况差 12，本批一并按实况校准）。
- *  2026-10-24 spec rebuild-notification-and-data-truth · Task 5：workbench-audit-coverage 增补 1 条
- *    「各台 tf-view 均含工作组段 / 工作组件只读 / 深链被消费」守卫（原 1499 + 1）⇒ 1499 → 1500。
- *  2026-10-25 同 spec · Task 3：notice-audience 增补 N13–N16（逐人归档 / countUnread 同源 /
- *    筛选语义 / 私信线程，4 条）＋ notice-message 增补 N5（kindOf / isArchivedFor，1 条）⇒ 1500 → 1505。
- *  2026-10-25 同 spec · Task 6.1（批次 510 · SD-34）：state-enum-guard 增补 G7–G9（页签状态单一源 /
- *    派生器导出与五态 / 消息种类单一源，3 条）＋ docs-governance-guard 增补 G9–G10（一 tab 一 H2 /
- *    卡头单一源，2 条）＋ mock-api-parity-structure 增补 S3（mock 不得含派生字段，1 条）⇒ 1505 → 1511。
- *  2026-10-25 同 spec · Task 3（组件契约）：ui-control-system-guard 增补 T3-1…T3-3
- *    （交互元素内无标题 / 折叠可静态回读 / 同文件只用一种折叠原语，3 条）⇒ 1511 → 1514。
- *  2026-10-25 同 spec · Task 2（术语对照 Harness）：docs-governance-guard 增补 H-T1…H-T5
- *    （并列组层级 / 页签名覆盖段集合 / 结构性标签登记 / 废弃写法零残留 / 术语单一源，5 条；
- *     均带非空转下限与故障注入说明）⇒ 1514 → 1519。
- *  2026-10-25 同 spec · Task 4（同屏纵向一致）：ui-control-system-guard 增补 T4-1
- *    （同一文件只允许一种折叠头实现：renderDisclosure ↔ 手写 details/summary，1 条；
- *     带非空转下限与逐条理由豁免）⇒ 1519 → 1520。
- *  2026-10-25 spec restore-visual-hierarchy-and-runtime · Task 1（运行时正确性）：
- *    新增 runtime-tab-lifecycle-guard（11 条：renderCtx 最新态 ×2 / 统一生命周期 ×2 / 陈旧写回与失败可见 ×2 /
- *    loading 超时 ×2 / 绑定幂等 / 页内失败态 / 回退提示；含 3 条行为用例与故障注入说明）⇒ 1521 + 11 = 1532；
- *    并入同批工作树里视觉侧已落地的 3 条（page-sweep / ui-contrast-guard / ui-control-system-guard）
- *    ⇒ 按实况校准为 1535。
- *  2026-10-26 同 spec · Task 2（关键性能：首屏 / 鼠标卡帧）：在既有 runtime-tab-lifecycle-guard
- *    增补 P1–P5（可配置延迟 / 单次 loadDB / 首屏不阻塞 / hover 先读后写 + 观察器增量 / 后台刷新不铺占位，
- *    5 条，含 1 条行为用例与故障注入说明；未新增守卫文件）⇒ 1535 + 5 = 1540。
- *  2026-10-26 同 spec · Task 4（色彩分工）：既有守卫内新增 6 条（theme-palette-guard T8 功能色层 + T9 僵尸
- *    token、activity-tone-guard A5 暗色分离、link-color-guard L6 帮助链接 + L7 速查链接 + L8 help/about 锚点），
- *    未新增守卫文件 ⇒ 1540 + 6 = 1546。
- *  2026-10-26 同 spec · Task 5（按钮三档与可点性）：ui-control-system-guard 内新增 V4–V7 四条
- *    （btn-ghost 仅非动作行载体 / 纯文字动作下划线或箭头 / 图标按钮 32 视觉 + 44 命中 / 可点行 hover
- *    对比与左条），未新增守卫文件 ⇒ 1546 + 4 = 1550。
- *  2026-10-26 同 spec · Task 6（详情路由 direct/locate）：新增 object-route-guard 八条
- *    （入口矩阵 / direct·locate 落点 / 门 / 已归档只读 / 生成点收口 / 无空 id / 可点节点可键盘 /
- *     同页单一完整详情面；含故障注入说明）⇒ 1550 + 8 = 1558。
- *  2026-10-26 Task 6（测试残留隔离）：新增 test-isolation-guard 4 条（fixtureClass 四类 / external-write
- *    证据与故障注入 / :3000 归类与运行库字面量 / 临时库登录不写运行库）＋ data-lifecycle-guard 增补 ⑮
- *    （测试残留双条件清理，1 条）⇒ 1558 + 5 = 1563。
- *  2026-10-26 同 spec · Task 4（schema v12 与种子契约）：新增 seed-contract-guard 10 条
- *    （branchId / todos 生成列 / 四组唯一索引 / contributions 形状 / 考察成员 / 死表 /
- *     DATA_MODEL 登记 / 契约四类 / manifest 字段；每条带故障注入或规模下限）⇒ 1563 + 10 = 1573。
- *  2026-10-26 同 spec · Task 2（缓存边界与服务端优先登录）：`localstorage-key-guard` 新增 L4–L10 七条
- *    （四类清单 / registry 无僵尸 / visual 白名单 / 读缓存必须带 `_versions` / auth 不承载业务数据 /
- *    故障注入 / 读口拒收缺版本备份）＋ `auth.test.js` 新增三条（服务端真实账号可登录 / 401 不写登录态 /
- *    登录页 catch 不跳转）⇒ 1573 + 10 = 1583。
- *  2026-10-26 同 spec · Task 5（四个月演示窗口）：新增 demo-window-guard 5 条
- *    （窗口单一源 / 全量日期窗口内＋白名单 / 月覆盖与 11 月计划态 / 关键状态 / 级联顺序）⇒ 1583 + 5 = 1588。
- *  2026-10-26 同 spec · Task 3（写成功可证）：新增 write-truth-guard 9 条
- *    （六处 api 闸门静态 / 单一源逐键 / flush 分流 / outbox 三路径 / 快照照发 /
- *     语义端点 / 不支持形状显式失败 / 失败入 outbox 可重试放弃 / 本机域「未同步」）⇒ 1588 + 9 = 1597。
- *  2026-10-26 同 spec · Task 7（正式数据轨道与切换）：既有 4 件守卫内新增 6 条
- *    （seed-baseline B5 生产默认 SEED_FALLBACK=false / B6 生产含演示种子拒启与 ALLOW_DEMO_DATA 放行 /
- *     B7 seed-repair baseline·生产不修演示 id；backup-restore B2 真跑 restore.mjs；branch-roster-import
- *     api⑦ 名册事务回滚 + 导入后真实账号可登录；permission-gate READ_ONLY 写口 403），未新增守卫文件
- *    ⇒ 1597 + 6 = 1603。
- *  2026-10-27 Spec「refine-ui-three-lenses」阶段一 Task 2（操作成本 / a11y）：
- *    ui-focus-ring 新增 F6（顶栏深红底焦点环作用域 ≥3:1）＋ ui-tab-overflow 新增 T5
- *    （激活页签只改 scrollLeft，不用元素级滚动）两条，未新增守卫文件 ⇒ 1603 + 2 = 1605。
- *  2026-10-27 Spec「refine-ui-three-lenses」阶段二 Task 5（页标题与重复动作）：
- *    page-title-guard 新增 P4（静态壳不再输出页题）/ P5（活动·专班 H3/H4 顺序 + 原始 ID 移出正文）/
- *    P6（党委台卡头不复述页签名）三条；todo-void-flow V6 随结构改准（断言数不变）。
- *    同批并行专项另新增 6 条（a11y-tree / round3-4-batch1 / ui-tab-overflow 等）
- *    ⇒ 实测 1605 + 3 + 6 = 1614。
- *  2026-10-27 Spec「refine-ui-three-lenses」阶段三 Task 12（细节与手感）：
- *    新增 no-about-route-guard 5 条（HTML 零链接 / JS 零路由与侧栏项 / MD 零指针 / 文件保留 / 非空转自检）
- *    ⇒ 1614 + 5 = 1619。
- *  2026-10-27 同 Spec · 阶段三 Task 9（美学）：新增 no-underline-guard 4 条
- *    （扫描面自检 / 判红面清零 / PENDING 台账 / 只降不升）⇒ 1619 + 4 = 1623。
- *  2026-10-27 同 Spec · 阶段三 Task 10（加载与过渡）：新增 loading-experience-guard 6 条
- *    （判据全集 / 骨架形状 / 快速不闪骨架 / 慢渲染骨架与淡入 / 故障注入 / 跳转进度条）
- *    ⇒ 1623 + 6 = 1629。
- *  2026-10-27 同 Spec · 阶段三 Task 11（色彩角色）：ui-contrast-guard 新增 K6（warning 文字档
- *    亮/暗 ≥4.5:1 + 填充语义）+ theme-palette-guard 新增 T10（功能红/金与 danger/warning/主题
- *    accent 不撞值 + 文字对比）两条，未新增守卫文件 ⇒ 1629 + 2 = 1631。
-  *  2026-10-27 批次 515（mock ↔ API 最小守卫）：mock-api-parity-structure 增补 S4
-  *    （两适配器资源组 / 方法集合双向比对 + 白名单理由，1 条；未新增守卫文件）
-  *  2026-10-27 批次 516：version-stamp 增 S8/S9（交付形态：modulepreload 同戳 / CDN 锁版本 / 缓存分流 / gzip，2 条）
- *    ⇒ 1632 + 2 = 1634；同批守卫归并（17 件 → 4 件）只动文件预算、不动断言预算。
- *  2026-10-28 美学专项 Task 7（规范与守卫收口）：copy-guard 增 S1/S2（卡头副题只写范围 + 约束 ·
- *    SD-54，2 条）＋ modal-guard 增 D1/D2（原生 confirm 清零 / confirmDanger 三段式入口 · SD-53，2 条）
- *    ⇒ 1634 + 4 = 1638。
- *  2026-10-28 美学专项 Task 5.4（首页 hero 豁免降级）：ui-home-hero 增 E8（登录且有待办写
- *    data-hero="muted" · 党徽 24px / 标题 --text-xl 左对齐，含反例，1 条）⇒ 1638 + 1 = 1639。
- *  2026-10-28 B-500-4 结案（数据保留期）：data-lifecycle-guard 新增 ⑯（cleanup 删除目标白名单不含任何
- *    业务表 · 以 RESOURCE_TABLES ＋ SEMANTIC_TABLES 为业务表全集，含「DELETE FROM activities」反例，1 条）
- *    ⇒ 1639 + 1 = 1640。
- *  2026-10-28 前端设计审查（根页地标）：docs-governance-guard 新增 G11（9 个根页的 #main-content 必须落在
- *    唯一 <main> 上 · 含正负例自检，1 条；未新增守卫文件）。同批按实况校准：此前台账记 1640，实测已为 1641
- *    （工作树里另有未计入的既有断言 modal-guard M2 / G8、copy-guard T1），本批 +1 ⇒ 实测 1642。
- *  2026-10-28 前端设计审查（浮窗字段类型 / 作废确认 / 二次确认归并）：modal-guard 新增 T1（8 个已知
- *    字段类型原样透传 / 未知类型生产期回退 text，含反例，1 条）⇒ 1642 + 1 = 1643。
- *  2026-10-28 空态全站收口：copy-guard 新增 E1/E2（空态只从 empty-state.js 出 · 白名单 3 条逐条写理由 /
- *    反例命中 + 负例不误伤 + 白名单无僵尸，2 条）⇒ 1643 + 2 = 1645。
- *  2026-10-28 硬编码审计（默认月 / URL / 日期口径）：copy-guard 新增 D1/D2（用户可见渲染串
- *    不写死完整年月日 · 基线 0 ＋ 反例/负例自检，2 条）＋ frontend-foundations-guard 新增 F10
- *    （日历默认月由 now 派生 · 注入两个 now，1 条）⇒ 按实况 1644 + 3 = 1647。
- *  2026-10-28 焦点单环 / 大字号对比：ui-control-system-guard 新增 FOCUS-1…3（双环检测含正反例 ·
- *    搜索框与 <select> 同环 · 「考勤良好」数值 ≥3:1，3 条；未新增守卫文件）⇒ 1647 + 3 = 1650。
- *  2026-10-28 焦点单一体例与交互补齐：ui-control-system-guard 新增 FOCUS-4/5（焦点只允许主题色单环 ·
- *    七色 base 对比度，2 条）＋ hover-state-guard 新增 H8/H9（可点类必须有 hover 或 active ·
- *    role=button 必须可聚焦，2 条）＋ copy-guard 新增 B1/B2（可见支部名字面量 · 旧色名与「十色」，2 条）
- *    ⇒ 1650 + 6 = 1656；另有 3 条既有用例改写后拆分为多条计入 ⇒ 按实况 1659。
- *  2026-10-29 About 冻结件守卫：新增 about-freeze-guard 5 条
- *    （B1 条目数恰好 5 / B2 三件套整文件哈希 / B3 两处引用面定位片段 / B4 定位串恰好命中 1 行 /
- *      B5 临时副本反例：5 处逐个改动判红 ＋ 副本原样判绿）⇒ 1659 + 5 = 1664。
- *  2026-10-29 ESM 解析门禁：新增 esm-parse-guard 2 条（全量模块真 ESM 解析 · 函数体内 import 反例）
- *    ⇒ 1664 + 2 = 1666。
- *  2026-10-29 P1（焦点只有一个信号）：ui-control-system-guard FOCUS-2/FOCUS-4 改写为全量扫描
- *    （输入族零 outline · 按钮族必有环 · 任一规则块 ≤1 层 · 焦点色禁党徽金/党建红，含 5 类反例）
- *    ＋ ui-focus-ring F2/F3、field-shell-guard F2/F3 按新口径判准。断言均在既有 test() 内扩充，
- *    **未新增测试文件 / 未新增静态 test() 调用点** ⇒ 实测 1663 ≤ 1666，预算维持
- *    DAILY_FILE_BUDGET = 228、DAILY_TEST_BUDGET = 1666（不上调；按实况登记，避免预算失去约束力）。
- *  2026-10-29 P2（数字组单一语法）：ui-control-system-guard V1 按新结构改写（判据更严：横排 +
- *    .stat-card__body + 无 min-height + 栅格 4/2/2）＋ 新增 V8 全量扫描（docs/src 下全部 .js 与
- *    docs 根页 .html 的数字组竖排回潮 / 组内内联 hex，含 5 个反例样本）1 条；另按新口径改准
- *    ui-home-hero E7、work-overview W4、ui-phase2-urgent U4、ui-contrast K6、theme-palette G5。
- *    仅新增 1 个静态 test() 调用点、未新增文件 ⇒ 实测 1664 ≤ 1666，预算维持
- *    DAILY_FILE_BUDGET = 228、DAILY_TEST_BUDGET = 1666（差额 2 不作上调，保留约束力）。
- *  2026-10-29 P3/P4（筛选四段 / 容器五档）：新增 lf-bar-structure-guard 5 条
- *    （L1 直接子元素只能是行 / L2 段位与纯范围例外 / L3 两类反例 / L4 产出点下限 / L5 登记）
- *    ＋ container-width-guard 6 条（C0 五档表与 .card-grid / C1+C2 页面只许五档 /
- *    C3 42rem 与 1320px 反例 / C4 页面数下限 / C5 登记）⇒ 新增 11 条、实测 1674；
- *    roster-filter-guard R4 改为通用窄屏规则（断言数不变）。
- *    新增 2 个文件 ⇒ DAILY_FILE_BUDGET 228 → 230；断言预算按实测 1674 上调至 1676
- *    （留 2 条余量，不作「9999 式」放宽）。
- *  2026-10-29 P6 例外补守卫：frontend-foundations-guard 新增 F11（mock 延迟单一源：默认 80ms /
- *    两条覆盖入口 / 上限 5000ms，含 2 类反例，1 条）＋ test-tier-guard 新增 T7（守卫台账标题
- *    数字与正文「现行 N 件」一致，含反例，1 条）＋ ui-control-system-guard V4 内补 3 条
- *    btn-ghost 反例断言（不新增 test() 调用点）；均未新增文件。实测 1674 → 1676，
- *    预算按实况上调至 1678（留 2 条余量）。
- *  2026-10-31 P8（状态色两层 / 暗色色阶补齐）：新增 status-color-guard（S1 填充档不得作 color /
- *    S2 文字档逐色对比度 / S3 文档值=实现值，3 条，含 3 类反例）＋ theme-palette-guard 新增 T11
- *    （暗色段补齐 primary 三档与 identity 基础名、6 个元素亮暗背景不同、暗色对比度，1 条）
- *    ⇒ 本轮 1678 + 4 = 1682；新增 1 个文件 ⇒ 文件预算 230 → 231（随后 P0/P13–P15 并入同批，
- *    最终 233 / 1688，见下条）。预算按实况登记（不留「9999 式」余量）。
- *  2026-10-31 P0/P13–P15（嵌套交互 / 卡片末行 / 折叠头 / hero 特例）：
- *    新增 nested-interaction-guard 3 条（N1 扫描 + 白名单 / N2 双向一致 + 14 处缺陷行 / N3 反例）
- *    ＋ card-summary-hero-guard 3 条（G1 卡片末行只有右对齐动作 / G2 summary 宽 100% 高 ≥44 /
- *    G3 hero 居中白名单；各带反例）⇒ 实测 1682 + 6 = 1688；
- *    ui-home-hero E8 按新裁定改写（断言数不变）。预算 1682 → 1688。
- *  2026-10-31 P9（触控热区 / 表单错误 / 确认弹窗 Esc）：
- *    新增 touch-target-guard 7 条（判定器反例 / 六类命中区规则 / 视觉不变与命中下限 /
- *    相邻不重叠 / 表单三态 aria 成对 / 弹窗 Esc + 焦点回归 / offender 棘轮）
- *    ＋ modal-guard 新增 E1–E3（Esc 可取消 / 焦点回归与 Tab 陷阱 / 表单错误成对，各带反例）
- *    ⇒ 按实况登记 1700（此前台账 1688 与实测 1690 差 2，本批一并校准）。新增 1 个文件 ⇒ 文件预算 233 → 234。 */
-/** 2026-10-31 字号/间距低风险收口（只加登记与守卫，不改渲染）：
- *  · `type-scale-guard` 新增 Q1–Q4 四条（档位表外新增判红 / 逐文件逐值棘轮 / 非空转与文档齐备 / 进度）；
- *  · `spacing-scale-guard` 新增 S5–S7 三条（styles.css 非令牌声明 / 行内声明 / 行内属性棘轮）。
- *  均沿用既有守卫文件，未新增文件 ⇒ 实测 1700 + 7 = 1707；文件预算维持 234。 */
-export const DAILY_TEST_BUDGET = 1707;
+ *  2026-11-08 波次 A：实测 187，按 189 登记（留 2 条余量；结果门禁上限 220）。
+ *  2026-11-08 波次 B/E/G：并入 security-hardening / multi-branch-read-filter / personal-password，
+ *    并把 auth-password 移 precommit；实测 207，按 209 登记。
+ *  2026-11-15 六维补齐 T2：新增 `observability` 4 条断言（脱敏 / 5xx 串联 / 两级健康 / 反例）⇒
+ *    实测 247，按 248 登记（留 1 条余量）。
+ *  2026-11-15 六维补齐 T3：新增 `health-alerts` 4 条断言（成功＋指标 / 失败 503＋告警 / 30 分钟去重 / 恢复）⇒
+ *    实测 251，按 252 登记（留 1 条余量）。
+ *  2026-11-17 批次 564（If-Match 结果门禁）：新增 `if-match` 5 条断言（无头 428 / 过期 409＋latest / 当前 200 且戳前进 /
+ *    `If-Match: *` 200 / 回填幂等无空戳）⇒ 实测 257，按 260 登记（留 3 条余量，上限随本批 +8）。
+ *  2026-11-18 批次 566（B-552-6）：`db-migration` 增 M9（v18 报名唯一索引：重复行标 duplicateOf / 不删行 / 重放幂等）
+ *    ⇒ 实测 260，预算维持 260（差 0；再增断言须先降存量或显式上调）。
+ *  2026-11-18 批次 567（R10-D02 集合版本 ＋ v18 版本推进）：`db-migration` M9 增「v18 推进 signups 版本」1 条、
+ *    `committee-multidomain` 增「档案写口推进 archiveRecords 版本键」1 条 ⇒ 静态调用点实测 258，按 262 登记（留 4 条余量）。
+ *  2026-11-23 批次 604：`write-policy-matrix` 增 1 条（门名处理分支，属权限结果门禁）⇒ 实测 263；按 263 登记（余量 0）。
+ *  2026-11-23 批次 605：`workbench-audit-coverage` 增 W7（D2 处置完整性：每页签有对账规则或 countSkip 理由、
+ *    total 规则带 countSelector、规则数只增不减，含两条反例）⇒ 实测 **264**；按 264 登记（余量 0）。 */
+export const DAILY_TEST_BUDGET = 264;
+
+/** guards 文件数预算（静态守卫；按需跑，不阻塞日常）
+ *  2026-11-08 波次 A：daily 迁入 6 件 ⇒ 实测 99 文件，按 99 登记。
+ *  2026-11-15 `close-six-dim-gaps` T10：新增 `a11y-guard.test.mjs`（可访问性常驻静态守卫），
+ *    实然 108 文件；按 111 登记——同批可能还有其它守卫件并入，留 ≤4 文件余量（`test-tier-guard::T4`）。
+ *  2026-11-15 `close-six-dim-gaps` T15：新增 `branch-resolve-single-source-guard.test.mjs`（支部解析单源 ＋
+ *    存量回落基线），实然 109 文件；111 仍在余量内（差 2 ≤4），**不上调**（放宽预算＝失去约束力）。
+ *  2026-11-16 polish-shell T12：新增 `resource-write-validation-guard.test.mjs`（通用写口字段校验 ＋ 列表硬上限），
+ *    实然 110 文件；111 仍在余量内（差 1），**不上调**。
+ *  2026-11-18 批次 565：新增 `audit-write-version-guard.test.mjs`（审计驱动 PATCH 必带 If-Match），
+ *    实然 112 文件（本批 +1）；按 112 登记（差 0；再增守卫须先降存量或显式上调）。
+ *  2026-11-19 批次 572：新增 `single-fact-consistency`（单值事实 G1）与 `spec-task-consistency`
+ *    （spec 台账噪声 G2），实然 114 文件；按 114 登记（差 0）。
+ *  2026-11-19 批次 574：新增 `institution-todo-derive`（制度草案 → 对应主体待办）与
+ *    `my-project-tasks`（我的任务项目身份派生），实然 116 文件；按 116 登记（差 0）。
+ *  2026-11-19 批次 575：新增 `roster-write-precheck`（名册写口前置校验），实然 117 文件；按 117 登记（差 0）。
+ *  2026-11-20 批次 579：新增 `deputy-policy`（副支书操作权 / 正副职字面量基线），实然 118 文件；按 118 登记（差 0）。
+ *  2026-11-20 批次 581：新增 `card-consistency-guard`（卡厚度 / 卡头字重），实然 119 文件；按 119 登记（差 0）。
+ *  2026-11-20 批次 581 续：新增 `spacing-ratchet-guard`（间距 / 暗色补丁棘轮），实然 120 文件；按 120 登记（差 0）。
+ *  2026-11-20 批次 584：新增 `evaluation-asset-guard`（改进项指针 / 资产索引 / 两段门槛），实然 121 文件；按 121 登记（差 0）。
+ *  2026-11-21 批次 587：新增 `status-palette-text-guard` / `badge-single-source-guard` / `button-height-guard`，实然 124 文件；按 124 登记（差 0）。
+ *  2026-11-21 批次 589：新增 `todo-derive-instrument-guard`（派生兜底仪表 / 7 类对账全绿），实然 127 文件；按 127 登记（差 0）。
+ *  2026-11-21 批次 591–595：新增 `form-field-guard` / `open-items-guard` / `bom-and-eol-guard` / `evidence-hygiene-guard`，实然 129 文件；按 129 登记（差 0）。 */
+export const GUARDS_FILE_BUDGET = 81;
+
+/** guards 静态 `test(` / `it(` 调用点预算
+ *  2026-11-08 波次 A：实测 788 断言，按 791 登记（断言留 3 条余量）。
+ *  2026-11-15 `close-six-dim-gaps` T10：`a11y-guard` 增 2 条静态 `test(` 调用点（扫描面自检 ＋ 六条判据合并一项），
+ *    实然 824；按 860 登记——同批可能有其它守卫断言并入，留 ≤40 条余量（`test-tier-guard::T4`）。
+ *  2026-11-15 `close-six-dim-gaps` T15：新增单源守卫 3 条 ＋ `docs-governance-guard` R7（content/** 行号扩面）1 条，
+ *    实然 828；860 仍在余量内（差 32 ≤40），**不上调**。
+ *  2026-11-16 `polish-shell-and-display-truth` T10：`date-canon-guard` 增 D1c（`slice(0,10)` 取 ISO 日 ＋ 45 条存量基线），
+ *    实然 829；860 仍在余量内（差 31 ≤40），**不上调**（放宽预算＝失去约束力）。
+ *  2026-11-16 `polish-shell-and-display-truth` T12：新增 `resource-write-validation-guard` 5 条
+ *    （覆盖声明 / 单一源 / 接线 / 行为 / 非空转），实然 834；860 仍在余量内（差 26），**不上调**。
+ *  2026-11-18 批次 565：新增 `audit-write-version-guard` 3 条（PATCH 必带 If-Match / 助手接线 / 反例自证），
+ *    实然 837；860 仍在余量内（差 23），**不上调**。
+ *  2026-11-19 批次 578：574–577 新增守卫用例累计（`institution-todo-derive` / `my-project-tasks` /
+ *    `roster-write-precheck` / `multi-branch-five-proof` / `public-portal` 扩面），实然 861；
+ *    按 861 登记（余量 0，此后不得再上调）。
+ *  2026-11-20 批次 579：新增 `deputy-policy` 3 条（三档语义 / 服务端读参数 / 正副职基线），实然 864；
+ *    按 864 登记（余量 0）。
+ *  2026-11-20 批次 581：新增 `card-consistency-guard` 3 条，实然 867；按 867 登记（余量 0）。
+ *  2026-11-20 批次 581 续：新增 `spacing-ratchet-guard` 2 条，实然 869；按 869 登记（余量 0）。
+ *  2026-11-20 批次 584：新增 `evaluation-asset-guard` 4 条，实然 873；按 873 登记（余量 0）。
+ *  2026-11-21 批次 587：新增 `status-palette-text-guard` 3 条 ＋ `badge-single-source-guard` 2 条 ＋ `button-height-guard` 2 条，实然 880；按 880 登记（余量 0）。
+ *  2026-11-21 批次 589：新增 `todo-derive-instrument-guard` 3 条 ＋ `evaluation-asset-guard` 增 1 条，实然 884；按 884 登记（余量 0）。
+ *  2026-11-21 批次 591：新增 `form-field-guard` 4 条（必填语义 / 报错语义 / 字段级可访问名 / 反例自证）＋ `open-items-guard` 5 条（清账门四类 open 源 ＋ 反例自证），实然 893；按 893 登记（余量 0）。
+ *  2026-11-21 批次 593：新增 `bom-and-eol-guard` 3 条（BOM 唯一性 / frontmatter 锚点 / 反例自证），实然 896；按 896 登记（余量 0）。
+ *  2026-11-21 批次 594：`open-items-guard` 扩扫 `.trae/specs/**` 并增 2 条（归档件未勾项逐行 concluded ／ 反例自证），实然 898；按 898 登记（余量 0）。
+ *  2026-11-21 批次 595：新增 `evidence-hygiene-guard` 4 条（禁截图 / 压缩包 ／ 台账双向引用 ／ 单文件 ≤256KB ／ 反例自证），实然 902；按 902 登记（余量 0）。
+ *  2026-11-22 批次 599：`.trae` 清零——删 `spec-task-consistency`（3 条）＋ `open-items-guard ⑥`（1 条），实然 898；按 898 登记（余量 0）。
+ *  2026-11-23 批次 604：`write-policy-matrix` 增 1（门名处理分支）＋ `evaluation-asset-guard` 增 1（EA 读数 ≡ registry）＋ `single-fact-consistency` 增 1（对象挂靠单一源）。
+ *  2026-11-23 批次 604 续：**改正登记漂移**——批次 604 写「实然 901」，复核实测为 **898**（多记 3 条）；
+ *    本批新源件 16 `viewport-and-touch-guard` 5 条（顶栏避让 / 触控 / 滚动隔离 / 触控高亮 / 图片尺寸，每条带反例）
+ *    ＋ `doc-lifecycle-guard` 源件 5 `guard-citation-guard` 2 条（文档引用的守卫文件必须存在 ＋ 反例自证）
+ *    ⇒ 实测 **906**；按 906 登记（余量 0）。 */
+export const GUARDS_TEST_BUDGET = 906;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
 /** 全量分层登记表：每条 = { file, tier, reason } */
 export const TEST_TIERS = [
-  // daily · 权限 / 角色 / 受众 / 作用域
-  ...group('daily', '权限 / 角色 / 受众 / 作用域', [
-    'activity-member-privacy.test.mjs',
-    // 2026-10-22 第九轮 Task 4.3：活动 ↔ 工作组同事务同步（纯 node；含服务端 HTTP + mock 镜像）
-    'activity-workgroup-sync.test.mjs',
-    // 2026-10-23 批次 504：v11 Todo 归属（回填 / 400 / 兼容期）与影子子表（回填 / 篡改 / 回滚）
-    'schema-split-shadow.test.mjs',
-    'todo-branch-attribution.test.mjs',
-    'auth-audit-scope.test.mjs',
-    'auth-password.test.mjs',
+  // ── daily · 结果门禁（只回答「结果对不对」）──────────────────────────────
+  ...group('daily', '结果门禁 · 运行 / 登录 / 会话 / 权限 / 写门结果', [
+    'server-base.test.mjs',
     'auth.test.js',
-    'block-field-policy.test.mjs',
-    'capability-package-catalog.test.mjs',
-    'capability-registry.test.mjs',
-    'handoff-state-guard.test.mjs',
-    'iaaa-onboarding.test.mjs',
-    'inspection-write-gate.test.mjs',
-    'issue-audience-projection.test.mjs',
-    'issue-branch-policy.test.mjs',
-    'module-owner-authz.test.mjs',
-    'notice-audience.test.mjs',
-    'output-block-policy.test.mjs',
-    'participant-scope.test.mjs',
-    'periodic-archive-policy.test.mjs',
-    'periodic-archive-scope.test.mjs',
+    'personal-password.test.mjs',
+    'session-ttl.test.mjs',
     'permission-gate.test.mjs',
-    'policy-config.test.mjs',
     'r3-data-permission-regression.test.mjs',
-    'roles-sync.test.mjs',
-    'round3-4-security.test.mjs',
-    'system-notice-project-auth-authorize.test.mjs',
-    'todo-cross-role-safety.test.mjs',
-    'todo-role-write-gate.test.mjs',
-    'workforce-gate.test.mjs',
-    'workgroup-branch-scope.test.mjs',
-    'workgroup-member-grant-revoke.test.mjs',
+    'write-policy-matrix.test.mjs',
+    'security-redteam.test.mjs',
+    // 2026-11-08 批次 537 波次 1（另一代理）：公开面写口收口（结果门禁）
+    'public-write-closure.test.mjs',
+    'security-hardening.test.mjs',
+    // 2026-11-15 六维补齐 T2：结构化日志（脱敏 / 请求 id）＋ 两级健康检查（结果门禁）
+    'observability.test.mjs',
+    // 2026-11-15 六维补齐 T3：深检查 503 / 最小指标集 / 告警去重与恢复通知（结果门禁）
+    'health-alerts.test.mjs',
+    // 2026-11-17 批次 564：全资源 If-Match（无头 428 / 过期 409＋latest / 当前 200 / 强制写 / 回填幂等）
+    'if-match.test.mjs',
   ]),
-  // daily · 数据真值 / 迁移 / 种子 / 备份
-  ...group('daily', '数据真值 / 迁移 / 种子 / 备份', [
-    'account-rename.test.mjs',
-    'archive-action-guard.test.mjs',
-    'archive-record-write.test.mjs',
-    'backup-restore.test.mjs',
-    'catalog-sync.test.mjs',
-    'data-lifecycle-guard.test.mjs',
+  ...group('daily', '结果门禁 · 数据契约 / 迁移 / 种子结果', [
+    'data-contract.test.mjs',
     'db-integrity-guard.test.mjs',
     'db-migration.test.mjs',
-    'id-uniqueness.test.mjs',
-    'identity-student-id-guard.test.mjs',
-    'material-link-truth.test.mjs',
-    'mock-api-parity-structure.test.mjs',
-    'mock-api-parity.test.mjs',
-    'mock-multi-branch.test.mjs',
-    'periodic-archive-api.test.mjs',
-    'periodic-archive-migration.test.mjs',
-    'person-consistency.test.mjs',
-    'reset-tier-init.test.mjs',
-    'reset-tier.test.mjs',
-    // 2026-10-23 R11 Task 12.1：拆表切换闸门（C2 埋点 / C4 历史 / NOT_READY 不切读路径，纯 node）
-    'schema-split-gate.test.mjs',
-    'seed-baseline.test.mjs',
-    // 2026-10-26 Task 5：四个月演示窗口（2026-08-01~2026-11-30）日期/月覆盖/11 月计划态/关键状态（纯 node）
-    'demo-window-guard.test.mjs',
-    // 2026-10-26 Task 4：schema v12 种子契约（branchId / 唯一索引 / todos 生成列 / contributions / 考察成员 / 死表）
     'seed-contract-guard.test.mjs',
-    'seed-drift.test.mjs',
   ]),
-  // daily · 文档真值 / 版本 / 构建完整性
-  ...group('daily', '文档真值 / 版本 / 构建完整性', [
-    'claude-parallel-audit.test.mjs',
-    'ctx-hygiene-guard.test.mjs',
-    'doc-consistency.test.mjs',
-    // 2026-10-24 批次 509：frontmatter-freshness / timestamps-note-guard / doc-line-ref 三件合并为
-    //   docs-governance-guard（F1–F3 / N1–N7 / R1–R6 断言全数搬入，另加 README / AGENTS / SNAPSHOT / 判例索引）
-    'docs-governance-guard.test.mjs',
-    'import-path-guard.test.mjs',
-    // 2026-10-29：真 ESM 解析门禁（浏览器口径；node --check 为 CommonJS 语义，不能替代）＋ 函数体内 import 反例
+  ...group('daily', '结果门禁 · 支部 / 名册 / 成员变更结果', [
+    'branch-resource-isolation.test.mjs',
+    'member-persist.test.mjs',
+    'multi-branch-read-filter.test.mjs',
+  ]),
+  ...group('daily', '结果门禁 · 公开面 / 党委内容结果', [
+    'public-portal.test.mjs',
+    'committee-activities.test.mjs',
+    'committee-public-notices.test.mjs',
+    'committee-multidomain.test.mjs',
+    'committee-owner-scope.test.mjs',
+    'activity-adoption.test.mjs',
+    'notice-emphasis-limit.test.mjs',
+  ]),
+  ...group('daily', '结果门禁 · 待办派生结果', [
+    'todo-groups-api.test.mjs',
+    'todo-derive-parity.test.mjs',
+    'todo-jump-contract.test.mjs',
+    'agenda-classify.test.mjs',
+  ]),
+  ...group('daily', '结果门禁 · 构建可运行', [
     'esm-parse-guard.test.mjs',
-    'version-stamp.test.mjs',
   ]),
-  // daily · 静态结构 / UI / 文案 / 防假绿守卫
-  ...group('daily', '静态结构 / UI / 文案 / 防假绿守卫', [
-    'activity-block-gate.test.mjs',
-    // 2026-10-24 批次 508：活动类别 tone 单一源 / info 语义隔离 / 党建红 ≠ 错误红（纯 node）
+
+  // ── guards · 静态守卫（按需跑；precommit / full 仍全量覆盖）─────────────
+  ...group('guards', '静态样式守卫 · 字号 / 间距 / 颜色 / 动效 / 交互态 / 密度 / 文案', [
+    // 2026-11-22 批次 600：守卫归并件（每组独立块作用域，断言数不减）
+    'doc-lifecycle-guard.test.mjs',
+    'style-ratchet-guard.test.mjs',
+    'color-ratchet-guard.test.mjs',
+    'component-ratchet-guard.test.mjs',
+    'navigation-guard.test.mjs',
+    'table-contract-guard.test.mjs',
     'activity-tone-guard.test.mjs',
-    // 2026-10-24 批次 508：归档 ?tab=/?id= 深链、focusActivityId 展开折叠区、复盘落点（纯 node）
-    'archive-deeplink-guard.test.mjs',
-    'block-orchestration.test.mjs',
-    'branch-id-literal-guard.test.mjs',
-    // 2026-10-31 P13–P15：卡片末行 / 折叠头 summary / hero 居中白名单（各带反例，纯 node）
-    'card-summary-hero-guard.test.mjs',
-    // 2026-10-31 P9：390 触控命中区（六类）/ 相邻不重叠 / 表单错误 aria 成对 / 确认弹窗 Esc；
-    //   真机遍历读数由 scripts/touch-target-audit.mjs 产出，本守卫做棘轮（纯 node）
-    'touch-target-guard.test.mjs',
+    'lf-bar-structure-guard.test.mjs',
+    'loading-experience-guard.test.mjs',
+    'ux-guard.test.mjs',
+    'copy-guard.test.mjs',
+    'filter-row.test.mjs',
     'committee-meeting-density.test.mjs',
     'committee-tab-density.test.mjs',
-    // 2026-10-27 批次 516（B-515-2 归并）：copy-fold / copy-length / copy-master / self-evident-copy 四件合一
-    'copy-guard.test.mjs',
-    'date-canon-guard.test.mjs',
-    'dead-selector-guard.test.mjs',
-    // 2026-10-24 批次 508：字段外壳焦点态唯一源 / 禁用只读分态 / select 统一增强（纯 node）
-    'field-shell-guard.test.mjs',
-    // 2026-10-23 批次 505（Task 9）：组件密度 / 按钮高度 / 间距五档 / Tailwind 数值档棘轮（纯 node）
-    'density-spacing-guard.test.mjs',
-    // 2026-10-23 R11 Task 12.1：操作结果反馈可信（作用域写等待 / 失败不报成功，纯 node）
+    'person-picker-density.test.mjs',
+    'party-workbench-layout.test.mjs',
+    'work-overview-layers.test.mjs',
+    'ui-first-screen-order.test.mjs',
+    'ui-help-note.test.mjs',
+    'ui-home-hero.test.mjs',
+    'ui-phase2-urgent.test.mjs',
+    'ui-preflight-context.test.mjs',
+    'ui-redundancy-guard.test.mjs',
+    'ui-row-interaction.test.mjs',
+    'ui-tab-overflow.test.mjs',
+  ]),
+  ...group('guards', '静态结构 / UI / 路由 / 写链结构守卫', [
+    'archive-action-guard.test.mjs',
+    'branch-id-literal-guard.test.mjs',
+    // 2026-11-15 六维补齐 T15：支部解析单源（server/routes 新增 `|| DEFAULT_BRANCH(_ID)` 即红；存量按文件基线只减不增）
+    'branch-resolve-single-source-guard.test.mjs',
+    'committee-adoption-ui.test.mjs',
+    'committee-content-tab.test.mjs',
     'feedback-integrity.test.mjs',
-    'filter-row.test.mjs',
     'frontend-foundations-guard.test.mjs',
-    'hex-hardcode-guard.test.mjs',
-    // 2026-10-23 批次 505（Task 9）：hover/active/selected 三态、@media (hover:hover) 门控、静态行无 hover（纯 node）
-    'hover-state-guard.test.mjs',
+    'handoff-state-guard.test.mjs',
     'ia-critical-guard.test.mjs',
-    // 2026-10-23 批次 507：跳转链接颜色单一源（`<a>` 不得用 Tailwind 蓝；`.link` 消费 softText，纯 node）
-    'link-color-guard.test.mjs',
-    // 2026-10-29 P3：筛选四段结构（`.lf-bar` 直接子元素只许 `.lf-bar__row` / 段位与纯范围例外 / 反例，纯 node）
-    'lf-bar-structure-guard.test.mjs',
-    // 2026-10-29 P4：页面容器五档（HTML 宽度类与 max-width rem/px 定值 / About 豁免 / 反例，纯 node）
-    'container-width-guard.test.mjs',
-    // 2026-10-27 spec refine-ui-three-lenses · Task 10：加载体验（骨架/120ms/180ms 淡入/≤1s/跳转进度条，纯 node）
-    'loading-experience-guard.test.mjs',
-    'localstorage-key-guard.test.mjs',
-    // 2026-10-23 R11 Task 12.1：弹窗交互闭环契约（提交中禁止关闭 / alert / onSubmit 契约，纯 node）
-    // 2026-10-27 批次 516（B-515-2 归并）：modal-contract / modal-escape / ui-modal-form 三件合一
-    'modal-guard.test.mjs',
-    // 2026-10-27 spec refine-ui-three-lenses · Task 12.4：About 撤路由（HTML/JS/MD 零入口 + 文件保留，纯 node）
-    'no-about-route-guard.test.mjs',
-    // 2026-10-29 About 独立冻结件：5 处内容基线（3 件套整文件哈希 + 功能目录「关于」卡 / help 页面清单定位片段，纯 node）
-    'about-freeze-guard.test.mjs',
-    // 2026-10-27 spec refine-ui-three-lenses · Task 9：全站文本下划线清零（源码口径 + PENDING 台账，纯 node）
-    'no-underline-guard.test.mjs',
-    // 2026-10-24 批次 508：动效令牌 / 时长与属性白名单 / reduced-motion / .motion-* 四件套（纯 node）
-    'motion-guard.test.mjs',
-    // 2026-10-31 P0：可点容器内嵌 button/a —— 未标记 / 未登记即判红（含 14 处缺陷行白名单，纯 node）
-    'nested-interaction-guard.test.mjs',
-    'page-title-guard.test.mjs',
+    'identity-student-id-guard.test.mjs',
+    // 2026-11-08 波次 A：daily 迁入（静态解析 / 分层自检，不属结果门禁）
+    'import-path-guard.test.mjs',
+    'test-isolation-guard.test.mjs',
+    'test-tier-guard.test.mjs',
+    'object-route-guard.test.mjs',
+    'object-model-guard.test.mjs',
+    'committee-proposal-state.test.mjs',
     'party-branch-directory-context.test.mjs',
     'party-branch-directory-guard.test.mjs',
-    'party-workbench-layout.test.mjs',
-    // 2026-10-27 批次 516（B-515-2 归并）：perf-render / todo-agg-cache / version-token / index-equivalence 四件合一
     'perf-guard.test.mjs',
-    'person-picker-density.test.mjs',
+    // 2026-11-08 波次 A：daily 迁入（公开面品牌 / 泄露静态扫描）
+    'public-portal-leak-guard.test.mjs',
     'publicity-static-guard.test.mjs',
-    'responsive-cards-guard.test.mjs',
     'roster-filter-guard.test.mjs',
     'round1-remediation-guard.test.mjs',
     'round3-4-batch1.test.mjs',
-    'row-markup-guard.test.mjs',
-    // 2026-10-25 Task 1：Tab 运行时正确性（renderCtx 最新态 / 统一生命周期 / loading 超时 / 绑定幂等，纯 node）
     'runtime-tab-lifecycle-guard.test.mjs',
-    // 2026-10-26 Task 6：详情路由 direct/locate/none 矩阵、门、已归档只读、生成点收口（纯 node）
-    'object-route-guard.test.mjs',
-    'spacing-scale-guard.test.mjs',
     'state-enum-guard.test.mjs',
     'structural-round3.test.mjs',
     'suite-shard.test.mjs',
     'tab-alias-guard.test.mjs',
-    'tab-nav.test.mjs',
-    // 2026-10-27 批次 516（B-515-2 归并）：small-text / text-tier / table-type-scale / control-font 四件合一
-    'type-scale-guard.test.mjs',
-    // 2026-10-23 批次 505（Task 9）：7 主题 × 亮/暗 × 8 token 色板、对比度/彩度、固定语义色分离（纯 node）
-    'theme-palette-guard.test.mjs',
-    // 2026-10-31 P8：状态色填充档不得作 color（含反例）/ 三个文字档逐色对比度 / 文档值=实现值（纯 node）
-    'status-color-guard.test.mjs',
-    'ui-button-four-types.test.mjs',
-    'ui-color-semantics.test.mjs',
-    'ui-contrast-guard.test.mjs',
-    // 2026-10-23 R11 Task 12.1：控件层单一源（SD-1/2/3/4/6/9/10 静态断言，纯 node）
-    'ui-control-system-guard.test.mjs',
-    'ui-custom-select.test.mjs',
-    'ui-first-screen-order.test.mjs',
-    'ui-focus-ring.test.mjs',
-    'ui-help-note.test.mjs',
-    'ui-home-deeplink.test.mjs',
-    'ui-home-hero.test.mjs',
-    // 2026-10-22 第九轮 Task 6：卡片悬停不得上浮/加阴影 ＋ transition-all 棘轮（纯 node）
-    'ui-motion-guard.test.mjs',
-    'ui-phase2-urgent.test.mjs',
-    'ui-picker-focus.test.mjs',
-    'ui-preflight-context.test.mjs',
-    'ui-primary-cta-color.test.mjs',
-    'ui-redundancy-guard.test.mjs',
-    'ui-row-interaction.test.mjs',
-    'ui-select-appearance-guard.test.mjs',
-    'ui-tab-overflow.test.mjs',
-    'ux-guard.test.mjs',
+    'taskforce-history-copy.test.mjs',
     'validation-site-coverage.test.mjs',
-    'work-overview-layers.test.mjs',
+    'prop-kanban-scope.test.mjs',
     'workbench-audit-coverage.test.mjs',
     'workbench-revision-contract.test.mjs',
-    'workflow-block-config.test.mjs',
+    'write-path-guard.test.mjs',
+    // 2026-11-16 T12：通用资源写口字段校验（乱码 status / 超长 title / 非法日期 → 422）＋ 列表硬上限 500
+    'resource-write-validation-guard.test.mjs',
+    'write-policy-evidence-guard.test.mjs',
+    'write-truth-guard.test.mjs',
+    // 2026-11-17 批次 562（`repair-field-mismatch-and-refresh-help` Task 4）：前端字段读取 ≡ 数据契约
+    'contract-field-usage-guard.test.mjs',
+    // 2026-11-18 批次 565：审计驱动的单行 PATCH 必须带 If-Match（裸调用判红；助手 patchRow 自带版本头）
+    'audit-write-version-guard.test.mjs',
   ]),
-  // daily · 业务域回归 / 写链 / 事务 / 状态机
-  ...group('daily', '业务域回归 / 写链 / 事务 / 状态机', [
+  ...group('guards', '静态可访问性守卫（可访问名 / 表单标签 / section / tab / role=button / 图标钮）', [
+    // 2026-11-15 `close-six-dim-gaps` T10：六条可静态判定的 a11y 底线，存量按 a11y-baseline 只减不增
+  ]),
+  ...group('guards', '静态文档 / 台账 / 行号 / 冻结件守卫', [
+    'claude-parallel-audit.test.mjs',
+    // 2026-11-08 波次 A：daily 迁入（测试与契约文档一致性）
+    'contract-doc-guard.test.mjs',
+    'data-lifecycle-guard.test.mjs',
+    'date-canon-guard.test.mjs',
+    'mock-import-guard.test.mjs',
+    'roster-denominator-guard.test.mjs',
+    'demo-window-guard.test.mjs',
+    'doc-consistency.test.mjs',
+    // 2026-11-19 批次 572：单值事实跨文件一致（G1）；spec 台账噪声棘轮已于批次 599 随 `.trae` 清零删除
+    'single-fact-consistency.test.mjs',
+    // 2026-11-19 批次 574（`D-886`）：制度草案待办派生 / 我的任务按项目身份派生（SOP-B-25 / SOP-B-31）
+    'institution-todo-derive.test.mjs',
+    'my-project-tasks.test.mjs',
+    // 2026-11-19 批次 575（`D-887` / B-552-3）：名册写口空补丁 / 治理字段前置校验
+    'roster-write-precheck.test.mjs',
+    // 2026-11-20 批次 579：副支书操作权三档参数 / 正副职字面量基线
+    'deputy-policy.test.mjs',
+    // 2026-11-20 批次 581：卡厚度与卡头字重（card-standard / card-compact / H3 600）
+    // 2026-11-20 批次 581 续：间距档位与暗色补丁棘轮
+    // 2026-11-20 批次 584：评分即资产（改进项指针 / 资产索引 / 两段门槛）
+    'evaluation-asset-guard.test.mjs',
+    // 2026-11-21 批次 587：调色板状态文字 / 徽章单源 / h-8 档位
+    // 2026-11-21 批次 589：派生兜底仪表 + 7 类对账全绿
+    'todo-derive-instrument-guard.test.mjs',
+    // 2026-11-21 批次 591：表单必填 / 报错 / 字段级可访问名（SD-66 / SD-67）
+    // 2026-11-21 批次 591 / 594：计划收尾清账门（H50.3 四类 open 源 ＋ `.trae/specs` 归档自洽 ＋ 反例自证）
+    // 2026-11-21 批次 593：文件头 BOM 唯一性 ＋ frontmatter 锚点
+    'bom-and-eol-guard.test.mjs',
+    // 2026-11-21 批次 595：证据库准入（只存被引用的读数，禁截图 / 压缩包）
+  ]),
+
+  // ── precommit · 非核心域回归（提交前 / 发布前覆盖；进 daily 会拖长日常）─────
+  ...group('precommit', '纯 node 域回归（非结果门禁核心；提交前 / 发布前跑）', [
+    'account-rename.test.mjs',
+    'auth-password.test.mjs',
+    'activity-block-gate.test.mjs',
     'activity-calendar-sharing.test.mjs',
-    'activity-creation-transaction.test.mjs',
     'activity-delete-client.test.mjs',
     'activity-delete.test.mjs',
+    'activity-member-privacy.test.mjs',
     'activity-party-group-assignment.test.mjs',
+    'activity-workgroup-sync.test.mjs',
     'agenda-closure-core.test.mjs',
     'agenda-editing.test.mjs',
     'agenda-follow-up.test.mjs',
+    // 2026-11-16 polish-shell T8：+4 条（冻结分母 / 已转出单列 / 在册判据 / 支委总数缓存版本戳）。
+    //   precommit 层无预算常量（T4 只核 daily / guards），同批不占 daily 断言额度。
     'agenda-quorum.test.mjs',
     'agenda-relations.test.mjs',
     'agenda-votes.test.mjs',
-    'attendance-batch.test.mjs',
+    'archive-record-write.test.mjs',
     'attendance-matrix-model.test.mjs',
-    'attendance-roster-union.test.mjs',
+    'auth-audit-scope.test.mjs',
+    'backup-restore.test.mjs',
     'base-data-preview.test.mjs',
+    'block-field-policy.test.mjs',
+    'block-orchestration.test.mjs',
     'branch-affiliation.test.mjs',
     'branch-appoint-inline.test.mjs',
     'branch-appointment-atomic.test.mjs',
     'branch-config-audit.test.mjs',
     'branch-doc.test.mjs',
     'branch-module-catalog.test.mjs',
-    'branch-resource-isolation.test.mjs',
-    'branch-roster-import.test.mjs',
     'branch-status.test.mjs',
+    'capability-package-catalog.test.mjs',
+    'capability-registry.test.mjs',
+    'catalog-sync.test.mjs',
     'cross-group-activity-probe.test.mjs',
     'cross-group-recruitment.test.mjs',
     'empty-template.test.mjs',
     'group-view.test.mjs',
     'home-workgroup-progress.test.mjs',
-    'inspection-workgroup-key.test.mjs',
+    'iaaa-onboarding.test.mjs',
+    'id-uniqueness.test.mjs',
+    'inspection-write-gate.test.mjs',
+    'issue-audience-projection.test.mjs',
+    'issue-branch-policy.test.mjs',
     'issue-branch.test.mjs',
     'issue-mock-identity.test.mjs',
-    'link-target-guard.test.mjs',
+    // 2026-11-22 批次 596：表态上服务端（按人存 / 出口不出身份 / 处置门未放宽）。
+    //   precommit 层无预算常量（T4 只核 daily / guards），同批不占 daily 断言额度。
+    'issue-reactions.test.mjs',
+    'material-link-truth.test.mjs',
     'meeting-attendance-rules.test.mjs',
-    'member-change-cross-session.test.js',
-    'member-change-flow.test.js',
     'member-confirmation.test.mjs',
     'member-flow.test.mjs',
-    'member-persist.test.mjs',
     'member-progress.test.mjs',
     'member-roster-api-read.test.mjs',
+    'mock-api-parity-structure.test.mjs',
+    'mock-api-parity.test.mjs',
+    'mock-multi-branch.test.mjs',
+    // 2026-11-15 六维补齐 T13：双支部五证结果夹具（读隔离 / 跨支部写拒绝 / N=1 等价 / 匿名归档 fail-closed / todo-groups 同判）。
+    //   daily 硬上限 31 文件已满，按「precommit / full 仍覆盖」登记（判据不丢；新增当批先红后绿）。
+    'multi-branch-five-proof.test.mjs',
+    // 2026-11-15 六维补齐 T14：党委进入支部只读 / 留痕 / 退出（403 readOnly 实测、留痕行、同 token 唯一、退出恢复）。
+    //   同 T13 口径：daily 31 文件上限已满，登记在 precommit（full 仍覆盖；不放宽预算）。
+    'branch-visit-readonly.test.mjs',
     'module-compose.test.mjs',
     'module-config.test.mjs',
     'module-cycle-remind.test.mjs',
-    'notice-deeplink-guard.test.mjs',
+    'module-owner-authz.test.mjs',
+    'notice-audience-failclosed.test.mjs',
     'notice-message.test.mjs',
     'org-config.test.mjs',
+    'output-block-policy.test.mjs',
     'page-navigation-url.test.mjs',
+    'participant-scope.test.mjs',
     'party-group.test.mjs',
     'party-overview-model.test.mjs',
     'pending-writes.test.mjs',
-    // 2026-10-26 Task 3：写成功可证（api 去 mock 回退 / 非快照域语义端点 / outbox 重试放弃；纯 node）
-    'write-truth-guard.test.mjs',
+    'periodic-archive-api.test.mjs',
+    'periodic-archive-migration.test.mjs',
+    'periodic-archive-policy.test.mjs',
+    'periodic-archive-scope.test.mjs',
+    'person-consistency.test.mjs',
     'person-profile-presentation.test.mjs',
     'person-profile-service.test.mjs',
+    'policy-config.test.mjs',
     'report-branch-webhook.test.mjs',
     'report-count.test.mjs',
     'report.test.js',
+    'reset-tier-init.test.mjs',
+    'reset-tier.test.mjs',
     'resolution-followup.test.mjs',
+    'roles-sync.test.mjs',
     'roster-ui-logic.test.mjs',
     'roster.test.mjs',
+    'round3-4-security.test.mjs',
     'scene-write-sync.test.mjs',
+    'schema-split-gate.test.mjs',
+    'schema-split-shadow.test.mjs',
     'secretary-overview-attendance.test.mjs',
+    'seed-drift.test.mjs',
     'self-profile-import.test.mjs',
     'self-profile.test.mjs',
-    'server-base.test.mjs',
     'setup-status.test.mjs',
     'signup-onsite-roster.test.mjs',
     'skeleton.test.js',
     'soft-void.test.mjs',
     'system-notice-branch-source.test.mjs',
-    'taskforce-history-copy.test.mjs',
+    'system-notice-project-auth-authorize.test.mjs',
+    'tab-nav.test.mjs',
     'taskforce-lifecycle.test.mjs',
-    // 2026-10-22 第九轮 Task 4.2：专班成员 / 贡献走工作组主源（纯 node）
     'taskforce-workgroup-source.test.mjs',
-    'theme-pref.test.mjs',
     'thought-report-panel.test.mjs',
     'thought-review.test.mjs',
     'today-summary.test.mjs',
+    'todo-branch-attribution.test.mjs',
+    'todo-cross-role-safety.test.mjs',
     'todo-deriver-domain.test.mjs',
     'todo-domain-view.test.mjs',
     'todo-domain.test.mjs',
+    'todo-realtime-source.test.mjs',
+    'todo-role-write-gate.test.mjs',
     'todo-urgency.test.mjs',
     'todo-void-flow.test.mjs',
     'wizard-config.test.mjs',
     'wizard-report.test.mjs',
     'work-map.test.mjs',
+    'workflow-block-config.test.mjs',
+    'workforce-gate.test.mjs',
     'workgroup-api.test.mjs',
     'workgroup-batch-adapter.test.mjs',
+    'workgroup-branch-scope.test.mjs',
     'workgroup-member-editor.test.mjs',
+    'workgroup-member-grant-revoke.test.mjs',
     'workgroup-member-semantics.test.mjs',
-    'write-path-guard.test.mjs',
   ]),
-  // daily · 测试分层 / 预算 / 防假绿编排守卫
-  ...group('daily', '测试分层 / 预算 / 防假绿编排守卫', [
-    'test-tier-guard.test.mjs',
-    // 2026-10-26 Task 6：fixtureClass 四类 / external-write 证据 / 运行库 sessions·uploads 不增长（纯 node）
-    'test-isolation-guard.test.mjs',
+
+  // ── precommit · 原 daily 业务回归（2026-11-08 波次 A 降频；判据不丢，日常墙钟收口）───
+  ...group('precommit', '原 daily 业务回归（波次 A 降频：进 precommit 保留判据，不占日常墙钟）', [
+    'activity-creation-transaction.test.mjs',
+    'attendance-batch.test.mjs',
+    // 2026-11-16 polish-shell T7：+2 条（未录 ratePending / 全员缺席仍按 0%）。同 T8：precommit 无预算常量。
+    'attendance-roster-union.test.mjs',
+    'branch-roster-import.test.mjs',
+    'inspection-workgroup-key.test.mjs',
+    'member-change-cross-session.test.js',
+    'member-change-flow.test.js',
+    'notice-audience.test.mjs',
+    'run-mode.test.mjs',
+    'seed-baseline.test.mjs',
+    'version-stamp.test.mjs',
+    'write-policy-gaps.test.mjs',
   ]),
-  { file: 'a11y-tree.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：可访问性树真机核对' },
-  { file: 'agenda-closure.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：议程闭环真机' },
-  { file: 'agenda-flow.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：议程流转真机' },
-  { file: 'async-vote.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：异步投票真机' },
-  { file: 'attendance-queue-selection-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（daily 移出 → precommit 落点）：纪检考勤队列选择真机流程' },
-  { file: 'b3-1-makeup-writeback.test.mjs', tier: 'precommit', fixtureClass: 'tmp', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：补录回写真机（2026-10-26 Task 6 起自托管临时库 + listen(0)，不再写 server/data.db）' },
-  { file: 'block-canvas-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：区块画布真机' },
-  { file: 'block-config-ui-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：区块配置 UI 真机' },
-  { file: 'block-entry-guard-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：区块入口守卫真机' },
-  { file: 'block-manifest.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：区块清单真机' },
-  { file: 'copy-anchor-guard-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：文案锚点真机' },
-  { file: 'e2e-login.test.js', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：登录流程真机' },
-  { file: 'form-loop-sweep.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：全站表单校验 / 载体闭环真机普查' },
-  { file: 'help-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：帮助页真机' },
-  { file: 'iaaa-ui-onboarding.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（daily 移出 → precommit 落点）：IAAA 引导 UI 真机' },
-  { file: 'inspection-loop-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：纪检闭环真机' },
-  { file: 'issue-anonymity.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（daily 移出 → precommit 落点）：议题匿名真机' },
-  { file: 'link-integrity.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：链接完整性真机' },
-  { file: 'list-filter-chip-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（daily 移出 → precommit 落点）：列表筛选 chip 真机' },
-  { file: 'mock-integrity.test.mjs', tier: 'precommit', fixtureClass: 'external-read', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：mock 完整性真机（连 :3000 只读审计）' },
-  { file: 'module-config-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：模块配置真机' },
-  { file: 'module-load.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：模块装载真机' },
-  { file: 'multi-tab-sync.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：多标签同步真机' },
-  { file: 'multi-user-write.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：多用户写入真机' },
-  { file: 'online-committee.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：线上支委真机' },
-  { file: 'page-sweep.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：全站分页 / 宽表 / 检索真机普查' },
-  { file: 'party-committee-dispatch.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：党委台派发真机' },
-  { file: 'party-committee-review.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：党委台审议真机' },
-  { file: 'party-committee.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：党委台真机' },
-  { file: 'preferences.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：偏好设置真机' },
-  { file: 'records-endpoints.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：记录端点真机' },
-  { file: 'relation-matrix.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：关系矩阵真机' },
-  { file: 'self-profile-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（daily 移出 → precommit 落点）：个人资料真机' },
-  { file: 'today-action-groups-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（daily 移出 → precommit 落点）：今日行动分组真机' },
-  { file: 'write-grant-prompt-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（daily 移出 → precommit 落点）：写权限提示真机' },
-  { file: 'write-hover-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：写入悬停态真机' },
+
+  // ── precommit · 真机浏览器 e2e（shared :3000 与自托管混排）─────────────────
+  ...group('precommit', '真机浏览器 e2e（precommit 全量；发布前必跑）', [
+    'a11y-tree.test.mjs',
+    'agenda-closure.test.mjs',
+    'agenda-flow.test.mjs',
+    'async-vote.test.mjs',
+    'attendance-queue-selection-e2e.test.mjs',
+    'b3-1-makeup-writeback.test.mjs',
+    'block-canvas-e2e.test.mjs',
+    'block-config-ui-e2e.test.mjs',
+    'block-entry-guard-e2e.test.mjs',
+    'block-manifest.test.mjs',
+    'copy-anchor-guard-e2e.test.mjs',
+    'e2e-login.test.js',
+    'form-loop-sweep.test.mjs',
+    'help-e2e.test.mjs',
+    'committee-proposal-routes.test.mjs',
+    'committee-flow-guard.test.mjs',
+    'committee-meeting-gate.test.mjs',
+    'leader-progress-gate.test.mjs',
+    'report-read-gate.test.mjs',
+    'issue-unread-gate.test.mjs',
+    'iaaa-ui-onboarding.test.mjs',
+    'inspection-loop-e2e.test.mjs',
+    'issue-anonymity.test.mjs',
+    'link-integrity.test.mjs',
+    'list-filter-chip-e2e.test.mjs',
+    'module-config-e2e.test.mjs',
+    'module-load.test.mjs',
+    'multi-tab-sync.test.mjs',
+    'multi-user-write.test.mjs',
+    'online-committee.test.mjs',
+    'page-sweep.test.mjs',
+    'page-error-smoke.test.mjs',
+    'party-committee-dispatch.test.mjs',
+    'party-committee-review.test.mjs',
+    'party-committee.test.mjs',
+    'preferences.test.mjs',
+    'records-endpoints.test.mjs',
+    'relation-matrix.test.mjs',
+    'self-profile-e2e.test.mjs',
+    'today-action-groups-e2e.test.mjs',
+    'write-grant-prompt-e2e.test.mjs',
+    'write-hover-e2e.test.mjs',
+  ]),
+
+  // ── weekly · 慢速视觉 / 审计普查（precommit / full 仍覆盖）────────────────
   { file: 'click-cost.test.mjs', tier: 'weekly', fixtureClass: 'external-read', reason: '点击成本审计（慢速视觉 / 审计；weekly 频率，precommit/full 仍覆盖；连 :3000 只读审计）' },
   { file: 'copy-screen-guard.test.mjs', tier: 'weekly', reason: '逐屏文案视觉普查（慢速视觉 / 审计；weekly 频率，precommit/full 仍覆盖）' },
+
+  // ── 数据面非层缺省的显式登记（fixtureClass 与所在层缺省不同，必须写死）────────
+  { file: 'mock-integrity.test.mjs', tier: 'precommit', fixtureClass: 'external-read', reason: '真机浏览器 e2e（precommit 全量）：mock 完整性真机（连 :3000 只读审计，非 tmp）' },
 ];
 
 // ── 纯函数（守卫与脚本共用；不读磁盘、不依赖 cwd）──────────────────────────
@@ -588,17 +528,18 @@ export const TEST_TIERS = [
 export const filesByTier = (tier) => TEST_TIERS.filter((e) => e.tier === tier).map((e) => e.file);
 
 export const dailyFiles = filesByTier('daily');
+export const guardsFiles = filesByTier('guards');
 export const precommitFiles = filesByTier('precommit');
 export const weeklyFiles = filesByTier('weekly');
 
-/** 三层并集（去重前的原样数组；重复项由 `diffTiers` 判红） */
+/** 四层并集（去重前的原样数组；重复项由 `diffTiers` 判红） */
 export const allRegisteredFiles = () => TEST_TIERS.map((e) => e.file);
 
 /** 查某文件的层级；未登记返回 undefined */
 export const tierOf = (file) => TEST_TIERS.find((e) => e.file === file)?.tier;
 
 /** 判定源码是否 import playwright（与 `sweep-shard.mjs` 的 e2e 标记同口径） */
-export const isPlaywrightSource = (src) => /from\s+['\"]playwright['\"]|import\(\s*['\"]playwright['\"]\s*\)/.test(src);
+export const isPlaywrightSource = (src) => /from\s+['"]playwright['"]|import\(\s*['"]playwright['"]\s*\)/.test(src);
 
 /** 静态 `test(` / `it(` 调用点计数（含 `t.test(`；预算与守卫共用同一口径） */
 export const countTestCases = (src) => (src.match(/^\s*(?:await\s+)?(?:test|it|t\.test)\s*\(/gm) || []).length;
@@ -620,7 +561,3 @@ export function diffTiers(diskFiles, entries = TEST_TIERS) {
   const extra = [...seen].filter((f) => !disk.has(f)).sort();
   return { missing, extra, duplicates: [...new Set(duplicates)].sort() };
 }
-
-/** 从 npm script 里解析显式 `test/xxx.test.mjs` 清单（与 `doc-consistency::S16` 同口径） */
-export const parseScriptFiles = (cmd) => (String(cmd).match(/test\/[A-Za-z0-9_.-]+\.test\.m?js/g) || [])
-  .map((x) => x.replace(/^test\//, ''));

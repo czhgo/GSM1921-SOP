@@ -2,7 +2,7 @@
 title: "设计域判例库"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-10-30"
+last_updated: 2026-11-22
 status: active
 related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -24,7 +24,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **结论**：页面内跳转链接统一走 `.link` / `.text-accent`（`--app-accent-soft-text`）；蓝色只保留给信息态（徽章、状态字、带 `bg-*` 的按钮型链接）。链接 hover 只加下划线、不改色——`soft-text` 已是浅底上可读的深字，再加深会掉对比度。
 - **边界**：带 `bg-*` 的信息态按钮型链接、徽章 / 状态色 map / 表单控件修饰不受本条约束；它们不是「跳转」语义。
 - **对应规范编号**：SD-22
-- **证据指针**：`DS_03_COMPONENTS.md §12.10`（链接表，本批迁出其 why 句）；`server/test/link-color-guard.test.mjs:1-18`；`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 507。
+- **证据指针**：`DS_03_COMPONENTS.md §12.10`（链接表，本批迁出其 why 句）；`server/test/color-ratchet-guard.test.mjs`；`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 507。
 
 ## CASE-DESIGN-002 中性控件按下不得闪红
 
@@ -33,7 +33,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **结论**：中性控件按压用 `var(--neutral-200)`；主题色控件用 `--app-accent-active-bg`；党建红实底用 `--party-red-active`。三源分开，中性控件不得按出红色。
 - **边界**：党建红实底按钮（party-red）按出深红属其语义色本身，不算「中性控件闪红」。
 - **对应规范编号**：SD-23
-- **证据指针**：`DS_03_COMPONENTS.md §12.8`「按压三源」；`server/test/hover-state-guard.test.mjs:181-191`；执行日志批次 507。
+- **证据指针**：`DS_03_COMPONENTS.md §12.8`「按压三源」；`server/test/style-ratchet-guard.test.mjs`；执行日志批次 507。
 
 ## CASE-DESIGN-003 按压反馈禁用位移
 
@@ -42,16 +42,16 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **结论**：按压唯一反馈是 `--press-shadow`（`inset 0 1px 2px`）＋ 180ms 过渡；按压路径上 `transform/scale/translate` 计数为 0。
 - **边界**：入场、折叠等**非按压**动效仍可用 `transform`（见 SD-30 白名单）；本条只管 `:active` 反馈。
 - **对应规范编号**：SD-24
-- **证据指针**：`DS_03_COMPONENTS.md §12.10`「按压」表；`server/test/hover-state-guard.test.mjs:201`；执行日志批次 507。
+- **证据指针**：`DS_03_COMPONENTS.md §12.10`「按压」表；`server/test/style-ratchet-guard.test.mjs`；执行日志批次 507。
 
 ## CASE-DESIGN-004 选中态不得借用 hover / active 灰底
 
 - **编号**：CASE-DESIGN-004
 - **场景（真实发生）**：选中态一度以 `--surface-hover` / `--surface-active` 的灰底表达，同屏出现「我在这里」（持续选中）与「我正按着」（瞬时按压）同色，读者分不清两者的时间性；侧边栏与内容区选中样式也各不相同。
-- **结论**：选中态用主题 soft 三件套（`--app-accent-soft-bg` ＋ `--app-accent-soft-text` ＋ 左条 `inset 3px 0 0 var(--app-accent)`）；侧边栏是唯一浅灰豁免。
+- **结论**：选中态用主题 soft 底（`--app-accent-soft-bg`）＋ soft 字（`--app-accent-soft-text`）＋ 字重；侧边栏是唯一浅灰豁免。（2026-11-04 起「左条」一条由 CASE-DESIGN-033 取代，其余不变）
 - **边界**：侧边栏 `.module-tab.active` 保留浅灰是因为需要纵深，内容区不适用此豁免；列表行、日历格、子页签、下拉选项等一律主题 soft。
 - **对应规范编号**：SD-25
-- **证据指针**：`DS_03_COMPONENTS.md §12.11` 状态语言表；`server/test/hover-state-guard.test.mjs`（三态守卫）；执行日志批次 508。
+- **证据指针**：`DS_03_COMPONENTS.md §12.11` 状态语言表；`server/test/style-ratchet-guard.test.mjs`（三态守卫）；执行日志批次 508。
 
 ## CASE-DESIGN-005 实底按钮 hover 不得落中性灰
 
@@ -60,7 +60,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **结论**：实底按钮 hover 用 `--app-accent-strong-hover`（同色相加深）；底色落中性灰的计数为 0。
 - **边界**：描边 / 中性按钮 hover 仍走 `--surface-hover`（它们不是实底主题色按钮）；本条不改变其口径。
 - **对应规范编号**：SD-26
-- **证据指针**：`DS_03_COMPONENTS.md §12.11` 末条、§12.9 SD-26；`server/test/theme-palette-guard.test.mjs:16`；`server/test/theme-palette-guard.test.mjs:97`；执行日志批次 508。
+- **证据指针**：`DS_03_COMPONENTS.md §12.11` 末条、§12.9 SD-26；`server/test/color-ratchet-guard.test.mjs`；`server/test/color-ratchet-guard.test.mjs`；执行日志批次 508。
 
 ## CASE-DESIGN-006 输入焦点不得「双答」
 
@@ -69,7 +69,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **结论**：活动态只把边框切成主题色 1px，`outline` 与 `box-shadow` 均为 `none`，鼠标点击与键盘聚焦表现一致；同一控件只答一次，禁止「金边 + 黑环」双答。2026-10-29 P1 改准：原「边框 ＋ 2px 实线环」的双信号写法作废，输入族不出环。
 - **边界**：纯键盘操作仍须有可见焦点；输入族由 `:focus` 承担（只变边框），按钮与链接族由 `:focus-visible` 承担（几何同源）；搜索类白名单控件与普通输入同一套外壳。
 - **对应规范编号**：SD-27
-- **证据指针**：`DS_03_COMPONENTS.md §12.12` 字段外壳表、`DS_04_INTERACTION_AND_RESPONSIVE.md §5.8`；`server/test/field-shell-guard.test.mjs:1-23`；`server/test/ui-focus-ring.test.mjs:63,109`；执行日志批次 508。
+- **证据指针**：`DS_03_COMPONENTS.md §12.12` 字段外壳表、`DS_04_INTERACTION_AND_RESPONSIVE.md §5.8`；`server/test/component-ratchet-guard.test.mjs`；`server/test/component-ratchet-guard.test.mjs`；执行日志批次 508。
 
 ## CASE-DESIGN-007 禁用与只读不得都用 opacity 压低
 
@@ -78,7 +78,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **结论**：禁用＝灰底灰字（真不可用）；只读＝透明边、浅底、正文色（可读可复制）；`opacity` 混作两态的计数为 0。
 - **边界**：整页级只读（如跨支部只读视图）按页面级说明处理，不套控件级两态样式。
 - **对应规范编号**：SD-28
-- **证据指针**：`DS_03_COMPONENTS.md §12.12` 表「禁用 / 只读」两行；`server/test/field-shell-guard.test.mjs`（F5 禁用 / 只读分态）。
+- **证据指针**：`DS_03_COMPONENTS.md §12.12` 表「禁用 / 只读」两行；`server/test/component-ratchet-guard.test.mjs`（F5 禁用 / 只读分态）。
 
 ## CASE-DESIGN-008 原生 select 不得出现第二套外观
 
@@ -87,7 +87,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **结论**：原生 `<select>` 一律经 `enhanceSelects` 增强（原生控件仍作值载体）；大选项集提供搜索、近期优先、分批渲染与空态。
 - **边界**：`person-picker`（选人）继续走自己的组件，不算第二套下拉；已登记的搜索类白名单控件同受外壳约束，但不受本条「必须 enhanceSelects」约束。
 - **对应规范编号**：SD-29
-- **证据指针**：`DS_03_COMPONENTS.md §12.12` 末两段；`server/test/field-shell-guard.test.mjs`（F6 select 统一）。
+- **证据指针**：`DS_03_COMPONENTS.md §12.12` 末两段；`server/test/component-ratchet-guard.test.mjs`（F6 select 统一）。
 
 ## CASE-DESIGN-009 过渡时长与属性散写
 
@@ -96,7 +96,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **结论**：时长只取 120 / 180 / 200 / 240ms（`--motion-*`）；属性只在 `opacity / transform / color / background-color / border-color / box-shadow` 六项内；布局属性与 `all` 计数为 0。
 - **边界**：`--motion-*` 令牌定义处本身的裸值、以及已逐条登记的存量（登录 / 浮层 / toast / help 目录 5 条 ＋ reduced-motion 的 0.01ms 2 条）属「待迁移」，不是可照抄的新写法。
 - **对应规范编号**：SD-30
-- **证据指针**：`DS_03_COMPONENTS.md §12.13` 动效令；`server/test/motion-guard.test.mjs:1-21`；执行日志批次 508。
+- **证据指针**：`DS_03_COMPONENTS.md §12.13` 动效令；`server/test/style-ratchet-guard.test.mjs`；执行日志批次 508。
 
 ## CASE-DESIGN-010 活动类别色被状态色顶替
 
@@ -114,7 +114,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **结论**：目标页必须消费自己的参数；定位失败必须有可见提示；无承载面的入口不得渲染。
 - **边界**：参数指向的对象已删除或当前角色无权查看时，允许空态提示或跳回列表，但不得静默——必须给一句话说明。
 - **对应规范编号**：SD-32
-- **证据指针**：`DS_03_COMPONENTS.md §12.9` SD-32；`server/test/archive-deeplink-guard.test.mjs:1-18`；`server/test/tab-nav.test.mjs:113`；执行日志批次 508。
+- **证据指针**：`DS_03_COMPONENTS.md §12.9` SD-32；`server/test/navigation-guard.test.mjs`；`server/test/tab-nav.test.mjs:113`；执行日志批次 508。
 
 ## CASE-DESIGN-012 通知点击落到工作台首页
 
@@ -204,7 +204,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **守卫**：`ui-control-system-guard::V2` ＋ `ui-contrast-guard::K3` ＋ `page-sweep`（390px `groupLabelsVisible` > 0）。
 - **对应规范编号**：SD-42
 - **边界**：组名仍是**非按钮**胶囊（SD-36）：可见性提高不等于可点击，不得进入 tab 序列或获得 hover；本条只管「看得见 / 量得到」，不管组名的控件语义。
-- **证据指针**：`docs/src/styles.css` 的 `.tab-group-label` 与 `@media (max-width:1280px)` 段；`server/test/ui-control-system-guard.test.mjs`（V2）；`server/test/ui-contrast-guard.test.mjs`（K3）；执行日志批次 512。
+- **证据指针**：`docs/src/styles.css` 的 `.tab-group-label` 与 `@media (max-width:1280px)` 段；`server/test/component-ratchet-guard.test.mjs`（V2）；`server/test/color-ratchet-guard.test.mjs`（K3）；执行日志批次 512。
 
 ## CASE-DESIGN-021 `btn-ghost` 写入口不可辨识
 
@@ -212,11 +212,11 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **样本（真实发生）**：全仓 **79 处** `btn-ghost` 在当动作按钮用——今天页「写入活动 / 看日历 / 全部」、工作概况的筛选 chip 与「去待办」行、`list-row` 动作行等；无描边、无底色，`cursor:pointer` 是唯一线索；hover 与白卡色差仅 **1.06–1.11:1**。`btn-ghost` 此前已被判「无边框不可辨识」，但旧类名继续沿用。
 - **AI 假设**：沿用旧类名最省事；hover 有变化就算可点；`btn-ghost` 属于既有动作族，不必换档。
 - **人类意图**：控件与内容必须可区分——动作至少要有一种**静态**线索（描边 / 底色 / 下划线 / 箭头 / 可见 hover），不能靠光标形状。
-- **泛化规则**：按钮三档——动作按钮必有描边或底色；纯文字动作挂 `.btn-text`（静态下划线 ＋ 尾随箭头，箭头不得 `neutral-400`）；图标按钮视觉 32×32 ＋ 命中 ≥44×44。`btn-ghost` 只保留给**非动作行载体**（6 处白名单，逐条写明 hover 底或 3px 左条），新增即红。
+- **泛化规则**：按钮三档——动作按钮必有描边或底色；纯文字动作挂 `.btn-text`（静态下划线 ＋ 尾随箭头，箭头不得 `neutral-400`）；图标按钮视觉 32×32 ＋ 命中 ≥44×44。`btn-ghost` 只保留给**非动作行载体**（6 处白名单，逐条写明 hover 底或可见边），新增即红。
 - **守卫**：`ui-control-system-guard::V4–V7` ＋ `frontend-foundations-guard::F8`。
 - **对应规范编号**：SD-43
-- **边界**：整行导航 / 行内定位载体可继续用 `btn-ghost`，但必须有可见 hover（底 / 边 / 左条，对白卡 ≥1.2:1）；白名单只许逐条收窄，不许当垃圾桶。
-- **证据指针**：`server/test/ui-control-system-guard.test.mjs`（V4 白名单 / V5 btn-text / V6 图标 / V7 hover 对比）；本批迁移 67 处、保留 6 处；执行日志批次 512。
+- **边界**：整行导航 / 行内定位载体可继续用 `btn-ghost`，但必须有可见 hover（底 / 边，对白卡 ≥1.2:1）；白名单只许逐条收窄，不许当垃圾桶。
+- **证据指针**：`server/test/component-ratchet-guard.test.mjs`（V4 白名单 / V5 btn-text / V6 图标 / V7 hover 对比）；本批迁移 67 处、保留 6 处；执行日志批次 512。
 
 ## CASE-DESIGN-022 表格末列吃掉余量
 
@@ -228,7 +228,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **守卫**：`ui-control-system-guard::V3`。
 - **对应规范编号**：SD-44
 - **边界**：只约束关键宽表（工作分工 / 负责人 / 在办 / 逾期 / 待处理）；两列窄表与只读键值表仍可用默认 `auto`，不强制 `colgroup`。
-- **证据指针**：`docs/src/styles.css` 的 `.wo-lines-table` / `.wo-col-*` / `[data-responsive="cards"]` 段；`docs/src/components/governance/work-overview.js` 的 `colgroup`；`server/test/ui-control-system-guard.test.mjs`（V3）；执行日志批次 512。
+- **证据指针**：`docs/src/styles.css` 的 `.wo-lines-table` / `.wo-col-*` / `[data-responsive="cards"]` 段；`docs/src/components/governance/work-overview.js` 的 `colgroup`；`server/test/component-ratchet-guard.test.mjs`（V3）；执行日志批次 512。
 
 ## CASE-DESIGN-023 同一对象 4 种详情面 / 归档深链不校验
 
@@ -248,11 +248,11 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **样本（真实发生）**：全仓颜色引用抽样（中性 : 强调 : 状态 : 类别）≈ **4.9 : 2.4 : 0.8 : 1.0**；同屏只剩一个主题色相，中性占比 **54–76%**；状态与类别只出现在大面积渐变卡头与彩色按压里，徽章 / 圆点 / 左条等小面积功能位反而无色；暗色 `party-red` 与 `danger` 逐值相同。
 - **AI 假设**：统一成一个主题色＝一致；功能色是「装饰彩」，少用更稳；要解决单调就得重做主题色盘。
 - **人类意图**：不是否定现有主题色盘，而是让**功能色获得与主题色同等的规则层**——主题色只承担主行动 / 选中 / 链接 / 身份标签；状态 / 类别 / 身份只在小面积功能位出现，两层并列。
-- **泛化规则**：主题色层（7×2×9）值不改；功能色层 `--status-*` / `--color-category-*` / `--color-identity-*` 各有独立 token 与暗色值；两层不互相借用；功能色只在徽章 / 圆点 / 左条 / 图例 / 提示条；暗色类别红 / 金 ≠ danger / warning；身份色单一源；零消费者 token 删除。
+- **泛化规则**：主题色层（7×2×9）值不改；功能色层 `--status-*` / `--color-category-*` / `--color-identity-*` 各有独立 token 与暗色值；两层不互相借用；功能色只在徽章 / 圆点 / 图例 / 提示条（2026-11-04 起不再作左条）；暗色类别红 / 金 ≠ danger / warning；身份色单一源；零消费者 token 删除。
 - **守卫**：`theme-palette-guard::T1/T2/T5/T8/T9` ＋ `link-color-guard::L3/L6–L8` ＋ `ui-contrast-guard`。
 - **对应规范编号**：SD-46
 - **边界**：党建红 `#CE1126` 与党徽金是**固定品牌层**，不随主题切换；类别色也不随主题切换。功能色恢复的是小面积语义位，不恢复渐变卡头与彩色按压。
-- **证据指针**：`DS_01_COLOR_AND_THEME.md §2.12` / `§2.13`（消费者清单与对比度实测）；`docs/src/styles.css` 的 `--status-*` / `--color-category-*` / `--color-identity-*` 段；`server/test/theme-palette-guard.test.mjs`（T8 / T9）；`server/test/link-color-guard.test.mjs`（L6–L8）；执行日志批次 512。
+- **证据指针**：`DS_01_COLOR_AND_THEME.md §2.12` / `§2.13`（消费者清单与对比度实测）；`docs/src/styles.css` 的 `--status-*` / `--color-category-*` / `--color-identity-*` 段；`server/test/color-ratchet-guard.test.mjs`（T8 / T9）；`server/test/color-ratchet-guard.test.mjs`（L6–L8）；执行日志批次 512。
 
 ## CASE-DESIGN-025 分组胶囊「没恢复」：只要可见，丢了主题色与直角
 
@@ -264,7 +264,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **守卫**：`ui-contrast-guard::K3`（主题 soft-bg / soft-text、亮暗 ≥4.5:1、3px、≥24px）＋ `ui-control-system-guard::V2`（无隐藏断点、3px、描边对比 ≥1.5:1）。
 - **对应规范编号**：SD-47（视觉构成）；关联 SD-3（3px 例外）/ SD-36（非按钮语义）/ SD-42（全宽可见）。
 - **边界**：组名仍是**非按钮**胶囊（SD-36）——恢复主题色不等于可点击，不得进入 tab 序列或获得 hover；≤1280px 只缩内边距，字号保持 12px（SD-42）。
-- **证据指针**：`docs/src/styles.css` 的 `.tab-group-label`（`background: var(--app-accent-soft-bg)` / `color: var(--app-accent-soft-text)` / `border-radius:3px` / `font-weight:600` / `letter-spacing:0.5px`）；`server/test/ui-contrast-guard.test.mjs`（K3）；`server/test/ui-control-system-guard.test.mjs`（V2）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 513。
+- **证据指针**：`docs/src/styles.css` 的 `.tab-group-label`（`background: var(--app-accent-soft-bg)` / `color: var(--app-accent-soft-text)` / `border-radius:3px` / `font-weight:600` / `letter-spacing:0.5px`）；`server/test/color-ratchet-guard.test.mjs`（K3）；`server/test/component-ratchet-guard.test.mjs`（V2）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 513。
 
 ## CASE-DESIGN-026 改到存在 ≠ 可感知：胶囊与链接「改完仍看不见」
 
@@ -276,7 +276,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **守卫**：`ui-contrast-guard::K3`（组名 10% 淡底 / 无边框 / soft-text ≥4.5:1）＋ `ui-control-system-guard::V2/V5`（胶囊无边框、选中态、纯文字动作静态线索）＋ `link-color-guard::L3/L6`（链接无下划线、600 字重、淡底 hover）＋ `no-underline-guard::N2/N4`（全站 0 处、只降不升）。
 - **对应规范编号**：SD-49（下划线清零）／ SD-50（胶囊与选中页签层级）；关联 SD-3（3px 例外）/ SD-36（非按钮语义）/ SD-42（全宽可见）/ SD-47（字重与直角）。
 - **边界**：表格分隔线、卡边、选中态边线是 `border-*`，不属「文本装饰」，不要求清零；链接仍必须有**非颜色线索**（箭头 / 图标 / 底色 hover），不是「只留颜色」。`about.html` 的存量样式同样适用，但 About 已撤导航（见 `PRODUCT_IA.md`）。
-- **证据指针**：`docs/src/styles.css` 的 `--app-accent-tint` / `.tab-group-label` / `.tab-btn-active` / `.link` / `.btn-text`；`server/test/no-underline-guard.test.mjs`（N1–N4）；`server/test/ui-contrast-guard.test.mjs`（K3 / K6）；`server/test/link-color-guard.test.mjs`（L3 / L6）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 514。
+- **证据指针**：`docs/src/styles.css` 的 `--app-accent-tint` / `.tab-group-label` / `.tab-btn-active` / `.link` / `.btn-text`；`server/test/style-ratchet-guard.test.mjs`（N1–N4）；`server/test/color-ratchet-guard.test.mjs`（K3 / K6）；`server/test/color-ratchet-guard.test.mjs`（L3 / L6）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 514。
 
 ## CASE-DESIGN-027 加载态「压暗 + 插加载行」硬替换
 
@@ -296,10 +296,10 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **场景（真实发生）**：`docs/help.html` 的 `.help-chapter > summary:focus-visible` 曾用党徽金 `#FFD700` 画 2px 焦点环，而折叠条落在白卡 `#FFFFFF` 上——实测 **1.40:1**。鼠标用户看不出问题，键盘用户 Tab 到章标题时**看不到焦点在哪**：环是在的，只是与底色同亮。当时先改走深金文字档 `--status-warning-text`（`#92400E`，7.09:1）；2026-10-28 全站焦点统一后改用主题色 `--app-accent`（金主题对白卡 3.83:1）。
 - **结论**：焦点环的验收标准是**环对底的对比度**，不是「有没有 `outline`」。固定党徽金 `#FFD700` 对白卡只有 1.40:1，已退出焦点用途；焦点色统一取主题色 `base` 档（对白卡最低为金 3.83:1）。
 - **泛化规则**：焦点可见由三件构成：① 有环（输入族 `:focus`、按钮 / 链接族 `:focus-visible`）＋ ② 环对**实际所在底色** ≥3:1（图形判据）＋ ③ 不在同一控件上重复出第二道答案（SD-27 / §5.7）。判据必须按**环落的那块底**逐处实测，不得只在 token 层看色值。
-- **守卫**：`ui-contrast-guard::K6`（`--status-warning-text` 亮 / 暗逐底 ≥4.5:1，填充色 `--status-warning` 只作圆点 / 左条）＋ `ui-focus-ring`（七主题亮 / 暗的 `--app-accent` 焦点环逐底 ≥3:1；顶栏白环 ≥3:1）。
+- **守卫**：`ui-contrast-guard::K6`（`--status-warning-text` 亮 / 暗逐底 ≥4.5:1，填充色 `--status-warning` 只作圆点 / 徽章底；2026-11-04 起不再作左条）＋ `ui-focus-ring`（七主题亮 / 暗的 `--app-accent` 焦点环逐底 ≥3:1；顶栏白环 ≥3:1）。
 - **对应规范编号**：SD-27（焦点环必须有可见环且只答一次）；对比度判据同族见 SD-46（状态色文字档）与 `ui-contrast-guard::K6`。
 - **边界**：顶栏深红底是唯一不用主题色的例外，现改用白色令牌 `--app-accent-strong-ink-light`（11.44:1，见 §5.7）；本条只判浅底上的焦点环。装饰性金点描边不属焦点环判据（见 §2.3.1）。
-- **证据指针**：`docs/help.html:58`（`outline:2px solid var(--app-accent)`）；`docs/src/styles.css` 的 `--app-accent-base-light` 七色表；`server/test/ui-contrast-guard.test.mjs`（K6）；`server/test/ui-focus-ring.test.mjs`（F1 / F4 / F6）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 美学专项 Task 7。
+- **证据指针**：`docs/help.html:58`（`outline:2px solid var(--app-accent)`）；`docs/src/styles.css` 的 `--app-accent-base-light` 七色表；`server/test/color-ratchet-guard.test.mjs`（K6）；`server/test/component-ratchet-guard.test.mjs`（F1 / F4 / F6）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 美学专项 Task 7。
 
 ## CASE-DESIGN-029 说明层压过对象层：卡头副题在教人怎么点
 
@@ -321,10 +321,10 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **AI 假设**：`DESIGN_SYSTEM §一 原则 4`「主色 ≤ 2 种，功能色仅用于状态指示」意味着彩色越少越合规；把「卡片数字」理解成去掉一切非文字的装饰；既然删了图标，守卫就该禁止它回来。
 - **人类意图**：「统一为卡片数字」指的是**四个数在版式上同级、同构**（都给卡片、都用同一套数字排版）；图标浅底与同色笔触是支书认可的既有表达，应一并保留。原则 4 约束的是**主色数量**与**功能色的状态语义**，不把彩色一概判为违规。
 - **泛化规则**：① 原则 4 的判据是「主色 ≤ 2 种 ＋ 功能色只承担状态」；**点缀色**（图标浅底 / 笔触 / 关键数值）单列，不计入主色数量、不承担状态语义，每屏 1–2 处（一组四数卡按一处计）。② 「统一 / 收敛」类指令先确认收敛的是**版式与排版**还是**色彩与图形**；不得以「更克制」为由删掉支书明确喜欢的视觉元素。③ 删掉元素的同时**收紧守卫**（反向断言）会把误读固化成规范，改结构前先核对该判据的原始裁定语境。④ 图标不得成为唯一信息载体——数值与标签必须仍在。
-- **守卫**：`ui-control-system-guard::V1`（四数卡由图标、数值、标签三段组成；无 `hover:shadow` / `-translate-y`）＋ `ui-home-hero::E7`（首页统计卡同构）＋ `theme-palette-guard`（图标色只取既有语义 token）＋ `hex-hardcode-guard`（`--tint` 由 CSS 派生，不写 hex）。
-- **对应规范编号**：§一 原则 4（色彩克制 · 点缀色）；关联 SD-46（主题色层与功能色层并列）。
-- **边界**：点缀色不承担状态语义——逾期 / 未读等状态仍由 `--status-warning-text` 等语义 token 与文字标签共同表达；以素净为主的页面不必强行补彩色，本判例只否定「把彩色一律判违规」的推论。深浅色由 `--tint` 混入 `--surface-card` 自动适配，不为暗色另写一套色值。
-- **证据指针**：`docs/src/components/dashboard/stats.js`（`stat-icon-tint` ＋ `--tint` ＋ 同色数值）；`docs/src/components/governance/work-overview.js`（四数卡同构）；`docs/src/styles.css` 的 `.stat-icon-tint`；`server/test/ui-control-system-guard.test.mjs`（V1）；`server/test/ui-home-hero.test.mjs`（E7）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 2026-10-28 Task 3。
+- **守卫**：`ui-control-system-guard::V1`（四数卡由图标、数值、标签三段组成；无 `hover:shadow` / `-translate-y`）＋ `ui-home-hero::E7`（首页统计卡同构）＋ `theme-palette-guard`（图标色只取既有语义 token）＋ `hex-hardcode-guard`（`--tint` 由 CSS 派生，不写 hex）＋ `icon-color-guard::G3`（`--tint` 只收 `var(--token)`，状态色取 `-text` 档）。
+- **对应规范编号**：§一 原则 4（色彩克制 · 点缀色）；关联 SD-46（主题色层与功能色层并列）＋ SD-61（图标色彩契约，正文见 §4.11.2）。
+- **边界**：点缀色**不单独承担状态语义，须同时有文字标签**——逾期 / 未读等状态由 `--status-warning-text` 等**文字档**语义 token 与文字标签共同表达；填充档只作徽章 / 圆点 / 图例 / 左条，作图标笔触或数值由 `icon-color-guard::G3` 判红。以素净为主的页面不必强行补彩色，本判例只否定「把彩色一律判违规」的推论。深浅色由 `--tint` 混入 `--surface-card` 自动适配，不为暗色另写一套色值。
+- **证据指针**：`docs/src/components/dashboard/stats.js`（`stat-icon-tint` ＋ `--tint` ＋ 同色数值）；`docs/src/components/governance/work-overview.js`（四数卡同构）；`docs/src/styles.css` 的 `.stat-icon-tint`；`server/test/component-ratchet-guard.test.mjs`（V1）；`server/test/ui-home-hero.test.mjs`（E7）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 2026-10-28 Task 3。
 
 ## CASE-DESIGN-031 焦点修了两轮才查出「四套颜色 ＋ 全局 6px 光晕」
 
@@ -336,7 +336,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **对应规范编号**：SD-27（焦点单环）＋ SD-21（主题选择器恰 7 项）；几何与例外见 `DS_04_INTERACTION_AND_RESPONSIVE.md §5.7`。
 - **守卫**：`ui-focus-ring::F1–F6`（旧令牌零残留 / 单条 outline / 七主题对比度 / 顶栏白环）＋ `ui-control-system-guard::FOCUS-1…5`（双环检测 ＋ 6px 光晕反例 ＋ 七主题 base 对白卡与深卡 ≥3:1）＋ `theme-palette-guard::T1/T3`（七主题、旧键退场）。
 - **边界**：顶栏深红底是唯一不用主题色的例外（白环 11.44:1，见 §5.7）；About 页是独立冻结件，其焦点口径待支书点头后单独处理。
-- **证据指针**：`docs/src/styles.css`（全局 `button/a/…:focus-visible` 与 `.input-flat:focus`）；`docs/help.html:58,160`；`server/test/ui-focus-ring.test.mjs`；`server/test/ui-control-system-guard.test.mjs`（FOCUS 组）；`.ctx/evidence/2026-10-28/focus-*.png`。
+- **证据指针**：`docs/src/styles.css`（全局 `button/a/…:focus-visible` 与 `.input-flat:focus`）；`docs/help.html:58,160`；`server/test/component-ratchet-guard.test.mjs`；`server/test/component-ratchet-guard.test.mjs`（FOCUS 组）；`.ctx/evidence/2026-10-28/focus-*.png`。
 
 ## CASE-DESIGN-032 判例修不完，原则才收敛
 
@@ -347,7 +347,149 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **守卫**：`ui-control-system-guard::FOCUS-1…5`（一个控件只允许一个焦点信号；输入族零 outline / 零 box-shadow；按钮族必有环；焦点色禁党徽金 / 党建红）＋ `esm-parse-guard::ESM1/ESM2`（全量真 ESM 解析；函数体内 import 反例）＋ `module-load::E5`（页签模块路径、ESM 解析、导出名三查）＋ `lf-bar-structure-guard::L1–L5`（筛选行只允许行容器）＋ `container-width-guard::C0–C5`（容器五档）＋ `about-freeze-guard::B1–B5`（冻结件内容基线）。
 - **对应规范编号**：SD-27（P1 焦点单环）；P2–P7 的落点见 `DS_03_COMPONENTS.md §12.9` 与 `DS_04_INTERACTION_AND_RESPONSIVE.md §5.7`。
 - **边界**：本条只讲「分支修不完时如何收敛原则」，不替代各条规范的具体判据；About 冻结件、顶栏深红底白环等已登记例外仍按各自条目执行。
-- **证据指针**：`.ctx/evidence/2026-10-29/m3-selfcheck.json`（P1–P4 换场景读数 78/78）；`.ctx/evidence/2026-10-29/p5-injection.log`（ESM / module-load 注入判红）；`.ctx/evidence/2026-10-29/p6-injection.log`（About 副本反例）；`server/test/esm-parse-guard.test.mjs`；`server/test/ui-control-system-guard.test.mjs`；`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 518–520。
+- **证据指针**：`.ctx/evidence/2026-10-29/m3-selfcheck.json`（P1–P4 换场景读数 78/78）；`.ctx/evidence/2026-10-29/p5-injection.log`（ESM / module-load 注入判红）；`.ctx/evidence/2026-10-29/p6-injection.log`（About 副本反例）；`server/test/esm-parse-guard.test.mjs`；`server/test/component-ratchet-guard.test.mjs`；`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 518–520。
+
+## CASE-DESIGN-033 左条退出界面信号
+
+- **编号**：CASE-DESIGN-033
+- **场景（真实发生）**：支书看待办列表时指出 hover / 选中时的左侧色条「很丑」，要求全局清理。盘点发现同一条 3px 左条被四种语义共用：hover 提示、选中、当前项、身份 / 品牌；焦点环压在左条上时又叠成一圈边，行看起来脏。
+- **支书原话**：「待办里 hover / 选中时的左侧色条很丑，要求全局清理」。
+- **结论**：状态型与装饰型左条全部退役。选中态：主题 soft 底 ＋ soft 字 ＋ 字重（按组件可选状态圆点）；hover：只改底色；身份：圆点或角色徽章；品牌：徽章或角标；引述块：全框或浅底。容器只保留 1px 结构边（嵌套 / 时间线 / 缩进）。焦点仍为现行单环，几何与颜色不变（SD-27 / `DS_04_INTERACTION_AND_RESPONSIVE.md §5.7`）。
+- **边界**：① 本判例只废「左条」，不重开焦点单环；焦点环仍 2px 实线、仅键盘触发、`box-shadow: none`，不得新增第二环 / 光晕。② 1px 结构边保留，用于层级嵌套与时间线，不承担状态。③ About 冻结件内容不动。
+- **对应规范编号**：SD-25（关联 SD-46 功能色使用面、§4.2 边线语义）；交互条文见 `DS_04_INTERACTION_AND_RESPONSIVE.md §5.2`。
+- **守卫**：`hover-state-guard::H11`（可点行不得定义状态左条）＋ `ui-control-system-guard::V7`（不得存在状态左条，选中靠 soft 底）＋ `ui-contrast-guard::K6`（`.section-accent-left` 不得再用左条；若选择器仍在，必须另有背景 / 文字承载状态）。三条均带「把 3px 左条加回来必须判红」的反例。
+- **证据指针**：`content/04_web_design/design-system/DS_03_COMPONENTS.md` §4.2 / §12.11；`content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md` §5.2；`server/test/style-ratchet-guard.test.mjs`；`server/test/component-ratchet-guard.test.mjs`；`server/test/color-ratchet-guard.test.mjs`。
+
+---
+
+## CASE-DESIGN-034 卡头按钮被「机械分行」：标题不让位 ＋ aside 整组掉行
+
+- **编号**：CASE-DESIGN-034
+- **场景（真实发生）**：支书指出多个页面的按钮「被机械地分行了」——不是按钮文字断行，而是整组动作在宽度足够时掉到第二行。取证：`.card-head` / `.card-head__aside` 三处 `flex-wrap: wrap`，标题只有 `margin: 0` 不承担伸缩，aside 带 `margin-left: auto` 整组让位 ⇒ 标题 + meta 稍长就把按钮组挤下去。按钮族本身已有 `white-space: nowrap`，不是缺 nowrap。
+- **结论**：换行发生在「组」一级是问题，发生在「组内元素」一级不是问题。≥641px 卡头不换行，标题 `flex:1 1 auto; min-width:0` 承担伸缩并允许自身换行，aside `flex:0 0 auto` 不拆组；≤640px 才允许 aside 掉行并右对齐。单枚低价值按钮并入右对齐，不单独占行。
+- **边界**：本判例只约束 `.card-head` 家族与 P1 表单 / 工具行；`.lf-bar` 仍守 SD-58「两行上限」，不得改成横向滚动；`round3-4-batch1` 锁定的活动卡片行动区不动。
+- **对应规范编号**：SD-60（行动行排布，`DS_06_LAYOUT_AND_DENSITY.md §二`）；关联 SD-57 / SD-58。
+- **守卫**：`action-row-wrap-guard::W1–W5`（`.card-head` 基准 nowrap ＋ ≤640 覆盖、标题伸缩、aside 不拆组、按钮族 nowrap、`.lf-bar` 仍可折行）。
+- **证据指针**：`docs/src/styles.css`（`.card-head` 家族）· `docs/src/components/shell/page-frame.js::renderCardHeader` · `server/test/style-ratchet-guard.test.mjs` · `.ctx/evidence/2026-11-07/ui-audit.md`。
+
+---
+
+## CASE-DESIGN-035 公共门厅未登录不出现支部名
+
+- **编号**：CASE-DESIGN-035
+- **场景（真实发生）**：未登录首页曾按「默认支部工作台」渲染，登录页标题读取 `DEFAULT_BRANCH_ID` 的 `headerTitle || name`，未登录即可看到「光华管理学院本科生党支部」；同一屏还挂着统计卡、工作组、活动风采与通知角标。V-11 待裁期间（2026-11-07 批次 535）先做了通知读侧 fail-closed，未登录不再读站内通知；2026-11-08 支书裁定改为学院党委公共门厅（D-858）。
+- **结论**：未登录首页渲染学院党委公共门厅，品牌为党徽 ＋「光华管理学院党建平台」；公开面只出现党委公开通知全文、党委公开活动摘要、公开资料列表 / 详情 / 下载与登录入口。具体支部名、成员姓名、统计卡、工作组、活动风采与通知角标不进入未登录面。登录后回到工作台，活动 / 通知 / 资料按党委与支部并集展示。
+- **边界**：支部名可在登录后的工作台、支部档案与党委选定支部后的只读视图出现；无会话的接口不返回支部名与成员字段；公开内容过期后匿名接口返回 404，呈现为「不存在」，不留「空列表」形状的空态；公开设置与审计的规范条文见 `SYSTEM_ROLE_PERMISSION.md §9a.1`，门厅的显示范围与验收判据见 `PUBLIC_ENTRANCE.md`。
+- **对应规范编号**：SD-62（未登录公开面只出现党委公开内容，不出现支部名与成员字段；正文见 `content/04_web_design/module/PUBLIC_ENTRANCE.md §二–§六`）；关联 SD-32（深链目标页必须消费参数）。
+- **证据指针**：`content/04_web_design/module/PUBLIC_ENTRANCE.md`（§二 至 §六）· `content/02_institution/SYSTEM_ROLE_PERMISSION.md` §9a.1 · `docs/index.html` · `docs/src/entries/pages/main-entry.js`。
+
+---
+
+## CASE-DESIGN-036 待办跳转只弹提示不导航
+
+- **编号**：CASE-DESIGN-036
+- **场景（真实发生）**：六个工作台的待办里点一条「目标模块不在本台」的行（例如成员台点「党小组」类事项），旧 `workspace-nav` 只 `toast('info')` 提示一句就结束，页面停在原地，用户找不到落点；同一动作的目标页签各台另写一份 `tabMap`，少写一台就静默无反应。
+- **结论**：未命中目标页签时 fail-closed——内容区必须渲染可见提示「本台无该模块」，并给出「同义落点」按钮（工作概况 → 待办 → 今天，取本台第一个已注册者）；不得只弹 toast、不得静默留页、不得拼 `workspace/<role>.html?tab=` 整页跳转。31 类动作 × 6 台在 `TODO_ACTIONS.roleOverrides` 逐台登记，解析顺序由契约固定，调用方不得另写落点分支。
+- **边界**：`inline` 动作仍在行尾 / 浮窗完成（从只读页点进来时落到待办页该行）；`direct` 动作走对象详情，缺 id 给「未定位到具体条目」提示，两者不套「同义落点」这条兜底。
+- **对应规范编号**：SD-63（待办跳转三模式与未命中 fail-closed；正文见 `content/04_web_design/contracts/INTERACTION_AND_NAVIGATION_CONTRACT.md §二`）；关联 SD-32（深链目标页必须消费参数）。
+- **守卫**：`todo-jump-contract`（31 类动作 × 6 台已注册、无 toast-only、缺 id 有显式提示、`PendingTarget` 已清理、fail-closed 提示真渲一次）＋ `todo-cross-role-safety`。
+- **证据指针**：`docs/src/core/session/workspace-nav.js:13,25-26,82-91`；`docs/src/core/domain/todo-actions.js`；`docs/src/components/record/todo-tab-shell.js`；`content/04_web_design/contracts/INTERACTION_AND_NAVIGATION_CONTRACT.md`；`server/test/todo-jump-contract.test.mjs`；`.ctx/evidence/2026-11-10/overview-workmap/findings.json`。
+
+---
+
+## CASE-DESIGN-037 议程来源与类型没有映射
+
+- **编号**：CASE-DESIGN-037
+- **场景（真实发生）**：`agenda-form` 的「拟上会」清单只列事项名，不带类型；同一事项在支书台写议程时标成「讨论」、在党委会议页读摘要时类型为空；服务端也没有汇总口。「哪些事该上会」与「按哪一档上会」靠人记。
+- **结论**：来源 → 类型 → 待议池由一份纯函数算（`agenda-classify.js::AGENDA_SOURCES` 六类，另纳入活动批准 / 分工调整两类），客户端与服务端同源 import；服务端出 `GET /api/v1/committee/agenda-candidates`。类型三值 决策 / 讨论 / 同步，`needDecision` 决定是否需要表态；新增来源必须同批改契约、分类表与验收项。
+- **边界**：分类函数只给「建议议程步骤」，写入时 `agendaStep` 仍由支书在写入面板决定，不得自动落库；去重 / 时效 / 应到属服务端算，客户端只做分组 / 排序 / 徽章。
+- **对应规范编号**：SD-64（议程来源 → 类型 → 待议池同源分类；正文见 `content/04_web_design/contracts/AGENDA_DERIVATION_CONTRACT.md §一–§三`）；关联 SD-34（状态只能有一套派生）。
+- **守卫**：`agenda-classify`（六类来源 × 四反例 × 服务端与客户端逐项一致 × 双支部过滤）。
+- **证据指针**：`docs/src/core/domain/agenda-classify.js:2-13,29-45`；`server/routes/committee.js:235-236`；`docs/src/entries/tabs/secretary/agenda-form.js`；`docs/src/entries/tabs/secretary/committee-meeting-tab.js`；`content/04_web_design/contracts/AGENDA_DERIVATION_CONTRACT.md`；`server/test/agenda-classify.test.mjs`。
+
+---
+
+## CASE-DESIGN-038 手写表格绕过 data-table
+
+- **编号**：CASE-DESIGN-038
+- **场景（真实发生）**：`secretary.group-progress` 的活动台账曾手写 `<table>`：列宽用百分比、无 `<colgroup>`、两列同时省略号截断，390 档整表横向溢出；同类手写表在别处还有多处，行高 / 列宽 / 截断各写一套。
+- **结论**：同列同语义 ≥3 行一律走 `renderDataTable`；列宽只取三档（内容 auto / 固定 `colgroup` / 最小 `min-width`），全表只允许一列截断且该列必须是 `1fr` 余量列；数据行高 40px，展开详情用 `colspan` 插行。手写 `<table>` 存量按棘轮只减不增。
+- **边界**：字段异构且 ≤12 项用列表 / 卡片；两维交叉用 `relation-matrix.js`，不套数据表；两行以内的数据不起表。
+- **对应规范编号**：SD-65（表格载体四问与 `data-table` 三档列宽、一表一截断列；正文见 `content/04_web_design/contracts/TABLE_COMPONENT_CONTRACT.md §一–§四`）；关联 SD-44（宽表定列宽模板、末列不吃余量）。
+- **守卫**：`table-contract-guard::T1–T7`（契约字段 / 组件参数 / 宽表 colgroup / 手写表棘轮 / `td` 内 `text-xs` 计数 0 / 390 无溢出 / 反例自证）。
+- **证据指针**：`docs/src/components/ui/data-table.js`；`docs/src/entries/tabs/secretary/group-progress-tab.js:59,426,466`；`content/04_web_design/contracts/TABLE_COMPONENT_CONTRACT.md`；`server/test/table-contract-guard.test.mjs`；`.ctx/evidence/2026-11-10/table-540/`。
+
+---
+
+## CASE-DESIGN-039 活动详情首屏块数超限
+
+- **编号**：CASE-DESIGN-039
+- **场景（真实发生）**：活动详情首屏把对象头、基本信息、报名名单、参与三视图、工作分工、议程、收口、汇报明细、管理动作等 14 个并列块一次摊开，真机 1440 / 390 双档首屏都看不到主路径；管理动作与参与动作同权并列，正文被切成碎片。
+- **结论**：详情页按「对象头 → 信息 → 参与 → 议程 → 收口」四段组织，首屏并列块收为 6；管理动作进页尾折叠；议程段只出正文，分区标题由段级 H3 承担（同一学段不得出现两个同名标题）；汇报明细在收口段内展开。
+- **边界**：本条只管活动详情页的块结构；单块内的字段顺序与文案归模块设计；页签侧块数上限仍按 SD-57 与 `TAB_BLOCK_BASELINE` 判。
+- **对应规范编号**：SD-57（顶层区块 ≤4、超限须登记 reason；本条把「详情页」纳入同族判据，超限部分按页尾折叠处理）＋ SD-60（行动行排布，管理动作不占正文行）。
+- **守卫**：`ui-first-screen-order::F6–F9`（页签侧块数）＋ `ui-first-screen-order::F10`（详情页结构契约：对象头 / 参与 / 议程 / 收口 / 管理动作五块、写口宿主与 390 单列）＋ 真机读数（`F10` 只判源码结构，视觉读数仍以双档截图复核）。
+- **证据指针**：`docs/src/entries/pages/activity-entry.js:721,804,811`；`.ctx/evidence/2026-11-10/activity-detail/{before-1440,before-390,after-act-6-1440,after-act-6-390}.png`；同目录 `readings-act-*.json`；`audit-secretary-calendar.md`。
+
+---
+
+## CASE-DESIGN-040 视图重叠：同一问句的另一种排法又立一套视图
+
+- **编号**：CASE-DESIGN-040
+- **场景（真实发生）**：支部分工页曾有 4 套视图（平铺模块 / 按人 / 按项目 / 关系矩阵）。「按项目」是「按人」的转置（同一份数据、同一个问句）；平铺模块的 desc / 子项 / 产出与「按人」的行内信息重复。用户要先决定用哪套视图，才看得见「谁负责什么」。
+- **结论**：视图收 2——责任关系（默认）/ 关系矩阵。「按项目」删除（转置不算新问句）；平铺模块的 desc / 子项 / 产出并入选中行展开；关系矩阵降为折叠块（本视图内默认展开），不与首屏主体并列。
+- **边界**：同一数据的不同**问句**（「谁负责什么」与「某个工作项有谁」）允许各留一种视图；同一问句的另一种排法不立新视图。行内主责徽标取中性档，主题色只留给动作 / 导航 / 选中态。
+- **对应规范编号**：SD-46（功能色只小面积；主责是常态、不承担状态语义）＋ SD-57（首屏块数）；视图取舍按 `H21.3` 三问判。
+- **守卫**：`work-map`（视图键只允许 `relations` / `matrix`）＋ `audit-tabs --all` 的 `secretary.work-map`（3 块 · P0 / P1 / P2 均 0）。
+- **证据指针**：`docs/src/entries/tabs/secretary/work-map-tab.js:7-10,40-43,236-237,326-330`；`server/test/work-map.test.mjs`；`.ctx/evidence/2026-11-10/overview-workmap/`；`.ctx/evidence/2026-11-10/tab-audit/summary.md`。
+
+---
+
+## CASE-DESIGN-041 SVG 着色四来源与 data-URI 里的 hex
+
+- **编号**：CASE-DESIGN-041
+- **场景（真实发生）**：图标着色散成四路——`icons.js` 的 `stroke` 写字面 hex、`sidebar` 的行内 SVG 写死 `#9CA3AF`、`person-picker` 在 CSS data-URI 里写 `%239CA3AF`、`custom-select` / `archive-entry` 各自内联 `<svg>`。hex 扫描只看字面 `#RRGGBB`，URL 编码那一支整段漏过；同一枚放大镜在四处各写一份色。
+- **结论**：图标只经 `icons.js::icon()` 产出，颜色默认 `currentColor`、由宿主文字色继承；确需显式色时只许 `currentColor` / `none` / `var(--token)`。状态色只经 `--tint` 传入，且只取 `--status-*-text` 文字档；填充档只进徽章 / 圆点 / 图例 / 左条。SVG 片段禁 hex，扫描须含 data-URI 的 `%23` 形态；尺寸由 CSS 类驱动。
+- **边界**：党徽与插画才用品牌层（`--party-red` / `--party-gold`）；`feTurbulence` 噪点纹理属插画、无色值，按白名单登记；`styles.css` 的既有 data-URI 由同批样式波次迁移，不为此在守卫上开口子。
+- **对应规范编号**：SD-61（图标色彩契约，正文见 `DS_03_COMPONENTS.md §4.11.2`）＋ `§一 原则 4`（点缀色不单独承担状态语义）。
+- **守卫**：`icon-color-guard::G1–G5` ＋ `status-color-guard::S1` ＋ `hex-hardcode-guard`（含 `%23` 形态）＋ `theme-palette-guard`。
+- **证据指针**：`docs/src/core/base/icons.js`；`docs/src/components/shell/sidebar.js`；`docs/src/components/governance/person-picker.css`；`docs/src/styles.css`；`server/test/color-ratchet-guard.test.mjs`；`DS_03_COMPONENTS.md:544-556,1520,1542`。
+
+---
+
+## CASE-DESIGN-042 必填只写了星号：控件与错误行都没有无障碍语义
+
+- **编号**：CASE-DESIGN-042
+- **场景（真实发生）**：`components/ui/form-field.js` 的 `textField / textareaField / selectField` 里，`required: true` 只让标签多一个星号；控件本体没有 `required` 也没有 `aria-required`。错误行 `<p>` 无 `role="alert"`，控件无 `aria-invalid` / `aria-describedby`，错误边用被禁的 `border-red-400`。反馈表单在空姓名提交时，读屏用户只听到「姓名」，听不到「必填」与错误原因。
+- **结论**：`required: true` 必须在控件上产出 `required` 与 `aria-required="true"`；标签星号标 `aria-hidden="true"`（星号是视觉冗余，不进朗读）；错误行必须 `role="alert"` 且 id 为 `{控件 id}-err`，控件用 `aria-describedby` 指向它并置 `aria-invalid="true"`；错误边取 `--status-error`，不得用调色板类。
+- **边界**：登录页自建字段保留自有实现，但同等四件（required / aria-required / role=alert / aria-describedby）必须齐；只读展示字段不参与本判据；非必填字段不得因同组有必填而误加语义。
+- **对应规范编号**：SD-66（必填语义，正文见 `DS_03_COMPONENTS.md §4.3`）。
+- **守卫**：`form-field-guard::T1 / T2 / T4`。
+- **证据指针**：`docs/src/components/ui/form-field.js:14-26,37-56`；`server/test/component-ratchet-guard.test.mjs`；`DS_03_COMPONENTS.md §4.3`。
+
+---
+
+## CASE-DESIGN-043 筛选行下拉没有名字，靠首项文本充当可访问名
+
+- **编号**：CASE-DESIGN-043
+- **场景（真实发生）**：考勤数据卡的筛选行里，活动下拉手写 `<select id="att-activity-select">`，首项「活动：全部」被当成名字；同屏还有状态、类型两个下拉，读屏时三个控件都只念当前值，分不出哪一个在筛什么。当前值变化后「名字」也跟着变。
+- **结论**：筛选行每个控件必须有字段级可访问名——`<label for>` 或 `aria-label`；首项文本与当前值都不承担名字。原生下拉一律经 `forms.js::selectInput({ ariaLabel })` 产出，不再手写裸 `<select>`。
+- **边界**：多选 chip 组用 `role="group"` ＋ `aria-label` 命名整组；关键词输入用 `aria-label`（「搜索姓名或活动」）；清除钮用按钮自身文本，不另加 aria-label。
+- **对应规范编号**：SD-67（筛选行字段级可访问名，正文见 `DS_03_COMPONENTS.md §4.3`）。
+- **守卫**：`form-field-guard::T3`。
+- **证据指针**：`docs/src/entries/tabs/disc/attendance-tab.js:1225-1231`；`docs/src/components/ui/form-field.js:95-100`；`server/test/component-ratchet-guard.test.mjs`。
+
+---
+
+## CASE-DESIGN-044 壳层「统一 44」把侧栏页脚压成正文档；改字链不改按钮属同族漏改
+
+- **编号**：CASE-DESIGN-044
+- **场景（真实发生）**：① 2026-10-18 支书复核侧栏页脚「原先的设置最舒服」，定为紧凑档（`padding 4px 8px` / `12px` / `line-height 1.2` ≈ 22.4 高）。批次 561 为统一触控热区，把顶栏动作、图标钮、页脚一并提到 44 高 / 13px；页脚在桌面变成与正文同档的宽行。② 2026-11-22 批次 603 首轮只把 `<a>.header-action-btn` 与铃铛改回 36，汉堡 `<button>` 仍是 44，同一顶栏出现两种高度；支书判为逃逸（同族漏改）。
+- **结论**：顶栏是一个控件族、两档值——桌面 36、移动 44。成员六个：`.hamburger-btn`、`.header-action-btn`（登录 / 我的档案 / 台主 CTA / 一键汇报）、`.btn-icon.header-icon-btn`（通知铃铛）。命中区一律 ≥44×44：汉堡与铃铛由 `::after` 提供，动作钮移动档由上下内边距提供。改任一成员，必须同批枚举全族并两档同对齐。
+- **边界**：不属控件梯的只有三类——`.role-label`（指示件，不可点）、`.party-emblem-wrapper`（图片）、`#branch-view-exit.btn-text`（金底状态条内联文字，高度随条）。工作台页签 `.tab-btn`、列表行、弹窗按钮仍按各自档位，不并入本梯。**特例准入**：新增顶栏控件默认进梯；要出梯必须支书裁定并在本「边界」登记，不得由 AI 自行解释。
+- **对应规范编号**：SD-68（壳层两档，正文见 `DS_03_COMPONENTS.md §12.7`）。
+- **守卫**：`component-ratchet-guard`（`COMPONENT_STATE_EXEMPT` 白名单 ＋ T3 命中区探测）＋ `scripts/touch-target-audit.mjs`（390×844 命中区 <44 计数）。
+- **证据指针**：`docs/src/styles.css`（`.hamburger-btn` / `.header-action-btn` / `.btn-icon.header-icon-btn` / `.sidebar-footer-action` / `@media (max-width:640px)` 顶栏收紧段）；`server/test/component-ratchet-guard.test.mjs:1431`；`content/04_web_design/design-system/DS_03_COMPONENTS.md §12.7`；批次 561 `a015ef08c` 与本批 `D-913`。
 
 ---
 
@@ -365,7 +507,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **守卫**：`write-truth-guard::A1–A4/B1–B5`（六个读口闸门、快照单一源、flush 分流、outbox 与语义端点）＋ `seed-contract-guard::C1–C10`（种子契约与 v12 结构）＋ `localstorage-key-guard::L4–L10`（四类键与版本校验）＋ `test-isolation-guard::I1–I4`（测试不留运行库）。
 - **对应规范编号**：SD-48（缓存边界 / 写确认 / 演示窗口 / 测试残留分层）。
 - **边界**：纯展示偏好（主题 / 字号 / 强调色 / 页签顺序）长期留浏览器不算越界；mock 形态与显式 `SEED_FALLBACK=1` 的演示仍可回退种子，但**不得写入服务器**；`committee_broadcasts` 为 v12 恒只读表，标注改走系统通知，不得新增写口。
-- **证据指针**：`docs/src/data/cache-registry.js`（四类键）；`docs/src/services/activity/{activity,attendance,inspection,signup}.js` 与 `services/governance/{notice,todo}.js` 的 api 闸门；`docs/src/data/data-adapter.js` 的 flush 分流；`server/test/write-truth-guard.test.mjs` / `seed-contract-guard.test.mjs` / `localstorage-key-guard.test.mjs`；`content/04_web_design/data/DATA_SEED_CONTRACT.md`；`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 513。
+- **证据指针**：`docs/src/data/cache-registry.js`（四类键）；`docs/src/services/activity/{activity,attendance,inspection,signup}.js` 与 `services/governance/{notice,todo}.js` 的 api 闸门；`docs/src/data/data-adapter.js` 的 flush 分流；`server/test/write-truth-guard.test.mjs` / `seed-contract-guard.test.mjs` / `navigation-guard.test.mjs`；`content/04_web_design/data/DATA_SEED_CONTRACT.md`；`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 513。
 
 ---
 

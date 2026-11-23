@@ -22,10 +22,12 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { aggregateMemberProgress } from '../../docs/src/services/member/member-progress.js?v=20261031a';
+import { aggregateMemberProgress } from '../../docs/src/services/member/member-progress.js?v=20261120a';
+import { today as todayLocal } from '../services/reporting.js';
 
 const ROOT = join(import.meta.dirname, '..', '..');
-const TODAY = '2026-09-15';
+// 「今天」＝服务端本地当日（接口只接受与服务端当日相差 ≤1 天的 today，硬编码过去日期会 422）
+const TODAY = todayLocal();
 const TARGET = 'mp-2400012345'; // 合成人员：不与种子数据交叉
 
 let server, base, db, token;
@@ -40,7 +42,7 @@ before(async () => {
 
   // 在办事项：1 条超期 + 1 条在办未超期 + 1 条已完成（已完成两条口径都不计）
   put('todos', 'mp-t1', { id: 'mp-t1', branchId: 'br-b1', personId: TARGET, title: '超期待办', status: 'pending', deadline: '2026-09-01' });
-  put('todos', 'mp-t2', { id: 'mp-t2', branchId: 'br-b1', personId: TARGET, title: '在办未超期', status: 'pending', deadline: '2026-12-31' });
+  put('todos', 'mp-t2', { id: 'mp-t2', branchId: 'br-b1', personId: TARGET, title: '在办未超期', status: 'pending', deadline: '2099-12-31' });
   put('todos', 'mp-t3', { id: 'mp-t3', branchId: 'br-b1', personId: TARGET, title: '已完成', status: 'completed' });
   // 出勤：1 缺勤 + 1 出席（只有缺勤计入）
   put('attendances', 'mp-a1', { id: 'mp-a1', branchId: 'br-b1', personId: TARGET, activityId: 'act-1', status: 'absent' });
@@ -124,4 +126,14 @@ test('S4 参数守卫：缺 personIds → 400（不得静默返回全量）', as
   assert.equal(status, 400);
   const noAuth = await fetch(`${base}/api/v1/leader/member-progress?personIds=${TARGET}`);
   assert.equal(noAuth.status, 401, '未登录须 401（进度属敏感读）');
+});
+
+test('S5 参数守卫：today 须为 YYYY-MM-DD 且与服务端当日相差 ≤1 天；personIds 上限 200 ⇒ 422', async () => {
+  const badFormat = await fetchRows(`?personIds=${TARGET}&today=2026/09/15`);
+  assert.equal(badFormat.status, 422, '非 YYYY-MM-DD 的 today 须 422');
+  const farPast = await fetchRows(`?personIds=${TARGET}&today=2000-01-01`);
+  assert.equal(farPast.status, 422, '与服务端当日相差超过 1 天的 today 须 422');
+  const tooMany = Array.from({ length: 201 }, (_, i) => `mp-${i}`).join(',');
+  const overLimit = await fetchRows(`?personIds=${tooMany}&today=${TODAY}`);
+  assert.equal(overLimit.status, 422, 'personIds 超过 200 个须 422');
 });

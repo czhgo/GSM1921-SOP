@@ -12,16 +12,18 @@
 //   也绕过了支书台归档前的材料 / 考勤闸门。本次不新增第二套归档写口（归档仍走活动详情的材料闸门），
 //   文案与提示只说「标记完成」，不再声称「完成即归档」。
 
-import { BranchService } from '../../services/core/runtime.js?v=20261031a';
-import { persist } from '../../data/data-adapter.js?v=20261031a';
-import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261031a';
-import { isActivityEnded } from '../../core/domain/constants.js?v=20261031a';
+import { BranchService } from '../../services/core/runtime.js?v=20261120a';
+import { persist } from '../../data/data-adapter.js?v=20261120a';
+import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261120a';
+import { getAppState } from '../../core/base/state.js?v=20261120a';
+// 活动生命周期展示态单一源 = components/record/inspector.js（排除终态场景勿再用 isActivityEnded，
+//   见 constants.js 生命周期条与 list-filter.js::activityFacets 同源写法）。
+import { deriveActivityLifecycleStatus, activityLifecycleBadgeHtml } from '../record/inspector.js?v=20261120a';
 // A03：组织者判据与活动详情同源——工作组主源优先，项目角色行次之，`organizer` 仅兜底。
-import { mockDB } from '../../core/domain/domain.js?v=20261031a';
-import { confirmDanger } from '../ui/modal.js?v=20261031a';
-import { getPersonName } from '../../services/member/person.js?v=20261031a';
-import { badgeHtml } from '../ui/badges.js?v=20261031a';
-import { renderQueryView } from './query-view.js?v=20261031a';
+import { mockDB } from '../../core/domain/domain.js?v=20261120a';
+import { confirmDanger } from '../ui/modal.js?v=20261120a';
+import { getPersonName } from '../../services/member/person.js?v=20261120a';
+import { renderQueryView } from './query-view.js?v=20261120a';
 
 /**
  * 渲染活动进展分段（全部活动查询 + 材料出口 + 标记完成）。
@@ -32,15 +34,22 @@ export function renderActivityProgress(host, { activities = [], accent, onChange
   if (!host) return;
   const typeOptions = [...new Set(activities.map((a) => a.type).filter(Boolean))]
     .map((t) => ({ value: t, label: t }));
-  const queryData = activities.map((a) => ({ ...a, ended: String(isActivityEnded(a)) }));
+  // 生命周期展示态单一源（inspector）：执行完毕且产出齐备＝已执行，缺产出＝待归档；
+  //   范围段「已结束」= 这三种终态，不再用存储态谓词 isActivityEnded 另判一套。
+  const tasks = getAppState()?.tasks || [];
+  const ENDED_LIFECYCLES = ['executed', 'pending_archive', 'archived'];
+  const queryData = activities.map((a) => {
+    const lifecycle = deriveActivityLifecycleStatus(a, tasks);
+    return { ...a, lifecycle, ended: String(ENDED_LIFECYCLES.includes(lifecycle)) };
+  });
 
   host.innerHTML = `
-    <details class="card rounded-xl p-5" id="org-activity-progress-card">
+    <details class="card rounded-xl card-standard" id="org-activity-progress-card">
       <summary class="cursor-pointer select-none flex flex-wrap items-baseline gap-x-2">
         <span class="font-title-cn text-base font-semibold text-gray-800">活动进展</span>
         <span class="text-xs text-gray-500 tabular-nums">${activities.length} 项</span>
       </summary>
-      <p class="text-xs text-gray-500 mt-3 mb-3">按承办范围查看活动；归档仍在活动详情按材料 / 考勤闸门办理。</p>
+      <p class="text-body-sm text-gray-500 mt-3 mb-3">按承办范围查看活动；归档仍在活动详情按材料 / 考勤闸门办理。</p>
       <div id="org-activity-query"></div>
     </details>
   `;
@@ -63,7 +72,7 @@ export function renderActivityProgress(host, { activities = [], accent, onChange
     ],
     data: queryData,
     renderRow: (a) => {
-      const ended = isActivityEnded(a);
+      const ended = String(a.ended) === 'true';
       const scopeLabel = a.organizingScope === 'branch' ? '支部级' : `承办党小组：${a.hostGroup || '待补'}`;
       const recruitLabel = a.recruitmentScope === 'cross-group' ? ' · 跨组招募（组织委员协调）' : '';
       const workgroupId = a.workgroupId || `wg-activity-${a.id}`;
@@ -89,7 +98,7 @@ export function renderActivityProgress(host, { activities = [], accent, onChange
             <div class="text-xs text-gray-500 mt-1">${scopeLabel}${recruitLabel} · 组织者：${organizers.length ? organizers.map((id) => getPersonName(id)).join('、') : '待指定'} · 深度参与 ${deepCount} 人</div>
           </div>
           <div class="flex items-center gap-2">
-            ${ended ? badgeHtml('已结束', 'neutral') : badgeHtml('进行中', 'success')}
+            ${activityLifecycleBadgeHtml(a, tasks)}
             <a href="./activity-materials.html?id=${encodeURIComponent(a.id)}" class="text-xs text-accent" title="材料清单 → 上传/核对 → 提交归档">材料与归档</a>
             ${ended ? '' : `<button type="button" class="btn-accent-soft track-complete-btn text-xs px-3 py-1.5" data-act-id="${esc(a.id)}">标记完成</button>`}
           </div>

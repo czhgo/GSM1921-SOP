@@ -2,7 +2,7 @@
 title: "文件操作纪律"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-09-29
+last_updated: 2026-11-03
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/04_web_design/data/DATA_MODEL.md]
 ---
@@ -173,3 +173,11 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/04
 - **历史记录**（不可变）：执行日志中的路径引用按 D-233 保留，活跃文件必须零死引用
 
 **生效条件**：任何删除/移动文件的清理操作。验证标准：全仓空目录扫描 `NO EMPTY DIRS` + 污染残留复查 + `git` 未追踪残留仅剩运行时产物。
+
+---
+
+## 附：系统现行口径承接（2026-11-03）
+
+> 来源：`.ctx/ACTIVE_RULINGS.md` 分类承接；每条末尾 `（D-xxx）` 是决议指针，正文以本文件为准。
+
+- **JS 渲染的链接 / 资源路径一律 `./`、不得 `../`**；裸文件名按 `<base>` 解析后必须真实存在。（D-610/D-646/D-656）

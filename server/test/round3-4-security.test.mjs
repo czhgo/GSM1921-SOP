@@ -9,6 +9,7 @@
 // 自包含：createApp(:memory:) + seedDatabase；HTTP 直连（无浏览器）。
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { gzipSync } from 'node:zlib';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 import { actorBranchId } from '../routes/resources/branch-scope.js';
@@ -268,3 +269,27 @@ test('F1 非支委层 attendances / inspections / todos 按本人或职责投影
   const orgInsp = await (await fetch(`${base}/api/v1/inspections`, { headers: headers(orgToken) })).json();
   assert.ok(orgInsp.some((row) => row.id === 'insp-9'), '支委层保留考察全量');
 });
+
+// ── G. 快照解压上限（B-552-4）────────────────────────────────────────
+test('G1 快照 gzip 解压后超 20MB ⇒ 413；正常 gzip 体不受影响', async () => {
+  const { token } = await login('2300010001');
+  const small = gzipSync(Buffer.from('{}', 'utf8'));
+  const okRes = await fetch(`${base}/api/v1/snapshot`, {
+    method: 'POST',
+    headers: { ...headers(token), 'Content-Encoding': 'gzip' },
+    body: small,
+  });
+  assert.equal(okRes.status, 204, `正常 gzip 空快照应 204（实测 ${okRes.status}）`);
+
+  // 压缩体很小（≈21KB），解压后 21MB ⇒ 触发解压上限而不是 express.raw 的请求体上限（24mb）
+  const bomb = gzipSync(Buffer.alloc(21 * 1024 * 1024, 'a'));
+  assert.ok(bomb.length < 24 * 1024 * 1024, '前置：压缩体须小于请求体上限，才测得到解压上限');
+  const res = await fetch(`${base}/api/v1/snapshot`, {
+    method: 'POST',
+    headers: { ...headers(token), 'Content-Encoding': 'gzip' },
+    body: bomb,
+  });
+  assert.equal(res.status, 413, `解压后超限应 413（实测 ${res.status}）`);
+  assert.match(String((await res.json()).error || ''), /20MB|上限/, '413 响应须带 error 说明');
+});
+

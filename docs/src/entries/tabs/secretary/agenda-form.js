@@ -6,11 +6,24 @@
 // 2026-09-21 批次 127（`SOP-B-33` 取乙档）：本文件**再加一处纯函数** `buildAgendaCandidates`——
 // 「拟上会」清单的归集单一源（写议程时从这一张清单勾）；IO 仍由各处 UI 自己做（见下方该段注释）。
 
-import { generateId } from '../../../core/base/id.js?v=20261031a';
+import { generateId } from '../../../core/base/id.js?v=20261120a';
 // 事项领域单一源（services/governance/issues.js 末尾的 ISSUE_DOMAINS；四类逐字照母本
 // 《常见工作场景快速指南》「意见建议类型」表）——本模块只取「标签 / 建议归口」两个纯函数，
 // 不读 IssueStore（IO 由调用方做）。
-import { ISSUE_DOMAINS, issueDomainLabel, issueDomainSuggest } from '../../../services/governance/issues.js?v=20261031a';
+import { ISSUE_DOMAINS, issueDomainLabel, issueDomainSuggest } from '../../../services/governance/issues.js?v=20261120a';
+// 来源分类单一源（2026-11-10 批次 540 波次 2）：类型 / 议程文案 / 去重键 / 应到范围 / 引用字段
+// 一律由 core/domain/agenda-classify.js 判定；本文件只做「各来源 IO 产物 → 池项」的归集与展示文案。
+// ⚠ 服务端 `GET /api/v1/committee/agenda-candidates` import 同一份分类函数 ⇒ 两端逐项一致。
+import {
+  classifyAgendaItem,
+  isAgendaDraftDocCandidate,
+  isInstitutionDoc,
+  isPartyMeetingPendingDoc,
+  isCommitteeIssue,
+  isBrandProposalCandidate,
+  isActivityApprovalCandidate,
+  isAssignmentAdjustCandidate,
+} from '../../../core/domain/agenda-classify.js?v=20261120a';
 
 /**
  * 将创建/编辑表单的议程行收集为规范化议程数组。
@@ -101,7 +114,10 @@ export function collectAgendaRows(rows = []) {
 //     本条与 `D-411` 取证第 5 条第 ② 款「上报事项……与支委会议程无关」一致。
 // ════════════════════════════════════════════════════════════════
 
-/** 归口含「支委会」的事项领域值集（**由 `ISSUE_DOMAINS` 派生**，勿另写四类名单） */
+/** 归口含「支委会」的事项领域值集（**由 `ISSUE_DOMAINS` 派生**，勿另写四类名单）
+ *  2026-11-10 批次 540 波次 2：判据的**运行期落点**移到 `core/domain/agenda-classify.js::isCommitteeIssue`
+ *  （服务端要复用同一判据，而本服务模块 import 不了）；本导出保留给既有调用方，
+ *  两侧取值逐字相等由 `server/test/agenda-classify.test.mjs` 断言。 */
 export const COMMITTEE_ISSUE_DOMAINS = ISSUE_DOMAINS
   .filter((d) => String(d.suggest || '').includes('支委会'))
   .map((d) => d.value);
@@ -117,122 +133,150 @@ export const AGENDA_CANDIDATE_GROUPS = [
 ];
 
 /**
- * 归集成一张「拟上会」清单（**纯函数**：只做归类与文案，不读任何 store）。
+ * 归集「待议池」池项（**纯函数**：只做归类与展示文案，不读任何 store）。
+ *
+ * 类型 / 议程文案 / 去重键 / 应到范围 / 议程引用字段一律由
+ * `core/domain/agenda-classify.js::classifyAgendaItem` 判定（服务端同一函数）；
+ * 本函数只负责「各来源 IO 产物 → 池项」的收集与展示说明（`meta`）。
  *
  * @param {Object} input
  * @param {Array} [input.taskforceProposals] 专班报送（`TaskForceRecordStore.listCommitteeRequests()` 产物）
  * @param {Array} [input.issues] 意见反馈（调用方先 `IssueStore.loadAll()`，再取**未办结 / 未隐藏 / 未合并**）
- * @param {Array} [input.draftDocs] 支部文件（调用方按 `services/branch/branch-doc.js::isAgendaDraftDoc` 取：普通文件草案 ＋ 制度链上尚未成为现行版的两种态）
+ * @param {Array} [input.draftDocs] 支部文件（`services/branch/branch-doc.js::isAgendaDraftDoc` 同一判据：普通文件草案 ＋ 制度链上尚未成为现行版的两种态）
  * @param {Array} [input.members] 成员档案（`PersonStore.getMembers()`；本函数只取「积极分子」作推荐候选）
- * @param {Object} [input.stageEntries] 发展推进派生态（`loadStageEntryDates()` 产物：{ personId: { stage, entryDate } }；单一源＝成员档案字段 `developStageSince`）
+ * @param {Object} [input.stageEntries] 发展推进派生态（`loadStageEntryDates()` 产物：{ personId: { stage, entryDate } }）
  * @param {Array} [input.brandProposals] 品牌认定提案（`services/activity/activity.js::listBrandProposals()` 产物：
- *   `{ id, title, proposal }`；调用方可自行补齐 `proposedByName` 供展示）
- * @returns {Array<{group:string, refId:string, text:string, meta:string, item:string, host:string,
- *   kinds:string[], branchDocId?:string, brandActivityId?:string, personIds?:string[], toStage?:string}>}
- *   `item` / `host` / `kinds` / … 即议程行入参（可直接喂 `_addAgendaRow` / `collectAgendaRows`）。
+ *   `{ id, title, proposal }`；调用方可自行补齐 `proposedByName` 供展示）。不给则从 `activities` 现算同一判据。
+ * @param {Array} [input.activities] 活动主源（用于「活动批准 / 分工调整」两类，以及品牌提案的回退判定）
+ * @param {number} [input.now] 算「待议天数」的基准时刻（默认当下；两端同函数便于对账）
+ * @returns {Array<Object>} 池项＝`classifyAgendaItem` 全字段 ＋ `text`（＝`item`）/`host`/`meta`
  */
-export function buildAgendaCandidates({
+export function buildAgendaPool({
   taskforceProposals = [],
   issues = [],
   draftDocs = [],
   members = [],
   stageEntries = {},
   brandProposals = [],
+  activities = [],
+  now = Date.now(),
 } = {}) {
-  const rows = [];
+  const pool = [];
+  const seen = new Set();
+  /** 同一来源同一记录只出现一次（去重键与服务端同源） */
+  const push = (source, ref, meta) => {
+    const item = classifyAgendaItem({ source, ref }, { now });
+    if (!item.refId || seen.has(item.dedupeKey)) return;
+    seen.add(item.dedupeKey);
+    pool.push({ ...item, text: item.item, host: '支书', meta });
+  };
 
   // ① 专班报送（既有范式：报送 → 归集为「待议」→ 排入 → 自动建议程项）
   for (const p of Array.isArray(taskforceProposals) ? taskforceProposals : []) {
     if (!p || !p.id) continue;
-    const kindLabel = p.kind === 'dissolve' ? '解散' : '发起';
-    const name = p.name || '未命名专班';
-    rows.push({
-      group: 'taskforce',
-      refId: p.id,
-      text: `审议专班「${name}」（${kindLabel}）`,
-      meta: `专班报送${p.by ? ` · 报送人 ${p.by}` : ''}${p.note ? ` · ${p.note}` : ''}`,
-      item: `审议专班「${name}」（${kindLabel}）`,
-      host: '支书',
-      kinds: [],
-    });
+    push('taskforce-pending', p, `专班报送${p.by ? ` · 报送人 ${p.by}` : ''}${p.note ? ` · ${p.note}` : ''}`);
   }
 
   // ② 意见反馈（只取**归口含支委会**的两类；领域标签与建议归口全照母本表）
   for (const it of Array.isArray(issues) ? issues : []) {
-    if (!it || !it.id) continue;
-    if (!COMMITTEE_ISSUE_DOMAINS.includes(it.domain)) continue;
-    const title = it.title || '未命名';
-    rows.push({
-      group: 'issue',
-      refId: it.id,
-      text: `审议反馈「${title}」`,
-      meta: `意见反馈 #${it.number || '—'} · ${issueDomainLabel(it.domain)} · 建议归口：${issueDomainSuggest(it.domain)}`,
-      item: `审议反馈「${title}」`,
-      host: '支书',
-      kinds: [],
-    });
+    if (!it || !it.id || !isCommitteeIssue(it)) continue;
+    push('issue-committee', it,
+      `意见反馈 #${it.number || '—'} · ${issueDomainLabel(it.domain)} · 建议归口：${issueDomainSuggest(it.domain)}`);
   }
 
-  // ③ 制度草案（会前草案下拉的同一判据与同一引用字段 branchDocId）
-  //    2026-09-21 批次 129（制度链）：制度在「支委会已审议通过、决定报送党员大会」态时**另立一类**
-  //    （`partyVote`）——那是给**支部党员大会**表决用的那一条腿（母本 `常见工作场景快速指南.md:310`
-  //    「…/ 全体党员（报送后）」），与「待支委会审议」的制度草案分开列，免得支书把两类混着上会。
+  // ③ 制度草案 / 待报送党员大会（同一份记录按所处环节分流；判据与文案在分类单一源）
+  //    2026-09-21 批次 129（制度链）：待报送态给的是**支部党员大会**那一条腿
+  //    （母本 `常见工作场景快速指南.md:310`「…/ 全体党员（报送后）」），与「待支委会审议」分开列。
   for (const d of Array.isArray(draftDocs) ? draftDocs : []) {
-    if (!d || !d.id) continue;
-    const title = d.title || d.fileName || '未命名草案';
-    const isInstitution = d.purpose === 'institution';
-    const pendingPartyVote = isInstitution && d.status === 'pending-party-meeting';
-    rows.push({
-      group: pendingPartyVote ? 'partyVote' : 'draftDoc',
-      refId: d.id,
-      text: `讨论文件「${title}」`,
-      meta: pendingPartyVote
-        ? '制度（支委会已审议通过，待党员大会表决）'
-        : (isInstitution ? '制度草案（待支委会审议）' : '制度草案（草案态支部文件）'),
-      item: `讨论文件「${title}」`,
-      host: '支书',
-      kinds: ['discussion-file'],
-      branchDocId: d.id,
-    });
+    if (!d || !d.id || !isAgendaDraftDocCandidate(d)) continue;
+    const meta = isPartyMeetingPendingDoc(d)
+      ? '制度（支委会已审议通过，待党员大会表决）'
+      : (isInstitutionDoc(d) ? '制度草案（待支委会审议）' : '制度草案（草案态支部文件）');
+    push('institution-draft', d, meta);
   }
 
-  // ④ 发展对象推荐（候选＝现为「积极分子」的成员；讨论挂进既有支委会会议：
-  //    议程行＝待讨论名单 + 目标阶段「发展对象」，记录通过即生成该人的成员变更申请＝门的留痕）
+  // ④ 发展对象推荐（候选＝现为「积极分子」的成员；议程行＝待讨论名单 + 目标阶段「发展对象」，
+  //    记录通过即生成该人的成员变更申请＝那道门的留痕）
   for (const m of Array.isArray(members) ? members : []) {
     if (!m || !m.id || m.developStage !== '积极分子') continue;
-    const name = m.name || m.id;
     const entryDate = stageEntries && stageEntries[m.id] ? (stageEntries[m.id].entryDate || '') : '';
-    rows.push({
-      group: 'recommend',
-      refId: m.id,
-      text: `推荐「${name}」为发展对象`,
-      meta: `现为积极分子${entryDate ? ` · 进入阶段日期 ${entryDate}` : ' · 进入阶段日期未记载'}`,
-      item: `讨论推荐「${name}」为发展对象`,
-      host: '支书',
-      kinds: ['attendee-list'],
-      personIds: [m.id],
-      toStage: '发展对象',
-    });
+    push('activist-recommend', m,
+      `现为积极分子${entryDate ? ` · 进入阶段日期 ${entryDate}` : ' · 进入阶段日期未记载'}`);
   }
 
-  // ⑤ 品牌认定提案（2026-09-21 批次 132 · 支书口径二）：候选＝已提案、尚未认定的活动；
-  //    议程行带 `brandActivityId`（回指被提案的那场活动）——**记录「通过」才置 `isBrand`**
-  //    （判据与状态迁移单一源 `services/activity/activity.js::applyBrandDesignationResult`）。
-  for (const bp of Array.isArray(brandProposals) ? brandProposals : []) {
+  // ⑤ 品牌认定提案（2026-09-21 批次 132 · 支书口径二）：已提案、尚未认定的活动；
+  //    记录「通过」才置 `isBrand`（判据与状态迁移单一源 `services/activity/activity.js::applyBrandDesignationResult`）
+  const brands = (Array.isArray(brandProposals) && brandProposals.length)
+    ? brandProposals
+    : (Array.isArray(activities) ? activities : []).filter(isBrandProposalCandidate);
+  for (const bp of brands) {
     if (!bp || !bp.id) continue;
-    const title = bp.title || bp.id;
     const proposer = (bp.proposal && bp.proposal.proposedByName) || bp.proposedByName || '';
-    rows.push({
-      group: 'brand',
-      refId: bp.id,
-      text: `审议品牌认定「${title}」`,
-      meta: `品牌认定提案${proposer ? ` · 提案人 ${proposer}` : ''}${bp.proposal && bp.proposal.note ? ` · ${bp.proposal.note}` : ''}`,
-      item: `审议品牌认定「${title}」`,
-      host: '支书',
-      kinds: ['brand-designation'],
-      brandActivityId: bp.id,
-    });
+    push('brand-proposal', bp,
+      `品牌认定提案${proposer ? ` · 提案人 ${proposer}` : ''}${bp.proposal && bp.proposal.note ? ` · ${bp.proposal.note}` : ''}`);
   }
 
+  // ⑥ 活动批准 / 分工调整（活动实体自带的议题；只进「待议池」，不进「拟上会」六类清单）
+  for (const a of Array.isArray(activities) ? activities : []) {
+    if (!a || !a.id) continue;
+    if (isActivityApprovalCandidate(a)) {
+      const at = a.approval && a.approval.at ? String(a.approval.at).slice(0, 10) : '';
+      push('activity-approval', a, `待批活动${at ? ` · 提请于 ${at}` : ''}`);
+    }
+    if (isAssignmentAdjustCandidate(a)) {
+      const n = Array.isArray(a.extras && a.extras.proposal) ? a.extras.proposal.length : 0;
+      push('assignment-adjust', a, `分工调整议题${n ? ` · 改派 ${n} 项` : ''}`);
+    }
+  }
+
+  return pool;
+}
+
+/**
+ * 归集成一张「拟上会」六类清单（**纯函数**：只做归类与文案，不读任何 store）。
+ * 池项来自 `buildAgendaPool`（含另纳入的两类）；本函数只挑出清单的六类并按显示分组排列。
+ *
+ * @param {Object} input 同 `buildAgendaPool`
+ * @returns {Array<{group:string, refId:string, text:string, meta:string, item:string, host:string,
+ *   kinds:string[], branchDocId?:string, brandActivityId?:string, personIds?:string[], toStage?:string}>}
+ *   `item` / `host` / `kinds` / … 即议程行入参（可直接喂 `_addAgendaRow` / `collectAgendaRows`）。
+ */
+export function buildAgendaCandidates(input = {}) {
+  // 六类显示分组（顺序＝呈现顺序）；分组名只决定「清单里这一类叫什么」，
+  // 类型 / 文案 / 引用字段一律来自 core/domain/agenda-classify.js，不得在此重写。
+  const GROUPS = {
+    taskforce: { group: 'taskforce', source: 'taskforce-pending' },
+    issue: { group: 'issue', source: 'issue-committee' },
+    draftDoc: { group: 'draftDoc', source: 'institution-draft' },
+    partyVote: { group: 'partyVote', source: 'party-meeting-pending' },
+    recommend: { group: 'recommend', source: 'activist-recommend' },
+    brand: { group: 'brand', source: 'brand-proposal' },
+  };
+  const pool = buildAgendaPool(input);
+  const rows = [];
+  for (const spec of Object.values(GROUPS)) {
+    for (const c of pool) {
+      if (c.source !== spec.source) continue;
+      const row = {
+        group: spec.group,
+        refId: c.refId,
+        text: c.item,
+        meta: c.meta,
+        item: c.item,
+        host: c.host,
+        kinds: c.kinds,
+        // 类型随行下发（2026-11-10 批次 540 波次 2）：清单与议程摘要直接显示「决策 / 讨论 / 同步」，
+        // 不得由页面按来源另判一份。
+        type: c.type,
+        typeLabel: c.typeLabel,
+        expected: c.expected,
+      };
+      if (c.branchDocId) row.branchDocId = c.branchDocId;
+      if (c.brandActivityId) row.brandActivityId = c.brandActivityId;
+      if (Array.isArray(c.personIds) && c.personIds.length) row.personIds = c.personIds;
+      if (c.toStage) row.toStage = c.toStage;
+      rows.push(row);
+    }
+  }
   return rows;
 }

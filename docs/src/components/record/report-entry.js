@@ -19,15 +19,15 @@
 //    **不落 hex**。
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261031a';
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { showToast, getBasePath } from '../../core/base/utils.js?v=20261031a';
-import { getPersonName } from '../../services/member/person.js?v=20261031a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261031a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261031a';
-import { SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261031a';
-import { isTaskforceTerminalStatus } from '../../core/domain/domain.js?v=20261031a';
-import { openModal, closeModal } from '../ui/modal.js?v=20261031a';
+import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261120a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { showToast, getBasePath, escHtml } from '../../core/base/utils.js?v=20261120a';
+import { getPersonName } from '../../services/member/person.js?v=20261120a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261120a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261120a';
+import { SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261120a';
+import { isTaskforceTerminalStatus } from '../../core/domain/domain.js?v=20261120a';
+import { openModal, closeModal } from '../ui/modal.js?v=20261120a';
 
 /** 当前用户未读汇报数（「支书请我汇报」＋「支书答复发回」） */
 function _unreadCount() {
@@ -41,7 +41,7 @@ function _unreadCount() {
 /** 角标 HTML（**深红底 ⇒ 党徽金底 ＋ 深字**，与顶栏铃铛角标同一口径；`≥10` 收敛 `9+`） */
 function _badgeHtml(unread) {
   if (!(unread > 0)) return '';
-  return `<span class="report-entry-badge text-amber-800" aria-label="待处理汇报 ${unread} 条">${unread > 9 ? '9+' : unread}</span>`;
+  return `<span class="report-entry-badge text-[var(--status-warning-text)]" aria-label="待处理汇报 ${unread} 条">${unread > 9 ? '9+' : unread}</span>`;
 }
 
 /**
@@ -104,7 +104,14 @@ function _contextReportTarget() {
 
 /** 打开汇报弹窗（预加载 issues 权威源，避免覆盖本地缓存） */
 async function openReportModal() {
-  await IssueStore.loadAll();
+  try {
+    await IssueStore.loadAll();
+  } catch (e) {
+    // 权威源加载失败不得静默开窗（那会把「加载失败」显示成「无可关联事项」）
+    console.warn('[report-entry] 汇报数据加载失败：', e);
+    showToast('error', '加载失败，请重试');
+    return;
+  }
   const MODAL_ID = 'report-entry';
   const me = AuthStore.getCurrentUser();
   const targets = _reportTargets();
@@ -113,21 +120,22 @@ async function openReportModal() {
     ? targets.find(t => t.sourceType === ctx.sourceType && t.sourceId === ctx.sourceId)
     : null;
   const canReportUp = !!me && SECRETARY_AND_DEPUTY_ROLES.includes(me.role);
+  // 活动 / 专班标题是用户可控文本：进 <option> 必须转义（否则标题里的 `</option><img onerror=…>` 会被解析）。
   const optionsHtml = [
     '<option value="">（不关联，个人汇报）</option>',
     targets.some(t => t.sourceType === 'activity')
       ? `<optgroup label="活动">${targets.filter(t => t.sourceType === 'activity')
-          .map(t => `<option value="${t.workgroupId}"${preselected && preselected.workgroupId === t.workgroupId ? ' selected' : ''}>${t.label}</option>`).join('')}</optgroup>`
+          .map(t => `<option value="${escHtml(t.workgroupId)}"${preselected && preselected.workgroupId === t.workgroupId ? ' selected' : ''}>${escHtml(t.label)}</option>`).join('')}</optgroup>`
       : '',
     targets.some(t => t.sourceType === 'taskforce')
       ? `<optgroup label="专班">${targets.filter(t => t.sourceType === 'taskforce')
-          .map(t => `<option value="${t.workgroupId}"${preselected && preselected.workgroupId === t.workgroupId ? ' selected' : ''}>${t.label}</option>`).join('')}</optgroup>`
+          .map(t => `<option value="${escHtml(t.workgroupId)}"${preselected && preselected.workgroupId === t.workgroupId ? ' selected' : ''}>${escHtml(t.label)}</option>`).join('')}</optgroup>`
       : '',
   ].join('');
 
   // 浮层统一体例（DESIGN_SYSTEM §4.27）：header 纯文本标题 / 动作固定在 footer / 取消走 onCancel
   const bodyHtml = `
-    <p class="text-xs text-gray-500 mb-3">汇报将发往支书，答复后发回给你。请选择分类并填写内容。</p>
+    <p class="text-body-sm text-gray-500 mb-3">汇报将发往支书，答复后发回给你。请选择分类并填写内容。</p>
     <div class="mb-3">
       <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="report-modal-target">关联事项（可选）</label>
       <select id="report-modal-target" class="input-flat w-full">${optionsHtml}</select>
@@ -139,7 +147,7 @@ async function openReportModal() {
       `).join('')}
     </div>
     <textarea id="report-modal-body" class="input-flat w-full h-24 resize-none" placeholder="填写汇报内容（进度 / 难点卡点 / 请示事项）…"></textarea>
-    ${canReportUp ? `<p class="text-xs text-gray-500 mt-3">需向党委上报（发展节点 / 活动报备）？<a style="color:var(--app-accent-soft-text);font-weight:600;" href="${getBasePath()}workspace/secretary.html?tab=report-up">去上报党委</a></p>` : ''}
+    ${canReportUp ? `<p class="text-body-sm text-gray-500 mt-3">需向党委上报（发展节点 / 活动报备）？<a style="color:var(--app-accent-soft-text);font-weight:600;" href="${getBasePath()}workspace/secretary.html?tab=report-up">去上报党委</a></p>` : ''}
   `;
 
   openModal({

@@ -6,8 +6,8 @@ export function renderContent() {
   if (!el) return;
   el.dataset.currentTab = 'issue-review';
   el.innerHTML = `
-    <section class="rounded-lg border border-gray-200 bg-white p-6 text-center">
-      <h2 class="font-title-cn text-base font-bold text-gray-800">此事项在支部内处理</h2>
+    <section class="rounded-lg border border-gray-200 bg-white p-4 text-center" aria-labelledby="issue-review-title">
+      <h2 id="issue-review-title" class="font-title-cn text-base font-semibold text-gray-800">此事项在支部内处理</h2>
       <p class="mt-2 text-sm text-gray-600">匿名反馈不是向党委上报的入口。党委工作台不读取反馈内容或提交人身份。</p>
     </section>`;
 }

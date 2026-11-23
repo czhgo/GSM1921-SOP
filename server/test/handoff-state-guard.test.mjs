@@ -12,30 +12,30 @@ import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261031a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261120a';
 import {
   INSPECTION_WRITE_ROLES,
   INSPECTION_CONFIRM_ROLES,
-} from '../../docs/src/core/domain/constants.js?v=20261031a';
+} from '../../docs/src/core/domain/constants.js?v=20261120a';
 import {
   INSPECTION_ROLE_WRITE,
   INSPECTION_ROLE_CONFIRM,
   canUploadInspection,
   confirmInspectionRecord,
   returnInspectionRecord,
-} from '../../docs/src/services/activity/inspection.js?v=20261031a';
+} from '../../docs/src/services/activity/inspection.js?v=20261120a';
 import {
   INSPECTION_WRITE_ROLE_SET,
   INSPECTION_CONFIRM_ROLE_SET,
 } from '../routes/resources/gates.js';
-import { HandoffStore } from '../../docs/src/services/governance/handoff.js?v=20261031a';
-import { TodoStore } from '../../docs/src/services/governance/todo.js?v=20261031a';
+import { HandoffStore } from '../../docs/src/services/governance/handoff.js?v=20261120a';
+import { TodoStore } from '../../docs/src/services/governance/todo.js?v=20261120a';
 import {
   upsertMeetingAttendance,
   appendAttendanceRecords,
   isAttendancePendingConfirm,
   listPendingAttendanceConfirm,
-} from '../../docs/src/services/activity/attendance.js?v=20261031a';
+} from '../../docs/src/services/activity/attendance.js?v=20261120a';
 
 let server, base;
 
@@ -59,7 +59,8 @@ async function login(personId) {
   assert.equal(res.status, 200, `登录失败 ${personId}`);
   return res.json();
 }
-const headers = (token) => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token}` });
+// 批次 564：整行写口要求 If-Match；本文件只验确认/打回状态机，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+const headers = (token) => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'If-Match': '*' });
 
 // ── D01 服务层：确认/打回白名单 + 自确认禁令 ─────────────────────────────
 function freshInspection(recordedBy = '2400012354', id = 'insp-d01') {

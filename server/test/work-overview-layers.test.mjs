@@ -61,7 +61,12 @@ test('W4 六个角色键与四数齐备（四数同为数字卡）', () => {
   for (const label of ['在办', '逾期', '待我处理', '待答复']) {
     assert.ok(OVERVIEW.includes(`'${label}'`), `四数缺「${label}」`);
   }
-  assert.match(OVERVIEW, /const _MAX_INLINE = 3/, '待我处理上限须为 3 且只有一份');
+  // 2026-11-03 批次 530（B-520-3）：上限数字收口到 constants.js::DASHBOARD_LIMITS，
+  //   本件只允许引用常量（判据仍是「上限为 3 且只有一份」）。
+  assert.match(OVERVIEW, /const _MAX_INLINE = DASHBOARD_LIMITS\.overviewInlineActions/,
+    '待我处理上限须引用 DASHBOARD_LIMITS.overviewInlineActions（不得回写字面量）');
+  assert.match(read('docs/src/core/domain/constants.js'), /overviewInlineActions:\s*3\b/,
+    'DASHBOARD_LIMITS.overviewInlineActions 须为 3（上限单一源）');
   assert.match(OVERVIEW, /lineOf\(item\)/, '每台配置须声明 lineOf(...)');
   // 2026-10-28「四个数统一为卡片数字」：原「在办 = 存量指标，降为 muted 脚注级（muted: true / 16px /
   //   neutral-500）」的判据随实现改到卡面结构——四数同级、同为数字卡。原三条 muted 断言按下列映射保留：
@@ -73,7 +78,7 @@ test('W4 六个角色键与四数齐备（四数同为数字卡）', () => {
   assert.doesNotMatch(OVERVIEW, /metric-band__value--muted/, '四数同级数字卡：不得回潮 muted 数值档');
   assert.doesNotMatch(STYLES, /\.metric-band__value--muted\s*\{/, 'styles.css 不得保留 muted 数值档（四数同级）');
   // 四数落点＝卡网格：父级 .metric-band--cards，两条渲染分支（筛选 / 滚动）都取同一套卡面类。
-  assert.match(OVERVIEW, /<section class="metric-band metric-band--interactive metric-band--cards"/,
+  assert.match(OVERVIEW, /<section class="metric-band metric-band--interactive metric-band--cards(?: metric-band--cards--content)?"/,
     '结论带须为四列卡网格 .metric-band--cards');
   assert.match(OVERVIEW, /<button type="button" class="card card--interactive stat-card metric-band__item metric-band__item--filter/,
     '筛选类指标须渲染为数字卡（.card + .stat-card + .metric-band__item）');
@@ -117,7 +122,10 @@ test('W6 复用模块与既有下钻仍在', () => {
   assert.match(OVERVIEW, /emptyStateHtml/, '空态须用 empty-state');
   assert.match(OVERVIEW, /confirmExternalDispatch/, '文件外发确认须保留');
   assert.match(OVERVIEW, /data-wo-go-dispatch/, '汇报动作须保留「去待办处理」');
-  assert.match(OVERVIEW, /data-\$\{prefix\}-tab="todo"/, '「去待办处理」须切本台待办（2026-10-25：我的处置已并入待办）');
+  // 2026-11-10 批次 540 波次 5：切页签改走统一导航（`goToWorkspaceTab`），不再按 prefix 点按钮；
+  //   本断言只改期望机制，「汇报动作须切本台待办」这一覆盖面不变。
+  assert.match(OVERVIEW, /goToWorkspaceTab/, '切页签须经统一导航 goToWorkspaceTab');
+  assert.doesNotMatch(OVERVIEW, /data-\$\{prefix\}-tab=/, '不得再按 prefix 手写页签选择器（改走 data-ws-tab-btn）');
   assert.match(OVERVIEW, /_woDetail = \{ kind: 'activity'/, '活动只读详情下钻须保留');
   assert.match(OVERVIEW, /_woDetail = \{ kind: 'taskforce'/, '专班只读详情下钻须保留');
   assert.match(OVERVIEW, /data-wo-jump="todo"/, '待办组定位须保留');
@@ -170,4 +178,49 @@ test('W8 结论带两种控件（数字卡形态）：筛选卡（aria-pressed�
   for (const label of ['工作分工', '负责人', '在办', '逾期', '待处理']) {
     assert.ok(OVERVIEW.includes(`data-label="${label}"`), `工作分工表 td 缺 data-label="${label}"`);
   }
+});
+
+// ── 2026-11-10 批次 540 波次 5：跳转落点与功能色 ────────────────────────────
+// 病灶：条线动作各按 `data-<prefix>-tab` 点按钮，改页签名即静默失效；「去活动管理 / 去待办」只落页顶；
+//   缺口按钮与行内动作都取主题色，5 行条线表里出现 3 处以上主题色文字，注意力被摊平。
+test('W9 跳转统一：动作只经 goToWorkspaceTab，条线声明目标项，缺 id 在源页提示未定位', () => {
+  assert.match(OVERVIEW, /import \{ goToWorkspaceTab, showMissingItemNotice \}/,
+    '须从 workspace-nav 引入统一导航与缺项提示');
+  assert.match(OVERVIEW, /function _switchTo\(role, tab, target\)/, '须有统一出口 _switchTo');
+  assert.match(OVERVIEW, /if \(target && target\.kind && !target\.id\) \{\s*\n\s*showMissingItemNotice\(\);/,
+    '项级动作缺 id 须在本页提示「未定位到具体条目」，不得静默跳页顶');
+  assert.match(OVERVIEW, /target: typeof line\.targetOf === 'function' \? line\.targetOf\(ctx\) : null/,
+    '条线须声明 targetOf，把「去活动管理 / 去待办」落到具体行 / 组');
+  // 去活动管理（组织条线）与去待办（宣传 / 纪检条线）都必须带目标项
+  assert.match(OVERVIEW, /key: 'org'[\s\S]{0,1200}targetOf/, '组织条线（去活动管理）缺目标项');
+  assert.match(OVERVIEW, /key: 'prop'[\s\S]{0,600}targetOf/, '宣传条线（去待办）缺目标项');
+  // 待赋权：direct 直达活动详情（赋权位在详情页），走对象详情路由单一源
+  assert.match(OVERVIEW, /gapAction: 'auth'/, '待赋权缺口须标记 gapAction=auth');
+  assert.match(OVERVIEW, /function _openActivityDetailForAuth\(target\)/, '须有「待赋权直达活动详情」出口');
+  assert.match(OVERVIEW, /objectDetailHref\('activity', id, \{ entry: 'workspace-aggregate' \}\)/,
+    '活动详情 href 须经 objectDetailHref（不得手拼 activity.html?id=）');
+  assert.doesNotMatch(OVERVIEW, /activity\.html\?id=/, '不得手拼活动详情 URL');
+  // 待我处理：待办组带 group 目标、汇报带 report 目标（落在具体行）
+  assert.match(OVERVIEW, /target: \{ kind: 'group', id: group\.groupKey \|\| '' \}/, '待办行须带聚合组目标');
+  assert.match(OVERVIEW, /target: \{ kind: 'report', id: report\.id \|\| '' \}/, '汇报行须带汇报目标');
+});
+
+test('W10 功能色：缺口 / 超期 / 缺勤取 status 文字档，纯计数 neutral-600，条线表无主题色文字', () => {
+  // 纯计数：METRIC_TONE.normal 取 --neutral-600（不是状态色）
+  assert.match(OVERVIEW, /normal: 'var\(--neutral-600\)'/, '纯计数须取 --neutral-600');
+  assert.match(OVERVIEW, /key: 'active', label: '在办'[^\n]*color: METRIC_TONE\.normal/, '在办指标须取纯计数色');
+  // 缺口文字：超期 / 逾期 / 缺勤 / 滞留取 warning，其余取 info，且只取 -text 档
+  assert.match(OVERVIEW, /function _gapTextHtml\(gap\)/, '缺口文字须有统一取色函数');
+  assert.match(OVERVIEW, /\/超期\|逾期\|缺勤\|滞留\//, '超期 / 逾期 / 缺勤 / 滞留须单列 warning 档');
+  assert.match(OVERVIEW, /color:var\(--status-\$\{tone\}-text\)/, '缺口文字只取 --status-*-text（填充档不承担文字）');
+  // 条线表：在办计数 neutral-600；表格里不再有 text-accent 文字（主题色只留给「待我处理」主行动）
+  assert.match(OVERVIEW, /data-label="在办"><span style="color:var\(--neutral-600\)">/, '在办计数须取 --neutral-600');
+  const lineBlock = /const tableRows = lineRows\.map\(\(row\) => \{[\s\S]*?\}\)\.join\(''\);/.exec(OVERVIEW);
+  assert.ok(lineBlock, '未找到条线表渲染块');
+  assert.doesNotMatch(lineBlock[0], /text-accent/, '条线表行内不得再用主题色文字（5 行内 ≥3 处即判红）');
+  const cellBlock = /function _gapCellHtml\(row\) \{[\s\S]*?\n\}/.exec(OVERVIEW);
+  assert.ok(cellBlock, '未找到待处理格渲染函数');
+  assert.doesNotMatch(cellBlock[0], /text-accent/, '缺口入口不得再用主题色文字');
+  // 「待我处理」主行动仍保留主题色（动作 / 导航 / 选中态用主题色）
+  assert.match(OVERVIEW, /class="btn-outline btn-sm text-accent flex-shrink-0"/, '待我处理主行动须保留主题色');
 });

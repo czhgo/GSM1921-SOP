@@ -15,18 +15,18 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261031a';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261031a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261120a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261120a';
 import {
   PersonStore, getBaseMemberRecords,
-} from '../../docs/src/services/member/person.js?v=20261031a';
-import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261031a';
+} from '../../docs/src/services/member/person.js?v=20261120a';
+import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261120a';
 import {
   BRANCH_ROSTER_KIND, BRANCH_ROSTER_VERSION,
   buildBranchRosterTemplate, sanitizeBranchRoster,
-} from '../../docs/src/services/member/branch-roster-import.js?v=20261031a';
-import { buildPreviewTemplate } from '../../docs/src/services/branch/org-base-data-preview.js?v=20261031a';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261031a';
+} from '../../docs/src/services/member/branch-roster-import.js?v=20261120a';
+import { buildPreviewTemplate } from '../../docs/src/services/branch/org-base-data-preview.js?v=20261120a';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261120a';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -351,6 +351,16 @@ test('api ⑦：PUT /branches/:id/roster 单事务替换；失败回滚旧名册
   const afterFail = await getUsers(staffToken, branch.id);
   assert.deepEqual(afterFail.map((u) => u.id).sort(), ['r-import-1', 'r-import-2'], '失败后旧名册不变（整体回滚）');
   assert.equal((await getUsers(staffToken, branch.id)).find((u) => u.id === 'r-import-1').name, '原子导入甲', '旧行字段逐值不变');
+
+  // ②b 批次 541：发展阶段只收服务端白名单（非法 ⇒ 422，整表不落库）
+  const badStage = await fetch(`${base}/api/v1/branches/${branch.id}/roster`, {
+    method: 'PUT', headers: auth(staffToken),
+    body: JSON.stringify({ members: [{ id: 'r-import-4', name: '非法阶段成员', developStage: '神秘阶段' }] }),
+  });
+  assert.equal(badStage.status, 422, '非法发展阶段须 422');
+  assert.match((await badStage.json()).error, /发展阶段无效/);
+  assert.deepEqual((await getUsers(staffToken, branch.id)).map((u) => u.id).sort(), ['r-import-1', 'r-import-2'],
+    '非法阶段不得落库（旧名册不变）');
 
   // ③ 导入后真实成员可账号密码登录（服务端登录只查 users；不依赖本机 accounts 层）
   const saved = { check: process.env.DISABLE_PASSWORD_CHECK, pw: process.env.LOGIN_PASSWORD };

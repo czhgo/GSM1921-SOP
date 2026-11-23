@@ -51,7 +51,7 @@ async function loginAs(page, { studentId, expectUrlPart }) {
   ]);
   await page.waitForFunction(() => Boolean(document.getElementById('app-header')), { timeout: 15000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261031a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261120a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 
 async function activateTab(page, tabLabel) {
@@ -82,7 +82,7 @@ test('P3 党委下发：支委层与党委台可见，普通成员不可见', as
 
   try {
     // ── ① 党委组织员（9000000001）→ 下发通知 tab → 下发到 br-b1 ──
-    await loginAs(partyPage, { studentId: '9000000001', expectUrlPart: 'party-committee.html' });
+    await loginAs(partyPage, { studentId: '9000000001', expectUrlPart: 'party-committee' });
     await activateTab(partyPage, '下发通知');
     await page_waitText(partyPage, '撰写一条党委通知');
     await partyPage.evaluate((title) => {
@@ -107,13 +107,13 @@ test('P3 党委下发：支委层与党委台可见，普通成员不可见', as
     assert.ok(partyBell.includes(titleD), '党委组织员应在党委台铃铛看到党委下发（党委级通知）');
 
     // ── ② 支书储子禾（2300010001，br-b1 支委层）铃铛可见该下发 ──
-    await loginAs(secPage, { studentId: '2300010001', expectUrlPart: 'secretary.html' });
+    await loginAs(secPage, { studentId: '2300010001', expectUrlPart: 'secretary' });
     const secBell = await openBell(secPage);
     assert.ok(secBell.includes(titleD), `支书（支委层）应看到党委下发（铃铛含 "${titleD}"）`);
     assert.ok(secBell.includes('党委下发'), '铃铛条目应带「党委下发」来源标识');
 
     // ── ③ 普通成员宋佳宁（2400012349，非支委）铃铛不可见 ──
-    await loginAs(memberPage, { studentId: '2400012349', expectUrlPart: 'visitor.html' });
+    await loginAs(memberPage, { studentId: '2400012349', expectUrlPart: 'visitor' });
     const memBell = await openBell(memberPage);
     assert.ok(!memBell.includes(titleD), '普通成员（非支委）不应看到支委层下发');
   } finally {

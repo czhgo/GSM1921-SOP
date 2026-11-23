@@ -37,6 +37,8 @@ const MEMBER_FIELDS = [
 /** 业务历史域（与 docs/src/services/member/person.js::_branchHasHistory 同口径） */
 const HISTORY_TABLES = ['activities', 'taskforces', 'thought_reports', 'branch_docs', 'appointment_records', 'review_requests'];
 const ROLE_SET = new Set(ROLE_KEYS);
+// 发展阶段服务端白名单（批次 541；与 member.js / semantic-routes.js 同一 `DEVELOP_STAGE_OPTIONS` 源）
+const DEVELOP_STAGE_SET = new Set(DEVELOP_STAGE_OPTIONS);
 
 const jsonRows = (db, table) => db.prepare(`SELECT id, data FROM ${table}`).all()
   .map((row) => ({ id: String(row.id), ...JSON.parse(row.data) }));
@@ -65,6 +67,14 @@ function cleanMemberRow(raw, branchId, existing = null) {
     ? (existing?.role || 'participant') : String(raw.role).trim();
   if (!ROLE_SET.has(role)) return { error: `成员 ${id} 的角色无效：${role}` };
   if (role === 'party-staff') return { error: `成员 ${id} 不能是党委组织员（组织级角色不属于支部）` };
+  // 批次 541：发展阶段只收服务端白名单值（非法 ⇒ 422，不静默落库）；空值沿用既有行为。
+  if (raw.developStage !== undefined && raw.developStage !== null && String(raw.developStage).trim() !== ''
+    && !DEVELOP_STAGE_SET.has(String(raw.developStage).trim())) {
+    return {
+      error: `成员 ${id} 的发展阶段无效：${String(raw.developStage).trim()}（须为 ${DEVELOP_STAGE_OPTIONS.join(' / ')}）`,
+      status: 422,
+    };
+  }
   const out = { id, name, role };
   for (const key of MEMBER_FIELDS) {
     if (key === 'id' || key === 'name' || key === 'role') continue;
@@ -105,7 +115,7 @@ export function createBranchRosterRouter(db) {
         return res.status(409).json({ error: `人员 ${id} 已属于其他支部（${existing.branchId || '未归属'}），不能静默改归属` });
       }
       const result = cleanMemberRow(raw, branchId, existing);
-      if (result.error) return res.status(400).json({ error: result.error });
+      if (result.error) return res.status(result.status || 400).json({ error: result.error });
       if (seen.has(result.row.id)) return res.status(400).json({ error: `名册内 id 重复：${result.row.id}` });
       seen.add(result.row.id);
       cleaned.push({ ...result.row, __base: result.base });
@@ -141,8 +151,13 @@ export function createBranchRosterRouter(db) {
     });
     run();
 
-    res.json({ ok: true, branchId, count: saved.length, removed: removed.length, members: saved });
+    res.json({ ok: true, branchId, count: saved.length, removed: removed.length, members: saved.map(stripPasswordHash) });
   });
 
   return router;
 }
+
+// 个人密码散列（波次 G）：users 行响应脱敏单一源；置尾不移动上文行号
+import { stripPasswordHash } from '../security/password.mjs';
+// 发展阶段白名单（批次 541；与 member.js / semantic-routes.js 同源）
+import { DEVELOP_STAGE_OPTIONS } from '../../docs/src/services/branch/org-base-data-preview.js';

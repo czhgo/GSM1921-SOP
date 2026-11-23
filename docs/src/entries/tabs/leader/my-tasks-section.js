@@ -9,18 +9,19 @@
 // 与「待办」页的口径区分（写进页面文案，避免两处被读成同一份清单）：
 //   · 本段＝**按项目身份**（组织者 / 深度参与者）派给本人的 SOP 任务节点；
 //   · 「待办」页＝`TodoStore` 的待办聚合（含通知 / 审核 / 催办等派生项，来源与生命周期不同）。
-import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity/activity.js?v=20261031a';
-import { isActivityVisibleTo } from '../../../services/core/visibility.js?v=20261031a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261031a';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261031a';
-import { escHtml as esc, showToast, docAnchorHref } from '../../../core/base/utils.js?v=20261031a';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261031a';
+import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity/activity.js?v=20261120a';
+import { isActivityVisibleTo } from '../../../services/core/visibility.js?v=20261120a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261120a';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261120a';
+import { escHtml as esc, showToast, docAnchorHref } from '../../../core/base/utils.js?v=20261120a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261120a';
 // Task 6：我的任务行跨项目 ⇒ 活动详情直达（direct）；缺 id 不渲染链接。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261031a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261120a';
 
+import { renderCardHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 const STATUS_LABEL = { pending: '待办', in_progress: '进行中', completed: '已完成' };
 const STATUS_CLASS = {
-  pending: 'bg-amber-50 text-amber-700',
+  pending: 'bg-amber-50 text-[var(--status-warning-text)]',
   in_progress: 'bg-blue-50 text-blue-700',
   completed: 'bg-green-50 text-green-700',
 };
@@ -38,7 +39,7 @@ function _myTasks(personId) {
       role: x.projectRole,
       status: x.task.status || 'pending',
       date: x.task.date || x.activity.date || '',
-      deepMode: x.projectRole === 'deep' ? deepWorkModeOf(x.activity, x.task.taskId) : null,
+      deepMode: (x.projectRole === 'deep' && x.source !== 'assignment') ? deepWorkModeOf(x.activity, x.task.taskId) : null,
     }));
 }
 
@@ -56,12 +57,12 @@ export function myTasksSectionHtml(personId) {
     })
     : `<div class="space-y-2">${rows.map(_rowHtml).join('')}</div>`;
   return `
-    <div class="card rounded-xl p-5 mb-4" id="leader-my-tasks">
+    <div class="card rounded-xl p-4 mb-4" id="leader-my-tasks">
       <div class="flex items-center justify-between mb-1">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">我的任务</h3>
+        ${renderCardHeader({ title: `我的任务` })}
         <span class="text-xs text-gray-500">按项目身份分配 · ${rows.length} 项</span>
       </div>
-      <p class="text-xs text-gray-500 mb-3">只列按项目身份（组织者 / 深度参与者）派给本人的 SOP 任务；与「待办」页的待办聚合口径不同。</p>
+      <p class="text-xs text-gray-500 mb-3">这里只列按项目身份派给你的任务；其他待办请到「待办」页查看。</p>
       ${body}
     </div>`;
 }
@@ -70,7 +71,7 @@ function _rowHtml(r) {
   const done = r.status === 'completed';
   const offline = r.deepMode === DEEP_WORK_MODE.OFFLINE;
   const modeChip = r.deepMode
-    ? `<span class="text-xs px-1.5 py-0.5 rounded-full border flex-shrink-0 ${offline ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}" title="${offline ? '组织者已标为「去线下做」——线下完成，由组织者确认' : '组织者已标为「系统内做」——完成后由系统同步产出'}">${DEEP_WORK_MODE_LABEL[r.deepMode]}</span>`
+    ? `<span class="text-xs px-1.5 py-0.5 rounded-full border flex-shrink-0 ${offline ? 'bg-amber-50 text-[var(--status-warning-text)] border-amber-100' : 'bg-emerald-50 text-emerald-700 border-[var(--color-border-subtle)]'}" title="${offline ? '组织者已标为「去线下做」——线下完成，由组织者确认' : '组织者已标为「系统内做」——完成后由系统同步产出'}">${DEEP_WORK_MODE_LABEL[r.deepMode]}</span>`
     : '';
   return `
     <div class="flex items-center justify-between gap-3 rounded-xl bg-white border border-gray-100 px-3 py-2.5">
@@ -105,11 +106,11 @@ export function bindMyTasksSection(container, personId, { onChange } = {}) {
   const host = container.querySelector('#leader-my-tasks');
   if (!host || host.dataset.myTasksBound === '1') return;
   host.dataset.myTasksBound = '1';
-  host.addEventListener('click', (e) => {
+  host.addEventListener('click', async (e) => {
     const btn = e.target.closest('[data-my-task-complete]');
     if (!btn) return;
     e.stopPropagation();
-    const res = completeMyProjectTask(personId, btn.dataset.myTaskComplete);
+    const res = await completeMyProjectTask(personId, btn.dataset.myTaskComplete);
     if (!res.ok) { showToast('error', '该任务不在你名下，无法勾掉'); return; }
     showToast('success', '已完成该任务');
     if (typeof onChange === 'function') onChange();

@@ -2,7 +2,7 @@
 title: "SOP 目录索引——各委员与党小组组长的操作规程"
 type: index
 role: "[用户]+[AI]"
-last_updated: 2026-10-24
+last_updated: "2026-11-04"
 status: active
 ---
 
@@ -52,6 +52,6 @@ status: active
 ## 维护触发器
 
 - 新增、删除或重命名任一 SOP 或 INDEX；
-- 角色职责、交接链或公共规则变更（须一改具改到所有引用处）；
+- 角色职责、交接链或公共规则变更（按一改具改同步，见 `CLAUDE.md H30.1`）；
 - `INDEX.md` 的术语、SOP 清单或关联字段变更；
 - `SYSTEM_ROLE_PERMISSION.md` 或 `COMMISSIONER_DUTY_FRAMEWORK.md` 的职责口径变化。

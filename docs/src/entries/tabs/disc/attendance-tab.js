@@ -1,90 +1,99 @@
 // role: [工程师]+[AI]
 // 纪检委员工作台 Tab：考勤管理（T-279 M3 拆分 · T-304 重设计）
 // 一级分段（2026-09-15 支书裁定）：考勤 / 补课——互斥分段钮置顶。
+//   2026-11-03 批次 531（F-06）：首屏原并列「页头 ＋ 考勤/补课分段 ＋ 确认与录入/数据查看视图」三套互斥轴，
+//   收敛为「页头 ＋ 一行分段」。
+//   2026-11-08 波次 C（IA-E05）：撤二级切换——原「确认与录入 / 数据查看」是同一批考勤数据的两个视图，
+//   切换本身不改变任何数据口径，只让「确认」多一次点击 ⇒ 合并为**单一层级视图**（分段只剩 考勤 / 补课）；
+//   确认队列、出勤申诉、会议录入与矩阵 / 总表同屏顺读，矩阵与总表共用一条筛选条（DS_06 SD-58）。
 //   「补课」分段整段复用 makeup-tab 渲染（补课原为独立 tab，并入本 tab）；「?tab=makeup」旧深链兼容见 renderContent 首段。
-// 「考勤」分段三段式：① 待确认队列（卡片式，进入即见，确认即闭环+聚焦下一条）
-//        ② 考勤矩阵（人×活动 二元关系单一源组件 relation-matrix：行=人/列=活动 与 行=活动/列=人 互为转置；
+// 「考勤」分段单一层级视图（三项顺读，不再是三段互斥视图）：
+//        ① 待确认队列（卡片式，进入即见，确认即闭环+聚焦下一条）
+//        ② 出勤申诉 / 会议考勤录入（同为纪检写侧动作，随确认队列顺读）
+//        ③ 考勤数据（矩阵 ＋ 全量总表合卡，共用一条筛选条）：
+//           矩阵＝人×活动 二元关系单一源组件 relation-matrix（行=人/列=活动 与 行=活动/列=人 互为转置；
 //           **默认「按人」宽表**——支书 2026-09-14 批次 35 裁定「long form 不该为主」；项目维列封顶最近 6 项，
-//           可一键展开全部；活动名搜索 + 时间区间筛选）
-//        ③ 全量总表（分页铁律，低频操作：导出/打印/提交考勤统计至支委会）——即 long form，定位＝明细/导出下钻
+//           可一键展开全部）；总表＝long form，定位＝明细 / 导出下钻（分页铁律）；
+//           筛选条（DS_06 SD-58 两行）＝活动范围 / 时间区间 / 姓名或活动关键词 / 状态 / 活动类型 / 清除。
 // 设计裁定（支书 2026-08-29）：
-//   - 两个视图是转置关系，不是 long/wide 长表与矩阵的区别
+//   - 矩阵两个方向是转置关系，不是 long/wide 长表与矩阵的区别
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261031a';
-import { generateId } from '../../../core/base/id.js?v=20261031a';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity, isAttendancePendingConfirm, isAttendanceConfirmed, isAutoConfirmedAttendance, attendanceConfirmerId, confirmAttendanceRecords } from '../../../services/activity/attendance.js?v=20261031a';
-import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261031a';
-import { getPersonName } from '../../../services/member/person.js?v=20261031a';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261120a';
+import { generateId } from '../../../core/base/id.js?v=20261120a';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity, isAttendancePendingConfirm, isAttendanceConfirmed, isAutoConfirmedAttendance, attendanceConfirmerId, confirmAttendanceRecords } from '../../../services/activity/attendance.js?v=20261120a';
+import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261120a';
+import { getPersonName } from '../../../services/member/person.js?v=20261120a';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261031a';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261031a';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261031a';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261120a';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive, DASHBOARD_LIMITS } from '../../../core/domain/constants.js?v=20261120a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261120a';
 // R7-33：考勤「超期」按「活动日 + 补课时限（policy）」现算，不再直读记录上的 overdue 快照
-import { isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261031a';
+import { isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261120a';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261031a';
-import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261031a';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261031a';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261031a';
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261031a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261031a';
+import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261120a';
+import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261120a';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261120a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261120a';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261120a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261120a';
+import { skeletonHtml } from '../../../components/ui/empty-state.js?v=20261120a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 // pagerHtml = 翻页控件单一源（批次 38：全站手写翻页一律并轨；叶子件，避免与矩阵相互成环）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261031a';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261120a';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261031a';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261031a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
-import { requireDiscCommissionerId } from './_shared.js?v=20261031a';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261031a';
-import { currentUserId } from '../../../services/core/auth.js?v=20261031a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261031a';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261120a';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, _currentYearMonth, escHtml as esc, getBasePath, flashHighlight, smoothScroll, describeWriteError } from '../../../core/base/utils.js?v=20261120a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261120a';
+// 批次 540 波次 1：待办跳转的考勤记录定位目标（attendance→record）
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261120a';
+// 批次 524（F · 输入单一源）：布局中立的控件积木（只出控件本体，不套 label / 外边距）
+import { textInput, selectInput } from '../../../components/ui/forms.js?v=20261120a';
+import { requireDiscCommissionerId } from './_shared.js?v=20261120a';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261120a';
+import { currentUserId } from '../../../services/core/auth.js?v=20261120a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261120a';
 // 通用浮窗 + 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js）
 // U-04：申诉打回原用 `window.prompt`（无对话框语义、无焦点接管、移动端样式原生）→ 换本组件 openModal。
-import { confirmNudge, openModal, closeModal } from '../../../components/ui/modal.js?v=20261031a';
+import { confirmNudge, openModal, closeModal } from '../../../components/ui/modal.js?v=20261120a';
 // 「补课」分段整段复用原独立 tab 的渲染（2026-09-15 支书裁定：补课并入考勤管理，内部逻辑不改写）
-import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261031a';
+import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261120a';
 // Task 6：考勤表的活动列是跨对象行 ⇒ 直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261031a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261120a';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261031a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261120a';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261120a';
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
 
-// ── 一级分段（考勤 / 补课）——模块级记忆（沿既有 tab 内 _view 模式）──
-// 「考勤」分段保留原有视图钮（待确认队列/会议录入/矩阵/总表；党小组会只读视图并入总表筛选）；
+// ── 分段（考勤 / 补课）——模块级记忆（沿既有 tab 内 _view 模式）──
+// 单一层级：考勤＝确认队列 + 申诉 + 会议录入 + 矩阵 / 总表同一视图（2026-11-08 波次 C 撤二级切换）；
 // 「补课」分段渲染 makeup-tab 全部功能（补课任务清单/确认回写考勤/交接回执/检索分页）。
 let _segment = 'attendance';
-let _attendanceView = 'process';
 // 深链一次性消费标记：?tab=makeup（补课原为独立 tab）→ 落「补课」分段；
 // 同一导航对象只应用一次，用户随后切分段不再被回置（见 renderContent 首段）。
 let _deepLinkNavTarget = null;
 
-/** 分段钮激活态类（沿用本台矩阵视图钮笔法：主题浅底 + 主题色字/边框，不新增 CSS 类族） */
-const SEG_ON_CLASSES = ['bg-[var(--app-accent-soft-bg)]', 'border-[var(--app-accent)]', '[color:var(--app-accent-soft-text)]'];
-const SEG_OFF_CLASSES = ['bg-white', 'border-neutral-200', 'text-gray-600'];
-
-/** 一级分段钮组 HTML（考勤 / 补课，互斥） */
-function _segmentBarHtml() {
-  const btn = (seg, label) => {
-    const on = _segment === seg;
-    const cls = on ? SEG_ON_CLASSES.join(' ') : `${SEG_OFF_CLASSES.join(' ')} hover:bg-[var(--surface-hover)]`;
-    return `<button type="button" class="btn-tab att-seg-btn px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200 ${cls}" data-seg="${seg}">${label}</button>`;
-  };
-  return `<div class="flex items-center gap-2 mb-4">${btn('attendance', '考勤')}${btn('makeup', '补课')}</div>`;
+/** 一行分段钮组（F-06 / C-08 / IA-E05）：页头之下只留这一组互斥切换——考勤 / 补课。
+ *  选中态沿用既有 `.btn-tab.active` 单一语法（styles.css 的 soft 三件套），不自造内联主题类。 */
+function _segmentRowHtml() {
+  const on = (value) => (_segment === value ? ' active' : '');
+  return `<div class="flex items-center gap-2 mb-3" role="group" aria-label="考勤工作区">
+      <button type="button" class="btn-tab att-seg-btn text-xs px-3 py-1.5${on('attendance')}" data-seg="attendance" aria-pressed="${_segment === 'attendance'}">考勤</button>
+      <button type="button" class="btn-tab att-seg-btn text-xs px-3 py-1.5${on('makeup')}" data-seg="makeup" aria-pressed="${_segment === 'makeup'}">补课</button>
+    </div>`;
 }
 
 function _bindSegmentBtns(container, ctx) {
   container.querySelectorAll('.att-seg-btn').forEach(b => {
     b.addEventListener('click', () => {
-      if (b.dataset.seg === _segment) return;
-      _segment = b.dataset.seg;
+      const seg = b.dataset.seg === 'makeup' ? 'makeup' : 'attendance';
+      if (_segment === seg) return;
+      _segment = seg;
       renderContent(ctx);
     });
   });
@@ -98,10 +107,10 @@ export function focusSegment(seg) {
   if (seg === 'attendance' || seg === 'makeup') _segment = seg;
 }
 
-/** U3（2026-09-07）：矩阵/总表容器首帧骨架占位行（真实表格 rAF 后渐进填充，防整块弹出） */
+/** U3（2026-09-07）：矩阵/总表容器首帧骨架占位行（真实表格 rAF 后渐进填充，防整块弹出）
+ *  批次 530（B-518-2）：形状改由 `ui/empty-state.js::skeletonHtml` 单一源产出。 */
 function _attSectionSkeletonHtml() {
-  const row = '<div class="h-8 rounded bg-gray-100 animate-pulse"></div>';
-  return `<div class="space-y-1.5 py-1">${row}${row}${row}${row}</div>`;
+  return skeletonHtml(4, { lineClass: 'h-8', ariaText: '' });
 }
 
 /** 状态缩写 + 色点（矩阵单元格用：色点 + 2 字缩写，风格对齐日历） */
@@ -125,22 +134,20 @@ export function renderContent(ctx) {
 
   // 「补课」分段：整段复用 makeup-tab 渲染（补课任务清单／确认完成回写考勤／交接回执／统一检索分页）
   if (_segment === 'makeup') {
-    container.innerHTML = `${renderTabHeader({ title: '考勤管理', description: '考勤确认、补课与数据查看。' })}${_segmentBarHtml()}<div id="att-segment-body"></div>`;
+    _receiptText = ''; // 回执只属考勤分段的单条确认动作，不在补课分段滞留
+    container.innerHTML = `${renderTabHeader({ title: '考勤管理', description: '考勤确认、补课与数据查看。' })}${_segmentRowHtml()}<div id="att-segment-body"></div>`;
     _bindSegmentBtns(container, ctx);
     renderMakeupContent(container.querySelector('#att-segment-body'));
     return;
   }
 
-  const { accent, accentRgba, accentBorder } = ctx;
-  // 材料页深链（2026-10-20）：本场活动预选进既有活动筛选（只在未设置时写一次，用户「清除聚焦」后不再回填）；
-  // 同时落到「数据查看」视图——只有该视图才渲染活动行/矩阵，否则深链到了也看不到本场。
+  const { accent, accentBorder } = ctx;
+  // 材料页深链（2026-10-20）：本场活动预选进既有活动筛选（只在未设置时写一次，用户「清除聚焦」后不再回填）。
+  // 2026-11-08 波次 C：单一层级视图下矩阵 / 总表始终在位，深链不再需要先切视图。
   if (ctx?.focusActivityId && ctx.attendanceFilterActId === undefined) {
     ctx.attendanceFilterActId = ctx.focusActivityId;
-    // 待办带 recordId 深链时落「确认与录入」并高亮该行；纯材料页深链仍落「数据查看」。
-    _attendanceView = ctx?.focusRecordId ? 'process' : 'data';
   }
   if (ctx?.focusRecordId) {
-    _attendanceView = 'process';
     _queueExpanded = true;
     _pendingFocusRecordId = ctx.focusRecordId;
     ctx.focusRecordId = null; // 一次性定位：确认后重渲染不再重复提示
@@ -196,33 +203,22 @@ export function renderContent(ctx) {
     : '';
 
   // ════════════════════════════════════════════════════════════════
-  //  三段式渲染
+  //  单一层级视图（2026-11-08 波次 C · IA-E05）：确认 → 申诉 → 会议录入 → 考勤数据顺读
   // ════════════════════════════════════════════════════════════════
   container.innerHTML = `
     ${renderTabHeader({ title: '考勤管理', description: '待确认考勤、出勤申诉与考勤数据查看。' })}
-    ${_segmentBarHtml()}
-    <div class="flex gap-2 mb-3" role="group" aria-label="考勤工作视图">
-      <button type="button" class="att-view-btn btn-tab text-xs px-3 py-1.5 ${_attendanceView === 'process' ? 'active' : ''}" data-att-view="process" aria-pressed="${_attendanceView === 'process'}">确认与录入</button>
-      <button type="button" class="att-view-btn btn-tab text-xs px-3 py-1.5 ${_attendanceView === 'data' ? 'active' : ''}" data-att-view="data" aria-pressed="${_attendanceView === 'data'}">数据查看</button>
-    </div>
+    ${_segmentRowHtml()}
     <div id="att-segment-body">
+      ${_receiptHtml()}
       ${filterBanner}
-      ${_attendanceView === 'process' ? `
-        ${_buildQueueHTML(queueItems, returnedRecs, queueLeave, queueAbsent, queueOverdue, autoConfirmedCount, accent, accentBorder, actById)}
-        ${_buildAppealCardHTML(pendingAppeals, returnedAppeals, actById, accent, accentBorder)}
-        ${_buildMeetingCardHTML(ctx, accent, accentBorder, actById)}
-      ` : `
-        ${_buildMatrixCardHTML(ctx, matrixModel, filterActivityId, accent, accentRgba, accentBorder)}
-        ${_buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityId, accent, accentRgba, accentBorder)}
-      `}
+      ${_buildQueueHTML(queueItems, returnedRecs, queueLeave, queueAbsent, queueOverdue, autoConfirmedCount, accent, accentBorder, actById)}
+      ${_buildAppealCardHTML(pendingAppeals, returnedAppeals, actById, accent, accentBorder)}
+      ${_buildMeetingCardHTML(ctx, accent, accentBorder, actById)}
+      ${_buildDataCardHTML(matrixModel, allRecords, longData, filterActivityId)}
     </div>
   `;
   _bindSegmentBtns(container, ctx);
-  container.querySelectorAll('.att-view-btn').forEach((button) => button.addEventListener('click', () => {
-    if (!['process', 'data'].includes(button.dataset.attView) || button.dataset.attView === _attendanceView) return;
-    _attendanceView = button.dataset.attView;
-    renderContent(ctx);
-  }));
+  _focusReceipt(container);
 
   // ── 队列确认：打包确认（SOP-B-41 / `D-455`）——纪检勾一批 → 一次确认（不逐条）──
   container.querySelector('.disc-clear-filter')?.addEventListener('click', () => {
@@ -237,7 +233,7 @@ export function renderContent(ctx) {
       .map(cb => cb.dataset.recordId);
     if (ids.length === 0) { showToast('error', '请先勾选要确认的考勤'); return; }
     const n = _confirmAttendanceBatch(ids, actById);
-    if (n > 0) showToast('success', `已打包确认 ${n} 条考勤（整批确认，不逐条）`);
+    if (n > 0) _receiptText = `已确认 ${n} 条考勤`;
     else showToast('error', '所选考勤均已确认或不存在');
     renderContent(ctx);
   });
@@ -270,8 +266,10 @@ export function renderContent(ctx) {
           const by = requireDiscCommissionerId();
           if (!by) return;
           const res = returnAttendanceAppeal(appealId, { by, note });
-          if (res.ok) showToast('success', res.hadRecord ? '已打回该考勤，交活动组织方重新确认' : '已打回，交活动组织方核实补录');
-          else showToast('error', '该申诉已处理');
+          if (res.ok) {
+            _receiptText = res.hadRecord ? '已打回该考勤，交活动组织方重新确认' : '已打回，交活动组织方核实补录';
+            showToast('success', _receiptText);
+          } else showToast('error', '该申诉已处理');
           renderContent(ctx);
         },
       });
@@ -282,8 +280,10 @@ export function renderContent(ctx) {
       const by = requireDiscCommissionerId();
       if (!by) return;
       const res = closeAttendanceAppeal(btn.dataset.appealId, { by });
-      if (res.ok) showToast('success', '该申诉已关闭（核实不属实或已另行处理）');
-      else showToast('error', '该申诉已处理');
+      if (res.ok) {
+        _receiptText = '该申诉已关闭（核实不属实或已另行处理）';
+        showToast('success', _receiptText);
+      } else showToast('error', '该申诉已处理');
       renderContent(ctx);
     });
   });
@@ -407,7 +407,8 @@ export function renderContent(ctx) {
     try {
       await freezeExpectedRosterForActivity(activityId);
     } catch (error) {
-      showToast('error', `应到名单未能冻结，考勤未提交：${error.message || '请重试'}`);
+      console.warn('[attendance] 应到名单冻结失败：', error);
+      showToast('error', `应到名单未能冻结，考勤未提交：${describeWriteError(error)}`);
       return;
     }
 
@@ -432,54 +433,40 @@ export function renderContent(ctx) {
   // 批次 35（支书 2026-09-14 裁定「宽表默认」）：默认「按人」——一进 tab 先看「谁参加了哪些活动」
   let matrixView = 'byPerson'; // byPerson（行=人，列=活动，宽表默认）| byActivity（行=活动，列=人）
   const renderMatrix = () => _renderMatrix(matrixView, matrixModel, actById, allRecords, ctx, accent, accentBorder);
+  const renderTable = () => _renderTable(longData, allRecords, actById, accent, accentBorder, ctx, groupMeetingMetaByActivity);
   container.querySelectorAll('.att-mtx-view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      // UI-A（2026-09-07）：激活态=主题浅底+主题色字/边框（独立小圆角钮，无衬不再用 ov-sub-tab-active）
+      // C-08：选中态走既有 `.btn-tab.active` 单一语法（软三件套），不再逐类切换内联主题色。
       container.querySelectorAll('.att-mtx-view-btn').forEach(b => {
         const on = b === btn;
-        b.classList.toggle('bg-[var(--app-accent-soft-bg)]', on);
-        b.classList.toggle('border-[var(--app-accent)]', on);
-        b.classList.toggle('[color:var(--app-accent-soft-text)]', on);
-        b.classList.toggle('bg-white', !on);
-        b.classList.toggle('border-neutral-200', !on);
-        b.classList.toggle('text-gray-600', !on);
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
       matrixView = btn.dataset.view;
       renderMatrix();
     });
   });
-  container.querySelector('#att-mtx-search')?.addEventListener('input', () => renderMatrix());
-  container.querySelector('#att-mtx-from')?.addEventListener('change', () => renderMatrix());
-  container.querySelector('#att-mtx-to')?.addEventListener('change', () => renderMatrix());
+  // ── 共用一条筛选条（2026-11-08 波次 C · DS_06 SD-58）：矩阵与总表同页，筛选只留一组 ──
+  const renderData = () => { _page = 1; renderMatrix(); renderTable(); };
+  container.querySelector('#att-table-search')?.addEventListener('input', renderData);
+  container.querySelector('#att-table-status')?.addEventListener('change', renderData);
+  container.querySelector('#att-table-type')?.addEventListener('change', renderData);
+  container.querySelector('#att-filter-from')?.addEventListener('change', renderData);
+  container.querySelector('#att-filter-to')?.addEventListener('change', renderData);
   // T223 保留：活动下拉聚焦（URL activityId 落点同源，选中即聚焦该活动考勤）
   container.querySelector('#att-activity-select')?.addEventListener('change', () => {
     const v = document.getElementById('att-activity-select')?.value;
     ctx.attendanceFilterActId = v || null;
     renderContent(ctx);
   });
-  // P3 重置段（矩阵）：范围（活动 / 时间区间）与检索一并复位
-  container.querySelector('#att-mtx-clear')?.addEventListener('click', () => {
+  // 重置段：范围（活动 / 时间区间）＋ 关键词 ＋ 状态 / 类型一并复位
+  container.querySelector('#att-filter-clear')?.addEventListener('click', () => {
     ctx.attendanceFilterActId = null;
-    ['att-mtx-search', 'att-mtx-from', 'att-mtx-to'].forEach((id) => {
+    ['att-table-search', 'att-table-status', 'att-table-type', 'att-filter-from', 'att-filter-to'].forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
     renderContent(ctx);
-  });
-
-  // ── 全量总表：搜索/状态筛选/分页 ──
-  const renderTable = () => _renderTable(longData, allRecords, actById, accent, accentBorder, ctx, groupMeetingMetaByActivity);
-  container.querySelector('#att-table-search')?.addEventListener('input', () => { _page = 1; renderTable(); });
-  container.querySelector('#att-table-status')?.addEventListener('change', () => { _page = 1; renderTable(); });
-  container.querySelector('#att-table-type')?.addEventListener('change', () => { _page = 1; renderTable(); });
-  // P3 重置段（总表）：关键词 + 状态 + 活动类型一并复位
-  container.querySelector('#att-table-clear')?.addEventListener('click', () => {
-    ['att-table-search', 'att-table-status', 'att-table-type'].forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
-    _page = 1;
-    renderTable();
   });
   // 翻页（委托一次：`#att-table-pager` 由卡片模板持有、内容重绘不影响绑定；读 data-lf-page）
   container.querySelector('#att-table-pager')?.addEventListener('click', (e) => {
@@ -507,12 +494,17 @@ export function renderContent(ctx) {
   // 支书 2026-09-20 定案（批次 116）：公示的范围与对象＝**支委会 ＋ 当事人本人**——**不对全支部公示、不对外**；
   // 本导出件供支委会内部使用；当事人本人只在自己的成员台「考勤概况」看**自己的**出勤率（`summarizePersonAttendance`）。
   container.querySelector('.att-rate-export-btn')?.addEventListener('click', () => {
-    const month = new Date().toISOString().slice(0, 7); // YYYY-MM
+    const month = _currentYearMonth(); // YYYY-MM（本地年月：本地 12-01 早上仍是「12 月」，不得用 UTC 切串）
     const sum = summarizeAttendanceByActivity({ month });
-    const rows = sum.rows.map(r => [r.activity, r.date, r.type, r.total, r.present, r.leave, r.absent, `${r.rate}%`]);
-    rows.push(['本月合计', '', '', sum.total, sum.presentTotal, '', '', `${sum.rate}%`]);
-    downloadCSV(`出勤率汇总_支委会内部_${month}.csv`, ['活动', '日期', '类别', '应记人次', '出勤（含已补）', '请假', '缺勤', '出勤率'], rows);
-    showToast('success', `本月出勤率汇总已导出（支委会内部使用，${sum.rows.length} 场 · 合计 ${sum.rate}%）`);
+    // T7（2026-11-16）：未录场次（该场一条考勤记录都没有）的出勤率单元格**留空**，不写 0%——
+    //   与页面 / 首页「待录入」同一判据（`ratePending`）；本月合计行同理（`recordedTotal === 0`）。
+    const cells = sum.rows.map(r => [r.activity, r.date, r.type, r.total, r.present, r.leave, r.absent,
+      r.ratePending ? '' : `${r.rate}%`]);
+    // 合计率分母＝已录人次（`recordedRate`）：完全未录的场次已在单元格留空，不再拉低合计率。
+    cells.push(['本月合计', '', '', sum.total, sum.presentTotal, '', '',
+      sum.recordedTotal > 0 ? `${sum.recordedRate}%` : '']);
+    downloadCSV(`出勤率汇总_支委会内部_${month}.csv`, ['活动', '日期', '类别', '应记人次', '出勤（含已补）', '请假', '缺勤', '出勤率'], cells);
+    showToast('success', `本月出勤率汇总已导出（支委会内部使用，${sum.rows.length} 场 · 合计 ${sum.recordedTotal > 0 ? `${sum.recordedRate}%` : '待录入'}）`);
   });
   container.querySelector('.att-handoff-btn')?.addEventListener('click', () => {
     // D04：考勤统计是 auto 类交接——发起即送达，不再有「待接收」。
@@ -556,10 +548,10 @@ export function renderContent(ctx) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  ① 待确认队列（异常驱动 · 极简白底无边框无条纹 · 默认 8 条折叠）
+//  ① 待确认队列（异常驱动 · 极简白底无边框无条纹 · 默认折叠至 DASHBOARD_LIMITS.attendanceQueueVisible）
 //  T-304 第5轮：仅异常（缺勤/请假，含超期）进队列；出勤/已补源头已审校不占队列
 // ════════════════════════════════════════════════════════════════
-const QUEUE_VISIBLE = 8; // 最小信息成本：默认只暴露最近需处理的少量条目
+const QUEUE_VISIBLE = DASHBOARD_LIMITS.attendanceQueueVisible; // 最小信息成本：默认只暴露最近需处理的少量条目（单一源＝constants）
 let _queueExpanded = false;
 // 打包确认（SOP-B-41 / `D-455`）：纪检勾一批 → 一次确认（不逐条）。
 // 2026-10-15 支书确认：默认不选；只记录主动选择的记录，降低误批量确认风险。
@@ -567,6 +559,31 @@ let _queueChecked = new Set();
 // 2026-10-18 繁专项 Task 15：队列 / 矩阵 / 总表共用同一确认落点——矩阵单元格点按后回到队列并定位。
 let _pendingFocusRecordId = null;
 let _lastCtx = null;
+// F-17（2026-11-03 批次 531）：单条确认类动作成功的**就地回执**——一句 `role="status"`，
+// 渲染在分段行下方、2s 后淡出；焦点落到回执上（重渲染后按钮已换新，焦点不丢回页面开头）。
+// 与全局 toast 并存：toast 报「哪一步做完了」，回执在动作原地给即时确认。
+let _receiptText = '';
+
+/** 就地回执 HTML（无回执时为空串） */
+function _receiptHtml() {
+  if (!_receiptText) return '';
+  return `<p class="att-receipt mb-3 text-xs text-green-700" role="status" tabindex="-1">${esc(_receiptText)}</p>`;
+}
+
+/** 回执落位：读取待播文案 → 清空状态 → 焦点移到回执 → 2s 后淡出摘除 */
+function _focusReceipt(container) {
+  if (!_receiptText) return;
+  _receiptText = '';
+  const el = container.querySelector('.att-receipt');
+  if (!el) return;
+  try { el.focus({ preventScroll: true }); } catch (_) { /* 老内核不支持 options 时忽略 */ }
+  setTimeout(() => {
+    if (!el.isConnected) return;
+    el.style.transition = 'opacity var(--motion-exit) var(--ease-standard)';
+    el.style.opacity = '0';
+    setTimeout(() => { if (el.isConnected) el.remove(); }, 200);
+  }, 2000);
+}
 // A1-2026-09-05：会议考勤录入（2026-09-21 批次 124：上传位＝该场会议组织者；CF §C.1a 会议考勤）
 // 保态折叠（2026-09-05 quick-fix）：收起/取消只切 #disc-meet-body 的 hidden——
 // 不销毁 _meetPickerInstance、不重建 innerHTML，已选活动/人员/逐人状态保留；
@@ -614,7 +631,7 @@ function _buildQueueHTML(items, returnedRecs, leaveCount, absentCount, overdueCo
     const checked = _queueChecked.has(r.id);
     const rowStatusLabel = r.status === AttendanceStatus.ABSENT ? '缺勤' : '请假';
     return `
-        <div class="flex items-center gap-3 py-2 rounded-xl transition-colors cursor-pointer hover:bg-[var(--surface-hover)] active:bg-[var(--surface-active)]" role="button" tabindex="0" data-nested-actions="true" data-att-record-row="${r.id}" title="点按整行勾选；矩阵中点按状态也回到这里">
+        <div class="flex items-center gap-3 py-2 rounded-xl transition-colors cursor-pointer hover:bg-[var(--surface-hover)] active:bg-[var(--surface-active)]" data-att-record-row="${r.id}" title="点按整行勾选；矩阵中点按状态也回到这里">
           <input type="checkbox" class="att-queue-check w-3.5 h-3.5 rounded shrink-0" data-record-id="${r.id}"${checked ? ' checked' : ''} aria-label="${esc(getPersonName(r.personId) || r.personId)} · ${esc(act?.title || '活动已下架')} · ${rowStatusLabel}">
           <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${color}"></span>
           <div class="flex-1 min-w-0">
@@ -628,10 +645,7 @@ function _buildQueueHTML(items, returnedRecs, leaveCount, absentCount, overdueCo
         </div>`;
   };
   const listHtml = total === 0
-    ? `<div class="py-5 text-center">
-        <div class="text-sm font-medium text-gray-700 mb-1">无待处理异常 ✓</div>
-        <div class="text-xs text-gray-500">出勤/已补已源头审校自动确认${autoConfirmedCount > 0 ? `（${autoConfirmedCount} 条）` : ''}，缺勤/请假已全部处理；会议考勤录入即确认，不会回落到本队列</div>
-      </div>`
+    ? `<div class="py-2">${emptyStateHtml({ text: '无待处理异常，无需操作', variant: 'inline' })}</div>`
     : `<div class="space-y-1.5">${visible.map(rowHtml).join('')}
       ${total > QUEUE_VISIBLE ? `
         <button id="att-queue-more" class="btn-outline w-full text-xs py-2">
@@ -657,7 +671,7 @@ function _buildQueueHTML(items, returnedRecs, leaveCount, absentCount, overdueCo
                 <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#94A3B8"></span>
                 <span class="text-xs text-gray-700 flex-shrink-0">${esc(getPersonName(r.personId))}</span>
                 <span class="text-xs text-gray-500 flex-1 truncate">${act ? esc(act.title) : '活动已下架'}${r.returnReason ? ` · ${esc(r.returnReason)}` : ''}</span>
-                ${badgeHtml('已打回', 'info')}
+                ${badgeHtml('已打回', 'warning')}
               </div>`;
             }).join('')}
           </div>
@@ -666,11 +680,11 @@ function _buildQueueHTML(items, returnedRecs, leaveCount, absentCount, overdueCo
   return `
     <div id="att-queue" class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">待确认考勤</h3>
+        ${renderCardHeader({ title: `待确认考勤` })}
         <div class="flex gap-3 text-xs">
           <span class="text-gray-600">请假 <span class="font-bold text-orange-700">${leaveCount}</span></span>
           <span class="text-gray-600">缺勤 <span class="font-bold text-red-700">${absentCount}</span></span>
-          <span class="text-gray-600">超期 <span class="font-bold text-amber-700">${overdueCount}</span></span>
+          <span class="text-gray-600">超期 <span class="font-bold text-[var(--status-warning-text)]">${overdueCount}</span></span>
           ${autoConfirmedCount > 0 ? `<span class="text-gray-500">出勤已录入 <span class="font-bold text-green-700">${autoConfirmedCount}</span></span>` : ''}
         </div>
       </div>
@@ -762,7 +776,50 @@ function _bindQueueCheckboxes(container) {
     if (id) { if (cb.checked) _queueChecked.add(id); else _queueChecked.delete(id); }
     _syncBatchBar(container);
   });
+  // 2026-11-04 Task 3.1：行载体不再用 `role="button"` 包住复选框 / 链接（嵌套交互）。
+  //   键盘落点＝原生复选框（Tab 可达，Space 原生切换）；Enter 在复选框上补一次切换，
+  //   链接 / 按钮各自走原生语义，不整行抢焦点。
+  container.querySelector('#att-queue')?.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const cb = e.target.closest('input.att-queue-check');
+    if (!cb) return;
+    if (e.key === ' ') return;            // 原生空格已切换，change 事件会同步集合
+    e.preventDefault();
+    cb.checked = !cb.checked;
+    const id = cb.dataset.recordId;
+    if (id) { if (cb.checked) _queueChecked.add(id); else _queueChecked.delete(id); }
+    _syncBatchBar(container);
+  });
   _consumePendingFocus(container);
+  // 批次 540：待办跳转目标（kind=attendance；disc attendance→record）——落到确认队列同一位
+  _consumePendingTarget(container);
+}
+
+/**
+ * 批次 540：消费待办跳转目标（kind=attendance）。
+ * 命中 → 展开队列、勾选该条、滚动高亮；缺 id / 未命中 → 页内显式提示（不静默落页顶）。
+ */
+function _consumePendingTarget(container) {
+  const pending = PendingTarget.peek();
+  if (!pending || pending.tab !== 'attendance') return;
+  const target = PendingTarget.consume();
+  if (target.id) {
+    const row = [...container.querySelectorAll('[data-att-record-row]')]
+      .find(el => el.dataset.attRecordRow === target.id);
+    if (row) {
+      _focusRecord(target.id);
+      return;
+    }
+  }
+  container.querySelectorAll('[data-nav-target-missing]').forEach((el) => el.remove());
+  const hint = document.createElement('div');
+  hint.dataset.navTargetMissing = '1';
+  hint.setAttribute('role', 'status');
+  hint.className = 'card rounded-xl p-3 mb-4 text-xs text-[var(--status-warning-text)] bg-amber-50 border border-amber-200';
+  hint.textContent = target.id
+    ? '未定位到具体条目（该考勤记录可能已确认或不在待确认队列）。'
+    : '未定位到具体条目（本次跳转未带记录编号），已落到考勤管理顶部。';
+  container.prepend(hint);
 }
 
 /** 矩阵/总表点击后回到队列同一确认位：展开队列、勾选该条、滚动高亮。 */
@@ -788,11 +845,10 @@ function _consumePendingFocus(container) {
   return true;
 }
 
-/** 统一下钻：矩阵单元格 / 总表「去打包确认」都落到队列的同一确认位。 */
+/** 统一下钻：矩阵单元格 / 总表「去打包确认」都落到队列的同一确认位（单一视图下只需滚动到队列）。 */
 function _focusRecord(recordId) {
   if (!recordId) return;
   _pendingFocusRecordId = recordId;
-  _attendanceView = 'process';
   _queueExpanded = true;
   if (_lastCtx) renderContent(_lastCtx);
 }
@@ -838,7 +894,7 @@ function _buildAppealCardHTML(pendingAppeals, returnedAppeals, actById, accent, 
         </div>
         <div class="text-xs text-gray-500 truncate mt-0.5">${act ? esc(act.title) : '活动已下架'}${act?.date ? ' · ' + act.date : ''}</div>
         ${a.note ? `<div class="text-xs text-gray-600 mt-0.5">申诉说明：${esc(a.note)}</div>` : ''}
-        ${a.returnNote ? `<div class="text-xs text-amber-700 mt-0.5">打回说明：${esc(a.returnNote)}</div>` : ''}
+        ${a.returnNote ? `<div class="text-xs text-[var(--status-warning-text)] mt-0.5">打回说明：${esc(a.returnNote)}</div>` : ''}
       </div>
       ${canAct ? `<span class="flex items-center gap-2 flex-shrink-0">
         <button type="button" class="btn-accent-soft att-appeal-return text-xs px-3 py-1.5" data-appeal-id="${a.id}" style="cursor:pointer">核实属实，打回组织者</button>
@@ -849,7 +905,7 @@ function _buildAppealCardHTML(pendingAppeals, returnedAppeals, actById, accent, 
   return `
     <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">出勤申诉（待核实）</h3>
+        ${renderCardHeader({ title: `出勤申诉（待核实）` })}
         <span class="text-xs text-gray-500">同学反映「我参加了但没记上」→ 先核实，属实的交活动组织方确认</span>
       </div>
       <div class="space-y-1.5">
@@ -886,9 +942,7 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
         <div>
           <label for="disc-meet-activity" class="text-xs text-gray-500 mb-1.5 block font-medium">会议 / 活动 <span class="text-red-600">*</span></label>
-          <select id="disc-meet-activity" class="input-flat w-full">
-            ${meetings.map(m => `<option value="${m.id}">${m.title}（${m.date}）</option>`).join('')}
-          </select>
+          ${selectInput({ id: 'disc-meet-activity', options: meetings.map(m => ({ value: m.id, label: `${m.title}（${m.date}）` })), className: 'w-full' })}
         </div>
         <div>
           <div class="flex items-center justify-between mb-1.5">
@@ -915,7 +969,7 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
   return `
     <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">会议考勤录入（党课 / 支部党员大会：纪检上传位）</h3>
+        ${renderCardHeader({ title: `会议考勤录入（党课 / 支部党员大会：纪检上传位）` })}
         ${toggleBtn}
       </div>
       ${body}
@@ -959,7 +1013,7 @@ function _renderDiscMeetRosterHint() {
   const K = stats.expected;
   const L = _meetMakeupIds.size;
   hintEl.innerHTML = `
-    <span>应到 <b class="text-gray-600">${K}</b> 人 · 滞留到场补录 <b class="text-amber-700">${L}</b> 人 · 实际应到 <b class="text-gray-800">${K + L}</b> 人</span>
+    <span>应到 <b class="text-gray-600">${K}</b> 人 · 滞留到场补录 <b class="text-[var(--status-warning-text)]">${L}</b> 人 · 实际应到 <b class="text-gray-800">${K + L}</b> 人</span>
     <span class="block mt-1">${_meetSignupHintHtml()}</span>`;
 }
 
@@ -986,7 +1040,7 @@ function _renderDiscMeetDetainedMakeup() {
   const disabledSet = new Set(disabledIds);
   const detained = candidates.filter(p => disabledSet.has(p.id));
   if (detained.length === 0) {
-    strip.innerHTML = '<div class="text-xs text-gray-500">滞留党员到场补录：本活动范围无滞留党员（无需补录）</div>';
+    strip.innerHTML = emptyStateHtml({ text: '滞留党员到场补录：本活动范围无滞留党员（无需补录）', variant: 'inline' });
     return;
   }
   strip.innerHTML = `
@@ -999,7 +1053,7 @@ function _renderDiscMeetDetainedMakeup() {
           title="${esc(p.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">
           <input type="checkbox" id="disc-meet-makeup-${p.id}" ${checked ? 'checked' : ''} class="accent-amber-600" style="cursor:pointer;">
           <span class="text-xs font-medium text-gray-700">${esc(p.name)}</span>
-          <span class="text-xs px-1 py-0.5 rounded bg-amber-100 text-amber-700 align-middle">滞留</span>
+          <span class="text-xs px-1 py-0.5 rounded bg-amber-100 text-[var(--status-warning-text)] align-middle">滞留</span>
           ${checked ? badgeHtml('滞留·到场', 'warning') : ''}
         </label>`;
       }).join('')}
@@ -1091,17 +1145,19 @@ function _renderDiscMeetStatusRows(selectedIds) {
         return `
         <div class="flex items-center gap-3 p-2 rounded-lg bg-white">
           <span class="text-sm font-medium text-gray-800 min-w-[60px]">${getPersonName(pid)}</span>
-          <select id="disc-meet-status-${pid}" class="input-flat" aria-label="${esc(getPersonName(pid))} 出勤状态">
-            ${options.map(o => `<option value="${o.value}" ${curStatus === o.value ? 'selected' : ''}>${o.label}</option>`).join('')}
-          </select>
+          ${selectInput({ id: `disc-meet-status-${pid}`, options, value: curStatus, ariaLabel: `${getPersonName(pid)} 出勤状态` })}
           <span class="reason-group-${pid} inline-flex items-center gap-1 ${showReason ? '' : 'hidden'}">
             <span class="text-xs text-gray-500 whitespace-nowrap">标因</span>
-            <select id="disc-meet-reason-${pid}" class="input-flat" aria-label="${esc(getPersonName(pid))} 未到原因" title="未到标因（纪检认定：事假须提前 1 天申请 / 病假可事后补 / 无故 / 其它）">
-              ${reasonOptions.map(x => `<option value="${x.key}" ${reasonValue === x.key ? 'selected' : ''}>${x.label}</option>`).join('')}
-            </select>
+            ${selectInput({
+              id: `disc-meet-reason-${pid}`,
+              options: reasonOptions.map(x => ({ value: x.key, label: x.label })),
+              value: reasonValue,
+              ariaLabel: `${getPersonName(pid)} 未到原因`,
+              attrs: 'title="未到标因（纪检认定：事假须提前 1 天申请 / 病假可事后补 / 无故 / 其它）"',
+            })}
             <span class="reason-note-${pid} text-xs text-gray-500 whitespace-nowrap" title="时效提示（不是校验，不拦提交）">${esc(absenceReasonNote(reasonValue))}</span>
           </span>
-          ${preStatus ? '<span class="text-xs text-amber-700 whitespace-nowrap">已录·更正</span>' : ''}
+          ${preStatus ? '<span class="text-xs text-[var(--status-warning-text)] whitespace-nowrap">已录·更正</span>' : ''}
         </div>`;
       }).join('')}
     </div>`;
@@ -1135,64 +1191,101 @@ function _syncReasonNote(rowsContainer, pid) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  ② 考勤矩阵（「按活动」/「按人」互为转置 + 活动名/时间区间筛选）
+//  ② 考勤数据 = 考勤矩阵 ＋ 全量总表（2026-11-08 波次 C 合卡）
+//     为什么合卡：原「数据查看」视图里矩阵与总表各挂一条筛选条 ⇒ 同页两条筛选条
+//     （DS_06 SD-58 违例），而两组筛选本就是同一批考勤记录的口径（活动 / 时间 / 关键词）。
+//     合卡后共用一条筛选条：第 1 行＝活动＋时间区间，第 2 行＝关键词＋状态 / 类型＋清除；
+//     矩阵在上、明细总表在下，导出 / 打印 / 提交等低频动作收进卡头。
 // ════════════════════════════════════════════════════════════════
-function _buildMatrixCardHTML(ctx, matrixModel, filterActivityId, accent, accentRgba, accentBorder) {
+function _buildDataCardHTML(matrixModel, allRecords, longData, filterActivityId) {
   const acts = matrixModel.activities
     .filter(a => isActivityLive(a))
-    .filter(a => !filterActivityId || a.id === filterActivityId)
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  const actOptions = acts
-    .map(a => `<option value="${a.id}" ${filterActivityId === a.id ? 'selected' : ''}>${a.title}（${a.date}）</option>`)
-    .join('');
+  const actOptions = acts.map(a => ({ value: a.id, label: `${a.title}（${a.date}）` }));
+  const total = longData.length;
+  // 待确认 = 仅异常（缺勤/请假）未确认；出勤/已补源头审校自动确认不计入
+  const totalPending = allRecords.filter(isAttendancePendingConfirm).length;
+  const totalAuto = allRecords.filter(isAutoConfirmedAttendance).length;
+  const legend = `${Object.entries(CELL_META).map(([k, m]) => `<span class="inline-flex items-center gap-1 mr-2"><span class="w-2 h-2 rounded-full" style="background:${m.dot}"></span>${ATTENDANCE_STATUS_LABELS[k]}</span>`).join('')}<span class="mr-2">未录＝冻结应到但无记录</span><span class="mr-2">非应＝不在冻结名单</span><span>待冻＝尚无冻结名单</span>`;
+  const headMeta = `<span>共 <span class="tabular-nums font-medium text-gray-700">${total}</span> 条</span>
+          <span>待确认 <span class="tabular-nums font-medium text-orange-700">${totalPending}</span> 条</span>
+          ${totalAuto > 0 ? `<span>已录入 <span class="tabular-nums font-medium text-green-700">${totalAuto}</span> 条</span>` : ''}
+          ${HandoffStore.hasFor('attendance-archival', 'attendance') ? '<span class="text-[var(--status-success-text)] font-medium">已自动送达</span>' : ''}`;
+  const headActions = `<button type="button" class="btn-outline btn-sm att-export-btn">导出 CSV</button>
+            <button type="button" class="btn-outline btn-sm att-rate-export-btn" title="本月各场出勤率汇总，供支委会内部使用（不公示、不对外；SOP-B-35）">导出出勤率汇总（支委会内部）</button>
+            <button type="button" class="btn-outline btn-sm att-print-btn">打印</button>
+            <button type="button" class="btn-outline btn-sm att-handoff-btn">提交考勤统计至支委会</button>`;
 
   return `
-    <div class="card rounded-xl p-5 mb-4">
-      <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤矩阵</h3>
-        <!-- UI-A（2026-09-07）：互斥视图切换回退=独立小圆角钮组（去胶囊底衬；激活=主题浅底+主题色字/边框，data-view 逻辑照旧） -->
-        <!-- 批次 35（2026-09-14）：默认翻为「按人」宽表（支书裁定 long form/按活动不该为主） -->
-        <div class="flex items-center gap-2">
-          <button class="btn-tab att-mtx-view-btn px-3 py-1.5 text-xs font-medium [color:var(--app-accent-soft-text)]" data-view="byPerson">按人</button>
-          <button class="btn-tab att-mtx-view-btn px-3 py-1.5 text-xs font-medium" data-view="byActivity">按活动</button>
-        </div>
-      </div>
+    <div class="card rounded-xl card-standard">
+      ${renderCardHeader({ title: '考勤数据', meta: headMeta, actions: headActions })}
       <div class="text-xs text-gray-500 mb-3">留痕台账 · 不提供删除（更正 / 打回走状态）</div>
-      <!-- P3 四段：范围（活动 + 时间区间）→ 检索（活动名）→ 重置；分面为空段（不输出空行） -->
+      <!-- 共用筛选条（DS_06 SD-58 · 两行上限）：范围在上、关键词与分面在下，清除不独占一行 -->
       <div class="lf-bar mb-3">
         <div class="lf-bar__row" data-seg="scope">
-          <select id="att-activity-select" class="input-flat text-xs lf-select">
-            <option value="">活动：全部</option>
-            ${actOptions}
-          </select>
+          ${selectInput({
+            id: 'att-activity-select',
+            options: [{ value: '', label: '活动：全部' }, ...actOptions],
+            value: filterActivityId || '',
+            ariaLabel: '活动筛选',
+            className: 'lf-select',
+          })}
           <span class="lf-range">
-            <input type="date" id="att-mtx-from" class="input-flat text-xs" title="时间区间：起始日期">
+            ${textInput({ id: 'att-filter-from', type: 'date', attrs: 'title="时间区间：起始日期"' })}
             <span class="text-xs text-gray-500">至</span>
-            <input type="date" id="att-mtx-to" class="input-flat text-xs" title="时间区间：截止日期">
+            ${textInput({ id: 'att-filter-to', type: 'date', attrs: 'title="时间区间：截止日期"' })}
           </span>
         </div>
-        <div class="lf-bar__row" data-seg="search">
-          <input type="text" id="att-mtx-search" class="input-flat text-xs lf-kw" placeholder="活动名筛选…">
-        </div>
-        <div class="lf-bar__row" data-seg="reset">
-          <button type="button" id="att-mtx-clear" class="btn-tab lf-btn">清除</button>
+        <div class="lf-bar__row" data-seg="search" data-break-before="1">
+          ${textInput({ id: 'att-table-search', placeholder: '搜索姓名或活动…', className: 'lf-kw' })}
+          ${selectInput({
+            id: 'att-table-status',
+            options: [{ value: '', label: '状态：全部' }, ...Object.values(AttendanceStatus).map(s => ({ value: s, label: ATTENDANCE_STATUS_LABELS[s] }))],
+            ariaLabel: '状态筛选',
+            className: 'lf-select',
+          })}
+          ${selectInput({
+            id: 'att-table-type',
+            options: [{ value: '', label: '活动类型：全部' }, { value: '党小组会', label: '党小组会（只读）' }],
+            ariaLabel: '活动类型筛选',
+            className: 'lf-select',
+          })}
+          <button type="button" id="att-filter-clear" class="btn-tab lf-btn">清除</button>
         </div>
       </div>
-      <div class="text-xs text-gray-500 mb-2">${Object.entries(CELL_META).map(([k, m]) => `<span class="inline-flex items-center gap-1 mr-2"><span class="w-2 h-2 rounded-full" style="background:${m.dot}"></span>${ATTENDANCE_STATUS_LABELS[k]}</span>`).join('')}<span class="mr-2">未录＝冻结应到但无记录</span><span class="mr-2">非应＝不在冻结名单</span><span>待冻＝尚无冻结名单</span></div>
+      <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+        <h4 class="text-sm font-semibold text-gray-800">考勤矩阵</h4>
+        <!-- C-08：选中态沿用既有 .btn-tab.active（软三件套），不再用内联主题色类自成分段 -->
+        <!-- 批次 35（2026-09-14）：默认翻为「按人」宽表（支书裁定 long form/按活动不该为主）；
+             按人 / 按活动是同一张表的两个方向，不是页面级视图切换 -->
+        <div class="flex items-center gap-2" role="group" aria-label="矩阵视图">
+          <button type="button" class="btn-tab att-mtx-view-btn active px-3 py-1.5 text-xs font-medium" data-view="byPerson" aria-pressed="true">按人</button>
+          <button type="button" class="btn-tab att-mtx-view-btn px-3 py-1.5 text-xs font-medium" data-view="byActivity" aria-pressed="false">按活动</button>
+        </div>
+      </div>
+      <div class="text-xs text-gray-500 mb-2">${legend}</div>
       <div id="att-matrix-container"></div>
+      <div class="mt-5 pt-4 border-t border-gray-200">
+        <h4 class="text-sm font-semibold text-gray-800 mb-2">明细总表</h4>
+        <div id="att-table-container">${_attSectionSkeletonHtml()}</div>
+        <div id="att-table-pager"></div>
+      </div>
     </div>
   `;
 }
 
-/** 活动筛选：活动名包含 + 时间区间（起止） */
-function _filterActivities(acts, actById) {
-  const searchEl = document.getElementById('att-mtx-search');
-  const fromEl = document.getElementById('att-mtx-from');
-  const toEl = document.getElementById('att-mtx-to');
+/** 活动筛选：活动范围 + 时间区间（起止）+ 关键词（活动名包含） */
+function _filterActivities(acts) {
+  const actEl = document.getElementById('att-activity-select');
+  const searchEl = document.getElementById('att-table-search');
+  const fromEl = document.getElementById('att-filter-from');
+  const toEl = document.getElementById('att-filter-to');
+  const actId = actEl ? actEl.value : '';
   const q = searchEl ? searchEl.value.trim().toLowerCase() : '';
   const from = fromEl ? fromEl.value : '';
   const to = toEl ? toEl.value : '';
   return acts.filter(a => {
+    if (actId && a.id !== actId) return false;
     if (q && !(a.title || '').toLowerCase().includes(q)) return false;
     if (from && a.date && a.date < from) return false;
     if (to && a.date && a.date > to) return false;
@@ -1207,7 +1300,7 @@ function _renderMatrix(matrixView, matrixModel, actById, allRecords, ctx, accent
   const acts = matrixModel.activities
     .filter(a => isActivityLive(a))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  const visibleActs = _filterActivities(acts, actById);
+  const visibleActs = _filterActivities(acts);
   const personIds = matrixModel.personIds;
   const recordById = new Map((allRecords || []).map(r => [r.id, r]));
 
@@ -1216,7 +1309,7 @@ function _renderMatrix(matrixView, matrixModel, actById, allRecords, ctx, accent
   const cellHtml = (personId, activityId) => {
     const state = matrixModel.cell(personId, activityId);
     if (state.kind === 'unrecorded') {
-      return '<span class="text-xs font-medium text-amber-700" title="该成员在冻结应到名单中，尚未录入考勤">未录</span>';
+      return '<span class="text-xs font-medium text-[var(--status-warning-text)]" title="该成员在冻结应到名单中，尚未录入考勤">未录</span>';
     }
     if (state.kind === 'not-applicable') {
       return '<span class="text-xs text-gray-500" title="该成员不在本场冻结应到名单中">非应</span>';
@@ -1258,67 +1351,26 @@ function _renderMatrix(matrixView, matrixModel, actById, allRecords, ctx, accent
 
 // ════════════════════════════════════════════════════════════════
 //  ③ 全量总表（分页铁律 · 低频操作：导出/打印/提交考勤）
+//     2026-11-08 波次 C：卡壳随矩阵合入「考勤数据」卡，筛选条与矩阵共用一条（见 _buildDataCardHTML）。
 // ════════════════════════════════════════════════════════════════
-function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityId, accent, accentRgba, accentBorder) {
-  const total = longData.length;
-  // 待确认 = 仅异常（缺勤/请假）未确认；出勤/已补源头审校自动确认不计入
-  const totalPending = allRecords.filter(isAttendancePendingConfirm).length;
-  const totalAuto = allRecords.filter(isAutoConfirmedAttendance).length;
-  return `
-    <div class="card rounded-xl p-5">
-      <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
-        <div class="flex items-center gap-3">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤汇总（导出 / 打印）</h3>
-          <div class="flex gap-2 text-xs">
-            <span class="text-gray-600">共 <span class="font-bold text-gray-800">${total}</span> 条</span>
-            <span class="text-gray-600">待确认 <span class="font-bold text-orange-700">${totalPending}</span></span>
-            ${totalAuto > 0 ? `<span class="text-gray-500">已录入 <span class="font-bold text-green-700">${totalAuto}</span></span>` : ''}
-            ${HandoffStore.hasFor('attendance-archival', 'attendance') ? '<span class="text-teal-600 font-medium">已自动送达</span>' : ''}
-          </div>
-        </div>
-        <!-- U5b（2026-09-07）：低频操作钮统一 32px 圆角（与分页钮/下拉同高同 border 家族，hover 统一 bg-gray-50） -->
-        <div class="flex flex-wrap items-center gap-2">
-          <button class="btn-outline att-export-btn h-8 px-3 text-xs font-medium">导出 CSV</button>
-          <button class="btn-outline att-rate-export-btn h-8 px-3 text-xs font-medium" title="本月各场出勤率汇总，供支委会内部使用（不公示、不对外；SOP-B-35）">导出出勤率汇总（支委会内部）</button>
-          <button class="btn-outline att-print-btn h-8 px-3 text-xs font-medium">打印</button>
-          <button class="btn-outline att-handoff-btn h-8 px-3 text-xs font-medium">提交考勤统计至支委会</button>
-        </div>
-      </div>
-      <!-- U5b（2026-09-07）：搜索输入 + 状态下拉（enhanceSelects 后为 cs-trigger）统一 text-xs 紧凑档；
-           2026-09-14 批次 27：载体收敛为 lf-bar/lf-kw/lf-select，控件统一 34px 高 / 12px 字 -->
-      <!-- P3 四段：检索 → 分面（状态 / 活动类型）→ 重置；范围为空段（不输出空行） -->
-      <div class="lf-bar mb-3">
-        <div class="lf-bar__row" data-seg="search">
-          <input type="text" id="att-table-search" class="input-flat text-xs lf-kw" placeholder="搜索姓名或活动…">
-        </div>
-        <div class="lf-bar__row" data-seg="facet">
-          <select id="att-table-status" class="input-flat text-xs lf-select" aria-label="状态筛选">
-            <option value="">状态：全部</option>
-            ${Object.values(AttendanceStatus).map(s => `<option value="${s}">${ATTENDANCE_STATUS_LABELS[s]}</option>`).join('')}
-          </select>
-          <select id="att-table-type" class="input-flat text-xs lf-select" aria-label="活动类型筛选">
-            <option value="">活动类型：全部</option>
-            <option value="党小组会">党小组会（只读）</option>
-          </select>
-        </div>
-        <div class="lf-bar__row" data-seg="reset">
-          <button type="button" id="att-table-clear" class="btn-tab lf-btn">清除</button>
-        </div>
-      </div>
-      <div id="att-table-container">${_attSectionSkeletonHtml()}</div>
-      <div id="att-table-pager"></div>
-    </div>
-  `;
-}
-
 function applyTableFilter(longData, allRecords, actById) {
+  const actEl = document.getElementById('att-activity-select');
+  const fromEl = document.getElementById('att-filter-from');
+  const toEl = document.getElementById('att-filter-to');
   const searchEl = document.getElementById('att-table-search');
   const statusEl = document.getElementById('att-table-status');
   const typeEl = document.getElementById('att-table-type');
+  const actId = actEl ? actEl.value : '';
+  const from = fromEl ? fromEl.value : '';
+  const to = toEl ? toEl.value : '';
   const q = searchEl ? searchEl.value.trim().toLowerCase() : '';
   const s = statusEl ? statusEl.value : '';
   const type = typeEl ? typeEl.value : '';
   return longData.filter(r => {
+    if (actId && r.activityId !== actId) return false;
+    const date = actById?.get?.(r.activityId)?.date || '';
+    if (from && date && date < from) return false;
+    if (to && date && date > to) return false;
     if (q && !(r.name || '').toLowerCase().includes(q) && !(r.activity || '').toLowerCase().includes(q)) return false;
     // 修复：attendanceToLong 的 status 为中文标签，须用 statusKey（英文枚举）比较；
     // 双值兼容：单选 value 为英文枚举，r.statusKey 与之同构（T-304 实测修复）
@@ -1352,16 +1404,16 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx, 
     <div class="overflow-x-auto">
       <table class="data-table" data-responsive="cards">
         <thead><tr>
-          <th>姓名</th>
-          ${showCols.studentId ? '<th>学号</th>' : ''}
-          ${showCols.developStage ? '<th>发展阶段</th>' : ''}
-          ${showCols.partyGroup ? '<th>所属党小组</th>' : ''}
-          <th>活动</th>
-          ${showCols.type ? '<th>类别</th>' : ''}
-          <th>状态</th>
-          ${groupMeetingView ? '<th>备注（标因/补录）</th>' : ''}
-          <th>确认人</th>
-          <th>操作</th>
+          <th scope="col">姓名</th>
+          ${showCols.studentId ? '<th scope="col">学号</th>' : ''}
+          ${showCols.developStage ? '<th scope="col">发展阶段</th>' : ''}
+          ${showCols.partyGroup ? '<th scope="col">所属党小组</th>' : ''}
+          <th scope="col">活动</th>
+          ${showCols.type ? '<th scope="col">类别</th>' : ''}
+          <th scope="col">状态</th>
+          ${groupMeetingView ? '<th scope="col">备注（标因/补录）</th>' : ''}
+          <th scope="col">确认人</th>
+          <th scope="col">操作</th>
         </tr></thead>
         <tbody>${pageRows.length ? pageRows.map(a => {
           const rec = allRecords.find(r => r.id === a.id);
@@ -1377,7 +1429,7 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx, 
           const groupMeetingNote = rec?.detainedMakeup
             ? badgeHtml('滞留·到场', 'warning')
             : (rec?.absenceReason ? esc(absenceReasonLabel(rec.absenceReason)) : '<span class="text-gray-500">—</span>');
-          const statusColor = a.status === AttendanceStatus.PRESENT ? 'text-green-700' : a.status === AttendanceStatus.ABSENT ? 'text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'text-teal-700' : 'text-orange-700';
+          const statusColor = a.status === AttendanceStatus.PRESENT ? 'text-green-700' : a.status === AttendanceStatus.ABSENT ? 'text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'text-[var(--status-success-text)]' : 'text-orange-700';
           return `
           <tr>
             <td class="font-medium text-gray-800" data-label="姓名"><a href="${getBasePath()}person.html?id=${encodeURIComponent(a.personId)}" class="hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${a.name}</a></td>
@@ -1388,11 +1440,11 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx, 
             ${showCols.type ? `<td class="text-gray-600" data-label="类别"${a.type ? '' : ` title="${SNAPSHOT_TITLE}"`}>${a.type || '—'}</td>` : ''}
             <td data-label="状态"><span class="${statusColor}">${a.status}</span>${a.onlineAttend ? '<span class="ml-1 text-xs px-1 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200 align-middle" title="线上参会：不计入出席（记「请假」），只免补课（D-293）">线上参会</span>' : ''}</td>
             ${groupMeetingView ? `<td class="text-gray-500" data-label="备注（标因/补录）">${groupMeetingNote}</td>` : ''}
-            <td class="text-gray-500" data-label="确认人">${returned ? '<span class="text-amber-700" title="已打回，待活动组织方重新确认">已打回</span>' : (autoConfirmed ? '<span class="text-green-700">自动确认</span>' : (isPending ? '<span class="text-orange-700">待确认</span>' : `<span class="text-green-700">${a.confirmer}</span>`))}</td>
+            <td class="text-gray-500" data-label="确认人">${returned ? '<span class="text-[var(--status-warning-text)]" title="已打回，待活动组织方重新确认">已打回</span>' : (autoConfirmed ? '<span class="text-green-700">自动确认</span>' : (isPending ? '<span class="text-orange-700">待确认</span>' : `<span class="text-green-700">${a.confirmer}</span>`))}</td>
             <td data-label="操作">${groupMeetingView && a.type === '党小组会'
               ? '<span class="text-xs text-gray-500" aria-label="只读">只读</span>'
               : (returned
-              ? '<span class="text-xs text-amber-700" title="已打回，待活动组织方重新确认">已打回 · 待组织方重新确认</span>'
+              ? '<span class="text-xs text-[var(--status-warning-text)]" title="已打回，待活动组织方重新确认">已打回 · 待组织方重新确认</span>'
               : (isPending && !autoConfirmed
               ? `<button class="btn-outline att-jump-queue text-xs px-2.5 py-1" data-record-id="${a.id}" style="cursor:pointer;" title="到「待确认考勤」队列确认该条">去打包确认</button>`
               : (canReturn

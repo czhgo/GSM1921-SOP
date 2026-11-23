@@ -5,7 +5,7 @@
 // R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
 //   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
 
-import { todayLocal } from '../base/date.js?v=20261031a';
+import { todayLocal } from '../base/date.js?v=20261120a';
 
 // ════════════════════════════════════════════════════════════════
 //  缺省支部 id（单一源，R2-17，2026-10-20）
@@ -32,7 +32,7 @@ const _C = {
   cyan400: '#22D3EE', blue600: '#2563EB', emerald400: '#34D399', sky400: '#38BDF8', blue500: '#3b82f6',
   green400: '#4ADE80', gray600: '#4B5563', indigo600: '#4F46E5', blue400: '#60A5FA', gray500: '#6B7280',
   violet600: '#7C3AED', sky300: '#7DD3FC', amber800: '#92400E', slate400: '#94A3B8', red800: '#991B1B',
-  redBrandDeep: '#9B0000', yellow700: '#A16207', indigo300: '#A5B4FC', violet400: '#A78BFA', partyRed: '#B91C1C',
+  redBrandDeep: '#9B0000', gray400: '#9CA3AF', yellow700: '#A16207', indigo300: '#A5B4FC', violet400: '#A78BFA', partyRed: '#B91C1C',
   orange700: '#C2410C', violet300: '#C4B5FD', slate300: '#CBD5E1', partyRedBrand: '#CE1126', amber600: '#d97706',
   red600: '#DC2626', red400: '#F87171', orange400: '#FB923C', amber400: '#FBBF24', red50: '#FEF2F2',
   yellow50: '#FEFCE8', partyGold: '#FFD700', white: '#fff',
@@ -108,6 +108,16 @@ export const ROLE_COLORS = _applyDark({
   initiator:           { bg: 'rgba(79, 70, 229, 0.10)', text: _C.indigo600,  border: 'rgba(79, 70, 229, 0.30)' },  // 靛蓝#4F46E5（indigo-600，发起人）
   all:                 { bg: 'rgba(14, 116, 144, 0.08)',  text: _C.cyan700,  border: 'rgba(14, 116, 144, 0.20)' },
   secretary:           { bg: 'rgba(185, 28, 28, 0.10)',   text: _C.partyRed,  border: 'rgba(185, 28, 28, 0.30)' },  // 党建红（不动）
+});
+
+// ── 任务三态展示色（2026-11-04 批次 534 · Task 6.4）────────────────
+// 病灶：待处理 / 进行中的色点三元组在 activity-view / inspector / taskforce-view / report-inbox /
+//   leader/write-tab 各写一份，改一处就出现同屏两色。收敛到本表，消费方只引用、不再写 hex。
+// 值逐字取自改造前字面量（对应 _C.gray400 / _C.amber600 / _C.green600）⇒ 零观感变化；颜色源仍是 `_C`。
+export const TASK_STATUS_TONE = Object.freeze({
+  pending:     { label: '待处理', color: _C.gray400 },
+  in_progress: { label: '进行中', color: _C.amber600 },
+  completed:   { label: '已完成', color: _C.green600 },
 });
 
 // ── 活动类别颜色（两大类：三会一课=党建红 / 主题党日=党建金）──
@@ -763,15 +773,27 @@ export function classifyActivityType(type) {
 //      **不要**在别处另写一套中文标签（本节曾短暂加过 ACTIVITY_LIFECYCLE_LABELS，属重复源，已撤除）。
 
 // ════════════════════════════════════════════════════════════════
-//  首页展示截断上限（单一源，R2-24，2026-10-20）
+//  展示截断上限（单一源，R2-24，2026-10-20）
 // ════════════════════════════════════════════════════════════════
 //  原先通知铃铛 10 / 活动风采 6 / 首页活动列表 10 三处各写死，调上限要改三处且容易漏。
 //  这里只收敛「数字」，排序/溢出提示仍由各组件按自身语义处理（通知按紧急/未读优先）。
+//  2026-11-03 批次 530（B-520-3）：再把首页工作组预览 / 工作概况内联动作 / 考勤待确认队列 /
+//   日历格子活动与任务条数一并收进本表——这些数字此前分散在四五个组件里各写一遍。
+//  ⚠ 本表是**版面口径**（显示几条），不是制度参数：制度参数一律走 core/domain/policy-defaults.js。
 export const DASHBOARD_LIMITS = Object.freeze({
   notices: 10,
   gallery: 6,
   activities: 10,
+  groupPreview: 3,          // 首页「工作组进展」每组条数（data-adapter 预载同值）
+  overviewInlineActions: 3, // 工作概况行内联动作条数（超出走「更多」）
+  attendanceQueueVisible: 8,// 考勤「待确认」队列默认可见条数（超出折叠）
+  calendarDayActivities: 3, // 月视图格子最多活动标签
+  calendarDayTasks: 2,      // 月视图格子最多任务标签
 });
+
+/** 组长「学期组员进展」提醒窗（每年两学期开学首周 3/9 月 1–7 日；判定与文案共用） */
+export const SEMESTER_REMIND_OPEN_MONTHS = Object.freeze([3, 9]);
+export const SEMESTER_REMIND_FIRST_WEEK_LAST_DAY = 7;
 
 /** 活动是否已结束（单一源）：status==='completed' 或 archived 标记 */
 export function isActivityEnded(activity) {
@@ -1143,3 +1165,30 @@ export function activityTypeTone(type) {
   if (cls === 'theme-party') return 'gold';
   return 'neutral';
 }
+
+// ════════════════════════════════════════════════════════════════
+//  党委内容与公开发布（单一源，2026-11-08 · 批次 534）
+// ════════════════════════════════════════════════════════════════
+// 党委（party-staff）写入的活动 / 通知 / 支部文件按 `ownerScope` 区分归属：
+//   支部自发内容缺省 `branch`；党委内容写 `committee`，并以下发原件 id 关联支部副本。
+// 发布可见范围只认三档；公开摘要承载展示用文案，不得写入成员个人数据。
+// ⚠ 追加在文件末，避免上方行号引用漂移。
+
+/** 党委伪支部 id：党委自有内容的归属键，不参与真实支部的成员归属 */
+export const COMMITTEE_OWNER_ID = 'pc-gsm';
+/** 内容归属范围：`branch`＝支部自发；`committee`＝党委下发 / 党委自有 */
+export const ACTIVITY_OWNER_SCOPES = Object.freeze(['branch', 'committee']);
+/** 发布可见范围：`branch`＝仅本支部；`login`＝登录可见；`public`＝公开可见 */
+export const PUBLISH_SCOPES = Object.freeze(['branch', 'login', 'public']);
+/** 党委活动副本的锁定字段：标题 / 类型 / 描述 / 议程 / 载体 / 公开摘要 / 正文，支部不得改写 */
+export const ACTIVITY_COPY_LOCKED_FIELDS = Object.freeze([
+  'title', 'type', 'description', 'agenda', 'carriers', 'publicSummary', 'summary', 'content',
+]);
+/** 党委活动副本的可改字段：时间 / 地点 / 承办 / 招募 / 分工 / 参与者，支部可本地调整 */
+export const ACTIVITY_COPY_EDITABLE_FIELDS = Object.freeze([
+  'date', 'location', 'organizingScope', 'hostGroupId', 'hostGroup', 'recruitmentScope',
+  'crossGroupCoordinatorId', 'signupEnabled', 'signupClosed', 'requireMakeup', 'isOutdoor',
+  'deepWorkMode', 'assignments', 'participants',
+]);
+/** 通知「强调」窗口（毫秒）：发布后该窗口内的通知按强调态展示 */
+export const EMPHASIS_NOTICE_WINDOW_MS = 24 * 60 * 60 * 1000;

@@ -28,6 +28,25 @@ const ok = (m) => console.log(`  ✅ ${m}`);
 const warn = (m) => console.log(`  ⚠ ${m}`);
 const head = (m) => console.log(`\n== ${m}`);
 
+/** 只读统计库内支部数（2026-11-03：配合「生产一实例一支部」硬断言）。
+ *  为什么直连 SQLite：`doctor` 要在服务**还没起**时也能体检，不能依赖 HTTP。
+ *  用 createRequire 从 `server/package.json` 解析 better-sqlite3，避免在仓库根解析不到该依赖。 */
+async function readBranchCount(dbPathRaw) {
+  const abs = path.isAbsolute(dbPathRaw) ? dbPathRaw : path.resolve(ROOT, dbPathRaw);
+  if (!fs.existsSync(abs)) return { path: abs, missing: true };
+  try {
+    const { createRequire } = await import('node:module');
+    const requireFromServer = createRequire(path.join(ROOT, 'server', 'package.json'));
+    const Database = requireFromServer('better-sqlite3');
+    const db = new Database(abs, { readonly: true, fileMustExist: true });
+    const row = db.prepare('SELECT COUNT(*) AS c FROM branches').get();
+    db.close();
+    return { path: abs, count: row.c };
+  } catch (e) {
+    return { path: abs, error: e.message };
+  }
+}
+
 /** 解析 env 文件（只认 `KEY=值` 两种写法：systemd EnvironmentFile / 手写均可）
  *  ⚠ 必须剥掉值后面的**行内注释**——`deploy/env.production.example` 通篇带注释（如 `APP_ENV=production  # …`），
  *  不剥就会把注释当成值的一部分 ⇒ 每一项都误报「建议 production」（2026-09-29 批次 272 实测踩到并修）。 */
@@ -120,6 +139,22 @@ if (env.DISABLE_PASSWORD_CHECK === '1' && prod) { warn('DISABLE_PASSWORD_CHECK=1
 if (env.LOGIN_PASSWORD === '123456') warn('LOGIN_PASSWORD 还是缺省演示口令 `123456` —— **必须改**');
 if (prod && env.ALLOW_DEMO_DATA === '1') warn('ALLOW_DEMO_DATA=1：生产形态已放行含演示种子行的库——**只应临时用于演练**；正式库请以空库/基线库起步（见 README-server.md §5.7）');
 if (env.READ_ONLY === '1') warn('READ_ONLY=1：当前只读演练模式（所有业务写口 403）；确认这是演练实例再继续');
+
+console.log('\n  ── 运行档与支部数（2026-11-03）──');
+console.log(`  · 运行档：${prod ? 'production（一实例一支部）' : 'review（视觉检验）'}`);
+const branch = await readBranchCount(env.DB_PATH || path.join('server', 'data.db'));
+if (branch.missing) {
+  console.log(`  · 库尚未创建（${branch.path}）—— 首启后自动建库；暂无支部可计`);
+} else if (branch.error) {
+  warn(`支部数读取失败（${branch.path}）：${branch.error}`);
+} else if (prod && branch.count > 1 && env.ALLOW_MULTI_BRANCH !== '1') {
+  warn(`支部数=${branch.count} · 生产运行档会拒绝启动（一实例一支部；多支部需先完成服务端读过滤或显式设置 ALLOW_MULTI_BRANCH=1）`);
+  blockers.push('生产档多支部');
+} else if (prod && branch.count > 1) {
+  warn(`支部数=${branch.count} · 已设 ALLOW_MULTI_BRANCH=1（放行；请确认服务端读过滤已完成）`);
+} else {
+  ok(`支部数=${branch.count}（${prod ? '生产档' : 'review 档不拦'}）`);
+}
 
 console.log('\n  ── IAAA 统一身份认证（没备案也能先用口令登录）──');
 if (env.IAAA_MOCK === '1') ok('IAAA_MOCK=1 ⇒ 本地联调模式（回调的 token 直接当学号；**生产不要设**）');

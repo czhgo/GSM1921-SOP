@@ -1,14 +1,15 @@
 // role: [工程师]+[AI]
 // 个人档案页的「本人自述」展示：折叠摘要 + 5 个子组。
 // 字段顺序与含义沿用自我描述字段单一源（core/domain/self-profile.js）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261031a';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261120a';
 import {
   isSelfProfileEmpty, SELF_PROFILE_FIELDS,
-} from '../../core/domain/self-profile.js?v=20261031a';
-import { EMPTY_TEXT } from '../../core/domain/constants.js?v=20261031a';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261031a';
+} from '../../core/domain/self-profile.js?v=20261120a';
+import { EMPTY_TEXT } from '../../core/domain/constants.js?v=20261120a';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261120a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261120a';
+import { renderCardHeader } from '../shell/page-frame.js?v=20261120a';
 /** 15 个自述字段的展示子组（顺序＝展开后的阅读顺序；键集≡SELF_PROFILE_FIELDS） */
 export const SELF_PROFILE_GROUPS = [
   { title: '基本信息', keys: ['phone', 'grade', 'major'] },
@@ -116,7 +117,7 @@ function fieldRowHtml(field, selfProfile) {
 
 function groupHtml(group, selfProfile) {
   return `<section class="mt-4 first:mt-0" aria-label="${esc(group.title)}">
-    <h3 class="text-sm font-semibold text-gray-700">${esc(group.title)}</h3>
+    ${renderCardHeader({ title: group.title, variant: 'panel' })}
     <dl class="mt-1 grid grid-cols-1 gap-x-6 sm:grid-cols-2">
       ${group.keys.map((key) => fieldRowHtml(FIELD_BY_KEY.get(key), selfProfile)).join('')}
     </dl>
@@ -193,7 +194,7 @@ export function renderThoughtReportsSection({ reports = [], total = 0, viewAllHr
     <div class="flex flex-wrap items-baseline justify-between gap-2">
       <div class="flex items-baseline gap-2 min-w-0">
         <h2 id="person-thought-heading" class="text-base font-semibold text-gray-700">思想汇报</h2>
-        <span class="text-xs text-gray-500">共 ${count} 篇 · 提交即入库</span>
+        ${count > 0 ? `<span class="text-xs text-gray-500">共 ${count} 篇</span>` : ''}
       </div>
       ${count > shown.length && viewAllHref
         ? `<a href="${viewAllHref}" class="text-xs text-accent">全部 ${count} 篇 →</a>`

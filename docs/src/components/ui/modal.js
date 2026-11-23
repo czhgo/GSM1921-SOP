@@ -5,7 +5,7 @@
 //  设计原则：点击按钮→弹出浮窗→在浮窗中完成写入→关闭浮窗
 //  页面保持清爽，所有表单/编辑器都在浮窗中完成
 
-import { escHtml, describeWriteError } from '../../core/base/utils.js?v=20261031a';
+import { escHtml, describeWriteError, prefersReducedMotion } from '../../core/base/utils.js?v=20261120a';
 
 // 2026-09-13 修复（成员档案模态走查暴露）：Esc 监听原只在「按 Esc 关闭」这一条路径上注销，
 // 走遮罩点击/关闭按钮/程序化 closeModal 关闭时监听残留 → 反复打开同一 id 浮窗会累积 keydown
@@ -247,6 +247,50 @@ function _releaseInert(id) {
 //  · 状态：取消 / Esc / 遮罩 / × 统一走 `onCancel`；提交中由调用方禁用按钮；失败留在浮窗内
 //  调用方只需给 `footerHtml`（动作行）与 `onCancel`（清临时状态），布局与关闭语义由本组件统一。
 // ════════════════════════════════════════════════════════════════
+/** 读动效令牌的毫秒值（无浏览器 / 令牌缺失时用兜底值；避免在样式串里写裸毫秒） */
+function _motionMs(name, fallback) {
+  try {
+    const v = String(getComputedStyle(document.documentElement).getPropertyValue(name) || '').trim();
+    const m = /^(\d*\.?\d+)(ms|s)$/.exec(v);
+    if (!m) return fallback;
+    return m[2] === 's' ? Number(m[1]) * 1000 : Number(m[1]);
+  } catch (_) { return fallback; }
+}
+
+/**
+ * 浮窗入场（2026-11-03 批次 531 · F-13）：从**触发元素**的位置收束到浮窗位置，不再凭空淡入上浮。
+ * · 触发元素＝打开前的 `document.activeElement`（调用方按钮）；以它为中心设 `transform-origin`，
+ *   浮窗从该点向外展开（非阻塞弹层，遮罩同步淡入）；
+ * · 无触发元素（程序化打开 / 焦点在 body）⇒ 退回居中淡入，不做位移；
+ * · `prefers-reduced-motion` 或无 Web Animations 支持 ⇒ 不播动画，浮窗直接到位。
+ * @param {HTMLElement} overlay 遮罩层
+ * @param {HTMLElement} panel 浮窗面板
+ * @param {Element|null} opener 打开前的焦点元素
+ */
+function _playModalEnter(overlay, panel, opener) {
+  if (typeof overlay.animate !== 'function' || prefersReducedMotion()) return;
+  const enter = _motionMs('--motion-enter', 200);
+  const feedback = _motionMs('--motion-feedback', 120);
+  try {
+    overlay.animate([{ opacity: 0 }, { opacity: 1 }], { duration: feedback, easing: 'ease-out' });
+    const trigger = opener && opener !== document.body
+      && typeof opener.getBoundingClientRect === 'function' ? opener : null;
+    const box = panel.getBoundingClientRect();
+    if (!trigger || !box.width || !box.height) {
+      panel.animate([{ opacity: 0 }, { opacity: 1 }], { duration: enter, easing: 'ease-out' });
+      return;
+    }
+    const rect = trigger.getBoundingClientRect();
+    const originX = Math.round(rect.left + rect.width / 2 - box.left);
+    const originY = Math.round(rect.top + rect.height / 2 - box.top);
+    panel.style.transformOrigin = `${originX}px ${originY}px`;
+    panel.animate(
+      [{ opacity: 0, transform: 'scale(0.96)' }, { opacity: 1, transform: 'scale(1)' }],
+      { duration: enter, easing: 'ease-out' },
+    );
+  } catch (_) { /* 动画失败不影响浮窗可用 */ }
+}
+
 export function openModal({
   id, title, bodyHtml, onMount,
   width = '', size = 'md',
@@ -271,7 +315,7 @@ export function openModal({
 
   const overlay = document.createElement('div');
   overlay.id = `modal-overlay-${id}`;
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;animation:fadeIn var(--motion-feedback) var(--ease-standard);';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;';
 
   const panel = document.createElement('div');
   // role="dialog" + aria-modal + aria-labelledby：让读屏把浮窗识别为模态对话框并以标题为名
@@ -282,7 +326,8 @@ export function openModal({
   panel.className = `modal-panel modal-panel--${size}`;
   panel.style.setProperty('--modal-width', width || sizeWidth);
   panel.style.setProperty('--modal-accent', accentColor);
-  panel.style.animation = 'slideUp var(--motion-enter) var(--ease-standard)';
+  // 入场动画改由 `_playModalEnter` 按触发元素位置播（见 openModal 末尾的 appendChild 之后）：
+  // 原 `slideUp` 固定自下而上 16px 上浮，与「点击哪儿就从哪儿展开」的空间关系无关。
 
   // dismissable=false（「本位」nudge 专用，见 confirmNudge）：**不渲染右上角 ×**——
   // 那种弹窗只给两个动作按钮（主 / 次），不给第二条退出路径（2026-09-23 支书裁定）。
@@ -313,6 +358,8 @@ export function openModal({
 
   overlay.appendChild(panel);
   document.body.appendChild(overlay);
+  // F-13：入场从触发元素位置收束（无触发元素 → 居中淡入；减少动效 → 直接到位）
+  _playModalEnter(overlay, panel, opener);
 
   // 背景 inert（浮窗之外的 body 子元素）——浮窗开着时背景不进 Tab 序列、读屏也读不到；
   // 关闭时由 `_releaseInert` 逐条还原（保留他处对 inert 的使用，如折叠侧栏）
@@ -833,6 +880,30 @@ export function confirmWriteWithoutGrant({ subject = '活动', context = '' } = 
     cancelLabel: '返回指定',
     bodyHtml: `${_noGrantNoteHtml(subject, context)}
         <p style="margin:10px 0 0;font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">点「仍然提交」＝本次先写入、稍后补指定；点「返回指定」＝回到表单先指定组织者。这不改动任何权限。</p>`,
+  });
+}
+
+/**
+ * 非危险动作的统一二次确认（批次 537 波次 1）。
+ * 用途：可撤回 / 可重做的动作（如「采用党委活动」）——与 `confirmDanger` 同一套机制（`_mustPressConfirm`），
+ *   只是主按钮走 `.btn-accent`，语义不是「不可逆」。同一动作在不同入口必须调本函数，
+ *   不得各写一份弹窗（避免「一处有确认、一处直写」）。
+ * @param {Object} o
+ * @param {string} o.id 语义 id（渲染为 `#modal-overlay-action-<id>`，测试可定位）
+ * @param {string} o.title 标题＝做什么（一行动词）
+ * @param {string} o.bodyHtml 影响范围 + 可否恢复
+ * @param {string} [o.confirmLabel='确认'] 主按钮文案
+ * @param {string} [o.cancelLabel='取消'] 次按钮文案
+ * @returns {Promise<boolean>} true＝用户确认；false＝取消
+ */
+export function confirmAction({ id, title, bodyHtml, confirmLabel = '确认', cancelLabel = '取消' }) {
+  return _mustPressConfirm({
+    id: `action-${id}`,
+    title,
+    bodyHtml,
+    confirmLabel,
+    cancelLabel,
+    danger: false,
   });
 }
 

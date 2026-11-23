@@ -16,8 +16,8 @@
 //   · 旧偏好 sky / light-blue → blue、deep → purple（与 constants.js 回落表同口径），
 //     设置页给出轻提示（role="status"，不阻断操作；不写浏览器存储）。
 
-import { icon } from '../../core/base/icons.js?v=20261031a';
-import { ACCENT_PALETTE, getAccentColors } from '../../core/domain/constants.js?v=20261031a';
+import { icon } from '../../core/base/icons.js?v=20261120a';
+import { ACCENT_PALETTE, getAccentColors } from '../../core/domain/constants.js?v=20261120a';
 import {
   getFontSizePreference,
   setFontSizePreference,
@@ -26,7 +26,7 @@ import {
   getAccentRolePreference,
   setAccentRolePreference,
   resolveAppliedAccentRole,
-} from '../../core/boot/theme.js?v=20261031a';
+} from '../../core/boot/theme.js?v=20261120a';
 
 // ── 按钮态样式（与迁移前侧边栏一致；gray 系类随 html.theme-dark 自动翻转）──
 const _base = 'btn-tab px-2.5 py-1 text-xs ';
@@ -37,9 +37,11 @@ const _off = '';
 function _btnCls(active) {
   return _base + (active ? _on : _off);
 }
-/** 选中态同步（只切类：浅底/深字/深色提亮由 `.btn-tab.active` 与 CSS 主题 token 承担） */
+/** 选中态同步（只切类：浅底/深字/深色提亮由 `.btn-tab.active` 与 CSS 主题 token 承担）
+ *  2026-11-04 Task 3.3：同时写 `aria-pressed`——选中态不只靠底色，读屏可播报。 */
 function _applyBtnState(btn, active) {
   btn.className = _btnCls(active);
+  btn.setAttribute('aria-pressed', active ? 'true' : 'false');
 }
 
 // ── 字号二档 ──
@@ -151,12 +153,14 @@ export function appearanceControlsHTML(opts = {}) {
   const mode = _themeMode();
   const accentOptions = ACCENT_PALETTE.map(c => _accentOptionHTML(c, accent.key, mode)).join('');
 
+  // 2026-11-04 Task 3.3：字号 / 主题按钮补 `aria-pressed`；主题按钮只有图标 ⇒ 补 `aria-label`
+  //   （图标 SVG 由 icons.js 默认 aria-hidden，不抢可访问名）。
   const fontBtns = FONT_OPTIONS.map(o => `
-    <button type="button" class="btn-tab ${_btnCls(font === o.value)}" data-font-size="${o.value}" title="${o.title}">${o.label}</button>
+    <button type="button" class="btn-tab ${_btnCls(font === o.value)}" data-font-size="${o.value}" aria-pressed="${font === o.value ? 'true' : 'false'}" title="${o.title}">${o.label}</button>
   `).join('');
 
   const themeBtns = THEME_OPTIONS.map(o => `
-    <button type="button" class="btn-tab ${_btnCls(theme === o.value)}" data-theme-mode="${o.value}" title="${o.title}">${icon(o.icon, { className: 'w-3.5 h-3.5' })}</button>
+    <button type="button" class="btn-tab ${_btnCls(theme === o.value)}" data-theme-mode="${o.value}" aria-pressed="${theme === o.value ? 'true' : 'false'}" aria-label="${o.title}" title="${o.title}">${icon(o.icon, { className: 'w-3.5 h-3.5' })}</button>
   `).join('');
 
   return `

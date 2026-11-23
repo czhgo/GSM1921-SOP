@@ -4,10 +4,10 @@
 // （角色位 role 命中 / 到人位 personId 命中）名下负责的工作模块。
 // 行内「去履职」= 切到本工作台对应 tab（映射见 DUTY_TAB，tab id 须真实存在于该台能力清单；
 // 缺映射/被支部配置隐藏的模块仅展示，不硬跳）。
-import { AuthStore } from '../../services/core/auth.js?v=20261031a';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261031a';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261031a';
-import { escHtml as esc } from '../../core/base/utils.js?v=20261031a';
+import { AuthStore } from '../../services/core/auth.js?v=20261120a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261120a';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261120a';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261120a';
 
 /** 模块 → 各工作台 tab 跳转（key = 页面 prefix：secretary/org/prop/disc/leader/visitor）
  *  2026-09-22 批次 145：原「three-meetings」单模块按形式拆为 4 个模块（见 core/domain/work-map.js），
@@ -94,7 +94,7 @@ export function dutyCardHtml(prefix) {
     <div class="card rounded-xl p-4">
       <div class="flex items-center gap-2 mb-2">
         <p class="font-title-cn text-sm font-bold text-gray-800">支部安排 · 我的分工</p>
-        <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">经支委会议题生效</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-[var(--status-warning-text)] border border-amber-100">经支委会议题生效</span>
       </div>
       <div class="flex flex-wrap gap-1.5">${chips}</div>
     </div>`;

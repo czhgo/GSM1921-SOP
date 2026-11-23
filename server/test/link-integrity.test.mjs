@@ -314,7 +314,7 @@ test('L4 浏览器实测：登录态跳转逻辑（未登录直达登录页 / �
 
     // 1. 未登录：首页 workspace 链接应被 main-entry 改为 login.html（消除绕路）
     await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' });
-    await page.waitForSelector('#cal-main-grid', { timeout: 10000 }); // 首页渲染完成
+    await page.waitForSelector('#view-public-portal:not(.hidden)', { timeout: 10000 }); // 未登录首页=公共门厅
     await page.waitForTimeout(800); // 等 _updateWorkspaceLinks / 查看更多链接生成
     const unlogged = await page.evaluate(() => ({
       workspaceLinks: [...document.querySelectorAll('a[href*="workspace/"]')].map(a => a.getAttribute('href')),
@@ -327,12 +327,12 @@ test('L4 浏览器实测：登录态跳转逻辑（未登录直达登录页 / �
     // 2. 点击「工作台→」→ 应直达 login.html
     const wsLink = page.locator('a[href*="login"]').first();
     await wsLink.click();
-    await page.waitForURL('**/login.html', { timeout: 10000 });
+    await page.waitForURL('**/login', { timeout: 10000 });
     console.log('[L4] 未登录点击「工作台→」直达 login.html ✓');
 
     // 3. login.html「返回主页」闭环
-    await page.click('a[href="./index.html"]');
-    await page.waitForURL('**/index.html', { timeout: 10000 });
+    await page.click('a[href="./index"]');
+    await page.waitForURL('**/index', { timeout: 10000 });
     console.log('[L4] login.html「返回主页」可回 index.html ✓');
 
     // 4. 已登录秘书：登录后回首页，workspace 链接应指向 secretary.html
@@ -345,8 +345,8 @@ test('L4 浏览器实测：登录态跳转逻辑（未登录直达登录页 / �
     const logged = await page.evaluate(() =>
       [...document.querySelectorAll('a[href*="workspace/"]')].map(a => a.getAttribute('href')));
     console.log('[L4] 已登录秘书首页 workspace 链接:', JSON.stringify(logged));
-    assert.ok(logged.length > 0 && logged.every(h => h && h.includes('secretary.html')),
-      `已登录秘书链接应全部指向 secretary.html: ${JSON.stringify(logged)}`);
+    assert.ok(logged.length > 0 && logged.every(h => h && /\/workspace\/secretary(?:\.html)?(?:[?#]|$)/.test(h)),
+      `已登录秘书链接应全部指向 secretary（兼容旧 .html）: ${JSON.stringify(logged)}`);
     console.log('[L4] ✅ 登录态跳转逻辑全部合理');
   } finally {
     await browser.close();

@@ -2,34 +2,34 @@
 // 宣传委员工作台 Tab：周报报送（T-279 M3 拆分，照 M2 样板）
 // 周报 seed 常量 + mockDB 持久化，刷新不再丢失；T-209 改进项②：新建周次内联表单。
 
-import { DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261031a';
-import { icon } from '../../../core/base/icons.js?v=20261031a';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261031a';
-import { persist, getRuntimeMode } from '../../../data/data-adapter.js?v=20261031a';
-import { mockDB } from '../../../core/domain/domain.js?v=20261031a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261031a';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261031a';
+import { DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261120a';
+import { icon } from '../../../core/base/icons.js?v=20261120a';
+import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261120a';
+import { persist, getRuntimeMode } from '../../../data/data-adapter.js?v=20261120a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261120a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261120a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261120a';
 // R10-D06：报送/提示一律取「当前支部合并后的有效策略」，不直读 POLICY_DEFAULTS（含支部覆盖）。
-import { getEffectivePolicy } from '../../../services/branch/branch.js?v=20261031a';
-import { attachArchivePolicySnapshot, deriveArchivePeriod, compareArchivePeriodDesc } from '../../../services/governance/periodic-archive.js?v=20261031a';
-import { generateId } from '../../../core/base/id.js?v=20261031a';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261031a';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261031a';
-import { getPersonName } from '../../../services/member/person.js?v=20261031a';
-import { PERIODIC_ARCHIVE_REVIEW_STATUS, PERIODIC_ARCHIVE_REVIEW_LABELS, periodicArchiveReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20261031a';
+import { getEffectivePolicy } from '../../../services/branch/branch.js?v=20261120a';
+import { attachArchivePolicySnapshot, deriveArchivePeriod, compareArchivePeriodDesc } from '../../../services/governance/periodic-archive.js?v=20261120a';
+import { generateId } from '../../../core/base/id.js?v=20261120a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261120a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261120a';
+import { getPersonName } from '../../../services/member/person.js?v=20261120a';
+import { PERIODIC_ARCHIVE_REVIEW_STATUS, PERIODIC_ARCHIVE_REVIEW_LABELS, periodicArchiveReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20261120a';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：周报「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261031a';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261031a';
-import { confirmDanger } from '../../../components/ui/modal.js?v=20261031a';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261120a';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261120a';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261120a';
 
 // ── 周报报送 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-12 修正：起止按 ISO 周「周一~周五」口径校准，与 _weekDefaults 派生同口径；
 // 2026-10-26 Task 5：种子期次随演示窗口（2026-08-01~2026-11-30）重排到 W40~W44。
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/data/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { PERIODIC_ARCHIVES_SEED } from '../../../data/mock/prop.js?v=20261031a';
+import { PERIODIC_ARCHIVES_SEED } from '../../../data/mock/prop.js?v=20261120a';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261031a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261120a';
 // 从 mockDB 读取（seed 兜底注入一次）；写操作更新 mockDB.periodicArchives 后调用 persist()
 function _loadPeriodicArchives() {
   // R10-D03（批次 504）：演示种子只允许在 mock 形态回退；API 形态空表就是空表，
@@ -50,13 +50,13 @@ function _sortedReports() {
 
 const WEEKLY_STATUS_LABEL = { draft: '草稿', submitted: '已报送' };
 const WEEKLY_STATUS_STYLE = {
-  draft: 'bg-amber-50 text-amber-700 border-amber-200',
+  draft: 'bg-amber-50 text-[var(--status-warning-text)] border-amber-200',
   submitted: 'bg-green-50 text-green-700 border-green-200',
 };
 const WEEKLY_REVIEW_STYLE = {
   pending: 'bg-sky-50 text-sky-700 border-sky-200',
   approved: 'bg-green-50 text-green-700 border-green-200',
-  returned: 'bg-amber-50 text-amber-700 border-amber-200',
+  returned: 'bg-amber-50 text-[var(--status-warning-text)] border-amber-200',
 };
 
 // ── 自动生成报送内容（SOP-B-40 ②，2026-09-19 批次 94）──────────────
@@ -94,7 +94,7 @@ export function renderContent(ctx, host = null) {
 
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
-      <div class="lg:col-span-2 card rounded-xl p-5">
+      <div class="lg:col-span-2 card rounded-xl card-standard">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2">
             ${icon('pencil', { className: 'w-4 h-4 text-blue-600' })}
@@ -124,7 +124,7 @@ export function renderContent(ctx, host = null) {
           </div>
           <div>
             <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="weekly-content">本期归档内容</label>
-            <textarea id="weekly-content" rows="6" placeholder="请填写本期工作与产出..." class="input-flat w-full resize-none">${draftReport ? draftReport.content : ''}</textarea>
+            <textarea id="weekly-content" rows="6" placeholder="请填写本期工作与产出" class="input-flat w-full resize-none">${draftReport ? draftReport.content : ''}</textarea>
           </div>
           <!-- SOP-B-40 ②：基于活动数据自动生成报送内容（生成后可手改，是草稿起点不是结论） -->
           <div class="flex items-center justify-between gap-2">
@@ -136,7 +136,7 @@ export function renderContent(ctx, host = null) {
         </div>
       </div>
 
-      <div class="lg:col-span-3 card rounded-xl p-5">
+      <div class="lg:col-span-3 card rounded-xl card-standard">
         <div class="flex items-center gap-2 mb-3">
           ${icon('clock', { className: 'w-4 h-4 text-gray-500' })}
           <h4 class="text-sm font-bold text-gray-700">归档记录</h4>
@@ -294,7 +294,7 @@ function _renderWeeklyReportItem(report) {
   // 平台上报留痕（SOP-B-40 ③）：只留痕，不对接（对接方为外部）
   const platformHtml = isSubmitted
     ? (report.platformReportedAt
-        ? `<span class="text-xs px-1.5 py-0.5 rounded-full border bg-violet-50 text-violet-700 border-violet-200" title="上报留痕：${(report.platformReportedAt || '').slice(0, 16).replace('T', ' ')}">已上报党建平台</span>`
+        ? `<span class="text-xs px-1.5 py-0.5 rounded-full border bg-violet-50 text-violet-700 border-[var(--color-border-subtle)]" title="上报留痕：${(report.platformReportedAt || '').slice(0, 16).replace('T', ' ')}">已上报党建平台</span>`
         : `<button class="btn-outline weekly-platform-btn text-xs px-2.5 py-1" data-id="${report.id}" style="cursor:pointer;">标记已上报党建平台</button>`)
     : '';
   const periodLabel = report.archivePolicySnapshot?.periodLabel || report.periodLabel || report.week || '未命名期次';
@@ -318,6 +318,6 @@ function _renderWeeklyReportItem(report) {
         </div>
       </div>
       ${report.content ? `<div id="weekly-detail-${report.id}" class="weekly-detail-content mt-2 p-2.5 rounded-lg bg-gray-50 text-xs text-gray-600 whitespace-pre-line" hidden>${report.content}</div>` : emptyStateHtml({ text: '暂无内容', variant: 'inline', className: 'mt-1' })}
-      ${reviewStatus === 'returned' && report.reviewNote ? `<p class="text-xs text-amber-700 mt-1">支书退回说明：${report.reviewNote}</p>` : ''}
+      ${reviewStatus === 'returned' && report.reviewNote ? `<p class="text-xs text-[var(--status-warning-text)] mt-1">支书退回说明：${report.reviewNote}</p>` : ''}
     </div>`;
 }

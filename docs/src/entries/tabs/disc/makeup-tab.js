@@ -6,25 +6,26 @@
 // 请假且线上参会的**不补课**（判据单一源 = services/activity/makeup.js::shouldGenerateMakeupTask）。
 // B3-1 修复（T-280）：确认补课完成时回写考勤 status=made_up——完成必须对应真实产物（打卡化判定）。
 
-import { loadMakeupTasks, saveMakeupTasks, makeupScopeHint } from '../../../services/activity/makeup.js?v=20261031a';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261031a';
-import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261031a';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261031a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261031a';
-import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261031a';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/governance/handoff-inbox.js?v=20261031a';
+import { loadMakeupTasks, saveMakeupTasks, makeupScopeHint } from '../../../services/activity/makeup.js?v=20261120a';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261120a';
+import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261120a';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261120a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261120a';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261120a';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/governance/handoff-inbox.js?v=20261120a';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代 resolveAccentRole 只读全局键快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261031a';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261120a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261031a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261120a';
 // V-7（2026-10-01 批次 324）：纪检「催当事人」走系统派生通知单一入口（服务端 kind 注册表复算授权）
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261031a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261120a';
 // 批次 346（`D-744`②）：补课任务「作废（软）」——统一写口 ＋ 支委层判据（支委可直接作废，其余报支委会）
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261031a';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261120a';
 // 批次 352（`D-746`）：作废弹窗改走**单一源**（`components/ui/void-record.js`）——本板块沿用既有 id，
 //   故真机流 `disc-makeup-void-reason` 的选择器一字未改
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261031a';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261120a';
 
+import { renderCardHeader } from '../../../components/shell/page-frame.js?v=20261120a';
 /**
  * @param {HTMLElement} [containerEl] — 挂载容器（缺省本台 tab 内容容器）。
  *   2026-09-15 支书裁定「补课并入考勤管理」后，本模块作为「考勤管理」tab 的「补课」分段子块，
@@ -83,12 +84,12 @@ export function renderContent(containerEl) {
         accent: getAppliedAccentColors('disc-commissioner').accent,
         title: '补课需求回执（组织→纪检）',
       })}
-      <div class="card rounded-xl p-5">
+      <div class="card rounded-xl card-standard">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">补课任务</h3>
+          ${renderCardHeader({ title: `补课任务` })}
           <div class="flex gap-4 text-xs">
-            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-500"></span><span class="text-gray-600">待补课</span><span class="font-bold text-orange-700">${pendingTasks.length}</span></div>
-            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span><span class="text-gray-600">已超期</span><span class="font-bold text-red-700">${overdueTasks.length}</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[var(--status-warning)]"></span><span class="text-gray-600">待补课</span><span class="font-bold text-[var(--status-warning-text)]">${pendingTasks.length}</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[var(--status-error)]"></span><span class="text-gray-600">已超期</span><span class="font-bold text-[var(--status-error-text)]">${overdueTasks.length}</span></div>
           </div>
         </div>
         <p class="help-note mb-2">${makeupScopeHint()}<a href="./help.html#card-copy-makeup-scope" class="help-note__link">见帮助 · 补课范围与归档</a></p>
@@ -112,12 +113,12 @@ export function renderContent(containerEl) {
       colSpan: 6,
       responsive: true,
       headHtml: `<tr>
-              <th>姓名</th>
-              <th>缺席活动</th>
-              <th>补课方式</th>
-              <th>截止日期</th>
-              <th>状态</th>
-              <th>操作</th>
+              <th scope="col">姓名</th>
+              <th scope="col">缺席活动</th>
+              <th scope="col">补课方式</th>
+              <th scope="col">截止日期</th>
+              <th scope="col">状态</th>
+              <th scope="col">操作</th>
             </tr>`,
     },
     rowHtml,

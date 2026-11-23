@@ -2,7 +2,7 @@
 title: "设计系统 · 第一编 色彩与主题"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-31
+last_updated: 2026-11-22
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RESPONSIVE.md, ../../../docs/src/styles.css, CASES.md]
 ---
@@ -98,7 +98,7 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RES
 > **G3 裁定（边框）**：金色作为主题色时，普通按钮/标签**不加边框**，与其他主题色结构完全一致（「别的有他也有，别的没有他也必须没有」）；仅 visitor 品牌金待办行动按钮保留金边框（与详情按钮同页一致）。
 
 **应用范围（固定，不得私自扩增）**：
-1. **可交互强调卡边框**：inspector 品牌活动卡 `border-left:3px solid var(--party-gold)`（品牌金边框，档位 1 卡片，见 §4.2「五档语义表」档位 1；实现中 inspector.js 内联 `#EAB308` 为历史存量、不入权威色板，待收敛至 `var(--party-gold)`）
+1. **可交互强调卡**：inspector 品牌活动卡用 1px 结构边 ＋ 品牌徽章（左条已退出，见 §4.2「边线语义」；实现中 inspector.js 内联 `#EAB308` 为历史存量、不入权威色板）
 2. **主题党日系**：类别色（`ACTIVITY_CAT_COLOR['theme-party']`）
 3. **待办行动按钮**：visitor「去处理/处理」金底
 4. **通知/紧急徽章**：header 未读数、badge--gold
@@ -164,7 +164,7 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RES
 
 | Token（唯一可消费名） | 兼容别名 | 亮色值 | 暗色值 | 用途 |
 |-------|------|------|------|------|
-| `--status-success` | `--functional-success` | `#10B981` | `#34D399` | 成功 / 已完成（**填充档**：徽章底 / 圆点 / 左条 / 图例） |
+| `--status-success` | `--functional-success` | `#10B981` | `#34D399` | 成功 / 已完成（**填充档**：徽章底 / 圆点 / 图例） |
 | `--status-warning` | `--functional-warning` | `#F59E0B` | `#FBBF24` | 待处理 / 提醒 / 逾期（**填充档**） |
 | `--status-error` | `--functional-error` | `#EF4444` | `#F87171` | 阻断 / 失败 / 删除 / 驳回（**填充档**） |
 | `--status-info` | `--functional-info` | `#3B82F6` | `#60A5FA` | 信息 / 提示（**填充档**，白名单见 §12.14） |
@@ -173,14 +173,14 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RES
 | `--status-error-text` | — | `#991B1B` | `#F87171` | 危险文字（必填星号 / 危险按钮 / 错误提示） |
 | `--status-info-text` | — | `#1D4ED8` | `#60A5FA` | 信息文字（「已读」/ 链接型动作 / 徽章字） |
 
-> **两层分工（2026-10-31 P8）**：`--status-*` 是**填充档**，只进徽章底 / 圆点 / 左条 / 图例；
+> **两层分工（2026-10-31 P8）**：`--status-*` 是**填充档**，只进徽章底 / 圆点 / 图例；
 > 任何 `color:` 一律写 `--status-*-text`。实测病灶：填充档直接当正文时 success 对白卡 2.54:1、
 > error 3.76:1、info 3.68:1；文字档亮色对白卡 / 暖纸页底均 ≥4.5:1（success 5.40/5.19、
 > error 7.87/7.56、info 6.70/6.44），暗色对深卡 / 暗页 ≥6:1。
 > 守卫：`status-color-guard`（填充档出现在 `color:` 即红）。
 
 **使用约束**：
-- **填充档**仅用于 Badge 底色、状态指示圆点、左条、图例色块；**文字档**用于一切 `color:`（徽章字、状态行、必填星号、危险按钮文字）。
+- **填充档**仅用于 Badge 底色、状态指示圆点、图例色块；**文字档**用于一切 `color:`（徽章字、状态行、必填星号、危险按钮文字）。
 - 不可用作大面积背景色或装饰色
 - **状态层与品牌层/角色层互不混用**：状态蓝（进行中/信息）与角色蓝（组织委员/宣传委员）相区分；状态红（告警/超期）与品牌红（党建红主 CTA）相区分；状态琥珀（待处理）与品牌金（党徽金）相区分。同色相不同层按"语境"区分（见 §2.8 判例）。
 - 组件（`docs/src/**/*.js` 与 `styles.css` 组件段）只写 `--status-*` / `--status-*-text`；`--functional-*` 只出现在 `:root` 别名定义处。
@@ -202,7 +202,8 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RES
 > **2026-10-31 P8 纠错（旧值已废）**：本表此前写 `--surface-hover #F3F4F6` / `--surface-active #FEE2E2`，
 > 与实现不符。旧值被废的两条实测理由：
 > ① `#F3F4F6` 与白卡仅 **1.11:1**、与暖纸页面底 **1.06:1**——「可点行 hover」根本读不出来；
->    实现已改取 `--neutral-200`（对白卡 1.24:1、对页底 1.18:1），并与可点行的 3px 主题左条叠加。
+>    实现已改取 `--neutral-200`（对白卡 1.24:1、对页底 1.18:1）；2026-11-01 起可点行 hover 改用
+>    `--app-accent-tint`，灰底只留静态分隔；2026-11-04 起左条退出界面信号（CASE-DESIGN-033）。
 > ② `#FEE2E2` 是党建红浅底，中性按钮按下会闪红、被误读成危险态；实现改为中性灰
 >    （与 hover 同源 `--neutral-200`，暗色段靠 `--neutral-200` 的暗色重定义自动跟随）。
 > 守卫：`status-color-guard` 核对本表三档／全部表面行与 `styles.css` 实现值逐字一致。
@@ -284,7 +285,7 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RES
 - **首页统计卡四相语义色·定稿**（2026-08-10 两次裁定，最终版）：本月活动用蓝 `#3B82F6`（信息/载体）、活跃专班用亮金 `#F59E0B`（琥珀金，**参考工作台 tab 亮色呈现——底色必须是亮的：浅金底+亮金字**）、未读通知用红 `#DC2626`（待处理/告警语义）、我的考勤用绿/琥珀/红（状态语义，考勤三色称"很好"保留）——红蓝亮金三原色 + 考勤状态色的平衡组合。
 - **主题色应用范围在工作台内可适当放宽**（2026-08-08）：工作台内 tab 激活态与强调色挂靠主题色；侧边栏选择器统一命名「**主题选择**」（浅色/深色模式与颜色选择同一排）。**每个角色 tab 各有各的主题色渲染**（`bootstrapPage → resolveAccentRole` 支持自选覆盖，2026-08-08 三审强调）。
 - **「金」主题色即主题党日胶囊**（2026-08-08 四审定稿，原话"金色就应该和主题党日的胶囊颜色一致，那个我觉得很漂亮！"）：`ACCENT_COLORS.participant` 增配 `bg/border` 覆盖字段（亮金底 `rgba(255,215,0,0.12)` + 金黄字 `#A16207` + 亮金边框 `rgba(255,215,0,0.35)`），`getAccentColors` 优先消费覆盖；侧边栏色板「金」色块显示亮金 `#FFD700`。文字色仍守金黄 `#A16207` 保对比度（2026-08-10 裁定"再黄一点"），金不再因对比度牵制而变色。
-- **存量收敛**：状态层现存约 69 处硬编码 Tailwind 类（`bg-green-50 border-green-200` / `bg-amber-50` / `bg-blue-50` / `#3B82F6` 等）本期**不动**，后续按本表逐项收敛，新增代码必须按四层分类取色。**硬编码 hex 的回归防线**＝守卫 `server/test/hex-hardcode-guard.test.mjs`：现存项按「文件 × 值」进基线（`server/test/style-baseline.mjs`），**新增即红**；删存量后同批收基线（删值 / 减计数），进度自动前进。
+- **存量收敛**：状态层现存约 69 处硬编码 Tailwind 类（`bg-green-50 border-green-200` / `bg-amber-50` / `bg-blue-50` / `#3B82F6` 等）本期**不动**，后续按本表逐项收敛，新增代码必须按四层分类取色。**硬编码 hex 的回归防线**＝守卫 `server/test/color-ratchet-guard.test.mjs`：现存项按「文件 × 值」进基线（`server/test/style-baseline.mjs`），**新增即红**；删存量后同批收基线（删值 / 减计数），进度自动前进。
 
 **语义动作类与颜色对应法则（2026-08-08 指令 #1/#4）**：
 
@@ -344,7 +345,7 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RES
 `--functional-error` 只保留给**阻断 / 失败 / 删除 / 驳回**。原文保留为历史表述，现行口径以 §2.10 为准。
 
 **「同一角色只用一种令牌」的可判口径**：上表任一行内，同一语义层**不得混用**其它行的令牌，也不得用裸 hex / rgba
-替代（除本表另行登记的 `--acc-*-dark` 内联派生）。守卫：`server/test/hex-hardcode-guard.test.mjs`（H1/H2 挡
+替代（除本表另行登记的 `--acc-*-dark` 内联派生）。守卫：`server/test/color-ratchet-guard.test.mjs`（H1/H2 挡
 **新增硬编码 hex**；⚠ 边界——它**只数字面量、不判「角色用错色」**，那一半见下）。
 **⚠ 「哪些角色该随主题色」的现行权威＝§4.1 的「2026-10-01 支书裁定（判据·甲）」**：**只有三类随主题**
 （**主操作 / 选中态 / 本人标识**），**功能色四态与活动类别色一律固定**；本节上表「主题色 / 强调色」行的
@@ -476,6 +477,12 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RES
 2. **功能色主按钮**：用 `--functional-success` / `--functional-error` 做实底主按钮——功能色只表状态，主行动归主题色。
 3. **主题色状态徽章**：用 `--app-accent-*` 做「在任 / 待召开 / 已留存」等状态——身份色与状态色混层，状态一律走 `--functional-*`。
 
+**指标与状态用功能色；动作 / 导航 / 选中态用主题色（2026-11-01 批次 524 立）**
+
+- **指标与状态**（带语义的计数：`待答复` / `待赋权` / `待归档` / `待补课` / `待汇报` / `组员汇报` / `逾期`）一律取**功能色文字档**——`--status-info-text` / `--status-warning-text`；纯计数（无状态语义，如「待办」总数）取 `--neutral-800`。
+- **动作**（按钮 / 可点入口）、**导航**（链接 / 页签 / 返回）与**选中态**才用**主题色**。主题色是「正常」的默认色，用它渲染「待…」指标会把状态差异抹平，功能色反而失去注意力引导作用。
+- 单一源：`docs/src/components/governance/work-overview.js::METRIC_TONE`；待答复直达条同口径（`overview-dispatch-bar.js`）。守卫：`ui-color-semantics` C6–C8。
+
 ### 2.11 主题色板：7 主题 × 亮/暗 × 8 显式 token（2026-10-23 批次 506 立 · **取代 §2.7 / §2.9.1 的三件套公式**）
 
 > **单一源**：`docs/src/core/domain/constants.js → ACCENT_COLORS`（数据）+ `getAccentColors` / `accentButtonColors` /
@@ -489,9 +496,9 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RES
    （亮 `#A97A12`、暗 `#E0B24C`）。两者同屏时**不要求同值**。
 2. **活动类别色固定**。`ACTIVITY_CAT_COLOR` / `ACTIVITY_CLASSIFICATION` / `_ACTIVITY_TYPE_BASE` 只消费固定常量，
    **不读任何主题 token**——用户把主题从红切到蓝，三会一课徽章仍是党建红、主题党日仍是亮金（spec SD-19）。
-   只用于徽章 / 圆点 / 左条等小面积标记，不整卡铺色。
+   只用于徽章 / 圆点等小面积标记，不整卡铺色。
 3. **沉稳但是鲜活**。大面积表面保持中性或低彩度 `softBg`（与白 1.11–1.15）；正文深墨；每个视图最多一个高强调
-   （主 CTA 或一个语义徽章）；高饱和只允许出现在按钮 / 徽章 / 圆点 / 左条等小面积元素。
+   （主 CTA 或一个语义徽章）；高饱和只允许出现在按钮 / 徽章 / 圆点等小面积元素。
 
 **为什么要削到 7 个（10 → 7）**
 
@@ -586,7 +593,7 @@ origin 的「主题色字」在绿 / 天蓝 / 雾紫 / 亮蓝上只有 2.09 / 2.
 
 1. **状态**（完成 / 待处理 / 逾期 / 失败 / 进行中）——只走 `--status-*`（§2.5 / §2.13）；
 2. **活动类别**（三会一课 / 主题党日 / 其他）——只走 `--color-category-*`，不随主题切换；
-3. **身份色**（角色左条 / 圆点 / 角色卡）——只走 `--color-identity-*`（与 `ROLE_COLORS` 同源）；
+3. **身份色**（角色圆点 / 角色徽章 / 角色卡）——只走 `--color-identity-*`（与 `ROLE_COLORS` 同源）；
 4. **大面积背景**（页面底、卡片底、栏目头、表单区、整卡铺色、渐变卡头）——一律中性 / Surface；
 5. **正文与结构性边框**——走 `--color-text-*` / `--color-border-*` / 中性阶，不用主题色当文字或分隔线；
 6. **彩色按压**——按压只用 `--surface-active` / `--app-accent-active-bg` / `--party-red-active`，
@@ -597,7 +604,7 @@ origin 的「主题色字」在绿 / 天蓝 / 雾紫 / 亮蓝上只有 2.09 / 2.
 `components/shell/appearance-controls.js`（7 项选择器）、`components/shell/tab-bar.js` / `components/ui/*`（读别名）、
 `docs/src/styles.css`（默认金两套 + 别名）。
 
-**不改值的证明**：`node --test test/theme-palette-guard.test.mjs` 的 T1（7×2×9=126 个合法 hex）、
+**不改值的证明**：`node --test test/color-ratchet-guard.test.mjs` 的 T1（7×2×9=126 个合法 hex）、
 T2（soft/ink/strong/sat 全量读数）、G2（gold 逐值冻结）保持绿；Task 4 diff 只新增 `--status-*`、
 `--color-category-*`、`--color-identity-*`、`--color-link`、`--color-text-*`、`--color-border-*`，未触碰 `ACCENT_COLORS`。
 
@@ -605,11 +612,12 @@ T2（soft/ink/strong/sat 全量读数）、G2（gold 逐值冻结）保持绿；
 
 ### 2.13 功能色层（2026-10-26 Task 4 立 · 与主题色层并列）
 
-> 功能色层有自己的 token、暗色值与使用边界；**只允许小面积**（徽章 / 圆点 / 左条 / 图例 / 提示条）。
+> 功能色层有自己的 token、暗色值与使用边界；**只允许小面积**（徽章 / 圆点 / 图例 / 提示条）。
 > 栏目头、表单区、正文链接、整卡铺色**不得**借功能色。
 
 **① 状态 4 色**（`--status-*`，见 §2.5）：success / warning / error / info。light / dark 各一套，
 暗色在 `html.theme-dark` 段重定义；`--functional-*` 仅为别名。
+**图标里的状态色**只经 `--tint` 传入，且取 `-text` 文字档（填充档作图标笔触或数值由守卫判红）；图标不单独承担状态语义，须同时有文字标签——口径见 [DS_03 §4.11.2](DS_03_COMPONENTS.md)（守卫 `icon-color-guard::G3`）。
 
 **② 类别 3 色**（固定语义，不随主题切换）
 
@@ -630,8 +638,8 @@ T2（soft/ink/strong/sat 全量读数）、G2（gold 逐值冻结）保持绿；
 - CSS 侧同值 token：`--color-identity-<role>` / `--color-identity-<role>-dark`（`role ∈ secretary / deputy-secretary /
   leader / commissioner / org-commissioner / prop-commissioner / disc-commissioner / organizer / deep / participant /
   initiator / all`）。两处逐值相等由 `theme-palette-guard` 核对；改角色色只改 `ROLE_COLORS` 并同步该组 token。
-- 使用面：help 角色卡（`help.html .rh-card`）、inspector 角色横幅左条、日历/图例圆点、关于页角色图例。
-  **只作小面积**：左条 3px、圆点、卡片底 / 边框、图例；名称 / 说明文字保持中性（守正文对比度）；
+- 使用面：help 角色卡（`help.html .rh-card`）、inspector 角色横幅身份点、日历/图例圆点、关于页角色图例。
+  **只作小面积**：圆点 / 徽章、卡片底 / 边框、图例；名称 / 说明文字保持中性（守正文对比度）；
   **不进按钮、不进状态徽章、不作整页背景**。
 - 旧 `--accent-<role> / --accent-<role>-light`（CSS 第二份角色色）已删除；`disc/review-tab.js` 等消费方改读
   `--app-accent`（浮窗强调）或 `--color-identity-*`（身份标记）。
@@ -659,7 +667,7 @@ warning `#92400E` on `#FEF3C7` = 6.37:1；danger `#B91C1C` on `#FEF2F2` = 5.91:1
 暗色三会一课 `#FCA5A5` on `#2E1629` = 8.76:1；暗色主题党日 `#FCD34D` on `#2E2510` = 10.49:1；
 暗色 danger `#F87171` on `#2A171A` = 6.14:1；暗色正文 `#CBD5E1` on `#141D2F` = 11.35:1。
 **身份色原色作文字时**：支书 `#B91C1C` on 白 = 6.47:1（达标）；组长 `#22C55E` = 2.28:1、组织委员 `#0EA5E9` = 2.77:1（不达标）
-⇒ 角色卡 / inspector 横幅的**文字保持中性**，身份色只作底 / 边框 / 3px 左条 / 圆点（不承担正文对比度）。
+⇒ 角色卡 / inspector 横幅的**文字保持中性**，身份色只作底 / 边框 / 圆点 / 徽章（不承担正文对比度）。
 **不达标只报告、不改主题色盘值**（唯一同值 bug：暗色 `party-red` ≡ `danger`，本批已改为可辨值）。
 
 **规范编号**：SD-46（两层分工的布尔判据与守卫见 §12.15）· **判例**：CASE-DESIGN-024。

@@ -1,10 +1,11 @@
-import { mockDB } from '../../core/domain/domain.js?v=20261031a';
-import { PersonStore } from '../../services/member/person.js?v=20261031a';
-import { getRosterStats } from '../../services/member/roster.js?v=20261031a';
-import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../services/member/branch-roster-import.js?v=20261031a';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261031a';
-import { icon } from '../../core/base/icons.js?v=20261031a';
+import { mockDB } from '../../core/domain/domain.js?v=20261120a';
+import { PersonStore } from '../../services/member/person.js?v=20261120a';
+import { getRosterStats } from '../../services/member/roster.js?v=20261120a';
+import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../services/member/branch-roster-import.js?v=20261120a';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261120a';
+import { icon } from '../../core/base/icons.js?v=20261120a';
 
+import { renderCardHeader } from '../shell/page-frame.js?v=20261120a';
 const drafts = new Map();
 
 function actorId() {
@@ -19,7 +20,7 @@ function actorId() {
 // 数字组单一语法（2026-10-29 P2）：图标块在左、数值/标签在右；卡片不自带尺寸，列数交给 .stat-grid。
 // note 允许带已转义的 HTML（「各党小组会应到」的逐组明细由调用方拼好）。
 function stat({ icon: iconName, tint, value, unit, label, note }) {
-  return `<div class="card rounded-xl p-3 stat-card">
+  return `<div class="card rounded-xl p-4 stat-card">
     <span class="stat-icon-tint" style="--tint:${tint};" aria-hidden="true">${icon(iconName, { strokeWidth: 1.8, className: 'w-5 h-5' })}</span>
     <div class="stat-card__body">
       <p class="stat-card__value">${value}${unit ? `<span class="stat-card__unit">${unit}</span>` : ''}</p>
@@ -37,14 +38,14 @@ function draftHtml(branchId) {
     `<span class="whitespace-nowrap">${esc(name)} <b>${value.expected}</b> <span class="text-xs text-gray-500">/ 在册 ${value.partyTotal}</span></span>`).join(' · ');
   const groupCount = Object.keys(s.perGroup || {}).length;
   return `<div class="mt-3 border border-gray-200 bg-white p-3">
-    <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="text-sm font-semibold">导入预览</h3><span class="text-xs text-gray-500">${esc(draft.fileName)} · 有效 ${draft.people.length} 条${draft.dropped ? ` · 忽略 ${draft.dropped} 条` : ''}</span></div>
+    ${renderCardHeader({ title: `导入预览`, meta: `<span class="text-xs text-gray-500">${esc(draft.fileName)} · 有效 ${draft.people.length} 条${draft.dropped ? ` · 忽略 ${draft.dropped} 条` : ''}</span>`, variant: 'panel' })}
     <div class="mt-3 stat-grid">
-      ${stat({ icon: 'usersGroup', tint: 'var(--status-info)', value: s.partyTotal, unit: '人', label: '在册党员', note: `正式 ${s.official} + 预备 ${s.probationary}` })}
+      ${stat({ icon: 'usersGroup', tint: 'var(--status-info-text)', value: s.partyTotal, unit: '人', label: '在册党员', note: `正式 ${s.official} + 预备 ${s.probationary}` })}
       ${stat({ icon: 'clock', tint: 'var(--status-warning-text)', value: s.detained, unit: '人', label: '滞留党员', note: '组织关系保留、通知照发' })}
       ${stat({ icon: 'usersGroup', tint: 'var(--app-accent-soft-text)', value: s.expected, unit: '人', label: '支部党员大会应到', note: `党员 ${s.partyTotal} − 滞留 ${s.detained}` })}
       ${stat({ icon: 'list', tint: 'var(--neutral-500)', value: groupCount, unit: '组', label: '各党小组会应到', note: groups || '—' })}
     </div>
-    <div class="mt-3 flex flex-wrap items-center justify-between gap-2"><p class="max-w-2xl text-xs text-gray-600">确认后整表写入本支部；导入前不会修改名册。</p><div class="flex gap-2"><button type="button" class="btn-outline px-3 py-1.5 text-xs" data-roster-action="discard">放弃</button><button type="button" class="btn-accent px-3 py-1.5 text-xs font-medium" data-roster-action="confirm">确认导入保存</button></div></div>
+    <div class="mt-3 flex flex-wrap items-center justify-between gap-2"><p class="max-w-2xl text-body-sm text-gray-600">确认后整表写入本支部；导入前不会修改名册。</p><div class="flex gap-2"><button type="button" class="btn-outline px-3 py-1.5 text-xs" data-roster-action="discard">放弃</button><button type="button" class="btn-accent px-3 py-1.5 text-xs font-medium" data-roster-action="confirm">确认导入保存</button></div></div>
   </div>`;
 }
 

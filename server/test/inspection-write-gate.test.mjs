@@ -32,7 +32,8 @@ async function login(personId) {
   return res.json();
 }
 
-const headers = (token) => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token}` });
+// 批次 564：整行写口要求 If-Match；本文件只验考察写门，用 `*` 显式强制写（版本冲突另见 if-match.test.mjs）
+const headers = (token) => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'If-Match': '*' });
 
 /** act-7 的组织者是 2400012347（普通成员）；2400012351 既非组织者、也非支委层 */
 const ACTIVITY_ID = 'act-7';

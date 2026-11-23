@@ -9,9 +9,12 @@
 // 运行：node --test server/test/agenda-quorum.test.mjs
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261031a';
-import { recordAgendaResultForActivity } from '../../docs/src/services/activity/agenda-follow-up.js?v=20261031a';
-import { defaultVoteConfig } from '../../docs/src/services/activity/vote-config.js?v=20261031a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261120a';
+import { recordAgendaResultForActivity } from '../../docs/src/services/activity/agenda-follow-up.js?v=20261120a';
+import { defaultVoteConfig, isVoterOutOfRoster } from '../../docs/src/services/activity/vote-config.js?v=20261120a';
+import { quorumConditionHint, frozenVoterCounts } from '../../docs/src/components/governance/vote-summary-panel.js?v=20261120a';
+import { committeeTotalCount } from '../../docs/src/services/activity/committee-vote.js?v=20261120a';
+import { bumpToken } from '../../docs/src/core/base/version-token.js?v=20261120a';
 
 const ACT_ID = 'act-quorum';
 const AGENDA_ITEM_ID = 'a1';
@@ -158,4 +161,63 @@ test('无记名：实到按参与记录判定（出席不足拦截，含可督�
       && e.message.includes('过半数出席方可表决（当前 1/4 已表态）')
       && e.message.includes('可督促未表态党员表态'),
   );
+});
+
+// ── 汇总卡提示 ↔ 执行判据同口径（跨层正确性 1.4）─────────────────────
+test('通过条件提示与执行判据一致：应到 6 人 ⇒ 出席 / 赞成均需 ≥ 4（> 应到/2）', () => {
+  const hint = quorumConditionHint(6);
+  assert.equal((hint.match(/≥ 4 人/g) || []).length, 2, '两处门槛都是 ≥4（floor(6/2)+1）');
+  assert.ok(!/≥ 3/.test(hint), '不得沿用 ceil(6/2)=3 的旧口径');
+  assert.match(quorumConditionHint(10), /≥ 6 人/g, '偶数应到同样取 floor(total/2)+1');
+});
+
+// ── T8（2026-11-16 支书裁定）：分母冻结 / 已转出单列 / 支委总数缓存版本戳 ─────────
+test('T8 冻结应到名单：C 已转出 ⇒ 分母 3 / 未表态 2 / 已转出 1', () => {
+  const counts = frozenVoterCounts({
+    voterIds: ['A', 'B', 'C'], votedIds: [], excludedOf: (id) => id === 'C',
+  });
+  assert.equal(counts.total, 3, '分母 = 开会时冻结的名单，不因成员转出变小');
+  assert.equal(counts.pending, 2, '未表态 = 冻结名单 − 已表态 − 已转出 / 滞留');
+  assert.deepEqual(counts.excluded, ['C'], '已转出者单列，不混进未表态');
+});
+
+test('T8 已表态后才转出 ⇒ 不进「已转出，不计」（只从未表态里移出，不重复扣减）', () => {
+  const counts = frozenVoterCounts({
+    voterIds: ['A', 'B', 'C'], votedIds: ['A', 'C'], excludedOf: (id) => id === 'C',
+  });
+  assert.equal(counts.voted, 2, '已表态计数不变');
+  assert.deepEqual(counts.excluded, [], '已表态的转出者不再进「已转出，不计」');
+  assert.equal(counts.pending, 1, '仅 B 未表态');
+});
+
+test('T8 已转出 / 滞留判据只用人员档案既有事实（离开在册读链 / 在册状态滞留）', () => {
+  const previous = mockDB.users;
+  mockDB.users = [
+    { id: 'v8-a', name: '甲' },
+    { id: 'v8-d', name: '滞留丁', residenceStatus: '滞留' },
+  ];
+  try {
+    assert.equal(isVoterOutOfRoster('v8-a'), false, '仍在册 ⇒ 计入未表态');
+    assert.equal(isVoterOutOfRoster('v8-c'), true, '已不在在册读链（转出＝软标记移出）⇒ 不计');
+    assert.equal(isVoterOutOfRoster('v8-d'), true, '在册状态滞留 ⇒ 不计');
+  } finally {
+    mockDB.users = previous;
+  }
+});
+
+test('T8 支委总数缓存按版本戳失效：成员变动 / 表态后重算（不用 TTL 猜）', () => {
+  const previous = mockDB.users;
+  const before = committeeTotalCount();
+  try {
+    mockDB.users = [...(Array.isArray(previous) ? previous : []),
+      { id: 'v8-committee', name: '缓存测试委员', role: 'secretary' }];
+    assert.equal(committeeTotalCount(), before, '未 bump 前命中缓存（证明确有缓存，不是恒算）');
+    bumpToken('member');
+    assert.equal(committeeTotalCount(), before + 1, '成员变动后按版本戳重算');
+    mockDB.users = previous;
+    bumpToken('agendaVotes');
+    assert.equal(committeeTotalCount(), before, '表态版本戳同样触发重算（名单已复原）');
+  } finally {
+    mockDB.users = previous;
+  }
 });
