@@ -1,8 +1,8 @@
 ---
-title: "SMTP 演练读数（2026-11-23）"
+title: "SMTP 演练读数（2026-11-24）"
 type: evidence
 role: "[工程师]+[AI]"
-last_updated: 2026-11-23
+last_updated: 2026-11-24
 status: active
 ---
 
@@ -16,6 +16,6 @@ status: active
 |---|---|---|
 | ① 正常投递 | ✅ | ok=true · 收到 1 封 · rcpt=secretary@test.local |
 | ② 认证失败 | ✅ | ok=false · error=Invalid login: 535 Authentication failed |
-| ③ 连接超时 | ✅ | ok=false · error=Connection timeout · 4868ms |
+| ③ 连接超时 | ✅ | ok=false · error=Connection timeout · 4871ms |
 
 - 服务商实投复跑：`MFTP=...`（提供 `SMTP_HOST/PORT/USER/PASS/TLS` 后重跑同一脚本，结果追加本表）。

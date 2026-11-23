@@ -3,7 +3,7 @@ title: "工作流块封装契约"
 type: contract
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: 2026-11-23
+last_updated: 2026-11-24
 status: active
 version: "1.1"
 owner: "支书（契约裁决）；[工程师]+[AI]（维护）"

@@ -9,12 +9,12 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { today } from '../services/reporting.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..', '..');
 const PORT = Number(process.env.ACCEPTANCE_PORT || 3100);
 const APP_PORT = Number(process.env.APP_PORT || 3000);
-const today = () => new Date().toISOString().slice(0, 10);
 const outDir = () => path.join(REPO, '.ctx', 'evidence', today());
 
 const TASKS = [
@@ -136,7 +136,7 @@ const server = http.createServer(async (req, res) => {
     const body = await readBody(req);
     const walked = (body.pages || []).filter((row) => row.walked).map((row) => row.page);
     append('signoff.md', [
-      `## 签收 ${body.date || new Date().toISOString().slice(0, 10)} · 账号 ${body.account || '-'}`,
+      `## 签收 ${body.date || today()} · 账号 ${body.account || '-'}`,
       '',
       `- 人类完成动作：是（真人在手机上点选）`,
       `- 已走页面（${walked.length}/${SIGNOFF_PAGES.length}）：${walked.join('；') || '无'}`,

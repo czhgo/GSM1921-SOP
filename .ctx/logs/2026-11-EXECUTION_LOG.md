@@ -79,7 +79,7 @@ status: active
 
 ### 读数
 - Windows：`install.ps1 -SkipTask` 退出码 0；`/login.html` **200**；`uploads/` 可写；启动日志 `users=7 / 演示种子=0`。
-- SMTP：**3/3**（正常投递 ok ＋ 认证失败 535 ＋ 连接超时 4868ms）；证据 `.ctx/evidence/2026-11-23/smtp.md`。
+- SMTP：**3/3**（正常投递 ok ＋ 认证失败 535 ＋ 连接超时 4868ms）；证据 `.ctx/evidence/2026-11-24/smtp.md`。
 - 验收台：`/mobile` 与 `/signoff` 均 200（手机地址随启动打印）。
 
 ## 批次 606（2026-11-23）· 多支部读面逐口取证 ＋ 开关演练（`B-605-2` 收口）

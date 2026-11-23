@@ -234,7 +234,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | L-02 | Linux 真机跑 `install.sh` / `install.ps1`（WSL 或测试机）/ `update.sh` | 支书授权，AI 出命令 | 三条脚本各自退出码 0 ＋ 安装后 `/login.html` 200 ＋ 附件目录可写；**批次 607 已取**：Windows 本机 200 ＋ uploads 可写；Linux 走 CI `install-linux`（读数 `.ctx/evidence/2026-11-23/deploy-l02.md`）；systemd / useradd / cron / 反代仍待真机 | 每次改动 `deploy/**` 或发布包白名单后 |
 | CI | 首次 GitHub Actions run id（daily ＋ nightly 四片） | 支书提供仓库访问 | run id ＋ 结论；**无 run id 不得称已绿** | 首次 push 后；此后每次 workflow 改动 |
 | 签收 | 真人（支书 / 支委）在 review 档完整走一遍上线路径并签收 | 支书 | 签收记录（日期 ＋ 账号 ＋ 走过页面清单）写 `.ctx/evidence/` | 每轮候选发布前 |
-| SMTP | 真实邮件服务器实投（非 mock） | 支书提供凭据 | **批次 607 已取本机真实 SMTP 协议读数**（正常投递 / 认证失败 535 / 连接超时，`.ctx/evidence/2026-11-23/smtp.md`）；第三方服务商实投仍待支书提供 `SMTP_*` 后加 `--remote` 复跑 | 邮件通道配置或 `mailer*` 改动后 |
+| SMTP | 真实邮件服务器实投（非 mock） | 支书提供凭据 | **批次 607 已取本机真实 SMTP 协议读数**（正常投递 / 认证失败 535 / 连接超时，`.ctx/evidence/2026-11-24/smtp.md`）；第三方服务商实投仍待支书提供 `SMTP_*` 后加 `--remote` 复跑 | 邮件通道配置或 `mailer*` 改动后 |
 | M-01 | 移动端三任务：看通知并回执 / 表决投票 / 查看考勤（375 / 390 两档） | 支书提供真机 | 三任务各走通一次；无横向滚动、可交互文字 ≥13px、命中区 ≥44。AI 仿真 375 已过（命中区 44，不计真人验收） | 每次改动移动端布局或 `.vote-btn` 命中区后 |
 
 **执行顺序**：① 外部门五项由支书授权后一次性补齐（只阻断上线）；② backlog 只登记、触发即做；③ 本表只归总残项与顺序，不改 §一 / §二 / §五 的评分与论证。

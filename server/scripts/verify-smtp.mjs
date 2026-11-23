@@ -10,9 +10,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { today as todayLocal } from '../services/reporting.js';
+
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..', '..');
-const today = new Date().toISOString().slice(0, 10);
+const today = todayLocal();
 const OUT = path.join(REPO, '.ctx', 'evidence', today, 'smtp.md');
 
 const sink = await startSink({ user: 'ci', pass: 'ci-pass' });
