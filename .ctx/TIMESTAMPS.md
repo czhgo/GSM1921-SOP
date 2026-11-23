@@ -12,7 +12,7 @@ dynamic_role:
 # File Timestamp Registry
 
 > 全项目文件最后更新时间注册表
-> last_updated: "2026-11-22" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
+> last_updated: "2026-11-23" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
 >
 > **迁出去向说明（2026-09-17 立）**：本文件原有两条 ⚠ 登记（自身时间戳两处不一的更正经过 / 表刷新已漏做一次），其**更正与登记经过**已于 2026-09-17 **逐字迁出**至 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md` 的「**附：稳定文档迁出的逐批沿革（2026-09-17 批次 58）**」节。**为什么迁**：本表职能＝「哪些文件在什么时候被谁动过、周期性任务何时到期」（见头下职能声明），「本次怎么改的」是沿革。**现在要查**：① 沿革去上述日志附节；② **补刷已做（2026-09-17 批次 59）**——自身时间戳三值统一为 2026-09-17、表行按「文件最后实质改动日」补刷、僵尸行已修准或标记；**未消残留**（工作树「已改未提交」而在库无改动日记载者）逐行清单见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md` 批次 59「二」节；③ 逐版沿革见同日志「附：SNAPSHOT 版本沿革」节。
 
@@ -55,8 +55,8 @@ dynamic_role:
 | .ctx/TIMESTAMPS.md | 2026-11-23 | — | [工程师]+[AI] | 文件时间戳注册表；备注列只写**现状 / 边界 / 指针**（`R-89`）；纯代码行（`.js` / `.mjs`）不再逐条登记，改动日以 git 为准（批次 597）。 |
 | .ctx/SNAPSHOT.md | 2026-11-22 | — | [AI] | 系统现状基线（reference）：只答「系统现在长什么样」；schema v19 / 业务 50 表。 |
 | .ctx/ACTIVE_RULINGS.md | 2026-11-22 | — | [工程师]+[AI] | 现行有效裁定**索引**（reference）：只答「到哪找某条现行口径」；跨域摘要 + 18 领域索引，规则正文在 `content/01–05`。 |
-| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-23 | — | [工程师]+[AI] | 见日志批次 604（六维维持 77/75/74/69/73/67；`D-914` 收口四项改进项） |
-| .ctx/REVIEW_QUEUE.md | 2026-11-23 | — | [工程师]+[AI] | 支书评议队列（reference）：只答「要评议什么 ＋ 评议怎么做」；2026-11-23 批次 604「手写表棘轮」改人话。 |
+| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-23 | — | [工程师]+[AI] | 见日志批次 605（六维 77/75/74/69/73/67；`D-915`）；2026-11-23 批次 606 多支部读面残项收口（取证表指针） |
+| .ctx/REVIEW_QUEUE.md | 2026-11-23 | — | [工程师]+[AI] | 支书评议队列（reference）：只答「要评议什么 ＋ 评议怎么做」；2026-11-23 批次 606 `B-541-3` 闭环删行。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND1_WORKBENCH_STRUCTURE.md | 2026-10-19 | — | [工程师]+[AI] | Round 1 工作台结构审计报告（53 条 triage + 三路审查 + 共识/分歧/裁定 + 证据门）；修复 spec 落盘后可归档或删除。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND2_MINIMUM_THREE_COSTS.md | 2026-10-19 | — | [工程师]+[AI] | 见日志批次 597 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND3_4_COMBINED.md | 2026-10-19 | — | [工程师]+[AI] | 见日志批次 597 |
@@ -65,8 +65,8 @@ dynamic_role:
 | .ctx/logs/archive/2026-10/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/logs/archive/2026-10/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-11-22 | — | [工程师]+[AI] | 日志索引：月份目录 ＋ 批次 529–568；569+ 见当月执行日志各节标题。 |
-| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-22 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，含批次 542–596）。 |
-| .ctx/logs/DECISION_LOG.md | 2026-11-22 | — | [工程师]+[AI] | 决策日志月度索引；概要只留条数与主题词（沿革见各月文件）。 |
+| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-23 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，批次 606 在最上）。 |
+| .ctx/logs/DECISION_LOG.md | 2026-11-23 | — | [工程师]+[AI] | 决策日志月度索引；概要只留条数与主题词（沿革见各月文件）。 |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-03-EXECUTION_LOG.md | 2026-03-02 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-04-EXECUTION_LOG.md | 2026-04-01 | 2026-07-31 | [工程师]+[AI] | 已归档 |
@@ -82,7 +82,7 @@ dynamic_role:
 | .ctx/logs/archive/2026-09-EXECUTION_LOG.md | 2026-10-06 | 2026-10-06 | [工程师]+[AI] | 见日志批次 597 |
 | .ctx/logs/2026-10-EXECUTION_LOG.md | 2026-10-27 | — | [工程师]+[AI] | 见日志批次 597 |
 | .ctx/logs/2026-10-DECISION_LOG.md | 2026-10-22 | — | [工程师]+[AI] | 见日志批次 597 |
-| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-22 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；当前 `D-827`…`D-906`。 |
+| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-23 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；当前 `D-827`…`D-916`。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_R10_DATA_LIFECYCLE.md | 2026-10-23 | — | [工程师]+[AI] | 第十轮数据生命周期审查（75 条；R10 四批的依据）。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_UI_R11.md | 2026-10-23 | — | [工程师]+[AI] | 第十一轮前端脏乱繁审查（P0/P1/P2 与 SD-1…SD-11）。 |
 | .ctx/logs/archive/2026-10/2026-10-R10_P3_CLOSURE.md | 2026-10-23 | — | [工程师]+[AI] | R10 P3 收口对账（R6 21 / R7 18 / 帮助注释 9）。 |
@@ -225,9 +225,9 @@ dynamic_role:
 | content/05_ai_coding/GUARD_INVENTORY.md | 2026-11-22 | — | [工程师]+[AI] | 守卫台账；历史总表停 66 件（已滞后），现行件数以 `test-tier-registry.mjs` 为准。 |
 | content/03_doc_system/CASES_INDEX.md | 2026-11-22 | — | [工程师]+[AI] | 判例总索引（design 44 / data 1 / ai 9）；2026-11-22 批次 603 登记 CASE-DESIGN-044（顶栏控件梯）。 |
 | .ctx/README.md | 2026-11-21 | — | [工程师]+[AI] | 见日志批次 597 |
-| .ctx/ACTIVE_CONTEXT.md | 2026-11-23 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-914`。 |
+| .ctx/ACTIVE_CONTEXT.md | 2026-11-23 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-916`；2026-11-23 批次 606 乙部清空。 |
 | server/README.md | 2026-11-23 | — | [工程师]+[AI] | 服务端说明；604 续守卫清单旧文件名改归并件名（`GC-1`） |
-| server/package.json | 2026-11-20 | — | [工程师]+[AI] |  |
+| server/package.json | 2026-11-23 | — | [工程师]+[AI] | 2026-11-23 批次 606 增 `test:multi-branch` 开关演练命令 |
 | server/package-lock.json | 2026-08-30 | — | [工具] |  |
 | server/.gitignore | 2026-09-01 | — | [工具] |  |
 | server/data.db | — | — | — | 🗑️ 运行时产物（不入库，.gitignore 忽略） |

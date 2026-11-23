@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: 2026-11-23
 last_verified: "2026-11-23"
-latest_decision: "D-915"
+latest_decision: "D-916"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -25,7 +25,7 @@ status: active
 - **数据**：业务表 50 张；SQLite 宽表 `id + data(JSON)`；schema **v19**。source：`server/data/domain-contract.mjs`。
 - **权限**：写入口矩阵 **163 条**（156 enforced / 5 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵。source：`server/security/write-policy-matrix.mjs`。
 - **六维（`D-913` 重评）**：业务 **77** / 安全 **75** / 体验 **74** / 测试 **69** / 架构 **73** / 部署 **67**；只作诊断，不单独阻断合并（`D-894`）。
-- **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（批次 603 实跑 239.7s，同值；source：`.ctx/evidence/2026-11-21/tab-audit/summary.md`）；D/C 维度（批次 605 实跑）：**D2 处置 46/46**（5 条规则 pass ＋ 41 条 `countSkip` 理由）、**C2 37 pass** / 12 destructive exception、P0/P1/P2 0。
+- **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（批次 603 实跑 239.7s，同值；source：`.ctx/evidence/2026-11-21/tab-audit/summary.md`）；D/C 维度（批次 605 实跑，批次 606 复跑同值）：**D2 处置 46/46**（5 条规则 pass ＋ 41 条 `countSkip` 理由）、**C2 37 pass** / 12 destructive exception、P0/P1/P2 0；复跑读数：`.ctx/evidence/2026-11-23/tab-audit/summary.md`。
 - **测试（四层）**：daily **32 文件 / 264 断言**；guards **81 文件 / 906 断言**（52 源件已并 5 件，预算软告警）；`npm run probe:stage` 6 步断点探针。source：`server/test-tier-registry.mjs`。
 - **换轨**：`preflight-cutover --strict` exit 0；契约 50 表；生产只走个人密码（`D-882`）。source：`deploy/CUTOVER_RUNBOOK.md`。
 
@@ -60,16 +60,16 @@ status: active
 
 - `L-02`（**外部门**）Linux 真机 install / update 未验；容器侧 `verify-linux.sh` 6/6。
 - `M-01`（**外部门**）移动端三任务真人真机未验；AI 375 仿真通过不计验收。
-- `L-10` 读口已统一走 `resourceRowsForActor`；余「逐读口取证 ＋ 开关演练」。
 - `L-13` 页签 IA：A 37 / B 9 / C 0；6 个超 4 块页签登记例外。
 - `L-14` / `L-15` 工作流新维度：先出方案；`L-17` 宽表阈值：单表 ≥ 1 万行触发；`L-18` 组件散件：随改动收敛。
 
 ### 下一批任务
 
-1. **六维余项**：`B-603-1/2/3/4` 与 `B-605-1`（D2 处置 46/46、C2 37 pass，`workbench-audit-coverage::W7`）已收口；余 `B-605-2`（多支部读过滤接线，`EA §2.2`）、`B-541-7`（触发制）、`B-603-6`（外部门真机）。
+1. **六维余项**：`B-603-1/2/3/4`、`B-605-1`（D2 处置 46/46、C2 37 pass，`workbench-audit-coverage::W7`）与 `B-605-2`（多支部读面逐口取证 ＋ 开关演练 26/26，`.ctx/evidence/2026-11-23/multi-branch-read-ports.md`）已收口；**乙部当前无在办项**，余触发制 backlog（`B-541-2/4/6/7`）。
 2. **外部门**：`EA §四` 五项（L-02 / CI run id / 真人签收 / SMTP 实投 / M-01），支书授权后一次性补齐。
 3. **backlog（触发即做）**：`L-13`、`L-14`·`L-15`、`L-17`、`L-18`；触发条件见 `EA §四` 与 `REVIEW_QUEUE B-541-*`。
 4. **已撤销**：`C-5`（`D-914`）——`text-xs` 是 DS_02 允许的「说明句」档，不设「全部上迁 13px」任务；新增由 `style-ratchet-guard::Q6` 的只减不增基线守住。
+5. **多支部开关仍关闭**：`ALLOW_MULTI_BRANCH=1` 只是演练环境；上线形态仍一实例一支部（`D-849` / `D-889`）。
 
 ## §4 文件地图（读什么 / 不读什么）
 

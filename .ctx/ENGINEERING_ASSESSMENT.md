@@ -51,8 +51,8 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 > **本轮复核（2026-11-08 批次 538 评分证据卡；2026-11-09 `D-862`、2026-11-10 `D-863` / `D-864` 按批次 539 / 540 / 541 实跑读数复核；2026-11-11 `D-865` 只做评分保守回调，风险结论未变；2026-11-14 批次 550 `D-872` 关闭第 3 条）**：逐条标注「保留 / 部分闭环 / 闭环 / 新增」，闭环必须给证据。结论：第 2 条部分闭环（矩阵 163 条、0 known-risk、6 条缺口已修，`issue-unread` 派发位已加强校验；批次 539 已把上传门矩阵 `roleGate` 同批改准为 `party-staff | 支委层`；批次 541 未放宽任何写门）；第 3 条闭环（批次 550 服务端建会冻结表决名单）；第 4 条的会话过期已闭环，个人密码已落地、共享口令作回退保留；第 1、5 条保留（批次 550 未动多支部读过滤与宽表边界）。
 
-1. **多支部共用一个服务实例会跨支部读出数据。** **保留**。服务器读面仍未统一按支部过滤；`multi-branch-read-filter` 9 组夹具只证明设计可行，`ALLOW_MULTI_BRANCH` 仍关闭；设计稿见 `ARCHITECTURE_EVOLUTION §十`。
-2. **多数通用写口只验证登录。** **部分闭环**。权限矩阵 163 条覆盖全部写路由，`known-risk` 清零；考勤删除、活动/专班子记录、`issue-unread`、快照聚合/考勤清空 6 条缺口已补服务端判据；增 G4 / G5 写入前复核与 `issue-unread` 派发位 403；批次 539 把上传门矩阵 `roleGate` 改准为 `party-staff | 支委层`，与运行期 `requireUploader` 同批。残项：共享口令、多支部读过滤未接线。
+1. **多支部共用一个服务实例会跨支部读出数据。** **保留（读面已统一）**。业务读面全部经 `branch-scope` 单一出口过滤；逐读口取证与开关演练读数见 `.ctx/evidence/2026-11-23/multi-branch-read-ports.md`（`cd server; npm run test:multi-branch` 26/26）；`ALLOW_MULTI_BRANCH` 仍关闭，上线形态一实例一支部；设计稿见 `ARCHITECTURE_EVOLUTION §十`。
+2. **多数通用写口只验证登录。** **部分闭环**。权限矩阵 163 条覆盖全部写路由，`known-risk` 清零；考勤删除、活动/专班子记录、`issue-unread`、快照聚合/考勤清空 6 条缺口已补服务端判据；增 G4 / G5 写入前复核与 `issue-unread` 派发位 403；批次 539 把上传门矩阵 `roleGate` 改准为 `party-staff | 支委层`，与运行期 `requireUploader` 同批。残项：共享口令。
 3. **表决选民名单来自活动数据本身。** **闭环（2026-11-14 批次 550 · `D-872`）**。创建活动的服务端在写库前按 `users` ＋ 组织归属算一次 `voteConfig.voterIds` 并冻结（`resources/index.js::_activityVoteConfigDeny` → `committee.js::resolveFrozenVoterIds`），客户端提交的名单不作数；范围非法 fail-closed 400。会议期间不随组织变动，组织变动下次建会生效；历史快照不回改。回归：`agenda-votes.test.mjs`「建会冻结名单」＋ `async-vote.test.mjs`（应到 10 名在册正式党员）。
 4. **共用口令只适合受控部署。** **部分闭环**。会话已按 `SESSION_TTL_HOURS`（缺省 3 小时）过期；个人密码已落地（`personal-password` 21/21），共享口令仅作回退保留；生产用 systemd 注入强口令并定期更换。
 5. **SQLite JSON 宽表是规模边界。** **保留**。批次 538 只加 `publication_audits` 的 v14 生成列与审计索引，宽表本身与业务字段索引边界未变。
@@ -72,8 +72,8 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 ### 2.2 安全与权限 —— 75/100
 
 **证据**：`write-policy-matrix` **163 条**（0 known-risk），守卫断言 Express 运行期写路由 ≡ 矩阵登记面并带反例；`SESSION_TTL_HOURS` 缺省 3 小时；production 多支部拒绝启动；`start:review` 独立演示库；`security-hardening` 8/8、`multi-branch-read-filter` 9 组、`personal-password` 21/21；公共门厅过期 / 缺失有效期一律 404 fail-closed。
-**残项**：多支部读过滤未接线到生产读面（`ALLOW_MULTI_BRANCH` 关闭）；共享口令仅非生产回退；矩阵未断言「门函数 / 角色集合」本身；CI 安全类守卫无 run id。
-**下一改进项**（`B-603-2`）：`write-policy-matrix.test.mjs` 增「门函数 / 角色集合 ≡ 矩阵」断言（落点 `server/security/write-policy-matrix.mjs` ＋ 同文件测试）；`B-541-3`（`L-10`）逐读口取证与 `ALLOW_MULTI_BRANCH` 开关演练。判据：矩阵每行 roleGate 与实际门函数集合逐项相等；开关演练 9 组夹具仍全绿。复评触发：任一新写口登记或开关演练出读数。
+**残项**：共享口令仅非生产回退；CI 安全类守卫无 run id。多支部读面已接线并完成开关演练（`ALLOW_MULTI_BRANCH` 仍关闭）。
+**下一改进项**（`B-603-2` / `B-541-3` 已收口）：矩阵「门函数 / 角色集合 ≡ 运行期」断言与多支部开关演练均已落（读数见 `.ctx/evidence/2026-11-23/multi-branch-read-ports.md`，26/26）。新增写口登记时同批补矩阵行；新增读口时同批补双支部夹具或在取证表写明「有判据、无夹具」。复评触发：任一新写口 / 新读口登记。
 
 ### 2.3 最小三成本体验（含前端与交互） —— 74/100
 
@@ -96,8 +96,8 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 ### 2.6 运行、部署与跨组织复用 —— 67/100
 
 **证据**：换轨闭环实测逐表行数与 sha256 一致（批次 527）；生产空库首启补 6 角色账号后 `preflight-cutover --strict` **exit 0 / 警告 0**；`user_version` 拒绝降级；迁移前备份；`start:review` 隔离演示库；production 单支部断言；`deploy/verify-linux.sh` **6/6**。
-**残项**：`install.sh` / `install.ps1` / `update.sh` 未在 Linux 真机验证（`L-02`）；GitHub Actions `deploy-verify` 未实跑（无 `gh`、本机不推送）；附件 / 会话按 runbook 另搬；多支部读过滤未实现。
-**下一改进项**（`B-603-6`）：`L-02` ＋ `deploy-verify` 实跑归**外部门**（判据：Linux 真机 `install → preflight → update` 三步退出码 0 ＋ CI run id）；多支部读过滤见 2.2 的 `B-541-3`。复评触发：真机三步任一跑通、或开关演练出读数。
+**残项**：`install.sh` / `install.ps1` / `update.sh` 未在 Linux 真机验证（`L-02`）；GitHub Actions `deploy-verify` 未实跑（无 `gh`、本机不推送）；附件 / 会话按 runbook 另搬；多支部开关未开（读面已接线，见 2.2）。
+**下一改进项**（`B-603-6`）：`L-02` ＋ `deploy-verify` 实跑归**外部门**（判据：Linux 真机 `install → preflight → update` 三步退出码 0 ＋ CI run id）；多支部开关是否打开另需支书裁定（`D-849` / `D-889`）。复评触发：真机三步任一跑通。
 
 ### 2.7 七个月工程复盘（结论）
 
@@ -217,7 +217,6 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | 编号 | 残项 | 状态 | 下一动作 / 指针 |
 |---|---|---|---|
 | L-02 | Linux 真机 `install.sh` / `update.sh` 未验 | 外部门 | 见下表；容器侧 `deploy/verify-linux.sh` 6/6 |
-| L-10 ＋ `B-536-1` | 多支部读过滤未接线 | 在办 | 逐读口取证 ＋ 开关演练（`B-541-3`） |
 | L-13 | 页签 IA **A 37 / B 9 / C 0** | backlog | 按 `.ctx/evidence/2026-11-08/tab-review-ledger.md §四` 排批 |
 | L-14 / L-15 | 工作流块停用 / 画布 UI | backlog | 先出方案（`WORKFLOW_BLOCK_CONTRACT §8.4`） |
 | L-17 | SQLite 宽表与索引 | backlog | 单表 ≥ 1 万行或 p95 > 200ms 触发 `MIGRATIONS v2` |
@@ -263,7 +262,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | 维度 / 对象 | 已有评价资产（证据落点） | 下一改进项（可验收判据 ＋ 落点） |
 |---|---|---|
 | 业务与数据正确性 | §2.1 得分依据 ＋ `D-864` / `D-886` / `D-887`；`.ctx/evidence/2026-11-20/backlog-reconcile.md` | 三层挂靠已收口：定义只在 `OBJECT_MODEL §2.1`、指针在 `PARTY_COMMITTEE_DESIGN §2.7`（`single-fact-consistency::⑥`）；D2 处置完整性已收口（`workbench-audit-coverage::W7`）；C2 验收＝审计报告 pass > 0（现值 37） |
-| 安全与权限 | §2.2 ＋ `write-policy-matrix` 163 条 ＋ `multi-branch-read-filter` 9 组 | 门名处理分支已收口（`write-policy-matrix` R2）；余 `B-541-3` 逐读口取证 ＋ 开关演练 |
+| 安全与权限 | §2.2 ＋ `write-policy-matrix` 163 条 ＋ `multi-branch-read-filter` 9 组 | 门名处理分支已收口（`write-policy-matrix` R2）；多支部读面逐口取证 ＋ 开关演练已收口（`evidence/2026-11-23/multi-branch-read-ports.md`）；余 CI run id（外部门） |
 | 最小三成本体验 | §2.3 ＋ 46 页签审计读数 ＋ `.ctx/evidence/2026-11-21/density-8pages.md` | 不设数字目标：调色板状态文字（291 处 / 56 文件）与手拼徽章（43 文件）逐文件不超基线、不出现新文件（`B-603-3`） |
 | 测试与发布质量 | §2.5 读数（daily 264 / guards 81 文件 / 906 断言）＋ `test-tier-registry.mjs` | EA 读数 ≡ registry 已收口（`evaluation-asset-guard::⑤`）；余 CI run id（外部门） |
 | 架构与可维护性 | §2.4 ＋ `D-888` 键级隔离 ＋ 三份契约 | 对象模型单一源已收口（同 2.1）；余 `B-541-7` 组件散件随改动收敛 |

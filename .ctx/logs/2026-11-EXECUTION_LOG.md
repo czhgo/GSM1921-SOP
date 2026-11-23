@@ -2,13 +2,34 @@
 title: "2026年11月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-22
+last_updated: 2026-11-23
 status: active
 ---
 
 # 2026年11月执行日志
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
+
+## 批次 606（2026-11-23）· 多支部读面逐口取证 ＋ 开关演练（`B-605-2` 收口）
+
+### 为什么
+- 乙部唯一在办项 `B-605-2`：读过滤代码在前序批次已接线，缺的是「逐读口取证表 ＋ 可重复开关演练」；没有读数就无法判定收口。
+
+### 拿不准 / 取舍
+- **不重复接线**：复核 `server/routes/**` 后确认读口已统一走 `branch-scope`（`resourceRowsForActor` / `resolveBranchIdForActor` / `resolveRowBranchId` / `ownBranch`），本批不为凑批改过滤代码；只补取证表、演练命令与夹具盲点（`/bootstrap` 是 50 表整包读口，原夹具未含）。
+- **未覆盖不伪装**：双支部夹具覆盖 13 个读口；申诉 / 未读 / 授权审计 / 交接 / 名册确认 / 工作组 6 表 / 考勤名单 / 报表 / 提案有单一出口判据但无跨支部端到端读数，逐条在表里标「有判据、无夹具」并写补夹具触发条件。
+- **乙部清空与守卫②冲突（裁定 `D-916`）**：`H50.1` 要求完成即删；删到 0 行后 `open-items-guard ②`（原要求 rows ≥ 1）判红。改为「表头必须在、行数可为 0」，并补反例（无表头判红）——消除「完成即删」与「至少一行」的自相矛盾，不放过表格口径被改坏。
+- **审计产物不入库**：`audit-tabs` 默认写 `shots/` 与 626KB `findings.json`；按 `D-905` / `H26.3a` 只留 `summary.md`，截图与 findings 当场删除。
+
+### 边界
+- 不打开 `ALLOW_MULTI_BRANCH`；上线形态仍一实例一支部（`D-849` / `D-889`）。
+- 六维分数不动：本批是证据补全，非能力新增（`D-894` 只按证据加减分）。
+
+### 读数
+- `cd server; npm run test:multi-branch`（`ALLOW_MULTI_BRANCH=1`）：**26/26 pass · fail 0 · 13.2s**（读过滤 9 组 ＋ 五证 10 条 ＋ 运行档 R1–R7）。
+- guards 81 文件 / 906 断言全绿 170.4s（改守卫②后先跑定向 `doc-lifecycle-guard` 55/55）；daily 32 文件全绿 118.7s；预算常量不变。
+- 审计 `--all --only D,C`：**P0 0 / P1 0 / P2 0**，exception 12（复跑同值；截图与 findings 已按 `D-905` 删除，读数留 `.ctx/evidence/2026-11-23/tab-audit/summary.md`）。
+- 取证表：`.ctx/evidence/2026-11-23/multi-branch-read-ports.md`。
 
 ## 批次 605（2026-11-23）· D2 处置完整性 ＋ C2 往返复跑（B-605-1 收口 · D-915）
 

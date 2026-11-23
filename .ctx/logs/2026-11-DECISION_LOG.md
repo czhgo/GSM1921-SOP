@@ -2,7 +2,7 @@
 title: "2026年11月决策日志"
 type: decision_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-22
+last_updated: 2026-11-23
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-DECISION_LOG.md, content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md, content/04_web_design/design-system/DS_03_COMPONENTS.md, content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md]
 ---
@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-915`，共 89 条**；下一条自 **`D-916`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-916`，共 90 条**；下一条自 **`D-917`**。
 
 ## 本月目录（2026-11）
 
@@ -109,6 +109,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 顶栏控件梯：六成员桌面 36 / 移动 44，判例＋特例；六维重评 77/75/74/69/73/67 | `D-913` | 2026-11-22 | 已落（批次 603） |
 | C-5 撤销（text-xs 是说明句合法档）；棘轮改人话；四项改进项收口＋外部准则探查 | `D-914` | 2026-11-23 | 已落（批次 604） |
 | D2 处置 46/46（5 规则＋41 条 countSkip）、C2 37 pass；`W7` 机检 | `D-915` | 2026-11-23 | 已落（批次 605） |
+| 乙部允许清空：`open-items-guard ②` 由 rows ≥ 1 改为「表头必须在」 | `D-916` | 2026-11-23 | 已落（批次 606） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -932,5 +933,13 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：`--all --only D,C` → P0 0 / P1 0 / P2 0 · exception 12；D1 46 pass、D2 5 pass、C2 37 pass。
 > **落点**：`server/scripts/audit/endpoint-map.mjs`（5 规则 ＋ 41 `countSkip`）；`server/test/workbench-audit-coverage.test.mjs::W7`；`server/test-tier-registry.mjs`（daily 264）；`CLAUDE.md` 乙部（`B-605-1` 删行，`B-605-2` 多支部读过滤接线在办）；`.ctx/{ENGINEERING_ASSESSMENT,ACTIVE_CONTEXT,TIMESTAMPS}.md`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-915`**（共 **89** 条）。
+## D-916 2026-11-23 — 乙部允许清空：`open-items-guard ②` 只核表头（批次 606）
+
+> **评议 → 裁定 → 落点**：`B-605-2` 收口后乙部按 `H50.1`「完成即删」删到 0 行，`open-items-guard ②` 的 `rows.length ≥ 1` 判红——与 `H20.3`「乙部当前无未完成项」的合法状态自相矛盾。
+> - **裁定**：母本（`H50.1` / `H20.3`）优先；守卫改为「乙部表头（`| ID |` / `| 目标批次 |`）必须在、数据行可为 0」，并补反例（无表头判红）。守的还是「表格口径被改坏」，不再要求「至少一行」。
+> - **未选**：① 保留 `rows ≥ 1` 并塞一行占位（造假任务，违反 `H50.1`）；② 直接删掉该断言（失去「表格被改坏」的探测）。
+> **读数**：`doc-lifecycle-guard` 定向 **55/55**；guards 全量绿。
+> **落点**：`server/test/doc-lifecycle-guard.test.mjs::②` ＋ 反例⑤；`CLAUDE.md` 乙部（`B-605-2` 删行）；`.ctx/{ACTIVE_CONTEXT,ENGINEERING_ASSESSMENT,REVIEW_QUEUE,TIMESTAMPS}.md`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-916`**（共 **90** 条）。
 

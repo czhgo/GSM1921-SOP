@@ -1844,7 +1844,7 @@ await (async () => {
   //
   // 判据（H50.3）：计划报「已完成」时，四类 open 源必须各有结论，不得留「口头待办」。
   //   ① `.ctx/REVIEW_QUEUE.md`：不得出现「已闭环」行（闭环即删，沿革归 git）；
-  //   ② `CLAUDE.md` 乙部：每条必须有「ID / 一句话 / 判据或出处 / 状态」四要素，状态 ∈ {在办, 待触发}，`待触发` 必须写触发条件；
+  //   ② `CLAUDE.md` 乙部：表头必须在（口径未被改坏，允许 0 行——`H50.1` 完成即删）；每条必须有「ID / 一句话 / 判据或出处 / 状态」四要素，状态 ∈ {在办, 待触发}，`待触发` 必须写触发条件；
   //   ③ `.trae/{documents,specs}`（**如存在**）：有 `- [ ]` 时必须含 `<!-- parked: D-xxx -->`、
   //      或已 `status: archived` 且每行带 `<!-- concluded: … -->`；目录不存在时跳过扫描（2026-11-22 批次 599 `.trae` 已清零）；
   //   ④ `.ctx/ENGINEERING_ASSESSMENT.md §四`：必须有「外部门」小节，且 L-02 / CI / 签收 / SMTP / M-01 五项列全；
@@ -1891,15 +1891,21 @@ await (async () => {
     assert.deepEqual(hits.map((h) => `:${h.n} ${h.l.slice(0, 60)}`), [], '闭环条目须删行，不得在台账里标「已闭环」');
   });
   
+  /** 乙部表格口径是否完整：`H50.1` 完成即删 ⇒ 允许 0 行，但表头必须在（防「表格被改坏」被误当空表） */
+  function yiBuTableIntact(section) {
+    return /^\|\s*(ID|目标批次)\s*\|/m.test(section);
+  }
+
   test('② CLAUDE 乙部每条四要素齐，状态 ∈ {在办, 待触发}', () => {
     const text = read('CLAUDE.md');
     const start = text.indexOf('# 乙部');
     const end = text.indexOf('# 丙部');
     assert.ok(start > 0 && end > start, 'CLAUDE.md 缺乙部 / 丙部区块');
-    const rows = text.slice(start, end)
+    const section = text.slice(start, end);
+    assert.ok(yiBuTableIntact(section), '乙部缺表头（表格口径被改坏）；无在办项时表格可只剩表头');
+    const rows = section
       .split('\n')
       .filter((l) => l.startsWith('|') && !/^\|\s*-+/.test(l) && !/^\|\s*ID\s*\|/.test(l) && !/^\|\s*目标批次\s*\|/.test(l));
-    assert.ok(rows.length >= 1, '乙部解析为空（表格口径被改坏）');
     const bad = rows.map(yiBuProblem).filter(Boolean);
     assert.deepEqual(bad, [], `乙部行不合格：\n  ${bad.join('\n  ')}`);
   });
@@ -1957,6 +1963,8 @@ await (async () => {
     assert.notEqual(yiBuProblem('| X-1 | 一句话 | 判据 | 完成 |'), '', '状态越界未判红');
     assert.notEqual(yiBuProblem('| X-1 |  | 判据 | 在办 |'), '', '四要素空格未判红');
     assert.notEqual(yiBuProblem('| X-1 | 一句话 | 判据 | 待触发 |'), '', '待触发缺条件未判红');
+    assert.equal(yiBuTableIntact('| ID | 一句话 | 判据 | 状态 |\n|---|---|---|---|\n'), true);
+    assert.equal(yiBuTableIntact('无表格'), false, '乙部表头缺失未判红');
     assert.equal(planDisposed('---\nstatus: archived\n---\n- [ ] 未勾'), true);
     assert.equal(planDisposed('<!-- parked: D-900 -->\n- [ ] 未勾'), true);
     assert.equal(planDisposed('- [ ] 未勾且无处置'), false);

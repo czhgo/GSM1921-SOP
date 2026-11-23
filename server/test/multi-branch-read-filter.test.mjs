@@ -3,6 +3,9 @@
 // 目的：用**双支部夹具**证明支部账号在所有主要读口读不到另一支部数据；
 //   党委显式选择支部后仍可见该支部（跨支部读取权属党委本职）；生产单支部行为不变。
 // 边界：`ALLOW_MULTI_BRANCH` 保持关闭（本测试不读取该开关，也不改它）。
+// 开关演练（批次 606 · `B-605-2`）：`cd server; npm run test:multi-branch`——在
+//   `ALLOW_MULTI_BRANCH=1` 环境下重跑本文件 ＋ 五证夹具 ＋ 运行档判定，证明「开关打开不改变读面行为」。
+//   逐读口取证表见 `.ctx/evidence/2026-11-23/multi-branch-read-ports.md`。
 //
 // 夹具口径：
 //   · 支部甲 `br-a` / 支部乙 `br-b`，各自持有一套 activities / notices / branchDocs /
@@ -99,8 +102,10 @@ const COMMITTEE_FIXTURE = {
 
 const FIXTURES = BRANCHES.map(branchFixture);
 
-/** 主要读口（路径以实际路由为准：考勤资源是 `/attendances`，归档资源是驼峰 `/archiveRecords`） */
+/** 主要读口（路径以实际路由为准：考勤资源是 `/attendances`，归档资源是驼峰 `/archiveRecords`）
+ *  `/bootstrap` 是 50 张资源表的整包读口（`resources/index.js::GET /bootstrap`），与逐表同门同 helper。 */
 const READ_ENDPOINTS = [
+  '/bootstrap',
   '/activities',
   '/notices',
   '/branchDocs',
