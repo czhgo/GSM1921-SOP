@@ -16,6 +16,8 @@
     "test:daily": "node scripts/run-daily.mjs",
     "test:daily:timing": "node scripts/run-daily.mjs --timing",
     "test:multi-branch": "node scripts/with-env.mjs DISABLE_PASSWORD_CHECK=1 ALLOW_MULTI_BRANCH=1 node --test --test-concurrency=1 test/multi-branch-read-filter.test.mjs test/multi-branch-five-proof.test.mjs test/run-mode.test.mjs",
+    "verify:smtp": "node scripts/verify-smtp.mjs",
+    "acceptance": "node scripts/acceptance-server.mjs",
     "test:guards": "node scripts/run-guards.mjs",
     "test:precommit": "node scripts/run-precommit.mjs",
     "test:changed": "node scripts/run-changed.mjs",

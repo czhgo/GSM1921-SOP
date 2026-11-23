@@ -56,3 +56,63 @@ jobs:
       - name: 部署件容器验证
         working-directory: .
         run: bash deploy/verify-linux.sh
+
+  # Linux 真装真更（批次 607 · `L-02`）：`install.sh` / `update.sh` 的 `*_NO_SERVICE=1` 演练档。
+  # 跳过 useradd / systemd / cron（runner 不保证 systemd），其余步骤原样执行；装完起服核对 200。
+  install-linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - name: install.sh（INSTALL_NO_SERVICE=1）
+        run: |
+          set -euo pipefail
+          TARGET="$RUNNER_TEMP/gsm-install"
+          APP_DIR="$TARGET" ENV_FILE="$TARGET/.env" INSTALL_NO_SERVICE=1 INSTALL_LOGIN_PASSWORD=ci-pass \
+            bash deploy/install.sh
+          echo "TARGET=$TARGET" >> "$GITHUB_ENV"
+      - name: 起服核对 /login.html 200 ＋ uploads 可写
+        run: |
+          set -euo pipefail
+          set -a; . "$TARGET/.env"; set +a
+          cd "$TARGET/server"
+          PORT=3101 node server.js > "$RUNNER_TEMP/gsm-install.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/gsm-install.pid"
+          ok=0
+          for _ in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3101/login.html > /dev/null 2>&1; then ok=1; break; fi
+            sleep 1
+          done
+          if [ "$ok" != "1" ]; then cat "$RUNNER_TEMP/gsm-install.log"; exit 1; fi
+          test -w "$TARGET/server/uploads"
+          echo "install.sh：login.html 200 · uploads 可写"
+      - name: update.sh（UPDATE_NO_SERVICE=1）
+        run: |
+          set -euo pipefail
+          kill "$(cat "$RUNNER_TEMP/gsm-install.pid")" 2>/dev/null || true
+          PKG="$RUNNER_TEMP/gsm-newpkg"
+          mkdir -p "$PKG"
+          git archive HEAD | tar -x -C "$PKG"
+          APP_DIR="$TARGET" UPDATE_NO_SERVICE=1 bash deploy/update.sh "$PKG"
+      - name: 更新后再核 200
+        run: |
+          set -euo pipefail
+          set -a; . "$TARGET/.env"; set +a
+          cd "$TARGET/server"
+          PORT=3101 node server.js > "$RUNNER_TEMP/gsm-update.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/gsm-update.pid"
+          ok=0
+          for _ in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3101/login.html > /dev/null 2>&1; then ok=1; break; fi
+            sleep 1
+          done
+          if [ "$ok" != "1" ]; then cat "$RUNNER_TEMP/gsm-update.log"; exit 1; fi
+          echo "update.sh：login.html 200"
+          kill "$(cat "$RUNNER_TEMP/gsm-update.pid")" 2>/dev/null || true

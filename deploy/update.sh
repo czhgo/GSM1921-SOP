@@ -12,9 +12,14 @@
 #  ⚠ **不回退库结构**：迁移机制只向前应用（`user_version` 不回退）——见 A.2.1。
 #  ⚠ **诚实声明**：本脚本**未在真机执行过**（2026-09-29 批次 269，只做静态审读）；
 #    第一次务必在测试机跑，并**先手动确认备份产物存在**。
+#
+#  CI / 无 systemd 演练（2026-11-24 批次 607 · `L-02`）：
+#    `UPDATE_NO_SERVICE=1 APP_DIR=<临时安装目录> bash deploy/update.sh <新包解包目录>`
+#    跳过 `systemctl stop/start` 与冒烟（服务由调用方起停并核对 200）；备份 / 替换 / 依赖三步照常。
 # ════════════════════════════════════════════════════════════════
 set -euo pipefail
 NEW_PKG="${1:-}"
+NO_SERVICE="${UPDATE_NO_SERVICE:-0}"
 APP_USER="${APP_USER:-gsm1921}"
 APP_DIR="${APP_DIR:-/opt/gsm1921}"
 SVC_NAME="${SVC_NAME:-gsm1921}"
@@ -33,7 +38,11 @@ ls -1 "$BK" | head -5
 echo "  备份就位：$BK"
 
 say "③ 停服"
-systemctl stop "$SVC_NAME" || true
+if [ "$NO_SERVICE" = "1" ]; then
+  echo "  UPDATE_NO_SERVICE=1：跳过 systemctl stop（由调用方停服）"
+else
+  systemctl stop "$SVC_NAME" || true
+fi
 
 say "④ 替换代码（保留 data.db / uploads / backups）"
 rsync -a --delete \
@@ -42,11 +51,17 @@ rsync -a --delete \
 rsync -a --delete \
   --exclude 'node_modules' --exclude 'data.db*' --exclude 'uploads/' --exclude 'backups/' --exclude '.browsers' \
   "$NEW_PKG/server/" "$APP_DIR/server/"
-chown -R "$APP_USER":"$APP_USER" "$APP_DIR"
+chown -R "$APP_USER":"$APP_USER" "$APP_DIR" 2>/dev/null || echo "  ⚠ chown 跳过（非 root 或无该账号）"
 echo "  docs/ 与 server/ 已替换"
 
 say "⑤ 依赖"
 ( cd "$APP_DIR/server" && npm ci --omit=dev ) || die "依赖安装失败（服务仍处于停止状态；修好后 systemctl start $SVC_NAME）"
+
+if [ "$NO_SERVICE" = "1" ]; then
+  say "⑥⑦ 起服与冒烟"
+  echo "  UPDATE_NO_SERVICE=1：跳过 systemctl start 与冒烟（由调用方起服并核对 /login.html 200）"
+  exit 0
+fi
 
 say "⑥ 起服"
 systemctl start "$SVC_NAME"

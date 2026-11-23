@@ -49,6 +49,7 @@ status: active
 | [verify-linux.sh](verify-linux.sh) | 容器可验证项一键验证：shell 语法 → doctor → 起服务 → smoke --login → preflight --strict → package（含包内断言） | CI（`.github/workflows/daily.yml` 的 `deploy-verify` job）与本地 Linux 复核 | 哪一步 `✖` 就停在哪一步；临时库/临时 uploads/临时包都在 `mktemp -d` 里，退出即清理 | 本文件「容器可验证 / 仅真机可验证」节 |
 
 > ⚠ `install.sh` / `update.sh` / `install.ps1` 的头注均声明「未在真机执行过」——**首次务必在测试机逐条核对输出**，再用于正式实例。
+> 批次 607 起：`install.sh` / `update.sh` 的 `*_NO_SERVICE=1` 演练档在 CI `install-linux` job 真跑（装 → 起服 200 → 换版本 → 再 200）；`install.ps1 -SkipTask` 在 Windows 本机真跑。systemd / useradd / cron / 反代仍属「仅真机」。
 
 ## 容器可验证 / 仅真机可验证（批次 533 波次 D）
 
@@ -61,8 +62,8 @@ status: active
 | 起服务 ＋ smoke | `node server/server.js`（production 档、随机端口）＋ `node deploy/smoke.mjs --login` | 反代后的真实域名 / HTTPS 下 smoke |
 | preflight-cutover | `node server/scripts/preflight-cutover.mjs --strict`（临时生产库） | 真实候选库上的换轨体检 |
 | package | `node deploy/package.mjs` ＋ 断言包内无 `data.db` / `uploads` / `test` | 目标机 `npm ci --omit=dev` 后的可启动性 |
-| install.sh | — | `useradd` 建系统账号、`rsync` 落 `/opt`、systemd 单元 `enable --now`、`/etc/cron.d` 每日备份 |
-| update.sh | — | 停服 → 备份 → 替换 `docs/`+`server/` → 起服 → 冒烟的整链切换（含回滚） |
+| install.sh | `INSTALL_NO_SERVICE=1` 演练档：预检 → 目录 → `npm ci` → 环境文件（CI `install-linux` job） | `useradd` 建系统账号、`rsync` 落 `/opt`、systemd 单元 `enable --now`、`/etc/cron.d` 每日备份 |
+| update.sh | `UPDATE_NO_SERVICE=1` 演练档：备份 → 替换 `docs/`+`server/` → 依赖（CI `install-linux` job 二次核对 200） | 停服 → 起服的整链切换（含回滚与 `systemctl`） |
 | nginx / 证书 | — | 反代两条硬要求（10m 体积上限、`/src/config/deploy.js` 单独放行）与 HTTPS |
 
 - **本轮（波次 D）部署项评分上限 77**：以上「容器可验证」列全绿也只能证到 77。

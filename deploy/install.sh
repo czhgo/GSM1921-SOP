@@ -14,12 +14,23 @@
 #    并逐条核对输出；装完后按 A.2 第 1 / 5 条确认「库内只有真人」「口令已换」。
 #  ⚠ 生产形态三硬约束由 `server/server.js` 自己把关（未设 LOGIN_PASSWORD 即拒启动）；
 #    本脚本只负责把变量写进 `/etc/gsm1921.env`，**口令默认留空**、需你手填。
+#
+#  CI / 无 root 演练（2026-11-24 批次 607 · `L-02`）：
+#    `INSTALL_NO_SERVICE=1 APP_DIR=<临时目录> ENV_FILE=<临时目录>/.env \
+#       INSTALL_LOGIN_PASSWORD=<测试口令> bash deploy/install.sh`
+#    跳过 useradd / systemd / cron（runner 不保证 systemd），保留预检、目录、依赖、环境文件与冒烟；
+#    服务由调用方自行起停。默认（不设该变量）行为与此前完全一致。
 # ════════════════════════════════════════════════════════════════
 set -euo pipefail
 
+NO_SERVICE="${INSTALL_NO_SERVICE:-0}"
 APP_USER="${APP_USER:-gsm1921}"
 APP_DIR="${APP_DIR:-/opt/gsm1921}"
-ENV_FILE="${ENV_FILE:-/etc/gsm1921.env}"
+if [ "$NO_SERVICE" = "1" ] && [ -z "${ENV_FILE:-}" ]; then
+  ENV_FILE="$APP_DIR/.env"
+else
+  ENV_FILE="${ENV_FILE:-/etc/gsm1921.env}"
+fi
 SVC_NAME="${SVC_NAME:-gsm1921}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -35,16 +46,24 @@ command -v npm >/dev/null || die "未找到 npm"
 echo "  node $(node -v) · npm $(npm -v) · 仓库根 $HERE"
 
 say "② 服务账号与目录"
-if ! id -u "$APP_USER" >/dev/null 2>&1; then
-  useradd --system --home-dir "$APP_DIR" --shell /usr/sbin/nologin "$APP_USER" || die "建账号失败（需要 root）"
-  echo "  已建系统账号 $APP_USER"
+if [ "$NO_SERVICE" = "1" ]; then
+  echo "  INSTALL_NO_SERVICE=1：跳过 service 账号（用当前用户）"
 else
-  echo "  账号 $APP_USER 已存在，复用"
+  if ! id -u "$APP_USER" >/dev/null 2>&1; then
+    useradd --system --home-dir "$APP_DIR" --shell /usr/sbin/nologin "$APP_USER" || die "建账号失败（需要 root）"
+    echo "  已建系统账号 $APP_USER"
+  else
+    echo "  账号 $APP_USER 已存在，复用"
+  fi
 fi
 mkdir -p "$APP_DIR" "$APP_DIR/server/uploads" "$APP_DIR/server/backups"
 rsync -a --delete --exclude 'node_modules' --exclude 'data.db*' --exclude 'uploads/' --exclude '.browsers' "$HERE"/ "$APP_DIR"/ 2>/dev/null \
   || cp -a "$HERE"/. "$APP_DIR"/
-chown -R "$APP_USER":"$APP_USER" "$APP_DIR"
+if [ "$NO_SERVICE" = "1" ]; then
+  echo "  INSTALL_NO_SERVICE=1：跳过 chown"
+else
+  chown -R "$APP_USER":"$APP_USER" "$APP_DIR"
+fi
 echo "  代码就位：$APP_DIR（**未覆盖** data.db / uploads / backups）"
 
 say "③ 依赖安装（npm ci --omit=dev）"
@@ -52,6 +71,7 @@ say "③ 依赖安装（npm ci --omit=dev）"
 echo "  依赖就位"
 
 say "④ 生产环境变量（$ENV_FILE）"
+ENV_PASSWORD="${INSTALL_LOGIN_PASSWORD:-}"
 if [ -f "$ENV_FILE" ]; then
   echo "  已存在，**不改**（避免覆盖你填过的口令）"
 else
@@ -60,16 +80,23 @@ else
 # ⚠ 必改：LOGIN_PASSWORD（全站账号共用口令；**生产未设 ⇒ 启动即拒**）
 APP_ENV=production
 PORT=3000
-LOGIN_PASSWORD=            # ← 改成强口令后再启动
+LOGIN_PASSWORD=${ENV_PASSWORD}            # ${ENV_PASSWORD:+由 INSTALL_LOGIN_PASSWORD 注入（演练用）}${ENV_PASSWORD:-← 改成强口令后再启动}
 DB_PATH=$APP_DIR/server/data.db
 UPLOAD_DIR=$APP_DIR/server/uploads
 SEED_FALLBACK=0            # 关断前端三域演示回退
 EOF
-  chmod 600 "$ENV_FILE"
-  echo "  已生成模板（**口令留空** ⇒ 现在启动会被 server.js 拒绝，这是故意的）"
+  chmod 600 "$ENV_FILE" 2>/dev/null || true
+  if [ -n "$ENV_PASSWORD" ]; then
+    echo "  已生成（口令由 INSTALL_LOGIN_PASSWORD 注入，仅演练用）"
+  else
+    echo "  已生成模板（**口令留空** ⇒ 现在启动会被 server.js 拒绝，这是故意的）"
+  fi
 fi
 
 say "⑤ systemd 单元"
+if [ "$NO_SERVICE" = "1" ]; then
+  echo "  INSTALL_NO_SERVICE=1：跳过 systemd（服务由调用方起停）"
+else
 cat > "/etc/systemd/system/${SVC_NAME}.service" <<EOF
 [Unit]
 Description=光华党支部管理引擎（Node + better-sqlite3）
@@ -95,8 +122,12 @@ EOF
 systemctl daemon-reload
 systemctl enable --now "${SVC_NAME}" || die "启动失败：journalctl -u ${SVC_NAME} -n 50"
 echo "  已 enable --now：${SVC_NAME}"
+fi
 
 say "⑥ 每日备份（cron）"
+if [ "$NO_SERVICE" = "1" ]; then
+  echo "  INSTALL_NO_SERVICE=1：跳过 cron"
+else
 cat > "/etc/cron.d/${SVC_NAME}-backup" <<EOF
 # 每日 03:30 备份（库走 SQLite 在线快照 db.backup()，含 WAL；含 uploads/；写 backup.json 清单）；
 # 备份后执行 cleanup（默认 dry-run，本 cron 显式 --apply）：清孤儿附件 / 悬空附件行 / 旧备份，保留最近 14 份。
@@ -104,9 +135,12 @@ cat > "/etc/cron.d/${SVC_NAME}-backup" <<EOF
 EOF
 chmod 644 "/etc/cron.d/${SVC_NAME}-backup"
 echo "  已装 /etc/cron.d/${SVC_NAME}-backup（⚠ 记得核对日志轮转与磁盘）"
+fi
 
 say "⑦ 冒烟"
-if node "$APP_DIR/deploy/smoke.mjs" 2>/dev/null || ( cd "$APP_DIR" && node deploy/smoke.mjs ); then
+if [ "$NO_SERVICE" = "1" ]; then
+  echo "  INSTALL_NO_SERVICE=1：跳过冒烟（服务尚未启动；由调用方起服后自查）"
+elif node "$APP_DIR/deploy/smoke.mjs" 2>/dev/null || ( cd "$APP_DIR" && node deploy/smoke.mjs ); then
   echo "  存活探针通过"
 else
   echo "  ⚠ 冒烟未通过——多半是 LOGIN_PASSWORD 尚未填（server.js 拒绝启动）。填好后：systemctl restart ${SVC_NAME}"
