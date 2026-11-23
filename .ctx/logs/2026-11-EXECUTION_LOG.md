@@ -61,6 +61,7 @@ status: active
 ### 读数
 - `check-batch-commits --limit 90`：**违规 0 · 告警 63 → 53**（余下均为「规则晚于提交」的政策性告警）。
 - 6 条新标题逐条核对命中 `批次 538 更正` / `批次 542 续` / `批次 542 更正` / `批次 547 续` / `批次 549 续` / `批次 550 续`。
+- 推送与 CI：`release/2026-11-launch` 已推；run **`45232134920`** 三 job success（daily / deploy-verify / install-linux）；nightly 四片待次日 02:00 定时或 token dispatch。
 
 ## 批次 607（2026-11-23）· 外部门 `L-02` / `SMTP` 做成可执行检查
 
@@ -81,6 +82,7 @@ status: active
 - Windows：`install.ps1 -SkipTask` 退出码 0；`/login.html` **200**；`uploads/` 可写；启动日志 `users=7 / 演示种子=0`。
 - SMTP：**3/3**（正常投递 ok ＋ 认证失败 535 ＋ 连接超时 4868ms）；证据 `.ctx/evidence/2026-11-24/smtp.md`。
 - 验收台：`/mobile` 与 `/signoff` 均 200（手机地址随启动打印）。
+- CI（push `release/2026-11-launch`）：run **`45232134920`** @ `20176bd45` → **daily / deploy-verify / install-linux 三 job success**（首跑 `45226568761` 暴露 `verify-linux` 存量回归，见批次 607 更正）。
 
 ## 批次 606（2026-11-23）· 多支部读面逐口取证 ＋ 开关演练（`B-605-2` 收口）
 

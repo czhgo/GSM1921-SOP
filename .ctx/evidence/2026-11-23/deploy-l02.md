@@ -20,6 +20,7 @@ status: active
 - 命令（workflow 内）：`APP_DIR=$RUNNER_TEMP/gsm-install ENV_FILE=$RUNNER_TEMP/gsm-install/.env INSTALL_NO_SERVICE=1 INSTALL_LOGIN_PASSWORD=ci-pass bash deploy/install.sh`
 - 装后：起服核对 `/login.html` 200、`uploads/` 可写；再 `UPDATE_NO_SERVICE=1 bash deploy/update.sh <新包>`，更新后再核 200
 - **首次 run id：`45226568761`**（`release/2026-11-launch` @ `cc172f3c8`）：`daily` success · `install-linux` success · `deploy-verify` failure（见下）
+- **修后 run id：`45232134920`**（@ `20176bd45`）：**daily / deploy-verify / install-linux 三个 job 全部 success**——Linux 侧 `install.sh → 起服 200 → uploads 可写 → update.sh → 再核 200` 全链通过
 - **CI 暴露的存量回归**：`deploy/verify-linux.sh` 自 `D-882`（生产禁用共享口令）起一直红——smoke 用共享口令登录 ⇒ 401；preflight `--strict` 又拦「6/7 名未设个人密码」。本批修法：起服后先 `scripts/set-password.mjs` 给党委账号设个人密码再 smoke，停服后给 6 个最小角色账号批量设密码再 preflight；另把 EXIT trap 清理与结论解耦（`|| true` ＋ 显式 `exit 0`），避免 Windows 下文件句柄未释放改写结论。
 - 修后本地复跑：**6/6 全绿**（shell 语法 · doctor · 起服务 · smoke · preflight · package），`preflight --strict` 警告 0。
 
