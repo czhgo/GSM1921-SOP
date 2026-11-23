@@ -53,7 +53,7 @@ cleanup() {
     kill -TERM "$SERVER_PID" 2>/dev/null || true
     wait "$SERVER_PID" 2>/dev/null || true
   fi
-  rm -rf "$TMP"
+  rm -rf "$TMP" 2>/dev/null || true  # Windows 下偶有文件句柄未释放；清理失败不得改写脚本结论
 }
 trap cleanup EXIT INT TERM
 
@@ -106,6 +106,12 @@ if [ "$ready" -ne 1 ]; then
 fi
 ok "服务已就绪：$BASE（端口随机，不占 3000）"
 
+# 生产档只认个人密码（`D-882`）：首启后先给党委账号设个人密码，再用它跑 smoke。
+# 为什么不在启动前设：账号由首启的「最小组织基线」创建，启动前库里还没有这个人。
+( cd server && DB_PATH="$TMP_WIN/prod.db" node scripts/set-password.mjs "$PARTY_ID" --password "$PASS" >/dev/null ) \
+  || die "设置个人密码失败（scripts/set-password.mjs）"
+ok "已设个人密码（党委账号 $PARTY_ID）"
+
 BASE="$BASE" APP_ENV=production node deploy/smoke.mjs --login "$PARTY_ID" "$PASS" || {
   cat "$TMP/server.log" >&2
   die "smoke --login 未通过"
@@ -115,6 +121,14 @@ kill -TERM "$SERVER_PID" 2>/dev/null || true
 wait "$SERVER_PID" 2>/dev/null || true
 SERVER_PID=""
 ok "服务已优雅停止"
+
+# 生产形态共享口令已禁用（`D-882`）：preflight --strict 会拦「未设个人密码」的账号。
+# 这里给首启建立的 6 个最小角色账号批量设个人密码（仅演练库，值同 $PASS）。
+for ROLE_ID in 9000000002 9000000003 9000000004 9000000005 9000000006 9000000007; do
+  ( cd server && DB_PATH="$TMP_WIN/prod.db" node scripts/set-password.mjs "$ROLE_ID" --password "$PASS" >/dev/null ) \
+    || die "设置个人密码失败：$ROLE_ID"
+done
+ok "已为 6 个最小角色账号设个人密码（演练库）"
 
 # ── ⑤ preflight-cutover --strict ───────────────────────────────
 say "⑤ preflight-cutover --strict（同一个临时生产库）"
@@ -140,3 +154,7 @@ ok "包内无 data.db / uploads / test（$(wc -l <"$TMP/pkg-list.txt" | tr -d ' 
 say "结论"
 ok "容器可验证项 6/6 通过（shell 语法 · doctor · 起服务 · smoke · preflight · package）"
 printf '  · 仅真机可验证：install.sh 的 useradd/systemd/cron、update.sh 的停服切换与备份、nginx 反代。\n'
+
+# 显式成功退出：Windows 下 EXIT trap 的 `rm -rf` 偶因文件句柄未释放返回非零，
+# 不得让它改写「六项全绿」的结论（Linux CI 同样受益：结论与清理解耦）。
+exit 0
