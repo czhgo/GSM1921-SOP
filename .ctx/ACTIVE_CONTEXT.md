@@ -28,6 +28,7 @@ status: active
 - **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（批次 603 实跑 239.7s，同值；source：`.ctx/evidence/2026-11-21/tab-audit/summary.md`）；D/C 维度（批次 605 实跑，批次 606 复跑同值）：**D2 处置 46/46**（5 条规则 pass ＋ 41 条 `countSkip` 理由）、**C2 37 pass** / 12 destructive exception、P0/P1/P2 0；复跑读数：`.ctx/evidence/2026-11-23/tab-audit/summary.md`。
 - **测试（四层）**：daily **32 文件 / 264 断言**；guards **81 文件 / 906 断言**（52 源件已并 5 件，预算软告警）；`npm run probe:stage` 6 步断点探针。source：`server/test-tier-registry.mjs`。
 - **换轨**：`preflight-cutover --strict` exit 0；契约 50 表；生产只走个人密码（`D-882`）。source：`deploy/CUTOVER_RUNBOOK.md`。
+- **分支 / CI**：当前在 `main`（已合并 `release/2026-11-launch` 88 条）；CI run `45232134920` 三 job success；`test:full` 存量红未清（仅阻断上线）。
 
 ## §2 现行裁定摘要（只留仍影响下一步）
 
@@ -66,11 +67,11 @@ status: active
 
 ### 下一批任务
 
-1. **六维余项**：`B-603-1/2/3/4`、`B-605-1`（D2 处置 46/46、C2 37 pass，`workbench-audit-coverage::W7`）与 `B-605-2`（多支部读面逐口取证 ＋ 开关演练 26/26，`.ctx/evidence/2026-11-23/multi-branch-read-ports.md`）已收口；**乙部当前无在办项**，余触发制 backlog（`B-541-2/4/6/7`）。
-2. **外部门**：`EA §四` 五项（L-02 / CI run id / 真人签收 / SMTP 实投 / M-01），支书授权后一次性补齐。
-3. **backlog（触发即做）**：`L-13`、`L-14`·`L-15`、`L-17`、`L-18`；触发条件见 `EA §四` 与 `REVIEW_QUEUE B-541-*`。
-4. **已撤销**：`C-5`（`D-914`）——`text-xs` 是 DS_02 允许的「说明句」档，不设「全部上迁 13px」任务；新增由 `style-ratchet-guard::Q6` 的只减不增基线守住。
-5. **多支部开关仍关闭**：`ALLOW_MULTI_BRANCH=1` 只是演练环境；上线形态仍一实例一支部（`D-849` / `D-889`）。
+1. **合并已落**：`release/2026-11-launch` → `main`（merge `10c22ba0d`）；push main 待支书确认；nightly 四片待次日定时。
+2. **外部门剩余真人动作**：M-01 手机三任务（`npm run acceptance` → `/mobile`）＋ `/signoff` 签收；SMTP 第三方实投需 `SMTP_*`。
+3. **backlog（触发即做）**：`L-13`（余 8 条，F-2 见 `P-5`）、`L-14`·`L-15`（方案见 `WORKFLOW_BLOCK_CONTRACT §8.5`，范围见 `P-6`）、`L-17`（`probe:scale` 未触发）、`L-18`。
+4. **发布前阻断**：`test:full` 存量红（node / e2e-A / e2e-B 三通道各 1）需逐条分诊后再上线；`L-02` 的 systemd / nginx 真机段未验。
+5. **已撤销**：`C-5`（`D-914`）——`text-xs` 是 DS_02 允许的「说明句」档，不设「全部上迁 13px」任务；新增由 `style-ratchet-guard::Q6` 的只减不增基线守住。
 
 ## §4 文件地图（读什么 / 不读什么）
 

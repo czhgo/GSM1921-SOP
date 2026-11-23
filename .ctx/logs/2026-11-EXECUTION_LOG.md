@@ -10,6 +10,25 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 611（2026-11-24）· 合并 `release/2026-11-launch` 回 main
+
+### 为什么
+- 支书判断 release 分支可合并；合并前要求「commit 文字正常、正确」。88 条已体检并改写 6 条异常标题（批次 608）。
+
+### 拿不准 / 取舍
+- **full 存量红不冒充绿**：`test:full` 1592.6s，node / e2e-A / e2e-B 三通道各 1 项通道红，涉及 `person-picker` 的 `Math.random`、外副支书 config 403、v4 迁移回滚、登录页 U1–U3、e2e 点击次数等——均不在本批触及面（deploy / mailer / 新脚本 / 文档），且本机未在 main 上复跑基线。按 `H20.5` **本机门**（daily ＋ guards ＋ audit）合并；full 红登记为**发布前阻断**，不删测试、不改 `skip`。
+- **不 force push**：只本地合并；push main 另需支书确认（本轮授权只到 release 分支）。
+
+### 边界
+- 合并后代码面与 release 完全一致（`git diff release/2026-11-launch main` 为空）。
+- nightly 四片仍待次日定时；CI 的 daily / deploy-verify / install-linux 已有 green run。
+
+### 读数
+- `git merge --no-ff` → merge commit `10c22ba0d`；`check-batch-commits --limit 1`：违规 0。
+- daily 86.0s 全绿 · guards 141.2s 全绿 · `audit-tabs --all` P0/P1/P2 **0 / 0 / 0**。
+- CI run `45232134920`：daily / deploy-verify / install-linux 三 job success。
+- `test:full`：1592.6s，三通道存量红未清（登记为发布前阻断）。
+
 ## 批次 610（2026-11-23）· SKILL 路由表按当前能力重写
 
 ### 为什么
