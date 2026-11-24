@@ -65,7 +65,7 @@ dynamic_role:
 | .ctx/logs/archive/2026-10/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/logs/archive/2026-10/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-11-22 | — | [工程师]+[AI] | 日志索引：月份目录 ＋ 批次 529–568；569+ 见当月执行日志各节标题。 |
-| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-24 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，批次 619 在最上）。 |
+| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-24 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，批次 620 在最上）。 |
 | .ctx/logs/DECISION_LOG.md | 2026-11-24 | — | [工程师]+[AI] | 决策日志月度索引；概要只留条数与主题词（沿革见各月文件）。 |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-03-EXECUTION_LOG.md | 2026-03-02 | 2026-07-31 | [工程师]+[AI] | 已归档 |

@@ -10,6 +10,14 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 620（2026-11-24）· 测试数据治理：review 库重建 ＋ 残留清理覆盖两库
+
+- **为什么**：页面上的「用户任务走查·院级主题党日（待采用）」等活动与 `ntc-*` 通知，是走查 / e2e 经 API 写进 `server/data.review.db` 的残留（`data.db` 干净）；`test:full:safe` 只备份 / 清理 `data.db`，残留匹配表也不含这一族。
+- **重建**：停 `:3000` / `:3100` → 备份到 `server/backups/pre-reset-2026-11-24/` → `rebuild-demo --mode demo --out data.review.db --force`（users=51 · activities=38）→ WMI 重启两服务，`/login.html` 与 `/mobile` 均 200。
+- **堵回潮**：`cleanup.mjs --test-residue` 增两条双条件规则（`act-<8hex>` ＋ 标题以「用户任务走查」开头；`ntc-*` ＋ 标题含该前缀），派生 `tasks / workgroups / workgroup_members / notices` 同批清理；`test-full-safe.mjs` 备份与清理**同时覆盖 `data.db` 与 `data.review.db`**。
+- **读数**：重建后 `cleanup --db data.review.db --test-residue` **0 张表 / 0 行**；`data-lifecycle-guard ⑮`（含新增残留样本与两条单条件反例）1/1；两服务 200。
+- **边界**：`data.db` 未动；uploads 里可能仍有测试附件（无 DB 行引用即不在页面出现），不按单库孤儿清理，避免误删另一库引用的文件。
+
 ## 批次 619（2026-11-24）· 三处 UI 全部回滚（`D-921`）
 
 - **为什么**：支书指出 612 / 612 续 / 618 三处 UI 改动未经批准（「最近三天没有一个决策事关前端方向」），要求恢复原状并补「UI 须逐项书面批准」的硬规则；同时点出「改后未主动报告」。

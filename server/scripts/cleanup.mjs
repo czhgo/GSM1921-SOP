@@ -39,6 +39,11 @@ const PROGRESS_ISSUE_TITLE = '【进度汇报】';
 const PROGRESS_ISSUE_DATE = '2026-10-21';
 const SEED_TODO_ID = 'todo_seed_7';
 const SEED_TODO_TITLE = '设置第三党小组组长';
+// 2026-11-24 批次 620：走查 / e2e 经 API 写进 review 库的「用户任务走查」系列。
+//   双条件：活动＝`act-<8 位 hex>` 且标题以「用户任务走查」开头；通知＝`ntc-*` 且标题含该前缀。
+//   单条命中不删（防真实业务行被同名标题误伤）。
+const WALKTHROUGH_TITLE_PREFIX = '用户任务走查';
+const WALKTHROUGH_ACTIVITY_ID_RE = /^act-[0-9a-f]{8}$/;
 
 function parseArgs(argv) {
   const out = { apply: false, keep: 14, testResidue: false, sessionsBefore: null };
@@ -173,7 +178,9 @@ export function planTestResidue(db, { sessionsBefore = null } = {}) {
   const testActivityIds = add('activities', idsIn(activities, (row) =>
     (String(row.id).startsWith('act-b31-') && row.data.title === TEST_ACTIVITY_TITLE)
     || (row.id === 'act-ce46b61e' && row.data.title === CROSS_GROUP_ACTIVITY_TITLE)
-  ), '测试活动（act-b31-* / act-ce46b61e，标题同时匹配）');
+    || (WALKTHROUGH_ACTIVITY_ID_RE.test(row.id)
+      && String(row.data.title || '').startsWith(WALKTHROUGH_TITLE_PREFIX))
+  ), '测试活动（act-b31-* / act-ce46b61e / act-<8hex> 走查，标题同时匹配）');
   const activityIdSet = new Set(testActivityIds);
 
   // ② 测试议题：标题 ＋ 日期 双条件（`issue-102` 无 createdAt，不命中）
@@ -219,6 +226,9 @@ export function planTestResidue(db, { sessionsBefore = null } = {}) {
   const notices = readDataRows(db, 'notices');
   const noticeMatchesResidue = (row) => {
     if (!String(row.id).startsWith('ntc-')) return false;
+    const title = String(row.data.title || '');
+    // 走查残留：`活动强调：用户任务走查…` 也含该前缀
+    if (title.includes(WALKTHROUGH_TITLE_PREFIX)) return true;
     const targetId = row.data.targetId || row.data.sourceId || '';
     if (activityIdSet.has(targetId) || issueIdSet.has(targetId)) return true;
     const targetUrl = String(row.data.targetUrl || '');

@@ -362,12 +362,22 @@ test('⑮ 测试残留清理：ID 前缀 ＋ 标题/日期 双条件命中，真
   insert('issues', { id: 'issue-test01', title: '【进度汇报】', createdAt: '2026-10-21T11:39:44.354Z' });
   insert('issue_unread', { id: 'secretary-review:issue-test01', issueId: 'issue-test01', at: '2026-10-21T11:41:20.021Z' });
   insert('todos', { id: 'todo_seed_7', title: '设置第三党小组组长' });
+  // 2026-11-24 批次 620：走查残留（act-<8hex> ＋ 标题前缀；ntc-* ＋ 标题前缀）
+  insert('activities', { id: 'act-84f9278e', title: '用户任务走查·院级主题党日（待采用）', date: '2026-12-20' });
+  insert('tasks', { id: 'tsk-walk-1', activityId: 'act-84f9278e', title: '活动发起' });
+  insert('workgroups', { id: 'wg-activity-act-84f9278e', sourceType: 'activity', sourceId: 'act-84f9278e', name: '用户任务走查·院级主题党日（待采用）' });
+  insert('workgroup_members', { id: 'wgm-walk-1', workgroupId: 'wg-activity-act-84f9278e', personId: '2400012349' });
+  insert('notices', { id: 'ntc-walk0001', title: '用户任务走查·公开通知（390）', source: 'committee' });
 
   // 真实业务行（必须保留）：分别只满足单条件
   insert('activities', { id: 'act-real-1', title: 'B3-1 测试活动', date: '2026-09-01' });
   insert('activities', { id: 'act-b31-real', title: '真实支部活动', date: '2026-10-01' });
+  // 单条件不删：标题像走查但 id 非 act-8hex
+  insert('activities', { id: 'act-walk-real', title: '用户任务走查复盘会', date: '2026-11-01' });
   insert('issues', { id: 'issue-real', title: '【进度汇报】', createdAt: '2026-10-22T00:00:00.000Z' });
   insert('todos', { id: 'todo_seed_7_real', title: '设置第三党小组组长' });
+  // 单条件不删：标题含走查但 id 非 ntc-*
+  insert('notices', { id: 'notice-walk-real', title: '关于用户任务走查的说明', source: 'branch' });
   // sessions 默认不删；显式 --sessions-before 才按日期清
   db.prepare('INSERT INTO sessions (token, person_id, created_at) VALUES (?, ?, ?)')
     .run('sess-old', '2400012349', '2026-09-01T00:00:00.000Z');
@@ -379,22 +389,22 @@ test('⑮ 测试残留清理：ID 前缀 ＋ 标题/日期 双条件命中，真
   const dry = spawnSync(process.execPath, [script, '--db', dbPath, '--test-residue'], { encoding: 'utf8' });
   assert.equal(dry.status, 0, `dry-run 应成功：${dry.stderr}`);
   assert.match(dry.stdout, /DRY-RUN/, '默认必须是 dry-run');
-  assert.match(dry.stdout, /activities: 2 行/, '必须打印将删行数与表名');
+  assert.match(dry.stdout, /activities: 3 行/, '必须打印将删行数与表名');
   const before = new Database(dbPath, { readonly: true });
-  try { assert.equal(before.prepare('SELECT COUNT(*) c FROM activities').get().c, 4, 'dry-run 不得删除'); } finally { before.close(); }
+  try { assert.equal(before.prepare('SELECT COUNT(*) c FROM activities').get().c, 6, 'dry-run 不得删除'); } finally { before.close(); }
 
   const apply = spawnSync(process.execPath, [script, '--db', dbPath, '--test-residue', '--apply'], { encoding: 'utf8' });
   assert.equal(apply.status, 0, `--apply 应成功：${apply.stderr}`);
   const after = new Database(dbPath, { readonly: true });
   try {
     const ids = (table) => after.prepare(`SELECT id FROM ${table} ORDER BY id`).all().map((row) => row.id);
-    assert.deepEqual(ids('activities'), ['act-b31-real', 'act-real-1'], '仅双条件命中的测试活动可删');
+    assert.deepEqual(ids('activities'), ['act-b31-real', 'act-real-1', 'act-walk-real'], '仅双条件命中的测试活动可删');
     assert.deepEqual(ids('attendances'), [], '测试考勤应删');
     assert.deepEqual(ids('makeup_tasks'), [], '测试补课任务应删');
     assert.deepEqual(ids('tasks'), [], '派生任务应删');
     assert.deepEqual(ids('workgroups'), [], '派生工作组应删');
     assert.deepEqual(ids('workgroup_members'), [], '派生工作组成员应删');
-    assert.deepEqual(ids('notices'), [], '测试通知应删');
+    assert.deepEqual(ids('notices'), ['notice-walk-real'], '测试通知应删，单条件真实通知保留');
     assert.deepEqual(ids('issue_unread'), [], '测试议题未读标记应删');
     assert.deepEqual(ids('issues'), ['issue-real'], '日期不同的真实议题保留');
     assert.deepEqual(ids('todos'), ['todo_seed_7_real'], 'ID 不同的真实待办保留');
