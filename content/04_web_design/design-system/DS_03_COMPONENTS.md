@@ -394,7 +394,7 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 > - §4.10 视图表：「**执行层仪表盘｜支书「全局概况」**」列为独立视图模式；
 > - `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:368`（§F.6）：「做与看……**支书工作台全局概况以统一待处理主队列为先，责任线与指标按需展开**」。
 >
-> **现状速查（实读 2026-10-25）**：跨台同名 tab 中，`知情查看`（`tf-view`，支书 / 组长 **2 台**；成员台同名组件已按对象改称「专班动态」）与 `我的处置`（`my-dispatch`，5 台）**均系同一组件、同一职责 ⇒ 同名保留**；支书台与其余五台的 `overview` 位置**系 L2 与 L0 / L1 两层 ⇒ 按本口径保留两套名**（键同为 `overview`，`docs/src/capabilities/secretary-workspace.js:45` ＝「全局概况」，其余五台 ＝「工作概况」）。同名但语义两分者（支书台 `活动管理`＝全支部 L2 / 组长台 `本组活动`＝本组 L1；组织台 / 组长台 `考察管理`＝专班 / 本组活动两数据域；组织台 `思想汇报`＝台账 L1 / 成员台 `思想汇报`＝本人提交 L0）如需副标区分，属**待裁文案**、不在本口径内（方案见 [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md) §四.4）。
+> **现状速查（实读 2026-10-25）**：跨台同名 tab 中，`知情查看`（`tf-view`，支书 / 组长 **2 台**；成员台同名组件已按对象改称「专班动态」）与 `我的处置`（`my-dispatch`，5 台）**均系同一组件、同一职责 ⇒ 同名保留**；支书台与其余五台的 `overview` 位置**系 L2 与 L0 / L1 两层 ⇒ 按本口径保留两套名**（键同为 `overview`，`docs/src/capabilities/secretary-workspace.js` ＝「全局概况」，其余五台 ＝「工作概况」）。同名但语义两分者（支书台 `活动管理`＝全支部 L2 / 组长台 `本组活动`＝本组 L1；组织台 / 组长台 `考察管理`＝专班 / 本组活动两数据域；组织台 `思想汇报`＝台账 L1 / 成员台 `思想汇报`＝本人提交 L0）如需副标区分，属**待裁文案**、不在本口径内（方案见 [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md) §四.4）。
 >
 > **同批改准**：上方「工作台分组主轴」表原写「今天 / 待办 / 工作概况（各台同构的核心三件套）」——该句与支书台实况不符（支书台该位置为「全局概况」），本批按本口径**改准为「六台中的五台同构、支书台该位置为 L2 变体『全局概况』」**。这是**改准既有瑕疵、不是新立**（母本依据即上引 §一 原则9）。
 
@@ -517,15 +517,15 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 | # | 数据格式 / 形态 | 该用的视图 | 判据（什么信号决定用它） | 本仓实例（`文件:行`） | 反例（用错的实例） | 落位（新增 / 并入既有） |
 |---|---|---|---|---|---|---|
 | 1 | 多行同字段 | 表格（`.data-table` ＋ 统一检索引擎分页） | 首列是同一维度、行数 > 1；行数 > `SEARCH_FILTER_MIN_ROWS`(8) 才挂检索条 | `docs/src/components/ui/list-filter.js`；`docs/src/entries/tabs/disc/makeup-tab.js` | 小表强加检索条（已修，`content/04_web_design/evolution/archive/BRANCH_WORK_MAP.md:87`）；成员名册已改引擎**列表模式**（网格行，不是 `.data-table`） | **新增**（视图＝§4.10 既有；判据 / 反例新增） |
-| 2 | 单实体档案 | 卡片（`.card`，一份＝一卡） | 一条记录、字段多、需并读 | `docs/src/entries/tabs/party-committee/monitor-tab.js:32`；`docs/src/entries/tabs/org/talent-tab.js` | 「全量成员档案平铺」（已收敛为观察卡，`docs/src/entries/tabs/org/talent-tab.js:2-8` 头注即反例记录） | **新增**（视图＝§4.2 卡片既有；判据 / 反例新增） |
+| 2 | 单实体档案 | 卡片（`.card`，一份＝一卡） | 一条记录、字段多、需并读 | `docs/src/entries/tabs/party-committee/monitor-tab.js`；`docs/src/entries/tabs/org/talent-tab.js` | 「全量成员档案平铺」（已收敛为观察卡，`docs/src/entries/tabs/org/talent-tab.js` 头注即反例记录） | **新增**（视图＝§4.2 卡片既有；判据 / 反例新增） |
 | 3 | 跨期 / 交叉对比 | 矩阵（`docs/src/components/ui/relation-matrix.js` 转置双视图，默认宽表） | 二元关系（人×项目 / 人×期次） | 本 §4.10「转置双视图」（单一源 `relation-matrix.js`）；`docs/src/entries/tabs/disc/attendance-tab.js`、`docs/src/entries/tabs/org/taskforce-tab.js` | long form 当主视图（2026-09-14 裁定降为「明细 / 导出」下钻，本 §4.10「默认视图＝宽表」条）；思想汇报已收窄为例外清单（2026-10-20 判例②） | **并入既有**（本 §4.10「转置双视图」；只补判据） |
-| 4 | 流状事件 | 时间轴 / 日志（行＝时间＋动作＋人） | 有先后、需留痕、只增不改 | `docs/src/entries/tabs/secretary/group-progress-tab.js:267`（组级变更留痕）；`docs/src/components/feedback/issue-detail.js:119-123`（评论 timeline） | — | **新增**（视图＝§4.10 表外既有实现；判据 / 实例新增） |
+| 4 | 流状事件 | 时间轴 / 日志（行＝时间＋动作＋人） | 有先后、需留痕、只增不改 | `docs/src/entries/tabs/secretary/group-progress-tab.js`（组级变更留痕）；`docs/src/components/feedback/issue-detail.js`（评论 timeline） | — | **新增**（视图＝§4.10 表外既有实现；判据 / 实例新增） |
 | 5 | 分类归属 | 看板 / 分列（只渲染有内容的分桶） | 每行必落且仅落一桶 | `docs/src/entries/tabs/org/taskforce-tab.js`（三桶）；`docs/src/entries/tabs/prop/kanban-tab.js` | 空桶恒渲染撑 `min-h-[120px]`（已修，`content/04_web_design/evolution/archive/BRANCH_WORK_MAP.md:61`） | **新增**（视图＝§4.10「看板视图」行；判据 / 反例新增） |
 | 6 | 进度与占比 | 进度条 / 迷你条 | 面向「未完成」的推进度 | 本 §4.10「执行层仪表盘」KPI 进度条 | 「已完成 N/总数」无差异存量统计（违 §一 原则11） | **并入既有**（本 §4.10 执行层仪表盘；只补判据） |
-| 7 | 少量关键数 | KPI 条（页首内联一行） | ≤ 约 5 个摘要数、进入即见 | `docs/src/entries/tabs/secretary/report-up-tab.js:39-40`（统计条）；`docs/src/entries/tabs/party-committee/governance-overview-tab.js` | `docs/src/entries/tabs/secretary/committee-meeting-tab.js:29-31`「支委会场次 N」＝累计存量数（原则11 违例候选） | **并入既有**（本 §4.10 执行层仪表盘 KPI 顶栏；只补判据） |
+| 7 | 少量关键数 | KPI 条（页首内联一行） | ≤ 约 5 个摘要数、进入即见 | `docs/src/entries/tabs/secretary/report-up-tab.js`（统计条）；`docs/src/entries/tabs/party-committee/governance-overview-tab.js` | `docs/src/entries/tabs/secretary/committee-meeting-tab.js`「支委会场次 N」＝累计存量数（原则11 违例候选） | **并入既有**（本 §4.10 执行层仪表盘 KPI 顶栏；只补判据） |
 | 8 | 两两关系 | 关系图 / 矩阵 | 关系是主体、非时序 | 单一源同第 3 行 `docs/src/components/ui/relation-matrix.js` | 各域自造矩阵（已收，守卫 `server/test/relation-matrix.test.mjs`） | **并入既有**（同第 3 行单一源；只补判据） |
-| 9 | 可逐项勾选的清单 | 复选列表 | 逐项独立、需一次提交多条 | `docs/src/entries/pages/party-committee-meeting-entry.js:332`（拟上会清单 `pcm-cand` 复选）；`docs/src/entries/tabs/party-committee/dispatch-tab.js`（支部勾选） | chip 承担筛选（禁，本 §4.12「筛选行载体」） | **新增**（视图＝§4.10 表外既有实现；判据 / 反例新增） |
-| 10 | 一句话结论 | 提示条（notice bar） | 结论 / 口径需常驻可见、不占流程序号 | `docs/src/entries/pages/party-committee-meeting-entry.js:511-524`（效力口径提示条） | 制度原文进界面（违 §4.18.3 C7） | **新增**（视图＝§4.10 表外既有实现；判据 / 反例新增） |
+| 9 | 可逐项勾选的清单 | 复选列表 | 逐项独立、需一次提交多条 | `docs/src/entries/pages/party-committee-meeting-entry.js`（拟上会清单 `pcm-cand` 复选）；`docs/src/entries/tabs/party-committee/dispatch-tab.js`（支部勾选） | chip 承担筛选（禁，本 §4.12「筛选行载体」） | **新增**（视图＝§4.10 表外既有实现；判据 / 反例新增） |
+| 10 | 一句话结论 | 提示条（notice bar） | 结论 / 口径需常驻可见、不占流程序号 | `docs/src/entries/pages/party-committee-meeting-entry.js`（效力口径提示条） | 制度原文进界面（违 §4.18.3 C7） | **新增**（视图＝§4.10 表外既有实现；判据 / 反例新增） |
 | 11 | 时间分布 | 日历（月 / 周 / 日 / 列表四视图） | 以「日期」为主索引 | `docs/src/components/record/calendar.js`；本 §4.10 日历视图行 | — | **并入既有**（本 §4.10 日历视图行；只补判据） |
 | 12 | 表单录入 | 表单视图（载体四选一：悬浮 / 就地 / 内联 / 跳转） | 录入动作，按字段数与主次选载体 | 本 §4.12 交互载体决策规范；`#calendar-create-panel` | 载体误用（本 §4.12 明写防两极化） | **并入既有**（本 §4.12；只补判据） |
 
@@ -1141,50 +1141,50 @@ icon('bell', { className: 'w-4 h-4' })
 
 **统一入口**：`docs/src/components/ui/modal.js::confirmDanger`——复用既有 `_mustPressConfirm` 的「必须点按钮才能关」机制，主按钮 `.btn-danger-solid`（危险确认专用），**不新增第二套弹窗组件**；`docs/src` 内原生 `confirm(` 与 `data-confirm` 已清零（`data-adapter` 的业务方法 `.confirm(id)` 不属于对话框，不在其列）。
 
-**盘点**（位置取本批改动后的行号）
+**盘点**（位置取本批改动后的文件 / 符号，不再写行号）
 
-| 位置（文件:行号） | 现有形态 | 是否最优（三段式是否齐） | 缺口 | 处理 |
+| 位置（文件 / 符号） | 现有形态 | 是否最优（三段式是否齐） | 缺口 | 处理 |
 |---|---|---|---|---|
-| `components/record/inspector.js:1230`（归档） | 原生 confirm | 改后齐 | 原缺影响范围与恢复路径 | 改 |
-| `components/record/inspector.js:1250`（彻底删除） | 原生 confirm | 改后齐 | 原缺影响范围，未写「不可恢复」 | 改 |
-| `components/record/inspector.js:1203`（恢复至主视图） | 原生 confirm | 改后齐 | 原缺影响与再次归档路径 | 改 |
-| `components/record/inspector.js:1126,1136,1146`（品牌提案 / 撤回 / 取消认定） | 原生 confirm | 改后齐 | 原缺影响与恢复路径 | 改 |
-| `components/record/inspector.js:1160,1174`（提请表决 / 批准发布） | 原生 confirm | 改后齐 | 原缺影响，未写不可撤回 | 改 |
-| `components/record/inspector.js:1184`（不批准 · 退回意见） | 原生 prompt（录入 ＋ 确认） | 文案补后三段可读 | 录入面形态未变（见「不补」） | 补文案 |
-| `entries/tabs/disc/inspection-tab.js:267`（删除考察记录） | 原生 confirm | 改后齐 | 原缺影响与「不可恢复」 | 改 |
-| `entries/tabs/org/taskforce-tab.js:327,374`（启动 / 重新报送） | 原生 confirm | 改后齐 | 原缺影响与可否恢复 | 改 |
-| `entries/tabs/org/taskforce-tab.js:347`（撤销并删除专班） | 两次原生 confirm 串联 | 改后齐（合并为一次确认面） | 原两次确认均未写影响范围 | 改 |
-| `entries/tabs/prop/archive-tab.js:338`（删除材料） | 原生 confirm | 改后齐 | 原缺影响（物理文件）与不可恢复措辞 | 改 |
-| `entries/tabs/prop/kanban-tab.js:101`（结束活动） | 原生 confirm | 改后齐 | 原缺后续归档路径 | 改 |
-| `entries/tabs/prop/weekly-tab.js:193`（覆盖已填内容） | 原生 confirm | 改后齐 | 原缺影响与内容丢失说明 | 改 |
-| `entries/tabs/secretary/committee-meeting-tab.js:195`（撤销支委身份） | 原生 confirm | 改后齐 | 原缺影响（权限 / 台位）与恢复 | 改 |
-| `entries/tabs/secretary/workforce-panel.js:292`（采纳分工调整） | 原生 confirm | 改后齐 | 原缺影响与留痕 | 改 |
-| `entries/tabs/secretary/feedback-tab.js:257`（清除本地缓存） | 原生 confirm | 改后齐 | 原缺恢复说明 | 改 |
-| `entries/pages/settings-entry.js:713`（回滚配置） | 原生 confirm | 改后齐 | 原缺影响范围 | 改 |
-| `entries/pages/branch-config-entry.js:132,146`（停用支部 / 任命支书） | 原生 confirm | 改后齐 | 原缺影响（成员 / 待办）与恢复 | 改 |
-| `components/sections/references.js:927,928,987`（停用 / 启用制度、删除支部文件） | 原生 confirm | 改后齐 | 删除项原缺影响范围 | 改 |
-| `components/governance/org-setup-wizard.js:1250,1287,1567`（恢复默认 ×2 / 清除预览） | 原生 confirm | 改后齐 | 原缺影响与回滚路径 | 改 |
-| `components/governance/activity-progress.js:110`（标记完成） | 原生 confirm | 改后齐 | 原缺影响与「归档仍需闸门」 | 改 |
-| `components/governance/signup-panel.js:336`（拒绝报名） | 原生 confirm | 改后齐 | 原缺影响与重新提交路径 | 改 |
-| `components/record/todo-tab-shell.js:586`（删除待办） | 原生 confirm | 改后齐 | 原缺影响范围 | 改 |
-| `entries/pages/activity-entry.js:726,757,770,813,1148`（关闭报名 / 品牌三动作 / 撤回复盘 / 删除分工） | 居中弹窗（页面内 `_openConfirm` 包装 `openModal`） | 补后齐；结构与统一组件同源 | 原缺「可否恢复」句 | 补 |
-| `components/ui/void-record.js:51`（作废 · 原因必填） | 居中弹窗 | 补后齐 | 原缺「作废后是否可恢复」 | 补 |
-| `components/governance/organizer-transfer.js:139`（转交组织者） | 居中弹窗 | 补后齐 | 原缺换回路径 | 补 |
-| `entries/tabs/org/member-flow-tab.js:419,487`（登记流出 / 撤销台账） | 居中弹窗 | 补后齐 | 原缺撤销 / 重新登记的恢复路径 | 补 |
-| `entries/tabs/secretary/group-progress-tab.js:924`（解散党小组） | 居中弹窗 | 补后齐 | 原缺「不可恢复」 | 补 |
-| `entries/tabs/secretary/todo-tab.js:924,957`（驳回报废申请 ×2） | 居中弹窗 | 补后齐 | 原缺重新申请路径 | 补 |
-| `entries/tabs/secretary/overview-tab.js:184`（退回周期归档） | 居中弹窗 | 补后齐 | 原缺影响与重新报送路径 | 补 |
-| `entries/tabs/org/roster-tab.js:519`（移出成员名册） | 居中弹窗 | 齐（做什么 / 影响 / 可在「成员流动」撤销纠正） | — | 保留 |
-| `entries/tabs/secretary/notification-tab.js:400`（删除通知） | 居中弹窗 | 齐（含联动删除待办 / 不可恢复） | — | 保留 |
-| `entries/tabs/secretary/todo-tab.js:844`（退回成员变更） | 居中弹窗 | 齐（退回不生效 / 可重新发起） | — | 保留 |
+| `components/record/inspector.js`（归档） | 原生 confirm | 改后齐 | 原缺影响范围与恢复路径 | 改 |
+| `components/record/inspector.js`（彻底删除） | 原生 confirm | 改后齐 | 原缺影响范围，未写「不可恢复」 | 改 |
+| `components/record/inspector.js`（恢复至主视图） | 原生 confirm | 改后齐 | 原缺影响与再次归档路径 | 改 |
+| `components/record/inspector.js`（品牌提案 / 撤回 / 取消认定） | 原生 confirm | 改后齐 | 原缺影响与恢复路径 | 改 |
+| `components/record/inspector.js`（提请表决 / 批准发布） | 原生 confirm | 改后齐 | 原缺影响，未写不可撤回 | 改 |
+| `components/record/inspector.js`（不批准 · 退回意见） | 原生 prompt（录入 ＋ 确认） | 文案补后三段可读 | 录入面形态未变（见「不补」） | 补文案 |
+| `entries/tabs/disc/inspection-tab.js`（删除考察记录） | 原生 confirm | 改后齐 | 原缺影响与「不可恢复」 | 改 |
+| `entries/tabs/org/taskforce-tab.js`（启动 / 重新报送） | 原生 confirm | 改后齐 | 原缺影响与可否恢复 | 改 |
+| `entries/tabs/org/taskforce-tab.js`（撤销并删除专班） | 两次原生 confirm 串联 | 改后齐（合并为一次确认面） | 原两次确认均未写影响范围 | 改 |
+| `entries/tabs/prop/archive-tab.js`（删除材料） | 原生 confirm | 改后齐 | 原缺影响（物理文件）与不可恢复措辞 | 改 |
+| `entries/tabs/prop/kanban-tab.js`（结束活动） | 原生 confirm | 改后齐 | 原缺后续归档路径 | 改 |
+| `entries/tabs/prop/weekly-tab.js`（覆盖已填内容） | 原生 confirm | 改后齐 | 原缺影响与内容丢失说明 | 改 |
+| `entries/tabs/secretary/committee-meeting-tab.js`（撤销支委身份） | 原生 confirm | 改后齐 | 原缺影响（权限 / 台位）与恢复 | 改 |
+| `entries/tabs/secretary/workforce-panel.js`（采纳分工调整） | 原生 confirm | 改后齐 | 原缺影响与留痕 | 改 |
+| `entries/tabs/secretary/feedback-tab.js`（清除本地缓存） | 原生 confirm | 改后齐 | 原缺恢复说明 | 改 |
+| `entries/pages/settings-entry.js`（回滚配置） | 原生 confirm | 改后齐 | 原缺影响范围 | 改 |
+| `entries/pages/branch-config-entry.js`（停用支部 / 任命支书） | 原生 confirm | 改后齐 | 原缺影响（成员 / 待办）与恢复 | 改 |
+| `components/sections/references.js`（停用 / 启用制度、删除支部文件） | 原生 confirm | 改后齐 | 删除项原缺影响范围 | 改 |
+| `components/governance/org-setup-wizard.js`（恢复默认 ×2 / 清除预览） | 原生 confirm | 改后齐 | 原缺影响与回滚路径 | 改 |
+| `components/governance/activity-progress.js`（标记完成） | 原生 confirm | 改后齐 | 原缺影响与「归档仍需闸门」 | 改 |
+| `components/governance/signup-panel.js`（拒绝报名） | 原生 confirm | 改后齐 | 原缺影响与重新提交路径 | 改 |
+| `components/record/todo-tab-shell.js`（删除待办） | 原生 confirm | 改后齐 | 原缺影响范围 | 改 |
+| `entries/pages/activity-entry.js`（关闭报名 / 品牌三动作 / 撤回复盘 / 删除分工） | 居中弹窗（页面内 `_openConfirm` 包装 `openModal`） | 补后齐；结构与统一组件同源 | 原缺「可否恢复」句 | 补 |
+| `components/ui/void-record.js`（作废 · 原因必填） | 居中弹窗 | 补后齐 | 原缺「作废后是否可恢复」 | 补 |
+| `components/governance/organizer-transfer.js`（转交组织者） | 居中弹窗 | 补后齐 | 原缺换回路径 | 补 |
+| `entries/tabs/org/member-flow-tab.js`（登记流出 / 撤销台账） | 居中弹窗 | 补后齐 | 原缺撤销 / 重新登记的恢复路径 | 补 |
+| `entries/tabs/secretary/group-progress-tab.js`（解散党小组） | 居中弹窗 | 补后齐 | 原缺「不可恢复」 | 补 |
+| `entries/tabs/secretary/todo-tab.js`（驳回报废申请 ×2） | 居中弹窗 | 补后齐 | 原缺重新申请路径 | 补 |
+| `entries/tabs/secretary/overview-tab.js`（退回周期归档） | 居中弹窗 | 补后齐 | 原缺影响与重新报送路径 | 补 |
+| `entries/tabs/org/roster-tab.js`（移出成员名册） | 居中弹窗 | 齐（做什么 / 影响 / 可在「成员流动」撤销纠正） | — | 保留 |
+| `entries/tabs/secretary/notification-tab.js`（删除通知） | 居中弹窗 | 齐（含联动删除待办 / 不可恢复） | — | 保留 |
+| `entries/tabs/secretary/todo-tab.js`（退回成员变更） | 居中弹窗 | 齐（退回不生效 / 可重新发起） | — | 保留 |
 
 **仍标「不补」的项**
 
 | 位置 | 判定 | 理由 |
 |---|---|---|
-| `components/shell/sidebar.js:210`（退出登录） | 无确认面 | 非破坏性动作：只结束本机会话，不改任何业务数据，重新登录即回 |
-| 打回 / 退回原因的原生 `prompt`（`entries/tabs/disc/inspection-tab.js:281,299`、`entries/tabs/org/taskforce-tab.js:889`、`entries/tabs/prop/archive-tab.js:263` 等） | 原生 prompt | 属**录入面**（必填原因），不在确认面判据内，且文案已说明后续走向；本轮范围只收 `confirm(`，`prompt` 收口另批 |
-| `data/api-adapter.js:1101,1273`、`data/mock-adapter.js:2385` 的 `.confirm(id)` | 非对话框 | 业务方法名（交接 / 变更确认），与浏览器原生对话框无关，不适用 SD-53 |
+| `components/shell/sidebar.js`（退出登录） | 无确认面 | 非破坏性动作：只结束本机会话，不改任何业务数据，重新登录即回 |
+| 打回 / 退回原因的原生 `prompt`（`entries/tabs/disc/inspection-tab.js`、`entries/tabs/org/taskforce-tab.js`、`entries/tabs/prop/archive-tab.js` 等） | 原生 prompt | 属**录入面**（必填原因），不在确认面判据内，且文案已说明后续走向；本轮范围只收 `confirm(`，`prompt` 收口另批 |
+| `data/api-adapter.js`、`data/mock-adapter.js` 的 `.confirm(id)` | 非对话框 | 业务方法名（交接 / 变更确认），与浏览器原生对话框无关，不适用 SD-53 |
 
 
 ### 4.28 筛选形态选择（2026-10-20 立 · 阈值来自名册判例）

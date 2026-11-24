@@ -29,8 +29,8 @@ status: landed
 
 ## 2. 差异清单（收敛前审计结论）
 
-1. **COMMISSIONER_ROLES 双定义语义冲突**：auth.js:114-116（含支书/副支书，授权语义）vs constants.js:194-196（不含，条条委员语义）→ `inspector.js` 与 `assign-tab.js` 消费结果不同。
-2. **workflow requiredRoles 游离硬编码**：`workflow/definitions.js:83,137` 硬编码 `['organizer','leader','secretary','disc-commissioner','prop-commissioner']`，缺 org/deputy/participant/deep，且与能力 requiredRoles 同名易误读。
+1. **COMMISSIONER_ROLES 双定义语义冲突**：auth.js（含支书/副支书，授权语义）vs constants.js（不含，条条委员语义）→ `inspector.js` 与 `assign-tab.js` 消费结果不同。
+2. **workflow requiredRoles 游离硬编码**：`workflow/definitions.js` 硬编码 `['organizer','leader','secretary','disc-commissioner','prop-commissioner']`，缺 org/deputy/participant/deep，且与能力 requiredRoles 同名易误读。
 3. **能力注册表不对称**：支书工作台无 `secretary-workspace` 能力（tab 硬编码入口）；5 个 workspace 能力未声明 requiredRoles；全部 `getCapabilities` 调用未传 role（死代码）。
 4. **语义色 vs 强调色值不一致**：organizer（#0369A1 vs #7DD3FC）、deep（#7C3AED vs #94a3b8），注释自称同源但值不同。
 5. **ROLE_LABELS 缺 initiator**（ROLE_COLORS 有键，标签表无对应）。

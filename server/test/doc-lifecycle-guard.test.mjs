@@ -694,81 +694,32 @@ await (async () => {
   });
   
   // ═════════════════════════════════════════════════════════════════════════════
-  // 三、README-server「文件:行号」取证断言（原 `doc-line-ref.test.mjs` · R1–R6）
+  // 三、文档指代码的引用断言（2026-11-24 批次 621 改准 · `D-922`）
   // ═════════════════════════════════════════════════════════════════════════════
   //
-  // 来源（支书第 ⑥ 条）：「我们在根目录的 README 文档的开头新置一个链接，就是针对后台对接的说明文件——README-server，
-  //   后端那边需要完整过一下这个系统的背景以及后端所有的【角色、功能、板块、字段说明】！每一项都需要！！」
-  //   README-server.md 是**给外部后端对接团队**的一站式说明书（背景 / 角色 / 功能板块 / 字段 / 部署 / 接口 / 已知限制），
-  //   它的取证手段是正文里 **380 处 `文件:行号` 引用**——**引用失效＝后端照着找不到东西**。
+  // 口径（支书 2026-11-24）：「代码应该相对独立一点」——文档**不按行号绑定代码**；
+  //   只有三件取证文档允许指代码（README-server.md · DATA_MODEL.md · ARCHITECTURE.md），
+  //   其余 markdown 一律不得出现「真实代码文件:行号」。
+  //   引用格式：`文件`；符号写进紧跟的括注（`文件`（`SYMBOL`））。
   //
-  // 病灶（批次 107 实测）：批次 106 只核了 8 处（自己改动的影响面）+ 抽样，其余未逐条核，并登记「不假装覆盖」。
-  //   本批先造验证器、再逐条核，实测：
-  //     ① **指针失效 3 处**——2 处指向空行（`DATA_MODEL.md:1038` / `:1098`）、1 处行号越界（`sopData.js:117-133`，该文件实 131 行）；
-  //     ② **行号漂移 2 处**——`docs/src/core/domain/domain.js:267` 实为 `:266`（`handoffs: []` 在第 266 行）；
-  //     ③ **区间越到下一节 16 处**——md 区间末行落在**下一节的标题行**上（如 `DATA_MODEL.md:510-548`，548 是 `### 2.15` 的标题）；
-  //     ④ **内容过期 1 处**——正文写 `sopData.js` 有 **24 条** `timeOffset: null`，实测 **6 条**（115-116、123-126 行）。
-  //
-  // 判据（三级，逐条无容差；「印证」判不了的部分**如实标注不计入**，见 R2 的边界）：
-  //   **R1 一级＝指针指向真实位置**：每条引用能解析成真实文件（含**短式引用** `:192`——承前一个完整引用的文件；
-  //       含**逗号续列** `:44,161`）、行号落在该文件行数内、区间内**至少一个非空行**。
-  //   **R2 二级＝符号能印证**：引用后**紧跟的括注**里若写了反引号标识符（如 `constants.js:185-191`（`ROLE_KEYS`）），
-  //       该标识符必须出现在**声明区间内**。⚠ 边界：括注写「概念名」而非「区间内出现的标识符」时会误报
-  //       （当前 1 条，逐条给理由进 `ANCHOR_EXCEPTIONS`）；括注本身缺失（纯中文说明 / 无括注）的**不判**——
-  //       那一半只能靠人读（本批逐条读过，见执行日志）。
-  //   **R3 三级＝md 区间不越节**：(a) 区间**末个非空行不得是 markdown 标题**（标题是**下一节**的题目，
-  //       落在区间里＝区间多吞了一行）；(b) 若区间**起点是标题**，则区间内（起点之外）**不得再出现同级/更高级标题**
-  //       （防「一个区间跨两节」）。仅对 `.md` 引用生效。
-  //   **R4 关键词型取证仍成立**：正文里「X 零命中 / X 在代码中检索不到消费点」这类**按关键词取证**的断言，
-  //       机器可复核者逐条核对（当前 2 条：`副组长` 在 `docs/` 的**命中集＝身份载体白名单**〔2026-09-21 批次 139
-  //       `D-571` 由「零命中」改准——副组长已是系统身份键〕；`AI_API_BASE_URL` 在代码中无消费点）。
-  //       ⚠ **为什么不把「换一种说法」也做进来**：换说法的旧口径**机检不了**——如 `README-members.md` 写
-  //       「开本组活动、**上传本组考勤与考察**」（语义＝组长上传），**不含字面串「组长上传」**，grep 永远扫不到；
-  //       而「角色名 + 动作词」共现是**正常中文**（该句本身是对的），机器无法据此判错 ⇒ 这一半落**纪律**
-  //       （`CLAUDE.md` `R-87`「关键词反查只覆盖字面层；换说法必须人工通读」），**本守卫不越界假装覆盖**。
-  //   **R5 非空转**：引用总数 / 被引文件数 / 带锚点引用数三条基线 + 白名单不得僵尸化，
-  //       防「正则失效 ⇒ 一条都解析不到 ⇒ 断言恒真」把守卫悄悄写空。
-  //
-  // 覆盖边界（如实标注）：本守卫只核 `README-server.md`；`README.md` / `README-members.md` / `content/**` 里的
-  //   同类引用**不在本守卫范围**（那几份的引用另有 `link-integrity` 的链接层校验，行号层未覆盖）。
-  //
-  // 批次 111（2026-09-20）后续说明：`DATA_MODEL.md` §2.1 补 8 个字段行 ⇒ 该文件第 53 行起整体下移 8 行；
-  //   README-server.md 内指向 `DATA_MODEL.md` 的行号引用**共 45 处（分布 41 行）**，其中 **44 处已同批 +8 平移**
-  //   （`27-53` 一并收敛为 `27-60`），1 处（`deliverableIds` 的 `:47`）落在插入点之上、不动。
-  //   本守卫**改前/改后实测计数不变**（引用 382 = 全式 337 + 短式 45 · 被引文件 63 · 带锚点 36 · md 多行区间 66）
-  //   ⇒ R1–R5 的基线常量无需调整，此处仅留记录。上方「批次 107 病灶」里的示例行号是**当时的取值**（历史留痕），未随本次位移改写。
-  //
-  // 批次 147（2026-09-22）后续说明：本批**加一道「语义漂移」防线**，并顺手收紧 R2 的两处假绿——
-  //   ① **R2 收紧**：原判据是「**子串包含** + 至少一个锚命中（`some`）」，两种假绿：
-  //      〔子串〕括注写 `ROLE_KEYS` 时，区间里只要出现 `ROLE_LEGACY_KEYS`（含该子串）就算命中；
-  //      〔some〕括注列多个锚点（如 `signupEnabled` / `requireMakeup`）时，**只有一个**在区间内就放行。
-  //   ② **新增 R6（语义漂移防线）**——补的正是 R1–R5 抓不到的那一类：「**行号区间指到的内容与该引用声称的不符**」。
-  // 批次 234（2026-09-28）后续说明：`server/routes/resources.js`（1301 行单文件）按内聚切分为
-  //   `server/routes/resources/` 六件 ⇒ README-server.md 里指向它的引用**必须逐条改签到具体文件**。
-  //   实测：短式由 45 条降到 **34** 条；R1–R3 改后全绿，R6 亦未新增。⇒ 本条只下调 R5 的**短式**下限（40 → 30）。
-  
-  const TARGET = join(ROOT, 'README-server.md');
-  
-  /** 引用里认的文件扩展名（`.env.example` 之类点名到扩展的也算） */
-  const EXT = 'js|mjs|md|html|json|css|yml|yaml|txt|ps1|example';
-  /** 完整引用：`文件:12` / `文件:12-34` / `文件:12,34` / `文件:12-34,56` */
-  const FULL_REF = new RegExp(`([A-Za-z0-9_./-]+\\.(?:${EXT})):((?:\\d+(?:\\s*[-–]\\s*\\d+)?)(?:\\s*,\\s*\\d+(?:\\s*[-–]\\s*\\d+)?)*)`, 'g');
-  /** 短式引用：`:12`（承前一个完整引用的文件） */
-  const SHORT_REF = /(?<![A-Za-z0-9_./-]):((?:\d+(?:\s*[-–]\s*\d+)?)(?:\s*,\s*\d+(?:\s*[-–]\s*\d+)?)*)/g;
-  
-  /** 二级判据的例外（逐条给理由；R5 会核它们不是僵尸、也不会悄悄变多） */
-  const ANCHOR_EXCEPTIONS = [
-    {
-      ref: 'docs/src/services/activity/vote-config.js:41,44',
-      why: '括注（`voteConfig` 取值）写的是**概念名**：41/44 行是 defaultVoteConfig 的两个 return 字面量（取值即 voteConfig），' +
-        '而「voteConfig」这个词只出现在函数名 defaultVoteConfig 与该函数上方注释里，不在 41/44 行内 —— 引用本身是对的，是判据的启发式够不到。',
-    },
-  ];
-  
-  /** 排除的目录：历史留痕与依赖不进「按 basename 解析短名引用」的候选集 */
+  // 判据：
+  //   R1 带符号的代码引用都能解析到真实文件；
+  //   R2 括注里的符号必须在该文件中以「词」出现（例外逐条给理由）；
+  //   R3 三件取证文档不再写代码行号；
+  //   R4 关键词型取证仍成立（原样保留，与行号无关）；
+  //   R5 非空转：带符号引用条数 / 被引文件数有下限；
+  //   R6 全库 md 不得出现「真实代码文件:行号」（含反例自证）。
+
+  const README_SERVER = join(ROOT, 'README-server.md');
+  const CODE_EXT = 'js|mjs|html';
+  const WHITELIST_DOCS = new Set([
+    'README-server.md',
+    'content/04_web_design/data/DATA_MODEL.md',
+    'content/03_doc_system/ARCHITECTURE.md',
+  ]);
   const SKIP_DIRS = new Set(['node_modules', '.git', '.trae', '.vscode', '.superpowers', '.ctx', 'uploads']);
-  
-  /** basename → 仓库相对路径（用于解析 `DEPLOYMENT_GUIDE.md:239` 这类省略目录的引用） */
+
+  /** basename → 仓库相对路径（只用于 `users.js` 这类省略目录的短名；多处同名视为解析不到） */
   const basenameIndex = new Map();
   (function walkForBasenames(dir) {
     for (const n of readdirSync(dir)) {
@@ -779,165 +730,91 @@ await (async () => {
       basenameIndex.get(n).push(relative(ROOT, f).replace(/\\/g, '/'));
     }
   })(ROOT);
-  
-  /** 解析引用的文件（绝对路径）；解析不到返回 null（解析到多处同名文件也算解析不到——口径从严） */
-  function resolveRef(p) {
+
+  function resolveCodeFile(p) {
     const direct = join(ROOT, p);
     if (existsSync(direct) && !statSync(direct).isDirectory()) return direct;
     const cands = basenameIndex.get(p.split('/').pop()) || [];
     return cands.length === 1 ? join(ROOT, cands[0]) : null;
   }
-  
-  /** `12-34,56` → [{a:12,b:34},{a:56,b:56}] */
-  function parseRanges(s) {
-    return s.split(/\s*,\s*/).map((part) => {
-      const m = /^(\d+)(?:\s*[-–]\s*(\d+))?$/.exec(part.trim());
-      return { a: Number(m[1]), b: m[2] ? Number(m[2]) : Number(m[1]) };
+
+  /** 带符号的代码引用：`path/file.js`（`SYMBOL`） —— 跳过围栏代码块 */
+  const ANCHORED_RE = new RegExp(`\`([A-Za-z0-9_./-]+\\.(?:${CODE_EXT}))\`（\`([A-Za-z_$][\\w$]*)`, 'g');
+  function collectAnchoredRefs(text) {
+    const out = [];
+    let fence = false;
+    text.split(/\r?\n/).forEach((line, i) => {
+      if (/^\s*```/.test(line)) { fence = !fence; return; }
+      if (fence) return;
+      ANCHORED_RE.lastIndex = 0;
+      let m;
+      while ((m = ANCHORED_RE.exec(line)) !== null) out.push({ file: m[1], symbol: m[2], lineNo: i + 1 });
     });
+    return out;
   }
-  
-  /** 引用后紧跟的括注里的反引号标识符（用于二级判据）；取不出锚点＝该条不判 */
-  function anchorsOf(tail) {
-    const out = new Set();
-    for (const m of tail.matchAll(/`([^`]+)`/g)) {
-      let t = m[1].trim();
-      if (/[/\\]/.test(t) || /[\u4e00-\u9fa5]/.test(t) || /\s/.test(t)) continue; // 路径 / 中文 / 含空格（如 `timeOffset: null`）不算锚点
-      if (t.includes('::')) t = t.split('::').pop();
-      t = t.replace(/\(.*\)$/, '');
-      if (/^[A-Za-z_$][A-Za-z0-9_$.]*$/.test(t)) out.add(t.split('.').pop());
-    }
-    return [...out].filter((s) => s.length >= 3);
-  }
-  
-  /** 该标识符是否**以「词」为单位**出现在区间里（防子串假绿：`ROLE_KEYS` 不该落在 `ROLE_LEGACY_KEYS` 里就算命中） */
-  function anchorIn(seg, id) {
-    const esc = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return new RegExp(`(?<![A-Za-z0-9_$])${esc}(?![A-Za-z0-9_$])`).test(seg);
-  }
-  
-  /** 逐行抽出全部引用（含短式），并记下「引用后紧跟的括注」供二级判据用 */
-  function collectRefsFrom(text, source = 'README-server.md', { skipFences = false } = {}) {
-    const lines = text.split(/\r?\n/);
-    const refs = [];
-    let inFence = false;
-    lines.forEach((line, i) => {
-      // T15：`content/**` 扩面时跳过围栏代码块（代码示例里的 `文件:行号` 不是取证引用）；
-      //   README-server 保持原口径（不跳围栏），既有 R1–R6 基线一字不动。
-      if (skipFences && /^\s*```/.test(line)) { inFence = !inFence; return; }
-      if (skipFences && inFence) return;
-      const evs = [...line.matchAll(FULL_REF)].map((m) => ({ kind: '全式', file: m[1], ranges: parseRanges(m[2]), at: m.index, len: m[0].length }));
-      for (const s of line.matchAll(SHORT_REF)) {
-        if (evs.some((e) => s.index >= e.at && s.index < e.at + e.len)) continue; // 完整引用内部的冒号
-        const before = evs.filter((e) => e.at < s.index).pop();
-        if (!before) continue; // 行内无前序完整引用：无从判文件，跳过（不计入基线）
-        evs.push({ kind: '短式', file: before.file, ranges: parseRanges(s[1]), at: s.index, len: s[0].length });
-      }
-      evs.sort((x, y) => x.at - y.at);
-      evs.forEach((e, k) => {
-        const next = evs[k + 1];
-        // 括注＝本条引用之后、下一条引用之前的文字；去掉引用自身的收尾反引号；在句号/分号处截断
-        const tail = line.slice(e.at + e.len, next ? next.at : line.length)
-          .replace(/^`/, '').replace(/`$/, '')
-          .split(/[。；]/)[0];
-        refs.push({
-          source, readmeLine: i + 1, kind: e.kind, file: e.file, ranges: e.ranges, tail,
-          key: `${e.file}:${e.ranges.map((r) => (r.a === r.b ? String(r.a) : `${r.a}-${r.b}`)).join(',')}`,
-        });
-      });
+
+  /** 代码行号引用（只用于 R3 / R6）：`path/file.js:12` / `:12-34` / `:12,34` */
+  const LINE_REF_RE = new RegExp(`([A-Za-z0-9_./-]+\\.(?:${CODE_EXT}))(?::(\\d+(?:[-,]\\d+)*))`, 'g');
+  function collectLineRefs(text) {
+    const out = [];
+    let fence = false;
+    text.split(/\r?\n/).forEach((line, i) => {
+      if (/^\s*```/.test(line)) { fence = !fence; return; }
+      if (fence) return;
+      LINE_REF_RE.lastIndex = 0;
+      let m;
+      while ((m = LINE_REF_RE.exec(line)) !== null) out.push({ file: m[1], lineNo: i + 1 });
     });
-    return refs;
+    return out;
   }
-  
-  function collectRefs() {
-    return collectRefsFrom(read(TARGET));
+
+  function walkMd(dir, out = []) {
+    for (const n of readdirSync(dir)) {
+      const f = join(dir, n);
+      if (statSync(f).isDirectory()) { if (!SKIP_DIRS.has(n)) walkMd(f, out); continue; }
+      if (n.endsWith('.md')) out.push(f);
+    }
+    return out;
   }
-  
-  const REFS = collectRefs();
-  const REF_FILES = [...new Set(REFS.map((r) => r.file))].sort();
-  const ANCHORED = REFS.filter((r) => anchorsOf(r.tail).length > 0);
-  
-  // ── R1 一级：指针指向真实位置 ──────────────────────────────────────────────
-  
-  test('R1 每条 `文件:行号` 引用都指到真实位置（文件可解析 / 行号在范围内 / 区间非空）', () => {
+
+  const README_ANCHORED = collectAnchoredRefs(read(README_SERVER));
+  const ANCHORED_FILES = [...new Set(README_ANCHORED.map((r) => r.file))];
+
+  test('R1 带符号的代码引用都能解析到真实文件', () => {
+    const bad = ANCHORED_FILES.filter((f) => !resolveCodeFile(f));
+    assert.deepEqual(bad, [], `README-server.md 引用了不存在的代码文件（后端会照着找不到）：\n  ${bad.join('\n  ')}`);
+  });
+
+  test('R2 引用后括注里的符号必须在该文件中出现（词边界；例外逐条给理由）', () => {
+    /** 例外：括注写的是概念名而非文件里的标识符（逐条给理由） */
+    const SYMBOL_EXCEPTIONS = new Map([
+      ['voteConfig', 'vote-config.js 的取值语义名；函数名是 defaultVoteConfig，括注写的是概念名'],
+    ]);
     const problems = [];
-    for (const r of REFS) {
-      const where = `README-server.md:${r.readmeLine} ${r.kind} ${r.key}`;
-      const abs = resolveRef(r.file);
-      if (!abs) { problems.push(`${where} → 文件解析不到（既不在仓库内按该路径存在，也不是唯一 basename）`); continue; }
-      const src = read(abs).split(/\r?\n/);
-      for (const g of r.ranges) {
-        if (g.a < 1 || g.b < g.a) { problems.push(`${where} → 行号区间非法（${g.a}-${g.b}）`); continue; }
-        if (g.b > src.length) { problems.push(`${where} → 行号越界（该文件实 ${src.length} 行，引用到 ${g.b}）`); continue; }
-        if (!src.slice(g.a - 1, g.b).some((s) => s.trim())) problems.push(`${where} → 指向空行（区间 ${g.a}-${g.b} 全是空行）`);
+    for (const r of README_ANCHORED) {
+      const sym = r.symbol;
+      if (SYMBOL_EXCEPTIONS.has(sym)) continue;
+      const abs = resolveCodeFile(r.file);
+      if (!abs) continue; // R1 已判
+      const esc = sym.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      if (!new RegExp(`(?<![A-Za-z0-9_$])${esc}(?![A-Za-z0-9_$])`).test(read(abs))) {
+        problems.push(`${r.file}（第 ${r.lineNo} 行引用）→ 括注 \`${sym}\` 在该文件中找不到`);
       }
     }
-    assert.deepEqual(problems, [], `README-server.md 的 \`文件:行号\` 引用失效（后端会照着找不到东西）：\n  ${problems.join('\n  ')}`);
+    assert.deepEqual(problems, [], `括注符号与被引文件不一致：\n  ${problems.join('\n  ')}`);
   });
-  
-  // ── R2 二级：符号能印证 ────────────────────────────────────────────────────
-  
-  test('R2 引用后括注里的符号必须逐个出现在声明区间内（词边界匹配；例外仅 1 条且写明理由）', () => {
-    assert.ok(ANCHORED.length >= 30, `只解析出 ${ANCHORED.length} 条带符号锚点的引用（基线 30）：解析口径被改坏了，断言会变成假绿`);
-    const exempt = new Set(ANCHOR_EXCEPTIONS.map((e) => e.ref));
-    const problems = [];
-    for (const r of ANCHORED) {
-      if (exempt.has(r.key)) continue;
-      const abs = resolveRef(r.file);
-      if (!abs) continue; // 文件不存在已由 R1 报红
-      const src = read(abs).split(/\r?\n/);
-      const anchors = anchorsOf(r.tail);
-      const seg = r.ranges.map((g) => src.slice(g.a - 1, g.b).join('\n')).join('\n');
-      if (!anchors.every((s) => anchorIn(seg, s))) {
-        const miss = anchors.filter((s) => !anchorIn(seg, s));
-        problems.push(`README-server.md:${r.readmeLine} ${r.key}（区间内未出现 ${miss.map((s) => `\`${s}\``).join(' / ')}）` +
-          ` —— 若行号已漂移请改行号；若括注写的是概念名而非区间内标识符，请改写括注或按理由进 ANCHOR_EXCEPTIONS`);
-      }
+
+  test('R3 三件取证文档不再写代码行号', () => {
+    const offenders = [];
+    for (const rel of WHITELIST_DOCS) {
+      const abs = join(ROOT, rel);
+      if (!existsSync(abs)) continue;
+      for (const r of collectLineRefs(read(abs))) offenders.push(`${rel}:${r.lineNo} ${r.file}:…`);
     }
-    assert.deepEqual(problems, [], `符号锚点与区间对不上：\n  ${problems.join('\n  ')}`);
-    // 白名单不得僵尸化（改好后必须撤下），也不得悄悄变宽
-    const zombie = ANCHOR_EXCEPTIONS.filter((e) => !REFS.some((r) => r.key === e.ref)).map((e) => e.ref);
-    assert.deepEqual(zombie, [], `ANCHOR_EXCEPTIONS 里有已不存在的引用（僵尸白名单，请删除）：\n  ${zombie.join('\n  ')}`);
-    assert.ok(ANCHOR_EXCEPTIONS.length <= 2, `ANCHOR_EXCEPTIONS 涨到 ${ANCHOR_EXCEPTIONS.length} 条（上限 2）：白名单只许逐条给理由、不许悄悄变宽`);
+    assert.deepEqual(offenders, [], `取证文档仍按行号引用代码（行号会漂移；改「文件 ＋ 括注符号」）：\n  ${offenders.join('\n  ')}`);
   });
-  
-  // ── R3 三级：md 区间不越节 ─────────────────────────────────────────────────
-  
-  test('R3 md 区间不得越到下一节（末个非空行不是标题；起点是标题时区间内无同级/更高级标题）', () => {
-    const problems = [];
-    let checked = 0;
-    for (const r of REFS) {
-      if (!r.file.endsWith('.md')) continue;
-      const abs = resolveRef(r.file);
-      if (!abs) continue;
-      const src = read(abs).split(/\r?\n/);
-      for (const g of r.ranges) {
-        if (g.a < 1 || g.b > src.length || g.a === g.b) continue; // 单行 / 越界：由 R1 管
-        checked++;
-        const seg = src.slice(g.a - 1, g.b);
-        let last = seg.length - 1;
-        while (last >= 0 && !seg[last].trim()) last--;
-        if (last >= 0 && /^#{1,6}\s/.test(seg[last])) {
-          problems.push(`README-server.md:${r.readmeLine} ${r.key} → 第 ${g.a + last} 行（末个非空行）是标题「${seg[last].trim().slice(0, 40)}」（标题属下一节，区间应止于本节最后一个内容行）`);
-          continue;
-        }
-        const head = /^(#{1,6})\s/.exec(seg[0]);
-        if (!head) continue;
-        const lvl = head[1].length;
-        for (let k = 1; k < seg.length; k++) {
-          const h = /^(#{1,6})\s+(.*)$/.exec(seg[k]);
-          if (h && h[1].length <= lvl) {
-            problems.push(`README-server.md:${r.readmeLine} ${r.key} → 起点是标题，区间内又出现同级/更高级标题「${h[2].slice(0, 30)}」（区间跨了两节）`);
-            break;
-          }
-        }
-      }
-    }
-    assert.ok(checked >= 55, `只检查到 ${checked} 个 md 多行区间（基线 55：批次 107 实测 66）：解析口径被改坏了`);
-    assert.deepEqual(problems, [], `md 区间越到下一节：\n  ${problems.join('\n  ')}`);
-  });
-  
-  // ── R4 关键词型取证仍成立 ──────────────────────────────────────────────────
-  
+
+
   test('R4 「零命中 / 检索不到消费点」类关键词取证仍成立（防取证过期）', () => {
     const DOC_DEPUTY_LEADER_HITS = [
       'docs/help.html',                                        // 帮助：党小组行 + 常设赋权卡（2026-10-04 批次 373 副组长赋权落地）
@@ -983,128 +860,38 @@ await (async () => {
     assert.deepEqual(hitsCode, [], `README-server.md 断言「\`AI_API_BASE_URL\` 在代码中检索不到消费点」，实测命中：${hitsCode.join(' / ')}` +
       `（若已接入，须同批改准 §5.3 与 §7.3#22）`);
   });
-  
-  // ── R5 非空转 ──────────────────────────────────────────────────────────────
-  
-  test('R5 非空转：引用总数 / 被引文件数 / 带锚点引用数均有基线（防正则失效把守卫写成恒真）', () => {
-    assert.ok(REFS.length >= 370, `只解析到 ${REFS.length} 条引用（基线 370：批次 107 实测 383 = 全式 338 + 短式 45）：解析口径被改坏，R1–R3 会变成恒真`);
-    assert.ok(REF_FILES.length >= 55, `只解析到 ${REF_FILES.length} 个被引文件（基线 55：批次 107 实测 62）：解析口径被改坏`);
-    assert.ok(ANCHORED.length >= 30, `带锚点的引用只剩 ${ANCHORED.length} 条（基线 30：批次 107 实测 36）：二级判据在缩水`);
-    const shortN = REFS.filter((r) => r.kind === '短式').length;
-    assert.ok(shortN >= 30, `短式引用只剩 ${shortN} 条（基线 30：批次 107 实测 45、批次 234 资源切分后实测 34——同行的短式因落到不同新文件而改写为全式）：短式解析被改坏（短式最容易被漏）`);
+
+  test('R5 非空转：带符号引用条数 / 被引文件数均有下限', () => {
+    assert.ok(README_ANCHORED.length >= 40,
+      `README-server 只解析到 ${README_ANCHORED.length} 条「文件（符号）」引用（下限 40）：解析口径被改坏，R1–R3 会变成恒真`);
+    assert.ok(ANCHORED_FILES.length >= 30,
+      `只解析到 ${ANCHORED_FILES.length} 个被引代码文件（下限 30）：解析口径被改坏`);
   });
-  
-  // ── R6 语义漂移防线（2026-09-22 批次 147 新增）────────────────────────────────
-  
-  /** 行为词（受控、从窄）：出现即＝该引用对「区间里发生了什么」下了断言，必须带可校验锚点 */
-  const SEMANTIC_CLAIM_WORDS = ['运行时新建', '运行时创建', '运行时生成', '写入点', '写点', '读点', '落库', '唯一源', '单一源'];
-  
-  test('R6 语义漂移防线：行为词型引用必须带可校验锚点（无锚即红）；弱引用清单有基线上下限', () => {
-    const problems = [];
-    for (const r of REFS) {
-      const hit = SEMANTIC_CLAIM_WORDS.filter((w) => r.tail.includes(w));
-      if (hit.length && anchorsOf(r.tail).length === 0) {
-        problems.push(`README-server.md:${r.readmeLine} ${r.key}（括注「${r.tail.trim()}」含行为词 ${hit.join(' / ')}，却无任何锚点）` +
-          ` —— 请在括注里补一个区间内出现的标识符（函数名 / 字段名 / 常量名），否则这句话与区间对不上时无人能机检`);
+
+  test('R6 全库 md 不得出现「真实代码文件:行号」（含反例自证）', () => {
+    // 方法文档（content/05_ai_coding/**）里的 `文件:行号` 是**报告证据格式**（`H21` 要求），
+    //   不是「文档指代码」，不纳入本条。
+    const docs = [
+      join(ROOT, 'README.md'),
+      join(ROOT, 'README-members.md'),
+      README_SERVER,
+      ...walkMd(join(ROOT, 'content'))
+        .filter((abs) => !relative(ROOT, abs).replace(/\\/g, '/').startsWith('content/05_ai_coding/')),
+    ];
+    const offenders = [];
+    for (const abs of docs) {
+      if (!existsSync(abs)) continue;
+      const rel = relative(ROOT, abs).replace(/\\/g, '/');
+      for (const r of collectLineRefs(read(abs))) {
+        if (resolveCodeFile(r.file)) offenders.push(`${rel}:${r.lineNo} ${r.file}:…`);
       }
     }
-    assert.deepEqual(problems, [], `行为词型引用缺可校验锚点（区间指到的内容可能与这句话不符）：\n  ${problems.join('\n  ')}`);
-  
-    // (b) 弱引用清单（无锚 ⇒ 只能靠人读）：基线既防判据被改坏（下限），也防它成批变弱（上限）
-    const weak = REFS.filter((r) => anchorsOf(r.tail).length === 0);
-    assert.ok(weak.length >= 250, `无锚（弱）引用只剩 ${weak.length} 条（下限 250：批次 147 实测 348）：解析口径被改坏，R2 / R6 会变成恒真`);
-    assert.ok(weak.length <= 400, `无锚（弱）引用涨到 ${weak.length} 条（上限 400：批次 147 实测 348）：括注里的可校验锚点在缩水——本批只允许逐个补锚、不许成批变弱`);
+    assert.deepEqual(offenders, [], `文档仍按行号引用真实代码文件（代码应相对独立，改为「文件 ＋ 括注符号」）：\n  ${offenders.join('\n  ')}`);
+
+    // 反例：注入一条真实代码行号引用，必须被判出（证明判据不是恒真）
+    const probe = collectLineRefs('见 `server/app.js:1`。').filter((r) => resolveCodeFile(r.file));
+    assert.equal(probe.length, 1, '注入的真实代码行号引用未被判出 ⇒ 判据恒真');
   });
-  
-  // ═════════════════════════════════════════════════════════════════════════════
-  // 三·补：`content/**` 行号引用扩面（T15 · 2026-11-15）
-  // ═════════════════════════════════════════════════════════════════════════════
-  //
-  // 病灶（`ARCHITECTURE_EVOLUTION §10` / spec「行号引用漂移」）：`content/**` 里的 `文件:行号` 取证引用
-  //   此前无任何机检，插行后指到空行或越界也无人发现。本节**复用 R1–R3 同一套解析**（不另写一份），
-  //   对 `content/**` 全部 `.md` 做「文件可解析 / 行号在范围内 / 区间非空」三项硬判。
-  // 存量：扩面当批实测 26 条既有失效引用，按 `CONTENT_REF_BASELINE` 登记（只减不增；修一条删一条）。
-  
-  /** `content/**` 全部引用（同一解析器；跳过围栏代码块——代码示例不是取证引用） */
-  function collectContentRefs() {
-    const out = [];
-    (function walk(dir) {
-      for (const n of readdirSync(dir)) {
-        const f = join(dir, n);
-        if (statSync(f).isDirectory()) { walk(f); continue; }
-        if (!n.endsWith('.md')) continue;
-        out.push(...collectRefsFrom(read(f), relative(ROOT, f).replace(/\\/g, '/'), { skipFences: true }));
-      }
-    })(join(ROOT, 'content'));
-    return out;
-  }
-  
-  const CONTENT_REFS = collectContentRefs();
-  
-  /** 存量失效引用基线（键＝`文档路径:引用所在行 引用键`；只减不增，修复后须同批删除） */
-  const CONTENT_REF_BASELINE = [
-    'content/03_doc_system/OPERATIONS_GUIDE.md:236 BRANCH_WORK_MAP.md:423',
-    'content/03_doc_system/OPERATIONS_GUIDE.md:236 SECRETARY_DIRECTIVES.md:408',
-    'content/03_doc_system/OPERATIONS_GUIDE.md:238 OPERATIONS_GUIDE.md:1716',
-    'content/03_doc_system/OPERATIONS_GUIDE.md:238 content/02_institution/README.md:14',
-    'content/03_doc_system/TERMINOLOGY.md:36 content/01_strategy/SECRETARY_DIRECTIVES.md:302',
-    'content/04_web_design/design-system/CASES.md:420 docs/src/entries/tabs/secretary/group-progress-tab.js:59,426,466',
-    // 2026-11-22 批次 600：ui-focus-ring 已并入 component-ratchet，基线条目同批删除
-    'content/04_web_design/design-system/DS_03_COMPONENTS.md:1154 entries/tabs/disc/inspection-tab.js:267',
-    'content/04_web_design/design-system/DS_03_COMPONENTS.md:1175 entries/tabs/secretary/todo-tab.js:924,957',
-    'content/04_web_design/design-system/DS_03_COMPONENTS.md:1176 entries/tabs/secretary/overview-tab.js:184',
-    'content/04_web_design/design-system/DS_03_COMPONENTS.md:1179 entries/tabs/secretary/todo-tab.js:844',
-    'content/04_web_design/design-system/DS_03_COMPONENTS.md:1186 entries/tabs/disc/inspection-tab.js:281,299',
-    'content/04_web_design/design-system/DS_03_COMPONENTS.md:520 docs/src/entries/tabs/party-committee/monitor-tab.js:32',
-    'content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md:79 entries/tabs/visitor/activities-tab.js:58,61,215',
-    'content/04_web_design/evolution/archive/BRANCH_WORK_MAP.md:153 server/test/work-map.test.mjs:36',
-    'content/04_web_design/evolution/archive/ROLE_PERMISSION_DESIGN.md:32 auth.js:114-116',
-    'content/05_ai_coding/GUARD_INVENTORY.md:186 README.md:198',
-    'content/05_ai_coding/GUARD_INVENTORY.md:186 content/README.md:24',
-    'content/05_ai_coding/GUARD_INVENTORY.md:331 ACTIVE_RULINGS.md:225',
-    'content/05_ai_coding/GUARD_INVENTORY.md:332 ACTIVE_RULINGS.md:216',
-    'content/05_ai_coding/REVIEW_AND_EXPRESSION.md:254 .ctx/SNAPSHOT.md:11',
-  ];
-  
-  /** 单条引用的问题（空串＝合格）；与 R1 同一判据，供 R7 与自检共用 */
-  function contentRefProblem(r) {
-    const abs = resolveRef(r.file);
-    if (!abs) return '文件解析不到（既不在仓库内按该路径存在，也不是唯一 basename）';
-    const src = read(abs).split(/\r?\n/);
-    for (const g of r.ranges) {
-      if (g.a < 1 || g.b < g.a) return `行号区间非法（${g.a}-${g.b}）`;
-      if (g.b > src.length) return `行号越界（该文件实 ${src.length} 行，引用到 ${g.b}）`;
-      if (!src.slice(g.a - 1, g.b).some((s) => s.trim())) return `指向空行（区间 ${g.a}-${g.b} 全是空行）`;
-    }
-    return '';
-  }
-  
-  test('R7 `content/**` 的 `文件:行号` 引用指到真实位置（存量 26 条按基线只减不增）', () => {
-    // 非空转：扩面后必须有规模，否则判据可能被扫描面写坏
-    assert.ok(CONTENT_REFS.length >= 150,
-      `只解析到 ${CONTENT_REFS.length} 条 content/** 引用（基线 150：T15 扩面实测 195）：扫描面被改坏，本节会变成恒真`);
-  
-    const violations = new Map();
-    for (const r of CONTENT_REFS) {
-      const problem = contentRefProblem(r);
-      if (problem) violations.set(`${r.source}:${r.readmeLine} ${r.key}`, problem);
-    }
-  
-    const base = new Set(CONTENT_REF_BASELINE);
-    const fresh = [...violations.entries()].filter(([k]) => !base.has(k)).map(([k, v]) => `${k} → ${v}`);
-    assert.deepEqual(fresh, [],
-      `content/** 的 \`文件:行号\` 引用失效（新增 / 漂移；请改行号或改准引用）：\n  ${fresh.join('\n  ')}`);
-  
-    const healed = [...base].filter((k) => !violations.has(k));
-    assert.deepEqual(healed, [],
-      `以下基线引用已不再失效（已修复或引用被删除）：请同批从 CONTENT_REF_BASELINE 删除（只减不增）：\n  ${healed.join('\n  ')}`);
-  
-    // 反例：真实文件的越界引用必须被判出（证明判据不是恒真）
-    const probe = collectRefsFrom('见 `server/app.js:999999`。', 'content/probe.md')[0];
-    assert.ok(probe, '自检引用未被解析出来');
-    assert.match(contentRefProblem(probe), /行号越界/, '注入的越界引用未被判出 ⇒ 判据恒真');
-  });
-  
   // ═════════════════════════════════════════════════════════════════════════════
   // 四、新增：目录 README / AGENTS / SNAPSHOT / 判例索引（2026-10-24 批次 509 · G4–G8）
   // ═════════════════════════════════════════════════════════════════════════════

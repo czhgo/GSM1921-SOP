@@ -105,7 +105,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **结论**：类别 tone 只由 `constants.js::activityTypeTone` 产出（`party-red/gold/neutral`）；类别与状态路径的 `info` 计数为 0（白名单除外）；党建红固定 `#CE1126`。
 - **边界**：允许 `info` 蓝的白名单仍是通知「重要」、活动「已发布」、汇报路由态、建议 / 选修、配置项标注；新增白名单须逐条登记。
 - **对应规范编号**：SD-31
-- **证据指针**：`DS_03_COMPONENTS.md §12.14` 类别表与白名单；`server/test/activity-tone-guard.test.mjs:1-22`；执行日志批次 508。
+- **证据指针**：`DS_03_COMPONENTS.md §12.14` 类别表与白名单；`server/test/activity-tone-guard.test.mjs`；执行日志批次 508。
 
 ## CASE-DESIGN-011 深链落点不消费参数
 
@@ -114,7 +114,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **结论**：目标页必须消费自己的参数；定位失败必须有可见提示；无承载面的入口不得渲染。
 - **边界**：参数指向的对象已删除或当前角色无权查看时，允许空态提示或跳回列表，但不得静默——必须给一句话说明。
 - **对应规范编号**：SD-32
-- **证据指针**：`DS_03_COMPONENTS.md §12.9` SD-32；`server/test/navigation-guard.test.mjs`；`server/test/tab-nav.test.mjs:113`；执行日志批次 508。
+- **证据指针**：`DS_03_COMPONENTS.md §12.9` SD-32；`server/test/navigation-guard.test.mjs`；`server/test/tab-nav.test.mjs`；执行日志批次 508。
 
 ## CASE-DESIGN-012 通知点击落到工作台首页
 
@@ -299,7 +299,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **守卫**：`ui-contrast-guard::K6`（`--status-warning-text` 亮 / 暗逐底 ≥4.5:1，填充色 `--status-warning` 只作圆点 / 徽章底；2026-11-04 起不再作左条）＋ `ui-focus-ring`（七主题亮 / 暗的 `--app-accent` 焦点环逐底 ≥3:1；顶栏白环 ≥3:1）。
 - **对应规范编号**：SD-27（焦点环必须有可见环且只答一次）；对比度判据同族见 SD-46（状态色文字档）与 `ui-contrast-guard::K6`。
 - **边界**：顶栏深红底是唯一不用主题色的例外，现改用白色令牌 `--app-accent-strong-ink-light`（11.44:1，见 §5.7）；本条只判浅底上的焦点环。装饰性金点描边不属焦点环判据（见 §2.3.1）。
-- **证据指针**：`docs/help.html:58`（`outline:2px solid var(--app-accent)`）；`docs/src/styles.css` 的 `--app-accent-base-light` 七色表；`server/test/color-ratchet-guard.test.mjs`（K6）；`server/test/component-ratchet-guard.test.mjs`（F1 / F4 / F6）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 美学专项 Task 7。
+- **证据指针**：`docs/help.html`（`outline:2px solid var(--app-accent)`）；`docs/src/styles.css` 的 `--app-accent-base-light` 七色表；`server/test/color-ratchet-guard.test.mjs`（K6）；`server/test/component-ratchet-guard.test.mjs`（F1 / F4 / F6）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 美学专项 Task 7。
 
 ## CASE-DESIGN-029 说明层压过对象层：卡头副题在教人怎么点
 
@@ -312,7 +312,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **守卫**：`copy-guard::S1/S2`（本轮四份 record 组件 ＋ `entries/tabs/**`：实测 25 条副题，操作指令 0 处；含反例「点击卡片查看详情」与负例「全支部 · 只读」）。
 - **对应规范编号**：SD-54
 - **边界**：空态 / 错误态里的「下一步」属 §4.18 C6（一句为什么空 ＋ 一个出口），不在本条；行载体自身的 `title` 悬浮提示不属副题。`entries/tabs/visitor/tf-view-tab.js` 仍有一处 `textContent` 覆写分支，其基串已随本批改为「全支部 · 只读」而不再命中，覆写文本不作为副题单一源（守卫只判声明处）。
-- **证据指针**：`docs/src/components/record/taskforce-view.js:59`（`全支部 · 只读`）；`docs/src/components/record/workgroup-view.js:140`（`renderCardHeader({ meta: '本支部 · 只读' })`）；`server/test/copy-guard.test.mjs`（S1 / S2）；`DS_03_COMPONENTS.md §12.15`（SD-54）。
+- **证据指针**：`docs/src/components/record/taskforce-view.js`（`全支部 · 只读`）；`docs/src/components/record/workgroup-view.js`（`renderCardHeader({ meta: '本支部 · 只读' })`）；`server/test/copy-guard.test.mjs`（S1 / S2）；`DS_03_COMPONENTS.md §12.15`（SD-54）。
 
 ## CASE-DESIGN-030 把「卡片数字」执行成去图标：过度解读原则 4
 
@@ -336,7 +336,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **对应规范编号**：SD-27（焦点单环）＋ SD-21（主题选择器恰 7 项）；几何与例外见 `DS_04_INTERACTION_AND_RESPONSIVE.md §5.7`。
 - **守卫**：`ui-focus-ring::F1–F6`（旧令牌零残留 / 单条 outline / 七主题对比度 / 顶栏白环）＋ `ui-control-system-guard::FOCUS-1…5`（双环检测 ＋ 6px 光晕反例 ＋ 七主题 base 对白卡与深卡 ≥3:1）＋ `theme-palette-guard::T1/T3`（七主题、旧键退场）。
 - **边界**：顶栏深红底是唯一不用主题色的例外（白环 11.44:1，见 §5.7）；About 页是独立冻结件，其焦点口径待支书点头后单独处理。
-- **证据指针**：`docs/src/styles.css`（全局 `button/a/…:focus-visible` 与 `.input-flat:focus`）；`docs/help.html:58,160`；`server/test/component-ratchet-guard.test.mjs`；`server/test/component-ratchet-guard.test.mjs`（FOCUS 组）；`.ctx/evidence/2026-10-28/focus-*.png`。
+- **证据指针**：`docs/src/styles.css`（全局 `button/a/…:focus-visible` 与 `.input-flat:focus`）；`docs/help.html`；`server/test/component-ratchet-guard.test.mjs`；`server/test/component-ratchet-guard.test.mjs`（FOCUS 组）；`.ctx/evidence/2026-10-28/focus-*.png`。
 
 ## CASE-DESIGN-032 判例修不完，原则才收敛
 
@@ -393,7 +393,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **边界**：`inline` 动作仍在行尾 / 浮窗完成（从只读页点进来时落到待办页该行）；`direct` 动作走对象详情，缺 id 给「未定位到具体条目」提示，两者不套「同义落点」这条兜底。
 - **对应规范编号**：SD-63（待办跳转三模式与未命中 fail-closed；正文见 `content/04_web_design/contracts/INTERACTION_AND_NAVIGATION_CONTRACT.md §二`）；关联 SD-32（深链目标页必须消费参数）。
 - **守卫**：`todo-jump-contract`（31 类动作 × 6 台已注册、无 toast-only、缺 id 有显式提示、`PendingTarget` 已清理、fail-closed 提示真渲一次）＋ `todo-cross-role-safety`。
-- **证据指针**：`docs/src/core/session/workspace-nav.js:13,25-26,82-91`；`docs/src/core/domain/todo-actions.js`；`docs/src/components/record/todo-tab-shell.js`；`content/04_web_design/contracts/INTERACTION_AND_NAVIGATION_CONTRACT.md`；`server/test/todo-jump-contract.test.mjs`；`.ctx/evidence/2026-11-10/overview-workmap/findings.json`。
+- **证据指针**：`docs/src/core/session/workspace-nav.js`；`docs/src/core/domain/todo-actions.js`；`docs/src/components/record/todo-tab-shell.js`；`content/04_web_design/contracts/INTERACTION_AND_NAVIGATION_CONTRACT.md`；`server/test/todo-jump-contract.test.mjs`；`.ctx/evidence/2026-11-10/overview-workmap/findings.json`。
 
 ---
 
@@ -405,7 +405,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **边界**：分类函数只给「建议议程步骤」，写入时 `agendaStep` 仍由支书在写入面板决定，不得自动落库；去重 / 时效 / 应到属服务端算，客户端只做分组 / 排序 / 徽章。
 - **对应规范编号**：SD-64（议程来源 → 类型 → 待议池同源分类；正文见 `content/04_web_design/contracts/AGENDA_DERIVATION_CONTRACT.md §一–§三`）；关联 SD-34（状态只能有一套派生）。
 - **守卫**：`agenda-classify`（六类来源 × 四反例 × 服务端与客户端逐项一致 × 双支部过滤）。
-- **证据指针**：`docs/src/core/domain/agenda-classify.js:2-13,29-45`；`server/routes/committee.js:235-236`；`docs/src/entries/tabs/secretary/agenda-form.js`；`docs/src/entries/tabs/secretary/committee-meeting-tab.js`；`content/04_web_design/contracts/AGENDA_DERIVATION_CONTRACT.md`；`server/test/agenda-classify.test.mjs`。
+- **证据指针**：`docs/src/core/domain/agenda-classify.js`；`server/routes/committee.js`；`docs/src/entries/tabs/secretary/agenda-form.js`；`docs/src/entries/tabs/secretary/committee-meeting-tab.js`；`content/04_web_design/contracts/AGENDA_DERIVATION_CONTRACT.md`；`server/test/agenda-classify.test.mjs`。
 
 ---
 
@@ -417,7 +417,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **边界**：字段异构且 ≤12 项用列表 / 卡片；两维交叉用 `relation-matrix.js`，不套数据表；两行以内的数据不起表。
 - **对应规范编号**：SD-65（表格载体四问与 `data-table` 三档列宽、一表一截断列；正文见 `content/04_web_design/contracts/TABLE_COMPONENT_CONTRACT.md §一–§四`）；关联 SD-44（宽表定列宽模板、末列不吃余量）。
 - **守卫**：`table-contract-guard::T1–T7`（契约字段 / 组件参数 / 宽表 colgroup / 手写表棘轮 / `td` 内 `text-xs` 计数 0 / 390 无溢出 / 反例自证）。
-- **证据指针**：`docs/src/components/ui/data-table.js`；`docs/src/entries/tabs/secretary/group-progress-tab.js:59,426,466`；`content/04_web_design/contracts/TABLE_COMPONENT_CONTRACT.md`；`server/test/table-contract-guard.test.mjs`；`.ctx/evidence/2026-11-10/table-540/`。
+- **证据指针**：`docs/src/components/ui/data-table.js`；`docs/src/entries/tabs/secretary/group-progress-tab.js`；`content/04_web_design/contracts/TABLE_COMPONENT_CONTRACT.md`；`server/test/table-contract-guard.test.mjs`；`.ctx/evidence/2026-11-10/table-540/`。
 
 ---
 
@@ -429,7 +429,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **边界**：本条只管活动详情页的块结构；单块内的字段顺序与文案归模块设计；页签侧块数上限仍按 SD-57 与 `TAB_BLOCK_BASELINE` 判。
 - **对应规范编号**：SD-57（顶层区块 ≤4、超限须登记 reason；本条把「详情页」纳入同族判据，超限部分按页尾折叠处理）＋ SD-60（行动行排布，管理动作不占正文行）。
 - **守卫**：`ui-first-screen-order::F6–F9`（页签侧块数）＋ `ui-first-screen-order::F10`（详情页结构契约：对象头 / 参与 / 议程 / 收口 / 管理动作五块、写口宿主与 390 单列）＋ 真机读数（`F10` 只判源码结构，视觉读数仍以双档截图复核）。
-- **证据指针**：`docs/src/entries/pages/activity-entry.js:721,804,811`；`.ctx/evidence/2026-11-10/activity-detail/{before-1440,before-390,after-act-6-1440,after-act-6-390}.png`；同目录 `readings-act-*.json`；`audit-secretary-calendar.md`。
+- **证据指针**：`docs/src/entries/pages/activity-entry.js`；`.ctx/evidence/2026-11-10/activity-detail/{before-1440,before-390,after-act-6-1440,after-act-6-390}.png`；同目录 `readings-act-*.json`；`audit-secretary-calendar.md`。
 
 ---
 
@@ -441,7 +441,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **边界**：同一数据的不同**问句**（「谁负责什么」与「某个工作项有谁」）允许各留一种视图；同一问句的另一种排法不立新视图。行内主责徽标取中性档，主题色只留给动作 / 导航 / 选中态。
 - **对应规范编号**：SD-46（功能色只小面积；主责是常态、不承担状态语义）＋ SD-57（首屏块数）；视图取舍按 `H21.3` 三问判。
 - **守卫**：`work-map`（视图键只允许 `relations` / `matrix`）＋ `audit-tabs --all` 的 `secretary.work-map`（3 块 · P0 / P1 / P2 均 0）。
-- **证据指针**：`docs/src/entries/tabs/secretary/work-map-tab.js:7-10,40-43,236-237,326-330`；`server/test/work-map.test.mjs`；`.ctx/evidence/2026-11-10/overview-workmap/`；`.ctx/evidence/2026-11-10/tab-audit/summary.md`。
+- **证据指针**：`docs/src/entries/tabs/secretary/work-map-tab.js`；`server/test/work-map.test.mjs`；`.ctx/evidence/2026-11-10/overview-workmap/`；`.ctx/evidence/2026-11-10/tab-audit/summary.md`。
 
 ---
 
@@ -465,7 +465,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **边界**：登录页自建字段保留自有实现，但同等四件（required / aria-required / role=alert / aria-describedby）必须齐；只读展示字段不参与本判据；非必填字段不得因同组有必填而误加语义。
 - **对应规范编号**：SD-66（必填语义，正文见 `DS_03_COMPONENTS.md §4.3`）。
 - **守卫**：`form-field-guard::T1 / T2 / T4`。
-- **证据指针**：`docs/src/components/ui/form-field.js:14-26,37-56`；`server/test/component-ratchet-guard.test.mjs`；`DS_03_COMPONENTS.md §4.3`。
+- **证据指针**：`docs/src/components/ui/form-field.js`；`server/test/component-ratchet-guard.test.mjs`；`DS_03_COMPONENTS.md §4.3`。
 
 ---
 
@@ -477,7 +477,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **边界**：多选 chip 组用 `role="group"` ＋ `aria-label` 命名整组；关键词输入用 `aria-label`（「搜索姓名或活动」）；清除钮用按钮自身文本，不另加 aria-label。
 - **对应规范编号**：SD-67（筛选行字段级可访问名，正文见 `DS_03_COMPONENTS.md §4.3`）。
 - **守卫**：`form-field-guard::T3`。
-- **证据指针**：`docs/src/entries/tabs/disc/attendance-tab.js:1225-1231`；`docs/src/components/ui/form-field.js:95-100`；`server/test/component-ratchet-guard.test.mjs`。
+- **证据指针**：`docs/src/entries/tabs/disc/attendance-tab.js`；`docs/src/components/ui/form-field.js`；`server/test/component-ratchet-guard.test.mjs`。
 
 ---
 
@@ -489,7 +489,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **边界**：不属控件梯的只有三类——`.role-label`（指示件，不可点）、`.party-emblem-wrapper`（图片）、`#branch-view-exit.btn-text`（金底状态条内联文字，高度随条）。工作台页签 `.tab-btn`、列表行、弹窗按钮仍按各自档位，不并入本梯。**特例准入**：新增顶栏控件默认进梯；要出梯必须支书裁定并在本「边界」登记，不得由 AI 自行解释。
 - **对应规范编号**：SD-68（壳层两档，正文见 `DS_03_COMPONENTS.md §12.7`）。
 - **守卫**：`component-ratchet-guard`（`COMPONENT_STATE_EXEMPT` 白名单 ＋ T3 命中区探测）＋ `scripts/touch-target-audit.mjs`（390×844 命中区 <44 计数）。
-- **证据指针**：`docs/src/styles.css`（`.hamburger-btn` / `.header-action-btn` / `.btn-icon.header-icon-btn` / `.sidebar-footer-action` / `@media (max-width:640px)` 顶栏收紧段）；`server/test/component-ratchet-guard.test.mjs:1431`；`content/04_web_design/design-system/DS_03_COMPONENTS.md §12.7`；批次 561 `a015ef08c` 与本批 `D-913`。
+- **证据指针**：`docs/src/styles.css`（`.hamburger-btn` / `.header-action-btn` / `.btn-icon.header-icon-btn` / `.sidebar-footer-action` / `@media (max-width:640px)` 顶栏收紧段）；`server/test/component-ratchet-guard.test.mjs`；`content/04_web_design/design-system/DS_03_COMPONENTS.md §12.7`；批次 561 `a015ef08c` 与本批 `D-913`。
 
 ---
 

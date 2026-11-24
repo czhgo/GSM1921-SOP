@@ -10,6 +10,14 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 621（2026-11-24）· 文档不再按行号绑定代码（`D-922`）
+
+- **为什么**：支书问「『引用不一致』指什么？文档与代码谁引用谁？代码应该相对独立」——原口径下 `README-server.md` 有 380 处 `文件:行号`，代码一挪文档就红。
+- **执行**：一次性脚本把 69 份 md 的 `文件:行号` 去行号（318 处全式 ＋ 67 处短式归并，短式在有括注符号时保留符号）；`README-server.md` 与 `DATA_MODEL.md` / `ARCHITECTURE.md` 改为「文件 ＋ 括注符号」；`doc-lifecycle-guard` 的 R1–R6 改准（文件存在 / 括注符号存在 / 取证文档无行号 / 全库无真实代码行号，含反例）；同时修掉 10 处依赖行号的表述（README-server 5 / OPERATIONS_GUIDE / TERMINOLOGY / DS_03）。
+- **口径边界**：`content/05_ai_coding/**` 的 `文件:行号` 是**报告证据格式**（`H21` 要求），不属「文档指代码」，R6 豁免并保留原文。
+- **读数**：R1–R6 6/6；`doc-lifecycle ＋ doc-consistency ＋ evaluation-asset ＋ test-tier` 88/88。
+- **边界**：只改引用形态与守卫，不动代码行为；`content/**` 各文件 frontmatter 未逐份刷日（机械迁移，无语义变化）。
+
 ## 批次 620（2026-11-24）· 测试数据治理：review 库重建 ＋ 残留清理覆盖两库
 
 - **为什么**：页面上的「用户任务走查·院级主题党日（待采用）」等活动与 `ntc-*` 通知，是走查 / e2e 经 API 写进 `server/data.review.db` 的残留（`data.db` 干净）；`test:full:safe` 只备份 / 清理 `data.db`，残留匹配表也不含这一族。

@@ -231,14 +231,14 @@ related_files: [...]
 | # | 判据族 | 判据（为什么不搬） | 正例（本仓实例） | 反例（该类何时可搬） |
 |---|---|---|---|---|
 | 1 | 沿革总指针 | 本就不含沿革正文，是「沿革去哪儿查」的一行指针 ⇒ 搬走即断链 | `ARCHITECTURE.md:14`「本文不回答：① 沿革 → `.ctx/logs/…`」· `DESIGN_SYSTEM.md:14` | 从不——它已是 §5.1 意义上的指针本体 |
-| 2 | 承担现状口径的承接声明 | 对现读者有效用：交代「现在以什么为准 / 哪儿查 / 这条注记怎么读」，非纯沿革 | `insights/README.md`「2026-09-04 工程方法论分流（承接声明）」· `BRANCH_WORK_MAP.md:20`「模块数现为 14 项」 | 当该声明只记「某内容原先在哪、哪批并到哪」而不含现状口径时（`insights/README.md` 原 `:24`/`:25` 两条即据此于批次 208 搬走） |
+| 2 | 承担现状口径的承接声明 | 对现读者有效用：交代「现在以什么为准 / 哪儿查 / 这条注记怎么读」，非纯沿革 | `insights/README.md`「2026-09-04 工程方法论分流（承接声明）」· `BRANCH_WORK_MAP.md:20`「模块数现为 14 项」 | 当该声明只记「某内容原先在哪、哪批并到哪」而不含现状口径时（`insights/README.md` 原 / 两条即据此于批次 208 搬走） |
 | 3 | 确立日期｜确立背景 | 解释现行规则为何如此写（生效条件）⇒ 属现状口径 | `OPERATIONS_GUIDE.md:237`「确立日期：2026-08-09 ｜ 确立背景：…」· `PARTY_COMMITTEE_DESIGN.md:65`「2026-09-09 审定定稿」 | 当该日期只标「哪批做了个编辑动作」、不解释现行规则时 |
 | 4 | 文档自身台账 / 去向指针表 | 是文档自身的记账（该留）＋ 现读者据此找旧论断的新家 | `BRANCH_WORK_MAP.md:146–:153`「落地进度」台账 · `SECRETARY_DIRECTIVES.md:408–:423`「已迁出/已删除论断」去向表 | 从不——台账若整体废弃，随该台账的存废另裁 |
 | 5 | 现行结构溯源（节题注记） | 告诉现读者该节从哪来、与哪节同源（避免重复维护、便于比对） | `content/05_ai_coding/**` 各节题「（原 `KNOWN_PITFALLS` §N）」「（原 insights §N）」 | 当注记已无同源比对价值、且删后不影响理解该节时 |
-| 6 | 已是「一行去指针」的迁出 / 删除登记 | 已是 §5.1 意义上的去指针（指向现行权威源）⇒ 搬走＝把指针搬走 | `content/02_institution/README.md:14`/`:28` · `OPERATIONS_GUIDE.md:1716` | 从不——它是 §5.1 要求的产物 |
+| 6 | 已是「一行去指针」的迁出 / 删除登记 | 已是 §5.1 意义上的去指针（指向现行权威源）⇒ 搬走＝把指针搬走 | `content/02_institution/README.md:14`/ · `OPERATIONS_GUIDE.md:1716` | 从不——它是 §5.1 要求的产物 |
 | 7 | 含可点链接的合并注记 | 删该括注＝现读者失去入口链接 | `DOC_MAP.md:87`（含 `[OPERATIONS_GUIDE.md](./OPERATIONS_GUIDE.md)`）· `ARCHITECTURE.md:471` | 当注记里的链接可在别处稳定获得、且该句不含现状口径时 |
 | 8 | 清单本体（日期是内容的一部分） | 那些日期 / 批次是范本、判例、真机核对记录的内容本身 ⇒ 搬走即删内容 | `DATA_CONSISTENCY_CHECKLIST.md`（107 处日期/批次） | 当某行确系「掺入的纯沿革」、剥离后清单语义不减时（须逐条复核） |
-| 9 | 禁改面（授权面之外） | 被 `README-server.md` 按 `文件:行号` 逐条取证引用（`doc-line-ref` 的 `R1`/`R2`/`R6` 守着），改会顶偏行号 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md` · `content/04_web_design/data/DATA_MODEL.md` · `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` · `content/README.md` | 该类**不是判据、是授权面**——授权面一旦放宽（须同批改准被顶偏的行号引用），即可按第 1–8 类逐条判 |
+| 9 | 禁改面（授权面之外） | 被 `README-server.md` 按「文件 ＋ 括注符号」逐条取证引用（`doc-lifecycle-guard` 的 `R1`/`R2`/`R3` 守着），改前先核 `README-server.md` 该节 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md` · `content/04_web_design/data/DATA_MODEL.md` · `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` · `content/README.md` | 该类**不是判据、是授权面**——授权面一旦放宽（须同批改准 `README-server.md` 里的引用），即可按第 1–8 类逐条判 |
 
 **剩余可数事实（登记）**：
 

@@ -318,7 +318,7 @@ related_files: [../evolution/ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERIN
 - **为什么**：**具体人名一律不落 config**——否则成员名单会在「支部配置」与「成员档案」双轨，违 `D-392` 一线（人员以档案为唯一源）。
   组织者/深度参与者是**活动指派**产物（非档案字段），故只作为「并入的层」，仍不落 config。
 - **消费点**：活动写面板的「参与人 / 应到名单」候选解析——**新增** `vote-config.js::resolveParticipantIds(voterScope, policy, assignedIds)`，
-  **追加在既有 `resolveVoterIds` 之后、既有 `:54-67` 一字不动**（该区间是 `README-server.md` 的行号靶点，不得漂移）；
+  **追加在既有 `resolveVoterIds` 之后、既有  一字不动**（该区间是 `README-server.md` 的行号靶点，不得漂移）；
   `resolveVoterIds` 保留为「`orgMode:'none'` 支路」的唯一实现，供其内部复用（**不写第二套名单**）。
 - **判据**：给定 `(voterScope, policy, assignedIds)`，候选集合**确定性可复现**；
   同一场活动把 `orgMode` 由 `none` 换 `organizer-deep`，候选差集**恰为**该活动的指派层（组织者 ＋ 深度参与者）。

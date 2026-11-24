@@ -394,7 +394,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 #### 2.5.1 考察数据 (InspectionRecord)
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js#L165-L177)（InspectionRecord typedef），持久化域 `mockDB.inspections`（`domain.js:245`，随全量键 `workflowos_branch_db_v1` 持久化）。考察记录用于记录制度、议程或具体事项明确要求的考察工作，不是所有工作组/活动的通用必经步骤；**考察记录以工作组为父对象（活动工作组/专班工作组），`sourceType` 只是工作组类型的投影，不是独立父对象**；组织者/深度参与者与考勤事实分开建模（见本文 §3.3）。
+> 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js#L165-L177)（InspectionRecord typedef），持久化域 `mockDB.inspections`（`domain.js`，随全量键 `workflowos_branch_db_v1` 持久化）。考察记录用于记录制度、议程或具体事项明确要求的考察工作，不是所有工作组/活动的通用必经步骤；**考察记录以工作组为父对象（活动工作组/专班工作组），`sourceType` 只是工作组类型的投影，不是独立父对象**；组织者/深度参与者与考勤事实分开建模（见本文 §3.3）。
 
 > **父键与展示快照（R4-D04）**：活动考察以 `activityId` 为父键；专班考察以 `workgroupId` 为父键（`taskforceId` 为兼容快照）。`sourceName` **只是展示快照**——关联、查询、成员/支部校验、确认/删除写门一律不得再按名称匹配，专班改名或同名都不会断链/串数据。历史记录无法回填父键时置 `legacy:true` 只读。
 
@@ -629,7 +629,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | `attendance-check` | 查考勤记录 | organization | -- |
 | `feedback-handling` | 处理意见建议反馈 | organization | -- |
 
-> **组织生活会不单列场景**（见 §2.1.2）：它**不是独立活动类型**，由承接它的三会形式承载（`content/02_institution/sop/常见工作场景快速指南.md:75`·`:162`），活动直接记承接它的那个三会形式的 `scenarioId`。
+> **组织生活会不单列场景**（见 §2.1.2）：它**不是独立活动类型**，由承接它的三会形式承载（`content/02_institution/sop/常见工作场景快速指南.md:75`·），活动直接记承接它的那个三会形式的 `scenarioId`。
 
 ### 2.15 工作流定义 (Definition)
 

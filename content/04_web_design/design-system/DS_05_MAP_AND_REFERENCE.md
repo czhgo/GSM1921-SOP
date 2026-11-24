@@ -74,23 +74,23 @@ related_files: [DESIGN_SYSTEM.md, DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.
 
 | # | 入口（文件:行） | 落点 | 分层达标 |
 |---|---|---|---|
-| A1 | 首页活动列表 `components/dashboard/activity-panel.js:121` + `main-entry.js:87-95` | 工作台 `?activityId=` / 未登录 login | ✓ 分层① |
-| A2 | 首页活动风采 `components/dashboard/gallery.js:53` + `main-entry.js:105-113` | 同上 | ✓ 分层① |
-| A3 | visitor 活动动态 `entries/tabs/visitor/activities-tab.js:58,61,215` | 独立详情页 `activity.html?id=` | ✓ 分层④ |
-| A4 | org 工作台日历 `components/record/calendar.js:479-495` + `activity-view.js` | 同页只读详情面板 | ✓ 分层③ |
-| A5 | 支书工作台日历 `calendar-tab.js:103` + `inspector.js` | 同页可操作详情面板 | ✓ 分层③（可操作） |
-| A6 | 工作台日历列表视图 `calendar.js:396-400` | 同页详情 | ✓ 分层③ |
-| A7 | 通知活动链接 `notice.js:309-314` | 独立详情页 | ✓ 分层⑤ |
-| A8 | 归档库条目 `archive-entry.js:131` | 弹窗详情 | ✓ 分层⑥ |
+| A1 | 首页活动列表 `components/dashboard/activity-panel.js` + `main-entry.js` | 工作台 `?activityId=` / 未登录 login | ✓ 分层① |
+| A2 | 首页活动风采 `components/dashboard/gallery.js` + `main-entry.js` | 同上 | ✓ 分层① |
+| A3 | visitor 活动动态 `entries/tabs/visitor/activities-tab.js` | 独立详情页 `activity.html?id=` | ✓ 分层④ |
+| A4 | org 工作台日历 `components/record/calendar.js` + `activity-view.js` | 同页只读详情面板 | ✓ 分层③ |
+| A5 | 支书工作台日历 `calendar-tab.js` + `inspector.js` | 同页可操作详情面板 | ✓ 分层③（可操作） |
+| A6 | 工作台日历列表视图 `calendar.js` | 同页详情 | ✓ 分层③ |
+| A7 | 通知活动链接 `notice.js` | 独立详情页 | ✓ 分层⑤ |
+| A8 | 归档库条目 `archive-entry.js` | 弹窗详情 | ✓ 分层⑥ |
 
 ### 10.3 专班条目落点映射表
 
 | # | 入口（文件:行） | 落点 | 分层达标 |
 |---|---|---|---|
-| B1 | 首页专班列表 `dashboard/taskforce-list.js:40` + `main-entry.js:96-104` | 工作台 `?taskforceId=`（org 自动展开卡片/组长纪检 tf-view 高亮） | ✓ 分层① |
-| B2 | org 专班管理卡片 `taskforce-tab.js:680` | 同页内嵌详情面板 | ✓ 分层③ |
-| B3 | 组长/纪检专班查看 `components/record/taskforce-view.js:125` | 同页只读详情面板 | ✓ 分层③ |
-| B4 | 通知专班链接 `notice.js:310` | 独立页 `taskforce.html?id=` | ✓ 分层⑤ |
+| B1 | 首页专班列表 `dashboard/taskforce-list.js` + `main-entry.js` | 工作台 `?taskforceId=`（org 自动展开卡片/组长纪检 tf-view 高亮） | ✓ 分层① |
+| B2 | org 专班管理卡片 `taskforce-tab.js` | 同页内嵌详情面板 | ✓ 分层③ |
+| B3 | 组长/纪检专班查看 `components/record/taskforce-view.js` | 同页只读详情面板 | ✓ 分层③ |
+| B4 | 通知专班链接 `notice.js` | 独立页 `taskforce.html?id=` | ✓ 分层⑤ |
 
 ### 10.4 可点击性规范
 

@@ -24,7 +24,7 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, content/02_institutio
 | 上位 / 下位 | 所属与所辖；无则写「无」 |
 | 允许并列集 | 可以出现在同一按钮组 / 表头 / 筛选行的集合；不在集合内即不得同排 |
 | 禁用写法 | 明确判红的写法（含旧称、并提、同义替换） |
-| 权威文档 | 制度或代码中的权威位置（`文件:行号`） |
+| 权威文档 | 制度或代码中的权威位置（`文件` 或 `文件::符号`） |
 | 代码键 | 实现里的类型 / 字段 / 常量 / 集合键 |
 | 合法别名 | 可在限定语境使用的同义词；无则写「无」 |
 
@@ -33,8 +33,8 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, content/02_institutio
 | 词条 | 定义 | 层级 | 上位 / 下位 | 允许并列集 | 禁用写法 | 权威文档 | 代码键 | 合法别名 |
 |---|---|---|---|---|---|---|---|---|
 | 活动 | 有明确时间、地点与组织落点的一次性业务记录（三会一课、主题党日等）；**项目的一种** | business-object | 上位＝项目；下位＝支部党员大会 / 支委会 / 党小组会 / 党课 / 主题党日 | {活动, 专班}；{活动工作组, 专班工作组} | 「活动项目」（并提）；「会议活动」 | `content/04_web_design/data/DATA_MODEL.md:26`、`content/03_doc_system/ARCHITECTURE.md:39` | `Activity` / `ActivityRecord` / `mockDB.activities` | 活动记录 |
-| 专班 | 围绕独立事项、任务或产出建立、不限固定时间地点的业务记录；**项目的一种**，不是活动的后续阶段 | business-object | 上位＝项目；下位＝无（其协作结构见「专班工作组」） | {活动, 专班} | 「活动项目」；把专班写成活动后续阶段 | `content/01_strategy/SECRETARY_DIRECTIVES.md:302`、`:309` | `Taskforce` / `TaskForceRecord` / `mockDB.taskforces` | 专班记录 |
-| 项目 | **活动 ∪ 专班的合称**，不是与二者并列的第三个业务对象 | business-object（合称） | 上位＝无；下位＝活动 / 专班 | **不可作为并列项**与活动、专班同排 | 「活动项目」；「项目组」 | `docs/src/core/domain/constants.js:338`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:143` | `PROJECT_ROLES` / `projectId` | 无 |
+| 专班 | 围绕独立事项、任务或产出建立、不限固定时间地点的业务记录；**项目的一种**，不是活动的后续阶段 | business-object | 上位＝项目；下位＝无（其协作结构见「专班工作组」） | {活动, 专班} | 「活动项目」；把专班写成活动后续阶段 | `content/01_strategy/SECRETARY_DIRECTIVES.md:302` | `Taskforce` / `TaskForceRecord` / `mockDB.taskforces` | 专班记录 |
+| 项目 | **活动 ∪ 专班的合称**，不是与二者并列的第三个业务对象 | business-object（合称） | 上位＝无；下位＝活动 / 专班 | **不可作为并列项**与活动、专班同排 | 「活动项目」；「项目组」 | `docs/src/core/domain/constants.js`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:143` | `PROJECT_ROLES` / `projectId` | 无 |
 | 工作组 | 活动 / 专班业务记录之上的**协作结构**，承载组织者、深度参与者、任务、产出与授权；**不是独立业务对象** | collaboration-structure | 上位＝无（依附活动 / 专班）；下位＝活动工作组 / 专班工作组 | {活动工作组, 专班工作组}（同属工作组，按对象分） | 「项目组」；「协作组」；把「工作组」与「专班」并列 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md:193`、`content/03_doc_system/ARCHITECTURE.md:38`、`content/04_web_design/data/DATA_MODEL.md:264` | `WorkGroup` / `WORKGROUP_STATUSES` / `mockDB.workgroups` | 无 |
 | 活动工作组 | **随活动创建**的工作组，负责该活动的组织与深度参与；`kind='activity'` | collaboration-structure | 上位＝工作组；下位＝无 | {活动工作组, 专班工作组} | 「活动组」；把活动工作组当作独立业务对象 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:46`、`content/04_web_design/data/DATA_MODEL.md:264` | `WorkGroup.kind='activity'` | 无 |
 | 专班工作组 | **围绕专班事项 / 任务 / 产出**建立的工作组；`kind='taskforce'` | collaboration-structure | 上位＝工作组；下位＝无 | {活动工作组, 专班工作组} | 把专班工作组直接叫「专班」；「专班负责人」 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:47`、`content/04_web_design/data/DATA_MODEL.md:264` | `WorkGroup.kind='taskforce'` | 无 |
@@ -44,9 +44,9 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, content/02_institutio
 | 分工 | 工作组内「谁承担哪项任务、哪部分执行」的约定与记录；由组织者协商并留痕 | process | 上位＝工作组协作；下位＝任务 / 产出 | {分工, 任务, 产出, 授权} | 「职责分工表」（指系统外台账）；把分工等同授权 | `content/04_web_design/data/DATA_MODEL.md:407`、`content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:425` | `AssignmentRecord` / `WorkGroupTask` / `assigneeId` | 工作分工 |
 | 考察 | 对工作组成员在本工作组中参与表现的记录；**父对象是工作组**，不是按人或按活动漂浮的台账 | business-object | 上位＝工作组；下位＝无 | {考勤, 考察}（不同业务记录，不可同格） | 「考察活动」；把考察写成活动属性 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:51`、`content/04_web_design/data/DATA_MODEL.md:386` | `InspectionRecord` / `mockDB.inspections` / `workgroupId` | 考察记录 |
 | 能力包 | 党委维护、支部可自主启用的业务能力模板（含制度依据、适用范围、配置权、依赖与版本） | process | 上位＝党委能力目录；下位＝能力包版本 | {能力包, 模板, 版本} | 「功能包」；「插件」 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:55` | `capabilityPackageId` / `capabilityId` | 业务能力包 |
-| 模块 | **支部工作地图**中的工作项（如支部党员大会、支委会、党小组会、党课…），用于分工与主责归属 | process | 上位＝支部工作地图；下位＝子项（现无启用） | {模块 × N}（同一地图内的平级工作项） | 「功能模块」（指页面 / 页签）；把页签叫模块 | `docs/src/core/domain/work-map.js:73`、`docs/src/core/domain/work-map.js:95` | `WORK_MAP_MODULES` / `config.workforce` | 工作模块 |
-| 流程块 | L3 工作流块：既有能力 + 一层 manifest 元数据，表达一段可复用的流程步骤 | process | 上位＝工作流；下位＝步骤 | {流程块, 产出块}（同属「块」，语义不同） | 「工作流模块」；与「模块」混用 | `content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md:16`、`:45` | `BLOCK_MANIFESTS` / `manifest` | 工作流块 |
-| 产出块 | 活动产出记录的类别块（考勤 / 考察 / 宣传 / 材料），由支部 `config.blocks` 启停与排序 | process | 上位＝活动产出记录；下位＝考勤 / 考察 / 宣传 / 材料 | {流程块, 产出块}；{考勤, 考察, 宣传, 材料} | 「交付物块」；「产出模块」 | `docs/src/core/domain/constants.js:941`、`content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md:79` | `OUTPUT_BLOCK_DEFS` / `config.blocks` | 产出记录块 |
+| 模块 | **支部工作地图**中的工作项（如支部党员大会、支委会、党小组会、党课…），用于分工与主责归属 | process | 上位＝支部工作地图；下位＝子项（现无启用） | {模块 × N}（同一地图内的平级工作项） | 「功能模块」（指页面 / 页签）；把页签叫模块 | `docs/src/core/domain/work-map.js`、`docs/src/core/domain/work-map.js` | `WORK_MAP_MODULES` / `config.workforce` | 工作模块 |
+| 流程块 | L3 工作流块：既有能力 + 一层 manifest 元数据，表达一段可复用的流程步骤 | process | 上位＝工作流；下位＝步骤 | {流程块, 产出块}（同属「块」，语义不同） | 「工作流模块」；与「模块」混用 | `content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md:16` | `BLOCK_MANIFESTS` / `manifest` | 工作流块 |
+| 产出块 | 活动产出记录的类别块（考勤 / 考察 / 宣传 / 材料），由支部 `config.blocks` 启停与排序 | process | 上位＝活动产出记录；下位＝考勤 / 考察 / 宣传 / 材料 | {流程块, 产出块}；{考勤, 考察, 宣传, 材料} | 「交付物块」；「产出模块」 | `docs/src/core/domain/constants.js`、`content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md:79` | `OUTPUT_BLOCK_DEFS` / `config.blocks` | 产出记录块 |
 | 授权 | 对某人授予某项**系统权限键**的行为与记录（可撤销、可审计，留授权人 / 时间 / 权限键） | process | 上位＝权限管理；下位＝权限键 | {授权, 成员关系}（分离，不可互推） | 「赋权」（除既有专名「常设赋权」）；把授权等同于成员关系 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md:200` | `WorkGroupGrant` / `permissionKeys` / `AuthStore.authorize` | 系统授权；项目授权（限定对象时）；常设赋权（专名，限党小组组长 / 支委身份） |
 | 报名 | **活动**一般参与者参加活动的登记；不产生工作组成员身份，也不适用于专班 | process | 上位＝活动参与；下位＝无 | {报名, 工作组成员}（不同集合） | 「专班报名」（专班场景写「入组申请」）；把报名当工作组招募 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md:206`、`content/04_web_design/data/DATA_MODEL.md:68` | `signups` / `activity-signup` / `signupEnabled` | 活动报名 |
 | 会议 | 以议事 / 学习为内容的**活动的形态标签**（三会一课、支委会等）；是活动的下位形态，不是与活动并列的业务对象 | business-object（形态） | 上位＝活动；下位＝支部党员大会 / 支委会 / 党小组会 / 党课 | {支部党员大会, 支委会, 党小组会, 党课} | 「会议活动」；把会议与活动作同义替换 | `content/04_web_design/data/DATA_MODEL.md:34`、`content/04_web_design/data/DATA_MODEL.md:1240` | `deriveMeetingStatus` / `votesLocked` | 会议类活动（限定说明时） |
