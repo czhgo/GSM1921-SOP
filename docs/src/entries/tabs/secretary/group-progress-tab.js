@@ -556,14 +556,16 @@ function _reportsSectionHtml(hasLeader) {
   const inner = _issuesLoaded ? '' : _reportsLoadingHtml();
   const leaderNote = hasLeader ? '' : '<span class="text-xs text-gray-500">（本组暂无组长，「请组长关注」不可用）</span>';
   return `
-    <details class="gp-fold pt-3 mt-3 border-t border-gray-100">
-      <summary class="flex items-center justify-between gap-2 cursor-pointer">
+    <div class="pt-3 mt-3 border-t border-gray-100">
+      <div class="flex items-center justify-between gap-2 mb-1">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">组员汇报（待答复）</h4>
-        <span class="text-xs text-gray-500">展开 ▾</span>
-      </summary>
-      <p class="text-xs text-gray-500 mt-1.5 mb-2.5">对待答复行可「请组长关注」。 ${leaderNote}</p>
-      <div id="gp-reports" class="space-y-1.5">${inner}</div>
-    </details>`;
+      </div>
+      <details class="gp-fold">
+        <summary class="text-xs text-gray-500 cursor-pointer">展开 ▾</summary>
+        <p class="text-xs text-gray-500 mt-1.5 mb-2.5">对待答复行可「请组长关注」。 ${leaderNote}</p>
+        <div id="gp-reports" class="space-y-1.5">${inner}</div>
+      </details>
+    </div>`;
 }
 
 function _reportsLoadingHtml() {

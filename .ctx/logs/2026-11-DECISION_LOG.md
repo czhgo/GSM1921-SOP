@@ -967,7 +967,16 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：`test:full` 修后复跑见执行日志批次 612；daily 264 / guards 907。
 > **落点**：`EA §一 / §2.x / §5.2`；`ACTIVE_CONTEXT §1`；`TIMESTAMPS`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-928`**（共 **102** 条）。
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-929`**（共 **103** 条）。
+
+## D-929 2026-11-25 — 死代码分两类处置：`?dev` 收主机名门 ＋ 非生产开关登记 ＋ 清点入口（批次 631）
+
+> **评议 → 裁定 → 落点**：支书第 3 项「登录开发模式的代码是不是死代码、全系统还有多少、两类怎么处理」，选 **「分两类处置」**。
+> - **① 根本不能调用**：登录页 9 张身份卡在生产不生成 DOM（`_DEV_ALLOWED` 为假时元素为 null），属已死分支；本轮**不盲删**，先立清点入口 `server/scripts/dead-code-audit.mjs`（输出孤立模块与零外部引用导出，删除须人工复核）。
+> - **② 生产不需要但运维有用**：`?dev=1` 改为**主机名门为必要条件**（生产域名下拼参数不再能进开发登录）；`ALLOW_MULTI_BRANCH` / `IAAA_MOCK` / `DISABLE_PASSWORD_CHECK` / `ALLOW_DEMO_DATA` / `SANDBOX_MODE` / `?dev` 六项登记进 `server/run-mode.js` 头注「仅非生产开关」清单。
+> - **读数**：`component-ratchet-guard` 131/131（新增 D1 / D2 两条：主机名门 ＋ 开关清单 ＋ 清点脚本存在）；清点现状＝模块 331 / 疑似孤立 0（静态口径下界）/ 零外部引用导出 335。
+> **未选**：批量删除 335 个零引用导出（无法排除动态取属性，误删即白屏）；只建清单不动 `?dev`（生产可被拼参数绕过）。
+> **落点**：`docs/src/entries/pages/login-entry.js`、`server/run-mode.js`、`server/scripts/dead-code-audit.mjs`、`server/test/component-ratchet-guard.test.mjs`。
 
 ## D-928 2026-11-25 — mock 时效：补 11 月已完场次 ＋ 草稿不再充当「今日会议」（批次 630）
 

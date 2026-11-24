@@ -2586,12 +2586,14 @@ await (async () => {
       `焦点必须只有一个信号（输入族只变色 / 按钮族只有一圈 / 不得用 box-shadow / 不得用党徽金或党建红）：\n  ${problems.join('\n  ')}`);
   });
   
-  test('FOCUS-5 七主题 base 焦点环：对白卡 #FFFFFF 与深卡 #141D2F 均 ≥3:1（逐色日志）', () => {
+  test('FOCUS-5 七主题 ＋ 场域固定色 base 焦点环：对白卡 #FFFFFF 与深卡 #141D2F 均 ≥3:1（逐色日志）', () => {
     const CARD_LIGHT = '#FFFFFF';
     const CARD_DARK = '#141D2F';
-    const keys = ['gold', 'red', 'orange', 'green', 'cyan', 'blue', 'purple'];
+    // 2026-11-25 批次 627（D-925）：ACCENT_COLORS 增场域固定色 party-red（登录 / 党委 / 支部治理四台），
+    //   焦点环同样按主题色取值，故一并纳入对比度检查。
+    const keys = ['gold', 'red', 'orange', 'green', 'cyan', 'blue', 'purple', 'party-red'];
     assert.deepEqual(Object.keys(ACCENT_COLORS).sort(), [...keys].sort(),
-      'ACCENT_COLORS 必须恰为七主题（gold/red/orange/green/cyan/blue/purple）');
+      'ACCENT_COLORS 必须为七用户主题 ＋ party-red（场域固定色）');
     const readings = [];
     for (const key of keys) {
       const light = ACCENT_COLORS[key].light.base;
@@ -4924,4 +4926,33 @@ await (async () => {
     console.log(`[TC-5] 图片：静态页 ${pages.length} 个 · JS 模板 alt 全绿`);
   });
 
+})();
+
+// ═══ 源件 16：死代码与非生产开关收门（2026-11-25 批次 631 · D-929）═══
+await (async () => {
+  const { test } = await import('node:test');
+  const assert = (await import('node:assert/strict')).default;
+  const { readFileSync, existsSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const ROOT = join(import.meta.dirname, '..', '..');
+  const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
+
+  test('D1 非生产开关收门：?dev 只在本地主机生效，且开关清单登记在 run-mode', () => {
+    const login = read('docs/src/entries/pages/login-entry.js');
+    assert.match(login, /_DEV_LOCAL_HOST\s*=\s*\/\^\(localhost/,
+      '?dev 分支必须先判本机主机名（生产域名不得靠拼参数进入开发登录）');
+    assert.match(login, /_DEV_ALLOWED\s*=\s*_DEV_LOCAL_HOST\s*&&/,
+      '_DEV_ALLOWED 必须以主机名门为必要条件');
+    const runMode = read('server/run-mode.js');
+    for (const key of ['ALLOW_MULTI_BRANCH', 'IAAA_MOCK', 'DISABLE_PASSWORD_CHECK', 'ALLOW_DEMO_DATA', 'SANDBOX_MODE', '?dev=1']) {
+      assert.ok(runMode.includes(key), `run-mode.js 的「仅非生产开关」清单缺 ${key}`);
+    }
+  });
+
+  test('D2 死代码清点脚本存在且可复跑（只报候选，删除须人工复核）', () => {
+    assert.ok(existsSync(join(ROOT, 'server/scripts/dead-code-audit.mjs')), '缺 dead-code-audit.mjs（死代码清点入口）');
+    const src = read('server/scripts/dead-code-audit.mjs');
+    assert.match(src, /--json/, '清点脚本须支持 --json 供台账引用');
+    assert.match(src, /根本不能调用/, '脚本头注须区分两类「死」并说明处置差异');
+  });
 })();

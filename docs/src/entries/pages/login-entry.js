@@ -74,8 +74,10 @@ function _goToWorkspace(role) {
 // 生产环境**不渲染**该区块（不是 display:none 藏起来）。`?dev=0` 显式关闭，供生产模拟与真机取证。
 // ⇒ `AuthStore.devLogin` 的唯一调用点（`_renderDevCards` 的身份卡点击）随之只在同一条件下可达。
 const _DEV_PARAM = new URLSearchParams(window.location.search).get('dev');
-const _DEV_ALLOWED = _DEV_PARAM === '1'
-  || (_DEV_PARAM !== '0' && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname));
+// 2026-11-25 批次 631（`D-929`）：主机名门是**必要条件**——生产域名下手工拼 `?dev=1` 不再能进入开发登录；
+//   本机（localhost / 127.0.0.1 / [::1]）行为不变，`?dev=0` 仍可显式关闭。
+const _DEV_LOCAL_HOST = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
+const _DEV_ALLOWED = _DEV_LOCAL_HOST && _DEV_PARAM !== '0';
 
 function _mountDevMode() {
   const defaultSection = document.getElementById('login-default');

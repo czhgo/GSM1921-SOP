@@ -9,6 +9,15 @@
 //  不在本文件另写一套。`ALLOW_MULTI_BRANCH=1` 是本档新增的显式放行开关，只在生产档有意义。
 //
 //  边界：本模块**不读也不写业务表**，只做一次 `COUNT(*) FROM branches`；不删除/修改任何数据。
+//
+//  ── 仅非生产开关登记（2026-11-25 批次 631 · `D-929`）────────────────────────────
+//  下列开关只服务演示 / 排障，生产档必须为「未设或安全值」；新增同类开关先登记到本清单，再落代码：
+//    · `ALLOW_MULTI_BRANCH=1`        多支部同实例放行（生产默认关；`D-849` / `D-889`）
+//    · `IAAA_MOCK=1`                 统一身份认证走 mock（`server/routes/iaaa.js`）
+//    · `DISABLE_PASSWORD_CHECK=1`    测试跳过口令（`server/routes/auth.js`，仅测试进程）
+//    · `ALLOW_DEMO_DATA=1`           允许演示数据入库（`server/demo-data-guard.js`）
+//    · `SANDBOX_MODE`                前端沙箱写入（`docs/src/data/mock-adapter.js`，恒 false）
+//    · `?dev=1`                      登录页开发身份卡（`docs/src/entries/pages/login-entry.js`，仅本机主机名生效）
 // ════════════════════════════════════════════════════════════════
 import { isProductionEnv } from './env.js';
 
