@@ -55,7 +55,7 @@ dynamic_role:
 | .ctx/TIMESTAMPS.md | 2026-11-24 | — | [工程师]+[AI] | 文件时间戳注册表；备注列只写**现状 / 边界 / 指针**（`R-89`）；纯代码行（`.js` / `.mjs`）不再逐条登记，改动日以 git 为准（批次 597）。 |
 | .ctx/SNAPSHOT.md | 2026-11-22 | — | [AI] | 系统现状基线（reference）：只答「系统现在长什么样」；schema v19 / 业务 50 表。 |
 | .ctx/ACTIVE_RULINGS.md | 2026-11-24 | — | [工程师]+[AI] | 现行有效裁定**索引**（reference）：只答「到哪找某条现行口径」；跨域摘要 + 18 领域索引，规则正文在 `content/01–05`。 |
-| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-25 | — | [工程师]+[AI] | 见日志批次 632（判例-守卫覆盖审计：25 有机检 / 38 人工核）；六维 78/77/75/70/72/70（`D-918`） |
+| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-25 | — | [工程师]+[AI] | 见日志批次 634（推送收口、CI run id 统一为 `45479385134`）；判例-守卫覆盖审计 25 有机检 / 38 人工核；六维 78/77/75/70/72/70（`D-918`） |
 | .ctx/REVIEW_QUEUE.md | 2026-11-23 | — | [工程师]+[AI] | 支书评议队列（reference）：只答「要评议什么 ＋ 评议怎么做」；2026-11-23 批次 606 `B-541-3` 闭环删行。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND1_WORKBENCH_STRUCTURE.md | 2026-10-19 | — | [工程师]+[AI] | Round 1 工作台结构审计报告（53 条 triage + 三路审查 + 共识/分歧/裁定 + 证据门）；修复 spec 落盘后可归档或删除。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND2_MINIMUM_THREE_COSTS.md | 2026-10-19 | — | [工程师]+[AI] | 见日志批次 597 |
@@ -225,7 +225,7 @@ dynamic_role:
 | content/05_ai_coding/GUARD_INVENTORY.md | 2026-11-22 | — | [工程师]+[AI] | 守卫台账；历史总表停 66 件（已滞后），现行件数以 `test-tier-registry.mjs` 为准。 |
 | content/03_doc_system/CASES_INDEX.md | 2026-11-25 | — | [工程师]+[AI] | 判例总索引（design 46 / data 1 / institution 5 / ai-coding 11，合计 63）；批次 629 登记 CASE-DESIGN-046。 |
 | .ctx/README.md | 2026-11-21 | — | [工程师]+[AI] | 见日志批次 597 |
-| .ctx/ACTIVE_CONTEXT.md | 2026-11-24 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-924`；六维 78/77/75/70/72/70。 |
+| .ctx/ACTIVE_CONTEXT.md | 2026-11-25 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-930`；六维 78/77/75/70/72/70。 |
 | server/README.md | 2026-11-23 | — | [工程师]+[AI] | 服务端说明；604 续守卫清单旧文件名改归并件名（`GC-1`） |
 | server/package.json | 2026-11-23 | — | [工程师]+[AI] | 2026-11-23 批次 606/607/609 增 `test:multi-branch` / `verify:smtp` / `acceptance` / `probe:scale` |
 | server/package-lock.json | 2026-08-30 | — | [工具] |  |
