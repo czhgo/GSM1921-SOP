@@ -2,7 +2,7 @@
 title: "判例库总索引"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-11-22"
+last_updated: "2026-11-24"
 status: active
 related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-system/CASES.md, content/02_institution/CASES.md, content/05_ai_coding/CASES.md]
 ---
@@ -84,12 +84,13 @@ related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-sy
 | CASE-AI-008 | CLAUDE 层标记漂移：温层被搬空仍宣称三层；结构规则要有结构守卫 | ai-coding | [CASES.md](../05_ai_coding/CASES.md) | `CLAUDE.md H26` / `H50` | 2026-11-07（批次 535） |
 | CASE-AI-009 | 只引「点缀色」允许、漏引「不承担状态语义」；带例外的规范须整句引 | ai-coding | [CASES.md](../05_ai_coding/CASES.md) | `DESIGN_SYSTEM §一 原则 4` ＋ SD-61 | 2026-11-10（批次 540） |
 | CASE-AI-010 | 同一指标多值并存（评分 / 矩阵 141 vs 162 / 页签 4 vs 5）；当前值必须单一源且跨文件相等 | ai-coding | [CASES.md](../05_ai_coding/CASES.md) | `CLAUDE.md H26.5` / `H30` ＋ G1 / G2 | 2026-11-19（批次 572） |
+| CASE-AI-011 | 未经批准改前端且改后不报告；UI 改动须「书面指令 ∧ 规则指针 ∧ D-xxx」三件齐，并单列 UI 变更清单 | ai-coding | [CASES.md](../05_ai_coding/CASES.md) | `CLAUDE.md H40.4` / `H10.6` | 2026-11-24（批次 619） |
 
 ## 域入口
 
 | 域 | 判例文件 | 现有条数 |
 |---|---|---|
-| design（网站设计） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 41 |
+| design（网站设计） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 44 |
 | data（数据真相） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 1 |
 | institution（制度） | [02_institution/CASES.md](../02_institution/CASES.md) | 5 |
-| ai-coding（AI 协作） | [05_ai_coding/CASES.md](../05_ai_coding/CASES.md) | 10 |
+| ai-coding（AI 协作） | [05_ai_coding/CASES.md](../05_ai_coding/CASES.md) | 11 |

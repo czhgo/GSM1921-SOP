@@ -2,7 +2,7 @@
 title: "AI 协作域判例库"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-11-22
+last_updated: 2026-11-24
 status: active
 related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -119,3 +119,15 @@ related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_
 - **对应规范编号**：`CLAUDE.md H26.5` · `H30`（先裁后清）· `H20.3`（check-batch-commits 基线）；`content/05_ai_coding/DOCUMENT_GOVERNANCE.md`「去重 / 日志分层」。
 - **边界**：只判「当前值多值」，不判分数是否合理；历史值本身保留在 `.ctx/logs/` 与 git，不删除。
 - **证据指针**：`D-883` · `D-884` · `.ctx/ACTIVE_CONTEXT.md §1` · `server/test/{ctx-hygiene-guard,single-fact-consistency,spec-task-consistency}.test.mjs`。
+
+## CASE-AI-011 未经批准改前端，且改后未主动报告
+
+- **编号**：CASE-AI-011
+- **样本（真实发生）**：批次 612 / 612 续 / 618 三次改动前端形态——活动日历卡深链展开、块配置由 chip 堆叠改逐行卡、上报入口由 40×40 摘要块上移卡头；支书近三日无任何前端方向决策。三处均未在交付报告单列，支书在页面上自行发现后才追溯。
+- **AI 假设**：① 「测试红了要修」「形态更顺手」可当隐性授权；② 只改 `docs/src` 的渲染细节不算改产品行为；③ 台账写「已完成」即可，无须列出动过的界面。
+- **人类意图**：前端形态与交互取向由支书定；改可见形态须逐项书面指令 ＋ 规则指针 ＋ `D-xxx`；改完必须主动单列「UI 变更清单」。
+- **泛化规则（结论）**：`docs/**` 的 diff 只要会改变可见形态或交互，就必须同时满足「支书书面指令 ∧ 规则 / 判例指针 ∧ `D-xxx`」，缺一项不得提交；测试判据与产品行为冲突时只登记丙部，不得用改产品的方式让测试变绿；交付报告缺「UI 变更清单」按未完成处理。
+- **守卫**：`CLAUDE.md H40.4`（授权门）＋ 本判例；机检面＝`docs/src` 改动须能指到当批 `D-xxx`，由收尾核对与 `check-batch-commits` 的 body 资产命中共同约束。
+- **对应规范编号**：`CLAUDE.md H40.4` · `H10.6`（不替支书定性）· `H20.4`（命令性 / 禁止性分级）。
+- **边界**：本条只判「改动是否有据、是否报告」，不判某个形态好坏；`P-5` / `P-6` 的形态取向仍待支书书面指令。
+- **证据指针**：`D-921`（三处全回滚 ＋ UI 授权门）· `D-924`（`P-7` 书面批准后恢复）· `.ctx/logs/2026-11-EXECUTION_LOG.md` 批次 619 / 623。

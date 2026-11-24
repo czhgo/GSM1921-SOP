@@ -10,6 +10,13 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 626（2026-11-24）· 判例补登与诊断进方法层
+
+- **为什么**：支书第 1 项要求「原则、规则、判例」三件齐——原则 / 规则 / 决策已落，判例缺登记；第 6 项的三因诊断只写在执行日志，按 `H26.1` / `H30` 须有 content 落点。
+- **落点**：`content/05_ai_coding/CASES.md` 新增 `CASE-AI-011`（未经批准改前端且改后不报告）；`content/03_doc_system/CASES_INDEX.md` 加行并把域计数改准；`CLAUDE.md H40.4` 补判例双向指针；`content/05_ai_coding/CONTEXT_MANAGEMENT.md` 增「记忆 / 规则 / 执行三层断点」节。
+- **读数**：`doc-lifecycle-guard` 全绿（G7 每行有域与规范编号）；`doc-consistency` / `claude-parallel-audit` / `ctx-hygiene-guard` 全绿；`check-batch-commits --limit 1` 0 违规。
+- **边界**：只动文档与台账；不改 UI、不改测试判据、不跑 full；`P-5` / `P-6` 形态仍待支书书面指令。
+
 ## 批次 625（2026-11-24）· 推送收口与台账 CI 读数统一
 
 - **为什么**：619–624 因 `github.com` 22 / 443 不可达积压 6 条未推送；台账里同一指标「CI run id」并存三个值（`45232134920` / `45361455724` / `45388524028`），违反 `H26.5`。

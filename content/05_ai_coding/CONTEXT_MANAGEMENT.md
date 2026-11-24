@@ -2,7 +2,7 @@
 title: "上下文管理与防失忆"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-15"
+last_updated: "2026-11-24"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/01_strategy/SECRETARY_DIRECTIVES.md]
 ---
@@ -235,3 +235,17 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/01
 **Boolean 条件**：`.ctx/ACTIVE_CONTEXT.md` 超过 300 行或 30KB，或 `latest_decision` 落后于当月决策日志最后一条 `D-xxx` → `ctx-hygiene-guard` 判红。
 
 **生效条件**：每次会话开局、每批收尾、每条新裁定落账后。
+
+## 规则为什么没生效：记忆 / 规则 / 执行三层断点（2026-11-24 批次 622 诊断）
+
+**问题**：支书指出「原则、规则、判例在本 session 没有发挥作用」。事后取证到三处断点同时成立，单改任一层都不会生效。
+
+| 断点 | 现象（真实发生） | 判据（可布尔化） | 现行补救 |
+|---|---|---|---|
+| 记忆断档 | 当时的工程键下没有 `project_memory.md`，上次会话已确认的硬约束读不到 | 会话启动时该键下存在 `project_memory.md`，且含「硬约束」节 | 两处 memory 写同一组硬约束（批次 622） |
+| 规则缺口 | `H40.2` 只要求「读 UI 清单」，没有「须支书裁定」一步；也没有「修测试不得改产品行为」 | `docs/**` 的 UI diff 能否指到当批 `D-xxx` | `CLAUDE.md H40.4` UI 授权门 ＋ `H10.6` |
+| 执行越位 | 把「让断言变绿」当成授权，改产品去迁就测试 | 测试判据与产品行为冲突时，是否只登记丙部 | `H40.4` 禁止条 ＋ 丙部登记 |
+
+**用法**：新会话出现「规则已写但未被执行」时，按上表三行逐项体检；任一行不成立即先补该层，不动产品、不动测试。
+
+**生效条件**：每次接到「改前端 / 改判据 / 修测试」类指令，或复盘发现同类越位时。

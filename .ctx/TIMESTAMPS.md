@@ -65,7 +65,7 @@ dynamic_role:
 | .ctx/logs/archive/2026-10/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/logs/archive/2026-10/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-11-22 | — | [工程师]+[AI] | 日志索引：月份目录 ＋ 批次 529–568；569+ 见当月执行日志各节标题。 |
-| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-24 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，批次 625 在最上）。 |
+| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-24 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，批次 626 在最上）。 |
 | .ctx/logs/DECISION_LOG.md | 2026-11-24 | — | [工程师]+[AI] | 决策日志月度索引；概要只留条数与主题词（沿革见各月文件）。 |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-03-EXECUTION_LOG.md | 2026-03-02 | 2026-07-31 | [工程师]+[AI] | 已归档 |
@@ -190,8 +190,8 @@ dynamic_role:
 | content/05_ai_coding/README.md | 2026-11-03 | — | [工程师]+[AI] | 05_ai_coding 目录索引（含 `TAB_AUDIT_PLAYBOOK.md` 行）。 |
 | content/05_ai_coding/AGENTS.md | 2026-11-01 | — | [工程师]+[AI] | 05 目录协作说明：Q 范围 Q-01…Q-22、分层裁决与验证命令。 |
 | content/05_ai_coding/PARALLEL_SKILL_AUDIT.md | 2026-11-24 | — | [工程师]+[AI] | 多代理独立审查操作手册（H21 详版）：问题集 Q-01…Q-22 → 分 lens → 汇总 → 裁定；§11 IA 审查；§14 SKILL 路由（批次 610 按当前能力重写）。 |
-| content/05_ai_coding/CASES.md | 2026-11-22 | — | [工程师]+[AI] | AI 协作判例库。 |
-| content/05_ai_coding/CONTEXT_MANAGEMENT.md | 2026-11-15 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。* |
+| content/05_ai_coding/CASES.md | 2026-11-24 | — | [工程师]+[AI] | AI 协作判例库（11 条；2026-11-24 批次 626 登记 CASE-AI-011）。 |
+| content/05_ai_coding/CONTEXT_MANAGEMENT.md | 2026-11-24 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。批次 626 增「记忆 / 规则 / 执行三层断点」节） |
 | content/05_ai_coding/DOCUMENT_GOVERNANCE.md | 2026-11-19 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒  |
 | content/05_ai_coding/FILE_OPERATION_RULES.md | 2026-11-03 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。* |
 | content/05_ai_coding/REVIEW_AND_EXPRESSION.md | 2026-11-22 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。* |
@@ -223,7 +223,7 @@ dynamic_role:
 | content/05_ai_coding/REVIEW_QUESTION_SET.md | 2026-11-23 | — | [工程师]+[AI] | 审查问题集：Q-01…Q-22（Q-22 为页签密度与信息经济的审查方法，执行工具指向 `TAB_AUDIT_PLAYBOOK.md`）；604 续 Q-01/12/13 守卫指针改归并件名（`GC-1`） |
 | content/05_ai_coding/QUESTION_HIT_MATRIX.md | 2026-11-03 | — | [工程师]+[AI] | 历史命中矩阵；Q-22 列新立，36 行历史记 `—`。 |
 | content/05_ai_coding/GUARD_INVENTORY.md | 2026-11-22 | — | [工程师]+[AI] | 守卫台账；历史总表停 66 件（已滞后），现行件数以 `test-tier-registry.mjs` 为准。 |
-| content/03_doc_system/CASES_INDEX.md | 2026-11-22 | — | [工程师]+[AI] | 判例总索引（design 44 / data 1 / ai 9）；2026-11-22 批次 603 登记 CASE-DESIGN-044（顶栏控件梯）。 |
+| content/03_doc_system/CASES_INDEX.md | 2026-11-24 | — | [工程师]+[AI] | 判例总索引（design 44 / data 1 / institution 5 / ai-coding 11，合计 61）；批次 626 登记 CASE-AI-011。 |
 | .ctx/README.md | 2026-11-21 | — | [工程师]+[AI] | 见日志批次 597 |
 | .ctx/ACTIVE_CONTEXT.md | 2026-11-24 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-924`；六维 78/77/75/70/72/70。 |
 | server/README.md | 2026-11-23 | — | [工程师]+[AI] | 服务端说明；604 续守卫清单旧文件名改归并件名（`GC-1`） |
