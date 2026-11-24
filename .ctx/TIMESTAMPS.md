@@ -162,7 +162,7 @@ dynamic_role:
 | content/04_web_design/module/PUBLIC_ENTRANCE.md | 2026-11-11 | — | [工程师]+[AI] | 门厅设计已裁定（公开门厅的规范编号 2026-11-10 批次 541 回填为 SD-62）。 |
 | content/04_web_design/deploy/WECHAT_INTEGRATION.md | 2026-09-05 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§五 |
 | content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md | 2026-11-22 | — | [用户]+[AI] | 见日志批次 597 |
-| content/04_web_design/data/DATA_MODEL.md | 2026-11-19 | — | [工程师]+[AI] | 见日志批次 597 |
+| content/04_web_design/data/DATA_MODEL.md | 2026-11-24 | — | [工程师]+[AI] | 数据模型与数据流；批次 616 追加附四（双适配器差异与收敛方案，待批）。 |
 | content/04_web_design/data/DATA_CONTRACT.md | 2026-11-18 | — | [工程师]+[AI] | 见日志批次 597 |
 | content/04_web_design/data/DATA_SEED_CONTRACT.md | 2026-10-27 | — | [工程师]+[AI] | 数据种子契约（四类口径 / 逐表必填 / v12 强约束）；守卫 `server/test/seed-contract-guard.test.mjs`。 |
 | content/04_web_design/data/DATA_FLOW.md | 2026-09-23 | — | [工程师]+[AI] | 🗑️ 已删除（正文并入 `DATA_MODEL.md`《数据模型与数据流》）。沿革见 `.ctx/logs/`。 |
