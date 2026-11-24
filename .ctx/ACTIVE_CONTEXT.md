@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: 2026-11-24
 last_verified: "2026-11-24"
-latest_decision: "D-922"
+latest_decision: "D-923"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active

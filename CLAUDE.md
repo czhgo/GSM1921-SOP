@@ -2,7 +2,7 @@
 title: "CLAUDE — 项目宪法与路由"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-11-23"
+last_updated: "2026-11-24"
 status: active
 ---
 
@@ -87,6 +87,7 @@ status: active
 - **PR 正文五段**：批次范围 / 验证读数（daily、full）/ 换轨与审计读数 / 未闭环项 / 回滚方式。
 - **合并后回 main 直做**；下一个发布点再从 main 开新 release 分支，不长期续用同一条分支。
 - **push 必须支书确认**；禁止 force push main。
+- **批次号与相邻（2026-11-24 `D-923`）**：批次号在 git 时间线上**单调不减**；`续` / `更正` 必须**紧邻**同批次上一条；一个批次最多 2 条，第三条开新批次。机检 `node server/scripts/check-batch-commits.mjs --limit 1`（含单调 / 相邻检查；历史乱序条目只登记、不改写）。
 
 ## H21. 多代理独立审查协议
 
@@ -131,7 +132,12 @@ status: active
   - **`test:weekly`（慢速视觉 / 审计普查）**：precommit 与 full 仍覆盖其判据，不因分层丢检查。
 - **`test:full` 是跨层全量 runner**（`run-suite.mjs` 跑全目录），不是第四层；时限口径＝**分片后单片 ≤1200s**，夜间档（`nightly.yml` 按 `SWEEP_SHARD=1..4` 四片并行）分片执行，单次全量用时不再作放行依据。
 - **分层只决定「哪一层跑」，不决定「跑不跑」**：precommit / full 覆盖全部文件；不得以「不在 daily」为理由删测试、删断言或改 `skip`。
-- **验证顺序**：先定向跑改到的文件 → 改样式 / 文档补 `test:guards` → 收尾跑 `test:daily`；提交前 `test:precommit`；发布前 `test:full`。
+- **验证顺序**：先定向跑改到的文件 → 改样式 / 文档补 `test:guards` → 收尾跑 `test:daily`；推送前 `test:precommit`；发布前 `test:full`。
+- **本机门禁与 full 轮次预算（2026-11-24 `D-923`）**：
+  - 修复循环＝定向（改到哪个文件跑哪个）＋ `test:daily`；改样式 / 文档补 `test:guards`。
+  - 推送前本机门禁＝`npm run service:ensure` ＋ `npm run test:precommit`（覆盖 294/296 个文件；仅当改动触及 `click-cost` / `copy-screen-guard` 时补跑这两件）。
+  - `test:full` 只用于发布前与夜间分片；**同一推送候选最多 1 次**，且本机必须 `npm run test:full:safe`（备份 ＋ 两库残留清理）。
+  - 红项先单跑红文件定位，禁止「整轮重跑碰运气」；full 墙钟不作放行依据（按分片单片 ≤1200s）。
 - **不以 GetDiagnostics 代替测试**；不以「模块能 import」代替行为验证。
 - **红项分类**：环境 / 陈旧断言 / 真回归；不得把红改成 `skip` 或删断言。
 
@@ -166,6 +172,7 @@ status: active
 - **先删后加**：新增规则前先查是否已有同一规则；有则合并，不另起一份。
 - **落点单一**：规范进 `content/03/04`，方法进 `content/05`，判例进 `CASES`，过程进 `.ctx/logs/`。
 - **先裁后清**：同一事实出现冲突时，先按 `H26.4` 冲突顺序裁定并落 `D-xxx`，再一次改完全部引用；裁定前不得在两处同时写不同值。
+- **文档指代码白名单（2026-11-24 `D-922`）**：只有 `README-server.md`、`content/04_web_design/data/DATA_MODEL.md`、`content/03_doc_system/ARCHITECTURE.md` 可指代码，且只写「文件 ＋ 括注符号」，**不写行号**；其余 markdown 由 `doc-lifecycle-guard::R6` 判红。`content/05_ai_coding/**` 的 `file:line` 只作报告证据格式（`H21`），不属「文档指代码」。
 
 ## H31. 组件复用纪律
 
@@ -207,6 +214,13 @@ status: active
 5. 待办跳转只经 `todo-actions.js` + `workspace-nav.js`。
 6. 页签密度 / 筛选条 / 建议输入见 `DS_06 §二`（SD-57/58/59）。
 7. 发布前跑 `audit-tabs --all`，P0/P1=0。
+
+### H40.4 UI 改动授权门（2026-11-24 `D-921` / `D-923`）
+
+- **触发**：`docs/**` 下任何会改变可见形态 / 交互行为的改动（含「为修测试而改产品行为」）。
+- **必须齐三件才动代码**：① 支书逐项书面指令（引原话或 AskUserQuestion 选项）；② 原则 / 规则 / 判例指针（`DS_*` / `CASES` / `D-xxx`）；③ 落 `D-xxx`。
+- **禁止**：以「修测试 / 修守卫」为由修改产品行为；测试判据与产品行为冲突时只登记待裁（丙部），不得自行择一。
+- **交付**：报告必须单列「UI 变更清单」（文件 / 改了什么 / 授权出处）；无改动写「无」。
 
 ## H50. 乙部与丙部生命周期
 

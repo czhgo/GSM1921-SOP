@@ -2,7 +2,7 @@
 title: "术语表（全仓唯一术语定义源）"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-11-19
+last_updated: "2026-11-24"
 version: "0.1"
 status: active
 related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/03_doc_system/ARCHITECTURE.md, content/04_web_design/data/DATA_MODEL.md]

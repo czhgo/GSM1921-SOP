@@ -39,8 +39,8 @@ dynamic_role:
 | --------- | ------------- | -------- | ------ | ------ |
 | README.md | 2026-11-14 | — | [用户]+[AI] | 见日志批次 597 |
 | README-members.md | 2026-10-16 | — | [用户]+[AI] | 支部成员版说明；匿名反馈为登录后的支部内闭环，处置权不含揭名权（`D-824`）。 |
-| README-server.md | 2026-11-21 | — | [用户]+[AI] | 见日志批次 597 |
-| CLAUDE.md | 2026-11-23 | — | [工程师]+[AI] | 宪法＋路由；2026-11-23 批次 604：H25 定义「棘轮＝只减不增基线」、乙部删 `C-5`（`D-914`） |
+| README-server.md | 2026-11-24 | — | [用户]+[AI] | 后端对接说明书；2026-11-24 批次 621：380 处「文件:行号」改为「文件 ＋ 括注符号」（`D-922`） |
+| CLAUDE.md | 2026-11-24 | — | [工程师]+[AI] | 宪法＋路由；2026-11-24 批次 622：H25 门禁与 full 预算、H20.5 批次号规则、H40.4 UI 授权门、H30 文档白名单（`D-923`） |
 | CHECKLIST.md | — | — | — | 🗑️ 已删除（迁移至 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md） |
 | LICENSE | 2026-05-18 | — | [用户] |  |
 | .gitignore | 2026-09-10 | — | [工具] |  |
@@ -65,7 +65,7 @@ dynamic_role:
 | .ctx/logs/archive/2026-10/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/logs/archive/2026-10/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-11-22 | — | [工程师]+[AI] | 日志索引：月份目录 ＋ 批次 529–568；569+ 见当月执行日志各节标题。 |
-| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-24 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，批次 620 在最上）。 |
+| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-24 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，批次 622 在最上）。 |
 | .ctx/logs/DECISION_LOG.md | 2026-11-24 | — | [工程师]+[AI] | 决策日志月度索引；概要只留条数与主题词（沿革见各月文件）。 |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-03-EXECUTION_LOG.md | 2026-03-02 | 2026-07-31 | [工程师]+[AI] | 已归档 |
@@ -82,7 +82,7 @@ dynamic_role:
 | .ctx/logs/archive/2026-09-EXECUTION_LOG.md | 2026-10-06 | 2026-10-06 | [工程师]+[AI] | 见日志批次 597 |
 | .ctx/logs/2026-10-EXECUTION_LOG.md | 2026-10-27 | — | [工程师]+[AI] | 见日志批次 597 |
 | .ctx/logs/2026-10-DECISION_LOG.md | 2026-10-22 | — | [工程师]+[AI] | 见日志批次 597 |
-| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-24 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；当前 `D-827`…`D-922`。 |
+| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-24 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；当前 `D-827`…`D-923`。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_R10_DATA_LIFECYCLE.md | 2026-10-23 | — | [工程师]+[AI] | 第十轮数据生命周期审查（75 条；R10 四批的依据）。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_UI_R11.md | 2026-10-23 | — | [工程师]+[AI] | 第十一轮前端脏乱繁审查（P0/P1/P2 与 SD-1…SD-11）。 |
 | .ctx/logs/archive/2026-10/2026-10-R10_P3_CLOSURE.md | 2026-10-23 | — | [工程师]+[AI] | R10 P3 收口对账（R6 21 / R7 18 / 帮助注释 9）。 |
@@ -124,13 +124,13 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 | --------- | ------------- | -------- | ------ | ------ |
-| content/03_doc_system/OPERATIONS_GUIDE.md | 2026-11-19 | — | [工程师]+[AI] | 运行与协作规范 |
+| content/03_doc_system/OPERATIONS_GUIDE.md | 2026-11-24 | — | [工程师]+[AI] | 运行与协作规范 |
 | content/03_doc_system/PROCESS_GUIDE.md | 2026-09-13 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/03_doc_system/OPERATIONS_GUIDE.md`《运行与协作规范》的 **§ |
 | content/03_doc_system/USAGE_POLICY.md | 2026-09-15 | — | [工程师]+[AI] | 🗑️ 已删除（正文并入 `OPERATIONS_GUIDE.md`《运行与协作规范》**§19–§23**）。沿革见 `.ctx/logs/`。 |
 | content/03_doc_system/INFORMATION_COMPUTATION.md | 2026-11-08 | — | [工程师]+[AI] | 信息计算与呈现口径：通知可见性 / 铃铛 / 待办派生 / 概况 / 考勤五项；未统一项与待裁定分列。 |
-| content/03_doc_system/ARCHITECTURE.md | 2026-11-08 | — | [工程师]+[AI] | 核心架构与单一事实源（2026-09-25 三份合一） |
+| content/03_doc_system/ARCHITECTURE.md | 2026-11-24 | — | [工程师]+[AI] | 核心架构与单一事实源（2026-09-25 三份合一） |
 | content/03_doc_system/DOC_MAP.md | 2026-11-11 | — | [工程师]+[AI] | 全局文档导航：五类载体索引 ＋ 目录作用表。 |
-| content/03_doc_system/TERMINOLOGY.md | 2026-11-19 | — | [工程师]+[AI] | 术语表（全仓唯一术语定义源）：20 条 × 9 字段；`OPERATIONS_GUIDE §19` 与 `sop/INDEX.md` 只留指针。 |
+| content/03_doc_system/TERMINOLOGY.md | 2026-11-24 | — | [工程师]+[AI] | 术语表（全仓唯一术语定义源）：20 条 × 9 字段；`OPERATIONS_GUIDE §19` 与 `sop/INDEX.md` 只留指针。 |
 | content/03_doc_system/SSOT_INDEX.md | 2026-09-15 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-25 批次 179（`P.16` 第三批）**：正文**整体并入** `content/03_doc_system/ |
 | content/03_doc_system/SERVICE_CATALOG.md | 2026-09-20 | — | [工程师]+[AI] | 🗑️ 已删除（正文并入 `ARCHITECTURE.md` **§十一 统一服务目录与角色-服务权限矩阵**）。沿革见 `.ctx/logs/`。 |
 | content/03_doc_system/README.md | 2026-10-27 | — | [工程师]+[AI] | 03_doc_system 目录索引（文件清单含 `INFORMATION_COMPUTATION.md`，权威源与派生同步）。 |
@@ -145,19 +145,19 @@ dynamic_role:
 | content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md | 2026-11-23 | — | [工程师]+[AI] | 第二编 排版与尺寸（增正文/说明边界与棘轮）；2026-11-23 批次 604 续守卫指针改归并件名（`GC-1`）。 |
 | content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-11-24 | — | [工程师]+[AI] | 第三编 组件；2026-11-22 批次 603 增 SD-68 壳层两档（顶栏 36/44、页脚 22.4/44）；卡厚度 16 / 12 两档；批次 610 两处外部准则引用改 WebFetch 指针 |
 | content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md | 2026-11-08 | — | [工程师]+[AI] | 第四编 交互与响应式（P10 三档动效令牌）。 |
-| content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md | 2026-11-22 | — | [工程师]+[AI] | 第五编 地图与速查。 |
+| content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md | 2026-11-24 | — | [工程师]+[AI] | 第五编 地图与速查。 |
 | content/04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md | 2026-11-21 | — | [工程师]+[AI] | 第六编 布局与密度：SD-57 页签密度 46。 |
 | content/04_web_design/design-system/README.md | 2026-11-03 | — | [工程师]+[AI] | 设计系统目录索引；文件清单含 DS_06，权威源指向 DESIGN_SYSTEM.md。 |
-| content/04_web_design/design-system/CASES.md | 2026-11-22 | — | [工程师]+[AI] | 设计＋数据域判例库：CASE-DESIGN-020…044、CASE-DATA-001；2026-11-22 批次 603 增 044 顶栏控件梯（六成员两档＋三类特例）。 |
+| content/04_web_design/design-system/CASES.md | 2026-11-24 | — | [工程师]+[AI] | 设计＋数据域判例库：CASE-DESIGN-020…044、CASE-DATA-001；2026-11-22 批次 603 增 044 顶栏控件梯（六成员两档＋三类特例）。 |
 | content/04_web_design/design-system/COLOR_SYSTEM.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的  |
 | content/04_web_design/design-system/COMPONENT_SPEC.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-24 批次 172**：正文**整体并入** `content/04_web_design/design-syste |
 | content/04_web_design/module/ABOUT_PAGE_DESIGN.md | 2026-10-05 | — | [工程师]+[AI] | 见日志批次 597 |
 | content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md | 2026-09-20 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§六 |
 | content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md | 2026-11-22 | — | [工程师]+[AI] | 见日志批次 597 |
-| content/04_web_design/evolution/archive/BRANCH_WORK_MAP.md | 2026-11-08 | — | [工程师]+[AI] | 支部工作地图档案（2026-10-28 页签命名改准） |
+| content/04_web_design/evolution/archive/BRANCH_WORK_MAP.md | 2026-11-24 | — | [工程师]+[AI] | 支部工作地图档案（2026-10-28 页签命名改准） |
 | content/04_web_design/evolution/archive/DESIGN_METHODOLOGY.md | 2026-11-08 | — | [工程师]+[AI] | 方法论档案（2026-09-26 补行） |
 | content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md | 2026-11-23 | — | [工程师]+[AI] | 党委治理契约；2026-11-23 批次 604 增 §2.7 对象挂靠单一源指针（`D-914`） |
-| content/04_web_design/evolution/archive/ROLE_PERMISSION_DESIGN.md | 2026-11-08 | — | [工程师]+[AI] | 权限收敛档案（2026-09-26 补行） |
+| content/04_web_design/evolution/archive/ROLE_PERMISSION_DESIGN.md | 2026-11-24 | — | [工程师]+[AI] | 权限收敛档案（2026-09-26 补行） |
 | content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md | 2026-11-24 | — | [工程师]+[AI] | 块封装契约；批次 609 追加 §8.5 画布 / 块决定 tab 方案稿（待支书定稿） |
 | content/04_web_design/module/PUBLIC_ENTRANCE.md | 2026-11-11 | — | [工程师]+[AI] | 门厅设计已裁定（公开门厅的规范编号 2026-11-10 批次 541 回填为 SD-62）。 |
 | content/04_web_design/deploy/WECHAT_INTEGRATION.md | 2026-09-05 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§五 |

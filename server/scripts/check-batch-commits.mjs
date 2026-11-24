@@ -123,6 +123,45 @@ for (let i = 0; i < checked.length; i += 1) {
   }
 }
 
+// ── 批次号单调 + 「续 / 更正」紧邻同批次（2026-11-24 `D-923`）──────────────
+//   历史乱序（612 → 616 更正 → 612 续）已 push、不改写；本检查只约束**新增**提交。
+{
+  const bucket = limit === 1 ? violations : warnings;
+  const seq = commits.map((c) => ({
+    hash: c.hash,
+    subject: c.subject,
+    batch: batchOf(c.subject),
+    isContinuation: CONTINUATION.test(c.subject),
+    isMerge: /^Merge\b/.test(c.subject),
+  }));
+  for (let i = 0; i < Math.min(checked.length, seq.length); i += 1) {
+    const cur = seq[i];
+    if (cur.isMerge) continue;
+    // ① 「续 / 更正」必须紧邻同批次上一条（更旧一条 commits[i+1] 不能作为上一条，故比较 i-1）
+    if (cur.isContinuation) {
+      const prev = seq[i - 1];
+      const prevId = prev?.batch?.id || null;
+      const curId = (CONTINUATION.exec(cur.subject) && cur.subject.match(/批次\s*(\d{3})/)?.[1]) || null;
+      if (!prev || !prev.batch || prev.batch.id !== curId) {
+        bucket.push({
+          hash: cur.hash,
+          subject: cur.subject,
+          reason: `「续/更正」未紧邻同批次上一条（上一条批次：${prevId || '无'}，本条批次：${curId || '未解析'}）`,
+        });
+      }
+    }
+    // ② 批次号单调不减：新提交的批次号不得小于相邻更旧提交的批次号
+    const older = seq[i + 1];
+    if (cur.batch && older?.batch && Number(cur.batch.id) < Number(older.batch.id)) {
+      bucket.push({
+        hash: cur.hash,
+        subject: cur.subject,
+        reason: `批次号倒退（${cur.batch.id} < 更旧的 ${older.batch.id}）；批次号在时间线上必须单调不减`,
+      });
+    }
+  }
+}
+
 for (const { hash, subject, reason } of violations) {
   console.log(`✖ ${hash.slice(0, 9)} ${subject} — ${reason}`);
 }

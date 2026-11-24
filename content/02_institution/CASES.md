@@ -2,7 +2,7 @@
 title: "制度域判例库"
 type: guide
 role: "[用户]+[工程师]+[AI]"
-last_updated: "2026-11-08"
+last_updated: "2026-11-24"
 status: active
 related_files: [SYSTEM_ROLE_PERMISSION.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---

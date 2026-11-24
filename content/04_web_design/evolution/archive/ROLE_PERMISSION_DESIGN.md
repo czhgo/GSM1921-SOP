@@ -2,7 +2,7 @@
 title: "权限功能合一收敛设计"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-08"
+last_updated: "2026-11-24"
 status: landed
 ---
 
