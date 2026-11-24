@@ -10,6 +10,14 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 623（2026-11-24）· P-7 选 ①：恢复深链展开日历卡（`D-924`）
+
+- **为什么**：619 回滚后 `page-sweep S21` 红；支书就 `P-7` 选 **①「恢复『深链展开日历卡』」**，即书面批准该 UI 行为。
+- **恢复**：`git checkout 2b8a28477 --` 4 台概况 ＋ `shared/activity-calendar-tab.js`（`calendarCardShouldOpen` ＋ `_pinnedOpen`）；`P-5` / `P-6` 保持回滚，未动。
+- **读数**：`page-sweep S21` 9.3s 绿；`block-config-ui-e2e` 1/1（块配置仍回滚态）。
+- **门禁**：按 `D-923` 跑 `service:ensure ＋ test:precommit` 后推送 619–623；不跑 full。
+- **边界**：只恢复 P-7 这一处 UI；其余 UI 形态仍待支书逐项指令。
+
 ## 批次 622（2026-11-24）· 门禁、批次号、UI 授权与记忆（`D-923`）
 
 - **为什么**：支书三问——full 为何这么多（本 session ≥7 次、单次 30 分钟）、commit 编号为何乱（612 → 616 更正 → 612 续）、原则/规则/判例为何没发挥。

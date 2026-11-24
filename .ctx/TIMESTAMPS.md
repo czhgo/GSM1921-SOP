@@ -55,7 +55,7 @@ dynamic_role:
 | .ctx/TIMESTAMPS.md | 2026-11-24 | — | [工程师]+[AI] | 文件时间戳注册表；备注列只写**现状 / 边界 / 指针**（`R-89`）；纯代码行（`.js` / `.mjs`）不再逐条登记，改动日以 git 为准（批次 597）。 |
 | .ctx/SNAPSHOT.md | 2026-11-22 | — | [AI] | 系统现状基线（reference）：只答「系统现在长什么样」；schema v19 / 业务 50 表。 |
 | .ctx/ACTIVE_RULINGS.md | 2026-11-24 | — | [工程师]+[AI] | 现行有效裁定**索引**（reference）：只答「到哪找某条现行口径」；跨域摘要 + 18 领域索引，规则正文在 `content/01–05`。 |
-| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-24 | — | [工程师]+[AI] | 见日志批次 619（三处 UI 回滚；S21 1 条已知红待 `P-7`）；六维 78/77/75/70/72/70（`D-918`） |
+| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-24 | — | [工程师]+[AI] | 见日志批次 623（P-7 恢复深链、门禁改 precommit）；六维 78/77/75/70/72/70（`D-918`） |
 | .ctx/REVIEW_QUEUE.md | 2026-11-23 | — | [工程师]+[AI] | 支书评议队列（reference）：只答「要评议什么 ＋ 评议怎么做」；2026-11-23 批次 606 `B-541-3` 闭环删行。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND1_WORKBENCH_STRUCTURE.md | 2026-10-19 | — | [工程师]+[AI] | Round 1 工作台结构审计报告（53 条 triage + 三路审查 + 共识/分歧/裁定 + 证据门）；修复 spec 落盘后可归档或删除。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND2_MINIMUM_THREE_COSTS.md | 2026-10-19 | — | [工程师]+[AI] | 见日志批次 597 |
@@ -65,7 +65,7 @@ dynamic_role:
 | .ctx/logs/archive/2026-10/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/logs/archive/2026-10/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-11-22 | — | [工程师]+[AI] | 日志索引：月份目录 ＋ 批次 529–568；569+ 见当月执行日志各节标题。 |
-| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-24 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，批次 622 在最上）。 |
+| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-24 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，批次 623 在最上）。 |
 | .ctx/logs/DECISION_LOG.md | 2026-11-24 | — | [工程师]+[AI] | 决策日志月度索引；概要只留条数与主题词（沿革见各月文件）。 |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-03-EXECUTION_LOG.md | 2026-03-02 | 2026-07-31 | [工程师]+[AI] | 已归档 |
@@ -82,7 +82,7 @@ dynamic_role:
 | .ctx/logs/archive/2026-09-EXECUTION_LOG.md | 2026-10-06 | 2026-10-06 | [工程师]+[AI] | 见日志批次 597 |
 | .ctx/logs/2026-10-EXECUTION_LOG.md | 2026-10-27 | — | [工程师]+[AI] | 见日志批次 597 |
 | .ctx/logs/2026-10-DECISION_LOG.md | 2026-10-22 | — | [工程师]+[AI] | 见日志批次 597 |
-| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-24 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；当前 `D-827`…`D-923`。 |
+| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-24 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；当前 `D-827`…`D-924`。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_R10_DATA_LIFECYCLE.md | 2026-10-23 | — | [工程师]+[AI] | 第十轮数据生命周期审查（75 条；R10 四批的依据）。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_UI_R11.md | 2026-10-23 | — | [工程师]+[AI] | 第十一轮前端脏乱繁审查（P0/P1/P2 与 SD-1…SD-11）。 |
 | .ctx/logs/archive/2026-10/2026-10-R10_P3_CLOSURE.md | 2026-10-23 | — | [工程师]+[AI] | R10 P3 收口对账（R6 21 / R7 18 / 帮助注释 9）。 |
