@@ -90,7 +90,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 ### 2.5 测试与发布质量 —— 70/100
 
 **证据**：daily **32 文件 / 264 断言**；guards **81 文件 / 907 断言**；`workbench-audit-coverage::W1–W5` 常驻；`write-policy-matrix`（路由 ≡ 矩阵 + 门名处理分支 + 反例）、`security-hardening`、`session-ttl`、`run-mode` 均登记 tier；四层 runner 按 registry 单一源执行；`daily.yml` 已接 `test:daily` 与 `deploy-verify`；`evaluation-asset-guard::⑤` 把 EA 测试读数锁到 registry（批次 604 立）；`component-ratchet-guard` 新源件 16 `viewport-and-touch-guard` 把外部准则五条写成带反例的验收判据（批次 604 续）；`doc-lifecycle-guard` 源件 5 `guard-citation-guard` 断言「文档引用的守卫文件必须存在」（批次 604 续，修掉 21 处归并后悬空引用）；`style-ratchet-guard::S5` 曾拦下新增非令牌间距（批次 603）。
-**残项**：nightly 四片未实跑（无 run id）；`test:full` 三通道全绿（批次 617，读数见 `.ctx/logs/2026-11-EXECUTION_LOG.md` 批次 617 节）；审计脚本仍不进 daily；full 墙钟 ≈29 分钟，按「分片单片 ≤1200s」口径由 nightly 四片并行承担。
+**残项**：nightly 四片未实跑（无 run id）；`test:full` 现有 1 条已知红（`page-sweep S21`，批次 619 回滚后重现，待 `P-7`），其余三通道绿（批次 617 读数）；审计脚本仍不进 daily；full 墙钟 ≈29 分钟，按「分片单片 ≤1200s」口径由 nightly 四片并行承担。
 **下一改进项**（`B-603-4`）：EA 读数 ≡ registry 已收口（`evaluation-asset-guard::⑤`，改一处即红）；余 CI 两个 job 实跑归**外部门**（判据：run id ＋ 日志，与 2.6 的 `L-02` 同批，由支书授权推送后一次性补齐）；审计脚本入 daily 前先给耗时读数。取样口径已落定（批次 617：概况类普查等「骨架消失 ＋ 两次取样一致」，深链等落定态），不再用固定等待抢跑。复评触发：CI 出 run id、或 guards 预算变更。
 
 ### 2.6 运行、部署与跨组织复用 —— 70/100
@@ -217,8 +217,8 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | 编号 | 残项 | 状态 | 下一动作 / 指针 |
 |---|---|---|---|
 | L-02 | Linux 真机 `install.sh` / `update.sh` 未验 | 外部门 | 见下表；容器侧 `deploy/verify-linux.sh` 6/6 |
-| L-13 | 页签 IA **A 41 / B 5 / C 0** | backlog | 按 `.ctx/evidence/2026-11-08/tab-review-ledger.md §四` 排批（剩余 7 条；F-2 已于批次 618 闭环，`D-920`） |
-| L-14 / L-15 | 工作流块停用是否联动停派生 / 画布 UI | backlog | `L-14` 停块派生联动仍只登记；`L-15` 画布已裁定不做（`D-919`），配置面＝逐行卡（批次 618 已编码） |
+| L-13 | 页签 IA **A 40 / B 6 / C 0** | backlog | 按 `.ctx/evidence/2026-11-08/tab-review-ledger.md §四` 排批（剩余 8 条；F-2 待支书裁定 `P-5`） |
+| L-14 / L-15 | 工作流块停用 / 画布 UI | backlog | 先出方案（`WORKFLOW_BLOCK_CONTRACT §8.4`）；批次 618 的配置面改法已按 `D-921` 回滚 |
 | L-17 | SQLite 宽表与索引 | backlog | `cd server; npm run probe:scale`（现读数：最大 679 行 / p95 ≤ 5.2ms，未触发）；单表 ≥ 1 万行或 p95 > 200ms 触发 `MIGRATIONS v2` |
 | L-18 | 组件出口散件 | backlog | 随组件域改动同批收敛（`B-541-7`） |
 

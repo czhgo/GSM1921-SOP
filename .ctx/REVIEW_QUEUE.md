@@ -70,7 +70,8 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 
 | ID | 一句话 | 触发条件 | 权威指针 |
 |---|---|---|---|
-| B-541-2 | `L-13` 页签 IA 未闭项（**A 41 / B 5 / C 0**；6 个超 4 块页签已登记例外） | 剩余 B 项按台账逐条排批；F-3/F-4/F-5 已于批次 609 闭环，F-2 已于批次 618 闭环 | `.ctx/evidence/2026-11-08/tab-review-ledger.md §四 / §六` |
+| B-541-2 | `L-13` 页签 IA 未闭项（**A 40 / B 6 / C 0**；6 个超 4 块页签已登记例外） | 剩余 B 项按台账逐条排批；F-2 已由批次 619（`D-921`）回退为待裁（`P-5`） | `.ctx/evidence/2026-11-08/tab-review-ledger.md §四 / §六` |
+| B-541-4 | `L-15` ＋ `H-24` 画布 UI 与「块决定 tab」（与 `allowedPages` 身份门、页签计数守卫相交） | 支书逐项书面指令 + 原则/规则/判例指针齐备后才编码；定稿前不排批（批次 618 实现已按 `D-921` 回滚） | `content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md §8.5` |
 | B-541-6 | `L-17` SQLite JSON 宽表、无跨表外键、无业务字段索引 | 任一表行数接近万行，或真机出现慢查询读数（E1 类）时启动 `MIGRATIONS v2` 与索引评估；平时只登记 | `.ctx/ENGINEERING_ASSESSMENT.md §一 阻断级风险 5`；`server/README.md §部署前必知限制 #2` |
 | B-541-7 | `L-18` 单一源组件出口仍有零星散件（徽章 / 选择器等） | 下次改动到该组件域时同批收敛（一改具改）；未动到的散件不提前合并 | `.ctx/ENGINEERING_ASSESSMENT.md §3.3 复核保留` |
 
@@ -78,7 +79,7 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 >
 > **2026-11-23 批次 606 收口**：`B-541-3`（`L-10` / `B-536-1`）已闭环并从本表删除——逐读口取证表与开关演练读数见 `.ctx/evidence/2026-11-23/multi-branch-read-ports.md`（`cd server; npm run test:multi-branch` 26/26）；`ALLOW_MULTI_BRANCH` 仍关闭，打开另需支书裁定。
 >
-> **2026-11-24 批次 618 收口**：`B-541-4` 已闭环并从本表删除——支书裁定「不做画布」（`D-919`），配置面落到工作流块逐行卡（`org-setup-wizard.js` 步骤②）；`B-541-2` 的 F-2 同批闭环（`D-920`，`report-up-tab.js` 卡头 CTA）。
+> **2026-11-24 批次 619 回退**：批次 618 的 `B-541-4` 收口与 F-2 闭环**已按支书 `D-921` 全部回滚**——`B-541-4` 复登（编码前须逐项书面指令），F-2 回 `B-541-2` 待裁（`P-5`）。
 >
 > **新增登记（`D-911`）**：`help.html` 内联样式 / 脚本外抽待「样式守卫扫描面目录化」后再做——当前 `style-ratchet` / `component-ratchet` 有 3 条判据写死扫 `docs/help.html`，外抽即红。
 

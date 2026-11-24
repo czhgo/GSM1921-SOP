@@ -9,7 +9,7 @@
 import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261120a';
 import { getDiscCommissionerId } from './_shared.js?v=20261120a';
 import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261120a';
-import { calendarCardShouldOpen, renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261120a';
+import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261120a';
 
 /**
  * 条线缺口行补真实动作（2026-10-18 繁专项 Task 15）。
@@ -76,7 +76,7 @@ export async function renderContent(ctx) {
     extraSections: [{
       html: '<div id="ov-calendar-card-host"></div>',
       mount: (host) => renderCalendarCard(host.querySelector('#ov-calendar-card-host'), undefined, {
-        open: calendarCardShouldOpen(ctx?.navTarget),
+        open: ctx?.navTarget?.section === 'calendar',
       }),
     }, {
       // F-20（2026-11-03 批次 531）：work-overview 内部重绘（下钻返回 / 外发确认）后，

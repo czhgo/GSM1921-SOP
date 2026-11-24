@@ -5,7 +5,7 @@ role: "[AI]"
 layer: active
 last_updated: 2026-11-24
 last_verified: "2026-11-24"
-latest_decision: "D-920"
+latest_decision: "D-921"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -28,7 +28,7 @@ status: active
 - **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（批次 603 实跑 239.7s，同值；source：`.ctx/evidence/2026-11-21/tab-audit/summary.md`）；D/C 维度（批次 605 实跑，批次 606 复跑同值）：**D2 处置 46/46**（5 条规则 pass ＋ 41 条 `countSkip` 理由）、**C2 37 pass** / 12 destructive exception、P0/P1/P2 0；复跑读数：`.ctx/evidence/2026-11-23/tab-audit/summary.md`。
 - **测试（四层）**：daily **32 文件 / 264 断言**；guards **81 文件 / 907 断言**（52 源件已并 5 件，预算软告警）；`npm run probe:stage` 6 步断点探针。source：`server/test-tier-registry.mjs`。
 - **换轨**：`preflight-cutover --strict` exit 0；契约 50 表；生产只走个人密码（`D-882`）。source：`deploy/CUTOVER_RUNBOOK.md`。
-- **分支 / CI**：当前在 `main`（已合并 `release/2026-11-launch` 88 条）；CI run `45361455724` 三 job success；`test:full` 三通道全绿（批次 617 · 墙钟 1767.5s）；push main 待支书确认。
+- **分支 / CI**：当前在 `main`（已合并 `release/2026-11-launch` 88 条）；CI run `45388524028` 三 job success；`test:full` 现有 1 条已知红（`page-sweep S21`，待 `P-7`），其余三通道绿；push 待支书确认。
 
 ## §2 现行裁定摘要（只留仍影响下一步）
 
@@ -62,15 +62,15 @@ status: active
 - `L-02`（**外部门**）Linux：CI `install-linux` 全链已绿（run `45232134920`）；systemd / useradd / cron / nginx 待真机。
 - `M-01`（**外部门**）手机验收台已备（`npm run acceptance` → `/mobile`）；三任务真机点击待支书完成。
 - `CI`（**外部门**）daily / deploy-verify / install-linux 三 job 已绿（run `45232134920`）；nightly 四片待次日定时。
-- `L-13` 页签 IA：A 41 / B 5 / C 0；6 个超 4 块页签登记例外；F-2 已闭环（批次 618）。
+- `L-13` 页签 IA：A 40 / B 6 / C 0；6 个超 4 块页签登记例外；F-2 待裁（`P-5`）。
 - `L-14` / `L-15` 工作流新维度：先出方案；`L-17` 宽表阈值：单表 ≥ 1 万行触发；`L-18` 组件散件：随改动收敛。
 
 ### 下一批任务
 
 1. **合并已落**：`release/2026-11-launch` → `main`（merge `10c22ba0d`）；push main 待支书确认；nightly 四片待次日定时。
 2. **外部门剩余真人动作**：M-01 手机三任务（`npm run acceptance` → `/mobile`）＋ `/signoff` 签收；SMTP 第三方实投需 `SMTP_*`。
-3. **backlog（触发即做）**：`L-13`（余 7 条）、`L-14`（方案见 `WORKFLOW_BLOCK_CONTRACT §8.5`）、`L-17`（`probe:scale` 未触发）、`L-18`。
-4. **发布前阻断已清零**：`test:full` 三通道全绿（批次 617）；余外部门 `L-02` 的 systemd / nginx 真机段、M-01 真机点击与 `/signoff` 签收。
+3. **backlog（触发即做）**：`L-13`（余 8 条，F-2 见 `P-5`）、`L-14`·`L-15`（方案见 `WORKFLOW_BLOCK_CONTRACT §8.5`，形态见 `P-6`）、`L-17`（`probe:scale` 未触发）、`L-18`。
+4. **发布前阻断**：`page-sweep S21` 1 条已知红（深链是否展开日历卡，`P-7` 待裁）；其余 full 通道绿（批次 617 读数）；余外部门 `L-02` 的 systemd / nginx 真机段、M-01 真机点击与 `/signoff` 签收。
 5. **已撤销**：`C-5`（`D-914`）——`text-xs` 是 DS_02 允许的「说明句」档，不设「全部上迁 13px」任务；新增由 `style-ratchet-guard::Q6` 的只减不增基线守住。
 
 ## §4 文件地图（读什么 / 不读什么）

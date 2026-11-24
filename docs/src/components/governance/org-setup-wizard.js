@@ -715,21 +715,14 @@ function _step2Html(S, branch, isStaff = false) {
   //   只有「未选支部」时保持只读（此时没有写入对象）。留痕 `byRole` 标明是党委代配。
   const locked = isStaff && !S.branchId;
   const chip = (attr, id, label, on) =>
-    `<button type="button" data-wz-chip="${attr}" data-id="${esc(id)}"${locked ? ' disabled aria-disabled="true"' : ''}${attr === 'wblock' ? ` aria-pressed="${on}"` : ''} class="btn-tab text-xs px-3 py-1.5 rounded-lg transition-[border-color,background-color,opacity] ${on ? '' : 'opacity-45'} ${locked ? 'cursor-not-allowed' : ''}" style="${chipStyle(on)}">${esc(label)}</button>`;
+    `<button type="button" data-wz-chip="${attr}" data-id="${esc(id)}"${locked ? ' disabled aria-disabled="true"' : ''} class="btn-tab text-xs px-3 py-1.5 rounded-lg transition-[border-color,background-color,opacity] ${on ? '' : 'opacity-45'} ${locked ? 'cursor-not-allowed' : ''}" style="${chipStyle(on)}">${esc(label)}</button>`;
   const chipOn = (attr, set) => !set.has(attr);
-  // 可排序块行（工作流块专用）：2026-11-24 批次 618（`D-919` 去画布）——
-  //   由「chip 堆叠 ＋ 竖排小箭头」改为**逐行卡**：序号 / 块名（chip 本体＝启停开关）/ 显式状态 / ▲▼。
-  //   chip 与 ▲▼ 的 DOM 契约不变（`[data-wz-chip="wblock"]` / `[data-wz-move]` 供 block-config-ui-e2e），
-  //   标签仍＝「块名 · 制度来源」；状态文字由 `_paintChips` 同步，不随 chip 重绘丢失。
+  // 可排序块行（工作流块专用）：chip 本体不变（`_paintChips` 仍按 `[data-wz-chip]` 重绘），右侧 ▲▼ 是
+  //   **键盘可达的按钮等价路径**（拖拽只在设置页的 tab 顺序上；向导侧不引拖拽，免与 chip 点击混手势）。
   const moveBtn = (id, label, dir, disabled) =>
     `<button type="button" data-wz-move="wblock" data-id="${esc(id)}" data-dir="${dir}"${disabled || locked ? ' disabled' : ''} class="btn-outline px-1.5 py-0.5 text-xs leading-none" aria-label="${dir < 0 ? '上移' : '下移'}工作流块 ${esc(label)}">${dir < 0 ? '▲' : '▼'}</button>`;
   const wblockRow = (id, label, on, i, len) =>
-    `<div class="flex items-center gap-2 rounded-lg border ${on ? 'border-gray-200 bg-white' : 'border-gray-100 bg-gray-50'} px-3 py-1.5 transition-colors">
-      <span class="w-5 shrink-0 text-center text-xs tabular-nums text-gray-500">${i + 1}</span>
-      <div class="min-w-0 flex-1">${chip('wblock', id, label, on)}</div>
-      <span data-wb-state="${esc(id)}" class="w-12 shrink-0 text-right text-xs ${on ? 'text-[var(--status-success-text)]' : 'text-gray-500'}">${on ? '已启用' : '已停用'}</span>
-      <span class="inline-flex shrink-0 items-center gap-1">${moveBtn(id, label, -1, i === 0)}${moveBtn(id, label, 1, i === len - 1)}</span>
-    </div>`;
+    `<span class="inline-flex items-center gap-1">${chip('wblock', id, label, on)}<span class="inline-flex flex-col gap-0.5">${moveBtn(id, label, -1, i === 0)}${moveBtn(id, label, 1, i === len - 1)}</span></span>`;
   // 目录内、按支部顺序 → 行；**目录外 id**（配置持久化后目录变更）由下方体检点名（不静默丢）
   const wbById = new Map(BLOCK_MANIFESTS.map(m => [m.blockId, m]));
   const wbEffective = S.wbOrder.filter(id => wbById.has(id));
@@ -785,7 +778,7 @@ function _step2Html(S, branch, isStaff = false) {
       </div>
       <div>
         <p class="text-xs font-bold text-gray-600 mb-1.5">工作流块 <span class="text-xs font-normal text-gray-500">（整条 SOP 入口，L3 愿景；目录源 workflow/blocks。▲▼ 调顺序＝流程组合）</span></p>
-        <div class="space-y-1.5">${wbRows}</div>
+        <div class="flex flex-wrap items-center gap-2">${wbRows}</div>
         ${composeHint}
       </div>
       <div class="border-t border-gray-100 pt-3">
@@ -1672,14 +1665,5 @@ function _paintChips(S) {
     btn.style.cssText = on
       ? `background:${accentRgba};border-color:${accentBorder};color:${accent};`
       : 'border:1px solid var(--neutral-200);color:var(--neutral-500);background:var(--neutral-100);';
-    if (attr === 'wblock') {
-      btn.setAttribute('aria-pressed', String(on));
-      // 逐行卡的状态文字与 chip 同源同步（批次 618）：只在局部重绘时更新，不重建整步。
-      const state = S.host.querySelector(`[data-wb-state="${btn.getAttribute('data-id')}"]`);
-      if (state) {
-        state.textContent = on ? '已启用' : '已停用';
-        state.className = `shrink-0 text-xs ${on ? 'text-[var(--status-success-text)]' : 'text-gray-500'}`;
-      }
-    }
   });
 }

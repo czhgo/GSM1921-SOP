@@ -9,7 +9,7 @@
 import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261120a';
 import { currentUserId } from '../../../services/core/auth.js?v=20261120a';
 import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261120a';
-import { calendarCardShouldOpen, renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261120a';
+import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261120a';
 
 /**
  * 条线缺口行补真实动作（2026-10-18 繁专项 Task 15）。
@@ -79,7 +79,7 @@ export async function renderContent(ctx) {
     extraSections: [{
       html: '<div id="ov-calendar-card-host"></div>',
       mount: (host) => renderCalendarCard(host.querySelector('#ov-calendar-card-host'), undefined, {
-        open: calendarCardShouldOpen(ctx?.navTarget),
+        open: ctx?.navTarget?.section === 'calendar',
       }),
     }],
   });

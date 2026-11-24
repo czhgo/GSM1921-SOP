@@ -12,7 +12,7 @@
 import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261120a';
 import { currentUserId } from '../../../services/core/auth.js?v=20261120a';
 import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261120a';
-import { calendarCardShouldOpen, renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261120a';
+import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261120a';
 import { renderCalendarView } from './activity-calendar-tab.js?v=20261120a';
 
 export async function renderContent(ctx) {
@@ -36,7 +36,7 @@ export async function renderContent(ctx) {
     extraSections: [{
       html: '<div id="ov-calendar-card-host"></div>',
       mount: (host) => renderCalendarCard(host.querySelector('#ov-calendar-card-host'), undefined, {
-        open: calendarCardShouldOpen(ctx?.navTarget),
+        open: ctx?.navTarget?.section === 'calendar',
         mountExtra: (body) => renderCalendarView(body, ctx || {}),
       }),
     }],

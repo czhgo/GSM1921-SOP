@@ -125,28 +125,14 @@ export function renderCalendarPanel(container, state) {
  * @param {{id?:string, open?:boolean, afterHtml?:string, mountExtra?:(body:HTMLElement)=>void}} [opts]
  * @returns {HTMLDetailsElement|null}
  */
-/** 深链 / 事件是否要求展开「活动日历」折叠卡（单一判据，四台共用）。
- *  `?activityId=`（nav.actId）与 `?view=activities`（nav.view）都必须展开；`section=calendar` 兼容旧入口。
- *  批次 612：此前只看 `section`，活动深链进来卡不展开（page-sweep S21 实测）。 */
-export function calendarCardShouldOpen(navTarget) {
-  return Boolean(navTarget && (navTarget.section === 'calendar' || navTarget.view || navTarget.actId || navTarget.activityId));
-}
-
-/** 深链 / 事件已要求展开后，后续重绘不得把它关回去——记住意图，直到用户手动收起。
- *  批次 617：概况数据异步到达，首帧（骨架）之后还有一次 renderContent；旧实现每次按当次
- *  `opts.open` 重建折叠卡，深链在第二次渲染就被关掉（page-sweep S21 实测，判据未变）。 */
-let _pinnedOpen = false;
-
 export function renderCalendarCard(host, state, opts = {}) {
   if (!host) return null;
   _bindCardOpenEvent();
   const id = opts.id || 'ov-calendar-card';
-  const shouldOpen = Boolean(opts.open) || _pinnedOpen;
-  if (shouldOpen) _pinnedOpen = true;
   if (host.querySelector(`#${id}`)) {
     const old = host.querySelector(`#${id}`);
     // 深链要求展开：即使卡片已存在也按参数打开
-    if (shouldOpen) old.open = true;
+    if (opts.open) old.open = true;
     if (old.open) _mountCard(old);
     return old;
   }
@@ -158,7 +144,7 @@ export function renderCalendarCard(host, state, opts = {}) {
   //   （标题仍是兄弟 H3，可访问名称取自标题＋动作，读屏不再读一串竖排文字）。
   wrap.innerHTML = `
     <h3 class="disclosure__title" id="${id}-title">月历与当日活动</h3>
-    <details class="disclosure" id="${id}"${shouldOpen ? ' open' : ''}>
+    <details class="disclosure" id="${id}"${opts.open ? ' open' : ''}>
       <summary class="disclosure__summary" aria-label="展开月历与当日活动（只读）"></summary>
       <div class="disclosure__body" data-cal-card-body>
         ${PANEL_HTML}
@@ -170,7 +156,7 @@ export function renderCalendarCard(host, state, opts = {}) {
   const body = wrap.querySelector('[data-cal-card-body]');
   const mount = () => _mountCard(details);
   mount();
-  details.addEventListener('toggle', () => { if (details.open) mount(); else _pinnedOpen = false; });
+  details.addEventListener('toggle', () => { if (details.open) mount(); });
   return details;
 
   function _mountCard(el) {
@@ -182,7 +168,7 @@ export function renderCalendarCard(host, state, opts = {}) {
     } else {
       renderCalendarPanel(body, state);
     }
-    if (shouldOpen && el) el.open = true;
+    if (opts.open && el) el.open = true;
   }
 }
 
@@ -194,7 +180,6 @@ function _bindCardOpenEvent() {
   document.addEventListener('ws:open-calendar', () => {
     const card = document.querySelector('details[id$="calendar-card"]');
     if (!card) return;
-    _pinnedOpen = true;
     card.open = true;
     smoothScroll(card, { block: 'center' });
   });
