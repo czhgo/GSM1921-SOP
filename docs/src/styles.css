@@ -923,10 +923,24 @@ body {
 }
 .card-head__actions {
   display: flex;
-  flex-wrap: wrap;
+  /* 2026-11-25 批次 629（D-927）：≥641 组内不换行（SD-60 三层算法第二层）；
+     ≤640 跟随 aside 一起掉行并允许组内折行，避免 390 溢出（见上 `max-width:100%` 注）。 */
+  flex-wrap: nowrap;
   align-items: center;
   gap: var(--space-2);
 }
+@media (max-width: 640px) {
+  .card-head__actions { flex-wrap: wrap; }
+}
+/* 表单底部按钮组（2026-11-25 批次 629 · D-927 · SD-60 第三层）：按钮恒同组，不拆到两行；
+   宽度不足时整组换行（由外层字段行承担）。 */
+.form-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.form-actions > * { flex: 0 0 auto; }
 /* 支部分工 · 责任关系（2026-11-09 批次 539 立 · 2026-11-10 批次 541 改单行）：每行＝负责人徽章 +
    工作项（14/600）+ 协作 / 产出（12）。行高、分隔线、hover / 选中态全部由 .list-group / .list-row 承担
    （本段不重画）；本段只把标题与次级并作一行并各自截断 ⇒ 行高回到 --row-standard（48）。 */

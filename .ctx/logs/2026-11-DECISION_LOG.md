@@ -967,7 +967,15 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：`test:full` 修后复跑见执行日志批次 612；daily 264 / guards 907。
 > **落点**：`EA §一 / §2.x / §5.2`；`ACTIVE_CONTEXT §1`；`TIMESTAMPS`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-926`**（共 **100** 条）。
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-927`**（共 **101** 条）。
+
+## D-927 2026-11-25 — 按钮组三层算法 ＋ 党小组主从栏降密（批次 629）
+
+> **评议 → 裁定 → 落点**：支书第 8 项「该一行时不在一行、该分行时不分行」与第 7 项「党小组织看得眼睛胀」，分层选 **「三层算法」**。
+> - **裁定**：页头组间可换行；卡头 `.card-head__actions` ≥641 组内 `nowrap`（≤640 随 aside 整组掉行后才折行）；表单底部新增唯一出口 `.form-actions`（`nowrap` ＋ 子项 `flex:0 0 auto`），按钮恒同组。党小组右栏三段改为「一次展开一段」（组员汇报改 `<details>` 折叠，台账默认展开、变更记录维持原折叠），左栏行三行压两行。
+> - **未选**：一律不换行（窄屏靠横滚）；每台工作台单独定义优先级（工作量大，先跑三层算法一轮再评估）。
+> - **读数**：`style-ratchet-guard` 100/100（W7 新增两层 nowrap 断言）；`test:daily` 全绿。
+> - **落点**：`docs/src/styles.css`（`.card-head__actions` / `.form-actions`）、`entries/tabs/secretary/{group-progress-tab,committee-meeting-tab}.js`、`entries/tabs/{leader/overview,org/taskforce}-tab.js`；`DS_06 SD-60` 增三层算法；`CASE-DESIGN-046`。
 
 ## D-926 2026-11-25 — 括注准入：字段状态与只读标记不得进括注（批次 628）
 

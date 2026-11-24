@@ -95,7 +95,7 @@ function _openProposalForm(ctx) {
         <label for="lp-expected" class="text-[11px] text-gray-500 mb-2 block font-medium">期望上会时间</label>
         ${textInput({ id: 'lp-expected', type: 'date', className: 'w-full' })}
       </div>
-      <div class="flex justify-end gap-2 mt-4">
+      <div class="form-actions justify-end mt-4">
         <button type="button" class="btn-outline" id="lp-cancel">取消</button>
         <button type="button" class="btn-accent-soft" id="lp-save">提交提案</button>
       </div>`,

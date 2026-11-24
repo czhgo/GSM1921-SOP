@@ -408,7 +408,7 @@ function _openScheduleModal(p) {
         options: meetings.map((m) => ({ value: m.id, label: `${m.date || ''} ${m.title || '支委会'}` })),
         className: 'w-full',
       })}
-      <div class="flex justify-end gap-2 mt-4">
+      <div class="form-actions justify-end mt-4">
         <button type="button" class="btn-outline" id="cm-proposal-schedule-cancel">取消</button>
         <button type="button" class="btn-accent-soft" id="cm-proposal-schedule-save">排期</button>
       </div>`,
@@ -438,7 +438,7 @@ function _openDecideModal(p) {
       <div class="mt-3">
         ${textareaField({ id: 'cm-proposal-note', label: '说明', rows: 2 })}
       </div>
-      <div class="flex justify-end gap-2 mt-4">
+      <div class="form-actions justify-end mt-4">
         <button type="button" class="btn-outline" id="cm-proposal-decide-cancel">取消</button>
         <button type="button" class="btn-accent-soft" id="cm-proposal-decide-save">保存决议</button>
       </div>`,

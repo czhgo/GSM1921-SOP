@@ -55,6 +55,8 @@ related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONEN
 
 > **口径**：两行是上限，不是必须凑满两行；一页只有一个筛选条，多个筛选条先合并再谈行数。390 下允许控件换行，但整条仍以两行结构组织，不得每控件一行。
 
+> **按钮组三层算法（2026-11-25 批次 629 · `D-927`）**：① **页头**（`.page-frame__actions`）：组与组之间允许换行，组内不换行；② **卡头**（`.card-head__actions`）：≥641 组内不换行（`nowrap`），≤640 跟随 `.card-head__aside` 整组掉行后才允许组内折行；③ **表单底部**（`.form-actions`）：按钮恒同组（`nowrap` ＋ 子项 `flex:0 0 auto`），宽度不足由外层字段行换行，按钮组自身不拆。判例：`CASE-DESIGN-046`。
+
 ### SD-59 建议输入无系统图标
 
 | 项 | 内容 |

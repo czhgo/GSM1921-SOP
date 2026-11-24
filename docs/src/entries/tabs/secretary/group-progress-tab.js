@@ -307,8 +307,7 @@ function _manageRowHtml(row, selected, issues, leaderAssign, canManage) {
         <span class="flex items-center justify-between gap-2">
           <span class="text-sm font-semibold text-gray-800 truncate">${esc(row.name)}</span>${openBadge}
         </span>
-        <span class="block text-xs text-gray-500 mt-1 truncate">组长：${leaderText}</span>
-        <span class="block text-xs text-gray-500 mt-0.5">党员 ${g.partyCount} 人 · 成员 ${g.memberCount} 人</span>
+        <span class="block text-xs text-gray-500 mt-1 truncate">组长：${leaderText} · 党员 ${g.partyCount} · 成员 ${g.memberCount}</span>
       </button>
       ${canManage
         ? `<details class="row-more">
@@ -557,13 +556,14 @@ function _reportsSectionHtml(hasLeader) {
   const inner = _issuesLoaded ? '' : _reportsLoadingHtml();
   const leaderNote = hasLeader ? '' : '<span class="text-xs text-gray-500">（本组暂无组长，「请组长关注」不可用）</span>';
   return `
-    <div class="pt-3 mt-3 border-t border-gray-100">
-      <div class="flex items-center justify-between gap-2 mb-1">
+    <details class="gp-fold pt-3 mt-3 border-t border-gray-100">
+      <summary class="flex items-center justify-between gap-2 cursor-pointer">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">组员汇报（待答复）</h4>
-      </div>
-      <p class="text-xs text-gray-500 mb-2.5">对待答复行可「请组长关注」。 ${leaderNote}</p>
+        <span class="text-xs text-gray-500">展开 ▾</span>
+      </summary>
+      <p class="text-xs text-gray-500 mt-1.5 mb-2.5">对待答复行可「请组长关注」。 ${leaderNote}</p>
       <div id="gp-reports" class="space-y-1.5">${inner}</div>
-    </div>`;
+    </details>`;
 }
 
 function _reportsLoadingHtml() {

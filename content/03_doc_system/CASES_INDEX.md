@@ -86,12 +86,13 @@ related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-sy
 | CASE-AI-010 | 同一指标多值并存（评分 / 矩阵 141 vs 162 / 页签 4 vs 5）；当前值必须单一源且跨文件相等 | ai-coding | [CASES.md](../05_ai_coding/CASES.md) | `CLAUDE.md H26.5` / `H30` ＋ G1 / G2 | 2026-11-19（批次 572） |
 | CASE-AI-011 | 未经批准改前端且改后不报告；UI 改动须「书面指令 ∧ 规则指针 ∧ D-xxx」三件齐，并单列 UI 变更清单 | ai-coding | [CASES.md](../05_ai_coding/CASES.md) | `CLAUDE.md H40.4` / `H10.6` | 2026-11-24（批次 619） |
 | CASE-DESIGN-045 | 等尺寸指标卡收窄过度（1440 下 132–150px、空白 44%–50%、不等高、行高 1）；改为容器等分等高、行高 1.25 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-57 ＋ `DS_03 §4.21.2` | 2026-11-25（批次 627） |
+| CASE-DESIGN-046 | 按钮组「该一行时不在一行」：守卫只锁外层；定三层算法（页头组间 / 卡头组内 / 表单按钮恒同组） | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-60 | 2026-11-25（批次 629） |
 
 ## 域入口
 
 | 域 | 判例文件 | 现有条数 |
 |---|---|---|
-| design（网站设计） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 45 |
+| design（网站设计） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 46 |
 | data（数据真相） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 1 |
 | institution（制度） | [02_institution/CASES.md](../02_institution/CASES.md) | 5 |
 | ai-coding（AI 协作） | [05_ai_coding/CASES.md](../05_ai_coding/CASES.md) | 11 |

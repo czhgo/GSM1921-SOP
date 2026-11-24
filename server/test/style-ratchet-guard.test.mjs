@@ -2165,6 +2165,15 @@ await (async () => {
     assert.match(value, /line-height:\s*1\.25/, '.stat-card__value 行高应为 1.25');
   });
 
+  test('W7 按钮组三层：卡头动作组 ≥641 nowrap、表单按钮组恒同组（SD-60 · D-927）', () => {
+    const actions = ruleBody('.card-head__actions');
+    assert.match(actions, /flex-wrap:\s*nowrap/, '.card-head__actions 应 nowrap（≥641 组内不换行）');
+    const formActions = ruleBody('.form-actions');
+    assert.match(formActions, /flex-wrap:\s*nowrap/, '.form-actions 应 nowrap（按钮恒同组，不拆两行）');
+    assert.match(CSS, /\.form-actions\s*>\s*\*\s*\{[^}]*flex:\s*0 0 auto/,
+      '.form-actions 子项应 flex:0 0 auto（按钮不被压缩）');
+  });
+
 })();
 
 // ═══ 源件 10：hover-state-guard.test.mjs ═══

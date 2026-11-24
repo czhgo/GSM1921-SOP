@@ -1788,7 +1788,7 @@ function _openTaskforceScopeFill(tf, ctx) {
       <p class="text-sm text-gray-700 mb-3">专班「${esc(tf.name)}」的承办方待补。补选后不可修改。</p>
       <label for="tf-scope-fill-select" class="text-[11px] text-gray-500 mb-2 block font-medium">承办方 <span class="text-red-600">*</span></label>
       ${selectInput({ id: 'tf-scope-fill-select', options, className: 'w-full' })}
-      <div class="flex justify-end gap-2 mt-4">
+      <div class="form-actions justify-end mt-4">
         <button type="button" class="btn-outline" id="tf-scope-fill-cancel">取消</button>
         <button type="button" class="btn-accent-soft" id="tf-scope-fill-save">保存</button>
       </div>`,

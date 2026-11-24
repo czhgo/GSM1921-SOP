@@ -507,6 +507,20 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 
 ---
 
+## CASE-DESIGN-046 按钮组「该一行时不在一行、该分行时不分行」：守卫只锁外层，内层组仍在换行
+
+- **编号**：CASE-DESIGN-046
+- **场景（真实发生）**：`CASE-DESIGN-034` 立了 SD-60 与 `action-row-wrap-guard::W1–W5`，但只锁 `.card-head` / `.card-head__aside`；其内层 `.card-head__actions` 仍是 `flex-wrap: wrap`（无宽度断点），桌面宽度足够时按钮组内部照样换行。表单区另有 18 处 `flex-wrap`（组织向导）与 11 处（活动录入），无统一口径；支书 2026-11-25 复核「该变成一行的时候不变，该分行的时候也不分」。
+- **AI 假设**：外层不换行即等于整组不换行；按钮换行属于内容多少的自然结果，不需要算法。
+- **人类意图**：换行只允许发生在「组与组」之间；组内元素在桌面不得拆行。
+- **泛化规则（结论）**：按钮 / 输入排布按三层：页头组间可换行；卡头动作组 ≥641 组内 `nowrap`、≤640 随 aside 整组掉行后才折行；表单底部按钮组恒同组（`.form-actions` ＋ 子项 `flex:0 0 auto`）。同一语义只允许一个出口类，不得各页面自拼 `flex justify-end gap-2`。
+- **边界**：`.lf-bar` 筛选条仍守 SD-58 两行上限；正文内联链接与文本按钮不并入本算法；`≤640` 的整组掉行不算换行问题。
+- **对应规范编号**：SD-60（`DS_06_LAYOUT_AND_DENSITY.md` 行动行排布节）。
+- **守卫**：`action-row-wrap-guard::W1–W7`（新增 W6 指标卡等分、W7 `.card-head__actions` 与 `.form-actions` 双层 nowrap）。
+- **证据指针**：`docs/src/styles.css`（`.card-head__actions` / `.form-actions`）；`docs/src/entries/tabs/secretary/group-progress-tab.js`（右栏三段一次一段、左栏两行）；`D-927`。
+
+---
+
 ## 数据域判例（data）
 
 > 本区承载 `CASE-DATA-*`：判据是「数据真相」而非视觉，但因同源于设计系统评审、且需与 SD-48 双向指针，正文与 design 域同放本文件；总目录仍见 [CASES_INDEX.md](../../03_doc_system/CASES_INDEX.md)。

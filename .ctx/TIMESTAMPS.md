@@ -146,9 +146,9 @@ dynamic_role:
 | content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-11-25 | — | [工程师]+[AI] | 第三编 组件；C5 增「括注准入」（字段状态 / 只读 / 日期范围 / 单位换算不得进括注，`copy-guard::C5b` 基线 0） |
 | content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md | 2026-11-08 | — | [工程师]+[AI] | 第四编 交互与响应式（P10 三档动效令牌）。 |
 | content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md | 2026-11-24 | — | [工程师]+[AI] | 第五编 地图与速查。 |
-| content/04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md | 2026-11-25 | — | [工程师]+[AI] | 第六编 布局与密度：SD-57 页签密度 46；等尺寸指标卡改回等分等高（`D-925`）。 |
+| content/04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md | 2026-11-25 | — | [工程师]+[AI] | 第六编 布局与密度：SD-57 页签密度 46；等尺寸指标卡改回等分等高（`D-925`）；SD-60 增按钮组三层算法（`D-927`）。 |
 | content/04_web_design/design-system/README.md | 2026-11-03 | — | [工程师]+[AI] | 设计系统目录索引；文件清单含 DS_06，权威源指向 DESIGN_SYSTEM.md。 |
-| content/04_web_design/design-system/CASES.md | 2026-11-25 | — | [工程师]+[AI] | 设计＋数据域判例库：CASE-DESIGN-020…045、CASE-DATA-001；批次 627 增 045（指标卡收窄过度）。 |
+| content/04_web_design/design-system/CASES.md | 2026-11-25 | — | [工程师]+[AI] | 设计＋数据域判例库：CASE-DESIGN-020…046、CASE-DATA-001；批次 629 增 046（按钮组三层）。 |
 | content/04_web_design/design-system/COLOR_SYSTEM.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的  |
 | content/04_web_design/design-system/COMPONENT_SPEC.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-24 批次 172**：正文**整体并入** `content/04_web_design/design-syste |
 | content/04_web_design/module/ABOUT_PAGE_DESIGN.md | 2026-10-05 | — | [工程师]+[AI] | 见日志批次 597 |
@@ -223,7 +223,7 @@ dynamic_role:
 | content/05_ai_coding/REVIEW_QUESTION_SET.md | 2026-11-23 | — | [工程师]+[AI] | 审查问题集：Q-01…Q-22（Q-22 为页签密度与信息经济的审查方法，执行工具指向 `TAB_AUDIT_PLAYBOOK.md`）；604 续 Q-01/12/13 守卫指针改归并件名（`GC-1`） |
 | content/05_ai_coding/QUESTION_HIT_MATRIX.md | 2026-11-03 | — | [工程师]+[AI] | 历史命中矩阵；Q-22 列新立，36 行历史记 `—`。 |
 | content/05_ai_coding/GUARD_INVENTORY.md | 2026-11-22 | — | [工程师]+[AI] | 守卫台账；历史总表停 66 件（已滞后），现行件数以 `test-tier-registry.mjs` 为准。 |
-| content/03_doc_system/CASES_INDEX.md | 2026-11-25 | — | [工程师]+[AI] | 判例总索引（design 45 / data 1 / institution 5 / ai-coding 11，合计 62）；批次 627 登记 CASE-DESIGN-045。 |
+| content/03_doc_system/CASES_INDEX.md | 2026-11-25 | — | [工程师]+[AI] | 判例总索引（design 46 / data 1 / institution 5 / ai-coding 11，合计 63）；批次 629 登记 CASE-DESIGN-046。 |
 | .ctx/README.md | 2026-11-21 | — | [工程师]+[AI] | 见日志批次 597 |
 | .ctx/ACTIVE_CONTEXT.md | 2026-11-24 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-924`；六维 78/77/75/70/72/70。 |
 | server/README.md | 2026-11-23 | — | [工程师]+[AI] | 服务端说明；604 续守卫清单旧文件名改归并件名（`GC-1`） |
