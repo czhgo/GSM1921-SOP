@@ -10,6 +10,21 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 625（2026-11-24）· 推送收口与台账 CI 读数统一
+
+- **为什么**：619–624 因 `github.com` 22 / 443 不可达积压 6 条未推送；台账里同一指标「CI run id」并存三个值（`45232134920` / `45361455724` / `45388524028`），违反 `H26.5`。
+- **推送**：网络恢复后 `git push origin main` 成功（`0b72e5738..f51e2d7f2`）；新 run `45430226062` @ `f51e2d7f2`，daily / deploy-verify / install-linux 三 job success。
+- **读数**：`check-batch-commits --limit 1` 违规 0；`doc-lifecycle-guard` 54/54；`cleanup --test-residue --db data.review.db` 0 张表 / 0 行。
+- **边界**：只改台账读数与执行日志，不动代码 / 测试 / UI；`.ctx/logs` 内的旧 run id 与 `deploy/CUTOVER_RUNBOOK.md` 的旧 run 引用按历史事实保留。
+- **拿不准**：git 默认找不到 `known_hosts`（`Host key verification failed`），显式 `-o UserKnownHostsFile=<home>/.ssh/known_hosts` 后可连；未改全局 ssh 配置。
+
+## 批次 624（2026-11-24）· precommit 负载下两处偶发（不改判据）
+
+- **为什么**：precommit 并发下 `party-committee` P2 登录 10s 超时（点击时处理函数未绑定，被原生 GET 吞掉）、`todo-groups-api` ⑨ 出现 `ECONNRESET`；两条属环境 / 时序，不是业务回归。
+- **改法**：党委登录改 30s 等待 ＋ 整页重试一次；`todo-groups-api` 加 `fetchRetry`（仅连接类错误重试一次），断言与状态码口径不动。
+- **读数**：单跑 2×6/6、11/11；`[precommit] 全绿 · 墙钟 2222.1s`（daily 266 · guards 803+110）。
+- **边界**：不删断言、不改 `skip`、不改产品行为。
+
 ## 批次 623（2026-11-24）· P-7 选 ①：恢复深链展开日历卡（`D-924`）
 
 - **为什么**：619 回滚后 `page-sweep S21` 红；支书就 `P-7` 选 **①「恢复『深链展开日历卡』」**，即书面批准该 UI 行为。
