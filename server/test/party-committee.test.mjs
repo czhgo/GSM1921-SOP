@@ -244,17 +244,29 @@ test('P2 支书任命：任命宋佳宁(2400012349)为支书 → 2400012349 登�
   await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
   try {
     // 1. 党委登录 → 走真实任命服务链（appointSecretary：branch.secretaryId + 双方 role + 任期记录）
-    await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
-    await page.fill('#student-id', '9000000001');
-    await page.fill('#password', '123456');
-    await Promise.all([
-      page.waitForURL('**/workspace/party-committee', { timeout: 10000 }),
-      page.click('button[type="submit"]'),
-    ]);
+    // 批次 623：precommit 并发负载下曾出现「登录处理函数尚未绑定，点击被原生 GET 吞掉」⇒
+    //   等 30s 并在超时后整页重来一次（只补等待 / 重试，不改任何判据）。
+    let loggedIn = false;
+    for (let attempt = 0; attempt < 2 && !loggedIn; attempt += 1) {
+      await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
+      await page.waitForSelector('#student-id', { timeout: 30000 });
+      await page.fill('#student-id', '9000000001');
+      await page.fill('#password', '123456');
+      try {
+        await Promise.all([
+          page.waitForURL('**/workspace/party-committee', { timeout: 30000 }),
+          page.click('button[type="submit"]'),
+        ]);
+        loggedIn = true;
+      } catch (e) {
+        if (attempt === 1) throw e;
+        await page.waitForTimeout(1000);
+      }
+    }
     await page.waitForFunction(() => {
       const h = document.getElementById('app-header');
       return h && h.textContent.includes('光华管理学院党委');
-    }, { timeout: 10000 });
+    }, { timeout: 30000 });
     const appoint = await page.evaluate(async () => {
       const { appointSecretary } = await import('/src/services/branch/appointment.js?v=20261120a');
       await appointSecretary({ branchId: 'br-b1', personId: '2400012349', note: 'E2E 换届测试' });

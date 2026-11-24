@@ -67,7 +67,7 @@ after(() => {
 });
 
 async function loginAt(baseUrl, personId) {
-  const res = await fetch(`${baseUrl}/api/v1/auth/login`, {
+  const res = await fetchRetry(`${baseUrl}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ personId }),
@@ -84,8 +84,20 @@ function authHeaders(token) {
   return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 }
 
+/** 本地 in-process 服务的 fetch：每日并发下曾出现 keep-alive 套接字被服务端关闭导致 ECONNRESET
+ *  （批次 624 实测）；只对连接类错误重试一次，不改状态码与响应断言。 */
+async function fetchRetry(url, opts) {
+  try {
+    return await fetch(url, opts);
+  } catch (e) {
+    if (!/ECONNRESET|fetch failed/i.test(String(e?.message || e))) throw e;
+    await new Promise((r) => setTimeout(r, 200));
+    return fetch(url, opts);
+  }
+}
+
 async function fetchGroups(token, query = '') {
-  const res = await fetch(`${base}/api/v1/todo-groups${query}`, { headers: token ? authHeaders(token) : {} });
+  const res = await fetchRetry(`${base}/api/v1/todo-groups${query}`, { headers: token ? authHeaders(token) : {} });
   const body = await res.json().catch(() => null);
   return { status: res.status, body };
 }
