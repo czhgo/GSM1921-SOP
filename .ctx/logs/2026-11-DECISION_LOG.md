@@ -2,7 +2,7 @@
 title: "2026年11月决策日志"
 type: decision_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-23
+last_updated: 2026-11-24
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-DECISION_LOG.md, content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md, content/04_web_design/design-system/DS_03_COMPONENTS.md, content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md]
 ---
@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-917`，共 91 条**；下一条自 **`D-918`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-918`，共 92 条**；下一条自 **`D-919`**。
 
 ## 本月目录（2026-11）
 
@@ -111,6 +111,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | D2 处置 46/46（5 规则＋41 条 countSkip）、C2 37 pass；`W7` 机检 | `D-915` | 2026-11-23 | 已落（批次 605） |
 | 乙部允许清空：`open-items-guard ②` 由 rows ≥ 1 改为「表头必须在」 | `D-916` | 2026-11-23 | 已落（批次 606） |
 | 提交文字收口：只改写 6 条格式异常标题，其余历史保持原样 | `D-917` | 2026-11-23 | 已落（批次 608） |
+| 六维严格重评 78/77/75/70/72/70；测试维按 full 实测扣分 | `D-918` | 2026-11-24 | 已落（批次 613） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -950,5 +951,15 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：`check-batch-commits --limit 90` → 违规 0、告警 **63 → 53**（余下均为规则晚于提交的政策性告警）。
 > **落点**：本文件 D-917；`.ctx/logs/2026-11-EXECUTION_LOG.md`（批次 608 节与 4 处 hash 引用）；`refs/backup/pre-reword`（回滚点）。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-917`**（共 **91** 条）。
+## D-918 2026-11-24 — 六维严格重评：78/77/75/70/72/70（批次 613）
+
+> **评议 → 裁定 → 落点**：支书要求「按实际再做一次六维评分并给提分建议」，并明确允许测试维按证据下调（先 grill 后落地）。
+> - **加分证据**：多支部读面逐口取证 ＋ 开关演练 26/26；CI run `45232134920`（daily / deploy-verify / install-linux 三 job success）；Linux 安装/更新全链；IA A 40 / B 6；D2 46/46、C2 37 pass；备份 `integrity_check=ok`；`npm audit --omit=dev` 0。
+> - **扣分证据**：full 长期未绿，本批一次修掉 12 处夹具 / 守卫漂移（71 条行号、2 处陈旧断言、2 处迁移夹具、1 处 DOM-id 误判）——测试维护质量实证不足；共享口令仍作非生产回退；systemd / nginx 真机段未验；双适配器与组件散件未收敛。
+> - **裁定分**：业务 **78**（+1）· 安全 **77**（+2）· 体验 **75**（+1）· 测试 **70**（+1，先按 69→65 的扣分逻辑准备，full 修绿后回调到 70）· 架构 **72**（−1）· 部署 **70**（+3）。
+> **未选**：测试维直接给 75+（full 刚恢复，不把一次修复当长期稳定）；部署给 75（真机段仍未验）。
+> **读数**：`test:full` 修后复跑见执行日志批次 612；daily 264 / guards 907。
+> **落点**：`EA §一 / §2.x / §5.2`；`ACTIVE_CONTEXT §1`；`TIMESTAMPS`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-918`**（共 **92** 条）。
 

@@ -69,7 +69,11 @@ test('U1–U3 登录页入口 ⇒ MOCK 全链落地 ⇒ 未归属者就地选支
     await page.locator('#iaaa-login').click();
     // MOCK 全链：/login → 302 → /callback?token=… → 302 → /login.html#iaaa=<会话> → 前端落地
     await page.locator('#login-branch.visible').waitFor({ timeout: 20000 });
-    assert.ok(await page.locator('#branch-list button[data-branch]').first().isVisible(),
+    // 面板可见 ≠ 支部清单已渲染（`_showBranchPanel` 先加 visible 再异步拉 /auth/iaaa/branches）。
+    // 批次 612：等首个支部按钮真正可见，避免把「还在加载」误判成「没有清单」。
+    const firstBranch = page.locator('#branch-list button[data-branch]').first();
+    await firstBranch.waitFor({ state: 'visible', timeout: 20000 });
+    assert.ok(await firstBranch.isVisible(),
       'U2 未归属者应就地看到「选择支部」清单（不新开页面）');
 
     const snap = await page.evaluate(() => JSON.parse(localStorage.getItem('gsm1921-login-user') || 'null'));

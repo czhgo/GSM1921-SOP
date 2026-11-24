@@ -2005,3 +2005,13 @@ KANBAN\_MOCKS（mock/kanban.js）作为独立硬编码的看板数据，与正�
 - `sessions.branch_id`：登录时固化身份支部；历史会话为空 ⇒ 读侧回落 `users.branchId`。
 - `attachments.branch_id`：上传时固化归属支部；历史行为空 ⇒ 下载回退「上传人现支部」。
 - 公共门厅：`/api/public/portal?branchId=` 可选；缺省只党委内容，带支部时与党委内容取并集。
+
+**附四：双适配器差异与收敛方案（批次 616 · **待批，不改代码**）**
+
+| 面 | `data-adapter.js`（mock） | `api-adapter.js`（服务端） | 差异风险 |
+|---|---|---|---|
+| 初始化 | 本地 `mockDB` ＋ 可选延迟 | `GET /bootstrap` 全量灌库 | 首屏时序不同，失败态来源不同 |
+| 写入 | 本地改 ＋ `persist()` 快照 | 快照 / 语义端点 ＋ `If-Match` | 乐观锁只在 API 侧存在 |
+| 读失败 | 回落本地镜像 | 抛错 / 空态重试 | mock 会掩盖服务端失败 |
+
+**收敛方向（建议，需支书定稿）**：① 统一 `init()` 返回形状与错误码（`{ok, reason}`）；② 把「本地镜像回落」限制在演示档（`APP_ENV=review` 且 `DEMO_READONLY=0`），生产档一律显式失败；③ 写入统一经 `outbox`，mock 档只做内存队列。判据：同一操作在两档产生同形 `{ok, error}`；生产档不存在「本地成功、服务端未同步」的静默路径。**本批只出方案，不重写适配器。**

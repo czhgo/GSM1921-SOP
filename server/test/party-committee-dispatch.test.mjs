@@ -85,6 +85,9 @@ test('P3 党委下发：支委层与党委台可见，普通成员不可见', as
     await loginAs(partyPage, { studentId: '9000000001', expectUrlPart: 'party-committee' });
     await activateTab(partyPage, '下发通知');
     await page_waitText(partyPage, '撰写一条党委通知');
+    // 批次 612：full 并发下曾出现「支部复选框未渲染就取值 ⇒ branchIds=[] 被拦」的偶发；
+    //   先等复选框挂载，再填表提交（不放宽断言，只补等待）。
+    await partyPage.waitForSelector('input[name="dispatch-branch"]', { state: 'attached', timeout: 15000 });
     await partyPage.evaluate((title) => {
       const t = document.getElementById('dispatch-title');
       const c = document.getElementById('dispatch-content');
@@ -98,6 +101,8 @@ test('P3 党委下发：支委层与党委台可见，普通成员不可见', as
       if (c) { c.value = '请支委会对照落实，重要事项及时向支部大会传达。'; c.dispatchEvent(new Event('input', { bubbles: true })); }
       document.getElementById('dispatch-submit')?.click();
     }, titleD);
+    // 等回执后再切页：成功路径会自动切到「已发送」，以标题出现为准（不依赖 toast 停留时长）。
+    await page_waitText(partyPage, titleD, 15000);
     await partyPage.getByRole('tab', { name: /已发送/ }).click();
     await page_waitText(partyPage, titleD); // 切到已发送后查看记录
 

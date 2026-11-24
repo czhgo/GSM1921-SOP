@@ -8,6 +8,15 @@ test('schema v4 migrates legacy weekly report rows into the generic periodic arc
   try {
     db.exec('CREATE TABLE weekly_reports (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
     db.exec('CREATE TABLE users (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
+    // v18（批次 566）在迁移链里读 `signups` 建 JSON 唯一索引；最小夹具必须建这张表，
+    // 否则 applyMigrations 走到 v18 会报 `no such table: signups`（批次 612 修正）。
+    db.exec('CREATE TABLE signups (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
+    // v18 的 bumpCollectionVersion 也会被迁移链调用；最小夹具补版本表（legacy 形态：name/version）。
+    db.exec('CREATE TABLE collection_versions (name TEXT PRIMARY KEY, version INTEGER NOT NULL)');
+    // v7（人员主键迁移）读取旧形态 sessions(token, person_id) 与 attachments(id, uploaded_by)；
+    // v19 再给两表补 branch_id。最小夹具按旧形态建表（批次 612 修正）。
+    db.exec('CREATE TABLE sessions (token TEXT PRIMARY KEY, person_id TEXT)');
+    db.exec('CREATE TABLE attachments (id TEXT PRIMARY KEY, uploaded_by TEXT)');
     const legacy = {
       id: 'wr-legacy-1', branchId: 'br-b1', status: 'submitted', submittedAt: '2026-10-01',
       week: 'legacy label', weekRange: '2026-09-24 ~ 2026-09-30', content: '历史内容',

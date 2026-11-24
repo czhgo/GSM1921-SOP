@@ -247,3 +247,16 @@ node scripts/rebuild-demo.mjs --mode baseline --out <新库>
 | preflight 阻断 | 按输出逐项修复；**不要**用 `ALLOW_DEMO_DATA=1` 绕过生产闸门 |
 | 迁移失败 | 事务已回滚；按日志修复后重跑，或用 `pre-migration-*` 备份恢复 |
 | 库比代码新 | 禁止用旧代码启动；换回匹配版本代码，或用升级前备份恢复 |
+
+## 12. 真机三段核对表（systemd / useradd / nginx；批次 613 · AI 出命令，支书执行）
+
+> CI 已覆盖「无 systemd 安装 + 更新 + 200」（run `45232134920`）；下面三段只能在目标 Linux 机执行，逐条记录读数。
+
+| # | 段 | 命令 | 期望读数 | 记录 |
+|---|---|---|---|---|
+| 1 | 安装全链 | `sudo bash deploy/install.sh` | ①–⑦ 无 `✖`；`systemctl is-active gsm1921` = `active`；`curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/login.html` = `200` | 日期 / 机器 / 退出码 |
+| 2 | 服务账号与目录 | `id gsm1921` · `ls -ld /opt/gsm1921 /opt/gsm1921/server/uploads` | 账号存在；两个目录 owner = `gsm1921`；uploads 可写（`sudo -u gsm1921 touch /opt/gsm1921/server/uploads/.probe` 成功） | owner 读数 |
+| 3 | 更新切换 | `sudo bash deploy/update.sh <新包目录>` | 备份目录生成；`systemctl is-active gsm1921` = `active`；`/login.html` = `200`；`journalctl -u gsm1921 -n 20` 无 `⛔` | 备份路径 / 退出码 |
+| 4 | 反代 | 按 `deploy/nginx.sample.conf` 起 nginx；`curl -k -s -o /dev/null -w '%{http_code}' https://<域名>/login.html` | `200`；`/src/config/deploy.js` 未被静态吞掉（「关于」页部署形态判定正确） | 域名 / 状态码 |
+
+**失败处置**：任一条 `✖` 先看 `journalctl -u gsm1921 -n 50`；不要用 `ALLOW_DEMO_DATA=1` 或放宽写门绕过。

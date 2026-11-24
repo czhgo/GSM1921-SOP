@@ -163,10 +163,13 @@ const isCommentLine = (line) => /^\s*(\/\/|\*|\/\*)/.test(line);
 /**
  * 该行是否在为「实体 id」赋值。
  * 判定：`id: …` / `draftId: …` / `record.id = …` / `const msgId = …`（词首 `id` 或以大写 `Id` 结尾）。
- * **不认 `uid`**：`const uid = 'qv-' + Math.random()`（components/governance/query-view.js）是 DOM 元素 id，
- * 不落库、不参与实体引用，故不入扫描（首版正则误命中，已收紧）。
+ * **不认 DOM 元素 id**：`uid`（query-view.js）与 `panelId`（person-picker.js，`aria-controls` 目标）
+ * 都是页面内 DOM id，不落库、不参与实体引用，故不入扫描（首版正则误命中，已收紧两次）。
  */
-const isIdAssignment = (line) => /(\b\w*Id|\bid)\s*[:=]/.test(line);
+const isIdAssignment = (line) => {
+  if (/\b(?:_?panelId|uid)\b\s*[=:]/i.test(line)) return false;
+  return /(\b\w*Id|\bid)\s*[:=]/.test(line);
+};
 
 test('S1 禁止「前缀 + Date.now()」生成实体 id（回潮即红）', () => {
   const offenders = [];
@@ -208,4 +211,11 @@ test('S3 单一源在位：core/base/id.js 导出 generateId + randomHex（含�
   assert.match(src, /export function randomHex\s*\(/, 'core/base/id.js 必须导出 randomHex()（降级链单一源）');
   assert.match(src, /randomUUID/, '降级链首级应为 crypto.randomUUID');
   assert.match(src, /getRandomValues/, '降级链次级应为 crypto.getRandomValues');
+});
+
+test('S2b 判定器反例：DOM id 放过、实体 id 仍判红（防白名单变垃圾桶）', () => {
+  assert.equal(isIdAssignment("if (!this._panelId) this._panelId = `pp-panel-${Math.random()}`"), false, 'DOM panelId 不应判红');
+  assert.equal(isIdAssignment("const uid = 'qv-' + Math.random()"), false, 'DOM uid 不应判红');
+  assert.equal(isIdAssignment("const record = { id: Math.random().toString(36) }"), true, '实体 id 必须判红');
+  assert.equal(isIdAssignment("row.draftId = Math.random().toString(36)"), true, '实体 draftId 必须判红');
 });

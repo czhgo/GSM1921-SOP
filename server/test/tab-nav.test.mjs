@@ -217,10 +217,12 @@ test('G3 resolveTodoAction：actionKey 优先 / actionType 兜底 / 角色与 sc
   assert.equal(resolveTodoAction({ actionKey: 'unknown', actionType: 'notify' }).tab, 'notification', 'actionType 兜底');
   assert.equal(resolveTodoAction({ actionKey: 'authorize', actionType: 'authorize' }, 'leader').tab, 'write');
   assert.equal(resolveTodoAction({ actionKey: 'authorize', actionType: 'authorize' }, 'secretary').tab, 'group-progress');
+  // 2026-11-24 批次 612：批次 592 已删 `authorize.scopeOverrides`（支书 authorize 统一落活动管理，
+  //   由 todo-tab.js::expandAssignPanelForTodo 再做活动/专班分流），断言随实现改准。
   assert.equal(
     resolveTodoAction({ actionKey: 'authorize', actionType: 'authorize', actionData: { scope: 'activity' } }, 'secretary').tab,
-    'calendar',
-    'scope 覆盖仅在无角色覆盖时生效（支书 authorize 按活动/专班分流）',
+    'group-progress',
+    '支书 authorize 统一落活动管理（scopeOverrides 已退场）',
   );
   assert.equal(resolveTodoAction({ actionKey: 'review', actionType: 'review' }, 'leader').tab, 'members');
   assert.equal(resolveTodoAction({ actionKey: 'review', actionType: 'review' }, 'disc-commissioner').tab, 'review');

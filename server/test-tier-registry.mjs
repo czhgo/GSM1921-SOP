@@ -144,8 +144,9 @@ export const GUARDS_FILE_BUDGET = 81;
  *  2026-11-23 批次 604 续：**改正登记漂移**——批次 604 写「实然 901」，复核实测为 **898**（多记 3 条）；
  *    本批新源件 16 `viewport-and-touch-guard` 5 条（顶栏避让 / 触控 / 滚动隔离 / 触控高亮 / 图片尺寸，每条带反例）
  *    ＋ `doc-lifecycle-guard` 源件 5 `guard-citation-guard` 2 条（文档引用的守卫文件必须存在 ＋ 反例自证）
- *    ⇒ 实测 **906**；按 906 登记（余量 0）。 */
-export const GUARDS_TEST_BUDGET = 906;
+ *    ⇒ 实测 **906**；按 906 登记（余量 0）。
+ *  2026-11-24 批次 612：`id-uniqueness` 增 1 条反例（DOM id 白名单不得吞掉实体 id），实测 **907**；按 907 登记（余量 0）。 */
+export const GUARDS_TEST_BUDGET = 907;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 

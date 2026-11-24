@@ -125,6 +125,13 @@ export function renderCalendarPanel(container, state) {
  * @param {{id?:string, open?:boolean, afterHtml?:string, mountExtra?:(body:HTMLElement)=>void}} [opts]
  * @returns {HTMLDetailsElement|null}
  */
+/** 深链 / 事件是否要求展开「活动日历」折叠卡（单一判据，四台共用）。
+ *  `?activityId=`（nav.actId）与 `?view=activities`（nav.view）都必须展开；`section=calendar` 兼容旧入口。
+ *  批次 612：此前只看 `section`，活动深链进来卡不展开（page-sweep S21 实测）。 */
+export function calendarCardShouldOpen(navTarget) {
+  return Boolean(navTarget && (navTarget.section === 'calendar' || navTarget.view || navTarget.actId || navTarget.activityId));
+}
+
 export function renderCalendarCard(host, state, opts = {}) {
   if (!host) return null;
   _bindCardOpenEvent();

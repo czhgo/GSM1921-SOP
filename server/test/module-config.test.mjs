@@ -86,18 +86,20 @@ test('L2 config：现任支书/本副支书/党委（D-825 代配置）可写，
 });
 
 test('L2 config 门控：外副支书 403（副书同权仅限本支部）', async () => {
-  const { token: dep } = await login('2300010002');
   const row = db.prepare('SELECT data FROM users WHERE id = ?').get('2300010002');
   const user = JSON.parse(row.data);
   // 把 2300010002 归属临时改为另一支部 → 对 br-b1 的 config 写应 403
   db.prepare('UPDATE users SET data = ? WHERE id = ?').run(JSON.stringify({ ...user, branchId: 'br-other' }), '2300010002');
   try {
-    const r = await patchConfig(dep, { config: { modules: { tabOrder: ['report-up'] } } });
+    // 会话在登录时固化 branchId（schema v19）⇒ 改库后必须重新登录，否则 actor 仍是旧支部。
+    const { token: depOther } = await login('2300010002');
+    const r = await patchConfig(depOther, { config: { modules: { tabOrder: ['report-up'] } } });
     assert.equal(r.status, 403, '外副支书不可写本支部 config');
   } finally {
     db.prepare('UPDATE users SET data = ? WHERE id = ?').run(JSON.stringify({ ...user, branchId: user.branchId || 'br-b1' }), '2300010002');
   }
-  // 恢复本支部归属后副支书可写（还原无残留）
+  // 恢复本支部归属并重新登录后副支书可写（还原无残留）
+  const { token: dep } = await login('2300010002');
   assert.equal((await patchConfig(dep, { config: { modules: null } })).status, 200, '恢复本支部归属后副支书可写');
 });
 

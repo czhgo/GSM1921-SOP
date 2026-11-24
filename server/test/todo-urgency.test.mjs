@@ -156,6 +156,7 @@ test('⑧ 首屏顺序：折叠条默认展开露 2 条待答复，未读通知�
   const body = shell.slice(detailsStart, detailsEnd);
   assert.ok(body.includes('${extraHtml}') && body.includes('${unreadHtml}'), '展开区应同时承载待答复与未读通知行');
   const stripInsert = shell.indexOf('${stripHtml}');
-  const mainObject = shell.indexOf('>我的待办</h3>');
+  // 批次 586 起卡头统一走 renderCardHeader，源文不再有字面 `>我的待办</h3>`；按 title 入参定位。
+  const mainObject = shell.indexOf('title: `我的待办`');
   assert.ok(stripInsert >= 0 && mainObject > stripInsert, '首屏顺序：折叠条在「我的待办」之前');
 });

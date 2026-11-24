@@ -181,7 +181,8 @@ test('UI 责任关系单列列表：master 行承载工作项 / 负责人 / 角�
   //   行内说明退场（选中行由紧随其后的展开块给全文）⇒ 行高由 64–80 回到 48。
   assert.match(WORK_MAP_UI, /function _ownerBadgeHtml\(row\)/, '每行须有负责人徽章（负责人名进徽章位）');
   assert.match(WORK_MAP_UI, /leading: _ownerBadgeHtml\(row\)/, '行首插槽须出负责人徽章');
-  assert.match(WORK_MAP_UI, /_ownerBadgeHtml[\s\S]{0,200}badge--warning">停用/, '停用例外须用 warning 档');
+  // 批次 592 起徽章统一走 badgeHtml()，源文不再有字面类名。
+  assert.match(WORK_MAP_UI, /_ownerBadgeHtml[\s\S]{0,300}badgeHtml\('停用', 'warning'\)/, '停用例外须用 warning 档');
   assert.ok(!WORK_MAP_UI.includes('负责人：'), '负责人已进徽章位，meta 不得再复述「负责人：」');
   assert.doesNotMatch(WORK_MAP_UI, /description: selected/, '行内不再出责任说明（选中行由展开块给全文）');
   assert.match(WORK_MAP_UI, /title: row\.note/, '说明须带 title 全文');
@@ -227,7 +228,7 @@ test('UI 视图收 2：责任关系 / 关系矩阵；协作与产出入行 meta�
   );
   assert.ok(ownerBadgeFn.length > 0, '抽不到 _ownerBadgeHtml 函数体（判据会恒绿）');
   assert.doesNotMatch(ownerBadgeFn, /主责/, '常规行不得再渲染「主责」徽标');
-  assert.match(WORK_MAP_UI, /badge--warning">停用</, '停用例外须用 warning 档');
+  assert.match(WORK_MAP_UI, /badgeHtml\('停用', 'warning'\)/, '停用例外须用 warning 档');
   assert.doesNotMatch(WORK_MAP_UI, /badge--accent/, '例外徽章不得用主题色');
 });
 

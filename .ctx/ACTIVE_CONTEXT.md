@@ -3,9 +3,9 @@ title: "Active Context — 当前判断入口"
 type: active_context
 role: "[AI]"
 layer: active
-last_updated: 2026-11-23
-last_verified: "2026-11-23"
-latest_decision: "D-917"
+last_updated: 2026-11-24
+last_verified: "2026-11-24"
+latest_decision: "D-918"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -24,9 +24,9 @@ status: active
 - **URL**：无后缀已落地（`D-867`）；旧 `.html` 保持 200；站内锚点只经 `pageHref()`。
 - **数据**：业务表 50 张；SQLite 宽表 `id + data(JSON)`；schema **v19**。source：`server/data/domain-contract.mjs`。
 - **权限**：写入口矩阵 **163 条**（156 enforced / 5 self-service / 2 public / **0 known-risk**）；守卫断言运行期写路由 ≡ 矩阵。source：`server/security/write-policy-matrix.mjs`。
-- **六维（`D-913` 重评）**：业务 **77** / 安全 **75** / 体验 **74** / 测试 **69** / 架构 **73** / 部署 **67**；只作诊断，不单独阻断合并（`D-894`）。
+- **六维（`D-918` 重评）**：业务 **78** / 安全 **77** / 体验 **75** / 测试 **70** / 架构 **72** / 部署 **70**；只作诊断，不单独阻断合并（`D-894`）。
 - **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（批次 603 实跑 239.7s，同值；source：`.ctx/evidence/2026-11-21/tab-audit/summary.md`）；D/C 维度（批次 605 实跑，批次 606 复跑同值）：**D2 处置 46/46**（5 条规则 pass ＋ 41 条 `countSkip` 理由）、**C2 37 pass** / 12 destructive exception、P0/P1/P2 0；复跑读数：`.ctx/evidence/2026-11-23/tab-audit/summary.md`。
-- **测试（四层）**：daily **32 文件 / 264 断言**；guards **81 文件 / 906 断言**（52 源件已并 5 件，预算软告警）；`npm run probe:stage` 6 步断点探针。source：`server/test-tier-registry.mjs`。
+- **测试（四层）**：daily **32 文件 / 264 断言**；guards **81 文件 / 907 断言**（52 源件已并 5 件，预算软告警）；`npm run probe:stage` 6 步断点探针。source：`server/test-tier-registry.mjs`。
 - **换轨**：`preflight-cutover --strict` exit 0；契约 50 表；生产只走个人密码（`D-882`）。source：`deploy/CUTOVER_RUNBOOK.md`。
 - **分支 / CI**：当前在 `main`（已合并 `release/2026-11-launch` 88 条）；CI run `45232134920` 三 job success；`test:full` 存量红未清（仅阻断上线）。
 

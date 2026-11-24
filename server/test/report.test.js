@@ -128,12 +128,14 @@ test('党委手动推送须选定单一支部；该支部未配置 webhook 时�
 });
 
 test('手动推送遇内部异常返回 500 通用文案，请求不悬挂、进程存活', async () => {
-  // Task 3.2 / 3.3：损坏数据让 extractDomain 在 pushReport 内抛错（Promise 拒绝）——
-  // 未包 try/catch 时 Express 4 不接管，请求悬挂；包后应经错误中间件回 500 通用文案。
+  // Task 3.2 / 3.3：数据异常让 extractDomain 在 pushReport 内抛错（同步异常，未进重试循环）——
+  // 未包 try/catch 时 Express 4 不接管、请求悬挂；包后应经错误中间件回 500 通用文案。
+  // 批次 612：v18 起 signups 有 JSON 唯一索引，`'{not-json'` 在夹具阶段就抛；
+  //   改用合法 JSON `null`（json_extract 返回 NULL，不触发唯一索引）→ 读取时属性访问抛错。
   const previousConfig = process.env.REPORT_WEBHOOKS_JSON;
   const corruptId = 'su-corrupt-report';
   process.env.REPORT_WEBHOOKS_JSON = JSON.stringify({ 'br-b1': { url: 'https://branch-one.example.test/report' } });
-  db.prepare('INSERT OR REPLACE INTO signups (id, data) VALUES (?, ?)').run(corruptId, '{not-json');
+  db.prepare('INSERT OR REPLACE INTO signups (id, data) VALUES (?, ?)').run(corruptId, 'null');
   try {
     const res = await fetch(`${base}/api/v1/report/trigger?branchId=br-b1`, {
       method: 'POST',

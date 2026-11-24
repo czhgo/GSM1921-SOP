@@ -2,13 +2,53 @@
 title: "2026年11月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-23
+last_updated: 2026-11-24
 status: active
 ---
 
 # 2026年11月执行日志
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
+
+## 批次 616（2026-11-24）· 架构收敛：壳层单一源复核 ＋ 双适配器方案
+
+- **D1 壳层**：复核 `DS_03 §12.7`，顶栏六控件两档 + 侧栏页脚已在一张表与 SD-68 一段内，**不是散在三段**；EA §2.4 残项据此改准，不动代码。
+- **D2 组件散件**：仍按 `style-baseline` 触发制（291 处 / 56 文件；手拼徽章 43 文件），本批未动组件域，不提前合并。
+- **D3 双适配器**：只出差异表与收敛方向（`DATA_MODEL.md 附四`），不重写。
+
+## 批次 615（2026-11-24）· 体验与 IA：逐条去向
+
+- 台账 §八 新增 8 条结论：#1/#6/#7/#8/#9 排批（各带 `file:line`），#2/#10 保留例外（合并会压掉不同决策面），#11 F-2 维持 `P-5` 待裁。
+- 6 个超 4 块页签逐条结论＝保留（不同决策对象），不新增例外。
+- M-01 验收台与本批服务恢复在批次 612；真人点击仍待支书。
+
+## 批次 614（2026-11-24）· 安全与部署读数
+
+- `npm audit --omit=dev`（registry.npmjs.org）→ **0 vulnerabilities**（npmmirror 不提供 audit 端点，已注明）。
+- 备份：`node scripts/backup.mjs --out .tmp/bak-612` → `integrity_check=ok`、58 表、附件 9 个、`backup.json` 生成。
+- `CUTOVER_RUNBOOK §12` 新增真机四段核对表（install / 账号目录 / update / nginx），逐条给命令与期望读数。
+- 守卫：`test:guards` 全绿 201.4s（guards 断言 907）。
+
+## 批次 612（2026-11-24）· 服务恢复 ＋ full 红排障
+
+### 为什么
+- 支书现场验收要 3000/3100 两个服务；同时要求把 full 的报错文件 debug 掉。
+
+### 拿不准 / 取舍
+- **服务进程不能跨 shell 存活**：排障复跑改为「同一命令内起服务 → 跑测试 → 停服务」；验收台单独常驻。
+- **12 处红全是存量**：6 处夹具/守卫口径（iaaa 等待、S2 DOM-id 误判、外副支书会话固化、v4 迁移缺表、report 500 夹具、form-loop 71 条行号）+ 4 处陈旧断言（scopeOverrides 退场、卡头 renderCardHeader、徽章 badgeHtml×2）+ 2 处环境（mock-integrity / click-cost 依赖 3000）。
+- **不删断言不改 skip**：report 500 用合法 JSON `null` 行触发同步异常（v18 索引挡住坏 JSON）；dispatch e2e 只补等待。
+
+### 边界
+- `reporting.js` 增 `REPORT_PUSH_RETRY_DELAYS_MS`（逐次读取，缺省 2/8/30s 不变）；`evaluation-asset-guard ④` 改 `[\s\S]` 以兼容 CRLF 检出。
+
+### 读数
+- 定向：mock-integrity 0 fail · click-cost 5/5 · tab-nav/todo-urgency 22/22 · work-map 12/12 · dispatch e2e 1/1 · migration 1/1 · report 9/9。
+- guards 81 文件 / **907** 断言全绿 201.4s。
+
+## 批次 611 复盘（2026-11-24）· 合并后投影补记
+
+> 合并 `10c22ba0d` 后按 `H20.5` 本机门放行；full 存量红已在本批 612 全部修绿（见上）。
 
 ## 批次 611（2026-11-24）· 合并 `release/2026-11-launch` 回 main
 

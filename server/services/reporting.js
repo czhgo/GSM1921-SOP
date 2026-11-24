@@ -177,7 +177,12 @@ export function toCsv(rows) {
   return [header, ...body].join('\r\n');
 }
 
-const PUSH_RETRY_DELAYS_MS = [2_000, 8_000, 30_000]; // 重试 3 次（手动/批量共用，§6.4）
+// 重试 3 次（手动/批量共用，§6.4）；演练可用 REPORT_PUSH_RETRY_DELAYS_MS=0,0,0 跳过退避，缺省不变。
+// 逐次读取：演练脚本在进程启动后才设 env，模块级常量会读到旧值。
+const pushRetryDelays = () => (process.env.REPORT_PUSH_RETRY_DELAYS_MS || '2000,8000,30000')
+  .split(',')
+  .map((value) => Number(value))
+  .filter((value) => Number.isFinite(value) && value >= 0);
 
 /**
  * 推送模式：POST 单支部四域数据至该支部专用接收端
@@ -208,7 +213,8 @@ export async function pushReport(db, { from, to, branchId } = {}) {
   if (token) headers.Authorization = `Bearer ${token}`;
 
   let lastErr = null;
-  for (let attempt = 0; attempt <= PUSH_RETRY_DELAYS_MS.length; attempt++) {
+  const retryDelays = pushRetryDelays();
+  for (let attempt = 0; attempt <= retryDelays.length; attempt++) {
     try {
       const res = await fetch(url, {
         method: 'POST',
@@ -225,8 +231,8 @@ export async function pushReport(db, { from, to, branchId } = {}) {
     } catch (e) {
       lastErr = e;
     }
-    if (attempt < PUSH_RETRY_DELAYS_MS.length) {
-      await new Promise(r => setTimeout(r, PUSH_RETRY_DELAYS_MS[attempt]));
+    if (attempt < retryDelays.length) {
+      await new Promise(r => setTimeout(r, retryDelays[attempt]));
     }
   }
   // 连续失败 → 管理员告警（不静默丢数据：站内日志 + 邮件通道若启用，§6.4）

@@ -70,7 +70,8 @@ test('③b H80-6 要求 commit body 写「资产命中」（批次 589 机检）
 });
 
 test('④ 反例自证：删掉 2.4 的改进项指针，①必须判红', () => {
-  const broken = EA.replace(/(### 2\.4[^\n]*\n(?:.|\n)*?)\*\*下一改进项\*\*[^\n]*\n/, '$1');
+  // 用 `[\s\S]` 而非 `(?:.|\n)`：`.` 不匹配 `\r`，Windows CRLF 检出会让反例构造恒失败。
+  const broken = EA.replace(/(### 2\.4[^\n]*\r?\n[\s\S]*?)\*\*下一改进项\*\*[^\n]*\r?\n/, '$1');
   assert.notEqual(broken, EA, '反例构造失败：未删除 2.4 的改进项行');
   assert.ok(missingPointers(broken).includes('2.4'), '删掉指针后 must 判红 2.4');
 });
