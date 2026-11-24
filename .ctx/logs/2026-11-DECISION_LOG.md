@@ -967,7 +967,18 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：`test:full` 修后复跑见执行日志批次 612；daily 264 / guards 907。
 > **落点**：`EA §一 / §2.x / §5.2`；`ACTIVE_CONTEXT §1`；`TIMESTAMPS`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-924`**（共 **98** 条）。
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-925`**（共 **99** 条）。
+
+## D-925 2026-11-25 — 脏乱繁专项第一批：主色按场域分色 ＋ 指标卡改回等分 ＋ 图标只给可数值化状态上色（批次 627）
+
+> **评议 → 裁定 → 落点**：支书就八项脏乱繁专项提出两轮口径问答（AskUserQuestion，2026-11-25），本批落地其中三项视觉决策。
+> - **主色**：选 **「按场域分色」**——登录页、党委台与支部治理四台（secretary / org / prop / disc）以 `<html data-accent-scope="party">` 固定党建红；个人台（成员 / 组长 / 支部只读）与访客台保留 7 套主题。实现：`ACCENT_COLORS` 增 `party-red`（base `#CE1126`，亮/暗各 9 token），`theme.js::resolveAppliedAccentRole` 优先返回；`party-red` 不进 `ACCENT_PALETTE`（设置页仍 7 项）。
+> - **指标卡**：选 **「恢复等分并修字」**——`.stat-grid--content` / `.metric-band--cards--content` 由 `auto-fit minmax(0,max-content)` 改 `repeat(4, minmax(0,1fr))` ＋ `align-items:stretch`；`.stat-card__value` 行高 `1` → `1.25`。原「按内容收窄」（`D-898`）作废，`DS_06` 条文改写并补判例 `CASE-DESIGN-045`。
+> - **图标着色**：选「全部都要有颜色」的目标，口径收敛为 **指标 / 状态类一律走 `--tint` 并按数据取功能色，导航 / 动作类保持 `currentColor` 继承**；`DS_03 §4.11.2` 原条文已覆盖，不新增规则，只把「考勤按出勤率取色」写进判例证据。
+> - **顺带改判**：待答复直达条是动作入口，底色由 info 状态色改回主题 soft 三件套（`overview-dispatch-bar.js`），C7 守卫同步改判；另修 3 处蓝色越位（选中按钮 / 蓝字动作 / 行动条）。
+> **未选**：主操作统一党建红（会压掉个人台主题）；默认主题改红（切换后仍变色）；保留收窄只设下限（1440 下仍留大块空白）。
+> **读数**：`color-ratchet-guard` 70/70（T1 由 7 主题改 7 主题 ＋ 1 场域色，T14 新增场域声明检查）；`style-ratchet-guard` 99/99（W6 新增等分与行高断言）；`test-tier-guard` 7/7。
+> **落点**：`docs/src/core/domain/constants.js`、`core/boot/theme.js`、6 个 html、`styles.css`、`components/{shell/header,governance/overview-dispatch-bar}.js`、`entries/tabs/secretary/feedback-tab.js`、`entries/pages/settings-entry.js`；`server/test/{color-ratchet-guard,style-ratchet-guard,style-baseline}.test/mjs`；`DS_01` / `DS_06` / design `CASES.md` / `CASES_INDEX.md`。
 
 ## D-924 2026-11-24 — P-7 选 ①：恢复「深链展开日历卡」（批次 623）
 

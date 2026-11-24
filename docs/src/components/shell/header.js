@@ -449,7 +449,7 @@ function _bindNotificationBell(header) {
             ${n.source === 'committee' ? '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:11px;line-height:16px;flex-shrink:0;">党委下发</span>' : ''}
             ${n.kind === 'message' ? badgeHtml('私信', 'brand') : ''}
             <p style="color:var(--neutral-700);margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" class="text-body-sm">${n.title || n.content}</p>
-            <button class="btn-outline notif-mark-read text-xs px-1.5 py-0.5" data-notice-id="${n.id}" style="color:var(--status-info-text);flex-shrink:0;">已读</button>
+            <button class="btn-outline notif-mark-read text-xs px-1.5 py-0.5" data-notice-id="${n.id}" style="color:var(--app-accent-soft-text);flex-shrink:0;">已读</button>
           </div>
           <p style="color:var(--neutral-500);margin:0;" class="text-[12px]">${n.publishDate || n.date || ''}</p>
         </div>

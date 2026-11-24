@@ -2152,6 +2152,19 @@ await (async () => {
     assert.match(body, /flex-wrap:\s*wrap/, '.lf-bar 须保持 flex-wrap:wrap（筛选条两行上限）');
   });
 
+  test('W6 指标卡等分与字：--content 不按内容收窄、数值行高不得为 1（D-925 / CASE-DESIGN-045）', () => {
+    const block = /\.stat-grid--content,\s*\n\.metric-band--cards--content\s*\{([^}]*)\}/.exec(CSS)?.[1] || '';
+    assert.ok(block, '找不到 .stat-grid--content 与 .metric-band--cards--content 的共用规则块');
+    assert.match(block, /grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/,
+      '.stat-grid--content 应 4 列等分（不得 max-content）');
+    assert.doesNotMatch(block, /max-content/,
+      '.stat-grid--content 不得按内容收窄（CASE-DESIGN-045：1440 下会只剩 132–150px/卡）');
+    assert.match(block, /align-items:\s*stretch/, '.stat-grid--content 应等高（align-items:stretch）');
+    const value = ruleBody('.stat-card__value');
+    assert.doesNotMatch(value, /line-height:\s*1\s*;/, '.stat-card__value 行高不得为 1（档位最低 1.25）');
+    assert.match(value, /line-height:\s*1\.25/, '.stat-card__value 行高应为 1.25');
+  });
+
 })();
 
 // ═══ 源件 10：hover-state-guard.test.mjs ═══

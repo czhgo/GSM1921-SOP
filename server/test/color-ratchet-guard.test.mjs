@@ -351,10 +351,16 @@ await (async () => {
     assert.deepEqual(missingInTable, [], `以下色板值未出现在 constants.js（主题色必须在表内定义）：${missingInTable.join(' ')}`);
   
     const leaks = [];
+    // 场域固定色 party-red 的 base＝党建红 #CE1126 是既有品牌 token（help / about / 换组织向导早有直写），
+    //   故「组件泄漏」只扫 7 个用户主题；「必须在表内定义」仍覆盖全部 8 项（见上一段）。
+    const themeOnlyValues = new Set();
+    for (const k of ['gold', 'red', 'orange', 'green', 'cyan', 'blue', 'purple']) {
+      for (const mode of ['light', 'dark']) for (const v of Object.values(ACCENT_COLORS[k][mode])) themeOnlyValues.add(String(v).toLowerCase());
+    }
     for (const { file, hits } of scan()) {
       if (PALETTE_FILES.has(file)) continue;
       const hitSet = new Set(hits.map((h) => h.toLowerCase()));
-      for (const v of values) {
+      for (const v of themeOnlyValues) {
         if (v === '#ffffff') continue; // 中性白：全站共用，不算主题色泄漏
         if (hitSet.has(v)) leaks.push(`${file} → ${v}`);
       }
@@ -442,6 +448,9 @@ await (async () => {
   }
   
   const THEME_KEYS = ['gold', 'red', 'orange', 'green', 'cyan', 'blue', 'purple'];
+  // 场域固定色（2026-11-25 批次 627 · D-925）：登录 / 党委 / 支部治理四台固定党建红；
+  //   它进 ACCENT_COLORS（色板可追溯 + 对比度受检），但不进 ACCENT_PALETTE（设置页仍 7 项）。
+  const SCOPE_KEYS = ['party-red'];
   const TOKEN_KEYS = ['base', 'softBg', 'softBorder', 'softText', 'strongBg', 'strongInk', 'strongHover', 'hoverBg', 'activeBg'];
   const OLD_KEYS = ['sky', 'light-blue', 'deep'];
   const HEX_VALUE_RE = /^#[0-9A-Fa-f]{6}$/;
@@ -492,13 +501,15 @@ await (async () => {
     return Math.min(d, 360 - d);
   };
   
-  test('T1 结构：ACCENT_COLORS 恰 7 主题 × 亮/暗 × 9 个合法 hex token', () => {
+  test('T1 结构：ACCENT_COLORS 7 用户主题 ＋ 1 场域固定色 × 亮/暗 × 9 个合法 hex token', () => {
     const keys = Object.keys(ACCENT_COLORS);
-    assert.equal(keys.length, 7, `主题数应为 7，实际 ${keys.length}：${keys.join('/')}`);
-    assert.deepEqual([...keys].sort(), [...THEME_KEYS].sort(), '主题键必须恰为 gold/red/orange/green/cyan/blue/purple');
-  
+    assert.equal(keys.length, THEME_KEYS.length + SCOPE_KEYS.length,
+      `主题数应为 ${THEME_KEYS.length + SCOPE_KEYS.length}，实际 ${keys.length}：${keys.join('/')}`);
+    assert.deepEqual([...keys].sort(), [...THEME_KEYS, ...SCOPE_KEYS].sort(),
+      `主题键必须恰为 ${[...THEME_KEYS, ...SCOPE_KEYS].join('/')}`);
+
     let tokenCount = 0;
-    for (const key of THEME_KEYS) {
+    for (const key of [...THEME_KEYS, ...SCOPE_KEYS]) {
       const entry = ACCENT_COLORS[key];
       assert.ok(entry, `缺少主题 ${key}`);
       assert.equal(entry.key, key, `${key}.key 应为 '${key}'`);
@@ -516,13 +527,14 @@ await (async () => {
         }
       }
     }
-    assert.equal(tokenCount, 7 * 2 * 9, `token 总数应为 126，实际 ${tokenCount}`);
+    assert.equal(tokenCount, (THEME_KEYS.length + SCOPE_KEYS.length) * 2 * 9,
+      `token 总数应为 ${(THEME_KEYS.length + SCOPE_KEYS.length) * 2 * 9}，实际 ${tokenCount}`);
   });
   
-  test('T2 对比度与彩度：7 主题 × 亮/暗逐项达标', () => {
+  test('T2 对比度与彩度：7 用户主题 ＋ 场域固定色 × 亮/暗逐项达标', () => {
     const problems = [];
     const readings = [];
-    for (const key of THEME_KEYS) {
+    for (const key of [...THEME_KEYS, ...SCOPE_KEYS]) {
       for (const mode of ['light', 'dark']) {
         const t = ACCENT_COLORS[key][mode];
         const soft = contrast(t.softText, t.softBg);
@@ -542,7 +554,8 @@ await (async () => {
         if (sat > 85) problems.push(`${key}.${mode} strongBg 饱和度=${sat.toFixed(1)}% > 85%（固定语义色除外，主题表内不得刺眼）`);
       }
     }
-    assert.ok(readings.length === 14, `应产出 14 行读数，实际 ${readings.length}`);
+    assert.ok(readings.length === (THEME_KEYS.length + SCOPE_KEYS.length) * 2,
+      `应产出 ${(THEME_KEYS.length + SCOPE_KEYS.length) * 2} 行读数，实际 ${readings.length}`);
     console.log(`[theme-palette] 对比度/彩度实测：\n  ${readings.join('\n  ')}`);
     assert.deepEqual(problems, [], `主题色板对比度/彩度不达标：\n  ${problems.join('\n  ')}`);
   });
@@ -2008,7 +2021,8 @@ await (async () => {
         assert.ok(ratio >= 4.5, `${key}.${mode} 组名 softText/10% 淡底=${ratio.toFixed(2)}:1 < 4.5`);
       }
     }
-    assert.equal(rows.length, 14, `应核对 14 个主题档，实际 ${rows.length}`);
+    // 7 用户主题 ＋ 1 场域固定色（party-red）× 亮/暗 = 16 档（2026-11-25 批次 627 · D-925）
+    assert.equal(rows.length, 16, `应核对 16 个主题档，实际 ${rows.length}`);
     console.log(`[ui-contrast] K3 组名 softText/10% 淡底：${rows.join(' · ')}`);
     assert.match(CSS, /\.tab-group-label\s*\{[^}]*border-radius:\s*3px/, '组名胶囊应为 3px 直角（8–9 月准绳）');
     assert.doesNotMatch(CSS, /\.tab-group-label\s*\{[^}]*width:\s*1px/, '组名不得再退化为 1px 竖线');
@@ -2259,8 +2273,8 @@ await (async () => {
   /** 待答复直达条：状态指标，不得再用角色主题色（accent / --app-accent） */
   function dispatchBarToneViolations(src) {
     const out = [];
-    if (/--app-accent|\$\{accent\}/.test(src)) out.push('待答复条仍用主题色（--app-accent / ${accent}）');
-    if (!/color:\s*var\(--status-info-text\)/.test(src)) out.push('待答复条未使用 --status-info-text');
+    if (/--status-info/.test(src)) out.push('待答复条仍用信息色（--status-info*）：动作入口按 D-925 取主题 soft 三件套');
+    if (!/btn-accent-soft/.test(src)) out.push('待答复条未使用 .btn-accent-soft（主题 soft 三件套）');
     return out;
   }
   
@@ -2276,7 +2290,7 @@ await (async () => {
     assert.doesNotMatch(src, /--app-accent/, 'work-overview.js 不得再用 --app-accent*（动作 / 导航用 .text-accent 类，不写死变量）');
   });
   
-  test('C7 待答复直达条：状态条取 info 功能色，不得再用角色主题色', () => {
+  test('C7 待答复直达条：动作入口取主题 soft 三件套，不再用 info 状态底色（D-925 改判）', () => {
     const src = readFileSync(DISPATCH_BAR, 'utf8');
     assert.deepEqual(dispatchBarToneViolations(src), [],
       `overview-dispatch-bar.js 待答复条不满足功能色口径：\n  ${dispatchBarToneViolations(src).join('\n  ')}`);
@@ -2292,10 +2306,10 @@ await (async () => {
     assert.equal(metricToneViolations("label: '在办', color: 'var(--neutral-500)'").length, 0,
       '非空转过严：非状态指标不应纳入判据');
   
-    const oldBar = 'style="background:${accent}1A;border:1px solid ${accent}40;color:${accent};"';
-    const newBar = 'style="background:color-mix(in srgb, var(--status-info-text) 12%, transparent);color:var(--status-info-text);"';
-    assert.ok(dispatchBarToneViolations(oldBar).length >= 1, '非空转失效：旧主题色直达条未被判红');
-    assert.deepEqual(dispatchBarToneViolations(newBar), [], '非空转过严：info 功能色直达条被误判');
+    const oldBar = 'style="background:color-mix(in srgb, var(--status-info-text) 12%, transparent);color:var(--status-info-text);"';
+    const newBar = '<button type="button" class="btn-accent-soft overview-dispatch-bar">去处理 →</button>';
+    assert.ok(dispatchBarToneViolations(oldBar).length >= 1, '非空转失效：旧 info 状态条未被判红');
+    assert.deepEqual(dispatchBarToneViolations(newBar), [], '非空转过严：accent-soft 动作条被误判');
   });
 
 })();
@@ -2927,6 +2941,24 @@ await (async () => {
     assert.match(CONSTANTS, /return \{ bg: t\.strongBg, text: t\.strongInk, strong: t\.strongBg, ink: t\.strongInk, strongHover: t\.strongHover \};/,
       'accentButtonColors 应直接查表返回 strongBg / strongInk / strongHover');
     assert.match(CONSTANTS, /export function accentButtonColors/, '缺少 accentButtonColors 单一源');
+  });
+
+  test('T14 场域固定色：六页声明 data-accent-scope=party，theme.js 优先解析 party-red，且不进设置页色板', async () => {
+    const { readFileSync: rf } = await import('node:fs');
+    const R = new URL('../../', import.meta.url);
+    const rd = (rel) => rf(new URL(rel, R), 'utf8');
+    const scopePages = ['docs/login.html', 'docs/workspace/party-committee.html', 'docs/workspace/secretary.html', 'docs/workspace/org.html', 'docs/workspace/prop.html', 'docs/workspace/disc.html'];
+    const personalPages = ['docs/workspace/visitor.html', 'docs/workspace/leader.html', 'docs/workspace/branch-readonly.html'];
+    for (const f of scopePages) {
+      assert.match(rd(f), /<html[^>]*data-accent-scope="party"/, `${f} 应声明 data-accent-scope="party"（治理场域固定党建红）`);
+    }
+    for (const f of personalPages) {
+      assert.doesNotMatch(rd(f), /data-accent-scope="party"/, `${f} 属个人台，不得固定场域色`);
+    }
+    const theme = rd('docs/src/core/boot/theme.js');
+    assert.match(theme, /accentScope === 'party'\)\s*return 'party-red'/, 'theme.js::resolveAppliedAccentRole 应按 data-accent-scope 优先返回 party-red');
+    const { ACCENT_PALETTE } = await import('../../docs/src/core/domain/constants.js?v=20261120a');
+    assert.ok(!ACCENT_PALETTE.some((c) => c.key === 'party-red'), 'party-red 不得进 ACCENT_PALETTE（设置页仍 7 项）');
   });
 
 })();

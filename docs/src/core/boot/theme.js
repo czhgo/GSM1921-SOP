@@ -182,6 +182,9 @@ export function setAccentRolePreference(roleKey) {
  * @returns {string} 生效的主题键（7 项之一）
  */
 export function resolveAppliedAccentRole(roleFallback) {
+  // 场域固定色（2026-11-25 批次 627 · D-925）：登录 / 党委 / 支部治理四台在 <html data-accent-scope="party">
+  //   下固定党建红，个人主题只影响个人台与访客台。
+  if (typeof document !== 'undefined' && document.documentElement?.dataset?.accentScope === 'party') return 'party-red';
   const override = getAccentRolePreference();
   return override ? normalizeAccentKey(override) : 'gold';
 }

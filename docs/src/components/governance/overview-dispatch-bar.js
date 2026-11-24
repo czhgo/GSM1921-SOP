@@ -110,11 +110,11 @@ export function mountOverviewDispatchBar(el, { count, prefix, jumpTab }) {
     return;
   }
   slot.style.minHeight = '';
-  // 2026-11-01 批次 524 支书裁定：待答复条是「待处理状态」指标，用功能色 info（不是角色主题色）；
-  //   动作 / 导航仍走主题色。底色 / 描边沿用 .badge--info 同一派生比例（12% / 28%）。
+  // 2026-11-01 批次 524：待答复条是「待处理状态」指标；2026-11-25 批次 627（`D-925`）改判——
+  //   整条同时是动作入口（去处理），底色改回主题 soft 三件套，状态语义只由左侧计数文案承担。
   slot.innerHTML = `
-    <button type="button" class="btn-outline overview-dispatch-bar w-full flex items-center justify-between gap-3 px-4 py-2.5 mb-3"
-      style="background:color-mix(in srgb, var(--status-info-text) 12%, transparent);border:1px solid color-mix(in srgb, var(--status-info-text) 28%, transparent);color:var(--status-info-text);cursor:pointer;transition:background-color var(--motion-feedback) var(--ease-standard);"
+    <button type="button" class="btn-accent-soft overview-dispatch-bar w-full flex items-center justify-between gap-3 px-4 py-2.5 mb-3"
+      style="cursor:pointer;transition:background-color var(--motion-feedback) var(--ease-standard);"
       aria-label="待答复 ${count} 条，去处理">
       <span class="text-xs font-medium">待答复 <b class="tabular-nums">${count}</b></span><span class="text-xs font-semibold">去处理 →</span>
     </button>`;

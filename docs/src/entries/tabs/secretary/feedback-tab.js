@@ -451,7 +451,7 @@ function renderIssueDetail(issueId) {
   html += `<div class="flex flex-wrap gap-2">`;
   _assigneeOptions().forEach(opt => {
     const isCurrent = issue.assignee === opt.personId && issue.assigneeRole === opt.role;
-    html += `<button data-detail-action="assign" data-assignee-id="${opt.personId}" data-assignee-role="${opt.role}" class="btn-tab text-xs px-3 py-1.5 rounded-lg transition-colors ${isCurrent ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'}">${opt.label}</button>`;
+    html += `<button data-detail-action="assign" data-assignee-id="${opt.personId}" data-assignee-role="${opt.role}" class="btn-tab text-xs px-3 py-1.5 rounded-lg transition-colors ${isCurrent ? 'btn-accent' : 'bg-white text-gray-600 border border-gray-200 hover:border-[var(--app-accent-soft-border)]'}">${opt.label}</button>`;
   });
   html += `</div>`;
   html += `<div class="mt-2 flex items-center gap-2">`;

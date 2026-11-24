@@ -3297,7 +3297,7 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
 .stat-card__value {
   font-size: 1.5rem;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.25;
   font-variant-numeric: tabular-nums;
   color: var(--neutral-800);
 }
@@ -6509,19 +6509,18 @@ button.metric-band__item--filter.is-active {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-/* 按内容收窄（2026-11-21 批次 588 · B-522-1）：数字卡不铺满整行，剩余空间留给同排次要信息；
-   ≤1024 回落两列等宽（与基础栅格同断点）。只作用于显式挂 --content 的两处：首页四数与概况结论带。 */
+/* 等分等高（2026-11-25 批次 627 · `D-925` 改判）：原「按内容收窄」在 1440 下把每卡压到
+   132–150px、整行空白 44%–50%，支书裁定恢复等分。口径：等尺寸指标卡按容器等分，不按内容收窄；
+   `--content` 修饰类保留为语义标记（谁属于「等尺寸指标组」），列宽与基础栅格一致。 */
 .stat-grid--content,
 .metric-band--cards--content {
-  grid-template-columns: repeat(auto-fit, minmax(0, max-content));
-  justify-content: start;
-  align-items: start;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
 }
 @media (max-width: 1024px) {
   .stat-grid--content,
   .metric-band--cards--content {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: stretch;
   }
 }
 .metric-band--cards {

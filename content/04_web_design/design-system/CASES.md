@@ -2,7 +2,7 @@
 title: "设计域判例库"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-11-24"
+last_updated: "2026-11-25"
 status: active
 related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -490,6 +490,20 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **对应规范编号**：SD-68（壳层两档，正文见 `DS_03_COMPONENTS.md §12.7`）。
 - **守卫**：`component-ratchet-guard`（`COMPONENT_STATE_EXEMPT` 白名单 ＋ T3 命中区探测）＋ `scripts/touch-target-audit.mjs`（390×844 命中区 <44 计数）。
 - **证据指针**：`docs/src/styles.css`（`.hamburger-btn` / `.header-action-btn` / `.btn-icon.header-icon-btn` / `.sidebar-footer-action` / `@media (max-width:640px)` 顶栏收紧段）；`server/test/component-ratchet-guard.test.mjs`；`content/04_web_design/design-system/DS_03_COMPONENTS.md §12.7`；批次 561 `a015ef08c` 与本批 `D-913`。
+
+---
+
+## CASE-DESIGN-045 等尺寸指标卡收窄过度：宽度由内容决定，空白与字级一起失控
+
+- **编号**：CASE-DESIGN-045
+- **场景（真实发生）**：批次 588（`D-898`）为「低密度卡」把首页四数与概况结论带改成 `grid-template-columns: repeat(auto-fit, minmax(0, max-content))` ＋ `justify-content:start`（`styles.css` 旧 6514–6526）。2026-11-25 支书复核：1440 视口下每卡实宽仅 132–150px，四卡共占 576–648px，整行空白 44%–50%；`align-items:start` 使四卡不等高；数值 `.stat-card__value` 的 `line-height:1` 低于档位表最低值 1.25，数字上下贴边。
+- **AI 假设**：按内容收窄＝「把空间留给同排次要信息」，所以越窄越省；宽度由 `max-content` 决定属于布局细节，不需要数值判据；行高 1 让数字更「紧凑好看」。
+- **人类意图**：等尺寸指标组在桌面铺满容器（每卡约 276px），组内四卡等高；数值 24/600 但行高回到 1.25；「收窄」只适用于非同尺寸的列表卡与整行信息条。
+- **泛化规则（结论）**：等尺寸指标卡的列宽由容器等分决定，不得由内容 `max-content` 决定；同一组内必须等高；`.stat-card__value` 行高 ≥1.25；布局类判例必须给出「视口 × 实宽 × 空白比例」三个读数才能成立。
+- **边界**：日历 31 格按行等宽属网格语义特例；整行信息条（`overview-dispatch-bar` 一类）仍按内容高度自适应，不并入等分。
+- **对应规范编号**：SD-57（`DS_06_LAYOUT_AND_DENSITY.md` 低密度卡节）＋ `DS_03_COMPONENTS.md §4.21.2`（数字卡）。
+- **守卫**：`style-ratchet-guard` 断言 `.stat-grid--content` / `.metric-band--cards--content` 不得出现 `max-content`、不得 `align-items:start`，`.stat-card__value` 行高不得为 `1`（2026-11-25 批次 627 增）。
+- **证据指针**：`docs/src/styles.css`（`.stat-grid--content` / `.stat-card__value`）；`docs/index.html`；`docs/src/components/governance/work-overview.js`；`D-898` 与 `D-925`。
 
 ---
 

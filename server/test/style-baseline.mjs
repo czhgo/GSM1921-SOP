@@ -191,7 +191,9 @@ export const HEX_BASELINE = {
       '#fff',
   ] },
   // 2026-11-04 批次 534（Task 6.4）：_C 新增 gray400（#9CA3AF，任务三态「待处理」档，原为各组件字面量）⇒ 194 → 195。
-  'docs/src/core/domain/constants.js': { c: 195, v: [
+  // 2026-11-25 批次 627（D-925）：ACCENT_COLORS 增场域固定色 party-red（党建红，亮/暗各 9 token，16 个新值）
+  //   ⇒ 195 → 213 处；这是「主题色只能在表内定义」的既有例外面（见本文件头注 102–114 行），不是游离 hardcode。
+  'docs/src/core/domain/constants.js': { c: 213, v: [
       '#000', '#0b5e6b', '#278b9d', '#285f45', '#324287', '#49936f', '#5f4873', '#6275cb',
       '#8971a8', '#91650d', '#932920', '#a04b27', '#bd9231', '#be643a', '#ca564b',
       '#0369a1', '#04161a', '#047857', '#059669', '#07130e', '#0a0e1c',
@@ -216,6 +218,8 @@ export const HEX_BASELINE = {
       '#f2d3ce', '#f2d8c7', '#f4f0f7', '#f6eac6', '#f7e2de', '#f7e4d8', '#f87171',
       '#fb923c', '#fbbf24', '#fbeeec', '#fbf0e9', '#fbf3dc', '#fee2e2', '#fef2f2',
       '#fefce8', '#ffd700', '#fff', '#ffffff',
+      '#1f0a0d', '#3a171b', '#431d23', '#4c232a', '#5e252b', '#8e0f1c', '#96121f', '#a81527',
+      '#d24350', '#e04a56', '#f0ccd1', '#f1c6cb', '#f26e79', '#f6aab2', '#f6dee1', '#fbebec',
   ] },
   // 2026-11-04 批次 534（Task 6.5）：弹窗内联色改令牌（--surface-card / --neutral-900/700/500/400/300），
   //   仅剩无同名令牌的 #F9FAFB ⇒ 7 → **2** 处（1 处在注释里说明为什么不换）。
@@ -323,7 +327,7 @@ export const HEX_BASELINE = {
 //   H4 的缩减读数以「上一批基线」为参照，不再固定盯 2025 起点。
 //   H3 的防呆下限随实况下沉（文件 47→45、处数 1400→800）；**不是放宽**——真正的判红项是
 //   H1（新增值）/ H2（处数上涨）/ 僵尸登记，本下限只防「台账被悄悄删空」。
-export const HEX_TOTAL_BASELINE = 810;
+export const HEX_TOTAL_BASELINE = 815;
 // 93 → 92（2026-09-25）：`docs/settings.html` 整体重做后其硬编码 hex 清零 ⇒ 该条目按收基线纪律删除，
 //   条目数随之 −1（H3 要求「基线条目数 ＝ 声明文件数」，两处必须同步动）。
 //   `HEX_TOTAL_BASELINE` **有意保持 2025**：它是「存量起点」，H4 会据此显示 ↓15 的缩减进度（该文件真少了 15 处）。
@@ -414,7 +418,7 @@ export const HEX_TOTAL_BASELINE = 810;
 // ⚠ 2026-11-21 批次 591（P2 清零）：`dashboard/stats.js` 的 15 处内联色全部改 `--status-*` / `--neutral-*`
 //   ⇒ 该文件 hex 清零，按收基线纪律删条目，文件数 43 → **42**（与实况同值；H3 防呆下限同步下沉）。
 export const HEX_FILE_BASELINE = 42;
-export const HEX_VALUE_BASELINE = 291;
+export const HEX_VALUE_BASELINE = 302;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。
  *

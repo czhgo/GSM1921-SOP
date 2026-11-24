@@ -225,8 +225,8 @@ function renderPanel(panel) {
   if (_currentSectionId === 'appearance') {
     const loggedIn = !!_currentRole;
     const scopeNote = loggedIn
-      ? '外观偏好随当前账号保存，切换登录人互不影响；未登录访客的外观保存在本浏览器。'
-      : '当前为访客浏览：外观偏好保存在本浏览器；登录后外观将随账号独立保存。';
+      ? '外观偏好随当前账号保存，切换登录人互不影响；未登录访客的外观保存在本浏览器。支部治理台与党委台固定党建红，主题色只影响个人台与访客台。'
+      : '当前为访客浏览：外观偏好保存在本浏览器；登录后外观将随账号独立保存。支部治理台与党委台固定党建红。';
     panel.innerHTML = `
       <div class="card rounded-xl card-standard">
         <div class="flex items-center gap-2.5 mb-2">

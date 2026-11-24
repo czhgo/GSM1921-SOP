@@ -2,7 +2,7 @@
 title: "设计系统 · 第一编 色彩与主题"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-11-22
+last_updated: 2026-11-25
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RESPONSIVE.md, ../../../docs/src/styles.css, CASES.md]
 ---
@@ -54,6 +54,8 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RES
 > **使用铁律**：四层各司其职禁止混用——状态红、品牌红、主题红三者语义各异；同色相不同层按语境区分（§2.8 判例）。身份不再绑定固定色值（2026-08-14 裁决），角色识别一律走主题色体系。
 
 > **四层职责（2026-08-08 裁决）**：品牌统一层（金色）横跨全站、不受主题色制约；角色识别层（主题色）可个性化、只管身份归属与个人偏好；状态层（功能色）只表语义状态；中性层只做层级。**四层各司其职，禁止混用**——这也是"金色/蓝色/主题色并存"问题的规范答案（详见 §2.8）。
+
+> **场域固定色（2026-11-25 批次 627 · `D-925`）**：登录页、党委台与支部治理四台（`docs/login.html`、`docs/workspace/{party-committee,secretary,org,prop,disc}.html`）以 `<html data-accent-scope="party">` 固定党建红（`ACCENT_COLORS['party-red']`，base `#CE1126`），由 `theme.js::resolveAppliedAccentRole` 优先解析；个人主题只在个人台（成员 / 组长 / 支部只读）与访客台生效。设置页仍只列 7 项用户主题，`party-red` 不进 `ACCENT_PALETTE`。判例：`CASE-DESIGN-045`。
 
 > **主题色取值判据（2026-10-01 支书评议批立）**：① **随支部主题色的只有三类**——主操作、选中态、本人标识；**成功 / 警告 / 危险 / 信息 / 活动类别色一律固定**，两者不得互串。② **颜色是最好的信息载体**——并列分类须用**小胶囊标注类别色**，不得用中性灰糊过去。
 

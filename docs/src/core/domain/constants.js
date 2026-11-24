@@ -466,6 +466,14 @@ export const ACCENT_COLORS = {
     light: { base: '#A32B24', softBg: '#FBEEEC', softBorder: '#EFC8C2', softText: '#7A201B', strongBg: '#9B2C22', strongInk: '#FFFFFF', strongHover: '#932920', hoverBg: '#F7E2DE', activeBg: '#F2D3CE' },
     dark:  { base: '#E0796F', softBg: '#372220', softBorder: '#5C332E', softText: '#F0B5AC', strongBg: '#D25A4E', strongInk: '#1C0A08', strongHover: '#CA564B', hoverBg: '#402925', activeBg: '#49302C' },
   },
+  // 场域固定色（2026-11-25 批次 627 · D-925）：登录 / 党委 / 支部治理四台固定党建红，忽略个人主题；
+  //   不进 ACCENT_PALETTE（设置页只列 7 项用户主题），仅由 theme.js::resolveAppliedAccentRole 按
+  //   <html data-accent-scope="party"> 解析。
+  'party-red': {
+    key: 'party-red', label: '党建红',
+    light: { base: '#CE1126', softBg: '#FBEBEC', softBorder: '#F1C6CB', softText: '#8E0F1C', strongBg: '#A81527', strongInk: '#FFFFFF', strongHover: '#96121F', hoverBg: '#F6DEE1', activeBg: '#F0CCD1' },
+    dark:  { base: '#F26E79', softBg: '#3A171B', softBorder: '#5E252B', softText: '#F6AAB2', strongBg: '#E04A56', strongInk: '#1F0A0D', strongHover: '#D24350', hoverBg: '#431D23', activeBg: '#4C232A' },
+  },
   orange: {
     key: 'orange', label: '橙',
     light: { base: '#B45B33', softBg: '#FBF0E9', softBorder: '#EDCDB9', softText: '#7A3A16', strongBg: '#A9502A', strongInk: '#FFFFFF', strongHover: '#A04B27', hoverBg: '#F7E4D8', activeBg: '#F2D8C7' },
