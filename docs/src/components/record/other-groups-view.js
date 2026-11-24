@@ -137,7 +137,7 @@ function _cardHtml(g, ctx) {
         <span>考察 <span class="font-semibold">${groupInsp.length}</span> 条${inspPending ? ` · <span class="text-[var(--status-warning-text)]">待确认 ${inspPending}</span>` : ''}</span>
       </div>
       <div class="pt-2 border-t border-gray-100">
-        <div class="text-xs font-bold text-gray-600 mb-1">组员进展（只读）</div>
+        <div class="text-xs font-bold text-gray-600 mb-1">组员进展</div>
         ${reports.length
           ? `<div class="space-y-1">${reports.map(_reportRowHtml).join('')}</div>`
           : emptyStateHtml({ text: '暂无组员汇报', variant: 'inline' })}

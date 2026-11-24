@@ -830,7 +830,7 @@ export class ReferencesModule {
             : '保存后即为「制度 · 现行版 v1」；之后再改正文请用列表上的「上传新版」，旧版自动归档可查。'}</p>
         </div>
         <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-note">${editingDraft ? '修改说明（可选）' : '版本说明（可选）'}</label>
+          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-note">${editingDraft ? '修改说明' : '版本说明'}</label>
           <input id="ref-modal-note" class="input-flat w-full" placeholder="${editingDraft ? '如：按支委会退回意见修改第三条' : '如：本制度经支委会审议，自发布之日起施行'}" value="${editingDraft ? _esc(editing.reviseNote || '') : ''}" />
         </div>
         ${editing ? '' : `<label class="flex items-start gap-2 text-xs" style="color:var(--neutral-600);">
@@ -992,7 +992,7 @@ export class ReferencesModule {
             <textarea id="ref-pub-body" class="input-flat w-full" rows="12" style="font-family:inherit;">${_esc(doc.bodyText || '')}</textarea>
           </div>
           <div>
-            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-pub-note">版本说明（可选）</label>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-pub-note">版本说明</label>
             <input id="ref-pub-note" class="input-flat w-full" placeholder="如：根据支委会意见修订第三条" />
           </div>
           <p class="text-body-sm" style="color:var(--neutral-500);">保存后：当前「现行版 v${doc.version || 1}」自动归档为历史版本（成员仍可展开查阅），正文更新为「现行版 v${(doc.version || 1) + 1}」。</p>

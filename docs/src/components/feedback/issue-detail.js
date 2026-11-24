@@ -280,7 +280,7 @@ function bindDetailEvents(issue) {
       openFormModal({
         id: 'hide-comment',
         title: '隐藏评论',
-        fields: [{ key: 'reason', label: '请输入隐藏原因（可选）', type: 'text', placeholder: '留空按「不当言论」记录' }],
+        fields: [{ key: 'reason', label: '请输入隐藏原因', type: 'text', placeholder: '留空按「不当言论」记录' }],
         submitLabel: '隐藏',
         onSubmit: (values) => {
           const reason = String(values.reason || '').trim() || '不当言论';

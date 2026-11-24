@@ -349,8 +349,8 @@ export function renderContent(ctx) {
       fields: [
         { key: 'title', label: '沉淀主题', type: 'text', required: true, placeholder: `如：${activityName}的组织经验` },
         { key: 'content', label: '经验内容', type: 'textarea', required: true, placeholder: '做了什么、怎么做的、为什么这样做（可操作、有边界）' },
-        { key: 'scenario', label: '适用场景', type: 'text', required: false, placeholder: '什么情况下可用这条经验（选填）' },
-        { key: 'counter', label: '常见误区/反例', type: 'textarea', required: false, placeholder: '不这样做会怎样 / 什么情况下不适用（选填）' },
+        { key: 'scenario', label: '适用场景', type: 'text', required: false, placeholder: '什么情况下可用这条经验' },
+        { key: 'counter', label: '常见误区/反例', type: 'textarea', required: false, placeholder: '不这样做会怎样 / 什么情况下不适用' },
       ],
       submitLabel: '保存经验沉淀',
       onSubmit: (values) => {

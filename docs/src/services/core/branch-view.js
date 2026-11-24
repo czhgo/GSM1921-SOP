@@ -75,7 +75,7 @@ export async function renderBranchViewBanner(header, { role = '' } = {}) {
   }
   slot.innerHTML = `
     <span class="text-[11px]" style="display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:var(--radius-sm);background:var(--party-gold);color:var(--neutral-900);line-height:16px;white-space:nowrap;">
-      <span>正在查看 ${esc(context.branchName || context.branchId)} 支部（只读）</span>
+      <span>正在查看 ${esc(context.branchName || context.branchId)} 支部</span>
       <button id="branch-view-exit" type="button" class="btn-text" style="color:var(--neutral-900);">退出查看 ›</button>
     </span>`;
   const button = slot.querySelector('#branch-view-exit');

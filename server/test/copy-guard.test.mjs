@@ -1726,3 +1726,44 @@ await (async () => {
   });
 
 })();
+
+// ═══ 源件 13：括注准入（C5b · 2026-11-25 批次 628 · D-926）═══
+await (async () => {
+  const { test } = await import('node:test');
+  const assert = (await import('node:assert/strict')).default;
+  const { readdirSync, readFileSync, statSync } = await import('node:fs');
+  const { join, relative } = await import('node:path');
+  const ROOT = join(import.meta.dirname, '..', '..');
+  // 文档页与冻结件按现行豁免（见 DS_03 §4.18 与 component-ratchet 的 About 冻结件口径）
+  const SKIP = new Set(['docs/help.html', 'docs/about.html', 'docs/search.html', 'docs/src/about-entry.js', 'docs/src/styles/about.css']);
+  const BANNED = /（(必填|选填|可空|可选|可多选|多选|只读)）/g;
+  const walk = (dir, out = []) => {
+    for (const name of readdirSync(dir)) {
+      const p = join(dir, name);
+      if (statSync(p).isDirectory()) walk(p, out);
+      else if (/\.(js|html)$/.test(name)) out.push(p);
+    }
+    return out;
+  };
+
+  test('C5b 括注准入：字段状态与只读标记不得进括注（基线 0）', () => {
+    const files = [
+      ...walk(join(ROOT, 'docs', 'src')),
+      ...readdirSync(join(ROOT, 'docs')).filter((n) => n.endsWith('.html')).map((n) => join(ROOT, 'docs', n)),
+    ].filter((p) => !SKIP.has(relative(ROOT, p).replace(/\\/g, '/')));
+    const hits = [];
+    for (const f of files) {
+      let inBlock = false;
+      readFileSync(f, 'utf8').split('\n').forEach((line, i) => {
+        const t = line.trimStart();
+        if (inBlock || t.startsWith('//') || t.startsWith('*') || t.startsWith('/*')) {
+          if (inBlock && t.includes('*/')) inBlock = false;
+          else if (t.startsWith('/*') && !t.includes('*/')) inBlock = true;
+          return;
+        }
+        for (const m of line.matchAll(BANNED)) hits.push(`${relative(ROOT, f).replace(/\\/g, '/')}:${i + 1} ${m[0]}`);
+      });
+    }
+    assert.deepEqual(hits, [], `字段状态 / 只读标记不得进括注（C5：括注只承载口径 / 示例 / 派生关系）：\n  ${hits.join('\n  ')}`);
+  });
+})();

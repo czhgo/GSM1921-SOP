@@ -1052,7 +1052,7 @@ function _openVoidModal(group, { isCommittee, onDone } = {}) {
       <p class="text-sm text-gray-700 mb-1">${isCommittee
         ? `确认作废「${escHtml(label)}」？作废＝不办了（留痕、可追溯），与「完成」不同。`
         : `申请作废「${escHtml(label)}」？须填写原因；提交后报支委会确认，确认前该待办仍在。`}</p>
-      <textarea id="todo-void-reason" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="作废原因（必填）">${escHtml(prefill)}</textarea>
+      <textarea id="todo-void-reason" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="作废原因">${escHtml(prefill)}</textarea>
       <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:16px;">
         <button type="button" data-todo-void-cancel class="btn-outline" style="cursor:pointer;">取消</button>
         <button type="button" data-todo-void-ok class="btn-neutral">${isCommittee ? '确认作废' : '提交申请'}</button>
@@ -1061,7 +1061,7 @@ function _openVoidModal(group, { isCommittee, onDone } = {}) {
       panel.querySelector('[data-todo-void-cancel]')?.addEventListener('click', () => closeModal('todo-void-modal'));
       panel.querySelector('[data-todo-void-ok]')?.addEventListener('click', () => {
         const reason = (panel.querySelector('#todo-void-reason')?.value || '').trim();
-        if (!reason) { showToast('error', '请填写作废原因（必填）'); return; }
+        if (!reason) { showToast('error', '请填写作废原因'); return; }
         closeModal('todo-void-modal');
         let ok = 0;
         for (const t of items) {

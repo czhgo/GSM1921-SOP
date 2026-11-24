@@ -143,7 +143,7 @@ dynamic_role:
 | content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-11-22 | — | [工程师]+[AI] | 父索引：§一 设计哲学 ＋ 编目（SD-1…SD-68）；2026-11-22 批次 603 增 SD-68 指针。 |
 | content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md | 2026-11-25 | — | [工程师]+[AI] | 第一编 色彩与主题（§2 增「场域固定色」条：登录 / 党委 / 支部治理四台固定党建红）。 |
 | content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md | 2026-11-23 | — | [工程师]+[AI] | 第二编 排版与尺寸（增正文/说明边界与棘轮）；2026-11-23 批次 604 续守卫指针改归并件名（`GC-1`）。 |
-| content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-11-24 | — | [工程师]+[AI] | 第三编 组件；2026-11-22 批次 603 增 SD-68 壳层两档（顶栏 36/44、页脚 22.4/44）；卡厚度 16 / 12 两档；批次 610 两处外部准则引用改 WebFetch 指针 |
+| content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-11-25 | — | [工程师]+[AI] | 第三编 组件；C5 增「括注准入」（字段状态 / 只读 / 日期范围 / 单位换算不得进括注，`copy-guard::C5b` 基线 0） |
 | content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md | 2026-11-08 | — | [工程师]+[AI] | 第四编 交互与响应式（P10 三档动效令牌）。 |
 | content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md | 2026-11-24 | — | [工程师]+[AI] | 第五编 地图与速查。 |
 | content/04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md | 2026-11-25 | — | [工程师]+[AI] | 第六编 布局与密度：SD-57 页签密度 46；等尺寸指标卡改回等分等高（`D-925`）。 |

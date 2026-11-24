@@ -205,7 +205,7 @@ export async function renderContent() {
       <div id="branch-form-wrap" role="group" class="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4" aria-label="新建支部" hidden>
         <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
           <div><label class="mb-1 block text-xs text-gray-600" for="branch-name-input">支部名称</label><input id="branch-name-input" type="text" class="input-flat w-full" placeholder="支部全称" /></div>
-          <div><label class="mb-1 block text-xs text-gray-600" for="branch-type-input">类型（可选）</label><input id="branch-type-input" type="text" class="input-flat w-full" placeholder="如本科生、硕士生" /></div>
+          <div><label class="mb-1 block text-xs text-gray-600" for="branch-type-input">类型</label><input id="branch-type-input" type="text" class="input-flat w-full" placeholder="如本科生、硕士生" /></div>
         </div>
         <div class="mt-3 flex justify-end gap-2"><button id="branch-form-cancel" type="button" class="btn-outline px-3 py-2 text-sm">取消</button><button id="branch-form-submit" type="button" class="btn-accent px-3 py-2 text-sm font-medium">创建支部</button></div>
       </div>

@@ -896,7 +896,7 @@ function _parseChecklistFromStandard(standard, category) {
   const defaults = {
     '新闻稿': ['含标题', '正文完整', '配图3张以上', '署名', 'Word+PDF双格式'],
     '照片': ['原图≥3MB', '横版为主', '含全景+特写', '命名：日期_活动名_序号'],
-    '视频': ['1080p及以上', '画面稳定', '含字幕（可选）', 'MP4格式'],
+    '视频': ['1080p及以上', '画面稳定', '含字幕', 'MP4格式'],
     '其他': ['材料完整性确认', '可追溯性确认'],
   };
   return defaults[category] || ['材料完整性确认', '可追溯性确认'];
@@ -948,7 +948,7 @@ function _showArchiveUploadModal(ctx) {
           ${selectInput({ id: 'upload-category', options: MATERIAL_STANDARDS.map(s => ({ value: s.category, label: s.category })), className: 'w-full' })}
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="upload-file">选择文件（可多选）</label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="upload-file">选择文件</label>
           <input id="upload-file" type="file" multiple
             accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xlsx,.mp4"
             class="block w-full text-xs text-gray-600 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" />
@@ -1070,7 +1070,7 @@ function _promptExternalDispatch(activityId, activityName, ctx, onSent) {
           ${selectInput({ id: 'ed-receiver', options: receiverOptions, className: 'w-full' })}
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="ed-note">备注（可选）</label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="ed-note">备注</label>
           ${textInput({ id: 'ed-note', placeholder: '如：新闻稿终稿，请审核…', className: 'w-full' })}
         </div>
       </div>`,
@@ -1353,7 +1353,7 @@ function _showPhotoUploadModal(ctx) {
           ${textInput({ id: 'photo-upload-subject', placeholder: '如：全体党员 / 主讲人 / 会场全景', className: 'w-full' })}
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-file">选择图片（可多选）</label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-file">选择图片</label>
           <input id="photo-upload-file" type="file" multiple accept=".jpg,.jpeg,.png"
             class="block w-full text-xs text-gray-600 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" />
           <div id="photo-upload-preview" class="mt-2 space-y-1.5"></div>

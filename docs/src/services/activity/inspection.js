@@ -70,7 +70,7 @@ export const INSPECTION_ROLE_CONFIRM = new Set(INSPECTION_CONFIRM_ROLES);
 
 // R4-D04：考察记录以工作组为稳定父键。历史记录无法回填时置 legacy:true 只读——
 // 前后端同文案，避免「前端放行、服务端拒绝」的两种解释。
-export const INSPECTION_LEGACY_REASON = '历史考察缺少工作组键（只读）';
+export const INSPECTION_LEGACY_REASON = '历史考察缺少工作组键';
 export const INSPECTION_MISSING_KEY_REASON = '考察记录缺少工作组键（workgroupId），请从专班上下文重新上传';
 
 /** 由 workgroupId 反查专班（workgroups.sourceId 优先；兼容旧记录直接存专班 id） */

@@ -159,7 +159,7 @@ export function renderCalendarCard(host, state, opts = {}) {
   wrap.innerHTML = `
     <h3 class="disclosure__title" id="${id}-title">月历与当日活动</h3>
     <details class="disclosure" id="${id}"${shouldOpen ? ' open' : ''}>
-      <summary class="disclosure__summary" aria-label="展开月历与当日活动（只读）"></summary>
+      <summary class="disclosure__summary" aria-label="展开月历与当日活动"></summary>
       <div class="disclosure__body" data-cal-card-body>
         ${PANEL_HTML}
         ${opts.afterHtml || ''}

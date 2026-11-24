@@ -29,7 +29,7 @@ function renderMemberRow(member, grant, kind, canEdit) {
           <span>${esc(permissionName(key))}</span>
         </label>`).join('')}
       </div>
-      <label class="block mt-2 text-xs text-gray-600">授权说明（选填）
+      <label class="block mt-2 text-xs text-gray-600">授权说明
         <input class="input-flat mt-1 w-full text-xs" data-wg-reason maxlength="200" value="${esc(grant?.reason || '')}" placeholder="说明这项工作需要的操作">
       </label>
       <div class="mt-2 flex flex-wrap gap-2">

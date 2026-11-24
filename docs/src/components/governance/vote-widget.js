@@ -54,7 +54,7 @@ export function renderVoteWidget(container, { activity, agendaItem, votes, curre
         <div class="vote-actions">
           ${options.map((pos) => `<button type="button" class="btn-outline vote-btn" data-pos="${pos}">${esc(labelOf(pos))}</button>`).join('')}
         </div>
-        ${anonymous ? '' : `<textarea class="vote-note" rows="2" placeholder="${os.objectRequiresNote ? '附言/异议说明（异议必填）' : '附言说明（选填）'}"></textarea>`}
+        ${anonymous ? '' : `<textarea class="vote-note" rows="2" placeholder="${os.objectRequiresNote ? '附言/异议说明（异议必填）' : '附言说明'}"></textarea>`}
         <button type="button" class="btn-outline btn-sm vote-submit">提交表态</button>` : ''}
       ${!locked && !canInteract && !mine ? '<div class="vote-current" style="opacity:.8;">仅应到表决人可表态</div>' : ''}
     </div>`;

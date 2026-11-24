@@ -187,7 +187,7 @@ function selfProfileControl(f, sp) {
   if (f.type === 'multi') {
     return textInput({
       value: (Array.isArray(v) ? v : []).join('; '),
-      placeholder: '多项用 ; 分隔（可空）',
+      placeholder: '多项用 ; 分隔',
       className: 'w-full',
       attrs: `data-field="${df}"`,
     });
@@ -199,7 +199,7 @@ function selfProfileControl(f, sp) {
   }
   return textInput({
     value: v == null ? '' : v,
-    placeholder: `${f.label}（可空）`,
+    placeholder: `${f.label}`,
     className: 'w-full',
     attrs: `data-field="${df}"`,
   });
@@ -308,7 +308,7 @@ export function openPersonEditModal(opts = {}) {
         rows: [
           formRow('姓名', textInput({ value: member.name || '', placeholder: '成员姓名', className: 'w-full', attrs: 'data-field="name" aria-describedby="pe-name-err"' }), { required: true, tag: TAG_INSTANT, errId: 'pe-name-err' }),
           formRow('届别', textInput({ value: member.enrollYear || '', placeholder: '入学年份 / 届别（如 2026，可空）', className: 'w-full', attrs: 'data-field="enrollYear"' }), { tag: TAG_INSTANT }),
-          formRow('党小组', textInput({ value: member.partyGroup || '', placeholder: '党小组归属（可空）', className: 'w-full', attrs: 'data-field="partyGroup"' }), { tag: TAG_INSTANT }),
+          formRow('党小组', textInput({ value: member.partyGroup || '', placeholder: '党小组归属', className: 'w-full', attrs: 'data-field="partyGroup"' }), { tag: TAG_INSTANT }),
         ].join(''),
       })}
       ${selfProfileGroup(spCurrent)}
@@ -356,8 +356,8 @@ export function openPersonEditModal(opts = {}) {
         const changed = String(statusEl?.value || '') !== String(member.residenceStatus || RESIDENCE.CAMPUS);
         noteEl.disabled = !changed;
         noteEl.required = changed;
-        noteEl.placeholder = changed ? '请填写在册变更原因 / 起止（必填）' : '随在册状态变更填写';
-        if (noteHintEl) noteHintEl.textContent = changed ? '状态变更须填写说明（必填）' : '随在册状态变更填写';
+        noteEl.placeholder = changed ? '请填写在册变更原因 / 起止' : '随在册状态变更填写';
+        if (noteHintEl) noteHintEl.textContent = changed ? '状态变更须填写说明' : '随在册状态变更填写';
         if (!changed) noteEl.value = member.residenceNote || '';
       };
       statusEl?.addEventListener('change', syncNoteState);

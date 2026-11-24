@@ -91,7 +91,7 @@ export function renderSignupSection({ sourceType, sourceId, source, title, signu
         <label class="inline-flex items-center gap-2"><input type="radio" name="signup-onsite" value="false">不线下参加</label>
       </div>
     </fieldset>` : '';
-  const signupFields = (noteLabel = '附加说明（选填）') => `
+  const signupFields = (noteLabel = '附加说明') => `
     <label class="flex min-w-[180px] flex-col gap-1 text-xs text-gray-600">报名角色
       <select id="signup-role-select" class="input-flat w-full">
         ${roleOptions.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
@@ -141,7 +141,7 @@ export function renderSignupSection({ sourceType, sourceId, source, title, signu
     body = `
       <div class="flex items-start gap-3 flex-wrap">
         ${badgeHtml('已拒绝 · ' + roleLabel(mySignup.role, sourceType), 'danger')}
-        ${signupFields('重新申请说明（选填）')}
+        ${signupFields('重新申请说明')}
         <div class="flex w-full justify-end sm:w-auto sm:self-end">
           <button id="signup-submit-btn" class="btn-accent inline-flex items-center gap-1 text-sm px-4 py-1.5 font-medium">
             重新申请

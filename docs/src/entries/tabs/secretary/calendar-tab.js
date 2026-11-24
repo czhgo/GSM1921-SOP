@@ -656,7 +656,7 @@ export function openActivityWriteForm() { openWriteModal(); }
 function openWriteModal(prefillDate = '', opts = {}) {
   // B1（2026-09-12）提交处显式拒绝兜底：党委下钻只读视图不得打开写入表单
   if (isReadonlyBranchDrilldown()) {
-    showToast('error', '党委视角（只读）：不可写入活动（写操作按角色权限拒绝）');
+    showToast('error', '党委视角：不可写入活动（写操作按角色权限拒绝）');
     return;
   }
   openModal({
@@ -869,13 +869,13 @@ function renderFormStep() {
     html += (showDate && showTime) ? `<div class="modal-form-grid mb-3">` : `<div class="mb-3">`;
     if (showDate) {
       html += `<div>`;
-      html += `<label for="wp-date" class="text-xs text-gray-500 mb-1.5 block font-medium">${dateLabel} ${dateRequired ? '<span class="text-red-600">*</span>' : '<span class="text-gray-500">（选填）</span>'}</label>`;
+      html += `<label for="wp-date" class="text-xs text-gray-500 mb-1.5 block font-medium">${dateLabel} ${dateRequired ? '<span class="text-red-600">*</span>' : '<span class="text-gray-500"></span>'}</label>`;
       html += textInput({ id: 'wp-date', type: 'date', value: wp.prefillDate || today, className: 'w-full' });
       html += `</div>`;
     }
     if (showTime) {
       html += `<div>`;
-      html += `<label for="wp-time" class="text-xs text-gray-500 mb-1.5 block font-medium">时间 <span class="text-gray-500">（选填）</span></label>`;
+      html += `<label for="wp-time" class="text-xs text-gray-500 mb-1.5 block font-medium">时间 <span class="text-gray-500"></span></label>`;
       html += textInput({ id: 'wp-time', placeholder: '如 14:00-16:00', className: 'w-full' });
       html += `</div>`;
     }
@@ -886,7 +886,7 @@ function renderFormStep() {
   if (!fHidden('location')) {
     const locRequired = fReq('location', true);
     html += `<div class="mb-3">`;
-    html += `<label for="wp-location" class="text-xs text-gray-500 mb-1.5 block font-medium">地点 ${locRequired ? '<span class="text-red-600">*</span>' : '<span class="text-gray-500">（选填）</span>'}</label>`;
+    html += `<label for="wp-location" class="text-xs text-gray-500 mb-1.5 block font-medium">地点 ${locRequired ? '<span class="text-red-600">*</span>' : '<span class="text-gray-500"></span>'}</label>`;
     html += textInput({ id: 'wp-location', placeholder: '活动地点', className: 'w-full' });
     html += `</div>`;
   }
@@ -902,7 +902,7 @@ function renderFormStep() {
   // 主持人（默认当前用户）
   if (!fHidden('host')) {
     html += `<div class="mb-3">`;
-    html += `<label for="wp-host" class="text-xs text-gray-500 mb-1.5 block font-medium">主持人 <span class="text-gray-500">（选填）</span></label>`;
+    html += `<label for="wp-host" class="text-xs text-gray-500 mb-1.5 block font-medium">主持人 <span class="text-gray-500"></span></label>`;
     html += textInput({ id: 'wp-host', placeholder: '默认为当前用户', className: 'w-full' });
     html += `</div>`;
   }
@@ -958,7 +958,7 @@ function renderFormStep() {
   // 备注
   if (!fHidden('desc')) {
     html += `<div class="mb-3">`;
-    html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">备注 <span class="text-gray-500">（选填）</span></label>`;
+    html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">备注 <span class="text-gray-500"></span></label>`;
     html += `<textarea id="wp-desc" rows="2" class="input-flat w-full" placeholder="活动内容/目标等"></textarea>`;
     html += `</div>`;
   }
@@ -1001,7 +1001,7 @@ function renderFormStep() {
     </div>`;
   html += `<div class="mb-4">${renderDisclosure({
     id: 'wp-notice',
-    title: '自动发布通知（选填）',
+    title: '自动发布通知',
     meta: '创建活动后立即通知全体成员',
     open: false,
     level: 4,
@@ -1067,9 +1067,9 @@ function renderThemeDayDimensions() {
   html += `</div>`;
   html += `</div>`;
 
-  // 维度3 活动载体（多选）
+  // 维度3 活动载体
   html += `<div>`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">活动载体 <span class="text-gray-500">（可多选）</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">活动载体 <span class="text-gray-500"></span></label>`;
   html += `<div class="flex flex-wrap gap-2">`;
   dims.carriers.forEach(opt => {
     html += `<button type="button" data-wp-dim data-wp-group="carriers" data-wp-dim-value="${opt.value}" data-wp-multi="true" class="btn-tab wp-dim-chip text-xs px-3 py-1.5">${opt.label}</button>`;
@@ -1224,7 +1224,7 @@ function _initRowPersonPicker(row, initialIds = []) {
   slot.dataset.bound = '1';
   const picker = new PersonPicker({
     mode: 'multi',
-    placeholder: '选择待讨论名单（可多选）',
+    placeholder: '选择待讨论名单',
     accentColor: _accentHex(),
     stageBatch: true,
     initialIds: Array.isArray(initialIds) ? initialIds : [],

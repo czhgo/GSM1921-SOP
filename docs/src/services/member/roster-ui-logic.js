@@ -95,13 +95,13 @@ export function buildGuardMessage(name, refs = []) {
  */
 export function validateMemberForm(form = {}, opts = {}) {
   const name = typeof form.name === 'string' ? form.name.trim() : '';
-  if (!name) return { ok: false, message: '请填写成员姓名（必填）', field: 'name' };
+  if (!name) return { ok: false, message: '请填写成员姓名', field: 'name' };
   const studentId = typeof form.studentId === 'string' ? form.studentId.trim() : '';
   if (!studentId) return { ok: false, message: '请填写学号（学号即成员唯一 id，必填）', field: 'studentId' };
   const enrollYear = typeof form.enrollYear === 'string' ? form.enrollYear.trim() : (form.enrollYear == null ? '' : String(form.enrollYear).trim());
   const partyGroup = typeof form.partyGroup === 'string' ? form.partyGroup.trim() : '';
   const developStage = typeof form.developStage === 'string' ? form.developStage.trim() : '';
-  if (!developStage) return { ok: false, message: '请选择发展阶段（必填）', field: 'developStage' };
+  if (!developStage) return { ok: false, message: '请选择发展阶段', field: 'developStage' };
   const residenceStatus = form.residenceStatus ?? RESIDENCE.CAMPUS;
   if (![RESIDENCE.CAMPUS, RESIDENCE.DETAINED].includes(residenceStatus)) {
     return { ok: false, message: '在册状态须为「在校」或「滞留」', field: 'residenceStatus' };

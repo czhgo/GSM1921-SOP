@@ -49,7 +49,7 @@ export function openVoidModal({
     accentColor: 'var(--status-error)',
     bodyHtml: `
       <p class="text-sm text-gray-700 mb-1">作废「${escHtml(subject || id)}」这条${escHtml(label)}？作废＝<b>软作废</b>（留痕、默认列表出列），<b>不硬删</b>；支委可直接作废，其余人需报支委会确认。<br>作废后记录不会自行恢复；如需继续办理，请重新登记一条。</p>
-      <textarea id="${reasonId}" data-field="reason" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="作废原因（必填）"></textarea>`,
+      <textarea id="${reasonId}" data-field="reason" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="作废原因"></textarea>`,
     footerHtml: `
       <button type="button" ${cancelAttr} data-modal-cancel="${modalId}" class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
       <button type="button" ${okAttr} class="btn-danger-solid text-sm px-4 py-1.5">确认作废</button>`,
@@ -64,7 +64,7 @@ export function openVoidModal({
       };
       panel.querySelector(`[${okAttr}]`)?.addEventListener('click', async () => {
         const reason = (panel.querySelector(`#${reasonId}`)?.value || '').trim();
-        if (!reason) { showToast('error', '请填写作废原因（必填）'); return; }
+        if (!reason) { showToast('error', '请填写作废原因'); return; }
         setBusy(true);
         let r = null;
         try {

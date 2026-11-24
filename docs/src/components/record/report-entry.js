@@ -137,7 +137,7 @@ async function openReportModal() {
   const bodyHtml = `
     <p class="text-body-sm text-gray-500 mb-3">汇报将发往支书，答复后发回给你。请选择分类并填写内容。</p>
     <div class="mb-3">
-      <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="report-modal-target">关联事项（可选）</label>
+      <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="report-modal-target">关联事项</label>
       <select id="report-modal-target" class="input-flat w-full">${optionsHtml}</select>
     </div>
     <div class="flex items-center gap-2 mb-3">

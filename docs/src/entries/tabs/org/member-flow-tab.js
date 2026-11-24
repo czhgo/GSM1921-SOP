@@ -317,7 +317,7 @@ function _openIntakeModal() {
       <div data-intake-pane="single">
         <div style="margin-bottom:14px;">
           <label for="flow-intake-name" class="text-body-sm" style="${labelStyle}">姓名 <span style="color:var(--status-error-text);">*</span></label>
-          <input id="flow-intake-name" data-intake="name" type="text" class="input-flat-sm w-full" placeholder="成员姓名（必填）" style="${inputStyle}" aria-describedby="flow-intake-name-err">
+          <input id="flow-intake-name" data-intake="name" type="text" class="input-flat-sm w-full" placeholder="成员姓名" style="${inputStyle}" aria-describedby="flow-intake-name-err">
           <p id="flow-intake-name-err" data-field-error hidden class="mt-1 text-xs text-red-700" role="alert"></p>
         </div>
         <div style="margin-bottom:14px;">
@@ -339,7 +339,7 @@ function _openIntakeModal() {
           <p id="flow-intake-develop-stage-err" data-field-error hidden class="mt-1 text-xs text-red-700" role="alert"></p>
         </div>
         <div style="margin-bottom:14px;">
-          <label for="flow-intake-note" class="text-body-sm" style="${labelStyle}">备注（选填）</label>
+          <label for="flow-intake-note" class="text-body-sm" style="${labelStyle}">备注</label>
           <input id="flow-intake-note" data-intake="note" type="text" class="input-flat-sm w-full" placeholder="如：转入原因 / 原支部" style="${inputStyle}">
         </div>
       </div>
@@ -441,7 +441,7 @@ function _openOutflowModal() {
     title: '登记流出',
     accentColor: accent,
     bodyHtml: `
-      <p class="text-xs text-gray-500 mb-2">选择流出人员（可多选）。移出后账号停用，原考勤与考察历史保留；登记即生效，可在「成员流动」撤销纠正。</p>
+      <p class="text-xs text-gray-500 mb-2">选择流出人员。移出后账号停用，原考勤与考察历史保留；登记即生效，可在「成员流动」撤销纠正。</p>
       <div id="flow-outflow-picker" class="mb-3"></div>
       <div style="margin-bottom:14px;">
         <label class="text-body-sm" style="${labelStyle}">流出日期</label>
@@ -463,7 +463,7 @@ function _openOutflowModal() {
       // 选人硬规范：PersonPicker 多选（禁 select 罗列人名）；候选 = 本支部在册成员
       _outflowPicker = new PersonPicker({
         mode: 'multi',
-        placeholder: '选择流出人员（可多选）',
+        placeholder: '选择流出人员',
         accentColor: accent,
         filter: (p) => (p.branchId || DEFAULT_BRANCH_ID) === branchId,
         onSelect: () => {},

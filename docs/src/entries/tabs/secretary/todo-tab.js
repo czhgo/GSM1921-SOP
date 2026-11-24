@@ -849,7 +849,7 @@ function _askMcReject(reqId, api) {
     accentColor: '#6B7280',
     bodyHtml: `
       <p class="text-sm text-gray-700 mb-1">确认退回${name ? `「${esc(name)}」` : '该成员'}的变更请求？退回后不生效，组织委员可在名册重新发起。</p>
-      <textarea id="mc-reject-note" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="退回原因（必填）"></textarea>`,
+      <textarea id="mc-reject-note" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="退回原因"></textarea>`,
     footerHtml: `
       <button type="button" data-mc-reject-cancel class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
       <button type="button" data-mc-reject-ok class="btn-neutral text-sm px-4 py-1.5">确认退回</button>`,
@@ -858,7 +858,7 @@ function _askMcReject(reqId, api) {
       panel.querySelector('[data-mc-reject-ok]')?.addEventListener('click', async () => {
         const note = panel.querySelector('#mc-reject-note')?.value || '';
         // 2026-09-08 裁决批一（D1/D3）：支书名册报送退回意见必填（空意见拦截，不关弹窗）
-        if (!note.trim()) { showToast('error', '请填写退回原因（必填）'); return; }
+        if (!note.trim()) { showToast('error', '请填写退回原因'); return; }
         closeModal('mc-reject-modal');
         const by = _requireSecActor();
         if (!by) return;
@@ -925,7 +925,7 @@ function _askRecordVoidReject(btn, api, rv) {
     accentColor: 'var(--status-error)',
     bodyHtml: `
       <p class="text-sm text-gray-700 mb-1">确认驳回「${esc(label)}」的作废申请？驳回后该记录回到原状（仍按原流程办结）。可恢复：如仍有作废需要，可由本人重新提交申请。</p>
-      <textarea id="record-void-reject-note" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="驳回意见（必填）"></textarea>`,
+      <textarea id="record-void-reject-note" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="驳回意见"></textarea>`,
     footerHtml: `
       <button type="button" data-record-void-reject-cancel class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
       <button type="button" data-record-void-reject-ok class="btn-neutral text-sm px-4 py-1.5">确认驳回</button>`,
@@ -933,7 +933,7 @@ function _askRecordVoidReject(btn, api, rv) {
       panel.querySelector('[data-record-void-reject-cancel]')?.addEventListener('click', () => closeModal('record-void-reject-modal'));
       panel.querySelector('[data-record-void-reject-ok]')?.addEventListener('click', async () => {
         const note = (panel.querySelector('#record-void-reject-note')?.value || '').trim();
-        if (!note) { showToast('error', '请填写驳回意见（必填）'); return; }
+        if (!note) { showToast('error', '请填写驳回意见'); return; }
         closeModal('record-void-reject-modal');
         const by = _requireSecActor();
         if (!by) return;
@@ -958,7 +958,7 @@ function _askVoidReject(todo, api) {
     accentColor: 'var(--status-error)',
     bodyHtml: `
       <p class="text-sm text-gray-700 mb-1">确认驳回「${esc(todo.title || '该待办')}」的作废申请？驳回后该待办回到原状（仍须办结），并知会相关委员。可恢复：如仍有作废需要，可由本人重新提交申请。</p>
-      <textarea id="todo-void-reject-note" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="驳回意见（必填）"></textarea>`,
+      <textarea id="todo-void-reject-note" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="驳回意见"></textarea>`,
     footerHtml: `
       <button type="button" data-todo-void-reject-cancel class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
       <button type="button" data-todo-void-reject-ok class="btn-neutral text-sm px-4 py-1.5">确认驳回</button>`,
@@ -966,7 +966,7 @@ function _askVoidReject(todo, api) {
       panel.querySelector('[data-todo-void-reject-cancel]')?.addEventListener('click', () => closeModal('todo-void-reject-modal'));
       panel.querySelector('[data-todo-void-reject-ok]')?.addEventListener('click', () => {
         const note = (panel.querySelector('#todo-void-reject-note')?.value || '').trim();
-        if (!note) { showToast('error', '请填写驳回意见（必填）'); return; }
+        if (!note) { showToast('error', '请填写驳回意见'); return; }
         closeModal('todo-void-reject-modal');
         const by = _requireSecActor();
         if (!by) return;

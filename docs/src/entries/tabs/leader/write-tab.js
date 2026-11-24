@@ -201,7 +201,7 @@ export function renderContent(ctx) {
           ${renderCardHeader({ title: `本组创建 / 承办`, meta: `<span class="text-xs text-gray-500">可写入 · ${writableActs.length} 条</span>`, variant: 'panel' })}
           <div class="space-y-2" id="leader-activity-list"></div>
           <div class="mt-4 pt-3 border-t border-dashed border-gray-100">
-            ${renderCardHeader({ title: `可见活动（只读）`, meta: `<span class="text-xs text-gray-500">支部级 / 定向下发 · ${readonlyActs.length} 条</span>`, variant: 'panel' })}
+            ${renderCardHeader({ title: `可见活动`, meta: `<span class="text-xs text-gray-500">支部级 / 定向下发 · ${readonlyActs.length} 条</span>`, variant: 'panel' })}
             <div class="space-y-2" id="leader-activity-readonly-list"></div>
           </div>
         </div>
@@ -349,7 +349,7 @@ export function renderContent(ctx) {
         <!-- dogfood 权限专项 2026-09-13：支部级(top-down)活动角色由支书侧确定 → 组长只读（按钮禁用 + 明示） -->
         <div class="mt-3 pt-3 border-t border-gray-100">
           <div class="flex items-center justify-between mb-2">
-            <h6 class="font-title-cn text-xs font-bold text-gray-600">${roleEditable ? '活动角色' : '活动角色（只读）'}</h6>
+            <h6 class="font-title-cn text-xs font-bold text-gray-600">${roleEditable ? '活动角色' : '活动角色'}</h6>
             <button id="btn-save-activity-roles" ${roleEditable ? '' : 'disabled'} title="${roleEditable ? '' : '支部级（定向）活动的组织者由支书侧确定，组长此处只读'}" class="btn-accent-soft text-xs px-3 py-1.5" >保存角色</button>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -499,7 +499,7 @@ export function renderContent(ctx) {
                 const isPublicityAuthor = type === 'publicity' && key === 'author';
                 const required = key === 'title' || key === 'name' || isPublicityAuthor;
                 const prefill = isPublicityAuthor ? (PersonStore.getById(currentUserId())?.name || '') : '';
-                return `<input class="f-${key} input-flat w-full mb-2" aria-label="${label}${required ? '（必填）' : '（选填）'}" placeholder="${label}${required ? '（必填）' : '（选填）'}"${required ? ' required aria-required="true"' : ''} value="${escHtml(prefill)}">`;
+                return `<input class="f-${key} input-flat w-full mb-2" aria-label="${label}${required ? '' : ''}" placeholder="${label}${required ? '' : ''}"${required ? ' required aria-required="true"' : ''} value="${escHtml(prefill)}">`;
               }).join('')}`,
           });
 
@@ -743,7 +743,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
     <div class="mb-4">
       ${renderDisclosure({
         id: 'dt-adv',
-        title: '高级设置（可选）',
+        title: '高级设置',
         meta: '活动类型 / 活动形式 / 时长 / 发起方向 / 承办党小组',
         open: !!advOpen,
         level: 4,
@@ -777,7 +777,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
         <input type="text" id="dt-title" class="input-flat w-full" placeholder="活动名称" value="${escHtml(dtDraft.title)}">
       </div>
       <div class="mb-4">
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="dt-desc">活动描述 <span class="text-gray-500">（选填）</span></label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="dt-desc">活动描述 <span class="text-gray-500"></span></label>
         <textarea id="dt-desc" class="input-flat w-full resize-none" rows="2" placeholder="简要描述活动内容">${escHtml(dtDraft.desc)}</textarea>
       </div>
 
@@ -814,7 +814,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
             </div>
           </div>
           <div>
-            <div class="text-[12px] text-gray-500 mb-1">深度参与者 <span class="text-gray-500">（选填）</span></div>
+            <div class="text-[12px] text-gray-500 mb-1">深度参与者 <span class="text-gray-500"></span></div>
             <div id="dt-deep-picker"></div>
             <!-- 2026-10-21 批次 499：跨党小组深参须由组织委员协调，提交时自动标记跨组招募 -->
             <p id="dt-deep-cross-hint" class="text-xs text-[var(--status-warning-text)] mt-1 hidden"></p>

@@ -1246,7 +1246,7 @@ function _buildDataCardHTML(matrixModel, allRecords, longData, filterActivityId)
           })}
           ${selectInput({
             id: 'att-table-type',
-            options: [{ value: '', label: '活动类型：全部' }, { value: '党小组会', label: '党小组会（只读）' }],
+            options: [{ value: '', label: '活动类型：全部' }, { value: '党小组会', label: '党小组会' }],
             ariaLabel: '活动类型筛选',
             className: 'lf-select',
           })}

@@ -504,7 +504,7 @@ function _openAddForm() {
     title: '新增成员',
     accentColor: _ctx?.accent || 'var(--app-accent)',
     fields: [
-      { key: 'name', label: '姓名', type: 'text', required: true, placeholder: '成员姓名（必填）' },
+      { key: 'name', label: '姓名', type: 'text', required: true, placeholder: '成员姓名' },
       { key: 'studentId', label: '学号', type: 'text', required: true, placeholder: '如 2400012345' },
       { key: 'enrollYear', label: '届别', type: 'text', placeholder: '如 2026' },
       { key: 'partyGroup', label: '党小组', type: 'select',

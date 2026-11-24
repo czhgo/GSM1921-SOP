@@ -57,7 +57,7 @@ export function renderIssueForm() {
           </div>
 
           <div>
-            <label id="form-type-label" class="text-xs text-gray-500 mb-1.5 block font-medium">类型（多选）<span class="text-[var(--status-error-text)]">*</span></label>
+            <label id="form-type-label" class="text-xs text-gray-500 mb-1.5 block font-medium">类型<span class="text-[var(--status-error-text)]">*</span></label>
             <div class="space-y-1" role="group" aria-labelledby="form-type-label" aria-required="true">
               ${TYPE_OPTIONS.map(t => `
                 <label class="flex items-center gap-2 text-xs cursor-pointer font-sans">

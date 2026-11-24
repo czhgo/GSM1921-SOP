@@ -576,7 +576,7 @@ function renderVotePanel(container, { activity, agendaItem, votes, canVote, curr
         <div class="vote-actions">
           ${options.map((pos) => `<button type="button" class="btn-outline vote-btn" data-pos="${pos}">${labelOf(pos)}</button>`).join('')}
         </div>
-        ${anonymous ? '' : `<textarea class="vote-note" rows="2" placeholder="${os.objectRequiresNote ? '附言/异议说明（异议必填）' : '附言说明（选填）'}"></textarea>`}
+        ${anonymous ? '' : `<textarea class="vote-note" rows="2" placeholder="${os.objectRequiresNote ? '附言/异议说明（异议必填）' : '附言说明'}"></textarea>`}
         <button type="button" class="btn-outline btn-sm vote-submit">提交表态</button>` : ''}
     </div>`;
 
@@ -781,7 +781,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
             <label class="flex items-center gap-1.5 text-xs">
               <input type="checkbox" class="ap-pass shrink-0" data-person-id="${esc(pid)}" checked style="cursor:pointer;">
               <span class="text-gray-700 w-14 shrink-0 truncate">${esc(getPersonById(pid)?.name || pid)}</span>
-              <input type="text" class="ap-note input-flat flex-1 text-xs" data-person-id="${esc(pid)}" placeholder="备注（选填）">
+              <input type="text" class="ap-note input-flat flex-1 text-xs" data-person-id="${esc(pid)}" placeholder="备注">
             </label>`).join('')}
           <button type="button" class="btn-action-green ap-submit px-2.5 py-1 font-medium">记录结果</button>
         </div>` : '';
@@ -1403,7 +1403,7 @@ function _openActivityEditModal(activity, tasks, managementRole) {
             <input type="date" id="ae-date" class="input-flat w-full" value="${activity.date || ''}">
           </div>
           <div>
-            <label class="text-xs text-gray-500 mb-1.5 block font-medium">时间 <span class="text-gray-500">（选填）</span></label>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium">时间 <span class="text-gray-500"></span></label>
             <input type="text" id="ae-time" class="input-flat w-full" value="${activity.time || ''}" placeholder="如 14:00-16:00">
           </div>
         </div>
@@ -1412,11 +1412,11 @@ function _openActivityEditModal(activity, tasks, managementRole) {
           <input type="text" id="ae-location" class="input-flat w-full" value="${activity.location || ''}">
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">主持人 <span class="text-gray-500">（选填）</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">主持人 <span class="text-gray-500"></span></label>
           <input type="text" id="ae-host" class="input-flat w-full" value="${activity.host || ''}">
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动详情 <span class="text-gray-500">（选填）</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动详情 <span class="text-gray-500"></span></label>
           <textarea id="ae-desc" rows="3" class="input-flat w-full">${activity.description || ''}</textarea>
         </div>
       </div>`,

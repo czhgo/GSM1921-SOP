@@ -161,8 +161,8 @@ function _openEmphasisComposer({ onConfirm }) {
     dismissable: true,
     bodyHtml: `
       <p class="text-xs text-gray-500" style="margin:0 0 10px;">可不填；留空由系统写默认标题与正文（含活动日期、地点与到场要求）。</p>
-      ${textField({ id: 'emphasis-notice-title', label: '通知标题（可选）', placeholder: '留空使用默认标题' })}
-      <div class="mt-3">${textareaField({ id: 'emphasis-notice-content', label: '通知正文（可选）', rows: 4, placeholder: '留空使用默认正文' })}</div>`,
+      ${textField({ id: 'emphasis-notice-title', label: '通知标题', placeholder: '留空使用默认标题' })}
+      <div class="mt-3">${textareaField({ id: 'emphasis-notice-content', label: '通知正文', rows: 4, placeholder: '留空使用默认正文' })}</div>`,
     footerHtml: `
       <button type="button" data-emphasis-cancel class="btn-outline btn-sm">取消</button>
       <button type="button" data-emphasis-ok class="btn-accent btn-sm">发送</button>`,
@@ -1372,11 +1372,11 @@ function _waFormHtml(row) {
     <div class="rounded-xl border border-neutral-200 bg-white p-3 mb-2">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
         <label for="wa-work-name" class="visually-hidden">工作名称</label>
-        <input id="wa-work-name" class="input-flat text-xs" placeholder="工作名称（必填）" value="${esc(r.workName || '')}" data-wa-field="workName">
+        <input id="wa-work-name" class="input-flat text-xs" placeholder="工作名称" value="${esc(r.workName || '')}" data-wa-field="workName">
         <label for="wa-ddl" class="visually-hidden">截止日期</label>
         <input id="wa-ddl" type="date" class="input-flat text-xs" value="${esc(r.ddl || '')}" data-wa-field="ddl">
         <label for="wa-work-description" class="visually-hidden">工作说明</label>
-        <input id="wa-work-description" class="input-flat text-xs md:col-span-2" placeholder="工作说明（选填）" value="${esc(r.workDescription || '')}" data-wa-field="workDescription">
+        <input id="wa-work-description" class="input-flat text-xs md:col-span-2" placeholder="工作说明" value="${esc(r.workDescription || '')}" data-wa-field="workDescription">
         <div class="wa-assignee-host" style="min-height:38px;"></div>
         ${statusCell}
       </div>

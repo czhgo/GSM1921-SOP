@@ -269,14 +269,14 @@ async function _renderTfDetail(container, tf, highlightId) {
     <div class="pt-3 border-t border-gray-100 mt-3">
       <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">登记工作产出</h5>
       <div class="rounded-lg bg-gray-50 p-3">
-        <label for="tfv-output-title" class="block text-xs text-gray-600">产出名称（必填）</label>
+        <label for="tfv-output-title" class="block text-xs text-gray-600">产出名称</label>
         <input id="tfv-output-title" class="input-flat mt-1 w-full" maxlength="160" placeholder="例如：专题稿件初稿">
-        <label for="tfv-output-task" class="block mt-2 text-xs text-gray-600">关联任务（选填）</label>
+        <label for="tfv-output-task" class="block mt-2 text-xs text-gray-600">关联任务</label>
         <select id="tfv-output-task" class="input-flat mt-1 w-full">
           <option value="">暂不关联具体任务</option>
           ${tasks.map((task) => `<option value="${esc(task.id)}">${esc(task.title || task.name || '未命名任务')}</option>`).join('')}
         </select>
-        <label for="tfv-output-desc" class="block mt-2 text-xs text-gray-600">产出说明（选填）</label>
+        <label for="tfv-output-desc" class="block mt-2 text-xs text-gray-600">产出说明</label>
         <textarea id="tfv-output-desc" rows="2" maxlength="2000" placeholder="简要说明完成内容或存放位置" class="input-flat mt-1 w-full resize-y"></textarea>
         <div class="flex justify-end mt-2">
           <button id="tfv-output-add" class="btn-action-green text-xs px-3 py-1.5">登记产出</button>

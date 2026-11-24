@@ -123,7 +123,7 @@ function renderNotificationForm(reset = false) {
   html += `</div>`;
   if (_directMode) {
     html += `<div class="mb-5 rounded-lg border border-gray-200 bg-white p-3">`;
-    html += `<div class="mb-2 flex items-center gap-2"><span class="text-xs text-gray-500">收件人（可多选）</span><span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">仅双方可见</span></div>`;
+    html += `<div class="mb-2 flex items-center gap-2"><span class="text-xs text-gray-500">收件人</span><span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">仅双方可见</span></div>`;
     html += `<div id="notif-direct-host"></div>`;
     html += `</div>`;
   }
@@ -281,7 +281,7 @@ function _objectOptions() {
 function handlePublishNotification() {
   // B1（2026-09-12）提交处显式拒绝兜底：党委下钻只读视图不得发布通知
   if (isReadonlyBranchDrilldown()) {
-    showToast('error', '党委视角（只读）：不可发布通知（写操作按角色权限拒绝）');
+    showToast('error', '党委视角：不可发布通知（写操作按角色权限拒绝）');
     return;
   }
   const titleEl = document.getElementById('notif-title');

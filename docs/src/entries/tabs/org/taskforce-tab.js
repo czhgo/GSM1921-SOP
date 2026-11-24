@@ -1001,7 +1001,7 @@ function _tfRenderContribBlock(panel, tf, ctx) {
       <h4 class="font-title-cn text-sm font-semibold text-gray-700 mb-1">组织委员代录（兜底）<span class="text-xs font-normal text-gray-500">· 单条代录成员产出，代录后仍需逐条核</span></h4>
       <div class="flex flex-col md:flex-row gap-2">
         <div id="tf-contrib-picker" class="w-48 flex-shrink-0"></div>
-        <textarea id="tf-contrib-desc" rows="1" placeholder="贡献说明（必填），如：完成活动策划与执行排期…" class="input-flat flex-1 min-w-[160px] resize-none"></textarea>
+        <textarea id="tf-contrib-desc" rows="1" placeholder="贡献说明，如：完成活动策划与执行排期…" class="input-flat flex-1 min-w-[160px] resize-none"></textarea>
         <button id="btn-add-tf-contrib" class="btn-accent-soft text-xs px-3 py-2 flex-shrink-0" >代录</button>
       </div>
     </div>`;
@@ -1220,9 +1220,9 @@ function _tfRenderSubsBlock(panel, tf, ctx) {
         accent,
         accentBorder,
         body: `
-          ${textInput({ className: 'f-name w-full mb-2', placeholder: '材料名称（必填）', ariaLabel: '材料名称（必填）', attrs: 'required aria-required="true"' })}
-          ${textInput({ className: 'f-author w-full mb-2', placeholder: '提交人（选填）', ariaLabel: '提交人（选填）' })}
-          ${textInput({ className: 'f-note w-full mb-2', placeholder: '备注（选填）', ariaLabel: '备注（选填）' })}`,
+          ${textInput({ className: 'f-name w-full mb-2', placeholder: '材料名称', ariaLabel: '材料名称', attrs: 'required aria-required="true"' })}
+          ${textInput({ className: 'f-author w-full mb-2', placeholder: '提交人', ariaLabel: '提交人' })}
+          ${textInput({ className: 'f-note w-full mb-2', placeholder: '备注', ariaLabel: '备注' })}`,
       });
       panelEl.insertAdjacentHTML('beforeend', formHtml);
       const form = panelEl.querySelector('.record-form-shell');
@@ -1314,7 +1314,7 @@ function _tfRenderProgressBlock(panel, tf, ctx) {
           options: ['筹备中', '执行中', '攻坚中', '收尾'].map(s => ({ value: s, label: s })),
           className: 'w-28 flex-shrink-0',
         })}
-        <textarea id="tf-progress-note" rows="1" placeholder="进度说明（必填）…" class="input-flat flex-1 min-w-[160px] resize-none"></textarea>
+        <textarea id="tf-progress-note" rows="1" placeholder="进度说明…" class="input-flat flex-1 min-w-[160px] resize-none"></textarea>
         <button id="btn-add-tf-progress" class="btn-accent-soft text-xs px-3 py-2 flex-shrink-0" >添加进度</button>
       </div>
     </div>` : '';
@@ -1450,7 +1450,7 @@ function _showTaskforceDissolutionDialog(tf) {
         <textarea id="tf-dissolve-basis" rows="2" class="input-flat w-full" placeholder="写明要求支委会表决的具体依据"></textarea>
       </div>
       <div class="mt-3">
-        <label for="tf-dissolve-note" class="mb-1 block text-xs font-medium text-gray-600">收尾说明 <span class="font-normal text-gray-500">（选填）</span></label>
+        <label for="tf-dissolve-note" class="mb-1 block text-xs font-medium text-gray-600">收尾说明 <span class="font-normal text-gray-500"></span></label>
         <textarea id="tf-dissolve-note" rows="2" class="input-flat w-full" placeholder="记录事项完成情况或后续交接"></textarea>
       </div>`,
     footerHtml: `
@@ -1644,17 +1644,17 @@ export function openRecruitForm(ctx) {
       </div>
 
       <div class="mb-3">
-        <label for="rf-skills" class="text-xs text-gray-500 mb-1.5 block font-medium">技能要求 <span class="text-gray-500">（选填）</span></label>
+        <label for="rf-skills" class="text-xs text-gray-500 mb-1.5 block font-medium">技能要求 <span class="text-gray-500"></span></label>
         ${textInput({ id: 'rf-skills', placeholder: '如：视频剪辑、文案撰写', className: 'w-full' })}
       </div>
 
       <div class="modal-form-grid mb-3">
         <div>
-          <label for="rf-period-start" class="text-xs text-gray-500 mb-1.5 block font-medium">周期起始 <span class="text-gray-500">（选填）</span></label>
+          <label for="rf-period-start" class="text-xs text-gray-500 mb-1.5 block font-medium">周期起始 <span class="text-gray-500"></span></label>
           ${textInput({ id: 'rf-period-start', type: 'date', className: 'w-full' })}
         </div>
         <div>
-          <label for="rf-period-end" class="text-xs text-gray-500 mb-1.5 block font-medium">周期结束 <span class="text-gray-500">（选填）</span></label>
+          <label for="rf-period-end" class="text-xs text-gray-500 mb-1.5 block font-medium">周期结束 <span class="text-gray-500"></span></label>
           ${textInput({ id: 'rf-period-end', type: 'date', className: 'w-full' })}
         </div>
       </div>
@@ -1678,7 +1678,7 @@ export function openRecruitForm(ctx) {
         <legend class="modal-fieldset__legend">通知与说明</legend>
         <div class="modal-fieldset__body">
       <div class="mb-3">
-        <label for="rf-notes" class="text-xs text-gray-500 mb-1.5 block font-medium">说明 <span class="text-gray-500">（选填）</span></label>
+        <label for="rf-notes" class="text-xs text-gray-500 mb-1.5 block font-medium">说明 <span class="text-gray-500"></span></label>
         <textarea id="rf-notes" rows="2" placeholder="补充说明" class="input-flat w-full"></textarea>
       </div>
 

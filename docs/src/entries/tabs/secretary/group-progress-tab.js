@@ -934,7 +934,7 @@ function _openDissolveModal(container, id) {
       <p class="text-sm text-gray-800">确认解散「${esc(g.name)}」？</p>
       <p class="text-xs text-gray-500 mt-2">组内 ${n} 人将转为「未分组」，可在左栏「未分组」一行再逐个归入其它党小组；该组留痕保留，解散后不再出现在任何下拉与统计中。不可恢复：如需恢复，只能重新建组并归组。</p>
       <div class="mt-3">
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="gp-dissolve-note">解散原因（可空）</label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="gp-dissolve-note">解散原因</label>
         <input type="text" id="gp-dissolve-note" class="input-flat w-full" placeholder="如：并入其它党小组 / 成员重新分组">
       </div>`,
     footerHtml: `

@@ -455,7 +455,7 @@ function renderIssueDetail(issueId) {
   });
   html += `</div>`;
   html += `<div class="mt-2 flex items-center gap-2">`;
-  html += `<input type="text" id="assign-note-input" class="input-flat flex-1" placeholder="指派备注（选填）">`;
+  html += `<input type="text" id="assign-note-input" class="input-flat flex-1" placeholder="指派备注">`;
   html += `</div></div>`;
   html += `</div>`;
 
@@ -476,7 +476,7 @@ function renderIssueDetail(issueId) {
       html += `<button data-detail-action="confirm-close" data-reason="${r.value}" class="btn-outline text-xs px-3 py-1.5">${r.label}</button>`;
     });
     html += `</div>`;
-    html += `<input type="text" id="close-note-input" class="input-flat w-full" placeholder="关闭备注（选填）">`;
+    html += `<input type="text" id="close-note-input" class="input-flat w-full" placeholder="关闭备注">`;
     html += `</div>`;
     // 合并选择器（默认隐藏）
     html += `<div id="issue-merge-selector" class="hidden mt-2 p-3 rounded-lg bg-gray-50 border border-gray-200">`;

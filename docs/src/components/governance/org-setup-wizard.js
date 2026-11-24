@@ -436,7 +436,7 @@ function _createPanelHtml(S, isStaff) {
             <p id="wz-create-appoint-secretary-err" data-wz-field-error="1" role="alert" hidden class="text-xs text-red-600 mt-1"></p>
           </div>
           <div>
-            <label class="text-xs text-gray-500 block mb-1" for="wz-create-appoint-org">组织委员（可选）</label>
+            <label class="text-xs text-gray-500 block mb-1" for="wz-create-appoint-org">组织委员</label>
             <select id="wz-create-appoint-org" class="input-flat w-full" ${appointOn ? '' : 'disabled'}>
               <option value="">不任命（创建后可补任）</option>${orgOptions}
             </select>

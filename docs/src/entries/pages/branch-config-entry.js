@@ -94,7 +94,7 @@ function renderControls() {
           <div class="mt-2 flex flex-wrap gap-2">
             <button type="button" id="branch-secretary-save" class="btn-accent px-3 py-2 text-sm font-medium">确认任命</button>
           </div>
-          <label for="branch-appointment-note" class="mt-2 block text-xs text-gray-600">任命说明（可选）</label>
+          <label for="branch-appointment-note" class="mt-2 block text-xs text-gray-600">任命说明</label>
           <input id="branch-appointment-note" class="input-flat mt-1 w-full" placeholder="如换届选举及日期">
         </div>
       </section>

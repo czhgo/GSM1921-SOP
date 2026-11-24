@@ -196,7 +196,7 @@ export async function renderContent(ctx) {
       ${reportInboxHtml}
       <!-- 2026-11-01 Task 7：本组复盘与其他党小组并入一张低频卡，各自折叠（默认收起） -->
       <section class="card rounded-xl p-4" id="leader-more-card" aria-labelledby="leader-more-title">
-        ${renderCardHeader({ title: '低频查阅', titleId: 'leader-more-title', meta: '复盘 · 其他党小组（只读）' })}
+        ${renderCardHeader({ title: '低频查阅', titleId: 'leader-more-title', meta: '复盘 · 其他党小组' })}
         <div class="space-y-3">
           ${lowFrequencyFoldsHtml({
             reviewBodyHtml,
