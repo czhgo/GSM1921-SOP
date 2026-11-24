@@ -137,9 +137,10 @@ for (let i = 0; i < checked.length; i += 1) {
   for (let i = 0; i < Math.min(checked.length, seq.length); i += 1) {
     const cur = seq[i];
     if (cur.isMerge) continue;
-    // ① 「续 / 更正」必须紧邻同批次上一条（更旧一条 commits[i+1] 不能作为上一条，故比较 i-1）
+    // ① 「续 / 更正」必须紧邻同批次上一条：commits 为**新→旧**序，故「上一条」＝更旧一条 commits[i+1]
+    //   （2026-11-25 批次 633 更正：原写 i-1 指向更**新**的提交，导致 HEAD 永远取不到上一条）
     if (cur.isContinuation) {
-      const prev = seq[i - 1];
+      const prev = seq[i + 1];
       const prevId = prev?.batch?.id || null;
       const curId = (CONTINUATION.exec(cur.subject) && cur.subject.match(/批次\s*(\d{3})/)?.[1]) || null;
       if (!prev || !prev.batch || prev.batch.id !== curId) {
