@@ -85,24 +85,28 @@ test('P3 党委下发：支委层与党委台可见，普通成员不可见', as
     await loginAs(partyPage, { studentId: '9000000001', expectUrlPart: 'party-committee' });
     await activateTab(partyPage, '下发通知');
     await page_waitText(partyPage, '撰写一条党委通知');
-    // 批次 612：full 并发下曾出现「支部复选框未渲染就取值 ⇒ branchIds=[] 被拦」的偶发；
-    //   先等复选框挂载，再填表提交（不放宽断言，只补等待）。
-    await partyPage.waitForSelector('input[name="dispatch-branch"]', { state: 'attached', timeout: 15000 });
-    await partyPage.evaluate((title) => {
-      const t = document.getElementById('dispatch-title');
-      const c = document.getElementById('dispatch-content');
-      // 2026-10-18：目标支部默认不选，成功下发前须主动勾选（同 form-loop 成功路径口径）。
-      const branch = document.querySelector('input[name="dispatch-branch"]');
-      if (branch && !branch.checked) {
-        branch.checked = true;
-        branch.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-      if (t) { t.value = title; t.dispatchEvent(new Event('input', { bubbles: true })); }
-      if (c) { c.value = '请支委会对照落实，重要事项及时向支部大会传达。'; c.dispatchEvent(new Event('input', { bubbles: true })); }
-      document.getElementById('dispatch-submit')?.click();
-    }, titleD);
+    // 批次 612/617：full 并发下曾出现「支部复选框未渲染就取值为空 / 异步回执慢仍未见标题」；
+    //   改为按用户路径真实交互（waitFor visible → check → fill → click），提交前确认表单值未被重绘清空。
+    const branchBox = partyPage.locator('#dispatch-branches input[name="dispatch-branch"]').first();
+    await branchBox.waitFor({ state: 'visible', timeout: 20000 });
+    await branchBox.check();
+    await partyPage.locator('#dispatch-title').fill(titleD);
+    await partyPage.locator('#dispatch-content').fill('请支委会对照落实，重要事项及时向支部大会传达。');
+    await partyPage.waitForFunction(
+      (t) => document.getElementById('dispatch-title')?.value === t,
+      titleD, { timeout: 10000 },
+    );
+    await partyPage.locator('#dispatch-submit').click();
     // 等回执后再切页：成功路径会自动切到「已发送」，以标题出现为准（不依赖 toast 停留时长）。
-    await page_waitText(partyPage, titleD, 15000);
+    //   并发负载下回执可能超过 15s ⇒ 放宽到 30s（只加等待，判据不变）；失败时带出页面尾部便于分诊。
+    try {
+      await page_waitText(partyPage, titleD, 30000);
+    } catch (err) {
+      const tail = await partyPage
+        .evaluate(() => document.body.innerText.replace(/\s+/g, ' ').slice(-300))
+        .catch(() => '');
+      throw new Error(`${err.message}；提交后页面尾部：${tail}`);
+    }
     await partyPage.getByRole('tab', { name: /已发送/ }).click();
     await page_waitText(partyPage, titleD); // 切到已发送后查看记录
 

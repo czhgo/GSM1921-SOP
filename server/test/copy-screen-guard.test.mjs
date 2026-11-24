@@ -97,6 +97,26 @@ const MEASURE = (cfg) => {
   return { copy: copy.length, ctrls, repeats };
 };
 
+/** 取样落定：等骨架 / aria-busy 消失，且连续两次取样的「文案长 · 控件数 · 复述」一致再计分。
+ *  为什么（批次 617）：tab 内容多为异步渲染；固定等待在并发负载下会量到「骨架 / 半成品」——
+ *  full 实测曾把 `secretary::全局概况` 量成 0 处复述、比值跌到 ≤12，令 M3 误报「该收基线」。
+ *  只稳定取样口径，不改 C3 / C4 判据与阈值；上限 10 次 × 400ms，超时取最后一次（慢加载不误红）。 */
+async function measureSettled(page, n3) {
+  let prev = null;
+  for (let i = 0; i < 10; i += 1) {
+    const busy = await page.evaluate(() => Boolean(document.querySelector('[data-ws-ov-skeleton], [aria-busy="true"]')));
+    const now = await page.evaluate(MEASURE, { n3 });
+    if (!busy && prev
+      && prev.copy === now.copy && prev.ctrls === now.ctrls
+      && JSON.stringify(prev.repeats) === JSON.stringify(now.repeats)) {
+      return now;
+    }
+    prev = now;
+    await page.waitForTimeout(400);
+  }
+  return prev;
+}
+
 let server, base, browser;
 before(async () => {
   const app = createApp({ dbPath: ':memory:' });
@@ -290,7 +310,7 @@ for (const w of WORKS) {
           [...document.querySelectorAll('button[role="tab"]')].find((x) => x.textContent.includes(l))?.click();
         }, label);
         await page.waitForTimeout(1000);
-        const { copy, ctrls, repeats } = await page.evaluate(MEASURE, { n3: N3 });
+        const { copy, ctrls, repeats } = await measureSettled(page, N3);
         const key = `${w.page}::${label}`;
         RESULT.set(key, { copy, ctrls, repeats });
         SWEEP.tabs += 1;

@@ -544,7 +544,11 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「工作概
       ]);
       try { await tabReady(); loggedIn = true; } catch (e) { if (attempt === 1) throw e; }
     }
-    await page.waitForTimeout(800);
+    // 批次 617：并发下首屏数据可能晚到；等 activities 真正进入 state 再取样本（判据不变，只补等待）。
+    await page.waitForFunction(async () => {
+      const m = await import('/src/core/base/state.js?v=20261120a');
+      return ((m.getAppState() || {}).activities || []).length > 0;
+    }, null, { timeout: 30000 }).catch(() => {});
     // 取一个真实活动（优先「非当前月」者，顺带验证切月）
     const acts = await page.evaluate(async () => {
       const m = await import('/src/core/base/state.js?v=20261120a');
@@ -556,7 +560,19 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「工作概
     // ① ?activityId=
     await page.goto(`${base}/workspace/${w.page}.html?activityId=${encodeURIComponent(act.id)}`, { waitUntil: 'domcontentloaded' });
     await tabReady();
-    await page.waitForTimeout(2000);
+    // 批次 617：并发负载下概况异步渲染可能晚于固定 2s；且骨架态先出现、数据到达后整段重绘——
+    //   只等「网格出现过」会撞上重绘窗口（full 实测：网格在、断言时已被骨架换掉）。
+    //   改为等「骨架消失 ＋ 网格在位」的落定态，判据与断言文案不变。
+    await page.waitForFunction(
+      () => !!document.querySelector('#cal-main-grid')
+        && !document.querySelector('[data-ws-ov-skeleton], [aria-busy="true"]'),
+      null, { timeout: 30000 },
+    );
+    try {
+      await page.waitForSelector('#ov-calendar-card[open]', { state: 'attached', timeout: 30000 });
+    } catch {
+      assert.fail('活动日历折叠卡未展开（深链丢落点）');
+    }
     assert.equal(await activeLabel(), '工作概况', '?activityId= 应落「工作概况」（活动日历页签已降为页内卡）');
     assert.ok(await page.evaluate(() => !!document.querySelector('#cal-main-grid')), '活动日历骨架未渲染');
     assert.ok(await page.evaluate(() => !!document.querySelector('#ov-calendar-card[open]')), '活动日历折叠卡未展开（深链丢落点）');
@@ -569,9 +585,16 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「工作概
     // ② ?view=activities（首页「查看全部活动」同款）
     await page.goto(`${base}/workspace/${w.page}.html?view=activities`, { waitUntil: 'domcontentloaded' });
     await tabReady();
-    await page.waitForTimeout(1500);
+    try {
+      await page.waitForFunction(
+        () => !!document.querySelector('#cal-main-grid')
+          && !document.querySelector('[data-ws-ov-skeleton], [aria-busy="true"]'),
+        null, { timeout: 30000 },
+      );
+    } catch {
+      assert.fail('?view=activities：活动日历骨架未渲染');
+    }
     assert.equal(await activeLabel(), '工作概况', '?view=activities 应落「工作概况」（活动日历页签已降为页内卡）');
-    assert.ok(await page.evaluate(() => !!document.querySelector('#cal-main-grid')), '?view=activities：活动日历骨架未渲染');
     assert.deepEqual(errs, [], `组织台活动深链出现脚本错误：\n${errs.join('\n')}`);
   } finally {
     await page.close();

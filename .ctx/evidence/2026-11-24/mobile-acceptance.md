@@ -1,0 +1,3 @@
+| 2026-11-24T07:16:15.587Z | 看通知并回执 | 人类完成动作：是 | 视口 1542×705 @1.2395833730697632x · 屏幕 1549×872 · 本页无横滚=true | Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/15 |
+| 2026-11-24T07:16:16.747Z | 表决投票 | 人类完成动作：是 | 视口 1542×705 @1.2395833730697632x · 屏幕 1549×872 · 本页无横滚=true | Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/15 |
+| 2026-11-24T07:16:17.732Z | 查看考勤 | 人类完成动作：是 | 视口 1542×705 @1.2395833730697632x · 屏幕 1549×872 · 本页无横滚=true | Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/15 |

@@ -90,8 +90,8 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 ### 2.5 测试与发布质量 —— 70/100
 
 **证据**：daily **32 文件 / 264 断言**；guards **81 文件 / 907 断言**；`workbench-audit-coverage::W1–W5` 常驻；`write-policy-matrix`（路由 ≡ 矩阵 + 门名处理分支 + 反例）、`security-hardening`、`session-ttl`、`run-mode` 均登记 tier；四层 runner 按 registry 单一源执行；`daily.yml` 已接 `test:daily` 与 `deploy-verify`；`evaluation-asset-guard::⑤` 把 EA 测试读数锁到 registry（批次 604 立）；`component-ratchet-guard` 新源件 16 `viewport-and-touch-guard` 把外部准则五条写成带反例的验收判据（批次 604 续）；`doc-lifecycle-guard` 源件 5 `guard-citation-guard` 断言「文档引用的守卫文件必须存在」（批次 604 续，修掉 21 处归并后悬空引用）；`style-ratchet-guard::S5` 曾拦下新增非令牌间距（批次 603）。
-**残项**：nightly 四片未实跑（无 run id）；本批刚把 full 修绿（12 处夹具/守卫漂移）；审计脚本仍不进 daily；full 墙钟 1808.5s 仍是发布风险。
-**下一改进项**（`B-603-4`）：EA 读数 ≡ registry 已收口（`evaluation-asset-guard::⑤`，改一处即红）；余 CI 两个 job 实跑归**外部门**（判据：run id ＋ 日志，与 2.6 的 `L-02` 同批，由支书授权推送后一次性补齐）；审计脚本入 daily 前先给耗时读数。复评触发：CI 出 run id、或 guards 预算变更。
+**残项**：nightly 四片未实跑（无 run id）；`test:full` 三通道全绿（批次 617，读数见 `.ctx/logs/2026-11-EXECUTION_LOG.md` 批次 617 节）；审计脚本仍不进 daily；full 墙钟 ≈29 分钟，按「分片单片 ≤1200s」口径由 nightly 四片并行承担。
+**下一改进项**（`B-603-4`）：EA 读数 ≡ registry 已收口（`evaluation-asset-guard::⑤`，改一处即红）；余 CI 两个 job 实跑归**外部门**（判据：run id ＋ 日志，与 2.6 的 `L-02` 同批，由支书授权推送后一次性补齐）；审计脚本入 daily 前先给耗时读数。取样口径已落定（批次 617：概况类普查等「骨架消失 ＋ 两次取样一致」，深链等落定态），不再用固定等待抢跑。复评触发：CI 出 run id、或 guards 预算变更。
 
 ### 2.6 运行、部署与跨组织复用 —— 70/100
 
@@ -235,7 +235,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | CI | 首次 GitHub Actions run id（daily ＋ nightly 四片） | 支书提供仓库访问 | **daily ＋ deploy-verify ＋ install-linux 已取 run id `45232134920`（三 job success）**；nightly 四片只有 `schedule`（UTC 18:00）＋ dispatch，待次日定时或 token dispatch 补 | 首次 push 后；此后每次 workflow 改动 |
 | 签收 | 真人（支书 / 支委）在 review 档完整走一遍上线路径并签收 | 支书 | 签收记录（日期 ＋ 账号 ＋ 走过页面清单）写 `.ctx/evidence/`；**批次 607 已备 `/signoff` 页**（勾选即写入证据，含 UA / 视口） | 每轮候选发布前 |
 | SMTP | 真实邮件服务器实投（非 mock） | 支书提供凭据 | **批次 607 已取本机真实 SMTP 协议读数**（正常投递 / 认证失败 535 / 连接超时，`.ctx/evidence/2026-11-24/smtp.md`）；第三方服务商实投仍待支书提供 `SMTP_*` 后加 `--remote` 复跑 | 邮件通道配置或 `mailer*` 改动后 |
-| M-01 | 移动端三任务：看通知并回执 / 表决投票 / 查看考勤（375 / 390 两档） | 支书提供真机 | 三任务各走通一次；无横向滚动、可交互文字 ≥13px、命中区 ≥44。**批次 607 已备手机验收台**（`cd server; npm run acceptance` → 手机打开 `/mobile`，自动记录 UA / 视口 / 时间）；真机点击仍待支书完成 | 每次改动移动端布局或 `.vote-btn` 命中区后 |
+| M-01 | 移动端三任务：看通知并回执 / 表决投票 / 查看考勤（375 / 390 两档） | 支书提供真机 | 三任务各走通一次；无横向滚动、可交互文字 ≥13px、命中区 ≥44。**批次 607 已备手机验收台**（`cd server; npm run acceptance` → 手机打开 `/mobile`，自动记录 UA / 视口 / 时间）；批次 617 复启 `:3100`（`http://10.7.191.182:3100/mobile`）。已记 3 条本机浏览器读数（`.ctx/evidence/2026-11-24/mobile-acceptance.md`，视口 1542×705 非手机档，不构成 M-01 通过）；真机点击仍待支书完成 | 每次改动移动端布局或 `.vote-btn` 命中区后 |
 
 **执行顺序**：① 外部门五项由支书授权后一次性补齐（只阻断上线）；② backlog 只登记、触发即做；③ 本表只归总残项与顺序，不改 §一 / §二 / §五 的评分与论证。
 
@@ -264,7 +264,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | 业务与数据正确性 | §2.1 得分依据 ＋ `D-864` / `D-886` / `D-887`；`.ctx/evidence/2026-11-20/backlog-reconcile.md` | 三层挂靠已收口：定义只在 `OBJECT_MODEL §2.1`、指针在 `PARTY_COMMITTEE_DESIGN §2.7`（`single-fact-consistency::⑥`）；D2 处置完整性已收口（`workbench-audit-coverage::W7`）；C2 验收＝审计报告 pass > 0（现值 37） |
 | 安全与权限 | §2.2 ＋ `write-policy-matrix` 163 条 ＋ `multi-branch-read-filter` 9 组 | 门名处理分支已收口（`write-policy-matrix` R2）；多支部读面逐口取证 ＋ 开关演练已收口（`evidence/2026-11-23/multi-branch-read-ports.md`）；余 CI run id（外部门） |
 | 最小三成本体验 | §2.3 ＋ 46 页签审计读数 ＋ `.ctx/evidence/2026-11-21/density-8pages.md` | 不设数字目标：调色板状态文字（291 处 / 56 文件）与手拼徽章（43 文件）逐文件不超基线、不出现新文件（`B-603-3`） |
-| 测试与发布质量 | §2.5 读数（daily 264 / guards 81 文件 / 907 断言）＋ `test-tier-registry.mjs` | EA 读数 ≡ registry 已收口（`evaluation-asset-guard::⑤`）；余 CI run id（外部门） |
+| 测试与发布质量 | §2.5 读数（daily 264 / guards 81 文件 / 907 断言）＋ `test-tier-registry.mjs` ＋ 批次 617 full 三通道绿 | EA 读数 ≡ registry 已收口（`evaluation-asset-guard::⑤`）；余 CI run id（外部门） |
 | 架构与可维护性 | §2.4 ＋ `D-888` 键级隔离 ＋ 三份契约 | 对象模型单一源已收口（同 2.1）；余 `B-541-7` 组件散件随改动收敛 |
 | 运行、部署与跨组织复用 | §2.6 ＋ 批次 527 换轨读数 ＋ `deploy/verify-linux.sh` 6/6 | `L-02` 真机三步 ＋ `deploy-verify` run id（外部门） |
 | 前端美学专项 | `D-893` ＋ `D-896`~`D-898` ＋ `card-consistency-guard` / `spacing-ratchet-guard` / 三份新守卫基线 | 不设数字目标；逐文件不超基线、不出现新文件；8 页读数复尺 |
