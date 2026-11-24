@@ -48,6 +48,11 @@ export function renderContent() {
               <p class="font-title-cn text-base font-bold text-gray-800" id="rq-submit-title">上报党委</p>
               <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">动作</span>
             </div>
+            <!-- 2026-11-24 批次 618（D-920 / F-2）：唯一写入口原先是 40×40 空壳 summary，
+                 热区上移到卡头 CTA；summary 仍保留（键盘 / 读屏可直达，DOM 契约不变）。
+                 aria-expanded 由 JS 运行期同步（本文件折叠原语仍只有 details 一种，见
+                 component-ratchet-guard::T3-3）。 -->
+            <button type="button" id="rq-submit-open" class="btn-outline text-xs px-3 py-1.5" aria-controls="rq-submit">填写上报表单</button>
           </div>
           <p class="text-xs text-gray-500 mt-1">本页是<strong>动作</strong>页：一次性地向院党委发起上报（发展节点 / 活动报备），并在此跟批复回执；不承载对象台账。</p>
           <details class="disclosure" id="rq-submit">
@@ -62,6 +67,22 @@ export function renderContent() {
     const rqDetails = tc.querySelector('#rq-submit');
     const ensureForm = () => { if (rqDetails?.open) renderForm(branchId, me, tc); };
     rqDetails?.addEventListener('toggle', ensureForm);
+    // 卡头 CTA（批次 618）：展开/收起表单，并把 aria-expanded 与按钮文案同步；
+    //   展开后把焦点送进第一个输入（`toggle` 异步触发，故用 0ms 让表单先完成渲染）。
+    const rqOpenBtn = tc.querySelector('#rq-submit-open');
+    const syncRqOpenBtn = () => {
+      if (!rqOpenBtn || !rqDetails) return;
+      rqOpenBtn.setAttribute('aria-expanded', rqDetails.open ? 'true' : 'false');
+      rqOpenBtn.textContent = rqDetails.open ? '收起表单' : '填写上报表单';
+    };
+    rqOpenBtn?.addEventListener('click', () => {
+      if (!rqDetails) return;
+      if (rqDetails.open) { rqDetails.open = false; return; }
+      rqDetails.open = true;
+      setTimeout(() => tc.querySelector('#rq-title')?.focus(), 0);
+    });
+    rqDetails?.addEventListener('toggle', syncRqOpenBtn);
+    syncRqOpenBtn();
     ensureForm();
   }
   refreshStats(tc, branchId);

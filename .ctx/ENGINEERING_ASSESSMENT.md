@@ -217,8 +217,8 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | 编号 | 残项 | 状态 | 下一动作 / 指针 |
 |---|---|---|---|
 | L-02 | Linux 真机 `install.sh` / `update.sh` 未验 | 外部门 | 见下表；容器侧 `deploy/verify-linux.sh` 6/6 |
-| L-13 | 页签 IA **A 40 / B 6 / C 0** | backlog | 按 `.ctx/evidence/2026-11-08/tab-review-ledger.md §四` 排批（剩余 8 条，F-2 待支书裁定 `P-5`） |
-| L-14 / L-15 | 工作流块停用 / 画布 UI | backlog | 先出方案（`WORKFLOW_BLOCK_CONTRACT §8.4`） |
+| L-13 | 页签 IA **A 41 / B 5 / C 0** | backlog | 按 `.ctx/evidence/2026-11-08/tab-review-ledger.md §四` 排批（剩余 7 条；F-2 已于批次 618 闭环，`D-920`） |
+| L-14 / L-15 | 工作流块停用是否联动停派生 / 画布 UI | backlog | `L-14` 停块派生联动仍只登记；`L-15` 画布已裁定不做（`D-919`），配置面＝逐行卡（批次 618 已编码） |
 | L-17 | SQLite 宽表与索引 | backlog | `cd server; npm run probe:scale`（现读数：最大 679 行 / p95 ≤ 5.2ms，未触发）；单表 ≥ 1 万行或 p95 > 200ms 触发 `MIGRATIONS v2` |
 | L-18 | 组件出口散件 | backlog | 随组件域改动同批收敛（`B-541-7`） |
 
@@ -232,7 +232,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | 编号 | 事项 | 责任人 | 证据口径 | 复评触发 |
 |---|---|---|---|---|
 | L-02 | Linux 真机跑 `install.sh` / `install.ps1`（WSL 或测试机）/ `update.sh` | 支书授权，AI 出命令 | **批次 607 已取**：Windows 本机 exit 0 ＋ `/login.html` 200 ＋ uploads 可写；Linux CI `install-linux` job 全链成功（run `45232134920`，读数 `.ctx/evidence/2026-11-23/deploy-l02.md`）；systemd / useradd / cron / nginx 反代仍待真机 | 每次改动 `deploy/**` 或发布包白名单后 |
-| CI | 首次 GitHub Actions run id（daily ＋ nightly 四片） | 支书提供仓库访问 | **daily ＋ deploy-verify ＋ install-linux 已取 run id `45232134920`（三 job success）**；nightly 四片只有 `schedule`（UTC 18:00）＋ dispatch，待次日定时或 token dispatch 补 | 首次 push 后；此后每次 workflow 改动 |
+| CI | 首次 GitHub Actions run id（daily ＋ nightly 四片） | 支书提供仓库访问 | **daily ＋ deploy-verify ＋ install-linux 已取 run id `45361455724`（三 job success，2026-11-24 push `2b8a28477`）**；nightly 四片只有 `schedule`（UTC 18:00）＋ dispatch，待次日定时或 token dispatch 补 | 首次 push 后；此后每次 workflow 改动 |
 | 签收 | 真人（支书 / 支委）在 review 档完整走一遍上线路径并签收 | 支书 | 签收记录（日期 ＋ 账号 ＋ 走过页面清单）写 `.ctx/evidence/`；**批次 607 已备 `/signoff` 页**（勾选即写入证据，含 UA / 视口） | 每轮候选发布前 |
 | SMTP | 真实邮件服务器实投（非 mock） | 支书提供凭据 | **批次 607 已取本机真实 SMTP 协议读数**（正常投递 / 认证失败 535 / 连接超时，`.ctx/evidence/2026-11-24/smtp.md`）；第三方服务商实投仍待支书提供 `SMTP_*` 后加 `--remote` 复跑 | 邮件通道配置或 `mailer*` 改动后 |
 | M-01 | 移动端三任务：看通知并回执 / 表决投票 / 查看考勤（375 / 390 两档） | 支书提供真机 | 三任务各走通一次；无横向滚动、可交互文字 ≥13px、命中区 ≥44。**批次 607 已备手机验收台**（`cd server; npm run acceptance` → 手机打开 `/mobile`，自动记录 UA / 视口 / 时间）；批次 617 复启 `:3100`（`http://10.7.191.182:3100/mobile`）。已记 3 条本机浏览器读数（`.ctx/evidence/2026-11-24/mobile-acceptance.md`，视口 1542×705 非手机档，不构成 M-01 通过）；真机点击仍待支书完成 | 每次改动移动端布局或 `.vote-btn` 命中区后 |

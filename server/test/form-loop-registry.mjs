@@ -122,7 +122,7 @@ export const VALIDATION_SITES = [
   //   空必填路径（本台账的真机形态）到不了，且对话框会污染同一会话的一次性应答器。
   { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1634, field: '组织者跨组说明', flow: 'secretary/写入活动·组织落点', machine: false, msg: '请填写组织者跨组说明（将随活动留存）', reason: '【批次 499 新增 · 待解锁】同一浮窗内，但须先选**他组**组织者并通过 `confirmNudge` 软提示对话框；空必填路径不可达，机跑还会与「一次性 dialog 应答器」互相冒充（见本文件头部会话复用的说明）。本批只登记、不造前置。' },
   { file: SRC + 'entries/tabs/org/activity-calendar-tab.js', line: 140, field: '责任党小组（补选）', flow: 'org/活动日历·待补责任党小组', machine: false, msg: '请选择责任党小组', reason: '【批次 499 新增 · 待解锁】入口只对**缺责任组的存量活动**出现；v8 迁移已把能判定的历史活动补齐承办范围，演示库里没有稳定的「待补」行 ⇒ 造不出稳定前置。改动路径本身由 `activity-party-group-assignment` / `cross-group-activity-probe` 的 API 用例覆盖。' },
-  { file: SRC + 'entries/tabs/secretary/report-up-tab.js', line: 136, field: '事项类型、标题与说明', flow: 'secretary/上报党委', machine: true, msg: '请填写事项类型、标题与说明' },
+  { file: SRC + 'entries/tabs/secretary/report-up-tab.js', line: 157, field: '事项类型、标题与说明', flow: 'secretary/上报党委', machine: true, msg: '请填写事项类型、标题与说明' },
   // 2026-09-23（裁定乙）：支书台「赋权管理」按三个情景分块（情景② 活动 / 情景③ 专班各一套表单，
   //   校验共用一个实现）⇒ 台账行号随块位移（`:217,218,219` → `:243,244,245`；`:419,423` → `:447,451`）。
   //   校验实现只有一处（同一 `bindConfirmProjectAuth` 两处绑）⇒ **校验点条数与流程条数均不变**（不加新条目）。
@@ -395,7 +395,7 @@ export const VALIDATION_SITES = [
   //   党委账号在向导页（未选支部）`PersonStore.getMembers()` 为空 ⇒ `appointable=false` ⇒ **整块不渲染**
   //   （真机探针 500ms/2s/5s/10s 均无 `#wz-create-appoint`）⇒ 该支在本形态不可达，改 `machine:false` 登记。
   //   校验序：① 模式切「复制现有」后源支部为空 →「请选择源支部」；② 放行后 →「请选择首任支书…」（仅支部账号）。
-  { file: SRC + 'components/governance/org-setup-wizard.js', line: 1495, field: '源支部', flow: 'component/组织配置向导', machine: true, msg: '请选择源支部' },
+  { file: SRC + 'components/governance/org-setup-wizard.js', line: 1502, field: '源支部', flow: 'component/组织配置向导', machine: true, msg: '请选择源支部' },
   { file: SRC + 'components/governance/org-setup-wizard.js', line: 434, field: '首任支书', flow: 'component/组织配置向导', machine: false, msg: '请选择首任支书', reason: '【批次 531（B-515-6）改准 · 原判「结构不可达」已被前置修复推翻】就地任命区块的渲染前提是 `appointable`（现役成员候选非空），而党委账号在向导页未选支部时 `GET /users` 不回支部成员（`resourceRowsForActor`：party-staff 无 branchId ⇒ `[]`）⇒ `#wz-create-appoint` 不渲染、该支不可达。本批把真机流程的入口补成 `/wizard.html?branchId=br-b1`（`api-adapter._withSelectedBranch` 为党委读口补支部范围）⇒ 候选名册非空、`#wz-create-appoint` 按设计渲染且 id 不漂移；「无可任命成员」时该区块改为渲染说明（不再静默消失）。校验本体已就位（勾选且未选首任支书 ⇒ `#wz-create-appoint-secretary-err` 显示错误 + 控件 `aria-invalid` + 阻止提交）。**仍保留 machine:false**：本批只修前置/选择器、不新增判据条目（该支尚未编入真机流），下一批纳管时同批改成 machine:true 并补流程。' },
   { file: SRC + 'components/sections/references.js', line: 909, field: '标题', flow: 'module/制度参考·写入', machine: true, msg: '请填写标题' },
   { file: SRC + 'components/sections/references.js', line: 913, field: '制度正文', flow: 'module/制度参考·写入', machine: true, msg: '请填写制度正文' },
