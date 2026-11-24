@@ -172,7 +172,7 @@ test('W2 所有 mock 日期字段落在窗口内；白名单例外逐条有理�
 });
 
 // ── W3 ─────────────────────────────────────────────────────────────────────
-test('W3 8/9/10/11 每月至少一场活动；11 月只 draft/published 且无考勤/复盘/归档', () => {
+test('W3 最近四周有已完成活动；草稿不计入（2026-11-25 批次 630 · D-928 改判）', () => {
   const months = new Map();
   for (const activity of ACTIVITIES) {
     const month = monthKeyOf(activity.date);
@@ -181,6 +181,18 @@ test('W3 8/9/10/11 每月至少一场活动；11 月只 draft/published 且无�
   for (const month of ['2026-08', '2026-09', '2026-10', '2026-11']) {
     assert.ok((months.get(month) || 0) >= 1, `${month} 没有任何活动`);
   }
+
+  // 新鲜度判据（原「11 月只放计划态」作废）：以最新活动日为锚，最近 28 天内 ≥4 场非草稿活动，
+  //   保证「今天」页与最近动态不再只看到 8–10 月的内容。
+  const latest = ACTIVITIES.map((a) => a.date).sort().at(-1);
+  const anchor = new Date(`${latest}T00:00:00`);
+  const recent = ACTIVITIES.filter((a) => {
+    if (a.draft) return false;
+    const d = new Date(`${a.date}T00:00:00`);
+    return (anchor - d) / 86400000 <= 28;
+  });
+  assert.ok(recent.length >= 4, `最近 28 天非草稿活动仅 ${recent.length} 场（应 ≥4）`);
+  assert.ok(ACTIVITIES.some((a) => a.draft), '必须保留至少 1 条草稿样本（今天页不得把草稿当今日会议）');
 
   const db = {
     users: PEOPLE,
@@ -193,19 +205,6 @@ test('W3 8/9/10/11 每月至少一场活动；11 月只 draft/published 且无�
     attendances: ATTENDANCE_RECORDS,
   };
   applyDerivedFacts(db, { now: DEMO_TODAY });
-
-  const november = ACTIVITIES.filter((activity) => monthKeyOf(activity.date) === '2026-11');
-  assert.ok(november.length >= 2 && november.length <= 3, `11 月计划态活动应为 2–3 场（实得 ${november.length}）`);
-  for (const activity of november) {
-    assert.ok(['draft', 'published'].includes(activity.status), `11 月活动 ${activity.id} 状态必须是 draft/published（实得 ${activity.status}）`);
-  }
-  const novemberIds = new Set(november.map((activity) => activity.id));
-  const forbidden = [
-    ...ATTENDANCE_RECORDS.filter((row) => novemberIds.has(row.activityId)).map((row) => `考勤 ${row.id}`),
-    ...REVIEW_RECORDS.filter((row) => novemberIds.has(row.activityId)).map((row) => `复盘 ${row.id}`),
-    ...SEED_ARCHIVE_RECORDS.filter((row) => row.activityId && novemberIds.has(row.activityId)).map((row) => `归档 ${row.id}`),
-  ];
-  assert.deepEqual(forbidden, [], `11 月活动不得有已完成记录：${forbidden.join('、')}`);
 });
 
 // ── W4 ─────────────────────────────────────────────────────────────────────

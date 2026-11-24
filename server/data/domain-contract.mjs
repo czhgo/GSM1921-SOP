@@ -110,7 +110,8 @@ const RESOURCE_CONTRACT = [
       status: ACTIVITY_STATUSES, organizingScope: ACTIVITY_ORGANIZING_SCOPES,
       ownerScope: ACTIVITY_OWNER_SCOPES, publishScope: PUBLISH_SCOPES,
     },
-    seedCount: 38,
+    // 2026-11-25 批次 630（D-928）：补 11 月 4 场已完成活动（act-41…44，含 1 场草稿样本仍为 act-40）
+    seedCount: 42,
     aliases: [],
     fields: ['id', 'title', 'type', 'date', 'location', 'direction', 'visibility', 'createdBy', 'createdAt',
       'executor', 'supervisor', 'priority', 'dueDate', 'organizingScope', 'hostGroupId', 'hostGroup',
@@ -455,7 +456,8 @@ const WORKGROUP_CONTRACT = [
     required: ['id', 'branchId', 'kind', 'sourceType', 'sourceId', 'status', 'createdAt'],
     optional: ['name', 'organizingScope', 'hostGroupId', 'recruitmentScope', 'crossGroupCoordinatorId', 'migrationState'],
     enums: { kind: ['activity', 'taskforce'], sourceType: ['activity', 'taskforce'], status: WORKGROUP_STATUSES },
-    seedCount: 46, aliases: [],
+    // 每场活动派生 1 个工作组（kind=activity）：随批次 630 活动 38→42 同步 46→50
+    seedCount: 50, aliases: [],
   },
   {
     entity: 'workgroupMembers', table: 'workgroup_members', mockCollection: 'workgroupMembers',
@@ -463,7 +465,7 @@ const WORKGROUP_CONTRACT = [
     optional: ['migratedFromLegacy', 'createdBy', 'crossGroup', 'coordinatedBy'],
     // 写口实写 `removed`（`workgroup-routes.js::837,993`）⇒ 成员态枚举与写值同源，不再登记 `inactive`。
     enums: { role: ['organizer', 'deep', 'participant'], status: ['active', 'removed'] },
-    seedCount: 103, aliases: [],
+    seedCount: 107, aliases: [],
   },
   {
     entity: 'workgroupGrants', table: 'workgroup_grants', mockCollection: 'workgroupGrants',

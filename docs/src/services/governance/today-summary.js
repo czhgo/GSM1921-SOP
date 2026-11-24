@@ -306,7 +306,7 @@ export function buildTodaySummary({ personId, role, now = new Date() } = {}) {
   //   取数与 today / upcoming 同一可见性单一源（filterActivitiesForViewer）；不新增请求、不改业务事实。
   const recent = [];
   for (const act of filterActivitiesForViewer(mockDB.activities, role)) {
-    if (!act || !act.date || act.date >= dateKey) continue;
+    if (!act || !act.date || act.draft || act.date >= dateKey) continue;
     recent.push({
       activityId: act.id,
       title: act.title || '',

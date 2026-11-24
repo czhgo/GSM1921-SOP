@@ -229,3 +229,12 @@ test('⑦ byAction：按动作性质七类分组（空组不出现 / 组序固�
   const submit = s.byAction.find(g => g.actionType === 'submit');
   assert.ok(submit && submit.items.some(i => i.id === 't-s1'), '无截止的「提交」项也须入组（旧版只统计不列示）');
 });
+test('⑬ 草稿不进「今日会议」与「最近动态」（2026-11-25 批次 630 · D-928）', () => {
+  const draft = ACTIVITIES.find((a) => a.draft);
+  assert.ok(draft, 'mock 必须保留草稿样本');
+  const now = new Date(`${draft.date}T09:00:00`);
+  const s = TS.buildTodaySummary({ personId: '2400012345', role: 'secretary', now });
+  const meetingIds = (s.hasMeeting || []).map((x) => x.activityId);
+  assert.ok(!meetingIds.includes(draft.id), '草稿不得计入今日会议');
+  assert.ok(!(s.recent || []).some((r) => r.activityId === draft.id), '草稿不得进最近动态');
+});

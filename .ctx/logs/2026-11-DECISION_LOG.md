@@ -967,7 +967,18 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：`test:full` 修后复跑见执行日志批次 612；daily 264 / guards 907。
 > **落点**：`EA §一 / §2.x / §5.2`；`ACTIVE_CONTEXT §1`；`TIMESTAMPS`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-927`**（共 **101** 条）。
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-928`**（共 **102** 条）。
+
+## D-928 2026-11-25 — mock 时效：补 11 月已完场次 ＋ 草稿不再充当「今日会议」（批次 630）
+
+> **评议 → 裁定 → 落点**：支书第 6 项「打开今天还是 9 月的支部大会」，选 **「滚动窗口重做 ＋ 修缺陷」**。
+> - **数据**：活动 38 → 42，补 4 场 11 月已完成场次（`act-41` 主题党日 11-04 / `act-42` 党小组会 11-08 / `act-43` 支委会 11-13 / `act-44` 主题党日 11-19）；`act-40`（11-25）保留为草稿样本。
+> - **缺陷**：`today-summary` 的「今日会议」与「最近动态」均加 `!draft` 过滤，草稿不再计入；新增单测 ⑬。
+> - **契约**：`domain-contract` 同步 `activities 38→42`、派生 `workgroups 46→50`、`workgroup_members 103→107`（每场活动派生 1 组 ＋ 1 组织者成员）。
+> - **守卫**：`demo-window-guard::W3` 由「11 月只放计划态」改判为「以最新活动日为锚，最近 28 天 ≥4 场非草稿，且必须保留 ≥1 条草稿样本」。
+> **未选**：把整库锚点化改为运行时滚动平移（需数据层重构，登记为后续批次 `P-9`）；只改文案不补数据。
+> **读数**：`demo-window-guard` 5/5；`today-summary` 10/10；`data-contract` 7/7；`test:daily` 266 全绿 189.6s。
+> **落点**：`docs/src/data/mock/activities.js`、`docs/src/services/governance/today-summary.js`、`server/data/domain-contract.mjs`、`server/test/{demo-window-guard,today-summary}.test.mjs`。
 
 ## D-927 2026-11-25 — 按钮组三层算法 ＋ 党小组主从栏降密（批次 629）
 
