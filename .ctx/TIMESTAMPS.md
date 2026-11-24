@@ -40,7 +40,7 @@ dynamic_role:
 | README.md | 2026-11-14 | — | [用户]+[AI] | 见日志批次 597 |
 | README-members.md | 2026-10-16 | — | [用户]+[AI] | 支部成员版说明；匿名反馈为登录后的支部内闭环，处置权不含揭名权（`D-824`）。 |
 | README-server.md | 2026-11-24 | — | [用户]+[AI] | 后端对接说明书；2026-11-24 批次 621：380 处「文件:行号」改为「文件 ＋ 括注符号」（`D-922`） |
-| CLAUDE.md | 2026-11-24 | — | [工程师]+[AI] | 宪法＋路由；2026-11-24 批次 622：H25 门禁与 full 预算、H20.5 批次号规则、H40.4 UI 授权门、H30 文档白名单（`D-923`） |
+| CLAUDE.md | 2026-11-25 | — | [工程师]+[AI] | 宪法＋路由；2026-11-25 批次 632：`H10.4` 补「判例转规范须给数值判据 ＋ 机检或人工核登记」（`D-930`）；此前 622 的 `H25` / `H20.5` / `H40.4` / `H30`（`D-923`） |
 | CHECKLIST.md | — | — | — | 🗑️ 已删除（迁移至 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md） |
 | LICENSE | 2026-05-18 | — | [用户] |  |
 | .gitignore | 2026-09-10 | — | [工具] |  |
@@ -55,7 +55,7 @@ dynamic_role:
 | .ctx/TIMESTAMPS.md | 2026-11-24 | — | [工程师]+[AI] | 文件时间戳注册表；备注列只写**现状 / 边界 / 指针**（`R-89`）；纯代码行（`.js` / `.mjs`）不再逐条登记，改动日以 git 为准（批次 597）。 |
 | .ctx/SNAPSHOT.md | 2026-11-22 | — | [AI] | 系统现状基线（reference）：只答「系统现在长什么样」；schema v19 / 业务 50 表。 |
 | .ctx/ACTIVE_RULINGS.md | 2026-11-24 | — | [工程师]+[AI] | 现行有效裁定**索引**（reference）：只答「到哪找某条现行口径」；跨域摘要 + 18 领域索引，规则正文在 `content/01–05`。 |
-| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-24 | — | [工程师]+[AI] | 见日志批次 625（推送收口、CI run id 统一为 `45430226062`）；六维 78/77/75/70/72/70（`D-918`） |
+| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-25 | — | [工程师]+[AI] | 见日志批次 632（判例-守卫覆盖审计：25 有机检 / 38 人工核）；六维 78/77/75/70/72/70（`D-918`） |
 | .ctx/REVIEW_QUEUE.md | 2026-11-23 | — | [工程师]+[AI] | 支书评议队列（reference）：只答「要评议什么 ＋ 评议怎么做」；2026-11-23 批次 606 `B-541-3` 闭环删行。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND1_WORKBENCH_STRUCTURE.md | 2026-10-19 | — | [工程师]+[AI] | Round 1 工作台结构审计报告（53 条 triage + 三路审查 + 共识/分歧/裁定 + 证据门）；修复 spec 落盘后可归档或删除。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND2_MINIMUM_THREE_COSTS.md | 2026-10-19 | — | [工程师]+[AI] | 见日志批次 597 |
@@ -190,8 +190,8 @@ dynamic_role:
 | content/05_ai_coding/README.md | 2026-11-03 | — | [工程师]+[AI] | 05_ai_coding 目录索引（含 `TAB_AUDIT_PLAYBOOK.md` 行）。 |
 | content/05_ai_coding/AGENTS.md | 2026-11-01 | — | [工程师]+[AI] | 05 目录协作说明：Q 范围 Q-01…Q-22、分层裁决与验证命令。 |
 | content/05_ai_coding/PARALLEL_SKILL_AUDIT.md | 2026-11-24 | — | [工程师]+[AI] | 多代理独立审查操作手册（H21 详版）：问题集 Q-01…Q-22 → 分 lens → 汇总 → 裁定；§11 IA 审查；§14 SKILL 路由（批次 610 按当前能力重写）。 |
-| content/05_ai_coding/CASES.md | 2026-11-24 | — | [工程师]+[AI] | AI 协作判例库（11 条；2026-11-24 批次 626 登记 CASE-AI-011）。 |
-| content/05_ai_coding/CONTEXT_MANAGEMENT.md | 2026-11-24 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。批次 626 增「记忆 / 规则 / 执行三层断点」节） |
+| content/05_ai_coding/CASES.md | 2026-11-25 | — | [工程师]+[AI] | AI 协作判例库（11 条；批次 626 登记 CASE-AI-011；批次 632 随守卫审计复核）。 |
+| content/05_ai_coding/CONTEXT_MANAGEMENT.md | 2026-11-25 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。批次 626 增「记忆 / 规则 / 执行三层断点」节；批次 632 随守卫审计复核） |
 | content/05_ai_coding/DOCUMENT_GOVERNANCE.md | 2026-11-19 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒  |
 | content/05_ai_coding/FILE_OPERATION_RULES.md | 2026-11-03 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。* |
 | content/05_ai_coding/REVIEW_AND_EXPRESSION.md | 2026-11-22 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。* |

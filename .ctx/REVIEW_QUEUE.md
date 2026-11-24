@@ -111,3 +111,4 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 > **2026-11-10 批次 541 分拣**（依据 `.ctx/evidence/2026-11-10/p2-cleanup-ledger.md`）：
 > ① **已办结 / 关闭（C 误报 · D 重复或已被守卫覆盖 · E 非工程任务）**：`H-8`（同名文件维持现状）、`H-9`（组合体检假绿已修，判例锁在 `block-orchestration::O1`）、`H-11`（manifest「表单条目」轴口径已定 `D-679`，并入工作流批）、`H-14`（`dataset.dataSource` 读法边界，判例已入注释）、`H-15`（拖拽长期红根因＝动态 import 少一层 `../`，已修且 `import-path-guard` 已补）、`H-19`（`ws-org` 12 tab 已修）、`H-21` / `H-22`（IAAA 前端承载面已由 `L-19` 收口）。
 > ② **仍在办（B 类）**：`H-5` / `H-16` / `H-20` / `H-24` 已并入 §未闭环（`B-541-8` 等），触发条件见该表；`H-12` / `H-18` 观察项已按批次 580 删除（无触发判据、3 批未复现）；`H-7` 保持观察（`form-loop-registry` 只防缩水与漏覆盖，加「漏登记」臂只报不判）。
+| B-632-1 | 判例守卫覆盖：63 条判例中 38 条「仅人工核」（无 guard id），机检面只覆盖 25 条 | 逐条补守卫或在判例「守卫」行降级登记「人工核 ＋ 复评触发」；优先补 `CASE-DESIGN-030/034` 同族与 `CASE-AI-*` | `.ctx/evidence/2026-11-25/case-guard-coverage.md`；`D-930` |

@@ -3,7 +3,7 @@ title: "工程化评估与改造行动线"
 type: audit_report
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: 2026-11-24
+last_updated: 2026-11-25
 status: active
 layer: reference
 related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, content/04_web_design/contracts/WORKFLOW_BLOCK_CONTRACT.md, content/04_web_design/contracts/PARTY_COMMITTEE_DESIGN.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/04_web_design/deploy/DEPLOYMENT_GUIDE.md, .ctx/REVIEW_QUEUE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/insights/README.md, content/insights/工程与AI协作的全栈实践.md, server/README.md, docs/help.html]
@@ -91,7 +91,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 **证据**：daily **32 文件 / 264 断言**；guards **81 文件 / 907 断言**；`workbench-audit-coverage::W1–W5` 常驻；`write-policy-matrix`（路由 ≡ 矩阵 + 门名处理分支 + 反例）、`security-hardening`、`session-ttl`、`run-mode` 均登记 tier；四层 runner 按 registry 单一源执行；`daily.yml` 已接 `test:daily` 与 `deploy-verify`；`evaluation-asset-guard::⑤` 把 EA 测试读数锁到 registry（批次 604 立）；`component-ratchet-guard` 新源件 16 `viewport-and-touch-guard` 把外部准则五条写成带反例的验收判据（批次 604 续）；`doc-lifecycle-guard` 源件 5 `guard-citation-guard` 断言「文档引用的守卫文件必须存在」（批次 604 续，修掉 21 处归并后悬空引用）；`style-ratchet-guard::S5` 曾拦下新增非令牌间距（批次 603）。
 **残项**：nightly 四片未实跑（无 run id）；`S21` 已按 `D-924` 转绿，本机门禁改为 `test:precommit`（`D-923`），`test:full` 只用于发布前 / 夜间；审计脚本仍不进 daily；full 墙钟 ≈29 分钟，按「分片单片 ≤1200s」口径由 nightly 四片并行承担。
-**下一改进项**（`B-603-4`）：EA 读数 ≡ registry 已收口（`evaluation-asset-guard::⑤`，改一处即红）；余 CI 两个 job 实跑归**外部门**（判据：run id ＋ 日志，与 2.6 的 `L-02` 同批，由支书授权推送后一次性补齐）；审计脚本入 daily 前先给耗时读数。取样口径已落定（批次 617：概况类普查等「骨架消失 ＋ 两次取样一致」，深链等落定态），不再用固定等待抢跑。复评触发：CI 出 run id、或 guards 预算变更。
+**下一改进项**（`B-603-4`）：EA 读数 ≡ registry 已收口（`evaluation-asset-guard::⑤`，改一处即红）；余 CI 两个 job 实跑归**外部门**（判据：run id ＋ 日志，与 2.6 的 `L-02` 同批，由支书授权推送后一次性补齐）；审计脚本入 daily 前先给耗时读数。取样口径已落定（批次 617：概况类普查等「骨架消失 ＋ 两次取样一致」，深链等落定态），不再用固定等待抢跑。复评触发：CI 出 run id、或 guards 预算变更。 **判例-守卫覆盖审计（2026-11-25 批次 632 · D-930）**：server/scripts/case-guard-coverage.mjs 实测 63 条判例 → 有机检 25 / 仅人工核 38；清单见 .ctx/evidence/2026-11-25/case-guard-coverage.md，逐条处置登记 B-632-1。
 
 ### 2.6 运行、部署与跨组织复用 —— 70/100
 
