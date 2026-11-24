@@ -27,7 +27,7 @@ async function collectAll(page) {
       archiveRecords: seed.SEED_ARCHIVE_RECORDS,
       notices: mock.MOCK_NOTICES,
       attendances: mock.ATTENDANCE_RECORDS,
-    }, { now: '2026-10-25' });
+    }, { now: '2026-11-25' });
     return {
       PEOPLE: mock.PEOPLE,
       ACTIVITIES: mock.ACTIVITIES,
@@ -202,7 +202,7 @@ function auditLifecycle(data) {
   //    ⇒ 刷新锚点是**既定动作**（08-05 → 09-05 → 09-17 已是第三次），每次都必须随之复核种子里的未来活动。
   for (const att of data.ATTENDANCE_RECORDS) {
     const act = actById(att.activityId);
-    if (act && act.date > '2026-09-17' && act.status !== 'cancelled') issues.push(`[lifecycle] 未来活动 ${att.activityId}(${act.date}) 已有考勤 ${att.id}`);
+    if (act && act.date > '2026-11-25' && act.status !== 'cancelled') issues.push(`[lifecycle] 未来活动 ${att.activityId}(${act.date}) 已有考勤 ${att.id}`);
   }
   // 5. signups/archive 引用源存在
   const tfIds = new Set(data.MOCK_TASKFORCES.map(t => t.id));

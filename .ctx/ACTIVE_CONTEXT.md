@@ -28,7 +28,7 @@ status: active
 - **审计**：46 页签 **P0 0 / P1 0 / P2 0 / exception 44**（批次 603 实跑 239.7s，同值；source：`.ctx/evidence/2026-11-21/tab-audit/summary.md`）；D/C 维度（批次 605 实跑，批次 606 复跑同值）：**D2 处置 46/46**（5 条规则 pass ＋ 41 条 `countSkip` 理由）、**C2 37 pass** / 12 destructive exception、P0/P1/P2 0；复跑读数：`.ctx/evidence/2026-11-23/tab-audit/summary.md`。
 - **测试（四层）**：daily **32 文件 / 264 断言**；guards **81 文件 / 907 断言**（52 源件已并 5 件，预算软告警）；`npm run probe:stage` 6 步断点探针。source：`server/test-tier-registry.mjs`。
 - **换轨**：`preflight-cutover --strict` exit 0；契约 50 表；生产只走个人密码（`D-882`）。source：`deploy/CUTOVER_RUNBOOK.md`。
-- **分支 / CI**：当前在 `main`（已合并 `release/2026-11-launch` 88 条）；远端 main = `f51e2d7f2`（批次 624）；619–624 已推送，**627–632（脏乱繁专项六批）本地已提交、待推送**；CI run `45430226062`（daily / deploy-verify / install-linux 三 job success）@ `f51e2d7f2`；`P-7` 已按 `D-924` 恢复深链展开。
+- **分支 / CI**：当前在 `main`（已合并 `release/2026-11-launch` 88 条）；远端 main = `f51e2d7f2`（批次 624）；619–624 已推送，**627–633（脏乱繁六批 ＋ 两次收口）本地已提交、待推送**；CI run `45430226062`（daily / deploy-verify / install-linux 三 job success）@ `f51e2d7f2`；`P-7` 已按 `D-924` 恢复深链展开。
 
 ## §2 现行裁定摘要（只留仍影响下一步）
 
