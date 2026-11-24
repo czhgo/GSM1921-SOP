@@ -52,7 +52,7 @@ test('只读成员展示不暴露增删、角色编辑或授权表单', () => {
 test('报名角色和说明控件有可见标签，已通过的主题党日组织者能看见线下意向', () => {
   const form = renderSignupSection({ sourceType: 'activity', sourceId: 'act-labels', title: '主题党日', source: { type: '主题党日' }, signups: [], myId: '2400012345' });
   assert.match(form, /<label[^>]*>报名角色\s*<select id="signup-role-select"/);
-  assert.match(form, /<label[^>]*>附加说明（选填）\s*<input id="signup-note-input"/);
+  assert.match(form, /<label[^>]*>附加说明\s*<input id="signup-note-input"/);
   assert.match(form, /id="signup-role-select"/);
   assert.match(form, /id="signup-note-input"/);
 

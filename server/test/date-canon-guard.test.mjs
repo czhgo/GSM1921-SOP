@@ -122,7 +122,7 @@ const SLICE10_BASELINE = Object.freeze({
   'docs/src/entries/tabs/party-committee/content-tab.js:104': '日串归一化（内容日期列）',
   'docs/src/entries/tabs/party-committee/dispatch-tab.js:340': '显示 publishExpiresAt（公开到期）',
   'docs/src/entries/tabs/secretary/agenda-form.js:223': '显示 approval.at（议程审批日）',
-  'docs/src/entries/tabs/secretary/group-progress-tab.js:686': '列表截断（history 取前 10；非日期）',
+  'docs/src/entries/tabs/secretary/group-progress-tab.js:688': '列表截断（history 取前 10；非日期；2026-11-25 批次 629 改版后行号下移）',
   'docs/src/entries/tabs/secretary/notification-tab.js:467': 'publishDate 取日（通知日期）',
   'docs/src/services/governance/periodic-archive.js:5': '文本归一化（截前 10 字符做键）',
   'docs/src/services/governance/resolution-followup.js:110': 'deadline 取日（校验用）',

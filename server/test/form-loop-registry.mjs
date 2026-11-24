@@ -175,7 +175,7 @@ export const VALIDATION_SITES = [
   // 2026-10-04 批次 373：删「党小组活动」分区 + 撤独立「组长指派」块（该文件尾段缩短、上部加组长/副组长行内管理）
   //   ⇒ 「组名不能为空」再按实况改准 `775` → `833` → `835`（file/field/msg 不变）。
   // 2026-11-01 批次 525 Task 4（主从双栏重做，整页重排）⇒ 按实况再改准 `897` → `848`（file/field/msg 不变）。
-  { file: SRC + 'entries/tabs/secretary/group-progress-tab.js', line: 908, field: '组名', flow: 'secretary/党小组·改名', machine: true, msg: '组名不能为空' },
+  { file: SRC + 'entries/tabs/secretary/group-progress-tab.js', line: 910, field: '组名', flow: 'secretary/党小组·改名', machine: true, msg: '组名不能为空' },
   // 批次 47-Z（2026-09-17）：**由 `machine:false` 转 `machine:true`**。原 reason 两句话各有问题，逐句更正：
   //   · 对的一半：「退回浮态（`#mc-reject-note`）只在**有 pending 成员变更确认**时挂载」——实测计数 0 属实。
   //   · 错的一半：「纳入条件：**组织委员**在某台发起一次成员变更」——**跨人不成立**。该队列是
@@ -194,8 +194,8 @@ export const VALIDATION_SITES = [
   //   ——**演示种子下无「待支委会确认的作废申请」过渡态**（须先由非支委 `requestVoid` 生成 `voidPending`，
   //   再由支书台确认/驳回；跨角色两步、无种子）⇒ 这两处弹窗在真机演示数据下结构性不可达；
   //   同批新定向件 `todo-void-flow.test.mjs` 已在**服务层**覆盖状态机（含「无原因不得作废」/确认/驳回）。
-  { file: SRC + 'components/record/todo-tab-shell.js', line: 1064, field: '作废原因', flow: 'shell/待办·作废', machine: false, reason: '演示种子下无「待支委会确认的作废申请」过渡态（须先由非支委 requestVoid 生成 voidPending）⇒ 作废弹窗在真机演示数据下不可达；状态机由新定向件在服务层覆盖。', msg: '请填写作废原因（必填）' }, // 批次 534（B-500-7b-1 Task 9）：服务端实时组收集函数上提（+130 行）⇒ 行号随插入下移，改准到文案行 965
-  { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 936, field: '驳回意见', flow: 'secretary/待办·驳回作废', machine: false, reason: '同壳体作废弹窗：驳回入口只在「存在 voidPending 申请」时渲染，演示种子无该过渡态 ⇒ 真机不可达；驳回落库由新定向件在服务层覆盖。（批次 346 起「记录作废驳回」复用同一文案，登记只此一条、按 (file, 文案) 覆盖两处弹窗，行号取首处；批次 407 起「记录作废裁决」两分支发 `record-void-decided` 知会，本行号随该批插入位移改准；2026-10-21 批次 497 再随浮层体例 885 → 930〔文案在 930 / 963 两行〕。）', msg: '请填写驳回意见（必填）' },
+  { file: SRC + 'components/record/todo-tab-shell.js', line: 1064, field: '作废原因', flow: 'shell/待办·作废', machine: false, reason: '演示种子下无「待支委会确认的作废申请」过渡态（须先由非支委 requestVoid 生成 voidPending）⇒ 作废弹窗在真机演示数据下不可达；状态机由新定向件在服务层覆盖。', msg: '请填写作废原因' }, // 批次 534（B-500-7b-1 Task 9）：服务端实时组收集函数上提（+130 行）⇒ 行号随插入下移，改准到文案行 965
+  { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 936, field: '驳回意见', flow: 'secretary/待办·驳回作废', machine: false, reason: '同壳体作废弹窗：驳回入口只在「存在 voidPending 申请」时渲染，演示种子无该过渡态 ⇒ 真机不可达；驳回落库由新定向件在服务层覆盖。（批次 346 起「记录作废驳回」复用同一文案，登记只此一条、按 (file, 文案) 覆盖两处弹窗，行号取首处；批次 407 起「记录作废裁决」两分支发 `record-void-decided` 知会，本行号随该批插入位移改准；2026-10-21 批次 497 再随浮层体例 885 → 930〔文案在 930 / 963 两行〕。）', msg: '请填写驳回意见' },
   { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 612, field: '评论内容', flow: 'secretary/反馈管理·议题评论', machine: true, msg: '请输入评论内容' },
   { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 623, field: '批复内容', flow: 'secretary/反馈管理·议题批复', machine: true, msg: '请输入批复内容' },
   { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 633, field: '正式答复内容', flow: 'secretary/反馈管理·正式答复', machine: true, msg: '请输入正式答复内容' },
@@ -211,7 +211,7 @@ export const VALIDATION_SITES = [
   //   原因必填（软作废、不硬删；支委层可直接作废、其余人报支委会确认）。服务端有 `makeup_tasks` 种子
   //   （`SEED_MAKEUP_TASKS`）⇒ 该行在演示态**可达** ⇒ 按 `machine:true` 纳入真机（弹窗由 `openModal` 生成，
   //   判据载体＝文本域自身；提交后弹窗不关、仅弹 toast ⇒ 载体仍在位）。
-  { file: SRC + 'components/ui/void-record.js', line: 67, field: '作废原因', flow: 'disc/考勤管理·补课作废', machine: true, msg: '请填写作废原因（必填）' },
+  { file: SRC + 'components/ui/void-record.js', line: 67, field: '作废原因', flow: 'disc/考勤管理·补课作废', machine: true, msg: '请填写作废原因' },
   // 2026-09-23 支书追裁「开一个代录位」：纪检台「考察管理」新增**考察代录位**（写口与字段全部复用组长台
   //   「考察上传」；本位＝该场活动的组织者 ⇒ 纪检代录属非本位 ⇒ 提交前带既有 nudge）。校验点 3 处。
   { file: SRC + 'entries/tabs/disc/inspection-tab.js', line: 548, field: '代录活动', flow: 'disc/考察代录', machine: true, msg: '请选择要代录的活动' },
@@ -413,10 +413,10 @@ export const VALIDATION_SITES = [
   //   **台账口径**：此类条目应显式标注「服务层重复守卫」，与「缺数据/缺步骤」区分开——三者的处置完全不同
   //   （前者不修，中者可造数据，后者应补 schema）。本批首次给这一类打了标。
   { file: SRC + 'services/governance/review.js', line: 121, field: '复盘总结', flow: 'service/活动复盘', machine: false, msg: '请填写复盘总结', reason: '【批 47-M 结构性不可达·服务层重复守卫】唯一 UI 调用点 `visitor/review-tab.js:181` 已先做同文案判据后才调用本函数 ⇒ 真机上本守卫**永远不是第一个报出来的**，UI 层实测已由同名额登记（`entries/tabs/visitor/review-tab.js` 182）。本函数为公开导出（`todo-domain-view.test.mjs` 断言支书「代提交复盘」走同链），服务层是 mock/api 双态的边界，故保留为防御性重复守卫。**归类：不修，只标**（2026-10-21 批次 497 随 `showActions` 选项插入 ⇒ 119 → 121）' },
-  { file: SRC + 'services/member/roster-ui-logic.js', line: 98, field: '成员姓名', flow: 'service/名册新增成员', machine: true, msg: '请填写成员姓名（必填）' },
+  { file: SRC + 'services/member/roster-ui-logic.js', line: 98, field: '成员姓名', flow: 'service/名册新增成员', machine: true, msg: '请填写成员姓名' },
   // 2026-10-23 批次 504（R10-A01/A15）：学号与发展阶段改为必填，校验点在服务层同一函数内。
   { file: SRC + 'services/member/roster-ui-logic.js', line: 100, field: '学号', flow: 'service/名册新增成员', machine: true, msg: '请填写学号（学号即成员唯一 id，必填）' },
-  { file: SRC + 'services/member/roster-ui-logic.js', line: 104, field: '发展阶段', flow: 'service/名册新增成员', machine: true, msg: '请选择发展阶段（必填）' },
+  { file: SRC + 'services/member/roster-ui-logic.js', line: 104, field: '发展阶段', flow: 'service/名册新增成员', machine: true, msg: '请选择发展阶段' },
   { file: SRC + 'entries/pages/thought-report-entry.js', line: 293, field: '修改后的思想汇报内容', flow: '思想汇报页·修改', machine: true, msg: '请填写修改后的思想汇报内容' },
   // 批次 47-R（2026-09-16）**新增登记**：打回意见（同一独立页、另一提交口）。
   // ⚠ 说明为何此前不在台账里：S0/S2 只保证「规模不缩水」与「machine:true 全被覆盖」，
@@ -952,11 +952,11 @@ export const MACHINE_FLOWS = [
       // 2026-10-23 批次 504（R10-A01/A15）：新增「学号必填」「发展阶段必填」两条——
       //   `validateMemberForm` 的判定**有序**（姓名 → 学号 → 发展阶段），故三条必须按序放行：
       //   前一条报错后先用 `satisfy` 补齐，才轮到下一条（与 secretary 通知三条同规）。
-      { file: SRC + 'services/member/roster-ui-logic.js', field: '成员姓名', msg: '请填写成员姓名（必填）', carrier: 'form[data-modal-form] input[data-field="name"]',
+      { file: SRC + 'services/member/roster-ui-logic.js', field: '成员姓名', msg: '请填写成员姓名', carrier: 'form[data-modal-form] input[data-field="name"]',
         satisfy: { setValue: { selector: 'form[data-modal-form] input[data-field="name"]', value: '表单闭环普查成员' } } },
       { file: SRC + 'services/member/roster-ui-logic.js', field: '学号', msg: '请填写学号（学号即成员唯一 id，必填）', carrier: 'form[data-modal-form] input[data-field="studentId"]',
         satisfy: { setValue: { selector: 'form[data-modal-form] input[data-field="studentId"]', value: '2499999999' } } },
-      { file: SRC + 'services/member/roster-ui-logic.js', field: '发展阶段', msg: '请选择发展阶段（必填）', carrier: 'form[data-modal-form] select[data-field="developStage"]' },
+      { file: SRC + 'services/member/roster-ui-logic.js', field: '发展阶段', msg: '请选择发展阶段', carrier: 'form[data-modal-form] select[data-field="developStage"]' },
     ],
   },
   {
@@ -1154,7 +1154,7 @@ export const MACHINE_FLOWS = [
     ],
     submit: [{ click: '[data-makeup-void-ok]' }],
     expect: [
-      { file: SRC + 'components/ui/void-record.js', line: 67, field: '作废原因', msg: '请填写作废原因（必填）', carrier: '#makeup-void-reason' },
+      { file: SRC + 'components/ui/void-record.js', line: 67, field: '作废原因', msg: '请填写作废原因', carrier: '#makeup-void-reason' },
     ],
   },
   // 批次 124（2026-09-21）**退役**：原 `disc-meeting-attendance`（纪检台 · 考勤管理 · 建考勤）流程——

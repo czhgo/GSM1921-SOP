@@ -137,7 +137,7 @@ const RESOURCE_CONTRACT = [
       'submittedBy', 'returnedBy', 'returnedAt', 'returnReason', 'absenceReason', 'onlineAttend'],
     derived: ['studentId', 'developStage', 'partyGroup'],
     enums: { status: ATTENDANCE_STATUSES, developStage: DEVELOP_STAGES },
-    seedCount: 144, aliases: [],
+    seedCount: 146, aliases: [],
   },
   {
     entity: 'inspections', table: 'inspections', mockCollection: 'inspections',

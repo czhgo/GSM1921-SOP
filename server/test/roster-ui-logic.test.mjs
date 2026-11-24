@@ -67,7 +67,7 @@ test('buildGuardMessage：多类措辞含类别清单、标题含姓名、不泄
 
 // ── c) 新增成员表单校验（姓名必填；枚举与数据一致；备注口径）────────
 test('validateMemberForm：姓名必填（含纯空格）；合法输入 trim 并净化', () => {
-  assert.deepEqual(validateMemberForm({}), { ok: false, message: '请填写成员姓名（必填）', field: 'name' });
+  assert.deepEqual(validateMemberForm({}), { ok: false, message: '请填写成员姓名', field: 'name' });
   assert.equal(validateMemberForm({ name: '   ' }).ok, false);
   assert.equal(validateMemberForm({ name: 123 }).ok, false);
 

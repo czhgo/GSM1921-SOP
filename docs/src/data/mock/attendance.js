@@ -85,6 +85,10 @@ export const ATTENDANCE_RECORDS = [
   //   ② `recordedBy` 用已确认纪检（非 null）——补课任务由「纪检确认考勤」派生，待确认态与已存在补课任务自相矛盾；
   //   ③ id 取 `att900` 隔离段并落在 `^att\d+$` 种子 id 空间（`init-reset.js::INIT_SEED_ID_PATTERNS.attendances`）。
   { id: 'att900', personId: '2400012349', activityId: 'act-31', status: AttendanceStatus.ABSENT, recordedBy: '2400012354', recordedAt: '2026-09-10T18:00:00Z' },
+
+  // ── act-42 (2026-11-08) 11月党小组会（批次 630 补的近期场次；已有考勤 ⇒ 真机上传用例不会选中它）──
+  { id: 'att941', personId: '2400012347', activityId: 'act-42', status: AttendanceStatus.PRESENT, recordedBy: '2400012347', recordedAt: '2026-11-08T18:00:00Z' },
+  { id: 'att942', personId: '2400012345', activityId: 'act-42', status: AttendanceStatus.PRESENT, recordedBy: '2400012347', recordedAt: '2026-11-08T18:00:00Z' },
 ];
 
 // ── 8 月考勤全覆盖（2026-08-05 支书裁决「补全 5 场全覆盖」；次日修订）────
