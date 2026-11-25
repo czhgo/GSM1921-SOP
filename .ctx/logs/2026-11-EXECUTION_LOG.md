@@ -10,6 +10,14 @@ status: active
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
 
+## 批次 636（2026-11-25）· 推送 635 ＋ CI 入账 ＋ nightly 环境失败登记
+
+- **推送**：`e68d5f84d..b2522f3fb`（635 ＋ 635 续）；远端 main = `b2522f3fb`。
+- **CI**：run `45572866398` @`b2522f3fb`，daily / deploy-verify / install-linux 三 job success；pages `45572866172` success。
+- **nightly**：run `45528018581` @`e68d5f84d`，四片**均止于「安装 Playwright 浏览器（chromium）」步**（环境类，断言未执行）；已登记 `EA §一 / §2.5 / §2.6 / §四` 与 `ACTIVE_CONTEXT §3`，待重跑。
+- **本机 precommit 首跑红项定性**：两项均为 `ERR_CONNECTION_REFUSED: localhost:3000`（`mock-integrity M1 / M2`）——`service:ensure` 在沙箱内拉起的服务长跑中被回收，非产品回归；改为 WMI detached 启动（`localhost:3000` 200）后单跑 2/2，precommit 层 180 文件全量 **2240.0s 全绿**；同候选 daily 128.0s / guards 248.0s 全绿。
+- **边界**：不跑 `test:full`（`D-923`）；nightly 失败不阻断本机合并，归外部门待重跑。
+
 ## 批次 635（2026-11-25）· 死代码第一类删除 ＋ 审计升级（`D-931`）
 
 - **为什么**：八项专项只剩第 3 项「根本不能调用」类未做；631 的清点只比文件名，判不出不可达。

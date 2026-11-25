@@ -19,14 +19,14 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 > 评分只表达当前证据下的成熟度，不作六维平均。高风险单独列出；同一系统可在本地单支部场景很好用，却仍不适合多支部共享部署。
 >
-> **当前值（`D-918` 严格重评 · 2026-11-24）**：业务与数据 **78** · 安全与权限 **77** · 最小三成本体验 **75** · 测试与发布 **70** · 架构与可维护性 **72** · 运行部署 **70**。**重评依据**：只认证据。加分项——多支部读面逐口取证＋开关演练 26/26、CI `45479385134` 三 job 绿、Linux 安装/更新全链、IA A40/B6、D2/C2 收口、备份 integrity ok、`npm audit` 0；扣分项——full 长期未绿且本次修掉 12 处夹具/守卫漂移（测试维护质量实证不足）、共享口令仍作非生产回退、systemd/nginx 真机段未验、双适配器与组件散件未收敛。
+> **当前值（`D-918` 严格重评 · 2026-11-24）**：业务与数据 **78** · 安全与权限 **77** · 最小三成本体验 **75** · 测试与发布 **70** · 架构与可维护性 **72** · 运行部署 **70**。**重评依据**：只认证据。加分项——多支部读面逐口取证＋开关演练 26/26、CI `45572866398` 三 job 绿、Linux 安装/更新全链、IA A40/B6、D2/C2 收口、备份 integrity ok、`npm audit` 0；扣分项——full 长期未绿且本次修掉 12 处夹具/守卫漂移（测试维护质量实证不足）、共享口令仍作非生产回退、systemd/nginx 真机段未验、nightly 四片在 Playwright 安装步失败（环境类）、双适配器与组件散件未收敛。
 
 | 维度 | 得分 | 证据、风险与未完成项 |
 |------|------|---------------------|
 | 业务与数据正确性 | **78 / 100** | 46 页签 D1 读口全 2xx；换轨逐表行数与 sha256 一致（批次 527，契约 50 表）；应到口径单一源 `roster-eligibility.js`、待办读权限 `todo-read-policy.mjs`；议程分类两端同源；D2 处置 46/46（5 条对账规则 pass ＋ 41 条 `countSkip` 理由，`W7` 守）；C2 往返 **37 pass** / 12 destructive exception（有理由）。残项：D2 规则仅覆盖 5 个「单集合」页签。 |
 | 安全与权限 | **77 / 100** | 矩阵 **163 条**（156 enforced / 5 self-service / 2 public / 0 known-risk），守卫断言运行期路由 ≡ 矩阵；会话 3 小时；production 单支部；public 门厅 fail-closed；`security-hardening` 8/8、`multi-branch-read-filter` 9 组、个人密码 21/21；多支部读面逐口取证 ＋ 开关演练 26/26（`evidence/2026-11-23/multi-branch-read-ports.md`）。残项：共享口令仅非生产回退。 |
 | 最小三成本体验（含前端与交互） | **75 / 100** | 46 页签 **P0 0 / P1 0 / P2 0 / exception 44**；F1–F8 全绿；跳转 fail-closed、活动详情四段、卡头单源、三份前端契约；页签 IA **A 40 / B 6 / C 0**；手机验收台把真人动作压到 3 次点击。残项：真人签收未完成、6 个超 4 块页签登记例外、F-2 待裁（`P-5`）。 |
-| 测试与发布质量 | **70 / 100** | daily **32 文件 / 264 断言**；guards **81 文件 / 907 断言**；四层 runner 由 registry 单一源驱动；CI run `45479385134`（daily / deploy-verify / install-linux 三 job success，push `f51e2d7f2`）。残项：full 刚恢复全绿（本批修掉 12 处夹具/守卫漂移，说明测试维护长期滞后）、nightly 四片无 run id、审计脚本不进 daily。 |
+| 测试与发布质量 | **70 / 100** | daily **32 文件 / 264 断言**；guards **81 文件 / 907 断言**；四层 runner 由 registry 单一源驱动；CI run `45572866398`（daily / deploy-verify / install-linux 三 job success，push `b2522f3fb`）。残项：full 刚恢复全绿（本批修掉 12 处夹具/守卫漂移，说明测试维护长期滞后）、nightly 四片 run `45528018581` 均止于 Playwright 安装步（环境类，断言未执行）、审计脚本不进 daily。 |
 | 架构与可维护性（原「架构复杂度与变更成本」） | **72 / 100** | `write-policy-matrix` 为写权限唯一机读源；契约落 `content/04_web_design/contracts/`；四层 runner 单源；壳层尺寸已单表（`DS_03 §12.7`）。残项：双适配器未收敛、组件散件触发制（`B-541-7`）、守卫台账与代码同步成本高（本批 71 条行号漂移）。 |
 | 运行、部署与跨组织复用 | **70 / 100** | 换轨逐表 sha256 一致（批次 527）；生产空库 `preflight-cutover --strict` exit 0 / 警告 0；迁移前备份；`start:review` 独立库；`deploy/verify-linux.sh` 6/6；Linux CI `install-linux` 全链绿（run `45479385134`）；备份 `integrity_check=ok`；`npm audit --omit=dev` **0**。残项：systemd / useradd / cron / nginx 真机段未验。 |
 
@@ -72,7 +72,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 ### 2.2 安全与权限 —— 77/100
 
 **证据**：`write-policy-matrix` **163 条**（0 known-risk），守卫断言 Express 运行期写路由 ≡ 矩阵登记面并带反例；`SESSION_TTL_HOURS` 缺省 3 小时；production 多支部拒绝启动；`start:review` 独立演示库；`security-hardening` 8/8、`multi-branch-read-filter` 9 组、`personal-password` 21/21；公共门厅过期 / 缺失有效期一律 404 fail-closed。
-**残项**：共享口令仅非生产回退。多支部读面已接线并完成开关演练（`ALLOW_MULTI_BRANCH` 仍关闭）；CI 安全类守卫已有 run id（`45479385134`）。
+**残项**：共享口令仅非生产回退。多支部读面已接线并完成开关演练（`ALLOW_MULTI_BRANCH` 仍关闭）；CI 安全类守卫已有 run id（`45572866398`）。
 **下一改进项**（`B-603-2` / `B-541-3` 已收口）：矩阵「门函数 / 角色集合 ≡ 运行期」断言与多支部开关演练均已落（读数见 `.ctx/evidence/2026-11-23/multi-branch-read-ports.md`，26/26）。新增写口登记时同批补矩阵行；新增读口时同批补双支部夹具或在取证表写明「有判据、无夹具」。复评触发：任一新写口 / 新读口登记。
 
 ### 2.3 最小三成本体验（含前端与交互） —— 75/100
@@ -90,13 +90,13 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 ### 2.5 测试与发布质量 —— 70/100
 
 **证据**：daily **32 文件 / 264 断言**；guards **81 文件 / 907 断言**；`workbench-audit-coverage::W1–W5` 常驻；`write-policy-matrix`（路由 ≡ 矩阵 + 门名处理分支 + 反例）、`security-hardening`、`session-ttl`、`run-mode` 均登记 tier；四层 runner 按 registry 单一源执行；`daily.yml` 已接 `test:daily` 与 `deploy-verify`；`evaluation-asset-guard::⑤` 把 EA 测试读数锁到 registry（批次 604 立）；`component-ratchet-guard` 新源件 16 `viewport-and-touch-guard` 把外部准则五条写成带反例的验收判据（批次 604 续）；`doc-lifecycle-guard` 源件 5 `guard-citation-guard` 断言「文档引用的守卫文件必须存在」（批次 604 续，修掉 21 处归并后悬空引用）；`style-ratchet-guard::S5` 曾拦下新增非令牌间距（批次 603）。
-**残项**：nightly 四片未实跑（无 run id）；`S21` 已按 `D-924` 转绿，本机门禁改为 `test:precommit`（`D-923`），`test:full` 只用于发布前 / 夜间；审计脚本仍不进 daily；full 墙钟 ≈29 分钟，按「分片单片 ≤1200s」口径由 nightly 四片并行承担。
+**残项**：nightly 四片 run `45528018581` 均在 Playwright 安装步失败（环境类，未执行断言）；`S21` 已按 `D-924` 转绿，本机门禁改为 `test:precommit`（`D-923`），`test:full` 只用于发布前 / 夜间；审计脚本仍不进 daily；full 墙钟 ≈29 分钟，按「分片单片 ≤1200s」口径由 nightly 四片并行承担。
 **下一改进项**（`B-603-4`）：EA 读数 ≡ registry 已收口（`evaluation-asset-guard::⑤`，改一处即红）；余 CI 两个 job 实跑归**外部门**（判据：run id ＋ 日志，与 2.6 的 `L-02` 同批，由支书授权推送后一次性补齐）；审计脚本入 daily 前先给耗时读数。取样口径已落定（批次 617：概况类普查等「骨架消失 ＋ 两次取样一致」，深链等落定态），不再用固定等待抢跑。复评触发：CI 出 run id、或 guards 预算变更。 **判例-守卫覆盖审计（2026-11-25 批次 632 · D-930）**：server/scripts/case-guard-coverage.mjs 实测 63 条判例 → 有机检 25 / 仅人工核 38；清单见 .ctx/evidence/2026-11-25/case-guard-coverage.md，逐条处置登记 B-632-1。 **死代码第一类（2026-11-25 批次 635 · D-931）**：入口可达性审计（HTML ＋ workspace 入口 ＋ 服务端 import ＋ 能力表动态规格）下不可达 0，已删 7 个遗留模块；零引用导出 334 只降不升（`component-ratchet-guard::D3`）。
 
 ### 2.6 运行、部署与跨组织复用 —— 70/100
 
 **证据**：换轨闭环实测逐表行数与 sha256 一致（批次 527）；生产空库首启补 6 角色账号后 `preflight-cutover --strict` **exit 0 / 警告 0**；`user_version` 拒绝降级；迁移前备份；`start:review` 隔离演示库；production 单支部断言；`deploy/verify-linux.sh` **6/6**。
-**残项**：`L-02` 的 systemd / useradd / cron / nginx 真机段未验（CI 已覆盖无 systemd 安装/更新）；nightly 四片无 run id；附件 / 会话按 runbook 另搬；多支部开关未开（读面已接线，见 2.2）。备份 `integrity_check=ok`、`npm audit --omit=dev` 0。
+**残项**：`L-02` 的 systemd / useradd / cron / nginx 真机段未验（CI 已覆盖无 systemd 安装/更新）；nightly 四片 run `45528018581` 止于 Playwright 安装步（环境类）；附件 / 会话按 runbook 另搬；多支部开关未开（读面已接线，见 2.2）。备份 `integrity_check=ok`、`npm audit --omit=dev` 0。
 **下一改进项**（`B-603-6`）：`L-02` 真机四段按 `CUTOVER_RUNBOOK §12` 逐条取读数；nightly 在 main push 后按定时补 run id；多支部开关另需支书裁定（`D-849` / `D-889`）。复评触发：真机任一段跑通。
 
 ### 2.7 七个月工程复盘（结论）
@@ -231,8 +231,8 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 | 编号 | 事项 | 责任人 | 证据口径 | 复评触发 |
 |---|---|---|---|---|
-| L-02 | Linux 真机跑 `install.sh` / `install.ps1`（WSL 或测试机）/ `update.sh` | 支书授权，AI 出命令 | **批次 607 已取**：Windows 本机 exit 0 ＋ `/login.html` 200 ＋ uploads 可写；Linux CI `install-linux` job 全链成功（run `45479385134`，读数 `.ctx/evidence/2026-11-23/deploy-l02.md`）；systemd / useradd / cron / nginx 反代仍待真机 | 每次改动 `deploy/**` 或发布包白名单后 |
-| CI | 首次 GitHub Actions run id（daily ＋ nightly 四片） | 支书提供仓库访问 | **daily ＋ deploy-verify ＋ install-linux 已取 run id `45479385134`（三 job success，2026-11-24 push `f51e2d7f2`）**；nightly 四片只有 `schedule`（UTC 18:00）＋ dispatch，待次日定时或 token dispatch 补 | 首次 push 后；此后每次 workflow 改动 |
+| L-02 | Linux 真机跑 `install.sh` / `install.ps1`（WSL 或测试机）/ `update.sh` | 支书授权，AI 出命令 | **批次 607 已取**：Windows 本机 exit 0 ＋ `/login.html` 200 ＋ uploads 可写；Linux CI `install-linux` job 全链成功（run `45572866398`，读数 `.ctx/evidence/2026-11-23/deploy-l02.md`）；systemd / useradd / cron / nginx 反代仍待真机 | 每次改动 `deploy/**` 或发布包白名单后 |
+| CI | 首次 GitHub Actions run id（daily ＋ nightly 四片） | 支书提供仓库访问 | **daily ＋ deploy-verify ＋ install-linux 已取 run id `45572866398`（三 job success，2026-11-25 push `b2522f3fb`）**；nightly 四片 run `45528018581` 四 job 均止于「安装 Playwright 浏览器」步（环境类，待重跑） | 首次 push 后；此后每次 workflow 改动 |
 | 签收 | 真人（支书 / 支委）在 review 档完整走一遍上线路径并签收 | 支书 | 签收记录（日期 ＋ 账号 ＋ 走过页面清单）写 `.ctx/evidence/`；**批次 607 已备 `/signoff` 页**（勾选即写入证据，含 UA / 视口） | 每轮候选发布前 |
 | SMTP | 真实邮件服务器实投（非 mock） | 支书提供凭据 | **批次 607 已取本机真实 SMTP 协议读数**（正常投递 / 认证失败 535 / 连接超时，`.ctx/evidence/2026-11-24/smtp.md`）；第三方服务商实投仍待支书提供 `SMTP_*` 后加 `--remote` 复跑 | 邮件通道配置或 `mailer*` 改动后 |
 | M-01 | 移动端三任务：看通知并回执 / 表决投票 / 查看考勤（375 / 390 两档） | 支书提供真机 | 三任务各走通一次；无横向滚动、可交互文字 ≥13px、命中区 ≥44。**批次 607 已备手机验收台**（`cd server; npm run acceptance` → 手机打开 `/mobile`，自动记录 UA / 视口 / 时间）；批次 617 复启 `:3100`（`http://10.7.191.182:3100/mobile`）。已记 3 条本机浏览器读数（`.ctx/evidence/2026-11-24/mobile-acceptance.md`，视口 1542×705 非手机档，不构成 M-01 通过）；真机点击仍待支书完成 | 每次改动移动端布局或 `.vote-btn` 命中区后 |

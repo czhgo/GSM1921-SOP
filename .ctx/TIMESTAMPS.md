@@ -55,7 +55,7 @@ dynamic_role:
 | .ctx/TIMESTAMPS.md | 2026-11-24 | — | [工程师]+[AI] | 文件时间戳注册表；备注列只写**现状 / 边界 / 指针**（`R-89`）；纯代码行（`.js` / `.mjs`）不再逐条登记，改动日以 git 为准（批次 597）。 |
 | .ctx/SNAPSHOT.md | 2026-11-22 | — | [AI] | 系统现状基线（reference）：只答「系统现在长什么样」；schema v19 / 业务 50 表。 |
 | .ctx/ACTIVE_RULINGS.md | 2026-11-24 | — | [工程师]+[AI] | 现行有效裁定**索引**（reference）：只答「到哪找某条现行口径」；跨域摘要 + 18 领域索引，规则正文在 `content/01–05`。 |
-| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-25 | — | [工程师]+[AI] | 见日志批次 635（死代码第一类清零：不可达 0 / 删 7 模块 / 零引用导出 334 只降不升）；判例-守卫覆盖审计 25 有机检 / 38 人工核；六维 78/77/75/70/72/70（`D-918`） |
+| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-25 | — | [工程师]+[AI] | 见日志批次 636（CI run `45572866398` 三 job success；nightly `45528018581` 四片止于 Playwright 安装步）；批次 635 死代码第一类清零（不可达 0 / 删 7 模块 / 零引用导出 334 只降不升）；六维 78/77/75/70/72/70（`D-918`） |
 | .ctx/REVIEW_QUEUE.md | 2026-11-23 | — | [工程师]+[AI] | 支书评议队列（reference）：只答「要评议什么 ＋ 评议怎么做」；2026-11-23 批次 606 `B-541-3` 闭环删行。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND1_WORKBENCH_STRUCTURE.md | 2026-10-19 | — | [工程师]+[AI] | Round 1 工作台结构审计报告（53 条 triage + 三路审查 + 共识/分歧/裁定 + 证据门）；修复 spec 落盘后可归档或删除。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND2_MINIMUM_THREE_COSTS.md | 2026-10-19 | — | [工程师]+[AI] | 见日志批次 597 |
