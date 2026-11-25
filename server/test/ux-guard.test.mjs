@@ -10,7 +10,7 @@
 // 运行：node --test server/test/ux-guard.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -79,19 +79,18 @@ test('② 落款与销项主语不得写死「支书」单一角色（副书同�
 
 // ── ③ 反馈处置 / 我的处置：身份不得用演示占位 ID（u_sec/u_org/u_prop/u_disc/u_leader_*）─
 // 判例：支书指派落占位 ID，而「了解进展」请求落真实 personId → 委员/组长收不到；三组长共用 u_leader_1。
+// 2026-11-25 批次 635（`D-931`）：五台的 `my-dispatch-tab.js` 已随「我的处置」IA 收编删除
+//   （承接页待办复用 `components/feedback/issue-dispatch-view.js`），本断言只覆盖仍在入口图内的消费端。
 test('③ 反馈指派与「我的处置」不得使用演示占位 ID（u_*），须取真实登录成员 personId', () => {
   // 注：路径用 join 分段拼接（避免出现 "/src/" 字面量——bump-version 会给该模式追加 ?v= 版本戳而改坏测试）
   const targets = [
     ['secretary', 'feedback-tab.js'],
-    ['org', 'my-dispatch-tab.js'],
-    ['disc', 'my-dispatch-tab.js'],
-    ['prop', 'my-dispatch-tab.js'],
-    ['leader', 'my-dispatch-tab.js'],
   ];
   const BAN = /'u_(sec|org|prop|disc|leader)/;
   const hits = [];
   for (const parts of targets) {
     const file = join(DOCS, 'src', 'entries', 'tabs', ...parts);
+    assert.ok(existsSync(file), `扫描目标必须存在（防止文件改名后本断言恒真）：${relative(ROOT, file)}`);
     const text = stripComments(readFileSync(file, 'utf8'));
     if (BAN.test(text)) hits.push(relative(ROOT, file).replace(/\\/g, '/'));
   }

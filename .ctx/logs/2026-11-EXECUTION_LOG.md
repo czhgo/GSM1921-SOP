@@ -18,6 +18,8 @@ status: active
 - **反例（重要）**：`core/domain/party-group-scope.js` 被 `server/routes/leader-progress.js` 直接 import——首轮误判、`page-sweep` 红；补「服务端种子」后恢复，说明「前端入口可达性 ≠ 全局可达性」。
 - **读数**：审计 模块 324 / 不可达 0 / 零引用导出 334；`component-ratchet` 132/132（新增 D3）；`page-sweep` 16/16（163.6s）；`test:daily` 266 全绿 109.6s。
 - **边界**：零引用导出 334 个只登记不删（多为测试导出）；`P-9` 不动数据层。
+- **续（precommit 红项）**：删除的模块被 4 个 precommit 层测试点名——`ux-guard ③`（4 个 `my-dispatch-tab.js`）、`issue-branch S5`（同）、`issue-anonymity ⑨`（党委旧深链 tab）、`party-overview-model`（纯单测）。前三者改为断言现行消费端（`todo-tab-shell.js` 透传选项）或删除已不存在面的渲染断言；后者随被测模块一并删除并撤 registry 行（磁盘 ↔ 四层并集仍相等，295 文件）。判据未放宽：`ux-guard ③` 增加「目标文件必须存在」防恒真。
+- **续读数**：`ux-guard ＋ issue-branch ＋ issue-anonymity ＋ test-tier-guard` 32/32；台账守卫 88/88。
 
 ## 批次 634（2026-11-25）· 推送收口与 CI run id 入账
 

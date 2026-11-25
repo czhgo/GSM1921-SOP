@@ -723,7 +723,7 @@ lines.push('- **深链参数**：`tab` / `highlight` / `activityId` / `branchId`
 lines.push('- **`activityId` 读数**：本次扫描范围内（tabs/** 与三个入口页）对象定位统一用 `?id=` 承载；`entries/workspace/**` 对 `?activityId=` 的消费不在扫描范围，故该参数计数为 0。');
 lines.push('- **对应文件**：取 `render` 中第一个静态 `import(...)` 的目标；目标可落在 `entries/tabs/**` 之外（如支书台 `tf-view` → `components/record/insight-view.js`），仍按同一规则计数。');
 lines.push('- **共享渲染文件**：`today-tab.js`、`shared/activity-calendar-tab.js`、`record/insight-view.js`、`org/member-flow-tab.js` 等被多台复用的文件，在「链接明细」中按文件只列一次；各 tab 行按其映射文件展示，故会重复出现。');
-lines.push('- **薄壳委托**：如 `my-dispatch-tab.js` 只调用共享组件的 `renderMyDispatchTab(...)`，本矩阵不展开其内部 DOM，故该 tab 卡片数为 0。');
+lines.push('- **薄壳委托**：如某个 tab 只调用共享组件（形如 `renderXxxTab(...)`，现例：承接页待办经 `todo-tab-shell.js` 调 `renderMyDispatchTab(...)`），本矩阵不展开其内部 DOM，故该 tab 卡片数为 0。');
 lines.push('- **动态**：`render` 无静态 import 字面量、或链接目标为运行时变量时标「动态」/「待真机」，不省略。');
 lines.push('');
 

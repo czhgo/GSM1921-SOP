@@ -135,11 +135,11 @@ test('S5 组长/成员「我的处置」：两段结构、打开行才标已读�
   // 100 字令牌机制说明移 help，界面只留一句短提示 + help 深链。
   assert.doesNotMatch(view, /随机令牌比对|不以提交人身份为判据/, '长令牌说明不得留在界面');
   assert.match(view, /\.\/help\.html#card-dom39-my-dispatch/, '令牌说明的完整口径须指向 help');
-  for (const role of ['leader', 'visitor']) {
-    const tab = read(join(SRC_DIR, 'entries', 'tabs', role, 'my-dispatch-tab.js'));
-    assert.match(tab, /renderMyDispatchTab\('(?:leader|participant)', uid, opts\)/, `${role} 台须把选项传入渲染入口`);
-    assert.match(tab, /bindMyDispatchEvents\(el, '(?:leader|participant)', uid, opts\)/, `${role} 台须把选项传入事件绑定`);
-  }
+  // 2026-11-25 批次 635（`D-931`）：五台的 `my-dispatch-tab.js` 已随「我的处置」IA 收编删除，
+  //   现行消费端是 `components/record/todo-tab-shell.js`（承接页待办），选项透传改在这里断言。
+  const shell = read(join(SRC_DIR, 'components', 'record', 'todo-tab-shell.js'));
+  assert.match(shell, /renderMyDispatchTab\(cfg\.roleKey, uid, \{ \.\.\.cfg\.opts, embedded: true \}\)/, '承接页须把选项传入渲染入口');
+  assert.match(shell, /bindMyDispatchEvents\(host, cfg\.roleKey, uid, cfg\.opts\)/, '承接页须把选项传入事件绑定');
 });
 
 // ═══════════════ 数据层 ═══════════════

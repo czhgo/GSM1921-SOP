@@ -428,22 +428,12 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
       const detailHtml = document.getElementById('issue-detail-panel')?.innerHTML || '';
       tc.remove();
 
-      // 旧党委核查深链：不加载数据，只显示支部内处理边界
-      const pc = document.createElement('div');
-      pc.id = 'party-committee-tab-content';
-      document.body.appendChild(pc);
-      const pcTab = await import('/src/entries/tabs/party-committee/issue-review-tab.js?v=20261120a');
-      await pcTab.renderContent();
-      const asSecretaryHtml = pc.innerHTML;
-      // …党委同样只看到边界说明
-      loginAs('9000000001', 'party-staff');
-      await pcTab.renderContent();
-      const asPartyHtml = pc.innerHTML;
-      pc.remove();
+      // 2026-11-25 批次 635（`D-931`）：党委旧核查深链 `party-committee/issue-review-tab.js` 已删除
+      //   （入口不可达；党委工作台无反馈查询出口）。该面的「不出现真身」由下方数据层断言继续覆盖。
 
       return {
         anon, real, viaGetAll, viaGetById, viaDrafts, asMember, asParty, asSecretary,
-        asSecretaryHtml, asPartyHtml, listRowHtml, detailHtml, p5Name,
+        listRowHtml, detailHtml, p5Name,
         rawCache: rawCachePersisted,
         rawDrafts: localStorage.getItem('gsm1921-issue-drafts'),
         legacyCacheVersion: localStorage.getItem('gsm1921-issue-cache-version'),
@@ -489,15 +479,11 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
     assert.equal(out.asSecretary.forbidden, true, '支书也没有系统揭名入口');
     assert.deepEqual(out.asSecretary.rows, []);
     assert.ok(out.p5Name && out.p5Name !== '2400012349', '演示成员 2400012349 可解析为姓名');
-    assert.ok(!out.asSecretaryHtml.includes(out.p5Name), '旧核查深链不得出现真身');
-    assert.ok(out.asSecretaryHtml.includes('匿名反馈不是向党委上报的入口'));
 
     // ── 党委视角：无列表、无真身、无前端留痕 ──
     assert.equal(out.asParty.forbidden, true);
     assert.equal(out.asParty.traced, false);
     assert.deepEqual(out.asParty.rows, []);
-    assert.ok(!out.asPartyHtml.includes(out.p5Name), '党委旧深链不得出现真身');
-    assert.ok(out.asPartyHtml.includes('党委工作台不读取反馈内容或提交人身份'));
 
     assert.deepEqual(out.tracesAfterReveal, [], '关闭揭名后不新增前端揭名留痕');
     assert.deepEqual(out.traces, []);

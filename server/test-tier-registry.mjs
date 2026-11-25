@@ -392,7 +392,6 @@ export const TEST_TIERS = [
     'page-navigation-url.test.mjs',
     'participant-scope.test.mjs',
     'party-group.test.mjs',
-    'party-overview-model.test.mjs',
     'pending-writes.test.mjs',
     'periodic-archive-api.test.mjs',
     'periodic-archive-migration.test.mjs',

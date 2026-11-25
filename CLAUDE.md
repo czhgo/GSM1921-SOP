@@ -135,7 +135,7 @@ status: active
 - **验证顺序**：先定向跑改到的文件 → 改样式 / 文档补 `test:guards` → 收尾跑 `test:daily`；推送前 `test:precommit`；发布前 `test:full`。
 - **本机门禁与 full 轮次预算（2026-11-24 `D-923`）**：
   - 修复循环＝定向（改到哪个文件跑哪个）＋ `test:daily`；改样式 / 文档补 `test:guards`。
-  - 推送前本机门禁＝`npm run service:ensure` ＋ `npm run test:precommit`（覆盖 294/296 个文件；仅当改动触及 `click-cost` / `copy-screen-guard` 时补跑这两件）。
+  - 推送前本机门禁＝`npm run service:ensure` ＋ `npm run test:precommit`（覆盖 293/295 个文件；仅当改动触及 `click-cost` / `copy-screen-guard` 时补跑这两件）。
   - `test:full` 只用于发布前与夜间分片；**同一推送候选最多 1 次**，且本机必须 `npm run test:full:safe`（备份 ＋ 两库残留清理）。
   - 红项先单跑红文件定位，禁止「整轮重跑碰运气」；full 墙钟不作放行依据（按分片单片 ≤1200s）。
 - **不以 GetDiagnostics 代替测试**；不以「模块能 import」代替行为验证。
