@@ -2,7 +2,7 @@
 title: "2026年11月决策日志"
 type: decision_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-24
+last_updated: 2026-11-25
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-DECISION_LOG.md, content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md, content/04_web_design/design-system/DS_03_COMPONENTS.md, content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md]
 ---
@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-930`，共 104 条**；下一条自 **`D-931`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-931`，共 105 条**；下一条自 **`D-932`**。
 
 ## 本月目录（2026-11）
 
@@ -124,6 +124,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | mock 时效：补 4 场 11 月已完活动；草稿不进「今日会议」 | `D-928` | 2026-11-25 | 已落（批次 630） |
 | 死代码分两类：`?dev` 收主机名门、六项开关登记、死代码清点入口 | `D-929` | 2026-11-25 | 已落（批次 631） |
 | 判例转规范须给数值判据 ＋ 机检或人工核；38 条人工核登记 `B-632-1` | `D-930` | 2026-11-25 | 已落（批次 632） |
+| 死代码第一类：入口可达性审计为准，删 7 个不可达模块；服务端 import 也算入口种子 | `D-931` | 2026-11-25 | 已落（批次 635） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -973,7 +974,18 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > **读数**：`test:full` 修后复跑见执行日志批次 612；daily 264 / guards 907。
 > **落点**：`EA §一 / §2.x / §5.2`；`ACTIVE_CONTEXT §1`；`TIMESTAMPS`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-930`**（共 **104** 条）。
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-931`**（共 **105** 条）。
+
+## D-931 2026-11-25 — 死代码第一类删除：入口可达性审计为准，7 个不可达模块清除（批次 635）
+
+> **评议 → 裁定 → 落点**：支书第 3 项「①根本不能调用 ②根本无需使用」两类处置中的第一类收尾。
+> - **口径**：把 `server/scripts/dead-code-audit.mjs` 升级为**入口可达性审计**——入口＝HTML `<script src>` ＋ `entries/workspace/*-entry.js` ＋ **服务端对 `docs/src` 的 import**；边＝静态 import ＋ 能力表动态规格（按 `capabilities/` 解析）；三面（入口图 / 能力表 / 全文引用）都不命中的才判不可达。
+> - **删除 7 个**：`core/domain/party-overview.js`、`entries/tabs/{disc,leader,org,prop,visitor}/my-dispatch-tab.js`（IA 62→45 遗留）、`entries/tabs/party-committee/issue-review-tab.js`。
+> - **救回 1 个**：`core/domain/party-group-scope.js` 被 `server/routes/leader-progress.js` 直接 import——首轮误判不可达，`page-sweep` 立即红；审计补「服务端种子」后恢复，作为口径反例写进本条目。
+> - **不删**：零引用导出 334 个只登记（多为测试导出 / 动态属性），`H10.4` 要求判据可机检，此处只能人工核。
+> - **机检**：`component-ratchet-guard::D3` 内联同口径扫描，断言不可达集合为空。
+> **读数**：审计 模块 324 / 不可达 0 / 零引用导出 334；`component-ratchet` 132/132；`page-sweep` 16/16（163.6s）；`test:daily` 266 全绿 109.6s。
+> **落点**：`server/scripts/dead-code-audit.mjs`、7 个删除文件、`server/test/component-ratchet-guard.test.mjs`、`.ctx/TIMESTAMPS.md`（`party-overview` 行改记 `party-group-scope` 的「不可删」事实）。
 
 ## D-930 2026-11-25 — 判例—守卫覆盖审计：判例转规范须给数值判据 ＋ 机检或人工核（批次 632）
 

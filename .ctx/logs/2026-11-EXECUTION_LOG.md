@@ -2,13 +2,22 @@
 title: "2026年11月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-24
+last_updated: 2026-11-25
 status: active
 ---
 
 # 2026年11月执行日志
 
 > **边界**（`CLAUDE.md H26.1` / `R-84`）：只留「为什么 / 拿不准 / 边界 / 读数」；过程流水归 `git`，本文件不复述 diff。
+
+## 批次 635（2026-11-25）· 死代码第一类删除 ＋ 审计升级（`D-931`）
+
+- **为什么**：八项专项只剩第 3 项「根本不能调用」类未做；631 的清点只比文件名，判不出不可达。
+- **审计升级**：入口＝HTML `<script>` ＋ `entries/workspace/*-entry.js` ＋ **服务端对 `docs/src` 的 import**；边＝静态 import ＋ 能力表动态规格；三面都不命中才判不可达。
+- **删除 7 个**：`core/domain/party-overview.js`、5 个 `my-dispatch-tab.js`、`party-committee/issue-review-tab.js`。
+- **反例（重要）**：`core/domain/party-group-scope.js` 被 `server/routes/leader-progress.js` 直接 import——首轮误判、`page-sweep` 红；补「服务端种子」后恢复，说明「前端入口可达性 ≠ 全局可达性」。
+- **读数**：审计 模块 324 / 不可达 0 / 零引用导出 334；`component-ratchet` 132/132（新增 D3）；`page-sweep` 16/16（163.6s）；`test:daily` 266 全绿 109.6s。
+- **边界**：零引用导出 334 个只登记不删（多为测试导出）；`P-9` 不动数据层。
 
 ## 批次 634（2026-11-25）· 推送收口与 CI run id 入账
 

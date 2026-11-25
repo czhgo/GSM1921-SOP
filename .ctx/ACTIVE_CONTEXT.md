@@ -4,8 +4,8 @@ type: active_context
 role: "[AI]"
 layer: active
 last_updated: 2026-11-25
-last_verified: "2026-11-24"
-latest_decision: "D-930"
+last_verified: "2026-11-25"
+latest_decision: "D-931"
 budget: "≤300 行 / ≤30KB"
 source: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/ACTIVE_RULINGS.md, .ctx/logs/2026-11-DECISION_LOG.md]
 status: active
@@ -72,7 +72,7 @@ status: active
 3. **backlog（触发即做）**：`L-13`（余 8 条，F-2 见 `P-5`）、`L-14`·`L-15`（方案见 `WORKFLOW_BLOCK_CONTRACT §8.5`，形态见 `P-6`）、`L-17`（`probe:scale` 未触发）、`L-18`。
 4. **发布前阻断**：本机门禁改为 `test:precommit`（`D-923`）；`S21` 已按 `D-924` 转绿；余外部门 `L-02` 的 systemd / nginx 真机段、M-01 真机点击与 `/signoff` 签收。
 5. **已撤销**：`C-5`（`D-914`）——`text-xs` 是 DS_02 允许的「说明句」档，不设「全部上迁 13px」任务；新增由 `style-ratchet-guard::Q6` 的只减不增基线守住。
-6. **脏乱繁专项 627–632 已落**：主色按场域（`D-925`）、括注准入（`D-926`）、按钮三层与党小组降密（`D-927`）、mock 时效（`D-928`）、死代码分两类（`D-929`）、判例-守卫覆盖审计（`D-930`）；待推送；遗留 `P-9`（整库锚点化的滚动窗口）与 `B-632-1`（38 条人工核判例）。
+6. **脏乱繁专项 627–635 已落**：主色按场域（`D-925`）、括注准入（`D-926`）、按钮三层与党小组降密（`D-927`）、mock 时效（`D-928`）、死代码分两类（`D-929`）、判例-守卫覆盖审计（`D-930`）、死代码第一类删除与审计升级（`D-931`）；待推送；遗留 `P-9`（整库锚点化的滚动窗口）、`B-632-1`（38 条人工核判例）与零引用导出 334（只登记不删）。
 
 ## §4 文件地图（读什么 / 不读什么）
 

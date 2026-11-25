@@ -55,7 +55,7 @@ dynamic_role:
 | .ctx/TIMESTAMPS.md | 2026-11-24 | — | [工程师]+[AI] | 文件时间戳注册表；备注列只写**现状 / 边界 / 指针**（`R-89`）；纯代码行（`.js` / `.mjs`）不再逐条登记，改动日以 git 为准（批次 597）。 |
 | .ctx/SNAPSHOT.md | 2026-11-22 | — | [AI] | 系统现状基线（reference）：只答「系统现在长什么样」；schema v19 / 业务 50 表。 |
 | .ctx/ACTIVE_RULINGS.md | 2026-11-24 | — | [工程师]+[AI] | 现行有效裁定**索引**（reference）：只答「到哪找某条现行口径」；跨域摘要 + 18 领域索引，规则正文在 `content/01–05`。 |
-| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-25 | — | [工程师]+[AI] | 见日志批次 634（推送收口、CI run id 统一为 `45479385134`）；判例-守卫覆盖审计 25 有机检 / 38 人工核；六维 78/77/75/70/72/70（`D-918`） |
+| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-25 | — | [工程师]+[AI] | 见日志批次 635（死代码第一类清零：不可达 0 / 删 7 模块 / 零引用导出 334 只降不升）；判例-守卫覆盖审计 25 有机检 / 38 人工核；六维 78/77/75/70/72/70（`D-918`） |
 | .ctx/REVIEW_QUEUE.md | 2026-11-23 | — | [工程师]+[AI] | 支书评议队列（reference）：只答「要评议什么 ＋ 评议怎么做」；2026-11-23 批次 606 `B-541-3` 闭环删行。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND1_WORKBENCH_STRUCTURE.md | 2026-10-19 | — | [工程师]+[AI] | Round 1 工作台结构审计报告（53 条 triage + 三路审查 + 共识/分歧/裁定 + 证据门）；修复 spec 落盘后可归档或删除。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND2_MINIMUM_THREE_COSTS.md | 2026-10-19 | — | [工程师]+[AI] | 见日志批次 597 |
@@ -65,8 +65,8 @@ dynamic_role:
 | .ctx/logs/archive/2026-10/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/logs/archive/2026-10/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-11-22 | — | [工程师]+[AI] | 日志索引：月份目录 ＋ 批次 529–568；569+ 见当月执行日志各节标题。 |
-| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-24 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，批次 626 在最上）。 |
-| .ctx/logs/DECISION_LOG.md | 2026-11-24 | — | [工程师]+[AI] | 决策日志月度索引；概要只留条数与主题词（沿革见各月文件）。 |
+| .ctx/logs/2026-11-EXECUTION_LOG.md | 2026-11-25 | — | [工程师]+[AI] | 11 月执行日志（当月活跃，批次 635 在最上）。 |
+| .ctx/logs/DECISION_LOG.md | 2026-11-25 | — | [工程师]+[AI] | 决策日志月度索引；概要只留条数与主题词（沿革见各月文件）。 |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-03-EXECUTION_LOG.md | 2026-03-02 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-04-EXECUTION_LOG.md | 2026-04-01 | 2026-07-31 | [工程师]+[AI] | 已归档 |
@@ -82,7 +82,7 @@ dynamic_role:
 | .ctx/logs/archive/2026-09-EXECUTION_LOG.md | 2026-10-06 | 2026-10-06 | [工程师]+[AI] | 见日志批次 597 |
 | .ctx/logs/2026-10-EXECUTION_LOG.md | 2026-10-27 | — | [工程师]+[AI] | 见日志批次 597 |
 | .ctx/logs/2026-10-DECISION_LOG.md | 2026-10-22 | — | [工程师]+[AI] | 见日志批次 597 |
-| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-24 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；当前 `D-827`…`D-924`。 |
+| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-25 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；当前 `D-827`…`D-931`。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_R10_DATA_LIFECYCLE.md | 2026-10-23 | — | [工程师]+[AI] | 第十轮数据生命周期审查（75 条；R10 四批的依据）。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_UI_R11.md | 2026-10-23 | — | [工程师]+[AI] | 第十一轮前端脏乱繁审查（P0/P1/P2 与 SD-1…SD-11）。 |
 | .ctx/logs/archive/2026-10/2026-10-R10_P3_CLOSURE.md | 2026-10-23 | — | [工程师]+[AI] | R10 P3 收口对账（R6 21 / R7 18 / 帮助注释 9）。 |
@@ -225,7 +225,7 @@ dynamic_role:
 | content/05_ai_coding/GUARD_INVENTORY.md | 2026-11-22 | — | [工程师]+[AI] | 守卫台账；历史总表停 66 件（已滞后），现行件数以 `test-tier-registry.mjs` 为准。 |
 | content/03_doc_system/CASES_INDEX.md | 2026-11-25 | — | [工程师]+[AI] | 判例总索引（design 46 / data 1 / institution 5 / ai-coding 11，合计 63）；批次 629 登记 CASE-DESIGN-046。 |
 | .ctx/README.md | 2026-11-21 | — | [工程师]+[AI] | 见日志批次 597 |
-| .ctx/ACTIVE_CONTEXT.md | 2026-11-25 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-930`；六维 78/77/75/70/72/70。 |
+| .ctx/ACTIVE_CONTEXT.md | 2026-11-25 | — | [AI] | active 投影（≤300 行 / 30KB）：系统现状、现行裁定摘要、风险与下一步、文件地图、保鲜规则；latest_decision `D-931`；六维 78/77/75/70/72/70。 |
 | server/README.md | 2026-11-23 | — | [工程师]+[AI] | 服务端说明；604 续守卫清单旧文件名改归并件名（`GC-1`） |
 | server/package.json | 2026-11-23 | — | [工程师]+[AI] | 2026-11-23 批次 606/607/609 增 `test:multi-branch` / `verify:smtp` / `acceptance` / `probe:scale` |
 | server/package-lock.json | 2026-08-30 | — | [工具] |  |
@@ -480,7 +480,7 @@ dynamic_role:
 | docs/src/data/workgroup-seed-sync.js | 2026-10-23 | — | [工程师]+[AI] | 旧 mock 活动/专班工作组兼容映射；冲突关联不猜测，清除 |
 | docs/src/core/domain/domain.js | 2026-10-23 | — | [工程师]+[AI] | 领域模型（2026-09-21 批次 120：`ImageR |
 | docs/src/core/domain/capability-packages.js | 2026-10-16 | — | [工程师]+[AI] | 业务能力包目录：制度依据、适用范围、配置权与依赖元数据。 |
-| docs/src/core/domain/party-overview.js | 2026-10-18 | — | [工程师]+[AI] | 党委概况待处理队列与异常计数的纯领域投影。 |
+| docs/src/core/domain/party-group-scope.js | 2026-11-25 | — | [工程师]+[AI] | 组归属作用域纯函数；服务端 `routes/leader-progress.js` 直接消费（**不可删**，批次 635 审计补的服务端种子即指此处）。 |
 | docs/src/core/domain/workgroup-policy.js | 2026-10-17 | — | [工程师]+[AI] | 工作组角色集合与活动/专班权限建议模板的共享策略单一源。 |
 | docs/src/core/base/icons.js | 2026-09-29 | — | [工程师]+[AI] | 图标系统（含 upload 上传图标） |
 | docs/src/core/base/id.js | 2026-09-29 | — | [工程师]+[AI] | UUID 发生器 |

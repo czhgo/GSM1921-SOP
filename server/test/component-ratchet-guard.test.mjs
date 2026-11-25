@@ -4955,4 +4955,83 @@ await (async () => {
     assert.match(src, /--json/, '清点脚本须支持 --json 供台账引用');
     assert.match(src, /根本不能调用/, '脚本头注须区分两类「死」并说明处置差异');
   });
+
+  test('D3 死代码：入口可达性审计下「不可达模块」为空（2026-11-25 批次 635 · D-931）', async () => {
+    const { readdirSync, statSync } = await import('node:fs');
+    const { resolve, dirname, relative } = await import('node:path');
+    const DOCS = join(ROOT, 'docs');
+    const SRC = join(DOCS, 'src');
+    const CAP = join(SRC, 'capabilities');
+    const walk = (dir, out = []) => {
+      for (const ent of readdirSync(dir, { withFileTypes: true })) {
+        const p = join(dir, ent.name);
+        if (ent.isDirectory()) walk(p, out);
+        else if (ent.name.endsWith('.js')) out.push(p);
+      }
+      return out;
+    };
+    const modules = walk(SRC);
+    const texts = new Map(modules.map((p) => [p, readFileSync(p, 'utf8')]));
+    const entries = [];
+    for (const ent of readdirSync(DOCS, { withFileTypes: true })) {
+      if (!ent.isFile() || !ent.name.endsWith('.html')) continue;
+      for (const m of texts.size && readFileSync(join(DOCS, ent.name), 'utf8').matchAll(/<script[^>]+src="([^"]+\.js)(?:\?[^"]*)?"/g) || []) {
+        const abs = resolve(DOCS, m[1].replace(/^\.\//, ''));
+        if (texts.has(abs)) entries.push(abs);
+      }
+    }
+    const walkHtml = (dir) => {
+      for (const ent of readdirSync(dir, { withFileTypes: true })) {
+        const p = join(dir, ent.name);
+        if (ent.isDirectory()) walkHtml(p);
+        else if (ent.name.endsWith('.html')) {
+          for (const m of readFileSync(p, 'utf8').matchAll(/<script[^>]+src="([^"]+\.js)(?:\?[^"]*)?"/g)) {
+            const abs = resolve(DOCS, m[1].replace(/^\.\//, ''));
+            if (texts.has(abs)) entries.push(abs);
+          }
+        }
+      }
+    };
+    walkHtml(DOCS);
+    for (const p of modules) if (/entries[\\/]workspace[\\/][^\\/]+-entry\.js$/.test(p)) entries.push(p);
+    // 服务端真实消费者（如 routes/leader-progress.js → core/domain/party-group-scope.js）也算入口种子
+    const walkServer = (dir) => {
+      for (const ent of readdirSync(dir, { withFileTypes: true })) {
+        const p = join(dir, ent.name);
+        if (ent.isDirectory()) { if (ent.name !== 'node_modules') walkServer(p); }
+        else if (/\.(js|mjs)$/.test(ent.name)) {
+          const t = readFileSync(p, 'utf8');
+          for (const m of t.matchAll(/(?:from|import)\s*\(?\s*['"]([^'"]*docs\/src\/[^'"]+\.js)(?:\?[^'"]*)?['"]/g)) {
+            const abs = resolve(dirname(p), m[1]);
+            if (texts.has(abs)) entries.push(abs);
+          }
+        }
+      }
+    };
+    walkServer(join(ROOT, 'server'));
+    assert.ok(entries.length >= 60, `入口只解析到 ${entries.length} 个（应 ≥60）：扫描面被写坏，本断言会恒真`);
+    const reach = new Set(entries);
+    const queue = [...reach];
+    while (queue.length) {
+      const cur = queue.pop();
+      const t = texts.get(cur) || '';
+      const edges = [];
+      for (const m of t.matchAll(/(?:from|import)\s*\(?\s*['"]([^'"]+\.js)(?:\?[^'"]*)?['"]/g)) {
+        if (m[1].startsWith('.')) edges.push(resolve(dirname(cur), m[1]));
+      }
+      for (const m of t.matchAll(/['"]((?:\.\.?\/)+entries\/[^'"]+\.js)(?:\?[^'"]*)?['"]/g)) edges.push(resolve(CAP, m[1]));
+      for (const nx of edges) if (texts.has(nx) && !reach.has(nx)) { reach.add(nx); queue.push(nx); }
+    }
+    const allText = [...texts.values()].join('\n');
+    const unreachable = modules.filter((p) => !reach.has(p)).map((p) => relative(ROOT, p).replace(/\\/g, '/'));
+    // 第三面：全文文件名引用（动态拼串 / 测试引用）视为可达，与 `scripts/dead-code-audit.mjs` 同口径
+    const dead = unreachable.filter((relPath) => {
+      const base = relPath.split('/').pop();
+      const others = modules.filter((p) => relative(ROOT, p).replace(/\\/g, '/') !== relPath)
+        .map((p) => texts.get(p)).join('\n');
+      return !others.includes(base) && !allText.includes(relPath);
+    });
+    assert.deepEqual(dead, [], `存在入口不可达且无任何引用的模块（删除或登记理由后再提交）：\n  ${dead.join('\n  ')}`);
+    assert.ok(statSync(join(SRC, 'core', 'boot', 'tab-loader.js')).isFile(), 'tab-loader 缺失：动态装载口径已失效');
+  });
 })();
